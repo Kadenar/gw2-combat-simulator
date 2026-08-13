@@ -1,0 +1,90 @@
+{
+  "build": {
+    "gear": {
+      "Helm": "Celestial",
+      "Shoulders": "Celestial",
+      "Chest": "Celestial",
+      "Gloves": "Celestial",
+      "Leggins": "Celestial",
+      "Boots": "Celestial",
+      "Amulet": "Celestial",
+      "Ring1": "Celestial",
+      "Ring2": "Celestial",
+      "Accessory1": "Celestial",
+      "Accessory2": "Celestial",
+      "Back": "Celestial",
+      "Weapon1": "Celestial",
+      "Weapon2": "Celestial"
+    },
+    "weapons": ["Scepter", "Warhorn"],
+    "rune": "Divinity",
+    "sigils": ["Smoldering", "Torment"],
+    "relic": "Peitha",
+    "food": "Spherified Cilantro Oyster Soup",
+    "utility": "Toxic Maintenance Oil",
+    "jadeBotCore": true,
+    "specializations": [
+      {
+        "name": "Fire",
+        "traits": "1-1-1"
+      },
+      {
+        "name": "Water",
+        "traits": "2-3-2"
+      },
+      {
+        "name": "Tempest",
+        "traits": "3-3-3"
+      }
+    ],
+    "infusions": [
+      {
+        "stat": "Healing Power",
+        "count": 18
+      },
+      {
+        "stat": "Precision",
+        "count": 0
+      },
+      {
+        "stat": "Ferocity",
+        "count": 0
+      }
+    ]
+  },
+  "selectedSkills": {
+    "heal": "Wash the Pain Away!",
+    "util1": "Feel the Burn!",
+    "util2": "Glyph of Storms (Fire)",
+    "util3": "Signet of Fire",
+    "elite": "Glyph of Elementals"
+  },
+  "activeAttunement": "Fire",
+  "secondaryAttunement": "Air",
+  "evokerElement": null,
+  "evokerStartCharges": 6,
+  "evokerStartEmpowered": 0,
+  "permaBoons": {
+    "Might": 25,
+    "Fury": true,
+    "Protection": true,
+    "Resolution": true,
+    "Alacrity": true,
+    "Quickness": true,
+    "Regeneration": true,
+    "Vigor": true,
+    "Swiftness": true,
+    "Bleeding": 5,
+    "Burning": true,
+    "Torment": 5,
+    "Confusion": 5,
+    "Poisoned": true,
+    "Chilled": true,
+    "Cripple": true,
+    "Slow": true,
+    "Weakness": true,
+    "Vulnerability": 25
+  },
+  "hitboxSize": "small",
+  "glyphBoonedElementals": true
+}

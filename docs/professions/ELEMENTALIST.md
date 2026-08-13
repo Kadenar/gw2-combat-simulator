@@ -1,4 +1,4 @@
-# GW2 DPS Calculator & Rotation Builder
+# Elementalist Simulator Architecture
 
 A single-page application for simulating Guild Wars 2 Elementalist combat rotations, calculating DPS (damage per second), and analyzing the contribution of individual modifiers (sigils, relics, boons, traits).
 
@@ -7,8 +7,7 @@ A single-page application for simulating Guild Wars 2 Elementalist combat rotati
 ## Running the App
 
 The Elementalist application ships inside the combined simulator. Start the
-shared dev server from the repository root (a server is required because the
-Elementalist skill data is fetched from CSV; `file://` will not work):
+shared dev server from the repository root:
 
 ```powershell
 npm start
@@ -21,14 +20,18 @@ the landing page at `http://127.0.0.1:4173`.
 
 ## Current Status
 
-This document describes the Elementalist package as ported into the combined
-`gw2-combat-simulator` repository.
+Elementalist has two deliberately separate applications:
 
-- The root `README.md` is the user-facing overview for all four professions.
-- Elementalist code now lives under `js/professions/elementalist/`; shared
-  damage, attributes, gear, event-queue, I/O, and UI helpers live under
-  `js/platform/` and `js/app/`.
-- The simulator keeps its explicit `schedule -> resolve` split internally.
+- `elementalist.html` is the canonical native application. It uses the shared
+  GW2 scheduler, resolver, build codec, application shell, and static native
+  skill declarations.
+- `elementalist-legacy.html` is the standalone comparison application. Its
+  JavaScript, optimizer, data loader, and bespoke simulator live entirely under
+  `js/professions/elementalist/legacy/`.
+- Native Elementalist has no dependency on the standalone implementation or
+  its runtime data loader. The original data was migration input only.
+- Build templates and rotations live in `Builds/elementalist/` and
+  `Rotations/elementalist/`.
 
 The most useful mental model is:
 
@@ -38,71 +41,59 @@ The most useful mental model is:
 
 ## Project Structure
 
-> Port note: the field-by-field mechanic descriptions below were carried over
-> from the original standalone `Elementalist-Simulator` repository and still
-> describe the same behavior. Only the file locations changed in the combined
-> repository. Shared damage, attribute, gear, event-queue, I/O, and UI helpers
-> now live under `js/platform/` and `js/app/`; Elementalist-owned code lives
-> under `js/professions/elementalist/`. The original standalone browser fixture
-> harness was not ported; combined-repository regression fixtures live under
-> `tests/`.
+> The native layout is listed first. The field-by-field material later in this
+> document is retained as a reference for the standalone comparison engine and
+> is not a dependency of the native implementation.
 
 Combined-repository layout of the Elementalist package:
 
 ```
 gw2-combat-simulator/
-├── elementalist.html                  # Elementalist application entry
+├── elementalist.html                  # Native shared-shell entry
+├── elementalist-legacy.html           # Standalone comparison entry
 ├── index.html                         # Shared profession landing page
 ├── js/
 │   ├── app/                           # Profession-neutral browser shell
 │   ├── platform/                      # Shared engine, GW2 formulas/data, UI contracts
 │   └── professions/elementalist/
-│       ├── definition.js              # defineProfession() composition + adapter
-│       ├── simulation.js              # Public simulation engine root
-│       ├── build.js / build-attributes.js / state.js
-│       ├── app/                       # Elementalist UI wiring and app adapter
-│       ├── core/                      # Attribute calculation (calc-attributes.js)
-│       ├── data/                      # Static gear/trait data + CSV loading
-│       ├── optimizer/                 # Gear optimizer + worker
-│       └── sim/                       # Internal simulator modules
-│           ├── run/                   # Run preparation and orchestration
-│           ├── scheduler/             # Rotation commands -> timed events
-│           ├── resolver/              # Process events in time order
-│           ├── shared/                # Scheduler/resolver handoff helpers
-│           ├── state/                 # Named state domains
-│           └── mechanics/             # Gameplay-specific mechanic logic
-├── csv input/
-│   ├── Tool_Elementalist - Skills_data.csv
-│   └── Tool_Elementalist - Skill_hits_data.csv
-├── Builds/                            # Elementalist build presets
-└── Rotations/                         # Rotation examples
+│       ├── definition.ts / family.ts / modules.ts
+│       ├── build.ts / build-attributes.ts / types.d.ts
+│       ├── app/app-definition.ts      # Shared-shell adapter
+│       ├── core/                      # Native core mechanics and presentation
+│       ├── data/                      # Static native skill, trait, and API metadata
+│       ├── mechanics/                 # Native skill mechanics declarations
+│       ├── specializations/           # Tempest, Weaver, Catalyst, and Evoker modules
+│       └── legacy/                    # Complete standalone implementation
+├── Builds/elementalist/               # All Elementalist build presets
+└── Rotations/elementalist/            # All Elementalist rotations
 ```
 
-**Note:** Gear prefixes, runes, food, utility, sigils, weapons, relics, and
-traits are hardcoded in JavaScript under
-`js/professions/elementalist/data/`. Only Skills and Skill_hits data are
-loaded from CSV.
+Legacy skill and hit CSV inputs live in
+`js/professions/elementalist/legacy/data/csv/`.
+
+The native app deliberately excludes the standalone optimizer, effective-power
+tools, and other bespoke UI features.
 
 ---
 
-## Architecture Overview
+## Standalone Comparison Architecture
 
 ```
-elementalist.html
+elementalist-legacy.html
         │
         ├── js/app/*                    (shared profession-neutral shell)
-        └── js/professions/elementalist/app/*
+        └── js/professions/elementalist/legacy/app/*
                 │
                 ├── js/professions/elementalist/data/*
-                └── js/professions/elementalist/sim/run/sim-runner.js
+                └── js/professions/elementalist/legacy/sim/run/sim-runner.js
                         │
-                        └── js/professions/elementalist/simulation.js
+                        └── js/professions/elementalist/legacy/simulation.js
                                 │
-                                └── js/professions/elementalist/sim/run/sim-run-orchestration.js
+                                └── js/professions/elementalist/legacy/sim/run/sim-run-orchestration.js
                                         │
-                                        ├── js/professions/elementalist/sim/scheduler/*
-                                        ├── js/professions/elementalist/sim/shared/*
-                                        └── js/professions/elementalist/sim/resolver/*
+                                        ├── js/professions/elementalist/legacy/sim/scheduler/*
+                                        ├── js/professions/elementalist/legacy/sim/shared/*
+                                        └── js/professions/elementalist/legacy/sim/resolver/*
 ```
 
 ---
@@ -115,15 +106,14 @@ Browser-facing application code. `js/app/` is the shared profession-neutral
 shell; Elementalist-specific wiring lives under
 `js/professions/elementalist/app/`.
 
-- UI rendering
-- DOM event wiring
-- build/rotation snapshot handling
-- optimizer panel integration
-- GW2 icon/API helpers
+- native app-adapter wiring
+- shared build, assumption, rotation, result, and timeline views
+- native persistence and build/rotation snapshot migration
 
 ### `js/professions/elementalist/core/`
 
-Elementalist-owned build calculations.
+Elementalist-owned native rules, state, resolver hooks, modifiers, skill
+declarations, and presentation.
 
 - attribute calculation
 - Elementalist trait and equipped-skill bonuses
@@ -135,13 +125,13 @@ Shared strike and condition formulas live under `js/platform/gw2/`.
 Project data sources.
 
 - static gear/trait data
-- CSV loading for skills and hit tables
+- static native skill declarations, traits, IDs, and icon metadata
 
-### `js/professions/elementalist/optimizer/`
+### `js/professions/elementalist/legacy/optimizer/`
 
 The gear optimizer and its worker entry.
 
-### `js/professions/elementalist/sim/`
+### `js/professions/elementalist/legacy/sim/`
 
 The internal simulator, split by responsibility:
 
@@ -160,22 +150,22 @@ The internal simulator, split by responsibility:
 
 Centralizes all static item/modifier data.
 
-| Export | Purpose |
-|---|---|
-| `GEAR_PREFIXES` | Map of gear prefix name → `{ Power, Precision, Ferocity, ... }` stat bonuses per slot category (heavy, medium, light, trinket, back, weapon). |
-| `RUNE_DATA` / `RUNE_NAMES` | Rune stat bonuses map + sorted name list. |
-| `FOOD_DATA` / `FOOD_NAMES` | Food modifier data (flat bonuses + conversion rules). |
-| `UTILITY_DATA` / `UTILITY_NAMES` | Utility consumable data (flat bonuses + conversion rules). |
-| `JBC_BONUS` | Jade Bot Core stat bonus object. |
-| `INFUSION_BONUS` | Flat stat bonus per infusion (+5). |
-| `BASE_STATS` | Base attribute values at level 80 (Power 1000, Precision 1000, etc.). |
-| `WEAPON_DATA` | Map of weapon type → `{ wielding, weaponStrength }`. |
-| `SIGIL_DATA` | Map of sigil name → stat bonuses (crit chance, condition durations, etc.). |
-| `SIGIL_NAMES` | Sorted sigil name list. |
-| `RELIC_DATA` | Map of relic name → proc definition (trigger, ICD, effects). |
-| `RELIC_NAMES` | Sorted relic name list. |
-| `PRIMARY_STATS` | Array of primary stat names (Power, Precision, Ferocity, etc.). |
-| `DURATION_KEYS` | Map of condition/boon type → attribute key string. |
+| Export                           | Purpose                                                                                                                                       |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GEAR_PREFIXES`                  | Map of gear prefix name → `{ Power, Precision, Ferocity, ... }` stat bonuses per slot category (heavy, medium, light, trinket, back, weapon). |
+| `RUNE_DATA` / `RUNE_NAMES`       | Rune stat bonuses map + sorted name list.                                                                                                     |
+| `FOOD_DATA` / `FOOD_NAMES`       | Food modifier data (flat bonuses + conversion rules).                                                                                         |
+| `UTILITY_DATA` / `UTILITY_NAMES` | Utility consumable data (flat bonuses + conversion rules).                                                                                    |
+| `JBC_BONUS`                      | Jade Bot Core stat bonus object.                                                                                                              |
+| `INFUSION_BONUS`                 | Flat stat bonus per infusion (+5).                                                                                                            |
+| `BASE_STATS`                     | Base attribute values at level 80 (Power 1000, Precision 1000, etc.).                                                                         |
+| `WEAPON_DATA`                    | Map of weapon type → `{ wielding, weaponStrength }`.                                                                                          |
+| `SIGIL_DATA`                     | Map of sigil name → stat bonuses (crit chance, condition durations, etc.).                                                                    |
+| `SIGIL_NAMES`                    | Sorted sigil name list.                                                                                                                       |
+| `RELIC_DATA`                     | Map of relic name → proc definition (trigger, ICD, effects).                                                                                  |
+| `RELIC_NAMES`                    | Sorted relic name list.                                                                                                                       |
+| `PRIMARY_STATS`                  | Array of primary stat names (Power, Precision, Ferocity, etc.).                                                                               |
+| `DURATION_KEYS`                  | Map of condition/boon type → attribute key string.                                                                                            |
 
 ---
 
@@ -183,13 +173,13 @@ Centralizes all static item/modifier data.
 
 All Elementalist trait data.
 
-| Export | Purpose |
-|---|---|
-| `TRAITS` | Array of all trait objects `{ tier, name, specialization, position, ...bonuses }`. Covers all 117 minor/major traits across all Elementalist specializations. |
-| `SPECIALIZATIONS` | Ordered list of all Elementalist specialization names. |
-| `ELITE_SPECS` | `Set` of elite specialization names (Tempest, Weaver, Catalyst, Evoker). |
-| `CORE_SPECS` | Array of core specialization names. |
-| `DEFAULT_TRAITS` | Default major trait picks string (`'1-1-1'`). |
+| Export                             | Purpose                                                                                                                                                                     |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TRAITS`                           | Array of all trait objects `{ tier, name, specialization, position, ...bonuses }`. Covers all 117 minor/major traits across all Elementalist specializations.               |
+| `SPECIALIZATIONS`                  | Ordered list of all Elementalist specialization names.                                                                                                                      |
+| `ELITE_SPECS`                      | `Set` of elite specialization names (Tempest, Weaver, Catalyst, Evoker).                                                                                                    |
+| `CORE_SPECS`                       | Array of core specialization names.                                                                                                                                         |
+| `DEFAULT_TRAITS`                   | Default major trait picks string (`'1-1-1'`).                                                                                                                               |
 | `getActiveTraits(specializations)` | Resolves which traits are active given the current build's three specialization slots. Returns an array of active trait objects (minors always active; one major per tier). |
 
 ---
@@ -203,6 +193,7 @@ calcAttributes(build, equippedSkills) → { attributeBreakdowns, derivedStats }
 ```
 
 **`build` object shape:**
+
 - `prefix` — Gear prefix name (looked up in `GEAR_PREFIXES`)
 - `rune` — Rune name (looked up in `RUNE_DATA`)
 - `sigil1` / `sigil2` — Sigil names
@@ -243,17 +234,18 @@ Each primary stat entry: `{ final, base, gear, runes, food, utility, jbc, traits
 
 ---
 
-### `js/professions/elementalist/data/csv-loader.js` — Data Loading
+### `js/professions/elementalist/legacy/data/csv-loader.js` — Data Loading
 
 Now only loads the two skills CSVs. All gear/trait/sigil/weapon/relic data has been migrated to JS modules.
 
-| Export | Purpose |
-|---|---|
-| `loadAllData()` | Async. Fetches `Skills_data.csv` and `Skill_hits_data.csv`, parses them, returns `{ skills, skillHits }`. |
-| `loadSkills(text)` | Parses `Skills_data.csv` → array of skill objects (`name`, `type`, `slot`, `attunement`, `weapon`, `castTime`, `recharge`, etc.). |
+| Export                | Purpose                                                                                                                                                                                                                    |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `loadAllData()`       | Async. Fetches `Skills_data.csv` and `Skill_hits_data.csv`, parses them, returns `{ skills, skillHits }`.                                                                                                                  |
+| `loadSkills(text)`    | Parses `Skills_data.csv` → array of skill objects (`name`, `type`, `slot`, `attunement`, `weapon`, `castTime`, `recharge`, etc.).                                                                                          |
 | `loadSkillHits(text)` | Parses `Skill_hits_data.csv` → map of `skillName → hitRow[]`. Each hit: `damage` (coefficient), `hit` index, `startOffsetMs`, `repeatOffsetMs`, `numberOfImpacts`, `isFieldTick`, `cc`, `conditions`, combo finisher info. |
 
 **CSV format notes:**
+
 - `Skill_hits_data.csv` is the most complex. Each row is one "hit" of a skill. Skills with multiple hits have multiple rows.
 - `NumberOfImpacts = "Duration"` means the hit repeats for a duration at a given interval (field ticks).
 - Condition columns use `stacks|duration` format (e.g., `2|5` = 2 stacks for 5 seconds).
@@ -263,21 +255,22 @@ Now only loads the two skills CSVs. All gear/trait/sigil/weapon/relic data has b
 ### `js/platform/gw2/damage.js` — Damage Formulas
 
 Pure math functions with no side effects. Constants:
+
 - `TARGET_ARMOR = 2597` (standard golem armor)
 
-| Export | Formula |
-|---|---|
-| `strikeDamage(coeff, ws, power, armor)` | `coeff × ws × power / armor` |
-| `expectedCritMultiplier(critChance%, critDmg%)` | `1 + (cc/100) × (cd/100 - 1)` — expected value including crit probability |
-| `conditionTickDamage(type, condDmg)` | `base + scaling × condDmg` — per-tick, per-stack |
-| `conditionTotalDamage(type, stacks, durSec, condDmg, durBonus%)` | Total damage for a condition application |
-| `getConditionDurationBonus(type, attrs)` | Looks up specific or general condition duration from attributes |
-| `getBoonDurationBonus(type, attrs)` | Looks up boon duration (general + specific like Might Duration) |
-| `calculateSkillDamage(skill, hits, ws, attrs)` | Full per-skill damage breakdown (used by the Skill Info Table panel) |
+| Export                                                           | Formula                                                                   |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `strikeDamage(coeff, ws, power, armor)`                          | `coeff × ws × power / armor`                                              |
+| `expectedCritMultiplier(critChance%, critDmg%)`                  | `1 + (cc/100) × (cd/100 - 1)` — expected value including crit probability |
+| `conditionTickDamage(type, condDmg)`                             | `base + scaling × condDmg` — per-tick, per-stack                          |
+| `conditionTotalDamage(type, stacks, durSec, condDmg, durBonus%)` | Total damage for a condition application                                  |
+| `getConditionDurationBonus(type, attrs)`                         | Looks up specific or general condition duration from attributes           |
+| `getBoonDurationBonus(type, attrs)`                              | Looks up boon duration (general + specific like Might Duration)           |
+| `calculateSkillDamage(skill, hits, ws, attrs)`                   | Full per-skill damage breakdown (used by the Skill Info Table panel)      |
 
 ---
 
-### `js/professions/elementalist/app/gw2-api.js` — Icon Fetching
+### `js/professions/elementalist/legacy/app/gw2-api.js` — Icon Fetching
 
 `GW2API` class fetches skill/trait/specialization icons from the official GW2 API.
 
@@ -289,38 +282,46 @@ Pure math functions with no side effects. Constants:
 
 ---
 
-### `js/professions/elementalist/simulation.js` — Simulation Engine
+### `js/professions/elementalist/legacy/simulation.js` — Simulation Engine
 
 The core of the app. The `SimulationEngine` class processes a user-defined rotation and produces a full damage timeline.
 
 #### Constructor
 
 ```javascript
-new SimulationEngine({ skills, skillHits, weapons, attributes, sigils, relics })
+new SimulationEngine({
+  skills,
+  skillHits,
+  weapons,
+  attributes,
+  sigils,
+  relics,
+});
 ```
 
 `weapons`, `sigils`, and `relics` are passed from JS constants (`WEAPON_DATA`, `SIGIL_DATA`, `RELIC_DATA` from `gear-data.js`), not from CSV. `attributes` comes from `calcAttributes()`.
 
 #### Constants
 
-| Constant | Purpose |
-|---|---|
-| `DAMAGING_CONDITIONS` | Set of conditions that deal damage (Burning, Bleeding, Poisoned, Torment, Confusion) |
-| `BOONS` | Set of all boon names |
-| `SIGIL_PROCS` | Defines all sigil proc mechanics (trigger type, ICD, effect, coefficient, icon) |
-| `RELIC_PROCS` | Defines all relic proc mechanics (trigger type, ICD, damage multiplier, effect duration, conditions, icon) |
-| `CONJURE_WEAPONS`, `CONJURE_MAP` | Conjured weapon handling |
-| `EVOKER_FAMILIAR_SELECTORS`, `EVOKER_ELEMENT_MAP` | Evoker elite spec familiar mechanics |
-| `FIRE_FIELD_SKILLS` | Set of skill names that produce fire fields (for Persisting Flames trait) |
-| `ATTUNEMENTS` | Array of attunement names (`['Fire', 'Water', 'Air', 'Earth']`) |
-| `CATALYST_ENERGY_MAX`, `CATALYST_SPHERE_COST` | Catalyst energy system constants |
-| `OVERLOAD_DWELL` | Base time before Overload is available after attunement swap (6000ms) |
+| Constant                                          | Purpose                                                                                                    |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `DAMAGING_CONDITIONS`                             | Set of conditions that deal damage (Burning, Bleeding, Poisoned, Torment, Confusion)                       |
+| `BOONS`                                           | Set of all boon names                                                                                      |
+| `SIGIL_PROCS`                                     | Defines all sigil proc mechanics (trigger type, ICD, effect, coefficient, icon)                            |
+| `RELIC_PROCS`                                     | Defines all relic proc mechanics (trigger type, ICD, damage multiplier, effect duration, conditions, icon) |
+| `CONJURE_WEAPONS`, `CONJURE_MAP`                  | Conjured weapon handling                                                                                   |
+| `EVOKER_FAMILIAR_SELECTORS`, `EVOKER_ELEMENT_MAP` | Evoker elite spec familiar mechanics                                                                       |
+| `FIRE_FIELD_SKILLS`                               | Set of skill names that produce fire fields (for Persisting Flames trait)                                  |
+| `ATTUNEMENTS`                                     | Array of attunement names (`['Fire', 'Water', 'Air', 'Earth']`)                                            |
+| `CATALYST_ENERGY_MAX`, `CATALYST_SPHERE_COST`     | Catalyst energy system constants                                                                           |
+| `OVERLOAD_DWELL`                                  | Base time before Overload is available after attunement swap (6000ms)                                      |
 
 #### `run(startAtt, startAtt2, startEvokerElement, permaBoons, disabled, targetHP)`
 
 The main simulation method. Processes the rotation and produces complete results.
 
 **Parameters:**
+
 - `startAtt` / `startAtt2` — Starting attunements (primary / secondary for Weaver)
 - `startEvokerElement` — Starting Evoker familiar element
 - `permaBoons` — Permanent boons/conditions applied at t=0 (e.g., `{ Might: 25, Fury: true }`)
@@ -355,6 +356,7 @@ Runs the simulation once at full power, then re-runs it once per modifier with t
 **Important:** All comparison runs use `targetHP = 0` (no kill cap) to ensure a symmetric DPS window regardless of whether a modifier affects kill time. The main displayed DPS still uses the user's `targetHP`.
 
 Modifier types handled:
+
 - `"Might"`, `"Fury"`, `"Vulnerability"` — remove the boon/debuff from `permaBoons`
 - `"Sigil:X"` — subtract sigil's stat bonuses from `a`
 - `"Relic:X"` — set relic ID to null
@@ -362,7 +364,7 @@ Modifier types handled:
 
 ---
 
-### `js/professions/elementalist/app/app.js` — UI Controller
+### `js/professions/elementalist/legacy/app/app.js` — UI Controller
 
 The `App` class manages all DOM rendering and user interaction.
 
@@ -421,18 +423,18 @@ Central state object:
 
 The build (gear, traits, selected skills, permaBoons) and rotation are auto-saved to `localStorage` on every `_autoRun()` call. They can also be explicitly exported to / imported from JSON files.
 
-| Method | Purpose |
-|---|---|
-| `_buildSnapshot()` | Serializes entire build + rotation to a plain object |
-| `_applySnapshot(state)` | Restores build + rotation from a snapshot object |
-| `_persistBuild()` | Saves snapshot to `localStorage` key `gw2dps_build` |
-| `_restoreBuild()` | Loads snapshot from `localStorage` on startup |
-| `_exportBuild()` | Downloads full build as `gw2-build.json` |
-| `_importBuild(file)` | Loads build from a JSON file |
-| `_exportRotation()` | Downloads rotation as `gw2-rotation.json` |
-| `_importRotation(file)` | Loads rotation from a JSON file (accepts `{ rotation: [...] }` or bare array) |
-| `_serializeRotation()` | Converts `sim.rotation` to a JSON-safe array |
-| `_deserializeRotation(items)` | Populates `sim.rotation` from a serialized array |
+| Method                        | Purpose                                                                       |
+| ----------------------------- | ----------------------------------------------------------------------------- |
+| `_buildSnapshot()`            | Serializes entire build + rotation to a plain object                          |
+| `_applySnapshot(state)`       | Restores build + rotation from a snapshot object                              |
+| `_persistBuild()`             | Saves snapshot to `localStorage` key `gw2dps_build`                           |
+| `_restoreBuild()`             | Loads snapshot from `localStorage` on startup                                 |
+| `_exportBuild()`              | Downloads full build as `gw2-build.json`                                      |
+| `_importBuild(file)`          | Loads build from a JSON file                                                  |
+| `_exportRotation()`           | Downloads rotation as `gw2-rotation.json`                                     |
+| `_importRotation(file)`       | Loads rotation from a JSON file (accepts `{ rotation: [...] }` or bare array) |
+| `_serializeRotation()`        | Converts `sim.rotation` to a JSON-safe array                                  |
+| `_deserializeRotation(items)` | Populates `sim.rotation` from a serialized array                              |
 
 The rotation format is an array where each item is one of:
 
@@ -446,6 +448,7 @@ The rotation format is an array where each item is one of:
 The rotation is built by clicking skill icons in the palette. The simulation runs automatically whenever the rotation changes.
 
 **Concurrent (mid-animation) skills:**
+
 - Skills with zero cast time (attunement swaps, signets, stances, etc.) can be fired during another skill's animation by **Shift+clicking** them.
 - They appear as `{ name, offset }` objects in the rotation array, where `offset` is the ms delay from the anchor skill's start.
 - Offsets are normalized to a minimum of `1ms`, so concurrent entries never start at exactly the same timestamp as their anchor.
@@ -453,34 +456,38 @@ The rotation is built by clicking skill icons in the palette. The simulation run
 - The simulation processes them inside the anchor's `_step` with a `skipCastUntil` flag so they don't advance `S.t`.
 
 **Interrupted casts:**
+
 - Any non-instant skill can be inserted as an interrupted cast by **Ctrl+clicking** it.
 - These entries are stored as `{ name, interruptMs }`, where `interruptMs` is measured from cast start.
 - The scheduler shortens the cast to that timestamp and only schedules hits whose natural hit time is `<= interruptMs`.
 - End-of-cast followups are skipped for genuinely interrupted casts.
 
 **Combat Start marker:**
+
 - The virtual `__combat_start` entry marks when the target becomes active / when the DPS window should begin.
 - Events before the marker are treated as precombat setup.
 - If the marker is absent, the simulator falls back to the old "first damaging event starts DPS" behavior.
 
 **Skills on cooldown:**
+
 - Clicking a skill that is on cooldown inserts it normally; the simulation automatically waits (`S.t` advances to the cooldown expiry before casting).
 
 **Proc icons in the timeline:**
+
 - After each simulation run, relic, sigil, and notable trait proc events (e.g., Sunspot) are displayed as small icons beneath the corresponding rotation step.
 
 #### Per-Skill Breakdown Table
 
 The table below the rotation results shows, per skill:
 
-| Column | Meaning |
-|---|---|
-| Strike / Condi | Total damage by type |
-| Total | Strike + Condition |
-| DPS | `total / dpsWindowSec` |
-| Avg/Cast | `total / casts` |
-| DCT | `total / castTimeSec` — damage per cast time; `—` for instant skills |
-| Casts | Number of times cast |
+| Column         | Meaning                                                              |
+| -------------- | -------------------------------------------------------------------- |
+| Strike / Condi | Total damage by type                                                 |
+| Total          | Strike + Condition                                                   |
+| DPS            | `total / dpsWindowSec`                                               |
+| Avg/Cast       | `total / casts`                                                      |
+| DCT            | `total / castTimeSec` — damage per cast time; `—` for instant skills |
+| Casts          | Number of times cast                                                 |
 
 `dpsWindowMs` is exposed in `this.results` for the breakdown calculations.
 
@@ -496,49 +503,49 @@ Renders checkboxes for permanent boons/conditions. Defaults (pre-checked) are:
 
 The `S` object is the central mutable state during a simulation run. Key fields:
 
-| Field | Type | Purpose |
-|---|---|---|
-| `t` | number | Current simulation time (ms) |
-| `castUntil` | number | Time when current cast finishes |
-| `att` / `att2` | string | Current primary/secondary attunement |
-| `attEnteredAt` | object | When each attunement was entered (for 4s swap lockout) |
-| `attCD` | object | Attunement swap cooldowns |
-| `skillCD` | object | Per-skill cooldown expiry times |
-| `charges` | object | Ammo system state (count, next charge time) |
-| `chainState` | object | Auto-attack chain tracking + skill chain state (e.g. Weave Self ↔ Tailored Victory) |
-| `eq` | array | Event queue (sorted by time) |
-| `condState` | object | Per-condition-type active stacks and tick scheduling |
-| `allCondStacks` | array | Flat list of all stacks (conditions + boons) for counting |
-| `quicknessUntil` / `alacrityUntil` | number | When Quickness/Alacrity expires |
-| `conjureEquipped` | string\|null | Currently equipped conjured weapon |
-| `conjurePickups` | array | Available conjure pickups on the ground |
-| `energy` | number\|null | Catalyst energy (null if not Catalyst) |
-| `sphereExpiry` | object | `{ Fire, Water, Air, Earth }` — per-attunement Jade Sphere expiry times |
-| `sigilICD` | object | Per-sigil ICD tracking |
-| `relicICD` | object | Per-relic ICD tracking |
-| `relicBuffUntil` | number | When the active relic's strike buff expires |
-| `totalStrike` / `totalCond` | number | Running damage totals |
-| `perSkill` | object | `{ skillName: { strike, condition, casts, castTimeMs } }` |
-| `log` | array | Event log entries |
-| `steps` | array | Timeline step entries (for UI rendering) |
-| `attTimeline` | array | Chronological attunement changes `[{ t, att, att2 }]` for historical lookup |
-| `traitICD` | object | Per-trait internal cooldown tracking |
-| `firstHitTime` / `lastHitTime` | number\|null | Timestamps of the first and last damaging events (for DPS window) |
-| `fields` | array | Active combo fields: `[{ name, start, end, type }]` |
-| `comboAccum` | object | Probabilistic accumulators for fractional combo finisher procs |
-| `sigilCritAccum` | number | Probabilistic accumulator for on-crit sigil procs |
-| `weaveSelfUntil` | number | Expiry of Weave Self buff (0 = inactive) |
-| `weaveSelfVisited` | Set | Attunements visited during active Weave Self |
-| `perfectWeaveUntil` | number | Expiry of Perfect Weave buff |
-| `evokerCharges` | number | Current Evoker familiar charge count |
-| `evokerEmpowered` | number | Stacks of empowered Evoker familiar |
-| `igniteStep` | number | Current step in Ignite's cycling burn duration sequence |
-| `igniteLastUse` | number | Last time Ignite was used (for 15s reset) |
-| `electricEnchantmentStacks` | number | Galvanic Enchantment: stacks consumed on next hit |
-| `arcaneEchoActive` | boolean | Whether Arcane Echo's next-weapon-skill reduction is primed |
-| `relentlessFireUntil` | number | Expiry of Relentless Fire +10% strike buff |
-| `shatteringIceUntil` | number | Expiry of Shattering Ice buff |
-| `_has*` flags | boolean | ~60+ cached trait detection flags (set once at state init) |
+| Field                              | Type         | Purpose                                                                             |
+| ---------------------------------- | ------------ | ----------------------------------------------------------------------------------- |
+| `t`                                | number       | Current simulation time (ms)                                                        |
+| `castUntil`                        | number       | Time when current cast finishes                                                     |
+| `att` / `att2`                     | string       | Current primary/secondary attunement                                                |
+| `attEnteredAt`                     | object       | When each attunement was entered (for 4s swap lockout)                              |
+| `attCD`                            | object       | Attunement swap cooldowns                                                           |
+| `skillCD`                          | object       | Per-skill cooldown expiry times                                                     |
+| `charges`                          | object       | Ammo system state (count, next charge time)                                         |
+| `chainState`                       | object       | Auto-attack chain tracking + skill chain state (e.g. Weave Self ↔ Tailored Victory) |
+| `eq`                               | array        | Event queue (sorted by time)                                                        |
+| `condState`                        | object       | Per-condition-type active stacks and tick scheduling                                |
+| `allCondStacks`                    | array        | Flat list of all stacks (conditions + boons) for counting                           |
+| `quicknessUntil` / `alacrityUntil` | number       | When Quickness/Alacrity expires                                                     |
+| `conjureEquipped`                  | string\|null | Currently equipped conjured weapon                                                  |
+| `conjurePickups`                   | array        | Available conjure pickups on the ground                                             |
+| `energy`                           | number\|null | Catalyst energy (null if not Catalyst)                                              |
+| `sphereExpiry`                     | object       | `{ Fire, Water, Air, Earth }` — per-attunement Jade Sphere expiry times             |
+| `sigilICD`                         | object       | Per-sigil ICD tracking                                                              |
+| `relicICD`                         | object       | Per-relic ICD tracking                                                              |
+| `relicBuffUntil`                   | number       | When the active relic's strike buff expires                                         |
+| `totalStrike` / `totalCond`        | number       | Running damage totals                                                               |
+| `perSkill`                         | object       | `{ skillName: { strike, condition, casts, castTimeMs } }`                           |
+| `log`                              | array        | Event log entries                                                                   |
+| `steps`                            | array        | Timeline step entries (for UI rendering)                                            |
+| `attTimeline`                      | array        | Chronological attunement changes `[{ t, att, att2 }]` for historical lookup         |
+| `traitICD`                         | object       | Per-trait internal cooldown tracking                                                |
+| `firstHitTime` / `lastHitTime`     | number\|null | Timestamps of the first and last damaging events (for DPS window)                   |
+| `fields`                           | array        | Active combo fields: `[{ name, start, end, type }]`                                 |
+| `comboAccum`                       | object       | Probabilistic accumulators for fractional combo finisher procs                      |
+| `sigilCritAccum`                   | number       | Probabilistic accumulator for on-crit sigil procs                                   |
+| `weaveSelfUntil`                   | number       | Expiry of Weave Self buff (0 = inactive)                                            |
+| `weaveSelfVisited`                 | Set          | Attunements visited during active Weave Self                                        |
+| `perfectWeaveUntil`                | number       | Expiry of Perfect Weave buff                                                        |
+| `evokerCharges`                    | number       | Current Evoker familiar charge count                                                |
+| `evokerEmpowered`                  | number       | Stacks of empowered Evoker familiar                                                 |
+| `igniteStep`                       | number       | Current step in Ignite's cycling burn duration sequence                             |
+| `igniteLastUse`                    | number       | Last time Ignite was used (for 15s reset)                                           |
+| `electricEnchantmentStacks`        | number       | Galvanic Enchantment: stacks consumed on next hit                                   |
+| `arcaneEchoActive`                 | boolean      | Whether Arcane Echo's next-weapon-skill reduction is primed                         |
+| `relentlessFireUntil`              | number       | Expiry of Relentless Fire +10% strike buff                                          |
+| `shatteringIceUntil`               | number       | Expiry of Shattering Ice buff                                                       |
+| `_has*` flags                      | boolean      | ~60+ cached trait detection flags (set once at state init)                          |
 
 ---
 
@@ -548,11 +555,11 @@ The simulation uses a sorted event queue (`S.eq`). Events are inserted with `ins
 
 Event types:
 
-| Type | Fields | Processed By |
-|---|---|---|
-| `hit` | `time, skill, hitIdx, sub, totalSubs, dmg, ws, isField, cc, conds, noCrit, att, att2, castStart, finType, finVal, isSigilProc, isRelicProc, isTraitProc` | Main event loop → `_procHit()` |
-| `ctick` | `time, cond` | Main event loop → `_procCondTick()` |
-| `relic_activate` | `time, relic, applyEffects` | Main event loop (sets buff timer, optionally applies conditions/strike) |
+| Type             | Fields                                                                                                                                                   | Processed By                                                            |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `hit`            | `time, skill, hitIdx, sub, totalSubs, dmg, ws, isField, cc, conds, noCrit, att, att2, castStart, finType, finVal, isSigilProc, isRelicProc, isTraitProc` | Main event loop → `_procHit()`                                          |
+| `ctick`          | `time, cond`                                                                                                                                             | Main event loop → `_procCondTick()`                                     |
+| `relic_activate` | `time, relic, applyEffects`                                                                                                                              | Main event loop (sets buff timer, optionally applies conditions/strike) |
 
 ---
 
@@ -561,6 +568,7 @@ Event types:
 Skills with a non-empty `Combo Field` column in `Skills_data.csv` create active fields. Skill hits with a `Combo Finisher` column interact with the oldest active field to produce combo effects.
 
 **Rules:**
+
 - Fields spawn at cast end (not cast start).
 - Finishers proc at hit time (`startOffsetMs`).
 - The **oldest active field** is always consumed (FIFO). A field can be comboed unlimited times.
@@ -568,13 +576,13 @@ Skills with a non-empty `Combo Field` column in `Skills_data.csv` create active 
 
 **Effects by field type and finisher:**
 
-| Field | Blast | Leap | Projectile | Whirl |
-|---|---|---|---|---|
-| Fire | 3× Might (20s) | Fire Aura (5s) | 1s Burning | 1s Burning |
-| Ice | Frost Aura (3s) | Frost Aura (5s) | 1s Chilled | 1s Chilled |
-| Lightning | 10s Swiftness | CC on hit | 2× Vulnerability (5s) | 2× Vulnerability (5s) |
-| Poison | 3s Weakness | 8s Weakness | 2s Poisoned | 2s Poisoned |
-| Water | — | — | 2s Regeneration | — |
+| Field     | Blast           | Leap            | Projectile            | Whirl                 |
+| --------- | --------------- | --------------- | --------------------- | --------------------- |
+| Fire      | 3× Might (20s)  | Fire Aura (5s)  | 1s Burning            | 1s Burning            |
+| Ice       | Frost Aura (3s) | Frost Aura (5s) | 1s Chilled            | 1s Chilled            |
+| Lightning | 10s Swiftness   | CC on hit       | 2× Vulnerability (5s) | 2× Vulnerability (5s) |
+| Poison    | 3s Weakness     | 8s Weakness     | 2s Poisoned           | 2s Poisoned           |
+| Water     | —               | —               | 2s Regeneration       | —                     |
 
 Aura combos (Fire Aura, Frost Aura) trigger all on-aura traits.
 
@@ -585,13 +593,17 @@ Aura combos (Fire Aura, Frost Aura) trigger all on-aura traits.
 Several skills have custom simulation logic beyond what the CSV defines:
 
 ### Sand Squall
+
 `BoonExtension = 3` — extends all currently active boons by 3 seconds flat (not affected by Boon Duration). Implemented in `_applyBoonExtension()`.
 
 ### Arcane Echo
+
 Arms a flag that reduces the next weapon skill with `Recharge > 0` to a 1-second cooldown. Resets if unused within 10 seconds.
 
 ### Conjured Weapons
+
 While a conjured weapon is equipped (`S.conjureEquipped`), stat bonuses are applied per-hit:
+
 - **Frost Bow**: +20% Condition Duration, +180 Healing Power
 - **Lightning Hammer**: +75 Ferocity, +180 Precision
 - **Fiery Greatsword**: +260 Power, +180 Condition Damage
@@ -599,21 +611,27 @@ While a conjured weapon is equipped (`S.conjureEquipped`), stat bonuses are appl
 These are flat additions embedded into each scheduled `hit` event at cast time (so the bonus is locked to the equipped weapon at cast time, not at hit time).
 
 ### Overload Air
+
 On cast completion, `Overload Air` triggers `Lightning Jolt`: an additional strike (coeff `1.32`, weapon strength `690.5`, cannot crit).
 
 ### Primordial Stance
+
 Has four variants in the CSV (one per attunement). The correct variant is determined by **both** current attunements at hit time. If both attunements are the same element, all conditions are applied twice.
 
 ### Relentless Fire
+
 Grants +10% additive strike damage for 5 seconds (8 seconds if "Deploy Jade Sphere (Fire)" is active at cast time). Tracked via `S.relentlessFireUntil`.
 
 ### Shattering Ice
+
 After cast, applies a buff for 5 seconds (8 seconds with active Fire Jade Sphere). While the buff is active, each hit from any source triggers an additional strike (coeff `0.6`, weapon strength `690.5`, 1s Chilled) with a 1-second ICD. The proc can crit normally.
 
 ### Elemental Celerity
+
 Resets cooldowns of all weapon skills (slots 1–5) for the current attunement. If any Jade Sphere is active, grants boons per active sphere: Fire → 5× Might (6s), Water → Vigor (6s), Air → Fury (6s), Earth → Protection (4s).
 
 ### Ride the Lightning
+
 On hit (assumed always), the skill's recharge is halved at runtime. With Aeromancer's Training the effective cooldown becomes 8s; without it, 10s. The CSV `Recharge` value is kept at 20 so relic/sigil procs still fire on high-cooldown skills.
 
 ### Weave Self (Weaver Elite)
@@ -629,6 +647,7 @@ A 20-second buff with complex state:
 State fields: `S.weaveSelfUntil`, `S.weaveSelfVisited`, `S.perfectWeaveUntil`.
 
 ### Tailored Victory
+
 Deals coeff `0.75`, applies CC = 1. Consumes Perfect Weave and all Weave Self bonuses. Can only be cast during an active Perfect Weave window.
 
 ---
@@ -641,23 +660,23 @@ The Evoker elite spec uses F5 to select an element that determines passive and a
 
 ### Passive Effects (applied on game events)
 
-| Element | Passive | Trigger |
-|---|---|---|
-| Ignite (Fire) | +1 Might (6s) | When player applies Burning; 1s ICD |
-| Zap (Air) | +75 Ferocity | While player has Fury AND is in Air attunement |
+| Element       | Passive       | Trigger                                        |
+| ------------- | ------------- | ---------------------------------------------- |
+| Ignite (Fire) | +1 Might (6s) | When player applies Burning; 1s ICD            |
+| Zap (Air)     | +75 Ferocity  | While player has Fury AND is in Air attunement |
 
 ### Active Skills (F5)
 
-| Skill | Effect |
-|---|---|
-| Ignite | Cycling Burning durations: 1st cast 2s → 2nd 0.5s → 3rd 1s → 4th+ 1.5s. Resets if unused for >15 seconds. Coeff 0.63, weapon strength 1100. |
-| Conflagration | Burning (from empowered Ignite). Coeff 1.56, weapon strength 1100. |
-| Zap | +3% multiplicative strike damage for 10s. Coeff 0.6, weapon strength 1100. |
-| Lightning Blitz | Grants 1 stack of `electricEnchantment`. 0.28 coeff × 5 hits (= 1.4 total), weapon strength 1100. |
-| Hare's Agility | Grants 5 stacks of `electricEnchantment`. |
-| Fox's Fury | Grants 8× Might (10s) + Fury (10s). If Fire is specialized element, grants additional 3× Might. Damage coefficient and Burning scale with Might at cast start: <10 Might → 1.5/1×3s; 10–20 → 2.25/2×5s; 20+ → 3.0/3×7s. |
-| Toad's Fortitude | Grants 4s Resistance if Earth is specialized element. |
-| Elemental Procession | All 4 empowered familiar skills fire simultaneously. Player is not "trapped" in cast animation. |
+| Skill                | Effect                                                                                                                                                                                                                  |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ignite               | Cycling Burning durations: 1st cast 2s → 2nd 0.5s → 3rd 1s → 4th+ 1.5s. Resets if unused for >15 seconds. Coeff 0.63, weapon strength 1100.                                                                             |
+| Conflagration        | Burning (from empowered Ignite). Coeff 1.56, weapon strength 1100.                                                                                                                                                      |
+| Zap                  | +3% multiplicative strike damage for 10s. Coeff 0.6, weapon strength 1100.                                                                                                                                              |
+| Lightning Blitz      | Grants 1 stack of `electricEnchantment`. 0.28 coeff × 5 hits (= 1.4 total), weapon strength 1100.                                                                                                                       |
+| Hare's Agility       | Grants 5 stacks of `electricEnchantment`.                                                                                                                                                                               |
+| Fox's Fury           | Grants 8× Might (10s) + Fury (10s). If Fire is specialized element, grants additional 3× Might. Damage coefficient and Burning scale with Might at cast start: <10 Might → 1.5/1×3s; 10–20 → 2.25/2×5s; 20+ → 3.0/3×7s. |
+| Toad's Fortitude     | Grants 4s Resistance if Earth is specialized element.                                                                                                                                                                   |
+| Elemental Procession | All 4 empowered familiar skills fire simultaneously. Player is not "trapped" in cast animation.                                                                                                                         |
 
 ---
 
@@ -669,155 +688,158 @@ Traits are the largest subsystem. Each trait is detected once at state init (`th
 
 Applied in `calcAttributes()` in a specific order to handle interdependencies:
 
-| Trait | Effect | Pool |
-|---|---|---|
-| Ferocious Winds | 7% Precision → Ferocity | base+gear+runes+food |
-| Strength of Stone | 10% Toughness → Condition Damage | base+gear+runes |
-| Master's Fortitude | +120 Vitality (if Sword) + 5% Power/CondDmg → Vitality | base+gear+runes+food |
-| Elements of Rage | 13% Vitality (incl. MF flat 120) → Precision | base+gear+runes+food |
-| Aeromancer's Training | +150 Ferocity (flat, always active) | — |
-| Burning Rage | +180 Condition Damage | — |
-| Zephyr's Speed | +5% Critical Chance | — |
-| Gathered Focus | +240 Concentration | — |
-| Serrated Stones | +20% Bleeding Duration | — |
-| Signet of Fire passive | +180 Precision (when equipped) | — |
+| Trait                  | Effect                                                 | Pool                 |
+| ---------------------- | ------------------------------------------------------ | -------------------- |
+| Ferocious Winds        | 7% Precision → Ferocity                                | base+gear+runes+food |
+| Strength of Stone      | 10% Toughness → Condition Damage                       | base+gear+runes      |
+| Master's Fortitude     | +120 Vitality (if Sword) + 5% Power/CondDmg → Vitality | base+gear+runes+food |
+| Elements of Rage       | 13% Vitality (incl. MF flat 120) → Precision           | base+gear+runes+food |
+| Aeromancer's Training  | +150 Ferocity (flat, always active)                    | —                    |
+| Burning Rage           | +180 Condition Damage                                  | —                    |
+| Zephyr's Speed         | +5% Critical Chance                                    | —                    |
+| Gathered Focus         | +240 Concentration                                     | —                    |
+| Serrated Stones        | +20% Bleeding Duration                                 | —                    |
+| Signet of Fire passive | +180 Precision (when equipped)                         | —                    |
 
 ### Dynamic Per-Hit/Per-Tick Traits (in event loop)
 
 **Power/Ferocity/Crit modifiers (attunement-conditional):**
 
-| Trait | Rule |
-|---|---|
-| Empowering Flame | +150 Power — **primary Fire only** |
-| Aeromancer's Training | +150 Ferocity (= +10 crit dmg) — **primary Air only** |
-| Power Overwhelming | Might ≥ 10: +300 Power if **primary Fire**, +150 Power otherwise |
-| Elemental Polyphony | Each unique attunement (deduped): Fire→+200 Power, Air→+200 Ferocity, Water→+200 Healing Power, Earth→+200 Vitality |
-| Fresh Air | +250 Ferocity for 5s on Air swap |
-| Raging Storm | +180 Ferocity under Fury |
-| Elemental Empowerment | +1%/1.5%/2% of base+gear+runes+infusions+food per stack (max 10, Catalyst) |
+| Trait                 | Rule                                                                                                                |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Empowering Flame      | +150 Power — **primary Fire only**                                                                                  |
+| Aeromancer's Training | +150 Ferocity (= +10 crit dmg) — **primary Air only**                                                               |
+| Power Overwhelming    | Might ≥ 10: +300 Power if **primary Fire**, +150 Power otherwise                                                    |
+| Elemental Polyphony   | Each unique attunement (deduped): Fire→+200 Power, Air→+200 Ferocity, Water→+200 Healing Power, Earth→+200 Vitality |
+| Fresh Air             | +250 Ferocity for 5s on Air swap                                                                                    |
+| Raging Storm          | +180 Ferocity under Fury                                                                                            |
+| Elemental Empowerment | +1%/1.5%/2% of base+gear+runes+infusions+food per stack (max 10, Catalyst)                                          |
 
 **Additive strike/condition modifiers** (accumulated into `addStrike`/`addCond`):
 
-| Trait | Strike | Condition |
-|---|---|---|
-| Persisting Flames | +2% per stack (max 5) | — |
-| Tempestuous Aria | +10% | +5% |
-| Transcendent Tempest | +20% | +20% |
-| Elements of Rage | +7% | +5% |
-| Swift Revenge | +7% (with Swiftness/Superspeed) | — |
-| Weaver's Prowess | — | +5% (when primary ≠ secondary) |
-| Empowering Auras | +1% per stack (max 5) | +1% per stack (max 5) |
-| Familiar's Prowess | Air: +5%/15% strike | Fire: +5%/15% condition |
+| Trait                | Strike                          | Condition                      |
+| -------------------- | ------------------------------- | ------------------------------ |
+| Persisting Flames    | +2% per stack (max 5)           | —                              |
+| Tempestuous Aria     | +10%                            | +5%                            |
+| Transcendent Tempest | +20%                            | +20%                           |
+| Elements of Rage     | +7%                             | +5%                            |
+| Swift Revenge        | +7% (with Swiftness/Superspeed) | —                              |
+| Weaver's Prowess     | —                               | +5% (when primary ≠ secondary) |
+| Empowering Auras     | +1% per stack (max 5)           | +1% per stack (max 5)          |
+| Familiar's Prowess   | Air: +5%/15% strike             | Fire: +5%/15% condition        |
 
 **Multiplicative strike modifiers:**
 
-| Trait | Multiplier | Condition |
-|---|---|---|
-| Pyromancer's Training | ×1.07 | Target has Burning |
-| Fiery Might | ×1.05 | Target has Burning |
-| Serrated Stones | ×1.05 | Target has Bleeding |
-| Stormsoul | ×1.07 | Always |
-| Bolt to the Heart | ×1.20 | Target below 50% HP |
+| Trait                 | Multiplier | Condition           |
+| --------------------- | ---------- | ------------------- |
+| Pyromancer's Training | ×1.07      | Target has Burning  |
+| Fiery Might           | ×1.05      | Target has Burning  |
+| Serrated Stones       | ×1.05      | Target has Bleeding |
+| Stormsoul             | ×1.07      | Always              |
+| Bolt to the Heart     | ×1.20      | Target below 50% HP |
 
 **Cooldown reduction** (in `_pyroRechargeMs`):
+
 - Pyromancer's Training, Aeromancer's Training, Geomancer's Training each reduce their element's weapon skill cooldowns by 20%. These always apply (bypass contribution-test disabling) because CDR affects when damage occurs, not how much each hit deals.
 
 ### Probabilistic On-Crit Trait Procs
 
-| Trait | Effect | ICD |
-|---|---|---|
-| Burning Precision | 33% chance: 1 stack Burning (3s). Also always grants +20% Burn Duration (static, in base attrs). | 5s |
-| Raging Storm | 33% chance: 4s Fury | 8s |
-| Fresh Air | Recharges Air attunement on crit | — |
+| Trait             | Effect                                                                                           | ICD |
+| ----------------- | ------------------------------------------------------------------------------------------------ | --- |
+| Burning Precision | 33% chance: 1 stack Burning (3s). Also always grants +20% Burn Duration (static, in base attrs). | 5s  |
+| Raging Storm      | 33% chance: 4s Fury                                                                              | 8s  |
+| Fresh Air         | Recharges Air attunement on crit                                                                 | —   |
 
 ### Trigger-Based Traits
 
 **On attunement swap** (in `_doSwap` / `_doWeaverSwap`):
 
-| Trait | Element | Effect |
-|---|---|---|
-| Sunspot | Fire | 0.6 coeff strike + Fire Aura (3s) + Burning (with Burning Rage) |
-| Electric Discharge | Air | 0.35 coeff strike + 100% bonus crit dmg + Vulnerability |
-| One with Air | Air | 3s Superspeed |
-| Inscription | Air | 3s Resistance |
-| Fresh Air | Air | 250 Ferocity buff (5s) |
-| Latent Stamina | Water | 3s Vigor (10s ICD) |
-| Earthen Blast | Earth | 0.36 coeff strike (no crit) |
-| Rock Solid | Earth | 3s Stability |
-| Flame Expulsion | Leaving Fire | Scaled strike (1.0–1.5 coeff by Might) + Burning |
-| Energized Elements | Any | +2 Energy + 2s Fury (Catalyst) |
-| Elemental Dynamo | Selected | +1 Familiar charge (Evoker) |
-| Elemental Balance | Selected | Every 2nd entry → 66% CDR on next weapon skill (5s window) |
+| Trait              | Element      | Effect                                                          |
+| ------------------ | ------------ | --------------------------------------------------------------- |
+| Sunspot            | Fire         | 0.6 coeff strike + Fire Aura (3s) + Burning (with Burning Rage) |
+| Electric Discharge | Air          | 0.35 coeff strike + 100% bonus crit dmg + Vulnerability         |
+| One with Air       | Air          | 3s Superspeed                                                   |
+| Inscription        | Air          | 3s Resistance                                                   |
+| Fresh Air          | Air          | 250 Ferocity buff (5s)                                          |
+| Latent Stamina     | Water        | 3s Vigor (10s ICD)                                              |
+| Earthen Blast      | Earth        | 0.36 coeff strike (no crit)                                     |
+| Rock Solid         | Earth        | 3s Stability                                                    |
+| Flame Expulsion    | Leaving Fire | Scaled strike (1.0–1.5 coeff by Might) + Burning                |
+| Energized Elements | Any          | +2 Energy + 2s Fury (Catalyst)                                  |
+| Elemental Dynamo   | Selected     | +1 Familiar charge (Evoker)                                     |
+| Elemental Balance  | Selected     | Every 2nd entry → 66% CDR on next weapon skill (5s window)      |
 
 **On skill cast** (in `_step`):
 
-| Trait | Trigger | Effect |
-|---|---|---|
-| Pyromancer's Puissance | Any skill in Fire | +1 Might (15s) |
-| Gale Song | Healing skill | 3s Protection |
-| Tempestuous Aria | Shout skill | 2 Might (10s) |
-| Bolstered Elements | Stance skill | 3s Protection |
-| Earth's Embrace | Healing skill | 4s Resistance (15s ICD) |
-| Inscription | Glyph skill | Attunement-based boon |
-| Written in Stone | Signet skill | Attunement-based Aura |
-| Altruistic Aspect | Meditation skill | Per-skill boons |
+| Trait                  | Trigger           | Effect                  |
+| ---------------------- | ----------------- | ----------------------- |
+| Pyromancer's Puissance | Any skill in Fire | +1 Might (15s)          |
+| Gale Song              | Healing skill     | 3s Protection           |
+| Tempestuous Aria       | Shout skill       | 2 Might (10s)           |
+| Bolstered Elements     | Stance skill      | 3s Protection           |
+| Earth's Embrace        | Healing skill     | 4s Resistance (15s ICD) |
+| Inscription            | Glyph skill       | Attunement-based boon   |
+| Written in Stone       | Signet skill      | Attunement-based Aura   |
+| Altruistic Aspect      | Meditation skill  | Per-skill boons         |
 
 **On aura gain** (in `_applyAura`):
 
-| Trait | Effect |
-|---|---|
-| Conjurer | Fire Aura on Conjure skill |
-| Zephyr's Boon | +5s Fury + 5s Swiftness |
-| Elemental Shielding | +3s Protection |
-| Smothering Auras | +33% Aura duration |
-| Invigorating Torrents | +5s Vigor + 5s Regeneration |
-| Tempestuous Aria | Refreshes +10%/+5% buff (5s) |
-| Elemental Bastion | +4s Alacrity |
-| Empowering Auras | +1% strike/condi per stack (max 5, 10s, refresh all) |
-| Elemental Epitome | +1 Elemental Empowerment stack |
+| Trait                 | Effect                                               |
+| --------------------- | ---------------------------------------------------- |
+| Conjurer              | Fire Aura on Conjure skill                           |
+| Zephyr's Boon         | +5s Fury + 5s Swiftness                              |
+| Elemental Shielding   | +3s Protection                                       |
+| Smothering Auras      | +33% Aura duration                                   |
+| Invigorating Torrents | +5s Vigor + 5s Regeneration                          |
+| Tempestuous Aria      | Refreshes +10%/+5% buff (5s)                         |
+| Elemental Bastion     | +4s Alacrity                                         |
+| Empowering Auras      | +1% strike/condi per stack (max 5, 10s, refresh all) |
+| Elemental Epitome     | +1 Elemental Empowerment stack                       |
 
 **On overload** (in `_doOverload`):
 
-| Trait | Effect |
-|---|---|
-| Harmonious Conduit | 8s Swiftness + 4s Stability at start |
-| Hardy Conduit | 3s Protection at start |
-| Unstable Conduit | Attunement-based Aura on completion |
+| Trait                | Effect                                                |
+| -------------------- | ----------------------------------------------------- |
+| Harmonious Conduit   | 8s Swiftness + 4s Stability at start                  |
+| Hardy Conduit        | 3s Protection at start                                |
+| Unstable Conduit     | Attunement-based Aura on completion                   |
 | Transcendent Tempest | 33% dwell reduction + 20%/20% buff (7s) on completion |
-| Lucid Singularity | Hits 1–4: 1s Alacrity; Hit 5: 4.5s Alacrity |
+| Lucid Singularity    | Hits 1–4: 1s Alacrity; Hit 5: 4.5s Alacrity           |
 
 **On familiar skill** (in `_doFamiliar`):
 
-| Trait | Effect |
-|---|---|
-| Familiar's Prowess | +5%/15% damage buff (5s, stacks duration to max 15s) |
-| Familiar's Blessing | Fire/Air: 3s Quickness; Water/Earth: 3s Alacrity |
-| Galvanic Enchantment | +2 Electric Enchantment stacks (consumed on next 2 hits for 0.4 coeff + 1.5s Burning) |
+| Trait                | Effect                                                                                       |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| Familiar's Prowess   | +5%/15% damage buff (5s, stacks duration to max 15s)                                         |
+| Familiar's Blessing  | Fire/Air: 3s Quickness; Water/Earth: 3s Alacrity                                             |
+| Galvanic Enchantment | +2 Electric Enchantment stacks (consumed on next 2 hits for 0.4 coeff + 1.5s Burning)        |
 | Specialized Elements | Basic: 50% weapon skill recharge; Empowered: 50% recharge + trigger attunement-enter effects |
 
 ### Duration/Cooldown Modifiers
 
-| Trait | Effect |
-|---|---|
-| Burning Precision | +20% Burning duration (always active, in base attrs) |
-| Serrated Stones | +20% Bleeding duration |
-| Weaver's Prowess | +20% all condition duration (when primary ≠ secondary attunement) |
-| Smothering Auras | +33% Aura duration |
-| Pyromancer's/Aeromancer's/Geomancer's Training | −20% Fire/Air/Earth weapon skill cooldowns |
-| Persisting Flames | +2s fire field duration |
-| Transcendent Tempest | −33% overload dwell time |
-| Spectacular Sphere | Jade Sphere grants 1.5s Quickness |
-| Sphere Specialist | +50% bonus Jade Sphere boon duration |
-| Specialized Elements | −50% empowered familiar skill recharge |
+| Trait                                          | Effect                                                            |
+| ---------------------------------------------- | ----------------------------------------------------------------- |
+| Burning Precision                              | +20% Burning duration (always active, in base attrs)              |
+| Serrated Stones                                | +20% Bleeding duration                                            |
+| Weaver's Prowess                               | +20% all condition duration (when primary ≠ secondary attunement) |
+| Smothering Auras                               | +33% Aura duration                                                |
+| Pyromancer's/Aeromancer's/Geomancer's Training | −20% Fire/Air/Earth weapon skill cooldowns                        |
+| Persisting Flames                              | +2s fire field duration                                           |
+| Transcendent Tempest                           | −33% overload dwell time                                          |
+| Spectacular Sphere                             | Jade Sphere grants 1.5s Quickness                                 |
+| Sphere Specialist                              | +50% bonus Jade Sphere boon duration                              |
+| Specialized Elements                           | −50% empowered familiar skill recharge                            |
 
 ---
 
 ## CSV Data Format Quick Reference
 
 ### Skills_data.csv
+
 `Name, Type, Slot, Attunement, Weapon, Chain skill, Cast Time, Recharge, Count Recharge, Maximum Count, Combo Field, Duration, Aura`
 
 ### Skill_hits_data.csv
+
 `Name, start_offset_ms, repeat_offset_ms, Hit, Number of Impacts, IsFieldTick, CC, Damage, Duration, Interval, Combo Finisher, [condition columns...]`
 
 ---

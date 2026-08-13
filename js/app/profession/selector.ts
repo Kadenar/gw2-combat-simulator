@@ -12,7 +12,8 @@ import { embedRoute, isEmbedded } from "../embed.js";
 import { mountRotationTimelineSize } from "../../platform/ui/rotation-timeline-size.js";
 import {
   getProfessionEntry,
-  professionRegistry,
+  professionGroups,
+  type ProfessionRegistryEntry,
   PROFESSION_ROUTES,
   professionRoute,
 } from "./registry.js";
@@ -50,8 +51,55 @@ function mountGithubLink(root: Document): void {
   host.append(link);
 }
 
+/**
+ * Keeps the simulator snapshot badge with the sticky header and publishes the
+ * rendered header height for other sticky page controls.
+ */
+function mountStickyProfessionHeader(root: Document): void {
+  if (!root.body?.dataset.profession) return;
+
+  const header = root.querySelector<HTMLElement>("#app > header");
+  const appRoot = header?.parentElement;
+  if (!header || !appRoot) return;
+
+  const existingSnapshot = header.querySelector<HTMLElement>(".update-info");
+  const adjacentSnapshot = header.nextElementSibling;
+  const snapshot =
+    existingSnapshot ||
+    (adjacentSnapshot instanceof HTMLElement &&
+    adjacentSnapshot.classList.contains("update-info")
+      ? adjacentSnapshot
+      : null);
+  if (snapshot && snapshot.parentElement !== header) header.append(snapshot);
+
+  const updateHeaderHeight = () => {
+    appRoot.style.setProperty(
+      "--profession-header-height",
+      `${Math.ceil(header.getBoundingClientRect().height)}px`,
+    );
+  };
+  updateHeaderHeight();
+  if (header.dataset.stickyHeaderMounted === "true") return;
+  header.dataset.stickyHeaderMounted = "true";
+
+  const ResizeObserverConstructor = root.defaultView?.ResizeObserver;
+  if (ResizeObserverConstructor) {
+    new ResizeObserverConstructor(updateHeaderHeight).observe(header);
+  } else {
+    root.defaultView?.addEventListener("resize", updateHeaderHeight);
+  }
+}
+
 function activeProfessionId(root: Document, select: HTMLSelectElement): string {
   return root.body?.dataset.profession || select.dataset.activeProfession || "";
+}
+
+/** Decorates a profession name with its status tags for the select dropdown. */
+function professionOptionLabel(entry: ProfessionRegistryEntry): string {
+  const tags: string[] = [];
+  if (entry.legacy) tags.push("Legacy");
+  if (entry.workInProgress) tags.push("WIP");
+  return tags.length ? `${entry.name} [${tags.join(", ")}]` : entry.name;
 }
 
 function populateProfessionSelector(
@@ -68,12 +116,17 @@ function populateProfessionSelector(
     placeholder.selected = true;
     select.append(placeholder);
   }
-  for (const entry of professionRegistry) {
-    const option = owner.createElement("option");
-    option.value = entry.id;
-    option.textContent = entry.name;
-    option.selected = entry.id === active;
-    select.append(option);
+  for (const group of professionGroups) {
+    const optgroup = owner.createElement("optgroup");
+    optgroup.label = group.label;
+    for (const entry of group.entries) {
+      const option = owner.createElement("option");
+      option.value = entry.id;
+      option.textContent = professionOptionLabel(entry);
+      option.selected = entry.id === active;
+      optgroup.append(option);
+    }
+    select.append(optgroup);
   }
 }
 
@@ -81,7 +134,21 @@ function renderProfessionCards(root: Document): void {
   const grid = root.querySelector("[data-profession-grid]");
   if (!grid) return;
   grid.replaceChildren();
-  for (const entry of professionRegistry) {
+  for (const group of professionGroups) {
+    const heading = root.createElement("h3");
+    heading.className = "profession-group-heading";
+    heading.textContent = group.label;
+    grid.append(heading);
+    renderProfessionGroupCards(root, grid, group.entries);
+  }
+}
+
+function renderProfessionGroupCards(
+  root: Document,
+  grid: Element,
+  entries: readonly ProfessionRegistryEntry[],
+): void {
+  for (const entry of entries) {
     const card = root.createElement("a");
     card.className = `profession-card profession-card-${entry.id}`;
     card.href = isEmbedded() ? embedRoute(entry.route) : entry.route;
@@ -115,6 +182,18 @@ function renderProfessionCards(root: Document): void {
     copy.className = "profession-card-copy";
     const name = root.createElement("strong");
     name.textContent = entry.name;
+    if (entry.legacy) {
+      const badge = root.createElement("span");
+      badge.className = "profession-legacy-badge";
+      badge.textContent = "Legacy";
+      name.append(" ", badge);
+    }
+    if (entry.workInProgress) {
+      const badge = root.createElement("span");
+      badge.className = "profession-wip-badge";
+      badge.textContent = "WIP";
+      name.append(" ", badge);
+    }
     const summary = root.createElement("small");
     summary.textContent = entry.specializationSummary;
     copy.append(name, summary);
@@ -137,6 +216,7 @@ function renderProfessionCards(root: Document): void {
 export function bindProfessionSelector(root: Document = document): void {
   mountRotationTimelineSize(root);
   mountGithubLink(root);
+  mountStickyProfessionHeader(root);
   const select = root.getElementById(
     "profession-select",
   ) as HTMLSelectElement | null;

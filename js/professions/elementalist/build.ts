@@ -1,106 +1,279 @@
-/**
- * Elementalist persisted-build definition.
- *
- * This module owns the default Elementalist build, upgrades saved build data
- * into the current shape, and validates its profession, weapons, and
- * specialization lines. It describes configuration data consumed by the app;
- * it does not calculate attributes or execute the simulation.
- */
+import { GEAR_SLOTS } from "../../platform/gw2/gear-data.js";
+import {
+  DEFAULT_WEAPON_SIGILS,
+  normalizeWeaponSigils,
+} from "../../platform/gw2/weapon-sigils.js";
+import { createGw2BuildCodec } from "../../platform/gw2/build-codec.js";
+import { createDefaultTargetConditions } from "../../platform/gw2/default-target-conditions.js";
+import {
+  DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
+  normalizeSimulationRandomnessAssumptions,
+  validateSimulationRandomnessAssumptions,
+} from "../../app/simulation/randomness.js";
+import { elementalistCatalog } from "./catalog.js";
+import type { Gw2ApplicationBuild } from "../../platform/gw2/types.js";
+import type { SchedulerRecord } from "../../platform/engine/types.js";
 import type {
-  ElementalistBuild,
-  ElementalistBuildValidation,
+  ElementalistApplicationBuild,
+  ElementalistCanonicalBuild,
 } from "./types.js";
 
-export const ELEMENTALIST_BUILD_SCHEMA_VERSION = 1;
+export const ELEMENTALIST_BUILD_SCHEMA_VERSION = 3;
+export const ELEMENTALIST_PROFESSION_ID = "elementalist";
 
-const DEFAULT_BUILD: Readonly<ElementalistBuild> = Object.freeze({
-  schemaVersion: ELEMENTALIST_BUILD_SCHEMA_VERSION,
-  profession: "elementalist",
-  gear: {
-    Helm: "Berserker's",
-    Shoulders: "Berserker's",
-    Chest: "Berserker's",
-    Gloves: "Berserker's",
-    Leggins: "Berserker's",
-    Boots: "Berserker's",
-    Amulet: "Berserker's",
-    Ring1: "Berserker's",
-    Ring2: "Berserker's",
-    Accessory1: "Berserker's",
-    Accessory2: "Berserker's",
-    Back: "Berserker's",
-    Weapon1: "Berserker's",
-    Weapon2: "Berserker's",
-  },
-  weapons: ["Sword", "Dagger"],
-  rune: "Scholar",
-  sigils: ["Force", "Impact"],
-  relic: "Fireworks",
-  food: "Bowl of Sweet and Spicy Butternut Squash Soup",
-  utility: "Superior Sharpening Stone",
-  jadeBotCore: true,
-  specializations: [
-    { name: "Fire", traits: "1-3-1" },
-    { name: "Air", traits: "3-3-1" },
-    { name: "Weaver", traits: "1-2-1" },
-  ],
-  infusions: [
-    { stat: "Power", count: 18 },
-    { stat: "Precision", count: 0 },
-    { stat: "Condition Damage", count: 0 },
-  ],
+const ATTUNEMENTS = new Set(["Fire", "Water", "Air", "Earth"]);
+const SNAPSHOT_SELECTED_SKILL_SLOTS = Object.freeze({
+  heal: "Heal",
+  util1: "Utility1",
+  util2: "Utility2",
+  util3: "Utility3",
+  elite: "Elite",
 });
+const SNAPSHOT_BOON_ASSUMPTIONS = Object.freeze({
+  Might: "might",
+  Fury: "fury",
+  Protection: "protection",
+  Resolution: "resolution",
+  Alacrity: "alacrity",
+  Quickness: "quickness",
+  Regeneration: "regeneration",
+  Vigor: "vigor",
+  Swiftness: "swiftness",
+});
+const TARGET_CONDITION_NAMES = Object.freeze(
+  Object.keys(createDefaultTargetConditions()),
+);
 
-function clone<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T;
-}
+export { createDefaultTargetConditions };
 
-export function createElementalistBuildDefaults(): ElementalistBuild {
-  return clone(DEFAULT_BUILD) as ElementalistBuild;
-}
-
-export function migrateElementalistBuild(
-  saved?: Partial<ElementalistBuild> | {
-    readonly profession?: string;
-    readonly build?: Partial<ElementalistBuild>;
-  } | null,
-): ElementalistBuild {
-  const source = (
-    saved?.build && !saved.profession ? saved.build : saved
-  ) as Partial<ElementalistBuild> | null | undefined;
-  const defaults = createElementalistBuildDefaults();
-  if (!source || typeof source !== "object") return defaults;
-
+export function createElementalistBuildDefaults(): ElementalistCanonicalBuild {
   return {
-    ...defaults,
-    ...clone(source),
     schemaVersion: ELEMENTALIST_BUILD_SCHEMA_VERSION,
-    profession: "elementalist",
-    gear: { ...defaults.gear, ...(source.gear || {}) },
-    weapons: Array.isArray(source.weapons)
-      ? source.weapons.slice(0, 2)
-      : defaults.weapons,
-    specializations: Array.isArray(source.specializations)
-      ? clone(source.specializations).slice(0, 3)
-      : defaults.specializations,
-    infusions: Array.isArray(source.infusions)
-      ? clone(source.infusions)
-      : defaults.infusions,
+    profession: ELEMENTALIST_PROFESSION_ID,
+    gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Berserker's"])),
+    weapons: ["Sword", "Dagger"],
+    alternateWeapons: ["", ""],
+    rune: "Scholar",
+    weaponSigils: normalizeWeaponSigils(DEFAULT_WEAPON_SIGILS),
+    relic: "Fireworks",
+    food: "Bowl of Sweet and Spicy Butternut Squash Soup",
+    utility: "Superior Sharpening Stone",
+    jadeBotCore: true,
+    infusions: [
+      { stat: "Power", count: 18 },
+      { stat: "Precision", count: 0 },
+      { stat: "Condition Damage", count: 0 },
+    ],
+    specializations: [
+      { name: "Fire", traits: "1-3-1" },
+      { name: "Air", traits: "3-3-1" },
+      { name: "Weaver", traits: "1-2-1" },
+    ],
+    selectedSkills: {
+      Heal: "Glyph of Elemental Harmony",
+      Utility1: "Arcane Blast",
+      Utility2: "Signet of Fire",
+      Utility3: "Arcane Wave",
+      Elite: "Glyph of Elementals",
+    },
+    assumptions: {
+      ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
+      might: 25,
+      fury: true,
+      quickness: true,
+      alacrity: true,
+      protection: true,
+      resolution: true,
+      regeneration: true,
+      swiftness: true,
+      vigor: true,
+      aegis: false,
+      targetMoving: false,
+      targetBoonless: true,
+      targetConditions: createDefaultTargetConditions(),
+    },
+    startingWeaponSet: 1,
+    targetHealth: 3_970_000,
+    targetArmor: 2597,
+    rotation: [],
+    startAttunement: "Fire",
+    secondaryAttunement: "Air",
+    initialCatalystEnergy: 30,
+    evokerElement: "Fire",
+    initialEvokerCharges: 6,
+    initialEvokerEmpowered: 0,
   };
 }
 
-export function validateElementalistBuild(
-  build?: Partial<ElementalistBuild> | null,
-): ElementalistBuildValidation {
-  const errors: string[] = [];
-  if (build?.profession !== "elementalist") {
-    errors.push("Build profession must be elementalist.");
+function attunement(value: unknown, fallback: string): string {
+  return ATTUNEMENTS.has(String(value)) ? String(value) : fallback;
+}
+
+function bounded(value: unknown, minimum: number, maximum: number): number {
+  return Math.max(minimum, Math.min(maximum, Number(value) || 0));
+}
+
+const elementalistBuildCodec = createGw2BuildCodec<ElementalistCanonicalBuild>({
+  professionId: ELEMENTALIST_PROFESSION_ID,
+  schemaVersion: ELEMENTALIST_BUILD_SCHEMA_VERSION,
+  catalog: elementalistCatalog,
+  createDefaults: createElementalistBuildDefaults,
+  normalizeExtra(build, { saved }) {
+    const normalized = {
+      ...build,
+      alternateWeapons: ["", ""],
+      startingWeaponSet: 1,
+      assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
+      startAttunement: attunement(saved.startAttunement, "Fire"),
+      secondaryAttunement: attunement(saved.secondaryAttunement, "Air"),
+      initialCatalystEnergy: bounded(saved.initialCatalystEnergy ?? 30, 0, 30),
+      evokerElement: attunement(saved.evokerElement, "Fire"),
+      initialEvokerCharges: bounded(saved.initialEvokerCharges ?? 6, 0, 6),
+      initialEvokerEmpowered: bounded(saved.initialEvokerEmpowered ?? 0, 0, 3),
+    };
+    return normalized;
+  },
+  validateExtra(build) {
+    const errors = validateSimulationRandomnessAssumptions(build.assumptions);
+    if (
+      Array.isArray(build.alternateWeapons) &&
+      build.alternateWeapons.some(Boolean)
+    ) {
+      errors.push("Elementalist cannot equip a second weapon set.");
+    }
+    if (build.startingWeaponSet !== 1) {
+      errors.push("Elementalist must start on weapon set 1.");
+    }
+    if (!ATTUNEMENTS.has(build.startAttunement)) {
+      errors.push("startAttunement must be Fire, Water, Air, or Earth.");
+    }
+    if (!ATTUNEMENTS.has(build.secondaryAttunement)) {
+      errors.push("secondaryAttunement must be Fire, Water, Air, or Earth.");
+    }
+    if (!(
+      build.initialCatalystEnergy >= 0 && build.initialCatalystEnergy <= 30
+    )) {
+      errors.push("initialCatalystEnergy must be between 0 and 30.");
+    }
+    if (!(build.initialEvokerCharges >= 0 && build.initialEvokerCharges <= 6)) {
+      errors.push("initialEvokerCharges must be between 0 and 6.");
+    }
+    if (!(
+      build.initialEvokerEmpowered >= 0 && build.initialEvokerEmpowered <= 3
+    )) {
+      errors.push("initialEvokerEmpowered must be between 0 and 3.");
+    }
+    return errors;
+  },
+});
+
+function record(value: unknown): SchedulerRecord {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as SchedulerRecord)
+    : {};
+}
+
+function migrateSnapshotSelectedSkills(value: unknown): SchedulerRecord {
+  const selectedSkills = record(value);
+  return Object.fromEntries(
+    Object.entries(selectedSkills).map(([slot, skill]) => [
+      SNAPSHOT_SELECTED_SKILL_SLOTS[
+        slot as keyof typeof SNAPSHOT_SELECTED_SKILL_SLOTS
+      ] || slot,
+      skill,
+    ]),
+  );
+}
+
+function migrateSnapshotAssumptions(
+  value: unknown,
+  current: unknown,
+): SchedulerRecord {
+  const assumptions = record(current);
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return assumptions;
   }
-  if (!Array.isArray(build?.weapons) || !build.weapons.length) {
-    errors.push("At least one weapon is required.");
+
+  const permaBoons = value as SchedulerRecord;
+  const targetConditions = Object.fromEntries(
+    TARGET_CONDITION_NAMES.filter((name) =>
+      Object.hasOwn(permaBoons, name),
+    ).map((name) => [name, permaBoons[name]]),
+  );
+  const boonAssumptions = Object.fromEntries(
+    Object.entries(SNAPSHOT_BOON_ASSUMPTIONS).map(
+      ([savedName, assumptionName]) => [
+        assumptionName,
+        savedName === "Might"
+          ? Number(permaBoons[savedName]) || 0
+          : Boolean(permaBoons[savedName]),
+      ],
+    ),
+  );
+  return {
+    ...assumptions,
+    ...boonAssumptions,
+    targetConditions,
+  };
+}
+
+function normalizeSavedBuild(candidate: unknown): unknown {
+  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) {
+    return candidate;
   }
-  if (!Array.isArray(build?.specializations) || build.specializations.length !== 3) {
-    errors.push("Exactly three specialization lines are required.");
-  }
-  return { valid: errors.length === 0, errors };
+
+  const snapshot = candidate as SchedulerRecord;
+  const hasSnapshotWrapper =
+    snapshot.build &&
+    typeof snapshot.build === "object" &&
+    !Array.isArray(snapshot.build) &&
+    !snapshot.profession;
+  const build = hasSnapshotWrapper ? record(snapshot.build) : snapshot;
+  const snapshotFields = hasSnapshotWrapper ? snapshot : build;
+  const selectedSkills = Object.hasOwn(snapshotFields, "selectedSkills")
+    ? migrateSnapshotSelectedSkills(snapshotFields.selectedSkills)
+    : build.selectedSkills;
+
+  return {
+    ...build,
+    ...(selectedSkills ? { selectedSkills } : {}),
+    ...(Array.isArray(snapshotFields.rotation)
+      ? { rotation: snapshotFields.rotation }
+      : {}),
+    ...(snapshotFields.activeAttunement
+      ? { startAttunement: snapshotFields.activeAttunement }
+      : {}),
+    ...(snapshotFields.secondaryAttunement
+      ? { secondaryAttunement: snapshotFields.secondaryAttunement }
+      : {}),
+    ...(Object.hasOwn(snapshotFields, "evokerElement")
+      ? { evokerElement: snapshotFields.evokerElement }
+      : {}),
+    ...(Object.hasOwn(snapshotFields, "evokerStartCharges")
+      ? { initialEvokerCharges: snapshotFields.evokerStartCharges }
+      : {}),
+    ...(Object.hasOwn(snapshotFields, "evokerStartEmpowered")
+      ? { initialEvokerEmpowered: snapshotFields.evokerStartEmpowered }
+      : {}),
+    assumptions: migrateSnapshotAssumptions(
+      snapshotFields.permaBoons,
+      build.assumptions,
+    ),
+  };
+}
+
+export function migrateElementalistBuild(
+  candidate?: unknown,
+): ElementalistCanonicalBuild {
+  return elementalistBuildCodec.migrateBuild(normalizeSavedBuild(candidate));
+}
+
+export const validateElementalistBuild = elementalistBuildCodec.validateBuild;
+
+export function toApplicationBuild(
+  candidate: unknown,
+): ElementalistApplicationBuild {
+  return elementalistBuildCodec.toApplicationBuild(
+    normalizeSavedBuild(candidate),
+  ) as Gw2ApplicationBuild as ElementalistApplicationBuild;
 }

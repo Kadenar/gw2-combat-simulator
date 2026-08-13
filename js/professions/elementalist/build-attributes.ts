@@ -14,6 +14,7 @@ import type {
   Gw2NumericAttributes,
 } from "../../platform/gw2/types.js";
 import type { ElementalistBuild } from "./types.js";
+import { ELEMENTALIST_TRAITS } from "./catalog-data.js";
 
 function selectedSkill(skills: readonly Skill[], name: string): boolean {
   return (skills || []).some((skill) => skill?.name === name);
@@ -32,7 +33,13 @@ export function applyElementalistBuildAttributeRules(
   const elementalistBuild = build as ElementalistBuild;
   const attributes = structuredClone(common.attributes);
   const traitDurations: Gw2NumericAttributes = {};
-  const activeTraits = getActiveTraits(elementalistBuild.specializations || []);
+  const activeTraits = getActiveTraits(
+    elementalistBuild.specializations || [],
+  ).map((trait) => ({
+    ...trait,
+    id: ELEMENTALIST_TRAITS.find((candidate) => candidate.name === trait.name)
+      ?.id,
+  }));
   const hasTrait = (name: string): boolean =>
     activeTraits.some((trait) => trait.name === name);
   const {
@@ -181,6 +188,12 @@ export function applyElementalistBuildAttributeRules(
     ...result,
     attributes,
     activeTraits,
-    sigils: [...(elementalistBuild.sigils || [])],
+    sigils: [
+      ...(elementalistBuild.sigils ||
+        elementalistBuild.weaponSigils?.[
+          Number(elementalistBuild.startingWeaponSet) === 2 ? 1 : 0
+        ] ||
+        []),
+    ],
   };
 }

@@ -16,6 +16,10 @@ export function renderAttributes(app: ProfessionAppState): void {
   ) {
     throw new Error("Required attribute weapon-set control is missing.");
   }
+  const hasSecondWeaponSet = app.profession.ui.weaponSwapChangesSet !== false;
+  if (!hasSecondWeaponSet) app.attributeWeaponSet = 1;
+  weaponSet.disabled = !hasSecondWeaponSet;
+  weaponSet.closest("label")?.toggleAttribute("hidden", !hasSecondWeaponSet);
   weaponSet.value = String(app.attributeWeaponSet);
   if (!app.attributeData) {
     throw new Error("Profession attributes must exist before rendering.");

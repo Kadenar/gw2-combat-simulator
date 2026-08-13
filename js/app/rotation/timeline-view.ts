@@ -47,6 +47,7 @@ import {
   shatterResourceSpends,
   sigilProcTimelineMarkers,
   targetHealthTimelineMarkers,
+  timelineStepsWithChargeFills,
   timelineWeaponRows,
 } from "./timeline-model.js";
 import type {
@@ -325,8 +326,19 @@ export function renderTimeline(app: ProfessionAppState): void {
   );
   const castOrdinals = timelineSkillCastOrdinals(resultSteps);
   const resourceSpends = shatterResourceSpends(app.results);
+  const startingWeaponSet = app.build.startingWeaponSet;
+  const specialization = activeSpecialization(app);
+  const startingWeaponLine =
+    app.profession.ui.timelineWeaponLineTransition({
+      initial: true,
+      build: app.build,
+      specialization,
+      weaponSet: startingWeaponSet,
+      weaponLine: null,
+    }) ?? null;
   const rows = timelineWeaponRows(app.build.rotation, {
-    startingWeaponSet: app.build.startingWeaponSet,
+    startingWeaponSet,
+    startingWeaponLine,
     weaponSwapChangesSet:
       app.profession.ui.weaponSwapChangesSet !== false &&
       Boolean(app.build.alternateWeapons?.[0]),
@@ -342,14 +354,16 @@ export function renderTimeline(app: ProfessionAppState): void {
         entry: item,
         skill,
         build: app.build,
-        specialization: activeSpecialization(app),
+        specialization,
         ...current,
       });
     },
   });
   const formatTime = (timeMs: number): string =>
     formatResultTimelineTime(timeMs, app.results);
-  const deadTimes = timelineDeadTimeMarkers(resultSteps);
+  const deadTimes = timelineDeadTimeMarkers(
+    timelineStepsWithChargeFills(resultSteps, resourceSpends),
+  );
   const deadTimesByIndex = new Map<number, typeof deadTimes>();
   for (const marker of deadTimes) {
     const markers = deadTimesByIndex.get(marker.insertionIndex) || [];
