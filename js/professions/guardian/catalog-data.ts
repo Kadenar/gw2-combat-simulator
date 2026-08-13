@@ -37,6 +37,11 @@ const allSkills: readonly GuardianSkill[] = Object.freeze([
 ]);
 const generatedById = new Map(allSkills.map((skill) => [skill.id, skill]));
 const flipParentById = new Map<SkillId, SkillId>();
+const willbenderFlameIds = new Set<SkillId>([
+  ID.WILLBENDER_FLAMES,
+  ID.WILLBENDER_FLAMES_ID_62618,
+  ID.WILLBENDER_FLAMES_COURAGE,
+]);
 const firebrandFinalFlipByNormalId = new Map<SkillId, SkillId>([
   [ID.RESTORING_REPRIEVE, ID.REJUVENATING_RESPITE],
   [ID.FLAME_RUSH, ID.FLAME_SURGE],
@@ -48,6 +53,7 @@ for (const skill of allSkills) {
     skill.flipSkillId != null &&
     skill.flipSkillId !== skill.nextChainId &&
     skill.flipSkillId !== ID.GLACIAL_BLOW &&
+    !willbenderFlameIds.has(skill.flipSkillId) &&
     generatedById.has(skill.flipSkillId) &&
     generatedById.get(skill.flipSkillId)?.name !== skill.name &&
     !generatedById.get(skill.flipSkillId)?.categories?.includes("Virtue")

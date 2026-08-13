@@ -90,9 +90,7 @@ function armMantra(
   context.state.cooldowns.delete(normal.id);
   context.cooldownController.ensureAmmo(normal, at);
   context.state.cooldowns.delete(definition.rootId);
-  delete firebrandState.from(context).mantraRechargeReadyAt[
-    definition.rootId
-  ];
+  firebrandState.from(context).mantraRechargeReadyAt[definition.rootId] = at;
 }
 
 function syncMantraFlip(
@@ -150,7 +148,11 @@ export function advanceFirebrandMantras(
     const readyAt = Number(
       firebrandState.from(context).mantraRechargeReadyAt[definition.rootId],
     );
-    if (readyAt > 0 && readyAt <= target + context.epsilon) {
+    if (
+      readyAt > 0 &&
+      readyAt <= target + context.epsilon &&
+      context.state.cooldowns.has(definition.rootId)
+    ) {
       armMantra(context, definition, readyAt);
     }
     syncMantraFlip(context, definition, target);
@@ -179,13 +181,21 @@ export function firebrandMantraAvailability(
   const definition = normal || final;
   if (!definition) return true;
   const expectedId = normal ? definition.normalId : definition.finalId;
-  if (professionCoreState(context).availableFlips[expectedId]) return true;
-  const retryAt = Number(
+  const preparedAt = Number(
     firebrandState.from(context).mantraRechargeReadyAt[definition.rootId],
   );
+  if (preparedAt > context.start + context.epsilon) {
+    return {
+      ready: false,
+      retryAt: preparedAt,
+      code: "guardian.mantra-charge",
+      reason: `${skill.name} is unavailable until ${definition.rootName} is prepared.`,
+    };
+  }
+  if (professionCoreState(context).availableFlips[expectedId]) return true;
   return {
     ready: false,
-    retryAt: retryAt > context.start + context.epsilon ? retryAt : null,
+    retryAt: null,
     code: "guardian.mantra-charge",
     reason: `${skill.name} is unavailable until ${definition.rootName} is prepared.`,
   };

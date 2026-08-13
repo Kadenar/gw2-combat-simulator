@@ -74,15 +74,19 @@ const breakdownGroup = (
   actorType === "summon" || actorType === "phantasm" ? "Entities" : "Player";
 
 const CHRONOPHANTASMA_SUFFIX = " - Chronophantasma";
+const PARENT_SKILL_SEPARATOR = " \u2014 ";
 
 function breakdownDisplayName(
   entry: Gw2DamageBreakdownEntry,
   sourceSkill: string,
   parentSkill: string,
   group: "Player" | "Entities",
+  damageBreakdownName: string,
 ): string {
   if (group !== "Entities" || !parentSkill) return sourceSkill;
-  const name = String(entry.name || sourceSkill);
+  let name = damageBreakdownName || String(entry.name || sourceSkill);
+  const parentPrefix = `${parentSkill}${PARENT_SKILL_SEPARATOR}`;
+  if (name.startsWith(parentPrefix)) name = name.slice(parentPrefix.length);
   return name.endsWith(CHRONOPHANTASMA_SUFFIX)
     ? name.slice(0, -CHRONOPHANTASMA_SUFFIX.length)
     : name;
@@ -136,7 +140,15 @@ export function skillBreakdownRows(
     const sourceId = entry.sourceId ?? sourceEvent?.sourceId ?? null;
     const actorType = breakdownActorType(entry, sourceEvent);
     const group = breakdownGroup(actorType);
-    const name = breakdownDisplayName(entry, sourceSkill, parentSkill, group);
+    const name = breakdownDisplayName(
+      entry,
+      sourceSkill,
+      parentSkill,
+      group,
+      String(
+        entry.damageBreakdownName || sourceEvent?.damageBreakdownName || "",
+      ),
+    );
     const groupKey = `${group}|${name}`;
     const current = grouped.get(groupKey) || {
       name,

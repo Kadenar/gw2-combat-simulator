@@ -245,9 +245,9 @@ export function updateSpearIlluminationState(
       );
     }
   }
-  // Any spear attack consumes the armed effect. Symbol of Luminance supplies
-  // illumination independently and therefore leaves the armed effect intact.
-  if (illuminatedArmed && !luminanceActive) {
+  // Only skills with an Illuminated variant consume the armed effect. Symbol
+  // of Luminance supplies illumination independently and leaves it intact.
+  if (illuminatedArmed && illuminated && multiplier > 1 && !luminanceActive) {
     state.spearIlluminatedArmed = false;
     state.spearIlluminatedUntil = 0;
   }

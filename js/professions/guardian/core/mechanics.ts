@@ -17,6 +17,7 @@ export const GUARDIAN_CORE_MECHANICS = Object.freeze({
   justiceBurn: Object.freeze({
     condition: "Burning",
     stacks: 1,
-    duration: 2,
+    activeDuration: 2,
+    passiveDuration: 1.2,
   }),
 });

@@ -24,6 +24,10 @@ import {
 import { escapeHtml as esc, gw2ApiText } from "../../platform/ui/html.js";
 import { createRotationItem } from "./actions.js";
 import { openDragonSlashReleaseEditor } from "./charge-release.js";
+import {
+  hasConfigurableDoubleEdgeOutcome,
+  openDoubleEdgeEditor,
+} from "./double-edge.js";
 import { normalizeRotationInsertionIndex } from "../../platform/ui/insertion-cursor.js";
 import {
   activeSpecialization,
@@ -678,6 +682,21 @@ export function renderPalette(app: ProfessionAppState): void {
             app.addRotation(name, {
               ...identity,
               ...(releaseAtCharges == null ? {} : { releaseAtCharges }),
+            });
+          },
+        });
+        return;
+      }
+      if (hasConfigurableDoubleEdgeOutcome(skill)) {
+        openDoubleEdgeEditor({
+          anchor: icon,
+          skillName: String(skill.displayName || skill.name),
+          icon: skill.icon || undefined,
+          outcome: "success",
+          onApply(outcome) {
+            app.addRotation(name, {
+              ...identity,
+              doubleEdgeOutcome: outcome,
             });
           },
         });

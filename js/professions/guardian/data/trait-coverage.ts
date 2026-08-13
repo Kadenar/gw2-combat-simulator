@@ -47,6 +47,10 @@ const IMPLEMENTED = new Set([
   "Searing Pact",
   "Power for Power",
   "Conceited Curate",
+  "Restorative Virtues",
+  "Lethal Tempo",
+  "Phoenix Protocol",
+  "Tyrant's Momentum",
   "Light's Gift",
   "Permeating Wrath",
   "Purity of Word",
@@ -123,6 +127,12 @@ function implementedEvidence(trait: CatalogEntity): {
     return {
       file: "tests/professions/guardian/guardian.test.js",
       name: "Firebrand page exhaustion stows the tome and pages regenerate",
+    };
+  }
+  if (trait.specialization === "Willbender") {
+    return {
+      file: "tests/professions/guardian/guardian.test.js",
+      name: "Willbender virtues, flames, and trait triggers use their full mechanics",
     };
   }
   if (trait.specialization === "Luminary") {

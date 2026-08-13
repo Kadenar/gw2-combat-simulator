@@ -4,9 +4,7 @@ import {
   normalizeWeaponSigils,
 } from "../../platform/gw2/weapon-sigils.js";
 import { createGw2BuildCodec } from "../../platform/gw2/build-codec.js";
-import {
-  createDefaultTargetConditions,
-} from "../../platform/gw2/default-target-conditions.js";
+import { createDefaultTargetConditions } from "../../platform/gw2/default-target-conditions.js";
 import {
   normalizeProfessionAssumptions,
   validateProfessionAssumptions,
@@ -17,10 +15,7 @@ import {
   normalizeSimulationRandomnessAssumptions,
 } from "../../app/simulation/randomness.js";
 import { THIEF_ASSUMPTION_CONTROLS } from "./assumptions.js";
-import {
-  thiefCatalog,
-  thiefWeaponSkillMatchesSet,
-} from "./catalog.js";
+import { thiefCatalog, thiefWeaponSkillMatchesSet } from "./catalog.js";
 import type { ThiefCanonicalBuild, ThiefDodge } from "./types.js";
 
 /**
@@ -45,7 +40,7 @@ export function createThiefBuildDefaults(): ThiefCanonicalBuild {
   return {
     schemaVersion: THIEF_BUILD_SCHEMA_VERSION,
     profession: THIEF_PROFESSION_ID,
-    gear: Object.fromEntries(GEAR_SLOTS.map(slot => [slot, "Berserker's"])),
+    gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Berserker's"])),
     weapons: ["Rifle", ""],
     alternateWeapons: ["Dagger", "Pistol"],
     rune: "Scholar",
@@ -87,10 +82,7 @@ export function createThiefBuildDefaults(): ThiefCanonicalBuild {
       targetMoving: false,
       targetBoonless: true,
       targetConditions: createDefaultTargetConditions(),
-      ...normalizeProfessionAssumptions(
-        {},
-        THIEF_BUILD_ASSUMPTION_CONTROLS,
-      ),
+      ...normalizeProfessionAssumptions({}, THIEF_BUILD_ASSUMPTION_CONTROLS),
     },
     initialInitiative: 12,
     initialShadowForce: 0,
@@ -114,6 +106,8 @@ const thiefBuildCodec = createGw2BuildCodec({
     delete assumptions.markedTargetChoice;
     delete assumptions.playerHealthPercent;
     delete assumptions.targetDistance;
+    delete assumptions.artifactDrawSequence;
+    delete assumptions.doubleEdgeOutcomeSequence;
     return {
       ...build,
       assumptions,
@@ -131,7 +125,7 @@ const thiefBuildCodec = createGw2BuildCodec({
         "Bounding Dodger",
         "Unhindered Combatant",
       ].includes(String(saved.selectedDodge))
-        ? saved.selectedDodge as ThiefDodge
+        ? (saved.selectedDodge as ThiefDodge)
         : "Dodge",
     };
   },
@@ -140,25 +134,29 @@ const thiefBuildCodec = createGw2BuildCodec({
       build.assumptions,
       THIEF_BUILD_ASSUMPTION_CONTROLS,
     );
-    if (
-      !(Number(build.initialInitiative) >= 0
-        && Number(build.initialInitiative) <= 15)
-    ) errors.push("initialInitiative must be between 0 and 15.");
-    if (
-      !(Number(build.initialShadowForce) >= 0
-        && Number(build.initialShadowForce) <= 100)
-    ) errors.push("initialShadowForce must be between 0 and 100.");
+    if (!(
+      Number(build.initialInitiative) >= 0 &&
+      Number(build.initialInitiative) <= 15
+    ))
+      errors.push("initialInitiative must be between 0 and 15.");
+    if (!(
+      Number(build.initialShadowForce) >= 0 &&
+      Number(build.initialShadowForce) <= 100
+    ))
+      errors.push("initialShadowForce must be between 0 and 100.");
     for (const pair of [build.weapons, build.alternateWeapons]) {
       if (!Array.isArray(pair)) continue;
       const [mainHand] = pair;
       if (thiefCatalog.weaponHands.get(mainHand) === "2h") continue;
-      const hasThirdSkill = thiefCatalog.skills.some(skill =>
-        skill.type === "Weapon"
-        && skill.slot === "Weapon_3"
-        && !skill.flipParentId
-        && thiefWeaponSkillMatchesSet(skill, pair, {
-          catalog: thiefCatalog,
-        }));
+      const hasThirdSkill = thiefCatalog.skills.some(
+        (skill) =>
+          skill.type === "Weapon" &&
+          skill.slot === "Weapon_3" &&
+          !skill.flipParentId &&
+          thiefWeaponSkillMatchesSet(skill, pair, {
+            catalog: thiefCatalog,
+          }),
+      );
       if (!hasThirdSkill) {
         errors.push(
           `weapon set ${pair[0] || "empty"}/${pair[1] || "empty"} has no legal Thief slot-3 skill.`,

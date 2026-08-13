@@ -117,9 +117,10 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<
   },
   [ID.CHANNELED_VIGOR]: {
     implemented: true,
-    castTimeMs: 750,
+    quicknessCastTimeMs: 480,
     cooldown: 20,
     initiativeCost: 0,
+    enduranceGain: 125,
     effects: [],
   },
   [ID.REFLEXIVE_STRIKE]: {
@@ -294,31 +295,41 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        coefficient: 0.5625,
-        hits: 3,
+        ticks: [
+          { atMs: 200, coefficient: 0.1875 },
+          { atMs: 360, coefficient: 0.1875 },
+          { atMs: 520, coefficient: 0.1875 },
+        ],
         name: "Impaling Lotus",
         actorType: "player",
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
       {
         type: "condition",
-        condition: "Bleeding",
-        stacks: 2,
-        duration: 4,
+        ticks: [
+          {
+            atMs: 200,
+            condition: "Bleeding",
+            stacks: 2,
+            duration: 4,
+          },
+          {
+            atMs: 360,
+            condition: "Torment",
+            stacks: 2,
+            duration: 4,
+          },
+          {
+            atMs: 520,
+            condition: "Crippled",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
         actorType: "player",
-      },
-      {
-        type: "condition",
-        condition: "Torment",
-        stacks: 1,
-        duration: 4,
-        actorType: "player",
-      },
-      {
-        type: "condition",
-        condition: "Crippled",
-        stacks: 1,
-        duration: 3,
-        actorType: "player",
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
     ],
     finisherType: "Whirl",

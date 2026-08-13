@@ -196,7 +196,7 @@ function applyJusticeBurn(
     name: `${skillName} — ${active ? "Active" : "Passive"} Burning`,
     condition: burn.condition,
     stacks: burn.stacks,
-    duration: burn.duration,
+    duration: active ? burn.activeDuration : burn.passiveDuration,
   });
   professionCoreState(context).justiceBurns += 1;
   if (active) professionCoreState(context).justiceActiveBurns += 1;

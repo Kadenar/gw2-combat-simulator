@@ -126,6 +126,7 @@ function createCriticalFoodEffect(
       name: proc.name,
       coefficient: 0,
       flatDamage: proc.flatDamage,
+      damageKind: "condition",
       lifeSiphon: true,
       hits: 1,
       hitIndex: 1,

@@ -9,13 +9,6 @@ function stateFrom(context: ThiefUiContext = {}): Partial<ThiefState> {
   ) as unknown as Partial<ThiefState>;
 }
 
-function choosesAllArtifacts(context: ThiefUiContext): boolean {
-  return (
-    (context.build?.assumptions?.artifactDrawSequence ??
-      context.config?.deterministicChoices?.artifactDrawSequence) === "choose"
-  );
-}
-
 export const antiquaryUi = Object.freeze({
   assumptionControls: THIEF_ANTIQUARY_ASSUMPTION_CONTROLS,
   paletteGroups: (context: ThiefUiContext) => {
@@ -47,12 +40,7 @@ export const antiquaryUi = Object.freeze({
       {
         id: "thief-profession",
         label: "F",
-        skillIds: [
-          ID.SKRITT_SWIPE,
-          ...(!choosesAllArtifacts(context) && state.artifactSlots?.length
-            ? [ID.RESHUFFLE]
-            : []),
-        ],
+        skillIds: [ID.SKRITT_SWIPE],
         color: "#9a535c",
         resourceAnchor: true,
       },
@@ -117,11 +105,9 @@ export const antiquaryUi = Object.freeze({
       };
     }
     if (skill.id === ID.RESHUFFLE) {
-      const available =
-        !choosesAllArtifacts(context) && Boolean(state.artifactSlots?.length);
       return {
-        available,
-        message: available ? "" : "Pilfer artifacts before reshuffling",
+        available: false,
+        message: "All artifacts are already available to choose",
       };
     }
     return { available: true, message: "" };

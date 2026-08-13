@@ -1,6 +1,9 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { THIEF_SKILL_IDS as ID } from "../data/ids.js";
-import { thiefEnduranceReadyAt } from "./resources.js";
+import {
+  thiefEnduranceReadyAt,
+  thiefInitiativeRegenerationRate,
+} from "./resources.js";
 import { spearChainStageForSkill } from "./conditions.js";
 import type { AvailabilityResult } from "../../../platform/engine/types.js";
 import type {
@@ -174,7 +177,8 @@ export function thiefCoreCastAvailability(
       skill,
       "thief.initiative",
       `requires ${skill.initiativeCost} initiative.`,
-      context.start + Math.max(0, missing),
+      context.start +
+        Math.max(0, missing) / thiefInitiativeRegenerationRate(state),
     );
   }
   const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));

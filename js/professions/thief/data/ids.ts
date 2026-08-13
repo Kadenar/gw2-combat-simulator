@@ -399,8 +399,7 @@ export const THIEF_SPECIALIZATION_IDS = Object.freeze({
   ANTIQUARY: 77, // Antiquary
 });
 
-// Keep canonical PvE artifact identities explicit so deterministic artifact
-// draws never depend on API alias ordering.
+// Keep canonical PvE artifact identities explicit for the artifact picker.
 export const THIEF_ARTIFACT_IDS = Object.freeze({
   // Display order follows the Guild Wars 2 Wiki artifact tables.
   OFFENSIVE: Object.freeze([

@@ -1135,6 +1135,7 @@ export interface CastCommand {
   readonly concurrentOffsetMs?: number;
   readonly interruptAfterMs?: number;
   readonly releaseAtCharges?: number;
+  readonly doubleEdgeOutcome?: "success" | "backfire";
 }
 
 export interface WaitCommand {
@@ -1160,6 +1161,7 @@ export interface LegacyRotationEntry {
   offset?: number;
   interruptMs?: number | null;
   releaseAtCharges?: number | null;
+  doubleEdgeOutcome?: "success" | "backfire" | null;
   waitMs?: number;
 }
 

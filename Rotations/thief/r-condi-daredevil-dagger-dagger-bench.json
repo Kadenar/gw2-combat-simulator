@@ -1,0 +1,389 @@
+{
+  "metadata": {
+    "log": "condi dd daggers.zevtc",
+    "benchmarkDurationSeconds": 103.362,
+    "benchmarkDamage": 3949694,
+    "benchmarkDps": 38212.244345117164
+  },
+  "rotation": [
+    "Prepare Thousand Needles",
+    {
+      "name": "__wait",
+      "waitMs": 30000
+    },
+    "Caltrops",
+    "__combat_start",
+    "Thousand Needles",
+    "Prepare Thousand Needles",
+    {
+      "name": "Spider Venom",
+      "offset": 360
+    },
+    "Dodge",
+    {
+      "name": "Swap Weapons",
+      "offset": 41
+    },
+    "Death Blossom",
+    "Death Blossom",
+    {
+      "name": "Steal",
+      "offset": 0
+    },
+    {
+      "name": "Thousand Needles",
+      "offset": 723
+    },
+    {
+      "name": "Double Strike",
+      "interruptMs": 124
+    },
+    "Dodge",
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 319
+    },
+    "Dodge",
+    "Channeled Vigor",
+    "Dodge",
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 319
+    },
+    "Dodge",
+    {
+      "name": "Swap Weapons",
+      "offset": 160
+    },
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 318
+    },
+    "Dodge",
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 320
+    },
+    "Dodge",
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    "Lotus Strike",
+    {
+      "name": "Steal",
+      "offset": 403
+    },
+    "Caltrops",
+    "Dodge",
+    {
+      "name": "Swap Weapons",
+      "offset": 604
+    },
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 361
+    },
+    "Dodge",
+    "Channeled Vigor",
+    "Dodge",
+    {
+      "name": "Spider Venom",
+      "offset": 243
+    },
+    "Death Blossom",
+    "Prepare Thousand Needles",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 319
+    },
+    "Dodge",
+    "Death Blossom",
+    {
+      "name": "Thousand Needles",
+      "offset": 806
+    },
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 360
+    },
+    "Dodge",
+    {
+      "name": "Swap Weapons",
+      "offset": 160
+    },
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 319
+    },
+    "Dodge",
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 327
+    },
+    {
+      "name": "Steal",
+      "offset": 84
+    },
+    "Dodge",
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    "Lotus Strike",
+    "Caltrops",
+    "Dodge",
+    {
+      "name": "Swap Weapons",
+      "offset": 639
+    },
+    "Channeled Vigor",
+    "Dodge",
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 355
+    },
+    "Dodge",
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 319
+    },
+    "Dodge",
+    "Death Blossom",
+    {
+      "name": "Spider Venom",
+      "offset": 319
+    },
+    "Double Strike",
+    "Wild Strike",
+    "Lotus Strike",
+    {
+      "name": "Double Strike",
+      "interruptMs": 278
+    },
+    "Prepare Thousand Needles",
+    "Dodge",
+    {
+      "name": "Swap Weapons",
+      "offset": 125
+    },
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Steal",
+      "offset": 84
+    },
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 361
+    },
+    "Dodge",
+    {
+      "name": "Thousand Needles",
+      "offset": 437
+    },
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 326
+    },
+    "Dodge",
+    "Channeled Vigor",
+    "Dodge",
+    "Death Blossom",
+    "Caltrops",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 361
+    },
+    "Dodge",
+    {
+      "name": "Swap Weapons",
+      "offset": 160
+    },
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 320
+    },
+    "Dodge",
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 319
+    },
+    "Dodge",
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 361
+    },
+    {
+      "name": "Steal",
+      "offset": 0
+    },
+    "Dodge",
+    "Death Blossom",
+    {
+      "name": "Double Strike",
+      "interruptMs": 319
+    },
+    {
+      "name": "Swap Weapons",
+      "offset": 83
+    },
+    {
+      "name": "Spider Venom",
+      "offset": 118
+    },
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 354
+    },
+    "Dodge",
+    "Channeled Vigor",
+    "Dodge",
+    "Death Blossom",
+    "Prepare Thousand Needles",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 319
+    },
+    "Dodge",
+    "Death Blossom",
+    {
+      "name": "Thousand Needles",
+      "offset": 722
+    },
+    "Caltrops",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 319
+    },
+    "Dodge",
+    {
+      "name": "Swap Weapons",
+      "offset": 319
+    },
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 361
+    },
+    "Dodge",
+    "Death Blossom",
+    "Double Strike",
+    {
+      "name": "Steal",
+      "offset": 209
+    },
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 319
+    },
+    "Dodge",
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 319
+    },
+    "Dodge",
+    "Channeled Vigor",
+    "Dodge",
+    {
+      "name": "Swap Weapons",
+      "offset": 438
+    },
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 327
+    },
+    "Dodge",
+    "Death Blossom",
+    {
+      "name": "Spider Venom",
+      "offset": 604
+    },
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 319
+    },
+    "Dodge",
+    "Death Blossom",
+    "Double Strike",
+    "Wild Strike",
+    "Lotus Strike",
+    "Double Strike",
+    "Wild Strike",
+    {
+      "name": "Lotus Strike",
+      "interruptMs": 285
+    },
+    "Dodge",
+    {
+      "name": "Swap Weapons",
+      "offset": 639
+    },
+    {
+      "name": "Death Blossom",
+      "interruptMs": 0
+    },
+    "Prepare Thousand Needles"
+  ]
+}

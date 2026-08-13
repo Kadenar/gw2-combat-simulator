@@ -17,24 +17,12 @@
     "Weapon1": "Berserker's",
     "Weapon2": "Berserker's"
   },
-  "weapons": [
-    "Dagger",
-    "Dagger"
-  ],
-  "alternateWeapons": [
-    "Dagger",
-    "Dagger"
-  ],
+  "weapons": ["Dagger", "Dagger"],
+  "alternateWeapons": ["Dagger", "Dagger"],
   "rune": "Dragonhunter",
   "weaponSigils": [
-    [
-      "Force",
-      "Impact"
-    ],
-    [
-      "Force",
-      "Impact"
-    ]
+    ["Force", "Impact"],
+    ["Force", "Impact"]
   ],
   "relic": "Eagle",
   "food": "Cilantro Lime Sous-Vide Steak",
@@ -101,8 +89,6 @@
       "Weakness": true,
       "Vulnerability": 25
     },
-    "artifactDrawSequence": "balanced",
-    "doubleEdgeOutcomeSequence": "alternate",
     "forgedSurferBombsHit": "5"
   },
   "initialInitiative": 12,

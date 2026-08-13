@@ -17,16 +17,16 @@
     "Weapon1": "Viper's",
     "Weapon2": "Viper's"
   },
-  "weapons": ["Spear", ""],
-  "alternateWeapons": ["Spear", ""],
+  "weapons": ["Dagger", "Dagger"],
+  "alternateWeapons": ["Dagger", "Dagger"],
   "rune": "Trapper",
   "weaponSigils": [
-    ["Earth", "Torment"],
-    ["Earth", "Torment"]
+    ["Agony", "Doom"],
+    ["Agony", "Doom"]
   ],
-  "relic": "Blightbringer",
-  "food": "Cilantro and Cured Meat Flatbread",
-  "utility": "Tuning Icicle",
+  "relic": "Fractal",
+  "food": "Plate of Kimchi Pancakes",
+  "utility": "Toxic Tuning Crystal",
   "jadeBotCore": true,
   "infusions": [
     {
@@ -49,21 +49,21 @@
     },
     {
       "name": "Trickery",
-      "traits": "2-3-3"
+      "traits": "1-1-3"
     },
     {
-      "name": "Antiquary",
-      "traits": "3-2-3"
+      "name": "Daredevil",
+      "traits": "1-2-1"
     }
   ],
   "selectedSkills": {
-    "Heal": "Signet of Malice",
-    "Utility1": "Spider Venom",
-    "Utility2": "Prepare Thousand Needles",
-    "Utility3": "Caltrops",
-    "Elite": "Skritt Scuffle"
+    "Heal": "Channeled Vigor",
+    "Utility1": "Caltrops",
+    "Utility2": "Spider Venom",
+    "Utility3": "Prepare Thousand Needles",
+    "Elite": "Thieves Guild"
   },
-  "selectedDodge": "Dodge",
+  "selectedDodge": "Lotus Training",
   "assumptions": {
     "might": 25,
     "fury": true,

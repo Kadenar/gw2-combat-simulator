@@ -1,5 +1,18 @@
 [
   {
+    "section": "Willbender",
+    "presets": [
+      {
+        "label": "Power (Spear / Greatsword)",
+        "build": "Builds/guardian/b-power-willbender-spear-greatsword.json",
+        "rotation": "Rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
+        "benchmarkDps": 42975,
+        "sourceBenchmarkDps": 42702,
+        "upToDate": true
+      }
+    ]
+  },
+  {
     "section": "Firebrand",
     "presets": [
       {

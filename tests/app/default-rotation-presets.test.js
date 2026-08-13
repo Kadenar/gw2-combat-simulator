@@ -197,7 +197,7 @@ test("Necromancer and Thief displayed benchmark DPS stays current", async () => 
     thiefManifest
       .flatMap((section) => section.presets)
       .map((preset) => preset.benchmarkDps),
-    [43248, 40790, 36275, 43036],
+    [35365, 36721, 43248, 40790, 42082, 36275, 43036, 38212],
   );
 });
 
@@ -482,6 +482,12 @@ test("Guardian and Mesmer rotations are paired with their build templates", asyn
   const mesmerTemplates = templates(mesmerManifest);
 
   assert.deepEqual(guardianTemplates, [
+    {
+      section: "Willbender",
+      label: "Power (Spear / Greatsword)",
+      rotation:
+        "Rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
+    },
     {
       section: "Firebrand",
       label: "Condition (Axe / Torch + Pistol / Pistol)",

@@ -14,7 +14,6 @@ import {
 import type { SkillId } from "../../../../platform/engine/types.js";
 import type {
   AntiquaryState,
-  ThiefArtifactKind,
   ThiefArtifactSlot,
   ThiefCastContext,
   ThiefDoubleEdgeOutcome,
@@ -38,21 +37,6 @@ const SCUFFLE_INTERVAL = ANTIQUARY_SCUFFLE_INTERVAL;
 const SCUFFLE_DURATION = ANTIQUARY_SCUFFLE_DURATION;
 const SCOUTREL_LUCK_ICD = ANTIQUARY_SCOUNDRELS_LUCK_ICD;
 
-function nextArtifact(
-  state: AntiquaryState,
-  kind: ThiefArtifactKind,
-): ThiefArtifactSlot {
-  const sequence = state.artifactOutcomeSequence[kind] || [];
-  const index = Number(state.artifactOutcomeIndices[kind] || 0);
-  const skillId =
-    sequence[index % Math.max(1, sequence.length)] ||
-    (kind === "offensive"
-      ? THIEF_ARTIFACT_IDS.OFFENSIVE[0]
-      : THIEF_ARTIFACT_IDS.DEFENSIVE[0]);
-  state.artifactOutcomeIndices[kind] = index + 1;
-  return { kind, skillId };
-}
-
 function allArtifactChoices(): ThiefArtifactSlot[] {
   return [
     ...THIEF_ARTIFACT_IDS.OFFENSIVE.map((skillId) => ({
@@ -64,10 +48,6 @@ function allArtifactChoices(): ThiefArtifactSlot[] {
       skillId,
     })),
   ];
-}
-
-function usesArtifactChoiceMode(context: ThiefSchedulerContext): boolean {
-  return context.config.deterministicChoices?.artifactDrawSequence === "choose";
 }
 
 function emitBoon(
@@ -166,13 +146,7 @@ export function pilferArtifacts(
 ): void {
   const state = antiquaryState.from(context);
   const prolific = hasThiefTrait(context.config, TRAIT.PROLIFIC_PLUNDERER);
-  state.artifactSlots = usesArtifactChoiceMode(context)
-    ? allArtifactChoices()
-    : [
-        nextArtifact(state, "offensive"),
-        nextArtifact(state, "defensive"),
-        ...(prolific ? [nextArtifact(state, "offensive")] : []),
-      ];
+  state.artifactSlots = allArtifactChoices();
   state.artifactUsesRemaining =
     1 +
     (source === "swipe" && prolific ? 1 : 0) +
@@ -191,9 +165,7 @@ export function pilferArtifacts(
 export function reshuffleArtifacts(context: ThiefCastContext): void {
   const state = antiquaryState.from(context);
   const at = context.effectiveEnd;
-  state.artifactSlots = usesArtifactChoiceMode(context)
-    ? allArtifactChoices()
-    : state.artifactSlots.map((slot) => nextArtifact(state, slot.kind));
+  state.artifactSlots = allArtifactChoices();
   emitThiefState(context, at, "artifacts-reshuffled");
 }
 
@@ -384,9 +356,9 @@ function riskyDoubleEdge(
 function peekRiskyOutcome(context: ThiefCastContext): ThiefDoubleEdgeOutcome {
   const state = antiquaryState.from(context);
   if (state.scoundrelsLuck > 0) return "success";
-  const sequence = state.doubleEdgeOutcomeSequence || ["success", "backfire"];
-  const index = Number(state.doubleEdgeOutcomeIndex || 0);
-  return sequence[index % Math.max(1, sequence.length)] || "success";
+  return context.command.doubleEdgeOutcome === "backfire"
+    ? "backfire"
+    : "success";
 }
 
 export function peekDoubleEdgeOutcome(
@@ -408,9 +380,7 @@ function consumeDoubleEdgeOutcome(
     state.scoundrelsLuck -= 1;
     return "success";
   }
-  const outcome = peekRiskyOutcome(context);
-  state.doubleEdgeOutcomeIndex = Number(state.doubleEdgeOutcomeIndex || 0) + 1;
-  return outcome;
+  return peekRiskyOutcome(context);
 }
 
 function emitCannonBackfire(context: ThiefCastContext, at: number): void {

@@ -34,6 +34,13 @@
         "rotation": "Rotations/thief/r-condi-antiquary-spear-bench.json",
         "benchmarkDps": 40790,
         "upToDate": true
+      },
+      {
+        "label": "Condition (Dagger / Dagger)",
+        "build": "Builds/thief/b-condi-antiquary-dagger-dagger.json",
+        "rotation": "Rotations/thief/r-condi-antiquary-dagger-dagger-bench.json",
+        "benchmarkDps": 42082,
+        "upToDate": true
       }
     ]
   },
@@ -57,6 +64,13 @@
         "build": "Builds/thief/b-power-daredevil-dagger-dagger.json",
         "rotation": "Rotations/thief/r-power-daredevil-dagger-dagger-bench.json",
         "benchmarkDps": 43036,
+        "upToDate": true
+      },
+      {
+        "label": "Condition (Dagger / Dagger)",
+        "build": "Builds/thief/b-condi-daredevil-dagger-dagger.json",
+        "rotation": "Rotations/thief/r-condi-daredevil-dagger-dagger-bench.json",
+        "benchmarkDps": 38212,
         "upToDate": true
       }
     ]

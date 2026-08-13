@@ -58,6 +58,14 @@
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.58);
 }
 
+.rotation-double-edge-editor {
+  --activation-editor-accent: #d67272;
+}
+
+.rotation-double-edge-editor .activation-editor-actions {
+  margin-top: 13px;
+}
+
 .rotation-activation-editor::before {
   position: absolute;
   top: calc(var(--activation-editor-arrow-y) - 6px);
