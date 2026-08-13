@@ -112,6 +112,7 @@ export interface ThiefCoreState {
   assassinsSignetPassiveDisabledUntil: number;
   availableFlips: Record<string, number>;
   autoattackChains: Record<string, SkillId>;
+  traitProcProgress: Record<string, number>;
   traitProcReadyAt: Record<string, number>;
 }
 

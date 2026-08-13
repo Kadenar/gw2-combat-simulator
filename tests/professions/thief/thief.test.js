@@ -711,6 +711,95 @@ test("Exposed Weakness multiplies separately from additive strike bonuses", () =
   assert.ok(Math.abs(damage(exposed) / damage(baseline) - 1.04) < 1e-12);
 });
 
+test("Critical Strikes applies runtime Fury, No Quarter, and multiplicative modifiers", () => {
+  const criticalConfig = {
+    primaryWeapon: "Sword",
+    secondaryWeapon: "Pistol",
+    selectedSkills: [],
+    stats: { power: 2000, precision: 5000, ferocity: 0 },
+    target: { armor: 2597, defiant: true, health: 1_000_000 },
+    boons: { fury: false },
+  };
+  const flawlessHits = (result) =>
+    result.resolvedEvents.filter(
+      (event) =>
+        event.type === "damage" && event.skillName === "Flawless Execution",
+    );
+  const unrelenting = simulate("Daredevil", ["Flawless Execution"], {
+    ...criticalConfig,
+    selectedTraitIds: [TRAIT.UNRELENTING_STRIKES],
+  });
+  const withNoQuarter = simulate(
+    "Daredevil",
+    ["Flawless Execution", { type: "wait", durationMs: 3700 }, "Slice"],
+    {
+      ...criticalConfig,
+      selectedTraitIds: [TRAIT.UNRELENTING_STRIKES, TRAIT.NO_QUARTER],
+    },
+  );
+  const firstFlawless = flawlessHits(withNoQuarter);
+  assert.equal(firstFlawless[0].criticalDamage, 1.5);
+  assert.equal(firstFlawless[1].criticalDamage, 1.5 + 250 / 1500);
+  const extendedFurySlice = withNoQuarter.resolvedEvents.find(
+    (event) => event.type === "damage" && event.skillName === "Slice",
+  );
+  assert.equal(extendedFurySlice.criticalDamage, 1.5 + 250 / 1500);
+  assert.equal(
+    withNoQuarter.profession.traitProcReadyAt[TRAIT.UNRELENTING_STRIKES],
+    firstFlawless[0].at + 8,
+  );
+  assert.equal(
+    withNoQuarter.profession.traitProcReadyAt[TRAIT.NO_QUARTER],
+    extendedFurySlice.at + 2,
+  );
+
+  const withAssassinsFury = simulate("Daredevil", ["Flawless Execution"], {
+    ...criticalConfig,
+    selectedTraitIds: [TRAIT.UNRELENTING_STRIKES, TRAIT.ASSASSINS_FURY],
+  });
+  assert.ok(
+    Math.abs(
+      flawlessHits(withAssassinsFury)[1].damage /
+        flawlessHits(unrelenting)[1].damage -
+        2090 / 2000,
+    ) < 1e-9,
+  );
+  assert.equal(
+    withAssassinsFury.profession.traitProcReadyAt[TRAIT.ASSASSINS_FURY],
+    flawlessHits(withAssassinsFury)[0].at + 2,
+  );
+
+  const modifierConfig = {
+    stats: { power: 2000, precision: 1000, ferocity: 0 },
+    target: { armor: 2597, defiant: true, health: 1_000_000 },
+  };
+  const strike = (selectedTraitIds, target = modifierConfig.target) =>
+    simulate("Daredevil", ["Slice"], {
+      ...modifierConfig,
+      target,
+      primaryWeapon: "Sword",
+      secondaryWeapon: "Pistol",
+      selectedTraitIds,
+    }).resolvedEvents.find((event) => event.type === "damage");
+  assert.equal(strike([TRAIT.KEEN_OBSERVER]).criticalChance, 0.2);
+  assert.ok(Math.abs(strike([TRAIT.TWIN_FANGS]).criticalChance - 0.12) < 1e-12);
+  assert.ok(
+    Math.abs(
+      strike([TRAIT.TWIN_FANGS], {
+        ...modifierConfig.target,
+        defiant: false,
+        behind: true,
+      }).criticalChance - 0.05,
+    ) < 1e-12,
+  );
+  assert.ok(
+    Math.abs(
+      strike([TRAIT.TWIN_FANGS, TRAIT.FEROCIOUS_STRIKES]).criticalDamage -
+        1.5 * 1.07 * 1.1,
+    ) < 1e-12,
+  );
+});
+
 test("Daredevil benchmark skills and endurance traits use supplied values", () => {
   const expectedQuicknessTimes = new Map([
     [ID.BACKSTAB, 320],
@@ -1184,7 +1273,11 @@ test("Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     (event) => event.skillName === "Steal Time" && event.type === "damage",
   );
   assert.equal(stealTimeStrike.coefficient, 1);
-  assert.equal(plainStealTimeEvent.weaponStrengthProfileId, "weapon.dagger");
+  assert.equal(
+    plainStealTimeEvent.weaponStrengthProfileId,
+    "nonweapon.profession-mechanic",
+  );
+  assert.equal(plainStealTimeEvent.resolvedWeaponStrength, 1100);
   const chamberStolen = simulate("Deadeye", ["Deadeye's Mark", "Steal Time"], {
     ...fullCrit,
     selectedTraitIds: [TRAIT.ONE_IN_THE_CHAMBER],
@@ -2741,10 +2834,47 @@ test("Power quickness Deadeye sword-pistol preset runs the supplied EVTC profile
       .filter(
         (event) => event.skillName === "Steal Time" && event.type === "damage",
       )
-      .every((event) => event.weaponStrengthProfileId === "weapon.sword"),
+      .every(
+        (event) =>
+          event.weaponStrengthProfileId === "nonweapon.profession-mechanic",
+      ),
   );
   assert.equal(skillHits("Malicious Tactical Strike"), 18);
   assert.equal(skillHits("Flawless Execution"), 420);
+  const firstFlawlessHit = result.resolvedEvents.find(
+    (event) =>
+      event.type === "damage" && event.skillName === "Flawless Execution",
+  );
+  const firstFlawlessAction = result.events.find(
+    (event) =>
+      event.type === "action" &&
+      event.activationId === firstFlawlessHit.activationId,
+  );
+  assert.deepEqual(
+    result.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === "damage" &&
+          event.activationId === firstFlawlessHit.activationId,
+      )
+      .map((event) => [
+        event.name,
+        Number(((event.at - firstFlawlessAction.at) * 1000).toFixed(1)),
+      ]),
+    [
+      ["Projectile Damage", 320.4],
+      ["Flawless Execution — Packet 1", 400.3],
+      ["Projectile Damage", 439.7],
+      ["Projectile Damage", 519.2],
+      ["Flawless Execution — Packet 1", 559.7],
+      ["Projectile Damage", 640.2],
+      ["Flawless Execution — Packet 1", 718.9],
+      ["Projectile Damage", 760.1],
+      ["Projectile Damage", 840.5],
+      ["Final Slash Damage", 1240.4],
+    ],
+  );
+  assertBenchmarkDamage("Steal Time", 425986);
   assertBenchmarkDamage("Malicious Tactical Strike", 387598);
   assertBenchmarkDamage("Flawless Execution", 2140771);
   assert.ok(
