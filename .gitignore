@@ -3,6 +3,7 @@ node_modules/
 dist/
 _site/
 coverage/
+reference-repos/Elementalist-Simulator/
 *.tsbuildinfo
 .DS_Store
 Thumbs.db
