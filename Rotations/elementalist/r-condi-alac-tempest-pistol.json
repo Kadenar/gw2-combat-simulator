@@ -1,0 +1,362 @@
+{
+  "rotation": [
+    "Overload Earth",
+    {
+      "name": "__combat_start",
+      "offset": 2700
+    },
+    "Glyph of Elementals",
+    "Feel the Burn!",
+    "Shattering Stone",
+    "Boulder Blast",
+    "Elemental Explosion",
+    "Dust Storm",
+    {
+      "name": "Water Attunement",
+      "offset": 159
+    },
+    "Frigid Flurry",
+    "Frozen Fusillade",
+    {
+      "name": "Fire Attunement",
+      "offset": 245
+    },
+    "Raging Ricochet",
+    "Searing Salvo",
+    "Wildfire",
+    "Signet of Fire",
+    "Glyph of Storms (Fire)",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Raging Ricochet",
+    "Overload Fire",
+    "Scorching Shot",
+    "Searing Salvo",
+    "Raging Ricochet",
+    {
+      "name": "Water Attunement",
+      "offset": 198
+    },
+    "Frigid Flurry",
+    {
+      "name": "Soothing Splash",
+      "interruptMs": 122
+    },
+    "Air Attunement",
+    "Dazing Discharge",
+    {
+      "name": "Electric Exposure",
+      "interruptMs": 42
+    },
+    "Lightning Orb",
+    {
+      "name": "Electric Exposure",
+      "interruptMs": 35
+    },
+    "Signet of Fire",
+    {
+      "name": "Earth Attunement",
+      "offset": 321
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 35
+    },
+    "Shattering Stone",
+    "Elemental Explosion",
+    "Boulder Blast",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    {
+      "name": "Feel the Burn!",
+      "offset": 43
+    },
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Shattering Stone",
+    "Overload Earth",
+    "Piercing Pebble",
+    "Dust Storm",
+    "Signet of Fire",
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 160
+    },
+    "Boulder Blast",
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 83
+    },
+    "Shattering Stone",
+    {
+      "name": "Water Attunement",
+      "offset": 321
+    },
+    "Frigid Flurry",
+    {
+      "name": "Soothing Splash",
+      "interruptMs": 42
+    },
+    "Frozen Fusillade",
+    {
+      "name": "Fire Attunement",
+      "offset": 320
+    },
+    "Raging Ricochet",
+    "Searing Salvo",
+    "Wildfire",
+    "Glyph of Storms (Fire)",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Raging Ricochet",
+    "Overload Fire",
+    "Scorching Shot",
+    "Searing Salvo",
+    "Raging Ricochet",
+    {
+      "name": "Water Attunement",
+      "offset": 245
+    },
+    "Frigid Flurry",
+    {
+      "name": "Feel the Burn!",
+      "offset": 204
+    },
+    {
+      "name": "Soothing Splash",
+      "interruptMs": 197
+    },
+    "Air Attunement",
+    "Dazing Discharge",
+    "Lightning Orb",
+    {
+      "name": "Electric Exposure",
+      "interruptMs": 42
+    },
+    "Signet of Fire",
+    {
+      "name": "Earth Attunement",
+      "offset": 321
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 34
+    },
+    "Shattering Stone",
+    "Elemental Explosion",
+    "Boulder Blast",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Shattering Stone",
+    "Overload Earth",
+    "Dust Storm",
+    "Signet of Fire",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Boulder Blast",
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 42
+    },
+    "Shattering Stone",
+    {
+      "name": "Water Attunement",
+      "offset": 362
+    },
+    "Frigid Flurry",
+    {
+      "name": "Soothing Splash",
+      "interruptMs": 42
+    },
+    "Frozen Fusillade",
+    {
+      "name": "Fire Attunement",
+      "offset": 202
+    },
+    "Raging Ricochet",
+    "Searing Salvo",
+    "Wildfire",
+    "Glyph of Storms (Fire)",
+    "Scorching Shot",
+    {
+      "name": "Feel the Burn!",
+      "offset": 481
+    },
+    "Scorching Shot",
+    "Scorching Shot",
+    "Raging Ricochet",
+    "Overload Fire",
+    "Scorching Shot",
+    "Searing Salvo",
+    "Raging Ricochet",
+    {
+      "name": "Water Attunement",
+      "offset": 202
+    },
+    "Frigid Flurry",
+    "Air Attunement",
+    {
+      "name": "Electric Exposure",
+      "interruptMs": 121
+    },
+    "Dazing Discharge",
+    "Lightning Orb",
+    "Signet of Fire",
+    {
+      "name": "Earth Attunement",
+      "offset": 406
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 84
+    },
+    "Shattering Stone",
+    "Elemental Explosion",
+    "Boulder Blast",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Shattering Stone",
+    "Overload Earth",
+    "Dust Storm",
+    "Signet of Fire",
+    "Piercing Pebble",
+    {
+      "name": "Feel the Burn!",
+      "offset": 489
+    },
+    "Piercing Pebble",
+    "Boulder Blast",
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 41
+    },
+    "Shattering Stone",
+    {
+      "name": "Water Attunement",
+      "offset": 279
+    },
+    "Frigid Flurry",
+    "Frozen Fusillade",
+    {
+      "name": "Fire Attunement",
+      "offset": 248
+    },
+    "Raging Ricochet",
+    "Searing Salvo",
+    "Wildfire",
+    "Glyph of Storms (Fire)",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Raging Ricochet",
+    "Overload Fire",
+    "Scorching Shot",
+    "Searing Salvo",
+    "Raging Ricochet",
+    {
+      "name": "Water Attunement",
+      "offset": 157
+    },
+    "Frigid Flurry",
+    {
+      "name": "Air Attunement",
+      "offset": 923
+    },
+    {
+      "name": "Electric Exposure",
+      "interruptMs": 43
+    },
+    "Dazing Discharge",
+    {
+      "name": "Electric Exposure",
+      "interruptMs": 42
+    },
+    "Lightning Orb",
+    "Electric Exposure",
+    {
+      "name": "Earth Attunement",
+      "offset": 196
+    },
+    "Shattering Stone",
+    "Signet of Fire",
+    "Elemental Explosion",
+    "Boulder Blast",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Overload Earth",
+    {
+      "name": "Feel the Burn!",
+      "offset": 84
+    },
+    "Dust Storm",
+    "Shattering Stone",
+    "Piercing Pebble",
+    {
+      "name": "Water Attunement",
+      "offset": 401
+    },
+    {
+      "name": "Soothing Splash",
+      "interruptMs": 35
+    },
+    "Frigid Flurry",
+    {
+      "name": "Soothing Splash",
+      "interruptMs": 35
+    },
+    "Frozen Fusillade",
+    "Signet of Fire",
+    "Soothing Splash",
+    {
+      "name": "Fire Attunement",
+      "offset": 404
+    },
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 35
+    },
+    "Raging Ricochet",
+    "Searing Salvo",
+    "Wildfire",
+    "Glyph of Storms (Fire)",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Raging Ricochet",
+    "Overload Fire",
+    "Scorching Shot",
+    "Searing Salvo",
+    "Raging Ricochet",
+    {
+      "name": "Water Attunement",
+      "offset": 121
+    },
+    "Frigid Flurry",
+    "Frozen Fusillade",
+    {
+      "name": "Air Attunement",
+      "offset": 322
+    },
+    "Lightning Orb"
+  ]
+}

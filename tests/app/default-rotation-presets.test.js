@@ -18,6 +18,7 @@ import { revenantCatalog } from "../../js/professions/revenant/catalog.js";
 test("native build manifests and assets stay profession-scoped", async () => {
   const professions = [
     "engineer",
+    "elementalist",
     "guardian",
     "mesmer",
     "necromancer",
@@ -75,7 +76,7 @@ test("Necromancer rotation presets stay separate from Elementalist presets", asy
       "utf8",
     ).then(JSON.parse),
     readFile(
-      new URL("../../Builds/manifest.json", import.meta.url),
+      new URL("../../Builds/elementalist/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
   ]);
@@ -179,10 +180,7 @@ test("Necromancer and Thief displayed benchmark DPS stays current", async () => 
     necromancerDps.get("Scourge:Condition (Pistol / Torch + Scepter / Torch)"),
     39419,
   );
-  assert.equal(
-    necromancerDps.get("Reaper:Power (Greatsword / Spear)"),
-    43427,
-  );
+  assert.equal(necromancerDps.get("Reaper:Power (Greatsword / Spear)"), 43427);
   assert.equal(
     necromancerDps.get("Reaper:Condition (Dagger / Sword + Spear)"),
     43982,
@@ -213,7 +211,8 @@ test("new Necromancer rotation presets execute without warnings", async () => {
   const conditionHarbinger = manifest
     .find((section) => section.section === "Harbinger")
     ?.presets.find(
-      (preset) => preset.label === "Condition (Pistol / Torch + Scepter / Dagger)",
+      (preset) =>
+        preset.label === "Condition (Pistol / Torch + Scepter / Dagger)",
     );
   assert.equal(conditionHarbinger?.benchmarkDps, 45253);
 

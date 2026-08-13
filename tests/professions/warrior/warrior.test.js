@@ -16,6 +16,11 @@ import {
   skillBreakdownRows,
 } from "../../../js/app/rotation/result-model.js";
 import { activeResourceGroup } from "../../../js/app/rotation/resource-view.js";
+import {
+  shatterResourceSpends,
+  timelineStepsWithChargeFills,
+} from "../../../js/app/rotation/timeline-model.js";
+import { timelineDeadTimeMarkers } from "../../../js/platform/ui/timeline.js";
 import { createSimulationRandom } from "../../../js/platform/engine/simulation-random.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import {
@@ -413,6 +418,43 @@ test("Bladesworn palette availability follows gunsaber and Dragon Trigger state"
     availability(charging.endState.profession, ID.DRAGON_SLASH_FORCE),
     { available: true, message: "" },
   );
+});
+
+test("Dragon Trigger charge time is excluded from timeline dead time", () => {
+  const result = simulate(
+    "Bladesworn",
+    ["Dragon Trigger", { name: "Dragon Slash—Force", releaseAtCharges: 5 }],
+    { initialResource: 100 },
+  );
+  const dragonSlashStep = result.steps.find(
+    (step) => step.skill === "Dragon Slash—Force" && !step.invalid,
+  );
+  assert.ok(dragonSlashStep, "expected a Dragon Slash cast");
+
+  const spends = shatterResourceSpends(result);
+  const chargingSeconds = spends.get(dragonSlashStep.ri)?.chargingSeconds || 0;
+  const chargingMs = Math.round(chargingSeconds * 1000);
+  assert.ok(chargingMs > 0, "expected Dragon Slash to spend time charging");
+
+  const deadTime = (steps) =>
+    timelineDeadTimeMarkers(steps).reduce(
+      (total, marker) => total + marker.durationMs,
+      0,
+    );
+
+  // The charge window reads as dead time from the raw steps because the cast
+  // bar only starts once the release fires.
+  const rawDeadTime = deadTime(result.steps);
+  assert.ok(
+    rawDeadTime >= chargingMs,
+    "charge window should read as dead time before the fix",
+  );
+
+  // Marking the charge window as a partial fill removes exactly that span.
+  const chargeAwareDeadTime = deadTime(
+    timelineStepsWithChargeFills(result.steps, spends),
+  );
+  assert.equal(rawDeadTime - chargeAwareDeadTime, chargingMs);
 });
 
 test("Bladesworn gunsaber autos follow the standard autoattack chain display", () => {

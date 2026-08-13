@@ -11,6 +11,7 @@ import type {
   ProfessionAppState,
   ProfessionSlotLoadoutContext,
 } from "../profession/types.js";
+import { groupWeaponSkillsByAttunement } from "../profession/weapon-attunement-groups.js";
 import {
   activeSpecialization,
   paletteEndState,
@@ -120,7 +121,7 @@ export function weaponPaletteRows(
   app: ProfessionAppState,
   activeWeaponSet = 1,
 ): WeaponPaletteRow[] {
-  return [1, 2]
+  const rows = [1, 2]
     .map((weaponSet) => ({
       id: `weapon-set-${weaponSet}`,
       label: `W${weaponSet}`,
@@ -129,6 +130,23 @@ export function weaponPaletteRows(
       skills: weaponSkills(app, weaponSet),
     }))
     .filter((row) => row.skills.length);
+  return rows.flatMap((row) => {
+    const groups = groupWeaponSkillsByAttunement(
+      row.skills,
+      activeSpecialization(app),
+    );
+    if (groups.length === 1 && groups[0].attunement == null) {
+      return [row];
+    }
+    return groups.map(({ attunement, skills }) => ({
+      ...row,
+      id: `${row.id}-${String(attunement)
+        .toLowerCase()
+        .replace(/[^a-z]+/g, "-")}`,
+      label: String(attunement),
+      skills,
+    }));
+  });
 }
 
 export function weaponPaletteStackHtml(groups: readonly string[] = []): string {
@@ -281,7 +299,20 @@ export function rotationSelectedSlotSkills(app: ProfessionAppState): Skill[] {
   if (app.adapter.slotLoadout) return [];
   return Object.values(app.build.selectedSkills).flatMap((name) => {
     const skill = app.skillByName.get(name);
-    return skill ? [skill] : [];
+    if (!skill?.attunement) return skill ? [skill] : [];
+    const variantSuffix = ` (${String(skill.attunement)})`;
+    const baseName = skill.name.endsWith(variantSuffix)
+      ? skill.name.slice(0, -variantSuffix.length)
+      : skill.name;
+    const primaryAttunement = String(
+      paletteProfessionState(app).primaryAttunement ||
+        app.build.startAttunement ||
+        "",
+    );
+    const activeVariant = app.skillByName.get(
+      `${baseName} (${primaryAttunement})`,
+    );
+    return [activeVariant || skill];
   });
 }
 

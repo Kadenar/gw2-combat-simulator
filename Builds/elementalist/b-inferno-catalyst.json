@@ -1,0 +1,88 @@
+{
+  "build": {
+    "gear": {
+      "Helm": "Berserker's",
+      "Shoulders": "Berserker's",
+      "Chest": "Berserker's",
+      "Gloves": "Berserker's",
+      "Leggins": "Berserker's",
+      "Boots": "Berserker's",
+      "Amulet": "Berserker's",
+      "Ring1": "Berserker's",
+      "Ring2": "Berserker's",
+      "Accessory1": "Berserker's",
+      "Accessory2": "Berserker's",
+      "Back": "Berserker's",
+      "Weapon1": "Berserker's",
+      "Weapon2": "Berserker's"
+    },
+    "weapons": ["Scepter", "Dagger"],
+    "rune": "Flame Legion",
+    "sigils": ["Force", "Smoldering"],
+    "relic": "Bloodstone",
+    "food": "Bowl of Sweet and Spicy Butternut Squash Soup",
+    "utility": "Superior Sharpening Stone",
+    "jadeBotCore": true,
+    "specializations": [
+      {
+        "name": "Fire",
+        "traits": "1-3-3"
+      },
+      {
+        "name": "Air",
+        "traits": "3-3-1"
+      },
+      {
+        "name": "Catalyst",
+        "traits": "2-1-2"
+      }
+    ],
+    "infusions": [
+      {
+        "stat": "Power",
+        "count": 16
+      },
+      {
+        "stat": "Precision",
+        "count": 2
+      },
+      {
+        "stat": "Ferocity",
+        "count": 0
+      }
+    ]
+  },
+  "selectedSkills": {
+    "heal": "Arcane Brilliance",
+    "util1": "Relentless Fire",
+    "util2": "Glyph of Storms (Fire)",
+    "util3": "Signet of Fire",
+    "elite": "Glyph of Elementals"
+  },
+  "activeAttunement": "Earth",
+  "secondaryAttunement": "Air",
+  "evokerElement": null,
+  "evokerStartCharges": 6,
+  "evokerStartEmpowered": 0,
+  "permaBoons": {
+    "Might": 25,
+    "Fury": true,
+    "Protection": true,
+    "Resolution": true,
+    "Alacrity": true,
+    "Quickness": true,
+    "Regeneration": true,
+    "Vigor": true,
+    "Swiftness": true,
+    "Bleeding": 5,
+    "Burning": true,
+    "Torment": 5,
+    "Confusion": 5,
+    "Poisoned": true,
+    "Chilled": true,
+    "Cripple": true,
+    "Slow": true,
+    "Weakness": true,
+    "Vulnerability": 25
+  }
+}

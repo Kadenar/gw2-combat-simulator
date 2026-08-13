@@ -173,6 +173,39 @@ function closeTemplateMenus(container: ParentNode | null | undefined): void {
 }
 
 /**
+ * Places build templates beside the simulator while keeping the existing
+ * section layout together in the main content column.
+ *
+ * @param {HTMLElement} container
+ * @returns {void}
+ */
+function mountBuildTemplateLayout(container: HTMLElement): void {
+  const buildSection = document.querySelector<HTMLElement>(".build-section");
+  if (!buildSection) return;
+
+  const existingMain = buildSection.closest<HTMLElement>(".profession-main");
+  if (existingMain?.parentElement) {
+    existingMain.parentElement.insertBefore(container, existingMain);
+    return;
+  }
+
+  const appRoot = buildSection.parentElement;
+  if (!appRoot) return;
+
+  const layout = document.createElement("div");
+  layout.className = "profession-layout";
+  const main = document.createElement("div");
+  main.className = "profession-main";
+
+  appRoot.insertBefore(layout, buildSection);
+  layout.append(container, main);
+  while (layout.nextSibling) {
+    main.append(layout.nextSibling);
+  }
+  appRoot.classList.add("has-template-sidebar");
+}
+
+/**
  * @param {ProfessionAppState} app
  * @returns {Promise<void>}
  */
@@ -207,7 +240,7 @@ export async function initBuildTemplates(
         </div>
       </div>`;
     app.templateContainer = container;
-    document.querySelector(".build-section")?.before(container);
+    mountBuildTemplateLayout(container);
     container.addEventListener("click", (event) => {
       const target = event.target;
       if (!(target instanceof Element)) return;

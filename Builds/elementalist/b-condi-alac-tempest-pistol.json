@@ -1,0 +1,90 @@
+{
+  "build": {
+    "gear": {
+      "Helm": "Viper's",
+      "Shoulders": "Viper's",
+      "Chest": "Viper's",
+      "Gloves": "Viper's",
+      "Leggins": "Viper's",
+      "Boots": "Viper's",
+      "Amulet": "Viper's",
+      "Ring1": "Viper's",
+      "Ring2": "Viper's",
+      "Accessory1": "Viper's",
+      "Accessory2": "Viper's",
+      "Back": "Viper's",
+      "Weapon1": "Viper's",
+      "Weapon2": "Viper's"
+    },
+    "weapons": ["Pistol", "Warhorn"],
+    "rune": "Trapper",
+    "sigils": ["Malice", "Bursting"],
+    "relic": "Fractal",
+    "food": "Salsa-Topped Veggie Flatbread",
+    "utility": "Toxic Tuning Crystal",
+    "jadeBotCore": true,
+    "specializations": [
+      {
+        "name": "Fire",
+        "traits": "1-1-1"
+      },
+      {
+        "name": "Water",
+        "traits": "2-3-2"
+      },
+      {
+        "name": "Tempest",
+        "traits": "3-1-3"
+      }
+    ],
+    "infusions": [
+      {
+        "stat": "Expertise",
+        "count": 18
+      },
+      {
+        "stat": "Precision",
+        "count": 0
+      },
+      {
+        "stat": "Ferocity",
+        "count": 0
+      }
+    ]
+  },
+  "selectedSkills": {
+    "heal": "Signet of Restoration",
+    "util1": "Glyph of Storms (Fire)",
+    "util2": "Signet of Fire",
+    "util3": "Feel the Burn!",
+    "elite": "Glyph of Elementals"
+  },
+  "activeAttunement": "Earth",
+  "secondaryAttunement": "Air",
+  "evokerElement": null,
+  "evokerStartCharges": 6,
+  "evokerStartEmpowered": 0,
+  "permaBoons": {
+    "Might": 25,
+    "Fury": true,
+    "Protection": true,
+    "Resolution": true,
+    "Alacrity": true,
+    "Quickness": true,
+    "Regeneration": true,
+    "Vigor": true,
+    "Swiftness": true,
+    "Bleeding": 5,
+    "Burning": true,
+    "Torment": 5,
+    "Confusion": 5,
+    "Poisoned": true,
+    "Chilled": true,
+    "Cripple": true,
+    "Slow": true,
+    "Weakness": true,
+    "Vulnerability": 25
+  },
+  "hitboxSize": "small",
+  "glyphBoonedElementals": false
+}

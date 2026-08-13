@@ -1,6 +1,7 @@
 import type {
   LegacyRotationItem,
   SchedulerRecord,
+  SchedulerStep,
 } from "../../platform/engine/types.js";
 import type {
   Gw2ProcStep,
@@ -143,6 +144,7 @@ export function groupConsecutiveProcSteps(
 
 export interface TimelineWeaponRowOptions {
   readonly startingWeaponSet?: number;
+  readonly startingWeaponLine?: string | null;
   readonly weaponSwapChangesSet?: boolean;
   readonly weaponLineTransition?: (
     entry: LegacyRotationItem,
@@ -154,12 +156,14 @@ export function timelineWeaponRows(
   rotation: readonly LegacyRotationItem[] = [],
   {
     startingWeaponSet = 1,
+    startingWeaponLine = null,
     weaponSwapChangesSet = true,
     weaponLineTransition = () => undefined,
   }: TimelineWeaponRowOptions = {},
 ) {
   return timelineRows(rotation, {
     startingWeaponSet,
+    startingWeaponLine,
     isWeaponSwap(entry) {
       return (
         weaponSwapChangesSet && rotationEntryName(entry) === "Swap Weapons"
@@ -265,6 +269,38 @@ export function shatterResourceSpends(
     });
   }
   return spends;
+}
+
+export interface TimelineChargeFillStep extends SchedulerStep {
+  readonly partialFill?: {
+    readonly startMs: number;
+    readonly durationMs: number;
+  };
+}
+
+/**
+ * Charging casts such as Dragon Slash occupy the character from the moment
+ * their charge window opens, well before the cast bar begins. Surfacing that
+ * window as a partial fill keeps the charge time from being counted as dead
+ * time on the timeline.
+ */
+export function timelineStepsWithChargeFills(
+  steps: readonly SchedulerStep[],
+  resourceSpends: ReadonlyMap<number, ShatterResourceSpend>,
+): TimelineChargeFillStep[] {
+  return steps.map((step) => {
+    const chargingMs = Math.round(
+      Number(resourceSpends.get(step.ri)?.chargingSeconds || 0) * 1000,
+    );
+    if (chargingMs <= 0) return step;
+    return {
+      ...step,
+      partialFill: {
+        startMs: step.start - chargingMs,
+        durationMs: chargingMs,
+      },
+    };
+  });
 }
 
 export { moveRotationEntry };
