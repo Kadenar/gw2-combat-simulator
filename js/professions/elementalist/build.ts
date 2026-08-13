@@ -249,6 +249,12 @@ function normalizeSavedBuild(candidate: unknown): unknown {
     !snapshot.profession;
   const build = hasSnapshotWrapper ? record(snapshot.build) : snapshot;
   const snapshotFields = hasSnapshotWrapper ? snapshot : build;
+  const explicitElementalSimulationProfile = Object.hasOwn(
+    snapshotFields,
+    "elementalSimulationProfile",
+  )
+    ? String(snapshotFields.elementalSimulationProfile)
+    : null;
   const selectedSkills = Object.hasOwn(snapshotFields, "selectedSkills")
     ? migrateSnapshotSelectedSkills(snapshotFields.selectedSkills)
     : build.selectedSkills;
@@ -285,7 +291,10 @@ function normalizeSavedBuild(candidate: unknown): unknown {
       ...(hasSnapshotWrapper ||
       Object.hasOwn(snapshotFields, "glyphBoonedElementals")
         ? {
-            elementalSimulationProfile: "reference",
+            elementalSimulationProfile:
+              explicitElementalSimulationProfile === "evtc"
+                ? "evtc"
+                : "reference",
             glyphBoonedElementals: Boolean(
               snapshotFields.glyphBoonedElementals,
             ),
