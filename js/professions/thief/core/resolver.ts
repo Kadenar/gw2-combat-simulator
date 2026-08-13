@@ -1,8 +1,6 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
-import {
-  CANONICAL_TARGET_CONDITIONS,
-} from "../../../platform/gw2/target-state.js";
+import { CANONICAL_TARGET_CONDITIONS } from "../../../platform/gw2/target-state.js";
 import {
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT,
@@ -19,26 +17,47 @@ function handleThiefState(
   context: ThiefResolverContext,
   event: ThiefResolverEvent,
 ): void {
-  const incoming = structuredClone(event.state || {}) as Record<string, unknown>;
-  const core = professionCoreState(context) as unknown as Record<string, unknown>;
-  const specialization = context.profession.specialization.state as unknown as Record<string, unknown>;
+  const incoming = structuredClone(event.state || {}) as Record<
+    string,
+    unknown
+  >;
+  const core = professionCoreState(context) as unknown as Record<
+    string,
+    unknown
+  >;
+  const specialization = context.profession.specialization
+    .state as unknown as Record<string, unknown>;
   const ownerFor = (key: string): Record<string, unknown> =>
     Object.hasOwn(specialization, key) ? specialization : core;
   const preserved: Record<string, unknown> = {
     traitProcReadyAt: core.traitProcReadyAt || {},
   };
-  for (const generationField of Object.keys(incoming).filter(
-    key => key.endsWith("Generation"),
+  for (const generationField of Object.keys(incoming).filter((key) =>
+    key.endsWith("Generation"),
   )) {
     const prefix = generationField.slice(0, -"Generation".length);
     const chargesField = `${prefix}Charges`;
     const expiresAtField = `${prefix}ExpiresAt`;
     const owner = ownerFor(generationField);
+    const incomingGeneration = Number(incoming[generationField] || 0);
+    const currentGeneration = Number(owner[generationField] || 0);
     if (
-      Number(incoming[generationField] || 0)
-        === Number(owner[generationField] || 0)
-      && Number(incoming[expiresAtField] || 0) > event.at
-      && Object.hasOwn(owner, chargesField)
+      generationField === "spiderVenomGeneration" &&
+      incomingGeneration < currentGeneration
+    ) {
+      preserved[generationField] = owner[generationField] || 0;
+      if (Object.hasOwn(owner, chargesField)) {
+        preserved[chargesField] = owner[chargesField] || 0;
+      }
+      if (Object.hasOwn(owner, expiresAtField)) {
+        preserved[expiresAtField] = owner[expiresAtField] || 0;
+      }
+      continue;
+    }
+    if (
+      incomingGeneration === currentGeneration &&
+      Number(incoming[expiresAtField] || 0) > event.at &&
+      Object.hasOwn(owner, chargesField)
     ) {
       preserved[chargesField] = owner[chargesField] || 0;
     }
@@ -55,15 +74,19 @@ export const thiefCoreResolverEventHandlers = Object.freeze({
   "thief.state": handleThiefState,
 });
 
-function enqueueSiphon(context: ThiefResolverContext, event: ThiefResolverEvent, {
-  sourceId,
-  name,
-  coefficient,
-}: {
-  readonly sourceId: SkillId;
-  readonly name: string;
-  readonly coefficient: number;
-}): void {
+function enqueueSiphon(
+  context: ThiefResolverContext,
+  event: ThiefResolverEvent,
+  {
+    sourceId,
+    name,
+    coefficient,
+  }: {
+    readonly sourceId: SkillId;
+    readonly name: string;
+    readonly coefficient: number;
+  },
+): void {
   enqueueOrdered(context.queue, {
     type: "damage",
     at: event.at,
@@ -87,15 +110,13 @@ function applySpiderVenom(
   event: ThiefResolverEvent,
   details: ThiefResolverReactionDetails = {},
 ): void {
-  if (
-    event.actorType !== "player"
-    || !(Number(event.coefficient) > 0)
-  ) return;
+  if (event.actorType !== "player" || !(Number(event.coefficient) > 0)) return;
   const state = professionCoreState(context);
   if (
-    Number(state.spiderVenomCharges || 0) <= 0
-    || Number(state.spiderVenomExpiresAt || 0) <= event.at
-  ) return;
+    Number(state.spiderVenomCharges || 0) <= 0 ||
+    Number(state.spiderVenomExpiresAt || 0) <= event.at
+  )
+    return;
   state.spiderVenomCharges -= 1;
   details.applyCondition?.(context, {
     type: "condition",
@@ -109,8 +130,7 @@ function applySpiderVenom(
     condition: "Poisoned",
     stacks: 1,
     duration: 3,
-    activationId:
-      event.activationId || `${event.skillId}:${event.at}`,
+    activationId: event.activationId || `${event.skillId}:${event.at}`,
     triggeredBy: event.skillName,
   });
   if (hasThiefTrait(context.config, TRAIT.LEECHING_VENOMS)) {
@@ -127,21 +147,22 @@ function applyShadowSiphoning(
   event: ThiefResolverEvent,
 ): void {
   if (
-    event.actorType !== "player"
-    || !(Number(event.coefficient) > 0)
-    || !hasThiefTrait(context.config, TRAIT.SHADOW_SIPHONING)
-  ) return;
-  const skill = event.skillId == null
-    ? undefined
-    : context.helpers.skillsById?.get(event.skillId);
-  const namedSkill = event.skillName == null
-    ? undefined
-    : context.helpers.skillsByName?.get(event.skillName);
+    event.actorType !== "player" ||
+    !(Number(event.coefficient) > 0) ||
+    !hasThiefTrait(context.config, TRAIT.SHADOW_SIPHONING)
+  )
+    return;
+  const skill =
+    event.skillId == null
+      ? undefined
+      : context.helpers.skillsById?.get(event.skillId);
+  const namedSkill =
+    event.skillName == null
+      ? undefined
+      : context.helpers.skillsByName?.get(event.skillName);
   if (!(skill || namedSkill)?.stealthAttack) return;
   const state = professionCoreState(context);
-  const readyAt = Number(
-    state.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] || 0,
-  );
+  const readyAt = Number(state.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] || 0);
   if (event.at + 1e-9 < readyAt) return;
   state.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] = event.at + 1;
   enqueueSiphon(context, event, {
@@ -151,13 +172,13 @@ function applyShadowSiphoning(
   });
 }
 
-function targetConditionCount(context: ThiefResolverContext, at: number): number {
-  return CANONICAL_TARGET_CONDITIONS.filter(condition =>
-    context.query?.targetHasCondition(
-      condition,
-      at,
-      context,
-    )).length;
+function targetConditionCount(
+  context: ThiefResolverContext,
+  at: number,
+): number {
+  return CANONICAL_TARGET_CONDITIONS.filter((condition) =>
+    context.query?.targetHasCondition(condition, at, context),
+  ).length;
 }
 
 function applyPanicStrike(
@@ -166,11 +187,12 @@ function applyPanicStrike(
   details: ThiefResolverReactionDetails = {},
 ): void {
   if (
-    event.actorType !== "player"
-    || !(Number(event.coefficient) > 0)
-    || !hasThiefTrait(context.config, TRAIT.PANIC_STRIKE)
-    || targetConditionCount(context, event.at) < 3
-  ) return;
+    event.actorType !== "player" ||
+    !(Number(event.coefficient) > 0) ||
+    !hasThiefTrait(context.config, TRAIT.PANIC_STRIKE) ||
+    targetConditionCount(context, event.at) < 3
+  )
+    return;
   const state = professionCoreState(context);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.PANIC_STRIKE] || 0);
   if (event.at + 1e-9 < readyAt) return;
@@ -207,10 +229,10 @@ function applyThiefConditionReactions(
   application: ThiefResolverEvent,
 ): void {
   if (
-    application.condition === "Poisoned"
-    && application.skillId === ID.SPIDER_VENOM
-    && application.triggeredByAlly
-    && hasThiefTrait(context.config, TRAIT.LEECHING_VENOMS)
+    application.condition === "Poisoned" &&
+    application.skillId === ID.SPIDER_VENOM &&
+    application.triggeredByAlly &&
+    hasThiefTrait(context.config, TRAIT.LEECHING_VENOMS)
   ) {
     enqueueSiphon(context, application, {
       sourceId: TRAIT.LEECHING_VENOMS,
@@ -219,9 +241,9 @@ function applyThiefConditionReactions(
     });
   }
   if (
-    application.condition === "Immobilized"
-    && application.actorType === "player"
-    && hasThiefTrait(context.config, TRAIT.PANIC_STRIKE)
+    application.condition === "Immobilized" &&
+    application.actorType === "player" &&
+    hasThiefTrait(context.config, TRAIT.PANIC_STRIKE)
   ) {
     enqueueOrdered(context.queue, {
       type: "condition",
@@ -241,8 +263,8 @@ function applyThiefConditionReactions(
     });
   }
   if (
-    application.condition === "Blindness"
-    && hasThiefTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)
+    application.condition === "Blindness" &&
+    hasThiefTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)
   ) {
     enqueueSiphon(context, application, {
       sourceId: TRAIT.CLOAKED_IN_SHADOW,
@@ -251,13 +273,13 @@ function applyThiefConditionReactions(
     });
   }
   if (
-    application.condition === "Bleeding"
-    && Number(application.bonusAboveNinetyStacks || 0) > 0
+    application.condition === "Bleeding" &&
+    Number(application.bonusAboveNinetyStacks || 0) > 0
   ) {
     const maximum = Number(context.config?.target?.health || 0);
     const damage =
-      Number(context.totals?.strike || 0)
-      + Number(context.totals?.condition || 0);
+      Number(context.totals?.strike || 0) +
+      Number(context.totals?.condition || 0);
     if (!(maximum > 0) || damage / maximum < 0.1) {
       enqueueOrdered(context.queue, {
         ...application,

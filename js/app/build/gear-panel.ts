@@ -37,6 +37,7 @@ function selectRow(label: string, id: string, optionsHtml: string): string {
  */
 export function renderGear(app: ProfessionAppState): void {
   const b = app.build;
+  const hasSecondWeaponSet = app.profession.ui.weaponSwapChangesSet !== false;
   const twoHanded = app.weaponData[b.weapons[0]]?.wielding === "2h";
   requiredElement("gear-slots").innerHTML = GEAR_SLOTS.map((slot) => {
     const hidden = twoHanded && slot === "Weapon2";
@@ -84,7 +85,7 @@ export function renderGear(app: ProfessionAppState): void {
       : setTwoHanded
         ? "opacity:.4;pointer-events:none"
         : "";
-    return `<div class="weapon-set-heading">Weapon set ${setNumber}</div>
+    return `<div class="weapon-set-heading">Weapon set${hasSecondWeaponSet ? ` ${setNumber}` : ""}</div>
                 <div class="gear-row"><span class="gear-label">Main hand</span>
                     <select id="sel-mh${setNumber}" class="gear-select">${
                       allowEmpty ? option("", weapons[0], "None") : ""
@@ -112,7 +113,7 @@ export function renderGear(app: ProfessionAppState): void {
   };
   requiredElement("weapon-select").innerHTML = `
             ${weaponSetRows(1, b.weapons, b.weaponSigils[0])}
-            ${weaponSetRows(2, b.alternateWeapons, b.weaponSigils[1], true)}`;
+            ${hasSecondWeaponSet ? weaponSetRows(2, b.alternateWeapons, b.weaponSigils[1], true) : ""}`;
   const bindWeaponSet = (setNumber: number, weapons: string[]): void => {
     const mainHand = requiredSelect(`sel-mh${setNumber}`);
     mainHand.addEventListener("change", () => {
@@ -148,7 +149,7 @@ export function renderGear(app: ProfessionAppState): void {
     }
   };
   bindWeaponSet(1, b.weapons);
-  bindWeaponSet(2, b.alternateWeapons);
+  if (hasSecondWeaponSet) bindWeaponSet(2, b.alternateWeapons);
 
   requiredElement("equipment-info").innerHTML = `
             ${selectRow("Rune", "sel-rune", groupedOptions(RUNE_GROUPS, b.rune))}

@@ -137,5 +137,6 @@ export interface TimelineInteractionOptions {
   readonly onEditActivation?: (index: number, event?: Event) => unknown;
   readonly onEditInterrupt?: (index: number, event?: Event) => unknown;
   readonly onEditReleaseAtCharges?: (index: number, event?: Event) => unknown;
+  readonly onEditDoubleEdgeOutcome?: (index: number, event?: Event) => unknown;
   readonly onEditWait?: (index: number, event?: Event) => unknown;
 }

@@ -529,7 +529,7 @@ test("generic scheduler state contains no profession-specific fields", () => {
   assert.equal(Object.hasOwn(state, "numericResource"), false);
 });
 
-test("normalized commands migrate legacy timing and charge-release options", () => {
+test("normalized commands migrate legacy cast options", () => {
   assert.deepEqual(
     normalizeRotation(
       [
@@ -540,6 +540,7 @@ test("normalized commands migrate legacy timing and charge-release options", () 
           offset: 100,
           interruptMs: 50,
           releaseAtCharges: 3,
+          doubleEdgeOutcome: "backfire",
         },
         "__cooldown_reset",
         "__combat_start",
@@ -555,6 +556,7 @@ test("normalized commands migrate legacy timing and charge-release options", () 
         concurrentOffsetMs: 100,
         interruptAfterMs: 50,
         releaseAtCharges: 3,
+        doubleEdgeOutcome: "backfire",
       },
       { type: "cooldown-reset" },
       { type: "combat-start" },
@@ -566,10 +568,15 @@ test("normalized commands migrate legacy timing and charge-release options", () 
         type: "cast",
         skillId: 900002,
         releaseAtCharges: 3,
+        doubleEdgeOutcome: "success",
       },
       testProfession.catalog,
     ),
-    { name: "Fixture Charge", releaseAtCharges: 3 },
+    {
+      name: "Fixture Charge",
+      releaseAtCharges: 3,
+      doubleEdgeOutcome: "success",
+    },
   );
   assert.throws(
     () =>
@@ -579,6 +586,15 @@ test("normalized commands migrate legacy timing and charge-release options", () 
         { strict: true },
       ),
     /positive whole number/,
+  );
+  assert.throws(
+    () =>
+      normalizeRotation(
+        [{ name: "Fixture Charge", doubleEdgeOutcome: "random" }],
+        testProfession.catalog,
+        { strict: true },
+      ),
+    /either success or backfire/,
   );
 });
 
@@ -2239,7 +2255,7 @@ test("Relic of Mistburn uses a strict one-second internal cooldown", () => {
   );
 });
 
-test("Relic of Bloodstone explodes on the fourth blast and grants Fervor", () => {
+test("Relic of Bloodstone explodes on the third blast and grants Fervor", () => {
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -2268,10 +2284,9 @@ test("Relic of Bloodstone explodes on the fourth blast and grants Fervor", () =>
     stats: { power: 2000, precision: 1000, ferocity: 0 },
     target: { armor: 2597, conditions: {} },
   };
-  const threeBlasts = simulateGw2({
+  const twoBlasts = simulateGw2({
     profession,
     rotation: [
-      "Bloodstone Fixture Blast",
       "Bloodstone Fixture Blast",
       "Bloodstone Fixture Blast",
       { type: "wait", durationMs: 1000 },
@@ -2282,7 +2297,6 @@ test("Relic of Bloodstone explodes on the fourth blast and grants Fervor", () =>
     profession,
     rotation: [
       "Bloodstone Fixture Strike",
-      "Bloodstone Fixture Blast",
       "Bloodstone Fixture Blast",
       "Bloodstone Fixture Blast",
       "Bloodstone Fixture Blast",
@@ -2316,7 +2330,7 @@ test("Relic of Bloodstone explodes on the fourth blast and grants Fervor", () =>
     ["1/3 stacks"],
   );
   assert.equal(
-    threeBlasts.procSteps.some((step) => step.skill === "Relic of Bloodstone"),
+    twoBlasts.procSteps.some((step) => step.skill === "Relic of Bloodstone"),
     false,
   );
   assert.equal(fervor.length, 1);
@@ -2623,6 +2637,9 @@ test("platform import boundaries are profession neutral", async () => {
           entry.id === "ranger" &&
           ["gw2/gear-data", "gw2/relic-rules"].includes(modulePath)
         ) {
+          continue;
+        }
+        if (entry.id === "elementalist" && modulePath === "gw2/gear-data") {
           continue;
         }
         assert.equal(

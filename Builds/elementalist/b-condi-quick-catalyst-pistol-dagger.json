@@ -1,0 +1,90 @@
+{
+  "build": {
+    "gear": {
+      "Helm": "Viper's",
+      "Shoulders": "Viper's",
+      "Chest": "Viper's",
+      "Gloves": "Viper's",
+      "Leggins": "Viper's",
+      "Boots": "Viper's",
+      "Amulet": "Viper's",
+      "Ring1": "Viper's",
+      "Ring2": "Viper's",
+      "Accessory1": "Viper's",
+      "Accessory2": "Viper's",
+      "Back": "Viper's",
+      "Weapon1": "Viper's",
+      "Weapon2": "Viper's"
+    },
+    "weapons": ["Pistol", "Dagger"],
+    "rune": "Trapper",
+    "sigils": ["Bursting", "Malice"],
+    "relic": "Steamshrieker",
+    "food": "Cilantro and Cured Meat Flatbread",
+    "utility": "Toxic Tuning Crystal",
+    "jadeBotCore": true,
+    "specializations": [
+      {
+        "name": "Fire",
+        "traits": "1-1-2"
+      },
+      {
+        "name": "Earth",
+        "traits": "2-1-2"
+      },
+      {
+        "name": "Catalyst",
+        "traits": "2-3-3"
+      }
+    ],
+    "infusions": [
+      {
+        "stat": "Condition Damage",
+        "count": 9
+      },
+      {
+        "stat": "Expertise",
+        "count": 9
+      },
+      {
+        "stat": "Ferocity",
+        "count": 0
+      }
+    ]
+  },
+  "selectedSkills": {
+    "heal": "Arcane Brilliance",
+    "util1": "Signet of Fire",
+    "util2": "Glyph of Storms (Fire)",
+    "util3": "Signet of Earth",
+    "elite": "Glyph of Elementals"
+  },
+  "activeAttunement": "Fire",
+  "secondaryAttunement": "Air",
+  "evokerElement": null,
+  "evokerStartCharges": 6,
+  "evokerStartEmpowered": 0,
+  "permaBoons": {
+    "Might": 25,
+    "Fury": true,
+    "Protection": true,
+    "Resolution": true,
+    "Alacrity": true,
+    "Quickness": true,
+    "Regeneration": true,
+    "Vigor": true,
+    "Swiftness": true,
+    "Bleeding": 5,
+    "Burning": true,
+    "Torment": 5,
+    "Confusion": 5,
+    "Poisoned": true,
+    "Chilled": true,
+    "Cripple": true,
+    "Slow": true,
+    "Weakness": true,
+    "Vulnerability": 25
+  },
+  "hitboxSize": "small",
+  "glyphBoonedElementals": false
+}

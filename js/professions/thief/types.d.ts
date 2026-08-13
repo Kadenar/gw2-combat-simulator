@@ -28,10 +28,7 @@ import type {
 } from "../../app/profession/types.js";
 
 export type ThiefDodge =
-  | "Dodge"
-  | "Lotus Training"
-  | "Bounding Dodger"
-  | "Unhindered Combatant";
+  "Dodge" | "Lotus Training" | "Bounding Dodger" | "Unhindered Combatant";
 
 export interface ThiefSpecializationSelection extends Gw2BuildSpecialization {}
 
@@ -58,8 +55,6 @@ export interface ThiefApplicationBuild extends ProfessionApplicationBuild {
 }
 
 export interface ThiefDeterministicChoices extends SchedulerRecord {
-  readonly artifactDrawSequence?: "balanced" | "reverse" | "choose";
-  readonly doubleEdgeOutcomeSequence?: "alternate" | "success" | "backfire";
   readonly forgedSurferBombsHit?: number;
   readonly stolenSkillChoice?: string;
   readonly deadeyeStolenSkillChoice?: string;
@@ -70,8 +65,7 @@ export interface ThiefConfig extends Gw2Config {
   readonly assumptions?: ProfessionBuildAssumptions;
   readonly professionAssumptions?: ProfessionBuildAssumptions;
   readonly selectedSkills?:
-    | readonly (string | Skill)[]
-    | Readonly<Record<string, string | Skill>>;
+    readonly (string | Skill)[] | Readonly<Record<string, string | Skill>>;
   readonly selectedDodge?: ThiefDodge;
   readonly initialInitiative?: number;
   readonly initialShadowForce?: number;
@@ -90,6 +84,7 @@ export interface ThiefCoreState {
   stealthUntil: number;
   revealedUntil: number;
   storedStolenSkillId: SkillId | null;
+  storedStolenSkillCount: number;
   professionSkillId: SkillId;
   kneeling: boolean;
   endurance: number;
@@ -131,9 +126,15 @@ export interface DaredevilState {
 export interface DeadeyeState {
   usesMaliciousStealthAttacks: boolean;
   markedTargetId: string | null;
+  markExpiresAt: number;
+  markGeneration: number;
   malice: number;
   maximumMalice: number;
+  maliceCriticalProgress: number;
   maleficentSevenTriggered: boolean;
+  deadeyeRelicUntil: number;
+  stealthAttackCharges: number;
+  stealthAttackExpiresAt: number;
 }
 
 export interface SpecterState {
@@ -154,16 +155,6 @@ export interface ThiefArtifactSlot extends SchedulerRecord {
   readonly skillId: SkillId;
 }
 
-export interface ThiefArtifactOutcomeSequence extends SchedulerRecord {
-  offensive: SkillId[];
-  defensive: SkillId[];
-}
-
-export interface ThiefArtifactOutcomeIndices extends SchedulerRecord {
-  offensive: number;
-  defensive: number;
-}
-
 export interface ThiefBackfireState extends SchedulerRecord {
   readonly activeUntil: number;
   readonly skillName: string;
@@ -179,10 +170,6 @@ export interface AntiquaryState {
   initiativePipRows: number;
   artifactSlots: ThiefArtifactSlot[];
   artifactUsesRemaining: number;
-  artifactOutcomeSequence: ThiefArtifactOutcomeSequence;
-  artifactOutcomeIndices: ThiefArtifactOutcomeIndices;
-  doubleEdgeOutcomeSequence: ThiefDoubleEdgeOutcome[];
-  doubleEdgeOutcomeIndex: number;
   scoundrelsLuck: number;
   scoundrelsLuckReadyAt: number;
   improvisationReadyAt: number;
@@ -246,6 +233,7 @@ export interface ThiefSummonStrike extends SchedulerRecord {
 
 export interface ThiefSummonDefinition extends SchedulerRecord {
   readonly name: string;
+  readonly displayName?: string;
   readonly variant?: string;
   readonly weapon: string;
   readonly weaponStrengthProfileId: string;
@@ -264,6 +252,7 @@ export interface ThiefSummonAttack extends SchedulerRecord {
 export interface ThiefSkill extends Skill {
   readonly artifactKind?: ThiefArtifactKind;
   readonly backfire?: boolean;
+  readonly doubleEdge?: boolean;
   readonly dualWieldFollowup?: boolean;
   readonly dualWieldOpener?: boolean;
   readonly enduranceGain?: number;

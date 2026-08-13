@@ -30,6 +30,10 @@ interface TimedBuffProcOptions {
   readonly detail?: string | null;
 }
 
+function isBloodstoneOwnerStrike(event: SimulationEvent): boolean {
+  return isGw2PlayerActorEvent(event) || event.sourceId === "relic.bloodstone";
+}
+
 const STATELESS_RELIC: Readonly<Gw2RelicRule> = Object.freeze({});
 
 const ARISTOCRACY_BONUS_PER_STACK = 0.03;
@@ -340,7 +344,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> =
         if (Number(state.expiresAt || 0) <= event.at) state.stacks = 0;
 
         const currentStacks = Number(state.stacks || 0);
-        if (currentStacks < 3) {
+        if (currentStacks < 2) {
           state.stacks = currentStacks + 1;
           state.expiresAt = event.at + 10;
           ctx.recordProc(
@@ -353,6 +357,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> =
           return;
         }
 
+        // The third qualifying blast consumes Volatility and activates Fervor.
         state.stacks = 0;
         state.expiresAt = 0;
         state.buffUntil = event.at + 8;
@@ -394,7 +399,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> =
           triggeredBy: event.skillName,
         });
       },
-      strikeMultiplier: timedStrikeBuff(1.07, isGw2PlayerActorEvent),
+      // Fervor also affects the delayed explosion that activated it.
+      strikeMultiplier: timedStrikeBuff(1.07, isBloodstoneOwnerStrike),
     }),
 
     Brawler: defineRelic({

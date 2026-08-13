@@ -201,6 +201,7 @@ export interface Gw2EventDraft extends SchedulerRecord {
   readonly name?: string;
   readonly skillName?: string;
   readonly parentSkillName?: string;
+  readonly damageBreakdownName?: string;
   readonly skillId?: import("../engine/types.js").SkillId | null;
   readonly icon?: string;
   readonly kind?: string;
@@ -481,6 +482,7 @@ export type Gw2ResolverEvent = SimulationEvent & {
   readonly name?: string;
   readonly skillName?: string;
   readonly parentSkillName?: string;
+  readonly damageBreakdownName?: string;
   readonly skillId?: import("../engine/types.js").SkillId | null;
   readonly icon?: string;
   readonly kind?: string;
@@ -512,6 +514,7 @@ export type Gw2ResolverEvent = SimulationEvent & {
   readonly independentSummonStrike?: boolean;
   readonly summonInheritsAttributes?: boolean;
   readonly summonUsesProfessionModifiers?: boolean;
+  readonly summonIgnoresMight?: boolean;
   readonly noCrit?: boolean;
   readonly forceCrit?: boolean;
   readonly canTriggerCriticalTraits?: boolean;
@@ -572,6 +575,7 @@ export interface Gw2DamageBreakdownEntry {
   name: string;
   sourceSkill: string;
   parentSkill: string;
+  damageBreakdownName?: string;
   icon: string;
   skillId?: import("../engine/types.js").SkillId | null;
   sourceId?: import("../engine/types.js").SkillId;

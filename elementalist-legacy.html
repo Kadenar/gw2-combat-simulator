@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>GW2 Combat Simulator — Elementalist Legacy</title>
+    <link rel="stylesheet" href="css/elementalist.css" />
+  </head>
+
+  <body>
+    <div id="loading-overlay">
+      <div class="loader-content">
+        <div class="spinner"></div>
+        <div id="loading-status">Initializing...</div>
+      </div>
+    </div>
+
+    <div id="app">
+      <header>
+        <a class="home-link" href="index.html">← All professions</a>
+        <h1>
+          GW2 <span class="accent">Elementalist Legacy</span> Rotation Simulator
+          and Build Optimizer
+        </h1>
+        <label class="profession-picker" for="profession-select">
+          <span>Profession</span>
+          <select
+            id="profession-select"
+            data-active-profession="elementalist-legacy"
+          >
+            <option value="mesmer">Mesmer</option>
+            <option value="elementalist">Elementalist</option>
+            <option value="guardian">Guardian</option>
+            <option value="necromancer">Necromancer</option>
+          </select>
+        </label>
+      </header>
+
+      <div class="update-info">
+        <strong>Updated for Patch: July 14th 2026 (Preview) </strong>
+      </div>
+
+      <details class="about-box">
+        <summary class="about-toggle">About this tool</summary>
+        <div class="about-body">
+          <p>
+            This Elementalist tool is a fork of the original
+            <a href="https://github.com/SnappyJoeGW2/Elementalist-Simulator"
+              >Elementalist Simulator</a
+            >.
+          </p>
+          <p>
+            This tool <strong>accurately simulates Elementalist DPS</strong> the
+            same way the game calculates it. It doesn't use simplified formulas
+            — it replays every combat event in order: weapon swings, skill
+            casts, condition ticks, sigil procs, relic triggers, trait
+            interactions, and attunement swaps.
+          </p>
+          <ul>
+            <li>
+              <strong>Full build support</strong> — gear prefixes, runes,
+              sigils, relics, food, utility, infusions, and all three traitlines
+              with minor/major selections.
+            </li>
+            <li>
+              <strong>Accurate simulation</strong> — critical hits, condition
+              stacking, boon tracking (Might, Fury, Alacrity, Quickness, etc.),
+              and proc cooldowns are all modelled. Even handles
+              Alacrity/Quickness loss mid-cast.
+            </li>
+            <li>
+              <strong>Expected values</strong> — no real RNG. Critical hit
+              chance, weapon strength variance, and probabilistic procs use
+              expected values, giving consistent, reproducible numbers.
+            </li>
+            <li>
+              <strong>Rotation builder</strong> — build your skill rotation
+              manually and see the simulated DPS. Save and load entire builds
+              (gear + traits + skills + rotation) as JSON.
+            </li>
+            <li>
+              <strong>Gear Optimizer</strong> — after building a rotation, run
+              the optimizer to find the best gear combination (prefix mix, rune,
+              sigil, relic, food, utility) for that exact rotation using
+              coordinate descent.
+            </li>
+          </ul>
+          <p class="about-limitations-label">Current limitations:</p>
+          <ul class="about-limitations">
+            <li>
+              Skill list is intentionally incomplete — only DPS-relevant skills
+              are included.
+            </li>
+            <li>Lesser Elementals are not included.</li>
+            <li>
+              Elite Elemental assumes Fire variant and automatically uses Flame
+              Barrage. However, it does not deal increased damage based on Might
+              that the player may grant it as part of their rotation.
+            </li>
+            <li>No healing or barrier simulation.</li>
+          </ul>
+          <p>
+            If you spot any bugs or have any suggestions, please
+            <a
+              href="https://github.com/SnappyJoeGW2/Elementalist-Simulator/issues"
+              >report them</a
+            >
+            or contact me on Discord at
+            <a href="https://discord.com/users/327133184665845770"
+              >Snappy Joe#8710</a
+            >.
+          </p>
+        </div>
+      </details>
+
+      <details class="about-box">
+        <summary class="about-toggle">Technical details</summary>
+        <div class="about-body">
+          <ul>
+            <li>
+              <strong>Modifier Contributions</strong> are calculated by running
+              the simulation once, then re-running it with a specific modifier
+              disabled (one run per modifier).
+            </li>
+            <li>
+              <strong>Cast times</strong> were manually gathered from
+              <code>.evtc</code> logs and are treated as fixed values (even when
+              in-game behavior can vary depending on skill chaining or
+              aftercasts).
+            </li>
+            <li>
+              For <strong>DPS calculations</strong>, "start time" is the first
+              hit event time, not the cast start time. "End time" is the end of
+              the last cast event time (not hit time!) or the target death time,
+              whichever is later.
+            </li>
+            <li>
+              Without Quickness, cast times are multiplied by 4/3 (hit times are
+              also affected).
+            </li>
+            <li>
+              <strong>Instant-cast skills</strong> can be fired during another
+              skill's cast window (Shift+click). This is handled by marking the
+              instant-cast skill with an offset (in ms) from the start of the
+              <strong>previous</strong> skill's cast window.
+            </li>
+            <li>
+              The tool supports <strong>interrupting skills</strong>. To do
+              this, use Ctrl+click on the skill you want to interrupt (e.g.
+              Scepter Air 2, Arc Lightning) and input interrupt time. The skill
+              will produce all hits up until the interrupt time.
+            </li>
+            <li>
+              The tool supports <strong>precasting skills</strong>. Do to it,
+              simply add "Combat Start" skill/icon to the rotation and mark it
+              everything before it, as precast (you can, for example, precast
+              Hurl, auras to trigger traits, Overloads, stack boons on yourself
+              etc.).
+            </li>
+            <li>
+              Critical hits are calculated by incrementing the counter by the
+              critical chance and checking if it exceeds 1. When it does, a
+              critical hit is registered and the counter lowered by 1.
+            </li>
+            <li>
+              <strong>Skill details</strong> panel below the rotation shows
+              total damage dealt, including condition ticks from this skill
+              (unlike dps logs, which only show strike damage and aggregate each
+              condition type).
+            </li>
+            <li>
+              <strong>Gear optimizer</strong> searches whole combinatory space
+              of gear prefixes, runes, sigils, relics, food, utility, and
+              infusions. It uses current rotation to evaluate each build, making
+              it <strong>much heavier</strong> than other optimizers. It is
+              advised to use optimizer with 1-2 prefixes selected, but multiple
+              Sigils/Relics (accurate procs).
+            </li>
+            <li>
+              The tool supports importing dps.report links, however sometimes
+              they may result in a "broken" rotation. If this happens, you need
+              to manually fix it by editing the rotation file.
+            </li>
+          </ul>
+        </div>
+      </details>
+
+      <div class="presets-bar" id="presets-bar" style="display: none">
+        <div id="presets-groups"></div>
+      </div>
+
+      <section class="build-section">
+        <div class="build-left">
+          <div class="panel gear-panel">
+            <div class="panel-hdr">
+              <h3>Gear</h3>
+              <div class="build-io-btns">
+                <button
+                  id="btn-export-build"
+                  class="btn btn-io"
+                  title="Download build as JSON"
+                >
+                  ⬆ Export
+                </button>
+                <button
+                  id="btn-import-build"
+                  class="btn btn-io"
+                  title="Load build from JSON file"
+                >
+                  ⬇ Import
+                </button>
+                <input
+                  type="file"
+                  id="import-file-input"
+                  accept=".json"
+                  style="display: none"
+                />
+              </div>
+            </div>
+            <div class="gear-columns">
+              <div id="gear-slots" class="gear-col"></div>
+              <div class="gear-col-right">
+                <div id="equipment-info"></div>
+                <div id="weapon-select" class="weapon-select"></div>
+              </div>
+            </div>
+          </div>
+          <div id="traits-panel" class="traits-panel-inline"></div>
+        </div>
+        <div class="panel attributes-panel">
+          <h3>Attributes</h3>
+          <div id="attributes-list"></div>
+          <div id="conditions-panel" class="conditions-panel"></div>
+        </div>
+      </section>
+
+      <section class="ep-section">
+        <div class="panel ep-panel">
+          <h3>Effective Power <span class="subtext">(per attunement)</span></h3>
+          <div id="ep-content"></div>
+        </div>
+      </section>
+
+      <section class="skills-section">
+        <div class="panel skills-panel-left">
+          <div id="attunement-bar" class="attunement-bar"></div>
+          <div id="weapon-bar" class="weapon-bar"></div>
+          <div class="skill-bar-label">Skill Bar</div>
+          <div id="skill-bar" class="skill-bar"></div>
+        </div>
+        <div class="panel skills-panel-right">
+          <h3>
+            Skill Damage
+            <span class="subtext"
+              >(using EP modifiers above; does not include trait procs, bullet
+              effects, or field duration extensions)</span
+            >
+          </h3>
+          <div id="skill-info-table"></div>
+        </div>
+      </section>
+
+      <section class="perma-section">
+        <div class="panel perma-panel">
+          <h3>Permanent Boons &amp; Conditions</h3>
+          <div id="perma-boons"></div>
+        </div>
+      </section>
+
+      <section class="rotation-section">
+        <div class="panel rotation-panel">
+          <h3>Rotation Builder</h3>
+          <div id="rotation-palette" class="rotation-palette"></div>
+          <p class="palette-hint">
+            Click to add to rotation &nbsp;·&nbsp; <b>Shift+click</b> an
+            instant-cast skill to fire it mid-animation of the previous skill
+            &nbsp;·&nbsp; <b>Ctrl+click</b> a skill to interrupt it mid-cast
+          </p>
+          <div class="rotation-mid">
+            <div class="rotation-tl-label">Rotation</div>
+            <div id="start-att-selector" class="start-att-selector"></div>
+            <div class="rotation-btns">
+              <button id="btn-sim-clear" class="btn btn-clear">✕ Clear</button>
+              <button id="btn-export-rotation" class="btn btn-io">
+                ↓ Save Rotation
+              </button>
+              <button id="btn-import-rotation" class="btn btn-io">
+                ↑ Load Rotation
+              </button>
+              <input
+                type="file"
+                id="rotation-file-input"
+                accept=".json"
+                style="display: none"
+              />
+              <div class="target-hp-wrap">
+                <label for="target-hp">Target HP</label>
+                <input
+                  type="number"
+                  id="target-hp"
+                  value="3970000"
+                  min="0"
+                  step="100000"
+                />
+              </div>
+              <div class="target-hp-wrap">
+                <label for="hitbox-size">Hitbox</label>
+                <select id="hitbox-size">
+                  <option value="large" selected>Large</option>
+                  <option value="small">Small</option>
+                </select>
+              </div>
+              <div class="target-hp-wrap">
+                <label for="perma-field">Combo Field</label>
+                <select id="perma-field">
+                  <option value="" selected>None</option>
+                  <option value="Fire">Fire</option>
+                  <option value="Water">Water</option>
+                  <option value="Ice">Ice</option>
+                  <option value="Lightning">Lightning</option>
+                  <option value="Dark">Dark</option>
+                  <option value="Poison">Poison</option>
+                  <option value="Light">Light</option>
+                  <option value="Smoke">Smoke</option>
+                  <option value="Ethereal">Ethereal</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="dpsreport-bar">
+            <span class="dpsreport-label">dps.report</span>
+            <input
+              type="text"
+              id="dpsreport-url"
+              class="dpsreport-input"
+              placeholder="Paste dps.report link to import rotation…"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <select
+              id="dpsreport-player-select"
+              class="dpsreport-select"
+              style="display: none"
+            ></select>
+            <button id="btn-dpsreport-import" class="btn btn-io btn-dpsreport">
+              ↓ Import
+            </button>
+            <span id="dpsreport-status" class="dpsreport-status"></span>
+          </div>
+          <div id="rotation-timeline" class="rotation-timeline"></div>
+        </div>
+        <div
+          id="glyph-booned-wrap"
+          class="glyph-booned-wrap"
+          style="display: none"
+        >
+          <label class="glyph-booned-label">
+            <input type="checkbox" id="glyph-booned-cb" />
+            Glyph of Elementals: buffed by boons from player (+70% strike
+            damage). This makes it more comparable to golem benchmarks, but is
+            not realistic in raids.
+          </label>
+        </div>
+        <div
+          id="thorns-boss-aura-wrap"
+          class="glyph-booned-wrap"
+          style="display: none"
+        >
+          <label class="glyph-booned-label">
+            <input type="checkbox" id="thorns-boss-aura-cb" />
+            Gain Thorns only at boss aura
+          </label>
+        </div>
+        <div id="rotation-results" class="rotation-results"></div>
+      </section>
+
+      <!-- ── Gear Optimizer ── -->
+      <section id="optimizer-section" class="panel optimizer-panel hidden">
+        <div class="opt-header">
+          <h3>Gear Optimizer</h3>
+          <span class="opt-hint"
+            >Selects the best combination of gear from your allowed options
+            using your current rotation.</span
+          >
+        </div>
+
+        <!-- Search Space -->
+        <div class="opt-spaces">
+          <!-- Prefixes -->
+          <div class="opt-space-block">
+            <div class="opt-space-label">
+              <span
+                >Gear Prefixes <span class="opt-max-note">(max 3)</span></span
+              >
+              <span class="opt-space-actions">
+                <button class="opt-selall" data-group="prefix">All</button>
+                <button class="opt-deselall" data-group="prefix">None</button>
+              </span>
+            </div>
+            <div class="opt-check-grid" id="opt-prefixes"></div>
+          </div>
+          <!-- Runes -->
+          <div class="opt-space-block">
+            <div class="opt-space-label">
+              <span>Runes</span>
+              <span class="opt-space-actions">
+                <button class="opt-selall" data-group="rune">All</button>
+                <button class="opt-deselall" data-group="rune">None</button>
+              </span>
+            </div>
+            <div class="opt-check-grid" id="opt-runes"></div>
+          </div>
+          <!-- Sigils -->
+          <div class="opt-space-block">
+            <div class="opt-space-label">
+              <span
+                >Sigils
+                <span class="opt-max-note">(slot-specific pools)</span></span
+              >
+            </div>
+            <div class="opt-subspace">
+              <div class="opt-subspace-label">
+                <span>Sigil 1</span>
+                <span class="opt-space-actions">
+                  <button class="opt-selall" data-group="sigil1">All</button>
+                  <button class="opt-deselall" data-group="sigil1">None</button>
+                </span>
+              </div>
+              <div class="opt-check-grid" id="opt-sigils-1"></div>
+            </div>
+            <div class="opt-subspace">
+              <div class="opt-subspace-label">
+                <span>Sigil 2</span>
+                <span class="opt-space-actions">
+                  <button class="opt-selall" data-group="sigil2">All</button>
+                  <button class="opt-deselall" data-group="sigil2">None</button>
+                </span>
+              </div>
+              <div class="opt-check-grid" id="opt-sigils-2"></div>
+            </div>
+          </div>
+          <!-- Relics -->
+          <div class="opt-space-block">
+            <div class="opt-space-label">
+              <span>Relics</span>
+              <span class="opt-space-actions">
+                <button class="opt-selall" data-group="relic">All</button>
+                <button class="opt-deselall" data-group="relic">None</button>
+              </span>
+            </div>
+            <div class="opt-check-grid" id="opt-relics"></div>
+          </div>
+          <!-- Food -->
+          <div class="opt-space-block">
+            <div class="opt-space-label">
+              <span>Food</span>
+              <span class="opt-space-actions">
+                <button class="opt-selall" data-group="food">All</button>
+                <button class="opt-deselall" data-group="food">None</button>
+              </span>
+            </div>
+            <div class="opt-check-grid" id="opt-food"></div>
+          </div>
+          <!-- Utility -->
+          <div class="opt-space-block">
+            <div class="opt-space-label">
+              <span>Utility</span>
+              <span class="opt-space-actions">
+                <button class="opt-selall" data-group="utility">All</button>
+                <button class="opt-deselall" data-group="utility">None</button>
+              </span>
+            </div>
+            <div class="opt-check-grid" id="opt-utility"></div>
+          </div>
+          <!-- Infusions -->
+          <div class="opt-space-block">
+            <div class="opt-space-label">
+              <span>Infusions</span>
+              <span class="opt-space-actions">
+                <button class="opt-selall" data-group="infusion">All</button>
+                <button class="opt-deselall" data-group="infusion">None</button>
+              </span>
+            </div>
+            <div class="opt-inf-row">
+              <label class="opt-inf-count-label">
+                Total:
+                <input
+                  type="number"
+                  id="opt-inf-total"
+                  min="0"
+                  max="18"
+                  value="18"
+                  class="opt-inf-count"
+                />
+              </label>
+              <span class="opt-inf-hint"
+                >Selected infusion stats are treated as totals, not slot
+                assignments</span
+              >
+            </div>
+            <div class="opt-check-grid" id="opt-infusions"></div>
+            <div class="opt-infusion-ranges" id="opt-infusion-ranges"></div>
+          </div>
+        </div>
+
+        <!-- Slot Constraints (lock gear pieces to specific prefixes) -->
+        <div class="opt-slot-constraints-block">
+          <div class="opt-space-label">
+            <span
+              >Slot Constraints
+              <span class="opt-max-note"
+                >(lock a slot to a specific prefix — "Any" = optimized
+                freely)</span
+              ></span
+            >
+          </div>
+          <div
+            class="opt-slot-constraints-grid"
+            id="opt-slot-constraints"
+          ></div>
+        </div>
+
+        <!-- Stat Constraints -->
+        <div class="opt-constraints-block">
+          <div class="opt-space-label">
+            <span
+              >Stat Constraints
+              <span class="opt-max-note"
+                >(minimum required — leave blank to skip)</span
+              ></span
+            >
+          </div>
+          <div class="opt-constraints-grid">
+            <label class="opt-constraint-row">
+              <span class="opt-constraint-name">Boon Duration ≥</span>
+              <input
+                type="number"
+                id="opt-min-boon-dur"
+                min="0"
+                max="100"
+                step="1"
+                placeholder="—"
+                class="opt-constraint-input"
+              />
+              <span class="opt-constraint-unit">%</span>
+            </label>
+            <label class="opt-constraint-row">
+              <span class="opt-constraint-name">Critical Chance ≥</span>
+              <input
+                type="number"
+                id="opt-min-crit"
+                min="0"
+                max="100"
+                step="0.1"
+                placeholder="—"
+                class="opt-constraint-input"
+              />
+              <span class="opt-constraint-unit">%</span>
+            </label>
+            <label class="opt-constraint-row">
+              <span class="opt-constraint-name">Toughness ≥</span>
+              <input
+                type="number"
+                id="opt-min-tough"
+                min="0"
+                max="5000"
+                step="1"
+                placeholder="—"
+                class="opt-constraint-input"
+              />
+            </label>
+            <label class="opt-constraint-row">
+              <span class="opt-constraint-name">Vitality ≥</span>
+              <input
+                type="number"
+                id="opt-min-vit"
+                min="0"
+                max="5000"
+                step="1"
+                placeholder="—"
+                class="opt-constraint-input"
+              />
+            </label>
+          </div>
+        </div>
+
+        <!-- Run controls -->
+        <div class="opt-controls">
+          <button id="btn-opt-run" class="opt-run-btn">▶ Optimize</button>
+          <button id="btn-opt-cancel" class="opt-cancel-btn hidden">
+            ■ Cancel
+          </button>
+          <div id="opt-progress-wrap" class="opt-progress-wrap hidden">
+            <div class="opt-progress-bar">
+              <div id="opt-progress-fill" class="opt-progress-fill"></div>
+            </div>
+            <span id="opt-progress-label" class="opt-progress-label"
+              >0 / 0 evaluations</span
+            >
+          </div>
+          <button id="btn-opt-export" class="opt-export-btn hidden">
+            ↓ Export JSON
+          </button>
+        </div>
+
+        <!-- Results -->
+        <div id="opt-results" class="opt-results hidden">
+          <div class="opt-results-hdr opt-results-hdr-slots">
+            <span class="opt-col-rank">#</span>
+            <span class="opt-col-dps">DPS</span>
+            <span class="opt-col-slot">Helm</span>
+            <span class="opt-col-slot">Shld</span>
+            <span class="opt-col-slot">Coat</span>
+            <span class="opt-col-slot">Glov</span>
+            <span class="opt-col-slot">Legs</span>
+            <span class="opt-col-slot">Boot</span>
+            <span class="opt-col-slot">Amul</span>
+            <span class="opt-col-slot">Rng1</span>
+            <span class="opt-col-slot">Rng2</span>
+            <span class="opt-col-slot">Acc1</span>
+            <span class="opt-col-slot">Acc2</span>
+            <span class="opt-col-slot">Back</span>
+            <span class="opt-col-slot">Wep1</span>
+            <span class="opt-col-slot">Wep2</span>
+            <span class="opt-col-extra">Rune</span>
+            <span class="opt-col-extra">Relic</span>
+            <span class="opt-col-extra">Sigils</span>
+            <span class="opt-col-extra">Food</span>
+            <span class="opt-col-extra">Util</span>
+            <span class="opt-col-extra">Infus</span>
+            <span class="opt-col-apply"></span>
+          </div>
+          <div id="opt-results-body"></div>
+        </div>
+      </section>
+    </div>
+
+    <script type="module" src="js/app/profession/selector.js"></script>
+    <script
+      type="module"
+      src="js/professions/elementalist/legacy/app/app.js?v=59"
+    ></script>
+  </body>
+</html>

@@ -17,6 +17,8 @@ import { simulateGw2 } from "../../js/platform/gw2/simulate.js";
 import { TRAIT_COVERAGE_STATUSES } from "../../js/platform/gw2/trait-coverage.js";
 import { ENGINEER_TRAIT_COVERAGE } from "../../js/professions/engineer/data/trait-coverage.js";
 import { ENGINEER_PUBLIC_END_STATE_KEYS } from "../../js/professions/engineer/core/state.js";
+import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from "../../js/professions/elementalist/core/state.js";
+import { ELEMENTALIST_TRAIT_COVERAGE } from "../../js/professions/elementalist/data/trait-coverage.js";
 import { GUARDIAN_TRAIT_COVERAGE } from "../../js/professions/guardian/data/trait-coverage.js";
 import { GUARDIAN_PUBLIC_END_STATE_KEYS } from "../../js/professions/guardian/core/state.js";
 import { MESMER_TRAIT_COVERAGE } from "../../js/professions/mesmer/data/trait-coverage.js";
@@ -56,6 +58,7 @@ const apiFixture = JSON.parse(
 );
 
 const TRAIT_COVERAGE_BY_PROFESSION = Object.freeze({
+  elementalist: ELEMENTALIST_TRAIT_COVERAGE,
   engineer: ENGINEER_TRAIT_COVERAGE,
   guardian: GUARDIAN_TRAIT_COVERAGE,
   mesmer: MESMER_TRAIT_COVERAGE,
@@ -66,6 +69,7 @@ const TRAIT_COVERAGE_BY_PROFESSION = Object.freeze({
   warrior: WARRIOR_TRAIT_COVERAGE,
 });
 const PUBLIC_END_STATE_KEYS_BY_PROFESSION = Object.freeze({
+  elementalist: ELEMENTALIST_PUBLIC_END_STATE_KEYS,
   engineer: ENGINEER_PUBLIC_END_STATE_KEYS,
   guardian: GUARDIAN_PUBLIC_END_STATE_KEYS,
   mesmer: Object.freeze([
@@ -515,6 +519,15 @@ test("ready native professions have complete trait evidence with no pending entr
 
 test("ready native professions expose deliberate public end-state keys", async () => {
   const internalKeys = {
+    elementalist: [
+      "attunementEnteredAt",
+      "freshAirProgress",
+      "freshAirLastResetAt",
+      "burningPrecisionProgress",
+      "enduranceUpdatedAt",
+      "comboProgress",
+      "procReadyAt",
+    ],
     engineer: [
       "heatUpdatedAt",
       "kitLockoutUntil",
@@ -602,26 +615,34 @@ test("ready native professions expose deliberate public end-state keys", async (
   }
 });
 
-test("the standalone Elementalist manifest entry has no native adapter", () => {
+test("Elementalist exposes native and legacy manifest entries", () => {
   const elementalist = professionRegistry.find(
     (entry) => entry.id === "elementalist",
   );
+  const legacy = professionRegistry.find(
+    (entry) => entry.id === "elementalist-legacy",
+  );
   assert.ok(elementalist);
+  assert.ok(legacy);
   assert.equal(
     elementalist.applicationKind,
-    PROFESSION_APPLICATION_KINDS.STANDALONE,
+    PROFESSION_APPLICATION_KINDS.NATIVE,
   );
-  assert.equal(elementalist.loadAppAdapter, null);
-  assert.equal(standaloneProfessionRegistry.includes(elementalist), true);
+  assert.equal(typeof elementalist.loadAppAdapter, "function");
   assert.equal(
     nativeProfessionRegistry.some((entry) => entry.id === "elementalist"),
-    false,
+    true,
   );
+  assert.equal(legacy.applicationKind, PROFESSION_APPLICATION_KINDS.STANDALONE);
+  assert.equal(legacy.loadAppAdapter, null);
+  assert.equal(legacy.legacy, true);
+  assert.equal(standaloneProfessionRegistry.includes(legacy), true);
 });
 
 test("registry application kinds cannot bypass native adapter conformance", () => {
   const base = {
     id: "fixture",
+    armorWeight: "light",
     name: "Fixture",
     route: "fixture.html",
     themeClass: "",

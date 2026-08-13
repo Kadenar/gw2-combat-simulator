@@ -18,6 +18,7 @@ import { revenantCatalog } from "../../js/professions/revenant/catalog.js";
 test("native build manifests and assets stay profession-scoped", async () => {
   const professions = [
     "engineer",
+    "elementalist",
     "guardian",
     "mesmer",
     "necromancer",
@@ -75,7 +76,7 @@ test("Necromancer rotation presets stay separate from Elementalist presets", asy
       "utf8",
     ).then(JSON.parse),
     readFile(
-      new URL("../../Builds/manifest.json", import.meta.url),
+      new URL("../../Builds/elementalist/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
   ]);
@@ -179,10 +180,7 @@ test("Necromancer and Thief displayed benchmark DPS stays current", async () => 
     necromancerDps.get("Scourge:Condition (Pistol / Torch + Scepter / Torch)"),
     39419,
   );
-  assert.equal(
-    necromancerDps.get("Reaper:Power (Greatsword / Spear)"),
-    43427,
-  );
+  assert.equal(necromancerDps.get("Reaper:Power (Greatsword / Spear)"), 43427);
   assert.equal(
     necromancerDps.get("Reaper:Condition (Dagger / Sword + Spear)"),
     43982,
@@ -199,7 +197,7 @@ test("Necromancer and Thief displayed benchmark DPS stays current", async () => 
     thiefManifest
       .flatMap((section) => section.presets)
       .map((preset) => preset.benchmarkDps),
-    [43248, 40790, 36275, 43036],
+    [35365, 36721, 43248, 40790, 42082, 36275, 43036, 38212],
   );
 });
 
@@ -213,7 +211,8 @@ test("new Necromancer rotation presets execute without warnings", async () => {
   const conditionHarbinger = manifest
     .find((section) => section.section === "Harbinger")
     ?.presets.find(
-      (preset) => preset.label === "Condition (Pistol / Torch + Scepter / Dagger)",
+      (preset) =>
+        preset.label === "Condition (Pistol / Torch + Scepter / Dagger)",
     );
   assert.equal(conditionHarbinger?.benchmarkDps, 45253);
 
@@ -483,6 +482,22 @@ test("Guardian and Mesmer rotations are paired with their build templates", asyn
   const mesmerTemplates = templates(mesmerManifest);
 
   assert.deepEqual(guardianTemplates, [
+    {
+      section: "Willbender",
+      label: "Power (Spear / Greatsword)",
+      rotation:
+        "Rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
+    },
+    {
+      section: "Willbender",
+      label: "Condition (Pistol / Torch + Pistol / Pistol)",
+      rotation: "Rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
+    },
+    {
+      section: "Firebrand",
+      label: "Condition (Axe / Torch + Pistol / Pistol)",
+      rotation: "Rotations/guardian/r-condition-firebrand-bench.json",
+    },
     {
       section: "Dragonhunter",
       label: "Power (Spear / Greatsword)",

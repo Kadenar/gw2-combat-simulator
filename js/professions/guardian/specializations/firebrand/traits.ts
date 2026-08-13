@@ -1,7 +1,5 @@
 import { firebrandState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import { isInternalCooldownReady } from "../../../../platform/engine/clock.js";
 import { gw2AlliedPlayerProcTimeline } from "../../../../platform/gw2/allied-players.js";
@@ -35,9 +33,7 @@ const DORMANT_DURATION: Readonly<Record<GuardianVirtue, number>> =
 function virtueFor(skill: GuardianSkill): GuardianVirtue | null {
   if (!/^Tome of /.test(skill.name)) return null;
   const slot = Number(String(skill.slot || "").match(/(\d)$/)?.[1] || 0);
-  return (
-    ([null, "justice", "resolve", "courage"] as const)[slot] || null
-  );
+  return ([null, "justice", "resolve", "courage"] as const)[slot] || null;
 }
 
 function isFinalMantraCharge(
@@ -60,18 +56,28 @@ export function updateFirebrandCastState(
   const coreState = professionCoreState(context);
   const virtue = virtueFor(skill);
   if (virtue) {
+    const passiveWasReady =
+      state.tomeDormantReadyAt[virtue] <= at + context.epsilon;
     state.activeTome = virtue;
     if (state.swiftScholarTome !== virtue) {
       state.swiftScholarTome = virtue;
       state.swiftScholarCount = 0;
     }
-    const passiveReadyAt = at + DORMANT_DURATION[virtue];
+    const passiveReadyAt = passiveWasReady
+      ? at + DORMANT_DURATION[virtue]
+      : state.tomeDormantReadyAt[virtue];
+    state.tomeDormantReadyAt[virtue] = passiveReadyAt;
     coreState.virtueReadyAt[virtue] = passiveReadyAt;
     emitGuardianEvent(context, skill, "guardian.firebrand-virtue-activated", {
       virtue,
       passiveReadyAt,
     });
-    if (coreState.lastVirtuePassiveWasReady) {
+    emitGuardianEvent(context, skill, "weapon_set", {
+      weaponSet: context.state.activeWeaponSet,
+      mechanicSwap: true,
+      weaponLine: skill.name,
+    });
+    if (passiveWasReady) {
       emitGuardianBuff(context, skill, at, "quickness", 3);
       emitGuardianProc(context, {
         name: "Swift Scholar",
@@ -103,10 +109,7 @@ export function updateFirebrandCastState(
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS) &&
     isFinalMantraCharge(context, skill)
   ) {
-    state.tomePages = Math.min(
-      state.maximumTomePages,
-      state.tomePages + 2,
-    );
+    state.tomePages = Math.min(state.maximumTomePages, state.tomePages + 2);
     if (state.tomePages >= state.maximumTomePages) {
       state.nextTomePageAt = Number.POSITIVE_INFINITY;
     }
@@ -157,6 +160,7 @@ export function observeFirebrandScheduledEvent(
       kind: "quickness",
       stacks: 1,
       duration: 2,
+      recipients: "party",
       triggeredBy: event.skillName,
     });
     emitGuardianProc(context, {
@@ -237,6 +241,9 @@ export function handleFirebrandVirtueActivation(
   const virtue = event.virtue;
   if (!virtue) return;
   firebrandState.from(context).activeTome = virtue;
+  firebrandState.from(context).tomeDormantReadyAt[virtue] = Number(
+    event.passiveReadyAt,
+  );
   professionCoreState(context).virtueReadyAt[virtue] = Number(
     event.passiveReadyAt,
   );
@@ -264,50 +271,58 @@ export function reactToFirebrandBuffTraits(
   const state = firebrandState.from(context);
   if (
     String(event.kind || "").toLowerCase() !== "quickness" ||
+    (event.affectsSelf === false &&
+      Number(event.alliedPlayerCount || 0) <= 0) ||
     !hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.QUICKFIRE) ||
     !isInternalCooldownReady(event.at, state.quickfireReadyAt)
   ) {
     return;
   }
   state.quickfireReadyAt = event.at + 7;
-  const hadAshes =
-    state.ashesCharges > 0 &&
-    event.at < state.ashesExpiresAt - Number(context.epsilon || 0.0001);
-  state.ashesCharges = Math.max(0, Number(state.ashesCharges || 0)) + 1;
-  state.ashesNextTriggerAt = hadAshes ? state.ashesNextTriggerAt : event.at;
-  state.ashesExpiresAt = event.at + 10;
-  enqueueOrdered(context.queue, {
-    type: "guardian.ashes-expired",
-    at: state.ashesExpiresAt,
-    priority: 10,
-    source: "guardian",
-    sourceId: GUARDIAN_TRAIT_IDS.QUICKFIRE,
-    actorType: "effect",
-    skillId: GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST,
-    skillName: "Quickfire",
-    ashesExpiresAt: state.ashesExpiresAt,
-  });
-  for (const proc of gw2AlliedPlayerProcTimeline(context.config, {
-    start: event.at,
-    duration: 10,
-    maximumPerAlly: 1,
-    internalCooldown: 1,
-  })) {
+  if (event.affectsSelf !== false) {
+    const hadAshes =
+      state.ashesCharges > 0 &&
+      event.at < state.ashesExpiresAt - Number(context.epsilon || 0.0001);
+    state.ashesCharges = Math.max(0, Number(state.ashesCharges || 0)) + 1;
+    state.ashesBurnDuration = FIREBRAND_MECHANICS.ashesBurn.duration;
+    state.ashesNextTriggerAt = hadAshes ? state.ashesNextTriggerAt : event.at;
+    state.ashesExpiresAt = event.at + 10;
     enqueueOrdered(context.queue, {
-      type: "condition",
-      at: proc.at,
-      priority: 5,
+      type: "guardian.ashes-expired",
+      at: state.ashesExpiresAt,
+      priority: 10,
       source: "guardian",
-      sourceId: "guardian.ashes-of-the-just",
-      actorType: "player",
+      sourceId: GUARDIAN_TRAIT_IDS.QUICKFIRE,
+      actorType: "effect",
       skillId: GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST,
       skillName: "Quickfire",
-      name: `Quickfire — Ally ${proc.allyIndex} Burning`,
-      condition: FIREBRAND_MECHANICS.ashesBurn.condition,
-      stacks: 1,
-      duration: FIREBRAND_MECHANICS.ashesBurn.duration,
-      triggeredByAlly: proc.allyIndex,
+      ashesExpiresAt: state.ashesExpiresAt,
     });
+  } else {
+    const [proc] = gw2AlliedPlayerProcTimeline(context.config, {
+      start: event.at,
+      duration: 10,
+      maximumAllies: 1,
+      maximumPerAlly: 1,
+      internalCooldown: 1,
+    });
+    if (proc) {
+      enqueueOrdered(context.queue, {
+        type: "condition",
+        at: proc.at,
+        priority: 5,
+        source: "guardian",
+        sourceId: "guardian.ashes-of-the-just",
+        actorType: "player",
+        skillId: GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST,
+        skillName: "Quickfire",
+        name: `Quickfire — Ally ${proc.allyIndex} Burning`,
+        condition: FIREBRAND_MECHANICS.ashesBurn.condition,
+        stacks: 1,
+        duration: FIREBRAND_MECHANICS.ashesBurn.duration,
+        triggeredByAlly: proc.allyIndex,
+      });
+    }
   }
   context.recordProc(
     "trait",

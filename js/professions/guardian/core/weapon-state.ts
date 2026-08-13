@@ -4,7 +4,8 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  * availability, normal weapon-bar gating, and weapon-set swaps.
  */
 
-import { GUARDIAN_SKILL_IDS } from "../data/ids.js";
+import { hasTrait } from "../../../platform/gw2/trait-state.js";
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from "../data/ids.js";
 import { emitGuardianEvent } from "./events.js";
 import type {
   GuardianCastContext,
@@ -45,7 +46,21 @@ export function validateWeaponState(
   context: GuardianPrecastContext,
   skill: GuardianSkill,
 ): boolean | undefined {
+  if (
+    skill.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME &&
+    Number(
+      professionCoreState(context).availableFlips[
+        GUARDIAN_SKILL_IDS.ZEALOTS_FIRE
+      ] || 0,
+    ) >
+      context.start + context.epsilon
+  ) {
+    return false;
+  }
   if (skill.flipParentId != null) {
+    // Firebrand mantra flips have persistent ammo/final-charge state rather
+    // than a short parent-skill window. Their specialization owns validation.
+    if (skill.tags?.includes("firebrand-mantra-charge")) return;
     return (
       Number(professionCoreState(context).availableFlips[skill.id] || 0) >
       context.start + context.epsilon
@@ -94,7 +109,10 @@ export function updateWeaponCastState(
     } else {
       professionCoreState(context).autoattackChains[chain.root] = chain.next;
     }
-  } else if (skill.type === "Weapon") {
+  } else if (
+    skill.type === "Weapon" &&
+    skill.id !== GUARDIAN_SKILL_IDS.ZEALOTS_FLAME
+  ) {
     professionCoreState(context).autoattackChains = {};
   }
 
@@ -103,7 +121,9 @@ export function updateWeaponCastState(
     if (flip?.flipParentId === skill.id) {
       const duration =
         skill.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME
-          ? 3
+          ? hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)
+            ? 4.5
+            : 3
           : Math.max(1, Number(skill.cooldown || skill.recharge || 5));
       professionCoreState(context).availableFlips[flip.id] =
         context.effectiveEnd + duration;

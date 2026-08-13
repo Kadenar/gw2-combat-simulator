@@ -16,6 +16,7 @@ interface DaredevilDodgeEffectBase {
   sourceId: SkillId;
   stacks?: number;
   duration?: number;
+  atMs?: number;
 }
 
 type DaredevilDodgeEffect = Readonly<
@@ -23,6 +24,7 @@ type DaredevilDodgeEffect = Readonly<
       type: "strike";
       coefficient: number;
       hits: number;
+      atMsList?: readonly number[];
     })
   | (DaredevilDodgeEffectBase & {
       type: "condition";
@@ -51,20 +53,23 @@ const DAREDEVIL_DODGE_EFFECTS: Readonly<
       sourceId: TRAIT.LOTUS_TRAINING,
       coefficient: 0.5625,
       hits: 3,
+      atMsList: [200, 360, 520],
     }),
     Object.freeze({
       type: "condition",
       sourceId: TRAIT.LOTUS_TRAINING,
       condition: "Bleeding",
-      stacks: 6,
+      stacks: 2,
       duration: 4,
+      atMs: 200,
     }),
     Object.freeze({
       type: "condition",
       sourceId: TRAIT.LOTUS_TRAINING,
       condition: "Torment",
-      stacks: 3,
+      stacks: 2,
       duration: 4,
+      atMs: 360,
     }),
     Object.freeze({
       type: "condition",
@@ -72,6 +77,7 @@ const DAREDEVIL_DODGE_EFFECTS: Readonly<
       condition: "Crippled",
       stacks: 1,
       duration: 3,
+      atMs: 520,
     }),
   ]),
   "Unhindered Combatant": Object.freeze([
@@ -85,6 +91,15 @@ const DAREDEVIL_DODGE_EFFECTS: Readonly<
   ]),
 });
 
+const BRAWLERS_TENACITY_PHYSICAL_SKILLS: ReadonlySet<SkillId> = new Set([
+  ID.CHANNELED_VIGOR,
+  ID.BANDITS_DEFENSE,
+  ID.REFLEXIVE_STRIKE,
+  ID.DISTRACTING_DAGGERS,
+  ID.FIST_FLURRY,
+  ID.IMPAIRING_DAGGERS,
+]);
+
 function emitDodgeEffect(
   context: ThiefCastContext,
   skill: ThiefSkill,
@@ -97,8 +112,12 @@ function emitDodgeEffect(
       : state.selectedDodge === "Lotus Training"
         ? "Impaling Lotus"
         : state.selectedDodge;
+  const at =
+    effect.atMs == null
+      ? context.effectiveEnd
+      : context.start + effect.atMs / 1000;
   const common = {
-    at: context.effectiveEnd,
+    at,
     source: "Trait",
     sourceId: effect.sourceId,
     actorType: "player",
@@ -107,16 +126,24 @@ function emitDodgeEffect(
     name: dodgeSkillName,
   } as const;
   if (effect.type === "strike") {
-    context.emit({
-      ...common,
-      type: "damage",
-      source: "thief",
-      coefficient: Number(effect.coefficient || 0),
-      hits: Number(effect.hits || 1),
-      hitIndex: 1,
-      totalHits: Number(effect.hits || 1),
-      skillWeapon: "Unequipped",
-    });
+    const hits = Math.max(1, Number(effect.hits || 1));
+    const atMsList = effect.atMsList || [];
+    for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
+      context.emit({
+        ...common,
+        at:
+          atMsList[hitIndex - 1] == null
+            ? common.at
+            : context.start + atMsList[hitIndex - 1] / 1000,
+        type: "damage",
+        source: "thief",
+        coefficient: Number(effect.coefficient || 0) / hits,
+        hits: 1,
+        hitIndex,
+        totalHits: hits,
+        skillWeapon: "Unequipped",
+      });
+    }
   } else if (effect.type === "condition") {
     context.emit({
       ...common,
@@ -172,10 +199,7 @@ function spendDaredevilTraitResources(
     gainThiefEndurance(context, cost * 2, context.start, "staff-master");
   }
   if (
-    (skill.categories || []).some((category) =>
-      String(category).toLowerCase().includes("physical"),
-    ) &&
-    skill.id !== ID.PALM_STRIKE &&
+    BRAWLERS_TENACITY_PHYSICAL_SKILLS.has(skill.id) &&
     hasThiefTrait(context.config, TRAIT.BRAWLERS_TENACITY)
   ) {
     gainThiefEndurance(context, 15, context.start, "brawlers-tenacity");

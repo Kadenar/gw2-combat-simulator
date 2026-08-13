@@ -11,10 +11,14 @@
       "name": "__combat_start",
       "offset": 1
     },
-    "Stone Summit Cannon",
     {
       "name": "Stone Summit Cannon",
-      "interruptMs": 0
+      "doubleEdgeOutcome": "success"
+    },
+    {
+      "name": "Stone Summit Cannon",
+      "interruptMs": 0,
+      "doubleEdgeOutcome": "backfire"
     },
     "Mistburn Mortar",
     "Holo-Dancer Decoy",
@@ -25,7 +29,8 @@
     "Flawless Execution",
     {
       "name": "Canach-Coin Toss",
-      "offset": 139
+      "offset": 139,
+      "doubleEdgeOutcome": "success"
     },
     "Flawless Execution",
     "Forged Surfer Dash",
@@ -36,16 +41,23 @@
     "Forged Surfer Dash",
     "Flawless Execution",
     "Tactical Strike",
-    "Stone Summit Cannon",
+    {
+      "name": "Stone Summit Cannon",
+      "doubleEdgeOutcome": "backfire"
+    },
     "Holo-Dancer Decoy",
     "Tactical Strike",
     "Assassin's Signet",
     "Flawless Execution",
-    "Stone Summit Cannon",
+    {
+      "name": "Stone Summit Cannon",
+      "doubleEdgeOutcome": "backfire"
+    },
     "Mistburn Mortar",
     {
       "name": "Canach-Coin Toss",
-      "offset": 399
+      "offset": 399,
+      "doubleEdgeOutcome": "backfire"
     },
     "Flawless Execution",
     "Flawless Execution",
@@ -59,16 +71,28 @@
     "Flawless Execution",
     "Tactical Strike",
     "Flawless Execution",
-    "Stone Summit Cannon",
+    {
+      "name": "Stone Summit Cannon",
+      "doubleEdgeOutcome": "backfire"
+    },
     "Slice",
     "Slash",
     "Crippling Strike",
-    "Stone Summit Cannon",
+    {
+      "name": "Stone Summit Cannon",
+      "doubleEdgeOutcome": "backfire"
+    },
     "Flawless Execution",
     "Flawless Execution",
-    "Canach-Coin Toss",
+    {
+      "name": "Canach-Coin Toss",
+      "doubleEdgeOutcome": "backfire"
+    },
     "Flawless Execution",
-    "Canach-Coin Toss",
+    {
+      "name": "Canach-Coin Toss",
+      "doubleEdgeOutcome": "backfire"
+    },
     "Flawless Execution",
     "Slice",
     "Slash",
@@ -84,11 +108,17 @@
     "Zephyrite Sun Crystal",
     "Skritt Scuffle",
     "Flawless Execution",
-    "Stone Summit Cannon",
+    {
+      "name": "Stone Summit Cannon",
+      "doubleEdgeOutcome": "backfire"
+    },
     "Metal Legion Guitar",
     "Tactical Strike",
     "Mistburn Mortar",
-    "Stone Summit Cannon",
+    {
+      "name": "Stone Summit Cannon",
+      "doubleEdgeOutcome": "backfire"
+    },
     "Tactical Strike",
     "Flawless Execution",
     "Tactical Strike",
@@ -102,17 +132,29 @@
     "Flawless Execution",
     "Mistburn Mortar",
     "Flawless Execution",
-    "Stone Summit Cannon",
+    {
+      "name": "Stone Summit Cannon",
+      "doubleEdgeOutcome": "backfire"
+    },
     "Skritt Swipe",
     "Flawless Execution",
-    "Stone Summit Cannon",
+    {
+      "name": "Stone Summit Cannon",
+      "doubleEdgeOutcome": "backfire"
+    },
     "Forged Surfer Dash",
     "Summon Kryptis Turret",
     "Flawless Execution",
     "Flawless Execution",
-    "Canach-Coin Toss",
+    {
+      "name": "Canach-Coin Toss",
+      "doubleEdgeOutcome": "backfire"
+    },
     "Flawless Execution",
-    "Canach-Coin Toss",
+    {
+      "name": "Canach-Coin Toss",
+      "doubleEdgeOutcome": "backfire"
+    },
     "Flawless Execution",
     "Slice",
     "Slash",
@@ -127,10 +169,19 @@
     "Slice",
     "Slash",
     "Crippling Strike",
-    "Stone Summit Cannon",
+    {
+      "name": "Stone Summit Cannon",
+      "doubleEdgeOutcome": "backfire"
+    },
     "Flawless Execution",
-    "Stone Summit Cannon",
-    "Canach-Coin Toss",
+    {
+      "name": "Stone Summit Cannon",
+      "doubleEdgeOutcome": "backfire"
+    },
+    {
+      "name": "Canach-Coin Toss",
+      "doubleEdgeOutcome": "backfire"
+    },
     "Flawless Execution",
     "Slice",
     "Slash",

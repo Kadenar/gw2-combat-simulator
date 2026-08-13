@@ -24,6 +24,7 @@ import type {
   GuardianState,
 } from "../types.js";
 import { validateGuardianAvailability } from "./availability.js";
+import { observeGuardianComboFinisher } from "./combos.js";
 import {
   advanceSpearIlluminationState,
   updateSpearIlluminationState,
@@ -108,6 +109,12 @@ function isOneHandedWeapon(weapon: string | undefined): boolean {
       "Staff",
     ].includes(weapon)
   );
+}
+
+function selectedSkill(context: Gw2ModifierContext, name: string): boolean {
+  const source = context.config?.selectedSkills || [];
+  const selected = Array.isArray(source) ? source : Object.values(source);
+  return selected.map(String).includes(name);
 }
 
 /**
@@ -220,7 +227,23 @@ function modifyGuardianAttributes(
   ) {
     // Pattern C: convert gear-only vitality (config.stats), excluding trait
     // bonuses such as Force of Will / Defender's Dogma.
-    result.conditionDamage += Number(context.config?.stats?.vitality || 0) * 0.07;
+    result.conditionDamage +=
+      Number(context.config?.stats?.vitality || 0) * 0.07;
+  }
+  if (selectedSkill(context, "Signet of Wrath")) {
+    const perfectInscriptions = hasTrait(
+      context,
+      GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS,
+    );
+    const passiveActive =
+      perfectInscriptions ||
+      !context.timeline?.skillOnCooldownAt(
+        GUARDIAN_SKILL_IDS.SIGNET_OF_WRATH,
+        context.time,
+      );
+    const amount = 180 * (perfectInscriptions ? 1.2 : 1);
+    if (staticApplied && !passiveActive) result.conditionDamage -= amount;
+    if (!staticApplied && passiveActive) result.conditionDamage += amount;
   }
   return result;
 }
@@ -368,16 +391,6 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] =
         context.condition === "Burning" &&
         hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE),
     },
-    {
-      id: "guardian.justice-passive-duration",
-      target: MODIFIER_TARGET.CONDITION_DURATION,
-      operation: "multiply",
-      factor: 1.2,
-      when: (context) =>
-        context.condition === "Burning" &&
-        context.sourceId === "guardian.justice-passive" &&
-        hasTrait(context, GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH),
-    },
   ]);
 
 export function compileGuardianModifierRules(
@@ -436,10 +449,43 @@ function modifyGuardianMaximumAmmo(
   context: GuardianAmmoModifierContext,
   maximum: number,
 ): number {
-  return context.skill?.categories?.includes("SpiritWeapon") &&
+  let result = maximum;
+  if (
+    context.skill?.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME &&
+    hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)
+  ) {
+    result = Math.max(result, 2);
+  }
+  if (
+    context.skill?.categories?.includes("SpiritWeapon") &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.ETERNAL_ARMORY)
-    ? maximum + 1
-    : maximum;
+  ) {
+    result += 1;
+  }
+  return result;
+}
+
+function modifyGuardianConditionBaseDuration(
+  context: Gw2ModifierContext,
+  duration: number,
+): number {
+  if (context.condition !== "Burning") return duration;
+  let result = duration;
+  if (
+    (context.sourceId === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME ||
+      context.event?.skillId === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME) &&
+    hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)
+  ) {
+    result *= 1.5;
+  }
+  if (
+    (context.sourceId === "guardian.justice-passive" ||
+      context.event?.sourceId === "guardian.justice-passive") &&
+    hasTrait(context, GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH)
+  ) {
+    result *= 1.2;
+  }
+  return result;
 }
 
 /**
@@ -464,6 +510,7 @@ function modifyGuardianCastDuration(
 
 export const guardianCoreAttributeRules = Object.freeze({
   modifyAttributes: modifyGuardianAttributes,
+  modifyConditionBaseDuration: modifyGuardianConditionBaseDuration,
   modifierRules: guardianCoreModifierRules,
   compileModifierRules: compileGuardianModifierRules,
 });
@@ -533,6 +580,11 @@ export const guardianCoreSchedulerHooks = Object.freeze({
       id: "guardian.traits",
       order: 10,
       handler: observeGuardianScheduledEvent,
+    },
+    {
+      id: "guardian.combo-finishers",
+      order: 20,
+      handler: observeGuardianComboFinisher,
     },
   ]),
 });

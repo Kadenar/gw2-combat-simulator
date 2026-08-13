@@ -11,6 +11,7 @@ import {
   TARGET_CONDITION_GROUPS,
 } from "../../js/app/build/options.js";
 import { getBuildExportPayload } from "../../js/app/build/files.js";
+import { skillBarDisplaySkill } from "../../js/app/build/skills-panel.js";
 import {
   createDefaultBuild,
   replaceBuildConfiguration,
@@ -681,24 +682,22 @@ test("Guardian Power Luminary default builds resolve", async () => {
   const alacrityPreset = section.presets.find(
     (preset) => preset.label === "Power Alacrity (Greatsword / Spear)",
   );
-  const [saved, savedAlacrity, powerRotation, alacrityRotation] =
-    await Promise.all(
-      [
-        powerPreset.build,
-        alacrityPreset.build,
-        powerPreset.rotation,
-        alacrityPreset.rotation,
-      ].map((path) =>
+  const [saved, savedAlacrity, alacrityRotation] = await Promise.all(
+    [powerPreset.build, alacrityPreset.build, alacrityPreset.rotation].map(
+      (path) =>
         readFile(new URL(`../../${path}`, import.meta.url), "utf8").then(
           JSON.parse,
         ),
-      ),
-    );
+    ),
+  );
   const build = adapter.toApplicationBuild(saved);
   const alacrityBuild = adapter.toApplicationBuild(savedAlacrity);
   const radiantBulwarks = alacrityRotation.rotation.filter(
     (step) =>
       (typeof step === "string" ? step : step.name) === "Radiant Bulwark",
+  );
+  const alacrityRotationNames = alacrityRotation.rotation.map((step) =>
+    typeof step === "string" ? step : step.name,
   );
 
   assert.equal(section.section, "Luminary");
@@ -710,7 +709,7 @@ test("Guardian Power Luminary default builds resolve", async () => {
   assert.deepEqual(build.alternateWeapons, ["Spear", ""]);
   assert.equal(build.startingWeaponSet, 2);
 
-  assert.equal(alacrityPreset.benchmarkDps, 38217);
+  assert.equal(alacrityPreset.benchmarkDps, 38346);
   assert.equal(Object.hasOwn(savedAlacrity, "rotation"), false);
   assert.deepEqual(alacrityBuild.weapons, ["Greatsword", ""]);
   assert.deepEqual(alacrityBuild.alternateWeapons, ["Spear", ""]);
@@ -743,13 +742,29 @@ test("Guardian Power Luminary default builds resolve", async () => {
     { stat: "Precision", count: 0 },
     { stat: "Condition Damage", count: 0 },
   ]);
-  assert.deepEqual(
+  assert.equal(alacrityRotation.metadata.log, alacrityPreset.dpsReportUrl);
+  assert.equal(alacrityRotation.rotation.length, 275);
+  assert.deepEqual(alacrityRotation.rotation.slice(0, 4), [
+    { name: "Radiant Courage", offset: 100 },
+    "Enter Radiant Forge",
+    "Daring Advance",
+    { name: "__combat_start", offset: 682 },
+  ]);
+  assert.equal(
     alacrityRotation.rotation.filter(
-      (step) =>
-        (typeof step === "string" ? step : step.name) !== "Radiant Bulwark",
-    ),
-    powerRotation.rotation,
+      (step) => typeof step === "object" && step.interruptMs != null,
+    ).length,
+    42,
   );
+  assert.equal(
+    alacrityRotationNames.filter((name) => name === "Glaring Burst").length,
+    31,
+  );
+  assert.deepEqual(alacrityRotationNames.slice(-3), [
+    "Enter Radiant Forge",
+    "Dazzling Hammer",
+    "Shining Spin",
+  ]);
   assert.deepEqual(
     radiantBulwarks.map((step) => step.interruptMs),
     [241, 201, 199, 195, 200],
@@ -1631,6 +1646,28 @@ test("Engineer kits register distinct weapon lines in the timeline", async () =>
     [[0], [1, 2], [3, 4], [5]],
   );
   assert.ok(rows.every((row) => row.weaponSet === 1));
+});
+
+test("Firebrand mantra flips replace their selected skill-bar parent", async () => {
+  const adapter = await loadProfessionAppAdapter("guardian");
+  const skillById = adapter.profession.catalog.skillsById;
+  const skillByName = adapter.profession.catalog.skillsByName;
+  const parent = skillByName.get("Mantra of Flame");
+  const normal = skillByName.get("Flame Rush");
+  const final = skillByName.get("Flame Surge");
+  const app = {
+    skillById,
+    results: { endState: { profession: { availableFlips: {} } } },
+  };
+
+  assert.equal(skillBarDisplaySkill(app, parent), parent);
+  app.results.endState.profession.availableFlips[normal.id] = Infinity;
+  assert.equal(skillBarDisplaySkill(app, parent), normal);
+  delete app.results.endState.profession.availableFlips[normal.id];
+  app.results.endState.profession.availableFlips[final.id] = Infinity;
+  assert.equal(skillBarDisplaySkill(app, parent), final);
+  delete app.results.endState.profession.availableFlips[final.id];
+  assert.equal(skillBarDisplaySkill(app, parent), parent);
 });
 
 test("shared palettes reject supplemental effects from weapon and action rows", () => {

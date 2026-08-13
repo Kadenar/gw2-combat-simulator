@@ -137,7 +137,7 @@ function emitLesserSymbolOfBlades(
       buildGuardianStrike({
         at: at + index,
         sourceId: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES,
-        actorType: "effect",
+        actorType: "player",
         skillId: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES,
         skillName: "Lesser Symbol of Blades",
         name: "Lesser Symbol of Blades",
@@ -164,6 +164,33 @@ export function updateGuardianTraitCastState(
   skill: GuardianSkill,
 ): void {
   const at = context.effectiveEnd;
+  if (skill.id === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION) {
+    context.replaceEvent(context.action, {
+      comboField: "Light",
+      comboFieldDuration: 4,
+    });
+    context.emit({
+      type: "guardian.symbol-of-ignition-field",
+      at: context.effectiveEnd,
+      source: "guardian",
+      sourceId: skill.id,
+      actorType: "effect",
+      skillId: skill.id,
+      skillName: skill.name,
+      duration: 4,
+    });
+  }
+  if (skill.id === GUARDIAN_SKILL_IDS.PURGING_FLAMES) {
+    context.replaceEvent(context.action, {
+      comboField: "Fire",
+      comboFieldDuration: hasGuardianTrait(
+        context,
+        GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS,
+      )
+        ? 7
+        : 5,
+    });
+  }
   const virtueSlot = skill.categories?.includes("Virtue")
     ? String(skill.slot || "")
     : "";
@@ -243,7 +270,17 @@ export function updateGuardianTraitCastState(
       professionCoreState(context).furiousFocusReadyAt,
     )
   ) {
-    professionCoreState(context).furiousFocusReadyAt = at + 10;
+    const lesserSymbol =
+      context.catalog.skillsById.get(
+        GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES,
+      ) ||
+      ({
+        id: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES,
+        name: "Lesser Symbol of Blades",
+        cooldown: 10,
+      } as GuardianSkill);
+    professionCoreState(context).furiousFocusReadyAt =
+      at + context.rechargeDurationFor(lesserSymbol, at);
     emitLesserSymbolOfBlades(context, skill, at);
   }
   if (
@@ -251,7 +288,7 @@ export function updateGuardianTraitCastState(
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS)
   ) {
     for (let index = 0; index < 2; index += 1) {
-      const pulseAt = context.start + 6.25 + index;
+      const pulseAt = context.start + 6.32 + index;
       context.emit(
         buildGuardianStrike({
           at: pulseAt,
@@ -280,6 +317,60 @@ export function updateGuardianTraitCastState(
       });
     }
   }
+}
+
+export function handleSymbolOfIgnitionField(
+  context: GuardianResolverContext,
+  event: GuardianResolverEvent,
+): void {
+  const state = resolverState(context);
+  state.symbolIgnitionStartsAt = event.at;
+  state.symbolIgnitionUntil = event.at + Number(event.duration || 4);
+}
+
+function reactToSymbolOfIgnition(
+  context: GuardianResolverContext,
+  event: GuardianResolverEvent,
+): void {
+  if (
+    !isGw2PlayerActorEvent(event) ||
+    !(Number(event.coefficient || 0) > 0) ||
+    event.skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION
+  ) {
+    return;
+  }
+  const state = resolverState(context);
+  const epsilon = resolverEpsilon(context);
+  if (
+    Number(state.symbolIgnitionUntil || 0) <=
+      Number(state.symbolIgnitionStartsAt || 0) ||
+    event.at < Number(state.symbolIgnitionStartsAt || 0) - epsilon ||
+    event.at > Number(state.symbolIgnitionUntil || 0) + epsilon
+  ) {
+    return;
+  }
+  if (
+    !isInternalCooldownReady(event.at, Number(state.symbolIgnitionReadyAt || 0))
+  ) {
+    return;
+  }
+  state.symbolIgnitionReadyAt = event.at + 0.25;
+  enqueueOrdered(context.queue, {
+    type: "condition",
+    at: event.at,
+    priority: 5,
+    source: "guardian",
+    sourceId: GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION,
+    actorType: "player",
+    skillId: GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION,
+    skillName: "Symbol of Ignition",
+    name: "Symbol of Ignition — Ignition",
+    condition: "Burning",
+    stacks: 1,
+    duration: 1,
+    triggeredBy: event.skillName,
+    projectile: event.projectile === true,
+  });
 }
 
 export function observeGuardianScheduledEvent(
@@ -515,6 +606,7 @@ export function reactToGuardianDamageTraits(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
+  reactToSymbolOfIgnition(context, event);
   reactToSymbolTraits(context, event);
   reactToZealotsResolution(context, event);
 }

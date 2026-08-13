@@ -1,5 +1,24 @@
 [
   {
+    "section": "Deadeye",
+    "presets": [
+      {
+        "label": "Power Quickness (Sword / Pistol)",
+        "build": "Builds/thief/b-power-quick-deadeye-sword-pistol.json",
+        "rotation": "Rotations/thief/r-power-quick-deadeye-sword-pistol-bench.json",
+        "benchmarkDps": 35365,
+        "upToDate": true
+      },
+      {
+        "label": "Power Quickness (Rifle)",
+        "build": "Builds/thief/b-power-quick-deadeye-rifle.json",
+        "rotation": "Rotations/thief/r-power-quick-deadeye-rifle-bench.json",
+        "benchmarkDps": 36721,
+        "upToDate": true
+      }
+    ]
+  },
+  {
     "section": "Antiquary",
     "presets": [
       {
@@ -14,6 +33,13 @@
         "build": "Builds/thief/b-condi-antiquary-spear.json",
         "rotation": "Rotations/thief/r-condi-antiquary-spear-bench.json",
         "benchmarkDps": 40790,
+        "upToDate": true
+      },
+      {
+        "label": "Condition (Dagger / Dagger)",
+        "build": "Builds/thief/b-condi-antiquary-dagger-dagger.json",
+        "rotation": "Rotations/thief/r-condi-antiquary-dagger-dagger-bench.json",
+        "benchmarkDps": 42082,
         "upToDate": true
       }
     ]
@@ -38,6 +64,13 @@
         "build": "Builds/thief/b-power-daredevil-dagger-dagger.json",
         "rotation": "Rotations/thief/r-power-daredevil-dagger-dagger-bench.json",
         "benchmarkDps": 43036,
+        "upToDate": true
+      },
+      {
+        "label": "Condition (Dagger / Dagger)",
+        "build": "Builds/thief/b-condi-daredevil-dagger-dagger.json",
+        "rotation": "Rotations/thief/r-condi-daredevil-dagger-dagger-bench.json",
+        "benchmarkDps": 38212,
         "upToDate": true
       }
     ]

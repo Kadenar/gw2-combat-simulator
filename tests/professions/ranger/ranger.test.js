@@ -1061,7 +1061,7 @@ test("Power Galeshot benchmark tracks the supplied EVTC and both pets", async ()
   assert.equal(hits("Hawkeye"), 45);
   assert.equal(hits("Barrage"), 60);
   assert.equal(hits("Wuthering Wind"), 20);
-  assert.equal(hits("Consuming Bite"), 19);
+  assert.equal(hits("Consuming Bite"), 20);
   assert.equal(hits("Twin Darts"), 29);
   assert.equal(hits("Poisonous Cloud"), 18);
   assert.equal(hits("Narcotic Spores"), 18);
@@ -2465,6 +2465,20 @@ test("Galeshot tracks Cyclone Bow arrows and Wind Force", () => {
     ),
     false,
   );
+});
+
+test("Cyclone Bow strikes use its normalized weapon strength", () => {
+  for (const primaryWeapon of ["Axe", "Longbow", "Hammer"]) {
+    const result = simulate("Galeshot", ["Summon Cyclone Bow", "Keen Shot"], {
+      primaryWeapon,
+    });
+    const hit = result.resolvedEvents.find(
+      (event) => event.type === "damage" && event.skillId === ID.KEEN_SHOT,
+    );
+
+    assert.equal(hit.weaponStrengthProfileId, "transform.cyclone-bow");
+    assert.equal(hit.resolvedWeaponStrength, 1015);
+  }
 });
 
 test("Quarry's Peril commits at 320 ms and deals damage at 800 ms", () => {

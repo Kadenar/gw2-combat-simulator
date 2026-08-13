@@ -35,15 +35,15 @@ the profession modules.
   allied-player count and strike rate. Shallow Grave, Consume Shadows,
   Traversing Dusk, Panaku's Ambition, and Hungering Darkness remain outside
   the implemented model.
-- Antiquary artifact slots, deterministic or player-choice artifact draws,
-  Double Edge outcomes, Reshuffle, backfire state, and persistent Antiquary
+- Antiquary artifact uses with all artifacts available for player choice,
+  per-cast Double Edge outcomes, backfire state, and persistent Antiquary
   summons.
 - Current researched damage, condition, control, boon, cooldown, ammo, and
   chain packets, plus a validated coverage disposition for all 108 traits.
 
 The default stolen skill is Throw Gunk, matching the standard raid-golem
-scenario. Artifact draws and Double Edge outcomes are saved deterministic
-scenario choices; simulation never uses unseeded randomness.
+scenario. Double Edge success or backfire is saved on each affected rotation
+entry; simulation never uses unseeded randomness.
 
 ## Data provenance
 

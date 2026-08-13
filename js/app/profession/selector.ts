@@ -12,7 +12,8 @@ import { embedRoute, isEmbedded } from "../embed.js";
 import { mountRotationTimelineSize } from "../../platform/ui/rotation-timeline-size.js";
 import {
   getProfessionEntry,
-  professionRegistry,
+  professionGroups,
+  type ProfessionRegistryEntry,
   PROFESSION_ROUTES,
   professionRoute,
 } from "./registry.js";
@@ -25,33 +26,99 @@ export {
 
 const GITHUB_ISSUES_URL =
   "https://github.com/Kadenar/gw2-combat-simulator/issues";
+const BUILD_SUBMISSION_URL =
+  "https://github.com/Kadenar/gw2-combat-simulator/issues/new?template=build-submission.yml";
 
 const GITHUB_MARK_SVG =
   '<svg class="github-link-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>';
 
 /**
- * Adds a GitHub "report an issue" link to the page.
+ * Adds the community submission actions to the page.
  *
  * On simulator pages it sits in the header (mirroring the home link); on the
  * landing page it sits in the footer. Idempotent so repeat binds don't stack.
  */
-function mountGithubLink(root: Document): void {
+function mountCommunityActions(root: Document): void {
   const host =
     root.querySelector(".landing-footer") || root.querySelector("header");
-  if (!host || host.querySelector(".github-link")) return;
+  if (!host || host.querySelector(".community-actions")) {
+    return;
+  }
+  const actions = root.createElement("div");
+  actions.className = "community-actions";
+  const submissionLink = root.createElement("a");
+  submissionLink.className = "community-link build-submission-link";
+  submissionLink.href = BUILD_SUBMISSION_URL;
+  submissionLink.target = "_blank";
+  submissionLink.rel = "noopener noreferrer";
+  submissionLink.title = "Submit a build for review on GitHub";
+  submissionLink.setAttribute(
+    "aria-label",
+    "Submit a build for review on GitHub",
+  );
+  submissionLink.innerHTML =
+    '<span aria-hidden="true">＋</span><span>Submit a build</span>';
   const link = root.createElement("a");
-  link.className = "github-link";
+  link.className = "community-link github-link";
   link.href = GITHUB_ISSUES_URL;
   link.target = "_blank";
   link.rel = "noopener noreferrer";
   link.title = "Report an issue on GitHub";
   link.setAttribute("aria-label", "Report an issue on GitHub");
   link.innerHTML = `${GITHUB_MARK_SVG}<span>Report an issue</span>`;
-  host.append(link);
+  actions.append(submissionLink, link);
+  host.append(actions);
+}
+
+/**
+ * Keeps the simulator snapshot badge with the sticky header and publishes the
+ * rendered header height for other sticky page controls.
+ */
+function mountStickyProfessionHeader(root: Document): void {
+  if (!root.body?.dataset.profession) return;
+
+  const header = root.querySelector<HTMLElement>("#app > header");
+  const appRoot = header?.parentElement;
+  if (!header || !appRoot) return;
+
+  const existingSnapshot = header.querySelector<HTMLElement>(".update-info");
+  const adjacentSnapshot = header.nextElementSibling;
+  const snapshot =
+    existingSnapshot ||
+    (adjacentSnapshot instanceof HTMLElement &&
+    adjacentSnapshot.classList.contains("update-info")
+      ? adjacentSnapshot
+      : null);
+  if (snapshot && snapshot.parentElement !== header) header.append(snapshot);
+
+  const updateHeaderHeight = () => {
+    appRoot.style.setProperty(
+      "--profession-header-height",
+      `${Math.ceil(header.getBoundingClientRect().height)}px`,
+    );
+  };
+  updateHeaderHeight();
+  if (header.dataset.stickyHeaderMounted === "true") return;
+  header.dataset.stickyHeaderMounted = "true";
+
+  const ResizeObserverConstructor = root.defaultView?.ResizeObserver;
+  if (ResizeObserverConstructor) {
+    new ResizeObserverConstructor(updateHeaderHeight).observe(header);
+  } else {
+    root.defaultView?.addEventListener("resize", updateHeaderHeight);
+  }
 }
 
 function activeProfessionId(root: Document, select: HTMLSelectElement): string {
   return root.body?.dataset.profession || select.dataset.activeProfession || "";
+}
+
+/** Decorates a profession name with its status tags for the select dropdown. */
+function professionOptionLabel(entry: ProfessionRegistryEntry): string {
+  const tags: string[] = [];
+  if (entry.legacy) tags.push("Legacy");
+  if (entry.workInProgress) tags.push("WIP");
+  return tags.length ? `${entry.name} [${tags.join(", ")}]` : entry.name;
 }
 
 function populateProfessionSelector(
@@ -68,12 +135,17 @@ function populateProfessionSelector(
     placeholder.selected = true;
     select.append(placeholder);
   }
-  for (const entry of professionRegistry) {
-    const option = owner.createElement("option");
-    option.value = entry.id;
-    option.textContent = entry.name;
-    option.selected = entry.id === active;
-    select.append(option);
+  for (const group of professionGroups) {
+    const optgroup = owner.createElement("optgroup");
+    optgroup.label = group.label;
+    for (const entry of group.entries) {
+      const option = owner.createElement("option");
+      option.value = entry.id;
+      option.textContent = professionOptionLabel(entry);
+      option.selected = entry.id === active;
+      optgroup.append(option);
+    }
+    select.append(optgroup);
   }
 }
 
@@ -81,7 +153,21 @@ function renderProfessionCards(root: Document): void {
   const grid = root.querySelector("[data-profession-grid]");
   if (!grid) return;
   grid.replaceChildren();
-  for (const entry of professionRegistry) {
+  for (const group of professionGroups) {
+    const heading = root.createElement("h3");
+    heading.className = "profession-group-heading";
+    heading.textContent = group.label;
+    grid.append(heading);
+    renderProfessionGroupCards(root, grid, group.entries);
+  }
+}
+
+function renderProfessionGroupCards(
+  root: Document,
+  grid: Element,
+  entries: readonly ProfessionRegistryEntry[],
+): void {
+  for (const entry of entries) {
     const card = root.createElement("a");
     card.className = `profession-card profession-card-${entry.id}`;
     card.href = isEmbedded() ? embedRoute(entry.route) : entry.route;
@@ -115,6 +201,18 @@ function renderProfessionCards(root: Document): void {
     copy.className = "profession-card-copy";
     const name = root.createElement("strong");
     name.textContent = entry.name;
+    if (entry.legacy) {
+      const badge = root.createElement("span");
+      badge.className = "profession-legacy-badge";
+      badge.textContent = "Legacy";
+      name.append(" ", badge);
+    }
+    if (entry.workInProgress) {
+      const badge = root.createElement("span");
+      badge.className = "profession-wip-badge";
+      badge.textContent = "WIP";
+      name.append(" ", badge);
+    }
     const summary = root.createElement("small");
     summary.textContent = entry.specializationSummary;
     copy.append(name, summary);
@@ -136,7 +234,8 @@ function renderProfessionCards(root: Document): void {
  */
 export function bindProfessionSelector(root: Document = document): void {
   mountRotationTimelineSize(root);
-  mountGithubLink(root);
+  mountCommunityActions(root);
+  mountStickyProfessionHeader(root);
   const select = root.getElementById(
     "profession-select",
   ) as HTMLSelectElement | null;

@@ -2,32 +2,6 @@ import { createProfessionAssumptionControls } from "../../../../app/profession/a
 
 export const THIEF_ANTIQUARY_SELECTION_CONTROLS = Object.freeze([
   {
-    key: "artifactDrawSequence",
-    label: "Artifact draw order",
-    type: "select",
-    defaultValue: "balanced",
-    section: "Antiquary",
-    specializations: ["Antiquary"],
-    options: [
-      { value: "balanced", label: "Balanced deterministic order" },
-      { value: "reverse", label: "Reverse deterministic order" },
-      { value: "choose", label: "Choose from all artifacts" },
-    ],
-  },
-  {
-    key: "doubleEdgeOutcomeSequence",
-    label: "Double Edge outcomes",
-    type: "select",
-    defaultValue: "alternate",
-    section: "Antiquary",
-    specializations: ["Antiquary"],
-    options: [
-      { value: "alternate", label: "Success, then backfire" },
-      { value: "success", label: "Always succeed" },
-      { value: "backfire", label: "Always backfire" },
-    ],
-  },
-  {
     key: "forgedSurferBombsHit",
     label: "Forged Surfer bombs hit",
     type: "select",

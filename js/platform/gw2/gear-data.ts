@@ -1439,6 +1439,11 @@ export const RELIC_DATA = {
     cooldown: 0,
     icon: "https://render.guildwars2.com/file/F61EEC535059F1FA027049AB4DEFCD5465405DB7/3122344.png",
   },
+  Deadeye: {
+    trigger: "Use a cantrip skill (+10% strike damage for 8s)",
+    cooldown: 0,
+    icon: "https://render.guildwars2.com/file/A36DB29059090F04E4565724E3673CFD189E6177/1770000.png",
+  },
   Eagle: {
     trigger: "Enemy below 50% HP",
     cooldown: 0,
