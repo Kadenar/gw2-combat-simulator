@@ -483,6 +483,44 @@ function abilityMechanicDivergences(comparisons) {
     );
 }
 
+const abilityDivergenceCauses = Object.freeze([
+  "condition-tick-cadence",
+  "critical-food-policy",
+  "critical-sigil-causality",
+  "unclassified",
+]);
+
+function classifyAbilityDivergences(divergences) {
+  return divergences.map((entry) => {
+    let cause = "unclassified";
+    if (entry.name === "Nourishment") {
+      cause = "critical-food-policy";
+    } else if (["Sigil of Air", "Sigil of Earth"].includes(entry.name)) {
+      cause = "critical-sigil-causality";
+    } else if (
+      entry.divergentComponents.every((component) =>
+        ["total", "condition"].includes(component),
+      )
+    ) {
+      cause = "condition-tick-cadence";
+    }
+    return {
+      name: entry.name,
+      cause,
+      divergentComponents: entry.divergentComponents,
+    };
+  });
+}
+
+function countAbilityDivergenceCauses(classifications) {
+  return Object.fromEntries(
+    abilityDivergenceCauses.map((cause) => [
+      cause,
+      classifications.filter((entry) => entry.cause === cause).length,
+    ]),
+  );
+}
+
 function summarizeStandalone(result) {
   const skillDamage = standaloneSkillDamage(result);
   return {
@@ -644,6 +682,12 @@ for (const variant of variants) {
     localLegacySkillMetrics,
     legacy.totalDamage,
   );
+  const nativeLegacyAbilityDivergences = abilityDivergences(
+    nativeLegacySkillParity,
+    legacy.totalDamage,
+  );
+  const nativeLegacyAbilityDivergenceClassifications =
+    classifyAbilityDivergences(nativeLegacyAbilityDivergences);
   results[variant] = {
     localFixtureDrift: {
       buildDiffers: JSON.stringify(localSnapshot) !== JSON.stringify(snapshot),
@@ -676,9 +720,11 @@ for (const variant of variants) {
       native: abilityMechanicDivergences(nativeSkillParity),
     },
     skillParityFromLegacy: nativeLegacySkillParity,
-    abilityDivergencesFromLegacy: abilityDivergences(
-      nativeLegacySkillParity,
-      legacy.totalDamage,
+    abilityDivergencesFromLegacy: nativeLegacyAbilityDivergences,
+    abilityDivergenceClassificationsFromLegacy:
+      nativeLegacyAbilityDivergenceClassifications,
+    abilityDivergenceCauseCountsFromLegacy: countAbilityDivergenceCauses(
+      nativeLegacyAbilityDivergenceClassifications,
     ),
     abilityMechanicDivergencesFromLegacy: abilityMechanicDivergences(
       nativeLegacySkillParity,
@@ -735,6 +781,8 @@ const summary = Object.fromEntries(
           result.abilityDivergencesFromLegacy.length,
         nativeAbilityMechanicDivergencesFromLegacy:
           result.abilityMechanicDivergencesFromLegacy.length,
+        nativeAbilityDivergenceCausesFromLegacy:
+          result.abilityDivergenceCauseCountsFromLegacy,
         nativeWarnings: result.native.warningCount,
       },
     ];
@@ -804,6 +852,18 @@ if (check) {
         `${legacyAbilityDivergences.length} legacy ability damage component deltas exceed 2% (${legacyAbilityDivergences
           .slice(0, 5)
           .map(summarizeAbilityDivergence)
+          .join(", ")})`,
+      );
+    }
+    const unclassifiedAbilityDivergences = results[
+      variant
+    ].abilityDivergenceClassificationsFromLegacy.filter(
+      (entry) => entry.cause === "unclassified",
+    );
+    if (unclassifiedAbilityDivergences.length) {
+      reasons.push(
+        `${unclassifiedAbilityDivergences.length} legacy ability deltas have no diagnosed cause (${unclassifiedAbilityDivergences
+          .map((entry) => entry.name)
           .join(", ")})`,
       );
     }

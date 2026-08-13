@@ -2027,6 +2027,13 @@ test("legacy snapshots select the explicit reference elemental profile", () => {
   assert.equal(build.assumptions.elementalSimulationProfile, "reference");
   assert.equal(build.assumptions.glyphBoonedElementals, true);
   assert.equal(build.assumptions.startingAttunementPreDwelled, true);
+
+  const evtc = elementalistAppAdapter.toApplicationBuild({
+    build: elementalistProfession.createBuildDefaults(),
+    elementalSimulationProfile: "evtc",
+    glyphBoonedElementals: false,
+  });
+  assert.equal(evtc.assumptions.elementalSimulationProfile, "evtc");
 });
 
 test("Flame Barrage replaces the active Glyph and obeys rotation timing", () => {

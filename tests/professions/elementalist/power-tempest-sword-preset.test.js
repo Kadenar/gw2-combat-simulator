@@ -56,6 +56,11 @@ test("Power Tempest sword commands Flame Barrage off cooldown", async () => {
 
   assert.equal(barrages.length, 9);
   assert.equal(
+    barrages.every((step) => !step.invalid),
+    true,
+  );
+  assert.equal(build.assumptions.elementalSimulationProfile, "evtc");
+  assert.equal(
     result.steps.some((step) => step.skill === "Glyph of Elementals"),
     false,
   );
@@ -66,7 +71,7 @@ test("Power Tempest sword commands Flame Barrage off cooldown", async () => {
   assert.ok(Math.abs(overloadHit.criticalChance - 0.9990476190476191) < 1e-12);
   assert.deepEqual(procCounts, {
     "Burning Precision": 19,
-    "Electric Discharge": 24,
+    "Electric Discharge": 23,
     "Lightning Jolt": 12,
     Sunspot: 7,
   });
