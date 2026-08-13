@@ -3040,7 +3040,7 @@ test("Condition Daredevil dagger-dagger preset matches the supplied EVTC", async
   assert.equal(castCount("Steal"), 6);
   assert.equal(castCount("Dodge"), 37);
   assert.equal(castCount("Death Blossom"), 32);
-  assert.equal(castCount("Double Strike"), 33);
+  assert.equal(castCount("Double Strike"), 31);
   assert.equal(castCount("Wild Strike"), 30);
   assert.equal(castCount("Lotus Strike"), 30);
   assert.equal(castCount("Channeled Vigor"), 6);

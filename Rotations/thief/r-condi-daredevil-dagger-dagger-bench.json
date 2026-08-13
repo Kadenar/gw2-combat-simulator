@@ -34,10 +34,6 @@
       "name": "Thousand Needles",
       "offset": 723
     },
-    {
-      "name": "Double Strike",
-      "interruptMs": 124
-    },
     "Dodge",
     "Death Blossom",
     "Double Strike",
@@ -186,10 +182,6 @@
     "Double Strike",
     "Wild Strike",
     "Lotus Strike",
-    {
-      "name": "Double Strike",
-      "interruptMs": 278
-    },
     "Prepare Thousand Needles",
     "Dodge",
     {
