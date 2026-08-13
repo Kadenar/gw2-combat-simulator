@@ -682,24 +682,22 @@ test("Guardian Power Luminary default builds resolve", async () => {
   const alacrityPreset = section.presets.find(
     (preset) => preset.label === "Power Alacrity (Greatsword / Spear)",
   );
-  const [saved, savedAlacrity, powerRotation, alacrityRotation] =
-    await Promise.all(
-      [
-        powerPreset.build,
-        alacrityPreset.build,
-        powerPreset.rotation,
-        alacrityPreset.rotation,
-      ].map((path) =>
+  const [saved, savedAlacrity, alacrityRotation] = await Promise.all(
+    [powerPreset.build, alacrityPreset.build, alacrityPreset.rotation].map(
+      (path) =>
         readFile(new URL(`../../${path}`, import.meta.url), "utf8").then(
           JSON.parse,
         ),
-      ),
-    );
+    ),
+  );
   const build = adapter.toApplicationBuild(saved);
   const alacrityBuild = adapter.toApplicationBuild(savedAlacrity);
   const radiantBulwarks = alacrityRotation.rotation.filter(
     (step) =>
       (typeof step === "string" ? step : step.name) === "Radiant Bulwark",
+  );
+  const alacrityRotationNames = alacrityRotation.rotation.map((step) =>
+    typeof step === "string" ? step : step.name,
   );
 
   assert.equal(section.section, "Luminary");
@@ -711,7 +709,7 @@ test("Guardian Power Luminary default builds resolve", async () => {
   assert.deepEqual(build.alternateWeapons, ["Spear", ""]);
   assert.equal(build.startingWeaponSet, 2);
 
-  assert.equal(alacrityPreset.benchmarkDps, 37977);
+  assert.equal(alacrityPreset.benchmarkDps, 38346);
   assert.equal(Object.hasOwn(savedAlacrity, "rotation"), false);
   assert.deepEqual(alacrityBuild.weapons, ["Greatsword", ""]);
   assert.deepEqual(alacrityBuild.alternateWeapons, ["Spear", ""]);
@@ -744,13 +742,29 @@ test("Guardian Power Luminary default builds resolve", async () => {
     { stat: "Precision", count: 0 },
     { stat: "Condition Damage", count: 0 },
   ]);
-  assert.deepEqual(
+  assert.equal(alacrityRotation.metadata.log, alacrityPreset.dpsReportUrl);
+  assert.equal(alacrityRotation.rotation.length, 275);
+  assert.deepEqual(alacrityRotation.rotation.slice(0, 4), [
+    { name: "Radiant Courage", offset: 100 },
+    "Enter Radiant Forge",
+    "Daring Advance",
+    { name: "__combat_start", offset: 682 },
+  ]);
+  assert.equal(
     alacrityRotation.rotation.filter(
-      (step) =>
-        (typeof step === "string" ? step : step.name) !== "Radiant Bulwark",
-    ),
-    powerRotation.rotation,
+      (step) => typeof step === "object" && step.interruptMs != null,
+    ).length,
+    42,
   );
+  assert.equal(
+    alacrityRotationNames.filter((name) => name === "Glaring Burst").length,
+    31,
+  );
+  assert.deepEqual(alacrityRotationNames.slice(-3), [
+    "Enter Radiant Forge",
+    "Dazzling Hammer",
+    "Shining Spin",
+  ]);
   assert.deepEqual(
     radiantBulwarks.map((step) => step.interruptMs),
     [241, 201, 199, 195, 200],

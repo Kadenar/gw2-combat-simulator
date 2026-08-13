@@ -1053,6 +1053,41 @@ test("Willbender utilities use the supplied physical skill profiles", () => {
   );
 });
 
+test("Whirling Light creates four Burning Bolts inside Purging Flames", () => {
+  const inFireField = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Purging Flames", "Whirling Light"],
+    config: {
+      ...config,
+      specialization: "Willbender",
+    },
+  });
+  const withoutFireField = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Whirling Light"],
+    config: {
+      ...config,
+      specialization: "Willbender",
+    },
+  });
+  const burningBolts = (result) =>
+    result.resolvedEvents.filter(
+      (event) =>
+        event.type === "condition" &&
+        event.name === "Whirling Light — Burning Bolt",
+    );
+
+  assert.deepEqual(inFireField.warnings, []);
+  assert.equal(burningBolts(inFireField).length, 4);
+  assert.equal(
+    burningBolts(inFireField).every(
+      (event) => event.condition === "Burning" && event.duration === 1,
+    ),
+    true,
+  );
+  assert.equal(burningBolts(withoutFireField).length, 0);
+});
+
 test("Willbender virtues, flames, and trait triggers use their full mechanics", () => {
   const willbenderConfig = {
     ...config,
@@ -3125,6 +3160,46 @@ test("Luminary Radiant Forge enforces entry and radiant weapon flips", () => {
   assert.ok(result.totalDamage > 0);
 });
 
+test("Shining Spin strikes 400 ms into its quickened cast", () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Enter Radiant Forge", "Dazzling Hammer", "Shining Spin"],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      boons: { quickness: true },
+    },
+  });
+  const action = result.events.find(
+    (event) => event.type === "action" && event.skillName === "Shining Spin",
+  );
+  const strike = result.resolvedEvents.find(
+    (event) => event.type === "damage" && event.name === "Shining Spin",
+  );
+
+  assert.equal(Math.round((strike.at - action.at) * 1000), 400);
+});
+
+test("Luminary Radiant Forge transitions reset weapon autoattack chains", () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Strike", "Enter Radiant Forge", "Exit Radiant Forge", "Strike"],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      primaryWeapon: "Greatsword",
+    },
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.events.filter(
+      (event) => event.type === "action" && event.skillName === "Strike",
+    ).length,
+    2,
+  );
+});
+
 test("Radiant Forge strikes use the equipped radiant weapon strength", () => {
   const result = simulateGw2({
     profession: guardianProfession,
@@ -3847,8 +3922,8 @@ test("Luminary stances apply modifiers, combos, delayed damage, and control", ()
   assert.equal(effulgentDamage.weaponStrengthProfileId, "nonweapon.unequipped");
   assert.equal(effulgentDamage.resolvedWeaponStrength, 690.5);
   assert.equal(effulgentDamage.weaponStrengthSampled, false);
-  assert.equal(procChargedEffulgent.stackCount, 3);
-  assert.ok(Math.abs(procChargedEffulgent.coefficient - 1.55) < 1e-9);
+  assert.equal(procChargedEffulgent.stackCount, 2);
+  assert.ok(Math.abs(procChargedEffulgent.coefficient - 1.2) < 1e-9);
   assert.deepEqual(
     effulgent.procSteps
       .filter(
@@ -3900,7 +3975,11 @@ test("Sovereign of Light consumes combo and trait-granted light auras", () => {
     (step) => step.skill === "Sovereign of Light",
   );
 
-  assert.equal(sovereignHits.length, 2);
+  assert.equal(sovereignHits.length, 1);
+  assert.deepEqual(
+    sovereignHits.map((event) => event.triggeredBy),
+    ["Dazzling Hammer"],
+  );
   assert.equal(
     sovereignHits.every((event) => event.coefficient === 1.5),
     true,
@@ -3909,7 +3988,7 @@ test("Sovereign of Light consumes combo and trait-granted light auras", () => {
     sovereignHits.every((event) => event.skillWeapon === "Unequipped"),
     true,
   );
-  assert.equal(sovereignProcs.length, 2);
+  assert.equal(sovereignProcs.length, 1);
   assert.equal(
     sovereignProcs.every((step) => Boolean(step.icon)),
     true,
@@ -4579,7 +4658,7 @@ test("Power Willbender saved build and EVTC rotation reproduce the preset", asyn
   assert.equal(savedRotation.metadata.benchmarkDps, 42702.127);
   assert.equal(savedRotation.metadata.castTimeQuantizationMs, 40);
   assert.deepEqual(result.warnings, []);
-  assert.equal(Math.round(result.dps), 42975);
+  assert.equal(Math.round(result.dps), 43000);
   assert.ok(
     Math.abs(result.totalDamage / savedRotation.metadata.benchmarkDamage - 1) <
       0.11,

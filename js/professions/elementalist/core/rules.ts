@@ -893,6 +893,41 @@ function emitCondition(
   });
 }
 
+export function emitElementalistProc(
+  context: ElementalistSchedulerContext,
+  {
+    at,
+    name,
+    procType,
+    sourceId,
+    sourceSkill = "",
+    detail = "",
+    icon = "",
+  }: {
+    at: number;
+    name: string;
+    procType: "trait" | "skill";
+    sourceId: Skill["id"];
+    sourceSkill?: string;
+    detail?: string;
+    icon?: string;
+  },
+): void {
+  context.emit({
+    type: "proc",
+    at,
+    source: name,
+    sourceId,
+    actorType: "effect",
+    name,
+    skillName: name,
+    procType,
+    sourceSkill,
+    detail,
+    icon,
+  });
+}
+
 function evokerTraitProcReady(
   context: ElementalistSchedulerContext,
   state: ElementalistCoreState,
@@ -1005,6 +1040,13 @@ export function triggerElementalistSunspot(
   if (hasTrait(context, "Burning Rage")) {
     emitCondition(context, at, "Burning", 2, 4, "Sunspot", sourceId);
   }
+  emitElementalistProc(context, {
+    at,
+    name: "Sunspot",
+    procType: "trait",
+    sourceId,
+    sourceSkill: context.catalog.skillsById.get(sourceId)?.name,
+  });
 }
 
 export function triggerElementalistFlameExpulsion(
@@ -1040,6 +1082,14 @@ export function triggerElementalistFlameExpulsion(
     "Flame Expulsion",
     sourceId,
   );
+  emitElementalistProc(context, {
+    at,
+    name: "Flame Expulsion",
+    procType: "trait",
+    sourceId,
+    sourceSkill: context.catalog.skillsById.get(sourceId)?.name,
+    icon: "https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png",
+  });
 }
 
 export function triggerElementalistElectricDischarge(
@@ -1068,6 +1118,13 @@ export function triggerElementalistElectricDischarge(
     "Electric Discharge",
     sourceId,
   );
+  emitElementalistProc(context, {
+    at,
+    name: "Electric Discharge",
+    procType: "trait",
+    sourceId,
+    sourceSkill: context.catalog.skillsById.get(sourceId)?.name,
+  });
 }
 
 export function triggerElementalistEarthenBlast(
@@ -1093,6 +1150,13 @@ export function triggerElementalistEarthenBlast(
     coefficient: 0.36,
     skillWeapon: "Unequipped",
     noCrit: true,
+  });
+  emitElementalistProc(context, {
+    at,
+    name: "Earthen Blast",
+    procType: "trait",
+    sourceId,
+    sourceSkill: context.catalog.skillsById.get(sourceId)?.name,
   });
 }
 
@@ -1691,6 +1755,13 @@ function triggerEvasiveArcana(
     actorType: "effect",
     skillName: source,
     attunement,
+  });
+  emitElementalistProc(context as never, {
+    at,
+    name: source,
+    procType: "trait",
+    sourceId: skill.id,
+    sourceSkill: skill.name,
   });
 }
 
@@ -2365,6 +2436,13 @@ function observeBurningPrecision(
     "Burning Precision",
     "Burning Precision",
   );
+  emitElementalistProc(context, {
+    at: event.at,
+    name: "Burning Precision",
+    procType: "trait",
+    sourceId: event.skillId ?? event.sourceId,
+    sourceSkill: String(event.skillName || event.source || ""),
+  });
 }
 
 function eventCriticalChance(context: ElementalistSchedulerContext): number {
@@ -2373,7 +2451,8 @@ function eventCriticalChance(context: ElementalistSchedulerContext): number {
     1,
     criticalChance(Number(stats.precision || 0)) +
       (context.config.boons?.fury ? 0.25 : 0) +
-      Number(stats.criticalChanceBonus || 0) / 100,
+      Number(stats.criticalChanceBonus || 0) / 100 +
+      (hasTrait(context, "Zephyr's Speed") ? 0.05 : 0),
   );
 }
 
@@ -2464,6 +2543,13 @@ function observeCriticalTraits(
           event.skillId ?? event.sourceId,
         );
       }
+      emitElementalistProc(context, {
+        at: event.at,
+        name: "Arcane Precision",
+        procType: "trait",
+        sourceId: event.skillId ?? event.sourceId,
+        sourceSkill: String(event.skillName || event.source || ""),
+      });
     }
   }
   if (hasTrait(context, "Renewing Stamina")) {
@@ -2515,6 +2601,13 @@ function observeLightningRod(
       "Lightning Rod",
       sourceId,
     );
+    emitElementalistProc(context, {
+      at: event.at,
+      name: "Lightning Rod",
+      procType: "trait",
+      sourceId,
+      sourceSkill: String(event.skillName || event.source || ""),
+    });
   }
   if (hasTrait(context, "Elemental Pursuit")) {
     emitBuff(

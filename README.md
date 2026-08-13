@@ -126,6 +126,9 @@ Per-profession documentation lives in [docs/professions/](docs/professions/):
 - Thief status: [THIEF.md](docs/professions/THIEF.md)
 - Warrior status: [WARRIOR.md](docs/professions/WARRIOR.md)
 
+The GitHub Issue Form and maintainer review process for community build
+submissions are documented in [docs/BUILD-SUBMISSIONS.md](docs/BUILD-SUBMISSIONS.md).
+
 EVTC formats, safety limits, supported targets, attribution constraints, and
 the profession-analyzer extension contract are documented in
 [docs/EVTC-ANALYZER.md](docs/EVTC-ANALYZER.md).

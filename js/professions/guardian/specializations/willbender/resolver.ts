@@ -43,7 +43,9 @@ function handleWillbenderVirtueActivation(
   const state = willbenderState.from(context);
   if (state.flameVirtue !== virtue) state.flameGeneration += 1;
   state.flameVirtue = virtue;
-  state.virtueHitCounts[virtue] = 0;
+  if (state[`${virtue}Until`] <= event.at + Number(context.epsilon ?? 1e-9)) {
+    state.virtueHitCounts[virtue] = 0;
+  }
   const until = event.at + Number(event.duration || 0);
   if (virtue === "justice") state.justiceUntil = until;
   if (virtue === "resolve") state.resolveUntil = until;

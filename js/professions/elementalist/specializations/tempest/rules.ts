@@ -10,6 +10,7 @@ import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import {
   applyElementalistAura,
   emitElementalistBuff,
+  emitElementalistProc,
   triggerElementalistEarthenBlast,
   triggerElementalistElectricDischarge,
   triggerElementalistFlameExpulsion,
@@ -177,6 +178,13 @@ function onCastComplete(
       coefficient: 2.64,
       skillWeapon: "Unequipped",
       noCrit: true,
+    });
+    emitElementalistProc(context as never, {
+      at: context.effectiveEnd,
+      name: "Lightning Jolt",
+      procType: "skill",
+      sourceId: skill.id,
+      sourceSkill: skill.name,
     });
   }
   if (hasTrait(context, "Transcendent Tempest")) {

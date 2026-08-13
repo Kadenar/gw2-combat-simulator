@@ -261,7 +261,8 @@ export function paletteActionSkills(
         // Shared actions are simulator-owned records. Positive API/Wiki IDs
         // classified as Action are usually trait procs, bundles, or encounter
         // skills and require an explicit opt-in before entering the palette.
-        (Number(skill.id) < 0 || skill.paletteAction === true) &&
+        ((Number(skill.id) < 0 && skill.paletteAction !== false) ||
+          skill.paletteAction === true) &&
         skill.name !== "Continuum Shift" &&
         (skill.name !== "Swap Weapons" ||
           app.profession.ui?.weaponSwapChangesSet === false ||
