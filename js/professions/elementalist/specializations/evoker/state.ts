@@ -16,6 +16,14 @@ export interface EvokerState extends SchedulerRecord {
   electricEnchantmentStacks: number;
   elementalBalanceProgress: number;
   elementalBalanceUntil: number;
+  igniteTier: number;
+  igniteLastUsedAt: number;
+  ignitePassiveReadyAt: number;
+  lastEmpoweredFamiliarByBasic: Record<
+    string,
+    { skill: string; activationId: string; start: number } | null
+  >;
+  cancelledFamiliarActivations: Record<string, boolean>;
 }
 
 export const evokerState = defineProfessionSpecializationState(
@@ -48,6 +56,11 @@ export const evokerState = defineProfessionSpecializationState(
       electricEnchantmentStacks: 0,
       elementalBalanceProgress: 0,
       elementalBalanceUntil: 0,
+      igniteTier: 0,
+      igniteLastUsedAt: Number.NEGATIVE_INFINITY,
+      ignitePassiveReadyAt: 0,
+      lastEmpoweredFamiliarByBasic: {},
+      cancelledFamiliarActivations: {},
     };
   },
 );

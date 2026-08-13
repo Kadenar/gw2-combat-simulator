@@ -90,6 +90,18 @@ function tomeGroups(
 
 export const firebrandUi = Object.freeze({
   eventLogRow: firebrandEventLogRow,
+  timelineWeaponLineTransition: (context: GuardianUiContext) => {
+    const skill = context.skill as GuardianSkill | undefined;
+    if (/^Tome of (Justice|Resolve|Courage)$/.test(skill?.name || "")) {
+      return context.weaponLine === skill?.name ? undefined : skill?.name;
+    }
+    if (skill?.name === "Stow Tome") {
+      return /^Tome of /.test(String(context.weaponLine || ""))
+        ? null
+        : undefined;
+    }
+    return undefined;
+  },
   skillBarGroups: tomeGroups,
   paletteGroups: (context: GuardianUiContext): ProfessionPaletteGroup[] => [
     {

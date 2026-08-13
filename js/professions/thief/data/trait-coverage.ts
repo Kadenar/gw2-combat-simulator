@@ -41,9 +41,12 @@ const IMPLEMENTED = new Set([
   "Iron Sight",
   "Deadeye's Gaze",
   "Malicious Intent",
+  "One in the Chamber",
   "Silent Scope",
   "Premeditation",
   "Maleficent Seven",
+  "Be Quick or Be Killed",
+  "Fire for Effect",
   "Second Opinion",
   "Specter",
   "Dark Sentry",
@@ -70,7 +73,7 @@ const EVIDENCE_BY_SPECIALIZATION: Readonly<Record<string, string>> =
   Object.freeze({
     Daredevil:
       "Daredevil capacity and every dodge replacement resolve explicitly",
-    Deadeye: "Deadeye Mark grants malice once per initiative skill use",
+    Deadeye: "Deadeye cantrips, malice, stolen skills, and traits are stateful",
     Specter:
       "Specter Siphon, initiative spending, and Shadow Shroud share force",
     Antiquary:

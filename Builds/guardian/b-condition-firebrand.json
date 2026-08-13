@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 3,
+  "profession": "guardian",
+  "gear": {
+    "Helm": "Viper's",
+    "Shoulders": "Viper's",
+    "Chest": "Viper's",
+    "Gloves": "Viper's",
+    "Leggins": "Viper's",
+    "Boots": "Viper's",
+    "Amulet": "Viper's",
+    "Ring1": "Viper's",
+    "Ring2": "Viper's",
+    "Accessory1": "Viper's",
+    "Accessory2": "Viper's",
+    "Back": "Sinister",
+    "Weapon1": "Viper's",
+    "Weapon2": "Viper's"
+  },
+  "weapons": ["Axe", "Torch"],
+  "alternateWeapons": ["Pistol", "Pistol"],
+  "rune": "Trapper",
+  "weaponSigils": [
+    ["Smoldering", "Bursting"],
+    ["Smoldering", "Bursting"]
+  ],
+  "relic": "Fractal",
+  "food": "Cilantro and Cured Meat Flatbread",
+  "utility": "Toxic Tuning Crystal",
+  "jadeBotCore": true,
+  "infusions": [
+    { "stat": "Power", "count": 0 },
+    { "stat": "Precision", "count": 0 },
+    { "stat": "Condition Damage", "count": 18 }
+  ],
+  "specializations": [
+    { "name": "Radiance", "traits": "2-2-1" },
+    { "name": "Zeal", "traits": "2-3-3" },
+    { "name": "Firebrand", "traits": "1-1-2" }
+  ],
+  "selectedSkills": {
+    "Heal": "Mantra of Solace",
+    "Utility1": "Purging Flames",
+    "Utility2": "Mantra of Flame",
+    "Utility3": "Signet of Wrath",
+    "Elite": "\"Feel My Wrath!\""
+  },
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": false,
+    "alliedPlayerCount": 4,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    },
+    "targetSkillActivationsPerSecond": 0
+  },
+  "initialTomePages": 5,
+  "startingWeaponSet": 2,
+  "targetHealth": 3970000,
+  "targetArmor": 2597
+}

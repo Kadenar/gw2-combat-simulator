@@ -17,7 +17,21 @@ const HEADER_SIZE = 16;
 const AGENT_SIZE = 96;
 const SKILL_SIZE = 68;
 const EVENT_SIZE = 64;
+const ARCDPS_FOOTER_SIZE = 24;
 const decoder = new TextDecoder("utf-8", { fatal: false });
+
+/**
+ * ArcDPS may append a 24-byte zero-padded footer after the combat records.
+ * The only populated field observed in current logs is the little-endian
+ * extension count at byte 16. It is not part of the combat-event table.
+ */
+function hasArcDpsFooter(bytes: Uint8Array, offset: number): boolean {
+  if (bytes.byteLength - offset !== ARCDPS_FOOTER_SIZE) return false;
+  return (
+    bytes.subarray(offset, offset + 16).every((byte) => byte === 0) &&
+    bytes.subarray(offset + 20).every((byte) => byte === 0)
+  );
+}
 
 function readString(bytes: Uint8Array): string {
   const end = bytes.indexOf(0);
@@ -137,12 +151,16 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
   }
   offset += skillCount * SKILL_SIZE;
 
-  const eventBytes = bytes.byteLength - offset;
+  const remainingBytes = bytes.byteLength - offset;
+  const trailingBytes = remainingBytes % EVENT_SIZE;
+  const eventBytes = hasArcDpsFooter(bytes, bytes.byteLength - trailingBytes)
+    ? remainingBytes - trailingBytes
+    : remainingBytes;
   if (eventBytes % EVENT_SIZE !== 0) {
     throw new EvtcError(
       "TRUNCATED_EVENTS",
       "The EVTC combat-event table ends with a truncated record.",
-      { trailingBytes: eventBytes % EVENT_SIZE },
+      { trailingBytes },
     );
   }
   const eventCount = eventBytes / EVENT_SIZE;

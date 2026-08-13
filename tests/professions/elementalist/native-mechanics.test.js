@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
+import { TRAIT_COVERAGE_STATUSES } from "../../../js/platform/gw2/trait-coverage.js";
 import { timelineWeaponRows } from "../../../js/app/rotation/timeline-model.js";
 import {
   paletteSkillView,
@@ -19,6 +20,8 @@ import {
 } from "../../../js/professions/elementalist/app/app-definition.js";
 import { elementalistCatalog } from "../../../js/professions/elementalist/catalog.js";
 import { elementalistProfession } from "../../../js/professions/elementalist/definition.js";
+import { elementalistCoreModifierRules } from "../../../js/professions/elementalist/core/modifiers.js";
+import { ELEMENTALIST_TRAIT_COVERAGE } from "../../../js/professions/elementalist/data/trait-coverage.js";
 
 test("all native Elementalist specializations use one weapon set", () => {
   assert.equal(elementalistProfession.ui.weaponSwapChangesSet, false);
@@ -67,7 +70,7 @@ function canonicalRotation(rotation) {
   });
 }
 
-function runNative({ lines, rotation = [], ...extras }) {
+function createNativeApp({ lines, rotation = [], ...extras }) {
   const commands = canonicalRotation(rotation);
   const build = elementalistAppAdapter.toApplicationBuild({
     ...elementalistProfession.createBuildDefaults(),
@@ -87,6 +90,11 @@ function runNative({ lines, rotation = [], ...extras }) {
     attributeWeaponSet: 1,
   };
   recalculate(app);
+  return { app, commands };
+}
+
+function runNative(options) {
+  const { app, commands } = createNativeApp(options);
   return simulateGw2({
     profession: elementalistProfession,
     rotation: commands,
@@ -962,5 +970,1012 @@ test("Zap grants its five-second strike-damage buff", () => {
         event.duration === 5,
     ),
     true,
+  );
+});
+
+test("conjured weapons enforce bundle access and preserve their pickup", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Arcane"]],
+    rotation: [
+      "Conjure Frost Bow",
+      "Frost Volley",
+      "__drop_bundle",
+      "Flame Uprising",
+      "__pickup_Frost Bow",
+      "Frost Volley",
+    ],
+    selectedSkills: {
+      Heal: "Glyph of Elemental Harmony",
+      Utility1: "Conjure Frost Bow",
+      Utility2: "Signet of Fire",
+      Utility3: "Arcane Wave",
+      Elite: "Glyph of Elementals",
+    },
+  });
+
+  assert.deepEqual(
+    result.events
+      .filter((event) => event.type === "action")
+      .map((event) => event.skillName),
+    [
+      "Conjure Frost Bow",
+      "Frost Volley",
+      "__drop_bundle",
+      "Flame Uprising",
+      "__pickup_Frost Bow",
+      "Frost Volley",
+    ],
+  );
+  assert.equal(result.endState.profession.conjureEquipped, "Frost Bow");
+  assert.equal(result.warnings.length, 0);
+});
+
+test("Rock Barrier starts its root recharge when Hurl is used", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Arcane"]],
+    rotation: ["Rock Barrier", "Hurl", "Rock Barrier"],
+    weapons: ["Scepter", "Warhorn"],
+    startAttunement: "Earth",
+  });
+  const actions = result.events.filter((event) => event.type === "action");
+  const barriers = actions.filter(
+    (event) => event.skillName === "Rock Barrier",
+  );
+  const hurl = actions.find((event) => event.skillName === "Hurl");
+
+  assert.equal(barriers.length, 2);
+  assert.equal(barriers[0].rechargeReadyAt, null);
+  assert.ok(barriers[1].at > hurl.endsAt + 5);
+});
+
+test("Pistol bullets grant, consume, and apply their payload", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Arcane"]],
+    rotation: ["Raging Ricochet", "Raging Ricochet"],
+    weapons: ["Pistol", "Warhorn"],
+  });
+
+  assert.equal(result.endState.profession.pistolBullets.Fire, false);
+  assert.equal(
+    result.events.some(
+      (event) =>
+        event.type === "buff" &&
+        event.source === "Raging Ricochet" &&
+        event.kind === "might",
+    ),
+    true,
+  );
+});
+
+test("Hammer orbs block reuse and Grand Finale cancels future packets", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Arcane"]],
+    rotation: ["Flame Wheel", "Flame Wheel", "Grand Finale", 2000],
+    weapons: ["Hammer", ""],
+  });
+
+  assert.equal(
+    result.events.filter(
+      (event) => event.type === "action" && event.skillName === "Flame Wheel",
+    ).length,
+    1,
+  );
+  assert.equal(result.endState.profession.hammerOrbs.Fire, null);
+  assert.equal(
+    result.events.some(
+      (event) =>
+        event.cancelled && event.detail === "cancelled by Grand Finale",
+    ),
+    true,
+  );
+  assert.equal(
+    result.warnings.some((warning) =>
+      warning.includes("Grand Finale must consume the active orb"),
+    ),
+    true,
+  );
+});
+
+test("Spear etchings upgrade after three other casts", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Arcane"]],
+    rotation: [
+      "Etching: Volcano",
+      "Flame Spear",
+      "Seethe",
+      "Blazing Barrage",
+      "Volcano",
+    ],
+    weapons: ["Spear", ""],
+  });
+
+  assert.equal(
+    result.events.some(
+      (event) => event.type === "action" && event.skillName === "Volcano",
+    ),
+    true,
+  );
+  assert.equal(result.endState.profession.etchings["Etching: Volcano"], null);
+});
+
+test("Alacrity shortens overload dwell and Lucid Singularity follows hit timing", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Tempest", "1-2-2"]],
+    rotation: ["Overload Fire"],
+    startAttunement: "Fire",
+  });
+  const overload = result.events.find(
+    (event) => event.type === "action" && event.skillName === "Overload Fire",
+  );
+  const alacrity = result.events.filter(
+    (event) => event.type === "buff" && event.source === "Lucid Singularity",
+  );
+
+  assert.ok(Math.abs(overload.at - 4.8) < 0.001);
+  assert.equal(alacrity.length, 5);
+  assert.ok(alacrity[4].duration > alacrity[0].duration * 4);
+});
+
+test("Evoker familiar flip interruption cancels both familiar attacks", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Evoker"]],
+    rotation: ["Lightning Blitz", "Zap", 4000],
+    evokerElement: "Air",
+    initialEvokerCharges: 6,
+    initialEvokerEmpowered: 3,
+  });
+
+  assert.equal(
+    result.resolvedEvents.some(
+      (event) =>
+        event.type === "damage" &&
+        ["Lightning Blitz", "Zap"].includes(event.skillName),
+    ),
+    false,
+  );
+  assert.equal(result.endState.profession.empowered, 1);
+});
+
+test("Fox's Fury schedules its bonus hit from cast start", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Evoker"]],
+    rotation: ["Fox's Fury"],
+    selectedSkills: {
+      Heal: "Glyph of Elemental Harmony",
+      Utility1: "Fox's Fury",
+      Utility2: "Signet of Fire",
+      Utility3: "Arcane Wave",
+      Elite: "Glyph of Elementals",
+    },
+  });
+  const action = result.events.find(
+    (event) => event.type === "action" && event.skillName === "Fox's Fury",
+  );
+  const hit = result.events.find(
+    (event) => event.type === "damage" && event.skillName === "Fox's Fury",
+  );
+
+  assert.ok(hit.at > action.at);
+  assert.ok(hit.at < action.endsAt);
+});
+
+test("core damage traits expose their exact resolver modifiers", () => {
+  const rules = new Map(
+    elementalistCoreModifierRules.map((rule) => [rule.id, rule]),
+  );
+
+  assert.equal(rules.get("elementalist.pyromancers-training").factor, 1.07);
+  assert.equal(rules.get("elementalist.serrated-stones").factor, 1.05);
+  assert.equal(rules.get("elementalist.stormsoul").factor, 1.07);
+  assert.equal(rules.get("elementalist.flow-like-water").factor, 1.1);
+  assert.equal(rules.get("elementalist.bolt-to-the-heart").factor, 1.2);
+  assert.equal(rules.get("elementalist.bountiful-power").amount, 0.2);
+  assert.equal(
+    rules.get("elementalist.persisting-flames").operation,
+    "damage-additive",
+  );
+  assert.equal(rules.get("elementalist.inferno").target, "conditionDamage");
+
+  const { app: core } = createNativeApp({
+    lines: [["Fire"], ["Air"], ["Arcane"]],
+  });
+  assert.equal(core.attributeData.attributes["Condition Damage"].traits, 180);
+  assert.equal(core.attributeData.attributes.Ferocity.traits, 150);
+  assert.equal(core.attributeData.attributes.Concentration.traits, 180);
+  assert.equal(core.attributeData.attributes["Critical Chance"].traits, 5);
+  assert.equal(core.attributeData.attributes["Burning Duration"].traits, 20);
+
+  const { app: tempest } = createNativeApp({
+    lines: [["Fire"], ["Air"], ["Tempest"]],
+  });
+  assert.equal(tempest.attributeData.attributes.Concentration.traits, 240);
+});
+
+test("core attunement and aura traits emit named boon and damage payloads", () => {
+  const fire = runNative({
+    lines: [["Fire", "2-2-2"], ["Air"], ["Arcane", "1-2-2"]],
+    rotation: [
+      "Conjure Frost Bow",
+      "__drop_bundle",
+      "Fire Attunement",
+      "Glyph of Elemental Harmony",
+    ],
+    startAttunement: "Air",
+    selectedSkills: {
+      Heal: "Glyph of Elemental Harmony",
+      Utility1: "Conjure Frost Bow",
+      Utility2: "Signet of Fire",
+      Utility3: "Arcane Wave",
+      Elite: "Glyph of Elementals",
+    },
+  });
+  const fireAura = fire.events.find(
+    (event) =>
+      event.type === "elementalist.aura" && event.source === "Conjurer",
+  );
+
+  assert.equal(fireAura.aura, "Fire Aura");
+  assert.ok(Math.abs(fireAura.duration - 5.32) < 0.001);
+  for (const source of ["Sunspot", "Arcane Prowess", "Elemental Attunement"]) {
+    assert.equal(
+      fire.events.some((event) => event.source === source),
+      true,
+      source,
+    );
+  }
+  assert.deepEqual(
+    fire.events
+      .filter((event) => event.type === "buff" && event.source === "Conjurer")
+      .map((event) => event.kind),
+    ["fury", "swiftness"],
+  );
+
+  const earth = runNative({
+    lines: [["Earth", "1-2-2"], ["Water"], ["Air"]],
+    rotation: [
+      "Glyph of Elemental Harmony",
+      "Earth Attunement",
+      "Signet of Earth",
+    ],
+    startAttunement: "Water",
+    selectedSkills: {
+      Heal: "Glyph of Elemental Harmony",
+      Utility1: "Signet of Earth",
+      Utility2: "Signet of Fire",
+      Utility3: "Arcane Wave",
+      Elite: "Glyph of Elementals",
+    },
+  });
+  for (const source of [
+    "Earth's Embrace",
+    "Earthen Blast",
+    "Rock Solid",
+    "Written in Stone",
+  ]) {
+    assert.equal(
+      earth.events.some((event) => event.source === source),
+      true,
+      source,
+    );
+  }
+});
+
+test("core critical-hit and control traits enforce their proc rules", () => {
+  const critical = runNative({
+    lines: [["Fire"], ["Air", "1-2-3"], ["Arcane", "1-2-1"]],
+    rotation: ["Updraft", "Charged Strike", "Polaric Slash", "Call Lightning"],
+    startAttunement: "Air",
+  });
+  for (const source of [
+    "Lightning Rod",
+    "Elemental Lockdown",
+    "Raging Storm",
+    "Burning Precision",
+    "Arcane Precision",
+  ]) {
+    assert.equal(
+      critical.events.some((event) => event.source === source),
+      true,
+      source,
+    );
+  }
+  assert.equal(
+    critical.events.some(
+      (event) =>
+        event.source === "Lightning Rod" &&
+        event.type === "condition" &&
+        event.condition === "Weakness",
+    ),
+    true,
+  );
+
+  const stamina = runNative({
+    lines: [["Fire"], ["Air", "1-2-3"], ["Arcane", "2-2-1"]],
+    rotation: ["Updraft", "Charged Strike", "Polaric Slash", "Call Lightning"],
+    startAttunement: "Air",
+  });
+  assert.equal(
+    stamina.events.some(
+      (event) => event.type === "buff" && event.source === "Renewing Stamina",
+    ),
+    true,
+  );
+});
+
+test("Tempest traits enforce overload dwell, auras, boons, and damage windows", () => {
+  const offensive = runNative({
+    lines: [["Fire"], ["Air"], ["Tempest", "3-2-1"]],
+    rotation: ["Overload Fire"],
+    startAttunement: "Fire",
+  });
+  const overload = offensive.events.find(
+    (event) => event.type === "action" && event.skillName === "Overload Fire",
+  );
+
+  assert.ok(Math.abs(overload.at - 3.2) < 0.001);
+  for (const source of [
+    "Hardy Conduit",
+    "Harmonious Conduit",
+    "Unstable Conduit",
+    "Transcendent Tempest",
+  ]) {
+    assert.equal(
+      offensive.events.some((event) => event.source === source),
+      true,
+      source,
+    );
+  }
+
+  const auraSupport = runNative({
+    lines: [["Fire"], ["Air"], ["Tempest", "3-3-3"]],
+    rotation: ["Overload Fire"],
+    startAttunement: "Fire",
+  });
+  for (const kind of ["vigor", "regeneration", "alacrity"]) {
+    assert.equal(
+      auraSupport.events.some(
+        (event) => event.type === "buff" && event.kind === kind,
+      ),
+      true,
+      kind,
+    );
+  }
+
+  const healingAndShout = runNative({
+    lines: [["Fire"], ["Air"], ["Tempest", "1-1-1"]],
+    rotation: ["Glyph of Elemental Harmony", "Aftershock!"],
+    selectedSkills: {
+      Heal: "Glyph of Elemental Harmony",
+      Utility1: "Aftershock!",
+      Utility2: "Signet of Fire",
+      Utility3: "Arcane Wave",
+      Elite: "Glyph of Elementals",
+    },
+  });
+  assert.equal(
+    healingAndShout.events.some((event) => event.source === "Gale Song"),
+    true,
+  );
+  assert.equal(
+    healingAndShout.events.some(
+      (event) => event.type === "buff" && event.kind === "tempestuous aria",
+    ),
+    true,
+  );
+
+  const latent = runNative({
+    lines: [["Fire"], ["Air"], ["Tempest", "2-1-1"]],
+    rotation: ["Water Attunement"],
+    startAttunement: "Fire",
+  });
+  assert.equal(
+    latent.events.some((event) => event.source === "Latent Stamina"),
+    true,
+  );
+});
+
+test("Weaver traits enforce dual-attunement, boon, modifier, and recharge rules", () => {
+  const dual = runNative({
+    lines: [["Fire"], ["Air"], ["Weaver", "1-2-1"]],
+    rotation: ["Air Attunement", "Pyro Vortex", "Air Attunement"],
+    startAttunement: "Fire",
+    secondaryAttunement: "Fire",
+    assumptions: {
+      ...elementalistProfession.createBuildDefaults().assumptions,
+      alacrity: false,
+    },
+  });
+  assert.equal(
+    dual.events.some(
+      (event) =>
+        event.type === "condition" &&
+        event.skillName === "Pyro Vortex" &&
+        event.condition === "Weakness",
+    ),
+    true,
+  );
+  assert.deepEqual(
+    dual.events
+      .filter(
+        (event) =>
+          event.type === "buff" &&
+          event.source === "Pyro Vortex" &&
+          ["might", "swiftness"].includes(event.kind),
+      )
+      .map((event) => event.kind),
+    ["might", "swiftness"],
+  );
+  assert.equal(
+    dual.events.some((event) => event.kind === "elements of rage"),
+    true,
+  );
+
+  const flow = runNative({
+    lines: [["Fire"], ["Air"], ["Weaver", "1-1-3"]],
+    rotation: ["Water Attunement", "Air Attunement"],
+    startAttunement: "Fire",
+    secondaryAttunement: "Fire",
+    assumptions: {
+      ...elementalistProfession.createBuildDefaults().assumptions,
+      alacrity: false,
+    },
+  });
+  assert.deepEqual(
+    flow.steps
+      .filter((step) => String(step.skill).endsWith(" Attunement"))
+      .map((step) => step.start),
+    [0, 3000],
+  );
+
+  const pursuit = runNative({
+    lines: [["Fire"], ["Air"], ["Weaver", "2-3-1"]],
+    rotation: ["Updraft", "Primordial Stance (Air)"],
+    startAttunement: "Air",
+    secondaryAttunement: "Air",
+    selectedSkills: {
+      Heal: "Glyph of Elemental Harmony",
+      Utility1: "Primordial Stance (Air)",
+      Utility2: "Signet of Fire",
+      Utility3: "Arcane Wave",
+      Elite: "Weave Self",
+    },
+  });
+  assert.equal(
+    pursuit.events.some((event) => event.source === "Elemental Pursuit"),
+    true,
+  );
+  assert.equal(
+    pursuit.events.some(
+      (event) =>
+        String(event.source).startsWith("Primordial Stance") &&
+        event.kind === "protection",
+    ),
+    true,
+  );
+});
+
+test("Catalyst traits enforce energy, empowerment, aura, and sphere rules", () => {
+  const sphere = runNative({
+    lines: [["Fire"], ["Air"], ["Catalyst", "3-3-3"]],
+    rotation: [
+      "Deploy Jade Sphere (Fire)",
+      "Arcane Wave",
+      1000,
+      "Air Attunement",
+    ],
+    initialCatalystEnergy: 30,
+  });
+  assert.equal(
+    sphere.events.some(
+      (event) =>
+        event.type === "resource" && event.source === "Energized Elements",
+    ),
+    true,
+  );
+  assert.equal(
+    sphere.events.some(
+      (event) =>
+        event.type === "elementalist.aura" &&
+        event.source === "Elemental Epitome",
+    ),
+    true,
+  );
+  assert.equal(
+    sphere.events.some(
+      (event) =>
+        event.type === "buff" &&
+        event.skillName === "Deploy Jade Sphere (Fire)" &&
+        event.kind === "quickness" &&
+        event.duration >= 2,
+    ),
+    true,
+  );
+
+  const control = runNative({
+    lines: [["Fire"], ["Air"], ["Catalyst", "2-1-1"]],
+    rotation: [
+      "Deploy Jade Sphere (Fire)",
+      "Arcane Wave",
+      1000,
+      "Air Attunement",
+      "Updraft",
+    ],
+    initialCatalystEnergy: 30,
+  });
+  for (const source of [
+    "Elemental Synergy",
+    "Vicious Empowerment",
+    "Elemental Epitome",
+  ]) {
+    assert.equal(
+      control.events.some((event) => event.source === source),
+      true,
+      source,
+    );
+  }
+  assert.equal(
+    control.events.some(
+      (event) => event.type === "buff" && event.kind === "empowering auras",
+    ),
+    true,
+  );
+});
+
+test("Evoker traits enforce familiar boons, enchantments, and charge rules", () => {
+  const offensive = runNative({
+    lines: [["Fire"], ["Air"], ["Evoker"]],
+    rotation: ["Zap", "Charged Strike", "Polaric Slash", 3000],
+    startAttunement: "Air",
+    evokerElement: "Air",
+    initialEvokerCharges: 6,
+  });
+  assert.equal(
+    offensive.events.some((event) => event.source === "Familiar's Prowess"),
+    true,
+  );
+  assert.equal(
+    offensive.resolvedEvents.filter(
+      (event) =>
+        event.type === "damage" && event.skillName === "Electric Enchantment",
+    ).length,
+    2,
+  );
+  assert.equal(offensive.endState.profession.maximumCharges, 6);
+
+  const boons = runNative({
+    lines: [["Fire"], ["Air"], ["Evoker", "2-2-2"]],
+    rotation: ["Zap", "Fox's Fury"],
+    evokerElement: "Air",
+    initialEvokerCharges: 6,
+    selectedSkills: {
+      Heal: "Glyph of Elemental Harmony",
+      Utility1: "Fox's Fury",
+      Utility2: "Signet of Fire",
+      Utility3: "Arcane Wave",
+      Elite: "Glyph of Elementals",
+    },
+  });
+  assert.equal(
+    boons.events.some(
+      (event) =>
+        event.type === "buff" && event.source === "Familiar's Blessing",
+    ),
+    true,
+  );
+  assert.equal(
+    boons.events.some(
+      (event) =>
+        event.type === "buff" &&
+        event.source === "Fox's Fury" &&
+        event.kind === "might" &&
+        event.stacks === 3,
+    ),
+    true,
+  );
+
+  const dynamo = runNative({
+    lines: [["Fire"], ["Air"], ["Evoker", "1-3-1"]],
+    rotation: ["Air Attunement"],
+    startAttunement: "Fire",
+    evokerElement: "Air",
+    initialEvokerCharges: 0,
+  });
+  assert.equal(
+    dynamo.events.some(
+      (event) =>
+        event.type === "resource" && event.source === "Elemental Dynamo",
+    ),
+    true,
+  );
+});
+
+test("Elementalist trait coverage requires effect-specific behavioral evidence", () => {
+  const evidenceNames = new Set([
+    "core damage traits expose their exact resolver modifiers",
+    "core attunement and aura traits emit named boon and damage payloads",
+    "core critical-hit and control traits enforce their proc rules",
+    "Fresh Air resets both Air Attunement and Overload Air",
+    "core attunements enforce and report their individual recharge",
+    "Evasive Arcana uses the active attunement's native trait skill",
+    "Tempest traits enforce overload dwell, auras, boons, and damage windows",
+    "Alacrity shortens overload dwell and Lucid Singularity follows hit timing",
+    "Weaver traits enforce dual-attunement, boon, modifier, and recharge rules",
+    "Catalyst traits enforce energy, empowerment, aura, and sphere rules",
+    "Evoker traits enforce familiar boons, enchantments, and charge rules",
+    "Specialized Elements forces and locks the selected attunement",
+  ]);
+  const traitsById = new Map(
+    elementalistCatalog.traits.map((trait) => [trait.id, trait]),
+  );
+  const implemented = ELEMENTALIST_TRAIT_COVERAGE.filter(
+    (entry) => entry.status === TRAIT_COVERAGE_STATUSES.IMPLEMENTED,
+  );
+
+  for (const entry of implemented) {
+    const trait = traitsById.get(entry.traitId);
+    assert.ok(trait, String(entry.traitId));
+    assert.doesNotMatch(
+      entry.effects[0].description,
+      /Reviewed Elementalist behavior/,
+    );
+    assert.equal(
+      entry.effects[0].description,
+      String(trait.description).trim(),
+    );
+    assert.equal(entry.tests.length, 1, trait.name);
+    assert.equal(
+      entry.tests[0].file,
+      "tests/professions/elementalist/native-mechanics.test.js",
+    );
+    assert.equal(evidenceNames.has(entry.tests[0].name), true, trait.name);
+    assert.doesNotMatch(
+      entry.tests[0].name,
+      /mechanics execute through native hooks/i,
+    );
+  }
+
+  for (const name of [
+    "Conjurer",
+    "Gathered Focus",
+    "Harmonious Conduit",
+    "Lucid Singularity",
+  ]) {
+    const trait = elementalistCatalog.traits.find(
+      (candidate) => candidate.name === name,
+    );
+    const entry = ELEMENTALIST_TRAIT_COVERAGE.find(
+      (candidate) => candidate.traitId === trait.id,
+    );
+    assert.equal(entry.status, TRAIT_COVERAGE_STATUSES.IMPLEMENTED, name);
+  }
+});
+
+test("Fire Elemental autonomously alternates Flame Burst and Fireball", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Arcane"]],
+    rotation: ["Glyph of Elementals", 15000],
+    startAttunement: "Fire",
+    assumptions: {
+      ...elementalistProfession.createBuildDefaults().assumptions,
+      quickness: false,
+    },
+  });
+  const elementalActions = result.events.filter(
+    (event) =>
+      event.type === "action" && event.actorType === "summon" && event.at < 16,
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    elementalActions.map((event) => [
+      event.skillName,
+      Math.round(event.at * 1000),
+      Boolean(event.interrupted),
+    ]),
+    [
+      ["Flame Burst", 1410, false],
+      ["Fireball", 6050, false],
+      ["Fireball", 9250, false],
+      ["Fireball", 12450, false],
+      ["Fireball", 15650, false],
+    ],
+  );
+
+  assert.equal(
+    result.events.some((event) => event.skillName === "Flame Barrage"),
+    false,
+  );
+  assert.equal(
+    result.events.filter(
+      (event) =>
+        event.type === "damage" &&
+        event.skillName === "Fireball" &&
+        event.at < 16,
+    ).length,
+    3,
+  );
+  assert.equal(
+    result.endState.profession.availableFlips["Flame Barrage"],
+    Infinity,
+  );
+  assert.equal(result.endState.cooldowns["Glyph of Elementals"], undefined);
+});
+
+test("Flame Barrage replaces the active Glyph and obeys rotation timing", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Arcane"]],
+    rotation: [
+      "Glyph of Elementals",
+      1000,
+      "Flame Barrage",
+      "Flame Barrage",
+      4000,
+    ],
+    startAttunement: "Fire",
+    assumptions: {
+      ...elementalistProfession.createBuildDefaults().assumptions,
+      quickness: false,
+      alacrity: false,
+    },
+  });
+  const elementalActions = result.events.filter(
+    (event) => event.type === "action" && event.actorType === "summon",
+  );
+
+  assert.deepEqual(
+    elementalActions
+      .filter((event) => event.skillName === "Flame Barrage")
+      .map((event) => Math.round(event.at * 1000)),
+    [2250, 17250],
+  );
+  assert.ok(
+    elementalActions.some(
+      (event) =>
+        event.skillName === "Flame Burst" &&
+        Math.round(event.at * 1000) === 1410 &&
+        event.interrupted === true,
+    ),
+  );
+  assert.ok(
+    elementalActions
+      .filter((event) => event.skillName === "Flame Barrage")
+      .every(
+        (event) =>
+          event.playerCommandedElementalSkill === true &&
+          event.autonomousElementalSkill === false,
+      ),
+  );
+
+  const firstBarrageDamage = result.events.filter(
+    (event) =>
+      event.type === "damage" &&
+      event.skillName === "Flame Barrage" &&
+      event.at < 5,
+  );
+  assert.deepEqual(
+    firstBarrageDamage.map((event) => Math.round(event.at * 1000)),
+    [3370, 3570, 3770, 3770],
+  );
+  assert.ok(
+    firstBarrageDamage.every(
+      (event) =>
+        event.actorType === "summon" && event.summonIgnoresMight === true,
+    ),
+  );
+
+  const firstBarrageBurns = result.events.filter(
+    (event) =>
+      event.type === "condition" &&
+      event.skillName === "Flame Barrage" &&
+      event.at < 5,
+  );
+  assert.equal(firstBarrageBurns.length, 3);
+  assert.ok(
+    firstBarrageBurns.every(
+      (event) =>
+        event.actorType === "player" &&
+        event.condition === "Burning" &&
+        event.stacks === 1 &&
+        event.duration === 3,
+    ),
+  );
+
+  const resolvedBarrages = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "damage" &&
+      event.skillName === "Flame Barrage" &&
+      event.hitIndex === 1,
+  );
+  assert.equal(resolvedBarrages.length, 2);
+  assert.equal(resolvedBarrages[0].damage, resolvedBarrages[1].damage);
+  assert.equal(
+    result.endState.profession.availableFlips["Flame Barrage"],
+    Infinity,
+  );
+
+  const armedResult = runNative({
+    lines: [["Fire"], ["Air"], ["Arcane"]],
+    rotation: ["Glyph of Elementals", 1000],
+    startAttunement: "Fire",
+  });
+
+  const build = elementalistAppAdapter.toApplicationBuild({
+    ...elementalistProfession.createBuildDefaults(),
+    specializations: [
+      { name: "Fire", traits: "1-1-1" },
+      { name: "Air", traits: "1-1-1" },
+      { name: "Arcane", traits: "1-1-1" },
+    ],
+  });
+  const app = {
+    build,
+    adapter: elementalistAppAdapter,
+    profession: elementalistProfession,
+    skills: elementalistCatalog.skills,
+    skillByName: elementalistCatalog.skillsByName,
+    skillById: elementalistCatalog.skillsById,
+    weaponData: elementalistAppAdapter.weaponData,
+    results: armedResult,
+  };
+  const palette = { innerHTML: "", querySelectorAll: () => [] };
+  const previousDocument = globalThis.document;
+  globalThis.document = {
+    getElementById: (id) => (id === "rotation-palette" ? palette : null),
+  };
+  try {
+    renderPalette(app);
+  } finally {
+    globalThis.document = previousDocument;
+  }
+  assert.match(
+    palette.innerHTML,
+    /class="[^"]*pal-context-disabled[^"]*" data-skill="Glyph of Elementals"/,
+  );
+  assert.match(
+    palette.innerHTML,
+    /class="pal-skill" data-skill="Flame Barrage"[\s\S]*?draggable="true"/,
+  );
+});
+
+test("Elementalist small-hitbox caps exclude only excess multi-hit packets", () => {
+  const cases = [
+    {
+      skill: "Meteor Shower",
+      small: 12,
+      large: 24,
+      weapons: ["Staff", ""],
+      startAttunement: "Fire",
+    },
+    {
+      skill: "Lightning Orb",
+      small: 11,
+      large: 20,
+      weapons: ["Scepter", "Warhorn"],
+      startAttunement: "Air",
+    },
+    {
+      skill: "Frost Storm",
+      small: 14,
+      large: 24,
+      rotationPrefix: ["Conjure Frost Bow"],
+      selectedSkill: "Conjure Frost Bow",
+      startAttunement: "Water",
+    },
+    {
+      skill: "Invoke Lightning",
+      small: 9,
+      large: 20,
+      rotationPrefix: ["Conjure Lightning Hammer"],
+      selectedSkill: "Conjure Lightning Hammer",
+      startAttunement: "Air",
+    },
+    {
+      skill: "Glyph of Storms (Air)",
+      small: 20,
+      large: 36,
+      selectedSkill: "Glyph of Storms (Air)",
+      startAttunement: "Air",
+    },
+    {
+      skill: "Glyph of Storms (Water)",
+      small: 11,
+      large: 18,
+      selectedSkill: "Glyph of Storms (Water)",
+      startAttunement: "Water",
+    },
+    {
+      skill: "Dust Storm",
+      small: 6,
+      large: 8,
+      weapons: ["Scepter", "Warhorn"],
+      startAttunement: "Earth",
+    },
+    {
+      skill: "Fiery Whirl",
+      small: 4,
+      large: 8,
+      rotationPrefix: ["Conjure Fiery Greatsword"],
+      selectedSkill: "Conjure Fiery Greatsword",
+      selectedSlot: "Elite",
+      startAttunement: "Fire",
+    },
+  ];
+
+  for (const hitboxSize of ["small", "large"]) {
+    for (const entry of cases) {
+      const selectedSkills = {
+        ...elementalistProfession.createBuildDefaults().selectedSkills,
+        ...(entry.selectedSkill
+          ? { [entry.selectedSlot || "Utility1"]: entry.selectedSkill }
+          : {}),
+      };
+      const result = runNative({
+        lines: [["Fire"], ["Air"], ["Arcane"]],
+        rotation: [...(entry.rotationPrefix || []), entry.skill, 20000],
+        startAttunement: entry.startAttunement,
+        weapons: entry.weapons || ["Sword", "Dagger"],
+        selectedSkills,
+        assumptions: {
+          ...elementalistProfession.createBuildDefaults().assumptions,
+          hitboxSize,
+          quickness: false,
+        },
+      });
+      const strikes = result.events.filter(
+        (event) => event.type === "damage" && event.skillName === entry.skill,
+      );
+      assert.equal(
+        strikes.length,
+        entry[hitboxSize],
+        `${entry.skill} on ${hitboxSize}`,
+      );
+    }
+  }
+});
+
+test("large Elementalist hitboxes extend Wildfire by two packets", () => {
+  const counts = Object.fromEntries(
+    ["small", "large"].map((hitboxSize) => {
+      const result = runNative({
+        lines: [["Fire"], ["Air"], ["Arcane"]],
+        rotation: ["Wildfire", 20000],
+        startAttunement: "Fire",
+        weapons: ["Scepter", "Warhorn"],
+        assumptions: {
+          ...elementalistProfession.createBuildDefaults().assumptions,
+          hitboxSize,
+          quickness: false,
+        },
+      });
+      return [
+        hitboxSize,
+        result.events.filter(
+          (event) => event.type === "damage" && event.skillName === "Wildfire",
+        ).length,
+      ];
+    }),
+  );
+
+  assert.deepEqual(counts, { small: 7, large: 9 });
+});
+
+test("unmeasured elemental variants fail visibly instead of borrowing Fire AI", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Arcane"]],
+    rotation: ["Glyph of Elementals", 1000],
+    startAttunement: "Air",
+  });
+
+  assert.equal(
+    result.warnings.some((warning) =>
+      warning.includes("Air Elemental AI is not implemented"),
+    ),
+    true,
+  );
+  assert.equal(
+    result.events.some(
+      (event) => event.type === "action" && event.actorType === "summon",
+    ),
+    false,
   );
 });

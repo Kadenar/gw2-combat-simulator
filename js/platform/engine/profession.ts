@@ -55,6 +55,7 @@ const HOOK_DEFINITIONS: readonly (readonly [
   string,
   readonly HookCategory[],
 ])[] = Object.freeze([
+  ["prepareEvent", ["scheduler"]],
   ["initialize", ["scheduler"]],
   ["availability", ["scheduler", "cast"]],
   ["validateCast", ["scheduler", "cast"]],
@@ -234,6 +235,13 @@ function composeHooks(
       }
       return handled;
     };
+  }
+  if (hookName === "prepareEvent") {
+    return (context: SchedulerRecord, initialValue: unknown) =>
+      hooks.reduce((chainedValue: unknown, hook) => {
+        const next = hook.handler(context, chainedValue);
+        return next === undefined ? chainedValue : next;
+      }, initialValue);
   }
   if (hookName.startsWith("modify")) {
     return (context: SchedulerRecord, initialValue: unknown) =>
@@ -535,6 +543,7 @@ export function defineProfession<TProfessionState extends object>(
     weaponSwapChangesSet: ui.weaponSwapChangesSet !== false,
   };
   const sources: SchedulerRecord = {
+    prepareEvent: schedulerHooks.prepareEvent,
     initialize: schedulerHooks.initialize,
     availability: castRules.availability ?? schedulerHooks.availability,
     validateCast: castRules.validateCast ?? schedulerHooks.validateCast,
@@ -571,7 +580,7 @@ export function defineProfession<TProfessionState extends object>(
         ? READY_CAST
         : name === "validateCast"
           ? VALID_CAST
-          : name.startsWith("modify")
+          : name === "prepareEvent" || name.startsWith("modify")
             ? IDENTITY_SECOND_ARGUMENT
             : NOOP;
     hooks[name] = composeHooks(sources[name], name, fallback);

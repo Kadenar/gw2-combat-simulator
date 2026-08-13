@@ -37,6 +37,12 @@ const allSkills: readonly GuardianSkill[] = Object.freeze([
 ]);
 const generatedById = new Map(allSkills.map((skill) => [skill.id, skill]));
 const flipParentById = new Map<SkillId, SkillId>();
+const firebrandFinalFlipByNormalId = new Map<SkillId, SkillId>([
+  [ID.RESTORING_REPRIEVE, ID.REJUVENATING_RESPITE],
+  [ID.FLAME_RUSH, ID.FLAME_SURGE],
+  [ID.POTENT_HASTE, ID.OVERWHELMING_CELERITY],
+  [ID.PORTENT_OF_FREEDOM, ID.UNHINDERED_DELIVERY],
+]);
 for (const skill of allSkills) {
   if (
     skill.flipSkillId != null &&
@@ -49,11 +55,16 @@ for (const skill of allSkills) {
     flipParentById.set(skill.flipSkillId, skill.id);
   }
 }
+for (const [normalId, finalId] of firebrandFinalFlipByNormalId) {
+  flipParentById.set(finalId, normalId);
+}
 
 const generated: readonly Skill[] = allSkills.map((skill) => {
   const flipParentId = flipParentById.get(skill.id);
   return {
     ...skill,
+    flipSkillId:
+      firebrandFinalFlipByNormalId.get(skill.id) ?? skill.flipSkillId,
     cooldown:
       Number(skill.ammo || 0) > 0
         ? skill.ammoRecharge || skill.recharge

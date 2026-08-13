@@ -25,3 +25,15 @@ export function applyElementalistResolverAttunement(
     : null;
   core.attunementEnteredAt = event.at;
 }
+
+export function applyElementalistResolverSignetFire(
+  context: Gw2ResolverRuntime,
+  event: Gw2ResolverEvent,
+): void {
+  const profession = context.profession as {
+    core?: ElementalistCoreState;
+  } & SchedulerRecord;
+  const core =
+    profession.core || (profession as unknown as ElementalistCoreState);
+  core.signetOfFireDisabledUntil = Number(event.disabledUntil || event.at);
+}

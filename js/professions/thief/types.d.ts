@@ -28,10 +28,7 @@ import type {
 } from "../../app/profession/types.js";
 
 export type ThiefDodge =
-  | "Dodge"
-  | "Lotus Training"
-  | "Bounding Dodger"
-  | "Unhindered Combatant";
+  "Dodge" | "Lotus Training" | "Bounding Dodger" | "Unhindered Combatant";
 
 export interface ThiefSpecializationSelection extends Gw2BuildSpecialization {}
 
@@ -70,8 +67,7 @@ export interface ThiefConfig extends Gw2Config {
   readonly assumptions?: ProfessionBuildAssumptions;
   readonly professionAssumptions?: ProfessionBuildAssumptions;
   readonly selectedSkills?:
-    | readonly (string | Skill)[]
-    | Readonly<Record<string, string | Skill>>;
+    readonly (string | Skill)[] | Readonly<Record<string, string | Skill>>;
   readonly selectedDodge?: ThiefDodge;
   readonly initialInitiative?: number;
   readonly initialShadowForce?: number;
@@ -90,6 +86,7 @@ export interface ThiefCoreState {
   stealthUntil: number;
   revealedUntil: number;
   storedStolenSkillId: SkillId | null;
+  storedStolenSkillCount: number;
   professionSkillId: SkillId;
   kneeling: boolean;
   endurance: number;
@@ -131,9 +128,15 @@ export interface DaredevilState {
 export interface DeadeyeState {
   usesMaliciousStealthAttacks: boolean;
   markedTargetId: string | null;
+  markExpiresAt: number;
+  markGeneration: number;
   malice: number;
   maximumMalice: number;
+  maliceCriticalProgress: number;
   maleficentSevenTriggered: boolean;
+  deadeyeRelicUntil: number;
+  stealthAttackCharges: number;
+  stealthAttackExpiresAt: number;
 }
 
 export interface SpecterState {

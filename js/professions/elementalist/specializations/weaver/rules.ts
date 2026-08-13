@@ -2,10 +2,13 @@ import type {
   AvailabilityResult,
   CastContext,
   CastLifecycleContext,
+  ScheduledTask,
+  SchedulerContext,
   SchedulerRecord,
   Skill,
 } from "../../../../platform/engine/types.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
+import { emitElementalistBuff } from "../../core/rules.js";
 import {
   elementalistCoreState,
   setElementalistAttunementReadyAt,
@@ -35,17 +38,15 @@ function emitBuff(
   stacks: number,
   duration: number,
 ): void {
-  context.emit({
-    type: "buff",
-    at: context.effectiveEnd,
-    source: skill.name,
-    sourceId: skill.id,
-    actorType: "player",
-    skillName: skill.name,
-    kind: kind.toLowerCase(),
+  emitElementalistBuff(
+    context as never,
+    context.effectiveEnd,
+    kind,
     stacks,
     duration,
-  });
+    skill.name,
+    skill.id,
+  );
 }
 
 function onCastComplete(
@@ -68,7 +69,6 @@ function onCastComplete(
     state.perfectWeaveUntil = 0;
   } else if (skill.name === "Unravel") {
     const previousPrimary = core.primaryAttunement;
-    const previousSecondary = core.secondaryAttunement;
     core.secondaryAttunement = core.primaryAttunement;
     core.unravelUntil = at + 5;
     for (const attunement of Object.keys(core.attunementReadyAt)) {
@@ -87,10 +87,7 @@ function onCastComplete(
             ? (["Fury", 1] as const)
             : (["Protection", 1] as const);
     emitBuff(context, skill, boon[0], boon[1], 5);
-    if (
-      hasTrait(context, "Elements of Rage") &&
-      previousPrimary !== previousSecondary
-    ) {
+    if (hasTrait(context, "Elements of Rage")) {
       emitBuff(context, skill, "Elements of Rage", 1, 8);
     }
   } else if (skill.name === "Fervent Stance") {
@@ -101,16 +98,75 @@ function onCastComplete(
     String(skill.attunement || "").includes("+") &&
     state.ferventStanceUntil >= at
   ) {
-    context.emit({
-      type: "buff",
+    emitElementalistBuff(
+      context as never,
       at,
-      source: "Fervent Stance",
-      sourceId: skill.id,
+      "Might",
+      3,
+      8,
+      "Fervent Stance",
+      skill.id,
+    );
+  }
+}
+
+function afterCast(
+  context: CastLifecycleContext<SchedulerRecord>,
+  skill: Skill,
+): void {
+  if (!skill.name.startsWith("Primordial Stance")) return;
+  const tickTimes = new Set<number>();
+  for (const event of context.events) {
+    if (
+      event.activationId === context.reservationId &&
+      event.type === "condition"
+    ) {
+      tickTimes.add(event.at);
+      context.replaceEvent(event, {
+        type: "marker",
+        cancelled: true,
+        extendsProfessionTaskHorizon: true,
+        detail: "replaced by dynamic Primordial Stance attunements",
+      });
+    }
+  }
+  for (const at of tickTimes) {
+    context.tasks.schedule({
+      type: "elementalist.primordial-stance",
+      at,
+      ownerId: context.reservationId,
+      payload: { sourceId: skill.id },
+    });
+  }
+}
+
+function handlePrimordialStanceTick(
+  context: SchedulerContext<SchedulerRecord>,
+  task: ScheduledTask<SchedulerRecord>,
+): void {
+  const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  const sourceId = String(task.payload?.sourceId || "primordial-stance");
+  const attunements = core.secondaryAttunement
+    ? [core.primaryAttunement, core.secondaryAttunement]
+    : [core.primaryAttunement];
+  const effects: Readonly<Record<string, readonly [string, number, number]>> = {
+    Fire: ["Burning", 1, 2],
+    Water: ["Chilled", 1, 1],
+    Air: ["Vulnerability", 8, 3],
+    Earth: ["Bleeding", 2, 6],
+  };
+  for (const attunement of attunements) {
+    const [condition, stacks, duration] = effects[attunement];
+    context.emit({
+      type: "condition",
+      at: task.at,
+      source: "Primordial Stance",
+      sourceId,
       actorType: "player",
-      skillName: skill.name,
-      kind: "might",
-      stacks: 3,
-      duration: 8,
+      skillName: "Primordial Stance",
+      condition,
+      stacks,
+      duration,
     });
   }
 }
@@ -124,9 +180,17 @@ export const weaverCastRules = Object.freeze({
 });
 
 export const weaverSchedulerHooks = Object.freeze({
+  afterCast: {
+    id: "elementalist.weaver-after-cast",
+    order: 30,
+    handler: afterCast,
+  },
   onCastComplete: {
     id: "elementalist.weaver-complete",
     order: 30,
     handler: onCastComplete,
   },
+  taskHandlers: Object.freeze({
+    "elementalist.primordial-stance": handlePrimordialStanceTick,
+  }),
 });

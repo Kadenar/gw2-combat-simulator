@@ -4,7 +4,7 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  * availability, normal weapon-bar gating, and weapon-set swaps.
  */
 
-import { GUARDIAN_SKILL_IDS } from "../data/ids.js";
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from "../data/ids.js";
 import { emitGuardianEvent } from "./events.js";
 import type {
   GuardianCastContext,
@@ -46,6 +46,17 @@ export function validateWeaponState(
   skill: GuardianSkill,
 ): boolean | undefined {
   if (skill.flipParentId != null) {
+    // Firebrand mantra flips have persistent ammo/final-charge state rather
+    // than a short parent-skill window. Their specialization owns validation.
+    if (skill.tags?.includes("firebrand-mantra-charge")) return;
+    if (
+      skill.id === GUARDIAN_SKILL_IDS.ZEALOTS_FIRE &&
+      (context.config.selectedTraitIds || []).some(
+        (traitId) => Number(traitId) === GUARDIAN_TRAIT_IDS.RADIANT_FIRE,
+      )
+    ) {
+      return true;
+    }
     return (
       Number(professionCoreState(context).availableFlips[skill.id] || 0) >
       context.start + context.epsilon

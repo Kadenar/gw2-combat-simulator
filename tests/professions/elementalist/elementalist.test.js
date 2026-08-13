@@ -137,6 +137,7 @@ test("Elementalist build defaults and saved snapshots migrate explicitly", () =>
   assert.equal(defaults.weapons[0], "Sword");
   assert.deepEqual(defaults.alternateWeapons, ["", ""]);
   assert.equal(defaults.startingWeaponSet, 1);
+  assert.equal(defaults.assumptions.hitboxSize, "large");
   assert.equal(validateElementalistBuild(defaults).valid, true);
   assert.equal(elementalistCatalog.skillsByName.has("Swap Weapons"), false);
 
@@ -147,6 +148,9 @@ test("Elementalist build defaults and saved snapshots migrate explicitly", () =>
   assert.equal(migrated.profession, "elementalist");
   assert.deepEqual(migrated.weapons, ["Scepter", "Warhorn"]);
   assert.equal(validateElementalistBuild(migrated).valid, true);
+
+  const migratedHitbox = migrateElementalistBuild({ hitboxSize: "small" });
+  assert.equal(migratedHitbox.assumptions.hitboxSize, "small");
 
   const collapsed = migrateElementalistBuild({
     ...defaults,

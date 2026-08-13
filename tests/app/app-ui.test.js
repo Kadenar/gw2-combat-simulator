@@ -11,6 +11,7 @@ import {
   TARGET_CONDITION_GROUPS,
 } from "../../js/app/build/options.js";
 import { getBuildExportPayload } from "../../js/app/build/files.js";
+import { skillBarDisplaySkill } from "../../js/app/build/skills-panel.js";
 import {
   createDefaultBuild,
   replaceBuildConfiguration,
@@ -710,7 +711,7 @@ test("Guardian Power Luminary default builds resolve", async () => {
   assert.deepEqual(build.alternateWeapons, ["Spear", ""]);
   assert.equal(build.startingWeaponSet, 2);
 
-  assert.equal(alacrityPreset.benchmarkDps, 38217);
+  assert.equal(alacrityPreset.benchmarkDps, 37977);
   assert.equal(Object.hasOwn(savedAlacrity, "rotation"), false);
   assert.deepEqual(alacrityBuild.weapons, ["Greatsword", ""]);
   assert.deepEqual(alacrityBuild.alternateWeapons, ["Spear", ""]);
@@ -1631,6 +1632,28 @@ test("Engineer kits register distinct weapon lines in the timeline", async () =>
     [[0], [1, 2], [3, 4], [5]],
   );
   assert.ok(rows.every((row) => row.weaponSet === 1));
+});
+
+test("Firebrand mantra flips replace their selected skill-bar parent", async () => {
+  const adapter = await loadProfessionAppAdapter("guardian");
+  const skillById = adapter.profession.catalog.skillsById;
+  const skillByName = adapter.profession.catalog.skillsByName;
+  const parent = skillByName.get("Mantra of Flame");
+  const normal = skillByName.get("Flame Rush");
+  const final = skillByName.get("Flame Surge");
+  const app = {
+    skillById,
+    results: { endState: { profession: { availableFlips: {} } } },
+  };
+
+  assert.equal(skillBarDisplaySkill(app, parent), parent);
+  app.results.endState.profession.availableFlips[normal.id] = Infinity;
+  assert.equal(skillBarDisplaySkill(app, parent), normal);
+  delete app.results.endState.profession.availableFlips[normal.id];
+  app.results.endState.profession.availableFlips[final.id] = Infinity;
+  assert.equal(skillBarDisplaySkill(app, parent), final);
+  delete app.results.endState.profession.availableFlips[final.id];
+  assert.equal(skillBarDisplaySkill(app, parent), parent);
 });
 
 test("shared palettes reject supplemental effects from weapon and action rows", () => {

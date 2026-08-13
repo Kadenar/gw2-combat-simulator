@@ -148,6 +148,7 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   PORTENT_OF_FREEDOM: 40114, // Portent of Freedom
   SYMBOL_OF_VENGEANCE: 40624, // Symbol of Vengeance
   MANTRA_OF_POTENCE: 40915, // Mantra of Potence
+  UNHINDERED_DELIVERY: 41328, // Unhindered Delivery
   STOW_TOME: 41380, // Stow Tome
   RESTORING_REPRIEVE: 41475, // Restoring Reprieve
   SHIELD_OF_THE_AVENGER_ID_41571: 41571, // Shield of the Avenger
@@ -156,6 +157,8 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   ECHO_OF_TRUTH: 42360, // Echo of Truth
   TOME_OF_COURAGE_ID_42371: 42371, // Tome of Courage
   OPENING_PASSAGE: 42864, // Opening Passage
+  FLAME_SURGE: 42924, // Flame Surge
+  REJUVENATING_RESPITE: 42960, // Rejuvenating Respite
   POTENT_HASTE: 42983, // Potent Haste
   MANTRA_OF_LIBERATION: 43357, // Mantra of Liberation
   BOW_OF_TRUTH_ID_43565: 43565, // Bow of Truth

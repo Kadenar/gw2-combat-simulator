@@ -3,11 +3,13 @@ import type {
   CastContext,
   CastLifecycleContext,
   SchedulerRecord,
+  SimulationEvent,
   Skill,
 } from "../../../../platform/engine/types.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import {
   applyElementalistAura,
+  emitElementalistBuff,
   triggerElementalistEarthenBlast,
   triggerElementalistElectricDischarge,
   triggerElementalistFlameExpulsion,
@@ -24,17 +26,35 @@ function onCastStart(
 ): void {
   if (!skill.overload) return;
   if (hasTrait(context, "Hardy Conduit")) {
-    context.emit({
-      type: "buff",
-      at: context.start,
-      source: "Hardy Conduit",
-      sourceId: skill.id,
-      actorType: "player",
-      skillName: "Hardy Conduit",
-      kind: "protection",
-      stacks: 1,
-      duration: 3,
-    });
+    emitElementalistBuff(
+      context as never,
+      context.start,
+      "Protection",
+      1,
+      3,
+      "Hardy Conduit",
+      skill.id,
+    );
+  }
+  if (hasTrait(context, "Harmonious Conduit")) {
+    emitElementalistBuff(
+      context as never,
+      context.start,
+      "Swiftness",
+      1,
+      8,
+      "Harmonious Conduit",
+      skill.id,
+    );
+    emitElementalistBuff(
+      context as never,
+      context.start,
+      "Stability",
+      1,
+      4,
+      "Harmonious Conduit",
+      skill.id,
+    );
   }
   if (skill.attunement === "Fire") {
     triggerElementalistSunspot(context as never, context.start, skill.id);
@@ -63,7 +83,9 @@ function availability(
       reason: `${skill.name} is unavailable — requires ${String(skill.attunement)} attunement.`,
     };
   }
-  const dwell = hasTrait(context, "Transcendent Tempest") ? 4 : 6;
+  const dwell =
+    (hasTrait(context, "Transcendent Tempest") ? 4 : 6) /
+    (context.config.boons?.alacrity ? 1.25 : 1);
   const readyAt = state.attunementEnteredAt + dwell;
   return readyAt > context.start + context.epsilon
     ? {
@@ -73,6 +95,33 @@ function availability(
         reason: `${skill.name} is unavailable until the attunement singularity forms.`,
       }
     : { ready: true };
+}
+
+function afterCast(
+  context: CastLifecycleContext<SchedulerRecord>,
+  skill: Skill,
+): void {
+  if (!skill.overload || !hasTrait(context, "Lucid Singularity")) return;
+  const hits = context.events
+    .filter(
+      (event: SimulationEvent) =>
+        event.activationId === context.reservationId &&
+        event.type === "damage" &&
+        Number(event.coefficient || 0) > 0,
+    )
+    .sort((left: SimulationEvent, right: SimulationEvent) => left.at - right.at)
+    .slice(0, 5);
+  hits.forEach((event: SimulationEvent, index: number) => {
+    emitElementalistBuff(
+      context as never,
+      event.at,
+      "Alacrity",
+      1,
+      index === 4 ? 4.5 : 1,
+      "Lucid Singularity",
+      skill.id,
+    );
+  });
 }
 
 function onCastComplete(
@@ -158,6 +207,11 @@ export const tempestSchedulerHooks = Object.freeze({
     id: "elementalist.tempest-start",
     order: 30,
     handler: onCastStart,
+  },
+  afterCast: {
+    id: "elementalist.tempest-after-cast",
+    order: 30,
+    handler: afterCast,
   },
   onCastComplete: {
     id: "elementalist.tempest-complete",

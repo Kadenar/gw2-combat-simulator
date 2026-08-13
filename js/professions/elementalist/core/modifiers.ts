@@ -43,6 +43,10 @@ function playerEvent(context: Gw2ModifierContext): boolean {
   return context.event?.actorType !== "summon";
 }
 
+function eventWeapon(context: Gw2ModifierContext): string {
+  return String(context.event?.skillWeapon || context.event?.weapon || "");
+}
+
 function targetHas(context: Gw2ModifierContext, condition: string): boolean {
   return Boolean(
     context.query?.targetHasCondition(condition, context.time, context.runtime),
@@ -88,6 +92,11 @@ function timedBuffStacks(
       )
       .reduce((sum, application) => sum + Number(application.stacks || 1), 0),
   );
+}
+
+function catalystBaseEmpowermentActive(context: Gw2ModifierContext): boolean {
+  const combatStartTime = context.runtime?.combatStartTime;
+  return combatStartTime == null || context.time >= Number(combatStartTime);
 }
 
 function infernoBurningFactor(context: Gw2ModifierContext): number {
@@ -345,8 +354,21 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] =
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: "damage-additive",
       amount: 0.05,
-      when: (context) =>
-        Number(coreState(context).hammerOrbs?.Fire || 0) > context.time,
+      when: (context) => timedBuffStacks(context, "hammer fire orb", 1) > 0,
+    },
+    {
+      id: "elementalist.hammer-air-orb",
+      target: MODIFIER_TARGET.CRITICAL_CHANCE,
+      operation: "add",
+      amount: 0.15,
+      when: (context) => timedBuffStacks(context, "hammer air orb", 1) > 0,
+    },
+    {
+      id: "elementalist.frost-bow-condition-duration",
+      target: MODIFIER_TARGET.CONDITION_DURATION,
+      operation: "multiply",
+      factor: 1.2,
+      when: (context) => eventWeapon(context) === "Frost Bow",
     },
     {
       id: "elementalist.zap",
@@ -420,6 +442,19 @@ export function modifyElementalistAttributes(
   ) {
     modified.ferocity = Number(modified.ferocity || 0) + 75;
   }
+  const weapon = eventWeapon(context);
+  if (weapon === "Fiery Greatsword") {
+    modified.power = Number(modified.power || 0) + 260;
+    modified.conditionDamage = Number(modified.conditionDamage || 0) + 180;
+  } else if (weapon === "Lightning Hammer") {
+    modified.precision = Number(modified.precision || 0) + 180;
+    modified.ferocity = Number(modified.ferocity || 0) + 75;
+  }
+  if (
+    Number(coreState(context).signetOfFireDisabledUntil || 0) > context.time
+  ) {
+    modified.precision = Number(modified.precision || 0) - 180;
+  }
   if (
     context.config?.specialization === "Evoker" &&
     context.config?.evokerElement === "Fire" &&
@@ -434,7 +469,8 @@ export function modifyElementalistAttributes(
   ) {
     const stacks = Math.min(
       10,
-      3 + timedBuffStacks(context, "elemental empowerment", 10),
+      (catalystBaseEmpowermentActive(context) ? 3 : 0) +
+        timedBuffStacks(context, "elemental empowerment", 10),
     );
     const multiplier = hasTrait(context, "Empowered Empowerment")
       ? stacks === 10
