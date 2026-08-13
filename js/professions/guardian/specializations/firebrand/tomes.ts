@@ -276,10 +276,14 @@ function useTomePage(
     pagesRemaining: state.tomePages,
     activeTome: state.activeTome,
     nextTomePageAt: state.nextTomePageAt,
-    ashesCharges: state.ashesCharges,
-    ashesBurnDuration: state.ashesBurnDuration,
-    ashesNextTriggerAt: state.ashesNextTriggerAt,
-    ashesExpiresAt: state.ashesExpiresAt,
+    ...(skill.id === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST
+      ? {
+          ashesCharges: state.ashesCharges,
+          ashesBurnDuration: state.ashesBurnDuration,
+          ashesNextTriggerAt: state.ashesNextTriggerAt,
+          ashesExpiresAt: state.ashesExpiresAt,
+        }
+      : {}),
   });
   return false;
 }

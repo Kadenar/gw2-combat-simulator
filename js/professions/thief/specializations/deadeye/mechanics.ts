@@ -46,9 +46,16 @@ function initiativeAttackCriticalChance(
   skill: ThiefSkill,
 ): number {
   const strike = (skill.effects || []).find(
-    (effect) => effect.type === "strike" && Number(effect.coefficient) > 0,
+    (effect) =>
+      effect.type === "strike" &&
+      (Array.isArray(effect.ticks)
+        ? effect.ticks.some((tick) => Number(tick.coefficient) > 0)
+        : Number(effect.coefficient) > 0),
   );
   if (!strike) return 0;
+  const coefficient = Array.isArray(strike.ticks)
+    ? Number(strike.ticks[0]?.coefficient || 0)
+    : Number(strike.coefficient);
   const event: SimulationEvent = {
     type: "damage",
     at: context.effectiveEnd,
@@ -57,7 +64,7 @@ function initiativeAttackCriticalChance(
     actorType: "player",
     skillId: skill.id,
     skillName: skill.name,
-    coefficient: Number(strike.coefficient),
+    coefficient,
     hits: 1,
     skillWeapon: strike.weapon || skill.weapon,
   };
@@ -76,9 +83,20 @@ function gainInitiativeAttackMalice(
   const state = deadeyeState.from(context);
   const hitCount = (skill.effects || [])
     .filter(
-      (effect) => effect.type === "strike" && Number(effect.coefficient) > 0,
+      (effect) =>
+        effect.type === "strike" &&
+        (Array.isArray(effect.ticks)
+          ? effect.ticks.some((tick) => Number(tick.coefficient) > 0)
+          : Number(effect.coefficient) > 0),
     )
-    .reduce((sum, effect) => sum + Math.max(1, Number(effect.hits || 1)), 0);
+    .reduce(
+      (sum, effect) =>
+        sum +
+        (Array.isArray(effect.ticks)
+          ? effect.ticks.length
+          : Math.max(1, Number(effect.hits || 1))),
+      0,
+    );
   const criticalChance = initiativeAttackCriticalChance(context, skill);
   state.maliceCriticalProgress += criticalChance * hitCount;
   const criticalMalice = Math.floor(
@@ -147,7 +165,11 @@ export function updateDeadeyeCastState(
     Number(skill.initiativeCost || 0) > 0 &&
     !skill.stealthAttack &&
     (skill.effects || []).some(
-      (effect) => effect.type === "strike" && Number(effect.coefficient) > 0,
+      (effect) =>
+        effect.type === "strike" &&
+        (Array.isArray(effect.ticks)
+          ? effect.ticks.some((tick) => Number(tick.coefficient) > 0)
+          : Number(effect.coefficient) > 0),
     )
   ) {
     gainInitiativeAttackMalice(context, skill);

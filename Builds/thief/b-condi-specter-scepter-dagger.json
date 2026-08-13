@@ -17,24 +17,12 @@
     "Weapon1": "Viper's",
     "Weapon2": "Viper's"
   },
-  "weapons": [
-    "Scepter",
-    "Dagger"
-  ],
-  "alternateWeapons": [
-    "Scepter",
-    "Dagger"
-  ],
+  "weapons": ["Scepter", "Dagger"],
+  "alternateWeapons": ["Scepter", "Dagger"],
   "rune": "Trapper",
   "weaponSigils": [
-    [
-      "Doom",
-      "Earth"
-    ],
-    [
-      "Torment",
-      "Geomancy"
-    ]
+    ["Doom", "Earth"],
+    ["Torment", "Geomancy"]
   ],
   "relic": "Fractal",
   "food": "Meaty Asparagus Skewer",
@@ -101,8 +89,6 @@
       "Weakness": true,
       "Vulnerability": 25
     },
-    "artifactDrawSequence": "choose",
-    "doubleEdgeOutcomeSequence": "success",
     "forgedSurferBombsHit": "3"
   },
   "initialInitiative": 15,

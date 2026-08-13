@@ -27,26 +27,14 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
   [ID.WILLBENDER_FLAMES]: {
     implemented: true,
     castTimeMs: 0,
-    effects: [
-      {
-        type: "strike",
-        coefficient: 0.22,
-        hits: 1,
-      },
-    ],
+    effects: [],
   },
   [ID.CRASHING_COURAGE]: {
     implemented: true,
-    castTimeMs: 0,
-    handlerId: "guardian.virtue",
-    effects: [
-      {
-        type: "strike",
-        coefficient: 1,
-        hits: 1,
-        name: "Crashing Courage — Initial Damage",
-      },
-    ],
+    castTimeMs: 1020,
+    quicknessCastTimeMs: 680,
+    handlerId: "guardian.willbender-virtue",
+    effects: [],
   },
   [ID.HEEL_CRACK]: {
     implemented: true,
@@ -67,7 +55,9 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
   },
   [ID.HEAVENS_PALM]: {
     implemented: true,
-    castTimeMs: 1000,
+    castTimeMs: 1440,
+    quicknessCastTimeMs: 960,
+    cooldown: 20,
     effects: [
       {
         type: "strike",
@@ -77,37 +67,67 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
       {
         type: "control",
         metadata: {
-          controlKind: "control",
+          controlKind: "knockback",
         },
       },
     ],
   },
   [ID.WHIRLING_LIGHT]: {
     implemented: true,
-    castTimeMs: 250,
+    castTimeMs: 1440,
+    quicknessCastTimeMs: 960,
+    cooldown: 15,
     effects: [
       {
         type: "strike",
-        coefficient: 4,
-        hits: 4,
+        ticks: [280, 480, 680, 880].map((atMs) => ({
+          atMs,
+          coefficient: 1,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        metadata: {
+          finisherType: "Whirl",
+          finisherValue: 1,
+        },
       },
       {
         type: "condition",
-        condition: "Burning",
-        stacks: 1,
-        duration: 3,
+        ticks: [280, 480, 680, 880].map((atMs) => ({
+          atMs,
+          condition: "Weakness",
+          stacks: 1,
+          duration: 3,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      },
+      {
+        type: "condition",
+        ticks: [280, 480, 680, 880].map((atMs) => ({
+          atMs,
+          condition: "Burning",
+          stacks: 1,
+          duration: 3,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
     ],
   },
   [ID.FLOWING_RESOLVE]: {
     implemented: true,
-    castTimeMs: 0,
-    handlerId: "guardian.virtue",
+    castTimeMs: 520,
+    unaffectedByQuickness: true,
+    ammoCastLockout: 0.5,
+    handlerId: "guardian.willbender-virtue",
     effects: [],
   },
   [ID.FLASH_COMBO]: {
     implemented: true,
-    castTimeMs: 250,
+    castTimeMs: 1020,
+    quicknessCastTimeMs: 680,
+    cooldown: 20,
     effects: [
       {
         type: "strike",
@@ -119,13 +139,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
   [ID.WILLBENDER_FLAMES_ID_62618]: {
     implemented: true,
     castTimeMs: 0,
-    effects: [
-      {
-        type: "strike",
-        coefficient: 0.22,
-        hits: 1,
-      },
-    ],
+    effects: [],
   },
   [ID.REVERSAL_OF_FORTUNE]: {
     implemented: true,
@@ -134,53 +148,18 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
   },
   [ID.CRASHING_COURAGE_ID_62648]: {
     implemented: true,
-    castTimeMs: 0,
-    handlerId: "guardian.virtue",
-    effects: [
-      {
-        type: "strike",
-        coefficient: 1,
-        hits: 1,
-        name: "Crashing Courage — Initial Damage",
-      },
-    ],
+    castTimeMs: 1020,
+    quicknessCastTimeMs: 680,
+    handlerId: "guardian.willbender-virtue",
+    effects: [],
   },
   [ID.RUSHING_JUSTICE]: {
     implemented: true,
-    castTimeMs: 0,
-    handlerId: "guardian.virtue",
-    effects: [
-      {
-        type: "strike",
-        coefficient: 1.5,
-        hits: 1,
-        name: "Rushing Justice — Impact Damage",
-      },
-      {
-        type: "condition",
-        condition: "Burning",
-        stacks: 1,
-        duration: 4,
-      },
-      {
-        type: "condition",
-        condition: "Burning",
-        stacks: 1,
-        duration: 2,
-      },
-      {
-        type: "condition",
-        condition: "Burning",
-        stacks: 1,
-        duration: 2,
-      },
-      {
-        type: "condition",
-        condition: "Burning",
-        stacks: 1,
-        duration: 2,
-      },
-    ],
+    castTimeMs: 720,
+    quicknessCastTimeMs: 480,
+    rechargeAnchor: "castStart",
+    handlerId: "guardian.willbender-virtue",
+    effects: [],
   },
   [ID.REPOSE]: {
     implemented: true,
@@ -197,5 +176,5 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
         hits: 1,
       },
     ],
-  }
+  },
 });

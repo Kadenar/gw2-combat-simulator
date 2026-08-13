@@ -110,6 +110,12 @@ function isOneHandedWeapon(weapon: string | undefined): boolean {
   );
 }
 
+function selectedSkill(context: Gw2ModifierContext, name: string): boolean {
+  const source = context.config?.selectedSkills || [];
+  const selected = Array.isArray(source) ? source : Object.values(source);
+  return selected.map(String).includes(name);
+}
+
 /**
  * @param {Gw2ModifierContext} context
  * @param {string} boon
@@ -220,7 +226,23 @@ function modifyGuardianAttributes(
   ) {
     // Pattern C: convert gear-only vitality (config.stats), excluding trait
     // bonuses such as Force of Will / Defender's Dogma.
-    result.conditionDamage += Number(context.config?.stats?.vitality || 0) * 0.07;
+    result.conditionDamage +=
+      Number(context.config?.stats?.vitality || 0) * 0.07;
+  }
+  if (selectedSkill(context, "Signet of Wrath")) {
+    const perfectInscriptions = hasTrait(
+      context,
+      GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS,
+    );
+    const passiveActive =
+      perfectInscriptions ||
+      !context.timeline?.skillOnCooldownAt(
+        GUARDIAN_SKILL_IDS.SIGNET_OF_WRATH,
+        context.time,
+      );
+    const amount = 180 * (perfectInscriptions ? 1.2 : 1);
+    if (staticApplied && !passiveActive) result.conditionDamage -= amount;
+    if (!staticApplied && passiveActive) result.conditionDamage += amount;
   }
   return result;
 }
@@ -436,10 +458,32 @@ function modifyGuardianMaximumAmmo(
   context: GuardianAmmoModifierContext,
   maximum: number,
 ): number {
-  return context.skill?.categories?.includes("SpiritWeapon") &&
+  let result = maximum;
+  if (
+    context.skill?.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME &&
+    hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)
+  ) {
+    result = Math.max(result, 2);
+  }
+  if (
+    context.skill?.categories?.includes("SpiritWeapon") &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.ETERNAL_ARMORY)
-    ? maximum + 1
-    : maximum;
+  ) {
+    result += 1;
+  }
+  return result;
+}
+
+function modifyGuardianConditionBaseDuration(
+  context: Gw2ModifierContext,
+  duration: number,
+): number {
+  return context.condition === "Burning" &&
+    (context.sourceId === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME ||
+      context.event?.skillId === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME) &&
+    hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)
+    ? duration * 1.5
+    : duration;
 }
 
 /**
@@ -464,6 +508,7 @@ function modifyGuardianCastDuration(
 
 export const guardianCoreAttributeRules = Object.freeze({
   modifyAttributes: modifyGuardianAttributes,
+  modifyConditionBaseDuration: modifyGuardianConditionBaseDuration,
   modifierRules: guardianCoreModifierRules,
   compileModifierRules: compileGuardianModifierRules,
 });

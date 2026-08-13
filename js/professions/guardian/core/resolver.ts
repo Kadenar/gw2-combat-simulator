@@ -4,6 +4,7 @@ import {
   reactToJusticeHit,
 } from "./virtues.js";
 import {
+  handleSymbolOfIgnitionField,
   handleRighteousInstinctsTick,
   reactToGuardianBuffTraits,
   reactToGuardianDamageTraits,
@@ -13,6 +14,7 @@ export const guardianCoreEventHandlers = Object.freeze({
   "guardian.virtue-activated": handleVirtueActivation,
   "guardian.virtues-refreshed": handleVirtueRefresh,
   "guardian.righteous-instincts-tick": handleRighteousInstinctsTick,
+  "guardian.symbol-of-ignition-field": handleSymbolOfIgnitionField,
 });
 
 export const guardianCoreEventReactions = Object.freeze({

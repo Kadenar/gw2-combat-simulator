@@ -284,7 +284,7 @@ export function reactToFirebrandBuffTraits(
       state.ashesCharges > 0 &&
       event.at < state.ashesExpiresAt - Number(context.epsilon || 0.0001);
     state.ashesCharges = Math.max(0, Number(state.ashesCharges || 0)) + 1;
-    state.ashesBurnDuration = 2;
+    state.ashesBurnDuration = FIREBRAND_MECHANICS.ashesBurn.duration;
     state.ashesNextTriggerAt = hadAshes ? state.ashesNextTriggerAt : event.at;
     state.ashesExpiresAt = event.at + 10;
     enqueueOrdered(context.queue, {
@@ -319,7 +319,7 @@ export function reactToFirebrandBuffTraits(
         name: `Quickfire — Ally ${proc.allyIndex} Burning`,
         condition: FIREBRAND_MECHANICS.ashesBurn.condition,
         stacks: 1,
-        duration: 2,
+        duration: FIREBRAND_MECHANICS.ashesBurn.duration,
         triggeredByAlly: proc.allyIndex,
       });
     }

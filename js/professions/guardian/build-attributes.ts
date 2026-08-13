@@ -205,6 +205,9 @@ export function applyGuardianBuildAttributeRules(
     commonConversionPool,
     attributeEffects,
   );
+  if (hasTrait("Radiant Fire")) {
+    traitDurations["Burning Duration"] = 20;
+  }
 
   return finalizeBuildAttributes(common, {
     activeTraits,

@@ -55,8 +55,6 @@ export interface ThiefApplicationBuild extends ProfessionApplicationBuild {
 }
 
 export interface ThiefDeterministicChoices extends SchedulerRecord {
-  readonly artifactDrawSequence?: "balanced" | "reverse" | "choose";
-  readonly doubleEdgeOutcomeSequence?: "alternate" | "success" | "backfire";
   readonly forgedSurferBombsHit?: number;
   readonly stolenSkillChoice?: string;
   readonly deadeyeStolenSkillChoice?: string;
@@ -157,16 +155,6 @@ export interface ThiefArtifactSlot extends SchedulerRecord {
   readonly skillId: SkillId;
 }
 
-export interface ThiefArtifactOutcomeSequence extends SchedulerRecord {
-  offensive: SkillId[];
-  defensive: SkillId[];
-}
-
-export interface ThiefArtifactOutcomeIndices extends SchedulerRecord {
-  offensive: number;
-  defensive: number;
-}
-
 export interface ThiefBackfireState extends SchedulerRecord {
   readonly activeUntil: number;
   readonly skillName: string;
@@ -182,10 +170,6 @@ export interface AntiquaryState {
   initiativePipRows: number;
   artifactSlots: ThiefArtifactSlot[];
   artifactUsesRemaining: number;
-  artifactOutcomeSequence: ThiefArtifactOutcomeSequence;
-  artifactOutcomeIndices: ThiefArtifactOutcomeIndices;
-  doubleEdgeOutcomeSequence: ThiefDoubleEdgeOutcome[];
-  doubleEdgeOutcomeIndex: number;
   scoundrelsLuck: number;
   scoundrelsLuckReadyAt: number;
   improvisationReadyAt: number;
@@ -249,6 +233,7 @@ export interface ThiefSummonStrike extends SchedulerRecord {
 
 export interface ThiefSummonDefinition extends SchedulerRecord {
   readonly name: string;
+  readonly displayName?: string;
   readonly variant?: string;
   readonly weapon: string;
   readonly weaponStrengthProfileId: string;
@@ -267,6 +252,7 @@ export interface ThiefSummonAttack extends SchedulerRecord {
 export interface ThiefSkill extends Skill {
   readonly artifactKind?: ThiefArtifactKind;
   readonly backfire?: boolean;
+  readonly doubleEdge?: boolean;
   readonly dualWieldFollowup?: boolean;
   readonly dualWieldOpener?: boolean;
   readonly enduranceGain?: number;

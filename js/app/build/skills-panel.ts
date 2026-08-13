@@ -58,8 +58,8 @@ export function skillBarDisplaySkill(
   selected: Skill | null | undefined,
 ): Skill | null | undefined {
   if (!selected) return selected;
-  const professionState = app.results?.endState
-    ?.profession as SchedulerRecord | undefined;
+  const professionState = app.results?.endState?.profession as
+    SchedulerRecord | undefined;
   const availableFlips = professionState?.availableFlips;
   if (!availableFlips || typeof availableFlips !== "object") return selected;
   const flips = availableFlips as Record<string, unknown>;

@@ -242,12 +242,21 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   [ID.ZEALOTS_FLAME]: {
     implemented: true,
     castTimeMs: 0,
+    cooldown: 15,
+    ammo: 1,
+    ammoRecharge: 15,
+    ammoCastLockout: 0,
     effects: [
       {
         type: "condition",
         condition: "Burning",
-        stacks: 4,
+        stacks: 1,
         duration: 3,
+        applications: 4,
+        intervalMs: 1000,
+        atMs: 0,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
     ],
   },
@@ -534,6 +543,7 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
         metadata: {
           flatStrikeBase: 160,
           flatStrikePowerCoeff: 0.3,
+          damageKind: "condition",
         },
       },
       {
@@ -558,6 +568,7 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   [ID.SIGNET_OF_WRATH]: {
     implemented: true,
     castTimeMs: 1000,
+    cooldown: 18,
     effects: [
       {
         type: "strike",
@@ -571,10 +582,10 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
         duration: 5,
       },
       {
-        type: "control",
-        metadata: {
-          controlKind: "control",
-        },
+        type: "condition",
+        condition: "Immobilized",
+        stacks: 1,
+        duration: 6,
       },
     ],
   },
@@ -681,6 +692,9 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     castTimeMs: 250,
     quicknessCastTimeMs: 320,
+    cooldown: 20,
+    comboField: "Fire",
+    comboFieldDuration: 5,
     effects: [
       {
         type: "strike",
@@ -1326,10 +1340,11 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     castTimeMs: 750,
     quicknessCastTimeMs: 800,
+    cooldown: 20,
     effects: [
       {
         type: "strike",
-        ticks: [{ atMs: 640, coefficient: 3 }],
+        ticks: [{ atMs: 640, coefficient: 3, metadata: { projectile: true } }],
         timingAnchor: "castStart",
         timingScale: "fixed",
       },
@@ -1344,8 +1359,11 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
       },
       {
         type: "control",
+        atMs: 640,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
         metadata: {
-          controlKind: "control",
+          controlKind: "stun",
         },
       },
     ],
@@ -1356,58 +1374,40 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 1120,
     cooldown: 10,
     ammo: 2,
+    ammoRecharge: 10,
+    ammoCastLockout: 1,
     effects: [
       {
         type: "strike",
         ticks: [280, 440, 640, 800, 960].map((atMs) => ({
           atMs,
           coefficient: 0.3,
+          metadata: { projectile: true },
         })),
         timingAnchor: "castStart",
         timingScale: "fixed",
       },
       {
         type: "condition",
-        condition: "Bleeding",
-        stacks: 1,
-        duration: 8,
-        atMs: 280,
+        ticks: [280, 440, 640, 800, 960].map((atMs) => ({
+          atMs,
+          condition: "Bleeding",
+          stacks: 1,
+          duration: 8,
+          metadata: { projectile: true },
+        })),
         timingAnchor: "castStart",
         timingScale: "fixed",
       },
       {
         type: "condition",
-        condition: "Bleeding",
-        stacks: 1,
-        duration: 8,
-        atMs: 440,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-      {
-        type: "condition",
-        condition: "Bleeding",
-        stacks: 1,
-        duration: 8,
-        atMs: 640,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-      {
-        type: "condition",
-        condition: "Bleeding",
-        stacks: 1,
-        duration: 8,
-        atMs: 800,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-      {
-        type: "condition",
-        condition: "Bleeding",
-        stacks: 1,
-        duration: 8,
-        atMs: 960,
+        ticks: [280, 440, 640, 800, 960].map((atMs) => ({
+          atMs,
+          condition: "Crippled",
+          stacks: 1,
+          duration: 1,
+          metadata: { projectile: true },
+        })),
         timingAnchor: "castStart",
         timingScale: "fixed",
       },
@@ -1417,6 +1417,8 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     castTimeMs: 500,
     quicknessCastTimeMs: 1040,
+    cooldown: 6,
+    rechargeAnchor: "castStart",
     effects: [
       {
         type: "strike",
@@ -1431,7 +1433,7 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
         type: "condition",
         condition: "Burning",
         stacks: 1,
-        duration: 2,
+        duration: 1.5,
         atMs: 280,
         timingAnchor: "castStart",
         timingScale: "fixed",
@@ -1440,7 +1442,7 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
         type: "condition",
         condition: "Burning",
         stacks: 1,
-        duration: 2,
+        duration: 1.5,
         atMs: 480,
         timingAnchor: "castStart",
         timingScale: "fixed",
@@ -1449,7 +1451,7 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
         type: "condition",
         condition: "Burning",
         stacks: 1,
-        duration: 2,
+        duration: 1.5,
         atMs: 640,
         timingAnchor: "castStart",
         timingScale: "fixed",
@@ -1458,7 +1460,7 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
         type: "condition",
         condition: "Burning",
         stacks: 1,
-        duration: 2,
+        duration: 1.5,
         atMs: 800,
         timingAnchor: "castStart",
         timingScale: "fixed",
@@ -1467,7 +1469,7 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
         type: "condition",
         condition: "Burning",
         stacks: 1,
-        duration: 2,
+        duration: 1.5,
         atMs: 960,
         timingAnchor: "castStart",
         timingScale: "fixed",
@@ -1478,6 +1480,8 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     castTimeMs: 250,
     quicknessCastTimeMs: 360,
+    comboField: "Light",
+    comboFieldDuration: 4,
     effects: [
       {
         type: "strike",
@@ -1488,15 +1492,16 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
       },
-      {
-        type: "condition",
-        condition: "Burning",
+      ...[280, 960, 1640, 2320, 3000].map((atMs) => ({
+        type: "boon" as const,
+        boon: "might",
         stacks: 1,
-        duration: 1,
-        atMs: 280,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
+        duration: 5,
+        recipients: "party",
+        atMs,
+        timingAnchor: "castStart" as const,
+        timingScale: "fixed" as const,
+      })),
     ],
   },
   [ID.THROUGH_THE_HEART]: {
@@ -1506,7 +1511,9 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        ticks: [{ atMs: 360, coefficient: 0.6 }],
+        ticks: [
+          { atMs: 360, coefficient: 0.6, metadata: { projectile: true } },
+        ],
         timingAnchor: "castStart",
         timingScale: "fixed",
       },
@@ -1518,6 +1525,7 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
         atMs: 360,
         timingAnchor: "castStart",
         timingScale: "fixed",
+        metadata: { projectile: true },
       },
     ],
   },

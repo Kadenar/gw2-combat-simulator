@@ -75,6 +75,9 @@ export interface GuardianCoreState {
   availableFlips: Record<string, number>;
   symbolicAvengerStacks: number;
   symbolicAvengerUntil: number;
+  symbolIgnitionStartsAt: number;
+  symbolIgnitionUntil: number;
+  symbolIgnitionReadyAt: number;
   zealotsResolutionReadyAt: number;
   resolutionUntil: number;
   righteousNextMightAt: number;
@@ -128,6 +131,19 @@ export interface GuardianDragonhunterState {
   heavyLightReadyAt: number;
 }
 
+export interface GuardianWillbenderState {
+  flameGeneration: number;
+  flameVirtue: GuardianVirtue | null;
+  pendingWeaponCooldownReduction: Record<string, number>;
+  justiceUntil: number;
+  resolveUntil: number;
+  courageUntil: number;
+  virtueHitCounts: Record<"justice" | "resolve" | "courage", number>;
+  lethalTempoStacks: number;
+  lethalTempoUntil: number;
+  triggeredVirtueEffects: number;
+}
+
 export interface GuardianState
   extends
     GuardianCoreState,
@@ -141,7 +157,7 @@ export interface GuardianRuntimeState {
     | { kind: "Core"; state: Record<string, never> }
     | { kind: "Dragonhunter"; state: GuardianDragonhunterState }
     | { kind: "Firebrand"; state: GuardianFirebrandState }
-    | { kind: "Willbender"; state: Record<string, never> }
+    | { kind: "Willbender"; state: GuardianWillbenderState }
     | { kind: "Luminary"; state: GuardianLuminaryState };
 }
 
@@ -212,7 +228,12 @@ export type GuardianResolverEvent = Gw2ResolverEvent & {
   readonly ashesNextTriggerAt?: number;
   readonly ashesExpiresAt?: number;
   readonly automatic?: boolean;
+  readonly cooldownReduction?: number;
+  readonly duration?: number;
+  readonly burningDuration?: number;
+  readonly flameGeneration?: number;
   readonly isSymbol?: boolean;
+  readonly justiceActive?: boolean;
   readonly nextTomePageAt?: number;
   readonly pageCost?: number;
   readonly pagesRemaining?: number;
@@ -222,6 +243,7 @@ export type GuardianResolverEvent = Gw2ResolverEvent & {
   readonly radiantForgeEnteredAt?: number;
   readonly radiantWeapon?: string;
   readonly specialization?: string;
+  readonly sourceSkill?: string;
   readonly tetherUntil?: number;
   readonly virtue?: GuardianVirtue;
 };

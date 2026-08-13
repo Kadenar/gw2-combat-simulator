@@ -105,6 +105,16 @@ export function normalizeRotationCommand(
   const concurrent = candidate.concurrentOffsetMs ?? candidate.offset;
   const interrupt = candidate.interruptAfterMs ?? candidate.interruptMs;
   const releaseAtCharges = candidate.releaseAtCharges;
+  const doubleEdgeOutcome = candidate.doubleEdgeOutcome;
+  if (
+    doubleEdgeOutcome != null &&
+    doubleEdgeOutcome !== "success" &&
+    doubleEdgeOutcome !== "backfire"
+  ) {
+    throw new TypeError(
+      "Double Edge outcome must be either success or backfire.",
+    );
+  }
   return {
     type: "cast",
     skillId,
@@ -129,6 +139,7 @@ export function normalizeRotationCommand(
             "Release-at charge count",
           ),
         }),
+    ...(doubleEdgeOutcome == null ? {} : { doubleEdgeOutcome }),
   };
 }
 
@@ -203,5 +214,7 @@ export function toLegacyRotationEntry(
     entry.interruptMs = command.interruptAfterMs;
   if (command.releaseAtCharges != null)
     entry.releaseAtCharges = command.releaseAtCharges;
+  if (command.doubleEdgeOutcome != null)
+    entry.doubleEdgeOutcome = command.doubleEdgeOutcome;
   return entry;
 }

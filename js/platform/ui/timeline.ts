@@ -675,6 +675,7 @@ export function bindTimelineInteractions(
     options.onEditActivation || options.onEditInterrupt,
   );
   bindEdit(".rot-charge-release-badge", options.onEditReleaseAtCharges);
+  bindEdit(".rot-double-edge-badge", options.onEditDoubleEdgeOutcome);
   bindEdit(".rot-wait-badge", options.onEditWait);
 
   return { applyDrop, cleanup };

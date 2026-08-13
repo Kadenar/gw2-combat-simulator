@@ -1,5 +1,6 @@
 import { GUARDIAN_TRAIT_IDS } from "../../data/ids.js";
 import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
+import { FIREBRAND_MECHANICS } from "./mechanics.js";
 import type { GuardianConfig, GuardianFirebrandState } from "../../types.js";
 
 export function createFirebrandState(
@@ -37,7 +38,7 @@ export function createFirebrandState(
         ? tomePageInterval
         : Number.POSITIVE_INFINITY,
     ashesCharges: 0,
-    ashesBurnDuration: 3,
+    ashesBurnDuration: FIREBRAND_MECHANICS.ashesBurn.duration,
     ashesNextTriggerAt: 0,
     ashesExpiresAt: 0,
     nextCourageAegisAt: 0,

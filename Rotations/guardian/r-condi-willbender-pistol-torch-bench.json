@@ -1,0 +1,265 @@
+{
+  "metadata": {
+    "log": "condi willbender (new bench).zevtc",
+    "referenceLog": "condi willbender (old bench).zevtc",
+    "benchmarkDurationSeconds": 94.439,
+    "benchmarkDamage": 3948433,
+    "benchmarkDps": 41809.34783299273,
+    "simulatedDps": 0,
+    "timingSource": "Supplied ArcDPS EVTC activation, buff, and damage events",
+    "note": "Flowing Resolve is precast once. The April 2026 ArcDPS log marks several successful casts as zero-duration cancels; those casts are reconstructed from their complete damage packets and cross-checked against the September 2025 reference log. Paired Rushing Justice and Jurisdiction records are represented as one simulator cast each, and genuinely canceled filler attacks are omitted."
+  },
+  "rotation": [
+    "Flowing Resolve",
+    {
+      "name": "Jurisdiction",
+      "skillId": 71817
+    },
+    {
+      "name": "__combat_start",
+      "offset": 640
+    },
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Symbol of Ignition",
+    "Purging Flames",
+    "Hail of Justice",
+    "Swap Weapons",
+    "Peacekeeper",
+    {
+      "name": "Zealot's Flame",
+      "offset": 80
+    },
+    "Zealot's Fire",
+    "Whirling Light",
+    {
+      "name": "Zealot's Flame",
+      "offset": 240
+    },
+    {
+      "name": "Crashing Courage",
+      "skillId": 62648
+    },
+    "Zealot's Fire",
+    "Through the Heart",
+    "Symbol of Ignition",
+    "Peacekeeper",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Cleansing Flame",
+    {
+      "name": "Zealot's Flame",
+      "offset": 1200
+    },
+    "Zealot's Fire",
+    "Flowing Resolve",
+    "Swap Weapons",
+    "Peacekeeper",
+    "Symbol of Ignition",
+    {
+      "name": "Jurisdiction",
+      "skillId": 71817
+    },
+    "Hail of Justice",
+    "Through the Heart",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Purging Flames",
+    "Peacekeeper",
+    "Flowing Resolve",
+    "Through the Heart",
+    "Whirling Light",
+    "Symbol of Ignition",
+    "Hail of Justice",
+    "Peacekeeper",
+    "Hail of Justice",
+    {
+      "name": "Jurisdiction",
+      "skillId": 71817
+    },
+    "Swap Weapons",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Through the Heart",
+    {
+      "name": "Crashing Courage",
+      "skillId": 62648
+    },
+    {
+      "name": "Zealot's Flame",
+      "offset": 280
+    },
+    "Peacekeeper",
+    "Symbol of Ignition",
+    "Zealot's Fire",
+    "Cleansing Flame",
+    {
+      "name": "Zealot's Flame",
+      "offset": 200
+    },
+    "Peacekeeper",
+    "Flowing Resolve",
+    "Zealot's Fire",
+    "Purging Flames",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Through the Heart",
+    "Symbol of Ignition",
+    "Whirling Light",
+    {
+      "name": "Zealot's Flame",
+      "offset": 840
+    },
+    "Zealot's Fire",
+    "Swap Weapons",
+    "Peacekeeper",
+    "Hail of Justice",
+    {
+      "name": "Jurisdiction",
+      "skillId": 71817
+    },
+    "Flowing Resolve",
+    "Through the Heart",
+    "Through the Heart",
+    "Symbol of Ignition",
+    "Peacekeeper",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Hail of Justice",
+    "Through the Heart",
+    "Through the Heart",
+    "Hail of Justice",
+    "Peacekeeper",
+    "Swap Weapons",
+    {
+      "name": "Crashing Courage",
+      "skillId": 62648
+    },
+    "Symbol of Ignition",
+    {
+      "name": "Zealot's Flame",
+      "offset": 120
+    },
+    "Whirling Light",
+    "Purging Flames",
+    "Zealot's Fire",
+    "Peacekeeper",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Cleansing Flame",
+    {
+      "name": "Zealot's Flame",
+      "offset": 1000
+    },
+    "Symbol of Ignition",
+    "Peacekeeper",
+    "Flowing Resolve",
+    "Zealot's Fire",
+    "Swap Weapons",
+    {
+      "name": "Jurisdiction",
+      "skillId": 71817
+    },
+    "Hail of Justice",
+    "Through the Heart",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Peacekeeper",
+    "Through the Heart",
+    "Symbol of Ignition",
+    "Whirling Light",
+    "Hail of Justice",
+    "Through the Heart",
+    "Peacekeeper",
+    "Flowing Resolve",
+    "Purging Flames",
+    "Hail of Justice",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    {
+      "name": "Crashing Courage",
+      "skillId": 62648
+    },
+    {
+      "name": "Jurisdiction",
+      "skillId": 71817
+    },
+    "Swap Weapons",
+    "Symbol of Ignition",
+    "Peacekeeper",
+    {
+      "name": "Zealot's Flame",
+      "offset": 200
+    },
+    "Zealot's Fire",
+    "Cleansing Flame",
+    {
+      "name": "Zealot's Flame",
+      "offset": 1440
+    },
+    "Peacekeeper",
+    "Whirling Light",
+    "Symbol of Ignition",
+    "Zealot's Fire",
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Through the Heart",
+    {
+      "name": "Zealot's Flame",
+      "offset": 400
+    },
+    "Through the Heart",
+    "Zealot's Fire",
+    "Swap Weapons",
+    "Peacekeeper",
+    "Hail of Justice",
+    "Flowing Resolve",
+    "Purging Flames",
+    "Hail of Justice",
+    "Symbol of Ignition",
+    "Peacekeeper",
+    {
+      "name": "Jurisdiction",
+      "skillId": 71817
+    },
+    {
+      "name": "Rushing Justice",
+      "skillId": 62668
+    },
+    "Through the Heart",
+    "Hail of Justice",
+    "Whirling Light",
+    {
+      "name": "Crashing Courage",
+      "skillId": 62648
+    },
+    "Swap Weapons",
+    {
+      "name": "Zealot's Flame",
+      "offset": 80
+    },
+    "Zealot's Fire",
+    "Symbol of Ignition",
+    "Peacekeeper"
+  ]
+}

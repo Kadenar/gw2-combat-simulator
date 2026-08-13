@@ -109,6 +109,7 @@ export function createGw2ResolverRuntimeState({
         name,
         sourceSkill,
         parentSkill,
+        damageBreakdownName: source?.damageBreakdownName,
         icon: source?.icon || "",
         skillId,
         sourceId,

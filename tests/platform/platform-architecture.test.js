@@ -529,7 +529,7 @@ test("generic scheduler state contains no profession-specific fields", () => {
   assert.equal(Object.hasOwn(state, "numericResource"), false);
 });
 
-test("normalized commands migrate legacy timing and charge-release options", () => {
+test("normalized commands migrate legacy cast options", () => {
   assert.deepEqual(
     normalizeRotation(
       [
@@ -540,6 +540,7 @@ test("normalized commands migrate legacy timing and charge-release options", () 
           offset: 100,
           interruptMs: 50,
           releaseAtCharges: 3,
+          doubleEdgeOutcome: "backfire",
         },
         "__cooldown_reset",
         "__combat_start",
@@ -555,6 +556,7 @@ test("normalized commands migrate legacy timing and charge-release options", () 
         concurrentOffsetMs: 100,
         interruptAfterMs: 50,
         releaseAtCharges: 3,
+        doubleEdgeOutcome: "backfire",
       },
       { type: "cooldown-reset" },
       { type: "combat-start" },
@@ -566,10 +568,15 @@ test("normalized commands migrate legacy timing and charge-release options", () 
         type: "cast",
         skillId: 900002,
         releaseAtCharges: 3,
+        doubleEdgeOutcome: "success",
       },
       testProfession.catalog,
     ),
-    { name: "Fixture Charge", releaseAtCharges: 3 },
+    {
+      name: "Fixture Charge",
+      releaseAtCharges: 3,
+      doubleEdgeOutcome: "success",
+    },
   );
   assert.throws(
     () =>
@@ -579,6 +586,15 @@ test("normalized commands migrate legacy timing and charge-release options", () 
         { strict: true },
       ),
     /positive whole number/,
+  );
+  assert.throws(
+    () =>
+      normalizeRotation(
+        [{ name: "Fixture Charge", doubleEdgeOutcome: "random" }],
+        testProfession.catalog,
+        { strict: true },
+      ),
+    /either success or backfire/,
   );
 });
 

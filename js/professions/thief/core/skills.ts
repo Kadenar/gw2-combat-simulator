@@ -750,10 +750,14 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        coefficient: 0.8,
-        hits: 2,
+        ticks: [
+          { atMs: 240, coefficient: 0.4 },
+          { atMs: 420, coefficient: 0.4 },
+        ],
         name: "Double Strike",
         actorType: "player",
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
     ],
   },
@@ -770,6 +774,9 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         hits: 1,
         name: "Front damage",
         actorType: "player",
+        atMs: 200,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
     ],
     requiredMainHand: "Dagger",
@@ -784,21 +791,26 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        coefficient: 0.63,
-        hits: 3,
+        ticks: [
+          { atMs: 840, coefficient: 0.21 },
+          { atMs: 960, coefficient: 0.21 },
+          { atMs: 1200, coefficient: 0.21 },
+        ],
         name: "Death Blossom",
         actorType: "player",
-        atMs: 520,
-        intervalMs: 520,
         timingAnchor: "castStart",
         timingScale: "cast",
       },
       {
         type: "condition",
-        condition: "Bleeding",
-        stacks: 6,
-        duration: 6,
+        ticks: [
+          { atMs: 840, condition: "Bleeding", stacks: 2, duration: 6 },
+          { atMs: 960, condition: "Bleeding", stacks: 2, duration: 6 },
+          { atMs: 1200, condition: "Bleeding", stacks: 2, duration: 6 },
+        ],
         actorType: "player",
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
     ],
     finisherType: "Whirl",
@@ -1585,6 +1597,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
       summons: [
         {
           name: "Male Dual-Pistol Thief",
+          displayName: "Thief",
           weapon: "Pistol",
           weaponStrengthProfileId: "weapon.pistol",
           attacks: [
@@ -1607,6 +1620,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         },
         {
           name: "Female Dual-Dagger Thief",
+          displayName: "Thief",
           weapon: "Dagger",
           weaponStrengthProfileId: "weapon.dagger",
           attacks: [
@@ -1657,6 +1671,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         },
         {
           name: "Staff Daredevil",
+          displayName: "Daredevil",
           variant: "Daredevil",
           weapon: "Staff",
           weaponStrengthProfileId: "weapon.staff",
@@ -1705,24 +1720,28 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         },
         {
           name: "Rifle Deadeye",
+          displayName: "Deadeye",
           variant: "Deadeye",
           weapon: "Rifle",
           weaponStrengthProfileId: "weapon.rifle",
         },
         {
           name: "Scepter Specter",
+          displayName: "Specter",
           variant: "Specter",
           weapon: "Scepter",
           weaponStrengthProfileId: "weapon.scepter",
         },
         {
           name: "Sword/Dagger Skritt",
+          displayName: "Skritt",
           variant: "Skritt",
           weapon: "Sword",
           weaponStrengthProfileId: "weapon.sword",
         },
         {
           name: "Sword Thief",
+          displayName: "Thief",
           variant: "Core Thief",
           weapon: "Sword",
           weaponStrengthProfileId: "weapon.sword",
@@ -1816,6 +1835,9 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         hits: 1,
         name: "Wild Strike",
         actorType: "player",
+        atMs: 240,
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
       {
         type: "condition",
@@ -1823,6 +1845,9 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         stacks: 2,
         duration: 3,
         actorType: "player",
+        atMs: 240,
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
     ],
   },
@@ -1911,6 +1936,9 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         hits: 1,
         name: "Lotus Strike",
         actorType: "player",
+        atMs: 420,
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
       {
         type: "condition",
@@ -1918,6 +1946,9 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         stacks: 2,
         duration: 5,
         actorType: "player",
+        atMs: 420,
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
     ],
   },
@@ -2810,7 +2841,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        coefficient: 6.75,
+        coefficient: 2.25,
         hits: 3,
         name: "Three Round Burst",
         actorType: "player",
