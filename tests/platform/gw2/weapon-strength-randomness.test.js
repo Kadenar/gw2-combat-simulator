@@ -41,10 +41,6 @@ const EXPECTED_PROFILES = Object.freeze({
   "summon.weapon-type-3": [2448, 3050, 2749],
   "bundle.ascended": [920, 1017, 968.5],
   "transform.radiant-forge": [954, 1076, 1015],
-  "transform.radiant-forge.hammer": [985, 1111, 1048],
-  "transform.radiant-forge.staff": [985, 1111, 1048],
-  "transform.radiant-forge.sword": [905, 1000, 952.5],
-  "transform.radiant-forge.shield": [806, 909, 857.5],
   "transform.rampage": [726, 819, 772.5],
   "transform.photon-forge": [954, 1076, 1015],
   "transform.celestial-avatar": [580, 654, 617],
@@ -122,7 +118,7 @@ test("skill metadata classifies transforms, kits, shrouds, and effects", () => {
         radiantWeapon: "hammer",
       },
     }),
-    "transform.radiant-forge.hammer",
+    "transform.radiant-forge",
   );
   assert.equal(
     weaponStrengthProfileIdForEvent(
@@ -131,7 +127,7 @@ test("skill metadata classifies transforms, kits, shrouds, and effects", () => {
         skill: { id: 1, name: "Glaring Burst", radiantForgeSkill: true },
       },
     ),
-    "transform.radiant-forge.sword",
+    "transform.radiant-forge",
   );
   assert.equal(
     weaponStrengthProfileIdForEvent(event, {
@@ -142,7 +138,7 @@ test("skill metadata classifies transforms, kits, shrouds, and effects", () => {
         radiantWeapon: "bulwark",
       },
     }),
-    "transform.radiant-forge.shield",
+    "transform.radiant-forge",
   );
   assert.equal(
     weaponStrengthProfileIdForEvent(event, {

@@ -41,6 +41,7 @@ export function createThiefBuildDefaults(): ThiefCanonicalBuild {
     schemaVersion: THIEF_BUILD_SCHEMA_VERSION,
     profession: THIEF_PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Berserker's"])),
+    alternateWeaponPrefixes: ["Berserker's", "Berserker's"],
     weapons: ["Rifle", ""],
     alternateWeapons: ["Dagger", "Pistol"],
     rune: "Scholar",

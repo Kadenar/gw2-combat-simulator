@@ -3,6 +3,7 @@ import {
   professionCoreState,
 } from "../../../platform/engine/profession.js";
 import { professionStaticRulesApplied } from "../../../platform/gw2/attribute-provenance.js";
+import { gw2StatsForWeaponSet } from "../../../platform/gw2/runtime-rules.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
 import {
   RANGER_SKILL_IDS as ID,
@@ -24,15 +25,16 @@ function boonDuration(
   const name = `${kind.charAt(0).toUpperCase()}${kind.slice(1)}`;
   const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
   const sigil = context.config.sigilSets?.[weaponSet - 1];
+  const stats = gw2StatsForWeaponSet(context.config, weaponSet);
   const lingeringMagic =
     hasTrait(context, TRAIT.LINGERING_MAGIC) &&
     !professionStaticRulesApplied(context.config)
       ? 240
       : 0;
   const bonus =
-    (Number(context.config.stats?.concentration || 0) + lingeringMagic) / 1500 +
-    Number(context.config.stats?.boonDurationBonus || 0) / 100 +
-    Number(context.config.stats?.boonDurationBonuses?.[name] || 0) / 100 +
+    (Number(stats.concentration || 0) + lingeringMagic) / 1500 +
+    Number(stats.boonDurationBonus || 0) / 100 +
+    Number(stats.boonDurationBonuses?.[name] || 0) / 100 +
     Number(sigil?.boonDurationBonus || 0) / 100;
   return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
 }

@@ -1,4 +1,5 @@
 import { luminaryState } from "./state.js";
+import { PIERCING_STANCE_IMPACT_MS } from "./skills.js";
 import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import { isGw2PlayerActorEvent } from "../../../../platform/gw2/event-ownership.js";
@@ -202,7 +203,14 @@ function processStanceDamageBuffs(
 ): void {
   const state = luminaryState.from(context);
   if (skill.id === GUARDIAN_SKILL_IDS.PIERCING_STANCE) {
-    const at = context.start;
+    const baseCastMs = Math.max(0, Number(skill.castTimeMs || 0));
+    const runtimeCast = Math.max(0, context.fullEnd - context.start);
+    const at =
+      context.start +
+      (baseCastMs > 0
+        ? (PIERCING_STANCE_IMPACT_MS / baseCastMs) * runtimeCast
+        : 0);
+    if (at > context.effectiveEnd + context.epsilon) return;
     const wasActive =
       Number(state.piercingStanceUntil || 0) > at + context.epsilon;
     state.piercingStanceUntil = wasActive

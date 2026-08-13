@@ -9,6 +9,7 @@ import {
   FOOD_DATA,
   FOOD_GROUPS,
   UTILITY_NAMES,
+  UTILITY_GROUPS,
   UTILITY_DATA,
   UTILITY_CONVERSION_RATES,
   INFUSION_STATS,
@@ -17,6 +18,7 @@ import {
   SIGIL_NAMES,
   SIGIL_GROUPS,
   RELIC_DATA,
+  RELIC_GROUPS,
   RELIC_NAMES,
   getActiveGearSlots,
 } from "../../data/gear-data.js";
@@ -713,9 +715,9 @@ class App {
             ${selRow("Rune", "sel-rune", RUNE_NAMES, b.rune, "", RUNE_GROUPS)}
             ${selRow("Sigil 1", "sel-sig1", sigilNames, b.sigils[0], "", SIGIL_GROUPS)}
             ${selRow("Sigil 2", "sel-sig2", sigilNames, b.sigils[1], "", SIGIL_GROUPS)}
-            ${selRow("Relic", "sel-relic", relicNames, b.relic)}
+            ${selRow("Relic", "sel-relic", relicNames, b.relic, "", RELIC_GROUPS)}
             ${consumableRow("Food", "sel-food", FOOD_NAMES, b.food, _foodDesc, "small-select", _foodOptionLabel, FOOD_GROUPS)}
-            ${consumableRow("Utility", "sel-utility", UTILITY_NAMES, b.utility, _utilityDesc)}
+            ${consumableRow("Utility", "sel-utility", UTILITY_NAMES, b.utility, _utilityDesc, "", null, UTILITY_GROUPS)}
             <div class="gear-row">
                 <span class="gear-label">Jade Bot</span>
                 <input type="checkbox" id="chk-jbc" class="gear-checkbox"${b.jadeBotCore ? " checked" : ""} />

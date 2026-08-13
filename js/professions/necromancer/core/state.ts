@@ -182,6 +182,7 @@ export const NECROMANCER_PUBLIC_END_STATE_KEYS: readonly (keyof NecromancerState
     "shroudEnteredAt",
     "blight",
     "blightExpiries",
+    "cascadingCorruptionStacks",
     "soulShards",
     "soulShardExpiries",
     "carapaceExpiries",
@@ -202,6 +203,7 @@ const NECROMANCER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<
 > = Object.freeze({
   blight: 0,
   blightExpiries: [],
+  cascadingCorruptionStacks: 0,
   shades: [],
   activeSpirits: {},
   soulTwistingAvailable: false,

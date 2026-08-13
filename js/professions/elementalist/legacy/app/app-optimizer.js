@@ -6,11 +6,13 @@ import {
   FOOD_NAMES,
   FOOD_GROUPS,
   UTILITY_NAMES,
+  UTILITY_GROUPS,
   INFUSION_STATS,
   WEAPON_DATA,
   SIGIL_DATA,
   SIGIL_NAMES,
   RELIC_DATA,
+  RELIC_GROUPS,
   RELIC_NAMES,
   getActiveGearSlots,
 } from "../../data/gear-data.js";
@@ -220,7 +222,13 @@ export function populateOptimizerCheckboxes(app, { foodDesc, utilityDesc }) {
     "sigil2",
     b.sigils?.[1] ? [b.sigils[1]] : [],
   );
-  makeGrid("opt-relics", RELIC_NAMES, "relic", [b.relic].filter(Boolean));
+  makeGrid(
+    "opt-relics",
+    RELIC_NAMES,
+    "relic",
+    [b.relic].filter(Boolean),
+    RELIC_GROUPS,
+  );
   makeConsumableGrid(
     "opt-food",
     FOOD_NAMES,
@@ -235,6 +243,7 @@ export function populateOptimizerCheckboxes(app, { foodDesc, utilityDesc }) {
     "utility",
     [b.utility].filter(Boolean),
     utilityDesc,
+    UTILITY_GROUPS,
   );
 
   const infEl = document.getElementById("opt-infusions");

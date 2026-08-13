@@ -121,6 +121,22 @@ frame.addEventListener("load", async () => {
       "each weapon set does not expose two sigil controls",
     );
     assert(
+      document.getElementById("sel-stat1-1") &&
+        document.getElementById("sel-stat1-2") &&
+        document.getElementById("sel-stat2-1") &&
+        document.getElementById("sel-stat2-2"),
+      "each weapon set does not expose two stat-prefix controls",
+    );
+    const alternateWeaponPrefix = document.getElementById("sel-stat2-1");
+    alternateWeaponPrefix.value = "Viper's";
+    alternateWeaponPrefix.dispatchEvent(
+      new window.Event("change", { bubbles: true }),
+    );
+    assert(
+      app.build.alternateWeaponPrefixes[0] === "Viper's",
+      "alternate weapon stat-prefix selection was not saved",
+    );
+    assert(
       !document.getElementById("sel-sig1") &&
         !document.getElementById("sel-sig2"),
       "global sigil controls were not removed",

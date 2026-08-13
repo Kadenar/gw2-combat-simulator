@@ -506,7 +506,7 @@ test("Guardian and Mesmer rotations are paired with their build templates", asyn
     },
     {
       section: "Luminary",
-      label: "Power",
+      label: "Power (Greatsword / Spear)",
       rotation: "Rotations/guardian/r-power-luminary-bench.json",
     },
     {

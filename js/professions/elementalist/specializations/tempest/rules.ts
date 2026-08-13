@@ -87,7 +87,12 @@ function availability(
   const dwell =
     (hasTrait(context, "Transcendent Tempest") ? 4 : 6) /
     (context.config.boons?.alacrity ? 1.25 : 1);
-  const readyAt = state.attunementEnteredAt + dwell;
+  const startingAttunementReady =
+    context.config.startingAttunementPreDwelled === true &&
+    state.attunementEnteredAt === 0;
+  const readyAt = startingAttunementReady
+    ? context.start
+    : state.attunementEnteredAt + dwell;
   return readyAt > context.start + context.epsilon
     ? {
         ready: false,
@@ -167,6 +172,22 @@ function onCastComplete(
       skill.id,
     );
   }
+  if (hasTrait(context, "Transcendent Tempest")) {
+    context.emit({
+      type: "buff",
+      at: context.effectiveEnd,
+      // The completion buff applies to the final Overload packet and to
+      // same-time follow-ups such as Lightning Jolt.
+      priority: -10,
+      source: "Transcendent Tempest",
+      sourceId: skill.id,
+      actorType: "player",
+      skillName: "Transcendent Tempest",
+      kind: "transcendent-tempest",
+      stacks: 1,
+      duration: 7,
+    });
+  }
   if (skill.name === "Overload Air") {
     context.emit({
       type: "damage",
@@ -185,19 +206,6 @@ function onCastComplete(
       procType: "skill",
       sourceId: skill.id,
       sourceSkill: skill.name,
-    });
-  }
-  if (hasTrait(context, "Transcendent Tempest")) {
-    context.emit({
-      type: "buff",
-      at: context.effectiveEnd,
-      source: "Transcendent Tempest",
-      sourceId: skill.id,
-      actorType: "player",
-      skillName: "Transcendent Tempest",
-      kind: "transcendent-tempest",
-      stacks: 1,
-      duration: 7,
     });
   }
 }

@@ -31,7 +31,11 @@ export interface ChartOptions {
 }
 
 export interface BuildChartSeriesOptions {
-  readonly effectName?: (value: unknown) => string;
+  readonly effectName?: (value: unknown, event: Gw2ResolverEvent) => string;
+  readonly replacementGroup?: (
+    value: unknown,
+    event: Gw2ResolverEvent,
+  ) => string;
   readonly stackCaps?: Readonly<Record<string, number>>;
 }
 
@@ -106,6 +110,7 @@ export function buildChartSeries(
   sampleStepMs = 250,
   {
     effectName = (value) => String(value || ""),
+    replacementGroup = () => "",
     stackCaps = {},
   }: BuildChartSeriesOptions = {},
 ): ChartSeries {
@@ -162,6 +167,7 @@ export function buildChartSeries(
     start: number;
     end: number;
     stacks: number;
+    replacementGroup: string;
   }> = [];
   // Convert conditions and buffs to half-open [start, end) stack intervals.
   for (const event of resolved) {
@@ -178,10 +184,11 @@ export function buildChartSeries(
       dpsStartMs;
     if (end > start) {
       applications.push({
-        name: effectName(event.condition),
+        name: effectName(event.condition, event),
         start,
         end,
         stacks: Number(event.stacks || 1),
+        replacementGroup: replacementGroup(event.condition, event),
       });
     }
   }
@@ -194,26 +201,46 @@ export function buildChartSeries(
       continue;
     const start = Number(event.at || 0) * 1000 - dpsStartMs;
     applications.push({
-      name: effectName(event.kind),
+      name: effectName(event.kind, event),
       start,
       end: start + Number(event.duration) * 1000,
       stacks: Number(event.stacks || 1),
+      replacementGroup: replacementGroup(event.kind, event),
     });
   }
   const effects: Record<string, ChartPoint[]> = {};
   for (const name of new Set(applications.map((entry) => entry.name))) {
     const matching = applications.filter((entry) => entry.name === name);
-    effects[name] = times.map((time) => ({
-      t: time,
-      v: Math.min(
-        stackCaps[name] ?? Infinity,
-        matching.reduce(
-          (sum, entry) =>
-            sum + (entry.start <= time && entry.end > time ? entry.stacks : 0),
-          0,
+    effects[name] = times.map((time) => {
+      const activeReplacements = new Map<
+        string,
+        (typeof applications)[number]
+      >();
+      for (const entry of applications) {
+        if (!entry.replacementGroup || entry.start > time) continue;
+        const active = activeReplacements.get(entry.replacementGroup);
+        if (!active || entry.start >= active.start) {
+          activeReplacements.set(entry.replacementGroup, entry);
+        }
+      }
+      return {
+        t: time,
+        v: Math.min(
+          stackCaps[name] ?? Infinity,
+          matching.reduce(
+            (sum, entry) =>
+              sum +
+              (entry.start <= time &&
+              entry.end > time &&
+              (!entry.replacementGroup ||
+                activeReplacements.get(entry.replacementGroup) === entry)
+                ? entry.stacks
+                : 0),
+            0,
+          ),
         ),
-      ),
-    }));
+      };
+    });
   }
   const cumulativeDamage = dps.map((point) => ({
     t: point.t,

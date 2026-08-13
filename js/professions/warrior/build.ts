@@ -22,6 +22,7 @@ export function createWarriorBuildDefaults(): WarriorCanonicalBuild {
     schemaVersion: WARRIOR_BUILD_SCHEMA_VERSION,
     profession: WARRIOR_PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Berserker's"])),
+    alternateWeaponPrefixes: ["Berserker's", "Berserker's"],
     weapons: ["Axe", "Axe"],
     alternateWeapons: ["Greatsword", ""],
     rune: "Scholar",

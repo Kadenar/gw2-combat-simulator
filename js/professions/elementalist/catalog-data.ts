@@ -147,6 +147,13 @@ const API_TRAITS_BY_NAME = new Map(
 );
 const SLOT_SKILL_TYPES = new Set(["Heal", "Utility", "Elite"]);
 const ATTUNEMENT_VARIANT_PATTERN = /\s*\((?:Fire|Water|Air|Earth)\)$/;
+const HAMMER_ORB_PACKET_SKILLS = new Set([
+  "Flame Wheel",
+  "Icy Coil",
+  "Crescent Wind",
+  "Rocky Loop",
+]);
+const HAMMER_ORB_PACKET_COUNT = 15;
 
 export const ELEMENTALIST_SMALL_HITBOX_CAPS: ReadonlyMap<string, number> =
   new Map([
@@ -274,12 +281,57 @@ function withLargeWildfireDuration(skill: Skill): readonly SkillEffect[] {
   });
 }
 
+function withHammerOrbPackets(skill: Skill): Skill {
+  if (!HAMMER_ORB_PACKET_SKILLS.has(skill.name)) return skill;
+  return {
+    ...skill,
+    effects: (skill.effects || []).map((effect) => {
+      if (!Array.isArray(effect.ticks) || effect.ticks.length !== 1) {
+        return effect;
+      }
+      const [packet] = effect.ticks;
+      return {
+        ...effect,
+        ticks: Array.from({ length: HAMMER_ORB_PACKET_COUNT }, (_, index) => ({
+          ...packet,
+          atMs: (index + 1) * 1000,
+        })),
+      } as SkillEffect;
+    }),
+  };
+}
+
+function referenceElementalEffects(skill: Skill): readonly SkillEffect[] {
+  return (skill.effects || []).map(
+    (effect) => ({ ...effect, timingScale: "fixed" }) as SkillEffect,
+  );
+}
+
+function withElementalRuntimeProfiles(skill: Skill): Skill {
+  if (skill.name !== "Glyph of Elementals") return skill;
+  const { quicknessCastTimeMs: _generatedCast, ...withoutGeneratedCast } =
+    skill;
+  return {
+    ...withoutGeneratedCast,
+    castTimeMs: 1250,
+    cooldown: skill.cooldown,
+    referenceEffects: referenceElementalEffects(skill),
+    effects: [],
+  };
+}
+
 function withElementalistHitboxBehavior(skill: Skill): Skill {
+  const withHammerPackets = withHammerOrbPackets(skill);
   const withLargeDuration =
-    skill.name === "Wildfire"
-      ? { ...skill, effects: withLargeWildfireDuration(skill) }
-      : skill;
-  const smallHitboxCap = ELEMENTALIST_SMALL_HITBOX_CAPS.get(skill.name);
+    withHammerPackets.name === "Wildfire"
+      ? {
+          ...withHammerPackets,
+          effects: withLargeWildfireDuration(withHammerPackets),
+        }
+      : withHammerPackets;
+  const smallHitboxCap = ELEMENTALIST_SMALL_HITBOX_CAPS.get(
+    withHammerPackets.name,
+  );
   return smallHitboxCap == null
     ? withLargeDuration
     : {
@@ -308,8 +360,9 @@ function apiSkill(name: string): Skill | undefined {
 }
 
 export const ELEMENTALIST_NATIVE_SKILLS: readonly Skill[] = Object.freeze(
-  ELEMENTALIST_GENERATED_SKILLS.map(withElementalistHitboxBehavior).map(
-    (skill) => {
+  ELEMENTALIST_GENERATED_SKILLS.map(withElementalistHitboxBehavior)
+    .map(withElementalRuntimeProfiles)
+    .map((skill) => {
       const metadata = apiSkill(skill.name);
       const selectionName = skill.name.replace(ATTUNEMENT_VARIANT_PATTERN, "");
       const isAttunementSlotVariant =
@@ -329,14 +382,6 @@ export const ELEMENTALIST_NATIVE_SKILLS: readonly Skill[] = Object.freeze(
           : {}),
         ...(skill.name === "Tailored Victory" ? { slotSelectable: false } : {}),
         ...(skill.name === "Dodge" ? { paletteAction: true } : {}),
-        ...(skill.name === "Glyph of Elementals"
-          ? {
-              castTimeMs: 1250,
-              quicknessCastTimeMs: undefined,
-              cooldown: 0,
-              effects: [],
-            }
-          : {}),
         ...(metadata?.description ? { description: metadata.description } : {}),
         ...(skill.name === "Glyph of Elementals"
           ? {
@@ -349,8 +394,7 @@ export const ELEMENTALIST_NATIVE_SKILLS: readonly Skill[] = Object.freeze(
           metadata?.icon ||
           ELEMENTALIST_FALLBACK_ICON,
       };
-    },
-  ),
+    }),
 );
 
 function circularElementalistAutoattackChains(): readonly (readonly number[])[] {

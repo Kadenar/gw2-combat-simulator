@@ -9,6 +9,7 @@ import {
   SIGIL_DATA,
   UTILITY_CONVERSION_RATES,
   UTILITY_DATA,
+  UTILITY_STAT_DATA,
   WEAPON_DATA,
 } from "./gear-data.js";
 import {
@@ -281,6 +282,8 @@ export function calculateCommonAttributes(
     data.UTILITY_CONVERSION_RATES || UTILITY_CONVERSION_RATES;
   const utilityData: NonNullable<Gw2AttributeData["UTILITY_DATA"]> =
     data.UTILITY_DATA || UTILITY_DATA;
+  const utilityStatData: NonNullable<Gw2AttributeData["UTILITY_STAT_DATA"]> =
+    data.UTILITY_STAT_DATA || UTILITY_STAT_DATA;
   const weaponData: NonNullable<Gw2AttributeData["WEAPON_DATA"]> =
     data.WEAPON_DATA || WEAPON_DATA;
   const gear: Gw2NumericAttributes = {};
@@ -302,7 +305,13 @@ export function calculateCommonAttributes(
     // read the main-hand selection from the Weapon2H coefficient table.
     if (isTwoHanded && slot === "Weapon2") continue;
     const statSlot = isTwoHanded && slot === "Weapon1" ? "Weapon2H" : slot;
-    const prefix = build.gear?.[slot] || "";
+    const weaponSlot = slot === "Weapon1" ? 0 : slot === "Weapon2" ? 1 : -1;
+    const prefix =
+      weaponSet === 2 && weaponSlot >= 0
+        ? build.alternateWeaponPrefixes?.[weaponSlot] ||
+          build.gear?.[slot] ||
+          ""
+        : build.gear?.[slot] || "";
     addAttributes(gear, gearStats[prefix]?.[statSlot]);
   }
   const rune = runeData[build.rune || ""];
@@ -349,6 +358,7 @@ export function calculateCommonAttributes(
       Math.round((conversionPool[conversion.from] || 0) * rate),
     );
   }
+  addAttributes(utility, utilityStatData[build.utility || ""]);
 
   let sigilCriticalChance = 0;
   const selectedSigils = sigilNames || weaponSigilsForSet(build, weaponSet);
@@ -417,6 +427,12 @@ export function calculateCommonAttributes(
   return {
     attributes,
     gear: { ...(build.gear || {}) },
+    alternateWeaponPrefixes: [
+      ...(build.alternateWeaponPrefixes || [
+        build.gear?.Weapon1 || "",
+        build.gear?.Weapon2 || "",
+      ]),
+    ],
     weapons: [...(build.weapons || [])],
     alternateWeapons: [...(build.alternateWeapons || [])],
     runes: build.rune || "",

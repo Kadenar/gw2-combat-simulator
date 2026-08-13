@@ -26,6 +26,7 @@ export {
   SIGIL_DATA,
   UTILITY_CONVERSION_RATES,
   UTILITY_DATA,
+  UTILITY_GROUPS,
   UTILITY_NAMES,
   WEAPON_SLOTS,
 } from "../../../platform/gw2/gear-data.js";
@@ -135,3 +136,38 @@ export const RELIC_DATA = Object.freeze({
 });
 
 export const RELIC_NAMES = Object.freeze(sortNames(Object.keys(RELIC_DATA)));
+export const RELIC_GROUPS = Object.freeze([
+  Object.freeze({
+    label: "Power",
+    items: Object.freeze([
+      "Brawler",
+      "Bloodstone",
+      "Claw",
+      "Dragonhunter",
+      "Eagle",
+      "Fire",
+      "Fireworks",
+      "Mist Stranger",
+      "Mistburn",
+      "Mount Balrior",
+      "Shackles",
+      "Thief",
+      "Weaver",
+    ]),
+  }),
+  Object.freeze({
+    label: "Condition",
+    items: Object.freeze([
+      "Akeem",
+      "Aristocracy",
+      "Blightbringer",
+      "Fractal",
+      "Steamshrieker",
+      "Thorns",
+    ]),
+  }),
+  Object.freeze({
+    label: "Hybrid",
+    items: Object.freeze(["Krait", "Nourys", "Peitha"]),
+  }),
+]);

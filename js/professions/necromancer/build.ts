@@ -11,9 +11,7 @@ import {
   validateSimulationRandomnessAssumptions,
 } from "../../app/simulation/randomness.js";
 import { necromancerCatalog } from "./catalog.js";
-import type {
-  NecromancerCanonicalBuild,
-} from "./types.js";
+import type { NecromancerCanonicalBuild } from "./types.js";
 
 /**
  * Necromancer persisted-build definition.
@@ -34,6 +32,7 @@ export function createNecromancerBuildDefaults(): NecromancerCanonicalBuild {
     schemaVersion: NECROMANCER_BUILD_SCHEMA_VERSION,
     profession: NECROMANCER_PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Viper's"])),
+    alternateWeaponPrefixes: ["Viper's", "Viper's"],
     weapons: ["Scepter", "Dagger"],
     alternateWeapons: ["Pistol", "Torch"],
     rune: "Trapper",
@@ -79,6 +78,7 @@ export function createNecromancerBuildDefaults(): NecromancerCanonicalBuild {
     },
     initialResource: 100,
     initialBlight: 0,
+    initialCascadingCorruptionStacks: 0,
     startingWeaponSet: 1,
     targetHealth: 3_970_000,
     targetArmor: 2597,
@@ -86,8 +86,7 @@ export function createNecromancerBuildDefaults(): NecromancerCanonicalBuild {
   };
 }
 
-const necromancerBuildCodec =
-  createGw2BuildCodec<NecromancerCanonicalBuild>({
+const necromancerBuildCodec = createGw2BuildCodec<NecromancerCanonicalBuild>({
   professionId: NECROMANCER_PROFESSION_ID,
   schemaVersion: NECROMANCER_BUILD_SCHEMA_VERSION,
   catalog: necromancerCatalog,
@@ -95,9 +94,7 @@ const necromancerBuildCodec =
   normalizeExtra(build, { saved }) {
     return {
       ...build,
-      assumptions: normalizeSimulationRandomnessAssumptions(
-        build.assumptions,
-      ),
+      assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
       initialResource: Math.max(
         0,
         Math.min(100, Number(saved.initialResource ?? 100) || 0),
@@ -106,28 +103,36 @@ const necromancerBuildCodec =
         0,
         Math.min(25, Math.trunc(Number(saved.initialBlight || 0))),
       ),
+      initialCascadingCorruptionStacks: Math.max(
+        0,
+        Math.min(
+          19,
+          Math.trunc(Number(saved.initialCascadingCorruptionStacks || 0)),
+        ),
+      ),
     };
   },
   validateExtra(build) {
-    const errors = validateSimulationRandomnessAssumptions(
-      build.assumptions,
-    );
-    if (
-      !(
-        Number(build.initialResource) >= 0 &&
-        Number(build.initialResource) <= 100
-      )
-    ) {
+    const errors = validateSimulationRandomnessAssumptions(build.assumptions);
+    if (!(
+      Number(build.initialResource) >= 0 && Number(build.initialResource) <= 100
+    )) {
       errors.push("initialResource must be between 0 and 100.");
     }
-    if (
-      !(Number(build.initialBlight) >= 0 && Number(build.initialBlight) <= 25)
-    ) {
+    if (!(
+      Number(build.initialBlight) >= 0 && Number(build.initialBlight) <= 25
+    )) {
       errors.push("initialBlight must be between 0 and 25.");
+    }
+    if (!(
+      Number(build.initialCascadingCorruptionStacks) >= 0 &&
+      Number(build.initialCascadingCorruptionStacks) <= 19
+    )) {
+      errors.push("initialCascadingCorruptionStacks must be between 0 and 19.");
     }
     return errors;
   },
-  });
+});
 
 export const migrateNecromancerBuild = necromancerBuildCodec.migrateBuild;
 export const validateNecromancerBuild = necromancerBuildCodec.validateBuild;

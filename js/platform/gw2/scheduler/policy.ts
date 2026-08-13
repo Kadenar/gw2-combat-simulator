@@ -29,6 +29,7 @@ import {
 } from "./proc-materializer.js";
 import { createGw2EventPreparer } from "./event-preparer.js";
 import { clamp } from "../numeric.js";
+import { gw2StatsForWeaponSet } from "../runtime-rules.js";
 import type {
   CanonicalCatalog,
   CastContext,
@@ -248,10 +249,11 @@ export function createGw2SchedulerPolicy(
       const name = titleCase(effect.boon || effect.kind || effect.name);
       const weaponSet = _context.state?.activeWeaponSet === 2 ? 2 : 1;
       const sigils = config.sigilSets?.[weaponSet - 1] || {};
+      const stats = gw2StatsForWeaponSet(config, weaponSet);
       const bonus =
-        Number(config.stats?.concentration || 0) / 1500 +
-        Number(config.stats?.boonDurationBonus || 0) / 100 +
-        Number(config.stats?.boonDurationBonuses?.[name] || 0) / 100 +
+        Number(stats.concentration || 0) / 1500 +
+        Number(stats.boonDurationBonus || 0) / 100 +
+        Number(stats.boonDurationBonuses?.[name] || 0) / 100 +
         Number(sigils.boonDurationBonus || 0) / 100;
       // GW2 boon duration cannot be reduced below base here and caps at +100%.
       return baseDuration * clamp(1 + bonus, 1, 2);
