@@ -248,7 +248,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           hits: 1,
           name: "Steal Time",
           actorType: "player",
-          weaponStrengthSource: "equipped",
+          weaponStrengthProfileId: "nonweapon.profession-mechanic",
         },
         {
           type: "buff",
