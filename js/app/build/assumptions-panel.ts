@@ -71,11 +71,27 @@ function requiredInput(id: string): HTMLInputElement {
  */
 export function renderAssumptions(app: ProfessionAppState): void {
   const a = app.build.assumptions as ProfessionBuildAssumptions;
+  const container = document.getElementById("perma-boons");
+  if (!container) throw new Error("Required assumptions panel is missing.");
+  const expandedSections = new Map<string, boolean>(
+    Array.from(
+      container.querySelectorAll<HTMLDetailsElement>(
+        "details[data-assumption-section]",
+      ),
+      (section) =>
+        [section.dataset.assumptionSection || "", section.open] as const,
+    ),
+  );
   const assumptionControls = assumptionControlsForSpecialization(
     app.adapter.assumptionControls,
     app.adapter.eliteSpecialization(app.build),
   );
   const conditions = (a.targetConditions ||= {});
+  const section = (key: string, label: string, contents: string): string =>
+    `<details class="perma-group" data-assumption-section="${esc(key)}"${expandedSections.get(key) !== false ? " open" : ""}>
+        <summary class="perma-group-label">${esc(label)}</summary>
+        <div class="perma-group-content">${contents}</div>
+    </details>`;
   const item = ({
     name,
     checked,
@@ -120,10 +136,12 @@ export function renderAssumptions(app: ProfessionAppState): void {
         });
       })
       .join("");
-    return `<div class="perma-group">
-                <span class="perma-group-label">${esc(group.label)}</span>
-                ${conditionItems}
-            </div>`;
+    const label = group.label === "Damaging" ? "Conditions" : group.label;
+    return section(
+      `conditions-${group.label.toLowerCase()}`,
+      label,
+      conditionItems,
+    );
   }).join("");
   const assumptionOptionIcon = (option: ProfessionAssumptionOption): string =>
     option.icon || app.skillById.get(Number(option.skillId))?.icon || "";
@@ -208,30 +226,40 @@ export function renderAssumptions(app: ProfessionAppState): void {
       customAssumptionSections.set(section, controls);
     });
   const customAssumptionGroups = Array.from(customAssumptionSections)
-    .map(
-      ([section, controls]) =>
-        `<div class="perma-group"><span class="perma-group-label">${esc(section)}</span>${controls
-          .map(professionAssumptionItem)
-          .join("")}</div>`,
+    .map(([sectionName, controls]) =>
+      section(
+        `custom-${sectionName.toLowerCase().replaceAll(" ", "-")}`,
+        sectionName,
+        controls.map(professionAssumptionItem).join(""),
+      ),
     )
     .join("");
-  const container = document.getElementById("perma-boons");
-  if (!container) throw new Error("Required assumptions panel is missing.");
   container.innerHTML = `
-            <div class="perma-group"><span class="perma-group-label">Boons</span>${boonItems}</div>
+            ${section("boons", "Boons", boonItems)}
             ${conditionGroups}
-            <div class="perma-group"><span class="perma-group-label">Target</span>
+            ${section(
+              "target",
+              "Target",
+              `
                 <label class="boon-control">Target HP <input id="target-hp" type="number" min="0" step="100000" value="${Number(app.build.targetHealth)}"></label>
                 <label class="boon-control">Target armor <input id="target-armor" type="number" min="1" value="${Number(app.build.targetArmor)}"></label>
                 <label class="boon-control">Skill activations/s <input id="target-skill-activations" type="number" min="0" max="10" step="0.1" value="${a.targetSkillActivationsPerSecond}"></label>
                 <label class="boon-control"><input id="target-moving" type="checkbox"${a.targetMoving ? " checked" : ""}> Moving</label>
                 ${professionAssumptionItems}
-            </div>
+            `,
+            )}
             ${customAssumptionGroups}
-            <div class="perma-group"><span class="perma-group-label">Party</span>
+            ${section(
+              "party",
+              "Party",
+              `
                 <label class="boon-control">Additional allied players <input id="allied-player-count" type="number" min="0" max="4" step="1" value="${Number(a.alliedPlayerCount || 0)}"></label>
-            </div>
-            <div class="perma-group"><span class="perma-group-label">Simulation</span>
+            `,
+            )}
+            ${section(
+              "simulation",
+              "Simulation",
+              `
                 <label class="boon-control">Time of day
                     <select class="gear-select" id="time-of-day">
                         <option value="day"${a.timeOfDay === "night" ? "" : " selected"}>Day</option>
@@ -243,7 +271,8 @@ export function renderAssumptions(app: ProfessionAppState): void {
                     Share player boons with summons
                 </label>
                 ${simulationAssumptionItems}
-            </div>`;
+            `,
+            )}`;
 
   container
     .querySelectorAll('input[type="checkbox"][data-effect-type]')

@@ -27,6 +27,7 @@ export interface PaletteStatusIconView {
 export interface PaletteSkillView extends SchedulerRecord {
   readonly name?: string;
   readonly skillId?: SkillId | null;
+  readonly hotkeyAction?: string;
   readonly title?: string;
   readonly icon?: string;
   readonly variantBadge?: string;

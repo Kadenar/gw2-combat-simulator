@@ -30,6 +30,11 @@ import {
 } from "./double-edge.js";
 import { normalizeRotationInsertionIndex } from "../../platform/ui/insertion-cursor.js";
 import {
+  rotationHotkeyActionForSkillSlot,
+  rotationLoadoutHotkeyActions,
+  rotationUtilityHotkeyAction,
+} from "./hotkeys.js";
+import {
   activeSpecialization,
   paletteEndState,
   paletteProfessionState,
@@ -243,6 +248,9 @@ export function paletteSkillView(
   return {
     name: skill.name,
     skillId: skill.id,
+    hotkeyAction:
+      String(skill.hotkeyAction || "") ||
+      rotationHotkeyActionForSkillSlot(skill.slot),
     icon: skill.icon || ACTION_ICONS[skill.name] || PLACEHOLDER_ICON,
     variantBadge: String(skill.variantBadge || ""),
     title,
@@ -320,7 +328,18 @@ export function renderPalette(app: ProfessionAppState): void {
       };
     });
   const renderedProfessionGroups = renderGroups(professionGroups);
-  const renderedLoadoutGroups = renderGroups(loadoutGroups);
+  const loadoutHotkeys = rotationLoadoutHotkeyActions(
+    app.adapter.slotLoadout?.view(paletteContext).bars || [],
+    (skillId) =>
+      app.adapter.slotLoadout?.skillChildren?.(paletteContext, skillId) || [],
+  );
+  const renderedLoadoutGroups = renderGroups(loadoutGroups).map((group) => ({
+    ...group,
+    skills: group.skills.map((skill) => ({
+      ...skill,
+      hotkeyAction: loadoutHotkeys.get(Number(skill.id)) || "",
+    })),
+  }));
   const mechanics =
     renderedProfessionGroups.find((group) => group.id === "profession")
       ?.skills || [];
@@ -335,17 +354,22 @@ export function renderPalette(app: ProfessionAppState): void {
   // Follow complete utility flip chains so three-stage skills such as
   // Firebrand mantras can expose both their ordinary and final charges.
   const utilityFlipByParent = rotationUtilityFlipByParent(app);
-  const selectedWithFlipChains = uniqueByName(selected).flatMap((skill) => {
-    const chain: Skill[] = [];
-    const visited = new Set<number>();
-    let current: Skill | undefined = skill;
-    while (current && !visited.has(Number(current.id))) {
-      chain.push(current);
-      visited.add(Number(current.id));
-      current = utilityFlipByParent.get(current.name);
-    }
-    return chain;
-  });
+  const selectedWithFlipChains = uniqueByName(selected).flatMap(
+    (skill, index) => {
+      const chain: Skill[] = [];
+      const visited = new Set<number>();
+      let current: Skill | undefined = skill;
+      while (current && !visited.has(Number(current.id))) {
+        chain.push(current);
+        visited.add(Number(current.id));
+        current = utilityFlipByParent.get(current.name);
+      }
+      return chain.map((candidate) => ({
+        ...candidate,
+        hotkeyAction: rotationUtilityHotkeyAction(index),
+      }));
+    },
+  );
   const groupedActionSkillIds = new Set(
     [...renderedProfessionGroups, ...renderedLoadoutGroups].flatMap((group) =>
       group.skills
