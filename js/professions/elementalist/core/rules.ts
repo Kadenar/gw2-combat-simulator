@@ -994,45 +994,6 @@ function activeBuffEvents(
   );
 }
 
-function grantEmpoweringAuras(
-  context: ElementalistSchedulerContext,
-  at: number,
-  skillName: string,
-  sourceId: Skill["id"],
-): void {
-  const current = activeBuffEvents(context, "Empowering Auras", at);
-  const refreshUntil = at + 10;
-  for (const event of current) {
-    context.replaceEvent(event, {
-      duration: Math.max(0, refreshUntil - event.at),
-    });
-  }
-  const activeStacks = current.reduce(
-    (total, event) => total + Number(event.stacks || 0),
-    0,
-  );
-  if (activeStacks < 5) {
-    emitBuff(context, at, "Empowering Auras", 1, 10, skillName, sourceId);
-  }
-}
-
-function extendTempestuousAria(
-  context: ElementalistSchedulerContext,
-  at: number,
-  skillName: string,
-  sourceId: Skill["id"],
-): void {
-  const current = activeBuffEvents(context, "Tempestuous Aria", at).at(-1);
-  if (!current) {
-    emitBuff(context, at, "Tempestuous Aria", 1, 5, skillName, sourceId);
-    return;
-  }
-  const currentExpiry = current.at + Number(current.duration || 0);
-  context.replaceEvent(current, {
-    duration: Math.min(at + 10, currentExpiry + 5) - current.at,
-  });
-}
-
 function emitCondition(
   context: ElementalistSchedulerContext,
   at: number,
@@ -1110,12 +1071,14 @@ export function applyElementalistAura(
     duration,
     skillName,
     sourceId,
+    priority = 0,
   }: {
     at: number;
     aura: string;
     duration: number;
     skillName: string;
     sourceId: Skill["id"];
+    priority?: number;
   },
 ): void {
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
@@ -1138,6 +1101,7 @@ export function applyElementalistAura(
     skillName,
     aura,
     duration: adjustedDuration,
+    ...(priority ? { priority } : {}),
   });
   if (!combatStarted(context, at)) return;
   if (hasTrait(context, "Zephyr's Boon")) {
@@ -1154,17 +1118,11 @@ export function applyElementalistAura(
   if (hasTrait(context, "Elemental Bastion")) {
     emitBuff(context, at, "Alacrity", 1, 4, skillName, sourceId);
   }
-  if (hasTrait(context, "Tempestuous Aria")) {
-    extendTempestuousAria(context, at, skillName, sourceId);
-  }
-  if (hasTrait(context, "Empowering Auras")) {
-    grantEmpoweringAuras(context, at, skillName, sourceId);
-  }
   if (
     String(context.config.specialization || "Core") === "Catalyst" &&
     hasTrait(context, "Elemental Epitome")
   ) {
-    emitBuff(context, at, "Elemental Empowerment", 1, 10, skillName, sourceId);
+    emitBuff(context, at, "Elemental Empowerment", 1, 15, skillName, sourceId);
   }
 }
 
@@ -1595,10 +1553,24 @@ function onAttunementComplete(
   }
 }
 
-function applyFieldAndAura(
+function applySkillAura(
   context: ElementalistLifecycleContext,
   skill: Skill,
 ): void {
+  if (!skill.aura) return;
+  const [element, rawDuration] = String(skill.aura).split("|");
+  const duration = Number(rawDuration || 0);
+  if (!element || !(duration > 0)) return;
+  applyElementalistAura(context, {
+    at: context.effectiveEnd,
+    aura: `${element} Aura`,
+    duration,
+    skillName: skill.name,
+    sourceId: skill.id,
+  });
+}
+
+function applyField(context: ElementalistLifecycleContext, skill: Skill): void {
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = context.effectiveEnd;
   if (skill.comboField && Number(skill.fieldDuration) > 0) {
@@ -1626,19 +1598,6 @@ function applyFieldAndAura(
       field: skill.comboField,
       duration,
     });
-  }
-  if (skill.aura) {
-    const [element, rawDuration] = String(skill.aura).split("|");
-    const duration = Number(rawDuration || 0);
-    if (element && duration > 0) {
-      applyElementalistAura(context, {
-        at,
-        aura: `${element} Aura`,
-        duration,
-        skillName: skill.name,
-        sourceId: skill.id,
-      });
-    }
   }
 }
 
@@ -2046,6 +2005,9 @@ export function elementalistOnCastStart(
   context: ElementalistLifecycleContext,
   skill: Skill,
 ): void {
+  // Aura-bearing skills grant their aura before same-time strike/condition
+  // packets, so aura-triggered modifiers can affect the skill that granted it.
+  applySkillAura(context, skill);
   beginElementalistGlyphCast(context, skill);
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const chain = etchingChain(skill.name);
@@ -2403,7 +2365,7 @@ export function elementalistOnCastComplete(
       });
     }
   }
-  applyFieldAndAura(context, skill);
+  applyField(context, skill);
   applyPistolState(context, skill);
   applyHammerState(context, skill);
   applyGenericPostCast(context, skill);

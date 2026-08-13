@@ -1,7 +1,7 @@
 import { THIEF_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { hasThiefTrait } from "../../core/state.js";
 import { gainThiefInitiative } from "../../core/shared.js";
-import type { ThiefCastContext } from "../../types.js";
+import type { ThiefCastContext, ThiefEmissionContext } from "../../types.js";
 import { deadeyeState } from "./state.js";
 
 export function initialDeadeyeMalice(context: ThiefCastContext): number {
@@ -9,7 +9,7 @@ export function initialDeadeyeMalice(context: ThiefCastContext): number {
 }
 
 export function emitDeadeyeBoon(
-  context: ThiefCastContext,
+  context: ThiefEmissionContext,
   at: number,
   boon: string,
   duration: number,
@@ -35,7 +35,7 @@ export function emitDeadeyeBoon(
 }
 
 export function applyMaleficentSeven(
-  context: ThiefCastContext,
+  context: ThiefEmissionContext,
   at: number,
 ): void {
   const state = deadeyeState.from(context);

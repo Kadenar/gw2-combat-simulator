@@ -1440,6 +1440,11 @@ export const RELIC_DATA = {
     cooldown: 1,
   },
   "Mist Stranger": { trigger: "Extra flat damage on every hit", cooldown: 0 },
+  Nourys: {
+    trigger: "Gain 1 stack every 3s in combat (10 stacks → 5s damage buff)",
+    cooldown: 0,
+    icon: "https://wiki.guildwars2.com/images/3/3f/Relic_of_Nourys.png",
+  },
   Peitha: {
     trigger: "Shadowstep or deception skill",
     cooldown: 4,
@@ -1577,6 +1582,6 @@ export const RELIC_GROUPS = [
   },
   {
     label: "Hybrid",
-    items: ["Peitha"],
+    items: ["Nourys", "Peitha"],
   },
 ];

@@ -11,7 +11,12 @@ import {
   thiefRuntimeSpecializationState,
 } from "../../core/rules.js";
 import { deadeyeCastAvailability } from "./availability.js";
-import { updateDeadeyeCastState } from "./mechanics.js";
+import {
+  initializeDeadeyeMalice,
+  observeDeadeyeScheduledEvent,
+  updateDeadeyeCastState,
+} from "./mechanics.js";
+import type { ThiefSimulationEvent } from "../../types.js";
 import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
@@ -19,6 +24,11 @@ import type {
 } from "../../../../platform/gw2/types.js";
 
 export const deadeyeSchedulerHooks = Object.freeze({
+  initialize: {
+    id: "thief.deadeye-critical-facts",
+    order: 10,
+    handler: initializeDeadeyeMalice,
+  },
   afterCast: Object.freeze([
     {
       id: "thief.deadeye-malice",
@@ -26,6 +36,11 @@ export const deadeyeSchedulerHooks = Object.freeze({
       handler: updateDeadeyeCastState,
     },
   ]),
+  onEventScheduled: {
+    id: "thief.deadeye-malice-hit",
+    order: 20,
+    handler: observeDeadeyeScheduledEvent,
+  },
 });
 
 const BOON_KINDS = Object.freeze([
@@ -152,10 +167,14 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     amount: (context) =>
       Math.max(
         0,
-        Number(thiefRuntimeSpecializationState(context, "Deadeye").malice || 0),
+        Number(
+          (context.event as ThiefSimulationEvent | undefined)
+            ?.deadeyeMaliceSnapshot || 0,
+        ),
       ) * 0.1,
     when: (context) =>
       thiefPlayerEvent(context) &&
+      markedTarget(context) &&
       MALICIOUS_DAMAGE_SCALING_SKILL_IDS.has(
         Number(thiefEventSkill(context)?.id),
       ),

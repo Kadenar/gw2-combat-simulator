@@ -13,7 +13,7 @@
         "label": "Power Quickness (Rifle)",
         "build": "Builds/thief/b-power-quick-deadeye-rifle.json",
         "rotation": "Rotations/thief/r-power-quick-deadeye-rifle-bench.json",
-        "benchmarkDps": 36721,
+        "benchmarkDps": 36891,
         "upToDate": true
       }
     ]

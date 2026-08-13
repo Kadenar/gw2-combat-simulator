@@ -54,6 +54,8 @@ import {
   handleWeaknessVulnerabilityRelic,
   materializeBoonRelics,
   relicConditionDurationBonus,
+  relicOutgoingDamageBonus,
+  recordPassiveRelicTimeline,
 } from "../../js/platform/gw2/relic-rules.js";
 import { sigilCriticalContribution } from "../../js/platform/gw2/sigil-rules.js";
 import {
@@ -2075,6 +2077,32 @@ test("Aristocracy historical queries preserve combat and timestamp boundaries", 
   assert.equal(relicConditionDurationBonus(context, 0), 0);
   assert.equal(relicConditionDurationBonus(context, 0.001), 0.03);
   assert.equal(relicConditionDurationBonus(context, 1.002), 0.06);
+});
+
+test("Nourys owns its generic stack cadence and additive damage window", () => {
+  const relic = createRelicRuntime("Nourys");
+  const procSteps = [];
+  const context = {
+    relic,
+    combatStartTime: 2,
+    recordProc(kind, name, at, sourceSkill, detail) {
+      procSteps.push({ kind, name, at, sourceSkill, detail });
+    },
+  };
+
+  recordPassiveRelicTimeline(context, [], 70);
+
+  assert.equal(relicOutgoingDamageBonus(context, "strike", 31.999), 0);
+  assert.equal(relicOutgoingDamageBonus(context, "strike", 32), 0.25);
+  assert.equal(relicOutgoingDamageBonus(context, "condition", 36.999), 0.25);
+  assert.equal(relicOutgoingDamageBonus(context, "condition", 37), 0);
+  assert.equal(relicOutgoingDamageBonus(context, "strike", 67), 0.25);
+  assert.deepEqual(
+    procSteps
+      .filter(({ name }) => name === "Relic of Nourys")
+      .map(({ at }) => at),
+    [32, 67],
+  );
 });
 
 test("generic combat query modules contain no equipment-specific policy", async () => {

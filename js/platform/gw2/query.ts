@@ -6,6 +6,7 @@ import {
   createRelicTimelineRuntime,
   relicConditionDurationBonus,
   relicCriticalChanceBonus,
+  relicOutgoingDamageBonus,
 } from "./relic-rules.js";
 import {
   gw2ConditionDurationMultiplier,
@@ -55,6 +56,7 @@ interface HookContextOptions {
   readonly event?: SimulationEvent | null;
   readonly condition?: string | null;
   readonly runtime?: Gw2QueryRuntime | null;
+  readonly damageAdditiveBonus?: number;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
 }
 
@@ -421,6 +423,7 @@ export function createGw2CombatQuery<
       event = null,
       condition = null,
       runtime = null,
+      damageAdditiveBonus = 0,
       criticalChanceContributors,
     }: HookContextOptions = {},
   ): SchedulerRecord => ({
@@ -437,6 +440,7 @@ export function createGw2CombatQuery<
     timeline,
     events,
     runtime,
+    damageAdditiveBonus,
     criticalChanceContributors,
   });
   /**
@@ -618,10 +622,18 @@ export function createGw2CombatQuery<
       time: number,
       runtime: Gw2QueryRuntime | null = null,
     ) {
+      const relicContext = runtime?.relic ? runtime : historicalRelicContext;
+      const relicBonus = relicOutgoingDamageBonus(
+        relicContext,
+        "strike",
+        time,
+        event,
+      );
       if (event?.independentSummonStrike === true) {
         const base =
           (1 + vulnerabilityStacksAt(time, runtime) / 100) *
-          Number(event.summonStrikeMultiplier ?? 1);
+          Number(event.summonStrikeMultiplier ?? 1) *
+          (1 + relicBonus);
         return event?.summonUsesProfessionModifiers === true
           ? activeProfession.modifyStrikeDamage(
               hookContext(time, { event, runtime }),
@@ -636,11 +648,15 @@ export function createGw2CombatQuery<
           : 1;
       const base =
         (1 + vulnerabilityStacksAt(time, runtime) / 100) *
-        Number(sigils.strike || 1) *
+        (Number(sigils.strike || 1) + relicBonus) *
         timeOfDayMultiplier *
         Number(config.modifiers?.strike || 1);
       return activeProfession.modifyStrikeDamage(
-        hookContext(time, { event, runtime }),
+        hookContext(time, {
+          event,
+          runtime,
+          damageAdditiveBonus: relicBonus,
+        }),
         base,
       );
     },
@@ -650,15 +666,24 @@ export function createGw2CombatQuery<
       event: SimulationEvent | null = null,
       runtime: Gw2QueryRuntime | null = null,
     ) {
+      const relicContext = runtime?.relic ? runtime : historicalRelicContext;
+      const relicBonus = relicOutgoingDamageBonus(
+        relicContext,
+        "condition",
+        time,
+        event,
+      );
+      const sigils = activeSigilSetAt(time, runtime);
       const base =
         (1 + vulnerabilityStacksAt(time, runtime) / 100) *
-        Number(activeSigilSetAt(time, runtime).condition || 1) *
+        (Number(sigils.condition || 1) + relicBonus) *
         Number(config.modifiers?.condition || 1);
       return activeProfession.modifyConditionDamage(
         hookContext(time, {
           event,
           condition: name,
           runtime,
+          damageAdditiveBonus: relicBonus,
         }),
         base,
       );

@@ -163,6 +163,8 @@ function onCastComplete(
       duration: 4,
       skillName: "Unstable Conduit",
       sourceId: skill.id,
+      // The completion aura precedes the same-time Overload packet.
+      priority: -20,
     });
   }
   if (attunement === "Fire") {

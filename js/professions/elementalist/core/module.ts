@@ -16,10 +16,12 @@ import {
 import { bindElementalistCoreUi } from "./ui.js";
 import {
   applyElementalistResolverAttunement,
+  applyElementalistResolverAura,
   applyElementalistResolverComboField,
   applyElementalistResolverSignetFire,
   applyElementalistResolvedCondition,
   applyElementalistResolvedDamage,
+  recordElementalistResolvedEvent,
 } from "./resolver.js";
 
 export const elementalistCoreModule = defineNativeModule({
@@ -47,9 +49,9 @@ export const elementalistCoreModule = defineNativeModule({
     resolverHooks: {
       eventHandlers: {
         "elementalist.attunement": applyElementalistResolverAttunement,
-        "elementalist.aura": () => {},
+        "elementalist.aura": applyElementalistResolverAura,
         "elementalist.combo-field": applyElementalistResolverComboField,
-        "elementalist.combo": () => {},
+        "elementalist.combo": recordElementalistResolvedEvent,
         "elementalist.fresh-air": () => {},
         "elementalist.evasive-arcana": () => {},
         "elementalist.attunement-enter": () => {},
