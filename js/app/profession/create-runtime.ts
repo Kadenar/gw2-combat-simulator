@@ -100,8 +100,9 @@ export function createProfessionRuntime({
         .map((id) => profession.catalog.skillsById.get(Number(id)))
         .filter((skill): skill is Skill => skill != null);
     }
+    const skillByName = app.skillByName || profession.catalog.skillsByName;
     return Object.values(app.build.selectedSkills)
-      .map((name) => app.skillByName.get(name))
+      .map((name) => skillByName.get(name))
       .filter((skill): skill is Skill => skill != null);
   }
 
@@ -121,17 +122,22 @@ export function createProfessionRuntime({
   function attributesWithModifierDisabled(
     app: ProfessionAppState,
     disabled: ProfessionModifier | null,
+    weaponSet = Number(app.attributeWeaponSet) === 2 ? 2 : 1,
   ): ProfessionAttributeData {
     if (!app.attributeData) {
       throw new Error(
         "Profession attributes must be calculated before simulation.",
       );
     }
-    if (!disabled || (disabled.type !== "Trait" && disabled.type !== "Boon")) {
+    const displayedWeaponSet = Number(app.attributeWeaponSet) === 2 ? 2 : 1;
+    if (
+      weaponSet === displayedWeaponSet &&
+      (!disabled || (disabled.type !== "Trait" && disabled.type !== "Boon"))
+    ) {
       return app.attributeData;
     }
     let build: ProfessionApplicationBuild = app.build;
-    if (disabled.type === "Boon") {
+    if (disabled?.type === "Boon") {
       const key = disabled.name.toLowerCase();
       build = {
         ...app.build,
@@ -144,8 +150,8 @@ export function createProfessionRuntime({
     return calculateAttributes(
       build,
       selectedSkills(app),
-      app.attributeWeaponSet || 1,
-      disabled.type === "Trait" ? disabled.name : null,
+      weaponSet,
+      disabled?.type === "Trait" ? disabled.name : null,
     ) as ProfessionAttributeData;
   }
 
@@ -159,11 +165,15 @@ export function createProfessionRuntime({
     disabled: ProfessionModifier | null = null,
   ): Gw2Config {
     const attributeData = attributesWithModifierDisabled(app, disabled);
+    const attributeDataByWeaponSet = [1, 2].map((weaponSet) =>
+      attributesWithModifierDisabled(app, disabled, weaponSet),
+    );
     const specialization = eliteSpecialization(app.build);
     const activeTraits = attributeData.activeTraits || [];
     const config = createGw2SimulationConfig({
       app,
       attributeData,
+      attributeDataByWeaponSet,
       specialization,
       disabled,
       selectedTraits: activeTraits.map((trait) => trait.name),

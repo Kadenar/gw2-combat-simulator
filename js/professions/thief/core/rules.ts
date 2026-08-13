@@ -137,11 +137,6 @@ function targetConditionCount(context: Gw2ModifierContext): number {
   ).length;
 }
 
-function positional(context: Gw2ModifierContext): boolean {
-  const target = context.config?.target || {};
-  return Boolean(target.behind || target.flanking || target.defiant);
-}
-
 function targetBoonless(context: Gw2ModifierContext): boolean {
   return context.config?.target?.boonless !== false;
 }
@@ -192,7 +187,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       when: (context) =>
         thiefPlayerEvent(context) &&
         hasTrait(context, TRAIT.FEROCIOUS_STRIKES) &&
-        thiefTargetHealthFraction(context) >= 0.5,
+        thiefTargetHealthFraction(context) > 0.5,
     },
     {
       id: "thief.twin-fangs-critical-damage",
@@ -210,7 +205,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       when: (context) =>
         thiefPlayerEvent(context) &&
         hasTrait(context, TRAIT.TWIN_FANGS) &&
-        positional(context),
+        Boolean(context.config?.target?.defiant),
     },
     {
       id: "thief.deadly-aim",
@@ -358,6 +353,16 @@ function modifyThiefCoreAttributes(
     ) {
       result.power += 120;
     }
+  }
+  if (
+    hasTrait(context, TRAIT.NO_QUARTER) &&
+    context.query?.furyActiveAt(context.time, context.runtime, context.event) &&
+    !(
+      staticRulesApplied &&
+      Boolean((context.config?.boons as Record<string, unknown>)?.fury)
+    )
+  ) {
+    result.ferocity += 250;
   }
   return result;
 }

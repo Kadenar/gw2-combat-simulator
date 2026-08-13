@@ -558,7 +558,6 @@ test("ready native professions expose deliberate public end-state keys", async (
       "signetNextLifeForceAt",
       "vampirismNextAt",
       "painfulBondPulseAnchorAt",
-      "cascadingCorruptionStacks",
       "targetChilledUntil",
       "targetControlledUntil",
       "fearOfDeathReadyAt",

@@ -1,5 +1,6 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
+import { gw2StatsForWeaponSet } from "../../../platform/gw2/runtime-rules.js";
 import { CANONICAL_TARGET_CONDITIONS } from "../../../platform/gw2/target-state.js";
 import {
   THIEF_SKILL_IDS as ID,
@@ -30,6 +31,7 @@ function handleThiefState(
   const ownerFor = (key: string): Record<string, unknown> =>
     Object.hasOwn(specialization, key) ? specialization : core;
   const preserved: Record<string, unknown> = {
+    traitProcProgress: core.traitProcProgress || {},
     traitProcReadyAt: core.traitProcReadyAt || {},
   };
   for (const generationField of Object.keys(incoming).filter((key) =>
@@ -73,6 +75,227 @@ function handleThiefState(
 export const thiefCoreResolverEventHandlers = Object.freeze({
   "thief.state": handleThiefState,
 });
+
+const EPSILON = 1e-9;
+
+function thiefBoonDuration(
+  context: ThiefResolverContext,
+  event: ThiefResolverEvent,
+  kind: string,
+  baseDuration: number,
+): number {
+  const stats = context.query.statsAt(event.at, event, context);
+  const configuredStats = gw2StatsForWeaponSet(
+    context.config,
+    context.activeWeaponSet,
+  );
+  const sigil = context.query.activeSigilSetAt(event.at);
+  const name = `${kind.charAt(0).toUpperCase()}${kind.slice(1)}`;
+  const bonus =
+    Number(stats.concentration || 0) / 1500 +
+    Number(configuredStats.boonDurationBonus || 0) / 100 +
+    Number(configuredStats.boonDurationBonuses?.[name] || 0) / 100 +
+    Number(sigil?.boonDurationBonus || 0) / 100;
+  return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
+}
+
+function queueThiefBoon(
+  context: ThiefResolverContext,
+  event: ThiefResolverEvent,
+  {
+    traitId,
+    traitName,
+    boon,
+    duration,
+    stacks = 1,
+    recipients = "self",
+  }: {
+    readonly traitId: SkillId;
+    readonly traitName: string;
+    readonly boon: string;
+    readonly duration: number;
+    readonly stacks?: number;
+    readonly recipients?: "self" | "party";
+  },
+): void {
+  enqueueOrdered(context.queue, {
+    type: "buff",
+    at: event.at,
+    source: "Trait",
+    sourceId: traitId,
+    actorType: "effect",
+    skillId: traitId,
+    skillName: traitName,
+    name: `${traitName} - ${boon}`,
+    kind: boon.toLowerCase(),
+    duration: thiefBoonDuration(context, event, boon, duration),
+    stacks,
+    recipients,
+    maximumRecipients: recipients === "party" ? 5 : 1,
+    triggeredBy: event.skillName,
+  });
+}
+
+function activeSelfFuryApplications(context: ThiefResolverContext, at: number) {
+  return (context.boons.get("fury") || []).filter(
+    (application) =>
+      application.affectsSelf !== false &&
+      application.at <= at + EPSILON &&
+      application.expiresAt > at + EPSILON,
+  );
+}
+
+function extendActiveFury(
+  context: ThiefResolverContext,
+  event: ThiefResolverEvent,
+  duration: number,
+): void {
+  const applications = context.boons.get("fury") || [];
+  const active = new Set(activeSelfFuryApplications(context, event.at));
+  if (!active.size) return;
+  context.boons.set(
+    "fury",
+    applications.map((application) =>
+      active.has(application)
+        ? { ...application, expiresAt: application.expiresAt + duration }
+        : application,
+    ),
+  );
+  enqueueOrdered(context.queue, {
+    type: "proc",
+    at: event.at,
+    source: "Trait",
+    sourceId: TRAIT.NO_QUARTER,
+    actorType: "effect",
+    skillId: TRAIT.NO_QUARTER,
+    skillName: "No Quarter",
+    name: "No Quarter - Fury Extension",
+    duration,
+    triggeredBy: event.skillName,
+  });
+}
+
+function traitCriticalProgress(
+  context: ThiefResolverContext,
+  traitId: SkillId,
+): number {
+  return Number(
+    professionCoreState(context).traitProcProgress[String(traitId)] || 0,
+  );
+}
+
+function setTraitCriticalProgress(
+  context: ThiefResolverContext,
+  traitId: SkillId,
+  value: number,
+): void {
+  professionCoreState(context).traitProcProgress[String(traitId)] = value;
+}
+
+export const thiefCoreCriticalReactions = Object.freeze({
+  unrelentingStrikes: Object.freeze({
+    id: "thief.unrelenting-strikes",
+    order: 10,
+    actorTypes: ["player"] as const,
+    when: (
+      context: ThiefResolverContext,
+      event: ThiefResolverEvent,
+      details: ThiefResolverReactionDetails,
+    ) =>
+      Boolean(details.hitContext?.critEligible) &&
+      Number(event.coefficient) > 0 &&
+      hasThiefTrait(context.config, TRAIT.UNRELENTING_STRIKES),
+    expectedProgress: {
+      get: (context: ThiefResolverContext) =>
+        traitCriticalProgress(context, TRAIT.UNRELENTING_STRIKES),
+      set: (context: ThiefResolverContext, value: number) =>
+        setTraitCriticalProgress(context, TRAIT.UNRELENTING_STRIKES, value),
+    },
+    internalCooldown: {
+      duration: 8,
+      readyAt: (context: ThiefResolverContext) =>
+        Number(
+          professionCoreState(context).traitProcReadyAt[
+            TRAIT.UNRELENTING_STRIKES
+          ] || 0,
+        ),
+      setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
+        professionCoreState(context).traitProcReadyAt[
+          TRAIT.UNRELENTING_STRIKES
+        ] = readyAt;
+      },
+    },
+    attribution: {
+      kind: "trait" as const,
+      id: TRAIT.UNRELENTING_STRIKES,
+    },
+    handler: (context: ThiefResolverContext, event: ThiefResolverEvent) =>
+      queueThiefBoon(context, event, {
+        traitId: TRAIT.UNRELENTING_STRIKES,
+        traitName: "Unrelenting Strikes",
+        boon: "Fury",
+        duration: 4,
+        recipients: "party",
+      }),
+  }),
+  noQuarter: Object.freeze({
+    id: "thief.no-quarter",
+    order: 20,
+    actorTypes: ["player"] as const,
+    when: (
+      context: ThiefResolverContext,
+      event: ThiefResolverEvent,
+      details: ThiefResolverReactionDetails,
+    ) =>
+      Boolean(details.hitContext?.critEligible) &&
+      Number(event.coefficient) > 0 &&
+      hasThiefTrait(context.config, TRAIT.NO_QUARTER) &&
+      context.query.furyActiveAt(event.at, context, event),
+    expectedProgress: {
+      get: (context: ThiefResolverContext) =>
+        traitCriticalProgress(context, TRAIT.NO_QUARTER),
+      set: (context: ThiefResolverContext, value: number) =>
+        setTraitCriticalProgress(context, TRAIT.NO_QUARTER, value),
+    },
+    internalCooldown: {
+      duration: 2,
+      readyAt: (context: ThiefResolverContext) =>
+        Number(
+          professionCoreState(context).traitProcReadyAt[TRAIT.NO_QUARTER] || 0,
+        ),
+      setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
+        professionCoreState(context).traitProcReadyAt[TRAIT.NO_QUARTER] =
+          readyAt;
+      },
+    },
+    attribution: { kind: "trait" as const, id: TRAIT.NO_QUARTER },
+    handler: (context: ThiefResolverContext, event: ThiefResolverEvent) =>
+      extendActiveFury(context, event, 2),
+  }),
+});
+
+export function reactToThiefCoreBuff(
+  context: ThiefResolverContext,
+  event: ThiefResolverEvent,
+): void {
+  if (
+    String(event.kind || "").toLowerCase() !== "fury" ||
+    event.affectsSelf === false ||
+    !hasThiefTrait(context.config, TRAIT.ASSASSINS_FURY)
+  )
+    return;
+  const state = professionCoreState(context);
+  const readyAt = Number(state.traitProcReadyAt[TRAIT.ASSASSINS_FURY] || 0);
+  if (event.at + EPSILON < readyAt) return;
+  state.traitProcReadyAt[TRAIT.ASSASSINS_FURY] = event.at + 2;
+  queueThiefBoon(context, event, {
+    traitId: TRAIT.ASSASSINS_FURY,
+    traitName: "Assassin's Fury",
+    boon: "Might",
+    duration: 8,
+    stacks: 3,
+  });
+}
 
 function enqueueSiphon(
   context: ThiefResolverContext,

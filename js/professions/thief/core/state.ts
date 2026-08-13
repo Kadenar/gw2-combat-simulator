@@ -112,6 +112,7 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     assassinsSignetPassiveDisabledUntil: 0,
     availableFlips: {},
     autoattackChains: {},
+    traitProcProgress: {},
     traitProcReadyAt: {},
   };
 }

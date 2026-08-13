@@ -548,6 +548,7 @@ export interface ProfessionAppDefinition extends ProfessionRuntimeApi {
 export interface Gw2SimulationConfigOptions {
   readonly app: ProfessionAppState;
   readonly attributeData: ProfessionAttributeData;
+  readonly attributeDataByWeaponSet?: readonly ProfessionAttributeData[];
   readonly specialization: string;
   readonly disabled?: ProfessionModifier | null;
   readonly selectedTraits?: readonly string[];

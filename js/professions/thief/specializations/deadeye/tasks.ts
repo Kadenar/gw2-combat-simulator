@@ -1,6 +1,7 @@
 import { emitThiefState } from "../../core/shared.js";
 import type { ThiefScheduledTask, ThiefSchedulerContext } from "../../types.js";
 import { deadeyeState } from "./state.js";
+import { resolveDeadeyeMaliceHit } from "./mechanics.js";
 
 export function expireDeadeyesMark(
   context: ThiefSchedulerContext,
@@ -22,4 +23,5 @@ export function expireDeadeyesMark(
 
 export const deadeyeTaskHandlers = Object.freeze({
   "thief.deadeye-mark-expire": expireDeadeyesMark,
+  "thief.deadeye-malice-hit": resolveDeadeyeMaliceHit,
 });

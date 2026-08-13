@@ -39,6 +39,19 @@ export function gw2SigilSet(config: Gw2Config, weaponSet = 1): Gw2SigilSet {
   return config.sigilSets?.[Math.max(1, Number(weaponSet || 1)) - 1] || {};
 }
 
+/** Returns the configured attributes for a one-based weapon set. */
+export function gw2StatsForWeaponSet(
+  config: Gw2Config,
+  weaponSet = config.startingWeaponSet,
+): Gw2Stats {
+  const index = Number(weaponSet) === 2 ? 1 : 0;
+  return {
+    ...(config.attributes || {}),
+    ...(config.stats || {}),
+    ...(config.weaponSetStats?.[index] || {}),
+  };
+}
+
 /**
  * @param {Gw2Config} config
  * @param {number | boolean} [mightStacks]
@@ -47,22 +60,23 @@ export function gw2SigilSet(config: Gw2Config, weaponSet = 1): Gw2SigilSet {
 export function gw2StaticAttributes(
   config: Gw2Config,
   mightStacks: number | boolean | undefined = config.boons?.might,
+  weaponSet = config.startingWeaponSet,
 ): Gw2ResolvedStats {
-  const mightBonus =
-    MIGHT_ATTRIBUTE_BONUS_PER_STACK * Number(mightStacks || 0);
+  const mightBonus = MIGHT_ATTRIBUTE_BONUS_PER_STACK * Number(mightStacks || 0);
+  const stats = gw2StatsForWeaponSet(config, weaponSet);
   return {
-    power: Number(config.stats?.power || 0) + mightBonus,
-    precision: Number(config.stats?.precision || 0),
-    toughness: Number(config.stats?.toughness || 0),
-    vitality: Number(config.stats?.vitality || 0),
-    ferocity: Number(config.stats?.ferocity || 0),
-    conditionDamage: Number(config.stats?.conditionDamage || 0) + mightBonus,
-    expertise: Number(config.stats?.expertise || 0),
-    concentration: Number(config.stats?.concentration || 0),
-    healingPower: Number(config.stats?.healingPower || 0),
-    conditionDurationBonus: Number(config.stats?.conditionDurationBonus || 0),
+    power: Number(stats.power || 0) + mightBonus,
+    precision: Number(stats.precision || 0),
+    toughness: Number(stats.toughness || 0),
+    vitality: Number(stats.vitality || 0),
+    ferocity: Number(stats.ferocity || 0),
+    conditionDamage: Number(stats.conditionDamage || 0) + mightBonus,
+    expertise: Number(stats.expertise || 0),
+    concentration: Number(stats.concentration || 0),
+    healingPower: Number(stats.healingPower || 0),
+    conditionDurationBonus: Number(stats.conditionDurationBonus || 0),
     conditionDurationBonuses: {
-      ...(config.stats?.conditionDurationBonuses || {}),
+      ...(stats.conditionDurationBonuses || {}),
     },
   };
 }

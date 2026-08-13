@@ -711,6 +711,95 @@ test("Exposed Weakness multiplies separately from additive strike bonuses", () =
   assert.ok(Math.abs(damage(exposed) / damage(baseline) - 1.04) < 1e-12);
 });
 
+test("Critical Strikes applies runtime Fury, No Quarter, and multiplicative modifiers", () => {
+  const criticalConfig = {
+    primaryWeapon: "Sword",
+    secondaryWeapon: "Pistol",
+    selectedSkills: [],
+    stats: { power: 2000, precision: 5000, ferocity: 0 },
+    target: { armor: 2597, defiant: true, health: 1_000_000 },
+    boons: { fury: false },
+  };
+  const flawlessHits = (result) =>
+    result.resolvedEvents.filter(
+      (event) =>
+        event.type === "damage" && event.skillName === "Flawless Execution",
+    );
+  const unrelenting = simulate("Daredevil", ["Flawless Execution"], {
+    ...criticalConfig,
+    selectedTraitIds: [TRAIT.UNRELENTING_STRIKES],
+  });
+  const withNoQuarter = simulate(
+    "Daredevil",
+    ["Flawless Execution", { type: "wait", durationMs: 3700 }, "Slice"],
+    {
+      ...criticalConfig,
+      selectedTraitIds: [TRAIT.UNRELENTING_STRIKES, TRAIT.NO_QUARTER],
+    },
+  );
+  const firstFlawless = flawlessHits(withNoQuarter);
+  assert.equal(firstFlawless[0].criticalDamage, 1.5);
+  assert.equal(firstFlawless[1].criticalDamage, 1.5 + 250 / 1500);
+  const extendedFurySlice = withNoQuarter.resolvedEvents.find(
+    (event) => event.type === "damage" && event.skillName === "Slice",
+  );
+  assert.equal(extendedFurySlice.criticalDamage, 1.5 + 250 / 1500);
+  assert.equal(
+    withNoQuarter.profession.traitProcReadyAt[TRAIT.UNRELENTING_STRIKES],
+    firstFlawless[0].at + 8,
+  );
+  assert.equal(
+    withNoQuarter.profession.traitProcReadyAt[TRAIT.NO_QUARTER],
+    extendedFurySlice.at + 2,
+  );
+
+  const withAssassinsFury = simulate("Daredevil", ["Flawless Execution"], {
+    ...criticalConfig,
+    selectedTraitIds: [TRAIT.UNRELENTING_STRIKES, TRAIT.ASSASSINS_FURY],
+  });
+  assert.ok(
+    Math.abs(
+      flawlessHits(withAssassinsFury)[1].damage /
+        flawlessHits(unrelenting)[1].damage -
+        2090 / 2000,
+    ) < 1e-9,
+  );
+  assert.equal(
+    withAssassinsFury.profession.traitProcReadyAt[TRAIT.ASSASSINS_FURY],
+    flawlessHits(withAssassinsFury)[0].at + 2,
+  );
+
+  const modifierConfig = {
+    stats: { power: 2000, precision: 1000, ferocity: 0 },
+    target: { armor: 2597, defiant: true, health: 1_000_000 },
+  };
+  const strike = (selectedTraitIds, target = modifierConfig.target) =>
+    simulate("Daredevil", ["Slice"], {
+      ...modifierConfig,
+      target,
+      primaryWeapon: "Sword",
+      secondaryWeapon: "Pistol",
+      selectedTraitIds,
+    }).resolvedEvents.find((event) => event.type === "damage");
+  assert.equal(strike([TRAIT.KEEN_OBSERVER]).criticalChance, 0.2);
+  assert.ok(Math.abs(strike([TRAIT.TWIN_FANGS]).criticalChance - 0.12) < 1e-12);
+  assert.ok(
+    Math.abs(
+      strike([TRAIT.TWIN_FANGS], {
+        ...modifierConfig.target,
+        defiant: false,
+        behind: true,
+      }).criticalChance - 0.05,
+    ) < 1e-12,
+  );
+  assert.ok(
+    Math.abs(
+      strike([TRAIT.TWIN_FANGS, TRAIT.FEROCIOUS_STRIKES]).criticalDamage -
+        1.5 * 1.07 * 1.1,
+    ) < 1e-12,
+  );
+});
+
 test("Daredevil benchmark skills and endurance traits use supplied values", () => {
   const expectedQuicknessTimes = new Map([
     [ID.BACKSTAB, 320],
@@ -960,7 +1049,7 @@ test("Deadeye cantrips, malice, stolen skills, and traits are stateful", () => {
   assert.equal(result.endState.profession.markedTargetId, "primary-target");
   assert.equal(result.endState.profession.storedStolenSkillId, ID.STEAL_TIME);
   assert.equal(result.endState.profession.storedStolenSkillCount, 1);
-  assert.equal(result.endState.profession.malice, 5);
+  assert.equal(result.endState.profession.malice, 4);
   assert.ok(
     result.resolvedEvents.filter(
       (event) => event.skillName === "Death Blossom" && event.type === "damage",
@@ -1050,6 +1139,103 @@ test("Deadeye cantrips, malice, stolen skills, and traits are stateful", () => {
   assert.equal(expired.endState.profession.malice, 0);
 });
 
+test("Deadeye malice resolves on the first hit and malicious impact", () => {
+  const criticalConfig = {
+    selectedTraitIds: [TRAIT.MALICIOUS_INTENT],
+    stats: { precision: 5000 },
+    randomness: { mode: "stochastic", seed: 1 },
+  };
+  const criticalBurst = simulate(
+    "Deadeye",
+    ["Deadeye's Mark", "Death Blossom"],
+    criticalConfig,
+  );
+  const burstHits = criticalBurst.resolvedEvents.filter(
+    (event) => event.skillName === "Death Blossom" && event.type === "damage",
+  );
+  assert.equal(burstHits.length, 3);
+  assert.ok(burstHits.every((event) => event.didCrit === true));
+  assert.equal(criticalBurst.endState.profession.malice, 4);
+
+  const noncriticalBurst = simulate(
+    "Deadeye",
+    ["Deadeye's Mark", "Death Blossom"],
+    {
+      stats: { precision: 0 },
+      randomness: { mode: "stochastic", seed: 1 },
+    },
+  );
+  assert.equal(noncriticalBurst.endState.profession.malice, 1);
+
+  const earlyMercy = simulate(
+    "Deadeye",
+    [
+      "Deadeye's Mark",
+      "Kneel",
+      "Three Round Burst",
+      { name: "Mercy", offset: 100 },
+    ],
+    {
+      ...criticalConfig,
+      initialInitiative: 4,
+      primaryWeapon: "Rifle",
+      secondaryWeapon: "",
+      selectedSkills: ["Mercy"],
+    },
+  );
+  const earlyMercyState = earlyMercy.events.find(
+    (event) => event.type === "thief.state" && event.reason === "mercy",
+  ).state;
+  assert.ok(Math.abs(earlyMercyState.initiative - 5.133333333333333) < 1e-9);
+  assert.equal(earlyMercy.endState.profession.malice, 2);
+
+  const rifleRotation = [
+    "Deadeye's Mark",
+    "Kneel",
+    "Three Round Burst",
+    "Shadow Meld",
+    "Malicious Death's Judgment",
+  ];
+  const rifleConfig = {
+    ...criticalConfig,
+    primaryWeapon: "Rifle",
+    secondaryWeapon: "",
+    selectedSkills: ["Mercy", "Shadow Meld"],
+  };
+  const ordinaryShot = simulate("Deadeye", rifleRotation, rifleConfig);
+  const mercyShot = simulate(
+    "Deadeye",
+    [...rifleRotation, { name: "Mercy", offset: 100 }],
+    rifleConfig,
+  );
+  const maliciousEvent = (result) =>
+    result.resolvedEvents.find(
+      (event) =>
+        event.skillName === "Malicious Death's Judgment" &&
+        event.type === "damage",
+    );
+  const ordinaryEvent = maliciousEvent(ordinaryShot);
+  const mercyEvent = maliciousEvent(mercyShot);
+  const mercyStep = mercyShot.steps.find((step) => step.skill === "Mercy");
+  const maliceSpent = mercyShot.events.find(
+    (event) => event.type === "thief.state" && event.reason === "malice-spent",
+  );
+  assert.equal(mercyEvent.deadeyeMaliceSnapshot, 5);
+  assert.equal(mercyEvent.damage, ordinaryEvent.damage);
+  assert.equal(maliceSpent.at, mercyEvent.at);
+  assert.ok(maliceSpent.at > mercyStep.start / 1000);
+
+  const remarked = simulate(
+    "Deadeye",
+    ["Deadeye's Mark", "Death Blossom", "Deadeye's Mark"],
+    {
+      stats: { precision: 5000 },
+      randomness: { mode: "stochastic", seed: 1 },
+    },
+  );
+  assert.equal(remarked.endState.profession.malice, 2);
+});
+
 test("Deadeye strike modifiers, grandmasters, and stealth attacks use supplied values", () => {
   const skillDamage = (result, name) =>
     result.breakdown.find(
@@ -1087,7 +1273,11 @@ test("Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     (event) => event.skillName === "Steal Time" && event.type === "damage",
   );
   assert.equal(stealTimeStrike.coefficient, 1);
-  assert.equal(plainStealTimeEvent.weaponStrengthProfileId, "weapon.dagger");
+  assert.equal(
+    plainStealTimeEvent.weaponStrengthProfileId,
+    "nonweapon.profession-mechanic",
+  );
+  assert.equal(plainStealTimeEvent.resolvedWeaponStrength, 1100);
   const chamberStolen = simulate("Deadeye", ["Deadeye's Mark", "Steal Time"], {
     ...fullCrit,
     selectedTraitIds: [TRAIT.ONE_IN_THE_CHAMBER],
@@ -2644,10 +2834,47 @@ test("Power quickness Deadeye sword-pistol preset runs the supplied EVTC profile
       .filter(
         (event) => event.skillName === "Steal Time" && event.type === "damage",
       )
-      .every((event) => event.weaponStrengthProfileId === "weapon.sword"),
+      .every(
+        (event) =>
+          event.weaponStrengthProfileId === "nonweapon.profession-mechanic",
+      ),
   );
   assert.equal(skillHits("Malicious Tactical Strike"), 18);
   assert.equal(skillHits("Flawless Execution"), 420);
+  const firstFlawlessHit = result.resolvedEvents.find(
+    (event) =>
+      event.type === "damage" && event.skillName === "Flawless Execution",
+  );
+  const firstFlawlessAction = result.events.find(
+    (event) =>
+      event.type === "action" &&
+      event.activationId === firstFlawlessHit.activationId,
+  );
+  assert.deepEqual(
+    result.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === "damage" &&
+          event.activationId === firstFlawlessHit.activationId,
+      )
+      .map((event) => [
+        event.name,
+        Number(((event.at - firstFlawlessAction.at) * 1000).toFixed(1)),
+      ]),
+    [
+      ["Projectile Damage", 320.4],
+      ["Flawless Execution — Packet 1", 400.3],
+      ["Projectile Damage", 439.7],
+      ["Projectile Damage", 519.2],
+      ["Flawless Execution — Packet 1", 559.7],
+      ["Projectile Damage", 640.2],
+      ["Flawless Execution — Packet 1", 718.9],
+      ["Projectile Damage", 760.1],
+      ["Projectile Damage", 840.5],
+      ["Final Slash Damage", 1240.4],
+    ],
+  );
+  assertBenchmarkDamage("Steal Time", 425986);
   assertBenchmarkDamage("Malicious Tactical Strike", 387598);
   assertBenchmarkDamage("Flawless Execution", 2140771);
   assert.ok(
@@ -2750,7 +2977,7 @@ test("Power quickness Deadeye rifle preset runs the supplied EVTC profile", asyn
   assert.deepEqual(result.warnings, []);
   assert.equal(castCount("Kneel"), 1);
   assert.equal(castCount("Deadly Aim"), 64);
-  assert.equal(castCount("Three Round Burst"), 47);
+  assert.equal(castCount("Three Round Burst"), 46);
   assert.equal(castCount("Malicious Death's Judgment"), 28);
   assert.equal(castCount("Deadeye's Mark"), 10);
   assert.equal(castCount("Steal Time"), 29);
@@ -2779,6 +3006,15 @@ test("Power quickness Deadeye rifle preset runs the supplied EVTC profile", asyn
     JSON.stringify({
       totalDamage: result.totalDamage,
       benchmarkDamage: savedRotation.metadata.benchmarkDamage,
+    }),
+  );
+  assert.ok(
+    Math.abs(
+      result.duration / savedRotation.metadata.benchmarkDurationSeconds - 1,
+    ) < 0.01,
+    JSON.stringify({
+      duration: result.duration,
+      benchmarkDuration: savedRotation.metadata.benchmarkDurationSeconds,
     }),
   );
 });
@@ -3040,7 +3276,7 @@ test("Condition Daredevil dagger-dagger preset matches the supplied EVTC", async
   assert.equal(castCount("Steal"), 6);
   assert.equal(castCount("Dodge"), 37);
   assert.equal(castCount("Death Blossom"), 32);
-  assert.equal(castCount("Double Strike"), 33);
+  assert.equal(castCount("Double Strike"), 31);
   assert.equal(castCount("Wild Strike"), 30);
   assert.equal(castCount("Lotus Strike"), 30);
   assert.equal(castCount("Channeled Vigor"), 6);

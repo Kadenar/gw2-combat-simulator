@@ -112,6 +112,7 @@ export interface ThiefCoreState {
   assassinsSignetPassiveDisabledUntil: number;
   availableFlips: Record<string, number>;
   autoattackChains: Record<string, SkillId>;
+  traitProcProgress: Record<string, number>;
   traitProcReadyAt: Record<string, number>;
 }
 
@@ -131,6 +132,7 @@ export interface DeadeyeState {
   malice: number;
   maximumMalice: number;
   maliceCriticalProgress: number;
+  maliceResolvedActivations: Record<string, boolean>;
   maleficentSevenTriggered: boolean;
   deadeyeRelicUntil: number;
   stealthAttackCharges: number;
@@ -307,6 +309,7 @@ export type ThiefSimulationEvent = SimulationEvent & {
   readonly cancelled?: boolean;
   readonly coefficient?: number;
   readonly condition?: string;
+  readonly deadeyeMaliceSnapshot?: number;
   readonly reason?: string;
   readonly state?: Partial<ThiefState>;
   readonly triggeredByAlly?: number;
@@ -315,6 +318,7 @@ export type ThiefSimulationEvent = SimulationEvent & {
 export type ThiefResolverEvent = Gw2ResolverEvent & {
   readonly application?: ThiefResolverEvent;
   readonly bonusAboveNinetyStacks?: number;
+  readonly deadeyeMaliceSnapshot?: number;
   readonly lifeSiphon?: boolean;
   readonly state?: Partial<ThiefState>;
   readonly triggeredByAlly?: number;

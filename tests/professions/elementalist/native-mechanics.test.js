@@ -103,6 +103,10 @@ function runNative(options) {
   });
 }
 
+function resolvedAndScheduledEvents(result) {
+  return [...(result.events || []), ...(result.resolvedEvents || [])];
+}
+
 test("Tempest mechanics execute through native hooks", () => {
   const result = runNative({
     lines: [["Fire"], ["Air"], ["Tempest"]],
@@ -124,6 +128,29 @@ test("Tempest mechanics execute through native hooks", () => {
   assert.equal(result.endState.profession.primaryAttunement, "Fire");
 });
 
+test("Tempest overloads activate Relic of Fireworks as profession mechanics", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Tempest"]],
+    rotation: ["Overload Air"],
+    startAttunement: "Air",
+    targetHealth: 0,
+  });
+
+  assert.equal(
+    result.events
+      .filter(
+        (event) =>
+          event.type === "damage" && event.skillName === "Overload Air",
+      )
+      .every((event) => event.skillWeapon === "Profession mechanic"),
+    true,
+  );
+  assert.equal(
+    result.procSteps.some((step) => step.skill === "Relic of Fireworks"),
+    true,
+  );
+});
+
 test("Catalyst mechanics execute through native hooks", () => {
   const result = runNative({
     lines: [["Fire"], ["Air"], ["Catalyst"]],
@@ -133,8 +160,11 @@ test("Catalyst mechanics execute through native hooks", () => {
   assert.equal(result.endState.profession.energy, 20);
   assert.equal(result.endState.profession.maximumEnergy, 30);
   assert.equal(
-    result.events.some(
-      (event) => event.type === "buff" && event.source === "Combo (Fire/Blast)",
+    resolvedAndScheduledEvents(result).some(
+      (event) =>
+        event.type === "elementalist.combo" &&
+        event.field === "Fire" &&
+        event.finisherType === "Blast",
     ),
     true,
   );
@@ -173,6 +203,30 @@ test("Fresh Air resets both Air Attunement and Overload Air", () => {
   assert.equal(result.endState.profession.attunementReadyAt.Air, proc.at);
   assert.equal(result.endState.cooldowns["Air Attunement"], undefined);
   assert.equal(result.endState.cooldowns["Overload Air"], undefined);
+});
+
+test("Fresh Air lookahead preserves a scheduled reset across an intervening attunement", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air", "3-3-2"], ["Tempest", "3-1-2"]],
+    weapons: ["Hammer", ""],
+    rotation: [
+      "Earth Attunement",
+      "Rocky Loop",
+      "Water Attunement",
+      "Air Attunement",
+    ],
+    startAttunement: "Air",
+    targetHealth: 0,
+  });
+  const air = result.steps.find((step) => step.skill === "Air Attunement");
+  const reset = result.events.find(
+    (event) =>
+      event.type === "elementalist.fresh-air" &&
+      event.sourceSkill === "Rocky Loop",
+  );
+
+  assert.equal(Math.round(reset.at * 1000), 2000);
+  assert.equal(air.start, 2000);
 });
 
 test("attunement swaps start labeled rotation timeline rows", () => {
@@ -1061,6 +1115,20 @@ test("Pistol bullets grant, consume, and apply their payload", () => {
     ),
     true,
   );
+
+  const explosion = runNative({
+    lines: [["Fire"], ["Air"], ["Arcane"]],
+    rotation: ["Elemental Explosion"],
+    weapons: ["Pistol", "Warhorn"],
+  });
+  assert.deepEqual(explosion.warnings, []);
+  assert.equal(
+    explosion.events.some(
+      (event) =>
+        event.type === "action" && event.skillName === "Elemental Explosion",
+    ),
+    true,
+  );
 });
 
 test("Hammer orbs block reuse and Grand Finale cancels future packets", () => {
@@ -1090,6 +1158,61 @@ test("Hammer orbs block reuse and Grand Finale cancels future packets", () => {
     ),
     true,
   );
+  const finale = result.events.find(
+    (event) => event.type === "action" && event.skillName === "Grand Finale",
+  );
+  const finaleHits = result.events.filter(
+    (event) => event.type === "damage" && event.skillName === "Grand Finale",
+  );
+  assert.equal(finaleHits.length, 1);
+  assert.equal(finaleHits[0].coefficient, 1.4);
+  assert.ok(Math.abs(finaleHits[0].at - finale.endsAt - 0.68) < 0.001);
+});
+
+test("Hammer orbs emit fifteen one-second packets and feed Fresh Air", () => {
+  const packets = runNative({
+    lines: [["Fire"], ["Air"], ["Arcane"]],
+    rotation: ["Flame Wheel", 16000],
+    weapons: ["Hammer", ""],
+    startAttunement: "Fire",
+  });
+  const strikes = packets.events.filter(
+    (event) => event.type === "damage" && event.skillName === "Flame Wheel",
+  );
+  const burning = packets.events.filter(
+    (event) => event.type === "condition" && event.skillName === "Flame Wheel",
+  );
+
+  assert.deepEqual(
+    strikes.map((event) => Math.round(event.at * 1000)),
+    Array.from({ length: 15 }, (_, index) => (index + 1) * 1000),
+  );
+  assert.equal(burning.length, 15);
+  assert.ok(
+    burning.every(
+      (event) =>
+        event.condition === "Burning" &&
+        event.stacks === 1 &&
+        event.duration === 0.75,
+    ),
+  );
+
+  const freshAir = runNative({
+    lines: [["Fire"], ["Air", "3-3-2"], ["Arcane"]],
+    rotation: ["Fire Attunement", "Flame Wheel", "Air Attunement"],
+    weapons: ["Hammer", ""],
+    startAttunement: "Air",
+  });
+  const returnToAir = freshAir.events.find(
+    (event) => event.type === "elementalist.attunement" && event.to === "Air",
+  );
+  const reset = freshAir.events.find(
+    (event) => event.type === "elementalist.fresh-air",
+  );
+
+  assert.ok(reset);
+  assert.equal(returnToAir.at, reset.at);
+  assert.ok(returnToAir.at < 8);
 });
 
 test("Spear etchings upgrade after three other casts", () => {
@@ -1119,6 +1242,10 @@ test("Alacrity shortens overload dwell and Lucid Singularity follows hit timing"
     lines: [["Fire"], ["Air"], ["Tempest", "1-2-2"]],
     rotation: ["Overload Fire"],
     startAttunement: "Fire",
+    assumptions: {
+      ...elementalistProfession.createBuildDefaults().assumptions,
+      startingAttunementPreDwelled: false,
+    },
   });
   const overload = result.events.find(
     (event) => event.type === "action" && event.skillName === "Overload Fire",
@@ -1130,6 +1257,59 @@ test("Alacrity shortens overload dwell and Lucid Singularity follows hit timing"
   assert.ok(Math.abs(overload.at - 4.8) < 0.001);
   assert.equal(alacrity.length, 5);
   assert.ok(alacrity[4].duration > alacrity[0].duration * 4);
+});
+
+test("a pre-dwelled starting attunement can overload immediately", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Tempest", "3-2-1"]],
+    rotation: ["Overload Air"],
+    startAttunement: "Air",
+  });
+  const overload = result.events.find(
+    (event) => event.type === "action" && event.skillName === "Overload Air",
+  );
+
+  assert.equal(overload.at, 0);
+});
+
+test("Transcendent Tempest precedes same-time Overload completion damage", () => {
+  const withTrait = runNative({
+    lines: [["Fire"], ["Air"], ["Tempest", "3-2-1"]],
+    rotation: ["Overload Air"],
+    startAttunement: "Air",
+  });
+  const withoutTrait = runNative({
+    lines: [["Fire"], ["Air"], ["Tempest", "3-2-2"]],
+    rotation: ["Overload Air"],
+    startAttunement: "Air",
+  });
+  const action = withTrait.events.find(
+    (event) => event.type === "action" && event.skillName === "Overload Air",
+  );
+  const buff = withTrait.events.find(
+    (event) => event.type === "buff" && event.kind === "transcendent-tempest",
+  );
+  const damageAtCompletion = (result, name) =>
+    result.resolvedEvents
+      .filter((event) => event.type === "damage" && event.skillName === name)
+      .sort((left, right) => left.at - right.at)
+      .at(-1);
+  const finalWithTrait = damageAtCompletion(withTrait, "Overload Air");
+  const finalWithoutTrait = damageAtCompletion(withoutTrait, "Overload Air");
+  const joltWithTrait = damageAtCompletion(withTrait, "Lightning Jolt");
+  const joltWithoutTrait = damageAtCompletion(withoutTrait, "Lightning Jolt");
+  const completionOrder = withTrait.events
+    .filter((event) => Math.abs(event.at - action.endsAt) < 0.0001)
+    .map((event) => event.kind || event.skillName);
+
+  assert.equal(buff.at, action.endsAt);
+  assert.equal(buff.priority, -10);
+  assert.ok(
+    completionOrder.indexOf("transcendent-tempest") <
+      completionOrder.indexOf("Lightning Jolt"),
+  );
+  assert.equal(finalWithTrait.damage, finalWithoutTrait.damage);
+  assert.ok(joltWithTrait.damage > joltWithoutTrait.damage * 1.2);
 });
 
 test("Evoker familiar flip interruption cancels both familiar attacks", () => {
@@ -1209,6 +1389,20 @@ test("core damage traits expose their exact resolver modifiers", () => {
     lines: [["Fire"], ["Air"], ["Tempest"]],
   });
   assert.equal(tempest.attributeData.attributes.Concentration.traits, 240);
+
+  const persistingFlames = runNative({
+    lines: [["Fire", "1-3-1"], ["Air"], ["Tempest"]],
+    rotation: ["Flame Uprising", 5000],
+    startAttunement: "Fire",
+    weapons: ["Sword", "Warhorn"],
+  });
+  assert.equal(
+    persistingFlames.events.filter(
+      (event) =>
+        event.type === "damage" && event.skillName === "Flame Uprising",
+    ).length,
+    5,
+  );
 });
 
 test("core attunement and aura traits emit named boon and damage payloads", () => {
@@ -1286,6 +1480,30 @@ test("core attunement and aura traits emit named boon and damage payloads", () =
     earth.procSteps.some((step) => step.skill === "Earthen Blast"),
     true,
   );
+
+  const strength = runNative({
+    lines: [["Earth", "1-1-2"], ["Water"], ["Air"]],
+    rotation: ["Signet of Earth"],
+    startAttunement: "Earth",
+    selectedSkills: {
+      Heal: "Glyph of Elemental Harmony",
+      Utility1: "Signet of Earth",
+      Utility2: "Signet of Fire",
+      Utility3: "Arcane Wave",
+      Elite: "Glyph of Elementals",
+    },
+  });
+  const strengthBleeds = resolvedAndScheduledEvents(strength).filter(
+    (event) =>
+      event.type === "condition" && event.source === "Strength of Stone",
+  );
+  assert.equal(strengthBleeds.length, 1);
+  assert.equal(strengthBleeds[0].stacks, 3);
+  assert.equal(strengthBleeds[0].duration, 10);
+  assert.equal(
+    strength.procSteps.some((step) => step.skill === "Strength of Stone"),
+    true,
+  );
 });
 
 test("core critical-hit and control traits enforce their proc rules", () => {
@@ -1302,13 +1520,15 @@ test("core critical-hit and control traits enforce their proc rules", () => {
     "Arcane Precision",
   ]) {
     assert.equal(
-      critical.events.some((event) => event.source === source),
+      resolvedAndScheduledEvents(critical).some(
+        (event) => event.source === source,
+      ),
       true,
       source,
     );
   }
   assert.equal(
-    critical.events.some(
+    resolvedAndScheduledEvents(critical).some(
       (event) =>
         event.source === "Lightning Rod" &&
         event.type === "condition" &&
@@ -1346,6 +1566,10 @@ test("Tempest traits enforce overload dwell, auras, boons, and damage windows", 
     lines: [["Fire"], ["Air"], ["Tempest", "3-2-1"]],
     rotation: ["Overload Fire"],
     startAttunement: "Fire",
+    assumptions: {
+      ...elementalistProfession.createBuildDefaults().assumptions,
+      startingAttunementPreDwelled: false,
+    },
   });
   const overload = offensive.events.find(
     (event) => event.type === "action" && event.skillName === "Overload Fire",
@@ -1382,7 +1606,11 @@ test("Tempest traits enforce overload dwell, auras, boons, and damage windows", 
 
   const healingAndShout = runNative({
     lines: [["Fire"], ["Air"], ["Tempest", "1-1-1"]],
-    rotation: ["Glyph of Elemental Harmony", "Aftershock!"],
+    rotation: [
+      { name: "__combat_start" },
+      "Glyph of Elemental Harmony",
+      "Aftershock!",
+    ],
     selectedSkills: {
       Heal: "Glyph of Elemental Harmony",
       Utility1: "Aftershock!",
@@ -1396,9 +1624,7 @@ test("Tempest traits enforce overload dwell, auras, boons, and damage windows", 
     true,
   );
   assert.equal(
-    healingAndShout.events.some(
-      (event) => event.type === "buff" && event.kind === "tempestuous aria",
-    ),
+    healingAndShout.procSteps.some((step) => step.skill === "Tempestuous Aria"),
     true,
   );
 
@@ -1512,7 +1738,7 @@ test("Catalyst traits enforce energy, empowerment, aura, and sphere rules", () =
     true,
   );
   assert.equal(
-    sphere.events.some(
+    resolvedAndScheduledEvents(sphere).some(
       (event) =>
         event.type === "elementalist.aura" &&
         event.source === "Elemental Epitome",
@@ -1541,21 +1767,19 @@ test("Catalyst traits enforce energy, empowerment, aura, and sphere rules", () =
     ],
     initialCatalystEnergy: 30,
   });
-  for (const source of [
-    "Elemental Synergy",
-    "Vicious Empowerment",
-    "Elemental Epitome",
-  ]) {
+  for (const source of ["Elemental Synergy", "Elemental Epitome"]) {
     assert.equal(
-      control.events.some((event) => event.source === source),
+      control.procSteps.some((step) => step.skill === source),
       true,
       source,
     );
   }
   assert.equal(
-    control.events.some(
-      (event) => event.type === "buff" && event.kind === "empowering auras",
-    ),
+    control.events.some((event) => event.source === "Vicious Empowerment"),
+    true,
+  );
+  assert.equal(
+    control.procSteps.some((step) => step.skill === "Empowering Auras"),
     true,
   );
 });
@@ -1738,6 +1962,78 @@ test("Fire Elemental autonomously alternates Flame Burst and Fireball", () => {
     Infinity,
   );
   assert.equal(result.endState.cooldowns["Glyph of Elementals"], undefined);
+});
+
+test("reference elemental profile replays fixed Glyph packets without an actor", () => {
+  const runReference = (booned) =>
+    runNative({
+      lines: [["Fire"], ["Air"], ["Arcane"]],
+      rotation: ["Glyph of Elementals", 2000],
+      selectedSkills: {
+        Heal: "Glyph of Elemental Harmony",
+        Utility1: "Arcane Blast",
+        Utility2: "Signet of Fire",
+        Utility3: "Arcane Wave",
+        Elite: "Glyph of Elementals",
+      },
+      assumptions: {
+        ...elementalistProfession.createBuildDefaults().assumptions,
+        elementalSimulationProfile: "reference",
+        glyphBoonedElementals: booned,
+      },
+    });
+  const unbooned = runReference(false);
+  const booned = runReference(true);
+  const action = unbooned.events.find(
+    (event) =>
+      event.type === "action" && event.skillName === "Glyph of Elementals",
+  );
+  const flatDamage = (result) =>
+    result.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === "damage" &&
+          event.skillName === "Glyph of Elementals" &&
+          event.at <= 2,
+      )
+      .reduce((total, event) => total + event.damage, 0);
+
+  assert.equal(action.at, action.endsAt);
+  assert.equal(action.rechargeReadyAt, 152);
+  assert.equal(
+    unbooned.events.some((event) => event.actorType === "summon"),
+    false,
+  );
+  assert.deepEqual(
+    unbooned.events
+      .filter(
+        (event) =>
+          event.type === "damage" &&
+          event.skillName === "Glyph of Elementals" &&
+          event.at <= 2,
+      )
+      .map((event) => Math.round(event.at * 1000)),
+    [1280, 1480, 1680, 1960],
+  );
+  assert.ok(Math.abs(flatDamage(booned) / flatDamage(unbooned) - 1.7) < 1e-12);
+});
+
+test("legacy snapshots select the explicit reference elemental profile", () => {
+  const build = elementalistAppAdapter.toApplicationBuild({
+    build: elementalistProfession.createBuildDefaults(),
+    glyphBoonedElementals: true,
+  });
+
+  assert.equal(build.assumptions.elementalSimulationProfile, "reference");
+  assert.equal(build.assumptions.glyphBoonedElementals, true);
+  assert.equal(build.assumptions.startingAttunementPreDwelled, true);
+
+  const evtc = elementalistAppAdapter.toApplicationBuild({
+    build: elementalistProfession.createBuildDefaults(),
+    elementalSimulationProfile: "evtc",
+    glyphBoonedElementals: false,
+  });
+  assert.equal(evtc.assumptions.elementalSimulationProfile, "evtc");
 });
 
 test("Flame Barrage replaces the active Glyph and obeys rotation timing", () => {
@@ -2002,7 +2298,7 @@ test("large Elementalist hitboxes extend Wildfire by two packets", () => {
     }),
   );
 
-  assert.deepEqual(counts, { small: 7, large: 9 });
+  assert.deepEqual(counts, { small: 9, large: 11 });
 });
 
 test("Elementalist actions expose Dodge and contextual conjure controls", () => {

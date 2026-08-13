@@ -1,6 +1,8 @@
 import { GUARDIAN_SKILL_IDS as ID } from "../../data/ids.js";
 import type { SkillFragment } from "../../../../platform/engine/types.js";
 
+export const PIERCING_STANCE_IMPACT_MS = 240;
+
 export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
   Object.freeze({
     [ID.EXIT_RADIANT_FORGE]: {
@@ -106,9 +108,15 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           type: "strike",
           coefficient: 2,
           hits: 1,
+          atMs: PIERCING_STANCE_IMPACT_MS,
+          timingAnchor: "castStart",
+          timingScale: "cast",
         },
         {
           type: "control",
+          atMs: PIERCING_STANCE_IMPACT_MS,
+          timingAnchor: "castStart",
+          timingScale: "cast",
           metadata: {
             controlKind: "daze",
             duration: 0.5,

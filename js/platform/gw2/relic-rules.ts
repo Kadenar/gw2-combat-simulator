@@ -40,6 +40,12 @@ const ARISTOCRACY_BONUS_PER_STACK = 0.03;
 const ARISTOCRACY_DURATION = 8;
 const ARISTOCRACY_INTERNAL_COOLDOWN = 1;
 const ARISTOCRACY_MAX_STACKS = 5;
+const NOURYS_STACK_INTERVAL = 3;
+const NOURYS_STACKS_NEEDED = 10;
+const NOURYS_BUFF_DURATION = 5;
+const NOURYS_DAMAGE_BONUS = 0.25;
+const NOURYS_CYCLE_DURATION =
+  NOURYS_STACK_INTERVAL * NOURYS_STACKS_NEEDED + NOURYS_BUFF_DURATION;
 
 interface AristocracyActivation {
   readonly at: number;
@@ -125,6 +131,33 @@ function explicitCombatStartTime(events: readonly SimulationEvent[]): number {
     }
   }
   return combatStartTime === Infinity ? -Infinity : combatStartTime;
+}
+
+function nourysCombatStart(
+  context: Gw2RelicRuntimeContext,
+  state: Gw2RelicState,
+): number {
+  const runtimeStart = Number(context.combatStartTime);
+  if (Number.isFinite(runtimeStart)) return runtimeStart;
+  const stateStart = Number(state.combatStartTime);
+  if (Number.isFinite(stateStart)) return stateStart;
+  const timelineStart = explicitCombatStartTime(
+    (state.timelineEvents as readonly SimulationEvent[] | undefined) || [],
+  );
+  return Number.isFinite(timelineStart) ? timelineStart : 0;
+}
+
+function nourysActiveAt(
+  context: Gw2RelicRuntimeContext,
+  state: Gw2RelicState,
+  at: number,
+): boolean {
+  const firstActivation =
+    nourysCombatStart(context, state) +
+    NOURYS_STACK_INTERVAL * NOURYS_STACKS_NEEDED;
+  if (at < firstActivation - EPSILON) return false;
+  const phase = (at - firstActivation) % NOURYS_CYCLE_DURATION;
+  return phase >= -EPSILON && phase < NOURYS_BUFF_DURATION - EPSILON;
 }
 
 function syncAristocracyTimeline(state: AristocracyState): void {
@@ -618,6 +651,43 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> =
       },
     }),
 
+    Nourys: defineRelic({
+      timeline(ctx, state, _events, rotationEndTime) {
+        const combatStart = nourysCombatStart(ctx, state);
+        state.combatStartTime = combatStart;
+        let stacks = 0;
+        for (
+          let at = combatStart + NOURYS_STACK_INTERVAL;
+          at <= rotationEndTime + EPSILON;
+        ) {
+          stacks += 1;
+          ctx.recordProc(
+            "skill",
+            "Nourys",
+            at,
+            "Combat duration",
+            `${stacks}/${NOURYS_STACKS_NEEDED} stacks`,
+          );
+          if (stacks >= NOURYS_STACKS_NEEDED) {
+            stacks = 0;
+            ctx.recordProc(
+              "relic",
+              "Relic of Nourys",
+              at,
+              "Nourys",
+              "activated",
+            );
+            at += NOURYS_BUFF_DURATION + NOURYS_STACK_INTERVAL;
+          } else {
+            at += NOURYS_STACK_INTERVAL;
+          }
+        }
+      },
+      outgoingDamageBonus(ctx, state, _damageType, at) {
+        return nourysActiveAt(ctx, state, at) ? NOURYS_DAMAGE_BONUS : 0;
+      },
+    }),
+
     Peitha: defineRelic({
       createState: () => ({ readyAt: 0, buffFrom: 0, buffUntil: 0 }),
       peitha(ctx, state, event, applyCondition) {
@@ -825,6 +895,18 @@ export function relicStrikeMultiplier(
   event: SimulationEvent,
 ): number {
   return Number(invokeRelicHook(ctx, "strikeMultiplier", event) ?? 1);
+}
+
+/** Returns the selected relic's contribution to the additive damage bucket. */
+export function relicOutgoingDamageBonus(
+  ctx: Gw2RelicRuntimeContext | null | undefined,
+  damageType: "strike" | "condition",
+  at: number,
+  event: SimulationEvent | null = null,
+): number {
+  return Number(
+    invokeRelicHook(ctx, "outgoingDamageBonus", damageType, at, event) ?? 0,
+  );
 }
 
 /** Materializes boon applications created by the selected relic. */

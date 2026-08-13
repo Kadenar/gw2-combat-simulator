@@ -44,6 +44,7 @@ export function createGuardianBuildDefaults(): GuardianCanonicalBuild {
       Weapon1: "Berserker's",
       Weapon2: "Berserker's",
     },
+    alternateWeaponPrefixes: ["Berserker's", "Berserker's"],
     weapons: ["Spear", ""],
     alternateWeapons: ["Greatsword", ""],
     rune: "Dragonhunter",
@@ -118,12 +119,9 @@ const guardianBuildCodec = createGw2BuildCodec({
   },
   validateExtra(build) {
     const errors = validateSimulationRandomnessAssumptions(build.assumptions);
-    if (
-      !(
-        Number(build.initialTomePages) >= 0 &&
-        Number(build.initialTomePages) <= 8
-      )
-    ) {
+    if (!(
+      Number(build.initialTomePages) >= 0 && Number(build.initialTomePages) <= 8
+    )) {
       errors.push("initialTomePages must be between 0 and 8.");
     }
     return errors;

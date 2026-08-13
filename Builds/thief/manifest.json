@@ -13,7 +13,7 @@
         "label": "Power Quickness (Rifle)",
         "build": "Builds/thief/b-power-quick-deadeye-rifle.json",
         "rotation": "Rotations/thief/r-power-quick-deadeye-rifle-bench.json",
-        "benchmarkDps": 36721,
+        "benchmarkDps": 36891,
         "upToDate": true
       }
     ]
@@ -70,7 +70,7 @@
         "label": "Condition (Dagger / Dagger)",
         "build": "Builds/thief/b-condi-daredevil-dagger-dagger.json",
         "rotation": "Rotations/thief/r-condi-daredevil-dagger-dagger-bench.json",
-        "benchmarkDps": 38212,
+        "benchmarkDps": 38045,
         "upToDate": true
       }
     ]

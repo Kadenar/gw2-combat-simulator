@@ -3,9 +3,10 @@ import {
   GEAR_SLOTS,
   INFUSION_STATS,
   PREFIX_GROUPS,
+  RELIC_GROUPS,
   RUNE_GROUPS,
   SIGIL_GROUPS,
-  UTILITY_NAMES,
+  UTILITY_GROUPS,
 } from "../../platform/gw2/gear-data.js";
 import { setWeaponSigil } from "../../platform/gw2/weapon-sigils.js";
 import { groupedOptions, option } from "./options.js";
@@ -38,22 +39,65 @@ function selectRow(label: string, id: string, optionsHtml: string): string {
 export function renderGear(app: ProfessionAppState): void {
   const b = app.build;
   const hasSecondWeaponSet = app.profession.ui.weaponSwapChangesSet !== false;
-  const twoHanded = app.weaponData[b.weapons[0]]?.wielding === "2h";
-  requiredElement("gear-slots").innerHTML = GEAR_SLOTS.map((slot) => {
-    const hidden = twoHanded && slot === "Weapon2";
-    const label =
-      twoHanded && slot === "Weapon1"
-        ? "Weapon (2H)"
-        : slot === "Leggins"
-          ? "Leggings"
-          : slot;
-    return `<div class="gear-row"${hidden ? ' style="display:none"' : ""}>
+  const gearPrefixRow = (
+    label: string,
+    prefix: string,
+    className: string,
+    attributes: string,
+    hidden = false,
+  ): string => `<div class="gear-row"${hidden ? ' style="display:none"' : ""}>
                 <span class="gear-label">${label}</span>
-                <select class="gear-select gear-prefix" data-slot="${slot}">
-                    ${groupedOptions(PREFIX_GROUPS, app.build.gear[slot])}
+                <select class="gear-select ${className}" ${attributes}>
+                    ${groupedOptions(PREFIX_GROUPS, prefix)}
                 </select>
             </div>`;
-  }).join("");
+  const armorRows = GEAR_SLOTS.filter(
+    (slot) => slot !== "Weapon1" && slot !== "Weapon2",
+  )
+    .map((slot) =>
+      gearPrefixRow(
+        slot === "Leggins" ? "Leggings" : slot,
+        b.gear[slot],
+        "gear-prefix",
+        `data-slot="${slot}"`,
+      ),
+    )
+    .join("");
+  const weaponPrefixRows = (
+    setNumber: number,
+    weapons: string[],
+    prefixes: string[],
+    allowEmpty = false,
+  ): string => {
+    const setTwoHanded = app.weaponData[weapons[0]]?.wielding === "2h";
+    const setUnequipped = allowEmpty && !weapons[0];
+    return `<div class="weapon-set-heading"${setUnequipped ? ' style="display:none"' : ""}>${
+      hasSecondWeaponSet ? `Weapon set ${setNumber} stats` : "Weapon stats"
+    }</div>
+        ${[0, 1]
+          .map((slot) =>
+            gearPrefixRow(
+              setTwoHanded && slot === 0 ? "Weapon (2H)" : `Weapon ${slot + 1}`,
+              prefixes[slot],
+              "weapon-prefix",
+              `id="sel-stat${setNumber}-${slot + 1}" data-set="${setNumber}" data-slot="${slot}"`,
+              setUnequipped || (setTwoHanded && slot === 1),
+            ),
+          )
+          .join("")}`;
+  };
+  requiredElement("gear-slots").innerHTML = `${armorRows}
+      ${weaponPrefixRows(1, b.weapons, [b.gear.Weapon1, b.gear.Weapon2])}
+      ${
+        hasSecondWeaponSet
+          ? weaponPrefixRows(
+              2,
+              b.alternateWeapons,
+              b.alternateWeaponPrefixes,
+              true,
+            )
+          : ""
+      }`;
   document.querySelectorAll(".gear-prefix").forEach((select) => {
     if (!(select instanceof HTMLSelectElement)) return;
     select.addEventListener("change", () => {
@@ -62,6 +106,20 @@ export function renderGear(app: ProfessionAppState): void {
       app.build.gear[slot] = select.value;
       // Keep the live selects in place so native type-ahead followed by
       // Tab advances to the next slot instead of restarting at Helm.
+      app.changed(true, false);
+    });
+  });
+  document.querySelectorAll(".weapon-prefix").forEach((select) => {
+    if (!(select instanceof HTMLSelectElement)) return;
+    select.addEventListener("change", () => {
+      const setNumber = Number(select.dataset.set);
+      const slot = Number(select.dataset.slot);
+      if (![1, 2].includes(setNumber) || ![0, 1].includes(slot)) return;
+      if (setNumber === 1) {
+        b.gear[`Weapon${slot + 1}`] = select.value;
+      } else {
+        b.alternateWeaponPrefixes[slot] = select.value;
+      }
       app.changed(true, false);
     });
   });
@@ -153,9 +211,9 @@ export function renderGear(app: ProfessionAppState): void {
 
   requiredElement("equipment-info").innerHTML = `
             ${selectRow("Rune", "sel-rune", groupedOptions(RUNE_GROUPS, b.rune))}
-            ${selectRow("Relic", "sel-relic", app.relicNames.map((name) => option(name, b.relic)).join(""))}
+            ${selectRow("Relic", "sel-relic", groupedOptions(RELIC_GROUPS, b.relic))}
             ${selectRow("Food", "sel-food", groupedOptions(FOOD_GROUPS, b.food))}
-            ${selectRow("Utility", "sel-utility", UTILITY_NAMES.map((name) => option(name, b.utility)).join(""))}
+            ${selectRow("Utility", "sel-utility", groupedOptions(UTILITY_GROUPS, b.utility))}
             <div class="gear-row"><span class="gear-label">Jade Bot</span>
                 <input type="checkbox" id="chk-jbc" class="gear-checkbox"${b.jadeBotCore ? " checked" : ""}>
             </div>

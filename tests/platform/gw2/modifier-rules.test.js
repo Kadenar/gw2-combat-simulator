@@ -196,6 +196,23 @@ test("damage bucket policies can exclude the active sigil", () => {
       hooks.modifyStrikeDamage({ ...context(), illusion: false }, 1.08) - 1.18,
     ) < 1e-12,
   );
+
+  const nourysContext = {
+    ...context(),
+    damageAdditiveBonus: 0.25,
+  };
+  assert.ok(
+    Math.abs(
+      hooks.modifyStrikeDamage({ ...nourysContext, illusion: true }, 1.33) -
+        1.35,
+    ) < 1e-12,
+  );
+  assert.ok(
+    Math.abs(
+      hooks.modifyStrikeDamage({ ...nourysContext, illusion: false }, 1.33) -
+        1.43,
+    ) < 1e-12,
+  );
 });
 
 test("empty modifier sets preserve scalar and coherent damage inputs", () => {

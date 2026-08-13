@@ -1,4 +1,5 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
+import { gw2StatsForWeaponSet } from "../../../platform/gw2/runtime-rules.js";
 /**
  * Shared primitives for every necromancer skill handler.
  *
@@ -266,7 +267,11 @@ export function necromancerBoonDuration(
   baseDuration: number,
   at = context.effectiveEnd,
 ): number {
-  let concentration = Number(context.config.stats?.concentration || 0);
+  const stats = gw2StatsForWeaponSet(
+    context.config,
+    context.state.activeWeaponSet,
+  );
+  let concentration = Number(stats.concentration || 0);
   const active = context.state.profession.specialization;
   if (
     hasTrait(context, TRAIT.SAND_SAGE) &&
@@ -278,8 +283,8 @@ export function necromancerBoonDuration(
   const name = String(boon || "");
   const bonus =
     concentration / 1500 +
-    Number(context.config.stats?.boonDurationBonus || 0) / 100 +
-    Number(context.config.stats?.boonDurationBonuses?.[name] || 0) / 100;
+    Number(stats.boonDurationBonus || 0) / 100 +
+    Number(stats.boonDurationBonuses?.[name] || 0) / 100;
   return Number(baseDuration) * Math.max(1, Math.min(2, 1 + bonus));
 }
 

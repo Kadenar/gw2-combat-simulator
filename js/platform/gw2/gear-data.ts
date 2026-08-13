@@ -1206,7 +1206,40 @@ export const UTILITY_DATA = {
   ],
 };
 
-export const UTILITY_NAMES = sortNames(Object.keys(UTILITY_DATA));
+export const UTILITY_STAT_DATA = {
+  "Writ of Masterful Strength": { Power: 200 },
+  "Writ of Masterful Malice": { "Condition Damage": 200 },
+};
+
+export const UTILITY_NAMES = sortNames([
+  ...new Set([...Object.keys(UTILITY_DATA), ...Object.keys(UTILITY_STAT_DATA)]),
+]);
+
+export const UTILITY_GROUPS = [
+  {
+    label: "Power",
+    items: [
+      "Furious Sharpening Stone",
+      "Superior Sharpening Stone",
+      "Toxic Sharpening Stone",
+      "Writ of Masterful Strength",
+    ],
+  },
+  {
+    label: "Condition",
+    items: [
+      "Furious Tuning Crystal",
+      "Magnanimous Tuning Crystal",
+      "Toxic Tuning Crystal",
+      "Tuning Icicle",
+      "Writ of Masterful Malice",
+    ],
+  },
+  {
+    label: "Boon",
+    items: ["Potent Lucent Oil", "Toxic Maintenance Oil"],
+  },
+];
 
 // ─── Weapon Data ──────────────────────────────────────────────────────────────
 // wielding: 'mh' = main-hand only, 'oh' = off-hand only,
@@ -1407,6 +1440,11 @@ export const RELIC_DATA = {
     cooldown: 1,
   },
   "Mist Stranger": { trigger: "Extra flat damage on every hit", cooldown: 0 },
+  Nourys: {
+    trigger: "Gain 1 stack every 3s in combat (10 stacks → 5s damage buff)",
+    cooldown: 0,
+    icon: "https://wiki.guildwars2.com/images/3/3f/Relic_of_Nourys.png",
+  },
   Peitha: {
     trigger: "Shadowstep or deception skill",
     cooldown: 4,
@@ -1520,3 +1558,30 @@ export function createProfessionWeaponData(
 }
 
 export const RELIC_NAMES = sortNames(Object.keys(RELIC_DATA));
+
+export const RELIC_GROUPS = [
+  {
+    label: "Power",
+    items: [
+      "Brawler",
+      "Bloodstone",
+      "Claw",
+      "Deadeye",
+      "Dragonhunter",
+      "Eagle",
+      "Fireworks",
+      "Mist Stranger",
+      "Mistburn",
+      "Shackles",
+      "Thief",
+    ],
+  },
+  {
+    label: "Condition",
+    items: ["Akeem", "Aristocracy", "Blightbringer", "Fractal", "Thorns"],
+  },
+  {
+    label: "Hybrid",
+    items: ["Nourys", "Peitha"],
+  },
+];

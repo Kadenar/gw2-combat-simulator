@@ -17,6 +17,7 @@
     "Weapon1": "Dragon's",
     "Weapon2": "Diviner's"
   },
+  "alternateWeaponPrefixes": ["Diviner's", "Diviner's"],
   "weapons": ["Greatsword", ""],
   "alternateWeapons": ["Spear", ""],
   "rune": "Dragonhunter",

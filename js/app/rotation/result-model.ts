@@ -29,6 +29,15 @@ const EFFECT_NAMES: Readonly<Record<string, string>> = {
   "berserkers-power": "Berserker's Power",
   "lethal-tempo": "Lethal Tempo",
   "guardian-inspiring-virtue": "Inspiring Virtue",
+  "guardian-empowered-armaments": "Empowered Armaments",
+  "guardian-radiant-armaments": "Radiant Armaments",
+};
+
+const RADIANT_ARMAMENT_NAMES: Readonly<Record<string, string>> = {
+  hammer: "Hammer",
+  staff: "Staff",
+  blade: "Sword",
+  bulwark: "Shield",
 };
 
 const EFFECT_STACK_CAPS: Readonly<Record<string, number>> = {
@@ -40,8 +49,12 @@ const EFFECT_STACK_CAPS: Readonly<Record<string, number>> = {
   "Berserker's Power": 4,
   "Lethal Tempo": 5,
   "Inspiring Virtue": 1,
-  // Berserk is a boolean mode re-emitted on every entry; its overlapping
-  // windows would otherwise sum into a meaningless double-digit "stack" count.
+  "Empowered Armaments": 1,
+  "Radiant Armaments": 1,
+  "Radiant Armaments (Hammer)": 1,
+  "Radiant Armaments (Staff)": 1,
+  "Radiant Armaments (Sword)": 1,
+  "Radiant Armaments (Shield)": 1,
   Berserk: 1,
 };
 
@@ -89,9 +102,17 @@ export function skillBreakdownRows(result: Gw2SimulationResult) {
   return transformSkillBreakdownRows(result);
 }
 
-export function effectName(kind: unknown): string {
+export function effectName(
+  kind: unknown,
+  event: Readonly<Record<string, unknown>> = {},
+): string {
   const key = String(kind || "");
-  if (EFFECT_NAMES[key]) return EFFECT_NAMES[key];
+  const name = EFFECT_NAMES[key];
+  if (key === "guardian-radiant-armaments") {
+    const weapon = RADIANT_ARMAMENT_NAMES[String(event.radiantWeapon || "")];
+    return weapon ? `${name} (${weapon})` : name;
+  }
+  if (name) return name;
   return key
     .split("-")
     .filter(Boolean)
@@ -105,6 +126,8 @@ export function buildChartSeries(
 ) {
   return buildSharedChartSeries(result, sampleStepMs, {
     effectName,
+    replacementGroup: (kind) =>
+      kind === "guardian-radiant-armaments" ? String(kind) : "",
     stackCaps: EFFECT_STACK_CAPS,
   });
 }

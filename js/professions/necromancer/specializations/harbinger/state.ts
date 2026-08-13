@@ -1,7 +1,4 @@
-import type {
-  HarbingerState,
-  NecromancerConfig,
-} from "../../types.js";
+import type { HarbingerState, NecromancerConfig } from "../../types.js";
 import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 
 export function createHarbingerState(
@@ -11,11 +8,18 @@ export function createHarbingerState(
     0,
     Math.min(25, Math.trunc(Number(config.initialBlight || 0))),
   );
+  const initialCascadingCorruptionStacks = Math.max(
+    0,
+    Math.min(
+      19,
+      Math.trunc(Number(config.initialCascadingCorruptionStacks || 0)),
+    ),
+  );
   return {
     nextBlightAt: Number.POSITIVE_INFINITY,
     blight: initialBlight,
     blightExpiries: Array.from({ length: initialBlight }, () => 25),
-    cascadingCorruptionStacks: 0,
+    cascadingCorruptionStacks: initialCascadingCorruptionStacks,
     meltdownUntil: 0,
   };
 }

@@ -225,20 +225,21 @@ result the caller expected. Always inspect `result.warnings`.
 The direct API consumes resolved combat values. It does not calculate stats
 from armor, upgrades, runes, or infusions.
 
-| Field                                      | Purpose                                                                               |
-| ------------------------------------------ | ------------------------------------------------------------------------------------- |
-| `specialization`                           | `Core` or the exact elite-specialization name                                         |
-| `selectedTraitIds`                         | Active trait IDs                                                                      |
-| `selectedSkills`                           | Equipped heal, utility, and elite skill names                                         |
-| `primaryWeapon`, `secondaryWeapon`         | First weapon set                                                                      |
-| `weaponSet2Primary`, `weaponSet2Secondary` | Second weapon set                                                                     |
-| `startingWeaponSet`                        | `1` or `2`                                                                            |
-| `stats`                                    | Final power, precision, ferocity, condition damage, expertise, and related attributes |
-| `boons`                                    | Might stacks and boolean boon assumptions                                             |
-| `target`                                   | Armor, health, movement, defiance, and existing conditions                            |
-| `sigilSets`, `relic`, `food`               | Optional common GW2 effects                                                           |
-| `randomness`                               | Deterministic or seeded stochastic resolution                                         |
-| `duration`                                 | Optional simulation horizon in seconds                                                |
+| Field                                      | Purpose                                                                                           |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `specialization`                           | `Core` or the exact elite-specialization name                                                     |
+| `selectedTraitIds`                         | Active trait IDs                                                                                  |
+| `selectedSkills`                           | Equipped heal, utility, and elite skill names                                                     |
+| `primaryWeapon`, `secondaryWeapon`         | First weapon set                                                                                  |
+| `weaponSet2Primary`, `weaponSet2Secondary` | Second weapon set                                                                                 |
+| `startingWeaponSet`                        | `1` or `2`                                                                                        |
+| `stats`                                    | Baseline/fallback power, precision, ferocity, condition damage, expertise, and related attributes |
+| `weaponSetStats`                           | Optional two-entry stat array selected dynamically with the active weapon set                     |
+| `boons`                                    | Might stacks and boolean boon assumptions                                                         |
+| `target`                                   | Armor, health, movement, defiance, and existing conditions                                        |
+| `sigilSets`, `relic`, `food`               | Optional common GW2 effects                                                                       |
+| `randomness`                               | Deterministic or seeded stochastic resolution                                                     |
+| `duration`                                 | Optional simulation horizon in seconds                                                            |
 
 Professions also accept their own resource and loadout fields. Existing tests
 are the most direct examples:

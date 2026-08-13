@@ -46,6 +46,8 @@ function activeResourceDefinitions(
     professionState,
     initialResource: app.build?.initialResource,
     initialBlight: app.build?.initialBlight,
+    initialCascadingCorruptionStacks:
+      app.build?.initialCascadingCorruptionStacks,
   });
 }
 
@@ -224,6 +226,8 @@ export function renderStartResource(app: ProfessionAppState): void {
     value: professionState.resource ?? app.build.initialResource,
     initialResource: app.build.initialResource,
     initialBlight: app.build.initialBlight,
+    initialCascadingCorruptionStacks:
+      app.build.initialCascadingCorruptionStacks,
   });
   const startControls = app.profession.ui.startControls({
     build: app.build,

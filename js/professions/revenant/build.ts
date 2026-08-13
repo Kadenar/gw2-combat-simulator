@@ -13,13 +13,8 @@ import {
 import { revenantCatalog } from "./catalog.js";
 import { REVENANT_LEGEND_IDS as LEGEND } from "./data/ids.js";
 import { revenantLegendLoadout } from "./legend-loadout.js";
-import type {
-  RevenantCanonicalBuild,
-  RevenantDodge,
-} from "./types.js";
-import type {
-  Gw2SlotLoadout,
-} from "../../platform/gw2/types.js";
+import type { RevenantCanonicalBuild, RevenantDodge } from "./types.js";
+import type { Gw2SlotLoadout } from "../../platform/gw2/types.js";
 
 /**
  * Revenant persisted-build definition.
@@ -40,6 +35,7 @@ export function createRevenantBuildDefaults(): RevenantCanonicalBuild {
     schemaVersion: REVENANT_BUILD_SCHEMA_VERSION,
     profession: REVENANT_PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Viper's"])),
+    alternateWeaponPrefixes: ["Viper's", "Viper's"],
     weapons: ["Sword", "Sword"],
     alternateWeapons: ["Mace", "Axe"],
     rune: "Trapper",
@@ -92,15 +88,13 @@ const revenantBuildCodec = createGw2BuildCodec<RevenantCanonicalBuild>({
   schemaVersion: REVENANT_BUILD_SCHEMA_VERSION,
   catalog: revenantCatalog,
   createDefaults: createRevenantBuildDefaults,
-  slotLoadout: revenantLegendLoadout as unknown as
-    Gw2SlotLoadout<RevenantCanonicalBuild>,
+  slotLoadout:
+    revenantLegendLoadout as unknown as Gw2SlotLoadout<RevenantCanonicalBuild>,
   normalizeExtra(build, { saved }) {
     const selectedDodge = String(saved.selectedDodge || "");
     return {
       ...build,
-      assumptions: normalizeSimulationRandomnessAssumptions(
-        build.assumptions,
-      ),
+      assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
       initialEnergy: Math.max(
         0,
         Math.min(100, Number(saved.initialEnergy ?? 50) || 0),
@@ -110,16 +104,16 @@ const revenantBuildCodec = createGw2BuildCodec<RevenantCanonicalBuild>({
         "Saint of zu Heltzer",
         "Imperial Impact",
       ].includes(selectedDodge)
-        ? selectedDodge as RevenantDodge
+        ? (selectedDodge as RevenantDodge)
         : "Death Drop",
       allianceSide: saved.allianceSide === "kurzick" ? "kurzick" : "luxon",
     };
   },
   validateExtra(build) {
     const errors = validateSimulationRandomnessAssumptions(build.assumptions);
-    if (
-      !(Number(build.initialEnergy) >= 0 && Number(build.initialEnergy) <= 100)
-    ) {
+    if (!(
+      Number(build.initialEnergy) >= 0 && Number(build.initialEnergy) <= 100
+    )) {
       errors.push("initialEnergy must be between 0 and 100.");
     }
     if (!["luxon", "kurzick"].includes(build.allianceSide)) {
