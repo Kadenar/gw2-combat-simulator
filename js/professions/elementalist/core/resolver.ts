@@ -139,14 +139,13 @@ function queueBuff(
     stacks,
     duration: adjustedDuration,
     triggeredBy: sourceSkill(event),
+    ...(Number(event.priority || 0)
+      ? { priority: Number(event.priority) }
+      : {}),
   });
 }
 
-function activeBuffs(
-  context: Gw2ResolverRuntime,
-  kind: string,
-  at: number,
-) {
+function activeBuffs(context: Gw2ResolverRuntime, kind: string, at: number) {
   return (context.boons.get(kind.toLowerCase()) || []).filter(
     (application) =>
       application.at <= at + EPSILON && application.expiresAt > at + EPSILON,
@@ -176,24 +175,16 @@ function refreshBuffs(
   return [...active];
 }
 
-function applyAura(
+function queueAura(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
   aura: string,
   duration: number,
   skillName: string,
 ): void {
-  const state = coreState(context);
   const adjustedDuration = hasTrait(context, "Smothering Auras")
     ? duration * 1.33
     : duration;
-  const auraState: ElementalistAuraState = {
-    type: aura,
-    appliedAt: event.at,
-    expiresAt: event.at + adjustedDuration,
-    skillName,
-  };
-  state.activeAuras.push(auraState);
   enqueueOrdered(context.queue, {
     type: "elementalist.aura",
     at: event.at,
@@ -203,23 +194,50 @@ function applyAura(
     skillName,
     aura,
     duration: adjustedDuration,
+    elementalistResolverGeneratedAura: true,
   });
+}
+
+export function applyElementalistResolverAura(
+  context: Gw2ResolverRuntime,
+  event: Gw2ResolverEvent,
+): void {
+  const skillName = sourceSkill(event);
+  const duration = Math.max(0, Number(event.duration || 0));
+  const auraState: ElementalistAuraState = {
+    type: String(event.aura || ""),
+    appliedAt: event.at,
+    expiresAt: event.at + duration,
+    skillName,
+  };
+  coreState(context).activeAuras.push(auraState);
+  if (event.elementalistResolverGeneratedAura === true) {
+    context.resolved.push(event);
+  }
   if (context.combatStartTime != null && event.at < context.combatStartTime) {
     return;
   }
-  if (hasTrait(context, "Zephyr's Boon")) {
-    queueBuff(context, event, "Fury", 1, 5, skillName);
-    queueBuff(context, event, "Swiftness", 1, 5, skillName);
-  }
-  if (hasTrait(context, "Elemental Shielding")) {
-    queueBuff(context, event, "Protection", 1, 3, skillName);
-  }
-  if (hasTrait(context, "Invigorating Torrents")) {
-    queueBuff(context, event, "Vigor", 1, 5, skillName);
-    queueBuff(context, event, "Regeneration", 1, 5, skillName);
-  }
-  if (hasTrait(context, "Elemental Bastion")) {
-    queueBuff(context, event, "Alacrity", 1, 4, skillName);
+  if (event.elementalistResolverGeneratedAura === true) {
+    if (hasTrait(context, "Zephyr's Boon")) {
+      queueBuff(context, event, "Fury", 1, 5, skillName);
+      queueBuff(context, event, "Swiftness", 1, 5, skillName);
+    }
+    if (hasTrait(context, "Elemental Shielding")) {
+      queueBuff(context, event, "Protection", 1, 3, skillName);
+    }
+    if (hasTrait(context, "Invigorating Torrents")) {
+      queueBuff(context, event, "Vigor", 1, 5, skillName);
+      queueBuff(context, event, "Regeneration", 1, 5, skillName);
+    }
+    if (hasTrait(context, "Elemental Bastion")) {
+      queueBuff(context, event, "Alacrity", 1, 4, skillName);
+    }
+    if (
+      context.config.specialization === "Catalyst" &&
+      hasTrait(context, "Elemental Epitome")
+    ) {
+      queueBuff(context, event, "Elemental Empowerment", 1, 15, skillName);
+    }
   }
   if (hasTrait(context, "Tempestuous Aria")) {
     const current = activeBuffs(context, "Tempestuous Aria", event.at).at(-1);
@@ -232,15 +250,11 @@ function applyAura(
     } else {
       queueBuff(context, event, "Tempestuous Aria", 1, 5, skillName);
     }
+    recordTraitProc(context, event, "Tempestuous Aria");
   }
   if (hasTrait(context, "Empowering Auras")) {
     const current = activeBuffs(context, "Empowering Auras", event.at);
-    refreshBuffs(
-      context,
-      "Empowering Auras",
-      event.at,
-      () => event.at + 10,
-    );
+    refreshBuffs(context, "Empowering Auras", event.at, () => event.at + 10);
     const activeStacks = current.reduce(
       (total, application) => total + Number(application.stacks || 1),
       0,
@@ -248,13 +262,15 @@ function applyAura(
     if (activeStacks < 5) {
       queueBuff(context, event, "Empowering Auras", 1, 10, skillName);
     }
+    recordTraitProc(context, event, "Empowering Auras");
   }
-  if (
-    context.config.specialization === "Catalyst" &&
-    hasTrait(context, "Elemental Epitome")
-  ) {
-    queueBuff(context, event, "Elemental Empowerment", 1, 15, skillName);
-  }
+}
+
+export function recordElementalistResolvedEvent(
+  context: Gw2ResolverRuntime,
+  event: Gw2ResolverEvent,
+): void {
+  context.resolved.push(event);
 }
 
 function recordTraitProc(
@@ -282,7 +298,7 @@ function applyBurningPrecision(
   state.burningPrecisionProgress += chance * 0.33;
   if (
     state.burningPrecisionProgress < 1 ||
-    Number(state.procReadyAt.burningPrecision || 0) > event.at
+    Number(state.procReadyAt.burningPrecision || 0) >= event.at - EPSILON
   ) {
     return;
   }
@@ -333,7 +349,7 @@ function applyComboEffect(
     if (finisherType === "Blast") {
       queueBuff(context, event, "Might", 3, 20, source);
     } else if (finisherType === "Leap") {
-      applyAura(context, event, "Fire Aura", 5, source);
+      queueAura(context, event, "Fire Aura", 5, source);
     } else {
       applyCondition(context, details, event, {
         source,
@@ -344,7 +360,7 @@ function applyComboEffect(
     }
   } else if (fieldType === "Ice") {
     if (finisherType === "Blast" || finisherType === "Leap") {
-      applyAura(
+      queueAura(
         context,
         event,
         "Frost Aura",
@@ -380,12 +396,11 @@ function applyComboEffect(
           ? "Weakness"
           : "Poisoned",
       stacks: 1,
-      duration:
-        finisherType === "Leap" ? 8 : finisherType === "Blast" ? 3 : 2,
+      duration: finisherType === "Leap" ? 8 : finisherType === "Blast" ? 3 : 2,
     });
   } else if (fieldType === "Dark") {
     if (finisherType === "Blast" || finisherType === "Leap") {
-      applyAura(
+      queueAura(
         context,
         event,
         "Dark Aura",
@@ -436,7 +451,8 @@ function triggerComboTraits(
           : attunement === "Air"
             ? (["Shocking Aura", 3] as const)
             : (["Magnetic Aura", 3] as const);
-    applyAura(context, event, aura[0], aura[1], "Elemental Epitome");
+    queueAura(context, event, aura[0], aura[1], "Elemental Epitome");
+    recordTraitProc(context, event, "Elemental Epitome");
   }
   const synergyReadyAt = Number(
     state.procReadyAt[`elementalSynergy${attunement}`] || 0,
@@ -453,6 +469,7 @@ function triggerComboTraits(
     } else if (attunement === "Air") {
       state.endurance = Math.min(100, state.endurance + 50);
     }
+    recordTraitProc(context, event, "Elemental Synergy");
   }
 }
 
@@ -512,7 +529,7 @@ function resolveComboFinisher(
       actorType: "player",
       skillName: sourceSkill(event),
       field: field.type,
-    } as Gw2ResolverEvent);
+    } as unknown as Gw2ResolverEvent);
   }
 }
 
@@ -542,10 +559,7 @@ export function applyElementalistResolvedCondition(
     (context.combatStartTime == null || event.at >= context.combatStartTime)
   ) {
     const state = coreState(context);
-    if (
-      Number(state.procReadyAt.strengthOfStone || 0) <
-      event.at - EPSILON
-    ) {
+    if (Number(state.procReadyAt.strengthOfStone || 0) < event.at - EPSILON) {
       state.procReadyAt.strengthOfStone = event.at + 3;
       applyCondition(context, details, event, {
         source: "Strength of Stone",

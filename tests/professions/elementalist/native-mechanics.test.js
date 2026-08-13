@@ -103,6 +103,10 @@ function runNative(options) {
   });
 }
 
+function resolvedAndScheduledEvents(result) {
+  return [...(result.events || []), ...(result.resolvedEvents || [])];
+}
+
 test("Tempest mechanics execute through native hooks", () => {
   const result = runNative({
     lines: [["Fire"], ["Air"], ["Tempest"]],
@@ -156,8 +160,11 @@ test("Catalyst mechanics execute through native hooks", () => {
   assert.equal(result.endState.profession.energy, 20);
   assert.equal(result.endState.profession.maximumEnergy, 30);
   assert.equal(
-    result.events.some(
-      (event) => event.type === "buff" && event.source === "Combo (Fire/Blast)",
+    resolvedAndScheduledEvents(result).some(
+      (event) =>
+        event.type === "elementalist.combo" &&
+        event.field === "Fire" &&
+        event.finisherType === "Blast",
     ),
     true,
   );
@@ -1486,7 +1493,7 @@ test("core attunement and aura traits emit named boon and damage payloads", () =
       Elite: "Glyph of Elementals",
     },
   });
-  const strengthBleeds = strength.events.filter(
+  const strengthBleeds = resolvedAndScheduledEvents(strength).filter(
     (event) =>
       event.type === "condition" && event.source === "Strength of Stone",
   );
@@ -1513,13 +1520,15 @@ test("core critical-hit and control traits enforce their proc rules", () => {
     "Arcane Precision",
   ]) {
     assert.equal(
-      critical.events.some((event) => event.source === source),
+      resolvedAndScheduledEvents(critical).some(
+        (event) => event.source === source,
+      ),
       true,
       source,
     );
   }
   assert.equal(
-    critical.events.some(
+    resolvedAndScheduledEvents(critical).some(
       (event) =>
         event.source === "Lightning Rod" &&
         event.type === "condition" &&
@@ -1597,7 +1606,11 @@ test("Tempest traits enforce overload dwell, auras, boons, and damage windows", 
 
   const healingAndShout = runNative({
     lines: [["Fire"], ["Air"], ["Tempest", "1-1-1"]],
-    rotation: ["Glyph of Elemental Harmony", "Aftershock!"],
+    rotation: [
+      { name: "__combat_start" },
+      "Glyph of Elemental Harmony",
+      "Aftershock!",
+    ],
     selectedSkills: {
       Heal: "Glyph of Elemental Harmony",
       Utility1: "Aftershock!",
@@ -1611,9 +1624,7 @@ test("Tempest traits enforce overload dwell, auras, boons, and damage windows", 
     true,
   );
   assert.equal(
-    healingAndShout.events.some(
-      (event) => event.type === "buff" && event.kind === "tempestuous aria",
-    ),
+    healingAndShout.procSteps.some((step) => step.skill === "Tempestuous Aria"),
     true,
   );
 
@@ -1727,7 +1738,7 @@ test("Catalyst traits enforce energy, empowerment, aura, and sphere rules", () =
     true,
   );
   assert.equal(
-    sphere.events.some(
+    resolvedAndScheduledEvents(sphere).some(
       (event) =>
         event.type === "elementalist.aura" &&
         event.source === "Elemental Epitome",
@@ -1756,21 +1767,19 @@ test("Catalyst traits enforce energy, empowerment, aura, and sphere rules", () =
     ],
     initialCatalystEnergy: 30,
   });
-  for (const source of [
-    "Elemental Synergy",
-    "Vicious Empowerment",
-    "Elemental Epitome",
-  ]) {
+  for (const source of ["Elemental Synergy", "Elemental Epitome"]) {
     assert.equal(
-      control.events.some((event) => event.source === source),
+      control.procSteps.some((step) => step.skill === source),
       true,
       source,
     );
   }
   assert.equal(
-    control.events.some(
-      (event) => event.type === "buff" && event.kind === "empowering auras",
-    ),
+    control.events.some((event) => event.source === "Vicious Empowerment"),
+    true,
+  );
+  assert.equal(
+    control.procSteps.some((step) => step.skill === "Empowering Auras"),
     true,
   );
 });

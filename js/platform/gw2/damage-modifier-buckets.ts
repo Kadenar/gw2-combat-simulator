@@ -15,15 +15,16 @@ function additiveSigil(
     damageType === "condition" ? sigils.condition : sigils.strike;
   const bonusValue =
     damageType === "condition" ? sigils.conditionAdd : sigils.strikeAdd;
+  const equipmentBonus = Number(context.damageAdditiveBonus || 0);
   const factor = Math.max(
     Number.EPSILON,
-    Number(factorValue || 1),
+    Number(factorValue || 1) + equipmentBonus,
   );
   const configuredBonus = Number(bonusValue);
   return {
     factor,
     bonus: Number.isFinite(configuredBonus)
-      ? configuredBonus
+      ? configuredBonus + equipmentBonus
       : factor - 1,
   };
 }
@@ -43,12 +44,7 @@ export function applyAdditiveDamageBucket(
 ): number {
   const sigil = additiveSigil(context, damageType);
   return (
-    Number(multiplier || 1)
-    / sigil.factor
-    * (
-      1
-      + (includeSigil ? sigil.bonus : 0)
-      + Number(bonus || 0)
-    )
+    (Number(multiplier || 1) / sigil.factor) *
+    (1 + (includeSigil ? sigil.bonus : 0) + Number(bonus || 0))
   );
 }

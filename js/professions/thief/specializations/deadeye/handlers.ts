@@ -16,7 +16,11 @@ import { grantThiefStealth } from "../../core/weapon-state.js";
 import { consumeStoredStolenSkill } from "../../core/steal.js";
 import { hasThiefTrait } from "../../core/state.js";
 import { selectedDeadeyeStolenSkill } from "./mechanics.js";
-import { emitDeadeyeBoon, initialDeadeyeMalice } from "./traits.js";
+import {
+  applyMaleficentSeven,
+  emitDeadeyeBoon,
+  initialDeadeyeMalice,
+} from "./traits.js";
 import {
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT,
@@ -35,11 +39,19 @@ interface DeadeyeHandlerState {
 function completeDeadeyesMark(context: ThiefCastContext): void {
   const state = deadeyeState.from(context);
   const at = context.effectiveEnd;
+  const remarkingTarget =
+    state.markedTargetId === "primary-target" && state.markExpiresAt > at;
   state.markedTargetId = "primary-target";
   state.markExpiresAt = at + 30;
   state.markGeneration += 1;
-  state.malice = initialDeadeyeMalice(context);
-  state.maleficentSevenTriggered = false;
+  state.malice = remarkingTarget
+    ? Math.min(
+        state.maximumMalice,
+        state.malice + initialDeadeyeMalice(context),
+      )
+    : initialDeadeyeMalice(context);
+  if (!remarkingTarget) state.maleficentSevenTriggered = false;
+  applyMaleficentSeven(context, at);
   completeStealWithStoredSkill(context, selectedDeadeyeStolenSkill(context));
   if (hasThiefTrait(context.config, TRAIT.BE_QUICK_OR_BE_KILLED)) {
     emitDeadeyeBoon(context, at, "Quickness", 4, 1, "Be Quick or Be Killed");
@@ -59,16 +71,17 @@ function prepareDeadeyeStealthAttack(
   skill: ThiefSkill,
 ): DeadeyeHandlerState {
   const state = deadeyeState.from(context);
-  if (
+  const maliciousIntentMalice =
     state.markedTargetId &&
     state.markExpiresAt > context.start &&
     hasThiefTrait(context.config, TRAIT.MALICIOUS_INTENT)
-  ) {
-    state.malice = Math.min(state.maximumMalice, state.malice + 2);
-    emitThiefState(context, context.start, "malicious-intent");
-  }
+      ? 2
+      : 0;
   const handlerState = {
-    malice: Math.max(0, Number(state.malice || 0)),
+    malice: Math.min(
+      state.maximumMalice,
+      Math.max(0, Number(state.malice || 0)) + maliciousIntentMalice,
+    ),
   };
   beginStealthAttack(context, skill);
   return handlerState;
@@ -81,6 +94,11 @@ function observeDeadeyeStealthEffect(
   handlerState: unknown,
 ): void {
   const prepared = (handlerState || {}) as DeadeyeHandlerState;
+  if (skill.malicious && event.type === "damage") {
+    context.replaceEvent(event, {
+      deadeyeMaliceSnapshot: Number(prepared.malice || 0),
+    });
+  }
   if (
     skill.id === ID.MALICIOUS_SNEAK_ATTACK &&
     event.type === "condition" &&

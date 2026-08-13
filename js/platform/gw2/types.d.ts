@@ -270,6 +270,13 @@ export interface Gw2RelicRule {
     state: Gw2RelicState,
     event: SimulationEvent,
   ) => number;
+  readonly outgoingDamageBonus?: (
+    context: Gw2RelicRuntimeContext,
+    state: Gw2RelicState,
+    damageType: "strike" | "condition",
+    at: number,
+    event: SimulationEvent | null,
+  ) => number;
   readonly criticalChanceBonus?: (
     context: Gw2RelicRuntimeContext,
     state: Gw2RelicState,
@@ -1283,6 +1290,7 @@ export interface Gw2ModifierContext extends SchedulerRecord {
   readonly timeline?: Readonly<Gw2TimelineIndex>;
   readonly events?: readonly SimulationEvent[];
   readonly runtime?: Gw2QueryRuntime | null;
+  readonly damageAdditiveBonus?: number;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
 }
 

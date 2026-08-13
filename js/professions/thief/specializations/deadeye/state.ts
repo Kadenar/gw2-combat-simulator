@@ -13,6 +13,7 @@ export function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
     malice: 0,
     maximumMalice: hasThiefTrait(traits, TRAIT.MALEFICENT_SEVEN) ? 7 : 5,
     maliceCriticalProgress: 0,
+    maliceResolvedActivations: {},
     maleficentSevenTriggered: false,
     deadeyeRelicUntil: 0,
     stealthAttackCharges: 0,

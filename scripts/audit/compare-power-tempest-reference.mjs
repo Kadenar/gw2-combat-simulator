@@ -54,6 +54,31 @@ const requestedSkill = process.argv
   ?.slice("--skill=".length);
 const summaryOnly = process.argv.includes("--summary");
 const check = process.argv.includes("--check");
+const damagingConditions = new Set([
+  "Bleeding",
+  "Burning",
+  "Confusion",
+  "Poisoned",
+  "Torment",
+]);
+
+function matchesRequestedSkill(event) {
+  if (!requestedSkill) return false;
+  if (requestedSkill === "*") return true;
+  const requested = requestedSkill.toLowerCase();
+  return [
+    event.skill,
+    event.skillName,
+    event.parentSkillName,
+    event.cond,
+    event.condition,
+    event.source,
+    event.trait,
+    event.relic,
+    event.name,
+    event.kind,
+  ].some((value) => String(value || "").toLowerCase() === requested);
+}
 
 async function readText(root, path) {
   return readFile(new URL(path, root), "utf8");
@@ -142,12 +167,26 @@ function round(value, digits = 3) {
   return Math.round(Number(value || 0) * scale) / scale;
 }
 
+function canonicalSkillName(name) {
+  return name === "Relic of the Fractal" ? "Relic of Fractal" : name;
+}
+
+function addSkillDamage(damage, name, amount) {
+  const canonicalName = canonicalSkillName(name);
+  damage.set(canonicalName, (damage.get(canonicalName) || 0) + Number(amount));
+}
+
 function standaloneSkillDamage(result) {
-  return Object.fromEntries(
-    Object.entries(result.perSkill || {}).map(([name, entry]) => [
+  const damage = new Map();
+  for (const [name, entry] of Object.entries(result.perSkill || {})) {
+    addSkillDamage(
+      damage,
       name,
-      round(Number(entry.strike || 0) + Number(entry.condition || 0)),
-    ]),
+      Number(entry.strike || 0) + Number(entry.condition || 0),
+    );
+  }
+  return Object.fromEntries(
+    [...damage].map(([name, total]) => [name, round(total)]),
   );
 }
 
@@ -155,11 +194,95 @@ function nativeSkillDamage(result) {
   const damage = new Map();
   for (const entry of result.breakdown || []) {
     const name = entry.parentSkill || entry.sourceSkill || entry.name;
-    damage.set(name, (damage.get(name) || 0) + Number(entry.damage || 0));
+    addSkillDamage(damage, name, entry.damage || 0);
   }
   return Object.fromEntries(
     [...damage].map(([name, total]) => [name, round(total)]),
   );
+}
+
+function standaloneSkillMetrics(result) {
+  const metrics = new Map();
+  for (const [name, entry] of Object.entries(result.perSkill || {})) {
+    const canonicalName = canonicalSkillName(name);
+    const current = metrics.get(canonicalName) || {
+      strike: 0,
+      condition: 0,
+      casts: 0,
+      hits: 0,
+      conditionApplications: 0,
+      appliedConditionStackSeconds: 0,
+    };
+    current.strike += Number(entry.strike || 0);
+    current.condition += Number(entry.condition || 0);
+    current.casts = Math.max(current.casts, Number(entry.casts || 0));
+    current.hits += Number(entry.hits || 0);
+    metrics.set(canonicalName, current);
+  }
+  for (const event of result.log || []) {
+    if (event.type !== "cond_apply" || !event.skill) continue;
+    const name = canonicalSkillName(event.skill);
+    const current = metrics.get(name) || {
+      strike: 0,
+      condition: 0,
+      casts: 0,
+      hits: 0,
+      conditionApplications: 0,
+      appliedConditionStackSeconds: 0,
+    };
+    current.conditionApplications += 1;
+    current.appliedConditionStackSeconds +=
+      Number(event.stacks || 0) * (Number(event.durMs || 0) / 1000);
+    metrics.set(name, current);
+  }
+  return Object.fromEntries(metrics);
+}
+
+function nativeSkillMetrics(result) {
+  const metrics = new Map();
+  for (const entry of result.breakdown || []) {
+    const name = canonicalSkillName(
+      entry.parentSkill || entry.sourceSkill || entry.name,
+    );
+    const current = metrics.get(name) || {
+      strike: 0,
+      condition: 0,
+      casts: 0,
+      hits: 0,
+      conditionApplications: 0,
+      appliedConditionStackSeconds: 0,
+    };
+    current.strike += Number(entry.strikeDamage || 0);
+    current.condition += Number(entry.conditionDamage || 0);
+    current.casts = Math.max(current.casts, Number(entry.casts || 0));
+    current.hits += Number(entry.hits || 0);
+    metrics.set(name, current);
+  }
+  for (const event of result.resolvedEvents || []) {
+    if (
+      event.type !== "condition" ||
+      event.effectiveDuration == null ||
+      !damagingConditions.has(event.condition)
+    ) {
+      continue;
+    }
+    const name = canonicalSkillName(
+      event.parentSkillName || event.skillName || event.name,
+    );
+    const current = metrics.get(name) || {
+      strike: 0,
+      condition: 0,
+      casts: 0,
+      hits: 0,
+      conditionApplications: 0,
+      appliedConditionStackSeconds: 0,
+    };
+    current.conditionApplications += 1;
+    current.appliedConditionStackSeconds +=
+      Number(event.stacks || 0) * Number(event.effectiveDuration || 0);
+    metrics.set(name, current);
+  }
+  return Object.fromEntries(metrics);
 }
 
 function topSkills(skillDamage, limit = 15) {
@@ -225,11 +348,139 @@ function largestSkillDeltas(candidate, baseline, limit = 15) {
       baselineDamage: round(baseline[name]),
       candidateDamage: round(candidate[name]),
       damageDelta: round((candidate[name] || 0) - (baseline[name] || 0)),
+      damageDeltaPercent: percentageDelta(
+        candidate[name] || 0,
+        baseline[name] || 0,
+      ),
     }))
     .sort(
       (left, right) => Math.abs(right.damageDelta) - Math.abs(left.damageDelta),
     )
     .slice(0, limit);
+}
+
+function compareSkillMetrics(candidate, baseline, baselineTotalDamage) {
+  const materialDamage = Math.max(1000, baselineTotalDamage * 0.001);
+  return [...new Set([...Object.keys(candidate), ...Object.keys(baseline)])]
+    .map((name) => {
+      const baselineMetric = baseline[name] || {};
+      const candidateMetric = candidate[name] || {};
+      const baselineDamage =
+        Number(baselineMetric.strike || 0) +
+        Number(baselineMetric.condition || 0);
+      const candidateDamage =
+        Number(candidateMetric.strike || 0) +
+        Number(candidateMetric.condition || 0);
+      return {
+        name,
+        baselineStrike: round(baselineMetric.strike),
+        candidateStrike: round(candidateMetric.strike),
+        baselineCondition: round(baselineMetric.condition),
+        candidateCondition: round(candidateMetric.condition),
+        baselineDamage: round(baselineDamage),
+        candidateDamage: round(candidateDamage),
+        damageDelta: round(candidateDamage - baselineDamage),
+        damageDeltaPercent: percentageDelta(candidateDamage, baselineDamage),
+        strikeDelta: round(
+          Number(candidateMetric.strike || 0) -
+            Number(baselineMetric.strike || 0),
+        ),
+        strikeDeltaPercent: percentageDelta(
+          candidateMetric.strike || 0,
+          baselineMetric.strike || 0,
+        ),
+        conditionDelta: round(
+          Number(candidateMetric.condition || 0) -
+            Number(baselineMetric.condition || 0),
+        ),
+        conditionDeltaPercent: percentageDelta(
+          candidateMetric.condition || 0,
+          baselineMetric.condition || 0,
+        ),
+        baselineCasts: round(baselineMetric.casts),
+        candidateCasts: round(candidateMetric.casts),
+        baselineHits: round(baselineMetric.hits),
+        candidateHits: round(candidateMetric.hits),
+        baselineConditionApplications: round(
+          baselineMetric.conditionApplications,
+        ),
+        candidateConditionApplications: round(
+          candidateMetric.conditionApplications,
+        ),
+        baselineAppliedConditionStackSeconds: round(
+          baselineMetric.appliedConditionStackSeconds,
+        ),
+        candidateAppliedConditionStackSeconds: round(
+          candidateMetric.appliedConditionStackSeconds,
+        ),
+        material: Math.max(baselineDamage, candidateDamage) >= materialDamage,
+      };
+    })
+    .sort(
+      (left, right) => Math.abs(right.damageDelta) - Math.abs(left.damageDelta),
+    );
+}
+
+function abilityDivergences(comparisons, baselineTotalDamage) {
+  const absoluteTolerance = Math.max(5, baselineTotalDamage * 0.000001);
+  return comparisons
+    .map((comparison) => {
+      const components = [
+        {
+          name: "total",
+          baseline: comparison.baselineDamage,
+          candidate: comparison.candidateDamage,
+        },
+        {
+          name: "strike",
+          baseline: comparison.baselineStrike,
+          candidate: comparison.candidateStrike,
+        },
+        {
+          name: "condition",
+          baseline: comparison.baselineCondition,
+          candidate: comparison.candidateCondition,
+        },
+      ];
+      const divergentComponents = components
+        .filter(
+          ({ baseline, candidate }) =>
+            Math.abs(candidate - baseline) > absoluteTolerance &&
+            Math.abs(percentageDelta(candidate, baseline)) > 2,
+        )
+        .map(({ name }) => name);
+      return { ...comparison, divergentComponents };
+    })
+    .filter(({ divergentComponents }) => divergentComponents.length > 0);
+}
+
+function abilityMechanicDivergences(comparisons) {
+  return comparisons
+    .map((comparison) => ({
+      name: comparison.name,
+      baselineConditionApplications: comparison.baselineConditionApplications,
+      candidateConditionApplications: comparison.candidateConditionApplications,
+      conditionApplicationDelta:
+        comparison.candidateConditionApplications -
+        comparison.baselineConditionApplications,
+      baselineAppliedConditionStackSeconds:
+        comparison.baselineAppliedConditionStackSeconds,
+      candidateAppliedConditionStackSeconds:
+        comparison.candidateAppliedConditionStackSeconds,
+      appliedConditionStackSecondsDelta: round(
+        comparison.candidateAppliedConditionStackSeconds -
+          comparison.baselineAppliedConditionStackSeconds,
+      ),
+    }))
+    .filter(
+      (comparison) =>
+        comparison.conditionApplicationDelta !== 0 ||
+        Math.abs(comparison.appliedConditionStackSecondsDelta) >
+          Math.max(
+            0.05,
+            Math.abs(comparison.baselineAppliedConditionStackSeconds) * 0.001,
+          ),
+    );
 }
 
 function summarizeStandalone(result) {
@@ -252,6 +503,7 @@ function summarizeStandalone(result) {
         },
       ]),
     ),
+    skillMetrics: standaloneSkillMetrics(result),
     skillDamage,
     skillDetails: result.perSkill || {},
     topSkills: topSkills(skillDamage),
@@ -298,6 +550,7 @@ function summarizeNative(result) {
         },
       ]),
     ),
+    skillMetrics: nativeSkillMetrics(result),
     skillDamage,
     skillDetails: result.breakdown || [],
     topSkills: topSkills(skillDamage),
@@ -373,6 +626,24 @@ for (const variant of variants) {
   const reference = summarizeStandalone(referenceResult);
   const legacy = summarizeStandalone(legacyResult);
   const native = summarizeNative(nativeResult);
+  const referenceSkillMetrics = standaloneSkillMetrics(referenceResult);
+  const localLegacySkillMetrics = standaloneSkillMetrics(legacyResult);
+  const nativeSkillMetricsResult = nativeSkillMetrics(nativeResult);
+  const legacySkillParity = compareSkillMetrics(
+    localLegacySkillMetrics,
+    referenceSkillMetrics,
+    reference.totalDamage,
+  );
+  const nativeSkillParity = compareSkillMetrics(
+    nativeSkillMetricsResult,
+    referenceSkillMetrics,
+    reference.totalDamage,
+  );
+  const nativeLegacySkillParity = compareSkillMetrics(
+    nativeSkillMetricsResult,
+    localLegacySkillMetrics,
+    legacy.totalDamage,
+  );
   results[variant] = {
     localFixtureDrift: {
       buildDiffers: JSON.stringify(localSnapshot) !== JSON.stringify(snapshot),
@@ -387,45 +658,49 @@ for (const variant of variants) {
       legacy: compare(legacy, reference),
       native: compare(native, reference),
     },
+    deltaFromLegacy: compare(native, legacy),
     largestDamageDeltasFromReference: {
       legacy: largestSkillDeltas(legacy.skillDamage, reference.skillDamage),
       native: largestSkillDeltas(native.skillDamage, reference.skillDamage),
     },
+    skillParityFromReference: {
+      legacy: legacySkillParity,
+      native: nativeSkillParity,
+    },
+    abilityDivergencesFromReference: {
+      legacy: abilityDivergences(legacySkillParity, reference.totalDamage),
+      native: abilityDivergences(nativeSkillParity, reference.totalDamage),
+    },
+    abilityMechanicDivergencesFromReference: {
+      legacy: abilityMechanicDivergences(legacySkillParity),
+      native: abilityMechanicDivergences(nativeSkillParity),
+    },
+    skillParityFromLegacy: nativeLegacySkillParity,
+    abilityDivergencesFromLegacy: abilityDivergences(
+      nativeLegacySkillParity,
+      legacy.totalDamage,
+    ),
+    abilityMechanicDivergencesFromLegacy: abilityMechanicDivergences(
+      nativeLegacySkillParity,
+    ),
     timelineDeltaFromReference: {
       legacy: compareTimelines(legacyResult, referenceResult),
       native: compareTimelines(nativeResult, referenceResult),
     },
+    timelineDeltaFromLegacy: compareTimelines(nativeResult, legacyResult),
     ...(requestedSkill
       ? {
           skillEventDiagnostics: {
-            reference: (referenceResult.log || []).filter(
-              (event) =>
-                event.skill === requestedSkill ||
-                event.cond === requestedSkill ||
-                event.source === requestedSkill ||
-                event.trait === requestedSkill ||
-                event.relic === requestedSkill,
+            reference: (referenceResult.log || []).filter((event) =>
+              matchesRequestedSkill(event),
             ),
-            legacy: (legacyResult.log || []).filter(
-              (event) =>
-                event.skill === requestedSkill ||
-                event.cond === requestedSkill ||
-                event.source === requestedSkill ||
-                event.trait === requestedSkill ||
-                event.relic === requestedSkill,
+            legacy: (legacyResult.log || []).filter((event) =>
+              matchesRequestedSkill(event),
             ),
             native: [
               ...(nativeResult.events || []),
               ...(nativeResult.resolvedEvents || []),
-            ].filter(
-              (event) =>
-                event.skillName === requestedSkill ||
-                event.parentSkillName === requestedSkill ||
-                event.name === requestedSkill ||
-                event.source === requestedSkill ||
-                event.kind === requestedSkill ||
-                event.condition === requestedSkill,
-            ),
+            ].filter((event) => matchesRequestedSkill(event)),
           },
         }
       : {}),
@@ -443,30 +718,113 @@ const summary = Object.fromEntries(
         nativeDps: result.native.dps,
         legacyDpsDeltaPercent: result.deltaFromReference.legacy.dpsPercent,
         nativeDpsDeltaPercent: result.deltaFromReference.native.dpsPercent,
+        nativeDpsDeltaFromLegacyPercent: result.deltaFromLegacy.dpsPercent,
         nativeDurationDeltaPercent:
           result.deltaFromReference.native.durationPercent,
+        nativeDurationDeltaFromLegacyPercent:
+          result.deltaFromLegacy.durationPercent,
         nativeTimelineChanges:
           result.timelineDeltaFromReference.native.changes.length,
+        nativeTimelineChangesFromLegacy:
+          result.timelineDeltaFromLegacy.changes.length,
+        nativeAbilityDivergences:
+          result.abilityDivergencesFromReference.native.length,
+        nativeAbilityMechanicDivergences:
+          result.abilityMechanicDivergencesFromReference.native.length,
+        nativeAbilityDivergencesFromLegacy:
+          result.abilityDivergencesFromLegacy.length,
+        nativeAbilityMechanicDivergencesFromLegacy:
+          result.abilityMechanicDivergencesFromLegacy.length,
         nativeWarnings: result.native.warningCount,
       },
     ];
   }),
 );
 
+function summarizeAbilityDivergence(entry) {
+  const details = entry.divergentComponents
+    .map((component) => {
+      const percent =
+        component === "total"
+          ? entry.damageDeltaPercent
+          : entry[`${component}DeltaPercent`];
+      return `${component} ${percent > 0 ? "+" : ""}${percent}%`;
+    })
+    .join("/");
+  return `${entry.name} ${details}`;
+}
+
 if (check) {
   const failures = Object.entries(summary).flatMap(([variant, result]) => {
     const reasons = [];
     if (Math.abs(result.nativeDpsDeltaPercent) > 1.2) {
-      reasons.push(`DPS delta ${result.nativeDpsDeltaPercent}% exceeds 1.2%`);
+      reasons.push(
+        `reference DPS delta ${result.nativeDpsDeltaPercent}% exceeds 1.2%`,
+      );
+    }
+    if (Math.abs(result.nativeDpsDeltaFromLegacyPercent) > 1.2) {
+      reasons.push(
+        `legacy DPS delta ${result.nativeDpsDeltaFromLegacyPercent}% exceeds 1.2%`,
+      );
     }
     if (Math.abs(result.nativeDurationDeltaPercent) > 0.15) {
       reasons.push(
-        `duration delta ${result.nativeDurationDeltaPercent}% exceeds 0.15%`,
+        `reference duration delta ${result.nativeDurationDeltaPercent}% exceeds 0.15%`,
+      );
+    }
+    if (Math.abs(result.nativeDurationDeltaFromLegacyPercent) > 0.15) {
+      reasons.push(
+        `legacy duration delta ${result.nativeDurationDeltaFromLegacyPercent}% exceeds 0.15%`,
       );
     }
     if (result.nativeTimelineChanges > 3) {
       reasons.push(
         `${result.nativeTimelineChanges} timeline changes exceeds 3`,
+      );
+    }
+    if (result.nativeTimelineChangesFromLegacy > 3) {
+      reasons.push(
+        `${result.nativeTimelineChangesFromLegacy} legacy timeline changes exceeds 3`,
+      );
+    }
+    const abilityDivergences =
+      results[variant].abilityDivergencesFromReference.native;
+    if (abilityDivergences.length) {
+      reasons.push(
+        `${abilityDivergences.length} ability damage component deltas exceed 2% (${abilityDivergences
+          .slice(0, 5)
+          .map(summarizeAbilityDivergence)
+          .join(", ")})`,
+      );
+    }
+    const legacyAbilityDivergences =
+      results[variant].abilityDivergencesFromLegacy;
+    if (legacyAbilityDivergences.length) {
+      reasons.push(
+        `${legacyAbilityDivergences.length} legacy ability damage component deltas exceed 2% (${legacyAbilityDivergences
+          .slice(0, 5)
+          .map(summarizeAbilityDivergence)
+          .join(", ")})`,
+      );
+    }
+    const legacyAbilityMechanicDivergences =
+      results[variant].abilityMechanicDivergencesFromLegacy;
+    if (legacyAbilityMechanicDivergences.length) {
+      reasons.push(
+        `${legacyAbilityMechanicDivergences.length} legacy ability condition application/stack-duration deltas (${legacyAbilityMechanicDivergences
+          .slice(0, 5)
+          .map((entry) => entry.name)
+          .join(", ")})`,
+      );
+    }
+    const abilityMechanicDivergences =
+      results[variant].abilityMechanicDivergencesFromReference.native;
+    if (abilityMechanicDivergences.length) {
+      reasons.push(
+        `${abilityMechanicDivergences.length} ability condition application/stack-duration deltas (${abilityMechanicDivergences
+          .slice(0, 5)
+          .map((entry) => entry.name)
+          .join(", ")})`,
       );
     }
     if (result.nativeWarnings > 0) {
