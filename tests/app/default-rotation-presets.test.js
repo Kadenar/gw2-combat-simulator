@@ -489,6 +489,11 @@ test("Guardian and Mesmer rotations are paired with their build templates", asyn
         "Rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
     },
     {
+      section: "Willbender",
+      label: "Condition (Pistol / Torch + Pistol / Pistol)",
+      rotation: "Rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
+    },
+    {
       section: "Firebrand",
       label: "Condition (Axe / Torch + Pistol / Pistol)",
       rotation: "Rotations/guardian/r-condition-firebrand-bench.json",

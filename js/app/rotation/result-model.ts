@@ -27,6 +27,8 @@ const EFFECT_NAMES: Readonly<Record<string, string>> = {
   "kallas-fervor": "Kalla's Fervor",
   "necromancer-soul-barbs": "Soul Barbs",
   "berserkers-power": "Berserker's Power",
+  "lethal-tempo": "Lethal Tempo",
+  "guardian-inspiring-virtue": "Inspiring Virtue",
 };
 
 const EFFECT_STACK_CAPS: Readonly<Record<string, number>> = {
@@ -36,6 +38,8 @@ const EFFECT_STACK_CAPS: Readonly<Record<string, number>> = {
   "Compounding Power": 5,
   "Soul Barbs": 1,
   "Berserker's Power": 4,
+  "Lethal Tempo": 5,
+  "Inspiring Virtue": 1,
   // Berserk is a boolean mode re-emitted on every entry; its overlapping
   // windows would otherwise sum into a meaningless double-digit "stack" count.
   Berserk: 1,

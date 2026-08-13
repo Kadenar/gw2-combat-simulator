@@ -22,6 +22,15 @@ const ELEMENTALIST_FALLBACK_ICON =
     '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="8" fill="#40252b"/><text x="32" y="38" text-anchor="middle" fill="#d65c69" font-size="26">E</text></svg>',
   );
 
+const ELEMENTALIST_CONJURE_ACTION_ICONS = Object.freeze({
+  "Frost Bow":
+    "https://render.guildwars2.com/file/CC6D556B7C3F95C49E54D697CC2B4E79105DC594/103348.png",
+  "Lightning Hammer":
+    "https://render.guildwars2.com/file/C3DA6AC980062B0A0EEA14CE51393748CFAE01CA/103369.png",
+  "Fiery Greatsword":
+    "https://render.guildwars2.com/file/EEDA0B1847077DE93DBB0575D44BE0615FBCE728/103328.png",
+});
+
 const ELEMENTALIST_BUNDLE_ACTIONS: readonly Skill[] = Object.freeze([
   {
     id: 2662,
@@ -29,7 +38,7 @@ const ELEMENTALIST_BUNDLE_ACTIONS: readonly Skill[] = Object.freeze([
     displayName: "Flame Barrage",
     description:
       "Command your summoned Fire Elemental to unleash a flame barrage.",
-    icon: "https://render.guildwars2.com/file/011D983FEAFB946EF0F45E7F290838CFA31D63D0/103380.png",
+    icon: "https://render.guildwars2.com/file/64A5054179704B60614F90964DE1FB3D39AEC972/867446.png",
     type: "Elite",
     weapon: "",
     slot: "Elite",
@@ -53,7 +62,7 @@ const ELEMENTALIST_BUNDLE_ACTIONS: readonly Skill[] = Object.freeze([
     name: "__drop_bundle",
     displayName: "Drop Bundle",
     description: "Drop the currently equipped conjured weapon.",
-    icon: ELEMENTALIST_FALLBACK_ICON,
+    icon: "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
     type: "Action",
     weapon: "",
     slot: "Action",
@@ -67,6 +76,7 @@ const ELEMENTALIST_BUNDLE_ACTIONS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     implemented: true,
     simulatorExcluded: false,
+    paletteAction: false,
     effects: [],
   },
   ...["Frost Bow", "Lightning Hammer", "Fiery Greatsword"].map(
@@ -75,7 +85,9 @@ const ELEMENTALIST_BUNDLE_ACTIONS: readonly Skill[] = Object.freeze([
       name: `__pickup_${weapon}`,
       displayName: `Pick up ${weapon}`,
       description: `Pick up the available ${weapon}.`,
-      icon: ELEMENTALIST_FALLBACK_ICON,
+      icon: ELEMENTALIST_CONJURE_ACTION_ICONS[
+        weapon as keyof typeof ELEMENTALIST_CONJURE_ACTION_ICONS
+      ],
       type: "Action",
       weapon: "",
       slot: "Action",
@@ -90,6 +102,7 @@ const ELEMENTALIST_BUNDLE_ACTIONS: readonly Skill[] = Object.freeze([
       unaffectedByQuickness: true,
       implemented: true,
       simulatorExcluded: false,
+      paletteAction: false,
       effects: [],
     }),
   ),
@@ -315,6 +328,7 @@ export const ELEMENTALIST_NATIVE_SKILLS: readonly Skill[] = Object.freeze(
             }
           : {}),
         ...(skill.name === "Tailored Victory" ? { slotSelectable: false } : {}),
+        ...(skill.name === "Dodge" ? { paletteAction: true } : {}),
         ...(skill.name === "Glyph of Elementals"
           ? {
               castTimeMs: 1250,
@@ -324,6 +338,12 @@ export const ELEMENTALIST_NATIVE_SKILLS: readonly Skill[] = Object.freeze(
             }
           : {}),
         ...(metadata?.description ? { description: metadata.description } : {}),
+        ...(skill.name === "Glyph of Elementals"
+          ? {
+              description:
+                "Glyph. Summon a Fire Elemental regardless of attunement.",
+            }
+          : {}),
         icon:
           SKILL_ICON_OVERRIDES.get(skill.name) ||
           metadata?.icon ||

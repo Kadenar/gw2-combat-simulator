@@ -14,6 +14,23 @@ function build(app: { build: unknown }): ElementalistApplicationBuild {
   return app.build as ElementalistApplicationBuild;
 }
 
+function explicitlyCastsGlyphOfElementals(
+  rotation: readonly unknown[],
+): boolean {
+  return rotation.some((entry) => {
+    if (entry === "Glyph of Elementals") return true;
+    if (!entry || typeof entry !== "object") return false;
+    const command = entry as Readonly<Record<string, unknown>>;
+    if (command.name === "Glyph of Elementals") return true;
+    if (command.type !== "cast") return false;
+    return (
+      elementalistProfession.catalog.skillsById.get(
+        command.skillId as string | number,
+      )?.name === "Glyph of Elementals"
+    );
+  });
+}
+
 function isElementalistSkillAvailable(
   skill: Skill,
   context: ProfessionSkillAvailabilityContext = {},
@@ -42,6 +59,9 @@ export const elementalistApp = defineProfessionApp({
       evokerElement: build(app).evokerElement,
       initialEvokerCharges: build(app).initialEvokerCharges,
       initialEvokerEmpowered: build(app).initialEvokerEmpowered,
+      autoSummonFireElemental: !explicitlyCastsGlyphOfElementals(
+        build(app).rotation,
+      ),
     }),
   },
   isSkillAvailable: isElementalistSkillAvailable,

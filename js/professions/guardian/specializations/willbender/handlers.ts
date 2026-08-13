@@ -113,7 +113,9 @@ function activateWillbenderVirtue(
     context,
     GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM,
   );
-  state.virtueHitCounts[virtue] = 0;
+  if (state[`${virtue}Until`] <= at + context.epsilon) {
+    state.virtueHitCounts[virtue] = 0;
+  }
   const duration = virtue === "justice" ? (tyrantsMomentum ? 10 : 8) : 6;
   state[`${virtue}Until`] = at + duration;
   gainLethalTempo(state, at, tyrantsMomentum);

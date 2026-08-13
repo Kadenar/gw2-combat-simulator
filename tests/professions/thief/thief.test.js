@@ -3046,6 +3046,15 @@ test("Condition Daredevil dagger-dagger preset matches the supplied EVTC", async
   assert.equal(castCount("Channeled Vigor"), 6);
   assert.equal(castCount("Caltrops"), 5);
   assert.equal(castCount("Spider Venom"), 5);
+  assert.equal(
+    result.resolvedEvents.filter(
+      (event) =>
+        event.type === "condition" &&
+        event.skillId === ID.SPIDER_VENOM &&
+        !event.triggeredByAlly,
+    ).length,
+    30,
+  );
   assert.equal(castCount("Prepare Thousand Needles"), 6);
   assert.equal(castCount("Thousand Needles"), 5);
   assert.equal(castCount("Swap Weapons"), 11);

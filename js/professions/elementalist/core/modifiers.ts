@@ -296,6 +296,14 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] =
         targetHas(context, "Vulnerability"),
     },
     {
+      id: "elementalist.zephyrs-speed-critical-chance",
+      target: MODIFIER_TARGET.CRITICAL_CHANCE,
+      operation: "add",
+      amount: 0.05,
+      when: (context) =>
+        playerEvent(context) && hasTrait(context, "Zephyr's Speed"),
+    },
+    {
       id: "elementalist.superior-elements",
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: "add",

@@ -10,6 +10,7 @@ import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
+  ProfessionPaletteGroup,
   ProfessionStartControl,
   ProfessionUiContract,
   RotationStateSnapshotItem,
@@ -49,6 +50,7 @@ function elementalistWeaponSkillMatchesSet(
   weapons: readonly (string | undefined)[],
   context: SchedulerRecord,
 ): boolean {
+  if (uiState(context).conjureEquipped) return false;
   if (
     String(skill.attunement || "").includes("+") &&
     uiSpecialization(context) !== "Weaver"
@@ -56,6 +58,62 @@ function elementalistWeaponSkillMatchesSet(
     return false;
   }
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
+}
+
+function elementalistPaletteGroups(
+  context: SchedulerRecord,
+): ProfessionPaletteGroup[] {
+  const state = uiState(context);
+  const groups: ProfessionPaletteGroup[] = [
+    {
+      id: "elementalist-attunements",
+      label: "Attune",
+      skillIds: [],
+      skillEntries: ELEMENTALIST_ATTUNEMENTS.map((attunement) => ({
+        skillId: ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement],
+        variantBadge: attunement[0],
+      })),
+      color: "#c85142",
+      className: "elementalist-attunement-palette",
+      includeActionSkills: true,
+    },
+  ];
+  const conjureEquipped = String(state.conjureEquipped || "");
+  if (conjureEquipped) {
+    groups.push({
+      id: "elementalist-conjure-weapon",
+      label: conjureEquipped,
+      skillIds: elementalistCatalog.skills
+        .filter(
+          (skill) =>
+            skill.type === "Weapon" &&
+            (skill.weapon || skill.skillWeapon) === conjureEquipped,
+        )
+        .map((skill) => skill.id),
+      color: "#d4a43f",
+    });
+  }
+
+  const now = Number(context.time || 0);
+  const actionNames = conjureEquipped
+    ? ["__drop_bundle"]
+    : Object.entries(state.conjurePickups || {})
+        .filter(([, expiresAt]) => Number(expiresAt) >= now)
+        .map(([weapon]) => `__pickup_${weapon}`);
+  const actionSkillIds = actionNames.flatMap((name) => {
+    const skill = elementalistCatalog.skillsByName.get(name);
+    return skill ? [skill.id] : [];
+  });
+  if (actionSkillIds.length) {
+    groups.push({
+      id: "elementalist-conjure-actions",
+      label: conjureEquipped ? "Drop" : "Pick",
+      skillIds: actionSkillIds,
+      color: "#d4a43f",
+      includeActionSkills: true,
+    });
+  }
+  return groups;
 }
 
 function currentAttunement(
@@ -298,20 +356,7 @@ export const elementalistCoreUi: Partial<ProfessionUiContract> &
       color: "#c85142",
     },
   ],
-  paletteGroups: () => [
-    {
-      id: "elementalist-attunements",
-      label: "Attune",
-      skillIds: [],
-      skillEntries: ELEMENTALIST_ATTUNEMENTS.map((attunement) => ({
-        skillId: ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement],
-        variantBadge: attunement[0],
-      })),
-      color: "#c85142",
-      className: "elementalist-attunement-palette",
-      includeActionSkills: true,
-    },
-  ],
+  paletteGroups: elementalistPaletteGroups,
   startControls: (context: SchedulerRecord) => [
     attunementStartControl(context, "startAttunement", "Start attunement"),
   ],

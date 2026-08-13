@@ -10,6 +10,7 @@ import type {
 } from "../../../../platform/engine/types.js";
 import {
   emitElementalistBuff,
+  emitElementalistProc,
   grantElementalistRockSolid,
   triggerElementalistEarthenBlast,
   triggerElementalistElectricDischarge,
@@ -42,6 +43,8 @@ const EVOKER_NO_CHARGE_SKILLS = new Set([
   "Transmute Fire",
   "Grand Finale",
 ]);
+const ELECTRIC_ENCHANTMENT_ICON =
+  "https://wiki.guildwars2.com/images/7/7b/Hare%27s_Agility.png";
 const CONJURED_WEAPONS = new Set([
   "Frost Bow",
   "Lightning Hammer",
@@ -505,6 +508,14 @@ function emitElectricEnchantment(
     stacks: 1,
     duration: 1.5,
   });
+  emitElementalistProc(context as never, {
+    at: event.at,
+    name: "Electric Enchantment",
+    procType: "trait",
+    sourceId: event.skillId ?? event.sourceId,
+    sourceSkill: String(event.skillName || event.source || ""),
+    icon: ELECTRIC_ENCHANTMENT_ICON,
+  });
 }
 
 function materializeArmedElectricEnchantments(
@@ -557,9 +568,27 @@ function onCastComplete(
   }
   if (familiarElement && hasTrait(context, "Galvanic Enchantment")) {
     state.electricEnchantmentStacks += 2;
+    emitElementalistProc(context as never, {
+      at,
+      name: "Electric Enchantment",
+      procType: "trait",
+      sourceId: skill.id,
+      sourceSkill: skill.name,
+      detail: "+2 stacks",
+      icon: ELECTRIC_ENCHANTMENT_ICON,
+    });
   }
   if (skill.name === "Lightning Blitz") {
     state.electricEnchantmentStacks += 1;
+    emitElementalistProc(context as never, {
+      at,
+      name: "Electric Enchantment",
+      procType: "skill",
+      sourceId: skill.id,
+      sourceSkill: skill.name,
+      detail: "+1 stack",
+      icon: ELECTRIC_ENCHANTMENT_ICON,
+    });
   }
   if (familiarElement) {
     materializeArmedElectricEnchantments(context, state);
@@ -606,6 +635,15 @@ function onCastComplete(
   }
   if (skill.name === "Hare's Agility") {
     state.electricEnchantmentStacks += 5;
+    emitElementalistProc(context as never, {
+      at,
+      name: "Electric Enchantment",
+      procType: "skill",
+      sourceId: skill.id,
+      sourceSkill: skill.name,
+      detail: "+5 stacks",
+      icon: ELECTRIC_ENCHANTMENT_ICON,
+    });
   } else if (skill.name === "Toad's Fortitude" && state.element === "Earth") {
     emitElementalistBuff(
       context as never,
@@ -712,6 +750,15 @@ function onEventScheduled(
     if (state.elementalBalanceProgress >= 2) {
       state.elementalBalanceProgress -= 2;
       state.elementalBalanceUntil = event.at + 5;
+      emitElementalistProc(context as never, {
+        at: event.at,
+        name: "Elemental Balance",
+        procType: "skill",
+        sourceId: event.skillId ?? event.sourceId,
+        sourceSkill: String(event.skillName || event.source || ""),
+        detail: "CDR armed (5s)",
+        icon: "https://wiki.guildwars2.com/images/4/4c/Elemental_Balance.png",
+      });
     }
   }
   if (!hasTrait(context, "Elemental Dynamo")) return;

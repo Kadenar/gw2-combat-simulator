@@ -387,8 +387,8 @@ function observeWillbenderEvent(
 ): void {
   if (
     event.type !== "damage" ||
-    !isGw2PlayerActorEvent(event) ||
-    !(Number(event.coefficient || 0) > 0)
+    !(Number(event.coefficient || 0) > 0) ||
+    (!isGw2PlayerActorEvent(event) && event.sourceId !== "sigil.air")
   ) {
     return;
   }

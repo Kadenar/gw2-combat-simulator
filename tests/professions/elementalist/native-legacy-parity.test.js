@@ -120,7 +120,12 @@ function runNative(fixture, build) {
   return simulateGw2({
     profession: elementalistProfession,
     rotation: canonicalRotation(fixture.rotation),
-    config: simulationConfig(app),
+    config: {
+      ...simulationConfig(app),
+      // These fixtures compare the selected rotation mechanics. Automatic
+      // Fire Elemental damage has no legacy counterpart in this harness.
+      autoSummonFireElemental: false,
+    },
   });
 }
 

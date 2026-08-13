@@ -103,24 +103,34 @@ header .accent {
   color: var(--accent);
 }
 
-.github-link {
+.community-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.community-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--text-dim);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-decoration: none;
+  cursor: pointer;
 }
 
-.github-link:hover,
-.github-link:focus-visible {
+.community-link:hover,
+.community-link:focus-visible {
   color: var(--accent);
   outline: none;
 }
 
-.github-link:focus-visible {
+.community-link:focus-visible {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -130,14 +140,14 @@ header .accent {
 }
 
 /* Simulator pages: mirror the absolute home-link on the opposite corner. */
-header .github-link {
+header .community-actions {
   position: absolute;
   right: 0;
   top: 10px;
 }
 
 @media (max-width: 720px) {
-  header .github-link {
+  header .community-actions {
     position: static;
     display: inline-flex;
     margin-bottom: 7px;

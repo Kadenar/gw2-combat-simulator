@@ -24,6 +24,7 @@ import type {
   GuardianState,
 } from "../types.js";
 import { validateGuardianAvailability } from "./availability.js";
+import { observeGuardianComboFinisher } from "./combos.js";
 import {
   advanceSpearIlluminationState,
   updateSpearIlluminationState,
@@ -390,16 +391,6 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] =
         context.condition === "Burning" &&
         hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE),
     },
-    {
-      id: "guardian.justice-passive-duration",
-      target: MODIFIER_TARGET.CONDITION_DURATION,
-      operation: "multiply",
-      factor: 1.2,
-      when: (context) =>
-        context.condition === "Burning" &&
-        context.sourceId === "guardian.justice-passive" &&
-        hasTrait(context, GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH),
-    },
   ]);
 
 export function compileGuardianModifierRules(
@@ -478,12 +469,23 @@ function modifyGuardianConditionBaseDuration(
   context: Gw2ModifierContext,
   duration: number,
 ): number {
-  return context.condition === "Burning" &&
+  if (context.condition !== "Burning") return duration;
+  let result = duration;
+  if (
     (context.sourceId === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME ||
       context.event?.skillId === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME) &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)
-    ? duration * 1.5
-    : duration;
+  ) {
+    result *= 1.5;
+  }
+  if (
+    (context.sourceId === "guardian.justice-passive" ||
+      context.event?.sourceId === "guardian.justice-passive") &&
+    hasTrait(context, GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH)
+  ) {
+    result *= 1.2;
+  }
+  return result;
 }
 
 /**
@@ -578,6 +580,11 @@ export const guardianCoreSchedulerHooks = Object.freeze({
       id: "guardian.traits",
       order: 10,
       handler: observeGuardianScheduledEvent,
+    },
+    {
+      id: "guardian.combo-finishers",
+      order: 20,
+      handler: observeGuardianComboFinisher,
     },
   ]),
 });

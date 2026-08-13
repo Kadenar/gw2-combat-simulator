@@ -13,12 +13,7 @@ import type {
   Skill,
   SkillEffect,
 } from "../../../platform/engine/types.js";
-import {
-  ELEMENTALIST_ATTUNEMENTS,
-  elementalistCoreState,
-  type ElementalistAttunement,
-  type ElementalistCoreState,
-} from "./state.js";
+import { elementalistCoreState, type ElementalistCoreState } from "./state.js";
 
 interface ElementalistRuntimeState extends SchedulerRecord {
   core: ElementalistCoreState;
@@ -116,21 +111,16 @@ function unavailable(reason: string, retryAt?: number): AvailabilityResult {
   };
 }
 
-function selectedElementAtCast(
-  context: ElementalistLifecycleContext,
-): ElementalistAttunement {
-  const recordedAction = context.events.find(
-    (event) => event.activationId === context.reservationId,
-  );
-  const value = String(
-    recordedAction?.summonedElement ||
-      context.action.summonedElement ||
-      elementalistCoreState(context as unknown as SchedulerRecord)
-        .primaryAttunement,
-  );
-  return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement)
-    ? (value as ElementalistAttunement)
-    : "Fire";
+function selectedSkillNames(
+  context: ElementalistSchedulerContext,
+): ReadonlySet<string> {
+  const selected = context.config.selectedSkills;
+  const values = Array.isArray(selected)
+    ? selected
+    : selected && typeof selected === "object"
+      ? Object.values(selected as Readonly<Record<string, string>>)
+      : [];
+  return new Set(values.map(String));
 }
 
 function companionId(summonGeneration: number): string {
@@ -641,26 +631,19 @@ export function beginElementalistGlyphCast(
   skill: Skill,
 ): void {
   if (skill.name !== "Glyph of Elementals") return;
-  const elemental = elementalistCoreState(
-    context as unknown as SchedulerRecord,
-  ).summonedElemental;
   context.replaceEvent(context.action, {
-    summonedElement:
-      elemental.activeUntil > context.start + context.epsilon
-        ? elemental.element
-        : elementalistCoreState(context as unknown as SchedulerRecord)
-            .primaryAttunement,
+    summonedElement: "Fire",
   });
 }
 
-export function completeElementalistGlyphCast(
-  context: ElementalistLifecycleContext,
+function summonFireElemental(
+  context: ElementalistSchedulerContext,
   skill: Skill,
+  at: number,
+  startImmediately: boolean,
 ): void {
-  if (skill.name !== "Glyph of Elementals") return;
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
-  const element = selectedElementAtCast(context);
-  const at = context.effectiveEnd;
+  const element = "Fire";
   context.tasks.cancelOwner(ELEMENTAL_TASK_OWNER);
   const summonGeneration = state.summonedElemental.summonGeneration + 1;
   state.summonedElemental = {
@@ -701,16 +684,22 @@ export function completeElementalistGlyphCast(
     { summonGeneration },
     50,
   );
-  if (element !== "Fire") {
-    context.warnings.push(
-      `${element} Elemental AI is not implemented; supply an EVTC log for that elemental.`,
-    );
-    return;
-  }
   state.availableFlips["Flame Barrage"] = Number.POSITIVE_INFINITY;
-  if (!context.hasExplicitCombatStart || context.combatStartTime != null) {
-    startFireElemental(context, at);
-  }
+  if (startImmediately) startFireElemental(context, at);
+}
+
+export function completeElementalistGlyphCast(
+  context: ElementalistLifecycleContext,
+  skill: Skill,
+): void {
+  if (skill.name !== "Glyph of Elementals") return;
+  const at = context.effectiveEnd;
+  summonFireElemental(
+    context,
+    skill,
+    at,
+    !context.hasExplicitCombatStart || context.combatStartTime != null,
+  );
 }
 
 export function completeElementalistFlameBarrageCommand(
@@ -725,7 +714,23 @@ export function observeElementalistElementalEvent(
   context: ElementalistSchedulerContext,
   event: SimulationEvent,
 ): void {
-  if (event.type === "combat_start") startFireElemental(context, event.at);
+  const combatStarted =
+    event.type === "combat_start" ||
+    (!context.hasExplicitCombatStart &&
+      ["damage", "condition", "control", "blind"].includes(event.type) &&
+      ["player", "summon", "phantasm"].includes(String(event.actorType)));
+  if (!combatStarted) return;
+  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  if (
+    state.summonedElemental.activeUntil <= event.at + context.epsilon &&
+    context.config.autoSummonFireElemental !== false &&
+    selectedSkillNames(context).has("Glyph of Elementals")
+  ) {
+    const glyph = context.catalog.skillsByName.get("Glyph of Elementals");
+    if (glyph) summonFireElemental(context, glyph, event.at, true);
+    return;
+  }
+  startFireElemental(context, event.at);
 }
 
 export function elementalistElementalAvailability(

@@ -1,7 +1,5 @@
 import { luminaryState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 /**
  * @fileoverview Implements Luminary Radiant Forge cast validation, mode
  * transitions, radiant-weapon effects, forge expiry, and resolver state
@@ -117,6 +115,7 @@ function radiantForge(
   state.radiantForgeEndsAt = entering ? context.effectiveEnd + 20 : 0;
   state.radiantForgeEnteredAt = entering ? context.effectiveEnd : 0;
   state.radiantWeapon = "";
+  professionCoreState(context).autoattackChains = {};
   if (entering) {
     state.radiantWeaponsUsed = {};
   }
@@ -225,10 +224,12 @@ function glaringBurst(
 ): void {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const radiantWeapon = luminaryState.from(context).radiantWeapon;
-  const coefficient = radiantWeapon === "hammer" || radiantWeapon === "blade"
-    ? LUMINARY_MECHANICS.radiantForge
-      .glaringBurstCoefficientByWeapon[radiantWeapon]
-    : 0;
+  const coefficient =
+    radiantWeapon === "hammer" || radiantWeapon === "blade"
+      ? LUMINARY_MECHANICS.radiantForge.glaringBurstCoefficientByWeapon[
+          radiantWeapon
+        ]
+      : 0;
   if (coefficient <= 0) return;
   context.emit(
     buildGuardianStrike({
@@ -313,7 +314,9 @@ function handleRadiantForgeTransition(
   event: GuardianResolverEvent,
 ): void {
   luminaryState.from(context).radiantForge = Boolean(event.radiantForge);
-  luminaryState.from(context).radiantForgeEndsAt = Number(event.radiantForgeEndsAt || 0);
+  luminaryState.from(context).radiantForgeEndsAt = Number(
+    event.radiantForgeEndsAt || 0,
+  );
   luminaryState.from(context).radiantForgeEnteredAt = Number(
     event.radiantForgeEnteredAt || 0,
   );
@@ -371,6 +374,7 @@ export function advanceRadiantForgeState(
     state.radiantForgeEndsAt = 0;
     state.radiantForgeEnteredAt = 0;
     state.radiantWeapon = "";
+    professionCoreState(context).autoattackChains = {};
     professionCoreState(context).availableFlips = {};
   }
 }

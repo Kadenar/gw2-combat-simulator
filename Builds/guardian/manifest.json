@@ -9,6 +9,14 @@
         "benchmarkDps": 42975,
         "sourceBenchmarkDps": 42702,
         "upToDate": true
+      },
+      {
+        "label": "Condition (Pistol / Torch + Pistol / Pistol)",
+        "build": "Builds/guardian/b-condi-willbender-pistol-torch.json",
+        "rotation": "Rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
+        "benchmarkDps": 42343,
+        "sourceBenchmarkDps": 41809,
+        "upToDate": true
       }
     ]
   },
@@ -52,7 +60,10 @@
         "label": "Power Alacrity (Greatsword / Spear)",
         "build": "Builds/guardian/b-power-alac-luminary.json",
         "rotation": "Rotations/guardian/r-power-alac-luminary-bench.json",
-        "benchmarkDps": 37977
+        "benchmarkDps": 37991,
+        "sourceBenchmarkDps": 37129,
+        "dpsReportUrl": "https://dps.report/ABHB-20260603-234544_golem",
+        "upToDate": true
       }
     ]
   }
