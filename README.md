@@ -4,12 +4,6 @@ A standalone deterministic PvE build and rotation simulator with browser
 applications for every profession registered in
 `js/app/profession/registry.js`.
 
-The home page also includes a browser-only EVTC analyzer for Special Forces
-Training Area golem logs. Drop an `.evtc`, `.evtc.zip`, or `.zevtc` file into
-the Log analysis section. Decompression, parsing, validation, and analysis run
-inside a dedicated Web Worker; the log and its identifying data are never
-uploaded or persisted.
-
 Choose a profession from the landing page or the shared simulator header:
 
 - **Mesmer**: Core, Chronomancer, Mirage, Virtuoso, and Troubadour.
@@ -77,7 +71,6 @@ npm run update:ranger-data
 ```text
 gw2-combat-simulator/
   js/
-    evtc-analyzer/                isolated browser EVTC parser and analyzer
     platform/                  profession-neutral engine, GW2, and UI contracts
     professions/
       mesmer/                  Mesmer implementation
@@ -127,7 +120,3 @@ Per-profession documentation lives in [docs/professions/](docs/professions/):
 
 The GitHub Issue Form and maintainer review process for community build
 submissions are documented in [docs/BUILD-SUBMISSIONS.md](docs/BUILD-SUBMISSIONS.md).
-
-EVTC formats, safety limits, supported targets, attribution constraints, and
-the profession-analyzer extension contract are documented in
-[docs/EVTC-ANALYZER.md](docs/EVTC-ANALYZER.md).
