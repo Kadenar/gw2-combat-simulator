@@ -522,7 +522,11 @@ test("Signet of Spite follows its live passive and active profile", () => {
 test("interrupt-safe Necromancer attacks retain their committed packets", () => {
   const soulSpiral = simulate(
     "Reaper",
-    ["Reaper's Shroud", { name: "Soul Spiral", interruptAfterMs: 120 }],
+    [
+      "Reaper's Shroud",
+      { name: "Soul Spiral", interruptAfterMs: 120 },
+      { type: "wait", durationMs: 2100 },
+    ],
     {
       boons: { quickness: true },
     },
@@ -737,10 +741,10 @@ test("every catalog skill has mechanics and API aliases are excluded", () => {
     assert.equal(
       Boolean(
         skill.handlerId ||
-          skill.effects.length ||
-          skill.lifeForceGain ||
-          skill.flipParentId != null ||
-          skill.type === "Action",
+        skill.effects.length ||
+        skill.lifeForceGain ||
+        skill.flipParentId != null ||
+        skill.type === "Action",
       ),
       true,
       `${skill.id} ${skill.name}`,
@@ -5006,9 +5010,16 @@ test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
   assert.equal(rows.get("Anguish Autoattack").hits, 16);
   assert.equal(rows.get("Wanderlust Autoattack").hits, 16);
   assert.equal(rows.get("Preservation Autoattack").hits, 21);
-  assert.equal(rows.get("Death Spiral").hits, 6);
+  assert.equal(rows.get("Death Spiral").hits, 12);
   assert.equal(rows.get("Death Spiral — Life Siphon").hits, 6);
-  assert.equal(rows.get("Leeching Bolts").hits, 30);
+  assert.equal(
+    result.resolvedEvents
+      .filter(
+        (event) => event.type === "combo" && event.name === "Leeching Bolts",
+      )
+      .reduce((total, event) => total + event.applicationCount, 0),
+    30,
+  );
   assert.ok(packetError("Anguish", 391_867) < 0.01);
   assert.ok(packetError("Painful Bond", 156_679) < 0.04);
   assert.ok(packetError("Explosive Growth", 132_893) < 0.08);
@@ -5020,10 +5031,10 @@ test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
   assert.ok(packetError("Anguish Autoattack", 83_450) < 0.015);
   assert.ok(packetError("Wanderlust Autoattack", 67_300) < 0.015);
   assert.ok(packetError("Preservation Autoattack", 67_436) < 0.015);
-  assert.ok(packetError("Slash", 67_582) < 0.03);
-  assert.ok(packetError("Fist", 57_943) < 0.03);
+  assert.ok(packetError("Slash", 71_261) < 0.03);
+  assert.ok(packetError("Fist", 61_012) < 0.03);
   assert.ok(packetError("Perforate", 299_894) < 0.01);
-  assert.ok(packetError("Death Spiral", 126_817) < 0.01);
+  assert.ok(packetError("Death Spiral", 128_665) < 0.01);
   assert.ok(packetError("Summon Spirits", 441_885) < 0.025);
   assert.equal(
     savedRotation.rotation.some(
@@ -5164,7 +5175,7 @@ test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", a
       (event) =>
         event.type === "condition" && event.sourceId === TRAIT.DEATHLY_CHILL,
     ).length,
-    155,
+    156,
   );
   assert.equal(
     result.procSteps.filter((step) => step.skill === "Sigil of Geomancy")

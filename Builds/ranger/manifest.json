@@ -25,7 +25,7 @@
         "label": "Power (Hammer / Sword-Axe)",
         "build": "Builds/ranger/b-power-soulbeast-hammer-sword-axe.json",
         "rotation": "Rotations/ranger/r-power-soulbeast-hammer-sword-axe-bench.json",
-        "benchmarkDps": 42658,
+        "benchmarkDps": 42657,
         "dpsReportUrl": "https://dps.report/pGzS-20260718-125337_golem",
         "upToDate": true
       }
@@ -50,14 +50,14 @@
         "label": "Power (Longbow / Axe-Axe)",
         "build": "Builds/ranger/b-power-galeshot-longbow-axe.json",
         "rotation": "Rotations/ranger/r-power-galeshot-longbow-axe-bench.json",
-        "benchmarkDps": 42266,
+        "benchmarkDps": 42295,
         "upToDate": true
       },
       {
         "label": "Power Quickness (Longbow / Axe-Axe)",
         "build": "Builds/ranger/b-power-quick-galeshot-longbow-axe.json",
         "rotation": "Rotations/ranger/r-power-quick-galeshot-longbow-axe-bench.json",
-        "benchmarkDps": 35160,
+        "benchmarkDps": 35162,
         "upToDate": true
       }
     ]

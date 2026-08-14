@@ -165,7 +165,14 @@ export function isGw2WeaponSkillEquipped(
   matcher: Gw2WeaponSkillMatcher = defaultWeaponSkillMatchesSet,
   catalog: CanonicalCatalog | null = null,
 ): boolean {
-  if (skill.type !== "Weapon" || !skill.weapon) return true;
+  const hasExplicitRequirement =
+    skill.requiredMainHand != null ||
+    skill.requiredOffHand != null ||
+    skill.weaponSet?.mainHand != null ||
+    skill.weaponSet?.offHand != null;
+  if (!hasExplicitRequirement && (skill.type !== "Weapon" || !skill.weapon)) {
+    return true;
+  }
   const configured = configuredWeaponSet(
     context.config as Gw2Config,
     context.state?.activeWeaponSet === 2 ? 2 : 1,

@@ -10,6 +10,7 @@ import {
   GW2_EVENT_ACTOR_TYPES,
   gw2EventActorType,
   isGw2PlayerActorEvent,
+  isGw2PlayerModifierOwnedEvent,
 } from "./event-ownership.js";
 
 import type { SimulationEvent, Skill } from "../engine/types.js";
@@ -472,7 +473,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> =
           name: "Relic of the Claw",
         });
       },
-      strikeMultiplier: timedStrikeBuff(1.07, isGw2PlayerActorEvent),
+      strikeMultiplier: timedStrikeBuff(1.07, isGw2PlayerModifierOwnedEvent),
     }),
 
     Dragonhunter: defineRelic({

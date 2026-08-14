@@ -80,6 +80,73 @@ export const willbenderAttributeRules = Object.freeze({
   modifierRules: willbenderModifierRules,
 });
 
+export function applyWillbenderVirtueActivationTraits(
+  context: GuardianCastContext,
+  virtue: GuardianVirtue,
+  at: number,
+): number {
+  const state = willbenderState.from(context);
+  const tyrantsMomentum = hasGuardianTrait(
+    context,
+    GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM,
+  );
+  const duration = virtue === "justice" ? (tyrantsMomentum ? 10 : 8) : 6;
+  state[`${virtue}Until`] = at + duration;
+  gainLethalTempo(state, at, tyrantsMomentum);
+  context.emit({
+    type: "buff",
+    at,
+    source: "guardian",
+    sourceId: GUARDIAN_TRAIT_IDS.LETHAL_TEMPO,
+    actorType: "player",
+    skillId: GUARDIAN_TRAIT_IDS.LETHAL_TEMPO,
+    skillName: "Lethal Tempo",
+    name: "Lethal Tempo",
+    kind: "lethal-tempo",
+    stacks: state.lethalTempoStacks,
+    duration: state.lethalTempoUntil - at,
+  });
+  if (
+    virtue === "resolve" &&
+    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)
+  ) {
+    context.emit({
+      type: "buff",
+      at,
+      source: "guardian",
+      sourceId: GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES,
+      actorType: "player",
+      skillId: GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES,
+      skillName: "Restorative Virtues",
+      name: "Restorative Virtues — Vigor",
+      kind: "vigor",
+      stacks: 1,
+      duration: 3,
+    });
+  }
+  if (
+    virtue === "resolve" &&
+    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)
+  ) {
+    context.emit({
+      type: "buff",
+      at,
+      source: "guardian",
+      sourceId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
+      actorType: "player",
+      skillId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
+      skillName: "Phoenix Protocol",
+      name: "Phoenix Protocol — Allied Alacrity",
+      kind: "alacrity",
+      stacks: 1,
+      duration: 5,
+      recipients: "allies",
+      affectsSelf: false,
+    });
+  }
+  return duration;
+}
+
 function activeWeaponNames(context: GuardianSchedulerContext): Set<string> {
   const configured =
     context.state.activeWeaponSet === 2

@@ -965,6 +965,14 @@ test("weapon-set matching supports exact dual-wield and empty-offhand bars", () 
       valid: [["Shortbow", ""]],
       invalid: [["Dagger", "Pistol"]],
     },
+    {
+      skill: {
+        type: "Profession",
+        requiredMainHand: "Dagger",
+      },
+      valid: [["Dagger", "Mace"]],
+      invalid: [["Sword", "Axe"]],
+    },
   ];
   for (const fixture of cases) {
     for (const pair of fixture.valid) {

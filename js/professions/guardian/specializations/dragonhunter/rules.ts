@@ -90,8 +90,11 @@ export function advanceDragonhunterState(
     ? 30
     : 40;
   const courage = context.catalog.skillsById.get(ID.SHIELD_OF_COURAGE);
-  while (courage && state.nextCourageAegisAt <= target + context.epsilon) {
-    const at = state.nextCourageAegisAt;
+  while (
+    courage &&
+    state.nextShieldOfCourageAegisAt <= target + context.epsilon
+  ) {
+    const at = state.nextShieldOfCourageAegisAt;
     if (
       at >=
       Number(professionCoreState(context).virtueReadyAt.courage || 0) -
@@ -111,7 +114,7 @@ export function advanceDragonhunterState(
         duration: 20,
       });
     }
-    state.nextCourageAegisAt += interval;
+    state.nextShieldOfCourageAegisAt += interval;
   }
 }
 

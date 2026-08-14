@@ -17,7 +17,7 @@ export function defaultWeaponSkillMatchesSet(
   [mainHand = "", offHand = ""]: readonly (string | undefined)[] = [],
   context: Gw2WeaponMatcherContext = {},
 ): boolean {
-  if (skill?.type !== "Weapon" || !skill.weapon) return true;
+  if (!skill) return true;
   const requiredMain = skill.requiredMainHand ?? skill.weaponSet?.mainHand;
   const requiredOff = skill.requiredOffHand ?? skill.weaponSet?.offHand;
   if (requiredMain != null || requiredOff != null) {
@@ -29,6 +29,7 @@ export function defaultWeaponSkillMatchesSet(
           : String(requiredOff) === String(offHand)))
     );
   }
+  if (skill.type !== "Weapon" || !skill.weapon) return true;
   if (skill.requiresEmptyOffhand && offHand) return false;
   const wielding =
     context.weaponData?.[mainHand]?.wielding ||

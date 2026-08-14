@@ -79,6 +79,10 @@ function buildResolverResult(
 
   return {
     duration: scheduled.rotationEndTime,
+    combatStartTime: handoff.hasExplicitCombatStart
+      ? explicitCombatStart
+      : ctx.firstHitTime,
+    hasExplicitCombatStart: Boolean(handoff.hasExplicitCombatStart),
     dpsStartTime: dpsStart,
     dpsWindow,
     firstHitTime: ctx.firstHitTime,
@@ -138,13 +142,10 @@ export function resolveGw2Timeline({
     throw new TypeError("GW2 timeline resolver requires createRuntimeState.");
   }
   const scheduled = assertPlatformStream(stream);
-  const hasKillableTarget = Number(config.target?.health || 0) > 0;
-  const resolutionEndTime = hasKillableTarget
-    ? scheduled.rotationEndTime
-    : Math.max(
-        scheduled.rotationEndTime,
-        Number(scheduled.resolutionEndTime ?? scheduled.rotationEndTime),
-      );
+  const resolutionEndTime = Math.max(
+    scheduled.rotationEndTime,
+    Number(scheduled.resolutionEndTime ?? scheduled.rotationEndTime),
+  );
   const queue = createEventQueue(
     scheduled.events.map((event) => ({ ...event }) as Gw2ResolverEvent),
   );

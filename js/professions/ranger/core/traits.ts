@@ -71,10 +71,26 @@ function emitPartyBoon(
 function isBeastSkill(skill: RangerSkill): boolean {
   return Boolean(
     (skill.petSkill && !skill.petFamilySkill) ||
-      (skill.beastmodeSkill &&
-        skill.id !== ID.BEASTMODE &&
-        skill.id !== ID.LEAVE_BEASTMODE),
+    (skill.beastmodeSkill &&
+      skill.id !== ID.BEASTMODE &&
+      skill.id !== ID.LEAVE_BEASTMODE),
   );
+}
+
+export function applyRangerDodgeTraits(context: RangerCastContext): void {
+  if (!hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) return;
+  context.emit({
+    type: "buff",
+    at: context.effectiveEnd,
+    source: "Trait",
+    sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
+    actorType: "effect",
+    skillId: TRAIT.LIGHT_ON_YOUR_FEET,
+    skillName: "Light on your Feet",
+    kind: "light-on-your-feet",
+    duration: 6,
+    stacks: 1,
+  });
 }
 
 function emitChildOfEarth(

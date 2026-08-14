@@ -156,10 +156,22 @@ export function createWarriorModuleData<TContext extends object>(
     autoattackChains,
   }: WarriorModuleDataOptions<TContext>,
 ) {
+  const normalizedSkillMechanics = Object.freeze(
+    Object.fromEntries(
+      Object.entries(skillMechanics).map(([skillId, mechanic]) => [
+        skillId,
+        mechanic.burst &&
+        mechanic.skillWeapon &&
+        mechanic.skillWeapon !== "Gunsaber"
+          ? { ...mechanic, requiredMainHand: mechanic.skillWeapon }
+          : mechanic,
+      ]),
+    ),
+  );
   return createNativeModuleData({
     id,
     generatedSkills: generated,
-    skillMechanics,
+    skillMechanics: normalizedSkillMechanics,
     extraSkills,
     handlers,
     traits: TRAITS as readonly CatalogEntity[],

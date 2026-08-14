@@ -20,6 +20,12 @@
     "exact": {
       "activeWeaponSet": 1,
       "ammo": {
+        "Dodge": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 10
+        },
         "Dodge / Mirage Cloak": {
           "charges": 2,
           "maximum": 2,
@@ -300,7 +306,21 @@
           "at": 0.96,
           "blade": false,
           "coefficient": 0.45,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -325,7 +345,21 @@
           "at": 0.96,
           "blade": false,
           "coefficient": 0.45,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 2,
           "hits": 1,
@@ -350,7 +384,21 @@
           "at": 0.96,
           "blade": false,
           "coefficient": 0.45,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 3,
           "hits": 1,
@@ -375,7 +423,21 @@
           "at": 0.96,
           "blade": false,
           "coefficient": 0.45,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 4,
           "hits": 1,
@@ -400,7 +462,21 @@
           "at": 0.96,
           "blade": false,
           "coefficient": 0.45,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 5,
           "hits": 1,
@@ -425,7 +501,21 @@
           "at": 0.96,
           "blade": false,
           "coefficient": 0.45,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 6,
           "hits": 1,
@@ -450,7 +540,21 @@
           "at": 0.96,
           "blade": false,
           "coefficient": 0.45,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 7,
           "hits": 1,
@@ -475,7 +579,21 @@
           "at": 0.96,
           "blade": false,
           "coefficient": 0.45,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 8,
           "hits": 1,
@@ -516,47 +634,42 @@
     "damage": {
       "conditionDamage": 0,
       "dps": 15070.735378046098,
-      "events": [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
-      ],
+      "events": [{}, {}, {}, {}, {}, {}, {}, {}, {}],
       "resolvedEvents": [
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 1826.7558033995272
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 1845.0233614335223
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 1863.2909194675176
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 1881.5584775015132
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 1899.8260355355083
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 1918.0935935695036
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 1918.0935935695036
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 1918.0935935695036
         }
       ],
-      "steps": [
-        {},
-        {}
-      ],
+      "steps": [{}, {}],
       "strikeDamage": 15070.735378046098,
       "totalDamage": 15070.735378046098
     }

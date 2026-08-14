@@ -31,8 +31,10 @@ let rangerCatalog: Readonly<CanonicalCatalog>;
 const RANGER_HIDDEN_EVENT_TYPES = new Set([
   "ranger.beast-skill-used",
   "ranger.blood-thirst",
+  "ranger.pet-swapped",
   "ranger.poisonous-strikes",
   "ranger.sharpening-stone",
+  "ranger.untamed-state",
   "ranger.winter-bite-ready",
 ]);
 

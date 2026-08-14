@@ -9,7 +9,11 @@ import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
-import type { RangerPrecastContext, RangerSkill } from "../../types.js";
+import type {
+  RangerCastContext,
+  RangerPrecastContext,
+  RangerSkill,
+} from "../../types.js";
 import { rangerPetByName } from "../../core/state.js";
 import { galeshotState } from "./state.js";
 import {
@@ -20,6 +24,76 @@ import {
   handleGaleshotPetHitTask,
   observeGaleshotEvent,
 } from "./mechanics.js";
+
+function emitCloudburstBoons(
+  context: RangerCastContext,
+  skill: RangerSkill,
+): void {
+  if (!hasTrait(context, TRAIT.CLOUDBURST)) return;
+  const hawkeye = skill.id === ID.HAWKEYE;
+  for (const [kind, duration, stacks] of [
+    ["quickness", hawkeye ? 8 : 4, 1],
+    ["might", 10, hawkeye ? 8 : 4],
+  ] as const) {
+    context.emit({
+      type: "buff",
+      at: context.effectiveEnd,
+      source: "Trait",
+      sourceId: TRAIT.CLOUDBURST,
+      actorType: "effect",
+      skillId: TRAIT.CLOUDBURST,
+      skillName: "Cloudburst",
+      name: `Cloudburst - ${kind}`,
+      kind,
+      boon: kind,
+      duration,
+      stacks,
+      recipients: "party",
+      maximumRecipients: 5,
+      triggeredBy: skill.name,
+    });
+  }
+}
+
+export function applyGaleshotCycloneBowTraits(
+  context: RangerCastContext,
+  skill: RangerSkill,
+): void {
+  const state = galeshotState.from(context);
+  if (skill.id === ID.HAWKEYE) {
+    if (hasTrait(context, TRAIT.GALE_FORCE)) {
+      state.galeForceUntil = context.effectiveEnd + 10;
+      context.emit({
+        type: "buff",
+        at: context.effectiveEnd,
+        source: "Trait",
+        sourceId: TRAIT.GALE_FORCE,
+        actorType: "effect",
+        skillId: TRAIT.GALE_FORCE,
+        skillName: "Gale Force",
+        kind: "gale-force",
+        duration: 10,
+        stacks: 1,
+        triggeredBy: skill.name,
+      });
+    }
+    emitCloudburstBoons(context, skill);
+    return;
+  }
+  if (skill.id === ID.BLUSTER) {
+    state.wutheringWindReady = hasTrait(context, TRAIT.WUTHERING_WIND);
+    state.wutheringWindReadyAt = context.effectiveEnd;
+    emitCloudburstBoons(context, skill);
+  }
+  if (
+    hasTrait(context, TRAIT.CLOUDBURST) &&
+    [ID.QUARRYS_PERIL, ID.SUPERSONIC_ARROW].includes(
+      skill.id as typeof ID.QUARRYS_PERIL | typeof ID.SUPERSONIC_ARROW,
+    )
+  ) {
+    context.state.cooldowns.delete(ID.BLUSTER);
+  }
+}
 
 export const galeshotSchedulerHooks = Object.freeze({
   advance: {

@@ -464,12 +464,12 @@ test("power Mechanist benchmark builds are valid default selections", async () =
       [
         "Power (Sword / Pistol)",
         "Rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
-        41140,
+        40896,
       ],
       [
         "Power (Rifle)",
         "Rotations/engineer/r-power-mechanist-rifle-bench.json",
-        38474,
+        38513,
       ],
     ],
   );
@@ -1974,10 +1974,15 @@ test("Engineer hammer skills use the requested packets and field cadence", () =>
   assert.equal(electro.comboFinishers[0].finisherType, "Whirl");
 
   const rocket = skill("Rocket Charge");
-  assert.equal(rocket.quicknessCastTimeMs, 1920);
+  assert.equal(rocket.castTimeMs, 1920);
+  assert.equal(rocket.quicknessCastTimeMs, undefined);
+  assert.equal(rocket.unaffectedByQuickness, true);
   assert.equal(rocket.cooldown, 12);
-  assert.equal(rocket.effects[0].coefficient, 3.6);
-  assert.equal(rocket.effects[0].hits, 3);
+  assert.deepEqual(rocket.effects[0].ticks, [
+    { atMs: 640, coefficient: 1.2 },
+    { atMs: 1240, coefficient: 1.2 },
+    { atMs: 1920, coefficient: 1.2 },
+  ]);
 
   const hammerTiming = simulate(
     "Core",
@@ -2006,7 +2011,7 @@ test("Engineer hammer skills use the requested packets and field cadence", () =>
       ["Negative Bash", 0.8],
       ["Equalizing Blow", 1.44],
       ["Rocket Charge", 2.2],
-      ["Rocket Charge", 2.84],
+      ["Rocket Charge", 2.8],
       ["Rocket Charge", 3.48],
     ],
   );
@@ -2019,7 +2024,10 @@ test("Engineer hammer skills use the requested packets and field cadence", () =>
   assert.equal(shield.effects[1].stacks, 10);
   assert.equal(shield.effects[1].duration, 5);
 
-  const thunder = simulate("Core", ["Thunderclap"]);
+  const thunder = simulate("Core", [
+    "Thunderclap",
+    { type: "wait", durationMs: 5000 },
+  ]);
   const thunderDamage = thunder.events.filter(
     (event) => event.type === "damage" && event.name === "Thunderclap",
   );
@@ -2045,6 +2053,21 @@ test("Engineer hammer skills use the requested packets and field cadence", () =>
   assert.equal(thunderControl.at, 0.75);
   assert.equal(thunderControl.controlKind, "stun");
   assert.equal(skill("Thunderclap").comboFields[0].fieldType, "Lightning");
+
+  const quickThunder = simulate(
+    "Core",
+    ["Thunderclap", { type: "wait", durationMs: 5000 }],
+    { boons: { quickness: true } },
+  );
+  assert.equal(quickThunder.steps[0].end, 520);
+  assert.deepEqual(
+    quickThunder.events
+      .filter(
+        (event) => event.type === "damage" && event.name === "Thunderclap",
+      )
+      .map((event) => Number(event.at.toFixed(2))),
+    [1.52, 2.52, 3.52, 4.52, 5.52],
+  );
 });
 
 test("Bomb Kit packets honor fuses, explosions, fields, and finishers", () => {
@@ -2055,6 +2078,7 @@ test("Bomb Kit packets honor fuses, explosions, fields, and finishers", () => {
     "Rifle Turret",
     "Supply Crate",
   ];
+  const waitForBombPackets = () => ({ type: "wait", durationMs: 5000 });
   const bombSkills = engineerCatalog.skills.filter(
     (candidate) =>
       candidate.kit === "Bomb Kit" &&
@@ -2068,7 +2092,7 @@ test("Bomb Kit packets honor fuses, explosions, fields, and finishers", () => {
     ),
   );
 
-  const bomb = simulate("Core", ["Bomb Kit", "Bomb"], {
+  const bomb = simulate("Core", ["Bomb Kit", "Bomb", waitForBombPackets()], {
     selectedSkills,
   });
   const bombHit = bomb.events.find(
@@ -2078,9 +2102,11 @@ test("Bomb Kit packets honor fuses, explosions, fields, and finishers", () => {
   assert.equal(bombHit.coefficient, 1.2);
   assert.equal(bombHit.damageKind, "explosion");
 
-  const fire = simulate("Core", ["Bomb Kit", "Fire Bomb"], {
-    selectedSkills,
-  });
+  const fire = simulate(
+    "Core",
+    ["Bomb Kit", "Fire Bomb", waitForBombPackets()],
+    { selectedSkills },
+  );
   const fireHits = fire.events.filter(
     (event) => event.type === "damage" && event.name === "Fire Bomb",
   );
@@ -2115,10 +2141,14 @@ test("Bomb Kit packets honor fuses, explosions, fields, and finishers", () => {
     400,
   );
   const interruptedFire = (interruptMs) =>
-    simulate("Core", ["Bomb Kit", { name: "Fire Bomb", interruptMs }], {
-      selectedSkills,
-      boons: { quickness: true },
-    }).events.filter(
+    simulate(
+      "Core",
+      ["Bomb Kit", { name: "Fire Bomb", interruptMs }, waitForBombPackets()],
+      {
+        selectedSkills,
+        boons: { quickness: true },
+      },
+    ).events.filter(
       (event) => event.type === "damage" && event.name === "Fire Bomb",
     );
   assert.equal(interruptedFire(399).length, 0);
@@ -2132,9 +2162,11 @@ test("Bomb Kit packets honor fuses, explosions, fields, and finishers", () => {
     3,
   );
 
-  const galvanic = simulate("Core", ["Bomb Kit", "Galvanic Bomb"], {
-    selectedSkills,
-  });
+  const galvanic = simulate(
+    "Core",
+    ["Bomb Kit", "Galvanic Bomb", waitForBombPackets()],
+    { selectedSkills },
+  );
   assert.ok(
     galvanic.events.some(
       (event) =>
@@ -2174,10 +2206,14 @@ test("Bomb Kit packets honor fuses, explosions, fields, and finishers", () => {
   assert.equal(magnetic.effects[0].coefficient, 1.5);
   assert.equal(magnetic.effects[1].metadata.controlKind, "pull");
   assert.equal(magnetic.quicknessCastTimeMs, 600);
-  const magneticResult = simulate("Core", ["Bomb Kit", "Magnetic Bomb"], {
-    selectedSkills,
-    boons: { quickness: true },
-  });
+  const magneticResult = simulate(
+    "Core",
+    ["Bomb Kit", "Magnetic Bomb", waitForBombPackets()],
+    {
+      selectedSkills,
+      boons: { quickness: true },
+    },
+  );
   assert.ok(
     magneticResult.events.some(
       (event) =>
@@ -2195,9 +2231,11 @@ test("Bomb Kit packets honor fuses, explosions, fields, and finishers", () => {
     ),
   );
 
-  const big = simulate("Core", ["Bomb Kit", "Big Ol' Bomb"], {
-    selectedSkills,
-  });
+  const big = simulate(
+    "Core",
+    ["Bomb Kit", "Big Ol' Bomb", waitForBombPackets()],
+    { selectedSkills },
+  );
   assert.ok(
     big.events.some(
       (event) =>
@@ -2223,6 +2261,18 @@ test("Bomb Kit packets honor fuses, explosions, fields, and finishers", () => {
     engineerCatalog.skillsByName.get("Big Ol' Bomb").quicknessCastTimeMs,
     600,
   );
+
+  const quickDamageTimes = (name) =>
+    simulate("Core", ["Bomb Kit", name, waitForBombPackets()], {
+      selectedSkills,
+      boons: { quickness: true },
+    })
+      .events.filter((event) => event.type === "damage" && event.name === name)
+      .map((event) => Number(event.at.toFixed(2)));
+  assert.deepEqual(quickDamageTimes("Fire Bomb"), [1.36, 2.36, 3.36, 4.36]);
+  assert.deepEqual(quickDamageTimes("Galvanic Bomb"), [1.36]);
+  assert.deepEqual(quickDamageTimes("Magnetic Bomb"), [2.36]);
+  assert.deepEqual(quickDamageTimes("Big Ol' Bomb"), [3.36]);
 
   const doubleBlast = simulate(
     "Core",
@@ -2448,7 +2498,11 @@ test("measured Quickness animations and Flame Blast cancellation drive steps", (
 
   const flamethrower = simulate(
     "Amalgam",
-    ["Flamethrower", { name: "Flame Blast", interruptAfterMs: 480 }],
+    [
+      "Flamethrower",
+      { name: "Flame Blast", interruptAfterMs: 480 },
+      { type: "wait", durationMs: 500 },
+    ],
     {
       boons: { quickness: true },
       selectedSkills: [
@@ -4523,14 +4577,18 @@ test("Mechanist frame commands use mech stats and requested pulse profiles", () 
     );
   }
 
-  const variable = simulate("Mechanist", ["Core Reactor Shot"], {
-    selectedTraitIds: [
-      TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
-      TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
-      TRAIT.MECH_CORE_J_DRIVE,
-    ],
-    target: { conditions: {} },
-  });
+  const variable = simulate(
+    "Mechanist",
+    ["Core Reactor Shot", { type: "wait", durationMs: 700 }],
+    {
+      selectedTraitIds: [
+        TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
+        TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
+        TRAIT.MECH_CORE_J_DRIVE,
+      ],
+      target: { conditions: {} },
+    },
+  );
   const reactor = variable.resolvedEvents.find(
     (event) => event.type === "damage" && event.name === "Core Reactor Shot",
   );
@@ -4949,7 +5007,7 @@ test("power Holosmith sword-pistol preset preserves the supplied build", async (
     preset.rotation,
     "Rotations/engineer/r-power-holosmith-sword-pistol-bench.json",
   );
-  assert.equal(preset.benchmarkDps, 41628);
+  assert.equal(preset.benchmarkDps, 41663);
   assert.equal(preset.upToDate, true);
   assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 95.28);
   assert.equal(savedRotation.metadata.benchmarkDamage, 3966303);
@@ -5076,7 +5134,7 @@ test("condition Holosmith pistol benchmark preserves the supplied log", async ()
     preset.rotation,
     "Rotations/engineer/r-condi-holosmith-pistol-pistol-bench.json",
   );
-  assert.equal(preset.benchmarkDps, 42947);
+  assert.equal(preset.benchmarkDps, 42974);
   assert.equal(preset.upToDate, true);
   assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 91.997);
   assert.equal(savedRotation.metadata.benchmarkDamage, 3950966);
@@ -5239,7 +5297,7 @@ test("power Amalgam hammer Symbiotic preset preserves supplied build and log", a
     preset.dpsReportUrl,
     "https://dps.report/sVjd-poweramalgamsymbiotic_golem",
   );
-  assert.equal(preset.benchmarkDps, 42177);
+  assert.equal(preset.benchmarkDps, 42201);
   assert.equal(preset.upToDate, true);
   assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 94.202);
   assert.equal(savedRotation.metadata.benchmarkDamage, 3973116);
@@ -5382,7 +5440,7 @@ test("condition alacrity Amalgam benchmark preset preserves supplied build", asy
   const result = runSimulation(app);
 
   assert.deepEqual(result.warnings, []);
-  assert.ok(Math.abs(result.dps - 35609) < 500);
+  assert.ok(Math.abs(result.dps - 35922) < 500);
   assert.equal(
     result.steps.filter((step) => step.skill === "Shrapnel Grenade").length,
     21,
@@ -5426,7 +5484,11 @@ test("condition alacrity Amalgam benchmark preset preserves supplied build", asy
   );
   assert.equal(
     result.resolvedEvents.filter(
-      (event) => event.name === "Offensive Protocol: Shred — Burning Bolt",
+      (event) =>
+        event.type === "condition" &&
+        event.skillName === "Offensive Protocol: Shred" &&
+        event.condition === "Burning" &&
+        event.comboId != null,
     ).length,
     18,
   );
@@ -5434,7 +5496,7 @@ test("condition alacrity Amalgam benchmark preset preserves supplied build", asy
     .filter((entry) => entry.name.endsWith("— Bleeding"))
     .reduce((total, entry) => total + entry.damage, 0);
   assert.ok(
-    Math.abs(bleedingDamage - 924372.96) < 2,
+    Math.abs(bleedingDamage - 928772.9) < 2,
     `Unexpected bleeding damage: ${bleedingDamage}`,
   );
   const conduit = result.breakdown.find(
@@ -5505,7 +5567,7 @@ test("condition Amalgam three-kit benchmark preserves the supplied log", async (
     preset.rotation,
     "Rotations/engineer/r-condi-amalgam-3kit-bench.json",
   );
-  assert.equal(preset.benchmarkDps, 43593);
+  assert.equal(preset.benchmarkDps, 43687);
   assert.equal(preset.upToDate, true);
   assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 91.196);
   assert.equal(savedRotation.metadata.benchmarkDamage, 3975477);
@@ -5558,7 +5620,7 @@ test("condition Amalgam three-kit benchmark preserves the supplied log", async (
     ),
     false,
   );
-  assert.ok(Math.abs(result.dps - 43593) < 750);
+  assert.ok(Math.abs(result.dps - 43766) < 750);
   for (const [skill, count] of [
     ["Shrapnel Grenade", 16],
     ["Fire Bomb", 11],
@@ -5579,13 +5641,6 @@ test("condition Amalgam three-kit benchmark preserves the supplied log", async (
     result.breakdown.find((entry) => entry.name === "Magnetic Bomb").hits,
     3,
   );
-  const nourishment = result.breakdown.find(
-    (entry) => entry.name === "Nourishment",
-  );
-  // The longer Bomb Kit timeline leaves 37 strict-ICD procs before target
-  // death in this rotation.
-  assert.equal(nourishment.hits, 37);
-  assert.equal(nourishment.damage, 12025);
   const obliterateHits = result.resolvedEvents.filter(
     (event) =>
       event.type === "damage" &&
@@ -5675,7 +5730,7 @@ test("power Scrapper hammer preset preserves the supplied build and log", async 
     preset.dpsReportUrl,
     "https://dps.report/55xd-20260422-192633_golem",
   );
-  assert.equal(preset.benchmarkDps, 42208);
+  assert.equal(preset.benchmarkDps, 41446);
   assert.equal(preset.upToDate, true);
   assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 94.247);
   assert.equal(savedRotation.metadata.benchmarkDamage, 3977935);

@@ -783,6 +783,8 @@ test("delayed combat start uses its offset instead of the preceding cast end", (
   );
 
   assert.equal(result.steps[1].start, 100);
+  assert.equal(result.combatStartTime, 0.1);
+  assert.equal(result.hasExplicitCombatStart, true);
   assert.ok(Math.abs(result.firstHitTime - 0.36) < 1e-12);
   assert.equal(result.dpsStartTime, result.firstHitTime);
   assert.ok(Math.abs(result.dpsWindow - 1) < 1e-12);

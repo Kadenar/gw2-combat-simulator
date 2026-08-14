@@ -715,7 +715,11 @@ test("native build codecs share version, schema, and sanitization behavior", asy
         ...defaults,
         schemaVersion: version,
       });
-      assert.equal(migrated.schemaVersion, 3, `${entry.id} v${version}`);
+      assert.equal(
+        migrated.schemaVersion,
+        defaults.schemaVersion,
+        `${entry.id} v${version}`,
+      );
       assert.equal(profession.validateBuild(migrated).valid, true);
     }
 

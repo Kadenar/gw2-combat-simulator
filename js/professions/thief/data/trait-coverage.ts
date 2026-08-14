@@ -79,7 +79,7 @@ const EVIDENCE_BY_SPECIALIZATION: Readonly<Record<string, string>> =
     Specter:
       "Specter Siphon, initiative spending, and Shadow Shroud share force",
     Antiquary:
-      "Antiquary artifacts, Reshuffle, Double Edge, and summons are deterministic",
+      "Antiquary artifacts, per-cast Double Edge, and summons are deterministic",
   });
 
 function implementedEvidence(

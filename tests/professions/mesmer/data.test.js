@@ -5,8 +5,8 @@ import {
   SPECIALIZATIONS,
 } from "../../../js/professions/mesmer/data/mesmer-api-metadata.js";
 import { SKILLS as GUARDIAN_API_SKILLS } from "../../../js/professions/guardian/data/guardian-api-metadata.js";
-import { RELIC_NAMES } from "../../../js/platform/gw2/gear-data.js";
 import { TRAITS } from "../../../js/professions/mesmer/data/traits-data.js";
+import { mesmerAppAdapter } from "../../../js/professions/mesmer/app/app-definition.js";
 import {
   AMBUSH_ATTACKS,
   AMBUSH_SKILLS,
@@ -127,17 +127,12 @@ test("every Mesmer catalog skill is explicitly implemented", () => {
 });
 
 test("Mesmer relic options exclude profession-inapplicable relics", () => {
-  const excluded = [
-    "Krait",
-    "Weaver",
-    "Fire",
-    "Nourys",
-    "Mount Balrior",
-    "Steamshrieker",
-  ];
-  assert.equal(RELIC_NAMES.includes("Claw"), true);
+  const excluded = ["Krait", "Weaver", "Fire", "Mount Balrior"];
+  assert.equal(mesmerAppAdapter.relicNames.includes("Claw"), true);
+  assert.equal(mesmerAppAdapter.relicNames.includes("Nourys"), true);
+  assert.equal(mesmerAppAdapter.relicNames.includes("Steamshrieker"), true);
   assert.deepEqual(
-    RELIC_NAMES.filter((name) => excluded.includes(name)),
+    mesmerAppAdapter.relicNames.filter((name) => excluded.includes(name)),
     [],
   );
 });

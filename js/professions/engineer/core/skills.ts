@@ -3112,7 +3112,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.NEGATIVE_BASH]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 640,
     cooldown: 0,
     effects: [
@@ -3385,7 +3384,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.EQUALIZING_BLOW]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 440,
     cooldown: 0,
     effects: [
@@ -3422,7 +3420,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.POSITIVE_STRIKE]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 480,
     cooldown: 0,
     effects: [
@@ -3479,18 +3476,19 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.ROCKET_CHARGE]: {
     implemented: true,
-    castTimeMs: 1750,
-    quicknessCastTimeMs: 1920,
+    castTimeMs: 1920,
+    unaffectedByQuickness: true,
     cooldown: 12,
     effects: [
       {
         type: "strike",
-        coefficient: 3.6,
-        hits: 3,
-        atMs: 583,
-        intervalMs: 583,
+        ticks: [
+          { atMs: 640, coefficient: 1.2 },
+          { atMs: 1240, coefficient: 1.2 },
+          { atMs: 1920, coefficient: 1.2 },
+        ],
         timingAnchor: "castStart",
-        timingScale: "cast",
+        timingScale: "fixed",
         name: "Rocket Charge",
         actorType: "player",
       },
@@ -3528,9 +3526,9 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 4,
         hits: 5,
-        atMs: 1750,
+        atMs: 1000,
         intervalMs: 1000,
-        timingAnchor: "castStart",
+        timingAnchor: "castEnd",
         timingScale: "fixed",
         name: "Thunderclap",
         actorType: "player",
@@ -3542,9 +3540,9 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         stacks: 1,
         duration: 8,
         applications: 5,
-        atMs: 1750,
+        atMs: 1000,
         intervalMs: 1000,
-        timingAnchor: "castStart",
+        timingAnchor: "castEnd",
         timingScale: "fixed",
         actorType: "player",
         persistsAfterInterrupt: true,

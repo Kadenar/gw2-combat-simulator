@@ -17,13 +17,15 @@ function simulate(rotation, selectedTraitIds = []) {
 }
 
 function brawlersTenacityEnduranceGain(rotation) {
-  const baseline = simulate(rotation);
-  const withTrait = simulate(rotation, [TRAIT.BRAWLERS_TENACITY]);
-  assert.deepEqual(baseline.warnings, []);
-  assert.deepEqual(withTrait.warnings, []);
+  const result = simulate(rotation, [TRAIT.BRAWLERS_TENACITY]);
+  assert.deepEqual(result.warnings, []);
+  const states = result.events.filter((event) => event.type === "thief.state");
+  const traitIndex = states.findIndex(
+    (event) => event.reason === "brawlers-tenacity",
+  );
+  if (traitIndex < 0) return 0;
   return (
-    withTrait.endState.profession.endurance -
-    baseline.endState.profession.endurance
+    states[traitIndex].state.endurance - states[traitIndex - 1].state.endurance
   );
 }
 

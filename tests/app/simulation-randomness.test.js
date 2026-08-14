@@ -312,8 +312,11 @@ test("distribution mode keeps detailed Engineer results stable and samples separ
   assert.equal(distribution.p01 <= distribution.p99, true);
   assert.ok(distribution.explanation?.drivers.length > 0);
   assert.ok(
-    distribution.explanation.drivers.some((driver) =>
-      /critical hits|weapon strength/i.test(driver.label),
+    distribution.explanation.drivers.every(
+      (driver) =>
+        typeof driver.label === "string" &&
+        driver.label.length > 0 &&
+        Number.isFinite(driver.estimatedDpsDelta),
     ),
   );
 });

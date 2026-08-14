@@ -20,6 +20,12 @@
     "exact": {
       "activeWeaponSet": 1,
       "ammo": {
+        "Dodge": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 10
+        },
         "Dodge / Mirage Cloak": {
           "charges": 1,
           "maximum": 2,
@@ -71,12 +77,12 @@
       },
       "cooldowns": {
         "Imaginary Axes": {
-          "readyAt": 1320,
+          "readyAt": 1240,
           "remaining": 800
         }
       },
-      "dpsWindow": 0,
-      "duration": 0.52,
+      "dpsWindow": 0.08000000000000002,
+      "duration": 0.44,
       "events": [
         {
           "__order": 0,
@@ -110,9 +116,15 @@
         {
           "__order": 2,
           "activationId": "cast:1",
+          "affectsSelf": true,
+          "affectsSummons": false,
+          "alliedPlayerCount": 0,
           "at": 0,
+          "boonAudienceResolved": true,
+          "companionIds": [],
           "duration": 0.75,
           "kind": "mirage-cloak",
+          "recipientCount": 1,
           "schemaVersion": 1,
           "source": "Mesmer",
           "sourceId": "buff",
@@ -125,11 +137,11 @@
           "activationId": "cast:2",
           "actorType": "player",
           "at": 0,
-          "endsAt": 0.52,
-          "fullEndsAt": 0.52,
+          "endsAt": 0.44,
+          "fullEndsAt": 0.44,
           "interrupted": false,
           "name": "Imaginary Axes",
-          "rechargeReadyAt": 1.32,
+          "rechargeReadyAt": 1.24,
           "schemaVersion": 1,
           "skillId": 44321,
           "skillName": "Imaginary Axes",
@@ -142,7 +154,7 @@
           "__order": 4,
           "activationId": "cast:2",
           "actorType": "player",
-          "at": 0.52,
+          "at": 0.36,
           "blade": false,
           "coefficient": 0.5,
           "hitIndex": 1,
@@ -163,7 +175,7 @@
           "__order": 5,
           "activationId": "cast:2",
           "actorType": "player",
-          "at": 0.52,
+          "at": 0.36,
           "blade": false,
           "coefficient": 0.5,
           "hitIndex": 2,
@@ -184,7 +196,23 @@
           "__order": 6,
           "activationId": "cast:2",
           "actorType": "player",
-          "at": 0.52,
+          "at": 0.36,
+          "condition": "Torment",
+          "duration": 3.5,
+          "name": "Imaginary Axes — Torment",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Imaginary Axes",
+          "source": "Player",
+          "sourceId": "Imaginary Axes",
+          "stacks": 3,
+          "type": "condition"
+        },
+        {
+          "__order": 7,
+          "activationId": "cast:2",
+          "actorType": "player",
+          "at": 0.36,
           "condition": "Torment",
           "duration": 3.5,
           "name": "Imaginary Axes — Torment",
@@ -205,7 +233,6 @@
           "73154": 73154
         },
         "availableAmbush": null,
-        "availableMirrors": 0,
         "availableFlips": {
           "Power Spike": {
             "availableAt": 0,
@@ -214,6 +241,7 @@
             "remaining": null
           }
         },
+        "availableMirrors": 0,
         "clarityRemaining": 0,
         "continuumActive": false,
         "continuumRemaining": 0,
@@ -230,10 +258,24 @@
           "__order": 4,
           "activationId": "cast:2",
           "actorType": "player",
-          "at": 0.52,
+          "at": 0.36,
           "blade": false,
           "coefficient": 0.5,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -255,10 +297,24 @@
           "__order": 5,
           "activationId": "cast:2",
           "actorType": "player",
-          "at": 0.52,
+          "at": 0.36,
           "blade": false,
           "coefficient": 0.5,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 2,
           "hits": 1,
@@ -279,17 +335,49 @@
         {
           "__order": 6,
           "activationId": "cast:2",
-          "activeDuration": 0,
+          "activeDuration": 0.08000000000000002,
           "actorType": "player",
-          "at": 0.52,
+          "at": 0.36,
           "condition": "Torment",
-          "damageTicks": [],
-          "damagingStackSeconds": 0,
+          "damageTicks": [
+            {
+              "at": 0.44,
+              "fraction": 0.08000000000000002
+            }
+          ],
+          "damagingStackSeconds": 0.24000000000000005,
           "duration": 3.5,
           "effectiveDuration": 4.666666666666666,
-          "expiresAt": 0.52,
+          "expiresAt": 0.44,
           "name": "Imaginary Axes — Torment",
-          "naturalExpiresAt": 5.186666666666666,
+          "naturalExpiresAt": 5.026666666666666,
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Imaginary Axes",
+          "source": "Player",
+          "sourceId": "Imaginary Axes",
+          "stacks": 3,
+          "type": "condition"
+        },
+        {
+          "__order": 7,
+          "activationId": "cast:2",
+          "activeDuration": 0.08000000000000002,
+          "actorType": "player",
+          "at": 0.36,
+          "condition": "Torment",
+          "damageTicks": [
+            {
+              "at": 0.44,
+              "fraction": 0.08000000000000002
+            }
+          ],
+          "damagingStackSeconds": 0.24000000000000005,
+          "duration": 3.5,
+          "effectiveDuration": 4.666666666666666,
+          "expiresAt": 0.44,
+          "name": "Imaginary Axes — Torment",
+          "naturalExpiresAt": 5.026666666666666,
           "schemaVersion": 1,
           "skillId": null,
           "skillName": "Imaginary Axes",
@@ -311,8 +399,8 @@
         },
         {
           "actualStart": 0,
-          "end": 520,
-          "fullCastMs": 520,
+          "end": 440,
+          "fullCastMs": 440,
           "interrupted": false,
           "ri": 1,
           "skill": "Imaginary Axes",
@@ -322,34 +410,38 @@
       "warnings": []
     },
     "damage": {
-      "conditionDamage": 0,
-      "dps": 0,
-      "events": [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
-      ],
+      "conditionDamage": 113.58000000000003,
+      "dps": 52162.966761097974,
+      "events": [{}, {}, {}, {}, {}, {}, {}, {}],
       "resolvedEvents": [
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 2029.7286704439193
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 2029.7286704439193
         },
         {
-          "damage": 0
+          "damage": 56.79000000000001,
+          "damageTicks": [
+            {
+              "damage": 56.79000000000001
+            }
+          ]
+        },
+        {
+          "damage": 56.79000000000001,
+          "damageTicks": [
+            {
+              "damage": 56.79000000000001
+            }
+          ]
         }
       ],
-      "steps": [
-        {},
-        {}
-      ],
+      "steps": [{}, {}],
       "strikeDamage": 4059.4573408878387,
-      "totalDamage": 4059.4573408878387
+      "totalDamage": 4173.037340887839
     }
   }
 }

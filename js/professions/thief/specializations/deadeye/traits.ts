@@ -8,6 +8,12 @@ export function initialDeadeyeMalice(context: ThiefCastContext): number {
   return hasThiefTrait(context.config, TRAIT.MALICIOUS_INTENT) ? 2 : 0;
 }
 
+export function deadeyeStealthAttackMaliceBonus(
+  context: ThiefCastContext,
+): number {
+  return hasThiefTrait(context.config, TRAIT.MALICIOUS_INTENT) ? 2 : 0;
+}
+
 export function emitDeadeyeBoon(
   context: ThiefEmissionContext,
   at: number,
@@ -32,6 +38,23 @@ export function emitDeadeyeBoon(
     stacks,
     ...(party ? { recipients: "party", maximumRecipients: 5 } : {}),
   });
+}
+
+export function applyDeadeyesMarkTraits(
+  context: ThiefCastContext,
+  at: number,
+): void {
+  if (!hasThiefTrait(context.config, TRAIT.BE_QUICK_OR_BE_KILLED)) return;
+  emitDeadeyeBoon(context, at, "Quickness", 4, 1, "Be Quick or Be Killed");
+}
+
+export function applyDeadeyeStolenSkillTraits(
+  context: ThiefCastContext,
+  at: number,
+): void {
+  if (!hasThiefTrait(context.config, TRAIT.FIRE_FOR_EFFECT)) return;
+  emitDeadeyeBoon(context, at, "Might", 12, 8, "Fire for Effect", true);
+  emitDeadeyeBoon(context, at, "Fury", 12, 1, "Fire for Effect", true);
 }
 
 export function applyMaleficentSeven(

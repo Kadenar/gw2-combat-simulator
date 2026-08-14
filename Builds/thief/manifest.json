@@ -6,14 +6,14 @@
         "label": "Power Quickness (Sword / Pistol)",
         "build": "Builds/thief/b-power-quick-deadeye-sword-pistol.json",
         "rotation": "Rotations/thief/r-power-quick-deadeye-sword-pistol-bench.json",
-        "benchmarkDps": 35365,
+        "benchmarkDps": 34829,
         "upToDate": true
       },
       {
         "label": "Power Quickness (Rifle)",
         "build": "Builds/thief/b-power-quick-deadeye-rifle.json",
         "rotation": "Rotations/thief/r-power-quick-deadeye-rifle-bench.json",
-        "benchmarkDps": 36891,
+        "benchmarkDps": 36704,
         "upToDate": true
       }
     ]
@@ -25,21 +25,21 @@
         "label": "Power (Sword / Pistol)",
         "build": "Builds/thief/b-power-antiquary-sword-pistol.json",
         "rotation": "Rotations/thief/r-power-antiquary-sword-pistol-bench.json",
-        "benchmarkDps": 43248,
+        "benchmarkDps": 44716,
         "upToDate": true
       },
       {
         "label": "Condition (Spear)",
         "build": "Builds/thief/b-condi-antiquary-spear.json",
         "rotation": "Rotations/thief/r-condi-antiquary-spear-bench.json",
-        "benchmarkDps": 40790,
+        "benchmarkDps": 41405,
         "upToDate": true
       },
       {
         "label": "Condition (Dagger / Dagger)",
         "build": "Builds/thief/b-condi-antiquary-dagger-dagger.json",
         "rotation": "Rotations/thief/r-condi-antiquary-dagger-dagger-bench.json",
-        "benchmarkDps": 42082,
+        "benchmarkDps": 42668,
         "upToDate": true
       }
     ]
@@ -51,7 +51,7 @@
         "label": "Condition (Scepter / Dagger)",
         "build": "Builds/thief/b-condi-specter-scepter-dagger.json",
         "rotation": "Rotations/thief/r-condi-specter-scepter-dagger-bench.json",
-        "benchmarkDps": 36275,
+        "benchmarkDps": 36616,
         "upToDate": true
       }
     ]
@@ -63,7 +63,7 @@
         "label": "Power (Dagger / Dagger)",
         "build": "Builds/thief/b-power-daredevil-dagger-dagger.json",
         "rotation": "Rotations/thief/r-power-daredevil-dagger-dagger-bench.json",
-        "benchmarkDps": 43036,
+        "benchmarkDps": 42857,
         "upToDate": true
       },
       {

@@ -496,6 +496,8 @@ export interface Gw2AppAdapterOptions {
   readonly toApplicationBuild: (build: unknown) => ProfessionApplicationBuild;
   readonly eliteSpecialization: ProfessionRuntimeApi["eliteSpecialization"];
   readonly recalculate: ProfessionRuntimeApi["recalculate"];
+  readonly simulateBuild: ProfessionRuntimeApi["simulateBuild"];
+  readonly simulationConfig: ProfessionRuntimeApi["simulationConfig"];
   readonly rotationEndStateAt: ProfessionRuntimeApi["rotationEndStateAt"];
   readonly runSimulation: ProfessionRuntimeApi["runSimulation"];
   readonly modifierContributionRequest: ProfessionRuntimeApi["modifierContributionRequest"];

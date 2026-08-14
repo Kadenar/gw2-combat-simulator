@@ -291,7 +291,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           timingAnchor: "castEnd",
           timingScale: "fixed",
           persistsAfterInterrupt: true,
-          metadata: { extendsResolutionHorizon: true },
         },
         {
           type: "condition",
@@ -306,7 +305,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           timingAnchor: "castEnd",
           timingScale: "fixed",
           persistsAfterInterrupt: true,
-          metadata: { extendsResolutionHorizon: true },
         },
       ],
     },
@@ -345,7 +343,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           timingAnchor: "castEnd",
           timingScale: "fixed",
           persistsAfterInterrupt: true,
-          metadata: { extendsResolutionHorizon: true },
         },
       ],
     },

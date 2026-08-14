@@ -21,18 +21,19 @@
       "name": "Luminous Staff"
     },
     {
-      "name": "Radiant Justice"
+      "name": "Effulgent Stance",
+      "offset": 399
     },
     {
-      "name": "Effulgent Stance",
-      "offset": 100
+      "name": "Radiant Justice",
+      "offset": 0
     },
     {
       "name": "Gleaming Blade"
     },
     {
       "name": "Radiant Resolve",
-      "offset": 100
+      "offset": 0
     },
     {
       "name": "Lucent Thrust"
@@ -128,6 +129,14 @@
       "name": "Daybreaking Slash"
     },
     {
+      "name": "Radiant Justice",
+      "offset": 280
+    },
+    {
+      "name": "Effulgent Stance",
+      "offset": 41
+    },
+    {
       "name": "Daybreaking Slash"
     },
     {
@@ -138,14 +147,6 @@
     },
     {
       "name": "Shining Spin"
-    },
-    {
-      "name": "Radiant Justice",
-      "offset": 100
-    },
-    {
-      "name": "Effulgent Stance",
-      "offset": 100
     },
     {
       "name": "Glaring Burst"
@@ -212,7 +213,7 @@
     },
     {
       "name": "Radiant Resolve",
-      "offset": 100
+      "offset": 400
     },
     {
       "name": "Strike"
@@ -231,6 +232,14 @@
     },
     {
       "name": "Wrathful Strike"
+    },
+    {
+      "name": "Effulgent Stance",
+      "offset": 318
+    },
+    {
+      "name": "Radiant Justice",
+      "offset": 43
     },
     {
       "name": "Enter Radiant Forge"
@@ -244,6 +253,7 @@
     {
       "name": "Exit Radiant Forge"
     },
+    "Strike",
     {
       "name": "Whirling Wrath"
     },
@@ -263,16 +273,8 @@
       "name": "Helio Rush"
     },
     {
-      "name": "Radiant Justice",
-      "offset": 100
-    },
-    {
-      "name": "Effulgent Stance",
-      "offset": 100
-    },
-    {
       "name": "Radiant Courage",
-      "offset": 100
+      "offset": 80
     },
     {
       "name": "Daybreaking Slash"
@@ -306,22 +308,22 @@
     "Whirling Wrath",
     "Leap of Faith",
     "Strike",
+    {
+      "name": "Radiant Justice",
+      "offset": 157
+    },
+    {
+      "name": "Effulgent Stance",
+      "offset": 42
+    },
     "Vengeful Strike",
     "Wrathful Strike",
     "Strike",
     "Vengeful Strike",
     "Wrathful Strike",
     {
-      "name": "Radiant Justice",
-      "offset": 100
-    },
-    {
-      "name": "Effulgent Stance",
-      "offset": 100
-    },
-    {
       "name": "Radiant Resolve",
-      "offset": 100
+      "offset": 242
     },
     "Piercing Stance",
     "Enter Radiant Forge",
@@ -350,27 +352,31 @@
     "Daring Advance",
     "Piercing Stance",
     "Dazzling Hammer",
+    {
+      "name": "Effulgent Stance",
+      "offset": 144
+    },
+    {
+      "name": "Radiant Justice",
+      "offset": 7
+    },
     "Shining Spin",
     "Exit Radiant Forge",
     "Symbol of Luminance",
     "Helio Rush",
-    "Gleaming Disc",
     "Solar Storm",
+    "Gleaming Disc",
     "Swap Weapons",
     "Symbol of Resolution",
     "Whirling Wrath",
     "Leap of Faith",
     "Binding Blade",
-    {
-      "name": "Radiant Justice",
-      "offset": 100
-    },
-    {
-      "name": "Effulgent Stance",
-      "offset": 100
-    },
     "Strike",
     "Vengeful Strike",
+    {
+      "name": "Radiant Courage",
+      "offset": 242
+    },
     "Wrathful Strike",
     "Strike",
     "Vengeful Strike",
@@ -388,11 +394,7 @@
     "Helio Rush",
     {
       "name": "Radiant Resolve",
-      "offset": 100
-    },
-    {
-      "name": "Radiant Courage",
-      "offset": 100
+      "offset": 121
     },
     "Daybreaking Slash",
     "Daybreaking Slash",
@@ -403,6 +405,14 @@
     "Glaring Burst",
     "Glaring Burst",
     "Glaring Burst",
+    {
+      "name": "Effulgent Stance",
+      "offset": 518
+    },
+    {
+      "name": "Radiant Justice",
+      "offset": 0
+    },
     "Glaring Burst",
     "Luminous Staff",
     "Piercing Stance",
@@ -410,18 +420,10 @@
     "Lucent Thrust",
     "Dazzling Hammer",
     "Shining Spin",
-    {
-      "name": "Radiant Justice",
-      "offset": 100
-    },
-    {
-      "name": "Effulgent Stance",
-      "offset": 100
-    },
     "Exit Radiant Forge",
     "Symbol of Luminance",
-    "Solar Storm",
     "Helio Rush",
+    "Solar Storm",
     "Gleaming Disc",
     "Swap Weapons",
     "Symbol of Resolution",

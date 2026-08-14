@@ -84,6 +84,8 @@ export function defineProfessionApp({
     toApplicationBuild,
     eliteSpecialization: runtimeApi.eliteSpecialization,
     recalculate: runtimeApi.recalculate,
+    simulateBuild: runtimeApi.simulateBuild,
+    simulationConfig: runtimeApi.simulationConfig,
     rotationEndStateAt: runtimeApi.rotationEndStateAt,
     runSimulation: runtimeApi.runSimulation,
     modifierContributionRequest: runtimeApi.modifierContributionRequest,

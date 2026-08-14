@@ -18,7 +18,7 @@
         "label": "Power (Spear + Greatsword)",
         "build": "Builds/warrior/b-power-berserker-spear-greatsword.json",
         "rotation": "Rotations/warrior/r-power-berserker-spear-greatsword-bench.json",
-        "benchmarkDps": 41063,
+        "benchmarkDps": 42213,
         "upToDate": true
       },
       {
@@ -26,14 +26,14 @@
         "build": "Builds/warrior/b-power-berserker-hammer-axe-mace.json",
         "rotation": "Rotations/warrior/r-power-berserker-hammer-axe-mace-bench.json",
         "dpsReportUrl": "https://dps.report/HQq4-20260716-224707_golem",
-        "benchmarkDps": 43869,
+        "benchmarkDps": 42765,
         "upToDate": true
       },
       {
         "label": "Condition (Longbow + Sword/Torch)",
         "build": "Builds/warrior/b-condi-berserker-longbow-sword-torch.json",
         "rotation": "Rotations/warrior/r-condi-berserker-longbow-sword-torch-bench.json",
-        "benchmarkDps": 43275,
+        "benchmarkDps": 44607,
         "upToDate": true
       }
     ]
@@ -45,14 +45,14 @@
         "label": "Power (Dagger/Mace + Sword/Axe)",
         "build": "Builds/warrior/b-power-spellbreaker-dagger-mace-sword-axe.json",
         "rotation": "Rotations/warrior/r-power-spellbreaker-dagger-mace-sword-axe-bench.json",
-        "benchmarkDps": 43058,
+        "benchmarkDps": 42982,
         "upToDate": true
       },
       {
         "label": "Power (Dagger/Mace + Sword/Dagger)",
         "build": "Builds/warrior/b-power-spellbreaker-dagger-mace-sword-dagger.json",
         "rotation": "Rotations/warrior/r-power-spellbreaker-dagger-mace-sword-dagger-bench.json",
-        "benchmarkDps": 43387,
+        "benchmarkDps": 43284,
         "upToDate": true
       },
       {
@@ -60,7 +60,7 @@
         "build": "Builds/warrior/b-power-spellbreaker-hammer-dagger-mace.json",
         "rotation": "Rotations/warrior/r-power-spellbreaker-hammer-dagger-mace-bench.json",
         "dpsReportUrl": "https://dps.report/dzrB-20260721-123458_golem",
-        "benchmarkDps": 43077,
+        "benchmarkDps": 43026,
         "upToDate": true
       }
     ]
@@ -72,7 +72,7 @@
         "label": "Power (Sword/Axe + Dagger/Mace)",
         "build": "Builds/warrior/b-power-paragon-sword-axe-dagger-mace.json",
         "rotation": "Rotations/warrior/r-power-paragon-sword-axe-dagger-mace-bench.json",
-        "benchmarkDps": 42115,
+        "benchmarkDps": 42252,
         "upToDate": true
       }
     ]

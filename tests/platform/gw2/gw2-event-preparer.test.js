@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { isGw2NonWeaponEffectEvent } from "../../../js/platform/gw2/event-ownership.js";
+import {
+  gw2EventOwnerActorType,
+  isGw2NonWeaponEffectEvent,
+  isGw2PlayerActorEvent,
+  isGw2PlayerModifierOwnedEvent,
+} from "../../../js/platform/gw2/event-ownership.js";
 import { createGw2EventPreparer } from "../../../js/platform/gw2/scheduler/event-preparer.js";
 import { weaponStrengthProfileIdForEvent } from "../../../js/platform/gw2/weapon-strength.js";
 
@@ -32,6 +37,25 @@ test("non-weapon effect ownership has one canonical classifier", () => {
       coefficient: 1,
     }),
     "nonweapon.unequipped",
+  );
+});
+
+test("modifier ownership is independent from proc actor ownership", () => {
+  const playerOwnedEffect = {
+    actorType: "effect",
+    ownerActorType: "player",
+  };
+
+  assert.equal(isGw2PlayerActorEvent(playerOwnedEffect), false);
+  assert.equal(isGw2PlayerModifierOwnedEvent(playerOwnedEffect), true);
+  assert.equal(gw2EventOwnerActorType(playerOwnedEffect), "player");
+  assert.equal(isGw2PlayerModifierOwnedEvent({ actorType: "summon" }), false);
+  assert.equal(
+    gw2EventOwnerActorType({
+      actorType: "effect",
+      ownerActorType: "phantasm",
+    }),
+    "summon",
   );
 });
 

@@ -285,19 +285,20 @@ config; loading the contract does not create a build or copy UI defaults.
 
 The commonly useful result fields are:
 
-| Field                                      | Meaning                                                            |
-| ------------------------------------------ | ------------------------------------------------------------------ |
-| `duration`                                 | Resolved simulation duration in seconds                            |
-| `dpsStartTime`, `dpsWindow`                | Reference time and measured DPS window                             |
-| `firstHitTime`, `lastHitTime`, `deathTime` | Damage and target-death timing                                     |
-| `totalDamage`, `dps`                       | Overall result                                                     |
-| `strikeDamage`, `conditionDamage`          | Damage split                                                       |
-| `breakdown`, `conditionBreakdown`          | Raw contribution data                                              |
-| `casts`                                    | Aggregate cast counts                                              |
-| `events`, `resolvedEvents`                 | Scheduler and resolver timelines                                   |
-| `warnings`                                 | Invalid or constrained rotation behavior                           |
-| `endState`                                 | Ending time, cooldowns, ammo, weapon set, and profession resources |
-| `randomness`                               | Actual resolution mode and seed                                    |
+| Field                                       | Meaning                                                            |
+| ------------------------------------------- | ------------------------------------------------------------------ |
+| `duration`                                  | Resolved simulation duration in seconds                            |
+| `combatStartTime`, `hasExplicitCombatStart` | Precast/combat boundary and whether a marker supplied it           |
+| `dpsStartTime`, `dpsWindow`                 | Reference time and measured DPS window                             |
+| `firstHitTime`, `lastHitTime`, `deathTime`  | Damage and target-death timing                                     |
+| `totalDamage`, `dps`                        | Overall result                                                     |
+| `strikeDamage`, `conditionDamage`           | Damage split                                                       |
+| `breakdown`, `conditionBreakdown`           | Raw contribution data                                              |
+| `casts`                                     | Aggregate cast counts                                              |
+| `events`, `resolvedEvents`                  | Scheduler and resolver timelines                                   |
+| `warnings`                                  | Invalid or constrained rotation behavior                           |
+| `endState`                                  | Ending time, cooldowns, ammo, weapon set, and profession resources |
+| `randomness`                                | Actual resolution mode and seed                                    |
 
 Use `skillBreakdownRows(result)` for a stable per-skill table instead of
 reimplementing aggregation over raw events.

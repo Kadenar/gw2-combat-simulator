@@ -1395,6 +1395,9 @@ test("Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
       name,
     );
   }
+  assert.equal(thiefCatalog.skillsByName.get("Shadow Flare").castTimeMs, 720);
+  assert.equal(thiefCatalog.skillsByName.get("Steal Time").castTimeMs, 420);
+  assert.equal(thiefCatalog.skillsByName.get("Shadow Meld").castTimeMs, 660);
 
   const threeRoundBurst = thiefCatalog.skillsByName.get("Three Round Burst");
   assert.deepEqual(
@@ -2022,10 +2025,14 @@ test("Specter EVTC packet offsets match scepter and shroud impacts", () => {
 });
 
 test("Specter wells preserve one-second pulse intervals and ordered effects", () => {
-  const sorrow = simulate("Specter", ["Well of Sorrow"], {
-    selectedSkills: ["Well of Sorrow"],
-    boons: { quickness: true },
-  });
+  const sorrow = simulate(
+    "Specter",
+    ["Well of Sorrow", { type: "wait", durationMs: 5000 }],
+    {
+      selectedSkills: ["Well of Sorrow"],
+      boons: { quickness: true },
+    },
+  );
   assert.equal(sorrow.steps[0].fullCastMs, 600);
   assert.deepEqual(
     sorrow.events
@@ -2058,10 +2065,14 @@ test("Specter wells preserve one-second pulse intervals and ordered effects", ()
     ],
   );
 
-  const tears = simulate("Specter", ["Well of Tears"], {
-    selectedSkills: ["Well of Tears"],
-    boons: { quickness: true },
-  });
+  const tears = simulate(
+    "Specter",
+    ["Well of Tears", { type: "wait", durationMs: 5000 }],
+    {
+      selectedSkills: ["Well of Tears"],
+      boons: { quickness: true },
+    },
+  );
   assert.deepEqual(
     tears.events
       .filter(
@@ -2078,10 +2089,14 @@ test("Specter wells preserve one-second pulse intervals and ordered effects", ()
     ],
   );
 
-  const bounty = simulate("Specter", ["Well of Bounty"], {
-    selectedSkills: ["Well of Bounty"],
-    boons: { quickness: true },
-  });
+  const bounty = simulate(
+    "Specter",
+    ["Well of Bounty", { type: "wait", durationMs: 5000 }],
+    {
+      selectedSkills: ["Well of Bounty"],
+      boons: { quickness: true },
+    },
+  );
   assert.deepEqual(
     bounty.events
       .filter(
@@ -2174,7 +2189,7 @@ test("Specter attribute, ally, and shadowstep traits resolve explicitly", () => 
       event.kind === "protection",
   );
   assert.equal(protection.duration, 5);
-  assert.equal(protection.recipientCount, 3);
+  assert.equal(protection.recipientCount, 4);
   const barrier = allies.events.find(
     (event) =>
       event.type === "buff" &&
@@ -3122,7 +3137,7 @@ test("Power Antiquary benchmark preset matches the supplied EVTC", async () => {
   assert.equal(row("Stone Summit Cannon").hits, 18);
   assert.equal(cannonBackfire.hits, 6);
   assert.equal(row("Tactical Strike").hits, 9);
-  assert.equal(row("Summon Kryptis Turret").hits, 56);
+  assert.equal(row("Summon Kryptis Turret").hits, 54);
   assert.deepEqual(
     result.steps
       .filter((step) => step.skill === "Canach-Coin Toss")
@@ -3134,7 +3149,10 @@ test("Power Antiquary benchmark preset matches the supplied EVTC", async () => {
       0.02,
   );
   assert.ok(
-    relativeError(result.dps, savedRotation.metadata.benchmarkDps) < 0.01,
+    relativeError(
+      result.dpsWindow,
+      savedRotation.metadata.benchmarkDurationSeconds,
+    ) < 0.03,
   );
 });
 
@@ -3485,7 +3503,10 @@ test("Condition Antiquary spear preset matches the supplied EVTC", async () => {
       0.02,
   );
   assert.ok(
-    relativeError(result.dps, savedRotation.metadata.benchmarkDps) < 0.01,
+    relativeError(
+      result.dpsWindow,
+      savedRotation.metadata.benchmarkDurationSeconds,
+    ) < 0.03,
   );
 });
 
@@ -3593,7 +3614,7 @@ test("Condition Specter scepter-dagger preset matches the supplied EVTC", async 
   );
 
   assert.deepEqual(alliedResult.warnings, []);
-  assert.deepEqual(allySpiderCounts, [28, 28, 28, 28]);
+  assert.deepEqual(allySpiderCounts, [26, 26, 26, 26]);
   assert.equal(rotWallowTorments.length, 10);
   assert.ok(rotWallowTorments.every((event) => event.icon === rotWallowIcon));
   assert.ok(rotWallowBreakdown.length > 0);

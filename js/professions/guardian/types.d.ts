@@ -127,7 +127,7 @@ export interface GuardianLuminaryState {
 
 export interface GuardianDragonhunterState {
   tetherUntil: number;
-  nextCourageAegisAt: number;
+  nextShieldOfCourageAegisAt: number;
   heavyLightReadyAt: number;
 }
 
@@ -208,6 +208,7 @@ export interface GuardianStrikeFields extends SchedulerRecord {
   readonly coefficient: number;
   readonly source?: string;
   readonly actorType?: SimulationActorType;
+  readonly ownerActorType?: SimulationActorType;
   readonly hits?: number;
   readonly hitIndex?: number;
   readonly totalHits?: number;

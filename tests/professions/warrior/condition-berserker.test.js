@@ -114,7 +114,7 @@ test("Condition Berserker preset preserves the supplied build and EVTC order", a
   const preset = manifest
     .find((section) => section.section === "Berserker")
     .presets.find(({ label }) => label === "Condition (Longbow + Sword/Torch)");
-  assert.equal(preset.benchmarkDps, 43275);
+  assert.equal(preset.benchmarkDps, 44607);
   assert.equal(
     preset.build,
     "Builds/warrior/b-condi-berserker-longbow-sword-torch.json",
