@@ -341,6 +341,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     legendId: "LegendaryDwarf",
   },
   [ID.BANISH_ENCHANTMENT]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 440,
     cooldown: 0,
@@ -357,9 +358,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -372,9 +371,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
         actorType: "player",
       },
       {
@@ -388,9 +385,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
         actorType: "player",
       },
     ],
@@ -411,6 +406,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     effects: [],
   },
   [ID.FIELD_OF_THE_MISTS]: {
+    interruptCommitMs: 0,
     implemented: true,
     castTimeMs: 750,
     cooldown: 12,
@@ -426,9 +422,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
       {
         type: "boon",
@@ -447,6 +441,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     legendId: "LegendaryCentaur",
   },
   [ID.CALL_TO_ANGUISH]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 820,
     cooldown: 3,
@@ -462,9 +457,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -476,9 +469,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
       {
         type: "control",
@@ -490,7 +481,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         metadata: {
           controlKind: "pull",
           duration: 360,
-          extendsResolutionHorizon: true,
         },
       },
     ],
@@ -626,6 +616,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     effects: [],
   },
   [ID.DROP_THE_HAMMER]: {
+    interruptCommitMs: 0,
     implemented: true,
     castTimeMs: 500,
     cooldown: 15,
@@ -641,9 +632,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
       {
         type: "control",
@@ -655,7 +644,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         metadata: {
           controlKind: "knockdown",
           duration: 3,
-          extendsResolutionHorizon: true,
         },
       },
     ],
@@ -719,6 +707,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     legendId: "LegendaryAssassin",
   },
   [ID.COALESCENCE_OF_RUIN]: {
+    interruptCommitMs: 0,
     implemented: true,
     castTimeMs: 750,
     cooldown: 4,
@@ -734,9 +723,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
     ],
   },
@@ -794,9 +781,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -946,9 +931,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         ],
         timingAnchor: "castStart",
         timingScale: "fixed",
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -1201,9 +1184,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         atMs: 1400,
         timingAnchor: "castStart",
         timingScale: "fixed",
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
     ],
   },
@@ -1409,9 +1390,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -1768,9 +1747,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         intervalMs: 1000,
         timingAnchor: "castEnd",
         timingScale: "fixed",
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -2621,9 +2598,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
           { atMs: 838, coefficient: 0.4 },
           { atMs: 922, coefficient: 0.3 },
         ],
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
     ],
   },
@@ -2821,6 +2796,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     ],
   },
   [ID.ABYSSAL_BLITZ]: {
+    interruptCommitMs: 0,
     implemented: true,
     handlerId: "revenant.spear-recharge",
     quicknessCastTimeMs: 520,
@@ -2839,9 +2815,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
           { atMs: 720, coefficient: 0.5 },
           { atMs: 960, coefficient: 0.5 },
         ],
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -2854,9 +2828,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
           { atMs: 720, condition: "Slow", stacks: 1, duration: 3 },
           { atMs: 960, condition: "Slow", stacks: 1, duration: 3 },
         ],
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -2869,9 +2841,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
           { atMs: 720, condition: "Chilled", stacks: 1, duration: 3 },
           { atMs: 960, condition: "Chilled", stacks: 1, duration: 3 },
         ],
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -2884,13 +2854,12 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
           { atMs: 720, condition: "Weakness", stacks: 1, duration: 3 },
           { atMs: 960, condition: "Weakness", stacks: 1, duration: 3 },
         ],
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
     ],
   },
   [ID.ABYSSAL_BLOT]: {
+    interruptCommitMs: 0,
     implemented: true,
     handlerId: "revenant.spear-recharge",
     quicknessCastTimeMs: 800,
@@ -2911,9 +2880,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
           { atMs: 1800, coefficient: 0.4 },
           { atMs: 2080, coefficient: 0.4 },
         ],
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -2928,9 +2895,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
           { atMs: 1800, condition: "Poisoned", stacks: 1, duration: 6 },
           { atMs: 2080, condition: "Poisoned", stacks: 1, duration: 6 },
         ],
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -2958,6 +2923,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     ],
   },
   [ID.ABYSSAL_FORCE]: {
+    interruptCommitMs: 0,
     implemented: true,
     handlerId: "revenant.spear-recharge",
     quicknessCastTimeMs: 520,
@@ -2974,9 +2940,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
+        metadata: {},
       },
       {
         type: "condition",

@@ -350,6 +350,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
     handlerId: "warrior.resource",
   },
   [ID.WINDS_OF_DISENCHANTMENT]: {
+    interruptCommitMs: 0,
     implemented: true,
     comboFields: [
       {
@@ -369,9 +370,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
         timingAnchor: "castEnd",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
       },
       {
         type: "custom",

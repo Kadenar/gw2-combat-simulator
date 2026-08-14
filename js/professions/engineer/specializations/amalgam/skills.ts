@@ -672,6 +672,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     },
     [ID.PLASMATIC_STATE]: {
       implemented: true,
+      interruptCommitMs: 0,
       handlerId: "engineer.plasmatic-state",
       quicknessCastTimeMs: PLASMATIC_STATE_QUICKNESS_CAST_TIME_MS,
       cooldown: 25,

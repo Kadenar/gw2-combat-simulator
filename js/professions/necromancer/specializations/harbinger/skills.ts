@@ -56,9 +56,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<
         ],
         timingAnchor: "castStart",
         timingScale: "fixed",
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
       },
       {
         type: "control",
