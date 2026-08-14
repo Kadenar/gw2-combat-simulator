@@ -14,17 +14,15 @@ import {
 } from "../../core/stealth.js";
 import { grantThiefStealth } from "../../core/weapon-state.js";
 import { consumeStoredStolenSkill } from "../../core/steal.js";
-import { hasThiefTrait } from "../../core/state.js";
 import { selectedDeadeyeStolenSkill } from "./mechanics.js";
 import {
   applyMaleficentSeven,
-  emitDeadeyeBoon,
+  applyDeadeyesMarkTraits,
+  applyDeadeyeStolenSkillTraits,
+  deadeyeStealthAttackMaliceBonus,
   initialDeadeyeMalice,
 } from "./traits.js";
-import {
-  THIEF_SKILL_IDS as ID,
-  THIEF_TRAIT_IDS as TRAIT,
-} from "../../data/ids.js";
+import { THIEF_SKILL_IDS as ID } from "../../data/ids.js";
 import type {
   ThiefCastContext,
   ThiefSimulationEvent,
@@ -53,9 +51,7 @@ function completeDeadeyesMark(context: ThiefCastContext): void {
   if (!remarkingTarget) state.maleficentSevenTriggered = false;
   applyMaleficentSeven(context, at);
   completeStealWithStoredSkill(context, selectedDeadeyeStolenSkill(context));
-  if (hasThiefTrait(context.config, TRAIT.BE_QUICK_OR_BE_KILLED)) {
-    emitDeadeyeBoon(context, at, "Quickness", 4, 1, "Be Quick or Be Killed");
-  }
+  applyDeadeyesMarkTraits(context, at);
   context.tasks.cancelOwner("thief.deadeye-mark");
   context.tasks.schedule({
     type: "thief.deadeye-mark-expire",
@@ -72,10 +68,8 @@ function prepareDeadeyeStealthAttack(
 ): DeadeyeHandlerState {
   const state = deadeyeState.from(context);
   const maliciousIntentMalice =
-    state.markedTargetId &&
-    state.markExpiresAt > context.start &&
-    hasThiefTrait(context.config, TRAIT.MALICIOUS_INTENT)
-      ? 2
+    state.markedTargetId && state.markExpiresAt > context.start
+      ? deadeyeStealthAttackMaliceBonus(context)
       : 0;
   const handlerState = {
     malice: Math.min(
@@ -148,26 +142,7 @@ function completeDeadeyeStolenSkill(
     grantThiefStealth(context, skill, context.effectiveEnd, 3);
   }
   consumeStoredStolenSkill(context);
-  if (hasThiefTrait(context.config, TRAIT.FIRE_FOR_EFFECT)) {
-    emitDeadeyeBoon(
-      context,
-      context.effectiveEnd,
-      "Might",
-      12,
-      8,
-      "Fire for Effect",
-      true,
-    );
-    emitDeadeyeBoon(
-      context,
-      context.effectiveEnd,
-      "Fury",
-      12,
-      1,
-      "Fire for Effect",
-      true,
-    );
-  }
+  applyDeadeyeStolenSkillTraits(context, context.effectiveEnd);
 }
 
 function completeMercy(context: ThiefCastContext): void {

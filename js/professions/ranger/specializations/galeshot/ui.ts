@@ -71,6 +71,8 @@ function availability(
 
 export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord =
   Object.freeze({
+    eventLogRow: (_context: RangerUiContext, event: SchedulerRecord) =>
+      event.type === "ranger.galeshot-state" ? null : undefined,
     skillBarGroups: (context: RangerUiContext) => [
       {
         id: "ranger-galeshot-f5",

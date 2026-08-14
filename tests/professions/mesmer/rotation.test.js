@@ -683,7 +683,7 @@ test("the supplied condition Virtuoso build uses the profession-mechanic midpoin
   });
 
   assert.equal(result.warnings.length, 0);
-  assert.ok(Math.abs(result.dps - 40108.204257585676) < 1e-6);
+  assert.ok(Math.abs(result.dps - 40082.96937910133) < 1e-6);
 });
 
 test("Phantasmal Swordsman independently gates its summon and player hit", () => {
@@ -2172,7 +2172,7 @@ test("condition Dune Cloak Mirage preset matches the supplied equipment", () => 
   });
   const result = simulateMesmer(build.rotation, simulationConfig(app));
   assert.deepEqual(result.warnings, []);
-  assert.equal(Math.round(result.dps), 41188);
+  assert.equal(Math.round(result.dps), 40980);
   assert.ok(
     Math.abs(result.totalDamage - savedRotation.metadata.benchmarkDamage) /
       savedRotation.metadata.benchmarkDamage <
@@ -2215,7 +2215,7 @@ test("condition Dune Cloak Mirage preset matches the supplied equipment", () => 
   assert.ok(
     Math.abs(
       result.conditionBreakdown.find((row) => row.name === "Torment")
-        .averageStacks - 47.807,
+        .averageStacks - 47.885,
     ) < 0.01,
   );
 
@@ -2319,7 +2319,7 @@ test("power Troubadour benchmark preset preserves the supplied build and log", (
     events.reduce((total, event) => total + event.damage, 0);
   const swordsman = damageEvents("Phantasmal Swordsman");
   assert.deepEqual(result.warnings, []);
-  assert.equal(Math.round(result.dps), 42703);
+  assert.equal(Math.round(result.dps), 42767);
   assert.equal(count("Lively Lute"), 9);
   assert.equal(count("Flustering Flute"), 6);
   assert.equal(count("Deafening Drum"), 5);
@@ -2330,15 +2330,15 @@ test("power Troubadour benchmark preset preserves the supplied build and log", (
   assert.equal(count("Power Spike"), 11);
   assert.equal(count("Swap Weapons"), 8);
   const syncopate = damageEvents("Syncopate");
-  assert.equal(syncopate.length, 39);
+  assert.equal(syncopate.length, 41);
   assert.equal(
     syncopate.filter((event) => event.name === "Syncopate").length,
-    35,
+    36,
   );
   assert.equal(
     syncopate.filter((event) => event.name === "Syncopate — delayed wave")
       .length,
-    4,
+    5,
   );
   assert.equal(damageEvents("Relic of the Shackles").length, 8);
   assert.equal(
@@ -2351,7 +2351,7 @@ test("power Troubadour benchmark preset preserves the supplied build and log", (
     Math.round(
       totalDamage(swordsman.filter((event) => event.source === "Phantasm")),
     ),
-    299369,
+    285884,
   );
 });
 

@@ -703,7 +703,7 @@ test("Guardian Power Luminary default builds resolve", async () => {
     (candidate) => candidate.section === "Luminary",
   );
   const powerPreset = section.presets.find(
-    (preset) => preset.label === "Power",
+    (preset) => preset.label === "Power (Greatsword / Spear)",
   );
   const alacrityPreset = section.presets.find(
     (preset) => preset.label === "Power Alacrity (Greatsword / Spear)",
@@ -727,7 +727,7 @@ test("Guardian Power Luminary default builds resolve", async () => {
   );
 
   assert.equal(section.section, "Luminary");
-  assert.equal(powerPreset.label, "Power");
+  assert.equal(powerPreset.label, "Power (Greatsword / Spear)");
   assert.equal(Object.hasOwn(saved, "rotation"), false);
   assert.equal(build.profession, "guardian");
   assert.equal(build.specializations[2].name, "Luminary");
@@ -735,7 +735,7 @@ test("Guardian Power Luminary default builds resolve", async () => {
   assert.deepEqual(build.alternateWeapons, ["Spear", ""]);
   assert.equal(build.startingWeaponSet, 2);
 
-  assert.equal(alacrityPreset.benchmarkDps, 38346);
+  assert.equal(alacrityPreset.benchmarkDps, 37586);
   assert.equal(Object.hasOwn(savedAlacrity, "rotation"), false);
   assert.deepEqual(alacrityBuild.weapons, ["Greatsword", ""]);
   assert.deepEqual(alacrityBuild.alternateWeapons, ["Spear", ""]);
@@ -769,7 +769,7 @@ test("Guardian Power Luminary default builds resolve", async () => {
     { stat: "Condition Damage", count: 0 },
   ]);
   assert.equal(alacrityRotation.metadata.log, alacrityPreset.dpsReportUrl);
-  assert.equal(alacrityRotation.rotation.length, 275);
+  assert.equal(alacrityRotation.rotation.length, 238);
   assert.deepEqual(alacrityRotation.rotation.slice(0, 4), [
     { name: "Radiant Courage", offset: 100 },
     "Enter Radiant Forge",
@@ -780,11 +780,11 @@ test("Guardian Power Luminary default builds resolve", async () => {
     alacrityRotation.rotation.filter(
       (step) => typeof step === "object" && step.interruptMs != null,
     ).length,
-    42,
+    5,
   );
   assert.equal(
     alacrityRotationNames.filter((name) => name === "Glaring Burst").length,
-    31,
+    22,
   );
   assert.deepEqual(alacrityRotationNames.slice(-3), [
     "Enter Radiant Forge",

@@ -3,13 +3,9 @@ import {
   professionCoreState,
 } from "../../../platform/engine/profession.js";
 import { replaceSkill } from "../../../platform/gw2/native-profession.js";
-import { hasTrait } from "../../../platform/gw2/trait-state.js";
-import {
-  RANGER_SKILL_IDS as ID,
-  RANGER_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
 import type { RangerCastContext, RangerSkill } from "../types.js";
 import {
+  applyRangerDodgeTraits,
   applyRangerPetSwapTraits,
   applyRangerWeaponSwapTraits,
 } from "./traits.js";
@@ -40,20 +36,7 @@ function performRangerDodge(context: RangerCastContext): boolean {
   const state = professionCoreState(context);
   state.endurance = Math.max(0, state.endurance - 50);
   state.enduranceUpdatedAt = context.start;
-  if (hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) {
-    context.emit({
-      type: "buff",
-      at: context.effectiveEnd,
-      source: "Trait",
-      sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
-      actorType: "effect",
-      skillId: TRAIT.LIGHT_ON_YOUR_FEET,
-      skillName: "Light on your Feet",
-      kind: "light-on-your-feet",
-      duration: 6,
-      stacks: 1,
-    });
-  }
+  applyRangerDodgeTraits(context);
   return true;
 }
 

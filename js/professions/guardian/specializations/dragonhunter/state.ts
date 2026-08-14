@@ -4,7 +4,7 @@ import type { GuardianDragonhunterState } from "../../types.js";
 export function createDragonhunterState(): GuardianDragonhunterState {
   return {
     tetherUntil: 0,
-    nextCourageAegisAt: 0,
+    nextShieldOfCourageAegisAt: 0,
     heavyLightReadyAt: 0,
   };
 }

@@ -1,4 +1,12 @@
 {
+  "metadata": {
+    "report": "https://dps.report/yH46-20260729-145625_golem",
+    "benchmarkDurationSeconds": 89.573,
+    "benchmarkDamage": 3950932,
+    "benchmarkDps": 44108.51484264232,
+    "timingSource": "Elite Insights activation timings",
+    "note": "Weave Self is reconstructed at -1.197s so its 799ms activation ends when the first reported Signet of Fire begins at -0.398s; its next activation occurs at 71.682s after the Alacrity-adjusted recharge. Primordial Stance is inferred 100ms into that precast. The Stone Resonance activation at 72.481s is the Bolstered Elements elite proc, not a rotation command."
+  },
   "rotation": [
     "Raging Ricochet",
     "Earth Attunement",
@@ -8,7 +16,6 @@
       "name": "__wait",
       "waitMs": 2500
     },
-    "__combat_start",
     "Weave Self",
     {
       "name": "Primordial Stance (Earth)",
@@ -16,351 +23,66 @@
     },
     "Signet of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 401
+      "name": "__combat_start",
+      "offset": 398
     },
     "Shattering Stone",
     "Boulder Blast",
     {
       "name": "Fire Attunement",
-      "offset": 83
+      "offset": 444
     },
+    "Scorching Shot",
     "Churning Earth",
     "Molten Meteor",
     {
       "name": "Fire Attunement",
-      "offset": 439
+      "offset": 401
     },
     "Signet of Earth",
     "Searing Salvo",
     "Raging Ricochet",
-    "Ring of Fire",
     {
       "name": "Primordial Stance (Fire)",
-      "offset": 159
-    },
-    {
-      "name": "Earth Attunement",
-      "offset": 320
-    },
-    "Shattering Stone",
-    "Fire Grab",
-    "Piercing Pebble",
-    {
-      "name": "Earth Attunement",
-      "offset": 479
-    },
-    {
-      "name": "Piercing Pebble",
-      "interruptMs": 169
-    },
-    "Earthquake",
-    "Piercing Pebble",
-    "Piercing Pebble",
-    "Piercing Pebble",
-    "Piercing Pebble",
-    "Shattering Stone",
-    "Boulder Blast",
-    {
-      "name": "Air Attunement",
-      "offset": 36
-    },
-    "Signet of Fire",
-    {
-      "name": "Electric Exposure",
-      "interruptMs": 42
-    },
-    "Dazing Discharge",
-    "Enervating Earth",
-    {
-      "name": "Fire Attunement",
-      "offset": 283
-    },
-    "Raging Ricochet",
-    "Purblinding Plasma",
-    "Ride the Lightning",
-    "Scorching Shot",
-    {
-      "name": "Fire Attunement",
-      "offset": 201
-    },
-    "Searing Salvo",
-    "Scorching Shot",
-    "Ring of Fire",
-    {
-      "name": "Earth Attunement",
       "offset": 120
     },
-    "Signet of Earth",
-    {
-      "name": "Primordial Stance (Earth)",
-      "offset": 159
-    },
-    "Shattering Stone",
-    "Molten Meteor",
     {
       "name": "Earth Attunement",
-      "offset": 282
+      "offset": 525
     },
-    "Churning Earth",
-    "Earthquake",
-    "Boulder Blast",
-    {
-      "name": "Water Attunement",
-      "offset": 121
-    },
-    "Frigid Flurry",
-    "Echoing Erosion",
-    {
-      "name": "Fire Attunement",
-      "offset": 321
-    },
-    {
-      "name": "Scorching Shot",
-      "interruptMs": 85
-    },
-    "Signet of Fire",
-    "Frostfire Flurry",
-    "Raging Ricochet",
-    "Scorching Shot",
-    "Scorching Shot",
-    "Scorching Shot",
-    {
-      "name": "Fire Attunement",
-      "offset": 359
-    },
+    "Ring of Fire",
+    "Shattering Stone",
     "Fire Grab",
-    "Searing Salvo",
-    "Scorching Shot",
-    "Ring of Fire",
-    "Scorching Shot",
-    "Raging Ricochet",
-    {
-      "name": "Earth Attunement",
-      "offset": 363
-    },
-    "Shattering Stone",
-    "Piercing Pebble",
-    "Signet of Earth",
-    "Molten Meteor",
-    "Piercing Pebble",
-    "Piercing Pebble",
     "Piercing Pebble",
     {
       "name": "Earth Attunement",
-      "offset": 121
-    },
-    {
-      "name": "Piercing Pebble",
-      "interruptMs": 78
-    },
-    "Signet of Fire",
-    "Churning Earth",
-    "Earthquake",
-    "Boulder Blast",
-    "Shattering Stone",
-    {
-      "name": "Fire Attunement",
-      "offset": 161
-    },
-    "Raging Ricochet",
-    "Scorching Shot",
-    "Scorching Shot",
-    "Scorching Shot",
-    "Scorching Shot",
-    "Scorching Shot",
-    {
-      "name": "Fire Attunement",
-      "offset": 401
-    },
-    "Scorching Shot",
-    "Ring of Fire",
-    "Fire Grab",
-    "Searing Salvo",
-    "Raging Ricochet",
-    "Scorching Shot",
-    {
-      "name": "Earth Attunement",
-      "offset": 363
-    },
-    "Piercing Pebble",
-    "Signet of Earth",
-    "Signet of Fire",
-    {
-      "name": "Primordial Stance (Earth)",
-      "offset": 281
-    },
-    "Shattering Stone",
-    "Molten Meteor",
-    "Piercing Pebble",
-    "Piercing Pebble",
-    {
-      "name": "Earth Attunement",
-      "offset": 83
+      "offset": 204
     },
     "Earthquake",
-    "Boulder Blast",
-    {
-      "name": "Piercing Pebble",
-      "interruptMs": 200
-    },
-    "Churning Earth",
-    {
-      "name": "Piercing Pebble",
-      "interruptMs": 159
-    },
-    "Shattering Stone",
-    {
-      "name": "Fire Attunement",
-      "offset": 364
-    },
-    "Raging Ricochet",
-    "Scorching Shot",
-    "Scorching Shot",
-    "Scorching Shot",
-    "Scorching Shot",
-    "Scorching Shot",
-    {
-      "name": "Fire Attunement",
-      "offset": 521
-    },
-    "Scorching Shot",
-    "Ring of Fire",
-    "Searing Salvo",
-    "Signet of Fire",
-    "Fire Grab",
-    "Raging Ricochet",
-    "Earth Attunement",
-    {
-      "name": "Piercing Pebble",
-      "interruptMs": 197
-    },
-    "Signet of Earth",
-    "Shattering Stone",
-    "Molten Meteor",
-    {
-      "name": "Primordial Stance (Earth)",
-      "offset": 243
-    },
     "Piercing Pebble",
     "Piercing Pebble",
     "Piercing Pebble",
-    {
-      "name": "Earth Attunement",
-      "offset": 480
-    },
-    "Piercing Pebble",
-    "Earthquake",
-    "Boulder Blast",
-    "Piercing Pebble",
-    "Shattering Stone",
-    "Churning Earth",
-    {
-      "name": "Fire Attunement",
-      "offset": 596
-    },
-    "Raging Ricochet",
-    "Scorching Shot",
-    "Scorching Shot",
-    {
-      "name": "Scorching Shot",
-      "interruptMs": 82
-    },
-    "Signet of Fire",
-    "Scorching Shot",
-    "Scorching Shot",
-    {
-      "name": "Fire Attunement",
-      "offset": 279
-    },
-    "Scorching Shot",
-    "Ring of Fire",
-    "Searing Salvo",
-    "Raging Ricochet",
-    {
-      "name": "Scorching Shot",
-      "interruptMs": 36
-    },
-    "Fire Grab",
-    "Signet of Earth",
-    {
-      "name": "Earth Attunement",
-      "offset": 282
-    },
-    "Shattering Stone",
-    "Molten Meteor",
-    "Piercing Pebble",
-    {
-      "name": "Primordial Stance (Earth)",
-      "offset": 271
-    },
-    "Piercing Pebble",
-    "Piercing Pebble",
-    "Piercing Pebble",
-    {
-      "name": "Earth Attunement",
-      "offset": 478
-    },
-    "Piercing Pebble",
-    "Earthquake",
-    "Boulder Blast",
-    "Shattering Stone",
-    "Weave Self",
-    "Signet of Fire",
-    {
-      "name": "Fire Attunement",
-      "offset": 321
-    },
-    "Churning Earth",
-    "Raging Ricochet",
-    {
-      "name": "Fire Attunement",
-      "offset": 480
-    },
-    "Scorching Shot",
-    "Ring of Fire",
-    "Searing Salvo",
-    {
-      "name": "Earth Attunement",
-      "offset": 640
-    },
-    "Piercing Pebble",
-    "Shattering Stone",
-    "Molten Meteor",
-    "Piercing Pebble",
-    {
-      "name": "Earth Attunement",
-      "offset": 158
-    },
     "Piercing Pebble",
     {
       "name": "Piercing Pebble",
-      "interruptMs": 38
+      "interruptMs": 79
     },
-    "Signet of Earth",
-    {
-      "name": "Primordial Stance (Earth)",
-      "offset": 279
-    },
-    "Boulder Blast",
-    "Piercing Pebble",
-    "Piercing Pebble",
-    "Piercing Pebble",
     "Shattering Stone",
+    "Boulder Blast",
     {
       "name": "Air Attunement",
       "offset": 79
     },
+    "Signet of Fire",
     "Dazing Discharge",
     "Enervating Earth",
-    "Signet of Fire",
     {
       "name": "Fire Attunement",
-      "offset": 363
+      "offset": 526
     },
     {
       "name": "Scorching Shot",
-      "interruptMs": 40
+      "interruptMs": 120
     },
     "Raging Ricochet",
     "Purblinding Plasma",
@@ -371,25 +93,382 @@
       "offset": 240
     },
     "Searing Salvo",
+    "Scorching Shot",
     "Ring of Fire",
-    "Fire Grab",
+    "Scorching Shot",
     {
       "name": "Earth Attunement",
-      "offset": 284
+      "offset": 44
     },
     "Shattering Stone",
+    {
+      "name": "Primordial Stance (Earth)",
+      "offset": 444
+    },
     "Molten Meteor",
-    "Piercing Pebble",
+    "Signet of Earth",
     {
       "name": "Earth Attunement",
-      "offset": 361
+      "offset": 433
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 202
     },
     "Churning Earth",
     "Earthquake",
     "Boulder Blast",
     {
       "name": "Water Attunement",
+      "offset": 322
+    },
+    {
+      "name": "Soothing Splash",
+      "interruptMs": 36
+    },
+    "Echoing Erosion",
+    "Frigid Flurry",
+    {
+      "name": "Water Attunement",
+      "offset": 719
+    },
+    {
+      "name": "Unravel",
+      "offset": 719
+    },
+    "Frozen Fusillade",
+    "Signet of Fire",
+    {
+      "name": "Fire Attunement",
+      "offset": 39
+    },
+    "Fire Grab",
+    "Searing Salvo",
+    "Raging Ricochet",
+    "Scorching Shot",
+    "Scorching Shot",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 240
+    },
+    "Ring of Fire",
+    {
+      "name": "Earth Attunement",
+      "offset": 200
+    },
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Boulder Blast",
+    "Shattering Stone",
+    "Piercing Pebble",
+    {
+      "name": "Fire Attunement",
+      "offset": 158
+    },
+    "Molten Meteor",
+    "Raging Ricochet",
+    "Earthquake",
+    "Signet of Earth",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 202
+    },
+    "Churning Earth",
+    {
+      "name": "Fire Attunement",
+      "offset": 560
+    },
+    "Signet of Fire",
+    "Searing Salvo",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Raging Ricochet",
+    "Ring of Fire",
+    {
+      "name": "Earth Attunement",
+      "offset": 39
+    },
+    "Shattering Stone",
+    "Fire Grab",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    {
+      "name": "Primordial Stance (Earth)",
+      "offset": 39
+    },
+    "Piercing Pebble",
+    "Molten Meteor",
+    {
+      "name": "Earth Attunement",
+      "offset": 363
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 196
+    },
+    "Boulder Blast",
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 160
+    },
+    "Shattering Stone",
+    "Earthquake",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Signet of Fire",
+    "Water Attunement",
+    {
+      "name": "Soothing Splash",
+      "interruptMs": 158
+    },
+    "Echoing Erosion",
+    {
+      "name": "Water Attunement",
+      "offset": 198
+    },
+    {
+      "name": "Unravel",
+      "offset": 199
+    },
+    "Frozen Fusillade",
+    "Frigid Flurry",
+    {
+      "name": "Fire Attunement",
+      "offset": 82
+    },
+    "Signet of Earth",
+    "Searing Salvo",
+    "Ring of Fire",
+    "Raging Ricochet",
+    {
+      "name": "Primordial Stance (Fire)",
+      "offset": 444
+    },
+    "Scorching Shot",
+    {
+      "name": "Earth Attunement",
+      "offset": 365
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 35
+    },
+    "Churning Earth",
+    "Boulder Blast",
+    "Shattering Stone",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    {
+      "name": "Fire Attunement",
+      "offset": 117
+    },
+    "Molten Meteor",
+    "Raging Ricochet",
+    "Earthquake",
+    "Signet of Fire",
+    "Scorching Shot",
+    "Scorching Shot",
+    {
+      "name": "Fire Attunement",
+      "offset": 124
+    },
+    "Fire Grab",
+    "Searing Salvo",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Raging Ricochet",
+    "Ring of Fire",
+    {
+      "name": "Earth Attunement",
+      "offset": 481
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 198
+    },
+    "Shattering Stone",
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 40
+    },
+    "Signet of Earth",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Molten Meteor",
+    {
+      "name": "Earth Attunement",
+      "offset": 322
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 156
+    },
+    "Boulder Blast",
+    "Shattering Stone",
+    "Churning Earth",
+    "Earthquake",
+    "Signet of Fire",
+    {
+      "name": "Water Attunement",
+      "offset": 396
+    },
+    {
+      "name": "Soothing Splash",
+      "interruptMs": 87
+    },
+    "Echoing Erosion",
+    "Frigid Flurry",
+    {
+      "name": "Water Attunement",
+      "offset": 206
+    },
+    {
+      "name": "Unravel",
+      "offset": 207
+    },
+    "Frozen Fusillade",
+    {
+      "name": "Fire Attunement",
       "offset": 79
-    }
+    },
+    "Ring of Fire",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 35
+    },
+    "Searing Salvo",
+    "Fire Grab",
+    "Raging Ricochet",
+    {
+      "name": "Primordial Stance (Fire)",
+      "offset": 202
+    },
+    "Scorching Shot",
+    "Scorching Shot",
+    {
+      "name": "Earth Attunement",
+      "offset": 40
+    },
+    "Boulder Blast",
+    "Shattering Stone",
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 162
+    },
+    "Weave Self",
+    "Signet of Earth",
+    "Piercing Pebble",
+    {
+      "name": "Fire Attunement",
+      "offset": 327
+    },
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 201
+    },
+    "Raging Ricochet",
+    "Scorching Shot",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 162
+    },
+    "Earthquake",
+    {
+      "name": "Fire Attunement",
+      "offset": 360
+    },
+    "Signet of Fire",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 82
+    },
+    "Searing Salvo",
+    "Scorching Shot",
+    {
+      "name": "Earth Attunement",
+      "offset": 124
+    },
+    "Shattering Stone",
+    "Molten Meteor",
+    "Ring of Fire",
+    {
+      "name": "Earth Attunement",
+      "offset": 362
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 198
+    },
+    "Churning Earth",
+    {
+      "name": "Primordial Stance (Earth)",
+      "offset": 403
+    },
+    "Boulder Blast",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 119
+    },
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 368
+    },
+    "Raging Ricochet",
+    "Scorching Shot",
+    "Scorching Shot",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 234
+    },
+    {
+      "name": "Fire Attunement",
+      "offset": 34
+    },
+    "Fire Grab",
+    "Searing Salvo",
+    "Signet of Fire",
+    {
+      "name": "Earth Attunement",
+      "offset": 437
+    },
+    "Piercing Pebble",
+    "Shattering Stone",
+    "Piercing Pebble",
+    "Molten Meteor",
+    {
+      "name": "Fire Attunement",
+      "offset": 276
+    },
+    "Raging Ricochet",
+    {
+      "name": "Fire Attunement",
+      "offset": 238
+    },
+    {
+      "name": "Unravel",
+      "offset": 239
+    },
+    {
+      "name": "Earth Attunement",
+      "offset": 440
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 161
+    },
+    "Earthquake"
   ]
 }

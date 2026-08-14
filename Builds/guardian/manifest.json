@@ -6,7 +6,7 @@
         "label": "Power (Spear / Greatsword)",
         "build": "Builds/guardian/b-power-willbender-spear-greatsword.json",
         "rotation": "Rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
-        "benchmarkDps": 42975,
+        "benchmarkDps": 43000,
         "sourceBenchmarkDps": 42702,
         "upToDate": true
       },
@@ -27,7 +27,7 @@
         "label": "Condition (Axe / Torch + Pistol / Pistol)",
         "build": "Builds/guardian/b-condition-firebrand.json",
         "rotation": "Rotations/guardian/r-condition-firebrand-bench.json",
-        "benchmarkDps": 37524,
+        "benchmarkDps": 41671,
         "sourceBenchmarkDps": 40916,
         "upToDate": true
       }
@@ -40,7 +40,7 @@
         "label": "Power (Spear / Greatsword)",
         "build": "Builds/guardian/b-power-dragonhunter-spear-greatsword.json",
         "rotation": "Rotations/guardian/r-power-dragonhunter-spear-greatsword-bench.json",
-        "benchmarkDps": 41466,
+        "benchmarkDps": 41794,
         "sourceBenchmarkDps": 41853,
         "dpsReportUrl": "https://dps.report/so5x-20260418-005724_golem",
         "upToDate": true
@@ -54,13 +54,13 @@
         "label": "Power (Greatsword / Spear)",
         "build": "Builds/guardian/b-power-luminary.json",
         "rotation": "Rotations/guardian/r-power-luminary-bench.json",
-        "benchmarkDps": 42015
+        "benchmarkDps": 42043
       },
       {
         "label": "Power Alacrity (Greatsword / Spear)",
         "build": "Builds/guardian/b-power-alac-luminary.json",
         "rotation": "Rotations/guardian/r-power-alac-luminary-bench.json",
-        "benchmarkDps": 38081,
+        "benchmarkDps": 37586,
         "sourceBenchmarkDps": 37129,
         "dpsReportUrl": "https://dps.report/ABHB-20260603-234544_golem",
         "upToDate": true

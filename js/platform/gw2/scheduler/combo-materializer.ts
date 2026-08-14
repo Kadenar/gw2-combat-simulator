@@ -18,6 +18,7 @@ import type {
   ScheduledTask,
   SchedulerContext,
   SchedulerRecord,
+  SimulationActorType,
   SimulationEvent,
 } from "../../engine/types.js";
 import type {
@@ -42,6 +43,7 @@ interface OwnedFieldDescriptor extends SchedulerRecord {
   readonly startAnchor: "castStart" | "castEnd" | "event";
   readonly duration: number;
   readonly inclusiveExpiry?: boolean;
+  readonly ownerActorType?: SimulationActorType;
 }
 
 interface OwnedFinisherDescriptor extends SchedulerRecord {

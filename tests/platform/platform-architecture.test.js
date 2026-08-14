@@ -223,13 +223,18 @@ test("canonical skills derive base casts and can opt out of Quickness", () => {
   );
 });
 
-test("native profession weapon swaps share timing policy", async () => {
+test("native profession weapon swaps share timing policy except Elementalist", async () => {
   for (const entry of nativeProfessionRegistry) {
     const catalog = (await entry.loadProfession()).catalog;
     const skill = catalog.skillsByName.get("Swap Weapons");
-    assert.equal(skill.castTimeMs, 0, catalog.id);
-    assert.equal(Number(skill.quicknessCastTimeMs || 0), 0, catalog.id);
-    assert.equal(skill.rechargeAnchor, "castStart", catalog.id);
+    if (entry.id === "elementalist") {
+      assert.equal(skill, undefined, entry.id);
+      continue;
+    }
+    assert.ok(skill, entry.id);
+    assert.equal(skill.castTimeMs, 0, entry.id);
+    assert.equal(Number(skill.quicknessCastTimeMs || 0), 0, entry.id);
+    assert.equal(skill.rechargeAnchor, "castStart", entry.id);
   }
 });
 
@@ -3261,6 +3266,7 @@ test("application shell uses feature-owned modules without legacy facades", asyn
   assert.deepEqual(topLevelFiles, [
     "app.ts",
     "bootstrap.ts",
+    "embed.ts",
     "profession-app.ts",
   ]);
 
@@ -3272,6 +3278,7 @@ test("application shell uses feature-owned modules without legacy facades", asyn
     "profession",
     "rotation",
     "simulation",
+    "submission",
   ]);
 
   const appEntry = await readFile(path.join(appRoot, "app.ts"), "utf8");

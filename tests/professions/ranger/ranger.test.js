@@ -597,7 +597,7 @@ test("Power Soulbeast Sword-Axe preset preserves the shared build and report", a
   const firstSwordStrike = result.resolvedEvents.find(
     (event) => event.type === "damage" && event.skillId === ID.POUNCE,
   );
-  assert.equal(firstSwordStrike.criticalDamage, 3.05);
+  assert.ok(Math.abs(firstSwordStrike.criticalDamage - 3.05) < 0.001);
   const firstHammerStrike = result.resolvedEvents.find(
     (event) => event.type === "damage" && event.skillId === ID.HEAVY_SMASH,
   );

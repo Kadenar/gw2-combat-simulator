@@ -16,6 +16,7 @@ import {
   observeDeadeyeScheduledEvent,
   updateDeadeyeCastState,
 } from "./mechanics.js";
+import { deadeyeTaskHandlers } from "./tasks.js";
 import type { ThiefSimulationEvent } from "../../types.js";
 import type {
   Gw2ModifierContext,
@@ -41,6 +42,7 @@ export const deadeyeSchedulerHooks = Object.freeze({
     order: 20,
     handler: observeDeadeyeScheduledEvent,
   },
+  taskHandlers: deadeyeTaskHandlers,
 });
 
 const BOON_KINDS = Object.freeze([

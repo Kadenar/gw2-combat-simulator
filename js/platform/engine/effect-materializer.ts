@@ -11,6 +11,7 @@ export interface EffectEventBase extends SchedulerRecord {
   readonly source: string;
   readonly sourceId: SkillId;
   readonly actorType?: SimulationActorType;
+  readonly ownerActorType?: SimulationActorType;
   readonly skillId?: SkillId | null;
   readonly skillName?: string;
   readonly activationId?: string;

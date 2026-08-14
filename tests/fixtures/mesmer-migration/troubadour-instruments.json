@@ -75,27 +75,27 @@
       },
       "cooldowns": {
         "Crescendo": {
-          "readyAt": 29571,
+          "readyAt": 29560,
           "remaining": 28000
         },
         "Lively Lute": {
-          "readyAt": 10168,
-          "remaining": 8597
+          "readyAt": 10160,
+          "remaining": 8600
         }
       },
-      "dpsWindow": 1.1359999999999997,
-      "duration": 1.5709999999999997,
+      "dpsWindow": 1.125,
+      "duration": 1.56,
       "events": [
         {
           "__order": 0,
           "activationId": "cast:1",
           "actorType": "player",
           "at": 0,
-          "endsAt": 0.568,
-          "fullEndsAt": 0.568,
+          "endsAt": 0.56,
+          "fullEndsAt": 0.56,
           "interrupted": false,
           "name": "Lively Lute",
-          "rechargeReadyAt": 10.168,
+          "rechargeReadyAt": 10.16,
           "schemaVersion": 1,
           "skillId": 76552,
           "skillName": "Lively Lute",
@@ -129,19 +129,21 @@
           "__order": 1,
           "activationId": "cast:1",
           "amount": 0,
-          "at": 0.568,
+          "at": 0.56,
           "reason": "profession mechanic",
           "resource": "notes",
+          "rotationIndex": 0,
           "schemaVersion": 1,
           "source": "Mesmer",
           "sourceId": "resource",
+          "sourceSkill": "Lively Lute",
           "type": "resource",
           "value": 0
         },
         {
           "__order": 6,
           "activationId": "cast:1",
-          "at": 0.568,
+          "at": 0.56,
           "detail": "Lute playing for 5s",
           "name": "Lively Lute",
           "schemaVersion": 1,
@@ -153,12 +155,12 @@
           "__order": 7,
           "activationId": "cast:2",
           "actorType": "player",
-          "at": 0.568,
-          "endsAt": 1.5709999999999997,
-          "fullEndsAt": 1.5709999999999997,
+          "at": 0.56,
+          "endsAt": 1.56,
+          "fullEndsAt": 1.56,
           "interrupted": false,
           "name": "Crescendo",
-          "rechargeReadyAt": 29.570999999999998,
+          "rechargeReadyAt": 29.56,
           "schemaVersion": 1,
           "skillId": 76931,
           "skillName": "Crescendo",
@@ -170,8 +172,8 @@
         {
           "__order": 5,
           "activationId": "cast:1",
-          "at": 0.5680999999999999,
-          "expiresAt": 5.568,
+          "at": 0.5601,
+          "expiresAt": 5.5600000000000005,
           "instrument": "Lute",
           "schemaVersion": 1,
           "source": "Mesmer",
@@ -224,7 +226,7 @@
           "__order": 8,
           "activationId": "cast:2",
           "actorType": "player",
-          "at": 1.418,
+          "at": 1.4100000000000001,
           "blade": false,
           "coefficient": 2.8125,
           "hitIndex": 1,
@@ -243,6 +245,13 @@
         }
       ],
       "profession": {
+        "activeInstruments": [
+          {
+            "expiresAt": 5560,
+            "name": "Lute",
+            "remaining": 4000
+          }
+        ],
         "autoattackChains": {
           "10170": 10170,
           "10289": 10289,
@@ -277,7 +286,21 @@
           "at": 0.435,
           "blade": false,
           "coefficient": 1,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -302,7 +325,21 @@
           "at": 0.635,
           "blade": false,
           "coefficient": 1,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -327,7 +364,21 @@
           "at": 0.835,
           "blade": false,
           "coefficient": 1,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -349,10 +400,24 @@
           "__order": 8,
           "activationId": "cast:2",
           "actorType": "player",
-          "at": 1.418,
+          "at": 1.4100000000000001,
           "blade": false,
           "coefficient": 2.8125,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -374,57 +439,51 @@
       "steps": [
         {
           "actualStart": 0,
-          "end": 568,
-          "fullCastMs": 568,
+          "end": 560,
+          "fullCastMs": 560,
           "interrupted": false,
           "ri": 0,
           "skill": "Lively Lute",
           "start": 0
         },
         {
-          "actualStart": 568,
-          "end": 1571,
-          "fullCastMs": 1003,
+          "actualStart": 560,
+          "end": 1560,
+          "fullCastMs": 1000,
           "interrupted": false,
           "ri": 1,
           "skill": "Crescendo",
-          "start": 568
+          "start": 560
         }
       ],
       "warnings": []
     },
     "damage": {
       "conditionDamage": 0,
-      "dps": 24739.551587265953,
-      "events": [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
-      ],
+      "dps": 24981.449425008104,
+      "events": [{}, {}, {}, {}, {}, {}, {}, {}, {}],
+      "profession": {
+        "activeInstruments": [{}]
+      },
       "resolvedEvents": [
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 4465.403074976622
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 4911.943382474284
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 4911.943382474284
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 13814.840763208924
         }
       ],
-      "steps": [
-        {},
-        {}
-      ],
+      "steps": [{}, {}],
       "strikeDamage": 28104.130603134116,
       "totalDamage": 28104.130603134116
     }

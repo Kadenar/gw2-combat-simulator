@@ -55,7 +55,7 @@ test("Power Berserker Hammer/Axe-Mace preset follows the supplied report", async
   const preset = manifest
     .find((section) => section.section === "Berserker")
     .presets.find(({ label }) => label === "Power (Hammer + Axe/Mace)");
-  assert.equal(preset.benchmarkDps, 43869);
+  assert.equal(preset.benchmarkDps, 42765);
   assert.equal(
     preset.dpsReportUrl,
     "https://dps.report/HQq4-20260716-224707_golem",

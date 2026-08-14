@@ -12,10 +12,7 @@
   ],
   "config": {
     "specialization": "Virtuoso",
-    "selectedTraits": [
-      "Bloodsong",
-      "Sharper Images"
-    ],
+    "selectedTraits": ["Bloodsong", "Sharper Images"],
     "secondaryWeapon": "Pistol",
     "initialResource": 0
   },
@@ -23,6 +20,12 @@
     "exact": {
       "activeWeaponSet": 1,
       "ammo": {
+        "Dodge": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 10
+        },
         "Dodge / Mirage Cloak": {
           "charges": 2,
           "maximum": 2,
@@ -177,7 +180,7 @@
           "__order": 6,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 1.351,
+          "at": 1.443,
           "blade": false,
           "coefficient": 0.115,
           "hitIndex": 1,
@@ -198,15 +201,15 @@
           "__order": 14,
           "activationId": "cast:1",
           "actorType": "summon",
-          "at": 1.351,
+          "at": 1.443,
           "condition": "Bleeding",
           "duration": 4,
           "name": "Phantasmal Duelist — Bleeding",
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         },
@@ -214,7 +217,7 @@
           "__order": 7,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 1.5510000000000002,
+          "at": 1.643,
           "blade": false,
           "coefficient": 0.115,
           "hitIndex": 1,
@@ -234,7 +237,7 @@
         {
           "__order": 22,
           "actorType": "player",
-          "at": 1.5510000000000002,
+          "at": 1.643,
           "causalOrder": 7.000001,
           "condition": "Bleeding",
           "duration": 5,
@@ -251,21 +254,21 @@
           "__order": 15,
           "activationId": "cast:1",
           "actorType": "summon",
-          "at": 1.5510000000000002,
+          "at": 1.643,
           "condition": "Bleeding",
           "duration": 4,
           "name": "Phantasmal Duelist — Bleeding",
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         },
         {
           "__order": 23,
-          "at": 1.5510000000000002,
+          "at": 1.643,
           "detail": "1 critical-hit proc",
           "name": "Sharper Images",
           "procType": "trait",
@@ -279,7 +282,7 @@
           "__order": 8,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 1.75,
+          "at": 1.843,
           "blade": false,
           "coefficient": 0.115,
           "hitIndex": 1,
@@ -300,15 +303,15 @@
           "__order": 16,
           "activationId": "cast:1",
           "actorType": "summon",
-          "at": 1.75,
+          "at": 1.843,
           "condition": "Bleeding",
           "duration": 4,
           "name": "Phantasmal Duelist — Bleeding",
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         },
@@ -316,7 +319,7 @@
           "__order": 9,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 1.95,
+          "at": 2.043,
           "blade": false,
           "coefficient": 0.115,
           "hitIndex": 1,
@@ -336,7 +339,7 @@
         {
           "__order": 24,
           "actorType": "player",
-          "at": 1.95,
+          "at": 2.043,
           "causalOrder": 9.000001,
           "condition": "Bleeding",
           "duration": 5,
@@ -353,21 +356,21 @@
           "__order": 17,
           "activationId": "cast:1",
           "actorType": "summon",
-          "at": 1.95,
+          "at": 2.043,
           "condition": "Bleeding",
           "duration": 4,
           "name": "Phantasmal Duelist — Bleeding",
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         },
         {
           "__order": 25,
-          "at": 1.95,
+          "at": 2.043,
           "detail": "1 critical-hit proc",
           "name": "Sharper Images",
           "procType": "trait",
@@ -380,7 +383,7 @@
         {
           "__order": 26,
           "amount": 1,
-          "at": 1.9501,
+          "at": 2.0431000000000004,
           "created": [],
           "reason": "Bloodsong",
           "resource": "blades",
@@ -392,7 +395,7 @@
         },
         {
           "__order": 27,
-          "at": 1.9501,
+          "at": 2.0431000000000004,
           "detail": "+1 blade",
           "name": "Bloodsong",
           "procType": "trait",
@@ -406,7 +409,7 @@
           "__order": 10,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 2.151,
+          "at": 2.2430000000000003,
           "blade": false,
           "coefficient": 0.115,
           "hitIndex": 1,
@@ -426,7 +429,7 @@
         {
           "__order": 28,
           "actorType": "player",
-          "at": 2.151,
+          "at": 2.2430000000000003,
           "causalOrder": 10.000001,
           "condition": "Bleeding",
           "duration": 5,
@@ -443,21 +446,21 @@
           "__order": 18,
           "activationId": "cast:1",
           "actorType": "summon",
-          "at": 2.151,
+          "at": 2.2430000000000003,
           "condition": "Bleeding",
           "duration": 4,
           "name": "Phantasmal Duelist — Bleeding",
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         },
         {
           "__order": 29,
-          "at": 2.151,
+          "at": 2.2430000000000003,
           "detail": "1 critical-hit proc",
           "name": "Sharper Images",
           "procType": "trait",
@@ -471,7 +474,7 @@
           "__order": 11,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 2.35,
+          "at": 2.443,
           "blade": false,
           "coefficient": 0.115,
           "hitIndex": 1,
@@ -492,15 +495,15 @@
           "__order": 19,
           "activationId": "cast:1",
           "actorType": "summon",
-          "at": 2.35,
+          "at": 2.443,
           "condition": "Bleeding",
           "duration": 4,
           "name": "Phantasmal Duelist — Bleeding",
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         },
@@ -508,7 +511,7 @@
           "__order": 12,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 2.55,
+          "at": 2.6430000000000002,
           "blade": false,
           "coefficient": 0.115,
           "hitIndex": 1,
@@ -528,7 +531,7 @@
         {
           "__order": 30,
           "actorType": "player",
-          "at": 2.55,
+          "at": 2.6430000000000002,
           "causalOrder": 12.000001,
           "condition": "Bleeding",
           "duration": 5,
@@ -545,21 +548,21 @@
           "__order": 20,
           "activationId": "cast:1",
           "actorType": "summon",
-          "at": 2.55,
+          "at": 2.6430000000000002,
           "condition": "Bleeding",
           "duration": 4,
           "name": "Phantasmal Duelist — Bleeding",
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         },
         {
           "__order": 31,
-          "at": 2.55,
+          "at": 2.6430000000000002,
           "detail": "1 critical-hit proc",
           "name": "Sharper Images",
           "procType": "trait",
@@ -572,7 +575,7 @@
         {
           "__order": 32,
           "amount": 1,
-          "at": 2.5501,
+          "at": 2.6431000000000004,
           "created": [],
           "reason": "Bloodsong",
           "resource": "blades",
@@ -584,7 +587,7 @@
         },
         {
           "__order": 33,
-          "at": 2.5501,
+          "at": 2.6431000000000004,
           "detail": "+1 blade",
           "name": "Bloodsong",
           "procType": "trait",
@@ -597,7 +600,7 @@
         {
           "__order": 2,
           "activationId": "cast:1",
-          "at": 2.96,
+          "at": 2.843,
           "complete": true,
           "count": 1,
           "name": "Phantasmal Duelist",
@@ -611,7 +614,7 @@
           "__order": 13,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 2.96,
+          "at": 2.843,
           "blade": false,
           "coefficient": 0.115,
           "hitIndex": 1,
@@ -632,15 +635,15 @@
           "__order": 21,
           "activationId": "cast:1",
           "actorType": "summon",
-          "at": 2.96,
+          "at": 2.843,
           "condition": "Bleeding",
           "duration": 4,
           "name": "Phantasmal Duelist — Bleeding",
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         },
@@ -693,7 +696,21 @@
           "at": 0.35,
           "blade": false,
           "coefficient": 0.33,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -718,7 +735,21 @@
           "at": 0.35,
           "blade": false,
           "coefficient": 0.33,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -743,7 +774,21 @@
           "at": 0.4,
           "blade": false,
           "coefficient": 0.33,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -765,10 +810,19 @@
           "__order": 6,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 1.351,
+          "at": 1.443,
           "blade": false,
           "coefficient": 0.115,
+          "critEligible": true,
           "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -790,43 +844,43 @@
         {
           "__order": 14,
           "activationId": "cast:1",
-          "activeDuration": 4.2090000000000005,
+          "activeDuration": 4.117000000000001,
           "actorType": "summon",
-          "at": 1.351,
+          "at": 1.443,
           "condition": "Bleeding",
           "damageTicks": [
             {
-              "at": 2.351,
+              "at": 2.443,
               "fraction": 1
             },
             {
-              "at": 3.351,
+              "at": 3.443,
               "fraction": 1
             },
             {
-              "at": 4.351,
+              "at": 4.443,
               "fraction": 1
             },
             {
-              "at": 5.351,
+              "at": 5.443,
               "fraction": 1
             },
             {
               "at": 5.5600000000000005,
-              "fraction": 0.20900000000000052
+              "fraction": 0.11700000000000088
             }
           ],
-          "damagingStackSeconds": 4.2090000000000005,
+          "damagingStackSeconds": 4.117000000000001,
           "duration": 4,
           "effectiveDuration": 5.333333333333333,
           "expiresAt": 5.5600000000000005,
           "name": "Phantasmal Duelist — Bleeding",
-          "naturalExpiresAt": 6.684333333333333,
+          "naturalExpiresAt": 6.7763333333333335,
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         },
@@ -834,10 +888,19 @@
           "__order": 7,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 1.5510000000000002,
+          "at": 1.643,
           "blade": false,
           "coefficient": 0.115,
+          "critEligible": true,
           "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -858,39 +921,35 @@
         },
         {
           "__order": 22,
-          "activeDuration": 4.009,
+          "activeDuration": 3.9170000000000007,
           "actorType": "player",
-          "at": 1.5510000000000002,
+          "at": 1.643,
           "causalOrder": 7.000001,
           "condition": "Bleeding",
           "damageTicks": [
             {
-              "at": 2.551,
+              "at": 2.643,
               "fraction": 1
             },
             {
-              "at": 3.551,
+              "at": 3.643,
               "fraction": 1
             },
             {
-              "at": 4.551,
-              "fraction": 1
-            },
-            {
-              "at": 5.551,
+              "at": 4.643,
               "fraction": 1
             },
             {
               "at": 5.5600000000000005,
-              "fraction": 0.009000000000000341
+              "fraction": 0.9170000000000007
             }
           ],
-          "damagingStackSeconds": 4.009,
+          "damagingStackSeconds": 3.9170000000000007,
           "duration": 5,
           "effectiveDuration": 6.666666666666666,
           "expiresAt": 5.5600000000000005,
           "name": "Phantasmal Duelist — Sharper Images",
-          "naturalExpiresAt": 8.217666666666666,
+          "naturalExpiresAt": 8.309666666666667,
           "schemaVersion": 1,
           "skillName": "Phantasmal Duelist",
           "source": "Player",
@@ -902,43 +961,39 @@
         {
           "__order": 15,
           "activationId": "cast:1",
-          "activeDuration": 4.009,
+          "activeDuration": 3.9170000000000007,
           "actorType": "summon",
-          "at": 1.5510000000000002,
+          "at": 1.643,
           "condition": "Bleeding",
           "damageTicks": [
             {
-              "at": 2.551,
+              "at": 2.643,
               "fraction": 1
             },
             {
-              "at": 3.551,
+              "at": 3.643,
               "fraction": 1
             },
             {
-              "at": 4.551,
-              "fraction": 1
-            },
-            {
-              "at": 5.551,
+              "at": 4.643,
               "fraction": 1
             },
             {
               "at": 5.5600000000000005,
-              "fraction": 0.009000000000000341
+              "fraction": 0.9170000000000007
             }
           ],
-          "damagingStackSeconds": 4.009,
+          "damagingStackSeconds": 3.9170000000000007,
           "duration": 4,
           "effectiveDuration": 5.333333333333333,
           "expiresAt": 5.5600000000000005,
           "name": "Phantasmal Duelist — Bleeding",
-          "naturalExpiresAt": 6.884333333333333,
+          "naturalExpiresAt": 6.976333333333333,
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         },
@@ -946,10 +1001,19 @@
           "__order": 8,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 1.75,
+          "at": 1.843,
           "blade": false,
           "coefficient": 0.115,
+          "critEligible": true,
           "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -971,39 +1035,39 @@
         {
           "__order": 16,
           "activationId": "cast:1",
-          "activeDuration": 3.8100000000000005,
+          "activeDuration": 3.7170000000000005,
           "actorType": "summon",
-          "at": 1.75,
+          "at": 1.843,
           "condition": "Bleeding",
           "damageTicks": [
             {
-              "at": 2.75,
+              "at": 2.843,
               "fraction": 1
             },
             {
-              "at": 3.75,
+              "at": 3.843,
               "fraction": 1
             },
             {
-              "at": 4.75,
+              "at": 4.843,
               "fraction": 1
             },
             {
               "at": 5.5600000000000005,
-              "fraction": 0.8100000000000005
+              "fraction": 0.7170000000000005
             }
           ],
-          "damagingStackSeconds": 3.8100000000000005,
+          "damagingStackSeconds": 3.7170000000000005,
           "duration": 4,
           "effectiveDuration": 5.333333333333333,
           "expiresAt": 5.5600000000000005,
           "name": "Phantasmal Duelist — Bleeding",
-          "naturalExpiresAt": 7.083333333333333,
+          "naturalExpiresAt": 7.176333333333333,
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         },
@@ -1011,10 +1075,19 @@
           "__order": 9,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 1.95,
+          "at": 2.043,
           "blade": false,
           "coefficient": 0.115,
+          "critEligible": true,
           "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -1035,35 +1108,35 @@
         },
         {
           "__order": 24,
-          "activeDuration": 3.6100000000000003,
+          "activeDuration": 3.5170000000000003,
           "actorType": "player",
-          "at": 1.95,
+          "at": 2.043,
           "causalOrder": 9.000001,
           "condition": "Bleeding",
           "damageTicks": [
             {
-              "at": 2.95,
+              "at": 3.043,
               "fraction": 1
             },
             {
-              "at": 3.95,
+              "at": 4.043,
               "fraction": 1
             },
             {
-              "at": 4.95,
+              "at": 5.043,
               "fraction": 1
             },
             {
               "at": 5.5600000000000005,
-              "fraction": 0.6100000000000003
+              "fraction": 0.5170000000000003
             }
           ],
-          "damagingStackSeconds": 3.6100000000000003,
+          "damagingStackSeconds": 3.5170000000000003,
           "duration": 5,
           "effectiveDuration": 6.666666666666666,
           "expiresAt": 5.5600000000000005,
           "name": "Phantasmal Duelist — Sharper Images",
-          "naturalExpiresAt": 8.616666666666665,
+          "naturalExpiresAt": 8.709666666666667,
           "schemaVersion": 1,
           "skillName": "Phantasmal Duelist",
           "source": "Player",
@@ -1075,39 +1148,39 @@
         {
           "__order": 17,
           "activationId": "cast:1",
-          "activeDuration": 3.6100000000000003,
+          "activeDuration": 3.5170000000000003,
           "actorType": "summon",
-          "at": 1.95,
+          "at": 2.043,
           "condition": "Bleeding",
           "damageTicks": [
             {
-              "at": 2.95,
+              "at": 3.043,
               "fraction": 1
             },
             {
-              "at": 3.95,
+              "at": 4.043,
               "fraction": 1
             },
             {
-              "at": 4.95,
+              "at": 5.043,
               "fraction": 1
             },
             {
               "at": 5.5600000000000005,
-              "fraction": 0.6100000000000003
+              "fraction": 0.5170000000000003
             }
           ],
-          "damagingStackSeconds": 3.6100000000000003,
+          "damagingStackSeconds": 3.5170000000000003,
           "duration": 4,
           "effectiveDuration": 5.333333333333333,
           "expiresAt": 5.5600000000000005,
           "name": "Phantasmal Duelist — Bleeding",
-          "naturalExpiresAt": 7.283333333333333,
+          "naturalExpiresAt": 7.376333333333333,
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         },
@@ -1115,10 +1188,19 @@
           "__order": 10,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 2.151,
+          "at": 2.2430000000000003,
           "blade": false,
           "coefficient": 0.115,
+          "critEligible": true,
           "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -1139,35 +1221,35 @@
         },
         {
           "__order": 28,
-          "activeDuration": 3.4090000000000007,
+          "activeDuration": 3.317,
           "actorType": "player",
-          "at": 2.151,
+          "at": 2.2430000000000003,
           "causalOrder": 10.000001,
           "condition": "Bleeding",
           "damageTicks": [
             {
-              "at": 3.151,
+              "at": 3.2430000000000003,
               "fraction": 1
             },
             {
-              "at": 4.151,
+              "at": 4.243,
               "fraction": 1
             },
             {
-              "at": 5.151,
+              "at": 5.243,
               "fraction": 1
             },
             {
               "at": 5.5600000000000005,
-              "fraction": 0.4090000000000007
+              "fraction": 0.31700000000000017
             }
           ],
-          "damagingStackSeconds": 3.4090000000000007,
+          "damagingStackSeconds": 3.317,
           "duration": 5,
           "effectiveDuration": 6.666666666666666,
           "expiresAt": 5.5600000000000005,
           "name": "Phantasmal Duelist — Sharper Images",
-          "naturalExpiresAt": 8.817666666666666,
+          "naturalExpiresAt": 8.909666666666666,
           "schemaVersion": 1,
           "skillName": "Phantasmal Duelist",
           "source": "Player",
@@ -1179,39 +1261,39 @@
         {
           "__order": 18,
           "activationId": "cast:1",
-          "activeDuration": 3.4090000000000007,
+          "activeDuration": 3.317,
           "actorType": "summon",
-          "at": 2.151,
+          "at": 2.2430000000000003,
           "condition": "Bleeding",
           "damageTicks": [
             {
-              "at": 3.151,
+              "at": 3.2430000000000003,
               "fraction": 1
             },
             {
-              "at": 4.151,
+              "at": 4.243,
               "fraction": 1
             },
             {
-              "at": 5.151,
+              "at": 5.243,
               "fraction": 1
             },
             {
               "at": 5.5600000000000005,
-              "fraction": 0.4090000000000007
+              "fraction": 0.31700000000000017
             }
           ],
-          "damagingStackSeconds": 3.4090000000000007,
+          "damagingStackSeconds": 3.317,
           "duration": 4,
           "effectiveDuration": 5.333333333333333,
           "expiresAt": 5.5600000000000005,
           "name": "Phantasmal Duelist — Bleeding",
-          "naturalExpiresAt": 7.484333333333333,
+          "naturalExpiresAt": 7.576333333333333,
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         },
@@ -1219,10 +1301,19 @@
           "__order": 11,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 2.35,
+          "at": 2.443,
           "blade": false,
           "coefficient": 0.115,
+          "critEligible": true,
           "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -1244,39 +1335,39 @@
         {
           "__order": 19,
           "activationId": "cast:1",
-          "activeDuration": 3.2100000000000004,
+          "activeDuration": 3.1170000000000004,
           "actorType": "summon",
-          "at": 2.35,
+          "at": 2.443,
           "condition": "Bleeding",
           "damageTicks": [
             {
-              "at": 3.35,
+              "at": 3.443,
               "fraction": 1
             },
             {
-              "at": 4.35,
+              "at": 4.443,
               "fraction": 1
             },
             {
-              "at": 5.35,
+              "at": 5.443,
               "fraction": 1
             },
             {
               "at": 5.5600000000000005,
-              "fraction": 0.2100000000000004
+              "fraction": 0.11700000000000044
             }
           ],
-          "damagingStackSeconds": 3.2100000000000004,
+          "damagingStackSeconds": 3.1170000000000004,
           "duration": 4,
           "effectiveDuration": 5.333333333333333,
           "expiresAt": 5.5600000000000005,
           "name": "Phantasmal Duelist — Bleeding",
-          "naturalExpiresAt": 7.683333333333334,
+          "naturalExpiresAt": 7.7763333333333335,
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         },
@@ -1284,10 +1375,19 @@
           "__order": 12,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 2.55,
+          "at": 2.6430000000000002,
           "blade": false,
           "coefficient": 0.115,
+          "critEligible": true,
           "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -1308,35 +1408,31 @@
         },
         {
           "__order": 30,
-          "activeDuration": 3.0100000000000007,
+          "activeDuration": 2.9170000000000003,
           "actorType": "player",
-          "at": 2.55,
+          "at": 2.6430000000000002,
           "causalOrder": 12.000001,
           "condition": "Bleeding",
           "damageTicks": [
             {
-              "at": 3.55,
+              "at": 3.6430000000000002,
               "fraction": 1
             },
             {
-              "at": 4.55,
-              "fraction": 1
-            },
-            {
-              "at": 5.55,
+              "at": 4.643000000000001,
               "fraction": 1
             },
             {
               "at": 5.5600000000000005,
-              "fraction": 0.010000000000000675
+              "fraction": 0.9170000000000003
             }
           ],
-          "damagingStackSeconds": 3.0100000000000007,
+          "damagingStackSeconds": 2.9170000000000003,
           "duration": 5,
           "effectiveDuration": 6.666666666666666,
           "expiresAt": 5.5600000000000005,
           "name": "Phantasmal Duelist — Sharper Images",
-          "naturalExpiresAt": 9.216666666666665,
+          "naturalExpiresAt": 9.309666666666667,
           "schemaVersion": 1,
           "skillName": "Phantasmal Duelist",
           "source": "Player",
@@ -1348,39 +1444,35 @@
         {
           "__order": 20,
           "activationId": "cast:1",
-          "activeDuration": 3.0100000000000007,
+          "activeDuration": 2.9170000000000003,
           "actorType": "summon",
-          "at": 2.55,
+          "at": 2.6430000000000002,
           "condition": "Bleeding",
           "damageTicks": [
             {
-              "at": 3.55,
+              "at": 3.6430000000000002,
               "fraction": 1
             },
             {
-              "at": 4.55,
-              "fraction": 1
-            },
-            {
-              "at": 5.55,
+              "at": 4.643000000000001,
               "fraction": 1
             },
             {
               "at": 5.5600000000000005,
-              "fraction": 0.010000000000000675
+              "fraction": 0.9170000000000003
             }
           ],
-          "damagingStackSeconds": 3.0100000000000007,
+          "damagingStackSeconds": 2.9170000000000003,
           "duration": 4,
           "effectiveDuration": 5.333333333333333,
           "expiresAt": 5.5600000000000005,
           "name": "Phantasmal Duelist — Bleeding",
-          "naturalExpiresAt": 7.883333333333333,
+          "naturalExpiresAt": 7.976333333333333,
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         },
@@ -1388,10 +1480,19 @@
           "__order": 13,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 2.96,
+          "at": 2.843,
           "blade": false,
           "coefficient": 0.115,
+          "critEligible": true,
           "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -1413,35 +1514,35 @@
         {
           "__order": 21,
           "activationId": "cast:1",
-          "activeDuration": 2.6000000000000005,
+          "activeDuration": 2.7170000000000005,
           "actorType": "summon",
-          "at": 2.96,
+          "at": 2.843,
           "condition": "Bleeding",
           "damageTicks": [
             {
-              "at": 3.96,
+              "at": 3.843,
               "fraction": 1
             },
             {
-              "at": 4.96,
+              "at": 4.843,
               "fraction": 1
             },
             {
               "at": 5.5600000000000005,
-              "fraction": 0.6000000000000005
+              "fraction": 0.7170000000000005
             }
           ],
-          "damagingStackSeconds": 2.6000000000000005,
+          "damagingStackSeconds": 2.7170000000000005,
           "duration": 4,
           "effectiveDuration": 5.333333333333333,
           "expiresAt": 5.5600000000000005,
           "name": "Phantasmal Duelist — Bleeding",
-          "naturalExpiresAt": 8.293333333333333,
+          "naturalExpiresAt": 8.176333333333332,
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10175,
           "skillName": "Phantasmal Duelist",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Duelist",
+          "sourceId": 10175,
           "stacks": 1,
           "type": "condition"
         }
@@ -1466,8 +1567,8 @@
       "warnings": []
     },
     "damage": {
-      "conditionDamage": 8315.5234375,
-      "dps": 3943.603710463017,
+      "conditionDamage": 8136.731250000004,
+      "dps": 3909.2865919409446,
       "events": [
         {},
         {},
@@ -1507,19 +1608,23 @@
       ],
       "resolvedEvents": [
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 1339.6209224929867
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 1339.6209224929867
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 1339.6209224929867
         },
         {
+          "criticalChanceContributors": [{}],
           "damage": 1026.4736408166705
         },
         {
-          "damage": 835.2234375,
+          "damage": 816.9671875000001,
           "damageTicks": [
             {
               "damage": 198.4375
@@ -1534,15 +1639,16 @@
               "damage": 198.4375
             },
             {
-              "damage": 41.4734375000001
+              "damage": 23.217187500000176
             }
           ]
         },
         {
+          "criticalChanceContributors": [{}],
           "damage": 1026.4736408166705
         },
         {
-          "damage": 795.5359375,
+          "damage": 777.2796875000001,
           "damageTicks": [
             {
               "damage": 198.4375
@@ -1554,15 +1660,12 @@
               "damage": 198.4375
             },
             {
-              "damage": 198.4375
-            },
-            {
-              "damage": 1.7859375000000677
+              "damage": 181.96718750000014
             }
           ]
         },
         {
-          "damage": 795.5359375,
+          "damage": 777.2796875000001,
           "damageTicks": [
             {
               "damage": 198.4375
@@ -1574,18 +1677,16 @@
               "damage": 198.4375
             },
             {
-              "damage": 198.4375
-            },
-            {
-              "damage": 1.7859375000000677
+              "damage": 181.96718750000014
             }
           ]
         },
         {
+          "criticalChanceContributors": [{}],
           "damage": 1026.4736408166705
         },
         {
-          "damage": 756.0468750000001,
+          "damage": 737.5921875000001,
           "damageTicks": [
             {
               "damage": 198.4375
@@ -1597,15 +1698,16 @@
               "damage": 198.4375
             },
             {
-              "damage": 160.73437500000009
+              "damage": 142.2796875000001
             }
           ]
         },
         {
+          "criticalChanceContributors": [{}],
           "damage": 1026.4736408166705
         },
         {
-          "damage": 716.359375,
+          "damage": 697.9046875,
           "damageTicks": [
             {
               "damage": 198.4375
@@ -1617,12 +1719,12 @@
               "damage": 198.4375
             },
             {
-              "damage": 121.04687500000006
+              "damage": 102.59218750000007
             }
           ]
         },
         {
-          "damage": 716.359375,
+          "damage": 697.9046875,
           "damageTicks": [
             {
               "damage": 198.4375
@@ -1634,15 +1736,16 @@
               "damage": 198.4375
             },
             {
-              "damage": 121.04687500000006
+              "damage": 102.59218750000007
             }
           ]
         },
         {
+          "criticalChanceContributors": [{}],
           "damage": 1026.4736408166705
         },
         {
-          "damage": 676.4734375000002,
+          "damage": 658.2171875,
           "damageTicks": [
             {
               "damage": 198.4375
@@ -1654,12 +1757,12 @@
               "damage": 198.4375
             },
             {
-              "damage": 81.16093750000014
+              "damage": 62.90468750000004
             }
           ]
         },
         {
-          "damage": 676.4734375000002,
+          "damage": 658.2171875,
           "damageTicks": [
             {
               "damage": 198.4375
@@ -1671,15 +1774,16 @@
               "damage": 198.4375
             },
             {
-              "damage": 81.16093750000014
+              "damage": 62.90468750000004
             }
           ]
         },
         {
+          "criticalChanceContributors": [{}],
           "damage": 1026.4736408166705
         },
         {
-          "damage": 636.9843750000001,
+          "damage": 618.5296875000001,
           "damageTicks": [
             {
               "damage": 198.4375
@@ -1691,15 +1795,16 @@
               "damage": 198.4375
             },
             {
-              "damage": 41.67187500000008
+              "damage": 23.217187500000087
             }
           ]
         },
         {
+          "criticalChanceContributors": [{}],
           "damage": 1026.4736408166705
         },
         {
-          "damage": 597.2968750000001,
+          "damage": 578.8421875,
           "damageTicks": [
             {
               "damage": 198.4375
@@ -1708,15 +1813,12 @@
               "damage": 198.4375
             },
             {
-              "damage": 198.4375
-            },
-            {
-              "damage": 1.984375000000134
+              "damage": 181.96718750000005
             }
           ]
         },
         {
-          "damage": 597.2968750000001,
+          "damage": 578.8421875,
           "damageTicks": [
             {
               "damage": 198.4375
@@ -1725,18 +1827,16 @@
               "damage": 198.4375
             },
             {
-              "damage": 198.4375
-            },
-            {
-              "damage": 1.984375000000134
+              "damage": 181.96718750000005
             }
           ]
         },
         {
+          "criticalChanceContributors": [{}],
           "damage": 1026.4736408166705
         },
         {
-          "damage": 515.9375000000001,
+          "damage": 539.1546875000001,
           "damageTicks": [
             {
               "damage": 198.4375
@@ -1745,17 +1845,14 @@
               "damage": 198.4375
             },
             {
-              "damage": 119.0625000000001
+              "damage": 142.2796875000001
             }
           ]
         }
       ],
-      "steps": [
-        {},
-        {}
-      ],
+      "steps": [{}, {}],
       "strikeDamage": 12230.65189401232,
-      "totalDamage": 20546.17533151232
+      "totalDamage": 20367.383144012325
     }
   }
 }

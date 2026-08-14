@@ -3,7 +3,7 @@
     "benchmarkDurationSeconds": 96.066,
     "benchmarkDamage": 3930656,
     "benchmarkDps": 40916.2,
-    "simulatedDps": 41293.88310035118,
+    "simulatedDps": 41670.72860868992,
     "castTimeQuantizationMs": 40,
     "timingSource": "Supplied ArcDPS EVTC animation and damage events",
     "note": "Quickness cast times, strike packets, and interrupted filler timings are rounded to 40 ms. The EVTC uses Feel My Wrath rather than Mantra of Liberation and is modeled with four allied players. All 11 Zealot's Flame self-buff applications, 12 Flame Rush packets, 6 Flame Surge packets, and ten Through the Heart casts canceled before impact are represented; the selected parent mantras remain the preparation skills."

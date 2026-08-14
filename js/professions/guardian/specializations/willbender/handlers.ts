@@ -1,17 +1,13 @@
 import { replaceSkill } from "../../../../platform/gw2/native-profession.js";
-import {
-  GUARDIAN_SKILL_IDS as ID,
-  GUARDIAN_TRAIT_IDS,
-} from "../../data/ids.js";
+import { GUARDIAN_SKILL_IDS as ID } from "../../data/ids.js";
 import { buildGuardianStrike, emitGuardianEvent } from "../../core/events.js";
-import { hasGuardianTrait } from "../../core/traits.js";
 import { guardianVirtueSkillHandlers } from "../../core/virtues.js";
 import type {
   GuardianCastContext,
   GuardianSkill,
   GuardianVirtue,
 } from "../../types.js";
-import { gainLethalTempo } from "./mechanics.js";
+import { applyWillbenderVirtueActivationTraits } from "./rules.js";
 import { willbenderState } from "./state.js";
 
 const FLAME_ID_BY_VIRTUE: Readonly<Record<GuardianVirtue, number>> =
@@ -109,36 +105,16 @@ function activateWillbenderVirtue(
   const flameAt =
     virtue === "justice" ? Math.max(at, context.effectiveEnd - 0.04) : at;
   const state = willbenderState.from(context);
-  const tyrantsMomentum = hasGuardianTrait(
-    context,
-    GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM,
-  );
   if (state[`${virtue}Until`] <= at + context.epsilon) {
     state.virtueHitCounts[virtue] = 0;
   }
-  const duration = virtue === "justice" ? (tyrantsMomentum ? 10 : 8) : 6;
-  state[`${virtue}Until`] = at + duration;
-  gainLethalTempo(state, at, tyrantsMomentum);
+  const duration = applyWillbenderVirtueActivationTraits(context, virtue, at);
 
   emitGuardianEvent(context, skill, "guardian.willbender-virtue-activated", {
     at,
     virtue,
     duration,
   });
-  context.emit({
-    type: "buff",
-    at,
-    source: "guardian",
-    sourceId: GUARDIAN_TRAIT_IDS.LETHAL_TEMPO,
-    actorType: "player",
-    skillId: GUARDIAN_TRAIT_IDS.LETHAL_TEMPO,
-    skillName: "Lethal Tempo",
-    name: "Lethal Tempo",
-    kind: "lethal-tempo",
-    stacks: state.lethalTempoStacks,
-    duration: state.lethalTempoUntil - at,
-  });
-
   const flameId = FLAME_ID_BY_VIRTUE[virtue];
   context.tasks.schedule({
     id: `guardian.willbender-flame-activate:${context.reservationId}`,
@@ -150,44 +126,6 @@ function activateWillbenderVirtue(
 
   if (virtue === "justice") emitRushingJusticeImpact(context, skill, flameAt);
   if (virtue === "courage") emitCrashingCourageImpact(context, skill, flameAt);
-  if (
-    virtue === "resolve" &&
-    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)
-  ) {
-    context.emit({
-      type: "buff",
-      at,
-      source: "guardian",
-      sourceId: GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES,
-      actorType: "player",
-      skillId: GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES,
-      skillName: "Restorative Virtues",
-      name: "Restorative Virtues — Vigor",
-      kind: "vigor",
-      stacks: 1,
-      duration: 3,
-    });
-  }
-  if (
-    virtue === "resolve" &&
-    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)
-  ) {
-    context.emit({
-      type: "buff",
-      at,
-      source: "guardian",
-      sourceId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
-      actorType: "player",
-      skillId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
-      skillName: "Phoenix Protocol",
-      name: "Phoenix Protocol — Allied Alacrity",
-      kind: "alacrity",
-      stacks: 1,
-      duration: 5,
-      recipients: "allies",
-      affectsSelf: false,
-    });
-  }
 }
 
 export const willbenderSkillHandlers = Object.freeze({

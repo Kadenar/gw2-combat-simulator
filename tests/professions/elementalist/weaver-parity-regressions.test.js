@@ -35,15 +35,13 @@ async function loadWeaverFixture(variant) {
   };
 
   adapter.recalculate(app);
-  return { app, build, result: runSimulation(app) };
+  return { app, build, result: runSimulation(app), savedRotation };
 }
 
 test("every Weaver benchmark fixture runs with only reference-mirrored errors", async () => {
   const expectedWarnings = {
     "condi-weaver-pistol": [],
-    "condi-weaver-pistol-dagger": [
-      "Earth Attunement is unavailable — already attuned to Earth.",
-    ],
+    "condi-weaver-pistol-dagger": [],
     "condi-weaver-scepter": [],
     "power-weaver-spear": [],
     "power-weaver-sword": [],
@@ -54,6 +52,45 @@ test("every Weaver benchmark fixture runs with only reference-mirrored errors", 
     assert.deepEqual(result.warnings, warnings, variant);
     assert.ok(result.totalDamage > 0, variant);
   }
+});
+
+test("condition Weaver pistol/dagger follows the replacement benchmark log", async () => {
+  const { result, savedRotation } = await loadWeaverFixture(
+    "condi-weaver-pistol-dagger",
+  );
+
+  assert.equal(
+    savedRotation.metadata.report,
+    "https://dps.report/yH46-20260729-145625_golem",
+  );
+  assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 89.573);
+  assert.equal(savedRotation.metadata.benchmarkDamage, 3950932);
+  assert.equal(savedRotation.metadata.benchmarkDps, 44108.51484264232);
+  assert.equal(Math.round(result.dps), 38787);
+  const openingWeaveSelf = result.steps.find(
+    (step) => step.skill === "Weave Self",
+  );
+  const openingPrimordialStance = result.steps.find(
+    (step) => step.skill === "Primordial Stance (Earth)",
+  );
+  const openingSignetOfFire = result.steps.find(
+    (step) => step.skill === "Signet of Fire",
+  );
+  const combatStart = result.steps.find(
+    (step) => step.skill === "Combat Start",
+  );
+
+  assert.equal(openingPrimordialStance.start - openingWeaveSelf.start, 100);
+  assert.equal(openingSignetOfFire.start - openingWeaveSelf.start, 800);
+  assert.equal(combatStart.start - openingSignetOfFire.start, 398);
+  assert.equal(
+    result.steps.filter((step) => step.skill === "Unravel").length,
+    4,
+  );
+  assert.equal(
+    result.steps.filter((step) => step.skill === "Frozen Fusillade").length,
+    3,
+  );
 });
 
 test("Elements of Rage carries from setup and follows reference duration scaling", async () => {

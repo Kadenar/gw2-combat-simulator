@@ -2281,9 +2281,10 @@ test("Herald consume skills apply their cooldown to the parent facet", () => {
     });
     const consumeStep = result.steps.find((step) => step.skill === consume);
     assert.deepEqual(result.warnings, [], facet);
+    const readyAt = consumeStep.end + cooldown * 1000;
     assert.deepEqual(result.endState.cooldowns[facet], {
-      readyAt: consumeStep.end + cooldown * 1000,
-      remaining: cooldown * 1000,
+      readyAt,
+      remaining: readyAt - result.endState.time,
     });
   }
 });
@@ -3048,8 +3049,11 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
   )
     .resolvedEvents.filter((event) => event.skillName === "Nourishment")
     .at(-1);
-  assert.equal(nourishment.flatStrikeMultiplier, 1.15);
-  assert.ok(Math.abs(nourishment.damage - 373.75) < 1e-9);
+  // The deterministic food proc occurs on Citadel Bombardment's second hit,
+  // while two Kalla's Fervor stacks are active. The direct modifier checks
+  // below cover the fully stacked Lasting Legacy multiplier.
+  assert.equal(nourishment.flatStrikeMultiplier, 1.06);
+  assert.ok(Math.abs(nourishment.damage - 344.5) < 1e-9);
 
   const modifierContext = (traitIds, condition = null) => ({
     config: { specialization: "Renegade", traitIds, boons: {} },
@@ -4051,6 +4055,7 @@ test("Vindicator resource display includes live endurance", () => {
       step: 1,
       displayMode: "bar",
       pipStyle: "endurance",
+      paletteSkillId: -5,
       shortLabel: "End",
       statusLabel: "Current",
     },

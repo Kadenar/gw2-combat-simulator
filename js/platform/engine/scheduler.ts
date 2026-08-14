@@ -155,6 +155,9 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
       source: effect.source || context.profession.id,
       sourceId: effect.sourceId ?? skill.id,
       actorType: effect.actorType || "player",
+      ...(effect.ownerActorType
+        ? { ownerActorType: effect.ownerActorType }
+        : {}),
       skillId: skill.id,
       skillName: skill.name,
       ...(effect.persistsAfterInterrupt === true
@@ -199,12 +202,6 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
 }
 
 const CORE_CAST_COMPLETE = "platform.cast-complete";
-
-const DAMAGE_BEARING_EVENT_TYPES = new Set([
-  "damage",
-  "condition",
-  "condition_tick",
-]);
 
 /**
  * @param {string} reason
@@ -1325,32 +1322,15 @@ export function createScheduler<
     const snapshot =
       activeProfession.snapshot(context) ??
       cloneProfessionState(state.profession);
-    const persistentEffectEnd = events
-      .filter(
-        (event) =>
-          event.persistsAfterInterrupt === true ||
-          event.extendsResolutionHorizon === true,
-      )
+    const declaredResolutionEnd = events
+      .filter((event) => event.extendsResolutionHorizon === true)
       .reduce(
         (latest, event) => Math.max(latest, Number(event.at)),
         rotationEnd,
       );
-    const directDamageEnd = events
-      .filter((event) => DAMAGE_BEARING_EVENT_TYPES.has(String(event.type)))
-      .reduce(
-        (latest, event) => Math.max(latest, Number(event.at)),
-        rotationEnd,
-      );
-    // Definition-level simulations without a killable target can inspect every
-    // scheduled packet. A real target is still resolved only through the
-    // entered rotation's current cast window.
-    const resolutionEnd = Math.max(
-      state.time,
-      persistentEffectEnd,
-      directDamageEnd,
-      rotationEnd,
-      0.001,
-    );
+    // Only explicitly opted-in packets extend resolution past the entered
+    // rotation. Interrupt persistence controls cancellation, not fight length.
+    const resolutionEnd = Math.max(declaredResolutionEnd, rotationEnd, 0.001);
     return {
       context,
       state,

@@ -12,9 +12,7 @@
   ],
   "config": {
     "specialization": "Chronomancer",
-    "selectedTraits": [
-      "Chronophantasma"
-    ],
+    "selectedTraits": ["Chronophantasma"],
     "primaryWeapon": "Staff",
     "initialResource": 0
   },
@@ -22,6 +20,12 @@
     "exact": {
       "activeWeaponSet": 1,
       "ammo": {
+        "Dodge": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 10
+        },
         "Dodge / Mirage Cloak": {
           "charges": 2,
           "maximum": 2,
@@ -73,23 +77,23 @@
       },
       "cooldowns": {
         "Phantasmal Warlock": {
-          "readyAt": 8880,
+          "readyAt": 8840,
           "remaining": 3000
         }
       },
-      "dpsWindow": 2.04,
-      "duration": 5.88,
+      "dpsWindow": 3.883,
+      "duration": 5.84,
       "events": [
         {
           "__order": 0,
           "activationId": "cast:1",
           "actorType": "player",
           "at": 0,
-          "endsAt": 0.88,
-          "fullEndsAt": 0.88,
+          "endsAt": 0.84,
+          "fullEndsAt": 0.84,
           "interrupted": false,
           "name": "Phantasmal Warlock",
-          "rechargeReadyAt": 8.88,
+          "rechargeReadyAt": 8.84,
           "schemaVersion": 1,
           "skillId": 10216,
           "skillName": "Phantasmal Warlock",
@@ -101,7 +105,7 @@
         {
           "__order": 1,
           "activationId": "cast:1",
-          "at": 0.88,
+          "at": 0.84,
           "count": 2,
           "name": "Phantasmal Warlock",
           "schemaVersion": 1,
@@ -110,23 +114,10 @@
           "type": "mesmer.phantasm-summoned"
         },
         {
-          "__order": 2,
-          "activationId": "cast:1",
-          "at": 3.84,
-          "complete": true,
-          "count": 2,
-          "name": "Phantasmal Warlock",
-          "repeat": false,
-          "schemaVersion": 1,
-          "source": "Mesmer",
-          "sourceId": "Phantasmal Warlock",
-          "type": "mesmer.phantasm-attack"
-        },
-        {
-          "__order": 5,
+          "__order": 6,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 3.84,
+          "at": 1.9569999999999999,
           "blade": false,
           "coefficient": 0.15,
           "hitIndex": 1,
@@ -138,19 +129,19 @@
           "skillWeapon": "Staff",
           "source": "Phantasm",
           "sourceId": 10216,
-          "totalHits": 6,
+          "totalHits": 1,
           "type": "damage",
           "weapon": "Phantasm high",
           "weaponStrength": 2877
         },
         {
-          "__order": 6,
+          "__order": 12,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 3.84,
+          "at": 2,
           "blade": false,
           "coefficient": 0.15,
-          "hitIndex": 2,
+          "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Warlock",
           "schemaVersion": 1,
@@ -159,7 +150,7 @@
           "skillWeapon": "Staff",
           "source": "Phantasm",
           "sourceId": 10216,
-          "totalHits": 6,
+          "totalHits": 1,
           "type": "damage",
           "weapon": "Phantasm high",
           "weaponStrength": 2877
@@ -168,10 +159,10 @@
           "__order": 7,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 3.84,
+          "at": 2.758,
           "blade": false,
           "coefficient": 0.15,
-          "hitIndex": 3,
+          "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Warlock",
           "schemaVersion": 1,
@@ -180,7 +171,28 @@
           "skillWeapon": "Staff",
           "source": "Phantasm",
           "sourceId": 10216,
-          "totalHits": 6,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "Phantasm high",
+          "weaponStrength": 2877
+        },
+        {
+          "__order": 13,
+          "activationId": "cast:1",
+          "actorType": "phantasm",
+          "at": 2.8,
+          "blade": false,
+          "coefficient": 0.15,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Phantasmal Warlock",
+          "schemaVersion": 1,
+          "skillId": 10216,
+          "skillName": "Phantasmal Warlock",
+          "skillWeapon": "Staff",
+          "source": "Phantasm",
+          "sourceId": 10216,
+          "totalHits": 1,
           "type": "damage",
           "weapon": "Phantasm high",
           "weaponStrength": 2877
@@ -189,10 +201,10 @@
           "__order": 8,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 3.84,
+          "at": 3.562,
           "blade": false,
           "coefficient": 0.15,
-          "hitIndex": 4,
+          "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Warlock",
           "schemaVersion": 1,
@@ -201,49 +213,7 @@
           "skillWeapon": "Staff",
           "source": "Phantasm",
           "sourceId": 10216,
-          "totalHits": 6,
-          "type": "damage",
-          "weapon": "Phantasm high",
-          "weaponStrength": 2877
-        },
-        {
-          "__order": 9,
-          "activationId": "cast:1",
-          "actorType": "phantasm",
-          "at": 3.84,
-          "blade": false,
-          "coefficient": 0.15,
-          "hitIndex": 5,
-          "hits": 1,
-          "name": "Phantasmal Warlock",
-          "schemaVersion": 1,
-          "skillId": 10216,
-          "skillName": "Phantasmal Warlock",
-          "skillWeapon": "Staff",
-          "source": "Phantasm",
-          "sourceId": 10216,
-          "totalHits": 6,
-          "type": "damage",
-          "weapon": "Phantasm high",
-          "weaponStrength": 2877
-        },
-        {
-          "__order": 10,
-          "activationId": "cast:1",
-          "actorType": "phantasm",
-          "at": 3.84,
-          "blade": false,
-          "coefficient": 0.15,
-          "hitIndex": 6,
-          "hits": 1,
-          "name": "Phantasmal Warlock",
-          "schemaVersion": 1,
-          "skillId": 10216,
-          "skillName": "Phantasmal Warlock",
-          "skillWeapon": "Staff",
-          "source": "Phantasm",
-          "sourceId": 10216,
-          "totalHits": 6,
+          "totalHits": 1,
           "type": "damage",
           "weapon": "Phantasm high",
           "weaponStrength": 2877
@@ -252,22 +222,72 @@
           "__order": 18,
           "activationId": "cast:1",
           "actorType": "summon",
-          "at": 3.84,
+          "at": 3.562,
           "condition": "Torment",
           "duration": 4,
           "name": "Phantasmal Warlock — Torment",
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10216,
           "skillName": "Phantasmal Warlock",
           "source": "Phantasm",
+          "sourceId": 10216,
+          "stacks": 6,
+          "type": "condition"
+        },
+        {
+          "__order": 2,
+          "activationId": "cast:1",
+          "at": 3.606,
+          "complete": true,
+          "count": 2,
+          "name": "Phantasmal Warlock",
+          "repeat": false,
+          "schemaVersion": 1,
+          "source": "Mesmer",
           "sourceId": "Phantasmal Warlock",
-          "stacks": 12,
+          "type": "mesmer.phantasm-attack"
+        },
+        {
+          "__order": 14,
+          "activationId": "cast:1",
+          "actorType": "phantasm",
+          "at": 3.606,
+          "blade": false,
+          "coefficient": 0.15,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Phantasmal Warlock",
+          "schemaVersion": 1,
+          "skillId": 10216,
+          "skillName": "Phantasmal Warlock",
+          "skillWeapon": "Staff",
+          "source": "Phantasm",
+          "sourceId": 10216,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "Phantasm high",
+          "weaponStrength": 2877
+        },
+        {
+          "__order": 20,
+          "activationId": "cast:1",
+          "actorType": "summon",
+          "at": 3.606,
+          "condition": "Torment",
+          "duration": 4,
+          "name": "Phantasmal Warlock — Torment",
+          "schemaVersion": 1,
+          "skillId": 10216,
+          "skillName": "Phantasmal Warlock",
+          "source": "Phantasm",
+          "sourceId": 10216,
+          "stacks": 6,
           "type": "condition"
         },
         {
           "__order": 3,
           "activationId": "cast:1",
-          "at": 5.12,
+          "at": 5.08,
           "count": 2,
           "name": "Phantasmal Warlock",
           "schemaVersion": 1,
@@ -276,9 +296,9 @@
           "type": "mesmer.phantasm-resummoned"
         },
         {
-          "__order": 17,
+          "__order": 5,
           "activationId": "cast:1",
-          "at": 5.12,
+          "at": 5.08,
           "detail": "",
           "name": "Chronophantasma",
           "procType": "trait",
@@ -318,13 +338,22 @@
       },
       "resolvedEvents": [
         {
-          "__order": 5,
+          "__order": 6,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 3.84,
+          "at": 1.9569999999999999,
           "blade": false,
           "coefficient": 0.15,
+          "critEligible": true,
           "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -336,7 +365,7 @@
           "skillWeapon": "Staff",
           "source": "Phantasm",
           "sourceId": 10216,
-          "totalHits": 6,
+          "totalHits": 1,
           "type": "damage",
           "weapon": "Phantasm high",
           "weaponStrength": 2877,
@@ -344,15 +373,24 @@
           "weaponStrengthSampled": false
         },
         {
-          "__order": 6,
+          "__order": 12,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 3.84,
+          "at": 2,
           "blade": false,
           "coefficient": 0.15,
+          "critEligible": true,
           "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
-          "hitIndex": 2,
+          "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Warlock",
           "resolvedWeaponStrength": 2877,
@@ -362,7 +400,7 @@
           "skillWeapon": "Staff",
           "source": "Phantasm",
           "sourceId": 10216,
-          "totalHits": 6,
+          "totalHits": 1,
           "type": "damage",
           "weapon": "Phantasm high",
           "weaponStrength": 2877,
@@ -373,12 +411,21 @@
           "__order": 7,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 3.84,
+          "at": 2.758,
           "blade": false,
           "coefficient": 0.15,
+          "critEligible": true,
           "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
-          "hitIndex": 3,
+          "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Warlock",
           "resolvedWeaponStrength": 2877,
@@ -388,7 +435,42 @@
           "skillWeapon": "Staff",
           "source": "Phantasm",
           "sourceId": 10216,
-          "totalHits": 6,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "Phantasm high",
+          "weaponStrength": 2877,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
+        },
+        {
+          "__order": 13,
+          "activationId": "cast:1",
+          "actorType": "phantasm",
+          "at": 2.8,
+          "blade": false,
+          "coefficient": 0.15,
+          "critEligible": true,
+          "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Phantasmal Warlock",
+          "resolvedWeaponStrength": 2877,
+          "schemaVersion": 1,
+          "skillId": 10216,
+          "skillName": "Phantasmal Warlock",
+          "skillWeapon": "Staff",
+          "source": "Phantasm",
+          "sourceId": 10216,
+          "totalHits": 1,
           "type": "damage",
           "weapon": "Phantasm high",
           "weaponStrength": 2877,
@@ -399,12 +481,21 @@
           "__order": 8,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 3.84,
+          "at": 3.562,
           "blade": false,
           "coefficient": 0.15,
+          "critEligible": true,
           "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
-          "hitIndex": 4,
+          "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Warlock",
           "resolvedWeaponStrength": 2877,
@@ -414,59 +505,7 @@
           "skillWeapon": "Staff",
           "source": "Phantasm",
           "sourceId": 10216,
-          "totalHits": 6,
-          "type": "damage",
-          "weapon": "Phantasm high",
-          "weaponStrength": 2877,
-          "weaponStrengthProfileId": "fixed",
-          "weaponStrengthSampled": false
-        },
-        {
-          "__order": 9,
-          "activationId": "cast:1",
-          "actorType": "phantasm",
-          "at": 3.84,
-          "blade": false,
-          "coefficient": 0.15,
-          "criticalChance": 0.6214285714285714,
-          "criticalDamage": 2.4333333333333336,
-          "hitIndex": 5,
-          "hits": 1,
-          "name": "Phantasmal Warlock",
-          "resolvedWeaponStrength": 2877,
-          "schemaVersion": 1,
-          "skillId": 10216,
-          "skillName": "Phantasmal Warlock",
-          "skillWeapon": "Staff",
-          "source": "Phantasm",
-          "sourceId": 10216,
-          "totalHits": 6,
-          "type": "damage",
-          "weapon": "Phantasm high",
-          "weaponStrength": 2877,
-          "weaponStrengthProfileId": "fixed",
-          "weaponStrengthSampled": false
-        },
-        {
-          "__order": 10,
-          "activationId": "cast:1",
-          "actorType": "phantasm",
-          "at": 3.84,
-          "blade": false,
-          "coefficient": 0.15,
-          "criticalChance": 0.6214285714285714,
-          "criticalDamage": 2.4333333333333336,
-          "hitIndex": 6,
-          "hits": 1,
-          "name": "Phantasmal Warlock",
-          "resolvedWeaponStrength": 2877,
-          "schemaVersion": 1,
-          "skillId": 10216,
-          "skillName": "Phantasmal Warlock",
-          "skillWeapon": "Staff",
-          "source": "Phantasm",
-          "sourceId": 10216,
-          "totalHits": 6,
+          "totalHits": 1,
           "type": "damage",
           "weapon": "Phantasm high",
           "weaponStrength": 2877,
@@ -476,115 +515,189 @@
         {
           "__order": 18,
           "activationId": "cast:1",
-          "activeDuration": 2.04,
+          "activeDuration": 2.278,
           "actorType": "summon",
-          "at": 3.84,
+          "at": 3.562,
           "condition": "Torment",
           "damageTicks": [
             {
-              "at": 4.84,
+              "at": 4.561999999999999,
+              "fraction": 1
+            },
+            {
+              "at": 5.561999999999999,
               "fraction": 1
             },
             {
               "at": 5.84,
+              "fraction": 0.278
+            }
+          ],
+          "damagingStackSeconds": 13.668,
+          "duration": 4,
+          "effectiveDuration": 5.333333333333333,
+          "expiresAt": 5.84,
+          "name": "Phantasmal Warlock — Torment",
+          "naturalExpiresAt": 8.895333333333333,
+          "schemaVersion": 1,
+          "skillId": 10216,
+          "skillName": "Phantasmal Warlock",
+          "source": "Phantasm",
+          "sourceId": 10216,
+          "stacks": 6,
+          "type": "condition"
+        },
+        {
+          "__order": 14,
+          "activationId": "cast:1",
+          "actorType": "phantasm",
+          "at": 3.606,
+          "blade": false,
+          "coefficient": 0.15,
+          "critEligible": true,
+          "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Phantasmal Warlock",
+          "resolvedWeaponStrength": 2877,
+          "schemaVersion": 1,
+          "skillId": 10216,
+          "skillName": "Phantasmal Warlock",
+          "skillWeapon": "Staff",
+          "source": "Phantasm",
+          "sourceId": 10216,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "Phantasm high",
+          "weaponStrength": 2877,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
+        },
+        {
+          "__order": 20,
+          "activationId": "cast:1",
+          "activeDuration": 2.234,
+          "actorType": "summon",
+          "at": 3.606,
+          "condition": "Torment",
+          "damageTicks": [
+            {
+              "at": 4.606,
               "fraction": 1
             },
             {
-              "at": 5.88,
-              "fraction": 0.040000000000000036
+              "at": 5.606,
+              "fraction": 1
+            },
+            {
+              "at": 5.84,
+              "fraction": 0.23399999999999999
             }
           ],
-          "damagingStackSeconds": 24.48,
+          "damagingStackSeconds": 13.404,
           "duration": 4,
           "effectiveDuration": 5.333333333333333,
-          "expiresAt": 5.88,
+          "expiresAt": 5.84,
           "name": "Phantasmal Warlock — Torment",
-          "naturalExpiresAt": 9.173333333333332,
+          "naturalExpiresAt": 8.939333333333334,
           "schemaVersion": 1,
-          "skillId": null,
+          "skillId": 10216,
           "skillName": "Phantasmal Warlock",
           "source": "Phantasm",
-          "sourceId": "Phantasmal Warlock",
-          "stacks": 12,
+          "sourceId": 10216,
+          "stacks": 6,
           "type": "condition"
         }
       ],
       "steps": [
         {
           "actualStart": 0,
-          "end": 880,
-          "fullCastMs": 880,
+          "end": 840,
+          "fullCastMs": 840,
           "interrupted": false,
           "ri": 0,
           "skill": "Phantasmal Warlock",
           "start": 0
         },
         {
-          "end": 5880,
+          "end": 5840,
           "ri": 1,
           "skill": "Wait",
-          "start": 880
+          "start": 840
         }
       ],
       "warnings": []
     },
     "damage": {
-      "conditionDamage": 5792.58,
-      "dps": 7171.090979552198,
-      "events": [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
-      ],
+      "conditionDamage": 6405.911999999999,
+      "dps": 3925.407571024076,
+      "events": [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
       "resolvedEvents": [
         {
+          "criticalChanceContributors": [{}],
           "damage": 1472.7409330477476
         },
         {
+          "criticalChanceContributors": [{}],
           "damage": 1472.7409330477476
         },
         {
+          "criticalChanceContributors": [{}],
           "damage": 1472.7409330477476
         },
         {
+          "criticalChanceContributors": [{}],
           "damage": 1472.7409330477476
         },
         {
+          "criticalChanceContributors": [{}],
           "damage": 1472.7409330477476
         },
         {
-          "damage": 1472.7409330477476
-        },
-        {
-          "damage": 5792.58,
+          "damage": 3234.1905,
           "damageTicks": [
             {
-              "damage": 2839.5
+              "damage": 1419.75
             },
             {
-              "damage": 2839.5
+              "damage": 1419.75
             },
             {
-              "damage": 113.5800000000001
+              "damage": 394.69050000000004
+            }
+          ]
+        },
+        {
+          "criticalChanceContributors": [{}],
+          "damage": 1472.7409330477476
+        },
+        {
+          "damage": 3171.7215,
+          "damageTicks": [
+            {
+              "damage": 1419.75
+            },
+            {
+              "damage": 1419.75
+            },
+            {
+              "damage": 332.2215
             }
           ]
         }
       ],
-      "steps": [
-        {},
-        {}
-      ],
+      "steps": [{}, {}],
       "strikeDamage": 8836.445598286486,
-      "totalDamage": 14629.025598286486
+      "totalDamage": 15242.357598286486
     }
   }
 }

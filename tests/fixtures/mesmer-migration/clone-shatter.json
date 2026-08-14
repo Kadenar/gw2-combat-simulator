@@ -22,6 +22,12 @@
     "exact": {
       "activeWeaponSet": 1,
       "ammo": {
+        "Dodge": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 10
+        },
         "Dodge / Mirage Cloak": {
           "charges": 2,
           "maximum": 2,
@@ -75,10 +81,6 @@
         "Mind Wrack": {
           "readyAt": 12600,
           "remaining": 9600
-        },
-        "Mirror Images": {
-          "readyAt": 20000,
-          "remaining": 17000
         }
       },
       "dpsWindow": 1.8399,
@@ -104,6 +106,21 @@
         },
         {
           "__order": 1,
+          "activationId": "cast:1",
+          "at": 0,
+          "name": "Mimic",
+          "reduction": 20,
+          "schemaVersion": 1,
+          "skillId": 29578,
+          "skillName": "Mimic",
+          "source": "Mimic",
+          "sourceId": 29578,
+          "targetSkillId": 10202,
+          "targetSkillName": "Mirror Images",
+          "type": "proc"
+        },
+        {
+          "__order": 2,
           "amount": 2,
           "at": 0.0001,
           "created": [
@@ -125,7 +142,7 @@
           "value": 2
         },
         {
-          "__order": 2,
+          "__order": 3,
           "activationId": "summon-attack:3",
           "actorType": "summon",
           "at": 1.1601,
@@ -147,7 +164,7 @@
           "weaponStrength": 26.5
         },
         {
-          "__order": 3,
+          "__order": 4,
           "activationId": "summon-attack:6",
           "actorType": "summon",
           "at": 1.1602,
@@ -169,7 +186,7 @@
           "weaponStrength": 26.5
         },
         {
-          "__order": 4,
+          "__order": 5,
           "activationId": "summon-attack:9",
           "actorType": "summon",
           "at": 2.7601,
@@ -191,7 +208,7 @@
           "weaponStrength": 26.5
         },
         {
-          "__order": 5,
+          "__order": 6,
           "activationId": "summon-attack:12",
           "actorType": "summon",
           "at": 2.7602,
@@ -213,7 +230,7 @@
           "weaponStrength": 26.5
         },
         {
-          "__order": 6,
+          "__order": 7,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -231,7 +248,7 @@
           "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
-          "__order": 7,
+          "__order": 8,
           "amount": -2,
           "at": 3,
           "reason": "profession mechanic",
@@ -245,7 +262,7 @@
           "value": 0
         },
         {
-          "__order": 8,
+          "__order": 9,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -267,7 +284,7 @@
           "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
-          "__order": 9,
+          "__order": 10,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -289,7 +306,7 @@
           "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
-          "__order": 10,
+          "__order": 11,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -311,7 +328,7 @@
           "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
-          "__order": 11,
+          "__order": 12,
           "activationId": "cast:2",
           "at": 3,
           "detail": "2 clones spent",
@@ -351,41 +368,23 @@
       },
       "resolvedEvents": [
         {
-          "__order": 2,
+          "__order": 3,
           "activationId": "summon-attack:3",
           "actorType": "summon",
           "at": 1.1601,
           "blade": false,
           "cloneId": 1,
           "coefficient": 0.5,
+          "critEligible": true,
           "criticalChance": 0.6214285714285714,
-          "criticalDamage": 2.4333333333333336,
-          "hitIndex": 1,
-          "hits": 1,
-          "name": "Clone: Flying Cutter",
-          "resolvedWeaponStrength": 26.5,
-          "schemaVersion": 1,
-          "skillId": "Clone: Flying Cutter",
-          "skillName": "Clone: Flying Cutter",
-          "skillWeapon": "Dagger",
-          "source": "Clone",
-          "sourceId": "Clone: Flying Cutter",
-          "totalHits": 1,
-          "type": "damage",
-          "weapon": "",
-          "weaponStrength": 26.5,
-          "weaponStrengthProfileId": "fixed",
-          "weaponStrengthSampled": false
-        },
-        {
-          "__order": 3,
-          "activationId": "summon-attack:6",
-          "actorType": "summon",
-          "at": 1.1602,
-          "blade": false,
-          "cloneId": 2,
-          "coefficient": 0.5,
-          "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -406,13 +405,22 @@
         },
         {
           "__order": 4,
-          "activationId": "summon-attack:9",
+          "activationId": "summon-attack:6",
           "actorType": "summon",
-          "at": 2.7601,
+          "at": 1.1602,
           "blade": false,
-          "cloneId": 1,
+          "cloneId": 2,
           "coefficient": 0.5,
+          "critEligible": true,
           "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -433,13 +441,22 @@
         },
         {
           "__order": 5,
-          "activationId": "summon-attack:12",
+          "activationId": "summon-attack:9",
           "actorType": "summon",
-          "at": 2.7602,
+          "at": 2.7601,
           "blade": false,
-          "cloneId": 2,
+          "cloneId": 1,
           "coefficient": 0.5,
+          "critEligible": true,
           "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
@@ -459,29 +476,39 @@
           "weaponStrengthSampled": false
         },
         {
-          "__order": 8,
-          "activationId": "cast:2",
-          "actorType": "player",
-          "at": 3,
+          "__order": 6,
+          "activationId": "summon-attack:12",
+          "actorType": "summon",
+          "at": 2.7602,
           "blade": false,
-          "coefficient": 0.8066666666666666,
-          "criticalChance": 0.8714285714285714,
+          "cloneId": 2,
+          "coefficient": 0.5,
+          "critEligible": true,
+          "criticalChance": 0.6214285714285714,
+          "criticalChanceBeforeCap": 0.6214285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
           "hits": 1,
-          "name": "Mind Wrack",
-          "resolvedWeaponStrength": 1100,
+          "name": "Clone: Flying Cutter",
+          "resolvedWeaponStrength": 26.5,
           "schemaVersion": 1,
-          "shatter": true,
-          "skillId": 10191,
-          "skillName": "Mind Wrack",
+          "skillId": "Clone: Flying Cutter",
+          "skillName": "Clone: Flying Cutter",
           "skillWeapon": "Dagger",
-          "source": "Player",
-          "sourceId": 10191,
-          "totalHits": 3,
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
           "type": "damage",
           "weapon": "",
-          "weaponStrengthProfileId": "nonweapon.profession-mechanic",
+          "weaponStrength": 26.5,
+          "weaponStrengthProfileId": "fixed",
           "weaponStrengthSampled": false
         },
         {
@@ -491,9 +518,23 @@
           "at": 3,
           "blade": false,
           "coefficient": 0.8066666666666666,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
-          "hitIndex": 2,
+          "hitIndex": 1,
           "hits": 1,
           "name": "Mind Wrack",
           "resolvedWeaponStrength": 1100,
@@ -517,7 +558,61 @@
           "at": 3,
           "blade": false,
           "coefficient": 0.8066666666666666,
+          "critEligible": true,
           "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 2,
+          "hits": 1,
+          "name": "Mind Wrack",
+          "resolvedWeaponStrength": 1100,
+          "schemaVersion": 1,
+          "shatter": true,
+          "skillId": 10191,
+          "skillName": "Mind Wrack",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 10191,
+          "totalHits": 3,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrengthProfileId": "nonweapon.profession-mechanic",
+          "weaponStrengthSampled": false
+        },
+        {
+          "__order": 11,
+          "activationId": "cast:2",
+          "actorType": "player",
+          "at": 3,
+          "blade": false,
+          "coefficient": 0.8066666666666666,
+          "critEligible": true,
+          "criticalChance": 0.8714285714285714,
+          "criticalChanceBeforeCap": 0.8714285714285714,
+          "criticalChanceContributors": [
+            {
+              "amount": 0.6214285714285714,
+              "id": "precision",
+              "label": "Precision"
+            },
+            {
+              "amount": 0.25,
+              "id": "fury",
+              "label": "Fury"
+            }
+          ],
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 3,
           "hits": 1,
@@ -570,11 +665,9 @@
       "dps": 5951.939215886358,
       "events": [
         {},
+        {},
         {
-          "created": [
-            {},
-            {}
-          ]
+          "created": [{}, {}]
         },
         {},
         {},
@@ -589,32 +682,35 @@
       ],
       "resolvedEvents": [
         {
+          "criticalChanceContributors": [{}],
           "damage": 36.17438046647231
         },
         {
+          "criticalChanceContributors": [{}],
           "damage": 36.17438046647231
         },
         {
+          "criticalChanceContributors": [{}],
           "damage": 36.17438046647231
         },
         {
+          "criticalChanceContributors": [{}],
           "damage": 36.17438046647231
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 3602.0918138144743
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 3602.0918138144743
         },
         {
+          "criticalChanceContributors": [{}, {}],
           "damage": 3602.0918138144743
         }
       ],
-      "steps": [
-        {},
-        {},
-        {}
-      ],
+      "steps": [{}, {}, {}],
       "strikeDamage": 10950.972963309312,
       "totalDamage": 10950.972963309312
     }

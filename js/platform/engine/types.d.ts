@@ -42,6 +42,7 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly source: string;
   readonly sourceId: SkillId;
   readonly actorType?: SimulationActorType;
+  readonly ownerActorType?: SimulationActorType;
   readonly name?: string;
   readonly skillName?: string;
   readonly parentSkillName?: string;
@@ -123,6 +124,7 @@ export interface SimulationEventInput {
   readonly source: string;
   readonly sourceId: SkillId;
   readonly actorType?: SimulationActorType;
+  readonly ownerActorType?: SimulationActorType;
   readonly name?: string;
   readonly skillName?: string;
   readonly parentSkillName?: string;
@@ -189,6 +191,7 @@ export interface SkillEffectBase {
   readonly source?: string;
   readonly sourceId?: SkillId;
   readonly actorType?: SimulationActorType;
+  readonly ownerActorType?: SimulationActorType;
   readonly name?: string;
   readonly metadata?: Readonly<Record<string, unknown>>;
   readonly comboFields?: readonly Readonly<Record<string, unknown>>[];
@@ -314,6 +317,8 @@ export interface Skill extends CatalogSkill {
   readonly categories?: readonly string[];
   readonly resource?: unknown;
   readonly implemented?: boolean;
+  /** Excludes a skill from automated rotation search without hiding it in UI. */
+  readonly optimizerExcluded?: boolean;
 }
 
 export type SkillFragment = Partial<Skill> & SchedulerRecord;

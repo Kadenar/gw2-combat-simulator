@@ -1020,7 +1020,42 @@ test("Spellbreaker uses its reduced adrenaline cap for Full Counter", () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.maximumAdrenaline, 20);
   assert.equal(result.endState.profession.adrenaline < 20, true);
-  assert.equal(result.totalDamage > 0, true);
+  assert.equal(result.totalDamage, 0);
+  assert.equal(
+    result.events.some(
+      (event) => event.type === "damage" && event.skillId === ID.FULL_COUNTER,
+    ),
+    false,
+  );
+  assert.equal(
+    warriorCatalog.skillsById.get(ID.FULL_COUNTER).optimizerExcluded,
+    true,
+  );
+});
+
+test("Spellbreaker weapon bursts require their matching active main hand", () => {
+  const config = {
+    initialResource: 20,
+    primaryWeapon: "Dagger",
+    secondaryWeapon: "Mace",
+    weaponSet2Primary: "Sword",
+    weaponSet2Secondary: "Axe",
+  };
+  const daggerSet = simulate(
+    "Spellbreaker",
+    ["Breaching Strike", "Bloodthirster"],
+    config,
+  );
+  assert.equal(Boolean(daggerSet.steps[0].invalid), false);
+  assert.equal(daggerSet.steps[1].invalid, true);
+
+  const swordSet = simulate(
+    "Spellbreaker",
+    ["Bloodthirster", "Breaching Strike"],
+    { ...config, startingWeaponSet: 2 },
+  );
+  assert.equal(Boolean(swordSet.steps[0].invalid), false);
+  assert.equal(swordSet.steps[1].invalid, true);
 });
 
 test("Spellbreaker Winds and Kick use the supplied PvE mechanics", () => {
@@ -3238,7 +3273,7 @@ test("Power Berserker preset preserves the supplied build and EVTC", async () =>
   ]);
   const preset = manifest.find((section) => section.section === "Berserker")
     .presets[0];
-  assert.equal(preset.benchmarkDps, 41063);
+  assert.equal(preset.benchmarkDps, 42213);
   assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 96.631);
   assert.equal(savedRotation.metadata.benchmarkDamage, 3967923);
   assert.equal(savedRotation.metadata.benchmarkDps, 41062.630004863866);
@@ -3575,7 +3610,7 @@ test("Power Spellbreaker preset preserves the supplied build and EVTC", async ()
   assert.equal(
     manifest.find((section) => section.section === "Spellbreaker").presets[0]
       .benchmarkDps,
-    43058,
+    42982,
   );
   assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 92.521);
   assert.equal(savedRotation.metadata.benchmarkDamage, 3949729);
@@ -3708,7 +3743,7 @@ test("Sword/Dagger Spellbreaker preset preserves the supplied build and rotation
   const preset = manifest
     .find((section) => section.section === "Spellbreaker")
     .presets.find((entry) => entry.build.endsWith("sword-dagger.json"));
-  assert.equal(preset.benchmarkDps, 43387);
+  assert.equal(preset.benchmarkDps, 43284);
   assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 91.507);
   assert.equal(savedRotation.metadata.benchmarkDamage, 3970179.1954002595);
   assert.equal(savedRotation.metadata.benchmarkDps, 43386.61736698027);
@@ -3803,7 +3838,7 @@ test("Power Paragon preset preserves the EVTC build and executes", async () => {
   assert.equal(
     manifest.find((section) => section.section === "Paragon").presets[0]
       .benchmarkDps,
-    42115,
+    42252,
   );
   assert.equal(savedRotation.metadata.benchmarkDamage, 3957198);
   assert.deepEqual(savedRotation.rotation.slice(0, 6), [
@@ -3872,7 +3907,7 @@ test("Power Paragon preset preserves the EVTC build and executes", async () => {
       `${name} damage ${simulatedDamage} drifted from EVTC ${evtcDamage}.`,
     );
   }
-  assert.ok(Math.abs(result.dps - 42115) < 3000);
+  assert.ok(Math.abs(result.dps - 42252) < 3000);
 
   const randomApp = {
     ...app,

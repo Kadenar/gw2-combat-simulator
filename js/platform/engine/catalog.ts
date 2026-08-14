@@ -93,6 +93,7 @@ const EFFECT_FIELDS = new Set([
   "source",
   "sourceId",
   "actorType",
+  "ownerActorType",
   "weapon",
   "weaponStrength",
   "weaponStrengthProfileId",

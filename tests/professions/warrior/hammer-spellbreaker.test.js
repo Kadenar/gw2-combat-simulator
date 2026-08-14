@@ -310,11 +310,14 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
   );
   assert.equal(insightStacks(bullsChargeCombo), 2);
   assert.equal(
-    bullsChargeCombo.events.filter(
+    bullsChargeCombo.resolvedEvents.filter(
       (event) =>
-        event.type === "control" &&
-        event.skillName === "Dazing Strike" &&
-        event.parentSkillName === "Bull's Charge",
+        event.type === "combo" &&
+        event.skillName === "Bull's Charge" &&
+        event.fieldType === "Lightning" &&
+        event.finisherType === "Leap" &&
+        event.outcome.kind === "control" &&
+        event.outcome.name === "Dazing Strike",
     ).length,
     1,
   );
@@ -449,7 +452,7 @@ test("Power (Hammer + Dagger/Mace) preset uses the supplied updated rotation", a
   const preset = manifest
     .find(({ section }) => section === "Spellbreaker")
     .presets.find(({ label }) => label === "Power (Hammer + Dagger/Mace)");
-  assert.equal(preset.benchmarkDps, 43077);
+  assert.equal(preset.benchmarkDps, 43026);
   assert.equal(
     preset.dpsReportUrl,
     "https://dps.report/dzrB-20260721-123458_golem",

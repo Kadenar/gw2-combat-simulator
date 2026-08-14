@@ -173,7 +173,6 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     [ID.SHADOW_FLARE]: {
       implemented: true,
       handlerId: "thief.deadeye-shadow-flare",
-      castTimeMs: 750,
       quicknessCastTimeMs: 480,
       cooldown: 20,
       initiativeCost: 0,
@@ -237,7 +236,6 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     [ID.STEAL_TIME]: {
       implemented: true,
       handlerId: "thief.deadeye-stolen-skill",
-      castTimeMs: 250,
       quicknessCastTimeMs: 280,
       cooldown: 0.5,
       initiativeCost: 0,
@@ -408,7 +406,6 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     [ID.SHADOW_MELD]: {
       implemented: true,
       handlerId: "thief.deadeye-shadow-meld",
-      castTimeMs: 500,
       quicknessCastTimeMs: 440,
       cooldown: 5,
       ammo: 2,

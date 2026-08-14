@@ -8,6 +8,7 @@ import { renderStartResource } from "./resource-view.js";
 import { renderRotationStateSnapshot } from "./state-snapshot-view.js";
 import { renderTimeline } from "./timeline-view.js";
 import { renderWarnings } from "./warnings.js";
+import { mountRotationOptimizer } from "../../rotation-optimizer/ui.js";
 
 export function renderRotationBuilder(app: ProfessionAppState): void {
   renderStartResource(app);
@@ -19,4 +20,5 @@ export function renderRotationBuilder(app: ProfessionAppState): void {
   renderWarnings(app);
   renderEventLog(app);
   renderResults(app);
+  mountRotationOptimizer(app);
 }

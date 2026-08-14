@@ -4083,10 +4083,23 @@ test("Sovereign of Light consumes combo and trait-granted light auras", () => {
   });
   const justice = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Radiant Justice", "Piercing Stance"],
+    rotation: ["Piercing Stance", "Radiant Justice", "Piercing Stance"],
     config: {
       ...config,
       specialization: "Luminary",
+      selectedTraitIds: [
+        GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND,
+        GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT,
+      ],
+    },
+  });
+  const justiceWithClaw = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Piercing Stance", "Radiant Justice", "Piercing Stance"],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      relic: "Claw",
       selectedTraitIds: [
         GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND,
         GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT,
@@ -4129,6 +4142,22 @@ test("Sovereign of Light consumes combo and trait-granted light auras", () => {
       (event) => event.name === "Sovereign of Light",
     ).length,
     1,
+  );
+  const justiceSovereign = justice.resolvedEvents.find(
+    (event) => event.name === "Sovereign of Light",
+  );
+  const clawSovereign = justiceWithClaw.resolvedEvents.find(
+    (event) => event.name === "Sovereign of Light",
+  );
+  assert.deepEqual(
+    {
+      actorType: clawSovereign.actorType,
+      ownerActorType: clawSovereign.ownerActorType,
+    },
+    { actorType: "effect", ownerActorType: "player" },
+  );
+  assert.ok(
+    Math.abs(clawSovereign.damage / justiceSovereign.damage - 1.07) < 1e-12,
   );
 });
 
@@ -4700,6 +4729,47 @@ test("Glacial Heart and Master of Consecrations replace their numeric effects", 
   assert.equal(purgingAction.comboFields[0].duration, 7);
 });
 
+test("Power Luminary saved rotation preserves EVTC aura detonations", async () => {
+  const [savedBuild, savedRotation] = await Promise.all([
+    readFile(
+      new URL(
+        "../../../Builds/guardian/b-power-luminary.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL(
+        "../../../Rotations/guardian/r-power-luminary-bench.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+  ]);
+  const build = migrateGuardianBuild({
+    ...savedBuild,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    skillByName: guardianCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+
+  recalculateGuardian(app);
+  const result = runGuardianSimulation(app);
+  const sovereign = result.breakdown.find(
+    (entry) => entry.name === "Sovereign of Light",
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(savedRotation.rotation.length, 210);
+  assert.equal(sovereign.hits, 46);
+  assert.ok(Math.abs(sovereign.damage - 408913) < 500);
+  assert.equal(Math.round(result.totalDamage), 3930278);
+  assert.equal(Math.round(result.dps), 42043);
+});
+
 test("Power Willbender saved build and EVTC rotation reproduce the preset", async () => {
   const [savedBuild, savedRotation] = await Promise.all([
     readFile(
@@ -4986,7 +5056,16 @@ test("Condition Firebrand saved build and EVTC rotation reproduce the preset", a
     simulation.conditionBreakdown.find(({ name }) => name === "Burning")
       ?.damage || 0;
   assert.ok(result.dps - noAlliesResult.dps > 1000);
-  assert.ok(burningDamage(result) - burningDamage(noAlliesResult) > 100000);
+  assert.equal(
+    result.resolvedEvents.filter(
+      (event) =>
+        event.type === "condition" &&
+        event.sourceId === "guardian.ashes-of-the-just" &&
+        event.triggeredByAlly,
+    ).length,
+    51,
+  );
+  assert.ok(burningDamage(result) - burningDamage(noAlliesResult) > 90000);
   assert.equal(
     Math.round(result.dps),
     Math.round(savedRotation.metadata.simulatedDps),

@@ -82,6 +82,7 @@ function detonateLightAura(
       at,
       sourceId: GUARDIAN_SKILL_IDS.SOVEREIGN_OF_LIGHT_DAMAGE,
       actorType: "effect",
+      ownerActorType: "player",
       skillId: GUARDIAN_SKILL_IDS.SOVEREIGN_OF_LIGHT_DAMAGE,
       skillName: "Sovereign of Light",
       name: "Sovereign of Light",
