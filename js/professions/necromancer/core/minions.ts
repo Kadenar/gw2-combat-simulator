@@ -20,7 +20,11 @@ import {
   gainNecromancerLifeForce,
   hasTrait,
 } from "./shared.js";
-import type { ScheduledTask, SkillId } from "../../../platform/engine/types.js";
+import type {
+  ScheduledTask,
+  SchedulerRecord,
+  SkillId,
+} from "../../../platform/engine/types.js";
 import type { NecromancerCastContext, NecromancerSkill } from "../types.js";
 
 interface MinionAttack {
@@ -31,8 +35,7 @@ interface MinionAttack {
   readonly icon?: string;
   readonly weaponStrength?: number;
   readonly damagePerCoefficient?: number;
-  readonly finisherType?: string;
-  readonly finisherValue?: number;
+  readonly comboFinishers?: readonly SchedulerRecord[];
   readonly condition?: readonly (string | number)[];
   readonly controlKind?: string;
   readonly controlDuration?: number;
@@ -171,8 +174,7 @@ function queueSummonAttacks(
           name: attack.name,
           icon: attack.icon || skill.icon || "",
           coefficient: attack.coefficient,
-          finisherType: attack.finisherType,
-          finisherValue: attack.finisherValue,
+          deferredComboFinishers: attack.comboFinishers,
           onHitCondition: attack.condition,
           controlKind:
             attack.controlKind ||
@@ -235,8 +237,7 @@ function queueMinionCommandAttacks(
         name: attack.name,
         icon: attack.icon || skill.icon || "",
         coefficient: attack.coefficient,
-        finisherType: attack.finisherType,
-        finisherValue: attack.finisherValue,
+        deferredComboFinishers: attack.comboFinishers,
         onHitCondition: attack.condition,
         controlKind: attack.controlKind,
         controlDuration: attack.controlDuration,

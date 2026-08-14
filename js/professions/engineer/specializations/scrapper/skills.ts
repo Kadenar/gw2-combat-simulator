@@ -6,15 +6,21 @@
  */
 import { ENGINEER_SKILL_IDS as ID } from "../../data/ids.js";
 import type { SkillFragment } from "../../../../platform/engine/types.js";
-
 export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
   Object.freeze({
     [ID.RECONSTRUCTION_FIELD]: {
       implemented: true,
       castTimeMs: 500,
       cooldown: 25,
-      comboField: "Water",
-      duration: 2,
+      comboFields: [
+        {
+          ownerId: "engineer",
+          fieldType: "Water",
+          duration: 2,
+          startAnchor: "castEnd",
+          inclusiveExpiry: true,
+        },
+      ],
       effects: [
         {
           type: "boon",
@@ -96,9 +102,15 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
       implemented: true,
       castTimeMs: 500,
       cooldown: 20,
-      // The water field pulses five times at one-second intervals.
-      comboField: "Water",
-      duration: 5,
+      comboFields: [
+        {
+          ownerId: "engineer",
+          fieldType: "Water",
+          duration: 5,
+          startAnchor: "castEnd",
+          inclusiveExpiry: true,
+        },
+      ],
       effects: [],
     },
     [ID.SNEAK_GYRO]: {

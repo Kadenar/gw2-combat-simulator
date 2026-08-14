@@ -15,12 +15,12 @@ export const ELEMENTALIST_ASSUMPTION_CONTROLS =
     },
     {
       key: "elementalSimulationProfile",
-      label: "Elemental simulation",
+      label: "Elemental behavior",
       type: "select",
       defaultValue: "evtc",
       options: [
-        { value: "evtc", label: "EVTC actor" },
-        { value: "reference", label: "Reference packets" },
+        { value: "evtc", label: "Native summon AI" },
+        { value: "reference", label: "Fixed reference packets" },
       ],
       section: "profession",
     },

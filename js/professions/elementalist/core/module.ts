@@ -1,5 +1,7 @@
 import {
   defineNativeModule,
+  onAuraApplied,
+  onComboResolved,
   onConditionApplied,
   onResolvedDamage,
 } from "../../../platform/gw2/native-profession.js";
@@ -17,11 +19,10 @@ import { bindElementalistCoreUi } from "./ui.js";
 import {
   applyElementalistResolverAttunement,
   applyElementalistResolverAura,
-  applyElementalistResolverComboField,
   applyElementalistResolverSignetFire,
+  applyElementalistResolvedCombo,
   applyElementalistResolvedCondition,
   applyElementalistResolvedDamage,
-  recordElementalistResolvedEvent,
 } from "./resolver.js";
 
 export const elementalistCoreModule = defineNativeModule({
@@ -45,13 +46,19 @@ export const elementalistCoreModule = defineNativeModule({
         id: "elementalist.core.condition",
         handler: applyElementalistResolvedCondition,
       }),
+      onComboResolved({
+        id: "elementalist.core-combo",
+        handler: applyElementalistResolvedCombo,
+      }),
+      onAuraApplied({
+        id: "elementalist.core-aura",
+        handler: applyElementalistResolverAura,
+      }),
     ],
     resolverHooks: {
       eventHandlers: {
         "elementalist.attunement": applyElementalistResolverAttunement,
         "elementalist.aura": applyElementalistResolverAura,
-        "elementalist.combo-field": applyElementalistResolverComboField,
-        "elementalist.combo": recordElementalistResolvedEvent,
         "elementalist.fresh-air": () => {},
         "elementalist.evasive-arcana": () => {},
         "elementalist.attunement-enter": () => {},

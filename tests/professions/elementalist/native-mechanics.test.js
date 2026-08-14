@@ -162,8 +162,8 @@ test("Catalyst mechanics execute through native hooks", () => {
   assert.equal(
     resolvedAndScheduledEvents(result).some(
       (event) =>
-        event.type === "elementalist.combo" &&
-        event.field === "Fire" &&
+        event.type === "combo" &&
+        event.fieldType === "Fire" &&
         event.finisherType === "Blast",
     ),
     true,
@@ -302,6 +302,41 @@ test("Weaver timeline rows show both active attunements", () => {
   );
 });
 
+test("Unravel starts a fully attuned Weaver timeline row", () => {
+  const transition = elementalistProfession.ui.timelineWeaponLineTransition;
+  const build = {
+    startAttunement: "Air",
+    secondaryAttunement: "Fire",
+  };
+  const rows = timelineWeaponRows(["Pyro Vortex", "Unravel", "Polaric Leap"], {
+    startingWeaponLine: transition({
+      initial: true,
+      specialization: "Weaver",
+      build,
+    }),
+    weaponSwapChangesSet: false,
+    weaponLineTransition(entry, current) {
+      const name = typeof entry === "string" ? entry : entry.name;
+      return transition({
+        entry: { name },
+        skill: elementalistCatalog.skillsByName.get(name),
+        specialization: "Weaver",
+        build,
+        ...current,
+      });
+    },
+  });
+
+  assert.deepEqual(
+    rows.map((row) => row.weaponLine),
+    ["A/F", "A/A"],
+  );
+  assert.deepEqual(
+    rows.map((row) => row.skills.map((skill) => skill.index)),
+    [[0, 1], [2]],
+  );
+});
+
 test("weapon palette rows group Elementalist skills by attunement and slot", () => {
   const build = elementalistAppAdapter.toApplicationBuild({
     ...elementalistProfession.createBuildDefaults(),
@@ -410,17 +445,22 @@ test("Weaver palette composes the active bar and preserves every slot-three cool
   assert.match(palette.innerHTML, /data-role="weaver-secondary-bank"/);
   assert.match(
     palette.innerHTML,
-    /data-role="weaver-top-palette"[\s\S]*?data-role="profession-palette-section"[\s\S]*?utility-palette-group[\s\S]*?data-role="weapon-palette-section"/,
+    /data-role="weaver-top-palette"[\s\S]*?data-role="profession-palette-section"[\s\S]*?data-role="weaver-current-bar"[\s\S]*?utility-palette-group[\s\S]*?data-role="weapon-palette-section"/,
   );
 
   const currentStart = palette.innerHTML.indexOf(
     'data-role="weaver-current-bar"',
   );
+  const currentEnd = palette.innerHTML.indexOf(
+    "utility-palette-group",
+    currentStart,
+  );
   const bankStart = palette.innerHTML.indexOf(
     'data-role="weaver-cooldown-bank"',
   );
-  const currentHtml = palette.innerHTML.slice(currentStart, bankStart);
+  const currentHtml = palette.innerHTML.slice(currentStart, currentEnd);
   assert.equal((currentHtml.match(/class="pal-skill/g) || []).length, 7);
+  assert.doesNotMatch(currentHtml, /data-palette-static="true"/);
   assert.match(currentHtml, /data-skill="Fire Strike"/);
   assert.match(currentHtml, /data-skill="Fire Swipe"/);
   assert.match(currentHtml, /data-skill="Searing Slash"/);
@@ -747,6 +787,132 @@ test("Weaver attunements use the shared four-second recharge", () => {
   assert.deepEqual(
     swaps.map((step) => step.start),
     [0, 4000],
+  );
+});
+
+test("Unravel resets the current Weaver recharge, fully attunes for five seconds, and preserves future swap recharge", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Weaver", "1-1-1"]],
+    rotation: [
+      "Air Attunement",
+      "Unravel",
+      "Fire Attunement",
+      "Earth Attunement",
+      "Air Attunement",
+    ],
+    startAttunement: "Fire",
+    secondaryAttunement: "Fire",
+    assumptions: {
+      ...elementalistProfession.createBuildDefaults().assumptions,
+      alacrity: false,
+    },
+  });
+  const swaps = result.events.filter(
+    (event) => event.type === "elementalist.attunement",
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    swaps.map((event) => [
+      event.at,
+      event.skillName,
+      event.fromSecondaryAttunement,
+      event.to,
+      event.secondaryAttunement,
+    ]),
+    [
+      [0, "Air Attunement", undefined, "Air", "Fire"],
+      [0, "Unravel", "Fire", "Air", "Air"],
+      [0, "Fire Attunement", undefined, "Fire", "Fire"],
+      [4, "Earth Attunement", undefined, "Earth", "Earth"],
+      [8, "Air Attunement", undefined, "Air", "Earth"],
+    ],
+  );
+  assert.equal(result.endState.profession.unravelUntil, 5);
+  assert.equal(
+    result.events.filter(
+      (event) => event.type === "buff" && event.kind === "elements of rage",
+    ).length,
+    3,
+  );
+});
+
+test("Unravel requires Elements of Rage, disables dual attacks, and has a 25-second recharge", () => {
+  const unavailable = runNative({
+    lines: [["Fire"], ["Air"], ["Weaver", "1-1-2"]],
+    rotation: ["Unravel"],
+    startAttunement: "Air",
+    secondaryAttunement: "Fire",
+  });
+  assert.equal(
+    unavailable.events.some(
+      (event) => event.type === "action" && event.skillName === "Unravel",
+    ),
+    false,
+  );
+  assert.match(unavailable.warnings[0], /requires Elements of Rage/i);
+
+  const dualAttack = runNative({
+    lines: [["Fire"], ["Air"], ["Weaver", "1-1-1"]],
+    rotation: ["Unravel", "Pyro Vortex"],
+    startAttunement: "Fire",
+    secondaryAttunement: "Air",
+    weapons: ["Sword", "Dagger"],
+  });
+  assert.equal(
+    dualAttack.events.some(
+      (event) => event.type === "action" && event.skillName === "Pyro Vortex",
+    ),
+    false,
+  );
+  assert.match(dualAttack.warnings[0], /while Unravel is active/i);
+
+  const unravel = elementalistCatalog.skillsByName.get("Unravel");
+  const queuedDualAttack = runNative({
+    lines: [["Fire"], ["Air"], ["Weaver", "1-1-1"]],
+    rotation: [
+      "Pyro Vortex",
+      {
+        type: "cast",
+        skillId: unravel.id,
+        concurrentOffsetMs: 100,
+      },
+    ],
+    startAttunement: "Fire",
+    secondaryAttunement: "Air",
+    weapons: ["Sword", "Dagger"],
+  });
+  assert.deepEqual(queuedDualAttack.warnings, []);
+  assert.deepEqual(
+    queuedDualAttack.steps.map((step) => [step.skill, step.start, step.end]),
+    [
+      ["Pyro Vortex", 0, 560],
+      ["Unravel", 100, 100],
+    ],
+  );
+  assert.equal(
+    queuedDualAttack.resolvedEvents.some(
+      (event) =>
+        event.type === "damage" &&
+        event.skillName === "Pyro Vortex" &&
+        event.at > 0.1,
+    ),
+    true,
+  );
+
+  const cooldown = runNative({
+    lines: [["Fire"], ["Air"], ["Weaver", "1-1-1"]],
+    rotation: ["Unravel", "Unravel"],
+    startAttunement: "Air",
+    secondaryAttunement: "Fire",
+    assumptions: {
+      ...elementalistProfession.createBuildDefaults().assumptions,
+      alacrity: false,
+    },
+  });
+  assert.deepEqual(
+    cooldown.steps.map((step) => step.start),
+    [0, 25000],
   );
 });
 
@@ -2285,22 +2451,22 @@ test("reference elemental profile replays fixed Glyph packets without an actor",
   assert.ok(Math.abs(flatDamage(booned) / flatDamage(unbooned) - 1.7) < 1e-12);
 });
 
-test("legacy snapshots select the explicit reference elemental profile", () => {
+test("legacy snapshots default to native elemental AI and keep reference packets opt-in", () => {
   const build = elementalistAppAdapter.toApplicationBuild({
     build: elementalistProfession.createBuildDefaults(),
     glyphBoonedElementals: true,
   });
 
-  assert.equal(build.assumptions.elementalSimulationProfile, "reference");
+  assert.equal(build.assumptions.elementalSimulationProfile, "evtc");
   assert.equal(build.assumptions.glyphBoonedElementals, true);
   assert.equal(build.assumptions.startingAttunementPreDwelled, true);
 
-  const evtc = elementalistAppAdapter.toApplicationBuild({
+  const reference = elementalistAppAdapter.toApplicationBuild({
     build: elementalistProfession.createBuildDefaults(),
-    elementalSimulationProfile: "evtc",
+    elementalSimulationProfile: "reference",
     glyphBoonedElementals: false,
   });
-  assert.equal(evtc.assumptions.elementalSimulationProfile, "evtc");
+  assert.equal(reference.assumptions.elementalSimulationProfile, "reference");
 });
 
 test("Flame Barrage replaces the active Glyph and obeys rotation timing", () => {

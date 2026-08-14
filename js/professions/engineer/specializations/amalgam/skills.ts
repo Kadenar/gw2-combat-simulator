@@ -6,20 +6,24 @@
  */
 import { ENGINEER_SKILL_IDS as ID } from "../../data/ids.js";
 import type { SkillFragment } from "../../../../platform/engine/types.js";
-
 const DEMOLISH_QUICKNESS_CAST_TIME_MS = 1000 + 560;
 const DEMOLISH_RECHARGE_OFFSET_MS = 1000;
 const PLASMATIC_STATE_QUICKNESS_CAST_TIME_MS = 480 + 480;
 const PLASMATIC_STATE_RECHARGE_OFFSET_MS = 480;
-
 export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
   Object.freeze({
     [ID.OFFENSIVE_PROTOCOL_SHRED]: {
       implemented: true,
       quicknessCastTimeMs: 760,
       cooldown: 20,
-      finisherType: "Projectile",
-      finisherValue: 1,
+      comboFinishers: [
+        {
+          ownerId: "engineer",
+          finisherType: "Projectile",
+          preferredFieldTypes: ["Fire"],
+          ambiguousFieldSelection: "oldest",
+        },
+      ],
       effects: [
         {
           type: "strike",
@@ -99,17 +103,29 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           intervalMs: 500.4,
           timingAnchor: "castStart",
           timingScale: "cast",
-          metadata: { finisherType: "Whirl", finisherValue: 1 },
           name: "Offensive Protocol: Demolish — Packet 1",
           actorType: "player",
+          comboFinishers: [
+            {
+              ownerId: "engineer",
+              finisherType: "Whirl",
+              ambiguousFieldSelection: "oldest",
+            },
+          ],
         },
         {
           type: "strike",
           coefficient: 2.25,
           hits: 1,
-          metadata: { finisherType: "Blast", finisherValue: 1 },
           name: "Smash Damage",
           actorType: "player",
+          comboFinishers: [
+            {
+              ownerId: "engineer",
+              finisherType: "Blast",
+              ambiguousFieldSelection: "oldest",
+            },
+          ],
         },
       ],
       mechanicSlot: 3,
@@ -244,8 +260,14 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
       implemented: true,
       quicknessCastTimeMs: 760,
       cooldown: 20,
-      finisherType: "Projectile",
-      finisherValue: 1,
+      comboFinishers: [
+        {
+          ownerId: "engineer",
+          finisherType: "Projectile",
+          preferredFieldTypes: ["Fire"],
+          ambiguousFieldSelection: "oldest",
+        },
+      ],
       effects: [
         {
           type: "strike",
@@ -344,17 +366,29 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           intervalMs: 500.4,
           timingAnchor: "castStart",
           timingScale: "cast",
-          metadata: { finisherType: "Whirl", finisherValue: 1 },
           name: "Offensive Protocol: Demolish — Packet 1",
           actorType: "player",
+          comboFinishers: [
+            {
+              ownerId: "engineer",
+              finisherType: "Whirl",
+              ambiguousFieldSelection: "oldest",
+            },
+          ],
         },
         {
           type: "strike",
           coefficient: 2.25,
           hits: 1,
-          metadata: { finisherType: "Blast", finisherValue: 1 },
           name: "Smash Damage",
           actorType: "player",
+          comboFinishers: [
+            {
+              ownerId: "engineer",
+              finisherType: "Blast",
+              ambiguousFieldSelection: "oldest",
+            },
+          ],
         },
       ],
       mechanicSlot: 2,
@@ -374,17 +408,29 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           intervalMs: 500.4,
           timingAnchor: "castStart",
           timingScale: "cast",
-          metadata: { finisherType: "Whirl", finisherValue: 1 },
           name: "Offensive Protocol: Demolish — Packet 1",
           actorType: "player",
+          comboFinishers: [
+            {
+              ownerId: "engineer",
+              finisherType: "Whirl",
+              ambiguousFieldSelection: "oldest",
+            },
+          ],
         },
         {
           type: "strike",
           coefficient: 2.25,
           hits: 1,
-          metadata: { finisherType: "Blast", finisherValue: 1 },
           name: "Smash Damage",
           actorType: "player",
+          comboFinishers: [
+            {
+              ownerId: "engineer",
+              finisherType: "Blast",
+              ambiguousFieldSelection: "oldest",
+            },
+          ],
         },
       ],
       mechanicSlot: 4,
@@ -548,8 +594,14 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
       implemented: true,
       quicknessCastTimeMs: 760,
       cooldown: 20,
-      finisherType: "Projectile",
-      finisherValue: 1,
+      comboFinishers: [
+        {
+          ownerId: "engineer",
+          finisherType: "Projectile",
+          preferredFieldTypes: ["Fire"],
+          ambiguousFieldSelection: "oldest",
+        },
+      ],
       effects: [
         {
           type: "strike",

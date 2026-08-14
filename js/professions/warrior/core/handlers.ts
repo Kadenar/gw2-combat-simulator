@@ -71,9 +71,14 @@ function useCombustiveShot(
   const resource = afterResourceSkill(context, skill);
   const tier = resource.spent >= 30 ? 3 : resource.spent >= 20 ? 2 : 1;
   const pulses = tier + 1;
+  const ownedField = skill.comboFields?.find(
+    (field) => field.ownerId === "warrior",
+  );
   context.replaceEvent(context.action, {
     burstTier: tier,
-    comboFieldDuration: tier * 3,
+    ...(ownedField
+      ? { comboFields: [{ ...ownedField, duration: tier * 3 }] }
+      : {}),
   });
   for (let pulse = 0; pulse < pulses; pulse += 1) {
     const at = context.fullEnd + pulse * 3;

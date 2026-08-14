@@ -39,8 +39,14 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<
         actorType: "summon",
       },
     ],
-    comboField: "Poison",
-    duration: 5,
+    comboFields: [
+      {
+        ownerId: "ranger",
+        fieldType: "Poison",
+        duration: 5,
+        startAnchor: "castEnd",
+      },
+    ],
   },
   [ID.NATURES_BINDING]: {
     implemented: true,
@@ -167,6 +173,13 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<
         hits: 1,
         source: "ranger-pet",
         actorType: "summon",
+        comboFinishers: [
+          {
+            ownerId: "ranger",
+            finisherType: "Blast",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "condition",
@@ -177,8 +190,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<
         actorType: "summon",
       },
     ],
-    finisherType: "Blast",
-    finisherValue: 1,
   },
   [ID.PERILOUS_GIFT]: {
     implemented: true,

@@ -71,9 +71,9 @@ function emitPartyBoon(
 function isBeastSkill(skill: RangerSkill): boolean {
   return Boolean(
     (skill.petSkill && !skill.petFamilySkill) ||
-    (skill.beastmodeSkill &&
-      skill.id !== ID.BEASTMODE &&
-      skill.id !== ID.LEAVE_BEASTMODE),
+      (skill.beastmodeSkill &&
+        skill.id !== ID.BEASTMODE &&
+        skill.id !== ID.LEAVE_BEASTMODE),
   );
 }
 
@@ -353,7 +353,7 @@ export function applyRangerPetSwapTraits(
       triggeredBy: skill.name,
     });
     context.emit({
-      type: "blast_combo",
+      type: "proc",
       at,
       source: "Trait",
       sourceId: TRAIT.CLARION_BOND,
@@ -362,6 +362,13 @@ export function applyRangerPetSwapTraits(
       skillName: "Clarion Bond",
       name: "Lesser Call of the Wild - Blast Finisher",
       triggeredBy: skill.name,
+      comboFinishers: [
+        {
+          ownerId: "ranger",
+          finisherType: "Blast",
+          ambiguousFieldSelection: "oldest",
+        },
+      ],
     });
   }
 }

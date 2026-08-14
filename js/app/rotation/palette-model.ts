@@ -94,6 +94,7 @@ export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
           app.profession?.catalog || app.adapter?.profession?.catalog || null,
         weaponData: app.weaponData,
         weaponSet,
+        weaponBarPreview: true,
       });
     }),
     activeSpecialization(app),
@@ -103,8 +104,12 @@ export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
     if (left.flipSkillId === right.id) return -1;
     if (right.flipSkillId === left.id) return 1;
     const chainOrder =
-      Number(left.chainStep ?? Number.MAX_SAFE_INTEGER) -
-      Number(right.chainStep ?? Number.MAX_SAFE_INTEGER);
+      Number(
+        left.weaponBarChainStep ?? left.chainStep ?? Number.MAX_SAFE_INTEGER,
+      ) -
+      Number(
+        right.weaponBarChainStep ?? right.chainStep ?? Number.MAX_SAFE_INTEGER,
+      );
     return chainOrder || 0;
   });
 }

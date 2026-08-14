@@ -2295,10 +2295,37 @@ test("Relic of Bloodstone explodes on the third blast and grants Fervor", () => 
       },
       {
         id: 930101,
+        name: "Bloodstone Fixture Field",
+        type: "Utility",
+        castTimeMs: 0,
+        comboFields: [
+          {
+            ownerId: "bloodstone-fixture",
+            fieldType: "Light",
+            duration: 5,
+            startAnchor: "castEnd",
+          },
+        ],
+        effects: [],
+      },
+      {
+        id: 930102,
         name: "Bloodstone Fixture Blast",
         type: "Utility",
         castTimeMs: 0,
-        effects: [custom("blast_combo")],
+        effects: [
+          {
+            type: "strike",
+            coefficient: 0,
+            comboFinishers: [
+              {
+                ownerId: "bloodstone-fixture",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+          },
+        ],
       },
     ],
   });
@@ -2315,6 +2342,7 @@ test("Relic of Bloodstone explodes on the third blast and grants Fervor", () => 
   const twoBlasts = simulateGw2({
     profession,
     rotation: [
+      "Bloodstone Fixture Field",
       "Bloodstone Fixture Blast",
       "Bloodstone Fixture Blast",
       { type: "wait", durationMs: 1000 },
@@ -2324,11 +2352,13 @@ test("Relic of Bloodstone explodes on the third blast and grants Fervor", () => 
   const result = simulateGw2({
     profession,
     rotation: [
+      "Bloodstone Fixture Field",
       "Bloodstone Fixture Strike",
       "Bloodstone Fixture Blast",
       "Bloodstone Fixture Blast",
       "Bloodstone Fixture Blast",
       "Bloodstone Fixture Blast",
+      { type: "wait", durationMs: 1 },
       "Bloodstone Fixture Strike",
       { type: "wait", durationMs: 1000 },
     ],
@@ -3055,6 +3085,7 @@ test("obsolete compatibility trees are removed", async () => {
     "necromancer",
     "revenant",
     "thief",
+    "warrior",
   ]) {
     const extension = "ts";
     for (const facade of ["attribute-rules", "resolver", "state", "ui"]) {
@@ -3073,6 +3104,56 @@ test("obsolete compatibility trees are removed", async () => {
     assert.doesNotMatch(
       family,
       /(?:attribute-rules|handlers|mechanics\/contract|resolver|state|ui)\.js/,
+    );
+  }
+});
+
+test("migrated combo professions have no local compatibility path", async () => {
+  const professionsRoot = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../js/professions",
+  );
+  for (const profession of [
+    "elementalist",
+    "engineer",
+    "guardian",
+    "mesmer",
+    "necromancer",
+    "ranger",
+    "revenant",
+    "thief",
+    "warrior",
+  ]) {
+    const root = path.join(professionsRoot, profession);
+    const files = await javascriptFiles(root);
+    const source = (
+      await Promise.all(files.map((file) => readFile(file, "utf8")))
+    ).join("\n");
+
+    assert.doesNotMatch(source, /legacy-combo-adapter/, profession);
+    assert.doesNotMatch(
+      source,
+      /observeLegacyProfessionCombos|legacyComboBindingForOwner/,
+      profession,
+    );
+    assert.doesNotMatch(
+      source,
+      /\bcomboField(?:Duration|StartMs)?\b/,
+      profession,
+    );
+    assert.doesNotMatch(
+      source,
+      /\bfieldDuration\b|\bfinisherValue\b/,
+      profession,
+    );
+    assert.doesNotMatch(
+      source,
+      /blast_combo|blast-combo\.resolved/,
+      profession,
+    );
+    await assert.rejects(
+      readFile(path.join(root, "core", "combos.ts"), "utf8"),
+      (error) => error?.code === "ENOENT",
     );
   }
 });

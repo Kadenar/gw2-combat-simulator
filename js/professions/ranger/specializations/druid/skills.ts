@@ -73,13 +73,18 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<
       {
         type: "control",
         metadata: { controlKind: "daze" },
+        comboFinishers: [
+          {
+            ownerId: "ranger",
+            finisherType: "Blast",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
     ],
     recharge: 8,
     cooldown: 8,
     quicknessCastTimeMs: 500,
-    finisherType: "Blast",
-    finisherValue: 1,
     handlerId: "ranger.celestial-avatar-skill",
   },
   [ID.REJUVENATING_TIDES]: {

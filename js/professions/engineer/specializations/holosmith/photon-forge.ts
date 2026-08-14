@@ -1,24 +1,17 @@
 import { holosmithState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import {
   ENGINEER_SKILL_IDS as ID,
   ENGINEER_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
 import { hasEngineerTrait } from "../../core/state.js";
-import {
-  emitEngineerBarSwap,
-  emitEngineerState,
-} from "../../core/events.js";
+import { emitEngineerBarSwap, emitEngineerState } from "../../core/events.js";
 import {
   HOLOSMITH_CORONA_QUICKNESS_PULSE_OFFSETS_MS,
   HOLOSMITH_HEAT,
   HOLOSMITH_PHOTON_BLITZ_PULSE_OFFSETS_MS,
 } from "./mechanics.js";
-import type {
-  SchedulerRecord,
-} from "../../../../platform/engine/types.js";
+import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import type {
   EngineerCastContext,
   EngineerScheduledTask,
@@ -51,21 +44,20 @@ interface PhotonForgeHeatPayload extends SchedulerRecord {
 const BASE_PASSIVE_HEAT_PER_SECOND = HOLOSMITH_HEAT.basePassivePerSecond;
 const LIGHT_DENSITY_BONUS_HEAT_PER_SECOND =
   HOLOSMITH_HEAT.lightDensityBonusPerSecond;
-const SOLAR_FOCUSING_LENS_DURATION =
-  HOLOSMITH_HEAT.solarFocusingLensDuration;
+const SOLAR_FOCUSING_LENS_DURATION = HOLOSMITH_HEAT.solarFocusingLensDuration;
 const ENHANCED_CAPACITY_HEAT_THRESHOLD =
   HOLOSMITH_HEAT.enhancedCapacityThreshold;
 const PHOTONIC_BLAST_DELAY = HOLOSMITH_HEAT.photonicBlastDelay;
 const CORONA_QUICKNESS_PULSE_OFFSETS_MS =
   HOLOSMITH_CORONA_QUICKNESS_PULSE_OFFSETS_MS;
-const PHOTON_BLITZ_PULSE_OFFSETS_MS =
-  HOLOSMITH_PHOTON_BLITZ_PULSE_OFFSETS_MS;
+const PHOTON_BLITZ_PULSE_OFFSETS_MS = HOLOSMITH_PHOTON_BLITZ_PULSE_OFFSETS_MS;
 
 function passiveHeatRate(context: EngineerSchedulerContext): number {
-  return BASE_PASSIVE_HEAT_PER_SECOND + (
-    hasEngineerTrait(context.config, TRAIT.LIGHT_DENSITY_AMPLIFIER)
+  return (
+    BASE_PASSIVE_HEAT_PER_SECOND +
+    (hasEngineerTrait(context.config, TRAIT.LIGHT_DENSITY_AMPLIFIER)
       ? LIGHT_DENSITY_BONUS_HEAT_PER_SECOND
-      : 0
+      : 0)
   );
 }
 
@@ -90,10 +82,7 @@ function appendHeatSegment(
   });
   state.heat = Math.max(
     0,
-    Math.min(
-      state.maximumHeat,
-      startHeat + (segmentEnd - start) * rate,
-    ),
+    Math.min(state.maximumHeat, startHeat + (segmentEnd - start) * rate),
   );
 }
 
@@ -109,8 +98,8 @@ function coolInactiveForge(
   if (!(target > from)) return;
 
   if (
-    hasEngineerTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE)
-    && !state.overheated
+    hasEngineerTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) &&
+    !state.overheated
   ) {
     appendHeatSegment(segments, state, from, target, 0);
     return;
@@ -118,13 +107,7 @@ function coolInactiveForge(
 
   const slowStart = exit + 3;
   const fastStart = exit + 8;
-  appendHeatSegment(
-    segments,
-    state,
-    from,
-    Math.min(target, slowStart),
-    0,
-  );
+  appendHeatSegment(segments, state, from, Math.min(target, slowStart), 0);
   appendHeatSegment(
     segments,
     state,
@@ -132,33 +115,25 @@ function coolInactiveForge(
     Math.min(target, fastStart),
     -5,
   );
-  appendHeatSegment(
-    segments,
-    state,
-    Math.max(from, fastStart),
-    target,
-    -10,
-  );
+  appendHeatSegment(segments, state, Math.max(from, fastStart), target, -10);
   if (state.heat <= context.epsilon) {
     state.heat = 0;
     state.overheated = false;
   }
 }
 
-function highHeatInterval(
-  segment: HeatSegment,
-): HighHeatInterval | null {
+function highHeatInterval(segment: HeatSegment): HighHeatInterval | null {
   const endHeat =
     segment.startHeat + (segment.end - segment.start) * segment.rate;
   if (segment.rate > 0) {
     if (endHeat <= ENHANCED_CAPACITY_HEAT_THRESHOLD) return null;
     return {
-      start: segment.startHeat > ENHANCED_CAPACITY_HEAT_THRESHOLD
-        ? segment.start
-        : segment.start
-          + (
-            ENHANCED_CAPACITY_HEAT_THRESHOLD - segment.startHeat
-          ) / segment.rate,
+      start:
+        segment.startHeat > ENHANCED_CAPACITY_HEAT_THRESHOLD
+          ? segment.start
+          : segment.start +
+            (ENHANCED_CAPACITY_HEAT_THRESHOLD - segment.startHeat) /
+              segment.rate,
       end: segment.end,
       endsAbove: true,
     };
@@ -167,12 +142,12 @@ function highHeatInterval(
     if (segment.startHeat <= ENHANCED_CAPACITY_HEAT_THRESHOLD) return null;
     return {
       start: segment.start,
-      end: endHeat > ENHANCED_CAPACITY_HEAT_THRESHOLD
-        ? segment.end
-        : segment.start
-          + (
-            segment.startHeat - ENHANCED_CAPACITY_HEAT_THRESHOLD
-          ) / -segment.rate,
+      end:
+        endHeat > ENHANCED_CAPACITY_HEAT_THRESHOLD
+          ? segment.end
+          : segment.start +
+            (segment.startHeat - ENHANCED_CAPACITY_HEAT_THRESHOLD) /
+              -segment.rate,
       endsAbove: endHeat > ENHANCED_CAPACITY_HEAT_THRESHOLD,
     };
   }
@@ -205,12 +180,8 @@ function materializeEnhancedCapacityMight(
   context: EngineerSchedulerContext,
   segments: readonly HeatSegment[],
 ): void {
-  if (
-    !hasEngineerTrait(
-      context.config,
-      TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
-    )
-  ) return;
+  if (!hasEngineerTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT))
+    return;
   const state = holosmithState.from(context);
   let readyAt = state.enhancedCapacityMightReadyAt;
   for (const segment of segments) {
@@ -219,10 +190,7 @@ function materializeEnhancedCapacityMight(
       readyAt = null;
       continue;
     }
-    if (
-      readyAt == null
-      || Number(readyAt) < interval.start - context.epsilon
-    ) {
+    if (readyAt == null || Number(readyAt) < interval.start - context.epsilon) {
       readyAt = interval.start;
     }
     while (Number(readyAt) <= interval.end + context.epsilon) {
@@ -241,13 +209,11 @@ function triggerInstantEnhancedCapacityMight(
 ): void {
   const state = holosmithState.from(context);
   if (
-    !hasEngineerTrait(
-      context.config,
-      TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
-    )
-    || previousHeat > ENHANCED_CAPACITY_HEAT_THRESHOLD
-    || state.heat <= ENHANCED_CAPACITY_HEAT_THRESHOLD
-  ) return;
+    !hasEngineerTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) ||
+    previousHeat > ENHANCED_CAPACITY_HEAT_THRESHOLD ||
+    state.heat <= ENHANCED_CAPACITY_HEAT_THRESHOLD
+  )
+    return;
   emitEnhancedCapacityMight(context, at);
   state.enhancedCapacityMightReadyAt = at + 1;
 }
@@ -272,16 +238,14 @@ function applyToolbeltOverheatPenalty(
 ): void {
   for (const skill of context.catalog.skills) {
     if (
-      !skill.toolbeltParentName
-      || skill.name === "Engage Photon Forge"
-      || skill.name.startsWith("Deactivate Photon Forge")
-    ) continue;
-    const existingReadyAt =
-      Number(context.state.cooldowns.get(skill.id) || 0);
-    if (
-      !penalizeReadySkills
-      && existingReadyAt <= at + context.epsilon
-    ) continue;
+      !skill.toolbeltParentName ||
+      skill.name === "Engage Photon Forge" ||
+      skill.name.startsWith("Deactivate Photon Forge")
+    )
+      continue;
+    const existingReadyAt = Number(context.state.cooldowns.get(skill.id) || 0);
+    if (!penalizeReadySkills && existingReadyAt <= at + context.epsilon)
+      continue;
     const currentReadyAt = Math.max(at, existingReadyAt);
     context.state.cooldowns.set(skill.id, currentReadyAt + seconds);
   }
@@ -321,9 +285,13 @@ function emitOverheatEffects(
     totalHits: 1,
     skillWeapon: "Unequipped",
     explosion: true,
-    blastFinisher: true,
-    finisherType: "Blast",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Blast",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
   });
   context.emit({
     type: "condition",
@@ -339,10 +307,7 @@ function emitOverheatEffects(
   });
 }
 
-function forceOverheat(
-  context: EngineerSchedulerContext,
-  at: number,
-): void {
+function forceOverheat(context: EngineerSchedulerContext, at: number): void {
   const state = holosmithState.from(context);
   const photonicBlastingModule = hasEngineerTrait(
     context.config,
@@ -402,9 +367,9 @@ export function advancePhotonForgeState(
   materializeEnhancedCapacityMight(context, segments);
   state.heatUpdatedAt = target;
   if (
-    state.heat !== previousHeat
-    || state.photonForgeActive !== previousForgeActive
-    || state.overheated !== previousOverheated
+    state.heat !== previousHeat ||
+    state.photonForgeActive !== previousForgeActive ||
+    state.overheated !== previousOverheated
   ) {
     emitEngineerState(context, target, "passive-heat");
   }
@@ -458,16 +423,10 @@ function scheduleHeatPulse(
   });
 }
 
-function applyHeat(
-  context: EngineerCastContext,
-  skill: EngineerSkill,
-): void {
+function applyHeat(context: EngineerCastContext, skill: EngineerSkill): void {
   const state = holosmithState.from(context);
   if (!state.photonForgeActive || !(Number(skill.heatGain) > 0)) return;
-  const elapsedMs = Math.max(
-    0,
-    (context.effectiveEnd - context.start) * 1000,
-  );
+  const elapsedMs = Math.max(0, (context.effectiveEnd - context.start) * 1000);
   if (skill.name === "Corona Burst") {
     const offsets = CORONA_QUICKNESS_PULSE_OFFSETS_MS;
     if (elapsedMs + context.epsilon * 1000 < offsets[0]) return;
@@ -485,12 +444,7 @@ function applyHeat(
   if (skill.name === "Photon Blitz") {
     for (const offsetMs of PHOTON_BLITZ_PULSE_OFFSETS_MS) {
       if (offsetMs > elapsedMs + context.epsilon * 1000) break;
-      scheduleHeatPulse(
-        context,
-        skill,
-        context.start + offsetMs / 1000,
-        2,
-      );
+      scheduleHeatPulse(context, skill, context.start + offsetMs / 1000, 2);
     }
     return;
   }
@@ -508,10 +462,8 @@ export function handlePhotonForgeHeat(
   task: EngineerScheduledTask<PhotonForgeHeatPayload>,
 ): void {
   const state = holosmithState.from(context);
-  if (
-    !state.photonForgeActive
-    && task.payload?.persistsOutsideForge !== true
-  ) return;
+  if (!state.photonForgeActive && task.payload?.persistsOutsideForge !== true)
+    return;
   const previousHeat = state.heat;
   state.heat = Math.min(
     state.maximumHeat,
@@ -530,9 +482,7 @@ export function triggerThermalReleaseValve(
   skill: EngineerSkill,
   at: number,
 ): void {
-  if (
-    !hasEngineerTrait(context.config, TRAIT.THERMAL_RELEASE_VALVE)
-  ) return;
+  if (!hasEngineerTrait(context.config, TRAIT.THERMAL_RELEASE_VALVE)) return;
   const state = holosmithState.from(context);
   context.emit({
     type: "buff",
@@ -548,15 +498,11 @@ export function triggerThermalReleaseValve(
     stacks: 1,
   });
   if (
-    state.heat <= 0
-    || (
-      hasEngineerTrait(
-        context.config,
-        TRAIT.PHOTONIC_BLASTING_MODULE,
-      )
-      && !state.overheated
-    )
-  ) return;
+    state.heat <= 0 ||
+    (hasEngineerTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) &&
+      !state.overheated)
+  )
+    return;
 
   context.emit({
     type: "damage",
@@ -604,9 +550,10 @@ export function handleHolosmithKitEquip(
   skill: EngineerSkill,
 ): void {
   if (
-    skill.handlerId !== "engineer.kit-equip"
-    || !holosmithState.from(context).photonForgeActive
-  ) return;
+    skill.handlerId !== "engineer.kit-equip" ||
+    !holosmithState.from(context).photonForgeActive
+  )
+    return;
   const at = context.effectiveEnd;
   holosmithState.from(context).photonForgeActive = false;
   holosmithState.from(context).forgeExitedAt = at;
@@ -618,16 +565,13 @@ export function observeHolosmithScheduledEvent(
   event: EngineerSimulationEvent,
 ): void {
   if (
-    event.type === "engineer.radiant-arc-quickness"
-    || event.type === "engineer.refraction-cutter-extra-blades"
+    event.type === "engineer.radiant-arc-quickness" ||
+    event.type === "engineer.refraction-cutter-extra-blades"
   ) {
     const heat = Number(holosmithState.from(context).heat || 0);
     const enhancedCapacityTier =
-      heat >= 100
-      && hasEngineerTrait(
-        context.config,
-        TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
-      );
+      heat >= 100 &&
+      hasEngineerTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT);
     if (event.type === "engineer.radiant-arc-quickness") {
       context.replaceEvent(event, {
         duration: enhancedCapacityTier ? 6 : heat > 50 ? 4 : 2,
@@ -640,18 +584,20 @@ export function observeHolosmithScheduledEvent(
     return;
   }
   if (
-    context.config.specialization !== "Holosmith"
-    || event.type !== "damage"
-    || event.actorType !== "player"
-    || !(Number(event.coefficient) > 0)
-    || !hasEngineerTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)
-  ) return;
+    context.config.specialization !== "Holosmith" ||
+    event.type !== "damage" ||
+    event.actorType !== "player" ||
+    !(Number(event.coefficient) > 0) ||
+    !hasEngineerTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)
+  )
+    return;
   const state = holosmithState.from(context);
   if (
-    Number(state.solarFocusingLensStacks || 0) <= 0
-    || event.at < Number(state.solarFocusingLensReadyAt || 0) - context.epsilon
-    || event.at > Number(state.solarFocusingLensUntil || 0) + context.epsilon
-  ) return;
+    Number(state.solarFocusingLensStacks || 0) <= 0 ||
+    event.at < Number(state.solarFocusingLensReadyAt || 0) - context.epsilon ||
+    event.at > Number(state.solarFocusingLensUntil || 0) + context.epsilon
+  )
+    return;
 
   state.solarFocusingLensStacks -= 1;
   context.replaceEvent(event, { solarFocusingLens: true });

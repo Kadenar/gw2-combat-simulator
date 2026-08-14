@@ -52,71 +52,6 @@ function attackerInsightFromBoonRemoval(
   return { attempted, removed, applications: removed };
 }
 
-function activeComboField(
-  context: WarriorSchedulerContext,
-  type: string,
-  at: number,
-): boolean {
-  return context.events.some((event) => {
-    if (
-      event.type !== "action" ||
-      event.cancelled === true ||
-      Number(event.endsAt) > at + context.epsilon ||
-      event.skillId == null
-    ) {
-      return false;
-    }
-    const field = context.catalog.skillsById.get(event.skillId);
-    return (
-      String(field?.comboField || "").toLowerCase() === type.toLowerCase() &&
-      Number(field?.duration || 0) > 0 &&
-      Number(event.endsAt) + Number(field?.duration || 0) >=
-        at - context.epsilon
-    );
-  });
-}
-
-function emitLightningLeapDaze(
-  context: WarriorSchedulerContext,
-  event: WarriorSimulationEvent,
-): void {
-  if (
-    event.type !== "damage" ||
-    event.actorType !== "player" ||
-    !(Number(event.coefficient) > 0) ||
-    event.skillId == null
-  ) {
-    return;
-  }
-  const skill = context.catalog.skillsById.get(event.skillId);
-  const finisherType = String(
-    event.finisherType || skill?.finisherType || "",
-  ).toLowerCase();
-  const finisherValue = Number(
-    event.finisherValue ?? skill?.finisherValue ?? 0,
-  );
-  if (
-    finisherType !== "leap" ||
-    finisherValue <= 0 ||
-    !activeComboField(context, "Lightning", event.at)
-  ) {
-    return;
-  }
-  context.emitDerived(event, {
-    type: "control",
-    at: event.at,
-    source: "Combo",
-    sourceId: "warrior.combo.lightning-leap",
-    actorType: "player",
-    skillId: event.skillId,
-    skillName: "Dazing Strike",
-    parentSkillName: event.skillName,
-    name: "Dazing Strike",
-    controlKind: "daze",
-    duration: 1,
-  });
-}
-
 function triggerMagebaneTether(
   context: WarriorSchedulerContext | WarriorResolverContext,
   state: {
@@ -179,7 +114,6 @@ export function observeSpellbreakerEvent(
   if (event.type !== "damage" || !(Number(event.coefficient) > 0)) {
     return;
   }
-  emitLightningLeapDaze(context, event);
   if (!hasTrait(context, TRAIT.MAGEBANE_TETHER)) return;
   const skill =
     event.skillId == null

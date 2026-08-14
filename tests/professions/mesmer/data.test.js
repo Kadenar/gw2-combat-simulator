@@ -521,8 +521,19 @@ test("Lingering Thoughts models the supplied clone, packets, conditions, and fin
   assert.equal(skill.cooldown, 0.25);
   assert.equal(skill.ammo, 2);
   assert.equal(skill.ammoRecharge, 6);
-  assert.equal(skill.finisherType, "Whirl");
-  assert.equal(skill.finisherValue, 2);
+  assert.deepEqual(skill.comboFinishers, [
+    {
+      ownerId: "mesmer",
+      finisherType: "Whirl",
+      applications: 2,
+      ambiguousFieldSelection: "oldest",
+      attemptGroup: "skill",
+      chance: 1,
+      attempts: 1,
+      effectDelay: 0,
+      successfulCombos: 1,
+    },
+  ]);
   assert.deepEqual(skill.resource, {
     mode: "add",
     count: 1,

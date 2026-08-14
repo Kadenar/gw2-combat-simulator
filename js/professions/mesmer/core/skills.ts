@@ -64,8 +64,14 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    comboField: "Ethereal",
-    duration: 5,
+    comboFields: [
+      {
+        ownerId: "mesmer",
+        fieldType: "Ethereal",
+        duration: 5,
+        startAnchor: "castEnd",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -1466,8 +1472,14 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     cooldown: 0.25,
     ammo: 2,
     ammoRecharge: 6,
-    finisherType: "Whirl",
-    finisherValue: 2,
+    comboFinishers: [
+      {
+        ownerId: "mesmer",
+        finisherType: "Whirl",
+        applications: 2,
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     phantasm: false,
     resource: {
       mode: "add",

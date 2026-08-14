@@ -6,7 +6,6 @@ export function createBerserkerState(): BerserkerState {
     berserkActive: false,
     berserkUntil: 0,
     fireAuraUntil: 0,
-    fireProjectileFinisherProgress: 0,
     kingOfFiresReadyAt: 0,
     kingOfFiresCriticalProgress: 0,
   };

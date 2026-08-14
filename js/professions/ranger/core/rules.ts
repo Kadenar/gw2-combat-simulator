@@ -19,7 +19,6 @@ import {
   observeRangerPetEvent,
   rangerPetTaskHandlers,
 } from "./pets.js";
-import { observeRangerComboFinisher } from "./combos.js";
 import type {
   SimulationEvent,
   SkillId,
@@ -48,7 +47,6 @@ export const rangerCoreSchedulerHooks = Object.freeze({
     order: 10,
     handler(context: RangerSchedulerContext, event: SimulationEvent): void {
       observeRangerPetEvent(context, event);
-      observeRangerComboFinisher(context, event);
     },
   },
   taskHandlers: rangerPetTaskHandlers,
@@ -99,14 +97,15 @@ function beastmodeActive(context: Gw2ModifierContext): boolean {
   )?.profession;
   return Boolean(
     profession?.specialization?.kind === "Soulbeast" &&
-    profession.specialization.state?.beastmodeActive,
+      profession.specialization.state?.beastmodeActive,
   );
 }
 
 function soulbeastSpecialization(context: Gw2ModifierContext): boolean {
   const profession = (
     context.runtime as
-      { profession?: { specialization?: { kind?: string } } } | undefined
+      | { profession?: { specialization?: { kind?: string } } }
+      | undefined
   )?.profession;
   return (
     profession?.specialization?.kind === "Soulbeast" ||
@@ -249,7 +248,8 @@ function openingStrikeReady(context: Gw2ModifierContext): boolean {
 function activePetFamily(context: Gw2ModifierContext): string {
   const activePet = (
     context.runtime as
-      { profession?: { core?: { activePet?: string } } } | undefined
+      | { profession?: { core?: { activePet?: string } } }
+      | undefined
   )?.profession?.core?.activePet;
   return rangerPetByName(
     String(activePet || context.config?.selectedPet || "Pig"),
@@ -278,7 +278,8 @@ function petArchetype(context: Gw2ModifierContext, active: boolean): string {
   const configured = active
     ? (
         context.runtime as
-          { profession?: { core?: { activePet?: string } } } | undefined
+          | { profession?: { core?: { activePet?: string } } }
+          | undefined
       )?.profession?.core?.activePet || context.config?.selectedPet
     : context.config?.selectedPet;
   return rangerPetByName(String(configured || "Pig")).archetype;
@@ -504,8 +505,8 @@ function modifyRangerConditionBaseDuration(
 function positional(context: Gw2ModifierContext): boolean {
   return Boolean(
     context.config?.target?.behind ||
-    context.config?.target?.flanking ||
-    context.config?.target?.defiant,
+      context.config?.target?.flanking ||
+      context.config?.target?.defiant,
   );
 }
 
@@ -723,9 +724,9 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
           String(context.event?.damageKind || "").startsWith(
             "ranger-unleashed-disabled",
           ) &&
-          (context.config?.target?.defiant ||
-            context.config?.target?.disabled ||
-            context.config?.target?.defianceBroken),
+            (context.config?.target?.defiant ||
+              context.config?.target?.disabled ||
+              context.config?.target?.defianceBroken),
         ),
     },
     {
@@ -737,8 +738,8 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
         context.event?.damageKind === "ranger-pounce-defiant" &&
         Boolean(
           context.config?.target?.defiant ||
-          context.config?.target?.disabled ||
-          context.config?.target?.defianceBroken,
+            context.config?.target?.disabled ||
+            context.config?.target?.defianceBroken,
         ),
     },
     {

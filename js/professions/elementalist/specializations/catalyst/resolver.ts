@@ -74,24 +74,7 @@ export function applyViciousEmpowerment(
   context.recordProc("trait", "Vicious Empowerment", event.at, event.skillName);
 }
 
-function activeComboFieldType(context: Gw2ResolverRuntime, at: number): string {
-  const profession = context.profession as {
-    core?: {
-      activeComboFields?: readonly {
-        type: string;
-        startsAt: number;
-        expiresAt: number;
-      }[];
-    };
-  };
-  return String(
-    profession.core?.activeComboFields?.find(
-      (field) => field.startsAt <= at && field.expiresAt > at,
-    )?.type || "",
-  );
-}
-
-function applySteamshrieker(
+export function applySteamshrieker(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
 ): void {
@@ -99,7 +82,7 @@ function applySteamshrieker(
     event.actorType !== "player" ||
     context.config.relic !== "Steamshrieker" ||
     !["Blast", "Leap"].includes(String(event.finisherType || "")) ||
-    activeComboFieldType(context, event.at) !== "Water"
+    event.fieldType !== "Water"
   ) {
     return;
   }
@@ -165,7 +148,6 @@ export function applyCatalystResolvedDamage(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
 ): void {
-  applySteamshrieker(context, event);
   const state = catalystState.from(context);
   if (
     event.actorType !== "player" ||

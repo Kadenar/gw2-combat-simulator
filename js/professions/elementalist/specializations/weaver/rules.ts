@@ -19,6 +19,14 @@ function availability(
   context: CastContext<SchedulerRecord>,
   skill: Skill,
 ): AvailabilityResult {
+  if (skill.name === "Unravel" && !hasTrait(context, "Elements of Rage")) {
+    return {
+      ready: false,
+      retryAt: null,
+      code: "elementalist.weaver-elements-of-rage",
+      reason: `${skill.name} is unavailable — requires Elements of Rage.`,
+    };
+  }
   if (skill.name !== "Tailored Victory") return { ready: true };
   const state = weaverState.from(context);
   return state.perfectWeaveUntil > context.start + context.epsilon
@@ -72,6 +80,21 @@ function onCastComplete(
     const previousSecondary = core.secondaryAttunement;
     core.secondaryAttunement = core.primaryAttunement;
     core.unravelUntil = at + 5;
+    core.attunementEnteredAt = at;
+    context.emit({
+      type: "elementalist.attunement",
+      at,
+      priority: -20,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: "player",
+      skillId: skill.id,
+      skillName: skill.name,
+      from: previousPrimary,
+      fromSecondaryAttunement: previousSecondary,
+      to: core.primaryAttunement,
+      secondaryAttunement: core.secondaryAttunement,
+    });
     for (const attunement of Object.keys(core.attunementReadyAt)) {
       setElementalistAttunementReadyAt(
         context,
@@ -118,6 +141,18 @@ function afterCast(
   context: CastLifecycleContext<SchedulerRecord>,
   skill: Skill,
 ): void {
+  if (skill.name === "Unravel") {
+    const core = elementalistCoreState(context as unknown as SchedulerRecord);
+    core.unravelUntil = context.effectiveEnd + 5;
+    for (const attunement of Object.keys(core.attunementReadyAt)) {
+      setElementalistAttunementReadyAt(
+        context,
+        attunement as keyof typeof core.attunementReadyAt,
+        context.effectiveEnd,
+      );
+    }
+    return;
+  }
   if (!skill.name.startsWith("Primordial Stance")) return;
   const tickTimes = new Set<number>();
   for (const event of context.events) {

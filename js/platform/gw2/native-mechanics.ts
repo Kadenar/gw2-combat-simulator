@@ -144,6 +144,42 @@ export function onBuffApplied<
   return resolvedReaction("buff.applied", declaration);
 }
 
+export function onComboResolved<
+  TContext extends Gw2ResolverRuntime,
+  TEvent extends Gw2ResolverEvent,
+  TDetails extends object = object,
+>(
+  declaration: Readonly<{
+    id: string;
+    order?: number;
+    handler: (
+      context: TContext,
+      event: TEvent,
+      details?: TDetails,
+    ) => object | void;
+  }>,
+): NativeResolvedReaction<TContext, TEvent, TDetails> {
+  return resolvedReaction("combo.resolved", declaration);
+}
+
+export function onAuraApplied<
+  TContext extends Gw2ResolverRuntime,
+  TEvent extends Gw2ResolverEvent,
+  TDetails extends object = object,
+>(
+  declaration: Readonly<{
+    id: string;
+    order?: number;
+    handler: (
+      context: TContext,
+      event: TEvent,
+      details?: TDetails,
+    ) => object | void;
+  }>,
+): NativeResolvedReaction<TContext, TEvent, TDetails> {
+  return resolvedReaction("aura.applied", declaration);
+}
+
 export function onFoodProcCreated<
   TContext extends Gw2ResolverRuntime,
   TEvent extends Gw2ResolverEvent,

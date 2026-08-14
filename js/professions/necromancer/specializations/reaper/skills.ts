@@ -171,6 +171,14 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
+        comboFinishers: [
+          {
+            ownerId: "necromancer",
+            finisherType: "Whirl",
+            applications: 4,
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
         ticks: [
           { atMs: 240, coefficient: 0.7 },
           { atMs: 440, coefficient: 0.7 },
@@ -224,6 +232,9 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 4,
         hits: 1,
+        comboFields: [
+          { ownerId: "necromancer", fieldType: "Ice", duration: 4 },
+        ],
         atMs: 1260,
         timingAnchor: "castStart",
         timingScale: "cast",
@@ -271,7 +282,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
     shroud: "reaper",
     shroudSlot: 5,
     specialization: "Reaper",
-    handlerId: "necromancer.executioners-scythe",
   },
   [ID.SUFFER]: {
     implemented: true,

@@ -2,6 +2,7 @@ import { defineNativeModule } from "../../../../platform/gw2/native-profession.j
 import { createElementalistModuleData } from "../../catalog-data.js";
 import { weaverCastRules, weaverSchedulerHooks } from "./rules.js";
 import { createWeaverState } from "./state.js";
+import { weaverUi } from "./ui.js";
 
 export const weaverModule = defineNativeModule({
   id: "Weaver",
@@ -11,4 +12,5 @@ export const weaverModule = defineNativeModule({
     castRules: weaverCastRules,
     schedulerHooks: weaverSchedulerHooks,
   },
+  presentation: weaverUi,
 });

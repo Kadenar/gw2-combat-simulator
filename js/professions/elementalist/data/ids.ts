@@ -29,6 +29,10 @@ export const ELEMENTALIST_JADE_SPHERE_SKILL_IDS = Object.freeze({
   Earth: elementalistSkillId("Deploy Jade Sphere (Earth)"),
 });
 
+export const ELEMENTALIST_WEAVER_SKILL_IDS = Object.freeze({
+  Unravel: elementalistSkillId("Unravel"),
+});
+
 export const ELEMENTALIST_FAMILIAR_SKILL_IDS = Object.freeze({
   Ignite: elementalistSkillId("Ignite"),
   Conflagration: elementalistSkillId("Conflagration"),

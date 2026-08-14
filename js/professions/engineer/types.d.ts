@@ -57,7 +57,8 @@ export interface EngineerConfig extends Gw2Config {
   readonly professionAssumptions?: ProfessionBuildAssumptions;
   readonly selectedMorphSkillIds?: readonly number[];
   readonly selectedSkills?:
-    readonly string[] | Readonly<Record<string, string>>;
+    | readonly string[]
+    | Readonly<Record<string, string>>;
 }
 
 export interface EngineerMechAttributes extends SchedulerRecord {
@@ -81,22 +82,11 @@ export interface EngineerMechState extends SchedulerRecord {
   attributes: EngineerMechAttributes | null;
 }
 
-export interface EngineerComboField extends SchedulerRecord {
-  readonly startsAt: number;
-  readonly expiresAt: number;
-  readonly fieldType?: string;
-  readonly skillId?: SkillId | null;
-  readonly skillName?: string;
-}
-
 export interface EngineerCoreState {
   endurance: number;
   maximumEndurance: number;
   enduranceUpdatedAt: number;
   activeKit: string;
-  fireProjectileFinisherProgress: number;
-  completedBlastFinisherActivations: Record<string, boolean>;
-  activeComboFields: EngineerComboField[];
   availableFlips: Record<string, boolean>;
   autoattackChains: Record<string, SkillId>;
   focusedUntil: number;
@@ -143,8 +133,7 @@ export interface AmalgamState {
 }
 
 export interface EngineerState
-  extends
-    EngineerCoreState,
+  extends EngineerCoreState,
     ScrapperState,
     HolosmithState,
     MechanistState,
@@ -161,10 +150,7 @@ export interface EngineerRuntimeState {
 }
 
 export interface EngineerSkill extends Skill {
-  readonly comboField?: string;
   readonly duration?: number;
-  readonly finisherType?: string;
-  readonly finisherValue?: number;
   readonly forgeSkill?: boolean;
   readonly heatGain?: number;
   readonly kit?: string | boolean;
@@ -212,8 +198,6 @@ export type EngineerSimulationEvent = SimulationEvent & {
   readonly expiresAt?: number;
   readonly extraBlades?: number;
   readonly fieldType?: string;
-  readonly finisherType?: string;
-  readonly finisherValue?: number;
   readonly mechBasicAttack?: boolean;
   readonly skillWeapon?: string;
   readonly solarFocusingLens?: boolean;
@@ -233,7 +217,6 @@ export type EngineerResolverEvent = Gw2ResolverEvent & {
   readonly application?: Gw2ResolverEvent & {
     readonly engineerMech?: boolean;
   };
-  readonly blastFinisher?: boolean;
   readonly charges?: number;
   readonly damageKind?: string;
   readonly engineerMech?: boolean;
@@ -242,8 +225,6 @@ export type EngineerResolverEvent = Gw2ResolverEvent & {
   readonly expiresAt?: number;
   readonly extraBlades?: number;
   readonly fieldType?: string;
-  readonly finisherType?: string;
-  readonly finisherValue?: number;
   readonly hitIndex?: number;
   readonly mechBasicAttack?: boolean;
   readonly projectile?: boolean;

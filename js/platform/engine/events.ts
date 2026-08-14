@@ -3,15 +3,17 @@
  * Professions may add custom types, but every event crossing the boundary must
  * still satisfy this base shape.
  */
-import type {
-  SimulationActorType,
-  SimulationEvent,
-} from "./types.js";
+import type { SimulationActorType, SimulationEvent } from "./types.js";
 
 export const EVENT_SCHEMA_VERSION = 1 as const;
 
-const ACTOR_TYPES: ReadonlySet<SimulationActorType> =
-  new Set(["player", "summon", "effect", "unknown", "phantasm"]);
+const ACTOR_TYPES: ReadonlySet<SimulationActorType> = new Set([
+  "player",
+  "summon",
+  "effect",
+  "unknown",
+  "phantasm",
+]);
 const LEGACY_EVENT_TYPES = new Set([
   "boon",
   "cooldown_snapshot",
@@ -31,6 +33,10 @@ function isFiniteNumber(value: unknown): value is number {
  */
 export const COMMON_EVENT_TYPES = Object.freeze([
   "action",
+  "aura",
+  "combo",
+  "combo_field",
+  "combo_finisher",
   "combat_start",
   "damage",
   "condition",
@@ -43,7 +49,6 @@ export const COMMON_EVENT_TYPES = Object.freeze([
   "marker",
   "resource",
   "buff",
-  "blast_combo",
   "weakness_vulnerability",
   "peitha",
 ]);
@@ -55,9 +60,7 @@ const COMMON_EVENT_TYPE_SET = new Set(COMMON_EVENT_TYPES);
  * @param {unknown} candidate
  * @returns {SimulationEvent}
  */
-export function assertSimulationEvent(
-  candidate: unknown,
-): SimulationEvent {
+export function assertSimulationEvent(candidate: unknown): SimulationEvent {
   if (!candidate || typeof candidate !== "object") {
     throw new TypeError("Simulation event must be an object.");
   }
@@ -119,10 +122,7 @@ export function assertSimulationEvent(
     throw new Error("Event weaponStrength must be finite.");
   }
   if (event.type === "damage") {
-    if (
-      event.didCrit !== undefined &&
-      typeof event.didCrit !== "boolean"
-    ) {
+    if (event.didCrit !== undefined && typeof event.didCrit !== "boolean") {
       throw new Error("Damage event didCrit must be boolean.");
     }
     const hasDamageValue = [

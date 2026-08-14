@@ -886,6 +886,9 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 4.800000000000001,
         hits: 6,
+        comboFields: [
+          { ownerId: "necromancer", fieldType: "Dark", duration: 5 },
+        ],
         atMs: 420,
         intervalMs: 1000,
         intervalTimingScale: "fixed",
@@ -1585,6 +1588,9 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 4.6,
         hits: 4,
+        comboFields: [
+          { ownerId: "necromancer", fieldType: "Dark", duration: 3 },
+        ],
         atMs: 600,
         intervalMs: 1000,
         intervalTimingScale: "fixed",
@@ -1652,6 +1658,14 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 3.6,
         hits: 1,
+        comboFinishers: [
+          {
+            ownerId: "necromancer",
+            finisherType: "Whirl",
+            applications: 3,
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
         atMs: 1260,
         timingAnchor: "castStart",
         timingScale: "cast",
@@ -1681,6 +1695,14 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 3,
         hits: 1,
+        comboFinishers: [
+          {
+            ownerId: "necromancer",
+            finisherType: "Whirl",
+            applications: 2,
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "strike",
@@ -1903,8 +1925,14 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.WEEPING_SHOTS]: {
     implemented: true,
     quicknessCastTimeMs: 840,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "necromancer",
+        finisherType: "Projectile",
+        chance: 0.2,
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -1947,8 +1975,14 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.VICIOUS_SHOT]: {
     implemented: true,
     quicknessCastTimeMs: 600,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "necromancer",
+        finisherType: "Projectile",
+        chance: 0.2,
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -2188,6 +2222,14 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 3.8,
         hits: 1,
+        comboFinishers: [
+          {
+            ownerId: "necromancer",
+            finisherType: "Whirl",
+            applications: 3,
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
         atMs: 1140,
         timingAnchor: "castStart",
         timingScale: "cast",

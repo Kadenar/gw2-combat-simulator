@@ -1,7 +1,5 @@
 import { conduitState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 /**
  * Conduit and Legendary Entity runtime mechanics.
  *
@@ -103,28 +101,6 @@ function hasTrait(
   return hasRevenantTrait(context.config, traitId);
 }
 
-function activeComboField(
-  context: RevenantCastContext,
-  type: string,
-  at: number,
-): boolean {
-  return context.events.some(event => {
-    if (
-      event.type !== "action" ||
-      event.cancelled === true ||
-      Number(event.endsAt) > at + context.epsilon
-    ) return false;
-    const field = event.skillId == null
-      ? undefined
-      : context.catalog.skillsById.get(event.skillId);
-    return (
-      field?.comboField === type &&
-      Number(event.endsAt) + Number(field.duration || 0) >=
-        at - context.epsilon
-    );
-  });
-}
-
 function effectiveAffinity(context: RevenantSchedulerContext): number {
   const bonus = hasTrait(context, TRAIT.KINETIC_INSIGHT) ? 2 : 0;
   return Math.min(
@@ -133,10 +109,7 @@ function effectiveAffinity(context: RevenantSchedulerContext): number {
   );
 }
 
-function targetsHit(
-  context: RevenantCastContext,
-  maximum = 5,
-): number {
+function targetsHit(context: RevenantCastContext, maximum = 5): number {
   return Math.max(
     1,
     Math.min(
@@ -153,9 +126,7 @@ function targetsHit(
   );
 }
 
-function activeWeapon(
-  context: RevenantSchedulerContext,
-): string | undefined {
+function activeWeapon(context: RevenantSchedulerContext): string | undefined {
   return Number(context.state.activeWeaponSet) === 2
     ? context.config.weaponSet2Primary
     : context.config.primaryWeapon;
@@ -242,13 +213,8 @@ export function emitLesserEnchantedDaggers(
   sourceSkill: RevenantSkill,
   at: number,
 ): void {
-  if (
-    !revenantConduitFormIsActive(
-      conduitState.from(context),
-      "Assassin",
-      at,
-    )
-  ) return;
+  if (!revenantConduitFormIsActive(conduitState.from(context), "Assassin", at))
+    return;
   const skill = context.catalog.skillsById.get(ID.LESSER_ENCHANTED_DAGGERS);
   if (!skill) return;
   context.emit({
@@ -262,8 +228,7 @@ export function emitLesserEnchantedDaggers(
     icon: skill.icon || "",
     name: "Lesser Enchanted Daggers",
     coefficient:
-      MECHANICS.conduit.formOfTheAssassin
-        .lesserEnchantedDaggersCoefficient,
+      MECHANICS.conduit.formOfTheAssassin.lesserEnchantedDaggersCoefficient,
     hits: 1,
     hitIndex: 1,
     totalHits: 1,
@@ -280,26 +245,20 @@ export function applyCosmicWisdomAfterCast(
   const at = context.effectiveEnd;
   if (
     skill.legendId === LEGEND.ASSASSIN &&
-    revenantConduitFormIsActive(
-      conduitState.from(context),
-      "Assassin",
-      at,
-    )
+    revenantConduitFormIsActive(conduitState.from(context), "Assassin", at)
   ) {
     emitLesserEnchantedDaggers(context, skill, at);
   }
   if (
     skill.legendId !== LEGEND.ENTITY ||
-    !revenantConduitFormIsActive(
-      conduitState.from(context),
-      "Dervish",
-      at,
-    )
-  ) return;
+    !revenantConduitFormIsActive(conduitState.from(context), "Dervish", at)
+  )
+    return;
   emitDervishFormAttack(context, skill);
   if (
-    ([ID.TWIN_MOON_SWEEP, ID.TWIN_MOON_SWEEP_ID_77001] as readonly number[])
-      .includes(Number(skill.id))
+    (
+      [ID.TWIN_MOON_SWEEP, ID.TWIN_MOON_SWEEP_ID_77001] as readonly number[]
+    ).includes(Number(skill.id))
   ) {
     emitDervishFormAttack(context, skill, { elite: true });
   }
@@ -379,19 +338,13 @@ export function gainConduitAffinity(
     );
   }
   if (state.affinity !== previous) {
-    emitRevenantState(
-      context,
-      context.start ?? context.state.time,
-      reason,
-    );
+    emitRevenantState(context, context.start ?? context.state.time, reason);
   }
   return state.affinity - previous;
 }
 
 /** Refreshes Conduit-owned Energy overrides for the active cosmic form. */
-export function syncConduitEnergyCostOverrides(
-  state: ConduitState,
-): void {
+export function syncConduitEnergyCostOverrides(state: ConduitState): void {
   if (state.conduitForm !== "Mesmer") {
     state.energyCostOverrides = {};
     return;
@@ -399,8 +352,7 @@ export function syncConduitEnergyCostOverrides(
   const profile = MECHANICS.conduit.formOfTheMesmer;
   state.energyCostOverrides = {
     [ID.BANISH_ENCHANTMENT]: profile.banishEnchantmentEnergyCost,
-    [ID.BANISH_ENCHANTMENT_ID_78587]:
-      profile.banishEnchantmentEnergyCost,
+    [ID.BANISH_ENCHANTMENT_ID_78587]: profile.banishEnchantmentEnergyCost,
     [ID.CALL_TO_ANGUISH]: profile.callToAnguishEnergyCost,
     [ID.UNYIELDING_IMPACT]: profile.unyieldingImpactEnergyCost,
     [ID.EMBRACE_THE_DARKNESS]: profile.embraceTheDarknessEnergyCost,
@@ -452,9 +404,9 @@ export function castBeguilingHaze(
   const profile = MECHANICS.conduit.beguilingHaze;
   const state = conduitState.from(context);
   const followUp = Number(state.beguilingHazeCharges || 0) > 0;
-  const at = context.start + (followUp
-    ? profile.followUpImpactDelay
-    : profile.mainImpactDelay);
+  const at =
+    context.start +
+    (followUp ? profile.followUpImpactDelay : profile.mainImpactDelay);
   if (followUp) {
     state.beguilingHazeCharges -= 1;
     emitDamage(context, skill, {
@@ -554,8 +506,7 @@ export function castHexEaterVortex(
     state.selfConditions.splice(0, conditionsRemoved - configuredRemoved);
   }
   for (let index = 0; index < projectileCount; index += 1) {
-    const projectileAt =
-      context.start + profile.projectileDelays[index];
+    const projectileAt = context.start + profile.projectileDelays[index];
     emitDamage(context, skill, {
       at: projectileAt,
       coefficient: profile.projectileCoefficient,
@@ -680,17 +631,6 @@ export function castTwinMoonSweep(
       });
     }
   }
-  if (activeComboField(context, "Fire", at)) {
-    for (let index = 0; index < profile.burningBolts; index += 1) {
-      emitCondition(context, skill, {
-        at: at + profile.burningBoltDelay,
-        condition: "Burning",
-        stacks: 1,
-        duration: profile.burningBoltDuration,
-        name: `Twin Moon Sweep — Burning Bolts ${index + 1}`,
-      });
-    }
-  }
   if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
     for (let index = 0; index < profile.packets; index += 1) {
       emitRevenantBoon(
@@ -716,10 +656,10 @@ export function castReleasePotential(
   const affinity = effectiveAffinity(context);
   const allLegendEffects =
     affinity >= MECHANICS.conduit.allReleaseEffectsAffinity;
-  const releaseProfiles =
-    MECHANICS.conduit.releasePotential as unknown as Readonly<
-      Record<SkillId, ReleasePotentialProfile>
-    >;
+  const releaseProfiles = MECHANICS.conduit
+    .releasePotential as unknown as Readonly<
+    Record<SkillId, ReleasePotentialProfile>
+  >;
   const profile = releaseProfiles[skill.id];
   if (!profile) return;
   switch (skill.id) {
@@ -805,11 +745,13 @@ export function castReleasePotential(
     case ID.RELEASE_POTENTIAL_ASSASSIN:
       for (let index = 0; index < profile.hits; index += 1) {
         emitDamage(context, skill, {
-          at: context.start + Number(
-            profile.hitDelays?.[index] ??
-              ((context.effectiveEnd - context.start) * (index + 1)) /
-                profile.hits,
-          ),
+          at:
+            context.start +
+            Number(
+              profile.hitDelays?.[index] ??
+                ((context.effectiveEnd - context.start) * (index + 1)) /
+                  profile.hits,
+            ),
           coefficient: profile.coefficientPerHit,
           hitIndex: index + 1,
           totalHits: profile.hits,
@@ -844,9 +786,7 @@ export function castReleasePotential(
 }
 
 /** Starts Cosmic Wisdom and selects the current legend-derived form. */
-export function activateCosmicWisdom(
-  context: RevenantCastContext,
-): void {
+export function activateCosmicWisdom(context: RevenantCastContext): void {
   const state = conduitState.from(context);
   const at = context.effectiveEnd;
   // Mistfire resolves as part of the activation, before Cosmic Wisdom's
@@ -886,10 +826,7 @@ export function activateCosmicWisdom(
   state.conduitForm =
     REVENANT_RELEASE_POTENTIAL_BY_LEGEND[
       professionCoreState(context).activeLegendId
-    ]?.replace(
-      "Release Potential: ",
-      "",
-    ) || "";
+    ]?.replace("Release Potential: ", "") || "";
   syncConduitEnergyCostOverrides(state);
   emitRevenantState(context, at, "cosmic-wisdom");
   emitNuminousGift(context, context.skill);

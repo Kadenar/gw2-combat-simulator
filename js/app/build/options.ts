@@ -65,6 +65,22 @@ export const STACKING_TARGET_CONDITIONS = new Set([
   "Confusion",
 ]);
 
+export const DEFAULT_TARGET_ARMOR = 2597;
+
+export const TARGET_ARMOR_OPTIONS = Object.freeze([
+  Object.freeze({ value: DEFAULT_TARGET_ARMOR, label: "Base" }),
+  Object.freeze({ value: 1910, label: "Vale Guardian / Keep Construct" }),
+  Object.freeze({ value: 5346, label: "McLeod" }),
+  Object.freeze({ value: 2460, label: "Berg" }),
+  Object.freeze({ value: 2323, label: "Zane" }),
+  Object.freeze({ value: 2184, label: "Narella" }),
+]);
+
+export function normalizeTargetArmor(value: number | string): number {
+  const armor = Number(value);
+  return Number.isFinite(armor) ? Math.max(1, armor) : DEFAULT_TARGET_ARMOR;
+}
+
 export function option(
   value: string,
   selected: string,

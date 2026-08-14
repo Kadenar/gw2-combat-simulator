@@ -2,6 +2,7 @@ import {
   mountRotationResults,
   SKILL_COLS,
 } from "../../platform/ui/rotation-results.js";
+import { syncRotationFocusResults } from "../../platform/ui/rotation-workspace.js";
 import { targetHealthBreakpointSnapshots } from "../../platform/ui/result-transform.js";
 import type { ProfessionAppState } from "../profession/types.js";
 import { PLACEHOLDER_ICON, resultSkillIcon } from "./icons.js";
@@ -113,4 +114,5 @@ export function renderResults(app: ProfessionAppState): void {
       },
     },
   );
+  syncRotationFocusResults(document);
 }

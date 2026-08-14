@@ -10,7 +10,7 @@
 
 import { embedRoute, isEmbedded } from "../embed.js";
 import { mountRotationTimelineSize } from "../../platform/ui/rotation-timeline-size.js";
-import { mountSimulationConfigCollapse } from "../../platform/ui/simulation-config-collapse.js";
+import { mountRotationWorkspace } from "../../platform/ui/rotation-workspace.js";
 import {
   getProfessionEntry,
   professionGroups,
@@ -234,7 +234,7 @@ function renderProfessionGroupCards(
  * are allowed so the same entry point can run on landing and simulator pages.
  */
 export function bindProfessionSelector(root: Document = document): void {
-  mountSimulationConfigCollapse(root);
+  mountRotationWorkspace(root);
   mountRotationTimelineSize(root);
   mountCommunityActions(root);
   mountStickyProfessionHeader(root);

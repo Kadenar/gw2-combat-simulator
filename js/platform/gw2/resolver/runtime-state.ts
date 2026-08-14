@@ -1,4 +1,5 @@
 import { createSimulationRandom } from "../../engine/simulation-random.js";
+import { createGw2ComboRuntimeState } from "../combo-events.js";
 
 import type {
   CreateGw2ResolverRuntimeStateOptions,
@@ -51,6 +52,7 @@ export function createGw2ResolverRuntimeState({
     lastHitTime: null,
     deathTime: null,
     activeWeaponSet: Number(config.startingWeaponSet) === 2 ? 2 : 1,
+    combo: createGw2ComboRuntimeState(),
     relic: equipment.relic,
     profession: professionState,
     sigil: equipment.sigil,

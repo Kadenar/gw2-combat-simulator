@@ -1,4 +1,5 @@
 export * from "./condition-resolution.js";
+export * from "./combo-resolution.js";
 export * from "./equipment-reactions.js";
 export * from "./event-handlers.js";
 export * from "./event-loop.js";

@@ -26,10 +26,6 @@
     "Blazing Barrage",
     "Meteor",
     "Seethe",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 51
-    },
     "Volcano",
     "Elemental Celerity",
     "Etching: Volcano",
@@ -77,10 +73,6 @@
     "Lightning Javelin",
     "Lightning Javelin",
     "Etching: Derecho",
-    {
-      "name": "Lightning Javelin",
-      "interruptMs": 84
-    },
     "Twister",
     {
       "name": "Energize",
@@ -88,10 +80,6 @@
     },
     "Lightning Javelin",
     "Fulgor",
-    {
-      "name": "Lightning Javelin",
-      "interruptMs": 40
-    },
     "Derecho",
     {
       "name": "Deploy Jade Sphere (Air)",
@@ -114,10 +102,6 @@
     "Relentless Fire",
     "Meteor",
     "Seethe",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 40
-    },
     "Volcano",
     "Blazing Barrage",
     "Flame Spear",
@@ -179,10 +163,6 @@
     "Relentless Fire",
     "Meteor",
     "Seethe",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 35
-    },
     "Volcano",
     "Blazing Barrage",
     "Flame Spear",
@@ -192,17 +172,9 @@
       "offset": 204
     },
     "Etching: Haboob",
-    {
-      "name": "Stone Strike",
-      "interruptMs": 112
-    },
     "Fissure",
     "Harden",
     "Earthen Spear",
-    {
-      "name": "Stone Strike",
-      "interruptMs": 120
-    },
     "Haboob",
     {
       "name": "Water Attunement",
@@ -270,10 +242,6 @@
       "name": "Earth Attunement",
       "offset": 245
     },
-    {
-      "name": "Stone Strike",
-      "interruptMs": 201
-    },
     "Earthen Spear",
     "Fissure",
     {
@@ -284,10 +252,6 @@
     {
       "name": "Deploy Jade Sphere (Water)",
       "offset": 806
-    },
-    {
-      "name": "Restorative Spear",
-      "interruptMs": 41
     },
     "Shattering Ice",
     "Undertow",
@@ -326,18 +290,10 @@
     },
     "Blazing Barrage",
     "Flame Spear",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 38
-    },
     "Etching: Volcano",
     "Relentless Fire",
     "Meteor",
     "Seethe",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 79
-    },
     "Volcano",
     "Flame Spear",
     "Flame Spear",
@@ -378,15 +334,7 @@
       "offset": 119
     },
     "Fulgor",
-    {
-      "name": "Lightning Javelin",
-      "interruptMs": 121
-    },
     "Etching: Derecho",
-    {
-      "name": "Lightning Javelin",
-      "interruptMs": 39
-    },
     "Glyph of Storms (Air)",
     "Energize",
     "Twister",
@@ -394,10 +342,6 @@
     "Lightning Javelin",
     "Lightning Javelin",
     "Fulgor",
-    {
-      "name": "Lightning Javelin",
-      "interruptMs": 42
-    },
     "Derecho",
     {
       "name": "Deploy Jade Sphere (Air)",
@@ -419,20 +363,12 @@
     "Seethe",
     "Volcano",
     "Elemental Celerity",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 46
-    },
     "Blazing Barrage",
     "Seethe",
     "Meteor",
     {
       "name": "Earth Attunement",
       "offset": 563
-    },
-    {
-      "name": "Stone Strike",
-      "interruptMs": 83
     },
     "Earthen Spear"
   ]

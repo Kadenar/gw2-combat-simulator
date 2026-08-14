@@ -986,13 +986,13 @@ test("Daredevil Staff skills use supplied coefficients and effects", () => {
 
   for (const name of ["Punishing Strikes", "Weakening Whirl"]) {
     const skill = thiefCatalog.skillsByName.get(name);
-    assert.equal(skill.finisherType, "Whirl", name);
-    assert.equal(skill.finisherValue, 1, name);
+    assert.equal(skill.comboFinishers[0].ownerId, "thief", name);
+    assert.equal(skill.comboFinishers[0].finisherType, "Whirl", name);
   }
 
   const impalingLotus = thiefCatalog.skillsByName.get("Impaling Lotus");
-  assert.equal(impalingLotus.finisherType, "Whirl");
-  assert.equal(impalingLotus.finisherValue, 1);
+  assert.equal(impalingLotus.comboFinishers[0].ownerId, "thief");
+  assert.equal(impalingLotus.comboFinishers[0].finisherType, "Whirl");
 
   const punishing = thiefCatalog.skillsByName.get("Punishing Strikes");
   const vulnerability = punishing.effects.find(
@@ -1633,8 +1633,8 @@ test("Dagger uses the supplied Quickness timings and total multi-hit coefficient
   ]);
 
   const deathBlossom = thiefCatalog.skillsByName.get("Death Blossom");
-  assert.equal(deathBlossom.finisherType, "Whirl");
-  assert.equal(deathBlossom.finisherValue, 1);
+  assert.equal(deathBlossom.comboFinishers[0].ownerId, "thief");
+  assert.equal(deathBlossom.comboFinishers[0].finisherType, "Whirl");
   const backstab = thiefCatalog.skillsByName.get("Backstab");
   const malicious = thiefCatalog.skillsByName.get("Malicious Backstab");
   assert.equal(backstab.effects[0].coefficient, 1.5);
@@ -2222,7 +2222,7 @@ test("Specter attribute, ally, and shadowstep traits resolve explicitly", () => 
   );
 });
 
-test("Spear slots 2 and 3 shift through lead, follow-up, and finisher skills", () => {
+test("Spear slots 2 and 3 expose and enforce their linked chain", () => {
   const chainSkills = [
     "Mantis Sting",
     "Entangling Asp",
@@ -2285,9 +2285,17 @@ test("Spear slots 2 and 3 shift through lead, follow-up, and finisher skills", (
       ["Shattering Assault", 3],
     ],
   );
-  assert.deepEqual(paletteAtStage(0), ["Mantis Sting", "Unsuspecting Strike"]);
-  assert.deepEqual(paletteAtStage(1), ["Entangling Asp", "Vampiric Slash"]);
-  assert.deepEqual(paletteAtStage(2), ["Falling Spider", "Shattering Assault"]);
+  const displayedChain = [
+    "Mantis Sting",
+    "Entangling Asp",
+    "Falling Spider",
+    "Unsuspecting Strike",
+    "Vampiric Slash",
+    "Shattering Assault",
+  ];
+  assert.deepEqual(paletteAtStage(0), displayedChain);
+  assert.deepEqual(paletteAtStage(1), displayedChain);
+  assert.deepEqual(paletteAtStage(2), displayedChain);
   assert.equal(
     thiefProfession.ui.paletteSkillAvailability(
       { professionState: { spearChainStage: 0 } },
@@ -2301,6 +2309,25 @@ test("Spear slots 2 and 3 shift through lead, follow-up, and finisher skills", (
       thiefCatalog.skillsByName.get("Entangling Asp"),
     ).available,
     true,
+  );
+
+  const spearConfig = {
+    primaryWeapon: "Spear",
+    secondaryWeapon: "",
+  };
+  const afterAutoattack = simulate("Core", ["Barbed Spear"], spearConfig);
+  assert.equal(afterAutoattack.endState.profession.spearChainStage, 0);
+  assert.equal(afterAutoattack.endState.profession.spearPreviousSkillId, null);
+
+  const afterLeadAndAutoattack = simulate(
+    "Core",
+    ["Mantis Sting", "Barbed Spear"],
+    spearConfig,
+  );
+  assert.equal(afterLeadAndAutoattack.endState.profession.spearChainStage, 1);
+  assert.equal(
+    afterLeadAndAutoattack.endState.profession.spearPreviousSkillId,
+    ID.MANTIS_STING,
   );
 });
 

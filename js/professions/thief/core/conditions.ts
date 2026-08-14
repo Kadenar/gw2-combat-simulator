@@ -4,10 +4,7 @@ import {
   gw2AlliedPlayerAssumptions,
   gw2AlliedPlayerProcTimeline,
 } from "../../../platform/gw2/allied-players.js";
-import {
-  emitThiefState,
-  gainThiefInitiative,
-} from "./shared.js";
+import { emitThiefState, gainThiefInitiative } from "./shared.js";
 import {
   beginStealthAttack as beginBaseStealthAttack,
   completeStealthAttack as completeBaseStealthAttack,
@@ -34,42 +31,43 @@ const SPEAR_FINISHER_SKILLS = new Set<number>([
   ID.FALLING_SPIDER,
   ID.SHATTERING_ASSAULT,
 ]);
-const SPEAR_STEALTH_SKILLS = new Set<number>([
-  ID.ASHEN_ASSAULT,
-]);
+const SPEAR_STEALTH_SKILLS = new Set<number>([ID.ASHEN_ASSAULT]);
 const SPEAR_CHAIN_STAGE_BY_SKILL = new Map<number, number>([
-  ...[...SPEAR_LEAD_SKILLS].map(skillId => [skillId, 0] as const),
-  ...[...SPEAR_FOLLOW_UP_SKILLS].map(skillId => [skillId, 1] as const),
-  ...[...SPEAR_FINISHER_SKILLS].map(skillId => [skillId, 2] as const),
+  ...[...SPEAR_LEAD_SKILLS].map((skillId) => [skillId, 0] as const),
+  ...[...SPEAR_FOLLOW_UP_SKILLS].map((skillId) => [skillId, 1] as const),
+  ...[...SPEAR_FINISHER_SKILLS].map((skillId) => [skillId, 2] as const),
 ]);
 
 const THOUSAND_NEEDLES_PULSES = 5;
 const CALTROPS_PULSES = 10;
 const CALTROPS_CRIPPLE_PULSES = 5;
 
-function emitCondition(context: ThiefSchedulerContext, {
-  at,
-  skillId,
-  skillName,
-  condition,
-  stacks,
-  duration,
-  name = `${skillName} — ${condition}`,
-  activationId,
-  triggeredByAlly,
-  extendsResolutionHorizon = false,
-}: {
-  readonly at: number;
-  readonly skillId: SkillId;
-  readonly skillName: string;
-  readonly condition: string;
-  readonly stacks: number;
-  readonly duration: number;
-  readonly name?: string;
-  readonly activationId?: string;
-  readonly triggeredByAlly?: number;
-  readonly extendsResolutionHorizon?: boolean;
-}): void {
+function emitCondition(
+  context: ThiefSchedulerContext,
+  {
+    at,
+    skillId,
+    skillName,
+    condition,
+    stacks,
+    duration,
+    name = `${skillName} — ${condition}`,
+    activationId,
+    triggeredByAlly,
+    extendsResolutionHorizon = false,
+  }: {
+    readonly at: number;
+    readonly skillId: SkillId;
+    readonly skillName: string;
+    readonly condition: string;
+    readonly stacks: number;
+    readonly duration: number;
+    readonly name?: string;
+    readonly activationId?: string;
+    readonly triggeredByAlly?: number;
+    readonly extendsResolutionHorizon?: boolean;
+  },
+): void {
   context.emit({
     type: "condition",
     at,
@@ -99,9 +97,9 @@ export function prepareSpearChainSkill(
   const state = professionCoreState(context);
   return {
     fallingSpiderEmpowered:
-      skill.id === ID.FALLING_SPIDER
-      && Number(state.spearChainStage || 0) === 2
-      && state.spearPreviousSkillId === ID.ENTANGLING_ASP,
+      skill.id === ID.FALLING_SPIDER &&
+      Number(state.spearChainStage || 0) === 2 &&
+      state.spearPreviousSkillId === ID.ENTANGLING_ASP,
   };
 }
 
@@ -114,19 +112,16 @@ export function observeSpearChainEffect(
   const prepared = (handlerState || {}) as {
     readonly fallingSpiderEmpowered?: boolean;
   };
-  if (
-    prepared.fallingSpiderEmpowered
-    && event.type === "damage"
-  ) {
+  if (prepared.fallingSpiderEmpowered && event.type === "damage") {
     context.replaceEvent(event, {
       coefficient: Number(event.coefficient || 0) * 1.15,
     });
     return;
   }
   if (
-    prepared.fallingSpiderEmpowered
-    && event.type === "condition"
-    && ["Bleeding", "Poisoned"].includes(event.condition)
+    prepared.fallingSpiderEmpowered &&
+    event.type === "condition" &&
+    ["Bleeding", "Poisoned"].includes(event.condition)
   ) {
     context.replaceEvent(event, {
       stacks: Number(event.stacks || 1) + 1,
@@ -134,9 +129,9 @@ export function observeSpearChainEffect(
     return;
   }
   if (
-    skill.id === ID.UNSUSPECTING_STRIKE
-    && event.type === "condition"
-    && event.condition === "Bleeding"
+    skill.id === ID.UNSUSPECTING_STRIKE &&
+    event.type === "condition" &&
+    event.condition === "Bleeding"
   ) {
     context.replaceEvent(event, {
       bonusAboveNinetyStacks: 3,
@@ -174,23 +169,9 @@ export function updateSpearChainState(
     emitThiefState(context, at, "spear-chain");
     return;
   }
-  if (skill.id === ID.BARBED_SPEAR) {
-    const stage = Math.max(0, Math.min(
-      2,
-      Number(state.spearChainStage || 0),
-    ));
-    state.spearChainStage = (stage + 1) % 3;
-    state.spearLastWasFinisher = stage === 2;
-    state.spearPreviousSkillId = skill.id;
-    emitThiefState(context, at, "spear-chain");
-    return;
-  }
   if (
-    skill.id === ID.DISTRACTING_THROW
-    && (
-      state.spearLastWasFinisher
-      || Number(state.spearChainStage || 0) === 0
-    )
+    skill.id === ID.DISTRACTING_THROW &&
+    (state.spearLastWasFinisher || Number(state.spearChainStage || 0) === 0)
   ) {
     const followsFinisher = state.spearLastWasFinisher;
     state.spearChainStage = 1;
@@ -245,8 +226,7 @@ export function activateSpiderVenom(context: ThiefCastContext): void {
       condition: "Poisoned",
       stacks: 1,
       duration: 3,
-      activationId:
-        `${context.reservationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
+      activationId: `${context.reservationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
       triggeredByAlly: proc.allyIndex,
       extendsResolutionHorizon: index === alliedProcs.length - 1,
     });
@@ -303,9 +283,10 @@ export function handleThousandNeedlesPulse(
     actorType: "player",
     skillId: ID.THOUSAND_NEEDLES,
     skillName: "Thousand Needles",
-    name: pulse === 0
-      ? "Thousand Needles — Initial Strike"
-      : "Thousand Needles — Pulse",
+    name:
+      pulse === 0
+        ? "Thousand Needles — Initial Strike"
+        : "Thousand Needles — Pulse",
     coefficient: pulse === 0 ? 0.5 : 0.2,
     hits: 1,
     ...(activationId ? { activationId } : {}),
