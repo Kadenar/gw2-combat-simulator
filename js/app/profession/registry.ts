@@ -76,7 +76,6 @@ const entries: ProfessionRegistryEntry[] = [
     route: "elementalist.html",
     themeClass: "elementalist-theme",
     specializationSummary: "Core · Tempest · Weaver · Catalyst · Evoker",
-    workInProgress: true,
     loadProfession: async () => {
       const module =
         await import("../../professions/elementalist/definition.js");
@@ -87,23 +86,6 @@ const entries: ProfessionRegistryEntry[] = [
         await import("../../professions/elementalist/app/app-definition.js");
       return module.elementalistAppAdapter;
     },
-  },
-  {
-    id: "elementalist-legacy",
-    applicationKind: PROFESSION_APPLICATION_KINDS.STANDALONE,
-    armorWeight: "light",
-    name: "Elementalist",
-    icon: "https://render.guildwars2.com/file/BBED46EB20C80D0DDE0F99402493C7E6FFAE1530/156629.png",
-    route: "elementalist-legacy.html",
-    themeClass: "elementalist-theme",
-    specializationSummary: "Frozen compatibility simulator",
-    legacy: true,
-    loadProfession: async () => {
-      const module =
-        await import("../../professions/elementalist/legacy/definition.js");
-      return module.elementalistLegacyProfession;
-    },
-    loadAppAdapter: null,
   },
   {
     id: "mesmer",

@@ -40,6 +40,7 @@ import {
   normalizeRotationTimelineSize,
   ROTATION_TIMELINE_SIZE_OPTIONS,
 } from "../../../js/platform/ui/rotation-timeline-size.js";
+import { normalizeSimulationConfigCollapsed } from "../../../js/platform/ui/simulation-config-collapse.js";
 import {
   bindTimelineInteractions,
   formatTimelineCastDetails,
@@ -84,6 +85,14 @@ test("rotation timeline sizes expose two larger display options", () => {
   assert.equal(normalizeRotationDeadTimeVisibility(true), true);
   assert.equal(normalizeRotationDeadTimeVisibility("false"), false);
   assert.equal(normalizeRotationDeadTimeVisibility(null), false);
+});
+
+test("simulation config collapse state only accepts explicit true values", () => {
+  assert.equal(normalizeSimulationConfigCollapsed(true), true);
+  assert.equal(normalizeSimulationConfigCollapsed("true"), true);
+  assert.equal(normalizeSimulationConfigCollapsed(false), false);
+  assert.equal(normalizeSimulationConfigCollapsed("false"), false);
+  assert.equal(normalizeSimulationConfigCollapsed(null), false);
 });
 
 test("activation editor suggests and validates manual interruption times", () => {

@@ -1,6 +1,8 @@
 import { escapeHtml } from "../../platform/ui/html.js";
 
 export const ROTATION_HOTKEY_STORAGE_KEY = "gw2-rotation-hotkeys-v1";
+export const ROTATION_HOTKEY_ENABLED_STORAGE_KEY =
+  "gw2-rotation-hotkeys-enabled-v1";
 
 export const ROTATION_HOTKEY_ACTIONS = Object.freeze([
   { id: "weapon-1", label: "Weapon skill 1", group: "Weapon", code: "Digit1" },
@@ -53,8 +55,12 @@ type HotkeyStorage = Pick<Storage, "getItem" | "setItem">;
 
 interface RotationHotkeyController {
   root: HTMLElement;
+  scope: HTMLElement;
   bindings: RotationHotkeyBindings;
+  enabled: boolean;
+  active: boolean;
   button: HTMLButtonElement | null;
+  status: HTMLElement | null;
   dialog: HTMLDialogElement | null;
 }
 
@@ -133,6 +139,29 @@ export function saveRotationHotkeyBindings(
   }
 }
 
+export function loadRotationHotkeysEnabled(
+  storage: HotkeyStorage | null = browserStorage(),
+): boolean {
+  if (!storage) return false;
+  try {
+    return storage.getItem(ROTATION_HOTKEY_ENABLED_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function saveRotationHotkeysEnabled(
+  enabled: boolean,
+  storage: HotkeyStorage | null = browserStorage(),
+): void {
+  if (!storage) return;
+  try {
+    storage.setItem(ROTATION_HOTKEY_ENABLED_STORAGE_KEY, String(enabled));
+  } catch {
+    // The setting remains available for this page when storage is unavailable.
+  }
+}
+
 export function rotationHotkeyActionForSkillSlot(
   slot: unknown,
 ): RotationHotkeyAction | "" {
@@ -189,6 +218,26 @@ export function rotationHotkeyActionForCode(
   );
 }
 
+export function activeRotationHotkeyAction(
+  bindings: RotationHotkeyBindings,
+  event: Pick<
+    KeyboardEvent,
+    "code" | "isComposing" | "ctrlKey" | "altKey" | "metaKey"
+  >,
+  active: boolean,
+): RotationHotkeyAction | null {
+  if (
+    !active ||
+    event.isComposing ||
+    event.ctrlKey ||
+    event.altKey ||
+    event.metaKey
+  ) {
+    return null;
+  }
+  return rotationHotkeyActionForCode(bindings, event.code);
+}
+
 export function duplicateRotationHotkeyCodes(
   bindings: RotationHotkeyBindings,
 ): string[] {
@@ -230,9 +279,6 @@ export function formatRotationHotkey(code: string): string {
 }
 
 function shouldIgnoreHotkey(event: KeyboardEvent): boolean {
-  if (event.isComposing || event.ctrlKey || event.altKey || event.metaKey) {
-    return true;
-  }
   const target = event.target;
   if (!(target instanceof Element)) return false;
   return Boolean(
@@ -263,14 +309,18 @@ function activateRotationHotkey(
   event: KeyboardEvent,
 ): void {
   if (shouldIgnoreHotkey(event)) return;
-  const action = rotationHotkeyActionForCode(controller.bindings, event.code);
+  const action = activeRotationHotkeyAction(
+    controller.bindings,
+    event,
+    controller.active,
+  );
   if (!action) return;
-  event.preventDefault();
-  if (event.repeat) return;
   const target = currentHotkeyTarget(controller.root, action);
   const MouseEventConstructor =
     controller.root.ownerDocument.defaultView?.MouseEvent;
   if (!target || !MouseEventConstructor) return;
+  event.preventDefault();
+  if (event.repeat) return;
   target.dispatchEvent(
     new MouseEventConstructor("click", {
       bubbles: true,
@@ -305,11 +355,16 @@ function ensureStyles(document: Document): void {
   style.id = "rotation-hotkey-styles";
   style.textContent = `
     .rotation-builder-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .rotation-hotkey-controls { display:flex; align-items:center; gap:6px; }
+    .rotation-hotkey-status { color:var(--text-dim); font-size:9px; font-weight:600;
+      letter-spacing:.04em; text-transform:uppercase; white-space:nowrap; }
+    .rotation-hotkeys-active .rotation-hotkey-status { color:var(--health); }
     .rotation-hotkey-button { padding:2px 8px; font-size:10px; text-transform:none; letter-spacing:0; }
-    .pal-hotkey { position:absolute; z-index:4; top:1px; left:1px; min-width:12px; padding:1px 3px;
+    .pal-hotkey { position:absolute; z-index:4; top:1px; right:1px; min-width:12px; padding:1px 3px;
       border:1px solid rgba(255,255,255,.65); border-radius:3px; background:rgba(12,14,20,.9);
       color:#fff; font-size:8px; font-weight:800; line-height:10px; text-align:center;
       text-shadow:0 1px 2px #000; pointer-events:none; }
+    .rotation-panel:not(.rotation-hotkeys-active) .pal-hotkey { opacity:.45; }
     .rotation-hotkey-dialog { position:fixed; inset:0; width:min(720px, calc(100vw - 32px));
       max-height:calc(100vh - 32px); margin:auto; padding:0; overflow:auto;
       border:1px solid var(--border-light); border-radius:8px;
@@ -317,7 +372,11 @@ function ensureStyles(document: Document): void {
     .rotation-hotkey-dialog::backdrop { background:rgba(5,7,12,.78); }
     .rotation-hotkey-form { padding:18px; }
     .rotation-hotkey-form h3 { margin:0 0 6px; }
-    .rotation-hotkey-intro { margin:0 0 14px; color:var(--text-dim); font-size:12px; }
+    .rotation-hotkey-intro { margin:0 0 10px; color:var(--text-dim); font-size:12px; }
+    .rotation-hotkey-enable { display:flex; align-items:center; gap:7px; margin:0 0 14px;
+      padding:8px 10px; border:1px solid var(--border); border-radius:6px;
+      background:var(--bg-panel-alt); color:var(--text-bright); font-size:12px; cursor:pointer; }
+    .rotation-hotkey-enable input { accent-color:var(--accent); }
     .rotation-hotkey-groups { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; }
     .rotation-hotkey-group { min-width:0; margin:0; padding:10px; border:1px solid var(--border); border-radius:6px; }
     .rotation-hotkey-group legend { padding:0 5px; color:var(--accent); font-size:11px; font-weight:700; text-transform:uppercase; }
@@ -340,7 +399,7 @@ function refreshHotkeyBadges(controller: RotationHotkeyController): void {
     const code = controller.bindings[action];
     skill.querySelector(".pal-hotkey")?.remove();
     skill.removeAttribute("aria-keyshortcuts");
-    if (!code) continue;
+    if (!controller.enabled || !code) continue;
     const badge = skill.ownerDocument.createElement("span");
     badge.className = "pal-hotkey";
     badge.textContent = formatRotationHotkey(code);
@@ -355,6 +414,10 @@ function populateDialog(
   bindings = controller.bindings,
 ): void {
   if (!controller.dialog) return;
+  const enabled = controller.dialog.querySelector<HTMLInputElement>(
+    "[data-hotkey-enabled]",
+  );
+  if (enabled) enabled.checked = controller.enabled;
   for (const input of controller.dialog.querySelectorAll<HTMLInputElement>(
     "[data-hotkey-input]",
   )) {
@@ -390,7 +453,11 @@ function ensureDialog(controller: RotationHotkeyController): void {
   dialog.setAttribute("aria-labelledby", "rotation-hotkey-title");
   dialog.innerHTML = `<form class="rotation-hotkey-form" method="dialog">
     <h3 id="rotation-hotkey-title">Rotation hotkeys</h3>
-    <p class="rotation-hotkey-intro">These bindings apply to every profession. Select a field and press a key; Backspace or Delete unbinds it.</p>
+    <p class="rotation-hotkey-intro">Hotkeys are disabled by default. When enabled, click the rotation panel to activate them. Bindings apply to every profession.</p>
+    <label class="rotation-hotkey-enable">
+      <input type="checkbox" data-hotkey-enabled />
+      <span>Enable rotation hotkeys</span>
+    </label>
     <div class="rotation-hotkey-groups">${hotkeyFieldsHtml()}</div>
     <p class="rotation-hotkey-error" role="alert" hidden></p>
     <div class="rotation-hotkey-actions">
@@ -443,6 +510,9 @@ function ensureDialog(controller: RotationHotkeyController): void {
     ?.addEventListener("click", () => dialog.close());
   dialog.querySelector("[data-hotkey-save]")?.addEventListener("click", () => {
     const bindings = dialogBindings(dialog);
+    const enabled = Boolean(
+      dialog.querySelector<HTMLInputElement>("[data-hotkey-enabled]")?.checked,
+    );
     const duplicates = duplicateRotationHotkeyCodes(bindings);
     const error = dialog.querySelector<HTMLElement>(".rotation-hotkey-error");
     if (duplicates.length) {
@@ -455,13 +525,37 @@ function ensureDialog(controller: RotationHotkeyController): void {
       return;
     }
     controller.bindings = bindings;
+    controller.enabled = enabled;
     saveRotationHotkeyBindings(bindings);
+    saveRotationHotkeysEnabled(enabled);
+    setRotationHotkeysActive(controller, false);
     refreshHotkeyBadges(controller);
     dialog.close();
   });
+  dialog.addEventListener("close", () =>
+    setRotationHotkeysActive(controller, false),
+  );
 }
 
-function ensureButton(controller: RotationHotkeyController): void {
+function setRotationHotkeysActive(
+  controller: RotationHotkeyController,
+  active: boolean,
+): void {
+  controller.active = controller.enabled && active;
+  controller.scope.classList.toggle(
+    "rotation-hotkeys-active",
+    controller.active,
+  );
+  if (controller.status) {
+    controller.status.textContent = !controller.enabled
+      ? "Hotkeys disabled"
+      : controller.active
+        ? "Hotkeys on · Esc to release"
+        : "Hotkeys off · click panel";
+  }
+}
+
+function ensureControls(controller: RotationHotkeyController): void {
   if (controller.button?.isConnected) return;
   const heading =
     controller.root.previousElementSibling?.matches("h3") === true
@@ -469,6 +563,11 @@ function ensureButton(controller: RotationHotkeyController): void {
       : controller.root.closest(".rotation-panel")?.querySelector("h3");
   if (!(heading instanceof HTMLElement)) return;
   heading.classList.add("rotation-builder-heading");
+  const controls = heading.ownerDocument.createElement("span");
+  controls.className = "rotation-hotkey-controls";
+  const status = heading.ownerDocument.createElement("span");
+  status.className = "rotation-hotkey-status";
+  status.setAttribute("role", "status");
   const button = heading.ownerDocument.createElement("button");
   button.type = "button";
   button.className = "btn btn-io rotation-hotkey-button";
@@ -479,30 +578,56 @@ function ensureButton(controller: RotationHotkeyController): void {
     populateDialog(controller);
     controller.dialog?.showModal();
   });
-  heading.append(button);
+  controls.append(status, button);
+  heading.append(controls);
   controller.button = button;
+  controller.status = status;
+  setRotationHotkeysActive(controller, controller.active);
 }
 
 /** Mounts one document-level keyboard handler and refreshes palette badges. */
 export function mountRotationHotkeys(root: HTMLElement | null): void {
   if (!root) return;
   const document = root.ownerDocument;
+  const scope = root.closest<HTMLElement>(".rotation-panel") || root;
   let controller = controllers.get(document);
   if (!controller) {
     controller = {
       root,
+      scope,
       bindings: loadRotationHotkeyBindings(),
+      enabled: loadRotationHotkeysEnabled(),
+      active: false,
       button: null,
+      status: null,
       dialog: null,
     };
     controllers.set(document, controller);
-    document.addEventListener("keydown", (event) =>
-      activateRotationHotkey(controller as RotationHotkeyController, event),
+    document.addEventListener("pointerdown", (event) => {
+      const current = controller as RotationHotkeyController;
+      const target = event.target;
+      setRotationHotkeysActive(
+        current,
+        target instanceof Node && current.scope.contains(target),
+      );
+    });
+    document.addEventListener("keydown", (event) => {
+      const current = controller as RotationHotkeyController;
+      if (event.code === "Escape" && !current.dialog?.open) {
+        setRotationHotkeysActive(current, false);
+        return;
+      }
+      activateRotationHotkey(current, event);
+    });
+    document.defaultView?.addEventListener("blur", () =>
+      setRotationHotkeysActive(controller as RotationHotkeyController, false),
     );
   } else {
     controller.root = root;
+    controller.scope = scope;
   }
   ensureStyles(document);
-  ensureButton(controller);
+  ensureControls(controller);
+  setRotationHotkeysActive(controller, controller.active);
   refreshHotkeyBadges(controller);
 }

@@ -14,6 +14,7 @@ import { buildChartSeries } from "../../../js/app/rotation/result-model.js";
 import { formatResourceValue } from "../../../js/app/rotation/resource-view.js";
 import { simulationEventLogRows } from "../../../js/app/rotation/event-log.js";
 import { weaponSkills } from "../../../js/app/rotation/palette-model.js";
+import { renderPalette } from "../../../js/app/rotation/palette-view.js";
 import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
@@ -4316,6 +4317,14 @@ test("Necromancer resources and palette change with specialization state", () =>
     harbingerResources.map((resource) => resource.id),
     ["life-force", "blight", "cascading-corruption"],
   );
+  assert.equal(
+    harbingerResources[0].pipStyle,
+    "compact-profession-resource-necromancer-life-force",
+  );
+  assert.equal(
+    reaperBar[0].className,
+    "compact-resource-palette necromancer-f-skills",
+  );
   assert.equal(harbingerResources[0].maximum, 13256);
   assert.equal(harbingerResources[0].value, 13256 * 0.8);
   assert.equal(harbingerResources[0].startMaximum, 100);
@@ -4324,6 +4333,8 @@ test("Necromancer resources and palette change with specialization state", () =>
     harbingerResources[2].buildKey,
     "initialCascadingCorruptionStacks",
   );
+  assert.equal(harbingerResources[1].showInPalette, false);
+  assert.equal(harbingerResources[2].showInPalette, false);
   assert.deepEqual(
     necromancerProfession.ui.rotationStateSnapshot({
       specialization: "Harbinger",
@@ -4365,7 +4376,7 @@ test("Necromancer resources and palette change with specialization state", () =>
       .map((resource) => resource.id),
     ["life-force", "blight", "cascading-corruption", "soul-shards"],
   );
-  assert.deepEqual(reaperEntry, [ID.REAPERS_SHROUD]);
+  assert.deepEqual(reaperEntry, [ID.REAPERS_SHROUD, ID.EXIT_REAPERS_SHROUD]);
   assert.equal(reaperBar[0].skillIds.includes(ID.EXIT_REAPERS_SHROUD), true);
   assert.equal(reaperBar[1].skillIds.includes(ID.LIFE_REND), true);
   assert.deepEqual(
@@ -4379,6 +4390,7 @@ test("Necromancer resources and palette change with specialization state", () =>
   assert.equal(ritualistPalette[0].stackId, "ritualist-profession");
   assert.deepEqual(ritualistPalette[0].skillIds, [
     ID.RITUALISTS_SHROUD,
+    ID.EXIT_RITUALISTS_SHROUD,
     ID.INNERVATE_ANGUISH,
     ID.INNERVATE_WANDERLUST,
     ID.INNERVATE_PRESERVATION,
@@ -4423,6 +4435,100 @@ test("Necromancer resources and palette change with specialization state", () =>
   );
 });
 
+test("Necromancer renders life force above its F-skills", async () => {
+  const adapter = await loadProfessionAppAdapter("necromancer");
+  const build = adapter.toApplicationBuild(createNecromancerBuildDefaults());
+  const app = {
+    build,
+    adapter,
+    profession: necromancerProfession,
+    skills: necromancerCatalog.skills,
+    skillById: necromancerCatalog.skillsById,
+    skillByName: necromancerCatalog.skillsByName,
+    weaponData: adapter.weaponData,
+    results: null,
+  };
+  const palette = { innerHTML: "", querySelectorAll: () => [] };
+  const previousDocument = globalThis.document;
+  globalThis.document = {
+    getElementById: (id) => (id === "rotation-palette" ? palette : null),
+  };
+  try {
+    renderPalette(app);
+  } finally {
+    globalThis.document = previousDocument;
+  }
+
+  const html = palette.innerHTML;
+  const mechanic = html.indexOf(
+    "compact-resource-palette necromancer-f-skills",
+  );
+  const resource = html.indexOf('data-resource-id="life-force"');
+  assert.ok(mechanic >= 0);
+  assert.ok(resource > mechanic);
+  assert.match(html, /compact-profession-resource-necromancer-life-force/);
+  assert.equal(html.match(/data-resource-id="life-force"/g)?.length, 1);
+  assert.doesNotMatch(html, /data-resource-id="blight"/);
+  assert.doesNotMatch(html, /data-resource-id="cascading-corruption"/);
+});
+
+test("Necromancer shroud transitions stay adjacent and toggle availability", () => {
+  for (const [specialization, shroud, entryId, exitId] of [
+    ["Core", "death", ID.DEATH_SHROUD, ID.END_DEATH_SHROUD],
+    ["Reaper", "reaper", ID.REAPERS_SHROUD, ID.EXIT_REAPERS_SHROUD],
+    ["Harbinger", "harbinger", ID.HARBINGER_SHROUD, ID.EXIT_HARBINGER_SHROUD],
+    ["Ritualist", "ritualist", ID.RITUALISTS_SHROUD, ID.EXIT_RITUALISTS_SHROUD],
+  ]) {
+    const inactiveContext = {
+      specialization,
+      professionState: { activeShroud: "" },
+    };
+    const activeContext = {
+      specialization,
+      professionState: { activeShroud: shroud },
+    };
+    for (const context of [inactiveContext, activeContext]) {
+      assert.deepEqual(
+        necromancerProfession.ui.paletteGroups(context)[0].skillIds.slice(0, 2),
+        [entryId, exitId],
+        specialization,
+      );
+    }
+    assert.equal(
+      necromancerProfession.ui.isPaletteSkillAvailable(
+        inactiveContext,
+        necromancerCatalog.skillsById.get(entryId),
+      ),
+      true,
+      specialization,
+    );
+    assert.equal(
+      necromancerProfession.ui.isPaletteSkillAvailable(
+        inactiveContext,
+        necromancerCatalog.skillsById.get(exitId),
+      ),
+      false,
+      specialization,
+    );
+    assert.equal(
+      necromancerProfession.ui.isPaletteSkillAvailable(
+        activeContext,
+        necromancerCatalog.skillsById.get(entryId),
+      ),
+      false,
+      specialization,
+    );
+    assert.equal(
+      necromancerProfession.ui.isPaletteSkillAvailable(
+        activeContext,
+        necromancerCatalog.skillsById.get(exitId),
+      ),
+      true,
+      specialization,
+    );
+  }
+});
+
 test("Necromancer skill bar exposes each specialization's shroud abilities", () => {
   const groups = (specialization) =>
     necromancerProfession.ui.skillBarGroups({
@@ -4433,7 +4539,7 @@ test("Necromancer skill bar exposes each specialization's shroud abilities", () 
   assert.deepEqual(
     groups("Core").map((group) => [group.label, group.skillIds]),
     [
-      ["F Keys", [ID.DEATH_SHROUD]],
+      ["F Keys", [ID.DEATH_SHROUD, ID.END_DEATH_SHROUD]],
       [
         "Death Shroud",
         [
@@ -4449,7 +4555,7 @@ test("Necromancer skill bar exposes each specialization's shroud abilities", () 
   assert.deepEqual(
     groups("Reaper").map((group) => [group.label, group.skillIds]),
     [
-      ["F Keys", [ID.REAPERS_SHROUD]],
+      ["F Keys", [ID.REAPERS_SHROUD, ID.EXIT_REAPERS_SHROUD]],
       [
         "Reaper's Shroud",
         [
@@ -4465,7 +4571,7 @@ test("Necromancer skill bar exposes each specialization's shroud abilities", () 
   assert.deepEqual(
     groups("Harbinger").map((group) => [group.label, group.skillIds]),
     [
-      ["F Keys", [ID.HARBINGER_SHROUD]],
+      ["F Keys", [ID.HARBINGER_SHROUD, ID.EXIT_HARBINGER_SHROUD]],
       [
         "Harbinger Shroud",
         [
@@ -4485,6 +4591,7 @@ test("Necromancer skill bar exposes each specialization's shroud abilities", () 
         "F Keys",
         [
           ID.RITUALISTS_SHROUD,
+          ID.EXIT_RITUALISTS_SHROUD,
           ID.INNERVATE_ANGUISH,
           ID.INNERVATE_WANDERLUST,
           ID.INNERVATE_PRESERVATION,

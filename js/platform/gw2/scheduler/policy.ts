@@ -4,7 +4,7 @@
  * The neutral scheduler owns ordering and task execution. This policy adds the
  * game-specific rules that every profession on that pipeline shares: weapon
  * validation, boon duration, Quickness timing, Alacrity recharge, ammunition,
- * critical-hit materialization, and combat-start tracking.
+ * critical-hit fact prediction, and combat-start tracking.
  *
  * ## Cast and effect timing
  *

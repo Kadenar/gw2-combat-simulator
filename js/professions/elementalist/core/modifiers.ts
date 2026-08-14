@@ -94,11 +94,6 @@ function timedBuffStacks(
   );
 }
 
-function catalystBaseEmpowermentActive(context: Gw2ModifierContext): boolean {
-  const combatStartTime = context.runtime?.combatStartTime;
-  return combatStartTime == null || context.time >= Number(combatStartTime);
-}
-
 function infernoBurningFactor(context: Gw2ModifierContext): number {
   const stats = context.query?.statsAt(
     context.time,
@@ -470,33 +465,6 @@ export function modifyElementalistAttributes(
   ) {
     modified.conditionDamage =
       Number(modified.conditionDamage || 0) + mightStacks(context) * 5;
-  }
-  if (
-    context.config?.specialization === "Catalyst" &&
-    hasTrait(context, "Elemental Empowerment")
-  ) {
-    const stacks = Math.min(
-      10,
-      (catalystBaseEmpowermentActive(context) ? 3 : 0) +
-        timedBuffStacks(context, "elemental empowerment", 10),
-    );
-    const multiplier = hasTrait(context, "Empowered Empowerment")
-      ? stacks === 10
-        ? 0.2
-        : stacks * 0.015
-      : stacks * 0.01;
-    for (const stat of [
-      "power",
-      "precision",
-      "ferocity",
-      "conditionDamage",
-      "expertise",
-      "concentration",
-    ]) {
-      modified[stat] = Math.round(
-        Number(modified[stat] || 0) * (1 + multiplier),
-      );
-    }
   }
   return modified;
 }

@@ -251,10 +251,16 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
         icon: option.icon,
         description: option.description,
       }));
+      const layout =
+        specialization === "Untamed"
+          ? "ranger-mechanics ranger-untamed-mechanics"
+          : specialization === "Soulbeast"
+            ? "ranger-mechanics ranger-soulbeast-mechanics"
+            : "ranger-mechanics";
       const groups: ProfessionSkillBarGroup[] = [
         {
-          id: "ranger-pet-selection",
-          label: "Pet",
+          id: "ranger-pet-1-selection",
+          label: "Pet 1",
           skillIds: [],
           selections: [
             {
@@ -269,6 +275,16 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
                   : [],
               skillIds: commandableSkillIds(pet?.skillIds || []),
             },
+          ],
+          color: "#7ca64a",
+          className: "ranger-pet ranger-pet-1",
+          layout,
+        },
+        {
+          id: "ranger-pet-2-selection",
+          label: "Pet 2",
+          skillIds: [],
+          selections: [
             {
               optionEntries: petOptions,
               filterPlaceholder: "Filter pets...",
@@ -283,13 +299,8 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
             },
           ],
           color: "#7ca64a",
-          className: "ranger-pet",
-          layout:
-            specialization === "Untamed"
-              ? "ranger-mechanics ranger-untamed-mechanics"
-              : specialization === "Soulbeast"
-                ? "ranger-mechanics ranger-soulbeast-mechanics"
-                : "ranger-mechanics",
+          className: "ranger-pet ranger-pet-2",
+          layout,
         },
       ];
       if (hasHammerEquipped(context)) {

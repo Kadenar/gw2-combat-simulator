@@ -101,6 +101,7 @@ export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord =
             },
           ],
           color: "#c85142",
+          className: "elementalist-familiar",
         },
       ];
     },

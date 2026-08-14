@@ -69,6 +69,7 @@ function onCastComplete(
     state.perfectWeaveUntil = 0;
   } else if (skill.name === "Unravel") {
     const previousPrimary = core.primaryAttunement;
+    const previousSecondary = core.secondaryAttunement;
     core.secondaryAttunement = core.primaryAttunement;
     core.unravelUntil = at + 5;
     for (const attunement of Object.keys(core.attunementReadyAt)) {
@@ -87,7 +88,10 @@ function onCastComplete(
             ? (["Fury", 1] as const)
             : (["Protection", 1] as const);
     emitBuff(context, skill, boon[0], boon[1], 5);
-    if (hasTrait(context, "Elements of Rage")) {
+    if (
+      hasTrait(context, "Elements of Rage") &&
+      previousPrimary !== previousSecondary
+    ) {
       emitBuff(context, skill, "Elements of Rage", 1, 8);
     }
   } else if (skill.name === "Fervent Stance") {

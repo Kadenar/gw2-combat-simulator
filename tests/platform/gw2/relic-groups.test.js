@@ -5,11 +5,6 @@ import {
   RELIC_GROUPS,
   RELIC_NAMES,
 } from "../../../js/platform/gw2/gear-data.js";
-import {
-  RELIC_DATA as ELEMENTALIST_RELIC_DATA,
-  RELIC_GROUPS as ELEMENTALIST_RELIC_GROUPS,
-  RELIC_NAMES as ELEMENTALIST_RELIC_NAMES,
-} from "../../../js/professions/elementalist/data/gear-data.js";
 
 function assertCompleteGroups(groups, names, data) {
   const groupedNames = groups.flatMap((group) => group.items);
@@ -48,19 +43,18 @@ test("shared relics are grouped by their damage effect", () => {
     },
     {
       label: "Condition",
-      items: ["Akeem", "Aristocracy", "Blightbringer", "Fractal", "Thorns"],
+      items: [
+        "Akeem",
+        "Aristocracy",
+        "Blightbringer",
+        "Fractal",
+        "Steamshrieker",
+        "Thorns",
+      ],
     },
     {
       label: "Hybrid",
       items: ["Nourys", "Peitha"],
     },
   ]);
-});
-
-test("legacy Elementalist relics use the same effect groups", () => {
-  assertCompleteGroups(
-    ELEMENTALIST_RELIC_GROUPS,
-    ELEMENTALIST_RELIC_NAMES,
-    ELEMENTALIST_RELIC_DATA,
-  );
 });

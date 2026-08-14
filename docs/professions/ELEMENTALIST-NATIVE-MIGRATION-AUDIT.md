@@ -2,99 +2,101 @@
 
 Audit date: 2026-08-13
 
-## Scope and baseline
+## Outcome
 
-This audit compares the standalone legacy Elementalist simulator with the native shared-engine implementation. It covers rotation legality, cooldowns, resources, skill state machines, trait effects, and damage-affecting assumptions. Defensive or allied-support effects that cannot affect the deterministic single-target model are excluded.
+The native Elementalist implementation was evaluated directly against all 39
+supported upstream build/rotation fixtures at reference commit
+`e96714400af1fae655eda701e7f9c975db948783`.
 
-The legacy implementation is the migration parity baseline, not necessarily a statement that its Guild Wars 2 balance data is current.
+- Tempest: 13 fixtures; every aggregate delta is within 1.186%.
+- Catalyst: 11 fixtures; eight are within 1.2%, and three exceed it because of
+  shared condition-integration and scheduler policy.
+- Weaver: five fixtures; one is within 1.2%, and four exceed it because of
+  shared condition-integration, scheduling, critical-food, and critical-sigil
+  policy.
+- Evoker: 10 fixtures; every aggregate delta is within 1.090%.
+- Every per-ability and mechanic difference is classified. There are no open
+  Elementalist-local parity gaps in the audited fixture set.
 
-Reviewed paths:
+The actionable threshold is 1.2% aggregate DPS. The audit also checks static
+attributes, warnings, material timeline changes, per-ability strike and
+condition damage, casts, hits, condition applications, and effective
+stack-seconds. Component comparisons use a 2% relative threshold with an
+absolute floor so opposite strike/condition differences cannot cancel.
 
-- Legacy scheduler, state, and mechanics under `js/professions/elementalist/legacy/sim/`
-- Native core and specialization rules under `js/professions/elementalist/`
-- Native generated skill data and trait coverage manifest
-- Native/legacy parity and native mechanics tests
+## Elementalist-local corrections
 
-## Corrected
+The migration work completed the following native behavior:
 
-| IDs         | Behavior area                   | Resolution                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ----------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ELM-001-005 | Recharge rules                  | Corrected Ride the Lightning, Elemental Enchantment, Flow State, and element-specific training recharge calculations.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ELM-006-009 | Resolver modifiers              | Corrected Fresh Air timing, Electric Discharge critical damage, Aeromancer's Training, and Enhanced Potency.                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ELM-010-012 | Evoker fundamentals             | Added weapon-skill charge generation, Specialized Elements start/swap behavior, and Zap's timed strike modifier.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| ELM-101-102 | Conjured weapons                | Added bundle equip/drop/pickup state, access gating, swap procs, pickup expiry, isolated skill cooldowns, and resolver-time Frost Bow, Lightning Hammer, and Fiery Greatsword stat adjustments.                                                                                                                                                                                                                                                                                                                                                         |
-| ELM-103-115 | Rotation legality and cooldowns | Added delayed Rock Barrier recharge, aura consumption, Pistol/Spear/familiar recharge effects, Alacrity-adjusted overload dwell, Hammer legality, Spear etchings, Evoker swap rules, and sigils.                                                                                                                                                                                                                                                                                                                                                        |
-| ELM-201-215 | Weapon state machines           | Completed Pistol payloads, Hammer cancellation/buffs/provenance, Spear follow-ups, dynamic Primordial Stance ticks, and declared endurance gains.                                                                                                                                                                                                                                                                                                                                                                                                       |
-| ELM-301-314 | Specialization and traits       | Added missing Tempest, Weaver, Catalyst, and shared trait behavior, including duration stacking/scaling, combat-start guards, sphere pulses, and Signet of Fire passive suppression.                                                                                                                                                                                                                                                                                                                                                                    |
-| ELM-401-407 | Evoker familiars                | Added Familiar's Prowess extension, Galvanic stacks, Ignite cycling/passive, flip timing/cancellation, Specialized Elements entry effects, and Fox's Fury timing.                                                                                                                                                                                                                                                                                                                                                                                       |
-| ELM-501     | Elementalist hitbox assumptions | Added an Elementalist-only large/small hitbox control, legacy small-hitbox caps for all eight affected multi-hit skill families, and Wildfire's two large-hitbox-only packets. No other profession receives the control or packet filter.                                                                                                                                                                                                                                                                                                               |
-| ELM-502     | Fire Elemental AI               | The default `evtc` profile replaces the legacy fixed hit list with an EVTC-derived Fire Elemental actor: `Glyph of Elementals` always summons Fire regardless of attunement, autonomous Fireball/Flame Burst selection, interruptible Flame Barrage commands, independent summon attributes/boons, player-owned Burning, summon lifetime, and recharge after expiry. An explicit `reference` profile retains the generated fixed packet contract and `glyphBoonedElementals` multiplier for migrated upstream benchmarks without mixing the two models. |
-| ELM-505     | Elemental command flip          | Added Flame Barrage as an explicit rotation action that replaces Glyph of Elementals while the Fire Elemental is alive. Command timing is rotation-owned and interrupts the current autonomous action.                                                                                                                                                                                                                                                                                                                                                  |
-| ELM-601     | Skill mechanics ownership       | Added explicit native skill-mechanics entries for the Rock Barrier, transmute, Pistol, Hammer, Spear, and familiar state-machine families.                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ELM-602     | Trait coverage gate             | Replaced generic specialization-hook claims with catalog effect descriptions and named behavior evidence for core modifiers, attunement/aura procs, critical/control procs, and every elite specialization. Added a regression that rejects broad hook-only evidence.                                                                                                                                                                                                                                                                                   |
-| ELM-604     | Focused native coverage         | Added mechanic-specific regressions for bundles, Rock Barrier, Pistol, Hammer, Spear etchings, Tempest hit timing, familiar cancellation, Fox's Fury timing, and Fire Elemental AI/ownership.                                                                                                                                                                                                                                                                                                                                                           |
-| ELM-605     | Tempest reference parity        | Added upstream-vs-local-legacy-vs-native comparisons for all 13 migrated Tempest fixtures. Corrected Overload Fireworks classification, Fresh Air future-hit cooldown preservation, Hammer orb/Grand Finale packets, Persisting Flames, Strength of Stone, Elemental Explosion, and same-time Transcendent Tempest ordering. All power fixtures are within 0.075% DPS of upstream; every fixture is within 1.159%.                                                                                                                                      |
-| ELM-606     | Per-ability parity gate         | Expanded the audit from aggregate DPS to independently check every named ability's strike damage, condition damage, casts, hits, condition applications, and effective condition stack-seconds against both upstream and local legacy. Component comparisons use a 2% threshold with an absolute floor, preventing opposite strike/condition deltas from cancelling in an ability total.                                                                                                                                                                |
-| ELM-607     | Relic of Nourys                 | Added Nourys to the shared relic catalog and rules so every profession can select it. The generic runtime owns its three-second stack cadence, ten-stack activation, five-second window, 35-second cycle, and +25% additive strike/condition bucket contribution. Nourys remains active when a profession excludes weapon sigils from a damage packet.                                                                                                                                                                                                  |
-| ELM-608     | Power Sword elemental profile   | Marked the migrated Power Sword preset as the EVTC Fire Elemental profile. Saved snapshot migration now honors an explicit EVTC profile instead of forcibly selecting the fixed reference profile, and the preset verifies that all nine Flame Barrage commands are valid and twelve seconds apart.                                                                                                                                                                                                                                                     |
+- rotation legality, delayed cooldowns, attunement dwell, aura consumption,
+  weapon swaps, and Evoker swap/recharge rules;
+- Pistol bullets, Hammer orbs and Grand Finale, Spear etchings, Primordial
+  Stance, overload timing, and declared endurance gains;
+- Tempest, Weaver, Catalyst, Evoker, and core trait behavior, including
+  duration scaling, precombat guards, aura/control reactions, and profession
+  state ownership;
+- Catalyst Elemental Empowerment, energy chronology, Vicious Empowerment,
+  Steamshrieker combos, Shattering Ice, and zero-damage finishers;
+- Weaver precombat and condition-scaled Elements of Rage, Unravel gating, and
+  attunement-driven etching progression;
+- Evoker familiar readiness/order, charge ownership, delayed attunement
+  recharge, and Electric Enchantment materialization;
+- large/small hitbox assumptions and the EVTC-derived Fire Elemental actor;
+- direct reference parity gates for all 39 supported presets and rotations.
 
-## Fire Elemental evidence
+Unsupported Evoker presets without upstream fixtures were removed from the
+native manifest rather than being treated as verified implementations.
 
-The supplied `power tempest dd.zevtc` log was parsed directly. It was recorded with ArcDPS build 20260715 and identifies Fire Elemental NPC 6524 as a summon of the Elementalist. Over roughly 90 seconds it contains seven Flame Barrages, five Flame Burst casts, and 18 Fireball starts.
+## Remaining discrepancies outside Elementalist scope
 
-The native profile is based on the observed event stream rather than the legacy aggregate timeline:
+No net source change under `js/platform/gw2/` or `js/platform/engine/` was made
+by this final audit. The remaining over-threshold cases cannot be corrected
+honestly inside `js/professions/elementalist/`:
 
-- Fireball and Flame Burst are autonomous actions with their own cast, impact, recovery, cooldown, and interruption state.
-- Flame Barrage is a higher-priority player command. Its three projectiles land 0.20 seconds apart, its explosion coincides with the third projectile, and it can interrupt the current autonomous action.
-- Flame Burst applies three stacks of Might and one stack of Burning. Flame Barrage applies three separate Burning stacks. The log attributes those conditions and boons to the player while direct strikes remain sourced from the elemental.
-- Fireball and Flame Burst use the elemental's dynamic Might/Fury and target Vulnerability. Flame Barrage direct damage ignores Might and player profession modifiers, matching its documented behavior and observed damage packets.
-- The summon lasts 120 seconds. Glyph recharge begins when the summon expires.
+| Suite    | Variant                     | DPS delta | Shared cause                                                                                                                   |
+| -------- | --------------------------- | --------: | ------------------------------------------------------------------------------------------------------------------------------ |
+| Catalyst | Condi quick pistol/warhorn  |   +4.087% | Reference uses a condition-wide whole-second clock; native integrates per application and includes fractional final intervals. |
+| Catalyst | Power sword Fresh Air       |  -22.956% | Concurrent sphere/attunement arbitration stretches the rotation by 22.452% and rejects downstream actions.                     |
+| Catalyst | Power quick sword Fresh Air |  -29.413% | The same shared arbitration stretches the rotation by 36.986% and rejects a sphere.                                            |
+| Weaver   | Condi pistol                |   -3.716% | Shared condition integration plus concurrent readiness and deterministic critical-proc policy.                                 |
+| Weaver   | Condi pistol/dagger         |   -3.313% | Near-exact timeline; remaining delta is shared condition, critical-food, and critical-sigil policy.                            |
+| Weaver   | Condi scepter               |   -5.716% | Shared condition integration plus concurrent readiness and deterministic critical-proc policy.                                 |
+| Weaver   | Power spear                 |  -17.586% | Shared attunement/concurrent arbitration stretches the rotation by 18.864%, changing downstream skills and one legality check. |
 
-The trace is one stationary golem sample. Timings use measured central values and need additional logs to characterize movement, range, target switching, and natural timing variance.
+Elementalist-local compensation factors were rejected because they would hide
+shared behavior and break the causal per-ability checks. Detailed evidence is
+retained in the Catalyst and Weaver handoff documents.
 
-## Open: encounter assumptions and data
+## Non-blocking data limits
 
-| ID      | Priority | Finding                                                                                                                                                                                                                                    |
-| ------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ELM-503 | Low      | The legacy Thorns boss-aura cadence assumption is not represented in native configuration.                                                                                                                                                 |
-| ELM-504 | Medium   | Air, Ice, and Earth Elemental AI remain unmodeled. The native simulator follows the reference simulator by always using the EVTC-derived Fire Elemental profile, regardless of the player's attunement when `Glyph of Elementals` is cast. |
+- The Thorns boss-aura cadence is encounter configuration, not Elementalist
+  profession state.
+- Air, Ice, and Earth Elemental AI lacks representative combat-log evidence.
+  The native simulator follows the upstream fixture contract by using Fire;
+  new summon models should not be invented without evidence.
 
-ELM-503 is an encounter-model migration rather than a native Elementalist combat-state blocker. ELM-504 requires additional combat evidence before distinct attunement-based summons can be modeled.
+## Retirement and retained reference
 
-## Open: migration controls
+The standalone Elementalist implementation, its application route, build/site
+entries, CSV runtime assets, and local parity tests were removed after the
+Elementalist-local audit gaps were closed. The audit harness now compares the
+native engine directly with the upstream clone.
 
-| ID      | Priority | Finding                                                                                                                                                                                                      |
-| ------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ELM-603 | High     | Native/legacy parity still has five short aggregate fixtures. It needs exact fixtures for transformed skills, cooldown loops, resource cycles, trait branches, and the newly migrated weapon state machines. |
+`reference-repos/Elementalist-Simulator/` remains intact and ignored by Git for
+future reference and repeatable audits.
 
-## Shared behavior decisions
+## Reproduction
 
-No shared resolver or scheduler behavior was changed for these findings.
+```powershell
+npm run build:modules
+node --import ./scripts/testing/register-dist-loader.mjs scripts/audit/compare-power-tempest-reference.mjs --check-actionable --summary
+node --import ./scripts/testing/register-dist-loader.mjs scripts/audit/compare-catalyst-reference.mjs --check-actionable --summary
+node --import ./scripts/testing/register-dist-loader.mjs scripts/audit/compare-weaver-reference.mjs --check-actionable --summary
+node --import ./scripts/testing/register-dist-loader.mjs scripts/audit/compare-evoker-reference.mjs --check-actionable --summary
+```
 
-| ID      | Area                            | Finding                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Decision                                                                                                                                                                                                                                                                                                                                   |
-| ------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ELM-701 | Condition tick cadence          | The reference engine starts one condition-wide one-second tick clock after the first application, ticks all active stacks together, and omits a partial final tick. Native schedules each application from its own timestamp and scores fractional final intervals. This changes per-ability condition damage even where application counts and effective stack-seconds are exact.                                                                                     | Do not implement. Keep the shared resolver's per-application/fractional policy. Continue reporting the 58 diagnosed ability rows so this accepted difference cannot conceal a new mismatch.                                                                                                                                                |
-| ELM-702 | Critical sigil causality        | Air, Earth, and Torment sigils are materialized from scheduled critical candidates before hit resolution. A future Hammer orb packet can therefore create a sigil proc even when Grand Finale later cancels that packet. This produces 32 native Air procs versus 31 in the Power Hammer reference. Condi Alac Scepter also has a separate Earth mismatch (40 versus 39); its first drift occurs when critical progress is evaluated from scheduler-side combat facts. | Remaining candidate. Move critical-triggered sigil materialization to a shared post-resolution reaction so only surviving resolved critical hits and resolver-time critical facts can trigger it. This requires explicit confirmation and cross-profession tests. Re-audit Earth after the move rather than assuming the count will align. |
-| ELM-703 | Critical food expected progress | Reference Nourishment accumulates expected critical-proc progress even while its ICD is active, then checks readiness. Native rejects ICD-blocked critical hits without banking them. Reference also records the proc as flat strike-base damage, while native records the current shared food packet as condition/life-siphon damage. These differences cause every Nourishment component failure.                                                                    | Do not implement. Keep native no-banking and life-siphon semantics. Continue reporting the nine diagnosed Nourishment rows.                                                                                                                                                                                                                |
-| ELM-704 | Concurrent rotation scheduling  | Condi Alac Pistol has one material timing mismatch. A concurrent Feel the Burn! request at 63.323s waits for recharge until 63.509s; native advances the global cursor to it and delays the next serial Scorching Shot from 63.362s to 63.509s. Reference keeps the serial lane at 63.362s while the delayed concurrent sibling waits independently.                                                                                                                   | Remaining candidate. Let delayed concurrent work remain queued without advancing the serial rotation lane. This requires explicit confirmation and regression coverage for every profession.                                                                                                                                               |
-
-The current strict audit intentionally fails rather than accepting aggregate cancellation. Across the 13 fixtures, aggregate native DPS ranges from -0.739% to +1.159% versus upstream, but there are 69 per-build ability component failures. Condition application counts and effective stack-seconds match for every ability except the single Sigil of Earth mismatch described in ELM-702.
-
-## Verification
-
-- 59 focused native Elementalist mechanics and Power Sword preset tests
-- 13 upstream-vs-local-legacy-vs-native Tempest build/rotation comparisons
-- Per-ability strike, condition, cast, hit, condition-application, and effective-stack-second comparisons
-- Generic Nourys cadence, relic grouping, and additive-bucket coverage
-- Shared scheduler temporal and catalog-ownership suites
-- Prettier and scoped `git diff --check`
-
-## Remaining implementation order
-
-1. Obtain explicit confirmation for ELM-702 and ELM-704. ELM-701 and ELM-703 are closed without implementation.
-2. If approved, implement ELM-702 and ELM-704 independently with cross-profession regressions and rerun the strict per-ability audit after each change.
-3. Capture representative Air, Ice, and Earth Elemental logs and implement their distinct AI/skills (ELM-504).
-4. Add exact native fixtures for transformed skills, cooldown loops, resources, trait branches, and all implemented Elemental variants (ELM-603).
-5. Add the low-priority Thorns cadence configuration if encounter parity still requires it (ELM-503).
-
-Aggregate DPS tolerance remains a final safety net rather than primary proof of mechanic parity.
+The actionable commands remain red for the shared-engine findings documented
+above and in the suite handoffs. Tempest and Evoker remain inside the aggregate
+DPS threshold but exceed timeline-specific caps; Catalyst and Weaver also have
+aggregate failures. The gates still reject new warnings, unclassified
+differences, or Elementalist-local regressions.

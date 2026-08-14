@@ -1455,6 +1455,10 @@ export const RELIC_DATA = {
     cooldown: 10,
     icon: "https://render.guildwars2.com/file/7946A50DBDC2E45E004AAA801904015C50CC22B3/3745069.png",
   },
+  Steamshrieker: {
+    trigger: "Combo a water field with a leap or blast finisher",
+    cooldown: 0,
+  },
   Aristocracy: {
     trigger: "Apply weakness or vulnerability",
     cooldown: 1,
@@ -1578,7 +1582,14 @@ export const RELIC_GROUPS = [
   },
   {
     label: "Condition",
-    items: ["Akeem", "Aristocracy", "Blightbringer", "Fractal", "Thorns"],
+    items: [
+      "Akeem",
+      "Aristocracy",
+      "Blightbringer",
+      "Fractal",
+      "Steamshrieker",
+      "Thorns",
+    ],
   },
   {
     label: "Hybrid",

@@ -154,7 +154,7 @@ export function weaponPaletteStackHtml(groups: readonly string[] = []): string {
   if (!content) return "";
   return (
     `<div class="weapon-palette-stack" data-role="weapon-set-stack" ` +
-    `style="display:flex;flex-direction:column;align-items:stretch;gap:6px">${content}</div>`
+    `style="display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;gap:6px">${content}</div>`
   );
 }
 

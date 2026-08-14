@@ -178,26 +178,26 @@ test("Necromancer and Thief displayed benchmark DPS stays current", async () => 
 
   assert.equal(
     necromancerDps.get("Scourge:Condition (Pistol / Torch + Scepter / Torch)"),
-    39419,
+    39662,
   );
   assert.equal(necromancerDps.get("Reaper:Power (Greatsword / Spear)"), 43427);
   assert.equal(
     necromancerDps.get("Reaper:Condition (Dagger / Sword + Spear)"),
-    43982,
+    44171,
   );
   assert.equal(
     necromancerDps.get("Ritualist:Power (Greatsword / Spear)"),
-    42901,
+    43284,
   );
   assert.equal(
     necromancerDps.get("Harbinger:Power (Greatsword / Spear)"),
-    43617,
+    43688,
   );
   assert.deepEqual(
     thiefManifest
       .flatMap((section) => section.presets)
       .map((preset) => preset.benchmarkDps),
-    [35365, 36721, 43248, 40790, 42082, 36275, 43036, 38045],
+    [35365, 36891, 43248, 40790, 42082, 36275, 43036, 38045],
   );
 });
 
@@ -214,7 +214,7 @@ test("new Necromancer rotation presets execute without warnings", async () => {
       (preset) =>
         preset.label === "Condition (Pistol / Torch + Scepter / Dagger)",
     );
-  assert.equal(conditionHarbinger?.benchmarkDps, 45253);
+  assert.equal(conditionHarbinger?.benchmarkDps, 45308);
 
   const presets = [
     ["b-power-reaper.json", "r-power-reaper-bench.json"],
@@ -367,7 +367,7 @@ test("Power Alacrity Sword Renegade preset executes without warnings", async () 
   recalculateRevenant(app);
   const result = runRevenantSimulation(app);
 
-  assert.equal(preset.benchmarkDps, 34194);
+  assert.equal(preset.benchmarkDps, 34305);
   assert.equal(savedRotation.rotation.length, 262);
   assert.deepEqual(build.weapons, ["Sword", "Sword"]);
   assert.equal(build.specializations[2].name, "Renegade");
@@ -453,7 +453,7 @@ test("Condition Conduit Mistfire preset matches its benchmark", async () => {
   recalculateRevenant(app);
   const result = runRevenantSimulation(app);
 
-  assert.equal(preset.benchmarkDps, 39937);
+  assert.equal(preset.benchmarkDps, 40004);
   assert.equal(preset.upToDate, true);
   assert.deepEqual(result.warnings, []);
   assert.equal(Math.round(result.dps), preset.benchmarkDps);

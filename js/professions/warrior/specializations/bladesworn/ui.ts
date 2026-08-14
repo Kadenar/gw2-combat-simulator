@@ -91,7 +91,7 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
       skillIds: GUNSABER_SKILLS,
       color: "#c97645",
       className: "bladesworn-gunsaber",
-      stackId: PALETTE_STACK_ID,
+      placement: "weapon-set-1" as const,
     },
   ],
   skillBarGroups: (context: WarriorUiContext) => [
@@ -113,6 +113,7 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
       label: "Gunsaber",
       skillIds: GUNSABER_SKILLS,
       color: "#c97645",
+      placement: "weapon-bar" as const,
     },
   ],
   timelineWeaponLineTransition: (context: WarriorUiContext) => {

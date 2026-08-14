@@ -624,9 +624,16 @@ test("the generic landing page and profession simulators have separate entries",
       assert.match(source, new RegExp(`data-profession="${entry.id}"`));
       assert.match(source, /js\/app\/app\.js/);
       assert.match(source, /id="rotation-warnings"/);
-      assert.match(source, /skills-panel-left skills-panel-split/);
+      assert.match(source, /skills-primary-column/);
+      assert.match(source, /panel skills-panel-left weapon-sets-panel/);
+      assert.match(source, /panel skills-panel-left equipped-skills-panel/);
       assert.match(source, /skill-bar-column weapon-bar-column/);
       assert.match(source, /skill-bar-column equipped-skill-bar-column/);
+      if (entry.id === "elementalist") {
+        assert.match(source, /class="elementalist-theme"/);
+      } else {
+        assert.match(source, /profession-loadout-theme/);
+      }
       assert.doesNotMatch(source, /id="skill-info-table"/);
       assert.doesNotMatch(source, /selected-skills-panel/);
     }
@@ -1414,13 +1421,14 @@ test("target-health timeline markers are inserted after the crossing hit", () =>
   assert.deepEqual(targetHealthTimelineMarkers(result, 1000, [], 3), []);
 });
 
-test("weapon-set palette groups render vertically in set order", () => {
+test("weapon-set palette groups render side by side in set order", () => {
   const html = weaponPaletteStackHtml([
     '<div data-weapon-set="1">W1</div>',
     '<div data-weapon-set="2">W2</div>',
   ]);
   assert.match(html, /data-role="weapon-set-stack"/);
-  assert.match(html, /flex-direction:column/);
+  assert.match(html, /flex-direction:row/);
+  assert.match(html, /flex-wrap:wrap/);
   assert.equal(
     html.indexOf('data-weapon-set="1"') < html.indexOf('data-weapon-set="2"'),
     true,

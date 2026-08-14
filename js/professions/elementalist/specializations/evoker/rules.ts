@@ -89,9 +89,20 @@ function availability(
   context: CastContext<SchedulerRecord>,
   skill: Skill,
 ): AvailabilityResult {
+  const state = evokerState.from(context);
+  if (
+    state.activeFamiliarCast &&
+    context.start < state.activeFamiliarCast.endsAt - context.epsilon
+  ) {
+    return {
+      ready: false,
+      retryAt: state.activeFamiliarCast.endsAt,
+      code: "elementalist.evoker-familiar-cast",
+      reason: `${skill.name} waits for the active familiar cast to finish.`,
+    };
+  }
   const element = FAMILIAR_ELEMENTS[skill.name];
   if (!element) return { ready: true };
-  const state = evokerState.from(context);
   if (state.element !== element) {
     return {
       ready: false,
@@ -206,11 +217,7 @@ function releaseElementalProcession(
   }
 }
 
-function grantWeaponSkillCharges(
-  context: CastLifecycleContext<SchedulerRecord>,
-  skill: Skill,
-  state: EvokerState,
-): void {
+function weaponSkillChargeGain(skill: Skill, state: EvokerState): number {
   const slot = /^Weapon_(\d)$/.exec(String(skill.slot || ""));
   if (
     skill.type !== "Weapon" ||
@@ -222,29 +229,76 @@ function grantWeaponSkillCharges(
     (skill.weapon === "Spear" &&
       (skill.name.startsWith("Lesser ") || FULL_SPEAR_ETCHINGS.has(skill.name)))
   ) {
-    return;
+    return 0;
   }
-  const before = state.charges;
-  const gain = String(skill.attunement || "")
+  return String(skill.attunement || "")
     .split("+")
     .includes(state.element)
     ? 2
     : 1;
-  state.charges = Math.min(state.maximumCharges, state.charges + gain);
+}
+
+function applyWeaponSkillChargeGain(
+  context: CastLifecycleContext<SchedulerRecord>,
+  state: EvokerState,
+  chargeGain: EvokerState["pendingWeaponChargeGains"][number],
+): void {
+  const before = state.charges;
+  state.charges = Math.min(
+    state.maximumCharges,
+    state.charges + chargeGain.gain,
+  );
   if (state.charges === before) return;
   context.emit({
     type: "resource",
-    at: context.effectiveEnd,
-    source: skill.name,
-    sourceId: skill.id,
+    activationId: chargeGain.activationId,
+    at: chargeGain.at,
+    source: chargeGain.source,
+    sourceId: chargeGain.sourceId,
     actorType: "player",
-    skillName: skill.name,
+    skillName: chargeGain.source,
     kind: "evoker-charges",
     value: state.charges,
     maximum: state.maximumCharges,
     empowered: state.empowered,
     change: state.charges - before,
   });
+}
+
+function grantWeaponSkillCharges(
+  context: CastLifecycleContext<SchedulerRecord>,
+  skill: Skill,
+  state: EvokerState,
+): void {
+  const gain = weaponSkillChargeGain(skill, state);
+  if (gain <= 0) return;
+  const chargeGain = {
+    activationId: context.reservationId,
+    at: context.effectiveEnd,
+    source: skill.name,
+    sourceId: skill.id,
+    gain,
+  };
+  if (
+    state.activeFamiliarCast &&
+    state.activeFamiliarCast.resetsCharges &&
+    context.reservationId !== state.activeFamiliarCast.reservationId &&
+    context.effectiveEnd <= state.activeFamiliarCast.endsAt + context.epsilon
+  ) {
+    state.pendingWeaponChargeGains.push(chargeGain);
+    return;
+  }
+  applyWeaponSkillChargeGain(context, state, chargeGain);
+}
+
+function flushPendingWeaponChargeGains(
+  context: CastLifecycleContext<SchedulerRecord>,
+  state: EvokerState,
+): void {
+  for (const chargeGain of state.pendingWeaponChargeGains) {
+    applyWeaponSkillChargeGain(context, state, chargeGain);
+  }
+  state.pendingWeaponChargeGains = [];
 }
 
 function cancelActivationEffects(
@@ -272,6 +326,46 @@ function onCastStart(
   skill: Skill,
 ): void {
   const state = evokerState.from(context);
+  const familiarElement = FAMILIAR_ELEMENTS[skill.name];
+  if (context.command.concurrentOffsetMs == null) {
+    const gain = weaponSkillChargeGain(skill, state);
+    const postFamiliarGain =
+      gain > 0 ? gain : skill.name === "Rejuvenate" ? state.maximumCharges : 0;
+    state.concurrentParentAnchors.push({
+      commandIndex: context.commandIndex,
+      weaponChargeGain:
+        postFamiliarGain > 0
+          ? {
+              activationId: context.reservationId,
+              at: context.effectiveEnd,
+              source: skill.name,
+              sourceId: skill.id,
+              gain: postFamiliarGain,
+            }
+          : null,
+    });
+  }
+  if (familiarElement) {
+    const concurrentParent =
+      context.command.concurrentOffsetMs != null
+        ? state.concurrentParentAnchors
+            .filter((entry) => entry.commandIndex < context.commandIndex)
+            .sort((left, right) => right.commandIndex - left.commandIndex)[0]
+        : null;
+    if (
+      BASIC_FAMILIARS.has(skill.name) &&
+      concurrentParent?.weaponChargeGain &&
+      concurrentParent.weaponChargeGain.at <= context.start + context.epsilon
+    ) {
+      state.pendingWeaponChargeGains.push(concurrentParent.weaponChargeGain);
+      concurrentParent.weaponChargeGain = null;
+    }
+    state.activeFamiliarCast = {
+      reservationId: context.reservationId,
+      endsAt: context.effectiveEnd,
+      resetsCharges: BASIC_FAMILIARS.has(skill.name),
+    };
+  }
   const interrupt = FAMILIAR_INTERRUPT_WINDOWS[skill.name];
   if (interrupt) {
     const [empoweredSkill, window] = interrupt;
@@ -528,7 +622,7 @@ function materializeArmedElectricEnchantments(
         event.type === "damage" &&
         event.actorType === "player" &&
         Number(event.coefficient || 0) > 0 &&
-        event.at >= context.effectiveEnd &&
+        event.at >= Number(context.combatStartTime || 0) - context.epsilon &&
         event.electricEnchantmentConsumed !== true,
     )
     .sort((left, right) => left.at - right.at);
@@ -546,6 +640,8 @@ function onCastComplete(
 ): void {
   const state = evokerState.from(context);
   const at = context.effectiveEnd;
+  const completesActiveFamiliar =
+    state.activeFamiliarCast?.reservationId === context.reservationId;
   grantWeaponSkillCharges(context, skill, state);
   if (
     FAMILIAR_ELEMENTS[skill.name] &&
@@ -630,6 +726,10 @@ function onCastComplete(
     state.charges = state.maximumCharges;
     emitResource(context, skill, state);
   }
+  if (completesActiveFamiliar) {
+    flushPendingWeaponChargeGains(context, state);
+    state.activeFamiliarCast = null;
+  }
   if (skill.name === "Elemental Procession") {
     releaseElementalProcession(context, skill);
   }
@@ -644,6 +744,7 @@ function onCastComplete(
       detail: "+5 stacks",
       icon: ELECTRIC_ENCHANTMENT_ICON,
     });
+    materializeArmedElectricEnchantments(context, state);
   } else if (skill.name === "Toad's Fortitude" && state.element === "Earth") {
     emitElementalistBuff(
       context as never,
@@ -715,28 +816,6 @@ function onEventScheduled(
       context.replaceEvent(event, { electricEnchantmentConsumed: true });
       emitElectricEnchantment(context, event);
     }
-  }
-  if (event.type === "elementalist.evasive-arcana") {
-    const attunement = String(event.attunement || "");
-    if (attunement === "Air") return;
-    const before = state.charges;
-    const gain = state.element === attunement ? 2 : 1;
-    state.charges = Math.min(state.maximumCharges, state.charges + gain);
-    if (state.charges === before) return;
-    context.emitDerived(event, {
-      type: "resource",
-      at: event.at,
-      source: "Evasive Arcana",
-      sourceId: event.sourceId,
-      actorType: "player",
-      skillName: "Evasive Arcana",
-      kind: "evoker-charges",
-      value: state.charges,
-      maximum: state.maximumCharges,
-      empowered: state.empowered,
-      change: state.charges - before,
-    });
-    return;
   }
   if (
     event.type !== "elementalist.attunement" &&

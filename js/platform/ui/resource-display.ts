@@ -53,6 +53,8 @@ function normalizeResourceView(
     statusLabel: String(view.statusLabel || "Current"),
     statusItemsLabel: String(view.statusItemsLabel || ""),
     statusItems,
+    showInPalette: view.showInPalette !== false,
+    showValue: view.showValue !== false,
     ...(view.paletteSkillId != null
       ? { paletteSkillId: view.paletteSkillId }
       : {}),
