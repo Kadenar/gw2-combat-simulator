@@ -60,6 +60,10 @@ export interface RotationOptimizerDiagnostics {
   readonly frontierPeak: number;
   readonly stopReason: RotationOptimizerStopReason;
   readonly removedZeroDamageActions: number;
+  readonly holdsGenerated: number;
+  readonly holdsRetained: number;
+  readonly zeroDamageCandidatesRejected: number;
+  readonly diversityFamilies: number;
 }
 
 export interface RotationOptimizerResult {
