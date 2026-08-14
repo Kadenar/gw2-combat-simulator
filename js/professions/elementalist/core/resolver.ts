@@ -229,7 +229,10 @@ export function applyElementalistResolverAura(
   if (context.combatStartTime != null && event.at < context.combatStartTime) {
     return;
   }
-  if (event.elementalistResolverGeneratedAura === true) {
+  if (
+    event.elementalistResolverGeneratedAura === true ||
+    event.type === "aura"
+  ) {
     if (hasTrait(context, "Zephyr's Boon")) {
       queueBuff(context, event, "Fury", 1, 5, skillName);
       queueBuff(context, event, "Swiftness", 1, 5, skillName);
@@ -322,112 +325,6 @@ function grantPersistingFlames(
   queueBuff(context, event, "Persisting Flames", 1, 15, sourceSkill(event));
 }
 
-function activeComboField(
-  context: Gw2ResolverRuntime,
-  at: number,
-): { type: string } | null {
-  const state = coreState(context);
-  state.activeComboFields = state.activeComboFields.filter(
-    (field) => field.expiresAt > at,
-  );
-  return (
-    state.activeComboFields.find(
-      (field) => field.startsAt <= at && field.expiresAt > at,
-    ) || null
-  );
-}
-
-function applyComboEffect(
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-  details: NativeResolvedDamageDetails,
-  fieldType: string,
-  finisherType: string,
-): void {
-  const source = `Combo (${fieldType}/${finisherType})`;
-  if (fieldType === "Fire") {
-    if (finisherType === "Blast") {
-      queueBuff(context, event, "Might", 3, 20, source);
-    } else if (finisherType === "Leap") {
-      queueAura(context, event, "Fire Aura", 5, source);
-    } else {
-      applyCondition(context, details, event, {
-        source,
-        condition: "Burning",
-        stacks: 1,
-        duration: 1,
-      });
-    }
-  } else if (fieldType === "Ice") {
-    if (finisherType === "Blast" || finisherType === "Leap") {
-      queueAura(
-        context,
-        event,
-        "Frost Aura",
-        finisherType === "Leap" ? 5 : 3,
-        source,
-      );
-    } else {
-      applyCondition(context, details, event, {
-        source,
-        condition: "Chilled",
-        stacks: 1,
-        duration: 1,
-      });
-    }
-  } else if (fieldType === "Lightning" && finisherType !== "Leap") {
-    if (finisherType === "Blast") {
-      queueBuff(context, event, "Swiftness", 1, 10, source);
-    } else {
-      applyCondition(context, details, event, {
-        source,
-        condition: "Vulnerability",
-        stacks: 2,
-        duration: 5,
-      });
-    }
-  } else if (fieldType === "Water" && finisherType === "Projectile") {
-    queueBuff(context, event, "Regeneration", 1, 2, source);
-  } else if (fieldType === "Poison") {
-    applyCondition(context, details, event, {
-      source,
-      condition:
-        finisherType === "Blast" || finisherType === "Leap"
-          ? "Weakness"
-          : "Poisoned",
-      stacks: 1,
-      duration: finisherType === "Leap" ? 8 : finisherType === "Blast" ? 3 : 2,
-    });
-  } else if (fieldType === "Dark") {
-    if (finisherType === "Blast" || finisherType === "Leap") {
-      queueAura(
-        context,
-        event,
-        "Dark Aura",
-        finisherType === "Leap" ? 5 : 3,
-        source,
-      );
-    } else {
-      enqueueOrdered(context.queue, {
-        type: "damage",
-        at: event.at,
-        source,
-        sourceId: event.skillId ?? event.sourceId ?? source,
-        actorType: "effect",
-        skillName:
-          finisherType === "Whirl"
-            ? "Leeching Bolt"
-            : "Life Stealing Projectile",
-        coefficient: 0,
-        flatStrikeBase: finisherType === "Whirl" ? 170 : 202,
-        flatStrikePowerCoeff: 0.03,
-        noCrit: true,
-        triggeredBy: sourceSkill(event),
-      });
-    }
-  }
-}
-
 function triggerComboTraits(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
@@ -473,66 +370,6 @@ function triggerComboTraits(
   }
 }
 
-function queueComboEvent(
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-  fieldType: string,
-  finisherType: string,
-): void {
-  const state = coreState(context);
-  const source = `Combo (${fieldType}/${finisherType})`;
-  enqueueOrdered(context.queue, {
-    type: "elementalist.combo",
-    at: event.at,
-    source: sourceSkill(event) || source,
-    sourceId: event.skillId ?? event.sourceId ?? source,
-    actorType: "effect",
-    skillName: sourceSkill(event) || source,
-    attunement: state.primaryAttunement,
-    field: fieldType,
-    finisherType,
-  });
-}
-
-function resolveComboFinisher(
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-  details: NativeResolvedDamageDetails,
-): void {
-  if (event.actorType !== "player") return;
-  const finisherType = String(event.finisherType || "");
-  if (!finisherType) return;
-  const field = activeComboField(context, event.at);
-  if (!field) return;
-  const state = coreState(context);
-  triggerComboTraits(context, event);
-  queueComboEvent(context, event, field.type, finisherType);
-  const value = Math.max(0, Number(event.finisherValue || 1));
-  if (finisherType === "Projectile") {
-    state.comboProgress.Projectile += value;
-    while (state.comboProgress.Projectile >= 1) {
-      state.comboProgress.Projectile -= 1;
-      applyComboEffect(context, event, details, field.type, finisherType);
-    }
-    return;
-  }
-  const repeats = finisherType === "Whirl" ? Math.max(1, Math.floor(value)) : 1;
-  for (let index = 0; index < repeats; index += 1) {
-    applyComboEffect(context, event, details, field.type, finisherType);
-  }
-  if (finisherType === "Blast") {
-    enqueueOrdered(context.queue, {
-      type: "blast_combo",
-      at: event.at,
-      source: sourceSkill(event),
-      sourceId: event.skillId ?? event.sourceId,
-      actorType: "player",
-      skillName: sourceSkill(event),
-      field: field.type,
-    } as unknown as Gw2ResolverEvent);
-  }
-}
-
 export function applyElementalistResolvedDamage(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
@@ -545,7 +382,13 @@ export function applyElementalistResolvedDamage(
   ) {
     grantPersistingFlames(context, event);
   }
-  resolveComboFinisher(context, event, details);
+}
+
+export function applyElementalistResolvedCombo(
+  context: Gw2ResolverRuntime,
+  event: Gw2ResolverEvent,
+): void {
+  triggerComboTraits(context, event);
 }
 
 export function applyElementalistResolvedCondition(
@@ -572,21 +415,6 @@ export function applyElementalistResolvedCondition(
     }
   }
   if (event.condition === "Burning") grantPersistingFlames(context, event);
-}
-
-export function applyElementalistResolverComboField(
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-): void {
-  const state = coreState(context);
-  state.activeComboFields = state.activeComboFields
-    .filter((field) => field.expiresAt > event.at)
-    .concat({
-      type: String(event.field || ""),
-      startsAt: event.at,
-      expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
-      skillName: sourceSkill(event),
-    });
 }
 
 export function applyElementalistResolverAttunement(

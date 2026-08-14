@@ -240,11 +240,13 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
   );
   assert.equal(insightStacks(breachingCombo), 1);
   assert.equal(
-    breachingCombo.events.filter(
+    breachingCombo.resolvedEvents.filter(
       (event) =>
-        event.type === "control" &&
-        event.skillName === "Dazing Strike" &&
-        event.parentSkillName === "Breaching Strike",
+        event.type === "combo" &&
+        event.skillName === "Breaching Strike" &&
+        event.fieldType === "Lightning" &&
+        event.finisherType === "Leap" &&
+        event.outcome.name === "Dazing Strike",
     ).length,
     1,
   );

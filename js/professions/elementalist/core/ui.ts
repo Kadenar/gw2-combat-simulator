@@ -272,8 +272,8 @@ function eventLogRow(
     };
   }
   if (
-    event.type === "elementalist.combo-field" ||
-    event.type === "elementalist.combo" ||
+    event.type === "combo_field" ||
+    event.type === "combo" ||
     event.type === "elementalist.fresh-air" ||
     event.type === "elementalist.evasive-arcana" ||
     event.type === "elementalist.attunement-enter" ||

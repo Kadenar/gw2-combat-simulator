@@ -14,13 +14,6 @@ export const ELEMENTALIST_ATTUNEMENTS = Object.freeze([
 
 export type ElementalistAttunement = (typeof ELEMENTALIST_ATTUNEMENTS)[number];
 
-export interface ElementalistFieldState {
-  type: string;
-  startsAt: number;
-  expiresAt: number;
-  skillName: string;
-}
-
 export interface ElementalistAuraState {
   type: string;
   appliedAt: number;
@@ -67,9 +60,7 @@ export interface ElementalistCoreState extends SchedulerRecord {
   criticalProcProgress: Record<string, number>;
   endurance: number;
   enduranceUpdatedAt: number;
-  activeComboFields: ElementalistFieldState[];
   activeAuras: ElementalistAuraState[];
-  comboProgress: Record<string, number>;
   pistolBullets: Record<ElementalistAttunement, boolean>;
   dazingDischargeUntil: number;
   shatteringStoneHitsRemaining: number;
@@ -153,9 +144,7 @@ export function createElementalistCoreState(
     criticalProcProgress: {},
     endurance: 100,
     enduranceUpdatedAt: 0,
-    activeComboFields: [],
     activeAuras: [],
-    comboProgress: { Projectile: 0, Whirl: 0 },
     pistolBullets: {
       Fire: Boolean(configuredBullets.Fire),
       Water: Boolean(configuredBullets.Water),
@@ -256,7 +245,6 @@ export const ELEMENTALIST_PUBLIC_END_STATE_KEYS = Object.freeze([
   "autoattackChains",
   "autoattackCarryover",
   "endurance",
-  "activeComboFields",
   "activeAuras",
   "pistolBullets",
   "dazingDischargeUntil",
@@ -304,7 +292,6 @@ const ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<SchedulerRecord> =
     autoattackChains: {},
     autoattackCarryover: null,
     endurance: 100,
-    activeComboFields: [],
     activeAuras: [],
     pistolBullets: { Fire: false, Water: false, Air: false, Earth: false },
     dazingDischargeUntil: 0,

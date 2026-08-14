@@ -60,6 +60,12 @@ export function materializeSkillEffectApplications({
 }: MaterializeSkillEffectOptions): readonly MaterializedEffectApplication[] {
   const firstAt = effectFirstAt(start, fullEnd, effect);
   const applications: MaterializedEffectApplication[] = [];
+  const comboMetadata = effect.comboFinishers
+    ? { comboFinishers: effect.comboFinishers }
+    : {};
+  const comboFieldMetadata = effect.comboFields
+    ? { comboFields: effect.comboFields }
+    : {};
 
   if (effect.type === "strike") {
     const ticks = Array.isArray(effect.ticks) ? effect.ticks : null;
@@ -98,6 +104,11 @@ export function materializeSkillEffectApplications({
             : {}),
           ...(effect.metadata || {}),
           ...(tick?.metadata || {}),
+          ...comboMetadata,
+          ...comboFieldMetadata,
+          ...(tick?.comboFinishers
+            ? { comboFinishers: tick.comboFinishers }
+            : {}),
         },
       });
     }
@@ -126,6 +137,11 @@ export function materializeSkillEffectApplications({
             totalApplications: ticks.length,
             ...(effect.metadata || {}),
             ...(tick.metadata || {}),
+            ...comboMetadata,
+            ...comboFieldMetadata,
+            ...(tick.comboFinishers
+              ? { comboFinishers: tick.comboFinishers }
+              : {}),
           },
         });
       }
@@ -151,6 +167,8 @@ export function materializeSkillEffectApplications({
             applicationIndex,
             totalApplications: count,
             ...(effect.metadata || {}),
+            ...comboMetadata,
+            ...comboFieldMetadata,
           },
         });
       }
@@ -173,6 +191,8 @@ export function materializeSkillEffectApplications({
           applicationIndex,
           totalApplications: count,
           ...(effect.metadata || {}),
+          ...comboMetadata,
+          ...comboFieldMetadata,
         },
       });
     }
@@ -206,6 +226,8 @@ export function materializeSkillEffectApplications({
         duration: Math.max(0, Number(statusDuration ?? effect.duration ?? 0)),
         ...recipientMetadata,
         ...(effect.metadata || {}),
+        ...comboMetadata,
+        ...comboFieldMetadata,
       },
     });
   } else if (effect.type === "custom") {
@@ -226,6 +248,8 @@ export function materializeSkillEffectApplications({
           type: effect.eventType,
           applicationIndex,
           totalApplications: count,
+          ...comboMetadata,
+          ...comboFieldMetadata,
         },
       });
     }

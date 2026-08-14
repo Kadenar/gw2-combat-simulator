@@ -1,5 +1,6 @@
 import { isGw2NonWeaponEffectEvent } from "../event-ownership.js";
 import { gw2BoonApplicationRecipients } from "../allied-players.js";
+import { prepareGw2ComboEvent } from "../combo-events.js";
 import { weaponStrengthProfileIdForEvent } from "../weapon-strength.js";
 
 import type {
@@ -37,6 +38,7 @@ export function createGw2EventPreparer(): Readonly<Gw2EventPreparer> {
     context: SchedulerContext,
     event: SimulationEventInput,
   ): SimulationEventInput => {
+    event = prepareGw2ComboEvent(event);
     if (event.type === "buff") {
       const recipients = gw2BoonApplicationRecipients(
         context.config as Gw2Config,

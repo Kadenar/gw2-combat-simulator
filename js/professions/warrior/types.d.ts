@@ -64,7 +64,6 @@ export interface BerserkerState {
   berserkActive: boolean;
   berserkUntil: number;
   fireAuraUntil: number;
-  fireProjectileFinisherProgress: number;
   kingOfFiresReadyAt: number;
   kingOfFiresCriticalProgress: number;
 }

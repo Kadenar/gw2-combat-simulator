@@ -92,7 +92,18 @@ test("condition Willbender preset reproduces the supplied benchmark", async () =
     true,
   );
   assert.equal(burningStacks("Peacekeeper — Burning"), 95);
-  assert.equal(burningStacks("Whirling Light — Burning Bolt"), 16);
+  assert.equal(
+    result.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === "condition" &&
+          event.comboId != null &&
+          event.skillName === "Whirling Light" &&
+          event.condition === "Burning",
+      )
+      .reduce((total, event) => total + Number(event.stacks || 1), 0),
+    16,
+  );
   assert.equal(
     justiceBurns.filter((event) => event.triggeredBy === "Sigil of Air").length,
     4,

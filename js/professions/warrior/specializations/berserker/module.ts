@@ -1,4 +1,7 @@
-import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
+import {
+  defineNativeModule,
+  onAuraApplied,
+} from "../../../../platform/gw2/native-profession.js";
 import { createWarriorModuleData } from "../../catalog-data.js";
 import { BERSERKER_SKILL_MECHANICS } from "./skills.js";
 import { berserkerSkillHandlers } from "./handlers.js";
@@ -9,6 +12,7 @@ import {
 } from "./rules.js";
 import { berserkerState } from "./state.js";
 import { berserkerUi } from "./ui.js";
+import { reactToBerserkerAura } from "./traits.js";
 
 export const berserkerModule = defineNativeModule({
   id: "Berserker",
@@ -21,6 +25,12 @@ export const berserkerModule = defineNativeModule({
     modifiers: berserkerAttributeRules,
     castRules: berserkerCastRules,
     schedulerHooks: berserkerSchedulerHooks,
+    reactions: [
+      onAuraApplied({
+        id: "warrior.berserker.fire-aura",
+        handler: reactToBerserkerAura,
+      }),
+    ],
   },
   presentation: berserkerUi,
 });

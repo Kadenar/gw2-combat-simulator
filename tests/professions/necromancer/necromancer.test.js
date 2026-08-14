@@ -2008,7 +2008,7 @@ test("Death Spiral includes its life-siphon damage packet", () => {
   );
 });
 
-test("Necromancer dark fields emit separately attributed whirl life steals", () => {
+test("Necromancer dark-field life steals inherit finisher attribution", () => {
   const scenarios = [
     {
       rotation: ["Nightfall", "Death Spiral"],
@@ -2035,24 +2035,34 @@ test("Necromancer dark fields emit separately attributed whirl life steals", () 
 
   for (const scenario of scenarios) {
     const result = simulate("Ritualist", scenario.rotation, scenario.config);
-    const bolts = result.resolvedEvents.filter(
-      (event) => event.type === "damage" && event.skillId === ID.LEECHING_BOLTS,
+    const combo = result.resolvedEvents.find(
+      (event) =>
+        event.type === "combo" &&
+        event.fieldType === "Dark" &&
+        event.finisherType === "Whirl" &&
+        event.skillName === scenario.parentSkill,
     );
+    const bolts = result.resolvedEvents.filter(
+      (event) =>
+        event.type === "damage" &&
+        event.name === "Leeching Bolts" &&
+        event.skillName === scenario.parentSkill,
+    );
+    assert.equal(combo.applicationCount, scenario.hits);
     assert.equal(bolts.length, scenario.hits);
     assert.ok(
       bolts.every(
         (event) =>
-          event.skillName === "Leeching Bolts" &&
-          event.parentSkillName === scenario.parentSkill &&
           event.flatStrikeBase === 170 &&
           event.flatStrikePowerCoeff === 0.03 &&
           event.noCrit === true,
       ),
     );
     assert.equal(
-      skillBreakdownRows(result).find((row) => row.name === "Leeching Bolts")
-        ?.hits,
-      scenario.hits,
+      skillBreakdownRows(result).find(
+        (row) => row.name === scenario.parentSkill,
+      )?.hits,
+      scenario.hits + 1,
     );
   }
 
@@ -2061,10 +2071,27 @@ test("Necromancer dark fields emit separately attributed whirl life steals", () 
   });
   assert.equal(
     withoutField.resolvedEvents.some(
-      (event) => event.type === "damage" && event.skillId === ID.LEECHING_BOLTS,
+      (event) => event.type === "combo" && event.fieldType === "Dark",
     ),
     false,
   );
+});
+
+test("Reaper does not resolve one finisher against overlapping Dark and Ice fields", () => {
+  const result = simulate("Reaper", ["Nightfall", "Gravedigger"], {
+    primaryWeapon: "Greatsword",
+    professionAssumptions: { permanentIceField: true },
+  });
+
+  assert.equal(
+    result.resolvedEvents.some(
+      (event) => event.type === "combo" && event.skillName === "Gravedigger",
+    ),
+    false,
+  );
+  assert.deepEqual(result.warnings, [
+    "Combo field binding is unspecified for Gravedigger at 1.980s; no combo resolved.",
+  ]);
 });
 
 test("Greatsword control and Nightfall pulses use their live mechanics", () => {
@@ -2419,26 +2446,31 @@ test("Bone Fiend projectile finishers create Chilling Bolts, not Frost Aura", ()
     (event) =>
       event.type === "damage" && [3633, 3634, 3644].includes(event.skillId),
   );
-  const chillingBolts = result.procSteps.filter(
-    (step) =>
-      step.skill === "Deathly Chill" &&
-      String(step.sourceSkill).includes("Chilling Bolts"),
+  const chillingCombos = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "combo" &&
+      event.fieldType === "Ice" &&
+      event.finisherType === "Projectile",
   );
   const deathlyChill = result.resolvedEvents.filter(
     (event) =>
       event.type === "condition" && event.sourceId === TRAIT.DEATHLY_CHILL,
   );
-  const executionerBolts = executionerField.procSteps.filter(
-    (step) =>
-      step.skill === "Deathly Chill" &&
-      String(step.sourceSkill).includes("Bone Shard — Chilling Bolts"),
+  const executionerCombos = executionerField.resolvedEvents.filter(
+    (event) =>
+      event.type === "combo" &&
+      event.fieldType === "Ice" &&
+      event.finisherType === "Projectile" &&
+      event.actorType === "summon",
   );
 
-  assert.equal(executionerBolts.length, 2);
-  assert.equal(chillingBolts.length, boneShards.length);
+  assert.equal(executionerCombos.length, 2);
+  assert.equal(chillingCombos.length, boneShards.length);
   assert.equal(
-    chillingBolts.filter((step) =>
-      String(step.sourceSkill).startsWith("Rigor Mortis"),
+    result.procSteps.filter(
+      (step) =>
+        step.skill === "Deathly Chill" &&
+        String(step.sourceSkill).startsWith("Rigor Mortis"),
     ).length,
     2,
   );
@@ -5036,7 +5068,9 @@ test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", a
     .map((trait) => trait.name)
     .sort();
 
-  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(result.warnings, [
+    "Combo field binding is unspecified for Soul Spiral at 6.680s; no combo resolved.",
+  ]);
   assert.equal(savedBuild.gear.Weapon2, "Grieving");
   assert.deepEqual(
     activeTraits,
@@ -5070,7 +5104,7 @@ test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", a
       (event) =>
         event.type === "condition" && event.sourceId === TRAIT.DEATHLY_CHILL,
     ).length,
-    160,
+    152,
   );
   assert.equal(
     result.procSteps.filter((step) => step.skill === "Sigil of Geomancy")
@@ -5082,7 +5116,9 @@ test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", a
   const bleedingDamage =
     result.conditionBreakdown.find((entry) => entry.name === "Bleeding")
       ?.damage || 0;
-  assert.ok(Math.abs(bleedingDamage - 2_105_095) / 2_105_095 < 0.02);
+  // Eight Soul Spiral finishers overlap Dark and Ice fields and are left
+  // unresolved rather than reproducing the legacy double-field outcome.
+  assert.ok(Math.abs(bleedingDamage - 2_023_912) / 2_023_912 < 0.02);
   assert.ok(Math.abs(result.dps - 44_355.31) / 44_355.31 < 0.02);
   assert.ok(Math.abs(result.totalDamage - 3_984_571) / 3_984_571 < 0.02);
 });

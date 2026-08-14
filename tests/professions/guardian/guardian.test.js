@@ -1101,22 +1101,27 @@ test("Whirling Light creates four Burning Bolts inside Purging Flames", () => {
       specialization: "Willbender",
     },
   });
-  const burningBolts = (result) =>
+  const burningCombos = (result) =>
     result.resolvedEvents.filter(
       (event) =>
-        event.type === "condition" &&
-        event.name === "Whirling Light — Burning Bolt",
+        event.type === "combo" &&
+        event.skillName === "Whirling Light" &&
+        event.fieldType === "Fire" &&
+        event.finisherType === "Whirl",
     );
 
   assert.deepEqual(inFireField.warnings, []);
-  assert.equal(burningBolts(inFireField).length, 4);
+  assert.equal(burningCombos(inFireField).length, 1);
   assert.equal(
-    burningBolts(inFireField).every(
-      (event) => event.condition === "Burning" && event.duration === 1,
+    burningCombos(inFireField).every(
+      (event) =>
+        event.applicationCount === 4 &&
+        event.outcome.condition === "Burning" &&
+        event.outcome.duration === 1,
     ),
     true,
   );
-  assert.equal(burningBolts(withoutFireField).length, 0);
+  assert.equal(burningCombos(withoutFireField).length, 0);
 });
 
 test("Willbender virtues, flames, and trait triggers use their full mechanics", () => {
@@ -4623,11 +4628,10 @@ test("Glacial Heart and Master of Consecrations replace their numeric effects", 
     true,
   );
   assert.equal(
-    glacial.events.some(
-      (event) =>
-        event.type === "blast_combo" && event.skillName === "Glacial Blow",
+    glacial.resolvedEvents.some(
+      (event) => event.type === "combo" && event.skillName === "Glacial Blow",
     ),
-    true,
+    false,
   );
   assert.equal(
     glacial.resolvedEvents.some(

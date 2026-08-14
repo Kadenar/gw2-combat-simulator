@@ -13,6 +13,10 @@ export type SimulationActorType =
 
 export type CommonSimulationEventType =
   | "action"
+  | "aura"
+  | "combo"
+  | "combo_field"
+  | "combo_finisher"
   | "combat_start"
   | "condition_tick"
   | "control"
@@ -187,6 +191,8 @@ export interface SkillEffectBase {
   readonly actorType?: SimulationActorType;
   readonly name?: string;
   readonly metadata?: Readonly<Record<string, unknown>>;
+  readonly comboFields?: readonly Readonly<Record<string, unknown>>[];
+  readonly comboFinishers?: readonly Readonly<Record<string, unknown>>[];
   readonly [field: string]: unknown;
 }
 
@@ -295,6 +301,8 @@ export interface Skill extends CatalogSkill {
   /** Keep the serial cast lane blocked through the original cast end. */
   readonly retainsCastLockoutAfterInterrupt?: boolean;
   readonly effects?: readonly SkillEffect[];
+  readonly comboFields?: readonly Readonly<Record<string, unknown>>[];
+  readonly comboFinishers?: readonly Readonly<Record<string, unknown>>[];
   readonly handlerId?: string;
   readonly parentId?: SkillId;
   readonly flipParentId?: SkillId | null;

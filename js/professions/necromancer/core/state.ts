@@ -151,7 +151,6 @@ export function createNecromancerCoreState(
     vampirismNextAt: 3,
     targetChilledUntil: 0,
     targetControlledUntil: 0,
-    darkFieldUntil: 0,
     dreadUntil: 0,
     fearOfDeathReadyAt: 0,
     vampiricPresenceReadyAt: 0,

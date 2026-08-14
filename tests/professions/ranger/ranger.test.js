@@ -792,14 +792,17 @@ test("Ranger Ice projectile finishers resolve per projectile without triggering 
     selectedPet: "Pig",
   });
   const comboConditions = deterministic.resolvedEvents.filter(
-    (event) => event.sourceId === "ranger.combo.ice-projectile",
+    (event) =>
+      event.type === "combo" &&
+      event.fieldType === "Ice" &&
+      event.finisherType === "Projectile",
   );
 
   assert.deepEqual(
     comboConditions.map((event) => [
       event.skillName,
-      event.condition,
-      event.duration,
+      event.outcome.condition,
+      event.outcome.duration,
     ]),
     [
       ["Splitblade", "Chilled", 1],
@@ -816,9 +819,12 @@ test("Ranger Ice projectile finishers resolve per projectile without triggering 
   });
   assert.equal(
     stochastic.resolvedEvents.filter(
-      (event) => event.sourceId === "ranger.combo.ice-projectile",
+      (event) =>
+        event.type === "combo" &&
+        event.fieldType === "Ice" &&
+        event.finisherType === "Projectile",
     ).length,
-    2,
+    1,
   );
 });
 
@@ -1117,8 +1123,26 @@ test("Power Galeshot benchmark tracks the supplied EVTC and both pets", async ()
     ),
     true,
   );
-  assert.equal(damage("Rapid Fire — Confusing Bolt") > 0, true);
-  assert.equal(damage("Rapid Fire — Poison Combo") > 0, true);
+  assert.equal(
+    result.resolvedEvents.some(
+      (event) =>
+        event.type === "condition" &&
+        event.comboId != null &&
+        event.skillName === "Rapid Fire" &&
+        event.condition === "Confusion",
+    ),
+    true,
+  );
+  assert.equal(
+    result.resolvedEvents.some(
+      (event) =>
+        event.type === "condition" &&
+        event.comboId != null &&
+        event.skillName === "Rapid Fire" &&
+        event.condition === "Poisoned",
+    ),
+    true,
+  );
   assert.equal(
     result.procSteps
       .filter((step) => step.skill === "Relic of the Claw")
@@ -2993,11 +3017,11 @@ test("Ranger pet-swap and Marksmanship traits resolve at their combat timings", 
     true,
   );
   assert.equal(
-    swapped.events.some(
+    swapped.resolvedEvents.some(
       (event) =>
-        event.sourceId === TRAIT.CLARION_BOND && event.type === "blast_combo",
+        event.sourceId === TRAIT.CLARION_BOND && event.type === "combo",
     ),
-    true,
+    false,
   );
   assert.equal(
     swapped.events.some(

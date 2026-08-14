@@ -16,6 +16,7 @@ import {
 } from "../../../platform/gw2/runtime-rules.js";
 import { isGw2PlayerActorEvent } from "../../../platform/gw2/event-ownership.js";
 import { clamp } from "../../../platform/gw2/numeric.js";
+import { observeLegacyProfessionCombos } from "../../../platform/gw2/legacy-combo-adapter.js";
 import {
   MESMER_CORE_AMBUSH_ATTACKS,
   MESMER_CORE_ARISTOCRACY_SKILLS,
@@ -495,30 +496,6 @@ function updateAutoattackChains(
   }
 }
 
-/** Returns whether a completed Mesmer field of the requested type is active. */
-function activeComboField(
-  context: MesmerCastContext,
-  type: string,
-  at: number,
-): boolean {
-  return context.events.some((event) => {
-    if (
-      event.type !== "action" ||
-      event.cancelled === true ||
-      Number(event.endsAt) > at + EPSILON ||
-      event.skillId == null
-    ) {
-      return false;
-    }
-    const field = context.catalog.skillsById.get(event.skillId);
-    return (
-      field?.comboField === type &&
-      Number(field.duration || 0) > 0 &&
-      Number(event.endsAt) + Number(field.duration) >= at - EPSILON
-    );
-  });
-}
-
 /**
  * Commits all completion-time Mesmer mechanics for a skill.
  *
@@ -649,24 +626,6 @@ function completeMesmerSkill(
                 playerEffectEnd: context.effectiveEnd,
               }
             : undefined,
-        );
-      }
-      if (
-        skill.id === ID.LINGERING_THOUGHTS &&
-        activeComboField(context, "Ethereal", at)
-      ) {
-        runtime.addCondition(
-          skill.name,
-          at,
-          {
-            name: "Confusion",
-            duration: 5,
-            stacks: 1,
-            applications: 2,
-          },
-          "Player",
-          `${skill.name} — Confounding Bolts`,
-          { skillId: skill.id, sourceId: skill.id },
         );
       }
       runtime.mirage.handlePostSkill(skill, at);
@@ -1018,6 +977,10 @@ export function observeMesmerEvent(
   context: MesmerSchedulerContext,
   event: SimulationEvent,
 ): void {
+  observeLegacyProfessionCombos(context, event, {
+    ownerId: "mesmer",
+    ambiguousFieldSelection: "oldest",
+  });
   const runtime = context.mesmerRuntime;
   if (!runtime) return;
   const triggerSyncopate = (skillName: string): void => {
@@ -1320,7 +1283,8 @@ export function modifyMesmerRecharge(
   const traits = mesmerRuntimeFor(context).traits;
   let multiplier = 1;
   if (
-    (mesmerRuntimeFor(context).shatters[skill.id] || mesmerRuntimeFor(context).instruments[skill.id]) &&
+    (mesmerRuntimeFor(context).shatters[skill.id] ||
+      mesmerRuntimeFor(context).instruments[skill.id]) &&
     traits.has(TRAIT.MASTER_OF_MISDIRECTION)
   )
     multiplier *= 0.85;

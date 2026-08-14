@@ -935,18 +935,21 @@ test("Searing Fissure resolves its initial packet and three field pulses", () =>
     initialEnergy: 100,
   });
   assert.deepEqual(
-    combo.events
+    combo.resolvedEvents
       .filter(
         (event) =>
-          event.type === "condition" &&
+          event.type === "combo" &&
           event.skillName === "Twin Moon Sweep" &&
-          event.condition === "Burning",
+          event.fieldType === "Fire" &&
+          event.finisherType === "Whirl",
       )
-      .map((event) => [event.at, event.stacks, event.duration]),
-    [
-      [1.82, 1, 1],
-      [1.82, 1, 1],
-    ],
+      .map((event) => [
+        event.at,
+        event.applicationCount,
+        event.outcome.stacks,
+        event.outcome.duration,
+      ]),
+    [[1.82, 2, 1, 1]],
   );
 
   const noField = simulate("Conduit", ["Twin Moon Sweep"], {
@@ -955,11 +958,12 @@ test("Searing Fissure resolves its initial packet and three field pulses", () =>
     initialEnergy: 100,
   });
   assert.equal(
-    noField.events.filter(
+    noField.resolvedEvents.filter(
       (event) =>
-        event.type === "condition" &&
+        event.type === "combo" &&
         event.skillName === "Twin Moon Sweep" &&
-        event.condition === "Burning",
+        event.fieldType === "Fire" &&
+        event.finisherType === "Whirl",
     ).length,
     0,
   );
@@ -1049,9 +1053,10 @@ test("Searing Fissure commits at 480ms and an earlier cancel only starts cooldow
       comboConfig,
     );
   const burningBolts = (result) =>
-    result.events.filter(
+    result.resolvedEvents.filter(
       (event) =>
         event.type === "condition" &&
+        event.comboId != null &&
         event.skillName === "Twin Moon Sweep" &&
         event.condition === "Burning",
     );

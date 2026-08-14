@@ -2246,6 +2246,25 @@ test("Bomb Kit packets honor fuses, explosions, fields, and finishers", () => {
         step.sourceSkill === "Big Ol' Bomb",
     ),
   );
+
+  const unboundBlasts = simulate(
+    "Core",
+    [
+      "Bomb Kit",
+      "Big Ol' Bomb",
+      "Galvanic Bomb",
+      { type: "wait", durationMs: 5000 },
+    ],
+    { selectedSkills, relic: "Bloodstone" },
+  );
+  assert.equal(
+    unboundBlasts.procSteps.some(
+      (step) =>
+        step.skill === "Bloodstone Volatility" ||
+        step.skill === "Relic of Bloodstone",
+    ),
+    false,
+  );
 });
 
 test("Grenade Kit emits three explosive grenade packets", () => {
@@ -2377,18 +2396,20 @@ test("Shred fires three Burning Bolts through Stoke the Flames", () => {
     ],
     config,
   );
-  const bolts = result.events.filter(
+  const combos = result.resolvedEvents.filter(
     (event) =>
-      event.type === "condition" &&
-      event.name === "Offensive Protocol: Shred — Burning Bolt",
+      event.type === "combo" &&
+      event.skillName === "Offensive Protocol: Shred" &&
+      event.fieldType === "Fire" &&
+      event.finisherType === "Projectile",
   );
-  assert.equal(bolts.length, 3);
+  assert.equal(combos.length, 3);
   assert.ok(
-    bolts.every(
+    combos.every(
       (event) =>
-        event.condition === "Burning" &&
-        event.stacks === 1 &&
-        event.duration === 1,
+        event.outcome.condition === "Burning" &&
+        event.outcome.stacks === 1 &&
+        event.outcome.duration === 1,
     ),
   );
 
@@ -2398,8 +2419,10 @@ test("Shred fires three Burning Bolts through Stoke the Flames", () => {
     config,
   );
   assert.equal(
-    withoutField.events.some(
-      (event) => event.name === "Offensive Protocol: Shred — Burning Bolt",
+    withoutField.resolvedEvents.some(
+      (event) =>
+        event.type === "combo" &&
+        event.skillName === "Offensive Protocol: Shred",
     ),
     false,
   );
@@ -5102,6 +5125,7 @@ test("condition Holosmith pistol benchmark preserves the supplied log", async ()
     result.resolvedEvents.filter(
       (event) =>
         event.type === "condition" &&
+        event.comboId == null &&
         event.condition === condition &&
         event.skillName === skillName &&
         event.sourceId === engineerCatalog.skillsByName.get(skillName).id,
@@ -5684,7 +5708,7 @@ test("power Scrapper hammer preset preserves the supplied build and log", async 
   assert.ok(Math.abs(result.dpsWindow - 94.247) < 0.75);
   assert.ok(Math.abs(result.dps - savedRotation.metadata.benchmarkDps) < 1500);
   assert.ok(Math.abs(result.strikeDamage - 3766547) < 150000);
-  assert.ok(Math.abs(result.conditionDamage - 211388) < 10000);
+  assert.ok(Math.abs(result.conditionDamage - 222207) < 10000);
   for (const [name, logDamage, tolerance] of [
     ["Electro-whirl", 638776, 25000],
     ["Shrapnel Grenade", 349341, 10000],
