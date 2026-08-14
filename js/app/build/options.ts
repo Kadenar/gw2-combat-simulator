@@ -78,9 +78,7 @@ export const TARGET_ARMOR_OPTIONS = Object.freeze([
 
 export function normalizeTargetArmor(value: number | string): number {
   const armor = Number(value);
-  return TARGET_ARMOR_OPTIONS.some((option) => option.value === armor)
-    ? armor
-    : DEFAULT_TARGET_ARMOR;
+  return Number.isFinite(armor) ? Math.max(1, armor) : DEFAULT_TARGET_ARMOR;
 }
 
 export function option(

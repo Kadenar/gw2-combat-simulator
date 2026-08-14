@@ -5,12 +5,12 @@ Captured on 2026-08-14 from all rotation-backed manifest presets. Baseline: `b3f
 ## Summary
 
 - Supported builds: 94
-- Unchanged builds: 74
-- Changed builds: 20
+- Unchanged builds: 73
+- Changed builds: 21
 - Non-Reaper builds with lower DPS or total damage: 0
-- Condition Reaper exceptions: 2
+- Reaper builds with lower DPS or total damage: 3
 
-The two condition Reaper losses are caused by overlapping Dark and Ice fields with no authoritative field ownership in the legacy rotation data. The shared resolver deliberately leaves those finishers unresolved instead of applying both field outcomes. Power Reaper remains unchanged.
+The two condition Reaper builds remain below the legacy multi-field baseline because the centralized resolver produces one authoritative combo outcome per finisher. When the permanent Ice field preset is enabled, its injected field is authoritative and every Reaper finisher resolves against it. Without that preset, Reaper uses the same oldest-active-field selection as other professions. Removing Extirpate's Dark preference also lowers Power Reaper by 9.108 DPS and 848.760 total strike damage when an older Ice field is active.
 
 A negative strike- or condition-component delta can appear on a build whose total damage increased because combo outcomes change target-death timing and the split between damage sources. The acceptance check is based on DPS and total damage; both are nonnegative for every non-Reaper build.
 
@@ -50,19 +50,11 @@ Engineer was recaptured after its legacy combo observer, resolver binding adapte
 
 ### Necromancer centralized-authoring migration
 
-Necromancer was recaptured after its legacy combo observer, summon binding adapter, and all legacy finisher aliases were removed. All 7 rotation-backed Necromancer builds are unchanged from the pre-migration combo-finisher worktree: duration, DPS, total damage, strike damage, condition damage, and warning count have zero delta at the precision shown in the Necromancer table below. This preserves the 1- and 6-warning outcomes for the two condition Reaper builds; their Dark/Ice ambiguity and damage deltas remain exactly as documented in the complete table.
+Necromancer was recaptured after its legacy combo observer, summon binding adapter, and all legacy finisher aliases were removed. The permanent Ice field follow-up makes the injected Ice field authoritative while its preset is enabled; otherwise, Necromancer finishers use the standard oldest-active-field policy. Extirpate no longer prefers Dark. Relative to the initial centralized checkpoint, the condition Dagger/Sword + Spear Reaper gains 142.989 DPS and 12,857.586 total damage. The condition Fields Reaper gains 7,749.539 DPS and 310,681.343 total damage, and its duration returns from 84.560 to 78.160 seconds. Both condition builds now complete with zero combo ambiguity warnings. Power Reaper loses 9.108 DPS and 848.760 total strike damage because Extirpate follows an older Ice field. The other 4 rotation-backed Necromancer builds are unchanged.
 
 ## Warning changes
 
-The current runs contain 12 warnings across 7 builds. Five Elementalist warnings were already present in the baseline. The 7 added warnings are the explicit Reaper ambiguity diagnostics:
-
-- Reaper — Condition (Dagger / Sword + Spear): Combo field binding is unspecified for Soul Spiral at 6.680s; no combo resolved.
-- Reaper — Condition (Fields - Pistol / Torch + Greatsword): Combo field binding is unspecified for Gravedigger at 4.040s; no combo resolved.
-- Reaper — Condition (Fields - Pistol / Torch + Greatsword): Combo field binding is unspecified for Death Spiral at 5.000s; no combo resolved.
-- Reaper — Condition (Fields - Pistol / Torch + Greatsword): Combo field binding is unspecified for Weeping Shots at 5.240s; no combo resolved.
-- Reaper — Condition (Fields - Pistol / Torch + Greatsword): Combo field binding is unspecified for Rigor Mortis — Bone Shard at 3.920s; no combo resolved.
-- Reaper — Condition (Fields - Pistol / Torch + Greatsword): Combo field binding is unspecified for Bone Shard at 5.320s; no combo resolved.
-- Reaper — Condition (Fields - Pistol / Torch + Greatsword): Combo field binding is unspecified for Bone Shard — Crippling Volley at 26.880s; no combo resolved.
+The current runs contain the same 5 Elementalist warnings as the baseline. The permanent-Ice priority and standard Reaper fallback eliminate all 7 combo ambiguity warnings introduced during the initial centralized Reaper migration.
 
 ## Complete metric table
 
@@ -148,15 +140,15 @@ Each cell is `baseline → current (delta)`. Duration is seconds; all damage val
 
 ### Necromancer
 
-| Build                                                     | Manifest DPS |                   Duration |                                  DPS |                                 Total damage |                          Strike damage |                             Condition damage | Warnings |
-| --------------------------------------------------------- | -----------: | -------------------------: | -----------------------------------: | -------------------------------------------: | -------------------------------------: | -------------------------------------------: | -------: |
-| Scourge — Condition (Pistol / Torch + Scepter / Torch)    |       39,662 | 100.760 → 100.760 (+0.000) |     39,661.748 → 39,661.748 (+0.000) |       3,920,167.217 → 3,920,167.217 (+0.000) |     404,829.202 → 404,829.202 (+0.000) |       3,515,338.015 → 3,515,338.015 (+0.000) |        0 |
-| Reaper — Power (Greatsword / Spear)                       |       43,427 |   94.869 → 94.869 (+0.000) |     43,426.786 → 43,426.786 (+0.000) |       4,046,898.770 → 4,046,898.770 (+0.000) | 4,022,133.582 → 4,022,133.582 (+0.000) |             24,765.188 → 24,765.188 (+0.000) |        0 |
-| Reaper — Condition (Dagger / Sword + Spear)               |       44,171 |   91.720 → 91.720 (+0.000) |   44,163.149 → 43,639.806 (-523.343) |  3,971,150.367 → 3,924,091.321 (-47,059.046) | 1,609,507.105 → 1,609,507.105 (+0.000) |  2,361,643.261 → 2,314,584.216 (-47,059.046) |        1 |
-| Reaper — Condition (Fields - Pistol / Torch + Greatsword) |       52,041 |   78.160 → 84.560 (+6.400) | 52,045.236 → 44,208.332 (-7,836.904) | 3,986,665.074 → 3,669,291.591 (-317,373.483) | 928,930.635 → 922,352.958 (-6,577.677) | 3,057,734.439 → 2,746,938.633 (-310,795.805) |        6 |
-| Ritualist — Power (Greatsword / Spear)                    |       43,284 |   95.040 → 95.040 (+0.000) |     43,283.807 → 43,283.807 (+0.000) |       3,974,319.180 → 3,974,319.180 (+0.000) | 3,962,944.180 → 3,962,944.180 (+0.000) |             11,375.000 → 11,375.000 (+0.000) |        0 |
-| Harbinger — Power (Greatsword / Spear)                    |       43,688 | 101.040 → 101.040 (+0.000) |     43,303.194 → 43,303.194 (+0.000) |       3,912,876.628 → 3,912,876.628 (+0.000) | 3,619,182.425 → 3,619,182.425 (+0.000) |           293,694.203 → 293,694.203 (+0.000) |        0 |
-| Harbinger — Condition (Pistol / Torch + Scepter / Dagger) |       45,308 |   96.660 → 96.660 (+0.000) |     45,307.895 → 45,307.895 (+0.000) |       3,915,508.265 → 3,915,508.265 (+0.000) |     602,410.715 → 602,410.715 (+0.000) |       3,313,097.550 → 3,313,097.550 (+0.000) |        0 |
+| Build                                                     | Manifest DPS |                   Duration |                                DPS |                                Total damage |                            Strike damage |                            Condition damage | Warnings |
+| --------------------------------------------------------- | -----------: | -------------------------: | ---------------------------------: | ------------------------------------------: | ---------------------------------------: | ------------------------------------------: | -------: |
+| Scourge — Condition (Pistol / Torch + Scepter / Torch)    |       39,662 | 100.760 → 100.760 (+0.000) |   39,661.748 → 39,661.748 (+0.000) |      3,920,167.217 → 3,920,167.217 (+0.000) |       404,829.202 → 404,829.202 (+0.000) |      3,515,338.015 → 3,515,338.015 (+0.000) |        0 |
+| Reaper — Power (Greatsword / Spear)                       |       43,427 |   94.869 → 94.869 (+0.000) |   43,426.786 → 43,417.678 (-9.108) |    4,046,898.770 → 4,046,050.010 (-848.760) | 4,022,133.582 → 4,021,284.822 (-848.760) |            24,765.188 → 24,765.188 (+0.000) |        0 |
+| Reaper — Condition (Dagger / Sword + Spear)               |       44,171 |   91.720 → 91.720 (+0.000) | 44,163.149 → 43,782.795 (-380.354) | 3,971,150.367 → 3,936,948.907 (-34,201.460) | 1,609,507.105 → 1,609,764.765 (+257.660) | 2,361,643.261 → 2,327,184.141 (-34,459.120) |        0 |
+| Reaper — Condition (Fields - Pistol / Torch + Greatsword) |       52,041 |   78.160 → 78.160 (+0.000) |  52,045.236 → 51,957.871 (-87.365) |  3,986,665.074 → 3,979,972.934 (-6,692.140) |   928,930.635 → 922,238.495 (-6,692.140) |      3,057,734.439 → 3,057,734.439 (+0.000) |        0 |
+| Ritualist — Power (Greatsword / Spear)                    |       43,284 |   95.040 → 95.040 (+0.000) |   43,283.807 → 43,283.807 (+0.000) |      3,974,319.180 → 3,974,319.180 (+0.000) |   3,962,944.180 → 3,962,944.180 (+0.000) |            11,375.000 → 11,375.000 (+0.000) |        0 |
+| Harbinger — Power (Greatsword / Spear)                    |       43,688 | 101.040 → 101.040 (+0.000) |   43,303.194 → 43,303.194 (+0.000) |      3,912,876.628 → 3,912,876.628 (+0.000) |   3,619,182.425 → 3,619,182.425 (+0.000) |          293,694.203 → 293,694.203 (+0.000) |        0 |
+| Harbinger — Condition (Pistol / Torch + Scepter / Dagger) |       45,308 |   96.660 → 96.660 (+0.000) |   45,307.895 → 45,307.895 (+0.000) |      3,915,508.265 → 3,915,508.265 (+0.000) |       602,410.715 → 602,410.715 (+0.000) |      3,313,097.550 → 3,313,097.550 (+0.000) |        0 |
 
 ### Ranger
 

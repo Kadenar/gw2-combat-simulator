@@ -1,10 +1,10 @@
 import { enqueueOrdered } from "../../engine/event-queue.js";
 import { materializeComboOutcome } from "../combo-definitions.js";
 import {
-  normalizeComboFieldType,
   normalizeComboFinisherType,
   registerComboField,
   resolveComboAttempt,
+  selectComboFieldForFinisher,
 } from "../combo-events.js";
 import { gw2BoonDurationMultiplier, gw2SigilSet } from "../runtime-rules.js";
 
@@ -47,18 +47,7 @@ export function enqueueGw2OwnedComboFinisher(
         field.expiresAt > at,
     )
     .sort((left, right) => left.at - right.at);
-  const preferredTypes = (options.preferredFieldTypes || []).map(
-    normalizeComboFieldType,
-  );
-  const preferred = preferredTypes
-    .map((fieldType) => fields.find((field) => field.fieldType === fieldType))
-    .find(Boolean);
-  const ambiguous = new Set(fields.map((field) => field.fieldType)).size > 1;
-  const field =
-    preferred ||
-    (!ambiguous || options.ambiguousFieldSelection === "oldest"
-      ? fields[0]
-      : undefined);
+  const { field, ambiguous } = selectComboFieldForFinisher(fields, options);
   enqueueOrdered(context.queue, {
     type: "combo_finisher",
     at,

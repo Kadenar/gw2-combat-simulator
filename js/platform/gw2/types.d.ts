@@ -44,6 +44,7 @@ export interface ComboFieldEvent extends SimulationEventBase<"combo_field"> {
   readonly expiresAt: number;
   readonly ownerId: string;
   readonly ownerActorType: SimulationActorType;
+  readonly comboBindingPriority?: number;
 }
 
 export interface ComboFinisherEvent

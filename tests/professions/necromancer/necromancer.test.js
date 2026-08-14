@@ -2077,21 +2077,71 @@ test("Necromancer dark-field life steals inherit finisher attribution", () => {
   );
 });
 
-test("Reaper does not resolve one finisher against overlapping Dark and Ice fields", () => {
-  const result = simulate("Reaper", ["Nightfall", "Gravedigger"], {
+test("Reaper prioritizes assumed Ice and otherwise uses standard field resolution", () => {
+  const rotation = [
+    "Nightfall",
+    "Reaper's Shroud",
+    "Executioner's Scythe",
+    "Exit Reaper's Shroud",
+    "Gravedigger",
+  ];
+  const standard = simulate("Reaper", rotation, {
+    initialResource: 100,
     primaryWeapon: "Greatsword",
+    boons: { quickness: true },
+  });
+  const assumed = simulate("Reaper", rotation, {
+    initialResource: 100,
+    primaryWeapon: "Greatsword",
+    boons: { quickness: true },
     professionAssumptions: { permanentIceField: true },
   });
-
-  assert.equal(
-    result.resolvedEvents.some(
-      (event) => event.type === "combo" && event.skillName === "Gravedigger",
-    ),
-    false,
+  const standardExtirpate = simulate(
+    "Reaper",
+    [
+      "Reaper's Shroud",
+      "Executioner's Scythe",
+      "Exit Reaper's Shroud",
+      "Well of Darkness",
+      "Extirpate",
+    ],
+    {
+      initialResource: 100,
+      primaryWeapon: "Spear",
+      selectedSkills: ["Well of Darkness"],
+      boons: { quickness: true },
+    },
   );
-  assert.deepEqual(result.warnings, [
-    "Combo field binding is unspecified for Gravedigger at 1.980s; no combo resolved.",
-  ]);
+  const extirpate = simulate("Reaper", ["Well of Darkness", "Extirpate"], {
+    primaryWeapon: "Spear",
+    selectedSkills: ["Well of Darkness"],
+    professionAssumptions: { permanentIceField: true },
+  });
+  const gravediggerCombo = (result) =>
+    result.resolvedEvents.find(
+      (event) => event.type === "combo" && event.skillName === "Gravedigger",
+    );
+  const extirpateCombo = extirpate.resolvedEvents.find(
+    (event) => event.type === "combo" && event.skillName === "Extirpate",
+  );
+  const standardExtirpateCombo = standardExtirpate.resolvedEvents.find(
+    (event) => event.type === "combo" && event.skillName === "Extirpate",
+  );
+
+  assert.equal(gravediggerCombo(standard).fieldType, "Dark");
+  assert.equal(
+    gravediggerCombo(assumed).fieldId,
+    "necromancer:assumption:permanent-ice-field",
+  );
+  assert.equal(
+    extirpateCombo.fieldId,
+    "necromancer:assumption:permanent-ice-field",
+  );
+  assert.equal(standardExtirpateCombo.fieldType, "Ice");
+  assert.deepEqual(standard.warnings, []);
+  assert.deepEqual(assumed.warnings, []);
+  assert.deepEqual(standardExtirpate.warnings, []);
+  assert.deepEqual(extirpate.warnings, []);
 });
 
 test("Greatsword control and Nightfall pulses use their live mechanics", () => {
@@ -2441,8 +2491,14 @@ test("Bone Fiend projectile finishers create Chilling Bolts, not Frost Aura", ()
   );
   const result = simulate(
     "Reaper",
-    ["Summon Bone Fiend", "Rigor Mortis", { type: "wait", durationMs: 14_000 }],
+    [
+      "Summon Bone Fiend",
+      "Nightfall",
+      "Rigor Mortis",
+      { type: "wait", durationMs: 14_000 },
+    ],
     {
+      primaryWeapon: "Greatsword",
       selectedSkills: ["Summon Bone Fiend"],
       selectedTraitIds: [TRAIT.DEATHLY_CHILL],
       professionAssumptions: { permanentIceField: true },
@@ -5074,9 +5130,7 @@ test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", a
     .map((trait) => trait.name)
     .sort();
 
-  assert.deepEqual(result.warnings, [
-    "Combo field binding is unspecified for Soul Spiral at 6.680s; no combo resolved.",
-  ]);
+  assert.deepEqual(result.warnings, []);
   assert.equal(savedBuild.gear.Weapon2, "Grieving");
   assert.deepEqual(
     activeTraits,
@@ -5110,7 +5164,7 @@ test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", a
       (event) =>
         event.type === "condition" && event.sourceId === TRAIT.DEATHLY_CHILL,
     ).length,
-    152,
+    155,
   );
   assert.equal(
     result.procSteps.filter((step) => step.skill === "Sigil of Geomancy")
@@ -5122,8 +5176,8 @@ test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", a
   const bleedingDamage =
     result.conditionBreakdown.find((entry) => entry.name === "Bleeding")
       ?.damage || 0;
-  // Eight Soul Spiral finishers overlap Dark and Ice fields and are left
-  // unresolved rather than reproducing the legacy double-field outcome.
+  // Soul Spiral uses the standard oldest-active-field policy when Dark and
+  // Ice overlap and the permanent-Ice assumption is disabled.
   assert.ok(Math.abs(bleedingDamage - 2_023_912) / 2_023_912 < 0.02);
   assert.ok(Math.abs(result.dps - 44_355.31) / 44_355.31 < 0.02);
   assert.ok(Math.abs(result.totalDamage - 3_984_571) / 3_984_571 < 0.02);

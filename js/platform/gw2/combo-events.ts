@@ -80,6 +80,53 @@ export function normalizeComboFinisherType(value: unknown): ComboFinisherType {
   return normalized;
 }
 
+export interface SelectComboFieldOptions {
+  readonly preferredFieldTypes?: readonly ComboFieldType[];
+  readonly ambiguousFieldSelection?: "none" | "oldest";
+}
+
+/** Selects one owned field, honoring an authoritative field before preferences. */
+export function selectComboFieldForFinisher(
+  fields: readonly ComboFieldEvent[],
+  options: SelectComboFieldOptions = {},
+): { readonly field?: ComboFieldEvent; readonly ambiguous: boolean } {
+  const ordered = [...fields].sort(
+    (left, right) =>
+      left.at - right.at ||
+      Number(left.__order || 0) - Number(right.__order || 0),
+  );
+  const highestBindingPriority = ordered.reduce(
+    (highest, field) =>
+      Math.max(highest, Number(field.comboBindingPriority || 0)),
+    0,
+  );
+  const candidates =
+    highestBindingPriority > 0
+      ? ordered.filter(
+          (field) =>
+            Number(field.comboBindingPriority || 0) === highestBindingPriority,
+        )
+      : ordered;
+  const preferredTypes = (options.preferredFieldTypes || []).map(
+    normalizeComboFieldType,
+  );
+  const preferred = preferredTypes
+    .map((fieldType) =>
+      candidates.find((field) => field.fieldType === fieldType),
+    )
+    .find(Boolean);
+  const ambiguous =
+    new Set(candidates.map((field) => field.fieldType)).size > 1;
+  return {
+    field:
+      preferred ||
+      (!ambiguous || options.ambiguousFieldSelection === "oldest"
+        ? candidates[0]
+        : undefined),
+    ambiguous,
+  };
+}
+
 export function normalizeComboFieldBinding(value: unknown): ComboFieldBinding {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new TypeError("Combo finisher fieldBinding is required.");
@@ -110,8 +157,20 @@ export function prepareGw2ComboEvent(
   if (event.type === "combo_field") {
     const at = Number(event.at);
     const expiresAt = Number(event.expiresAt);
+    const comboBindingPriority =
+      event.comboBindingPriority == null
+        ? null
+        : Number(event.comboBindingPriority);
     if (!Number.isFinite(expiresAt) || !(expiresAt > at)) {
       throw new TypeError("Combo field expiresAt must be later than at.");
+    }
+    if (
+      comboBindingPriority != null &&
+      (!Number.isFinite(comboBindingPriority) || comboBindingPriority < 0)
+    ) {
+      throw new TypeError(
+        "Combo field comboBindingPriority must be a non-negative finite number.",
+      );
     }
     if (!ACTOR_TYPES.has(event.ownerActorType as SimulationActorType)) {
       throw new TypeError("Combo field ownerActorType is invalid.");
@@ -123,6 +182,7 @@ export function prepareGw2ComboEvent(
       fieldType: normalizeComboFieldType(event.fieldType),
       expiresAt,
       ownerId: requiredString(event.ownerId, "Combo field ownerId"),
+      ...(comboBindingPriority == null ? {} : { comboBindingPriority }),
     };
   }
   if (event.type === "combo_finisher") {

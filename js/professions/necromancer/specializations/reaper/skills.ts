@@ -176,6 +176,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
             ownerId: "necromancer",
             finisherType: "Whirl",
             applications: 4,
+            ambiguousFieldSelection: "oldest",
           },
         ],
         ticks: [
