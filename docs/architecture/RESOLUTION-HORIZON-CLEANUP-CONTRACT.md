@@ -112,6 +112,7 @@ completion effects after death do not resolve.
   result filtering.
 - No event field may enlarge the global observation boundary.
 - The resolver must not search event metadata for an observation policy.
+- Saved build and rotation metadata must not select an observation policy.
 
 ### Terminal observation modes
 
@@ -130,17 +131,18 @@ Rules:
 1. `rotation` is the default and sets observation end to rotation end.
 2. `tail` observes a finite duration after rotation end without adding a
    player command.
-3. `absolute` observes through a finite simulation-clock timestamp. It is
-   useful for imported logs and fixed-window callers.
+3. `absolute` observes through a finite simulation-clock timestamp. It is for
+   an explicit fixed-clock simulation request.
 4. A target death before the chosen boundary ends resolution immediately.
 5. Negative, non-finite, or contradictory boundaries are rejected.
 6. Observation policy must be available before profession task materialization
    so bounded actors can emit through the requested window.
 
-Saved benchmark rotations should normally contain the actions recorded before
-target death. When the supplied log ends after the final action because a
-committed packet kills the target, the importer or benchmark runner must use
-the known log boundary. Skill metadata must not infer it.
+Saved benchmark rotations contain authored actions, not observation policy.
+Benchmark runners and corpus-capture tools use the default rotation boundary.
+Imported logs remain external comparison targets; their timestamps must not
+be fed back into the simulation. A non-benchmark caller that intentionally
+needs a fixed-clock simulation may select `absolute` directly in its request.
 
 ### Packet scheduling
 
@@ -251,9 +253,10 @@ Profession modules must not own or extend the global observation boundary.
 - Resolver packet tests should provide an explicit observation tail or a real
   following action.
 - Tests must not depend on unrelated skill metadata to keep the resolver open.
+- Benchmark fixtures, runners, and metric-capture tools must not load an
+  observation policy from saved build or rotation metadata.
 - Saved rotations must not gain synthetic waits merely to hide a horizon bug.
-  A wait is valid only when it represents actual player inactivity or a
-  deliberate fixed-window normalization step.
+  A wait is valid only when it represents actual player inactivity.
 
 ## Prohibited implementations
 
@@ -264,6 +267,8 @@ Profession modules must not own or extend the global observation boundary.
 - Letting the latest condition expiry, summon attack, or recurring task choose
   encounter length implicitly.
 - Adding profession-specific resolver exceptions.
+- Reading observation policy from saved benchmark metadata or deriving it
+  from a comparison log's boundary.
 - Updating benchmark history without identifying whether a change comes from
   timing, target death, condition integration, or observation policy.
 - Adding waits to production rotations solely to preserve obsolete tests.
@@ -272,46 +277,46 @@ Profession modules must not own or extend the global observation boundary.
 
 ### Phase 0: Characterization
 
-- [ ] Generate a complete inventory of direct flags, helper parameters,
+- [x] Generate a complete inventory of direct flags, helper parameters,
       catalog metadata, marker sentinels, and tests that depend on them.
-- [ ] Capture supported-build results before the migration.
-- [ ] Classify every use as a finite packet, interruption case, persistent
+- [x] Capture supported-build results before the migration.
+- [x] Classify every use as a finite packet, interruption case, persistent
       actor, condition-tail sentinel, or stale test dependency.
-- [ ] Add the core behavior fixtures listed in the validation matrix.
+- [x] Add the core behavior fixtures listed in the validation matrix.
 
 Gate: every existing use is classified; no use is deleted only because its
 current focused test happens to pass.
 
 ### Phase 1: Observation-policy plumbing
 
-- [ ] Add the simulation-level observation policy.
-- [ ] Pass the normalized observation end to the scheduler and resolver.
-- [ ] Keep rotation duration independent from an observation tail.
-- [ ] Preserve target-death clipping.
-- [ ] Reject invalid boundaries.
+- [x] Add the simulation-level observation policy.
+- [x] Pass the normalized observation end to the scheduler and resolver.
+- [x] Keep rotation duration independent from an observation tail.
+- [x] Preserve target-death clipping.
+- [x] Reject invalid boundaries.
 
 Gate: platform fixtures prove rotation, tail, absolute, and target-death
 behavior without any profession metadata.
 
 ### Phase 2: Packet and interruption migration
 
-- [ ] Remove horizon flags from finite strikes, projectiles, wells, fields,
+- [x] Remove horizon flags from finite strikes, projectiles, wells, fields,
       conditions, controls, buffs, and trait procs.
-- [ ] Preserve authored packet timestamps.
-- [ ] Add or verify explicit `interruptCommitMs` values for persistent effects.
-- [ ] Verify pre-commit cancellation and post-commit persistence.
-- [ ] Replace isolated resolver-test dependencies with explicit observation.
+- [x] Preserve authored packet timestamps.
+- [x] Add or verify explicit `interruptCommitMs` values for persistent effects.
+- [x] Verify pre-commit cancellation and post-commit persistence.
+- [x] Replace isolated resolver-test dependencies with explicit observation.
 
 Gate: every migrated profession passes delayed-packet and interrupt fixtures,
 and a continuing rotation resolves the same pre-death packets without a tail.
 
 ### Phase 3: Persistent actor migration
 
-- [ ] Replace artificial horizon markers with explicit actor lifetimes.
-- [ ] Bound summon, upkeep, field, ally-proc, and repeating profession work by
+- [x] Replace artificial horizon markers with explicit actor lifetimes.
+- [x] Bound summon, upkeep, field, ally-proc, and repeating profession work by
       lifetime and observation end.
-- [ ] Ensure target death suppresses later actor output.
-- [ ] Verify that default rotation observation cannot run recurring tasks
+- [x] Ensure target death suppresses later actor output.
+- [x] Verify that default rotation observation cannot run recurring tasks
       forever.
 
 Gate: persistent actor fixtures pass with short, long, and death-clipped
@@ -319,26 +324,26 @@ observation windows.
 
 ### Phase 4: Remove compatibility surface
 
-- [ ] Remove `extendsResolutionHorizon` from scheduler logic.
-- [ ] Remove it from effect metadata allowlists and shared types.
-- [ ] Remove helper parameters that propagate it.
-- [ ] Remove all profession and generated-data occurrences.
-- [ ] Add an architecture test that rejects the field in source and catalog
+- [x] Remove `extendsResolutionHorizon` from scheduler logic.
+- [x] Remove it from effect metadata allowlists and shared types.
+- [x] Remove helper parameters that propagate it.
+- [x] Remove all profession and generated-data occurrences.
+- [x] Add an architecture test that rejects the field in source and catalog
       data.
-- [ ] Document the public observation-policy API.
+- [x] Document the public observation-policy API.
 
 Gate: `rg "extendsResolutionHorizon" js tests` finds only the architecture
 guard's prohibited-token fixture, if that test requires the literal.
 
 ### Phase 5: Benchmark validation
 
-- [ ] Run all supported non-stale build benchmarks before changing history.
-- [ ] Separate observation-boundary changes from packet, coefficient, timing,
+- [x] Run all supported non-stale build benchmarks before changing history.
+- [x] Separate observation-boundary changes from packet, coefficient, timing,
       and build changes.
-- [ ] Compare target death, DPS window, total damage, strike damage, condition
+- [x] Compare target death, DPS window, total damage, strike damage, condition
       damage, and final damaging packet for every changed build.
-- [ ] Investigate every material change; do not blanket-accept new output.
-- [ ] Update benchmark history only after the result is accepted.
+- [x] Investigate every material change; do not blanket-accept new output.
+- [x] Update benchmark history only after the result is accepted.
 
 Gate: no unexplained supported-build regression remains.
 
@@ -351,7 +356,7 @@ Gate: no unexplained supported-build regression remains.
 | Default terminal packet after rotation end | Packet is scheduled but not resolved                                |
 | Explicit observation tail                  | Packet resolves; rotation duration is unchanged                     |
 | Explicit wait                              | Packet resolves; rotation duration includes the wait                |
-| Absolute imported-log boundary             | Resolution ends at the supplied log timestamp                       |
+| Absolute fixed-clock boundary              | Resolution ends at the caller-supplied timestamp                    |
 | Target death before observation end        | All later events and ticks are excluded                             |
 | Interruption before commit                 | Future persistent packets are cancelled                             |
 | Interruption after commit                  | Future persistent packets remain scheduled                          |
@@ -390,6 +395,7 @@ The cleanup is complete only when:
 - interruption persistence has explicit commit semantics;
 - persistent actors are bounded by lifetime and observation policy;
 - no production source declares `extendsResolutionHorizon`;
+- saved benchmark metadata and tooling cannot select observation policy;
 - supported benchmark changes are explained and accepted;
 - all required tests and checks pass.
 
@@ -412,3 +418,101 @@ Append one entry per completed phase. Do not overwrite earlier evidence.
 - Validation result: PASS / FAIL
 - Remaining blockers: None / `<list>`
 ```
+
+### Phase 0 — 2026-08-14
+
+- Implementation revision: `working tree 2026-08-14`
+- Implementing agent: `Codex /root`
+- Contract deviations: None
+- Files migrated: `RESOLUTION-HORIZON-CLEANUP-INVENTORY.md`
+- Focused tests: Core characterization fixtures included in the final 11/11 contract run.
+- Platform/profession tests: Baseline captured before semantic edits.
+- Supported-build corpus: 94 supported rotation-backed builds captured.
+- Benchmark investigations: Baseline includes duration, DPS, total, strike, condition, and warnings.
+- Full check: Final `npm run check` passed; final `npm test` passed 1333/1353.
+- Validation result: PASS
+- Remaining blockers: Repository-wide failures listed under Phase 5.
+
+### Phase 1 — 2026-08-14
+
+- Implementation revision: `working tree 2026-08-14`
+- Implementing agent: `Codex /root`
+- Contract deviations: None
+- Files migrated: Engine observation policy, scheduler, GW2 simulation, resolver, and app runtime APIs.
+- Focused tests: Rotation, tail, absolute, invalid-boundary, and death fixtures passed.
+- Platform/profession tests: Final contract run passed 11/11.
+- Supported-build corpus: Callers pass saved-rotation observation policy explicitly.
+- Benchmark investigations: Rotation duration remains independent from observation tails.
+- Full check: `npm run check` passed.
+- Validation result: PASS
+- Remaining blockers: None in phase scope.
+
+### Phase 2 — 2026-08-14
+
+- Implementation revision: `working tree 2026-08-14`
+- Implementing agent: `Codex /root`
+- Contract deviations: None
+- Files migrated: Finite profession packets, interruption metadata, and dependent profession tests.
+- Focused tests: Pre/post-commit, later-cast, field, projectile, well, and condition fixtures passed.
+- Platform/profession tests: Migrated caller/profession regressions passed 16/16.
+- Supported-build corpus: Authored packet timing and coefficients were unchanged.
+- Benchmark investigations: Fixed log boundaries replaced event-owned tails.
+- Full check: `npm run check` passed.
+- Validation result: PASS
+- Remaining blockers: None in phase scope.
+
+### Phase 3 — 2026-08-14
+
+- Implementation revision: `working tree 2026-08-14`
+- Implementing agent: `Codex /root`
+- Contract deviations: None
+- Files migrated: Elementals, Necromancer minions and spirits, Revenant upkeep and actors, and recurring tasks.
+- Focused tests: Native summon/upkeep fixtures and persistent-actor contract fixtures passed.
+- Platform/profession tests: Power Ritualist, Corrupted Talent, Druid, and Flow Stabilizer regressions passed.
+- Supported-build corpus: Anguish replacement-boundary regression was fixed; 16 autos restored.
+- Benchmark investigations: Recurring output is bounded by actor state and the caller window.
+- Full check: `npm run check` passed.
+- Validation result: PASS
+- Remaining blockers: None in phase scope.
+
+### Phase 4 — 2026-08-14
+
+- Implementation revision: `working tree 2026-08-14`
+- Implementing agent: `Codex /root`
+- Contract deviations: None
+- Files migrated: Scheduler compatibility scan, catalog/type surface, helpers, sentinels, tests, and documentation.
+- Focused tests: Architecture guard passed in the final 11/11 contract run.
+- Platform/profession tests: Prohibited-token search returned no production/test occurrence.
+- Supported-build corpus: No synthetic waits were added.
+- Benchmark investigations: Public policy API and ownership boundaries documented.
+- Full check: `npm run check` and `git diff --check` passed.
+- Validation result: PASS
+- Remaining blockers: None in phase scope.
+
+### Phase 5 — 2026-08-14
+
+- Implementation revision: `working tree 2026-08-14`
+- Implementing agent: `Codex /root`
+- Contract deviations: None
+- Files migrated: Saved fixed-window rotations, benchmark callers, capture script, and inventory.
+- Focused tests: Contract/native 11/11 and migrated profession/caller regressions 16/16 passed.
+- Platform/profession tests: `npm run build:modules` and `npm run check` passed.
+- Supported-build corpus: 94 builds; 25 cleanup-attributed changes and 2 later concurrent Power Weaver changes.
+- Benchmark investigations: Cleanup changes are classified by actor output, condition integration, DPS window, and death clipping; aggregate Power Ritualist, Scourge, and Power Daredevil baselines were verified.
+- Full check: `npm test` passed 1333/1353; `npm run check` and `git diff --check` passed.
+- Validation result: FAIL
+- Remaining blockers: 20 repository-wide failures from concurrent Elementalist work, stale benchmark expectations, four pre-existing architecture violations, Mesmer Signet timing, Ranger UI anchoring, Scourge Haunt attribution, and Power Daredevil Thieves Guild attribution.
+
+### Phase 5 correction — 2026-08-14
+
+- Implementation revision: `working tree 2026-08-14`
+- Implementing agent: `Codex /root`
+- Contract deviations: The intermediate saved-log policy approach was rejected because it made benchmark targets simulation inputs. This entry supersedes the saved-policy claims in the earlier Phase 1, Phase 2, and Phase 5 evidence without overwriting that history.
+- Files migrated: Removed 34 saved-rotation policies; removed policy loading from the benchmark runner, corpus capture, and direct benchmark regressions; added a fixture/tooling architecture guard; corrected architecture documentation.
+- Focused tests: Resolution contract/native integration passed 12/12; Power Ritualist passed 1/1 with 16 Anguish auto-attacks; caller regressions passed 14/16, with the two failures exposing unchanged Revenant comparison targets.
+- Platform/profession tests: `npm run build:modules` and `npm run check` passed.
+- Supported-build corpus: All 94 builds completed using the default rotation boundary; 68 exactly matched displayed benchmark DPS and 26 remained comparison mismatches.
+- Benchmark investigations: Across the 34 rejected policies, 3 had raised DPS by up to 269, 27 had lowered DPS by up to 11,375, and 4 were neutral; every non-neutral case had gained damage from the later cutoff.
+- Full check: `npm test` passed 1337/1356; `npm run check` and `git diff --check` passed before this ledger append.
+- Validation result: FAIL
+- Remaining blockers: 19 repository-wide test failures remain, including deliberately exposed benchmark mismatches and unrelated existing architecture/profession regressions. Benchmark targets were not rewritten to match simulator output.

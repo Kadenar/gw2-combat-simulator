@@ -4,15 +4,17 @@ Use the simulator without opening or configuring the browser UI by calling
 `simulateGw2` directly. This is the same headless path used by profession tests
 such as `tests/professions/engineer/engineer.test.js`.
 
-The programmatic API accepts three inputs:
+The programmatic API accepts four inputs:
 
 ```js
-simulateGw2({ profession, rotation, config });
+simulateGw2({ profession, rotation, config, observationPolicy });
 ```
 
 - `profession` is an executable profession contract.
 - `rotation` is an ordered array of skill casts and simulator commands.
 - `config` contains final attributes and combat assumptions.
+- `observationPolicy` is an optional caller-owned resolution boundary. It
+  defaults to the entered rotation timeline.
 
 The call is synchronous and returns the complete simulation result. It does not
 read browser state, local storage, form controls, or equipment selections.
@@ -220,6 +222,40 @@ console.table(
 Unknown, unavailable, or mistimed skills can produce warnings instead of the
 result the caller expected. Always inspect `result.warnings`.
 
+## Observation policy
+
+Rotation duration and observation duration are separate. By default, the
+resolver stops at the end of the entered commands:
+
+```js
+observationPolicy: {
+  kind: "rotation";
+}
+```
+
+Use a finite tail to observe delayed packets, conditions, fields, summons, or
+upkeep after the final command without adding a player action:
+
+```js
+observationPolicy: { kind: "tail", durationMs: 5000 }
+```
+
+Use an absolute simulation-clock boundary when the caller is intentionally
+requesting a fixed-clock simulation:
+
+```js
+observationPolicy: { kind: "absolute", endTimeMs: 97_450 }
+```
+
+The absolute timestamp cannot precede rotation end. Durations and timestamps
+must be finite and non-negative. Target death clips every mode. An explicit
+`wait` remains part of the player-command timeline and increases `duration`;
+an observation tail does not.
+
+Saved benchmark or imported-log metadata must not choose an observation
+policy. Logs and saved benchmark metrics are comparison targets. Benchmark
+runners use the default rotation boundary, matching the interactive simulator.
+
 ## Common configuration fields
 
 The direct API consumes resolved combat values. It does not calculate stats
@@ -239,7 +275,6 @@ from armor, upgrades, runes, or infusions.
 | `target`                                   | Armor, health, movement, defiance, and existing conditions                                        |
 | `sigilSets`, `relic`, `food`               | Optional common GW2 effects                                                                       |
 | `randomness`                               | Deterministic or seeded stochastic resolution                                                     |
-| `duration`                                 | Optional simulation horizon in seconds                                                            |
 
 Professions also accept their own resource and loadout fields. Existing tests
 are the most direct examples:
@@ -287,7 +322,7 @@ The commonly useful result fields are:
 
 | Field                                       | Meaning                                                            |
 | ------------------------------------------- | ------------------------------------------------------------------ |
-| `duration`                                  | Resolved simulation duration in seconds                            |
+| `duration`                                  | Entered rotation timeline in seconds                               |
 | `combatStartTime`, `hasExplicitCombatStart` | Precast/combat boundary and whether a marker supplied it           |
 | `dpsStartTime`, `dpsWindow`                 | Reference time and measured DPS window                             |
 | `firstHitTime`, `lastHitTime`, `deathTime`  | Damage and target-death timing                                     |
@@ -302,6 +337,9 @@ The commonly useful result fields are:
 
 Use `skillBreakdownRows(result)` for a stable per-skill table instead of
 reimplementing aggregation over raw events.
+
+`dpsWindow` ends at target death or the selected observation boundary, so an
+explicit observation tail can make it longer than `duration`.
 
 For UI-equivalent formatted data, the existing transforms are also callable
 headlessly:

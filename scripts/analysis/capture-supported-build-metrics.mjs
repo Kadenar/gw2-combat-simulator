@@ -25,6 +25,25 @@ async function readJson(relativePath) {
   return JSON.parse(await readFile(path.join(repoRoot, relativePath), "utf8"));
 }
 
+function finalDamagingPacket(result) {
+  const packets = result.resolvedEvents.flatMap((event) => {
+    if (event.type === "damage" && Number(event.damage) > 0) {
+      return [{ at: event.at, name: event.name, type: "strike" }];
+    }
+    return (event.damageTicks || []).map((tick) => ({
+      at: tick.at,
+      name: event.name,
+      type: "condition",
+    }));
+  });
+  return packets.sort((left, right) => left.at - right.at).at(-1) || null;
+}
+
+function runSupportedBenchmark(adapter, app) {
+  const config = adapter.simulationConfig(app);
+  return adapter.simulateBuild(app.build.rotation, config);
+}
+
 async function captureProfession(professionId) {
   const [manifest, adapter] = await Promise.all([
     readJson(`Builds/${professionId}/manifest.json`),
@@ -54,7 +73,8 @@ async function captureProfession(professionId) {
       };
 
       adapter.recalculate(app);
-      const result = adapter.runSimulation(app);
+      const result = runSupportedBenchmark(adapter, app);
+      const finalPacket = finalDamagingPacket(result);
       metrics.push({
         id: `${professionId}|${section.section || ""}|${preset.label}`,
         profession: professionId,
@@ -64,10 +84,15 @@ async function captureProfession(professionId) {
         rotation: preset.rotation,
         benchmarkDps: preset.benchmarkDps,
         duration: result.duration,
+        dpsStartTime: result.dpsStartTime,
+        dpsWindow: result.dpsWindow,
+        deathTime: result.deathTime,
+        lastHitTime: result.lastHitTime,
         dps: result.dps,
         totalDamage: result.totalDamage,
         strikeDamage: result.strikeDamage,
         conditionDamage: result.conditionDamage,
+        finalDamagingPacket: finalPacket,
         warnings: [...result.warnings],
       });
     }

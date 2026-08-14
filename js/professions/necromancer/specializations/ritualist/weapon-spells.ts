@@ -32,11 +32,11 @@ interface WeaponSpellDefinition {
 }
 
 const SPELL_BY_SKILL_ID: Readonly<Record<string | number, string>> =
-Object.freeze({
-  [ID.NIGHTMARE_WEAPON]: "nightmare",
-  [ID.SPLINTER_WEAPON]: "splinter",
-  [ID.RESILIENT_WEAPON]: "resilient",
-});
+  Object.freeze({
+    [ID.NIGHTMARE_WEAPON]: "nightmare",
+    [ID.SPLINTER_WEAPON]: "splinter",
+    [ID.RESILIENT_WEAPON]: "resilient",
+  });
 
 function activeMinionRecipients(state: NecromancerCoreState): string[] {
   const recipients: string[] = [];
@@ -54,9 +54,7 @@ function applyWeaponSpell(
 ): boolean {
   const spell = SPELL_BY_SKILL_ID[skill.id];
   const definition = (
-    MECHANICS.weaponSpells as Readonly<
-      Record<string, WeaponSpellDefinition>
-    >
+    MECHANICS.weaponSpells as Readonly<Record<string, WeaponSpellDefinition>>
   )[spell];
   if (!definition) return false;
   const fullAlliedBenefit = hasTrait(context, TRAIT.WIELDERS_BOON);
@@ -108,7 +106,6 @@ function applyWeaponSpell(
         spell,
         triggeredByAlly: proc.allyIndex,
         procIndex: proc.procIndex,
-        extendsResolutionHorizon: index === alliedProcs.length - 1,
       });
     }
   }

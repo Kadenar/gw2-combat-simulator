@@ -53,6 +53,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 167,
   },
   [ID.BARRAGE]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -383,6 +384,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     missileHits: 1,
   },
   [ID.SIGNET_OF_THE_WILD]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -409,6 +411,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 520,
   },
   [ID.FROST_TRAP]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -511,6 +514,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 167,
   },
   [ID.VIPERS_NEST]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -652,6 +656,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 333,
   },
   [ID.BONFIRE]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -1167,6 +1172,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 333,
   },
   [ID.PATH_OF_SCARS]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -1596,6 +1602,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 480,
   },
   [ID.UNLEASHED_SAVAGE_SHOCK_WAVE]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -2146,6 +2153,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     petSkill: true,
   },
   [ID.POISONOUS_CLOUD]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -3210,6 +3218,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     petSkill: true,
   },
   [ID.JACARANDAS_EMBRACE]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -3271,6 +3280,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     petSkill: true,
   },
   [ID.JACARANDA_CALL_LIGHTNING]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -3318,6 +3328,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     petSkill: true,
   },
   [ID.FANG_GRAPPLE]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -3537,6 +3548,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     petSkill: true,
   },
   [ID.TWIN_DARTS]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -3654,6 +3666,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     petSkill: true,
   },
   [ID.NARCOTIC_SPORES_PET]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -3713,6 +3726,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
 export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   {
     id: ID.PATH_OF_SCARS_MAX_RANGE,
+    interruptCommitMs: 0,
     name: "Path of Scars (Max Range)",
     description:
       "Throw your axe from maximum range so its returning strike lands later.",

@@ -12,10 +12,19 @@ import {
 import { createGw2ResolverRuntimeState } from "../../../js/platform/gw2/resolver/runtime-state.js";
 
 test("generic resolver modules contain no concrete equipment policy", () => {
-  const resolver = new URL("../../../js/platform/gw2/resolver/", import.meta.url);
+  const resolver = new URL(
+    "../../../js/platform/gw2/resolver/",
+    import.meta.url,
+  );
   for (const [filename, forbidden] of [
-    ["event-handlers.ts", /relic-rules|gear-data|FOOD_DATA|sigil-severance|criticalProgress/],
-    ["condition-resolution.ts", /relic-rules|handleConditionRelics|onConditionApplied/],
+    [
+      "event-handlers.ts",
+      /relic-rules|gear-data|FOOD_DATA|sigil-severance|criticalProgress/,
+    ],
+    [
+      "condition-resolution.ts",
+      /relic-rules|handleConditionRelics|onConditionApplied/,
+    ],
     ["hit-resolution.ts", /relic-rules|relicStrikeMultiplier/],
     ["runtime-state.ts", /relic-rules|createRelicRuntime/],
     ["resolve-timeline.ts", /relic-rules|recordPassiveRelicTimeline/],
@@ -83,14 +92,15 @@ test("GW2 resolver declarations reject unknown stages and duplicate hook ids", (
     /Unknown GW2 resolver stage: damage/,
   );
   assert.throws(
-    () => createGw2ResolverReactionRegistry({
-      contributions: {
-        "buff.applied": [
-          { id: "same", order: 0, handler: () => {} },
-          { id: "same", order: 1, handler: () => {} },
-        ],
-      },
-    }),
+    () =>
+      createGw2ResolverReactionRegistry({
+        contributions: {
+          "buff.applied": [
+            { id: "same", order: 0, handler: () => {} },
+            { id: "same", order: 1, handler: () => {} },
+          ],
+        },
+      }),
     /Duplicate eventReactions\.buff\.applied hook id: same/,
   );
 });
@@ -117,10 +127,14 @@ test("condition stage runs once after state and ticks, including relic recursion
   });
   const conditions = createGw2ConditionResolution({
     reactions: extensions.reactions,
+    config: { target: { conditions: { Bleeding: 1 } } },
   });
   const queue = createEventQueue();
   const context = createGw2ResolverRuntimeState({
-    config: { relic: "Fractal", target: {} },
+    config: {
+      relic: "Fractal",
+      target: { conditions: { Bleeding: 1 } },
+    },
     traits: new Set(),
     horizon: 10,
     query: {
@@ -137,19 +151,22 @@ test("condition stage runs once after state and ticks, including relic recursion
       }),
       conditionDurationMultiplier: () => 1,
     },
-    helpers: { conditionName: value => String(value) },
+    helpers: { conditionName: (value) => String(value) },
     queue,
     createEquipmentState: extensions.createEquipmentState,
   });
 
-  assert.equal(conditions.applyCondition(context, {
-    type: "condition",
-    at: 0,
-    source: "Fixture",
-    condition: "Bleeding",
-    duration: 0,
-    stacks: 6,
-  }), null);
+  assert.equal(
+    conditions.applyCondition(context, {
+      type: "condition",
+      at: 0,
+      source: "Fixture",
+      condition: "Bleeding",
+      duration: 0,
+      stacks: 6,
+    }),
+    null,
+  );
   assert.deepEqual(trace, []);
 
   const application = conditions.applyCondition(context, {
@@ -160,16 +177,41 @@ test("condition stage runs once after state and ticks, including relic recursion
     skillName: "Fixture Bleed",
     condition: "Bleeding",
     duration: 2,
-    stacks: 6,
+    stacks: 5,
   });
 
   assert.equal(application.condition, "Bleeding");
-  assert.deepEqual(trace.map(entry => entry.condition), [
-    "Bleeding",
-    "Burning",
-    "Torment",
-  ]);
-  assert.deepEqual(trace.map(entry => entry.applications), [1, 2, 3]);
-  assert.deepEqual(trace.map(entry => entry.active), [6, 2, 3]);
-  assert.ok(trace.every(entry => entry.queued > 0));
+  assert.deepEqual(
+    trace.map((entry) => entry.condition),
+    ["Bleeding"],
+  );
+  assert.deepEqual(
+    trace.map((entry) => entry.active),
+    [6],
+  );
+
+  conditions.applyCondition(context, {
+    type: "condition",
+    at: 0.1,
+    source: "Fixture",
+    sourceId: "fixture.trigger-bleed",
+    skillName: "Trigger Bleed",
+    condition: "Bleeding",
+    duration: 2,
+    stacks: 1,
+  });
+
+  assert.deepEqual(
+    trace.map((entry) => entry.condition),
+    ["Bleeding", "Bleeding", "Burning", "Torment"],
+  );
+  assert.deepEqual(
+    trace.map((entry) => entry.applications),
+    [1, 2, 3, 4],
+  );
+  assert.deepEqual(
+    trace.map((entry) => entry.active),
+    [6, 7, 2, 3],
+  );
+  assert.ok(trace.every((entry) => entry.queued > 0));
 });

@@ -54,7 +54,6 @@ function emitCondition(
     name = `${skillName} — ${condition}`,
     activationId,
     triggeredByAlly,
-    extendsResolutionHorizon = false,
   }: {
     readonly at: number;
     readonly skillId: SkillId;
@@ -65,7 +64,6 @@ function emitCondition(
     readonly name?: string;
     readonly activationId?: string;
     readonly triggeredByAlly?: number;
-    readonly extendsResolutionHorizon?: boolean;
   },
 ): void {
   context.emit({
@@ -82,7 +80,6 @@ function emitCondition(
     duration,
     ...(activationId ? { activationId } : {}),
     ...(triggeredByAlly ? { triggeredByAlly } : {}),
-    ...(extendsResolutionHorizon ? { extendsResolutionHorizon: true } : {}),
   });
 }
 
@@ -228,7 +225,6 @@ export function activateSpiderVenom(context: ThiefCastContext): void {
       duration: 3,
       activationId: `${context.reservationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
       triggeredByAlly: proc.allyIndex,
-      extendsResolutionHorizon: index === alliedProcs.length - 1,
     });
   }
   emitThiefState(context, at, "spider-venom");

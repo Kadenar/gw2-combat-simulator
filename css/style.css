@@ -336,6 +336,50 @@ header .community-actions {
   flex-shrink: 0;
 }
 
+.template-filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.template-filters button {
+  min-width: 0;
+  padding: 4px 6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.7rem;
+}
+
+.template-filters button:hover,
+.template-filters button:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+}
+
+.template-filters button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-panel));
+  border-color: var(--accent-dim);
+  color: var(--accent);
+}
+
+.template-filter-empty {
+  margin: 8px 0 2px;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+}
+
+.build-templates .presets-group[hidden],
+.template-preset[hidden],
+.template-filter-empty[hidden] {
+  display: none;
+}
+
 .default-build-groups {
   display: flex;
   flex-direction: column;
@@ -2779,8 +2823,10 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   position: relative;
   width: 32px;
   height: 32px;
+  padding: 0;
   border-radius: 4px;
   border: 2px dashed var(--att-border, var(--border-light));
+  background: #171722;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.12s;
@@ -2791,6 +2837,11 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   width: 100%;
   height: 100%;
   display: block;
+  transition: opacity 0.12s;
+}
+
+.pistol-bullet:not(.pal-control-active) img {
+  opacity: 0.35;
 }
 
 .pistol-bullet:hover {
@@ -2798,13 +2849,31 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   z-index: 2;
 }
 
-.pistol-bullet.bullet-active {
+.pistol-bullet.pal-control-active {
   border-style: solid;
   opacity: 1;
+  box-shadow: 0 0 6px var(--att-border);
 }
 
-.pistol-bullet.bullet-off-att {
+.pistol-bullet.pal-control-muted {
   filter: saturate(0.4);
+}
+
+.pistol-bullet .pal-control-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 11px;
+  padding: 0 2px;
+  border-radius: 0 0 0 3px;
+  background: var(--att-border);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 11px;
+  text-align: center;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
 }
 
 .pal-charges {
@@ -2874,6 +2943,18 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   display: inline-flex;
   gap: 3px;
   margin-right: 6px;
+}
+
+.elementalist-theme
+  .start-att-selector:has([data-start-control-key="secondaryAttunement"]) {
+  display: grid;
+  grid-template-columns: max-content max-content;
+}
+
+.elementalist-theme
+  .start-att-selector:has([data-start-control-key="secondaryAttunement"])
+  .start-resource-control {
+  display: contents;
 }
 
 .start-att-btn {

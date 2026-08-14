@@ -3,7 +3,6 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { loadProfessionAppAdapter } from "../../../js/app/profession/registry.js";
-import { runSimulation } from "../../../js/professions/elementalist/app/app-definition.js";
 
 const repoUrl = (path) => new URL(`../../../${path}`, import.meta.url);
 
@@ -35,7 +34,11 @@ async function loadWeaverFixture(variant) {
   };
 
   adapter.recalculate(app);
-  return { app, build, result: runSimulation(app), savedRotation };
+  const result = adapter.simulateBuild(
+    build.rotation,
+    adapter.simulationConfig(app),
+  );
+  return { app, build, result, savedBuild, savedRotation };
 }
 
 test("every Weaver benchmark fixture runs with only reference-mirrored errors", async () => {
@@ -55,7 +58,7 @@ test("every Weaver benchmark fixture runs with only reference-mirrored errors", 
 });
 
 test("condition Weaver pistol/dagger follows the replacement benchmark log", async () => {
-  const { result, savedRotation } = await loadWeaverFixture(
+  const { result, savedBuild, savedRotation } = await loadWeaverFixture(
     "condi-weaver-pistol-dagger",
   );
 
@@ -66,7 +69,45 @@ test("condition Weaver pistol/dagger follows the replacement benchmark log", asy
   assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 89.573);
   assert.equal(savedRotation.metadata.benchmarkDamage, 3950932);
   assert.equal(savedRotation.metadata.benchmarkDps, 44108.51484264232);
-  assert.equal(Math.round(result.dps), 38787);
+  assert.deepEqual(savedBuild.build.sigils, ["Malice", "Earth"]);
+  assert.equal(savedBuild.build.food, "Salsa-Topped Veggie Flatbread");
+  assert.deepEqual(savedBuild.build.infusions[0], {
+    stat: "Expertise",
+    count: 18,
+  });
+  assert.equal(Math.round(result.dps), 44171);
+  assert.equal(savedBuild.build.gear.Back, "Viper's");
+  assert.equal(savedBuild.build.utility, "Tuning Icicle");
+  assert.equal(savedBuild.activeAttunement, "Earth");
+  assert.equal(savedBuild.secondaryAttunement, "Earth");
+  assert.deepEqual(savedBuild.pistolBullets, {
+    Fire: true,
+    Water: false,
+    Air: false,
+    Earth: true,
+  });
+  assert.deepEqual(
+    savedRotation.rotation
+      .slice(0, 4)
+      .map((entry) => (typeof entry === "string" ? entry : entry.name)),
+    [
+      "Weave Self",
+      "Primordial Stance (Earth)",
+      "Signet of Fire",
+      "__combat_start",
+    ],
+  );
+  assert.equal(
+    savedRotation.rotation.some(
+      (entry) =>
+        typeof entry === "object" &&
+        ["Piercing Pebble", "Scorching Shot", "Soothing Splash"].includes(
+          entry.name,
+        ) &&
+        entry.interruptMs != null,
+    ),
+    false,
+  );
   const openingWeaveSelf = result.steps.find(
     (step) => step.skill === "Weave Self",
   );
@@ -80,7 +121,7 @@ test("condition Weaver pistol/dagger follows the replacement benchmark log", asy
     (step) => step.skill === "Combat Start",
   );
 
-  assert.equal(openingPrimordialStance.start - openingWeaveSelf.start, 100);
+  assert.equal(openingPrimordialStance.start - openingWeaveSelf.start, 200);
   assert.equal(openingSignetOfFire.start - openingWeaveSelf.start, 800);
   assert.equal(combatStart.start - openingSignetOfFire.start, 398);
   assert.equal(
@@ -88,12 +129,42 @@ test("condition Weaver pistol/dagger follows the replacement benchmark log", asy
     4,
   );
   assert.equal(
+    result.steps.filter((step) => step.skill === "Water Attunement").length,
+    3,
+  );
+  assert.equal(
     result.steps.filter((step) => step.skill === "Frozen Fusillade").length,
     3,
   );
+
+  const damagePackets = result.resolvedEvents
+    .flatMap((event) =>
+      event.type === "damage"
+        ? [{ at: event.at, damage: Number(event.damage || 0) }]
+        : (event.damageTicks || []).map((tick) => ({
+            at: tick.at,
+            damage: tick.damage,
+          })),
+    )
+    .sort((left, right) => left.at - right.at);
+  const sourceCurve = [
+    [10, 35327.1],
+    [20, 43165.95],
+    [36, 44424],
+    [40, 43442.55],
+    [60, 43345.1],
+    [80, 43044.2625],
+    [89.573, 44108.51484264232],
+  ];
+  for (const [at, sourceDps] of sourceCurve) {
+    const damage = damagePackets
+      .filter((packet) => packet.at <= combatStart.start / 1000 + at)
+      .reduce((sum, packet) => sum + packet.damage, 0);
+    assert.ok(Math.abs(damage / at / sourceDps - 1) < 0.05);
+  }
 });
 
-test("Elements of Rage carries from setup and follows reference duration scaling", async () => {
+test("a fully attuned Weaver starts with the eight-second Elements of Rage window", async () => {
   const { result } = await loadWeaverFixture("condi-weaver-pistol-dagger");
   const combatStart = result.steps.find(
     (step) => step.skill === "Combat Start",
@@ -103,7 +174,8 @@ test("Elements of Rage carries from setup and follows reference duration scaling
   );
 
   assert.ok(firstElementsOfRage.at * 1000 < combatStart);
-  assert.ok(Math.abs(firstElementsOfRage.duration - 12.805333333333333) < 1e-9);
+  assert.equal(firstElementsOfRage.at, 0);
+  assert.equal(firstElementsOfRage.duration, 8);
 });
 
 test("precombat Elements of Rage affects the reference opening packet", async () => {

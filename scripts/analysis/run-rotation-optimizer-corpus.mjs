@@ -25,6 +25,7 @@ function numericArgument(name, fallback) {
 const horizonMs = numericArgument("--horizon-ms", 10_000);
 const evaluationBudget = numericArgument("--evaluation-budget", 3);
 const wallClockLimitMs = numericArgument("--wall-clock-limit-ms", 10_000);
+const summaryOnly = process.argv.includes("--summary-only");
 const rows = [];
 
 for (const registryEntry of nativeProfessionRegistry) {
@@ -86,7 +87,9 @@ for (const registryEntry of nativeProfessionRegistry) {
           ...config,
           randomness: { mode: "deterministic", seed: 1 },
         });
-        const invalidActions = replay.steps.filter((step) => step.invalid).length;
+        const invalidActions = replay.steps.filter(
+          (step) => step.invalid,
+        ).length;
         const replayMismatch =
           Math.abs(Number(replay.dps || 0) - result.dps) > 0.01 ||
           Math.abs(Number(replay.totalDamage || 0) - result.totalDamage) > 0.01;
@@ -135,7 +138,9 @@ const summary = {
   elapsedMs: rows.reduce((total, row) => total + row.elapsedMs, 0),
 };
 
-console.log(JSON.stringify({ summary, rows }, null, 2));
+console.log(
+  JSON.stringify(summaryOnly ? { summary } : { summary, rows }, null, 2),
+);
 if (
   errors.length ||
   regressions.length ||

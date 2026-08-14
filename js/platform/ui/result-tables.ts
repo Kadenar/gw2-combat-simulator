@@ -186,9 +186,11 @@ export function skillBreakdownRows(
   return [...grouped.values()]
     .map((entry): SkillBreakdownRow => {
       // Older breakdown producers supplied casts directly; use that only when
-      // no canonical action count is available.
+      // no canonical action count is available. Child effects are not casts
+      // of their parent skill even when the resolver preserves that skill ID.
       const casts = Number(
-        actionCounts.get(entry.sourceSkill) ?? entry.fallbackCasts,
+        actionCounts.get(entry.sourceSkill) ??
+          (entry.parentSkill ? 0 : entry.fallbackCasts),
       );
       const total = entry.strike + entry.condition;
       const castTime = Number(actionDurations.get(entry.sourceSkill) || 0);

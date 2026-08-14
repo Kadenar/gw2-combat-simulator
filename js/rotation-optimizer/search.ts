@@ -26,7 +26,12 @@ interface SearchNode {
   readonly availabilityDelayMs: number;
   readonly dps: number;
   readonly damage: number;
+  readonly projectedDps: number;
+  readonly projectedDamage: number;
+  readonly rolloutRotation: LegacyRotationItem[];
   readonly stateKey: string;
+  readonly strategicStateKey: string;
+  readonly diversityKey: string;
   readonly marginalDamage: number;
   readonly potentialEnabler: boolean;
   readonly priorityEnabler: boolean;
@@ -89,10 +94,82 @@ function rotationEntry(
   return { name: candidate.name, skillId: candidate.skillId };
 }
 
+function rotationName(entry: LegacyRotationItem): string {
+  return String(
+    typeof entry === "object" && entry !== null ? entry.name : entry,
+  );
+}
+
+function strategicValue(value: unknown, depth = 0): unknown {
+  if (depth > 3 || value == null) return value;
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) return String(value);
+    const magnitude = Math.max(1, Math.abs(value));
+    const bandSize = magnitude >= 100 ? 10 : magnitude >= 10 ? 5 : 1;
+    return Math.floor(value / bandSize) * bandSize;
+  }
+  if (typeof value === "string" || typeof value === "boolean") return value;
+  if (Array.isArray(value)) {
+    return value.slice(0, 8).map((entry) => strategicValue(entry, depth + 1));
+  }
+  if (typeof value !== "object") return String(value);
+  return Object.fromEntries(
+    Object.entries(value as Readonly<Record<string, unknown>>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .slice(0, 24)
+      .map(([key, entry]) => [key, strategicValue(entry, depth + 1)]),
+  );
+}
+
+function strategicStateKey(result: Gw2SimulationResult): string {
+  return JSON.stringify({
+    activeWeaponSet: result.endState.activeWeaponSet,
+    profession: strategicValue(result.endState.profession),
+  });
+}
+
+function diversityKey(
+  result: Gw2SimulationResult,
+  rotation: readonly LegacyRotationItem[],
+): string {
+  return JSON.stringify({
+    state: strategicStateKey(result),
+    suffix: rotation.slice(-2).map(rotationName),
+  });
+}
+
+function materializeImplicitHolds(
+  normalized: NormalizedFixedWindowRotation,
+): LegacyRotationItem[] {
+  const byIndex = new Map(
+    normalized.result.steps.map((step) => [step.ri, step]),
+  );
+  const rotation: LegacyRotationItem[] = [];
+  let previousEndMs = 0;
+  for (let index = 0; index < normalized.rotation.length; index += 1) {
+    const entry = normalized.rotation[index];
+    const step = byIndex.get(index);
+    const startMs = Number(step?.actualStart ?? step?.start ?? previousEndMs);
+    if (
+      index >= normalized.setupRotation.length &&
+      rotationName(entry) !== "__wait" &&
+      startMs > previousEndMs + 0.5
+    ) {
+      rotation.push({
+        name: "__wait",
+        waitMs: Math.max(1, Math.round(startMs - previousEndMs)),
+      });
+    }
+    rotation.push(entry);
+    previousEndMs = Math.max(previousEndMs, Number(step?.end ?? startMs));
+  }
+  return rotation;
+}
+
 function better(left: SearchNode, right: SearchNode): boolean {
   return (
-    left.dps > right.dps + DAMAGE_EPSILON ||
-    (Math.abs(left.dps - right.dps) <= DAMAGE_EPSILON &&
+    left.projectedDamage > right.projectedDamage + DAMAGE_EPSILON ||
+    (Math.abs(left.projectedDamage - right.projectedDamage) <= DAMAGE_EPSILON &&
       (left.damage > right.damage + DAMAGE_EPSILON ||
         (Math.abs(left.damage - right.damage) <= DAMAGE_EPSILON &&
           left.rotation.length < right.rotation.length)))
@@ -107,16 +184,20 @@ function betterExact(
   const rightDamage = Number(right.result.totalDamage || 0);
   const leftDps = Number(left.result.dps || 0);
   const rightDps = Number(right.result.dps || 0);
+  const doesNotRegress =
+    leftDamage + DAMAGE_EPSILON >= rightDamage &&
+    leftDps + DAMAGE_EPSILON >= rightDps;
   return (
-    leftDamage > rightDamage + DAMAGE_EPSILON ||
-    (Math.abs(leftDamage - rightDamage) <= DAMAGE_EPSILON &&
+    doesNotRegress &&
+    (leftDamage > rightDamage + DAMAGE_EPSILON ||
       leftDps > rightDps + DAMAGE_EPSILON)
   );
 }
 
 function nodeOrder(left: SearchNode, right: SearchNode): number {
   return (
-    right.dps - left.dps ||
+    right.projectedDamage - left.projectedDamage ||
+    right.projectedDps - left.projectedDps ||
     right.damage - left.damage ||
     left.durationMs - right.durationMs ||
     left.rotation.length - right.rotation.length
@@ -138,6 +219,10 @@ function selectBeam(
   enablerReserve: number,
 ): SearchNode[] {
   const ordered = uniqueBestByState(nodes).sort(nodeOrder);
+  const diverse = new Map<string, SearchNode>();
+  for (const node of ordered) {
+    if (!diverse.has(node.diversityKey)) diverse.set(node.diversityKey, node);
+  }
   const priorityReserved = ordered
     .filter(
       (node) => node.priorityEnabler && node.marginalDamage <= DAMAGE_EPSILON,
@@ -152,6 +237,10 @@ function selectBeam(
     )
     .slice(0, Math.min(enablerReserve, beamWidth - priorityReserved.length));
   const selected = new Set([...priorityReserved, ...reserved]);
+  for (const node of diverse.values()) {
+    if (selected.size >= Math.max(1, Math.ceil(beamWidth * 0.6))) break;
+    selected.add(node);
+  }
   for (const node of ordered) {
     if (selected.size >= beamWidth) break;
     selected.add(node);
@@ -167,7 +256,12 @@ function defaultNode(rotation: LegacyRotationItem[] = []): SearchNode {
     availabilityDelayMs: 0,
     dps: 0,
     damage: 0,
+    projectedDps: 0,
+    projectedDamage: 0,
+    rolloutRotation: rotation,
     stateKey: "initial",
+    strategicStateKey: "initial",
+    diversityKey: "initial",
     marginalDamage: 0,
     potentialEnabler: false,
     priorityEnabler: false,
@@ -187,16 +281,13 @@ export function runRotationSearch(
   simulate: RotationSimulation,
   onProgress: (progress: RotationOptimizerProgress) => void = () => {},
 ): RotationOptimizerResult {
-  if (
-    request.objective != null &&
-    request.objective !== "fixed-window-dps"
-  ) {
+  if (request.objective != null && request.objective !== "fixed-window-dps") {
     throw new Error(`Unsupported optimizer objective: ${request.objective}`);
   }
 
   const startedAt = Date.now();
   const horizonMs = finitePositiveInteger(request.horizonMs, 1_000);
-  const beamWidth = finitePositiveInteger(request.beamWidth, 8);
+  const beamWidth = Math.min(32, finitePositiveInteger(request.beamWidth, 20));
   const branchLimit = finitePositiveInteger(request.branchLimit, 6);
   const enablerReserve = Math.max(
     0,
@@ -223,11 +314,17 @@ export function runRotationSearch(
   let projectedEvaluations = 0;
   let frontierPeak = 0;
   let removedActions = 0;
+  let holdsGenerated = 0;
+  let holdsRetained = 0;
+  let zeroDamageCandidatesRejected = 0;
+  const diversityFamilies = new Set<string>();
   let timedOut = false;
   let stopReason: RotationOptimizerStopReason = "frontier-exhausted";
   const evaluated = (): number => exactEvaluations + projectedEvaluations;
   const hasEvaluationBudget = (required = 1): boolean =>
     evaluated() + required <= evaluationBudget;
+  const hasSearchEvaluationBudget = (required = 1): boolean =>
+    evaluated() + required + 3 <= evaluationBudget;
 
   const exactScore = (
     rotation: readonly LegacyRotationItem[],
@@ -268,10 +365,7 @@ export function runRotationSearch(
       Number(baseline.result.totalDamage || 0),
     );
     const dps = Math.max(0, Number(incumbent.result.dps || 0));
-    const totalDamage = Math.max(
-      0,
-      Number(incumbent.result.totalDamage || 0),
-    );
+    const totalDamage = Math.max(0, Number(incumbent.result.totalDamage || 0));
     const improved = betterExact(incumbent, baseline);
     const improvementDps = dps - baselineDps;
     return {
@@ -310,6 +404,10 @@ export function runRotationSearch(
         frontierPeak,
         stopReason,
         removedZeroDamageActions: removedActions,
+        holdsGenerated,
+        holdsRetained,
+        zeroDamageCandidatesRejected,
+        diversityFamilies: diversityFamilies.size,
       },
     };
   };
@@ -319,19 +417,144 @@ export function runRotationSearch(
     stopReason = "wall-clock-limit";
     return resultFromIncumbent();
   }
-  if (!candidates.length || !hasEvaluationBudget()) {
-    stopReason = candidates.length
-      ? "evaluation-budget"
-      : "frontier-exhausted";
+  if (!candidates.length || !hasSearchEvaluationBudget()) {
+    stopReason = candidates.length ? "evaluation-budget" : "frontier-exhausted";
     return resultFromIncumbent();
   }
+
+  const projectionCache = new Map<string, NormalizedFixedWindowRotation>();
+  const projectedScore = (
+    rotation: readonly LegacyRotationItem[],
+  ): NormalizedFixedWindowRotation | null => {
+    const key = JSON.stringify(rotation);
+    const cached = projectionCache.get(key);
+    if (cached) return cached;
+    // Keep one exact validation in reserve so any interruption can still
+    // promote the strongest completed rollout to the incumbent.
+    if (!hasSearchEvaluationBudget(3)) return null;
+    const split = splitRotationAtCombatStart(rotation);
+    const projected = normalizeFixedWindowRotation({
+      setupRotation: initialRotation,
+      combatRotation: split.combatRotation,
+      horizonMs,
+      config,
+      simulate,
+      onSimulation: () => {
+        projectedEvaluations += 1;
+      },
+    });
+    projectionCache.set(key, projected);
+    return projected;
+  };
+
+  const withProjection = (
+    node: SearchNode,
+    projected: NormalizedFixedWindowRotation,
+  ): SearchNode => ({
+    ...node,
+    projectedDps: Math.max(0, Number(projected.result.dps || 0)),
+    projectedDamage: Math.max(0, Number(projected.result.totalDamage || 0)),
+    rolloutRotation: materializeImplicitHolds(projected),
+  });
+
+  const strongerProjection = (
+    left: NormalizedFixedWindowRotation | null,
+    right: NormalizedFixedWindowRotation | null,
+  ): NormalizedFixedWindowRotation | null => {
+    if (!left) return right;
+    if (!right) return left;
+    return betterExact(left, right) ? left : right;
+  };
+
+  const rolloutCandidates = candidates
+    .filter((candidate) => candidate.declaredDamage)
+    .sort((left, right) => left.name.localeCompare(right.name));
+
+  const projectNode = (
+    node: SearchNode,
+    extraTails: readonly RotationOptimizerCandidate[] = [],
+  ): SearchNode | null => {
+    let best = projectedScore(node.rotation);
+    const combatDepth = Math.max(
+      0,
+      node.rotation.length - initialRotation.length,
+    );
+    const incumbentSuffix = baseline.combatRotation.slice(combatDepth);
+    if (incumbentSuffix.length) {
+      best = strongerProjection(
+        projectedScore([...node.rotation, ...incumbentSuffix]),
+        best,
+      );
+    }
+    const tails = extraTails.length ? extraTails : rolloutCandidates;
+    for (const tail of tails) {
+      if (!hasSearchEvaluationBudget(3)) break;
+      best = strongerProjection(
+        projectedScore([...node.rotation, rotationEntry(tail)]),
+        best,
+      );
+    }
+    return best ? withProjection(node, best) : null;
+  };
+
+  const projectRelevantEnabler = (
+    parent: SearchNode,
+    child: SearchNode,
+    candidate: RotationOptimizerCandidate,
+  ): SearchNode | null => {
+    const parentTerminal = projectedScore(parent.rotation);
+    let bestChild = projectedScore(child.rotation);
+    if (
+      bestChild &&
+      parentTerminal &&
+      Number(bestChild.result.totalDamage || 0) >
+        Number(parentTerminal.result.totalDamage || 0) + DAMAGE_EPSILON
+    ) {
+      return projectNode(child);
+    }
+
+    for (const tail of rolloutCandidates) {
+      if (!hasSearchEvaluationBudget(6)) break;
+      if (tail.weaponSets && !tail.weaponSets.includes(child.activeWeaponSet)) {
+        continue;
+      }
+      const childTail = projectedScore([
+        ...child.rotation,
+        rotationEntry(tail),
+      ]);
+      const parentTail = projectedScore([
+        ...parent.rotation,
+        rotationEntry(tail),
+      ]);
+      bestChild = strongerProjection(childTail, bestChild);
+      if (
+        childTail &&
+        parentTail &&
+        Number(childTail.result.totalDamage || 0) >
+          Number(parentTail.result.totalDamage || 0) + DAMAGE_EPSILON
+      ) {
+        return bestChild ? withProjection(child, bestChild) : null;
+      }
+    }
+
+    // Weapon/action-bar transitions are independently relevant, but a generic
+    // cooldown-only state change is not.
+    if (
+      candidate.priorityEnabler &&
+      child.strategicStateKey !== parent.strategicStateKey
+    ) {
+      return bestChild ? withProjection(child, bestChild) : projectNode(child);
+    }
+    zeroDamageCandidatesRejected += 1;
+    return null;
+  };
 
   const evaluate = (
     rotation: LegacyRotationItem[],
     parent: SearchNode,
     candidate: RotationOptimizerCandidate | null,
   ): Evaluation | null => {
-    if (!hasEvaluationBudget()) return null;
+    if (!hasSearchEvaluationBudget()) return null;
     const prefix = simulate(rotation, config);
     projectedEvaluations += 1;
     const step = lastActionStep(prefix, rotation.length);
@@ -366,6 +589,7 @@ export function runRotationSearch(
     );
     const damage = Math.max(0, Number(prefix.totalDamage || 0));
     const stateKey = endStateKey(prefix);
+    const strategyKey = strategicStateKey(prefix);
     return {
       rotation,
       durationMs,
@@ -373,7 +597,12 @@ export function runRotationSearch(
       availabilityDelayMs: Math.max(0, actionStartMs - parent.durationMs),
       dps: damage / effectiveSeconds,
       damage,
+      projectedDps: 0,
+      projectedDamage: 0,
+      rolloutRotation: rotation,
       stateKey,
+      strategicStateKey: strategyKey,
+      diversityKey: diversityKey(prefix, rotation),
       marginalDamage: damage - parent.damage,
       potentialEnabler: Boolean(candidate?.potentialEnabler),
       priorityEnabler: Boolean(candidate?.priorityEnabler),
@@ -394,11 +623,14 @@ export function runRotationSearch(
     stopReason = "evaluation-budget";
     return resultFromIncumbent();
   }
-  const root: SearchNode = rootEvaluation.valid
+  const rootBase: SearchNode = rootEvaluation.valid
     ? rootEvaluation
     : defaultNode(initialRotation);
+  const root: SearchNode = withProjection(rootBase, baseline);
+  diversityFamilies.add(root.diversityKey);
   let beam: SearchNode[] = [root];
   const terminals: SearchNode[] = [];
+  const projectedNodes: SearchNode[] = [];
   const seenStates = new Map<string, SearchNode>([[root.stateKey, root]]);
   let depth = 0;
 
@@ -410,7 +642,7 @@ export function runRotationSearch(
         stopReason = "wall-clock-limit";
         break search;
       }
-      if (!hasEvaluationBudget()) {
+      if (!hasSearchEvaluationBudget()) {
         stopReason = "evaluation-budget";
         break search;
       }
@@ -419,13 +651,14 @@ export function runRotationSearch(
         continue;
       }
       const children: SearchNode[] = [];
+      const holdTargets = new Map<number, RotationOptimizerCandidate[]>();
       for (const candidate of candidates) {
         if (Date.now() >= deadline) {
           timedOut = true;
           stopReason = "wall-clock-limit";
           break search;
         }
-        if (!hasEvaluationBudget()) {
+        if (!hasSearchEvaluationBudget()) {
           stopReason = "evaluation-budget";
           break search;
         }
@@ -441,34 +674,77 @@ export function runRotationSearch(
           candidate,
         );
         if (!child?.valid) continue;
-        const seen = seenStates.get(child.stateKey);
-        if (seen && !better(child, seen)) continue;
-        seenStates.set(child.stateKey, child);
-        children.push(child);
+        if (child.availabilityDelayMs > 0.5) {
+          const targetMs = Math.round(
+            parent.durationMs + child.availabilityDelayMs,
+          );
+          if (targetMs < horizonEndMs - 0.5) {
+            const targetCandidates = holdTargets.get(targetMs) || [];
+            targetCandidates.push(candidate);
+            holdTargets.set(targetMs, targetCandidates);
+          }
+          continue;
+        }
+        const projected = candidate.declaredDamage
+          ? projectNode(child)
+          : projectRelevantEnabler(parent, child, candidate);
+        if (!projected) continue;
+        const seen = seenStates.get(projected.stateKey);
+        if (seen && !better(projected, seen)) continue;
+        seenStates.set(projected.stateKey, projected);
+        diversityFamilies.add(projected.diversityKey);
+        projectedNodes.push(projected);
+        children.push(projected);
+      }
+
+      holdsGenerated += holdTargets.size;
+      for (const [targetMs, targetCandidates] of holdTargets) {
+        if (!hasSearchEvaluationBudget(4)) break;
+        const waitMs = Math.max(1, Math.round(targetMs - parent.durationMs));
+        const holdEvaluation = evaluate(
+          [...parent.rotation, { name: "__wait", waitMs }],
+          parent,
+          null,
+        );
+        if (!holdEvaluation?.valid) continue;
+        const hold = projectNode(
+          {
+            ...holdEvaluation,
+            potentialEnabler: true,
+          },
+          targetCandidates,
+        );
+        const parentTerminal = projectedScore(parent.rotation);
+        if (
+          !hold ||
+          !parentTerminal ||
+          hold.projectedDamage <=
+            Number(parentTerminal.result.totalDamage || 0) + DAMAGE_EPSILON
+        ) {
+          continue;
+        }
+        const seen = seenStates.get(hold.stateKey);
+        if (seen && !better(hold, seen)) continue;
+        seenStates.set(hold.stateKey, hold);
+        holdsRetained += 1;
+        diversityFamilies.add(hold.diversityKey);
+        projectedNodes.push(hold);
+        children.push(hold);
       }
       if (!children.length) {
         terminals.push(parent);
         continue;
       }
-      const earliestAvailability = Math.min(
-        ...children.map((child) => child.availabilityDelayMs),
-      );
-      const chronologicalChildren = children.filter(
-        (child) => child.availabilityDelayMs <= earliestAvailability + 0.5,
-      );
-      expanded.push(
-        ...selectBeam(chronologicalChildren, branchLimit, enablerReserve),
-      );
+      expanded.push(...selectBeam(children, branchLimit, enablerReserve));
     }
     if (!expanded.length) {
       if (!timedOut) {
-        stopReason = hasEvaluationBudget()
+        stopReason = hasSearchEvaluationBudget()
           ? "frontier-exhausted"
           : "evaluation-budget";
       }
       break;
     }
-    const explorationHorizonMs = Math.min(10_000, horizonMs * 0.25);
     const exploredDurationMs = Math.max(
       0,
       ...expanded.map((node) => node.durationMs),
@@ -477,15 +753,7 @@ export function runRotationSearch(
       0,
       exploredDurationMs - root.combatStartTimeMs,
     );
-    const activeBeamWidth =
-      horizonMs >= 30_000 && exploredCombatDurationMs >= explorationHorizonMs
-        ? 1
-        : beamWidth;
-    beam = selectBeam(
-      expanded,
-      activeBeamWidth,
-      activeBeamWidth > 1 ? enablerReserve : 0,
-    );
+    beam = selectBeam(expanded, beamWidth, enablerReserve);
     frontierPeak = Math.max(frontierPeak, beam.length);
     const best = beam[0] || root;
     onProgress({
@@ -496,14 +764,18 @@ export function runRotationSearch(
       evaluationBudget,
       bestDps: Number(incumbent.result.dps || 0),
       bestDamage: Number(incumbent.result.totalDamage || 0),
-      projectedDps: best.dps,
-      projectedDamage: best.damage,
+      projectedDps: best.projectedDps,
+      projectedDamage: best.projectedDamage,
       frontierSize: beam.length,
     });
   }
   if (depth > maxActions) stopReason = "max-actions";
 
-  const frontier = uniqueBestByState([...terminals, ...beam]);
+  const frontier = uniqueBestByState([
+    ...terminals,
+    ...beam,
+    ...projectedNodes,
+  ]);
   const finalists = [
     ...[...frontier].sort(nodeOrder).slice(0, Math.max(beamWidth, 4)),
     ...[...frontier]
@@ -521,7 +793,7 @@ export function runRotationSearch(
       if (!timedOut) stopReason = "evaluation-budget";
       break;
     }
-    const scored = exactScore(finalist.rotation);
+    const scored = exactScore(finalist.rolloutRotation);
     if (betterExact(scored, incumbent)) incumbent = scored;
   }
 
@@ -534,13 +806,18 @@ export function runRotationSearch(
       index -= 1
     ) {
       if (Date.now() >= deadline || !hasEvaluationBudget(3)) break;
+      if (rotationName(incumbent.combatRotation[index]) === "__wait") {
+        continue;
+      }
       const combatRotation = incumbent.combatRotation.filter(
         (_, current) => current !== index,
       );
       const candidate = exactScore(combatRotation);
       if (
         Number(candidate.result.totalDamage || 0) + DAMAGE_EPSILON >=
-        Number(incumbent.result.totalDamage || 0)
+          Number(incumbent.result.totalDamage || 0) &&
+        Number(candidate.result.dps || 0) + DAMAGE_EPSILON >=
+          Number(incumbent.result.dps || 0)
       ) {
         incumbent = candidate;
         removedActions += 1;

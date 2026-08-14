@@ -8,22 +8,21 @@ import {
   professionRoute,
 } from "../../../js/app/profession/registry.js";
 import {
-  appendVindicatorDodgeAuto,
   currentAutoattackSkill,
+  paletteActionSkills,
   paletteSkillIsInstant,
   rotationLoadoutPaletteGroups,
   rotationPaletteGroups,
   rotationSelectedSlotSkills,
-  VINDICATOR_DODGE_AUTO_ACTION,
-  vindicatorDodgeAutoPaletteSkill,
-  vindicatorDodgeAutoRotationEntries,
   weaponSkills,
 } from "../../../js/app/rotation/palette-model.js";
 import {
   paletteSkillView,
   renderPalette,
+  resolvePaletteDropItem,
   suggestedPaletteInterruptMs,
 } from "../../../js/app/rotation/palette-view.js";
+import { insertRotationItems } from "../../../js/app/rotation/actions.js";
 import { simulationEventLogRows } from "../../../js/app/rotation/event-log.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import { skillBreakdownRows } from "../../../js/platform/ui/result-tables.js";
@@ -34,6 +33,10 @@ import {
 } from "../../../js/professions/revenant/build.js";
 import { calculateAttributes as calculateRevenantAttributes } from "../../../js/professions/revenant/app/app-definition.js";
 import { revenantCatalog } from "../../../js/professions/revenant/catalog.js";
+import {
+  VINDICATOR_DODGE_AUTO_ACTION,
+  vindicatorDodgeAutoRotationEntries,
+} from "../../../js/professions/revenant/specializations/vindicator/ui.js";
 import { DATA_SNAPSHOT } from "../../../js/professions/revenant/data/revenant-api-metadata.js";
 import { REVENANT_SUPPLEMENTAL_SKILLS } from "../../../js/professions/revenant/data/revenant-supplemental-skills.js";
 import {
@@ -135,7 +138,12 @@ const baseConfig = Object.freeze({
   target: { armor: 2597, conditions: { Vulnerability: 25 } },
 });
 
-function simulate(specialization, rotation, config = {}) {
+function simulate(
+  specialization,
+  rotation,
+  config = {},
+  observationPolicy = undefined,
+) {
   return simulateGw2({
     profession: revenantProfession,
     rotation,
@@ -146,8 +154,11 @@ function simulate(specialization, rotation, config = {}) {
       stats: { ...baseConfig.stats, ...(config.stats || {}) },
       target: { ...baseConfig.target, ...(config.target || {}) },
     },
+    observationPolicy,
   });
 }
+
+const observationTail = (durationMs) => ({ kind: "tail", durationMs });
 
 test("Revenant catalog pins API identity and explicit skill mechanics", () => {
   assert.equal(DATA_SNAPSHOT, "2026-07-28");
@@ -738,6 +749,7 @@ test("Renegade shortbow skills use supplied casts, packets, and combo data", () 
       secondaryWeapon: "",
       initialEnergy: 100,
     },
+    observationTail(4000),
   );
   assert.equal(result.warnings.length, 0);
 
@@ -859,6 +871,7 @@ test("Abyssal Strike commits with its 396ms impact", () => {
         },
       ],
       config,
+      observationTail(4000),
     );
   const packets = (result) =>
     result.events.filter(
@@ -991,6 +1004,7 @@ test("Searing Fissure commits at 480ms and an earlier cancel only starts cooldow
         },
       ],
       config,
+      observationTail(4000),
     );
   const fissurePackets = (result) =>
     result.events.filter(
@@ -1698,14 +1712,19 @@ test("Charged Mists uses the low-energy legend reset", () => {
 });
 
 test("legend invocation traits resolve after swap effects", () => {
-  const result = simulate("Core", ["Swap Legends"], {
-    selectedTraitIds: [
-      TRAIT.INVOKING_TORMENT,
-      TRAIT.DIABOLIC_INFERNO,
-      TRAIT.SPIRIT_BOON,
-      TRAIT.SONG_OF_THE_MISTS,
-    ],
-  });
+  const result = simulate(
+    "Core",
+    ["Swap Legends"],
+    {
+      selectedTraitIds: [
+        TRAIT.INVOKING_TORMENT,
+        TRAIT.DIABOLIC_INFERNO,
+        TRAIT.SPIRIT_BOON,
+        TRAIT.SONG_OF_THE_MISTS,
+      ],
+    },
+    observationTail(1000),
+  );
   const swap = result.events.find((event) => event.type === "sigil_swap");
   const call = result.events.find(
     (event) => event.name === "Call of the Demon",
@@ -2362,6 +2381,7 @@ test("Herald consume skills apply their full outgoing profiles", () => {
       selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
       startingLegend: LEGEND.DRAGON,
     },
+    observationTail(3000),
   );
   assert.deepEqual(
     elements.events
@@ -2642,11 +2662,16 @@ test("Embrace the Darkness empowers only the next pulse and releases", () => {
 });
 
 test("Dwarf skills resolve reinforcement pulses and hammer hit rate", () => {
-  const road = simulate("Core", ["Inspiring Reinforcement"], {
-    selectedLegends: [LEGEND.DWARF, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.DWARF,
-    initialEnergy: 100,
-  });
+  const road = simulate(
+    "Core",
+    ["Inspiring Reinforcement"],
+    {
+      selectedLegends: [LEGEND.DWARF, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.DWARF,
+      initialEnergy: 100,
+    },
+    observationTail(5000),
+  );
   assert.ok(
     road.events.some(
       (event) =>
@@ -2852,6 +2877,7 @@ test("Citadel Orders preserve their packet, pulse, cost, and recharge profiles",
       selectedTraitIds: [TRAIT.VINDICATION],
       initialEnergy: 100,
     },
+    observationTail(2000),
   );
   assert.deepEqual(
     bombardment.steps.map((step) => [step.start, step.fullCastMs]),
@@ -2920,11 +2946,16 @@ test("Citadel Orders preserve their packet, pulse, cost, and recharge profiles",
     4,
   );
 
-  const orders = simulate("Renegade", ["Orders from Above"], {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE,
-    initialEnergy: 100,
-  });
+  const orders = simulate(
+    "Renegade",
+    ["Orders from Above"],
+    {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      initialEnergy: 100,
+    },
+    observationTail(3000),
+  );
   assert.equal(orders.steps[0].fullCastMs, 0);
   assert.deepEqual(
     orders.events
@@ -2943,12 +2974,17 @@ test("Citadel Orders preserve their packet, pulse, cost, and recharge profiles",
     ],
   );
 
-  const righteous = simulate("Renegade", ["Orders from Above"], {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE,
-    selectedTraitIds: [TRAIT.RIGHTEOUS_REBEL],
-    initialEnergy: 100,
-  });
+  const righteous = simulate(
+    "Renegade",
+    ["Orders from Above"],
+    {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      selectedTraitIds: [TRAIT.RIGHTEOUS_REBEL],
+      initialEnergy: 100,
+    },
+    observationTail(5000),
+  );
   assert.deepEqual(
     righteous.events
       .filter(
@@ -3308,11 +3344,16 @@ test("Heartpiercer and Brutal Momentum apply multiplicative combat bonuses", () 
 });
 
 test("Band Together makes the next Renegade summon instant and enhanced", () => {
-  const base = simulate("Renegade", ["Icerazor's Ire"], {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE,
-    initialEnergy: 100,
-  });
+  const base = simulate(
+    "Renegade",
+    ["Icerazor's Ire"],
+    {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      initialEnergy: 100,
+    },
+    observationTail(3000),
+  );
   assert.equal(base.steps[0].fullCastMs, 520);
   const quickBase = simulate("Renegade", ["Icerazor's Ire"], {
     selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
@@ -3443,6 +3484,7 @@ test("Band Together makes the next Renegade summon instant and enhanced", () => 
       initialEnergy: 100,
       boons: { quickness: true },
     },
+    observationTail(1000),
   );
   const quickIcerazorHits = quickEnhanced.events.filter(
     (event) => event.type === "damage" && event.skillName === "Icerazor's Ire",
@@ -3642,13 +3684,18 @@ test("All for One refunds Energy and halves enhanced-skill recharge", () => {
 });
 
 test("Razorclaw models party procs with the Revenant's condition stats", () => {
-  const result = simulate("Renegade", ["Razorclaw's Rage"], {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE,
-    initialEnergy: 100,
-    allies: { count: 4, strikesPerSecond: 1 },
-    stats: { conditionDamage: 1500, expertise: 300 },
-  });
+  const result = simulate(
+    "Renegade",
+    ["Razorclaw's Rage"],
+    {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      initialEnergy: 100,
+      allies: { count: 4, strikesPerSecond: 1 },
+      stats: { conditionDamage: 1500, expertise: 300 },
+    },
+    observationTail(5000),
+  );
   const partyBuff = result.events.find(
     (event) => event.type === "buff" && event.kind === "razorclaws-rage",
   );
@@ -4168,10 +4215,33 @@ test("Vindicator Dodge + Auto palette action uses the current chain step", () =>
   };
 
   assert.equal(currentAutoattackSkill(app).name, "Preparation Thrust");
-  const paletteSkill = vindicatorDodgeAutoPaletteSkill(app, "Vindicator");
+  const paletteSkill = paletteActionSkills(app, "Vindicator").find(
+    (skill) => skill.name === VINDICATOR_DODGE_AUTO_ACTION,
+  );
   assert.equal(paletteSkill.name, VINDICATOR_DODGE_AUTO_ACTION);
   assert.equal(paletteSkillView(app, paletteSkill).draggable, true);
-  assert.deepEqual(vindicatorDodgeAutoRotationEntries(app), [
+  assert.deepEqual(
+    vindicatorDodgeAutoRotationEntries({
+      specialization: "Vindicator",
+      activeAutoattack: currentAutoattackSkill(app),
+    }),
+    [
+      {
+        name: "Preparation Thrust",
+        skillId: SKILL.PREPARATION_THRUST,
+      },
+      {
+        name: "Dodge",
+        skillId: -5,
+        offset: 0,
+      },
+    ],
+  );
+  const firstInsertion = resolvePaletteDropItem(
+    app,
+    VINDICATOR_DODGE_AUTO_ACTION,
+  );
+  assert.deepEqual(firstInsertion, [
     {
       name: "Preparation Thrust",
       skillId: SKILL.PREPARATION_THRUST,
@@ -4182,7 +4252,7 @@ test("Vindicator Dodge + Auto palette action uses the current chain step", () =>
       offset: 0,
     },
   ]);
-  assert.equal(appendVindicatorDodgeAuto(app), true);
+  assert.equal(insertRotationItems(app, firstInsertion), true);
   assert.deepEqual(app.build.rotation, [
     {
       name: "Preparation Thrust",
@@ -4198,7 +4268,11 @@ test("Vindicator Dodge + Auto palette action uses the current chain step", () =>
 
   app.build.rotation = ["Tail"];
   app.rotationInsertionIndex = 0;
-  assert.equal(appendVindicatorDodgeAuto(app), true);
+  const secondInsertion = resolvePaletteDropItem(
+    app,
+    VINDICATOR_DODGE_AUTO_ACTION,
+  );
+  assert.equal(insertRotationItems(app, secondInsertion), true);
   assert.deepEqual(app.build.rotation, [
     {
       name: "Preparation Thrust",
@@ -4474,7 +4548,7 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
   });
   assert.deepEqual(
     damageTimeline(
-      simulate("Conduit", ["Shackling Wave"], config),
+      simulate("Conduit", ["Shackling Wave"], config, observationTail(1000)),
       "Shackling Wave",
     ),
     [
@@ -4524,6 +4598,7 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
       },
     ],
     config,
+    observationTail(1000),
   );
   assert.equal(paletteChilling.steps[0].end, 480);
   assert.equal(paletteChilling.steps[0].interrupted, true);
@@ -4536,6 +4611,7 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
       },
     ],
     config,
+    observationTail(1000),
   );
   assert.equal(interruptedChilling.steps[0].end, 420);
   assert.equal(interruptedChilling.steps[0].interrupted, true);
@@ -4636,6 +4712,7 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
       "Conduit",
       ["Preparation Thrust", "Brutal Blade", "Rift Slash"],
       config,
+      observationTail(1000),
     ),
     "Rift Slash",
   );
@@ -4680,11 +4757,16 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
     2,
   );
 
-  const requiem = simulate("Conduit", ["Eternity's Requiem"], {
-    ...config,
-    primaryWeapon: "Greatsword",
-    secondaryWeapon: "",
-  });
+  const requiem = simulate(
+    "Conduit",
+    ["Eternity's Requiem"],
+    {
+      ...config,
+      primaryWeapon: "Greatsword",
+      secondaryWeapon: "",
+    },
+    observationTail(2000),
+  );
   assert.deepEqual(damageTimeline(requiem, "Eternity's Requiem"), [
     [1163, "Eternity's Requiem", 1],
     [1241, "Eternity's Requiem", 0.9],
@@ -4994,12 +5076,17 @@ test("Conduit entity skills apply follow-ups and Shared Wisdom effects", () => {
     ["resistance", "resolution", "stability", "swiftness"],
   );
 
-  const vortex = simulate("Conduit", ["Hex-Eater Vortex"], {
-    selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
-    startingLegend: LEGEND.ENTITY,
-    initialEnergy: 100,
-    traitIds: [TRAIT.SHARED_WISDOM],
-  });
+  const vortex = simulate(
+    "Conduit",
+    ["Hex-Eater Vortex"],
+    {
+      selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
+      startingLegend: LEGEND.ENTITY,
+      initialEnergy: 100,
+      traitIds: [TRAIT.SHARED_WISDOM],
+    },
+    observationTail(1000),
+  );
   assert.equal(
     vortex.events.filter(
       (event) =>
@@ -5062,11 +5149,16 @@ test("Twin Moon Sweep resolves both attackers and legend resonance", () => {
   );
   assert.equal(assassin.endState.profession.affinity, 2);
 
-  const demon = simulate("Conduit", ["Twin Moon Sweep"], {
-    selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
-    startingLegend: LEGEND.ENTITY,
-    initialEnergy: 100,
-  });
+  const demon = simulate(
+    "Conduit",
+    ["Twin Moon Sweep"],
+    {
+      selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
+      startingLegend: LEGEND.ENTITY,
+      initialEnergy: 100,
+    },
+    observationTail(1000),
+  );
   assert.deepEqual(
     demon.events
       .filter((event) => event.type === "damage" && /Shatter/.test(event.name))
@@ -5233,15 +5325,20 @@ test("Release Potential variants use affinity and equipped-legend effects", () =
     [LEGEND.ENTITY, "Release Potential: Dervish", [560]],
     [LEGEND.ASSASSIN, "Release Potential: Assassin", [160, 480, 800]],
   ]) {
-    const timing = simulate("Conduit", [name], {
-      selectedLegends:
-        legend === LEGEND.ENTITY
-          ? [LEGEND.ENTITY, LEGEND.ASSASSIN]
-          : [legend, LEGEND.ENTITY],
-      startingLegend: legend,
-      initialEnergy: 100,
-      boons: { quickness: true },
-    });
+    const timing = simulate(
+      "Conduit",
+      [name],
+      {
+        selectedLegends:
+          legend === LEGEND.ENTITY
+            ? [LEGEND.ENTITY, LEGEND.ASSASSIN]
+            : [legend, LEGEND.ENTITY],
+        startingLegend: legend,
+        initialEnergy: 100,
+        boons: { quickness: true },
+      },
+      observationTail(1000),
+    );
     assert.deepEqual(
       timing.events
         .filter((event) => event.type === "damage" && event.skillName === name)

@@ -226,7 +226,6 @@ function beginSummonAction(
     endsAt: at + animationEnd,
     fullEndsAt: at + animationEnd,
     summonOwner: companionId(elemental.summonGeneration),
-    extendsProfessionTaskHorizon: true,
     autonomousElementalSkill: skillName !== "Flame Barrage",
     playerCommandedElementalSkill: skillName === "Flame Barrage",
   });
@@ -677,16 +676,6 @@ function summonFireElemental(
     actorType: "summon",
     skillName: skill.name,
     name: `${element} Elemental expires`,
-  });
-  context.emit({
-    type: "marker",
-    at: expiresAt + 3,
-    source: `${element} Elemental`,
-    sourceId: skill.id,
-    actorType: "summon",
-    skillName: skill.name,
-    name: `${element} Elemental final condition horizon`,
-    extendsResolutionHorizon: true,
   });
   scheduleTask(
     context,

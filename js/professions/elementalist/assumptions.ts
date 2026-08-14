@@ -6,7 +6,7 @@ export const ELEMENTALIST_ASSUMPTION_CONTROLS =
       key: "hitboxSize",
       label: "Target hitbox",
       type: "select",
-      defaultValue: "large",
+      defaultValue: "small",
       options: [
         { value: "large", label: "Large" },
         { value: "small", label: "Small" },
@@ -22,13 +22,6 @@ export const ELEMENTALIST_ASSUMPTION_CONTROLS =
         { value: "evtc", label: "Native summon AI" },
         { value: "reference", label: "Fixed reference packets" },
       ],
-      section: "profession",
-    },
-    {
-      key: "startingAttunementPreDwelled",
-      label: "Starting attunement pre-dwelled",
-      type: "boolean",
-      defaultValue: true,
       section: "profession",
     },
     {

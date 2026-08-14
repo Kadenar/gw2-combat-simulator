@@ -66,3 +66,43 @@ test("Weaver hides Unravel without Elements of Rage", () => {
     false,
   );
 });
+
+test("Weaver exposes primary and secondary starting attunements", () => {
+  const build = {
+    ...weaverBuild("1-1-1"),
+    startAttunement: "Water",
+    secondaryAttunement: "Earth",
+  };
+  const controls = elementalistProfession.ui.startControls({
+    specialization: "Weaver",
+    build,
+    professionState: {
+      primaryAttunement: "Air",
+      secondaryAttunement: "Fire",
+    },
+    catalog: elementalistProfession.catalog,
+  });
+
+  assert.deepEqual(
+    controls.map(({ label, buildKey, value }) => ({ label, buildKey, value })),
+    [
+      {
+        label: "Primary attunement",
+        buildKey: "startAttunement",
+        value: "Water",
+      },
+      {
+        label: "Secondary attunement",
+        buildKey: "secondaryAttunement",
+        value: "Earth",
+      },
+    ],
+  );
+  assert.deepEqual(
+    controls.map((control) => control.options.map((option) => option.value)),
+    [
+      ["Fire", "Water", "Air", "Earth"],
+      ["Fire", "Water", "Air", "Earth"],
+    ],
+  );
+});

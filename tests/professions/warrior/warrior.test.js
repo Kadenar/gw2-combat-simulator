@@ -81,7 +81,12 @@ const baseConfig = Object.freeze({
   },
 });
 
-function simulate(specialization, rotation, config = {}) {
+function simulate(
+  specialization,
+  rotation,
+  config = {},
+  observationPolicy = undefined,
+) {
   return simulateGw2({
     profession: warriorProfession,
     rotation,
@@ -93,8 +98,11 @@ function simulate(specialization, rotation, config = {}) {
       target: { ...baseConfig.target, ...(config.target || {}) },
     },
     mode: "sequence",
+    observationPolicy,
   });
 }
+
+const observationTail = (durationMs) => ({ kind: "tail", durationMs });
 
 test("Warrior catalog pins the API snapshot and all elite specializations", () => {
   assert.equal(DATA_SNAPSHOT, "2026-08-08");
@@ -1075,7 +1083,12 @@ test("Spellbreaker Winds and Kick use the supplied PvE mechanics", () => {
   assert.equal(kickStrike.coefficient, 1);
   assert.equal(kickControl.metadata.controlKind, "knockback");
 
-  const result = simulate("Spellbreaker", ["Winds of Disenchantment"]);
+  const result = simulate(
+    "Spellbreaker",
+    ["Winds of Disenchantment"],
+    {},
+    observationTail(5000),
+  );
   const pulses = result.events.filter(
     (event) =>
       event.type === "damage" && event.skillId === ID.WINDS_OF_DISENCHANTMENT,

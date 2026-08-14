@@ -87,9 +87,7 @@ function availability(
   const dwell =
     (hasTrait(context, "Transcendent Tempest") ? 4 : 6) /
     (context.config.boons?.alacrity ? 1.25 : 1);
-  const startingAttunementReady =
-    context.config.startingAttunementPreDwelled === true &&
-    state.attunementEnteredAt === 0;
+  const startingAttunementReady = state.attunementEnteredAt === 0;
   const readyAt = startingAttunementReady
     ? context.start
     : state.attunementEnteredAt + dwell;

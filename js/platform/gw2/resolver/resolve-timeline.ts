@@ -142,9 +142,8 @@ export function resolveGw2Timeline({
     throw new TypeError("GW2 timeline resolver requires createRuntimeState.");
   }
   const scheduled = assertPlatformStream(stream);
-  const resolutionEndTime = Math.max(
-    scheduled.rotationEndTime,
-    Number(scheduled.resolutionEndTime ?? scheduled.rotationEndTime),
+  const resolutionEndTime = Number(
+    scheduled.resolutionEndTime ?? scheduled.rotationEndTime,
   );
   const queue = createEventQueue(
     scheduled.events.map((event) => ({ ...event }) as Gw2ResolverEvent),

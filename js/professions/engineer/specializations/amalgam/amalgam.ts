@@ -177,7 +177,6 @@ function scheduleThornsRetaliation(
       hitIndex: index + 1,
       totalHits: 6,
       skillWeapon: "Unequipped",
-      ...(index === 5 ? { extendsResolutionHorizon: true } : {}),
     });
   }
 }

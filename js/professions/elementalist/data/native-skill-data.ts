@@ -14432,6 +14432,13 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         type: "strike",
         ticks: [
           {
+            atMs: 0,
+            coefficient: 0.33,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
             atMs: 1000,
             coefficient: 0.33,
             metadata: {
@@ -14473,6 +14480,12 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
       {
         type: "condition",
         ticks: [
+          {
+            atMs: 0,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
           {
             atMs: 1000,
             condition: "Burning",
@@ -14529,6 +14542,13 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         type: "strike",
         ticks: [
           {
+            atMs: 0,
+            coefficient: 0.33,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
             atMs: 1000,
             coefficient: 0.33,
             metadata: {
@@ -14570,6 +14590,12 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
       {
         type: "condition",
         ticks: [
+          {
+            atMs: 0,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 1,
+          },
           {
             atMs: 1000,
             condition: "Chilled",
@@ -14626,6 +14652,13 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         type: "strike",
         ticks: [
           {
+            atMs: 0,
+            coefficient: 0.33,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
             atMs: 1000,
             coefficient: 0.33,
             metadata: {
@@ -14667,6 +14700,12 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
       {
         type: "condition",
         ticks: [
+          {
+            atMs: 0,
+            condition: "Vulnerability",
+            stacks: 8,
+            duration: 3,
+          },
           {
             atMs: 1000,
             condition: "Vulnerability",
@@ -14723,6 +14762,13 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         type: "strike",
         ticks: [
           {
+            atMs: 0,
+            coefficient: 0.33,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
             atMs: 1000,
             coefficient: 0.33,
             metadata: {
@@ -14764,6 +14810,12 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
       {
         type: "condition",
         ticks: [
+          {
+            atMs: 0,
+            condition: "Bleeding",
+            stacks: 2,
+            duration: 6,
+          },
           {
             atMs: 1000,
             condition: "Bleeding",

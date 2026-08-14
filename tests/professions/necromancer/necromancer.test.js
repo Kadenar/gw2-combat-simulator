@@ -41,8 +41,10 @@ import {
   calculateModifierContributions,
   modifierCandidates,
   modifierContributionRequest,
+  necromancerAppAdapter,
   recalculate,
   runSimulation,
+  simulationConfig,
 } from "../../../js/professions/necromancer/app/app-definition.js";
 
 const baseConfig = Object.freeze({
@@ -63,7 +65,12 @@ const baseConfig = Object.freeze({
   },
 });
 
-function simulate(specialization, rotation, config = {}) {
+function simulate(
+  specialization,
+  rotation,
+  config = {},
+  observationPolicy = undefined,
+) {
   return simulateGw2({
     profession: necromancerProfession,
     rotation,
@@ -75,8 +82,11 @@ function simulate(specialization, rotation, config = {}) {
       target: { ...baseConfig.target, ...(config.target || {}) },
     },
     mode: "sequence",
+    observationPolicy,
   });
 }
+
+const observationTail = (durationMs) => ({ kind: "tail", durationMs });
 
 test("Necromancer uses the current API catalog and all nine trait lines", () => {
   assert.equal(DATA_SNAPSHOT, "2026-07-25");
@@ -212,38 +222,57 @@ test("measured Quickness cast times remain exact", () => {
 });
 
 test("EVTC-derived Necromancer multi-hit packet timings remain exact", () => {
-  const weepingShots = simulate("Harbinger", ["Weeping Shots"], {
-    boons: { quickness: true },
-    primaryWeapon: "Pistol",
-  });
-  const vitalDraw = simulate("Harbinger", ["Harbinger Shroud", "Vital Draw"], {
-    boons: { quickness: true },
-  });
+  const packetTail = observationTail(6000);
+  const weepingShots = simulate(
+    "Harbinger",
+    ["Weeping Shots"],
+    {
+      boons: { quickness: true },
+      primaryWeapon: "Pistol",
+    },
+    packetTail,
+  );
+  const vitalDraw = simulate(
+    "Harbinger",
+    ["Harbinger Shroud", "Vital Draw"],
+    { boons: { quickness: true } },
+    packetTail,
+  );
   const taintedBolts = simulate(
     "Harbinger",
     ["Harbinger Shroud", "Tainted Bolts"],
     { boons: { quickness: true } },
+    packetTail,
   );
   const darkBarrage = simulate(
     "Harbinger",
     ["Harbinger Shroud", "Dark Barrage"],
     { boons: { quickness: true } },
+    packetTail,
   );
   const deathsCharge = simulate(
     "Reaper",
     ["Reaper's Shroud", "Death's Charge"],
     { boons: { quickness: true } },
+    packetTail,
   );
-  const soulSpiral = simulate("Reaper", ["Reaper's Shroud", "Soul Spiral"], {
-    boons: { quickness: true },
-  });
-  const anguish = simulate("Ritualist", ["Ritualist's Shroud", "Anguish"], {
-    boons: { quickness: true },
-  });
+  const soulSpiral = simulate(
+    "Reaper",
+    ["Reaper's Shroud", "Soul Spiral"],
+    { boons: { quickness: true } },
+    packetTail,
+  );
+  const anguish = simulate(
+    "Ritualist",
+    ["Ritualist's Shroud", "Anguish"],
+    { boons: { quickness: true } },
+    packetTail,
+  );
   const wanderlust = simulate(
     "Ritualist",
     ["Ritualist's Shroud", "Wanderlust"],
     { boons: { quickness: true } },
+    packetTail,
   );
   const offsets = (result, skillName, skillId, type = "damage") => {
     const start = result.steps.find((step) => step.skill === skillName)?.start;
@@ -1757,12 +1786,17 @@ test("Addle grants four shards to defiant foes and checks activation shards", ()
 
 test("necromancer wells finish their pulses after the final rotation action", () => {
   for (const skill of ["Well of Darkness", "Well of Suffering"]) {
-    const result = simulate("Harbinger", [skill], {
-      target: {
-        ...baseConfig.target,
-        health: 1_000_000_000,
+    const result = simulate(
+      "Harbinger",
+      [skill],
+      {
+        target: {
+          ...baseConfig.target,
+          health: 1_000_000_000,
+        },
       },
-    });
+      observationTail(6000),
+    );
     assert.equal(
       result.resolvedEvents.filter(
         (event) => event.type === "damage" && event.name === skill,
@@ -1779,16 +1813,21 @@ test("dagger skills use their current PvE strike and bleeding mechanics", () => 
     primaryWeapon: "Dagger",
   });
   const lifeSiphon = (targetBleeding) =>
-    simulate("Core", ["Life Siphon"], {
-      primaryWeapon: "Dagger",
-      target: {
-        ...baseConfig.target,
-        conditions: {
-          ...baseConfig.target.conditions,
-          Bleeding: targetBleeding,
+    simulate(
+      "Core",
+      ["Life Siphon"],
+      {
+        primaryWeapon: "Dagger",
+        target: {
+          ...baseConfig.target,
+          conditions: {
+            ...baseConfig.target.conditions,
+            Bleeding: targetBleeding,
+          },
         },
       },
-    });
+      observationTail(5000),
+    );
   const plain = lifeSiphon(false);
   const bleeding = lifeSiphon(true);
   const siphonDamage = (result) =>
@@ -1852,6 +1891,7 @@ test("off-hand sword follow-ups use their complete PvE effects", () => {
         health: 1_000_000_000,
       },
     },
+    observationTail(3000),
   );
   const damage = (skillId) =>
     result.events.filter(
@@ -1921,6 +1961,7 @@ test("Plaguelands, chill fields, and the benchmark reset retain live behavior", 
         health: 1_000_000_000,
       },
     },
+    observationTail(20_000),
   );
   const field = simulate(
     "Reaper",
@@ -1933,6 +1974,7 @@ test("Plaguelands, chill fields, and the benchmark reset retain live behavior", 
         health: 1_000_000_000,
       },
     },
+    observationTail(1000),
   );
   const plagueEvents = (type, condition) =>
     plague.events.filter(
@@ -2050,7 +2092,8 @@ test("Necromancer dark-field life steals inherit finisher attribution", () => {
       (event) =>
         event.type === "damage" &&
         event.name === "Leeching Bolts" &&
-        event.skillName === scenario.parentSkill,
+        event.skillName === "Leeching Bolts" &&
+        event.parentSkillName === scenario.parentSkill,
     );
     assert.equal(combo.applicationCount, scenario.hits);
     assert.equal(bolts.length, scenario.hits);
@@ -2062,12 +2105,14 @@ test("Necromancer dark-field life steals inherit finisher attribution", () => {
           event.noCrit === true,
       ),
     );
+    const rows = skillBreakdownRows(result);
     assert.equal(
-      skillBreakdownRows(result).find(
-        (row) => row.name === scenario.parentSkill,
-      )?.hits,
-      scenario.hits + 1,
+      rows.find((row) => row.name === scenario.parentSkill)?.hits,
+      1,
     );
+    const boltRow = rows.find((row) => row.name === "Leeching Bolts");
+    assert.equal(boltRow?.hits, scenario.hits);
+    assert.equal(boltRow?.casts, 0);
   }
 
   const withoutField = simulate("Ritualist", ["Death Spiral"], {
@@ -3408,14 +3453,24 @@ test("Ritualist weapon spells consume stacks and Resilient Weapon is usable", ()
 
 test("Ritualist weapon spells scale with allied players", () => {
   const rotation = ["Nightmare Weapon", "Splinter Weapon"];
-  const solo = simulate("Ritualist", rotation, {
-    selectedSkills: rotation,
-    allies: { count: 0, strikesPerSecond: 1 },
-  });
-  const party = simulate("Ritualist", rotation, {
-    selectedSkills: rotation,
-    allies: { count: 4, strikesPerSecond: 1 },
-  });
+  const solo = simulate(
+    "Ritualist",
+    rotation,
+    {
+      selectedSkills: rotation,
+      allies: { count: 0, strikesPerSecond: 1 },
+    },
+    observationTail(5000),
+  );
+  const party = simulate(
+    "Ritualist",
+    rotation,
+    {
+      selectedSkills: rotation,
+      allies: { count: 4, strikesPerSecond: 1 },
+    },
+    observationTail(5000),
+  );
   const allyProcs = party.resolvedEvents.filter(
     (event) => event.triggeredByAlly,
   );
@@ -3447,11 +3502,16 @@ test("Ritualist weapon spells scale with allied players", () => {
     true,
   );
 
-  const wieldersBoon = simulate("Ritualist", ["Nightmare Weapon"], {
-    selectedSkills: ["Nightmare Weapon"],
-    selectedTraitIds: [TRAIT.WIELDERS_BOON],
-    allies: { count: 1, strikesPerSecond: 10 },
-  });
+  const wieldersBoon = simulate(
+    "Ritualist",
+    ["Nightmare Weapon"],
+    {
+      selectedSkills: ["Nightmare Weapon"],
+      selectedTraitIds: [TRAIT.WIELDERS_BOON],
+      allies: { count: 1, strikesPerSecond: 10 },
+    },
+    observationTail(2000),
+  );
   assert.equal(
     wieldersBoon.resolvedEvents.filter(
       (event) =>
@@ -3477,6 +3537,7 @@ test("Ritualist weapon spells prioritize players, include minions, and exclude s
       selectedTraitIds: [TRAIT.LINGERING_SPIRITS],
       allies: { count: 2, strikesPerSecond: 1 },
     },
+    observationTail(5000),
   );
   const application = result.events.find(
     (event) =>
@@ -5010,8 +5071,10 @@ test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
   assert.equal(rows.get("Anguish Autoattack").hits, 16);
   assert.equal(rows.get("Wanderlust Autoattack").hits, 16);
   assert.equal(rows.get("Preservation Autoattack").hits, 21);
-  assert.equal(rows.get("Death Spiral").hits, 12);
+  assert.equal(rows.get("Death Spiral").hits, 6);
   assert.equal(rows.get("Death Spiral — Life Siphon").hits, 6);
+  assert.equal(rows.get("Gravedigger").hits, 16);
+  assert.equal(rows.get("Leeching Bolts").hits, 30);
   assert.equal(
     result.resolvedEvents
       .filter(
@@ -5034,7 +5097,7 @@ test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
   assert.ok(packetError("Slash", 71_261) < 0.03);
   assert.ok(packetError("Fist", 61_012) < 0.03);
   assert.ok(packetError("Perforate", 299_894) < 0.01);
-  assert.ok(packetError("Death Spiral", 128_665) < 0.01);
+  assert.ok(packetError("Death Spiral", 126_967) < 0.01);
   assert.ok(packetError("Summon Spirits", 441_885) < 0.025);
   assert.equal(
     savedRotation.rotation.some(
@@ -5126,7 +5189,10 @@ test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", a
     attributeWeaponSet: 1,
   };
   recalculate(app);
-  const result = runSimulation(app);
+  const result = necromancerAppAdapter.simulateBuild(
+    build.rotation,
+    simulationConfig(app),
+  );
   const eventCount = (type, name) =>
     result.resolvedEvents.filter(
       (event) => event.type === type && event.name === name,
@@ -5223,7 +5289,10 @@ test("Condition Scourge benchmark preset reconstructs hidden shade casts", async
     attributeWeaponSet: 1,
   };
   recalculate(app);
-  const result = runSimulation(app);
+  const result = necromancerAppAdapter.simulateBuild(
+    build.rotation,
+    simulationConfig(app),
+  );
   const castCount = (name) =>
     result.casts.find((cast) => cast.name === name)?.count || 0;
   const conditionStacks = (condition) =>

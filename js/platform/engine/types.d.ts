@@ -1,5 +1,12 @@
 export type SkillId = string | number;
 
+export type ObservationPolicy =
+  | { readonly kind: "rotation" }
+  | { readonly kind: "tail"; readonly durationMs: number }
+  | { readonly kind: "absolute"; readonly endTimeMs: number };
+
+export type NormalizedObservationPolicy = ObservationPolicy;
+
 export type SimulationActorType =
   | "player"
   | "summon"
@@ -58,7 +65,6 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly detail?: string;
   readonly triggeredBy?: string;
   readonly activationId?: string;
-  readonly extendsProfessionTaskHorizon?: boolean;
   readonly weaponStrengthProfileId?: string;
   readonly weaponStrength?: number;
   readonly cooldownReduction?: number;
@@ -574,6 +580,8 @@ export interface SchedulerContext<
   readonly warnings: string[];
   readonly epsilon: number;
   readonly schedulerPolicy: SchedulerPolicy<TProfessionState>;
+  readonly observationPolicy: NormalizedObservationPolicy;
+  observationEndTime: number | null;
   readonly inFlight: Map<SkillId, Set<string>>;
   hasExplicitCombatStart: boolean;
   combatStartTime: number | null;
@@ -706,12 +714,27 @@ export interface ProfessionPaletteStatusIcon {
   readonly title?: string;
 }
 
+export interface ProfessionPaletteControl {
+  readonly id: string;
+  readonly label: string;
+  readonly icon?: string;
+  readonly title?: string;
+  readonly color?: string;
+  readonly className?: string;
+  readonly active?: boolean;
+  readonly pressed?: boolean;
+  readonly muted?: boolean;
+  readonly badge?: string;
+}
+
 export interface ProfessionPaletteGroup {
   readonly id: string;
   readonly label: string;
   readonly skillIds: readonly SkillId[];
-  /** Moves a profession group into the indicated weapon-set stack. */
-  readonly placement?: "profession" | "weapon-set-1";
+  /** Moves a profession group beside the indicated palette surface. */
+  readonly placement?: "profession" | "weapon-set-1" | "active-weapon";
+  /** Optional row label used when placing a group beside the active weapon. */
+  readonly weaponRowLabel?: string;
   readonly resourceAnchor?: boolean;
   readonly color?: string;
   readonly stackId?: string;
@@ -723,8 +746,42 @@ export interface ProfessionPaletteGroup {
   readonly reservedSkillIds?: readonly number[];
   readonly skillEntries?: readonly SchedulerRecord[];
   readonly includeActionSkills?: boolean;
+  readonly controls?: readonly ProfessionPaletteControl[];
   /** A read-only icon describing the active entity for this skill group. */
   readonly statusIcon?: ProfessionPaletteStatusIcon;
+}
+
+export interface ProfessionPaletteSkillRenderOptions {
+  readonly contextAvailable?: boolean;
+  readonly contextMessage?: string;
+  readonly view?: SchedulerRecord;
+}
+
+export type ProfessionPaletteSkillRenderer = (
+  skill: Skill,
+  options?: ProfessionPaletteSkillRenderOptions,
+) => string;
+
+export type ProfessionWeaponPaletteRenderContext = SchedulerRecord & {
+  readonly skills: readonly Skill[];
+  readonly autoattackChains: SchedulerRecord;
+  readonly isSkillAvailable: (skill: Skill) => boolean;
+  readonly unavailableMessage: (skill: Skill) => string;
+  readonly renderSkill: ProfessionPaletteSkillRenderer;
+};
+
+export interface ProfessionWeaponPaletteView {
+  readonly weaponGroupsHtml: readonly string[];
+  readonly activeWeaponHtml?: string;
+  readonly primaryClassName?: string;
+  readonly primaryRole?: string;
+  readonly placeUtilityInPrimary?: boolean;
+  readonly placeActionsInPrimary?: boolean;
+}
+
+export interface ProfessionPaletteActionIdentity {
+  readonly name: string;
+  readonly skillId?: SkillId | null;
 }
 
 export interface ProfessionSkillBarGroup extends SchedulerRecord {
@@ -839,6 +896,30 @@ export interface ProfessionUiContract {
   readonly paletteGroups: (
     context: SchedulerRecord,
   ) => ProfessionPaletteGroup[];
+  /** Adds or projects profession-owned actions before the shell renders them. */
+  readonly paletteActionSkills: (
+    context: SchedulerRecord,
+    skills: readonly Skill[],
+  ) => Skill[];
+  /** Projects profession state into the weapon skills rendered by the shell. */
+  readonly paletteWeaponSkills: (
+    context: SchedulerRecord,
+    skills: readonly Skill[],
+  ) => Skill[];
+  /** Lets a specialization own an exceptional weapon layout without shell policy. */
+  readonly renderWeaponPalette: (
+    context: ProfessionWeaponPaletteRenderContext,
+  ) => ProfessionWeaponPaletteView | null;
+  /** Resolves a profession-owned palette action into canonical rotation items. */
+  readonly resolvePaletteAction: (
+    context: SchedulerRecord,
+    action: ProfessionPaletteActionIdentity,
+  ) => LegacyRotationItem | LegacyRotationItem[] | null | undefined;
+  /** Applies a profession-owned palette control action to mutable build state. */
+  readonly updatePaletteControl: (
+    context: SchedulerRecord,
+    controlId: string,
+  ) => boolean;
   readonly resourceView: (
     context: SchedulerRecord,
   ) => ProfessionResourceView | null;

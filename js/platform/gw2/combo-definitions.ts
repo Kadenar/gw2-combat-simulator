@@ -33,6 +33,7 @@ export type ComboOutcome =
       readonly name: string;
       readonly flatStrikeBase: number;
       readonly flatStrikePowerCoeff: number;
+      readonly ownsDamageAttribution?: boolean;
     }
   | {
       readonly kind: "cleanse";
@@ -94,12 +95,17 @@ const healing = (
     flatHealing,
     healingPowerCoefficient,
   });
-const lifeSteal = (name: string, flatStrikeBase: number): ComboOutcome =>
+const lifeSteal = (
+  name: string,
+  flatStrikeBase: number,
+  ownsDamageAttribution = false,
+): ComboOutcome =>
   Object.freeze({
     kind: "life-steal",
     name,
     flatStrikeBase,
     flatStrikePowerCoeff: 0.03,
+    ownsDamageAttribution,
   });
 
 const definitions: readonly ComboDefinition[] = [
@@ -113,7 +119,7 @@ const definitions: readonly ComboDefinition[] = [
   {
     fieldType: "Dark",
     finisherType: "Whirl",
-    outcome: lifeSteal("Leeching Bolts", 170),
+    outcome: lifeSteal("Leeching Bolts", 170, true),
   },
   {
     fieldType: "Ethereal",
@@ -422,6 +428,12 @@ export function materializeComboOutcome(
           ...base,
           type: "damage",
           name: outcome.name,
+          ...(outcome.ownsDamageAttribution
+            ? {
+                skillName: outcome.name,
+                parentSkillName: combo.skillName || combo.parentSkillName,
+              }
+            : {}),
           coefficient: 0,
           flatStrikeBase: outcome.flatStrikeBase,
           flatStrikePowerCoeff: outcome.flatStrikePowerCoeff,

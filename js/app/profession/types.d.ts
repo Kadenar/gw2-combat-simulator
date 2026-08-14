@@ -2,6 +2,7 @@ import type {
   CatalogEntity,
   CanonicalCatalog,
   LegacyRotationItem,
+  ObservationPolicy,
   ProfessionResourceView,
   ProfessionUiContract,
   SchedulerRecord,
@@ -453,6 +454,7 @@ export interface ProfessionRuntimeApi {
   simulateBuild(
     rotation: readonly unknown[],
     config: Gw2Config,
+    observationPolicy?: ObservationPolicy,
   ): Gw2SimulationResult;
   eliteSpecialization(build: ProfessionApplicationBuild): string;
   recalculate(app: ProfessionAppState): void;

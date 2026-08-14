@@ -558,9 +558,10 @@ test("starting attunement controls render catalog icons", () => {
       `${name} Attunement`,
     ).icon;
     assert.ok(icon);
-    assert.equal(selector.innerHTML.split(icon).length - 1, 1);
+    assert.equal(selector.innerHTML.split(icon).length - 1, 2);
   }
-  assert.doesNotMatch(selector.innerHTML, /Start off-hand/);
+  assert.match(selector.innerHTML, /Primary attunement/);
+  assert.match(selector.innerHTML, /Secondary attunement/);
 });
 
 test("rotation palette exposes each attunement as an action", () => {
@@ -719,6 +720,17 @@ test("core attunements enforce and report their individual recharge", () => {
   assert.equal(result.endState.profession.primaryAttunement, "Fire");
   assert.ok(result.endState.cooldowns["Air Attunement"].remaining > 1000);
   assert.ok(result.endState.cooldowns["Water Attunement"].remaining > 1000);
+  const waterAvailability = elementalistProfession.ui.paletteSkillAvailability(
+    {
+      specialization: "Core",
+      professionState: result.endState.profession,
+      time: result.endState.time / 1000,
+      catalog: elementalistCatalog,
+      build: { startAttunement: "Fire" },
+    },
+    elementalistCatalog.skillsByName.get("Water Attunement"),
+  );
+  assert.deepEqual(waterAvailability, { available: true, message: "" });
   const waterView = paletteSkillView(
     {
       build: elementalistProfession.createBuildDefaults(),
@@ -833,7 +845,7 @@ test("Unravel resets the current Weaver recharge, fully attunes for five seconds
     result.events.filter(
       (event) => event.type === "buff" && event.kind === "elements of rage",
     ).length,
-    3,
+    4,
   );
 });
 
@@ -1159,6 +1171,59 @@ test("Primordial Stance variants share charges and count recharge", () => {
   assert.ok(casts[2].start - casts[0].start >= 16000);
 });
 
+test("Primordial Stance pulses use the active attunements at each pulse", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Earth"], ["Weaver"]],
+    rotation: ["Primordial Stance (Fire)", 1500, "Earth Attunement", 4500],
+    startAttunement: "Fire",
+    secondaryAttunement: "Fire",
+    selectedSkills: {
+      Heal: "Glyph of Elemental Harmony",
+      Utility1: "Primordial Stance (Fire)",
+      Utility2: "Signet of Fire",
+      Utility3: "Arcane Wave",
+      Elite: "Weave Self",
+    },
+  });
+  const action = result.events.find(
+    (event) =>
+      event.type === "action" && event.skillName === "Primordial Stance (Fire)",
+  );
+  const hits = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "damage" && event.skillName === "Primordial Stance",
+  );
+  const conditions = result.events.filter(
+    (event) =>
+      event.type === "condition" && event.skillName === "Primordial Stance",
+  );
+
+  assert.equal(hits.length, 5);
+  assert.deepEqual(
+    hits.map((event) => event.at - action.at),
+    [1, 2, 3, 4, 5],
+  );
+  assert.deepEqual(
+    conditions.map((event) => [
+      event.at - action.at,
+      event.condition,
+      event.stacks,
+    ]),
+    [
+      [1, "Burning", 1],
+      [1, "Burning", 1],
+      [2, "Bleeding", 2],
+      [2, "Burning", 1],
+      [3, "Bleeding", 2],
+      [3, "Burning", 1],
+      [4, "Bleeding", 2],
+      [4, "Burning", 1],
+      [5, "Bleeding", 2],
+      [5, "Burning", 1],
+    ],
+  );
+});
+
 test("Evasive Arcana uses the active attunement's native trait skill", () => {
   const result = runNative({
     lines: [["Fire"], ["Air"], ["Arcane", "1-1-1"]],
@@ -1230,6 +1295,19 @@ test("Weaver mechanics execute through native hooks", () => {
     true,
   );
   assert.equal(result.endState.profession.perfectWeaveUntil, 0);
+
+  const weaveSelf = result.events.find(
+    (event) => event.type === "action" && event.skillName === "Weave Self",
+  );
+  const weaveSelfFire = result.events.find(
+    (event) =>
+      event.type === "buff" &&
+      event.source === "Weave Self" &&
+      event.kind === "weave self fire",
+  );
+  assert.equal(weaveSelfFire.at - weaveSelf.at, 0.52);
+  assert.ok(weaveSelfFire.at < weaveSelf.endsAt);
+  assert.equal(weaveSelf.rechargeReadyAt - weaveSelfFire.at, 72);
 });
 
 test("Evoker mechanics execute through native hooks", () => {
@@ -1535,10 +1613,25 @@ test("Pistol bullets grant, consume, and apply their payload", () => {
     true,
   );
 
+  const unavailableExplosion = runNative({
+    lines: [["Fire"], ["Air"], ["Arcane"]],
+    rotation: ["Elemental Explosion"],
+    weapons: ["Pistol", "Warhorn"],
+  });
+  assert.equal(
+    unavailableExplosion.events.some(
+      (event) =>
+        event.type === "action" && event.skillName === "Elemental Explosion",
+    ),
+    false,
+  );
+  assert.match(unavailableExplosion.warnings[0], /all four elemental bullets/i);
+
   const explosion = runNative({
     lines: [["Fire"], ["Air"], ["Arcane"]],
     rotation: ["Elemental Explosion"],
     weapons: ["Pistol", "Warhorn"],
+    pistolBullets: { Fire: true, Water: true, Air: true, Earth: true },
   });
   assert.deepEqual(explosion.warnings, []);
   assert.equal(
@@ -1548,6 +1641,12 @@ test("Pistol bullets grant, consume, and apply their payload", () => {
     ),
     true,
   );
+  assert.deepEqual(explosion.endState.profession.pistolBullets, {
+    Fire: false,
+    Water: false,
+    Air: false,
+    Earth: false,
+  });
 });
 
 test("Hammer orbs block reuse and Grand Finale cancels future packets", () => {
@@ -1673,13 +1772,12 @@ test("Spear etchings upgrade after three other casts", () => {
 test("Alacrity shortens overload dwell and Lucid Singularity follows hit timing", () => {
   const result = runNative({
     lines: [["Fire"], ["Air"], ["Tempest", "1-2-2"]],
-    rotation: ["Overload Fire"],
-    startAttunement: "Fire",
-    assumptions: {
-      ...elementalistProfession.createBuildDefaults().assumptions,
-      startingAttunementPreDwelled: false,
-    },
+    rotation: [1000, "Fire Attunement", "Overload Fire"],
+    startAttunement: "Air",
   });
+  const attunement = result.events.find(
+    (event) => event.type === "elementalist.attunement" && event.to === "Fire",
+  );
   const overload = result.events.find(
     (event) => event.type === "action" && event.skillName === "Overload Fire",
   );
@@ -1687,22 +1785,32 @@ test("Alacrity shortens overload dwell and Lucid Singularity follows hit timing"
     (event) => event.type === "buff" && event.source === "Lucid Singularity",
   );
 
-  assert.ok(Math.abs(overload.at - 4.8) < 0.001);
+  assert.ok(Math.abs(overload.at - attunement.at - 4.8) < 0.001);
   assert.equal(alacrity.length, 5);
   assert.ok(alacrity[4].duration > alacrity[0].duration * 4);
 });
 
-test("a pre-dwelled starting attunement can overload immediately", () => {
+test("Tempest always starts with its initial overload available", () => {
   const result = runNative({
     lines: [["Fire"], ["Air"], ["Tempest", "3-2-1"]],
     rotation: ["Overload Air"],
     startAttunement: "Air",
+    assumptions: {
+      ...elementalistProfession.createBuildDefaults().assumptions,
+      startingAttunementPreDwelled: false,
+    },
   });
   const overload = result.events.find(
     (event) => event.type === "action" && event.skillName === "Overload Air",
   );
 
   assert.equal(overload.at, 0);
+  assert.equal(
+    elementalistProfession.ui.assumptionControls.some(
+      (control) => control.key === "startingAttunementPreDwelled",
+    ),
+    false,
+  );
 });
 
 test("Transcendent Tempest precedes same-time Overload completion damage", () => {
@@ -1803,6 +1911,22 @@ test("core damage traits expose their exact resolver modifiers", () => {
     rules.get("elementalist.zephyrs-speed-critical-chance").amount,
     0.05,
   );
+  assert.equal(rules.get("elementalist.superior-elements").amount, 0.2);
+  assert.equal(rules.get("elementalist.weave-self-fire").amount, 0.2);
+  assert.equal(
+    rules.get("elementalist.weave-self-fire").operation,
+    "damage-additive",
+  );
+  assert.equal(rules.get("elementalist.weave-self-air").amount, 0.1);
+  assert.equal(
+    rules.get("elementalist.elements-of-rage-condition").amount,
+    0.1,
+  );
+  assert.equal(
+    rules.get("elementalist.elements-of-rage-condition").operation,
+    "damage-additive",
+  );
+  assert.equal(rules.get("elementalist.elements-of-rage-strike").amount, 0.15);
   assert.equal(
     rules.get("elementalist.persisting-flames").operation,
     "damage-additive",
@@ -1822,6 +1946,11 @@ test("core damage traits expose their exact resolver modifiers", () => {
     lines: [["Fire"], ["Air"], ["Tempest"]],
   });
   assert.equal(tempest.attributeData.attributes.Concentration.traits, 240);
+
+  const { app: weaver } = createNativeApp({
+    lines: [["Fire"], ["Earth"], ["Weaver"]],
+  });
+  assert.equal(weaver.attributeData.attributes.Vitality.traits, 180);
 
   const persistingFlames = runNative({
     lines: [["Fire", "1-3-1"], ["Air"], ["Tempest"]],
@@ -1997,18 +2126,17 @@ test("core critical-hit and control traits enforce their proc rules", () => {
 test("Tempest traits enforce overload dwell, auras, boons, and damage windows", () => {
   const offensive = runNative({
     lines: [["Fire"], ["Air"], ["Tempest", "3-2-1"]],
-    rotation: ["Overload Fire"],
-    startAttunement: "Fire",
-    assumptions: {
-      ...elementalistProfession.createBuildDefaults().assumptions,
-      startingAttunementPreDwelled: false,
-    },
+    rotation: [1000, "Fire Attunement", "Overload Fire"],
+    startAttunement: "Air",
   });
+  const attunement = offensive.events.find(
+    (event) => event.type === "elementalist.attunement" && event.to === "Fire",
+  );
   const overload = offensive.events.find(
     (event) => event.type === "action" && event.skillName === "Overload Fire",
   );
 
-  assert.ok(Math.abs(overload.at - 3.2) < 0.001);
+  assert.ok(Math.abs(overload.at - attunement.at - 3.2) < 0.001);
   for (const source of [
     "Hardy Conduit",
     "Harmonious Conduit",
@@ -2125,6 +2253,24 @@ test("Weaver traits enforce dual-attunement, boon, modifier, and recharge rules"
     [0, 3000],
   );
 
+  const flowDualAttack = runNative({
+    lines: [["Fire"], ["Earth"], ["Weaver", "1-1-3"]],
+    rotation: ["Molten Meteor"],
+    startAttunement: "Fire",
+    secondaryAttunement: "Earth",
+    weapons: ["Pistol", "Dagger"],
+    assumptions: {
+      ...elementalistProfession.createBuildDefaults().assumptions,
+      alacrity: false,
+    },
+  });
+  const moltenMeteor = flowDualAttack.events.find(
+    (event) => event.type === "action" && event.skillName === "Molten Meteor",
+  );
+  assert.ok(
+    Math.abs(moltenMeteor.rechargeReadyAt - moltenMeteor.endsAt - 9.6) < 1e-9,
+  );
+
   const pursuit = runNative({
     lines: [["Fire"], ["Air"], ["Weaver", "2-3-1"]],
     rotation: ["Updraft", "Primordial Stance (Air)"],
@@ -2150,6 +2296,38 @@ test("Weaver traits enforce dual-attunement, boon, modifier, and recharge rules"
     ),
     true,
   );
+});
+
+test("Elemental Polyphony applies both active Weaver attunement bonuses", () => {
+  const common = {
+    lines: [["Fire"], ["Earth"], ["Weaver", "1-1-3"]],
+    rotation: ["Flame Uprising", 3000],
+    startAttunement: "Fire",
+    weapons: ["Sword", "Warhorn"],
+  };
+  const fireFire = runNative({
+    ...common,
+    secondaryAttunement: "Fire",
+  });
+  const fireEarth = runNative({
+    ...common,
+    secondaryAttunement: "Earth",
+  });
+  const strike = (result) =>
+    result.resolvedEvents.find(
+      (event) =>
+        event.type === "damage" && event.skillName === "Flame Uprising",
+    ).damage;
+  const burning = (result) =>
+    result.resolvedEvents.find(
+      (event) =>
+        event.type === "condition" &&
+        event.skillName === "Flame Uprising" &&
+        event.condition === "Burning",
+    ).damage;
+
+  assert.equal(strike(fireEarth), strike(fireFire));
+  assert.ok(burning(fireEarth) > burning(fireFire));
 });
 
 test("Catalyst traits enforce energy, empowerment, aura, and sphere rules", () => {
@@ -2459,7 +2637,10 @@ test("legacy snapshots default to native elemental AI and keep reference packets
 
   assert.equal(build.assumptions.elementalSimulationProfile, "evtc");
   assert.equal(build.assumptions.glyphBoonedElementals, true);
-  assert.equal(build.assumptions.startingAttunementPreDwelled, true);
+  assert.equal(
+    Object.hasOwn(build.assumptions, "startingAttunementPreDwelled"),
+    false,
+  );
 
   const reference = elementalistAppAdapter.toApplicationBuild({
     build: elementalistProfession.createBuildDefaults(),

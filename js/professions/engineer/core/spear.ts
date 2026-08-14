@@ -69,9 +69,6 @@ export function scheduleLightningRod(
       name: skill.name,
       hitIndex: index + 1,
       totalHits: LIGHTNING_ROD_PULSE_COUNT,
-      ...(index === LIGHTNING_ROD_PULSE_COUNT - 1
-        ? { extendsResolutionHorizon: true }
-        : {}),
     });
     context.tasks.schedule({
       type: "engineer.lightning-rod-charge",
@@ -226,7 +223,6 @@ export function scheduleDevastatorFollowup(
       skillWeapon: "Spear",
       weaponStrengthProfileId: "nonweapon.unequipped",
       persistsAfterInterrupt: true,
-      ...(index === 5 ? { extendsResolutionHorizon: true } : {}),
     });
     context.emit({
       type: "condition",

@@ -1,5 +1,4 @@
 import { criticalChance } from "../../../platform/gw2/damage.js";
-import { gw2ConditionDurationMultiplier } from "../../../platform/gw2/runtime-rules.js";
 import { produceGw2OwnedComboEvents } from "../../../platform/gw2/scheduler/combo-materializer.js";
 import { hasTrait as hasGw2Trait } from "../../../platform/gw2/trait-state.js";
 import { materializeSkillEffectApplications } from "../../../platform/engine/effect-materializer.js";
@@ -249,7 +248,7 @@ function prepareElementalistHitboxEvent(
   const professionAssumptions = (context.config.professionAssumptions ||
     {}) as SchedulerRecord;
   const hitboxSize = String(
-    professionAssumptions.hitboxSize || context.config.hitboxSize || "large",
+    professionAssumptions.hitboxSize || context.config.hitboxSize || "small",
   );
   if (hitboxSize !== "small") return preparedEvent;
   const hitIndex = Number(preparedEvent.elementalistHitboxIndex || 0);
@@ -711,6 +710,16 @@ export function elementalistCoreAvailability(
   );
   if (elementalAvailability) return elementalAvailability;
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  if (
+    skill.name === "Elemental Explosion" &&
+    !ELEMENTALIST_ATTUNEMENTS.every((element) => state.pistolBullets[element])
+  ) {
+    return unavailable(
+      skill,
+      "elementalist.pistol-bullets",
+      "requires all four elemental bullets.",
+    );
+  }
   const target = targetAttunement(skill);
   if (target) {
     if (
@@ -1010,20 +1019,6 @@ export function elementalistBuffDuration(
   sourceId: Skill["id"],
 ): number {
   const normalizedKind = kind.toLowerCase();
-  if (
-    normalizedKind === "elements of rage" &&
-    context.config.specialization === "Weaver"
-  ) {
-    return (
-      duration *
-      gw2ConditionDurationMultiplier(
-        "Elements of Rage",
-        (context.config.stats || {}) as Parameters<
-          typeof gw2ConditionDurationMultiplier
-        >[1],
-      )
-    );
-  }
   if (!BOON_KINDS.has(normalizedKind)) return duration;
   const sourceSkill =
     context.catalog.skillsById.get(Number(sourceId)) ||
@@ -2757,10 +2752,8 @@ export function observeElementalistEvent(
   }
   if (
     event.type === "damage" &&
-    event.actorType === "player" &&
+    event.actorType !== "summon" &&
     Number(event.coefficient || 0) > 0 &&
-    event.damageKind !== "field-tick" &&
-    !event.isField &&
     state.shatteringStoneHitsRemaining > 0 &&
     event.at <= state.shatteringStoneUntil + context.epsilon
   ) {

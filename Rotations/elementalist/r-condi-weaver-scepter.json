@@ -5,20 +5,17 @@
     "benchmarkDamage": 3977301,
     "benchmarkDps": 43931.08742475286,
     "timingSource": "Elite Insights activation timings",
-    "note": "Rock Barrier and Fire Attunement are precast to reproduce the opening Hurl and Fire/Earth state. Weave Self starts at -1.513s and completes at -0.713s, exactly one Alacrity-adjusted recharge before its next activation at 71.287s. Unravel activations occur at 17.965s, 47.921s, and 88.723s; Elite Insights' simultaneous Dual attunement records are the resulting fully attuned state changes, not duplicate rotation commands."
+    "note": "The hidden opener starts from Earth/Air and precasts Rock Barrier before Fire and Air attunements establish Air/Fire for Wildfire and Weave Self. The following Fire attunement establishes Fire/Air for Lightning Orb and Dragon's Tooth before the opening signets. Unravel activations occur at 17.965s, 47.921s, and 88.723s; Elite Insights' simultaneous Dual attunement records are the resulting fully attuned state changes, not duplicate rotation commands."
   },
   "rotation": [
     "Rock Barrier",
     "Fire Attunement",
-    {
-      "name": "__wait",
-      "waitMs": 3000
-    },
+    "Air Attunement",
+    "Wildfire",
     "Weave Self",
-    {
-      "name": "__wait",
-      "waitMs": 275
-    },
+    "Fire Attunement",
+    "Lightning Orb",
+    "Dragon's Tooth",
     "Signet of Fire",
     {
       "name": "__combat_start",
