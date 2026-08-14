@@ -134,8 +134,14 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     flipSkillId: null,
     tome: "justice",
     pageCost: 1,
-    comboField: "Fire",
-    duration: 4,
+    comboFields: [
+      {
+        ownerId: "guardian",
+        fieldType: "Fire",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
   },
   {
     id: 42898,

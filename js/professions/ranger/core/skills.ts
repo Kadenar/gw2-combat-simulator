@@ -13,6 +13,14 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         ticks: [{ atMs: 320, coefficient: 0.9 }],
         timingAnchor: "castStart",
         timingScale: "fixed",
+        comboFinishers: [
+          {
+            ownerId: "ranger",
+            finisherType: "Projectile",
+            chance: 0.2,
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "boon",
@@ -25,8 +33,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 600,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
     missileHits: 1,
   },
   [ID.POISON_VOLLEY]: {
@@ -243,6 +249,14 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         })),
         timingAnchor: "castStart",
         timingScale: "fixed",
+        comboFinishers: [
+          {
+            ownerId: "ranger",
+            finisherType: "Projectile",
+            chance: 0.2,
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "condition",
@@ -259,8 +273,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 600,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
     missileHits: 5,
   },
   [ID.SERPENTS_STRIKE]: {
@@ -270,6 +282,13 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 3,
         hits: 1,
+        comboFinishers: [
+          {
+            ownerId: "ranger",
+            finisherType: "Leap",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "condition",
@@ -291,8 +310,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 1000,
-    finisherType: "Leap",
-    finisherValue: 1,
   },
   [ID.TROLL_UNGUENT]: {
     implemented: true,
@@ -418,9 +435,15 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 520,
-    comboField: "Ice",
-    comboFieldDuration: 5,
-    comboFieldStartMs: 880,
+    comboFields: [
+      {
+        ownerId: "ranger",
+        fieldType: "Ice",
+        duration: 5,
+        startMs: 880,
+        startAnchor: "castStart",
+      },
+    ],
   },
   [ID.STORM_SPIRIT]: {
     implemented: true,
@@ -514,8 +537,14 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 333,
-    comboField: "Poison",
-    comboFieldDuration: 2,
+    comboFields: [
+      {
+        ownerId: "ranger",
+        fieldType: "Poison",
+        duration: 2,
+        startAnchor: "castEnd",
+      },
+    ],
   },
   [ID.FROST_SPIRIT]: {
     implemented: true,
@@ -654,8 +683,14 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     recharge: 25,
     cooldown: 25,
     quicknessCastTimeMs: 333,
-    comboField: "Fire",
-    comboFieldDuration: 8,
+    comboFields: [
+      {
+        ownerId: "ranger",
+        fieldType: "Fire",
+        duration: 8,
+        startAnchor: "castEnd",
+      },
+    ],
   },
   [ID.CRIPPLING_SHOT]: {
     implemented: true,
@@ -694,6 +729,13 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 0.4,
         hits: 1,
+        comboFinishers: [
+          {
+            ownerId: "ranger",
+            finisherType: "Projectile",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "control",
@@ -712,6 +754,14 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         ),
         timingAnchor: "castStart",
         timingScale: "fixed",
+        comboFinishers: [
+          {
+            ownerId: "ranger",
+            finisherType: "Projectile",
+            chance: 0.2,
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "condition",
@@ -728,8 +778,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 1800,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
     missileHits: 10,
   },
   [ID.LONG_RANGE_SHOT]: {
@@ -739,11 +787,17 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 1.33,
         hits: 1,
+        comboFinishers: [
+          {
+            ownerId: "ranger",
+            finisherType: "Projectile",
+            chance: 0.2,
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
     ],
     quicknessCastTimeMs: 480,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
     missileHits: 1,
   },
   [ID.POINT_BLANK_SHOT]: {
@@ -753,6 +807,13 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 0.8,
         hits: 1,
+        comboFinishers: [
+          {
+            ownerId: "ranger",
+            finisherType: "Projectile",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "control",
@@ -760,8 +821,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 360,
-    finisherType: "Projectile",
-    finisherValue: 1,
     missileHits: 1,
   },
   [ID.STRENGTH_OF_THE_PACK]: {
@@ -928,8 +987,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 320,
-    finisherType: "Projectile",
-    finisherValue: 1,
     missileHits: 1,
   },
   [ID.ENTANGLE]: {
@@ -1121,6 +1178,13 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
+        comboFinishers: [
+          {
+            ownerId: "ranger",
+            finisherType: "Projectile",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "control",
@@ -1132,8 +1196,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 440,
-    finisherType: "Projectile",
-    finisherValue: 1,
     missileHits: 2,
   },
   [ID.WHIRLING_DEFENSE]: {
@@ -1468,6 +1530,13 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 2,
         hits: 1,
+        comboFinishers: [
+          {
+            ownerId: "ranger",
+            finisherType: "Leap",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "boon",
@@ -1491,8 +1560,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     recharge: 12,
     cooldown: 12,
     quicknessCastTimeMs: 840,
-    finisherType: "Leap",
-    finisherValue: 1,
   },
   [ID.MAUL_ID_46629]: {
     implemented: true,
@@ -1672,6 +1739,13 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         coefficient: 2,
         hits: 1,
         metadata: { damageKind: "ranger-pounce-defiant" },
+        comboFinishers: [
+          {
+            ownerId: "ranger",
+            finisherType: "Leap",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "boon",
@@ -1681,8 +1755,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 840,
-    finisherType: "Leap",
-    finisherValue: 1,
   },
   [ID.THUMP]: {
     implemented: true,
@@ -2111,8 +2183,14 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 880,
-    comboField: "Poison",
-    duration: 5,
+    comboFields: [
+      {
+        ownerId: "ranger",
+        fieldType: "Poison",
+        duration: 5,
+        startAnchor: "castEnd",
+      },
+    ],
     petSkill: true,
   },
   [ID.REGENERATE]: {
@@ -3472,6 +3550,14 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         persistsAfterInterrupt: true,
         source: "ranger-pet",
         actorType: "summon",
+        comboFinishers: [
+          {
+            ownerId: "ranger",
+            finisherType: "Projectile",
+            chance: 0.2,
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "condition",
@@ -3489,8 +3575,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 880,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
     petSkill: true,
   },
   [ID.PET_TAIL_LASH]: {
@@ -3600,8 +3684,14 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 720,
-    comboField: "Ethereal",
-    duration: 6,
+    comboFields: [
+      {
+        ownerId: "ranger",
+        fieldType: "Ethereal",
+        duration: 6,
+        startAnchor: "castEnd",
+      },
+    ],
     petSkill: true,
   },
   [ID.SPIT]: {
@@ -3635,8 +3725,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     rechargeAnchor: "castStart",
     cooldown: 15,
     implemented: true,
-    finisherType: "Projectile",
-    finisherValue: 1,
     missileHits: 2,
     effects: [
       {
@@ -3648,6 +3736,13 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
+        comboFinishers: [
+          {
+            ownerId: "ranger",
+            finisherType: "Projectile",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "control",

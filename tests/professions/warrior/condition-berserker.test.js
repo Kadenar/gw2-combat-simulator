@@ -362,8 +362,10 @@ test("Condition Berserker skill data matches the supplied values and log timing"
       [600, 0.525],
     ],
   );
-  assert.equal(dualShot.finisherType, "Projectile");
-  assert.equal(dualShot.finisherValue, 0.2);
+  assert.equal(dualShot.comboFinishers[0].ownerId, "warrior");
+  assert.equal(dualShot.comboFinishers[0].finisherType, "Projectile");
+  assert.equal(dualShot.comboFinishers[0].chance, 0.2);
+  assert.equal(dualShot.comboFinishers[0].ambiguousFieldSelection, "oldest");
 
   const fan = skill(ID.FAN_OF_FIRE);
   assert.equal(fan.cooldown, 5);
@@ -400,7 +402,7 @@ test("Condition Berserker skill data matches the supplied values and log timing"
   assert.equal(arcingArrow.ammo, 2);
   assert.equal(arcingArrow.ammoRecharge, 8);
   assert.equal(arcingArrow.ammoCastLockout, 1);
-  assert.equal(arcingArrow.finisherType, "Blast");
+  assert.equal(arcingArrow.comboFinishers[0].finisherType, "Blast");
   assert.deepEqual(
     arcingArrow.effects.map(
       ({ type, coefficient, hits, condition, stacks, duration, atMs }) => ({
@@ -446,8 +448,8 @@ test("Condition Berserker skill data matches the supplied values and log timing"
     ),
     true,
   );
-  assert.equal(smolderingArrow.finisherType, "Projectile");
-  assert.equal(smolderingArrow.finisherValue, 1);
+  assert.equal(smolderingArrow.comboFinishers[0].finisherType, "Projectile");
+  assert.equal(smolderingArrow.comboFinishers[0].chance, 1);
 
   const pinDown = skill(ID.PIN_DOWN);
   assert.equal(pinDown.cooldown, 20);
@@ -456,20 +458,22 @@ test("Condition Berserker skill data matches the supplied values and log timing"
   assert.equal(pinDown.effects[1].duration, 12);
   assert.equal(pinDown.effects[2].condition, "Immobilized");
   assert.equal(pinDown.effects[2].duration, 3);
-  assert.equal(pinDown.finisherType, "Projectile");
+  assert.equal(pinDown.comboFinishers[0].finisherType, "Projectile");
 
   const combustiveShot = skill(ID.COMBUSTIVE_SHOT);
   assert.equal(combustiveShot.cooldown, 8);
-  assert.equal(combustiveShot.comboField, "Fire");
-  assert.equal(combustiveShot.duration, 3);
+  assert.equal(combustiveShot.comboFields[0].ownerId, "warrior");
+  assert.equal(combustiveShot.comboFields[0].fieldType, "Fire");
+  assert.equal(combustiveShot.comboFields[0].duration, 3);
+  assert.equal(combustiveShot.comboFields[0].startAnchor, "castEnd");
   assert.deepEqual(combustiveShot.burstFieldDurations, [3, 6, 9]);
   assert.deepEqual(combustiveShot.effects, []);
 
   const scorchedEarth = skill(ID.SCORCHED_EARTH);
   assert.equal(scorchedEarth.cooldown, 5);
   assert.equal(scorchedEarth.skillWeapon, "Longbow");
-  assert.equal(scorchedEarth.comboField, "Fire");
-  assert.equal(scorchedEarth.duration, 4);
+  assert.equal(scorchedEarth.comboFields[0].fieldType, "Fire");
+  assert.equal(scorchedEarth.comboFields[0].duration, 4);
   assert.deepEqual(
     scorchedEarth.effects[0].ticks.map(({ atMs, coefficient }) => [
       atMs,
@@ -503,8 +507,8 @@ test("Condition Berserker skill data matches the supplied values and log timing"
 
   const blazeBreaker = skill(ID.BLAZE_BREAKER);
   assert.equal(blazeBreaker.cooldown, 12);
-  assert.equal(blazeBreaker.finisherType, "Blast");
-  assert.equal(blazeBreaker.finisherValue, 1);
+  assert.equal(blazeBreaker.comboFinishers[0].finisherType, "Blast");
+  assert.equal(blazeBreaker.comboFinishers[0].chance, 1);
   assert.equal(blazeBreaker.waves, 5);
   assert.equal(blazeBreaker.totalCoefficient, 2);
   assert.equal(blazeBreaker.maximumHitsPerTarget, 1);
@@ -553,8 +557,8 @@ test("Condition Berserker skill data matches the supplied values and log timing"
 
   const flamesOfWar = skill(ID.FLAMES_OF_WAR);
   assert.equal(flamesOfWar.cooldown, 20);
-  assert.equal(flamesOfWar.comboField, "Fire");
-  assert.equal(flamesOfWar.duration, 5);
+  assert.equal(flamesOfWar.comboFields[0].fieldType, "Fire");
+  assert.equal(flamesOfWar.comboFields[0].duration, 5);
   assert.deepEqual(flamesOfWar.effects[0], {
     type: "strike",
     coefficient: 1,
@@ -620,7 +624,7 @@ test("Combustive Shot scales its pulses and field with adrenaline", async () => 
         event.type === "action" && event.skillId === ID.COMBUSTIVE_SHOT,
     );
     assert.equal(action.burstTier, tier);
-    assert.equal(action.comboFieldDuration, tier * 3);
+    assert.equal(action.comboFields[0].duration, tier * 3);
     assert.deepEqual(
       result.events
         .filter(

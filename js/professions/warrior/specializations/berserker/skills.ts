@@ -1,14 +1,18 @@
 /** Explicit PvE skill mechanics owned by the Berserker Warrior module. */
 import { WARRIOR_SKILL_IDS as ID } from "../../data/ids.js";
 import type { SkillFragment } from "../../../../platform/engine/types.js";
-
 export const BERSERKER_SKILL_MECHANICS: Readonly<
   Record<number, SkillFragment>
 > = Object.freeze({
   [ID.SUNDERING_LEAP]: {
     implemented: true,
-    finisherType: "Leap",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "warrior",
+        finisherType: "Leap",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -142,8 +146,14 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   [ID.SCORCHED_EARTH]: {
     implemented: true,
     skillWeapon: "Longbow",
-    comboField: "Fire",
-    duration: 4,
+    comboFields: [
+      {
+        ownerId: "warrior",
+        fieldType: "Fire",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -422,9 +432,14 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 2.75,
         hits: 1,
-        metadata: {
-          finisherType: "blast",
-        },
+        comboFinishers: [
+          {
+            ownerId: "warrior",
+            finisherType: "Blast",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
+        metadata: {},
       },
       {
         type: "condition",

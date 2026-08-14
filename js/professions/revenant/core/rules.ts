@@ -1,5 +1,4 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
-import { observeLegacyProfessionCombos } from "../../../platform/gw2/legacy-combo-adapter.js";
 /**
  * @fileoverview Composes Revenant Energy, weapon, trait, and upkeep
  * callbacks into the cast and scheduler contracts used by the shared engine.
@@ -86,10 +85,6 @@ function onEventScheduled(
   context: RevenantSchedulerContext,
   event: RevenantSimulationEvent,
 ): void {
-  observeLegacyProfessionCombos(context, event, {
-    ownerId: "revenant",
-    ambiguousFieldSelection: "oldest",
-  });
   observeRevenantSpearEvent(context, event);
   observeRevenantEvent(context, event);
 }
@@ -172,7 +167,8 @@ function revenantRuntimeState(
   context: RevenantModifierContext,
 ): Partial<RevenantState> | RevenantRuntimeState {
   return (context.runtime?.profession ?? context.state?.profession ?? {}) as
-    Partial<RevenantState> | RevenantRuntimeState;
+    | Partial<RevenantState>
+    | RevenantRuntimeState;
 }
 
 export function revenantRuntimeCoreState(
@@ -210,7 +206,8 @@ export function revenantTargetHealthFraction(
   const maximum = Number(context.config?.target?.health || 0);
   if (!(maximum > 0)) return 1;
   const totals = context.runtime?.totals as
-    { readonly strike?: number; readonly condition?: number } | undefined;
+    | { readonly strike?: number; readonly condition?: number }
+    | undefined;
   const dealt = Number(totals?.strike || 0) + Number(totals?.condition || 0);
   return Math.max(0, 1 - dealt / maximum);
 }
@@ -249,7 +246,7 @@ function targetHasDefensiveBoon(context: RevenantModifierContext): boolean {
   const boons = context.config?.target?.boons || {};
   return Boolean(
     (boons as Record<string, boolean | number>).stability ||
-    (boons as Record<string, boolean | number>).protection,
+      (boons as Record<string, boolean | number>).protection,
   );
 }
 

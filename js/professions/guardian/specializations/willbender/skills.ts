@@ -80,17 +80,21 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        comboFinishers: [{ finisherType: "Whirl", applications: 4 }],
+        comboFinishers: [
+          {
+            ownerId: "guardian",
+            finisherType: "Whirl",
+            applications: 4,
+            ambiguousFieldSelection: "oldest",
+            preferredFieldTypes: ["Fire"],
+          },
+        ],
         ticks: [280, 480, 680, 880].map((atMs) => ({
           atMs,
           coefficient: 1,
         })),
         timingAnchor: "castStart",
         timingScale: "fixed",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 1,
-        },
       },
       {
         type: "condition",

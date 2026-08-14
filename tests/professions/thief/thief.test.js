@@ -986,13 +986,13 @@ test("Daredevil Staff skills use supplied coefficients and effects", () => {
 
   for (const name of ["Punishing Strikes", "Weakening Whirl"]) {
     const skill = thiefCatalog.skillsByName.get(name);
-    assert.equal(skill.finisherType, "Whirl", name);
-    assert.equal(skill.finisherValue, 1, name);
+    assert.equal(skill.comboFinishers[0].ownerId, "thief", name);
+    assert.equal(skill.comboFinishers[0].finisherType, "Whirl", name);
   }
 
   const impalingLotus = thiefCatalog.skillsByName.get("Impaling Lotus");
-  assert.equal(impalingLotus.finisherType, "Whirl");
-  assert.equal(impalingLotus.finisherValue, 1);
+  assert.equal(impalingLotus.comboFinishers[0].ownerId, "thief");
+  assert.equal(impalingLotus.comboFinishers[0].finisherType, "Whirl");
 
   const punishing = thiefCatalog.skillsByName.get("Punishing Strikes");
   const vulnerability = punishing.effects.find(
@@ -1633,8 +1633,8 @@ test("Dagger uses the supplied Quickness timings and total multi-hit coefficient
   ]);
 
   const deathBlossom = thiefCatalog.skillsByName.get("Death Blossom");
-  assert.equal(deathBlossom.finisherType, "Whirl");
-  assert.equal(deathBlossom.finisherValue, 1);
+  assert.equal(deathBlossom.comboFinishers[0].ownerId, "thief");
+  assert.equal(deathBlossom.comboFinishers[0].finisherType, "Whirl");
   const backstab = thiefCatalog.skillsByName.get("Backstab");
   const malicious = thiefCatalog.skillsByName.get("Malicious Backstab");
   assert.equal(backstab.effects[0].coefficient, 1.5);

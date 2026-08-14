@@ -16,7 +16,6 @@ import {
 } from "../../../platform/gw2/runtime-rules.js";
 import { isGw2PlayerActorEvent } from "../../../platform/gw2/event-ownership.js";
 import { clamp } from "../../../platform/gw2/numeric.js";
-import { observeLegacyProfessionCombos } from "../../../platform/gw2/legacy-combo-adapter.js";
 import {
   MESMER_CORE_AMBUSH_ATTACKS,
   MESMER_CORE_ARISTOCRACY_SKILLS,
@@ -977,10 +976,6 @@ export function observeMesmerEvent(
   context: MesmerSchedulerContext,
   event: SimulationEvent,
 ): void {
-  observeLegacyProfessionCombos(context, event, {
-    ownerId: "mesmer",
-    ambiguousFieldSelection: "oldest",
-  });
   const runtime = context.mesmerRuntime;
   if (!runtime) return;
   const triggerSyncopate = (skillName: string): void => {

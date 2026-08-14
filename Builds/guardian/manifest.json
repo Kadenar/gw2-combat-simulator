@@ -14,7 +14,7 @@
         "label": "Condition (Pistol / Torch + Pistol / Pistol)",
         "build": "Builds/guardian/b-condi-willbender-pistol-torch.json",
         "rotation": "Rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
-        "benchmarkDps": 42343,
+        "benchmarkDps": 42400,
         "sourceBenchmarkDps": 41809,
         "upToDate": true
       }

@@ -4,7 +4,7 @@ import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { onResolvedPlayerCriticalHit } from "../../../../platform/gw2/native-profession.js";
 import { NECROMANCER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { REAPER_MECHANICS as MECHANICS } from "./mechanics.js";
-import { resolveSummonIceFieldComboFinisher } from "./shroud.js";
+import { resolveSummonOwnedComboFinisher } from "./shroud.js";
 import {
   applyTraitCondition,
   queueTraitCoefficientDamage,
@@ -65,7 +65,7 @@ function reactToDamage(
   event: NecromancerResolverEvent,
   details: NecromancerResolverReactionDetails = {},
 ): void {
-  resolveSummonIceFieldComboFinisher(context, event);
+  resolveSummonOwnedComboFinisher(context, event);
   chillingNovaCriticalHit.handler(context, event, details);
 }
 

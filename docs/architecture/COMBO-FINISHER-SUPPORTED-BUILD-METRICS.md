@@ -14,6 +14,44 @@ The two condition Reaper losses are caused by overlapping Dark and Ice fields wi
 
 A negative strike- or condition-component delta can appear on a build whose total damage increased because combo outcomes change target-death timing and the split between damage sources. The acceptance check is based on DPS and total damage; both are nonnegative for every non-Reaper build.
 
+## Sequential migration checkpoints
+
+### Guardian centralized-authoring migration
+
+Guardian was recaptured after its legacy combo observer, legacy field aliases, Blast handler, and the shared Blast compatibility stage were removed. Five of the 6 rotation-backed Guardian builds are unchanged from the pre-migration combo-finisher worktree. Condition Willbender gains one previously missed combo application: DPS increases by 57.018, total and condition damage increase by 7,044.253, and duration, strike damage, and warning count are unchanged. Its manifest DPS was updated from 42,343 to 42,400.
+
+### Ranger centralized-authoring migration
+
+Ranger was recaptured after its legacy combo observer and all legacy field and finisher aliases were removed. All 6 rotation-backed Ranger builds are unchanged from the pre-migration combo-finisher worktree: duration, DPS, total damage, strike damage, condition damage, and warning count have zero delta at the precision shown in the Ranger table below. Canonical projectile random-stream IDs now use activation, effect, and hit identity instead of global event insertion order; the seeded stochastic combo assertion was updated from 1 to 3 successes, while deterministic supported-build damage remains unchanged.
+
+### Elementalist centralized-authoring migration
+
+Elementalist was recaptured after its legacy combo observer and all legacy field and finisher aliases were removed. All 37 rotation-backed Elementalist builds are unchanged from the pre-migration combo-finisher worktree: duration, DPS, total damage, strike damage, condition damage, and warning count have zero delta at the precision shown in the Elementalist table below. Runtime Frigid Flurry projectile packets use their stable activation-local packet index so the centralized resolver preserves each independent 20% finisher attempt.
+
+### Mesmer centralized-authoring migration
+
+Mesmer was recaptured after its legacy combo observer and all legacy field and finisher aliases were removed. All 5 rotation-backed Mesmer builds are unchanged from the pre-migration combo-finisher worktree: duration, DPS, total damage, strike damage, condition damage, and warning count have zero delta at the precision shown in the Mesmer table below.
+
+### Revenant centralized-authoring migration
+
+Revenant was recaptured after its legacy combo observer and all legacy field and finisher aliases were removed. All 7 rotation-backed Revenant builds are unchanged from the pre-migration combo-finisher worktree: duration, DPS, total damage, strike damage, condition damage, and warning count have zero delta at the precision shown in the Revenant table below.
+
+### Thief centralized-authoring migration
+
+Thief was recaptured after its legacy combo observer and all legacy finisher aliases were removed. All 8 rotation-backed Thief builds are unchanged from the pre-migration combo-finisher worktree: duration, DPS, total damage, strike damage, condition damage, and warning count have zero delta at the precision shown in the Thief table below.
+
+### Warrior centralized-authoring migration
+
+Warrior was recaptured after its legacy combo observer and all legacy field and finisher aliases were removed. All 8 rotation-backed Warrior builds are unchanged from the pre-migration combo-finisher worktree: duration, DPS, total damage, strike damage, condition damage, and warning count have zero delta at the precision shown in the Warrior table below.
+
+### Engineer centralized-authoring migration
+
+Engineer was recaptured after its legacy combo observer, resolver binding adapter, and all legacy field and finisher aliases were removed. All 8 rotation-backed Engineer builds are unchanged from the pre-migration combo-finisher worktree: duration, DPS, total damage, strike damage, condition damage, and warning count have zero delta at the precision shown in the Engineer table below. Resolver-authored Orbital Command Strike and Refraction Cutter packets now enter the same shared owned-finisher path as scheduler-authored skills.
+
+### Necromancer centralized-authoring migration
+
+Necromancer was recaptured after its legacy combo observer, summon binding adapter, and all legacy finisher aliases were removed. All 7 rotation-backed Necromancer builds are unchanged from the pre-migration combo-finisher worktree: duration, DPS, total damage, strike damage, condition damage, and warning count have zero delta at the precision shown in the Necromancer table below. This preserves the 1- and 6-warning outcomes for the two condition Reaper builds; their Dark/Ice ambiguity and damage deltas remain exactly as documented in the complete table.
+
 ## Warning changes
 
 The current runs contain 12 warnings across 7 builds. Five Elementalist warnings were already present in the baseline. The 7 added warnings are the explicit Reaper ambiguity diagnostics:
@@ -89,14 +127,14 @@ Each cell is `baseline → current (delta)`. Duration is seconds; all damage val
 
 ### Guardian
 
-| Build                                                     | Manifest DPS |                   Duration |                              DPS |                           Total damage |                          Strike damage |                       Condition damage | Warnings |
-| --------------------------------------------------------- | -----------: | -------------------------: | -------------------------------: | -------------------------------------: | -------------------------------------: | -------------------------------------: | -------: |
-| Willbender — Power (Spear / Greatsword)                   |       42,975 |   91.680 → 91.680 (+0.000) | 43,000.082 → 43,000.082 (+0.000) | 3,914,297.450 → 3,914,297.450 (+0.000) | 3,682,665.794 → 3,682,665.794 (+0.000) |     231,631.656 → 231,631.656 (+0.000) |        0 |
-| Willbender — Condition (Pistol / Torch + Pistol / Pistol) |       42,343 |   95.000 → 95.000 (+0.000) | 42,342.579 → 42,342.579 (+0.000) | 3,971,733.947 → 3,971,733.947 (+0.000) |     614,884.729 → 614,884.729 (+0.000) | 3,356,849.218 → 3,356,849.218 (+0.000) |        0 |
-| Firebrand — Condition (Axe / Torch + Pistol / Pistol)     |       37,524 |   97.520 → 97.520 (+0.000) | 41,670.729 → 41,670.729 (+0.000) | 3,970,387.022 → 3,970,387.022 (+0.000) |     591,712.342 → 591,712.342 (+0.000) | 3,378,674.680 → 3,378,674.680 (+0.000) |        0 |
-| Dragonhunter — Power (Spear / Greatsword)                 |       41,466 |   95.087 → 95.087 (+0.000) | 41,794.167 → 41,794.167 (+0.000) | 3,932,287.808 → 3,932,287.808 (+0.000) | 3,813,548.058 → 3,813,548.058 (+0.000) |     118,739.750 → 118,739.750 (+0.000) |        0 |
-| Luminary — Power (Greatsword / Spear)                     |       42,015 |   94.080 → 94.080 (+0.000) | 41,541.705 → 41,541.705 (+0.000) | 3,862,547.767 → 3,862,547.767 (+0.000) | 3,792,939.017 → 3,792,939.017 (+0.000) |       69,608.750 → 69,608.750 (+0.000) |        0 |
-| Luminary — Power Alacrity (Greatsword / Spear)            |       38,081 | 106.455 → 106.455 (+0.000) | 37,585.549 → 37,585.549 (+0.000) | 3,959,825.528 → 3,959,825.528 (+0.000) | 3,879,158.378 → 3,879,158.378 (+0.000) |       80,667.150 → 80,667.150 (+0.000) |        0 |
+| Build                                                     | Manifest DPS |                   Duration |                               DPS |                               Total damage |                          Strike damage |                           Condition damage | Warnings |
+| --------------------------------------------------------- | -----------: | -------------------------: | --------------------------------: | -----------------------------------------: | -------------------------------------: | -----------------------------------------: | -------: |
+| Willbender — Power (Spear / Greatsword)                   |       42,975 |   91.680 → 91.680 (+0.000) |  43,000.082 → 43,000.082 (+0.000) |     3,914,297.450 → 3,914,297.450 (+0.000) | 3,682,665.794 → 3,682,665.794 (+0.000) |         231,631.656 → 231,631.656 (+0.000) |        0 |
+| Willbender — Condition (Pistol / Torch + Pistol / Pistol) |       42,400 |   95.000 → 95.000 (+0.000) | 42,342.579 → 42,399.597 (+57.018) | 3,971,733.947 → 3,978,778.200 (+7,044.253) |     614,884.729 → 614,884.729 (+0.000) | 3,356,849.218 → 3,363,893.471 (+7,044.253) |        0 |
+| Firebrand — Condition (Axe / Torch + Pistol / Pistol)     |       37,524 |   97.520 → 97.520 (+0.000) |  41,670.729 → 41,670.729 (+0.000) |     3,970,387.022 → 3,970,387.022 (+0.000) |     591,712.342 → 591,712.342 (+0.000) |     3,378,674.680 → 3,378,674.680 (+0.000) |        0 |
+| Dragonhunter — Power (Spear / Greatsword)                 |       41,466 |   95.087 → 95.087 (+0.000) |  41,794.167 → 41,794.167 (+0.000) |     3,932,287.808 → 3,932,287.808 (+0.000) | 3,813,548.058 → 3,813,548.058 (+0.000) |         118,739.750 → 118,739.750 (+0.000) |        0 |
+| Luminary — Power (Greatsword / Spear)                     |       42,015 |   94.080 → 94.080 (+0.000) |  41,541.705 → 41,541.705 (+0.000) |     3,862,547.767 → 3,862,547.767 (+0.000) | 3,792,939.017 → 3,792,939.017 (+0.000) |           69,608.750 → 69,608.750 (+0.000) |        0 |
+| Luminary — Power Alacrity (Greatsword / Spear)            |       38,081 | 106.455 → 106.455 (+0.000) |  37,585.549 → 37,585.549 (+0.000) |     3,959,825.528 → 3,959,825.528 (+0.000) | 3,879,158.378 → 3,879,158.378 (+0.000) |           80,667.150 → 80,667.150 (+0.000) |        0 |
 
 ### Mesmer
 

@@ -410,17 +410,22 @@ test("Weaver palette composes the active bar and preserves every slot-three cool
   assert.match(palette.innerHTML, /data-role="weaver-secondary-bank"/);
   assert.match(
     palette.innerHTML,
-    /data-role="weaver-top-palette"[\s\S]*?data-role="profession-palette-section"[\s\S]*?utility-palette-group[\s\S]*?data-role="weapon-palette-section"/,
+    /data-role="weaver-top-palette"[\s\S]*?data-role="profession-palette-section"[\s\S]*?data-role="weaver-current-bar"[\s\S]*?utility-palette-group[\s\S]*?data-role="weapon-palette-section"/,
   );
 
   const currentStart = palette.innerHTML.indexOf(
     'data-role="weaver-current-bar"',
   );
+  const currentEnd = palette.innerHTML.indexOf(
+    "utility-palette-group",
+    currentStart,
+  );
   const bankStart = palette.innerHTML.indexOf(
     'data-role="weaver-cooldown-bank"',
   );
-  const currentHtml = palette.innerHTML.slice(currentStart, bankStart);
+  const currentHtml = palette.innerHTML.slice(currentStart, currentEnd);
   assert.equal((currentHtml.match(/class="pal-skill/g) || []).length, 7);
+  assert.doesNotMatch(currentHtml, /data-palette-static="true"/);
   assert.match(currentHtml, /data-skill="Fire Strike"/);
   assert.match(currentHtml, /data-skill="Fire Swipe"/);
   assert.match(currentHtml, /data-skill="Searing Slash"/);

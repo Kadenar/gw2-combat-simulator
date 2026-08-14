@@ -1,5 +1,4 @@
-import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
-import { legacyComboBindingForOwner } from "../../../../platform/gw2/legacy-combo-adapter.js";
+import { enqueueGw2OwnedComboFinisher } from "../../../../platform/gw2/resolver/combo-resolution.js";
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
@@ -10,7 +9,7 @@ import type {
 const ASSUMED_FIELD_EXPIRES_AT = 1_000_000_000;
 
 /** Emits the explicit field selected by the Reaper permanent-field assumption. */
-export function iceFieldComboFinishers(
+export function ensurePermanentIceFieldAssumption(
   context: NecromancerSchedulerContext,
   event: NecromancerSimulationEvent,
 ): void {
@@ -43,7 +42,7 @@ export function iceFieldComboFinishers(
  * Summon attacks become finishers only after their resolver generation guards
  * pass, so dead or replaced minions cannot create authoritative combo effects.
  */
-export function resolveSummonIceFieldComboFinisher(
+export function resolveSummonOwnedComboFinisher(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
 ): void {
@@ -54,34 +53,28 @@ export function resolveSummonIceFieldComboFinisher(
   ) {
     return;
   }
-  const skill = context.helpers.skillsById?.get(
-    event.skillId ?? event.sourceId,
-  );
-  const finisherType = String(event.finisherType || skill?.finisherType || "");
-  const chance = Number(event.finisherValue ?? skill?.finisherValue ?? 0);
-  if (finisherType.toLowerCase() !== "projectile" || !(chance > 0)) return;
-  const binding = legacyComboBindingForOwner(
-    context.combo,
-    "necromancer",
-    event.at,
-  );
-  if (!binding) return;
-  enqueueOrdered(context.queue, {
-    type: "combo_finisher",
-    at: event.at,
-    effectAt: event.at,
-    source: event.source,
-    sourceId: event.sourceId,
-    actorType: event.actorType,
-    skillId: event.skillId,
-    skillName: event.skillName,
-    parentSkillName: event.parentSkillName,
-    activationId: event.activationId,
-    attemptId: `${event.activationId || event.sourceId}:projectile:${event.__order || event.at}`,
-    finisherType: "Projectile",
-    fieldBinding: binding,
-    chance,
-    applications: 1,
-    successfulCombos: 1,
+  const descriptors = Array.isArray(event.comboFinishers)
+    ? event.comboFinishers
+    : [];
+  descriptors.forEach((descriptor, index) => {
+    if (
+      descriptor.ownerId !== "necromancer" ||
+      String(descriptor.finisherType).toLowerCase() !== "projectile" ||
+      !(Number(descriptor.chance ?? 1) > 0)
+    ) {
+      return;
+    }
+    enqueueGw2OwnedComboFinisher(context, event, {
+      ownerId: "necromancer",
+      attemptId: `${event.activationId || event.sourceId}:projectile:${event.__order || event.at}:${index + 1}`,
+      finisherType: "Projectile",
+      at: event.at,
+      effectAt: event.at,
+      chance: Number(descriptor.chance ?? 1),
+      applications: Number(descriptor.applications ?? 1),
+      successfulCombos: Number(descriptor.successfulCombos ?? 1),
+      ambiguousFieldSelection:
+        descriptor.ambiguousFieldSelection === "oldest" ? "oldest" : "none",
+    });
   });
 }

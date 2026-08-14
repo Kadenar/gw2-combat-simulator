@@ -71,7 +71,8 @@ function modifyCatalystAttributes(
       : stacks * 0.015
     : stacks * 0.01;
   const pool = context.config?.catalystEmpowermentPool as
-    Partial<CatalystEmpowermentPool> | undefined;
+    | Partial<CatalystEmpowermentPool>
+    | undefined;
   const modified = { ...attributes };
 
   for (const stat of [
@@ -124,7 +125,13 @@ function onCastStart(
   if (skill.skillFamily !== "Jade Sphere") return;
   const state = catalystState.from(context);
   state.energy = Math.max(0, state.energy - SPHERE_COST);
-  const duration = Math.max(0, Number(skill.fieldDuration || 5));
+  const duration = Math.max(
+    0,
+    Number(
+      skill.comboFields?.find((field) => field.ownerId === "elementalist")
+        ?.duration || 5,
+    ),
+  );
   state.sphereActiveUntil = Math.max(
     state.sphereActiveUntil,
     context.effectiveEnd + duration,

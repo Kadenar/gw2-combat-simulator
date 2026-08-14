@@ -171,7 +171,13 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        comboFinishers: [{ finisherType: "Whirl", applications: 4 }],
+        comboFinishers: [
+          {
+            ownerId: "necromancer",
+            finisherType: "Whirl",
+            applications: 4,
+          },
+        ],
         ticks: [
           { atMs: 240, coefficient: 0.7 },
           { atMs: 440, coefficient: 0.7 },
@@ -225,7 +231,9 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 4,
         hits: 1,
-        comboFields: [{ fieldType: "Ice", duration: 4 }],
+        comboFields: [
+          { ownerId: "necromancer", fieldType: "Ice", duration: 4 },
+        ],
         atMs: 1260,
         timingAnchor: "castStart",
         timingScale: "cast",

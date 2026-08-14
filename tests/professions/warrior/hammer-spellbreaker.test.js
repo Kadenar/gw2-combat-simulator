@@ -135,9 +135,15 @@ test("hammer and dagger/mace timings preserve the 40 ms EVTC measurements", () =
       .map((event) => Math.round((event.at - tremorAction.at) * 1000)),
     [440, 480],
   );
-  assert.equal(strike(ID.STAGGERING_BLOW).metadata.finisherType, "whirl");
-  assert.equal(strike(ID.EARTHSHAKER).metadata.finisherType, "blast");
-  assert.equal(strike(ID.RUPTURING_SMASH).metadata.finisherType, "blast");
+  assert.equal(
+    strike(ID.STAGGERING_BLOW).comboFinishers[0].finisherType,
+    "Whirl",
+  );
+  assert.equal(strike(ID.EARTHSHAKER).comboFinishers[0].finisherType, "Blast");
+  assert.equal(
+    strike(ID.RUPTURING_SMASH).comboFinishers[0].finisherType,
+    "Blast",
+  );
 });
 
 test("hammer cooldowns, conditional damage, recharge, and Defense traits work", () => {
@@ -315,10 +321,14 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
 
   assert.deepEqual(
     [
-      warriorCatalog.skillsById.get(ID.WINDS_OF_DISENCHANTMENT).comboField,
-      warriorCatalog.skillsById.get(ID.WINDS_OF_DISENCHANTMENT).duration,
-      warriorCatalog.skillsById.get(ID.BREACHING_STRIKE_ID_69297).finisherType,
-      warriorCatalog.skillsById.get(ID.BULLS_CHARGE).finisherType,
+      warriorCatalog.skillsById.get(ID.WINDS_OF_DISENCHANTMENT).comboFields[0]
+        .fieldType,
+      warriorCatalog.skillsById.get(ID.WINDS_OF_DISENCHANTMENT).comboFields[0]
+        .duration,
+      warriorCatalog.skillsById.get(ID.BREACHING_STRIKE_ID_69297)
+        .comboFinishers[0].finisherType,
+      warriorCatalog.skillsById.get(ID.BULLS_CHARGE).comboFinishers[0]
+        .finisherType,
     ],
     ["Lightning", 5, "Leap", "Leap"],
   );

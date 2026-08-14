@@ -167,6 +167,7 @@ function releaseElementalProcession(
         const metadata = (tick.metadata ||
           effect.metadata ||
           {}) as SchedulerRecord;
+        const comboFinishers = tick.comboFinishers || effect.comboFinishers;
         if (effect.type === "strike") {
           context.emit({
             type: "damage",
@@ -179,8 +180,7 @@ function releaseElementalProcession(
             coefficient: Number(tick.coefficient ?? effect.coefficient ?? 0),
             skillWeapon: "Unequipped",
             canCrit: effect.canCrit !== false,
-            finisherType: metadata.finisherType,
-            finisherValue: metadata.finisherValue,
+            comboFinishers,
             triggeredBy: sourceSkill.name,
           });
         } else if (effect.type === "condition") {
@@ -207,8 +207,7 @@ function releaseElementalProcession(
             skillName: name,
             skillId: familiar.id,
             controlKind: metadata.controlKind,
-            finisherType: metadata.finisherType,
-            finisherValue: metadata.finisherValue,
+            comboFinishers,
             triggeredBy: sourceSkill.name,
           });
         }

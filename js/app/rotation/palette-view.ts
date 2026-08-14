@@ -272,6 +272,11 @@ export function paletteSkillView(
 type WeaponPaletteAvailability = (skill: Skill) => boolean;
 type WeaponPaletteUnavailableMessage = (skill: Skill) => string;
 
+interface WeaverWeaponPaletteHtml {
+  readonly currentBar: string;
+  readonly slotPreview: string;
+}
+
 function weaverAttunementBadge(attunement: unknown): string {
   return String(attunement || "")
     .split("+")
@@ -360,8 +365,8 @@ function weaverWeaponPaletteHtml(
   autoattackChains: SchedulerRecord,
   isAvailable: WeaponPaletteAvailability,
   unavailableMessage: WeaponPaletteUnavailableMessage,
-): string {
-  if (!skills.length) return "";
+): WeaverWeaponPaletteHtml {
+  if (!skills.length) return { currentBar: "", slotPreview: "" };
   const layout = weaverWeaponPaletteLayout(skills);
   const active = (candidates: readonly Skill[]): Skill[] =>
     candidates.filter(isAvailable);
@@ -418,9 +423,9 @@ function weaverWeaponPaletteHtml(
       </div>`
     : "";
 
-  return `<div class="weaver-weapon-palette" data-role="weaver-weapon-palette">
-      <div class="weaver-current-bar" data-role="weaver-current-bar"
-          aria-label="Current Weaver weapon bar: ${esc(primaryAttunement)} and ${esc(secondaryAttunement)}">
+  return {
+    currentBar: `<div class="weaver-current-bar" data-role="weaver-current-bar"
+        aria-label="Current Weaver weapon bar: ${esc(primaryAttunement)} and ${esc(secondaryAttunement)}">
         <div class="weaver-current-caption">
           <span>Current</span>
           <strong>${esc(`${primaryAttunement[0]}/${secondaryAttunement[0]}`)}</strong>
@@ -432,8 +437,9 @@ function weaverWeaponPaletteHtml(
           <span class="weaver-current-divider" aria-hidden="true"></span>
           ${currentCluster(secondarySkills, "4-5")}
         </div>
-      </div>
-      <div class="weaver-cooldown-bank" data-role="weaver-cooldown-bank">
+      </div>`,
+    slotPreview: `<div class="weaver-weapon-palette" data-role="weaver-weapon-palette">
+        <div class="weaver-cooldown-bank" data-role="weaver-cooldown-bank">
         <section class="weaver-cooldown-lane" data-role="weaver-primary-bank">
           <div class="weaver-bank-title">Slots 1-2 <span>Primary</span></div>
           ${weaverElementRowsHtml(
@@ -464,7 +470,8 @@ function weaverWeaponPaletteHtml(
         </section>
       </div>
       ${extrasHtml}
-    </div>`;
+    </div>`,
+  };
 }
 
 /**
@@ -869,6 +876,7 @@ export function renderPalette(app: ProfessionAppState): void {
     "utility-palette-group",
   );
   let weaponSwapEmbedded = false;
+  let weaverCurrentBarHtml = "";
   const weaponGroupsHtml = (() => {
     if (spec === "Weaver") {
       const primaryAttunement = String(
@@ -881,16 +889,18 @@ export function renderPalette(app: ProfessionAppState): void {
           app.build.secondaryAttunement ||
           primaryAttunement,
       );
+      const weaverPalette = weaverWeaponPaletteHtml(
+        app,
+        weaponSkills(app, 1),
+        primaryAttunement,
+        secondaryAttunement,
+        autoattackChains,
+        (skill) => weaponSkillAvailable(skill, 1),
+        (skill) => weaponSkillUnavailableMessage(skill, 1),
+      );
+      weaverCurrentBarHtml = weaverPalette.currentBar;
       return [
-        weaverWeaponPaletteHtml(
-          app,
-          weaponSkills(app, 1),
-          primaryAttunement,
-          secondaryAttunement,
-          autoattackChains,
-          (skill) => weaponSkillAvailable(skill, 1),
-          (skill) => weaponSkillUnavailableMessage(skill, 1),
-        ),
+        weaverPalette.slotPreview,
         ...weaponSetOneProfessionGroups.map(renderProfessionGroup),
       ].filter(Boolean);
     }
@@ -951,26 +961,29 @@ export function renderPalette(app: ProfessionAppState): void {
           <div class="pal-break"></div>
           ${timelineControlsHtml}
       </div>`;
+  const actionGroupHtml = addGroup(
+    app,
+    "Act",
+    weaponSwapEmbedded ? generalActions : actions,
+    "#70b6d0",
+    professionSkillAvailable,
+    professionSkillUnavailableMessage,
+    isRevenant || isEngineer ? "action-palette-group" : "",
+  );
   const primaryPaletteHtml =
     spec === "Weaver"
       ? `<div class="weaver-top-palette" data-role="weaver-top-palette">
           ${professionPaletteSectionHtml}
+          ${weaverCurrentBarHtml}
           ${utilityGroupHtml}
+          ${actionGroupHtml}
         </div>`
       : professionPaletteSectionHtml + utilityGroupHtml;
   element.innerHTML =
     primaryPaletteHtml +
     weaponPaletteSectionHtml(
       weaponGroupsHtml,
-      addGroup(
-        app,
-        "Act",
-        weaponSwapEmbedded ? generalActions : actions,
-        "#70b6d0",
-        professionSkillAvailable,
-        professionSkillUnavailableMessage,
-        isRevenant || isEngineer ? "action-palette-group" : "",
-      ),
+      spec === "Weaver" ? "" : actionGroupHtml,
     ) +
     loadoutUtilityGroup +
     // Timeline-only controls stay in a named region so responsive layouts can

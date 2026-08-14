@@ -1,7 +1,6 @@
 // Native Elementalist skill declarations.
 // Cast timing, coefficients, effects, and profession metadata are maintained here.
 import type { Skill } from "../../../platform/engine/types.js";
-
 export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
   {
     id: 1100001,
@@ -109,8 +108,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 280,
     cooldown: 6,
-    comboField: "Fire",
-    fieldDuration: 4,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -243,8 +248,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 1000,
     cooldown: 18,
-    comboField: "Fire",
-    fieldDuration: 6,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 6,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -692,10 +703,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 2640,
             coefficient: 1.5,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -713,10 +728,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -730,8 +742,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 560,
     cooldown: 20,
-    comboField: "Water",
-    fieldDuration: 4,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Water",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [],
@@ -746,8 +764,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 280,
     cooldown: 30,
-    comboField: "Ice",
-    fieldDuration: 5,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Ice",
+        duration: 5,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -777,8 +801,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 840,
     cooldown: 35,
-    comboField: "Water",
-    fieldDuration: 6,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Water",
+        duration: 6,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -929,8 +959,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 680,
     cooldown: 30,
-    comboField: "Lightning",
-    fieldDuration: 4,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Lightning",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -999,10 +1035,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 900,
             coefficient: 1.2,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -1020,10 +1060,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -1046,10 +1083,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 6000,
             coefficient: 1.5,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -1067,10 +1108,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -1084,10 +1122,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -1127,10 +1162,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1260,
             coefficient: 1,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -1182,10 +1221,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 900,
             coefficient: 2.5,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -1203,10 +1246,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -1220,10 +1260,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -1311,10 +1348,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 3900,
             coefficient: 2.25,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -1332,10 +1373,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -1369,10 +1407,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 540,
             coefficient: 1.7,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -1390,10 +1432,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -1771,10 +1810,15 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1080,
             coefficient: 0.5,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 0.2,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                chance: 0.2,
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -1792,10 +1836,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 0.2,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -1803,10 +1844,15 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1500,
             coefficient: 0.5,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 0.2,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                chance: 0.2,
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -1824,10 +1870,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 0.2,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -1835,10 +1878,15 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1860,
             coefficient: 0.5,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 0.2,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                chance: 0.2,
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -1856,10 +1904,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 0.2,
-        },
+        metadata: {},
       },
     ],
   },
@@ -1910,10 +1955,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 300,
             coefficient: 0.44,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -1931,10 +1980,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -1942,10 +1988,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 500,
             coefficient: 0.44,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -1963,10 +2013,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -1974,10 +2021,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 700,
             coefficient: 0.44,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -1995,10 +2046,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -2006,10 +2054,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 900,
             coefficient: 0.44,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -2027,10 +2079,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -2038,10 +2087,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1100,
             coefficient: 0.44,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -2059,10 +2112,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -2271,8 +2321,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 720,
     cooldown: 8,
-    comboField: "Fire",
-    fieldDuration: 2,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 2,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -2282,10 +2338,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 900,
             coefficient: 2,
-            metadata: {
-              finisherType: "Leap",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Leap",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -2303,10 +2363,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Leap",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -2462,8 +2519,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 1080,
     cooldown: 12,
-    comboField: "Water",
-    fieldDuration: 4,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Water",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -2672,10 +2735,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 420,
             coefficient: 0.66,
-            metadata: {
-              finisherType: "Leap",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Leap",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -2691,10 +2758,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         atMs: 420,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Leap",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -2708,10 +2772,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Leap",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "control",
@@ -2721,8 +2782,6 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         timingScale: "cast",
         metadata: {
           controlKind: "crowd-control",
-          finisherType: "Leap",
-          finisherValue: 1,
         },
       },
     ],
@@ -3123,10 +3182,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1080,
             coefficient: 1.8,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -3144,10 +3207,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -3161,10 +3221,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -3542,8 +3599,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 800,
     cooldown: 12,
-    comboField: "Fire",
-    fieldDuration: 4,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -3664,8 +3727,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 480,
     cooldown: 15,
-    comboField: "Fire",
-    fieldDuration: 5,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 5,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -3856,8 +3925,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 600,
     cooldown: 12,
-    comboField: "Ice",
-    fieldDuration: 2,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Ice",
+        duration: 2,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -3867,10 +3942,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 300,
             coefficient: 0.4,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -3888,10 +3967,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -4019,10 +4095,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1980,
             coefficient: 2.4,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -4040,10 +4120,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "boon",
@@ -4054,10 +4131,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         atMs: 1980,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -4329,10 +4403,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 420,
             coefficient: 2.3,
-            metadata: {
-              finisherType: "Leap",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Leap",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -4350,10 +4428,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Leap",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -4376,10 +4451,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 720,
             coefficient: 3,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -4394,8 +4473,6 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         timingScale: "cast",
         metadata: {
           controlKind: "crowd-control",
-          finisherType: "Blast",
-          finisherValue: 1,
         },
       },
     ],
@@ -4419,10 +4496,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 0,
             coefficient: 0,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -4479,8 +4560,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 560,
     cooldown: 20,
-    comboField: "Fire",
-    fieldDuration: 9,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 9,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -4745,10 +4832,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1140,
             coefficient: 0.75,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -4763,8 +4854,6 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         timingScale: "cast",
         metadata: {
           controlKind: "crowd-control",
-          finisherType: "Blast",
-          finisherValue: 1,
         },
       },
     ],
@@ -4827,10 +4916,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 0,
             coefficient: 1,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -4848,10 +4941,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -4916,8 +5006,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 660,
     cooldown: 30,
-    comboField: "Fire",
-    fieldDuration: 8,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 8,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -5048,10 +5144,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1380,
             coefficient: 1,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -5066,8 +5166,6 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         timingScale: "cast",
         metadata: {
           controlKind: "crowd-control",
-          finisherType: "Blast",
-          finisherValue: 1,
         },
       },
     ],
@@ -5082,8 +5180,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 840,
     cooldown: 30,
-    comboField: "Water",
-    fieldDuration: 4,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Water",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [],
@@ -5685,10 +5789,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         atMs: 840,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -6015,10 +6116,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 780,
             coefficient: 0.5,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -6081,10 +6186,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 0,
             coefficient: 1.4,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -6123,10 +6232,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1200,
             coefficient: 1.4,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -6141,8 +6254,6 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         timingScale: "cast",
         metadata: {
           controlKind: "crowd-control",
-          finisherType: "Blast",
-          finisherValue: 1,
         },
       },
     ],
@@ -6214,10 +6325,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 540,
             coefficient: 0.5,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -6235,10 +6350,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -6246,10 +6358,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1020,
             coefficient: 0.5,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -6267,10 +6383,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -6278,10 +6391,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1500,
             coefficient: 0.5,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -6299,10 +6416,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -6310,10 +6424,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1980,
             coefficient: 0.5,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -6331,10 +6449,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -6342,10 +6457,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 2460,
             coefficient: 0.5,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -6363,10 +6482,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -7190,10 +7306,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 480,
             coefficient: 1.5,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -7207,8 +7327,6 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         timingScale: "cast",
         metadata: {
           controlKind: "blind",
-          finisherType: "Blast",
-          finisherValue: 1,
         },
       },
     ],
@@ -7231,10 +7349,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1200,
             coefficient: 1,
-            metadata: {
-              finisherType: "Leap",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Leap",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -7249,10 +7371,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         atMs: 1200,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Leap",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -7546,8 +7665,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 760,
     cooldown: 25,
-    comboField: "Lightning",
-    fieldDuration: 4,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Lightning",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -9693,10 +9818,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 420,
             coefficient: 0.688,
-            metadata: {
-              finisherType: "Whirl",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Whirl",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -9714,10 +9843,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -9725,10 +9851,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 600,
             coefficient: 0.688,
-            metadata: {
-              finisherType: "Whirl",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Whirl",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -9746,10 +9876,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -9757,10 +9884,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 795,
             coefficient: 0.688,
-            metadata: {
-              finisherType: "Whirl",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Whirl",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -9778,10 +9909,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -9789,10 +9917,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 960,
             coefficient: 0.688,
-            metadata: {
-              finisherType: "Whirl",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Whirl",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -9810,10 +9942,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -9821,10 +9950,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1140,
             coefficient: 0.688,
-            metadata: {
-              finisherType: "Whirl",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Whirl",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -9842,10 +9975,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -9853,10 +9983,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1320,
             coefficient: 0.688,
-            metadata: {
-              finisherType: "Whirl",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Whirl",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -9874,10 +10008,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -9885,10 +10016,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1485,
             coefficient: 0.688,
-            metadata: {
-              finisherType: "Whirl",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Whirl",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -9906,10 +10041,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -9917,10 +10049,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1695,
             coefficient: 0.688,
-            metadata: {
-              finisherType: "Whirl",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Whirl",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -9938,10 +10074,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -10038,8 +10171,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Attunement"],
     quicknessCastTimeMs: 3320,
     cooldown: 20,
-    comboField: "Fire",
-    fieldDuration: 9,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 9,
+        startAnchor: "castEnd",
+      },
+    ],
     rechargeAnchor: "castEnd",
     overload: true,
     skillFamily: "Attunement",
@@ -10051,10 +10190,15 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 420,
             coefficient: 0.9,
-            metadata: {
-              finisherType: "Whirl",
-              finisherValue: 2,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Whirl",
+                applications: 2,
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -10072,10 +10216,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 2,
-        },
+        metadata: {},
       },
       {
         type: "boon",
@@ -10086,10 +10227,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         atMs: 420,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 2,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -10097,10 +10235,15 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1140,
             coefficient: 0.9,
-            metadata: {
-              finisherType: "Whirl",
-              finisherValue: 2,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Whirl",
+                applications: 2,
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -10118,10 +10261,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 2,
-        },
+        metadata: {},
       },
       {
         type: "boon",
@@ -10132,10 +10272,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         atMs: 1140,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 2,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -10143,10 +10280,15 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1875,
             coefficient: 0.9,
-            metadata: {
-              finisherType: "Whirl",
-              finisherValue: 2,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Whirl",
+                applications: 2,
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -10164,10 +10306,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 2,
-        },
+        metadata: {},
       },
       {
         type: "boon",
@@ -10178,10 +10317,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         atMs: 1875,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 2,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -10189,10 +10325,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 2595,
             coefficient: 0.9,
-            metadata: {
-              finisherType: "Whirl",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Whirl",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -10210,10 +10350,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "boon",
@@ -10224,10 +10361,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         atMs: 2595,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Whirl",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -10475,8 +10609,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Attunement"],
     quicknessCastTimeMs: 3200,
     cooldown: 20,
-    comboField: "Lightning",
-    fieldDuration: 4,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Lightning",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
     rechargeAnchor: "castEnd",
     overload: true,
     skillFamily: "Attunement",
@@ -11221,10 +11361,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 4140,
             coefficient: 0.75,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -11242,10 +11386,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -11259,10 +11400,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -11276,10 +11414,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "boon",
@@ -11290,10 +11425,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         atMs: 4140,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -11638,10 +11770,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1200,
             coefficient: 0.75,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -11659,10 +11795,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -11676,8 +11809,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 560,
     cooldown: 18,
-    comboField: "Water",
-    fieldDuration: 4,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Water",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -11713,10 +11852,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 720,
             coefficient: 2,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -11734,10 +11877,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -11821,10 +11961,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 351,
             coefficient: 0.1,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -11843,10 +11987,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "boon",
@@ -11857,10 +11998,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         atMs: 351,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "control",
@@ -11870,8 +12008,6 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         timingScale: "cast",
         metadata: {
           controlKind: "crowd-control",
-          finisherType: "Blast",
-          finisherValue: 1,
         },
       },
       {
@@ -13908,8 +14044,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 680,
     cooldown: 15,
-    comboField: "Fire",
-    fieldDuration: 4,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -14231,10 +14373,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1740,
             coefficient: 2.1,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -14249,8 +14395,6 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         timingScale: "cast",
         metadata: {
           controlKind: "crowd-control",
-          finisherType: "Projectile",
-          finisherValue: 1,
         },
       },
     ],
@@ -14719,8 +14863,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Jade Sphere"],
     quicknessCastTimeMs: 0,
     cooldown: 15,
-    comboField: "Fire",
-    fieldDuration: 5,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 5,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Jade Sphere",
     implemented: true,
     effects: [
@@ -14852,8 +15002,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Jade Sphere"],
     quicknessCastTimeMs: 0,
     cooldown: 15,
-    comboField: "Water",
-    fieldDuration: 5,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Water",
+        duration: 5,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Jade Sphere",
     implemented: true,
     effects: [
@@ -14985,8 +15141,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Jade Sphere"],
     quicknessCastTimeMs: 0,
     cooldown: 15,
-    comboField: "Lightning",
-    fieldDuration: 5,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Lightning",
+        duration: 5,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Jade Sphere",
     implemented: true,
     effects: [
@@ -15118,8 +15280,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Jade Sphere"],
     quicknessCastTimeMs: 0,
     cooldown: 15,
-    comboField: "Poison",
-    fieldDuration: 5,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Poison",
+        duration: 5,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Jade Sphere",
     implemented: true,
     effects: [
@@ -15429,8 +15597,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     quicknessCastTimeMs: 360,
     cooldown: 0,
     nextChainId: 1100181,
-    comboField: "Water",
-    fieldDuration: 4,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Water",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Familiar",
     implemented: true,
     effects: [
@@ -15616,10 +15790,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 3180,
             coefficient: 1.15,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -15638,10 +15816,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "control",
@@ -15651,8 +15826,6 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         timingScale: "cast",
         metadata: {
           controlKind: "crowd-control",
-          finisherType: "Blast",
-          finisherValue: 1,
         },
       },
     ],
@@ -15817,10 +15990,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 660,
             coefficient: 2.6,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -15838,10 +16015,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -15918,8 +16092,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 240,
     cooldown: 25,
-    comboField: "Fire",
-    fieldDuration: 7,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 7,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -16341,8 +16521,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 240,
     cooldown: 25,
-    comboField: "Water",
-    fieldDuration: 7,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Water",
+        duration: 7,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [],
@@ -16624,10 +16810,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 780,
             coefficient: 1.84,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -16646,10 +16836,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "control",
@@ -16659,8 +16846,6 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         timingScale: "cast",
         metadata: {
           controlKind: "crowd-control",
-          finisherType: "Blast",
-          finisherValue: 1,
         },
       },
     ],
@@ -16675,8 +16860,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 240,
     cooldown: 25,
-    comboField: "Lightning",
-    fieldDuration: 7,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Lightning",
+        duration: 7,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -16826,10 +17017,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 900,
             coefficient: 3,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -16847,10 +17042,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -16932,8 +17124,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 240,
     cooldown: 25,
-    comboField: "Dark",
-    fieldDuration: 7,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Dark",
+        duration: 7,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [],
@@ -17160,10 +17358,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 0,
             coefficient: 1.75,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -17181,10 +17383,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -17198,10 +17397,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -17278,10 +17474,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 0,
             coefficient: 1,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -17571,10 +17771,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1080,
             coefficient: 2.8,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -17589,10 +17793,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         atMs: 1080,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "boon",
@@ -17603,10 +17804,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         atMs: 1080,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -17840,10 +18038,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1200,
             coefficient: 1.438,
-            metadata: {
-              finisherType: "Leap",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Leap",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -17870,10 +18072,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 600,
             coefficient: 1.725,
-            metadata: {
-              finisherType: "Whirl",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Whirl",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -18268,10 +18474,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1200,
             coefficient: 0.925,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -18286,8 +18496,6 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         timingScale: "cast",
         metadata: {
           controlKind: "crowd-control",
-          finisherType: "Blast",
-          finisherValue: 1,
         },
       },
     ],
@@ -18534,10 +18742,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1080,
             coefficient: 2.8,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -18555,10 +18767,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -18572,10 +18781,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -18597,10 +18803,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 1020,
             coefficient: 1.4,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -19060,10 +19270,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 660,
             coefficient: 1,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -19081,10 +19295,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "strike",
@@ -19364,8 +19575,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     categories: ["Weapon skill"],
     quicknessCastTimeMs: 520,
     cooldown: 15,
-    comboField: "Ice",
-    fieldDuration: 4,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Ice",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
     skillFamily: "Weapon skill",
     implemented: true,
     effects: [
@@ -19507,10 +19724,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 540,
             coefficient: 0,
-            metadata: {
-              finisherType: "Leap",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Leap",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -19579,10 +19800,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 540,
             coefficient: 0,
-            metadata: {
-              finisherType: "Leap",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Leap",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -19700,10 +19925,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 600,
             coefficient: 0.44,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -19721,10 +19950,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -19738,10 +19964,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -19968,10 +20191,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 720,
             coefficient: 0.8,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -19985,8 +20212,6 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         timingScale: "cast",
         metadata: {
           controlKind: "blind",
-          finisherType: "Projectile",
-          finisherValue: 1,
         },
       },
       {
@@ -20001,10 +20226,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -20183,10 +20405,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 780,
             coefficient: 0.7,
-            metadata: {
-              finisherType: "Projectile",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -20204,10 +20430,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -20221,10 +20444,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Projectile",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -21903,10 +22123,14 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
           {
             atMs: 0,
             coefficient: 0.5,
-            metadata: {
-              finisherType: "Blast",
-              finisherValue: 1,
-            },
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
           },
         ],
         timingAnchor: "castStart",
@@ -21924,10 +22148,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
       {
         type: "condition",
@@ -21941,10 +22162,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Blast",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },
@@ -22047,7 +22265,6 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     ],
   },
 ]);
-
 export const ELEMENTALIST_SKILL_IDS_BY_NAME: Readonly<Record<string, number>> =
   Object.freeze(
     Object.fromEntries(
