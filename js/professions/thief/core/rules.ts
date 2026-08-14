@@ -9,6 +9,7 @@ import {
 } from "../../../platform/gw2/modifier-rules.js";
 import { professionStaticRulesApplied } from "../../../platform/gw2/attribute-provenance.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
+import { observeLegacyProfessionCombos } from "../../../platform/gw2/legacy-combo-adapter.js";
 import {
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT,
@@ -22,7 +23,11 @@ import { hasThiefTrait, snapshotThiefState } from "./state.js";
 import { updateThiefTraitCastState } from "./traits.js";
 import { updateThiefWeaponState } from "./weapon-state.js";
 import { thiefCoreTaskHandlers } from "./tasks.js";
-import type { Skill, SkillId } from "../../../platform/engine/types.js";
+import type {
+  SimulationEvent,
+  Skill,
+  SkillId,
+} from "../../../platform/engine/types.js";
 import type {
   Gw2ModifierContext,
   Gw2ModifierHooks,
@@ -432,6 +437,15 @@ export const thiefCoreSchedulerHooks = Object.freeze({
       handler: updateThiefTraitCastState,
     },
   ]),
+  onEventScheduled(
+    context: ThiefSchedulerContext,
+    event: SimulationEvent,
+  ): void {
+    observeLegacyProfessionCombos(context, event, {
+      ownerId: "thief",
+      ambiguousFieldSelection: "oldest",
+    });
+  },
   taskHandlers: thiefCoreTaskHandlers,
   snapshot: (context: ThiefSchedulerContext) =>
     snapshotThiefState(context.state.profession),

@@ -11,7 +11,7 @@ function emitBlastFinisher(
   skill: GuardianSkill,
 ): void {
   context.emit({
-    type: "blast_combo",
+    type: "proc",
     at: context.effectiveEnd,
     source: "guardian",
     sourceId: skill.id,
@@ -19,6 +19,8 @@ function emitBlastFinisher(
     skillId: skill.id,
     skillName: skill.name,
     name: `${skill.name} — Blast Finisher`,
+    finisherType: "Blast",
+    finisherValue: 1,
   });
 }
 

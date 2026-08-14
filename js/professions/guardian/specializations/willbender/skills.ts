@@ -80,6 +80,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
+        comboFinishers: [{ finisherType: "Whirl", applications: 4 }],
         ticks: [280, 480, 680, 880].map((atMs) => ({
           atMs,
           coefficient: 1,

@@ -1,5 +1,6 @@
 import {
   defineNativeModule,
+  onComboResolved,
   onBuffApplied,
   onConditionApplied,
   onResolvedControl,
@@ -9,6 +10,7 @@ import { createElementalistModuleData } from "../../catalog-data.js";
 import {
   applyCatalystEmpowerment,
   applyCatalystResolvedDamage,
+  applySteamshrieker,
   applyViciousEmpowerment,
 } from "./resolver.js";
 import {
@@ -43,6 +45,10 @@ export const catalystModule = defineNativeModule({
       onConditionApplied({
         id: "elementalist.catalyst-vicious-empowerment-immobilize",
         handler: applyViciousEmpowerment,
+      }),
+      onComboResolved({
+        id: "elementalist.catalyst-steamshrieker",
+        handler: applySteamshrieker,
       }),
     ],
   },

@@ -81,22 +81,11 @@ export interface EngineerMechState extends SchedulerRecord {
   attributes: EngineerMechAttributes | null;
 }
 
-export interface EngineerComboField extends SchedulerRecord {
-  readonly startsAt: number;
-  readonly expiresAt: number;
-  readonly fieldType?: string;
-  readonly skillId?: SkillId | null;
-  readonly skillName?: string;
-}
-
 export interface EngineerCoreState {
   endurance: number;
   maximumEndurance: number;
   enduranceUpdatedAt: number;
   activeKit: string;
-  fireProjectileFinisherProgress: number;
-  completedBlastFinisherActivations: Record<string, boolean>;
-  activeComboFields: EngineerComboField[];
   availableFlips: Record<string, boolean>;
   autoattackChains: Record<string, SkillId>;
   focusedUntil: number;

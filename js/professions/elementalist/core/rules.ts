@@ -1,6 +1,7 @@
 import { criticalChance } from "../../../platform/gw2/damage.js";
 import { gw2ConditionDurationMultiplier } from "../../../platform/gw2/runtime-rules.js";
 import { hasTrait as hasGw2Trait } from "../../../platform/gw2/trait-state.js";
+import { observeLegacyProfessionCombos } from "../../../platform/gw2/legacy-combo-adapter.js";
 import { materializeSkillEffectApplications } from "../../../platform/engine/effect-materializer.js";
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
@@ -1636,35 +1637,24 @@ function applySkillAura(
   });
 }
 
-function applyField(context: ElementalistLifecycleContext, skill: Skill): void {
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
-  const at = context.effectiveEnd;
-  if (skill.comboField && Number(skill.fieldDuration) > 0) {
-    const bonus =
-      hasTrait(context, "Persisting Flames") &&
-      skill.comboField === "Fire" &&
-      PERSISTING_FLAMES_FIELD_SKILLS.has(skill.name)
-        ? 2
-        : 0;
-    const duration = Number(skill.fieldDuration) + bonus;
-    state.activeComboFields.push({
-      type: String(skill.comboField),
-      startsAt: at,
-      expiresAt: at + duration,
-      skillName: skill.name,
-    });
-    context.emit({
-      type: "elementalist.combo-field",
-      at,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: "effect",
-      skillId: skill.id,
-      skillName: skill.name,
-      field: skill.comboField,
-      duration,
-    });
-  }
+function observeElementalistComboFinisher(
+  context: ElementalistSchedulerContext,
+  event: SimulationEvent,
+): void {
+  observeLegacyProfessionCombos(context, event, {
+    ownerId: "elementalist",
+    ambiguousFieldSelection: "oldest",
+    fieldDuration(fieldContext, _fieldEvent, skill, duration) {
+      return (
+        duration +
+        (hasTrait(fieldContext, "Persisting Flames") &&
+        skill.comboField === "Fire" &&
+        PERSISTING_FLAMES_FIELD_SKILLS.has(skill.name)
+          ? 2
+          : 0)
+      );
+    },
+  });
 }
 
 function applyPistolState(
@@ -2184,10 +2174,11 @@ export function elementalistAfterCast(
 
   if (skill.name === "Frigid Flurry" && state.pistolBullets.Water === true) {
     for (const event of activationEvents) {
-      context.replaceEvent(event, {
+      const replacement = context.replaceEvent(event, {
         finisherType: "Projectile",
         finisherValue: 0.2,
       });
+      observeElementalistComboFinisher(context, replacement);
     }
   }
 
@@ -2434,7 +2425,6 @@ export function elementalistOnCastComplete(
       });
     }
   }
-  applyField(context, skill);
   applyPistolState(context, skill);
   applyHammerState(context, skill);
   applyGenericPostCast(context, skill);
@@ -2721,6 +2711,7 @@ export function observeElementalistEvent(
   event: SimulationEvent,
 ): void {
   observeElementalistElementalEvent(context, event);
+  observeElementalistComboFinisher(context, event);
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   if (event.type === "combat_start") {
     state.catalystBaseEmpowermentActive = true;
@@ -2760,9 +2751,6 @@ export function advanceElementalistState(
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   processFreshAirCandidates(context, at);
   updateEndurance(state, at, Boolean(context.config.boons?.vigor));
-  state.activeComboFields = state.activeComboFields.filter(
-    (field) => field.expiresAt > at,
-  );
   state.activeAuras = state.activeAuras.filter((aura) => aura.expiresAt > at);
   for (const element of ELEMENTALIST_ATTUNEMENTS) {
     if (Number(state.hammerOrbs[element] || 0) < at) {

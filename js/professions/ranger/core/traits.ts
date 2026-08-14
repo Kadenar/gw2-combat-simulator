@@ -353,7 +353,7 @@ export function applyRangerPetSwapTraits(
       triggeredBy: skill.name,
     });
     context.emit({
-      type: "blast_combo",
+      type: "proc",
       at,
       source: "Trait",
       sourceId: TRAIT.CLARION_BOND,
@@ -362,6 +362,8 @@ export function applyRangerPetSwapTraits(
       skillName: "Clarion Bond",
       name: "Lesser Call of the Wild - Blast Finisher",
       triggeredBy: skill.name,
+      finisherType: "Blast",
+      finisherValue: 1,
     });
   }
 }

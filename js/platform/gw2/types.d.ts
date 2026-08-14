@@ -11,6 +11,7 @@ import type {
   SimulationRandomnessConfig,
   SimulationActorType,
   SimulationEvent,
+  SimulationEventBase,
   Skill,
   ScheduledTask,
   SchedulerContext,
@@ -18,6 +19,62 @@ import type {
 } from "../engine/types.js";
 import type { StableEventQueue } from "../engine/event-queue.js";
 import type { HandlerRegistry } from "../engine/handler-registry.js";
+
+export type ComboFieldType =
+  | "Dark"
+  | "Ethereal"
+  | "Fire"
+  | "Ice"
+  | "Light"
+  | "Lightning"
+  | "Poison"
+  | "Smoke"
+  | "Water";
+
+export type ComboFinisherType = "Blast" | "Leap" | "Projectile" | "Whirl";
+
+export type ComboFieldBinding =
+  | { readonly kind: "field-id"; readonly fieldId: string }
+  | { readonly kind: "field-type"; readonly fieldType: ComboFieldType }
+  | { readonly kind: "none" };
+
+export interface ComboFieldEvent extends SimulationEventBase<"combo_field"> {
+  readonly fieldId: string;
+  readonly fieldType: ComboFieldType;
+  readonly expiresAt: number;
+  readonly ownerId: string;
+  readonly ownerActorType: SimulationActorType;
+}
+
+export interface ComboFinisherEvent extends SimulationEventBase<"combo_finisher"> {
+  readonly attemptId: string;
+  readonly finisherType: ComboFinisherType;
+  readonly fieldBinding: ComboFieldBinding;
+  readonly effectAt: number;
+  readonly chance: number;
+  readonly applications: number;
+  readonly successfulCombos: number;
+  readonly parentEventOrder?: number;
+}
+
+export interface ComboEvent extends SimulationEventBase<"combo"> {
+  readonly comboId: string;
+  readonly attemptId: string;
+  readonly fieldId: string;
+  readonly fieldType: ComboFieldType;
+  readonly finisherType: ComboFinisherType;
+  readonly fieldSourceId: import("../engine/types.js").SkillId;
+  readonly bindingKind: ComboFieldBinding["kind"];
+  readonly applicationCount: number;
+  readonly outcome: Readonly<Record<string, unknown>>;
+}
+
+export interface Gw2ComboRuntimeState extends SchedulerRecord {
+  readonly fields: Map<string, ComboFieldEvent>;
+  readonly handledAttemptIds: Set<string>;
+  readonly deterministicProgress: Map<string, number>;
+  readonly warningKeys: Set<string>;
+}
 
 export interface Gw2Stats extends SchedulerRecord {
   readonly power?: number;
@@ -655,6 +712,7 @@ export interface Gw2ResolverRuntime extends SchedulerRecord {
   deathTime: number | null;
   combatStartTime?: number | null;
   activeWeaponSet: number;
+  combo: Gw2ComboRuntimeState;
   relic: Gw2RelicRuntime;
   profession: object;
   sigil: {
@@ -756,7 +814,9 @@ export type Gw2ResolverReaction = (
 ) => SchedulerRecord | void;
 
 export type Gw2ResolverStage =
+  | "aura.applied"
   | "blast-combo.resolved"
+  | "combo.resolved"
   | "buff.applied"
   | "damage.resolved"
   | "condition.applied"

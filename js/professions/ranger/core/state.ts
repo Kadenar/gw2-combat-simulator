@@ -65,7 +65,6 @@ export function createRangerCoreState(
     petAutoTaskId: "",
     petCommandReadyAt: 0,
     petCommandDelays: {},
-    comboProjectileFinisherProgress: 0,
   };
 }
 

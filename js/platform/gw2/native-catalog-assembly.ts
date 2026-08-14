@@ -15,6 +15,7 @@ import type {
   NativeModuleCatalogData,
   NativeSkillHandlerRegistry,
 } from "./native-module-types.js";
+import { normalizeGw2ComboCatalogSkill } from "./combo-catalog.js";
 
 interface NativeModuleDataSelection<TContext extends object> {
   readonly id: string;
@@ -28,8 +29,7 @@ interface NativeModuleDataSelection<TContext extends object> {
   readonly specializations?: readonly CatalogEntity[];
   readonly weapons?: readonly string[];
   readonly weaponHands?:
-    | ReadonlyMap<string, string>
-    | Readonly<Record<string, string>>;
+    ReadonlyMap<string, string> | Readonly<Record<string, string>>;
   readonly autoattackChains?: NativeAutoattackChains;
   readonly specializationOnlySkillIds?: readonly SkillId[];
   readonly specializationOnlySkillOwners?: Readonly<Record<string, string>>;
@@ -42,9 +42,11 @@ function canonicalModuleName(
   const specialization = String(
     (value as { readonly specialization?: string }).specialization || "",
   ).toLowerCase();
-  return specializations.find(
-    (entry) => entry.elite && entry.name.toLowerCase() === specialization,
-  )?.name || "Core";
+  return (
+    specializations.find(
+      (entry) => entry.elite && entry.name.toLowerCase() === specialization,
+    )?.name || "Core"
+  );
 }
 
 /**
@@ -79,7 +81,7 @@ export function createNativeModuleData<TContext extends object>({
   const generatedIds = new Set(generated.map((skill) => String(skill.id)));
   const localOverrides = Object.fromEntries(
     Object.entries(skillOverrides).filter(([skillId]) =>
-      generatedIds.has(String(skillId))
+      generatedIds.has(String(skillId)),
     ),
   );
   return Object.freeze({
@@ -94,13 +96,13 @@ export function createNativeModuleData<TContext extends object>({
       sharedExtra.map((skill) => [skill.id, sharedExtraSkills.indexOf(skill)]),
     ),
     traits: Object.freeze(
-      traits.filter((trait) =>
-        canonicalModuleName(trait, specializations) === id
+      traits.filter(
+        (trait) => canonicalModuleName(trait, specializations) === id,
       ),
     ),
     specializations: Object.freeze(
       specializations.filter((specialization) =>
-        specialization.elite ? specialization.name === id : id === "Core"
+        specialization.elite ? specialization.name === id : id === "Core",
       ),
     ),
     ...(handlers == null ? {} : { handlers }),
@@ -121,7 +123,10 @@ export function createNativeModuleData<TContext extends object>({
 
 export interface AssembledNativeCatalog {
   readonly catalog: Readonly<CanonicalCatalog>;
-  readonly fragments: ReadonlyMap<string, Readonly<ProfessionModuleCatalogFragment>>;
+  readonly fragments: ReadonlyMap<
+    string,
+    Readonly<ProfessionModuleCatalogFragment>
+  >;
   readonly skillOwners: ReadonlyMap<SkillId, string>;
 }
 
@@ -168,7 +173,9 @@ function applySkillNameOverrides(
   for (const [name, skillId] of Object.entries(overrides || {})) {
     const skill = catalog.skillsById.get(skillId);
     if (!skill) {
-      throw new TypeError(`Unknown skill-name override ${name}: ${String(skillId)}.`);
+      throw new TypeError(
+        `Unknown skill-name override ${name}: ${String(skillId)}.`,
+      );
     }
     if (skill.name !== name) {
       throw new TypeError(
@@ -190,9 +197,10 @@ function restoreSharedSourceOrder(
       positions.set(id, position);
     }
   }
-  values.sort((left, right) =>
-    (positions.get(left.id) ?? Number.POSITIVE_INFINITY) -
-    (positions.get(right.id) ?? Number.POSITIVE_INFINITY)
+  values.sort(
+    (left, right) =>
+      (positions.get(left.id) ?? Number.POSITIVE_INFINITY) -
+      (positions.get(right.id) ?? Number.POSITIVE_INFINITY),
   );
 }
 
@@ -247,7 +255,8 @@ function composeNativeCatalog(
   const weapons = new Set<string>();
   const weaponHands = new Map<string, string>();
   const weaponHandOwners = new Map<string, string>();
-  const additionalChains: Array<{ owner: string; chain: readonly SkillId[] }> = [];
+  const additionalChains: Array<{ owner: string; chain: readonly SkillId[] }> =
+    [];
   const excludedChains: Array<{ owner: string; skillId: SkillId }> = [];
 
   for (const module of modules) {
@@ -331,13 +340,17 @@ function composeNativeCatalog(
       excludeSkillIds: excludedChains.map((entry) => entry.skillId),
     },
     skillNameCollision: options?.skillNameCollision,
+    skillNormalizer: normalizeGw2ComboCatalogSkill,
   });
   applySkillNameOverrides(catalog, options?.skillNameOverrides);
 
   const eliteNames = new Map(
     catalog.specializations
       .filter((specialization) => specialization.elite)
-      .map((specialization) => [specialization.name.toLowerCase(), specialization.name]),
+      .map((specialization) => [
+        specialization.name.toLowerCase(),
+        specialization.name,
+      ]),
   );
   const declaredOwners = new Map<SkillId, string>([
     ...generated.owners,
@@ -350,7 +363,8 @@ function composeNativeCatalog(
       String(skill.specialization || "").toLowerCase(),
     );
     const mechanicOwner = mechanicsOwners.get(String(skill.id));
-    const owner = explicit ||
+    const owner =
+      explicit ||
       (skill.type === "Weapon" ? "Core" : null) ||
       specialization ||
       declaredOwners.get(skill.id) ||
@@ -379,9 +393,11 @@ function composeNativeCatalog(
     if (!referencedOwners.size) {
       throw new TypeError(`Skill handler ${handlerId} is unused.`);
     }
-    if ((owner === "Core" && !referencedOwners.has("Core")) ||
+    if (
+      (owner === "Core" && !referencedOwners.has("Core")) ||
       (owner !== "Core" &&
-        (referencedOwners.size !== 1 || !referencedOwners.has(owner)))) {
+        (referencedOwners.size !== 1 || !referencedOwners.has(owner)))
+    ) {
       throw new TypeError(
         `Skill handler ${handlerId} is contributed by ${owner}, but its skills ` +
           `are available in ${[...referencedOwners].join(", ")}.`,
@@ -409,7 +425,10 @@ function composeNativeCatalog(
   }
   for (const { skillId } of excludedChains) {
     const owner = skillOwners.get(skillId);
-    if (!owner) throw new TypeError(`Unknown excluded autoattack skill ${String(skillId)}.`);
+    if (!owner)
+      throw new TypeError(
+        `Unknown excluded autoattack skill ${String(skillId)}.`,
+      );
     const current = chainContributions.get(owner)!;
     chainContributions.set(owner, {
       ...current,
@@ -417,43 +436,59 @@ function composeNativeCatalog(
     });
   }
 
-  const fragments = new Map<string, Readonly<ProfessionModuleCatalogFragment>>();
+  const fragments = new Map<
+    string,
+    Readonly<ProfessionModuleCatalogFragment>
+  >();
   for (const module of modules) {
     const moduleHandlers = new Map(
-      [...handlers].filter(([handlerId]) => handlerOwners.get(handlerId) === module.id),
+      [...handlers].filter(
+        ([handlerId]) => handlerOwners.get(handlerId) === module.id,
+      ),
     );
     const hands = new Map(
-      [...weaponHands].filter(([weapon]) => weaponHandOwners.get(weapon) === module.id),
+      [...weaponHands].filter(
+        ([weapon]) => weaponHandOwners.get(weapon) === module.id,
+      ),
     );
     const chains = chainContributions.get(module.id)!;
-    fragments.set(module.id, Object.freeze({
-      skills: Object.freeze(
-        catalog.skills.filter((skill) => skillOwners.get(skill.id) === module.id),
-      ),
-      skillHandlers: moduleHandlers,
-      traits: Object.freeze(
-        catalog.traits.filter((trait) => traits.owners.get(trait.id) === module.id),
-      ),
-      specializations: Object.freeze(
-        catalog.specializations.filter((specialization) =>
-          specializations.owners.get(specialization.id) === module.id
+    fragments.set(
+      module.id,
+      Object.freeze({
+        skills: Object.freeze(
+          catalog.skills.filter(
+            (skill) => skillOwners.get(skill.id) === module.id,
+          ),
         ),
-      ),
-      weapons: Object.freeze(
-        [...weapons].filter((weapon) =>
-          modules.find((candidate) => candidate.id === module.id)?.data.weapons
-            ?.includes(weapon)
+        skillHandlers: moduleHandlers,
+        traits: Object.freeze(
+          catalog.traits.filter(
+            (trait) => traits.owners.get(trait.id) === module.id,
+          ),
         ),
-      ),
-      weaponHands: hands,
-      autoattackChains: Object.freeze(chains),
-      ...(module.id === "Core"
-        ? {
-            skillNameCollision: options?.skillNameCollision,
-            skillNameOverrides: options?.skillNameOverrides,
-          }
-        : {}),
-    } as ProfessionModuleCatalogFragment));
+        specializations: Object.freeze(
+          catalog.specializations.filter(
+            (specialization) =>
+              specializations.owners.get(specialization.id) === module.id,
+          ),
+        ),
+        weapons: Object.freeze(
+          [...weapons].filter((weapon) =>
+            modules
+              .find((candidate) => candidate.id === module.id)
+              ?.data.weapons?.includes(weapon),
+          ),
+        ),
+        weaponHands: hands,
+        autoattackChains: Object.freeze(chains),
+        ...(module.id === "Core"
+          ? {
+              skillNameCollision: options?.skillNameCollision,
+              skillNameOverrides: options?.skillNameOverrides,
+            }
+          : {}),
+      } as ProfessionModuleCatalogFragment),
+    );
   }
   return Object.freeze({ catalog, fragments, skillOwners });
 }
@@ -465,10 +500,11 @@ export function getNativeCatalogAssembly(
   const first = modules[0];
   if (!first) throw new TypeError("A native profession requires modules.");
   const cached = assemblyCache.get(first) || [];
-  const match = cached.find((entry) =>
-    entry.options === options &&
-    entry.modules.length === modules.length &&
-    entry.modules.every((module, index) => module === modules[index])
+  const match = cached.find(
+    (entry) =>
+      entry.options === options &&
+      entry.modules.length === modules.length &&
+      entry.modules.every((module, index) => module === modules[index]),
   );
   if (match) return match.assembly;
   const assembly = composeNativeCatalog(modules, options);
@@ -490,5 +526,8 @@ export function nativeSkillRuntimeOwner(
   skill: Skill,
   options?: NativeCatalogOptions,
 ): string {
-  return getNativeCatalogAssembly(modules, options).skillOwners.get(skill.id) || "Core";
+  return (
+    getNativeCatalogAssembly(modules, options).skillOwners.get(skill.id) ||
+    "Core"
+  );
 }

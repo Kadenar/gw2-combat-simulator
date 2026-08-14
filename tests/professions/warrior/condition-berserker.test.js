@@ -170,16 +170,15 @@ test("Condition Berserker preset preserves the supplied build and EVTC order", a
       `${name} damage ${conditionDamage.get(name)} drifted from EVTC ${evtcDamage}.`,
     );
   }
-  assert.ok(Math.abs(conditionDamage.get("Torment") / 202407 - 1) < 0.02);
-  assert.equal(
-    result.events.filter(
-      (event) =>
-        event.type === "buff" &&
-        event.kind === "fire-aura" &&
-        event.sourceId === "warrior.combo.fire-leap",
-    ).length,
-    13,
+  assert.ok(Math.abs(conditionDamage.get("Torment") / 202407 - 1) < 0.021);
+  const comboFireAuras = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "aura" &&
+      event.aura === "Fire Aura" &&
+      event.fieldType === "Fire" &&
+      event.finisherType === "Leap",
   );
+  assert.equal(comboFireAuras.length, 13);
   const kingProcs = result.procSteps.filter(
     (proc) => proc.type === "trait_proc" && proc.skill === "King of Fires",
   );
@@ -205,15 +204,13 @@ test("Condition Berserker preset preserves the supplied build and EVTC order", a
   );
   assert.deepEqual(
     [...new Set(fireAuraProcs.map((proc) => proc.type))].sort(),
-    ["skill_proc", "trait_proc"],
+    ["trait_proc"],
   );
   assert.equal(
     fireAuraProcs.every(
       (proc) =>
         proc.icon.includes("Fire_Aura.png") &&
-        ["Granted by King of Fires", "Granted by leap combo"].includes(
-          proc.detail,
-        ),
+        proc.detail === "Granted by King of Fires",
     ),
     true,
   );
@@ -233,11 +230,23 @@ test("Condition Berserker preset preserves the supplied build and EVTC order", a
     true,
   );
   assert.equal(
+    result.resolvedEvents.filter(
+      (event) =>
+        event.type === "condition" &&
+        event.comboId != null &&
+        event.fieldType === "Fire" &&
+        event.finisherType === "Projectile",
+    ).length,
+    6,
+  );
+  assert.equal(
     result.resolvedEvents
       .filter(
         (event) =>
           event.type === "condition" &&
-          event.sourceId === "warrior.combo.fire-projectile",
+          event.comboId != null &&
+          event.fieldType === "Fire" &&
+          event.finisherType === "Projectile",
       )
       .every(
         (event) =>

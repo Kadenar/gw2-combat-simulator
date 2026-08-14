@@ -376,11 +376,6 @@ function onCastStart(
     ) {
       cancelActivationEffects(context, recent.activationId, context.start);
       state.cancelledFamiliarActivations[context.reservationId] = true;
-      const core = elementalistCoreState(context as unknown as SchedulerRecord);
-      core.activeComboFields = core.activeComboFields.filter(
-        (field) =>
-          field.skillName !== empoweredSkill || field.startsAt < context.start,
-      );
       state.lastEmpoweredFamiliarByBasic[skill.name] = null;
     }
   }

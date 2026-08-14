@@ -123,7 +123,6 @@ export interface RangerCoreState {
   petAutoTaskId: string;
   petCommandReadyAt: number;
   petCommandDelays: Record<string, number>;
-  comboProjectileFinisherProgress: number;
 }
 
 export interface DruidState {

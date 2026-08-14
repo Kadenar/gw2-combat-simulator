@@ -6,6 +6,8 @@ import {
 } from "../../data/ids.js";
 import type {
   WarriorCastContext,
+  WarriorResolverContext,
+  WarriorResolverEvent,
   WarriorSchedulerContext,
   WarriorSimulationEvent,
   WarriorSkill,
@@ -155,111 +157,6 @@ function isBerserkerSkill(skill: WarriorSkill): boolean {
   );
 }
 
-function activeComboField(
-  context: WarriorSchedulerContext,
-  type: string,
-  at: number,
-): boolean {
-  return context.events.some((event) => {
-    if (
-      event.type !== "action" ||
-      event.cancelled === true ||
-      Number(event.endsAt) > at + context.epsilon ||
-      event.skillId == null
-    ) {
-      return false;
-    }
-    const field = context.catalog.skillsById.get(event.skillId);
-    return (
-      String(field?.comboField || "").toLowerCase() === type.toLowerCase() &&
-      Number(field?.duration || 0) > 0 &&
-      Number(event.endsAt) + Number(field?.duration || 0) >=
-        at - context.epsilon
-    );
-  });
-}
-
-function isFireLeapFinisher(
-  context: WarriorSchedulerContext,
-  event: WarriorSimulationEvent,
-): boolean {
-  const skill =
-    event.skillId == null
-      ? null
-      : context.catalog.skillsById.get(event.skillId);
-  const finisherType = String(
-    event.finisherType || skill?.finisherType || "",
-  ).toLowerCase();
-  const finisherValue = Number(
-    event.finisherValue ?? skill?.finisherValue ?? 0,
-  );
-  const action = context.events.find(
-    (candidate) =>
-      candidate.type === "action" &&
-      candidate.activationId === event.activationId,
-  );
-  const comboAt = Number(action?.at ?? event.at);
-  return (
-    finisherType === "leap" &&
-    finisherValue > 0 &&
-    activeComboField(context, "Fire", comboAt)
-  );
-}
-
-function applyFireProjectileFinisher(
-  context: WarriorSchedulerContext,
-  event: WarriorSimulationEvent,
-): void {
-  const skill =
-    event.skillId == null
-      ? null
-      : context.catalog.skillsById.get(event.skillId);
-  const finisherType = String(
-    event.finisherType || skill?.finisherType || "",
-  ).toLowerCase();
-  const chance = Math.max(
-    0,
-    Math.min(1, Number(event.finisherValue ?? skill?.finisherValue ?? 0)),
-  );
-  if (
-    finisherType !== "projectile" ||
-    chance <= 0 ||
-    !activeComboField(context, "Fire", event.at)
-  ) {
-    return;
-  }
-
-  const state = berserkerState.from(context);
-  let triggered = chance >= 1;
-  if (context.config.randomness?.mode === "stochastic") {
-    const policy = context.schedulerPolicy as unknown as {
-      rollRandom(probability: number, stream?: string): boolean;
-    };
-    triggered = policy.rollRandom(chance, "warrior.combo.fire-projectile");
-  } else if (chance < 1) {
-    state.fireProjectileFinisherProgress += chance;
-    if (state.fireProjectileFinisherProgress >= 1 - context.epsilon) {
-      state.fireProjectileFinisherProgress -= 1;
-      triggered = true;
-    }
-  }
-  if (!triggered) return;
-
-  context.emitDerived(event, {
-    type: "condition",
-    at: event.at,
-    source: "Combo",
-    sourceId: "warrior.combo.fire-projectile",
-    actorType: "player",
-    skillId: event.skillId,
-    skillName: event.skillName,
-    name: "Fire Combo — Burning",
-    condition: "Burning",
-    stacks: 1,
-    duration: 1,
-  });
-}
-
 function emitFireAura(
   context: WarriorSchedulerContext,
   event: WarriorSimulationEvent,
@@ -320,6 +217,13 @@ export function observeBerserkerEvent(
   context: WarriorSchedulerContext,
   event: WarriorSimulationEvent,
 ): void {
+  if (event.type === "aura" && event.aura === "Fire Aura") {
+    berserkerState.from(context).fireAuraUntil = Math.max(
+      berserkerState.from(context).fireAuraUntil,
+      event.at + Number(event.duration || 0),
+    );
+    return;
+  }
   if (
     event.type !== "damage" ||
     event.actorType !== "player" ||
@@ -327,7 +231,6 @@ export function observeBerserkerEvent(
   ) {
     return;
   }
-  applyFireProjectileFinisher(context, event);
   if (!hasTrait(context, TRAIT.KING_OF_FIRES)) return;
   context.tasks.schedule({
     type: "warrior.king-of-fires-hit",
@@ -336,6 +239,17 @@ export function observeBerserkerEvent(
     payload: { eventOrder: Number(event.__order) },
     required: true,
   });
+}
+
+export function reactToBerserkerAura(
+  context: WarriorResolverContext,
+  event: WarriorResolverEvent,
+): void {
+  if (event.aura !== "Fire Aura") return;
+  berserkerState.from(context).fireAuraUntil = Math.max(
+    berserkerState.from(context).fireAuraUntil,
+    event.at + Number(event.duration || 0),
+  );
 }
 
 export function handleKingOfFiresHitTask(
@@ -347,10 +261,6 @@ export function handleKingOfFiresHitTask(
     (candidate) => candidate.__order === Number(payload?.eventOrder),
   ) as WarriorSimulationEvent | undefined;
   if (!event) return;
-
-  if (isFireLeapFinisher(context, event)) {
-    emitFireAura(context, event, "Combo");
-  }
 
   const state = berserkerState.from(context);
   if (

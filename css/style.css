@@ -8684,7 +8684,13 @@ body[data-profession] .rotation-section {
 @media (min-width: 1101px) {
   .simulation-workspace .perma-section {
     position: sticky;
-    top: 92px;
+    top: calc(var(--profession-header-height, 112px) + 12px);
+  }
+
+  .perma-panel {
+    /* Include the workspace's trailing gap so its bottom edge cannot push the
+       sticky heading underneath the header at the end of the page. */
+    max-height: calc(100vh - var(--profession-header-height, 112px) - 36px);
   }
 }
 

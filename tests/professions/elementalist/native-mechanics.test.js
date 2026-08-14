@@ -162,8 +162,8 @@ test("Catalyst mechanics execute through native hooks", () => {
   assert.equal(
     resolvedAndScheduledEvents(result).some(
       (event) =>
-        event.type === "elementalist.combo" &&
-        event.field === "Fire" &&
+        event.type === "combo" &&
+        event.fieldType === "Fire" &&
         event.finisherType === "Blast",
     ),
     true,

@@ -324,7 +324,7 @@ function onEventScheduled(
     }
     return;
   }
-  if (event.type === "elementalist.combo") {
+  if (event.type === "combo") {
     const attunement = String(
       event.attunement || core.primaryAttunement,
     ) as ElementalistAttunement;

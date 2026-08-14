@@ -1,4 +1,5 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
+import { observeLegacyProfessionCombos } from "../../../platform/gw2/legacy-combo-adapter.js";
 /**
  * @fileoverview Composes Revenant Energy, weapon, trait, and upkeep
  * callbacks into the cast and scheduler contracts used by the shared engine.
@@ -85,6 +86,10 @@ function onEventScheduled(
   context: RevenantSchedulerContext,
   event: RevenantSimulationEvent,
 ): void {
+  observeLegacyProfessionCombos(context, event, {
+    ownerId: "revenant",
+    ambiguousFieldSelection: "oldest",
+  });
   observeRevenantSpearEvent(context, event);
   observeRevenantEvent(context, event);
 }

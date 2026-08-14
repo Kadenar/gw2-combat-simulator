@@ -19,6 +19,7 @@ import { WEAPON_DATA } from "./gear-data.js";
 import { createGw2CombatQuery, selectedGw2TraitValues } from "./query.js";
 import { gw2WeaponStrength } from "./runtime-rules.js";
 import { createGw2SchedulerPolicy } from "./scheduler/policy.js";
+import { isSchedulerComboPrediction } from "./combo-events.js";
 import { isSchedulerSigilPrediction } from "./sigil-proc-events.js";
 import { canonicalTargetConditionName } from "./target-state.js";
 import type {
@@ -134,7 +135,9 @@ function simulateDeclarativeGw2Pass({
   const resolverStream = {
     ...scheduled.stream,
     events: scheduled.stream.events.filter(
-      (event) => !isSchedulerSigilPrediction(event),
+      (event) =>
+        !isSchedulerSigilPrediction(event) &&
+        !isSchedulerComboPrediction(event),
     ),
   };
   const extensions = createGw2ResolverExtensions({
@@ -207,7 +210,7 @@ function simulateDeclarativeGw2Pass({
     snapshot: scheduled.snapshot,
     // Preserve phase order so scheduling diagnostics appear before resolution
     // diagnostics in the UI.
-    warnings: [...scheduled.warnings, ...resolved.warnings],
+    warnings: [...new Set([...scheduled.warnings, ...resolved.warnings])],
   };
 }
 

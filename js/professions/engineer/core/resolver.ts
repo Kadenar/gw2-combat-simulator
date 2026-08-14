@@ -2,6 +2,7 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
 import { clamp } from "../../../platform/gw2/numeric.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
+import { legacyComboBindingForOwner } from "../../../platform/gw2/legacy-combo-adapter.js";
 import {
   ENGINEER_SKILL_IDS as ID,
   ENGINEER_TRAIT_IDS as TRAIT,
@@ -68,9 +69,6 @@ function handleEngineerState(
   const specialization = context.profession.specialization.state;
   const preserved = {
     traitProcReadyAt: core.traitProcReadyAt || {},
-    activeComboFields: core.activeComboFields || [],
-    completedBlastFinisherActivations:
-      core.completedBlastFinisherActivations || {},
   };
   for (const [key, value] of Object.entries(event.state || {})) {
     const owner = Object.hasOwn(specialization, key) ? specialization : core;
@@ -95,7 +93,7 @@ export function queueDamage(
     weaponStrengthProfileId,
   }: QueueDamageOptions,
 ): void {
-  enqueueOrdered(context.queue, {
+  const damage = enqueueOrdered(context.queue, {
     type: "damage",
     at,
     name,
@@ -117,37 +115,27 @@ export function queueDamage(
     ...(weaponStrengthProfileId == null ? {} : { weaponStrengthProfileId }),
     triggeredBy: event.skillName,
   });
-}
-
-function handleEngineerComboField(
-  context: EngineerResolverContext,
-  event: EngineerResolverEvent,
-): void {
-  const state = professionCoreState(context);
-  const fields = state.activeComboFields || [];
-  state.activeComboFields = fields
-    .filter((field) => Number(field.expiresAt || 0) >= event.at)
-    .concat({
-      startsAt: event.at,
-      expiresAt: Number(event.expiresAt || event.at),
-      fieldType: event.fieldType,
-      skillId: event.skillId,
-      skillName: event.skillName,
+  const binding = blastFinisher
+    ? legacyComboBindingForOwner(context.combo, "engineer", at, "oldest")
+    : null;
+  if (binding) {
+    enqueueOrdered(context.queue, {
+      type: "combo_finisher",
+      at,
+      effectAt: at,
+      source: damage.source,
+      sourceId: damage.sourceId,
+      actorType: damage.actorType,
+      skillId: damage.skillId,
+      skillName: damage.skillName,
+      attemptId: `${event.activationId || event.sourceId}:${name}:blast`,
+      finisherType: "Blast",
+      fieldBinding: binding,
+      chance: 1,
+      applications: 1,
+      successfulCombos: 1,
     });
-}
-
-function hasActiveEngineerComboField(
-  context: EngineerResolverContext,
-  at: number,
-): boolean {
-  const state = professionCoreState(context);
-  state.activeComboFields = (state.activeComboFields || []).filter(
-    (field) => Number(field.expiresAt || 0) >= at,
-  );
-  return state.activeComboFields.some(
-    (field) =>
-      Number(field.startsAt || 0) <= at && Number(field.expiresAt || 0) >= at,
-  );
+  }
 }
 
 export function queueBuff(
@@ -374,39 +362,6 @@ function reactToEngineerDamage(
   const criticalChance = Number(
     details.hitContext?.critical?.chance ?? details.criticalChance ?? 0,
   );
-  const skill = resolverSkill(context, event.skillId);
-  const finisherType = event.finisherType || skill?.finisherType;
-  const finisherValue = Number(
-    event.finisherValue ?? skill?.finisherValue ?? 0,
-  );
-  const comboState = professionCoreState(context);
-  const activation = String(
-    event.activationId || `${event.skillId || event.sourceId}:${event.at}`,
-  );
-  if (
-    finisherType === "Blast" &&
-    finisherValue > 0 &&
-    hasActiveEngineerComboField(context, event.at) &&
-    !comboState.completedBlastFinisherActivations[activation]
-  ) {
-    comboState.completedBlastFinisherActivations[activation] = true;
-    const blastCount = Math.max(1, Math.trunc(finisherValue));
-    for (let blastIndex = 1; blastIndex <= blastCount; blastIndex += 1) {
-      enqueueOrdered(context.queue, {
-        type: "blast_combo",
-        at: event.at,
-        source: "engineer",
-        sourceId: event.sourceId,
-        actorType: "player",
-        skillId: event.skillId,
-        skillName: event.skillName,
-        name: `${event.skillName} — Blast Combo`,
-        blastIndex,
-        totalBlasts: blastCount,
-      } as unknown as EngineerResolverEvent);
-    }
-  }
-
   if (
     event.actorType === "player" &&
     hasTrait(context, TRAIT.EXPLOSIVE_ENTRANCE) &&
@@ -754,7 +709,6 @@ function handleRefractionCutterExtraBlades(
 
 export const engineerCoreResolverEventHandlers = Object.freeze({
   "engineer.state": handleEngineerState,
-  "engineer.combo-field": handleEngineerComboField,
   "engineer.dodge": handleEngineerDodge,
   "engineer.lightning-rod-pulse": handleLightningRodPulse,
   "engineer.conduit-surge": handleConduitSurge,

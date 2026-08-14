@@ -57,6 +57,9 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
     affinityOnHit: true,
     finisherType: "Whirl",
     finisherValue: 1,
+    comboFinishers: [
+      { finisherType: "Whirl", applications: 2, effectDelay: 0.04 },
+    ],
     effects: [],
     legendId: "LegendaryEntity",
   },
@@ -69,6 +72,9 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
     affinityOnHit: true,
     finisherType: "Whirl",
     finisherValue: 1,
+    comboFinishers: [
+      { finisherType: "Whirl", applications: 2, effectDelay: 0.04 },
+    ],
     effects: [],
     legendId: "LegendaryEntity",
   },

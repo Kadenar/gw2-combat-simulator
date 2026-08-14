@@ -2222,7 +2222,7 @@ test("Specter attribute, ally, and shadowstep traits resolve explicitly", () => 
   );
 });
 
-test("Spear slots 2 and 3 shift through lead, follow-up, and finisher skills", () => {
+test("Spear slots 2 and 3 expose and enforce their linked chain", () => {
   const chainSkills = [
     "Mantis Sting",
     "Entangling Asp",
@@ -2285,9 +2285,17 @@ test("Spear slots 2 and 3 shift through lead, follow-up, and finisher skills", (
       ["Shattering Assault", 3],
     ],
   );
-  assert.deepEqual(paletteAtStage(0), ["Mantis Sting", "Unsuspecting Strike"]);
-  assert.deepEqual(paletteAtStage(1), ["Entangling Asp", "Vampiric Slash"]);
-  assert.deepEqual(paletteAtStage(2), ["Falling Spider", "Shattering Assault"]);
+  const displayedChain = [
+    "Mantis Sting",
+    "Entangling Asp",
+    "Falling Spider",
+    "Unsuspecting Strike",
+    "Vampiric Slash",
+    "Shattering Assault",
+  ];
+  assert.deepEqual(paletteAtStage(0), displayedChain);
+  assert.deepEqual(paletteAtStage(1), displayedChain);
+  assert.deepEqual(paletteAtStage(2), displayedChain);
   assert.equal(
     thiefProfession.ui.paletteSkillAvailability(
       { professionState: { spearChainStage: 0 } },
@@ -2301,6 +2309,25 @@ test("Spear slots 2 and 3 shift through lead, follow-up, and finisher skills", (
       thiefCatalog.skillsByName.get("Entangling Asp"),
     ).available,
     true,
+  );
+
+  const spearConfig = {
+    primaryWeapon: "Spear",
+    secondaryWeapon: "",
+  };
+  const afterAutoattack = simulate("Core", ["Barbed Spear"], spearConfig);
+  assert.equal(afterAutoattack.endState.profession.spearChainStage, 0);
+  assert.equal(afterAutoattack.endState.profession.spearPreviousSkillId, null);
+
+  const afterLeadAndAutoattack = simulate(
+    "Core",
+    ["Mantis Sting", "Barbed Spear"],
+    spearConfig,
+  );
+  assert.equal(afterLeadAndAutoattack.endState.profession.spearChainStage, 1);
+  assert.equal(
+    afterLeadAndAutoattack.endState.profession.spearPreviousSkillId,
+    ID.MANTIS_STING,
   );
 });
 
