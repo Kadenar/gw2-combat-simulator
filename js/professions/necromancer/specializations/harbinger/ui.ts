@@ -79,6 +79,7 @@ export const harbingerUi: Partial<ProfessionUiContract> & SchedulerRecord =
         displayMode: "bar",
         shortLabel: "Blt",
         statusLabel: "Current",
+        showInPalette: false,
       },
       {
         id: "cascading-corruption",
@@ -96,6 +97,7 @@ export const harbingerUi: Partial<ProfessionUiContract> & SchedulerRecord =
         displayMode: "counter",
         shortLabel: "CC",
         statusLabel: "Current",
+        showInPalette: false,
       },
       ...necromancerSoulShardResourceViews(context),
     ],

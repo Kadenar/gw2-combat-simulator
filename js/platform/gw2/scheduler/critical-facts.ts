@@ -26,10 +26,12 @@ export function hasStochasticCriticalFood(config: Gw2Config): boolean {
  * consume that stored result instead of rerolling the hit.
  *
  * In deterministic mode, eligible critical-sigil hits add their critical
- * chance to a shared expected-proc accumulator. Crossing one emits a synthetic
- * critical cause and retains the fractional remainder, producing a stable
- * low-discrepancy sequence without random rolls. The original event is returned
- * because deterministic strikes do not receive a binary `didCrit` result.
+ * chance to a scheduler-side prediction accumulator. Crossing one emits a
+ * synthetic critical cause and retains the fractional remainder, producing a
+ * stable low-discrepancy sequence without random rolls. Resolver-owned sigils
+ * maintain separate causal progress from surviving damage packets. The
+ * original event is returned because deterministic strikes do not receive a
+ * binary `didCrit` result.
  *
  * This function only establishes whether the hit is a critical-sigil cause. It
  * does not check the active weapon set or individual sigil cooldowns; the sigil

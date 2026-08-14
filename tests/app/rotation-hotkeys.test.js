@@ -2,17 +2,21 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  ROTATION_HOTKEY_ENABLED_STORAGE_KEY,
   ROTATION_HOTKEY_STORAGE_KEY,
+  activeRotationHotkeyAction,
   defaultRotationHotkeyBindings,
   duplicateRotationHotkeyCodes,
   formatRotationHotkey,
   loadRotationHotkeyBindings,
+  loadRotationHotkeysEnabled,
   normalizeRotationHotkeyBindings,
   rotationHotkeyActionForCode,
   rotationHotkeyActionForSkillSlot,
   rotationLoadoutHotkeyActions,
   rotationUtilityHotkeyAction,
   saveRotationHotkeyBindings,
+  saveRotationHotkeysEnabled,
 } from "../../js/app/rotation/hotkeys.js";
 import { paletteSkillHtml } from "../../js/platform/ui/palette.js";
 
@@ -62,6 +66,25 @@ test("rotation hotkey overrides are normalized and persisted globally", () => {
   assert.deepEqual(loadRotationHotkeyBindings(storage), bindings);
 });
 
+test("rotation hotkeys require a persisted global opt-in", () => {
+  const values = new Map();
+  const storage = {
+    getItem(key) {
+      return values.get(key) ?? null;
+    },
+    setItem(key, value) {
+      values.set(key, value);
+    },
+  };
+
+  assert.equal(loadRotationHotkeysEnabled(storage), false);
+  saveRotationHotkeysEnabled(true, storage);
+  assert.equal(values.get(ROTATION_HOTKEY_ENABLED_STORAGE_KEY), "true");
+  assert.equal(loadRotationHotkeysEnabled(storage), true);
+  saveRotationHotkeysEnabled(false, storage);
+  assert.equal(loadRotationHotkeysEnabled(storage), false);
+});
+
 test("skill slots resolve to weapon, utility, and profession actions", () => {
   assert.equal(rotationHotkeyActionForSkillSlot("Weapon_3"), "weapon-3");
   assert.equal(
@@ -104,6 +127,24 @@ test("hotkey lookup, duplicate detection, and labels use keyboard codes", () => 
   assert.equal(formatRotationHotkey("KeyQ"), "Q");
   assert.equal(formatRotationHotkey("Numpad4"), "Numpad 4");
   assert.equal(formatRotationHotkey(""), "Unbound");
+});
+
+test("rotation keys are captured only while the rotation builder is active", () => {
+  const bindings = defaultRotationHotkeyBindings();
+  const f5 = {
+    code: "F5",
+    isComposing: false,
+    ctrlKey: false,
+    altKey: false,
+    metaKey: false,
+  };
+
+  assert.equal(activeRotationHotkeyAction(bindings, f5, false), null);
+  assert.equal(activeRotationHotkeyAction(bindings, f5, true), "profession-5");
+  assert.equal(
+    activeRotationHotkeyAction(bindings, { ...f5, ctrlKey: true }, true),
+    null,
+  );
 });
 
 test("palette skills expose their logical hotkey action", () => {

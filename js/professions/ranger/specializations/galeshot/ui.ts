@@ -6,6 +6,7 @@ import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { rangerUiState } from "../../core/ui.js";
 import type {
   PaletteSkillAvailability,
+  ProfessionPaletteGroup,
   ProfessionResourceView,
   ProfessionUiContract,
   SchedulerRecord,
@@ -88,13 +89,15 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord =
         color: "#67b4c4",
       },
     ],
-    paletteGroups: () => [
+    paletteGroups: (): ProfessionPaletteGroup[] => [
       {
         id: "ranger-galeshot-profession",
         label: "F5",
         skillIds: [ID.SUMMON_CYCLONE_BOW, ID.DISMISS_CYCLONE_BOW],
         color: "#67b4c4",
-        resourceAnchor: true,
+        className: "ranger-galeshot-f5",
+        resourceIds: ["arrows"],
+        resourcePlacement: "beside",
         stackId: GALESHOT_PALETTE_STACK,
       },
       {
@@ -102,6 +105,9 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord =
         label: "CB",
         skillIds: BOW_SKILLS,
         color: "#67b4c4",
+        className: "ranger-cyclone-bow-skills",
+        resourceIds: ["wind-force"],
+        resourcePlacement: "above",
         stackId: GALESHOT_PALETTE_STACK,
       },
     ],
@@ -131,6 +137,7 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord =
           step: 1,
           displayMode: "pips",
           pipStyle: "ranger-arrows",
+          showValue: false,
           shortLabel: "Arrows",
           statusLabel: "Current",
         },
@@ -145,6 +152,7 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord =
           canStart: false,
           displayMode: "pips",
           pipStyle: "ranger-wind-force",
+          showValue: false,
           shortLabel: "Wind Force",
           statusLabel: state.cycloneBowActive ? "Cyclone Bow" : "Inactive",
         },

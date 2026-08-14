@@ -16,7 +16,7 @@
         "label": "Power Alacrity (Sword / Sword)",
         "build": "Builds/revenant/b-power-alac-renegade-sword-sword.json",
         "rotation": "Rotations/revenant/r-power-alac-renegade-sword-sword-benchmark.json",
-        "benchmarkDps": 34194
+        "benchmarkDps": 34305
       },
       {
         "label": "Condition (Shortbow / Mace-Axe)",
@@ -74,7 +74,7 @@
         "label": "Condition (Mistfire)",
         "build": "Builds/revenant/b-condi-conduit-mistfire.json",
         "rotation": "Rotations/revenant/r-condi-conduit-mistfire-benchmark.json",
-        "benchmarkDps": 39937,
+        "benchmarkDps": 40004,
         "upToDate": true
       }
     ]

@@ -1,10 +1,16 @@
 import { enqueueOrdered } from "../../engine/event-queue.js";
+import { isInternalCooldownReady } from "../../engine/clock.js";
 import type { SchedulerRecord } from "../../engine/types.js";
 import { isGw2PlayerActorEvent } from "../event-ownership.js";
-import { FOOD_DATA, NOURISHMENT_ICON } from "../gear-data.js";
+import { FOOD_DATA, NOURISHMENT_ICON, SIGIL_PROCS } from "../gear-data.js";
 import { onResolvedPlayerCriticalHit } from "../native-mechanics.js";
 import { clamp } from "../numeric.js";
-import { gw2StatsForWeaponSet } from "../runtime-rules.js";
+import { gw2SigilSet, gw2StatsForWeaponSet } from "../runtime-rules.js";
+import {
+  createSigilConditionEvent,
+  createSigilStrikeEvent,
+  isResolverCriticalSigil,
+} from "../sigil-proc-events.js";
 import {
   handleBlastComboRelic,
   handleBoonRelics,
@@ -25,6 +31,7 @@ import type {
   Gw2ResolverReactionContributions,
   Gw2ResolverReactionRegistry,
   Gw2ResolverRuntime,
+  Gw2SigilProc,
 } from "../types.js";
 
 export const GW2_REACTION_ORDER = Object.freeze({
@@ -36,6 +43,8 @@ export const GW2_REACTION_ORDER = Object.freeze({
 });
 
 type Dispatch = Gw2ResolverReactionRegistry["dispatch"];
+
+const SIGIL_PROC_LOOKUP = SIGIL_PROCS as Readonly<Record<string, Gw2SigilProc>>;
 
 interface CriticalFoodEffect {
   readonly type: "boon" | "condition";
@@ -75,6 +84,75 @@ function criticalFoodProc(
   const proc = FOOD_DATA[String(ctx.config.food || "")]?.proc as
     CriticalFoodProc | undefined;
   return proc?.type === "critStrike" ? proc : undefined;
+}
+
+function isResolvedCriticalSigilCause(
+  ctx: Gw2ResolverRuntime,
+  event: Gw2ResolverEvent,
+  details: NativeResolvedDamageDetails,
+): boolean {
+  if (
+    !(Number(event.coefficient) > 0) &&
+    event.canTriggerCriticalSigils !== true
+  ) {
+    return false;
+  }
+  if (
+    !isGw2PlayerActorEvent(event) &&
+    event.canTriggerCriticalSigils !== true
+  ) {
+    return false;
+  }
+  const critical = details.hitContext?.critical;
+  if (!critical) return false;
+  if (ctx.random.stochastic) return critical.didCrit === true;
+  if (!(critical.chance > 0)) return false;
+  // Modifier sums can represent a displayed 58% chance as
+  // 0.5800000000000001. Normalize before accumulating so a proc threshold is
+  // determined by the modeled percentage rather than floating-point noise.
+  const normalizedChance = Math.round(critical.chance * 1e12) / 1e12;
+  ctx.sigil.criticalProgress += normalizedChance;
+  if (ctx.sigil.criticalProgress < 1) return false;
+  ctx.sigil.criticalProgress -= 1;
+  return true;
+}
+
+function createResolvedCriticalSigilEffects(
+  ctx: Gw2ResolverRuntime,
+  event: Gw2ResolverEvent,
+  details: NativeResolvedDamageDetails,
+): void {
+  const names = (
+    gw2SigilSet(ctx.config, ctx.activeWeaponSet).names || []
+  ).filter(isResolverCriticalSigil);
+  if (!names.length || !isResolvedCriticalSigilCause(ctx, event, details)) {
+    return;
+  }
+  const sourceSkill = event.skillName || "";
+  for (const name of names) {
+    const proc = SIGIL_PROC_LOOKUP[name];
+    const readyAt = ctx.sigil.readyAt.get(name) || 0;
+    if (
+      proc?.trigger !== "crit" ||
+      !isInternalCooldownReady(event.at, readyAt)
+    ) {
+      continue;
+    }
+    ctx.sigil.readyAt.set(name, event.at + proc.cooldown);
+    const effect =
+      proc.effect === "strike"
+        ? createSigilStrikeEvent(name, proc, sourceSkill)
+        : createSigilConditionEvent(name, proc, sourceSkill);
+    enqueueOrdered(ctx.queue, { ...effect, at: event.at } as Gw2ResolverEvent);
+    ctx.recordProc(
+      "sigil",
+      `Sigil of ${name}`,
+      event.at,
+      sourceSkill,
+      "",
+      String(proc.icon || ""),
+    );
+  }
 }
 
 function createCriticalFoodEffect(
@@ -216,6 +294,13 @@ export function createGw2EquipmentReactionContributions({
       },
     ],
     "damage.resolved": [
+      {
+        id: "sigil.critical-strike",
+        order: GW2_REACTION_ORDER.EARLY_COMMON,
+        handler(ctx, event, details = {}) {
+          createResolvedCriticalSigilEffects(ctx, event, details);
+        },
+      },
       {
         id: "relic.damage-resolved",
         order: GW2_REACTION_ORDER.COMMON,

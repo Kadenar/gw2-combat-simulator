@@ -43,6 +43,19 @@ const SHROUD_EXIT_IDS = new Set<SkillId>([
   ID.EXIT_HARBINGER_SHROUD,
   ID.EXIT_RITUALISTS_SHROUD,
 ]);
+const SHROUD_EXIT_ID_BY_SHROUD: Readonly<Record<string, SkillId>> =
+  Object.freeze({
+    death: ID.END_DEATH_SHROUD,
+    reaper: ID.EXIT_REAPERS_SHROUD,
+    harbinger: ID.EXIT_HARBINGER_SHROUD,
+    ritualist: ID.EXIT_RITUALISTS_SHROUD,
+  });
+const SHROUD_BY_EXIT_ID: Readonly<Record<SkillId, string>> = Object.freeze({
+  [ID.END_DEATH_SHROUD]: "death",
+  [ID.EXIT_REAPERS_SHROUD]: "reaper",
+  [ID.EXIT_HARBINGER_SHROUD]: "harbinger",
+  [ID.EXIT_RITUALISTS_SHROUD]: "ritualist",
+});
 const SHROUD_SKILL_BAR_IDS: Readonly<Record<string, readonly SkillId[]>> =
   Object.freeze({
     death: Object.freeze([
@@ -122,14 +135,6 @@ function shroudSkillIds(shroud: string): SkillId[] {
     .map((skill) => skill.id);
 }
 
-function activeShroudExitIds(context: NecromancerUiContext): SkillId[] {
-  const state = necromancerUiState(context);
-  return Object.entries(state.availableFlips || {})
-    .filter(([, expiresAt]) => Number(expiresAt) > 0)
-    .map(([id]) => Number(id))
-    .filter((id) => SHROUD_EXIT_IDS.has(id));
-}
-
 export function necromancerTransformSkillBarGroups(
   context: NecromancerUiContext,
   {
@@ -142,6 +147,7 @@ export function necromancerTransformSkillBarGroups(
     readonly professionSkillIds?: readonly SkillId[];
   },
 ): ProfessionSkillBarGroup[] {
+  const exitId = SHROUD_EXIT_ID_BY_SHROUD[String(shroud || "")];
   const groups: ProfessionSkillBarGroup[] = [
     {
       id: "necromancer-f-keys",
@@ -149,7 +155,7 @@ export function necromancerTransformSkillBarGroups(
       skillIds: [
         ...new Set([
           ...(entryId == null ? [] : [entryId]),
-          ...activeShroudExitIds(context),
+          ...(exitId == null ? [] : [exitId]),
           ...professionSkillIds,
         ]),
       ],
@@ -188,17 +194,18 @@ export function necromancerTransformPaletteGroups(
   },
 ): ProfessionPaletteGroup[] {
   const state = necromancerUiState(context);
-  const exitIds = activeShroudExitIds(context);
+  const exitId = SHROUD_EXIT_ID_BY_SHROUD[String(shroud || "")];
   const groups: ProfessionPaletteGroup[] = [
     {
       id: "profession",
       label: "F",
       skillIds: [
         ...(entryId == null ? [] : [entryId]),
-        ...exitIds,
+        ...(exitId == null ? [] : [exitId]),
         ...professionSkillIds,
       ],
       color: "#57a86b",
+      className: "compact-resource-palette necromancer-f-skills",
       resourceAnchor: true,
       stackId,
     },
@@ -301,6 +308,16 @@ function necromancerCorePaletteAvailability(
     return {
       available: false,
       message: "Exit the current transform first",
+    };
+  }
+  if (SHROUD_EXIT_IDS.has(skill.id)) {
+    const requiredShroud = SHROUD_BY_EXIT_ID[skill.id];
+    const available = active === requiredShroud;
+    return {
+      available,
+      message: available
+        ? ""
+        : `Enter ${SHROUD_SKILL_BAR_LABELS[requiredShroud] || "Shroud"} first`,
     };
   }
   return { available: true, message: "" };
@@ -425,6 +442,7 @@ function necromancerCoreResourceViews(
       buildKey: "initialResource",
       step: 1,
       displayMode: "bar",
+      pipStyle: "compact-profession-resource-necromancer-life-force",
       shortLabel: "LF",
       statusLabel: "Current",
     },

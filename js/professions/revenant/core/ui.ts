@@ -1,10 +1,6 @@
 import { flattenProfessionState } from "../../../platform/engine/profession.js";
-import {
-  SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-} from "../../../app/simulation/randomness.js";
-import {
-  REVENANT_SKILL_IDS as SKILL,
-} from "../data/ids.js";
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from "../../../app/simulation/randomness.js";
+import { REVENANT_SKILL_IDS as SKILL } from "../data/ids.js";
 import { getActiveTraits } from "../data/traits-data.js";
 import { revenantLegend, revenantLegendLoadout } from "../legend-loadout.js";
 import { effectiveRevenantEnergyCost } from "./energy.js";
@@ -35,9 +31,7 @@ export function revenantUiSpecialization(
   return context.specialization || context.config?.specialization || "Core";
 }
 
-export function activeRevenantLegend(
-  context: RevenantUiContext = {},
-): string {
+export function activeRevenantLegend(context: RevenantUiContext = {}): string {
   return (
     revenantUiState(context).activeLegendId ||
     context.build?.startingLegend ||
@@ -136,8 +130,7 @@ export function revenantCorePaletteSkillAvailability(
   const cost = effectiveEnergyCost(context, skill);
   const onCooldown =
     Number(context.cooldowns?.[skill.name]?.remaining || 0) > 0;
-  const available =
-    !Number.isFinite(energy) || energy >= cost || onCooldown;
+  const available = !Number.isFinite(energy) || energy >= cost || onCooldown;
   return {
     available,
     message:
@@ -158,38 +151,44 @@ export const revenantCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
     },
     slotLoadout: revenantLegendLoadout,
     timelineSkillIcon: revenantTimelineSkillIcon,
-    paletteGroups: (context: RevenantUiContext) => [{
-      id: "revenant-profession",
-      label: "F",
-      skillIds: [SKILL.ANCIENT_ECHO],
-      skillEntries: revenantLegendLoadout.view(context).bars.map((bar) => ({
-        skillId: -4,
-        displayName: bar.compactLabel,
-        fullDisplayName: bar.label,
-        icon: revenantLegend(bar.id)?.icon || "",
-        paletteLegendId: bar.id,
-      })),
-      color: "#a84f54",
-      resourceAnchor: true,
-    }],
+    paletteGroups: (context: RevenantUiContext) => [
+      {
+        id: "revenant-profession",
+        label: "F",
+        skillIds: [SKILL.ANCIENT_ECHO],
+        skillEntries: revenantLegendLoadout.view(context).bars.map((bar) => ({
+          skillId: -4,
+          displayName: bar.compactLabel,
+          fullDisplayName: bar.label,
+          icon: revenantLegend(bar.id)?.icon || "",
+          paletteLegendId: bar.id,
+        })),
+        color: "#a84f54",
+        className: "revenant-f-skills",
+        resourceAnchor: true,
+      },
+    ],
     paletteSkillAvailability: revenantCorePaletteSkillAvailability,
     resourceViews: (context: RevenantUiContext) => {
       const state = revenantUiState(context);
-      return [{
-        id: "energy",
-        singular: "energy",
-        plural: "energy",
-        maximum: 100,
-        value: Number(state.energy ?? context.initialEnergy ?? 50),
-        startMaximum: 100,
-        startValue: Number(context.initialEnergy ?? 50),
-        canStart: true,
-        buildKey: "initialEnergy",
-        step: 1,
-        displayMode: "bar",
-        shortLabel: "E",
-        statusLabel: "Current",
-      }];
+      return [
+        {
+          id: "energy",
+          singular: "energy",
+          plural: "energy",
+          maximum: 100,
+          value: Number(state.energy ?? context.initialEnergy ?? 50),
+          startMaximum: 100,
+          startValue: Number(context.initialEnergy ?? 50),
+          canStart: true,
+          buildKey: "initialEnergy",
+          step: 1,
+          displayMode: "bar",
+          pipStyle: "compact-profession-resource-revenant-energy",
+          shortLabel: "E",
+          statusLabel: "Current",
+        },
+      ];
     },
     eventLogRow: revenantEventLogRow,
   });

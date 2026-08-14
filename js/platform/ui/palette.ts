@@ -35,7 +35,16 @@ export function paletteView(
     color: String(group.color || ""),
     className: String(group.className || ""),
     stackId: String(group.stackId || ""),
+    placement:
+      group.placement === "weapon-set-1" ? "weapon-set-1" : "profession",
     resourceAnchor: Boolean(group.resourceAnchor),
+    resourceIds: (group.resourceIds || []).map(String),
+    resourcePlacement:
+      group.resourcePlacement === "above" ||
+      group.resourcePlacement === "beside" ||
+      group.resourcePlacement === "below"
+        ? group.resourcePlacement
+        : "below",
     includeActionSkills: Boolean(group.includeActionSkills),
     statusIcon: group.statusIcon
       ? {

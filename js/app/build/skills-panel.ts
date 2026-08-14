@@ -22,6 +22,13 @@ function requiredElement(id: string): HTMLElement {
   return element;
 }
 
+export function weaponSetLabelVisible(
+  professionId: string,
+  hasSecondWeaponSet: boolean,
+): boolean {
+  return hasSecondWeaponSet || professionId === "engineer";
+}
+
 /**
  * @param {ProfessionAppState} app
  * @param {string} type
@@ -178,12 +185,16 @@ function multiSelectionInspectionGroupHtml(
           }
         : selectedSkill;
       if (!display || !options.length) return "";
-      const selectionSlot = `<div class="skill-bar-inspection-slot selectable"
+      const labeled = Boolean(selection.keyLabel || selection.typeLabel);
+      const selectionSlot = `<div class="skill-bar-inspection-slot selectable${labeled ? " labeled-skill-bar-slot" : ""}"
           data-selection-key="${esc(selection.selectionKey)}"
           data-selection-index="${selection.selectionIndex}">
           <div class="sbar-icon" title="${esc(`${display.name}\n${gw2ApiText(display.description)}`)}">
               <img src="${esc(display.icon || "")}" alt="">
+              ${labeled ? '<span class="sbar-icon-arrow" aria-hidden="true">&#9660;</span>' : ""}
           </div>
+          ${selection.keyLabel ? `<span class="skill-bar-key">${esc(selection.keyLabel)}</span>` : ""}
+          ${selection.typeLabel ? `<span class="skill-bar-type">${esc(selection.typeLabel)}</span>` : ""}
           <div class="sbar-arrow">&#9660;</div>
           <div class="sbar-dropdown">${
             selection.filterPlaceholder
@@ -267,21 +278,74 @@ export function renderSkills(app: ProfessionAppState): void {
   };
   const set1Skills = skillsForSet(app.build.weapons);
   const set2Skills = skillsForSet(app.build.alternateWeapons);
-  const weaponIcon = (skill: Skill, chained = false): string =>
-    `<div class="wskill ${chained ? "chain-skill" : "main"}" title="${esc(skill.name)}\n${esc(gw2ApiText(skill.description))}">
-            <img src="${esc(skill.icon)}" alt="">${skill.variantBadge ? `<span class="skill-variant-badge wskill-variant-badge">${esc(skill.variantBadge)}</span>` : ""}<span class="wslot-num">${esc(String(skill.slot).replace("Weapon_", ""))}</span>
-        </div>`;
-  const weaponSlots = (
-    skills: readonly Skill[],
-    flattenSameSlots = false,
+  const skillBarGroups =
+    app.profession.ui.skillBarGroups?.({
+      build: app.build,
+      specialization: spec,
+      catalog: app.profession.catalog,
+      professionState: app.results?.endState?.profession,
+    }) || [];
+  const weaponBarGroups = skillBarGroups.filter(
+    (group) => group.placement === "weapon-bar",
+  );
+  const inspectionGroups = skillBarGroups.filter(
+    (group) => group.placement !== "weapon-bar",
+  );
+  const separateWeaponChains = document.body.classList.contains(
+    "profession-loadout-theme",
+  );
+  const weaponIcon = (
+    skill: Skill,
+    chained = false,
+    displaySlot?: string | number,
+  ): string =>
+    `<div class="weapon-skill-frame${chained ? " chain-skill-frame" : ""}">
+      <div class="wskill ${chained ? "chain-skill" : "main"}" title="${esc(skill.name)}\n${esc(gw2ApiText(skill.description))}">
+        <img src="${esc(skill.icon)}" alt="">${skill.variantBadge ? `<span class="skill-variant-badge wskill-variant-badge">${esc(skill.variantBadge)}</span>` : ""}
+      </div>
+      <span class="wslot-num">${esc(String(displaySlot ?? skill.slot).replace("Weapon_", ""))}</span>
+    </div>`;
+  const weaponStacks = (
+    stacks: readonly (readonly Skill[])[],
+    separateChains = false,
+    sequentialSlots = false,
   ): string => {
-    return weaponBarSkillStacks(skills, flattenSameSlots)
+    if (separateChains) {
+      return `<div class="weapon-primary-skills">${stacks
+        .map((slotSkills, index) => {
+          const followupSkills = slotSkills.slice(1);
+          return `<div class="weapon-slot${followupSkills.length ? " has-followups" : ""}">
+              ${weaponIcon(slotSkills[0], false, sequentialSlots ? index + 1 : undefined)}
+              ${
+                followupSkills.length
+                  ? `<div class="weapon-followups">
+                      ${followupSkills
+                        .map(
+                          (skill) =>
+                            `<div class="weapon-chain-step">
+                              <span class="weapon-chain-arrow" aria-hidden="true">↓</span>
+                              ${weaponIcon(skill, true)}
+                            </div>`,
+                        )
+                        .join("")}
+                    </div>`
+                  : ""
+              }
+            </div>`;
+        })
+        .join("")}</div>`;
+    }
+    return stacks
       .map(
-        (slotSkills) =>
+        (slotSkills, slotIndex) =>
           `<div class="weapon-slot">${slotSkills
             .map((skill, index) =>
               index === 0
-                ? weaponIcon(skill)
+                ? weaponIcon(
+                    skill,
+                    false,
+                    sequentialSlots ? slotIndex + 1 : undefined,
+                  )
                 : `<div class="weapon-chain-step">
               <span class="weapon-chain-arrow" aria-hidden="true">↳</span>
               ${weaponIcon(skill, true)}
@@ -291,36 +355,74 @@ export function renderSkills(app: ProfessionAppState): void {
       )
       .join("");
   };
+  const weaponSlots = (
+    skills: readonly Skill[],
+    flattenSameSlots = false,
+    separateChains = false,
+  ): string =>
+    weaponStacks(
+      weaponBarSkillStacks(skills, flattenSameSlots),
+      separateChains,
+    );
   const weaponSetPreview = (
     setNumber: number,
     skills: readonly Skill[],
+    weapons: readonly string[],
   ): string => {
     const groups = groupWeaponSkillsByAttunement(skills, spec);
+    const weaponNames = weapons.filter(Boolean).join(" / ");
+    const setLabel = `<span class="weapon-set-number">Set ${setNumber}</span><span class="weapon-set-name">${esc(weaponNames)}</span>`;
+    const showSetLabel = weaponSetLabelVisible(
+      app.profession.id,
+      hasSecondWeaponSet,
+    );
     if (groups.length === 1 && groups[0].attunement == null) {
-      const label = hasSecondWeaponSet
-        ? `<span class="weapon-set-preview-label">Set ${setNumber}</span>`
+      const label = showSetLabel
+        ? `<span class="weapon-set-preview-label">${setLabel}</span>`
         : "";
-      return `<div class="weapon-set-preview">${label}${weaponSlots(skills)}</div>`;
+      return `<div class="weapon-set-preview">${label}${weaponSlots(skills, false, separateWeaponChains)}</div>`;
     }
     return `<div class="weapon-set-preview-group" data-weapon-set="${setNumber}">
-        ${hasSecondWeaponSet ? `<span class="weapon-set-preview-group-label">Set ${setNumber}</span>` : ""}
+        ${showSetLabel ? `<span class="weapon-set-preview-group-label">${setLabel}</span>` : ""}
         ${groups
-          .map(
-            ({ attunement, skills: attunementSkills }) =>
-              `<div class="weapon-set-preview weapon-attunement-preview" data-attunement="${esc(String(attunement))}">
-                <span class="weapon-set-preview-label">${esc(String(attunement))}</span>${weaponSlots(attunementSkills, attunement === "Dual")}
-              </div>`,
-          )
+          .map(({ attunement, skills: attunementSkills }) => {
+            const attunementSkill = app.skillByName.get(
+              `${String(attunement)} Attunement`,
+            );
+            return `<div class="weapon-set-preview weapon-attunement-preview" data-attunement="${esc(String(attunement))}">
+                <span class="weapon-set-preview-label">${
+                  attunementSkill?.icon
+                    ? `<img src="${esc(attunementSkill.icon)}" alt="">`
+                    : ""
+                }<span>${esc(String(attunement))}</span></span>${weaponSlots(attunementSkills, attunement === "Dual", true)}
+              </div>`;
+          })
           .join("")}
       </div>`;
   };
+  const mechanicWeaponPreview = (group: ProfessionSkillBarGroup): string => {
+    const skills = group.skillIds
+      .map((id) => app.skillById.get(Number(id)))
+      .filter((skill): skill is Skill => skill != null);
+    if (!skills.length) return "";
+    const stacks = skillBarInspectionStacks(skills).map(
+      ({ root, children }) => [root, ...children],
+    );
+    return `<div class="weapon-set-preview profession-weapon-set-preview${
+      group.className ? ` ${esc(group.className)}` : ""
+    }" data-weapon-bar-group="${esc(group.id)}">
+        <span class="weapon-set-preview-label"><span class="weapon-set-number">${esc(group.label)}</span></span>
+        ${weaponStacks(stacks, false, true)}
+      </div>`;
+  };
   requiredElement("weapon-bar").innerHTML = `
-            ${weaponSetPreview(1, set1Skills)}
+            ${weaponSetPreview(1, set1Skills, app.build.weapons)}
             ${
               hasSecondWeaponSet && app.build.alternateWeapons[0]
-                ? weaponSetPreview(2, set2Skills)
+                ? weaponSetPreview(2, set2Skills, app.build.alternateWeapons)
                 : ""
-            }`;
+            }
+            ${weaponBarGroups.map(mechanicWeaponPreview).join("")}`;
 
   if (app.adapter.slotLoadout) {
     renderFixedSlotLoadout(app, spec);
@@ -334,11 +436,13 @@ export function renderSkills(app: ProfessionAppState): void {
     ["Elite", "Elite"],
   ];
   const selectedSkillBarHtml = slots
-    .map(([key, type]) => {
+    .map(([key, type], index) => {
       const current = app.skillByName.get(app.build.selectedSkills[key]);
       const display = skillBarDisplaySkill(app, current);
       return `<div class="skill-bar-slot ${type === "Heal" ? "heal-border" : type === "Elite" ? "elite-border" : ""}" data-key="${key}">
-                <div class="sbar-icon" title="${esc(display?.displayName || display?.name || "Choose skill")}"><img src="${esc(display?.icon || "")}" alt=""></div>
+                <div class="sbar-icon" title="${esc(display?.displayName || display?.name || "Choose skill")}"><img src="${esc(display?.icon || "")}" alt=""><span class="sbar-icon-arrow" aria-hidden="true">▼</span></div>
+                <span class="skill-bar-key">${index + 1}</span>
+                <span class="skill-bar-type">${esc(type)}</span>
                 <div class="sbar-arrow">▼</div>
                 <div class="sbar-dropdown">${availableSlotSkills(app, type)
                   .map(
@@ -349,13 +453,6 @@ export function renderSkills(app: ProfessionAppState): void {
             </div>`;
     })
     .join("");
-  const inspectionGroups =
-    app.profession.ui.skillBarGroups?.({
-      build: app.build,
-      specialization: spec,
-      catalog: app.profession.catalog,
-      professionState: app.results?.endState?.profession,
-    }) || [];
   const skillBar = requiredElement("skill-bar");
   const inspectionLayout =
     inspectionGroups.find((group) => group.layout)?.layout || "";
@@ -460,13 +557,14 @@ export function renderSkills(app: ProfessionAppState): void {
     const icon = slot.querySelector(".sbar-icon");
     const dropdown = slot.querySelector(".sbar-dropdown");
     if (!icon || !dropdown) return;
-    icon.addEventListener("click", (event) => {
+    const toggleDropdown = (event: Event) => {
       event.stopPropagation();
       document.querySelectorAll(".sbar-dropdown.open").forEach((drop) => {
         if (drop !== dropdown) drop.classList.remove("open");
       });
       dropdown.classList.toggle("open");
-    });
+    };
+    icon.addEventListener("click", toggleDropdown);
     slot.querySelectorAll(".dd-item").forEach((item) => {
       if (!(item instanceof HTMLElement)) return;
       item.addEventListener("click", () => {
@@ -586,11 +684,24 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   };
   const view = loadout.view(context);
   const skillBar = requiredElement("skill-bar");
-  const slotHtml = (skill: Skill, child = false): string =>
-    `<div class="skill-bar-slot${child ? " child-skill" : ""}">
-        <div class="sbar-icon" title="${esc(skill.name)}"><img src="${esc(skill.icon || "")}" alt=""></div>
+  const slotTypes = ["Heal", "Utility", "Utility", "Utility", "Elite"];
+  const slotHtml = (skill: Skill, index: number, child = false): string => {
+    const type = slotTypes[index] || "Skill";
+    return `<div class="skill-bar-slot fixed-loadout-skill${
+      child ? " child-skill" : ""
+    }${!child && type === "Heal" ? " heal-border" : ""}${
+      !child && type === "Elite" ? " elite-border" : ""
+    }">
+        <div class="sbar-icon" title="${esc(`${skill.name}\n${gw2ApiText(skill.description)}`)}"><img src="${esc(skill.icon || "")}" alt=""></div>
+        ${
+          child
+            ? ""
+            : `<span class="skill-bar-key">${index + 1}</span>
+               <span class="skill-bar-type">${esc(type)}</span>`
+        }
     </div>`;
-  const barSkillHtml = (skill: Skill): string => {
+  };
+  const barSkillHtml = (skill: Skill, index: number): string => {
     const childIds =
       typeof loadout.skillChildren === "function"
         ? loadout.skillChildren(context, skill.id)
@@ -599,47 +710,68 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
       .map((id) => app.skillById.get(Number(id)))
       .filter((child): child is Skill => child != null);
     return `<div class="fixed-loadout-skill-stack">
-        ${slotHtml(skill)}
+        ${slotHtml(skill, index)}
         ${children
           .map(
             (child) =>
               `<div class="fixed-loadout-chain-step">
                 <span class="weapon-chain-arrow" aria-hidden="true">&#8627;</span>
-                ${slotHtml(child, true)}
+                ${slotHtml(child, index, true)}
               </div>`,
           )
           .join("")}
       </div>`;
   };
   const barHtml = (bar: ProfessionSlotLoadoutBar): string =>
-    `<div class="fixed-loadout-bar${
+    `<div class="fixed-loadout-bar skill-bar-selected${
       view.formatActiveBar ? (bar.active ? " active" : " inactive") : " static"
     }">
-            <span class="fixed-loadout-bar-label">${esc(bar.label)}</span>
-            ${bar.skillIds
-              .map((id) => app.skillById.get(Number(id)))
-              .filter((skill) => skill != null)
-              .map(barSkillHtml)
+        ${bar.skillIds
+          .map((id) => app.skillById.get(Number(id)))
+          .filter((skill): skill is Skill => skill != null)
+          .map(barSkillHtml)
+          .join("")}
+      </div>`;
+  const selectorHtml = (
+    selector: ProfessionSlotLoadoutSelector,
+    index: number,
+  ): string => {
+    if (view.selectionControl === "icons") {
+      const selected = selector.options.find(
+        (entry) => entry.value === selector.value,
+      );
+      return `<div class="skill-bar-slot fixed-loadout-icon-selector">
+          <span class="fixed-loadout-selector-label">${esc(selector.label)}</span>
+          <button type="button" class="fixed-loadout-trigger"
+            data-loadout-toggle aria-expanded="false"
+            aria-haspopup="listbox" aria-controls="fixed-loadout-menu-${index}">
+            <img src="${esc(selected?.icon || "")}" alt="">
+            <span class="fixed-loadout-trigger-copy">
+              <strong>${esc(selected?.label || "Choose loadout")}</strong>
+              <small>Change ${esc(selector.label.toLowerCase())}</small>
+            </span>
+            <span class="fixed-loadout-trigger-arrow" aria-hidden="true">&#9660;</span>
+          </button>
+          <div id="fixed-loadout-menu-${index}" class="sbar-dropdown fixed-loadout-dropdown" role="listbox">
+            ${selector.options
+              .map(
+                (entry) =>
+                  `<button type="button" class="dd-item fixed-loadout-option${
+                    entry.value === selector.value ? " selected" : ""
+                  }" data-loadout-key="${esc(selector.key)}"
+                    data-loadout-value="${esc(entry.value)}" role="option"
+                    aria-selected="${entry.value === selector.value}"${
+                      entry.disabled ? " disabled" : ""
+                    }>
+                    <img src="${esc(entry.icon || "")}" alt="">
+                    <span>${esc(entry.label)}</span>
+                </button>`,
+              )
               .join("")}
+          </div>
         </div>`;
-  const selectorHtml = (selector: ProfessionSlotLoadoutSelector): string =>
-    view.selectionControl === "icons"
-      ? `<div class="fixed-loadout-icon-selector">
-                <span>${esc(selector.label)}</span>
-                <div class="fixed-loadout-icon-options">${selector.options
-                  .map(
-                    (entry) =>
-                      `<button type="button" class="fixed-loadout-icon${
-                        entry.value === selector.value ? " selected" : ""
-                      }" data-loadout-key="${esc(selector.key)}"
-                        data-loadout-value="${esc(entry.value)}"
-                        title="${esc(entry.label)}"${entry.disabled ? " disabled" : ""}>
-                        <img src="${esc(entry.icon || "")}" alt="">
-                    </button>`,
-                  )
-                  .join("")}</div>
-            </div>`
-      : `<label><span>${esc(selector.label)}</span>
+    }
+    return `<label><span>${esc(selector.label)}</span>
                 <select class="gear-select" data-loadout-key="${esc(selector.key)}">
                     ${selector.options
                       .map(
@@ -649,6 +781,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
                       .join("")}
                 </select>
             </label>`;
+  };
   const pairedIconLoadout =
     view.selectionControl === "icons" &&
     view.selectors.length === view.bars.length;
@@ -657,7 +790,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
         .map(
           (selector, index) =>
             `<div class="fixed-loadout-pair">
-              ${selectorHtml(selector)}
+              ${selectorHtml(selector, index)}
               ${barHtml(view.bars[index])}
           </div>`,
         )
@@ -665,6 +798,33 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
     : `<div class="fixed-loadout-selectors">
           ${view.selectors.map(selectorHtml).join("")}
       </div>${view.bars.map(barHtml).join("")}`;
+  skillBar.querySelectorAll("button[data-loadout-toggle]").forEach((button) => {
+    if (!(button instanceof HTMLButtonElement)) return;
+    const dropdown = button.parentElement?.querySelector(
+      ".fixed-loadout-dropdown",
+    );
+    if (!(dropdown instanceof HTMLElement)) return;
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const opening = !dropdown.classList.contains("open");
+      document
+        .querySelectorAll<HTMLElement>(".fixed-loadout-dropdown.open")
+        .forEach((other) => {
+          if (other === dropdown) return;
+          other.classList.remove("open");
+          other.parentElement
+            ?.querySelector("button[data-loadout-toggle]")
+            ?.setAttribute("aria-expanded", "false");
+        });
+      dropdown.classList.toggle("open", opening);
+      button.setAttribute("aria-expanded", String(opening));
+    });
+    button.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      dropdown.classList.remove("open");
+      button.setAttribute("aria-expanded", "false");
+    });
+  });
   skillBar.querySelectorAll("select[data-loadout-key]").forEach((select) => {
     if (!(select instanceof HTMLSelectElement)) return;
     select.addEventListener("change", () => {
@@ -676,7 +836,8 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   });
   skillBar.querySelectorAll("button[data-loadout-key]").forEach((button) => {
     if (!(button instanceof HTMLButtonElement)) return;
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
       const key = button.dataset.loadoutKey;
       const value = button.dataset.loadoutValue;
       if (!key || value === undefined) return;

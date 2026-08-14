@@ -22,6 +22,13 @@ export const ELEMENTALIST_OVERLOAD_SKILL_IDS = Object.freeze({
   Earth: elementalistSkillId("Overload Earth"),
 });
 
+export const ELEMENTALIST_JADE_SPHERE_SKILL_IDS = Object.freeze({
+  Fire: elementalistSkillId("Deploy Jade Sphere (Fire)"),
+  Water: elementalistSkillId("Deploy Jade Sphere (Water)"),
+  Air: elementalistSkillId("Deploy Jade Sphere (Air)"),
+  Earth: elementalistSkillId("Deploy Jade Sphere (Earth)"),
+});
+
 export const ELEMENTALIST_FAMILIAR_SKILL_IDS = Object.freeze({
   Ignite: elementalistSkillId("Ignite"),
   Conflagration: elementalistSkillId("Conflagration"),

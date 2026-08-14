@@ -41,9 +41,7 @@ const HOLOSMITH_PACKET_EVENTS = new Set<string>([
 let engineerSkills: readonly EngineerSkill[] = [];
 let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
 
-function holosmithForgeSkillIds(
-  context: EngineerUiContext,
-): number[] {
+function holosmithForgeSkillIds(context: EngineerUiContext): number[] {
   const storm = hasActiveTrait(context, "Crystal Configuration: Storm");
   return [
     storm ? ID.LIGHT_STRIKE_STORM : ID.LIGHT_STRIKE,
@@ -54,9 +52,7 @@ function holosmithForgeSkillIds(
   ].filter((skillId) => engineerSkillsById.has(skillId));
 }
 
-function holosmithProfessionSkills(
-  context: EngineerUiContext,
-) {
+function holosmithProfessionSkills(context: EngineerUiContext) {
   const state = engineerUiState(context);
   return [
     ...engineerToolbeltSkillIds(context).slice(0, 4),
@@ -73,11 +69,7 @@ function holosmithPaletteAvailability(
   skill: EngineerSkill,
 ): PaletteSkillAvailability {
   const state = engineerUiState(context);
-  if (
-    skill.type === "Weapon"
-    && skill.weapon
-    && state.photonForgeActive
-  ) {
+  if (skill.type === "Weapon" && skill.weapon && state.photonForgeActive) {
     return {
       available: false,
       message: "Photon Forge replaces equipped weapon skills",
@@ -96,9 +88,11 @@ function holosmithEventLogRow(
   const buildSpecializations = Array.isArray(context.build?.specializations)
     ? context.build.specializations
     : [];
-  const isHolosmith = engineerUiSpecialization(context) === "Holosmith"
-    || buildSpecializations.some(specialization =>
-      String(specialization?.name || specialization) === "Holosmith"
+  const isHolosmith =
+    engineerUiSpecialization(context) === "Holosmith" ||
+    buildSpecializations.some(
+      (specialization) =>
+        String(specialization?.name || specialization) === "Holosmith",
     );
   if (!isHolosmith) return undefined;
   if (HOLOSMITH_PACKET_EVENTS.has(event?.type)) return null;
@@ -115,74 +109,81 @@ function holosmithEventLogRow(
   };
 }
 
-export const holosmithUi:
-Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  eventLogRow: holosmithEventLogRow,
-  skillBarGroups: (context: EngineerUiContext) => [
-    ...engineerFSkillBarGroups(holosmithProfessionSkills(context)),
-    {
-      id: "engineer-photon-forge",
-      label: "Photon Forge",
-      skillIds: holosmithForgeSkillIds(context),
-      color: "#e5a72d",
-    },
-  ],
-  paletteGroups: (context: EngineerUiContext) => {
-    const storm = hasActiveTrait(context, "Crystal Configuration: Storm");
-    return [
+export const holosmithUi: Partial<ProfessionUiContract> & SchedulerRecord =
+  Object.freeze({
+    eventLogRow: holosmithEventLogRow,
+    skillBarGroups: (context: EngineerUiContext) => [
+      ...engineerFSkillBarGroups(holosmithProfessionSkills(context)),
       {
-        id: "engineer-profession",
-        label: "F",
-        skillIds: uniqueIdsBySkillName(
-          holosmithProfessionSkills(context).filter(id => id != null),
-        ),
-        color: "#b88a35",
-        resourceAnchor: true,
-        includeActionSkills: true,
-      },
-      {
-        id: "engineer-forge",
-        label: "Forge",
-        skillIds: engineerSkills
-          .filter((skill) => {
-            if (!skill.forgeSkill) return false;
-            if (skill.slot !== "Weapon_1") return true;
-            return skill.name.endsWith("—Storm") === storm;
-          })
-          .map((skill) => skill.id),
+        id: "engineer-photon-forge",
+        label: "Photon Forge",
+        skillIds: holosmithForgeSkillIds(context),
         color: "#e5a72d",
       },
-    ];
-  },
-  resourceViews: (
-    context: EngineerUiContext,
-  ): ProfessionResourceView[] => {
-    const state = engineerUiState(context);
-    const maximum = Number(state.maximumHeat || 100);
-    return [{
-      id: "heat",
-      singular: "heat",
-      plural: "heat",
-      maximum,
-      value: Number(state.heat ?? context.initialHeat ?? 0),
-      startMaximum: maximum,
-      startValue: Number(context.initialHeat ?? 0),
-      canStart: true,
-      buildKey: "initialHeat",
-      step: 1,
-      displayMode: "bar",
-      shortLabel: "Heat",
-      statusLabel: state.overheated ? "Overheated" : "Current",
-    }];
-  },
-  paletteSkillAvailability: holosmithPaletteAvailability,
-});
+    ],
+    paletteGroups: (context: EngineerUiContext) => {
+      const storm = hasActiveTrait(context, "Crystal Configuration: Storm");
+      return [
+        {
+          id: "engineer-profession",
+          label: "F",
+          skillIds: uniqueIdsBySkillName(
+            holosmithProfessionSkills(context).filter((id) => id != null),
+          ),
+          color: "#b88a35",
+          className: "compact-resource-palette engineer-profession-skills",
+          resourceAnchor: true,
+          stackId: "holosmith-profession",
+          includeActionSkills: true,
+        },
+        {
+          id: "engineer-forge",
+          label: "Forge",
+          skillIds: engineerSkills
+            .filter((skill) => {
+              if (!skill.forgeSkill) return false;
+              if (skill.slot !== "Weapon_1") return true;
+              return skill.name.endsWith("—Storm") === storm;
+            })
+            .map((skill) => skill.id),
+          color: "#e5a72d",
+          className: "engineer-forge-skills",
+          stackId: "holosmith-profession",
+        },
+      ];
+    },
+    resourceViews: (context: EngineerUiContext): ProfessionResourceView[] => {
+      const state = engineerUiState(context);
+      const maximum = Number(state.maximumHeat || 100);
+      return [
+        {
+          id: "heat",
+          singular: "heat",
+          plural: "heat",
+          maximum,
+          value: Number(state.heat ?? context.initialHeat ?? 0),
+          startMaximum: maximum,
+          startValue: Number(context.initialHeat ?? 0),
+          canStart: true,
+          buildKey: "initialHeat",
+          step: 1,
+          displayMode: "bar",
+          pipStyle: "compact-profession-resource-holosmith-heat",
+          shortLabel: "Heat",
+          statusLabel: state.overheated ? "Overheated" : "Current",
+        },
+      ];
+    },
+    paletteSkillAvailability: holosmithPaletteAvailability,
+  });
 
 export function bindHolosmithUi(
   catalog: Readonly<CanonicalCatalog>,
 ): typeof holosmithUi {
   engineerSkills = catalog.skills as readonly EngineerSkill[];
-  engineerSkillsById =
-    catalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;
+  engineerSkillsById = catalog.skillsById as ReadonlyMap<
+    SkillId,
+    EngineerSkill
+  >;
   return holosmithUi;
 }

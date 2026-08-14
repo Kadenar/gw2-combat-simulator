@@ -48,7 +48,7 @@ function activeResourceDefinitions(
     initialBlight: app.build?.initialBlight,
     initialCascadingCorruptionStacks:
       app.build?.initialCascadingCorruptionStacks,
-  });
+  }).filter((definition) => definition.showInPalette !== false);
 }
 
 /** Returns the live resource meter attached to a rotation-palette skill. */
@@ -169,9 +169,23 @@ function resourceStatusItemsHtml(definition: ProfessionResourceView): string {
  * Returns the read-only resource HTML for the latest simulation end state.
  * Multiple resource views are wrapped in an `active-resource-stack`.
  */
-export function activeResourceGroup(app: ProfessionAppState): string {
+export function activeResourceGroup(
+  app: ProfessionAppState,
+  {
+    includeIds,
+    excludeIds,
+  }: {
+    readonly includeIds?: readonly string[];
+    readonly excludeIds?: readonly string[];
+  } = {},
+): string {
+  const included = includeIds ? new Set(includeIds.map(String)) : null;
+  const excluded = new Set((excludeIds || []).map(String));
   const definitions = activeResourceDefinitions(app).filter(
-    (definition) => definition.paletteSkillId == null,
+    (definition) =>
+      definition.paletteSkillId == null &&
+      (!included || included.has(definition.id)) &&
+      !excluded.has(definition.id),
   );
   const groups = definitions
     .map((definition) => {
@@ -183,7 +197,11 @@ export function activeResourceGroup(app: ProfessionAppState): string {
         Math.min(definition.maximum, Number(definition.value ?? buildValue)),
       );
       const displayValue = formatResourceValue(value);
-      const title = `${definition.statusLabel} ${definition.plural}: ${displayValue}/${definition.maximum}`;
+      const valueLabel = `${definition.statusLabel} ${definition.plural}: ${displayValue}/${definition.maximum}`;
+      const title =
+        definition.showValue === false
+          ? `${definition.statusLabel} ${definition.plural}`
+          : valueLabel;
       const indicator =
         definition.displayMode === "bar"
           ? resourceBarsHtml(definition, value)
@@ -194,9 +212,9 @@ export function activeResourceGroup(app: ProfessionAppState): string {
             <div class="pal-label" style="color:#c49cff">${esc(definition.shortLabel)}</div>
             <div class="active-resource" data-resource-id="${esc(definition.id)}"
                 data-resource-count="${value}" title="${esc(title)}"
-                aria-label="${esc(title)}">
+                aria-label="${esc(valueLabel)}">
                 ${indicator}
-                ${definition.displayMode === "counter" ? "" : `<strong>${displayValue}/${definition.maximum}</strong>`}
+                ${definition.displayMode === "counter" || definition.showValue === false ? "" : `<strong>${displayValue}/${definition.maximum}</strong>`}
             </div>
             ${resourceStatusItemsHtml(definition)}
         </div>`;

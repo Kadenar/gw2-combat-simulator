@@ -17,7 +17,7 @@ js/
     ranger/        Ranger catalog, pets, astral force, and Galeshot mechanics
     warrior/       Warrior catalog, burst, adrenaline, and Bladesworn mechanics
     thief/         Thief catalog, initiative, stealth, and artifact mechanics
-    elementalist/  legacy standalone engine, data, app adapter, and optimizer
+    elementalist/  Elementalist catalog, attunements, rules, and mechanics
   app/             browser composition and persistence adapters
 ```
 
@@ -29,12 +29,9 @@ professions pass their resolved deltas to `finalizeBuildAttributes()`, which
 rebuilds critical chance, critical damage, boon duration, and condition
 duration.
 
-Elementalist keeps its own scheduler, resolver, data loader, optimizer, and
-mechanics under its profession directory, using the platform layers only for
-common damage formulas, equipment data, event ordering, file I/O, and UI
-primitives. Its scheduled-stream handoff and attribute engine stay
-profession-owned because they carry lookahead and runtime state outside the
-generic event schema.
+Elementalist uses the shared scheduler and resolver. Its profession directory
+owns attunements, weapon mechanics, specialization state, rules, resolver
+extensions, build migration, and UI configuration.
 
 Profession-specific browser rendering follows the same boundary. The shared
 shell receives a profession application adapter for its build codec, storage

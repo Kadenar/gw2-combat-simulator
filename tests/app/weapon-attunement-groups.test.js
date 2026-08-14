@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   groupWeaponSkillsByAttunement,
+  weaverWeaponPaletteLayout,
   weaponBarSkillStacks,
 } from "../../js/app/profession/weapon-attunement-groups.js";
 
@@ -80,4 +81,56 @@ test("Weaver dual attacks follow the four elemental rows", () => {
     ),
     [["Twin Strike"], ["Pyro Vortex"]],
   );
+});
+
+test("Weaver palette assigns dual attacks to the fixed slot-three bank", () => {
+  const elements = ["Fire", "Water", "Air", "Earth"];
+  const elementalSkills = elements.flatMap((attunement, elementIndex) =>
+    [1, 2, 3, 4, 5].map((slot) =>
+      skill(
+        elementIndex * 10 + slot,
+        `${attunement} skill ${slot}`,
+        slot,
+        attunement,
+      ),
+    ),
+  );
+  const dualSkills = [
+    ["Fire", "Water"],
+    ["Fire", "Air"],
+    ["Fire", "Earth"],
+    ["Water", "Air"],
+    ["Water", "Earth"],
+    ["Air", "Earth"],
+  ].map(([left, right], index) =>
+    skill(100 + index, `${left}/${right}`, 3, `${left}+${right}`),
+  );
+  const special = skill(200, "Special follow-up", 3, "Special");
+  const layout = weaverWeaponPaletteLayout([
+    ...elementalSkills,
+    ...dualSkills,
+    special,
+  ]);
+
+  assert.deepEqual(
+    layout.primaryRows.map((row) =>
+      row.skills.map((entry) => Number(entry.slot.split("_")[1])),
+    ),
+    elements.map(() => [1, 2]),
+  );
+  assert.deepEqual(
+    layout.sameAttunementSkills.map((entry) => entry.attunement),
+    elements,
+  );
+  assert.deepEqual(
+    layout.dualSkills.map((entry) => entry.attunement),
+    dualSkills.map((entry) => entry.attunement),
+  );
+  assert.deepEqual(
+    layout.secondaryRows.map((row) =>
+      row.skills.map((entry) => Number(entry.slot.split("_")[1])),
+    ),
+    elements.map(() => [4, 5]),
+  );
+  assert.deepEqual(layout.extraSkills, [special]);
 });
