@@ -27,9 +27,7 @@ import type {
   CastContext,
   CastLifecycleContext,
   CooldownController,
-  NormalizedProfessionContract,
   ProfessionSource,
-  RotationCommand,
   ScheduledTask,
   ScheduledTaskHandler,
   ScheduledTaskInput,
@@ -70,66 +68,6 @@ interface CreateSchedulerOptions<TProfessionState extends object> {
   readonly startingTime?: number;
   readonly epsilon?: number;
   readonly schedulerPolicy?: SchedulerPolicy<TProfessionState>;
-}
-
-interface IndexedRotationCommand {
-  readonly command: RotationCommand;
-  readonly index: number;
-  readonly earliestStart?: number;
-}
-
-function concurrentOffset(command: RotationCommand): number | null {
-  if (command.type !== "cast" && command.type !== "combat-start") return null;
-  return command.concurrentOffsetMs == null
-    ? null
-    : Number(command.concurrentOffsetMs);
-}
-
-/**
- * Runs concurrent siblings chronologically even when an imported log lists
- * their activations in a different order. Rotation row indices remain stable
- * so result steps still map back to the user's source entries.
- */
-function* orderConcurrentSiblings(
-  commands: readonly RotationCommand[],
-  projectedStart: (entry: IndexedRotationCommand) => number,
-): Generator<IndexedRotationCommand> {
-  for (let index = 0; index < commands.length;) {
-    if (concurrentOffset(commands[index]) == null) {
-      yield { command: commands[index], index };
-      index += 1;
-      continue;
-    }
-    const siblings: IndexedRotationCommand[] = [];
-    while (
-      index < commands.length &&
-      concurrentOffset(commands[index]) != null
-    ) {
-      siblings.push({ command: commands[index], index });
-      index += 1;
-    }
-    if (siblings.length === 1) {
-      yield siblings[0];
-      continue;
-    }
-    while (siblings.length) {
-      const projected = siblings.map((entry) => ({
-        ...entry,
-        earliestStart: projectedStart(entry),
-      }));
-      projected.sort(
-        (left, right) =>
-          Number(left.earliestStart) - Number(right.earliestStart) ||
-          left.index - right.index,
-      );
-      const next = projected[0];
-      siblings.splice(
-        siblings.findIndex((entry) => entry.index === next.index),
-        1,
-      );
-      yield next;
-    }
-  }
 }
 
 // Shared declarative scheduler. It owns canonical command execution, cooldown
@@ -961,14 +899,9 @@ export function createScheduler<
   /**
    * @param {CastCommand} command
    * @param {number} [commandIndex]
-   * @param {number} [earliestStart]
    * @returns {boolean}
    */
-  function cast(
-    command: CastCommand,
-    commandIndex = steps.length,
-    earliestStart = Number.NEGATIVE_INFINITY,
-  ): boolean {
+  function cast(command: CastCommand, commandIndex = steps.length): boolean {
     const skill = skillFor(command.skillId);
     if (!skill) {
       const reason = `Unknown skill id ${command.skillId}.`;
@@ -1002,10 +935,7 @@ export function createScheduler<
     // Concurrent offsets are relative to the previous cast's start, not the
     // current clock. This models instant/concurrent actions embedded in a cast.
     let start = concurrent
-      ? Math.max(
-          previousCastStart + Number(command.concurrentOffsetMs) / 1000,
-          earliestStart,
-        )
+      ? previousCastStart + Number(command.concurrentOffsetMs) / 1000
       : independent
         ? Math.max(state.time, independentReadyAt)
         : bypassesSelfStun
@@ -1016,11 +946,6 @@ export function createScheduler<
               latestBlockingEnd,
               selfStunUntil,
             );
-    // Concurrent commands are queued intents. An earlier sibling can advance
-    // the clock beyond this command's requested offset while waiting for its
-    // own availability. In that case, cast at the current clock (or wait for
-    // this skill's own retry time below) instead of invalidating the rotation.
-    if (concurrent) start = Math.max(start, state.time);
     if (start < state.time - epsilon) {
       recordInvalid(
         commandIndex,
@@ -1263,13 +1188,8 @@ export function createScheduler<
     if (independent) {
       independentReadyAt = Math.max(independentReadyAt, castLockoutEnd);
     } else {
-      // Consecutive concurrent commands are siblings of the preceding serial
-      // cast. Keep their shared anchor stable instead of chaining each offset
-      // from the concurrent command immediately before it.
-      if (!concurrent) {
-        previousCastStart = start;
-        hasPreviousCast = true;
-      }
+      previousCastStart = start;
+      hasPreviousCast = true;
       latestBlockingEnd = Math.max(latestBlockingEnd, castLockoutEnd);
       if (!concurrent) serialReadyAt = castLockoutEnd;
       // A stunbreak clears any pending self-stun; a self-stunning skill sets a
@@ -1305,45 +1225,8 @@ export function createScheduler<
     if (commands.length > ACTION_SAFETY_LIMIT) {
       throw new Error("Rotation action safety limit exceeded.");
     }
-    const projectedConcurrentStart = ({
-      command,
-    }: IndexedRotationCommand): number => {
-      const requested =
-        previousCastStart + Number(concurrentOffset(command)) / 1000;
-      if (command.type !== "cast") return requested;
-      const skill = skillFor(command.skillId);
-      if (!skill) return requested;
-
-      let readyAt = requested;
-      const ammo = state.ammo.get(skill.id);
-      const cooldownReadyAt = Number(state.cooldowns.get(skill.id) || 0);
-      if (skill.usableWhileRecharging !== true || ammo?.charges === 0) {
-        readyAt = Math.max(readyAt, cooldownReadyAt);
-      }
-      if (ammo?.charges === 0 && ammo.nextRechargeAt != null) {
-        readyAt = Math.max(readyAt, ammo.nextRechargeAt);
-      }
-      const active = inFlight.get(skill.id);
-      for (const reservationId of active || []) {
-        const reservation = reservations.get(reservationId);
-        if (!reservation) continue;
-        readyAt = Math.max(
-          readyAt,
-          reservation.rechargeReadyAt ?? reservation.effectiveEnd,
-        );
-      }
-      for (const lockout of skill.lockouts || []) {
-        readyAt = Math.max(
-          readyAt,
-          Number(state.lockouts.get(lockout.group) || 0),
-        );
-      }
-      return readyAt;
-    };
-    for (const { command, index, earliestStart } of orderConcurrentSiblings(
-      commands,
-      projectedConcurrentStart,
-    )) {
+    for (let index = 0; index < commands.length; index += 1) {
+      const command = commands[index];
       if (command.type === "wait") {
         // Wait is serial: it starts only after all outstanding casts finish.
         const start = Math.max(state.time, serialReadyAt, latestReservedEnd);
@@ -1417,7 +1300,7 @@ export function createScheduler<
           end: Math.round(combatStartTime * 1000),
         });
       } else {
-        cast(command, index, earliestStart);
+        cast(command, index);
       }
     }
     const rotationEnd = Math.max(state.time, serialReadyAt, latestReservedEnd);

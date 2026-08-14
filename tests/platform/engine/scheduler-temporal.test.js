@@ -65,7 +65,6 @@ function temporalCatalog() {
         id: 980002,
         name: "Instant Cast",
         castTimeMs: 0,
-        recharge: 10,
         effects: [],
       },
       {
@@ -121,10 +120,10 @@ test("tasks during a cast run before a later concurrent command", () => {
   );
 });
 
-test("concurrent siblings execute by offset while retaining rotation indices", () => {
+test("consecutive concurrent casts chain offsets from the preceding cast", () => {
   const profession = defineProfession({
-    id: "temporal-sibling-order",
-    name: "Temporal Sibling Order",
+    id: "temporal-concurrent-chain",
+    name: "Temporal Concurrent Chain",
     catalog: temporalCatalog(),
   });
   const scheduled = createScheduler({ profession }).run([
@@ -139,8 +138,8 @@ test("concurrent siblings execute by offset while retaining rotation indices", (
       .map((event) => [event.skillName, Math.round(event.at * 1000)]),
     [
       ["Long Cast", 0],
-      ["Instant Cast", 100],
       ["Gated Cast", 500],
+      ["Instant Cast", 600],
     ],
   );
   assert.deepEqual(
@@ -148,79 +147,7 @@ test("concurrent siblings execute by offset while retaining rotation indices", (
     [
       [0, "Long Cast", 0],
       [1, "Gated Cast", 500],
-      [2, "Instant Cast", 100],
-    ],
-  );
-  assert.deepEqual(scheduled.warnings, []);
-});
-
-test("cooldown-delayed concurrent siblings execute at their earliest legal time", () => {
-  const profession = defineProfession({
-    id: "temporal-delayed-sibling-order",
-    name: "Temporal Delayed Sibling Order",
-    catalog: temporalCatalog(),
-  });
-  const scheduled = createScheduler({ profession }).run([
-    "Instant Cast",
-    "Long Cast",
-    { name: "Instant Cast", offset: 0 },
-    { name: "Gated Cast", offset: 500 },
-  ]);
-
-  assert.deepEqual(
-    scheduled.events
-      .filter((event) => event.type === "action")
-      .map((event) => [event.skillName, Math.round(event.at * 1000)]),
-    [
-      ["Instant Cast", 0],
-      ["Long Cast", 0],
-      ["Gated Cast", 500],
-      ["Instant Cast", 10000],
-    ],
-  );
-  assert.deepEqual(
-    scheduled.steps.map((step) => [step.ri, step.skill, step.start]),
-    [
-      [0, "Instant Cast", 0],
-      [1, "Long Cast", 0],
-      [2, "Instant Cast", 10000],
-      [3, "Gated Cast", 500],
-    ],
-  );
-  assert.deepEqual(scheduled.warnings, []);
-});
-
-test("queued concurrent siblings cast at the current clock after an availability wait", () => {
-  const profession = defineProfession({
-    id: "temporal-queued-sibling",
-    name: "Temporal Queued Sibling",
-    catalog: temporalCatalog(),
-    castRules: {
-      availability(context, skill) {
-        if (skill.name !== "Gated Cast" || context.start >= 0.6) {
-          return { ready: true };
-        }
-        return {
-          ready: false,
-          retryAt: 0.6,
-          code: "fixture.waiting",
-          reason: "Waiting for the gate.",
-        };
-      },
-    },
-  });
-  const scheduled = createScheduler({ profession }).run([
-    "Long Cast",
-    { name: "Gated Cast", offset: 100 },
-    { name: "Instant Cast", offset: 200 },
-  ]);
-
-  assert.deepEqual(
-    scheduled.steps.map((step) => [step.skill, step.start]),
-    [
-      ["Long Cast", 0],
-      ["Gated Cast", 600],
-      ["Instant Cast", 600],
+      [2, "Instant Cast", 600],
     ],
   );
   assert.deepEqual(scheduled.warnings, []);

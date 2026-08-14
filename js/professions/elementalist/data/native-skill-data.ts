@@ -4417,6 +4417,21 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         type: "strike",
         ticks: [
           {
+            atMs: 0,
+            coefficient: 0,
+            metadata: {
+              finisherType: "Blast",
+              finisherValue: 1,
+            },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
             atMs: 1200,
             coefficient: 3,
           },
@@ -19485,7 +19500,23 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     nextChainId: 1100264,
     skillFamily: "Weapon skill",
     implemented: true,
-    effects: [],
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0,
+            metadata: {
+              finisherType: "Leap",
+              finisherValue: 1,
+            },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
   },
   {
     id: 1100264,
@@ -19543,6 +19574,21 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
     implemented: true,
     effects: [
       {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0,
+            metadata: {
+              finisherType: "Leap",
+              finisherValue: 1,
+            },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
         type: "boon",
         boon: "Aegis",
         stacks: 1,
@@ -19551,10 +19597,7 @@ export const ELEMENTALIST_GENERATED_SKILLS: readonly Skill[] = Object.freeze([
         atMs: 540,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          finisherType: "Leap",
-          finisherValue: 1,
-        },
+        metadata: {},
       },
     ],
   },

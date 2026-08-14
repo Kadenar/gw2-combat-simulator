@@ -260,12 +260,6 @@
         "upToDate": true
       },
       {
-        "label": "Power Alacrity (Toad Severance)",
-        "build": "Builds/elementalist/b-power-alac-evoker-toad-severance.json",
-        "rotation": "Rotations/elementalist/r-power-alac-evoker-toad.json",
-        "upToDate": false
-      },
-      {
         "label": "Condi (Pistol/Dagger)",
         "build": "Builds/elementalist/b-condi-evoker-pistol-dagger.json",
         "rotation": "Rotations/elementalist/r-condi-evoker-pistol-dagger.json",
@@ -304,18 +298,6 @@
         "dpsReportUrl": "https://dps.report/ZH7U-20260423-182755_golem",
         "benchmarkDps": 38045,
         "upToDate": true
-      },
-      {
-        "label": "Condi Alacrity Otter (P/Wh)",
-        "build": "Builds/elementalist/b-condi-alac-evoker-otter.json",
-        "rotation": "Rotations/elementalist/r-condi-alac-evoker-otter.json",
-        "upToDate": false
-      },
-      {
-        "label": "Condi Arcane SE",
-        "build": "Builds/elementalist/b-condi-arcane-se-evoker.json",
-        "rotation": "Rotations/elementalist/r-condi-arcane-se-evoker.json",
-        "upToDate": false
       },
       {
         "label": "Inferno SE",

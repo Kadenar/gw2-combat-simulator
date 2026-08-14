@@ -461,10 +461,10 @@ Post-scheduler phase that converts timed events into damage numbers using calcul
 | `js/platform/ui/`                                                 | Shared palette/resource/timeline/log/result/chart view-model contracts                |
 | `js/professions/*/data/`                                          | Profession-owned catalogs, mechanics data, traits, and loaders                        |
 | `js/professions/*/core/`, `.../specializations/`                  | Core and per-elite vertical slices: skills, rules, mechanics, resolver, and UI        |
-| `js/professions/elementalist/{sim,optimizer}/`                    | Ported Elementalist simulator and gear optimizer                                      |
+| `js/professions/elementalist/`                                    | Native Elementalist catalog, rules, state, resolver extensions, and UI                |
 | `Builds/elementalist/manifest.json`, `Builds/elementalist/*.json` | Elementalist build presets                                                            |
 | `Builds/<profession>/`                                            | Native profession builds and `manifest.json`                                          |
 | `Rotations/`, `Rotations/<profession>/`                           | Elementalist and native profession rotation examples                                  |
-| `js/professions/elementalist/legacy/data/csv/`                    | Legacy Elementalist skill and hit CSVs                                                |
+| `reference-repos/Elementalist-Simulator/`                         | Ignored upstream Elementalist reference clone used by audit scripts                   |
 | `tests/browser/`                                                  | Browser interaction fixtures                                                          |
 | `tests/helpers/`                                                  | Shared testing utilities                                                              |

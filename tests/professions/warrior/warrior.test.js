@@ -315,11 +315,20 @@ test("Warrior F keys follow the selected primary weapons", () => {
     ).skillIds,
     dragonSlashSkills,
   );
+  assert.equal(
+    bladesworn.skillBarGroups.find((group) => group.id === "warrior-gunsaber")
+      .placement,
+    "weapon-bar",
+  );
   assert.deepEqual(
     bladesworn.paletteGroups
       .filter((group) => group.stackId === "bladesworn-profession")
       .map((group) => group.id),
-    ["profession", "dragon-slash", "dragon-trigger", "gunsaber"],
+    ["profession", "dragon-slash", "dragon-trigger"],
+  );
+  assert.equal(
+    bladesworn.paletteGroups.find((group) => group.id === "gunsaber").placement,
+    "weapon-set-1",
   );
 
   const duplicate = groups("Core", ["Sword", "Sword"], ["Sword", ""]);

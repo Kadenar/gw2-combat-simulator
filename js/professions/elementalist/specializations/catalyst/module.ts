@@ -1,6 +1,21 @@
-import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
+import {
+  defineNativeModule,
+  onBuffApplied,
+  onConditionApplied,
+  onResolvedControl,
+  onResolvedDamage,
+} from "../../../../platform/gw2/native-profession.js";
 import { createElementalistModuleData } from "../../catalog-data.js";
-import { catalystCastRules, catalystSchedulerHooks } from "./rules.js";
+import {
+  applyCatalystEmpowerment,
+  applyCatalystResolvedDamage,
+  applyViciousEmpowerment,
+} from "./resolver.js";
+import {
+  catalystAttributeRules,
+  catalystCastRules,
+  catalystSchedulerHooks,
+} from "./rules.js";
 import { createCatalystState } from "./state.js";
 import { catalystUi } from "./ui.js";
 
@@ -9,8 +24,27 @@ export const catalystModule = defineNativeModule({
   data: createElementalistModuleData("Catalyst"),
   state: { scheduler: createCatalystState, resolver: createCatalystState },
   mechanics: {
+    modifiers: catalystAttributeRules,
     castRules: catalystCastRules,
     schedulerHooks: catalystSchedulerHooks,
+    reactions: [
+      onResolvedDamage({
+        id: "elementalist.catalyst-shattering-ice",
+        handler: applyCatalystResolvedDamage,
+      }),
+      onBuffApplied({
+        id: "elementalist.catalyst-empowerment",
+        handler: applyCatalystEmpowerment,
+      }),
+      onResolvedControl({
+        id: "elementalist.catalyst-vicious-empowerment-control",
+        handler: applyViciousEmpowerment,
+      }),
+      onConditionApplied({
+        id: "elementalist.catalyst-vicious-empowerment-immobilize",
+        handler: applyViciousEmpowerment,
+      }),
+    ],
   },
   presentation: catalystUi,
 });

@@ -81,8 +81,7 @@ gw2-combat-simulator/
     platform/                  profession-neutral engine, GW2, and UI contracts
     professions/
       mesmer/                  Mesmer implementation
-      elementalist/            Native and legacy Elementalist implementations
-        legacy/data/csv/       Legacy Elementalist skill and hit data
+      elementalist/            Native Elementalist implementation
       guardian/                Guardian data, rules, mechanics, and build codec
       necromancer/             Necromancer data, shrouds, summons, and rules
       engineer/                Engineer kits, heat, mech, and Amalgam rules

@@ -1479,6 +1479,23 @@ test("Specter Siphon, initiative spending, and Shadow Shroud share force", () =>
       shadowShroudActive: false,
     },
   });
+  assert.equal(
+    inactiveGroups.find((group) => group.id === "thief-profession").className,
+    "compact-resource-palette specter-f-skills",
+  );
+  assert.equal(
+    inactiveGroups.find((group) => group.id === "thief-profession").stackId,
+    "specter-profession",
+  );
+  assert.equal(
+    inactiveGroups.find((group) => group.id === "thief-shadow-shroud")
+      .className,
+    "specter-shroud-skills",
+  );
+  assert.equal(
+    inactiveGroups.find((group) => group.id === "thief-shadow-shroud").stackId,
+    "specter-profession",
+  );
   assert.deepEqual(
     inactiveGroups
       .find((group) => group.id === "thief-shadow-shroud")
@@ -2948,6 +2965,14 @@ test("Power quickness Deadeye rifle preset runs the supplied EVTC profile", asyn
   assert.doesNotThrow(() =>
     normalizeRotation(savedRotation.rotation, thiefCatalog, { strict: true }),
   );
+  const mercyIndex = savedRotation.rotation.findIndex(
+    (entry, index) =>
+      entry?.name === "Mercy" &&
+      savedRotation.rotation[index + 1]?.name === "Assassin's Signet",
+  );
+  assert.notEqual(mercyIndex, -1);
+  assert.equal(savedRotation.rotation[mercyIndex].offset, 88);
+  assert.equal(savedRotation.rotation[mercyIndex + 1].offset, 72);
 
   const build = migrateThiefBuild({
     ...savedBuild,

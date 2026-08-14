@@ -110,6 +110,22 @@ const ELEMENTALIST_BUNDLE_ACTIONS: readonly Skill[] = Object.freeze([
 
 const SKILL_ICON_OVERRIDES = new Map<string, string>([
   [
+    "Deploy Jade Sphere (Fire)",
+    "https://render.guildwars2.com/file/22CA7C0F420C7F61CEBFA323DF3AADC5EF237475/2491598.png",
+  ],
+  [
+    "Deploy Jade Sphere (Water)",
+    "https://render.guildwars2.com/file/6016319AAF18417F0401800EF36C0F18E207FFD5/2491600.png",
+  ],
+  [
+    "Deploy Jade Sphere (Air)",
+    "https://render.guildwars2.com/file/07D9C76FEB07BB04B9D07A05D87C09A0A0AE0319/2491594.png",
+  ],
+  [
+    "Deploy Jade Sphere (Earth)",
+    "https://render.guildwars2.com/file/97BEF22148DDA3159B4CF6DB18ECFEDE7107710B/2491596.png",
+  ],
+  [
     "Volcano",
     "https://render.guildwars2.com/file/334EA928E56F38C176A22415DE3ECE144C5FD5BB/3379101.png",
   ],

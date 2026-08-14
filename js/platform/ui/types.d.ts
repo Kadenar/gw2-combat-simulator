@@ -60,7 +60,10 @@ export interface NormalizedPaletteGroup extends Omit<
   readonly color: string;
   readonly className: string;
   readonly stackId: string;
+  readonly placement: "profession" | "weapon-set-1";
   readonly resourceAnchor: boolean;
+  readonly resourceIds: readonly string[];
+  readonly resourcePlacement: "above" | "beside" | "below";
 }
 
 export type PaletteMouseEvent = MouseEvent & {

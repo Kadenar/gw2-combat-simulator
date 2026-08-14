@@ -657,7 +657,11 @@ export interface Gw2ResolverRuntime extends SchedulerRecord {
   activeWeaponSet: number;
   relic: Gw2RelicRuntime;
   profession: object;
-  sigil: { severanceUntil: number };
+  sigil: {
+    severanceUntil: number;
+    criticalProgress: number;
+    readyAt: Map<string, number>;
+  };
   food: { criticalProgress: number; readyAt: number };
   random: Readonly<SimulationRandom>;
   weaponStrengthRolls: Map<string, { profileId: string; value: number }>;

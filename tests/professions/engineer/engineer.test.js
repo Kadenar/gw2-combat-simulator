@@ -7,7 +7,9 @@ import {
   loadProfessionAppAdapter,
   professionRoute,
 } from "../../../js/app/profession/registry.js";
+import { weaponSetLabelVisible } from "../../../js/app/build/skills-panel.js";
 import { simulationEventLogRows } from "../../../js/app/rotation/event-log.js";
+import { renderPalette } from "../../../js/app/rotation/palette-view.js";
 import { skillBreakdownRows } from "../../../js/app/rotation/result-model.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import {
@@ -198,6 +200,10 @@ test("Holosmith palette exposes tool-belt skills, forge, and replacement bars", 
     "Stow Grenade Kit",
   ]);
   assert.equal(grenade.stackId, "engineer-kits");
+  assert.equal(grenade.placement, "weapon-set-1");
+  assert.match(profession.className, /compact-resource-palette/);
+  assert.equal(profession.stackId, "holosmith-profession");
+  assert.equal(forge.stackId, "holosmith-profession");
   assert.equal(forge.skillIds.length, 7);
   assert.ok(names(forge).every((name) => !name.endsWith("—Storm")));
 });
@@ -248,6 +254,59 @@ test("Engineer renders Endurance only for Tools and uses a standard bar", () => 
     holosmith.map((view) => view.id),
     ["heat"],
   );
+  assert.equal(
+    holosmith[0].pipStyle,
+    "compact-profession-resource-holosmith-heat",
+  );
+});
+
+test("Engineer kits render beneath weapons while Holosmith mechanics stay grouped", async () => {
+  const adapter = await loadProfessionAppAdapter("engineer");
+  const canonicalBuild = createEngineerBuildDefaults();
+  canonicalBuild.selectedSkills.Utility2 = "Flamethrower";
+  canonicalBuild.selectedSkills.Utility3 = "Bomb Kit";
+  const build = adapter.toApplicationBuild(canonicalBuild);
+  const app = {
+    build,
+    adapter,
+    profession: engineerProfession,
+    skills: engineerCatalog.skills,
+    skillById: engineerCatalog.skillsById,
+    skillByName: engineerCatalog.skillsByName,
+    weaponData: adapter.weaponData,
+    results: null,
+  };
+  const palette = { innerHTML: "", querySelectorAll: () => [] };
+  const previousDocument = globalThis.document;
+  globalThis.document = {
+    getElementById: (id) => (id === "rotation-palette" ? palette : null),
+  };
+  try {
+    renderPalette(app);
+  } finally {
+    globalThis.document = previousDocument;
+  }
+
+  const html = palette.innerHTML;
+  const holosmith = html.indexOf('data-palette-stack="holosmith-profession"');
+  const profession = html.indexOf("engineer-profession-skills");
+  const heat = html.indexOf('data-resource-id="heat"');
+  const forge = html.indexOf("engineer-forge-skills");
+  const weapons = html.indexOf('data-role="weapon-set-stack"');
+  const grenade = html.indexOf('data-skill="Grenade"');
+  const flamethrower = html.indexOf('data-skill="Flame Jet"');
+  const bomb = html.indexOf('data-skill="Bomb"');
+  const actions = html.indexOf("action-palette-group");
+  assert.ok(holosmith >= 0);
+  assert.ok(profession > holosmith);
+  assert.ok(forge > profession);
+  assert.ok(heat > forge);
+  assert.ok(weapons > heat);
+  assert.ok(grenade > weapons);
+  assert.ok(flamethrower > grenade);
+  assert.ok(bomb > flamethrower);
+  assert.ok(actions > bomb);
+  assert.match(html, /compact-profession-resource-holosmith-heat/);
 });
 
 test("Engineer event log exposes Heat only for Holosmith heat transitions", () => {
@@ -601,11 +660,11 @@ test("Scrapper F skills follow selected skill-slot order", () => {
   const skillBarGroups = engineerProfession.ui.skillBarGroups(context);
   assert.deepEqual(
     skillBarGroups.map((candidate) => candidate.label),
-    ["F1", "F2", "F3", "F4", "F5"],
+    ["F Skills"],
   );
   assert.deepEqual(
-    skillBarGroups.map(
-      (candidate) => engineerCatalog.skillsById.get(candidate.skillIds[0]).name,
+    skillBarGroups.flatMap((candidate) =>
+      candidate.skillIds.map((id) => engineerCatalog.skillsById.get(id).name),
     ),
     expected,
   );
@@ -625,7 +684,13 @@ test("Core and Mechanist skill bars expose their derived F skills", () => {
     professionState: {},
   });
   assert.deepEqual(
-    core.map((group) => engineerCatalog.skillsById.get(group.skillIds[0]).name),
+    core.map((group) => group.label),
+    ["F Skills"],
+  );
+  assert.deepEqual(
+    core.flatMap((group) =>
+      group.skillIds.map((id) => engineerCatalog.skillsById.get(id).name),
+    ),
     [
       "Regenerating Mist",
       "Grenade Barrage",
@@ -649,8 +714,12 @@ test("Core and Mechanist skill bars expose their derived F skills", () => {
     professionState: { mech: { active: true } },
   });
   assert.deepEqual(
-    mechanist.map(
-      (group) => engineerCatalog.skillsById.get(group.skillIds[0]).name,
+    mechanist.map((group) => group.label),
+    ["F Skills"],
+  );
+  assert.deepEqual(
+    mechanist.flatMap((group) =>
+      group.skillIds.map((id) => engineerCatalog.skillsById.get(id).name),
     ),
     ["Spark Revolver", "Crisis Zone", "Barrier Burst", "Recall Mech"],
   );
@@ -660,6 +729,20 @@ test("Core and Mechanist skill bars expose their derived F skills", () => {
     build: { selectedSkills },
     professionState: {},
   });
+  assert.deepEqual(
+    holosmith.map((group) => group.label),
+    ["F Skills", "Photon Forge"],
+  );
+  assert.deepEqual(
+    holosmith[0].skillIds.map((id) => engineerCatalog.skillsById.get(id).name),
+    [
+      "Regenerating Mist",
+      "Grenade Barrage",
+      "Mine Field",
+      "Surprise Shot (engineer skill)",
+      "Engage Photon Forge",
+    ],
+  );
   assert.equal(holosmith.at(-1).label, "Photon Forge");
   assert.deepEqual(
     holosmith
@@ -673,6 +756,12 @@ test("Core and Mechanist skill bars expose their derived F skills", () => {
       "Holographic Shockwave",
     ],
   );
+});
+
+test("Engineer always labels its single weapon set", () => {
+  assert.equal(weaponSetLabelVisible("engineer", false), true);
+  assert.equal(weaponSetLabelVisible("engineer", true), true);
+  assert.equal(weaponSetLabelVisible("guardian", false), false);
 });
 
 test("Engineer slot selection excludes contextual and unsupported utilities", () => {
@@ -1435,26 +1524,40 @@ test("Amalgam exposes only persisted F2-F4 morph choices", () => {
   });
   assert.deepEqual(
     groups.map((group) => group.label),
-    ["F1", "F2 Protocol", "F3 Protocol", "F4 Protocol", "F5"],
+    ["F Skills", "Protocols"],
   );
   assert.deepEqual(
-    groups.map(
-      (group) => engineerCatalog.skillsById.get(group.skillIds[0]).name,
+    groups[0].skillIds.map((id) => engineerCatalog.skillsById.get(id).name),
+    ["Regenerating Mist", "Evolve"],
+  );
+  const protocolSelections = groups[1].selections;
+  assert.deepEqual(
+    protocolSelections.map(
+      (selection) => engineerCatalog.skillsById.get(selection.skillId).name,
     ),
     [
-      "Regenerating Mist",
       "Offensive Protocol: Shred",
       "Defensive Protocol: Protect",
       "Offensive Protocol: Demolish",
-      "Evolve",
     ],
   );
-  const protocolGroups = groups.filter((group) => group.optionSkillIds);
+  assert.equal(groups[1].className, "engineer-amalgam-protocols");
+  assert.deepEqual(
+    protocolSelections.map((selection) => [
+      selection.keyLabel,
+      selection.typeLabel,
+    ]),
+    [
+      ["F2", "Protocol"],
+      ["F3", "Protocol"],
+      ["F4", "Protocol"],
+    ],
+  );
   assert.ok(
-    protocolGroups.every(
-      (group) =>
-        group.selectionKey === "selectedMorphSkillIds" &&
-        group.optionSkillIds.length === 7,
+    protocolSelections.every(
+      (selection) =>
+        selection.selectionKey === "selectedMorphSkillIds" &&
+        selection.optionSkillIds.length === 7,
     ),
   );
 });

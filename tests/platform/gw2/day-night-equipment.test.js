@@ -7,10 +7,6 @@ import { simulateMesmer } from "../../helpers/mesmer-simulation.js";
 import { FOOD_DATA } from "../../../js/platform/gw2/gear-data.js";
 import { aggregateSigilSet } from "../../../js/platform/gw2/weapon-sigils.js";
 import { createNecromancerBuildDefaults } from "../../../js/professions/necromancer/build.js";
-import {
-  FOOD_NAMES as ELEMENTALIST_FOOD_NAMES,
-  SIGIL_NAMES as ELEMENTALIST_SIGIL_NAMES,
-} from "../../../js/professions/elementalist/data/gear-data.js";
 
 test("the shared simulation config defaults to day and preserves a night selection", () => {
   const build = createNecromancerBuildDefaults();
@@ -28,11 +24,6 @@ test("the shared simulation config defaults to day and preserves a night selecti
   assert.equal(config().timeOfDay, "day");
   build.assumptions.timeOfDay = "night";
   assert.equal(config().timeOfDay, "night");
-});
-
-test("day/night equipment stays out of the legacy Elementalist selector", () => {
-  assert.equal(ELEMENTALIST_FOOD_NAMES.includes("Ghost Pepper Popper"), false);
-  assert.equal(ELEMENTALIST_SIGIL_NAMES.includes("Night"), false);
 });
 
 function flyingCutterDamage(config) {

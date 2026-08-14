@@ -37,7 +37,6 @@ import {
   PROFESSION_APPLICATION_KINDS,
   professionRegistry,
   PROFESSION_ROUTES,
-  standaloneProfessionRegistry,
   validateProfessionRegistryEntries,
 } from "../../js/app/profession/registry.js";
 import {
@@ -614,15 +613,11 @@ test("ready native professions expose deliberate public end-state keys", async (
   }
 });
 
-test("Elementalist exposes native and legacy manifest entries", () => {
+test("Elementalist exposes only its native manifest entry", () => {
   const elementalist = professionRegistry.find(
     (entry) => entry.id === "elementalist",
   );
-  const legacy = professionRegistry.find(
-    (entry) => entry.id === "elementalist-legacy",
-  );
   assert.ok(elementalist);
-  assert.ok(legacy);
   assert.equal(
     elementalist.applicationKind,
     PROFESSION_APPLICATION_KINDS.NATIVE,
@@ -632,10 +627,10 @@ test("Elementalist exposes native and legacy manifest entries", () => {
     nativeProfessionRegistry.some((entry) => entry.id === "elementalist"),
     true,
   );
-  assert.equal(legacy.applicationKind, PROFESSION_APPLICATION_KINDS.STANDALONE);
-  assert.equal(legacy.loadAppAdapter, null);
-  assert.equal(legacy.legacy, true);
-  assert.equal(standaloneProfessionRegistry.includes(legacy), true);
+  assert.equal(
+    professionRegistry.some((entry) => entry.id === "elementalist-legacy"),
+    false,
+  );
 });
 
 test("registry application kinds cannot bypass native adapter conformance", () => {

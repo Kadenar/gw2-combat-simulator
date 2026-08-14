@@ -35,7 +35,9 @@ export function createGw2ResolverExtensions({
     details,
   ) => {
     if (!reactions) {
-      throw new TypeError("GW2 resolver reactions dispatched during construction.");
+      throw new TypeError(
+        "GW2 resolver reactions dispatched during construction.",
+      );
     }
     return reactions.dispatch(stage, context, event, details);
   };
@@ -61,7 +63,11 @@ export function createGw2ResolverExtensions({
     createEquipmentState(currentConfig: Gw2Config) {
       return {
         relic: createRelicRuntime(currentConfig.relic),
-        sigil: { severanceUntil: 0 },
+        sigil: {
+          severanceUntil: 0,
+          criticalProgress: 0,
+          readyAt: new Map(),
+        },
         food: { criticalProgress: 0, readyAt: 0 },
       };
     },

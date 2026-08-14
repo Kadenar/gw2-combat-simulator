@@ -32,7 +32,6 @@
       </header>
       <div class="update-info">
         <strong>Elementalist PvE API snapshot: August 12, 2026</strong>
-        <span class="update-info-wip">Work in progress</span>
       </div>
 
       <section class="build-section">
@@ -66,7 +65,6 @@
               </div>
             </div>
           </div>
-          <div id="traits-panel" class="traits-panel-inline"></div>
         </div>
         <div class="panel attributes-panel">
           <div class="attributes-header">
@@ -87,11 +85,16 @@
       </section>
 
       <section class="skills-section">
-        <div class="panel skills-panel-left skills-panel-split">
-          <div class="skill-bar-column weapon-bar-column">
-            <div class="skill-bar-label">Weapon Bar</div>
-            <div id="weapon-bar" class="weapon-bar"></div>
+        <div class="skills-primary-column">
+          <div id="traits-panel" class="traits-panel-inline"></div>
+          <div class="panel skills-panel-left weapon-sets-panel">
+            <div class="skill-bar-column weapon-bar-column">
+              <div class="skill-bar-label">Weapon Bar</div>
+              <div id="weapon-bar" class="weapon-bar"></div>
+            </div>
           </div>
+        </div>
+        <div class="panel skills-panel-left equipped-skills-panel">
           <div class="skill-bar-column equipped-skill-bar-column">
             <div class="skill-bar-label">Skill Bar</div>
             <div id="skill-bar" class="skill-bar"></div>

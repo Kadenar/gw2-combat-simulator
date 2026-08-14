@@ -21,6 +21,7 @@ import {
 } from "../../../js/app/rotation/palette-model.js";
 import {
   paletteSkillView,
+  renderPalette,
   suggestedPaletteInterruptMs,
 } from "../../../js/app/rotation/palette-view.js";
 import { simulationEventLogRows } from "../../../js/app/rotation/event-log.js";
@@ -413,10 +414,15 @@ test("legend palette renders both selected legends through shared swap cooldown"
   assert.ok(
     loadout.bars.every((bar) => !/Legendary|Stance/.test(bar.compactLabel)),
   );
+  const legendGroups = revenantLegendLoadout.paletteGroups(context);
   assert.deepEqual(
-    revenantLegendLoadout.paletteGroups(context).map((group) => group.label),
+    legendGroups.map((group) => group.label),
     ["Assassin", "Demon"],
   );
+  assert.equal(legendGroups[0].resourceAnchor, true);
+  assert.match(legendGroups[0].className, /compact-resource-palette/);
+  assert.equal(legendGroups[1].resourceAnchor, false);
+  assert.equal(legendGroups[1].className, "revenant-legend-skills-inactive");
   assert.ok(
     revenantLegendLoadout
       .paletteGroups(context)
@@ -456,6 +462,71 @@ test("legend palette renders both selected legends through shared swap cooldown"
     ["Assassin", "Demon"],
   );
   assert.deepEqual(rotationSelectedSlotSkills(rotationApp), []);
+});
+
+test("Revenant utilities and Conduit resources render in the right-side region", async () => {
+  const adapter = await loadProfessionAppAdapter("revenant");
+  const canonicalBuild = createRevenantBuildDefaults();
+  canonicalBuild.specializations[2] = {
+    name: "Conduit",
+    traits: "1-1-1",
+  };
+  canonicalBuild.selectedLegends = [LEGEND.ENTITY, LEGEND.ASSASSIN];
+  canonicalBuild.startingLegend = LEGEND.ENTITY;
+  const build = adapter.toApplicationBuild(canonicalBuild);
+  const app = {
+    build,
+    adapter,
+    profession: revenantProfession,
+    skills: revenantCatalog.skills,
+    skillById: revenantCatalog.skillsById,
+    skillByName: revenantCatalog.skillsByName,
+    weaponData: adapter.weaponData,
+    results: null,
+  };
+  const palette = { innerHTML: "", querySelectorAll: () => [] };
+  const previousDocument = globalThis.document;
+  globalThis.document = {
+    getElementById: (id) => (id === "rotation-palette" ? palette : null),
+  };
+  try {
+    renderPalette(app);
+  } finally {
+    globalThis.document = previousDocument;
+  }
+
+  const html = palette.innerHTML;
+  const profession = html.indexOf("revenant-f-skills");
+  const state = html.indexOf('data-role="profession-resource-stack"');
+  const combat = html.indexOf('data-role="weapon-palette-section"');
+  const utility = html.indexOf('data-role="loadout-utility-palette-group"');
+  const legends = html.indexOf('data-role="loadout-palette-stack"');
+  const energy = html.indexOf('data-resource-id="energy"');
+  const affinity = html.indexOf('data-resource-id="affinity"');
+  const tools = html.indexOf('data-role="timeline-tools-palette-stack"');
+  assert.ok(profession >= 0);
+  assert.ok(combat > profession);
+  assert.ok(utility > combat);
+  assert.ok(state > utility);
+  assert.ok(legends > state);
+  assert.ok(energy > legends);
+  assert.ok(affinity > energy);
+  assert.ok(tools > affinity);
+  assert.equal(html.match(/data-resource-id="energy"/g)?.length, 1);
+  assert.equal(html.match(/data-resource-id="affinity"/g)?.length, 1);
+  assert.match(html, /compact-resource-palette revenant-legend-skills/);
+  assert.match(html, /compact-profession-resource-revenant-energy/);
+  const weaponSwap = html.indexOf('data-skill="Swap Weapons"');
+  const weaponSwapGroup = html.lastIndexOf('<div class="pal-group', weaponSwap);
+  assert.ok(weaponSwap >= 0);
+  assert.match(
+    html.slice(weaponSwapGroup, weaponSwap),
+    /class="pal-label"[^>]*>W[12]<\/div>/,
+  );
+  assert.match(html, /action-palette-group/);
+  assert.match(html, /timeline-tools-palette-stack[\s\S]*__combat_start/);
+  assert.match(html, /timeline-tools-palette-stack[\s\S]*__cooldown_reset/);
+  assert.match(html, /timeline-tools-palette-stack[\s\S]*__wait/);
 });
 
 test("Swift Termination exposes the 50% target-health timeline marker", () => {

@@ -2111,26 +2111,38 @@ test("Ranger skill-bar selections drive pet and Hammer selection", () => {
     ),
     false,
   );
-  const petGroup = rangerProfession.ui
+  const petGroups = rangerProfession.ui
     .skillBarGroups(soulbeastContext)
-    .find((group) => group.id === "ranger-pet-selection");
-  assert.equal(petGroup.label, "Pet");
-  assert.equal(petGroup.layout, "ranger-mechanics ranger-soulbeast-mechanics");
+    .filter((group) => group.id.startsWith("ranger-pet-"));
+  const [pet1Group, pet2Group] = petGroups;
+  assert.deepEqual(
+    petGroups.map((group) => group.label),
+    ["Pet 1", "Pet 2"],
+  );
+  assert.deepEqual(
+    petGroups.map((group) => group.className),
+    ["ranger-pet ranger-pet-1", "ranger-pet ranger-pet-2"],
+  );
+  assert.equal(pet1Group.layout, "ranger-mechanics ranger-soulbeast-mechanics");
+  assert.equal(pet2Group.layout, "ranger-mechanics ranger-soulbeast-mechanics");
   assert.equal(
     rangerProfession.ui
       .skillBarGroups(soulbeastContext)
       .find((group) => group.id === "ranger-soulbeast-f5").className,
     "ranger-soulbeast-beastmode",
   );
-  assert.equal(petGroup.selections[0].selectionValue, "Pig");
-  assert.equal(petGroup.selections[1].selectionValue, "Lynx");
+  assert.equal(pet1Group.selections[0].selectionValue, "Pig");
+  assert.equal(pet2Group.selections[0].selectionValue, "Lynx");
   assert.deepEqual(
-    petGroup.selections.map((selection) => selection.filterPlaceholder),
+    petGroups.map((group) => group.selections[0].filterPlaceholder),
     ["Filter pets...", "Filter pets..."],
   );
-  assert.deepEqual(petGroup.selections[0].skillIds, [ID.FORAGE_SWORD]);
-  assert.deepEqual(petGroup.selections[1].skillIds, [ID.RENDING_POUNCE]);
-  assert.equal(petGroup.selections[0].optionEntries.length, RANGER_PETS.length);
+  assert.deepEqual(pet1Group.selections[0].skillIds, [ID.FORAGE_SWORD]);
+  assert.deepEqual(pet2Group.selections[0].skillIds, [ID.RENDING_POUNCE]);
+  assert.equal(
+    pet1Group.selections[0].optionEntries.length,
+    RANGER_PETS.length,
+  );
   assert.equal(
     rangerProfession.ui.updateSkillBarSelection(soulbeastContext, {
       key: "selectedPet",
@@ -2149,21 +2161,24 @@ test("Ranger skill-bar selections drive pet and Hammer selection", () => {
   );
   assert.equal(build.selectedPet2, "Fanged Iboga");
   const smokescale = RANGER_PETS.find((pet) => pet.name === "Smokescale");
-  const mergedPetGroup = rangerProfession.ui
+  const mergedPetGroups = rangerProfession.ui
     .skillBarGroups(soulbeastContext)
-    .find((group) => group.id === "ranger-pet-selection");
+    .filter((group) => group.id.startsWith("ranger-pet-"));
   const fangedIboga = RANGER_PETS.find((pet) => pet.name === "Fanged Iboga");
-  assert.deepEqual(mergedPetGroup.skillIds, []);
   assert.deepEqual(
-    mergedPetGroup.selections[0].leadingSkillIds,
+    mergedPetGroups.map((group) => group.skillIds),
+    [[], []],
+  );
+  assert.deepEqual(
+    mergedPetGroups[0].selections[0].leadingSkillIds,
     smokescale.beastmodeSkillIds,
   );
   assert.deepEqual(
-    mergedPetGroup.selections[1].leadingSkillIds,
+    mergedPetGroups[1].selections[0].leadingSkillIds,
     fangedIboga.beastmodeSkillIds,
   );
-  assert.deepEqual(mergedPetGroup.selections[0].skillIds, [ID.SMOKE_CLOUD]);
-  assert.deepEqual(mergedPetGroup.selections[1].skillIds, [
+  assert.deepEqual(mergedPetGroups[0].selections[0].skillIds, [ID.SMOKE_CLOUD]);
+  assert.deepEqual(mergedPetGroups[1].selections[0].skillIds, [
     ID.NARCOTIC_SPORES_PET,
   ]);
   assert.equal(
@@ -2200,7 +2215,7 @@ test("Ranger skill-bar selections drive pet and Hammer selection", () => {
   );
   const untamedGroups = rangerProfession.ui.skillBarGroups(untamedContext);
   assert.equal(
-    untamedGroups.find((group) => group.id === "ranger-pet-selection").layout,
+    untamedGroups.find((group) => group.id === "ranger-pet-1-selection").layout,
     "ranger-mechanics ranger-untamed-mechanics",
   );
   assert.deepEqual(
@@ -2386,11 +2401,65 @@ test("Galeshot tracks Cyclone Bow arrows and Wind Force", () => {
     galeshotPaletteGroups.every((group) => group.stackId === "ranger-galeshot"),
     true,
   );
+  const galeshotF5Group = galeshotPaletteGroups.find(
+    (group) => group.id === "ranger-galeshot-profession",
+  );
+  assert.equal(galeshotF5Group.className, "ranger-galeshot-f5");
+  assert.deepEqual(galeshotF5Group.resourceIds, ["arrows"]);
+  assert.equal(galeshotF5Group.resourcePlacement, "beside");
+  const cycloneBowGroup = galeshotPaletteGroups.find(
+    (group) => group.id === "ranger-cyclone-bow",
+  );
+  assert.equal(cycloneBowGroup.className, "ranger-cyclone-bow-skills");
+  assert.deepEqual(cycloneBowGroup.resourceIds, ["wind-force"]);
+  assert.equal(cycloneBowGroup.resourcePlacement, "above");
+  const galeshotResources = rangerProfession.ui.resourceViews(inactiveContext);
   assert.equal(
-    rangerProfession.ui
-      .resourceViews(inactiveContext)
-      .find((view) => view.id === "wind-force").pipStyle,
+    galeshotResources.find((view) => view.id === "wind-force").pipStyle,
     "ranger-wind-force",
+  );
+  assert.equal(
+    galeshotResources
+      .filter((view) => ["arrows", "wind-force"].includes(view.id))
+      .every((view) => view.showValue === false),
+    true,
+  );
+  const galeshotBuild = createRangerBuildDefaults();
+  galeshotBuild.specializations[2] = {
+    name: "Galeshot",
+    traits: "3-3-2",
+  };
+  const galeshotApp = {
+    build: galeshotBuild,
+    adapter: rangerAppAdapter,
+    profession: rangerProfession,
+    skills: rangerCatalog.skills,
+    skillById: rangerCatalog.skillsById,
+    skillByName: rangerCatalog.skillsByName,
+    results: charged,
+  };
+  const paletteElement = { innerHTML: "", querySelectorAll: () => [] };
+  const previousDocument = globalThis.document;
+  globalThis.document = {
+    getElementById: (id) => (id === "rotation-palette" ? paletteElement : null),
+  };
+  try {
+    renderPalette(galeshotApp);
+  } finally {
+    globalThis.document = previousDocument;
+  }
+  assert.match(
+    paletteElement.innerHTML,
+    /profession-palette-resource-group resource-beside[\s\S]*ranger-galeshot-f5[\s\S]*data-resource-id="arrows"/,
+  );
+  assert.match(
+    paletteElement.innerHTML,
+    /profession-palette-resource-group resource-above[\s\S]*data-resource-id="wind-force"[\s\S]*ranger-cyclone-bow-skills/,
+  );
+  assert.doesNotMatch(paletteElement.innerHTML, />\d+\/(?:8|5)<\/strong>/);
+  assert.doesNotMatch(
+    paletteElement.innerHTML,
+    /title="[^"]*(?:arrows|Wind Force): \d+\/(?:8|5)"/,
   );
   const dismiss = rangerCatalog.skillsById.get(ID.DISMISS_CYCLONE_BOW);
   assert.equal(

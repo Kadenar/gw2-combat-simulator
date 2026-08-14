@@ -24,6 +24,32 @@ export interface EvokerState extends SchedulerRecord {
     { skill: string; activationId: string; start: number } | null
   >;
   cancelledFamiliarActivations: Record<string, boolean>;
+  pendingOffAttunementRemainingByCommand: Record<
+    number,
+    Partial<Record<ElementalistAttunement, number>>
+  >;
+  activeFamiliarCast: {
+    reservationId: string;
+    endsAt: number;
+    resetsCharges: boolean;
+  } | null;
+  concurrentParentAnchors: Array<{
+    commandIndex: number;
+    weaponChargeGain: {
+      activationId: string;
+      at: number;
+      source: string;
+      sourceId: string | number;
+      gain: number;
+    } | null;
+  }>;
+  pendingWeaponChargeGains: Array<{
+    activationId: string;
+    at: number;
+    source: string;
+    sourceId: string | number;
+    gain: number;
+  }>;
 }
 
 export const evokerState = defineProfessionSpecializationState(
@@ -61,6 +87,10 @@ export const evokerState = defineProfessionSpecializationState(
       ignitePassiveReadyAt: 0,
       lastEmpoweredFamiliarByBasic: {},
       cancelledFamiliarActivations: {},
+      pendingOffAttunementRemainingByCommand: {},
+      activeFamiliarCast: null,
+      concurrentParentAnchors: [],
+      pendingWeaponChargeGains: [],
     };
   },
 );

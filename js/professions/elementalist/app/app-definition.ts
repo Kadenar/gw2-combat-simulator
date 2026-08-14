@@ -6,9 +6,48 @@ import {
 import { applyElementalistBuildAttributeRules } from "../build-attributes.js";
 import { createDefaultTargetConditions, toApplicationBuild } from "../build.js";
 import { elementalistProfession } from "../definition.js";
-import type { ElementalistApplicationBuild } from "../types.js";
+import type {
+  CatalystEmpowermentPool,
+  ElementalistApplicationBuild,
+} from "../types.js";
 import type { Skill } from "../../../platform/engine/types.js";
-import type { ProfessionSkillAvailabilityContext } from "../../../app/profession/types.js";
+import type {
+  ProfessionAttributeData,
+  ProfessionSkillAvailabilityContext,
+} from "../../../app/profession/types.js";
+
+const CATALYST_EMPOWERMENT_ATTRIBUTES = Object.freeze({
+  power: "Power",
+  precision: "Precision",
+  ferocity: "Ferocity",
+  conditionDamage: "Condition Damage",
+  expertise: "Expertise",
+  concentration: "Concentration",
+} satisfies Readonly<Record<keyof CatalystEmpowermentPool, string>>);
+const CATALYST_EMPOWERMENT_SOURCES = Object.freeze([
+  "base",
+  "gear",
+  "runes",
+  "infusions",
+  "food",
+] as const);
+
+function catalystEmpowermentPool(
+  attributeData: ProfessionAttributeData,
+): CatalystEmpowermentPool {
+  return Object.fromEntries(
+    Object.entries(CATALYST_EMPOWERMENT_ATTRIBUTES).map(([key, name]) => {
+      const attribute = attributeData.attributes[name] || {};
+      return [
+        key,
+        CATALYST_EMPOWERMENT_SOURCES.reduce(
+          (total, source) => total + Number(attribute[source] || 0),
+          0,
+        ),
+      ];
+    }),
+  ) as unknown as CatalystEmpowermentPool;
+}
 
 function build(app: { build: unknown }): ElementalistApplicationBuild {
   return app.build as ElementalistApplicationBuild;
@@ -58,23 +97,35 @@ export const elementalistApp = defineProfessionApp({
   toApplicationBuild,
   specializationFallback: "Fire",
   runtime: {
-    buildConfigExtras: (app) => ({
-      startAttunement: build(app).startAttunement,
-      secondaryAttunement: build(app).secondaryAttunement,
-      initialCatalystEnergy: build(app).initialCatalystEnergy,
-      evokerElement: build(app).evokerElement,
-      initialEvokerCharges: build(app).initialEvokerCharges,
-      initialEvokerEmpowered: build(app).initialEvokerEmpowered,
-      startingAttunementPreDwelled:
-        assumptions(app).startingAttunementPreDwelled !== false,
-      elementalSimulationProfile: String(
-        assumptions(app).elementalSimulationProfile || "evtc",
-      ),
-      glyphBoonedElementals: Boolean(assumptions(app).glyphBoonedElementals),
-      autoSummonFireElemental: !explicitlyCastsGlyphOfElementals(
-        build(app).rotation,
-      ),
-    }),
+    buildConfigExtras: (app) => {
+      const catalyst = build(app).specializations?.some(
+        (specialization) => specialization.name === "Catalyst",
+      );
+      return {
+        ...(catalyst
+          ? {
+              catalystEmpowermentPool: catalystEmpowermentPool(
+                app.attributeData as ProfessionAttributeData,
+              ),
+            }
+          : {}),
+        startAttunement: build(app).startAttunement,
+        secondaryAttunement: build(app).secondaryAttunement,
+        initialCatalystEnergy: build(app).initialCatalystEnergy,
+        evokerElement: build(app).evokerElement,
+        initialEvokerCharges: build(app).initialEvokerCharges,
+        initialEvokerEmpowered: build(app).initialEvokerEmpowered,
+        startingAttunementPreDwelled:
+          assumptions(app).startingAttunementPreDwelled !== false,
+        elementalSimulationProfile: String(
+          assumptions(app).elementalSimulationProfile || "evtc",
+        ),
+        glyphBoonedElementals: Boolean(assumptions(app).glyphBoonedElementals),
+        autoSummonFireElemental: !explicitlyCastsGlyphOfElementals(
+          build(app).rotation,
+        ),
+      };
+    },
   },
   isSkillAvailable: isElementalistSkillAvailable,
   defaultOffhand: preferOffhand("Dagger"),
