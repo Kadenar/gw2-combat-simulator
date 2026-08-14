@@ -182,8 +182,8 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
   assert.equal(echoingEruption.cooldown, 8);
   assert.equal(echoingEruption.ammo, 0);
   assert.equal(echoingEruption.ammoRecharge, 0);
-  assert.equal(echoingEruption.finisherType, "Blast");
-  assert.equal(echoingEruption.finisherValue, 1);
+  assert.equal(echoingEruption.comboFinishers[0].ownerId, "revenant");
+  assert.equal(echoingEruption.comboFinishers[0].finisherType, "Blast");
   assert.deepEqual(
     echoingEruption.effects
       .filter((effect) => effect.type === "strike")
@@ -234,8 +234,9 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
     10,
   );
   const searingFissure = revenantCatalog.skillsById.get(SKILL.SEARING_FISSURE);
-  assert.equal(searingFissure.comboField, "Fire");
-  assert.equal(searingFissure.duration, 3);
+  assert.equal(searingFissure.comboFields[0].ownerId, "revenant");
+  assert.equal(searingFissure.comboFields[0].fieldType, "Fire");
+  assert.equal(searingFissure.comboFields[0].duration, 3);
   assert.deepEqual(
     searingFissure.effects
       .filter((effect) => effect.name === "Pulsing Strikes")
@@ -250,8 +251,10 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
     [[0.6, 1]],
   );
   const twinMoonSweep = revenantCatalog.skillsById.get(SKILL.TWIN_MOON_SWEEP);
-  assert.equal(twinMoonSweep.finisherType, "Whirl");
-  assert.equal(twinMoonSweep.finisherValue, 1);
+  assert.equal(twinMoonSweep.comboFinishers[0].ownerId, "revenant");
+  assert.equal(twinMoonSweep.comboFinishers[0].finisherType, "Whirl");
+  assert.equal(twinMoonSweep.comboFinishers[0].applications, 2);
+  assert.equal(twinMoonSweep.comboFinishers[0].effectDelay, 0.04);
   assert.equal(
     revenantCatalog.skillsById.get(SKILL.ABYSSAL_FIRE).simulatorExcluded,
     true,
@@ -686,12 +689,14 @@ test("Renegade shortbow skills use supplied casts, packets, and combo data", () 
 
   for (const skillId of [SKILL.SHATTERSHOT, SKILL.SEVENSHOT]) {
     const skill = revenantCatalog.skillsById.get(skillId);
-    assert.equal(skill.finisherType, "Projectile");
-    assert.equal(skill.finisherValue, 0.2);
+    assert.equal(skill.comboFinishers[0].ownerId, "revenant");
+    assert.equal(skill.comboFinishers[0].finisherType, "Projectile");
+    assert.equal(skill.comboFinishers[0].chance, 0.2);
   }
   const spiritcrush = revenantCatalog.skillsById.get(SKILL.SPIRITCRUSH);
-  assert.equal(spiritcrush.comboField, "Fire");
-  assert.equal(spiritcrush.duration, 3);
+  assert.equal(spiritcrush.comboFields[0].ownerId, "revenant");
+  assert.equal(spiritcrush.comboFields[0].fieldType, "Fire");
+  assert.equal(spiritcrush.comboFields[0].duration, 3);
   assert.equal(spiritcrush.effects[1].coefficient, 0.75);
   assert.equal(spiritcrush.effects[1].hits, 3);
   assert.equal(spiritcrush.effects[2].applications, 4);

@@ -40,7 +40,11 @@ import {
   normalizeRotationTimelineSize,
   ROTATION_TIMELINE_SIZE_OPTIONS,
 } from "../../../js/platform/ui/rotation-timeline-size.js";
-import { normalizeSimulationConfigCollapsed } from "../../../js/platform/ui/simulation-config-collapse.js";
+import {
+  DEFAULT_ROTATION_WORKSPACE_STATE,
+  reduceRotationWorkspaceState,
+  syncRotationFocusResults,
+} from "../../../js/platform/ui/rotation-workspace.js";
 import {
   bindTimelineInteractions,
   formatTimelineCastDetails,
@@ -87,12 +91,53 @@ test("rotation timeline sizes expose two larger display options", () => {
   assert.equal(normalizeRotationDeadTimeVisibility(null), false);
 });
 
-test("simulation config collapse state only accepts explicit true values", () => {
-  assert.equal(normalizeSimulationConfigCollapsed(true), true);
-  assert.equal(normalizeSimulationConfigCollapsed("true"), true);
-  assert.equal(normalizeSimulationConfigCollapsed(false), false);
-  assert.equal(normalizeSimulationConfigCollapsed("false"), false);
-  assert.equal(normalizeSimulationConfigCollapsed(null), false);
+test("rotation workspace keeps config closed by default and scopes focus mode", () => {
+  assert.deepEqual(DEFAULT_ROTATION_WORKSPACE_STATE, {
+    configOpen: false,
+    focus: false,
+  });
+
+  const configOpen = reduceRotationWorkspaceState(
+    DEFAULT_ROTATION_WORKSPACE_STATE,
+    "toggle-config",
+  );
+  assert.deepEqual(configOpen, { configOpen: true, focus: false });
+  assert.deepEqual(reduceRotationWorkspaceState(configOpen, "escape"), {
+    configOpen: false,
+    focus: false,
+  });
+
+  const focused = reduceRotationWorkspaceState(
+    DEFAULT_ROTATION_WORKSPACE_STATE,
+    "toggle-focus",
+  );
+  assert.deepEqual(focused, { configOpen: false, focus: true });
+  assert.deepEqual(
+    reduceRotationWorkspaceState(
+      { configOpen: true, focus: true },
+      "toggle-focus",
+    ),
+    { configOpen: false, focus: false },
+  );
+  assert.equal(reduceRotationWorkspaceState(focused, "escape"), focused);
+});
+
+test("focus mode expands DPS snapshots only for the focused workspace", () => {
+  let focused = true;
+  const details = { dataset: {}, open: false };
+  const root = {
+    body: { hasAttribute: () => focused },
+    querySelectorAll: () => [details],
+  };
+
+  syncRotationFocusResults(root);
+  assert.equal(details.open, true);
+  assert.equal(details.dataset.focusExpanded, "true");
+
+  focused = false;
+  syncRotationFocusResults(root);
+  assert.equal(details.open, false);
+  assert.equal(details.dataset.focusExpanded, undefined);
 });
 
 test("activation editor suggests and validates manual interruption times", () => {

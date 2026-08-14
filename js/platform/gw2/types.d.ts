@@ -46,7 +46,8 @@ export interface ComboFieldEvent extends SimulationEventBase<"combo_field"> {
   readonly ownerActorType: SimulationActorType;
 }
 
-export interface ComboFinisherEvent extends SimulationEventBase<"combo_finisher"> {
+export interface ComboFinisherEvent
+  extends SimulationEventBase<"combo_finisher"> {
   readonly attemptId: string;
   readonly finisherType: ComboFinisherType;
   readonly fieldBinding: ComboFieldBinding;
@@ -687,7 +688,8 @@ export interface Gw2ResolverHelpers extends SchedulerRecord {
 }
 
 export type Gw2EventQueue =
-  Gw2ResolverEvent[] | StableEventQueue<Gw2ResolverEvent>;
+  | Gw2ResolverEvent[]
+  | StableEventQueue<Gw2ResolverEvent>;
 
 export interface Gw2ResolverRuntime extends SchedulerRecord {
   config: Gw2Config;
@@ -815,7 +817,6 @@ export type Gw2ResolverReaction = (
 
 export type Gw2ResolverStage =
   | "aura.applied"
-  | "blast-combo.resolved"
   | "combo.resolved"
   | "buff.applied"
   | "damage.resolved"
@@ -934,10 +935,11 @@ export interface CreateGw2ResolverRuntimeStateOptions {
   readonly createEquipmentState: Gw2ResolverExtensions["createEquipmentState"];
 }
 
-export interface Gw2ProfessionContract extends Omit<
-  NormalizedProfessionContract,
-  "eventHandlers" | "eventReactions" | "simulation" | "projectEndState"
-> {
+export interface Gw2ProfessionContract
+  extends Omit<
+    NormalizedProfessionContract,
+    "eventHandlers" | "eventReactions" | "simulation" | "projectEndState"
+  > {
   readonly eventHandlers: Gw2ResolverEventHandlers;
   readonly eventReactions: Gw2ResolverReactions;
   readonly simulation:
@@ -1023,7 +1025,8 @@ export interface Gw2ConversionAttributeEffect extends Gw2AttributeEffectBase {
 }
 
 export type Gw2AttributeEffect =
-  Gw2FlatAttributeEffect | Gw2ConversionAttributeEffect;
+  | Gw2FlatAttributeEffect
+  | Gw2ConversionAttributeEffect;
 
 export interface Gw2AttributeBreakdown {
   final: number;
@@ -1392,7 +1395,8 @@ export interface Gw2NormalizedModifierRule {
 }
 
 export type Gw2IncludeSigilPolicy =
-  boolean | ((context: Gw2ModifierContext) => boolean);
+  | boolean
+  | ((context: Gw2ModifierContext) => boolean);
 
 export interface Gw2DamageBucketPolicy {
   readonly includeSigil: Gw2IncludeSigilPolicy;

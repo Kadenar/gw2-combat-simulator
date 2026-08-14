@@ -6,7 +6,6 @@
  */
 import { ENGINEER_SKILL_IDS as ID } from "../../data/ids.js";
 import type { SkillFragment } from "../../../../platform/engine/types.js";
-
 export const HOLOSMITH_SKILL_MECHANICS: Readonly<
   Record<string, SkillFragment>
 > = Object.freeze({
@@ -73,8 +72,15 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 560,
     cooldown: 0,
     heatGain: 3,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Projectile",
+        chance: 0.2,
+        preferredFieldTypes: ["Fire"],
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -136,8 +142,15 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 520,
     cooldown: 0,
     heatGain: 3,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Projectile",
+        chance: 0.2,
+        preferredFieldTypes: ["Fire"],
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -275,8 +288,15 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 360,
     cooldown: 0,
     heatGain: 3,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Projectile",
+        chance: 0.2,
+        preferredFieldTypes: ["Fire"],
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -481,8 +501,15 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 1320,
     cooldown: 10,
     heatGain: 16,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Projectile",
+        chance: 0.2,
+        preferredFieldTypes: ["Fire"],
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",

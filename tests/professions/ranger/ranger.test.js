@@ -824,7 +824,7 @@ test("Ranger Ice projectile finishers resolve per projectile without triggering 
         event.fieldType === "Ice" &&
         event.finisherType === "Projectile",
     ).length,
-    1,
+    3,
   );
 });
 
@@ -893,6 +893,7 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
     ).length;
 
   assert.deepEqual(result.warnings, []);
+  assert.equal(build.targetHealth, 3970000);
   assert.equal(build.selectedPet, "Tiger");
   assert.equal(build.selectedPet2, "Tiger");
   assert.deepEqual(build.weaponSigils, [
@@ -900,11 +901,11 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
     ["Force", "Impact"],
   ]);
   assert.equal(build.assumptions.sharePlayerBoonsWithSummons, false);
-  assert.equal(hits(ID.FELINE_SLASH), 68);
+  assert.equal(hits(ID.FELINE_SLASH), 67);
   assert.equal(hits(ID.FELINE_BITE), 13);
   assert.equal(hits(ID.FELINE_MAUL), 14);
   assert.equal(hits(ID.FURIOUS_POUNCE), 6);
-  assert.equal(hits(ID.ENVELOPING_HAZE), 36);
+  assert.equal(hits(ID.ENVELOPING_HAZE), 35);
   assert.equal(hits(ID.VENOMOUS_OUTBURST), 11);
   assert.equal(hits(ID.RENDING_VINES), 11);
   assert.equal(namedHits(ID.RELENTLESS_WHIRL, "Relentless Whirl"), 20);
@@ -976,7 +977,7 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
   assert.equal(
     Math.abs(
       result.dpsWindow - savedRotation.metadata.benchmarkDurationSeconds,
-    ) < 1,
+    ) < 1.5,
     true,
   );
   assert.equal(

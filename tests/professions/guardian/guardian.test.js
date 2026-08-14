@@ -1030,7 +1030,10 @@ test("Willbender utilities use the supplied physical skill profiles", () => {
   assert.equal(strikes("Whirling Light").length, 4);
   assert.equal(
     strikes("Whirling Light").every(
-      (event) => event.finisherType === "Whirl" && event.finisherValue === 1,
+      (event) =>
+        event.finisherValue == null &&
+        event.comboFinishers?.[0]?.finisherType === "Whirl" &&
+        event.comboFinishers[0].ownerId === "guardian",
     ),
     true,
   );
@@ -1122,6 +1125,41 @@ test("Whirling Light creates four Burning Bolts inside Purging Flames", () => {
     true,
   );
   assert.equal(burningCombos(withoutFireField).length, 0);
+});
+
+test("Guardian Blasts use centralized field binding and require an active field", () => {
+  const inFireField = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Purging Flames", "Mighty Blow"],
+    config: { ...config, primaryWeapon: "Hammer" },
+  });
+  const withoutField = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Mighty Blow"],
+    config: { ...config, primaryWeapon: "Hammer" },
+  });
+  const finisher = inFireField.events.find(
+    (event) =>
+      event.type === "combo_finisher" && event.skillName === "Mighty Blow",
+  );
+  const combo = inFireField.resolvedEvents.find(
+    (event) => event.type === "combo" && event.skillName === "Mighty Blow",
+  );
+
+  assert.equal(finisher.finisherType, "Blast");
+  assert.equal(finisher.fieldBinding.kind, "field-id");
+  assert.equal(combo.fieldType, "Fire");
+  assert.equal(combo.finisherType, "Blast");
+  assert.equal(
+    inFireField.events.some((event) => event.type === "blast_combo"),
+    false,
+  );
+  assert.equal(
+    withoutField.resolvedEvents.some(
+      (event) => event.type === "combo" && event.skillName === "Mighty Blow",
+    ),
+    false,
+  );
 });
 
 test("Willbender virtues, flames, and trait triggers use their full mechanics", () => {
@@ -1893,7 +1931,7 @@ test("Firebrand tome chapters use their reference packets and cooldowns", () => 
   );
   assert.equal(
     guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SCORCHED_AFTERMATH)
-      .comboField,
+      .comboFields[0].fieldType,
     "Fire",
   );
 
@@ -2545,8 +2583,8 @@ test("Guardian pistol conditions and Symbol of Ignition use full packets", () =>
     ignitions.every((event) => event.duration === 1),
     true,
   );
-  assert.equal(symbolAction.comboField, "Light");
-  assert.equal(symbolAction.comboFieldDuration, 4);
+  assert.equal(symbolAction.comboFields[0].fieldType, "Light");
+  assert.equal(symbolAction.comboFields[0].duration, 4);
 });
 
 test("Peacekeeper begins its six-second recharge when its cast starts", () => {
@@ -4658,8 +4696,8 @@ test("Glacial Heart and Master of Consecrations replace their numeric effects", 
   const purgingAction = purging.events.find(
     (event) => event.type === "action" && event.skillName === "Purging Flames",
   );
-  assert.equal(purgingAction.comboField, "Fire");
-  assert.equal(purgingAction.comboFieldDuration, 7);
+  assert.equal(purgingAction.comboFields[0].fieldType, "Fire");
+  assert.equal(purgingAction.comboFields[0].duration, 7);
 });
 
 test("Power Willbender saved build and EVTC rotation reproduce the preset", async () => {

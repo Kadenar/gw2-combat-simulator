@@ -737,10 +737,10 @@ test("every catalog skill has mechanics and API aliases are excluded", () => {
     assert.equal(
       Boolean(
         skill.handlerId ||
-        skill.effects.length ||
-        skill.lifeForceGain ||
-        skill.flipParentId != null ||
-        skill.type === "Action",
+          skill.effects.length ||
+          skill.lifeForceGain ||
+          skill.flipParentId != null ||
+          skill.type === "Action",
       ),
       true,
       `${skill.id} ${skill.name}`,
@@ -2321,7 +2321,9 @@ test("Bone Fiend uses paired Bone Shards and its fourth crippling volley", () =>
   assert.equal(
     attacks.every(
       (event) =>
-        event.finisherType === "Projectile" && event.finisherValue === 1,
+        event.comboFinishers[0].ownerId === "necromancer" &&
+        event.comboFinishers[0].finisherType === "Projectile" &&
+        event.comboFinishers[0].chance === 1,
     ),
     true,
   );
@@ -2395,14 +2397,18 @@ test("Rigor Mortis is instant and fires two immobilizing projectile finishers", 
   );
   assert.equal(rigorStep.fullCastMs, 0);
   assert.deepEqual(
-    attacks.map((event) => [event.coefficient, event.finisherValue]),
+    attacks.map((event) => [event.coefficient, event.comboFinishers[0].chance]),
     [
       [0.25, 1],
       [0.25, 1],
     ],
   );
   assert.equal(
-    attacks.every((event) => event.finisherType === "Projectile"),
+    attacks.every(
+      (event) =>
+        event.comboFinishers[0].finisherType === "Projectile" &&
+        event.comboFinishers[0].ownerId === "necromancer",
+    ),
     true,
   );
   assert.deepEqual(

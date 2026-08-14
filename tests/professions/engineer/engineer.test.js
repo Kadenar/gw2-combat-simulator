@@ -1252,7 +1252,7 @@ test("Thermal Release Valve, ECSU, and PBM materialize their heat effects", () =
   );
   assert.equal(blast.coefficient, 5);
   assert.equal(blast.explosion, true);
-  assert.equal(blast.finisherType, "Blast");
+  assert.equal(blast.comboFinishers[0].finisherType, "Blast");
   assert.equal(
     blasting.events.find(
       (event) => event.type === "proc" && event.name === "Overheat",
@@ -1837,7 +1837,10 @@ test("Mechanist sword uses the non-heat skill set and complete packets", () => {
   assert.equal(skill(ID.GLEAM_SABER_ID_70771).effects[0].coefficient, 1.65);
   assert.equal(skill(ID.RADIANT_ARC_ID_69565).effects[0].coefficient, 2.5);
   assert.equal(skill(ID.RADIANT_ARC_ID_69565).cooldown, 14);
-  assert.equal(skill(ID.RADIANT_ARC_ID_69565).finisherType, "Leap");
+  assert.equal(
+    skill(ID.RADIANT_ARC_ID_69565).comboFinishers[0].finisherType,
+    "Leap",
+  );
 
   const refraction = skill(ID.REFRACTION_CUTTER_ID_71121);
   assert.equal(refraction.cooldown, 6);
@@ -1889,7 +1892,7 @@ test("Mechanist rifle uses live close-range packets and measured cadence", () =>
       [0.8, 602],
     ],
   );
-  assert.equal(burst.effects[0].metadata.finisherValue, 0.2);
+  assert.equal(burst.effects[0].comboFinishers[0].chance, 0.2);
   assert.equal(burst.effects[1].metadata.damageKind, "explosion");
 
   const blunderbuss = skill("Blunderbuss");
@@ -1968,7 +1971,7 @@ test("Engineer hammer skills use the requested packets and field cadence", () =>
   assert.equal(electro.effects[0].coefficient, 3);
   assert.equal(electro.effects[0].hits, 2);
   assert.equal(electro.effects[0].metadata.damageKind, "explosion");
-  assert.equal(electro.finisherType, "Whirl");
+  assert.equal(electro.comboFinishers[0].finisherType, "Whirl");
 
   const rocket = skill("Rocket Charge");
   assert.equal(rocket.quicknessCastTimeMs, 1920);
@@ -2041,7 +2044,7 @@ test("Engineer hammer skills use the requested packets and field cadence", () =>
   );
   assert.equal(thunderControl.at, 0.75);
   assert.equal(thunderControl.controlKind, "stun");
-  assert.equal(skill("Thunderclap").comboField, "Lightning");
+  assert.equal(skill("Thunderclap").comboFields[0].fieldType, "Lightning");
 });
 
 test("Bomb Kit packets honor fuses, explosions, fields, and finishers", () => {
@@ -2121,10 +2124,13 @@ test("Bomb Kit packets honor fuses, explosions, fields, and finishers", () => {
   assert.equal(interruptedFire(399).length, 0);
   assert.equal(interruptedFire(400).length, 4);
   assert.equal(
-    engineerCatalog.skillsByName.get("Fire Bomb").comboField,
+    engineerCatalog.skillsByName.get("Fire Bomb").comboFields[0].fieldType,
     "Fire",
   );
-  assert.equal(engineerCatalog.skillsByName.get("Fire Bomb").duration, 3);
+  assert.equal(
+    engineerCatalog.skillsByName.get("Fire Bomb").comboFields[0].duration,
+    3,
+  );
 
   const galvanic = simulate("Core", ["Bomb Kit", "Galvanic Bomb"], {
     selectedSkills,
@@ -2155,7 +2161,8 @@ test("Bomb Kit packets honor fuses, explosions, fields, and finishers", () => {
     ),
   );
   assert.equal(
-    engineerCatalog.skillsByName.get("Galvanic Bomb").finisherType,
+    engineerCatalog.skillsByName.get("Galvanic Bomb").comboFinishers[0]
+      .finisherType,
     "Blast",
   );
   assert.equal(
@@ -2208,7 +2215,8 @@ test("Bomb Kit packets honor fuses, explosions, fields, and finishers", () => {
     ),
   );
   assert.equal(
-    engineerCatalog.skillsByName.get("Big Ol' Bomb").finisherValue,
+    engineerCatalog.skillsByName.get("Big Ol' Bomb").comboFinishers[0]
+      .successfulCombos,
     2,
   );
   assert.equal(
@@ -2371,10 +2379,10 @@ test("Grenade Kit emits three explosive grenade packets", () => {
 test("Shred fires three Burning Bolts through Stoke the Flames", () => {
   const stoke = engineerCatalog.skillsByName.get("Stoke the Flames");
   const shred = engineerCatalog.skillsById.get(77103);
-  assert.equal(stoke.comboField, "Fire");
-  assert.equal(stoke.duration, 1);
-  assert.equal(shred.finisherType, "Projectile");
-  assert.equal(shred.finisherValue, 1);
+  assert.equal(stoke.comboFields[0].fieldType, "Fire");
+  assert.equal(stoke.comboFields[0].duration, 1);
+  assert.equal(shred.comboFinishers[0].finisherType, "Projectile");
+  assert.equal(shred.comboFinishers[0].chance, 1);
 
   const config = {
     boons: { quickness: true },
@@ -3528,9 +3536,9 @@ test("Aim-Assisted Rocket calls an orbital strike after four rockets", () => {
     ),
   );
   assert.equal(orbital.coefficient, 1.92);
-  assert.equal(orbital.blastFinisher, true);
-  assert.equal(orbital.finisherType, "Blast");
-  assert.equal(orbital.finisherValue, 1);
+  assert.equal(orbital.comboFinishers[0].ownerId, "engineer");
+  assert.equal(orbital.comboFinishers[0].finisherType, "Blast");
+  assert.equal(orbital.comboFinishers[0].chance, 1);
   assert.equal(orbital.explosion, false);
   assert.equal(orbital.actorType, "effect");
   assert.equal(orbital.sourceId, ID.ORBITAL_COMMAND_STRIKE);
@@ -4042,7 +4050,7 @@ test("power Scrapper toolbelt skills use their per-hit and control facts", () =>
   const orbitalStrike = mechanic("Orbital Strike");
   assert.equal(orbitalStrike.cooldown, 40);
   assert.equal(orbitalStrike.effects[0].coefficient, 1.33);
-  assert.equal(orbitalStrike.finisherType, "Blast");
+  assert.equal(orbitalStrike.comboFinishers[0].finisherType, "Blast");
 
   const grenadeBarrage = mechanic("Grenade Barrage");
   assert.equal(grenadeBarrage.cooldown, 25);
@@ -4065,8 +4073,8 @@ test("power Scrapper toolbelt skills use their per-hit and control facts", () =>
 test("Medic Gyro and Reconstruction Field expose their water fields", () => {
   const reconstructionField = mechanic("Reconstruction Field");
   assert.equal(reconstructionField.cooldown, 25);
-  assert.equal(reconstructionField.comboField, "Water");
-  assert.equal(reconstructionField.duration, 2);
+  assert.equal(reconstructionField.comboFields[0].fieldType, "Water");
+  assert.equal(reconstructionField.comboFields[0].duration, 2);
   assert.deepEqual(reconstructionField.effects[0], {
     type: "boon",
     boon: "protection",
@@ -4076,14 +4084,14 @@ test("Medic Gyro and Reconstruction Field expose their water fields", () => {
 
   const medicGyro = mechanic("Medic Gyro");
   assert.equal(medicGyro.cooldown, 20);
-  assert.equal(medicGyro.comboField, "Water");
-  assert.equal(medicGyro.duration, 5);
+  assert.equal(medicGyro.comboFields[0].fieldType, "Water");
+  assert.equal(medicGyro.comboFields[0].duration, 5);
 });
 
 test("Poison Gas Shell pulses its five-second poison field", () => {
   const poisonGasShell = mechanic("Poison Gas Shell");
-  assert.equal(poisonGasShell.comboField, "Poison");
-  assert.equal(poisonGasShell.duration, 5);
+  assert.equal(poisonGasShell.comboFields[0].fieldType, "Poison");
+  assert.equal(poisonGasShell.comboFields[0].duration, 5);
   assert.equal(poisonGasShell.effects[1].condition, "Poisoned");
   assert.equal(poisonGasShell.effects[1].duration, 3);
   assert.equal(poisonGasShell.effects[1].applications, 5);

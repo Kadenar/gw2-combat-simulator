@@ -145,7 +145,9 @@ test("Catalyst zero-damage finishers preserve combo metadata", () => {
       .some(
         (tick) =>
           tick.coefficient === 0 &&
-          tick.metadata?.finisherType === finisherType,
+          tick.comboFinishers?.some(
+            (finisher) => finisher.finisherType === finisherType,
+          ),
       );
 
   assert.equal(zeroCoefficientFinisher("Churning Earth", "Blast"), true);

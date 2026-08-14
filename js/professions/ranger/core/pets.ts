@@ -301,7 +301,8 @@ function emitAutonomousSkill(
   recovery: number,
 ): void {
   const skill = context.catalog.skillsById.get(skillId) as
-    RangerSkill | undefined;
+    | RangerSkill
+    | undefined;
   if (!skill) return;
   const activationId = context.createActivationId("summon-attack");
   const fullEnd = at + recovery;

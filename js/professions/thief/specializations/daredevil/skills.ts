@@ -332,7 +332,12 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<
         timingScale: "fixed",
       },
     ],
-    finisherType: "Whirl",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "thief",
+        finisherType: "Whirl",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
   },
 });

@@ -1,5 +1,4 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
-import { observeLegacyProfessionCombos } from "../../../platform/gw2/legacy-combo-adapter.js";
 /**
  * Scheduler-side Warrior trait lifecycle and event observation.
  *
@@ -592,10 +591,6 @@ export function observeWarriorEvent(
   context: WarriorSchedulerContext,
   event: WarriorSimulationEvent,
 ): void {
-  observeLegacyProfessionCombos(context, event, {
-    ownerId: "warrior",
-    ambiguousFieldSelection: "oldest",
-  });
   const state = professionCoreState(context);
   if (event.type === "combat_start") {
     state.signetOfRageNextAt = event.at + 3;

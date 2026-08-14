@@ -6,15 +6,129 @@ import { defineProfession } from "../../../js/platform/engine/profession.js";
 import { createScheduler } from "../../../js/platform/engine/scheduler.js";
 import { createGw2SchedulerPolicy } from "../../../js/platform/gw2/scheduler/policy.js";
 
-function fixtureProfession(initialize) {
+function fixtureProfession(initialize, catalog = createCanonicalCatalog()) {
   return defineProfession({
     id: "combo-fixture",
     name: "Combo Fixture",
-    catalog: createCanonicalCatalog(),
+    catalog,
     resources: { createProfessionState: () => ({}) },
     schedulerHooks: { initialize },
   });
 }
+
+test("owned canonical descriptors produce shared combo events without a profession adapter", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 1,
+        name: "Canonical Fire Field",
+        castTimeMs: 0,
+        comboFields: [
+          {
+            ownerId: "combo-fixture",
+            fieldType: "Fire",
+            duration: 5,
+            startAnchor: "castEnd",
+          },
+        ],
+        effects: [],
+      },
+      {
+        id: 2,
+        name: "Canonical Blast",
+        castTimeMs: 0,
+        effects: [
+          {
+            type: "strike",
+            coefficient: 1,
+            comboFinishers: [
+              {
+                ownerId: "combo-fixture",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  });
+  const profession = fixtureProfession(() => {}, catalog);
+  const result = createScheduler({
+    profession,
+    schedulerPolicy: createGw2SchedulerPolicy(),
+  }).run(["Canonical Fire Field", "Canonical Blast"]);
+
+  const field = result.events.find((event) => event.type === "combo_field");
+  const finisher = result.events.find(
+    (event) => event.type === "combo_finisher",
+  );
+  const combo = result.events.find((event) => event.type === "combo");
+  assert.equal(field.ownerId, "combo-fixture");
+  assert.deepEqual(finisher.fieldBinding, {
+    kind: "field-id",
+    fieldId: field.fieldId,
+  });
+  assert.equal(combo.fieldId, field.fieldId);
+  assert.equal(combo.finisherType, "Blast");
+});
+
+test("a later-authored owned field rebinds an already scheduled finisher", () => {
+  const profession = fixtureProfession((context) => {
+    context.emit({
+      type: "damage",
+      at: 1,
+      source: "combo-fixture",
+      sourceId: 2,
+      actorType: "player",
+      skillId: 2,
+      skillName: "Scheduled Projectile",
+      coefficient: 1,
+      comboFinishers: [
+        {
+          ownerId: "combo-fixture",
+          finisherType: "Projectile",
+          ambiguousFieldSelection: "oldest",
+        },
+      ],
+    });
+    context.emit({
+      type: "action",
+      at: 0,
+      endsAt: 0,
+      source: "combo-fixture",
+      sourceId: 1,
+      actorType: "player",
+      skillId: 1,
+      skillName: "Later Authored Ice Field",
+      comboFields: [
+        {
+          ownerId: "combo-fixture",
+          fieldType: "Ice",
+          duration: 2,
+          startAnchor: "castEnd",
+        },
+      ],
+    });
+  });
+  const result = createScheduler({
+    profession,
+    schedulerPolicy: createGw2SchedulerPolicy(),
+  }).run([{ type: "wait", durationMs: 2000 }]);
+  const field = result.events.find((event) => event.type === "combo_field");
+  const finisher = result.events.find(
+    (event) => event.type === "combo_finisher",
+  );
+
+  assert.deepEqual(finisher.fieldBinding, {
+    kind: "field-id",
+    fieldId: field.fieldId,
+  });
+  assert.equal(
+    result.events.find((event) => event.type === "combo")?.fieldId,
+    field.fieldId,
+  );
+});
 
 test("the scheduler predicts a delayed combo result for later facts", () => {
   const profession = fixtureProfession((context) => {

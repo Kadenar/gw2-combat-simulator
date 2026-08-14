@@ -55,10 +55,8 @@ export interface MesmerApplicationBuild extends ProfessionApplicationBuild {
   initialResource: number;
 }
 
-export interface MesmerBuildAttributeRuleContext extends Omit<
-  Gw2BuildAttributeRuleContext,
-  "build"
-> {
+export interface MesmerBuildAttributeRuleContext
+  extends Omit<Gw2BuildAttributeRuleContext, "build"> {
   readonly build: MesmerBuild;
 }
 
@@ -192,8 +190,7 @@ export interface MesmerTroubadourState {
 }
 
 export interface MesmerProfessionState
-  extends
-    MesmerCoreState,
+  extends MesmerCoreState,
     MesmerChronomancerState,
     MesmerMirageState,
     MesmerVirtuosoState,
@@ -341,10 +338,7 @@ export type MesmerTrackedHitDamage = MesmerDamageGroup & {
 export interface MesmerSkill extends Skill {
   readonly id: number;
   readonly ambush?: boolean;
-  readonly comboField?: string;
   readonly duration?: number;
-  readonly finisherType?: string;
-  readonly finisherValue?: number;
   readonly phantasm?: boolean;
   readonly blade?: boolean;
   readonly pulseCount?: number;
@@ -443,7 +437,8 @@ export interface MesmerContinuumController {
 
 export type MesmerCatalog = CanonicalCatalog<MesmerSkill>;
 
-export interface MesmerSchedulerPolicy extends SchedulerPolicy<MesmerRuntimeState> {
+export interface MesmerSchedulerPolicy
+  extends SchedulerPolicy<MesmerRuntimeState> {
   critical(
     context: SchedulerContext<MesmerRuntimeState>,
     event: SimulationEvent,
@@ -660,7 +655,8 @@ export type MesmerRefreshAmmo = (
 ) => AmmoState | null;
 
 export type MesmerState =
-  SchedulerState<MesmerRuntimeState> | Pick<MesmerProfessionState, "clones">;
+  | SchedulerState<MesmerRuntimeState>
+  | Pick<MesmerProfessionState, "clones">;
 
 export interface MesmerProjectedFlip {
   readonly availableAt: number;
@@ -755,7 +751,8 @@ export interface MesmerCloneAttackBase {
 }
 
 export interface MesmerDirectCloneAttack
-  extends MesmerCloneAttackBase, MesmerCloneAttackStep {
+  extends MesmerCloneAttackBase,
+    MesmerCloneAttackStep {
   readonly sequence?: undefined;
 }
 
@@ -767,7 +764,8 @@ export interface MesmerSequencedCloneAttack extends MesmerCloneAttackBase {
 }
 
 export type MesmerCloneAttack =
-  MesmerDirectCloneAttack | MesmerSequencedCloneAttack;
+  | MesmerDirectCloneAttack
+  | MesmerSequencedCloneAttack;
 
 export interface MesmerAmbushStrike {
   readonly coefficient: number;

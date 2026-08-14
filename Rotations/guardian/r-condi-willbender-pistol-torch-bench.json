@@ -5,7 +5,7 @@
     "benchmarkDurationSeconds": 94.439,
     "benchmarkDamage": 3948433,
     "benchmarkDps": 41809.34783299273,
-    "simulatedDps": 42342.57939573554,
+    "simulatedDps": 42399.5971914428,
     "timingSource": "Supplied ArcDPS EVTC activation, buff, and damage events",
     "note": "Flowing Resolve is precast once. The April 2026 ArcDPS log marks several successful casts as zero-duration cancels; those casts are reconstructed from their complete damage packets and cross-checked against the September 2025 reference log. Paired Rushing Justice and Jurisdiction records are represented as one simulator cast each, and genuinely canceled filler attacks are omitted."
   },

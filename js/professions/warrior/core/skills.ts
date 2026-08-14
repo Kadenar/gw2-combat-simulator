@@ -1,9 +1,7 @@
 /** Explicit PvE skill mechanics owned by the Core Warrior module. */
 import { WARRIOR_SKILL_IDS as ID } from "../data/ids.js";
 import type { SkillFragment } from "../../../platform/engine/types.js";
-
 export { WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS } from "./actions.js";
-
 export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   Record<number, SkillFragment>
 > = Object.freeze({
@@ -108,9 +106,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         atMs: 400,
         timingAnchor: "castStart",
         timingScale: "fixed",
-        metadata: {
-          finisherType: "whirl",
-        },
+        comboFinishers: [
+          {
+            ownerId: "warrior",
+            finisherType: "Whirl",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
+        metadata: {},
       },
       {
         type: "control",
@@ -250,8 +253,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.SAVAGE_LEAP]: {
     implemented: true,
-    finisherType: "Leap",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "warrior",
+        finisherType: "Leap",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -448,8 +456,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.ARCING_ARROW]: {
     implemented: true,
-    finisherType: "Blast",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "warrior",
+        finisherType: "Blast",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -536,9 +549,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         atMs: 840,
         timingAnchor: "castStart",
         timingScale: "fixed",
-        metadata: {
-          finisherType: "blast",
-        },
+        comboFinishers: [
+          {
+            ownerId: "warrior",
+            finisherType: "Blast",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
+        metadata: {},
       },
       {
         type: "control",
@@ -677,7 +695,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         })),
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: { finisherType: "whirl" },
+        comboFinishers: [
+          {
+            ownerId: "warrior",
+            finisherType: "Whirl",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
+        metadata: {},
       },
     ],
     quicknessCastTimeMs: 2500,
@@ -997,7 +1022,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 1.76,
         hits: 2,
-        metadata: { finisherType: "whirl" },
+        comboFinishers: [
+          {
+            ownerId: "warrior",
+            finisherType: "Whirl",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
+        metadata: {},
       },
       {
         type: "boon",
@@ -1054,8 +1086,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.DUAL_SHOT]: {
     implemented: true,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "warrior",
+        finisherType: "Projectile",
+        chance: 0.2,
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -1340,8 +1378,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.PIN_DOWN]: {
     implemented: true,
-    finisherType: "Projectile",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "warrior",
+        finisherType: "Projectile",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -1377,8 +1420,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
     ammo: 3,
     ammoRecharge: 16,
     ammoCastLockout: 0.5,
-    finisherType: "Projectile",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "warrior",
+        finisherType: "Projectile",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -1403,8 +1451,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.COMBUSTIVE_SHOT]: {
     implemented: true,
-    comboField: "Fire",
-    duration: 3,
+    comboFields: [
+      {
+        ownerId: "warrior",
+        fieldType: "Fire",
+        duration: 3,
+        startAnchor: "castEnd",
+      },
+    ],
     burstFieldDurations: [3, 6, 9],
     effects: [],
     quicknessCastTimeMs: 520,
@@ -1484,9 +1538,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         atMs: 840,
         timingAnchor: "castStart",
         timingScale: "fixed",
-        metadata: {
-          finisherType: "blast",
-        },
+        comboFinishers: [
+          {
+            ownerId: "warrior",
+            finisherType: "Blast",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
+        metadata: {},
       },
       {
         type: "control",
@@ -1506,8 +1565,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BULLS_CHARGE]: {
     implemented: true,
-    finisherType: "Leap",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "warrior",
+        finisherType: "Leap",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -1585,8 +1649,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.COMBUSTIVE_SHOT_ID_14520]: {
     implemented: true,
-    comboField: "Fire",
-    duration: 3,
+    comboFields: [
+      {
+        ownerId: "warrior",
+        fieldType: "Fire",
+        duration: 3,
+        startAnchor: "castEnd",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -1777,8 +1847,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   [ID.BLAZE_BREAKER]: {
     implemented: true,
     cooldown: 12,
-    finisherType: "Blast",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "warrior",
+        finisherType: "Blast",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     waves: 5,
     totalCoefficient: 2,
     maximumHitsPerTarget: 1,
@@ -1815,8 +1890,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   [ID.FLAMES_OF_WAR]: {
     implemented: true,
     cooldown: 20,
-    comboField: "Fire",
-    duration: 5,
+    comboFields: [
+      {
+        ownerId: "warrior",
+        fieldType: "Fire",
+        duration: 5,
+        startAnchor: "castEnd",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -2010,8 +2091,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   [ID.BREACHING_STRIKE]: {
     implemented: true,
     skillWeapon: "Dagger",
-    finisherType: "Leap",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "warrior",
+        finisherType: "Leap",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     cooldown: 8,
     castTimeMs: 842,
     effects: [
@@ -2098,8 +2184,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   [ID.BREACHING_STRIKE_ID_69433]: {
     implemented: true,
     skillWeapon: "Dagger",
-    finisherType: "Leap",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "warrior",
+        finisherType: "Leap",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     cooldown: 8,
     castTimeMs: 842,
     effects: [
@@ -2352,9 +2443,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         atMs: 1517,
         timingAnchor: "castStart",
         timingScale: "fixed",
-        metadata: {
-          finisherType: "blast",
-        },
+        comboFinishers: [
+          {
+            ownerId: "warrior",
+            finisherType: "Blast",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
+        metadata: {},
       },
       {
         type: "condition",

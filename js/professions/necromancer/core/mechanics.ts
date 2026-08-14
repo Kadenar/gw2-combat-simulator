@@ -114,16 +114,26 @@ export const NECROMANCER_CORE_MECHANICS = Object.freeze({
           name: "Bone Shard",
           coefficient: 0.1,
           offset: 0,
-          finisherType: "Projectile",
-          finisherValue: 1,
+          comboFinishers: [
+            {
+              ownerId: "necromancer",
+              finisherType: "Projectile",
+              chance: 1,
+            },
+          ],
         }),
         Object.freeze({
           skillId: 3633,
           name: "Bone Shard",
           coefficient: 0.1,
           offset: 0.04,
-          finisherType: "Projectile",
-          finisherValue: 1,
+          comboFinishers: [
+            {
+              ownerId: "necromancer",
+              finisherType: "Projectile",
+              chance: 1,
+            },
+          ],
         }),
       ]),
       alternateEvery: 4,
@@ -133,8 +143,13 @@ export const NECROMANCER_CORE_MECHANICS = Object.freeze({
           name: "Bone Shard — Crippling Volley",
           coefficient: 0.2,
           offset: 0,
-          finisherType: "Projectile",
-          finisherValue: 1,
+          comboFinishers: [
+            {
+              ownerId: "necromancer",
+              finisherType: "Projectile",
+              chance: 1,
+            },
+          ],
           condition: Object.freeze(["Crippled", 1, 2]),
         }),
         Object.freeze({
@@ -142,8 +157,13 @@ export const NECROMANCER_CORE_MECHANICS = Object.freeze({
           name: "Bone Shard — Crippling Volley",
           coefficient: 0.2,
           offset: 0.04,
-          finisherType: "Projectile",
-          finisherValue: 1,
+          comboFinishers: [
+            {
+              ownerId: "necromancer",
+              finisherType: "Projectile",
+              chance: 1,
+            },
+          ],
           condition: Object.freeze(["Crippled", 1, 2]),
         }),
       ]),
@@ -232,8 +252,13 @@ export const NECROMANCER_CORE_MECHANICS = Object.freeze({
           name: "Rigor Mortis — Bone Shard",
           coefficient: 0.25,
           offset: 0.72,
-          finisherType: "Projectile",
-          finisherValue: 1,
+          comboFinishers: [
+            {
+              ownerId: "necromancer",
+              finisherType: "Projectile",
+              chance: 1,
+            },
+          ],
           controlKind: "immobilize",
           controlDuration: 2,
         }),
@@ -242,8 +267,13 @@ export const NECROMANCER_CORE_MECHANICS = Object.freeze({
           name: "Rigor Mortis — Bone Shard",
           coefficient: 0.25,
           offset: 0.76,
-          finisherType: "Projectile",
-          finisherValue: 1,
+          comboFinishers: [
+            {
+              ownerId: "necromancer",
+              finisherType: "Projectile",
+              chance: 1,
+            },
+          ],
           controlKind: "immobilize",
           controlDuration: 2,
         }),

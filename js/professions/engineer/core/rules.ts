@@ -6,7 +6,6 @@ import { professionStaticRulesApplied } from "../../../platform/gw2/attribute-pr
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import { engineerCoreCastAvailability } from "./availability.js";
-import { observeEngineerComboFinisher } from "./combos.js";
 import { advanceEngineerResources } from "./resources.js";
 import {
   handleElectricArtilleryExpire,
@@ -330,11 +329,6 @@ export const engineerCoreCastRules = Object.freeze({
 });
 
 export const engineerCoreSchedulerHooks = Object.freeze({
-  onEventScheduled: {
-    id: "engineer.combo-finishers",
-    order: 10,
-    handler: observeEngineerComboFinisher,
-  },
   advance: {
     id: "engineer.resources",
     order: 10,

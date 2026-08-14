@@ -15,7 +15,6 @@ import {
 } from "./life-force.js";
 import { gainNecromancerLifeForce } from "./shared.js";
 import { transferNecromancerSelfConditions } from "./conditions.js";
-import { darkFieldComboFinishers } from "./combos.js";
 import {
   addCarapace,
   emitBuff,
@@ -213,7 +212,6 @@ function onEventScheduled(
   context: NecromancerSchedulerContext,
   event: NecromancerSimulationEvent,
 ): void {
-  darkFieldComboFinishers(context, event);
   const state = professionCoreState(context);
   if (
     event.type === "condition" &&
@@ -260,7 +258,8 @@ function onCastComplete(
 ): void {
   if (skill.id !== ID.GRAVEDIGGER) return;
   const schedulerFeedback = context.config._schedulerFeedback as
-    { readonly targetBelowHalfAt?: number } | undefined;
+    | { readonly targetBelowHalfAt?: number }
+    | undefined;
   const targetBelowHalfAt = Number(schedulerFeedback?.targetBelowHalfAt);
   if (
     Number.isFinite(targetBelowHalfAt) &&

@@ -91,7 +91,7 @@ test("condition Druid weapon timings and packets match the supplied EVTC", () =>
 
   const bonfire = rangerCatalog.skillsById.get(ID.BONFIRE);
   assert.equal(bonfire.recharge, 25);
-  assert.equal(bonfire.comboField, "Fire");
+  assert.equal(bonfire.comboFields[0].fieldType, "Fire");
   assert.equal(
     bonfire.effects.find(({ type }) => type === "strike").ticks.length,
     9,

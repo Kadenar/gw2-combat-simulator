@@ -19,7 +19,7 @@ import {
   necromancerEventSkill,
   necromancerTargetChilled,
 } from "../../core/rules.js";
-import { iceFieldComboFinishers } from "./shroud.js";
+import { ensurePermanentIceFieldAssumption } from "./shroud.js";
 import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import type {
   Gw2ModifierContext,
@@ -106,7 +106,7 @@ function onEventScheduled(
   context: NecromancerSchedulerContext,
   event: NecromancerSimulationEvent,
 ): void {
-  iceFieldComboFinishers(context, event);
+  ensurePermanentIceFieldAssumption(context, event);
   if (
     event.type === "buff" &&
     event.actorType === "player" &&
@@ -157,8 +157,8 @@ export const reaperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       Boolean(
         context.event?.actorType === "player" &&
-        necromancerEventSkill(context)?.categories?.includes("Shout") &&
-        context.config?.target?.nearby !== false,
+          necromancerEventSkill(context)?.categories?.includes("Shout") &&
+          context.config?.target?.nearby !== false,
       ),
   },
   {

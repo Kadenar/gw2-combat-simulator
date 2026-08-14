@@ -25,7 +25,6 @@ type AuthoringSource =
 
 export const GW2_RESOLVER_STAGES: readonly Gw2ResolverStage[] = Object.freeze([
   "aura.applied",
-  "blast-combo.resolved",
   "combo.resolved",
   "buff.applied",
   "damage.resolved",

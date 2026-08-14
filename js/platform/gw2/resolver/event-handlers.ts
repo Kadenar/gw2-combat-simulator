@@ -95,9 +95,6 @@ export function createGw2ResolverEventHandlers({
     marker: noop,
     proc: noop,
     resource: noop,
-    blast_combo(ctx, event) {
-      reactions.dispatch("blast-combo.resolved", ctx, event);
-    },
     buff(ctx, event) {
       handleBuff(ctx, event, reactions);
     },

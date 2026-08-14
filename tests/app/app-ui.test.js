@@ -4,10 +4,13 @@ import test from "node:test";
 
 import {
   groupedOptions,
+  DEFAULT_TARGET_ARMOR,
+  normalizeTargetArmor,
   option,
   PERMANENT_TARGET_CONDITIONS,
   PRIMARY_ATTRIBUTES,
   STACKING_TARGET_CONDITIONS,
+  TARGET_ARMOR_OPTIONS,
   TARGET_CONDITION_GROUPS,
 } from "../../js/app/build/options.js";
 import { getBuildExportPayload } from "../../js/app/build/files.js";
@@ -74,6 +77,21 @@ import {
   createDefaultConfig,
   simulateMesmer,
 } from "../helpers/mesmer-simulation.js";
+
+test("target armor presets use base armor as the default", () => {
+  assert.equal(DEFAULT_TARGET_ARMOR, 2597);
+  assert.deepEqual(TARGET_ARMOR_OPTIONS, [
+    { value: 2597, label: "Base" },
+    { value: 1910, label: "Vale Guardian / Keep Construct" },
+    { value: 5346, label: "McLeod" },
+    { value: 2460, label: "Berg" },
+    { value: 2323, label: "Zane" },
+    { value: 2184, label: "Narella" },
+  ]);
+  assert.equal(normalizeTargetArmor(1910), 1910);
+  assert.equal(normalizeTargetArmor("2184"), 2184);
+  assert.equal(normalizeTargetArmor(1), DEFAULT_TARGET_ARMOR);
+});
 
 test("proc display groups only consecutive occurrences of the same proc", () => {
   const proc = (type, skill, start) => ({ type, skill, start });

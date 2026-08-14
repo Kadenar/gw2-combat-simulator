@@ -24,7 +24,6 @@ import type {
   GuardianState,
 } from "../types.js";
 import { validateGuardianAvailability } from "./availability.js";
-import { observeGuardianComboFinisher } from "./combos.js";
 import {
   advanceSpearIlluminationState,
   updateSpearIlluminationState,
@@ -580,11 +579,6 @@ export const guardianCoreSchedulerHooks = Object.freeze({
       id: "guardian.traits",
       order: 10,
       handler: observeGuardianScheduledEvent,
-    },
-    {
-      id: "guardian.combo-finishers",
-      order: 20,
-      handler: observeGuardianComboFinisher,
     },
   ]),
 });

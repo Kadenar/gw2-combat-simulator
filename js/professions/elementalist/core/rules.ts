@@ -1,7 +1,7 @@
 import { criticalChance } from "../../../platform/gw2/damage.js";
 import { gw2ConditionDurationMultiplier } from "../../../platform/gw2/runtime-rules.js";
+import { produceGw2OwnedComboEvents } from "../../../platform/gw2/scheduler/combo-materializer.js";
 import { hasTrait as hasGw2Trait } from "../../../platform/gw2/trait-state.js";
-import { observeLegacyProfessionCombos } from "../../../platform/gw2/legacy-combo-adapter.js";
 import { materializeSkillEffectApplications } from "../../../platform/engine/effect-materializer.js";
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
@@ -361,8 +361,13 @@ function scheduleGrandFinaleProfile(
       skillName: skill.name,
       coefficient: 1.4,
       skillWeapon: "Hammer",
-      finisherType: "Projectile",
-      finisherValue: 1,
+      comboFinishers: [
+        {
+          ownerId: "elementalist",
+          finisherType: "Projectile",
+          ambiguousFieldSelection: "oldest",
+        },
+      ],
       hitIndex: index + 1,
       totalHits: active.length,
     });
@@ -1637,26 +1642,6 @@ function applySkillAura(
   });
 }
 
-function observeElementalistComboFinisher(
-  context: ElementalistSchedulerContext,
-  event: SimulationEvent,
-): void {
-  observeLegacyProfessionCombos(context, event, {
-    ownerId: "elementalist",
-    ambiguousFieldSelection: "oldest",
-    fieldDuration(fieldContext, _fieldEvent, skill, duration) {
-      return (
-        duration +
-        (hasTrait(fieldContext, "Persisting Flames") &&
-        skill.comboField === "Fire" &&
-        PERSISTING_FLAMES_FIELD_SKILLS.has(skill.name)
-          ? 2
-          : 0)
-      );
-    },
-  });
-}
-
 function applyPistolState(
   context: ElementalistLifecycleContext,
   skill: Skill,
@@ -1771,8 +1756,13 @@ function applyPistolState(
         skillId: skill.id,
         coefficient: 0,
         noCrit: true,
-        finisherType: "Projectile",
-        finisherValue: 1,
+        comboFinishers: [
+          {
+            ownerId: "elementalist",
+            finisherType: "Projectile",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       });
     }
   } else if (!PISTOL_NO_GRANT.has(skill.name)) {
@@ -1894,8 +1884,13 @@ function triggerEvasiveArcana(
       skillName: source,
       coefficient: 0.5,
       skillWeapon: "Unequipped",
-      finisherType: "Blast",
-      finisherValue: 1,
+      comboFinishers: [
+        {
+          ownerId: "elementalist",
+          finisherType: "Blast",
+          ambiguousFieldSelection: "oldest",
+        },
+      ],
     });
     emitCondition(context, at, "Bleeding", 1, 20, source, skill.id);
     emitCondition(context, at, "Cripple", 1, 2, source, skill.id);
@@ -2157,6 +2152,29 @@ function extendPersistingFlamesPackets(
   }
 }
 
+function extendPersistingFlamesField(
+  context: ElementalistSchedulerContext,
+  event: SimulationEvent,
+): void {
+  if (
+    event.type !== "action" ||
+    !hasTrait(context, "Persisting Flames") ||
+    !PERSISTING_FLAMES_FIELD_SKILLS.has(String(event.skillName || event.name))
+  ) {
+    return;
+  }
+  const field = context.events.find(
+    (candidate) =>
+      candidate.type === "combo_field" &&
+      candidate.activationId === event.activationId &&
+      candidate.fieldType === "Fire",
+  );
+  if (!field) return;
+  context.replaceEvent(field, {
+    expiresAt: Number(field.expiresAt) + 2,
+  });
+}
+
 export function elementalistAfterCast(
   context: ElementalistLifecycleContext,
   skill: Skill,
@@ -2173,12 +2191,22 @@ export function elementalistAfterCast(
     .sort((left, right) => left.at - right.at);
 
   if (skill.name === "Frigid Flurry" && state.pistolBullets.Water === true) {
-    for (const event of activationEvents) {
+    for (const [index, event] of activationEvents.entries()) {
       const replacement = context.replaceEvent(event, {
-        finisherType: "Projectile",
-        finisherValue: 0.2,
+        comboFinishers: [
+          {
+            ownerId: "elementalist",
+            attemptGroup: `runtime:${index + 1}`,
+            finisherType: "Projectile",
+            chance: 0.2,
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       });
-      observeElementalistComboFinisher(context, replacement);
+      produceGw2OwnedComboEvents(
+        context as unknown as SchedulerContext,
+        replacement,
+      );
     }
   }
 
@@ -2711,7 +2739,7 @@ export function observeElementalistEvent(
   event: SimulationEvent,
 ): void {
   observeElementalistElementalEvent(context, event);
-  observeElementalistComboFinisher(context, event);
+  extendPersistingFlamesField(context, event);
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   if (event.type === "combat_start") {
     state.catalystBaseEmpowermentActive = true;

@@ -82,7 +82,8 @@ function criticalFoodProc(
   ctx: Gw2ResolverRuntime,
 ): CriticalFoodProc | undefined {
   const proc = FOOD_DATA[String(ctx.config.food || "")]?.proc as
-    CriticalFoodProc | undefined;
+    | CriticalFoodProc
+    | undefined;
   return proc?.type === "critStrike" ? proc : undefined;
 }
 
@@ -267,11 +268,15 @@ export function createGw2EquipmentReactionContributions({
   });
 
   return Object.freeze({
-    "blast-combo.resolved": [
+    "combo.resolved": [
       {
-        id: "relic.blast-combo",
+        id: "relic.combo",
         order: GW2_REACTION_ORDER.COMMON,
-        handler: (ctx, event) => handleBlastComboRelic(ctx, event),
+        handler: (ctx, event) => {
+          if (event.finisherType === "Blast") {
+            handleBlastComboRelic(ctx, event);
+          }
+        },
       },
     ],
     "buff.applied": [

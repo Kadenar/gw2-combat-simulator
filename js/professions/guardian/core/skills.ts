@@ -693,8 +693,14 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
     castTimeMs: 250,
     quicknessCastTimeMs: 320,
     cooldown: 20,
-    comboField: "Fire",
-    comboFieldDuration: 5,
+    comboFields: [
+      {
+        ownerId: "guardian",
+        fieldType: "Fire",
+        duration: 5,
+        startAnchor: "castEnd",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -764,12 +770,18 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   [ID.MIGHTY_BLOW]: {
     implemented: true,
     castTimeMs: 750,
-    handlerId: "guardian.blast-finisher",
     effects: [
       {
         type: "strike",
         coefficient: 2.4,
         hits: 1,
+        comboFinishers: [
+          {
+            ownerId: "guardian",
+            finisherType: "Blast",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
     ],
   },
@@ -1256,12 +1268,18 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   [ID.GLACIAL_BLOW]: {
     implemented: true,
     castTimeMs: 750,
-    handlerId: "guardian.blast-finisher",
     effects: [
       {
         type: "strike",
         coefficient: 2.5,
         hits: 1,
+        comboFinishers: [
+          {
+            ownerId: "guardian",
+            finisherType: "Blast",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "condition",
@@ -1480,8 +1498,14 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     castTimeMs: 250,
     quicknessCastTimeMs: 360,
-    comboField: "Light",
-    comboFieldDuration: 4,
+    comboFields: [
+      {
+        ownerId: "guardian",
+        fieldType: "Light",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
     effects: [
       {
         type: "strike",
