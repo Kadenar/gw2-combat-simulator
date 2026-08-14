@@ -1,6 +1,7 @@
 import type {
   CanonicalCatalog,
   NormalizedProfessionContract,
+  ObservationPolicy,
   ProfessionSource,
   ScheduledEventStream,
   SchedulerRunResult,
@@ -996,6 +997,7 @@ export interface Gw2DeclarativeSimulationOptions {
   readonly profession: Gw2ProfessionContract | ProfessionSource;
   readonly rotation: readonly unknown[];
   readonly config?: Gw2Config;
+  readonly observationPolicy?: ObservationPolicy;
 }
 
 export type Gw2NumericAttributes = Record<string, number>;

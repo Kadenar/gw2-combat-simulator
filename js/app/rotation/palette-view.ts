@@ -1,11 +1,11 @@
 /**
  * Renders and binds the rotation builder's skill palette.
  *
- * Palette models supply profession, loadout, weapon, utility, and virtual
- * actions. This module combines them with the latest simulation state to
- * resolve cooldowns, ammo, flips, ambushes, autoattack chains, and profession
- * availability, then delegates generic skill markup and pointer handling to
- * `platform/ui/palette`.
+ * Palette models supply the standard skill rows, while profession UI contracts
+ * can project groups, controls, actions, and custom weapon layouts. This module
+ * combines those declarations with the latest simulation state to resolve
+ * cooldowns, ammo, flips, ambushes, autoattack chains, and availability, then
+ * delegates generic markup and pointer handling to `platform/ui/palette`.
  *
  * The palette is rebuilt after application changes; event handlers therefore
  * read current build and result state instead of retaining DOM-local state.
@@ -23,7 +23,7 @@ import {
   rotationEntryName,
 } from "../../platform/ui/timeline.js";
 import { escapeHtml as esc, gw2ApiText } from "../../platform/ui/html.js";
-import { createRotationItem } from "./actions.js";
+import { createRotationItem, insertRotationItems } from "./actions.js";
 import { openDragonSlashReleaseEditor } from "./charge-release.js";
 import {
   hasConfigurableDoubleEdgeOutcome,
@@ -50,8 +50,6 @@ import {
   WAIT_ICON,
 } from "./icons.js";
 import {
-  VINDICATOR_DODGE_AUTO_ACTION,
-  appendVindicatorDodgeAuto,
   autoattackChainSkillAvailable,
   currentAutoattackSkill,
   paletteActionSkills,
@@ -61,20 +59,18 @@ import {
   rotationSelectedSlotSkills,
   rotationUtilityFlipByParent,
   uniqueByName,
-  vindicatorDodgeAutoPaletteSkill,
-  vindicatorDodgeAutoRotationEntries,
   weaponPaletteRows,
   weaponPaletteSectionHtml,
   weaponPaletteStackHtml,
   weaponSkills,
 } from "./palette-model.js";
-import { weaverWeaponPaletteLayout } from "../profession/weapon-attunement-groups.js";
 import {
   activeResourceGroup,
   paletteSkillResourceView,
 } from "./resource-view.js";
 import type {
   LegacyRotationItem,
+  ProfessionPaletteSkillRenderOptions,
   PaletteSkillAvailability,
   ProfessionPaletteGroup,
   SchedulerRecord,
@@ -87,6 +83,7 @@ const CONCURRENT_OFFSET_MS = 100;
 
 type RenderedPaletteGroup = ProfessionPaletteGroup & { skills: Skill[] };
 
+/** Chooses a valid default interruption point just before a cast completes. */
 export function suggestedPaletteInterruptMs(
   skill: Skill | null | undefined,
 ): number {
@@ -99,6 +96,7 @@ export function suggestedPaletteInterruptMs(
     : Math.max(1, fullCastMs - 1);
 }
 
+/** Normalizes a user-entered wait to a positive whole number of milliseconds. */
 export function parseWaitDurationMs(raw: string | null): number | null {
   if (raw == null) return null;
   const value = Number(raw);
@@ -110,9 +108,40 @@ function promptWaitDurationMs(): number | null {
 }
 
 /**
+ * Builds fresh action context for clicks and drops, which may occur after the
+ * palette markup was produced from an earlier simulation result.
+ */
+function paletteActionContext(app: ProfessionAppState): SchedulerRecord {
+  const endState = paletteEndState(app);
+  return {
+    specialization: activeSpecialization(app),
+    catalog: app.profession.catalog,
+    professionState: paletteProfessionState(app),
+    cooldowns: endState?.cooldowns || {},
+    activeWeaponSet:
+      endState?.activeWeaponSet || app.build.startingWeaponSet || 1,
+    time: Number(endState?.time || 0) / 1000,
+    build: app.build,
+    activeAutoattack: currentAutoattackSkill(app),
+  };
+}
+
+function resolveProfessionPaletteAction(
+  app: ProfessionAppState,
+  name: string,
+  skillId: number | null,
+): LegacyRotationItem | LegacyRotationItem[] | null | undefined {
+  const resolveAction = app.profession.ui?.resolvePaletteAction;
+  return typeof resolveAction === "function"
+    ? resolveAction(paletteActionContext(app), { name, skillId })
+    : undefined;
+}
+
+/**
  * Converts a dragged palette identity into one or more rotation entries.
  * Returns `null` for cancelled waits, empty names, and duplicate combat-start
- * markers. Composite actions may return multiple entries.
+ * markers. Profession-owned actions resolve through their UI contract before
+ * ordinary skills are converted; composite actions may return multiple items.
  */
 export function resolvePaletteDropItem(
   app: ProfessionAppState,
@@ -120,9 +149,8 @@ export function resolvePaletteDropItem(
   skillId: number | null = null,
 ): LegacyRotationItem | LegacyRotationItem[] | null {
   if (!name) return null;
-  if (name === VINDICATOR_DODGE_AUTO_ACTION) {
-    return vindicatorDodgeAutoRotationEntries(app);
-  }
+  const professionAction = resolveProfessionPaletteAction(app, name, skillId);
+  if (professionAction !== undefined) return professionAction;
   if (
     name === "__combat_start" &&
     app.build.rotation.some(
@@ -156,6 +184,8 @@ function currentAmmo(
   if (!rawAmmo || typeof rawAmmo !== "object") return null;
   const ammo = rawAmmo as SchedulerRecord;
   if (ammo.remaining != null) return ammo;
+  // Scheduler ammo uses `nextRechargeAt` in seconds, while UI projections may
+  // already expose `nextChargeAt` in milliseconds. Normalize both to UI time.
   const nextChargeAt =
     ammo.nextChargeAt != null
       ? Number(ammo.nextChargeAt)
@@ -171,6 +201,7 @@ function currentAmmo(
   };
 }
 
+/** Adapts a resolved skill list and optional controls to generic group markup. */
 function addGroup(
   app: ProfessionAppState,
   label: string,
@@ -180,13 +211,17 @@ function addGroup(
   unavailableMessage: (skill: Skill) => string = () => "",
   className = "",
   statusIcon?: ProfessionPaletteGroup["statusIcon"],
+  controls: ProfessionPaletteGroup["controls"] = [],
+  id = "",
 ): string {
-  if (!skills.length && !statusIcon) return "";
+  if (!skills.length && !controls.length && !statusIcon) return "";
   return paletteGroupHtml({
+    id,
     label,
     color,
     className,
     statusIcon,
+    controls,
     skills: skills.map((skill) =>
       paletteSkillView(
         app,
@@ -200,8 +235,9 @@ function addGroup(
 
 /**
  * Projects a skill and the latest simulation state into generic palette UI.
- * `contextAvailable` represents profession or loadout rules; cooldown and ammo
- * state are derived here so disabled styling and tooltips share one decision.
+ * `contextAvailable` is the caller's combined state/placement decision;
+ * cooldown and ammo state are derived here so styling, dragging, and tooltips
+ * share one decision.
  */
 export function paletteSkillView(
   app: ProfessionAppState,
@@ -269,224 +305,18 @@ export function paletteSkillView(
   };
 }
 
-type WeaponPaletteAvailability = (skill: Skill) => boolean;
-type WeaponPaletteUnavailableMessage = (skill: Skill) => string;
-
-interface WeaverWeaponPaletteHtml {
-  readonly currentBar: string;
-  readonly slotPreview: string;
-}
-
-function weaverAttunementBadge(attunement: unknown): string {
-  return String(attunement || "")
-    .split("+")
-    .filter(Boolean)
-    .map((element) => element[0])
-    .join("/");
-}
-
-function weaverSkillCellHtml(
-  app: ProfessionAppState,
-  skill: Skill,
-  isAvailable: WeaponPaletteAvailability,
-  unavailableMessage: WeaponPaletteUnavailableMessage,
-  options: {
-    readonly badge?: boolean;
-    readonly equipped?: boolean;
-    readonly staticCooldown?: boolean;
-  } = {},
-): string {
-  const available = isAvailable(skill);
-  const projectedSkill = options.badge
-    ? { ...skill, variantBadge: weaverAttunementBadge(skill.attunement) }
-    : skill;
-  const skillView = paletteSkillView(
-    app,
-    projectedSkill,
-    options.staticCooldown ? true : available,
-    options.staticCooldown ? "" : unavailableMessage(skill),
-  );
-  const staticTitle = options.staticCooldown
-    ? ` title="${esc(skillView.title || skill.name)}"`
-    : "";
-  const equipped =
-    !options.staticCooldown && (options.equipped || available)
-      ? " is-equipped"
-      : "";
-  return `<div class="weaver-skill-cell${equipped}${options.staticCooldown ? " is-static" : ""}"
-      data-attunement="${esc(String(skill.attunement || "Special"))}"
-      ${options.staticCooldown ? 'data-palette-static="true"' : ""}${staticTitle}>
-      ${paletteSkillHtml({
-        ...skillView,
-        ...(options.staticCooldown
-          ? { draggable: false, hotkeyAction: "" }
-          : {}),
-      })}
-    </div>`;
-}
-
-function weaverElementRowsHtml(
-  app: ProfessionAppState,
-  rows: readonly {
-    readonly attunement: string;
-    readonly skills: readonly Skill[];
-  }[],
-  selectedAttunement: string,
-  autoattackChains: SchedulerRecord,
-  isAvailable: WeaponPaletteAvailability,
-  unavailableMessage: WeaponPaletteUnavailableMessage,
-): string {
-  return rows
-    .map((row) => {
-      const visibleSkills = row.skills.filter((skill) =>
-        autoattackChainSkillAvailable(skill, autoattackChains),
-      );
-      if (!visibleSkills.length) return "";
-      return `<div class="weaver-attunement-row${row.attunement === selectedAttunement ? " is-selected" : ""}"
-          data-attunement="${esc(row.attunement)}">
-          <span class="weaver-attunement-label">${esc(row.attunement)}</span>
-          <div class="weaver-attunement-skills">${visibleSkills
-            .map((skill) =>
-              weaverSkillCellHtml(app, skill, isAvailable, unavailableMessage, {
-                staticCooldown: true,
-              }),
-            )
-            .join("")}</div>
-        </div>`;
-    })
-    .join("");
-}
-
-function weaverWeaponPaletteHtml(
-  app: ProfessionAppState,
-  skills: readonly Skill[],
-  primaryAttunement: string,
-  secondaryAttunement: string,
-  autoattackChains: SchedulerRecord,
-  isAvailable: WeaponPaletteAvailability,
-  unavailableMessage: WeaponPaletteUnavailableMessage,
-): WeaverWeaponPaletteHtml {
-  if (!skills.length) return { currentBar: "", slotPreview: "" };
-  const layout = weaverWeaponPaletteLayout(skills);
-  const active = (candidates: readonly Skill[]): Skill[] =>
-    candidates.filter(isAvailable);
-  const primarySkills = (
-    layout.primaryRows.find((row) => row.attunement === primaryAttunement)
-      ?.skills || []
-  ).filter((skill) => Boolean(skill.chainRoot) || isAvailable(skill));
-  const slotThreeSkills = active([
-    ...layout.sameAttunementSkills,
-    ...layout.dualSkills,
-  ]);
-  const secondarySkills = active(
-    layout.secondaryRows.flatMap((row) => row.skills),
-  );
-  const currentCluster = (
-    candidates: readonly Skill[],
-    slots: string,
-    badge = false,
-  ): string => `<div class="weaver-current-cluster" data-slots="${slots}">
-      ${candidates
-        .map((skill) =>
-          weaverSkillCellHtml(app, skill, isAvailable, unavailableMessage, {
-            badge,
-            equipped: true,
-          }),
-        )
-        .join("")}
-    </div>`;
-  const slotThreeBank = (
-    candidates: readonly Skill[],
-    variant: "same" | "dual",
-  ): string => `<div class="weaver-slot-three-row" data-weaver-variant="${variant}">
-      <span class="weaver-slot-three-label">${variant === "same" ? "Same" : "Mixed"}</span>
-      <div class="weaver-slot-three-skills">${candidates
-        .map((skill) =>
-          weaverSkillCellHtml(app, skill, isAvailable, unavailableMessage, {
-            badge: true,
-            staticCooldown: true,
-          }),
-        )
-        .join("")}</div>
-    </div>`;
-  const extraSkills = layout.extraSkills.filter((skill) =>
-    autoattackChainSkillAvailable(skill, autoattackChains),
-  );
-  const extrasHtml = extraSkills.length
-    ? `<div class="weaver-extra-bank" data-role="weaver-extra-bank">
-        <span class="weaver-bank-title">Other weapon skills</span>
-        <div class="weaver-attunement-skills">${extraSkills
-          .map((skill) =>
-            weaverSkillCellHtml(app, skill, isAvailable, unavailableMessage),
-          )
-          .join("")}</div>
-      </div>`
-    : "";
-
-  return {
-    currentBar: `<div class="weaver-current-bar" data-role="weaver-current-bar"
-        aria-label="Current Weaver weapon bar: ${esc(primaryAttunement)} and ${esc(secondaryAttunement)}">
-        <div class="weaver-current-caption">
-          <span>Current</span>
-          <strong>${esc(`${primaryAttunement[0]}/${secondaryAttunement[0]}`)}</strong>
-        </div>
-        <div class="weaver-current-composition">
-          ${currentCluster(primarySkills, "1-2")}
-          <span class="weaver-current-divider" aria-hidden="true"></span>
-          ${currentCluster(slotThreeSkills, "3", true)}
-          <span class="weaver-current-divider" aria-hidden="true"></span>
-          ${currentCluster(secondarySkills, "4-5")}
-        </div>
-      </div>`,
-    slotPreview: `<div class="weaver-weapon-palette" data-role="weaver-weapon-palette">
-        <div class="weaver-cooldown-bank" data-role="weaver-cooldown-bank">
-        <section class="weaver-cooldown-lane" data-role="weaver-primary-bank">
-          <div class="weaver-bank-title">Slots 1-2 <span>Primary</span></div>
-          ${weaverElementRowsHtml(
-            app,
-            layout.primaryRows,
-            primaryAttunement,
-            autoattackChains,
-            isAvailable,
-            unavailableMessage,
-          )}
-        </section>
-        <section class="weaver-cooldown-lane weaver-slot-three-bank"
-            data-role="weaver-slot-three-bank">
-          <div class="weaver-bank-title">Slot 3 <span>Same / dual</span></div>
-          ${slotThreeBank(layout.sameAttunementSkills, "same")}
-          ${slotThreeBank(layout.dualSkills, "dual")}
-        </section>
-        <section class="weaver-cooldown-lane" data-role="weaver-secondary-bank">
-          <div class="weaver-bank-title">Slots 4-5 <span>Secondary</span></div>
-          ${weaverElementRowsHtml(
-            app,
-            layout.secondaryRows,
-            secondaryAttunement,
-            autoattackChains,
-            isAvailable,
-            unavailableMessage,
-          )}
-        </section>
-      </div>
-      ${extrasHtml}
-    </div>`,
-  };
-}
-
 /**
  * Replaces the rotation palette markup and binds activation and drag behavior.
  *
- * Groups are ordered as profession mechanics/resources, selected slot skills,
- * fixed loadouts, weapons/actions, and timeline-only controls. Skill
- * activation supports Shift-click concurrent instants and Ctrl-click cast
- * interrupts before delegating the mutation to the application.
+ * The standard surface composes profession groups/resources, selected slot
+ * skills, loadout groups, weapon rows/actions, and timeline controls. Profession
+ * contracts may position individual groups or replace the weapon layout while
+ * reusing the generic skill renderer. Activation also supports profession-owned
+ * composite actions, Shift-click concurrent instants, and Ctrl-click interrupts.
  */
 export function renderPalette(app: ProfessionAppState): void {
   const element = document.getElementById("rotation-palette");
   if (!element) return;
-  const isRevenant = app.profession.id === "revenant";
-  const isEngineer = app.profession.id === "engineer";
   const spec = activeSpecialization(app);
   const endState = paletteEndState(app);
   const professionState = paletteProfessionState(app);
@@ -508,6 +338,8 @@ export function renderPalette(app: ProfessionAppState): void {
     groups.map((group) => {
       const skillIds = group.skillIds || [];
       const reservedSkillIds = group.reservedSkillIds || [];
+      // Reserved IDs keep a group's declared positions stable while inactive
+      // alternatives remain concealed rather than disappearing from the model.
       return {
         ...group,
         skills: [
@@ -553,16 +385,9 @@ export function renderPalette(app: ProfessionAppState): void {
   const mechanics =
     renderedProfessionGroups.find((group) => group.id === "profession")
       ?.skills || [];
-  if (spec === "Chronomancer") {
-    const shift = app.skillByName.get("Continuum Shift");
-    const splitIndex = mechanics.findIndex(
-      (skill) => skill.name === "Continuum Split",
-    );
-    if (shift) mechanics.splice(splitIndex + 1, 0, shift);
-  }
   const selected = rotationSelectedSlotSkills(app);
-  // Follow complete utility flip chains so three-stage skills such as
-  // Firebrand mantras can expose both their ordinary and final charges.
+  // Walk every declared descendant so utilities with more than one flip stage
+  // remain complete without the shell knowing the depth of a particular chain.
   const utilityFlipByParent = rotationUtilityFlipByParent(app);
   const selectedWithFlipChains = uniqueByName(selected).flatMap(
     (skill, index) => {
@@ -587,14 +412,11 @@ export function renderPalette(app: ProfessionAppState): void {
         .map((skill) => String(skill.id)),
     ),
   );
+  // Actions explicitly placed by a profession or loadout group must not also
+  // appear in the shared action row.
   const actions = paletteActionSkills(app, spec).filter(
     (skill) => !groupedActionSkillIds.has(String(skill.id)),
   );
-  const dodgeAuto = vindicatorDodgeAutoPaletteSkill(app, spec);
-  if (dodgeAuto) {
-    const dodgeIndex = actions.findIndex((skill) => skill.name === "Dodge");
-    actions.splice(dodgeIndex < 0 ? 0 : dodgeIndex + 1, 0, dodgeAuto);
-  }
   const weaponSwapActions = actions.filter(
     (skill) => skill.name === "Swap Weapons",
   );
@@ -619,6 +441,8 @@ export function renderPalette(app: ProfessionAppState): void {
       : {};
   const loadoutUnavailableMessage = (skill: Skill): string =>
     app.adapter.slotLoadout?.unavailableReason(skill, paletteContext) || "";
+  // Loadout and profession availability are independent vetoes. Cache the
+  // structured profession result because both its flag and message are read.
   const paletteAvailabilityBySkill = new Map<Skill, PaletteSkillAvailability>();
   const professionPaletteAvailability = (
     skill: Skill,
@@ -700,8 +524,8 @@ export function renderPalette(app: ProfessionAppState): void {
     }
     return null;
   };
-  // A charged mantra replaces its selected parent. Spending the final charge
-  // removes every armed flip and brings the preparation skill back.
+  // Show only the currently armed descendant. Once no descendant is active,
+  // the selected parent becomes the interactive skill again.
   const armedFlipFor = (skill: Skill): Skill | null => {
     return activeFlipDescendantFor(skill);
   };
@@ -777,10 +601,14 @@ export function renderPalette(app: ProfessionAppState): void {
   const attachedResourceIds = renderedProfessionGroups.flatMap(
     (group) => group.resourceIds || [],
   );
+  // Resources attached to a specific group are rendered with that group and
+  // excluded from the remaining unpositioned resource block.
   const resourceGroupsHtml = activeResourceGroup(app, {
     excludeIds: attachedResourceIds,
   });
   let resourceAnchorRendered = false;
+  // The first eligible anchor consumes the unpositioned resource block; later
+  // anchors must not duplicate it.
   const stackWithResources = (
     groupHtml: string,
     anchored: boolean | undefined,
@@ -805,11 +633,16 @@ export function renderPalette(app: ProfessionAppState): void {
       ? `<div class="utility-palette-group loadout-utility-palette-group"
             data-role="loadout-utility-palette-group">${loadoutStack}</div>`
       : "";
+  // A group either stays in the profession section, follows weapon set one,
+  // or sits beside the currently active weapon row.
   const weaponSetOneProfessionGroups = renderedProfessionGroups.filter(
     (group) => group.placement === "weapon-set-1",
   );
+  const activeWeaponProfessionGroups = renderedProfessionGroups.filter(
+    (group) => group.placement === "active-weapon",
+  );
   const standardProfessionGroups = renderedProfessionGroups.filter(
-    (group) => group.placement !== "weapon-set-1",
+    (group) => group.placement === "profession" || !group.placement,
   );
   const renderProfessionGroup = (group: RenderedPaletteGroup): string => {
     const groupHtml = addGroup(
@@ -821,6 +654,8 @@ export function renderPalette(app: ProfessionAppState): void {
       professionSkillUnavailableMessage,
       group.className,
       group.statusIcon,
+      group.controls,
+      group.id,
     );
     const attachedResourcesHtml = group.resourceIds?.length
       ? activeResourceGroup(app, { includeIds: group.resourceIds })
@@ -875,37 +710,58 @@ export function renderPalette(app: ProfessionAppState): void {
     utilitySkillUnavailableMessage,
     "utility-palette-group",
   );
+  const paletteWeaponSkills = (
+    skills: readonly Skill[],
+    context: SchedulerRecord = {},
+  ): Skill[] =>
+    app.profession.ui.paletteWeaponSkills(
+      { ...paletteContext, ...context },
+      skills,
+    );
+  // Custom weapon layouts still receive generic availability, tooltip, and
+  // interaction markup instead of rebuilding those policies themselves.
+  const renderWeaponSkill = (
+    skill: Skill,
+    options: ProfessionPaletteSkillRenderOptions = {},
+  ): string => {
+    const contextAvailable =
+      options.contextAvailable ?? weaponSkillAvailable(skill, 1);
+    const contextMessage =
+      options.contextMessage ?? weaponSkillUnavailableMessage(skill, 1);
+    return paletteSkillHtml({
+      ...paletteSkillView(app, skill, contextAvailable, contextMessage),
+      ...((options.view || {}) as PaletteSkillView),
+    });
+  };
+  const customWeaponPalette = app.profession.ui.renderWeaponPalette({
+    ...paletteContext,
+    skills: paletteWeaponSkills(weaponSkills(app, 1), { weaponSet: 1 }),
+    autoattackChains,
+    isSkillAvailable: (skill) => weaponSkillAvailable(skill, 1),
+    unavailableMessage: (skill) => weaponSkillUnavailableMessage(skill, 1),
+    renderSkill: renderWeaponSkill,
+  });
+  const positionedActiveWeaponGroups = new Set<string>();
+  // Standard layouts place weapon swap in the first active weapon row and then
+  // omit it from the shared action row.
   let weaponSwapEmbedded = false;
-  let weaverCurrentBarHtml = "";
   const weaponGroupsHtml = (() => {
-    if (spec === "Weaver") {
-      const primaryAttunement = String(
-        professionState.primaryAttunement ||
-          app.build.startAttunement ||
-          "Fire",
-      );
-      const secondaryAttunement = String(
-        professionState.secondaryAttunement ||
-          app.build.secondaryAttunement ||
-          primaryAttunement,
-      );
-      const weaverPalette = weaverWeaponPaletteHtml(
-        app,
-        weaponSkills(app, 1),
-        primaryAttunement,
-        secondaryAttunement,
-        autoattackChains,
-        (skill) => weaponSkillAvailable(skill, 1),
-        (skill) => weaponSkillUnavailableMessage(skill, 1),
-      );
-      weaverCurrentBarHtml = weaverPalette.currentBar;
+    if (customWeaponPalette) {
       return [
-        weaverPalette.slotPreview,
+        ...customWeaponPalette.weaponGroupsHtml,
         ...weaponSetOneProfessionGroups.map(renderProfessionGroup),
       ].filter(Boolean);
     }
 
-    const weaponRows = weaponPaletteRows(app, activeWeaponSet);
+    const weaponRows = weaponPaletteRows(app, activeWeaponSet)
+      .map((row) => ({
+        ...row,
+        skills: paletteWeaponSkills(row.skills, {
+          weaponSet: row.weaponSet,
+          weaponRow: row,
+        }),
+      }))
+      .filter((row) => row.skills.length);
     return weaponRows.flatMap((row, index) => {
       const rowWeaponSwapActions =
         row.active && !weaponSwapEmbedded ? weaponSwapActions : [];
@@ -924,14 +780,34 @@ export function renderPalette(app: ProfessionAppState): void {
             ? professionSkillUnavailableMessage(skill)
             : weaponSkillUnavailableMessage(skill, row.weaponSet),
       );
-      return row.weaponSet === 1 && weaponRows[index + 1]?.weaponSet !== 1
-        ? [
-            renderedRow,
-            ...weaponSetOneProfessionGroups.map(renderProfessionGroup),
-          ]
-        : [renderedRow];
+      const positionedGroups = activeWeaponProfessionGroups.filter(
+        (group) =>
+          row.active &&
+          !positionedActiveWeaponGroups.has(group.id) &&
+          (!group.weaponRowLabel || group.weaponRowLabel === row.label),
+      );
+      positionedGroups.forEach((group) =>
+        positionedActiveWeaponGroups.add(group.id),
+      );
+      return [
+        renderedRow,
+        ...positionedGroups.map(renderProfessionGroup),
+        ...(row.weaponSet === 1 && weaponRows[index + 1]?.weaponSet !== 1
+          ? weaponSetOneProfessionGroups.map(renderProfessionGroup)
+          : []),
+      ];
     });
   })();
+  if (!customWeaponPalette) {
+    weaponGroupsHtml.push(
+      ...activeWeaponProfessionGroups
+        .filter((group) => !positionedActiveWeaponGroups.has(group.id))
+        .map(renderProfessionGroup),
+    );
+  }
+  const activeWeaponPrimaryHtml = customWeaponPalette
+    ? activeWeaponProfessionGroups.map(renderProfessionGroup).join("")
+    : "";
   const timelineControlsHtml = `<div class="pal-group"><div class="pal-label" style="color:#d66d2f">Cmb</div>
             <div class="pal-row">${virtualPaletteSkillHtml({
               name: "__combat_start",
@@ -968,22 +844,22 @@ export function renderPalette(app: ProfessionAppState): void {
     "#70b6d0",
     professionSkillAvailable,
     professionSkillUnavailableMessage,
-    isRevenant || isEngineer ? "action-palette-group" : "",
+    "action-palette-group",
   );
-  const primaryPaletteHtml =
-    spec === "Weaver"
-      ? `<div class="weaver-top-palette" data-role="weaver-top-palette">
+  const primaryPaletteHtml = customWeaponPalette
+    ? `<div class="${esc(customWeaponPalette.primaryClassName || "profession-weapon-primary")}" data-role="${esc(customWeaponPalette.primaryRole || "profession-weapon-primary")}">
           ${professionPaletteSectionHtml}
-          ${weaverCurrentBarHtml}
-          ${utilityGroupHtml}
-          ${actionGroupHtml}
-        </div>`
-      : professionPaletteSectionHtml + utilityGroupHtml;
+          ${customWeaponPalette.activeWeaponHtml || ""}
+          ${activeWeaponPrimaryHtml}
+          ${customWeaponPalette.placeUtilityInPrimary ? utilityGroupHtml : ""}
+          ${customWeaponPalette.placeActionsInPrimary ? actionGroupHtml : ""}
+        </div>${customWeaponPalette.placeUtilityInPrimary ? "" : utilityGroupHtml}`
+    : professionPaletteSectionHtml + utilityGroupHtml;
   element.innerHTML =
     primaryPaletteHtml +
     weaponPaletteSectionHtml(
       weaponGroupsHtml,
-      spec === "Weaver" ? "" : actionGroupHtml,
+      customWeaponPalette?.placeActionsInPrimary ? "" : actionGroupHtml,
     ) +
     loadoutUtilityGroup +
     // Timeline-only controls stay in a named region so responsive layouts can
@@ -991,18 +867,37 @@ export function renderPalette(app: ProfessionAppState): void {
     timelineToolsHtml;
 
   bindPaletteInteractions(element, {
+    onControlActivate(controlId) {
+      if (app.profession.ui.updatePaletteControl(paletteContext, controlId)) {
+        app.changed();
+      }
+    },
     onActivate(name, event) {
       const icon = event.currentTarget;
-      if (name === VINDICATOR_DODGE_AUTO_ACTION) {
-        appendVindicatorDodgeAuto(app);
-        return;
-      }
       const parsedSkillId = Number(icon.dataset.skillId);
       const skillId =
         icon.dataset.skillId != null && Number.isFinite(parsedSkillId)
           ? parsedSkillId
           : null;
       const identity = skillId == null ? {} : { skillId };
+      const professionAction = resolveProfessionPaletteAction(
+        app,
+        name,
+        skillId,
+      );
+      // `undefined` means the profession does not own the action. `null` means
+      // it handled the activation intentionally without inserting an item.
+      if (professionAction !== undefined) {
+        if (professionAction !== null) {
+          insertRotationItems(
+            app,
+            Array.isArray(professionAction)
+              ? professionAction
+              : [professionAction],
+          );
+        }
+        return;
+      }
       if (name === "__combat_start" && icon.classList.contains("pal-disabled"))
         return;
       if (name === "__wait") {

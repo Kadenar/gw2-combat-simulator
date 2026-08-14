@@ -195,7 +195,6 @@ function advanceRenegadeUpkeep(
         hitIndex: 1,
         totalHits: 1,
         skillWeapon: "Unequipped",
-        extendsResolutionHorizon: true,
       });
     }
     active.nextAlliedProcAt += Math.max(

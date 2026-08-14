@@ -12,16 +12,16 @@
       "Ring2": "Viper's",
       "Accessory1": "Viper's",
       "Accessory2": "Viper's",
-      "Back": "Rabid",
+      "Back": "Viper's",
       "Weapon1": "Viper's",
       "Weapon2": "Viper's"
     },
     "weapons": ["Pistol", "Warhorn"],
     "rune": "Trapper",
-    "sigils": ["Bursting", "Earth"],
+    "sigils": ["Malice", "Earth"],
     "relic": "Fractal",
-    "food": "Cilantro and Cured Meat Flatbread",
-    "utility": "Toxic Tuning Crystal",
+    "food": "Salsa-Topped Veggie Flatbread",
+    "utility": "Tuning Icicle",
     "jadeBotCore": true,
     "specializations": [
       {
@@ -39,7 +39,7 @@
     ],
     "infusions": [
       {
-        "stat": "Condition Damage",
+        "stat": "Expertise",
         "count": 18
       },
       {
@@ -59,11 +59,17 @@
     "util3": "Signet of Earth",
     "elite": "Weave Self"
   },
-  "activeAttunement": "Fire",
+  "activeAttunement": "Earth",
   "secondaryAttunement": "Fire",
   "evokerElement": null,
   "evokerStartCharges": 6,
   "evokerStartEmpowered": 0,
+  "pistolBullets": {
+    "Fire": true,
+    "Water": false,
+    "Air": false,
+    "Earth": true
+  },
   "permaBoons": {
     "Might": 25,
     "Fury": true,
@@ -74,10 +80,10 @@
     "Regeneration": true,
     "Vigor": true,
     "Swiftness": true,
-    "Bleeding": 5,
+    "Bleeding": 1,
     "Burning": true,
-    "Torment": 5,
-    "Confusion": 5,
+    "Torment": 1,
+    "Confusion": 1,
     "Poisoned": true,
     "Chilled": true,
     "Cripple": true,

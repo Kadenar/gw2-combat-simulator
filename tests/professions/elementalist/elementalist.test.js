@@ -96,7 +96,7 @@ test("Elementalist build defaults and saved snapshots migrate explicitly", () =>
   assert.equal(defaults.weapons[0], "Sword");
   assert.deepEqual(defaults.alternateWeapons, ["", ""]);
   assert.equal(defaults.startingWeaponSet, 1);
-  assert.equal(defaults.assumptions.hitboxSize, "large");
+  assert.equal(defaults.assumptions.hitboxSize, "small");
   assert.equal(validateElementalistBuild(defaults).valid, true);
   assert.equal(elementalistCatalog.skillsByName.has("Swap Weapons"), false);
 

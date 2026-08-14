@@ -1,8 +1,9 @@
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
+import { gw2AlliedPlayerAssumptions } from "../../../../platform/gw2/allied-players.js";
 import {
-  gw2AlliedPlayerAssumptions,
-} from "../../../../platform/gw2/allied-players.js";
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from "../../data/ids.js";
+  THIEF_SKILL_IDS as ID,
+  THIEF_TRAIT_IDS as TRAIT,
+} from "../../data/ids.js";
 import { hasThiefTrait } from "../../core/state.js";
 import { emitThiefState } from "../../core/shared.js";
 import { specterState } from "./state.js";
@@ -112,11 +113,12 @@ export function observeSpecterEvent(
   event: ThiefSimulationEvent,
 ): void {
   if (
-    event.type !== "condition"
-    || event.condition !== "Torment"
-    || event.actorType !== "player"
-    || !hasThiefTrait(context.config, TRAIT.LARCENOUS_TORMENT)
-  ) return;
+    event.type !== "condition" ||
+    event.condition !== "Torment" ||
+    event.actorType !== "player" ||
+    !hasThiefTrait(context.config, TRAIT.LARCENOUS_TORMENT)
+  )
+    return;
   context.tasks.schedule({
     id: `thief.larcenous-torment:${event.__order}`,
     type: "thief.larcenous-torment",
@@ -147,21 +149,30 @@ export function handleDarkSentry(
   const party = gw2AlliedPlayerAssumptions(context.config);
   const maximumRecipients = Math.min(
     party.count,
-    Math.max(0, Math.trunc(Number(
-      task.payload.maximumRecipients ?? party.count,
-    ))),
+    Math.max(
+      0,
+      Math.trunc(Number(task.payload.maximumRecipients ?? party.count)),
+    ),
   );
   const requestedAllies = task.payload.allyIndices
-    ? [...new Set(task.payload.allyIndices
-        .map(Number)
-        .filter(allyIndex =>
-          Number.isInteger(allyIndex)
-          && allyIndex >= 1
-          && allyIndex <= party.count))]
+    ? [
+        ...new Set(
+          task.payload.allyIndices
+            .map(Number)
+            .filter(
+              (allyIndex) =>
+                Number.isInteger(allyIndex) &&
+                allyIndex >= 1 &&
+                allyIndex <= party.count,
+            ),
+        ),
+      ]
     : Array.from({ length: maximumRecipients }, (_, index) => index + 1);
-  const eligibleAllies = requestedAllies.filter(allyIndex =>
-    task.at + context.epsilon
-      >= Number(state.darkSentryReadyAtByAlly[String(allyIndex)] || 0));
+  const eligibleAllies = requestedAllies.filter(
+    (allyIndex) =>
+      task.at + context.epsilon >=
+      Number(state.darkSentryReadyAtByAlly[String(allyIndex)] || 0),
+  );
   const recipientCount = eligibleAllies.length;
   if (!recipientCount) return;
   for (const allyIndex of eligibleAllies) {
@@ -207,7 +218,6 @@ export function handleDarkSentry(
         stacks: 1,
         duration: 2,
         triggeredByAlly: allyIndex,
-        extendsResolutionHorizon: true,
       });
     }
   }
@@ -220,10 +230,11 @@ export function applyLarcenousTorment(
   application: ThiefResolverEvent,
 ): void {
   if (
-    application.condition !== "Torment"
-    || application.actorType !== "player"
-    || !hasThiefTrait(context.config, TRAIT.LARCENOUS_TORMENT)
-  ) return;
+    application.condition !== "Torment" ||
+    application.actorType !== "player" ||
+    !hasThiefTrait(context.config, TRAIT.LARCENOUS_TORMENT)
+  )
+    return;
   const stacks = Math.max(0, Math.trunc(Number(application.stacks || 0)));
   for (let stack = 1; stack <= stacks; stack += 1) {
     enqueueOrdered(context.queue, {

@@ -51,7 +51,8 @@ export async function assertManifestBenchmarks(professionId) {
       };
 
       adapter.recalculate(app);
-      const result = adapter.runSimulation(app);
+      const config = adapter.simulationConfig(app);
+      const result = adapter.simulateBuild(build.rotation, config);
       assert.equal(preset.benchmarkDps, Math.round(result.dps), label);
     }
   }

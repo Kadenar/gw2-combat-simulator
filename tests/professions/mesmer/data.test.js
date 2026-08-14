@@ -162,6 +162,19 @@ test("Mesmer skill bar labels shatters, bladesongs, and instruments", () => {
   assert.deepEqual(group("Troubadour").skillIds, MECHANIC_SKILLS.Troubadour);
 });
 
+test("Chronomancer owns its Continuum Shift palette projection", () => {
+  const group = mesmerProfession.ui.paletteGroups({
+    specialization: "Chronomancer",
+    catalog: mesmerCatalog,
+  })[0];
+
+  assert.deepEqual(group.skillIds, [
+    ...MECHANIC_SKILLS.Chronomancer,
+    ID.CONTINUUM_SHIFT,
+  ]);
+  assert.equal(group.includeActionSkills, true);
+});
+
 test("every cataloged phantasm has an attack timing before clone conversion", () => {
   const phantasms = SKILLS.map((skill) =>
     mesmerCatalog.skillsById.get(skill.id),

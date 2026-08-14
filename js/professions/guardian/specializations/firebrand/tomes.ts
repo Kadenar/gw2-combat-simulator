@@ -247,7 +247,6 @@ function useTomePage(
         duration: FIREBRAND_MECHANICS.ashesBurn.duration,
         activationId: `${context.reservationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
         triggeredByAlly: proc.allyIndex,
-        extendsResolutionHorizon: index === alliedProcs.length - 1,
       });
     }
     context.emit({

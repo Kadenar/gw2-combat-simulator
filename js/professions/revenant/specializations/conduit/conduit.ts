@@ -48,7 +48,6 @@ interface ConduitDamageOptions {
   readonly hitIndex?: number;
   readonly totalHits?: number;
   readonly affinityOnHit?: boolean;
-  readonly extendsResolutionHorizon?: boolean;
 }
 
 interface ConduitConditionOptions {
@@ -57,7 +56,6 @@ interface ConduitConditionOptions {
   readonly stacks?: number;
   readonly duration: number;
   readonly name?: string;
-  readonly extendsResolutionHorizon?: boolean;
 }
 
 interface ConduitAffinityTaskPayload extends SchedulerRecord {
@@ -145,7 +143,6 @@ function emitDamage(
     hitIndex = 1,
     totalHits = 1,
     affinityOnHit = false,
-    extendsResolutionHorizon = false,
   } = options;
   context.emit({
     type: "damage",
@@ -160,7 +157,6 @@ function emitDamage(
     hits: 1,
     hitIndex,
     totalHits,
-    ...(extendsResolutionHorizon ? { extendsResolutionHorizon: true } : {}),
     ...(affinityOnHit ? { affinityOnHit: true } : {}),
     // Utility, elite, and triggered attacks use GW2's standard level-based
     // strength. Profession mechanic attacks use the active weapon.
@@ -275,7 +271,6 @@ function emitCondition(
     stacks = 1,
     duration,
     name = `${skill.name} — ${condition}`,
-    extendsResolutionHorizon = false,
   } = options;
   context.emit({
     type: "condition",
@@ -289,7 +284,6 @@ function emitCondition(
     condition,
     stacks,
     duration,
-    ...(extendsResolutionHorizon ? { extendsResolutionHorizon: true } : {}),
   });
 }
 
@@ -513,7 +507,6 @@ export function castHexEaterVortex(
       name: `Hex-Eater Vortex — Projectile ${index + 1}`,
       hitIndex: index + 1,
       totalHits: projectileCount,
-      extendsResolutionHorizon: true,
     });
     emitCondition(context, skill, {
       at: projectileAt,
@@ -521,7 +514,6 @@ export function castHexEaterVortex(
       stacks: profile.tormentStacks,
       duration: profile.tormentDuration,
       name: `Hex-Eater Vortex — Projectile ${index + 1}`,
-      extendsResolutionHorizon: true,
     });
   }
   if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
@@ -619,7 +611,6 @@ export function castTwinMoonSweep(
         name: `Twin Moon Sweep — Shatter ${index + 1}`,
         hitIndex: index + 1,
         totalHits: profile.packets,
-        extendsResolutionHorizon: true,
       });
       emitCondition(context, skill, {
         at: shatterAt,
@@ -627,7 +618,6 @@ export function castTwinMoonSweep(
         stacks: profile.demonConfusionStacks,
         duration: profile.demonConfusionDuration,
         name: `Twin Moon Sweep — Confusion ${index + 1}`,
-        extendsResolutionHorizon: true,
       });
     }
   }
@@ -755,7 +745,6 @@ export function castReleasePotential(
           coefficient: profile.coefficientPerHit,
           hitIndex: index + 1,
           totalHits: profile.hits,
-          extendsResolutionHorizon: true,
         });
       }
       emitCondition(context, skill, {
@@ -765,7 +754,6 @@ export function castReleasePotential(
         duration:
           profile.conditionBaseDuration *
           (1 + affinity * profile.conditionDurationPerAffinity),
-        extendsResolutionHorizon: true,
       });
       emitCondition(context, skill, {
         at: context.start + Number(profile.hitDelays?.at(-1) || 0),
@@ -774,7 +762,6 @@ export function castReleasePotential(
         duration:
           profile.conditionBaseDuration *
           (1 + affinity * profile.conditionDurationPerAffinity),
-        extendsResolutionHorizon: true,
       });
       break;
     case ID.RELEASE_POTENTIAL_WARRIOR:

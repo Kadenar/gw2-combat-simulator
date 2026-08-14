@@ -172,6 +172,74 @@ test("condition applications shorter than one second deal fractional damage", ()
   assert.deepEqual(result.warnings, ["resolver handoff warning"]);
 });
 
+test("precombat conditions carry across an explicit combat start", () => {
+  const stream = buildScheduledEventStream({
+    events: [
+      {
+        type: "condition",
+        at: 0,
+        name: "Precombat Bleed",
+        skillName: "Precombat Bleed",
+        condition: "Bleeding",
+        duration: 3,
+        stacks: 1,
+        source: "Player",
+        sourceId: "precombat-bleed",
+      },
+      {
+        type: "combat_start",
+        at: 1,
+        source: "rotation",
+        sourceId: "combat-start",
+      },
+    ],
+    rotationEndTime: 3,
+    resolverHandoff: {
+      hasExplicitCombatStart: true,
+      combatStartTime: 1,
+      warnings: [],
+    },
+  });
+  const result = resolveTestGw2Stream({
+    stream,
+    config: {
+      target: {},
+      sigilSets: [{ names: [] }],
+    },
+    traits: new Set(),
+    query: {
+      statsAt: () => ({
+        power: 1000,
+        precision: 1000,
+        ferocity: 0,
+        conditionDamage: 1000,
+        expertise: 0,
+      }),
+      critical: () => ({ chance: 0.05, damage: 1.5 }),
+      strikeMultiplier: () => 1,
+      conditionMultiplier: () => 1,
+      conditionDurationMultiplier: () => 1,
+      activeWeaponSetAt: () => 1,
+    },
+    helpers: {
+      conditionName: (name) => name,
+      skillsByName: new Map(),
+      weaponStrength: () => 1000,
+    },
+  });
+
+  const application = result.resolvedEvents.find(
+    (event) => event.type === "condition" && event.name === "Precombat Bleed",
+  );
+  assert.equal(result.firstHitTime, 1);
+  assert.equal(application.at, 0);
+  assert.deepEqual(
+    application.damageTicks.map((tick) => tick.at),
+    [1, 2, 3],
+  );
+  assert.equal(result.conditionDamage, 246);
+});
+
 test("shared buff handling prioritizes allied players over summon recipients", () => {
   const handlers = createGw2ResolverEventHandlers({
     hitResolution: {

@@ -82,6 +82,41 @@ const COMMANDS = MECHANICS.minionCommands as unknown as Readonly<
   Record<SkillId, MinionCommandDefinition>
 >;
 const MINION_COMMAND_IMPACT_TASK = "necromancer.minion-command-impact";
+const MINION_ATTACK_TASK = "necromancer.minion-attack";
+const MINION_ATTACK_STOP_TASK = "necromancer.minion-attack-stop";
+
+interface MinionAttackTaskPayload extends SchedulerRecord {
+  readonly skillId: SkillId;
+  readonly minionKey: string;
+  readonly generation: number;
+  readonly attackGeneration: number;
+  readonly cycleIndex: number;
+  readonly controlUntil: number;
+  readonly controlKind?: string;
+  readonly controlDuration: number;
+}
+
+interface MinionAttackStopTaskPayload extends SchedulerRecord {
+  readonly ownerId: string;
+}
+
+function minionAttackOwner(key: string, attackGeneration: number): string {
+  return `minion:${key}:${attackGeneration}`;
+}
+
+function queueMinionAttackStop(
+  context: NecromancerCastContext,
+  key: string,
+  attackGeneration: number,
+  at: number,
+): void {
+  if (attackGeneration <= 0) return;
+  context.tasks.schedule({
+    type: MINION_ATTACK_STOP_TASK,
+    at,
+    payload: { ownerId: minionAttackOwner(key, attackGeneration) },
+  });
+}
 
 function minionDefinitionFor(key: string): MinionDefinition | undefined {
   return Object.values(MINIONS).find((definition) => definition.key === key);
@@ -136,7 +171,34 @@ function queueSummonAttacks(
   const attackGeneration = Number(
     professionCoreState(context).minionAttackGenerations[definition.key] || 0,
   );
-  const horizon = at + Math.max(180, Number(context.config.duration || 0));
+  queueMinionAttackStop(context, definition.key, attackGeneration - 1, at);
+  context.tasks.schedule({
+    type: MINION_ATTACK_TASK,
+    at: at + Number(initialDelay),
+    ownerId: minionAttackOwner(definition.key, attackGeneration),
+    payload: {
+      skillId: skill.id,
+      minionKey: definition.key,
+      generation,
+      attackGeneration,
+      cycleIndex: initialCycleIndex + 1,
+      controlUntil,
+      controlKind,
+      controlDuration,
+    },
+  });
+}
+
+function handleMinionAttack(
+  context: NecromancerCastContext,
+  task: ScheduledTask<MinionAttackTaskPayload>,
+): void {
+  const payload = task.payload;
+  if (!payload) return;
+  const skill = context.catalog.skillsById.get(payload.skillId);
+  const definition = skill ? MINIONS[skill.id] : undefined;
+  if (!skill || !definition || definition.key !== payload.minionKey) return;
+
   const defaultAttacks = definition.attacks || [
     {
       name: `${skill.name} — Minion Attack`,
@@ -144,69 +206,84 @@ function queueSummonAttacks(
       offset: 0,
     },
   ];
-  let cycleIndex = initialCycleIndex;
-  for (
-    let cycleAt = at + Number(initialDelay);
-    cycleAt <= horizon;
-    cycleAt += definition.interval
-  ) {
-    cycleIndex += 1;
-    const alternateEvery = Number(definition.alternateEvery || 0);
-    const attacks =
-      definition.alternateAttacks?.length &&
-      alternateEvery > 0 &&
-      cycleIndex % alternateEvery === 0
-        ? definition.alternateAttacks
-        : defaultAttacks;
-    for (const attack of attacks) {
-      const damagePerCoefficient =
-        attack.damagePerCoefficient ?? definition.damagePerCoefficient;
-      for (let index = 0; index < definition.count; index += 1) {
-        context.emit({
-          type: "necromancer.summon-attack",
-          at: cycleAt + Number(attack.offset || 0),
-          source: "Minion",
-          sourceId: attack.skillId ?? skill.id,
-          actorType: "summon",
-          skillId: attack.skillId ?? skill.id,
-          skillName: attack.name,
-          parentSkillName: attack.skillId ? skill.name : "",
-          name: attack.name,
-          icon: attack.icon || skill.icon || "",
-          coefficient: attack.coefficient,
-          deferredComboFinishers: attack.comboFinishers,
-          onHitCondition: attack.condition,
-          controlKind:
-            attack.controlKind ||
-            (cycleAt <= controlUntil + context.epsilon
-              ? controlKind
-              : undefined),
-          controlDuration:
-            attack.controlDuration ||
-            (cycleAt <= controlUntil + context.epsilon
-              ? controlDuration
-              : undefined),
-          ...(Number.isFinite(Number(damagePerCoefficient))
-            ? {}
-            : {
-                weaponStrength:
-                  attack.weaponStrength ??
-                  definition.weaponStrength ??
-                  MECHANICS.summonWeaponStrength,
-              }),
-          requiresMinion: definition.key,
-          requiresMinionIndex: index,
-          requiresMinionGeneration: generation,
-          requiresMinionAttackGeneration: attackGeneration,
-          summonKind: "minion",
-          summonCount: 1,
-          summonOwner: `minion:${definition.key}:${index}`,
-          summonOwnerBase: `minion:${definition.key}`,
-          ...summonStrikeMetadata(context, definition, damagePerCoefficient),
-        });
-      }
+  const alternateEvery = Number(definition.alternateEvery || 0);
+  const attacks =
+    definition.alternateAttacks?.length &&
+    alternateEvery > 0 &&
+    payload.cycleIndex % alternateEvery === 0
+      ? definition.alternateAttacks
+      : defaultAttacks;
+  for (const attack of attacks) {
+    const damagePerCoefficient =
+      attack.damagePerCoefficient ?? definition.damagePerCoefficient;
+    for (let index = 0; index < definition.count; index += 1) {
+      context.emit({
+        type: "necromancer.summon-attack",
+        at: task.at + Number(attack.offset || 0),
+        source: "Minion",
+        sourceId: attack.skillId ?? skill.id,
+        actorType: "summon",
+        skillId: attack.skillId ?? skill.id,
+        skillName: attack.name,
+        parentSkillName: attack.skillId ? skill.name : "",
+        name: attack.name,
+        icon: attack.icon || skill.icon || "",
+        coefficient: attack.coefficient,
+        deferredComboFinishers: attack.comboFinishers,
+        onHitCondition: attack.condition,
+        controlKind:
+          attack.controlKind ||
+          (task.at <= payload.controlUntil + context.epsilon
+            ? payload.controlKind
+            : undefined),
+        controlDuration:
+          attack.controlDuration ||
+          (task.at <= payload.controlUntil + context.epsilon
+            ? payload.controlDuration
+            : undefined),
+        ...(Number.isFinite(Number(damagePerCoefficient))
+          ? {}
+          : {
+              weaponStrength:
+                attack.weaponStrength ??
+                definition.weaponStrength ??
+                MECHANICS.summonWeaponStrength,
+            }),
+        requiresMinion: definition.key,
+        requiresMinionIndex: index,
+        requiresMinionGeneration: payload.generation,
+        requiresMinionAttackGeneration: payload.attackGeneration,
+        summonKind: "minion",
+        summonCount: 1,
+        summonOwner: `minion:${definition.key}:${index}`,
+        summonOwnerBase: `minion:${definition.key}`,
+        ...summonStrikeMetadata(context, definition, damagePerCoefficient),
+      });
     }
   }
+
+  const nextAt = task.at + definition.interval;
+  if (
+    context.observationEndTime == null ||
+    nextAt <= context.observationEndTime + context.epsilon
+  ) {
+    context.tasks.schedule({
+      type: MINION_ATTACK_TASK,
+      at: nextAt,
+      ownerId: task.ownerId,
+      payload: {
+        ...payload,
+        cycleIndex: payload.cycleIndex + 1,
+      },
+    });
+  }
+}
+
+function handleMinionAttackStop(
+  context: NecromancerCastContext,
+  task: ScheduledTask<MinionAttackStopTaskPayload>,
+): void {
+  if (task.payload) context.tasks.cancelOwner(task.payload.ownerId);
 }
 
 function queueMinionCommandAttacks(
@@ -425,6 +502,16 @@ function minionCommand(
     } else {
       delete professionCoreState(context).activeMinions[definition.minion];
       delete professionCoreState(context).availableFlips[skill.id];
+      queueMinionAttackStop(
+        context,
+        definition.minion,
+        Number(
+          professionCoreState(context).minionAttackGenerations[
+            definition.minion
+          ] || 0,
+        ),
+        context.effectiveEnd,
+      );
       const summon =
         skill.flipParentId == null
           ? undefined
@@ -516,5 +603,7 @@ export const necromancerMinionSkillHandlers = Object.freeze({
 });
 
 export const necromancerMinionTaskHandlers = Object.freeze({
+  [MINION_ATTACK_TASK]: handleMinionAttack,
+  [MINION_ATTACK_STOP_TASK]: handleMinionAttackStop,
   [MINION_COMMAND_IMPACT_TASK]: handleMinionCommandImpact,
 });

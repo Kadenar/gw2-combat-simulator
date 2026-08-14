@@ -9,8 +9,10 @@ import {
   runSimulation,
 } from "../../js/professions/necromancer/app/app-definition.js";
 import {
+  revenantAppAdapter,
   recalculate as recalculateRevenant,
   runSimulation as runRevenantSimulation,
+  simulationConfig as revenantSimulationConfig,
 } from "../../js/professions/revenant/app/app-definition.js";
 import { migrateRevenantBuild } from "../../js/professions/revenant/build.js";
 import { revenantCatalog } from "../../js/professions/revenant/catalog.js";
@@ -365,7 +367,10 @@ test("Power Alacrity Sword Renegade preset executes without warnings", async () 
   };
 
   recalculateRevenant(app);
-  const result = runRevenantSimulation(app);
+  const result = revenantAppAdapter.simulateBuild(
+    build.rotation,
+    revenantSimulationConfig(app),
+  );
 
   assert.equal(preset.benchmarkDps, 34194);
   assert.equal(savedRotation.rotation.length, 262);
@@ -451,7 +456,10 @@ test("Condition Conduit Mistfire preset matches its benchmark", async () => {
   };
 
   recalculateRevenant(app);
-  const result = runRevenantSimulation(app);
+  const result = revenantAppAdapter.simulateBuild(
+    build.rotation,
+    revenantSimulationConfig(app),
+  );
 
   assert.equal(preset.benchmarkDps, 39944);
   assert.equal(preset.upToDate, true);

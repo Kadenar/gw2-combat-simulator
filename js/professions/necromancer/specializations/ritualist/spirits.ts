@@ -25,13 +25,30 @@ import {
   registerCreatureSummonReaction,
   runCreatureSummonReactions,
 } from "../../core/shared.js";
-import type { SkillId } from "../../../../platform/engine/types.js";
+import type {
+  ScheduledTask,
+  SchedulerRecord,
+  SkillId,
+} from "../../../../platform/engine/types.js";
 import type {
   NecromancerCastContext,
   NecromancerSchedulerContext,
   NecromancerSkill,
   RitualistState,
 } from "../../types.js";
+
+const SPIRIT_ATTACK_TASK = "necromancer.ritualist-spirit-attack";
+const SPIRIT_ATTACK_STOP_TASK = "necromancer.ritualist-spirit-attack-stop";
+
+interface SpiritAttackTaskPayload extends SchedulerRecord {
+  readonly skillId: SkillId;
+  readonly spiritKey: string;
+  readonly generation: number;
+}
+
+interface SpiritAttackStopTaskPayload extends SchedulerRecord {
+  readonly ownerId: string;
+}
 
 interface SpiritDefinition {
   readonly key: string;
@@ -91,6 +108,10 @@ export const ritualistSchedulerHooks = Object.freeze({
         applyRitualistCreatureSummonTraits,
       ),
   },
+  taskHandlers: Object.freeze({
+    [SPIRIT_ATTACK_TASK]: handleSpiritAutoattack,
+    [SPIRIT_ATTACK_STOP_TASK]: handleSpiritAutoattackStop,
+  }),
 });
 
 const SPIRITS = MECHANICS.spirits as unknown as Readonly<
@@ -145,36 +166,74 @@ function queueSpiritAutoattacks(
   if (!(spirit.attackCoefficient > 0)) return;
   const state = ritualistState.from(context);
   const generation = Number(state.spiritGenerations[spirit.key] || 0);
-  const horizon = at + Math.max(180, Number(context.config.duration || 0));
-  for (
-    let attackAt = nextSpiritPulse(state, at);
-    attackAt <= horizon;
-    attackAt += MECHANICS.spiritAttackInterval
-  ) {
-    context.emit({
-      type: "necromancer.summon-attack",
-      at: attackAt,
-      source: "Spirit",
-      sourceId: skill.id,
-      actorType: "summon",
-      skillId: skill.id,
-      skillName: `${skill.name} Autoattack`,
-      name: `${skill.name} Autoattack`,
-      icon: skill.icon || "",
-      coefficient: spirit.attackCoefficient,
-      weaponStrength:
-        spirit.attackWeaponStrength ??
-        NECROMANCER_CORE_MECHANICS.summonWeaponStrength,
-      requiresSpirit: spirit.key,
-      requiresSpiritGeneration: generation,
-      summonKind: "spirit",
-      summonOwner: `spirit:${spirit.key}`,
-      summonInheritsCriticalAttributes: true,
-      spirit: spirit.key,
-      spiritAttackType: "autoattack",
-      anguishConditionalDamage: spirit.key === "anguish",
+  if (generation > 1) {
+    context.tasks.schedule({
+      type: SPIRIT_ATTACK_STOP_TASK,
+      at,
+      payload: { ownerId: `spirit:${spirit.key}:${generation - 1}` },
     });
   }
+  context.tasks.schedule({
+    type: SPIRIT_ATTACK_TASK,
+    at: nextSpiritPulse(state, at),
+    ownerId: `spirit:${spirit.key}:${generation}`,
+    payload: { skillId: skill.id, spiritKey: spirit.key, generation },
+  });
+}
+
+function handleSpiritAutoattack(
+  context: NecromancerSchedulerContext,
+  task: ScheduledTask<SpiritAttackTaskPayload>,
+): void {
+  const payload = task.payload;
+  if (!payload) return;
+  const skill = context.catalog.skillsById.get(payload.skillId);
+  const spirit = skill ? SPIRITS[skill.id] : undefined;
+  if (!skill || !spirit || spirit.key !== payload.spiritKey) return;
+
+  context.emit({
+    type: "necromancer.summon-attack",
+    at: task.at,
+    source: "Spirit",
+    sourceId: skill.id,
+    actorType: "summon",
+    skillId: skill.id,
+    skillName: `${skill.name} Autoattack`,
+    name: `${skill.name} Autoattack`,
+    icon: skill.icon || "",
+    coefficient: spirit.attackCoefficient,
+    weaponStrength:
+      spirit.attackWeaponStrength ??
+      NECROMANCER_CORE_MECHANICS.summonWeaponStrength,
+    requiresSpirit: spirit.key,
+    requiresSpiritGeneration: payload.generation,
+    summonKind: "spirit",
+    summonOwner: `spirit:${spirit.key}`,
+    summonInheritsCriticalAttributes: true,
+    spirit: spirit.key,
+    spiritAttackType: "autoattack",
+    anguishConditionalDamage: spirit.key === "anguish",
+  });
+
+  const nextAt = task.at + MECHANICS.spiritAttackInterval;
+  if (
+    context.observationEndTime == null ||
+    nextAt <= context.observationEndTime + context.epsilon
+  ) {
+    context.tasks.schedule({
+      type: SPIRIT_ATTACK_TASK,
+      at: nextAt,
+      ownerId: task.ownerId,
+      payload,
+    });
+  }
+}
+
+function handleSpiritAutoattackStop(
+  context: NecromancerSchedulerContext,
+  task: ScheduledTask<SpiritAttackStopTaskPayload>,
+): void {
+  if (task.payload) context.tasks.cancelOwner(task.payload.ownerId);
 }
 
 function emitEmpoweringSpirits(
@@ -282,7 +341,6 @@ function emitAnguishInitial(
         weaponStrength: spirit.summonWeaponStrength,
         hitIndex: index + 1,
         totalHits: hitCount,
-        extendsResolutionHorizon: true,
       }),
     });
   }
@@ -306,9 +364,7 @@ function emitWanderlustInitial(
     name: "Spirit of Wanderlust — Initial Attack",
     source: "Spirit",
     actorType: "player",
-    metadata: spiritMetadata("wanderlust", "initial", {
-      extendsResolutionHorizon: true,
-    }),
+    metadata: spiritMetadata("wanderlust", "initial"),
   });
   emitCondition(context, skill, "Chilled", 1, 2, { at: fieldAt });
   context.emit({

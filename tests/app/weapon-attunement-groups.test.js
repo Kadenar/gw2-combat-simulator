@@ -3,9 +3,9 @@ import test from "node:test";
 
 import {
   groupWeaponSkillsByAttunement,
-  weaverWeaponPaletteLayout,
   weaponBarSkillStacks,
 } from "../../js/app/profession/weapon-attunement-groups.js";
+import { weaverWeaponPaletteLayout } from "../../js/professions/elementalist/specializations/weaver/ui.js";
 
 const skill = (id, name, slot, attunement, chainStep = null) => ({
   id,

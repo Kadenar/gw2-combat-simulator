@@ -33,9 +33,6 @@ export const COOLDOWN_RESET_ICON =
 export const WAIT_ICON =
   "https://wiki.guildwars2.com/images/8/83/%22sipcoffee%22_Emote_Tome.png";
 
-export const VINDICATOR_DODGE_AUTO_ICON =
-  "https://render.guildwars2.com/file/2864D963D3FC9156E6F52FA95DD34C2DE30306BE/2491537.png";
-
 export const ACTION_ICONS: Readonly<Record<string, string>> = {
   Dodge: "https://wiki.guildwars2.com/images/b/b2/Dodge.png",
   "Dodge / Mirage Cloak": "https://wiki.guildwars2.com/images/b/b2/Dodge.png",

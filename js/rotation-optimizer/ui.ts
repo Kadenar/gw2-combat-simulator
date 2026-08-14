@@ -195,9 +195,9 @@ class RotationOptimizerUi {
       ),
       seed: 1,
       objective: "fixed-window-dps",
-      beamWidth: 4,
-      branchLimit: 4,
-      enablerReserve: 2,
+      beamWidth: 20,
+      branchLimit: 12,
+      enablerReserve: 4,
       maxActions: Math.max(60, Math.ceil(horizonSeconds * 4)),
     };
     const requestId = ++this.requestId;

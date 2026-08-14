@@ -36,6 +36,7 @@ import { THIEF_SKILL_MECHANICS } from "../../../js/professions/thief/mechanics/s
 import {
   recalculate,
   runSimulation,
+  simulationConfig,
   thiefAppAdapter,
 } from "../../../js/professions/thief/app/app-definition.js";
 import { thiefProfession } from "../../../js/professions/thief/definition.js";
@@ -74,7 +75,12 @@ const baseConfig = Object.freeze({
   },
 });
 
-function simulate(specialization, rotation, config = {}) {
+function simulate(
+  specialization,
+  rotation,
+  config = {},
+  observationPolicy = undefined,
+) {
   return simulateGw2({
     profession: thiefProfession,
     rotation,
@@ -89,8 +95,11 @@ function simulate(specialization, rotation, config = {}) {
       stats: { ...baseConfig.stats, ...(config.stats || {}) },
       target: { ...baseConfig.target, ...(config.target || {}) },
     },
+    observationPolicy,
   });
 }
+
+const observationTail = (durationMs) => ({ kind: "tail", durationMs });
 
 test("Thief catalog pins API identity and explicit terrestrial mechanics", () => {
   assert.equal(DATA_SNAPSHOT, "2026-07-28");
@@ -1866,11 +1875,16 @@ test("Specter scepter and shroud packets apply their conditions per hit", () => 
     );
   }
 
-  const twilight = simulate("Specter", ["Twilight Combo"], {
-    primaryWeapon: "Scepter",
-    secondaryWeapon: "Dagger",
-    boons: { quickness: true },
-  });
+  const twilight = simulate(
+    "Specter",
+    ["Twilight Combo"],
+    {
+      primaryWeapon: "Scepter",
+      secondaryWeapon: "Dagger",
+      boons: { quickness: true },
+    },
+    observationTail(1000),
+  );
   assert.equal(twilight.steps[0].fullCastMs, 760);
   assert.deepEqual(
     twilight.events
@@ -1949,10 +1963,15 @@ test("Specter scepter and shroud packets apply their conditions per hit", () => 
     ],
   );
 
-  const mindShock = simulate("Specter", ["Enter Shadow Shroud", "Mind Shock"], {
-    initialShadowForce: 100,
-    boons: { quickness: true },
-  });
+  const mindShock = simulate(
+    "Specter",
+    ["Enter Shadow Shroud", "Mind Shock"],
+    {
+      initialShadowForce: 100,
+      boons: { quickness: true },
+    },
+    observationTail(4000),
+  );
   assert.equal(mindShock.steps[1].fullCastMs, 360);
   assert.equal(
     mindShock.events.find(
@@ -2133,13 +2152,18 @@ test("Specter shadow-force and recharge traits use supplied values", () => {
   });
   assert.equal(reduced.endState.cooldowns.Siphon.remaining, 11700);
 
-  const larcenous = simulate("Specter", ["Twilight Combo"], {
-    initialShadowForce: 0,
-    primaryWeapon: "Scepter",
-    secondaryWeapon: "Dagger",
-    selectedTraitIds: [TRAIT.LARCENOUS_TORMENT],
-    boons: { quickness: true },
-  });
+  const larcenous = simulate(
+    "Specter",
+    ["Twilight Combo"],
+    {
+      initialShadowForce: 0,
+      primaryWeapon: "Scepter",
+      secondaryWeapon: "Dagger",
+      selectedTraitIds: [TRAIT.LARCENOUS_TORMENT],
+      boons: { quickness: true },
+    },
+    observationTail(1000),
+  );
   assert.equal(larcenous.profession.shadowForce, 5.5);
   assert.equal(
     larcenous.resolvedEvents.filter(
@@ -2347,10 +2371,15 @@ test("Spear slots 2 and 3 expose and enforce their linked chain", () => {
 });
 
 test("Spider Venom grants six independent charges to the player and allies", () => {
-  const result = simulate("Core", ["Spider Venom", "Heartseeker"], {
-    selectedSkills: ["Hide in Shadows", "Spider Venom"],
-    allies: { count: 4, strikesPerSecond: 1 },
-  });
+  const result = simulate(
+    "Core",
+    ["Spider Venom", "Heartseeker"],
+    {
+      selectedSkills: ["Hide in Shadows", "Spider Venom"],
+      allies: { count: 4, strikesPerSecond: 1 },
+    },
+    observationTail(6000),
+  );
   const partyBuff = result.events.find(
     (event) => event.type === "buff" && event.kind === "spider-venom",
   );
@@ -3188,7 +3217,10 @@ test("Power Daredevil dagger-dagger preset matches the supplied EVTC", async () 
     attributeWeaponSet: 1,
   };
   recalculate(app);
-  const result = runSimulation(app);
+  const result = thiefAppAdapter.simulateBuild(
+    build.rotation,
+    simulationConfig(app),
+  );
   const castCount = (name) =>
     result.steps.filter((step) => step.skill === name && !step.invalid).length;
   const hitCount = (name) =>

@@ -111,6 +111,7 @@ function simulateDeclarativeGw2Pass({
   profession,
   rotation,
   config = {},
+  observationPolicy,
 }: Gw2DeclarativeSimulationOptions): Gw2SimulationResult {
   const runtimeProfession = resolveProfessionRuntime(
     profession as unknown as NormalizedProfessionContract,
@@ -129,6 +130,7 @@ function simulateDeclarativeGw2Pass({
       weaponSkillMatchesSet: runtimeProfession.ui.weaponSkillMatchesSet as
         Gw2WeaponSkillMatcher | undefined,
     }),
+    observationPolicy,
   }).run(rotation);
   // Critical sigil predictions remain scheduler-visible for profession state
   // and rotation legality, but resolver-time reactions own their actual output.

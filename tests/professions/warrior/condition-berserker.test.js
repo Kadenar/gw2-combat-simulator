@@ -567,9 +567,6 @@ test("Condition Berserker skill data matches the supplied values and log timing"
     timingAnchor: "castStart",
     timingScale: "fixed",
     persistsAfterInterrupt: true,
-    metadata: {
-      extendsProfessionTaskHorizon: true,
-    },
   });
   assert.deepEqual(
     flamesOfWar.effects[1].ticks.map(({ atMs, stacks, duration }) => [
