@@ -292,9 +292,9 @@ function normalizeSavedBuild(candidate: unknown): unknown {
       Object.hasOwn(snapshotFields, "glyphBoonedElementals")
         ? {
             elementalSimulationProfile:
-              explicitElementalSimulationProfile === "evtc"
-                ? "evtc"
-                : "reference",
+              explicitElementalSimulationProfile === "reference"
+                ? "reference"
+                : "evtc",
             glyphBoonedElementals: Boolean(
               snapshotFields.glyphBoonedElementals,
             ),

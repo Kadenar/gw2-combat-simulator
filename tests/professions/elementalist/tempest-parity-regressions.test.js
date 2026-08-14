@@ -47,20 +47,20 @@ test("delayed Tempest shouts do not advance the serial rotation lane", async () 
       {
         rotationIndex: 113,
         skill: "Scorching Shot",
-        start: 62842,
-        end: 63362,
+        start: 63682,
+        end: 64202,
       },
       {
         rotationIndex: 114,
         skill: "Feel the Burn!",
-        start: 63509,
-        end: 63509,
+        start: 64349,
+        end: 64349,
       },
       {
         rotationIndex: 115,
         skill: "Scorching Shot",
-        start: 63362,
-        end: 63882,
+        start: 64349,
+        end: 64869,
       },
     ],
   );

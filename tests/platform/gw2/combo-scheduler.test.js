@@ -5,6 +5,7 @@ import { createCanonicalCatalog } from "../../../js/platform/engine/catalog.js";
 import { defineProfession } from "../../../js/platform/engine/profession.js";
 import { createScheduler } from "../../../js/platform/engine/scheduler.js";
 import { createGw2SchedulerPolicy } from "../../../js/platform/gw2/scheduler/policy.js";
+import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 
 function fixtureProfession(initialize, catalog = createCanonicalCatalog()) {
   return defineProfession({
@@ -190,6 +191,160 @@ test("an authoritative owned field overrides a finisher's field preference", () 
   });
   assert.equal(combo.fieldId, "field:authoritative-ice");
   assert.equal(combo.fieldType, "Ice");
+});
+
+test("a later-authored authoritative field rebinds a previously bound finisher", () => {
+  const profession = fixtureProfession((context) => {
+    context.emit({
+      type: "combo_field",
+      at: 0,
+      source: "Dark Field",
+      sourceId: "dark.field",
+      actorType: "effect",
+      fieldId: "field:dark-first",
+      fieldType: "Dark",
+      expiresAt: 5,
+      ownerId: "combo-fixture",
+      ownerActorType: "player",
+    });
+    context.emit({
+      type: "damage",
+      at: 1,
+      source: "Scheduled Projectile",
+      sourceId: "scheduled-projectile",
+      actorType: "player",
+      coefficient: 1,
+      comboFinishers: [
+        {
+          ownerId: "combo-fixture",
+          finisherType: "Projectile",
+          ambiguousFieldSelection: "oldest",
+        },
+      ],
+    });
+    context.emit({
+      type: "combo_field",
+      at: 0,
+      source: "Authoritative Ice Field",
+      sourceId: "ice.field",
+      actorType: "effect",
+      fieldId: "field:authoritative-later",
+      fieldType: "Ice",
+      expiresAt: 5,
+      ownerId: "combo-fixture",
+      ownerActorType: "player",
+      comboBindingPriority: 1,
+    });
+  });
+  const result = createScheduler({
+    profession,
+    schedulerPolicy: createGw2SchedulerPolicy(),
+  }).run([{ type: "wait", durationMs: 2000 }]);
+  const finisher = result.events.find(
+    (event) => event.type === "combo_finisher",
+  );
+  const combo = result.events.find((event) => event.type === "combo");
+
+  assert.deepEqual(finisher.fieldBinding, {
+    kind: "field-id",
+    fieldId: "field:authoritative-later",
+  });
+  assert.equal(combo.fieldId, "field:authoritative-later");
+  assert.equal(combo.fieldType, "Ice");
+});
+
+test("pure movement skills resolve skill-level finishers end to end", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 10,
+        name: "Movement Ice Field",
+        castTimeMs: 0,
+        comboFields: [
+          {
+            ownerId: "combo-fixture",
+            fieldType: "Ice",
+            duration: 5,
+          },
+        ],
+        effects: [],
+      },
+      {
+        id: 11,
+        name: "Pure Movement Leap",
+        castTimeMs: 0,
+        comboFinishers: [
+          {
+            ownerId: "combo-fixture",
+            finisherType: "Leap",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
+        effects: [],
+      },
+    ],
+  });
+  const result = simulateGw2({
+    profession: fixtureProfession(() => {}, catalog),
+    rotation: [
+      "Movement Ice Field",
+      "Pure Movement Leap",
+      { type: "wait", durationMs: 1000 },
+    ],
+    config: { target: { armor: 2597, conditions: {} } },
+  });
+  const combo = result.resolvedEvents.find((event) => event.type === "combo");
+
+  assert.equal(combo.finisherType, "Leap");
+  assert.equal(combo.fieldType, "Ice");
+});
+
+test("cancelled summon attacks do not create resolver combo outcomes", () => {
+  const profession = fixtureProfession((context) => {
+    context.emit({
+      type: "combo_field",
+      at: 0,
+      source: "Summon Fire Field",
+      sourceId: "summon.fire-field",
+      actorType: "effect",
+      fieldId: "field:summon-fire",
+      fieldType: "Fire",
+      expiresAt: 5,
+      ownerId: "combo-fixture",
+      ownerActorType: "player",
+    });
+    context.emit({
+      type: "damage",
+      at: 1,
+      source: "Replaced Summon Attack",
+      sourceId: "summon.replaced-attack",
+      actorType: "summon",
+      activationId: "summon:replaced",
+      coefficient: 1,
+      cancelled: true,
+      comboFinishers: [
+        {
+          ownerId: "combo-fixture",
+          finisherType: "Projectile",
+          ambiguousFieldSelection: "oldest",
+        },
+      ],
+    });
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [{ type: "wait", durationMs: 2000 }],
+    config: { target: { armor: 2597, conditions: {} } },
+  });
+
+  assert.equal(
+    result.events.some((event) => event.type === "combo_finisher"),
+    false,
+  );
+  assert.equal(
+    result.resolvedEvents.some((event) => event.type === "combo"),
+    false,
+  );
 });
 
 test("the scheduler predicts a delayed combo result for later facts", () => {

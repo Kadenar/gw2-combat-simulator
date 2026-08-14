@@ -231,16 +231,19 @@ function paletteAvailability(
   }
   const slot = Number(String(skill.slot || "").match(/(\d+)$/)?.[1] || 0);
   const weaver = uiSpecialization(context) === "Weaver";
-  const available = !weaver
-    ? required.length === 1 && required[0] === primary
-    : required.length > 1
-      ? slot === 3 &&
-        required.every((element) => [primary, secondary].includes(element))
-      : slot <= 2
-        ? required[0] === primary
-        : slot >= 4
-          ? required[0] === secondary
-          : primary === secondary && required[0] === primary;
+  const unravelActive =
+    Number(state.unravelUntil || 0) > Number(context.time || 0);
+  const available =
+    !weaver || unravelActive
+      ? required.length === 1 && required[0] === primary
+      : required.length > 1
+        ? slot === 3 &&
+          required.every((element) => [primary, secondary].includes(element))
+        : slot <= 2
+          ? required[0] === primary
+          : slot >= 4
+            ? required[0] === secondary
+            : primary === secondary && required[0] === primary;
   return {
     available,
     message: available
@@ -254,9 +257,13 @@ function eventLogRow(
   event: SimulationEvent,
 ): ProfessionEventLogDescriptor | null | undefined {
   if (event.type === "elementalist.attunement") {
+    const from =
+      event.skillName === "Unravel" && event.fromSecondaryAttunement
+        ? `${String(event.from)}/${String(event.fromSecondaryAttunement)}`
+        : String(event.from);
     return {
       type: event.type,
-      description: `${String(event.from)} → ${String(event.to)}`,
+      description: `${from} → ${String(event.to)}`,
       className: "resource",
       order: 20,
       flags: [],
@@ -294,6 +301,15 @@ function timelineWeaponLineTransition(
     return `${primary[0]}/${secondary[0]}`;
   }
   const skill = context.skill as Skill | undefined;
+  if (skill?.name === "Unravel" && uiSpecialization(context) === "Weaver") {
+    const build = context.build as SchedulerRecord | undefined;
+    const currentPrimary = String(context.weaponLine || "").split("/")[0];
+    const primary =
+      ELEMENTALIST_ATTUNEMENTS.find(
+        (attunement) => attunement[0] === currentPrimary,
+      ) || currentAttunement({ build }, "startAttunement");
+    return `${primary[0]}/${primary[0]}`;
+  }
   const target = skill ? skill.name.replace(/ Attunement$/, "") : "";
   if (
     skill?.skillFamily !== "Attunement" ||

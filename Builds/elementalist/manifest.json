@@ -6,8 +6,8 @@
         "label": "Power (Sword)",
         "build": "Builds/elementalist/b-power-weaver-sword.json",
         "rotation": "Rotations/elementalist/r-power-weaver-sword.json",
-        "dpsReportUrl": "https://dps.report/TNDD-20260415-003554_golem",
-        "benchmarkDps": 40782,
+        "dpsReportUrl": "https://dps.report/tDOX-20260721-013355_golem",
+        "benchmarkDps": 44027,
         "upToDate": true
       },
       {

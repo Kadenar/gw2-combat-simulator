@@ -214,8 +214,7 @@ function descriptorBinding(
   const fields = activeOwnedFields(context, descriptor.ownerId, at);
   const { field, ambiguous } = selectComboFieldForFinisher(fields, {
     preferredFieldTypes: descriptor.preferredFieldTypes as
-      | readonly ComboFieldType[]
-      | undefined,
+      readonly ComboFieldType[] | undefined,
     ambiguousFieldSelection:
       descriptor.ambiguousFieldSelection === "oldest" ? "oldest" : "none",
   });
@@ -253,12 +252,10 @@ function rebindPendingFinishers(
   ownerId: string,
 ): void {
   for (const pending of [...context.events]) {
-    const binding = pending.fieldBinding as ComboFieldBinding | undefined;
     if (
       pending.type !== "combo_finisher" ||
       pending.comboAllowRebind !== true ||
-      pending.comboOwnerId !== ownerId ||
-      binding?.kind !== "none"
+      pending.comboOwnerId !== ownerId
     ) {
       continue;
     }
@@ -273,7 +270,6 @@ function rebindPendingFinishers(
       ambiguousFieldSelection: pending.comboAmbiguousFieldSelection,
     } satisfies OwnedFinisherDescriptor;
     const rebound = descriptorBinding(context, descriptor, pending.at);
-    if (rebound.binding.kind === "none") continue;
     const resolvedAt = Math.max(
       pending.at,
       Number(rebound.fieldAt ?? pending.at),
@@ -314,8 +310,8 @@ function produceField(
       (descriptor.inclusiveExpiry === true ? context.epsilon * 2 : 0),
     ownerId: descriptor.ownerId,
     ownerActorType: descriptor.ownerActorType || event.actorType || "player",
+    comboBindingPriority: descriptor.comboBindingPriority,
   });
-  rebindPendingFinishers(context, descriptor.ownerId);
 }
 
 function produceFinisher(
@@ -403,6 +399,9 @@ export function createGw2ComboMaterializer(config: Gw2Config = {}) {
     onEventScheduled(context: SchedulerContext, event: SimulationEvent): void {
       if (event.schedulerPrediction === "combo-result") return;
       if (event.type === "combo_field" || event.type === "combo_finisher") {
+        if (event.type === "combo_field") {
+          rebindPendingFinishers(context, String(event.ownerId));
+        }
         context.tasks.schedule({
           type: GW2_COMBO_MATERIALIZE_EVENT_TASK,
           at: Math.max(context.state.time, event.at),

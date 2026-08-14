@@ -270,6 +270,55 @@ test("target death prevents later authoritative combo outcomes", () => {
   );
 });
 
+test("target death rejects distinct same-time combo finishers and reactions", () => {
+  const result = resolve(
+    [
+      field("fire:same-time-death", "Fire"),
+      {
+        type: "damage",
+        at: 0.5,
+        source: "Lethal Strike",
+        sourceId: "lethal.strike",
+        actorType: "player",
+        activationId: "lethal:1",
+        skillName: "Lethal Strike",
+        coefficient: 100,
+        skillWeapon: "Unequipped",
+      },
+      ...Array.from({ length: 3 }, (_, index) =>
+        finisher(
+          `post-death-blast:${index + 1}`,
+          { kind: "field-id", fieldId: "fire:same-time-death" },
+          {
+            at: 0.5,
+            effectAt: 0.5,
+            activationId: `post-death:${index + 1}`,
+            finisherType: "Blast",
+          },
+        ),
+      ),
+    ],
+    {
+      relic: "Bloodstone",
+      target: { armor: 2597, health: 1 },
+    },
+  );
+
+  assert.equal(result.deathTime, 0.5);
+  assert.equal(
+    result.resolvedEvents.some((event) => event.type === "combo"),
+    false,
+  );
+  assert.equal(
+    result.procSteps.some(
+      (step) =>
+        step.skill === "Bloodstone Volatility" ||
+        step.skill === "Relic of Bloodstone",
+    ),
+    false,
+  );
+});
+
 function stochasticSignature(seed, consumeUnrelated = false) {
   const state = createGw2ComboRuntimeState();
   registerComboField(state, field("fire:stochastic", "Fire", 0, 10));
