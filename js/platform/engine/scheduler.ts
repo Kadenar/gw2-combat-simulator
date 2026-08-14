@@ -6,6 +6,10 @@ import {
   materializeSkillEffectApplications,
 } from "./effect-materializer.js";
 import { createCooldownController } from "./cooldown-controller.js";
+import {
+  normalizeObservationPolicy,
+  observationEndTime,
+} from "./observation-policy.js";
 import { normalizeRotation } from "./rotation-commands.js";
 import { createSchedulerState } from "./scheduler-state.js";
 import { buildScheduledEventStream } from "./scheduled-event-stream.js";
@@ -27,6 +31,7 @@ import type {
   CastContext,
   CastLifecycleContext,
   CooldownController,
+  ObservationPolicy,
   ProfessionSource,
   ScheduledTask,
   ScheduledTaskHandler,
@@ -68,6 +73,7 @@ interface CreateSchedulerOptions<TProfessionState extends object> {
   readonly startingTime?: number;
   readonly epsilon?: number;
   readonly schedulerPolicy?: SchedulerPolicy<TProfessionState>;
+  readonly observationPolicy?: ObservationPolicy;
 }
 
 // Shared declarative scheduler. It owns canonical command execution, cooldown
@@ -246,7 +252,8 @@ function combineAvailability(
  *   catalog?: CanonicalCatalog,
  *   startingTime?: number,
  *   epsilon?: number,
- *   schedulerPolicy?: SchedulerPolicy<TProfessionState>
+ *   schedulerPolicy?: SchedulerPolicy<TProfessionState>,
+ *   observationPolicy?: ObservationPolicy
  * }} [options]
  * @returns {Scheduler<TProfessionState>}
  */
@@ -259,10 +266,13 @@ export function createScheduler<
   startingTime = 0,
   epsilon = EPSILON,
   schedulerPolicy = {},
+  observationPolicy,
 }: CreateSchedulerOptions<TProfessionState> = {}): Scheduler<TProfessionState> {
   if (!profession?.id) throw new TypeError("Scheduler requires a profession.");
   const activeProfession = resolveProfessionRuntime(profession, config);
   const activeCatalog = catalog ?? activeProfession.catalog;
+  const normalizedObservationPolicy =
+    normalizeObservationPolicy(observationPolicy);
   const initialWeaponSet =
     schedulerPolicy.initialWeaponSet?.({
       profession: activeProfession,
@@ -343,6 +353,11 @@ export function createScheduler<
     warnings,
     epsilon,
     schedulerPolicy,
+    observationPolicy: normalizedObservationPolicy,
+    observationEndTime:
+      normalizedObservationPolicy.kind === "absolute"
+        ? normalizedObservationPolicy.endTimeMs / 1000
+        : null,
     inFlight,
     hasExplicitCombatStart: false,
     combatStartTime: null,
@@ -1301,36 +1316,21 @@ export function createScheduler<
       }
     }
     const rotationEnd = Math.max(state.time, serialReadyAt, latestReservedEnd);
-    advanceTo(rotationEnd);
-    // Settle profession state work deliberately queued one epsilon after the
-    // final cast without following recurring actor tasks indefinitely.
-    if (taskQueue.nextAt() <= rotationEnd + epsilon) {
-      advanceTo(taskQueue.nextAt());
-    }
-    const professionTaskEnd = events
-      .filter((event) => event.extendsProfessionTaskHorizon === true)
-      .reduce(
-        (latest, event) =>
-          Math.max(latest, Number(event.fullEndsAt ?? event.at)),
-        rotationEnd,
-      );
-    while (taskQueue.nextAt() <= professionTaskEnd + epsilon) {
-      advanceTo(taskQueue.nextAt());
-    }
+    const normalizedRotationEnd = Math.max(rotationEnd, 0);
+    const resolutionEnd = observationEndTime(
+      normalizedObservationPolicy,
+      normalizedRotationEnd,
+    );
+    context.observationEndTime = resolutionEnd;
+    // Profession tasks are materialized only through the finite caller-owned
+    // observation boundary. Actor handlers remain responsible for their own
+    // lifetime or stop conditions.
+    advanceTo(resolutionEnd);
     steps.sort((left, right) => left.ri - right.ri);
     sortQueuedEvents(events);
     const snapshot =
       activeProfession.snapshot(context) ??
       cloneProfessionState(state.profession);
-    const declaredResolutionEnd = events
-      .filter((event) => event.extendsResolutionHorizon === true)
-      .reduce(
-        (latest, event) => Math.max(latest, Number(event.at)),
-        rotationEnd,
-      );
-    // Only explicitly opted-in packets extend resolution past the entered
-    // rotation. Interrupt persistence controls cancellation, not fight length.
-    const resolutionEnd = Math.max(declaredResolutionEnd, rotationEnd, 0.001);
     return {
       context,
       state,
@@ -1340,7 +1340,7 @@ export function createScheduler<
       snapshot,
       stream: buildScheduledEventStream({
         events,
-        rotationEndTime: Math.max(rotationEnd, 0.001),
+        rotationEndTime: normalizedRotationEnd,
         resolutionEndTime: resolutionEnd,
         resolverHandoff: {
           profession: activeProfession.id,

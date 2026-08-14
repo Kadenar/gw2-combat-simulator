@@ -518,7 +518,7 @@ export const TRAITS: readonly ElementalistTrait[] = [
     name: "Elemental Refreshment",
     specialization: "Weaver",
     position: 0,
-    vitality: 200,
+    vitality: 180,
   },
   {
     tier: "Major Master",

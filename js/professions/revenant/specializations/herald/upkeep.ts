@@ -1,16 +1,10 @@
 import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { emitRevenantState } from "../../core/shared.js";
-import {
-  emitCondition,
-  emitDamage,
-} from "../../core/upkeep.js";
+import { emitCondition, emitDamage } from "../../core/upkeep.js";
 import { REVENANT_SKILL_IDS as ID } from "../../data/ids.js";
 import { HERALD_MECHANICS as MECHANICS } from "./mechanics.js";
 import type { SkillId } from "../../../../platform/engine/types.js";
-import type {
-  RevenantCastContext,
-  RevenantSkill,
-} from "../../types.js";
+import type { RevenantCastContext, RevenantSkill } from "../../types.js";
 
 /** Emits Elemental Blast's ordered damage/condition pulse sequence. */
 export function castElementalBlast(
@@ -26,12 +20,9 @@ export function castElementalBlast(
       name: `Elemental Blast — Pulse ${pulse}`,
       hitIndex: pulse,
       totalHits: pulses,
-      extendsResolutionHorizon: pulse === pulses,
     });
     const [condition, stacks, duration] = (
-      profile.conditions as readonly (
-        readonly [string, number, number]
-      )[]
+      profile.conditions as readonly (readonly [string, number, number])[]
     )[pulse - 1];
     emitCondition(context, skill, at, condition, stacks, duration);
   }
@@ -44,12 +35,12 @@ export function consumeRevenantFacet(
 ): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  const facetByConsume =
-    MECHANICS.facetSkillByConsumeId as Readonly<Record<SkillId, SkillId>>;
+  const facetByConsume = MECHANICS.facetSkillByConsumeId as Readonly<
+    Record<SkillId, SkillId>
+  >;
   const facetId = facetByConsume[skill.id];
-  const facet = facetId == null
-    ? undefined
-    : context.catalog.skillsById.get(facetId);
+  const facet =
+    facetId == null ? undefined : context.catalog.skillsById.get(facetId);
   state.activeUpkeeps = state.activeUpkeeps.filter(
     (upkeep) => upkeep.skillId !== facet?.id,
   );

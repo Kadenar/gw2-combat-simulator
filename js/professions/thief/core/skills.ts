@@ -3568,7 +3568,6 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         atMs: 1200,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: { extendsResolutionHorizon: true },
       },
       {
         type: "condition",
@@ -3599,7 +3598,6 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         atMs: 1200,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: { extendsResolutionHorizon: true },
       },
     ],
     requiredMainHand: "Scepter",

@@ -139,6 +139,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     lifeForceGain: 1,
   },
   [ID.WELL_OF_SUFFERING]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
@@ -152,9 +153,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "cast",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
       },
       {
         type: "buff",
@@ -177,6 +175,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     handlerId: "necromancer.corruption",
   },
   [ID.PLAGUELANDS]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 920,
     effects: [
@@ -189,9 +188,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castEnd",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
       },
       {
         type: "condition",
@@ -879,6 +875,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     ],
   },
   [ID.WELL_OF_DARKNESS]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
@@ -895,9 +892,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "cast",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
       },
       {
         type: "blind",
@@ -1357,9 +1351,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
         atMs: 1800,
         timingAnchor: "castStart",
         timingScale: "cast",
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
       },
       {
         type: "condition",
@@ -1544,6 +1535,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     lifeForceGain: 2,
   },
   [ID.GRASPING_DARKNESS]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 520,
     effects: [
@@ -1581,6 +1573,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     handlerId: "necromancer.grasping-darkness",
   },
   [ID.NIGHTFALL]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
@@ -1946,9 +1939,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
         ],
         timingAnchor: "castStart",
         timingScale: "fixed",
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
       },
       {
         type: "condition",
@@ -2004,6 +1994,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     ],
   },
   [ID.LIFE_SIPHON]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 560,
     effects: [
@@ -2017,9 +2008,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "cast",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
       },
     ],
     handlerId: "necromancer.life-siphon",
@@ -2036,6 +2024,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     ],
   },
   [ID.HUNGERING_MAELSTROM]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 640,
     effects: [
@@ -2106,6 +2095,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     ],
   },
   [ID.CONSUME]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 520,
     effects: [
@@ -2119,9 +2109,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "cast",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
       },
       {
         type: "condition",

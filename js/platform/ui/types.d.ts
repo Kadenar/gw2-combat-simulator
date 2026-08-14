@@ -24,6 +24,19 @@ export interface PaletteStatusIconView {
   readonly title?: string;
 }
 
+export interface PaletteControlView {
+  readonly id: string;
+  readonly label: string;
+  readonly icon?: string;
+  readonly title?: string;
+  readonly color?: string;
+  readonly className?: string;
+  readonly active?: boolean;
+  readonly pressed?: boolean;
+  readonly muted?: boolean;
+  readonly badge?: string;
+}
+
 export interface PaletteSkillView extends SchedulerRecord {
   readonly name?: string;
   readonly skillId?: SkillId | null;
@@ -44,10 +57,12 @@ export interface PaletteSkillView extends SchedulerRecord {
 }
 
 export interface PaletteGroupView {
+  readonly id?: string;
   readonly label?: string;
   readonly color?: string;
   readonly className?: string;
   readonly skills?: readonly PaletteSkillView[];
+  readonly controls?: readonly PaletteControlView[];
   readonly statusIcon?: PaletteStatusIconView;
 }
 
@@ -60,7 +75,8 @@ export interface NormalizedPaletteGroup extends Omit<
   readonly color: string;
   readonly className: string;
   readonly stackId: string;
-  readonly placement: "profession" | "weapon-set-1";
+  readonly placement: "profession" | "weapon-set-1" | "active-weapon";
+  readonly weaponRowLabel: string;
   readonly resourceAnchor: boolean;
   readonly resourceIds: readonly string[];
   readonly resourcePlacement: "above" | "beside" | "below";
@@ -76,6 +92,10 @@ export type PaletteDragEvent = DragEvent & {
 
 export interface PaletteInteractionHandlers {
   readonly onActivate?: (name: string, event: PaletteMouseEvent) => unknown;
+  readonly onControlActivate?: (
+    id: string,
+    event: PaletteMouseEvent,
+  ) => unknown;
   readonly onDragStart?: (name: string, event: PaletteDragEvent) => unknown;
   readonly onDragEnd?: (name: string, event: PaletteDragEvent) => unknown;
 }

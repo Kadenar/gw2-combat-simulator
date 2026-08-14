@@ -3,6 +3,7 @@ import type { ProfessionAppContract } from "../../app/profession/types.js";
 import type {
   AmmoView,
   NormalizedPaletteGroup,
+  PaletteControlView,
   PaletteDragEvent,
   PaletteGroupView,
   PaletteInteractionHandlers,
@@ -36,7 +37,10 @@ export function paletteView(
     className: String(group.className || ""),
     stackId: String(group.stackId || ""),
     placement:
-      group.placement === "weapon-set-1" ? "weapon-set-1" : "profession",
+      group.placement === "weapon-set-1" || group.placement === "active-weapon"
+        ? group.placement
+        : "profession",
+    weaponRowLabel: String(group.weaponRowLabel || ""),
     resourceAnchor: Boolean(group.resourceAnchor),
     resourceIds: (group.resourceIds || []).map(String),
     resourcePlacement:
@@ -46,6 +50,18 @@ export function paletteView(
         ? group.resourcePlacement
         : "below",
     includeActionSkills: Boolean(group.includeActionSkills),
+    controls: (group.controls || []).map((control) => ({
+      id: String(control.id),
+      label: String(control.label || control.id),
+      icon: String(control.icon || ""),
+      title: String(control.title || control.label || control.id),
+      color: String(control.color || ""),
+      className: String(control.className || ""),
+      active: Boolean(control.active),
+      pressed: Boolean(control.pressed),
+      muted: Boolean(control.muted),
+      badge: String(control.badge || ""),
+    })),
     statusIcon: group.statusIcon
       ? {
           icon: String(group.statusIcon.icon || ""),
@@ -148,11 +164,33 @@ export function virtualPaletteSkillHtml(view: PaletteSkillView = {}): string {
   });
 }
 
+export function paletteControlHtml(view: PaletteControlView): string {
+  const classes = [
+    "pal-control",
+    view.className || "",
+    view.active ? "pal-control-active" : "",
+    view.pressed ? "pal-control-pressed" : "",
+    view.muted ? "pal-control-muted" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const title = view.title || view.label || view.id;
+  return `<button type="button" class="${escapeHtml(classes)}"
+      data-palette-control-id="${escapeHtml(view.id)}"
+      aria-pressed="${view.pressed ? "true" : "false"}"
+      aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}"
+      style="--att-border:${escapeHtml(view.color || "#a88be8")}">
+      <img src="${escapeHtml(view.icon || PALETTE_PLACEHOLDER_ICON)}" alt="" />
+      ${view.badge ? `<span class="pal-control-badge" aria-hidden="true">${escapeHtml(view.badge)}</span>` : ""}
+    </button>`;
+}
+
 export function paletteGroupHtml(view: PaletteGroupView = {}): string {
   const skills = view.skills || [];
+  const controls = view.controls || [];
   const statusIcon = view.statusIcon;
   // Empty groups occupy no layout space.
-  if (!skills.length && !statusIcon) return "";
+  if (!skills.length && !controls.length && !statusIcon) return "";
   const statusIconHtml = statusIcon
     ? `<div class="pal-status-icon" title="${escapeHtml(statusIcon.title || statusIcon.label)}"
         aria-label="${escapeHtml(statusIcon.label)}">
@@ -160,9 +198,12 @@ export function paletteGroupHtml(view: PaletteGroupView = {}): string {
           alt="${escapeHtml(statusIcon.label)}" />
       </div>`
     : "";
-  return `<div class="pal-group${view.className ? ` ${escapeHtml(view.className)}` : ""}">
+  return `<div class="pal-group${view.className ? ` ${escapeHtml(view.className)}` : ""}"
+      ${view.id ? `data-palette-group="${escapeHtml(view.id)}"` : ""}>
     <div class="pal-label" style="color:${escapeHtml(view.color || "#a88be8")}">${escapeHtml(view.label)}</div>
-    <div class="pal-row">${statusIconHtml}${skills
+    <div class="pal-row">${statusIconHtml}${controls
+      .map(paletteControlHtml)
+      .join("")}${skills
       .map((skill) =>
         skill?.virtual
           ? virtualPaletteSkillHtml(skill)
@@ -177,6 +218,16 @@ export function bindPaletteInteractions(
   handlers: PaletteInteractionHandlers = {},
 ): void {
   if (!root) return;
+  for (const control of root.querySelectorAll<HTMLElement>(
+    ".pal-control[data-palette-control-id]",
+  )) {
+    control.onclick = (event) => {
+      handlers.onControlActivate?.(
+        control.dataset.paletteControlId || "",
+        event as unknown as PaletteMouseEvent,
+      );
+    };
+  }
   // Assign DOM handler properties rather than accumulating listeners, making
   // rebinding the same rendered palette idempotent.
   for (const icon of root.querySelectorAll<HTMLElement>(

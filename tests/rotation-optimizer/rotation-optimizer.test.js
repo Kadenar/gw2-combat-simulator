@@ -115,6 +115,135 @@ function fakeSimulation(rotation) {
   };
 }
 
+function contractSimulation(rotation) {
+  let timeMs = 0;
+  let damage = 0;
+  let resource = 0;
+  let empowered = false;
+  let defenseMode = "none";
+  let combatStartMs = null;
+  const cooldowns = new Map();
+  const pending = [];
+  const steps = [];
+  const advanceTo = (targetMs) => {
+    for (const packet of pending) {
+      if (!packet.resolved && packet.at <= targetMs) {
+        damage += packet.damage;
+        packet.resolved = true;
+      }
+    }
+    timeMs = targetMs;
+  };
+
+  rotation.forEach((entry, ri) => {
+    const name = typeof entry === "string" ? entry : entry.name;
+    let start = timeMs;
+    let invalid = false;
+    if (name === "__wait") {
+      advanceTo(timeMs + Number(entry.waitMs || 0));
+    } else if (name === "__combat_start") {
+      combatStartMs = timeMs;
+    } else if (name === "Filler") {
+      advanceTo(timeMs + 1_200);
+      damage += 100;
+    } else if (name === "Heavy") {
+      start = Math.max(timeMs, cooldowns.get(name) || 0);
+      advanceTo(start + 400);
+      damage += 1_000;
+      cooldowns.set(name, start + 1_500);
+    } else if (name === "Bleed") {
+      advanceTo(timeMs + 200);
+      pending.push({ at: start + 1_800, damage: 800, resolved: false });
+    } else if (name === "Summon") {
+      advanceTo(timeMs + 300);
+      pending.push({ at: start + 1_500, damage: 900, resolved: false });
+    } else if (name === "Builder") {
+      advanceTo(timeMs + 300);
+      resource += 1;
+    } else if (name === "Spender") {
+      invalid = resource < 1;
+      if (!invalid) {
+        resource -= 1;
+        advanceTo(timeMs + 500);
+        damage += 900;
+      }
+    } else if (name === "Empower") {
+      advanceTo(timeMs + 200);
+      empowered = true;
+    } else if (name === "Strike") {
+      advanceTo(timeMs + 1_000);
+      damage += empowered ? 300 : 100;
+    } else if (["Heal", "Dodge", "Block", "Counter"].includes(name)) {
+      advanceTo(timeMs + 250);
+      defenseMode = name;
+    }
+    steps.push({
+      ri,
+      skill: name === "__combat_start" ? "Combat Start" : name,
+      start,
+      actualStart: start,
+      end: timeMs,
+      invalid,
+    });
+  });
+
+  const dpsStartMs = combatStartMs ?? 0;
+  const dpsWindowSeconds = Math.max(0.001, (timeMs - dpsStartMs) / 1_000);
+  return {
+    duration: Math.max(0.001, timeMs / 1_000),
+    combatStartTime:
+      combatStartMs == null ? (damage ? 0 : null) : combatStartMs / 1_000,
+    hasExplicitCombatStart: combatStartMs != null,
+    dpsStartTime: dpsStartMs / 1_000,
+    dpsWindow: dpsWindowSeconds,
+    firstHitTime: damage ? dpsStartMs / 1_000 : null,
+    lastHitTime: damage ? timeMs / 1_000 : null,
+    deathTime: null,
+    totalDamage: damage,
+    dps: damage / dpsWindowSeconds,
+    strikeDamage: damage,
+    conditionDamage: 0,
+    breakdown: [],
+    conditionBreakdown: [],
+    events: [],
+    resolvedEvents: [],
+    procSteps: [],
+    warnings: [],
+    casts: [],
+    randomness: { mode: "deterministic", seed: 0 },
+    profession: { resource, empowered, defenseMode },
+    steps,
+    endState: {
+      time: timeMs,
+      cooldowns: Object.fromEntries(cooldowns),
+      ammo: {},
+      activeWeaponSet: 1,
+      profession: {
+        resource,
+        empowered,
+        defenseMode,
+        pending: pending
+          .filter((packet) => !packet.resolved)
+          .map(({ at, damage: packetDamage }) => ({
+            at,
+            damage: packetDamage,
+          })),
+      },
+    },
+    schedulerState: {},
+    snapshot: {},
+  };
+}
+
+function optimizerCandidate(name, declaredDamage) {
+  return {
+    skillId: name,
+    name,
+    declaredDamage,
+    potentialEnabler: !declaredDamage,
+  };
+}
+
 test("declared damage recognizes strike and condition effects", () => {
   assert.equal(
     skillHasDeclaredDamage({
@@ -318,6 +447,122 @@ test("search explores weapon swaps without revisiting zero-time states", () => {
   assert.equal(fakeSimulation(result.rotation).dps, result.dps);
 });
 
+test("rollout scoring preserves delayed condition damage", () => {
+  const result = runRotationSearch(
+    {
+      professionId: "fixture",
+      config: {},
+      horizonMs: 2_500,
+      evaluationBudget: 300,
+      wallClockLimitMs: 5_000,
+      candidates: [
+        optimizerCandidate("Filler", true),
+        optimizerCandidate("Bleed", true),
+      ],
+    },
+    contractSimulation,
+  );
+
+  assert.ok(result.rotation.some((entry) => entry.name === "Bleed"));
+  assert.ok(result.totalDamage >= 800);
+  assert.equal(
+    contractSimulation(result.rotation).totalDamage,
+    result.totalDamage,
+  );
+});
+
+test("rollout scoring preserves a delayed summon packet", () => {
+  const result = runRotationSearch(
+    {
+      professionId: "fixture",
+      config: {},
+      horizonMs: 2_000,
+      evaluationBudget: 300,
+      wallClockLimitMs: 5_000,
+      candidates: [
+        optimizerCandidate("Filler", true),
+        optimizerCandidate("Summon", false),
+      ],
+    },
+    contractSimulation,
+  );
+
+  assert.ok(result.rotation.some((entry) => entry.name === "Summon"));
+  assert.ok(result.totalDamage >= 900);
+});
+
+test("counterfactual relevance preserves a resource builder for its spender", () => {
+  const result = runRotationSearch(
+    {
+      professionId: "fixture",
+      config: {},
+      horizonMs: 2_000,
+      evaluationBudget: 400,
+      wallClockLimitMs: 5_000,
+      candidates: [
+        optimizerCandidate("Spender", true),
+        optimizerCandidate("Builder", false),
+      ],
+    },
+    contractSimulation,
+  );
+
+  const names = result.rotation.map((entry) => entry.name);
+  assert.ok(names.includes("Builder"));
+  assert.ok(names.includes("Spender"));
+  assert.ok(result.totalDamage >= 900);
+});
+
+test("a simulator-derived hold beats immediate filler", () => {
+  const result = runRotationSearch(
+    {
+      professionId: "fixture",
+      config: {},
+      horizonMs: 1_900,
+      evaluationBudget: 400,
+      wallClockLimitMs: 5_000,
+      candidates: [
+        optimizerCandidate("Heavy", true),
+        optimizerCandidate("Filler", true),
+      ],
+    },
+    contractSimulation,
+  );
+
+  const names = result.rotation.map((entry) => entry.name);
+  assert.equal(names.filter((name) => name === "Heavy").length, 2);
+  assert.ok(names.includes("__wait"));
+  assert.equal(names.includes("Filler"), false);
+  assert.equal(result.totalDamage, 2_000);
+});
+
+test("non-offensive defensive actions are rejected", () => {
+  const result = runRotationSearch(
+    {
+      professionId: "fixture",
+      config: {},
+      horizonMs: 3_000,
+      evaluationBudget: 500,
+      wallClockLimitMs: 5_000,
+      candidates: [
+        optimizerCandidate("Strike", true),
+        optimizerCandidate("Heal", false),
+        optimizerCandidate("Dodge", false),
+        optimizerCandidate("Block", false),
+        optimizerCandidate("Counter", false),
+      ],
+    },
+    contractSimulation,
+  );
+
+  const names = new Set(result.rotation.map((entry) => entry.name));
+  assert.equal(names.has("Heal"), false);
+  assert.equal(names.has("Dodge"), false);
+  assert.equal(names.has("Block"), false);
+  assert.equal(names.has("Counter"), false);
+  assert.ok(result.diagnostics.zeroDamageCandidatesRejected > 0);
+});
+
 test("fixed-window normalization crops a long incumbent at the horizon", () => {
   const normalized = normalizeFixedWindowRotation({
     setupRotation: [{ name: "__combat_start" }],
@@ -327,11 +572,7 @@ test("fixed-window normalization crops a long incumbent at the horizon", () => {
     simulate: fakeSimulation,
   });
 
-  assert.deepEqual(normalized.combatRotation, [
-    "Filler",
-    "Filler",
-    "Filler",
-  ]);
+  assert.deepEqual(normalized.combatRotation, ["Filler", "Filler", "Filler"]);
   assert.equal(normalized.terminalWaitMs, 0);
   assert.equal(normalized.result.duration, 1.5);
 });

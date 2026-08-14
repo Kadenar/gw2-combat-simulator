@@ -24,6 +24,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
     handlerId: "ranger.cyclone-bow-enter",
   },
   [ID.PERFECT_STORM]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -121,6 +122,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 480,
   },
   [ID.HAWKEYE]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -206,6 +208,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
     windForceApplyMs: 280,
   },
   [ID.PELT]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {

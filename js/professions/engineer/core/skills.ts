@@ -249,6 +249,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     kitName: "Bomb Kit",
   },
   [ID.BIG_OL_BOMB]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 600,
     cooldown: 20,
@@ -371,6 +372,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     ],
   },
   [ID.GALVANIC_BOMB]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 600,
     cooldown: 16,
@@ -664,6 +666,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     ],
   },
   [ID.BLOWTORCH]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 560,
     cooldown: 12,
@@ -782,6 +785,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     ],
   },
   [ID.BOMB]: {
+    interruptCommitMs: 0,
     implemented: true,
     castTimeMs: 500,
     cooldown: 0,
@@ -1207,6 +1211,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     kit: "Flamethrower",
   },
   [ID.FLAME_BLAST]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 800,
     measuredCancelMs: 480,
@@ -2035,6 +2040,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     toolbeltParentName: "Elixir B",
   },
   [ID.HARPOON_TURRET]: {
+    interruptCommitMs: 0,
     implemented: true,
     castTimeMs: 500,
     cooldown: 20,
@@ -2225,6 +2231,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     ],
   },
   [ID.OVERCHARGED_SHOT]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 400,
     cooldown: 14,
@@ -2875,6 +2882,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     ],
   },
   [ID.MAGNETIC_BOMB_TRAIT_SKILL]: {
+    interruptCommitMs: 0,
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
@@ -3509,6 +3517,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     ],
   },
   [ID.THUNDERCLAP]: {
+    interruptCommitMs: 0,
     implemented: true,
     castTimeMs: 750,
     cooldown: 20,
@@ -3599,6 +3608,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     effects: [],
   },
   [ID.POISON_GAS_SHELL]: {
+    interruptCommitMs: 0,
     implemented: true,
     castTimeMs: 500,
     quicknessCastTimeMs: 520,
@@ -4391,6 +4401,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     ],
   },
   [ID.DEVASTATOR]: {
+    interruptCommitMs: 0,
     implemented: true,
     handlerId: "engineer.devastator",
     castTimeMs: 1000,
@@ -4581,6 +4592,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     kit: "Flamethrower",
   },
   [ID.MAGNETIC_BOMB]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 600,
     cooldown: 20,

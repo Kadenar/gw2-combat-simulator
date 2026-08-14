@@ -107,6 +107,10 @@ const UI_CALLBACK_NAMES = Object.freeze([
   "isSlotSkillSelectable",
   "paletteSkillUnavailableMessage",
   "paletteGroups",
+  "paletteActionSkills",
+  "paletteWeaponSkills",
+  "renderWeaponPalette",
+  "resolvePaletteAction",
   "resourceView",
   "resourceViews",
   "skillBarGroups",
@@ -115,6 +119,7 @@ const UI_CALLBACK_NAMES = Object.freeze([
   "rotationStateSnapshot",
   "timelineWeaponLineTransition",
   "timelineSkillIcon",
+  "updatePaletteControl",
   "updateSkillBarSelection",
   "weaponSkillMatchesSet",
 ]);
@@ -521,6 +526,12 @@ export function defineProfession<TProfessionState extends object>(
     assumptionControls: Object.freeze([...(ui.assumptionControls || [])]),
     chargeReleaseProjection: ui.chargeReleaseProjection || (() => null),
     paletteGroups: ui.paletteGroups || (() => []),
+    paletteActionSkills:
+      ui.paletteActionSkills || ((_context, skills) => [...skills]),
+    paletteWeaponSkills:
+      ui.paletteWeaponSkills || ((_context, skills) => [...skills]),
+    renderWeaponPalette: ui.renderWeaponPalette || (() => null),
+    resolvePaletteAction: ui.resolvePaletteAction || (() => undefined),
     resourceView: (context: SchedulerRecord) =>
       resourceViews(context)[0] || null,
     resourceViews,
@@ -539,6 +550,7 @@ export function defineProfession<TProfessionState extends object>(
     timelineWeaponLineTransition:
       ui.timelineWeaponLineTransition || (() => undefined),
     timelineSkillIcon: ui.timelineSkillIcon || (() => ""),
+    updatePaletteControl: ui.updatePaletteControl || (() => false),
     updateSkillBarSelection: ui.updateSkillBarSelection || (() => false),
     weaponSwapChangesSet: ui.weaponSwapChangesSet !== false,
   };
@@ -1165,6 +1177,43 @@ function composeModuleUi(
         Boolean(result),
       );
   }
+  for (const name of ["paletteActionSkills", "paletteWeaponSkills"] as const) {
+    if (!owns(name)) continue;
+    ui[name] = (context: SchedulerRecord, skills: readonly Skill[]) =>
+      slices.reduce(
+        (current, slice) =>
+          typeof slice[name] === "function"
+            ? slice[name](context, current)
+            : current,
+        [...skills],
+      );
+  }
+  if (owns("renderWeaponPalette")) {
+    ui.renderWeaponPalette = (...args: unknown[]) =>
+      firstUiMatch(
+        reversed,
+        "renderWeaponPalette",
+        args,
+        (result) => result != null,
+        null,
+      );
+  }
+  if (owns("resolvePaletteAction")) {
+    ui.resolvePaletteAction = (...args: unknown[]) =>
+      firstUiMatch(
+        reversed,
+        "resolvePaletteAction",
+        args,
+        (result) => result !== undefined,
+        undefined,
+      );
+  }
+  if (owns("updatePaletteControl")) {
+    ui.updatePaletteControl = (...args: unknown[]) =>
+      someUiSlice(reversed, "updatePaletteControl", args, (result) =>
+        Boolean(result),
+      );
+  }
   if (owns("updateSkillBarSelection")) {
     ui.updateSkillBarSelection = (...args: unknown[]) =>
       someUiSlice(reversed, "updateSkillBarSelection", args, (result) =>
@@ -1443,6 +1492,50 @@ export function createProfessionFamilyUi(
       "isSlotSkillSelectable",
       [selected.context, skill],
       (result) => result !== false,
+    );
+  };
+  for (const name of ["paletteActionSkills", "paletteWeaponSkills"] as const) {
+    ui[name] = (context: SchedulerRecord, skills: readonly Skill[]) => {
+      const selected = active(context);
+      return [...selected.slices, family].reduce(
+        (current, slice) =>
+          typeof slice[name] === "function"
+            ? slice[name](selected.context, current)
+            : current,
+        [...skills],
+      );
+    };
+  }
+  ui.renderWeaponPalette = (context: SchedulerRecord) => {
+    const selected = active(context);
+    return firstUiMatch(
+      [...selected.slices.slice().reverse(), family],
+      "renderWeaponPalette",
+      [selected.context],
+      (result) => result != null,
+      null,
+    );
+  };
+  ui.resolvePaletteAction = (
+    context: SchedulerRecord,
+    action: Parameters<ProfessionUiContract["resolvePaletteAction"]>[1],
+  ) => {
+    const selected = active(context);
+    return firstUiMatch(
+      [...selected.slices.slice().reverse(), family],
+      "resolvePaletteAction",
+      [selected.context, action],
+      (result) => result !== undefined,
+      undefined,
+    ) as ReturnType<ProfessionUiContract["resolvePaletteAction"]>;
+  };
+  ui.updatePaletteControl = (context: SchedulerRecord, controlId: string) => {
+    const selected = active(context);
+    return someUiSlice(
+      [...selected.slices.slice().reverse(), family],
+      "updatePaletteControl",
+      [selected.context, controlId],
+      (result) => Boolean(result),
     );
   };
   ui.updateSkillBarSelection = (

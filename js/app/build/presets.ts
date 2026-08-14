@@ -11,6 +11,15 @@ import type {
 } from "../profession/types.js";
 
 type TemplateLoadAction = "build" | "rotation" | "template";
+type TemplateCategory = "power" | "condi" | "boon" | "other";
+type TemplateFilter = "all" | Exclude<TemplateCategory, "other">;
+
+const TEMPLATE_FILTERS: readonly TemplateFilter[] = [
+  "all",
+  "power",
+  "condi",
+  "boon",
+];
 
 function normalizeTemplateSections(manifest: unknown): BuildTemplateSection[] {
   if (!Array.isArray(manifest) || manifest.length === 0) return [];
@@ -35,6 +44,35 @@ function templateSummary(preset: BuildTemplatePreset): string {
 }
 
 /**
+ * Boon builds take precedence so hybrid labels such as "Power Quickness"
+ * never appear in the Power or Condi filters.
+ */
+export function templateCategory(
+  preset: Pick<BuildTemplatePreset, "label" | "build">,
+): TemplateCategory {
+  const description = `${preset.label} ${preset.build}`.toLowerCase();
+  if (/\b(?:quickness|alacrity)\b|[-/](?:quick|alac)-/.test(description)) {
+    return "boon";
+  }
+  if (/\bpower\b|\/b-power-/.test(description)) return "power";
+  if (/\b(?:condi|condition)\b|\/b-condi(?:tion)?-/.test(description)) {
+    return "condi";
+  }
+  return "other";
+}
+
+export function templateMatchesFilter(
+  preset: Pick<BuildTemplatePreset, "label" | "build">,
+  filter: TemplateFilter,
+): boolean {
+  return filter === "all" || templateCategory(preset) === filter;
+}
+
+function isTemplateFilter(value: string | undefined): value is TemplateFilter {
+  return TEMPLATE_FILTERS.includes(value as TemplateFilter);
+}
+
+/**
  * @param {ProfessionAppState} app
  * @param {BuildTemplatePreset} preset
  * @param {string | null} section
@@ -47,10 +85,11 @@ function templateButtonHtml(
 ): string {
   const index = app.templatePresets.push({ ...preset, section }) - 1;
   const label = esc(preset.label);
+  const category = templateCategory(preset);
   const rotationAction = preset.rotation
     ? `<button type="button" role="menuitem" data-template-action="rotation" data-template-index="${index}">Load rotation only</button>`
     : "";
-  return `<div class="template-preset" data-template-index="${index}">
+  return `<div class="template-preset" data-template-index="${index}" data-template-category="${category}">
       <button type="button" class="btn template-load-btn" data-template-action="template" data-template-index="${index}" aria-pressed="false">
         <span class="template-preset-name">${label}</span>
         <span class="template-preset-summary">${esc(templateSummary(preset))}</span>
@@ -63,6 +102,39 @@ function templateButtonHtml(
         </div>
       </details>
     </div>`;
+}
+
+function applyTemplateFilter(
+  container: HTMLElement,
+  filter: TemplateFilter,
+): void {
+  container
+    .querySelectorAll<HTMLButtonElement>("[data-template-filter]")
+    .forEach((button) => {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.templateFilter === filter),
+      );
+    });
+
+  let visibleTemplates = 0;
+  container
+    .querySelectorAll<HTMLElement>(".template-preset")
+    .forEach((preset) => {
+      const visible =
+        filter === "all" || preset.dataset.templateCategory === filter;
+      preset.hidden = !visible;
+      if (visible) visibleTemplates += 1;
+    });
+
+  container.querySelectorAll<HTMLElement>(".presets-group").forEach((group) => {
+    group.hidden = !group.querySelector(".template-preset:not([hidden])");
+  });
+
+  const emptyMessage = container.querySelector<HTMLElement>(
+    ".template-filter-empty",
+  );
+  if (emptyMessage) emptyMessage.hidden = visibleTemplates > 0;
 }
 
 /**
@@ -233,7 +305,14 @@ export async function initBuildTemplates(
           </div>
           <span class="template-actions-hint">••• for partial loading</span>
         </div>
+        <div class="template-filters" role="group" aria-label="Filter build templates">
+          ${TEMPLATE_FILTERS.map(
+            (filter) =>
+              `<button type="button" data-template-filter="${filter}" aria-pressed="${filter === "all"}">${filter === "condi" ? "Condi" : filter[0].toUpperCase() + filter.slice(1)}</button>`,
+          ).join("")}
+        </div>
         <div class="default-build-groups">${groups}</div>
+        <p class="template-filter-empty" hidden>No matching build templates.</p>
         <div class="template-toast" role="status" hidden>
           <span class="template-toast-message"></span>
           <button type="button" data-template-action="undo">Undo</button>
@@ -244,6 +323,12 @@ export async function initBuildTemplates(
     container.addEventListener("click", (event) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
+      const filterButton = target.closest("[data-template-filter]");
+      if (filterButton instanceof HTMLButtonElement) {
+        const filter = filterButton.dataset.templateFilter;
+        if (isTemplateFilter(filter)) applyTemplateFilter(container, filter);
+        return;
+      }
       const button = target.closest("[data-template-action]");
       if (!(button instanceof HTMLButtonElement)) return;
       const action = button.dataset.templateAction;

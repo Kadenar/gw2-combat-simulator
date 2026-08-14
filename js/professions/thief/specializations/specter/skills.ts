@@ -94,7 +94,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           atMs: 1000,
           timingAnchor: "castEnd",
           timingScale: "fixed",
-          metadata: { extendsResolutionHorizon: true },
         },
         {
           type: "condition",
@@ -191,9 +190,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           atMs: 3000,
           timingAnchor: "castEnd",
           timingScale: "fixed",
-          metadata: {
-            extendsResolutionHorizon: true,
-          },
           comboFinishers: [
             {
               ownerId: "thief",
@@ -216,7 +212,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           timingScale: "fixed",
           metadata: {
             controlKind: "stun",
-            extendsResolutionHorizon: true,
           },
         },
       ],
@@ -273,6 +268,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       ],
     },
     [ID.WELL_OF_SORROW]: {
+      interruptCommitMs: 0,
       implemented: true,
       movementSkill: true,
       shadowstepSkill: true,
@@ -325,6 +321,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       ],
     },
     [ID.WELL_OF_TEARS]: {
+      interruptCommitMs: 0,
       implemented: true,
       movementSkill: true,
       shadowstepSkill: true,
@@ -347,6 +344,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       ],
     },
     [ID.WELL_OF_BOUNTY]: {
+      interruptCommitMs: 0,
       implemented: true,
       movementSkill: true,
       shadowstepSkill: true,

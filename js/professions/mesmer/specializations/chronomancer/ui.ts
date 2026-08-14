@@ -18,6 +18,10 @@ const CHRONOMANCER_MECHANIC_SKILLS = Object.freeze([
   ID.DISTORTION,
   ID.CONTINUUM_SPLIT,
 ]);
+const CHRONOMANCER_PALETTE_SKILLS = Object.freeze([
+  ...CHRONOMANCER_MECHANIC_SKILLS,
+  ID.CONTINUUM_SHIFT,
+]);
 
 function chronomancerEventLogRow(
   _context: SchedulerRecord,
@@ -26,8 +30,7 @@ function chronomancerEventLogRow(
   if (event?.type !== "mesmer.phantasm-resummoned") return undefined;
   return {
     type: event.type,
-    description:
-      `PHANTASM RESUMMONED ${event.name} x${event.count} [Chronophantasma]`,
+    description: `PHANTASM RESUMMONED ${event.name} x${event.count} [Chronophantasma]`,
     className: "phantasm",
     order: 21,
     flags: ["phantasm-clone"],
@@ -38,7 +41,9 @@ export const chronomancerUi: Partial<ProfessionUiContract> & SchedulerRecord =
   Object.freeze({
     eventLogRow: chronomancerEventLogRow,
     paletteGroups: (context: MesmerUiContext) =>
-      mesmerMechanicPaletteGroups(context, CHRONOMANCER_MECHANIC_SKILLS),
+      mesmerMechanicPaletteGroups(context, CHRONOMANCER_PALETTE_SKILLS).map(
+        (group) => ({ ...group, includeActionSkills: true }),
+      ),
     skillBarGroups: () =>
       mesmerMechanicSkillBarGroups("Shatters", CHRONOMANCER_MECHANIC_SKILLS),
     resourceViews: (context: MesmerUiContext) =>

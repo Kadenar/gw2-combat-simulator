@@ -13,9 +13,7 @@ import {
 import { hasRevenantTrait } from "./state.js";
 import { REVENANT_CORE_MECHANICS as MECHANICS } from "./mechanics.js";
 import { emitRevenantBoon } from "./boons.js";
-import type {
-  SkillId,
-} from "../../../platform/engine/types.js";
+import type { SkillId } from "../../../platform/engine/types.js";
 import type {
   RevenantCastContext,
   RevenantCoreState,
@@ -59,7 +57,6 @@ function emitDamage(
   at: number,
   options: {
     readonly sourceId: SkillId;
-    readonly extendsResolutionHorizon?: boolean;
   },
 ): void {
   context.emit({
@@ -76,9 +73,6 @@ function emitDamage(
     hitIndex: 1,
     totalHits: 1,
     skillWeapon: "Unequipped",
-    ...(options.extendsResolutionHorizon
-      ? { extendsResolutionHorizon: true }
-      : {}),
   });
 }
 
@@ -169,16 +163,12 @@ function emitSongOfTheMists(
   }
 }
 
-function emitInvokingTorment(
-  context: RevenantCastContext,
-  at: number,
-): void {
+function emitInvokingTorment(context: RevenantCastContext, at: number): void {
   const profile = MECHANICS.legendInvocation.invokingTorment;
   const sourceId = TRAIT.INVOKING_TORMENT;
   const name = "Invoke Torment";
   emitDamage(context, name, profile.coefficient, at, {
     sourceId,
-    extendsResolutionHorizon: true,
   });
   emitCondition(
     context,

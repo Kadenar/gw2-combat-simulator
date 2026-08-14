@@ -519,7 +519,6 @@ export function observeRevenantEvent(
         hits: 1,
         hitIndex: profile.charges - daggers.charges,
         totalHits: profile.charges,
-        extendsResolutionHorizon: true,
       });
     }
   }

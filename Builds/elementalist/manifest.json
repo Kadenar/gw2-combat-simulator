@@ -23,7 +23,7 @@
         "build": "Builds/elementalist/b-condi-weaver-pistol.json",
         "rotation": "Rotations/elementalist/r-condi-weaver-pistol.json",
         "dpsReportUrl": "https://dps.report/Yt2F-20260805-122746_golem",
-        "benchmarkDps": 39563,
+        "benchmarkDps": 45904,
         "upToDate": true
       },
       {
@@ -31,7 +31,7 @@
         "build": "Builds/elementalist/b-condi-weaver-pistol-dagger.json",
         "rotation": "Rotations/elementalist/r-condi-weaver-pistol-dagger.json",
         "dpsReportUrl": "https://dps.report/yH46-20260729-145625_golem",
-        "benchmarkDps": 38787,
+        "benchmarkDps": 44359,
         "upToDate": true
       },
       {
@@ -39,7 +39,7 @@
         "build": "Builds/elementalist/b-condi-weaver-scepter.json",
         "rotation": "Rotations/elementalist/r-condi-weaver-scepter.json",
         "dpsReportUrl": "https://dps.report/qcqm-20260813-042826_golem",
-        "benchmarkDps": 42157,
+        "benchmarkDps": 42830,
         "upToDate": true
       }
     ]

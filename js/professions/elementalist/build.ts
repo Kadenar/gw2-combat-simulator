@@ -84,9 +84,8 @@ export function createElementalistBuildDefaults(): ElementalistCanonicalBuild {
     },
     assumptions: {
       ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
-      hitboxSize: "large",
+      hitboxSize: "small",
       elementalSimulationProfile: "evtc",
-      startingAttunementPreDwelled: true,
       glyphBoonedElementals: false,
       might: 25,
       fury: true,
@@ -112,6 +111,7 @@ export function createElementalistBuildDefaults(): ElementalistCanonicalBuild {
     evokerElement: "Fire",
     initialEvokerCharges: 6,
     initialEvokerEmpowered: 0,
+    pistolBullets: { Fire: false, Water: false, Air: false, Earth: false },
   };
 }
 
@@ -123,26 +123,41 @@ function bounded(value: unknown, minimum: number, maximum: number): number {
   return Math.max(minimum, Math.min(maximum, Number(value) || 0));
 }
 
+function pistolBullets(
+  value: unknown,
+): Record<"Fire" | "Water" | "Air" | "Earth", boolean> {
+  const saved = record(value);
+  return {
+    Fire: Boolean(saved.Fire),
+    Water: Boolean(saved.Water),
+    Air: Boolean(saved.Air),
+    Earth: Boolean(saved.Earth),
+  };
+}
+
 const elementalistBuildCodec = createGw2BuildCodec<ElementalistCanonicalBuild>({
   professionId: ELEMENTALIST_PROFESSION_ID,
   schemaVersion: ELEMENTALIST_BUILD_SCHEMA_VERSION,
   catalog: elementalistCatalog,
   createDefaults: createElementalistBuildDefaults,
   normalizeExtra(build, { saved }) {
+    const assumptions = normalizeProfessionAssumptions(
+      normalizeSimulationRandomnessAssumptions(build.assumptions),
+      ELEMENTALIST_ASSUMPTION_CONTROLS,
+    );
+    delete assumptions.startingAttunementPreDwelled;
     const normalized = {
       ...build,
       alternateWeapons: ["", ""],
       startingWeaponSet: 1,
-      assumptions: normalizeProfessionAssumptions(
-        normalizeSimulationRandomnessAssumptions(build.assumptions),
-        ELEMENTALIST_ASSUMPTION_CONTROLS,
-      ),
+      assumptions,
       startAttunement: attunement(saved.startAttunement, "Fire"),
       secondaryAttunement: attunement(saved.secondaryAttunement, "Air"),
       initialCatalystEnergy: bounded(saved.initialCatalystEnergy ?? 30, 0, 30),
       evokerElement: attunement(saved.evokerElement, "Fire"),
       initialEvokerCharges: bounded(saved.initialEvokerCharges ?? 6, 0, 6),
       initialEvokerEmpowered: bounded(saved.initialEvokerEmpowered ?? 0, 0, 3),
+      pistolBullets: pistolBullets(saved.pistolBullets),
     };
     return normalized;
   },
@@ -181,6 +196,17 @@ const elementalistBuildCodec = createGw2BuildCodec<ElementalistCanonicalBuild>({
       build.initialEvokerEmpowered >= 0 && build.initialEvokerEmpowered <= 3
     )) {
       errors.push("initialEvokerEmpowered must be between 0 and 3.");
+    }
+    if (
+      !build.pistolBullets ||
+      ["Fire", "Water", "Air", "Earth"].some(
+        (element) =>
+          typeof build.pistolBullets[
+            element as keyof typeof build.pistolBullets
+          ] !== "boolean",
+      )
+    ) {
+      errors.push("pistolBullets must contain four boolean element states.");
     }
     return errors;
   },
@@ -279,6 +305,9 @@ function normalizeSavedBuild(candidate: unknown): unknown {
       : {}),
     ...(Object.hasOwn(snapshotFields, "evokerStartEmpowered")
       ? { initialEvokerEmpowered: snapshotFields.evokerStartEmpowered }
+      : {}),
+    ...(Object.hasOwn(snapshotFields, "pistolBullets")
+      ? { pistolBullets: snapshotFields.pistolBullets }
       : {}),
     assumptions: {
       ...migrateSnapshotAssumptions(
