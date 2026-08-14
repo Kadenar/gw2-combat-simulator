@@ -166,6 +166,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
     lifeForceGain: 15,
   },
   [ID.SOUL_SPIRAL]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 2160,
     effects: [
@@ -225,6 +226,7 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
     specialization: "Reaper",
   },
   [ID.EXECUTIONERS_SCYTHE]: {
+    interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 1320,
     effects: [
@@ -272,9 +274,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "cast",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
       },
     ],
     type: "Profession",

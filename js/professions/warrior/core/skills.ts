@@ -168,6 +168,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 2000,
   },
   [ID.HAMSTRING]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
@@ -1450,6 +1451,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 160,
   },
   [ID.COMBUSTIVE_SHOT]: {
+    interruptCommitMs: 0,
     implemented: true,
     comboFields: [
       {
@@ -1648,6 +1650,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 560,
   },
   [ID.COMBUSTIVE_SHOT_ID_14520]: {
+    interruptCommitMs: 0,
     implemented: true,
     comboFields: [
       {
@@ -1888,6 +1891,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 480,
   },
   [ID.FLAMES_OF_WAR]: {
+    interruptCommitMs: 0,
     implemented: true,
     cooldown: 20,
     comboFields: [
@@ -1907,9 +1911,6 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsProfessionTaskHorizon: true,
-        },
       },
       {
         type: "condition",
@@ -2661,6 +2662,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
     handlerId: "warrior.resource",
   },
   [ID.REND]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {

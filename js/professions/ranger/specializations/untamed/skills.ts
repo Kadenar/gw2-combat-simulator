@@ -9,6 +9,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<
   Record<number, SkillFragment>
 > = Object.freeze({
   [ID.ENVELOPING_HAZE]: {
+    interruptCommitMs: 0,
     implemented: true,
     castTimeMs: 0,
     effects: [

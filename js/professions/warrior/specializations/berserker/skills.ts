@@ -144,6 +144,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
     handlerId: "warrior.resource",
   },
   [ID.SCORCHED_EARTH]: {
+    interruptCommitMs: 0,
     implemented: true,
     skillWeapon: "Longbow",
     comboFields: [
@@ -165,9 +166,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
-        metadata: {
-          extendsProfessionTaskHorizon: true,
-        },
       },
       {
         type: "condition",

@@ -26,9 +26,6 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<
         intervalTimingScale: "fixed",
         timingAnchor: "castEnd",
         timingScale: "fixed",
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
       },
       {
         type: "condition",
@@ -156,9 +153,6 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<
         ],
         timingAnchor: "castEnd",
         timingScale: "fixed",
-        metadata: {
-          extendsResolutionHorizon: true,
-        },
       },
       {
         type: "condition",
