@@ -51,6 +51,8 @@ function isCombatGatedEvent(event: Gw2ResolverEvent): boolean {
     event.type === "damage" ||
     event.type === "condition" ||
     event.type === "condition_tick" ||
+    event.type === "combo_finisher" ||
+    event.comboId != null ||
     (event.type === "buff" && event.kind === "target-vulnerability")
   );
 }

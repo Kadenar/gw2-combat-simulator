@@ -46,6 +46,7 @@ const ENDURANCE_PER_SECOND = 5;
 const AUTOATTACK_CHAIN_PRESERVING_SKILLS = new Set([
   "Ride the Lightning",
   "Relentless Fire",
+  "Weave Self",
 ]);
 
 const HAMMER_ORB_SKILLS: Readonly<Record<string, ElementalistAttunement>> =
@@ -548,6 +549,16 @@ function weaponAttunementAvailable(
           skill,
           "elementalist.attunement",
           `requires ${attunement} attunement.`,
+        );
+  }
+
+  if (state.unravelUntil > context.start) {
+    return required.length === 1 && required[0] === state.primaryAttunement
+      ? ready()
+      : unavailable(
+          skill,
+          "elementalist.unravel-attunement",
+          `requires ${state.primaryAttunement} while Unravel is active.`,
         );
   }
 
@@ -1529,7 +1540,7 @@ function onAttunementComplete(
   // carry the trait into the opening hit.
   if (
     specialization(context) === "Weaver" &&
-    target === previous &&
+    (target === previous || state.unravelUntil > at) &&
     hasTrait(context, "Elements of Rage")
   ) {
     emitBuff(context, at, "Elements of Rage", 1, 8, skill.name, skill.id);
