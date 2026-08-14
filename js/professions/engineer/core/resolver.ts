@@ -3,6 +3,10 @@ import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
 import { clamp } from "../../../platform/gw2/numeric.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
 import {
+  enqueueGw2OwnedComboFinisher,
+  type EnqueueGw2OwnedComboFinisherOptions,
+} from "../../../platform/gw2/resolver/combo-resolution.js";
+import {
   ENGINEER_SKILL_IDS as ID,
   ENGINEER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
@@ -28,7 +32,10 @@ interface QueueDamageOptions {
   readonly at?: number;
   readonly noCrit?: boolean;
   readonly explosion?: boolean;
-  readonly blastFinisher?: boolean;
+  readonly comboFinisher?: Omit<
+    EnqueueGw2OwnedComboFinisherOptions,
+    "at" | "effectAt"
+  >;
   readonly weaponStrength?: number;
   readonly weaponStrengthProfileId?: string;
 }
@@ -68,9 +75,6 @@ function handleEngineerState(
   const specialization = context.profession.specialization.state;
   const preserved = {
     traitProcReadyAt: core.traitProcReadyAt || {},
-    activeComboFields: core.activeComboFields || [],
-    completedBlastFinisherActivations:
-      core.completedBlastFinisherActivations || {},
   };
   for (const [key, value] of Object.entries(event.state || {})) {
     const owner = Object.hasOwn(specialization, key) ? specialization : core;
@@ -90,12 +94,12 @@ export function queueDamage(
     at = event.at,
     noCrit = false,
     explosion = false,
-    blastFinisher = false,
+    comboFinisher,
     weaponStrength,
     weaponStrengthProfileId,
   }: QueueDamageOptions,
 ): void {
-  enqueueOrdered(context.queue, {
+  const damage = enqueueOrdered(context.queue, {
     type: "damage",
     at,
     name,
@@ -111,43 +115,33 @@ export function queueDamage(
     skillWeapon: actorType === "player" ? "Spear" : "Unequipped",
     noCrit,
     explosion,
-    blastFinisher,
-    ...(blastFinisher ? { finisherType: "Blast", finisherValue: 1 } : {}),
+    ...(comboFinisher
+      ? {
+          comboFinishers: [
+            {
+              ownerId: comboFinisher.ownerId,
+              finisherType: comboFinisher.finisherType,
+              chance: comboFinisher.chance ?? 1,
+              applications: comboFinisher.applications ?? 1,
+              successfulCombos: comboFinisher.successfulCombos ?? 1,
+              preferredFieldTypes: comboFinisher.preferredFieldTypes,
+              ambiguousFieldSelection:
+                comboFinisher.ambiguousFieldSelection ?? "none",
+            },
+          ],
+        }
+      : {}),
     ...(weaponStrength == null ? {} : { weaponStrength }),
     ...(weaponStrengthProfileId == null ? {} : { weaponStrengthProfileId }),
     triggeredBy: event.skillName,
   });
-}
-
-function handleEngineerComboField(
-  context: EngineerResolverContext,
-  event: EngineerResolverEvent,
-): void {
-  const state = professionCoreState(context);
-  const fields = state.activeComboFields || [];
-  state.activeComboFields = fields
-    .filter((field) => Number(field.expiresAt || 0) >= event.at)
-    .concat({
-      startsAt: event.at,
-      expiresAt: Number(event.expiresAt || event.at),
-      fieldType: event.fieldType,
-      skillId: event.skillId,
-      skillName: event.skillName,
+  if (comboFinisher) {
+    enqueueGw2OwnedComboFinisher(context, damage, {
+      ...comboFinisher,
+      at,
+      effectAt: at,
     });
-}
-
-function hasActiveEngineerComboField(
-  context: EngineerResolverContext,
-  at: number,
-): boolean {
-  const state = professionCoreState(context);
-  state.activeComboFields = (state.activeComboFields || []).filter(
-    (field) => Number(field.expiresAt || 0) >= at,
-  );
-  return state.activeComboFields.some(
-    (field) =>
-      Number(field.startsAt || 0) <= at && Number(field.expiresAt || 0) >= at,
-  );
+  }
 }
 
 export function queueBuff(
@@ -321,9 +315,9 @@ function isAimAssistedProjectile(
   const skill = resolverSkill(context, event.skillId);
   return Boolean(
     skill?.kit === "Grenade Kit" ||
-    skill?.categories?.some(
-      (category) => String(category).toLowerCase() === "projectile",
-    ),
+      skill?.categories?.some(
+        (category) => String(category).toLowerCase() === "projectile",
+      ),
   );
 }
 
@@ -374,39 +368,6 @@ function reactToEngineerDamage(
   const criticalChance = Number(
     details.hitContext?.critical?.chance ?? details.criticalChance ?? 0,
   );
-  const skill = resolverSkill(context, event.skillId);
-  const finisherType = event.finisherType || skill?.finisherType;
-  const finisherValue = Number(
-    event.finisherValue ?? skill?.finisherValue ?? 0,
-  );
-  const comboState = professionCoreState(context);
-  const activation = String(
-    event.activationId || `${event.skillId || event.sourceId}:${event.at}`,
-  );
-  if (
-    finisherType === "Blast" &&
-    finisherValue > 0 &&
-    hasActiveEngineerComboField(context, event.at) &&
-    !comboState.completedBlastFinisherActivations[activation]
-  ) {
-    comboState.completedBlastFinisherActivations[activation] = true;
-    const blastCount = Math.max(1, Math.trunc(finisherValue));
-    for (let blastIndex = 1; blastIndex <= blastCount; blastIndex += 1) {
-      enqueueOrdered(context.queue, {
-        type: "blast_combo",
-        at: event.at,
-        source: "engineer",
-        sourceId: event.sourceId,
-        actorType: "player",
-        skillId: event.skillId,
-        skillName: event.skillName,
-        name: `${event.skillName} — Blast Combo`,
-        blastIndex,
-        totalBlasts: blastCount,
-      } as unknown as EngineerResolverEvent);
-    }
-  }
-
   if (
     event.actorType === "player" &&
     hasTrait(context, TRAIT.EXPLOSIVE_ENTRANCE) &&
@@ -636,7 +597,16 @@ function reactToEngineerDamage(
       actorType: "effect",
       at: event.at + (orbital ? 2 : 0.04),
       explosion: !orbital,
-      blastFinisher: orbital,
+      ...(orbital
+        ? {
+            comboFinisher: {
+              ownerId: "engineer",
+              attemptId: `${event.activationId || event.sourceId}:orbital-command-strike:blast`,
+              finisherType: "Blast",
+              ambiguousFieldSelection: "oldest",
+            },
+          }
+        : {}),
       weaponStrengthProfileId: "nonweapon.unequipped",
     });
     recordTrait(
@@ -716,7 +686,7 @@ function handleRefractionCutterExtraBlades(
   const extraBlades = Math.max(0, Math.trunc(Number(event.extraBlades || 0)));
   for (let blade = 0; blade < extraBlades; blade += 1) {
     const at = event.at + 0.36;
-    enqueueOrdered(context.queue, {
+    const damage = enqueueOrdered(context.queue, {
       type: "damage",
       at,
       name: "Refraction Cutter Blade",
@@ -731,8 +701,25 @@ function handleRefractionCutterExtraBlades(
       skillId: event.skillId,
       skillWeapon: "Sword",
       projectile: true,
+      comboFinishers: [
+        {
+          ownerId: "engineer",
+          finisherType: "Projectile",
+          chance: 0.2,
+          preferredFieldTypes: ["Fire"],
+          ambiguousFieldSelection: "oldest",
+        },
+      ],
+    });
+    enqueueGw2OwnedComboFinisher(context, damage, {
+      ownerId: "engineer",
+      attemptId: `${event.activationId || event.sourceId}:refraction-cutter:projectile:${blade + 2}`,
       finisherType: "Projectile",
-      finisherValue: 0.2,
+      at,
+      effectAt: at,
+      chance: 0.2,
+      preferredFieldTypes: ["Fire"],
+      ambiguousFieldSelection: "oldest",
     });
     enqueueOrdered(context.queue, {
       type: "condition",
@@ -754,7 +741,6 @@ function handleRefractionCutterExtraBlades(
 
 export const engineerCoreResolverEventHandlers = Object.freeze({
   "engineer.state": handleEngineerState,
-  "engineer.combo-field": handleEngineerComboField,
   "engineer.dodge": handleEngineerDodge,
   "engineer.lightning-rod-pulse": handleLightningRodPulse,
   "engineer.conduit-surge": handleConduitSurge,

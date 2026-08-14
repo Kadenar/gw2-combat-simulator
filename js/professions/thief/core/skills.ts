@@ -813,8 +813,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         timingScale: "cast",
       },
     ],
-    finisherType: "Whirl",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "thief",
+        finisherType: "Whirl",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     requiredMainHand: "Dagger",
     requiredOffHand: "Dagger",
   },
@@ -2398,8 +2403,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         actorType: "player",
       },
     ],
-    finisherType: "Whirl",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "thief",
+        finisherType: "Whirl",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
   },
   [ID.STAFF_BASH]: {
     implemented: true,
@@ -2493,8 +2503,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         actorType: "player",
       },
     ],
-    finisherType: "Whirl",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "thief",
+        finisherType: "Whirl",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
   },
   [ID.DEBILITATING_ARC]: {
     implemented: true,
@@ -3680,8 +3695,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         stacks: 1,
       },
     ],
-    finisherType: "Blast",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "thief",
+        finisherType: "Blast",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
   },
   [ID.SNIPERS_COVER]: {
     implemented: true,

@@ -395,7 +395,6 @@ export function engineerEventLogRow(
 ): ProfessionEventLogDescriptor | null | undefined {
   if (
     [
-      "engineer.combo-field",
       "engineer.dodge",
       "engineer.lightning-rod-pulse",
       "engineer.conduit-surge",

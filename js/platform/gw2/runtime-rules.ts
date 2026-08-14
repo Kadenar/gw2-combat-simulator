@@ -156,3 +156,23 @@ export function gw2ConditionDurationMultiplier(
   // This helper models duration extensions only and enforces GW2's +100% cap.
   return clamp(1 + bonus, 1, 2);
 }
+
+export function gw2BoonDurationMultiplier(
+  boon: string,
+  stats: Gw2Stats,
+  sigils: Gw2SigilSet = {},
+): number {
+  const canonicalBoon =
+    boon.charAt(0).toUpperCase() + boon.slice(1).toLowerCase();
+  const bonus =
+    Number(stats.concentration || 0) / 1500 +
+    Number(stats.boonDurationBonus || 0) / 100 +
+    Number(
+      stats.boonDurationBonuses?.[boon] ||
+        stats.boonDurationBonuses?.[canonicalBoon] ||
+        0,
+    ) /
+      100 +
+    Number(sigils.boonDurationBonus || 0) / 100;
+  return clamp(1 + bonus, 1, 2);
+}

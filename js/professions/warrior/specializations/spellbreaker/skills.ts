@@ -1,7 +1,6 @@
 /** Explicit PvE skill mechanics owned by the Spellbreaker Warrior module. */
 import { WARRIOR_SKILL_IDS as ID } from "../../data/ids.js";
 import type { SkillFragment } from "../../../../platform/engine/types.js";
-
 export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   Record<number, SkillFragment>
 > = Object.freeze({
@@ -40,9 +39,14 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
         atMs: 840,
         timingAnchor: "castStart",
         timingScale: "fixed",
-        metadata: {
-          finisherType: "blast",
-        },
+        comboFinishers: [
+          {
+            ownerId: "warrior",
+            finisherType: "Blast",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
+        metadata: {},
       },
       {
         type: "control",
@@ -363,8 +367,14 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.WINDS_OF_DISENCHANTMENT]: {
     implemented: true,
-    comboField: "Lightning",
-    duration: 5,
+    comboFields: [
+      {
+        ownerId: "warrior",
+        fieldType: "Lightning",
+        duration: 5,
+        startAnchor: "castEnd",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -431,8 +441,13 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   [ID.BREACHING_STRIKE_ID_69297]: {
     implemented: true,
     skillWeapon: "Dagger",
-    finisherType: "Leap",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "warrior",
+        finisherType: "Leap",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     cooldown: 8,
     castTimeMs: 840,
     effects: [

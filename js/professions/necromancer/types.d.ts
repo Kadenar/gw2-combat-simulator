@@ -99,7 +99,6 @@ export interface NecromancerCoreState {
   vampirismNextAt: number;
   targetChilledUntil: number;
   targetControlledUntil: number;
-  darkFieldUntil: number;
   dreadUntil: number;
   fearOfDeathReadyAt: number;
   vampiricPresenceReadyAt: number;
@@ -110,10 +109,7 @@ export interface NecromancerCoreState {
   traitProcReadyAt: Record<string, number>;
 }
 
-export interface ReaperState {
-  executionersIceFieldUntil: number;
-  projectileFinisherChillProgress: number;
-}
+export interface ReaperState {}
 
 export interface ScourgeState {
   shades: number[];

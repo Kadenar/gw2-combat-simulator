@@ -6,7 +6,6 @@
  */
 import { ENGINEER_SKILL_IDS as ID } from "../data/ids.js";
 import type { Skill, SkillFragment } from "../../../platform/engine/types.js";
-
 export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   Record<string, SkillFragment>
 > = Object.freeze({
@@ -30,8 +29,15 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 20,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Projectile",
+        chance: 0.2,
+        preferredFieldTypes: ["Fire"],
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -67,8 +73,15 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 5,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Projectile",
+        chance: 0.2,
+        preferredFieldTypes: ["Fire"],
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -132,8 +145,15 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 20,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Projectile",
+        chance: 0.2,
+        preferredFieldTypes: ["Fire"],
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -168,8 +188,15 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 25,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Projectile",
+        chance: 0.2,
+        preferredFieldTypes: ["Fire"],
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -225,8 +252,14 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     quicknessCastTimeMs: 600,
     cooldown: 20,
-    finisherType: "Blast",
-    finisherValue: 2,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Blast",
+        successfulCombos: 2,
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -341,8 +374,13 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     quicknessCastTimeMs: 600,
     cooldown: 16,
-    finisherType: "Blast",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Blast",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -389,8 +427,15 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 600,
     interruptCommitMs: 400,
     cooldown: 8,
-    comboField: "Fire",
-    duration: 3,
+    comboFields: [
+      {
+        ownerId: "engineer",
+        fieldType: "Fire",
+        duration: 3,
+        startAnchor: "castEnd",
+        inclusiveExpiry: true,
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -465,8 +510,15 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     quicknessCastTimeMs: 520,
     cooldown: 0,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Projectile",
+        chance: 0.2,
+        preferredFieldTypes: ["Fire"],
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -491,8 +543,15 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     quicknessCastTimeMs: 840,
     cooldown: 8,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Projectile",
+        chance: 0.2,
+        preferredFieldTypes: ["Fire"],
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -527,8 +586,15 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     quicknessCastTimeMs: 320,
     cooldown: 12,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Projectile",
+        chance: 0.2,
+        preferredFieldTypes: ["Fire"],
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -558,8 +624,13 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 560,
     cooldown: 20,
     duration: 5,
-    finisherType: "Blast",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Blast",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -857,8 +928,15 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 0,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Projectile",
+        chance: 0.2,
+        preferredFieldTypes: ["Fire"],
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -1686,10 +1764,17 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         timingScale: "fixed",
         name: "Rifle Burst",
         actorType: "player",
+        comboFinishers: [
+          {
+            ownerId: "engineer",
+            finisherType: "Projectile",
+            chance: 0.2,
+            preferredFieldTypes: ["Fire"],
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
         metadata: {
           projectile: true,
-          finisherType: "Projectile",
-          finisherValue: 0.2,
         },
       },
       {
@@ -2199,10 +2284,15 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 3,
         hits: 1,
+        comboFinishers: [
+          {
+            ownerId: "engineer",
+            finisherType: "Blast",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
         metadata: {
           damageKind: "explosion",
-          finisherType: "Blast",
-          finisherValue: 1,
         },
         name: "Detonate (engineer skill)",
         actorType: "player",
@@ -3149,8 +3239,13 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     castTimeMs: 1000,
     cooldown: 6,
-    finisherType: "Whirl",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Whirl",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -3363,8 +3458,13 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     castTimeMs: 750,
     cooldown: 40,
-    finisherType: "Blast",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Blast",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -3414,8 +3514,15 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     castTimeMs: 750,
     cooldown: 20,
-    comboField: "Lightning",
-    duration: 5,
+    comboFields: [
+      {
+        ownerId: "engineer",
+        fieldType: "Lightning",
+        duration: 5,
+        startAnchor: "castEnd",
+        inclusiveExpiry: true,
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -3498,8 +3605,15 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     castTimeMs: 500,
     quicknessCastTimeMs: 520,
     cooldown: 10,
-    comboField: "Poison",
-    duration: 5,
+    comboFields: [
+      {
+        ownerId: "engineer",
+        fieldType: "Poison",
+        duration: 5,
+        startAnchor: "castEnd",
+        inclusiveExpiry: true,
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -3988,8 +4102,13 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     quicknessCastTimeMs: 840,
     cooldown: 14,
-    finisherType: "Leap",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "engineer",
+        finisherType: "Leap",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -4092,10 +4211,16 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         timingScale: "fixed",
         name: "Refraction Cutter Blade",
         actorType: "player",
+        comboFinishers: [
+          {
+            ownerId: "engineer",
+            finisherType: "Projectile",
+            preferredFieldTypes: ["Fire"],
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
         metadata: {
           projectile: true,
-          finisherType: "Projectile",
-          finisherValue: 1,
         },
       },
       {
@@ -4418,8 +4543,15 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     quicknessCastTimeMs: 440,
     cooldown: 20,
-    comboField: "Fire",
-    duration: 1,
+    comboFields: [
+      {
+        ownerId: "engineer",
+        fieldType: "Fire",
+        duration: 1,
+        startAnchor: "castEnd",
+        inclusiveExpiry: true,
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -4485,7 +4617,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     kit: "Bomb Kit",
   },
 });
-
 const extraSkills: Skill[] = [
   {
     id: ID.DODGE,
@@ -4533,7 +4664,6 @@ const extraSkills: Skill[] = [
     effects: [],
   },
 ];
-
 export const ENGINEER_CORE_EXTRA_SKILLS = Object.freeze(
   extraSkills.map((skill) => Object.freeze(skill)),
 );

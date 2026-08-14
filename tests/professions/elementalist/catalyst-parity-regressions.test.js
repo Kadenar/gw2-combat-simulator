@@ -145,7 +145,9 @@ test("Catalyst zero-damage finishers preserve combo metadata", () => {
       .some(
         (tick) =>
           tick.coefficient === 0 &&
-          tick.metadata?.finisherType === finisherType,
+          tick.comboFinishers?.some(
+            (finisher) => finisher.finisherType === finisherType,
+          ),
       );
 
   assert.equal(zeroCoefficientFinisher("Churning Earth", "Blast"), true);
@@ -155,16 +157,28 @@ test("Catalyst zero-damage finishers preserve combo metadata", () => {
 
 test("Steamshrieker remains selected and resolves every water combo", async () => {
   const { build, result } = await loadCatalystFixture("condi-catalyst-pistol");
+  const waterCombos = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "combo" &&
+      event.actorType === "player" &&
+      event.fieldType === "Water" &&
+      ["Blast", "Leap"].includes(event.finisherType),
+  );
   const applications = result.resolvedEvents.filter(
     (event) => event.skillName === "Relic of Steamshrieker",
   );
 
   assert.equal(build.relic, "Steamshrieker");
-  assert.equal(applications.length, 37);
+  assert.ok(waterCombos.length > 0);
+  assert.equal(applications.length, waterCombos.length);
+  assert.deepEqual(
+    applications.map((event) => event.triggeredBy).sort(),
+    waterCombos.map((event) => event.skillName).sort(),
+  );
   assert.equal(
     result.procSteps.filter((step) => step.skill === "Relic of Steamshrieker")
       .length,
-    37,
+    waterCombos.length,
   );
 });
 

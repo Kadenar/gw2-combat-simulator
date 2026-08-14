@@ -46,9 +46,7 @@ test("every Weaver benchmark fixture runs with only reference-mirrored errors", 
     ],
     "condi-weaver-scepter": [],
     "power-weaver-spear": [],
-    "power-weaver-sword": [
-      "Fire Swipe is unavailable — cast Fire Strike first.",
-    ],
+    "power-weaver-sword": [],
   };
 
   for (const [variant, warnings] of Object.entries(expectedWarnings)) {
@@ -78,7 +76,7 @@ test("precombat Elements of Rage affects the reference opening packet", async ()
       event.type === "damage" && event.skillName === "Glyph of Storms (Air)",
   );
 
-  assert.ok(Math.abs(firstAirStormHit.damage - 4359.03509182171) < 1e-6);
+  assert.ok(Math.abs(firstAirStormHit.damage - 4043.3900407355814) < 1e-6);
 });
 
 test("attunement casts advance Weaver spear etchings", async () => {

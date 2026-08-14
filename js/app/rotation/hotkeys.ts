@@ -579,7 +579,15 @@ function ensureControls(controller: RotationHotkeyController): void {
     controller.dialog?.showModal();
   });
   controls.append(status, button);
-  heading.append(controls);
+  const sharedControls = heading.querySelector(".rotation-builder-controls");
+  const focusButton = sharedControls?.querySelector(".rotation-focus-toggle");
+  if (sharedControls && focusButton) {
+    sharedControls.insertBefore(controls, focusButton);
+  } else if (sharedControls) {
+    sharedControls.append(controls);
+  } else {
+    heading.append(controls);
+  }
   controller.button = button;
   controller.status = status;
   setRotationHotkeysActive(controller, controller.active);

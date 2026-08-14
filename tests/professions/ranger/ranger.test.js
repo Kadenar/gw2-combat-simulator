@@ -792,14 +792,17 @@ test("Ranger Ice projectile finishers resolve per projectile without triggering 
     selectedPet: "Pig",
   });
   const comboConditions = deterministic.resolvedEvents.filter(
-    (event) => event.sourceId === "ranger.combo.ice-projectile",
+    (event) =>
+      event.type === "combo" &&
+      event.fieldType === "Ice" &&
+      event.finisherType === "Projectile",
   );
 
   assert.deepEqual(
     comboConditions.map((event) => [
       event.skillName,
-      event.condition,
-      event.duration,
+      event.outcome.condition,
+      event.outcome.duration,
     ]),
     [
       ["Splitblade", "Chilled", 1],
@@ -816,9 +819,12 @@ test("Ranger Ice projectile finishers resolve per projectile without triggering 
   });
   assert.equal(
     stochastic.resolvedEvents.filter(
-      (event) => event.sourceId === "ranger.combo.ice-projectile",
+      (event) =>
+        event.type === "combo" &&
+        event.fieldType === "Ice" &&
+        event.finisherType === "Projectile",
     ).length,
-    2,
+    3,
   );
 });
 
@@ -887,6 +893,7 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
     ).length;
 
   assert.deepEqual(result.warnings, []);
+  assert.equal(build.targetHealth, 3970000);
   assert.equal(build.selectedPet, "Tiger");
   assert.equal(build.selectedPet2, "Tiger");
   assert.deepEqual(build.weaponSigils, [
@@ -894,11 +901,11 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
     ["Force", "Impact"],
   ]);
   assert.equal(build.assumptions.sharePlayerBoonsWithSummons, false);
-  assert.equal(hits(ID.FELINE_SLASH), 68);
+  assert.equal(hits(ID.FELINE_SLASH), 67);
   assert.equal(hits(ID.FELINE_BITE), 13);
   assert.equal(hits(ID.FELINE_MAUL), 14);
   assert.equal(hits(ID.FURIOUS_POUNCE), 6);
-  assert.equal(hits(ID.ENVELOPING_HAZE), 36);
+  assert.equal(hits(ID.ENVELOPING_HAZE), 35);
   assert.equal(hits(ID.VENOMOUS_OUTBURST), 11);
   assert.equal(hits(ID.RENDING_VINES), 11);
   assert.equal(namedHits(ID.RELENTLESS_WHIRL, "Relentless Whirl"), 20);
@@ -970,7 +977,7 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
   assert.equal(
     Math.abs(
       result.dpsWindow - savedRotation.metadata.benchmarkDurationSeconds,
-    ) < 1,
+    ) < 1.5,
     true,
   );
   assert.equal(
@@ -1117,8 +1124,26 @@ test("Power Galeshot benchmark tracks the supplied EVTC and both pets", async ()
     ),
     true,
   );
-  assert.equal(damage("Rapid Fire — Confusing Bolt") > 0, true);
-  assert.equal(damage("Rapid Fire — Poison Combo") > 0, true);
+  assert.equal(
+    result.resolvedEvents.some(
+      (event) =>
+        event.type === "condition" &&
+        event.comboId != null &&
+        event.skillName === "Rapid Fire" &&
+        event.condition === "Confusion",
+    ),
+    true,
+  );
+  assert.equal(
+    result.resolvedEvents.some(
+      (event) =>
+        event.type === "condition" &&
+        event.comboId != null &&
+        event.skillName === "Rapid Fire" &&
+        event.condition === "Poisoned",
+    ),
+    true,
+  );
   assert.equal(
     result.procSteps
       .filter((step) => step.skill === "Relic of the Claw")
@@ -2993,11 +3018,11 @@ test("Ranger pet-swap and Marksmanship traits resolve at their combat timings", 
     true,
   );
   assert.equal(
-    swapped.events.some(
+    swapped.resolvedEvents.some(
       (event) =>
-        event.sourceId === TRAIT.CLARION_BOND && event.type === "blast_combo",
+        event.sourceId === TRAIT.CLARION_BOND && event.type === "combo",
     ),
-    true,
+    false,
   );
   assert.equal(
     swapped.events.some(

@@ -27,6 +27,10 @@ import {
   createGw2TriggerMaterializer,
   GW2_MATERIALIZE_EVENT_TASK,
 } from "./proc-materializer.js";
+import {
+  createGw2ComboMaterializer,
+  GW2_COMBO_MATERIALIZE_EVENT_TASK,
+} from "./combo-materializer.js";
 import { createGw2EventPreparer } from "./event-preparer.js";
 import { clamp } from "../numeric.js";
 import { gw2StatsForWeaponSet } from "../runtime-rules.js";
@@ -192,11 +196,14 @@ export function createGw2SchedulerPolicy(
   }: CreateGw2SchedulerPolicyOptions = {},
 ): Readonly<Gw2SchedulerPolicy> {
   const materializer = createGw2TriggerMaterializer(config, { traits });
+  const comboMaterializer = createGw2ComboMaterializer(config);
   const eventPreparer = createGw2EventPreparer();
   const policy: Gw2SchedulerPolicy = {
     taskHandlers: Object.freeze({
       [GW2_MATERIALIZE_EVENT_TASK]: (context, task) =>
         materializer.handleTask(context, task),
+      [GW2_COMBO_MATERIALIZE_EVENT_TASK]: (context, task) =>
+        comboMaterializer.handleTask(context, task),
     }),
 
     initialize(context) {
@@ -209,6 +216,7 @@ export function createGw2SchedulerPolicy(
 
     onEventScheduled(context, event: SimulationEvent) {
       materializer.onEventScheduled(context, event);
+      comboMaterializer.onEventScheduled(context, event);
     },
 
     critical(_context, event) {

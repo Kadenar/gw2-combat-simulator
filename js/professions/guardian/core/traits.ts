@@ -166,8 +166,14 @@ export function updateGuardianTraitCastState(
   const at = context.effectiveEnd;
   if (skill.id === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION) {
     context.replaceEvent(context.action, {
-      comboField: "Light",
-      comboFieldDuration: 4,
+      comboFields: [
+        {
+          ownerId: "guardian",
+          fieldType: "Light",
+          duration: 4,
+          startAnchor: "castEnd",
+        },
+      ],
     });
     context.emit({
       type: "guardian.symbol-of-ignition-field",
@@ -182,13 +188,19 @@ export function updateGuardianTraitCastState(
   }
   if (skill.id === GUARDIAN_SKILL_IDS.PURGING_FLAMES) {
     context.replaceEvent(context.action, {
-      comboField: "Fire",
-      comboFieldDuration: hasGuardianTrait(
-        context,
-        GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS,
-      )
-        ? 7
-        : 5,
+      comboFields: [
+        {
+          ownerId: "guardian",
+          fieldType: "Fire",
+          duration: hasGuardianTrait(
+            context,
+            GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS,
+          )
+            ? 7
+            : 5,
+          startAnchor: "castEnd",
+        },
+      ],
     });
   }
   const virtueSlot = skill.categories?.includes("Virtue")

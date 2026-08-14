@@ -11,6 +11,7 @@ import type {
   SimulationRandomnessConfig,
   SimulationActorType,
   SimulationEvent,
+  SimulationEventBase,
   Skill,
   ScheduledTask,
   SchedulerContext,
@@ -18,6 +19,64 @@ import type {
 } from "../engine/types.js";
 import type { StableEventQueue } from "../engine/event-queue.js";
 import type { HandlerRegistry } from "../engine/handler-registry.js";
+
+export type ComboFieldType =
+  | "Dark"
+  | "Ethereal"
+  | "Fire"
+  | "Ice"
+  | "Light"
+  | "Lightning"
+  | "Poison"
+  | "Smoke"
+  | "Water";
+
+export type ComboFinisherType = "Blast" | "Leap" | "Projectile" | "Whirl";
+
+export type ComboFieldBinding =
+  | { readonly kind: "field-id"; readonly fieldId: string }
+  | { readonly kind: "field-type"; readonly fieldType: ComboFieldType }
+  | { readonly kind: "none" };
+
+export interface ComboFieldEvent extends SimulationEventBase<"combo_field"> {
+  readonly fieldId: string;
+  readonly fieldType: ComboFieldType;
+  readonly expiresAt: number;
+  readonly ownerId: string;
+  readonly ownerActorType: SimulationActorType;
+  readonly comboBindingPriority?: number;
+}
+
+export interface ComboFinisherEvent
+  extends SimulationEventBase<"combo_finisher"> {
+  readonly attemptId: string;
+  readonly finisherType: ComboFinisherType;
+  readonly fieldBinding: ComboFieldBinding;
+  readonly effectAt: number;
+  readonly chance: number;
+  readonly applications: number;
+  readonly successfulCombos: number;
+  readonly parentEventOrder?: number;
+}
+
+export interface ComboEvent extends SimulationEventBase<"combo"> {
+  readonly comboId: string;
+  readonly attemptId: string;
+  readonly fieldId: string;
+  readonly fieldType: ComboFieldType;
+  readonly finisherType: ComboFinisherType;
+  readonly fieldSourceId: import("../engine/types.js").SkillId;
+  readonly bindingKind: ComboFieldBinding["kind"];
+  readonly applicationCount: number;
+  readonly outcome: Readonly<Record<string, unknown>>;
+}
+
+export interface Gw2ComboRuntimeState extends SchedulerRecord {
+  readonly fields: Map<string, ComboFieldEvent>;
+  readonly handledAttemptIds: Set<string>;
+  readonly deterministicProgress: Map<string, number>;
+  readonly warningKeys: Set<string>;
+}
 
 export interface Gw2Stats extends SchedulerRecord {
   readonly power?: number;
@@ -630,7 +689,8 @@ export interface Gw2ResolverHelpers extends SchedulerRecord {
 }
 
 export type Gw2EventQueue =
-  Gw2ResolverEvent[] | StableEventQueue<Gw2ResolverEvent>;
+  | Gw2ResolverEvent[]
+  | StableEventQueue<Gw2ResolverEvent>;
 
 export interface Gw2ResolverRuntime extends SchedulerRecord {
   config: Gw2Config;
@@ -655,6 +715,7 @@ export interface Gw2ResolverRuntime extends SchedulerRecord {
   deathTime: number | null;
   combatStartTime?: number | null;
   activeWeaponSet: number;
+  combo: Gw2ComboRuntimeState;
   relic: Gw2RelicRuntime;
   profession: object;
   sigil: {
@@ -756,7 +817,8 @@ export type Gw2ResolverReaction = (
 ) => SchedulerRecord | void;
 
 export type Gw2ResolverStage =
-  | "blast-combo.resolved"
+  | "aura.applied"
+  | "combo.resolved"
   | "buff.applied"
   | "damage.resolved"
   | "condition.applied"
@@ -874,10 +936,11 @@ export interface CreateGw2ResolverRuntimeStateOptions {
   readonly createEquipmentState: Gw2ResolverExtensions["createEquipmentState"];
 }
 
-export interface Gw2ProfessionContract extends Omit<
-  NormalizedProfessionContract,
-  "eventHandlers" | "eventReactions" | "simulation" | "projectEndState"
-> {
+export interface Gw2ProfessionContract
+  extends Omit<
+    NormalizedProfessionContract,
+    "eventHandlers" | "eventReactions" | "simulation" | "projectEndState"
+  > {
   readonly eventHandlers: Gw2ResolverEventHandlers;
   readonly eventReactions: Gw2ResolverReactions;
   readonly simulation:
@@ -963,7 +1026,8 @@ export interface Gw2ConversionAttributeEffect extends Gw2AttributeEffectBase {
 }
 
 export type Gw2AttributeEffect =
-  Gw2FlatAttributeEffect | Gw2ConversionAttributeEffect;
+  | Gw2FlatAttributeEffect
+  | Gw2ConversionAttributeEffect;
 
 export interface Gw2AttributeBreakdown {
   final: number;
@@ -1332,7 +1396,8 @@ export interface Gw2NormalizedModifierRule {
 }
 
 export type Gw2IncludeSigilPolicy =
-  boolean | ((context: Gw2ModifierContext) => boolean);
+  | boolean
+  | ((context: Gw2ModifierContext) => boolean);
 
 export interface Gw2DamageBucketPolicy {
   readonly includeSigil: Gw2IncludeSigilPolicy;

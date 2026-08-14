@@ -117,8 +117,13 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           timingScale: "fixed",
         },
       ],
-      finisherType: "Blast",
-      finisherValue: 1,
+      comboFinishers: [
+        {
+          ownerId: "thief",
+          finisherType: "Blast",
+          ambiguousFieldSelection: "oldest",
+        },
+      ],
       shadowShroudSkill: true,
     },
     [ID.DAWNS_REPOSE]: {
@@ -144,8 +149,13 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           },
         },
       ],
-      finisherType: "Leap",
-      finisherValue: 1,
+      comboFinishers: [
+        {
+          ownerId: "thief",
+          finisherType: "Leap",
+          ambiguousFieldSelection: "oldest",
+        },
+      ],
       shadowShroudSkill: true,
     },
     [ID.WELL_OF_SILENCE]: {
@@ -183,9 +193,14 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           timingScale: "fixed",
           metadata: {
             extendsResolutionHorizon: true,
-            finisherType: "Blast",
-            finisherValue: 1,
           },
+          comboFinishers: [
+            {
+              ownerId: "thief",
+              finisherType: "Blast",
+              ambiguousFieldSelection: "oldest",
+            },
+          ],
         },
         {
           type: "boon",
@@ -205,8 +220,13 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           },
         },
       ],
-      finisherType: "Blast",
-      finisherValue: 1,
+      comboFinishers: [
+        {
+          ownerId: "thief",
+          finisherType: "Blast",
+          ambiguousFieldSelection: "oldest",
+        },
+      ],
       shadowShroudSkill: true,
     },
     [ID.EXIT_SHADOW_SHROUD]: {

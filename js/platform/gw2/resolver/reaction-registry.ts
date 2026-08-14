@@ -24,7 +24,8 @@ type AuthoringSource =
   | readonly (AuthoringHandler | AuthoringHook)[];
 
 export const GW2_RESOLVER_STAGES: readonly Gw2ResolverStage[] = Object.freeze([
-  "blast-combo.resolved",
+  "aura.applied",
+  "combo.resolved",
   "buff.applied",
   "damage.resolved",
   "condition.applied",
@@ -76,7 +77,8 @@ export function defineGw2ResolverReactions<
     assertStage(stage);
     const hooks = Array.isArray(source) ? source : [source];
     hooks.forEach((hook, index) =>
-      assertAuthoringHook(hook, `GW2 resolver reaction ${stage}[${index}]`));
+      assertAuthoringHook(hook, `GW2 resolver reaction ${stage}[${index}]`),
+    );
   }
   return Object.freeze({ ...reactions });
 }

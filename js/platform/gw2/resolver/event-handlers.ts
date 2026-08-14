@@ -8,6 +8,7 @@ import type {
   Gw2ResolverRuntime,
 } from "../types.js";
 import { gw2BoonApplicationRecipients } from "../allied-players.js";
+import { createGw2ComboResolution } from "./combo-resolution.js";
 
 interface CreateGw2ResolverEventHandlersOptions {
   readonly hitResolution: {
@@ -85,6 +86,7 @@ export function createGw2ResolverEventHandlers({
     tick: handleConditionTick,
   } = conditions;
   const handlers: Gw2ResolverEventHandlers = {
+    ...createGw2ComboResolution({ reactions }),
     // These event types are canonical timeline/reporting records with no shared
     // numeric effect. Keeping explicit handlers prevents them being mistaken
     // for unsupported required events by the resolver loop.
@@ -93,9 +95,6 @@ export function createGw2ResolverEventHandlers({
     marker: noop,
     proc: noop,
     resource: noop,
-    blast_combo(ctx, event) {
-      reactions.dispatch("blast-combo.resolved", ctx, event);
-    },
     buff(ctx, event) {
       handleBuff(ctx, event, reactions);
     },

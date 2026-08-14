@@ -1,11 +1,1 @@
-import { executionersScythe } from "./shroud.js";
-import { augmentSkillHandler } from "../../../../platform/engine/skill-handlers.js";
-
-export const reaperSkillHandlers = new Map([
-  [
-    "necromancer.executioners-scythe",
-    augmentSkillHandler(null, {
-      afterEffect: executionersScythe,
-    }),
-  ],
-]);
+export const reaperSkillHandlers = new Map();

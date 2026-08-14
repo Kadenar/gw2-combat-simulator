@@ -503,8 +503,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     ammo: 0,
     ammoRecharge: 0,
     energyCost: 5,
-    finisherType: "Blast",
-    finisherValue: 1,
+    comboFinishers: [
+      {
+        ownerId: "revenant",
+        finisherType: "Blast",
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -758,8 +763,14 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     interruptCommitMs: 480,
     cooldown: 3,
     energyCost: 5,
-    comboField: "Fire",
-    duration: 3,
+    comboFields: [
+      {
+        ownerId: "revenant",
+        fieldType: "Fire",
+        duration: 3,
+        startAnchor: "castEnd",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -1600,8 +1611,14 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     unaffectedByQuickness: true,
     cooldown: 0,
     energyCost: 0,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "revenant",
+        finisherType: "Projectile",
+        chance: 0.2,
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -1667,8 +1684,14 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     unaffectedByQuickness: true,
     cooldown: 7,
     energyCost: 7,
-    finisherType: "Projectile",
-    finisherValue: 0.2,
+    comboFinishers: [
+      {
+        ownerId: "revenant",
+        finisherType: "Projectile",
+        chance: 0.2,
+        ambiguousFieldSelection: "oldest",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -1716,8 +1739,14 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     unaffectedByQuickness: true,
     cooldown: 9,
     energyCost: 12,
-    comboField: "Fire",
-    duration: 3,
+    comboFields: [
+      {
+        ownerId: "revenant",
+        fieldType: "Fire",
+        duration: 3,
+        startAnchor: "castEnd",
+      },
+    ],
     effects: [
       {
         type: "strike",

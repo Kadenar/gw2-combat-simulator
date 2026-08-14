@@ -32,7 +32,6 @@ export interface RevenantSpecializationSelection {
 export interface RevenantSkill extends Skill {
   readonly affinityOnHit?: boolean;
   readonly consume?: boolean;
-  readonly comboField?: string;
   readonly duration?: number;
   readonly displayName?: string;
   readonly energyCost?: number;
@@ -80,8 +79,7 @@ export interface RevenantCanonicalBuild extends Gw2CanonicalBuild {
   initialEnergy: number;
 }
 
-export interface RevenantApplicationBuild
-  extends ProfessionApplicationBuild {
+export interface RevenantApplicationBuild extends ProfessionApplicationBuild {
   initialEnergy: number;
   selectedLegends: string[];
   startingLegend: string;
@@ -185,8 +183,7 @@ export interface ConduitState {
 }
 
 export interface RevenantState
-  extends
-    RevenantCoreState,
+  extends RevenantCoreState,
     HeraldState,
     RenegadeState,
     VindicatorState,
@@ -202,21 +199,20 @@ export interface RevenantRuntimeState {
     | { kind: "Conduit"; state: ConduitState };
 }
 
-export type RevenantSchedulerContext = SchedulerContext<RevenantRuntimeState> & {
-  readonly catalog: CanonicalCatalog<RevenantSkill>;
-  readonly config: RevenantConfig;
-  readonly schedulerPolicy: SchedulerContext<
-    RevenantRuntimeState
-  >["schedulerPolicy"] & {
-    readonly combatBeganAt?: () => number | null;
-    readonly critical?: (
-      context: RevenantSchedulerContext,
-      event: SimulationEvent,
-    ) => { readonly chance?: number };
-    readonly isCombatActive?: () => boolean;
-    readonly requireCriticalFacts?: () => void;
+export type RevenantSchedulerContext =
+  SchedulerContext<RevenantRuntimeState> & {
+    readonly catalog: CanonicalCatalog<RevenantSkill>;
+    readonly config: RevenantConfig;
+    readonly schedulerPolicy: SchedulerContext<RevenantRuntimeState>["schedulerPolicy"] & {
+      readonly combatBeganAt?: () => number | null;
+      readonly critical?: (
+        context: RevenantSchedulerContext,
+        event: SimulationEvent,
+      ) => { readonly chance?: number };
+      readonly isCombatActive?: () => boolean;
+      readonly requireCriticalFacts?: () => void;
+    };
   };
-};
 
 export type RevenantCastContext = CastLifecycleContext<RevenantRuntimeState> & {
   readonly catalog: CanonicalCatalog<RevenantSkill>;
@@ -244,11 +240,9 @@ export interface RevenantEnergyContext {
     | SchedulerState<RevenantRuntimeState>
     | (Partial<RevenantState> & { readonly time?: number })
     | {
-      readonly time?: number;
-      readonly profession?:
-        | Partial<RevenantState>
-        | RevenantRuntimeState;
-    };
+        readonly time?: number;
+        readonly profession?: Partial<RevenantState> | RevenantRuntimeState;
+      };
   readonly professionState?: Partial<RevenantState>;
   readonly start?: number;
   readonly time?: number;

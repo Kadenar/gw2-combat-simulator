@@ -46,6 +46,7 @@ interface CanonicalCatalogOptions {
   readonly weaponHands?:
     ReadonlyMap<string, string> | Readonly<Record<string, string>>;
   readonly skillNameCollision?: "first" | "last";
+  readonly skillNormalizer?: (skill: SkillFragment) => SkillFragment;
 }
 
 interface NormalizedAutoattackChains {
@@ -111,6 +112,8 @@ const EFFECT_FIELDS = new Set([
   "metadata",
   "eventType",
   "event",
+  "comboFields",
+  "comboFinishers",
 ]);
 const EFFECT_METADATA_FIELDS = new Set([
   "skillName",
@@ -665,6 +668,7 @@ export function createCanonicalCatalog({
   weapons = [],
   weaponHands = {},
   skillNameCollision = "first",
+  skillNormalizer,
 }: CanonicalCatalogOptions = {}): Readonly<CanonicalCatalog> {
   if (!["first", "last"].includes(skillNameCollision)) {
     throw new TypeError(
@@ -687,12 +691,15 @@ export function createCanonicalCatalog({
     ...extraSkills.map((skill) => skill.id),
   ]);
   const normalizedSkills: Skill[] = [...allIds].map((id) => {
-    const merged = {
+    const mergedSource = {
       ...(generatedById.get(id) || {}),
       ...(mechanics[id] || {}),
       ...(overrides[id] || {}),
       ...(extraSkills.find((candidate) => candidate.id === id) || {}),
     };
+    const merged = skillNormalizer
+      ? skillNormalizer(mergedSource)
+      : mergedSource;
     if (merged.activation != null || merged.castTime != null) {
       throw new TypeError(
         `Skill ${id} uses legacy cast timing; use castTimeMs.`,
