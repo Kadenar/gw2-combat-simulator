@@ -78,7 +78,7 @@ import {
   simulateMesmer,
 } from "../helpers/mesmer-simulation.js";
 
-test("target armor presets use base armor as the default", () => {
+test("target armor presets use base by default and allow custom values", () => {
   assert.equal(DEFAULT_TARGET_ARMOR, 2597);
   assert.deepEqual(TARGET_ARMOR_OPTIONS, [
     { value: 2597, label: "Base" },
@@ -90,7 +90,8 @@ test("target armor presets use base armor as the default", () => {
   ]);
   assert.equal(normalizeTargetArmor(1910), 1910);
   assert.equal(normalizeTargetArmor("2184"), 2184);
-  assert.equal(normalizeTargetArmor(1), DEFAULT_TARGET_ARMOR);
+  assert.equal(normalizeTargetArmor(3210), 3210);
+  assert.equal(normalizeTargetArmor("not armor"), DEFAULT_TARGET_ARMOR);
 });
 
 test("proc display groups only consecutive occurrences of the same proc", () => {

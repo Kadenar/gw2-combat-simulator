@@ -5,6 +5,7 @@ import {
   normalizeComboFinisherType,
   registerComboField,
   resolveComboAttempt,
+  selectComboFieldForFinisher,
 } from "../combo-events.js";
 import { materializeComboOutcome } from "../combo-definitions.js";
 import {
@@ -211,31 +212,19 @@ function descriptorBinding(
     return { binding: explicit, fieldAt: field?.at, warnOnUnbound: false };
   }
   const fields = activeOwnedFields(context, descriptor.ownerId, at);
-  const preferredTypes = Array.isArray(descriptor.preferredFieldTypes)
-    ? descriptor.preferredFieldTypes.map((fieldType) =>
-        normalizeComboFieldType(fieldType),
-      )
-    : [];
-  for (const preferredType of preferredTypes) {
-    const preferred = fields.find((field) => field.fieldType === preferredType);
-    if (preferred) {
-      return {
-        binding: { kind: "field-id", fieldId: preferred.fieldId },
-        fieldAt: preferred.at,
-        warnOnUnbound: false,
-      };
-    }
-  }
-  const ambiguous = new Set(fields.map((field) => field.fieldType)).size > 1;
-  if (ambiguous && descriptor.ambiguousFieldSelection !== "oldest") {
-    return { binding: { kind: "none" }, warnOnUnbound: true };
-  }
+  const { field, ambiguous } = selectComboFieldForFinisher(fields, {
+    preferredFieldTypes: descriptor.preferredFieldTypes as
+      | readonly ComboFieldType[]
+      | undefined,
+    ambiguousFieldSelection:
+      descriptor.ambiguousFieldSelection === "oldest" ? "oldest" : "none",
+  });
   return {
-    binding: fields.length
-      ? { kind: "field-id", fieldId: fields[0].fieldId }
+    binding: field
+      ? { kind: "field-id", fieldId: field.fieldId }
       : { kind: "none" },
-    fieldAt: fields[0]?.at,
-    warnOnUnbound: false,
+    fieldAt: field?.at,
+    warnOnUnbound: ambiguous && !field,
   };
 }
 

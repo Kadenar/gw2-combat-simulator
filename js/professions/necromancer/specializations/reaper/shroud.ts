@@ -35,6 +35,7 @@ export function ensurePermanentIceFieldAssumption(
     expiresAt: ASSUMED_FIELD_EXPIRES_AT,
     ownerId: "necromancer",
     ownerActorType: "player",
+    comboBindingPriority: 1,
   });
 }
 
@@ -73,6 +74,7 @@ export function resolveSummonOwnedComboFinisher(
       chance: Number(descriptor.chance ?? 1),
       applications: Number(descriptor.applications ?? 1),
       successfulCombos: Number(descriptor.successfulCombos ?? 1),
+      preferredFieldTypes: descriptor.preferredFieldTypes,
       ambiguousFieldSelection:
         descriptor.ambiguousFieldSelection === "oldest" ? "oldest" : "none",
     });

@@ -83,6 +83,11 @@ function requiredSelect(id: string): HTMLSelectElement {
 export function renderAssumptions(app: ProfessionAppState): void {
   const a = app.build.assumptions as ProfessionBuildAssumptions;
   const targetArmorValue = normalizeTargetArmor(app.build.targetArmor);
+  const targetArmorPreset = TARGET_ARMOR_OPTIONS.some(
+    (option) => option.value === targetArmorValue,
+  )
+    ? String(targetArmorValue)
+    : "custom";
   app.build.targetArmor = targetArmorValue;
   const container = document.getElementById("perma-boons");
   if (!container) throw new Error("Required assumptions panel is missing.");
@@ -256,15 +261,17 @@ export function renderAssumptions(app: ProfessionAppState): void {
               `
                 <label class="boon-control">Target HP <input id="target-hp" type="number" min="0" step="100000" value="${Number(app.build.targetHealth)}"></label>
                 <label class="boon-control">Target armor
-                    <select class="gear-select" id="target-armor">
+                    <select class="gear-select" id="target-armor-preset">
                         ${TARGET_ARMOR_OPTIONS.map(({ value, label }) =>
                           option(
                             String(value),
-                            String(targetArmorValue),
+                            targetArmorPreset,
                             `${label} (${value})`,
                           ),
                         ).join("")}
+                        ${option("custom", targetArmorPreset, "Custom…")}
                     </select>
+                    <input id="target-armor" type="number" min="1" value="${targetArmorValue}" aria-label="Custom target armor"${targetArmorPreset === "custom" ? "" : " hidden"}>
                 </label>
                 <label class="boon-control">Skill activations/s <input id="target-skill-activations" type="number" min="0" max="10" step="0.1" value="${a.targetSkillActivationsPerSecond}"></label>
                 <label class="boon-control"><input id="target-moving" type="checkbox"${a.targetMoving ? " checked" : ""}> Moving</label>
@@ -435,7 +442,19 @@ export function renderAssumptions(app: ProfessionAppState): void {
     targetHealth.value = String(app.build.targetHealth);
     app.changed();
   });
-  const targetArmor = requiredSelect("target-armor");
+  const targetArmorPresetSelect = requiredSelect("target-armor-preset");
+  const targetArmor = requiredInput("target-armor");
+  targetArmorPresetSelect.addEventListener("change", () => {
+    const customSelected = targetArmorPresetSelect.value === "custom";
+    targetArmor.hidden = !customSelected;
+    if (customSelected) {
+      targetArmor.focus();
+      return;
+    }
+    app.build.targetArmor = normalizeTargetArmor(targetArmorPresetSelect.value);
+    targetArmor.value = String(app.build.targetArmor);
+    app.changed();
+  });
   targetArmor.addEventListener("change", () => {
     app.build.targetArmor = normalizeTargetArmor(targetArmor.value);
     targetArmor.value = String(app.build.targetArmor);

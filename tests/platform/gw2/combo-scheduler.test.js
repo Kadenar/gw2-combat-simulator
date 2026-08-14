@@ -130,6 +130,68 @@ test("a later-authored owned field rebinds an already scheduled finisher", () =>
   );
 });
 
+test("an authoritative owned field overrides a finisher's field preference", () => {
+  const profession = fixtureProfession((context) => {
+    context.emit({
+      type: "combo_field",
+      at: 0,
+      source: "Dark Field",
+      sourceId: "dark.field",
+      actorType: "effect",
+      fieldId: "field:dark",
+      fieldType: "Dark",
+      expiresAt: 5,
+      ownerId: "combo-fixture",
+      ownerActorType: "player",
+    });
+    context.emit({
+      type: "combo_field",
+      at: 0,
+      source: "Authoritative Ice Field",
+      sourceId: "ice.field",
+      actorType: "effect",
+      fieldId: "field:authoritative-ice",
+      fieldType: "Ice",
+      expiresAt: 5,
+      ownerId: "combo-fixture",
+      ownerActorType: "player",
+      comboBindingPriority: 1,
+    });
+    context.emit({
+      type: "damage",
+      at: 1,
+      source: "Preferred Dark Projectile",
+      sourceId: "preferred-dark-projectile",
+      actorType: "player",
+      skillName: "Preferred Dark Projectile",
+      coefficient: 1,
+      comboFinishers: [
+        {
+          ownerId: "combo-fixture",
+          finisherType: "Projectile",
+          preferredFieldTypes: ["Dark"],
+          ambiguousFieldSelection: "oldest",
+        },
+      ],
+    });
+  });
+  const result = createScheduler({
+    profession,
+    schedulerPolicy: createGw2SchedulerPolicy(),
+  }).run([{ type: "wait", durationMs: 2000 }]);
+  const finisher = result.events.find(
+    (event) => event.type === "combo_finisher",
+  );
+  const combo = result.events.find((event) => event.type === "combo");
+
+  assert.deepEqual(finisher.fieldBinding, {
+    kind: "field-id",
+    fieldId: "field:authoritative-ice",
+  });
+  assert.equal(combo.fieldId, "field:authoritative-ice");
+  assert.equal(combo.fieldType, "Ice");
+});
+
 test("the scheduler predicts a delayed combo result for later facts", () => {
   const profession = fixtureProfession((context) => {
     context.emit({
