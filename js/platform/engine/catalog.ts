@@ -124,8 +124,6 @@ const EFFECT_METADATA_FIELDS = new Set([
   "breakbar",
   "bonusDefianceBreak",
   "damageKind",
-  "extendsResolutionHorizon",
-  "extendsProfessionTaskHorizon",
   "flatDamage",
   "flatStrikeBase",
   "flatStrikePowerCoeff",
@@ -748,6 +746,15 @@ export function createCanonicalCatalog({
     ) {
       throw new TypeError(`Skill ${id} has an invalid interruptCommitMs.`);
     }
+    const effects = Object.freeze((merged.effects || []).map(normalizeEffect));
+    if (
+      effects.some((effect) => effect.persistsAfterInterrupt === true) &&
+      interruptCommitMs == null
+    ) {
+      throw new TypeError(
+        `Skill ${id} retains future packets but has no interruptCommitMs.`,
+      );
+    }
     if (
       merged.retainsCastLockoutAfterInterrupt != null &&
       typeof merged.retainsCastLockoutAfterInterrupt !== "boolean"
@@ -781,7 +788,7 @@ export function createCanonicalCatalog({
     };
     return {
       ...baseSkill,
-      effects: Object.freeze((baseSkill.effects || []).map(normalizeEffect)),
+      effects,
       tags: Object.freeze([...(baseSkill.tags || [])]),
     } as Skill;
   });

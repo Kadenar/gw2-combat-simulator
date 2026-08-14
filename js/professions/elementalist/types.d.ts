@@ -40,6 +40,7 @@ export interface ElementalistBuild extends Gw2Build {
   evokerElement?: string;
   initialEvokerCharges?: number;
   initialEvokerEmpowered?: number;
+  pistolBullets?: Partial<Record<"Fire" | "Water" | "Air" | "Earth", boolean>>;
   selectedSkills?: readonly string[] | Record<string, string>;
 }
 
@@ -52,6 +53,7 @@ export interface ElementalistCanonicalBuild extends Gw2CanonicalBuild {
   evokerElement: string;
   initialEvokerCharges: number;
   initialEvokerEmpowered: number;
+  pistolBullets: Record<"Fire" | "Water" | "Air" | "Earth", boolean>;
 }
 
 export interface ElementalistApplicationBuild extends ProfessionApplicationBuild {
@@ -61,4 +63,5 @@ export interface ElementalistApplicationBuild extends ProfessionApplicationBuild
   evokerElement: string;
   initialEvokerCharges: number;
   initialEvokerEmpowered: number;
+  pistolBullets: Record<"Fire" | "Water" | "Air" | "Earth", boolean>;
 }

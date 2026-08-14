@@ -15,6 +15,27 @@ import {
 } from "../../core/state.js";
 import { weaverState } from "./state.js";
 
+const WEAVE_SELF_ACTIVATION_RATIO = 0.65;
+const WEAVE_SELF_ACTIVATION_TASK = "elementalist.weave-self-activation";
+
+function initialize(context: SchedulerContext<SchedulerRecord>): void {
+  const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  if (
+    core.primaryAttunement === core.secondaryAttunement &&
+    hasTrait(context as never, "Elements of Rage")
+  ) {
+    emitElementalistBuff(
+      context as never,
+      context.state.time,
+      "Elements of Rage",
+      1,
+      8,
+      "Starting Attunement",
+      "starting-attunement",
+    );
+  }
+}
+
 function availability(
   context: CastContext<SchedulerRecord>,
   skill: Skill,
@@ -57,6 +78,34 @@ function emitBuff(
   );
 }
 
+function onCastStart(
+  context: CastLifecycleContext<SchedulerRecord>,
+  skill: Skill,
+): void {
+  if (skill.name !== "Weave Self") return;
+  const at =
+    context.start +
+    (context.fullEnd - context.start) * WEAVE_SELF_ACTIVATION_RATIO;
+  if (at > context.effectiveEnd + context.epsilon) return;
+  context.tasks.schedule({
+    type: WEAVE_SELF_ACTIVATION_TASK,
+    at,
+    ownerId: context.reservationId,
+    payload: { sourceId: skill.id },
+  });
+}
+
+function modifyRechargeStart(
+  context: CastContext<SchedulerRecord> & SchedulerRecord,
+  rechargeStart: number,
+): number {
+  if (context.skill.name !== "Weave Self") return rechargeStart;
+  return (
+    context.start +
+    (rechargeStart - context.start) * WEAVE_SELF_ACTIVATION_RATIO
+  );
+}
+
 function onCastComplete(
   context: CastLifecycleContext<SchedulerRecord>,
   skill: Skill,
@@ -64,16 +113,7 @@ function onCastComplete(
   const state = weaverState.from(context);
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = context.effectiveEnd;
-  if (skill.name === "Weave Self") {
-    state.weaveSelfUntil = at + 20;
-    state.weaveSelfVisited = [core.primaryAttunement];
-    state.perfectWeaveUntil = 0;
-    if (core.primaryAttunement === "Fire") {
-      emitBuff(context, skill, "Weave Self Fire", 1, 20);
-    } else if (core.primaryAttunement === "Air") {
-      emitBuff(context, skill, "Weave Self Air", 1, 20);
-    }
-  } else if (skill.name === "Tailored Victory") {
+  if (skill.name === "Tailored Victory") {
     state.perfectWeaveUntil = 0;
   } else if (skill.name === "Unravel") {
     const previousPrimary = core.primaryAttunement;
@@ -137,6 +177,40 @@ function onCastComplete(
   }
 }
 
+function handleWeaveSelfActivation(
+  context: SchedulerContext<SchedulerRecord>,
+  task: ScheduledTask<SchedulerRecord>,
+): void {
+  const state = weaverState.from(context);
+  const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  const at = task.at;
+  const sourceId = String(task.payload?.sourceId || "weave-self");
+  state.weaveSelfUntil = at + 20;
+  state.weaveSelfVisited = [core.primaryAttunement];
+  state.perfectWeaveUntil = 0;
+  if (core.primaryAttunement === "Fire") {
+    emitElementalistBuff(
+      context as never,
+      at,
+      "Weave Self Fire",
+      1,
+      20,
+      "Weave Self",
+      sourceId,
+    );
+  } else if (core.primaryAttunement === "Air") {
+    emitElementalistBuff(
+      context as never,
+      at,
+      "Weave Self Air",
+      1,
+      20,
+      "Weave Self",
+      sourceId,
+    );
+  }
+}
+
 function afterCast(
   context: CastLifecycleContext<SchedulerRecord>,
   skill: Skill,
@@ -156,16 +230,21 @@ function afterCast(
   if (!skill.name.startsWith("Primordial Stance")) return;
   const tickTimes = new Set<number>();
   for (const event of context.events) {
-    if (
-      event.activationId === context.reservationId &&
-      event.type === "condition"
-    ) {
-      tickTimes.add(event.at);
+    if (event.activationId !== context.reservationId) continue;
+    if (event.type === "condition") {
+      if (event.at > context.effectiveEnd + context.epsilon) {
+        tickTimes.add(event.at);
+      }
       context.replaceEvent(event, {
         type: "marker",
         cancelled: true,
-        extendsProfessionTaskHorizon: true,
         detail: "replaced by dynamic Primordial Stance attunements",
+      });
+    } else if (event.type === "damage") {
+      context.replaceEvent(event, {
+        type: "marker",
+        cancelled: true,
+        detail: "replaced by chronological Primordial Stance pulses",
       });
     }
   }
@@ -184,7 +263,8 @@ function handlePrimordialStanceTick(
   task: ScheduledTask<SchedulerRecord>,
 ): void {
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
-  const sourceId = String(task.payload?.sourceId || "primordial-stance");
+  const sourceId = (task.payload?.sourceId ||
+    "primordial-stance") as Skill["id"];
   const attunements = core.secondaryAttunement
     ? [core.primaryAttunement, core.secondaryAttunement]
     : [core.primaryAttunement];
@@ -194,6 +274,18 @@ function handlePrimordialStanceTick(
     Air: ["Vulnerability", 8, 3],
     Earth: ["Bleeding", 2, 6],
   };
+  context.emit({
+    type: "damage",
+    at: task.at,
+    source: "elementalist",
+    sourceId,
+    actorType: "player",
+    skillName: "Primordial Stance",
+    skillId: sourceId,
+    coefficient: 0.33,
+    skillWeapon: "Unequipped",
+    damageKind: "field-tick",
+  });
   for (const attunement of attunements) {
     const [condition, stacks, duration] = effects[attunement];
     context.emit({
@@ -216,9 +308,20 @@ export const weaverCastRules = Object.freeze({
     order: 30,
     handler: availability,
   },
+  modifyRechargeStart,
 });
 
 export const weaverSchedulerHooks = Object.freeze({
+  initialize: {
+    id: "elementalist.weaver-initialize",
+    order: 30,
+    handler: initialize,
+  },
+  onCastStart: {
+    id: "elementalist.weaver-cast-start",
+    order: 30,
+    handler: onCastStart,
+  },
   afterCast: {
     id: "elementalist.weaver-after-cast",
     order: 30,
@@ -230,6 +333,7 @@ export const weaverSchedulerHooks = Object.freeze({
     handler: onCastComplete,
   },
   taskHandlers: Object.freeze({
+    [WEAVE_SELF_ACTIVATION_TASK]: handleWeaveSelfActivation,
     "elementalist.primordial-stance": handlePrimordialStanceTick,
   }),
 });

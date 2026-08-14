@@ -27,6 +27,30 @@ const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> =
     Earth: "#a7783f",
   });
 
+const PISTOL_BULLET_CONTROL_PREFIX = "elementalist-pistol-bullet:";
+const PISTOL_BULLETS = Object.freeze([
+  {
+    element: "Fire",
+    label: "Fire Bullet",
+    skillName: "Scorching Shot",
+  },
+  {
+    element: "Water",
+    label: "Ice Bullet",
+    skillName: "Soothing Splash",
+  },
+  {
+    element: "Air",
+    label: "Air Bullet",
+    skillName: "Electric Exposure",
+  },
+  {
+    element: "Earth",
+    label: "Earth Bullet",
+    skillName: "Piercing Pebble",
+  },
+] as const);
+
 let elementalistCatalog: Readonly<CanonicalCatalog>;
 
 function uiState(context: SchedulerRecord): Partial<ElementalistCoreState> {
@@ -43,6 +67,130 @@ function uiSpecialization(context: SchedulerRecord): string {
       (context.config as SchedulerRecord | undefined)?.specialization ||
       "Core",
   );
+}
+
+function pistolBulletRecord(value: unknown): SchedulerRecord | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as SchedulerRecord)
+    : null;
+}
+
+function configuredPistolBullets(context: SchedulerRecord): SchedulerRecord {
+  const build = context.build as SchedulerRecord | undefined;
+  return pistolBulletRecord(build?.pistolBullets) || {};
+}
+
+function displayedPistolBullets(context: SchedulerRecord): SchedulerRecord {
+  return (
+    pistolBulletRecord(uiState(context).pistolBullets) ||
+    configuredPistolBullets(context)
+  );
+}
+
+function elementalistPistolEquipped(context: SchedulerRecord): boolean {
+  const build = context.build as SchedulerRecord | undefined;
+  return Array.isArray(build?.weapons) && build.weapons.includes("Pistol");
+}
+
+function pistolBulletPaletteGroup(
+  context: SchedulerRecord,
+): ProfessionPaletteGroup | null {
+  if (!elementalistPistolEquipped(context)) return null;
+  const state = uiState(context);
+  const configured = configuredPistolBullets(context);
+  const live = pistolBulletRecord(state.pistolBullets);
+  const displayed = live || configured;
+  const activeAttunements = new Set(
+    [state.primaryAttunement, state.secondaryAttunement]
+      .filter(Boolean)
+      .map(String),
+  );
+  const primaryAttunement = String(
+    state.primaryAttunement ||
+      (context.build as SchedulerRecord | undefined)?.startAttunement ||
+      "Fire",
+  );
+  return {
+    id: "elementalist-pistol-bullets",
+    label: "Bullet",
+    skillIds: [],
+    color: "#ddbb88",
+    className: "elementalist-pistol-bullets",
+    placement: "active-weapon",
+    weaponRowLabel: primaryAttunement,
+    controls: PISTOL_BULLETS.map(({ element, label, skillName }) => {
+      const currentStocked = Boolean(displayed[element]);
+      const startsStocked = Boolean(configured[element]);
+      const offAttunement = Boolean(live) && !activeAttunements.has(element);
+      return {
+        id: `${PISTOL_BULLET_CONTROL_PREFIX}${element}`,
+        label,
+        icon: elementalistCatalog.skillsByName.get(skillName)?.icon,
+        title: `${label}: ${currentStocked ? "currently stocked" : "not currently stocked"}; starts ${startsStocked ? "stocked" : "not stocked"}. Click to toggle starting stock.`,
+        color: ATTUNEMENT_COLORS[element],
+        className: "pistol-bullet",
+        active: currentStocked,
+        pressed: startsStocked,
+        muted: offAttunement,
+        badge: startsStocked ? "S" : "",
+      };
+    }),
+  };
+}
+
+function paletteWeaponSkills(
+  context: SchedulerRecord,
+  skills: readonly Skill[],
+): Skill[] {
+  if (!elementalistPistolEquipped(context)) return [...skills];
+  const explosion =
+    skills.find((skill) => skill.name === "Elemental Explosion") ||
+    elementalistCatalog.skillsByName.get("Elemental Explosion");
+  const ordinarySkills = skills.filter(
+    (skill) => skill.name !== "Elemental Explosion",
+  );
+  if (
+    !explosion ||
+    !ELEMENTALIST_ATTUNEMENTS.every(
+      (element) => displayedPistolBullets(context)[element],
+    )
+  ) {
+    return ordinarySkills;
+  }
+  const state = uiState(context);
+  const primaryAttunement = String(
+    state.primaryAttunement ||
+      (context.build as SchedulerRecord | undefined)?.startAttunement ||
+      "Fire",
+  );
+  let replaced = false;
+  return ordinarySkills.map((skill) => {
+    const replacesActiveAutoattack =
+      !replaced &&
+      skill.weapon === "Pistol" &&
+      skill.slot === "Weapon_1" &&
+      String(skill.attunement || "") === primaryAttunement;
+    if (!replacesActiveAutoattack) return skill;
+    replaced = true;
+    return { ...explosion, attunement: skill.attunement };
+  });
+}
+
+function updatePaletteControl(
+  context: SchedulerRecord,
+  controlId: string,
+): boolean {
+  if (!controlId.startsWith(PISTOL_BULLET_CONTROL_PREFIX)) return false;
+  const element = controlId.slice(PISTOL_BULLET_CONTROL_PREFIX.length);
+  if (!ELEMENTALIST_ATTUNEMENTS.includes(element as ElementalistAttunement)) {
+    return false;
+  }
+  const build = context.build as SchedulerRecord | undefined;
+  if (!build) return false;
+  const configured = configuredPistolBullets(context);
+  build.pistolBullets = configured;
+  configured[element] = !Boolean(configured[element]);
+  return true;
 }
 
 function elementalistWeaponSkillMatchesSet(
@@ -114,6 +262,8 @@ function elementalistPaletteGroups(
       includeActionSkills: true,
     });
   }
+  const pistolBullets = pistolBulletPaletteGroup(context);
+  if (pistolBullets) groups.push(pistolBullets);
   return groups;
 }
 
@@ -132,16 +282,32 @@ function currentAttunement(
     : "Fire";
 }
 
+function configuredAttunement(
+  context: SchedulerRecord,
+  key: "startAttunement" | "secondaryAttunement",
+): ElementalistAttunement {
+  const build = context.build as SchedulerRecord | undefined;
+  const value = String(
+    build?.[key] ||
+      (key === "secondaryAttunement" ? build?.startAttunement : "") ||
+      "Fire",
+  );
+  return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement)
+    ? (value as ElementalistAttunement)
+    : "Fire";
+}
+
 function attunementStartControl(
   context: SchedulerRecord,
   key: "startAttunement" | "secondaryAttunement",
   label: string,
 ): ProfessionStartControl {
+  const value = configuredAttunement(context, key);
   return {
     id: `elementalist-${key}`,
     label,
     buildKey: key,
-    value: currentAttunement(context, key),
+    value,
     options: ELEMENTALIST_ATTUNEMENTS.map((attunement) => ({
       value: attunement,
       label: attunement,
@@ -150,7 +316,7 @@ function attunementStartControl(
       )?.icon,
       description: `${attunement} attunement`,
     })),
-    color: ATTUNEMENT_COLORS[currentAttunement(context, key)],
+    color: ATTUNEMENT_COLORS[value],
   };
 }
 
@@ -159,6 +325,18 @@ function paletteAvailability(
   skill: Skill,
 ): PaletteSkillAvailability {
   const state = uiState(context);
+  if (skill.name === "Elemental Explosion") {
+    const bullets = displayedPistolBullets(context);
+    const available = ELEMENTALIST_ATTUNEMENTS.every(
+      (element) => bullets[element],
+    );
+    if (!available) {
+      return {
+        available: false,
+        message: "Requires all four elemental bullets.",
+      };
+    }
+  }
   const primary = String(
     state.primaryAttunement ||
       (context.build as SchedulerRecord | undefined)?.startAttunement ||
@@ -206,17 +384,10 @@ function paletteAvailability(
         message: `Already attuned to ${target}.`,
       };
     }
-    const readyAt = Number(
-      state.attunementReadyAt?.[target as ElementalistAttunement] || 0,
-    );
-    const now = Number(context.time || 0);
-    return {
-      available: readyAt <= now,
-      message:
-        readyAt > now
-          ? `${target} attunement recharges in ${(readyAt - now).toFixed(1)}s.`
-          : "",
-    };
+    // Recharge is represented by the scheduler's normal cooldown projection.
+    // Keep the action contextually available so palette clicks can queue it;
+    // the scheduler will delay the swap until its retry time.
+    return { available: true, message: "" };
   }
   if (!attunement) {
     return { available: true, message: "" };
@@ -377,9 +548,27 @@ export const elementalistCoreUi: Partial<ProfessionUiContract> &
     },
   ],
   paletteGroups: elementalistPaletteGroups,
-  startControls: (context: SchedulerRecord) => [
-    attunementStartControl(context, "startAttunement", "Start attunement"),
-  ],
+  paletteWeaponSkills,
+  updatePaletteControl,
+  startControls: (context: SchedulerRecord) => {
+    const isWeaver = uiSpecialization(context) === "Weaver";
+    return [
+      attunementStartControl(
+        context,
+        "startAttunement",
+        isWeaver ? "Primary attunement" : "Start attunement",
+      ),
+      ...(isWeaver
+        ? [
+            attunementStartControl(
+              context,
+              "secondaryAttunement",
+              "Secondary attunement",
+            ),
+          ]
+        : []),
+    ];
+  },
   paletteSkillAvailability: paletteAvailability,
   rotationStateSnapshot,
   timelineWeaponLineTransition,

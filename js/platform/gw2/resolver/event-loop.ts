@@ -42,14 +42,14 @@ function targetHealth(ctx: Gw2ResolverRuntime): number {
 }
 
 /**
- * Events suppressed before an explicit Combat Start: outgoing damage/condition
- * output plus target vulnerability, which scales that output. Bookkeeping
- * events still process so state stays consistent across the gate.
+ * Events suppressed before an explicit Combat Start: outgoing damage ticks
+ * plus target vulnerability, which scales that output. Condition applications
+ * still process so their unexpired stacks can carry across the combat boundary;
+ * their precombat ticks remain gated.
  */
 function isCombatGatedEvent(event: Gw2ResolverEvent): boolean {
   return (
     event.type === "damage" ||
-    event.type === "condition" ||
     event.type === "condition_tick" ||
     event.type === "combo_finisher" ||
     event.comboId != null ||

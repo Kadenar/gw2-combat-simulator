@@ -37,7 +37,12 @@ const baseConfig = Object.freeze({
   boons: { quickness: true },
 });
 
-function simulate(specialization, rotation, config = {}) {
+function simulate(
+  specialization,
+  rotation,
+  config = {},
+  observationPolicy = undefined,
+) {
   return simulateGw2({
     profession: warriorProfession,
     rotation,
@@ -50,8 +55,11 @@ function simulate(specialization, rotation, config = {}) {
       boons: { ...baseConfig.boons, ...(config.boons || {}) },
     },
     mode: "sequence",
+    observationPolicy,
   });
 }
+
+const observationTail = (durationMs) => ({ kind: "tail", durationMs });
 
 function strike(skillId) {
   return warriorCatalog.skillsById
@@ -257,10 +265,15 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
     1,
   );
 
-  const boonlessWinds = simulate("Spellbreaker", [ID.WINDS_OF_DISENCHANTMENT], {
-    ...insightConfig,
-    target: { boonless: true },
-  });
+  const boonlessWinds = simulate(
+    "Spellbreaker",
+    [ID.WINDS_OF_DISENCHANTMENT],
+    {
+      ...insightConfig,
+      target: { boonless: true },
+    },
+    observationTail(5000),
+  );
   const windsRemovals = removals(boonlessWinds, ID.WINDS_OF_DISENCHANTMENT);
   assert.equal(windsRemovals.length, 5);
   assert.deepEqual(
@@ -273,10 +286,15 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
   );
   assert.equal(insightStacks(boonlessWinds), 0);
 
-  const boonfulWinds = simulate("Spellbreaker", [ID.WINDS_OF_DISENCHANTMENT], {
-    ...insightConfig,
-    target: { boonless: false },
-  });
+  const boonfulWinds = simulate(
+    "Spellbreaker",
+    [ID.WINDS_OF_DISENCHANTMENT],
+    {
+      ...insightConfig,
+      target: { boonless: false },
+    },
+    observationTail(5000),
+  );
   assert.equal(insightStacks(boonfulWinds), 5);
 
   const breakEnchantments = simulate("Spellbreaker", [ID.BREAK_ENCHANTMENTS], {

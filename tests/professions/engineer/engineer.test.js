@@ -58,7 +58,12 @@ const baseConfig = Object.freeze({
   },
 });
 
-function simulate(specialization, rotation, config = {}) {
+function simulate(
+  specialization,
+  rotation,
+  config = {},
+  observationPolicy = undefined,
+) {
   return simulateGw2({
     profession: engineerProfession,
     rotation,
@@ -69,8 +74,11 @@ function simulate(specialization, rotation, config = {}) {
       stats: { ...baseConfig.stats, ...(config.stats || {}) },
       target: { ...baseConfig.target, ...(config.target || {}) },
     },
+    observationPolicy,
   });
 }
+
+const observationTail = (durationMs) => ({ kind: "tail", durationMs });
 
 function mechanic(name) {
   return engineerCatalog.skillsByName.get(name);
@@ -3317,10 +3325,15 @@ test("Thorns damaging-field assumption creates six one-second retaliations", () 
     false,
   );
 
-  const active = simulate("Amalgam", ["Evolve", 77104], {
-    selectedMorphSkillIds,
-    professionAssumptions: { inDamagingField: true },
-  });
+  const active = simulate(
+    "Amalgam",
+    ["Evolve", 77104],
+    {
+      selectedMorphSkillIds,
+      professionAssumptions: { inDamagingField: true },
+    },
+    observationTail(6000),
+  );
   const retaliation = active.resolvedEvents.filter(
     (event) => event.type === "damage" && event.name === "Thorns Retaliation",
   );

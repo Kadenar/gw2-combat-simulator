@@ -287,6 +287,22 @@ sequence results keep time, cooldowns, ammo, and active weapon set under
 `endState`; profession mechanics are exposed only through
 `endState.profession`.
 
+Observation is caller-owned. `simulateGw2()` accepts `rotation`, `tail`, and
+absolute observation policies. The scheduler derives rotation end only from
+commands and cast-lane reservations, then drains finite profession tasks
+through the normalized observation end. The resolver applies target-death
+clipping and uses that one effective end for packets, conditions, reactions,
+and result filtering. Skill, effect, and event metadata cannot extend either
+boundary. Saved benchmark metadata cannot select a policy either; benchmark
+logs and metrics are comparison targets, and benchmark tooling uses the default
+rotation boundary.
+
+`persistsAfterInterrupt` controls packet cancellation only. Any skill whose
+future packets can survive interruption declares `interruptCommitMs`
+explicitly; zero means immediate commitment. Persistent actors use typed tasks
+with an explicit active-generation, lifetime, or stop condition, and recurring
+handlers schedule only the next bounded unit of work.
+
 Scheduler snapshots and public profession state are separate contracts.
 Snapshots may contain task progress, deterministic-choice indices, internal
 cooldowns, and resolver bookkeeping. `resources.projectEndState` constructs a

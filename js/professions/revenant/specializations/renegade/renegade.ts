@@ -221,7 +221,6 @@ export function castOrdersFromAbove(
   for (let index = 0; index < pulses; index += 1) {
     emitRevenantBoon(context, skill, "alacrity", duration, 1, {
       at: context.effectiveEnd + index * profile.interval,
-      extendsResolutionHorizon: index === pulses - 1,
     });
   }
 }
@@ -349,9 +348,6 @@ export function observeBandTogetherEffect(
     context.replaceEvent(event, {
       recipients:
         event.duration === profile.casterStabilityDuration ? "self" : "allies",
-      ...(event.duration === profile.alliedStabilityDuration
-        ? { extendsResolutionHorizon: true }
-        : {}),
     });
   }
   if (state.enhanced && event.type === "control") {
@@ -406,9 +402,6 @@ function grantRazorclawsRage(
       actorType: "player",
       name: `Razorclaw's Rage — Ally ${proc.allyIndex} Bleeding`,
       triggeredByAlly: proc.allyIndex,
-      ...(index === alliedProcs.length - 1
-        ? { extendsResolutionHorizon: true }
-        : {}),
     });
   }
 }

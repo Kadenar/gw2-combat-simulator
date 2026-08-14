@@ -115,8 +115,7 @@ export const elementalistApp = defineProfessionApp({
         evokerElement: build(app).evokerElement,
         initialEvokerCharges: build(app).initialEvokerCharges,
         initialEvokerEmpowered: build(app).initialEvokerEmpowered,
-        startingAttunementPreDwelled:
-          assumptions(app).startingAttunementPreDwelled !== false,
+        pistolBullets: build(app).pistolBullets,
         elementalSimulationProfile: String(
           assumptions(app).elementalSimulationProfile || "evtc",
         ),

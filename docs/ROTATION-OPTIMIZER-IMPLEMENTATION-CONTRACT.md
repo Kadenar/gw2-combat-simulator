@@ -383,67 +383,67 @@ last exact incumbent is always valid.
 
 Deliverables:
 
-- [ ] Add a shared fixed-window normalization helper.
-- [ ] Add exact incumbent scoring before the search loop.
-- [ ] Add an evaluation-count budget alongside the wall-clock fallback.
-- [ ] Add optimizer diagnostics for baseline, incumbent, projected evaluations,
+- [x] Add a shared fixed-window normalization helper.
+- [x] Add exact incumbent scoring before the search loop.
+- [x] Add an evaluation-count budget alongside the wall-clock fallback.
+- [x] Add optimizer diagnostics for baseline, incumbent, projected evaluations,
       exact evaluations, frontier size, and stop reason.
-- [ ] Add a corpus runner covering saved native-profession builds and rotations.
-- [ ] Record per-build baseline DPS, result DPS, improvement, invalid actions,
+- [x] Add a corpus runner covering saved native-profession builds and rotations.
+- [x] Record per-build baseline DPS, result DPS, improvement, invalid actions,
       evaluated states, and elapsed wall time.
 
 Required tests:
 
-- [ ] A longer incumbent is cropped and padded to the requested horizon.
-- [ ] A shorter incumbent is padded to the requested horizon.
-- [ ] Precasts and `Combat Start` remain unchanged.
-- [ ] Baseline and result use the same normalization helper.
-- [ ] A timeout returns an exactly scored incumbent.
-- [ ] An evaluation budget produces deterministic results.
+- [x] A longer incumbent is cropped and padded to the requested horizon.
+- [x] A shorter incumbent is padded to the requested horizon.
+- [x] Precasts and `Combat Start` remain unchanged.
+- [x] Baseline and result use the same normalization helper.
+- [x] A timeout returns an exactly scored incumbent.
+- [x] An evaluation budget produces deterministic results.
 
 Phase 0 gate:
 
-- [ ] The corpus runner completes for every native profession without a worker
+- [x] The corpus runner completes for every native profession without a worker
       or import failure.
-- [ ] Existing applied-result DPS parity remains exact.
-- [ ] No search-quality change is required yet, but baseline metrics are
+- [x] Existing applied-result DPS parity remains exact.
+- [x] No search-quality change is required yet, but baseline metrics are
       captured for comparison.
 
 ### Phase 1: Correct the existing search
 
 Deliverables:
 
-- [ ] Pass the current combat rotation as an incumbent.
-- [ ] Guarantee that the returned exact score is not below baseline.
-- [ ] Remove the width-`1` long-window collapse.
-- [ ] Raise and configure the diverse frontier width under an evaluation budget.
-- [ ] Add legal hold branches at simulator-derived readiness boundaries.
-- [ ] Replace prefix-DPS ordering with rollout-based projected scoring.
-- [ ] Add offensive-relevance filtering for zero-damage actions.
-- [ ] Add state-diversity reservations.
-- [ ] Report baseline delta and whether an improvement was found.
+- [x] Pass the current combat rotation as an incumbent.
+- [x] Guarantee that the returned exact score is not below baseline.
+- [x] Remove the width-`1` long-window collapse.
+- [x] Raise and configure the diverse frontier width under an evaluation budget.
+- [x] Add legal hold branches at simulator-derived readiness boundaries.
+- [x] Replace prefix-DPS ordering with rollout-based projected scoring.
+- [x] Add offensive-relevance filtering for zero-damage actions.
+- [x] Add state-diversity reservations.
+- [x] Report baseline delta and whether an improvement was found.
 
 Required fixture behaviors:
 
-- [ ] Delayed condition damage survives early pruning.
-- [ ] A delayed strike or summon packet survives early pruning.
-- [ ] A resource builder survives when it enables the best spender.
-- [ ] A short hold beats immediate filler when it aligns a stronger cooldown.
-- [ ] A weapon swap survives when the alternate set improves the horizon result.
-- [ ] A useful zero-damage offensive enabler survives.
-- [ ] Dodge, heal, block, and an untriggerable counter are excluded when they do
+- [x] Delayed condition damage survives early pruning.
+- [x] A delayed strike or summon packet survives early pruning.
+- [x] A resource builder survives when it enables the best spender.
+- [x] A short hold beats immediate filler when it aligns a stronger cooldown.
+- [x] A weapon swap survives when the alternate set improves the horizon result.
+- [x] A useful zero-damage offensive enabler survives.
+- [x] Dodge, heal, block, and an untriggerable counter are excluded when they do
       not increase golem damage.
-- [ ] The loaded incumbent is returned unchanged when search finds no exact
+- [x] The loaded incumbent is returned unchanged when search finds no exact
       improvement.
 
 Phase 1 gate:
 
-- [ ] No corpus result is worse than its normalized incumbent.
-- [ ] Every corpus result replays with zero invalid casts.
-- [ ] Every reported score matches normal-simulator replay.
-- [ ] Power and condition builds both show that delayed value can survive the
+- [x] No corpus result is worse than its normalized incumbent.
+- [x] Every corpus result replays with zero invalid casts.
+- [x] Every reported score matches normal-simulator replay.
+- [x] Power and condition builds both show that delayed value can survive the
       frontier.
-- [ ] Power Spellbreaker uses legal weapon bursts and contains no Full Counter
+- [x] Power Spellbreaker uses legal weapon bursts and contains no Full Counter
       on the inactive golem.
 
 ### Phase 2: Incremental simulation and caching
@@ -625,3 +625,29 @@ Append one record per implementation phase. Do not overwrite earlier evidence.
 - Validation result: PASS / FAIL
 - Remaining blockers: None / `<list>`
 ```
+
+### Phase 0 — 2026-08-14
+
+- Implementation revision: `5c15dba3 + working tree`
+- Implementing agent: `Codex /root`
+- Validating agent: `Codex /root (self-validation)`
+- Contract deviations: None
+- Focused tests: `npm run build:modules; node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none tests/rotation-optimizer/rotation-optimizer.test.js` — 19 passed, 0 failed
+- Full check: `npm run check` — PASS (sandbox retry required for Vite child-process spawn)
+- Corpus summary: 94 builds, 0 regressions, 0 invalid casts, 0 replay mismatches, 0 errors
+- Performance summary: 3-evaluation baseline budget, 34.4 seconds total corpus wall time, 3 exact and 0 projected evaluations per build
+- Validation result: PASS
+- Remaining blockers: None for Phase 0
+
+### Phase 1 — 2026-08-14
+
+- Implementation revision: `5c15dba3 + working tree`
+- Implementing agent: `Codex /root`
+- Validating agent: `Codex /root (self-validation)`
+- Contract deviations: None
+- Focused tests: `npm run build:modules; node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none tests/rotation-optimizer/rotation-optimizer.test.js` — 19 passed, 0 failed
+- Full check: `npm run check` — PASS; `git diff --check` — PASS
+- Corpus summary: 94 builds at a 30-evaluation search budget, 0 regressions, 0 invalid casts, 0 replay mismatches, 0 errors
+- Performance summary: 30-evaluation budget, 55.8 seconds total corpus wall time; each search retained a 3-evaluation exact-finalist reserve
+- Validation result: PASS
+- Remaining blockers: Phase 2 continuation-state API is not implemented. The broader Warrior test run had 2 pre-existing failures in Winds pulse observation and Flow timing; the optimizer-focused Spellbreaker checks passed.

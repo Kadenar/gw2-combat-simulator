@@ -2,10 +2,7 @@ import type {
   SchedulerRecord,
   SkillId,
 } from "../../../platform/engine/types.js";
-import type {
-  RevenantSchedulerContext,
-  RevenantSkill,
-} from "../types.js";
+import type { RevenantSchedulerContext, RevenantSkill } from "../types.js";
 
 type RevenantBoonContext = RevenantSchedulerContext & {
   readonly effectiveEnd?: number;
@@ -16,10 +13,9 @@ interface RevenantBoonOptions extends SchedulerRecord {
   readonly sourceId?: SkillId;
   readonly name?: string;
   readonly recipients?: string;
-  readonly extendsResolutionHorizon?: boolean;
 }
 
-/** Emits a profession-owned boon with optional recipient/horizon metadata. */
+/** Emits a profession-owned boon with optional recipient metadata. */
 export function emitRevenantBoon(
   context: RevenantBoonContext,
   skill: RevenantSkill,
@@ -41,8 +37,5 @@ export function emitRevenantBoon(
     duration,
     stacks,
     ...(options.recipients ? { recipients: options.recipients } : {}),
-    ...(options.extendsResolutionHorizon
-      ? { extendsResolutionHorizon: true }
-      : {}),
   });
 }

@@ -412,6 +412,9 @@ export function modifyElementalistAttributes(
     if (active.has("Air")) {
       modified.ferocity = Number(modified.ferocity || 0) + 200;
     }
+    if (active.has("Earth")) {
+      modified.conditionDamage = Number(modified.conditionDamage || 0) + 200;
+    }
   }
   if (
     hasTrait(context, "Fresh Air") &&

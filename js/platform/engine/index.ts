@@ -7,6 +7,7 @@ export * from "./events.js";
 export * from "./effect-factories.js";
 export * from "./effect-materializer.js";
 export * from "./handler-registry.js";
+export * from "./observation-policy.js";
 export * from "./profession.js";
 export * from "./prepare-config.js";
 export * from "./resolver.js";

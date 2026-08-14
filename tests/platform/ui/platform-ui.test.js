@@ -17,6 +17,7 @@ import {
   mountEventLog,
 } from "../../../js/platform/ui/event-log.js";
 import {
+  bindPaletteInteractions,
   paletteGroupHtml,
   paletteSkillHtml,
   virtualPaletteSkillHtml,
@@ -926,12 +927,57 @@ test("palette primitives escape values and render state, ammo, cooldowns, and gr
   );
   assert.match(
     paletteGroupHtml({
+      id: "resource-controls",
+      label: "Resource",
+      controls: [
+        {
+          id: 'resource"><bad>',
+          label: "Resource control",
+          icon: "resource.png",
+          color: "#abc",
+          className: "resource-control",
+          active: true,
+          pressed: true,
+          muted: true,
+          badge: "S",
+        },
+      ],
+    }),
+    /data-palette-group="resource-controls"[\s\S]*class="pal-control resource-control pal-control-active pal-control-pressed pal-control-muted"[\s\S]*data-palette-control-id="resource&quot;&gt;&lt;bad&gt;"[\s\S]*class="pal-control-badge"/,
+  );
+  assert.match(
+    paletteGroupHtml({
       label: "Reserved",
       className: "pal-group-concealed",
       skills: [virtualView],
     }),
     /pal-group pal-group-concealed/,
   );
+});
+
+test("palette controls delegate neutral control identities", () => {
+  const control = {
+    dataset: { paletteControlId: "profession-resource:one" },
+    onclick: null,
+  };
+  let activated = "";
+  bindPaletteInteractions(
+    {
+      querySelectorAll(selector) {
+        return selector === ".pal-control[data-palette-control-id]"
+          ? [control]
+          : [];
+      },
+    },
+    {
+      onControlActivate(id) {
+        activated = id;
+      },
+    },
+  );
+
+  control.onclick({});
+  assert.equal(activated, "profession-resource:one");
 });
 
 test("timeline canonical entries update, simplify, insert, and reject invalid moves", () => {

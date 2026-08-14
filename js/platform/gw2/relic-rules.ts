@@ -537,13 +537,15 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> =
         if (
           application?.condition !== "Bleeding" ||
           !isInternalCooldownReady(application.at, state.readyAt) ||
-          activeConditionStackCount(ctx, "Bleeding", application.at) < 6
+          activeConditionStackCount(ctx, "Bleeding", application.at) -
+            Number(application.stacks || 0) <
+            6
         ) {
           return;
         }
 
-        // The triggering bleed is already in conditionState, so reaching six
-        // stacks on this application is sufficient.
+        // The triggering bleed is already in conditionState. Fractal requires
+        // six stacks to exist before that application lands.
         state.readyAt = application.at + 20;
         ctx.recordProc(
           "relic",

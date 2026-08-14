@@ -8,6 +8,7 @@ import { FOOD_DATA } from "../../platform/gw2/gear-data.js";
 import { SIMULATION_RANDOMNESS_MODES } from "../../platform/engine/simulation-random.js";
 import { simulateGw2 } from "../../platform/gw2/simulate.js";
 import type { CatalogEntity, Skill } from "../../platform/engine/types.js";
+import type { ObservationPolicy } from "../../platform/engine/types.js";
 import type {
   Gw2Config,
   Gw2ProfessionContract,
@@ -60,11 +61,13 @@ export function createProfessionRuntime({
   const simulateBuild = (
     rotation: readonly unknown[],
     config: Gw2Config,
+    observationPolicy?: ObservationPolicy,
   ): Gw2SimulationResult =>
     simulateGw2({
       profession: profession as unknown as Gw2ProfessionContract,
       rotation,
       config,
+      observationPolicy,
     });
 
   const eliteNames = new Set(

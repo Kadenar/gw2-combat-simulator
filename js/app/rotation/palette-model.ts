@@ -1,5 +1,4 @@
 import type {
-  LegacyRotationItem,
   ProfessionPaletteGroup,
   SchedulerRecord,
   Skill,
@@ -17,10 +16,6 @@ import {
   paletteEndState,
   paletteProfessionState,
 } from "./context.js";
-import { VINDICATOR_DODGE_AUTO_ICON } from "./icons.js";
-import { insertRotationItems } from "./actions.js";
-
-export const VINDICATOR_DODGE_AUTO_ACTION = "__vindicator_dodge_auto";
 
 const PALETTE_ACTION_ORDER = new Map<string, number>([
   ["Dodge", 0],
@@ -208,58 +203,12 @@ export function currentAutoattackSkill(app: ProfessionAppState): Skill | null {
   );
 }
 
-export function vindicatorDodgeAutoRotationEntries(
-  app: ProfessionAppState,
-  offsetMs = 0,
-): LegacyRotationItem[] {
-  const autoattack = currentAutoattackSkill(app);
-  if (!autoattack) return [];
-  return [
-    {
-      name: autoattack.name,
-      skillId: autoattack.id,
-    },
-    {
-      name: "Dodge",
-      skillId: app.skillByName.get("Dodge")?.id,
-      offset: Math.max(0, Math.round(Number(offsetMs) || 0)),
-    },
-  ];
-}
-
-export function appendVindicatorDodgeAuto(
-  app: ProfessionAppState,
-  offsetMs = 0,
-): boolean {
-  const entries = vindicatorDodgeAutoRotationEntries(app, offsetMs);
-  return insertRotationItems(app, entries);
-}
-
-export function vindicatorDodgeAutoPaletteSkill(
-  app: ProfessionAppState,
-  specialization: string,
-): Skill | null {
-  if (specialization !== "Vindicator" || !currentAutoattackSkill(app)) {
-    return null;
-  }
-  return {
-    id: VINDICATOR_DODGE_AUTO_ACTION,
-    name: VINDICATOR_DODGE_AUTO_ACTION,
-    displayName: "Dodge + Auto",
-    description:
-      "Cast the current auto-chain step and one Dodge at the same time.",
-    icon: VINDICATOR_DODGE_AUTO_ICON,
-    type: "Action",
-    slot: "Action",
-    castTimeMs: 0,
-  };
-}
-
 export function paletteActionSkills(
   app: ProfessionAppState,
   specialization = activeSpecialization(app),
 ): Skill[] {
-  return uniqueByName(
+  const professionState = paletteProfessionState(app);
+  const actions = uniqueByName(
     app.skills.filter(
       (skill) =>
         skill.type === "Action" &&
@@ -268,7 +217,6 @@ export function paletteActionSkills(
         // skills and require an explicit opt-in before entering the palette.
         ((Number(skill.id) < 0 && skill.paletteAction !== false) ||
           skill.paletteAction === true) &&
-        skill.name !== "Continuum Shift" &&
         (skill.name !== "Swap Weapons" ||
           app.profession.ui?.weaponSwapChangesSet === false ||
           Boolean(app.build.alternateWeapons?.[0])) &&
@@ -276,7 +224,7 @@ export function paletteActionSkills(
         app.adapter.isSkillAvailable(skill, {
           build: app.build,
           specialization,
-          professionState: paletteProfessionState(app),
+          professionState,
         }),
     ),
   ).sort(
@@ -285,6 +233,24 @@ export function paletteActionSkills(
         (PALETTE_ACTION_ORDER.get(right.name) ?? Number.MAX_SAFE_INTEGER) ||
       left.name.localeCompare(right.name),
   );
+  const endState = paletteEndState(app);
+  const projectActions = app.profession.ui?.paletteActionSkills;
+  return typeof projectActions === "function"
+    ? projectActions(
+        {
+          specialization,
+          catalog: app.profession.catalog,
+          professionState,
+          cooldowns: endState?.cooldowns || {},
+          activeWeaponSet:
+            endState?.activeWeaponSet || app.build.startingWeaponSet || 1,
+          time: Number(endState?.time || 0) / 1000,
+          build: app.build,
+          activeAutoattack: currentAutoattackSkill(app),
+        },
+        actions,
+      )
+    : actions;
 }
 
 export function rotationPaletteGroups(

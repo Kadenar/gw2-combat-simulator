@@ -31,7 +31,6 @@ interface UpkeepDamageOptions {
   readonly name?: string;
   readonly hitIndex?: number;
   readonly totalHits?: number;
-  readonly extendsResolutionHorizon?: boolean;
 }
 
 interface UpkeepTaskPayload extends SchedulerRecord {
@@ -59,9 +58,6 @@ export function emitDamage(
     hitIndex: options.hitIndex || 1,
     totalHits: options.totalHits || 1,
     skillWeapon: "Unequipped",
-    ...(options.extendsResolutionHorizon
-      ? { extendsResolutionHorizon: true }
-      : {}),
   });
 }
 
@@ -145,9 +141,8 @@ export function toggleRevenantUpkeep(
   if (index >= 0) {
     state.activeUpkeeps.splice(index, 1);
     const consumeId = facetConsumeId(skill, state);
-    const consume = consumeId == null
-      ? undefined
-      : context.catalog.skillsById.get(consumeId);
+    const consume =
+      consumeId == null ? undefined : context.catalog.skillsById.get(consumeId);
     if (consume) delete state.availableFlips[consume.id];
     context.tasks.cancelOwner(`revenant.upkeep:${skill.id}`);
     emitRevenantState(context, at, "upkeep-disabled");
@@ -162,9 +157,8 @@ export function toggleRevenantUpkeep(
   };
   state.activeUpkeeps.push(active);
   const consumeId = facetConsumeId(skill, state);
-  const consume = consumeId == null
-    ? undefined
-    : context.catalog.skillsById.get(consumeId);
+  const consume =
+    consumeId == null ? undefined : context.catalog.skillsById.get(consumeId);
   if (consume) state.availableFlips[consume.id] = true;
   const release =
     skill.flipSkillId == null
@@ -181,9 +175,10 @@ export function toggleRevenantUpkeep(
   }
   context.tasks.schedule({
     type: "revenant.upkeep-pulse",
-    at: skill.id === ID.EMBRACE_THE_DARKNESS
-      ? Math.floor(at + context.epsilon) + 1
-      : at + upkeepPulseInterval(skill),
+    at:
+      skill.id === ID.EMBRACE_THE_DARKNESS
+        ? Math.floor(at + context.epsilon) + 1
+        : at + upkeepPulseInterval(skill),
     ownerId: `revenant.upkeep:${skill.id}`,
     payload: { skillId: skill.id },
   });
@@ -248,7 +243,6 @@ export function castInspiringReinforcement(
       {
         at: at + profile.firstPulseDelay + index * profile.pulseInterval,
         name: `Inspiring Reinforcement — Stability ${index + 1}`,
-        extendsResolutionHorizon: index === profile.pulses - 1,
       },
     );
   }
