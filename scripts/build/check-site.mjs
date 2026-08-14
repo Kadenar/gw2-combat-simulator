@@ -6,7 +6,6 @@ const siteRoot = path.resolve("dist", "site");
 const pages = [
   "index.html",
   "elementalist.html",
-  "elementalist-legacy.html",
   "engineer.html",
   "guardian.html",
   "mesmer.html",
@@ -19,15 +18,6 @@ const pages = [
 const runtimeAssets = [
   path.join("Builds", "elementalist", "manifest.json"),
   path.join("Rotations", "elementalist", "r-power-tempest-sword.json"),
-  path.join(
-    "js",
-    "professions",
-    "elementalist",
-    "legacy",
-    "data",
-    "csv",
-    "Tool_Elementalist - Skills_data.csv",
-  ),
 ];
 const sourceAssetPattern = /(?:src|href)=["'](?:\.\/)?(?:css|js)\//;
 

@@ -258,26 +258,64 @@ export function engineerFSkillBarGroups(
   skillIds: readonly (SkillId | null)[],
   optionsBySlot: Readonly<Record<number, EngineerFSkillBarOptions>> = {},
 ): ProfessionSkillBarGroup[] {
-  return skillIds.flatMap((skillId, index) => {
-    if (skillId == null) return [];
-    const slot = index + 1;
-    const options = optionsBySlot[slot] || {};
+  const populated = skillIds.flatMap((skillId, index) =>
+    skillId == null ? [] : [{ skillId, index, slot: index + 1 }],
+  );
+  if (!populated.length) return [];
+  const configurable = populated.filter(({ slot }) => {
+    const options = optionsBySlot[slot];
+    return Boolean(
+      options?.optionSkillIds?.length &&
+      options.selectionKey &&
+      Number.isInteger(Number(options.selectionIndex)),
+    );
+  });
+  const color =
+    configurable.map(({ slot }) => optionsBySlot[slot]?.color).find(Boolean) ||
+    "#b88a35";
+  if (!configurable.length) {
     return [
       {
-        id: `engineer-skill-bar-f${slot}`,
-        label: options.label || `F${slot}`,
-        skillIds: [skillId],
-        ...(options.optionSkillIds?.length
-          ? {
-              optionSkillIds: [...options.optionSkillIds],
-              selectionKey: options.selectionKey,
-              selectionIndex: options.selectionIndex,
-            }
-          : {}),
-        color: options.color || "#b88a35",
+        id: "engineer-skill-bar-f-skills",
+        label: "F Skills",
+        skillIds: populated.map(({ skillId }) => skillId),
+        color,
       },
     ];
-  });
+  }
+  const configurableIndexes = new Set(configurable.map(({ index }) => index));
+  const fixedSkillIds = populated
+    .filter(({ index }) => !configurableIndexes.has(index))
+    .map(({ skillId }) => skillId);
+  return [
+    {
+      id: "engineer-skill-bar-f-skills",
+      label: "F Skills",
+      skillIds: fixedSkillIds,
+      color: "#b88a35",
+    },
+    {
+      id: "engineer-skill-bar-protocols",
+      label: "Protocols",
+      skillIds: [],
+      color,
+      className: "engineer-amalgam-protocols",
+      selections: configurable.map(({ skillId, slot }) => {
+        const options = optionsBySlot[slot] || {};
+        return {
+          skillId,
+          optionSkillIds: [...(options.optionSkillIds || [])],
+          selectionKey: String(options.selectionKey),
+          selectionIndex: Number(options.selectionIndex),
+          keyLabel: `F${slot}`,
+          typeLabel: String(options.label || "Protocol").replace(
+            /^F\d+\s*/,
+            "",
+          ),
+        };
+      }),
+    },
+  ];
 }
 
 export function engineerSkillBarGroups(
@@ -405,6 +443,7 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
             .map((skill) => skill.id),
           color: "#9d762e",
           stackId: "engineer-kits",
+          placement: "weapon-set-1",
         });
       }
       if (engineerUiSpecialization(context) === "Core") {
@@ -413,6 +452,7 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
           label: "F",
           skillIds: uniqueIdsBySkillName(professionSkills(context)),
           color: "#b88a35",
+          className: "engineer-profession-skills",
           resourceAnchor: true,
           includeActionSkills: true,
         });

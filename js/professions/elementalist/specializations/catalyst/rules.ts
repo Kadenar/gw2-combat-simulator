@@ -2,11 +2,13 @@ import type {
   AvailabilityResult,
   CastContext,
   CastLifecycleContext,
+  ScheduledTask,
   SchedulerContext,
   SchedulerRecord,
   SimulationEvent,
   Skill,
 } from "../../../../platform/engine/types.js";
+import type { Gw2ModifierContext } from "../../../../platform/gw2/types.js";
 import { hasTrait as hasGw2Trait } from "../../../../platform/gw2/trait-state.js";
 import {
   applyElementalistAura,
@@ -17,12 +19,77 @@ import {
   elementalistCoreState,
   type ElementalistAttunement,
 } from "../../core/state.js";
+import type { CatalystEmpowermentPool } from "../../types.js";
 import { CATALYST_MAXIMUM_ENERGY, catalystState } from "./state.js";
 
 const SPHERE_COST = 10;
+const CATALYST_ENERGY_HIT_TASK = "elementalist.catalyst-energy-hit";
 
 function hasTrait(context: unknown, trait: string): boolean {
   return hasGw2Trait(context as never, trait);
+}
+
+function catalystModifierState(context: Gw2ModifierContext): CatalystStateLike {
+  const profession = context.runtime?.profession as
+    | {
+        specialization?: {
+          kind?: string;
+          state?: CatalystStateLike;
+        };
+      }
+    | undefined;
+  return profession?.specialization?.kind === "Catalyst"
+    ? profession.specialization.state || {}
+    : {};
+}
+
+interface CatalystStateLike {
+  readonly elementalEmpowermentExpiries?: readonly number[];
+}
+
+function catalystBaseEmpowermentActive(context: Gw2ModifierContext): boolean {
+  const combatStartTime = context.runtime?.combatStartTime;
+  return combatStartTime == null || context.time >= Number(combatStartTime);
+}
+
+function modifyCatalystAttributes(
+  context: Gw2ModifierContext,
+  attributes: SchedulerRecord,
+): SchedulerRecord {
+  if (!hasTrait(context, "Elemental Empowerment")) return attributes;
+
+  const timedStacks = (
+    catalystModifierState(context).elementalEmpowermentExpiries || []
+  ).filter((expiresAt) => expiresAt > context.time).length;
+  const stacks = Math.min(
+    10,
+    (catalystBaseEmpowermentActive(context) ? 3 : 0) + timedStacks,
+  );
+  const multiplier = hasTrait(context, "Empowered Empowerment")
+    ? stacks === 10
+      ? 0.2
+      : stacks * 0.015
+    : stacks * 0.01;
+  const pool = context.config?.catalystEmpowermentPool as
+    Partial<CatalystEmpowermentPool> | undefined;
+  const modified = { ...attributes };
+
+  for (const stat of [
+    "power",
+    "precision",
+    "ferocity",
+    "conditionDamage",
+    "expertise",
+    "concentration",
+  ] as const) {
+    const eligible = Number(pool?.[stat] ?? modified[stat] ?? 0);
+    const bonus = eligible * multiplier;
+    modified[stat] =
+      Number(modified[stat] || 0) +
+      (["power", "conditionDamage"].includes(stat) ? Math.round(bonus) : bonus);
+  }
+
+  return modified;
 }
 
 function availability(
@@ -168,8 +235,20 @@ function onCastComplete(
       duration: state.sphereExpiry.Fire > at ? 8 : 5,
     });
   } else if (skill.name === "Shattering Ice") {
-    state.shatteringIceUntil = at + (state.sphereExpiry.Water > at ? 8 : 5);
+    const duration = state.sphereExpiry.Water > at ? 8 : 5;
+    state.shatteringIceUntil = at + duration;
     state.shatteringIceReadyAt = at;
+    context.emit({
+      type: "buff",
+      at,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: "player",
+      skillName: skill.name,
+      kind: "shattering ice",
+      stacks: 1,
+      duration,
+    });
   } else if (skill.name === "Elemental Celerity") {
     for (const candidate of context.catalog.skills) {
       if (
@@ -214,38 +293,6 @@ function onEventScheduled(
 ): void {
   const state = catalystState.from(context);
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
-  if (
-    event.type === "damage" &&
-    event.actorType === "player" &&
-    Number(event.coefficient) > 0 &&
-    event.damageKind !== "field-tick" &&
-    !event.isField &&
-    state.shatteringIceUntil > event.at &&
-    state.shatteringIceReadyAt <= event.at + context.epsilon
-  ) {
-    state.shatteringIceReadyAt = event.at + 1;
-    context.emitDerived(event, {
-      type: "damage",
-      at: event.at,
-      source: "Shattering Ice Proc",
-      sourceId: event.skillId ?? event.sourceId,
-      actorType: "effect",
-      skillName: "Shattering Ice Proc",
-      coefficient: 0.6,
-      skillWeapon: "Unequipped",
-    });
-    context.emitDerived(event, {
-      type: "condition",
-      at: event.at,
-      source: "Shattering Ice Proc",
-      sourceId: event.skillId ?? event.sourceId,
-      actorType: "effect",
-      skillName: "Shattering Ice Proc",
-      condition: "Chilled",
-      stacks: 1,
-      duration: 1,
-    });
-  }
   if (
     event.type === "elementalist.attunement" &&
     hasTrait(context, "Energized Elements")
@@ -326,45 +373,30 @@ function onEventScheduled(
     return;
   }
   if (
-    event.type === "control" &&
-    event.actorType === "player" &&
-    hasTrait(context, "Vicious Empowerment") &&
-    Number(core.procReadyAt.viciousEmpowerment || 0) <=
-      event.at + context.epsilon
-  ) {
-    core.procReadyAt.viciousEmpowerment = event.at + 0.25;
-    context.emitDerived(event, {
-      type: "buff",
-      at: event.at,
-      source: "Vicious Empowerment",
-      sourceId: event.sourceId,
-      actorType: "player",
-      skillName: "Vicious Empowerment",
-      kind: "elemental empowerment",
-      stacks: 2,
-      duration: 15,
-    });
-    emitElementalistBuff(
-      context as never,
-      event.at,
-      "Might",
-      2,
-      10,
-      "Vicious Empowerment",
-      event.sourceId,
-    );
-    return;
-  }
-  if (
     event.type !== "damage" ||
     event.actorType === "summon" ||
-    !(Number(event.coefficient) > 0) ||
-    String(event.skillName || "").startsWith("Deploy Jade Sphere")
+    !(Number(event.coefficient) > 0)
   ) {
     return;
   }
+  context.tasks.schedule({
+    type: CATALYST_ENERGY_HIT_TASK,
+    at: event.at,
+    ownerId: String(event.activationId || event.sourceId || event.skillName),
+    payload: {
+      sourceId: event.skillId ?? event.sourceId,
+      skillName: String(event.skillName || "Catalyst Energy"),
+    },
+  });
+}
+
+function handleCatalystEnergyHit(
+  context: SchedulerContext<SchedulerRecord>,
+  task: ScheduledTask<SchedulerRecord>,
+): void {
+  const state = catalystState.from(context);
   if (
-    event.at < state.sphereActiveUntil &&
+    task.at < state.sphereActiveUntil &&
     !hasTrait(context, "Sphere Specialist")
   ) {
     return;
@@ -372,13 +404,13 @@ function onEventScheduled(
   const before = state.energy;
   state.energy = Math.min(CATALYST_MAXIMUM_ENERGY, state.energy + 1);
   if (state.energy === before) return;
-  context.emitDerived(event, {
+  context.emit({
     type: "resource",
-    at: event.at,
+    at: task.at,
     source: "Catalyst Energy",
-    sourceId: event.skillId ?? event.sourceId,
+    sourceId: String(task.payload?.sourceId || "catalyst-energy"),
     actorType: "player",
-    skillName: String(event.skillName || "Catalyst Energy"),
+    skillName: String(task.payload?.skillName || "Catalyst Energy"),
     kind: "catalyst-energy",
     value: state.energy,
     maximum: CATALYST_MAXIMUM_ENERGY,
@@ -392,6 +424,10 @@ export const catalystCastRules = Object.freeze({
     order: 30,
     handler: availability,
   },
+});
+
+export const catalystAttributeRules = Object.freeze({
+  modifyAttributes: modifyCatalystAttributes,
 });
 
 export const catalystSchedulerHooks = Object.freeze({
@@ -410,6 +446,9 @@ export const catalystSchedulerHooks = Object.freeze({
     order: 30,
     handler: onEventScheduled,
   },
+  taskHandlers: Object.freeze({
+    [CATALYST_ENERGY_HIT_TASK]: handleCatalystEnergyHit,
+  }),
   onCastComplete: {
     id: "elementalist.catalyst-complete",
     order: 30,

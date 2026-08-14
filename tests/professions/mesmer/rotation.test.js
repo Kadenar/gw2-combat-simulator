@@ -2036,6 +2036,54 @@ test("Ineptitude intervals only interrupt-generated blinds on defiant targets", 
   );
 });
 
+test("power Chronomancer queues Continuum Split before later serial casts", () => {
+  const saved = JSON.parse(
+    readFileSync(
+      new URL(
+        "../../../Builds/mesmer/b-power-chronomancer.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  const savedRotation = JSON.parse(
+    readFileSync(
+      new URL(
+        "../../../Rotations/mesmer/r-power-chronomancer-evtc-rebuild.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  const build = toApplicationBuild({
+    ...saved,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    skillByName: mesmerCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+
+  const result = simulateMesmer(build.rotation, simulationConfig(app));
+  const step = (rotationIndex) =>
+    result.steps.find((candidate) => candidate.ri === rotationIndex);
+  const swordsmanBeforeSplit = step(169);
+  const split = step(170);
+  const shift = step(180);
+  const bladestormAfterShift = step(181);
+  const swordsmanAfterShift = step(182);
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(swordsmanBeforeSplit.skill, "Phantasmal Swordsman");
+  assert.equal(split.skill, "Continuum Split");
+  assert.ok(split.start < swordsmanBeforeSplit.end);
+  assert.equal(shift.skill, "Continuum Shift");
+  assert.equal(swordsmanAfterShift.skill, "Phantasmal Swordsman");
+  assert.equal(swordsmanAfterShift.start, bladestormAfterShift.end);
+});
+
 test("condition Chronomancer preset retains multi-hit Ineptitude", () => {
   const saved = JSON.parse(
     readFileSync(

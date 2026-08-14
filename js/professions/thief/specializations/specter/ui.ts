@@ -17,48 +17,61 @@ function stateFrom(context: ThiefUiContext = {}): Partial<ThiefState> {
 }
 
 export const specterUi = Object.freeze({
-  paletteGroups: () => [{
-    id: "thief-profession",
-    label: "F",
-    skillIds: [ID.SIPHON, ID.ENTER_SHADOW_SHROUD, ID.EXIT_SHADOW_SHROUD],
-    color: "#9a535c",
-    resourceAnchor: true,
-  }, {
-    id: "thief-shadow-shroud",
-    label: "Shroud",
-    skillIds: SHADOW_SHROUD_SKILL_IDS,
-    color: "#6b9988",
-  }],
-  skillBarGroups: () => [{
-    id: "specter-f-keys",
-    label: "F Keys",
-    skillIds: [ID.SIPHON, ID.ENTER_SHADOW_SHROUD, ID.EXIT_SHADOW_SHROUD],
-    color: "#9a535c",
-    layout: "thief-shadow-shroud",
-  }, {
-    id: "specter-shadow-shroud",
-    label: "Shadow Shroud",
-    skillIds: SHADOW_SHROUD_SKILL_IDS,
-    color: "#6b9988",
-    layout: "thief-shadow-shroud",
-  }],
+  paletteGroups: () => [
+    {
+      id: "thief-profession",
+      label: "F",
+      skillIds: [ID.SIPHON, ID.ENTER_SHADOW_SHROUD, ID.EXIT_SHADOW_SHROUD],
+      color: "#9a535c",
+      className: "compact-resource-palette specter-f-skills",
+      resourceAnchor: true,
+      stackId: "specter-profession",
+    },
+    {
+      id: "thief-shadow-shroud",
+      label: "Sh",
+      skillIds: SHADOW_SHROUD_SKILL_IDS,
+      color: "#6b9988",
+      className: "specter-shroud-skills",
+      stackId: "specter-profession",
+    },
+  ],
+  skillBarGroups: () => [
+    {
+      id: "specter-f-keys",
+      label: "F Keys",
+      skillIds: [ID.SIPHON, ID.ENTER_SHADOW_SHROUD, ID.EXIT_SHADOW_SHROUD],
+      color: "#9a535c",
+      layout: "thief-shadow-shroud",
+    },
+    {
+      id: "specter-shadow-shroud",
+      label: "Shadow Shroud",
+      skillIds: SHADOW_SHROUD_SKILL_IDS,
+      color: "#6b9988",
+      layout: "thief-shadow-shroud",
+    },
+  ],
   resourceViews: (context: ThiefUiContext) => {
     const state = stateFrom(context);
-    return [{
-      id: "shadow-force",
-      singular: "shadow force",
-      plural: "shadow force",
-      maximum: 100,
-      value: Number(state.shadowForce ?? context.initialShadowForce ?? 0),
-      startMaximum: 100,
-      startValue: Number(context.initialShadowForce ?? 0),
-      canStart: true,
-      buildKey: "initialShadowForce",
-      step: 1,
-      displayMode: "bar",
-      shortLabel: "SF",
-      statusLabel: state.shadowShroudActive ? "Shroud" : "Current",
-    }];
+    return [
+      {
+        id: "shadow-force",
+        singular: "shadow force",
+        plural: "shadow force",
+        maximum: 100,
+        value: Number(state.shadowForce ?? context.initialShadowForce ?? 0),
+        startMaximum: 100,
+        startValue: Number(context.initialShadowForce ?? 0),
+        canStart: true,
+        buildKey: "initialShadowForce",
+        step: 1,
+        displayMode: "bar",
+        pipStyle: "compact-profession-resource-specter-shadow-force",
+        shortLabel: "SF",
+        statusLabel: state.shadowShroudActive ? "Shroud" : "Current",
+      },
+    ];
   },
   paletteSkillAvailability: (context: ThiefUiContext, skill: ThiefSkill) => {
     const state = stateFrom(context);
@@ -84,12 +97,10 @@ export const specterUi = Object.freeze({
       return { available: false, message: "Enter Shadow Shroud first" };
     }
     if (
-      state.shadowShroudActive
-      && !skill.shadowShroudSkill
-      && (
-        skill.type === "Weapon"
-        || ["Heal", "Utility", "Elite"].includes(skill.type || "")
-      )
+      state.shadowShroudActive &&
+      !skill.shadowShroudSkill &&
+      (skill.type === "Weapon" ||
+        ["Heal", "Utility", "Elite"].includes(skill.type || ""))
     ) {
       return {
         available: false,

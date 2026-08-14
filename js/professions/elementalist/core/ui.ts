@@ -76,6 +76,7 @@ function elementalistPaletteGroups(
       color: "#c85142",
       className: "elementalist-attunement-palette",
       includeActionSkills: true,
+      resourceAnchor: ["Core", "Weaver"].includes(uiSpecialization(context)),
     },
   ];
   const conjureEquipped = String(state.conjureEquipped || "");
@@ -274,7 +275,9 @@ function eventLogRow(
     event.type === "elementalist.combo-field" ||
     event.type === "elementalist.combo" ||
     event.type === "elementalist.fresh-air" ||
-    event.type === "elementalist.evasive-arcana"
+    event.type === "elementalist.evasive-arcana" ||
+    event.type === "elementalist.attunement-enter" ||
+    event.type === "elementalist.signet-fire"
   ) {
     return null;
   }
@@ -354,6 +357,7 @@ export const elementalistCoreUi: Partial<ProfessionUiContract> &
       label: "Attunements",
       skillIds: Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS),
       color: "#c85142",
+      className: "elementalist-attunements",
     },
   ],
   paletteGroups: elementalistPaletteGroups,

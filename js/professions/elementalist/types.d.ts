@@ -7,6 +7,15 @@ export interface ElementalistBuildSpecialization {
   traits: string;
 }
 
+export interface CatalystEmpowermentPool {
+  readonly power: number;
+  readonly precision: number;
+  readonly ferocity: number;
+  readonly conditionDamage: number;
+  readonly expertise: number;
+  readonly concentration: number;
+}
+
 export interface ElementalistTrait extends SchedulerRecord {
   readonly tier: string;
   readonly name: string;

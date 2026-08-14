@@ -2,6 +2,12 @@ import { isInternalCooldownReady } from "../../engine/clock.js";
 import type { SchedulerContext, SimulationEvent } from "../../engine/types.js";
 import { SIGIL_PROCS } from "../gear-data.js";
 import { isGw2PlayerActorEvent } from "../event-ownership.js";
+import {
+  createSigilConditionEvent,
+  createSigilStrikeEvent,
+  GW2_SCHEDULER_SIGIL_PREDICTION,
+  isResolverCriticalSigil,
+} from "../sigil-proc-events.js";
 import type { Gw2Config, Gw2SigilProc } from "../types.js";
 import type {
   MaterializerProfessionState,
@@ -33,6 +39,7 @@ interface SigilEffectContext {
   readonly name: string;
   readonly proc: Gw2SigilProc;
   readonly sourceSkill: string;
+  readonly schedulerPrediction: boolean;
 }
 
 type SigilEffectHandler = (effect: SigilEffectContext) => void;
@@ -112,7 +119,9 @@ export function createSigilProcEngine(
     cause,
     name,
     sourceSkill,
+    schedulerPrediction,
   }) => {
+    if (schedulerPrediction) return;
     context.emitDerived(cause, {
       type: "proc",
       procType: "sigil",
@@ -131,39 +140,32 @@ export function createSigilProcEngine(
     cause,
     name,
     proc,
+    sourceSkill,
+    schedulerPrediction,
   }) => {
     context.emitDerived(cause, {
-      type: "condition",
+      ...createSigilConditionEvent(name, proc, sourceSkill),
       at: cause.at,
-      name: `Sigil of ${name} — ${proc.condition}`,
-      skillName: `Sigil of ${name}`,
-      condition: proc.condition,
-      duration: proc.duration,
-      stacks: proc.stacks,
-      source: "Sigil",
-      sourceId: `sigil.${name.toLowerCase()}`,
-      actorType: "effect",
+      ...(schedulerPrediction
+        ? { schedulerPrediction: GW2_SCHEDULER_SIGIL_PREDICTION }
+        : {}),
     });
   };
 
-  const emitStrike: SigilEffectHandler = ({ context, cause, name, proc }) => {
+  const emitStrike: SigilEffectHandler = ({
+    context,
+    cause,
+    name,
+    proc,
+    sourceSkill,
+    schedulerPrediction,
+  }) => {
     context.emitDerived(cause, {
-      type: "damage",
+      ...createSigilStrikeEvent(name, proc, sourceSkill),
       at: cause.at,
-      name: `Sigil of ${name}`,
-      skillName: `Sigil of ${name}`,
-      coefficient: proc.coefficient,
-      hits: 1,
-      hitIndex: 1,
-      totalHits: 1,
-      source: "Sigil",
-      sourceId: `sigil.${name.toLowerCase()}`,
-      actorType: "effect",
-      weaponStrength: proc.weaponStrength,
-      skillWeapon: "Unequipped",
-      noCrit: !proc.canCrit,
-      canTriggerCriticalSigils: proc.canCrit === true,
-      canTriggerCriticalTraits: proc.canCrit === true,
+      ...(schedulerPrediction
+        ? { schedulerPrediction: GW2_SCHEDULER_SIGIL_PREDICTION }
+        : {}),
     });
   };
 
@@ -261,12 +263,15 @@ export function createSigilProcEngine(
         const proc = SIGIL_PROC_LOOKUP[name];
         if (proc?.trigger !== trigger || !sigilReady(name, event.at)) continue;
         armSigil(name, event.at, proc.cooldown);
+        const schedulerPrediction =
+          trigger === "crit" && isResolverCriticalSigil(name);
         (effectHandlers[proc.effect] || procOnly)({
           context,
           cause,
           name,
           proc,
           sourceSkill,
+          schedulerPrediction,
         });
       }
     },
@@ -286,6 +291,7 @@ export function createSigilProcEngine(
         name: "Doom",
         proc: SIGIL_PROC_LOOKUP.Doom,
         sourceSkill: event.skillName || "",
+        schedulerPrediction: false,
       };
       emitCondition(effect);
       emitProc(effect);

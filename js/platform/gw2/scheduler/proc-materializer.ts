@@ -13,6 +13,7 @@ import {
   relicConditionDurationBonus,
 } from "../relic-rules.js";
 import type { Gw2Config, Gw2TriggerMaterializer } from "../types.js";
+import { isSchedulerSigilPrediction } from "../sigil-proc-events.js";
 import { createGw2CombatObserver } from "./combat-observer.js";
 import {
   hasStochasticCriticalFood,
@@ -96,6 +97,7 @@ export function createGw2TriggerMaterializer(
     context: SchedulerContext,
     event: SimulationEvent,
   ): void => {
+    if (isSchedulerSigilPrediction(event)) return;
     observer.observe(context, event);
 
     switch (event.type) {

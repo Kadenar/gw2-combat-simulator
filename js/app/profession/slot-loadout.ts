@@ -92,6 +92,9 @@ export interface SlotLoadoutPaletteGroup {
   skillIds: number[];
   reservedSkillIds: number[];
   active: boolean;
+  color?: string;
+  className?: string;
+  resourceAnchor?: boolean;
 }
 
 export interface CreateFixedSlotLoadoutOptions {

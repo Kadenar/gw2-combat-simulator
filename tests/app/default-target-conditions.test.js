@@ -3,8 +3,8 @@ import test from "node:test";
 
 import { createGw2SimulationConfig } from "../../js/app/simulation/config.js";
 import { DEFAULT_TARGET_CONDITIONS } from "../../js/platform/gw2/default-target-conditions.js";
+import { createElementalistBuildDefaults } from "../../js/professions/elementalist/build.js";
 import { createEngineerBuildDefaults } from "../../js/professions/engineer/build.js";
-import { createDefaultPermaBoons } from "../../js/professions/elementalist/legacy/app/app-state.js";
 import { createGuardianBuildDefaults } from "../../js/professions/guardian/build.js";
 import { createMesmerBuildDefaults } from "../../js/professions/mesmer/build.js";
 import { createNecromancerBuildDefaults } from "../../js/professions/necromancer/build.js";
@@ -13,6 +13,7 @@ import { createThiefBuildDefaults } from "../../js/professions/thief/build.js";
 
 test("all profession pages use the shared default target conditions", () => {
   for (const createDefaults of [
+    createElementalistBuildDefaults,
     createMesmerBuildDefaults,
     createGuardianBuildDefaults,
     createNecromancerBuildDefaults,
@@ -25,17 +26,6 @@ test("all profession pages use the shared default target conditions", () => {
       DEFAULT_TARGET_CONDITIONS,
     );
   }
-
-  const elementalistDefaults = createDefaultPermaBoons();
-  assert.deepEqual(
-    Object.fromEntries(
-      Object.keys(DEFAULT_TARGET_CONDITIONS).map((name) => [
-        name,
-        elementalistDefaults[name],
-      ]),
-    ),
-    DEFAULT_TARGET_CONDITIONS,
-  );
 });
 
 test("ally calculations always use one strike per second per ally", () => {

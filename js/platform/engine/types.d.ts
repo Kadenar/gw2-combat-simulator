@@ -679,6 +679,10 @@ export interface ProfessionResourceView {
   readonly pipRows?: number;
   readonly statusItemsLabel?: string;
   readonly statusItems?: readonly ProfessionResourceStatusItem[];
+  /** Whether to render this resource in the rotation palette. Defaults to true. */
+  readonly showInPalette?: boolean;
+  /** Whether to print the numeric value beside the visual meter. Defaults to true. */
+  readonly showValue?: boolean;
   /** Render this resource beneath the matching rotation-palette skill. */
   readonly paletteSkillId?: SkillId;
 }
@@ -693,10 +697,16 @@ export interface ProfessionPaletteGroup {
   readonly id: string;
   readonly label: string;
   readonly skillIds: readonly SkillId[];
+  /** Moves a profession group into the indicated weapon-set stack. */
+  readonly placement?: "profession" | "weapon-set-1";
   readonly resourceAnchor?: boolean;
   readonly color?: string;
   readonly stackId?: string;
   readonly className?: string;
+  /** Resource meters rendered in the same visual container as this group. */
+  readonly resourceIds?: readonly string[];
+  /** Where attached resources sit relative to the group's skills. */
+  readonly resourcePlacement?: "above" | "beside" | "below";
   readonly reservedSkillIds?: readonly number[];
   readonly skillEntries?: readonly SchedulerRecord[];
   readonly includeActionSkills?: boolean;
@@ -707,6 +717,8 @@ export interface ProfessionPaletteGroup {
 export interface ProfessionSkillBarGroup extends SchedulerRecord {
   readonly label: string;
   readonly skillIds: readonly SkillId[];
+  /** Places a read-only mechanic group with the weapon previews. */
+  readonly placement?: "skill-bar" | "weapon-bar";
   readonly selections?: readonly ProfessionSkillBarSelection[];
   readonly optionSkillIds?: readonly SkillId[];
   readonly optionEntries?: readonly ProfessionSkillBarSelectionOption[];
@@ -720,6 +732,10 @@ export interface ProfessionSkillBarGroup extends SchedulerRecord {
 
 export interface ProfessionSkillBarSelection {
   readonly skillId?: SkillId;
+  /** Optional slot key rendered beneath a selectable mechanic skill. */
+  readonly keyLabel?: string;
+  /** Optional slot type rendered beneath a selectable mechanic skill. */
+  readonly typeLabel?: string;
   /** When set, render an option filter using this placeholder. */
   readonly filterPlaceholder?: string;
   /** Read-only skills previewed before this selection. */

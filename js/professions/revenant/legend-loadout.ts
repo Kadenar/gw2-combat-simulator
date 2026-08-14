@@ -6,12 +6,8 @@ import {
 } from "./data/ids.js";
 import { REVENANT_LEGEND_SPECIALIZATIONS } from "./legend-rules.js";
 import { HERALD_MECHANICS } from "./specializations/herald/mechanics.js";
-import type {
-  SkillId,
-} from "../../platform/engine/types.js";
-import type {
-  SlotLoadoutContext,
-} from "../../app/profession/slot-loadout.js";
+import type { SkillId } from "../../platform/engine/types.js";
+import type { SlotLoadoutContext } from "../../app/profession/slot-loadout.js";
 
 export interface RevenantLegend {
   readonly id: string;
@@ -170,10 +166,12 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
     Object.freeze({
       ...entry,
       compactName: compactLegendName(entry.name),
-      skillIds: Object.freeze(entry.skillIds.filter(
-        (skillId): skillId is number =>
-          typeof skillId === "number" && Number.isFinite(skillId),
-      )),
+      skillIds: Object.freeze(
+        entry.skillIds.filter(
+          (skillId): skillId is number =>
+            typeof skillId === "number" && Number.isFinite(skillId),
+        ),
+      ),
     }),
   ),
 );
@@ -216,6 +214,11 @@ export const revenantLegendLoadout = Object.freeze({
       {};
     return baseRevenantLegendLoadout.paletteGroups(context).map((group) => ({
       ...group,
+      color: group.active ? "#c4565d" : "#84343a",
+      className: group.active
+        ? "compact-resource-palette revenant-legend-skills"
+        : "revenant-legend-skills-inactive",
+      resourceAnchor: group.active,
       skillIds: group.skillIds.flatMap((skillId) => {
         const facetConsumeBySkillId =
           HERALD_MECHANICS.facetConsumeBySkillId as Readonly<

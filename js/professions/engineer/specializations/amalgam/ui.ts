@@ -153,6 +153,7 @@ export const amalgamUi: Partial<ProfessionUiContract> & SchedulerRecord =
           amalgamProfessionSkills(context).filter((id) => id != null),
         ),
         color: "#67aa87",
+        className: "engineer-profession-skills",
         resourceAnchor: true,
         includeActionSkills: true,
       },

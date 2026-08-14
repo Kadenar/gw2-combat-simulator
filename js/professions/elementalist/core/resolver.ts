@@ -214,6 +214,18 @@ export function applyElementalistResolverAura(
   if (event.elementalistResolverGeneratedAura === true) {
     context.resolved.push(event);
   }
+  if (hasTrait(context, "Empowering Auras")) {
+    const current = activeBuffs(context, "Empowering Auras", event.at);
+    refreshBuffs(context, "Empowering Auras", event.at, () => event.at + 10);
+    const activeStacks = current.reduce(
+      (total, application) => total + Number(application.stacks || 1),
+      0,
+    );
+    if (activeStacks < 5) {
+      queueBuff(context, event, "Empowering Auras", 1, 10, skillName);
+    }
+    recordTraitProc(context, event, "Empowering Auras");
+  }
   if (context.combatStartTime != null && event.at < context.combatStartTime) {
     return;
   }
@@ -251,18 +263,6 @@ export function applyElementalistResolverAura(
       queueBuff(context, event, "Tempestuous Aria", 1, 5, skillName);
     }
     recordTraitProc(context, event, "Tempestuous Aria");
-  }
-  if (hasTrait(context, "Empowering Auras")) {
-    const current = activeBuffs(context, "Empowering Auras", event.at);
-    refreshBuffs(context, "Empowering Auras", event.at, () => event.at + 10);
-    const activeStacks = current.reduce(
-      (total, application) => total + Number(application.stacks || 1),
-      0,
-    );
-    if (activeStacks < 5) {
-      queueBuff(context, event, "Empowering Auras", 1, 10, skillName);
-    }
-    recordTraitProc(context, event, "Empowering Auras");
   }
 }
 

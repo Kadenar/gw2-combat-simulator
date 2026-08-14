@@ -656,6 +656,57 @@ test("pending damage can kill mid-cast and suppress the current skill packet", (
   );
 });
 
+test("a damage packet removed before resolution cannot trigger critical sigils", () => {
+  const stream = buildScheduledEventStream({
+    events: [
+      {
+        type: "marker",
+        at: 1,
+        name: "Cancelled strike",
+        skillName: "Cancelled strike",
+        source: "Player",
+        sourceId: "cancelled-strike",
+        actorType: "player",
+        cancelled: true,
+        detail: "cancelled before resolver handoff",
+      },
+    ],
+    rotationEndTime: 2,
+  });
+  const result = resolveTestGw2Stream({
+    stream,
+    config: {
+      sigilSets: [{ names: ["Air", "Earth", "Torment"] }],
+    },
+    traits: new Set(),
+    query: {
+      statsAt: () => ({
+        power: 1_000,
+        precision: 4_000,
+        ferocity: 0,
+        conditionDamage: 0,
+        expertise: 0,
+      }),
+      critical: () => ({ chance: 1, damage: 1.5 }),
+      strikeMultiplier: () => 1,
+      conditionMultiplier: () => 1,
+      conditionDurationMultiplier: () => 1,
+      activeWeaponSetAt: () => 1,
+    },
+    helpers: {
+      conditionName: (name) => name,
+      skillsByName: new Map(),
+      weaponStrength: () => 1_000,
+    },
+  });
+
+  assert.equal(
+    result.resolvedEvents.some((event) => event.source === "Sigil"),
+    false,
+  );
+  assert.deepEqual(result.procSteps, []);
+});
+
 test("Egotism starts after the target falls below the Mesmer's health percentage", () => {
   const defaults = defaultSimulationConfig();
   const config = defaultSimulationConfig({
@@ -866,7 +917,7 @@ test("seeded critical sigils consume the hit's single sampled crit outcome", () 
   const expectedProcs = expectedOutcomes.filter(Boolean).length;
   for (const sigil of ["Earth", "Torment"]) {
     assert.equal(
-      stochastic.events.filter(
+      stochastic.resolvedEvents.filter(
         (event) =>
           event.type === "condition" && event.skillName === `Sigil of ${sigil}`,
       ).length,
@@ -877,7 +928,7 @@ test("seeded critical sigils consume the hit's single sampled crit outcome", () 
   const deterministic = run("deterministic");
   for (const sigil of ["Earth", "Torment"]) {
     assert.equal(
-      deterministic.events.filter(
+      deterministic.resolvedEvents.filter(
         (event) =>
           event.type === "condition" && event.skillName === `Sigil of ${sigil}`,
       ).length,
@@ -1188,7 +1239,7 @@ test("Earth bleeding grants a scheduler-visible Bloodsong blade", () => {
       }),
     );
   const result = run(["Bloodsong"]);
-  const earth = result.events.filter(
+  const earth = result.resolvedEvents.filter(
     (event) =>
       event.type === "condition" && event.skillName === "Sigil of Earth",
   );

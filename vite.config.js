@@ -5,7 +5,6 @@ import { defineConfig } from "vite";
 const pageEntries = [
   "index.html",
   "elementalist.html",
-  "elementalist-legacy.html",
   "engineer.html",
   "guardian.html",
   "mesmer.html",
@@ -16,11 +15,7 @@ const pageEntries = [
   "warrior.html",
 ];
 
-const runtimeDirectories = [
-  "Builds",
-  "Rotations",
-  "js/professions/elementalist/legacy/data/csv",
-];
+const runtimeDirectories = ["Builds", "Rotations"];
 
 function copyRuntimeData() {
   return {

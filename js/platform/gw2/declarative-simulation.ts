@@ -19,6 +19,7 @@ import { WEAPON_DATA } from "./gear-data.js";
 import { createGw2CombatQuery, selectedGw2TraitValues } from "./query.js";
 import { gw2WeaponStrength } from "./runtime-rules.js";
 import { createGw2SchedulerPolicy } from "./scheduler/policy.js";
+import { isSchedulerSigilPrediction } from "./sigil-proc-events.js";
 import { canonicalTargetConditionName } from "./target-state.js";
 import type {
   Gw2Config,
@@ -128,15 +129,23 @@ function simulateDeclarativeGw2Pass({
         Gw2WeaponSkillMatcher | undefined,
     }),
   }).run(rotation);
+  // Critical sigil predictions remain scheduler-visible for profession state
+  // and rotation legality, but resolver-time reactions own their actual output.
+  const resolverStream = {
+    ...scheduled.stream,
+    events: scheduled.stream.events.filter(
+      (event) => !isSchedulerSigilPrediction(event),
+    ),
+  };
   const extensions = createGw2ResolverExtensions({
     config,
-    events: scheduled.stream.events,
+    events: resolverStream.events,
     professionReactions: runtimeProfession.eventReactions,
   });
   const query = createGw2CombatQuery({
     profession: engineProfession,
     config,
-    events: scheduled.stream.events,
+    events: resolverStream.events,
     traits,
     conditionDurationBonus: extensions.conditionDurationBonus,
   });
@@ -160,7 +169,7 @@ function simulateDeclarativeGw2Pass({
     reactions: extensions.reactions,
   });
   const resolved = resolveGw2Timeline({
-    stream: scheduled.stream,
+    stream: resolverStream,
     config,
     traits,
     query,

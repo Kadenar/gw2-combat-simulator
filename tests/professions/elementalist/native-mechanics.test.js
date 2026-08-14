@@ -357,6 +357,115 @@ test("weapon palette rows group Elementalist skills by attunement and slot", () 
   );
 });
 
+test("Weaver palette composes the active bar and preserves every slot-three cooldown", () => {
+  const build = elementalistAppAdapter.toApplicationBuild({
+    ...elementalistProfession.createBuildDefaults(),
+    weapons: ["Sword", "Warhorn"],
+    alternateWeapons: ["", ""],
+    startAttunement: "Fire",
+    secondaryAttunement: "Water",
+    specializations: [
+      { name: "Fire", traits: "1-1-1" },
+      { name: "Air", traits: "1-1-1" },
+      { name: "Weaver", traits: "1-1-1" },
+    ],
+  });
+  const app = {
+    build,
+    adapter: elementalistAppAdapter,
+    profession: elementalistProfession,
+    skills: elementalistCatalog.skills,
+    skillByName: elementalistCatalog.skillsByName,
+    skillById: elementalistCatalog.skillsById,
+    weaponData: elementalistAppAdapter.weaponData,
+    results: {
+      endState: {
+        activeWeaponSet: 1,
+        time: 0,
+        cooldowns: {
+          "Pyro Vortex": { remaining: 3400, readyAt: 3400 },
+        },
+        profession: {
+          primaryAttunement: "Fire",
+          secondaryAttunement: "Water",
+          autoattackChains: {},
+        },
+      },
+    },
+  };
+  const palette = { innerHTML: "", querySelectorAll: () => [] };
+  const previousDocument = globalThis.document;
+  globalThis.document = {
+    getElementById: (id) => (id === "rotation-palette" ? palette : null),
+  };
+  try {
+    renderPalette(app);
+  } finally {
+    globalThis.document = previousDocument;
+  }
+
+  assert.match(palette.innerHTML, /data-role="weaver-current-bar"/);
+  assert.match(palette.innerHTML, /data-role="weaver-primary-bank"/);
+  assert.match(palette.innerHTML, /data-role="weaver-slot-three-bank"/);
+  assert.match(palette.innerHTML, /data-role="weaver-secondary-bank"/);
+  assert.match(
+    palette.innerHTML,
+    /data-role="weaver-top-palette"[\s\S]*?data-role="profession-palette-section"[\s\S]*?utility-palette-group[\s\S]*?data-role="weapon-palette-section"/,
+  );
+
+  const currentStart = palette.innerHTML.indexOf(
+    'data-role="weaver-current-bar"',
+  );
+  const bankStart = palette.innerHTML.indexOf(
+    'data-role="weaver-cooldown-bank"',
+  );
+  const currentHtml = palette.innerHTML.slice(currentStart, bankStart);
+  assert.equal((currentHtml.match(/class="pal-skill/g) || []).length, 7);
+  assert.match(currentHtml, /data-skill="Fire Strike"/);
+  assert.match(currentHtml, /data-skill="Fire Swipe"/);
+  assert.match(currentHtml, /data-skill="Searing Slash"/);
+  assert.deepEqual(
+    [...currentHtml.matchAll(/data-attunement="([^"]+)"/g)].map(
+      (match) => match[1],
+    ),
+    ["Fire", "Fire", "Fire", "Fire", "Fire+Water", "Water", "Water"],
+  );
+
+  const bankHtml = [
+    ...palette.innerHTML.matchAll(
+      /<section class="weaver-cooldown-lane[^>]*>[\s\S]*?<\/section>/g,
+    ),
+  ]
+    .map((match) => match[0])
+    .join("");
+  assert.equal(
+    (bankHtml.match(/class="weaver-cooldown-lane/g) || []).length,
+    3,
+  );
+  const bankSkillCount = (bankHtml.match(/class="pal-skill/g) || []).length;
+  assert.equal(
+    (bankHtml.match(/data-palette-static="true"/g) || []).length,
+    bankSkillCount,
+  );
+  assert.doesNotMatch(bankHtml, /draggable="true"/);
+  assert.doesNotMatch(bankHtml, /data-hotkey-action=/);
+  assert.doesNotMatch(bankHtml, /weaver-skill-cell is-equipped/);
+
+  const sameStart = palette.innerHTML.indexOf('data-weaver-variant="same"');
+  const dualStart = palette.innerHTML.indexOf('data-weaver-variant="dual"');
+  const secondaryStart = palette.innerHTML.indexOf(
+    'data-role="weaver-secondary-bank"',
+  );
+  const sameHtml = palette.innerHTML.slice(sameStart, dualStart);
+  const dualHtml = palette.innerHTML.slice(dualStart, secondaryStart);
+  assert.equal((sameHtml.match(/class="pal-skill/g) || []).length, 4);
+  assert.equal((dualHtml.match(/class="pal-skill/g) || []).length, 6);
+  assert.match(
+    dualHtml,
+    /data-skill="Pyro Vortex"[\s\S]*?<span class="pal-cd">3\.4s<\/span>/,
+  );
+});
+
 test("weapon bar excludes dual attacks outside Weaver", () => {
   const dual = elementalistCatalog.skillsByName.get("Twin Strike");
   const matches = elementalistProfession.ui.weaponSkillMatchesSet;
@@ -1001,6 +1110,150 @@ test("Evoker weapon skills build familiar charges", () => {
   assert.equal(result.endState.profession.charges, 2);
 });
 
+test("Evoker preserves off-attunement recharge while waiting for a swap", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Evoker"]],
+    rotation: [
+      "Shattering Stone",
+      "Water Attunement",
+      "Frigid Flurry",
+      "Air Attunement",
+      "Dazing Discharge",
+      "Fire Attunement",
+    ],
+    startAttunement: "Earth",
+    weapons: ["Pistol", "Dagger"],
+    evokerElement: "Earth",
+  });
+  const dazing = result.events.find(
+    (event) =>
+      event.type === "action" && event.skillName === "Dazing Discharge",
+  );
+  const fire = result.events.find(
+    (event) => event.type === "action" && event.skillName === "Fire Attunement",
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(fire.at, dazing.endsAt);
+});
+
+test("Evoker concurrent actions wait for an active familiar cast", () => {
+  const earthAttunement =
+    elementalistCatalog.skillsByName.get("Earth Attunement");
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Evoker"]],
+    rotation: [
+      "Lightning Blitz",
+      {
+        type: "cast",
+        skillId: earthAttunement.id,
+        concurrentOffsetMs: 100,
+      },
+    ],
+    startAttunement: "Air",
+    evokerElement: "Air",
+    initialEvokerEmpowered: 3,
+  });
+  const familiar = result.events.find(
+    (event) => event.type === "action" && event.skillName === "Lightning Blitz",
+  );
+  const attunement = result.events.find(
+    (event) =>
+      event.type === "action" && event.skillName === "Earth Attunement",
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.ok(attunement.at >= familiar.endsAt);
+});
+
+test("Evoker applies parent charge progression after a concurrent basic familiar", () => {
+  const calcify = elementalistCatalog.skillsByName.get("Calcify");
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Evoker"]],
+    rotation: [
+      "Shatterstone",
+      {
+        type: "cast",
+        skillId: calcify.id,
+        concurrentOffsetMs: 560,
+      },
+    ],
+    startAttunement: "Water",
+    weapons: ["Scepter", "Dagger"],
+    evokerElement: "Earth",
+    initialEvokerCharges: 6,
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.endState.profession.charges, 1);
+  assert.equal(result.endState.profession.empowered, 1);
+});
+
+test("Evoker reapplies Rejuvenate after its concurrent basic familiar", () => {
+  const calcify = elementalistCatalog.skillsByName.get("Calcify");
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Evoker"]],
+    rotation: [
+      "Rejuvenate",
+      {
+        type: "cast",
+        skillId: calcify.id,
+        concurrentOffsetMs: 800,
+      },
+    ],
+    evokerElement: "Earth",
+    initialEvokerCharges: 0,
+    selectedSkills: {
+      Heal: "Rejuvenate",
+      Utility1: "Fox's Fury",
+      Utility2: "Signet of Fire",
+      Utility3: "Arcane Wave",
+      Elite: "Elemental Procession",
+    },
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.endState.profession.charges, 6);
+  assert.equal(result.endState.profession.empowered, 1);
+});
+
+test("Evasive Arcana does not grant Evoker familiar charges", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Arcane", "1-1-1"], ["Evoker"]],
+    rotation: ["Dodge", 1000],
+    startAttunement: "Fire",
+    evokerElement: "Fire",
+    initialEvokerCharges: 0,
+  });
+
+  assert.equal(
+    result.resolvedEvents.some(
+      (event) =>
+        event.type === "damage" && event.skillName === "Flame Burst (trait)",
+    ),
+    true,
+  );
+  assert.equal(result.endState.profession.charges, 0);
+});
+
+test("Evoker materializes final Electric Enchantment stacks on prior hits", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Evoker"]],
+    rotation: ["Charged Strike", "Polaric Slash", "Zap"],
+    startAttunement: "Air",
+    weapons: ["Sword", "Dagger"],
+    evokerElement: "Air",
+    initialEvokerCharges: 6,
+  });
+  const enchantments = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "damage" && event.skillName === "Electric Enchantment",
+  );
+
+  assert.equal(enchantments.length, 2);
+  assert.equal(enchantments[0].triggeredBy, "Charged Strike");
+});
+
 test("Specialized Elements forces and locks the selected attunement", () => {
   const result = runNative({
     lines: [["Fire"], ["Air"], ["Evoker", "1-1-3"]],
@@ -1134,8 +1387,17 @@ test("Pistol bullets grant, consume, and apply their payload", () => {
 test("Hammer orbs block reuse and Grand Finale cancels future packets", () => {
   const result = runNative({
     lines: [["Fire"], ["Air"], ["Arcane"]],
-    rotation: ["Flame Wheel", "Flame Wheel", "Grand Finale", 2000],
+    rotation: ["Flame Wheel", "Flame Wheel", "Grand Finale", 8000],
     weapons: ["Hammer", ""],
+    gear: Object.fromEntries(
+      Object.keys(elementalistProfession.createBuildDefaults().gear).map(
+        (slot) => [slot, "Assassin's"],
+      ),
+    ),
+    weaponSigils: [
+      ["Air", "Accuracy"],
+      ["Air", "Accuracy"],
+    ],
   });
 
   assert.equal(
@@ -1167,6 +1429,11 @@ test("Hammer orbs block reuse and Grand Finale cancels future packets", () => {
   assert.equal(finaleHits.length, 1);
   assert.equal(finaleHits[0].coefficient, 1.4);
   assert.ok(Math.abs(finaleHits[0].at - finale.endsAt - 0.68) < 0.001);
+  const airProcs = result.resolvedEvents.filter(
+    (event) => event.type === "damage" && event.skillName === "Sigil of Air",
+  );
+  assert.equal(airProcs.length, 1);
+  assert.equal(airProcs[0].triggeredBy, "Grand Finale");
 });
 
 test("Hammer orbs emit fifteen one-second packets and feed Fresh Air", () => {
@@ -1775,7 +2042,7 @@ test("Catalyst traits enforce energy, empowerment, aura, and sphere rules", () =
     );
   }
   assert.equal(
-    control.events.some((event) => event.source === "Vicious Empowerment"),
+    control.procSteps.some((step) => step.skill === "Vicious Empowerment"),
     true,
   );
   assert.equal(

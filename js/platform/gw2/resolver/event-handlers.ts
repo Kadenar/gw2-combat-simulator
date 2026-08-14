@@ -54,8 +54,9 @@ function handleBuff(
   // Keep expired applications for historical timestamp queries, but report
   // only stacks active immediately after this application.
   const activeStacks = applications
-    .filter((application) =>
-      application.affectsSelf !== false && application.expiresAt > event.at
+    .filter(
+      (application) =>
+        application.affectsSelf !== false && application.expiresAt > event.at,
     )
     .reduce((sum, application) => sum + application.stacks, 0);
   reactions.dispatch("buff.applied", ctx, event, {
@@ -67,18 +68,17 @@ function handleBuff(
 /**
  * Builds the complete standard GW2 numeric resolver handler set.
  *
- * Event-generating sigil decisions are materialized by the shared GW2
- * scheduler policy. The resolver only consumes their canonical events.
+ * Swap, control, and strike sigils are materialized by the shared GW2
+ * scheduler policy. Resolver reactions own critical Air/Earth/Torment effects
+ * so only surviving damage packets can trigger them.
  */
 export function createGw2ResolverEventHandlers({
   hitResolution,
   conditions,
   reactions,
 }: CreateGw2ResolverEventHandlersOptions): Gw2ResolverEventHandlers {
-  const {
-    buildContext: buildHitResolutionContext,
-    apply: applyResolvedHit,
-  } = hitResolution;
+  const { buildContext: buildHitResolutionContext, apply: applyResolvedHit } =
+    hitResolution;
   const {
     activeStackCount: activeConditionStackCount,
     apply: applyCondition,
