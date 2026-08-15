@@ -323,8 +323,6 @@ export interface Skill extends CatalogSkill {
   readonly categories?: readonly string[];
   readonly resource?: unknown;
   readonly implemented?: boolean;
-  /** Excludes a skill from automated rotation search without hiding it in UI. */
-  readonly optimizerExcluded?: boolean;
 }
 
 export type SkillFragment = Partial<Skill> & SchedulerRecord;

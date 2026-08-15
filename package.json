@@ -15,7 +15,6 @@
     "test": "node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none",
     "typecheck": "tsc -p jsconfig.typed.json",
     "check": "npm run build && npm run typecheck && node scripts/build/check-js.mjs && node scripts/build/check-dist.mjs && node scripts/build/check-site.mjs",
-    "optimizer:corpus": "node --import ./scripts/testing/register-dist-loader.mjs scripts/analysis/run-rotation-optimizer-corpus.mjs",
     "update:profession-data": "node scripts/data/update-profession-api-data.mjs",
     "update:elementalist-data": "node scripts/data/update-elementalist-api-data.mjs",
     "update:mesmer-data": "node scripts/data/update-mesmer-api-data.mjs",

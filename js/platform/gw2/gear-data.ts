@@ -1,5 +1,5 @@
 // ─── Static GW2 Data ───────────────────────────────────────────────────────
-// Ascended Guild Wars 2 stat values, validated against Discretize Gear Optimizer.
+// Ascended Guild Wars 2 stat values
 // Weapon entries describe family strength and broad hand capability. Profession
 // catalogs own their exact hand availability.
 
