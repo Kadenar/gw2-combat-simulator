@@ -37,11 +37,10 @@ Each native profession has two deliberately separate composition boundaries:
 
 Keeping browser composition out of `definition.ts` lets simulations and other
 engine consumers load a profession without pulling in application rendering,
-storage, and modifier-contribution dependencies. Elementalist remains a
-standalone application with its profession-owned scheduler and resolver.
+storage, and modifier-contribution dependencies.
 
-Engineer, Guardian, Mesmer, Necromancer, Ranger, Revenant, Thief, and Warrior
-share the family boundary. `core/` owns always-active behavior;
+Elementalist, Engineer, Guardian, Mesmer, Necromancer, Ranger, Revenant, Thief,
+and Warrior share the family boundary. `core/` owns always-active behavior;
 `specializations/<elite>/` owns each elite vertical slice. A slice normally
 contains `module`, `state`, `skills`, `resolver`, `mechanics`, `rules`, and
 `ui`. It contains `handlers` only when it contributes local skill handlers and
@@ -82,8 +81,7 @@ Loader paths are explicit so they remain statically discoverable. Importing
 the registry itself does not load profession implementations. To expose a new
 profession, add one entry with its page metadata and loader functions;
 native applications use `applicationKind: "native"` and standalone
-applications use `applicationKind: "standalone"`. Elementalist can move from
-standalone to native later by changing that field and supplying its adapter.
+applications use `applicationKind: "standalone"`.
 
 [selector.ts](js/app/profession/selector.ts) provides registry-driven
 landing-page and header navigation. `bindProfessionSelector()`
@@ -169,8 +167,6 @@ Static Guild Wars 2 game data and lookups live with their owning layer.
   consumable, infusion, weapon, sigil, rune, and relic lookups.
 - [weapon-strength.ts](js/platform/gw2/weapon-strength.ts) owns canonical
   min/max weapon, non-weapon, bundle, transform, and shroud strength profiles.
-- Elementalist-owned data and CSV loading live under
-  `js/professions/elementalist/data/`.
 
 ---
 
@@ -453,18 +449,16 @@ Post-scheduler phase that converts timed events into damage numbers using calcul
 
 ## File Organization Summary
 
-| Path                                                              | Purpose                                                                               |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `js/app/`                                                         | Profession-neutral browser shell, composition, and orchestration                      |
-| `js/platform/engine/`                                             | Shared scheduling, event queue, and simulation primitives                             |
-| `js/platform/gw2/`                                                | Shared GW2 formulas, data, scheduler events, resolver, gear, relics, and target state |
-| `js/platform/ui/`                                                 | Shared palette/resource/timeline/log/result/chart view-model contracts                |
-| `js/professions/*/data/`                                          | Profession-owned catalogs, mechanics data, traits, and loaders                        |
-| `js/professions/*/core/`, `.../specializations/`                  | Core and per-elite vertical slices: skills, rules, mechanics, resolver, and UI        |
-| `js/professions/elementalist/`                                    | Native Elementalist catalog, rules, state, resolver extensions, and UI                |
-| `Builds/elementalist/manifest.json`, `Builds/elementalist/*.json` | Elementalist build presets                                                            |
-| `Builds/<profession>/`                                            | Native profession builds and `manifest.json`                                          |
-| `Rotations/`, `Rotations/<profession>/`                           | Elementalist and native profession rotation examples                                  |
-| `reference-repos/Elementalist-Simulator/`                         | Ignored upstream Elementalist reference clone used by audit scripts                   |
-| `tests/browser/`                                                  | Browser interaction fixtures                                                          |
-| `tests/helpers/`                                                  | Shared testing utilities                                                              |
+| Path                                             | Purpose                                                                               |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `js/app/`                                        | Profession-neutral browser shell, composition, and orchestration                      |
+| `js/platform/engine/`                            | Shared scheduling, event queue, and simulation primitives                             |
+| `js/platform/gw2/`                               | Shared GW2 formulas, data, scheduler events, resolver, gear, relics, and target state |
+| `js/platform/ui/`                                | Shared palette/resource/timeline/log/result/chart view-model contracts                |
+| `js/professions/*/data/`                         | Profession-owned generated metadata, traits, coverage, and stable IDs                 |
+| `js/professions/*/core/`, `.../specializations/` | Core and per-elite vertical slices: skills, rules, mechanics, resolver, and UI        |
+| `Builds/<profession>/`                           | Canonical native-profession builds and `manifest.json`                                |
+| `Rotations/<profession>/`                        | Native-profession rotation examples                                                   |
+| `reference-repos/Elementalist-Simulator/`        | Ignored upstream Elementalist reference clone used by audit scripts                   |
+| `tests/browser/`                                 | Browser interaction fixtures                                                          |
+| `tests/helpers/`                                 | Shared testing utilities                                                              |

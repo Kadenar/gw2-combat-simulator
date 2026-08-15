@@ -103,21 +103,26 @@ test("condition Weaver pistol/warhorn preserves the supplied default rotation", 
     readFile(buildUrl, "utf8").then(JSON.parse),
     loadProfessionAppAdapter("elementalist"),
   ]);
-  assert.deepEqual(savedBuild.build.sigils, ["Malice", "Earth"]);
-  assert.equal(savedBuild.build.food, "Salsa-Topped Veggie Flatbread");
-  assert.deepEqual(savedBuild.build.infusions[0], {
+  assert.equal(savedBuild.schemaVersion, 3);
+  assert.equal(savedBuild.profession, "elementalist");
+  assert.deepEqual(savedBuild.weaponSigils, [
+    ["Malice", "Earth"],
+    ["Malice", "Earth"],
+  ]);
+  assert.equal(savedBuild.food, "Salsa-Topped Veggie Flatbread");
+  assert.deepEqual(savedBuild.infusions[0], {
     stat: "Expertise",
     count: 18,
   });
-  assert.equal(savedBuild.build.gear.Back, "Viper's");
-  assert.equal(savedBuild.build.utility, "Tuning Icicle");
+  assert.equal(savedBuild.gear.Back, "Viper's");
+  assert.equal(savedBuild.utility, "Tuning Icicle");
   assert.deepEqual(savedBuild.pistolBullets, {
     Fire: true,
     Water: false,
     Air: false,
     Earth: true,
   });
-  assert.equal(savedBuild.activeAttunement, "Earth");
+  assert.equal(savedBuild.startAttunement, "Earth");
   assert.equal(savedBuild.secondaryAttunement, "Fire");
   const build = {
     ...adapter.toApplicationBuild({

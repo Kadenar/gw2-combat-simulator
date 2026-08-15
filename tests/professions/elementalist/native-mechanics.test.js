@@ -15,6 +15,7 @@ import {
   weaponPaletteRows,
 } from "../../../js/app/rotation/palette-model.js";
 import {
+  calculateAttributes,
   elementalistAppAdapter,
   recalculate,
   simulationConfig,
@@ -1941,6 +1942,24 @@ test("core damage traits expose their exact resolver modifiers", () => {
   assert.equal(core.attributeData.attributes.Concentration.traits, 180);
   assert.equal(core.attributeData.attributes["Critical Chance"].traits, 5);
   assert.equal(core.attributeData.attributes["Burning Duration"].traits, 20);
+
+  const { app: water } = createNativeApp({
+    lines: [["Water", "1-1-3"], ["Air"], ["Arcane"]],
+  });
+  assert.equal(water.attributeData.attributes.Vitality.traits, 300);
+  const withoutSoothingPower = calculateAttributes(
+    water.build,
+    [],
+    1,
+    "Soothing Power",
+  );
+  assert.equal(withoutSoothingPower.attributes.Vitality.traits, 0);
+  assert.equal(
+    withoutSoothingPower.activeTraits.some(
+      (trait) => trait.name === "Soothing Power",
+    ),
+    false,
+  );
 
   const { app: tempest } = createNativeApp({
     lines: [["Fire"], ["Air"], ["Tempest"]],

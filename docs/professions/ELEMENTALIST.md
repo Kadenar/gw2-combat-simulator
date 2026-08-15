@@ -19,8 +19,8 @@ upstream clone in `reference-repos/Elementalist-Simulator/`.
 ```text
 js/professions/elementalist/
   app/                    shared-shell adapter
-  core/                   attunements, core rules, modifiers, state, and UI
-  data/                   skill, trait, gear, ID, and API metadata
+  core/                   core skills, attunements, rules, state, and UI
+  data/                   generated API, trait, coverage, and ID metadata
   mechanics/              catalog mechanics metadata
   specializations/
     tempest/              overload and Tempest behavior
@@ -30,7 +30,7 @@ js/professions/elementalist/
   assumptions.ts          Elementalist-only simulation assumptions
   build.ts                canonical build codec
   build-attributes.ts     profession attribute contributions
-  catalog-data.ts         canonical skill definitions
+  catalog-data.ts         inert generated metadata and module catalog options
   definition.ts           profession contract
   family.ts               shared-engine family definition
   modules.ts              core/specialization module composition
@@ -46,7 +46,8 @@ owns only profession-specific state, rules, resolver extensions, and views.
 `Builds/elementalist/manifest.json` is the supported preset inventory. Each
 entry points to a build in `Builds/elementalist/` and a rotation in
 `Rotations/elementalist/`. Tests reject missing or orphaned supported assets and
-load every retained preset through the native build codec.
+load every retained preset through the native build codec. Presets are stored
+directly in the canonical versioned build schema used by the shared shell.
 
 ## Reference audit
 
@@ -83,6 +84,8 @@ Current results and diagnosed shared-engine limitations are documented in:
 
 The native tool supports an EVTC-derived Fire Elemental profile for normal
 simulation and a fixed `reference` profile for reproducible upstream fixture
-comparison. The latter is an explicit data profile, not a second simulator.
-Air, Ice, and Earth Elemental AI require additional combat-log evidence before
-distinct behavior can be implemented.
+comparison. Saved presets that equip Glyph of Elementals use the fixed profile
+until their rotations explicitly prescribe Flame Barrage; command-aware
+rotations use the EVTC profile. The fixed replay is an explicit data profile,
+not a second simulator. Air, Ice, and Earth Elemental AI require additional
+combat-log evidence before distinct behavior can be implemented.

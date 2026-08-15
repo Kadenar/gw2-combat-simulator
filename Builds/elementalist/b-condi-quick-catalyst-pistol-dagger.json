@@ -1,90 +1,117 @@
 {
-  "build": {
-    "gear": {
-      "Helm": "Viper's",
-      "Shoulders": "Viper's",
-      "Chest": "Viper's",
-      "Gloves": "Viper's",
-      "Leggins": "Viper's",
-      "Boots": "Viper's",
-      "Amulet": "Viper's",
-      "Ring1": "Viper's",
-      "Ring2": "Viper's",
-      "Accessory1": "Viper's",
-      "Accessory2": "Viper's",
-      "Back": "Viper's",
-      "Weapon1": "Viper's",
-      "Weapon2": "Viper's"
+  "schemaVersion": 3,
+  "profession": "elementalist",
+  "gear": {
+    "Helm": "Viper's",
+    "Shoulders": "Viper's",
+    "Chest": "Viper's",
+    "Gloves": "Viper's",
+    "Leggins": "Viper's",
+    "Boots": "Viper's",
+    "Amulet": "Viper's",
+    "Ring1": "Viper's",
+    "Ring2": "Viper's",
+    "Accessory1": "Viper's",
+    "Accessory2": "Viper's",
+    "Back": "Viper's",
+    "Weapon1": "Viper's",
+    "Weapon2": "Viper's"
+  },
+  "alternateWeaponPrefixes": ["Viper's", "Viper's"],
+  "weapons": ["Pistol", "Dagger"],
+  "alternateWeapons": ["", ""],
+  "rune": "Trapper",
+  "weaponSigils": [
+    ["Bursting", "Malice"],
+    ["Bursting", "Malice"]
+  ],
+  "relic": "Steamshrieker",
+  "food": "Cilantro and Cured Meat Flatbread",
+  "utility": "Toxic Tuning Crystal",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Condition Damage",
+      "count": 9
     },
-    "weapons": ["Pistol", "Dagger"],
-    "rune": "Trapper",
-    "sigils": ["Bursting", "Malice"],
-    "relic": "Steamshrieker",
-    "food": "Cilantro and Cured Meat Flatbread",
-    "utility": "Toxic Tuning Crystal",
-    "jadeBotCore": true,
-    "specializations": [
-      {
-        "name": "Fire",
-        "traits": "1-1-2"
-      },
-      {
-        "name": "Earth",
-        "traits": "2-1-2"
-      },
-      {
-        "name": "Catalyst",
-        "traits": "2-3-3"
-      }
-    ],
-    "infusions": [
-      {
-        "stat": "Condition Damage",
-        "count": 9
-      },
-      {
-        "stat": "Expertise",
-        "count": 9
-      },
-      {
-        "stat": "Ferocity",
-        "count": 0
-      }
-    ]
-  },
+    {
+      "stat": "Expertise",
+      "count": 9
+    },
+    {
+      "stat": "Power",
+      "count": 0
+    },
+    {
+      "stat": "Precision",
+      "count": 0
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Fire",
+      "traits": "1-1-2"
+    },
+    {
+      "name": "Earth",
+      "traits": "2-1-2"
+    },
+    {
+      "name": "Catalyst",
+      "traits": "2-3-3"
+    }
+  ],
   "selectedSkills": {
-    "heal": "Arcane Brilliance",
-    "util1": "Signet of Fire",
-    "util2": "Glyph of Storms (Fire)",
-    "util3": "Signet of Earth",
-    "elite": "Glyph of Elementals"
+    "Heal": "Arcane Brilliance",
+    "Utility1": "Signet of Fire",
+    "Utility2": "Glyph of Storms (Fire)",
+    "Utility3": "Signet of Earth",
+    "Elite": "Glyph of Elementals"
   },
-  "activeAttunement": "Fire",
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "hitboxSize": "small",
+    "elementalSimulationProfile": "reference",
+    "glyphBoonedElementals": false,
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": false,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "targetConditions": {
+      "Bleeding": 5,
+      "Burning": true,
+      "Torment": 5,
+      "Confusion": 5,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    }
+  },
+  "startingWeaponSet": 1,
+  "targetHealth": 3970000,
+  "targetArmor": 2597,
+  "rotation": [],
+  "startAttunement": "Fire",
   "secondaryAttunement": "Air",
-  "evokerElement": null,
-  "evokerStartCharges": 6,
-  "evokerStartEmpowered": 0,
-  "permaBoons": {
-    "Might": 25,
-    "Fury": true,
-    "Protection": true,
-    "Resolution": true,
-    "Alacrity": true,
-    "Quickness": true,
-    "Regeneration": true,
-    "Vigor": true,
-    "Swiftness": true,
-    "Bleeding": 5,
-    "Burning": true,
-    "Torment": 5,
-    "Confusion": 5,
-    "Poisoned": true,
-    "Chilled": true,
-    "Cripple": true,
-    "Slow": true,
-    "Weakness": true,
-    "Vulnerability": 25
-  },
-  "hitboxSize": "small",
-  "glyphBoonedElementals": false
+  "initialCatalystEnergy": 30,
+  "evokerElement": "Fire",
+  "initialEvokerCharges": 6,
+  "initialEvokerEmpowered": 0,
+  "pistolBullets": {
+    "Fire": false,
+    "Water": false,
+    "Air": false,
+    "Earth": false
+  }
 }

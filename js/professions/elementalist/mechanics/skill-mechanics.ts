@@ -1,38 +1,31 @@
+/**
+ * Application-facing composition facade for module-owned Elementalist skill
+ * mechanics. Runtime modules import only their local skill declarations.
+ */
+import { ELEMENTALIST_CORE_SKILL_MECHANICS } from "../core/skills.js";
+import { CATALYST_SKILL_MECHANICS } from "../specializations/catalyst/skills.js";
+import { EVOKER_SKILL_MECHANICS } from "../specializations/evoker/skills.js";
+import { TEMPEST_SKILL_MECHANICS } from "../specializations/tempest/skills.js";
+import { WEAVER_SKILL_MECHANICS } from "../specializations/weaver/skills.js";
 import type { SkillFragment } from "../../../platform/engine/types.js";
 
-function mechanic(
-  ids: readonly number[],
-  stateMachine: string,
-): Readonly<Record<string, SkillFragment>> {
-  return Object.fromEntries(
-    ids.map((id) => [id, { elementalistStateMachine: stateMachine }]),
-  );
+const fragments = Object.freeze([
+  ELEMENTALIST_CORE_SKILL_MECHANICS,
+  TEMPEST_SKILL_MECHANICS,
+  WEAVER_SKILL_MECHANICS,
+  CATALYST_SKILL_MECHANICS,
+  EVOKER_SKILL_MECHANICS,
+]);
+
+const entries = fragments.flatMap((fragment) => Object.entries(fragment));
+if (new Set(entries.map(([skillId]) => skillId)).size !== entries.length) {
+  throw new TypeError("Duplicate Elementalist skill-mechanics ownership.");
 }
 
 export const ELEMENTALIST_SKILL_MECHANICS: Readonly<
   Record<string, SkillFragment>
-> = Object.freeze({
-  ...mechanic([1100276], "summoned-elemental"),
-  ...mechanic([1100036, 1100037], "rock-barrier"),
-  ...mechanic([1100023, 1100068, 1100073, 1100083], "aura-transmute"),
-  ...mechanic(
-    [
-      1100256, 1100257, 1100259, 1100260, 1100262, 1100267, 1100268, 1100269,
-      1100270, 1100271, 1100272, 1100273, 1100275,
-    ],
-    "pistol-bullets",
-  ),
-  ...mechanic([1100228, 1100235, 1100240, 1100245, 1100248], "hammer-orbs"),
-  ...mechanic([1100194, 1100201, 1100208, 1100215], "spear-followup"),
-  ...mechanic(
-    [
-      1100196, 1100197, 1100198, 1100203, 1100204, 1100205, 1100210, 1100211,
-      1100212, 1100217, 1100218, 1100219,
-    ],
-    "spear-etching",
-  ),
-  ...mechanic(
-    [1100179, 1100180, 1100181, 1100182, 1100183, 1100184, 1100185, 1100186],
-    "evoker-familiar",
-  ),
-});
+> = Object.freeze(Object.fromEntries(entries));
+
+export const ELEMENTALIST_IMPLEMENTED_SKILL_IDS = Object.freeze(
+  Object.keys(ELEMENTALIST_SKILL_MECHANICS).map(Number),
+);

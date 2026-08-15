@@ -1,90 +1,117 @@
 {
-  "build": {
-    "gear": {
-      "Helm": "Celestial",
-      "Shoulders": "Celestial",
-      "Chest": "Celestial",
-      "Gloves": "Celestial",
-      "Leggins": "Celestial",
-      "Boots": "Celestial",
-      "Amulet": "Celestial",
-      "Ring1": "Celestial",
-      "Ring2": "Celestial",
-      "Accessory1": "Celestial",
-      "Accessory2": "Celestial",
-      "Back": "Celestial",
-      "Weapon1": "Celestial",
-      "Weapon2": "Celestial"
+  "schemaVersion": 3,
+  "profession": "elementalist",
+  "gear": {
+    "Helm": "Celestial",
+    "Shoulders": "Celestial",
+    "Chest": "Celestial",
+    "Gloves": "Celestial",
+    "Leggins": "Celestial",
+    "Boots": "Celestial",
+    "Amulet": "Celestial",
+    "Ring1": "Celestial",
+    "Ring2": "Celestial",
+    "Accessory1": "Celestial",
+    "Accessory2": "Celestial",
+    "Back": "Celestial",
+    "Weapon1": "Celestial",
+    "Weapon2": "Celestial"
+  },
+  "alternateWeaponPrefixes": ["Celestial", "Celestial"],
+  "weapons": ["Scepter", "Warhorn"],
+  "alternateWeapons": ["", ""],
+  "rune": "Divinity",
+  "weaponSigils": [
+    ["Smoldering", "Torment"],
+    ["Smoldering", "Torment"]
+  ],
+  "relic": "Peitha",
+  "food": "Spherified Cilantro Oyster Soup",
+  "utility": "Toxic Maintenance Oil",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Healing Power",
+      "count": 18
     },
-    "weapons": ["Scepter", "Warhorn"],
-    "rune": "Divinity",
-    "sigils": ["Smoldering", "Torment"],
-    "relic": "Peitha",
-    "food": "Spherified Cilantro Oyster Soup",
-    "utility": "Toxic Maintenance Oil",
-    "jadeBotCore": true,
-    "specializations": [
-      {
-        "name": "Fire",
-        "traits": "1-1-1"
-      },
-      {
-        "name": "Water",
-        "traits": "2-3-2"
-      },
-      {
-        "name": "Tempest",
-        "traits": "3-3-3"
-      }
-    ],
-    "infusions": [
-      {
-        "stat": "Healing Power",
-        "count": 18
-      },
-      {
-        "stat": "Precision",
-        "count": 0
-      },
-      {
-        "stat": "Ferocity",
-        "count": 0
-      }
-    ]
-  },
+    {
+      "stat": "Precision",
+      "count": 0
+    },
+    {
+      "stat": "Power",
+      "count": 0
+    },
+    {
+      "stat": "Condition Damage",
+      "count": 0
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Fire",
+      "traits": "1-1-1"
+    },
+    {
+      "name": "Water",
+      "traits": "2-3-2"
+    },
+    {
+      "name": "Tempest",
+      "traits": "3-3-3"
+    }
+  ],
   "selectedSkills": {
-    "heal": "Wash the Pain Away!",
-    "util1": "Feel the Burn!",
-    "util2": "Glyph of Storms (Fire)",
-    "util3": "Signet of Fire",
-    "elite": "Glyph of Elementals"
+    "Heal": "Wash the Pain Away!",
+    "Utility1": "Feel the Burn!",
+    "Utility2": "Glyph of Storms (Fire)",
+    "Utility3": "Signet of Fire",
+    "Elite": "Glyph of Elementals"
   },
-  "activeAttunement": "Fire",
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "hitboxSize": "small",
+    "elementalSimulationProfile": "reference",
+    "glyphBoonedElementals": true,
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": false,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "targetConditions": {
+      "Bleeding": 5,
+      "Burning": true,
+      "Torment": 5,
+      "Confusion": 5,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    }
+  },
+  "startingWeaponSet": 1,
+  "targetHealth": 3970000,
+  "targetArmor": 2597,
+  "rotation": [],
+  "startAttunement": "Fire",
   "secondaryAttunement": "Air",
-  "evokerElement": null,
-  "evokerStartCharges": 6,
-  "evokerStartEmpowered": 0,
-  "permaBoons": {
-    "Might": 25,
-    "Fury": true,
-    "Protection": true,
-    "Resolution": true,
-    "Alacrity": true,
-    "Quickness": true,
-    "Regeneration": true,
-    "Vigor": true,
-    "Swiftness": true,
-    "Bleeding": 5,
-    "Burning": true,
-    "Torment": 5,
-    "Confusion": 5,
-    "Poisoned": true,
-    "Chilled": true,
-    "Cripple": true,
-    "Slow": true,
-    "Weakness": true,
-    "Vulnerability": 25
-  },
-  "hitboxSize": "small",
-  "glyphBoonedElementals": true
+  "initialCatalystEnergy": 30,
+  "evokerElement": "Fire",
+  "initialEvokerCharges": 6,
+  "initialEvokerEmpowered": 0,
+  "pistolBullets": {
+    "Fire": false,
+    "Water": false,
+    "Air": false,
+    "Earth": false
+  }
 }

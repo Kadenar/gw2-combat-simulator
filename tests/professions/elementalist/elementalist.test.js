@@ -236,6 +236,14 @@ test("all Elementalist build and rotation assets migrate through the native code
       rotation: savedRotation.rotation,
     });
     const validation = validateElementalistBuild(build);
+    const equipsGlyphOfElementals = Object.values(
+      savedBuild.selectedSkills,
+    ).includes("Glyph of Elementals");
+    const prescribesFlameBarrage = savedRotation.rotation.some((entry) =>
+      typeof entry === "string"
+        ? entry === "Flame Barrage"
+        : entry.name === "Flame Barrage" || entry.skillId === 2662,
+    );
 
     assert.equal(
       validation.valid,
@@ -243,6 +251,13 @@ test("all Elementalist build and rotation assets migrate through the native code
       `${preset.section}: ${preset.label}: ${validation.errors.join("; ")}`,
     );
     assert.equal(build.rotation.length, savedRotation.rotation.length);
+    if (equipsGlyphOfElementals) {
+      assert.equal(
+        savedBuild.assumptions.elementalSimulationProfile,
+        prescribesFlameBarrage ? "evtc" : "reference",
+        `${preset.section}: ${preset.label}: elemental packet profile`,
+      );
+    }
     assert.ok(
       build.rotation
         .filter((command) => command.type === "cast")

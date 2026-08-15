@@ -20,11 +20,10 @@ Choose a profession from the landing page or the shared simulator header:
 - **Warrior**: Core, Berserker, Spellbreaker, Bladesworn, and Paragon.
 - **Thief**: Core, Daredevil, Deadeye, Specter, and Antiquary.
 
-The Elementalist package is a direct port of the reference
-`Elementalist-Simulator` implementation. It retains its event scheduler,
-resolver, traits, attunements, profession resources, skill data, presets,
-rotation builder, and gear optimizer. All profession applications use the
-same visual system and keep independent browser-local builds.
+Elementalist now uses the same native family, scheduler, resolver, build codec,
+and module-owned data boundaries as the other professions. Its retained
+reference simulator is used only for parity audits. All profession applications
+use the same visual system and keep independent browser-local builds.
 
 ## Run
 
@@ -86,13 +85,12 @@ gw2-combat-simulator/
       revenant/                Revenant legends, energy, and Conduit rules
       warrior/                 Warrior adrenaline, bursts, and elite rules
       thief/                   Thief initiative, stealth, and artifact rules
-      ranger/                  Ranger pets, Beastmode, Unleash, and Cyclone Bow
+      ranger/                  Ranger pets, Beastmode, Unleash, and Galeshot
     app/                       shared browser shell and composition
   Builds/                      build presets and manifests
-    manifest.json              Elementalist preset manifest
-    <profession>/              native profession builds and manifest
-  Rotations/                   Elementalist rotation examples
-    <profession>/              native profession rotation examples
+    <profession>/              canonical builds and profession manifest
+  Rotations/
+    <profession>/              profession rotation examples
   index.html                   Generic profession landing page
   mesmer.html                  Mesmer application
   elementalist.html            Elementalist application
@@ -120,6 +118,7 @@ Per-profession documentation lives in [docs/professions/](docs/professions/):
 - Necromancer status: [NECROMANCER.md](docs/professions/NECROMANCER.md)
 - Engineer status: [ENGINEER.md](docs/professions/ENGINEER.md)
 - Revenant status: [REVENANT.md](docs/professions/REVENANT.md)
+- Ranger status: [RANGER.md](docs/professions/RANGER.md)
 - Thief status: [THIEF.md](docs/professions/THIEF.md)
 - Warrior status: [WARRIOR.md](docs/professions/WARRIOR.md)
 

@@ -10,7 +10,7 @@ Let the simulator hold **two active versions of the numbers simultaneously** —
 which set it uses. GW2 balance patches are overwhelmingly small numeric tweaks:
 strike damage coefficients, condition stacks/durations, cooldowns, cast times.
 
-The payoff feature: run the *same* build + rotation through both number sets and
+The payoff feature: run the _same_ build + rotation through both number sets and
 show the DPS delta.
 
 **Do not fork the data.** Model a patch as a sparse **overlay/diff** applied on
@@ -19,15 +19,9 @@ preview is only the diff.
 
 ## Scope
 
-**In scope:** the 8 fragment-pattern professions —
-**mesmer, necromancer, guardian, engineer, ranger, revenant, thief, warrior**.
-
-**Out of scope: elementalist.** It is a broken work-in-progress and uses a
-different (flat-array) data layout. Ignore it entirely for now. It will later be
-migrated to the same `skillMechanics`-fragment pattern the other 8 use; once
-migrated it plugs into this system with **zero mechanism changes** (see
-[Future: elementalist migration](#future-elementalist-migration-not-this-task)).
-Do not add elementalist-specific handling and do not register patches for it.
+**In scope:** every native profession registered by the application. All use
+Core and specialization-owned `skillMechanics` fragments and converge at the
+same assembled-catalog boundary. Do not add profession-specific patch paths.
 
 ## Current architecture (validated)
 
@@ -47,9 +41,9 @@ App side: `js/app/profession/registry.ts` lazy-loads each profession;
 (e.g. `js/app/profession/create-runtime.ts:98` → `catalog: profession.catalog`).
 Simulations resolve damage from that catalog's skill `effects[]`.
 
-### Where the numbers live (uniform across all 8 in-scope professions)
+### Where the numbers live
 
-All 8 store coefficients in `skillMechanics` fragments
+All native professions store coefficients in `skillMechanics` fragments
 (`Record<SkillId, SkillFragment>`) spread across `core/skills.ts`,
 `core/weapons.ts`, and `specializations/*/skills.ts`. Example:
 `js/professions/necromancer/core/skills.ts:19-34`. These fragments merge into
@@ -70,7 +64,7 @@ source.**
 
 ## Required design
 
-### 1. Overlay type + apply function (platform layer — write once, all 8 benefit)
+### 1. Overlay type + apply function (platform layer)
 
 New file `js/platform/gw2/skill-patch.ts`:
 
@@ -78,17 +72,22 @@ New file `js/platform/gw2/skill-patch.ts`:
 export type NumEdit = number | { multiply: number } | { add: number };
 
 export interface SkillPatch {
-  readonly id: string;            // "2026-09-preview"  (stable; used as catalog/cache key)
-  readonly label: string;         // "Sept 2026 Preview"
-  readonly skills: Readonly<Record<
-    string /* skill id or exact name */,
-    {
-      coefficient?: NumEdit;      // applies to flat coefficient AND every strike tick
-      conditions?: Record<string /*condition*/, { stacks?: NumEdit; duration?: NumEdit }>;
-      cooldown?: NumEdit;
-      castTimeMs?: NumEdit;       // maps to quicknessCastTimeMs / castTimeMs
-    }
-  >>;
+  readonly id: string; // "2026-09-preview"  (stable; used as catalog/cache key)
+  readonly label: string; // "Sept 2026 Preview"
+  readonly skills: Readonly<
+    Record<
+      string /* skill id or exact name */,
+      {
+        coefficient?: NumEdit; // applies to flat coefficient AND every strike tick
+        conditions?: Record<
+          string /*condition*/,
+          { stacks?: NumEdit; duration?: NumEdit }
+        >;
+        cooldown?: NumEdit;
+        castTimeMs?: NumEdit; // maps to quicknessCastTimeMs / castTimeMs
+      }
+    >
+  >;
 }
 ```
 
@@ -171,9 +170,9 @@ matches the stated use cases.
 
 ## Validation instructions
 
-- ⚠️ **Do NOT touch or validate against elementalist** — broken WIP, out of scope.
-- Build and test against a **stable in-scope profession: necromancer** (or
-  guardian). This exercises the `skillMechanics`-fragment path all 8 share.
+- Build and test against a stable native profession such as Necromancer or
+  Guardian. This exercises the same `skillMechanics`-fragment path shared by
+  every native profession.
 - Prove:
   1. base catalog numbers unchanged with no patch;
   2. a preview with `multiply` / `add` / absolute edits changes exactly the
@@ -184,17 +183,12 @@ matches the stated use cases.
   (`tests/app/benchmarks/<prof>.test.js`) for the in-scope professions with
   `patchId: "current"` and confirm no regression.
 
-## Future: elementalist migration (not this task)
+## Elementalist
 
-Elementalist currently stores numbers in a flat frozen array
-(`js/professions/elementalist/data/native-skill-data.ts`) instead of
-`skillMechanics` fragments. Once it is migrated to the fragment pattern, it
-converges at the same assembled-catalog `effects[]` boundary and registers
-`patches` through the same `defineNativeProfession` path — **no changes to
-`skill-patch.ts` or the variant-catalog mechanism needed**. Because the overlay
-targets the catalog boundary (not raw source), the layout of elementalist's
-source is irrelevant to this system. Do not build anything elementalist-specific
-now.
+Elementalist uses Core and specialization-owned `skills.ts` fragments and
+converges at the same assembled-catalog `effects[]` boundary as every other
+native profession. Patch preview must use that shared boundary; it does not
+need an Elementalist-specific path.
 
 ## Suggested phasing
 

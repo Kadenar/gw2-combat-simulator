@@ -63,10 +63,10 @@ profession terminology inside the platform tree.
 
 ## Declarative profession mechanics layout
 
-Every native profession — Engineer, Guardian, Mesmer, Necromancer, Ranger,
-Revenant, Thief, and Warrior — uses the typed authoring layer in
-`platform/gw2/native-profession.ts`. Elementalist is not part of this
-architecture. A native module is a vertical slice with four explicit sections:
+Every native profession — Elementalist, Engineer, Guardian, Mesmer,
+Necromancer, Ranger, Revenant, Thief, and Warrior — uses the typed authoring
+layer in `platform/gw2/native-profession.ts`. A native module is a vertical
+slice with four explicit sections:
 
 - `data` owns generated identities, skill mechanics and overrides, extra
   skills, traits, specialization metadata, handlers, weapon hands, and chain
@@ -201,7 +201,7 @@ mutable state. `resolveRuntime(config)` returns the cached executable contract
 containing Core plus only the selected elite module.
 `simulateGw2()`, the direct scheduler, and the direct resolver normalize family
 sources before constructing runtime state. Ordinary `defineProfession()`
-contracts, including Elementalist and test fixtures, pass through unchanged.
+contracts, including test fixtures, pass through unchanged.
 
 Module composition rejects duplicate hook IDs, skill IDs, trait IDs,
 specialization IDs, task handlers, event handlers, skill handlers, and
@@ -239,8 +239,6 @@ critical chance, critical damage, strike damage, condition damage, and
 condition duration hooks. It owns scalar sequencing and the single GW2
 outgoing additive-damage bucket rebuild; profession modules own predicates and
 runtime state. Ordered attribute conversions remain narrow imperative hooks.
-Elementalist is excluded until its resolver path adopts the shared GW2
-profession hooks.
 
 ## Phase-explicit native helpers
 
@@ -527,8 +525,9 @@ wrong-profession and future-version errors.
   declarative scheduling owns ordinary effects; stable-ID handlers and
   namespaced tasks own clones, phantasms, shatters, instruments, Continuum
   Split, and Mirage behavior.
-- `elementalist`: direct reference-engine port exposed through an
-  `elementalistProfession` contract adapter.
+- `elementalist`: native shared-engine implementation for attunements,
+  elementals, auras, overloads, Weaver dual attunement, Catalyst energy and
+  spheres, and Evoker familiars and charges.
 - `guardian`: declarative shared-engine implementation with a reproducible
   current API snapshot, an explicit supplement for API-omitted bundle skills,
   complete executable skill coverage, all specialization mechanics, Guardian
@@ -584,7 +583,3 @@ use the `platform/engine` scheduler, canonical effects, shared effect
 materializer, and the `platform/gw2` resolver. If a new rule is truly shared
 by multiple professions, add it to `platform/gw2`; otherwise keep it in the
 profession module as a scheduler mechanic or resolver reaction.
-
-Elementalist currently remains `standalone`. Its eventual shared-engine
-migration only requires changing its registry kind to `native` once its app
-adapter exists; the registry contract does not need another redesign.

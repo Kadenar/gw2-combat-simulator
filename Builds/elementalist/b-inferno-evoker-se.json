@@ -1,86 +1,113 @@
 {
-  "build": {
-    "gear": {
-      "Helm": "Berserker's",
-      "Shoulders": "Berserker's",
-      "Chest": "Berserker's",
-      "Gloves": "Berserker's",
-      "Leggins": "Berserker's",
-      "Boots": "Berserker's",
-      "Amulet": "Berserker's",
-      "Ring1": "Berserker's",
-      "Ring2": "Berserker's",
-      "Accessory1": "Berserker's",
-      "Accessory2": "Berserker's",
-      "Back": "Berserker's",
-      "Weapon1": "Berserker's",
-      "Weapon2": "Berserker's"
+  "schemaVersion": 3,
+  "profession": "elementalist",
+  "gear": {
+    "Helm": "Berserker's",
+    "Shoulders": "Berserker's",
+    "Chest": "Berserker's",
+    "Gloves": "Berserker's",
+    "Leggins": "Berserker's",
+    "Boots": "Berserker's",
+    "Amulet": "Berserker's",
+    "Ring1": "Berserker's",
+    "Ring2": "Berserker's",
+    "Accessory1": "Berserker's",
+    "Accessory2": "Berserker's",
+    "Back": "Berserker's",
+    "Weapon1": "Berserker's",
+    "Weapon2": "Berserker's"
+  },
+  "alternateWeaponPrefixes": ["Berserker's", "Berserker's"],
+  "weapons": ["Scepter", "Focus"],
+  "alternateWeapons": ["", ""],
+  "rune": "Flame Legion",
+  "weaponSigils": [
+    ["Malice", "Smoldering"],
+    ["Malice", "Smoldering"]
+  ],
+  "relic": "Fireworks",
+  "food": "Plate of Truffle Steak",
+  "utility": "Superior Sharpening Stone",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Power",
+      "count": 18
     },
-    "weapons": ["Scepter", "Focus"],
-    "rune": "Flame Legion",
-    "sigils": ["Malice", "Smoldering"],
-    "relic": "Fireworks",
-    "food": "Plate of Truffle Steak",
-    "utility": "Superior Sharpening Stone",
-    "jadeBotCore": true,
-    "specializations": [
-      {
-        "name": "Fire",
-        "traits": "1-3-3"
-      },
-      {
-        "name": "Air",
-        "traits": "3-3-1"
-      },
-      {
-        "name": "Evoker",
-        "traits": "1-1-3"
-      }
-    ],
-    "infusions": [
-      {
-        "stat": "Power",
-        "count": 18
-      },
-      {
-        "stat": "Precision",
-        "count": 0
-      },
-      {
-        "stat": "Ferocity",
-        "count": 0
-      }
-    ]
-  },
+    {
+      "stat": "Precision",
+      "count": 0
+    },
+    {
+      "stat": "Condition Damage",
+      "count": 0
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Fire",
+      "traits": "1-3-3"
+    },
+    {
+      "name": "Air",
+      "traits": "3-3-1"
+    },
+    {
+      "name": "Evoker",
+      "traits": "1-1-3"
+    }
+  ],
   "selectedSkills": {
-    "heal": "Rejuvenate",
-    "util1": "Fox's Fury",
-    "util2": "Glyph of Storms (Fire)",
-    "util3": "Signet of Fire",
-    "elite": "Glyph of Elementals"
+    "Heal": "Rejuvenate",
+    "Utility1": "Fox's Fury",
+    "Utility2": "Glyph of Storms (Fire)",
+    "Utility3": "Signet of Fire",
+    "Elite": "Glyph of Elementals"
   },
-  "activeAttunement": "Fire",
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "hitboxSize": "small",
+    "elementalSimulationProfile": "reference",
+    "glyphBoonedElementals": false,
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": false,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "targetConditions": {
+      "Bleeding": 5,
+      "Burning": true,
+      "Torment": 5,
+      "Confusion": 5,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    }
+  },
+  "startingWeaponSet": 1,
+  "targetHealth": 3970000,
+  "targetArmor": 2597,
+  "rotation": [],
+  "startAttunement": "Fire",
   "secondaryAttunement": "Air",
+  "initialCatalystEnergy": 30,
   "evokerElement": "Fire",
-  "permaBoons": {
-    "Might": 25,
-    "Fury": true,
-    "Protection": true,
-    "Resolution": true,
-    "Alacrity": true,
-    "Quickness": true,
-    "Regeneration": true,
-    "Vigor": true,
-    "Swiftness": true,
-    "Bleeding": 5,
-    "Burning": true,
-    "Torment": 5,
-    "Confusion": 5,
-    "Poisoned": true,
-    "Chilled": true,
-    "Cripple": true,
-    "Slow": true,
-    "Weakness": true,
-    "Vulnerability": 25
+  "initialEvokerCharges": 6,
+  "initialEvokerEmpowered": 0,
+  "pistolBullets": {
+    "Fire": false,
+    "Water": false,
+    "Air": false,
+    "Earth": false
   }
 }

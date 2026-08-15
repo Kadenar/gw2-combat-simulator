@@ -13,7 +13,10 @@ import type {
   Skill,
   SkillEffect,
 } from "../../../platform/engine/types.js";
+import { FIRE_ELEMENTAL_EVTC_PROFILE } from "./elemental-profile.js";
 import { elementalistCoreState, type ElementalistCoreState } from "./state.js";
+
+export { FIRE_ELEMENTAL_EVTC_PROFILE } from "./elemental-profile.js";
 
 interface ElementalistRuntimeState extends SchedulerRecord {
   core: ElementalistCoreState;
@@ -47,62 +50,16 @@ const ELEMENTAL_IMPACT_TASK = "elementalist.elemental-impact";
 const ELEMENTAL_EXPIRE_TASK = "elementalist.elemental-expire";
 const ELEMENTAL_TASK_OWNER = "elementalist.summoned-elemental";
 
-const FIREBALL_ID = 2660;
-const FLAME_BURST_ID = 2661;
-export const FLAME_BARRAGE_ID = 2662;
+const FIREBALL_ID = FIRE_ELEMENTAL_EVTC_PROFILE.fireball.skillId;
+const FLAME_BURST_ID = FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst.skillId;
+export const FLAME_BARRAGE_ID =
+  FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage.skillId;
 
 export function usesReferenceElementalProfile(
   context: Pick<ElementalistSchedulerContext, "config">,
 ): boolean {
   return context.config.elementalSimulationProfile === "reference";
 }
-
-/**
- * Fire Elemental timings and packets measured from the supplied 2026-07-16
- * ArcDPS log. The base packets match the former unbooned fixed-timeline
- * values, while casts, cooldowns, interruptions, boons, and condition
- * ownership are now materialized chronologically.
- */
-export const FIRE_ELEMENTAL_EVTC_PROFILE = Object.freeze({
-  lifetime: 120,
-  rechargeAfterExpiry: 40,
-  targetAcquisitionDelay: 0.16,
-  postCommandRecovery: 0.56,
-  subsequentCommandRecovery: 0.08,
-  basePower: 1000,
-  basePrecision: 1000,
-  baseFerocity: 0,
-  fireball: Object.freeze({
-    skillId: FIREBALL_ID,
-    baseDamage: 995,
-    impact: 1.2,
-    animationEnd: 2,
-    recovery: 3.2,
-  }),
-  flameBurst: Object.freeze({
-    skillId: FLAME_BURST_ID,
-    baseDamage: 1460,
-    impact: 2.52,
-    animationEnd: 3.68,
-    recovery: 4.64,
-    cooldown: 15,
-    burningStacks: 1,
-    burningDuration: 3,
-    mightStacks: 3,
-    mightDuration: 10,
-  }),
-  flameBarrage: Object.freeze({
-    skillId: FLAME_BARRAGE_ID,
-    projectileBaseDamage: 400,
-    explosionBaseDamage: 4800,
-    projectileImpacts: Object.freeze([1.12, 1.32, 1.52]),
-    explosionImpact: 1.52,
-    animationEnd: 3.04,
-    cooldown: 15,
-    burningStacks: 1,
-    burningDuration: 3,
-  }),
-});
 
 function ready(): AvailabilityResult {
   return { ready: true };

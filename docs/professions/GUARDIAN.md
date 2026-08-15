@@ -20,25 +20,27 @@ Radiant Forge weapons, or two current Dragonhunter virtue variants.
 bringing the canonical simulator catalog to 191 skills.
 
 Refresh it with `npm run update:guardian-data`. Generated API metadata is kept
-separate from simulator-owned timing and effect definitions in
-`js/professions/guardian/mechanics/`; the bundle supplement is intentionally
+separate from simulator-owned timing and effect definitions in Core and
+specialization `skills.ts` files; the bundle supplement is intentionally
 preserved by that refresh.
 
 ## Architecture
 
-`definition.js` is the Guardian composition root. Gameplay behavior is grouped
-by feature under `js/professions/guardian/mechanics/`: virtues, Firebrand
-tomes, Radiant Forge, and weapon state each own their cast validation,
-scheduler hooks, named skill handlers, and resolver reactions. `contract.js`
-combines those feature hooks in deterministic order.
+`definition.ts` is the stable export and `family.ts` composes the Core-first
+module tuple. Gameplay behavior is grouped into `core/` and the owning
+`specializations/<elite>/` directory: virtues, Firebrand tomes, Radiant Forge,
+and weapon state each own their cast validation, scheduler hooks, skill
+handlers, and resolver reactions.
 
 Ordinary timing, cooldowns, effects, and damage resolution continue to use the
 shared platform scheduler and GW2 resolver. Guardian does not maintain a
 parallel profession-specific engine.
 
-Like Mesmer and Necromancer, Guardian keeps every simulation-affecting skill
-field in `mechanics/skill-mechanics.js`. Generated API metadata does not
-provide runtime coefficients, conditions, hit counts, intervals, or cast time.
+Like every native profession, Guardian keeps simulation-affecting skill fields
+in owner-local `skills.ts` fragments. The root
+`mechanics/skill-mechanics.ts` file is only an inert application-catalog
+aggregate. Generated API metadata does not provide runtime coefficients,
+conditions, hit counts, intervals, or cast time.
 
 ## Implemented mechanics
 
@@ -100,16 +102,16 @@ full-benchmark DPS result.
 
 ## Spear Illuminated
 
-Guardian spear is modeled in `mechanics/spear.js` (a scheduler `afterCast`
-hook, registered in `contract.js`) plus its authoritative entries in
-`mechanics/skill-mechanics.js`. Skill slots follow the API metadata:
+Guardian spear is modeled in `core/spear.ts`, registered by `core/rules.ts`,
+plus its authoritative entries in `core/skills.ts`. Skill slots follow the API
+metadata:
 
-| Slot | Skill | Illuminated role |
-| --- | --- | --- |
-| Spear 1 | Daybreaking Slash | consumes an armed Illuminated charge |
-| Spear 2 | Helio Rush | **arms** Illuminated for the next spear attack |
-| Spear 3 | Gleaming Disc | arms Illuminated |
-| Spear 4 | Solar Storm | arms Illuminated |
+| Slot    | Skill               | Illuminated role                                              |
+| ------- | ------------------- | ------------------------------------------------------------- |
+| Spear 1 | Daybreaking Slash   | consumes an armed Illuminated charge                          |
+| Spear 2 | Helio Rush          | **arms** Illuminated for the next spear attack                |
+| Spear 3 | Gleaming Disc       | arms Illuminated                                              |
+| Spear 4 | Solar Storm         | arms Illuminated                                              |
 | Spear 5 | Symbol of Luminance | opens a 5s window that keeps **all** spear skills illuminated |
 
 An illuminated cast modifies the affected strike packet or adds Solar Storm's
@@ -133,9 +135,9 @@ The attached `build-dh-virtues-dh-relic-sp.json` reference models the same
 guardian effects declaratively; the simulator reproduces them differently:
 
 - **Illuminated is automatic, not hand-picked.** The reference JSON has
-  separate `… Illuminated` skills (`Solar Storm Illuminated`, `Helio Rush
-  Illuminated`, `Gleaming Disc Illuminated`) that the author swaps in manually
-  and links with `skills_to_put_on_cooldown`. The simulator tracks the
+  separate illuminated variants for Solar Storm, Helio Rush, and Gleaming
+  Disc that the author swaps in manually and links with
+  `skills_to_put_on_cooldown`. The simulator tracks the
   Illuminated state itself (armed by spear 2/3/4, held open by spear 5) and
   applies the enhanced packet profile automatically — the rotation only lists
   the base skill.
@@ -150,8 +152,8 @@ guardian effects declaratively; the simulator reproduces them differently:
   reference JSON expresses relics, sigils, food, and traits (Symbolic Avenger,
   Inspiring Virtue, DH Relic, Fiery Wrath, etc.) as `unique_effect`
   `attribute_modifiers`/`attribute_conversions`. The simulator implements the
-  equivalents in `attribute-rules.js` (trait multipliers, conversions) and the
-  shared platform (`relic-rules.js`, sigils, food), driven by the selected
+  equivalents in owner-local rules and the shared platform (`relic-rules.ts`,
+  sigils, food), driven by the selected
   build rather than a per-build effect list.
 - **Spear is one weapon set, not "aquatic".** The reference JSON parks the
   spear skills under an `aquatic` weapon slot; the simulator exposes Spear as a
