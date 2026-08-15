@@ -3135,12 +3135,6 @@ test("migrated combo professions have no local compatibility path", async () => 
       await Promise.all(files.map((file) => readFile(file, "utf8")))
     ).join("\n");
 
-    assert.doesNotMatch(source, /legacy-combo-adapter/, profession);
-    assert.doesNotMatch(
-      source,
-      /observeLegacyProfessionCombos|legacyComboBindingForOwner/,
-      profession,
-    );
     assert.doesNotMatch(
       source,
       /\bcomboField(?:Duration|StartMs)?\b/,

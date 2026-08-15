@@ -20,6 +20,10 @@
     "Glyph of Elementals",
     "__combat_start",
     "Elemental Explosion",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Deploy Jade Sphere (Earth)",
     "Boulder Blast",
     "Shattering Stone",
@@ -70,6 +74,10 @@
     },
     "Shattering Stone",
     "Earthquake",
+    {
+      "name": "Flame Barrage",
+      "offset": 97
+    },
     "Churning Earth",
     "Elemental Explosion",
     "Boulder Blast",
@@ -118,6 +126,10 @@
       "name": "Deploy Jade Sphere (Air)",
       "offset": 75
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 67
+    },
     "Aerial Agility (chain)",
     "Aerial Agility (dash)",
     {
@@ -152,6 +164,10 @@
       "interruptMs": 242
     },
     "Raging Ricochet",
+    {
+      "name": "Flame Barrage",
+      "offset": 220
+    },
     "Searing Salvo",
     {
       "name": "Water Attunement",
@@ -205,6 +221,10 @@
     "Signet of Earth",
     "Scorching Shot",
     "Scorching Shot",
+    {
+      "name": "Flame Barrage",
+      "offset": 228
+    },
     "Scorching Shot",
     "Scorching Shot",
     "Scorching Shot",
@@ -258,8 +278,12 @@
     },
     "Shattering Stone",
     {
+      "name": "Flame Barrage",
+      "offset": 193
+    },
+    {
       "name": "Fire Attunement",
-      "offset": 326
+      "offset": 133
     },
     "Ring of Fire",
     "Raging Ricochet",
@@ -309,6 +333,10 @@
     "Churning Earth",
     "Elemental Explosion",
     "Signet of Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 97
+    },
     {
       "name": "Piercing Pebble",
       "interruptMs": 42
@@ -381,6 +409,10 @@
       "interruptMs": 42
     },
     "Shattering Stone",
+    {
+      "name": "Flame Barrage",
+      "offset": 295
+    },
     "Earthquake",
     "Churning Earth",
     "Elemental Explosion",
@@ -420,6 +452,10 @@
       "offset": 400
     },
     "Frigid Flurry",
+    {
+      "name": "Flame Barrage",
+      "offset": 657
+    },
     "Arcane Brilliance",
     {
       "name": "Air Attunement",

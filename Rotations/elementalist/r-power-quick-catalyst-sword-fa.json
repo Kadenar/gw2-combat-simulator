@@ -6,6 +6,10 @@
     "Glyph of Elementals",
     "Glyph of Storms (Air)",
     {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
+    {
       "name": "Deploy Jade Sphere (Air)",
       "offset": 920
     },
@@ -66,6 +70,10 @@
       "offset": 400
     },
     "Charged Strike",
+    {
+      "name": "Flame Barrage",
+      "offset": 203
+    },
     "Polaric Slash",
     "Call Lightning",
     "Polaric Leap",
@@ -124,6 +132,10 @@
     },
     "Charged Strike",
     "Polaric Slash",
+    {
+      "name": "Flame Barrage",
+      "offset": 3
+    },
     "Call Lightning",
     "Ride the Lightning",
     "Charged Strike",
@@ -179,8 +191,12 @@
     },
     "Earthquake",
     {
+      "name": "Flame Barrage",
+      "offset": 1
+    },
+    {
       "name": "Deploy Jade Sphere (Earth)",
-      "offset": 279
+      "offset": 278
     },
     "Churning Earth",
     {
@@ -236,6 +252,10 @@
     "Charged Strike",
     "Polaric Slash",
     "Call Lightning",
+    {
+      "name": "Flame Barrage",
+      "offset": 580
+    },
     "Charged Strike",
     "Polaric Slash",
     "Call Lightning",
@@ -304,6 +324,10 @@
       "offset": 121
     },
     "Ride the Lightning",
+    {
+      "name": "Flame Barrage",
+      "offset": 100
+    },
     "Charged Strike",
     "Polaric Slash",
     {
@@ -371,6 +395,10 @@
     },
     "Cauterizing Strike",
     "Ring of Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 150
+    },
     "Flame Uprising",
     "Fire Grab",
     {
@@ -425,6 +453,10 @@
     "Charged Strike",
     "Polaric Slash",
     "Call Lightning",
+    {
+      "name": "Flame Barrage",
+      "offset": 471
+    },
     "Polaric Leap",
     "Quantum Strike",
     {
@@ -485,8 +517,12 @@
       "offset": 80
     },
     {
+      "name": "Flame Barrage",
+      "offset": 234
+    },
+    {
       "name": "Deploy Jade Sphere (Water)",
-      "offset": 280
+      "offset": 46
     },
     {
       "name": "Air Attunement",
@@ -544,6 +580,10 @@
       "offset": 167
     },
     "Charged Strike",
+    {
+      "name": "Flame Barrage",
+      "offset": 314
+    },
     "Polaric Slash",
     "Call Lightning",
     "Ride the Lightning",

@@ -16,6 +16,10 @@
     },
     "Glyph of Elementals",
     "Dust Storm",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Shattering Stone",
     "Boulder Blast",
     "Signet of Fire",
@@ -42,6 +46,10 @@
       "interruptMs": 117
     },
     "Signet of Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 80
+    },
     "Searing Salvo",
     {
       "name": "Air Attunement",
@@ -82,6 +90,10 @@
     "Signet of Fire",
     "Shattering Stone",
     "Piercing Pebble",
+    {
+      "name": "Flame Barrage",
+      "offset": 196
+    },
     "Piercing Pebble",
     "Piercing Pebble",
     "Boulder Blast",
@@ -106,8 +118,12 @@
     "Scorching Shot",
     "Searing Salvo",
     {
+      "name": "Flame Barrage",
+      "offset": 296
+    },
+    {
       "name": "Air Attunement",
-      "offset": 404
+      "offset": 108
     },
     "Aerial Agility",
     "Dazing Discharge",
@@ -138,6 +154,10 @@
     "Shattering Stone",
     "Piercing Pebble",
     "Piercing Pebble",
+    {
+      "name": "Flame Barrage",
+      "offset": 197
+    },
     "Piercing Pebble",
     "Boulder Blast",
     {
@@ -172,6 +192,10 @@
       "name": "Air Attunement",
       "offset": 286
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 330
+    },
     "Aerial Agility",
     "Dazing Discharge",
     "Lightning Orb",
@@ -198,6 +222,10 @@
     "Piercing Pebble",
     "Piercing Pebble",
     "Piercing Pebble",
+    {
+      "name": "Flame Barrage",
+      "offset": 296
+    },
     "Boulder Blast",
     {
       "name": "Water Attunement",
@@ -225,6 +253,10 @@
     },
     "Signet of Earth",
     "Dazing Discharge",
+    {
+      "name": "Flame Barrage",
+      "offset": 236
+    },
     "Lightning Orb",
     {
       "name": "Water Attunement",

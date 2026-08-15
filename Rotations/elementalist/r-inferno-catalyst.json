@@ -11,6 +11,10 @@
     "Glyph of Elementals",
     "__combat_start",
     "Dragon's Tooth",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Glyph of Storms (Fire)",
     {
       "name": "Deploy Jade Sphere (Fire)",
@@ -73,6 +77,10 @@
       "offset": 398
     },
     "Dragon's Tooth",
+    {
+      "name": "Flame Barrage",
+      "offset": 207
+    },
     "Flamestrike",
     "Flamestrike",
     "Ring of Fire",
@@ -131,6 +139,10 @@
     "Ice Shards",
     "Ice Shards",
     "Water Trident",
+    {
+      "name": "Flame Barrage",
+      "offset": 87
+    },
     "Shatterstone",
     "Ice Shards",
     "Ice Shards",
@@ -192,6 +204,10 @@
     "Frost Aura",
     "Water Trident",
     "Ice Shards",
+    {
+      "name": "Flame Barrage",
+      "offset": 9
+    },
     "Ice Shards",
     "Ice Shards",
     "Ice Shards",
@@ -249,8 +265,12 @@
       "offset": 318
     },
     {
+      "name": "Flame Barrage",
+      "offset": 411
+    },
+    {
       "name": "Lightning Strike",
-      "offset": 437
+      "offset": 26
     },
     "Ride the Lightning",
     {
@@ -297,6 +317,10 @@
       "name": "Deploy Jade Sphere (Earth)",
       "offset": 320
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 136
+    },
     "Rock Barrier",
     "Relentless Fire",
     "Dust Devil",
@@ -342,6 +366,10 @@
     "Flamestrike",
     "Phoenix",
     "Fire Grab",
+    {
+      "name": "Flame Barrage",
+      "offset": 55
+    },
     "Dragon's Tooth",
     {
       "name": "Deploy Jade Sphere (Fire)",
@@ -415,6 +443,10 @@
     "Dragon's Tooth",
     "Ring of Fire",
     "Phoenix",
+    {
+      "name": "Flame Barrage",
+      "offset": 117
+    },
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",

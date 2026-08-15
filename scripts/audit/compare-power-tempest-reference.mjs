@@ -184,7 +184,6 @@ function runStandalone(
   );
   const engine = createEngine(data, attributes, {
     hitboxSize: snapshot.hitboxSize,
-    glyphBoonedElementals: snapshot.glyphBoonedElementals,
     thornsBossAuraOnly: snapshot.thornsBossAuraOnly,
   });
   engine.rotation = rotation;

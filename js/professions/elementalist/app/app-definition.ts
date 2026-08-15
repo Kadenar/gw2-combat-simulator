@@ -53,12 +53,6 @@ function build(app: { build: unknown }): ElementalistApplicationBuild {
   return app.build as ElementalistApplicationBuild;
 }
 
-function assumptions(app: {
-  build: unknown;
-}): Readonly<Record<string, unknown>> {
-  return (build(app).assumptions || {}) as Readonly<Record<string, unknown>>;
-}
-
 function explicitlyCastsGlyphOfElementals(
   rotation: readonly unknown[],
 ): boolean {
@@ -116,10 +110,6 @@ export const elementalistApp = defineProfessionApp({
         initialEvokerCharges: build(app).initialEvokerCharges,
         initialEvokerEmpowered: build(app).initialEvokerEmpowered,
         pistolBullets: build(app).pistolBullets,
-        elementalSimulationProfile: String(
-          assumptions(app).elementalSimulationProfile || "evtc",
-        ),
-        glyphBoonedElementals: Boolean(assumptions(app).glyphBoonedElementals),
         autoSummonFireElemental: !explicitlyCastsGlyphOfElementals(
           build(app).rotation,
         ),

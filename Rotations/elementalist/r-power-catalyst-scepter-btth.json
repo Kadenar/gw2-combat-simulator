@@ -11,6 +11,10 @@
     "Glyph of Elementals",
     "Glyph of Storms (Fire)",
     {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
+    {
       "name": "Deploy Jade Sphere (Fire)",
       "offset": 959
     },
@@ -79,6 +83,10 @@
       "offset": 118
     },
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 355
+    },
     "Flamestrike",
     {
       "name": "Arcane Blast",
@@ -143,6 +151,10 @@
     "Ice Shards",
     "Water Trident",
     "Shatterstone",
+    {
+      "name": "Flame Barrage",
+      "offset": 147
+    },
     "Ice Shards",
     {
       "name": "Fire Attunement",
@@ -211,6 +223,10 @@
     "Water Trident",
     "Ice Shards",
     "Ice Shards",
+    {
+      "name": "Flame Barrage",
+      "offset": 198
+    },
     "Ice Shards",
     "Ice Shards",
     "Ice Shards",
@@ -272,8 +288,12 @@
     "Water Attunement",
     "Shatterstone",
     {
+      "name": "Flame Barrage",
+      "offset": 69
+    },
+    {
       "name": "Frost Aura",
-      "offset": 165
+      "offset": 96
     },
     "Water Trident",
     "Ice Shards",
@@ -315,6 +335,10 @@
     },
     "Relentless Fire",
     "Rock Barrier",
+    {
+      "name": "Flame Barrage",
+      "offset": 389
+    },
     "Dust Devil",
     {
       "name": "Hurl",
@@ -370,8 +394,12 @@
     "Fire Grab",
     "Dragon's Tooth",
     {
+      "name": "Flame Barrage",
+      "offset": 109
+    },
+    {
       "name": "Earth Attunement",
-      "offset": 361
+      "offset": 252
     },
     "Earthquake",
     {
@@ -399,7 +427,7 @@
     "Glyph of Storms (Air)",
     {
       "name": "Water Attunement",
-      "offset": 444
+      "offset": 724
     },
     "Relentless Fire",
     "Water Trident",
@@ -428,6 +456,10 @@
     },
     "Flamestrike",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 191
+    },
     "Flamestrike",
     "Phoenix",
     "Fire Grab",

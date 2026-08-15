@@ -19,6 +19,10 @@
     "Glyph of Elementals",
     "__combat_start",
     "Elemental Explosion",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Deploy Jade Sphere (Earth)",
     "Boulder Blast",
     "Shattering Stone",
@@ -80,6 +84,10 @@
     },
     "Shattering Stone",
     "Earthquake",
+    {
+      "name": "Flame Barrage",
+      "offset": 133
+    },
     "Churning Earth",
     "Deploy Jade Sphere (Earth)",
     "Elemental Explosion",
@@ -133,6 +141,10 @@
       "name": "Deploy Jade Sphere (Air)",
       "offset": 75
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 107
+    },
     "Aerial Agility (chain)",
     "Aerial Agility (dash)",
     {
@@ -181,8 +193,12 @@
       "offset": 166
     },
     {
+      "name": "Flame Barrage",
+      "offset": 168
+    },
+    {
       "name": "Deploy Jade Sphere (Water)",
-      "offset": 399
+      "offset": 231
     },
     {
       "name": "Frost Aura",
@@ -241,6 +257,10 @@
     "Scorching Shot",
     "Scorching Shot",
     "Scorching Shot",
+    {
+      "name": "Flame Barrage",
+      "offset": 52
+    },
     "Scorching Shot",
     "Scorching Shot",
     "Signet of Fire",
@@ -298,8 +318,12 @@
     },
     "Ring of Fire",
     {
+      "name": "Flame Barrage",
+      "offset": 46
+    },
+    {
       "name": "Deploy Jade Sphere (Fire)",
-      "offset": 125
+      "offset": 79
     },
     "Raging Ricochet",
     "Signet of Fire",
@@ -353,6 +377,10 @@
     "Churning Earth",
     "Elemental Explosion",
     "Boulder Blast",
+    {
+      "name": "Flame Barrage",
+      "offset": 407
+    },
     "Shattering Stone",
     {
       "name": "Fire Attunement",
@@ -411,6 +439,10 @@
     "Deploy Jade Sphere (Earth)",
     "Shattering Stone",
     "Earthquake",
+    {
+      "name": "Flame Barrage",
+      "offset": 22
+    },
     "Churning Earth",
     "Boulder Blast",
     "Piercing Pebble",
@@ -456,6 +488,10 @@
       "offset": 442
     },
     "Frigid Flurry",
+    {
+      "name": "Flame Barrage",
+      "offset": 694
+    },
     "Arcane Brilliance",
     {
       "name": "Air Attunement",
@@ -506,6 +542,10 @@
     "Scorching Shot",
     "Scorching Shot",
     "Scorching Shot",
+    {
+      "name": "Flame Barrage",
+      "offset": 257
+    },
     {
       "name": "Scorching Shot",
       "interruptMs": 200

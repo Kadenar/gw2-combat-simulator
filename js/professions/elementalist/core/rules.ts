@@ -1,7 +1,6 @@
 import { criticalChance } from "../../../platform/gw2/damage.js";
 import { produceGw2OwnedComboEvents } from "../../../platform/gw2/scheduler/combo-materializer.js";
 import { hasTrait as hasGw2Trait } from "../../../platform/gw2/trait-state.js";
-import { materializeSkillEffectApplications } from "../../../platform/engine/effect-materializer.js";
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_OVERLOAD_SKILL_IDS,
@@ -16,7 +15,6 @@ import type {
   SimulationEvent,
   SimulationEventInput,
   Skill,
-  SkillEffect,
 } from "../../../platform/engine/types.js";
 import {
   ELEMENTALIST_ATTUNEMENTS,
@@ -34,7 +32,6 @@ import {
   elementalistElementalAvailability,
   elementalistElementalTaskHandlers,
   observeElementalistElementalEvent,
-  usesReferenceElementalProfile,
 } from "./elementals.js";
 
 const ATTUNEMENT_RECHARGE_SECONDS = 10;
@@ -267,69 +264,6 @@ function prepareElementalistHitboxEvent(
   };
 }
 
-function scheduleReferenceElementalProfile(
-  context: ElementalistLifecycleContext,
-  skill: Skill,
-): boolean {
-  if (
-    skill.name !== "Glyph of Elementals" ||
-    !usesReferenceElementalProfile(context)
-  ) {
-    return false;
-  }
-  const effects = Array.isArray(skill.referenceEffects)
-    ? (skill.referenceEffects as readonly SkillEffect[])
-    : [];
-  for (const effect of effects) {
-    const baseDuration =
-      effect.type === "boon" || effect.type === "buff"
-        ? Math.max(0, Number(effect.duration || 0))
-        : undefined;
-    const duration =
-      baseDuration == null
-        ? undefined
-        : (context.schedulerPolicy.effectDuration?.(
-            context,
-            skill,
-            effect,
-            baseDuration,
-          ) ?? baseDuration);
-    const applications = materializeSkillEffectApplications({
-      skill,
-      effect,
-      start: context.start,
-      fullEnd: context.fullEnd,
-      baseEvent: {
-        source: context.profession.id,
-        sourceId: skill.id,
-        actorType: "player",
-        skillId: skill.id,
-        skillName: skill.name,
-      },
-      skillWeaponFallback: "Unequipped",
-      statusDuration: duration,
-    });
-    for (const application of applications) {
-      const flatStrikeBase = Number(application.event.flatStrikeBase);
-      const referenceBoonMultiplier =
-        context.config.glyphBoonedElementals === true &&
-        Number.isFinite(flatStrikeBase)
-          ? 1.7
-          : 1;
-      context.emit({
-        ...application.event,
-        ...(Number.isFinite(flatStrikeBase)
-          ? {
-              flatStrikeBase: flatStrikeBase * referenceBoonMultiplier,
-              noCrit: true,
-            }
-          : {}),
-      });
-    }
-  }
-  return true;
-}
-
 function scheduleGrandFinaleProfile(
   context: ElementalistLifecycleContext,
   skill: Skill,
@@ -389,10 +323,7 @@ function scheduleElementalistSkill(
   context: ElementalistLifecycleContext,
   skill: Skill,
 ): boolean {
-  return (
-    scheduleReferenceElementalProfile(context, skill) ||
-    scheduleGrandFinaleProfile(context, skill)
-  );
+  return scheduleGrandFinaleProfile(context, skill);
 }
 
 function skillWeapon(skill: Skill): string {
@@ -2822,9 +2753,7 @@ export function modifyElementalistRechargeDuration(
 ): number {
   const skill = context.skill;
   if (!skill) return duration;
-  if (skill.name === "Glyph of Elementals") {
-    return usesReferenceElementalProfile(context) ? duration : 0;
-  }
+  if (skill.name === "Glyph of Elementals") return 0;
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = Number(
     (context as unknown as SchedulerRecord).start ?? context.state.time ?? 0,
@@ -2879,23 +2808,12 @@ export function modifyElementalistRechargeDuration(
   return adjustedDuration;
 }
 
-function modifyElementalistCastDuration(
-  context: ElementalistCastContext,
-  duration: number,
-): number {
-  return context.skill.name === "Glyph of Elementals" &&
-    usesReferenceElementalProfile(context)
-    ? 0
-    : duration;
-}
-
 export const elementalistCoreCastRules = Object.freeze({
   availability: {
     id: "elementalist.core-availability",
     order: 10,
     handler: elementalistCoreAvailability,
   },
-  modifyCastDuration: modifyElementalistCastDuration,
   modifyRechargeDuration: modifyElementalistRechargeDuration,
 });
 

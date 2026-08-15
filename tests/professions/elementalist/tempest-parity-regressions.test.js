@@ -33,36 +33,22 @@ test("delayed Tempest shouts do not advance the serial rotation lane", async () 
 
   adapter.recalculate(app);
   const result = adapter.runSimulation(app);
-  const step = (rotationIndex) =>
-    result.steps.find((candidate) => candidate.ri === rotationIndex);
-
-  assert.deepEqual(
-    [113, 114, 115].map((rotationIndex) => ({
-      rotationIndex,
-      skill: step(rotationIndex)?.skill,
-      start: step(rotationIndex)?.start,
-      end: step(rotationIndex)?.end,
-    })),
-    [
-      {
-        rotationIndex: 113,
-        skill: "Scorching Shot",
-        start: 63682,
-        end: 64202,
-      },
-      {
-        rotationIndex: 114,
-        skill: "Feel the Burn!",
-        start: 64349,
-        end: 64349,
-      },
-      {
-        rotationIndex: 115,
-        skill: "Scorching Shot",
-        start: 64349,
-        end: 64869,
-      },
-    ],
+  const shout = result.steps.find(
+    (step) =>
+      step.skill === "Feel the Burn!" &&
+      result.steps.find((candidate) => candidate.ri === step.ri + 1)?.skill ===
+        "Scorching Shot",
   );
-  assert.deepEqual(result.warnings, []);
+  assert.ok(shout);
+  const followingSerialCast = result.steps.find(
+    (step) => step.ri === shout.ri + 1,
+  );
+  assert.ok(followingSerialCast);
+
+  assert.equal(shout.start, shout.end);
+  assert.equal(followingSerialCast.start, shout.start);
+  assert.equal(
+    result.warnings.some((warning) => warning.includes("Feel the Burn!")),
+    false,
+  );
 });

@@ -7,6 +7,10 @@
       "name": "__combat_start",
       "offset": 2700
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 2700
+    },
     "Dust Storm",
     {
       "name": "Hurl",
@@ -31,6 +35,10 @@
     "Flamestrike",
     "Flamestrike",
     "Signet of Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 180
+    },
     "Flamestrike",
     "Dragon's Tooth",
     "Flamestrike",
@@ -47,6 +55,10 @@
     "Overload Earth",
     "Dust Storm",
     "Rock Barrier",
+    {
+      "name": "Flame Barrage",
+      "offset": 100
+    },
     "Hurl",
     "Signet of Fire",
     {
@@ -67,6 +79,10 @@
     "Flamestrike",
     "Signet of Fire",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 580
+    },
     "Flamestrike",
     "Flamestrike",
     "Dragon's Tooth",
@@ -89,9 +105,13 @@
     "Signet of Fire",
     {
       "name": "Fire Attunement",
-      "offset": 100
+      "offset": 439
     },
     "Phoenix",
+    {
+      "name": "Flame Barrage",
+      "offset": 339
+    },
     "Wildfire",
     "Dragon's Tooth",
     "Signet of Earth",
@@ -108,6 +128,10 @@
     "Flamestrike",
     "Flamestrike",
     "Dragon's Tooth",
+    {
+      "name": "Flame Barrage",
+      "offset": 140
+    },
     "Flamestrike",
     "Flamestrike",
     "Phoenix",
@@ -130,6 +154,10 @@
     "Wildfire",
     "Dragon's Tooth",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 80
+    },
     "Flamestrike",
     "Overload Fire",
     "Signet of Earth",
@@ -145,6 +173,10 @@
     "Dragon's Tooth",
     "Flamestrike",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 420
+    },
     "Phoenix",
     "Earth Attunement",
     "Rock Barrier",
@@ -162,7 +194,7 @@
     "Signet of Fire",
     {
       "name": "Fire Attunement",
-      "offset": 100
+      "offset": 439
     },
     "Phoenix",
     "Wildfire",

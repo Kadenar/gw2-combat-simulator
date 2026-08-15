@@ -11,6 +11,10 @@
     "Glyph of Elementals",
     "__combat_start",
     "Dragon's Tooth",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Glyph of Storms (Fire)",
     "Relentless Fire",
     {
@@ -65,9 +69,13 @@
     "Shatterstone",
     {
       "name": "Fire Attunement",
-      "offset": 80
+      "offset": 82
     },
     "Dragon's Tooth",
+    {
+      "name": "Flame Barrage",
+      "offset": 440
+    },
     "Flamestrike",
     "Flamestrike",
     "Ring of Fire",
@@ -134,6 +142,10 @@
     "Ice Shards",
     "Ice Shards",
     "Ice Shards",
+    {
+      "name": "Flame Barrage",
+      "offset": 318
+    },
     "Water Trident",
     "Shatterstone",
     {
@@ -202,6 +214,10 @@
     },
     "Shatterstone",
     "Ice Shards",
+    {
+      "name": "Flame Barrage",
+      "offset": 117
+    },
     "Ice Shards",
     "Ice Shards",
     "Ice Shards",
@@ -272,6 +288,10 @@
       "name": "Water Attunement",
       "offset": 362
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 196
+    },
     "Water Trident",
     {
       "name": "Deploy Jade Sphere (Water)",
@@ -314,6 +334,10 @@
     "Deploy Jade Sphere (Earth)",
     "Earthquake",
     "Rock Barrier",
+    {
+      "name": "Flame Barrage",
+      "offset": 237
+    },
     {
       "name": "Stone Shards",
       "interruptMs": 46
@@ -379,6 +403,10 @@
       "name": "Earth Attunement",
       "offset": 124
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 281
+    },
     "Deploy Jade Sphere (Earth)",
     {
       "name": "Stone Shards",
@@ -439,6 +467,10 @@
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 320
+    },
     "Flamestrike",
     {
       "name": "Flamestrike",
@@ -505,6 +537,10 @@
     "Relentless Fire",
     "Ring of Fire",
     "Phoenix",
+    {
+      "name": "Flame Barrage",
+      "offset": 136
+    },
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",

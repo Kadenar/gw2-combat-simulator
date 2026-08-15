@@ -1,20 +1,22 @@
 import {
   defineNativeModule,
   defineNativeProfession,
-} from "./native-profession.js";
+} from "../../js/platform/gw2/native-profession.js";
 import {
   onResolvedDamage,
   skillAvailability,
-} from "./native-mechanics.js";
+} from "../../js/platform/gw2/native-mechanics.js";
+import type { NativeProfessionRuntimeState } from "../../js/platform/gw2/native-module-types.js";
 import type {
-  NativeProfessionRuntimeState,
-} from "./native-module-types.js";
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from "./types.js";
+  Gw2ResolverEvent,
+  Gw2ResolverRuntime,
+} from "../../js/platform/gw2/types.js";
 
 type Assert<T extends true> = T;
 type Equal<TLeft, TRight> =
-  (<T>() => T extends TLeft ? 1 : 2) extends
-  (<T>() => T extends TRight ? 1 : 2) ? true : false;
+  (<T>() => T extends TLeft ? 1 : 2) extends <T>() => T extends TRight ? 1 : 2
+    ? true
+    : false;
 
 const core = defineNativeModule({
   id: "Core",
@@ -28,13 +30,12 @@ const core = defineNativeModule({
       id: "fixture.available",
       handler: () => ({ ready: true }),
     }),
-    reactions: [onResolvedDamage<
-      Gw2ResolverRuntime,
-      Gw2ResolverEvent
-    >({
-      id: "fixture.damage",
-      handler: () => undefined,
-    })],
+    reactions: [
+      onResolvedDamage<Gw2ResolverRuntime, Gw2ResolverEvent>({
+        id: "fixture.damage",
+        handler: () => undefined,
+      }),
+    ],
   },
 });
 
@@ -53,19 +54,22 @@ const profession = defineNativeProfession({
 type Modules = readonly [typeof core, typeof elite];
 type RuntimeState = NativeProfessionRuntimeState<Modules>;
 type NativeAuthoringAssertions = [
-  Assert<Equal<typeof profession.specializationIds[number], "Elite">>,
+  Assert<Equal<(typeof profession.specializationIds)[number], "Elite">>,
   Assert<Equal<RuntimeState["core"]["coreValue"], number>>,
   Assert<Equal<RuntimeState["specialization"]["kind"], "Core" | "Elite">>,
-  Assert<Equal<
-    Extract<RuntimeState["specialization"], { kind: "Elite" }>["state"]["eliteValue"],
-    "active"
-  >>,
+  Assert<
+    Equal<
+      Extract<
+        RuntimeState["specialization"],
+        { kind: "Elite" }
+      >["state"]["eliteValue"],
+      "active"
+    >
+  >,
 ];
 
 export type NativeProfessionAuthoringAssertions = NativeAuthoringAssertions;
 
-// Compile-time negative assertions must not execute when Node discovers this
-// emitted file as a test module.
 if (false) {
   defineNativeProfession({
     id: "invalid-order",
@@ -88,14 +92,16 @@ if (false) {
     data: {},
     state: { scheduler: () => ({}) },
     mechanics: {
-      reactions: [{
-        // @ts-expect-error Resolver declarations cannot claim the scheduler phase.
-        phase: "scheduler",
-        eventType: "damage",
-        id: "invalid.phase",
-        order: 0,
-        handler: () => undefined,
-      }],
+      reactions: [
+        {
+          // @ts-expect-error Resolver declarations cannot claim the scheduler phase.
+          phase: "scheduler",
+          eventType: "damage",
+          id: "invalid.phase",
+          order: 0,
+          handler: () => undefined,
+        },
+      ],
     },
   });
 }

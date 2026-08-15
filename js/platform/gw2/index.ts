@@ -4,7 +4,6 @@ export * from "./build-codec.js";
 export * from "./combo-definitions.js";
 export * from "./combo-catalog.js";
 export * from "./combo-events.js";
-export * from "./legacy-combo-adapter.js";
 export {
   CONDITION_FORMULAS,
   conditionTickDamage,

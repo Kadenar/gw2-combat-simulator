@@ -3,7 +3,6 @@ import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 
 import { elementalistCoreModule } from "../../../js/professions/elementalist/core/module.js";
-import { FIRE_ELEMENTAL_REFERENCE_EFFECTS } from "../../../js/professions/elementalist/core/elemental-profile.js";
 import { ELEMENTALIST_CORE_SKILL_MECHANICS } from "../../../js/professions/elementalist/core/skills.js";
 import {
   ELEMENTALIST_SKILL_IDS,
@@ -83,20 +82,13 @@ test("Elementalist skill mechanics have disjoint module ownership", () => {
   }
 });
 
-test("Glyph of Elementals delegates its reference replay to the elemental profile", () => {
+test("Glyph of Elementals delegates all damage to the summoned actor", () => {
   const glyph =
     ELEMENTALIST_CORE_SKILL_MECHANICS[
       ELEMENTALIST_SKILL_IDS.GLYPH_OF_ELEMENTALS
     ];
   assert.deepEqual(glyph.effects, []);
-  assert.equal(glyph.referenceEffects, FIRE_ELEMENTAL_REFERENCE_EFFECTS);
-  assert.equal(FIRE_ELEMENTAL_REFERENCE_EFFECTS.length, 107);
-  assert.equal(
-    FIRE_ELEMENTAL_REFERENCE_EFFECTS.filter(
-      (effect) => effect.type === "strike",
-    ).length,
-    67,
-  );
+  assert.equal(Object.hasOwn(glyph, "referenceEffects"), false);
 });
 
 test("Catalyst spheres and Tempest overloads delegate repeated packets to maps", () => {

@@ -2594,79 +2594,25 @@ test("Fire Elemental autonomously alternates Flame Burst and Fireball", () => {
   assert.equal(result.endState.cooldowns["Glyph of Elementals"], undefined);
 });
 
-test("reference elemental profile replays fixed Glyph packets without an actor", () => {
-  const runReference = (booned) =>
-    runNative({
-      lines: [["Fire"], ["Air"], ["Arcane"]],
-      rotation: ["Glyph of Elementals", 2000],
-      selectedSkills: {
-        Heal: "Glyph of Elemental Harmony",
-        Utility1: "Arcane Blast",
-        Utility2: "Signet of Fire",
-        Utility3: "Arcane Wave",
-        Elite: "Glyph of Elementals",
-      },
-      assumptions: {
-        ...elementalistProfession.createBuildDefaults().assumptions,
-        elementalSimulationProfile: "reference",
-        glyphBoonedElementals: booned,
-      },
-    });
-  const unbooned = runReference(false);
-  const booned = runReference(true);
-  const action = unbooned.events.find(
-    (event) =>
-      event.type === "action" && event.skillName === "Glyph of Elementals",
-  );
-  const flatDamage = (result) =>
-    result.resolvedEvents
-      .filter(
-        (event) =>
-          event.type === "damage" &&
-          event.skillName === "Glyph of Elementals" &&
-          event.at <= 2,
-      )
-      .reduce((total, event) => total + event.damage, 0);
-
-  assert.equal(action.at, action.endsAt);
-  assert.equal(action.rechargeReadyAt, 152);
-  assert.equal(
-    unbooned.events.some((event) => event.actorType === "summon"),
-    false,
-  );
-  assert.deepEqual(
-    unbooned.events
-      .filter(
-        (event) =>
-          event.type === "damage" &&
-          event.skillName === "Glyph of Elementals" &&
-          event.at <= 2,
-      )
-      .map((event) => Math.round(event.at * 1000)),
-    [1280, 1480, 1680, 1960],
-  );
-  assert.ok(Math.abs(flatDamage(booned) / flatDamage(unbooned) - 1.7) < 1e-12);
-});
-
-test("legacy snapshots default to native elemental AI and keep reference packets opt-in", () => {
+test("legacy snapshots discard retired elemental packet assumptions", () => {
   const build = elementalistAppAdapter.toApplicationBuild({
     build: elementalistProfession.createBuildDefaults(),
+    elementalSimulationProfile: "reference",
     glyphBoonedElementals: true,
   });
 
-  assert.equal(build.assumptions.elementalSimulationProfile, "evtc");
-  assert.equal(build.assumptions.glyphBoonedElementals, true);
+  assert.equal(
+    Object.hasOwn(build.assumptions, "elementalSimulationProfile"),
+    false,
+  );
+  assert.equal(
+    Object.hasOwn(build.assumptions, "glyphBoonedElementals"),
+    false,
+  );
   assert.equal(
     Object.hasOwn(build.assumptions, "startingAttunementPreDwelled"),
     false,
   );
-
-  const reference = elementalistAppAdapter.toApplicationBuild({
-    build: elementalistProfession.createBuildDefaults(),
-    elementalSimulationProfile: "reference",
-    glyphBoonedElementals: false,
-  });
-  assert.equal(reference.assumptions.elementalSimulationProfile, "reference");
 });
 
 test("Flame Barrage replaces the active Glyph and obeys rotation timing", () => {

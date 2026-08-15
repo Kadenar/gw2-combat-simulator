@@ -12,6 +12,10 @@
     "Glyph of Elementals",
     "Fulgor",
     {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
+    {
       "name": "Fire Attunement",
       "offset": 40
     },
@@ -59,6 +63,10 @@
     },
     "Fulgor",
     "Glyph of Storms (Air)",
+    {
+      "name": "Flame Barrage",
+      "offset": 442
+    },
     "Lightning Javelin",
     "Lightning Javelin",
     "Overload Air",
@@ -99,8 +107,12 @@
     },
     "Overload Air",
     {
+      "name": "Flame Barrage",
+      "offset": 916
+    },
+    {
       "name": "Earth Attunement",
-      "offset": 3161
+      "offset": 2245
     },
     "Fissure",
     "Earthen Spear",
@@ -126,6 +138,10 @@
     },
     "Meteor",
     "Blazing Barrage",
+    {
+      "name": "Flame Barrage",
+      "offset": 479
+    },
     "Seethe",
     {
       "name": "Flame Spear",
@@ -174,6 +190,10 @@
       "interruptMs": 358
     },
     "Overload Air",
+    {
+      "name": "Flame Barrage",
+      "offset": 43
+    },
     "Fulgor",
     {
       "name": "Fire Attunement",
@@ -208,8 +228,12 @@
     "Lightning Javelin",
     "Overload Air",
     {
+      "name": "Flame Barrage",
+      "offset": 2485
+    },
+    {
       "name": "Earth Attunement",
-      "offset": 3125
+      "offset": 640
     },
     "Fissure",
     "Earthen Spear",
@@ -258,6 +282,10 @@
       "name": "Energize",
       "offset": 356
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 9
+    },
     "Lightning Javelin",
     "Derecho",
     "Fulgor",
@@ -280,6 +308,10 @@
     "Lightning Javelin",
     "Feel the Burn!",
     "Overload Air",
+    {
+      "name": "Flame Barrage",
+      "offset": 1645
+    },
     "Fulgor",
     {
       "name": "Fire Attunement",
@@ -320,8 +352,12 @@
     "Fissure",
     "Earthen Spear",
     {
+      "name": "Flame Barrage",
+      "offset": 168
+    },
+    {
       "name": "Air Attunement",
-      "offset": 284
+      "offset": 116
     }
   ]
 }

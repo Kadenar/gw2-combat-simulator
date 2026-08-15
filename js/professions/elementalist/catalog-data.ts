@@ -225,9 +225,6 @@ function withElementalRuntimeProfiles(skill: Skill): Skill {
     ...withoutGeneratedCast,
     castTimeMs: 1250,
     cooldown: skill.cooldown,
-    referenceEffects: Array.isArray(skill.referenceEffects)
-      ? skill.referenceEffects
-      : [],
     effects: [],
   };
 }

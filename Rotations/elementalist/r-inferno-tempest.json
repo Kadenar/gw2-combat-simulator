@@ -20,6 +20,10 @@
       "name": "Arc Lightning",
       "interruptMs": 38
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Feel the Burn!",
     "Ride the Lightning",
     {
@@ -52,6 +56,10 @@
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 593
+    },
     "Flamestrike",
     "Flamestrike",
     "Ring of Fire",
@@ -86,8 +94,12 @@
       "offset": 281
     },
     {
+      "name": "Flame Barrage",
+      "offset": 2835
+    },
+    {
       "name": "Earth Attunement",
-      "offset": 3170
+      "offset": 335
     },
     {
       "name": "Stone Shards",
@@ -115,6 +127,10 @@
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 381
+    },
     "Flamestrike",
     "Flamestrike",
     "Ring of Fire",
@@ -151,8 +167,12 @@
     "Earthquake",
     "Churning Earth",
     {
+      "name": "Flame Barrage",
+      "offset": 58
+    },
+    {
       "name": "Fire Attunement",
-      "offset": 760
+      "offset": 702
     },
     {
       "name": "Flamestrike",
@@ -172,6 +192,10 @@
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 302
+    },
     {
       "name": "Flamestrike",
       "interruptMs": 43
@@ -212,8 +236,12 @@
     "Earthquake",
     "Churning Earth",
     {
+      "name": "Flame Barrage",
+      "offset": 179
+    },
+    {
       "name": "Fire Attunement",
-      "offset": 840
+      "offset": 661
     },
     {
       "name": "Flamestrike",
@@ -241,6 +269,10 @@
       "interruptMs": 42
     },
     "Ring of Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 380
+    },
     "Dragon's Tooth",
     "Flamestrike",
     "Flamestrike",
@@ -281,8 +313,12 @@
     "Earthquake",
     "Churning Earth",
     {
+      "name": "Flame Barrage",
+      "offset": 780
+    },
+    {
       "name": "Fire Attunement",
-      "offset": 802
+      "offset": 22
     },
     "Phoenix",
     "Ring of Fire",

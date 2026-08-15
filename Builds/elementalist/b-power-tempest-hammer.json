@@ -67,8 +67,6 @@
   "assumptions": {
     "simulationMode": "deterministic",
     "hitboxSize": "small",
-    "elementalSimulationProfile": "reference",
-    "glyphBoonedElementals": true,
     "might": 25,
     "fury": true,
     "quickness": true,

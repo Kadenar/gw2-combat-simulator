@@ -14,6 +14,10 @@
     "Glyph of Elementals",
     "Rejuvenate",
     {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
+    {
       "name": "Ignite",
       "offset": 400
     },
@@ -73,6 +77,10 @@
     },
     "Lightning Orb",
     "Dazing Discharge",
+    {
+      "name": "Flame Barrage",
+      "offset": 166
+    },
     "Signet of Fire",
     {
       "name": "Fire Attunement",
@@ -122,7 +130,7 @@
     "Scorching Shot",
     {
       "name": "Air Attunement",
-      "offset": 242
+      "offset": 720
     },
     {
       "name": "Electric Exposure",
@@ -151,22 +159,26 @@
     },
     "Wildfire",
     {
+      "name": "Flame Barrage",
+      "offset": 524
+    },
+    {
       "name": "Earth Attunement",
-      "offset": 600
+      "offset": 76
     },
     "Ignite",
     "Boulder Blast",
     "Dust Storm",
     {
       "name": "Fire Attunement",
-      "offset": 318
+      "offset": 700
     },
     "Scorching Shot",
     "Raging Ricochet",
     "Signet of Earth",
     {
       "name": "Water Attunement",
-      "offset": 242
+      "offset": 429
     },
     "Frozen Fusillade",
     "Frigid Flurry",
@@ -212,6 +224,10 @@
       "offset": 159
     },
     "Scorching Shot",
+    {
+      "name": "Flame Barrage",
+      "offset": 246
+    },
     "Scorching Shot",
     {
       "name": "Ignite",
@@ -272,15 +288,19 @@
     "Scorching Shot",
     "Raging Ricochet",
     {
+      "name": "Flame Barrage",
+      "offset": 451
+    },
+    {
       "name": "Water Attunement",
-      "offset": 484
+      "offset": 33
     },
     "Conflagration",
     "Frozen Fusillade",
     "Frigid Flurry",
     {
       "name": "Fire Attunement",
-      "offset": 234
+      "offset": 284
     },
     "Elemental Explosion",
     "Searing Salvo",
@@ -357,6 +377,10 @@
     },
     "Conflagration",
     {
+      "name": "Flame Barrage",
+      "offset": 312
+    },
+    {
       "name": "Scorching Shot",
       "interruptMs": 159
     },
@@ -424,6 +448,10 @@
       "name": "Fire Attunement",
       "offset": 517
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 221
+    },
     "Elemental Explosion",
     {
       "name": "Ignite",
@@ -434,14 +462,14 @@
     "Conflagration",
     {
       "name": "Earth Attunement",
-      "offset": 201
+      "offset": 616
     },
     "Piercing Pebble",
     "Boulder Blast",
     "Shattering Stone",
     {
       "name": "Fire Attunement",
-      "offset": 201
+      "offset": 240
     },
     "Signet of Fire",
     "Scorching Shot",
@@ -496,8 +524,12 @@
     "Fox's Fury",
     "Wildfire",
     {
+      "name": "Flame Barrage",
+      "offset": 8
+    },
+    {
       "name": "Earth Attunement",
-      "offset": 442
+      "offset": 434
     },
     "Conflagration",
     "Boulder Blast",

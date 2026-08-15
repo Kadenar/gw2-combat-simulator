@@ -1,6 +1,5 @@
 /** Core Elementalist skill mechanics. */
 import { ELEMENTALIST_SKILL_IDS as ID } from "../data/ids.js";
-import { FIRE_ELEMENTAL_REFERENCE_EFFECTS } from "./elemental-profile.js";
 import { elementalistPacketEffects } from "./skill-effects.js";
 import type { Skill, SkillFragment } from "../../../platform/engine/types.js";
 
@@ -9912,7 +9911,6 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
     skillFamily: "Glyph",
     implemented: true,
     effects: [],
-    referenceEffects: FIRE_ELEMENTAL_REFERENCE_EFFECTS,
     elementalistStateMachine: "summoned-elemental",
   },
   [ID.DODGE]: {

@@ -3,6 +3,10 @@
     "Glyph of Elementals",
     "Dragon's Tooth",
     {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
+    {
       "name": "Ignite",
       "offset": 100
     },
@@ -32,6 +36,10 @@
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 264
+    },
     "Flamestrike",
     "Flamestrike",
     "Phoenix",
@@ -58,6 +66,10 @@
     "Phoenix",
     "Transmute Fire",
     "Dragon's Tooth",
+    {
+      "name": "Flame Barrage",
+      "offset": 376
+    },
     "Conflagration",
     "Flamewall",
     "Flamestrike",
@@ -81,6 +93,10 @@
     "Ignite",
     "Flamewall",
     "Dragon's Tooth",
+    {
+      "name": "Flame Barrage",
+      "offset": 563
+    },
     "Conflagration",
     "Transmute Fire",
     "Fox's Fury",
@@ -106,6 +122,10 @@
     "Flamestrike",
     "Ignite",
     "Fire Shield",
+    {
+      "name": "Flame Barrage",
+      "offset": 630
+    },
     "Flamewall",
     "Ignite",
     "Flamestrike",
@@ -132,6 +152,10 @@
     "Dragon's Tooth",
     "Flamestrike",
     "Conflagration",
+    {
+      "name": "Flame Barrage",
+      "offset": 75
+    },
     "Transmute Fire",
     "Flamewall",
     "Flamestrike",
@@ -160,6 +184,10 @@
     "Flamewall",
     "Flamestrike",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 587
+    },
     "Dragon's Tooth",
     {
       "name": "Ignite",
@@ -195,6 +223,10 @@
     "Flamestrike",
     "Flamestrike",
     "Phoenix",
+    {
+      "name": "Flame Barrage",
+      "offset": 307
+    },
     "Dragon's Tooth",
     "Conflagration",
     "Transmute Fire",
@@ -220,6 +252,10 @@
     "Flamestrike",
     "Conflagration",
     "Transmute Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 715
+    },
     "Dragon's Tooth",
     "Signet of Fire",
     "Flamestrike",
@@ -246,6 +282,10 @@
     "Fox's Fury",
     "Flamestrike",
     "Dragon's Tooth",
+    {
+      "name": "Flame Barrage",
+      "offset": 267
+    },
     "Signet of Fire",
     "Phoenix",
     "Ignite",

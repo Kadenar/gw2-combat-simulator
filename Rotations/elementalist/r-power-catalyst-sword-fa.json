@@ -6,6 +6,10 @@
     "Glyph of Elementals",
     "Glyph of Storms (Air)",
     {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
+    {
       "name": "Deploy Jade Sphere (Air)",
       "offset": 920
     },
@@ -62,6 +66,10 @@
     "Charged Strike",
     "Polaric Slash",
     "Call Lightning",
+    {
+      "name": "Flame Barrage",
+      "offset": 637
+    },
     "Charged Strike",
     "Polaric Slash",
     {
@@ -127,6 +135,10 @@
       "name": "Air Attunement",
       "offset": 160
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 1104
+    },
     "Charged Strike",
     "Polaric Slash",
     "Call Lightning",
@@ -175,8 +187,12 @@
     "Polaric Slash",
     "Call Lightning",
     {
+      "name": "Flame Barrage",
+      "offset": 97
+    },
+    {
       "name": "Earth Attunement",
-      "offset": 363
+      "offset": 266
     },
     "Earthquake",
     "Churning Earth",
@@ -240,6 +256,10 @@
     "Ride the Lightning",
     "Charged Strike",
     "Polaric Slash",
+    {
+      "name": "Flame Barrage",
+      "offset": 218
+    },
     "Call Lightning",
     "Charged Strike",
     "Polaric Slash",
@@ -295,6 +315,10 @@
     "Cauterizing Strike",
     "Ring of Fire",
     "Flame Uprising",
+    {
+      "name": "Flame Barrage",
+      "offset": 570
+    },
     "Fire Grab",
     {
       "name": "Air Attunement",
@@ -351,8 +375,12 @@
     "Polaric Leap",
     "Quantum Strike",
     {
+      "name": "Flame Barrage",
+      "offset": 7
+    },
+    {
       "name": "Fire Attunement",
-      "offset": 244
+      "offset": 237
     },
     "Cauterizing Strike",
     "Ring of Fire",
@@ -407,6 +435,10 @@
       "offset": 440
     },
     "Charged Strike",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Polaric Slash",
     "Call Lightning",
     "Polaric Leap",
@@ -454,6 +486,10 @@
     "Call Lightning",
     "Ride the Lightning",
     "Charged Strike",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Polaric Slash",
     "Call Lightning",
     {
