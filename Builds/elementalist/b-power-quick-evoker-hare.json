@@ -20,10 +20,10 @@
   "alternateWeaponPrefixes": ["Berserker's", "Berserker's"],
   "weapons": ["Scepter", "Dagger"],
   "alternateWeapons": ["", ""],
-  "rune": "Dragonhunter",
+  "rune": "Firebrand",
   "weaponSigils": [
-    ["Force", "Impact"],
-    ["Force", "Impact"]
+    ["Force", "Concentration"],
+    ["Force", "Concentration"]
   ],
   "relic": "Bloodstone",
   "food": "Cilantro Lime Sous-Vide Steak",

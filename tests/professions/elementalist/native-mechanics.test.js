@@ -171,6 +171,178 @@ test("Catalyst mechanics execute through native hooks", () => {
   );
 });
 
+test("Tempest party boons affect the summoned elemental", () => {
+  const simulateSharing = (sharePlayerBoonsWithSummons) =>
+    runNative({
+      lines: [["Fire"], ["Air"], ["Tempest", "1-1-1"]],
+      rotation: [
+        "Glyph of Elementals",
+        "Feel the Burn!",
+        1000,
+        "Flame Barrage",
+        3000,
+      ],
+      startAttunement: "Fire",
+      selectedSkills: {
+        Heal: "Glyph of Elemental Harmony",
+        Utility1: "Feel the Burn!",
+        Utility2: "Signet of Fire",
+        Utility3: "Arcane Wave",
+        Elite: "Glyph of Elementals",
+      },
+      assumptions: {
+        ...elementalistProfession.createBuildDefaults().assumptions,
+        might: 0,
+        fury: false,
+        quickness: false,
+        alacrity: false,
+        sharePlayerBoonsWithSummons,
+      },
+    });
+  const shared = simulateSharing(true);
+  const isolated = simulateSharing(false);
+  const feelTheBurnBoons = shared.events.filter(
+    (event) =>
+      event.type === "buff" &&
+      event.skillName === "Feel the Burn!" &&
+      (event.kind === "might" ||
+        (event.kind === "fury" && event.duration > 10)),
+  );
+
+  assert.deepEqual(
+    feelTheBurnBoons.map((event) => [event.kind, event.stacks]).sort(),
+    [
+      ["fury", 1],
+      ["might", 2],
+      ["might", 8],
+    ],
+  );
+  assert.ok(
+    feelTheBurnBoons.every(
+      (event) =>
+        event.recipients === "party" &&
+        event.maximumRecipients === 5 &&
+        event.affectsSummons === true,
+    ),
+  );
+
+  const firstBarrage = (result) =>
+    result.resolvedEvents.find(
+      (event) =>
+        event.type === "damage" &&
+        event.skillName === "Flame Barrage" &&
+        event.hitIndex === 1,
+    );
+  const sharedBarrage = firstBarrage(shared);
+  const isolatedBarrage = firstBarrage(isolated);
+
+  assert.ok(sharedBarrage.damage > isolatedBarrage.damage * 1.2);
+  assert.ok(sharedBarrage.criticalChance > isolatedBarrage.criticalChance);
+});
+
+test("overload boons are party-scoped", () => {
+  const fire = runNative({
+    lines: [["Fire"], ["Air"], ["Tempest"]],
+    rotation: ["Overload Fire", 10000],
+    startAttunement: "Fire",
+  });
+  const air = runNative({
+    lines: [["Fire"], ["Air"], ["Tempest"]],
+    rotation: ["Overload Air", 10000],
+    startAttunement: "Air",
+  });
+  const fireMight = fire.events.filter(
+    (event) =>
+      event.type === "buff" &&
+      event.skillName === "Overload Fire" &&
+      event.kind === "might",
+  );
+  const airFury = air.events.filter(
+    (event) =>
+      event.type === "buff" &&
+      event.skillName === "Overload Air" &&
+      event.kind === "fury",
+  );
+
+  assert.equal(fireMight.length, 10);
+  assert.ok(
+    fireMight.every(
+      (event) =>
+        event.stacks === 2 &&
+        event.recipients === "party" &&
+        event.maximumRecipients === 5 &&
+        event.affectsSummons === true,
+    ),
+  );
+  assert.equal(airFury.length, 14);
+  assert.ok(
+    airFury.every(
+      (event) => event.recipients === "party" && event.affectsSummons === true,
+    ),
+  );
+});
+
+test("Fox's Fury and catalyst spheres grant their boons to the party", () => {
+  const evoker = runNative({
+    lines: [["Fire"], ["Air"], ["Evoker"]],
+    rotation: ["Fox's Fury"],
+    evokerElement: "Fire",
+    selectedSkills: {
+      Heal: "Glyph of Elemental Harmony",
+      Utility1: "Fox's Fury",
+      Utility2: "Signet of Fire",
+      Utility3: "Arcane Wave",
+      Elite: "Glyph of Elementals",
+    },
+  });
+  const foxBoons = evoker.events.filter(
+    (event) =>
+      event.type === "buff" &&
+      event.skillName === "Fox's Fury" &&
+      ["might", "fury"].includes(event.kind),
+  );
+
+  assert.deepEqual(
+    foxBoons.map((event) => [event.kind, event.stacks, event.duration]),
+    [
+      ["might", 11, 10],
+      ["fury", 1, 10],
+    ],
+  );
+  assert.ok(
+    foxBoons.every(
+      (event) =>
+        event.recipients === "party" &&
+        event.maximumRecipients === 5 &&
+        event.affectsSummons === true,
+    ),
+  );
+
+  const catalyst = runNative({
+    lines: [["Fire"], ["Air"], ["Catalyst", "1-3-1"]],
+    rotation: ["Deploy Jade Sphere (Fire)", 5000],
+    initialCatalystEnergy: 30,
+  });
+  const sphereBoons = catalyst.events.filter(
+    (event) =>
+      event.type === "buff" && event.skillName === "Deploy Jade Sphere (Fire)",
+  );
+
+  assert.equal(sphereBoons.filter((event) => event.kind === "might").length, 7);
+  assert.equal(
+    sphereBoons.filter((event) => event.kind === "quickness").length,
+    1,
+  );
+  assert.ok(
+    sphereBoons.every(
+      (event) =>
+        event.recipients === "party" &&
+        event.maximumRecipients === 5 &&
+        event.affectsSummons === true,
+    ),
+  );
+});
+
 test("Core mechanics execute through native hooks", () => {
   const result = runNative({
     lines: [["Fire"], ["Air", "1-1-2"], ["Arcane"]],
@@ -2672,12 +2844,7 @@ test("Flame Barrage replaces the active Glyph and obeys rotation timing", () => 
     firstBarrageDamage.map((event) => Math.round(event.at * 1000)),
     [3370, 3570, 3770, 3770],
   );
-  assert.ok(
-    firstBarrageDamage.every(
-      (event) =>
-        event.actorType === "summon" && event.summonIgnoresMight === true,
-    ),
-  );
+  assert.ok(firstBarrageDamage.every((event) => event.actorType === "summon"));
 
   const firstBarrageBurns = result.events.filter(
     (event) =>

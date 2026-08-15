@@ -208,10 +208,7 @@
     "Fulgor",
     "Lightning Javelin",
     "Derecho",
-    {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 124
-    },
+    "Deploy Jade Sphere (Air)",
     {
       "name": "Fire Attunement",
       "offset": 168

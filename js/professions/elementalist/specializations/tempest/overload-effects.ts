@@ -44,6 +44,8 @@ function boon(
     atMs,
     timingAnchor: "castStart",
     timingScale: "cast",
+    recipients: "party",
+    maximumRecipients: 5,
     metadata: {},
   };
 }

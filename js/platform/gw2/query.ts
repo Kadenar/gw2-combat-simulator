@@ -470,10 +470,7 @@ export function createGw2CombatQuery<
     ) {
       const inheritCriticalAttributes =
         event.summonInheritsCriticalAttributes === true;
-      const summonMightStacks =
-        event.summonIgnoresMight === true
-          ? 0
-          : summonMightStacksAt(time, runtime, event);
+      const summonMightStacks = summonMightStacksAt(time, runtime, event);
       return {
         ...stats,
         power:

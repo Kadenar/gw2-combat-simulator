@@ -919,6 +919,7 @@ export function emitElementalistBuff(
   source: string,
   sourceId: Skill["id"],
   priority = 0,
+  recipients: "self" | "party" = "self",
 ): void {
   const normalizedKind = kind.toLowerCase();
   const adjustedDuration = elementalistBuffDuration(
@@ -939,6 +940,9 @@ export function emitElementalistBuff(
     duration: adjustedDuration,
     skillName: source,
     priority,
+    ...(recipients === "party"
+      ? { recipients: "party", maximumRecipients: 5 }
+      : {}),
   });
 }
 
@@ -1864,7 +1868,7 @@ function applyGenericPostCast(
     emitBuff(context, at, "Might", 1, 15, skill.name, skill.id);
   }
   if (hasTrait(context, "Tempestuous Aria") && skill.skillFamily === "Shout") {
-    emitBuff(context, at, "Might", 2, 10, skill.name, skill.id);
+    emitBuff(context, at, "Might", 2, 10, skill.name, skill.id, 0, "party");
   }
   if (skill.type === "Heal") {
     if (hasTrait(context, "Gale Song")) {

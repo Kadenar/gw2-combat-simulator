@@ -71,8 +71,7 @@ function modifyCatalystAttributes(
       : stacks * 0.015
     : stacks * 0.01;
   const pool = context.config?.catalystEmpowermentPool as
-    | Partial<CatalystEmpowermentPool>
-    | undefined;
+    Partial<CatalystEmpowermentPool> | undefined;
   const modified = { ...attributes };
 
   for (const stat of [
@@ -168,6 +167,8 @@ function onCastStart(
         skill.name,
         skill.id,
       ),
+      recipients: "party",
+      maximumRecipients: 5,
       sphereSpecialistScaled: true,
     });
     const boon =
@@ -194,6 +195,8 @@ function onCastStart(
         skill.name,
         skill.id,
       ),
+      recipients: "party",
+      maximumRecipients: 5,
       sphereSpecialistScaled: true,
     });
   }
