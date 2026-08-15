@@ -993,13 +993,13 @@ export function observeMesmerEvent(
       {
         coefficient: damage.coefficient,
         hits: damage.hits,
-        source: "Player",
+        source: "Trait",
         actorType: "player",
         weapon: "utility",
         weaponStrengthProfileId: "nonweapon.unequipped",
       },
       {
-        source: "Player",
+        source: "Trait",
         sourceId: TRAIT.SYNCOPATE,
         actorType: "player",
       },

@@ -2353,6 +2353,13 @@ test("power Troubadour benchmark preset preserves the supplied build and log", (
     ),
     285884,
   );
+
+  const stochasticResult = simulateMesmer(build.rotation, {
+    ...simulationConfig(app),
+    randomness: { mode: "stochastic", seed: 1 },
+  });
+  assert.deepEqual(stochasticResult.warnings, []);
+  assert.ok(Number.isFinite(stochasticResult.dps));
 });
 
 test("Chaos Armor applies three base confusion plus two from Ineptitude", () => {
@@ -5670,6 +5677,29 @@ test("Troubadour benchmark instruments use measured packets and normalized stren
   assert.deepEqual(
     syncopate.map((event) => event.weaponStrengthProfileId),
     ["nonweapon.unequipped", "nonweapon.unequipped", "nonweapon.unequipped"],
+  );
+
+  const stochasticDrum = simulateMesmer(
+    ["Deafening Drum", { name: "__wait", waitMs: 4000 }],
+    {
+      ...config,
+      randomness: { mode: "stochastic", seed: 1 },
+    },
+  );
+  const stochasticDrumHit = stochasticDrum.resolvedEvents.find(
+    (event) => event.type === "damage" && event.skillName === "Deafening Drum",
+  );
+  const stochasticSyncopate = stochasticDrum.resolvedEvents.filter(
+    (event) => event.type === "damage" && event.skillName === "Syncopate",
+  );
+  assert.ok(stochasticDrumHit.weaponStrengthSampled);
+  assert.ok(
+    stochasticSyncopate.every(
+      (event) =>
+        event.source === "Trait" &&
+        event.weaponStrengthSampled === true &&
+        event.activationId !== stochasticDrumHit.activationId,
+    ),
   );
 });
 

@@ -126,6 +126,195 @@ test("Lightning Blitz uses a flat 0.28 coefficient", () => {
   );
 });
 
+test("Arc Lightning models its damage packets as one tick sequence", () => {
+  const arcLightning =
+    ELEMENTALIST_CORE_SKILL_MECHANICS[ELEMENTALIST_SKILL_IDS.ARC_LIGHTNING];
+
+  assert.equal(arcLightning.effects.length, 1);
+  assert.deepEqual(
+    arcLightning.effects[0].ticks.map(({ atMs, coefficient }) => [
+      atMs,
+      coefficient,
+    ]),
+    [
+      [660, 0.35],
+      [1020, 0.35],
+      [1440, 0.35],
+      [1800, 0.4],
+      [2160, 0.4],
+      [2580, 0.4],
+      [2940, 0.3375],
+      [3300, 0.3375],
+      [3720, 0.3375],
+      [4080, 0.3375],
+    ],
+  );
+});
+
+test("Drake's Breath models strikes and burning as parallel tick sequences", () => {
+  const drakesBreath =
+    ELEMENTALIST_CORE_SKILL_MECHANICS[ELEMENTALIST_SKILL_IDS.DRAKES_BREATH];
+
+  assert.equal(drakesBreath.effects.length, 2);
+  assert.deepEqual(
+    drakesBreath.effects.map((effect) => effect.ticks.map((tick) => tick.atMs)),
+    [
+      [780, 1140, 1500, 1860],
+      [780, 1140, 1500, 1860],
+    ],
+  );
+  assert.deepEqual(
+    drakesBreath.effects[0].ticks.map((tick) => tick.coefficient),
+    [1.05, 1.05, 1.05, 1.05],
+  );
+  assert.ok(
+    drakesBreath.effects[1].ticks.every(
+      (tick) =>
+        tick.condition === "Burning" &&
+        tick.stacks === 1 &&
+        tick.duration === 4,
+    ),
+  );
+});
+
+test("Burning Speed shares its field tick timing across damage and burning", () => {
+  const burningSpeed =
+    ELEMENTALIST_CORE_SKILL_MECHANICS[ELEMENTALIST_SKILL_IDS.BURNING_SPEED];
+  const fieldTicks = burningSpeed.effects.slice(2);
+
+  assert.deepEqual(
+    fieldTicks.map((effect) => effect.ticks.map((tick) => tick.atMs)),
+    [
+      [240, 1740, 3240, 4740, 6240],
+      [240, 1740, 3240, 4740, 6240],
+    ],
+  );
+  assert.ok(
+    fieldTicks[0].ticks.every(
+      (tick) =>
+        tick.coefficient === 0.2 && tick.metadata.damageKind === "field-tick",
+    ),
+  );
+  assert.ok(
+    fieldTicks[1].ticks.every(
+      (tick) =>
+        tick.condition === "Burning" &&
+        tick.stacks === 1 &&
+        tick.duration === 2,
+    ),
+  );
+});
+
+test("Flamewall shares its tick timing across damage and burning", () => {
+  const flamewall =
+    ELEMENTALIST_CORE_SKILL_MECHANICS[ELEMENTALIST_SKILL_IDS.FLAMEWALL];
+  const expectedOffsets = [
+    840, 2340, 3840, 5340, 6840, 8340, 9840, 11340, 12840,
+  ];
+
+  assert.deepEqual(
+    flamewall.effects.map((effect) => effect.ticks.map((tick) => tick.atMs)),
+    [expectedOffsets, expectedOffsets],
+  );
+  assert.ok(
+    flamewall.effects[0].ticks.every(
+      (tick) =>
+        tick.coefficient === 0.1 && tick.metadata.damageKind === "field-tick",
+    ),
+  );
+  assert.ok(
+    flamewall.effects[1].ticks.every(
+      (tick) =>
+        tick.condition === "Burning" &&
+        tick.stacks === 1 &&
+        tick.duration === 2.5,
+    ),
+  );
+});
+
+test("Core repeated packets use compact tick sequences", () => {
+  const sharedOffsets = [
+    [
+      ELEMENTALIST_SKILL_IDS.WILDFIRE,
+      [2340, 3840, 5340, 6840, 8340, 9840, 11340],
+      2,
+    ],
+    [
+      ELEMENTALIST_SKILL_IDS.DUST_STORM,
+      [2340, 3960, 5340, 6960, 8340, 9960, 11340, 12960],
+      2,
+    ],
+    [ELEMENTALIST_SKILL_IDS.FROST_VOLLEY, [540, 1020, 1500, 1980, 2460], 2],
+    [
+      ELEMENTALIST_SKILL_IDS.GLYPH_OF_STORMS_FIRE,
+      [1320, 2820, 4320, 5820, 7320, 8820, 10320, 11820, 13320, 14820, 16320],
+      2,
+    ],
+    [
+      ELEMENTALIST_SKILL_IDS.GLYPH_OF_STORMS_EARTH,
+      [1320, 2820, 4320, 5820, 7320, 8820, 10320, 11820, 13320, 14820, 16320],
+      2,
+    ],
+    [
+      ELEMENTALIST_SKILL_IDS.FIRESTORM,
+      [780, 2280, 3780, 5280, 6780, 8280, 9780, 11280, 12780],
+      1,
+    ],
+    [
+      ELEMENTALIST_SKILL_IDS.VOLCANO,
+      [2340, 2700, 3180, 3600, 3960, 4380, 4860, 5220, 5640, 6060, 6480, 6960],
+      1,
+    ],
+  ];
+
+  for (const [
+    skillId,
+    expectedOffsets,
+    expectedSequenceCount,
+  ] of sharedOffsets) {
+    const skill = ELEMENTALIST_CORE_SKILL_MECHANICS[skillId];
+    const sequences = skill.effects.filter((effect) =>
+      Array.isArray(effect.ticks),
+    );
+
+    assert.equal(sequences.length, expectedSequenceCount, skill.name);
+    for (const effect of sequences) {
+      assert.deepEqual(
+        effect.ticks.map((tick) => tick.atMs),
+        expectedOffsets,
+        skill.name,
+      );
+    }
+  }
+
+  const dustStorm =
+    ELEMENTALIST_CORE_SKILL_MECHANICS[ELEMENTALIST_SKILL_IDS.DUST_STORM];
+  assert.deepEqual(
+    dustStorm.effects
+      .filter((effect) => effect.type === "blind")
+      .map((effect) => effect.atMs),
+    [2340, 3960, 5340, 6960, 8340, 9960, 11340, 12960],
+  );
+
+  const frostVolley =
+    ELEMENTALIST_CORE_SKILL_MECHANICS[ELEMENTALIST_SKILL_IDS.FROST_VOLLEY];
+  assert.ok(
+    frostVolley.effects[0].ticks.every(
+      (tick) => tick.comboFinishers[0].finisherType === "Projectile",
+    ),
+  );
+
+  const volcano =
+    ELEMENTALIST_CORE_SKILL_MECHANICS[ELEMENTALIST_SKILL_IDS.VOLCANO];
+  assert.deepEqual(
+    volcano.effects[0].ticks.map((tick) => tick.coefficient),
+    [
+      1.21, 1.089, 0.968, 0.847, 0.726, 0.605, 0.484, 0.363, 0.242, 0.121, 0.05,
+      0.05,
+    ],
+  );
+});
+
 test("Elementalist trait and specialization IDs follow the API snapshot", () => {
   const apiTraits = API_SPECIALIZATIONS.flatMap((specialization) => [
     ...specialization.minorTraits,

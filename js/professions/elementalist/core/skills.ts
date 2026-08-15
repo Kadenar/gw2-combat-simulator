@@ -3,6 +3,27 @@ import { ELEMENTALIST_SKILL_IDS as ID } from "../data/ids.js";
 import { elementalistPacketEffects } from "./skill-effects.js";
 import type { Skill, SkillFragment } from "../../../platform/engine/types.js";
 
+const DRAKES_BREATH_TICK_OFFSETS_MS = [780, 1140, 1500, 1860] as const;
+const BURNING_SPEED_FIELD_TICK_OFFSETS_MS = [
+  240, 1740, 3240, 4740, 6240,
+] as const;
+const FLAMEWALL_TICK_OFFSETS_MS = [
+  840, 2340, 3840, 5340, 6840, 8340, 9840, 11340, 12840,
+] as const;
+const WILDFIRE_TICK_OFFSETS_MS = [
+  2340, 3840, 5340, 6840, 8340, 9840, 11340,
+] as const;
+const DUST_STORM_TICK_OFFSETS_MS = [
+  2340, 3960, 5340, 6960, 8340, 9960, 11340, 12960,
+] as const;
+const FROST_VOLLEY_TICK_OFFSETS_MS = [540, 1020, 1500, 1980, 2460] as const;
+const GLYPH_OF_STORMS_FIRE_EARTH_TICK_OFFSETS_MS = [
+  1320, 2820, 4320, 5820, 7320, 8820, 10320, 11820, 13320, 14820, 16320,
+] as const;
+const FIRESTORM_TICK_OFFSETS_MS = [
+  780, 2280, 3780, 5280, 6780, 8280, 9780, 11280, 12780,
+] as const;
+
 export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
   Record<number, SkillFragment>
 > = Object.freeze({
@@ -1334,110 +1355,17 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
       {
         type: "strike",
         ticks: [
-          {
-            atMs: 660,
-            coefficient: 0.35,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 1020,
-            coefficient: 0.35,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 1440,
-            coefficient: 0.35,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 1800,
-            coefficient: 0.4,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 2160,
-            coefficient: 0.4,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 2580,
-            coefficient: 0.4,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 2940,
-            coefficient: 0.3375,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 3300,
-            coefficient: 0.3375,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 3720,
-            coefficient: 0.3375,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 4080,
-            coefficient: 0.3375,
-          },
-        ],
+          [660, 0.35],
+          [1020, 0.35],
+          [1440, 0.35],
+          [1800, 0.4],
+          [2160, 0.4],
+          [2580, 0.4],
+          [2940, 0.3375],
+          [3300, 0.3375],
+          [3720, 0.3375],
+          [4080, 0.3375],
+        ].map(([atMs, coefficient]) => ({ atMs, coefficient })),
         timingAnchor: "castStart",
         timingScale: "cast",
       },
@@ -2794,100 +2722,21 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        ticks: [
-          {
-            atMs: 780,
-            coefficient: 1.05,
-          },
-        ],
+        ticks: DRAKES_BREATH_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          coefficient: 1.05,
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
       },
       {
         type: "condition",
-        ticks: [
-          {
-            atMs: 780,
-            condition: "Burning",
-            stacks: 1,
-            duration: 4,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {},
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 1140,
-            coefficient: 1.05,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "condition",
-        ticks: [
-          {
-            atMs: 1140,
-            condition: "Burning",
-            stacks: 1,
-            duration: 4,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {},
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 1500,
-            coefficient: 1.05,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "condition",
-        ticks: [
-          {
-            atMs: 1500,
-            condition: "Burning",
-            stacks: 1,
-            duration: 4,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {},
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 1860,
-            coefficient: 1.05,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "condition",
-        ticks: [
-          {
-            atMs: 1860,
-            condition: "Burning",
-            stacks: 1,
-            duration: 4,
-          },
-        ],
+        ticks: DRAKES_BREATH_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: "Burning",
+          stacks: 1,
+          duration: 4,
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
         metadata: {},
@@ -2941,80 +2790,24 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
       },
       {
         type: "strike",
-        ticks: [
-          {
-            atMs: 240,
-            coefficient: 0.2,
-            metadata: {
-              damageKind: "field-tick",
-            },
+        ticks: BURNING_SPEED_FIELD_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          coefficient: 0.2,
+          metadata: {
+            damageKind: "field-tick",
           },
-          {
-            atMs: 1740,
-            coefficient: 0.2,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 3240,
-            coefficient: 0.2,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 4740,
-            coefficient: 0.2,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 6240,
-            coefficient: 0.2,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-        ],
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
       },
       {
         type: "condition",
-        ticks: [
-          {
-            atMs: 240,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-          {
-            atMs: 1740,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-          {
-            atMs: 3240,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-          {
-            atMs: 4740,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-          {
-            atMs: 6240,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-        ],
+        ticks: BURNING_SPEED_FIELD_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: "Burning",
+          stacks: 1,
+          duration: 2,
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
         metadata: {},
@@ -3859,132 +3652,24 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        ticks: [
-          {
-            atMs: 840,
-            coefficient: 0.1,
-            metadata: {
-              damageKind: "field-tick",
-            },
+        ticks: FLAMEWALL_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          coefficient: 0.1,
+          metadata: {
+            damageKind: "field-tick",
           },
-          {
-            atMs: 2340,
-            coefficient: 0.1,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 3840,
-            coefficient: 0.1,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 5340,
-            coefficient: 0.1,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 6840,
-            coefficient: 0.1,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 8340,
-            coefficient: 0.1,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 9840,
-            coefficient: 0.1,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 11340,
-            coefficient: 0.1,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 12840,
-            coefficient: 0.1,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-        ],
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
       },
       {
         type: "condition",
-        ticks: [
-          {
-            atMs: 840,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2.5,
-          },
-          {
-            atMs: 2340,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2.5,
-          },
-          {
-            atMs: 3840,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2.5,
-          },
-          {
-            atMs: 5340,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2.5,
-          },
-          {
-            atMs: 6840,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2.5,
-          },
-          {
-            atMs: 8340,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2.5,
-          },
-          {
-            atMs: 9840,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2.5,
-          },
-          {
-            atMs: 11340,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2.5,
-          },
-          {
-            atMs: 12840,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2.5,
-          },
-        ],
+        ticks: FLAMEWALL_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: "Burning",
+          stacks: 1,
+          duration: 2.5,
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
         metadata: {},
@@ -4296,106 +3981,24 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        ticks: [
-          {
-            atMs: 2340,
-            coefficient: 0.44,
-            metadata: {
-              damageKind: "field-tick",
-            },
+        ticks: WILDFIRE_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          coefficient: 0.44,
+          metadata: {
+            damageKind: "field-tick",
           },
-          {
-            atMs: 3840,
-            coefficient: 0.44,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 5340,
-            coefficient: 0.44,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 6840,
-            coefficient: 0.44,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 8340,
-            coefficient: 0.44,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 9840,
-            coefficient: 0.44,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 11340,
-            coefficient: 0.44,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-        ],
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
       },
       {
         type: "condition",
-        ticks: [
-          {
-            atMs: 2340,
-            condition: "Burning",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 3840,
-            condition: "Burning",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 5340,
-            condition: "Burning",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 6840,
-            condition: "Burning",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 8340,
-            condition: "Burning",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 9840,
-            condition: "Burning",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 11340,
-            condition: "Burning",
-            stacks: 1,
-            duration: 3,
-          },
-        ],
+        ticks: WILDFIRE_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: "Burning",
+          stacks: 1,
+          duration: 3,
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
         metadata: {},
@@ -4602,39 +4205,35 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        ticks: [
-          {
-            atMs: 2340,
-            coefficient: 0.3,
-          },
-        ],
+        ticks: DUST_STORM_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          coefficient: 0.3,
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
       },
       {
         type: "condition",
-        ticks: [
-          {
-            atMs: 2340,
-            condition: "Bleeding",
-            stacks: 2,
-            duration: 10,
-          },
-        ],
+        ticks: DUST_STORM_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: "Bleeding",
+          stacks: 2,
+          duration: 10,
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
         metadata: {},
       },
-      {
-        type: "blind",
-        atMs: 2340,
+      ...DUST_STORM_TICK_OFFSETS_MS.map((atMs) => ({
+        type: "blind" as const,
+        atMs,
         applications: 1,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: "castStart" as const,
+        timingScale: "cast" as const,
         metadata: {
           controlKind: "blind",
         },
-      },
+      })),
       {
         type: "boon",
         boon: "Resistance",
@@ -4645,251 +4244,6 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "cast",
         metadata: {},
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 3960,
-            coefficient: 0.3,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "condition",
-        ticks: [
-          {
-            atMs: 3960,
-            condition: "Bleeding",
-            stacks: 2,
-            duration: 10,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {},
-      },
-      {
-        type: "blind",
-        atMs: 3960,
-        applications: 1,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {
-          controlKind: "blind",
-        },
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 5340,
-            coefficient: 0.3,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "condition",
-        ticks: [
-          {
-            atMs: 5340,
-            condition: "Bleeding",
-            stacks: 2,
-            duration: 10,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {},
-      },
-      {
-        type: "blind",
-        atMs: 5340,
-        applications: 1,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {
-          controlKind: "blind",
-        },
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 6960,
-            coefficient: 0.3,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "condition",
-        ticks: [
-          {
-            atMs: 6960,
-            condition: "Bleeding",
-            stacks: 2,
-            duration: 10,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {},
-      },
-      {
-        type: "blind",
-        atMs: 6960,
-        applications: 1,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {
-          controlKind: "blind",
-        },
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 8340,
-            coefficient: 0.3,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "condition",
-        ticks: [
-          {
-            atMs: 8340,
-            condition: "Bleeding",
-            stacks: 2,
-            duration: 10,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {},
-      },
-      {
-        type: "blind",
-        atMs: 8340,
-        applications: 1,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {
-          controlKind: "blind",
-        },
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 9960,
-            coefficient: 0.3,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "condition",
-        ticks: [
-          {
-            atMs: 9960,
-            condition: "Bleeding",
-            stacks: 2,
-            duration: 10,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {},
-      },
-      {
-        type: "blind",
-        atMs: 9960,
-        applications: 1,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {
-          controlKind: "blind",
-        },
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 11340,
-            coefficient: 0.3,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "condition",
-        ticks: [
-          {
-            atMs: 11340,
-            condition: "Bleeding",
-            stacks: 2,
-            duration: 10,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {},
-      },
-      {
-        type: "blind",
-        atMs: 11340,
-        applications: 1,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {
-          controlKind: "blind",
-        },
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 12960,
-            coefficient: 0.3,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "condition",
-        ticks: [
-          {
-            atMs: 12960,
-            condition: "Bleeding",
-            stacks: 2,
-            duration: 10,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {},
-      },
-      {
-        type: "blind",
-        atMs: 12960,
-        applications: 1,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {
-          controlKind: "blind",
-        },
       },
     ],
   },
@@ -5105,165 +4459,29 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        ticks: [
-          {
-            atMs: 540,
-            coefficient: 0.5,
-            comboFinishers: [
-              {
-                ownerId: "elementalist",
-                finisherType: "Projectile",
-                ambiguousFieldSelection: "oldest",
-              },
-            ],
-            metadata: {},
-          },
-        ],
+        ticks: FROST_VOLLEY_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          coefficient: 0.5,
+          comboFinishers: [
+            {
+              ownerId: "elementalist",
+              finisherType: "Projectile",
+              ambiguousFieldSelection: "oldest",
+            },
+          ],
+          metadata: {},
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
       },
       {
         type: "condition",
-        ticks: [
-          {
-            atMs: 540,
-            condition: "Vulnerability",
-            stacks: 1,
-            duration: 15,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {},
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 1020,
-            coefficient: 0.5,
-            comboFinishers: [
-              {
-                ownerId: "elementalist",
-                finisherType: "Projectile",
-                ambiguousFieldSelection: "oldest",
-              },
-            ],
-            metadata: {},
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "condition",
-        ticks: [
-          {
-            atMs: 1020,
-            condition: "Vulnerability",
-            stacks: 1,
-            duration: 15,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {},
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 1500,
-            coefficient: 0.5,
-            comboFinishers: [
-              {
-                ownerId: "elementalist",
-                finisherType: "Projectile",
-                ambiguousFieldSelection: "oldest",
-              },
-            ],
-            metadata: {},
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "condition",
-        ticks: [
-          {
-            atMs: 1500,
-            condition: "Vulnerability",
-            stacks: 1,
-            duration: 15,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {},
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 1980,
-            coefficient: 0.5,
-            comboFinishers: [
-              {
-                ownerId: "elementalist",
-                finisherType: "Projectile",
-                ambiguousFieldSelection: "oldest",
-              },
-            ],
-            metadata: {},
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "condition",
-        ticks: [
-          {
-            atMs: 1980,
-            condition: "Vulnerability",
-            stacks: 1,
-            duration: 15,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        metadata: {},
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 2460,
-            coefficient: 0.5,
-            comboFinishers: [
-              {
-                ownerId: "elementalist",
-                finisherType: "Projectile",
-                ambiguousFieldSelection: "oldest",
-              },
-            ],
-            metadata: {},
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "condition",
-        ticks: [
-          {
-            atMs: 2460,
-            condition: "Vulnerability",
-            stacks: 1,
-            duration: 15,
-          },
-        ],
+        ticks: FROST_VOLLEY_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: "Vulnerability",
+          stacks: 1,
+          duration: 15,
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
         metadata: {},
@@ -5850,158 +5068,24 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        ticks: [
-          {
-            atMs: 1320,
-            coefficient: 0.5,
-            metadata: {
-              damageKind: "field-tick",
-            },
+        ticks: GLYPH_OF_STORMS_FIRE_EARTH_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          coefficient: 0.5,
+          metadata: {
+            damageKind: "field-tick",
           },
-          {
-            atMs: 2820,
-            coefficient: 0.5,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 4320,
-            coefficient: 0.5,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 5820,
-            coefficient: 0.5,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 7320,
-            coefficient: 0.5,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 8820,
-            coefficient: 0.5,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 10320,
-            coefficient: 0.5,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 11820,
-            coefficient: 0.5,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 13320,
-            coefficient: 0.5,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 14820,
-            coefficient: 0.5,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 16320,
-            coefficient: 0.5,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-        ],
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
       },
       {
         type: "condition",
-        ticks: [
-          {
-            atMs: 1320,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-          {
-            atMs: 2820,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-          {
-            atMs: 4320,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-          {
-            atMs: 5820,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-          {
-            atMs: 7320,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-          {
-            atMs: 8820,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-          {
-            atMs: 10320,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-          {
-            atMs: 11820,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-          {
-            atMs: 13320,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-          {
-            atMs: 14820,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-          {
-            atMs: 16320,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          },
-        ],
+        ticks: GLYPH_OF_STORMS_FIRE_EARTH_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: "Burning",
+          stacks: 1,
+          duration: 2,
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
         metadata: {},
@@ -6107,158 +5191,24 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        ticks: [
-          {
-            atMs: 1320,
-            coefficient: 0.045454545454545456,
-            metadata: {
-              damageKind: "field-tick",
-            },
+        ticks: GLYPH_OF_STORMS_FIRE_EARTH_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          coefficient: 0.045454545454545456,
+          metadata: {
+            damageKind: "field-tick",
           },
-          {
-            atMs: 2820,
-            coefficient: 0.045454545454545456,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 4320,
-            coefficient: 0.045454545454545456,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 5820,
-            coefficient: 0.045454545454545456,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 7320,
-            coefficient: 0.045454545454545456,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 8820,
-            coefficient: 0.045454545454545456,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 10320,
-            coefficient: 0.045454545454545456,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 11820,
-            coefficient: 0.045454545454545456,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 13320,
-            coefficient: 0.045454545454545456,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 14820,
-            coefficient: 0.045454545454545456,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-          {
-            atMs: 16320,
-            coefficient: 0.045454545454545456,
-            metadata: {
-              damageKind: "field-tick",
-            },
-          },
-        ],
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
       },
       {
         type: "condition",
-        ticks: [
-          {
-            atMs: 1320,
-            condition: "Bleeding",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 2820,
-            condition: "Bleeding",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 4320,
-            condition: "Bleeding",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 5820,
-            condition: "Bleeding",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 7320,
-            condition: "Bleeding",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 8820,
-            condition: "Bleeding",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 10320,
-            condition: "Bleeding",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 11820,
-            condition: "Bleeding",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 13320,
-            condition: "Bleeding",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 14820,
-            condition: "Bleeding",
-            stacks: 1,
-            duration: 3,
-          },
-          {
-            atMs: 16320,
-            condition: "Bleeding",
-            stacks: 1,
-            duration: 3,
-          },
-        ],
+        ticks: GLYPH_OF_STORMS_FIRE_EARTH_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: "Bleeding",
+          stacks: 1,
+          duration: 3,
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
         metadata: {},
@@ -6588,44 +5538,10 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        ticks: [
-          {
-            atMs: 780,
-            coefficient: 0.65,
-          },
-          {
-            atMs: 2280,
-            coefficient: 0.65,
-          },
-          {
-            atMs: 3780,
-            coefficient: 0.65,
-          },
-          {
-            atMs: 5280,
-            coefficient: 0.65,
-          },
-          {
-            atMs: 6780,
-            coefficient: 0.65,
-          },
-          {
-            atMs: 8280,
-            coefficient: 0.65,
-          },
-          {
-            atMs: 9780,
-            coefficient: 0.65,
-          },
-          {
-            atMs: 11280,
-            coefficient: 0.65,
-          },
-          {
-            atMs: 12780,
-            coefficient: 0.65,
-          },
-        ],
+        ticks: FIRESTORM_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          coefficient: 0.65,
+        })),
         timingAnchor: "castStart",
         timingScale: "cast",
       },
@@ -6895,132 +5811,19 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
       {
         type: "strike",
         ticks: [
-          {
-            atMs: 2340,
-            coefficient: 1.21,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 2700,
-            coefficient: 1.089,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 3180,
-            coefficient: 0.968,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 3600,
-            coefficient: 0.847,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 3960,
-            coefficient: 0.726,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 4380,
-            coefficient: 0.605,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 4860,
-            coefficient: 0.484,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 5220,
-            coefficient: 0.363,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 5640,
-            coefficient: 0.242,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 6060,
-            coefficient: 0.121,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 6480,
-            coefficient: 0.05,
-          },
-        ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-      {
-        type: "strike",
-        ticks: [
-          {
-            atMs: 6960,
-            coefficient: 0.05,
-          },
-        ],
+          [2340, 1.21],
+          [2700, 1.089],
+          [3180, 0.968],
+          [3600, 0.847],
+          [3960, 0.726],
+          [4380, 0.605],
+          [4860, 0.484],
+          [5220, 0.363],
+          [5640, 0.242],
+          [6060, 0.121],
+          [6480, 0.05],
+          [6960, 0.05],
+        ].map(([atMs, coefficient]) => ({ atMs, coefficient })),
         timingAnchor: "castStart",
         timingScale: "cast",
       },
