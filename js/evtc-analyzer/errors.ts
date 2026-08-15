@@ -16,6 +16,9 @@ export type EvtcErrorCode =
   | "NO_PLAYER_DAMAGE"
   | "UNUSABLE_INTERVAL"
   | "PLAYER_NOT_FOUND"
+  | "PLAYER_SELECTION_REQUIRED"
+  | "UNSUPPORTED_PROFESSION"
+  | "NO_ROTATION_ACTIONS"
   | "WORKER_ERROR";
 
 export class EvtcError extends Error {

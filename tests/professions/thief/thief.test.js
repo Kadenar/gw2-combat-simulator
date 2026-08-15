@@ -470,11 +470,98 @@ test("initiative regenerates at exact boundaries and ignores Alacrity", () => {
   assert.ok(Math.abs(kneeling.endState.profession.initiative - 14 / 3) < 1e-9);
 });
 
+test("Unload grants 2 initiative when every bullet lands", () => {
+  const completed = simulate("Core", ["Unload"], {
+    initialInitiative: 3,
+    primaryWeapon: "Pistol",
+    secondaryWeapon: "Pistol",
+  });
+  const refund = completed.events.find(
+    (event) => event.type === "thief.state" && event.reason === "unload-refund",
+  );
+  assert.equal(completed.steps[0].end - completed.steps[0].start, 1500);
+  assert.equal(completed.steps[0].interrupted, false);
+  assert.equal(refund.at, 1.5);
+  assert.equal(refund.state.initiative, 3.5);
+
+  const quickened = simulate("Core", ["Unload"], {
+    initialInitiative: 3,
+    primaryWeapon: "Pistol",
+    secondaryWeapon: "Pistol",
+    boons: { quickness: true },
+  });
+  const quickenedRefund = quickened.events.find(
+    (event) => event.type === "thief.state" && event.reason === "unload-refund",
+  );
+  assert.equal(quickened.steps[0].end - quickened.steps[0].start, 1320);
+  assert.equal(quickened.steps[0].interrupted, false);
+  assert.deepEqual(
+    quickened.events
+      .filter(
+        (event) => event.type === "damage" && event.skillName === "Unload",
+      )
+      .map((event) => Math.round(event.at * 1000)),
+    [128, 255, 383, 510, 638, 766, 893, 1021],
+  );
+  assert.equal(quickenedRefund.at, 1.32);
+  assert.ok(Math.abs(quickenedRefund.state.initiative - 3.32) < 1e-9);
+
+  const safelyInterrupted = simulate(
+    "Core",
+    [{ name: "Unload", interruptMs: 1160 }],
+    {
+      initialInitiative: 3,
+      primaryWeapon: "Pistol",
+      secondaryWeapon: "Pistol",
+    },
+  );
+  const safeRefund = safelyInterrupted.events.find(
+    (event) => event.type === "thief.state" && event.reason === "unload-refund",
+  );
+  const safeBullets = safelyInterrupted.events.filter(
+    (event) => event.type === "damage" && event.skillName === "Unload",
+  );
+  assert.deepEqual(
+    safeBullets.map((event) => Math.round(event.at * 1000)),
+    [145, 290, 435, 580, 725, 870, 1015, 1160],
+  );
+  assert.equal(
+    safelyInterrupted.steps[0].end - safelyInterrupted.steps[0].start,
+    1160,
+  );
+  assert.equal(safelyInterrupted.steps[0].interrupted, true);
+  assert.equal(safeRefund.at, 1.16);
+  assert.equal(safeRefund.state.initiative, 3.16);
+
+  const interruptedBeforeFinalBullet = simulate(
+    "Core",
+    [{ name: "Unload", interruptMs: 1159 }],
+    {
+      initialInitiative: 3,
+      primaryWeapon: "Pistol",
+      secondaryWeapon: "Pistol",
+    },
+  );
+  assert.equal(
+    interruptedBeforeFinalBullet.events.filter(
+      (event) => event.type === "damage" && event.skillName === "Unload",
+    ).length,
+    7,
+  );
+  assert.equal(
+    interruptedBeforeFinalBullet.events.some(
+      (event) =>
+        event.type === "thief.state" && event.reason === "unload-refund",
+    ),
+    false,
+  );
+});
+
 test("weapon swap preserves shared initiative", () => {
   const result = simulate("Core", ["Death Blossom", "Swap Weapons", "Unload"]);
   assert.equal(result.warnings.length, 0);
   assert.equal(result.endState.activeWeaponSet, 2);
-  assert.ok(result.endState.profession.initiative < 9);
+  assert.ok(Math.abs(result.endState.profession.initiative - 10.06) < 1e-9);
   assert.ok(result.events.some((event) => event.type === "weapon_set"));
 
   const resetChain = simulate(

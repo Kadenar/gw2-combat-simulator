@@ -1,9 +1,13 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
-import { THIEF_TRAIT_IDS as TRAIT } from "../data/ids.js";
+import {
+  THIEF_SKILL_IDS as ID,
+  THIEF_TRAIT_IDS as TRAIT,
+} from "../data/ids.js";
 import { hasThiefTrait } from "./state.js";
 import { emitThiefState, gainThiefInitiative } from "./shared.js";
 import type {
   ThiefPrecastContext,
+  ThiefCastContext,
   ThiefCoreState,
   ThiefResourceContext,
   ThiefSchedulerContext,
@@ -115,4 +119,28 @@ export function spendThiefCoreResources(
   ) {
     gainThiefInitiative(context, 3, context.start, "signets-of-power");
   }
+}
+
+export function completeThiefCoreResources(
+  context: ThiefCastContext,
+  skill: ThiefSkill,
+): void {
+  if (skill.id !== ID.UNLOAD) return;
+  const bullets = skill.effects?.find(
+    (effect) => effect.type === "strike" && effect.name === "Unload",
+  );
+  if (!bullets || bullets.atMs == null) return;
+  const finalBulletOffsetMs =
+    Number(bullets.atMs) +
+    (Math.max(1, Number(bullets.hits || 1)) - 1) *
+      Number(bullets.intervalMs || 0);
+  const baseCastMs = Math.max(0, Number(skill.castTimeMs || 0));
+  const timingScale =
+    bullets.timingScale === "cast" && baseCastMs > 0
+      ? ((context.fullEnd - context.start) * 1000) / baseCastMs
+      : 1;
+  const finalBulletAt =
+    context.start + (finalBulletOffsetMs * timingScale) / 1000;
+  if (context.effectiveEnd + context.epsilon < finalBulletAt) return;
+  gainThiefInitiative(context, 2, context.effectiveEnd, "unload-refund");
 }
