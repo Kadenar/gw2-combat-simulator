@@ -27,6 +27,13 @@ type RotationWorkspaceController = {
 
 const controllers = new WeakMap<Document, RotationWorkspaceController>();
 
+/** Closes transient rotation UI before leaving the workspace view. */
+export function resetRotationWorkspace(root: Document = document): void {
+  const controller = controllers.get(root);
+  if (!controller) return;
+  applyWorkspaceState(controller, DEFAULT_ROTATION_WORKSPACE_STATE);
+}
+
 export function syncRotationFocusResults(root: Document = document): void {
   const focused = root.body?.hasAttribute("data-rotation-focus") === true;
   for (const details of root.querySelectorAll<HTMLDetailsElement>(

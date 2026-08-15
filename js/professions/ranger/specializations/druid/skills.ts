@@ -164,6 +164,22 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
       },
+      {
+        type: "control",
+        name: "Black Hole",
+        sourceId: ID.BLACK_HOLE,
+        actorType: "effect",
+        ownerActorType: "player",
+        applications: 4,
+        atMs: 2640,
+        intervalMs: 1520,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        metadata: {
+          controlKind: "pull",
+          skillName: "Black Hole",
+        },
+      },
       ...[520, 1160, 1640, 2040].map((atMs) => ({
         type: "boon" as const,
         boon: "might",

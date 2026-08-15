@@ -335,13 +335,15 @@ export function createProfessionRuntime({
    */
   function randomDistributionRequest(
     app: ProfessionAppState,
-  ): RandomDistributionJobRequest | null {
-    const baseConfig = simulationConfig(app);
-    if (
-      baseConfig.randomness?.mode !== SIMULATION_RANDOMNESS_MODES.STOCHASTIC
-    ) {
-      return null;
-    }
+  ): RandomDistributionJobRequest {
+    const config = simulationConfig(app);
+    const baseConfig = {
+      ...config,
+      randomness: {
+        ...config.randomness,
+        mode: SIMULATION_RANDOMNESS_MODES.STOCHASTIC,
+      },
+    };
     return {
       professionId: profession.id,
       rotation: app.build.rotation,

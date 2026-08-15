@@ -105,7 +105,7 @@ export function applyCelestialAvatarTraits(
       emitEclipseCondition(context, skill, context.start, "Vulnerability", 8);
       break;
     case ID.SEED_OF_LIFE:
-      emitEclipseCondition(context, skill, context.start, "Poisoned", 8);
+      emitEclipseCondition(context, skill, context.start, "Poisoned", 8, 3);
       break;
     case ID.LUNAR_IMPACT:
       emitEclipseCondition(

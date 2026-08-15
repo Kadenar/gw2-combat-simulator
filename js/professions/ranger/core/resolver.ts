@@ -269,12 +269,14 @@ function triggerPoisonousStrikes(
     return;
   }
   state.poisonousStrikesCharges -= 1;
+  const petSource = !merged;
   enqueueOrdered(context.queue, {
+    ...(petSource ? petDerivedConditionMetadata(context, event) : {}),
     type: "condition",
     at: event.at,
-    source: "ranger",
+    source: petSource ? "ranger-pet" : "ranger",
     sourceId: ID.DOUBLE_ARC,
-    actorType: "effect",
+    actorType: petSource ? "summon" : "effect",
     skillId: ID.DOUBLE_ARC,
     skillName: "Poisonous Strikes",
     name: "Poisonous Strikes - Poisoned",

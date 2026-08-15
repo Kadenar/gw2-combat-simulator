@@ -107,7 +107,7 @@ export const rangerCoreSkillHandlers = Object.freeze({
         skillId: skill.id,
         skillName: skill.name,
         charges: 2,
-        duration: 7,
+        duration: 10,
       });
     },
   },
