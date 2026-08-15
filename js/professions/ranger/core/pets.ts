@@ -78,8 +78,8 @@ function rangerPetAttributes(context?: RangerSchedulerContext) {
     : "Carrion Devourer";
   let power = 1524;
   let precision = petName === "Tiger" ? 2211 : petName === "Pig" ? 1180 : 1524;
-  let toughness = petName === "Pig" ? 2211 : 1000;
-  let vitality = petName === "Pig" ? 3585 : 1000;
+  let toughness = petName === "Tiger" ? 1524 : petName === "Pig" ? 2211 : 1000;
+  let vitality = petName === "Tiger" ? 2211 : petName === "Pig" ? 3585 : 1000;
   let ferocity = 0;
   let conditionDamage = petName === "Pig" ? 700 : 1000;
   let expertise = 0;
@@ -196,11 +196,11 @@ const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> =
     Tiger: {
       ignoresAlacrity: true,
       openingDelay: 0.48,
-      opening: { id: ID.FELINE_BITE, recovery: 1.32, cooldown: 7.9 },
+      opening: { id: ID.FELINE_BITE, recovery: 1.32, cooldown: 8 },
       basic: { id: ID.FELINE_SLASH, recovery: 1.35 },
       specials: [
         { id: ID.FELINE_MAUL, recovery: 1.44, cooldown: 16 },
-        { id: ID.FELINE_BITE, recovery: 1.32, cooldown: 7.9 },
+        { id: ID.FELINE_BITE, recovery: 1.32, cooldown: 8 },
       ],
       commandRecovery: { [ID.FURIOUS_POUNCE]: 1.76 },
     },

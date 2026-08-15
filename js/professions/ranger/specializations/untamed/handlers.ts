@@ -12,7 +12,12 @@ function unleash(context: RangerCastContext, rangerUnleashed: boolean): void {
     actorType: "player",
     rangerUnleashed,
   });
-  if (context.start + context.epsilon < state.unleashedPowerReadyAt) return;
+  if (
+    !rangerUnleashed ||
+    context.start + context.epsilon < state.unleashedPowerReadyAt
+  ) {
+    return;
+  }
   state.ambushReadyUntil = context.start + 4;
   state.unleashedPowerReadyAt = context.start + 9;
 }

@@ -676,7 +676,7 @@ test("Go for the Throat follows Soulbeast F3 and unmerged pet F2", () => {
   );
   assert.equal(coreProcs.length, 1);
   assert.equal(coreProcs[0].sourceSkill, "Intimidating Howl");
-  assert.equal(coreProcs[0].detail, "8s, +15% pet strike damage");
+  assert.equal(coreProcs[0].detail, "8s, +40% pet strike damage");
   assert.equal(Boolean(coreProcs[0].icon), true);
 
   const familySkill = simulate("Core", ["Spit"], {
@@ -691,12 +691,12 @@ test("Go for the Throat follows Soulbeast F3 and unmerged pet F2", () => {
 
 test("precombat pet F2 starts combat before Go for the Throat applies", () => {
   const rotation = [
-    "Intimidating Howl",
+    "Furious Pounce",
     "__combat_start",
     { type: "wait", durationMs: 8000 },
   ];
   const config = {
-    selectedPet: "Krytan Drakehound",
+    selectedPet: "Tiger",
     target: { health: 10000000 },
   };
   const baseline = simulate("Core", rotation, config);
@@ -708,12 +708,19 @@ test("precombat pet F2 starts combat before Go for the Throat applies", () => {
     (step) => step.skill === 'Lesser "Sic \'Em!"',
   );
   const f2Damage = (result) =>
-    result.breakdown.find((row) => row.name === "Intimidating Howl").damage;
+    result.breakdown.find((row) => row.name === "Furious Pounce").damage;
+  const slashDamage = (result) =>
+    result.resolvedEvents.find(
+      (event) => event.type === "damage" && event.skillId === ID.FELINE_SLASH,
+    ).damage;
 
-  assert.equal(proc.sourceSkill, "Intimidating Howl");
+  assert.equal(proc.sourceSkill, "Furious Pounce");
   assert.equal(proc.start, goForTheThroat.combatStartTime * 1000);
   assert.equal(goForTheThroat.firstHitTime, goForTheThroat.combatStartTime);
   assert.equal(f2Damage(goForTheThroat), f2Damage(baseline));
+  assert.ok(
+    Math.abs(slashDamage(goForTheThroat) / slashDamage(baseline) - 1.4) < 1e-9,
+  );
 });
 
 test("Soulbeast condition modifiers and duration bonuses use their actual targets", () => {
@@ -922,16 +929,26 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
     ["Force", "Impact"],
   ]);
   assert.equal(build.assumptions.sharePlayerBoonsWithSummons, false);
-  assert.equal(hits(ID.FELINE_SLASH), 67);
-  assert.equal(hits(ID.FELINE_BITE), 13);
+  assert.equal(hits(ID.FELINE_SLASH), 69);
+  assert.equal(hits(ID.FELINE_BITE), 12);
   assert.equal(hits(ID.FELINE_MAUL), 14);
   assert.equal(hits(ID.FURIOUS_POUNCE), 6);
   assert.equal(hits(ID.ENVELOPING_HAZE), 34);
   assert.equal(hits(ID.VENOMOUS_OUTBURST), 11);
   assert.equal(hits(ID.RENDING_VINES), 11);
   assert.equal(namedHits(ID.RELENTLESS_WHIRL, "Relentless Whirl"), 20);
-  assert.equal(namedHits(ID.DEFT_STRIKE, "Deft Strike"), 4);
+  assert.equal(namedHits(ID.DEFT_STRIKE, "Deft Strike"), 3);
+  assert.equal(
+    result.steps.filter(
+      (step) => step.skill === "Deft Strike" && step.invalid !== true,
+    ).length,
+    4,
+  );
   assert.equal(hits(ID.EXPLODING_SPORES), 24);
+  assert.equal(
+    rangerCatalog.skillsById.get(ID.EXPLODING_SPORES).quicknessCastTimeMs,
+    480,
+  );
 
   const lesserSicEmProcs = result.procSteps.filter(
     (step) => step.skill === 'Lesser "Sic \'Em!"',
@@ -943,8 +960,25 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
     (event) => event.type === "damage" && event.skillId === ID.FELINE_SLASH,
   );
   assert.equal(tigerStrike.summonBasePower, 1944);
+  assert.equal(tigerStrike.summonBaseToughness, 1824);
+  assert.equal(tigerStrike.summonBaseVitality, 2511);
   assert.equal(tigerStrike.summonBaseFerocity, 600);
   assert.equal(tigerStrike.summonBaseExpertise, 0);
+
+  const airStrikes = result.resolvedEvents.filter(
+    (event) => event.type === "damage" && event.sourceId === "sigil.air",
+  );
+  assert.equal(
+    airStrikes.every(
+      (event) =>
+        event.actorType === "effect" &&
+        event.ownerActorType === "player" &&
+        event.coefficient === 1.1 &&
+        event.resolvedWeaponStrength === 690.5 &&
+        event.noCrit === true,
+    ),
+    true,
+  );
 
   const displayRows = skillBreakdownRows(result);
   const relentlessRow = displayRows.find(
@@ -1001,12 +1035,10 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
     true,
   );
 
-  // Beast commands no longer provide a hidden wait on the player lane.
+  // F5 inputs overlap the weapon animations recorded by the supplied EVTC.
   assert.equal(
     Math.abs(
-      result.duration -
-        result.combatStartTime -
-        savedRotation.metadata.benchmarkDurationSeconds,
+      result.dpsWindow - savedRotation.metadata.benchmarkDurationSeconds,
     ) < 2,
     true,
   );
@@ -1662,6 +1694,57 @@ test("Pack Alpha improves only the Pig's five documented attributes", () => {
   );
 });
 
+test("Tiger uses its documented attributes and nominal Bite recharge", () => {
+  const metadata = rangerPetCombatMetadata({
+    config: {
+      selectedTraitIds: [TRAIT.PACK_ALPHA],
+      selectedSkills: ["Signet of the Wild"],
+    },
+    state: {
+      time: 0,
+      cooldowns: new Map(),
+      profession: {
+        core: { activePet: "Tiger", activePetSlot: 1, petAutoGeneration: 0 },
+      },
+    },
+  });
+
+  assert.deepEqual(
+    {
+      power: metadata.summonBasePower,
+      precision: metadata.summonBasePrecision,
+      toughness: metadata.summonBaseToughness,
+      vitality: metadata.summonBaseVitality,
+      ferocity: metadata.summonBaseFerocity,
+      conditionDamage: metadata.summonBaseConditionDamage,
+    },
+    {
+      power: 1824,
+      precision: 2511,
+      toughness: 1824,
+      vitality: 2511,
+      ferocity: 180,
+      conditionDamage: 1300,
+    },
+  );
+
+  const result = simulate(
+    "Core",
+    ["__combat_start", { type: "wait", durationMs: 30000 }],
+    { selectedPet: "Tiger", target: { health: 10000000 } },
+  );
+  const biteTimes = result.resolvedEvents
+    .filter(
+      (event) => event.type === "damage" && event.skillId === ID.FELINE_BITE,
+    )
+    .map((event) => event.at);
+  assert.equal(biteTimes.length, 4);
+  assert.equal(
+    biteTimes.slice(1).every((at, index) => at - biteTimes[index] >= 8),
+    true,
+  );
+});
+
 test("Ranger autonomous pet cooldowns use only pet Alacrity", () => {
   const config = {
     selectedPet: "Carrion Devourer",
@@ -2114,6 +2197,54 @@ test("Untamed starts in the selected unleashed state", () => {
     false,
   );
   assert.equal(availability(ranger.endState.profession, ID.UNLEASH_PET), true);
+});
+
+test("Untamed Unleash forms share a fixed one-second recharge", () => {
+  const result = simulate("Untamed", ["Unleash Pet", "Unleash Ranger"], {
+    initialUntamedState: "Ranger",
+    boons: { alacrity: true },
+  });
+  const unleashSteps = result.steps.filter((step) =>
+    ["Unleash Pet", "Unleash Ranger"].includes(step.skill),
+  );
+  const unleashActions = result.events.filter(
+    (event) =>
+      event.type === "action" &&
+      [ID.UNLEASH_PET, ID.UNLEASH_RANGER].includes(event.skillId),
+  );
+
+  assert.deepEqual(
+    unleashSteps.map(({ skill, start }) => ({ skill, start })),
+    [
+      { skill: "Unleash Pet", start: 0 },
+      { skill: "Unleash Ranger", start: 1000 },
+    ],
+  );
+  assert.deepEqual(
+    unleashActions.map((event) => event.rechargeReadyAt - event.at),
+    [1, 1],
+  );
+  assert.equal(result.endState.profession.ambushReadyUntil, 5);
+
+  const suppressed = simulate(
+    "Untamed",
+    ["Unleash Pet", "Unleash Ranger", "Unleash Pet", "Unleash Ranger"],
+    { initialUntamedState: "Ranger" },
+  );
+  assert.equal(suppressed.endState.profession.ambushReadyUntil, 5);
+
+  const refreshed = simulate(
+    "Untamed",
+    [
+      "Unleash Pet",
+      "Unleash Ranger",
+      "Unleash Pet",
+      { type: "wait", durationMs: 8000 },
+      "Unleash Ranger",
+    ],
+    { initialUntamedState: "Ranger" },
+  );
+  assert.equal(refreshed.endState.profession.ambushReadyUntil, 14);
 });
 
 test("Untamed ambush skills require the specialization and an active unleash proc", () => {

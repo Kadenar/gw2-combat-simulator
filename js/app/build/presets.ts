@@ -11,15 +11,10 @@ import type {
 } from "../profession/types.js";
 
 type TemplateLoadAction = "build" | "rotation" | "template";
-type TemplateCategory = "power" | "condi" | "boon" | "other";
+type TemplateCategory = "power" | "condi" | "other";
 type TemplateFilter = "all" | Exclude<TemplateCategory, "other">;
 
-const TEMPLATE_FILTERS: readonly TemplateFilter[] = [
-  "all",
-  "power",
-  "condi",
-  "boon",
-];
+const TEMPLATE_FILTERS: readonly TemplateFilter[] = ["all", "power", "condi"];
 
 function normalizeTemplateSections(manifest: unknown): BuildTemplateSection[] {
   if (!Array.isArray(manifest) || manifest.length === 0) return [];
@@ -43,17 +38,10 @@ function templateSummary(preset: BuildTemplatePreset): string {
   return details.join(" · ");
 }
 
-/**
- * Boon builds take precedence so hybrid labels such as "Power Quickness"
- * never appear in the Power or Condi filters.
- */
 export function templateCategory(
   preset: Pick<BuildTemplatePreset, "label" | "build">,
 ): TemplateCategory {
   const description = `${preset.label} ${preset.build}`.toLowerCase();
-  if (/\b(?:quickness|alacrity)\b|[-/](?:quick|alac)-/.test(description)) {
-    return "boon";
-  }
   if (/\bpower\b|\/b-power-/.test(description)) return "power";
   if (/\b(?:condi|condition)\b|\/b-condi(?:tion)?-/.test(description)) {
     return "condi";
@@ -61,11 +49,21 @@ export function templateCategory(
   return "other";
 }
 
+export function templateHasBoon(
+  preset: Pick<BuildTemplatePreset, "label" | "build">,
+): boolean {
+  const description = `${preset.label} ${preset.build}`.toLowerCase();
+  return /\b(?:quickness|alacrity)\b|[-/](?:quick|alac)-/.test(description);
+}
+
 export function templateMatchesFilter(
   preset: Pick<BuildTemplatePreset, "label" | "build">,
   filter: TemplateFilter,
+  boonOnly = false,
 ): boolean {
-  return filter === "all" || templateCategory(preset) === filter;
+  const matchesDamageType =
+    filter === "all" || templateCategory(preset) === filter;
+  return matchesDamageType && (!boonOnly || templateHasBoon(preset));
 }
 
 function isTemplateFilter(value: string | undefined): value is TemplateFilter {
@@ -86,10 +84,11 @@ function templateButtonHtml(
   const index = app.templatePresets.push({ ...preset, section }) - 1;
   const label = esc(preset.label);
   const category = templateCategory(preset);
+  const hasBoon = templateHasBoon(preset);
   const rotationAction = preset.rotation
     ? `<button type="button" role="menuitem" data-template-action="rotation" data-template-index="${index}">Load rotation only</button>`
     : "";
-  return `<div class="template-preset" data-template-index="${index}" data-template-category="${category}">
+  return `<div class="template-preset" data-template-index="${index}" data-template-category="${category}" data-template-boon="${hasBoon}">
       <button type="button" class="btn template-load-btn" data-template-action="template" data-template-index="${index}" aria-pressed="false">
         <span class="template-preset-name">${label}</span>
         <span class="template-preset-summary">${esc(templateSummary(preset))}</span>
@@ -107,6 +106,7 @@ function templateButtonHtml(
 function applyTemplateFilter(
   container: HTMLElement,
   filter: TemplateFilter,
+  boonOnly: boolean,
 ): void {
   container
     .querySelectorAll<HTMLButtonElement>("[data-template-filter]")
@@ -116,13 +116,19 @@ function applyTemplateFilter(
         String(button.dataset.templateFilter === filter),
       );
     });
+  container
+    .querySelector<HTMLButtonElement>("[data-template-boon-filter]")
+    ?.setAttribute("aria-pressed", String(boonOnly));
 
   let visibleTemplates = 0;
   container
     .querySelectorAll<HTMLElement>(".template-preset")
     .forEach((preset) => {
-      const visible =
+      const matchesDamageType =
         filter === "all" || preset.dataset.templateCategory === filter;
+      const visible =
+        matchesDamageType &&
+        (!boonOnly || preset.dataset.templateBoon === "true");
       preset.hidden = !visible;
       if (visible) visibleTemplates += 1;
     });
@@ -305,11 +311,14 @@ export async function initBuildTemplates(
           </div>
           <span class="template-actions-hint">••• for partial loading</span>
         </div>
-        <div class="template-filters" role="group" aria-label="Filter build templates">
-          ${TEMPLATE_FILTERS.map(
-            (filter) =>
-              `<button type="button" data-template-filter="${filter}" aria-pressed="${filter === "all"}">${filter === "condi" ? "Condi" : filter[0].toUpperCase() + filter.slice(1)}</button>`,
-          ).join("")}
+        <div class="template-filters">
+          <div class="template-damage-filters" role="group" aria-label="Filter build templates by damage type">
+            ${TEMPLATE_FILTERS.map(
+              (filter) =>
+                `<button type="button" data-template-filter="${filter}" aria-pressed="${filter === "all"}">${filter === "condi" ? "Condi" : filter[0].toUpperCase() + filter.slice(1)}</button>`,
+            ).join("")}
+          </div>
+          <button type="button" data-template-boon-filter aria-pressed="false">Boon</button>
         </div>
         <div class="default-build-groups">${groups}</div>
         <p class="template-filter-empty" hidden>No matching build templates.</p>
@@ -320,13 +329,24 @@ export async function initBuildTemplates(
       </div>`;
     app.templateContainer = container;
     mountBuildTemplateLayout(container);
+    let templateFilter: TemplateFilter = "all";
+    let boonOnly = false;
     container.addEventListener("click", (event) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
       const filterButton = target.closest("[data-template-filter]");
       if (filterButton instanceof HTMLButtonElement) {
         const filter = filterButton.dataset.templateFilter;
-        if (isTemplateFilter(filter)) applyTemplateFilter(container, filter);
+        if (isTemplateFilter(filter)) {
+          templateFilter = filter;
+          applyTemplateFilter(container, templateFilter, boonOnly);
+        }
+        return;
+      }
+      const boonFilterButton = target.closest("[data-template-boon-filter]");
+      if (boonFilterButton instanceof HTMLButtonElement) {
+        boonOnly = !boonOnly;
+        applyTemplateFilter(container, templateFilter, boonOnly);
         return;
       }
       const button = target.closest("[data-template-action]");

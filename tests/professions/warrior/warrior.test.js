@@ -3752,7 +3752,7 @@ test("Sword/Dagger Spellbreaker preset preserves the supplied build and rotation
   const preset = manifest
     .find((section) => section.section === "Spellbreaker")
     .presets.find((entry) => entry.build.endsWith("sword-dagger.json"));
-  assert.equal(preset.benchmarkDps, 43284);
+  assert.equal(preset.benchmarkDps, 43318);
   assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 91.507);
   assert.equal(savedRotation.metadata.benchmarkDamage, 3970179.1954002595);
   assert.equal(savedRotation.metadata.benchmarkDps, 43386.61736698027);

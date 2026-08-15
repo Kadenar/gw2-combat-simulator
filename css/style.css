@@ -389,9 +389,15 @@ header .community-actions {
 
 .template-filters {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
   gap: 4px;
   margin-bottom: 10px;
+}
+
+.template-damage-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
 }
 
 .template-filters button {

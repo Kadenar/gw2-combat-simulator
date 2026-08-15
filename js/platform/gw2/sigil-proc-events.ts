@@ -40,6 +40,7 @@ export function createSigilStrikeEvent(
 ): SimulationEventInput {
   return {
     ...commonSigilEvent(name, sourceSkill),
+    ...(name === "Air" ? { ownerActorType: "player" as const } : {}),
     type: "damage",
     at: 0,
     coefficient: proc.coefficient,

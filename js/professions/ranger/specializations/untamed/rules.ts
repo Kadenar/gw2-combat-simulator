@@ -1,4 +1,5 @@
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
+import { isGw2PlayerModifierOwnedEvent } from "../../../../platform/gw2/event-ownership.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import {
   RANGER_SKILL_IDS as ID,
@@ -89,7 +90,7 @@ export const untamedModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: "damage-additive",
     amount: 0.25,
     when: (context) =>
-      context.event?.actorType === "player" &&
+      isGw2PlayerModifierOwnedEvent(context.event) &&
       context.event?.source !== "ranger-pet" &&
       rangerUnleashed(context) &&
       hasTrait(context, TRAIT.VOW_OF_THE_UNTAMED),
@@ -140,7 +141,7 @@ export const untamedModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     },
     when: (context) =>
       hasTrait(context, TRAIT.FEROCIOUS_SYMBIOSIS) &&
-      (context.event?.actorType === "player" ||
+      (isGw2PlayerModifierOwnedEvent(context.event) ||
         context.event?.source === "ranger-pet"),
   },
 ]);
@@ -158,6 +159,14 @@ export const untamedCastRules = Object.freeze({
 
 export const untamedSchedulerHooks = Object.freeze({
   onCastComplete(context: RangerCastContext, skill: RangerSkill): void {
+    if (skill.id === ID.UNLEASH_RANGER || skill.id === ID.UNLEASH_PET) {
+      // The F5 flip is a fixed one-second shared recharge, independent of
+      // Alacrity.
+      const readyAt = context.start + 1;
+      context.state.cooldowns.set(ID.UNLEASH_RANGER, readyAt);
+      context.state.cooldowns.set(ID.UNLEASH_PET, readyAt);
+      context.replaceEvent(context.action, { rechargeReadyAt: readyAt });
+    }
     if (
       skill.id !== ID.SWAP_WEAPONS ||
       !hasTrait(context, TRAIT.LET_LOOSE) ||
