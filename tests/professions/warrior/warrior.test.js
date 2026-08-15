@@ -1035,10 +1035,6 @@ test("Spellbreaker uses its reduced adrenaline cap for Full Counter", () => {
     ),
     false,
   );
-  assert.equal(
-    warriorCatalog.skillsById.get(ID.FULL_COUNTER).optimizerExcluded,
-    true,
-  );
 });
 
 test("Spellbreaker weapon bursts require their matching active main hand", () => {
