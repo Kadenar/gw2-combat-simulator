@@ -1,4 +1,5 @@
 import { defineNativeProfession } from "../../platform/gw2/native-profession.js";
+import { activePatchPreview } from "../../patches/active-preview.js";
 import {
   createThiefBuildDefaults,
   migrateThiefBuild,
@@ -17,6 +18,7 @@ export const thiefProfession = defineNativeProfession({
     validateBuild: validateThiefBuild,
   },
   modules: thiefNativeModules,
+  patchPreview: activePatchPreview,
   presentation: {
     weaponSkillMatchesSet: thiefWeaponSkillMatchesSet,
   },

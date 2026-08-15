@@ -1,4 +1,5 @@
 import { defineNativeProfession } from "../../platform/gw2/native-profession.js";
+import { activePatchPreview } from "../../patches/active-preview.js";
 import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
@@ -7,10 +8,7 @@ import {
 import "./data/trait-coverage.js";
 import { necromancerNativeModules } from "./modules.js";
 import type { Gw2SimulationResult } from "../../platform/gw2/types.js";
-import type {
-  NecromancerConfig,
-  NecromancerResolverEvent,
-} from "./types.js";
+import type { NecromancerConfig, NecromancerResolverEvent } from "./types.js";
 
 function targetBelowHalfAt(
   result: Gw2SimulationResult,
@@ -22,9 +20,9 @@ function targetBelowHalfAt(
     if (!(amount > 0)) return;
     damageByTime.set(Number(at), (damageByTime.get(Number(at)) || 0) + amount);
   };
-  const resolvedEvents = (
-    result.resolvedEvents as readonly NecromancerResolverEvent[] | undefined
-  ) || [];
+  const resolvedEvents =
+    (result.resolvedEvents as
+      readonly NecromancerResolverEvent[] | undefined) || [];
   for (const event of resolvedEvents) {
     if (event.type === "damage") {
       addDamage(event.at, Number(event.damage || 0));
@@ -53,8 +51,7 @@ function refineNecromancerSchedulerConfig(
   const belowHalfAt = targetBelowHalfAt(result, targetHealth);
   if (belowHalfAt == null) return null;
   const schedulerFeedback = config._schedulerFeedback as
-    | { readonly targetBelowHalfAt?: number }
-    | undefined;
+    { readonly targetBelowHalfAt?: number } | undefined;
   const previous = Number(schedulerFeedback?.targetBelowHalfAt);
   if (Number.isFinite(previous) && previous === belowHalfAt) return null;
   return {
@@ -66,19 +63,19 @@ function refineNecromancerSchedulerConfig(
   };
 }
 
-export const necromancerProfession =
-  defineNativeProfession({
-    id: "necromancer",
-    name: "Necromancer",
-    build: {
-      createBuildDefaults: createNecromancerBuildDefaults,
-      migrateBuild: migrateNecromancerBuild,
-      validateBuild: validateNecromancerBuild,
-    },
-    modules: necromancerNativeModules,
-    simulation: Object.freeze({
-      refineSchedulerConfig: refineNecromancerSchedulerConfig,
-    }),
-  });
+export const necromancerProfession = defineNativeProfession({
+  id: "necromancer",
+  name: "Necromancer",
+  build: {
+    createBuildDefaults: createNecromancerBuildDefaults,
+    migrateBuild: migrateNecromancerBuild,
+    validateBuild: validateNecromancerBuild,
+  },
+  modules: necromancerNativeModules,
+  patchPreview: activePatchPreview,
+  simulation: Object.freeze({
+    refineSchedulerConfig: refineNecromancerSchedulerConfig,
+  }),
+});
 
 export default necromancerProfession;

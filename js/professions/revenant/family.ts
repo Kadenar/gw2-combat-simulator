@@ -1,4 +1,5 @@
 import { defineNativeProfession } from "../../platform/gw2/native-profession.js";
+import { activePatchPreview } from "../../patches/active-preview.js";
 import {
   createRevenantBuildDefaults,
   migrateRevenantBuild,
@@ -16,6 +17,7 @@ export const revenantProfession = defineNativeProfession({
     validateBuild: validateRevenantBuild,
   },
   modules: revenantNativeModules,
+  patchPreview: activePatchPreview,
 });
 
 export default revenantProfession;

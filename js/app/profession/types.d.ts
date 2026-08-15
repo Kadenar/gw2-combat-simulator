@@ -20,6 +20,10 @@ import type {
   Gw2SlotLoadout,
   Gw2WeaponDataEntry,
 } from "../../platform/gw2/types.js";
+import type {
+  PatchPreview,
+  PatchRuntimeValues,
+} from "../../platform/gw2/skill-patch.js";
 
 export interface ProfessionBuildAssumptions extends SchedulerRecord {
   might?: number;
@@ -51,6 +55,9 @@ export interface ProfessionAppContract {
   readonly name: string;
   readonly catalog: CanonicalCatalog;
   readonly ui: ProfessionUiContract;
+  readonly preview?: PatchPreview | null;
+  readonly catalogFor?: (patchId?: string) => Readonly<CanonicalCatalog>;
+  readonly patchValuesFor?: (patchId?: string) => PatchRuntimeValues;
   createBuildDefaults(): SchedulerRecord;
   migrateBuild(saved: SchedulerRecord): SchedulerRecord;
 }
@@ -329,6 +336,9 @@ export interface ProfessionSlotLoadoutView {
 export interface ProfessionAppState {
   adapter: Gw2AppAdapter;
   profession: ProfessionAppContract;
+  activeCatalog: Readonly<CanonicalCatalog>;
+  patchId: string;
+  patchComparison: PatchComparison | null;
   build: ProfessionApplicationBuild;
   skills: Skill[];
   skillByName: ReadonlyMap<string, Skill>;
@@ -381,6 +391,13 @@ export interface ProfessionAppState {
   addRotation(name: string, options?: RotationActionOptions): void;
   runRandomDistribution(): void;
   resetBuild(): void;
+  selectPatch(patchId: string): void;
+}
+
+export interface PatchComparison {
+  readonly patchId: string;
+  readonly current: Gw2SimulationResult;
+  readonly preview: Gw2SimulationResult;
 }
 
 export interface ProfessionRotationDragState extends SchedulerRecord {

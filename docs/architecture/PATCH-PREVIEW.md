@@ -1,200 +1,223 @@
-# Patch Preview: Dual Number Sets (Current vs Preview)
+# Patch Preview: Live and Preview Data
 
-> **Status:** Design / not yet implemented. This document is an implementation
-> brief for the agent picking up the work.
+> **Status:** Implementation contract.
 
 ## Goal
 
-Let the simulator hold **two active versions of the numbers simultaneously** —
-`current` (the live patch) and one or more `preview` patches — and let a run pick
-which set it uses. GW2 balance patches are overwhelmingly small numeric tweaks:
-strike damage coefficients, condition stacks/durations, cooldowns, cast times.
+The repository must expose the live Guild Wars 2 data and, when one is
+authored, exactly one upcoming patch preview. A developer selects either data
+set in the simulator and can compare the same build and rotation against both.
 
-The payoff feature: run the _same_ build + rotation through both number sets and
-show the DPS delta.
+Live profession source remains the source of truth. The preview is a sparse
+overlay; it must not fork a profession catalog or duplicate a build/rotation.
 
-**Do not fork the data.** Model a patch as a sparse **overlay/diff** applied on
-top of the base numbers. Base data files always represent the live patch; a
-preview is only the diff.
+When the patch ships:
 
-## Scope
+1. apply the preview's `to` values to live source;
+2. remove the active preview manifest;
+3. run the same validation suite; and
+4. commit the promotion as one reviewable change.
 
-**In scope:** every native profession registered by the application. All use
-Core and specialization-owned `skillMechanics` fragments and converge at the
-same assembled-catalog boundary. Do not add profession-specific patch paths.
+There is no preview history and there are no concurrent previews.
 
-## Current architecture (validated)
+## Patch-note intake
 
-Per-profession data flow (`js/professions/<prof>/`):
+Patch-note prose is not the simulator data model. Before authoring an overlay,
+classify every note in a small ledger so nothing disappears silently.
 
-```
-raw skill numbers ──► createNativeModuleData({ generatedSkills, skillMechanics, ... })
-                      (js/platform/gw2/native-profession.js)
-   └─► modules.ts ──► defineNativeProfession({ modules, catalog })   [family.ts]
-                      └─► getNativeCatalogAssembly(modules, options)  [native-catalog-assembly.ts]
-                          └─► assembly.catalog  (frozen CanonicalCatalog, built ONCE at import)
-                              └─► xProfession singleton (frozen), exported from family.ts
-```
+| Classification                                        | Handling                                                                                                                   |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| PvE numeric skill/effect change                       | Apply through the catalog overlay.                                                                                         |
+| PvE trait or runtime-computed change                  | Apply through a named patchable constant after the code path exposes one.                                                  |
+| PvP/WvW-only change                                   | Record as `not-applicable`; this simulator models PvE.                                                                     |
+| `unchanged` or a later note that supersedes a preview | Remove/cancel the earlier edit and record the resolution.                                                                  |
+| Bug fix or behavior change                            | Implement ordinary code behind the preview selector when it changes simulated output; otherwise record it as out of model. |
+| Description-only or unsupported system                | Record it as `tracked` with a reason. Do not pretend it affects comparison results.                                        |
 
-App side: `js/app/profession/registry.ts` lazy-loads each profession;
-`create-runtime.ts` and `create-adapter.ts` read `profession.catalog`
-(e.g. `js/app/profession/create-runtime.ts:98` → `catalog: profession.catalog`).
-Simulations resolve damage from that catalog's skill `effects[]`.
+The supplied notes demonstrate cases the original design did not cover:
 
-### Where the numbers live
+- one entry can contain multiple edits or game modes;
+- named packets matter (`initial hit`, `projectile`, and bounce/tick position);
+- boon durations are effects too (quickness/alacrity), not conditions;
+- global relics, traits, and resolver constants do not live in skill effects;
+- `unchanged` entries cancel earlier preview edits;
+- additions can supersede, rather than supplement, an earlier preview value;
+- fixes can change behavior without containing an old/new number.
 
-All native professions store coefficients in `skillMechanics` fragments
-(`Record<SkillId, SkillFragment>`) spread across `core/skills.ts`,
-`core/weapons.ts`, and `specializations/*/skills.ts`. Example:
-`js/professions/necromancer/core/skills.ts:19-34`. These fragments merge into
-each assembled-catalog skill's `effects[]`, typed by the platform union in
-`js/platform/engine/types.d.ts:176-232`:
+The manifest therefore stores authoritative structured edits and human-readable
+notes/statuses. It does not attempt to parse ArenaNet prose at runtime.
 
-- `StrikeEffect`: `coefficient?`, `hits?`, **or** `ticks?: StrikeTick[]` (each tick
-  has its own `coefficient`) — **handle both flat and tick forms**.
-- `ConditionEffect`: `condition?`, `stacks?`, `duration?`, **or**
-  `ticks?: ConditionTick[]`.
-- Skill-level `cooldown`, `quicknessCastTimeMs` / `castTimeMs`.
+## Authoring surface
 
-**Apply the overlay at the assembled-catalog boundary**, keyed by skill id,
-walking the merged `effects[]`. This is the single convergence point: numbers are
-fully merged there (base + spec overrides + defaults), so you don't chase them
-across `core/` and `specializations/*/` source. **Do not patch raw fragment
-source.**
+The one optional manifest lives at `js/patches/active-preview.ts` and has:
 
-## Required design
+- stable `id`, display `label`, optional source URL, and publication date;
+- optional global patchable constants and General-note ledger entries;
+- per-profession skill edits and patchable constants; and
+- a per-profession note ledger with `applied`, `tracked`, `not-applicable`,
+  `unchanged`, or `superseded` status.
 
-### 1. Overlay type + apply function (platform layer)
-
-New file `js/platform/gw2/skill-patch.ts`:
+The checked-in export is `null` when no upcoming preview exists. To author one,
+replace only that value with a typed manifest:
 
 ```ts
-export type NumEdit = number | { multiply: number } | { add: number };
-
-export interface SkillPatch {
-  readonly id: string; // "2026-09-preview"  (stable; used as catalog/cache key)
-  readonly label: string; // "Sept 2026 Preview"
-  readonly skills: Readonly<
-    Record<
-      string /* skill id or exact name */,
-      {
-        coefficient?: NumEdit; // applies to flat coefficient AND every strike tick
-        conditions?: Record<
-          string /*condition*/,
-          { stacks?: NumEdit; duration?: NumEdit }
-        >;
-        cooldown?: NumEdit;
-        castTimeMs?: NumEdit; // maps to quicknessCastTimeMs / castTimeMs
-      }
-    >
-  >;
-}
+export const activePatchPreview: PatchPreview | null = {
+  id: "next-balance-preview",
+  label: "Next Balance Preview",
+  professions: {
+    professionId: {
+      skills: {
+        "12345": {
+          effects: [
+            {
+              effectIndex: 0,
+              type: "strike",
+              coefficient: { from: 1.2, to: 1.1 },
+            },
+          ],
+        },
+      },
+      notes: [
+        {
+          subject: "Example Skill",
+          text: "Reduced its first strike coefficient.",
+          status: "applied",
+        },
+      ],
+    },
+  },
+};
 ```
 
-- `NumEdit` MUST support `multiply` and `add`, not just absolute — balance notes
-  are usually "-10% coefficient".
-- Apply operates on assembled catalog skills. Source is `Object.freeze`d
-  everywhere — **deep-clone (`structuredClone`) before editing; never mutate**.
-  Only clone skills the patch touches; pass others through by reference.
-- Prefer keying by numeric skill **id** (stable); allow name as a fallback for
-  authoring convenience.
+The identifiers and numbers above are deliberately fictional. Historical patch
+notes must not be copied into the active manifest.
 
-### 2. Variant catalogs keyed by patch id
+Numeric edits support four forms:
 
-Extend native profession assembly so a profession can expose more than one
-catalog:
+```ts
+type NumEdit =
+  | number
+  | { readonly from: number; readonly to: number }
+  | { readonly multiply: number }
+  | { readonly add: number };
+```
 
-- `defineNativeProfession` (`js/platform/gw2/native-profession.ts:255`) gains
-  optional `patches?: readonly SkillPatch[]`.
-- Produce a base catalog (`"current"`, identity) plus one derived catalog per
-  patch (base → `applyPatch`). Expose `profession.catalogFor(patchId)` (default
-  `"current"`); keep `profession.catalog` as the `current` alias for back-compat.
-- **Assembly cache gotcha:** `getNativeCatalogAssembly` caches by
-  `(first module, options)` identity
-  (`js/platform/gw2/native-catalog-assembly.ts:461`). Variant catalogs from the
-  same modules will collide and return the base. Incorporate the patch id into
-  the cache identity, **or** build the preview by cloning + patching the
-  already-assembled base rather than re-running assembly.
-- Build preview catalogs **lazily** (on first select) so import-time cost stays
-  flat.
+Use `{ from, to }` for published balance changes. Preview construction throws
+when `from` no longer matches live source, preventing a stale overlay from
+quietly changing the wrong baseline. `multiply` and `add` are available for
+derived changes and tests.
 
-### 3. Thread the selector through the app
+Skill edits are keyed by numeric skill ID where practical, with an exact-name
+fallback. They can edit skill fields such as cooldown/cast time and target one
+or more effects by raw effect index plus optional type/name/condition/boon
+guards. Tick-based strike and condition timelines can target one tick or all
+ticks. Ambiguous selectors throw unless the author explicitly opts into all
+matches.
 
-- Add `patchId: string` (default `"current"`) to the sim/app config
-  (`js/app/simulation/config.ts`; profession app contract in
-  `js/app/profession/types.d.ts`).
-- Where the runtime/adapter reads `profession.catalog`, read
-  `profession.catalogFor(config.patchId)` instead.
-- UI: a patch dropdown/toggle in the profession app header, populated from the
-  profession's registered `patches`.
+Named patchable constants cover numbers computed outside catalog effects. Code
+reads them through the shared helper using the simulation config. A constant
+key is part of the authoring API and must be stable and specific, for example
+`warrior.traits.burst-mastery.factor`. Static attribute calculations that occur
+before simulation need an explicit preview-aware seam before such a note can be
+marked `applied`.
 
-### 4. The payoff — automatic A/B + diff view
+```ts
+patchRuntimeValue(
+  context.config.patchValues,
+  "profession.traits.example.factor",
+  liveFactor,
+);
+```
 
-- Rotations and builds reference **skill ids/names**, which patches never change
-  (only numbers change). The same rotation runs unchanged on both catalogs. Wire
-  a "compare" path: run the configured rotation through `current` and the selected
-  `preview`, show per-skill and total DPS delta.
-- A **diff view** (base → preview per edited field) renders straight from the
-  overlay object — cheap and high value for previewing patch notes.
+## Data flow
 
-## Scope boundaries — call these out, don't silently miss them
+All native professions already converge at the assembled canonical catalog:
 
-**In-scope (phase 1):** anything expressed in an assembled skill's `effects[]`
-plus skill-level cooldown/cast time. This is the majority of balance changes and
-matches the stated use cases.
+```text
+profession skill fragments
+  -> assembled live CanonicalCatalog
+  -> lazy sparse preview overlay
+  -> current or preview runtime selected by config.patchId
+```
 
-**Out-of-scope for the effect overlay** (flag explicitly, propose follow-ups):
+`defineNativeProfession` accepts the singular optional preview manifest and
+exposes:
 
-- **Runtime-computed coefficients** baked into resolver/mechanics code, e.g.
-  necro `js/professions/necromancer/core/resolver.ts:291`
-  (`const coefficient = [0.6, 0.9, 1.5, 2.1][boons];`) and harbinger
-  `js/professions/necromancer/specializations/harbinger/blight.ts` multipliers.
-  Not in `effects[]`; an effect overlay can't reach them. Follow-up: a separate
-  patchable-constants table, or refactor those literals to data.
-- **Trait / global % damage modifiers**
-  (`js/platform/gw2/damage-modifier-buckets.ts`, `modifier-rules.ts`). Different
-  subsystem; patches do tune these ("trait X 15%→10%"). Future overlay target,
-  not phase 1.
+- `catalog` as the backward-compatible live alias;
+- `preview` as metadata or `null`;
+- `catalogFor("current" | preview.id)`; and
+- `patchValuesFor("current" | preview.id)` for runtime constants.
 
-## Gotchas / invariants
+Preview application catalogs and specialization runtime catalogs are built
+lazily. Untouched skills remain referentially identical to live skills. A
+touched skill is cloned before editing because canonical data is frozen.
 
-- **Frozen data** everywhere (`Object.freeze`). Clone before edit.
-- **Assembly cache** collision (see §2).
-- **Singleton import cost** — each profession builds its catalog at import; keep
-  preview builds lazy.
-- **Rotation/build stability** — patches change numbers, not ids; A/B relies on
-  this. Adding/removing a skill is out of overlay scope.
-- **Promote step** — when a preview goes live, fold its numbers into the base
-  source and delete the patch. Provide a scripted promote (overlay → codemod/edits
-  on base) so base source stays the single source of truth.
+Runtime selection wraps the family resolver. This avoids the existing native
+assembly cache collision and ensures scheduler, resolver, and UI lookup all use
+the selected catalog without rebuilding raw module fragments.
 
-## Validation instructions
+## Application behavior
 
-- Build and test against a stable native profession such as Necromancer or
-  Guardian. This exercises the same `skillMechanics`-fragment path shared by
-  every native profession.
-- Prove:
-  1. base catalog numbers unchanged with no patch;
-  2. a preview with `multiply` / `add` / absolute edits changes exactly the
-     targeted skills' resolved damage and nothing else;
-  3. the same rotation runs on both catalogs and produces a sensible DPS delta;
-  4. both catalogs are live in memory at once (no cache collision).
-- Run the existing per-profession benchmark tests
-  (`tests/app/benchmarks/<prof>.test.js`) for the in-scope professions with
-  `patchId: "current"` and confirm no regression.
+`patchId` is application state and simulation config, defaulting to
+`"current"`. It is intentionally not part of an exported build: a saved build
+describes player choices, while patch selection describes the data version used
+to evaluate those choices.
 
-## Elementalist
+When a preview exists, every profession page renders:
 
-Elementalist uses Core and specialization-owned `skills.ts` fragments and
-converges at the same assembled-catalog `effects[]` boundary as every other
-native profession. Patch preview must use that shared boundary; it does not
-need an Elementalist-specific path.
+- a Live/Preview selector;
+- the selected data set's normal detailed analysis;
+- live and preview total DPS from the same build/rotation/assumptions;
+- total and percentage delta plus per-skill deltas; and
+- the authored note ledger/diff summary for that profession.
 
-## Suggested phasing
+Random distributions and modifier-contribution jobs use the selected patch.
+The automatic A/B result stays deterministic so comparison noise cannot be
+mistaken for a patch effect.
 
-1. `skill-patch.ts` (type + `applyPatch` over assembled skills) + unit tests.
-2. Variant-catalog support in `defineNativeProfession` / assembly, cache-key fix,
-   `catalogFor`.
-3. Wire `patchId` through config → runtime/adapter; header toggle.
-4. A/B compare + diff view.
-5. Promote script + docs.
+## Scope and invariants
+
+- The simulator is PvE-only. Competitive-only notes are visible in the ledger
+  but never mutate PvE data.
+- Preview edits change numbers/behavior, not IDs or names. Existing rotations
+  therefore run unchanged on both catalogs.
+- Adding/removing skills or changing loadout topology requires ordinary code,
+  guarded by the patch selector if it must be previewable.
+- Unknown patch IDs, skills, effects, fields, stale `from` values, and ambiguous
+  selectors fail fast. Runtime constant `from` values are checked when their
+  consuming code requests them.
+- Catalog application never mutates live data.
+- Only one preview manifest may be active.
+- A note is marked `applied` only when the selected preview actually changes
+  simulation behavior.
+
+## Promotion
+
+Promotion is deliberately explicit rather than a blind source codemod. Catalog
+overlays may target generated metadata, handwritten fragments, or packetized
+effects, while constants name arbitrary runtime locations. The promotion
+command validates the manifest and prints a checklist of every applied edit and
+source owner. The developer folds each value into live source, removes the
+manifest, and tests the resulting identity (`current` now equals the former
+preview). This keeps generated data ownership and hand-authored mechanics
+reviewable.
+
+Run `npm run patch-preview:report` before promotion. It builds the typed
+manifest, constructs every affected preview catalog to catch stale selectors,
+and prints the review checklist. After folding the values into live source,
+set `activePatchPreview` back to `null` and run the full check again.
+
+## Validation
+
+Tests must prove:
+
+1. no preview leaves every existing catalog and benchmark unchanged;
+2. absolute, `{ from, to }`, multiply, and add edits work;
+3. aggregate effects, selected packets, and tick timelines are targetable;
+4. live objects are never mutated and untouched skills retain identity;
+5. invalid/stale/ambiguous authoring fails at preview construction;
+6. live and preview runtime catalogs coexist without cache collisions;
+7. `patchId` reaches scheduler/resolver patchable constants;
+8. the same build and rotation produce both deterministic comparison results;
+9. UI controls disappear cleanly when no preview is authored; and
+10. build, typecheck, site checks, and relevant profession benchmarks pass.

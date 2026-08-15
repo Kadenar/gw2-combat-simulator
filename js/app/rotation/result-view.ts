@@ -6,6 +6,7 @@ import { syncRotationFocusResults } from "../../platform/ui/rotation-workspace.j
 import { targetHealthBreakpointSnapshots } from "../../platform/ui/result-transform.js";
 import type { ProfessionAppState } from "../profession/types.js";
 import { PLACEHOLDER_ICON, resultSkillIcon } from "./icons.js";
+import { renderPatchComparison } from "../simulation/patch-preview-view.js";
 import type { ResultIconRow } from "./icons.js";
 import {
   buildChartSeries,
@@ -117,5 +118,6 @@ export function renderResults(app: ProfessionAppState): void {
       },
     },
   );
+  renderPatchComparison(element, app);
   syncRotationFocusResults(document);
 }

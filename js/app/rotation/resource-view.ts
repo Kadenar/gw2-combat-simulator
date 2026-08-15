@@ -251,7 +251,7 @@ export function renderStartResource(app: ProfessionAppState): void {
     build: app.build,
     specialization: activeSpecialization(app),
     professionState,
-    catalog: app.profession.catalog,
+    catalog: app.activeCatalog,
   });
   const startControlsHtml = startControls
     .map(
@@ -289,7 +289,7 @@ export function renderStartResource(app: ProfessionAppState): void {
     build: app.build,
     specialization: activeSpecialization(app),
     professionState,
-    catalog: app.profession.catalog,
+    catalog: app.activeCatalog,
   });
   const startingLoadoutId =
     loadoutView && slotLoadout ? app.build[slotLoadout.startingKey] : "";
@@ -323,7 +323,7 @@ export function renderStartResource(app: ProfessionAppState): void {
               build: app.build,
               specialization: activeSpecialization(app),
               professionState,
-              catalog: app.profession.catalog,
+              catalog: app.activeCatalog,
             },
           );
           app.changed();

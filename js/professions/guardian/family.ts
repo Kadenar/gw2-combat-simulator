@@ -1,4 +1,5 @@
 import { defineNativeProfession } from "../../platform/gw2/native-profession.js";
+import { activePatchPreview } from "../../patches/active-preview.js";
 import {
   createGuardianBuildDefaults,
   migrateGuardianBuild,
@@ -16,6 +17,7 @@ export const guardianProfession = defineNativeProfession({
     validateBuild: validateGuardianBuild,
   },
   modules: guardianNativeModules,
+  patchPreview: activePatchPreview,
 });
 
 export default guardianProfession;
