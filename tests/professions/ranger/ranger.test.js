@@ -689,6 +689,33 @@ test("Go for the Throat follows Soulbeast F3 and unmerged pet F2", () => {
   );
 });
 
+test("precombat pet F2 starts combat before Go for the Throat applies", () => {
+  const rotation = [
+    "Intimidating Howl",
+    "__combat_start",
+    { type: "wait", durationMs: 8000 },
+  ];
+  const config = {
+    selectedPet: "Krytan Drakehound",
+    target: { health: 10000000 },
+  };
+  const baseline = simulate("Core", rotation, config);
+  const goForTheThroat = simulate("Core", rotation, {
+    ...config,
+    selectedTraitIds: [TRAIT.GO_FOR_THE_THROAT],
+  });
+  const proc = goForTheThroat.procSteps.find(
+    (step) => step.skill === 'Lesser "Sic \'Em!"',
+  );
+  const f2Damage = (result) =>
+    result.breakdown.find((row) => row.name === "Intimidating Howl").damage;
+
+  assert.equal(proc.sourceSkill, "Intimidating Howl");
+  assert.equal(proc.start, goForTheThroat.combatStartTime * 1000);
+  assert.equal(goForTheThroat.firstHitTime, goForTheThroat.combatStartTime);
+  assert.equal(f2Damage(goForTheThroat), f2Damage(baseline));
+});
+
 test("Soulbeast condition modifiers and duration bonuses use their actual targets", () => {
   const rotation = ["Splitblade", { type: "wait", durationMs: 10000 }];
   const config = {
@@ -857,7 +884,7 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
     .filter((skill) => skill?.petSkill && !skill.petAutonomousSkill);
   assert.deepEqual(
     savedPetCommands.map((skill) => skill.name),
-    Array(6).fill("Furious Pounce"),
+    Array(7).fill("Furious Pounce"),
   );
 
   const build = migrateRangerBuild({
@@ -899,12 +926,18 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
   assert.equal(hits(ID.FELINE_BITE), 13);
   assert.equal(hits(ID.FELINE_MAUL), 14);
   assert.equal(hits(ID.FURIOUS_POUNCE), 6);
-  assert.equal(hits(ID.ENVELOPING_HAZE), 35);
+  assert.equal(hits(ID.ENVELOPING_HAZE), 34);
   assert.equal(hits(ID.VENOMOUS_OUTBURST), 11);
   assert.equal(hits(ID.RENDING_VINES), 11);
   assert.equal(namedHits(ID.RELENTLESS_WHIRL, "Relentless Whirl"), 20);
   assert.equal(namedHits(ID.DEFT_STRIKE, "Deft Strike"), 4);
   assert.equal(hits(ID.EXPLODING_SPORES), 24);
+
+  const lesserSicEmProcs = result.procSteps.filter(
+    (step) => step.skill === 'Lesser "Sic \'Em!"',
+  );
+  assert.equal(lesserSicEmProcs[0].sourceSkill, "Furious Pounce");
+  assert.equal(lesserSicEmProcs[0].start, result.combatStartTime * 1000);
 
   const tigerStrike = result.resolvedEvents.find(
     (event) => event.type === "damage" && event.skillId === ID.FELINE_SLASH,
@@ -971,7 +1004,9 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
   // Beast commands no longer provide a hidden wait on the player lane.
   assert.equal(
     Math.abs(
-      result.dpsWindow - savedRotation.metadata.benchmarkDurationSeconds,
+      result.duration -
+        result.combatStartTime -
+        savedRotation.metadata.benchmarkDurationSeconds,
     ) < 2,
     true,
   );
