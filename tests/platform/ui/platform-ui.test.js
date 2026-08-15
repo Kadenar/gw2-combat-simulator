@@ -8,6 +8,7 @@ import { chargeReleaseRowLabel } from "../../../js/platform/ui/charge-release-ed
 import {
   buildChartSeries,
   buildPhaseDpsSeries,
+  buildPhaseEffectSeries,
   chartValueAt,
   mountTimeSeriesCharts,
 } from "../../../js/platform/ui/charts.js";
@@ -438,6 +439,30 @@ test("phase DPS is recalculated from damage within the selected health range", (
   assert.deepEqual(buildPhaseDpsSeries([], 1000, 1000, 100, 100), []);
 });
 
+test("phase effects are cropped and rebased to the selected health range", () => {
+  assert.deepEqual(
+    buildPhaseEffectSeries(
+      [
+        { t: 0, v: 0 },
+        { t: 500, v: 1 },
+        { t: 1500, v: 2 },
+        { t: 2500, v: 0 },
+        { t: 3000, v: 3 },
+      ],
+      1000,
+      3000,
+    ),
+    [
+      { t: 0, v: 1 },
+      { t: 500, v: 2 },
+      { t: 1500, v: 0 },
+      { t: 2000, v: 3 },
+    ],
+  );
+  assert.deepEqual(buildPhaseEffectSeries([], 1000, 3000), []);
+  assert.deepEqual(buildPhaseEffectSeries([{ t: 0, v: 1 }], 1000, 1000), []);
+});
+
 test("shared chart markup escapes effect names and uses scoped roles without ids", () => {
   const container = inertContainer();
   mountTimeSeriesCharts(
@@ -463,6 +488,8 @@ test("shared chart markup escapes effect names and uses scoped roles without ids
   assert.match(container.innerHTML, /data-role="dps-canvas"/);
   assert.match(container.innerHTML, /Bad&quot;&gt;&lt;img src=x&gt;/);
   assert.match(container.innerHTML, /data-role="chart-phase-toggles"/);
+  assert.match(container.innerHTML, /Chart range/);
+  assert.match(container.innerHTML, /data-role="effects-panel-title"/);
   assert.match(container.innerHTML, /Full Fight/);
   assert.deepEqual(
     [...container.innerHTML.matchAll(/data-chart-phase="([^"]+)"/g)].map(

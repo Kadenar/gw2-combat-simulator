@@ -11,6 +11,7 @@
     { "name": "\"Strength of the Pack!\"", "skillId": 12516 },
     { "name": "\"We Heal As One!\"", "skillId": 31914 },
     { "name": "\"Sic 'Em!\"", "skillId": 12633 },
+    { "name": "Furious Pounce", "skillId": 31451 },
     "__combat_start",
     { "name": "Enveloping Haze", "skillId": 63094 },
     { "name": "Venomous Outburst", "skillId": 63209 },

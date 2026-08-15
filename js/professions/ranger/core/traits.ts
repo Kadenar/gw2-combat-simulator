@@ -202,18 +202,12 @@ export function completeRangerTraits(
     !context.hasExplicitCombatStart ||
     (context.combatStartTime != null &&
       context.start >= context.combatStartTime);
-  if (
-    (hasTrait(context, TRAIT.POISON_MASTER) ||
-      hasTrait(context, TRAIT.GO_FOR_THE_THROAT)) &&
-    notBeforeCombat
-  ) {
+  if (hasTrait(context, TRAIT.POISON_MASTER) && notBeforeCombat) {
     context.emit({
       type: "ranger.beast-skill-used",
       at: context.effectiveEnd,
       source: "Trait",
-      sourceId: hasTrait(context, TRAIT.POISON_MASTER)
-        ? TRAIT.POISON_MASTER
-        : TRAIT.GO_FOR_THE_THROAT,
+      sourceId: TRAIT.POISON_MASTER,
       actorType: "effect",
       skillId: skill.id,
       skillName: skill.name,

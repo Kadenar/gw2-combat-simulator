@@ -70,6 +70,11 @@ interface ChartDpsView {
   readonly markers: readonly ChartMarker[];
 }
 
+interface ChartEffectsView {
+  readonly durationMs: number;
+  readonly effects: Readonly<Record<string, readonly ChartPoint[]>>;
+}
+
 interface ChartLayout {
   readonly cssWidth: number;
   readonly height: number;
@@ -426,6 +431,22 @@ export function buildPhaseDpsSeries(
   return points;
 }
 
+export function buildPhaseEffectSeries(
+  points: readonly ChartPoint[],
+  startMs: number,
+  endMs: number,
+): ChartPoint[] {
+  const durationMs = Math.max(0, endMs - startMs);
+  if (!points.length || !(durationMs > 0)) return [];
+  return [
+    { t: 0, v: chartValueAt(points, startMs) },
+    ...points
+      .filter((point) => point.t > startMs && point.t < endMs)
+      .map((point) => ({ t: point.t - startMs, v: point.v })),
+    { t: durationMs, v: chartValueAt(points, endMs) },
+  ];
+}
+
 function dpsViewForPhase(
   series: ChartSeries,
   markers: readonly ChartMarker[],
@@ -458,6 +479,27 @@ function dpsViewForPhase(
         ...marker,
         timeMs: marker.timeMs - phase.startMs,
       })),
+  };
+}
+
+function effectsViewForPhase(
+  series: ChartSeries,
+  phase: ChartFightPhase,
+): ChartEffectsView {
+  if (phase.id === "full") {
+    return {
+      durationMs: series.durationMs,
+      effects: series.effects,
+    };
+  }
+  return {
+    durationMs: phase.endMs - phase.startMs,
+    effects: Object.fromEntries(
+      Object.entries(series.effects).map(([name, points]) => [
+        name,
+        buildPhaseEffectSeries(points, phase.startMs, phase.endMs),
+      ]),
+    ),
   };
 }
 
@@ -630,7 +672,7 @@ function chartHtml(
     ${
       healthMarkers.length
         ? `<div class="chart-phase-toggles" data-role="chart-phase-toggles">
-      <span class="chart-toggle-label">DPS range</span>
+      <span class="chart-toggle-label">Chart range</span>
       ${phases
         .map(
           (phase) => `<button type="button"
@@ -653,7 +695,7 @@ function chartHtml(
         </div>
       </div>
       <div class="chart-panel">
-        <div class="chart-panel-title">Effects Over Time</div>
+        <div class="chart-panel-title" data-role="effects-panel-title">Effects Over Time</div>
         <div class="chart-canvas-wrap">
           <canvas class="chart-canvas" data-role="effects-canvas"></canvas>
           <div class="chart-tooltip" data-role="effects-tooltip"></div>
@@ -715,14 +757,15 @@ export function mountTimeSeriesCharts(
     dpsLayout: ChartLayout | null;
     dpsView: ChartDpsView;
     effectsLayout: ChartLayout | null;
+    effectsView: ChartEffectsView;
     effectLines: ChartLine[];
   } = {
     dpsLayout: null,
     dpsView: dpsViewForPhase(resolvedSeries, healthMarkers, phases[0]!),
     effectsLayout: null,
+    effectsView: effectsViewForPhase(resolvedSeries, phases[0]!),
     effectLines: [],
   };
-  const effectEntries = Object.entries(resolvedSeries.effects);
 
   const redraw = (): void => {
     if (ACTIVE_MOUNTS.get(container)?.token !== mountToken) return;
@@ -741,12 +784,21 @@ export function mountTimeSeriesCharts(
       healthMarkers,
       activePhase,
     );
+    chartState.effectsView = effectsViewForPhase(resolvedSeries, activePhase);
     const dpsTitle = container.querySelector<HTMLElement>(
       '[data-role="dps-panel-title"]',
     );
     if (dpsTitle) {
       dpsTitle.textContent =
         `${resolvedOptions.dpsLabel} Over Time` +
+        (activePhase.id === "full" ? "" : ` — ${activePhase.label}`);
+    }
+    const effectsTitle = container.querySelector<HTMLElement>(
+      '[data-role="effects-panel-title"]',
+    );
+    if (effectsTitle) {
+      effectsTitle.textContent =
+        "Effects Over Time" +
         (activePhase.id === "full" ? "" : ` — ${activePhase.label}`);
     }
     chartState.dpsLayout = drawLineChart(
@@ -767,7 +819,7 @@ export function mountTimeSeriesCharts(
         markers: chartState.dpsView.markers,
       },
     );
-    chartState.effectLines = effectEntries
+    chartState.effectLines = Object.entries(chartState.effectsView.effects)
       .filter(([name]) => selected.has(name))
       .map(([name, points], index) => ({
         name,
@@ -779,7 +831,7 @@ export function mountTimeSeriesCharts(
         '[data-role="effects-canvas"]',
       ),
       chartState.effectLines,
-      resolvedSeries.durationMs,
+      chartState.effectsView.durationMs,
       { height: 260, emptyText: resolvedOptions.emptyEffectsText },
     );
   };
@@ -828,11 +880,11 @@ export function mountTimeSeriesCharts(
         Math.min(
           kind === "dps"
             ? chartState.dpsView.durationMs
-            : resolvedSeries.durationMs,
+            : chartState.effectsView.durationMs,
           ((chartX - minX) / layout.plotWidth) *
             (kind === "dps"
               ? chartState.dpsView.durationMs
-              : resolvedSeries.durationMs),
+              : chartState.effectsView.durationMs),
         ),
       );
       const timeLabel = `${(time / 1000).toFixed(2)}s`;

@@ -467,12 +467,11 @@ export function handleRangerWinterBiteReady(
 
 export function handleRangerBeastSkillUsed(
   context: RangerResolverContext,
-  event: RangerResolverEvent,
+  _event: RangerResolverEvent,
 ): void {
   if (hasTrait(context, TRAIT.POISON_MASTER) && !beastmodeActive(context)) {
     professionCoreState(context).poisonMasterPetAttackReady = true;
   }
-  if (!beastmodeActive(context)) triggerGoForTheThroat(context, event);
 }
 
 export function handleRangerPoisonousStrikes(
@@ -549,6 +548,9 @@ export function reactToRangerCoreDamage(
   const state = professionCoreState(context);
   const skill = eventSkill(context, event);
   consumeOpeningStrike(context, event);
+  // The Beast skill's strike resolves before Lesser Sic 'Em is applied, so
+  // the triggering hit cannot benefit from the buff it creates.
+  if (!beastmodeActive(context)) triggerGoForTheThroat(context, event);
   triggerHuntersGaze(context, event);
   triggerPoisonMaster(context, event);
   triggerPoisonousStrikes(context, event);
