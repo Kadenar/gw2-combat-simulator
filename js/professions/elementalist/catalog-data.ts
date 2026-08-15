@@ -3,110 +3,22 @@ import {
   SKILLS as ELEMENTALIST_API_SKILLS,
   SPECIALIZATIONS as ELEMENTALIST_API_SPECIALIZATIONS,
 } from "./data/elementalist-api-metadata.js";
-import { ELEMENTALIST_GENERATED_SKILLS } from "./data/native-skill-data.js";
-import { WEAPON_DATA } from "./data/gear-data.js";
-import { ELITE_SPECS, SPECIALIZATIONS, TRAITS } from "./data/traits-data.js";
+import { ELEMENTALIST_SKILL_IDS as ID } from "./data/ids.js";
+import { TRAITS } from "./data/traits-data.js";
 import type {
   CatalogEntity,
   SchedulerRecord,
   Skill,
   SkillEffect,
+  SkillFragment,
 } from "../../platform/engine/types.js";
 import { ELEMENTALIST_SKILL_MECHANICS } from "./mechanics/skill-mechanics.js";
 
-const SPECIALIZATION_ID_BASE = 1_120_000;
-const TRAIT_ID_BASE = 1_130_000;
 const ELEMENTALIST_FALLBACK_ICON =
   "data:image/svg+xml," +
   encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="8" fill="#40252b"/><text x="32" y="38" text-anchor="middle" fill="#d65c69" font-size="26">E</text></svg>',
   );
-
-const ELEMENTALIST_CONJURE_ACTION_ICONS = Object.freeze({
-  "Frost Bow":
-    "https://render.guildwars2.com/file/CC6D556B7C3F95C49E54D697CC2B4E79105DC594/103348.png",
-  "Lightning Hammer":
-    "https://render.guildwars2.com/file/C3DA6AC980062B0A0EEA14CE51393748CFAE01CA/103369.png",
-  "Fiery Greatsword":
-    "https://render.guildwars2.com/file/EEDA0B1847077DE93DBB0575D44BE0615FBCE728/103328.png",
-});
-
-const ELEMENTALIST_BUNDLE_ACTIONS: readonly Skill[] = Object.freeze([
-  {
-    id: 2662,
-    name: "Flame Barrage",
-    displayName: "Flame Barrage",
-    description:
-      "Command your summoned Fire Elemental to unleash a flame barrage.",
-    icon: "https://render.guildwars2.com/file/64A5054179704B60614F90964DE1FB3D39AEC972/867446.png",
-    type: "Elite",
-    weapon: "",
-    slot: "Elite",
-    specialization: "",
-    categories: ["Glyph", "Elemental command"],
-    cooldown: 15,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null,
-    flipParentId: 1100276,
-    flipParent: "Glyph of Elementals",
-    castTimeMs: 0,
-    slotSelectable: false,
-    implemented: true,
-    simulatorExcluded: false,
-    effects: [],
-  },
-  {
-    id: -31,
-    name: "__drop_bundle",
-    displayName: "Drop Bundle",
-    description: "Drop the currently equipped conjured weapon.",
-    icon: "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
-    type: "Action",
-    weapon: "",
-    slot: "Action",
-    specialization: "",
-    categories: ["Bundle"],
-    cooldown: 0,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null,
-    castTimeMs: 0,
-    implemented: true,
-    simulatorExcluded: false,
-    paletteAction: false,
-    effects: [],
-  },
-  ...["Frost Bow", "Lightning Hammer", "Fiery Greatsword"].map(
-    (weapon, index): Skill => ({
-      id: -32 - index,
-      name: `__pickup_${weapon}`,
-      displayName: `Pick up ${weapon}`,
-      description: `Pick up the available ${weapon}.`,
-      icon: ELEMENTALIST_CONJURE_ACTION_ICONS[
-        weapon as keyof typeof ELEMENTALIST_CONJURE_ACTION_ICONS
-      ],
-      type: "Action",
-      weapon: "",
-      slot: "Action",
-      specialization: "",
-      categories: ["Bundle"],
-      cooldown: 0,
-      ammo: 0,
-      ammoRecharge: 0,
-      nextChainId: null,
-      flipSkillId: null,
-      castTimeMs: 300,
-      unaffectedByQuickness: true,
-      implemented: true,
-      simulatorExcluded: false,
-      paletteAction: false,
-      effects: [],
-    }),
-  ),
-]);
 
 const SKILL_ICON_OVERRIDES = new Map<string, string>([
   [
@@ -148,18 +60,6 @@ const SKILL_NAME_ALIASES = new Map<string, string>([
 ]);
 const API_SKILLS_BY_NAME = new Map(
   ELEMENTALIST_API_SKILLS.map((skill) => [skill.name, skill]),
-);
-const API_SPECIALIZATIONS_BY_NAME = new Map(
-  ELEMENTALIST_API_SPECIALIZATIONS.map((specialization) => [
-    specialization.name,
-    specialization,
-  ]),
-);
-const API_TRAITS_BY_NAME = new Map(
-  ELEMENTALIST_API_SPECIALIZATIONS.flatMap((specialization) => [
-    ...specialization.minorTraits,
-    ...specialization.majorTraits.flat(),
-  ]).map((trait) => [trait.name, trait]),
 );
 const SLOT_SKILL_TYPES = new Set(["Heal", "Utility", "Elite"]);
 const ATTUNEMENT_VARIANT_PATTERN = /\s*\((?:Fire|Water|Air|Earth)\)$/;
@@ -317,12 +217,6 @@ function withHammerOrbPackets(skill: Skill): Skill {
   };
 }
 
-function referenceElementalEffects(skill: Skill): readonly SkillEffect[] {
-  return (skill.effects || []).map(
-    (effect) => ({ ...effect, timingScale: "fixed" }) as SkillEffect,
-  );
-}
-
 function withElementalRuntimeProfiles(skill: Skill): Skill {
   if (skill.name !== "Glyph of Elementals") return skill;
   const { quicknessCastTimeMs: _generatedCast, ...withoutGeneratedCast } =
@@ -331,7 +225,9 @@ function withElementalRuntimeProfiles(skill: Skill): Skill {
     ...withoutGeneratedCast,
     castTimeMs: 1250,
     cooldown: skill.cooldown,
-    referenceEffects: referenceElementalEffects(skill),
+    referenceEffects: Array.isArray(skill.referenceEffects)
+      ? skill.referenceEffects
+      : [],
     effects: [],
   };
 }
@@ -375,8 +271,15 @@ function apiSkill(name: string): Skill | undefined {
     .find((candidate) => candidate != null);
 }
 
-export const ELEMENTALIST_NATIVE_SKILLS: readonly Skill[] = Object.freeze(
-  ELEMENTALIST_GENERATED_SKILLS.map(withElementalistHitboxBehavior)
+const ELEMENTALIST_DECLARED_SKILLS: readonly Skill[] = Object.freeze(
+  Object.values(ID).flatMap((id) => {
+    const declaration = ELEMENTALIST_SKILL_MECHANICS[id];
+    return declaration ? [{ ...declaration, id } as Skill] : [];
+  }),
+);
+
+const generated: readonly Skill[] = Object.freeze(
+  ELEMENTALIST_DECLARED_SKILLS.map(withElementalistHitboxBehavior)
     .map(withElementalRuntimeProfiles)
     .map((skill) => {
       const metadata = apiSkill(skill.name);
@@ -413,13 +316,36 @@ export const ELEMENTALIST_NATIVE_SKILLS: readonly Skill[] = Object.freeze(
     }),
 );
 
+const FINALIZED_SKILL_MECHANICS_BY_ID = new Map(
+  generated.map((skill) => {
+    const { id, ...mechanics } = skill;
+    return [Number(id), mechanics] as const;
+  }),
+);
+
+function finalizedSkillMechanics(
+  declarations: Readonly<Record<string, SkillFragment>>,
+): Readonly<Record<string, SkillFragment>> {
+  return Object.freeze(
+    Object.fromEntries(
+      Object.keys(declarations).map((id) => {
+        const mechanics = FINALIZED_SKILL_MECHANICS_BY_ID.get(Number(id));
+        if (!mechanics) {
+          throw new TypeError(`Unknown Elementalist skill declaration ${id}.`);
+        }
+        return [id, mechanics];
+      }),
+    ),
+  );
+}
+
 function circularElementalistAutoattackChains(): readonly (readonly number[])[] {
   const skillsById = new Map(
-    ELEMENTALIST_NATIVE_SKILLS.map((skill) => [Number(skill.id), skill]),
+    generated.map((skill) => [Number(skill.id), skill]),
   );
   const visited = new Set<number>();
   const chains: number[][] = [];
-  for (const root of ELEMENTALIST_NATIVE_SKILLS) {
+  for (const root of generated) {
     const rootId = Number(root.id);
     if (
       visited.has(rootId) ||
@@ -448,85 +374,53 @@ function circularElementalistAutoattackChains(): readonly (readonly number[])[] 
   return Object.freeze(chains.map((chain) => Object.freeze(chain)));
 }
 
-export const ELEMENTALIST_AUTOATTACK_CHAINS =
-  circularElementalistAutoattackChains();
+const AUTOATTACK_CHAINS = circularElementalistAutoattackChains();
 
-const TRAIT_TIERS = Object.freeze({
-  "Minor Adept": 1,
-  "Major Adept": 1,
-  "Minor Master": 2,
-  "Major Master": 2,
-  "Minor Grandmaster": 3,
-  "Major Grandmaster": 3,
-} as const);
+const WEAPONS = Object.freeze([
+  "Dagger",
+  "Focus",
+  "Hammer",
+  "Pistol",
+  "Scepter",
+  "Spear",
+  "Staff",
+  "Sword",
+  "Warhorn",
+]);
+const WEAPON_HANDS = Object.freeze({
+  Dagger: "mh+oh",
+  Focus: "oh",
+  Hammer: "2h",
+  Pistol: "mh",
+  Scepter: "mh",
+  Spear: "2h",
+  Staff: "2h",
+  Sword: "mh",
+  Warhorn: "oh",
+});
 
-export const ELEMENTALIST_TRAITS: readonly CatalogEntity[] = Object.freeze(
-  TRAITS.map((trait, index) => {
-    const metadata = API_TRAITS_BY_NAME.get(trait.name);
-    return {
-      ...metadata,
-      ...trait,
-      id: metadata?.id || TRAIT_ID_BASE + index + 1,
-      icon: metadata?.icon || ELEMENTALIST_FALLBACK_ICON,
-      tier: TRAIT_TIERS[trait.tier as keyof typeof TRAIT_TIERS],
-      slot: trait.position === 0 ? "Minor" : "Major",
-    };
-  }),
-);
+interface ElementalistModuleDataOptions {
+  readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
+  readonly extraSkills?: readonly Skill[];
+}
 
-export const ELEMENTALIST_SPECIALIZATIONS: readonly CatalogEntity[] =
-  Object.freeze(
-    SPECIALIZATIONS.map((name, index) => {
-      const metadata = API_SPECIALIZATIONS_BY_NAME.get(name);
-      const traits = ELEMENTALIST_TRAITS.filter(
-        (trait) => trait.specialization === name,
-      );
-      return {
-        id: metadata?.id || SPECIALIZATION_ID_BASE + index + 1,
-        name,
-        elite: ELITE_SPECS.has(name),
-        icon: metadata?.icon || ELEMENTALIST_FALLBACK_ICON,
-        background: metadata?.background || "",
-        minorTraits: traits.filter((trait) => trait.position === 0),
-        majorTraits: [1, 2, 3].map((tier) =>
-          traits.filter(
-            (trait) => trait.tier === tier && Number(trait.position) > 0,
-          ),
-        ),
-      };
-    }),
-  );
-
-export const ELEMENTALIST_WEAPONS = Object.freeze(
-  Object.keys(WEAPON_DATA).filter(
-    (name) => name !== "Unequipped" && name !== "Profession mechanic",
-  ),
-);
-
-export const ELEMENTALIST_WEAPON_HANDS = Object.freeze(
-  Object.fromEntries(
-    ELEMENTALIST_WEAPONS.map((name) => [
-      name,
-      (WEAPON_DATA as Readonly<Record<string, { wielding: string }>>)[name]
-        .wielding,
-    ]),
-  ),
-);
-
-export function createElementalistModuleData(id: string) {
+export function createElementalistModuleData(
+  id: string,
+  { skillMechanics, extraSkills = [] }: ElementalistModuleDataOptions,
+) {
   return createNativeModuleData({
     id,
-    generatedSkills: ELEMENTALIST_NATIVE_SKILLS,
-    ...(id === "Core" ? { skillMechanics: ELEMENTALIST_SKILL_MECHANICS } : {}),
-    traits: ELEMENTALIST_TRAITS,
-    specializations: ELEMENTALIST_SPECIALIZATIONS,
-    ...(id === "Core" ? { extraSkills: ELEMENTALIST_BUNDLE_ACTIONS } : {}),
+    generatedSkills: generated,
+    skillMechanics: finalizedSkillMechanics(skillMechanics),
+    extraSkills,
+    traits: TRAITS as readonly CatalogEntity[],
+    specializations: ELEMENTALIST_API_SPECIALIZATIONS,
     ...(id === "Core"
       ? {
-          weapons: ELEMENTALIST_WEAPONS,
-          weaponHands: ELEMENTALIST_WEAPON_HANDS,
+          weapons: WEAPONS,
+          weaponHands: WEAPON_HANDS,
           autoattackChains: {
-            additional: ELEMENTALIST_AUTOATTACK_CHAINS,
+            additional: AUTOATTACK_CHAINS,
           },
         }
       : {}),

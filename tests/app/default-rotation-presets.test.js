@@ -27,6 +27,7 @@ test("native build manifests and assets stay profession-scoped", async () => {
     "ranger",
     "revenant",
     "thief",
+    "warrior",
   ];
 
   for (const profession of professions) {
@@ -50,9 +51,9 @@ test("native build manifests and assets stay profession-scoped", async () => {
           "utf8",
         ),
       );
-      if (build.profession) {
-        assert.equal(build.profession, profession);
-      }
+      assert.equal(build.profession, profession);
+      assert.equal(Number.isInteger(build.schemaVersion), true, profession);
+      assert.equal(build.schemaVersion > 0, true, profession);
       if (preset.rotation) {
         assert.match(
           preset.rotation,

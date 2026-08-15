@@ -1,0 +1,10191 @@
+/** Core Elementalist skill mechanics. */
+import { ELEMENTALIST_SKILL_IDS as ID } from "../data/ids.js";
+import { FIRE_ELEMENTAL_REFERENCE_EFFECTS } from "./elemental-profile.js";
+import { elementalistPacketEffects } from "./skill-effects.js";
+import type { Skill, SkillFragment } from "../../../platform/engine/types.js";
+
+export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
+  Record<number, SkillFragment>
+> = Object.freeze({
+  [ID.FIRE_ATTUNEMENT]: {
+    name: "Fire Attunement",
+    type: "Profession",
+    slot: "Profession_1",
+    mechanicSlot: 1,
+    categories: ["Attunement"],
+    quicknessCastTimeMs: 0,
+    cooldown: 0,
+    canCastConcurrently: true,
+    skillFamily: "Attunement",
+    implemented: true,
+    effects: [],
+  },
+  [ID.WATER_ATTUNEMENT]: {
+    name: "Water Attunement",
+    type: "Profession",
+    slot: "Profession_2",
+    mechanicSlot: 2,
+    categories: ["Attunement"],
+    quicknessCastTimeMs: 0,
+    cooldown: 0,
+    canCastConcurrently: true,
+    skillFamily: "Attunement",
+    implemented: true,
+    effects: [],
+  },
+  [ID.AIR_ATTUNEMENT]: {
+    name: "Air Attunement",
+    type: "Profession",
+    slot: "Profession_3",
+    mechanicSlot: 3,
+    categories: ["Attunement"],
+    quicknessCastTimeMs: 0,
+    cooldown: 0,
+    canCastConcurrently: true,
+    skillFamily: "Attunement",
+    implemented: true,
+    effects: [],
+  },
+  [ID.EARTH_ATTUNEMENT]: {
+    name: "Earth Attunement",
+    type: "Profession",
+    slot: "Profession_4",
+    mechanicSlot: 4,
+    categories: ["Attunement"],
+    quicknessCastTimeMs: 0,
+    cooldown: 0,
+    canCastConcurrently: true,
+    skillFamily: "Attunement",
+    implemented: true,
+    effects: [],
+  },
+  [ID.FIREBALL]: {
+    name: "Fireball",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Staff",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 960,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1080,
+            coefficient: 1.4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1080,
+            condition: "Burning",
+            stacks: 1,
+            duration: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.LAVA_FONT]: {
+    name: "Lava Font",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Staff",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 280,
+    cooldown: 6,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1740,
+            coefficient: 0.525,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 3240,
+            coefficient: 0.525,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 4740,
+            coefficient: 0.525,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 6240,
+            coefficient: 0.525,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1740,
+            condition: "Burning",
+            stacks: 1,
+            duration: 1,
+          },
+          {
+            atMs: 3240,
+            condition: "Burning",
+            stacks: 1,
+            duration: 1,
+          },
+          {
+            atMs: 4740,
+            condition: "Burning",
+            stacks: 1,
+            duration: 1,
+          },
+          {
+            atMs: 6240,
+            condition: "Burning",
+            stacks: 1,
+            duration: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.FLAME_BURST]: {
+    name: "Flame Burst",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Staff",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 360,
+    cooldown: 10,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 480,
+            coefficient: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 480,
+            condition: "Burning",
+            stacks: 3,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "blind",
+        atMs: 480,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+    ],
+  },
+  [ID.BURNING_RETREAT]: {
+    name: "Burning Retreat",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Staff",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 1000,
+    cooldown: 18,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 6,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 120,
+            coefficient: 0.2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 120,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1620,
+            coefficient: 0.2,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 3120,
+            coefficient: 0.2,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 4620,
+            coefficient: 0.2,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 6120,
+            coefficient: 0.2,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 7620,
+            coefficient: 0.2,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 9120,
+            coefficient: 0.2,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1620,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 3120,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 4620,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 6120,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 7620,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 9120,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.METEOR_SHOWER]: {
+    name: "Meteor Shower",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Staff",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 2640,
+    cooldown: 30,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: elementalistPacketEffects([
+      [3480, 1.6],
+      [3900, 1.44],
+      [4380, 1.28],
+      [4860, 1.12],
+      [5100, 0.96],
+      [5820, 0.8],
+      [6720, 0.64],
+      [7140, 0.48],
+      [7620, 0.32],
+      [8100, 0.32],
+      [8340, 0.32],
+      [9060, 0.32],
+      [9960, 0.32],
+      [10380, 0.32],
+      [10860, 0.32],
+      [11340, 0.32],
+      [11580, 0.32],
+      [12300, 0.32],
+      [13200, 0.32],
+      [13620, 0.32],
+      [14100, 0.32],
+      [14580, 0.32],
+      [14820, 0.32],
+      [15540, 0.32],
+    ]),
+  },
+  [ID.WATER_BLAST]: {
+    name: "Water Blast",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Staff",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 840,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 900,
+            coefficient: 0.3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.ICE_SPIKE]: {
+    name: "Ice Spike",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Staff",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 520,
+    cooldown: 6,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2640,
+            coefficient: 1.5,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 2640,
+            condition: "Vulnerability",
+            stacks: 5,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.GEYSER]: {
+    name: "Geyser",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Staff",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 560,
+    cooldown: 20,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Water",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [],
+  },
+  [ID.FROZEN_GROUNDS]: {
+    name: "Frozen Grounds",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Staff",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 280,
+    cooldown: 30,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Ice",
+        duration: 5,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 240,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.HEALING_RAIN]: {
+    name: "Healing Rain",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Staff",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 840,
+    cooldown: 35,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Water",
+        duration: 6,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "boon",
+        boon: "Regeneration",
+        stacks: 1,
+        duration: 13,
+        durationScale: "boon",
+        atMs: 1080,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.CHAIN_LIGHTNING]: {
+    name: "Chain Lightning",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Staff",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 840,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 900,
+            coefficient: 0.8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.LIGHTNING_SURGE]: {
+    name: "Lightning Surge",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Staff",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 1000,
+    cooldown: 10,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1200,
+            coefficient: 1.8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "blind",
+        atMs: 1200,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+    ],
+  },
+  [ID.GUST]: {
+    name: "Gust",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Staff",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 480,
+    cooldown: 25,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "control",
+        atMs: 270,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.WINDBORNE_SPEED]: {
+    name: "Windborne Speed",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Staff",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 480,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "boon",
+        boon: "Swiftness",
+        stacks: 1,
+        duration: 10,
+        durationScale: "boon",
+        atMs: 300,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "boon",
+        boon: "Superspeed",
+        stacks: 1,
+        duration: 3,
+        durationScale: "boon",
+        atMs: 300,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.STATIC_FIELD]: {
+    name: "Static Field",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Staff",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 30,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Lightning",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 270,
+            coefficient: 0.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "control",
+        atMs: 270,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1020,
+            coefficient: 0.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "control",
+        atMs: 1020,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.STONING]: {
+    name: "Stoning",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Staff",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 880,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 900,
+            coefficient: 1.2,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 900,
+            condition: "Weakness",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.ERUPTION]: {
+    name: "Eruption",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Staff",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 840,
+    cooldown: 6,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 6000,
+            coefficient: 1.5,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 6000,
+            condition: "Bleeding",
+            stacks: 6,
+            duration: 12,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 6000,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.MAGNETIC_AURA]: {
+    name: "Magnetic Aura",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Staff",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 0,
+    cooldown: 30,
+    nextChainId: ID.TRANSMUTE_EARTH,
+    aura: "Magnetic|4",
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [],
+  },
+  [ID.TRANSMUTE_EARTH]: {
+    name: "Transmute Earth",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Staff",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 360,
+    cooldown: 10,
+    nextChainId: ID.MAGNETIC_AURA,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1260,
+            coefficient: 1,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+    elementalistStateMachine: "aura-transmute",
+  },
+  [ID.UNSTEADY_GROUND]: {
+    name: "Unsteady Ground",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Staff",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 720,
+    cooldown: 30,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "control",
+        atMs: 600,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.SHOCK_WAVE]: {
+    name: "Shock Wave",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Staff",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 25,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 900,
+            coefficient: 2.5,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 900,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 20,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 900,
+            condition: "Immobilize",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.FLAMESTRIKE]: {
+    name: "Flamestrike",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Scepter",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 600,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 360,
+            coefficient: 0.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 360,
+            condition: "Burning",
+            stacks: 1,
+            duration: 1.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 0.7,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 780,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.DRAGONS_TOOTH]: {
+    name: "Dragon's Tooth",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Scepter",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 6,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 3900,
+            coefficient: 2.25,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 3900,
+            condition: "Burning",
+            stacks: 1,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.PHOENIX]: {
+    name: "Phoenix",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Scepter",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 480,
+    cooldown: 10,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 480,
+            coefficient: 0.75,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 1.7,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 540,
+            condition: "Burning",
+            stacks: 2,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 570,
+            coefficient: 0.75,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "boon",
+        boon: "Vigor",
+        stacks: 1,
+        duration: 5,
+        durationScale: "boon",
+        atMs: 570,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.ICE_SHARDS]: {
+    name: "Ice Shards",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Scepter",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 560,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 720,
+            coefficient: 0.39999999999999997,
+          },
+          {
+            atMs: 720,
+            coefficient: 0.39999999999999997,
+          },
+          {
+            atMs: 720,
+            coefficient: 0.39999999999999997,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.SHATTERSTONE]: {
+    name: "Shatterstone",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Scepter",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 400,
+    cooldown: 3,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 540,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1560,
+            coefficient: 0.8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1560,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.WATER_TRIDENT]: {
+    name: "Water Trident",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Scepter",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 1,
+    ammo: 2,
+    ammoRecharge: 10,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 2.4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.ARC_LIGHTNING]: {
+    name: "Arc Lightning",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Scepter",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 2720,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 660,
+            coefficient: 0.35,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1020,
+            coefficient: 0.35,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1440,
+            coefficient: 0.35,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1800,
+            coefficient: 0.4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2160,
+            coefficient: 0.4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2580,
+            coefficient: 0.4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2940,
+            coefficient: 0.3375,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 3300,
+            coefficient: 0.3375,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 3720,
+            coefficient: 0.3375,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 4080,
+            coefficient: 0.3375,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.LIGHTNING_STRIKE]: {
+    name: "Lightning Strike",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Scepter",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 0,
+    cooldown: 5,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 0,
+            coefficient: 1.2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 0,
+            condition: "Vulnerability",
+            stacks: 5,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.BLINDING_FLASH]: {
+    name: "Blinding Flash",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Scepter",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 0,
+    cooldown: 0.5,
+    ammo: 2,
+    ammoRecharge: 10,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "blind",
+        atMs: 0,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 0,
+            condition: "Weakness",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.STONE_SHARDS]: {
+    name: "Stone Shards",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Scepter",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 1400,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1080,
+            coefficient: 0.5,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                chance: 0.2,
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1080,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1500,
+            coefficient: 0.5,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                chance: 0.2,
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1500,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1860,
+            coefficient: 0.5,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                chance: 0.2,
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1860,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.ROCK_BARRIER]: {
+    name: "Rock Barrier",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Scepter",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 760,
+    cooldown: 8,
+    nextChainId: ID.HURL,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "boon",
+        boon: "Resistance",
+        stacks: 1,
+        duration: 4,
+        durationScale: "boon",
+        atMs: 1140,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "rock-barrier",
+  },
+  [ID.HURL]: {
+    name: "Hurl",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Scepter",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 0,
+    cooldown: 0,
+    nextChainId: ID.ROCK_BARRIER,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 300,
+            coefficient: 0.44,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 300,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 500,
+            coefficient: 0.44,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 500,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 700,
+            coefficient: 0.44,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 700,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 900,
+            coefficient: 0.44,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 900,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1100,
+            coefficient: 0.44,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1100,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "rock-barrier",
+  },
+  [ID.DUST_DEVIL]: {
+    name: "Dust Devil",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Scepter",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 320,
+    cooldown: 15,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 240,
+            coefficient: 0.4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "blind",
+        atMs: 240,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 240,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 1.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1740,
+            coefficient: 0.4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1740,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 1.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 3240,
+            coefficient: 0.4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 3240,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 1.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.FIRE_STRIKE]: {
+    name: "Fire Strike",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Sword",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.FIRE_SWIPE,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 420,
+            coefficient: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.FIRE_SWIPE]: {
+    name: "Fire Swipe",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Sword",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.SEARING_SLASH,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 1.1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.SEARING_SLASH]: {
+    name: "Searing Slash",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Sword",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 0,
+    nextChainId: ID.FIRE_STRIKE,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 720,
+            coefficient: 1.8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 720,
+            condition: "Burning",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.FLAME_UPRISING]: {
+    name: "Flame Uprising",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Sword",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 720,
+    cooldown: 8,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 2,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 900,
+            coefficient: 2,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Leap",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 900,
+            condition: "Burning",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2400,
+            coefficient: 0.5,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 3900,
+            coefficient: 0.5,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.CAUTERIZING_STRIKE]: {
+    name: "Cauterizing Strike",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Sword",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 15,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 660,
+            coefficient: 2.91,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 660,
+            condition: "Burning",
+            stacks: 1,
+            duration: 8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.SEICHE]: {
+    name: "Seiche",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Sword",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.CLAPOTIS,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 420,
+            coefficient: 0.8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.CLAPOTIS]: {
+    name: "Clapotis",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Sword",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.BREAKING_WAVE,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.9,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.BREAKING_WAVE]: {
+    name: "Breaking Wave",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Sword",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 0,
+    nextChainId: ID.SEICHE,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 720,
+            coefficient: 1.1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.RIPTIDE]: {
+    name: "Riptide",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Sword",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 1080,
+    cooldown: 12,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Water",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 60,
+            coefficient: 0.33,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "boon",
+        boon: "Regeneration",
+        stacks: 1,
+        duration: 5,
+        durationScale: "boon",
+        atMs: 60,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.AQUA_SIPHON]: {
+    name: "Aqua Siphon",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Sword",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 15,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 900,
+            coefficient: 0.75,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "boon",
+        boon: "Regeneration",
+        stacks: 1,
+        duration: 5,
+        durationScale: "boon",
+        atMs: 900,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.CHARGED_STRIKE]: {
+    name: "Charged Strike",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Sword",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.POLARIC_SLASH,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 420,
+            coefficient: 0.9,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.POLARIC_SLASH]: {
+    name: "Polaric Slash",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Sword",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.CALL_LIGHTNING,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "boon",
+        boon: "Swiftness",
+        stacks: 1,
+        duration: 2,
+        durationScale: "boon",
+        atMs: 540,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.CALL_LIGHTNING]: {
+    name: "Call Lightning",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Sword",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 760,
+    cooldown: 0,
+    nextChainId: ID.CHARGED_STRIKE,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 840,
+            coefficient: 1.2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1140,
+            coefficient: 0.32,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1440,
+            coefficient: 0.32,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1740,
+            coefficient: 0.32,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.POLARIC_LEAP]: {
+    name: "Polaric Leap",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Sword",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 15,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 420,
+            coefficient: 0.66,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Leap",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "boon",
+        boon: "Superspeed",
+        stacks: 1,
+        duration: 3,
+        durationScale: "boon",
+        atMs: 420,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 420,
+            condition: "Weakness",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "control",
+        atMs: 420,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.QUANTUM_STRIKE]: {
+    name: "Quantum Strike",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Sword",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 16,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: elementalistPacketEffects(
+      [
+        [900, 0.5],
+        [1200, 0.425],
+        [1500, 0.425],
+        [1800, 0.425],
+        [2100, 0.425],
+        [2400, 0.425],
+        [2700, 0.425],
+        [3000, 0.425],
+        [3300, 0.425],
+      ],
+      { condition: { condition: "Vulnerability", stacks: 1, duration: 8 } },
+    ),
+  },
+  [ID.CRYSTAL_SLASH]: {
+    name: "Crystal Slash",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Sword",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.CRYSTALLINE_STRIKE,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 420,
+            coefficient: 0.8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 420,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.CRYSTALLINE_STRIKE]: {
+    name: "Crystalline Strike",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Sword",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.CRYSTALLINE_SUNDER,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.9,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 540,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.CRYSTALLINE_SUNDER]: {
+    name: "Crystalline Sunder",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Sword",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 0,
+    nextChainId: ID.CRYSTAL_SLASH,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 720,
+            coefficient: 1.4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 720,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 720,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.EARTHEN_VORTEX]: {
+    name: "Earthen Vortex",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Sword",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 1000,
+    cooldown: 10,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1080,
+            coefficient: 1.8,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1080,
+            condition: "Bleeding",
+            stacks: 2,
+            duration: 8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1080,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.RUST_FRENZY]: {
+    name: "Rust Frenzy",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Sword",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 1400,
+    cooldown: 15,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: elementalistPacketEffects(
+      [
+        [540, 0.33],
+        [540, 0.33],
+        [900, 0.33],
+        [960, 0.33],
+        [1260, 0.33],
+        [1260, 0.33],
+        [1620, 0.33],
+        [1680, 0.33],
+      ],
+      { condition: { condition: "Bleeding", stacks: 1, duration: 4 } },
+    ),
+  },
+  [ID.DRAGONS_CLAW]: {
+    name: "Dragon's Claw",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Dagger",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 720,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 660,
+            coefficient: 0.45,
+          },
+          {
+            atMs: 660,
+            coefficient: 0.45,
+          },
+          {
+            atMs: 660,
+            coefficient: 0.45,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.DRAKES_BREATH]: {
+    name: "Drake's Breath",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Dagger",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 1360,
+    cooldown: 5,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 1.05,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 780,
+            condition: "Burning",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1140,
+            coefficient: 1.05,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1140,
+            condition: "Burning",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1500,
+            coefficient: 1.05,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1500,
+            condition: "Burning",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1860,
+            coefficient: 1.05,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1860,
+            condition: "Burning",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.BURNING_SPEED]: {
+    name: "Burning Speed",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Dagger",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 800,
+    cooldown: 12,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1200,
+            coefficient: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1200,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 240,
+            coefficient: 0.2,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 1740,
+            coefficient: 0.2,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 3240,
+            coefficient: 0.2,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 4740,
+            coefficient: 0.2,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 6240,
+            coefficient: 0.2,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 240,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 1740,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 3240,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 4740,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 6240,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.RING_OF_FIRE]: {
+    name: "Ring of Fire",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Dagger",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 480,
+    cooldown: 15,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 5,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 420,
+            coefficient: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 420,
+            condition: "Burning",
+            stacks: 2,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.FIRE_GRAB]: {
+    name: "Fire Grab",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Dagger",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 560,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 720,
+            coefficient: 3.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.VAPOR_BLADE]: {
+    name: "Vapor Blade",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Dagger",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 360,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.33,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 540,
+            condition: "Vulnerability",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2040,
+            coefficient: 0.33,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 2040,
+            condition: "Vulnerability",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.CONE_OF_COLD]: {
+    name: "Cone of Cold",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Dagger",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 1360,
+    cooldown: 10,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 0.6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1140,
+            coefficient: 0.6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1500,
+            coefficient: 0.6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1860,
+            coefficient: 0.6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.FROZEN_BURST]: {
+    name: "Frozen Burst",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Dagger",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 600,
+    cooldown: 12,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Ice",
+        duration: 2,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 300,
+            coefficient: 0.4,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 300,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.FROST_AURA]: {
+    name: "Frost Aura",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Dagger",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 0,
+    cooldown: 10,
+    nextChainId: ID.TRANSMUTE_FROST,
+    aura: "Frost|10",
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [],
+  },
+  [ID.TRANSMUTE_FROST]: {
+    name: "Transmute Frost",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Dagger",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 360,
+    cooldown: 10,
+    nextChainId: ID.FROST_AURA,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1260,
+            coefficient: 0.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "boon",
+        boon: "Regeneration",
+        stacks: 1,
+        duration: 4,
+        durationScale: "boon",
+        atMs: 1260,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "aura-transmute",
+  },
+  [ID.CLEANSING_WAVE]: {
+    name: "Cleansing Wave",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Dagger",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 960,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [],
+  },
+  [ID.LIGHTNING_WHIP]: {
+    name: "Lightning Whip",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Dagger",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 640,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.75,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 840,
+            coefficient: 0.75,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.CONVERGENCE]: {
+    name: "Convergence",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Dagger",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 360,
+    cooldown: 8,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1980,
+            coefficient: 2.4,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1980,
+            condition: "Weakness",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "boon",
+        boon: "Fury",
+        stacks: 1,
+        duration: 2.5,
+        durationScale: "boon",
+        atMs: 1980,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.SHOCKING_AURA]: {
+    name: "Shocking Aura",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Dagger",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 0,
+    cooldown: 10,
+    nextChainId: ID.TRANSMUTE_LIGHTNING,
+    aura: "Shocking|10",
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [],
+  },
+  [ID.TRANSMUTE_LIGHTNING]: {
+    name: "Transmute Lightning",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Dagger",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 360,
+    cooldown: 10,
+    nextChainId: ID.SHOCKING_AURA,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1260,
+            coefficient: 1.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "control",
+        atMs: 1260,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+    elementalistStateMachine: "aura-transmute",
+  },
+  [ID.RIDE_THE_LIGHTNING]: {
+    name: "Ride the Lightning",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Dagger",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 120,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 120,
+            coefficient: 1.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.UPDRAFT]: {
+    name: "Updraft",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Dagger",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 880,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "boon",
+        boon: "Swiftness",
+        stacks: 1,
+        duration: 10,
+        durationScale: "boon",
+        atMs: 1320,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "control",
+        atMs: 1320,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.IMPALE]: {
+    name: "Impale",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Dagger",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 600,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 960,
+            coefficient: 0.77,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 960,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.RING_OF_EARTH]: {
+    name: "Ring of Earth",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Dagger",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 880,
+    cooldown: 6,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 300,
+            coefficient: 0.33,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 300,
+            condition: "Bleeding",
+            stacks: 3,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 300,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1140,
+            coefficient: 1.9,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1140,
+            condition: "Bleeding",
+            stacks: 3,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1140,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.EARTHEN_RUSH]: {
+    name: "Earthen Rush",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Dagger",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 640,
+    cooldown: 12,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 420,
+            coefficient: 2.3,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Leap",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 420,
+            condition: "Immobilize",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.EARTHQUAKE]: {
+    name: "Earthquake",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Dagger",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 16,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 720,
+            coefficient: 3,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "control",
+        atMs: 720,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.CHURNING_EARTH]: {
+    name: "Churning Earth",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Dagger",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 960,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 0,
+            coefficient: 0,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1200,
+            coefficient: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1200,
+            condition: "Bleeding",
+            stacks: 10,
+            duration: 8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1200,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.FLAMEWALL]: {
+    name: "Flamewall",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Focus",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 560,
+    cooldown: 20,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 9,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 840,
+            coefficient: 0.1,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 2340,
+            coefficient: 0.1,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 3840,
+            coefficient: 0.1,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 5340,
+            coefficient: 0.1,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 6840,
+            coefficient: 0.1,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 8340,
+            coefficient: 0.1,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 9840,
+            coefficient: 0.1,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 11340,
+            coefficient: 0.1,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 12840,
+            coefficient: 0.1,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 840,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2.5,
+          },
+          {
+            atMs: 2340,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2.5,
+          },
+          {
+            atMs: 3840,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2.5,
+          },
+          {
+            atMs: 5340,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2.5,
+          },
+          {
+            atMs: 6840,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2.5,
+          },
+          {
+            atMs: 8340,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2.5,
+          },
+          {
+            atMs: 9840,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2.5,
+          },
+          {
+            atMs: 11340,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2.5,
+          },
+          {
+            atMs: 12840,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.FIRE_SHIELD]: {
+    name: "Fire Shield",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Focus",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 0,
+    cooldown: 25,
+    nextChainId: ID.TRANSMUTE_FIRE,
+    aura: "Fire|4",
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [],
+  },
+  [ID.TRANSMUTE_FIRE]: {
+    name: "Transmute Fire",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Focus",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 360,
+    cooldown: 10,
+    nextChainId: ID.FIRE_SHIELD,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1260,
+            coefficient: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1260,
+            condition: "Burning",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "boon",
+        boon: "Might",
+        stacks: 5,
+        duration: 6,
+        durationScale: "boon",
+        atMs: 1260,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "aura-transmute",
+  },
+  [ID.FREEZING_GUST]: {
+    name: "Freezing Gust",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Focus",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 25,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 420,
+            coefficient: 0.25,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 420,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.COMET]: {
+    name: "Comet",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Focus",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 25,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1140,
+            coefficient: 0.75,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "control",
+        atMs: 1140,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.SWIRLING_WINDS]: {
+    name: "Swirling Winds",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Focus",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 30,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [],
+  },
+  [ID.GALE]: {
+    name: "Gale",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Focus",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 560,
+    cooldown: 40,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "control",
+        atMs: 840,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.MAGNETIC_WAVE]: {
+    name: "Magnetic Wave",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Focus",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 0,
+    cooldown: 25,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 0,
+            coefficient: 1,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 0,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.OBSIDIAN_FLESH]: {
+    name: "Obsidian Flesh",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Focus",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 3800,
+    cooldown: 50,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [],
+  },
+  [ID.HEAT_SYNC]: {
+    name: "Heat Sync",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Warhorn",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 840,
+    cooldown: 30,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "boon",
+        boon: "Fury",
+        stacks: 1,
+        duration: 10,
+        durationScale: "boon",
+        atMs: 840,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "boon",
+        boon: "Might",
+        stacks: 3,
+        duration: 10,
+        durationScale: "boon",
+        atMs: 840,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.WILDFIRE]: {
+    name: "Wildfire",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Warhorn",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 660,
+    cooldown: 30,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 8,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2340,
+            coefficient: 0.44,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 3840,
+            coefficient: 0.44,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 5340,
+            coefficient: 0.44,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 6840,
+            coefficient: 0.44,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 8340,
+            coefficient: 0.44,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 9840,
+            coefficient: 0.44,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 11340,
+            coefficient: 0.44,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 2340,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 3840,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 5340,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 6840,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 8340,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 9840,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 11340,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.TIDAL_SURGE]: {
+    name: "Tidal Surge",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Warhorn",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 30,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1380,
+            coefficient: 1,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "control",
+        atMs: 1380,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.WATER_GLOBE]: {
+    name: "Water Globe",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Warhorn",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 840,
+    cooldown: 30,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Water",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [],
+  },
+  [ID.CYCLONE]: {
+    name: "Cyclone",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Warhorn",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 800,
+    cooldown: 25,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 840,
+            coefficient: 0.9,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "boon",
+        boon: "Swiftness",
+        stacks: 1,
+        duration: 10,
+        durationScale: "boon",
+        atMs: 840,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "boon",
+        boon: "Superspeed",
+        stacks: 1,
+        duration: 2.5,
+        durationScale: "boon",
+        atMs: 840,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "control",
+        atMs: 840,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.LIGHTNING_ORB]: {
+    name: "Lightning Orb",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Warhorn",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 25,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: elementalistPacketEffects(
+      [
+        [600, 0.8],
+        [1020, 0.72],
+        [1440, 0.64],
+        [1860, 0.56],
+        [2280, 0.48],
+        [2700, 0.4],
+        [3120, 0.32],
+        [3540, 0.24],
+        [4140, 0.16],
+        [4740, 0.08],
+        [5400, 0.05],
+        [6000, 0.05],
+        [6600, 0.05],
+        [7200, 0.05],
+        [7200, 0.05],
+        [7590, 0.05],
+        [8085, 0.05],
+        [8685, 0.05],
+        [9330, 0.05],
+        [9930, 0.05],
+      ],
+      { condition: { condition: "Vulnerability", stacks: 1, duration: 10 } },
+    ),
+  },
+  [ID.SAND_SQUALL]: {
+    name: "Sand Squall",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Warhorn",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 840,
+    cooldown: 30,
+    aura: "Magnetic|4",
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "boon",
+        boon: "Protection",
+        stacks: 1,
+        duration: 2,
+        durationScale: "boon",
+        atMs: 840,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.DUST_STORM]: {
+    name: "Dust Storm",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Warhorn",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 840,
+    cooldown: 30,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2340,
+            coefficient: 0.3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 2340,
+            condition: "Bleeding",
+            stacks: 2,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "blind",
+        atMs: 2340,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+      {
+        type: "boon",
+        boon: "Resistance",
+        stacks: 1,
+        duration: 4,
+        durationScale: "boon",
+        atMs: 2340,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 3960,
+            coefficient: 0.3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 3960,
+            condition: "Bleeding",
+            stacks: 2,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "blind",
+        atMs: 3960,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 5340,
+            coefficient: 0.3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 5340,
+            condition: "Bleeding",
+            stacks: 2,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "blind",
+        atMs: 5340,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 6960,
+            coefficient: 0.3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 6960,
+            condition: "Bleeding",
+            stacks: 2,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "blind",
+        atMs: 6960,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 8340,
+            coefficient: 0.3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 8340,
+            condition: "Bleeding",
+            stacks: 2,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "blind",
+        atMs: 8340,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 9960,
+            coefficient: 0.3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 9960,
+            condition: "Bleeding",
+            stacks: 2,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "blind",
+        atMs: 9960,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 11340,
+            coefficient: 0.3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 11340,
+            condition: "Bleeding",
+            stacks: 2,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "blind",
+        atMs: 11340,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 12960,
+            coefficient: 0.3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 12960,
+            condition: "Bleeding",
+            stacks: 2,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "blind",
+        atMs: 12960,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+    ],
+  },
+  [ID.ARCANE_BRILLIANCE]: {
+    name: "Arcane Brilliance",
+    type: "Heal",
+    slot: "Heal",
+    categories: ["Arcane"],
+    quicknessCastTimeMs: 640,
+    cooldown: 20,
+    skillFamily: "Arcane",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 0.5,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.SIGNET_OF_RESTORATION]: {
+    name: "Signet of Restoration",
+    type: "Heal",
+    slot: "Heal",
+    categories: ["Signet"],
+    quicknessCastTimeMs: 440,
+    cooldown: 20,
+    skillFamily: "Signet",
+    implemented: true,
+    effects: [],
+  },
+  [ID.GLYPH_OF_ELEMENTAL_HARMONY]: {
+    name: "Glyph of Elemental Harmony",
+    type: "Heal",
+    slot: "Heal",
+    categories: ["Glyph"],
+    quicknessCastTimeMs: 800,
+    cooldown: 20,
+    skillFamily: "Glyph",
+    implemented: true,
+    effects: [
+      {
+        type: "boon",
+        boon: "Might",
+        stacks: 3,
+        duration: 20,
+        durationScale: "boon",
+        atMs: 1020,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.ARCANE_BLAST]: {
+    name: "Arcane Blast",
+    type: "Utility",
+    slot: "Utility",
+    categories: ["Arcane"],
+    quicknessCastTimeMs: 0,
+    cooldown: 1,
+    ammo: 3,
+    ammoRecharge: 20,
+    skillFamily: "Arcane",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 0,
+            coefficient: 1.4,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.ARCANE_ECHO]: {
+    name: "Arcane Echo",
+    type: "Utility",
+    slot: "Utility",
+    categories: ["Arcane"],
+    quicknessCastTimeMs: 0,
+    cooldown: 15,
+    skillFamily: "Arcane",
+    implemented: true,
+    effects: [],
+  },
+  [ID.ARCANE_WAVE]: {
+    name: "Arcane Wave",
+    type: "Utility",
+    slot: "Utility",
+    categories: ["Arcane"],
+    quicknessCastTimeMs: 760,
+    cooldown: 2,
+    ammo: 2,
+    ammoRecharge: 25,
+    skillFamily: "Arcane",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1200,
+            coefficient: 1.4,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "control",
+        atMs: 1200,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.CONJURE_FROST_BOW]: {
+    name: "Conjure Frost Bow",
+    type: "Utility",
+    slot: "Utility",
+    categories: ["Conjure"],
+    quicknessCastTimeMs: 480,
+    cooldown: 60,
+    skillFamily: "Conjure",
+    implemented: true,
+    effects: [],
+  },
+  [ID.CONJURE_LIGHTNING_HAMMER]: {
+    name: "Conjure Lightning Hammer",
+    type: "Utility",
+    slot: "Utility",
+    categories: ["Conjure"],
+    quicknessCastTimeMs: 880,
+    cooldown: 60,
+    skillFamily: "Conjure",
+    implemented: true,
+    effects: [],
+  },
+  [ID.WATER_ARROW]: {
+    name: "Water Arrow",
+    type: "Weapon",
+    slot: "Weapon_1",
+    skillWeapon: "Frost Bow",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 600,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 840,
+            coefficient: 0.3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.FROST_VOLLEY]: {
+    name: "Frost Volley",
+    type: "Weapon",
+    slot: "Weapon_2",
+    skillWeapon: "Frost Bow",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 1600,
+    cooldown: 6,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.5,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 540,
+            condition: "Vulnerability",
+            stacks: 1,
+            duration: 15,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1020,
+            coefficient: 0.5,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1020,
+            condition: "Vulnerability",
+            stacks: 1,
+            duration: 15,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1500,
+            coefficient: 0.5,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1500,
+            condition: "Vulnerability",
+            stacks: 1,
+            duration: 15,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1980,
+            coefficient: 0.5,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1980,
+            condition: "Vulnerability",
+            stacks: 1,
+            duration: 15,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2460,
+            coefficient: 0.5,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 2460,
+            condition: "Vulnerability",
+            stacks: 1,
+            duration: 15,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.FROST_FAN]: {
+    name: "Frost Fan",
+    type: "Weapon",
+    slot: "Weapon_3",
+    skillWeapon: "Frost Bow",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 560,
+    cooldown: 15,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 360,
+            coefficient: 0.25,
+          },
+          {
+            atMs: 360,
+            coefficient: 0.25,
+          },
+          {
+            atMs: 360,
+            coefficient: 0.25,
+          },
+          {
+            atMs: 360,
+            coefficient: 0.25,
+          },
+          {
+            atMs: 360,
+            coefficient: 0.25,
+          },
+          {
+            atMs: 360,
+            coefficient: 0.25,
+          },
+          {
+            atMs: 360,
+            coefficient: 0.25,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 360,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 1,
+          },
+          {
+            atMs: 360,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 1,
+          },
+          {
+            atMs: 360,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 1,
+          },
+          {
+            atMs: 360,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 1,
+          },
+          {
+            atMs: 360,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 1,
+          },
+          {
+            atMs: 360,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 1,
+          },
+          {
+            atMs: 360,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.FROST_STORM]: {
+    name: "Frost Storm",
+    type: "Weapon",
+    slot: "Weapon_4",
+    skillWeapon: "Frost Bow",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 2360,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: elementalistPacketEffects(
+      [
+        [1560, 0.7],
+        [1980, 0.63],
+        [2280, 0.56],
+        [2340, 0.49],
+        [2700, 0.42],
+        [2700, 0.35],
+        [3000, 0.28],
+        [3060, 0.21],
+        [3420, 0.14],
+        [3420, 0.14],
+        [3720, 0.14],
+        [3780, 0.14],
+        [4140, 0.14],
+        [4140, 0.14],
+        [4440, 0.14],
+        [4500, 0.14],
+        [4860, 0.14],
+        [4860, 0.14],
+        [5220, 0.14],
+        [5580, 0.14],
+        [5940, 0.14],
+        [6360, 0.14],
+        [6720, 0.14],
+        [7080, 0.14],
+      ],
+      {
+        condition: { condition: "Bleeding", stacks: 1, duration: 3 },
+        conditionStartIndex: 1,
+      },
+    ),
+  },
+  [ID.DEEP_FREEZE]: {
+    name: "Deep Freeze",
+    type: "Weapon",
+    slot: "Weapon_5",
+    skillWeapon: "Frost Bow",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 1120,
+    cooldown: 30,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1680,
+            coefficient: 0.8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1680,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "control",
+        atMs: 1680,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.LIGHTNING_SWING]: {
+    name: "Lightning Swing",
+    type: "Weapon",
+    slot: "Weapon_1",
+    skillWeapon: "Lightning Hammer",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 480,
+    cooldown: 0,
+    nextChainId: ID.STATIC_SWING,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.STATIC_SWING]: {
+    name: "Static Swing",
+    type: "Weapon",
+    slot: "Weapon_1",
+    skillWeapon: "Lightning Hammer",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 640,
+    cooldown: 0,
+    nextChainId: ID.THUNDERCLAP,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 480,
+            coefficient: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.THUNDERCLAP]: {
+    name: "Thunderclap",
+    type: "Weapon",
+    slot: "Weapon_1",
+    skillWeapon: "Lightning Hammer",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.LIGHTNING_SWING,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 480,
+            coefficient: 1.5,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "blind",
+        atMs: 480,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+    ],
+  },
+  [ID.LIGHTNING_LEAP]: {
+    name: "Lightning Leap",
+    type: "Weapon",
+    slot: "Weapon_2",
+    skillWeapon: "Lightning Hammer",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 960,
+    cooldown: 8,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1200,
+            coefficient: 1,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Leap",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "boon",
+        boon: "Quickness",
+        stacks: 1,
+        duration: 3,
+        durationScale: "boon",
+        atMs: 1200,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.WIND_BLAST]: {
+    name: "Wind Blast",
+    type: "Weapon",
+    slot: "Weapon_3",
+    skillWeapon: "Lightning Hammer",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 960,
+    cooldown: 18,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1020,
+            coefficient: 0.33,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "boon",
+        boon: "Superspeed",
+        stacks: 1,
+        duration: 3,
+        durationScale: "boon",
+        atMs: 1020,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "control",
+        atMs: 1020,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.INVOKE_LIGHTNING]: {
+    name: "Invoke Lightning",
+    type: "Weapon",
+    slot: "Weapon_4",
+    skillWeapon: "Lightning Hammer",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 920,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: elementalistPacketEffects([
+      [540, 0.825],
+      [540, 0.7425],
+      [540, 0.66],
+      [720, 0.5775],
+      [720, 0.495],
+      [720, 0.4125],
+      [900, 0.33],
+      [900, 0.2475],
+      [900, 0.24],
+      [1140, 0.24],
+      [1140, 0.24],
+      [1140, 0.24],
+      [1320, 0.24],
+      [1320, 0.24],
+      [1320, 0.24],
+      [1320, 0.24],
+      [1320, 0.24],
+      [1320, 0.24],
+      [1500, 0.24],
+      [1500, 0.24],
+    ]),
+  },
+  [ID.STATIC_FIELD_ID_1100117]: {
+    name: "Static Field",
+    type: "Weapon",
+    slot: "Weapon_5",
+    skillWeapon: "Lightning Hammer",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 760,
+    cooldown: 25,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Lightning",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 270,
+            coefficient: 0.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "control",
+        atMs: 270,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1020,
+            coefficient: 0.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "control",
+        atMs: 1020,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.GLYPH_OF_ELEMENTAL_POWER_FIRE]: {
+    name: "Glyph of Elemental Power (Fire)",
+    type: "Utility",
+    slot: "Utility",
+    attunement: "Fire",
+    categories: ["Glyph"],
+    quicknessCastTimeMs: 480,
+    cooldown: 25,
+    skillFamily: "Glyph",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 600,
+            coefficient: 1.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 600,
+            condition: "Burning",
+            stacks: 3,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.GLYPH_OF_ELEMENTAL_POWER_WATER]: {
+    name: "Glyph of Elemental Power (Water)",
+    type: "Utility",
+    slot: "Utility",
+    attunement: "Water",
+    categories: ["Glyph"],
+    quicknessCastTimeMs: 480,
+    cooldown: 25,
+    skillFamily: "Glyph",
+    implemented: true,
+    effects: [],
+  },
+  [ID.GLYPH_OF_ELEMENTAL_POWER_AIR]: {
+    name: "Glyph of Elemental Power (Air)",
+    type: "Utility",
+    slot: "Utility",
+    attunement: "Air",
+    categories: ["Glyph"],
+    quicknessCastTimeMs: 480,
+    cooldown: 25,
+    skillFamily: "Glyph",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 600,
+            coefficient: 0.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "control",
+        atMs: 600,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.GLYPH_OF_ELEMENTAL_POWER_EARTH]: {
+    name: "Glyph of Elemental Power (Earth)",
+    type: "Utility",
+    slot: "Utility",
+    attunement: "Earth",
+    categories: ["Glyph"],
+    quicknessCastTimeMs: 480,
+    cooldown: 25,
+    skillFamily: "Glyph",
+    implemented: true,
+    effects: [],
+  },
+  [ID.GLYPH_OF_STORMS_FIRE]: {
+    name: "Glyph of Storms (Fire)",
+    type: "Utility",
+    slot: "Utility",
+    attunement: "Fire",
+    categories: ["Glyph"],
+    quicknessCastTimeMs: 1120,
+    cooldown: 25,
+    skillFamily: "Glyph",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1320,
+            coefficient: 0.5,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 2820,
+            coefficient: 0.5,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 4320,
+            coefficient: 0.5,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 5820,
+            coefficient: 0.5,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 7320,
+            coefficient: 0.5,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 8820,
+            coefficient: 0.5,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 10320,
+            coefficient: 0.5,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 11820,
+            coefficient: 0.5,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 13320,
+            coefficient: 0.5,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 14820,
+            coefficient: 0.5,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 16320,
+            coefficient: 0.5,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1320,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 2820,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 4320,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 5820,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 7320,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 8820,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 10320,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 11820,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 13320,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 14820,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 16320,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.GLYPH_OF_STORMS_WATER]: {
+    name: "Glyph of Storms (Water)",
+    type: "Utility",
+    slot: "Utility",
+    attunement: "Water",
+    categories: ["Glyph"],
+    quicknessCastTimeMs: 1120,
+    cooldown: 30,
+    skillFamily: "Glyph",
+    implemented: true,
+    effects: elementalistPacketEffects(
+      [
+        [2400, 0.8],
+        [2880, 0.72],
+        [3360, 0.64],
+        [3840, 0.56],
+        [4320, 0.48],
+        [4800, 0.4],
+        [5280, 0.32],
+        [5760, 0.32],
+        [6240, 0.32],
+        [6720, 0.32],
+        [7200, 0.32],
+        [7680, 0.32],
+        [8160, 0.32],
+        [8640, 0.32],
+        [9120, 0.32],
+        [9600, 0.32],
+        [10080, 0.32],
+        [10560, 0.32],
+      ],
+      { condition: { condition: "Chilled", stacks: 1, duration: 3 } },
+    ),
+  },
+  [ID.GLYPH_OF_STORMS_AIR]: {
+    name: "Glyph of Storms (Air)",
+    type: "Utility",
+    slot: "Utility",
+    attunement: "Air",
+    categories: ["Glyph"],
+    quicknessCastTimeMs: 1120,
+    cooldown: 60,
+    skillFamily: "Glyph",
+    implemented: true,
+    effects: elementalistPacketEffects(
+      [
+        [1320, 0.825],
+        [1320, 0.78375],
+        [1320, 0.7425],
+        [2100, 0.70125],
+        [2340, 0.66],
+        [2520, 0.61875],
+        [2835, 0.5775],
+        [3300, 0.53625],
+        [3600, 0.495],
+        [3720, 0.45375],
+        [4260, 0.4125],
+        [4320, 0.37125],
+        [4920, 0.33],
+        [5100, 0.28875],
+        [5220, 0.2475],
+        [5820, 0.2475],
+        [6120, 0.2475],
+        [6240, 0.2475],
+        [6600, 0.2475],
+        [7200, 0.2475],
+        [7320, 0.2475],
+        [7320, 0.2475],
+        [8100, 0.2475],
+        [8160, 0.2475],
+        [8520, 0.2475],
+        [8820, 0.2475],
+        [9120, 0.2475],
+        [9600, 0.2475],
+        [9720, 0.2475],
+        [10140, 0.2475],
+        [10935, 0.2475],
+        [11100, 0.2475],
+        [12060, 0.2475],
+        [12120, 0.2475],
+        [13320, 0.2475],
+        [14520, 0.2475],
+      ],
+      { condition: { condition: "Vulnerability", stacks: 2, duration: 8 } },
+    ),
+  },
+  [ID.GLYPH_OF_STORMS_EARTH]: {
+    name: "Glyph of Storms (Earth)",
+    type: "Utility",
+    slot: "Utility",
+    attunement: "Earth",
+    categories: ["Glyph"],
+    quicknessCastTimeMs: 1120,
+    cooldown: 40,
+    skillFamily: "Glyph",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1320,
+            coefficient: 0.045454545454545456,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 2820,
+            coefficient: 0.045454545454545456,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 4320,
+            coefficient: 0.045454545454545456,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 5820,
+            coefficient: 0.045454545454545456,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 7320,
+            coefficient: 0.045454545454545456,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 8820,
+            coefficient: 0.045454545454545456,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 10320,
+            coefficient: 0.045454545454545456,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 11820,
+            coefficient: 0.045454545454545456,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 13320,
+            coefficient: 0.045454545454545456,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 14820,
+            coefficient: 0.045454545454545456,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+          {
+            atMs: 16320,
+            coefficient: 0.045454545454545456,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1320,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 2820,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 4320,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 5820,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 7320,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 8820,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 10320,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 11820,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 13320,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 14820,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 16320,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "blind",
+        atMs: 1320,
+        applications: 11,
+        intervalMs: 1500,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+    ],
+  },
+  [ID.SIGNET_OF_FIRE]: {
+    name: "Signet of Fire",
+    type: "Utility",
+    slot: "Utility",
+    categories: ["Signet"],
+    quicknessCastTimeMs: 520,
+    cooldown: 12,
+    skillFamily: "Signet",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 660,
+            coefficient: 0.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 660,
+            condition: "Burning",
+            stacks: 2,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.SIGNET_OF_EARTH]: {
+    name: "Signet of Earth",
+    type: "Utility",
+    slot: "Utility",
+    categories: ["Signet"],
+    quicknessCastTimeMs: 520,
+    cooldown: 15,
+    skillFamily: "Signet",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 660,
+            coefficient: 0.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 660,
+            condition: "Bleeding",
+            stacks: 4,
+            duration: 9,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 660,
+            condition: "Immobilize",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.CONJURE_FIERY_GREATSWORD]: {
+    name: "Conjure Fiery Greatsword",
+    type: "Elite",
+    slot: "Elite",
+    categories: ["Conjure"],
+    quicknessCastTimeMs: 1160,
+    cooldown: 180,
+    skillFamily: "Conjure",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2160,
+            coefficient: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 2160,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.FLAME_WAVE]: {
+    name: "Flame Wave",
+    type: "Weapon",
+    slot: "Weapon_1",
+    skillWeapon: "Fiery Greatsword",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 2160,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.65,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1200,
+            coefficient: 0.65,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1860,
+            coefficient: 0.65,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2520,
+            coefficient: 0.65,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.FIERY_ERUPTION]: {
+    name: "Fiery Eruption",
+    type: "Weapon",
+    slot: "Weapon_2",
+    skillWeapon: "Fiery Greatsword",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 720,
+    cooldown: 5,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1080,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 2580,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 4080,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 5580,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 7080,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 8580,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.FIERY_WHIRL]: {
+    name: "Fiery Whirl",
+    type: "Weapon",
+    slot: "Weapon_3",
+    skillWeapon: "Fiery Greatsword",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 1320,
+    cooldown: 5,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: elementalistPacketEffects(
+      [
+        [420, 0.688],
+        [600, 0.688],
+        [795, 0.688],
+        [960, 0.688],
+        [1140, 0.688],
+        [1320, 0.688],
+        [1485, 0.688],
+        [1695, 0.688],
+      ],
+      {
+        condition: { condition: "Cripple", stacks: 1, duration: 3 },
+        strikeTick: {
+          comboFinishers: [
+            {
+              ownerId: "elementalist",
+              finisherType: "Whirl",
+              ambiguousFieldSelection: "oldest",
+            },
+          ],
+          metadata: {},
+        },
+      },
+    ),
+  },
+  [ID.FIERY_RUSH]: {
+    name: "Fiery Rush",
+    type: "Weapon",
+    slot: "Weapon_4",
+    skillWeapon: "Fiery Greatsword",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 1280,
+    cooldown: 10,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1620,
+            coefficient: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.FIRESTORM]: {
+    name: "Firestorm",
+    type: "Weapon",
+    slot: "Weapon_5",
+    skillWeapon: "Fiery Greatsword",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 760,
+    cooldown: 15,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 0.65,
+          },
+          {
+            atMs: 2280,
+            coefficient: 0.65,
+          },
+          {
+            atMs: 3780,
+            coefficient: 0.65,
+          },
+          {
+            atMs: 5280,
+            coefficient: 0.65,
+          },
+          {
+            atMs: 6780,
+            coefficient: 0.65,
+          },
+          {
+            atMs: 8280,
+            coefficient: 0.65,
+          },
+          {
+            atMs: 9780,
+            coefficient: 0.65,
+          },
+          {
+            atMs: 11280,
+            coefficient: 0.65,
+          },
+          {
+            atMs: 12780,
+            coefficient: 0.65,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.FLAME_SPEAR]: {
+    name: "Flame Spear",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Spear",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 640,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 1.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.BLAZING_BARRAGE]: {
+    name: "Blazing Barrage",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Spear",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 560,
+    cooldown: 6,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 660,
+            coefficient: 2.6,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 660,
+            condition: "Burning",
+            stacks: 1,
+            duration: 5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.SEETHE]: {
+    name: "Seethe",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Spear",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 360,
+    cooldown: 15,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "boon",
+        boon: "Fury",
+        stacks: 1,
+        duration: 4,
+        durationScale: "boon",
+        atMs: 0,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "boon",
+        boon: "Might",
+        stacks: 5,
+        duration: 10,
+        durationScale: "boon",
+        atMs: 0,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "spear-followup",
+  },
+  [ID.METEOR]: {
+    name: "Meteor",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Spear",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 840,
+            coefficient: 3.375,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.ETCHING_VOLCANO]: {
+    name: "Etching: Volcano",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Spear",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 240,
+    cooldown: 25,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Fire",
+        duration: 7,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "boon",
+        boon: "Might",
+        stacks: 1,
+        duration: 8,
+        durationScale: "boon",
+        atMs: 360,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "spear-etching",
+  },
+  [ID.LESSER_VOLCANO]: {
+    name: "Lesser Volcano",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Spear",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 600,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2280,
+            coefficient: 0.63,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2700,
+            coefficient: 0.567,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 3090,
+            coefficient: 0.504,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 3540,
+            coefficient: 0.441,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 3960,
+            coefficient: 0.378,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 4380,
+            coefficient: 0.315,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+    elementalistStateMachine: "spear-etching",
+  },
+  [ID.VOLCANO]: {
+    name: "Volcano",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Spear",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 600,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2340,
+            coefficient: 1.21,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2700,
+            coefficient: 1.089,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 3180,
+            coefficient: 0.968,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 3600,
+            coefficient: 0.847,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 3960,
+            coefficient: 0.726,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 4380,
+            coefficient: 0.605,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 4860,
+            coefficient: 0.484,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 5220,
+            coefficient: 0.363,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 5640,
+            coefficient: 0.242,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 6060,
+            coefficient: 0.121,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 6480,
+            coefficient: 0.05,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 6960,
+            coefficient: 0.05,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+    elementalistStateMachine: "spear-etching",
+  },
+  [ID.RESTORATIVE_SPEAR]: {
+    name: "Restorative Spear",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Spear",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 640,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.ICE_BEAM]: {
+    name: "Ice Beam",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Spear",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 840,
+    cooldown: 6,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.7,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 540,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 0.7,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 780,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1080,
+            coefficient: 0.7,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1080,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.RIPPLE]: {
+    name: "Ripple",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Spear",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 800,
+    cooldown: 15,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [],
+    elementalistStateMachine: "spear-followup",
+  },
+  [ID.UNDERTOW]: {
+    name: "Undertow",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Spear",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 600,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 720,
+            coefficient: 1.7,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "control",
+        atMs: 720,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.ETCHING_JO_KULHLAUP]: {
+    name: "Etching: Jökulhlaup",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Spear",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 240,
+    cooldown: 25,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Water",
+        duration: 7,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [],
+    elementalistStateMachine: "spear-etching",
+  },
+  [ID.LESSER_JO_KULHLAUP]: {
+    name: "Lesser Jökulhlaup",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Spear",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 600,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 840,
+            coefficient: 1.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+    elementalistStateMachine: "spear-etching",
+  },
+  [ID.JO_KULHLAUP]: {
+    name: "Jökulhlaup",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Spear",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 600,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 840,
+            coefficient: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+    elementalistStateMachine: "spear-etching",
+  },
+  [ID.LIGHTNING_JAVELIN]: {
+    name: "Lightning Javelin",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Spear",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 640,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 1.35,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 780,
+            condition: "Vulnerability",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.FULGOR]: {
+    name: "Fulgor",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Spear",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 560,
+    cooldown: 6,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 720,
+            coefficient: 0.4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 720,
+            condition: "Vulnerability",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2220,
+            coefficient: 0.4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 2220,
+            condition: "Vulnerability",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 3720,
+            coefficient: 0.4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 3720,
+            condition: "Vulnerability",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 5220,
+            coefficient: 0.4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 5220,
+            condition: "Vulnerability",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 6720,
+            coefficient: 0.4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 6720,
+            condition: "Vulnerability",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.ENERGIZE]: {
+    name: "Energize",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Spear",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 0,
+    cooldown: 15,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "boon",
+        boon: "Superspeed",
+        stacks: 1,
+        duration: 4,
+        durationScale: "boon",
+        atMs: 0,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "spear-followup",
+  },
+  [ID.TWISTER]: {
+    name: "Twister",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Spear",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 600,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 1.84,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 780,
+            condition: "Vulnerability",
+            stacks: 10,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "control",
+        atMs: 780,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.ETCHING_DERECHO]: {
+    name: "Etching: Derecho",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Spear",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 240,
+    cooldown: 25,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Lightning",
+        duration: 7,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "boon",
+        boon: "Fury",
+        stacks: 1,
+        duration: 7,
+        durationScale: "boon",
+        atMs: 360,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "spear-etching",
+  },
+  [ID.LESSER_DERECHO]: {
+    name: "Lesser Derecho",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Spear",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 600,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 840,
+            coefficient: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "control",
+        atMs: 840,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+    elementalistStateMachine: "spear-etching",
+  },
+  [ID.DERECHO]: {
+    name: "Derecho",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Spear",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 600,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 840,
+            coefficient: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "control",
+        atMs: 840,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+    elementalistStateMachine: "spear-etching",
+  },
+  [ID.STONE_STRIKE]: {
+    name: "Stone Strike",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Spear",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 640,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 1.2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 780,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.EARTHEN_SPEAR]: {
+    name: "Earthen Spear",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Spear",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 6,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 900,
+            coefficient: 3,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 900,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.HARDEN]: {
+    name: "Harden",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Spear",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 200,
+    cooldown: 15,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [],
+    elementalistStateMachine: "spear-followup",
+  },
+  [ID.FISSURE]: {
+    name: "Fissure",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Spear",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 840,
+            coefficient: 3.375,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 840,
+            condition: "Weakness",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 840,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.ETCHING_HABOOB]: {
+    name: "Etching: Haboob",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Spear",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 240,
+    cooldown: 25,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Dark",
+        duration: 7,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [],
+    elementalistStateMachine: "spear-etching",
+  },
+  [ID.LESSER_HABOOB]: {
+    name: "Lesser Haboob",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Spear",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 600,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 840,
+            coefficient: 1.75,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "blind",
+        atMs: 840,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 840,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "spear-etching",
+  },
+  [ID.HABOOB]: {
+    name: "Haboob",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Spear",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 600,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 840,
+            coefficient: 4.25,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "blind",
+        atMs: 840,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 840,
+            condition: "Vulnerability",
+            stacks: 5,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 840,
+            condition: "Weakness",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 840,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 55,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "spear-etching",
+  },
+  [ID.SINGEING_STRIKE]: {
+    name: "Singeing Strike",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Hammer",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.69,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 540,
+            condition: "Burning",
+            stacks: 1,
+            duration: 1.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.SURGING_FLAMES]: {
+    name: "Surging Flames",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Hammer",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 880,
+    cooldown: 8,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 900,
+            coefficient: 2.07,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 900,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.FLAME_WHEEL]: {
+    name: "Flame Wheel",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Hammer",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 0,
+    cooldown: 18,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1000,
+            coefficient: 0.001,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1000,
+            condition: "Burning",
+            stacks: 1,
+            duration: 0.75,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "hammer-orbs",
+  },
+  [ID.TRIPLE_SEAR]: {
+    name: "Triple Sear",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Hammer",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 560,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 780,
+            condition: "Burning",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 780,
+            condition: "Burning",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 780,
+            condition: "Burning",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.MOLTEN_END]: {
+    name: "Molten End",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Hammer",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 760,
+    cooldown: 25,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1080,
+            coefficient: 2.8,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "boon",
+        boon: "Fury",
+        stacks: 1,
+        duration: 10,
+        durationScale: "boon",
+        atMs: 1080,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "boon",
+        boon: "Might",
+        stacks: 6,
+        duration: 10,
+        durationScale: "boon",
+        atMs: 1080,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.STREAM_STRIKE]: {
+    name: "Stream Strike",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Hammer",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 480,
+    cooldown: 0,
+    nextChainId: ID.WATER_RUSH,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.575,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.WATER_RUSH]: {
+    name: "Water Rush",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Hammer",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 640,
+    cooldown: 0,
+    nextChainId: ID.CHILLING_CRACK,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 480,
+            coefficient: 0.575,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.CHILLING_CRACK]: {
+    name: "Chilling Crack",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Hammer",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    nextChainId: ID.STREAM_STRIKE,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 480,
+            coefficient: 1.38,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 480,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 1.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.RAIN_OF_BLOWS]: {
+    name: "Rain of Blows",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Hammer",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 920,
+    cooldown: 6,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 480,
+            coefficient: 0.575,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 720,
+            coefficient: 0.575,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1080,
+            coefficient: 0.575,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1320,
+            coefficient: 0.575,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1320,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.ICY_COIL]: {
+    name: "Icy Coil",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Hammer",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 0,
+    cooldown: 18,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1000,
+            coefficient: 0.001,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1000,
+            condition: "Vulnerability",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "hammer-orbs",
+  },
+  [ID.CRASHING_FONT]: {
+    name: "Crashing Font",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Hammer",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 960,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1200,
+            coefficient: 1.438,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Leap",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.CLEANSING_TYPHOON]: {
+    name: "Cleansing Typhoon",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Hammer",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 480,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 600,
+            coefficient: 1.725,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Whirl",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.WIND_SLAM]: {
+    name: "Wind Slam",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Hammer",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 840,
+            coefficient: 1.036,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.HURRICANE_OF_PAIN]: {
+    name: "Hurricane of Pain",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Hammer",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 2080,
+    cooldown: 10,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: elementalistPacketEffects(
+      [
+        [300, 0.55],
+        [540, 0.55],
+        [900, 0.55],
+        [1260, 0.55],
+        [1620, 0.55],
+        [1980, 0.55],
+        [2340, 0.55],
+        [2700, 0.55],
+        [3060, 0.55],
+      ],
+      { condition: { condition: "Vulnerability", stacks: 1, duration: 10 } },
+    ),
+  },
+  [ID.CRESCENT_WIND]: {
+    name: "Crescent Wind",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Hammer",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 0,
+    cooldown: 18,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1000,
+            coefficient: 0.001,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1000,
+            condition: "Weakness",
+            stacks: 1,
+            duration: 1.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "hammer-orbs",
+  },
+  [ID.WIND_STORM]: {
+    name: "Wind Storm",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Hammer",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 660,
+            coefficient: 0.3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "boon",
+        boon: "Superspeed",
+        stacks: 1,
+        duration: 3,
+        durationScale: "boon",
+        atMs: 660,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "control",
+        atMs: 660,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.SHOCK_BLAST]: {
+    name: "Shock Blast",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Hammer",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 280,
+    cooldown: 25,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 420,
+            coefficient: 0.575,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1200,
+            coefficient: 0.925,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "control",
+        atMs: 1200,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+  },
+  [ID.STONESTRIKE]: {
+    name: "Stonestrike",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Hammer",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 560,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 660,
+            coefficient: 1.035,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.WHIRLING_STONES]: {
+    name: "Whirling Stones",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Hammer",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 1440,
+    cooldown: 8,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 0.84,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 780,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1140,
+            coefficient: 0.84,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1140,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1440,
+            coefficient: 0.84,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1440,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1800,
+            coefficient: 0.84,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1800,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2100,
+            coefficient: 0.84,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 2100,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.ROCKY_LOOP]: {
+    name: "Rocky Loop",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Hammer",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 0,
+    cooldown: 18,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1000,
+            coefficient: 0.001,
+            metadata: {
+              damageKind: "field-tick",
+            },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1000,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 2.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "hammer-orbs",
+  },
+  [ID.IMMUTABLE_STONE]: {
+    name: "Immutable Stone",
+    type: "Weapon",
+    slot: "Weapon_4",
+    weapon: "Hammer",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 1520,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [],
+  },
+  [ID.GROUND_POUND]: {
+    name: "Ground Pound",
+    type: "Weapon",
+    slot: "Weapon_5",
+    weapon: "Hammer",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 760,
+    cooldown: 20,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1080,
+            coefficient: 2.8,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1080,
+            condition: "Bleeding",
+            stacks: 5,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1080,
+            condition: "Immobilize",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.GRAND_FINALE]: {
+    name: "Grand Finale",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Hammer",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1020,
+            coefficient: 1.4,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+    elementalistStateMachine: "hammer-orbs",
+  },
+  [ID.SCORCHING_SHOT]: {
+    name: "Scorching Shot",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Pistol",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 520,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 540,
+            condition: "Burning",
+            stacks: 1,
+            duration: 1.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.RAGING_RICOCHET]: {
+    name: "Raging Ricochet",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Pistol",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 520,
+    cooldown: 6,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 540,
+            condition: "Burning",
+            stacks: 1,
+            duration: 8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "boon",
+        boon: "Might",
+        stacks: 1,
+        duration: 6,
+        durationScale: "boon",
+        atMs: 540,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "pistol-bullets",
+  },
+  [ID.SEARING_SALVO]: {
+    name: "Searing Salvo",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Pistol",
+    attunement: "Fire",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 680,
+    cooldown: 12,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 660,
+            coefficient: 1,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 660,
+            condition: "Burning",
+            stacks: 1,
+            duration: 7,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2160,
+            coefficient: 0.25,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 2160,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2160,
+            coefficient: 0.25,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 2160,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2160,
+            coefficient: 0.25,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 2160,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 2160,
+            coefficient: 0.25,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 2160,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "pistol-bullets",
+  },
+  [ID.SOOTHING_SPLASH]: {
+    name: "Soothing Splash",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Pistol",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 520,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.FRIGID_FLURRY]: {
+    name: "Frigid Flurry",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Pistol",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 1000,
+    cooldown: 5,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 420,
+            coefficient: 0.2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 420,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 7,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 660,
+            coefficient: 0.2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 660,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 7,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 960,
+            coefficient: 0.2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 960,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 7,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1200,
+            coefficient: 0.2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1200,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 7,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1440,
+            coefficient: 0.2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1440,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 7,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "pistol-bullets",
+  },
+  [ID.FROZEN_FUSILLADE]: {
+    name: "Frozen Fusillade",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Pistol",
+    attunement: "Water",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 520,
+    cooldown: 15,
+    comboFields: [
+      {
+        ownerId: "elementalist",
+        fieldType: "Ice",
+        duration: 4,
+        startAnchor: "castEnd",
+      },
+    ],
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.75,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 540,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 1.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "pistol-bullets",
+  },
+  [ID.ELECTRIC_EXPOSURE]: {
+    name: "Electric Exposure",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Pistol",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 520,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.33,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 540,
+            condition: "Vulnerability",
+            stacks: 1,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.DAZING_DISCHARGE]: {
+    name: "Dazing Discharge",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Pistol",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 8,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 420,
+            coefficient: 0.75,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        canCrit: true,
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 420,
+            condition: "Vulnerability",
+            stacks: 8,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "control",
+        atMs: 420,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "crowd-control",
+        },
+      },
+    ],
+    elementalistStateMachine: "pistol-bullets",
+  },
+  [ID.AERIAL_AGILITY]: {
+    name: "Aerial Agility",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Pistol",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 520,
+    cooldown: 12,
+    nextChainId: ID.AERIAL_AGILITY_CHAIN,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Leap",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+  },
+  [ID.AERIAL_AGILITY_CHAIN]: {
+    name: "Aerial Agility (chain)",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Pistol",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 480,
+    cooldown: 0,
+    nextChainId: ID.AERIAL_AGILITY_DASH,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 540,
+            condition: "Weakness",
+            stacks: 1,
+            duration: 3,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.AERIAL_AGILITY_DASH]: {
+    name: "Aerial Agility (dash)",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Pistol",
+    attunement: "Air",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 520,
+    cooldown: 0,
+    nextChainId: ID.AERIAL_AGILITY,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Leap",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "boon",
+        boon: "Aegis",
+        stacks: 1,
+        duration: 3,
+        durationScale: "boon",
+        atMs: 540,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.PIERCING_PEBBLE]: {
+    name: "Piercing Pebble",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Pistol",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 520,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.35,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 540,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.SHATTERING_STONE]: {
+    name: "Shattering Stone",
+    type: "Weapon",
+    slot: "Weapon_2",
+    weapon: "Pistol",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 520,
+    cooldown: 6,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 540,
+            coefficient: 0.8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 540,
+            condition: "Bleeding",
+            stacks: 3,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "pistol-bullets",
+  },
+  [ID.BOULDER_BLAST]: {
+    name: "Boulder Blast",
+    type: "Weapon",
+    slot: "Weapon_3",
+    weapon: "Pistol",
+    attunement: "Earth",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 440,
+    cooldown: 12,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 600,
+            coefficient: 0.44,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Projectile",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 600,
+            condition: "Bleeding",
+            stacks: 5,
+            duration: 8,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 600,
+            condition: "Immobilize",
+            stacks: 1,
+            duration: 1.5,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "pistol-bullets",
+  },
+  [ID.ELEMENTAL_EXPLOSION]: {
+    name: "Elemental Explosion",
+    type: "Weapon",
+    slot: "Weapon_1",
+    weapon: "Pistol",
+    categories: ["Weapon skill"],
+    quicknessCastTimeMs: 520,
+    cooldown: 0,
+    skillFamily: "Weapon skill",
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 780,
+            coefficient: 0.2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 780,
+            condition: "Burning",
+            stacks: 2,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 900,
+            coefficient: 0.2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 900,
+            condition: "Bleeding",
+            stacks: 4,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1020,
+            coefficient: 0.2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1020,
+            condition: "Vulnerability",
+            stacks: 4,
+            duration: 10,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1140,
+            coefficient: 0.2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 1140,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+    elementalistStateMachine: "pistol-bullets",
+  },
+  [ID.GLYPH_OF_ELEMENTALS]: {
+    name: "Glyph of Elementals",
+    type: "Elite",
+    slot: "Elite",
+    categories: ["Glyph"],
+    quicknessCastTimeMs: 0,
+    cooldown: 190,
+    skillFamily: "Glyph",
+    implemented: true,
+    effects: [],
+    referenceEffects: FIRE_ELEMENTAL_REFERENCE_EFFECTS,
+    elementalistStateMachine: "summoned-elemental",
+  },
+  [ID.DODGE]: {
+    name: "Dodge",
+    type: "Action",
+    slot: "Action",
+    categories: ["Dodge"],
+    castTimeMs: 800,
+    unaffectedByQuickness: true,
+    cooldown: 0,
+    enduranceCost: -50,
+    skillFamily: "Dodge",
+    implemented: true,
+    effects: [],
+  },
+  [ID.FLAME_BURST_TRAIT]: {
+    name: "Flame Burst (trait)",
+    type: "Action",
+    slot: "Action",
+    categories: ["Trait"],
+    quicknessCastTimeMs: 0,
+    cooldown: 10,
+    simulatorExcluded: true,
+    slotSelectable: false,
+    skillFamily: "Trait",
+    implemented: false,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 0,
+            coefficient: 1,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 0,
+            condition: "Burning",
+            stacks: 3,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.CLEANSING_WAVE_TRAIT]: {
+    name: "Cleansing Wave (trait)",
+    type: "Action",
+    slot: "Action",
+    categories: ["Trait"],
+    quicknessCastTimeMs: 0,
+    cooldown: 10,
+    simulatorExcluded: true,
+    slotSelectable: false,
+    skillFamily: "Trait",
+    implemented: false,
+    effects: [],
+  },
+  [ID.BLINDING_FLASH_TRAIT]: {
+    name: "Blinding Flash (trait)",
+    type: "Action",
+    slot: "Action",
+    categories: ["Trait"],
+    quicknessCastTimeMs: 0,
+    cooldown: 10,
+    simulatorExcluded: true,
+    slotSelectable: false,
+    skillFamily: "Trait",
+    implemented: false,
+    effects: [
+      {
+        type: "blind",
+        atMs: 0,
+        applications: 1,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "blind",
+        },
+      },
+    ],
+  },
+  [ID.SHOCK_WAVE_TRAIT]: {
+    name: "Shock Wave (trait)",
+    type: "Action",
+    slot: "Action",
+    categories: ["Trait"],
+    quicknessCastTimeMs: 0,
+    cooldown: 10,
+    simulatorExcluded: true,
+    slotSelectable: false,
+    skillFamily: "Trait",
+    implemented: false,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 0,
+            coefficient: 0.5,
+            comboFinishers: [
+              {
+                ownerId: "elementalist",
+                finisherType: "Blast",
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+            metadata: {},
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 0,
+            condition: "Bleeding",
+            stacks: 1,
+            duration: 20,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 0,
+            condition: "Cripple",
+            stacks: 1,
+            duration: 2,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+  [ID.CLEANSING_FIRE]: {
+    name: "Cleansing Fire",
+    type: "Utility",
+    slot: "Utility",
+    categories: ["Cantrip"],
+    quicknessCastTimeMs: 0,
+    cooldown: 20,
+    skillFamily: "Cantrip",
+    implemented: true,
+    effects: [
+      {
+        type: "condition",
+        ticks: [
+          {
+            atMs: 0,
+            condition: "Burning",
+            stacks: 2,
+            duration: 6,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+      {
+        type: "boon",
+        boon: "Might",
+        stacks: 3,
+        duration: 9,
+        durationScale: "boon",
+        atMs: 0,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {},
+      },
+    ],
+  },
+});
+
+const CONJURE_ACTION_ICONS = Object.freeze({
+  "Frost Bow":
+    "https://render.guildwars2.com/file/CC6D556B7C3F95C49E54D697CC2B4E79105DC594/103348.png",
+  "Lightning Hammer":
+    "https://render.guildwars2.com/file/C3DA6AC980062B0A0EEA14CE51393748CFAE01CA/103369.png",
+  "Fiery Greatsword":
+    "https://render.guildwars2.com/file/EEDA0B1847077DE93DBB0575D44BE0615FBCE728/103328.png",
+});
+
+export const ELEMENTALIST_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+  {
+    id: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
+    name: "Flame Barrage",
+    displayName: "Flame Barrage",
+    description:
+      "Command your summoned Fire Elemental to unleash a flame barrage.",
+    icon: "https://render.guildwars2.com/file/64A5054179704B60614F90964DE1FB3D39AEC972/867446.png",
+    type: "Elite",
+    weapon: "",
+    slot: "Elite",
+    specialization: "",
+    categories: ["Glyph", "Elemental command"],
+    cooldown: 15,
+    ammo: 0,
+    ammoRecharge: 0,
+    nextChainId: null,
+    flipSkillId: null,
+    flipParentId: ID.GLYPH_OF_ELEMENTALS,
+    flipParent: "Glyph of Elementals",
+    castTimeMs: 0,
+    slotSelectable: false,
+    implemented: true,
+    simulatorExcluded: false,
+    effects: [],
+  },
+  {
+    id: ID.DROP_BUNDLE,
+    name: "__drop_bundle",
+    displayName: "Drop Bundle",
+    description: "Drop the currently equipped conjured weapon.",
+    icon: "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
+    type: "Action",
+    weapon: "",
+    slot: "Action",
+    specialization: "",
+    categories: ["Bundle"],
+    cooldown: 0,
+    ammo: 0,
+    ammoRecharge: 0,
+    nextChainId: null,
+    flipSkillId: null,
+    castTimeMs: 0,
+    implemented: true,
+    simulatorExcluded: false,
+    paletteAction: false,
+    effects: [],
+  },
+  ...[
+    ["Frost Bow", ID.PICK_UP_FROST_BOW],
+    ["Lightning Hammer", ID.PICK_UP_LIGHTNING_HAMMER],
+    ["Fiery Greatsword", ID.PICK_UP_FIERY_GREATSWORD],
+  ].map(([weapon, id]): Skill => ({
+    id: Number(id),
+    name: `__pickup_${weapon}`,
+    displayName: `Pick up ${weapon}`,
+    description: `Pick up the available ${weapon}.`,
+    icon: CONJURE_ACTION_ICONS[weapon as keyof typeof CONJURE_ACTION_ICONS],
+    type: "Action",
+    weapon: "",
+    slot: "Action",
+    specialization: "",
+    categories: ["Bundle"],
+    cooldown: 0,
+    ammo: 0,
+    ammoRecharge: 0,
+    nextChainId: null,
+    flipSkillId: null,
+    castTimeMs: 300,
+    unaffectedByQuickness: true,
+    implemented: true,
+    simulatorExcluded: false,
+    paletteAction: false,
+    effects: [],
+  })),
+]);

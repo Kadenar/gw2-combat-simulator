@@ -17,6 +17,10 @@ import {
 } from "./state.js";
 import { bindElementalistCoreUi } from "./ui.js";
 import {
+  ELEMENTALIST_CORE_EXTRA_SKILLS,
+  ELEMENTALIST_CORE_SKILL_MECHANICS,
+} from "./skills.js";
+import {
   applyElementalistResolverAttunement,
   applyElementalistResolverAura,
   applyElementalistResolverSignetFire,
@@ -27,7 +31,10 @@ import {
 
 export const elementalistCoreModule = defineNativeModule({
   id: "Core",
-  data: createElementalistModuleData("Core"),
+  data: createElementalistModuleData("Core", {
+    skillMechanics: ELEMENTALIST_CORE_SKILL_MECHANICS,
+    extraSkills: ELEMENTALIST_CORE_EXTRA_SKILLS,
+  }),
   state: {
     scheduler: createElementalistCoreState,
     resolver: createElementalistCoreState,

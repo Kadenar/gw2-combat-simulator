@@ -96,6 +96,11 @@ class RotationOptimizerUi {
         });
     }
 
+    // Hidden for now: the optimizer button and window input are not exposed in
+    // the UI while the feature is still in progress. Remove this line to
+    // restore the controls. Inline display beats the stylesheet flex layout.
+    controls.style.display = "none";
+
     let panel = document.querySelector<HTMLElement>(
       "[data-rotation-optimizer-panel]",
     );

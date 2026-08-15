@@ -16,24 +16,9 @@ export interface CatalystEmpowermentPool {
   readonly concentration: number;
 }
 
-export interface ElementalistTrait extends SchedulerRecord {
-  readonly tier: string;
-  readonly name: string;
-  readonly specialization: string;
-  readonly position: number;
-  readonly conditionDamage?: number;
-  readonly ferocity?: number;
-  readonly concentration?: number;
-  readonly vitality?: number;
-  readonly burningDuration?: number;
-  readonly bleedingDuration?: number;
-  readonly criticalChance?: number;
-}
-
 export interface ElementalistBuild extends Gw2Build {
   specializations?: ElementalistBuildSpecialization[];
   assumptions?: SchedulerRecord;
-  sigils?: string[];
   startAttunement?: string;
   secondaryAttunement?: string;
   initialCatalystEnergy?: number;

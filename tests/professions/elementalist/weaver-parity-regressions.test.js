@@ -69,16 +69,21 @@ test("condition Weaver pistol/dagger follows the replacement benchmark log", asy
   assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 89.573);
   assert.equal(savedRotation.metadata.benchmarkDamage, 3950932);
   assert.equal(savedRotation.metadata.benchmarkDps, 44108.51484264232);
-  assert.deepEqual(savedBuild.build.sigils, ["Malice", "Earth"]);
-  assert.equal(savedBuild.build.food, "Salsa-Topped Veggie Flatbread");
-  assert.deepEqual(savedBuild.build.infusions[0], {
+  assert.equal(savedBuild.schemaVersion, 3);
+  assert.equal(savedBuild.profession, "elementalist");
+  assert.deepEqual(savedBuild.weaponSigils, [
+    ["Malice", "Earth"],
+    ["Malice", "Earth"],
+  ]);
+  assert.equal(savedBuild.food, "Salsa-Topped Veggie Flatbread");
+  assert.deepEqual(savedBuild.infusions[0], {
     stat: "Expertise",
     count: 18,
   });
   assert.equal(Math.round(result.dps), 44171);
-  assert.equal(savedBuild.build.gear.Back, "Viper's");
-  assert.equal(savedBuild.build.utility, "Tuning Icicle");
-  assert.equal(savedBuild.activeAttunement, "Earth");
+  assert.equal(savedBuild.gear.Back, "Viper's");
+  assert.equal(savedBuild.utility, "Tuning Icicle");
+  assert.equal(savedBuild.startAttunement, "Earth");
   assert.equal(savedBuild.secondaryAttunement, "Earth");
   assert.deepEqual(savedBuild.pistolBullets, {
     Fire: true,

@@ -69,8 +69,8 @@ than generic startup estimates.
 ## Gear, sigils, and relics
 
 Prefix values, rune bonuses, consumables, sigil modifiers, Jade Bot vitality,
-and infusions use a local gear data model cross-checked against the Discretize
-optimizer. Each weapon set stores two sigils; the active set's modifiers apply
+and infusions use the shared GW2 gear data. Each weapon set stores two sigils;
+the active set's modifiers apply
 at resolve time, and duplicate sigils within a set are rejected. Supported
 damage relics and damage-affecting sigil procs are modeled with their documented
 thresholds and internal cooldowns.

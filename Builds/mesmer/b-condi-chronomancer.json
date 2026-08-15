@@ -1,4 +1,6 @@
 {
+  "schemaVersion": 3,
+  "profession": "mesmer",
   "gear": {
     "Helm": "Viper's",
     "Shoulders": "Viper's",
@@ -15,24 +17,13 @@
     "Weapon1": "Viper's",
     "Weapon2": "Viper's"
   },
-  "weapons": [
-    "Scepter",
-    "Pistol"
-  ],
-  "alternateWeapons": [
-    "Staff",
-    ""
-  ],
+  "alternateWeaponPrefixes": ["Viper's", "Viper's"],
+  "weapons": ["Scepter", "Pistol"],
+  "alternateWeapons": ["Staff", ""],
   "rune": "Trapper",
   "weaponSigils": [
-    [
-      "Bursting",
-      "Demons"
-    ],
-    [
-      "Bursting",
-      "Demons"
-    ]
+    ["Bursting", "Demons"],
+    ["Bursting", "Demons"]
   ],
   "relic": "Akeem",
   "food": "Cilantro and Cured Meat Flatbread",
@@ -49,6 +40,14 @@
     },
     {
       "stat": "Condition Damage",
+      "count": 0
+    },
+    {
+      "stat": "Power",
+      "count": 0
+    },
+    {
+      "stat": "Precision",
       "count": 0
     }
   ],
@@ -74,19 +73,36 @@
     "Elite": "Signet of Humility"
   },
   "assumptions": {
+    "simulationMode": "deterministic",
     "might": 25,
     "fury": true,
     "quickness": true,
     "alacrity": true,
+    "protection": true,
+    "resolution": true,
     "regeneration": true,
+    "swiftness": true,
     "vigor": true,
-    "vulnerability": 25,
+    "aegis": false,
     "targetMoving": false,
     "targetBoonless": true,
-    "targetHealthAbove50": true,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    },
     "targetSkillActivationsPerSecond": 0
   },
   "initialResource": 0,
   "startingWeaponSet": 1,
-  "targetArmor": 2597
+  "targetHealth": 3970000,
+  "targetArmor": 2597,
+  "rotation": []
 }

@@ -1,5 +1,5 @@
 // Guardian bundle skills missing from the profession API payload.
-// Simulation behavior lives exclusively in mechanics/skill-mechanics.js.
+// Simulation behavior lives exclusively in owner-local skills.ts fragments.
 
 import type { GuardianSkill } from "../types.js";
 

@@ -605,6 +605,45 @@ updated first:
 The product should continue to say “best found,” not “optimal,” unless an
 exhaustive proof is actually available for the requested state space.
 
+## Open review findings
+
+These are outstanding review findings against the current implementation and this
+contract. Resolve each in a later phase or a contract update, and note the
+resolution here when closed.
+
+### Finding 2 — Frontier width floor is not enforced (2026-08-14)
+
+The search design contract requires a Phase 1 frontier width "between `16` and
+`32`" and states the long-window beam "must never collapse to width `1`". The
+implementation caps the width at `32` but applies no lower bound:
+`Math.min(32, finitePositiveInteger(request.beamWidth, 20))` in `search.ts`. A
+caller that passes a `beamWidth` below `16` (including `1`) is honored, so the
+"never collapse to `1`" guarantee is convention, not code. Enforce the floor
+(e.g. `Math.max(16, ...)`) or restate the contract to make the floor advisory.
+
+### Finding 3 — Documented result interface has drifted from the code (2026-08-14)
+
+`RotationOptimizerResult` in this document is stale relative to the shipped
+`types.ts`. The code carries fields the interface here does not list (for
+example `activeDurationMs`, `completedHorizon`, and `actions`). The contract
+allows names to change during implementation, but the interface block above is
+now a misleading reference. Reconcile the documented shape with `types.ts`, or
+replace the literal interface with a pointer to `types.ts` as the source of
+truth.
+
+### Finding 4 — Green Phase 1 gates prove safety, not search quality (2026-08-14)
+
+The corpus gates were satisfied at very small evaluation budgets (3 evaluations
+for Phase 0, 30 for Phase 1). At those budgets, with a frontier near `20`, the
+search barely explores, so the passing gates ("no result worse than baseline",
+"zero invalid casts", "exact replay parity") demonstrate correctness and safety
+only. They do not demonstrate that the optimizer finds improvements on real
+builds; the required fixtures show that delayed value *can* survive the
+frontier, not that the corpus search *does* improve. Add a search-quality gate —
+for example a reported median and worst-case improvement over the normalized
+incumbent across the corpus at a realistic budget — so a green phase means the
+optimizer produces wins, not just avoids regressions.
+
 ## Validation ledger
 
 Append one record per implementation phase. Do not overwrite earlier evidence.
