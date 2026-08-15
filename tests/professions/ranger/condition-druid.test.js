@@ -113,11 +113,17 @@ test("condition Druid weapon timings and packets match the supplied EVTC", () =>
           : false,
       )
       .ticks.map(({ atMs, duration }) => [atMs, duration]),
+    [[2640, 4]],
+  );
+  assert.deepEqual(
+    naturalConvergence.effects
+      .find(({ name }) => name === "Black Hole")
+      .ticks.map(({ atMs, metadata }) => [atMs, metadata.flatDamage]),
     [
-      [520, 2],
-      [1160, 2],
-      [1640, 2],
-      [2040, 2],
+      [2640, 158],
+      [4160, 158],
+      [5680, 158],
+      [7200, 158],
     ],
   );
 
@@ -377,7 +383,7 @@ test("Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon", (
           event.triggeredBy === "Natural Convergence",
       )
       .map(({ at }) => Math.round(at * 1000)),
-    [520, 1160, 1640, 2040],
+    [2640],
   );
 
   const entangle = simulate(["Entangle", { type: "wait", durationMs: 8000 }], {
@@ -455,12 +461,9 @@ test("Astral Force follows landed direct damage and excludes pet damage", () => 
     ["Celestial Avatar", "Natural Convergence", "Release Celestial Avatar"],
     { selectedTraitIds: [TRAIT.ECLIPSE] },
   );
-  assert.ok(
-    Math.abs(
-      withEclipse.endState.profession.astralForce -
-        withoutEclipse.endState.profession.astralForce -
-        1.5,
-    ) < 1e-9,
+  assert.equal(
+    withEclipse.endState.profession.astralForce,
+    withoutEclipse.endState.profession.astralForce,
   );
 });
 

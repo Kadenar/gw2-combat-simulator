@@ -307,6 +307,7 @@ export const RANGER_SKILL_IDS = Object.freeze({
   LUNAR_IMPACT: 31318, // Lunar Impact
   REJUVENATING_TIDES: 31894, // Rejuvenating Tides
   NATURAL_CONVERGENCE: 31503, // Natural Convergence
+  BLACK_HOLE: 31436, // Natural Convergence - Black Hole
   KEEN_SHOT: 77183, // Keen Shot
   HAWKEYE: 76664, // Hawkeye
   BLUSTER: 77319, // Bluster
