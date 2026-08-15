@@ -35,7 +35,6 @@ export interface RangerBuild extends Gw2Build {
 export interface RangerAssumptions extends Record<string, unknown> {
   readonly flanking?: boolean;
   readonly targetDefiant?: boolean;
-  readonly astralForceHealingEventsPerSecond?: number;
 }
 
 export interface RangerCanonicalBuild extends Gw2CanonicalBuild {
@@ -122,6 +121,7 @@ export interface RangerCoreState {
   petAutoOpeningBasic: boolean;
   petAutoTaskId: string;
   petCommandReadyAt: number;
+  petCommandCooldowns: Record<string, number>;
   petCommandDelays: Record<string, number>;
 }
 

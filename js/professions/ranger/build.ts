@@ -126,6 +126,7 @@ const rangerBuildCodec = createGw2BuildCodec<RangerCanonicalBuild>({
       soulbeastArchetype: _legacySoulbeastArchetype,
       playerHealthPercent: _legacyPlayerHealthPercent,
       targetDistance: _legacyTargetDistance,
+      astralForceHealingEventsPerSecond: _fakeAstralForceHealingRate,
       ...supportedAssumptions
     } = build.assumptions;
     const assumptions = normalizeProfessionAssumptions(

@@ -64,6 +64,7 @@ export function createRangerCoreState(
     petAutoOpeningBasic: true,
     petAutoTaskId: "",
     petCommandReadyAt: 0,
+    petCommandCooldowns: {},
     petCommandDelays: {},
   };
 }

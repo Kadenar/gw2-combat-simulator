@@ -201,6 +201,7 @@ export const RANGER_SKILL_IDS = Object.freeze({
   FALCONS_STOOP: 72928, // Falcon's Stoop
   PANTHERS_PROWL: 73008, // Panther's Prowl
   WARCLAWS_ENGAGE: 73020, // Warclaw's Engage
+  PREDATORS_AMBUSH: 73150, // Predator's Ambush
   CHEETAHS_STRIKE: 73087, // Cheetah's Strike
   MONGOOSES_FRENZY: 73110, // Mongoose's Frenzy
   WYVERNS_LASH: 73112, // Wyvern's Lash

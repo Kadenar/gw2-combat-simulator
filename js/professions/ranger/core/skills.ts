@@ -218,6 +218,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.STALKERS_STRIKE]: {
     implemented: true,
+    evades: true,
     effects: [
       {
         type: "strike",
@@ -278,6 +279,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SERPENTS_STRIKE]: {
     implemented: true,
+    evades: true,
     effects: [
       {
         type: "strike",
@@ -474,6 +476,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LIGHTNING_REFLEXES]: {
     implemented: true,
+    evades: true,
     effects: [
       {
         type: "strike",
@@ -587,14 +590,11 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         type: "blind",
         duration: 5,
       },
-      {
-        type: "boon",
-        boon: "might",
-        duration: 8,
-        stacks: 8,
-      },
     ],
+    recharge: 20,
+    cooldown: 20,
     quicknessCastTimeMs: 167,
+    handlerId: "ranger.sun-spirit",
   },
   [ID.FLAME_TRAP]: {
     implemented: true,
@@ -866,6 +866,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.QUICK_SHOT]: {
     implemented: true,
+    evades: true,
     effects: [
       {
         type: "strike",
@@ -883,6 +884,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SWOOP]: {
     implemented: true,
+    evades: true,
     effects: [
       {
         type: "strike",
@@ -904,6 +906,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.COUNTERATTACK_KICK]: {
     implemented: true,
+    evades: true,
     effects: [
       {
         type: "strike",
@@ -995,18 +998,42 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     missileHits: 1,
   },
   [ID.ENTANGLE]: {
+    interruptCommitMs: 0,
     implemented: true,
     effects: [
       {
         type: "strike",
-        coefficient: 0.8,
-        hits: 4,
+        ticks: [1560, 3080, 4600, 6120, 7640].map((atMs) => ({
+          atMs,
+          coefficient: 0.16,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
       },
       {
         type: "condition",
-        condition: "Bleeding",
-        stacks: 5,
-        duration: 8,
+        ticks: [1560, 3080, 4600, 6120, 7640].map((atMs) => ({
+          atMs,
+          condition: "Bleeding",
+          stacks: 1,
+          duration: 8,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
+      },
+      {
+        type: "condition",
+        ticks: [1560, 3080, 4600, 6120, 7640].map((atMs) => ({
+          atMs,
+          condition: "Immobilized",
+          stacks: 1,
+          duration: 2,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
       },
     ],
     quicknessCastTimeMs: 500,
@@ -2023,6 +2050,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WARCLAWS_ENGAGE]: {
     implemented: true,
+    evades: true,
     effects: [
       {
         type: "strike",
@@ -3724,6 +3752,39 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
 });
 
 export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+  {
+    id: ID.PREDATORS_AMBUSH,
+    name: "Predator's Ambush",
+    description:
+      "Stealth Attack. Leap to a target location, dazing enemies. Deal increased damage to foes below the health threshold.",
+    type: "Weapon",
+    weapon: "Spear",
+    slot: "Weapon_4",
+    quicknessCastTimeMs: 760,
+    recharge: 12,
+    cooldown: 12,
+    flipParentId: ID.WARCLAWS_ENGAGE,
+    evades: true,
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 3.67,
+        hits: 1,
+        comboFinishers: [
+          {
+            ownerId: "ranger",
+            finisherType: "Leap",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
+      },
+      {
+        type: "control",
+        metadata: { controlKind: "daze" },
+      },
+    ],
+  },
   {
     id: ID.PATH_OF_SCARS_MAX_RANGE,
     interruptCommitMs: 0,

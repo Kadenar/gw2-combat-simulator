@@ -108,7 +108,7 @@ test("Ranger catalog pins API identity and explicit module-owned mechanics", () 
   assert.equal(DATA_SNAPSHOT, "2026-08-08");
   assert.equal(rangerCatalog.specializations.length, 9);
   assert.equal(rangerCatalog.traits.length, 108);
-  assert.equal(rangerCatalog.skills.length, 309);
+  assert.equal(rangerCatalog.skills.length, 310);
   assert.equal(Object.keys(RANGER_SKILL_MECHANICS).length, 302);
   assert.equal(
     rangerCatalog.skillsById.has(ID.OVERBEARING_SMASH_SECOND_STRIKE),
@@ -242,13 +242,7 @@ test("Ranger builds migrate and validate against the canonical catalog", () => {
   assert.equal(Object.hasOwn(defaults.assumptions, "targetDistance"), false);
   assert.deepEqual(
     rangerProfession.ui.assumptionControls.map((control) => control.key),
-    [
-      "flanking",
-      "behind",
-      "targetDefiant",
-      "astralForceHealingEventsPerSecond",
-      "simulationMode",
-    ],
+    ["flanking", "behind", "targetDefiant", "simulationMode"],
   );
 
   const migrated = migrateRangerBuild({
@@ -974,10 +968,11 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
     true,
   );
 
+  // Beast commands no longer provide a hidden wait on the player lane.
   assert.equal(
     Math.abs(
       result.dpsWindow - savedRotation.metadata.benchmarkDurationSeconds,
-    ) < 1.5,
+    ) < 2,
     true,
   );
   assert.equal(
@@ -1503,6 +1498,34 @@ test("Ranger pet AI skills are autonomous and Beast commands stay independent", 
     ),
     true,
   );
+});
+
+test("queued Beast commands never delay player skills", () => {
+  const result = simulate(
+    "Core",
+    [
+      "__combat_start",
+      "Poisonous Cloud",
+      "Rapid Fire",
+      "Poisonous Cloud",
+      "Point-Blank Shot",
+      { type: "wait", durationMs: 35000 },
+    ],
+    { primaryWeapon: "Longbow", selectedPet: "Carrion Devourer" },
+  );
+  const rapidFire = result.steps.find((step) => step.skill === "Rapid Fire");
+  const pointBlankShot = result.steps.find(
+    (step) => step.skill === "Point-Blank Shot",
+  );
+  const poisonActions = result.events.filter(
+    (event) => event.type === "action" && event.skillId === ID.POISONOUS_CLOUD,
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(rapidFire.start, 0);
+  assert.equal(pointBlankShot.start, rapidFire.end);
+  assert.equal(poisonActions.length, 2);
+  assert.equal(poisonActions[1].at - poisonActions[0].at >= 29.999, true);
 });
 
 test("Ranger pet commands require Alacrity on the active pet", () => {

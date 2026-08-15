@@ -107,6 +107,8 @@ function normalize(skill: RangerSkill): RangerSkill {
     paletteFlip: isRangerHammerVariant(skill.id) ? false : skill.paletteFlip,
     petSkill,
     independentCast: petSkill || unleashedPetSkill,
+    independentCastCanOverlap: petSkill,
+    usableWhileRecharging: petSkill || skill.usableWhileRecharging,
     rechargeBuffAudience: petSkill ? "summon" : skill.rechargeBuffAudience,
     beastmodeSkill,
     unleashedPetSkill,

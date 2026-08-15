@@ -557,6 +557,7 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.GRIFFON_STANCE]: {
     implemented: true,
+    evades: true,
     effects: [
       {
         type: "boon",

@@ -105,7 +105,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        ticks: [0, 500, 1000].map((atMs) => ({
+        ticks: [520, 1160, 1640].map((atMs) => ({
           atMs,
           coefficient: 0.75,
         })),
@@ -114,13 +114,13 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<
       },
       {
         type: "strike",
-        ticks: [{ atMs: 1500, coefficient: 2 }],
+        ticks: [{ atMs: 2040, coefficient: 2 }],
         timingAnchor: "castStart",
         timingScale: "fixed",
       },
       {
         type: "condition",
-        ticks: [0, 500, 1000, 1500].flatMap((atMs) => [
+        ticks: [520, 1160, 1640, 2040].flatMap((atMs) => [
           {
             atMs,
             condition: "Crippled",
@@ -134,18 +134,16 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<
       },
       {
         type: "condition",
-        ticks: [
-          {
-            atMs: 1500,
-            condition: "Immobilized",
-            stacks: 1,
-            duration: 8,
-          },
-        ],
+        ticks: [520, 1160, 1640, 2040].map((atMs) => ({
+          atMs,
+          condition: "Immobilized",
+          stacks: 1,
+          duration: 2,
+        })),
         timingAnchor: "castStart",
         timingScale: "fixed",
       },
-      ...[0, 500, 1000, 1500].map((atMs) => ({
+      ...[520, 1160, 1640, 2040].map((atMs) => ({
         type: "boon" as const,
         boon: "might",
         duration: 10,
@@ -157,7 +155,8 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<
     ],
     recharge: 10,
     cooldown: 10,
-    quicknessCastTimeMs: 1667,
+    castTimeMs: 2500,
+    quicknessCastTimeMs: 2080,
     handlerId: "ranger.celestial-avatar-skill",
   },
 });
