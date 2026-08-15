@@ -1,5 +1,6 @@
 {
   "rotation": [
+    "Glyph of Elementals",
     "Shattering Stone",
     "Water Attunement",
     "Frigid Flurry",
@@ -11,7 +12,6 @@
       "waitMs": 4000
     },
     "__combat_start",
-    "Glyph of Elementals",
     "Rejuvenate",
     {
       "name": "Flame Barrage",

@@ -1,17 +1,17 @@
 {
   "rotation": [
+    "Glyph of Elementals",
     "Overload Earth",
     {
       "name": "__combat_start",
       "offset": 2700
     },
-    "Glyph of Elementals",
-    "Feel the Burn!",
-    "Shattering Stone",
     {
       "name": "Flame Barrage",
-      "offset": 0
+      "offset": 2700
     },
+    "Feel the Burn!",
+    "Shattering Stone",
     "Boulder Blast",
     "Elemental Explosion",
     "Dust Storm",
@@ -37,7 +37,7 @@
     "Scorching Shot",
     {
       "name": "Flame Barrage",
-      "offset": 300
+      "offset": 240
     },
     "Searing Salvo",
     "Raging Ricochet",
@@ -64,7 +64,7 @@
     "Signet of Fire",
     {
       "name": "Earth Attunement",
-      "offset": 321
+      "offset": 501
     },
     {
       "name": "Piercing Pebble",
@@ -89,7 +89,7 @@
     "Overload Earth",
     {
       "name": "Flame Barrage",
-      "offset": 1400
+      "offset": 1340
     },
     "Piercing Pebble",
     "Dust Storm",
@@ -129,7 +129,7 @@
     "Overload Fire",
     {
       "name": "Flame Barrage",
-      "offset": 935
+      "offset": 875
     },
     "Scorching Shot",
     "Searing Salvo",
@@ -176,7 +176,7 @@
     "Piercing Pebble",
     {
       "name": "Flame Barrage",
-      "offset": 102
+      "offset": 42
     },
     "Shattering Stone",
     "Overload Earth",
@@ -211,11 +211,11 @@
     "Scorching Shot",
     {
       "name": "Flame Barrage",
-      "offset": 358
+      "offset": 298
     },
     {
       "name": "Feel the Burn!",
-      "offset": 309
+      "offset": 369
     },
     "Scorching Shot",
     "Scorching Shot",
@@ -252,7 +252,7 @@
     "Piercing Pebble",
     {
       "name": "Flame Barrage",
-      "offset": 486
+      "offset": 426
     },
     "Piercing Pebble",
     "Piercing Pebble",
@@ -290,7 +290,7 @@
     "Searing Salvo",
     {
       "name": "Flame Barrage",
-      "offset": 125
+      "offset": 65
     },
     "Wildfire",
     "Glyph of Storms (Fire)",
@@ -329,7 +329,7 @@
     "Shattering Stone",
     {
       "name": "Flame Barrage",
-      "offset": 60
+      "offset": 0
     },
     "Signet of Fire",
     "Elemental Explosion",
@@ -374,7 +374,7 @@
     "Raging Ricochet",
     {
       "name": "Flame Barrage",
-      "offset": 155
+      "offset": 95
     },
     "Searing Salvo",
     "Wildfire",

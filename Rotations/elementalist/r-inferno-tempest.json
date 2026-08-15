@@ -1,5 +1,6 @@
 {
   "rotation": [
+    "Glyph of Elementals",
     "Rock Barrier",
     "Air Attunement",
     {
@@ -12,17 +13,16 @@
       "offset": 3100
     },
     {
-      "name": "Lightning Strike",
-      "offset": 3128
+      "name": "Flame Barrage",
+      "offset": 3100
     },
-    "Glyph of Elementals",
+    {
+      "name": "Lightning Strike",
+      "offset": 28
+    },
     {
       "name": "Arc Lightning",
       "interruptMs": 38
-    },
-    {
-      "name": "Flame Barrage",
-      "offset": 0
     },
     "Feel the Burn!",
     "Ride the Lightning",
@@ -58,7 +58,7 @@
     "Flamestrike",
     {
       "name": "Flame Barrage",
-      "offset": 593
+      "offset": 493
     },
     "Flamestrike",
     "Flamestrike",
@@ -95,11 +95,11 @@
     },
     {
       "name": "Flame Barrage",
-      "offset": 2835
+      "offset": 2735
     },
     {
       "name": "Earth Attunement",
-      "offset": 335
+      "offset": 435
     },
     {
       "name": "Stone Shards",
@@ -129,7 +129,7 @@
     "Flamestrike",
     {
       "name": "Flame Barrage",
-      "offset": 381
+      "offset": 281
     },
     "Flamestrike",
     "Flamestrike",
@@ -165,14 +165,14 @@
       "interruptMs": 120
     },
     "Earthquake",
-    "Churning Earth",
     {
       "name": "Flame Barrage",
-      "offset": 58
+      "offset": 638
     },
+    "Churning Earth",
     {
       "name": "Fire Attunement",
-      "offset": 702
+      "offset": 760
     },
     {
       "name": "Flamestrike",
@@ -194,7 +194,7 @@
     "Flamestrike",
     {
       "name": "Flame Barrage",
-      "offset": 302
+      "offset": 202
     },
     {
       "name": "Flamestrike",
@@ -237,11 +237,11 @@
     "Churning Earth",
     {
       "name": "Flame Barrage",
-      "offset": 179
+      "offset": 79
     },
     {
       "name": "Fire Attunement",
-      "offset": 661
+      "offset": 761
     },
     {
       "name": "Flamestrike",
@@ -271,7 +271,7 @@
     "Ring of Fire",
     {
       "name": "Flame Barrage",
-      "offset": 380
+      "offset": 280
     },
     "Dragon's Tooth",
     "Flamestrike",
@@ -314,11 +314,11 @@
     "Churning Earth",
     {
       "name": "Flame Barrage",
-      "offset": 780
+      "offset": 680
     },
     {
       "name": "Fire Attunement",
-      "offset": 22
+      "offset": 122
     },
     "Phoenix",
     "Ring of Fire",

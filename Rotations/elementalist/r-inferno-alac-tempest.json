@@ -1,7 +1,7 @@
 {
   "rotation": [
-    "Rock Barrier",
     "Glyph of Elementals",
+    "Rock Barrier",
     "Overload Earth",
     {
       "name": "__combat_start",

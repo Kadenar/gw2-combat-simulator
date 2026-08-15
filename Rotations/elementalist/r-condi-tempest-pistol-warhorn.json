@@ -1,5 +1,6 @@
 {
   "rotation": [
+    "Glyph of Elementals",
     "Raging Ricochet",
     "Water Attunement",
     "Frigid Flurry",
@@ -14,12 +15,11 @@
       "name": "__combat_start",
       "offset": 2757
     },
-    "Glyph of Elementals",
-    "Dust Storm",
     {
       "name": "Flame Barrage",
-      "offset": 0
+      "offset": 2757
     },
+    "Dust Storm",
     "Shattering Stone",
     "Boulder Blast",
     "Signet of Fire",
@@ -48,7 +48,7 @@
     "Signet of Fire",
     {
       "name": "Flame Barrage",
-      "offset": 80
+      "offset": 77
     },
     "Searing Salvo",
     {
@@ -70,7 +70,7 @@
     "Frigid Flurry",
     {
       "name": "Earth Attunement",
-      "offset": 564
+      "offset": 640
     },
     "Shattering Stone",
     {
@@ -92,7 +92,7 @@
     "Piercing Pebble",
     {
       "name": "Flame Barrage",
-      "offset": 196
+      "offset": 157
     },
     "Piercing Pebble",
     "Piercing Pebble",
@@ -119,11 +119,11 @@
     "Searing Salvo",
     {
       "name": "Flame Barrage",
-      "offset": 296
+      "offset": 257
     },
     {
       "name": "Air Attunement",
-      "offset": 108
+      "offset": 147
     },
     "Aerial Agility",
     "Dazing Discharge",
@@ -156,7 +156,7 @@
     "Piercing Pebble",
     {
       "name": "Flame Barrage",
-      "offset": 197
+      "offset": 158
     },
     "Piercing Pebble",
     "Boulder Blast",
@@ -194,7 +194,7 @@
     },
     {
       "name": "Flame Barrage",
-      "offset": 330
+      "offset": 291
     },
     "Aerial Agility",
     "Dazing Discharge",
@@ -224,7 +224,7 @@
     "Piercing Pebble",
     {
       "name": "Flame Barrage",
-      "offset": 296
+      "offset": 257
     },
     "Boulder Blast",
     {
@@ -255,7 +255,7 @@
     "Dazing Discharge",
     {
       "name": "Flame Barrage",
-      "offset": 236
+      "offset": 197
     },
     "Lightning Orb",
     {

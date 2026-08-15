@@ -1,5 +1,6 @@
 {
   "rotation": [
+    "Glyph of Elementals",
     "Shattering Stone",
     "Air Attunement",
     "Dazing Discharge",
@@ -17,7 +18,6 @@
       "name": "__wait",
       "waitMs": 4000
     },
-    "Glyph of Elementals",
     "__combat_start",
     "Elemental Explosion",
     {

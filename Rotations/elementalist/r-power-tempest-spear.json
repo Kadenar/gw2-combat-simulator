@@ -1,20 +1,20 @@
 {
   "rotation": [
+    "Glyph of Elementals",
     "Overload Air",
     {
       "name": "__combat_start",
       "offset": 3100
     },
     {
-      "name": "Feel the Burn!",
-      "offset": 3158
-    },
-    "Glyph of Elementals",
-    "Fulgor",
-    {
       "name": "Flame Barrage",
-      "offset": 0
+      "offset": 3100
     },
+    {
+      "name": "Feel the Burn!",
+      "offset": 58
+    },
+    "Fulgor",
     {
       "name": "Fire Attunement",
       "offset": 40
@@ -65,7 +65,7 @@
     "Glyph of Storms (Air)",
     {
       "name": "Flame Barrage",
-      "offset": 442
+      "offset": 342
     },
     "Lightning Javelin",
     "Lightning Javelin",
@@ -108,11 +108,11 @@
     "Overload Air",
     {
       "name": "Flame Barrage",
-      "offset": 916
+      "offset": 816
     },
     {
       "name": "Earth Attunement",
-      "offset": 2245
+      "offset": 2345
     },
     "Fissure",
     "Earthen Spear",
@@ -140,7 +140,7 @@
     "Blazing Barrage",
     {
       "name": "Flame Barrage",
-      "offset": 479
+      "offset": 379
     },
     "Seethe",
     {
@@ -189,11 +189,11 @@
       "name": "Lightning Javelin",
       "interruptMs": 358
     },
-    "Overload Air",
     {
       "name": "Flame Barrage",
-      "offset": 43
+      "offset": 301
     },
+    "Overload Air",
     "Fulgor",
     {
       "name": "Fire Attunement",
@@ -229,11 +229,11 @@
     "Overload Air",
     {
       "name": "Flame Barrage",
-      "offset": 2485
+      "offset": 2385
     },
     {
       "name": "Earth Attunement",
-      "offset": 640
+      "offset": 740
     },
     "Fissure",
     "Earthen Spear",
@@ -279,12 +279,12 @@
     "Etching: Derecho",
     "Twister",
     {
-      "name": "Energize",
-      "offset": 356
+      "name": "Flame Barrage",
+      "offset": 265
     },
     {
-      "name": "Flame Barrage",
-      "offset": 9
+      "name": "Energize",
+      "offset": 91
     },
     "Lightning Javelin",
     "Derecho",
@@ -310,7 +310,7 @@
     "Overload Air",
     {
       "name": "Flame Barrage",
-      "offset": 1645
+      "offset": 1545
     },
     "Fulgor",
     {
@@ -353,11 +353,11 @@
     "Earthen Spear",
     {
       "name": "Flame Barrage",
-      "offset": 168
+      "offset": 68
     },
     {
       "name": "Air Attunement",
-      "offset": 116
+      "offset": 216
     }
   ]
 }

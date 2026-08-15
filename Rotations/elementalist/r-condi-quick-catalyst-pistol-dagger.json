@@ -1,5 +1,6 @@
 {
   "rotation": [
+    "Glyph of Elementals",
     "Raging Ricochet",
     "Air Attunement",
     "Dazing Discharge",
@@ -16,7 +17,6 @@
       "name": "__wait",
       "waitMs": 3000
     },
-    "Glyph of Elementals",
     "__combat_start",
     "Elemental Explosion",
     {

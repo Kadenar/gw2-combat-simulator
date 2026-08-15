@@ -1,5 +1,6 @@
 {
   "rotation": [
+    "Glyph of Elementals",
     "Dazing Discharge",
     "Water Attunement",
     "Frigid Flurry",
@@ -10,7 +11,6 @@
       "name": "__wait",
       "waitMs": 5000
     },
-    "Glyph of Elementals",
     "__combat_start",
     "Wildfire",
     {

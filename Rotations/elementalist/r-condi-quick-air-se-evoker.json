@@ -1,14 +1,14 @@
 {
   "rotation": [
+    "Glyph of Elementals",
     "Dragon's Tooth",
     {
       "name": "Ignite",
       "offset": 100
     },
-    "Glyph of Elementals",
     {
       "name": "__combat_start",
-      "offset": 100
+      "offset": 680
     },
     "Flamewall",
     {
