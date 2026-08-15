@@ -5693,6 +5693,7 @@ test("Troubadour benchmark instruments use measured packets and normalized stren
     (event) => event.type === "damage" && event.skillName === "Syncopate",
   );
   assert.ok(stochasticDrumHit.weaponStrengthSampled);
+  assert.equal(stochasticSyncopate.length, 3);
   assert.ok(
     stochasticSyncopate.every(
       (event) =>
