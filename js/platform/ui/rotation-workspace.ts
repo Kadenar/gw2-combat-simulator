@@ -21,6 +21,7 @@ type RotationWorkspaceController = {
   document: Document;
   focusButton: HTMLButtonElement;
   focusIndicator: HTMLElement;
+  focusScrollPosition?: Readonly<{ left: number; top: number }>;
   panelResizeObserver?: ResizeObserver;
   state: RotationWorkspaceState;
 };
@@ -72,6 +73,16 @@ function applyWorkspaceState(
   controller: RotationWorkspaceController,
   state: RotationWorkspaceState,
 ): void {
+  const previous = controller.state;
+  const view = controller.document.defaultView;
+  if (!previous.focus && state.focus) {
+    const scrollingElement = controller.document.scrollingElement;
+    controller.focusScrollPosition = {
+      left: view?.scrollX ?? scrollingElement?.scrollLeft ?? 0,
+      top: view?.scrollY ?? scrollingElement?.scrollTop ?? 0,
+    };
+  }
+
   controller.state = state;
 
   const body = controller.document.body;
@@ -106,6 +117,12 @@ function applyWorkspaceState(
   controller.focusButton.textContent = state.focus ? "Exit focus" : "Focus";
   controller.focusIndicator.hidden = !state.focus;
   syncRotationFocusResults(controller.document);
+
+  if (previous.focus && !state.focus && controller.focusScrollPosition) {
+    const { left, top } = controller.focusScrollPosition;
+    controller.focusScrollPosition = undefined;
+    view?.scrollTo(left, top);
+  }
 }
 
 function dispatchWorkspaceAction(

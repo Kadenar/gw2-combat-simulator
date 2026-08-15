@@ -13,7 +13,6 @@
   <body class="landing-page">
     <main id="app" class="landing-shell">
       <header class="landing-header">
-        <p class="landing-kicker">PvE build, rotation, and variance modeling</p>
         <h1>Guild Wars 2 <span class="accent">Rotation Simulator</span></h1>
         <p class="landing-intro">
           Configure a build, sequence a rotation, and inspect a stable
@@ -24,8 +23,7 @@
 
       <section class="landing-section" aria-labelledby="profession-heading">
         <div class="landing-section-heading">
-          <p class="landing-eyebrow">Available simulators</p>
-          <h2 id="profession-heading">Choose your profession</h2>
+          <h2 id="profession-heading">Available simulators</h2>
         </div>
         <div class="profession-grid" data-profession-grid></div>
       </section>
@@ -38,136 +36,145 @@
           >
         </summary>
         <div class="landing-details-body">
-      <section
-        class="landing-section landing-info-grid"
-        aria-label="Tool information"
-      >
-        <article class="landing-panel about-tool">
-          <p class="landing-eyebrow">Intended use</p>
-          <h2>A controlled combat-modeling workbench</h2>
-          <p>
-            The simulator combines your equipment, upgrades, consumables,
-            weapons, traits, skills, boons, and target settings into a
-            browser-based PvE combat model. Queue skills in the rotation
-            builder, then review the resulting timeline and damage breakdown.
-          </p>
-          <p>
-            Use it to compare builds or rotations under identical assumptions,
-            isolate why a result changed, validate profession implementations,
-            and measure how RNG affects output. Results are modeled
-            single-target estimates, not a replacement for in-game validation,
-            encounter-specific testing, or benchmark logs.
-          </p>
-        </article>
+          <section
+            class="landing-section landing-info-grid"
+            aria-label="Tool information"
+          >
+            <article class="landing-panel about-tool">
+              <p class="landing-eyebrow">Intended use</p>
+              <h2>A controlled combat-modeling workbench</h2>
+              <p>
+                The simulator combines your equipment, upgrades, consumables,
+                weapons, traits, skills, boons, and target settings into a
+                browser-based PvE combat model. Queue skills in the rotation
+                builder, then review the resulting timeline and damage
+                breakdown.
+              </p>
+              <p>
+                Use it to compare builds or rotations under identical
+                assumptions, isolate why a result changed, validate profession
+                implementations, and measure how RNG affects output. Results are
+                modeled single-target estimates, not a replacement for in-game
+                validation, encounter-specific testing, or benchmark logs.
+              </p>
+            </article>
 
-        <article class="landing-panel">
-          <p class="landing-eyebrow">What you can inspect</p>
-          <ul class="landing-feature-list">
-            <li>
-              <strong>Build inputs</strong
-              ><span>Gear, attributes, weapons, traits, and skills</span>
-            </li>
-            <li>
-              <strong>Execution state</strong
-              ><span>Casts, cooldowns, ammo, swaps, boons, and resources</span>
-            </li>
-            <li>
-              <strong>Damage output</strong
-              ><span>Strike, condition, skill, and modifier contributions</span>
-            </li>
-            <li>
-              <strong>Outcome variance</strong
-              ><span>Mean, median, likely range, and rare RNG outcomes</span>
-            </li>
-          </ul>
-        </article>
-      </section>
+            <article class="landing-panel">
+              <p class="landing-eyebrow">What you can inspect</p>
+              <ul class="landing-feature-list">
+                <li>
+                  <strong>Build inputs</strong
+                  ><span>Gear, attributes, weapons, traits, and skills</span>
+                </li>
+                <li>
+                  <strong>Execution state</strong
+                  ><span
+                    >Casts, cooldowns, ammo, swaps, boons, and resources</span
+                  >
+                </li>
+                <li>
+                  <strong>Damage output</strong
+                  ><span
+                    >Strike, condition, skill, and modifier contributions</span
+                  >
+                </li>
+                <li>
+                  <strong>Outcome variance</strong
+                  ><span
+                    >Mean, median, likely range, and rare RNG outcomes</span
+                  >
+                </li>
+              </ul>
+            </article>
+          </section>
 
-      <section class="landing-section" aria-labelledby="modes-heading">
-        <div class="landing-section-heading">
-          <p class="landing-eyebrow">Advanced simulation modes</p>
-          <h2 id="modes-heading">Expected output and RNG distributions</h2>
-        </div>
-        <div class="landing-info-grid">
-          <article class="landing-panel">
-            <p class="landing-eyebrow">Mode 01</p>
-            <h2>Deterministic expected</h2>
-            <p>
-              The default mode produces the same detailed result for the same
-              build and rotation. Weapon strength uses exact range midpoints,
-              strike critical damage remains expected-valued, and supported
-              random procs advance at their expected rate.
-            </p>
-            <p>
-              Use this baseline for event timelines, skill and condition
-              breakdowns, modifier attribution, debugging, and controlled
-              comparisons.
-            </p>
-          </article>
+          <section class="landing-section" aria-labelledby="modes-heading">
+            <div class="landing-section-heading">
+              <p class="landing-eyebrow">Advanced simulation modes</p>
+              <h2 id="modes-heading">Expected output and RNG distributions</h2>
+            </div>
+            <div class="landing-info-grid">
+              <article class="landing-panel">
+                <p class="landing-eyebrow">Mode 01</p>
+                <h2>Deterministic expected</h2>
+                <p>
+                  The default mode produces the same detailed result for the
+                  same build and rotation. Weapon strength uses exact range
+                  midpoints, strike critical damage remains expected-valued, and
+                  supported random procs advance at their expected rate.
+                </p>
+                <p>
+                  Use this baseline for event timelines, skill and condition
+                  breakdowns, modifier attribution, debugging, and controlled
+                  comparisons.
+                </p>
+              </article>
 
-          <article class="landing-panel">
-            <p class="landing-eyebrow">Mode 02</p>
-            <h2>RNG distribution</h2>
-            <p>
-              This mode keeps the deterministic result for detailed inspection,
-              then runs 500 reproducibly seeded outcomes in background workers.
-              Trials sample weapon strength per activation and supported proc or
-              on-critical behavior through isolated random streams.
-            </p>
-            <p>
-              The result reports mean and median DPS, the likely range, and
-              unlucky and lucky outcomes without making a random seed part of
-              the saved build.
-            </p>
-          </article>
-        </div>
-      </section>
+              <article class="landing-panel">
+                <p class="landing-eyebrow">Mode 02</p>
+                <h2>RNG distribution</h2>
+                <p>
+                  This mode keeps the deterministic result for detailed
+                  inspection, then runs 500 reproducibly seeded outcomes in
+                  background workers. Trials sample weapon strength per
+                  activation and supported proc or on-critical behavior through
+                  isolated random streams.
+                </p>
+                <p>
+                  The result reports mean and median DPS, the likely range, and
+                  unlucky and lucky outcomes without making a random seed part
+                  of the saved build.
+                </p>
+              </article>
+            </div>
+          </section>
 
-      <section class="landing-section" aria-labelledby="technical-heading">
-        <div class="landing-section-heading">
-          <p class="landing-eyebrow">Technical details</p>
-          <h2 id="technical-heading">How a rotation becomes a result</h2>
-        </div>
-        <div class="technical-grid">
-          <article class="technical-card">
-            <span class="technical-index">01</span>
-            <h3>Schedule the rotation</h3>
-            <p>
-              A discrete-event scheduler validates skill availability and places
-              casts, cooldowns, ammo, swaps, profession actions, and deferred
-              effects on a millisecond timeline.
-            </p>
-          </article>
-          <article class="technical-card">
-            <span class="technical-index">02</span>
-            <h3>Resolve combat state</h3>
-            <p>
-              A separate resolver drains that timeline in order, applying Guild
-              Wars 2 strike and condition formulas, modifiers, target state,
-              boons, resources, sigils, relics, and profession reactions.
-            </p>
-          </article>
-          <article class="technical-card">
-            <span class="technical-index">03</span>
-            <h3>Model profession rules</h3>
-            <p>
-              Common engine and Guild Wars 2 rules are shared, while each
-              profession owns its skill catalog, build rules, resources,
-              mechanic handlers, and simulation hooks.
-            </p>
-          </article>
-          <article class="technical-card">
-            <span class="technical-index">04</span>
-            <h3>Calculate in the browser</h3>
-            <p>
-              Simulation and analysis run client-side, with RNG trials
-              partitioned across up to four Web Workers. Profession pages keep
-              independent local builds and support portable JSON import and
-              export.
-            </p>
-          </article>
-        </div>
-      </section>
+          <section class="landing-section" aria-labelledby="technical-heading">
+            <div class="landing-section-heading">
+              <p class="landing-eyebrow">Technical details</p>
+              <h2 id="technical-heading">How a rotation becomes a result</h2>
+            </div>
+            <div class="technical-grid">
+              <article class="technical-card">
+                <span class="technical-index">01</span>
+                <h3>Schedule the rotation</h3>
+                <p>
+                  A discrete-event scheduler validates skill availability and
+                  places casts, cooldowns, ammo, swaps, profession actions, and
+                  deferred effects on a millisecond timeline.
+                </p>
+              </article>
+              <article class="technical-card">
+                <span class="technical-index">02</span>
+                <h3>Resolve combat state</h3>
+                <p>
+                  A separate resolver drains that timeline in order, applying
+                  Guild Wars 2 strike and condition formulas, modifiers, target
+                  state, boons, resources, sigils, relics, and profession
+                  reactions.
+                </p>
+              </article>
+              <article class="technical-card">
+                <span class="technical-index">03</span>
+                <h3>Model profession rules</h3>
+                <p>
+                  Common engine and Guild Wars 2 rules are shared, while each
+                  profession owns its skill catalog, build rules, resources,
+                  mechanic handlers, and simulation hooks.
+                </p>
+              </article>
+              <article class="technical-card">
+                <span class="technical-index">04</span>
+                <h3>Calculate in the browser</h3>
+                <p>
+                  Simulation and analysis run client-side, with RNG trials
+                  partitioned across up to four Web Workers. Profession pages
+                  keep independent local builds and support portable JSON import
+                  and export.
+                </p>
+              </article>
+            </div>
+          </section>
         </div>
       </details>
       <footer class="landing-footer">
