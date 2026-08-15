@@ -19,6 +19,7 @@ type RotationWorkspaceController = {
   document: Document;
   focusButton: HTMLButtonElement;
   focusIndicator: HTMLElement;
+  panelResizeObserver?: ResizeObserver;
   state: RotationWorkspaceState;
 };
 
@@ -173,6 +174,10 @@ export function mountRotationWorkspace(root: Document = document): void {
   const rotationHeading = workspace?.querySelector<HTMLElement>(
     ".rotation-panel > h3",
   );
+  const rotationPanel =
+    rotationHeading?.closest<HTMLElement>(".rotation-panel");
+  const rotationSection =
+    rotationPanel?.closest<HTMLElement>(".rotation-section");
   const configPanel = workspace?.querySelector<HTMLElement>(".perma-section");
   const configHeading =
     configPanel?.querySelector<HTMLElement>(".perma-panel > h3");
@@ -180,11 +185,32 @@ export function mountRotationWorkspace(root: Document = document): void {
     !root.body ||
     !workspace ||
     !rotationHeading ||
+    !rotationPanel ||
+    !rotationSection ||
     !configPanel ||
     !configHeading
   ) {
     return;
   }
+
+  const panelShell = root.createElement("div");
+  panelShell.className = "rotation-panel-shell";
+  rotationPanel.before(panelShell);
+  panelShell.append(rotationPanel);
+  rotationSection.append(configPanel);
+
+  const syncRotationPanelHeight = (): void => {
+    rotationSection.style.setProperty(
+      "--rotation-panel-height",
+      `${rotationPanel.offsetHeight}px`,
+    );
+  };
+  syncRotationPanelHeight();
+  const ResizeObserverConstructor = root.defaultView?.ResizeObserver;
+  const panelResizeObserver = ResizeObserverConstructor
+    ? new ResizeObserverConstructor(syncRotationPanelHeight)
+    : undefined;
+  panelResizeObserver?.observe(rotationPanel);
 
   configPanel.id ||= "simulation-config-panel";
   configPanel.setAttribute("role", "dialog");
@@ -206,6 +232,7 @@ export function mountRotationWorkspace(root: Document = document): void {
     document: root,
     focusButton,
     focusIndicator,
+    panelResizeObserver,
     state: DEFAULT_ROTATION_WORKSPACE_STATE,
   };
   controllers.set(root, controller);

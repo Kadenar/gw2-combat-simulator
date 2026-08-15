@@ -2256,8 +2256,13 @@ body[data-profession] .rotation-section {
 }
 
 .simulation-workspace .rotation-section {
+  position: relative;
   margin-bottom: 0;
-  transition: margin-right 160ms ease;
+}
+
+.rotation-panel-shell {
+  position: relative;
+  min-width: 0;
 }
 
 .rotation-builder-heading {
@@ -2340,6 +2345,14 @@ body[data-rotation-focus] .rotation-panel {
   height: auto;
   min-height: 0;
   max-height: none;
+}
+
+body[data-rotation-focus] .rotation-panel-shell {
+  min-height: 0;
+}
+
+body[data-rotation-focus] .rotation-panel-shell > .rotation-panel {
+  height: 100%;
 }
 
 @media (min-width: 900px) {
@@ -5305,16 +5318,38 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   outline-offset: 2px;
 }
 
-body[data-simulation-config-open]:not([data-rotation-focus])
-  .simulation-workspace
-  .rotation-section {
-  margin-right: 372px;
-}
-
 body[data-simulation-config-open] .perma-section {
   visibility: visible;
   pointer-events: auto;
   transform: translateX(0);
+}
+
+body:not([data-rotation-focus]) .rotation-panel-shell {
+  position: relative;
+  z-index: 1;
+}
+
+body:not([data-rotation-focus]) .rotation-section > .perma-section {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  transform: translateX(0);
+}
+
+body[data-simulation-config-open]:not([data-rotation-focus])
+  .rotation-section
+  > .perma-section {
+  transform: translateX(100%);
+}
+
+body:not([data-rotation-focus])
+  .rotation-section
+  > .perma-section
+  > .perma-panel {
+  position: sticky;
+  top: calc(var(--profession-header-height, 112px) + 12px);
+  height: var(--rotation-panel-height, 100%);
 }
 
 body[data-rotation-focus] .perma-section {
@@ -8553,6 +8588,65 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   line-height: 1.65;
 }
 
+.landing-details {
+  margin: 0 0 54px;
+}
+
+.landing-details-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 22px;
+  background: rgba(20, 20, 31, 0.88);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  cursor: pointer;
+  list-style: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.landing-details-summary::-webkit-details-marker {
+  display: none;
+}
+
+.landing-details-summary:hover {
+  border-color: var(--accent-dim);
+  background: rgba(26, 26, 40, 0.9);
+}
+
+.landing-details-summary-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--text-bright);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.landing-details-summary-label::before {
+  content: "▸";
+  color: var(--accent);
+  font-size: 12px;
+  transition: transform 0.15s ease;
+}
+
+.landing-details[open] .landing-details-summary-label::before {
+  transform: rotate(90deg);
+}
+
+.landing-details-summary-hint {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.landing-details-body {
+  margin-top: 22px;
+}
+
+.landing-details-body .landing-section:last-child {
+  margin-bottom: 0;
+}
+
 .landing-footer {
   display: flex;
   justify-content: space-between;
@@ -8564,12 +8658,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 }
 
 @media (max-width: 900px) {
-  body[data-simulation-config-open]:not([data-rotation-focus])
-    .simulation-workspace
-    .rotation-section {
-    margin-right: 0;
-  }
-
   body[data-simulation-config-open][data-rotation-focus] .rotation-section {
     right: 0;
   }

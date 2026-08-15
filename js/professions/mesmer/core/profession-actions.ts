@@ -542,12 +542,12 @@ export function createProfessionActionController({
         {
           coefficient: delayedWave.coefficient,
           hits: delayedWave.hits,
-          source,
+          source: "Trait",
           actorType,
           weaponStrengthProfileId: "nonweapon.unequipped",
         },
         {
-          source,
+          source: "Trait",
           sourceId: TRAIT.SYNCOPATE,
           skillId: skill.id,
           actorType,
