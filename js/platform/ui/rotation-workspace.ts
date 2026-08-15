@@ -13,7 +13,9 @@ export const DEFAULT_ROTATION_WORKSPACE_STATE: RotationWorkspaceState =
   });
 
 type RotationWorkspaceController = {
+  builderControls: HTMLElement;
   configButton: HTMLButtonElement;
+  configButtonTrack: HTMLElement;
   configCloseButton: HTMLButtonElement;
   configPanel: HTMLElement;
   document: Document;
@@ -69,13 +71,27 @@ function applyWorkspaceState(
   body.toggleAttribute("data-simulation-config-open", state.configOpen);
   body.toggleAttribute("data-rotation-focus", state.focus);
 
+  const configButtonHost = state.focus
+    ? controller.builderControls
+    : controller.configButtonTrack;
+  if (controller.configButton.parentElement !== configButtonHost) {
+    if (state.focus) {
+      configButtonHost.prepend(controller.configButton);
+    } else {
+      configButtonHost.append(controller.configButton);
+    }
+  }
+
   controller.configButton.setAttribute(
     "aria-expanded",
     String(state.configOpen),
   );
-  controller.configButton.textContent = state.configOpen
-    ? "Hide config"
-    : "Config";
+  const configButtonLabel = state.configOpen
+    ? "Hide Simulation Config"
+    : "Open Simulation Config";
+  controller.configButton.textContent = "";
+  controller.configButton.setAttribute("aria-label", configButtonLabel);
+  controller.configButton.title = configButtonLabel;
   controller.configPanel.setAttribute("aria-hidden", String(!state.configOpen));
   controller.configPanel.inert = !state.configOpen;
 
@@ -107,6 +123,7 @@ function mountRotationHeading(
   heading: HTMLElement,
   configPanelId: string,
 ): {
+  controls: HTMLElement;
   configButton: HTMLButtonElement;
   focusButton: HTMLButtonElement;
   focusIndicator: HTMLElement;
@@ -144,7 +161,7 @@ function mountRotationHeading(
   heading.replaceChildren(headingTitle, controls);
   heading.classList.add("rotation-builder-heading");
 
-  return { configButton, focusButton, focusIndicator };
+  return { configButton, controls, focusButton, focusIndicator };
 }
 
 function mountConfigHeading(
@@ -219,14 +236,17 @@ export function mountRotationWorkspace(root: Document = document): void {
   const configCloseButton = mountConfigHeading(root, configHeading);
   configHeading.querySelector(".simulation-config-title")!.id =
     "simulation-config-title";
-  const { configButton, focusButton, focusIndicator } = mountRotationHeading(
-    root,
-    rotationHeading,
-    configPanel.id,
-  );
+  const { configButton, controls, focusButton, focusIndicator } =
+    mountRotationHeading(root, rotationHeading, configPanel.id);
+
+  const configButtonTrack = root.createElement("div");
+  configButtonTrack.className = "simulation-config-button-track";
+  rotationSection.append(configButtonTrack);
 
   const controller: RotationWorkspaceController = {
+    builderControls: controls,
     configButton,
+    configButtonTrack,
     configCloseButton,
     configPanel,
     document: root,
