@@ -52,7 +52,7 @@
         "label": "Power (Dagger/Mace + Sword/Dagger)",
         "build": "Builds/warrior/b-power-spellbreaker-dagger-mace-sword-dagger.json",
         "rotation": "Rotations/warrior/r-power-spellbreaker-dagger-mace-sword-dagger-bench.json",
-        "benchmarkDps": 43284,
+        "benchmarkDps": 43318,
         "upToDate": true
       },
       {

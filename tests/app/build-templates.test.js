@@ -6,6 +6,7 @@ import {
   initBuildTemplates,
   loadTemplateAction,
   templateCategory,
+  templateHasBoon,
   templateMatchesFilter,
   undoTemplateLoad,
 } from "../../js/app/build/presets.js";
@@ -53,7 +54,7 @@ test("template discovery loads the profession-scoped manifest", async (t) => {
   assert.equal(requestedPath, "Builds/mesmer/manifest.json");
 });
 
-test("template filters keep boon builds separate from power and condi", () => {
+test("template filters combine damage type with an independent boon filter", () => {
   const power = {
     label: "Power",
     build: "Builds/mesmer/b-power-chronomancer.json",
@@ -74,15 +75,36 @@ test("template filters keep boon builds separate from power and condi", () => {
     label: "Inferno",
     build: "Builds/elementalist/b-inferno-tempest.json",
   };
+  const otherBoon = {
+    label: "Inferno Alacrity",
+    build: "Builds/elementalist/b-inferno-alac-tempest.json",
+  };
 
   assert.equal(templateCategory(power), "power");
   assert.equal(templateCategory(condi), "condi");
-  assert.equal(templateCategory(powerBoon), "boon");
-  assert.equal(templateCategory(condiBoon), "boon");
+  assert.equal(templateCategory(powerBoon), "power");
+  assert.equal(templateCategory(condiBoon), "condi");
   assert.equal(templateCategory(other), "other");
-  assert.equal(templateMatchesFilter(powerBoon, "power"), false);
-  assert.equal(templateMatchesFilter(condiBoon, "condi"), false);
+  assert.equal(templateHasBoon(power), false);
+  assert.equal(templateHasBoon(condi), false);
+  assert.equal(templateHasBoon(powerBoon), true);
+  assert.equal(templateHasBoon(condiBoon), true);
+  assert.equal(templateHasBoon(otherBoon), true);
+  assert.equal(templateMatchesFilter(power, "power"), true);
+  assert.equal(templateMatchesFilter(powerBoon, "power"), true);
+  assert.equal(templateMatchesFilter(condi, "condi"), true);
+  assert.equal(templateMatchesFilter(condiBoon, "condi"), true);
+  assert.equal(templateMatchesFilter(power, "power", true), false);
+  assert.equal(templateMatchesFilter(powerBoon, "power", true), true);
+  assert.equal(templateMatchesFilter(condi, "condi", true), false);
+  assert.equal(templateMatchesFilter(condiBoon, "condi", true), true);
+  assert.equal(templateMatchesFilter(powerBoon, "all", true), true);
+  assert.equal(templateMatchesFilter(condiBoon, "all", true), true);
+  assert.equal(templateMatchesFilter(otherBoon, "all", true), true);
+  assert.equal(templateMatchesFilter(otherBoon, "power", true), false);
+  assert.equal(templateMatchesFilter(otherBoon, "condi", true), false);
   assert.equal(templateMatchesFilter(other, "all"), true);
+  assert.equal(templateMatchesFilter(other, "all", true), false);
 });
 
 test("filtered templates remain hidden despite their flex layout", () => {

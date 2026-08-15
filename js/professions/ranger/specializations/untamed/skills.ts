@@ -57,6 +57,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<
   [ID.UNLEASH_RANGER]: {
     implemented: true,
     castTimeMs: 0,
+    cooldown: 1,
     effects: [],
     handlerId: "ranger.unleash-ranger",
   },
@@ -200,6 +201,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<
   [ID.UNLEASH_PET]: {
     implemented: true,
     castTimeMs: 0,
+    cooldown: 1,
     effects: [],
     handlerId: "ranger.unleash-pet",
   },

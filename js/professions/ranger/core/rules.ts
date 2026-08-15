@@ -544,7 +544,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
       id: "ranger.lesser-sic-em-pet",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
-      factor: 1.15,
+      factor: 1.4,
       when: (context) =>
         petEvent(context) && boonActive(context, "lesser-sic-em-pet"),
     },

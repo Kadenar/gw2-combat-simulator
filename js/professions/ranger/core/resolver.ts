@@ -395,7 +395,7 @@ function triggerGoForTheThroat(
     'Lesser "Sic \'Em!"',
     event.at,
     event.skillName,
-    "8s, +15% pet strike damage",
+    "8s, +40% pet strike damage",
     context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon ||
       context.helpers.skillsById?.get(ID.SIC_EM)?.icon ||
       "",
