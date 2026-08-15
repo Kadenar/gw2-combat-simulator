@@ -2307,9 +2307,65 @@ body[data-profession] .rotation-section {
   text-transform: none;
 }
 
+.simulation-config-open-button {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  border-color: var(--accent);
+  color: var(--accent);
+  background: linear-gradient(135deg, var(--bg-panel-alt), var(--bg-panel));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 0 16px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.simulation-config-open-button:hover,
+.simulation-config-open-button:focus-visible {
+  border-color: var(--text-bright);
+  color: var(--text-bright);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent),
+    0 0 22px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
 .simulation-config-open-button::before {
-  margin-right: 4px;
+  margin: 0;
   content: "\2699";
+  font-size: 21px;
+  line-height: 1;
+  filter: drop-shadow(0 0 4px currentcolor);
+}
+
+.simulation-config-button-track {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 100%;
+  z-index: 2;
+  width: max-content;
+  pointer-events: none;
+}
+
+.simulation-config-button-track > .simulation-config-open-button {
+  position: sticky;
+  top: calc(var(--profession-header-height, 112px) + 12px);
+  border-left: 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  pointer-events: auto;
+  transition:
+    opacity 160ms ease,
+    visibility 160ms;
+}
+
+body[data-simulation-config-open]:not([data-rotation-focus])
+  .simulation-config-button-track
+  > .simulation-config-open-button {
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
 }
 
 .rotation-focus-toggle::before {
@@ -5327,6 +5383,14 @@ body[data-simulation-config-open] .perma-section {
 body:not([data-rotation-focus]) .rotation-panel-shell {
   position: relative;
   z-index: 1;
+}
+
+body:not([data-rotation-focus]) .rotation-section > .rotation-results {
+  position: relative;
+  z-index: 1;
+  margin-top: 0;
+  padding-top: 12px;
+  background: var(--bg-dark);
 }
 
 body:not([data-rotation-focus]) .rotation-section > .perma-section {
@@ -8602,7 +8666,9 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   border-radius: 9px;
   cursor: pointer;
   list-style: none;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 
 .landing-details-summary::-webkit-details-marker {
