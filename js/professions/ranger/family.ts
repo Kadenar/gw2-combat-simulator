@@ -1,4 +1,5 @@
 import { defineNativeProfession } from "../../platform/gw2/native-profession.js";
+import { activePatchPreview } from "../../patches/active-preview.js";
 import {
   createRangerBuildDefaults,
   migrateRangerBuild,
@@ -16,6 +17,7 @@ export const rangerProfession = defineNativeProfession({
     validateBuild: validateRangerBuild,
   },
   modules: rangerNativeModules,
+  patchPreview: activePatchPreview,
 });
 
 export default rangerProfession;

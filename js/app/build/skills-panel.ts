@@ -259,7 +259,7 @@ export function renderSkills(app: ProfessionAppState): void {
             return app.adapter.weaponSkillMatchesSet(skill, [mh, oh], {
               build: app.build,
               specialization: spec,
-              catalog: app.profession.catalog,
+              catalog: app.activeCatalog,
               weaponData: app.weaponData,
               professionState: app.results?.endState?.profession,
               weaponBarPreview: true,
@@ -282,7 +282,7 @@ export function renderSkills(app: ProfessionAppState): void {
     app.profession.ui.skillBarGroups?.({
       build: app.build,
       specialization: spec,
-      catalog: app.profession.catalog,
+      catalog: app.activeCatalog,
       professionState: app.results?.endState?.profession,
     }) || [];
   const weaponBarGroups = skillBarGroups.filter(
@@ -646,7 +646,7 @@ export function renderSkills(app: ProfessionAppState): void {
                 build: app.build,
                 specialization: spec,
                 professionState: app.results?.endState?.profession,
-                catalog: app.profession.catalog,
+                catalog: app.activeCatalog,
               },
               {
                 key,
@@ -680,7 +680,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
     build: app.build,
     specialization: spec,
     professionState: app.results?.endState?.profession,
-    catalog: app.profession.catalog,
+    catalog: app.activeCatalog,
   };
   const view = loadout.view(context);
   const skillBar = requiredElement("skill-bar");

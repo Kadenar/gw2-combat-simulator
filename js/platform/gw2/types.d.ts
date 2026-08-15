@@ -143,6 +143,10 @@ export interface Gw2SigilProc extends SchedulerRecord {
 }
 
 export interface Gw2Config extends SchedulerRecord {
+  readonly patchId?: string;
+  readonly patchValues?: Readonly<
+    Record<string, import("./skill-patch.js").NumEdit>
+  >;
   readonly stats?: Gw2Stats;
   readonly weaponSetStats?: readonly Gw2Stats[];
   readonly attributes?: Gw2Stats;

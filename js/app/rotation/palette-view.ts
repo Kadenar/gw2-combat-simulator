@@ -115,7 +115,7 @@ function paletteActionContext(app: ProfessionAppState): SchedulerRecord {
   const endState = paletteEndState(app);
   return {
     specialization: activeSpecialization(app),
-    catalog: app.profession.catalog,
+    catalog: app.activeCatalog,
     professionState: paletteProfessionState(app),
     cooldowns: endState?.cooldowns || {},
     activeWeaponSet:
@@ -322,7 +322,7 @@ export function renderPalette(app: ProfessionAppState): void {
   const professionState = paletteProfessionState(app);
   const paletteContext = {
     specialization: spec,
-    catalog: app.profession.catalog,
+    catalog: app.activeCatalog,
     professionState,
     cooldowns: endState?.cooldowns || {},
     activeWeaponSet:

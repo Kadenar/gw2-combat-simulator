@@ -19,7 +19,7 @@ export function isSlotSkillSelectable(
       {
         build: app.build,
         specialization,
-        catalog: app.profession.catalog,
+        catalog: app.activeCatalog,
       },
       skill,
     ) !== false
@@ -35,7 +35,7 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
         build: app.build,
         specialization: spec,
         professionState: app.results?.endState?.profession,
-        catalog: app.profession.catalog,
+        catalog: app.activeCatalog,
       }),
     );
     return;
