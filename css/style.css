@@ -115,11 +115,6 @@ a.simulator-view-tab:focus-visible {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
 }
 
-.simulator-view-tab-disabled {
-  cursor: not-allowed;
-  opacity: 0.38;
-}
-
 body[data-profession] .home-link {
   display: none;
 }
@@ -8537,7 +8532,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   padding: 44px 28px 58px;
 }
 
-.landing-kicker,
 .landing-eyebrow {
   color: var(--accent);
   font-size: 11px;
@@ -8581,7 +8575,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 
 .profession-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -8611,7 +8605,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 
 .profession-card {
   --profession-accent: var(--accent);
-  position: relative;
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 14px;
@@ -8633,16 +8626,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
     transform 0.16s ease,
     border-color 0.16s ease,
     background 0.16s ease;
-}
-
-.profession-card::after {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 64px;
-  height: 2px;
-  background: var(--profession-accent);
-  content: "";
 }
 
 .profession-card:hover,

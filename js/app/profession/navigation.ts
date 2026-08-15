@@ -38,18 +38,6 @@ function createNavigationLink(
   return link;
 }
 
-function createDisabledNavigationItem(
-  root: Document,
-  label: string,
-): HTMLSpanElement {
-  const item = root.createElement("span");
-  item.className = "simulator-view-tab simulator-view-tab-disabled";
-  item.textContent = label;
-  item.setAttribute("aria-disabled", "true");
-  item.title = "Choose a profession first";
-  return item;
-}
-
 function mountAnalysisHeading(root: Document): void {
   const results = root.getElementById("rotation-results");
   if (!results || root.getElementById("analysis-view-title")) return;
@@ -75,7 +63,6 @@ function mountProfessionBrowser(root: Document, header: HTMLElement): void {
     <div class="profession-browser-heading">
       <p class="landing-eyebrow">Profession simulators</p>
       <h2 id="profession-browser-title">Choose a profession</h2>
-      <span>Your current workspace stays loaded until you open a different profession.</span>
     </div>
     <div class="profession-grid" data-profession-grid></div>
   `;
@@ -106,28 +93,12 @@ export function mountSimulatorNavigation(root: Document = document): void {
   const header = root.querySelector<HTMLElement>("#app > header");
   if (!body || !header || header.querySelector(".simulator-view-tabs")) return;
 
+  const professionId = body.dataset.profession;
+  if (!professionId) return;
+
   const navigation = root.createElement("nav");
   navigation.className = "simulator-view-tabs";
   navigation.setAttribute("aria-label", "Simulator sections");
-
-  const professionId = body.dataset.profession;
-
-  if (!professionId) {
-    const professionsLink = createNavigationLink(
-      root,
-      "Professions",
-      isEmbedded() ? embedRoute("index.html") : "index.html",
-    );
-    professionsLink.classList.add("simulator-view-tab-active");
-    professionsLink.setAttribute("aria-current", "page");
-    navigation.append(
-      professionsLink,
-      createDisabledNavigationItem(root, "Workspace"),
-      createDisabledNavigationItem(root, "Analysis"),
-    );
-    header.prepend(navigation);
-    return;
-  }
 
   const pathname = root.defaultView?.location.pathname || "index.html";
   header.querySelector(".profession-picker")?.remove();
