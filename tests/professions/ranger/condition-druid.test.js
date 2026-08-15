@@ -158,6 +158,8 @@ test("condition Druid weapon timings and packets match the supplied EVTC", () =>
       ["blind", 5, undefined],
     ],
   );
+  assert.equal(sunSpirit.effects[0].recipients, "party");
+  assert.equal(sunSpirit.effects[0].maximumRecipients, 5);
 });
 
 test("Ranger evade skills and dodges trigger Light on Your Feet", () => {
@@ -235,7 +237,7 @@ test("Light on Your Feet and Natural Balance add condition duration", () => {
         (event) => event.type === "buff" && event.kind === "natural-balance",
       )
       .map(({ duration }) => duration),
-    [10, 5],
+    [10, 10],
   );
 });
 
@@ -276,7 +278,20 @@ test("Jacaranda AI and Beast command expose the requested pulses", () => {
   );
 });
 
-test("Poison Master and Double Arc use player-scaled poison procs", () => {
+test("pet commands do not reserve the player cast lane", () => {
+  const result = simulate(["Poisonous Cloud", "Instinctive Engage"], {
+    selectedPet: "Carrion Devourer",
+  });
+  const command = result.steps.find(({ skill }) => skill === "Poisonous Cloud");
+  const playerSkill = result.steps.find(
+    ({ skill }) => skill === "Instinctive Engage",
+  );
+
+  assert.equal(command.start, 0);
+  assert.equal(playerSkill.start, 0);
+});
+
+test("Poison Master remains player-scaled and Poisonous Strikes inherits its attacker", () => {
   const poisonMaster = simulate(
     ["Jacaranda's Embrace", { type: "wait", durationMs: 4000 }],
     { selectedTraitIds: [TRAIT.POISON_MASTER] },
@@ -298,14 +313,25 @@ test("Poison Master and Double Arc use player-scaled poison procs", () => {
     "Double Arc",
     { type: "wait", durationMs: 8000 },
   ]);
+  const poisonousStrikeProcs = poisonousStrikes.resolvedEvents.filter(
+    (event) =>
+      event.type === "condition" &&
+      event.sourceId === ID.DOUBLE_ARC &&
+      event.skillName === "Poisonous Strikes",
+  );
+  assert.equal(poisonousStrikeProcs.length, 2);
   assert.equal(
-    poisonousStrikes.resolvedEvents.filter(
+    poisonousStrikes.events.find(
+      (event) => event.type === "ranger.poisonous-strikes",
+    ).duration,
+    10,
+  );
+  assert.equal(
+    poisonousStrikeProcs.every(
       (event) =>
-        event.type === "condition" &&
-        event.sourceId === ID.DOUBLE_ARC &&
-        event.skillName === "Poisonous Strikes",
-    ).length,
-    2,
+        event.actorType === "summon" && event.summonBaseConditionDamage != null,
+    ),
+    true,
   );
 });
 
@@ -354,6 +380,16 @@ test("Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon", (
       .reduce((total, event) => total + event.stacks, 0),
     6,
   );
+  const seed = simulate(["Celestial Avatar", "Seed of Life"], {
+    selectedTraitIds: [TRAIT.ECLIPSE],
+  }).resolvedEvents.find(
+    (event) =>
+      event.type === "condition" &&
+      event.sourceId === TRAIT.ECLIPSE &&
+      event.condition === "Poisoned",
+  );
+  assert.equal(seed.stacks, 3);
+  assert.equal(seed.duration, 8);
   assert.equal(
     result.resolvedEvents.filter(
       (event) =>
@@ -371,19 +407,28 @@ test("Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon", (
   assert.equal(naturalMender.endState.profession.astralForce, 16);
 
   const convergence = simulate(
-    ["Celestial Avatar", "Natural Convergence", "Release Celestial Avatar"],
+    [
+      "Celestial Avatar",
+      "Natural Convergence",
+      "Release Celestial Avatar",
+      { type: "wait", durationMs: 8000 },
+    ],
     { selectedTraitIds: [TRAIT.BLOOD_MOON] },
   );
   assert.deepEqual(
     convergence.resolvedEvents
       .filter(
         (event) =>
-          event.type === "condition" &&
-          event.sourceId === TRAIT.BLOOD_MOON &&
-          event.triggeredBy === "Natural Convergence",
+          event.type === "condition" && event.sourceId === TRAIT.BLOOD_MOON,
       )
-      .map(({ at }) => Math.round(at * 1000)),
-    [2640],
+      .map(({ at, triggeredBy }) => [Math.round(at * 1000), triggeredBy]),
+    [
+      [2640, "Natural Convergence"],
+      [2640, "Black Hole"],
+      [4160, "Black Hole"],
+      [5680, "Black Hole"],
+      [7200, "Black Hole"],
+    ],
   );
 
   const entangle = simulate(["Entangle", { type: "wait", durationMs: 8000 }], {
@@ -455,15 +500,30 @@ test("Astral Force follows landed direct damage and excludes pet damage", () => 
   const withoutEclipse = simulate([
     "Celestial Avatar",
     "Natural Convergence",
+    { type: "wait", durationMs: 8000 },
     "Release Celestial Avatar",
   ]);
   const withEclipse = simulate(
-    ["Celestial Avatar", "Natural Convergence", "Release Celestial Avatar"],
+    [
+      "Celestial Avatar",
+      "Natural Convergence",
+      { type: "wait", durationMs: 8000 },
+      "Release Celestial Avatar",
+    ],
     { selectedTraitIds: [TRAIT.ECLIPSE] },
   );
   assert.equal(
     withEclipse.endState.profession.astralForce,
     withoutEclipse.endState.profession.astralForce,
+  );
+
+  const eclipseDamage = simulate(["Viper's Nest", "Celestial Avatar"], {
+    initialAstralForce: 97,
+    selectedTraitIds: [TRAIT.ECLIPSE],
+  });
+  assert.equal(
+    eclipseDamage.steps.find(({ skill }) => skill === "Celestial Avatar").start,
+    500,
   );
 });
 
@@ -592,10 +652,25 @@ test("condition-alacrity Druid preset preserves the requested loadout", async ()
     .find(({ section }) => section === "Druid")
     .presets.find(({ label }) => label.startsWith("Condition Alacrity"));
   assert.equal(preset.benchmarkDps, Math.round(result.dps));
-  assert.equal(
-    result.breakdown.some(({ name }) => name === "Call Lightning"),
-    true,
-  );
+  const jacarandaBreakdownIcons = [
+    [
+      ID.JACARANDA_ROOT_SLAP,
+      "Root Slap",
+      "https://wiki.guildwars2.com/images/7/7d/Root_Slap.png",
+    ],
+    [
+      ID.JACARANDA_CALL_LIGHTNING,
+      "Call Lightning",
+      "https://wiki.guildwars2.com/images/f/f0/Call_Lightning_%28soulbeast%29.png",
+    ],
+  ];
+  for (const [skillId, name, icon] of jacarandaBreakdownIcons) {
+    assert.equal(rangerCatalog.skillsById.get(skillId).icon, icon);
+    assert.equal(
+      result.breakdown.find((entry) => entry.name === name)?.icon,
+      icon,
+    );
+  }
   assert.equal(
     result.breakdown.some(({ name }) => name === "Blood Moon - Bleeding"),
     true,

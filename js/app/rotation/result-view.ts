@@ -42,7 +42,10 @@ export function renderResults(app: ProfessionAppState): void {
   if (!element) return;
   const result = app.results;
   if (!app.build.rotation.length || !result) {
-    element.innerHTML = "";
+    element.innerHTML = `<div class="analysis-empty-state">
+      <strong>No analysis yet</strong>
+      <span>Add skills to the rotation in the <a href="#workspace">Workspace</a> to generate results.</span>
+    </div>`;
     return;
   }
   const metrics = resultSummaryMetrics(result).map((metric) =>

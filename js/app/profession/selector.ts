@@ -11,6 +11,7 @@
 import { embedRoute, isEmbedded } from "../embed.js";
 import { mountRotationTimelineSize } from "../../platform/ui/rotation-timeline-size.js";
 import { mountRotationWorkspace } from "../../platform/ui/rotation-workspace.js";
+import { mountSimulatorNavigation } from "./navigation.js";
 import {
   getProfessionEntry,
   professionGroups,
@@ -171,7 +172,13 @@ function renderProfessionGroupCards(
   for (const entry of entries) {
     const card = root.createElement("a");
     card.className = `profession-card profession-card-${entry.id}`;
-    card.href = isEmbedded() ? embedRoute(entry.route) : entry.route;
+    const isCurrentProfession = root.body?.dataset.profession === entry.id;
+    card.href = isCurrentProfession
+      ? "#workspace"
+      : isEmbedded()
+        ? embedRoute(entry.route)
+        : entry.route;
+    card.classList.toggle("profession-card-current", isCurrentProfession);
 
     const mark = root.createElement("span");
     mark.className = "profession-mark";
@@ -220,7 +227,9 @@ function renderProfessionGroupCards(
 
     const action = root.createElement("span");
     action.className = "profession-card-action";
-    action.textContent = "Open simulator →";
+    action.textContent = isCurrentProfession
+      ? "Return to workspace →"
+      : "Open simulator →";
     card.append(mark, copy, action);
     grid.append(card);
   }
@@ -237,6 +246,7 @@ export function bindProfessionSelector(root: Document = document): void {
   mountRotationWorkspace(root);
   mountRotationTimelineSize(root);
   mountCommunityActions(root);
+  mountSimulatorNavigation(root);
   mountStickyProfessionHeader(root);
   const select = root.getElementById(
     "profession-select",

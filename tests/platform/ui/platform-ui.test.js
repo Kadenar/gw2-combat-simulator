@@ -667,11 +667,16 @@ test("shared results render summaries, totals, contributions, and icons", () => 
   assert.match(container.innerHTML, /contrib-status/);
   assert.match(container.innerHTML, /Recalculating/);
   assert.match(container.innerHTML, /Simulation RNG distribution/);
+  assert.match(
+    container.innerHTML,
+    /Always available for the current rotation/,
+  );
+  assert.match(container.innerHTML, /Run again/);
   assert.match(container.innerHTML, /500 outcomes per run/);
-  assert.match(container.innerHTML, /Very unlucky/);
-  assert.match(container.innerHTML, /P1 DPS/);
-  assert.match(container.innerHTML, /Very lucky/);
-  assert.match(container.innerHTML, /P99 DPS/);
+  assert.match(container.innerHTML, /Rare low outcome/);
+  assert.match(container.innerHTML, /About 1 in 100 runs are lower/);
+  assert.match(container.innerHTML, /Rare high outcome/);
+  assert.match(container.innerHTML, /About 1 in 100 runs are higher/);
   assert.match(container.innerHTML, /1,100&ndash;1,350/);
   assert.match(
     container.innerHTML,

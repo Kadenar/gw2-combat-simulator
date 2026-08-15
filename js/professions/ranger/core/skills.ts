@@ -585,6 +585,8 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         boon: "might",
         duration: 15,
         stacks: 8,
+        recipients: "party",
+        maximumRecipients: 5,
       },
       {
         type: "blind",

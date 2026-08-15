@@ -283,9 +283,8 @@ test("RNG trials partition across available worker cores without changing seeds"
   assert.deepEqual(partitionRandomDistributionTrials(0, 3), []);
 });
 
-test("distribution mode keeps detailed Engineer results stable and samples separately", () => {
+test("RNG analysis is available while detailed Engineer results stay deterministic", () => {
   const build = createEngineerBuildDefaults();
-  build.assumptions.simulationMode = "stochastic";
   build.rotation = ["Grenade Kit", "Grenade"];
   const app = {
     adapter: engineerAppAdapter,

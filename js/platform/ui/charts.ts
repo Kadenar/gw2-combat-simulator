@@ -264,7 +264,12 @@ const DEFAULT_OPTIONS: ChartOptions = {
   healthBreakpoints: [],
   healthBreakpointColor: "#e1c070",
 };
-const ACTIVE_MOUNTS = new WeakMap<HTMLElement, object>();
+interface ActiveChartMount {
+  readonly token: object;
+  resizeObserver?: ResizeObserver;
+}
+
+const ACTIVE_MOUNTS = new WeakMap<HTMLElement, ActiveChartMount>();
 
 const chartNumber = (value: unknown): string => {
   const number = Number(value || 0);
@@ -472,17 +477,18 @@ function drawLineChart(
 ): ChartLayout | null {
   if (!canvas?.getContext) return null;
   const cssWidth = Math.max(
-    360,
+    1,
     Math.floor(
       canvas.parentElement?.clientWidth ||
         canvas.closest?.(".chart-wrap")?.clientWidth ||
         760,
     ),
   );
-  const dpr = globalThis.window?.devicePixelRatio || 1;
+  const dpr = Math.max(1, Number(globalThis.window?.devicePixelRatio) || 1);
   // Separate backing-store pixels from CSS dimensions for sharp HiDPI lines.
   canvas.width = Math.round(cssWidth * dpr);
   canvas.height = Math.round(height * dpr);
+  canvas.style.width = `${cssWidth}px`;
   canvas.style.height = `${height}px`;
   const context = canvas.getContext("2d");
   if (!context) return null;
@@ -669,8 +675,10 @@ export function mountTimeSeriesCharts(
 ): { redraw: () => void } | null {
   if (!container) return null;
   // A token makes a queued animation-frame redraw from an older mount harmless.
+  ACTIVE_MOUNTS.get(container)?.resizeObserver?.disconnect();
   const mountToken = {};
-  ACTIVE_MOUNTS.set(container, mountToken);
+  const activeMount: ActiveChartMount = { token: mountToken };
+  ACTIVE_MOUNTS.set(container, activeMount);
   const resolvedDps = series?.dps || [];
   const resolvedSeries: ChartSeries = {
     durationMs: Math.max(1, Number(series?.durationMs || 0)),
@@ -717,7 +725,7 @@ export function mountTimeSeriesCharts(
   const effectEntries = Object.entries(resolvedSeries.effects);
 
   const redraw = (): void => {
-    if (ACTIVE_MOUNTS.get(container) !== mountToken) return;
+    if (ACTIVE_MOUNTS.get(container)?.token !== mountToken) return;
     const selected = new Set(
       [
         ...container.querySelectorAll<HTMLInputElement>(
@@ -884,6 +892,45 @@ export function mountTimeSeriesCharts(
   bindHover("dps-canvas", "dps-tooltip", "dps");
   bindHover("effects-canvas", "effects-tooltip", "effects");
   redraw();
-  globalThis.requestAnimationFrame?.(redraw);
+
+  let redrawFrame: number | null = null;
+  const requestRedraw = (): void => {
+    if (
+      redrawFrame !== null ||
+      ACTIVE_MOUNTS.get(container)?.token !== mountToken
+    ) {
+      return;
+    }
+    const requestFrame =
+      container.ownerDocument?.defaultView?.requestAnimationFrame?.bind(
+        container.ownerDocument.defaultView,
+      ) || globalThis.requestAnimationFrame;
+    if (!requestFrame) {
+      redraw();
+      return;
+    }
+    redrawFrame = requestFrame(() => {
+      redrawFrame = null;
+      redraw();
+    });
+  };
+
+  const observedCanvas = container.querySelector<HTMLCanvasElement>(
+    '[data-role="dps-canvas"]',
+  );
+  const observedContainer = observedCanvas?.parentElement;
+  const ResizeObserverConstructor =
+    container.ownerDocument?.defaultView?.ResizeObserver ||
+    globalThis.ResizeObserver;
+  if (ResizeObserverConstructor && observedContainer) {
+    activeMount.resizeObserver = new ResizeObserverConstructor(() => {
+      const visibleWidth = Math.floor(observedContainer.clientWidth);
+      if (visibleWidth > 0 && visibleWidth !== chartState.dpsLayout?.cssWidth) {
+        requestRedraw();
+      }
+    });
+    activeMount.resizeObserver.observe(observedContainer);
+  }
+  requestRedraw();
   return { redraw };
 }

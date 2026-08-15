@@ -100,7 +100,7 @@ export function leaveAvatar(
   delete professionCoreState(context).availableFlips[
     ID.RELEASE_CELESTIAL_AVATAR
   ];
-  applyNaturalBalance(context, 5, at);
+  applyNaturalBalance(context, 10, at);
   const skill =
     transitionSkill ||
     (context.catalog.skillsById.get(ID.RELEASE_CELESTIAL_AVATAR) as
@@ -202,6 +202,7 @@ export function handleDruidAstralForceDamageTask(
   if (state.celestialAvatarActive) return;
   state.astralForce = Math.min(
     state.maximumAstralForce,
-    state.astralForce + DIRECT_DAMAGE_FORCE,
+    state.astralForce +
+      DIRECT_DAMAGE_FORCE * (hasDruidTrait(context, TRAIT.ECLIPSE) ? 2 : 1),
   );
 }

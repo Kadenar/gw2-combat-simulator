@@ -6,7 +6,7 @@
         "label": "Condition Alacrity (Dagger-Torch / Axe-Dagger)",
         "build": "Builds/ranger/b-condi-alac-druid-dagger-torch-axe-dagger.json",
         "rotation": "Rotations/ranger/r-condi-alac-druid-dagger-torch-axe-dagger-bench.json",
-        "benchmarkDps": 24883,
+        "benchmarkDps": 39313,
         "upToDate": true
       }
     ]

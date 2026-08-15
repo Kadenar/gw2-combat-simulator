@@ -1,5 +1,6 @@
 import { escapeHtml as esc } from "../../platform/ui/html.js";
 import { assumptionControlsForSpecialization } from "../profession/assumptions.js";
+import { isSimulationRandomnessControl } from "../simulation/randomness.js";
 import {
   normalizeTargetArmor,
   option,
@@ -223,7 +224,11 @@ export function renderAssumptions(app: ProfessionAppState): void {
     .map(professionAssumptionItem)
     .join("");
   const simulationAssumptionItems = assumptionControls
-    .filter((control) => control.section === "simulation")
+    .filter(
+      (control) =>
+        control.section === "simulation" &&
+        !isSimulationRandomnessControl(control),
+    )
     .map(professionAssumptionItem)
     .join("");
   const customAssumptionSections = new Map<

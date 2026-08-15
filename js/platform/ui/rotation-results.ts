@@ -436,6 +436,12 @@ export function mountRotationResults(
     ),
   );
   const randomDistributionError = String(model.randomDistributionError || "");
+  const randomDistributionAction =
+    !randomDistributionStale && (randomDistribution || randomDistributionError)
+      ? `<button type="button" class="rng-run-button" data-role="rng-run">
+          ${randomDistributionError ? "Retry" : "Run again"}
+        </button>`
+      : "";
   const chartSeries = model.chartSeries || null;
   let sortState: ResultSortState = {
     column: options.sortState?.column || null,
@@ -495,13 +501,16 @@ export function mountRotationResults(
     <div class="rng-distribution-heading">
       <div>
         <h4>Simulation RNG distribution</h4>
-        <p>Use Expected for planning. P1 and P99 show rare unlucky and lucky outcomes. Other result panels use the deterministic baseline.</p>
+        <p>Always available for the current rotation. Expected is the planning baseline; the low and high estimates show rare outcomes at either end.</p>
       </div>
-      ${
-        randomDistributionTrials
-          ? `<span>${number(randomDistributionTrials)} outcomes per run</span>`
-          : ""
-      }
+      <div class="rng-distribution-heading-actions">
+        ${
+          randomDistributionTrials
+            ? `<span>${number(randomDistributionTrials)} outcomes per run</span>`
+            : ""
+        }
+        ${randomDistributionAction}
+      </div>
     </div>
     ${
       randomDistributionStale
@@ -541,20 +550,20 @@ export function mountRotationResults(
               <small>P10&ndash;P90 DPS</small>
             </div>
             <div class="rng-distribution-stat rng-unlucky">
-              <span>Very unlucky</span>
+              <span>Rare low outcome</span>
               <strong>${number(randomDistribution.p01)}</strong>
-              <small>P1 DPS</small>
+              <small>About 1 in 100 runs are lower</small>
             </div>
             <div class="rng-distribution-stat rng-lucky">
-              <span>Very lucky</span>
+              <span>Rare high outcome</span>
               <strong>${number(randomDistribution.p99)}</strong>
-              <small>P99 DPS</small>
+              <small>About 1 in 100 runs are higher</small>
             </div>
           </div>
           ${randomDistributionExplanationHtml(randomDistribution)}`
             : `<div class="rng-distribution-manual">
               <span>Run the distribution when the rotation is ready.</span>
-              <button type="button" data-role="rng-run">
+              <button type="button" class="rng-run-button" data-role="rng-run">
                 Run ${number(randomDistributionTrials)} outcomes
               </button>
             </div>`
