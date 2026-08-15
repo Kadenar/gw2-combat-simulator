@@ -796,7 +796,10 @@ export function createScheduler<
         ),
       );
     }
-    if (reservedUntil > at + epsilon) {
+    if (
+      reservedUntil > at + epsilon &&
+      skill.independentCastCanOverlap !== true
+    ) {
       result.push(
         unavailable(
           `${skill.name} is already being cast until ${reservedUntil.toFixed(3)}.`,
@@ -939,6 +942,8 @@ export function createScheduler<
       return false;
     }
     const independent = skill.independentCast === true;
+    const overlappingIndependent =
+      independent && skill.independentCastCanOverlap === true;
     const stunbreak = skill.stunbreak === true;
     // Instant-cast skills (Berserk, signets, most profession keys) are not held
     // by a self-stun; only skills that occupy the cast bar are. A stunbreak also
@@ -949,7 +954,9 @@ export function createScheduler<
     let start = concurrent
       ? previousCastStart + Number(command.concurrentOffsetMs) / 1000
       : independent
-        ? Math.max(state.time, independentReadyAt)
+        ? overlappingIndependent
+          ? state.time
+          : Math.max(state.time, independentReadyAt)
         : bypassesSelfStun
           ? Math.max(state.time, serialReadyAt, latestBlockingEnd)
           : Math.max(
@@ -1198,7 +1205,9 @@ export function createScheduler<
     });
     latestReservedEnd = Math.max(latestReservedEnd, castLockoutEnd);
     if (independent) {
-      independentReadyAt = Math.max(independentReadyAt, castLockoutEnd);
+      if (!overlappingIndependent) {
+        independentReadyAt = Math.max(independentReadyAt, castLockoutEnd);
+      }
     } else {
       previousCastStart = start;
       hasPreviousCast = true;

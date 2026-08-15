@@ -6,7 +6,7 @@
         "label": "Condition Alacrity (Dagger-Torch / Axe-Dagger)",
         "build": "Builds/ranger/b-condi-alac-druid-dagger-torch-axe-dagger.json",
         "rotation": "Rotations/ranger/r-condi-alac-druid-dagger-torch-axe-dagger-bench.json",
-        "benchmarkDps": 29646,
+        "benchmarkDps": 24883,
         "upToDate": true
       }
     ]
@@ -38,7 +38,7 @@
         "label": "Power (Hammer / Sword-Axe)",
         "build": "Builds/ranger/b-power-untamed-hammer-sword-axe.json",
         "rotation": "Rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json",
-        "benchmarkDps": 44776,
+        "benchmarkDps": 45401,
         "upToDate": true
       }
     ]
@@ -50,7 +50,7 @@
         "label": "Power (Longbow / Axe-Axe)",
         "build": "Builds/ranger/b-power-galeshot-longbow-axe.json",
         "rotation": "Rotations/ranger/r-power-galeshot-longbow-axe-bench.json",
-        "benchmarkDps": 42295,
+        "benchmarkDps": 42296,
         "upToDate": true
       },
       {

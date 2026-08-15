@@ -61,7 +61,6 @@
     "swiftness": true,
     "vigor": true,
     "aegis": false,
-    "astralForceHealingEventsPerSecond": 2,
     "targetMoving": false,
     "targetBoonless": true,
     "targetConditions": {

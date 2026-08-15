@@ -3,6 +3,7 @@ import {
   professionCoreState,
 } from "../../../platform/engine/profession.js";
 import { replaceSkill } from "../../../platform/gw2/native-profession.js";
+import { RANGER_SKILL_IDS as ID } from "../data/ids.js";
 import type { RangerCastContext, RangerSkill } from "../types.js";
 import {
   applyRangerDodgeTraits,
@@ -123,6 +124,25 @@ export const rangerCoreSkillHandlers = Object.freeze({
         skillName: skill.name,
         charges: 10,
         duration: 30,
+      });
+    },
+  },
+  "ranger.sun-spirit": {
+    mode: "augment" as const,
+    afterEffects(context: RangerCastContext, skill: RangerSkill) {
+      context.emit({
+        type: "condition",
+        at: context.effectiveEnd,
+        source: "ranger",
+        sourceId: ID.SOLAR_FLARE,
+        actorType: "player",
+        skillId: ID.SOLAR_FLARE,
+        skillName: "Solar Flare",
+        name: "Solar Flare - Burning",
+        condition: "Burning",
+        stacks: 3,
+        duration: 6,
+        triggeredBy: skill.name,
       });
     },
   },

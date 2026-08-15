@@ -1,4 +1,7 @@
-import type { AvailabilityResult } from "../../../../platform/engine/types.js";
+import type {
+  AvailabilityResult,
+  SimulationEvent,
+} from "../../../../platform/engine/types.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { gw2StatsForWeaponSet } from "../../../../platform/gw2/runtime-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
@@ -13,13 +16,16 @@ import {
 import type {
   RangerCastContext,
   RangerPrecastContext,
+  RangerSchedulerContext,
   RangerSkill,
 } from "../../types.js";
 import { druidState } from "./state.js";
 import {
   advanceDruidState,
   astralForceReadyAt,
-  generateAstralForce,
+  DRUID_ASTRAL_FORCE_DAMAGE_TASK,
+  handleDruidAstralForceDamageTask,
+  observeDruidAstralForceEvent,
 } from "./mechanics.js";
 
 function druidBoonDuration(
@@ -64,6 +70,7 @@ function emitEclipseCondition(
   at: number,
   condition: string,
   duration: number,
+  stacks = 1,
 ): void {
   context.emit({
     type: "condition",
@@ -76,7 +83,7 @@ function emitEclipseCondition(
     name: `Eclipse - ${condition}`,
     condition,
     duration,
-    stacks: 1,
+    stacks,
     triggeredBy: skill.name,
   });
 }
@@ -86,7 +93,7 @@ export function applyCelestialAvatarTraits(
   skill: RangerSkill,
 ): void {
   const pulses =
-    skill.id === ID.NATURAL_CONVERGENCE ? [0, 500, 1000, 1500] : [0];
+    skill.id === ID.NATURAL_CONVERGENCE ? [520, 1160, 1640, 2040] : [0];
   if (hasTrait(context, TRAIT.GRACE_OF_THE_LAND)) {
     for (const atMs of pulses) {
       emitGraceOfTheLand(context, skill, context.start + atMs / 1000);
@@ -113,13 +120,14 @@ export function applyCelestialAvatarTraits(
       emitEclipseCondition(context, skill, context.start, "Chilled", 2);
       break;
     case ID.NATURAL_CONVERGENCE:
-      for (const atMs of pulses) {
+      for (const [index, atMs] of pulses.entries()) {
         emitEclipseCondition(
           context,
           skill,
           context.start + atMs / 1000,
           "Burning",
           5,
+          index === pulses.length - 1 ? 3 : 1,
         );
       }
       break;
@@ -146,16 +154,17 @@ export const druidModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     amount: 0.05,
     when: naturalBalanceActive,
   },
+  {
+    id: "ranger.natural-balance-condition-duration",
+    target: MODIFIER_TARGET.CONDITION_DURATION,
+    operation: "add",
+    amount: 0.1,
+    when: naturalBalanceActive,
+  },
 ]);
 
 export const druidAttributeRules = Object.freeze({
   modifierRules: druidModifierRules,
-  modifyConditionBaseDuration(
-    context: Gw2ModifierContext,
-    duration: number,
-  ): number {
-    return naturalBalanceActive(context) ? duration * 1.1 : duration;
-  },
 });
 
 export const druidSchedulerHooks = Object.freeze({
@@ -164,10 +173,15 @@ export const druidSchedulerHooks = Object.freeze({
     order: 20,
     handler: advanceDruidState,
   },
-  afterCast: {
-    id: "ranger.astral-force",
+  onEventScheduled: {
+    id: "ranger.druid-astral-force-events",
     order: 20,
-    handler: generateAstralForce,
+    handler(context: RangerSchedulerContext, event: SimulationEvent): void {
+      observeDruidAstralForceEvent(context, event);
+    },
+  },
+  taskHandlers: {
+    [DRUID_ASTRAL_FORCE_DAMAGE_TASK]: handleDruidAstralForceDamageTask,
   },
 });
 

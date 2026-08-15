@@ -170,6 +170,8 @@ interface PetAutoEffectTaskPayload extends PetAutoTaskPayload {
 
 interface PetCommandStartTaskPayload extends PetAutoTaskPayload {
   readonly busyUntil: number;
+  readonly skillId: SkillId;
+  readonly provisionalCooldownReadyAt: number;
 }
 
 const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> =
@@ -301,8 +303,7 @@ function emitAutonomousSkill(
   recovery: number,
 ): void {
   const skill = context.catalog.skillsById.get(skillId) as
-    | RangerSkill
-    | undefined;
+    RangerSkill | undefined;
   if (!skill) return;
   const activationId = context.createActivationId("summon-attack");
   const fullEnd = at + recovery;
@@ -504,6 +505,7 @@ export function beginRangerPetCommand(
     context.start,
     state.petAutoBusyUntil,
     state.petCommandReadyAt,
+    Number(state.petCommandCooldowns[String(skill.id)] || 0),
     scheduledOpeningEnd,
   );
   const delay = actualStart - context.start;
@@ -512,12 +514,16 @@ export function beginRangerPetCommand(
       Math.max(0, context.effectiveEnd - context.start),
   );
   const busyUntil = actualStart + recovery;
+  const provisionalCooldownReadyAt =
+    actualStart + context.rechargeDurationFor(skill, actualStart);
   state.petCommandReadyAt = busyUntil;
+  state.petCommandCooldowns[String(skill.id)] = provisionalCooldownReadyAt;
   state.petCommandDelays[context.reservationId] = delay;
   context.replaceEvent(context.action, {
     at: actualStart,
     endsAt: context.effectiveEnd + delay,
     fullEndsAt: context.fullEnd + delay,
+    rechargeReadyAt: provisionalCooldownReadyAt,
     source: "ranger-pet",
     actorType: "summon",
     icon: skill.icon,
@@ -530,6 +536,8 @@ export function beginRangerPetCommand(
     payload: {
       generation: state.petAutoGeneration,
       busyUntil,
+      skillId: skill.id,
+      provisionalCooldownReadyAt,
     },
   });
 }
@@ -539,13 +547,27 @@ export function handleRangerPetCommandStartTask(
   task: ScheduledTask<PetCommandStartTaskPayload>,
 ): void {
   const state = professionCoreState(context);
-  if (Number(task.payload?.generation) !== state.petAutoGeneration) return;
+  const payload = task.payload;
+  if (!payload || Number(payload.generation) !== state.petAutoGeneration)
+    return;
+  const skill = context.catalog.skillsById.get(payload.skillId) as
+    RangerSkill | undefined;
+  if (skill) {
+    const key = String(skill.id);
+    const provisional = Number(payload.provisionalCooldownReadyAt || 0);
+    if (Number(state.petCommandCooldowns[key] || 0) <= provisional) {
+      const readyAt =
+        task.at + context.rechargeDurationFor(skill, task.at, { skill });
+      state.petCommandCooldowns[key] = readyAt;
+      context.state.cooldowns.set(skill.id, readyAt);
+    }
+  }
   if (state.petAutoTaskId) context.tasks.cancel(state.petAutoTaskId);
   state.petAutoTaskId = "";
   state.petAutoNextAt = 0;
   state.petAutoBusyUntil = Math.max(
     state.petAutoBusyUntil,
-    Number(task.payload?.busyUntil || task.at),
+    Number(payload.busyUntil || task.at),
   );
   schedulePetAuto(context, state.petAutoBusyUntil);
 }

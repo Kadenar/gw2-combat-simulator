@@ -272,6 +272,8 @@ export interface Skill extends CatalogSkill {
    * another but do not reserve or delay the player's ordinary cast lane.
    */
   readonly independentCast?: boolean;
+  /** Independent commands may overlap engine reservations and queue externally. */
+  readonly independentCastCanOverlap?: boolean;
   /** Whether an instant skill may be scheduled during another cast. */
   readonly canCastConcurrently?: boolean;
   readonly lockouts?: readonly SkillLockout[];
@@ -300,6 +302,8 @@ export interface Skill extends CatalogSkill {
    * immediately instead of waiting out the stun.
    */
   readonly stunbreak?: boolean;
+  /** The skill itself grants an evade window to its actor. */
+  readonly evades?: boolean;
   readonly ammo?: number;
   readonly ammoRecharge?: number;
   /** Minimum delay between consecutive casts of an ammo skill, in seconds. */

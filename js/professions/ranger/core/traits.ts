@@ -148,6 +148,7 @@ export function completeRangerTraits(
   skill: RangerSkill,
 ): void {
   const state = professionCoreState(context);
+  if (skill.evades) applyRangerDodgeTraits(context);
   if (
     skill.type === "Weapon" &&
     skill.slot !== "Weapon_1" &&

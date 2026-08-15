@@ -7,6 +7,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
 > = Object.freeze({
   [ID.WHIRLWIND]: {
     implemented: true,
+    evades: true,
     effects: [],
     quicknessCastTimeMs: 500,
   },
@@ -161,6 +162,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FLEETING_ZEPHYR]: {
     implemented: true,
+    evades: true,
     effects: [
       {
         type: "strike",
