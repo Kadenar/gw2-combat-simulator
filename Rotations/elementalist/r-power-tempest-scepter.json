@@ -17,6 +17,10 @@
       "offset": 1
     },
     "Ring of Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Phoenix",
     "Fire Grab",
     "Dragon's Tooth",
@@ -71,6 +75,10 @@
       "name": "Arc Lightning",
       "interruptMs": 2324
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 1934
+    },
     "Overload Air",
     {
       "name": "Lightning Strike",
@@ -115,6 +123,10 @@
       "interruptMs": 84
     },
     "Dust Devil",
+    {
+      "name": "Flame Barrage",
+      "offset": 4
+    },
     "Earthquake",
     {
       "name": "Air Attunement",
@@ -136,7 +148,7 @@
     "Overload Air",
     {
       "name": "Lightning Strike",
-      "offset": 134
+      "offset": 360
     },
     {
       "name": "Fire Attunement",
@@ -162,6 +174,10 @@
     {
       "name": "Arc Lightning",
       "interruptMs": 2474
+    },
+    {
+      "name": "Flame Barrage",
+      "offset": 2047
     },
     "Overload Air",
     {
@@ -202,6 +218,10 @@
     },
     "Ring of Fire",
     "Phoenix",
+    {
+      "name": "Flame Barrage",
+      "offset": 96
+    },
     "Fire Grab",
     "Dragon's Tooth",
     {
@@ -258,6 +278,10 @@
       "name": "Arc Lightning",
       "interruptMs": 1323
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 982
+    },
     "Overload Air",
     {
       "name": "Lightning Strike",
@@ -294,8 +318,12 @@
       "offset": 84
     },
     {
+      "name": "Flame Barrage",
+      "offset": 3033
+    },
+    {
       "name": "Earth Attunement",
-      "offset": 3130
+      "offset": 97
     },
     {
       "name": "Stone Shards",
@@ -358,6 +386,10 @@
       "name": "Arc Lightning",
       "interruptMs": 2509
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 1828
+    },
     "Overload Air",
     {
       "name": "Lightning Strike",
@@ -389,7 +421,7 @@
     "Overload Air",
     {
       "name": "Lightning Strike",
-      "offset": 234
+      "offset": 360
     },
     {
       "name": "Fire Attunement",
@@ -400,6 +432,10 @@
       "interruptMs": 34
     },
     "Ring of Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 299
+    },
     "Phoenix",
     "Fire Grab",
     "Dragon's Tooth",

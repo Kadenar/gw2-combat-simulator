@@ -251,11 +251,21 @@ test("all Elementalist build and rotation assets migrate through the native code
       `${preset.section}: ${preset.label}: ${validation.errors.join("; ")}`,
     );
     assert.equal(build.rotation.length, savedRotation.rotation.length);
+    assert.equal(
+      Object.hasOwn(savedBuild.assumptions, "elementalSimulationProfile"),
+      false,
+      `${preset.section}: ${preset.label}: retired elemental profile`,
+    );
+    assert.equal(
+      Object.hasOwn(savedBuild.assumptions, "glyphBoonedElementals"),
+      false,
+      `${preset.section}: ${preset.label}: retired elemental boon flag`,
+    );
     if (equipsGlyphOfElementals) {
       assert.equal(
-        savedBuild.assumptions.elementalSimulationProfile,
-        prescribesFlameBarrage ? "evtc" : "reference",
-        `${preset.section}: ${preset.label}: elemental packet profile`,
+        prescribesFlameBarrage,
+        true,
+        `${preset.section}: ${preset.label}: Flame Barrage rotation command`,
       );
     }
     assert.ok(

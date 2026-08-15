@@ -14,6 +14,10 @@
     "Glyph of Elementals",
     "Rejuvenate",
     {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
+    {
       "name": "Ignite",
       "offset": 400
     },
@@ -76,6 +80,10 @@
       "interruptMs": 84
     },
     "Dazing Discharge",
+    {
+      "name": "Flame Barrage",
+      "offset": 396
+    },
     "Signet of Fire",
     {
       "name": "Fire Attunement",
@@ -159,6 +167,10 @@
     },
     "Raging Ricochet",
     "Signet of Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 221
+    },
     "Ring of Fire",
     {
       "name": "Earth Attunement",
@@ -225,8 +237,12 @@
     },
     "Boulder Blast",
     {
+      "name": "Flame Barrage",
+      "offset": 68
+    },
+    {
       "name": "Ignite",
-      "offset": 283
+      "offset": 215
     },
     "Shattering Stone",
     "Earthquake",
@@ -265,7 +281,7 @@
     "Signet of Earth",
     {
       "name": "Air Attunement",
-      "offset": 83
+      "offset": 126
     },
     "Ride the Lightning",
     {
@@ -307,6 +323,10 @@
       "offset": 358
     },
     "Raging Ricochet",
+    {
+      "name": "Flame Barrage",
+      "offset": 188
+    },
     "Water Attunement",
     "Frozen Fusillade",
     {
@@ -316,7 +336,7 @@
     "Frigid Flurry",
     {
       "name": "Fire Attunement",
-      "offset": 644
+      "offset": 680
     },
     "Elemental Explosion",
     "Searing Salvo",
@@ -378,6 +398,10 @@
     },
     "Fire Attunement",
     "Scorching Shot",
+    {
+      "name": "Flame Barrage",
+      "offset": 429
+    },
     "Searing Salvo",
     {
       "name": "Ignite",
@@ -392,7 +416,7 @@
     "Dazing Discharge",
     {
       "name": "Fire Attunement",
-      "offset": 434
+      "offset": 560
     },
     "Scorching Shot",
     {
@@ -453,8 +477,12 @@
     "Searing Salvo",
     "Fire Grab",
     {
+      "name": "Flame Barrage",
+      "offset": 222
+    },
+    {
       "name": "Air Attunement",
-      "offset": 275
+      "offset": 53
     },
     {
       "name": "Electric Exposure",
@@ -539,6 +567,10 @@
       "offset": 117
     },
     "Raging Ricochet",
+    {
+      "name": "Flame Barrage",
+      "offset": 242
+    },
     "Rejuvenate",
     "Scorching Shot",
     {
@@ -569,7 +601,7 @@
     "Frigid Flurry",
     {
       "name": "Fire Attunement",
-      "offset": 476
+      "offset": 680
     },
     "Conflagration",
     "Elemental Explosion",

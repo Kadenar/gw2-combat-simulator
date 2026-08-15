@@ -7,6 +7,10 @@
     },
     "Glyph of Elementals",
     "Flamewall",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Signet of Fire",
     {
       "name": "Cleansing Fire",
@@ -69,6 +73,10 @@
     "Flamestrike",
     "Phoenix",
     "Dragon's Tooth",
+    {
+      "name": "Flame Barrage",
+      "offset": 147
+    },
     "Conflagration",
     "Signet of Fire",
     "Flamestrike",
@@ -122,6 +130,10 @@
     },
     "Flamewall",
     "Signet of Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 264
+    },
     "Flamestrike",
     {
       "name": "Ignite",
@@ -177,10 +189,14 @@
     "Conflagration",
     {
       "name": "Cleansing Fire",
-      "offset": 242
+      "offset": 360
     },
     "Signet of Fire",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 107
+    },
     "Phoenix",
     "Flamestrike",
     "Flamestrike",
@@ -235,6 +251,10 @@
     "Fire Shield",
     "Phoenix",
     "Transmute Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 183
+    },
     "Ignite",
     {
       "name": "Flamestrike",
@@ -248,7 +268,7 @@
     "Flamestrike",
     {
       "name": "Cleansing Fire",
-      "offset": 204
+      "offset": 238
     },
     "Phoenix",
     "Flamestrike",
@@ -281,6 +301,10 @@
     "Signet of Fire",
     "Flamestrike",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 545
+    },
     "Flamestrike",
     "Dragon's Tooth",
     {
@@ -344,6 +368,10 @@
       "offset": 159
     },
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 66
+    },
     "Phoenix",
     "Dragon's Tooth",
     "Conflagration",
@@ -382,9 +410,13 @@
     "Phoenix",
     {
       "name": "Cleansing Fire",
-      "offset": 467
+      "offset": 483
     },
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 423
+    },
     "Dragon's Tooth",
     {
       "name": "Ignite",

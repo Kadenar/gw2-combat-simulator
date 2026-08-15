@@ -2,6 +2,10 @@
   "rotation": [
     "Glyph of Elementals",
     "Wildfire",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Dragon's Tooth",
     "Signet of Fire",
     "Overload Fire",
@@ -40,6 +44,10 @@
       "offset": 117
     },
     "Sand Squall",
+    {
+      "name": "Flame Barrage",
+      "offset": 460
+    },
     "Signet of Fire",
     "Stone Shards",
     {
@@ -81,6 +89,10 @@
     "Flamestrike",
     "Flamestrike",
     {
+      "name": "Flame Barrage",
+      "offset": 16
+    },
+    {
       "name": "Flamestrike",
       "interruptMs": 150
     },
@@ -121,6 +133,10 @@
     {
       "name": "Hurl",
       "offset": 84
+    },
+    {
+      "name": "Flame Barrage",
+      "offset": 252
     },
     "Signet of Fire",
     "Stone Shards",

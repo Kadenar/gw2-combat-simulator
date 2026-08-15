@@ -8,6 +8,10 @@
     "Glyph of Elementals",
     "Feel the Burn!",
     "Shattering Stone",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Boulder Blast",
     "Elemental Explosion",
     "Dust Storm",
@@ -31,6 +35,10 @@
     "Raging Ricochet",
     "Overload Fire",
     "Scorching Shot",
+    {
+      "name": "Flame Barrage",
+      "offset": 300
+    },
     "Searing Salvo",
     "Raging Ricochet",
     {
@@ -71,7 +79,7 @@
     "Piercing Pebble",
     {
       "name": "Feel the Burn!",
-      "offset": 43
+      "offset": 906
     },
     "Piercing Pebble",
     "Piercing Pebble",
@@ -79,6 +87,10 @@
     "Piercing Pebble",
     "Shattering Stone",
     "Overload Earth",
+    {
+      "name": "Flame Barrage",
+      "offset": 1400
+    },
     "Piercing Pebble",
     "Dust Storm",
     "Signet of Fire",
@@ -115,6 +127,10 @@
     "Scorching Shot",
     "Raging Ricochet",
     "Overload Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 935
+    },
     "Scorching Shot",
     "Searing Salvo",
     "Raging Ricochet",
@@ -158,6 +174,10 @@
     "Piercing Pebble",
     "Piercing Pebble",
     "Piercing Pebble",
+    {
+      "name": "Flame Barrage",
+      "offset": 102
+    },
     "Shattering Stone",
     "Overload Earth",
     "Dust Storm",
@@ -190,8 +210,12 @@
     "Glyph of Storms (Fire)",
     "Scorching Shot",
     {
+      "name": "Flame Barrage",
+      "offset": 358
+    },
+    {
       "name": "Feel the Burn!",
-      "offset": 481
+      "offset": 309
     },
     "Scorching Shot",
     "Scorching Shot",
@@ -226,6 +250,10 @@
     "Boulder Blast",
     "Piercing Pebble",
     "Piercing Pebble",
+    {
+      "name": "Flame Barrage",
+      "offset": 486
+    },
     "Piercing Pebble",
     "Piercing Pebble",
     "Piercing Pebble",
@@ -239,7 +267,7 @@
     "Piercing Pebble",
     {
       "name": "Feel the Burn!",
-      "offset": 489
+      "offset": 515
     },
     "Piercing Pebble",
     "Boulder Blast",
@@ -260,6 +288,10 @@
     },
     "Raging Ricochet",
     "Searing Salvo",
+    {
+      "name": "Flame Barrage",
+      "offset": 125
+    },
     "Wildfire",
     "Glyph of Storms (Fire)",
     "Scorching Shot",
@@ -295,6 +327,10 @@
       "offset": 196
     },
     "Shattering Stone",
+    {
+      "name": "Flame Barrage",
+      "offset": 60
+    },
     "Signet of Fire",
     "Elemental Explosion",
     "Boulder Blast",
@@ -329,13 +365,17 @@
     "Soothing Splash",
     {
       "name": "Fire Attunement",
-      "offset": 404
+      "offset": 445
     },
     {
       "name": "Scorching Shot",
       "interruptMs": 35
     },
     "Raging Ricochet",
+    {
+      "name": "Flame Barrage",
+      "offset": 155
+    },
     "Searing Salvo",
     "Wildfire",
     "Glyph of Storms (Fire)",

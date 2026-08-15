@@ -13,22 +13,4 @@ export const ELEMENTALIST_ASSUMPTION_CONTROLS =
       ],
       section: "target",
     },
-    {
-      key: "elementalSimulationProfile",
-      label: "Elemental behavior",
-      type: "select",
-      defaultValue: "evtc",
-      options: [
-        { value: "evtc", label: "Native summon AI" },
-        { value: "reference", label: "Fixed reference packets" },
-      ],
-      section: "profession",
-    },
-    {
-      key: "glyphBoonedElementals",
-      label: "Reference elemental booned",
-      type: "boolean",
-      defaultValue: false,
-      section: "profession",
-    },
   ]);

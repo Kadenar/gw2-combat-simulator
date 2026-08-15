@@ -7,6 +7,10 @@
       "name": "__combat_start",
       "offset": 2700
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 2700
+    },
     "Dust Devil",
     "Feel the Burn!",
     "Hurl",
@@ -28,6 +32,10 @@
     "Transmute Fire",
     "Flamestrike",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 540
+    },
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",
@@ -51,6 +59,10 @@
     "Flamestrike",
     "Phoenix",
     "Dragon's Tooth",
+    {
+      "name": "Flame Barrage",
+      "offset": 340
+    },
     "Glyph of Storms (Fire)",
     "Signet of Fire",
     "Overload Fire",
@@ -66,6 +78,10 @@
     "Dragon's Tooth",
     "Flamestrike",
     "Signet of Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 340
+    },
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",
@@ -85,6 +101,10 @@
     "Flamestrike",
     "Phoenix",
     "Overload Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 2580
+    },
     "Dragon's Tooth",
     "Transmute Fire",
     "Glyph of Storms (Fire)",
@@ -105,6 +125,10 @@
     "Dragon's Tooth",
     "Phoenix",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 540
+    },
     "Flamestrike",
     "Flamestrike",
     "Feel the Burn!",
@@ -123,6 +147,10 @@
     "Transmute Fire",
     "Fire Shield",
     "Glyph of Storms (Fire)",
+    {
+      "name": "Flame Barrage",
+      "offset": 780
+    },
     "Signet of Fire",
     "Flamestrike",
     "Flamestrike",
@@ -144,6 +172,10 @@
     "Flamestrike",
     "Phoenix",
     "Dragon's Tooth",
+    {
+      "name": "Flame Barrage",
+      "offset": 660
+    },
     "Signet of Fire",
     "Flamewall",
     "Overload Fire",
@@ -161,6 +193,10 @@
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 140
+    },
     "Flamestrike",
     "Phoenix",
     "Flamestrike",
@@ -178,6 +214,10 @@
     "Phoenix",
     "Signet of Fire",
     "Overload Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 2980
+    },
     "Dragon's Tooth",
     "Fire Shield",
     "Transmute Fire",

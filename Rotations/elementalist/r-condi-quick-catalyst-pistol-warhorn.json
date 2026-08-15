@@ -13,6 +13,10 @@
     "Glyph of Elementals",
     "__combat_start",
     "Wildfire",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Glyph of Storms (Fire)",
     {
       "name": "Deploy Jade Sphere (Fire)",
@@ -69,6 +73,10 @@
       "name": "Fire Attunement",
       "offset": 160
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 52
+    },
     "Raging Ricochet",
     "Elemental Explosion",
     "Signet of Fire",
@@ -120,6 +128,10 @@
     "Piercing Pebble",
     "Piercing Pebble",
     "Signet of Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 410
+    },
     "Piercing Pebble",
     "Piercing Pebble",
     {
@@ -165,7 +177,7 @@
     "Tidal Surge",
     {
       "name": "Earth Attunement",
-      "offset": 283
+      "offset": 560
     },
     {
       "name": "Piercing Pebble",
@@ -180,6 +192,10 @@
     "Signet of Fire",
     "Dust Storm",
     "Piercing Pebble",
+    {
+      "name": "Flame Barrage",
+      "offset": 131
+    },
     "Piercing Pebble",
     "Piercing Pebble",
     "Piercing Pebble",
@@ -245,6 +261,10 @@
       "name": "Deploy Jade Sphere (Earth)",
       "offset": 441
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 13
+    },
     "Piercing Pebble",
     "Piercing Pebble",
     "Piercing Pebble",
@@ -295,8 +315,12 @@
     },
     "Tidal Surge",
     {
+      "name": "Flame Barrage",
+      "offset": 96
+    },
+    {
       "name": "Earth Attunement",
-      "offset": 200
+      "offset": 555
     },
     {
       "name": "Piercing Pebble",
@@ -325,7 +349,7 @@
     "Signet of Earth",
     {
       "name": "Deploy Jade Sphere (Fire)",
-      "offset": 837
+      "offset": 882
     },
     "Elemental Explosion",
     {
@@ -350,6 +374,10 @@
       "name": "Electric Exposure",
       "interruptMs": 239
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 205
+    },
     "Water Attunement",
     "Frigid Flurry",
     {
@@ -359,7 +387,7 @@
     "Soothing Splash",
     {
       "name": "Earth Attunement",
-      "offset": 365
+      "offset": 722
     },
     {
       "name": "Piercing Pebble",
@@ -404,8 +432,12 @@
     },
     "Raging Ricochet",
     {
+      "name": "Flame Barrage",
+      "offset": 161
+    },
+    {
       "name": "Air Attunement",
-      "offset": 322
+      "offset": 161
     },
     {
       "name": "Deploy Jade Sphere (Air)",
@@ -464,6 +496,10 @@
     },
     "Scorching Shot",
     "Scorching Shot",
+    {
+      "name": "Flame Barrage",
+      "offset": 320
+    },
     "Scorching Shot",
     "Scorching Shot",
     "Raging Ricochet",
@@ -514,6 +550,10 @@
       "offset": 397
     },
     "Raging Ricochet",
+    {
+      "name": "Flame Barrage",
+      "offset": 477
+    },
     "Scorching Shot",
     {
       "name": "Scorching Shot",

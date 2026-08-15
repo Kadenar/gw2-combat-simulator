@@ -15,6 +15,10 @@
     "Glyph of Elementals",
     "Shock Blast",
     {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
+    {
       "name": "Fire Attunement",
       "offset": 120
     },
@@ -45,6 +49,10 @@
     "Wind Slam",
     "Wind Slam",
     "Wind Slam",
+    {
+      "name": "Flame Barrage",
+      "offset": 677
+    },
     "Overload Air",
     "Hurricane of Pain",
     {
@@ -76,6 +84,10 @@
       "offset": 3157
     },
     "Singeing Strike",
+    {
+      "name": "Flame Barrage",
+      "offset": 432
+    },
     "Triple Sear",
     {
       "name": "Flame Wheel",
@@ -108,6 +120,10 @@
     "Wind Slam",
     "Wind Slam",
     "Overload Air",
+    {
+      "name": "Flame Barrage",
+      "offset": 472
+    },
     "Hurricane of Pain",
     {
       "name": "Water Attunement",
@@ -150,6 +166,10 @@
       "offset": 275
     },
     "Wind Slam",
+    {
+      "name": "Flame Barrage",
+      "offset": 433
+    },
     "Hurricane of Pain",
     "Overload Air",
     {
@@ -173,6 +193,10 @@
       "interruptMs": 79
     },
     "Overload Air",
+    {
+      "name": "Flame Barrage",
+      "offset": 2392
+    },
     "Hurricane of Pain",
     {
       "name": "Water Attunement",
@@ -216,6 +240,10 @@
     },
     "Wind Slam",
     "Hurricane of Pain",
+    {
+      "name": "Flame Barrage",
+      "offset": 1458
+    },
     "Overload Air",
     "Earth Attunement",
     "Ground Pound",
@@ -242,8 +270,12 @@
       "offset": 321
     },
     {
+      "name": "Flame Barrage",
+      "offset": 195
+    },
+    {
       "name": "Air Attunement",
-      "offset": 440
+      "offset": 245
     },
     "Shock Blast",
     "Wind Slam",
@@ -278,6 +310,10 @@
     },
     "Wind Slam",
     "Hurricane of Pain",
+    {
+      "name": "Flame Barrage",
+      "offset": 1760
+    },
     "Overload Air",
     {
       "name": "Earth Attunement",

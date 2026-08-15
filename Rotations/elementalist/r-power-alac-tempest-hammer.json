@@ -17,6 +17,10 @@
       "name": "Crescent Wind",
       "offset": 100
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Overload Air",
     {
       "name": "Arcane Blast",
@@ -48,6 +52,10 @@
       "interruptMs": 163
     },
     "Overload Air",
+    {
+      "name": "Flame Barrage",
+      "offset": 2957
+    },
     "Earth Attunement",
     "Stonestrike",
     "Ground Pound",
@@ -86,8 +94,12 @@
       "offset": 2366
     },
     {
+      "name": "Flame Barrage",
+      "offset": 1947
+    },
+    {
       "name": "Fire Attunement",
-      "offset": 3162
+      "offset": 1215
     },
     "Singeing Strike",
     "Triple Sear",
@@ -112,6 +124,10 @@
     "Overload Air",
     "Earth Attunement",
     "Stonestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 546
+    },
     "Ground Pound",
     {
       "name": "Rocky Loop",
@@ -159,6 +175,10 @@
       "offset": 163
     },
     "Surging Flames",
+    {
+      "name": "Flame Barrage",
+      "offset": 550
+    },
     "Molten End",
     {
       "name": "Air Attunement",
@@ -197,8 +217,12 @@
       "offset": 635
     },
     {
+      "name": "Flame Barrage",
+      "offset": 721
+    },
+    {
       "name": "Arcane Blast",
-      "offset": 913
+      "offset": 192
     },
     "Hurricane of Pain",
     "Glyph of Storms (Air)",
@@ -229,8 +253,12 @@
       "offset": 211
     },
     {
+      "name": "Flame Barrage",
+      "offset": 917
+    },
+    {
       "name": "Arcane Blast",
-      "offset": 1441
+      "offset": 524
     },
     "Wind Slam",
     "Wind Slam",
@@ -263,6 +291,10 @@
       "interruptMs": 82
     },
     "Grand Finale",
+    {
+      "name": "Flame Barrage",
+      "offset": 524
+    },
     "Wind Slam",
     "Wind Slam",
     "Overload Air",
@@ -299,6 +331,10 @@
       "interruptMs": 79
     },
     "Overload Air",
+    {
+      "name": "Flame Barrage",
+      "offset": 363
+    },
     "Earth Attunement",
     "Stonestrike",
     "Ground Pound",
@@ -335,6 +371,10 @@
     {
       "name": "Arcane Blast",
       "offset": 921
+    },
+    {
+      "name": "Flame Barrage",
+      "offset": 200
     },
     "Fire Attunement",
     "Singeing Strike",

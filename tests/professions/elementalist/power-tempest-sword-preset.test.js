@@ -59,7 +59,10 @@ test("Power Tempest sword commands Flame Barrage off cooldown", async () => {
     barrages.every((step) => !step.invalid),
     true,
   );
-  assert.equal(build.assumptions.elementalSimulationProfile, "evtc");
+  assert.equal(
+    Object.hasOwn(build.assumptions, "elementalSimulationProfile"),
+    false,
+  );
   assert.equal(
     result.steps.some((step) => step.skill === "Glyph of Elementals"),
     false,

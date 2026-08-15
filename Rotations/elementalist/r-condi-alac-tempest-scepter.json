@@ -2,6 +2,10 @@
   "rotation": [
     "Glyph of Elementals",
     "Rock Barrier",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Dust Storm",
     "Overload Earth",
     {
@@ -21,6 +25,10 @@
     "Dragon's Tooth",
     "Flamestrike",
     "Overload Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 2740
+    },
     "Phoenix",
     "Dragon's Tooth",
     "Flamestrike",
@@ -37,13 +45,17 @@
     "Signet of Earth",
     {
       "name": "Earth Attunement",
-      "offset": 100
+      "offset": 140
     },
     "Rock Barrier",
     "Hurl",
     "Dust Devil",
     "Dust Storm",
     "Stone Shards",
+    {
+      "name": "Flame Barrage",
+      "offset": 1340
+    },
     "Sand Squall",
     "Overload Earth",
     "Rock Barrier",
@@ -62,6 +74,10 @@
     "Signet of Earth",
     "Flamestrike",
     "Overload Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 2100
+    },
     "Phoenix",
     "Dragon's Tooth",
     "Flamestrike",
@@ -85,13 +101,17 @@
     "Dust Devil",
     "Sand Squall",
     "Stone Shards",
+    {
+      "name": "Flame Barrage",
+      "offset": 380
+    },
     "Overload Earth",
     "Rock Barrier",
     "Hurl",
     "Signet of Fire",
     {
       "name": "Fire Attunement",
-      "offset": 100
+      "offset": 420
     },
     "Phoenix",
     "Signet of Earth",
@@ -102,6 +122,10 @@
     "Flamestrike",
     "Flamestrike",
     "Overload Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 1980
+    },
     "Phoenix",
     "Dragon's Tooth",
     "Flamestrike",
@@ -125,6 +149,10 @@
     "Dust Devil",
     "Sand Squall",
     "Stone Shards",
+    {
+      "name": "Flame Barrage",
+      "offset": 340
+    },
     "Overload Earth",
     "Rock Barrier",
     "Hurl",
@@ -139,6 +167,10 @@
     "Flamestrike",
     "Flamestrike",
     "Overload Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 1840
+    },
     "Phoenix",
     "Dragon's Tooth",
     "Flamestrike",

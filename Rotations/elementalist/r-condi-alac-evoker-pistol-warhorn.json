@@ -9,6 +9,10 @@
     "Glyph of Elementals",
     "Calcify",
     "Rejuvenate",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Fox's Fury",
     {
       "name": "Calcify",
@@ -75,8 +79,12 @@
     },
     "Signet of Fire",
     {
+      "name": "Flame Barrage",
+      "offset": 160
+    },
+    {
       "name": "Earth Attunement",
-      "offset": 276
+      "offset": 116
     },
     {
       "name": "Piercing Pebble",
@@ -143,6 +151,10 @@
       "interruptMs": 158
     },
     "Rejuvenate",
+    {
+      "name": "Flame Barrage",
+      "offset": 280
+    },
     "Piercing Pebble",
     {
       "name": "Calcify",
@@ -207,7 +219,7 @@
     "Piercing Pebble",
     {
       "name": "Fire Attunement",
-      "offset": 325
+      "offset": 371
     },
     {
       "name": "Scorching Shot",
@@ -218,6 +230,10 @@
     {
       "name": "Earth Attunement",
       "offset": 284
+    },
+    {
+      "name": "Flame Barrage",
+      "offset": 52
     },
     "Piercing Pebble",
     "Piercing Pebble",
@@ -280,6 +296,10 @@
     },
     "Fox's Fury",
     "Piercing Pebble",
+    {
+      "name": "Flame Barrage",
+      "offset": 340
+    },
     "Piercing Pebble",
     {
       "name": "Piercing Pebble",
@@ -330,7 +350,7 @@
     },
     {
       "name": "Fire Attunement",
-      "offset": 242
+      "offset": 343
     },
     "Signet of Earth",
     "Seismic Impact",
@@ -360,6 +380,10 @@
       "interruptMs": 42
     },
     "Frigid Flurry",
+    {
+      "name": "Flame Barrage",
+      "offset": 969
+    },
     "Tidal Surge",
     {
       "name": "Earth Attunement",
@@ -373,7 +397,7 @@
     "Boulder Blast",
     {
       "name": "Air Attunement",
-      "offset": 409
+      "offset": 473
     },
     {
       "name": "Electric Exposure",
@@ -440,6 +464,10 @@
       "name": "Calcify",
       "offset": 358
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 27
+    },
     "Piercing Pebble",
     {
       "name": "Air Attunement",
@@ -505,7 +533,7 @@
     "Signet of Earth",
     {
       "name": "Air Attunement",
-      "offset": 401
+      "offset": 411
     },
     {
       "name": "Electric Exposure",
@@ -519,8 +547,12 @@
     "Dazing Discharge",
     "Lightning Orb",
     {
+      "name": "Flame Barrage",
+      "offset": 313
+    },
+    {
       "name": "Earth Attunement",
-      "offset": 359
+      "offset": 46
     },
     "Piercing Pebble",
     "Shattering Stone",
@@ -545,7 +577,7 @@
     "Wildfire",
     {
       "name": "Earth Attunement",
-      "offset": 517
+      "offset": 520
     },
     "Shattering Stone",
     "Water Attunement",
@@ -553,7 +585,7 @@
     "Frigid Flurry",
     {
       "name": "Earth Attunement",
-      "offset": 600
+      "offset": 680
     },
     "Elemental Explosion",
     {
@@ -584,6 +616,10 @@
     },
     "Signet of Earth",
     "Shattering Stone",
+    {
+      "name": "Flame Barrage",
+      "offset": 345
+    },
     "Calcify",
     "Piercing Pebble",
     "Piercing Pebble",

@@ -85,8 +85,6 @@ export function createElementalistBuildDefaults(): ElementalistCanonicalBuild {
     assumptions: {
       ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
       hitboxSize: "small",
-      elementalSimulationProfile: "evtc",
-      glyphBoonedElementals: false,
       might: 25,
       fury: true,
       quickness: true,
@@ -146,6 +144,8 @@ const elementalistBuildCodec = createGw2BuildCodec<ElementalistCanonicalBuild>({
       ELEMENTALIST_ASSUMPTION_CONTROLS,
     );
     delete assumptions.startingAttunementPreDwelled;
+    delete assumptions.elementalSimulationProfile;
+    delete assumptions.glyphBoonedElementals;
     const normalized = {
       ...build,
       alternateWeapons: ["", ""],
@@ -275,12 +275,6 @@ function normalizeSavedBuild(candidate: unknown): unknown {
     !snapshot.profession;
   const build = hasSnapshotWrapper ? record(snapshot.build) : snapshot;
   const snapshotFields = hasSnapshotWrapper ? snapshot : build;
-  const explicitElementalSimulationProfile = Object.hasOwn(
-    snapshotFields,
-    "elementalSimulationProfile",
-  )
-    ? String(snapshotFields.elementalSimulationProfile)
-    : null;
   const selectedSkills = Object.hasOwn(snapshotFields, "selectedSkills")
     ? migrateSnapshotSelectedSkills(snapshotFields.selectedSkills)
     : build.selectedSkills;
@@ -316,18 +310,6 @@ function normalizeSavedBuild(candidate: unknown): unknown {
       ),
       ...(Object.hasOwn(snapshotFields, "hitboxSize")
         ? { hitboxSize: snapshotFields.hitboxSize }
-        : {}),
-      ...(hasSnapshotWrapper ||
-      Object.hasOwn(snapshotFields, "glyphBoonedElementals")
-        ? {
-            elementalSimulationProfile:
-              explicitElementalSimulationProfile === "reference"
-                ? "reference"
-                : "evtc",
-            glyphBoonedElementals: Boolean(
-              snapshotFields.glyphBoonedElementals,
-            ),
-          }
         : {}),
     },
   };

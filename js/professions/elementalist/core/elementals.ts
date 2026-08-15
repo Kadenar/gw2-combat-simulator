@@ -55,12 +55,6 @@ const FLAME_BURST_ID = FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst.skillId;
 export const FLAME_BARRAGE_ID =
   FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage.skillId;
 
-export function usesReferenceElementalProfile(
-  context: Pick<ElementalistSchedulerContext, "config">,
-): boolean {
-  return context.config.elementalSimulationProfile === "reference";
-}
-
 function ready(): AvailabilityResult {
   return { ready: true };
 }
@@ -592,12 +586,7 @@ export function beginElementalistGlyphCast(
   context: ElementalistLifecycleContext,
   skill: Skill,
 ): void {
-  if (
-    skill.name !== "Glyph of Elementals" ||
-    usesReferenceElementalProfile(context)
-  ) {
-    return;
-  }
+  if (skill.name !== "Glyph of Elementals") return;
   context.replaceEvent(context.action, {
     summonedElement: "Fire",
   });
@@ -649,12 +638,7 @@ export function completeElementalistGlyphCast(
   context: ElementalistLifecycleContext,
   skill: Skill,
 ): void {
-  if (
-    skill.name !== "Glyph of Elementals" ||
-    usesReferenceElementalProfile(context)
-  ) {
-    return;
-  }
+  if (skill.name !== "Glyph of Elementals") return;
   const at = context.effectiveEnd;
   summonFireElemental(
     context,
@@ -676,7 +660,6 @@ export function observeElementalistElementalEvent(
   context: ElementalistSchedulerContext,
   event: SimulationEvent,
 ): void {
-  if (usesReferenceElementalProfile(context)) return;
   const combatStarted =
     event.type === "combat_start" ||
     (!context.hasExplicitCombatStart &&
@@ -710,7 +693,6 @@ export function elementalistElementalAvailability(
       : unavailable("an active Fire Elemental is required.");
   }
   if (skill.name !== "Glyph of Elementals") return null;
-  if (usesReferenceElementalProfile(context)) return null;
   return elemental.activeUntil > context.start + context.epsilon
     ? unavailable(
         `the ${elemental.element || "summoned"} elemental is still active.`,

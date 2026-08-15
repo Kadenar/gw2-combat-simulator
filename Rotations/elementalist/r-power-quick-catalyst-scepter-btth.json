@@ -12,6 +12,10 @@
     "Dragon's Tooth",
     "Glyph of Elementals",
     "Glyph of Storms (Fire)",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Relentless Fire",
     {
       "name": "Deploy Jade Sphere (Fire)",
@@ -37,7 +41,7 @@
     "Churning Earth",
     {
       "name": "Air Attunement",
-      "offset": 81
+      "offset": 168
     },
     {
       "name": "Lightning Strike",
@@ -73,10 +77,14 @@
     "Shatterstone",
     {
       "name": "Fire Attunement",
-      "offset": 163
+      "offset": 241
     },
     "Dragon's Tooth",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 598
+    },
     "Flamestrike",
     {
       "name": "Flamestrike",
@@ -139,6 +147,10 @@
     "Ice Shards",
     "Water Trident",
     "Shatterstone",
+    {
+      "name": "Flame Barrage",
+      "offset": 50
+    },
     {
       "name": "Ice Shards",
       "interruptMs": 204
@@ -204,6 +216,10 @@
     },
     "Shatterstone",
     "Ice Shards",
+    {
+      "name": "Flame Barrage",
+      "offset": 367
+    },
     "Ice Shards",
     "Ice Shards",
     "Ice Shards",
@@ -260,8 +276,12 @@
     },
     "Glyph of Storms (Air)",
     {
+      "name": "Flame Barrage",
+      "offset": 923
+    },
+    {
       "name": "Water Attunement",
-      "offset": 962
+      "offset": 39
     },
     {
       "name": "Deploy Jade Sphere (Water)",
@@ -312,6 +332,10 @@
     },
     "Deploy Jade Sphere (Earth)",
     "Earthquake",
+    {
+      "name": "Flame Barrage",
+      "offset": 272
+    },
     "Rock Barrier",
     {
       "name": "Stone Shards",
@@ -375,6 +399,10 @@
     "Flamestrike",
     "Flamestrike",
     "Phoenix",
+    {
+      "name": "Flame Barrage",
+      "offset": 146
+    },
     "Fire Grab",
     "Dragon's Tooth",
     {
@@ -438,6 +466,10 @@
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 91
+    },
     "Flamestrike",
     "Flamestrike",
     "Phoenix",
@@ -500,8 +532,12 @@
     },
     "Dragon's Tooth",
     {
+      "name": "Flame Barrage",
+      "offset": 359
+    },
+    {
       "name": "Deploy Jade Sphere (Fire)",
-      "offset": 402
+      "offset": 43
     },
     "Relentless Fire",
     "Ring of Fire",
@@ -566,6 +602,10 @@
     "Ice Shards",
     "Ice Shards",
     "Ice Shards",
+    {
+      "name": "Flame Barrage",
+      "offset": 1
+    },
     "Ice Shards",
     "Shatterstone",
     {

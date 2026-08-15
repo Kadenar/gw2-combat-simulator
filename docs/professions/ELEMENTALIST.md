@@ -75,17 +75,17 @@ unclassified differences.
 Current results and diagnosed shared-engine limitations are documented in:
 
 - `ELEMENTALIST-NATIVE-MIGRATION-AUDIT.md`
+- `ELEMENTALIST-NATIVE-ELEMENTAL-AUDIT.md`
 - `POWER-TEMPEST-REFERENCE-AUDIT.md`
 - `ELEMENTALIST-CATALYST-PARITY-HANDOFF.md`
 - `ELEMENTALIST-WEAVER-PARITY-HANDOFF.md`
 - `ELEMENTALIST-EVOKER-PARITY-HANDOFF.md`
 
-## Elemental profiles
+## Summoned elemental
 
-The native tool supports an EVTC-derived Fire Elemental profile for normal
-simulation and a fixed `reference` profile for reproducible upstream fixture
-comparison. Saved presets that equip Glyph of Elementals use the fixed profile
-until their rotations explicitly prescribe Flame Barrage; command-aware
-rotations use the EVTC profile. The fixed replay is an explicit data profile,
-not a second simulator. Air, Ice, and Earth Elemental AI require additional
-combat-log evidence before distinct behavior can be implemented.
+Glyph of Elementals always uses the EVTC-derived native Fire Elemental actor.
+Its autonomous Fireball and Flame Burst actions run through shared summon
+scheduling and boon application. Flame Barrage is a rotation command and is
+prescribed off cooldown by every supported preset that equips the elite skill.
+Air, Ice, and Earth Elemental AI require additional combat-log evidence before
+distinct behavior can be implemented.

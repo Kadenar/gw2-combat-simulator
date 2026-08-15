@@ -11,6 +11,10 @@
       "offset": 100
     },
     "Flamewall",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Signet of Fire",
     {
       "name": "Cleansing Fire",
@@ -65,6 +69,10 @@
     "Flamestrike",
     "Phoenix",
     "Dragon's Tooth",
+    {
+      "name": "Flame Barrage",
+      "offset": 39
+    },
     "Conflagration",
     "Signet of Fire",
     "Flamestrike",
@@ -117,6 +125,10 @@
     {
       "name": "Ignite",
       "offset": 80
+    },
+    {
+      "name": "Flame Barrage",
+      "offset": 120
     },
     {
       "name": "Flamestrike",
@@ -177,6 +189,10 @@
     "Conflagration",
     "Signet of Fire",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 35
+    },
     "Phoenix",
     "Flamestrike",
     "Flamestrike",
@@ -232,8 +248,12 @@
     "Fire Shield",
     "Transmute Fire",
     {
+      "name": "Flame Barrage",
+      "offset": 117
+    },
+    {
       "name": "Ignite",
-      "offset": 245
+      "offset": 128
     },
     "Fox's Fury",
     "Flamestrike",
@@ -241,7 +261,7 @@
     "Conflagration",
     {
       "name": "Cleansing Fire",
-      "offset": 164
+      "offset": 360
     },
     "Flamestrike",
     "Flamestrike",
@@ -284,6 +304,10 @@
     "Signet of Fire",
     "Flamestrike",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 520
+    },
     "Flamestrike",
     "Dragon's Tooth",
     {
@@ -314,7 +338,7 @@
     "Flamestrike",
     {
       "name": "Cleansing Fire",
-      "offset": 158
+      "offset": 283
     },
     "Phoenix",
     "Flamestrike",
@@ -345,6 +369,10 @@
     {
       "name": "Flamestrike",
       "interruptMs": 198
+    },
+    {
+      "name": "Flame Barrage",
+      "offset": 161
     },
     "Phoenix",
     "Dragon's Tooth",
@@ -397,6 +425,10 @@
       "offset": 197
     },
     "Flamewall",
+    {
+      "name": "Flame Barrage",
+      "offset": 120
+    },
     "Flamestrike",
     {
       "name": "Ignite",
@@ -451,6 +483,10 @@
     "Dragon's Tooth",
     "Conflagration",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 0
+    },
     "Flamestrike",
     "Phoenix",
     "Flamestrike",
