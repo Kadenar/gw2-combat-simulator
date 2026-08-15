@@ -4,10 +4,6 @@ A standalone deterministic PvE build and rotation simulator with browser
 applications for every profession registered in
 `js/app/profession/registry.js`.
 
-Each profession page also includes a deterministic rotation optimizer that
-searches the current build's reachable skills in a background worker and can
-apply the best rotation found within its time budget.
-
 Choose a profession from the landing page or the shared simulator header:
 
 - **Mesmer**: Core, Chronomancer, Mirage, Virtuoso, and Troubadour.
@@ -74,7 +70,6 @@ npm run update:ranger-data
 ```text
 gw2-combat-simulator/
   js/
-    rotation-optimizer/          shared action search, worker, and UI
     platform/                  profession-neutral engine, GW2, and UI contracts
     professions/
       mesmer/                  Mesmer implementation
@@ -124,6 +119,3 @@ Per-profession documentation lives in [docs/professions/](docs/professions/):
 
 The GitHub Issue Form and maintainer review process for community build
 submissions are documented in [docs/BUILD-SUBMISSIONS.md](docs/BUILD-SUBMISSIONS.md).
-
-The optimizer's search behavior, ownership, and current limitations are
-documented in [docs/ROTATION-OPTIMIZER.md](docs/ROTATION-OPTIMIZER.md).
