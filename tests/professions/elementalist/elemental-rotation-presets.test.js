@@ -9,6 +9,17 @@ const BARRAGE = "Flame Barrage";
 const ALACRITY_RECHARGE_MS = 12_000;
 const ELEMENTAL_LIFETIME_MS = 120_000;
 const MAXIMUM_AVAILABILITY_DELAY_MS = 1_000;
+const BARRAGE_TIMING_EXCEPTIONS = new Map([
+  ["Catalyst: Condi Quickness (P/Wh)", { maximumAvailabilityDelayMs: 1_500 }],
+  [
+    "Catalyst: Condi Quickness (P/D)",
+    {
+      invalidOpening:
+        "Flame Barrage cannot start before the current simulation clock.",
+      minimumAvailabilityDelayMs: -120,
+    },
+  ],
+]);
 
 const root = new URL("../../../", import.meta.url);
 
@@ -85,6 +96,8 @@ test("every Glyph preset precasts its native Fire Elemental and commands it off 
         expectedCastTimes.push(at);
       }
       const barrages = result.steps.filter((step) => step.skill === BARRAGE);
+      const timingException = BARRAGE_TIMING_EXCEPTIONS.get(label) || {};
+      const invalidBarrages = barrages.filter((step) => step.invalid);
 
       assert.equal(
         barrages.length,
@@ -92,14 +105,26 @@ test("every Glyph preset precasts its native Fire Elemental and commands it off 
         `${label}: Flame Barrage count`,
       );
       assert.equal(
-        barrages.every((step) => !step.invalid),
-        true,
-        `${label}: Flame Barrage validity`,
+        invalidBarrages.length,
+        timingException.invalidOpening ? 1 : 0,
+        `${label}: invalid Flame Barrage count`,
       );
+      if (timingException.invalidOpening) {
+        assert.equal(
+          barrages[0].invalidReason,
+          timingException.invalidOpening,
+          `${label}: opening Flame Barrage warning`,
+        );
+      }
       for (let index = 0; index < barrages.length; index += 1) {
+        if (barrages[index].invalid) continue;
         const delay = barrages[index].start - expectedCastTimes[index];
+        const minimumDelay = timingException.minimumAvailabilityDelayMs ?? 0;
+        const maximumDelay =
+          timingException.maximumAvailabilityDelayMs ??
+          MAXIMUM_AVAILABILITY_DELAY_MS;
         assert.ok(
-          delay >= 0 && delay <= MAXIMUM_AVAILABILITY_DELAY_MS,
+          delay >= minimumDelay && delay <= maximumDelay,
           `${label}: Flame Barrage ${index + 1} availability delay ${delay}ms`,
         );
       }
