@@ -16,7 +16,11 @@ async function readJson(path) {
   return JSON.parse(await readFile(new URL(path, root), "utf8"));
 }
 
-test("every Glyph preset commands its native Fire Elemental off cooldown", async () => {
+function entryName(entry) {
+  return typeof entry === "string" ? entry : entry?.name;
+}
+
+test("every Glyph preset precasts its native Fire Elemental and commands it off cooldown", async () => {
   const [manifest, adapter] = await Promise.all([
     readJson("Builds/elementalist/manifest.json"),
     loadProfessionAppAdapter("elementalist"),
@@ -52,8 +56,20 @@ test("every Glyph preset commands its native Fire Elemental off cooldown", async
       const combatStart = result.steps.find(
         (step) => step.skill === "Combat Start",
       );
-      const summonAt = glyph?.end ?? combatStart?.start;
-      assert.notEqual(summonAt, undefined, `${label}: summon trigger`);
+      const combatAt =
+        combatStart?.start ?? Math.round(result.dpsStartTime * 1000);
+      assert.equal(
+        entryName(savedRotation.rotation[0]),
+        GLYPH,
+        `${label}: first rotation command`,
+      );
+      assert.notEqual(glyph, undefined, `${label}: Glyph cast`);
+      assert.equal(glyph.ri, 0, `${label}: Glyph simulation step`);
+      assert.ok(
+        glyph.end <= combatAt,
+        `${label}: Glyph ends at ${glyph.end}ms after combat starts at ${combatAt}ms`,
+      );
+      const summonAt = glyph.end;
       const firstReadyAt = Math.max(summonAt, combatStart?.start ?? 0);
       const rotationEnd = Math.max(
         ...result.steps

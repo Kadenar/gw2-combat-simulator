@@ -87,5 +87,7 @@ Glyph of Elementals always uses the EVTC-derived native Fire Elemental actor.
 Its autonomous Fireball and Flame Burst actions run through shared summon
 scheduling and boon application. Flame Barrage is a rotation command and is
 prescribed off cooldown by every supported preset that equips the elite skill.
+Those presets cast Glyph as rotation command 1 and complete the summon before
+combat begins.
 Air, Ice, and Earth Elemental AI require additional combat-log evidence before
 distinct behavior can be implemented.

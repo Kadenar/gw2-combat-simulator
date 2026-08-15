@@ -1,5 +1,6 @@
 {
   "rotation": [
+    "Glyph of Elementals",
     "Rock Barrier",
     "Fire Attunement",
     {
@@ -8,12 +9,11 @@
     },
     "__combat_start",
     "Dragon's Tooth",
-    "Glyph of Elementals",
-    "Glyph of Storms (Fire)",
     {
       "name": "Flame Barrage",
       "offset": 0
     },
+    "Glyph of Storms (Fire)",
     {
       "name": "Deploy Jade Sphere (Fire)",
       "offset": 959
@@ -82,11 +82,11 @@
       "name": "Arcane Blast",
       "offset": 118
     },
-    "Flamestrike",
     {
       "name": "Flame Barrage",
-      "offset": 355
+      "offset": 237
     },
+    "Flamestrike",
     "Flamestrike",
     {
       "name": "Arcane Blast",
@@ -150,11 +150,11 @@
     "Ice Shards",
     "Ice Shards",
     "Water Trident",
-    "Shatterstone",
     {
       "name": "Flame Barrage",
       "offset": 147
     },
+    "Shatterstone",
     "Ice Shards",
     {
       "name": "Fire Attunement",
@@ -222,11 +222,11 @@
     },
     "Water Trident",
     "Ice Shards",
-    "Ice Shards",
     {
       "name": "Flame Barrage",
-      "offset": 198
+      "offset": 78
     },
+    "Ice Shards",
     "Ice Shards",
     "Ice Shards",
     "Ice Shards",
@@ -285,15 +285,15 @@
       "name": "Arc Lightning",
       "interruptMs": 1037
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 469
+    },
     "Water Attunement",
     "Shatterstone",
     {
-      "name": "Flame Barrage",
-      "offset": 69
-    },
-    {
       "name": "Frost Aura",
-      "offset": 96
+      "offset": 165
     },
     "Water Trident",
     "Ice Shards",
@@ -333,12 +333,12 @@
       "name": "Deploy Jade Sphere (Earth)",
       "offset": 284
     },
-    "Relentless Fire",
-    "Rock Barrier",
     {
       "name": "Flame Barrage",
-      "offset": 389
+      "offset": 345
     },
+    "Relentless Fire",
+    "Rock Barrier",
     "Dust Devil",
     {
       "name": "Hurl",
@@ -391,15 +391,15 @@
       "name": "Deploy Jade Sphere (Fire)",
       "offset": 199
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 270
+    },
     "Fire Grab",
     "Dragon's Tooth",
     {
-      "name": "Flame Barrage",
-      "offset": 109
-    },
-    {
       "name": "Earth Attunement",
-      "offset": 252
+      "offset": 361
     },
     "Earthquake",
     {
@@ -455,11 +455,11 @@
       "offset": 91
     },
     "Flamestrike",
-    "Flamestrike",
     {
       "name": "Flame Barrage",
-      "offset": 191
+      "offset": 111
     },
+    "Flamestrike",
     "Flamestrike",
     "Phoenix",
     "Fire Grab",
@@ -520,6 +520,10 @@
     },
     "Fire Attunement",
     "Phoenix",
-    "Ring of Fire"
+    "Ring of Fire",
+    {
+      "name": "Flame Barrage",
+      "offset": 78
+    }
   ]
 }

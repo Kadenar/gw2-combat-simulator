@@ -1,16 +1,16 @@
 {
   "rotation": [
-    "Dragon's Tooth",
-    {
-      "name": "Ignite",
-      "offset": 100
-    },
     "Glyph of Elementals",
-    "Flamewall",
+    "Dragon's Tooth",
     {
       "name": "Flame Barrage",
       "offset": 0
     },
+    {
+      "name": "Ignite",
+      "offset": 100
+    },
+    "Flamewall",
     "Signet of Fire",
     {
       "name": "Cleansing Fire",
@@ -71,12 +71,12 @@
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",
-    "Phoenix",
-    "Dragon's Tooth",
     {
       "name": "Flame Barrage",
-      "offset": 147
+      "offset": 547
     },
+    "Phoenix",
+    "Dragon's Tooth",
     "Conflagration",
     "Signet of Fire",
     "Flamestrike",
@@ -129,11 +129,11 @@
       "offset": 409
     },
     "Flamewall",
-    "Signet of Fire",
     {
       "name": "Flame Barrage",
-      "offset": 264
+      "offset": 144
     },
+    "Signet of Fire",
     "Flamestrike",
     {
       "name": "Ignite",
@@ -188,15 +188,15 @@
     "Dragon's Tooth",
     "Conflagration",
     {
+      "name": "Flame Barrage",
+      "offset": 307
+    },
+    {
       "name": "Cleansing Fire",
-      "offset": 360
+      "offset": 53
     },
     "Signet of Fire",
     "Flamestrike",
-    {
-      "name": "Flame Barrage",
-      "offset": 107
-    },
     "Phoenix",
     "Flamestrike",
     "Flamestrike",
@@ -248,13 +248,13 @@
       "name": "Flamestrike",
       "interruptMs": 42
     },
+    {
+      "name": "Flame Barrage",
+      "offset": 25
+    },
     "Fire Shield",
     "Phoenix",
     "Transmute Fire",
-    {
-      "name": "Flame Barrage",
-      "offset": 183
-    },
     "Ignite",
     {
       "name": "Flamestrike",
@@ -300,11 +300,11 @@
     "Conflagration",
     "Signet of Fire",
     "Flamestrike",
-    "Flamestrike",
     {
       "name": "Flame Barrage",
-      "offset": 545
+      "offset": 465
     },
+    "Flamestrike",
     "Flamestrike",
     "Dragon's Tooth",
     {
@@ -361,6 +361,10 @@
       "offset": 41
     },
     "Rejuvenate",
+    {
+      "name": "Flame Barrage",
+      "offset": 346
+    },
     "Fire Shield",
     "Transmute Fire",
     {
@@ -368,10 +372,6 @@
       "offset": 159
     },
     "Flamestrike",
-    {
-      "name": "Flame Barrage",
-      "offset": 66
-    },
     "Phoenix",
     "Dragon's Tooth",
     "Conflagration",
@@ -409,14 +409,14 @@
     "Flamestrike",
     "Phoenix",
     {
+      "name": "Flame Barrage",
+      "offset": 226
+    },
+    {
       "name": "Cleansing Fire",
-      "offset": 483
+      "offset": 257
     },
     "Flamestrike",
-    {
-      "name": "Flame Barrage",
-      "offset": 423
-    },
     "Dragon's Tooth",
     {
       "name": "Ignite",

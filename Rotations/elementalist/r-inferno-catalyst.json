@@ -1,5 +1,6 @@
 {
   "rotation": [
+    "Glyph of Elementals",
     "Rock Barrier",
     "Water Attunement",
     "Frost Aura",
@@ -8,7 +9,6 @@
       "name": "__wait",
       "waitMs": 4000
     },
-    "Glyph of Elementals",
     "__combat_start",
     "Dragon's Tooth",
     {
