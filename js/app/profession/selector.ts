@@ -9,6 +9,7 @@
  */
 
 import { embedRoute, isEmbedded } from "../embed.js";
+import { mountGw2IconFallback } from "../../platform/ui/gw2-icon-fallback.js";
 import { mountRotationTimelineSize } from "../../platform/ui/rotation-timeline-size.js";
 import { mountRotationWorkspace } from "../../platform/ui/rotation-workspace.js";
 import { mountSimulatorNavigation } from "./navigation.js";
@@ -243,6 +244,7 @@ function renderProfessionGroupCards(
  * are allowed so the same entry point can run on landing and simulator pages.
  */
 export function bindProfessionSelector(root: Document = document): void {
+  mountGw2IconFallback(root);
   mountRotationWorkspace(root);
   mountRotationTimelineSize(root);
   mountCommunityActions(root);
