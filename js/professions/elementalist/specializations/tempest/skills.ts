@@ -143,6 +143,8 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           atMs: 0,
           timingAnchor: "castStart",
           timingScale: "cast",
+          recipients: "party",
+          maximumRecipients: 5,
           metadata: {},
         },
         {
@@ -154,6 +156,8 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           atMs: 0,
           timingAnchor: "castStart",
           timingScale: "cast",
+          recipients: "party",
+          maximumRecipients: 5,
           metadata: {},
         },
       ],

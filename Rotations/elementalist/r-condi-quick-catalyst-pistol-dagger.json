@@ -1,17 +1,6 @@
 {
   "rotation": [
     "Glyph of Elementals",
-    "Raging Ricochet",
-    "Air Attunement",
-    "Dazing Discharge",
-    "Water Attunement",
-    "Frigid Flurry",
-    {
-      "name": "__wait",
-      "waitMs": 5000
-    },
-    "Frost Aura",
-    "Earth Attunement",
     "Shattering Stone",
     {
       "name": "__wait",

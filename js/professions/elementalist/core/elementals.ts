@@ -319,7 +319,6 @@ function startFlameBarrage(
 function summonStrikeMetadata(
   summonGeneration: number,
   baseDamage: number,
-  ignoresMight = false,
 ): SchedulerRecord {
   return {
     independentSummonStrike: true,
@@ -332,7 +331,6 @@ function summonStrikeMetadata(
     summonCriticalDamage: 1.5,
     summonDamagePerCoefficient: baseDamage,
     summonOwner: companionId(summonGeneration),
-    summonIgnoresMight: ignoresMight,
     skillWeapon: "Unequipped",
   };
 }
@@ -345,7 +343,6 @@ function emitStrike(
   baseDamage: number,
   hitIndex: number,
   totalHits: number,
-  ignoresMight = false,
 ): void {
   context.emit({
     type: "damage",
@@ -365,7 +362,6 @@ function emitStrike(
     ...summonStrikeMetadata(
       Number(task.payload?.summonGeneration || 0),
       baseDamage,
-      ignoresMight,
     ),
   });
 }
@@ -490,7 +486,6 @@ function handleElementalImpactTask(
       profile.projectileBaseDamage,
       Number(payload.hitIndex || 1),
       4,
-      true,
     );
     emitPlayerOwnedBurning(context, task, profile.skillId, "Flame Barrage");
   } else if (payload.impact === "flame-barrage-explosion") {
@@ -502,7 +497,6 @@ function handleElementalImpactTask(
       profile.explosionBaseDamage,
       4,
       4,
-      true,
     );
   }
 }

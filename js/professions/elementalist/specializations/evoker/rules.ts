@@ -758,6 +758,8 @@ function onCastComplete(
       10,
       skill.name,
       skill.id,
+      0,
+      "party",
     );
     emitElementalistBuff(
       context as never,
@@ -767,6 +769,8 @@ function onCastComplete(
       10,
       skill.name,
       skill.id,
+      0,
+      "party",
     );
   }
 

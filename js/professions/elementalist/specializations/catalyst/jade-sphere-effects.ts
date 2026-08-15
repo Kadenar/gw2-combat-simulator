@@ -27,6 +27,8 @@ function jadeSphereEffects(
       atMs,
       timingAnchor: "castStart" as const,
       timingScale: "cast" as const,
+      recipients: "party" as const,
+      maximumRecipients: 5,
       metadata: {},
     })),
   ];

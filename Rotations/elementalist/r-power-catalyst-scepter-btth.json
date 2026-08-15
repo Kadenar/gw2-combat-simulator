@@ -489,10 +489,6 @@
       "offset": 320
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 479
-    },
-    {
       "name": "Lightning Strike",
       "offset": 597
     },
@@ -510,6 +506,7 @@
     "Water Trident",
     "Ice Shards",
     "Ice Shards",
+    "Deploy Jade Sphere (Water)",
     "Ice Shards",
     "Relentless Fire",
     "Water Trident",
