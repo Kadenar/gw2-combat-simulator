@@ -38,7 +38,6 @@ export function vindicatorDodgeAutoPaletteSkill(
     slot: "Action",
     castTimeMs: 0,
     implemented: true,
-    optimizerExcluded: true,
   };
 }
 

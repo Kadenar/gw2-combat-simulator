@@ -320,7 +320,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
     // The counterattack only occurs after absorbing an incoming attack. The
     // benchmark target never attacks, so activation alone has no effects.
     effects: [],
-    optimizerExcluded: true,
     quicknessCastTimeMs: 1000,
     adrenalineCost: 10,
     burstTier: 1,
