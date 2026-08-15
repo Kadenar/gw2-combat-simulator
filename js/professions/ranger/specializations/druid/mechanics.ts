@@ -1,9 +1,5 @@
 import { professionCoreState } from "../../../../platform/engine/profession.js";
-import type {
-  ScheduledTask,
-  SchedulerRecord,
-  SimulationEvent,
-} from "../../../../platform/engine/types.js";
+import type { SimulationEvent } from "../../../../platform/engine/types.js";
 import {
   RANGER_SKILL_IDS as ID,
   RANGER_TRAIT_IDS as TRAIT,
@@ -22,10 +18,6 @@ const NATURAL_MENDER_FORCE = 8;
 const DIRECT_DAMAGE_FORCE = 0.75;
 export const DRUID_ASTRAL_FORCE_DAMAGE_TASK =
   "ranger.druid-astral-force-damage";
-
-interface AstralForceDamageTaskPayload extends SchedulerRecord {
-  readonly celestialAvatarSkill: boolean;
-}
 
 function hasDruidTrait(
   context: RangerCastContext | RangerSchedulerContext,
@@ -88,7 +80,6 @@ export function enterAvatar(
   state.celestialAvatarActive = true;
   state.celestialAvatarEndsAt = context.start + CELESTIAL_AVATAR_DURATION;
   state.astralForceUpdatedAt = context.start;
-  state.naturalMenderReadyAt = state.celestialAvatarEndsAt + 3;
   professionCoreState(context).availableFlips[ID.RELEASE_CELESTIAL_AVATAR] =
     state.celestialAvatarEndsAt;
   applyNaturalBalance(context, 10, context.start);
@@ -106,7 +97,6 @@ export function leaveAvatar(
   state.celestialAvatarActive = false;
   state.celestialAvatarEndsAt = 0;
   state.astralForceUpdatedAt = at;
-  state.naturalMenderReadyAt = at + 3;
   delete professionCoreState(context).availableFlips[
     ID.RELEASE_CELESTIAL_AVATAR
   ];
@@ -131,6 +121,15 @@ export function advanceDruidState(
         elapsed * (state.maximumAstralForce / CELESTIAL_AVATAR_DURATION),
     );
     state.astralForceUpdatedAt = target;
+    if (target >= state.naturalMenderReadyAt - context.epsilon) {
+      const skippedApplications =
+        Math.floor(
+          (target - state.naturalMenderReadyAt + context.epsilon) /
+            NATURAL_MENDER_INTERVAL,
+        ) + 1;
+      state.naturalMenderReadyAt +=
+        skippedApplications * NATURAL_MENDER_INTERVAL;
+    }
     if (
       target >= state.celestialAvatarEndsAt - context.epsilon ||
       state.astralForce <= context.epsilon
@@ -193,29 +192,14 @@ export function observeDruidAstralForceEvent(
     at: event.at,
     priority: 20,
     ownerId: "ranger.druid-astral-force",
-    payload: {
-      celestialAvatarSkill: Boolean(
-        (
-          context.catalog.skillsById.get(event.skillId ?? event.sourceId) as
-            RangerSkill | undefined
-        )?.celestialAvatarSkill,
-      ),
-    },
   });
 }
 
 export function handleDruidAstralForceDamageTask(
   context: RangerSchedulerContext,
-  task: ScheduledTask<AstralForceDamageTaskPayload>,
 ): void {
   const state = druidState.from(context);
-  if (
-    state.celestialAvatarActive &&
-    (!task.payload?.celestialAvatarSkill ||
-      !hasDruidTrait(context, TRAIT.ECLIPSE))
-  ) {
-    return;
-  }
+  if (state.celestialAvatarActive) return;
   state.astralForce = Math.min(
     state.maximumAstralForce,
     state.astralForce + DIRECT_DAMAGE_FORCE,

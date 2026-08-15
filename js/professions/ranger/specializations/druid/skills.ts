@@ -134,11 +134,32 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<
       },
       {
         type: "condition",
-        ticks: [520, 1160, 1640, 2040].map((atMs) => ({
+        ticks: [
+          {
+            atMs: 2640,
+            condition: "Immobilized",
+            stacks: 1,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      },
+      {
+        type: "strike",
+        name: "Black Hole",
+        sourceId: ID.BLACK_HOLE,
+        actorType: "effect",
+        ownerActorType: "player",
+        canCrit: false,
+        ticks: [2640, 4160, 5680, 7200].map((atMs) => ({
           atMs,
-          condition: "Immobilized",
-          stacks: 1,
-          duration: 2,
+          coefficient: 0,
+          metadata: {
+            flatDamage: 158,
+            noCrit: true,
+            skillName: "Black Hole",
+          },
         })),
         timingAnchor: "castStart",
         timingScale: "fixed",
