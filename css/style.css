@@ -231,27 +231,66 @@ header .community-actions {
 
 /* Patch preview */
 .patch-preview-picker {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 8px 0 0 12px;
+  position: absolute;
+  top: 8px;
+  left: 0;
+  z-index: 210;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  text-align: left;
+}
+
+.patch-preview-picker-label {
   color: var(--text-dim);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.patch-preview-picker select {
-  min-width: 185px;
-  padding: 5px 28px 5px 9px;
-  border: 1px solid color-mix(in srgb, var(--accent) 65%, var(--border-light));
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--accent) 9%, var(--bg-panel-alt));
-  color: var(--text-bright);
+.patch-preview-options {
+  display: inline-flex;
+  max-width: 280px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--bg-panel-alt) 84%, black);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+.patch-preview-option {
+  overflow: hidden;
+  max-width: 190px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-dim);
   font: inherit;
-  text-transform: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   cursor: pointer;
+}
+
+.patch-preview-option:hover,
+.patch-preview-option:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  color: var(--text-bright);
+  outline: none;
+}
+
+.patch-preview-option.active {
+  border-color: color-mix(in srgb, var(--accent) 62%, var(--border));
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-panel));
+  color: var(--accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
 }
 
 .patch-comparison {
@@ -392,9 +431,17 @@ header .community-actions {
   color: var(--text-dim);
 }
 
-@media (max-width: 620px) {
+@media (max-width: 900px) {
   .patch-preview-picker {
-    margin-left: 0;
+    position: static;
+    width: fit-content;
+    margin: 0 0 10px;
+  }
+}
+
+@media (max-width: 620px) {
+  .patch-preview-options {
+    max-width: min(100%, 280px);
   }
 
   .patch-comparison-header {

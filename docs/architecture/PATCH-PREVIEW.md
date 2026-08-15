@@ -107,12 +107,161 @@ when `from` no longer matches live source, preventing a stale overlay from
 quietly changing the wrong baseline. `multiply` and `add` are available for
 derived changes and tests.
 
+### Skill authoring examples
+
+The following are illustrative entries inside a profession's `skills` object.
+The names and values are fictional; use a numeric skill ID and the actual live
+value when authoring a real preview.
+
+Condition duration and stacks use seconds and stack counts. The `conditions`
+shorthand updates every matching aggregate effect or matching tick in a
+timeline:
+
+```ts
+skills: {
+  "Condition Adjustment Example": {
+    conditions: {
+      Burning: {
+        duration: { from: 3, to: 6 }, // duration increase
+        stacks: { from: 2, to: 1 }, // stack decrease
+      },
+      Torment: {
+        duration: { from: 5, to: 4 }, // duration decrease
+        stacks: { from: 1, to: 2 }, // stack increase
+      },
+    },
+  },
+},
+```
+
+Use an explicit selector when only one condition packet or timeline tick
+changes. `effectIndex` is the zero-based index in the skill's complete live
+`effects` array; the additional guards make a stale or incorrect index fail:
+
+```ts
+skills: {
+  "Selected Packet Example": {
+    effects: [
+      {
+        effectIndex: 2,
+        type: "condition",
+        condition: "Bleeding",
+        tickIndex: 1,
+        duration: { from: 4, to: 6 },
+        stacks: { from: 1, to: 2 },
+      },
+    ],
+  },
+},
+```
+
+A newly introduced condition is a complete effect appended to the preview
+skill. Supply timing fields such as `atMs`, `timingAnchor`, or `timingScale`
+when it should not resolve at the effect system's default time:
+
+```ts
+skills: {
+  "New Condition Example": {
+    addEffects: [
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 2,
+        duration: 6,
+        atMs: 500,
+        timingAnchor: "castStart",
+      },
+    ],
+  },
+},
+```
+
+Remove a condition entirely with a guarded complete-effect selector. This is
+different from changing its stacks or duration to zero: the preview catalog no
+longer contains the selected effect.
+
+```ts
+skills: {
+  "Removed Condition Example": {
+    removeEffects: [
+      {
+        effectIndex: 1,
+        type: "condition",
+        condition: "Poison",
+      },
+    ],
+  },
+},
+```
+
+Structural selectors are resolved against the live effect array. Existing
+numeric edits run first, complete effects are removed second, and new effects
+are appended last. Set `all: true` only when a patch note intentionally removes
+every effect matching the selector.
+
+Cast times use milliseconds. `castTimeMs` is a convenience field; both
+increases and decreases use the same stale-value guard:
+
+```ts
+skills: {
+  "Slower Cast Example": {
+    castTimeMs: { from: 750, to: 1000 },
+  },
+  "Faster Cast Example": {
+    castTimeMs: { from: 1000, to: 600 },
+  },
+},
+```
+
+Resource costs are ordinary numeric skill fields. Use the property owned by
+the live skill: `initiativeCost` for thief initiative, `energyCost` for
+revenant energy, or `resourceCost` for a generic profession resource.
+
+```ts
+skills: {
+  "Thief Initiative Example": {
+    fields: {
+      initiativeCost: { from: 5, to: 4 },
+    },
+  },
+  "Revenant Energy Example": {
+    fields: {
+      energyCost: { from: 30, to: 35 },
+    },
+  },
+  "Generic Resource Example": {
+    fields: {
+      resourceCost: { from: 10, to: 8 },
+    },
+  },
+},
+```
+
+Cooldowns use seconds. `cooldown` is a convenience field; ammo skills should
+instead patch their live `ammoRecharge` field through `fields`.
+
+```ts
+skills: {
+  "Shorter Cooldown Example": {
+    cooldown: { from: 20, to: 15 },
+  },
+  "Longer Cooldown Example": {
+    cooldown: { from: 12, to: 18 },
+  },
+  "Ammo Recharge Example": {
+    fields: {
+      ammoRecharge: { from: 25, to: 20 },
+    },
+  },
+},
+```
+
 Skill edits are keyed by numeric skill ID where practical, with an exact-name
 fallback. They can edit skill fields such as cooldown/cast time and target one
 or more effects by raw effect index plus optional type/name/condition/boon
 guards. Tick-based strike and condition timelines can target one tick or all
-ticks. Ambiguous selectors throw unless the author explicitly opts into all
-matches.
+ticks. Complete effects can also be appended or removed. Ambiguous selectors
+throw unless the author explicitly opts into all matches.
 
 Named patchable constants cover numbers computed outside catalog effects. Code
 reads them through the shared helper using the simulation config. A constant
@@ -214,10 +363,11 @@ Tests must prove:
 1. no preview leaves every existing catalog and benchmark unchanged;
 2. absolute, `{ from, to }`, multiply, and add edits work;
 3. aggregate effects, selected packets, and tick timelines are targetable;
-4. live objects are never mutated and untouched skills retain identity;
-5. invalid/stale/ambiguous authoring fails at preview construction;
-6. live and preview runtime catalogs coexist without cache collisions;
-7. `patchId` reaches scheduler/resolver patchable constants;
-8. the same build and rotation produce both deterministic comparison results;
-9. UI controls disappear cleanly when no preview is authored; and
-10. build, typecheck, site checks, and relevant profession benchmarks pass.
+4. complete condition effects can be added and removed without mutating live;
+5. live objects are never mutated and untouched skills retain identity;
+6. invalid/stale/ambiguous authoring fails at preview construction;
+7. live and preview runtime catalogs coexist without cache collisions;
+8. `patchId` reaches scheduler/resolver patchable constants;
+9. the same build and rotation produce both deterministic comparison results;
+10. UI controls disappear cleanly when no preview is authored; and
+11. build, typecheck, site checks, and relevant profession benchmarks pass.

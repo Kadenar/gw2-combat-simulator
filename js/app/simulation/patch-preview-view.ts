@@ -66,21 +66,46 @@ function noteRows(notes: readonly PatchNote[]): string {
 
 export function mountPatchPreviewControls(app: ProfessionAppState): void {
   const preview = app.profession.preview;
-  const header = document.querySelector("body[data-profession] header");
-  if (!preview || !header || header.querySelector("#patch-preview-select")) {
+  const header = document.querySelector("body[data-profession] #app > header");
+  if (!preview || !header || header.querySelector(".patch-preview-picker")) {
     return;
   }
-  const label = document.createElement("label");
-  label.className = "patch-preview-picker";
-  label.htmlFor = "patch-preview-select";
-  label.innerHTML = `<span>Game data</span>
-    <select id="patch-preview-select">
-      <option value="current">Live</option>
-      <option value="${escapeHtml(preview.id)}">${escapeHtml(preview.label)}</option>
-    </select>`;
-  const select = label.querySelector("select");
-  select?.addEventListener("change", () => app.selectPatch(select.value));
-  header.append(label);
+  const control = document.createElement("div");
+  control.className = "patch-preview-picker";
+  control.setAttribute("role", "group");
+  control.setAttribute("aria-label", "Game data version");
+
+  const caption = document.createElement("span");
+  caption.className = "patch-preview-picker-label";
+  caption.textContent = "Game data";
+  control.append(caption);
+
+  const options = document.createElement("div");
+  options.className = "patch-preview-options";
+  for (const [patchId, label] of [
+    ["current", "Live"],
+    [preview.id, preview.label],
+  ]) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "patch-preview-option";
+    button.textContent = label;
+    button.dataset.patchId = patchId;
+    const active = patchId === app.patchId;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+    button.addEventListener("click", () => {
+      app.selectPatch(patchId);
+      for (const option of options.querySelectorAll("button")) {
+        const selected = option.dataset.patchId === patchId;
+        option.classList.toggle("active", selected);
+        option.setAttribute("aria-pressed", String(selected));
+      }
+    });
+    options.append(button);
+  }
+  control.append(options);
+  header.prepend(control);
 }
 
 export function renderPatchComparison(

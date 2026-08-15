@@ -27,17 +27,20 @@ export interface PatchNote {
   readonly reason?: string;
 }
 
-export interface EffectPatch {
+export interface EffectSelector {
   /** Zero-based index in the skill's complete effects array. */
   readonly effectIndex?: number;
   readonly type?: SkillEffect["type"];
   readonly name?: string;
   readonly condition?: string;
   readonly boon?: string;
-  /** Zero-based index in the selected effect's ticks, or every matching tick. */
-  readonly tickIndex?: number | "all";
   /** Required when a selector intentionally targets multiple effects. */
   readonly all?: boolean;
+}
+
+export interface EffectPatch extends EffectSelector {
+  /** Zero-based index in the selected effect's ticks, or every matching tick. */
+  readonly tickIndex?: number | "all";
   readonly coefficient?: NumEdit;
   readonly hits?: NumEdit;
   readonly stacks?: NumEdit;
@@ -51,6 +54,10 @@ export interface SkillPatchEdit {
   /** Numeric skill fields such as cooldown, castTimeMs, or initiativeCost. */
   readonly fields?: Readonly<Record<string, NumEdit>>;
   readonly effects?: readonly EffectPatch[];
+  /** Complete effects appended after edits/removals of existing effects. */
+  readonly addEffects?: readonly SkillEffect[];
+  /** Selectors for complete effects removed from the preview skill. */
+  readonly removeEffects?: readonly EffectSelector[];
 
   /** Convenience shorthands for the common patch-note cases. */
   readonly coefficient?: NumEdit;
@@ -170,7 +177,7 @@ function effectTicks(
   return Array.isArray(ticks) ? ticks : null;
 }
 
-function effectMatches(effect: SkillEffect, patch: EffectPatch): boolean {
+function effectMatches(effect: SkillEffect, patch: EffectSelector): boolean {
   if (patch.type != null && effect.type !== patch.type) return false;
   if (patch.name != null && effect.name !== patch.name) return false;
   if (patch.boon != null && effect.boon !== patch.boon) return false;
@@ -187,7 +194,7 @@ function effectMatches(effect: SkillEffect, patch: EffectPatch): boolean {
 
 function selectedEffects(
   effects: readonly SkillEffect[],
-  patch: EffectPatch,
+  patch: EffectSelector,
   label: string,
 ): Array<{ index: number; effect: SkillEffect }> {
   if (patch.effectIndex != null) {
@@ -355,7 +362,28 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit): Skill {
       );
     }
   }
-  mutable.effects = effects;
+  const removedIndexes = new Set<number>();
+  for (const selector of edit.removeEffects || []) {
+    for (const { index } of selectedEffects(
+      effects,
+      selector,
+      `Skill ${skill.name} removal`,
+    )) {
+      removedIndexes.add(index);
+    }
+  }
+  const retainedEffects = effects.filter(
+    (_, index) => !removedIndexes.has(index),
+  );
+  const addedEffects = (edit.addEffects || []).map((effect, index) => {
+    if (!effect || typeof effect !== "object" || !String(effect.type || "")) {
+      throw new TypeError(
+        `Skill ${skill.name} added effect ${index} must declare a type.`,
+      );
+    }
+    return structuredClone(effect);
+  });
+  mutable.effects = [...retainedEffects, ...addedEffects];
   return deepFreeze(clone);
 }
 

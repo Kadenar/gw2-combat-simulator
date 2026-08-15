@@ -223,3 +223,80 @@ export interface EvtcAnalysisResult {
   readonly profession: readonly ProfessionAnalysisResult[];
   readonly warnings: readonly string[];
 }
+
+export type EvtcRotationActionKind =
+  | "weapon-skill"
+  | "profession-skill"
+  | "utility"
+  | "heal"
+  | "elite"
+  | "dodge"
+  | "weapon-swap"
+  | "action"
+  | "unknown";
+
+export type EvtcRotationEvidence =
+  | "animation"
+  | "legacy-activation"
+  | "effect"
+  | "state-change"
+  | "buff-transition";
+
+export type EvtcRotationActionStatus =
+  "completed" | "reduced" | "interrupted" | "unknown" | "instant";
+
+export interface EvtcRotationCommand {
+  readonly name: string;
+  readonly skillId?: string | number;
+  readonly offset?: number;
+  readonly interruptMs?: number;
+}
+
+export interface EvtcRotationMarkerCommand {
+  readonly name: "__combat_start";
+  readonly offset?: number;
+}
+
+export interface EvtcRotationWaitCommand {
+  readonly name: "__wait";
+  readonly waitMs: number;
+}
+
+export type EvtcReconstructedCommand =
+  EvtcRotationCommand | EvtcRotationMarkerCommand | EvtcRotationWaitCommand;
+
+export interface EvtcRotationAction {
+  readonly timestampMs: number;
+  readonly endTimestampMs: number;
+  readonly durationMs: number;
+  readonly expectedDurationMs: number | null;
+  readonly rawSkillId: number;
+  readonly skillId: string | number;
+  readonly name: string;
+  readonly kind: EvtcRotationActionKind;
+  readonly evidence: EvtcRotationEvidence;
+  readonly status: EvtcRotationActionStatus;
+  readonly weaponSet?: number | null;
+  readonly supportedByCatalog: boolean;
+}
+
+export interface EvtcRotationPlayer {
+  readonly address: string;
+  readonly character: string;
+  readonly account: string;
+  readonly professionId: string;
+  readonly professionName: string;
+  readonly specializationId: string;
+  readonly specializationName: string;
+  readonly recordedActionCount: number;
+}
+
+export interface EvtcRotationReconstruction {
+  readonly parserId: string;
+  readonly player: EvtcRotationPlayer;
+  readonly logStartTime: number;
+  readonly combatStartTimestampMs: number | null;
+  readonly actions: readonly EvtcRotationAction[];
+  readonly rotation: readonly EvtcReconstructedCommand[];
+  readonly warnings: readonly string[];
+}

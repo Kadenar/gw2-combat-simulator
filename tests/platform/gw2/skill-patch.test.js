@@ -154,6 +154,45 @@ test("skill patches target fields, effects, and individual timeline ticks", () =
   assert.equal(Object.isFrozen(preview.skillsById.get(1)), true);
 });
 
+test("skill patches add and remove complete condition effects", () => {
+  const live = fixtureCatalog();
+  const preview = applySkillPatch(live, {
+    skills: {
+      1: {
+        removeEffects: [
+          {
+            effectIndex: 1,
+            type: "condition",
+            condition: "Burning",
+          },
+        ],
+        addEffects: [
+          {
+            type: "condition",
+            condition: "Bleeding",
+            stacks: 3,
+            duration: 6,
+          },
+        ],
+      },
+    },
+  });
+
+  assert.equal(live.skillsById.get(1).effects[1].condition, "Burning");
+  assert.equal(
+    preview.skillsById
+      .get(1)
+      .effects.some((effect) => effect.condition === "Burning"),
+    false,
+  );
+  assert.deepEqual(preview.skillsById.get(1).effects.at(-1), {
+    type: "condition",
+    condition: "Bleeding",
+    stacks: 3,
+    duration: 6,
+  });
+});
+
 test("patch authoring rejects unknown, ambiguous, and stale targets", () => {
   const live = fixtureCatalog();
   assert.throws(
