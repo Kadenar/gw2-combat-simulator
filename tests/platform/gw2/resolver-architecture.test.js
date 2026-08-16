@@ -650,6 +650,85 @@ test("target death finishes the lethal activation and stops future events", () =
   );
 });
 
+test("target death finishes untagged multi-hit siblings", () => {
+  const stream = buildScheduledEventStream({
+    events: [
+      {
+        type: "damage",
+        at: 1,
+        name: "First sibling",
+        skillName: "Untagged multi-hit",
+        flatDamage: 1,
+        hits: 1,
+        hitIndex: 1,
+        totalHits: 2,
+        source: "Player",
+        sourceId: "untagged-multi-hit",
+        actorType: "player",
+      },
+      {
+        type: "damage",
+        at: 1,
+        name: "Second sibling",
+        skillName: "Untagged multi-hit",
+        flatDamage: 1,
+        hits: 1,
+        hitIndex: 2,
+        totalHits: 2,
+        source: "Player",
+        sourceId: "untagged-multi-hit",
+        actorType: "player",
+      },
+      {
+        type: "damage",
+        at: 1,
+        name: "Distinct attack",
+        skillName: "Distinct attack",
+        flatDamage: 1,
+        source: "Player",
+        sourceId: "distinct-attack",
+        actorType: "player",
+        activationId: "distinct-activation",
+      },
+    ],
+    rotationEndTime: 1,
+  });
+  const result = resolveTestGw2Stream({
+    stream,
+    config: {
+      target: { health: 1 },
+      sigilSets: [{ names: [] }],
+    },
+    traits: new Set(),
+    query: {
+      statsAt: () => ({
+        power: 1_000,
+        precision: 1_000,
+        ferocity: 0,
+        conditionDamage: 0,
+        expertise: 0,
+      }),
+      critical: () => ({ chance: 0, damage: 1.5 }),
+      strikeMultiplier: () => 1,
+      conditionMultiplier: () => 1,
+      conditionDurationMultiplier: () => 1,
+      activeWeaponSetAt: () => 1,
+    },
+    helpers: {
+      conditionName: (name) => name,
+      skillsByName: new Map(),
+      weaponStrength: () => 1_000,
+    },
+  });
+
+  assert.deepEqual(
+    result.resolvedEvents
+      .filter((event) => event.type === "damage")
+      .map((event) => event.name),
+    ["First sibling", "Second sibling"],
+  );
+});
+
 test("pending damage can kill mid-cast and suppress the current skill packet", () => {
   const stream = buildScheduledEventStream({
     events: [
@@ -722,6 +801,77 @@ test("pending damage can kill mid-cast and suppress the current skill packet", (
       .map((event) => event.name),
     ["Pending Tick"],
   );
+});
+
+test("flat and no-crit strikes skip critical queries", () => {
+  const stream = buildScheduledEventStream({
+    events: [
+      {
+        type: "damage",
+        at: 1,
+        name: "Flat strike",
+        skillName: "Flat strike",
+        flatDamage: 10,
+        source: "Player",
+        sourceId: "flat-strike",
+        actorType: "player",
+      },
+      {
+        type: "damage",
+        at: 1.1,
+        name: "No-crit strike",
+        skillName: "No-crit strike",
+        coefficient: 1,
+        noCrit: true,
+        weaponStrength: 1_000,
+        source: "Player",
+        sourceId: "no-crit-strike",
+        actorType: "player",
+      },
+    ],
+    rotationEndTime: 1.1,
+  });
+  let criticalQueries = 0;
+  const result = resolveTestGw2Stream({
+    stream,
+    config: { sigilSets: [{ names: [] }] },
+    traits: new Set(),
+    query: {
+      statsAt: () => ({
+        power: 1_000,
+        precision: 1_000,
+        ferocity: 0,
+        conditionDamage: 0,
+        expertise: 0,
+      }),
+      critical: () => {
+        criticalQueries += 1;
+        return { chance: 0.5, damage: 2 };
+      },
+      strikeMultiplier: () => 1,
+      conditionMultiplier: () => 1,
+      conditionDurationMultiplier: () => 1,
+      activeWeaponSetAt: () => 1,
+    },
+    helpers: {
+      conditionName: (name) => name,
+      skillsByName: new Map(),
+      weaponStrength: () => 1_000,
+    },
+  });
+  const strikes = result.resolvedEvents.filter(
+    (event) => event.type === "damage",
+  );
+
+  assert.equal(criticalQueries, 0);
+  assert.equal(strikes.length, 2);
+  for (const strike of strikes) {
+    assert.equal(strike.criticalChance, 0);
+    assert.equal(strike.criticalChanceBeforeCap, 0);
+    assert.deepEqual(strike.criticalChanceContributors, []);
+    assert.equal(strike.criticalDamage, 1);
+    assert.equal(strike.critEligible, false);
+  }
 });
 
 test("a damage packet removed before resolution cannot trigger critical sigils", () => {

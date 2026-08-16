@@ -119,6 +119,32 @@ test("filtered templates remain hidden despite their flex layout", () => {
   );
 });
 
+test("desktop templates use the bounded right sidebar above simulation config", () => {
+  const css = readFileSync(
+    new URL("../../css/style.css", import.meta.url),
+    "utf8",
+  );
+  const source = readFileSync(
+    new URL("../../js/app/build/presets.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(
+    css,
+    /\.profession-layout\s*\{\s*display: grid;\s*grid-template-columns: minmax\(0, 1fr\) 310px;/,
+  );
+  assert.match(
+    css,
+    /\.build-templates-region\s*\{\s*min-height: 0;\s*grid-column: 2;\s*grid-row: 1;/,
+  );
+  assert.match(
+    css,
+    /\.profession-layout > \.simulation-workspace\s*\{\s*grid-column: 1 \/ -1;\s*grid-row: 2;/,
+  );
+  assert.match(source, /templateRegion\.append\(container\)/);
+  assert.match(source, /layout\.append\(simulationWorkspace\)/);
+});
+
 test("template actions load paired or partial state and support undo", async (t) => {
   const payloads = new Map([
     [

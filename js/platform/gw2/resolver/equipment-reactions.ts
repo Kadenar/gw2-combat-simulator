@@ -4,7 +4,7 @@ import type { SchedulerRecord } from "../../engine/types.js";
 import { isGw2PlayerActorEvent } from "../event-ownership.js";
 import { FOOD_DATA, NOURISHMENT_ICON, SIGIL_PROCS } from "../gear-data.js";
 import { onResolvedPlayerCriticalHit } from "../native-mechanics.js";
-import { clamp } from "../numeric.js";
+import { clamp, consumeExpectedCriticalProgress } from "../numeric.js";
 import { gw2SigilSet, gw2StatsForWeaponSet } from "../runtime-rules.js";
 import {
   createSigilConditionEvent,
@@ -82,8 +82,7 @@ function criticalFoodProc(
   ctx: Gw2ResolverRuntime,
 ): CriticalFoodProc | undefined {
   const proc = FOOD_DATA[String(ctx.config.food || "")]?.proc as
-    | CriticalFoodProc
-    | undefined;
+    CriticalFoodProc | undefined;
   return proc?.type === "critStrike" ? proc : undefined;
 }
 
@@ -108,14 +107,7 @@ function isResolvedCriticalSigilCause(
   if (!critical) return false;
   if (ctx.random.stochastic) return critical.didCrit === true;
   if (!(critical.chance > 0)) return false;
-  // Modifier sums can represent a displayed 58% chance as
-  // 0.5800000000000001. Normalize before accumulating so a proc threshold is
-  // determined by the modeled percentage rather than floating-point noise.
-  const normalizedChance = Math.round(critical.chance * 1e12) / 1e12;
-  ctx.sigil.criticalProgress += normalizedChance;
-  if (ctx.sigil.criticalProgress < 1) return false;
-  ctx.sigil.criticalProgress -= 1;
-  return true;
+  return consumeExpectedCriticalProgress(ctx.sigil, critical.chance);
 }
 
 function createResolvedCriticalSigilEffects(

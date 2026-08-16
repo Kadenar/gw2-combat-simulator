@@ -58,6 +58,28 @@ function isCombatGatedEvent(event: Gw2ResolverEvent): boolean {
 }
 
 /**
+ * Uses the canonical activation id when present. Legacy/resolver-generated
+ * multi-hit packets can still prove sibling ownership from their hit metadata.
+ */
+function combatActivationKey(event: Gw2ResolverEvent): string | null {
+  if (typeof event.activationId === "string" && event.activationId) {
+    return `id:${event.activationId}`;
+  }
+  const hitIndex = Math.trunc(Number(event.hitIndex));
+  const totalHits = Math.trunc(Number(event.totalHits));
+  if (totalHits <= 1 || hitIndex < 1 || hitIndex > totalHits) return null;
+  return [
+    "multi-hit",
+    event.at,
+    event.actorType || "unknown",
+    event.sourceId,
+    event.skillId,
+    event.skillName || "",
+    totalHits,
+  ].join("|");
+}
+
+/**
  * Drains a GW2 resolver queue. Professions may filter their own actor events,
  * but time ordering, encounter bounds, combat start, target death, and handler
  * dispatch remain common.
@@ -72,7 +94,7 @@ export function runGw2ResolverEventLoop(
   }
   const queue = ctx.queue;
   const hp = targetHealth(ctx);
-  let lethalActivationId: string | null = null;
+  let lethalActivationKey: string | null = null;
   sortQueuedEvents(queue);
 
   while (queue.length > 0) {
@@ -86,8 +108,8 @@ export function runGw2ResolverEventLoop(
       if (
         isCombatGatedEvent(event) &&
         event.type !== "condition_tick" &&
-        (lethalActivationId == null ||
-          event.activationId !== lethalActivationId)
+        (lethalActivationKey == null ||
+          combatActivationKey(event) !== lethalActivationKey)
       )
         continue;
     }
@@ -112,8 +134,7 @@ export function runGw2ResolverEventLoop(
       ctx.totals.strike + ctx.totals.condition >= hp
     ) {
       ctx.deathTime = event.at;
-      lethalActivationId =
-        typeof event.activationId === "string" ? event.activationId : null;
+      lethalActivationKey = combatActivationKey(event);
     }
   }
 }

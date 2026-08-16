@@ -13,16 +13,13 @@ export const DEFAULT_ROTATION_WORKSPACE_STATE: RotationWorkspaceState =
   });
 
 type RotationWorkspaceController = {
-  builderControls: HTMLElement;
   configButton: HTMLButtonElement;
-  configButtonTrack: HTMLElement;
   configCloseButton: HTMLButtonElement;
   configPanel: HTMLElement;
   document: Document;
   focusButton: HTMLButtonElement;
   focusIndicator: HTMLElement;
   focusScrollPosition?: Readonly<{ left: number; top: number }>;
-  panelResizeObserver?: ResizeObserver;
   state: RotationWorkspaceState;
 };
 
@@ -69,6 +66,12 @@ export function reduceRotationWorkspaceState(
   return state;
 }
 
+export function isSimulationConfigVisible(
+  state: RotationWorkspaceState,
+): boolean {
+  return !state.focus || state.configOpen;
+}
+
 function applyWorkspaceState(
   controller: RotationWorkspaceController,
   state: RotationWorkspaceState,
@@ -89,17 +92,6 @@ function applyWorkspaceState(
   body.toggleAttribute("data-simulation-config-open", state.configOpen);
   body.toggleAttribute("data-rotation-focus", state.focus);
 
-  const configButtonHost = state.focus
-    ? controller.builderControls
-    : controller.configButtonTrack;
-  if (controller.configButton.parentElement !== configButtonHost) {
-    if (state.focus) {
-      configButtonHost.prepend(controller.configButton);
-    } else {
-      configButtonHost.append(controller.configButton);
-    }
-  }
-
   controller.configButton.setAttribute(
     "aria-expanded",
     String(state.configOpen),
@@ -110,8 +102,14 @@ function applyWorkspaceState(
   controller.configButton.textContent = "";
   controller.configButton.setAttribute("aria-label", configButtonLabel);
   controller.configButton.title = configButtonLabel;
-  controller.configPanel.setAttribute("aria-hidden", String(!state.configOpen));
-  controller.configPanel.inert = !state.configOpen;
+  const configVisible = isSimulationConfigVisible(state);
+  controller.configPanel.setAttribute("aria-hidden", String(!configVisible));
+  controller.configPanel.inert = !configVisible;
+  controller.configPanel.setAttribute(
+    "role",
+    state.focus ? "dialog" : "region",
+  );
+  controller.configPanel.toggleAttribute("aria-modal", state.focus);
 
   controller.focusButton.setAttribute("aria-pressed", String(state.focus));
   controller.focusButton.textContent = state.focus ? "Exit focus" : "Focus";
@@ -147,7 +145,6 @@ function mountRotationHeading(
   heading: HTMLElement,
   configPanelId: string,
 ): {
-  controls: HTMLElement;
   configButton: HTMLButtonElement;
   focusButton: HTMLButtonElement;
   focusIndicator: HTMLElement;
@@ -185,7 +182,7 @@ function mountRotationHeading(
   heading.replaceChildren(headingTitle, controls);
   heading.classList.add("rotation-builder-heading");
 
-  return { configButton, controls, focusButton, focusIndicator };
+  return { configButton, focusButton, focusIndicator };
 }
 
 function mountConfigHeading(
@@ -207,7 +204,7 @@ function mountConfigHeading(
   return button;
 }
 
-/** Mounts the config drawer and full-viewport Rotation Builder focus mode. */
+/** Mounts the anchored config panel and full-viewport Rotation Builder mode. */
 export function mountRotationWorkspace(root: Document = document): void {
   if (controllers.has(root)) return;
 
@@ -238,45 +235,26 @@ export function mountRotationWorkspace(root: Document = document): void {
   panelShell.className = "rotation-panel-shell";
   rotationPanel.before(panelShell);
   panelShell.append(rotationPanel);
-  rotationSection.append(configPanel);
-
-  const syncRotationPanelHeight = (): void => {
-    rotationSection.style.setProperty(
-      "--rotation-panel-height",
-      `${rotationPanel.offsetHeight}px`,
-    );
-  };
-  syncRotationPanelHeight();
-  const ResizeObserverConstructor = root.defaultView?.ResizeObserver;
-  const panelResizeObserver = ResizeObserverConstructor
-    ? new ResizeObserverConstructor(syncRotationPanelHeight)
-    : undefined;
-  panelResizeObserver?.observe(rotationPanel);
 
   configPanel.id ||= "simulation-config-panel";
-  configPanel.setAttribute("role", "dialog");
   configPanel.setAttribute("aria-labelledby", "simulation-config-title");
 
   const configCloseButton = mountConfigHeading(root, configHeading);
   configHeading.querySelector(".simulation-config-title")!.id =
     "simulation-config-title";
-  const { configButton, controls, focusButton, focusIndicator } =
-    mountRotationHeading(root, rotationHeading, configPanel.id);
-
-  const configButtonTrack = root.createElement("div");
-  configButtonTrack.className = "simulation-config-button-track";
-  rotationSection.append(configButtonTrack);
+  const { configButton, focusButton, focusIndicator } = mountRotationHeading(
+    root,
+    rotationHeading,
+    configPanel.id,
+  );
 
   const controller: RotationWorkspaceController = {
-    builderControls: controls,
     configButton,
-    configButtonTrack,
     configCloseButton,
     configPanel,
     document: root,
     focusButton,
     focusIndicator,
-    panelResizeObserver,
     state: DEFAULT_ROTATION_WORKSPACE_STATE,
   };
   controllers.set(root, controller);

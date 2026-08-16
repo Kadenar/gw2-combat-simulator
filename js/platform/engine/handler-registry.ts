@@ -1,19 +1,7 @@
-export type EventHandler<
-  TContext,
-  TEvent extends { type: string },
-> = (context: TContext, event: TEvent) => unknown;
-
-interface HandlerRegistration<
-  TContext,
-  TEvent extends { type: string },
-> {
-  readonly handler: EventHandler<TContext, TEvent>;
-  readonly required: boolean;
-}
-
-interface HandlerRegistrationOptions {
-  readonly required?: boolean;
-}
+export type EventHandler<TContext, TEvent extends { type: string }> = (
+  context: TContext,
+  event: TEvent,
+) => unknown;
 
 /**
  * Registry for resolver event handlers. It keeps event-type ownership explicit
@@ -27,23 +15,15 @@ export class HandlerRegistry<
   TContext = unknown,
   TEvent extends { type: string } = { type: string },
 > {
-  readonly #handlers = new Map<
-    string,
-    HandlerRegistration<TContext, TEvent>
-  >();
+  readonly #handlers = new Map<string, EventHandler<TContext, TEvent>>();
 
   /**
    * Registers a handler for one event type.
    *
    * @param {string} type
    * @param {EventHandler<TContext, TEvent>} handler
-   * @param {{required?: boolean}} [options]
    */
-  register(
-    type: string,
-    handler: EventHandler<TContext, TEvent>,
-    { required = false }: HandlerRegistrationOptions = {},
-  ): this {
+  register(type: string, handler: EventHandler<TContext, TEvent>): this {
     const eventType = String(type || "");
     if (!eventType || typeof handler !== "function") {
       throw new TypeError(
@@ -53,7 +33,7 @@ export class HandlerRegistry<
     if (this.#handlers.has(eventType)) {
       throw new Error(`Duplicate event handler registration: ${eventType}`);
     }
-    this.#handlers.set(eventType, { handler, required: Boolean(required) });
+    this.#handlers.set(eventType, handler);
     return this;
   }
 
@@ -61,14 +41,12 @@ export class HandlerRegistry<
    * Registers every entry in a plain object map.
    *
    * @param {Readonly<Record<string, EventHandler<TContext, TEvent>>>} handlers
-   * @param {{required?: boolean}} [options]
    */
   registerAll(
     handlers: Readonly<Record<string, EventHandler<TContext, TEvent>>>,
-    options: HandlerRegistrationOptions = {},
   ): this {
     for (const [type, handler] of Object.entries(handlers || {})) {
-      this.register(type, handler, options);
+      this.register(type, handler);
     }
     return this;
   }
@@ -103,13 +81,13 @@ export class HandlerRegistry<
    * @param {TContext} context
    */
   dispatch(event: TEvent, context: TContext): unknown {
-    const registration = this.#handlers.get(event.type);
-    if (!registration) {
+    const handler = this.#handlers.get(event.type);
+    if (!handler) {
       throw new Error(
         `No event handler registered for required type: ${event.type}`,
       );
     }
-    return registration.handler(context, event);
+    return handler(context, event);
   }
 
   /**
@@ -118,10 +96,7 @@ export class HandlerRegistry<
    * @returns {[string, EventHandler<TContext, TEvent>][]}
    */
   entries(): Array<[string, EventHandler<TContext, TEvent>]> {
-    return [...this.#handlers.entries()].map(([type, registration]) => [
-      type,
-      registration.handler,
-    ]);
+    return [...this.#handlers.entries()];
   }
 }
 

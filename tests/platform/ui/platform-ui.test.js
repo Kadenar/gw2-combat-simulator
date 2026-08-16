@@ -45,6 +45,7 @@ import {
 } from "../../../js/platform/ui/rotation-timeline-size.js";
 import {
   DEFAULT_ROTATION_WORKSPACE_STATE,
+  isSimulationConfigVisible,
   reduceRotationWorkspaceState,
   syncRotationFocusResults,
 } from "../../../js/platform/ui/rotation-workspace.js";
@@ -94,17 +95,22 @@ test("rotation timeline sizes expose two larger display options", () => {
   assert.equal(normalizeRotationDeadTimeVisibility(null), false);
 });
 
-test("rotation workspace keeps config closed by default and scopes focus mode", () => {
+test("rotation workspace keeps the normal config visible and scopes its sheet to focus mode", () => {
   assert.deepEqual(DEFAULT_ROTATION_WORKSPACE_STATE, {
     configOpen: false,
     focus: false,
   });
+  assert.equal(
+    isSimulationConfigVisible(DEFAULT_ROTATION_WORKSPACE_STATE),
+    true,
+  );
 
   const configOpen = reduceRotationWorkspaceState(
     DEFAULT_ROTATION_WORKSPACE_STATE,
     "toggle-config",
   );
   assert.deepEqual(configOpen, { configOpen: true, focus: false });
+  assert.equal(isSimulationConfigVisible(configOpen), true);
   assert.deepEqual(reduceRotationWorkspaceState(configOpen, "escape"), {
     configOpen: false,
     focus: false,
@@ -115,6 +121,11 @@ test("rotation workspace keeps config closed by default and scopes focus mode", 
     "toggle-focus",
   );
   assert.deepEqual(focused, { configOpen: false, focus: true });
+  assert.equal(isSimulationConfigVisible(focused), false);
+  assert.equal(
+    isSimulationConfigVisible({ configOpen: true, focus: true }),
+    true,
+  );
   assert.deepEqual(
     reduceRotationWorkspaceState(
       { configOpen: true, focus: true },
