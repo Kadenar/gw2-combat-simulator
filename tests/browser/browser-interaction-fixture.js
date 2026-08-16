@@ -57,6 +57,26 @@ frame.addEventListener("load", async () => {
     app.build = createDefaultBuild(app.adapter);
     app.changed();
 
+    const workspaceTab = document.querySelector(
+      '[data-simulator-view="workspace"]',
+    );
+    const analysisTab = document.querySelector(
+      '[data-simulator-view="analysis"]',
+    );
+    assert(workspaceTab && analysisTab, "simulator view tabs are missing");
+    const workspaceScrollTop = Math.min(
+      600,
+      document.documentElement.scrollHeight - window.innerHeight,
+    );
+    window.scrollTo(0, workspaceScrollTop);
+    assert(window.scrollY > 0, "workspace is not scrollable");
+    analysisTab.click();
+    workspaceTab.click();
+    assert(
+      window.scrollY === workspaceScrollTop,
+      "returning to the workspace reset its scroll position",
+    );
+
     const professionResourceStack = document.querySelector(
       '[data-role="profession-resource-stack"]',
     );

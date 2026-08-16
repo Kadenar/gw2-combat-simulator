@@ -3,6 +3,8 @@ import { embedRoute, isEmbedded } from "../embed.js";
 
 export type SimulatorView = "professions" | "workspace" | "analysis";
 
+type ScrollPosition = Readonly<{ left: number; top: number }>;
+
 const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
   professions: "#professions",
   workspace: "#workspace",
@@ -87,6 +89,15 @@ function updateActiveView(root: Document, view: SimulatorView): void {
   }
 }
 
+function viewportScrollPosition(root: Document): ScrollPosition {
+  const view = root.defaultView;
+  const scrollingElement = root.scrollingElement;
+  return {
+    left: view?.scrollX ?? scrollingElement?.scrollLeft ?? 0,
+    top: view?.scrollY ?? scrollingElement?.scrollTop ?? 0,
+  };
+}
+
 /** Mounts the shared Professions / Workspace / Analysis navigation. */
 export function mountSimulatorNavigation(root: Document = document): void {
   const body = root.body;
@@ -101,6 +112,38 @@ export function mountSimulatorNavigation(root: Document = document): void {
   navigation.setAttribute("aria-label", "Simulator sections");
 
   const pathname = root.defaultView?.location.pathname || "index.html";
+  let activeView = simulatorViewFromHash(root.defaultView?.location.hash || "");
+  const scrollPositions = new Map<SimulatorView, ScrollPosition>([
+    [activeView, viewportScrollPosition(root)],
+  ]);
+  const restoreScrollPosition = (
+    view: SimulatorView,
+    position: ScrollPosition,
+  ): void => {
+    const restore = (): void => {
+      if (view !== activeView) return;
+      root.defaultView?.scrollTo({
+        left: position.left,
+        top: position.top,
+        behavior: "auto",
+      });
+    };
+    restore();
+    root.defaultView?.requestAnimationFrame(restore);
+  };
+  const showView = (view: SimulatorView): void => {
+    if (view === activeView) {
+      updateActiveView(root, view);
+      return;
+    }
+
+    scrollPositions.set(activeView, viewportScrollPosition(root));
+    activeView = view;
+    updateActiveView(root, view);
+    const position = scrollPositions.get(view) ?? { left: 0, top: 0 };
+    restoreScrollPosition(view, position);
+  };
+
   header.querySelector(".profession-picker")?.remove();
   mountProfessionBrowser(root, header);
   for (const view of ["professions", "workspace", "analysis"] as const) {
@@ -130,22 +173,18 @@ export function mountSimulatorNavigation(root: Document = document): void {
       if (window?.location.hash !== VIEW_HASHES[view]) {
         window?.history.pushState(null, "", VIEW_HASHES[view]);
       }
-      updateActiveView(root, view);
-      window?.scrollTo({ top: 0, behavior: "auto" });
+      showView(view);
     });
     navigation.append(link);
   }
 
   header.prepend(navigation);
   mountAnalysisHeading(root);
-  updateActiveView(
-    root,
-    simulatorViewFromHash(root.defaultView?.location.hash || ""),
-  );
+  updateActiveView(root, activeView);
   root.defaultView?.addEventListener("hashchange", () => {
-    updateActiveView(
-      root,
-      simulatorViewFromHash(root.defaultView?.location.hash || ""),
-    );
+    showView(simulatorViewFromHash(root.defaultView?.location.hash || ""));
+  });
+  root.defaultView?.addEventListener("popstate", () => {
+    showView(simulatorViewFromHash(root.defaultView?.location.hash || ""));
   });
 }
