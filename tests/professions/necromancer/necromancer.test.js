@@ -967,6 +967,36 @@ test("interrupted weapon skills and shroud entry reset Reaper's greatsword chain
   );
 });
 
+test("non-chain skills reset greatsword and spear autoattacks", () => {
+  const greatsword = simulate(
+    "Reaper",
+    ["Dusk Strike", "Well of Suffering", "Dusk Strike"],
+    {
+      primaryWeapon: "Greatsword",
+      target: { conditions: {} },
+    },
+  );
+  const spear = simulate(
+    "Harbinger",
+    ["Dark Slash", "Well of Suffering", "Dark Slash"],
+    {
+      primaryWeapon: "Spear",
+      target: { conditions: {} },
+    },
+  );
+
+  assert.deepEqual(greatsword.warnings, []);
+  assert.deepEqual(
+    greatsword.steps.map((step) => step.skill),
+    ["Dusk Strike", "Well of Suffering", "Dusk Strike"],
+  );
+  assert.deepEqual(spear.warnings, []);
+  assert.deepEqual(
+    spear.steps.map((step) => step.skill),
+    ["Dark Slash", "Well of Suffering", "Dark Slash"],
+  );
+});
+
 test("Gravedigger fully recharges when it hits below 50% target health", () => {
   const setup = simulate("Reaper", ["Dusk Strike"], {
     primaryWeapon: "Greatsword",

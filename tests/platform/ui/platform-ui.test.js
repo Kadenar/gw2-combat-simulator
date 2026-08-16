@@ -5,6 +5,7 @@ import {
   validateActivationInterruptMs,
 } from "../../../js/platform/ui/activation-editor.js";
 import { chargeReleaseRowLabel } from "../../../js/platform/ui/charge-release-editor.js";
+import { validateDurationMs } from "../../../js/platform/ui/duration-editor.js";
 import {
   buildChartSeries,
   buildPhaseDpsSeries,
@@ -157,6 +158,15 @@ test("activation editor suggests and validates manual interruption times", () =>
   assert.equal(validateActivationInterruptMs("", 920).valid, false);
   assert.equal(validateActivationInterruptMs(0, 920).valid, false);
   assert.equal(validateActivationInterruptMs(920, 920).valid, false);
+});
+
+test("duration editor validates and rounds millisecond values", () => {
+  assert.deepEqual(validateDurationMs("1000"), { valid: true, value: 1000 });
+  assert.deepEqual(validateDurationMs("1.4"), { valid: true, value: 1 });
+  assert.equal(validateDurationMs("").valid, false);
+  assert.equal(validateDurationMs("Infinity").valid, false);
+  assert.equal(validateDurationMs("0.9").valid, false);
+  assert.equal(validateDurationMs("501", 1, 500).valid, false);
 });
 
 test("charge release rows expose time, Flow, and coefficient", () => {

@@ -17,24 +17,12 @@
     "Weapon1": "Berserker's",
     "Weapon2": "Berserker's"
   },
-  "weapons": [
-    "Hammer",
-    ""
-  ],
-  "alternateWeapons": [
-    "Sword",
-    "Sword"
-  ],
+  "weapons": ["Hammer", ""],
+  "alternateWeapons": ["Sword", "Sword"],
   "rune": "Dragonhunter",
   "weaponSigils": [
-    [
-      "Force",
-      "Hydromancy"
-    ],
-    [
-      "Force",
-      "Air"
-    ]
+    ["Force", "Hydromancy"],
+    ["Force", "Air"]
   ],
   "relic": "Brawler",
   "food": "Cilantro Lime Sous-Vide Steak",
@@ -69,11 +57,8 @@
     }
   ],
   "selectedSkills": {},
-  "selectedLegends": [
-    "LegendaryAssassin",
-    "LegendaryRenegade"
-  ],
-  "startingLegend": "LegendaryRenegade",
+  "selectedLegends": ["LegendaryAssassin", "LegendaryRenegade"],
+  "startingLegend": "LegendaryAssassin",
   "selectedDodge": "Death Drop",
   "allianceSide": "luxon",
   "assumptions": {
@@ -99,7 +84,7 @@
     "targetSkillActivationsPerSecond": 0
   },
   "initialEnergy": 50,
-  "startingWeaponSet": 1,
+  "startingWeaponSet": 2,
   "targetHealth": 3970000,
   "targetArmor": 2597,
   "initialResource": 0

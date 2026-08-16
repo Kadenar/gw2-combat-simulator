@@ -71,6 +71,8 @@ function ensureStyles(document: Document): void {
     .rotation-import-form { padding:18px; }
     .rotation-import-form h3 { margin:0 0 6px; color:var(--text-bright); }
     .rotation-import-intro { margin:0 0 14px; color:var(--text-dim); font-size:12px; line-height:1.5; }
+    .rotation-import-experimental { margin:0 0 14px; padding:8px 10px; border:1px solid #a67c22;
+      border-radius:5px; background:rgba(166,124,34,.1); color:#e0bd68; font-size:11px; line-height:1.45; }
     .rotation-import-drop { display:flex; min-height:150px; padding:20px; align-items:center;
       justify-content:center; border:2px dashed var(--border-light); border-radius:8px;
       background:var(--bg-panel-alt); text-align:center; transition:border-color .15s, background .15s; }
@@ -95,6 +97,7 @@ function createDialog(document: Document): RotationImportDialogElements {
   dialog.innerHTML = `<form class="rotation-import-form" method="dialog">
     <h3 id="rotation-import-title">Load rotation</h3>
     <p class="rotation-import-intro">Load a saved rotation JSON, or reconstruct the current profession and specialization from an ArcDPS EVTC log.</p>
+    <p class="rotation-import-experimental"><strong>Experimental:</strong> EVTC import is a work in progress and may produce incomplete, inaccurate, or otherwise undesirable rotation results. Review the imported rotation before relying on it.</p>
     <div class="rotation-import-drop" data-rotation-import-drop>
       <div>
         <strong>Drop a rotation or combat log here</strong>

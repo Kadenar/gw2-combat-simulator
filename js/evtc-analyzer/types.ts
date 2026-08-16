@@ -4,10 +4,15 @@ export const EVTC_STATE_CHANGE = Object.freeze({
   EXIT_COMBAT: 2,
   CHANGE_DEAD: 4,
   WEAPON_SWAP: 11,
+  BUFF_INITIAL: 18,
   MAP_ID: 25,
   ANIMATION_START: 67,
   ANIMATION_STOP: 68,
   BUFF_APPLY: 69,
+  BUFF_CHANGE: 70,
+  BUFF_REMOVE_SINGLE: 71,
+  BUFF_REMOVE_ALL: 72,
+  TRANSFORMATION: 73,
 } as const);
 
 // arcdps cbtactivation: how a skill activation (cast) event was produced.
@@ -239,8 +244,10 @@ export type EvtcRotationEvidence =
   | "animation"
   | "legacy-activation"
   | "effect"
+  | "resource-inference"
   | "state-change"
-  | "buff-transition";
+  | "buff-transition"
+  | "initial-state";
 
 export type EvtcRotationActionStatus =
   "completed" | "reduced" | "interrupted" | "unknown" | "instant";
@@ -250,6 +257,7 @@ export interface EvtcRotationCommand {
   readonly skillId?: string | number;
   readonly offset?: number;
   readonly interruptMs?: number;
+  readonly doubleEdgeOutcome?: "success" | "backfire";
 }
 
 export interface EvtcRotationMarkerCommand {
@@ -277,6 +285,7 @@ export interface EvtcRotationAction {
   readonly evidence: EvtcRotationEvidence;
   readonly status: EvtcRotationActionStatus;
   readonly weaponSet?: number | null;
+  readonly doubleEdgeOutcome?: "success" | "backfire";
   readonly supportedByCatalog: boolean;
 }
 

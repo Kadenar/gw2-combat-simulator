@@ -436,26 +436,30 @@ export function summarizeRandomDistributionOutcomes(
   const low = ordered.slice(0, cohortSize);
   const high = ordered.slice(-cohortSize);
   const metadata = new Map<string, RandomDistributionMetricSample>();
-  const valueMaps = outcomes.map((outcome) => {
+  const valueMaps = new Map<
+    RandomDistributionOutcome,
+    ReadonlyMap<string, number>
+  >();
+  for (const outcome of outcomes) {
     const values = new Map<string, number>();
     for (const metric of outcome.metrics || []) {
       metadata.set(metric.id, metric);
       values.set(metric.id, Number(metric.value || 0));
     }
-    return values;
-  });
+    valueMaps.set(outcome, values);
+  }
   const valuesFor = (
     cohort: readonly RandomDistributionOutcome[],
     id: string,
   ): number[] =>
-    cohort.map((outcome) =>
-      Number(outcome.metrics.find((metric) => metric.id === id)?.value || 0),
-    );
+    cohort.map((outcome) => Number(valueMaps.get(outcome)?.get(id) || 0));
   const dpsValues = outcomes.map((outcome) => Number(outcome.dps));
   const ranked: RankedDriver[] = [];
 
   for (const [id, metric] of metadata) {
-    const values = valueMaps.map((valueMap) => Number(valueMap.get(id) || 0));
+    const values = outcomes.map((outcome) =>
+      Number(valueMaps.get(outcome)?.get(id) || 0),
+    );
     const minimum = Math.min(...values);
     const maximum = Math.max(...values);
     if (!(maximum - minimum > 1e-9)) continue;

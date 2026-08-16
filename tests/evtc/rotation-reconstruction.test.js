@@ -323,13 +323,13 @@ test("reconstructs casts, inferred instants, swaps, dodges, and exact timing", (
       ["Dodge", 700, 750, "dodge", "animation"],
     ],
   );
-  assert.equal(result.actions[0].status, "reduced");
+  assert.equal(result.actions[0].status, "completed");
   assert.equal(result.actions[2].weaponSet, 5);
   assert.equal(result.actions[3].supportedByCatalog, false);
   assert.deepEqual(result.rotation, [
     { name: "__combat_start" },
     { name: "__wait", waitMs: 200 },
-    { name: "Mind Stab", skillId: 1_000, interruptMs: 400 },
+    { name: "Mind Stab", skillId: 1_000 },
     { name: "Time Sink", skillId: 2_000, offset: 100 },
     { name: "Swap Weapons", skillId: -3, offset: 100 },
     { name: "__wait", waitMs: 100 },
@@ -384,6 +384,34 @@ test("pairs a stop before the next same-millisecond animation start", () => {
   assert.deepEqual(result.rotation, [
     { name: "Mind Stab", skillId: 1_000 },
     { name: "Mind Stab", skillId: 1_000 },
+  ]);
+});
+
+test("keeps an instant at the preceding cast end sequential", () => {
+  const fixture = log({
+    events: [
+      event({ time: 1_000, stateChange: 67, skillId: 1_000, value: 800 }),
+      event({
+        time: 1_600,
+        stateChange: 68,
+        skillId: 1_000,
+        value: 600,
+        activation: 3,
+      }),
+      event({
+        time: 1_600,
+        target: 0x2000n,
+        skillId: 2_000,
+        value: 100,
+      }),
+    ],
+  });
+  const result = reconstructEvtcRotation(fixture, catalog, {
+    includeCombatStart: false,
+  });
+  assert.deepEqual(result.rotation, [
+    { name: "Mind Stab", skillId: 1_000 },
+    { name: "Time Sink", skillId: 2_000 },
   ]);
 });
 
@@ -443,7 +471,16 @@ test("reconstructs Harbinger Shroud entry and exit from buff transitions", () =>
         target: PLAYER,
         skillId: 59_964,
         buff: 1,
+        buffRemove: 3,
+        stateChange: 71,
+      }),
+      event({
+        time: 3_000,
+        target: PLAYER,
+        skillId: 59_964,
+        buff: 1,
         buffRemove: 1,
+        stateChange: 72,
       }),
       event({ time: 3_000, target: 5n, stateChange: 11 }),
     ],
@@ -498,6 +535,1696 @@ test("reconstructs Harbinger Shroud entry and exit from buff transitions", () =>
   );
 });
 
+test("reconstructs Distress from its consumed availability buff", () => {
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 8,
+        elite: 64,
+        character: "Fixture Harbinger",
+      },
+    ],
+    skills: [{ id: 72_976, name: "Distress" }],
+    events: [
+      event({
+        time: 1_000,
+        target: PLAYER,
+        value: 3_000,
+        skillId: 72_976,
+        buff: 1,
+        stateChange: 69,
+      }),
+      event({
+        time: 1_800,
+        target: PLAYER,
+        value: 2_200,
+        skillId: 72_976,
+        buff: 1,
+        buffRemove: 3,
+        stateChange: 71,
+      }),
+      event({
+        time: 1_800,
+        target: PLAYER,
+        value: 2_200,
+        buffDamage: 2_200,
+        skillId: 72_976,
+        buff: 1,
+        buffRemove: 1,
+        stateChange: 72,
+      }),
+      event({
+        time: 4_000,
+        target: PLAYER,
+        value: 3_000,
+        skillId: 72_976,
+        buff: 1,
+        stateChange: 69,
+      }),
+      event({
+        time: 7_000,
+        target: PLAYER,
+        skillId: 72_976,
+        buff: 1,
+        buffRemove: 1,
+        stateChange: 72,
+      }),
+    ],
+  });
+  const result = reconstructEvtcRotation(fixture, {
+    skills: [
+      {
+        id: 73_116,
+        name: "Distress",
+        type: "Weapon",
+        slot: "Weapon_4",
+        castTimeMs: 0,
+        effects: [],
+        implemented: true,
+      },
+    ],
+  });
+  assert.deepEqual(
+    result.actions.map((action) => [
+      action.name,
+      action.skillId,
+      action.evidence,
+    ]),
+    [["Distress", 73_116, "buff-transition"]],
+  );
+});
+
+test("reconstructs Ritualist shroud and player-owned initial minion precasts", () => {
+  const boneMinion1 = 0x2001n;
+  const boneMinion2 = 0x2002n;
+  const bloodFiend = 0x2003n;
+  const fleshGolem = 0x2004n;
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 8,
+        elite: 76,
+        character: "Fixture Ritualist",
+      },
+      {
+        ...log().agents[0],
+        address: boneMinion1,
+        profession: 1_192,
+        elite: 0xffffffff,
+        character: "Bone Minion",
+      },
+      {
+        ...log().agents[0],
+        address: boneMinion2,
+        profession: 1_192,
+        elite: 0xffffffff,
+        character: "Bone Minion",
+      },
+      {
+        ...log().agents[0],
+        address: bloodFiend,
+        profession: 1_104,
+        elite: 0xffffffff,
+        character: "Blood Fiend",
+      },
+      {
+        ...log().agents[0],
+        address: fleshGolem,
+        profession: 1_792,
+        elite: 0xffffffff,
+        character: "Flesh Golem",
+      },
+    ],
+    skills: [
+      { id: 76_958, name: "Ritualist's Shroud" },
+      { id: 76_864, name: "Anguish" },
+      { id: 76_961, name: "Wanderlust" },
+    ],
+    events: [
+      event({
+        time: 1_000,
+        target: PLAYER,
+        skillId: 76_958,
+        sourceInstance: 23,
+        targetInstance: 23,
+        buff: 18,
+        stateChange: 18,
+      }),
+      event({ time: 1_000, sourceInstance: 23, stateChange: 1 }),
+      ...[boneMinion1, boneMinion2, bloodFiend, fleshGolem].map(
+        (source, index) =>
+          event({
+            time: 1_000,
+            source,
+            target: source,
+            sourceInstance: 40 + index,
+            targetInstance: 40 + index,
+            sourceMasterInstance: 23,
+            buff: 18,
+            stateChange: 18,
+          }),
+      ),
+      event({
+        time: 1_198,
+        skillId: 76_864,
+        value: 559,
+        buffDamage: 839,
+        sourceInstance: 23,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({
+        time: 2_000,
+        skillId: 76_961,
+        value: 1_000,
+        sourceInstance: 23,
+        stateChange: 67,
+      }),
+      event({
+        time: 2_760,
+        skillId: 76_961,
+        value: 760,
+        sourceInstance: 23,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({
+        time: 5_480,
+        target: PLAYER,
+        skillId: 76_958,
+        sourceInstance: 23,
+        targetInstance: 23,
+        value: 2_147_483_647,
+        buff: 1,
+        buffRemove: 3,
+        stateChange: 71,
+      }),
+      event({
+        time: 5_480,
+        target: PLAYER,
+        skillId: 76_958,
+        sourceInstance: 23,
+        targetInstance: 23,
+        value: 2_147_483_647,
+        buffDamage: 2_147_483_647,
+        buff: 1,
+        buffRemove: 1,
+        stateChange: 72,
+      }),
+    ],
+  });
+  const result = reconstructEvtcRotation(fixture, {
+    skills: [
+      {
+        id: 10_547,
+        name: "Summon Blood Fiend",
+        type: "Heal",
+        slot: "Heal",
+        castTimeMs: 1_000,
+        effects: [],
+        implemented: true,
+      },
+      {
+        id: 10_646,
+        name: "Summon Flesh Golem",
+        type: "Elite",
+        slot: "Elite",
+        castTimeMs: 1_000,
+        effects: [],
+        implemented: true,
+      },
+      {
+        id: 10_541,
+        name: "Summon Bone Minions",
+        type: "Utility",
+        slot: "Utility",
+        castTimeMs: 500,
+        effects: [],
+        implemented: true,
+      },
+      {
+        id: 77_238,
+        name: "Ritualist's Shroud",
+        type: "Profession",
+        slot: "Profession_1",
+        specialization: "Ritualist",
+        castTimeMs: 0,
+        effects: [],
+        implemented: true,
+      },
+      {
+        id: 76_933,
+        name: "Exit Ritualist's Shroud",
+        type: "Profession",
+        slot: "Profession_1",
+        specialization: "Ritualist",
+        castTimeMs: 0,
+        effects: [],
+        implemented: true,
+      },
+      {
+        id: 76_864,
+        name: "Anguish",
+        type: "Profession",
+        slot: "Weapon_2",
+        specialization: "Ritualist",
+        castTimeMs: 560,
+        effects: [],
+        implemented: true,
+      },
+      {
+        id: 76_961,
+        name: "Wanderlust",
+        type: "Profession",
+        slot: "Weapon_3",
+        specialization: "Ritualist",
+        castTimeMs: 760,
+        effects: [],
+        implemented: true,
+      },
+    ],
+  });
+  assert.deepEqual(result.rotation.slice(0, 6), [
+    { name: "Summon Blood Fiend", skillId: 10_547 },
+    { name: "Summon Flesh Golem", skillId: 10_646 },
+    { name: "Summon Bone Minions", skillId: 10_541 },
+    { name: "Ritualist's Shroud", skillId: 77_238 },
+    { name: "Anguish", skillId: 76_864 },
+    { name: "__combat_start", offset: 361 },
+  ]);
+  assert.deepEqual(
+    result.actions
+      .filter((action) => action.evidence === "initial-state")
+      .map((action) => action.name),
+    ["Summon Blood Fiend", "Summon Flesh Golem", "Summon Bone Minions"],
+  );
+  assert.deepEqual(
+    result.actions
+      .filter((action) => action.evidence === "buff-transition")
+      .map((action) => action.name),
+    ["Ritualist's Shroud", "Exit Ritualist's Shroud"],
+  );
+});
+
+test("reconstructs Ritualist Summon Spirits and innervates from effects", () => {
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 8,
+        elite: 76,
+        character: "Fixture Ritualist",
+      },
+    ],
+    skills: [
+      { id: 78_660, name: "Summon Spirits" },
+      { id: 79_246, name: "Summon Spirits" },
+      { id: 77_860, name: "Summon Spirits" },
+      { id: 77_050, name: "Innervate Anguish" },
+      { id: 791, name: "Fear" },
+    ],
+    events: [
+      event({ time: 1_360, skillId: 78_660, value: 5_000 }),
+      event({ time: 1_680, skillId: 79_246, value: 5_000 }),
+      event({ time: 1_840, skillId: 77_860, value: 20_000 }),
+      event({ time: 3_000, skillId: 77_050, value: 5_000 }),
+      event({
+        time: 4_000,
+        target: 0x2000n,
+        skillId: 791,
+        value: 1_500,
+        buff: 1,
+        stateChange: 69,
+      }),
+    ],
+  });
+  const result = reconstructEvtcRotation(
+    fixture,
+    {
+      skills: [
+        {
+          id: 76_607,
+          name: "Summon Spirits",
+          type: "Profession",
+          slot: "Weapon_5",
+          specialization: "Ritualist",
+          castTimeMs: 0,
+          effects: [],
+          implemented: true,
+        },
+        {
+          id: 77_003,
+          name: "Innervate Anguish",
+          type: "Profession",
+          slot: "Profession_2",
+          specialization: "Ritualist",
+          castTimeMs: 0,
+          effects: [],
+          implemented: true,
+        },
+        {
+          id: 76_732,
+          name: "Innervate Wanderlust",
+          type: "Profession",
+          slot: "Profession_3",
+          specialization: "Ritualist",
+          castTimeMs: 0,
+          effects: [],
+          implemented: true,
+        },
+      ],
+    },
+    { includeCombatStart: false, inferInstantCasts: false },
+  );
+
+  assert.deepEqual(
+    result.actions.map((action) => [
+      action.timestampMs,
+      action.rawSkillId,
+      action.skillId,
+      action.name,
+      action.evidence,
+    ]),
+    [
+      [0, 78_660, 76_607, "Summon Spirits", "effect"],
+      [2_000, 77_050, 77_003, "Innervate Anguish", "effect"],
+      [3_000, 791, 76_732, "Innervate Wanderlust", "effect"],
+    ],
+  );
+});
+
+test("reconstructs Scourge shade skills and Shadow Fiend Haunt", () => {
+  const shadowFiend = 0x3000n;
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 8,
+        elite: 60,
+        character: "Fixture Scourge",
+      },
+      {
+        ...log().agents[0],
+        address: shadowFiend,
+        profession: 5_673,
+        elite: 0xffffffff,
+        character: "Shadow Fiend",
+      },
+    ],
+    skills: [
+      { id: 3_643, name: "Haunt" },
+      { id: 10_544, name: "Blood Is Power" },
+      { id: 43_448, name: "Sand Cascade" },
+      { id: 44_946, name: "Manifest Sand Shade" },
+      { id: 45_079, name: "Sand Shade" },
+      { id: 46_726, name: "Desert Shroud" },
+      { id: 46_808, name: "Manifest Sand Shade" },
+      { id: 791, name: "Fear" },
+    ],
+    events: [
+      event({
+        time: 5_000,
+        target: PLAYER,
+        skillId: 45_079,
+        sourceInstance: 23,
+        targetInstance: 23,
+        value: 13_436,
+        buffDamage: 15_000,
+        buff: 18,
+        stateChange: 18,
+      }),
+      event({
+        time: 5_000,
+        source: shadowFiend,
+        target: shadowFiend,
+        sourceInstance: 40,
+        targetInstance: 40,
+        sourceMasterInstance: 23,
+        buff: 18,
+        stateChange: 18,
+      }),
+      event({
+        time: 5_652,
+        source: shadowFiend,
+        sourceInstance: 40,
+        sourceMasterInstance: 23,
+        skillId: 3_643,
+        value: 2_000,
+        stateChange: 67,
+      }),
+      event({
+        time: 5_814,
+        skillId: 10_544,
+        sourceInstance: 23,
+        value: 876,
+        buffDamage: 1_304,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({
+        time: 6_000,
+        skillId: 46_808,
+        sourceInstance: 23,
+        value: 1_000,
+      }),
+      ...Array.from({ length: 7 }, (_, index) =>
+        event({
+          time: 6_100 + index * 1_000,
+          skillId: 46_726,
+          sourceInstance: 23,
+          value: 1_000,
+        }),
+      ),
+      event({ time: 6_500, sourceInstance: 23, stateChange: 1 }),
+      event({
+        time: 13_000,
+        skillId: 43_448,
+        sourceInstance: 23,
+        value: 1_000,
+        stateChange: 38,
+      }),
+      event({
+        time: 14_000,
+        target: 0x4000n,
+        skillId: 791,
+        sourceInstance: 23,
+        value: 1_000,
+        buff: 1,
+        stateChange: 69,
+      }),
+      ...Array.from({ length: 7 }, (_, index) =>
+        event({
+          time: 20_000 + index * 1_000,
+          skillId: 46_726,
+          sourceInstance: 23,
+          value: 1_000,
+        }),
+      ),
+      event({
+        time: 30_000,
+        skillId: 44_946,
+        sourceInstance: 23,
+        value: 480,
+        stateChange: 67,
+      }),
+      event({
+        time: 30_480,
+        skillId: 44_946,
+        sourceInstance: 23,
+        value: 480,
+        activation: 3,
+        stateChange: 68,
+      }),
+    ],
+  });
+  const result = reconstructEvtcRotation(
+    fixture,
+    {
+      skills: [
+        [10_589, "Summon Shadow Fiend", "Utility", 500],
+        [10_590, "Haunt", "Utility", 0],
+        [10_544, "Blood Is Power", "Utility", 1_320],
+        [44_946, "Manifest Sand Shade", "Profession", 720],
+        [40_813, "Nefarious Favor", "Profession", 0],
+        [43_448, "Sand Cascade", "Profession", 0],
+        [44_428, "Garish Pillar", "Profession", 0],
+        [44_663, "Desert Shroud", "Profession", 0],
+      ].map(([id, name, type, castTimeMs]) => ({
+        id,
+        name,
+        type,
+        slot: type === "Profession" ? "Profession_1" : "Utility",
+        specialization: type === "Profession" ? "Scourge" : "",
+        castTimeMs,
+        ...(id === 44_946 ? { quicknessCastTimeMs: 480 } : {}),
+        effects: [],
+        implemented: true,
+      })),
+    },
+    { inferInstantCasts: false },
+  );
+
+  assert.deepEqual(
+    result.actions
+      .slice(0, 6)
+      .map((action) => ({ name: action.name, skillId: action.skillId })),
+    [
+      { name: "Summon Shadow Fiend", skillId: 10_589 },
+      { name: "Manifest Sand Shade", skillId: 44_946 },
+      { name: "Blood Is Power", skillId: 10_544 },
+      { name: "Haunt", skillId: 10_590 },
+      { name: "Nefarious Favor", skillId: 40_813 },
+      { name: "Desert Shroud", skillId: 44_663 },
+    ],
+  );
+  assert.deepEqual(
+    result.actions
+      .filter((action) =>
+        [3_643, 46_808, 46_726, 43_448, 791].includes(action.rawSkillId),
+      )
+      .map((action) => [action.rawSkillId, action.skillId, action.name]),
+    [
+      [3_643, 10_590, "Haunt"],
+      [46_808, 40_813, "Nefarious Favor"],
+      [46_726, 44_663, "Desert Shroud"],
+      [43_448, 43_448, "Sand Cascade"],
+      [791, 44_428, "Garish Pillar"],
+      [46_726, 44_663, "Desert Shroud"],
+    ],
+  );
+  assert.equal(
+    result.actions.filter((action) => action.name === "Manifest Sand Shade")
+      .length,
+    2,
+  );
+  assert.equal(
+    result.actions.find(
+      (action) =>
+        action.name === "Manifest Sand Shade" &&
+        action.evidence === "initial-state",
+    )?.durationMs,
+    480,
+  );
+});
+
+test("reconstructs Reaper shroud and truncated opening precasts", () => {
+  const fleshGolem = 0x3000n;
+  const target = 0x4000n;
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 8,
+        elite: 34,
+        character: "Fixture Reaper",
+      },
+      {
+        ...log().agents[0],
+        address: fleshGolem,
+        profession: 1_792,
+        elite: 0xffffffff,
+        character: "Flesh Golem",
+      },
+      {
+        ...log().agents[0],
+        address: target,
+        profession: 16_199,
+        elite: 0xffffffff,
+        character: "Standard Kitty Golem",
+      },
+    ],
+    skills: [
+      { id: 29_740, name: "Grasping Darkness" },
+      { id: 29_855, name: "Nightfall" },
+      { id: 29_446, name: "Reaper's Shroud" },
+      { id: 30_825, name: "Death's Charge" },
+    ],
+    events: [
+      event({
+        time: 1_000,
+        skillId: 29_740,
+        sourceInstance: 23,
+        stateChange: 58,
+      }),
+      event({
+        time: 1_000,
+        source: fleshGolem,
+        target: fleshGolem,
+        sourceInstance: 40,
+        targetInstance: 40,
+        sourceMasterInstance: 23,
+        buff: 18,
+        stateChange: 18,
+      }),
+      event({
+        time: 1_082,
+        skillId: 29_855,
+        sourceInstance: 23,
+        value: 481,
+        buffDamage: 719,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({ time: 1_400, sourceInstance: 23, stateChange: 1 }),
+      event({
+        time: 2_399,
+        target: 3n,
+        sourceInstance: 23,
+        stateChange: 11,
+      }),
+      event({
+        time: 2_399,
+        target: PLAYER,
+        skillId: 29_446,
+        sourceInstance: 23,
+        targetInstance: 23,
+        value: 2_147_483_647,
+        buff: 1,
+        stateChange: 69,
+      }),
+      event({
+        time: 2_438,
+        target,
+        skillId: 30_825,
+        sourceInstance: 23,
+        value: 1_200,
+        stateChange: 67,
+      }),
+      event({
+        time: 3_640,
+        skillId: 30_825,
+        sourceInstance: 23,
+        value: 1_202,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({
+        time: 5_000,
+        target: 5n,
+        sourceInstance: 23,
+        stateChange: 11,
+      }),
+      event({
+        time: 5_000,
+        target: PLAYER,
+        skillId: 29_446,
+        sourceInstance: 23,
+        targetInstance: 23,
+        value: 2_147_483_647,
+        buff: 1,
+        buffRemove: 3,
+        stateChange: 71,
+      }),
+      event({
+        time: 5_000,
+        target: PLAYER,
+        skillId: 29_446,
+        sourceInstance: 23,
+        targetInstance: 23,
+        value: 2_147_483_647,
+        buffDamage: 2_147_483_647,
+        buff: 1,
+        buffRemove: 1,
+        stateChange: 72,
+      }),
+      event({
+        time: 6_000,
+        target: 4n,
+        sourceInstance: 23,
+        stateChange: 11,
+      }),
+      event({
+        time: 6_500,
+        target: 3n,
+        sourceInstance: 23,
+        stateChange: 11,
+      }),
+      event({
+        time: 6_500,
+        target: PLAYER,
+        skillId: 29_446,
+        sourceInstance: 23,
+        targetInstance: 23,
+        value: 2_147_483_647,
+        buff: 1,
+        stateChange: 69,
+      }),
+      event({ time: 7_000, source: target, stateChange: 2 }),
+      event({
+        time: 7_100,
+        target: 5n,
+        sourceInstance: 23,
+        stateChange: 11,
+      }),
+      event({
+        time: 7_100,
+        target: PLAYER,
+        skillId: 29_446,
+        sourceInstance: 23,
+        targetInstance: 23,
+        value: 2_147_483_647,
+        buff: 1,
+        buffRemove: 3,
+        stateChange: 71,
+      }),
+      event({
+        time: 7_100,
+        target: PLAYER,
+        skillId: 29_446,
+        sourceInstance: 23,
+        targetInstance: 23,
+        value: 2_147_483_647,
+        buffDamage: 2_147_483_647,
+        buff: 1,
+        buffRemove: 1,
+        stateChange: 72,
+      }),
+    ],
+  });
+  const result = reconstructEvtcRotation(
+    fixture,
+    {
+      skills: [
+        [10_646, "Summon Flesh Golem", "Elite", 1_000],
+        [29_740, "Grasping Darkness", "Weapon", 780],
+        [29_855, "Nightfall", "Weapon", 1_020],
+        [30_792, "Reaper's Shroud", "Profession", 0],
+        [30_961, "Exit Reaper's Shroud", "Profession", 0],
+        [30_825, "Death's Charge", "Profession", 1_200],
+        [-3, "Swap Weapons", "Action", 0],
+      ].map(([id, name, type, castTimeMs]) => ({
+        id,
+        name,
+        type,
+        slot: type === "Profession" ? "Profession_1" : type,
+        specialization: type === "Profession" ? "Reaper" : "",
+        castTimeMs,
+        ...(id === 29_740 ? { quicknessCastTimeMs: 520 } : {}),
+        effects: [],
+        implemented: true,
+      })),
+    },
+    { inferInstantCasts: false },
+  );
+
+  assert.deepEqual(
+    result.actions.map((action) => action.name),
+    [
+      "Summon Flesh Golem",
+      "Grasping Darkness",
+      "Nightfall",
+      "Reaper's Shroud",
+      "Death's Charge",
+      "Exit Reaper's Shroud",
+      "Swap Weapons",
+      "Reaper's Shroud",
+    ],
+  );
+  assert.deepEqual(
+    result.rotation.find((action) => action.name === "Grasping Darkness"),
+    {
+      name: "Grasping Darkness",
+      skillId: 29_740,
+      interruptMs: 120,
+    },
+  );
+  assert.equal(
+    result.actions.filter((action) => action.name === "Reaper's Shroud").length,
+    2,
+  );
+  assert.equal(
+    result.actions.filter((action) => action.name === "Exit Reaper's Shroud")
+      .length,
+    1,
+  );
+});
+
+test("normalizes Necromancer autoattack packets after chain resets", () => {
+  const casts = [
+    [29_705, "Dusk Strike", 1_000, 200, 3],
+    [30_799, "Fading Twilight", 1_300, 200, 3],
+    [76_739, "Nightmare Weapon", 1_600, 100, 3],
+    [29_867, "Chilling Scythe", 1_800, 100, 2],
+    [73_012, "Dark Slash", 2_000, 200, 3],
+    [73_012, "Dark Slash", 2_300, 200, 3],
+    [73_012, "Dark Slash", 2_600, 200, 3],
+    [73_013, "Addle", 2_900, 100, 3],
+    [73_047, "Sinister Stab", 3_100, 200, 3],
+    [73_012, "Dark Slash", 3_400, 100, 4],
+  ];
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 8,
+        elite: 76,
+        character: "Fixture Ritualist",
+      },
+    ],
+    skills: casts.map(([id, name]) => ({ id, name })),
+    events: casts.flatMap(([skillId, , start, duration, activation]) => [
+      event({ time: start, stateChange: 67, skillId, value: duration }),
+      event({
+        time: start + duration,
+        stateChange: 68,
+        skillId,
+        value: duration,
+        activation,
+      }),
+    ]),
+  });
+  const rotationCatalog = {
+    skills: [
+      [29_705, "Dusk Strike", "Weapon", "Reaper"],
+      [30_799, "Fading Twilight", "Weapon", "Reaper"],
+      [29_867, "Chilling Scythe", "Weapon", "Reaper"],
+      [73_012, "Dark Slash", "Weapon", ""],
+      [73_040, "Deadly Slice", "Weapon", ""],
+      [73_047, "Sinister Stab", "Weapon", ""],
+      [73_013, "Addle", "Weapon", ""],
+      [76_739, "Nightmare Weapon", "Utility", "Ritualist"],
+    ].map(([id, name, type, specialization]) => ({
+      id,
+      name,
+      type,
+      slot: type === "Weapon" ? "Weapon_1" : "Utility",
+      specialization,
+      castTimeMs: 100,
+      effects: [],
+      implemented: true,
+    })),
+  };
+
+  const result = reconstructEvtcRotation(fixture, rotationCatalog, {
+    includeCombatStart: false,
+    inferInstantCasts: false,
+  });
+
+  assert.deepEqual(
+    result.actions.map((action) => [
+      action.rawSkillId,
+      action.skillId,
+      action.name,
+    ]),
+    [
+      [29_705, 29_705, "Dusk Strike"],
+      [30_799, 30_799, "Fading Twilight"],
+      [76_739, 76_739, "Nightmare Weapon"],
+      [29_867, 29_705, "Dusk Strike"],
+      [73_012, 73_012, "Dark Slash"],
+      [73_012, 73_040, "Deadly Slice"],
+      [73_012, 73_047, "Sinister Stab"],
+      [73_013, 73_013, "Addle"],
+      [73_047, 73_012, "Dark Slash"],
+    ],
+  );
+  assert.equal(
+    result.warnings.some((warning) => warning.includes("interrupted cast")),
+    false,
+  );
+});
+
+test("reconstructs Spellbreaker precasts and collapses internal Warrior animations", () => {
+  const initialBuff = (skillId) =>
+    event({
+      time: 1_000,
+      target: PLAYER,
+      skillId,
+      value: 1_000,
+      buffDamage: 6_000,
+      buff: 18,
+      stateChange: 18,
+    });
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 2,
+        elite: 61,
+        character: "Fixture Spellbreaker",
+      },
+    ],
+    skills: [
+      [26_980, "Resistance"],
+      [36_781, "Unblockable"],
+      [46_853, "Peak Performance"],
+      [51_664, "Signet of Fury"],
+      [45_333, "Winds of Disenchantment"],
+      [69_297, "Breaching Strike"],
+      [80_247, "Rend"],
+      [80_224, "Rend"],
+      [42_745, "Precise Cut"],
+      [14_518, "Crushing Blow"],
+    ].map(([id, name]) => ({ id, name })),
+    events: [
+      initialBuff(26_980),
+      initialBuff(36_781),
+      initialBuff(46_853),
+      initialBuff(51_664),
+      event({ time: 1_000, stateChange: 1 }),
+      event({
+        time: 1_042,
+        target: 0x2000n,
+        skillId: 45_333,
+        value: 3_000,
+      }),
+      event({
+        time: 1_083,
+        skillId: 69_297,
+        value: 842,
+        buffDamage: 839,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({
+        time: 2_000,
+        skillId: 80_247,
+        value: 840,
+        buffDamage: 850,
+        stateChange: 67,
+      }),
+      event({
+        time: 2_358,
+        skillId: 80_247,
+        value: 358,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({
+        time: 2_358,
+        skillId: 80_224,
+        value: 840,
+        buffDamage: 850,
+        stateChange: 67,
+      }),
+      event({
+        time: 2_716,
+        skillId: 80_224,
+        value: 358,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({
+        time: 3_000,
+        skillId: 42_745,
+        value: 480,
+        buffDamage: 500,
+        stateChange: 67,
+      }),
+      event({
+        time: 3_200,
+        skillId: 42_745,
+        value: 200,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({
+        time: 4_000,
+        skillId: 14_518,
+        value: 960,
+        buffDamage: 800,
+        stateChange: 67,
+      }),
+      event({
+        time: 4_359,
+        skillId: 14_518,
+        value: 359,
+        activation: 4,
+        stateChange: 68,
+      }),
+    ],
+  });
+  const rotationCatalog = {
+    skills: [
+      [14_389, "Healing Signet", "Heal", "Heal", 833, 1_250, []],
+      [14_404, "Signet of Might", "Utility", "Utility", 333, 500, []],
+      [14_502, "Kick", "Utility", "Utility", 640, 640, []],
+      [14_410, "Signet of Fury", "Utility", "Utility", 350, 525, []],
+      [45_333, "Winds of Disenchantment", "Elite", "Elite", 1_000, 1_500, []],
+      [
+        69_297,
+        "Breaching Strike",
+        "Profession",
+        "Profession_1",
+        840,
+        840,
+        [{ type: "strike", atMs: 760, timingScale: "fixed" }],
+      ],
+      [
+        80_247,
+        "Rend",
+        "Weapon",
+        "Weapon_3",
+        960,
+        1_440,
+        [{ type: "strike", atMs: 660, timingScale: "cast" }],
+      ],
+      [
+        42_745,
+        "Precise Cut",
+        "Weapon",
+        "Weapon_1",
+        320,
+        480,
+        [{ type: "strike", atMs: 420, timingScale: "cast" }],
+      ],
+      [
+        14_518,
+        "Crushing Blow",
+        "Weapon",
+        "Weapon_2",
+        560,
+        1_200,
+        [{ type: "strike", atMs: 660, timingScale: "cast" }],
+      ],
+    ].map(
+      ([id, name, type, slot, quicknessCastTimeMs, castTimeMs, effects]) => ({
+        id,
+        name,
+        type,
+        slot,
+        quicknessCastTimeMs,
+        castTimeMs,
+        effects,
+        implemented: true,
+        ...([80_247, 42_745, 14_518].includes(id)
+          ? {
+              dualWieldCastTimeMs:
+                id === 80_247 ? 720 : id === 42_745 ? 240 : 400,
+            }
+          : {}),
+      }),
+    ),
+  };
+
+  const result = reconstructEvtcRotation(fixture, rotationCatalog, {
+    inferInstantCasts: false,
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(result.rotation.slice(0, 7), [
+    { name: "Healing Signet", skillId: 14_389 },
+    { name: "Signet of Might", skillId: 14_404 },
+    { name: "Kick", skillId: 14_502 },
+    { name: "Signet of Fury", skillId: 14_410 },
+    { name: "Winds of Disenchantment", skillId: 45_333 },
+    { name: "Breaching Strike", skillId: 69_297 },
+    { name: "__combat_start", offset: 759 },
+  ]);
+  assert.deepEqual(
+    result.actions
+      .filter((action) => [80_247, 80_224, 42_745].includes(action.rawSkillId))
+      .map((action) => [action.rawSkillId, action.name]),
+    [[80_247, "Rend"]],
+  );
+  assert.equal(
+    result.actions.find((action) => action.name === "Crushing Blow")?.status,
+    "completed",
+  );
+});
+
+test("reconstructs Paragon precasts from initial Warrior buffs", () => {
+  const initialBuff = (skillId) =>
+    event({
+      time: 1_000,
+      target: PLAYER,
+      skillId,
+      value: 1_000,
+      buffDamage: 6_000,
+      buff: 18,
+      stateChange: 18,
+    });
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 2,
+        elite: 74,
+        character: "Fixture Paragon",
+      },
+    ],
+    skills: [{ id: 45_252, name: "Breaching Strike" }],
+    events: [
+      initialBuff(26_980),
+      initialBuff(719),
+      initialBuff(46_853),
+      initialBuff(76_865),
+      initialBuff(51_664),
+      event({ time: 1_000, stateChange: 1 }),
+      event({
+        time: 1_000,
+        target: 0x2000n,
+        skillId: 45_252,
+        value: 842,
+        stateChange: 67,
+      }),
+      event({
+        time: 1_842,
+        skillId: 45_252,
+        value: 842,
+        activation: 3,
+        stateChange: 68,
+      }),
+    ],
+  });
+  const rotationCatalog = {
+    skills: [
+      [14_389, "Healing Signet", "Heal", "Heal", 833],
+      [14_355, "Signet of Rage", "Elite", "Elite", 167],
+      [77_342, "Chant of Action", "Profession", "Profession_1", 167],
+      [14_410, "Signet of Fury", "Utility", "Utility", 350],
+      [14_516, "Bull's Charge", "Utility", "Utility", 640],
+      [45_252, "Breaching Strike", "Profession", "Profession_1", 842],
+    ].map(([id, name, type, slot, quicknessCastTimeMs]) => ({
+      id,
+      name,
+      type,
+      slot,
+      castTimeMs: quicknessCastTimeMs,
+      quicknessCastTimeMs,
+      effects: [],
+      implemented: true,
+    })),
+  };
+
+  const result = reconstructEvtcRotation(fixture, rotationCatalog, {
+    inferInstantCasts: false,
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.rotation.slice(0, 7).map((action) => action.name),
+    [
+      "Healing Signet",
+      "Signet of Rage",
+      "Chant of Action",
+      "Signet of Fury",
+      "Bull's Charge",
+      "__combat_start",
+      "Breaching Strike",
+    ],
+  );
+  assert.deepEqual(
+    result.actions
+      .filter((action) => action.evidence === "initial-state")
+      .map((action) => action.name),
+    [
+      "Healing Signet",
+      "Signet of Rage",
+      "Chant of Action",
+      "Signet of Fury",
+      "Bull's Charge",
+    ],
+  );
+});
+
+test("reconstructs Galeshot bundle, pet, and Path of Scars mechanics", () => {
+  const carrionDevourer = 0x3000n;
+  const fangedIboga = 0x3001n;
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 4,
+        elite: 78,
+        character: "Fixture Galeshot",
+      },
+      {
+        ...log().agents[0],
+        address: carrionDevourer,
+        profession: 5_581,
+        elite: 0xffffffff,
+        character: "Juvenile Carrion Devourer",
+      },
+      {
+        ...log().agents[0],
+        address: fangedIboga,
+        profession: 18_688,
+        elite: 0xffffffff,
+        character: "Juvenile Fanged Iboga",
+      },
+    ],
+    skills: [
+      { id: 12_469, name: "Barrage" },
+      { id: 12_638, name: "Path of Scars" },
+      { id: 12_675, name: "Poisonous Cloud" },
+      { id: 45_262, name: "Narcotic Spores" },
+      { id: 76_807, name: "Quarry's Peril" },
+      { id: 77_319, name: "Bluster" },
+    ],
+    events: [
+      event({
+        time: 900,
+        source: carrionDevourer,
+        sourceInstance: 24,
+        sourceMasterInstance: 23,
+        skillId: 12_675,
+        value: 300,
+        activation: 5,
+      }),
+      event({ time: 1_000, sourceInstance: 23, stateChange: 1 }),
+      event({
+        time: 1_100,
+        sourceInstance: 23,
+        skillId: 12_469,
+        value: 600,
+        buffDamage: 900,
+        activation: 3,
+      }),
+      event({
+        time: 1_100,
+        sourceInstance: 23,
+        skillId: 77_319,
+        value: 1_200,
+        buffDamage: 1_300,
+        activation: 1,
+      }),
+      event({
+        time: 1_100,
+        sourceInstance: 23,
+        skillId: 77_319,
+        activation: 4,
+      }),
+      event({
+        time: 1_780,
+        sourceInstance: 23,
+        skillId: 76_807,
+        value: 400,
+        activation: 1,
+      }),
+      event({
+        time: 2_180,
+        sourceInstance: 23,
+        skillId: 76_807,
+        value: 400,
+        activation: 3,
+      }),
+      event({
+        time: 2_300,
+        source: fangedIboga,
+        sourceInstance: 25,
+        stateChange: 6,
+      }),
+      event({
+        time: 2_400,
+        source: fangedIboga,
+        sourceInstance: 25,
+        sourceMasterInstance: 23,
+        skillId: 45_262,
+        value: 600,
+        activation: 1,
+      }),
+      event({
+        time: 2_900,
+        source: fangedIboga,
+        sourceInstance: 25,
+        sourceMasterInstance: 23,
+        skillId: 45_262,
+        value: 500,
+        activation: 5,
+      }),
+      event({
+        time: 3_000,
+        sourceInstance: 23,
+        skillId: 12_638,
+        value: 440,
+        activation: 1,
+      }),
+      event({
+        time: 3_440,
+        sourceInstance: 23,
+        skillId: 12_638,
+        value: 440,
+        activation: 3,
+      }),
+      event({ time: 3_400, target: 0x4000n, skillId: 12_638, value: 100 }),
+      event({ time: 4_800, target: 0x4000n, skillId: 12_638, value: 100 }),
+      event({
+        time: 5_000,
+        sourceInstance: 23,
+        target: 4n,
+        value: 2,
+        stateChange: 11,
+      }),
+      event({
+        time: 6_000,
+        sourceInstance: 23,
+        target: 5n,
+        value: 4,
+        stateChange: 11,
+      }),
+      event({
+        time: 7_000,
+        sourceInstance: 23,
+        target: 2n,
+        value: 5,
+        stateChange: 11,
+      }),
+      event({
+        time: 8_000,
+        sourceInstance: 23,
+        skillId: 12_638,
+        value: 440,
+        activation: 1,
+      }),
+      event({
+        time: 8_440,
+        sourceInstance: 23,
+        skillId: 12_638,
+        value: 440,
+        activation: 3,
+      }),
+      event({ time: 8_400, target: 0x4000n, skillId: 12_638, value: 100 }),
+      event({ time: 8_900, target: 0x4000n, skillId: 12_638, value: 100 }),
+    ],
+  });
+  const rotationCatalog = {
+    skills: [
+      [12_469, "Barrage", "Weapon", "", 1_880],
+      [12_638, "Path of Scars", "Weapon", "", 440],
+      [-1_001, "Path of Scars (Max Range)", "Weapon", "", 440],
+      [76_807, "Quarry's Peril", "Bundle", "Galeshot", 680],
+      [77_319, "Bluster", "Bundle", "Galeshot", 680],
+      [76_787, "Summon Cyclone Bow", "Profession", "Galeshot", 0],
+      [77_213, "Dismiss Cyclone Bow", "Profession", "Galeshot", 0],
+      [-3, "Swap Weapons", "Action", "", 0],
+      [-4, "Swap Pets", "Action", "", 0],
+      [12_675, "Poisonous Cloud", "Profession", "", 880],
+      [45_262, "Narcotic Spores", "Profession", "", 720],
+    ].map(([id, name, type, specialization, quicknessCastTimeMs]) => ({
+      id,
+      name,
+      type,
+      slot: type === "Weapon" || type === "Bundle" ? "Weapon_1" : "Action",
+      specialization,
+      castTimeMs: quicknessCastTimeMs,
+      quicknessCastTimeMs,
+      effects: [],
+      implemented: true,
+      ...([12_675, 45_262].includes(id)
+        ? {
+            petSkill: true,
+            petAutonomousSkill: false,
+            independentCast: true,
+            independentCastCanOverlap: true,
+          }
+        : {}),
+    })),
+  };
+
+  const result = reconstructEvtcRotation(fixture, rotationCatalog, {
+    inferInstantCasts: false,
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(result.rotation.slice(0, 5), [
+    { name: "Barrage", skillId: 12_469 },
+    { name: "Summon Cyclone Bow", skillId: 76_787, offset: 0 },
+    { name: "Poisonous Cloud", skillId: 12_675, offset: 100 },
+    { name: "__combat_start", offset: 500 },
+    { name: "Bluster", skillId: 77_319 },
+  ]);
+  assert.deepEqual(
+    result.actions
+      .filter((action) =>
+        [
+          "Summon Cyclone Bow",
+          "Dismiss Cyclone Bow",
+          "Swap Weapons",
+          "Swap Pets",
+        ].includes(action.name),
+      )
+      .map((action) => [action.name, action.skillId, action.weaponSet]),
+    [
+      ["Summon Cyclone Bow", 76_787, 2],
+      ["Swap Pets", -4, undefined],
+      ["Dismiss Cyclone Bow", 77_213, 4],
+      ["Swap Weapons", -3, 5],
+      ["Summon Cyclone Bow", 76_787, 2],
+    ],
+  );
+  assert.deepEqual(
+    result.actions
+      .filter((action) => action.rawSkillId === 12_638)
+      .map((action) => [action.name, action.skillId]),
+    [
+      ["Path of Scars (Max Range)", -1_001],
+      ["Path of Scars", 12_638],
+    ],
+  );
+  assert.deepEqual(
+    result.actions
+      .filter((action) =>
+        ["Poisonous Cloud", "Narcotic Spores"].includes(action.name),
+      )
+      .map((action) => [action.name, action.evidence]),
+    [
+      ["Poisonous Cloud", "initial-state"],
+      ["Narcotic Spores", "animation"],
+    ],
+  );
+  assert.deepEqual(
+    result.actions.find((action) => action.name === "Bluster"),
+    {
+      timestampMs: 600,
+      endTimestampMs: 1_280,
+      durationMs: 680,
+      expectedDurationMs: 680,
+      rawSkillId: 77_319,
+      skillId: 77_319,
+      name: "Bluster",
+      kind: "unknown",
+      evidence: "legacy-activation",
+      status: "completed",
+      supportedByCatalog: true,
+    },
+  );
+});
+
+test("reconstructs Revenant legend, warband, and split animation mechanics", () => {
+  const razorclaw = 0x3000n;
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 9,
+        elite: 63,
+        character: "Fixture Renegade",
+      },
+      {
+        ...log().agents[0],
+        address: razorclaw,
+        profession: 18_791,
+        elite: 0xffffffff,
+        character: "Jas Razorclaw",
+      },
+    ],
+    skills: [
+      { id: 44_272, name: "Legendary Renegade Stance" },
+      { id: 46_849, name: "Call of the Renegade" },
+      { id: 27_074, name: "Deathstrike" },
+      { id: 28_625, name: "Deathstrike" },
+      { id: 29_057, name: "Preparation Thrust" },
+      { id: 29_256, name: "Brutal Blade" },
+      { id: 72_370, name: "Razorclaw's Rage" },
+    ],
+    events: [
+      event({ time: 1_000, stateChange: 1 }),
+      event({
+        time: 1_100,
+        target: PLAYER,
+        skillId: 44_272,
+        value: 2_147_483_647,
+        buff: 1,
+        stateChange: 69,
+      }),
+      event({
+        time: 1_101,
+        target: 0x2000n,
+        skillId: 46_849,
+        value: 100,
+      }),
+      event({ time: 1_200, skillId: 27_074, value: 720, stateChange: 67 }),
+      event({
+        time: 1_560,
+        skillId: 27_074,
+        value: 360,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({ time: 1_560, skillId: 28_625, value: 480, stateChange: 67 }),
+      event({
+        time: 1_920,
+        skillId: 28_625,
+        value: 360,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({ time: 2_000, skillId: 29_057, value: 540, stateChange: 67 }),
+      event({
+        time: 2_100,
+        skillId: 29_057,
+        value: 100,
+        activation: 4,
+        stateChange: 68,
+      }),
+      event({ time: 2_100, skillId: 29_256, value: 840, stateChange: 67 }),
+      event({
+        time: 2_660,
+        skillId: 29_256,
+        value: 560,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({
+        time: 2_700,
+        source: razorclaw,
+        sourceInstance: 24,
+        sourceMasterInstance: 1,
+        skillId: 72_370,
+        stateChange: 67,
+      }),
+    ],
+  });
+  const rotationCatalog = {
+    skills: [
+      [-4, "Swap Legends", "Profession", "Profession_1", 0, []],
+      [46_849, "Call of the Renegade", "Action", "Action", 0, []],
+      [27_074, "Deathstrike", "Weapon", "Weapon_3", 720, []],
+      [28_625, "Deathstrike", "Action", "Action", 0, []],
+      [
+        29_057,
+        "Preparation Thrust",
+        "Weapon",
+        "Weapon_1",
+        360,
+        [{ type: "strike", atMs: 320 }],
+      ],
+      [
+        29_256,
+        "Brutal Blade",
+        "Weapon",
+        "Weapon_1",
+        560,
+        [{ type: "strike", atMs: 480 }],
+      ],
+      [42_949, "Razorclaw's Rage", "Utility", "Utility", 500, []],
+    ].map(([id, name, type, slot, quicknessCastTimeMs, effects]) => ({
+      id,
+      name,
+      type,
+      slot,
+      castTimeMs: quicknessCastTimeMs,
+      quicknessCastTimeMs,
+      effects,
+      implemented: true,
+    })),
+  };
+
+  const result = reconstructEvtcRotation(fixture, rotationCatalog);
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.actions.map((action) => action.name),
+    ["Swap Legends", "Deathstrike", "Brutal Blade", "Razorclaw's Rage"],
+  );
+  assert.equal(
+    result.actions.filter((action) => action.name === "Deathstrike").length,
+    1,
+  );
+  assert.equal(
+    result.actions.some((action) => action.name === "Call of the Renegade"),
+    false,
+  );
+});
+
+test("reconstructs Herald initial facets and later facet activations", () => {
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 9,
+        elite: 52,
+        character: "Fixture Herald",
+      },
+    ],
+    skills: [
+      { id: 27_732, name: "Legendary Dragon Stance" },
+      { id: 27_928, name: "Legendary Demon Stance" },
+      { id: 28_243, name: "Facet of Elements" },
+      { id: 28_287, name: "Embrace the Darkness" },
+      { id: 59_591, name: "Invoke Torment" },
+    ],
+    events: [
+      event({
+        time: 900,
+        target: PLAYER,
+        skillId: 27_732,
+        value: 2_147_483_647,
+        buffDamage: 2_147_483_647,
+        buff: 18,
+        stateChange: 18,
+      }),
+      event({ time: 1_000, stateChange: 1 }),
+      event({
+        time: 1_100,
+        target: PLAYER,
+        skillId: 28_243,
+        value: 2_147_483_647,
+        buff: 1,
+        stateChange: 69,
+      }),
+      event({
+        time: 1_200,
+        target: PLAYER,
+        skillId: 27_928,
+        value: 2_147_483_647,
+        buff: 1,
+        stateChange: 69,
+      }),
+      event({ time: 1_201, target: 0x2000n, skillId: 59_591, value: 100 }),
+      event({ time: 1_300, skillId: 28_287, value: 440, stateChange: 67 }),
+      event({
+        time: 1_740,
+        skillId: 28_287,
+        value: 440,
+        activation: 3,
+        stateChange: 68,
+      }),
+    ],
+  });
+  const rotationCatalog = {
+    skills: [
+      [-4, "Swap Legends", "Profession", "Profession_1", 0],
+      [27_220, "Facet of Light", "Heal", "Heal", 250],
+      [28_379, "Facet of Darkness", "Utility", "Utility", 0],
+      [27_014, "Facet of Elements", "Utility", "Utility", 0],
+      [26_644, "Facet of Strength", "Utility", "Utility", 0],
+      [27_760, "Facet of Chaos", "Elite", "Elite", 0],
+      [29_371, "Facet of Nature", "Profession", "Profession_2", 0],
+      [28_287, "Embrace the Darkness", "Elite", "Elite", 440],
+      [59_591, "Invoke Torment", "Action", "Action", 0],
+    ].map(([id, name, type, slot, quicknessCastTimeMs]) => ({
+      id,
+      name,
+      type,
+      slot,
+      castTimeMs: quicknessCastTimeMs,
+      quicknessCastTimeMs,
+      effects: [],
+      implemented: true,
+    })),
+  };
+
+  const result = reconstructEvtcRotation(fixture, rotationCatalog);
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.actions
+      .filter((action) => action.evidence === "initial-state")
+      .map((action) => action.name),
+    [
+      "Facet of Light",
+      "Facet of Darkness",
+      "Facet of Elements",
+      "Facet of Strength",
+      "Facet of Chaos",
+      "Facet of Nature",
+    ],
+  );
+  assert.equal(
+    result.actions.filter((action) => action.name === "Facet of Elements")
+      .length,
+    2,
+  );
+  assert.equal(
+    result.actions.some((action) => action.name === "Invoke Torment"),
+    false,
+  );
+});
+
 test("reconstructs Bladesworn Gunsaber unsheathe and sheathe transitions", () => {
   const fixture = log({
     agents: [
@@ -524,6 +2251,7 @@ test("reconstructs Bladesworn Gunsaber unsheathe and sheathe transitions", () =>
         skillId: 62_769,
         buff: 1,
         buffRemove: 1,
+        stateChange: 72,
       }),
       event({ time: 3_010, target: 5n, stateChange: 11 }),
     ],
@@ -686,10 +2414,292 @@ test("supports the legacy single-event activation encoding", () => {
     name: "Blink",
     kind: "utility",
     evidence: "legacy-activation",
-    status: "reduced",
+    status: "completed",
     supportedByCatalog: true,
   });
   assert.deepEqual(result.rotation, [{ name: "Blink", skillId: 3_000 }]);
+});
+
+test("reconstructs Thief Antiquary buff, precast, and animation-only mechanics", () => {
+  const target = 0x2000n;
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 5,
+        elite: 77,
+        character: "Fixture Antiquary",
+      },
+    ],
+    skills: [
+      [13_026, "Prepare Thousand Needles"],
+      [13_028, "Caltrops"],
+      [13_036, "Spider Venom Charges"],
+      [44_597, "Assassin's Signet Active"],
+      [56_895, "Prepared Thousand Needles"],
+      [76_596, "Metal Legion Guitar Follow-up"],
+      [76_725, "Stone Summit Cannon"],
+      [76_816, "Chak Shield"],
+      [77_397, "Skritt Swipe"],
+      [78_288, "Chak Shield Active"],
+      [13_009, "Slice"],
+      [18_059, "Movement Follow-up"],
+    ].map(([id, name]) => ({ id, name })),
+    events: [
+      event({
+        time: 900,
+        target: PLAYER,
+        skillId: 56_895,
+        buff: 18,
+        stateChange: 18,
+      }),
+      event({ time: 1_000, stateChange: 1 }),
+      event({ time: 1_000, skillId: 77_397, stateChange: 57 }),
+      event({
+        time: 1_100,
+        skillId: 13_028,
+        value: 500,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({
+        time: 1_200,
+        target: PLAYER,
+        skillId: 44_597,
+        buff: 1,
+        stateChange: 69,
+      }),
+      event({
+        time: 1_250,
+        target: PLAYER,
+        skillId: 44_597,
+        buff: 1,
+        stateChange: 69,
+      }),
+      ...[1_300, 1_320, 1_340].map((time) =>
+        event({
+          time,
+          target: PLAYER,
+          skillId: 13_036,
+          buff: 1,
+          stateChange: 69,
+        }),
+      ),
+      ...[1_400, 1_420, 1_440].map((time) =>
+        event({
+          time,
+          target: PLAYER,
+          skillId: 78_288,
+          buff: 1,
+          stateChange: 69,
+        }),
+      ),
+      event({
+        time: 1_500,
+        target: PLAYER,
+        skillId: 56_895,
+        buff: 1,
+        buffRemove: 3,
+        stateChange: 71,
+      }),
+      event({ time: 1_600, skillId: 18_059, value: 100, stateChange: 67 }),
+      event({
+        time: 1_700,
+        skillId: 18_059,
+        value: 100,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({ time: 1_800, skillId: 76_582, value: 200, stateChange: 67 }),
+      event({
+        time: 2_000,
+        skillId: 76_582,
+        value: 200,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({ time: 2_000, skillId: 76_596, value: 100, stateChange: 67 }),
+      event({
+        time: 2_100,
+        skillId: 76_596,
+        value: 100,
+        activation: 3,
+        stateChange: 68,
+      }),
+      event({ time: 2_200, skillId: 13_009, value: 100, stateChange: 67 }),
+      event({
+        time: 2_233,
+        skillId: 13_009,
+        value: 33,
+        activation: 4,
+        stateChange: 68,
+      }),
+      event({ time: 2_400, skillId: 76_725, value: 500, stateChange: 67 }),
+      event({
+        time: 2_900,
+        skillId: 76_725,
+        value: 500,
+        activation: 3,
+        stateChange: 68,
+      }),
+      ...[100, 110, 120, 1_000].map((value, index) =>
+        event({
+          time: 3_000 + index * 100,
+          target,
+          skillId: 76_725,
+          value,
+        }),
+      ),
+    ],
+  });
+  const rotationCatalog = {
+    skills: [
+      [13_026, "Prepare Thousand Needles", "Utility", "Utility", 500, 30],
+      [13_028, "Caltrops", "Utility", "Utility", 500, 0],
+      [13_037, "Spider Venom", "Utility", "Utility", 0, 0],
+      [13_046, "Assassin's Signet", "Utility", "Utility", 0, 0],
+      [56_898, "Thousand Needles", "Utility", "Utility", 0, 0],
+      [76_582, "Metal Legion Guitar", "Profession", "Profession_1", 300, 0],
+      [76_725, "Stone Summit Cannon", "Utility", "Utility", 500, 0],
+      [76_816, "Chak Shield", "Profession", "Profession_1", 0, 0],
+      [77_397, "Skritt Swipe", "Profession", "Profession_1", 0, 0],
+      [13_009, "Slice", "Weapon", "Weapon_1", 1_400, 0],
+    ].map(([id, name, type, slot, castTimeMs, cooldown]) => ({
+      id,
+      name,
+      type,
+      slot,
+      castTimeMs,
+      quicknessCastTimeMs: castTimeMs,
+      cooldown,
+      effects: [],
+      implemented: true,
+    })),
+  };
+
+  const result = reconstructEvtcRotation(fixture, rotationCatalog, {
+    inferInstantCasts: false,
+  });
+  const names = result.actions.map((action) => action.name);
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(names.includes("Movement Follow-up"), false);
+  assert.equal(names.includes("Slice"), false);
+  assert.equal(
+    result.actions.find((action) => action.name === "Metal Legion Guitar")
+      ?.durationMs,
+    300,
+  );
+  for (const name of [
+    "Prepare Thousand Needles",
+    "Caltrops",
+    "Skritt Swipe",
+    "Assassin's Signet",
+    "Spider Venom",
+    "Chak Shield",
+    "Thousand Needles",
+  ]) {
+    assert.equal(names.filter((candidate) => candidate === name).length, 1);
+  }
+  assert.deepEqual(
+    result.actions
+      .filter((action) => action.name === "Stone Summit Cannon")
+      .map((action) => action.doubleEdgeOutcome),
+    ["success", "backfire"],
+  );
+});
+
+test("infers resource-only Canach tosses from sustained Antiquary bursts", () => {
+  const flawlessStarts = [
+    2_000, 4_000, 6_000, 8_000, 10_000, 12_000, 14_000, 16_000, 19_000, 21_000,
+    23_000, 25_000, 27_000, 30_000, 31_000, 32_000, 33_000, 36_000, 39_000,
+    42_000, 45_000, 48_000, 51_000, 54_000, 57_000, 60_000, 61_000, 62_000,
+    63_000, 74_000,
+  ];
+  const fixture = log({
+    agents: [
+      {
+        ...log().agents[0],
+        profession: 5,
+        elite: 77,
+        character: "Fixture Antiquary",
+      },
+    ],
+    skills: [
+      { id: 76_725, name: "Stone Summit Cannon" },
+      { id: 80_244, name: "Flawless Execution" },
+    ],
+    events: [
+      event({ time: 1_000, stateChange: 1 }),
+      ...flawlessStarts.flatMap((time) => [
+        event({ time, skillId: 80_244, value: 1_000, stateChange: 67 }),
+        event({
+          time: time + 1_000,
+          skillId: 80_244,
+          value: 1_000,
+          activation: 3,
+          stateChange: 68,
+        }),
+      ]),
+      event({ time: 73_500, skillId: 76_725, value: 500, stateChange: 67 }),
+      event({
+        time: 74_000,
+        skillId: 76_725,
+        value: 500,
+        activation: 3,
+        stateChange: 68,
+      }),
+    ],
+  });
+  const rotationCatalog = {
+    skills: [
+      [76_725, "Stone Summit Cannon", "Utility", "Utility", 500],
+      [77_230, "Canach-Coin Toss", "Utility", "Utility", 0],
+      [80_244, "Flawless Execution", "Weapon", "Weapon_3", 1_000],
+    ].map(([id, name, type, slot, castTimeMs]) => ({
+      id,
+      name,
+      type,
+      slot,
+      castTimeMs,
+      quicknessCastTimeMs: castTimeMs,
+      effects: [],
+      implemented: true,
+    })),
+  };
+
+  const result = reconstructEvtcRotation(fixture, rotationCatalog, {
+    inferInstantCasts: false,
+  });
+  const canach = result.actions.filter(
+    (action) => action.name === "Canach-Coin Toss",
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    canach.map((action) => action.timestampMs),
+    [3_100, 17_810, 31_000, 32_000, 61_000, 62_000, 73_000],
+  );
+  assert.deepEqual(
+    canach.map((action) => action.doubleEdgeOutcome),
+    [
+      "success",
+      "backfire",
+      "backfire",
+      "backfire",
+      "backfire",
+      "backfire",
+      "backfire",
+    ],
+  );
+  assert.ok(canach.every((action) => action.evidence === "resource-inference"));
+  assert.equal(
+    reconstructEvtcRotation(fixture, rotationCatalog, {
+      inferInstantCasts: false,
+      selectedSkillNames: ["Assassin's Signet"],
+    }).actions.some((action) => action.name === "Canach-Coin Toss"),
+    false,
+  );
 });
 
 test("requires an address when multiple players have equal action evidence", () => {
