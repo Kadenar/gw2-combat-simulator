@@ -96,6 +96,8 @@ function modifyAttributes(
   context: Gw2ModifierContext,
   attributes: SchedulerRecord,
 ): SchedulerRecord {
+  // Skip when attributes have already been pre-computed in the static pass to
+  // prevent the concentration bonus from being applied twice.
   if (
     !hasTrait(context, TRAIT.INSPIRING_IMPLEMENTS) ||
     professionStaticRulesApplied(context.config)

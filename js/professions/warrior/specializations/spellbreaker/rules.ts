@@ -16,6 +16,8 @@ export const spellbreakerSchedulerHooks = Object.freeze({
   },
 });
 
+// Cast through an anonymous type rather than importing SpellbreakerState
+// directly to avoid a circular dependency between rules and state modules.
 function insightStacks(context: Gw2ModifierContext): number {
   const profession = (
     context.runtime as

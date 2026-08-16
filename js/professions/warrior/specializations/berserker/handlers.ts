@@ -12,6 +12,7 @@ import { applyBerserkEntryTraits, berserkEntryDuration } from "./traits.js";
 function enterBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
   applyWarriorSkillResource(context, skill);
   const core = professionCoreState(context);
+  // Berserk mode collapses the three adrenaline bars into one slot of ten.
   core.maximumAdrenaline = 10;
   syncWarriorAdrenaline(context);
   const state = berserkerState.from(context);

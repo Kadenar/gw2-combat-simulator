@@ -17,6 +17,9 @@ function eventRotationIndex(event: SimulationEvent): number | null {
   return Number.isInteger(rotationIndex) ? rotationIndex : null;
 }
 
+// Finds the most recent Dragon Trigger entry that has not yet been released.
+// An entry is considered released when a "profession mechanic" dragon-charges
+// resource event with a later rotationIndex exists in the event list.
 function activeDragonTriggerEntry(
   events: readonly SimulationEvent[],
   insertionIndex: number,

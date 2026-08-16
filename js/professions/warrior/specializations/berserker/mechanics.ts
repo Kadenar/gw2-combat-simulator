@@ -37,6 +37,7 @@ export function advanceBerserker(
     state.berserkActive = false;
     state.berserkUntil = 0;
     const core = professionCoreState(context);
+    // Restore the full three-bar adrenaline cap when berserk expires.
     core.maximumAdrenaline = 30;
     syncWarriorAdrenaline(context);
   }
