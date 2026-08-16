@@ -76,6 +76,6 @@ export const EARTH_ELEMENTAL_EVTC_PROFILE = Object.freeze({
     cooldown: 18,
     protectionDuration: 3,
     crippleDuration: 5,
-    immobilizeDuration: 11,
+    immobilizeDuration: 1,
   }),
 });

@@ -307,6 +307,13 @@
         "upToDate": true
       },
       {
+        "label": "Condi Alacrity Elemental Balance (P/Wh)",
+        "build": "Builds/elementalist/b-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
+        "rotation": "Rotations/elementalist/r-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
+        "benchmarkDps": 40540,
+        "upToDate": true
+      },
+      {
         "label": "Inferno SE",
         "build": "Builds/elementalist/b-inferno-evoker-se.json",
         "rotation": "Rotations/elementalist/r-inferno-evoker-se.json",

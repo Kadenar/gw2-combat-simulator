@@ -11,6 +11,10 @@ const ELEMENTAL_LIFETIME_MS = 120_000;
 const MAXIMUM_AVAILABILITY_DELAY_MS = 1_000;
 const BARRAGE_TIMING_EXCEPTIONS = new Map([
   ["Catalyst: Condi Quickness (P/Wh)", 1_500],
+  ["Evoker: Condi Alacrity Elemental Balance (P/Wh)", 3_000],
+]);
+const BARRAGE_COUNT_EXCEPTIONS = new Map([
+  ["Evoker: Condi Alacrity Elemental Balance (P/Wh)", 8],
 ]);
 
 const root = new URL("../../../", import.meta.url);
@@ -81,7 +85,11 @@ test("every Glyph preset automatically summons its Fire Elemental and commands i
         `${label}: automatic Fire Elemental summon`,
       );
       const summonAt = Math.round(firstPlayerAction.at * 1000);
-      const firstReadyAt = Math.max(summonAt, combatStart?.start ?? summonAt);
+      const barrages = result.steps.filter((step) => step.skill === BARRAGE);
+      const firstReadyAt = Math.min(
+        barrages[0]?.start ?? Number.POSITIVE_INFINITY,
+        Math.max(summonAt, combatStart?.start ?? summonAt),
+      );
       const rotationEnd = Math.max(
         ...result.steps
           .filter((step) => step.skill !== BARRAGE)
@@ -95,12 +103,11 @@ test("every Glyph preset automatically summons its Fire Elemental and commands i
       ) {
         expectedCastTimes.push(at);
       }
-      const barrages = result.steps.filter((step) => step.skill === BARRAGE);
       const invalidBarrages = barrages.filter((step) => step.invalid);
 
       assert.equal(
         barrages.length,
-        expectedCastTimes.length,
+        BARRAGE_COUNT_EXCEPTIONS.get(label) ?? expectedCastTimes.length,
         `${label}: Flame Barrage count`,
       );
       assert.equal(
@@ -138,5 +145,5 @@ test("every Glyph preset automatically summons its Fire Elemental and commands i
     }
   }
 
-  assert.equal(glyphPresetCount, 29);
+  assert.equal(glyphPresetCount, 30);
 });

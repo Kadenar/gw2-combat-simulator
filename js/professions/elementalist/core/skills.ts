@@ -8958,7 +8958,7 @@ export const ELEMENTALIST_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     displayName: "Stomp",
     description:
       "Command your summoned Earth Elemental to stomp, granting Protection to allies and crippling and immobilizing nearby foes.",
-    icon: "https://render.guildwars2.com/file/011D983FEAFB946EF0F45E7F290838CFA31D63D0/103380.png",
+    icon: "https://render.guildwars2.com/file/A39EBFA9E241DDBF6EEFBEC515192F32F5F2A620/867445.png",
     type: "Elite",
     weapon: "",
     slot: "Elite",

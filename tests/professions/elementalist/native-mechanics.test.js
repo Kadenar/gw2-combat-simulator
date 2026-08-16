@@ -3000,7 +3000,7 @@ test("selected Earth Elemental auto-summons, attacks, and executes Stomp", () =>
   assert.equal(cripple.condition, "Crippled");
   assert.equal(cripple.duration, 5);
   assert.equal(immobilize.condition, "Immobilized");
-  assert.equal(immobilize.duration, 11);
+  assert.equal(immobilize.duration, 1);
   assert.equal(immobilize.actorType, "player");
   assert.equal(immobilize.elementalOwnedCondition, true);
   assert.equal(protection.duration, 3);

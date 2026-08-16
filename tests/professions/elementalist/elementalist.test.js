@@ -214,7 +214,7 @@ test("all Elementalist build and rotation assets migrate through the native code
     .filter((name) => name.startsWith("r-") && name.endsWith(".json"))
     .sort();
 
-  assert.equal(presets.length, 39);
+  assert.equal(presets.length, 40);
   assert.deepEqual(
     [...new Set(presets.map((preset) => path.basename(preset.build)))].sort(),
     buildFiles,
