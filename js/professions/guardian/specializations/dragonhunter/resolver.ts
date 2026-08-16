@@ -22,6 +22,8 @@ function handleTetherApplied(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
+  // Falls back to event.at (no tether window) when tetherUntil was not emitted,
+  // rather than NaN-poisoning all subsequent tether comparisons.
   dragonhunterState.from(context).tetherUntil = Number(
     event.tetherUntil || event.at,
   );
@@ -31,6 +33,8 @@ function handleTetherBroken(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
+  // Setting tetherUntil = event.at (not 0) preserves any damage packets
+  // that land exactly at the break timestamp before the tether expires.
   dragonhunterState.from(context).tetherUntil = event.at;
 }
 
@@ -38,6 +42,9 @@ function handleJusticePulse(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
+  // Justice pulses are pre-emitted for the full tether window at cast time, so
+  // each must be re-validated at resolve time in case Hunter's Verdict broke the
+  // tether early. Epsilon tolerance avoids rejecting a pulse on the exact break timestamp.
   if (
     dragonhunterState.from(context).tetherUntil <
     event.at - Number(context.epsilon || 0.0001)
@@ -74,6 +81,8 @@ export function reactToDragonhunterJusticeHit(
     skillName: "Spear of Justice",
   });
 
+  // Passive Crippled only fires when the passive burn counter actually incremented,
+  // i.e. a new passive Justice proc occurred on this hit (not an active proc).
   if (
     Number(core.justicePassiveBurns || 0) > passiveBefore &&
     typeof dependencies.applyCondition === "function"
@@ -101,6 +110,8 @@ export function reactToDragonhunterJusticeHit(
   ) {
     return;
   }
+  // priority: 5 ensures this vulnerability buff sorts after zero-priority damage
+  // events at the same timestamp so modifiers can pick it up on the next resolve tick.
   enqueueOrdered(context.queue, {
     type: "buff",
     at: event.at,
@@ -147,6 +158,7 @@ export function reactToDragonhunterControl(
   ) {
     return;
   }
+  // 1-second internal cooldown on Heavy Light stability; not exposed by the trait's game tooltip.
   state.heavyLightReadyAt = event.at + 1;
   enqueueOrdered(context.queue, {
     type: "buff",

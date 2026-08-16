@@ -23,6 +23,8 @@ export const firebrandModule = defineNativeModule({
     handlers: firebrandSkillHandlers,
   }),
   state: {
+    // Scheduler and resolver each get their own independent copy of the same
+    // factory; the two contexts never share a live state object.
     scheduler: firebrandState.create,
     resolver: firebrandState.create,
   },

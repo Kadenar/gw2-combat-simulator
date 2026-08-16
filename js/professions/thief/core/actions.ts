@@ -102,6 +102,8 @@ export function handleThievesGuildAttack(
     summonBasePower: Number(profile.basePower),
     summonCriticalChance: Number(profile.criticalChance),
     summonCriticalDamage: Number(profile.criticalDamage),
+    summonIgnoresBoons: true,
+    summonUsesEquipmentModifiers: false,
   });
   for (const condition of attack.conditions || []) {
     context.emit({
@@ -119,6 +121,8 @@ export function handleThievesGuildAttack(
       stacks: Number(condition.stacks || 1),
       duration: Number(condition.duration || 0),
       summonInheritsAttributes: true,
+      summonIgnoresBoons: true,
+      summonUsesEquipmentModifiers: false,
     });
   }
   const interval = Number(attack.interval || 0);

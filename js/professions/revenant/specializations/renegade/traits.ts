@@ -31,6 +31,7 @@ function scaledBoonDuration(
   boon: string,
   duration: number,
 ): number {
+  // The scheduler context doesn't expose the triggering skill directly, but the platform attaches it as `skill` on the same record during onEventScheduled
   const skill = (context as unknown as SchedulerRecord).skill as RevenantSkill;
   return (
     context.schedulerPolicy.effectDuration?.(
@@ -47,6 +48,7 @@ function criticalCount(
   event: RevenantSimulationEvent,
 ): number {
   if (context.config.randomness?.mode === "stochastic") {
+    // In stochastic mode the crit outcome was sampled earlier and stored on the event; requireCriticalFacts() guarantees didCrit is present for every tracked hit
     if (typeof event.didCrit !== "boolean") {
       throw new Error(
         `Missing sampled critical outcome for Renegade event ${String(
@@ -56,12 +58,14 @@ function criticalCount(
     }
     return event.didCrit ? 1 : 0;
   }
+  // Deterministic mode: accumulate fractional crit probability across events so that the expected number of procs over the full simulation equals (sum of crit chances)
   const state = renegadeState.from(context);
   const chance = Number(
     context.schedulerPolicy.critical?.(context, event)?.chance || 0,
   );
   state.renegadeCriticalProgress =
     Number(state.renegadeCriticalProgress || 0) + chance;
+  // 1e-9 tolerance prevents floating-point drift from suppressing procs at exactly 1.0
   const count = Math.floor(state.renegadeCriticalProgress + 1e-9);
   if (count > 0) state.renegadeCriticalProgress -= count;
   return count;
@@ -75,6 +79,7 @@ function applyCriticalTraits(
   const enmity = hasRevenantTrait(context.config, TRAIT.ENDLESS_ENMITY);
   if (!ambush && !enmity) return;
   const criticals = criticalCount(context, event);
+  // Ambush Commander procs on any positional advantage OR any crit; both paths share the same grant
   const positionalTrigger = Boolean(
     context.config.target?.flanking ||
     context.config.target?.behind ||
@@ -119,6 +124,7 @@ function applyVindication(
 ): void {
   if (
     event.skillId !== ID.CITADEL_BOMBARDMENT ||
+    // Citadel Bombardment is multi-hit; Vindication daze fires only on the first impact
     Number(event.hitIndex || 1) !== 1 ||
     !hasRevenantTrait(context.config, TRAIT.VINDICATION)
   ) {
@@ -144,12 +150,14 @@ function applyKallasFervorLifeSiphon(
   context: RevenantSchedulerContext,
   event: RevenantSimulationEvent,
 ): void {
+  // Only flat-strike events carry the life-siphon formula; coefficient-only hits are not siphons
   if (
     !Number.isFinite(Number(event.flatStrikeBase)) &&
     !Number.isFinite(Number(event.flatStrikePowerCoeff))
   ) {
     return;
   }
+  // Name-based guard distinguishes Soulcleave's life-siphon packet from other flat-strike effects
   if (!/siphon/i.test(`${event.name || ""} ${event.skillName || ""}`)) return;
   const stacks = activeKallasFervorStacks(renegadeState.from(context), event.at);
   if (!stacks) return;
@@ -170,6 +178,7 @@ export function initializeRenegadeTraits(
     hasRevenantTrait(context.config, TRAIT.AMBUSH_COMMANDER) ||
     hasRevenantTrait(context.config, TRAIT.ENDLESS_ENMITY)
   ) {
+    // Tells the materializer to sample and record didCrit on every damage event so that the deferred critical-traits task can read a concrete boolean in stochastic mode
     context.schedulerPolicy.requireCriticalFacts?.();
   }
 }
@@ -194,6 +203,7 @@ export function modifyRenegadeCastDuration(
   context: RevenantPrecastContext,
   duration: number,
 ): number {
+  // Empowered Band Together is instant-cast (0 duration) so no animation lane is reserved; normal summons keep their full cast time
   return context.skill?.handlerId === "revenant.band-together" &&
       isBandTogetherReady(renegadeState.from(context), context.start)
     ? 0
@@ -204,9 +214,11 @@ export function modifyRenegadeRechargeDuration(
   context: RevenantRechargeContext,
   duration: number,
 ): number {
+  // All for One halves Band Together's recharge only when the empowered version was just used; checking the state here (before the window clears) is safe because the window was consumed in beforeEffects, which runs before the recharge hook fires
   return context.skill?.handlerId === "revenant.band-together" &&
       isBandTogetherReady(
         renegadeState.from(context),
+        // context.start is preferred; context.at is the fallback for recharge-only contexts
         Number(context.start ?? context.at),
       ) &&
       hasRevenantTrait(context.config, TRAIT.ALL_FOR_ONE)
@@ -256,6 +268,7 @@ export function observeRenegadeTraits(
       context.tasks.schedule({
         type: RENEGADE_CRITICAL_TRAITS_TASK,
         at: Math.max(context.state.time, event.at),
+        // Priority -40 fires after priority -60 (lower = later), ensuring didCrit is populated first
         priority: -40,
         payload: { eventOrder: Number(event.__order) },
       });
@@ -265,9 +278,11 @@ export function observeRenegadeTraits(
   }
   const razorclaw = state.razorclawsRage;
   if (
+    // Skip the Razorclaw's Rage hit itself to avoid infinite recursion
     event.skillId === ID.RAZORCLAWS_RAGE ||
     Number(razorclaw?.charges || 0) <= 0 ||
     event.at >= Number(razorclaw.expiresAt || 0) ||
+    // readyAt enforces the 1-second internal cooldown between player-hit-triggered bleeds
     event.at + context.epsilon < Number(razorclaw.readyAt || 0)
   ) {
     return;

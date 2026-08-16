@@ -103,6 +103,5 @@
   "initialResource": 0,
   "startingWeaponSet": 1,
   "targetHealth": 3970000,
-  "targetArmor": 2597,
-  "rotation": []
+  "targetArmor": 2597
 }

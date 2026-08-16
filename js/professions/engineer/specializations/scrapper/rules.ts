@@ -12,6 +12,7 @@ import type { EngineerMaximumAmmoContext } from "../../types.js";
 import { applyScrapperCastTraits } from "./traits.js";
 
 export const scrapperSchedulerHooks = Object.freeze({
+  // order 30 runs after core engineer hooks (10/20) but before any finisher hooks
   afterCast: {
     id: "engineer.scrapper-traits",
     order: 30,
@@ -21,6 +22,8 @@ export const scrapperSchedulerHooks = Object.freeze({
 
 export const scrapperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
+    // Object in Motion: +5% strike damage per active movement boon (stability/swiftness/superspeed).
+    // Multiplicative — three boons = 1.05^3 ≈ +15.8%.
     id: "engineer.object-in-motion",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
@@ -35,6 +38,7 @@ export const scrapperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   },
 ]);
 
+// Applied Force (GM trait): each might stack (capped at 25) adds 30 flat power at cast time.
 function modifyScrapperAttributes(
   context: Gw2ModifierContext,
   attributes: SchedulerRecord,
@@ -48,6 +52,7 @@ function modifyScrapperAttributes(
   };
 }
 
+// Ex Machina (adept trait): Function Gyro gets a minimum of 2 ammo charges.
 function modifyScrapperMaximumAmmo(
   context: EngineerMaximumAmmoContext,
   maximum: number,

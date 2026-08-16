@@ -62,6 +62,7 @@ export function applyGaleshotCycloneBowTraits(
   const state = galeshotState.from(context);
   if (skill.id === ID.HAWKEYE) {
     if (hasTrait(context, TRAIT.GALE_FORCE)) {
+      // galeForceUntil is a timestamp, not a duration; compare against context.time in modifiers.
       state.galeForceUntil = context.effectiveEnd + 10;
       context.emit({
         type: "buff",
@@ -81,6 +82,8 @@ export function applyGaleshotCycloneBowTraits(
     return;
   }
   if (skill.id === ID.BLUSTER) {
+    // Wuthering Wind is primed by Bluster; the charge is only consumable at or
+    // after effectiveEnd so the same cast can't immediately trigger itself.
     state.wutheringWindReady = hasTrait(context, TRAIT.WUTHERING_WIND);
     state.wutheringWindReadyAt = context.effectiveEnd;
     emitCloudburstBoons(context, skill);
@@ -91,6 +94,7 @@ export function applyGaleshotCycloneBowTraits(
       skill.id as typeof ID.QUARRYS_PERIL | typeof ID.SUPERSONIC_ARROW,
     )
   ) {
+    // Cloudburst trait: these two skills reset Bluster's cooldown on cast.
     context.state.cooldowns.delete(ID.BLUSTER);
   }
 }
@@ -219,8 +223,8 @@ function galeForceAmount(context: Gw2ModifierContext): number {
     Number(galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time
       ? 0.25
       : 0;
-  // Hawkeye converts the five existing stacks, but Wind Force earned while
-  // Gale Force is active remains a separate stacking damage bonus.
+  // Hawkeye converts the five existing stacks into a 25% flat bonus (galeForce),
+  // but Wind Force earned while Gale Force is active still adds 3% per stack on top.
   return galeForce + windForce(context) * 0.03;
 }
 
@@ -275,6 +279,10 @@ export const galeshotModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "ranger.piercing-gales-vulnerability",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
+    // Piercing Gales applies its own doubled vulnerability multiplier (2% per
+    // stack) in addition to the standard vulnerability already baked into the
+    // platform strikeMultiplier, effectively tripling the vulnerability bonus
+    // for this skill.
     factor: (context) =>
       1 +
       Number(

@@ -2170,7 +2170,6 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 333,
-    handlerId: "warrior.gunstinger",
   },
   [ID.DRAGONS_ROAR]: {
     implemented: true,

@@ -21,6 +21,8 @@ export const holosmithModule = defineNativeModule({
     skillMechanics: HOLOSMITH_SKILL_MECHANICS,
     handlers: holosmithSkillHandlers,
   }),
+  // Scheduler and resolver share the same state factory so heat values are consistent
+  // when the resolver reads them during damage attribution.
   state: { scheduler: holosmithState.create, resolver: holosmithState.create },
   mechanics: {
     modifiers: holosmithAttributeRules,

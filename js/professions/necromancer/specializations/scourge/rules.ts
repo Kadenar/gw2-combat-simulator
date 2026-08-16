@@ -30,12 +30,14 @@ function modifyScourgeAttributes(
     !professionStaticRulesApplied(context.config) &&
     hasTrait(context, TRAIT.FELL_BEACON)
   ) {
-    // Pattern C: convert gear-only condition damage (config.stats), excluding
-    // might (baked into the seed) and trait bonuses like Lingering Curse.
+    // Fell Beacon converts 7% of condition damage into expertise; must use raw
+    // gear stats (config.stats) not the merged attribute record because might
+    // stacks and trait bonuses like Lingering Curse are already folded in there
     result.expertise += Number(context.config?.stats?.conditionDamage || 0) * 0.07;
   }
   if (
     hasTrait(context, TRAIT.SAND_SAGE) &&
+    // Bonus only applies when at least one shade is alive — check expiry timestamps against current sim time
     (necromancerRuntimeSpecializationState(context).shades || []).some(
       (expiresAt: number) => expiresAt > context.time,
     )
@@ -50,6 +52,7 @@ function modifyScourgeRechargeDuration(
   context: NecromancerRechargeModifierContext,
   duration: number,
 ): number {
+  // Sand Savant adds a 25% recharge penalty alongside the ammo cap reduction to 1
   return (
     context.skill?.id === ID.MANIFEST_SAND_SHADE &&
     hasTrait(context, TRAIT.SAND_SAVANT)
@@ -62,6 +65,7 @@ function modifyScourgeMaximumAmmo(
   context: NecromancerAmmoModifierContext,
   maximum: number,
 ): number {
+  // Sand Savant merges all 3 shades into a single more-powerful shade; only 1 charge allowed
   return (
     context.skill?.id === ID.MANIFEST_SAND_SHADE &&
     hasTrait(context, TRAIT.SAND_SAVANT)

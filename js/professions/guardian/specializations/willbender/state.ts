@@ -3,9 +3,9 @@ import type { GuardianWillbenderState } from "../../types.js";
 
 export function createWillbenderState(): GuardianWillbenderState {
   return {
-    flameGeneration: 0,
+    flameGeneration: 0, // increments each time a different virtue activates, invalidating queued pulses from the prior virtue
     flameVirtue: null,
-    pendingWeaponCooldownReduction: {},
+    pendingWeaponCooldownReduction: {}, // keyed by reservationId; accumulates in-flight reductions and cleared on cast-complete
     justiceUntil: 0,
     resolveUntil: 0,
     courageUntil: 0,

@@ -34,6 +34,9 @@ function modifyFirebrandAttributes(
     context.config,
   ).professionStaticRulesApplied;
   const runtimeActive = guardianBoonActive(context, "quickness");
+  // When the platform has already baked config.boons.quickness into the
+  // base attributes, subtracting staticallyActive prevents double-counting the
+  // +250 from Imbued Haste for the portion that was statically applied.
   const staticallyActive =
     staticApplied && Boolean(context.config?.boons?.quickness);
   const delta = (Number(runtimeActive) - Number(staticallyActive)) * 250;

@@ -31,7 +31,6 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
   },
   [ID.CRASHING_COURAGE]: {
     implemented: true,
-    castTimeMs: 1020,
     quicknessCastTimeMs: 680,
     handlerId: "guardian.willbender-virtue",
     effects: [],
@@ -55,7 +54,6 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
   },
   [ID.HEAVENS_PALM]: {
     implemented: true,
-    castTimeMs: 1440,
     quicknessCastTimeMs: 960,
     cooldown: 20,
     effects: [
@@ -74,7 +72,6 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
   },
   [ID.WHIRLING_LIGHT]: {
     implemented: true,
-    castTimeMs: 1440,
     quicknessCastTimeMs: 960,
     cooldown: 15,
     effects: [
@@ -130,7 +127,6 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
   },
   [ID.FLASH_COMBO]: {
     implemented: true,
-    castTimeMs: 1020,
     quicknessCastTimeMs: 680,
     cooldown: 20,
     effects: [
@@ -153,14 +149,12 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
   },
   [ID.CRASHING_COURAGE_ID_62648]: {
     implemented: true,
-    castTimeMs: 1020,
     quicknessCastTimeMs: 680,
     handlerId: "guardian.willbender-virtue",
     effects: [],
   },
   [ID.RUSHING_JUSTICE]: {
     implemented: true,
-    castTimeMs: 720,
     quicknessCastTimeMs: 480,
     rechargeAnchor: "castStart",
     handlerId: "guardian.willbender-virtue",

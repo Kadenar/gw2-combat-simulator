@@ -38,6 +38,7 @@ export function reactToDruidCondition(
   context: RangerResolverContext,
   event: RangerResolverEvent,
 ): void {
+  // Blood Moon only triggers on Immobilize, not on all conditions; "Immobile" is an alternate name used by some event sources
   if (event.condition === "Immobilized" || event.condition === "Immobile") {
     triggerBloodMoon(context, event);
   }

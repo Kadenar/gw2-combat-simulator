@@ -18,13 +18,13 @@ function applyMistburnCharge(
   if (
     event.actorType !== "player" ||
     event.coefficient == null ||
-    event.skillId === ID.MISTBURN_MORTAR
+    event.skillId === ID.MISTBURN_MORTAR // the mortar itself grants the charge; it must not also consume one
   )
     return;
   const state = antiquaryState.from(context);
   if (
     Number(state.mistburnCharges || 0) <= 0 ||
-    Number(state.mistburnExpiresAt || 0) <= event.at
+    Number(state.mistburnExpiresAt || 0) <= event.at // charges expire together; window is independent of charge count
   )
     return;
   state.mistburnCharges -= 1;
@@ -52,7 +52,7 @@ function applyMeticulousSunCrystal(
   if (
     event.actorType !== "player" ||
     event.skillId !== ID.ZEPHYRITE_SUN_CRYSTAL ||
-    event.coefficient == null ||
+    event.coefficient == null || // condition-only packets have no coefficient; burning fires on the strike hit
     !hasThiefTrait(context.config, TRAIT.METICULOUS_CUSTODIAN)
   )
     return;

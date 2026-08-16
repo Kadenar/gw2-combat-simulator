@@ -2,6 +2,7 @@ import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { RANGER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import type { RangerCastContext, RangerSkill } from "../../types.js";
 
+// Called from both enter- and exit-beastmode handlers; protection fires on every toggle regardless of direction.
 export function applyUnstoppableUnion(
   context: RangerCastContext,
   skill: RangerSkill,

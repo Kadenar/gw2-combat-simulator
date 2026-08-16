@@ -69,6 +69,7 @@ const MALICIOUS_DAMAGE_SCALING_SKILL_IDS: ReadonlySet<number> = new Set([
 ]);
 
 function boonActive(context: Gw2ModifierContext, boon: string): boolean {
+  // Three sources checked in priority order: static config boons → pre-computed timeline → live resolver boon map
   if (context.config?.boons?.[boon]) return true;
   if (context.timeline?.timedActive(boon, context.time)) return true;
   return (context.runtime?.boons?.get(boon) || []).some(
@@ -96,6 +97,7 @@ function modifyDeadeyeAttributes(
   attributes: Gw2ResolvedStats,
 ): Gw2ResolvedStats {
   const result = { ...attributes };
+  // These stat bonuses come from the GW2 build panel (professionStaticRules); skip them if the build already includes them to avoid double-counting
   if (!professionStaticRulesApplied(context.config)) {
     if (hasTrait(context, TRAIT.SILENT_SCOPE)) result.precision += 120;
     if (hasTrait(context, TRAIT.PREMEDITATION)) result.concentration += 180;
@@ -166,6 +168,7 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "thief.malicious-stealth-attack",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "damage-additive",
+    // Malice at cast time is snapshotted onto the event so the resolver sees the pre-consumption value even after malice is zeroed
     amount: (context) =>
       Math.max(
         0,

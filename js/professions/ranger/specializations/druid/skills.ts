@@ -192,7 +192,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<
     ],
     recharge: 10,
     cooldown: 10,
-    castTimeMs: 2500,
     quicknessCastTimeMs: 2080,
     handlerId: "ranger.celestial-avatar-skill",
   },

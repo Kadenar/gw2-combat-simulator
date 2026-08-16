@@ -452,6 +452,7 @@
           "skillWeapon": "Scepter",
           "source": "Clone",
           "sourceId": "Clone: Ether Bolt",
+          "summonOwner": "mesmer.clone:1",
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
@@ -470,6 +471,7 @@
           "source": "Clone",
           "sourceId": "Clone: Ether Bolt",
           "stacks": 1,
+          "summonOwner": "mesmer.clone:1",
           "type": "condition"
         },
         {
@@ -489,6 +491,7 @@
           "skillWeapon": "Scepter",
           "source": "Clone",
           "sourceId": "Clone: Ether Bolt",
+          "summonOwner": "mesmer.clone:2",
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
@@ -507,6 +510,7 @@
           "source": "Clone",
           "sourceId": "Clone: Ether Bolt",
           "stacks": 1,
+          "summonOwner": "mesmer.clone:2",
           "type": "condition"
         },
         {
@@ -526,6 +530,7 @@
           "skillWeapon": "Scepter",
           "source": "Clone",
           "sourceId": "Clone: Ether Bolt",
+          "summonOwner": "mesmer.clone:3",
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
@@ -544,6 +549,7 @@
           "source": "Clone",
           "sourceId": "Clone: Ether Bolt",
           "stacks": 1,
+          "summonOwner": "mesmer.clone:3",
           "type": "condition"
         }
       ],
@@ -575,6 +581,172 @@
         }
       },
       "resolvedEvents": [
+        {
+          "__order": 11,
+          "activationId": "cast:1",
+          "activeDuration": 1.8957142857142857,
+          "actorType": "player",
+          "at": 0.2742857142857143,
+          "condition": "Confusion",
+          "damageTicks": [
+            {
+              "at": 2.17,
+              "fraction": 0.8957142857142857
+            }
+          ],
+          "damagingStackSeconds": 0.8957142857142857,
+          "duration": 7,
+          "effectiveDuration": 9.333333333333332,
+          "expiresAt": 2.17,
+          "name": "Confusing Images — Confusion",
+          "naturalExpiresAt": 9.607619047619046,
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Confusing Images",
+          "source": "Player",
+          "sourceId": "Confusing Images",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 12,
+          "activationId": "cast:1",
+          "activeDuration": 1.6214285714285714,
+          "actorType": "player",
+          "at": 0.5485714285714286,
+          "condition": "Confusion",
+          "damageTicks": [
+            {
+              "at": 2.17,
+              "fraction": 0.6214285714285714
+            }
+          ],
+          "damagingStackSeconds": 0.6214285714285714,
+          "duration": 7,
+          "effectiveDuration": 9.333333333333332,
+          "expiresAt": 2.17,
+          "name": "Confusing Images — Confusion",
+          "naturalExpiresAt": 9.88190476190476,
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Confusing Images",
+          "source": "Player",
+          "sourceId": "Confusing Images",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 13,
+          "activationId": "cast:1",
+          "activeDuration": 1.3471428571428572,
+          "actorType": "player",
+          "at": 0.8228571428571427,
+          "condition": "Confusion",
+          "damageTicks": [
+            {
+              "at": 2.17,
+              "fraction": 0.3471428571428572
+            }
+          ],
+          "damagingStackSeconds": 0.3471428571428572,
+          "duration": 7,
+          "effectiveDuration": 9.333333333333332,
+          "expiresAt": 2.17,
+          "name": "Confusing Images — Confusion",
+          "naturalExpiresAt": 10.156190476190474,
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Confusing Images",
+          "source": "Player",
+          "sourceId": "Confusing Images",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 14,
+          "activationId": "cast:1",
+          "activeDuration": 1.0728571428571427,
+          "actorType": "player",
+          "at": 1.0971428571428572,
+          "condition": "Confusion",
+          "damageTicks": [
+            {
+              "at": 2.097142857142857,
+              "fraction": 1
+            },
+            {
+              "at": 2.17,
+              "fraction": 0.07285714285714273
+            }
+          ],
+          "damagingStackSeconds": 1.0728571428571427,
+          "duration": 7,
+          "effectiveDuration": 9.333333333333332,
+          "expiresAt": 2.17,
+          "name": "Confusing Images — Confusion",
+          "naturalExpiresAt": 10.43047619047619,
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Confusing Images",
+          "source": "Player",
+          "sourceId": "Confusing Images",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 15,
+          "activationId": "cast:1",
+          "activeDuration": 0.7985714285714285,
+          "actorType": "player",
+          "at": 1.3714285714285714,
+          "condition": "Confusion",
+          "damageTicks": [
+            {
+              "at": 2.17,
+              "fraction": 0.7985714285714285
+            }
+          ],
+          "damagingStackSeconds": 0.7985714285714285,
+          "duration": 7,
+          "effectiveDuration": 9.333333333333332,
+          "expiresAt": 2.17,
+          "name": "Confusing Images — Confusion",
+          "naturalExpiresAt": 10.704761904761904,
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Confusing Images",
+          "source": "Player",
+          "sourceId": "Confusing Images",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 16,
+          "activationId": "cast:1",
+          "activeDuration": 0.5242857142857142,
+          "actorType": "player",
+          "at": 1.6457142857142857,
+          "condition": "Confusion",
+          "damageTicks": [
+            {
+              "at": 2.17,
+              "fraction": 0.5242857142857142
+            }
+          ],
+          "damagingStackSeconds": 0.5242857142857142,
+          "duration": 7,
+          "effectiveDuration": 9.333333333333332,
+          "expiresAt": 2.17,
+          "name": "Confusing Images — Confusion",
+          "naturalExpiresAt": 10.979047619047618,
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Confusing Images",
+          "source": "Player",
+          "sourceId": "Confusing Images",
+          "stacks": 1,
+          "type": "condition"
+        },
         {
           "__order": 17,
           "activationId": "cast:1",
@@ -631,6 +803,7 @@
           "skillWeapon": "Scepter",
           "source": "Clone",
           "sourceId": "Clone: Ether Bolt",
+          "summonOwner": "mesmer.clone:1",
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
@@ -662,6 +835,7 @@
           "source": "Clone",
           "sourceId": "Clone: Ether Bolt",
           "stacks": 1,
+          "summonOwner": "mesmer.clone:1",
           "type": "condition"
         },
         {
@@ -693,6 +867,7 @@
           "skillWeapon": "Scepter",
           "source": "Clone",
           "sourceId": "Clone: Ether Bolt",
+          "summonOwner": "mesmer.clone:2",
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
@@ -724,6 +899,7 @@
           "source": "Clone",
           "sourceId": "Clone: Ether Bolt",
           "stacks": 1,
+          "summonOwner": "mesmer.clone:2",
           "type": "condition"
         },
         {
@@ -755,6 +931,7 @@
           "skillWeapon": "Scepter",
           "source": "Clone",
           "sourceId": "Clone: Ether Bolt",
+          "summonOwner": "mesmer.clone:3",
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
@@ -786,6 +963,7 @@
           "source": "Clone",
           "sourceId": "Clone: Ether Bolt",
           "stacks": 1,
+          "summonOwner": "mesmer.clone:3",
           "type": "condition"
         }
       ],
@@ -824,8 +1002,8 @@
       "warnings": []
     },
     "damage": {
-      "conditionDamage": 122.07291874999993,
-      "dps": 1537.1185692464321,
+      "conditionDamage": 879.8603562499999,
+      "dps": 5994.691731011139,
       "events": [
         {
           "created": [{}, {}, {}]
@@ -856,6 +1034,57 @@
         {}
       ],
       "resolvedEvents": [
+        {
+          "damage": 159.33357589285714,
+          "damageTicks": [
+            {
+              "damage": 159.33357589285714
+            }
+          ]
+        },
+        {
+          "damage": 110.5424330357143,
+          "damageTicks": [
+            {
+              "damage": 110.5424330357143
+            }
+          ]
+        },
+        {
+          "damage": 61.75129017857144,
+          "damageTicks": [
+            {
+              "damage": 61.75129017857144
+            }
+          ]
+        },
+        {
+          "damage": 190.84452232142854,
+          "damageTicks": [
+            {
+              "damage": 177.884375
+            },
+            {
+              "damage": 12.960147321428549
+            }
+          ]
+        },
+        {
+          "damage": 142.0533794642857,
+          "damageTicks": [
+            {
+              "damage": 142.0533794642857
+            }
+          ]
+        },
+        {
+          "damage": 93.26223660714285,
+          "damageTicks": [
+            {
+              "damage": 93.26223660714285
+            }
+          ]
+        },
         {
           "damage": 44.47109375,
           "damageTicks": [
@@ -903,7 +1132,7 @@
       ],
       "steps": [{}, {}, {}, {}],
       "strikeDamage": 139.2372380218934,
-      "totalDamage": 261.31015677189333
+      "totalDamage": 1019.0975942718933
     }
   }
 }

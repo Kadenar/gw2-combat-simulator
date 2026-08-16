@@ -2,10 +2,7 @@
  * Application-facing composition facade for module-owned Engineer skill
  * mechanics. Raw entries live in Core and specialization skills.ts files.
  */
-import {
-  ENGINEER_CORE_EXTRA_SKILLS,
-  ENGINEER_CORE_SKILL_MECHANICS,
-} from "../core/skills.js";
+import { ENGINEER_CORE_SKILL_MECHANICS } from "../core/skills.js";
 import { AMALGAM_SKILL_MECHANICS } from "../specializations/amalgam/skills.js";
 import { HOLOSMITH_SKILL_MECHANICS } from "../specializations/holosmith/skills.js";
 import { MECHANIST_SKILL_MECHANICS } from "../specializations/mechanist/skills.js";
@@ -43,5 +40,3 @@ export const ENGINEER_IMPLEMENTED_SKILL_IDS = Object.freeze(
 );
 
 export { ENGINEER_TRIGGERED_MECHANICS } from "../specializations/mechanist/mechanics.js";
-
-export const ENGINEER_EXTRA_SKILLS = ENGINEER_CORE_EXTRA_SKILLS;

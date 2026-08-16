@@ -24,6 +24,8 @@ export function mechanistCastAvailability(
     );
   }
   if (skill.mechanicSlot) {
+    // Slots 1-3 are the three mech commands chosen by traits.
+    // Slot 4 is Crash Down / Recall Mech (the mech toggle) — not a command.
     const slot = Number(skill.mechanicSlot);
     if (slot <= 3 && !state.mech.commandSkillIds.includes(skill.id)) {
       return denyEngineerCast(

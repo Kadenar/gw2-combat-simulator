@@ -584,6 +584,8 @@ export type Gw2ResolverEvent = SimulationEvent & {
   readonly summonInheritsCriticalAttributes?: boolean;
   readonly independentSummonStrike?: boolean;
   readonly summonInheritsAttributes?: boolean;
+  readonly summonIgnoresBoons?: boolean;
+  readonly summonUsesEquipmentModifiers?: boolean;
   readonly summonUsesProfessionModifiers?: boolean;
   readonly noCrit?: boolean;
   readonly forceCrit?: boolean;

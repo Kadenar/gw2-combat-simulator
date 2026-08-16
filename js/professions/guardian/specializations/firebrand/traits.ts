@@ -32,6 +32,8 @@ const DORMANT_DURATION: Readonly<Record<GuardianVirtue, number>> =
 
 function virtueFor(skill: GuardianSkill): GuardianVirtue | null {
   if (!/^Tome of /.test(skill.name)) return null;
+  // Slot is "Profession_1/2/3"; extract the trailing digit to index into the
+  // virtue order (1=justice, 2=resolve, 3=courage).
   const slot = Number(String(skill.slot || "").match(/(\d)$/)?.[1] || 0);
   return ([null, "justice", "resolve", "courage"] as const)[slot] || null;
 }
@@ -40,6 +42,9 @@ function isFinalMantraCharge(
   context: GuardianCastContext,
   skill: GuardianSkill,
 ): boolean {
+  // The description prefix is the authoritative GW2 API signal; the ammo
+  // fallback handles cases where the catalog skill description is missing or
+  // incomplete (e.g. custom/test data).
   if (/^Final Charge\./.test(String(skill.description || ""))) return true;
   return (
     skill.categories?.includes("Mantra") === true &&
@@ -59,14 +64,20 @@ export function updateFirebrandCastState(
     const passiveWasReady =
       state.tomeDormantReadyAt[virtue] <= at + context.epsilon;
     state.activeTome = virtue;
+    // Switching to a different tome resets the Swift Scholar page-refund streak
+    // because it requires three consecutive pages in the same tome.
     if (state.swiftScholarTome !== virtue) {
       state.swiftScholarTome = virtue;
       state.swiftScholarCount = 0;
     }
+    // If the passive was on cooldown when the tome opened, don't reset the
+    // timer; the existing tomeDormantReadyAt carries the correct future time.
     const passiveReadyAt = passiveWasReady
       ? at + DORMANT_DURATION[virtue]
       : state.tomeDormantReadyAt[virtue];
     state.tomeDormantReadyAt[virtue] = passiveReadyAt;
+    // virtueReadyAt on coreState is the canonical source the virtue subsystem
+    // reads, so both fields must stay in sync.
     coreState.virtueReadyAt[virtue] = passiveReadyAt;
     emitGuardianEvent(context, skill, "guardian.firebrand-virtue-activated", {
       virtue,
@@ -172,6 +183,9 @@ export function observeFirebrandScheduledEvent(
     });
     return;
   }
+  // Stoic Demeanor also triggers on certain debuffs applied to allies, which
+  // arrive as condition events rather than control events; "slow" and "slowed"
+  // are both checked because data inconsistency in the event stream.
   const qualifyingStoicCondition =
     event.type === "condition" &&
     ["immobilized", "slow", "slowed"].includes(
@@ -271,6 +285,8 @@ export function reactToFirebrandBuffTraits(
   const state = firebrandState.from(context);
   if (
     String(event.kind || "").toLowerCase() !== "quickness" ||
+    // Skip if the event goes to allies only AND no allies are configured —
+    // there is nobody to trigger Quickfire from.
     (event.affectsSelf === false &&
       Number(event.alliedPlayerCount || 0) <= 0) ||
     !hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.QUICKFIRE) ||
@@ -285,6 +301,8 @@ export function reactToFirebrandBuffTraits(
       event.at < state.ashesExpiresAt - Number(context.epsilon || 0.0001);
     state.ashesCharges = Math.max(0, Number(state.ashesCharges || 0)) + 1;
     state.ashesBurnDuration = FIREBRAND_MECHANICS.ashesBurn.duration;
+    // Don't reset the trigger timer when stacking onto an active Ashes buff;
+    // resetting would skip a burn that should have fired at the next hit.
     state.ashesNextTriggerAt = hadAshes ? state.ashesNextTriggerAt : event.at;
     state.ashesExpiresAt = event.at + 10;
     enqueueOrdered(context.queue, {

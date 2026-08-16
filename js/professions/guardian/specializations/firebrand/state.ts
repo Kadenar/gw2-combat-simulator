@@ -12,6 +12,8 @@ export function createFirebrandState(
   )
     ? 8
     : 5;
+  // config.maximumTomePages can override upward (e.g. test harness or future
+  // traits), but never below what the selected traits already grant.
   const maximumTomePages = Math.max(
     traitMaximum,
     Number(config.maximumTomePages || traitMaximum),
@@ -22,6 +24,9 @@ export function createFirebrandState(
   const configuredInitialPages = Number(
     config.initialTomePages ?? traitMaximum,
   );
+  // If Archivist of Whispers raised the cap from 5 to 8 but the caller passed
+  // the old default of 5, silently upgrade to the new maximum so the sim
+  // doesn't start with fewer pages than the trait provides.
   const initialPages =
     selectedTraits.has(GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS) &&
     configuredInitialPages === 5
@@ -33,6 +38,8 @@ export function createFirebrandState(
     tomePages,
     maximumTomePages,
     tomePageInterval,
+    // +Infinity signals "don't schedule a regen tick" when the pool is already
+    // full; the scheduler loop only advances the timer while pages < maximum.
     nextTomePageAt:
       tomePages < maximumTomePages
         ? tomePageInterval

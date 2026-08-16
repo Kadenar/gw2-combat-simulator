@@ -61,6 +61,8 @@ function passiveHeatRate(context: EngineerSchedulerContext): number {
   );
 }
 
+// Records one linear heat segment and advances state.heat.
+// When cooling, clamps end time so heat never goes below zero (avoids negative segments).
 function appendHeatSegment(
   segments: HeatSegment[],
   state: HolosmithState,
@@ -86,6 +88,10 @@ function appendHeatSegment(
   );
 }
 
+// Applies passive heat decay while Photon Forge is inactive.
+// Cooling schedule after forge exit: 0-3 s flat, 3-8 s at -5/s, 8 s+ at -10/s.
+// Photonic Blasting Module suppresses all decay until the overheat has actually fired,
+// because the trait holds heat at maximum to enable the delayed explosion.
 function coolInactiveForge(
   context: EngineerSchedulerContext,
   target: number,
@@ -176,6 +182,9 @@ function emitEnhancedCapacityMight(
   });
 }
 
+// Emits the per-second might pulses from Enhanced Capacity Storage Unit for any
+// time spent above the heat threshold within the provided segments.
+// readyAt tracks the next eligible emission time across calls so pulses aren't doubled.
 function materializeEnhancedCapacityMight(
   context: EngineerSchedulerContext,
   segments: readonly HeatSegment[],
@@ -230,6 +239,9 @@ export function grantSolarFocusingLens(
   state.solarFocusingLensUntil = at + SOLAR_FOCUSING_LENS_DURATION;
 }
 
+// Extends cooldowns on all toolbelt skills except the forge toggle itself.
+// With Photonic Blasting Module the penalty is only 5 s and already-ready skills
+// are left alone (penalizeReadySkills=false) to reward the controlled overheat.
 function applyToolbeltOverheatPenalty(
   context: EngineerSchedulerContext,
   at: number,
@@ -423,6 +435,11 @@ function scheduleHeatPulse(
   });
 }
 
+// Schedules heat pulse tasks for the completed cast.
+// Corona Burst and Photon Blitz pulse heat at each animation beat rather than
+// once at the end; Corona Burst pulses are flagged persistsOutsideForge=true
+// because they can resolve after the player has already exited the forge.
+// Most skills only grant heat on full completion (effectiveEnd === fullEnd).
 function applyHeat(context: EngineerCastContext, skill: EngineerSkill): void {
   const state = holosmithState.from(context);
   if (!state.photonForgeActive || !(Number(skill.heatGain) > 0)) return;
@@ -477,6 +494,9 @@ export function handlePhotonForgeHeat(
   }
 }
 
+// Vigor is granted unconditionally on dodge; Vent Exhaust fires only when heat > 0.
+// Photonic Blasting Module suppresses Vent Exhaust while holding heat before the
+// explosion fires (overheated=false), because the heat must stay at max for PBM.
 export function triggerThermalReleaseValve(
   context: EngineerCastContext,
   skill: EngineerSkill,
@@ -545,6 +565,12 @@ export function triggerThermalReleaseValve(
  * Holosmith decoration for the Core kit transition. Core equips the kit; the
  * active Holosmith slice owns leaving Photon Forge and its trait payoff.
  */
+/**
+ * Holosmith decoration for the Core kit transition. Core equips the kit; the
+ * active Holosmith slice owns leaving Photon Forge and its trait payoff.
+ * This path skips the Deactivate Photon Forge skill (no heatGain=15) because
+ * the player swapped a kit, not pressed the deactivate button.
+ */
 export function handleHolosmithKitEquip(
   context: EngineerCastContext,
   skill: EngineerSkill,
@@ -560,6 +586,9 @@ export function handleHolosmithKitEquip(
   grantSolarFocusingLens(context, at, 2);
 }
 
+// Called for every scheduled event. Radiant Arc and Refraction Cutter routing
+// runs regardless of specialization so that Amalgam (which delegates here) also
+// benefits. Solar Focusing Lens stack consumption is Holosmith-only.
 export function observeHolosmithScheduledEvent(
   context: EngineerSchedulerContext,
   event: EngineerSimulationEvent,

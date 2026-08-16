@@ -25,6 +25,7 @@ export const heraldModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "revenant.burst-of-strength-strike",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "damage-additive",
+    // "burst-of-strength" is a timed buff key written by the skill handler, not a boon; it uses revenantTimedBuff rather than boon tracking.
     amount: 0.1,
     when: (context) => revenantTimedBuff(context, "burst-of-strength"),
   },
@@ -39,6 +40,7 @@ export const heraldModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "revenant.reinforced-potency",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "damage-additive",
+    // +1% per unique active boon; capped at 12 boon types so the theoretical maximum is +12%.
     amount: (context) => revenantActiveBoonCount(context) * 0.01,
     when: (context) =>
       revenantPlayer(context) && hasTrait(context, TRAIT.REINFORCED_POTENCY),
@@ -55,6 +57,7 @@ function observeHeraldEvent(
   context: RevenantSchedulerContext,
   event: RevenantSimulationEvent,
 ): void {
+  // activeLegendId is already updated to the destination legend by the time sigil_swap is emitted (see legend.ts swapRevenantLegend), so this correctly tests the legend just swapped INTO.
   if (
     event.type !== "sigil_swap" ||
     professionCoreState(context).activeLegendId !== LEGEND.DRAGON ||
@@ -62,6 +65,7 @@ function observeHeraldEvent(
   ) {
     return;
   }
+  // The swap skill is retrieved from the catalog to supply weapon metadata (e.g. skillWeapon) to the emitted events.
   const swapSkill =
     event.skillId == null
       ? undefined
@@ -85,6 +89,7 @@ function observeHeraldEvent(
   }
   if (!hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
   const song = invocation.song;
+  // Song of the Mists uses the trait ID as both sourceId and skillId because it has no dedicated skill entry in the catalog.
   context.emit({
     type: "damage",
     at: event.at,
@@ -100,6 +105,7 @@ function observeHeraldEvent(
     totalHits: 1,
     skillWeapon: "Unequipped",
   });
+  // Explicit String/Number coercions guard against the frozen tuple being typed as `readonly unknown[]`.
   for (const [condition, stacks, duration] of song.conditions) {
     context.emit({
       type: "condition",
@@ -120,6 +126,7 @@ function observeHeraldEvent(
 export const heraldSchedulerHooks = Object.freeze({
   onEventScheduled: {
     id: "revenant.herald-legend-invocation",
+    // order: 20 places this after the core weapon/spear observers (order 10) so legend state is stable before invocation fires.
     order: 20,
     handler: observeHeraldEvent,
   },

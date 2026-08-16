@@ -2,7 +2,7 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
 import {
   actualNecromancerLifeForceCost,
   normalizedNecromancerLifeForceCost,
-} from "../core/state.js";
+} from "./state.js";
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
@@ -245,7 +245,8 @@ function spiritGate(
   const spirit = INNERVATE_SPIRIT.get(skill.id);
   if (!spirit) return null;
   const active = context.state.profession.specialization;
-  return active.kind === "Ritualist" && Boolean(active.state.activeSpirits[spirit])
+  return active.kind === "Ritualist" &&
+    Boolean(active.state.activeSpirits[spirit])
     ? READY
     : deny(skill, "necromancer.spirit", `requires an active ${spirit} spirit.`);
 }

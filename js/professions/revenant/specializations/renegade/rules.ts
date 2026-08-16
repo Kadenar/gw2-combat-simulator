@@ -40,6 +40,7 @@ import type {
 } from "../../types.js";
 
 function kallasFervorStacks(context: Gw2ModifierContext): number {
+  // Count only applications that have started (at ≤ time) and not yet expired (expiresAt > time)
   return Math.min(
     MECHANICS.renegade.kallasFervor.maximumStacks,
     (revenantRuntimeSpecializationState(context).kallasFervor || []).filter(
@@ -108,7 +109,9 @@ function modifyRenegadeCriticalChance(
   if (!hasTrait(context, TRAIT.BRUTAL_MOMENTUM)) return chance;
   const state = revenantRuntimeCoreState(context);
   const maximum = Number(state.maximumEndurance || 0);
+  // 1e-9 tolerance handles floating-point endurance values that should be exactly at cap
   const full = maximum > 0 && Number(state.endurance || 0) >= maximum - 1e-9;
+  // At full endurance: +33% crit; below full: +10% crit
   return chance + (full ? 0.33 : 0.1);
 }
 
@@ -116,6 +119,7 @@ function modifyRenegadeConditionDuration(
   context: Gw2ModifierContext,
   duration: number,
 ): number {
+  // Blood Fury extends Bleeding duration additively by 25% (multiplier − 1 = 0.25 added to base multiplier)
   return context.condition === "Bleeding" &&
     hasTrait(context, TRAIT.BLOOD_FURY) &&
     revenantTimedBuff(context, "fury")
@@ -144,6 +148,9 @@ function afterRenegadeCast(
   );
   if (!active) return;
   const allies = gw2AlliedPlayerAssumptions(context.config);
+  // nextAlliedProcAt is null when there are no allies, suppressing all allied-proc advance logic.
+  // Math.max(1, 1/strikesPerSecond) ensures the first allied proc is at least 1s after upkeep starts
+  // so the initial cast's own resolver hit doesn't immediately claim the first allied Soulcleave proc.
   active.nextAlliedProcAt =
     allies.count && allies.strikesPerSecond
       ? context.effectiveEnd + Math.max(1, 1 / allies.strikesPerSecond)
@@ -168,6 +175,7 @@ function advanceRenegadeUpkeep(
   const allies = gw2AlliedPlayerAssumptions(context.config);
   if (!skill || !allies.count || !allies.strikesPerSecond) return;
   const profile = MECHANICS.soulcleave;
+  // Loop catches up all missed intervals when the scheduler jumps ahead (e.g., after a long cast)
   while (
     active.nextAlliedProcAt != null &&
     target + context.epsilon >= active.nextAlliedProcAt
@@ -186,6 +194,7 @@ function advanceRenegadeUpkeep(
         actorType: "effect",
         skillId: skill.id,
         skillName: skill.name,
+        // Allied life siphon uses the flat-strike formula, not a coefficient, like the player's siphon
         name: `Soulcleave's Summit — Ally ${allyIndex} Life Siphon`,
         coefficient: 0,
         flatStrikeBase: profile.siphon.flatStrikeBase,
@@ -197,6 +206,7 @@ function advanceRenegadeUpkeep(
         skillWeapon: "Unequipped",
       });
     }
+    // Advance by whichever is larger: the 1s internal cooldown or the ally's natural strike interval, preventing proc rates from exceeding what allies can realistically trigger
     active.nextAlliedProcAt += Math.max(
       profile.interval,
       1 / allies.strikesPerSecond,
@@ -209,8 +219,10 @@ function observeRenegadeEvent(
   event: RevenantSimulationEvent,
 ): void {
   if (
+    // sigil_swap events fire on every legend swap; we only care about swaps into Renegade
     event.type !== "sigil_swap" ||
     professionCoreState(context).activeLegendId !== LEGEND.RENEGADE ||
+    // Spirit Boon and Song of the Mists only trigger during active combat, not pre-cast
     !revenantCombatActive(context, event.at)
   ) {
     return;
@@ -266,6 +278,7 @@ function observeRenegadeEvent(
     stacks: Number(song.conditions[0][1]),
     duration: Number(song.conditions[0][2]),
   });
+  // Song of the Mists grants 2 Kalla's Fervor stacks on each legend swap
   for (let index = 0; index < 2; index += 1) {
     grantKallasFervor(context, event, {
       at: event.at,
@@ -298,6 +311,7 @@ export const renegadeSchedulerHooks = Object.freeze({
       context: RevenantSchedulerContext,
       event: RevenantSimulationEvent,
     ): void => {
+      // Trait reactions (Ambush Commander, Endless Enmity, Blood Fury, etc.) run before legend-invocation effects so that fervor state is current when Song of the Mists fires
       observeRenegadeTraits(context, event);
       observeRenegadeEvent(context, event);
     },

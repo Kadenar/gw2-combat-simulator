@@ -7,7 +7,7 @@ import {
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
 import { isInternalCooldownReady } from "../../../../platform/engine/clock.js";
-import { requiredShroud } from "../../mechanics/availability.js";
+import { requiredShroud } from "../../core/availability.js";
 import {
   emitDamage,
   gainNecromancerLifeForce,
@@ -33,6 +33,7 @@ import type {
   NecromancerSkill,
 } from "../../types.js";
 
+// Reaper's Onslaught reduces all Reaper Shroud skill cooldowns by 1s on Life Reap's hit.
 function reduceShroudCooldowns(
   context: NecromancerSchedulerContext,
   at: number,
@@ -42,6 +43,7 @@ function reduceShroudCooldowns(
     const readyAt = Number(context.state.cooldowns.get(candidate.id) || 0);
     if (!(readyAt > at + context.epsilon)) continue;
     const reduced = Math.max(at, readyAt - 1);
+    // Delete rather than set to 0 so the cooldown map stays clean and future lookups default correctly.
     if (reduced <= at + context.epsilon) {
       context.state.cooldowns.delete(candidate.id);
     } else {
@@ -58,6 +60,7 @@ function afterCast(
     skill.id === ID.LIFE_REAP &&
     hasNecromancerTrait(context, TRAIT.REAPERS_ONSLAUGHT)
   ) {
+    // The hit lands at cast midpoint; skip reduction if the cast was cancelled before reaching that point.
     const hitAt = context.start + (context.fullEnd - context.start) / 2;
     if (context.effectiveEnd >= hitAt - context.epsilon) {
       reduceShroudCooldowns(context, hitAt);
@@ -81,6 +84,7 @@ function afterCast(
       },
     });
   }
+  // Chilling Victory only procs on full completion; interrupted casts don't generate life force.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const state = professionCoreState(context);
   if (
@@ -90,6 +94,7 @@ function afterCast(
       context.effectiveEnd,
       Number(state.traitProcReadyAt.chillingVictory || 0),
     ) &&
+    // Configured Chilled on target stands in for "target is chilled" since scheduler has no live condition state.
     context.config?.target?.conditions?.Chilled
   ) {
     gainNecromancerLifeForce(
@@ -110,6 +115,7 @@ function onEventScheduled(
   if (
     event.type === "buff" &&
     event.actorType === "player" &&
+    // target-vulnerability buffs are player-sourced but are debuffs on the enemy, not boons — exclude them.
     event.kind !== "target-vulnerability" &&
     hasNecromancerTrait(context, TRAIT.BLIGHTERS_BOON)
   ) {
@@ -140,6 +146,7 @@ function modifyReaperCastDuration(
   context: NecromancerCastModifierContext,
   duration: number,
 ): number {
+  // Reaper's Onslaught grants +50% attack speed in Reaper Shroud, but quickness already covers that cap so they don't stack.
   return hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) &&
     professionCoreState(context).activeShroud === "reaper" &&
     !context.hasBuff?.("quickness", context.start)
@@ -149,22 +156,26 @@ function modifyReaperCastDuration(
 
 export const reaperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
+    // Reaper Shouts deal double damage to nearby targets (the sole target is assumed nearby unless explicitly set false).
     id: "necromancer.reaper-shout-melee",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
     factor: 2,
+    // order: 100 places this after additive damage buckets so it multiplies the already-summed base.
     order: 100,
     when: (context) =>
       Boolean(
         context.event?.actorType === "player" &&
-          necromancerEventSkill(context)?.categories?.includes("Shout") &&
-          context.config?.target?.nearby !== false,
+        necromancerEventSkill(context)?.categories?.includes("Shout") &&
+        context.config?.target?.nearby !== false,
       ),
   },
   {
     id: "necromancer.decimate-defenses",
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: "add",
+    // Each stack of Vulnerability adds 2% crit chance, capped at 25 stacks (50% max bonus).
+    // Falls back to configured static stacks when a live query runtime isn't available.
     amount: (context) =>
       Math.min(
         25,

@@ -16,6 +16,7 @@ export function handleUntamedState(
   context: RangerResolverContext,
   event: RangerResolverEvent,
 ): void {
+  // Sync the resolver's independent copy of rangerUnleashed from the scheduler-emitted event.
   untamedState.from(context).rangerUnleashed = event.rangerUnleashed === true;
 }
 
@@ -23,6 +24,7 @@ export const untamedEventHandlers = Object.freeze({
   "ranger.untamed-state": handleUntamedState,
 });
 
+// Floating-point guard: prevents a cooldown check from failing due to sub-nanosecond rounding.
 function epsilon(context: RangerResolverContext): number {
   return Number(context.epsilon || 1e-9);
 }
@@ -96,6 +98,7 @@ function triggerFerociousSymbiosis(
   if (isPlayerStrike(event)) {
     if (event.at + epsilon(context) < state.ferociousSymbiosisPetReadyAt)
       return;
+    // A player hit builds Pet stacks (cross-buff: player hits power the pet).
     state.ferociousSymbiosisPetStacks =
       event.at < state.ferociousSymbiosisPetUntil
         ? Math.min(5, state.ferociousSymbiosisPetStacks + 1)
@@ -105,6 +108,7 @@ function triggerFerociousSymbiosis(
   } else if (isPetStrike(event)) {
     if (event.at + epsilon(context) < state.ferociousSymbiosisPlayerReadyAt)
       return;
+    // A pet hit builds Player stacks (cross-buff: pet hits power the player).
     state.ferociousSymbiosisPlayerStacks =
       event.at < state.ferociousSymbiosisPlayerUntil
         ? Math.min(5, state.ferociousSymbiosisPlayerStacks + 1)
@@ -120,12 +124,15 @@ function triggerLetLoose(
 ): void {
   if (
     !hasTrait(context, TRAIT.LET_LOOSE) ||
+    // Let Loose only procs on the two ambush skills (Relentless Whirl, Deft Strike).
     !AMBUSH_SKILL_IDS.has(Number(event.skillId)) ||
+    // activationId is absent on synthetic events; guard prevents double-counting.
     !event.activationId
   ) {
     return;
   }
   const activations = untamedState.from(context).letLooseActivations;
+  // Each ambush activation grants boons exactly once even if the skill hits multiple times.
   if (activations[event.activationId]) return;
   activations[event.activationId] = true;
   queueTraitBuff(
@@ -176,6 +183,7 @@ export function reactToUntamedDamage(
   event: RangerResolverEvent,
 ): void {
   if (
+    // Only hitting strikes (coefficient > 0) advance trait state; misses and barrier hits are excluded.
     !(Number(event.coefficient) > 0) ||
     (!isPlayerStrike(event) && !isPetStrike(event))
   ) {
@@ -183,6 +191,7 @@ export function reactToUntamedDamage(
   }
   triggerBlindingOutburst(context, event);
   triggerFerociousSymbiosis(context, event);
+  // Let Loose is player-only; pet hits cannot trigger it.
   if (isPlayerStrike(event)) triggerLetLoose(context, event);
 }
 
@@ -197,6 +206,7 @@ export function reactToUntamedControl(
     event.at + epsilon(context) >= state.debilitatingBlowsReadyAt
   ) {
     state.debilitatingBlowsReadyAt = event.at + 1;
+    // Unleash state determines which condition is applied: Poisoned when Ranger unleashed, Slow otherwise.
     if (state.rangerUnleashed) {
       queueTraitCondition(
         context,
@@ -224,6 +234,7 @@ export function reactToUntamedControl(
     event.at + epsilon(context) >= state.enhancingImpactReadyAt
   ) {
     state.enhancingImpactReadyAt = event.at + 1;
+    // Unleash state determines the boon: Quickness when Ranger unleashed, Stability otherwise.
     queueTraitBuff(
       context,
       event,

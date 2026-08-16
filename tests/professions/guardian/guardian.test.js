@@ -912,7 +912,7 @@ test("Guardian timing applies Quickness, Alacrity, ammo, and trait recharge", ()
   assert.equal(alacrity.endState.cooldowns["Virtue of Justice"].readyAt, 16000);
   assert.equal(virtuous.endState.cooldowns["Virtue of Justice"].readyAt, 17000);
   assert.equal(ammo.endState.ammo["Hail of Justice"].charges, 0);
-  assert.equal(ammo.steps[2].start, 10250);
+  assert.equal(ammo.steps[2].start, 11680);
   assert.deepEqual(ammo.warnings, []);
 });
 
@@ -1566,13 +1566,16 @@ test("Guardian autoattack chains and torch flips enforce sequence state", () => 
 
   assert.match(
     invalidChain.warnings.join(" "),
-    /Faithful Strike is unavailable/,
+    /Faithful Strike is unavailable — cast Pure Strike first\./,
   );
   assert.equal(
     chain.resolvedEvents.filter((event) => event.type === "damage").length,
     3,
   );
-  assert.match(invalidFlip.warnings.join(" "), /Zealot's Fire is unavailable/);
+  assert.match(
+    invalidFlip.warnings.join(" "),
+    /Zealot's Fire is unavailable — not currently armed\./,
+  );
   assert.ok(flip.strikeDamage > 0);
   assert.ok(flip.conditionDamage > 0);
 });

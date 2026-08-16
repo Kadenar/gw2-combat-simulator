@@ -4,10 +4,12 @@ import { gainThiefInitiative } from "../../core/shared.js";
 import type { ThiefCastContext, ThiefEmissionContext } from "../../types.js";
 import { deadeyeState } from "./state.js";
 
+// Starting malice when Deadeye's Mark is applied to a fresh target (Malicious Intent: 2, otherwise: 0)
 export function initialDeadeyeMalice(context: ThiefCastContext): number {
   return hasThiefTrait(context.config, TRAIT.MALICIOUS_INTENT) ? 2 : 0;
 }
 
+// Additional malice added to the snapshot before a stealth attack resolves (same trait, same value — two separate game effects)
 export function deadeyeStealthAttackMaliceBonus(
   context: ThiefCastContext,
 ): number {
@@ -64,6 +66,7 @@ export function applyMaleficentSeven(
   const state = deadeyeState.from(context);
   if (
     state.malice !== state.maximumMalice ||
+    // maleficentSevenTriggered prevents the proc from firing again if malice stays at maximum across multiple hits
     state.maleficentSevenTriggered ||
     !hasThiefTrait(context.config, TRAIT.MALEFICENT_SEVEN)
   ) {

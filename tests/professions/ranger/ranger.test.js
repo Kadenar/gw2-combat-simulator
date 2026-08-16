@@ -104,6 +104,15 @@ function simulate(specialization, rotation, config = {}) {
   });
 }
 
+test("Ranger scheduler snapshots expose flat profession state", () => {
+  const result = simulate("Soulbeast", []);
+
+  assert.equal(result.snapshot.core, undefined);
+  assert.equal(result.snapshot.specialization, undefined);
+  assert.equal(result.snapshot.activePet, "Lynx");
+  assert.equal(result.snapshot.beastmodeActive, true);
+});
+
 test("Ranger catalog pins API identity and explicit module-owned mechanics", () => {
   assert.equal(DATA_SNAPSHOT, "2026-08-08");
   assert.equal(rangerCatalog.specializations.length, 9);
@@ -1888,10 +1897,14 @@ test("Druid gates, drains, and releases Celestial Avatar", () => {
     "Natural Convergence",
     "Release Celestial Avatar",
   ]);
+  const naturalConvergenceDuration =
+    rangerCatalog.skillsById.get(ID.NATURAL_CONVERGENCE).castTimeMs / 1000;
   assert.deepEqual(result.warnings, []);
   assert.ok(
-    Math.abs(result.endState.profession.astralForce - 100 * (12.5 / 15) * 0.5) <
-      0.01,
+    Math.abs(
+      result.endState.profession.astralForce -
+        100 * ((15 - naturalConvergenceDuration) / 15) * 0.5,
+    ) < 0.01,
   );
   assert.equal(result.endState.profession.celestialAvatarActive, false);
   assert.equal(

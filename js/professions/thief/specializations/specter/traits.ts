@@ -18,6 +18,7 @@ import type {
 
 const LARCENOUS_TORMENT_SHADOW_FORCE_PER_STACK = 0.5;
 const LARCENOUS_TORMENT_SIPHON_COEFFICIENT = 0.005;
+// GW2: Dark Sentry has a 1-second ICD tracked separately per allied recipient.
 const DARK_SENTRY_INTERNAL_COOLDOWN = 1;
 const ROT_WALLOW_VENOM_ICON =
   "https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png";
@@ -60,6 +61,7 @@ export function completeShadowShroudSkill(
   context: ThiefCastContext,
   skill: ThiefSkill,
 ): void {
+  // Shadow shroud skills suppressed mid-cast should not grant their trait effects.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   if (hasThiefTrait(context.config, TRAIT.SHADESTEP)) {
     if (skill.id === ID.GRASPING_SHADOWS) {
@@ -119,6 +121,7 @@ export function observeSpecterEvent(
     !hasThiefTrait(context.config, TRAIT.LARCENOUS_TORMENT)
   )
     return;
+  // __order makes the id unique per Torment application so concurrent bursts don't collide.
   context.tasks.schedule({
     id: `thief.larcenous-torment:${event.__order}`,
     type: "thief.larcenous-torment",
@@ -201,6 +204,7 @@ export function handleDarkSentry(
     recipientCount,
     maximumRecipients: recipientCount,
   });
+  // Rot Wallow Venom procs on the next allied strike, not immediately on application.
   if (party.strikesPerSecond > 0) {
     const procAt = task.at + 1 / party.strikesPerSecond;
     for (const allyIndex of eligibleAllies) {
@@ -235,6 +239,7 @@ export function applyLarcenousTorment(
     !hasThiefTrait(context.config, TRAIT.LARCENOUS_TORMENT)
   )
     return;
+  // One life-siphon event per stack so each stack shows as a separate hit in the log.
   const stacks = Math.max(0, Math.trunc(Number(application.stacks || 0)));
   for (let stack = 1; stack <= stacks; stack += 1) {
     enqueueOrdered(context.queue, {

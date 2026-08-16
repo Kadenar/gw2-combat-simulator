@@ -1,10 +1,7 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { ENGINEER_SKILL_IDS as ID } from "../data/ids.js";
 import { emitEngineerState } from "./events.js";
-import type {
-  SchedulerRecord,
-  SkillId,
-} from "../../../platform/engine/types.js";
+import type { SchedulerRecord, SkillId } from "../../../platform/engine/types.js";
 import type {
   EngineerCastContext,
   EngineerScheduledTask,
@@ -52,6 +49,7 @@ const TURRET_PROFILES: Readonly<Record<number, TurretProfile>> = Object.freeze({
   },
 });
 
+// consistent ownerId format lets consumeFlip's cancelOwner call stop all pending attacks in one call
 export function turretOwnerId(skillId: SkillId): string {
   return `engineer.turret.${Number(skillId)}`;
 }
@@ -83,6 +81,7 @@ export function deployEngineerTurret(
     });
   }
   if (TURRET_PROFILES[Number(skill.id)]) {
+    // schedule the first attack; each attack task schedules the next up to the 5-attack max
     context.tasks.schedule({
       type: "engineer.turret-attack",
       at,
@@ -110,6 +109,7 @@ export function handleEngineerTurretAttack(
     at: task.at,
     source: "engineer",
     sourceId: skillId,
+    // summon actorType prevents player-only trait procs (e.g. Explosive Entrance) from firing
     actorType: "summon",
     skillId,
     skillName: profile.name,
@@ -135,6 +135,7 @@ export function handleEngineerTurretAttack(
       duration: Number(profile.conditionDuration || 0),
     });
   }
+  // 5 attacks per deployment — stop scheduling after the last one
   if (attackIndex >= 5) return;
   context.tasks.schedule({
     type: "engineer.turret-attack",

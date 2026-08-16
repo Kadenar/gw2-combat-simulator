@@ -88,12 +88,17 @@ export function createCloneAttackScheduler({
         source: "Clone",
         weaponStrength: attack.weaponStrength,
       },
-      { cloneId: clone.id, source: "Clone" },
+      {
+        cloneId: clone.id,
+        source: "Clone",
+        summonOwner: clone.ownerId,
+      },
     );
     for (const condition of step.conditions || []) {
       addCondition(skillName, impactAt, condition, "Clone", "", {
         cloneId: clone.id,
         skillId: step.id,
+        summonOwner: clone.ownerId,
       });
     }
     if (Array.isArray(attack.sequence) && attack.sequence.length > 0) {
@@ -108,8 +113,8 @@ export function createCloneAttackScheduler({
       scheduleAttack(clone, at);
       const attack = attackFor(clone);
       clone.nextAttackAt =
-        Number(clone.nextAttackAt)
-        + Number(sequenceStep(clone, attack).interval);
+        Number(clone.nextAttackAt) +
+        Number(sequenceStep(clone, attack).interval);
     }
   };
 

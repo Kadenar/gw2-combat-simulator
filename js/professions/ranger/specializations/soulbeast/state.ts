@@ -7,6 +7,7 @@ export function createSoulbeastState(
 ): SoulbeastState {
   const pet = selectedRangerPet(config);
   return {
+    // Soulbeast starts merged — the rotation begins in Beastmode by default.
     beastmodeActive: true,
     archetype: pet?.archetype || "",
     oneWolfPackUntil: 0,
@@ -17,6 +18,7 @@ export function createSoulbeastState(
     bestialRageReadyAt: 0,
     essenceOfSpeedReadyAt: 0,
     vultureStanceReadyAt: 0,
+    // Tracks per-activation-id whether the beast-ability first-hit proc already fired, preventing multi-hit skills from triggering trait effects more than once per cast.
     beastAbilityActivations: {},
   };
 }

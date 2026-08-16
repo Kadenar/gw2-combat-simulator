@@ -25,6 +25,7 @@ export const untamedModule = defineNativeModule({
     skillMechanics: UNTAMED_BASE_SKILL_MECHANICS,
     handlers: untamedSkillHandlers,
   }),
+  // Scheduler and resolver each maintain independent copies of UntamedState.
   state: { scheduler: untamedState.create, resolver: untamedState.create },
   mechanics: {
     modifiers: untamedAttributeRules,
@@ -32,6 +33,7 @@ export const untamedModule = defineNativeModule({
     schedulerHooks: untamedSchedulerHooks,
     resolverHooks: { eventHandlers: untamedEventHandlers },
     reactions: [
+      // Damage and control reactions run at order 20 so generic platform reactions (order < 20) fire first.
       onResolvedDamage({
         id: "ranger.untamed-damage",
         order: 20,

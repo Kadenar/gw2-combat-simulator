@@ -35,6 +35,10 @@ function emitForgeWeaponSwap(
   skill: GuardianSkill,
   event: GuardianEventExtra = {},
 ): void {
+  // sigil_swap (not weapon_set) so the sigil proc engine triggers on-swap
+  // sigil procs for the radiant weapon equip without changing the active
+  // weapon bar. mechanicSwap prevents the sigil engine from treating this as
+  // a genuine player-initiated weapon swap for ICD purposes.
   emitGuardianEvent(context, skill, "sigil_swap", {
     weaponSet: context.state.activeWeaponSet,
     mechanicSwap: true,
@@ -109,12 +113,16 @@ function radiantForge(
   const entering = skill.name === "Enter Radiant Forge";
   const state = luminaryState.from(context);
   if (!entering) {
+    // Cooldown is finalized on manual exit; automatic expiry calls this
+    // separately via advanceRadiantForgeState, so it must not be called twice.
     finalizeRadiantForgeCooldown(context, context.effectiveEnd);
   }
   state.radiantForge = entering;
   state.radiantForgeEndsAt = entering ? context.effectiveEnd + 20 : 0;
   state.radiantForgeEnteredAt = entering ? context.effectiveEnd : 0;
+  // Reset active weapon so traits don't carry stale weapon state across entries.
   state.radiantWeapon = "";
+  // Autoattack chains must be wiped because the weapon bar changes entirely.
   professionCoreState(context).autoattackChains = {};
   if (entering) {
     state.radiantWeaponsUsed = {};
@@ -150,6 +158,8 @@ function radiantWeapon(
   context: GuardianCastContext,
   skill: GuardianSkill,
 ): boolean {
+  // Return true (interrupted) so the engine discards declared effects; the
+  // handler owns all output and must suppress on interrupt.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
   if (skill.radiantWeapon && skill.flipParentId == null) {
     luminaryState.from(context).radiantWeapon = skill.radiantWeapon;
@@ -199,6 +209,10 @@ function radiantWeapon(
       skillName: "Radiant Courage",
       kind: "guardian-radiant-courage-sword",
       stacks: 1,
+      // Minimal duration: this buff is checked by the gleaming-blade modifier
+      // rule at the exact cast end timestamp, so it only needs to exist for
+      // that instant — a longer duration could incorrectly carry over to the
+      // next cast.
       duration: 0.001,
     });
   }
@@ -264,12 +278,15 @@ function finalizeRadiantForgeCooldown(
   const used = Object.keys(state.radiantWeaponsUsed || {}).filter((weapon) =>
     ["hammer", "staff", "blade", "bulwark"].includes(weapon),
   ).length;
+  // Each unused weapon slot adds 5 s to the recharge (capped at 5 s minimum).
   const unused = Math.max(0, 4 - used);
   const baseRecharge = Math.max(
     0,
     Number(enter.cooldown ?? enter.recharge ?? 10),
   );
   const adjustedBase = Math.max(5, baseRecharge - unused * 5);
+  // Preserve the ratio of effective-to-base recharge so alacrity/recharge
+  // traits still apply proportionally to the adjusted cooldown.
   const fullEffective = context.rechargeDurationFor(enter, at);
   const rechargeScale = baseRecharge > 0 ? fullEffective / baseRecharge : 1;
   context.state.cooldowns.set(enter.id, at + adjustedBase * rechargeScale);
@@ -313,6 +330,8 @@ function handleRadiantForgeTransition(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
+  // One handler serves both entered and exited events; the event payload
+  // carries the full post-transition snapshot so no conditional logic is needed.
   luminaryState.from(context).radiantForge = Boolean(event.radiantForge);
   luminaryState.from(context).radiantForgeEndsAt = Number(
     event.radiantForgeEndsAt || 0,
@@ -322,6 +341,7 @@ function handleRadiantForgeTransition(
   );
   luminaryState.from(context).radiantWeapon = String(event.radiantWeapon || "");
   if (!luminaryState.from(context).radiantForge) {
+    // Clear flips so the resolver doesn't offer Exit Radiant Forge after expiry.
     professionCoreState(context).availableFlips = {};
   }
 }

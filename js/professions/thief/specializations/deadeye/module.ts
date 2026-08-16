@@ -16,6 +16,7 @@ export const deadeyeModule = defineNativeModule({
     skillMechanics: DEADEYE_SKILL_MECHANICS,
     handlers: deadeyeSkillHandlers,
   }),
+  // Same factory for both scheduler and resolver; Deadeye state is fully reconstructed from scratch for each phase
   state: { scheduler: deadeyeState.create, resolver: deadeyeState.create },
   mechanics: {
     modifiers: deadeyeAttributeRules,

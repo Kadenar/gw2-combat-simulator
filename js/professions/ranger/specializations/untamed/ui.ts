@@ -9,6 +9,7 @@ import type {
 } from "../../../../platform/engine/types.js";
 import type { RangerSkill, RangerUiContext } from "../../types.js";
 
+// Module-level cache populated once in bindUntamedUi; avoids filtering the catalog on every render.
 let petSkillIds: SkillId[] = [];
 let untamedCatalog: Readonly<CanonicalCatalog>;
 
@@ -48,6 +49,7 @@ function availability(
     if (!rangerUnleashed) {
       return { available: false, message: "Unleash Ranger first" };
     }
+    // ambushReadyUntil is a deadline; once current time passes it the window is gone.
     if (Number(context.time || 0) >= Number(state.ambushReadyUntil || 0)) {
       return {
         available: false,
@@ -64,6 +66,7 @@ const untamedUi: Partial<ProfessionUiContract> & SchedulerRecord =
       {
         id: "ranger-untamed-f5",
         label: "Unleash",
+        // Show whichever Unleash skill is currently usable; the two skills share the same F5 slot.
         skillIds: [
           rangerUiState(context).rangerUnleashed
             ? ID.UNLEASH_PET
