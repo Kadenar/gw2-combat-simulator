@@ -1,7 +1,30 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildChartSeries } from "../../js/app/rotation/result-model.js";
+import {
+  buildChartSeries,
+  formatResultTimelineTime,
+  formatTimelineTime,
+  resultCombatReferenceMs,
+} from "../../js/app/rotation/result-model.js";
+
+test("timeline times can reuse a precomputed combat reference", () => {
+  const result = {
+    events: [
+      { type: "damage", at: 0.5 },
+      { type: "combat_start", at: 1.25 },
+    ],
+  };
+  const referenceMs = resultCombatReferenceMs(result);
+
+  assert.equal(referenceMs, 1250);
+  assert.equal(formatTimelineTime(2500, referenceMs), "1.25s");
+  assert.equal(
+    formatTimelineTime(2500, referenceMs),
+    formatResultTimelineTime(2500, result),
+  );
+  assert.equal(formatTimelineTime(1249, referenceMs), "0.00s");
+});
 
 test("Empowered Armaments chart series remains capped at one stack", () => {
   const series = buildChartSeries(

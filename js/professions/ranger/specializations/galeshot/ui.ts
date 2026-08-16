@@ -155,7 +155,7 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord =
           displayMode: "pips",
           pipStyle: "ranger-wind-force",
           showValue: false,
-          shortLabel: "Wind Force",
+          shortLabel: "WF",
           statusLabel: state.cycloneBowActive ? "Cyclone Bow" : "Inactive",
         },
       ];

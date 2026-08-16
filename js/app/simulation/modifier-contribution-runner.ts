@@ -140,7 +140,11 @@ export class ModifierContributionRunner {
         return;
       }
 
-      applyContributions(app.adapter.calculateModifierContributions(request));
+      try {
+        applyContributions(app.adapter.calculateModifierContributions(request));
+      } catch {
+        failContributions();
+      }
     };
     this.timer = setTimeout(
       calculateContributions,

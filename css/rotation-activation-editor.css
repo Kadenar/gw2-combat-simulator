@@ -62,8 +62,29 @@
   --activation-editor-accent: #d67272;
 }
 
+.rotation-duration-editor {
+  --activation-editor-accent: #70b6d0;
+}
+
 .rotation-double-edge-editor .activation-editor-actions {
   margin-top: 13px;
+}
+
+.rotation-duration-editor .activation-editor-input-row {
+  margin: 0;
+}
+
+.rotation-duration-editor .activation-editor-input {
+  flex: 1;
+  width: auto;
+}
+
+.rotation-duration-editor .activation-editor-error {
+  margin-left: 0;
+}
+
+.rotation-duration-editor .activation-editor-actions {
+  margin-top: 8px;
 }
 
 .rotation-activation-editor::before {

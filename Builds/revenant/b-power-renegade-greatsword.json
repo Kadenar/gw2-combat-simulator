@@ -17,24 +17,12 @@
     "Weapon1": "Berserker's",
     "Weapon2": "Berserker's"
   },
-  "weapons": [
-    "Greatsword",
-    ""
-  ],
-  "alternateWeapons": [
-    "Sword",
-    "Sword"
-  ],
+  "weapons": ["Greatsword", ""],
+  "alternateWeapons": ["Sword", "Sword"],
   "rune": "Dragonhunter",
   "weaponSigils": [
-    [
-      "Force",
-      "Hydromancy"
-    ],
-    [
-      "Force",
-      "Air"
-    ]
+    ["Force", "Hydromancy"],
+    ["Force", "Air"]
   ],
   "relic": "Shackles",
   "food": "Cilantro Lime Sous-Vide Steak",
@@ -69,11 +57,8 @@
     }
   ],
   "selectedSkills": {},
-  "selectedLegends": [
-    "LegendaryAssassin",
-    "LegendaryRenegade"
-  ],
-  "startingLegend": "LegendaryRenegade",
+  "selectedLegends": ["LegendaryAssassin", "LegendaryRenegade"],
+  "startingLegend": "LegendaryAssassin",
   "selectedDodge": "Death Drop",
   "allianceSide": "luxon",
   "assumptions": {

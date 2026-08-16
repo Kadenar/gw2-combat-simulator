@@ -67,7 +67,10 @@ export async function readEvtcRotationFile(
   const result = rotationModule.reconstructEvtcRotation(
     log,
     app.activeCatalog,
-    { playerAddress: selected.address },
+    {
+      playerAddress: selected.address,
+      selectedSkillNames: Object.values(app.build.selectedSkills || {}),
+    },
   );
   return {
     rotation: result.rotation as readonly LegacyRotationItem[],

@@ -11,6 +11,11 @@
  * read current build and result state instead of retaining DOM-local state.
  */
 import { ammoDisplayView } from "../../platform/ui/ammo-display.js";
+import { openActivationEditor } from "../../platform/ui/activation-editor.js";
+import {
+  openDurationEditor,
+  validateDurationMs,
+} from "../../platform/ui/duration-editor.js";
 import {
   bindPaletteInteractions,
   paletteGroupHtml,
@@ -99,12 +104,8 @@ export function suggestedPaletteInterruptMs(
 /** Normalizes a user-entered wait to a positive whole number of milliseconds. */
 export function parseWaitDurationMs(raw: string | null): number | null {
   if (raw == null) return null;
-  const value = Number(raw);
-  return Number.isFinite(value) && value >= 1 ? Math.round(value) : null;
-}
-
-function promptWaitDurationMs(): number | null {
-  return parseWaitDurationMs(prompt("Wait duration (ms):", "1000"));
+  const validation = validateDurationMs(raw);
+  return validation.valid ? validation.value : null;
 }
 
 /**
@@ -139,9 +140,10 @@ function resolveProfessionPaletteAction(
 
 /**
  * Converts a dragged palette identity into one or more rotation entries.
- * Returns `null` for cancelled waits, empty names, and duplicate combat-start
- * markers. Profession-owned actions resolve through their UI contract before
- * ordinary skills are converted; composite actions may return multiple items.
+ * Returns `null` for waits that require editor input, empty names, and duplicate
+ * combat-start markers. Profession-owned actions resolve through their UI
+ * contract before ordinary skills are converted; composite actions may return
+ * multiple items.
  */
 export function resolvePaletteDropItem(
   app: ProfessionAppState,
@@ -159,10 +161,7 @@ export function resolvePaletteDropItem(
   ) {
     return null;
   }
-  if (name === "__wait") {
-    const waitMs = promptWaitDurationMs();
-    return waitMs == null ? null : createRotationItem(app, name, { waitMs });
-  }
+  if (name === "__wait") return null;
   return createRotationItem(app, name, skillId == null ? {} : { skillId });
 }
 
@@ -524,11 +523,6 @@ export function renderPalette(app: ProfessionAppState): void {
     }
     return null;
   };
-  // Show only the currently armed descendant. Once no descendant is active,
-  // the selected parent becomes the interactive skill again.
-  const armedFlipFor = (skill: Skill): Skill | null => {
-    return activeFlipDescendantFor(skill);
-  };
   const selectedWithFlips = selectedWithFlipChains.filter((skill) =>
     usesStatefulFlip(skill)
       ? flipAvailable(skill)
@@ -537,7 +531,7 @@ export function renderPalette(app: ProfessionAppState): void {
   const utilitySkillAvailable = (skill: Skill): boolean => {
     if (!professionAllowsPaletteSkill(skill)) return false;
     if (usesStatefulFlip(skill)) return flipAvailable(skill);
-    return !armedFlipFor(skill);
+    return !activeFlipDescendantFor(skill);
   };
   const utilitySkillUnavailableMessage = (skill: Skill): string => {
     if (!professionAllowsPaletteSkill(skill)) {
@@ -546,7 +540,7 @@ export function renderPalette(app: ProfessionAppState): void {
     if (usesStatefulFlip(skill) && !flipAvailable(skill)) {
       return `Unavailable until ${flipParentName(skill)} has been used`;
     }
-    const flip = armedFlipFor(skill);
+    const flip = activeFlipDescendantFor(skill);
     if (flip) return `Unavailable while ${flip.name} has charges`;
     return "";
   };
@@ -901,9 +895,17 @@ export function renderPalette(app: ProfessionAppState): void {
       if (name === "__combat_start" && icon.classList.contains("pal-disabled"))
         return;
       if (name === "__wait") {
-        const waitMs = promptWaitDurationMs();
-        if (waitMs == null) return;
-        app.addRotation(name, { waitMs });
+        openDurationEditor({
+          anchor: icon,
+          heading: "Add wait",
+          name: "Wait",
+          icon: WAIT_ICON,
+          label: "Duration",
+          value: 1000,
+          onApply(waitMs) {
+            app.addRotation(name, { waitMs });
+          },
+        });
         return;
       }
       const skill =
@@ -957,14 +959,23 @@ export function renderPalette(app: ProfessionAppState): void {
           offset: CONCURRENT_OFFSET_MS,
         });
       } else if (event.ctrlKey && !instant) {
-        const raw = prompt(
-          `Interrupt ${name} after how many ms?`,
-          String(suggestedPaletteInterruptMs(skill)),
-        );
-        if (raw == null || Number(raw) < 1) return;
-        app.addRotation(name, {
-          ...identity,
-          interruptMs: Math.round(Number(raw)),
+        const suggestedInterruptMs = suggestedPaletteInterruptMs(skill);
+        openActivationEditor({
+          anchor: icon,
+          skillName: String(skill?.displayName || skill?.name || name),
+          icon:
+            skill?.icon ||
+            icon.querySelector("img")?.getAttribute("src") ||
+            undefined,
+          interruptMs: suggestedInterruptMs,
+          fullCastMs: Number(skill?.castTimeMs) || null,
+          suggestedInterruptMs,
+          onApply(interruptMs) {
+            app.addRotation(name, {
+              ...identity,
+              ...(interruptMs == null ? {} : { interruptMs }),
+            });
+          },
         });
       } else {
         app.addRotation(name, identity);
