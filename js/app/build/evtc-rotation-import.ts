@@ -33,16 +33,14 @@ export async function readEvtcRotationFile(
     .eliteSpecialization(app.build)
     .trim()
     .toLowerCase();
-  const matchingPlayers = rotationModule
-    .detectEvtcRotationPlayers(log)
-    .filter(
-      (player) =>
-        player.professionId === app.profession.id &&
-        player.specializationId === activeSpecialization,
-    );
+  const players = rotationModule.detectEvtcRotationPlayers(log);
+  const matchingPlayers = players.filter(
+    (player) =>
+      player.professionId === app.profession.id &&
+      player.specializationId === activeSpecialization,
+  );
   if (!matchingPlayers.length) {
-    const recorded = rotationModule
-      .detectEvtcRotationPlayers(log)
+    const recorded = players
       .map(
         (player) =>
           `${player.character} (${player.professionName} ${player.specializationName})`,
@@ -70,6 +68,10 @@ export async function readEvtcRotationFile(
     {
       playerAddress: selected.address,
       selectedSkillNames: Object.values(app.build.selectedSkills || {}),
+      selectedSkillIds: [
+        ...((app.build as { selectedMorphSkillIds?: readonly number[] })
+          .selectedMorphSkillIds || []),
+      ],
     },
   );
   return {

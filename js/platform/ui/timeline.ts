@@ -5,7 +5,7 @@ import type {
   SimulationEvent,
 } from "../engine/types.js";
 import type { Gw2SimulationResult } from "../gw2/types.js";
-import type { RotationDragState, TimelineInteractionOptions } from "./types.js";
+import type { TimelineInteractionOptions } from "./types.js";
 
 export type TimelineRotationEntry = LegacyRotationItem | SchedulerRecord;
 

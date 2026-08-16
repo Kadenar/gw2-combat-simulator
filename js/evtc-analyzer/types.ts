@@ -250,13 +250,18 @@ export type EvtcRotationEvidence =
   | "initial-state";
 
 export type EvtcRotationActionStatus =
-  "completed" | "reduced" | "interrupted" | "unknown" | "instant";
+  | "completed"
+  | "reduced"
+  | "interrupted"
+  | "unknown"
+  | "instant";
 
 export interface EvtcRotationCommand {
   readonly name: string;
   readonly skillId?: string | number;
   readonly offset?: number;
   readonly interruptMs?: number;
+  readonly preserveEffectsAfterInterrupt?: boolean;
   readonly doubleEdgeOutcome?: "success" | "backfire";
 }
 
@@ -271,7 +276,9 @@ export interface EvtcRotationWaitCommand {
 }
 
 export type EvtcReconstructedCommand =
-  EvtcRotationCommand | EvtcRotationMarkerCommand | EvtcRotationWaitCommand;
+  | EvtcRotationCommand
+  | EvtcRotationMarkerCommand
+  | EvtcRotationWaitCommand;
 
 export interface EvtcRotationAction {
   readonly timestampMs: number;

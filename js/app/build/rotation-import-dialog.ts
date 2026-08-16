@@ -3,6 +3,7 @@ import {
   isJsonRotationFile,
   readEvtcRotationFile,
 } from "./evtc-rotation-import.js";
+import { errorMessage } from "../../platform/ui/dom.js";
 
 import type { LegacyRotationItem } from "../../platform/engine/types.js";
 import type { ProfessionAppState } from "../profession/types.js";
@@ -24,10 +25,6 @@ interface RotationImportDialogElements {
   readonly warnings: HTMLElement;
   readonly browseButton: HTMLButtonElement;
   readonly closeButton: HTMLButtonElement;
-}
-
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
 }
 
 /** Imports either a saved JSON rotation or an ArcDPS EVTC combat log. */
@@ -220,13 +217,13 @@ export function bindRotationImportDialog(
       elements.dropZone.classList.add("is-dragging");
     });
   }
-  for (const eventName of ["dragleave", "drop"]) {
-    elements.dropZone.addEventListener(eventName, (event) => {
-      event.preventDefault();
-      elements.dropZone.classList.remove("is-dragging");
-    });
-  }
+  elements.dropZone.addEventListener("dragleave", (event) => {
+    event.preventDefault();
+    elements.dropZone.classList.remove("is-dragging");
+  });
   elements.dropZone.addEventListener("drop", (event) => {
+    event.preventDefault();
+    elements.dropZone.classList.remove("is-dragging");
     const file = event.dataTransfer?.files[0];
     if (file) void selectFile(file);
   });

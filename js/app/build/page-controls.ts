@@ -5,31 +5,14 @@ import {
 } from "./persistence.js";
 import { bindRotationImportDialog } from "./rotation-import-dialog.js";
 import { redoRotation, undoRotation } from "../rotation/history.js";
+import {
+  errorMessage,
+  requiredElement,
+  requiredInput,
+  requiredValueControl,
+} from "../../platform/ui/dom.js";
 
 import type { ProfessionAppState } from "../profession/types.js";
-
-function requiredElement(id: string): HTMLElement {
-  const element = document.getElementById(id);
-  if (!element) throw new Error(`Required page control #${id} is missing.`);
-  return element;
-}
-
-function requiredValueControl(
-  id: string,
-): HTMLInputElement | HTMLSelectElement {
-  const element = requiredElement(id);
-  if (
-    !(element instanceof HTMLInputElement) &&
-    !(element instanceof HTMLSelectElement)
-  ) {
-    throw new TypeError(`Page control #${id} must expose a value.`);
-  }
-  return element;
-}
-
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
 
 export function bindPageControls(app: ProfessionAppState): void {
   const attributeWeaponSet = requiredValueControl("attribute-weapon-set");
@@ -82,10 +65,7 @@ export function bindPageControls(app: ProfessionAppState): void {
   requiredElement("btn-export-build").addEventListener("click", () =>
     downloadJson(app.adapter.filenames.build, getBuildExportPayload(app.build)),
   );
-  const importFileInput = requiredElement("import-file-input");
-  if (!(importFileInput instanceof HTMLInputElement)) {
-    throw new TypeError("#import-file-input must be a file input.");
-  }
+  const importFileInput = requiredInput("import-file-input");
   requiredElement("btn-import-build").addEventListener("click", () =>
     importFileInput.click(),
   );
@@ -108,10 +88,7 @@ export function bindPageControls(app: ProfessionAppState): void {
       rotation: app.build.rotation,
     }),
   );
-  const rotationFileInput = requiredElement("rotation-file-input");
-  if (!(rotationFileInput instanceof HTMLInputElement)) {
-    throw new TypeError("#rotation-file-input must be a file input.");
-  }
+  const rotationFileInput = requiredInput("rotation-file-input");
   bindRotationImportDialog(
     app,
     requiredElement("btn-import-rotation"),

@@ -10,22 +10,13 @@ import {
 } from "../../platform/gw2/gear-data.js";
 import { setWeaponSigil } from "../../platform/gw2/weapon-sigils.js";
 import { groupedOptions, option } from "./options.js";
+import {
+  requiredElement,
+  requiredInput,
+  requiredSelect,
+} from "../../platform/ui/dom.js";
 
 import type { ProfessionAppState } from "../profession/types.js";
-
-function requiredElement(id: string): HTMLElement {
-  const element = document.getElementById(id);
-  if (!element) throw new Error(`Required gear control #${id} is missing.`);
-  return element;
-}
-
-function requiredSelect(id: string): HTMLSelectElement {
-  const select = requiredElement(id);
-  if (!(select instanceof HTMLSelectElement)) {
-    throw new TypeError(`Gear control #${id} must be a select.`);
-  }
-  return select;
-}
 
 function selectRow(label: string, id: string, optionsHtml: string): string {
   return `<div class="gear-row"><span class="gear-label">${label}</span>
@@ -244,10 +235,7 @@ export function renderGear(app: ProfessionAppState): void {
   bindValue("sel-relic", (value) => (b.relic = value));
   bindValue("sel-food", (value) => (b.food = value));
   bindValue("sel-utility", (value) => (b.utility = value));
-  const jadeBot = requiredElement("chk-jbc");
-  if (!(jadeBot instanceof HTMLInputElement)) {
-    throw new TypeError("#chk-jbc must be a checkbox.");
-  }
+  const jadeBot = requiredInput("chk-jbc");
   jadeBot.addEventListener("change", () => {
     b.jadeBotCore = jadeBot.checked;
     app.changed();

@@ -116,14 +116,6 @@ function activeProfessionId(root: Document, select: HTMLSelectElement): string {
   return root.body?.dataset.profession || select.dataset.activeProfession || "";
 }
 
-/** Decorates a profession name with its status tags for the select dropdown. */
-function professionOptionLabel(entry: ProfessionRegistryEntry): string {
-  const tags: string[] = [];
-  if (entry.legacy) tags.push("Legacy");
-  if (entry.workInProgress) tags.push("WIP");
-  return tags.length ? `${entry.name} [${tags.join(", ")}]` : entry.name;
-}
-
 function populateProfessionSelector(
   select: HTMLSelectElement,
   active: string,
@@ -144,7 +136,7 @@ function populateProfessionSelector(
     for (const entry of group.entries) {
       const option = owner.createElement("option");
       option.value = entry.id;
-      option.textContent = professionOptionLabel(entry);
+      option.textContent = entry.name;
       option.selected = entry.id === active;
       optgroup.append(option);
     }
@@ -210,18 +202,6 @@ function renderProfessionGroupCards(
     copy.className = "profession-card-copy";
     const name = root.createElement("strong");
     name.textContent = entry.name;
-    if (entry.legacy) {
-      const badge = root.createElement("span");
-      badge.className = "profession-legacy-badge";
-      badge.textContent = "Legacy";
-      name.append(" ", badge);
-    }
-    if (entry.workInProgress) {
-      const badge = root.createElement("span");
-      badge.className = "profession-wip-badge";
-      badge.textContent = "WIP";
-      name.append(" ", badge);
-    }
     const summary = root.createElement("small");
     summary.textContent = entry.specializationSummary;
     copy.append(name, summary);

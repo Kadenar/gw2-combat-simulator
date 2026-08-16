@@ -3,20 +3,11 @@
  *
  * Registry entries contain only presentation metadata and explicit dynamic
  * import functions. Reading this module therefore does not eagerly load any
- * profession implementation. The full registry includes standalone legacy
- * applications; `nativeProfessionRegistry` contains only applications that
- * can be bootstrapped through the shared profession app adapter.
+ * profession implementation. Every profession is bootstrapped through the
+ * shared profession app adapter.
  */
 
 import type { Gw2AppAdapter, ProfessionAppContract } from "./types.js";
-
-export const PROFESSION_APPLICATION_KINDS = Object.freeze({
-  NATIVE: "native",
-  STANDALONE: "standalone",
-} as const);
-
-export type ProfessionApplicationKind =
-  (typeof PROFESSION_APPLICATION_KINDS)[keyof typeof PROFESSION_APPLICATION_KINDS];
 
 /** Armor classes, ordered as navigation surfaces group professions. */
 export const ARMOR_WEIGHTS = Object.freeze([
@@ -38,8 +29,6 @@ export const ARMOR_WEIGHT_LABELS: Readonly<Record<ArmorWeight, string>> =
 export interface ProfessionRegistryEntry {
   /** Stable lowercase identifier used by builds and pages. */
   readonly id: string;
-  /** Whether the route uses the shared app boundary or a legacy application. */
-  readonly applicationKind: ProfessionApplicationKind;
   /** Armor class used to group professions in navigation surfaces. */
   readonly armorWeight: ArmorWeight;
   /** Human-readable profession name. */
@@ -52,14 +41,10 @@ export interface ProfessionRegistryEntry {
   readonly themeClass: string;
   /** Landing-card summary. */
   readonly specializationSummary: string;
-  /** Marks a preserved compatibility implementation in navigation surfaces. */
-  readonly legacy?: boolean;
-  /** Marks an in-progress implementation in navigation surfaces. */
-  readonly workInProgress?: boolean;
   /** Lazy profession loader. */
   readonly loadProfession: () => Promise<ProfessionAppContract>;
-  /** Lazy shared-shell adapter loader, or `null` for a standalone application. */
-  readonly loadAppAdapter: (() => Promise<Gw2AppAdapter>) | null;
+  /** Lazy shared-shell adapter loader. */
+  readonly loadAppAdapter: () => Promise<Gw2AppAdapter>;
 }
 
 // Entries are ordered by armor class so navigation surfaces group
@@ -69,7 +54,6 @@ const entries: ProfessionRegistryEntry[] = [
   // Light armor: Elementalist, Mesmer, Necromancer.
   {
     id: "elementalist",
-    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     armorWeight: "light",
     name: "Elementalist",
     icon: "https://render.guildwars2.com/file/BBED46EB20C80D0DDE0F99402493C7E6FFAE1530/156629.png",
@@ -89,7 +73,6 @@ const entries: ProfessionRegistryEntry[] = [
   },
   {
     id: "mesmer",
-    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     armorWeight: "light",
     name: "Mesmer",
     icon: "https://render.guildwars2.com/file/AF61567E16A83F145D6FB35D63BF01074A3A5AB9/156635.png",
@@ -109,7 +92,6 @@ const entries: ProfessionRegistryEntry[] = [
   },
   {
     id: "necromancer",
-    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     armorWeight: "light",
     name: "Necromancer",
     icon: "https://render.guildwars2.com/file/CA5A4E96080FCF057C9DA0ED35C693477580421C/156637.png",
@@ -130,7 +112,6 @@ const entries: ProfessionRegistryEntry[] = [
   // Medium armor: Ranger, Thief, Engineer.
   {
     id: "ranger",
-    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     armorWeight: "medium",
     name: "Ranger",
     icon: "https://render.guildwars2.com/file/49B10316B424F4E20139EB5E51ADCF24A8724E9B/156640.png",
@@ -149,7 +130,6 @@ const entries: ProfessionRegistryEntry[] = [
   },
   {
     id: "thief",
-    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     armorWeight: "medium",
     name: "Thief",
     icon: "https://render.guildwars2.com/file/13A2C0EF23F23FF2084875629465279DDA807E3D/103581.png",
@@ -168,7 +148,6 @@ const entries: ProfessionRegistryEntry[] = [
   },
   {
     id: "engineer",
-    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     armorWeight: "medium",
     name: "Engineer",
     icon: "https://render.guildwars2.com/file/A94D00911BD47CDE39A104F90C7D07DE623554ED/156631.png",
@@ -188,7 +167,6 @@ const entries: ProfessionRegistryEntry[] = [
   // Heavy armor: Guardian, Warrior, Revenant.
   {
     id: "guardian",
-    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     armorWeight: "heavy",
     name: "Guardian",
     icon: "https://render.guildwars2.com/file/6E0D0AC6E0CE5C0C29B3D736ABEA070F4A58540E/156633.png",
@@ -208,7 +186,6 @@ const entries: ProfessionRegistryEntry[] = [
   },
   {
     id: "warrior",
-    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     armorWeight: "heavy",
     name: "Warrior",
     icon: "https://render.guildwars2.com/file/0A97E13F29B3597A447EEC04A09BE5BD699A2250/156643.png",
@@ -228,7 +205,6 @@ const entries: ProfessionRegistryEntry[] = [
   },
   {
     id: "revenant",
-    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     armorWeight: "heavy",
     name: "Revenant",
     icon: "https://render.guildwars2.com/file/696A48DD61EE01FD1F4FBBBDB82D74611E04EA39/965717.png",
@@ -272,39 +248,8 @@ function validateEntry(
   if (!ARMOR_WEIGHTS.includes(entry.armorWeight)) {
     throw new TypeError(`${entry.id} has an invalid armor weight.`);
   }
-  if (entry.legacy != null && typeof entry.legacy !== "boolean") {
-    throw new TypeError(`${entry.id} legacy must be a boolean.`);
-  }
-  if (
-    entry.workInProgress != null &&
-    typeof entry.workInProgress !== "boolean"
-  ) {
-    throw new TypeError(`${entry.id} workInProgress must be a boolean.`);
-  }
-  if (
-    entry.legacy === true &&
-    entry.applicationKind !== PROFESSION_APPLICATION_KINDS.STANDALONE
-  ) {
-    throw new TypeError(`${entry.id} legacy applications must be standalone.`);
-  }
-  if (
-    !Object.values(PROFESSION_APPLICATION_KINDS).includes(entry.applicationKind)
-  ) {
-    throw new TypeError(`${entry.id} has an invalid application kind.`);
-  }
-  if (
-    entry.applicationKind === PROFESSION_APPLICATION_KINDS.NATIVE &&
-    typeof entry.loadAppAdapter !== "function"
-  ) {
-    throw new TypeError(`${entry.id} native applications require an adapter.`);
-  }
-  if (
-    entry.applicationKind === PROFESSION_APPLICATION_KINDS.STANDALONE &&
-    entry.loadAppAdapter !== null
-  ) {
-    throw new TypeError(
-      `${entry.id} standalone applications cannot register an adapter.`,
-    );
+  if (typeof entry.loadAppAdapter !== "function") {
+    throw new TypeError(`${entry.id} requires an adapter loader.`);
   }
   ids.add(entry.id);
   routes.add(entry.route);
@@ -326,24 +271,6 @@ validateProfessionRegistryEntries(entries);
 
 export const professionRegistry: readonly ProfessionRegistryEntry[] =
   Object.freeze(entries.map((entry) => Object.freeze({ ...entry })));
-
-/**
- * Registry subset that can run in the shared profession application shell.
- */
-export const nativeProfessionRegistry: readonly ProfessionRegistryEntry[] =
-  Object.freeze(
-    professionRegistry.filter(
-      (entry) => entry.applicationKind === PROFESSION_APPLICATION_KINDS.NATIVE,
-    ),
-  );
-
-export const standaloneProfessionRegistry: readonly ProfessionRegistryEntry[] =
-  Object.freeze(
-    professionRegistry.filter(
-      (entry) =>
-        entry.applicationKind === PROFESSION_APPLICATION_KINDS.STANDALONE,
-    ),
-  );
 
 export interface ProfessionArmorGroup {
   readonly weight: ArmorWeight;
@@ -412,16 +339,11 @@ export async function loadProfession(
 }
 
 /**
- * Lazily loads a shared-shell adapter when the profession provides one.
- * Returns `null` for unknown or standalone entries.
+ * Lazily loads a profession's shared-shell adapter, or `null` for an unknown ID.
  */
 export async function loadProfessionAppAdapter(
   professionId: string,
 ): Promise<Gw2AppAdapter | null> {
   const entry = getProfessionEntry(professionId);
-  if (entry?.applicationKind !== PROFESSION_APPLICATION_KINDS.NATIVE) {
-    return null;
-  }
-  const load = entry.loadAppAdapter;
-  return typeof load === "function" ? load() : null;
+  return entry ? entry.loadAppAdapter() : null;
 }

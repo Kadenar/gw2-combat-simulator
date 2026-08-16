@@ -33,8 +33,6 @@ import { THIEF_PUBLIC_END_STATE_KEYS } from "../../js/professions/thief/core/sta
 import { WARRIOR_TRAIT_COVERAGE } from "../../js/professions/warrior/data/trait-coverage.js";
 import { WARRIOR_PUBLIC_END_STATE_KEYS } from "../../js/professions/warrior/core/state.js";
 import {
-  nativeProfessionRegistry,
-  PROFESSION_APPLICATION_KINDS,
   professionRegistry,
   PROFESSION_ROUTES,
   validateProfessionRegistryEntries,
@@ -307,11 +305,10 @@ function assertEventDescriptors(entry, profession) {
   }
 }
 
-test("native profession registry entries conform to the shared contracts", async () => {
+test("profession registry entries conform to the shared contracts", async () => {
   const storageKeys = new Set();
   const filenames = new Set();
-  for (const entry of nativeProfessionRegistry) {
-    assert.equal(entry.applicationKind, PROFESSION_APPLICATION_KINDS.NATIVE);
+  for (const entry of professionRegistry) {
     await access(new URL(`../../${entry.route}`, import.meta.url));
     const [profession, adapter] = await Promise.all([
       entry.loadProfession(),
@@ -460,7 +457,7 @@ test("native profession registry entries conform to the shared contracts", async
 
 test("ready native professions have complete trait evidence with no pending entries", async () => {
   const testFiles = new Map();
-  for (const entry of nativeProfessionRegistry) {
+  for (const entry of professionRegistry) {
     const profession = await entry.loadProfession();
     const coverage = TRAIT_COVERAGE_BY_PROFESSION[entry.id];
     assert.ok(coverage, `${entry.id} trait coverage`);
@@ -595,7 +592,7 @@ test("ready native professions expose deliberate public end-state keys", async (
       "traitProcReadyAt",
     ],
   };
-  for (const entry of nativeProfessionRegistry) {
+  for (const entry of professionRegistry) {
     const profession = await entry.loadProfession();
     const result = simulateGw2({ profession, rotation: [], config: {} });
     assert.deepEqual(
@@ -613,18 +610,14 @@ test("ready native professions expose deliberate public end-state keys", async (
   }
 });
 
-test("Elementalist exposes only its native manifest entry", () => {
+test("Elementalist exposes only its manifest entry", () => {
   const elementalist = professionRegistry.find(
     (entry) => entry.id === "elementalist",
   );
   assert.ok(elementalist);
-  assert.equal(
-    elementalist.applicationKind,
-    PROFESSION_APPLICATION_KINDS.NATIVE,
-  );
   assert.equal(typeof elementalist.loadAppAdapter, "function");
   assert.equal(
-    nativeProfessionRegistry.some((entry) => entry.id === "elementalist"),
+    professionRegistry.some((entry) => entry.id === "elementalist"),
     true,
   );
   assert.equal(
@@ -633,7 +626,7 @@ test("Elementalist exposes only its native manifest entry", () => {
   );
 });
 
-test("registry application kinds cannot bypass native adapter conformance", () => {
+test("registry entries require an adapter loader", () => {
   const base = {
     id: "fixture",
     armorWeight: "light",
@@ -648,28 +641,15 @@ test("registry application kinds cannot bypass native adapter conformance", () =
       validateProfessionRegistryEntries([
         {
           ...base,
-          applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
           loadAppAdapter: null,
         },
       ]),
-    /native applications require an adapter/,
-  );
-  assert.throws(
-    () =>
-      validateProfessionRegistryEntries([
-        {
-          ...base,
-          applicationKind: PROFESSION_APPLICATION_KINDS.STANDALONE,
-          loadAppAdapter: async () => ({}),
-        },
-      ]),
-    /standalone applications cannot register an adapter/,
+    /requires an adapter loader/,
   );
   assert.equal(
     validateProfessionRegistryEntries([
       {
         ...base,
-        applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
         loadAppAdapter: async () => ({}),
       },
     ]),
@@ -678,7 +658,7 @@ test("registry application kinds cannot bypass native adapter conformance", () =
 });
 
 test("native build codecs share version, schema, and sanitization behavior", async () => {
-  for (const entry of nativeProfessionRegistry) {
+  for (const entry of professionRegistry) {
     const [profession, adapter] = await Promise.all([
       entry.loadProfession(),
       entry.loadAppAdapter(),

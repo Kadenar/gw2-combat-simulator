@@ -20,7 +20,6 @@ import {
   bindPaletteInteractions,
   paletteGroupHtml,
   paletteSkillHtml,
-  paletteView,
   virtualPaletteSkillHtml,
 } from "../../platform/ui/palette.js";
 import {
@@ -51,7 +50,6 @@ import {
   COMBAT_START_ICON,
   COOLDOWN_RESET_ICON,
   PLACEHOLDER_ICON,
-  REFRESH_ARROW_ICON,
   WAIT_ICON,
 } from "./icons.js";
 import {
@@ -66,7 +64,6 @@ import {
   uniqueByName,
   weaponPaletteRows,
   weaponPaletteSectionHtml,
-  weaponPaletteStackHtml,
   weaponSkills,
 } from "./palette-model.js";
 import {
@@ -381,9 +378,6 @@ export function renderPalette(app: ProfessionAppState): void {
       hotkeyAction: loadoutHotkeys.get(Number(skill.id)) || "",
     })),
   }));
-  const mechanics =
-    renderedProfessionGroups.find((group) => group.id === "profession")
-      ?.skills || [];
   const selected = rotationSelectedSlotSkills(app);
   // Walk every declared descendant so utilities with more than one flip stage
   // remain complete without the shell knowing the depth of a particular chain.

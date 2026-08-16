@@ -23,6 +23,10 @@ export interface EvtcRecordedRotationAction {
   readonly canonicalName?: string;
   readonly doubleEdgeOutcome?: "success" | "backfire";
   readonly replayCastEnd?: number;
+  readonly replayInterruptMs?: number;
+  readonly replayPreserveEffectsAfterInterrupt?: boolean;
+  readonly forceCompleteReplay?: boolean;
+  readonly suppressFollowingWait?: boolean;
 }
 
 export interface EvtcProfessionReconstructionContext {
@@ -32,6 +36,7 @@ export interface EvtcProfessionReconstructionContext {
   readonly catalog: EvtcRotationCatalog | null;
   readonly recordedActions: readonly EvtcRecordedRotationAction[];
   readonly selectedSkillNames?: readonly string[];
+  readonly selectedSkillIds?: readonly number[];
 }
 
 export type EvtcProfessionActionReconstructor = (

@@ -50,8 +50,6 @@ const ELEMENTAL_IMPACT_TASK = "elementalist.elemental-impact";
 const ELEMENTAL_EXPIRE_TASK = "elementalist.elemental-expire";
 const ELEMENTAL_TASK_OWNER = "elementalist.summoned-elemental";
 
-const FIREBALL_ID = FIRE_ELEMENTAL_EVTC_PROFILE.fireball.skillId;
-const FLAME_BURST_ID = FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst.skillId;
 export const FLAME_BARRAGE_ID =
   FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage.skillId;
 

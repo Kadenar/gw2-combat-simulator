@@ -6,7 +6,6 @@ import type {
   EngineerConfig,
   EngineerCoreState,
   EngineerEndStateProjectionOptions,
-  EngineerRuntimeState,
   EngineerState,
 } from "../types.js";
 import { flattenProfessionState } from "../../../platform/engine/profession.js";
