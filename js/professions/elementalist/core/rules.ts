@@ -30,7 +30,7 @@ import {
 } from "./state.js";
 import {
   beginElementalistGlyphCast,
-  completeElementalistFlameBarrageCommand,
+  completeElementalistElementalCommand,
   completeElementalistGlyphCast,
   elementalistElementalAvailability,
   elementalistElementalTaskHandlers,
@@ -2108,7 +2108,7 @@ export function elementalistOnCastComplete(
   skill: Skill,
 ): void {
   completeElementalistGlyphCast(context, skill);
-  completeElementalistFlameBarrageCommand(context, skill);
+  completeElementalistElementalCommand(context, skill);
   const target = targetAttunement(skill);
   if (target) {
     onAttunementComplete(context, skill, target);

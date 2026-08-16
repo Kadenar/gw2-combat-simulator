@@ -186,9 +186,7 @@ test("Vicious Empowerment follows resolved control and Immobilize events", async
   const { result } = await loadCatalystFixture(
     "condi-quick-catalyst-pistol-warhorn",
   );
-  const combatStart = result.steps.find(
-    (step) => step.skill === "Combat Start",
-  ).start;
+  const combatStart = result.steps[0].start;
   const procs = result.procSteps.filter(
     (step) => step.skill === "Vicious Empowerment",
   );
@@ -208,27 +206,13 @@ test("Vicious Empowerment follows resolved control and Immobilize events", async
 });
 
 test("Catalyst hit energy is credited in event chronology", async () => {
-  const expectedWarnings = new Map([
-    [
-      "condi-quick-catalyst-pistol-dagger",
-      [
-        "Elemental Explosion is unavailable — requires all four elemental bullets.",
-        "Flame Barrage cannot start before the current simulation clock.",
-      ],
-    ],
-  ]);
-
   for (const variant of [
     "condi-quick-catalyst-pistol-dagger",
     "inferno-catalyst",
     "power-catalyst-spear",
   ]) {
     const { result } = await loadCatalystFixture(variant);
-    assert.deepEqual(
-      result.warnings,
-      expectedWarnings.get(variant) || [],
-      variant,
-    );
+    assert.deepEqual(result.warnings, [], variant);
   }
 });
 

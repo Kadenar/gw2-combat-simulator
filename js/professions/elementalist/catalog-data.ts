@@ -224,7 +224,7 @@ function withHammerOrbPackets(skill: Skill): Skill {
 }
 
 function withElementalRuntimeProfiles(skill: Skill): Skill {
-  if (skill.name !== "Glyph of Elementals") return skill;
+  if (!skill.name.startsWith("Glyph of Elementals")) return skill;
   const { quicknessCastTimeMs: _generatedCast, ...withoutGeneratedCast } =
     skill;
   return {
@@ -307,8 +307,15 @@ const generated: readonly Skill[] = Object.freeze(
         ...(metadata?.description ? { description: metadata.description } : {}),
         ...(skill.name === "Glyph of Elementals"
           ? {
+              displayName: "Glyph of Elementals (Fire)",
               description:
                 "Glyph. Summon a Fire Elemental regardless of attunement.",
+            }
+          : {}),
+        ...(skill.name === "Glyph of Elementals (Earth)"
+          ? {
+              description:
+                "Glyph. Summon an Earth Elemental regardless of attunement.",
             }
           : {}),
         icon:

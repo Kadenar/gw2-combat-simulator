@@ -32,7 +32,7 @@ export interface ElementalistSummonedElementalState {
   activeUntil: number;
   busyUntil: number;
   nextActionAt: number;
-  flameBurstReadyAt: number;
+  secondaryAttackReadyAt: number;
   currentActivationId: string | null;
   started: boolean;
 }
@@ -169,7 +169,7 @@ export function createElementalistCoreState(
       activeUntil: 0,
       busyUntil: 0,
       nextActionAt: 0,
-      flameBurstReadyAt: 0,
+      secondaryAttackReadyAt: 0,
       currentActivationId: null,
       started: false,
     },
@@ -199,8 +199,7 @@ export function setElementalistAttunementReadyAt(
   const state = professionCoreState(context);
   state.attunementReadyAt[attunement] = readyAt;
   const schedulerState = context.state as
-    | { time?: number; cooldowns?: Map<number, number> }
-    | undefined;
+    { time?: number; cooldowns?: Map<number, number> } | undefined;
   const cooldowns = schedulerState?.cooldowns;
   if (!cooldowns) return;
   const skillId = ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement];
@@ -303,7 +302,7 @@ const ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<SchedulerRecord> =
       activeUntil: 0,
       busyUntil: 0,
       nextActionAt: 0,
-      flameBurstReadyAt: 0,
+      secondaryAttackReadyAt: 0,
       currentActivationId: null,
       started: false,
     },
