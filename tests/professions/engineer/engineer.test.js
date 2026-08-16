@@ -179,6 +179,30 @@ test("Engineer catalog pins API identity and explicit skill mechanics", () => {
   );
 });
 
+test("Engineer sword impacts use measured cast-start packet timing", () => {
+  const expectedOffsets = new Map([
+    [ID.SUN_EDGE, 350],
+    [ID.SUN_EDGE_ID_70514, 350],
+    [ID.SUN_RIPPER, 450],
+    [ID.SUN_RIPPER_ID_69906, 450],
+    [ID.GLEAM_SABER, 600],
+    [ID.GLEAM_SABER_ID_70771, 600],
+  ]);
+
+  for (const [skillId, atMs] of expectedOffsets) {
+    const skill = engineerCatalog.skillsById.get(skillId);
+    const strike = skill.effects.find((effect) => effect.type === "strike");
+    assert.deepEqual(
+      {
+        atMs: strike.atMs,
+        timingAnchor: strike.timingAnchor,
+        timingScale: strike.timingScale,
+      },
+      { atMs, timingAnchor: "castStart", timingScale: "fixed" },
+    );
+  }
+});
+
 test("Holosmith palette exposes tool-belt skills, forge, and replacement bars", () => {
   const build = createEngineerBuildDefaults();
   const groups = engineerProfession.ui.paletteGroups({

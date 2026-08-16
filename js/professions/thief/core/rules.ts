@@ -38,7 +38,6 @@ import type {
   ThiefCoreState,
   ThiefPrecastContext,
   ThiefQueryRuntime,
-  ThiefRuntimeState,
   ThiefSchedulerContext,
 } from "../types.js";
 

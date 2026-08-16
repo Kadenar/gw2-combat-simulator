@@ -24,7 +24,6 @@ import {
 import { createGw2TimelineIndex } from "./timeline-index.js";
 
 import type {
-  CanonicalCatalog,
   CatalogEntity,
   NormalizedProfessionContract,
   SchedulerRecord,

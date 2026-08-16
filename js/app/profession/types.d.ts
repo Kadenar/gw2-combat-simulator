@@ -67,7 +67,12 @@ export interface ProfessionAttributeData extends Gw2FinalizedAttributeResult {
 }
 
 export type ProfessionModifierType =
-  "Boon" | "Target" | "Sigil" | "Relic" | "Food" | "Trait";
+  | "Boon"
+  | "Target"
+  | "Sigil"
+  | "Relic"
+  | "Food"
+  | "Trait";
 
 export interface ProfessionModifier {
   readonly id: string;
@@ -103,7 +108,8 @@ export interface RandomDistributionRequest {
   readonly seedStart?: number;
 }
 
-export interface RandomDistributionJobRequest extends RandomDistributionRequest {
+export interface RandomDistributionJobRequest
+  extends RandomDistributionRequest {
   readonly professionId: string;
   readonly trials: number;
 }
@@ -124,7 +130,11 @@ export interface RandomDistributionProgress {
 }
 
 export type RandomDistributionMetricCategory =
-  "critical" | "condition" | "proc" | "effect" | "weapon-strength";
+  | "critical"
+  | "condition"
+  | "proc"
+  | "effect"
+  | "weapon-strength";
 
 export type RandomDistributionMetricUnit = "count" | "stacks" | "value";
 
@@ -198,6 +208,7 @@ export interface BuildTemplateSelection {
 export interface RotationActionOptions extends SchedulerRecord {
   readonly skillId?: SkillId | null;
   readonly interruptMs?: number | null;
+  readonly preserveEffectsAfterInterrupt?: boolean | null;
   readonly releaseAtCharges?: number | null;
   readonly doubleEdgeOutcome?: "success" | "backfire" | null;
 }

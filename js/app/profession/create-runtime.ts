@@ -7,8 +7,7 @@ import {
 import { FOOD_DATA } from "../../platform/gw2/gear-data.js";
 import { SIMULATION_RANDOMNESS_MODES } from "../../platform/engine/simulation-random.js";
 import { simulateGw2 } from "../../platform/gw2/simulate.js";
-import type { CatalogEntity, Skill } from "../../platform/engine/types.js";
-import type { ObservationPolicy } from "../../platform/engine/types.js";
+import type { ObservationPolicy, Skill } from "../../platform/engine/types.js";
 import type {
   Gw2Config,
   Gw2ProfessionContract,
@@ -126,7 +125,7 @@ export function createProfessionRuntime({
   function attributesWithModifierDisabled(
     app: ProfessionAppState,
     disabled: ProfessionModifier | null,
-    weaponSet = Number(app.attributeWeaponSet) === 2 ? 2 : 1,
+    weaponSet?: number,
   ): ProfessionAttributeData {
     if (!app.attributeData) {
       throw new Error(
@@ -134,8 +133,9 @@ export function createProfessionRuntime({
       );
     }
     const displayedWeaponSet = Number(app.attributeWeaponSet) === 2 ? 2 : 1;
+    const targetWeaponSet = weaponSet ?? displayedWeaponSet;
     if (
-      weaponSet === displayedWeaponSet &&
+      targetWeaponSet === displayedWeaponSet &&
       (!disabled || (disabled.type !== "Trait" && disabled.type !== "Boon"))
     ) {
       return app.attributeData;
@@ -154,7 +154,7 @@ export function createProfessionRuntime({
     return calculateAttributes(
       build,
       selectedSkills(app),
-      weaponSet,
+      targetWeaponSet,
       disabled?.type === "Trait" ? disabled.name : null,
     ) as ProfessionAttributeData;
   }

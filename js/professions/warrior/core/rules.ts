@@ -1,4 +1,3 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
 import { professionStaticRulesApplied } from "../../../platform/gw2/attribute-provenance.js";
 import {
   createModifierHooks,

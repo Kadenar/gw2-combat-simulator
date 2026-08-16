@@ -1,10 +1,7 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
 import { isInternalCooldownReady } from "../../../platform/engine/clock.js";
-import {
-  NECROMANCER_SKILL_IDS as ID,
-  NECROMANCER_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
+import { NECROMANCER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import {
   handleNecromancerChillEvent,
   handleNecromancerStateEvent,
@@ -318,7 +315,8 @@ export function reactToNecromancerCoreDamage(
       // Variant-specific internal cooldown supplied by the owning handler.
     } else {
       if (interval > 0) {
-        professionCoreState(context).traitProcReadyAt.dhuumfire = event.at + interval;
+        professionCoreState(context).traitProcReadyAt.dhuumfire =
+          event.at + interval;
       }
       applyTraitCondition(details, context, event, {
         ...proc,
@@ -344,7 +342,8 @@ export function reactToNecromancerCoreDamage(
     )
   ) {
     const proc = MECHANICS.traitProcs[TRAIT.VAMPIRIC_PRESENCE];
-    professionCoreState(context).vampiricPresenceReadyAt = event.at + proc.interval;
+    professionCoreState(context).vampiricPresenceReadyAt =
+      event.at + proc.interval;
     queueTraitDamage(context, event, proc);
   }
   if (
@@ -361,30 +360,28 @@ export function reactToNecromancerCoreDamage(
 }
 
 const barbedPrecision = MECHANICS.traitProcs[TRAIT.BARBED_PRECISION];
-export const necromancerBarbedPrecisionReaction =
-  onResolvedPlayerCriticalHit<
-    NecromancerResolverContext,
-    NecromancerResolverEvent,
-    NecromancerResolverReactionDetails
-  >({
-    id: "necromancer.barbed-precision",
-    order: 0,
-    actorTypes: ["player", "summon", "unknown"],
-    chanceOnCriticalHit: barbedPrecision.chanceOnCriticalHit,
-    randomStream: "necromancer.barbed-precision",
-    when: (context, event) =>
-      Number(event.coefficient) > 0 &&
-      hasTrait(context, TRAIT.BARBED_PRECISION),
-    expectedProgress: {
-      get: (context) => professionCoreState(context).barbedPrecisionProgress,
-      set: (context, value) => {
-        professionCoreState(context).barbedPrecisionProgress = value;
-      },
+export const necromancerBarbedPrecisionReaction = onResolvedPlayerCriticalHit<
+  NecromancerResolverContext,
+  NecromancerResolverEvent,
+  NecromancerResolverReactionDetails
+>({
+  id: "necromancer.barbed-precision",
+  order: 0,
+  actorTypes: ["player", "summon", "unknown"],
+  chanceOnCriticalHit: barbedPrecision.chanceOnCriticalHit,
+  randomStream: "necromancer.barbed-precision",
+  when: (context, event) =>
+    Number(event.coefficient) > 0 && hasTrait(context, TRAIT.BARBED_PRECISION),
+  expectedProgress: {
+    get: (context) => professionCoreState(context).barbedPrecisionProgress,
+    set: (context, value) => {
+      professionCoreState(context).barbedPrecisionProgress = value;
     },
-    attribution: { kind: "trait", id: TRAIT.BARBED_PRECISION },
-    handler: (context, event, details) =>
-      applyTraitCondition(details, context, event, barbedPrecision),
-  });
+  },
+  attribution: { kind: "trait", id: TRAIT.BARBED_PRECISION },
+  handler: (context, event, details) =>
+    applyTraitCondition(details, context, event, barbedPrecision),
+});
 
 export function reactToNecromancerCoreCondition(
   context: NecromancerResolverContext,
@@ -414,7 +411,9 @@ export function reactToNecromancerBlind(
     !hasTrait(context, TRAIT.CHILLING_DARKNESS) ||
     !isInternalCooldownReady(
       event.at,
-      Number(professionCoreState(context).traitProcReadyAt.chillingDarkness || 0),
+      Number(
+        professionCoreState(context).traitProcReadyAt.chillingDarkness || 0,
+      ),
     )
   )
     return;

@@ -1,9 +1,5 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
 import { snapshotEngineerState } from "./state.js";
-import type {
-  EngineerSchedulerContext,
-  EngineerSkill,
-} from "../types.js";
+import type { EngineerSchedulerContext, EngineerSkill } from "../types.js";
 
 export function emitEngineerState(
   context: EngineerSchedulerContext,

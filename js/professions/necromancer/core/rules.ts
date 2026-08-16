@@ -1,4 +1,3 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
 import {
   CANONICAL_TARGET_CONDITIONS,
   canonicalTargetConditionName,

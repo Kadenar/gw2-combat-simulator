@@ -114,7 +114,6 @@ const EFFECT_NUMERIC_FIELDS = [
   "intervalMs",
 ] as const;
 
-type EffectNumericField = (typeof EFFECT_NUMERIC_FIELDS)[number];
 type MutableRecord = Record<string, unknown>;
 
 function numericValue(value: unknown, label: string): number {

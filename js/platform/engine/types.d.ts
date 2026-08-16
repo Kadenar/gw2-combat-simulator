@@ -40,7 +40,9 @@ export type CommonSimulationEventType =
 export type CustomSimulationEventType = `${string}.${string}`;
 
 export type LegacySimulationEventType =
-  "boon" | "cooldown_snapshot" | "self_condition";
+  | "boon"
+  | "cooldown_snapshot"
+  | "self_condition";
 
 export interface SimulationEventBase<TType extends string = string> {
   readonly schemaVersion?: 1;
@@ -245,7 +247,11 @@ export interface CustomEffect extends SkillEffectBase {
 }
 
 export type SkillEffect =
-  StrikeEffect | ConditionEffect | ControlEffect | StatusEffect | CustomEffect;
+  | StrikeEffect
+  | ConditionEffect
+  | ControlEffect
+  | StatusEffect
+  | CustomEffect;
 
 export interface Skill extends CatalogSkill {
   readonly description?: string;
@@ -1033,12 +1039,14 @@ export interface ProfessionDefinition<
 export interface ProfessionModuleCatalogFragment {
   readonly skills?: readonly Skill[];
   readonly skillHandlers?:
-    ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>>;
+    | ReadonlyMap<string, unknown>
+    | Readonly<Record<string, unknown>>;
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
   readonly weapons?: readonly string[];
   readonly weaponHands?:
-    ReadonlyMap<string, string> | Readonly<Record<string, string>>;
+    | ReadonlyMap<string, string>
+    | Readonly<Record<string, string>>;
   readonly autoattackChains?: {
     readonly additional?: readonly (readonly SkillId[])[];
     readonly excludeSkillIds?: readonly SkillId[];
@@ -1108,7 +1116,8 @@ export interface NormalizedProfessionContract<
     config: Readonly<SchedulerConfig>,
   ) => TProfessionState;
   readonly createResolverState:
-    ((config: Readonly<SchedulerConfig>) => object) | null;
+    | ((config: Readonly<SchedulerConfig>) => object)
+    | null;
   readonly taskHandlers: Readonly<
     Record<
       string,
@@ -1246,6 +1255,7 @@ export interface CastCommand {
   readonly skillId: SkillId;
   readonly concurrentOffsetMs?: number;
   readonly interruptAfterMs?: number;
+  readonly preserveEffectsAfterInterrupt?: boolean;
   readonly releaseAtCharges?: number;
   readonly doubleEdgeOutcome?: "success" | "backfire";
 }
@@ -1265,13 +1275,17 @@ export interface CooldownResetCommand {
 }
 
 export type RotationCommand =
-  CastCommand | WaitCommand | CombatStartCommand | CooldownResetCommand;
+  | CastCommand
+  | WaitCommand
+  | CombatStartCommand
+  | CooldownResetCommand;
 
 export interface LegacyRotationEntry {
   name: SkillId;
   skillId?: SkillId | null;
   offset?: number;
   interruptMs?: number | null;
+  preserveEffectsAfterInterrupt?: boolean | null;
   releaseAtCharges?: number | null;
   doubleEdgeOutcome?: "success" | "backfire" | null;
   waitMs?: number;

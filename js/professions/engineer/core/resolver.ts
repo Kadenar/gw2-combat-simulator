@@ -21,7 +21,6 @@ import type {
   EngineerResolverEvent,
   EngineerResolverReactionDetails,
   EngineerSkill,
-  EngineerState,
 } from "../types.js";
 
 interface QueueDamageOptions {
@@ -315,9 +314,9 @@ function isAimAssistedProjectile(
   const skill = resolverSkill(context, event.skillId);
   return Boolean(
     skill?.kit === "Grenade Kit" ||
-      skill?.categories?.some(
-        (category) => String(category).toLowerCase() === "projectile",
-      ),
+    skill?.categories?.some(
+      (category) => String(category).toLowerCase() === "projectile",
+    ),
   );
 }
 

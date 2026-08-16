@@ -104,6 +104,8 @@ export function normalizeRotationCommand(
   }
   const concurrent = candidate.concurrentOffsetMs ?? candidate.offset;
   const interrupt = candidate.interruptAfterMs ?? candidate.interruptMs;
+  const preserveEffectsAfterInterrupt =
+    candidate.preserveEffectsAfterInterrupt === true;
   const releaseAtCharges = candidate.releaseAtCharges;
   const doubleEdgeOutcome = candidate.doubleEdgeOutcome;
   if (
@@ -131,6 +133,9 @@ export function normalizeRotationCommand(
       : {
           interruptAfterMs: finiteMilliseconds(interrupt, "Interrupt duration"),
         }),
+    ...(preserveEffectsAfterInterrupt
+      ? { preserveEffectsAfterInterrupt: true }
+      : {}),
     ...(releaseAtCharges == null
       ? {}
       : {
@@ -212,6 +217,8 @@ export function toLegacyRotationEntry(
     entry.offset = command.concurrentOffsetMs;
   if (command.interruptAfterMs != null)
     entry.interruptMs = command.interruptAfterMs;
+  if (command.preserveEffectsAfterInterrupt === true)
+    entry.preserveEffectsAfterInterrupt = true;
   if (command.releaseAtCharges != null)
     entry.releaseAtCharges = command.releaseAtCharges;
   if (command.doubleEdgeOutcome != null)

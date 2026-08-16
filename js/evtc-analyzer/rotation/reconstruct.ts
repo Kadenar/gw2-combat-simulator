@@ -25,6 +25,7 @@ import {
   skillIdentity,
   type EvtcRotationCatalog,
 } from "./catalog.js";
+import { reconcileCastEffectPackets } from "./effect-packets.js";
 import {
   EVTC_ROTATION_PROFILES,
   type EvtcRotationProfessionProfile,
@@ -63,6 +64,7 @@ export interface EvtcRotationOptions {
   readonly includeCombatStart?: boolean;
   readonly inferInstantCasts?: boolean;
   readonly selectedSkillNames?: readonly string[];
+  readonly selectedSkillIds?: readonly number[];
 }
 
 type RecordedAction = EvtcRecordedRotationAction;
@@ -744,6 +746,7 @@ function actionCommand(action: ResolvedAction): EvtcReconstructedCommand {
     skillId?: string | number;
     offset?: number;
     interruptMs?: number;
+    preserveEffectsAfterInterrupt?: boolean;
     doubleEdgeOutcome?: "success" | "backfire";
   } = {
     name: action.name,
@@ -754,12 +757,18 @@ function actionCommand(action: ResolvedAction): EvtcReconstructedCommand {
     0,
     Number(action.skill?.quicknessCastTimeMs || action.skill?.castTimeMs || 0),
   );
-  if (
-    actualDuration > 0 &&
-    (action.status === "interrupted" ||
-      (action.status === "reduced" && actualDuration + 10 < runtimeDuration))
+  if (action.replayInterruptMs != null) {
+    command.interruptMs = Math.max(0, action.replayInterruptMs);
+  } else if (
+    action.status === "interrupted" ||
+    (action.status === "reduced" &&
+      actualDuration > 0 &&
+      actualDuration + 10 < runtimeDuration)
   ) {
     command.interruptMs = actualDuration;
+  }
+  if (action.replayPreserveEffectsAfterInterrupt === true) {
+    command.preserveEffectsAfterInterrupt = true;
   }
   if (action.doubleEdgeOutcome != null) {
     command.doubleEdgeOutcome = action.doubleEdgeOutcome;
@@ -796,6 +805,7 @@ function buildRotation(
   const rotation: EvtcReconstructedCommand[] = [];
   let activeCastEnd = origin;
   let previousCastStart: number | null = null;
+  let suppressGap = false;
   for (const entry of entries) {
     const at = entry.type === "action" ? entry.action.start : entry.at;
     const overlapping = at < activeCastEnd - TIMING_TOLERANCE_MS;
@@ -821,9 +831,12 @@ function buildRotation(
       skillId?: string | number;
       offset?: number;
       interruptMs?: number;
+      preserveEffectsAfterInterrupt?: boolean;
       doubleEdgeOutcome?: "success" | "backfire";
     };
-    const instant = entry.action.end <= entry.action.start;
+    const instant =
+      entry.action.end <= entry.action.start &&
+      entry.action.replayCastEnd == null;
     const independent = entry.action.skill?.independentCast === true;
     if (independent && previousCastStart != null && at >= previousCastStart) {
       command.offset = at - previousCastStart;
@@ -831,10 +844,10 @@ function buildRotation(
       command.offset = Math.max(0, at - previousCastStart);
     } else {
       const gap = Math.max(0, at - activeCastEnd);
-      if (gap > TIMING_TOLERANCE_MS) {
+      if (gap > TIMING_TOLERANCE_MS && !suppressGap) {
         rotation.push({ name: "__wait", waitMs: gap });
-        activeCastEnd = at;
       }
+      activeCastEnd = at;
     }
     rotation.push(command);
     if (independent) {
@@ -847,6 +860,7 @@ function buildRotation(
           entry.action.replayCastEnd ?? entry.action.end,
         );
       }
+      suppressGap = entry.action.suppressFollowingWait === true;
     }
   }
   return rotation;
@@ -924,23 +938,46 @@ export function reconstructWithProfile(
       selectedPlayerEvent(event, agent.address) &&
       event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT,
   );
+  const initialStateTime = profile.inferCombatStartFromFirstCast
+    ? log.events
+        .filter(
+          (event) =>
+            event.target === agent.address &&
+            event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL,
+        )
+        .sort((left, right) => left.time - right.time)[0]?.time
+    : null;
+  const inferredCombatStart = profile.inferCombatStartFromFirstCast
+    ? (initialStateTime ??
+      castActions
+        .filter((action) => action.status === "completed")
+        .sort(
+          (left, right) =>
+            left.start - right.start || left.eventIndex - right.eventIndex,
+        )[0]?.start)
+    : null;
   const combatStart =
     options.includeCombatStart === false
       ? null
-      : (combatStartEvent?.time ?? null);
+      : (combatStartEvent?.time ?? inferredCombatStart ?? null);
   const genericActions = [
     ...castActions,
     ...transitionActions,
     ...weaponSwapActions(log, agent.address, transitionActions),
   ];
-  const professionActions = reconstructProfessionActions({
+  const professionContext = {
     log,
     playerAddress: agent.address,
     profile,
     catalog,
     recordedActions: genericActions,
     selectedSkillNames: options.selectedSkillNames,
-  });
+    selectedSkillIds: options.selectedSkillIds,
+  };
+  const professionActions = reconcileCastEffectPackets(
+    professionContext,
+    reconstructProfessionActions(professionContext),
+  );
   const initialSummons = initialSummonActions(
     log,
     agent.address,

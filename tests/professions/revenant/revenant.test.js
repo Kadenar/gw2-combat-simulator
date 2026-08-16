@@ -254,6 +254,49 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
       .map((effect) => [effect.coefficient, effect.hits, effect.intervalMs]),
     [[0.75, 3, 1000]],
   );
+  const hammerBolt = revenantCatalog.skillsById.get(SKILL.HAMMER_BOLT);
+  assert.equal(hammerBolt.effects[0].coefficient, 0.9);
+  assert.equal(
+    hammerBolt.effects[0].comboFinishers[0].finisherType,
+    "Projectile",
+  );
+  assert.equal(hammerBolt.effects[0].comboFinishers[0].chance, 1);
+  const coalescence = revenantCatalog.skillsById.get(SKILL.COALESCENCE_OF_RUIN);
+  assert.equal(coalescence.cooldown, 4);
+  assert.equal(coalescence.energyCost, 5);
+  assert.equal(coalescence.effects[0].coefficient, 3.5);
+  const phaseSmash = revenantCatalog.skillsById.get(SKILL.PHASE_SMASH);
+  assert.equal(phaseSmash.cooldown, 8);
+  assert.equal(phaseSmash.energyCost, 5);
+  assert.equal(phaseSmash.effects[0].coefficient, 2.22);
+  assert.equal(phaseSmash.effects[0].comboFinishers[0].finisherType, "Blast");
+  assert.equal(phaseSmash.effects[1].condition, "Chilled");
+  assert.equal(phaseSmash.effects[1].duration, 2);
+  const fieldOfTheMists = revenantCatalog.skillsById.get(
+    SKILL.FIELD_OF_THE_MISTS,
+  );
+  assert.equal(fieldOfTheMists.cooldown, 12);
+  assert.equal(fieldOfTheMists.energyCost, 10);
+  assert.equal(fieldOfTheMists.effects[0].coefficient, 1.8);
+  assert.equal(fieldOfTheMists.effects[1].boon, "aegis");
+  assert.equal(fieldOfTheMists.effects[1].duration, 2);
+  assert.equal(fieldOfTheMists.comboFields[0].fieldType, "Dark");
+  assert.equal(fieldOfTheMists.comboFields[0].duration, 6);
+  assert.equal(fieldOfTheMists.comboFields[0].startMs, 560);
+  assert.equal(
+    fieldOfTheMists.effects[0].comboFinishers[0].finisherType,
+    "Projectile",
+  );
+  assert.equal(fieldOfTheMists.effects[0].comboFinishers[0].chance, 1);
+  const dropTheHammer = revenantCatalog.skillsById.get(SKILL.DROP_THE_HAMMER);
+  assert.equal(dropTheHammer.cooldown, 15);
+  assert.equal(dropTheHammer.energyCost, 10);
+  assert.equal(dropTheHammer.effects[0].coefficient, 3.2);
+  assert.equal(
+    dropTheHammer.effects[0].comboFinishers[0].finisherType,
+    "Blast",
+  );
+  assert.equal(dropTheHammer.effects[1].metadata.duration, 3);
   const manifestToxin = revenantCatalog.skillsById.get(SKILL.MANIFEST_TOXIN);
   assert.deepEqual(
     manifestToxin.effects
@@ -4779,6 +4822,40 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
   ]);
 });
 
+test("Drop the Hammer resets Coalescence of Ruin when its delayed hit lands", () => {
+  const result = simulate(
+    "Renegade",
+    [
+      "Drop the Hammer",
+      "Coalescence of Ruin",
+      { name: "__wait", waitMs: 400 },
+      "Coalescence of Ruin",
+    ],
+    {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      initialEnergy: 100,
+      primaryWeapon: "Hammer",
+      secondaryWeapon: "",
+    },
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.steps
+      .filter((step) => step.skill === "Coalescence of Ruin")
+      .map((step) => step.start),
+    [500, 1650],
+  );
+  assert.equal(
+    result.events.filter(
+      (event) =>
+        event.type === "damage" && event.skillName === "Coalescence of Ruin",
+    ).length,
+    2,
+  );
+});
+
 test("Conduit affinity scales Release Potential and Cosmic Wisdom state", () => {
   const result = simulate(
     "Conduit",
@@ -5236,6 +5313,19 @@ test("Revenant Peitha triggers resolve at the observed projectile impact", () =>
       delay: 0.68,
       weapons: {
         primaryWeapon: "Greatsword",
+        secondaryWeapon: "",
+      },
+    },
+    {
+      specialization: "Renegade",
+      rotation: ["Phase Smash", { name: "__wait", waitMs: 1000 }],
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      sourceSkill: "Phase Smash",
+      sourceName: "Phase Smash",
+      delay: 0,
+      weapons: {
+        primaryWeapon: "Hammer",
         secondaryWeapon: "",
       },
     },
