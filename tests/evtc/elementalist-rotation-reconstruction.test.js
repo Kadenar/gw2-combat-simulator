@@ -10,6 +10,8 @@ import {
 const PLAYER = 0x1000n;
 const TARGET = 0x2000n;
 const EARTH_ELEMENTAL = 0x3000n;
+const FIRE_ELEMENTAL = 0x4000n;
+const TOAD_FAMILIAR = 0x5000n;
 
 function event(overrides = {}) {
   return {
@@ -238,6 +240,168 @@ test("reconstructs Catalyst attunements, Glyph of Storms aliases, and Earth Stom
         evidence: "animation",
         status: "instant",
         supportedByCatalog: true,
+      },
+    ],
+  );
+});
+
+test("uses the Evoker parser to normalize familiar skills", () => {
+  const events = [
+    event({
+      time: 1_000,
+      target: PLAYER,
+      skillId: 5585,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL,
+    }),
+    event({
+      time: 1_400,
+      source: FIRE_ELEMENTAL,
+      value: 800,
+      skillId: 2662,
+      sourceInstance: 9,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.RESET,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+    }),
+    event({
+      time: 1_450,
+      source: TOAD_FAMILIAR,
+      value: 650,
+      skillId: 76925,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.RESET,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+    }),
+    event({
+      time: 1_500,
+      stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT,
+    }),
+    ...animation(77247, 2_000, 640),
+    event({
+      time: 2_800,
+      source: TOAD_FAMILIAR,
+      skillId: 76925,
+      sourceInstance: 10,
+      sourceMasterInstance: 7,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_START,
+    }),
+    ...animation(76707, 3_000, 360),
+  ];
+  const fixture = {
+    header: {
+      magic: "EVTC",
+      arcdpsBuild: "20260604",
+      revision: 1,
+      encounterId: 16199,
+      agentCount: 4,
+      skillCount: 5,
+      eventCount: events.length,
+    },
+    agents: [
+      {
+        address: PLAYER,
+        profession: 6,
+        elite: 80,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: "Fixture Evoker",
+        account: ":Fixture.1234",
+        subgroup: "1",
+      },
+      {
+        address: TARGET,
+        profession: 16199,
+        elite: 0,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: "Standard Kitty Golem",
+        account: "",
+        subgroup: "",
+      },
+      {
+        address: FIRE_ELEMENTAL,
+        profession: 6524,
+        elite: 0,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: "Fire Elemental",
+        account: "",
+        subgroup: "",
+      },
+      {
+        address: TOAD_FAMILIAR,
+        profession: 27042,
+        elite: 0,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: "ch27042-10",
+        account: "",
+        subgroup: "",
+      },
+    ],
+    skills: [
+      { id: 5585, name: "Fire Attunement" },
+      { id: 77247, name: "Toad's Fortitude" },
+      { id: 76707, name: "Seismic Impact" },
+      { id: 2662, name: "Flame Barrage" },
+      { id: 76925, name: "Calcify" },
+    ],
+    events,
+  };
+  const skills = [
+    catalogSkill(1100001, "Fire Attunement"),
+    catalogSkill(1100189, "Toad's Fortitude", "Utility"),
+    catalogSkill(1100186, "Seismic Impact"),
+    catalogSkill(2662, "Flame Barrage", "Elite"),
+    catalogSkill(1100185, "Calcify"),
+  ];
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.equal(result.parserId, "elementalist:evoker");
+  assert.equal(result.player.specializationId, "evoker");
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.actions.map(({ rawSkillId, skillId, name }) => ({
+      rawSkillId,
+      skillId,
+      name,
+    })),
+    [
+      {
+        rawSkillId: 2662,
+        skillId: 2662,
+        name: "Flame Barrage",
+      },
+      {
+        rawSkillId: 76925,
+        skillId: 1100185,
+        name: "Calcify",
+      },
+      {
+        rawSkillId: 77247,
+        skillId: 1100189,
+        name: "Toad's Fortitude",
+      },
+      {
+        rawSkillId: 76925,
+        skillId: 1100185,
+        name: "Calcify",
+      },
+      {
+        rawSkillId: 76707,
+        skillId: 1100186,
+        name: "Seismic Impact",
       },
     ],
   );

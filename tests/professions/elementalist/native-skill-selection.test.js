@@ -59,6 +59,10 @@ test("both supported elemental summons are selectable elite skills", () => {
 
   assert.equal(labels.includes("Glyph of Elementals (Fire)"), true);
   assert.equal(labels.includes("Glyph of Elementals (Earth)"), true);
+  assert.equal(
+    elementalistCatalog.skillsByName.get("Stomp").icon,
+    "https://render.guildwars2.com/file/A39EBFA9E241DDBF6EEFBEC515192F32F5F2A620/867445.png",
+  );
 });
 
 test("existing builds retain any stored attunement variant", () => {

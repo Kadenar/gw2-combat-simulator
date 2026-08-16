@@ -27,8 +27,10 @@ It records:
 - configured instant follow-ups whose use consumes an availability buff, such
   as Distress;
 - Elementalist attunement changes, attunement-specific Glyph of Storms IDs,
-  and Earth Elemental Stomp commands recovered from the player-owned actor,
-  including a truncated opening Stomp recovered from its animation stop;
+  Fire Elemental Flame Barrage and Earth Elemental Stomp commands recovered
+  from player-owned actors, and Evoker Calcify commands recovered from the
+  familiar actor, including truncated opening commands recovered from their
+  animation stops;
 - precombat Necromancer minion summons when the initial EVTC state contains a
   player-owned minion agent;
 - Ritualist Summon Spirits and Innervate actions inferred from their emitted
