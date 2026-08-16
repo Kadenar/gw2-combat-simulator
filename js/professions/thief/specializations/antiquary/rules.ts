@@ -32,6 +32,7 @@ export const antiquarySchedulerHooks = Object.freeze({
   taskHandlers: antiquaryTaskHandlers,
 });
 
+// Meticulous Custodian boosts the base strike coefficient of each artifact to its "enhanced" value; factors below are enhanced/base
 const METICULOUS_ARTIFACT_STRIKE_IDS = new Set<number>([
   ID.METAL_LEGION_GUITAR,
   ID.MISTBURN_MORTAR,
@@ -139,7 +140,7 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
         hasTrait(context, TRAIT.METICULOUS_CUSTODIAN) &&
         context.event?.skillId === ID.MISTBURN_MORTAR &&
         context.event?.condition === "Burning" &&
-        context.event?.triggeredBy == null,
+        context.event?.triggeredBy == null, // the Charged Strike bonus burn (emitted by resolver) must not have its duration doubled a second time
     },
     {
       id: "thief.meticulous-custodian-sun-crystal-burning",
@@ -170,12 +171,13 @@ function modifyAntiquaryRechargeDuration(
   if (context.skill.type !== "Utility" || expirations.length === 0) {
     return duration;
   }
+  // consume the earliest slot; each Holo-Dancer Decoy use adds one entry, so stacking is supported
   expirations.shift();
   state.holoUtilityCooldownReduction = expirations.length ? 0.8 : 0;
   state.holoUtilityCooldownReductionExpiresAt = expirations.length
     ? Math.max(...expirations)
     : 0;
-  return duration * 0.2;
+  return duration * 0.2; // 80% recharge reduction → pay only 20% of the normal cooldown
 }
 
 export const antiquaryCastRules = Object.freeze({

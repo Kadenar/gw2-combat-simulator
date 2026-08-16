@@ -8,13 +8,13 @@ import { SKILLS as GUARDIAN_API_SKILLS } from "../../../js/professions/guardian/
 import { TRAITS } from "../../../js/professions/mesmer/data/traits-data.js";
 import { mesmerAppAdapter } from "../../../js/professions/mesmer/app/app-definition.js";
 import {
-  AMBUSH_ATTACKS,
+  MESMER_MIRAGE_AMBUSH_ATTACKS as AMBUSH_ATTACKS,
   AMBUSH_SKILLS,
-  CLONE_ATTACKS,
-  INSTRUMENTS,
+  MESMER_CORE_CLONE_ATTACKS as CLONE_ATTACKS,
+  MESMER_TROUBADOUR_INSTRUMENTS as INSTRUMENTS,
   MECHANIC_SKILLS,
   PHANTASM_ATTACK_TIMINGS,
-  PSEUDO_SKILLS,
+  MESMER_EXTRA_SKILLS as PSEUDO_SKILLS,
   MESMER_SKILL_MECHANICS,
   MESMER_SUPPLEMENTAL_SKILL_MECHANICS,
   SHATTERS,

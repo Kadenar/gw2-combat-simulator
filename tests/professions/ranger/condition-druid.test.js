@@ -103,7 +103,7 @@ test("condition Druid weapon timings and packets match the supplied EVTC", () =>
   const naturalConvergence = rangerCatalog.skillsById.get(
     ID.NATURAL_CONVERGENCE,
   );
-  assert.equal(naturalConvergence.castTimeMs, 2500);
+  assert.equal(naturalConvergence.castTimeMs, 3120);
   assert.equal(naturalConvergence.quicknessCastTimeMs, 2080);
   assert.deepEqual(
     naturalConvergence.effects

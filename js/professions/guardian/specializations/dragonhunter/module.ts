@@ -24,6 +24,8 @@ export const dragonhunterModule = defineNativeModule({
     handlers: dragonhunterSkillHandlers,
   }),
   state: {
+    // Same factory for both phases: scheduler writes tetherUntil during cast,
+    // resolver re-derives it from emitted events, so they must start identical.
     scheduler: dragonhunterState.create,
     resolver: dragonhunterState.create,
   },
@@ -31,6 +33,8 @@ export const dragonhunterModule = defineNativeModule({
     modifiers: dragonhunterAttributeRules,
     schedulerHooks: dragonhunterSchedulerHooks,
     reactions: [
+      // onResolvedDamage/onResolvedControl wrap the handlers so they fire on
+      // "damage.resolved" / control events in resolver order, not as raw event handlers
       ...dragonhunterEventReactions.damage.map(onResolvedDamage),
       ...dragonhunterEventReactions.control.map(onResolvedControl),
     ],

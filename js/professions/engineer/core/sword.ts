@@ -28,6 +28,7 @@ export function rechargeOtherSwordSkills(
   gleamSaber: EngineerSkill,
 ): void {
   const at = context.effectiveEnd;
+  // scan both maps — a skill lives in exactly one (ammo OR cooldowns, never both)
   const activeIds = new Set([
     ...context.state.cooldowns.keys(),
     ...context.state.ammo.keys(),
@@ -43,6 +44,7 @@ export function rechargeOtherSwordSkills(
       reducedBy += reduceCooldown(context, skill, 1, at);
     }
   }
+  // only emit proc when something actually changed — no-op if no sword skill was on cooldown
   if (reducedBy <= 0) return;
   context.emit({
     type: "proc",

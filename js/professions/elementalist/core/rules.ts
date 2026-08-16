@@ -242,10 +242,10 @@ function prepareElementalistHitboxEvent(
     professionAssumptions.hitboxSize || context.config.hitboxSize || "small",
   );
   if (hitboxSize !== "small") return preparedEvent;
-  const hitIndex = Number(preparedEvent.elementalistHitboxIndex || 0);
-  const smallHitboxCap = Number(preparedEvent.elementalistSmallHitboxCap || 0);
+  const hitIndex = Number(preparedEvent.hitboxIndex || 0);
+  const smallHitboxCap = Number(preparedEvent.smallHitboxCap || 0);
   const excluded =
-    preparedEvent.elementalistLargeHitboxOnly === true ||
+    preparedEvent.largeHitboxOnly === true ||
     (smallHitboxCap > 0 && hitIndex > smallHitboxCap);
   if (!excluded) return preparedEvent;
   return {
@@ -2075,13 +2075,13 @@ function extendPersistingFlamesPackets(
     context.emit({
       ...template,
       at,
-      elementalistLargeHitboxOnly: false,
+      largeHitboxOnly: false,
     });
     for (const condition of attachedConditions) {
       context.emit({
         ...condition,
         at,
-        elementalistLargeHitboxOnly: false,
+        largeHitboxOnly: false,
       });
     }
   }

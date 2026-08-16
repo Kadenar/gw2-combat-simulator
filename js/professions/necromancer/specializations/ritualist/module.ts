@@ -19,6 +19,7 @@ export const ritualistModule = defineNativeModule({
     skillMechanics: RITUALIST_BASE_SKILL_MECHANICS,
     handlers: ritualistSkillHandlers,
   }),
+  // Scheduler and resolver each get their own independent state instance; they do not share the same object
   state: { scheduler: ritualistState.create, resolver: ritualistState.create },
   mechanics: {
     modifiers: ritualistAttributeRules,

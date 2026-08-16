@@ -1,54 +1,72 @@
 import {
-  augmentSkillHandler,
-  replaceSkillHandler,
-} from "../../../platform/engine/skill-handlers.js";
+  augmentSkill,
+  replaceSkill,
+} from "../../../platform/gw2/native-profession.js";
 import type { SkillHandlerPhase } from "../../../platform/engine/types.js";
-import type { RevenantCastContext } from "../types.js";
+import type {
+  RevenantCastContext,
+  RevenantSimulationEvent,
+  RevenantSkill,
+} from "../types.js";
 import {
   gainAncientEchoEnergy,
   revenantCoreSkillHandlers as rawCoreHandlers,
 } from "./actions.js";
 import { activateEnchantedDaggers } from "./assassin.js";
-import {
-  augmentAfter,
-  handlerPhase,
-  replaceAfter,
-  replaceBefore,
-} from "./handler-strategies.js";
 import { revenantSpearSkillHandlers } from "./spear.js";
 import { revenantUpkeepSkillHandlers } from "./upkeep.js";
 
 const handlers = Object.freeze({
-  "revenant.weapon-swap": replaceAfter(rawCoreHandlers["revenant.weapon-swap"]),
-  "revenant.legend-swap": replaceAfter(rawCoreHandlers["revenant.legend-swap"]),
-  "revenant.dodge": replaceSkillHandler<RevenantCastContext>(
-    handlerPhase(rawCoreHandlers["revenant.dodge"]),
-  ),
-  "revenant.enchanted-daggers": replaceAfter(activateEnchantedDaggers),
-  "revenant.upkeep": replaceAfter(
-    revenantUpkeepSkillHandlers["revenant.upkeep"],
-  ),
-  "revenant.upkeep-release": replaceAfter(
-    revenantUpkeepSkillHandlers["revenant.upkeep-release"],
-  ),
-  "revenant.inspiring-reinforcement": replaceBefore(
-    revenantUpkeepSkillHandlers["revenant.inspiring-reinforcement"],
-  ),
-  "revenant.spear-recharge": augmentSkillHandler<RevenantCastContext>(
-    null as unknown as SkillHandlerPhase<RevenantCastContext>,
-    {
-      afterEffect: (context, skill, event) =>
-        revenantSpearSkillHandlers["revenant.spear-recharge"](
-          context,
-          skill,
-          event,
-        ),
-    },
-  ),
-  "revenant.abyssal-raze": replaceBefore(
-    revenantSpearSkillHandlers["revenant.abyssal-raze"],
-  ),
-  "revenant.ancient-echo": augmentAfter(gainAncientEchoEnergy),
+  "revenant.weapon-swap": replaceSkill<RevenantCastContext>({
+    afterEffects: rawCoreHandlers[
+      "revenant.weapon-swap"
+    ] as SkillHandlerPhase<RevenantCastContext>,
+  }),
+  "revenant.legend-swap": replaceSkill<RevenantCastContext>({
+    afterEffects: rawCoreHandlers[
+      "revenant.legend-swap"
+    ] as SkillHandlerPhase<RevenantCastContext>,
+  }),
+  "revenant.dodge": replaceSkill<RevenantCastContext>({
+    beforeEffects: rawCoreHandlers[
+      "revenant.dodge"
+    ] as SkillHandlerPhase<RevenantCastContext>,
+  }),
+  "revenant.enchanted-daggers": replaceSkill<RevenantCastContext>({
+    afterEffects:
+      activateEnchantedDaggers as SkillHandlerPhase<RevenantCastContext>,
+  }),
+  "revenant.upkeep": replaceSkill<RevenantCastContext>({
+    afterEffects: revenantUpkeepSkillHandlers[
+      "revenant.upkeep"
+    ] as SkillHandlerPhase<RevenantCastContext>,
+  }),
+  "revenant.upkeep-release": replaceSkill<RevenantCastContext>({
+    afterEffects: revenantUpkeepSkillHandlers[
+      "revenant.upkeep-release"
+    ] as SkillHandlerPhase<RevenantCastContext>,
+  }),
+  "revenant.inspiring-reinforcement": replaceSkill<RevenantCastContext>({
+    beforeEffects: revenantUpkeepSkillHandlers[
+      "revenant.inspiring-reinforcement"
+    ] as SkillHandlerPhase<RevenantCastContext>,
+  }),
+  "revenant.spear-recharge": augmentSkill<RevenantCastContext>({
+    afterEffect: (context, skill, event) =>
+      revenantSpearSkillHandlers["revenant.spear-recharge"](
+        context,
+        skill as RevenantSkill,
+        event as RevenantSimulationEvent,
+      ),
+  }),
+  "revenant.abyssal-raze": replaceSkill<RevenantCastContext>({
+    beforeEffects: revenantSpearSkillHandlers[
+      "revenant.abyssal-raze"
+    ] as SkillHandlerPhase<RevenantCastContext>,
+  }),
+  "revenant.ancient-echo": augmentSkill<RevenantCastContext>({
+    afterEffects: gainAncientEchoEnergy,
+  }),
 });
 
 export const revenantCoreSkillHandlers = new Map(Object.entries(handlers));

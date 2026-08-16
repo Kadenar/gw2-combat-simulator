@@ -8,6 +8,8 @@ import {
 
 export const luminaryEventHandlers = Object.freeze({
   ...guardianRadiantForgeEventHandlers,
+  // These two handlers run inside the resolver (not the scheduler) because
+  // effulgent stack counting happens on already-resolved damage packets.
   "guardian.effulgent-activated": handleEffulgentActivated,
   "guardian.effulgent-detonate": handleEffulgentDetonate,
 });
@@ -15,6 +17,8 @@ export const luminaryEventHandlers = Object.freeze({
 export const luminaryEventReactions = Object.freeze({
   damage: Object.freeze([
     {
+      // order 16 intentionally runs before justice (20) so stack count is
+      // up-to-date if a justice proc fires on the same damage packet.
       id: "guardian.luminary.effulgent",
       order: 16,
       handler: reactToEffulgentStrike,

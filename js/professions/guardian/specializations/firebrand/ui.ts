@@ -21,6 +21,8 @@ function firebrandEventLogRow(
   _context: SchedulerRecord,
   event: GuardianResolverEvent,
 ): ProfessionEventLogDescriptor | null | undefined {
+  // null suppresses the row entirely; these internal bookkeeping events have no
+  // meaningful log representation and would clutter the event timeline.
   if (
     ["guardian.ashes-expired", "guardian.firebrand-virtue-activated"].includes(
       event.type,
@@ -91,9 +93,13 @@ export const firebrandUi = Object.freeze({
   timelineWeaponLineTransition: (context: GuardianUiContext) => {
     const skill = context.skill as GuardianSkill | undefined;
     if (/^Tome of (Justice|Resolve|Courage)$/.test(skill?.name || "")) {
+      // Returning undefined means "no transition" (already in this tome);
+      // returning the skill name triggers the timeline lane switch.
       return context.weaponLine === skill?.name ? undefined : skill?.name;
     }
     if (skill?.name === "Stow Tome") {
+      // null signals "end of a named weapon line" to the timeline renderer;
+      // undefined means there was no active tome line to close.
       return /^Tome of /.test(String(context.weaponLine || ""))
         ? null
         : undefined;
@@ -107,6 +113,8 @@ export const firebrandUi = Object.freeze({
       label: "F",
       skillIds: guardianUiSkillIdsByName(VIRTUE_NAMES, context),
       color: "#2f7eb8",
+      // resourceAnchor attaches the tome-pages resource view to this group's
+      // position in the palette UI rather than floating it independently.
       resourceAnchor: true,
     },
     ...[
@@ -168,6 +176,7 @@ export const firebrandUi = Object.freeze({
         plural: "pages",
         maximum,
         value: Number(state.tomePages ?? maximum),
+        // Pages regen passively; the user cannot manually start regeneration.
         canStart: false,
         shortLabel: "Pgs",
         statusLabel: "Current",

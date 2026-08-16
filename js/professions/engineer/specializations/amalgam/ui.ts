@@ -21,6 +21,8 @@ import type {
 
 let engineerSkills: readonly EngineerSkill[] = [];
 let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
+// Canonical display order for protocol dropdowns; skills absent from this map
+// sort after all listed entries, then by numeric ID as a tiebreaker.
 const AMALGAM_PROTOCOL_ORDER = new Map<string, number>([
   ["Offensive Protocol: Shred", 0],
   ["Offensive Protocol: Demolish", 1],
@@ -121,6 +123,9 @@ function updateAmalgamSkillBarSelection(
     ? [...context.build.selectedMorphSkillIds].map(Number)
     : [];
   const previousSkill = engineerSkillsById.get(current[index]);
+  // Detect if the chosen protocol name is already selected in a different slot.
+  // If so, swap: move the previously-selected protocol into the conflicting slot
+  // (using the slot-appropriate skill ID), preventing duplicate protocol names.
   const conflictIndex = current.findIndex(
     (skillId, candidateIndex) =>
       candidateIndex !== index &&

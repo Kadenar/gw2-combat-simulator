@@ -46,10 +46,15 @@ export function validateTomeCast(
   context: GuardianPrecastContext,
   skill: GuardianSkill,
 ): boolean | undefined {
+  // Returning false (not undefined) permanently blocks the skill from casting.
+  // Weapon skills are completely locked out while any tome is active.
   if (skill.type === "Weapon" && firebrandState.from(context).activeTome) {
     return false;
   }
   if (skill.tome) {
+    // A tome-page skill is only valid when the matching tome is open; returning
+    // false here (wrong or no tome) causes the scheduler to skip it entirely
+    // rather than waiting (page gating via tomePageAvailability handles waits).
     return (
       selectedGuardianSpecialization(context) === "Firebrand" &&
       firebrandState.from(context).activeTome === skill.tome
@@ -58,6 +63,7 @@ export function validateTomeCast(
   if (skill.name === "Stow Tome") {
     return Boolean(firebrandState.from(context).activeTome);
   }
+  // Returning undefined means "no opinion" — the platform's default rules apply.
 }
 
 /**
@@ -110,6 +116,8 @@ export function tomePageAvailability(
  */
 function stowTome(context: GuardianCastContext, skill: GuardianSkill): boolean {
   firebrandState.from(context).activeTome = "";
+  // Reset Swift Scholar bookkeeping on stow; the streak only counts consecutive
+  // pages within a single uninterrupted tome session.
   firebrandState.from(context).swiftScholarTome = "";
   firebrandState.from(context).swiftScholarCount = 0;
   emitGuardianEvent(context, skill, "weapon_set", {
@@ -135,9 +143,13 @@ function useTomePage(
   context: GuardianCastContext,
   skill: GuardianSkill,
 ): boolean {
+  // Interrupted casts must not spend pages; returning true signals the handler
+  // chain that the cast was aborted (consistent with augmentSkill semantics).
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
   const state = firebrandState.from(context);
   const pageCost = Math.max(1, Number(skill.pageCost || 1));
+  // The regen timer only ticks while below maximum; spending a page from a full
+  // pool restarts the interval from this cast rather than from last regen tick.
   if (state.tomePages >= state.maximumTomePages) {
     state.nextTomePageAt = context.effectiveEnd + state.tomePageInterval;
   }
@@ -260,6 +272,9 @@ function useTomePage(
       ashesExpiresAt: state.ashesExpiresAt,
     });
   }
+  // Auto-stow when the last page is consumed so the scheduler doesn't need to
+  // inject a separate Stow Tome cast; automatic: true marks it as involuntary
+  // for the timeline display.
   if (state.tomePages === 0) {
     state.activeTome = "";
     emitGuardianEvent(context, skill, "weapon_set", {
@@ -339,6 +354,9 @@ function handleAshesExpired(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
+  // A newer Ashes application extends ashesExpiresAt beyond the queued event
+  // time; re-check the stored expiry so a stale expiry event doesn't clear
+  // charges that were refreshed by a Quickfire proc after this event was queued.
   if (
     Number(firebrandState.from(context).ashesExpiresAt || 0) <=
     Number(event.at) + Number(context.epsilon || 0.0001)
@@ -369,6 +387,8 @@ export function advanceTomeState(
   target: number,
 ): void {
   const state = firebrandState.from(context);
+  // Loop rather than a single add so multiple pages that matured in the same
+  // advance window are all credited without needing separate advance calls.
   while (
     state.tomePages < state.maximumTomePages &&
     state.nextTomePageAt <= target + context.epsilon
@@ -385,6 +405,8 @@ export function advanceTomeState(
   ) {
     state.ashesCharges = 0;
   }
+  // Passive courage aegis is firebrand-only; skip early for other specs to
+  // avoid emitting aegis that shouldn't exist on dragonhunter/core guardian.
   if (
     selectedGuardianSpecialization({ config: context.config }) !== "Firebrand"
   )
@@ -394,6 +416,9 @@ export function advanceTomeState(
   );
   while (courage && state.nextCourageAegisAt <= target + context.epsilon) {
     const at = state.nextCourageAegisAt;
+    // Suppress passive aegis when the virtue is on its dormant cooldown (i.e.
+    // the tome was recently activated), unless Stoic Demeanor overrides that
+    // suppression window.
     if (
       at >=
         Number(professionCoreState(context).virtueReadyAt.courage || 0) -

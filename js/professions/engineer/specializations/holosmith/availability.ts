@@ -39,6 +39,9 @@ export function holosmithCastAvailability(
     }
   }
   if (skill.forgeSkill) {
+    // Allow the auto-attack chain to complete at the exact overheat timestamp.
+    // The chain skill is already queued before the overheat fires, so the forge
+    // is technically inactive but the animation was committed.
     const queuedChainAfterOverheat =
       skill.slot === "Weapon_1"
       && state.overheated
@@ -93,6 +96,8 @@ export function holosmithCastAvailability(
       "Photon Forge is not active.",
     );
   }
+  // Kits are locked for 6 s after entering Photon Forge. This prevents
+  // immediately swapping out to avoid the bar-swap animation on the forge itself.
   if (
     skill.handlerId === "engineer.kit-equip"
     && context.start < Number(state.kitLockoutUntil || 0)

@@ -116,11 +116,12 @@ export const MESMER_IMPLEMENTED_SKILL_IDS = Object.freeze(
 export const AMBUSH_SKILLS = Object.freeze(
   MESMER_SUPPLEMENTAL_SKILLS.filter((skill) => skill.ambush),
 );
-export const PSEUDO_SKILLS = MESMER_EXTRA_SKILLS;
-
-export const WEAPON_STRENGTH = MESMER_CORE_WEAPON_STRENGTH;
-export const CLONE_ATTACKS = MESMER_CORE_CLONE_ATTACKS;
-export const AMBUSH_ATTACKS = MESMER_MIRAGE_AMBUSH_ATTACKS;
+export {
+  MESMER_CORE_CLONE_ATTACKS,
+  MESMER_CORE_WEAPON_STRENGTH,
+  MESMER_MIRAGE_AMBUSH_ATTACKS,
+  MESMER_TROUBADOUR_INSTRUMENTS,
+};
 
 const phantasmTimingIds = new Set([
   ...Object.keys(MESMER_CORE_PHANTASM_ATTACK_TIMINGS),
@@ -186,7 +187,6 @@ export const PEITHA_SKILLS = new Set([
   ...MESMER_VIRTUOSO_PEITHA_SKILLS,
   ...MESMER_TROUBADOUR_PEITHA_SKILLS,
 ]);
-export const INSTRUMENTS = MESMER_TROUBADOUR_INSTRUMENTS;
 export const MECHANIC_SKILLS: Readonly<Record<string, readonly number[]>> =
   Object.freeze({
     Core: Object.freeze([

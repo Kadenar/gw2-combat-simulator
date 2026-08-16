@@ -26,6 +26,8 @@ export function createHolosmithState(
     maximumHeat,
     heatUpdatedAt: 0,
     photonForgeActive: false,
+    // null = forge has never been exited (no cooling yet); 0 = treat as exited at t=0 so
+    // the passive cooling schedule starts immediately when initialHeat > 0.
     forgeExitedAt: initialHeat > 0 ? 0 : null,
     overheated: false,
     solarFocusingLensStacks: 0,

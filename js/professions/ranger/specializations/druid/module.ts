@@ -21,12 +21,14 @@ export const druidModule = defineNativeModule({
     skillMechanics: DRUID_BASE_SKILL_MECHANICS,
     handlers: druidSkillHandlers,
   }),
+  // Same state factory for both phases: resolver reads celestialAvatarActive and astralForce during damage resolution
   state: { scheduler: druidState.create, resolver: druidState.create },
   mechanics: {
     modifiers: druidAttributeRules,
     castRules: druidCastRules,
     schedulerHooks: druidSchedulerHooks,
     reactions: [
+      // Blood Moon procs on any control effect (from reactToDruidControl) and specifically on Immobilize conditions (from reactToDruidCondition)
       onResolvedControl({
         id: "ranger.druid-control",
         order: 20,

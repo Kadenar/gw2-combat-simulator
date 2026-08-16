@@ -10,6 +10,8 @@ const SHADOW_SHROUD_SKILL_IDS = Object.freeze([
   ID.MIND_SHOCK,
 ]);
 
+// UI contexts may carry state in either shape depending on where the component is rendered;
+// flattenProfessionState normalizes both the live state path and the initial professionState path.
 function stateFrom(context: ThiefUiContext = {}): Partial<ThiefState> {
   return flattenProfessionState(
     context.state?.profession || context.professionState,
@@ -69,6 +71,7 @@ export const specterUi = Object.freeze({
         displayMode: "bar",
         pipStyle: "compact-profession-resource-specter-shadow-force",
         shortLabel: "SF",
+        // Label changes while shroud is active to signal the bar is draining.
         statusLabel: state.shadowShroudActive ? "Shroud" : "Current",
       },
     ];

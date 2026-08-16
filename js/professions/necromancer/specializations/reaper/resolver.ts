@@ -9,13 +9,14 @@ import {
   applyTraitCondition,
   queueTraitCoefficientDamage,
   targetIsChilled,
-} from "../../core/resolver.js";
+} from "../../core/traits.js";
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NecromancerResolverReactionDetails,
 } from "../../types.js";
 
+// Chilling Nova is gated on the target already being Chilled at the moment of the crit, not just on trait presence.
 const chillingNovaCriticalHit = onResolvedPlayerCriticalHit<
   NecromancerResolverContext,
   NecromancerResolverEvent,
@@ -88,6 +89,7 @@ function reactToControl(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
 ): void {
+  // controlKind and kind are both checked because fear appears under different fields depending on the event schema version.
   if (
     (event.controlKind !== "fear" && event.kind !== "fear") ||
     !hasTrait(context, TRAIT.SHIVERS_OF_DREAD)

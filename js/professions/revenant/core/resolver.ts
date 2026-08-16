@@ -1,27 +1,9 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
-import type {
-  RevenantResolverContext,
-  RevenantResolverEvent,
-} from "../types.js";
+import { handleRevenantState } from "./events.js";
 
-function handleRevenantState(
-  context: RevenantResolverContext,
-  event: RevenantResolverEvent,
-): void {
-  const core = professionCoreState(context);
-  const specialization = context.profession.specialization.state;
-  const preserved = {
-    traitProcReadyAt: core.traitProcReadyAt || {},
-  };
-  for (const [key, value] of Object.entries(event.state || {})) {
-    const owner = Object.hasOwn(specialization, key) ? specialization : core;
-    (owner as Record<string, unknown>)[key] = structuredClone(value);
-  }
-  Object.assign(core, preserved);
-}
-export const revenantCoreResolverEventHandlers = Object.freeze({
+export { handleRevenantState } from "./events.js";
+
+export const revenantCoreEventHandlers = Object.freeze({
   "revenant.state": handleRevenantState,
 });
 
-export const revenantCoreResolverEventReactions = Object.freeze({});
-
+export const revenantCoreEventReactions = Object.freeze({});

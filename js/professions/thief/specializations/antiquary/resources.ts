@@ -21,7 +21,7 @@ export function advanceAntiquaryResources(
     0,
     Number(state.combatHighExpiresAt || 0) - target,
   );
-  state.combatHighStacks = Math.min(10, Math.ceil(combatHighRemaining / 2));
+  state.combatHighStacks = Math.min(10, Math.ceil(combatHighRemaining / 2)); // 1 stack per 2s remaining, capped at 10; matches the in-game decay rate
   if (Number(state.stealthAttackExpiresAt || 0) <= target) {
     state.stealthAttackCharges = 0;
   }
@@ -29,6 +29,7 @@ export function advanceAntiquaryResources(
     state.mistburnCharges = 0;
   }
   if (Number(state.holoUtilityCooldownReductionExpiresAt || 0) <= target) {
+    // bulk-clear the per-use expiration list once the last window has passed; individual uses are consumed in rules.ts
     state.holoUtilityCooldownReduction = 0;
     state.holoUtilityCooldownReductionExpirations = [];
   }
@@ -51,6 +52,7 @@ export function spendAntiquaryResources(
   if (Number(state.chakInitiativeRefundUntil || 0) > context.start) {
     gainThiefInitiative(context, cost, context.start, "chak-shield-refund");
   }
+  // Prodigious Pincher should not fire during pre-cast; initiative spent before combat begins must not count toward the threshold
   const inCombat =
     !context.hasExplicitCombatStart ||
     (context.combatStartTime != null &&

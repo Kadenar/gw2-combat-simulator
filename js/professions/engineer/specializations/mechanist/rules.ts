@@ -135,6 +135,10 @@ function modifyMechanistAttributes(
   const modified = cloneEngineerAttributes(attributes);
   if (!engineerMechEvent(context)) return modified;
   const mightStacks = activeBoonStacks(context, "might");
+  // The mech inherits base player stats, not boon-amplified ones. Strip might
+  // and fury bonuses before feeding into engineerMechAttributes so the mech's
+  // stat formula starts from raw gear values. Shift Signet is the exception:
+  // its passive re-applies might bonuses directly to the mech afterward.
   const inheritedSource = {
     ...modified,
     power: Math.max(
@@ -189,6 +193,8 @@ function modifyMechanistRechargeDuration(
       configuredSkillNames(context.config).has("Overclock Signet") &&
       (jDrive || overclockReadyAt <= Number(context.start || 0))
     ) {
+      // J-Drive stacks its own 5% reduction on top of Overclock Signet's 20%,
+      // yielding 0.8 × 0.95 = 0.76 combined cooldown multiplier.
       return duration * (jDrive ? 0.76 : 0.8);
     }
   }

@@ -37,6 +37,7 @@ interface DeadeyeHandlerState {
 function completeDeadeyesMark(context: ThiefCastContext): void {
   const state = deadeyeState.from(context);
   const at = context.effectiveEnd;
+  // Re-marking an already-marked target adds to existing malice rather than resetting it
   const remarkingTarget =
     state.markedTargetId === "primary-target" && state.markExpiresAt > at;
   state.markedTargetId = "primary-target";
@@ -52,6 +53,7 @@ function completeDeadeyesMark(context: ThiefCastContext): void {
   applyMaleficentSeven(context, at);
   completeStealWithStoredSkill(context, selectedDeadeyeStolenSkill(context));
   applyDeadeyesMarkTraits(context, at);
+  // Cancel any pending expiry task from the previous mark before scheduling the new one
   context.tasks.cancelOwner("thief.deadeye-mark");
   context.tasks.schedule({
     type: "thief.deadeye-mark-expire",
@@ -67,6 +69,7 @@ function prepareDeadeyeStealthAttack(
   skill: ThiefSkill,
 ): DeadeyeHandlerState {
   const state = deadeyeState.from(context);
+  // Malicious Intent's bonus applies only when the target is already marked; snapshot effective malice before beginStealthAttack clears stealth
   const maliciousIntentMalice =
     state.markedTargetId && state.markExpiresAt > context.start
       ? deadeyeStealthAttackMaliceBonus(context)
@@ -98,6 +101,7 @@ function observeDeadeyeStealthEffect(
     event.type === "condition" &&
     event.condition === "Torment"
   ) {
+    // Malicious Sneak Attack scales Torment duration by malice: base 1s + 2s per stack
     context.replaceEvent(event, {
       duration: 1 + Number(prepared.malice || 0) * 2,
     });
@@ -107,6 +111,7 @@ function observeDeadeyeStealthEffect(
 function prepareDeadeyeStolenSkill(
   context: ThiefCastContext,
 ): DeadeyeHandlerState {
+  // Stolen skills only grant stealth when the player has at least 3 malice; snapshot before events are emitted
   return { grantsStealth: deadeyeState.from(context).malice >= 3 };
 }
 
@@ -122,9 +127,11 @@ function observeDeadeyeStolenEffect(
     event.kind === "stealth" &&
     !prepared.grantsStealth
   ) {
+    // Suppress the skill's built-in stealth grant when malice < 3; zeroing duration/stacks is the standard nullification pattern
     context.replaceEvent(event, { duration: 0, stacks: 0 });
   }
   if (event.type === "buff" && event.boon) {
+    // Stolen skill boons are applied to the party (up to 5 allies), not just self
     context.replaceEvent(event, {
       recipients: "party",
       maximumRecipients: 5,
@@ -150,13 +157,16 @@ function completeMercy(context: ThiefCastContext): void {
   const malice = Math.max(0, Number(state.malice || 0));
   state.malice = 0;
   state.maleficentSevenTriggered = false;
+  // Mercy resets Deadeye's Mark cooldown so the player can re-mark immediately
   context.state.cooldowns.delete(ID.DEADEYES_MARK);
+  // Initiative refund is 3 base + 1 per malice stack consumed
   gainThiefInitiative(context, 3 + malice, context.effectiveEnd, "mercy");
   emitThiefState(context, context.effectiveEnd, "mercy");
 }
 
 function completeShadowFlare(context: ThiefCastContext): void {
   const core = professionCoreState(context);
+  // Register Shadow Swap as an available flip for 4s; availability.ts gates the cast on this timestamp
   core.availableFlips[ID.SHADOW_SWAP] = context.effectiveEnd + 4;
   emitThiefState(context, context.effectiveEnd, "shadow-flare");
 }
@@ -168,6 +178,7 @@ function completeShadowSwap(context: ThiefCastContext): void {
 
 function prepareShadowMeld(context: ThiefCastContext): void {
   const core = professionCoreState(context);
+  // Shadow Meld cancels the Revealed debuff at cast start (not cast end) so the player re-enters stealth immediately
   core.revealedUntil = Math.min(core.revealedUntil, context.start);
   emitThiefState(context, context.start, "shadow-meld");
 }
@@ -194,6 +205,7 @@ function observeDeadeyeSpearStealthEffect(
     event.type === "damage" &&
     event.name === "Malicious Ashen Assault — Final Strike"
   ) {
+    // Final Strike damage scales with malice: coefficient × (1 + malice × 2%); only the final hit receives the multiplier
     context.replaceEvent(event, {
       coefficient:
         Number(event.coefficient || 0) *
@@ -211,6 +223,7 @@ function completeDeadeyeSpearStealthAttack(
   const at = context.effectiveEnd;
   gainThiefInitiative(context, 4, at, "ashen-assault-refund");
   if (Number(prepared.malice || 0) > 0) {
+    // Torment duration from Malicious Ashen Assault: 0.5s base + 0.5s per malice stack, only applied when malice > 0
     emitThiefCondition(context, {
       at,
       condition: "Torment",

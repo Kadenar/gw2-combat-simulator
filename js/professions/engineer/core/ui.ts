@@ -27,6 +27,7 @@ import type {
  * own their profession bars, resources, assumptions, and palette groups.
  */
 
+// display sort order for kit palette groups
 const KIT_ORDER = new Map<string, number>([
   ["Grenade Kit", 0],
   ["Flamethrower", 1],
@@ -45,6 +46,7 @@ const SKILL_SLOT_ORDER: readonly string[] = Object.freeze([
   "Elite",
 ]);
 
+// these skills appear in the palette but are not manually placed in utility slots
 const UNSELECTABLE_SLOT_SKILLS = new Set<string>([
   "Elixir B",
   "Elixir C",
@@ -55,6 +57,7 @@ const UNSELECTABLE_SLOT_SKILLS = new Set<string>([
   "Rocket Boots",
 ]);
 
+// the game uses different skill IDs for the same sword skills depending on whether the spec is Holosmith
 const HOLOSMITH_SWORD_SKILL_IDS = new Set<SkillId>([
   ID.RADIANT_ARC,
   ID.SUN_RIPPER,
@@ -70,6 +73,8 @@ const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set<SkillId>([
   ID.REFRACTION_CUTTER_ID_71121,
 ]);
 
+// controls which engineer.state events Core spec suppresses from the event log;
+// specialization modules handle filtering of their own state reasons
 const CORE_STATE_REASONS = new Set<string>([
   "arm-flip",
   "consume-flip",
@@ -86,6 +91,7 @@ const CORE_STATE_REASONS = new Set<string>([
   "deploy-turret",
 ]);
 
+// module-level; populated once at catalog-bind time (bindEngineerCoreUi) and stable for the session
 let engineerSkills: readonly EngineerSkill[] = [];
 let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
 let engineerTraits: readonly CatalogEntity[] = [];
@@ -147,6 +153,7 @@ export function selectedKitNames(context: EngineerUiContext): string[] {
   );
 }
 
+// deduplicates by skill name — some skills have multiple IDs (different specs); keep the first
 export function uniqueIdsBySkillName(skillIds: readonly SkillId[]): SkillId[] {
   return [
     ...new Map(
@@ -179,6 +186,7 @@ export function engineerWeaponSkillMatchesSet(
   context: EngineerUiContext = {},
 ): boolean {
   const holosmith = engineerUiSpecialization(context) === "Holosmith";
+  // filter out the wrong-spec sword skill IDs — each spec gets its own set of sword skill IDs
   if (
     (holosmith && NON_HOLOSMITH_SWORD_SKILL_IDS.has(skill?.id)) ||
     (!holosmith && HOLOSMITH_SWORD_SKILL_IDS.has(skill?.id))
@@ -209,6 +217,7 @@ function usesToolsTraitline(context: EngineerUiContext): boolean {
   );
 }
 
+// toolbelt skill is the non-Detonate variant — each parent has both a toolbelt skill and a detonate flip
 export function toolbeltSkillId(
   parentName: string | undefined,
 ): SkillId | null {
@@ -254,6 +263,8 @@ interface EngineerFSkillBarOptions {
   readonly color?: string;
 }
 
+// returns one group (fixed F-skills) when no Amalgam protocols are present;
+// returns two groups (fixed + configurable protocol slots) when Amalgam protocols exist
 export function engineerFSkillBarGroups(
   skillIds: readonly (SkillId | null)[],
   optionsBySlot: Readonly<Record<number, EngineerFSkillBarOptions>> = {},
@@ -412,6 +423,7 @@ export function engineerEventLogRow(
     (engineerUiSpecialization(context) === "Core" ||
       CORE_STATE_REASONS.has(String(event.reason)))
   )
+    // null = suppress; undefined = use platform default row
     return null;
   return undefined;
 }
@@ -491,6 +503,7 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
         shortLabel: "End",
         statusLabel: "Current",
       };
+      // endurance bar only shown when Tools traitline is active — that's when endurance management is relevant
       if (usesToolsTraitline(context)) views.push(endurance);
       return views;
     },
@@ -501,12 +514,14 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
     ): boolean {
       return (
         skill.slotSelectable !== false &&
+        // stow skills, flip/detonate skills, and UNSELECTABLE_SLOT_SKILLS live in the palette but aren't slotted
         skill.handlerId !== "engineer.kit-stow" &&
         skill.flipParentId == null &&
         !String(skill.name || "").startsWith("Detonate") &&
         !UNSELECTABLE_SLOT_SKILLS.has(skill.name)
       );
     },
+    // engineer weapon swap exits a kit, not a true weapon set change — sigil system must know this
     weaponSwapChangesSet: false,
     eventLogRow: engineerEventLogRow,
   });

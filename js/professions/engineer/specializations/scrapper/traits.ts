@@ -5,10 +5,12 @@ import type {
   EngineerSkill,
 } from "../../types.js";
 
+// Some skills set type="Heal", others only set slot="Heal"; check both.
 function isHealingSkill(skill: EngineerSkill | undefined): boolean {
   return skill?.type === "Heal" || skill?.slot === "Heal";
 }
 
+// Toolbelt skills inherit their heal category from their parent kit/gyro.
 function isHealingToolbeltSkill(
   context: EngineerCastContext,
   skill: EngineerSkill,
@@ -49,6 +51,7 @@ function emitBuff(
     skillName: skill.name,
     name,
     kind,
+    // GW2 caps superspeed at 10s regardless of source; other boons uncapped here
     duration: kind === "superspeed" ? Math.min(10, duration) : duration,
     stacks: 1,
   });
@@ -58,6 +61,8 @@ export function applyScrapperCastTraits(
   context: EngineerCastContext,
   skill: EngineerSkill,
 ): void {
+  // Speed of Synergy (master trait): healing toolbelt skills grant superspeed.
+  // Med Kit toolbelt gets 12s (exceptional duration from the kit design); all others get 5s.
   if (
     hasEngineerTrait(context.config, TRAIT.SPEED_OF_SYNERGY)
     && isHealingToolbeltSkill(context, skill)
@@ -71,6 +76,8 @@ export function applyScrapperCastTraits(
       "Speed of Synergy — superspeed",
     );
   }
+  // Speed of Synergy also applies when casting the heal skill itself (7s),
+  // but Med Kit is excluded because equipping it doesn't constitute a cast.
   if (
     hasEngineerTrait(context.config, TRAIT.SPEED_OF_SYNERGY)
     && isHealingSkill(skill)
@@ -85,6 +92,7 @@ export function applyScrapperCastTraits(
       "Speed of Synergy — superspeed",
     );
   }
+  // Gyroscopic Acceleration (adept trait): Well skills and Function Gyro grant 5s superspeed.
   if (
     hasEngineerTrait(context.config, TRAIT.GYROSCOPIC_ACCELERATION)
     && (category(skill, "Well") || isFunctionGyro(skill))
@@ -98,7 +106,9 @@ export function applyScrapperCastTraits(
       "Gyroscopic Acceleration — superspeed",
     );
   }
+  // Remaining traits only proc on Function Gyro.
   if (!isFunctionGyro(skill)) return;
+  // System Shocker (master trait): Function Gyro dazes for 1s on cast.
   if (hasEngineerTrait(context.config, TRAIT.SYSTEM_SHOCKER)) {
     context.emit({
       type: "control",
@@ -113,6 +123,7 @@ export function applyScrapperCastTraits(
       duration: 1,
     });
   }
+  // Mass Momentum (GM trait): Function Gyro grants 3 stacks of stability (seeds the pulse loop).
   if (hasEngineerTrait(context.config, TRAIT.MASS_MOMENTUM)) {
     emitBuff(
       context,

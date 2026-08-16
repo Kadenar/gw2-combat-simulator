@@ -57,6 +57,8 @@ export function advanceGaleshotArrows(
   const generated = Math.floor((target - state.arrowsUpdatedAt) / interval);
   if (generated <= 0) return;
   state.arrows = Math.min(state.maximumArrows, state.arrows + generated);
+  // Advance by whole intervals only so the fractional remainder carries forward
+  // and isn't lost to floating-point truncation on the next advance call.
   state.arrowsUpdatedAt += generated * interval;
 }
 
@@ -70,8 +72,8 @@ export function observeGaleshotEvent(
   event: SimulationEvent,
 ): void {
   if (event.type === "ranger.pet-swapped") {
-    // Wuthering Wind is applied to the active pet, so an unused trigger is
-    // discarded with that pet instead of carrying to its replacement.
+    // Wuthering Wind targets the active pet; an unconsumed charge is lost on
+    // swap rather than transferring to the incoming pet.
     galeshotState.from(context).wutheringWindReady = false;
   }
   if (
@@ -164,6 +166,7 @@ export function handleGaleshotMissileHitTask(
   if (!hasTrait({ config: context.config }, TRAIT.SHRIKE)) return;
   state.missileHits += 1;
   if (state.missileHits < 12) return;
+  // Subtract rather than reset so any overshoot from burst windows is preserved.
   state.missileHits -= 12;
   restoreArrow(context);
   for (let hitIndex = 1; hitIndex <= 3; hitIndex += 1) {
@@ -234,6 +237,8 @@ export function handleGaleshotPetHitTask(
     canCrit: true,
     damageKind: "galeshot-wuthering-wind",
     triggeredBy: payload?.skillName,
+    // Trait proc uses pet power scaling, not the player's weapon strength;
+    // profession modifiers (e.g. Flock Together) still apply via the flags below.
     independentSummonStrike: true,
     summonUsesProfessionModifiers: true,
     summonBasePower: RANGER_PET_STRIKE_SCALING.basePower,
@@ -253,12 +258,16 @@ export function handleGaleshotDisableTask(
   ) {
     return;
   }
+  // 0.25 s ICD prevents one multi-hit ability from restoring more than one arrow.
   state.thrillOfTheCatchReadyAt = context.state.time + 0.25;
   restoreArrow(context);
 }
 
 function isBeastSkill(skill: RangerSkill): boolean {
   return Boolean(
+    // petFamilySkills are passive and never cast by the player, so they don't
+    // count. BEASTMODE / LEAVE_BEASTMODE are the mode-switch commands, not
+    // actual pet abilities, so they're excluded as well.
     (skill.petSkill && !skill.petFamilySkill) ||
     (skill.beastmodeSkill &&
       skill.id !== ID.BEASTMODE &&

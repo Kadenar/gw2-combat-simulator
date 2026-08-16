@@ -13,6 +13,8 @@ export const firebrandEventHandlers = Object.freeze({
 export const firebrandEventReactions = Object.freeze({
   damage: Object.freeze([
     {
+      // Ashes runs first (order 10) so it can consume a charge before Justice
+      // (order 20) potentially changes the hit context for the same event.
       id: "guardian.ashes-of-the-just",
       order: 10,
       handler: reactToAshesHit,

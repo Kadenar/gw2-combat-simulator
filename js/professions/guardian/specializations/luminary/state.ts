@@ -7,14 +7,21 @@ export function createLuminaryState(): GuardianLuminaryState {
     radiantForgeEndsAt: 0,
     radiantForgeEnteredAt: 0,
     radiantWeapon: "",
+    // Tracks which of the four weapon types were used so finalizeRadiantForgeCooldown
+    // can scale the recharge by the number of unused weapons.
     radiantWeaponsUsed: {},
     empoweredArmamentsUntil: 0,
     piercingStanceUntil: 0,
     lightAuraUntil: 0,
     lightFields: [],
+    // One-shot flags: set by a virtue cast, consumed by the next matching
+    // radiant weapon so each proc fires at most once per virtue use.
     radiantJusticeArmed: false,
     radiantCourageSwordArmed: false,
     radiantCourageShieldArmed: false,
+    // Effulgent Stance tracking lives in scheduler state so the strike-count
+    // window is checked in real time; the detonation event then replays it
+    // into resolver state for damage calculation.
     effulgentActiveUntil: 0,
     effulgentStacks: 0,
   };

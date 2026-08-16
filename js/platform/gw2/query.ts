@@ -225,8 +225,6 @@ export function createGw2CombatQuery<
   ): string | null => {
     if (!event || gw2EventActorType(event) !== "summon") return null;
     if (event.summonOwner) return String(event.summonOwner);
-    if (event.cloneId != null) return `mesmer.clone:${String(event.cloneId)}`;
-    if (event.source === "ranger-pet") return "ranger-pet";
     return null;
   };
   /**
@@ -279,6 +277,7 @@ export function createGw2CombatQuery<
     runtime: Gw2QueryRuntime | null | undefined,
     event: SimulationEvent | null | undefined,
   ): boolean => {
+    if (event?.summonIgnoresBoons === true) return false;
     const isolatedSummon = isBoonIsolatedSummonEvent(event);
     const inheritsOwnerCriticalState =
       event?.summonInheritsAttributes === true ||
@@ -317,8 +316,9 @@ export function createGw2CombatQuery<
     time: number,
     runtime: Gw2QueryRuntime | null | undefined,
     event: SimulationEvent | null | undefined,
-  ): number =>
-    dynamicBoonStacksAt(
+  ): number => {
+    if (event?.summonIgnoresBoons === true) return 0;
+    return dynamicBoonStacksAt(
       "might",
       time,
       25,
@@ -327,6 +327,7 @@ export function createGw2CombatQuery<
       0,
       summonCompanionId(event),
     );
+  };
   /**
    * @param {number} time
    * @param {Gw2QueryRuntime | null | undefined} runtime
@@ -576,11 +577,7 @@ export function createGw2CombatQuery<
       );
       const sigilCritical = sigilCriticalContribution(runtime, time);
       chance += sigilCritical.chance;
-      addContributor(
-        "sigil-severance",
-        "Sigil of Severance",
-        sigilCritical.chance,
-      );
+      contributors.push(...sigilCritical.chanceContributors);
       damage += sigilCritical.damage;
       let chanceBeforeCap = chance;
       if (event.canCrit === false || event.noCrit) chance = 0;
@@ -610,12 +607,10 @@ export function createGw2CombatQuery<
       runtime: Gw2QueryRuntime | null = null,
     ) {
       const relicContext = runtime?.relic ? runtime : historicalRelicContext;
-      const relicBonus = relicOutgoingDamageBonus(
-        relicContext,
-        "strike",
-        time,
-        event,
-      );
+      const relicBonus =
+        event?.summonUsesEquipmentModifiers === false
+          ? 0
+          : relicOutgoingDamageBonus(relicContext, "strike", time, event);
       if (event?.independentSummonStrike === true) {
         const base =
           (1 + vulnerabilityStacksAt(time, runtime) / 100) *
@@ -654,16 +649,17 @@ export function createGw2CombatQuery<
       runtime: Gw2QueryRuntime | null = null,
     ) {
       const relicContext = runtime?.relic ? runtime : historicalRelicContext;
-      const relicBonus = relicOutgoingDamageBonus(
-        relicContext,
-        "condition",
-        time,
-        event,
-      );
+      const usesEquipmentModifiers =
+        event?.summonUsesEquipmentModifiers !== false;
+      const relicBonus = usesEquipmentModifiers
+        ? relicOutgoingDamageBonus(relicContext, "condition", time, event)
+        : 0;
       const sigils = activeSigilSetAt(time, runtime);
       const base =
         (1 + vulnerabilityStacksAt(time, runtime) / 100) *
-        (Number(sigils.condition || 1) + relicBonus) *
+        (usesEquipmentModifiers
+          ? Number(sigils.condition || 1) + relicBonus
+          : 1) *
         Number(config.modifiers?.condition || 1);
       return activeProfession.modifyConditionDamage(
         hookContext(time, {
@@ -683,11 +679,16 @@ export function createGw2CombatQuery<
       runtime: Gw2QueryRuntime | null = null,
     ) {
       const sigils = activeSigilSetAt(time, runtime);
-      const sigilBonus =
-        (Number(sigils.conditionDurationBonus || 0) +
-          Number(sigils.conditionDurationBonuses?.[name] || 0)) /
-        100;
-      const relicBonus = equipmentConditionDurationBonus(runtime, time);
+      const usesEquipmentModifiers =
+        event?.summonUsesEquipmentModifiers !== false;
+      const sigilBonus = usesEquipmentModifiers
+        ? (Number(sigils.conditionDurationBonus || 0) +
+            Number(sigils.conditionDurationBonuses?.[name] || 0)) /
+          100
+        : 0;
+      const relicBonus = usesEquipmentModifiers
+        ? equipmentConditionDurationBonus(runtime, time)
+        : 0;
       const base = gw2ConditionDurationMultiplier(
         name,
         stats,

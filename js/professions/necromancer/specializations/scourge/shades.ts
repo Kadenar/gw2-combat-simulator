@@ -47,6 +47,8 @@ function emitShadeCondition(
   );
 }
 
+// Default `at` is effectiveEnd because barrier traits fire on cast completion; callers that
+// need a different timing (e.g. Sandstorm pulse) pass their own timestamp explicitly
 function applyBarrierTraits(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -89,6 +91,8 @@ function shade(
 ): boolean {
   const state = scourgeState.from(context);
   const at = context.effectiveEnd;
+  // Manifest Sand Shade's strike lands at 11/12 of the cast window (just before the cast ends),
+  // matching the in-game timing; all other shade skills strike at cast completion
   const impactAt =
     skill.id === ID.MANIFEST_SAND_SHADE
       ? context.start + (context.fullEnd - context.start) * (11 / 12)
@@ -99,6 +103,8 @@ function shade(
     const duration = hasTrait(context, TRAIT.SAND_SAVANT)
       ? shadeMechanics.manifest.sandSavantDuration
       : shadeMechanics.manifest.duration;
+    // Sort ascending then take the last `maximum` entries so that when the cap
+    // is exceeded the oldest (soonest-expiring) shade is evicted, not the newest
     state.shades = [...state.shades, at + duration]
       .sort((left, right) => left - right)
       .slice(-maximum);
@@ -116,6 +122,7 @@ function shade(
         ),
     );
     if (
+      // Plague Sending only triggers on F4/F5 shade skills, not on Manifest or the three minor F-skills
       new Set<string | number>([ID.DESERT_SHROUD, ID.SANDSTORM_SHROUD]).has(
         skill.id,
       ) &&
@@ -126,6 +133,8 @@ function shade(
           application.appliedAt <= at && application.expiresAt > at,
       );
       coreState.plagueSendingArmed = true;
+      // Track which skill armed the proc so the resolver can attribute the transfer correctly;
+      // null means a self-condition was already present before this cast
       coreState.plagueSendingEntrySkillId = hasActiveSelfCondition
         ? null
         : skill.id;
@@ -138,8 +147,9 @@ function shade(
   emitState(context, at, "shade");
 
   // ArcDPS records the automatic shade strike under two Manifest Sand Shade
-  // packet identities: Nefarious Favor uses one, while F1/F5 use the other.
-  // Keep the parent cast for mechanics, but report those packets separately.
+  // packet identities: Nefarious Favor uses one, while all other F-skills use
+  // another. Keep the parent cast skill for mechanics, report the packet name
+  // separately so EVTC parsing can match the correct hit to the correct source.
   const shadeStrikeName =
     skill.id === ID.NEFARIOUS_FAVOR
       ? "Manifest Sand Shade"
@@ -152,6 +162,7 @@ function shade(
     metadata: {
       skillName: shadeStrikeName,
       parentSkillName: skill.name,
+      // flagged as shroud skill one so Dhuumfire and other "on shroud skill 1" traits proc correctly
       necromancerShroudSkillOne: true,
       dhuumfireDuration: 2,
       dhuumfireInterval: 1,
@@ -209,6 +220,7 @@ function shade(
     if (hasTrait(context, TRAIT.SOUL_BARBS)) {
       emitBuff(context, skill, "necromancer-soul-barbs", 15, 1, { at });
     }
+    // Pulses fire at cast-end + 0s, 1s, 2s; detonation fires separately at cast-end + 3.5s
     for (let index = 0; index < sandstorm.pulseCount; index += 1) {
       const pulseAt = at + index * sandstorm.pulseInterval;
       applyBarrierTraits(context, skill, pulseAt);

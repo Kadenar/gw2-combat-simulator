@@ -43,5 +43,5 @@ export const paragonUi: Partial<ProfessionUiContract> = Object.freeze({
     warriorSkillBarGroups(context, CHANTS),
   resourceViews: resources,
   eventLogRow: (_context: WarriorUiContext, event: SimulationEvent) =>
-    event.type === "paragon.state" ? null : undefined,
+    event.type === "warrior.paragon-state" ? null : undefined,
 });

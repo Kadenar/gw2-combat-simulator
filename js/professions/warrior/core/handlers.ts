@@ -250,7 +250,6 @@ export const warriorCoreSkillHandlers = Object.freeze({
     afterEffect: adjustFierceBlowDamage,
   }),
   "warrior.weapon-swap": replaceSkillHandler(swapWarriorWeapons),
-  "warrior.gunstinger": augmentSkillHandler(null),
   "warrior.dragons-roar": replaceSkillHandler(consumeDragonRoarAmmo),
   "warrior.dodge": replaceSkillHandler(performWarriorDodge),
 });

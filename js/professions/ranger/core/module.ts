@@ -19,11 +19,8 @@ import {
 import { createRangerCoreState, projectRangerEndState } from "./state.js";
 import { bindRangerCoreUi } from "./ui.js";
 import {
-  rangerCoreCriticalReactions,
   rangerCoreEventHandlers,
-  reactToRangerCoreBuff,
-  reactToRangerCoreControl,
-  reactToRangerCoreDamage,
+  rangerCoreEventReactions,
 } from "./resolver.js";
 
 export const rangerCoreModule = defineNativeModule({
@@ -44,22 +41,10 @@ export const rangerCoreModule = defineNativeModule({
     schedulerHooks: rangerCoreSchedulerHooks,
     resolverHooks: { eventHandlers: rangerCoreEventHandlers },
     reactions: [
-      onResolvedPlayerCriticalHit(rangerCoreCriticalReactions),
-      onResolvedDamage({
-        id: "ranger.core-damage",
-        order: 10,
-        handler: reactToRangerCoreDamage,
-      }),
-      onResolvedControl({
-        id: "ranger.core-control",
-        order: 10,
-        handler: reactToRangerCoreControl,
-      }),
-      onBuffApplied({
-        id: "ranger.core-buff",
-        order: 10,
-        handler: reactToRangerCoreBuff,
-      }),
+      ...rangerCoreEventReactions.critical.map(onResolvedPlayerCriticalHit),
+      ...rangerCoreEventReactions.damage.map(onResolvedDamage),
+      ...rangerCoreEventReactions.control.map(onResolvedControl),
+      ...rangerCoreEventReactions.buff.map(onBuffApplied),
     ],
   },
   presentation: bindRangerCoreUi,

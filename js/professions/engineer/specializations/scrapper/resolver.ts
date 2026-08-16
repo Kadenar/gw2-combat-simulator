@@ -6,13 +6,15 @@ import {
   procState,
   queueBuff,
   recordTrait,
-} from "../../core/resolver.js";
+} from "../../core/shared.js";
 import { SCRAPPER_MASS_MOMENTUM } from "./mechanics.js";
 import type {
   EngineerResolverContext,
   EngineerResolverEvent,
 } from "../../types.js";
 
+// Deduplicates pulse events: if one is already scheduled at or before `at`, skip.
+// massMomentumPulseAt tracks the timestamp of the outstanding pulse so stale ones are ignored.
 function scheduleMassMomentumPulse(
   context: EngineerResolverContext,
   at: number,
@@ -30,14 +32,16 @@ function scheduleMassMomentumPulse(
   });
 }
 
+// Grants 1 might if stability is active and the 1s ICD has elapsed, then reschedules the pulse.
 function triggerMassMomentum(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
 ): void {
   if (
-    !hasTrait(context, TRAIT.MASS_MOMENTUM)
-    || activeBoonStacks(context, "stability", 1, event.at) === 0
-  ) return;
+    !hasTrait(context, TRAIT.MASS_MOMENTUM) ||
+    activeBoonStacks(context, "stability", 1, event.at) === 0
+  )
+    return;
   const state = procState(context);
   if (Number(state.massMomentum || 0) <= event.at) {
     state.massMomentum = event.at + SCRAPPER_MASS_MOMENTUM.pulseInterval;
@@ -60,19 +64,19 @@ function triggerMassMomentum(
   );
 }
 
+// Clears the stale pulse sentinel, then re-checks stability to keep the loop alive.
 function handleMassMomentumPulse(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
 ): void {
   const state = procState(context);
-  if (
-    Math.abs(Number(state.massMomentumPulseAt || 0) - event.at) <= 1e-9
-  ) {
+  if (Math.abs(Number(state.massMomentumPulseAt || 0) - event.at) <= 1e-9) {
     state.massMomentumPulseAt = 0;
   }
   triggerMassMomentum(context, event);
 }
 
+// Only real damage hits (coefficient > 0) trigger the pulse; 0-coeff events are skipped.
 function reactToScrapperDamage(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
@@ -85,10 +89,11 @@ function reactToScrapperBuff(
   event: EngineerResolverEvent,
 ): void {
   const kind = String(event.kind || "").toLowerCase();
+  // Applied Force (GM trait): reaching 10+ might stacks triggers 3s stability on a 10s ICD.
   if (
-    kind === "might"
-    && hasTrait(context, TRAIT.APPLIED_FORCE)
-    && activeBoonStacks(context, "might", 25, event.at) >= 10
+    kind === "might" &&
+    hasTrait(context, TRAIT.APPLIED_FORCE) &&
+    activeBoonStacks(context, "might", 25, event.at) >= 10
   ) {
     const state = procState(context);
     if (Number(state.appliedForce || 0) <= event.at) {
@@ -104,6 +109,7 @@ function reactToScrapperBuff(
       recordTrait(context, "Applied Force", event);
     }
   }
+  // Any new stability buff (including the one Applied Force just queued) kicks the pulse loop.
   if (kind === "stability") triggerMassMomentum(context, event);
 }
 

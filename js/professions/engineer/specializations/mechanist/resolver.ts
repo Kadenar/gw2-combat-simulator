@@ -6,7 +6,7 @@ import {
   queueBuff,
   recordTrait,
   resolverSkill,
-} from "../../core/resolver.js";
+} from "../../core/shared.js";
 import type {
   EngineerResolverContext,
   EngineerResolverEvent,
@@ -17,10 +17,8 @@ function isEngineerMechEvent(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
 ): boolean {
-  if (
-    event.engineerMech === true
-    || event.application?.engineerMech === true
-  ) return true;
+  if (event.engineerMech === true || event.application?.engineerMech === true)
+    return true;
   if (event.actorType !== "summon") return false;
   const skill = resolverSkill(
     context,
@@ -40,9 +38,11 @@ function reactToMechanistDamage(
   if (!isEngineerMechEvent(context, event)) return;
 
   if (
-    hasTrait(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS)
-    && Number(state.singleEdgeCutters || 0) <= event.at
+    hasTrait(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS) &&
+    Number(state.singleEdgeCutters || 0) <= event.at
   ) {
+    // 1-second ICD: store next-eligible timestamp so rapid mech hits don't
+    // trigger the trait on every packet.
     state.singleEdgeCutters = event.at + 1;
     applyCondition(details, context, event, {
       name: "Mech Arms: Single-Edge Cutters",
@@ -56,9 +56,10 @@ function reactToMechanistDamage(
     recordTrait(context, "Mech Arms: Single-Edge Cutters", event);
   }
   if (
-    hasTrait(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS)
-    && Number(state.highImpactDrivers || 0) <= event.at
+    hasTrait(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS) &&
+    Number(state.highImpactDrivers || 0) <= event.at
   ) {
+    // Same 1-second ICD pattern as Single-Edge Cutters above.
     state.highImpactDrivers = event.at + 1;
     queueBuff(context, event, {
       name: "Mech Arms: High-Impact Drivers",
@@ -71,8 +72,8 @@ function reactToMechanistDamage(
     recordTrait(context, "Mech Arms: High-Impact Drivers", event);
   }
   if (
-    event.mechBasicAttack === true
-    && hasTrait(context, TRAIT.MECH_ARMS_JADE_CANNONS)
+    event.mechBasicAttack === true &&
+    hasTrait(context, TRAIT.MECH_ARMS_JADE_CANNONS)
   ) {
     applyCondition(details, context, event, {
       name: "Mech Arms: Jade Cannons",

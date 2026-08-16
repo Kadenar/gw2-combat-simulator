@@ -37,6 +37,7 @@ function harbingerStateSnapshot(context: NecromancerUiContext) {
       title: "Current Harbinger Blight stacks",
     },
   ];
+  // Only show Cascading Corruption if the player has the trait or already has stacks (e.g. from a saved initial state).
   if (hasTrait || stacks > 0) {
     items.push({
       id: "cascading-corruption-stacks",
@@ -85,6 +86,7 @@ export const harbingerUi: Partial<ProfessionUiContract> & SchedulerRecord =
         id: "cascading-corruption",
         singular: "Cascading Corruption stack",
         plural: "Cascading Corruption stacks",
+        // Maximum is 19, not 20: entering a simulation with 20 stacks would immediately proc Meltdown before any action.
         maximum: 19,
         value: Number(
           necromancerUiState(context).cascadingCorruptionStacks ??

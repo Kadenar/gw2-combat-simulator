@@ -30,9 +30,11 @@ export const engineerCoreModule = defineNativeModule({
     skillMechanics: ENGINEER_CORE_SKILL_MECHANICS,
     extraSkills: ENGINEER_CORE_EXTRA_SKILLS,
     handlers: engineerCoreSkillHandlers,
+    // RIFLE_BURST_GRENADE is a sub-packet of Rifle Burst, not a standalone chain member
     autoattackChains: { excludeSkillIds: [ID.RIFLE_BURST_GRENADE] },
   }),
   state: {
+    // scheduler and resolver each need an independent initial state instance
     scheduler: createEngineerCoreState,
     resolver: createEngineerCoreState,
     project: projectEngineerEndState,
@@ -42,18 +44,14 @@ export const engineerCoreModule = defineNativeModule({
     castRules: engineerCoreCastRules,
     schedulerHooks: {
       ...engineerCoreSchedulerHooks,
+      // snapshot wraps snapshotEngineerState to match the hook signature (context → state)
       snapshot: (context: EngineerSchedulerContext) =>
         snapshotEngineerState(context.state.profession),
     },
     reactions: [
-      onResolvedDamage({
-        id: "engineer.core.damage",
-        handler: engineerCoreResolverEventReactions.damage,
-      }),
-      onConditionApplied({
-        id: "engineer.core.condition",
-        handler: engineerCoreResolverEventReactions.condition,
-      }),
+      // onResolvedDamage / onConditionApplied adapt the handler signatures to platform reaction hooks
+      ...engineerCoreResolverEventReactions.damage.map(onResolvedDamage),
+      ...engineerCoreResolverEventReactions.condition.map(onConditionApplied),
     ],
     resolverHooks: {
       eventHandlers: engineerCoreResolverEventHandlers,

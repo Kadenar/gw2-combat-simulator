@@ -30,6 +30,7 @@ export const specterSchedulerHooks = Object.freeze({
   }),
 });
 
+// Second Opinion grants an extra +90 condition damage only while wielding Scepter in the active set.
 function wieldingScepter(context: Gw2ModifierContext): boolean {
   const activeSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
   return activeSet === 2
@@ -45,6 +46,7 @@ function modifySpecterAttributes(
   const result = { ...attributes };
   // Pattern C: conversions read gear-only stats. config.stats excludes might
   // (baked into the seed's condition damage) and live trait bonuses.
+  // Using gear stats directly avoids double-counting the flat bonuses added below.
   const gearConditionDamage = Number(context.config?.stats?.conditionDamage || 0);
   const gearVitality = Number(context.config?.stats?.vitality || 0);
   if (hasTrait(context, TRAIT.SECOND_OPINION)) {

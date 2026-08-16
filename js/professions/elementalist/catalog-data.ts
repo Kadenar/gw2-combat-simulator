@@ -83,10 +83,14 @@ export const ELEMENTALIST_SMALL_HITBOX_CAPS: ReadonlyMap<string, number> =
     ["Fiery Whirl", 4],
   ]);
 
+/**
+ * Numbers correlated strike and condition packets so a target-size rule can
+ * exclude every packet above the skill's small-hitbox cap.
+ */
 function hitboxMetadata(hitIndex: number, smallHitboxCap: number) {
   return {
-    elementalistHitboxIndex: hitIndex,
-    elementalistSmallHitboxCap: smallHitboxCap,
+    hitboxIndex: hitIndex,
+    smallHitboxCap,
   };
 }
 
@@ -172,7 +176,7 @@ function withLargeWildfireDuration(skill: Skill): readonly SkillEffect[] {
             coefficient: 0.44,
             metadata: {
               damageKind: "field-tick",
-              elementalistLargeHitboxOnly: true,
+              largeHitboxOnly: true,
             },
           })),
         ],
@@ -188,7 +192,7 @@ function withLargeWildfireDuration(skill: Skill): readonly SkillEffect[] {
             condition: "Burning",
             stacks: 1,
             duration: 3,
-            metadata: { elementalistLargeHitboxOnly: true },
+            metadata: { largeHitboxOnly: true },
           })),
         ],
       };

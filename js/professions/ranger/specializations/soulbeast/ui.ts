@@ -14,6 +14,7 @@ import type {
 } from "../../../../platform/engine/types.js";
 import type { RangerSkill, RangerUiContext } from "../../types.js";
 
+// Populated lazily at bind time from the catalog; can't be a const because the catalog isn't available at module load.
 let beastmodeSkillIds = new Set<SkillId>();
 const BEASTMODE_TOGGLE_IDS = new Set<SkillId>([
   ID.BEASTMODE,
@@ -25,6 +26,7 @@ const SOULBEAST_HIDDEN_EVENT_TYPES = new Set([
 ]);
 
 function beastmodeActive(context: RangerUiContext): boolean {
+  // Treat missing state as active: initial state starts in Beastmode, so undefined means merged.
   return rangerUiState(context).beastmodeActive !== false;
 }
 
@@ -35,6 +37,8 @@ function availability(
   const active = beastmodeActive(context);
   const selectedSkillIds =
     selectedRangerUiPet(context)?.beastmodeSkillIds || [];
+  // A beast skill exists in the catalog for every pet, but only the selected pet's
+  // merged skills should be usable — block the rest before checking the mode flag.
   if (
     beastmodeSkillIds.has(skill.id) &&
     !BEASTMODE_TOGGLE_IDS.has(skill.id) &&
@@ -73,6 +77,7 @@ function paletteGroups(context: RangerUiContext): ProfessionPaletteGroup[] {
       resourceAnchor: true,
     },
   ];
+  // Pet palette is only meaningful when unmerged — in Beastmode the pet's skills are subsumed into beast skills.
   if (!active) groups.push(rangerPetPaletteGroup(context));
   return groups;
 }
@@ -92,6 +97,7 @@ const soulbeastUi: Partial<ProfessionUiContract> & SchedulerRecord =
     ],
     paletteGroups,
     paletteSkillAvailability: availability,
+    // Return null (suppress) for internal bookkeeping events that have no meaningful display to the user.
     eventLogRow: (_context: RangerUiContext, event: SchedulerRecord) =>
       SOULBEAST_HIDDEN_EVENT_TYPES.has(String(event.type)) ? null : undefined,
   });

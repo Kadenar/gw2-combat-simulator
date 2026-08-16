@@ -124,7 +124,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.ZEALOTS_FIRE]: {
     implemented: true,
-    castTimeMs: 250,
     quicknessCastTimeMs: 680,
     cooldown: 0,
     effects: [
@@ -690,7 +689,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.PURGING_FLAMES]: {
     implemented: true,
-    castTimeMs: 250,
     quicknessCastTimeMs: 320,
     cooldown: 20,
     comboFields: [
@@ -957,7 +955,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.FEEL_MY_WRATH]: {
     implemented: true,
-    castTimeMs: 600,
     quicknessCastTimeMs: 400,
     cooldown: 30,
     effects: [
@@ -1028,7 +1025,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.SYMBOL_OF_VENGEANCE]: {
     implemented: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 800,
     effects: [
       {
@@ -1114,7 +1110,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.SEARING_SLASH]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 640,
     effects: [
       {
@@ -1139,7 +1134,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BLEEDING_EDGE]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 680,
     effects: [
       {
@@ -1175,7 +1169,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.CORE_CLEAVE]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 640,
     effects: [
       {
@@ -1200,7 +1193,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BLAZING_EDGE]: {
     implemented: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 520,
     effects: [
       {
@@ -1325,7 +1317,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.FEEL_MY_WRATH_ID_68670]: {
     implemented: true,
-    castTimeMs: 600,
     quicknessCastTimeMs: 400,
     cooldown: 30,
     effects: [
@@ -1356,7 +1347,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.JURISDICTION]: {
     implemented: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 800,
     cooldown: 20,
     effects: [
@@ -1388,7 +1378,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.HAIL_OF_JUSTICE]: {
     implemented: true,
-    castTimeMs: 250,
     quicknessCastTimeMs: 1120,
     cooldown: 10,
     ammo: 2,
@@ -1433,7 +1422,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.PEACEKEEPER]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 1040,
     cooldown: 6,
     rechargeAnchor: "castStart",
@@ -1496,7 +1484,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.SYMBOL_OF_IGNITION]: {
     implemented: true,
-    castTimeMs: 250,
     quicknessCastTimeMs: 360,
     comboFields: [
       {
@@ -1530,7 +1517,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.THROUGH_THE_HEART]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 600,
     effects: [
       {

@@ -21,6 +21,9 @@ export const luminaryModule = defineNativeModule({
     handlers: luminarySkillHandlers,
   }),
   state: {
+    // Both scheduler and resolver get independent state instances; the resolver
+    // rebuilds its view by replaying timeline events rather than sharing a
+    // reference with the scheduler.
     scheduler: luminaryState.create,
     resolver: luminaryState.create,
   },
@@ -28,6 +31,8 @@ export const luminaryModule = defineNativeModule({
     modifiers: luminaryAttributeRules,
     castRules: luminaryCastRules,
     schedulerHooks: luminarySchedulerHooks,
+    // .map(onResolvedDamage) wraps each reaction so it only fires after damage
+    // has been numerically resolved rather than at raw event time.
     reactions: luminaryEventReactions.damage.map(onResolvedDamage),
     resolverHooks: { eventHandlers: luminaryEventHandlers },
   },

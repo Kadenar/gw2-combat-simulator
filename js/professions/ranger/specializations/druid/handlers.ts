@@ -10,6 +10,7 @@ export const druidSkillHandlers = Object.freeze({
   "ranger.celestial-avatar-exit": {
     mode: "augment" as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
+      // Manual exit: pass exhausted=false so half astral force is retained, and pass the skill for the sigil swap
       leaveAvatar(context, false, context.effectiveEnd, skill);
     },
   },

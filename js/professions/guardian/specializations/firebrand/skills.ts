@@ -6,7 +6,6 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<
 > = Object.freeze({
   [ID.SCORCHED_AFTERMATH]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 920,
     handlerId: "guardian.tome-page",
     effects: [
@@ -138,7 +137,6 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<
   },
   [ID.IGNITING_BURST]: {
     implemented: true,
-    castTimeMs: 250,
     quicknessCastTimeMs: 480,
     handlerId: "guardian.tome-page",
     effects: [
@@ -223,7 +221,6 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<
   },
   [ID.SEARING_SPELL]: {
     implemented: true,
-    castTimeMs: 250,
     quicknessCastTimeMs: 680,
     handlerId: "guardian.tome-page",
     effects: [
@@ -445,7 +442,6 @@ export const FIREBRAND_SKILL_MECHANICS: Readonly<
   },
   [ID.ASHES_OF_THE_JUST]: {
     implemented: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 880,
     handlerId: "guardian.tome-page",
     effects: [],

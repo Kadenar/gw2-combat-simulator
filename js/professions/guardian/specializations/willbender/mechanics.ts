@@ -5,6 +5,8 @@ export const WILLBENDER_FLAME_INTERVAL = 1;
 export const WILLBENDER_TRIGGER_HITS = 5;
 export const WILLBENDER_MAX_LETHAL_TEMPO = 5;
 
+// Tyrant's Momentum shortens the window (4 s vs 6 s) but raises the per-stack bonus,
+// so the trait trades sustain for burst; both modifier rules account for this asymmetry.
 export function lethalTempoDuration(tyrantsMomentum: boolean): number {
   return tyrantsMomentum ? 4 : 6;
 }
@@ -14,6 +16,8 @@ export function gainLethalTempo(
   at: number,
   tyrantsMomentum: boolean,
 ): number {
+  // Stacks must reset when the previous window has fully expired before adding the new one;
+  // otherwise a new activation mid-window would compound on a stale count.
   if (at >= state.lethalTempoUntil) state.lethalTempoStacks = 0;
   state.lethalTempoStacks = Math.min(
     WILLBENDER_MAX_LETHAL_TEMPO,

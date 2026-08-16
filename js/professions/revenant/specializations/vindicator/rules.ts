@@ -36,6 +36,7 @@ import type {
   RevenantSkill,
 } from "../../types.js";
 
+// 1e-9 tolerance prevents floating-point drift from falsely reporting endurance as "full" at max.
 function enduranceNotFull(context: Gw2ModifierContext): boolean {
   const state = revenantRuntimeCoreState(context);
   const maximum = Number(state.maximumEndurance || 0);
@@ -47,6 +48,7 @@ export const vindicatorModifierRules: readonly Gw2ModifierRule[] =
     {
       id: "revenant.leviathan-strength",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      // "multiply" runs after the damage-additive bucket, so Leviathan compounds on top of Forerunner.
       operation: "multiply",
       factor: MECHANICS.endurance.leviathanStrengthStrikeMultiplier,
       when: (context) =>
@@ -57,11 +59,13 @@ export const vindicatorModifierRules: readonly Gw2ModifierRule[] =
     {
       id: "revenant.forerunner-of-death",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      // "damage-additive" goes into the GW2 shared outgoing-damage bucket alongside other % modifiers.
       operation: "damage-additive",
       amount: MECHANICS.endurance.forerunnerOfDeathStrikeBonus,
       when: (context) =>
         revenantPlayer(context) &&
         hasTrait(context, TRAIT.FORERUNNER_OF_DEATH) &&
+        // Prefer the event-baked flag when present; fall back to runtime state for non-dodge strikes.
         (context.event?.forerunnerOfDeathActive != null
           ? Boolean(context.event.forerunnerOfDeathActive)
           : Number(
@@ -78,6 +82,7 @@ function modifyVindicatorAttributes(
   const modified = { ...attributes };
   if (
     hasTrait(context, TRAIT.EMPIRE_DIVIDED) &&
+    // Skip if the caller already baked static profession rules into the supplied attributes.
     !professionStaticRulesApplied(context.config) &&
     Number(context.config?.playerHealthFraction ?? 1) >
       MECHANICS.endurance.empireDividedHealthThreshold
@@ -93,6 +98,7 @@ function observeVindicatorEvent(
   event: RevenantSimulationEvent,
 ): void {
   if (event.type === "revenant.state" && event.reason === "dodge") {
+    // The dodge state event carries the animation-start timestamp; pass it through so completeVindicatorDodge can offset the strike by dodgeStrikeDelay from that origin.
     const skill = context.catalog.skillsById.get(ID.DODGE) as
       RevenantSkill | undefined;
     if (skill) completeVindicatorDodge(context, skill, event.at);
@@ -101,10 +107,12 @@ function observeVindicatorEvent(
   if (event.type !== "sigil_swap") return;
   const state = vindicatorState.from(context);
   const coreState = professionCoreState(context);
+  // Reset alliance side to config default on every swap; mid-fight flips are relative to current state.
   if (coreState.activeLegendId === LEGEND.ALLIANCE) {
     state.allianceSide =
       context.config.allianceSide === "kurzick" ? "kurzick" : "luxon";
   }
+  // Invocation effects only fire when swapping INTO Alliance and within combat.
   if (
     coreState.activeLegendId !== LEGEND.ALLIANCE ||
     !revenantCombatActive(context, event.at)
@@ -149,6 +157,7 @@ function observeVindicatorEvent(
     totalHits: 1,
     skillWeapon: "Unequipped",
   });
+  // Song of the Mists grants endurance on cast + per hit; with hits=1 the total is always 8.
   coreState.endurance = Math.min(
     coreState.maximumEndurance,
     coreState.endurance + song.enduranceOnCast + song.endurancePerHit,
@@ -161,6 +170,7 @@ export const vindicatorAttributeRules = Object.freeze({
   modifyAttributes: modifyVindicatorAttributes,
 });
 
+// Skill sets are mutually exclusive; a skill appears in at most one of these sets.
 const LUXON = new Set<SkillId>([
   ID.SELFISH_SPIRIT,
   ID.NOMADS_ADVANCE,
@@ -181,6 +191,7 @@ function vindicatorCastAvailability(
   skill: RevenantSkill,
 ) {
   const state = vindicatorState.from(context);
+  // Skills that are not in either set (e.g. dodge, Energy Meld) are always allowed.
   const wrongSide =
     professionCoreState(context).activeLegendId === LEGEND.ALLIANCE &&
     ((LUXON.has(skill.id) && state.allianceSide !== "luxon") ||
@@ -197,6 +208,7 @@ function vindicatorCastAvailability(
 export const vindicatorCastRules = Object.freeze({
   availability: {
     id: "revenant.vindicator-availability",
+    // order 20 runs after core energy/recharge checks (order 10) so we can assume the skill is otherwise castable.
     order: 20,
     handler: vindicatorCastAvailability,
   },
@@ -206,6 +218,7 @@ export const vindicatorCastRules = Object.freeze({
 export const vindicatorSchedulerHooks = Object.freeze({
   onEventScheduled: {
     id: "revenant.vindicator-dodge",
+    // order 20 matches the cast-rules order; keeps hook and availability at the same priority tier.
     order: 20,
     handler: observeVindicatorEvent,
   },

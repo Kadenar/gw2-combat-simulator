@@ -23,6 +23,7 @@ import type {
   RevenantSkill,
 } from "../../types.js";
 
+// Twin Moon Sweep exists under two different skill IDs in the catalog; both must be excluded from Mistfire.
 const TWIN_MOON_SKILL_IDS = new Set<SkillId>([
   ID.TWIN_MOON_SWEEP,
   ID.TWIN_MOON_SWEEP_ID_77001,
@@ -34,6 +35,8 @@ export function modifyConduitCastDuration(
 ): number {
   if (context.skill?.handlerId !== "revenant.beguiling-haze") return duration;
   const quickness = context.hasBuff?.("quickness", context.start);
+  // Follow-up charges use a near-instant fixed cast time (0.25 s / 0.24 s with quickness).
+  // The main cast appends an extra 0.4 s wind-up on top of the base skill duration.
   return Number(conduitState.from(context).beguilingHazeCharges || 0) > 0
     ? quickness
       ? 0.24
@@ -46,12 +49,15 @@ export function modifyConduitRechargeDuration(
   duration: number,
 ): number {
   const skill = context.skill;
+  // Skip recharge modification for an already-zero cooldown to avoid turning a free swap into a 0 * 0.6 no-op.
   if (duration === 0 && skill?.id === ID.SWAP_LEGENDS) return 0;
   if (
     skill?.id === ID.SWAP_LEGENDS &&
     revenantCombatActive(context, context.at) &&
     hasRevenantTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)
   ) {
+    // Enhanced Embodiment reduces the legend swap cooldown to 60%; read from skill data, not the incoming duration,
+    // because the duration may already have been modified by alacrity at this point.
     return (
       Math.max(0, Number(skill.cooldown ?? skill.recharge ?? duration)) * 0.6
     );
@@ -66,15 +72,18 @@ export function modifyConduitRechargeDuration(
     revenantConduitFormIsActive(
       conduitState.from(context),
       "Mesmer",
+      // Use start (cast time) when available; fall back to at (recharge resolution time).
       context.start ?? context.at,
     )
   ) {
+    // Mesmer form overrides Banish Enchantment's cooldown entirely; alacrity still applies to the new 5 s base.
     const base = MECHANICS.conduit.formOfTheMesmer.banishEnchantmentCooldown;
     const rate = context.hasBuff?.("alacrity", context.at)
       ? Number(context.config.alacrityRechargeRate || 1.25)
       : 1;
     return base / rate;
   }
+  // Kinetic Insight reduces Release Potential recharge by 20%, applied after all other recharge modifiers.
   return skill?.handlerId === "revenant.release-potential" &&
     hasRevenantTrait(context.config, TRAIT.KINETIC_INSIGHT)
     ? duration * 0.8
@@ -85,7 +94,9 @@ export function afterConduitTraitCast(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): void {
+  // Cosmic Wisdom form procs (Lesser Enchanted Daggers, Dervish Attack) fire after cast completes.
   applyCosmicWisdomAfterCast(context, skill);
+  // Shared Wisdom swiftness is only granted for Entity legend skills, not for all Conduit skills.
   if (
     skill.legendId === LEGEND.ENTITY &&
     hasRevenantTrait(context.config, TRAIT.SHARED_WISDOM)
@@ -109,6 +120,8 @@ export function observeConduitTraits(
         ? undefined
         : context.catalog.skillsById.get(event.skillId);
     const cost = Number(skill?.energyCost || 0);
+    // Affinity gain is deferred to a task so it resolves at the hit timestamp, not at cast start.
+    // Skills costing ≥ 25 energy grant 2 affinity; cheaper skills grant 1.
     context.tasks.schedule({
       id: `revenant.affinity-hit:${event.__order}`,
       type: "revenant.affinity-hit",
@@ -121,6 +134,7 @@ export function observeConduitTraits(
     event.type === "damage" &&
     event.skillName === "Beguiling Haze"
   ) {
+    // 0.32 s matches the observed Relic of Peitha proc delay after Beguiling Haze lands.
     context.emitDerived(event, {
       type: "peitha",
       at: event.at + 0.32,
@@ -134,6 +148,7 @@ export function observeConduitTraits(
   }
   if (
     event.type !== "control" ||
+    // Twin Moon Sweep emits control events as part of its own chain; Mistfire must not double-proc off them.
     (event.skillId != null && TWIN_MOON_SKILL_IDS.has(event.skillId)) ||
     !hasRevenantTrait(context.config, TRAIT.MISTFIRE)
   ) {
@@ -142,6 +157,7 @@ export function observeConduitTraits(
   const state = professionCoreState(context);
   const profile = MECHANICS.traitProcs.mistfire;
   const readyAt = Number(state.traitProcReadyAt.mistfire || 0);
+  // epsilon tolerance prevents floating-point near-miss from silently dropping a proc at the interval boundary.
   if (event.at + context.epsilon < readyAt) return;
   state.traitProcReadyAt.mistfire = event.at + profile.interval;
   context.emitDerived(event, {

@@ -35,6 +35,7 @@ export function performEnergyMeld(
     context.config,
     TRAIT.SONG_OF_ARBOREUM,
   );
+  // Song of Arboreum is mutually exclusive with the base endurance amount; it replaces, not adds.
   coreState.endurance = Math.min(
     coreState.maximumEndurance,
     coreState.endurance +
@@ -44,12 +45,15 @@ export function performEnergyMeld(
           : profile.endurance
       ),
   );
+  // enduranceUpdatedAt must be stamped after a manual grant so regen calculations start from here.
   coreState.enduranceUpdatedAt = at;
   if (hasRevenantTrait(context.config, TRAIT.REAVERS_CURSE)) {
+    // Casting Energy Meld arms Reaver's Curse; the next dodge will consume and zero this timestamp.
     state.reaversCurseUntil = at + profile.reaversCurseDuration;
   }
   if (
     hasRevenantTrait(context.config, TRAIT.ANGSIYANS_TRUST) &&
+    // Angsiyah's Trust energy is gated by combat; pre-combat Energy Meld does not refund energy.
     revenantCombatActive(context, at)
   ) {
     coreState.energy = Math.min(
@@ -67,6 +71,7 @@ export function performEnergyMeld(
       { at, sourceId: TRAIT.SONG_OF_ARBOREUM },
     );
   }
+  // State snapshot carries endurance value to the resolver; must come after all mutations above.
   emitRevenantState(context, at, "energy-meld");
 }
 
@@ -77,6 +82,7 @@ export function switchAllianceTactics(
   const state = vindicatorState.from(context);
   const at = context.effectiveEnd;
   state.allianceSide = state.allianceSide === "luxon" ? "kurzick" : "luxon";
+  // State snapshot propagates the new side to the resolver for availability checks.
   emitRevenantState(context, at, "alliance-tactics");
 }
 
@@ -88,16 +94,22 @@ export function completeVindicatorDodge(
 ): void {
   const state = vindicatorState.from(context);
   const dodge = state.selectedDodge;
+  // Cast to Partial so an unknown dodge name returns undefined rather than a type error.
   const dodgeByName = MECHANICS.endurance.dodgeByName as Partial<
     Record<RevenantDodge, { readonly coefficient: number; readonly hits: number }>
   >;
   const effect = dodgeByName[dodge];
+  // Guard against a missing or zero-damage entry so a misconfigured dodge produces no event.
   if (!effect || !(Number(effect.coefficient) > 0)) return;
+  // Strike timestamp is relative to the start of the dodge animation, not the end of the cast window.
   const at = start + MECHANICS.endurance.dodgeStrikeDelay;
+  // epsilon tolerance absorbs floating-point drift when reaversCurseUntil and at are nominally equal.
   const reaversCurse =
     hasRevenantTrait(context.config, TRAIT.REAVERS_CURSE) &&
     Number(state.reaversCurseUntil || 0) + context.epsilon >= at;
+  // Consume the buff immediately so a rapid second dodge cannot double-dip.
   if (reaversCurse) state.reaversCurseUntil = 0;
+  // Capture forerunner state before the Death Drop below may extend it for this same hit.
   const previousForerunnerUntil = Number(
     state.forerunnerOfDeathUntil || 0,
   );
@@ -122,6 +134,7 @@ export function completeVindicatorDodge(
     hitIndex: 1,
     totalHits: 1,
     skillWeapon: "Unequipped",
+    // Baking the flag into the event avoids a resolver time-comparison race when events replay out of order.
     forerunnerOfDeathActive:
       previousForerunnerUntil > at,
   });
@@ -129,6 +142,7 @@ export function completeVindicatorDodge(
     dodge === "Death Drop" &&
     hasRevenantTrait(context.config, TRAIT.FORERUNNER_OF_DEATH)
   ) {
+    // Forerunner window is set after the damage event is emitted; the current hit benefits from the old window.
     state.forerunnerOfDeathUntil =
       at + MECHANICS.endurance.forerunnerOfDeathDuration;
     context.emit({

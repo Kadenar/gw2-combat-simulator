@@ -10,6 +10,7 @@ import type {
 } from "../types.js";
 import { flattenProfessionState } from "../../../platform/engine/profession.js";
 
+// merges three config paths for backward compatibility — callers use whichever field their API returns
 export function selectedEngineerTraits(
   config: EngineerConfig = {},
 ): Set<SkillId> {
@@ -22,6 +23,7 @@ export function selectedEngineerTraits(
   );
 }
 
+// accepts either a pre-built Set (for callers that cache it) or a config object (builds it on demand)
 export function hasEngineerTrait(
   configOrTraits: EngineerConfig | ReadonlySet<SkillId>,
   traitId: SkillId,
@@ -30,6 +32,7 @@ export function hasEngineerTrait(
     typeof (configOrTraits as ReadonlySet<SkillId>).has === "function"
       ? (configOrTraits as ReadonlySet<SkillId>)
       : selectedEngineerTraits(configOrTraits as EngineerConfig);
+  // check both numeric and string representations — the GW2 API can return IDs as either type
   return traits.has(traitId) || traits.has(String(traitId));
 }
 
@@ -60,6 +63,7 @@ export function snapshotEngineerState(state: unknown): EngineerState {
   ) as unknown as EngineerState;
 }
 
+// contract between scheduler end-state and the presentation layer — new persistent fields must be added here
 export const ENGINEER_PUBLIC_END_STATE_KEYS = Object.freeze([
   "endurance",
   "maximumEndurance",
@@ -93,6 +97,7 @@ export const ENGINEER_PUBLIC_END_STATE_KEYS = Object.freeze([
   "kineticCharges",
 ] as const satisfies readonly (keyof EngineerState)[]);
 
+// safe defaults for spec-specific fields absent when running a different spec (e.g. holosmith fields on Core)
 const ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<
   Partial<EngineerState>
 > = Object.freeze({

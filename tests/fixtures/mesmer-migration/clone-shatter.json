@@ -81,6 +81,10 @@
         "Mind Wrack": {
           "readyAt": 12600,
           "remaining": 9600
+        },
+        "Mirror Images": {
+          "readyAt": 20000,
+          "remaining": 17000
         }
       },
       "dpsWindow": 1.8399,
@@ -106,21 +110,6 @@
         },
         {
           "__order": 1,
-          "activationId": "cast:1",
-          "at": 0,
-          "name": "Mimic",
-          "reduction": 20,
-          "schemaVersion": 1,
-          "skillId": 29578,
-          "skillName": "Mimic",
-          "source": "Mimic",
-          "sourceId": 29578,
-          "targetSkillId": 10202,
-          "targetSkillName": "Mirror Images",
-          "type": "proc"
-        },
-        {
-          "__order": 2,
           "amount": 2,
           "at": 0.0001,
           "created": [
@@ -142,7 +131,7 @@
           "value": 2
         },
         {
-          "__order": 3,
+          "__order": 2,
           "activationId": "summon-attack:3",
           "actorType": "summon",
           "at": 1.1601,
@@ -158,13 +147,14 @@
           "skillWeapon": "Dagger",
           "source": "Clone",
           "sourceId": "Clone: Flying Cutter",
+          "summonOwner": "mesmer.clone:1",
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
           "weaponStrength": 26.5
         },
         {
-          "__order": 4,
+          "__order": 3,
           "activationId": "summon-attack:6",
           "actorType": "summon",
           "at": 1.1602,
@@ -180,13 +170,14 @@
           "skillWeapon": "Dagger",
           "source": "Clone",
           "sourceId": "Clone: Flying Cutter",
+          "summonOwner": "mesmer.clone:2",
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
           "weaponStrength": 26.5
         },
         {
-          "__order": 5,
+          "__order": 4,
           "activationId": "summon-attack:9",
           "actorType": "summon",
           "at": 2.7601,
@@ -202,13 +193,14 @@
           "skillWeapon": "Dagger",
           "source": "Clone",
           "sourceId": "Clone: Flying Cutter",
+          "summonOwner": "mesmer.clone:1",
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
           "weaponStrength": 26.5
         },
         {
-          "__order": 6,
+          "__order": 5,
           "activationId": "summon-attack:12",
           "actorType": "summon",
           "at": 2.7602,
@@ -224,13 +216,14 @@
           "skillWeapon": "Dagger",
           "source": "Clone",
           "sourceId": "Clone: Flying Cutter",
+          "summonOwner": "mesmer.clone:2",
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
           "weaponStrength": 26.5
         },
         {
-          "__order": 7,
+          "__order": 6,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -248,7 +241,7 @@
           "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
-          "__order": 8,
+          "__order": 7,
           "amount": -2,
           "at": 3,
           "reason": "profession mechanic",
@@ -262,7 +255,7 @@
           "value": 0
         },
         {
-          "__order": 9,
+          "__order": 8,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -284,7 +277,7 @@
           "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
-          "__order": 10,
+          "__order": 9,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -306,7 +299,7 @@
           "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
-          "__order": 11,
+          "__order": 10,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -328,7 +321,7 @@
           "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
-          "__order": 12,
+          "__order": 11,
           "activationId": "cast:2",
           "at": 3,
           "detail": "2 clones spent",
@@ -368,7 +361,7 @@
       },
       "resolvedEvents": [
         {
-          "__order": 3,
+          "__order": 2,
           "activationId": "summon-attack:3",
           "actorType": "summon",
           "at": 1.1601,
@@ -396,6 +389,7 @@
           "skillWeapon": "Dagger",
           "source": "Clone",
           "sourceId": "Clone: Flying Cutter",
+          "summonOwner": "mesmer.clone:1",
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
@@ -404,7 +398,7 @@
           "weaponStrengthSampled": false
         },
         {
-          "__order": 4,
+          "__order": 3,
           "activationId": "summon-attack:6",
           "actorType": "summon",
           "at": 1.1602,
@@ -432,6 +426,7 @@
           "skillWeapon": "Dagger",
           "source": "Clone",
           "sourceId": "Clone: Flying Cutter",
+          "summonOwner": "mesmer.clone:2",
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
@@ -440,7 +435,7 @@
           "weaponStrengthSampled": false
         },
         {
-          "__order": 5,
+          "__order": 4,
           "activationId": "summon-attack:9",
           "actorType": "summon",
           "at": 2.7601,
@@ -468,6 +463,7 @@
           "skillWeapon": "Dagger",
           "source": "Clone",
           "sourceId": "Clone: Flying Cutter",
+          "summonOwner": "mesmer.clone:1",
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
@@ -476,7 +472,7 @@
           "weaponStrengthSampled": false
         },
         {
-          "__order": 6,
+          "__order": 5,
           "activationId": "summon-attack:12",
           "actorType": "summon",
           "at": 2.7602,
@@ -504,6 +500,7 @@
           "skillWeapon": "Dagger",
           "source": "Clone",
           "sourceId": "Clone: Flying Cutter",
+          "summonOwner": "mesmer.clone:2",
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
@@ -512,7 +509,7 @@
           "weaponStrengthSampled": false
         },
         {
-          "__order": 9,
+          "__order": 8,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -552,7 +549,7 @@
           "weaponStrengthSampled": false
         },
         {
-          "__order": 10,
+          "__order": 9,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -592,7 +589,7 @@
           "weaponStrengthSampled": false
         },
         {
-          "__order": 11,
+          "__order": 10,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -664,7 +661,6 @@
       "conditionDamage": 0,
       "dps": 5951.939215886358,
       "events": [
-        {},
         {},
         {
           "created": [{}, {}]

@@ -47,6 +47,9 @@ export function selectedMechCommands(
   ];
 }
 
+// Mech base stats before player inheritance. Precision is 1 (not 0) so the mech
+// can still land hits, but without Variable Mass Distributor the mech never
+// benefits from the player's gear precision.
 export const ENGINEER_MECH_BASE_ATTRIBUTES = Object.freeze({
   power: 1000,
   precision: 1,
@@ -84,6 +87,9 @@ export function engineerMechAttributes(
     traits,
     TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
   );
+  // Secondary stats inherit 50 % of the player's value up to 750.
+  // Conductive Alloys and Channeling Conduits each double the cap to 1500 and
+  // raise the inheritance ratio to 100 % for their respective stat groups.
   const secondary = (
     key: keyof EngineerMechAttributes,
     improved = false,

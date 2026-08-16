@@ -2037,15 +2037,24 @@ test("Severance critical contributions are data-driven and expire exactly", () =
   assert.deepEqual(sigilCriticalContribution(null, 0), {
     chance: 0,
     damage: 0,
+    chanceContributors: [],
   });
   const runtime = { sigil: { severanceUntil: 4 } };
   assert.deepEqual(sigilCriticalContribution(runtime, 3.999), {
     chance: 250 / PRECISION_PER_CRITICAL_CHANCE_FRACTION,
     damage: 250 / FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
+    chanceContributors: [
+      {
+        id: "sigil-severance",
+        label: "Sigil of Severance",
+        amount: 250 / PRECISION_PER_CRITICAL_CHANCE_FRACTION,
+      },
+    ],
   });
   assert.deepEqual(sigilCriticalContribution(runtime, 4), {
     chance: 0,
     damage: 0,
+    chanceContributors: [],
   });
 });
 
@@ -3275,7 +3284,6 @@ test("application shell uses feature-owned modules without legacy facades", asyn
     "profession",
     "rotation",
     "simulation",
-    "submission",
   ]);
 
   const appEntry = await readFile(path.join(appRoot, "app.ts"), "utf8");

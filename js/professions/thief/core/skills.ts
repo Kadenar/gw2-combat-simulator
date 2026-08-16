@@ -917,7 +917,6 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.UNLOAD]: {
     implemented: true,
-    castTimeMs: 1500,
     quicknessCastTimeMs: 1320,
     cooldown: 0,
     initiativeCost: 3,

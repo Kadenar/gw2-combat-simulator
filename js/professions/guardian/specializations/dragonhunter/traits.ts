@@ -10,6 +10,8 @@ export function applySoaringDevastation(
 ): void {
   if (!hasGuardianTrait(context, TRAIT.SOARING_DEVASTATION)) return;
   const at = context.effectiveEnd;
+  // skillWeapon must come from the caller (resolved to the active weapon set)
+  // because traits.ts has no direct access to config at emit time.
   context.emit(
     buildGuardianStrike({
       at,
@@ -39,5 +41,7 @@ export function applySoaringDevastation(
 export function bigGameHunterTetherDuration(
   context: GuardianCastContext,
 ): number {
+  // Big Game Hunter doubles tether duration (6 → 12s) and is also what
+  // unlocks the target-vulnerability buff and the passive Crippled in the resolver.
   return hasGuardianTrait(context, TRAIT.BIG_GAME_HUNTER) ? 12 : 6;
 }

@@ -37,6 +37,7 @@ import {
 
 const TIMING_TOLERANCE_MS = 50;
 const TRANSITION_WINDOW_MS = 150;
+const WEAPON_STOW_ANIMATION_ID = 23285;
 const TRANSITION_GAIN_BUFF_IDS = new Set(
   EVTC_ROTATION_PROFILES.flatMap((profile) =>
     profile.buffTransitions.flatMap((transition) =>
@@ -1007,7 +1008,11 @@ export function reconstructWithProfile(
     ...castActions,
     ...transitionActions,
     ...weaponSwapActions(log, agent.address, transitionActions),
-  ];
+  ].filter(
+    (action) =>
+      action.rawSkillId !== WEAPON_STOW_ANIMATION_ID &&
+      action.rawName.trim().toLowerCase() !== "weapon stow",
+  );
   const professionContext = {
     log,
     playerAddress: agent.address,

@@ -2,11 +2,7 @@ import { removeUncommittedMesmerAutoattacks } from "./mesmer/autoattacks.js";
 import { reconstructChronomancerActions } from "./mesmer/chronomancer.js";
 import { addMesmerCommonActions } from "./mesmer/common.js";
 import { reconstructMirageActions } from "./mesmer/mirage.js";
-import {
-  dedupeActions,
-  encounterEndTime,
-  normalized,
-} from "./mesmer/shared.js";
+import { dedupeActions, encounterEndTime } from "./mesmer/shared.js";
 import { reconstructVirtuosoActions } from "./mesmer/virtuoso.js";
 import type {
   EvtcProfessionReconstructionContext,
@@ -39,10 +35,7 @@ function finalizeMesmerActions(
   return dedupeActions(
     actions.filter(
       (action) =>
-        action.rawSkillId !== 23285 &&
-        normalized(action.rawName) !== "weapon stow" &&
-        (encounterEnd == null ||
-          action.start < encounterEnd + encounterEndGrace),
+        encounterEnd == null || action.start < encounterEnd + encounterEndGrace,
     ),
   );
 }

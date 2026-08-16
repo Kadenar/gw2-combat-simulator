@@ -10,7 +10,9 @@ export function createDruidState(config: RangerConfig = {}): DruidState {
     maximumAstralForce: 100,
     celestialAvatarActive: false,
     celestialAvatarEndsAt: 0,
+    // Tracks when astral force was last written so advance() can compute elapsed time correctly
     astralForceUpdatedAt: 0,
+    // Natural Mender ticks every 3s; start at 3 so the first tick happens at t=3 not t=0
     naturalMenderReadyAt: 3,
   };
 }

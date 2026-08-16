@@ -27,6 +27,7 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
     holoUtilityCooldownReductionExpiresAt: 0,
     holoUtilityCooldownReductionExpirations: [],
     forgedSurferGeneration: 0,
+    // clamped 1–5 at init so handleForgedSurfer never needs to bounds-check the assumption at runtime
     forgedSurferMaximumBombHits: Math.max(
       1,
       Math.min(

@@ -57,6 +57,7 @@ function applyWeaponSpell(
     MECHANICS.weaponSpells as Readonly<Record<string, WeaponSpellDefinition>>
   )[spell];
   if (!definition) return false;
+  // Wielder's Boon grants allies the same stack count as the player instead of the reduced ally default
   const fullAlliedBenefit = hasTrait(context, TRAIT.WIELDERS_BOON);
   const allyStacks = fullAlliedBenefit
     ? definition.playerStacks
@@ -85,6 +86,7 @@ function applyWeaponSpell(
     alliesReceiveFullBenefit: fullAlliedBenefit,
   });
   if (spell === "nightmare" || spell === "splinter") {
+    // Resilient Weapon has no damage component, so ally proc timeline is only needed for damaging spells
     const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {
       start: context.effectiveEnd,
       duration: definition.duration,

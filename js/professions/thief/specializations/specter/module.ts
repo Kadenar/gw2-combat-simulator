@@ -20,6 +20,7 @@ export const specterModule = defineNativeModule({
     skillMechanics: SPECTER_SKILL_MECHANICS,
     handlers: specterSkillHandlers,
   }),
+  // Both phases get independent state instances; sharing the factory is fine because create is called twice.
   state: { scheduler: specterState.create, resolver: specterState.create },
   mechanics: {
     modifiers: specterAttributeRules,

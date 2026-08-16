@@ -31,6 +31,8 @@ function countAsWeaponSwap(
   context: RangerCastContext,
   skill: RangerSkill,
 ): void {
+  // Entering/exiting the Cyclone Bow resets auto-attack chains the same way a
+  // real weapon swap does, so the next auto starts at chain position 0.
   professionCoreState(context).autoattackChains = {};
   context.emit({
     type: "weapon_set",
@@ -60,6 +62,8 @@ export const galeshotSkillHandlers = Object.freeze({
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
       galeshotState.from(context).cycloneBowActive = true;
       countAsWeaponSwap(context, skill);
+      // State is emitted at context.start so the resolver sees it before any
+      // mid-cast events that might fire during the cast animation.
       emitGaleshotState(context, skill, context.start);
     },
   },
@@ -79,6 +83,7 @@ export const galeshotSkillHandlers = Object.freeze({
       const state = galeshotState.from(context);
       state.arrows = Math.max(0, state.arrows - Number(skill.arrowCost || 0));
       if (skill.id === ID.HAWKEYE) {
+        // Hawkeye consumes all five stacks; windForce resets to 0 on cast.
         state.windForce = 0;
       } else {
         state.windForce = Math.min(
@@ -87,6 +92,8 @@ export const galeshotSkillHandlers = Object.freeze({
         );
       }
       applyGaleshotCycloneBowTraits(context, skill);
+      // Wind Force is gained partway through the cast (windForceApplyMs), not
+      // at cast-end; Hawkeye emits at start because it resets WF before firing.
       emitGaleshotState(
         context,
         skill,

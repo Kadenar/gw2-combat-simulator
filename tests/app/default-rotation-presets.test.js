@@ -373,7 +373,7 @@ test("Power Alacrity Sword Renegade preset executes without warnings", async () 
     revenantSimulationConfig(app),
   );
 
-  assert.equal(preset.benchmarkDps, 34194);
+  assert.equal(preset.benchmarkDps, 34305);
   assert.equal(savedRotation.rotation.length, 262);
   assert.deepEqual(build.weapons, ["Sword", "Sword"]);
   assert.equal(build.specializations[2].name, "Renegade");
@@ -462,7 +462,7 @@ test("Condition Conduit Mistfire preset matches its benchmark", async () => {
     revenantSimulationConfig(app),
   );
 
-  assert.equal(preset.benchmarkDps, 39944);
+  assert.equal(preset.benchmarkDps, 40004);
   assert.equal(preset.upToDate, true);
   assert.deepEqual(result.warnings, []);
   assert.equal(Math.round(result.dps), preset.benchmarkDps);
