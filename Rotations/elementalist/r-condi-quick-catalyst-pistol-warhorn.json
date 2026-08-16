@@ -1,17 +1,5 @@
 {
   "rotation": [
-    "Glyph of Elementals",
-    "Dazing Discharge",
-    "Water Attunement",
-    "Frigid Flurry",
-    "Earth Attunement",
-    "Shattering Stone",
-    "Fire Attunement",
-    {
-      "name": "__wait",
-      "waitMs": 5000
-    },
-    "__combat_start",
     "Wildfire",
     {
       "name": "Flame Barrage",

@@ -1,14 +1,18 @@
 import { hasTrait as hasGw2Trait } from "../../../../platform/gw2/trait-state.js";
 import type {
   AvailabilityResult,
-  CastContext,
-  CastLifecycleContext,
-  SchedulerContext,
   SchedulerRecord,
   SimulationEvent,
   Skill,
+  SkillId,
 } from "../../../../platform/engine/types.js";
+import type {
+  ElementalistCastContext,
+  ElementalistPrecastContext,
+  ElementalistSchedulerContext,
+} from "../../types.js";
 import {
+  elementalistAttunementRechargeDuration,
   emitElementalistBuff,
   emitElementalistProc,
   grantElementalistRockSolid,
@@ -17,9 +21,14 @@ import {
   triggerElementalistSunspot,
 } from "../../core/rules.js";
 import {
+  ELEMENTALIST_ATTUNEMENTS,
   elementalistCoreState,
+  isElementalistAttunement,
+  setElementalistAttunementReadyAt,
   type ElementalistAttunement,
 } from "../../core/state.js";
+import { ELEMENTALIST_SKILL_IDS as ID } from "../../data/ids.js";
+import { evokerModifierRules, modifyEvokerAttributes } from "./modifiers.js";
 import { evokerState, type EvokerState } from "./state.js";
 
 export const FAMILIAR_ELEMENTS: Readonly<
@@ -35,6 +44,7 @@ export const FAMILIAR_ELEMENTS: Readonly<
   "Seismic Impact": "Earth",
 });
 const BASIC_FAMILIARS = new Set(["Ignite", "Splash", "Zap", "Calcify"]);
+const OFF_ATTUNEMENT_RECHARGE_SECONDS = 1.5;
 const EVOKER_NO_CHARGE_SKILLS = new Set([
   "Transmute Earth",
   "Hurl",
@@ -49,6 +59,15 @@ const CONJURED_WEAPONS = new Set([
   "Frost Bow",
   "Lightning Hammer",
   "Fiery Greatsword",
+]);
+const ALTRUISTIC_ASPECT_BOONS: ReadonlyMap<
+  SkillId,
+  readonly [kind: string, stacks: number, duration: number]
+> = new Map([
+  [ID.FOXS_FURY, ["Might", 3, 10]],
+  [ID.HARES_AGILITY, ["Fury", 1, 5]],
+  [ID.TOADS_FORTITUDE, ["Stability", 1, 5]],
+  [ID.ELEMENTAL_PROCESSION, ["Resistance", 1, 5]],
 ]);
 const FULL_SPEAR_ETCHINGS = new Set([
   "Volcano",
@@ -85,11 +104,68 @@ function hasTrait(context: unknown, trait: string): boolean {
   return hasGw2Trait(context as never, trait);
 }
 
+function targetAttunement(skill: Skill): ElementalistAttunement | null {
+  if (skill.skillFamily !== "Attunement") return null;
+  const target = skill.name.replace(/ Attunement$/, "");
+  return isElementalistAttunement(target) ? target : null;
+}
+
+function initialize(context: ElementalistSchedulerContext): void {
+  const state = evokerState.from(context);
+  const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  core.attunementTraitProcCooldownSeconds = 5;
+  if (hasTrait(context, "Specialized Elements")) {
+    core.primaryAttunement = state.element;
+  }
+}
+
+export function applyAltruisticAspect(
+  context: ElementalistCastContext,
+  skill: Skill,
+): void {
+  if (!hasTrait(context, "Altruistic Aspect")) return;
+  const boon = ALTRUISTIC_ASPECT_BOONS.get(skill.id);
+  if (!boon) return;
+  emitElementalistBuff(
+    context as never,
+    context.effectiveEnd,
+    boon[0],
+    boon[1],
+    boon[2],
+    skill.name,
+    skill.id,
+  );
+}
+
 function availability(
-  context: CastContext<SchedulerRecord>,
+  context: ElementalistPrecastContext,
   skill: Skill,
 ): AvailabilityResult {
   const state = evokerState.from(context);
+  const attunement = targetAttunement(skill);
+  if (attunement) {
+    if (hasTrait(context, "Specialized Elements")) {
+      return {
+        ready: false,
+        retryAt: null,
+        code: "elementalist.specialized-elements",
+        reason: `${skill.name} is unavailable â€” attunement swapping is disabled by Specialized Elements.`,
+      };
+    }
+    if (!state.pendingOffAttunementRemainingByCommand[context.commandIndex]) {
+      const core = elementalistCoreState(context as unknown as SchedulerRecord);
+      state.pendingOffAttunementRemainingByCommand[context.commandIndex] =
+        Object.fromEntries(
+          ELEMENTALIST_ATTUNEMENTS.map((element) => [
+            element,
+            Math.max(
+              0,
+              Number(core.attunementReadyAt[element] || 0) - context.start,
+            ),
+          ]),
+        );
+    }
+  }
   if (
     state.activeFamiliarCast &&
     context.start < state.activeFamiliarCast.endsAt - context.epsilon
@@ -131,8 +207,66 @@ function availability(
       };
 }
 
+function applyEvokerAttunementRechargePolicy(
+  context: ElementalistSchedulerContext,
+  event: SimulationEvent,
+  state: EvokerState,
+): void {
+  if (
+    event.type !== "elementalist.attunement" ||
+    !isElementalistAttunement(event.from) ||
+    !isElementalistAttunement(event.to)
+  ) {
+    return;
+  }
+  const previous = event.from;
+  const target = event.to;
+  const commandIndex = Number(event.commandIndex);
+  const preserved =
+    state.pendingOffAttunementRemainingByCommand[commandIndex] || {};
+  delete state.pendingOffAttunementRemainingByCommand[commandIndex];
+  const readyAtBefore =
+    event.attunementReadyAtBefore &&
+    typeof event.attunementReadyAtBefore === "object"
+      ? (event.attunementReadyAtBefore as Partial<
+          Record<ElementalistAttunement, number>
+        >)
+      : {};
+
+  if (previous === state.element) {
+    setElementalistAttunementReadyAt(
+      context,
+      previous,
+      Math.max(
+        Number(readyAtBefore[previous] || 0),
+        event.at +
+          elementalistAttunementRechargeDuration(
+            context as never,
+            OFF_ATTUNEMENT_RECHARGE_SECONDS,
+          ),
+      ),
+    );
+  }
+  for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
+    if (attunement === target || attunement === previous) continue;
+    const defaultReadyAt =
+      event.at +
+      elementalistAttunementRechargeDuration(
+        context as never,
+        OFF_ATTUNEMENT_RECHARGE_SECONDS,
+      );
+    const existingReadyAt = Number(readyAtBefore[attunement] || 0);
+    const preservedRemaining = Number(preserved[attunement] || 0);
+    const nextReadyAt =
+      preservedRemaining > 0 && preservedRemaining < defaultReadyAt - event.at
+        ? event.at + preservedRemaining
+        : Math.max(existingReadyAt, defaultReadyAt);
+    setElementalistAttunementReadyAt(context, attunement, nextReadyAt);
+  }
+}
+
 function emitResource(
-  context: CastLifecycleContext<SchedulerRecord>,
+  context: ElementalistCastContext,
   skill: Skill,
   state: EvokerState,
 ): void {
@@ -151,7 +285,7 @@ function emitResource(
 }
 
 function releaseElementalProcession(
-  context: CastLifecycleContext<SchedulerRecord>,
+  context: ElementalistCastContext,
   sourceSkill: Skill,
 ): void {
   for (const name of ["Conflagration", "Lightning Blitz", "Seismic Impact"]) {
@@ -238,7 +372,7 @@ function weaponSkillChargeGain(skill: Skill, state: EvokerState): number {
 }
 
 function applyWeaponSkillChargeGain(
-  context: CastLifecycleContext<SchedulerRecord>,
+  context: ElementalistCastContext,
   state: EvokerState,
   chargeGain: EvokerState["pendingWeaponChargeGains"][number],
 ): void {
@@ -265,7 +399,7 @@ function applyWeaponSkillChargeGain(
 }
 
 function grantWeaponSkillCharges(
-  context: CastLifecycleContext<SchedulerRecord>,
+  context: ElementalistCastContext,
   skill: Skill,
   state: EvokerState,
 ): void {
@@ -291,7 +425,7 @@ function grantWeaponSkillCharges(
 }
 
 function flushPendingWeaponChargeGains(
-  context: CastLifecycleContext<SchedulerRecord>,
+  context: ElementalistCastContext,
   state: EvokerState,
 ): void {
   for (const chargeGain of state.pendingWeaponChargeGains) {
@@ -301,7 +435,7 @@ function flushPendingWeaponChargeGains(
 }
 
 function cancelActivationEffects(
-  context: SchedulerContext<SchedulerRecord>,
+  context: ElementalistSchedulerContext,
   activationId: string,
   from: number,
 ): void {
@@ -320,10 +454,7 @@ function cancelActivationEffects(
   }
 }
 
-function onCastStart(
-  context: CastLifecycleContext<SchedulerRecord>,
-  skill: Skill,
-): void {
+function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   const state = evokerState.from(context);
   const familiarElement = FAMILIAR_ELEMENTS[skill.name];
   if (context.command.concurrentOffsetMs == null) {
@@ -389,10 +520,7 @@ function onCastStart(
   }
 }
 
-function afterCast(
-  context: CastLifecycleContext<SchedulerRecord>,
-  skill: Skill,
-): void {
+function afterCast(context: ElementalistCastContext, skill: Skill): void {
   const state = evokerState.from(context);
   if (state.cancelledFamiliarActivations[context.reservationId]) {
     cancelActivationEffects(context, context.reservationId, context.start);
@@ -447,7 +575,7 @@ function afterCast(
 }
 
 function grantFamiliarProwess(
-  context: CastLifecycleContext<SchedulerRecord>,
+  context: ElementalistCastContext,
   skill: Skill,
 ): void {
   const at = context.effectiveEnd;
@@ -481,7 +609,7 @@ function grantFamiliarProwess(
 }
 
 function rechargeWeaponSkills(
-  context: CastLifecycleContext<SchedulerRecord>,
+  context: ElementalistCastContext,
   percentage: number,
 ): void {
   const at = context.effectiveEnd;
@@ -500,7 +628,7 @@ function rechargeWeaponSkills(
 }
 
 function triggerSpecializedElementEntry(
-  context: CastLifecycleContext<SchedulerRecord>,
+  context: ElementalistCastContext,
   skill: Skill,
   element: ElementalistAttunement,
 ): void {
@@ -572,7 +700,7 @@ function triggerSpecializedElementEntry(
 }
 
 function emitElectricEnchantment(
-  context: SchedulerContext<SchedulerRecord>,
+  context: ElementalistSchedulerContext,
   event: SimulationEvent,
 ): void {
   context.emitDerived(event, {
@@ -607,7 +735,7 @@ function emitElectricEnchantment(
 }
 
 function materializeArmedElectricEnchantments(
-  context: CastLifecycleContext<SchedulerRecord>,
+  context: ElementalistCastContext,
   state: EvokerState,
 ): void {
   const candidates = context.events
@@ -628,10 +756,7 @@ function materializeArmedElectricEnchantments(
   }
 }
 
-function onCastComplete(
-  context: CastLifecycleContext<SchedulerRecord>,
-  skill: Skill,
-): void {
+function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   const state = evokerState.from(context);
   const at = context.effectiveEnd;
   const completesActiveFamiliar =
@@ -783,10 +908,11 @@ function onCastComplete(
 }
 
 function onEventScheduled(
-  context: SchedulerContext<SchedulerRecord>,
+  context: ElementalistSchedulerContext,
   event: SimulationEvent,
 ): void {
   const state = evokerState.from(context);
+  applyEvokerAttunementRechargePolicy(context, event, state);
   if (
     event.type === "condition" &&
     event.condition === "Burning" &&
@@ -855,7 +981,7 @@ function onEventScheduled(
 }
 
 function modifyRechargeDuration(
-  context: SchedulerContext<SchedulerRecord> & { skill?: Skill },
+  context: ElementalistSchedulerContext & { skill?: Skill },
   duration: number,
 ): number {
   const skill = context.skill;
@@ -884,7 +1010,17 @@ export const evokerCastRules = Object.freeze({
   modifyRechargeDuration,
 });
 
+export const evokerAttributeRules = Object.freeze({
+  modifyAttributes: modifyEvokerAttributes,
+  modifierRules: evokerModifierRules,
+});
+
 export const evokerSchedulerHooks = Object.freeze({
+  initialize: {
+    id: "elementalist.evoker-initialize",
+    order: 30,
+    handler: initialize,
+  },
   onCastStart: {
     id: "elementalist.evoker-start",
     order: 30,

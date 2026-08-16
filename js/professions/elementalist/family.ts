@@ -5,7 +5,10 @@ import {
   migrateElementalistBuild,
   validateElementalistBuild,
 } from "./build.js";
-import { elementalistNativeModules } from "./modules.js";
+import {
+  ELEMENTALIST_NATIVE_CATALOG_OPTIONS,
+  elementalistNativeModules,
+} from "./modules.js";
 
 export const elementalistProfession = defineNativeProfession({
   id: "elementalist",
@@ -17,7 +20,7 @@ export const elementalistProfession = defineNativeProfession({
   },
   modules: elementalistNativeModules,
   patchPreview: activePatchPreview,
-  catalog: { skillNameCollision: "first" },
+  catalog: ELEMENTALIST_NATIVE_CATALOG_OPTIONS,
 });
 
 export default elementalistProfession;

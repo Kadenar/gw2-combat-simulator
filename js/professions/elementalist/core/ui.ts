@@ -6,6 +6,7 @@ import {
   type ElementalistAttunement,
   type ElementalistCoreState,
 } from "./state.js";
+import type { ElementalistState } from "../types.js";
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
@@ -53,19 +54,45 @@ const PISTOL_BULLETS = Object.freeze([
 
 let elementalistCatalog: Readonly<CanonicalCatalog>;
 
-function uiState(context: SchedulerRecord): Partial<ElementalistCoreState> {
+function uiState(context: SchedulerRecord): Partial<ElementalistState> {
   const professionState = context.professionState as
-    Partial<ElementalistCoreState> | undefined;
+    | Partial<ElementalistState>
+    | undefined;
   const endState = context.state as
-    { profession?: Partial<ElementalistCoreState> } | undefined;
+    | { profession?: Partial<ElementalistState> }
+    | undefined;
   return professionState || endState?.profession || {};
 }
 
-function uiSpecialization(context: SchedulerRecord): string {
+function selectedSpecialization(context: SchedulerRecord): string {
   return String(
     context.specialization ||
       (context.config as SchedulerRecord | undefined)?.specialization ||
       "Core",
+  );
+}
+
+function usesDualAttunements(context: SchedulerRecord): boolean {
+  if (uiState(context).secondaryAttunement != null) return true;
+  const specialization = selectedSpecialization(context);
+  const catalog =
+    (context.catalog as Readonly<CanonicalCatalog> | undefined) ||
+    elementalistCatalog;
+  return catalog.skills.some(
+    (skill) =>
+      skill.specialization === specialization &&
+      String(skill.attunement || "").includes("+"),
+  );
+}
+
+function usesCoreResourceAnchor(context: SchedulerRecord): boolean {
+  if (usesDualAttunements(context)) return true;
+  const specialization = selectedSpecialization(context);
+  const catalog =
+    (context.catalog as Readonly<CanonicalCatalog> | undefined) ||
+    elementalistCatalog;
+  return !catalog.specializations.some(
+    (candidate) => candidate.name === specialization && candidate.elite,
   );
 }
 
@@ -201,7 +228,7 @@ function elementalistWeaponSkillMatchesSet(
   if (uiState(context).conjureEquipped) return false;
   if (
     String(skill.attunement || "").includes("+") &&
-    uiSpecialization(context) !== "Weaver"
+    !usesDualAttunements(context)
   ) {
     return false;
   }
@@ -224,7 +251,7 @@ function elementalistPaletteGroups(
       color: "#c85142",
       className: "elementalist-attunement-palette",
       includeActionSkills: true,
-      resourceAnchor: ["Core", "Weaver"].includes(uiSpecialization(context)),
+      resourceAnchor: usesCoreResourceAnchor(context),
     },
   ];
   const conjureEquipped = String(state.conjureEquipped || "");
@@ -377,7 +404,7 @@ function paletteAvailability(
     }
     const alreadyAttuned =
       target === primary &&
-      (uiSpecialization(context) !== "Weaver" || target === secondary);
+      (!usesDualAttunements(context) || target === secondary);
     if (alreadyAttuned) {
       return {
         available: false,
@@ -401,11 +428,11 @@ function paletteAvailability(
     };
   }
   const slot = Number(String(skill.slot || "").match(/(\d+)$/)?.[1] || 0);
-  const weaver = uiSpecialization(context) === "Weaver";
+  const dualAttunement = usesDualAttunements(context);
   const unravelActive =
     Number(state.unravelUntil || 0) > Number(context.time || 0);
   const available =
-    !weaver || unravelActive
+    !dualAttunement || unravelActive
       ? required.length === 1 && required[0] === primary
       : required.length > 1
         ? slot === 3 &&
@@ -467,20 +494,11 @@ function timelineWeaponLineTransition(
 ): string | undefined {
   if (context.initial === true) {
     const primary = currentAttunement(context, "startAttunement");
-    if (uiSpecialization(context) !== "Weaver") return primary;
+    if (!usesDualAttunements(context)) return primary;
     const secondary = currentAttunement(context, "secondaryAttunement");
     return `${primary[0]}/${secondary[0]}`;
   }
   const skill = context.skill as Skill | undefined;
-  if (skill?.name === "Unravel" && uiSpecialization(context) === "Weaver") {
-    const build = context.build as SchedulerRecord | undefined;
-    const currentPrimary = String(context.weaponLine || "").split("/")[0];
-    const primary =
-      ELEMENTALIST_ATTUNEMENTS.find(
-        (attunement) => attunement[0] === currentPrimary,
-      ) || currentAttunement({ build }, "startAttunement");
-    return `${primary[0]}/${primary[0]}`;
-  }
   const target = skill ? skill.name.replace(/ Attunement$/, "") : "";
   if (
     skill?.skillFamily !== "Attunement" ||
@@ -488,7 +506,7 @@ function timelineWeaponLineTransition(
   ) {
     return undefined;
   }
-  if (uiSpecialization(context) !== "Weaver") return target;
+  if (!usesDualAttunements(context)) return target;
 
   const build = context.build as SchedulerRecord | undefined;
   const currentPrimary = String(context.weaponLine || "").split("/")[0];
@@ -551,14 +569,14 @@ export const elementalistCoreUi: Partial<ProfessionUiContract> &
   paletteWeaponSkills,
   updatePaletteControl,
   startControls: (context: SchedulerRecord) => {
-    const isWeaver = uiSpecialization(context) === "Weaver";
+    const dualAttunement = usesDualAttunements(context);
     return [
       attunementStartControl(
         context,
         "startAttunement",
-        isWeaver ? "Primary attunement" : "Start attunement",
+        dualAttunement ? "Primary attunement" : "Start attunement",
       ),
-      ...(isWeaver
+      ...(dualAttunement
         ? [
             attunementStartControl(
               context,

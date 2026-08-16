@@ -1,11 +1,13 @@
 import type {
   AvailabilityResult,
-  CastContext,
-  CastLifecycleContext,
   SchedulerRecord,
   SimulationEvent,
   Skill,
 } from "../../../../platform/engine/types.js";
+import type {
+  ElementalistCastContext,
+  ElementalistPrecastContext,
+} from "../../types.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import {
   applyElementalistAura,
@@ -20,11 +22,27 @@ import {
   elementalistCoreState,
   setElementalistAttunementReadyAt,
 } from "../../core/state.js";
+import { tempestModifierRules } from "./modifiers.js";
 
-function onCastStart(
-  context: CastLifecycleContext<SchedulerRecord>,
+export function applyTempestShoutTraits(
+  context: ElementalistCastContext,
   skill: Skill,
 ): void {
+  if (!hasTrait(context, "Tempestuous Aria")) return;
+  emitElementalistBuff(
+    context as never,
+    context.effectiveEnd,
+    "Might",
+    2,
+    10,
+    skill.name,
+    skill.id,
+    0,
+    "party",
+  );
+}
+
+function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   if (!skill.overload) return;
   if (hasTrait(context, "Hardy Conduit")) {
     emitElementalistBuff(
@@ -71,7 +89,7 @@ function onCastStart(
 }
 
 function availability(
-  context: CastContext<SchedulerRecord>,
+  context: ElementalistPrecastContext,
   skill: Skill,
 ): AvailabilityResult {
   if (!skill.overload) return { ready: true };
@@ -101,10 +119,7 @@ function availability(
     : { ready: true };
 }
 
-function afterCast(
-  context: CastLifecycleContext<SchedulerRecord>,
-  skill: Skill,
-): void {
+function afterCast(context: ElementalistCastContext, skill: Skill): void {
   if (!skill.overload || !hasTrait(context, "Lucid Singularity")) return;
   const hits = context.events
     .filter(
@@ -128,10 +143,7 @@ function afterCast(
   });
 }
 
-function onCastComplete(
-  context: CastLifecycleContext<SchedulerRecord>,
-  skill: Skill,
-): void {
+function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   if (!skill.overload) return;
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const attunement = String(skill.attunement);
@@ -216,6 +228,10 @@ export const tempestCastRules = Object.freeze({
     order: 30,
     handler: availability,
   },
+});
+
+export const tempestAttributeRules = Object.freeze({
+  modifierRules: tempestModifierRules,
 });
 
 export const tempestSchedulerHooks = Object.freeze({

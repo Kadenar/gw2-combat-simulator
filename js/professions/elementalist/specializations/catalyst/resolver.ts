@@ -1,14 +1,104 @@
 import { EPSILON } from "../../../../platform/engine/clock.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import type {
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
 } from "../../../../platform/gw2/types.js";
 import { gw2StatsForWeaponSet } from "../../../../platform/gw2/runtime-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
+import type { ElementalistResolverContext } from "../../types.js";
+import {
+  elementalistSourceSkill,
+  queueElementalistAura,
+  queueElementalistBuff,
+  recordElementalistTraitProc,
+} from "../../core/resolver.js";
 import { catalystState } from "./state.js";
 
 const MAXIMUM_TIMED_EMPOWERMENT_STACKS = 7;
+
+export function applyCatalystResolverAura(
+  context: ElementalistResolverContext,
+  event: Gw2ResolverEvent,
+): void {
+  if (
+    !hasTrait(context, "Elemental Epitome") ||
+    (context.combatStartTime != null && event.at < context.combatStartTime)
+  ) {
+    return;
+  }
+  queueElementalistBuff(
+    context,
+    event,
+    "Elemental Empowerment",
+    1,
+    15,
+    elementalistSourceSkill(event),
+  );
+}
+
+export function applyCatalystComboTraits(
+  context: ElementalistResolverContext,
+  event: Gw2ResolverEvent,
+): void {
+  const core = professionCoreState(context);
+  const state = catalystState.from(context);
+  const attunement = core.primaryAttunement;
+  const epitomeReadyAt = Number(state.elementalEpitomeReadyAt[attunement] || 0);
+  if (
+    hasTrait(context, "Elemental Epitome") &&
+    epitomeReadyAt <= event.at + EPSILON
+  ) {
+    state.elementalEpitomeReadyAt[attunement] = event.at + 10;
+    const aura =
+      attunement === "Fire"
+        ? (["Fire Aura", 4] as const)
+        : attunement === "Water"
+          ? (["Frost Aura", 4] as const)
+          : attunement === "Air"
+            ? (["Shocking Aura", 3] as const)
+            : (["Magnetic Aura", 3] as const);
+    queueElementalistAura(
+      context,
+      event,
+      aura[0],
+      aura[1],
+      "Elemental Epitome",
+    );
+    recordElementalistTraitProc(context, event, "Elemental Epitome");
+  }
+
+  const synergyReadyAt = Number(state.elementalSynergyReadyAt[attunement] || 0);
+  if (
+    hasTrait(context, "Elemental Synergy") &&
+    synergyReadyAt <= event.at + EPSILON
+  ) {
+    state.elementalSynergyReadyAt[attunement] = event.at + 10;
+    if (attunement === "Fire") {
+      queueElementalistBuff(
+        context,
+        event,
+        "Might",
+        6,
+        10,
+        "Elemental Synergy",
+      );
+    } else if (attunement === "Earth") {
+      queueElementalistBuff(
+        context,
+        event,
+        "Stability",
+        2,
+        6,
+        "Elemental Synergy",
+      );
+    } else if (attunement === "Air") {
+      core.endurance = Math.min(100, core.endurance + 50);
+    }
+    recordElementalistTraitProc(context, event, "Elemental Synergy");
+  }
+}
 
 function catalystBoonDuration(
   context: Gw2ResolverRuntime,

@@ -11,3 +11,7 @@ export const elementalistNativeModules = Object.freeze([
   catalystModule,
   evokerModule,
 ] as const);
+
+export const ELEMENTALIST_NATIVE_CATALOG_OPTIONS = Object.freeze({
+  skillNameCollision: "first" as const,
+});

@@ -1,12 +1,5 @@
 {
   "rotation": [
-    "Glyph of Elementals",
-    "Shattering Stone",
-    {
-      "name": "__wait",
-      "waitMs": 4000
-    },
-    "__combat_start",
     "Calcify",
     "Rejuvenate",
     {
