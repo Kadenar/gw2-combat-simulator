@@ -1,9 +1,6 @@
 import type {
   AvailabilityResult,
-  CastContext,
-  CastLifecycleContext,
   ScheduledTask,
-  SchedulerContext,
   SchedulerRecord,
   SimulationEvent,
   Skill,
@@ -20,7 +17,13 @@ import {
   type ElementalistAttunement,
 } from "../../core/state.js";
 import type { CatalystEmpowermentPool } from "../../types.js";
+import type {
+  ElementalistCastContext,
+  ElementalistPrecastContext,
+  ElementalistSchedulerContext,
+} from "../../types.js";
 import { CATALYST_MAXIMUM_ENERGY, catalystState } from "./state.js";
+import { catalystModifierRules } from "./modifiers.js";
 
 const SPHERE_COST = 10;
 const CATALYST_ENERGY_HIT_TASK = "elementalist.catalyst-energy-hit";
@@ -71,7 +74,8 @@ function modifyCatalystAttributes(
       : stacks * 0.015
     : stacks * 0.01;
   const pool = context.config?.catalystEmpowermentPool as
-    Partial<CatalystEmpowermentPool> | undefined;
+    | Partial<CatalystEmpowermentPool>
+    | undefined;
   const modified = { ...attributes };
 
   for (const stat of [
@@ -93,7 +97,7 @@ function modifyCatalystAttributes(
 }
 
 function availability(
-  context: CastContext<SchedulerRecord>,
+  context: ElementalistPrecastContext,
   skill: Skill,
 ): AvailabilityResult {
   if (skill.skillFamily !== "Jade Sphere") return { ready: true };
@@ -117,10 +121,7 @@ function availability(
       };
 }
 
-function onCastStart(
-  context: CastLifecycleContext<SchedulerRecord>,
-  skill: Skill,
-): void {
+function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   if (skill.skillFamily !== "Jade Sphere") return;
   const state = catalystState.from(context);
   state.energy = Math.max(0, state.energy - SPHERE_COST);
@@ -202,10 +203,7 @@ function onCastStart(
   }
 }
 
-function afterCast(
-  context: CastLifecycleContext<SchedulerRecord>,
-  skill: Skill,
-): void {
+function afterCast(context: ElementalistCastContext, skill: Skill): void {
   if (
     skill.skillFamily !== "Jade Sphere" ||
     !hasTrait(context, "Sphere Specialist")
@@ -225,10 +223,7 @@ function afterCast(
   }
 }
 
-function onCastComplete(
-  context: CastLifecycleContext<SchedulerRecord>,
-  skill: Skill,
-): void {
+function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   const state = catalystState.from(context);
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = context.effectiveEnd;
@@ -298,11 +293,26 @@ function onCastComplete(
 }
 
 function onEventScheduled(
-  context: SchedulerContext<SchedulerRecord>,
+  context: ElementalistSchedulerContext,
   event: SimulationEvent,
 ): void {
   const state = catalystState.from(context);
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  if (
+    event.type === "elementalist.aura" &&
+    hasTrait(context, "Elemental Epitome")
+  ) {
+    emitElementalistBuff(
+      context as never,
+      event.at,
+      "Elemental Empowerment",
+      1,
+      15,
+      String(event.skillName || event.source || "Elemental Epitome"),
+      event.skillId ?? event.sourceId,
+    );
+    return;
+  }
   if (
     event.type === "elementalist.attunement" &&
     hasTrait(context, "Energized Elements")
@@ -338,12 +348,12 @@ function onEventScheduled(
     const attunement = String(
       event.attunement || core.primaryAttunement,
     ) as ElementalistAttunement;
-    const readyKey = `elementalEpitome${attunement}`;
     if (
       hasTrait(context, "Elemental Epitome") &&
-      Number(core.procReadyAt[readyKey] || 0) <= event.at + context.epsilon
+      Number(state.elementalEpitomeReadyAt[attunement] || 0) <=
+        event.at + context.epsilon
     ) {
-      core.procReadyAt[readyKey] = event.at + 10;
+      state.elementalEpitomeReadyAt[attunement] = event.at + 10;
       const aura =
         attunement === "Fire"
           ? (["Fire Aura", 4] as const)
@@ -360,12 +370,12 @@ function onEventScheduled(
         sourceId: event.sourceId,
       });
     }
-    const synergyKey = `elementalSynergy${attunement}`;
     if (
       hasTrait(context, "Elemental Synergy") &&
-      Number(core.procReadyAt[synergyKey] || 0) <= event.at + context.epsilon
+      Number(state.elementalSynergyReadyAt[attunement] || 0) <=
+        event.at + context.epsilon
     ) {
-      core.procReadyAt[synergyKey] = event.at + 10;
+      state.elementalSynergyReadyAt[attunement] = event.at + 10;
       if (attunement === "Fire" || attunement === "Earth") {
         emitElementalistBuff(
           context as never,
@@ -401,7 +411,7 @@ function onEventScheduled(
 }
 
 function handleCatalystEnergyHit(
-  context: SchedulerContext<SchedulerRecord>,
+  context: ElementalistSchedulerContext,
   task: ScheduledTask<SchedulerRecord>,
 ): void {
   const state = catalystState.from(context);
@@ -438,6 +448,7 @@ export const catalystCastRules = Object.freeze({
 
 export const catalystAttributeRules = Object.freeze({
   modifyAttributes: modifyCatalystAttributes,
+  modifierRules: catalystModifierRules,
 });
 
 export const catalystSchedulerHooks = Object.freeze({

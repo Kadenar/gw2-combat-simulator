@@ -128,7 +128,8 @@ function simulateDeclarativeGw2Pass({
       traits,
       catalog: runtimeProfession.catalog,
       weaponSkillMatchesSet: runtimeProfession.ui.weaponSkillMatchesSet as
-        Gw2WeaponSkillMatcher | undefined,
+        | Gw2WeaponSkillMatcher
+        | undefined,
     }),
     observationPolicy,
   }).run(rotation);
@@ -194,6 +195,7 @@ function simulateDeclarativeGw2Pass({
       });
     },
     commonHandlers,
+    reactions: extensions.reactions,
     beforeResolveTimeline: extensions.beforeResolveTimeline,
     professionHandlers: runtimeProfession.eventHandlers,
     professionState:

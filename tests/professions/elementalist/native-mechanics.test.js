@@ -23,6 +23,7 @@ import {
 import { elementalistCatalog } from "../../../js/professions/elementalist/catalog.js";
 import { elementalistProfession } from "../../../js/professions/elementalist/definition.js";
 import { elementalistCoreModifierRules } from "../../../js/professions/elementalist/core/modifiers.js";
+import { weaverModifierRules } from "../../../js/professions/elementalist/specializations/weaver/modifiers.js";
 import { ELEMENTALIST_TRAIT_COVERAGE } from "../../../js/professions/elementalist/data/trait-coverage.js";
 
 test("all native Elementalist specializations use one weapon set", () => {
@@ -2071,7 +2072,10 @@ test("Fox's Fury schedules its bonus hit from cast start", () => {
 
 test("core damage traits expose their exact resolver modifiers", () => {
   const rules = new Map(
-    elementalistCoreModifierRules.map((rule) => [rule.id, rule]),
+    [...elementalistCoreModifierRules, ...weaverModifierRules].map((rule) => [
+      rule.id,
+      rule,
+    ]),
   );
 
   assert.equal(rules.get("elementalist.pyromancers-training").factor, 1.07);

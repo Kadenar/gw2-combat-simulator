@@ -1,10 +1,8 @@
 import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
-import type {
-  SchedulerConfig,
-  SchedulerRecord,
-} from "../../../../platform/engine/types.js";
+import type { ElementalistConfig } from "../../types.js";
 
-export interface WeaverState extends SchedulerRecord {
+export interface WeaverState {
+  unravelUntil: number;
   weaveSelfUntil: number;
   weaveSelfVisited: string[];
   perfectWeaveUntil: number;
@@ -13,7 +11,8 @@ export interface WeaverState extends SchedulerRecord {
 
 export const weaverState = defineProfessionSpecializationState(
   "Weaver",
-  (_config: Readonly<SchedulerConfig> = {}): WeaverState => ({
+  (_config: ElementalistConfig = {}): WeaverState => ({
+    unravelUntil: 0,
     weaveSelfUntil: 0,
     weaveSelfVisited: [],
     perfectWeaveUntil: 0,

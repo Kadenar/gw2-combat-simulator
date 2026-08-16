@@ -25,6 +25,7 @@ export function createGw2ResolverRuntimeState({
   warnings = [],
   eventFilterState = {},
   createEquipmentState,
+  reactions,
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
   const equipment = createEquipmentState(config);
   const runtime: Gw2ResolverRuntime = {
@@ -60,6 +61,10 @@ export function createGw2ResolverRuntimeState({
     random: createSimulationRandom(config.randomness),
     weaponStrengthRolls: new Map(),
     weaponStrengthActivationOrder: 0,
+
+    dispatchReaction(stage, event, details) {
+      return reactions?.dispatch(stage, this, event, details);
+    },
 
     recordProc(
       type: string,

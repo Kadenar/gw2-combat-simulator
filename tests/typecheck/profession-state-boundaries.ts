@@ -25,6 +25,12 @@ import type {
   RevenantCoreState,
   VindicatorState,
 } from "../../js/professions/revenant/types.js";
+import { weaverState } from "../../js/professions/elementalist/specializations/weaver/state.js";
+import { catalystState } from "../../js/professions/elementalist/specializations/catalyst/state.js";
+import type { CatalystState } from "../../js/professions/elementalist/specializations/catalyst/state.js";
+import type { WeaverState } from "../../js/professions/elementalist/specializations/weaver/state.js";
+import type { ElementalistCoreState } from "../../js/professions/elementalist/core/state.js";
+import type { ElementalistSchedulerContext } from "../../js/professions/elementalist/types.js";
 
 type Assert<T extends true> = T;
 type Owns<TState, TField extends PropertyKey> = TField extends keyof TState
@@ -35,6 +41,12 @@ type Rejects<TState, TField extends PropertyKey> = TField extends keyof TState
   : true;
 
 export type ProfessionModuleStateBoundaryAssertions = [
+  Assert<Owns<ElementalistCoreState, "primaryAttunement">>,
+  Assert<Rejects<WeaverState, "primaryAttunement">>,
+  Assert<Owns<WeaverState, "unravelUntil">>,
+  Assert<Rejects<ElementalistCoreState, "unravelUntil">>,
+  Assert<Owns<CatalystState, "energy">>,
+  Assert<Rejects<ElementalistCoreState, "energy">>,
   Assert<Owns<EngineerCoreState, "activeKit">>,
   Assert<Rejects<HolosmithState, "activeKit">>,
   Assert<Owns<HolosmithState, "heat">>,
@@ -58,10 +70,19 @@ export type ProfessionModuleStateBoundaryAssertions = [
 ];
 
 declare const context: EngineerSchedulerContext;
+declare const elementalistContext: ElementalistSchedulerContext;
 
 professionCoreState(context).endurance;
 holosmithState.from(context).heat;
 mechanistState.from(context).mech;
+professionCoreState(elementalistContext).primaryAttunement;
+weaverState.from(elementalistContext).unravelUntil;
+catalystState.from(elementalistContext).energy;
+
+// @ts-expect-error Core does not own Weaver state.
+professionCoreState(elementalistContext).unravelUntil;
+// @ts-expect-error Weaver cannot access its Catalyst sibling.
+weaverState.from(elementalistContext).energy;
 
 // @ts-expect-error Core does not own Holosmith state.
 professionCoreState(context).heat;

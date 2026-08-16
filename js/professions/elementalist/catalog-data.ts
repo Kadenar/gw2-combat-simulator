@@ -11,7 +11,9 @@ import type {
   Skill,
   SkillEffect,
   SkillFragment,
+  SkillHandlerStrategy,
 } from "../../platform/engine/types.js";
+import type { ElementalistCastContext } from "./types.js";
 import { ELEMENTALIST_SKILL_MECHANICS } from "./mechanics/skill-mechanics.js";
 
 const ELEMENTALIST_FALLBACK_ICON =
@@ -400,20 +402,30 @@ const WEAPON_HANDS = Object.freeze({
   Warhorn: "oh",
 });
 
-interface ElementalistModuleDataOptions {
+interface ElementalistModuleDataOptions<TContext extends object> {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
   readonly extraSkills?: readonly Skill[];
+  readonly handlers?:
+    | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
+    | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
 }
 
-export function createElementalistModuleData(
+export function createElementalistModuleData<
+  TContext extends object = ElementalistCastContext,
+>(
   id: string,
-  { skillMechanics, extraSkills = [] }: ElementalistModuleDataOptions,
+  {
+    skillMechanics,
+    extraSkills = [],
+    handlers,
+  }: ElementalistModuleDataOptions<TContext>,
 ) {
   return createNativeModuleData({
     id,
     generatedSkills: generated,
     skillMechanics: finalizedSkillMechanics(skillMechanics),
     extraSkills,
+    handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: ELEMENTALIST_API_SPECIALIZATIONS,
     ...(id === "Core"

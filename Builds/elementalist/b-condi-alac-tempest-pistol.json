@@ -107,9 +107,9 @@
   "initialEvokerCharges": 6,
   "initialEvokerEmpowered": 0,
   "pistolBullets": {
-    "Fire": false,
-    "Water": false,
-    "Air": false,
-    "Earth": false
+    "Fire": true,
+    "Water": true,
+    "Air": true,
+    "Earth": true
   }
 }

@@ -1,9 +1,13 @@
 import { flattenProfessionState } from "../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from "../data/ids.js";
+import type { SchedulerRecord } from "../../../platform/engine/types.js";
 import type {
-  SchedulerConfig,
-  SchedulerRecord,
-} from "../../../platform/engine/types.js";
+  ElementalistConfig,
+  ElementalistEndStateProjectionOptions,
+  ElementalistRuntimeState,
+  ElementalistSchedulerContext,
+} from "../types.js";
 
 export const ELEMENTALIST_ATTUNEMENTS = Object.freeze([
   "Fire",
@@ -21,7 +25,7 @@ export interface ElementalistAuraState {
   skillName: string;
 }
 
-export interface ElementalistSummonedElementalState extends SchedulerRecord {
+export interface ElementalistSummonedElementalState {
   element: ElementalistAttunement | null;
   summonGeneration: number;
   actionGeneration: number;
@@ -33,7 +37,7 @@ export interface ElementalistSummonedElementalState extends SchedulerRecord {
   started: boolean;
 }
 
-export interface ElementalistCoreState extends SchedulerRecord {
+export interface ElementalistCoreState {
   primaryAttunement: ElementalistAttunement;
   secondaryAttunement: ElementalistAttunement | null;
   attunementEnteredAt: number;
@@ -86,11 +90,10 @@ export interface ElementalistCoreState extends SchedulerRecord {
   conjureEquipped: string | null;
   conjurePickups: Record<string, number>;
   signetOfFireDisabledUntil: number;
-  catalystBaseEmpowermentActive: boolean;
   availableFlips: Record<string, number>;
   summonedElemental: ElementalistSummonedElementalState;
   procReadyAt: Record<string, number>;
-  unravelUntil: number;
+  attunementTraitProcCooldownSeconds: number;
   arcaneEchoUntil: number;
 }
 
@@ -101,27 +104,11 @@ export function isElementalistAttunement(
 }
 
 export function createElementalistCoreState(
-  config: Readonly<SchedulerConfig> = {},
+  config: ElementalistConfig = {},
 ): ElementalistCoreState {
-  const specialization = String(config.specialization || "Core");
-  const specializedElement =
-    specialization === "Evoker" &&
-    Array.isArray(config.selectedTraits) &&
-    config.selectedTraits.includes("Specialized Elements") &&
-    isElementalistAttunement(config.evokerElement)
-      ? config.evokerElement
-      : null;
-  const primary =
-    specializedElement ||
-    (isElementalistAttunement(config.startAttunement)
-      ? config.startAttunement
-      : "Fire");
-  const secondary =
-    specialization === "Weaver"
-      ? isElementalistAttunement(config.secondaryAttunement)
-        ? config.secondaryAttunement
-        : primary
-      : null;
+  const primary = isElementalistAttunement(config.startAttunement)
+    ? config.startAttunement
+    : "Fire";
   const configuredBullets =
     config.pistolBullets && typeof config.pistolBullets === "object"
       ? (config.pistolBullets as Partial<
@@ -130,7 +117,7 @@ export function createElementalistCoreState(
       : {};
   return {
     primaryAttunement: primary,
-    secondaryAttunement: secondary,
+    secondaryAttunement: null,
     attunementEnteredAt: 0,
     attunementReadyAt: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
     autoattackChains: {},
@@ -174,7 +161,6 @@ export function createElementalistCoreState(
     conjureEquipped: null,
     conjurePickups: {},
     signetOfFireDisabledUntil: 0,
-    catalystBaseEmpowermentActive: false,
     availableFlips: {},
     summonedElemental: {
       element: null,
@@ -188,35 +174,33 @@ export function createElementalistCoreState(
       started: false,
     },
     procReadyAt: {},
-    unravelUntil: 0,
+    attunementTraitProcCooldownSeconds: 0,
     arcaneEchoUntil: 0,
   };
 }
 
-export function elementalistCoreState(
-  context: SchedulerRecord,
-): ElementalistCoreState {
-  const state = context.state as
-    { profession?: { core?: ElementalistCoreState } } | undefined;
-  const runtime = context.runtime as
-    { profession?: { core?: ElementalistCoreState } } | undefined;
-  const profession = context.profession as
-    { core?: ElementalistCoreState } | undefined;
-  const core =
-    state?.profession?.core || runtime?.profession?.core || profession?.core;
-  if (!core) throw new TypeError("Elementalist Core state is unavailable.");
-  return core;
+/**
+ * Transitional compatibility export for owner-local files that have not yet
+ * switched to the shared profession state accessor.
+ */
+export function elementalistCoreState(context: unknown): ElementalistCoreState {
+  return professionCoreState(
+    context as {
+      readonly state: { readonly profession: ElementalistRuntimeState };
+    },
+  );
 }
 
 export function setElementalistAttunementReadyAt(
-  context: SchedulerRecord,
+  context: ElementalistSchedulerContext,
   attunement: ElementalistAttunement,
   readyAt: number,
 ): void {
-  const state = elementalistCoreState(context);
+  const state = professionCoreState(context);
   state.attunementReadyAt[attunement] = readyAt;
   const schedulerState = context.state as
-    { time?: number; cooldowns?: Map<number, number> } | undefined;
+    | { time?: number; cooldowns?: Map<number, number> }
+    | undefined;
   const cooldowns = schedulerState?.cooldowns;
   if (!cooldowns) return;
   const skillId = ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement];
@@ -228,7 +212,7 @@ export function setElementalistAttunementReadyAt(
 }
 
 export function resetElementalistAttunementCooldowns(
-  context: SchedulerRecord,
+  context: ElementalistSchedulerContext,
 ): void {
   const at = Number(
     (context.state as { time?: number } | undefined)?.time || context.time || 0,
@@ -343,12 +327,10 @@ const ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<SchedulerRecord> =
 
 export function projectElementalistEndState({
   schedulerState,
-}: {
-  readonly schedulerState: { readonly profession: unknown };
-}): SchedulerRecord {
+}: ElementalistEndStateProjectionOptions): SchedulerRecord {
   const state = flattenProfessionState(
     schedulerState.profession,
-  ) as SchedulerRecord;
+  ) as SchedulerRecord & ElementalistRuntimeState["core"];
   return Object.fromEntries(
     ELEMENTALIST_PUBLIC_END_STATE_KEYS.map((key) => [
       key,

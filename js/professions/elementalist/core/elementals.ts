@@ -4,32 +4,21 @@ import {
 } from "../../../platform/gw2/scheduler/policy.js";
 import type {
   AvailabilityResult,
-  CastContext,
-  CastLifecycleContext,
   ScheduledTask,
-  SchedulerContext,
   SchedulerRecord,
   SimulationEvent,
   Skill,
   SkillEffect,
 } from "../../../platform/engine/types.js";
+import type {
+  ElementalistCastContext as ElementalistLifecycleContext,
+  ElementalistPrecastContext as ElementalistCastContext,
+  ElementalistSchedulerContext,
+} from "../types.js";
 import { FIRE_ELEMENTAL_EVTC_PROFILE } from "./elemental-profile.js";
 import { elementalistCoreState, type ElementalistCoreState } from "./state.js";
 
 export { FIRE_ELEMENTAL_EVTC_PROFILE } from "./elemental-profile.js";
-
-interface ElementalistRuntimeState extends SchedulerRecord {
-  core: ElementalistCoreState;
-  specialization: {
-    kind: string;
-    state: SchedulerRecord;
-  };
-}
-
-type ElementalistLifecycleContext =
-  CastLifecycleContext<ElementalistRuntimeState>;
-type ElementalistCastContext = CastContext<ElementalistRuntimeState>;
-type ElementalistSchedulerContext = SchedulerContext<ElementalistRuntimeState>;
 
 interface ElementalTaskPayload extends SchedulerRecord {
   readonly summonGeneration: number;
