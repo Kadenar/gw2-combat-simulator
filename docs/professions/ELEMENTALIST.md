@@ -83,11 +83,22 @@ Current results and diagnosed shared-engine limitations are documented in:
 
 ## Summoned elemental
 
-Glyph of Elementals always uses the EVTC-derived native Fire Elemental actor.
-Its autonomous Fireball and Flame Burst actions run through shared summon
-scheduling and boon application. Flame Barrage is a rotation command and is
-prescribed off cooldown by every supported preset that equips the elite skill.
-Those presets cast Glyph as rotation command 1 and complete the summon before
-combat begins.
-Air, Ice, and Earth Elemental AI require additional combat-log evidence before
-distinct behavior can be implemented.
+The elite skill selector exposes separate Fire and Earth variants of Glyph of
+Elementals. The simulation reads that selection and automatically creates the
+chosen actor on the first player action or explicit combat marker; rotations
+do not cast the summon themselves.
+
+Fire Elemental autonomously uses Fireball and Flame Burst and exposes Flame
+Barrage as its rotation command. Earth Elemental autonomously uses Punch and
+Enervating Punch, which applies three seconds of Weakness on an eight-second
+recharge, and exposes Stomp as its rotation command. Stomp deals summon strike
+damage, grants three seconds of Protection to allies, applies five seconds of
+Crippled, and applies eleven seconds of Immobilized. Both actors use the shared
+summon scheduler, inherit eligible party boons, interrupt
+their current action when commanded, expire after 120 seconds, and put their
+selected glyph on the post-expiry recharge.
+
+The EVTC importer reconstructs Elementalist attunement changes, maps the raw
+Firestorm and Lightning Storm IDs to their attunement-specific Glyph of Storms
+skills, and recovers Earth Elemental Stomp commands from its owned actor. Air
+and Ice Elemental AI remain unsupported pending combat-log evidence.

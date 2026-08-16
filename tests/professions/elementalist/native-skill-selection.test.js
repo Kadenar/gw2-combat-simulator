@@ -52,6 +52,15 @@ test("Tailored Victory is a chain skill, not an elite selection", () => {
   );
 });
 
+test("both supported elemental summons are selectable elite skills", () => {
+  const labels = availableSlotSkills(weaverApp(), "Elite").map(
+    (skill) => skill.displayName || skill.name,
+  );
+
+  assert.equal(labels.includes("Glyph of Elementals (Fire)"), true);
+  assert.equal(labels.includes("Glyph of Elementals (Earth)"), true);
+});
+
 test("existing builds retain any stored attunement variant", () => {
   const app = weaverApp({
     Utility1: "Glyph of Elemental Power (Air)",

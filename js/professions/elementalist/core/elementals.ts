@@ -15,24 +15,35 @@ import type {
   ElementalistPrecastContext as ElementalistCastContext,
   ElementalistSchedulerContext,
 } from "../types.js";
-import { FIRE_ELEMENTAL_EVTC_PROFILE } from "./elemental-profile.js";
-import { elementalistCoreState, type ElementalistCoreState } from "./state.js";
+import { ELEMENTALIST_SKILL_IDS as ID } from "../data/ids.js";
+import {
+  EARTH_ELEMENTAL_EVTC_PROFILE,
+  FIRE_ELEMENTAL_EVTC_PROFILE,
+} from "./elemental-profile.js";
+import { elementalistCoreState } from "./state.js";
 
-export { FIRE_ELEMENTAL_EVTC_PROFILE } from "./elemental-profile.js";
+export {
+  EARTH_ELEMENTAL_EVTC_PROFILE,
+  FIRE_ELEMENTAL_EVTC_PROFILE,
+} from "./elemental-profile.js";
+
+type ElementalKind = "Fire" | "Earth";
+type ElementalImpact =
+  | "fireball"
+  | "flame-burst"
+  | "flame-barrage-projectile"
+  | "flame-barrage-explosion"
+  | "punch"
+  | "enervating-punch"
+  | "stomp";
 
 interface ElementalTaskPayload extends SchedulerRecord {
   readonly summonGeneration: number;
   readonly actionGeneration?: number;
   readonly activationId?: string;
-  readonly impact?: FireElementalImpact;
+  readonly impact?: ElementalImpact;
   readonly hitIndex?: number;
 }
-
-type FireElementalImpact =
-  | "fireball"
-  | "flame-burst"
-  | "flame-barrage-projectile"
-  | "flame-barrage-explosion";
 
 const ELEMENTAL_AI_TASK = "elementalist.elemental-ai";
 const ELEMENTAL_IMPACT_TASK = "elementalist.elemental-impact";
@@ -41,6 +52,7 @@ const ELEMENTAL_TASK_OWNER = "elementalist.summoned-elemental";
 
 export const FLAME_BARRAGE_ID =
   FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage.skillId;
+export const STOMP_ID = EARTH_ELEMENTAL_EVTC_PROFILE.stomp.skillId;
 
 function ready(): AvailabilityResult {
   return { ready: true };
@@ -67,11 +79,67 @@ function selectedSkillNames(
   return new Set(values.map(String));
 }
 
+function selectedElemental(
+  context: ElementalistSchedulerContext,
+): ElementalKind | null {
+  const selected = selectedSkillNames(context);
+  if (selected.has("Glyph of Elementals (Earth)")) return "Earth";
+  if (
+    selected.has("Glyph of Elementals") ||
+    selected.has("Glyph of Elementals (Fire)")
+  ) {
+    return "Fire";
+  }
+  return null;
+}
+
+function automaticSummoningEnabled(
+  context: ElementalistSchedulerContext,
+): boolean {
+  return (
+    context.config.autoSummonElemental !== false &&
+    context.config.autoSummonFireElemental !== false
+  );
+}
+
+function elementalForGlyph(skill: Skill): ElementalKind | null {
+  if (
+    skill.id === ID.GLYPH_OF_ELEMENTALS_EARTH ||
+    skill.name === "Glyph of Elementals (Earth)"
+  ) {
+    return "Earth";
+  }
+  if (
+    skill.id === ID.GLYPH_OF_ELEMENTALS ||
+    skill.name === "Glyph of Elementals"
+  ) {
+    return "Fire";
+  }
+  return null;
+}
+
+function glyphSkillForElement(
+  context: ElementalistSchedulerContext,
+  element: ElementalKind,
+): Skill | null {
+  return (
+    context.catalog.skillsByName.get(
+      element === "Earth"
+        ? "Glyph of Elementals (Earth)"
+        : "Glyph of Elementals",
+    ) || null
+  );
+}
+
+function commandName(element: ElementalKind): "Flame Barrage" | "Stomp" {
+  return element === "Earth" ? "Stomp" : "Flame Barrage";
+}
+
 function companionId(summonGeneration: number): string {
   return `elementalist-elemental:${summonGeneration}`;
 }
 
-function activeFireElemental(
+function activeElemental(
   context: ElementalistSchedulerContext,
   summonGeneration: number,
   at: number,
@@ -80,8 +148,8 @@ function activeFireElemental(
     context as unknown as SchedulerRecord,
   ).summonedElemental;
   return (
+    (elemental.element === "Fire" || elemental.element === "Earth") &&
     elemental.summonGeneration === summonGeneration &&
-    elemental.element === "Fire" &&
     elemental.activeUntil > at - context.epsilon
   );
 }
@@ -147,6 +215,8 @@ function beginSummonAction(
   const elemental = elementalistCoreState(
     context as unknown as SchedulerRecord,
   ).summonedElemental;
+  const element = elemental.element as ElementalKind;
+  const playerCommanded = skillName === commandName(element);
   interruptCurrentAction(context, at);
   elemental.actionGeneration += 1;
   const activationId = context.createActivationId("summon-attack");
@@ -155,7 +225,7 @@ function beginSummonAction(
     type: "action",
     activationId,
     at,
-    source: "Fire Elemental",
+    source: `${element} Elemental`,
     sourceId: skillId,
     actorType: "summon",
     skillId,
@@ -164,8 +234,8 @@ function beginSummonAction(
     endsAt: at + animationEnd,
     fullEndsAt: at + animationEnd,
     summonOwner: companionId(elemental.summonGeneration),
-    autonomousElementalSkill: skillName !== "Flame Barrage",
-    playerCommandedElementalSkill: skillName === "Flame Barrage",
+    autonomousElementalSkill: !playerCommanded,
+    playerCommandedElementalSkill: playerCommanded,
   });
   return {
     actionGeneration: elemental.actionGeneration,
@@ -176,7 +246,7 @@ function beginSummonAction(
 function scheduleImpact(
   context: ElementalistSchedulerContext,
   at: number,
-  impact: FireElementalImpact,
+  impact: ElementalImpact,
   action: Readonly<{ actionGeneration: number; activationId: string }>,
   hitIndex = 1,
   priority = -20,
@@ -251,7 +321,7 @@ function startFlameBurst(
     "Flame Burst",
     profile.animationEnd / rate,
   );
-  elemental.flameBurstReadyAt =
+  elemental.secondaryAttackReadyAt =
     at +
     profile.animationEnd / rate +
     profile.cooldown / summonRechargeRate(context, at);
@@ -303,17 +373,94 @@ function startFlameBarrage(
   scheduleNextAi(context, nextAt, action.actionGeneration);
 }
 
+function startPunch(context: ElementalistSchedulerContext, at: number): void {
+  const profile = EARTH_ELEMENTAL_EVTC_PROFILE.punch;
+  const rate = actionRate(context, at);
+  const action = beginSummonAction(
+    context,
+    at,
+    profile.skillId,
+    "Punch",
+    profile.animationEnd / rate,
+  );
+  scheduleImpact(context, at + profile.impact / rate, "punch", action);
+  const nextAt = at + profile.recovery / rate;
+  elementalistCoreState(
+    context as unknown as SchedulerRecord,
+  ).summonedElemental.busyUntil = nextAt;
+  scheduleNextAi(context, nextAt, action.actionGeneration);
+}
+
+function startEnervatingPunch(
+  context: ElementalistSchedulerContext,
+  at: number,
+): void {
+  const profile = EARTH_ELEMENTAL_EVTC_PROFILE.enervatingPunch;
+  const rate = actionRate(context, at);
+  const elemental = elementalistCoreState(
+    context as unknown as SchedulerRecord,
+  ).summonedElemental;
+  const action = beginSummonAction(
+    context,
+    at,
+    profile.skillId,
+    "Enervating Punch",
+    profile.animationEnd / rate,
+  );
+  elemental.secondaryAttackReadyAt =
+    at +
+    profile.animationEnd / rate +
+    profile.cooldown / summonRechargeRate(context, at);
+  scheduleImpact(
+    context,
+    at + profile.impact / rate,
+    "enervating-punch",
+    action,
+  );
+  const nextAt = at + profile.recovery / rate;
+  elemental.busyUntil = nextAt;
+  scheduleNextAi(context, nextAt, action.actionGeneration);
+}
+
+function startStomp(context: ElementalistSchedulerContext, at: number): void {
+  const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
+  const rate = actionRate(context, at);
+  const elemental = elementalistCoreState(
+    context as unknown as SchedulerRecord,
+  ).summonedElemental;
+  const postCommandRecovery =
+    elemental.actionGeneration === 0
+      ? EARTH_ELEMENTAL_EVTC_PROFILE.postCommandRecovery
+      : EARTH_ELEMENTAL_EVTC_PROFILE.subsequentCommandRecovery;
+  const action = beginSummonAction(
+    context,
+    at,
+    profile.skillId,
+    "Stomp",
+    profile.animationEnd / rate,
+  );
+  scheduleImpact(context, at + profile.impact / rate, "stomp", action);
+  const nextAt = at + profile.animationEnd / rate + postCommandRecovery;
+  elemental.busyUntil = nextAt;
+  scheduleNextAi(context, nextAt, action.actionGeneration);
+}
+
 function summonStrikeMetadata(
+  element: ElementalKind,
   summonGeneration: number,
   baseDamage: number,
 ): SchedulerRecord {
+  const profile =
+    element === "Earth"
+      ? EARTH_ELEMENTAL_EVTC_PROFILE
+      : FIRE_ELEMENTAL_EVTC_PROFILE;
   return {
     independentSummonStrike: true,
     summonInheritsAttributes: false,
     summonUsesProfessionModifiers: false,
-    summonBasePower: FIRE_ELEMENTAL_EVTC_PROFILE.basePower,
-    summonBasePrecision: FIRE_ELEMENTAL_EVTC_PROFILE.basePrecision,
-    summonBaseFerocity: FIRE_ELEMENTAL_EVTC_PROFILE.baseFerocity,
+    summonBasePower: profile.basePower,
+    summonBasePrecision: profile.basePrecision,
+    summonBaseFerocity: profile.baseFerocity,
     summonCriticalChance: 0.05,
     summonCriticalDamage: 1.5,
     summonDamagePerCoefficient: baseDamage,
@@ -331,11 +478,15 @@ function emitStrike(
   hitIndex: number,
   totalHits: number,
 ): void {
+  const elemental = elementalistCoreState(
+    context as unknown as SchedulerRecord,
+  ).summonedElemental;
+  const element = elemental.element as ElementalKind;
   context.emit({
     type: "damage",
     activationId: task.payload?.activationId,
     at: task.at,
-    source: "Fire Elemental",
+    source: `${element} Elemental`,
     sourceId: skillId,
     actorType: "summon",
     skillId,
@@ -345,46 +496,59 @@ function emitStrike(
     hits: 1,
     hitIndex,
     totalHits,
-    autonomousElementalSkill: true,
+    autonomousElementalSkill: skillName !== commandName(element),
+    playerCommandedElementalSkill: skillName === commandName(element),
     ...summonStrikeMetadata(
+      element,
       Number(task.payload?.summonGeneration || 0),
       baseDamage,
     ),
   });
 }
 
-function emitPlayerOwnedBurning(
+function emitPlayerOwnedCondition(
   context: ElementalistSchedulerContext,
   task: ScheduledTask<ElementalTaskPayload>,
   skillId: number,
   skillName: string,
+  condition: string,
+  duration: number,
 ): void {
+  const elemental = elementalistCoreState(
+    context as unknown as SchedulerRecord,
+  ).summonedElemental;
   context.emit({
     type: "condition",
     activationId: task.payload?.activationId,
     at: task.at,
-    source: "Fire Elemental",
+    source: `${elemental.element} Elemental`,
     sourceId: skillId,
     actorType: "player",
     skillId,
     skillName,
-    name: `${skillName} — Burning`,
-    condition: "Burning",
+    name: `${skillName} — ${condition}`,
+    condition,
     stacks: 1,
-    duration: 3,
+    duration,
     elementalOwnedCondition: true,
   });
 }
 
 function boonDuration(
   context: ElementalistSchedulerContext,
+  boon: string,
   duration: number,
 ): number {
-  const sourceSkill = context.catalog.skillsByName.get("Glyph of Elementals");
+  const element = elementalistCoreState(context as unknown as SchedulerRecord)
+    .summonedElemental.element;
+  const sourceSkill =
+    element === "Earth"
+      ? context.catalog.skillsByName.get("Glyph of Elementals (Earth)")
+      : context.catalog.skillsByName.get("Glyph of Elementals");
   if (!sourceSkill) return duration;
   const effect: SkillEffect = {
     type: "boon",
-    boon: "might",
+    boon,
     duration,
   };
   return (
@@ -414,7 +578,30 @@ function emitFlameBurstMight(
     name: "Flame Burst — Might",
     kind: "might",
     stacks: profile.mightStacks,
-    duration: boonDuration(context, profile.mightDuration),
+    duration: boonDuration(context, "might", profile.mightDuration),
+    recipients: "party",
+    maximumRecipients: 5,
+  });
+}
+
+function emitStompProtection(
+  context: ElementalistSchedulerContext,
+  task: ScheduledTask<ElementalTaskPayload>,
+): void {
+  const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
+  context.emit({
+    type: "buff",
+    activationId: task.payload?.activationId,
+    at: task.at,
+    source: "Earth Elemental",
+    sourceId: profile.skillId,
+    actorType: "player",
+    skillId: profile.skillId,
+    skillName: "Stomp",
+    name: "Stomp — Protection",
+    kind: "protection",
+    stacks: 1,
+    duration: boonDuration(context, "protection", profile.protectionDuration),
     recipients: "party",
     maximumRecipients: 5,
   });
@@ -430,11 +617,12 @@ function handleElementalImpactTask(
     context as unknown as SchedulerRecord,
   ).summonedElemental;
   if (
-    !activeFireElemental(context, payload.summonGeneration, task.at) ||
+    !activeElemental(context, payload.summonGeneration, task.at) ||
     payload.actionGeneration !== elemental.actionGeneration
   ) {
     return;
   }
+
   if (payload.impact === "fireball") {
     const profile = FIRE_ELEMENTAL_EVTC_PROFILE.fireball;
     emitStrike(
@@ -459,12 +647,19 @@ function handleElementalImpactTask(
       1,
       1,
     );
-    emitPlayerOwnedBurning(context, task, profile.skillId, "Flame Burst");
+    emitPlayerOwnedCondition(
+      context,
+      task,
+      profile.skillId,
+      "Flame Burst",
+      "Burning",
+      profile.burningDuration,
+    );
     emitFlameBurstMight(context, task);
     return;
   }
-  const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage;
   if (payload.impact === "flame-barrage-projectile") {
+    const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage;
     emitStrike(
       context,
       task,
@@ -474,8 +669,18 @@ function handleElementalImpactTask(
       Number(payload.hitIndex || 1),
       4,
     );
-    emitPlayerOwnedBurning(context, task, profile.skillId, "Flame Barrage");
-  } else if (payload.impact === "flame-barrage-explosion") {
+    emitPlayerOwnedCondition(
+      context,
+      task,
+      profile.skillId,
+      "Flame Barrage",
+      "Burning",
+      profile.burningDuration,
+    );
+    return;
+  }
+  if (payload.impact === "flame-barrage-explosion") {
+    const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage;
     emitStrike(
       context,
       task,
@@ -485,6 +690,70 @@ function handleElementalImpactTask(
       4,
       4,
     );
+    return;
+  }
+  if (payload.impact === "punch") {
+    const profile = EARTH_ELEMENTAL_EVTC_PROFILE.punch;
+    emitStrike(
+      context,
+      task,
+      profile.skillId,
+      "Punch",
+      profile.baseDamage,
+      1,
+      1,
+    );
+    return;
+  }
+  if (payload.impact === "enervating-punch") {
+    const profile = EARTH_ELEMENTAL_EVTC_PROFILE.enervatingPunch;
+    emitStrike(
+      context,
+      task,
+      profile.skillId,
+      "Enervating Punch",
+      profile.baseDamage,
+      1,
+      1,
+    );
+    emitPlayerOwnedCondition(
+      context,
+      task,
+      profile.skillId,
+      "Enervating Punch",
+      "Weakness",
+      profile.weaknessDuration,
+    );
+    return;
+  }
+  if (payload.impact === "stomp") {
+    const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
+    emitStrike(
+      context,
+      task,
+      profile.skillId,
+      "Stomp",
+      profile.baseDamage,
+      1,
+      1,
+    );
+    emitPlayerOwnedCondition(
+      context,
+      task,
+      profile.skillId,
+      "Stomp",
+      "Crippled",
+      profile.crippleDuration,
+    );
+    emitPlayerOwnedCondition(
+      context,
+      task,
+      profile.skillId,
+      "Stomp",
+      "Immobilized",
+      profile.immobilizeDuration,
+    );
+    emitStompProtection(context, task);
   }
 }
 
@@ -498,13 +767,19 @@ function handleElementalAiTask(
     context as unknown as SchedulerRecord,
   ).summonedElemental;
   if (
-    !activeFireElemental(context, payload.summonGeneration, task.at) ||
+    !activeElemental(context, payload.summonGeneration, task.at) ||
     payload.actionGeneration !== elemental.actionGeneration
   ) {
     return;
   }
   elemental.nextActionAt = 0;
-  if (elemental.flameBurstReadyAt <= task.at + context.epsilon) {
+  if (elemental.element === "Earth") {
+    if (elemental.secondaryAttackReadyAt <= task.at + context.epsilon) {
+      startEnervatingPunch(context, task.at);
+    } else {
+      startPunch(context, task.at);
+    }
+  } else if (elemental.secondaryAttackReadyAt <= task.at + context.epsilon) {
     startFlameBurst(context, task.at);
   } else {
     startFireball(context, task.at);
@@ -517,31 +792,35 @@ function handleElementalExpireTask(
 ): void {
   const payload = task.payload;
   if (!payload) return;
-  const elemental = elementalistCoreState(
-    context as unknown as SchedulerRecord,
-  ).summonedElemental;
+  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const elemental = state.summonedElemental;
   if (payload.summonGeneration !== elemental.summonGeneration) return;
+  const element = elemental.element;
+  if (element !== "Fire" && element !== "Earth") return;
   interruptCurrentAction(context, task.at);
   elemental.actionGeneration += 1;
   elemental.element = null;
   elemental.activeUntil = 0;
   elemental.busyUntil = 0;
   elemental.nextActionAt = 0;
-  elemental.flameBurstReadyAt = 0;
+  elemental.secondaryAttackReadyAt = 0;
   elemental.currentActivationId = null;
   elemental.started = false;
-  delete elementalistCoreState(context as unknown as SchedulerRecord)
-    .availableFlips["Flame Barrage"];
-  const glyph = context.catalog.skillsByName.get("Glyph of Elementals");
+  delete state.availableFlips[commandName(element)];
+  const glyph = glyphSkillForElement(context, element);
   if (glyph) {
+    const profile =
+      element === "Earth"
+        ? EARTH_ELEMENTAL_EVTC_PROFILE
+        : FIRE_ELEMENTAL_EVTC_PROFILE;
     context.state.cooldowns.set(
       glyph.id,
-      task.at + FIRE_ELEMENTAL_EVTC_PROFILE.rechargeAfterExpiry,
+      task.at + profile.rechargeAfterExpiry,
     );
   }
 }
 
-function startFireElemental(
+function startElemental(
   context: ElementalistSchedulerContext,
   at: number,
 ): void {
@@ -549,48 +828,57 @@ function startFireElemental(
     context as unknown as SchedulerRecord,
   ).summonedElemental;
   if (
-    elemental.element !== "Fire" ||
+    (elemental.element !== "Fire" && elemental.element !== "Earth") ||
     elemental.started ||
     elemental.activeUntil <= at + context.epsilon
   ) {
     return;
   }
   elemental.started = true;
-  scheduleNextAi(
-    context,
-    at + FIRE_ELEMENTAL_EVTC_PROFILE.targetAcquisitionDelay,
-    elemental.actionGeneration,
-  );
+  if (
+    elemental.element === "Earth" &&
+    elemental.nextActionAt > at + context.epsilon
+  ) {
+    return;
+  }
+  const delay =
+    elemental.element === "Earth"
+      ? EARTH_ELEMENTAL_EVTC_PROFILE.targetAcquisitionDelay
+      : FIRE_ELEMENTAL_EVTC_PROFILE.targetAcquisitionDelay;
+  scheduleNextAi(context, at + delay, elemental.actionGeneration);
 }
 
 export function beginElementalistGlyphCast(
   context: ElementalistLifecycleContext,
   skill: Skill,
 ): void {
-  if (skill.name !== "Glyph of Elementals") return;
-  context.replaceEvent(context.action, {
-    summonedElement: "Fire",
-  });
+  const element = elementalForGlyph(skill);
+  if (!element) return;
+  context.replaceEvent(context.action, { summonedElement: element });
 }
 
-function summonFireElemental(
+function summonElemental(
   context: ElementalistSchedulerContext,
   skill: Skill,
   at: number,
   startImmediately: boolean,
+  element: ElementalKind,
 ): void {
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
-  const element = "Fire";
+  const profile =
+    element === "Earth"
+      ? EARTH_ELEMENTAL_EVTC_PROFILE
+      : FIRE_ELEMENTAL_EVTC_PROFILE;
   context.tasks.cancelOwner(ELEMENTAL_TASK_OWNER);
   const summonGeneration = state.summonedElemental.summonGeneration + 1;
   state.summonedElemental = {
     element,
     summonGeneration,
     actionGeneration: 0,
-    activeUntil: at + FIRE_ELEMENTAL_EVTC_PROFILE.lifetime,
+    activeUntil: at + profile.lifetime,
     busyUntil: at,
     nextActionAt: 0,
-    flameBurstReadyAt: at,
+    secondaryAttackReadyAt: at,
     currentActivationId: null,
     started: false,
   };
@@ -611,53 +899,71 @@ function summonFireElemental(
     { summonGeneration },
     50,
   );
-  state.availableFlips["Flame Barrage"] = Number.POSITIVE_INFINITY;
-  if (startImmediately) startFireElemental(context, at);
+  state.availableFlips[commandName(element)] = Number.POSITIVE_INFINITY;
+  if (startImmediately) startElemental(context, at);
 }
 
 export function completeElementalistGlyphCast(
   context: ElementalistLifecycleContext,
   skill: Skill,
 ): void {
-  if (skill.name !== "Glyph of Elementals") return;
-  const at = context.effectiveEnd;
-  summonFireElemental(
+  const element = elementalForGlyph(skill);
+  if (!element) return;
+  summonElemental(
     context,
     skill,
-    at,
+    context.effectiveEnd,
     !context.hasExplicitCombatStart || context.combatStartTime != null,
+    element,
   );
 }
 
-export function completeElementalistFlameBarrageCommand(
+export function completeElementalistElementalCommand(
   context: ElementalistLifecycleContext,
   skill: Skill,
 ): void {
-  if (skill.id !== FLAME_BARRAGE_ID && skill.name !== "Flame Barrage") return;
-  startFlameBarrage(context, context.effectiveEnd);
+  if (skill.id === FLAME_BARRAGE_ID || skill.name === "Flame Barrage") {
+    startFlameBarrage(context, context.effectiveEnd);
+  } else if (skill.id === STOMP_ID || skill.name === "Stomp") {
+    startStomp(context, context.effectiveEnd);
+  }
 }
 
 export function observeElementalistElementalEvent(
   context: ElementalistSchedulerContext,
   event: SimulationEvent,
 ): void {
+  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const selected = selectedElemental(context);
+  const autoSummon = automaticSummoningEnabled(context) && selected != null;
+  if (
+    autoSummon &&
+    state.summonedElemental.activeUntil <= event.at + context.epsilon &&
+    event.type === "action" &&
+    event.actorType === "player" &&
+    elementalForGlyph({
+      id: Number(event.skillId || event.sourceId || 0),
+      name: String(event.skillName || event.name || ""),
+    } as Skill) == null
+  ) {
+    const glyph = glyphSkillForElement(context, selected);
+    if (glyph) summonElemental(context, glyph, event.at, false, selected);
+  }
   const combatStarted =
     event.type === "combat_start" ||
     (!context.hasExplicitCombatStart &&
       ["damage", "condition", "control", "blind"].includes(event.type) &&
       ["player", "summon", "phantasm"].includes(String(event.actorType)));
   if (!combatStarted) return;
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
   if (
     state.summonedElemental.activeUntil <= event.at + context.epsilon &&
-    context.config.autoSummonFireElemental !== false &&
-    selectedSkillNames(context).has("Glyph of Elementals")
+    autoSummon
   ) {
-    const glyph = context.catalog.skillsByName.get("Glyph of Elementals");
-    if (glyph) summonFireElemental(context, glyph, event.at, true);
+    const glyph = glyphSkillForElement(context, selected);
+    if (glyph) summonElemental(context, glyph, event.at, true, selected);
     return;
   }
-  startFireElemental(context, event.at);
+  startElemental(context, event.at);
 }
 
 export function elementalistElementalAvailability(
@@ -668,12 +974,36 @@ export function elementalistElementalAvailability(
     context as unknown as SchedulerRecord,
   ).summonedElemental;
   if (skill.id === FLAME_BARRAGE_ID || skill.name === "Flame Barrage") {
-    return elemental.element === "Fire" &&
-      elemental.activeUntil > context.start + context.epsilon
+    const active =
+      elemental.element === "Fire" &&
+      elemental.activeUntil > context.start + context.epsilon;
+    return active ||
+      (elemental.activeUntil <= context.start + context.epsilon &&
+        automaticSummoningEnabled(
+          context as unknown as ElementalistSchedulerContext,
+        ) &&
+        selectedElemental(
+          context as unknown as ElementalistSchedulerContext,
+        ) === "Fire")
       ? ready()
       : unavailable("an active Fire Elemental is required.");
   }
-  if (skill.name !== "Glyph of Elementals") return null;
+  if (skill.id === STOMP_ID || skill.name === "Stomp") {
+    const active =
+      elemental.element === "Earth" &&
+      elemental.activeUntil > context.start + context.epsilon;
+    return active ||
+      (elemental.activeUntil <= context.start + context.epsilon &&
+        automaticSummoningEnabled(
+          context as unknown as ElementalistSchedulerContext,
+        ) &&
+        selectedElemental(
+          context as unknown as ElementalistSchedulerContext,
+        ) === "Earth")
+      ? ready()
+      : unavailable("an active Earth Elemental is required.");
+  }
+  if (!elementalForGlyph(skill)) return null;
   return elemental.activeUntil > context.start + context.epsilon
     ? unavailable(
         `the ${elemental.element || "summoned"} elemental is still active.`,

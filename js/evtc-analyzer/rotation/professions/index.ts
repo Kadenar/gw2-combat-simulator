@@ -1,3 +1,4 @@
+import { reconstructElementalistProfessionActions } from "./elementalist.js";
 import { reconstructGuardianProfessionActions } from "./guardian.js";
 import { reconstructEngineerProfessionActions } from "./engineer.js";
 import { reconstructMesmerProfessionActions } from "./mesmer.js";
@@ -14,6 +15,7 @@ import type {
 
 const reconstructors: ReadonlyMap<string, EvtcProfessionActionReconstructor> =
   new Map([
+    ["elementalist", reconstructElementalistProfessionActions],
     ["engineer", reconstructEngineerProfessionActions],
     ["guardian", reconstructGuardianProfessionActions],
     ["mesmer", reconstructMesmerProfessionActions],

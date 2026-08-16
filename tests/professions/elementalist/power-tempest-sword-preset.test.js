@@ -36,9 +36,6 @@ test("Power Tempest sword commands Flame Barrage off cooldown", async () => {
   const combatStart = result.steps.find(
     (step) => step.skill === "Combat Start",
   );
-  const glyph = result.steps.find(
-    (step) => step.skill === "Glyph of Elementals",
-  );
   const barrages = result.steps.filter(
     (step) => step.skill === "Flame Barrage",
   );
@@ -66,9 +63,20 @@ test("Power Tempest sword commands Flame Barrage off cooldown", async () => {
     Object.hasOwn(build.assumptions, "elementalSimulationProfile"),
     false,
   );
-  assert.equal(savedRotation.rotation[0], "Glyph of Elementals");
-  assert.equal(glyph.ri, 0);
-  assert.ok(glyph.end <= combatStart.start);
+  assert.equal(savedRotation.rotation.includes("Glyph of Elementals"), false);
+  assert.equal(
+    result.steps.some((step) => step.skill === "Glyph of Elementals"),
+    false,
+  );
+  assert.equal(
+    result.events.some(
+      (event) =>
+        event.type === "action" &&
+        event.actorType === "summon" &&
+        ["Fireball", "Flame Burst"].includes(event.skillName),
+    ),
+    true,
+  );
   assert.equal(barrages[0].start, combatStart.start);
   for (let index = 1; index < barrages.length; index += 1) {
     assert.equal(barrages[index].start - barrages[index - 1].start, 12000);

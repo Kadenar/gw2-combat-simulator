@@ -75,7 +75,7 @@ test("Elementalist skill mechanics have disjoint module ownership", () => {
       (left, right) => Number(left) - Number(right),
     ),
   );
-  assert.equal(owners.size, 284);
+  assert.equal(owners.size, 285);
   const declaredIds = new Set(Object.values(ELEMENTALIST_SKILL_IDS));
   for (const skillId of owners.keys()) {
     assert.equal(declaredIds.has(Number(skillId)), true, skillId);
@@ -83,12 +83,14 @@ test("Elementalist skill mechanics have disjoint module ownership", () => {
 });
 
 test("Glyph of Elementals delegates all damage to the summoned actor", () => {
-  const glyph =
-    ELEMENTALIST_CORE_SKILL_MECHANICS[
-      ELEMENTALIST_SKILL_IDS.GLYPH_OF_ELEMENTALS
-    ];
-  assert.deepEqual(glyph.effects, []);
-  assert.equal(Object.hasOwn(glyph, "referenceEffects"), false);
+  for (const skillId of [
+    ELEMENTALIST_SKILL_IDS.GLYPH_OF_ELEMENTALS,
+    ELEMENTALIST_SKILL_IDS.GLYPH_OF_ELEMENTALS_EARTH,
+  ]) {
+    const glyph = ELEMENTALIST_CORE_SKILL_MECHANICS[skillId];
+    assert.deepEqual(glyph.effects, []);
+    assert.equal(Object.hasOwn(glyph, "referenceEffects"), false);
+  }
 });
 
 test("Catalyst spheres and Tempest overloads delegate repeated packets to maps", () => {
