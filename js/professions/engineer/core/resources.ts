@@ -7,6 +7,7 @@ import type {
   EngineerSchedulerContext,
 } from "../types.js";
 
+// start is optional because this context is used in both precast (has start) and general advance calls
 type EngineerResourceContext = EngineerSchedulerContext & {
   readonly start?: number;
 };
@@ -36,6 +37,7 @@ export function engineerEnduranceReadyAt(
 ): number | null {
   const current = Number(professionCoreState(context).endurance || 0);
   const missing = Math.max(0, Number(cost || 0) - current);
+  // already within epsilon of the cost — return start so the scheduler retries immediately
   if (missing <= Number(context.epsilon || 0.0001)) return context.start;
   const rate = engineerEnduranceRegenerationRate(context, context.start);
   return rate > 0 ? context.start + missing / rate : null;
@@ -48,6 +50,7 @@ export function advanceEngineerResources(
   const state = professionCoreState(context);
   const from = Number(state.enduranceUpdatedAt || 0);
   if (target <= from) return;
+  // rate is evaluated at the midpoint of the window — accurate when vigor doesn't toggle mid-advance
   state.endurance = Math.min(
     Number(state.maximumEndurance || 100),
     Number(state.endurance || 0)

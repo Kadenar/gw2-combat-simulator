@@ -8,6 +8,7 @@ export const THIEF_DEADEYE_ASSUMPTION_CONTROLS =
     key: "deadeyeStolenSkillChoice",
     label: "Deadeye stolen skill",
     type: "select",
+    // Fire for Effect ignores this choice and always grants Steal Time — see selectedDeadeyeStolenSkill in mechanics.ts
     defaultValue: "steal-time",
     specializations: ["Deadeye"],
     options: [

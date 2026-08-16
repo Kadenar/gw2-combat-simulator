@@ -13,9 +13,11 @@ export function updateEngineerWeaponState(
     ? context.catalog.autoattackChainPositions.get(skill.id)
     : undefined;
   if (chain) {
+    // chain.next == null means this was the last hit — delete the key so the next cast starts at root
     if (chain.next == null) delete state.autoattackChains[chain.root];
     else state.autoattackChains[chain.root] = chain.next;
   } else if (skill.type === "Weapon") {
+    // any non-chain weapon skill (e.g. a cooldown skill) resets all chains to the beginning
     state.autoattackChains = {};
   }
 }

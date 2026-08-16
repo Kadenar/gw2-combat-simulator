@@ -9,6 +9,7 @@ import {
 
 export const harbingerSkillHandlers = new Map([
   [
+    // replaceSkillHandler: elixirs and blight skills are fully Harbinger-specific; the base necromancer handler is not run.
     "necromancer.elixir",
     replaceSkillHandler(necromancerBlightSkillHandlers["necromancer.elixir"]),
   ],
@@ -19,6 +20,8 @@ export const harbingerSkillHandlers = new Map([
     ),
   ],
   [
+    // AUGMENT by default so the base skill still fires; resolveMode switches to REPLACE when Doom Approaches is equipped,
+    // because the trait replaces the attack entirely with the 8-hit barrage (darkBarrage returns true, suppressing the base hit).
     "necromancer.dark-barrage",
     skillHandler({
       mode: SKILL_HANDLER_MODES.AUGMENT,

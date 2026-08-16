@@ -701,12 +701,14 @@ function completeMesmerSkill(
       );
     }
     const core = professionCoreState(state);
+    const mimicUntil = Number(core.traitReadyAt.mimicUntil || 0);
     if (skill.id === ID.MIMIC) {
       core.traitReadyAt.mimicUntil = at + 10;
     } else if (
       skill.type === "Utility" &&
       !skill.mesmerMechanic?.flipParentId &&
-      Number(core.traitReadyAt.mimicUntil || 0) >= context.start - EPSILON
+      mimicUntil > 0 &&
+      mimicUntil >= context.start - EPSILON
     ) {
       state.cooldowns.delete(skill.id);
       core.traitReadyAt.mimicUntil = 0;

@@ -20,6 +20,7 @@ export function handleNecromancerPainfulBond(
       event.at + Number(event.duration || definition.duration),
     );
     if (!Number.isFinite(state.painfulBondPulseAnchorAt)) {
+      // Only the first apply within a continuous uptime schedules the tick chain; refreshes do not restart it
       const firstPulseAt = event.at + Number(definition.firstPulseDelay || 0);
       state.painfulBondPulseAnchorAt = firstPulseAt;
       enqueueOrdered(context.queue, {
@@ -32,6 +33,7 @@ export function handleNecromancerPainfulBond(
   }
   if (event.mode !== "tick") return;
 
+  // Damage fires only while the debuff is still active; the final tick at expiry is suppressed
   if (event.at < Number(state.painfulBondUntil || 0) - EPSILON) {
     enqueueOrdered(context.queue, {
       type: "damage",
@@ -49,7 +51,7 @@ export function handleNecromancerPainfulBond(
       actorType: "effect",
       icon: definition.icon,
       skillWeapon: "Unequipped",
-      noCrit: true,
+      noCrit: true, // Painful Bond pulses cannot crit in-game regardless of stats
       triggeredBy: event.triggeredBy || "Anguish",
     });
   }
@@ -69,6 +71,7 @@ export function handleNecromancerWeaponSpell(
   event: NecromancerResolverEvent,
 ): void {
   if (!event.spell) return;
+  // Player and summons/allies each get separate stack counters; allies get fewer stacks unless Wielder's Boon is active
   const recipients: Record<string, NecromancerWeaponSpellRecipient> = {
     player: {
       stacks: Number(event.playerStacks || 0),

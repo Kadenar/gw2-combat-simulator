@@ -48,12 +48,14 @@ function reactToDamage(
   context: RevenantResolverContext,
   event: RevenantResolverEvent,
 ): void {
+  // Only player hits with a real damage coefficient trigger Soulcleave; effect-sourced hits don't cascade
   if (event.actorType !== "player" || !(Number(event.coefficient) > 0)) return;
   const active = activeSkillIds(context);
   const soulcleave = skillById(context, ID.SOULCLEAVES_SUMMIT);
   if (
     soulcleave &&
     active.has(soulcleave.id) &&
+    // Exclude Soulcleave's own events to prevent self-triggering
     event.skillId !== soulcleave.id &&
     event.at >=
       Number(professionCoreState(context).traitProcReadyAt.soulcleave || 0)
@@ -72,6 +74,7 @@ function reactToDamage(
       totalHits: 1,
       source: "revenant",
       sourceId: soulcleave.id,
+      // actorType "effect" keeps this packet from re-triggering Soulcleave or critical-trait hooks
       actorType: "effect",
       skillId: soulcleave.id,
       skillWeapon: "Unequipped",
@@ -82,10 +85,12 @@ function reactToDamage(
       at: event.at,
       name: "Soulcleave's Summit — Life Siphon",
       skillName: "Soulcleave's Summit",
+      // coefficient 0 so the resolver uses only the flat-strike formula for healing-derived damage
       coefficient: 0,
       flatStrikeBase: profile.siphon.flatStrikeBase,
       flatStrikePowerCoeff: profile.siphon.flatStrikePowerCoeff,
       flatStrikeMultiplier: kallasFervorLifeSiphonMultiplier(context, event.at),
+      // Life Siphon cannot critically strike
       noCrit: true,
       hits: 1,
       hitIndex: 1,
@@ -104,6 +109,7 @@ function reactToFoodProc(
   context: RevenantResolverContext,
   event: RevenantResolverEvent,
 ): SchedulerRecord | undefined {
+  // Food procs that are life siphons also benefit from Kalla's Fervor; returning a partial record merges flatStrikeMultiplier into the proc before resolution
   if (!event.lifeSiphon) return;
   return {
     flatStrikeMultiplier: kallasFervorLifeSiphonMultiplier(context, event.at),

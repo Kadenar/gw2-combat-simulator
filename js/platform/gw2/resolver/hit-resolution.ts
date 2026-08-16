@@ -132,7 +132,9 @@ export function createGw2HitResolution({
     );
     const outgoingMultiplier =
       ctx.query.strikeMultiplier(event, event.at, ctx) *
-      equipmentStrikeMultiplier(ctx, event);
+      (event.summonUsesEquipmentModifiers === false
+        ? 1
+        : equipmentStrikeMultiplier(ctx, event));
     const targetArmor = targetArmorFor(ctx);
 
     const summonDamagePerCoefficient = Number(event.summonDamagePerCoefficient);

@@ -32,6 +32,9 @@ export const amalgamSchedulerHooks = Object.freeze({
   }),
 });
 
+// All secondary stats scaled by Evolved (×1.1, or ×1.2 with Double Helix).
+// Note: armor/critDamage/critChance are derived, not listed — they update
+// automatically when the underlying stats (toughness/ferocity/precision) change.
 const EVOLVE_ATTRIBUTES: readonly (keyof EngineerMechAttributes)[] =
   Object.freeze([
     "power",
@@ -107,6 +110,8 @@ function modifyAmalgamAttributes(
     }
   }
   if (activeEngineerSpecializationState(context, "Amalgam", "titanicUntil")) {
+    // Titanic Strain adds 5 power + 5 condition damage per might stack on top
+    // of the standard 30 power per stack that's already in the base attributes.
     const improvedMight = activeBoonStacks(context, "might") * 5;
     modified.power += improvedMight;
     modified.conditionDamage += improvedMight;
@@ -114,6 +119,8 @@ function modifyAmalgamAttributes(
   return modified;
 }
 
+// Double Helix upgrades Evolve from a single-charge to a 2-ammo skill, which
+// lets it store a second use while on cooldown.
 function modifyAmalgamMaximumAmmo(
   context: EngineerMaximumAmmoContext,
   maximum: number,

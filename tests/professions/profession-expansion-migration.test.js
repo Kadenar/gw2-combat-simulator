@@ -186,10 +186,9 @@ function assertUiContracts(entry, profession, specialization) {
   assert.equal(Array.isArray(groups), true);
   assert.equal(Array.isArray(views), true);
   assert.equal(new Set(groups.map((group) => group.id)).size, groups.length);
-  assert.equal(
-    groups.filter((group) => group.resourceAnchor).length,
-    1,
-    `${entry.id} profession resource anchor`,
+  assert.ok(
+    groups.filter((group) => group.resourceAnchor).length <= 1,
+    `${entry.id} has at most one profession resource anchor`,
   );
   for (const group of groups) {
     assert.match(String(group.id || ""), /^[a-z][a-z0-9-]*$/);

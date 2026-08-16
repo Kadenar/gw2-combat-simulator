@@ -12,7 +12,9 @@ export function castElementalBlast(
   skill: RevenantSkill,
 ): void {
   const profile = MECHANICS.elementalBlast;
+  // Pulses are emitted eagerly at cast time with future `at` timestamps rather than via recurring tasks, so they survive facet teardown.
   const firstAt = context.start + profile.firstImpactDelay;
+  // pulse count is derived from conditions.length so mechanics.ts stays the single source of truth.
   const pulses = profile.conditions.length;
   for (let pulse = 1; pulse <= pulses; pulse += 1) {
     const at = firstAt + (pulse - 1) * profile.pulseInterval;
@@ -34,6 +36,7 @@ export function consumeRevenantFacet(
   skill: RevenantSkill,
 ): void {
   const state = professionCoreState(context);
+  // Use cast completion time so cooldowns start after the animation finishes, consistent with other skills.
   const at = context.effectiveEnd;
   const facetByConsume = MECHANICS.facetSkillByConsumeId as Readonly<
     Record<SkillId, SkillId>
@@ -44,12 +47,15 @@ export function consumeRevenantFacet(
   state.activeUpkeeps = state.activeUpkeeps.filter(
     (upkeep) => upkeep.skillId !== facet?.id,
   );
+  // Remove the consume flip itself from availableFlips so it can't be cast a second time.
   delete state.availableFlips[skill.id];
   if (facet) {
+    // The cooldown is placed on the parent facet, not the consume skill, so the facet can't be re-activated immediately.
     const cooldown = Math.max(0, Number(context.rechargeDuration || 0));
     if (cooldown > 0) {
       context.state.cooldowns.set(facet.id, at + cooldown);
     }
+    // Cancel the recurring upkeep-pulse task; without this the pulse loop would continue firing after the facet is gone.
     context.tasks.cancelOwner(`revenant.upkeep:${facet.id}`);
   }
   emitRevenantState(context, at, "facet-consumed");

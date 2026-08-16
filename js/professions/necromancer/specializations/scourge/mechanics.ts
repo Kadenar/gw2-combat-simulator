@@ -7,6 +7,7 @@ export const SCOURGE_MECHANICS = Object.freeze({
       traitId: TRAIT.DEMONIC_LORE,
       condition: "Burning",
       duration: 1,
+      // 3s ICD — Torment applications from rapid sources would otherwise proc Burning on every tick
       interval: 3,
     }),
   }),
@@ -15,6 +16,7 @@ export const SCOURGE_MECHANICS = Object.freeze({
       coefficient: 0.666,
       condition: Object.freeze(["Torment", 1, 2]),
       duration: 15,
+      // Sand Savant caps at 1 shade but each lasts only 8s, tightening cadence vs. the 3-shade default
       sandSavantDuration: 8,
     }),
     abrasiveGrit: Object.freeze({
@@ -36,6 +38,7 @@ export const SCOURGE_MECHANICS = Object.freeze({
     }),
     sandstormShroud: Object.freeze({
       coefficient: 3,
+      // delay is the time from cast-end to the final detonation strike; pulses fire before it
       delay: 3.5,
       condition: Object.freeze(["Torment", 6, 5]),
       pulseCount: 3,

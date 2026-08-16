@@ -27,6 +27,7 @@ function ritualistEventLogRow(
   _context: NecromancerUiContext,
   event: NecromancerSimulationEvent,
 ): ProfessionEventLogDescriptor | null | undefined {
+  // Return null (suppress row) for internal bookkeeping events; undefined defers to the default renderer
   return RITUALIST_PACKET_EVENTS.has(event?.type) ? null : undefined;
 }
 
@@ -40,6 +41,7 @@ function ritualistPaletteAvailability(
   context: NecromancerUiContext,
   skill: NecromancerSkill,
 ): PaletteSkillAvailability {
+  // Innervate skills are only castable while the corresponding spirit is alive; gate them in the palette
   const spirit = Object.entries(INNERVATE_BY_SPIRIT)
     .find(([, id]) => id === skill.id)?.[0];
   if (!spirit) return { available: true, message: "" };

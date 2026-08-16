@@ -17,6 +17,7 @@ export const conduitModule = defineNativeModule({
     skillMechanics: CONDUIT_BASE_SKILL_MECHANICS,
     handlers: conduitSkillHandlers,
   }),
+  // Scheduler and resolver each get their own independent copy of ConduitState so they never share mutable affinity.
   state: { scheduler: conduitState.create, resolver: conduitState.create },
   mechanics: {
     modifiers: conduitAttributeRules,

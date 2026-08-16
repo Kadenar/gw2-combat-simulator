@@ -21,6 +21,7 @@ import type {
 } from "../../../../platform/gw2/types.js";
 import type { EngineerCastContext, EngineerSkill } from "../../types.js";
 
+// skill.id === -5 is the synthetic dodge skill; TRV fires at dodge start (context.start), not end.
 function handleHolosmithAfterCast(
   context: EngineerCastContext,
   skill: EngineerSkill,
@@ -52,11 +53,16 @@ export const holosmithSchedulerHooks = Object.freeze({
   }),
 });
 
+// afterCast is split out so module.ts can wire it through the castLifecycle
+// (afterSkillEffects) rather than the scheduler hook path. Scheduler hooks don't
+// have access to cast context, so dodge-triggered TRV must go through castLifecycle.
 export const {
   afterCast: holosmithAfterCast,
   ...holosmithAdvancedSchedulerHooks
 } = holosmithSchedulerHooks;
 
+// Heat-tier bonus multipliers applied per-hit. Sword skills (Sun Edge etc.) and
+// some forge skills have unique scaling distinct from the general ECSU tier check.
 function heatTierStrikeFactor(context: Gw2ModifierContext): number {
   const heat = Number(
     engineerSpecializationState(context, "Holosmith").heat || 0,

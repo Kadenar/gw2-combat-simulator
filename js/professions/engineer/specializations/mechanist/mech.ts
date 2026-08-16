@@ -69,8 +69,8 @@ function mechWeaponScaling(
   damagePerCoefficient: number;
   profileId: string;
 }> {
-  // Preserve the previous command-strength behavior for mech attacks whose
-  // native profile has not yet been measured.
+  // Fall back to type-2 (melee) profile for any mech attack whose native
+  // weapon profile has not yet been empirically measured.
   const profileId =
     (skillId == null
       ? null
@@ -108,6 +108,8 @@ function selectedSkillNames(config: EngineerConfig = {}): Set<string> {
   );
 }
 
+// Shift Signet passively applies quickness to the mech, speeding its attacks by
+// the standard 1.5× quickness multiplier only when the player also has quickness.
 function mechAttackRate(context: EngineerSchedulerContext): number {
   return context.config.boons?.quickness &&
     selectedSkillNames(context.config).has("Shift Signet")
@@ -154,6 +156,9 @@ function emitMechStrike(
   });
 }
 
+// Stamps mech-specific weapon scaling onto events that arrive from EVTC logs
+// without it. EVTC replays produce raw damage packets with no summon metadata,
+// so this hook retroactively annotates them before downstream rules run.
 export function observeEngineerMechEvent(
   context: EngineerSchedulerContext,
   event: EngineerSimulationEvent,
@@ -357,6 +362,7 @@ export function handleEngineerMechAttack(
     return;
   }
 
+  // Mech is mid-command; hold the attack chain until the command animation ends.
   const busyUntil = Number(state.mech.busyUntil || 0);
   if (task.at < busyUntil - context.epsilon) {
     scheduleMechAttack(context, busyUntil, task.payload || { phase: 0 });
@@ -426,6 +432,7 @@ export function activateOverclockSignet(
   const at = context.effectiveEnd;
   const interval = 0.65;
   const hits = 5;
+  // Block the basic attack loop for the full cannon burst so hits don't overlap.
   state.mech.busyUntil = Math.max(
     Number(state.mech.busyUntil || 0),
     at + interval * hits,

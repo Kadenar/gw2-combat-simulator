@@ -478,3 +478,112 @@ test("reconstructs Berserker mode, Outrage, composite Rush, and committed autos"
     assert.notEqual(result.rotation[commandIndex + 1]?.name, "__wait", name);
   }
 });
+
+test("reconstructs condition Berserker opening state and BUFF_CHANGE Outrage casts", () => {
+  const skills = [
+    [29_502, "Berserk"],
+    [30_189, "Blood Reckoning"],
+    [30_343, "Head Butt"],
+    [31_708, "Flames of War"],
+  ].map(([id, name]) => ({ id, name }));
+  const fixture = warriorLog(18, skills, [
+    event({
+      time: 1_000,
+      target: PLAYER,
+      skillId: 31_708,
+      value: 4_000,
+      buffDamage: 5_000,
+      buff: 18,
+      stateChange: 18,
+    }),
+    event({ time: 2_000, stateChange: 1 }),
+    event({
+      time: 2_500,
+      target: PLAYER,
+      skillId: 29_502,
+      value: 20_000,
+      buff: 1,
+      stateChange: 69,
+    }),
+    ...animation(30_189, 3_000, 3_280, { modern: true }),
+    event({
+      time: 3_240,
+      source: 0n,
+      target: PLAYER,
+      skillId: 29_502,
+      value: 3_000,
+      buff: 1,
+      stateChange: 70,
+    }),
+    ...animation(23_285, 3_300, 3_380, { modern: true }),
+    event({
+      time: 4_000,
+      source: 0n,
+      target: PLAYER,
+      skillId: 29_502,
+      value: 3_000,
+      buff: 1,
+      stateChange: 70,
+    }),
+    ...animation(30_343, 5_000, 5_800, { modern: true }),
+    event({
+      time: 5_800,
+      source: 0n,
+      target: PLAYER,
+      skillId: 29_502,
+      value: 3_000,
+      buff: 1,
+      stateChange: 70,
+    }),
+    event({
+      time: 5_876,
+      source: 0n,
+      target: PLAYER,
+      skillId: 29_502,
+      value: 3_000,
+      buff: 1,
+      stateChange: 70,
+    }),
+  ]);
+  const berserker = { specialization: "Berserker" };
+  const rage = { ...berserker, categories: ["Rage"] };
+  const catalog = {
+    skills: [
+      skill(30_185, "Berserk", "Profession", "Profession_1", 0, berserker),
+      skill(30_258, "Outrage", "Utility", "Utility", 0, rage),
+      skill(30_189, "Blood Reckoning", "Heal", "Heal", 280, rage),
+      skill(30_343, "Head Butt", "Elite", "Elite", 800, rage),
+      skill(29_940, "Flames of War", "Weapon", "Weapon_5", 520),
+      skill(-3, "Swap Weapons", "Action", "Action", 0),
+    ],
+  };
+
+  const result = reconstructEvtcRotation(fixture, catalog, {
+    inferInstantCasts: false,
+    selectedSkillNames: ["Blood Reckoning", "Outrage", "Head Butt"],
+  });
+
+  assert.deepEqual(
+    result.actions.map((action) => action.name),
+    [
+      "Flames of War",
+      "Swap Weapons",
+      "Head Butt",
+      "Outrage",
+      "Berserk",
+      "Blood Reckoning",
+      "Outrage",
+      "Head Butt",
+      "Outrage",
+    ],
+  );
+  assert.deepEqual(
+    result.actions.slice(0, 4).map((action) => action.evidence),
+    ["initial-state", "initial-state", "initial-state", "initial-state"],
+  );
+  assert.equal(
+    result.actions.some((action) => action.rawSkillId === 23_285),
+    false,
+  );
+  assert.deepEqual(result.warnings, []);
+});

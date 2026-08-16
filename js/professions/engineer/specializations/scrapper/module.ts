@@ -23,10 +23,13 @@ export const scrapperModule = defineNativeModule({
   data: createEngineerModuleData("Scrapper", {
     skillMechanics: SCRAPPER_SKILL_MECHANICS,
   }),
+  // Same factory for both phases; scrapper has no phase-divergent state.
   state: { scheduler: scrapperState.create, resolver: scrapperState.create },
   mechanics: {
     modifiers: scrapperAttributeRules,
     castRules: scrapperCastRules,
+    // afterSkillEffects runs after all skill effects are emitted, allowing trait buffs
+    // to observe the completed cast (e.g. superspeed emitted at effectiveEnd).
     castLifecycle: [afterSkillEffects(scrapperSchedulerHooks.afterCast)],
     reactions: [
       onResolvedDamage({
@@ -39,6 +42,7 @@ export const scrapperModule = defineNativeModule({
       }),
     ],
     resolverHooks: {
+      // Handles the self-scheduled pulse event that keeps Mass Momentum ticking.
       eventHandlers: scrapperResolverEventHandlers,
     },
   },

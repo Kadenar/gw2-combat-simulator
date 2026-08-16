@@ -21,6 +21,7 @@ export const scourgeModule = defineNativeModule({
     modifiers: scourgeAttributeRules,
     castRules: scourgeCastRules,
     reactions: [
+      // Demonic Lore fires on every Torment application; ICD is enforced inside the handler
       onConditionApplied({
         id: "necromancer.scourge.condition",
         handler: scourgeResolverEventReactions.condition,

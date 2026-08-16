@@ -28,6 +28,7 @@ import {
   observeDruidAstralForceEvent,
 } from "./mechanics.js";
 
+// Grace of the Land emits alacrity; duration scales with concentration/boon duration like any boon
 function druidBoonDuration(
   context: RangerCastContext,
   baseDuration: number,
@@ -40,6 +41,7 @@ function druidBoonDuration(
     Number(stats?.concentration || 0) / 1500 +
     Number(stats?.boonDurationBonus || 0) / 100 +
     Number(stats?.boonDurationBonuses?.Alacrity || 0) / 100;
+  // Clamped to [1, 2]: boon duration can't go below base and is hard-capped at +100%
   return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
 }
 
@@ -92,6 +94,7 @@ export function applyCelestialAvatarTraits(
   context: RangerCastContext,
   skill: RangerSkill,
 ): void {
+  // Natural Convergence has 4 distinct pulses; all other CA skills emit once at cast start
   const pulses =
     skill.id === ID.NATURAL_CONVERGENCE ? [520, 1160, 1640, 2040] : [0];
   if (hasTrait(context, TRAIT.GRACE_OF_THE_LAND)) {
@@ -108,6 +111,7 @@ export function applyCelestialAvatarTraits(
       emitEclipseCondition(context, skill, context.start, "Poisoned", 8, 3);
       break;
     case ID.LUNAR_IMPACT:
+      // Lunar Impact lands at effectiveEnd (it's a ground-targeted projectile with travel time)
       emitEclipseCondition(
         context,
         skill,
@@ -121,6 +125,7 @@ export function applyCelestialAvatarTraits(
       break;
     case ID.NATURAL_CONVERGENCE:
       for (const [index, atMs] of pulses.entries()) {
+        // Final pulse applies 3 stacks of Burning; all prior pulses apply 1
         emitEclipseCondition(
           context,
           skill,
@@ -136,6 +141,7 @@ export function applyCelestialAvatarTraits(
 
 function naturalBalanceActive(context: Gw2ModifierContext): boolean {
   if (!hasTrait(context, TRAIT.NATURAL_BALANCE)) return false;
+  // Scheduler path uses a timeline; resolver path reads from the runtime boon list
   if (context.timeline?.timedActive("natural-balance", context.time))
     return true;
   return (context.runtime?.boons?.get("natural-balance") || []).some(
@@ -219,6 +225,7 @@ export function druidCastAvailability(
     }
     if (state.astralForce < state.maximumAstralForce) {
       const retryAt = astralForceReadyAt(context);
+      // Provide a retryAt when Natural Mender can predict the ready time so the scheduler waits instead of skipping
       if (retryAt != null) {
         return {
           ready: false,
@@ -227,6 +234,7 @@ export function druidCastAvailability(
           reason: `${skill.name} is recharging astral force.`,
         };
       }
+      // No retryAt: force only comes from hits, can't predict when it will be full
       return deny(skill, "ranger.astral-force", "requires full astral force.");
     }
   }

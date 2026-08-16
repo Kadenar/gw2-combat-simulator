@@ -4,6 +4,8 @@ export interface AmalgamNewGenesBoon {
   readonly stacks?: number;
 }
 
+// Per-morph extra boon granted by the New Genes trait, on top of its universal
+// alacrity (5s) + 4 might (12s) that every morph cast receives.
 export const AMALGAM_NEW_GENES_BOONS: Readonly<
   Record<string, AmalgamNewGenesBoon>
 > = Object.freeze({

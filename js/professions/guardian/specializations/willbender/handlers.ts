@@ -18,6 +18,7 @@ const FLAME_ID_BY_VIRTUE: Readonly<Record<GuardianVirtue, number>> =
   });
 
 function virtueFor(skill: GuardianSkill): GuardianVirtue | null {
+  // Slot strings are "Profession_1/2/3"; the trailing digit maps directly to virtue order.
   const slot = Number(String(skill.slot || "").match(/(\d)$/)?.[1] || 0);
   return ([null, "justice", "resolve", "courage"] as const)[slot] || null;
 }
@@ -92,19 +93,28 @@ function activateWillbenderVirtue(
   context: GuardianCastContext,
   skill: GuardianSkill,
 ): void {
+  // Run the core virtue handler first (cooldown tracking, passive arming) before
+  // willbender-specific overrides; order matters because core sets virtueReadyAt.
   guardianVirtueSkillHandlers["guardian.virtue"](context, skill);
   const virtue = virtueFor(skill);
   if (!virtue) return;
 
+  // Justice impact fires near the start of the cast (~40 ms); Courage impact fires
+  // after the lunge animation (~520 ms). Resolve has no early-hit, so it uses effectiveEnd.
+  // Min-clamping ensures these don't overshoot when the cast is interrupted.
   const at =
     virtue === "justice"
       ? Math.min(context.effectiveEnd, context.start + 0.04)
       : virtue === "courage"
         ? Math.min(context.effectiveEnd, context.start + 0.52)
         : context.effectiveEnd;
+  // For justice the flame spawns at the very end of the skill window, not at impact time,
+  // so the pulsing DoT doesn't begin until the physical lunge finishes.
   const flameAt =
     virtue === "justice" ? Math.max(at, context.effectiveEnd - 0.04) : at;
   const state = willbenderState.from(context);
+  // virtueUntil may still hold the previous window; reset hit counts only when that
+  // window has actually expired so a rapid re-activation doesn't wipe an in-progress tally.
   if (state[`${virtue}Until`] <= at + context.epsilon) {
     state.virtueHitCounts[virtue] = 0;
   }
@@ -120,7 +130,7 @@ function activateWillbenderVirtue(
     id: `guardian.willbender-flame-activate:${context.reservationId}`,
     type: "guardian.willbender-flame-activate",
     at: flameAt,
-    priority: -10,
+    priority: -10, // run after same-timestamp strike/condition events so flame window opens last
     payload: { flameId, virtue },
   });
 

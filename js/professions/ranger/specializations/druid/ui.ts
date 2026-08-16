@@ -29,6 +29,7 @@ function availability(
         message: "Celestial Avatar is already active",
       };
     }
+    // UI check mirrors druidCastAvailability: full force required to enter
     if (Number(state.astralForce || 0) < 100) {
       return { available: false, message: "Requires full Astral Force" };
     }
@@ -39,6 +40,7 @@ function availability(
   if (skill.celestialAvatarSkill && !active) {
     return { available: false, message: "Enter Celestial Avatar first" };
   }
+  // Normal weapon skills are suppressed while in CA; only CA skills (celestialAvatarSkill=true) show available
   if (skill.type === "Weapon" && active && !skill.celestialAvatarSkill) {
     return {
       available: false,
@@ -54,6 +56,7 @@ export const druidUi: Partial<ProfessionUiContract> & SchedulerRecord =
       {
         id: "ranger-druid-f5",
         label: "Celestial Avatar",
+        // F5 toggles between enter and release depending on CA state, matching in-game behavior
         skillIds: [
           rangerUiState(context).celestialAvatarActive
             ? ID.RELEASE_CELESTIAL_AVATAR
@@ -87,6 +90,7 @@ export const druidUi: Partial<ProfessionUiContract> & SchedulerRecord =
         return "Celestial Avatar";
       }
       if (skill?.handlerId === "ranger.celestial-avatar-exit") {
+        // null signals end of CA section on the timeline without starting a new named line
         return null;
       }
       return undefined;
@@ -103,6 +107,7 @@ export const druidUi: Partial<ProfessionUiContract> & SchedulerRecord =
           startMaximum: 100,
           startValue: Number(context.initialAstralForce ?? 100),
           canStart: true,
+          // buildKey links this value to the config field that persists initial force across sessions
           buildKey: "initialAstralForce",
           step: 1,
           displayMode: "bar",

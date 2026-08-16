@@ -39,6 +39,7 @@ import type { EngineerRechargeContext } from "../types.js";
 
 export { snapshotEngineerState } from "./state.js";
 
+// condition duration modifier for Chemical Rounds (pistol skills only)
 function modifyEngineerConditionBaseDuration(
   context: Gw2ModifierContext,
   multiplier: number,
@@ -46,8 +47,10 @@ function modifyEngineerConditionBaseDuration(
   if (!hasTrait(context, TRAIT.CHEMICAL_ROUNDS)) return multiplier;
   const event = engineerEvent(context);
   const application = event?.application || event;
+  // trait-sourced conditions (e.g. Incendiary Powder) don't get Chemical Rounds amplification
   if (application?.source === "Trait") return multiplier;
   const skill = eventSkill(context);
+  // condition events from different layers carry the weapon type at different paths — check all three
   if (
     event?.skillWeapon !== "Pistol" &&
     event?.application?.skillWeapon !== "Pistol" &&
@@ -59,6 +62,7 @@ function modifyEngineerConditionBaseDuration(
     skill?.name || event?.skillName || event?.application?.skillName;
   const condition =
     context.condition || event?.condition || event?.application?.condition;
+  // Blowtorch and Glue Shot have unique per-skill multipliers sourced from the wiki
   if (skillName === "Blowtorch" && condition === "Burning") {
     return multiplier * 1.2;
   }
@@ -91,6 +95,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
         playerHealthFraction(context) > targetHealthFraction(context),
     },
     {
+      // caps at 25 stacks to match the in-game vulnerability stack cap
       id: "engineer.shaped-charge",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
@@ -117,6 +122,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
         activeBoonStacks(context, "vigor", 1) > 0,
     },
     {
+      // checks runtime state when available; falls back to scheduler state for precast evaluation
       id: "engineer.takedown-round",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
@@ -129,6 +135,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
         return (
           playerStrike(context) &&
           hasTrait(context, TRAIT.TAKEDOWN_ROUND) &&
+          // 1e-9 tolerance prevents floating-point rounding from falsely reading "full endurance"
           Number(state.endurance || 0) <
             Number(state.maximumEndurance || 100) - 1e-9
         );
@@ -194,6 +201,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
         playerStrike(context) && hasTrait(context, TRAIT.HEAVY_METAL),
     },
     {
+      // staticDischarge flag is set by the trait handler — prevents the rule from applying to non-SD hits
       id: "engineer.static-discharge-critical-damage",
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
       operation: "add",
@@ -201,6 +209,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       when: (context) => context.event?.staticDischarge === true,
     },
     {
+      // thermalVisionUntil is extended by each Burning application; rule active while window is open
       id: "engineer.thermal-vision-damage",
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: "damage-additive",
@@ -253,6 +262,7 @@ function modifyEngineerCoreAttributes(
   attributes: SchedulerRecord,
 ): SchedulerRecord {
   const modified = cloneEngineerAttributes(attributes);
+  // buildAttributesApplied guard: prevents double-counting when the build calculator already applied these bonuses
   const buildAttributesApplied = professionStaticRulesApplied(context.config);
   if (hasTrait(context, TRAIT.CHEMICAL_ROUNDS) && !buildAttributesApplied) {
     modified.conditionDamage = Number(modified.conditionDamage || 0) + 120;
@@ -263,6 +273,7 @@ function modifyEngineerCoreAttributes(
   if (
     hasTrait(context, TRAIT.ENERGY_AMPLIFIER) &&
     activeBoonStacks(context, "regeneration", 1) > 0 &&
+    // only skip if regen is a permanent assumption AND build attributes already account for it
     !(buildAttributesApplied && Boolean(context.config?.boons?.regeneration))
   ) {
     modified.power = Number(modified.power || 0) + 250;
@@ -285,6 +296,7 @@ function modifyEngineerCoreAttributes(
     context.event?.condition === "Bleeding" &&
     context.event?.actorType !== "summon"
   ) {
+    // Sharpshooter: bleeding condition damage becomes power * 2/3 (replaces, not adds to, conditionDamage)
     modified.conditionDamage = Number(modified.power || 0) * (2 / 3);
   }
   return modified;
@@ -322,6 +334,7 @@ export const engineerCoreAttributeRules = Object.freeze({
 export const engineerCoreCastRules = Object.freeze({
   availability: {
     id: "engineer.core-availability",
+    // order 10 — runs before specialization availability checks (which typically use higher order values)
     order: 10,
     handler: engineerCoreCastAvailability,
   },

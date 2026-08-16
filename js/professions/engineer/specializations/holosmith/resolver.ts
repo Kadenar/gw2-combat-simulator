@@ -7,6 +7,8 @@ import type {
   EngineerResolverEvent,
 } from "../../types.js";
 
+// Prime Light Beam field: 10 pulses at 1-second intervals, active only above 50 heat.
+// enhancedCapacityTier gates the bonus duration added by the modifier rules in rules.ts.
 function handlePrimeLightBeamField(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
@@ -56,6 +58,7 @@ function handlePrimeLightBeamField(
   }
 }
 
+// Laser Disk: 12 pulses at base heat, 18 pulses above 50 heat; one pulse every 0.52 s.
 function handleLaserDisk(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
@@ -103,6 +106,7 @@ function handleLaserDisk(
   }
 }
 
+// Launch Wall: 1 wall at base heat, 3 walls above 50 heat; all walls share the same timestamp.
 function handleLaunchWall(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,

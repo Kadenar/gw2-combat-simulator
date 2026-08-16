@@ -30,7 +30,7 @@ import {
   necromancerCastAvailability,
   requiredShroud,
   validateNecromancerBuild,
-} from "../mechanics/availability.js";
+} from "./availability.js";
 import type {
   NecromancerCastContext,
   NecromancerSchedulerContext,

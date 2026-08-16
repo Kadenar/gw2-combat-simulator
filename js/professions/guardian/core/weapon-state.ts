@@ -7,11 +7,7 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from "../data/ids.js";
 import { emitGuardianEvent } from "./events.js";
-import type {
-  GuardianCastContext,
-  GuardianPrecastContext,
-  GuardianSkill,
-} from "../types.js";
+import type { GuardianCastContext, GuardianSkill } from "../types.js";
 
 /**
  * Guardian weapon-slot bookkeeping: autoattack-chain progression, weapon swap,
@@ -27,55 +23,6 @@ import type {
  * Chain positions are indexed once by the canonical catalog so lookups during
  * validation/afterCast are O(1).
  */
-/**
- * validateCast hook (order 50): decides whether a weapon skill may cast now.
- * Combined with `!== false`, so `undefined` = no opinion (allow) and only an
- * explicit `false` blocks the cast.
- *
- * - A flip skill (has `flipParentId`) is castable only while its armed window
- *   in `availableFlips` is still ahead of the cast start.
- * - A chain skill is castable only when it is the currently-expected step of
- *   its chain (the root when nothing is pending). Non-chain, non-flip weapon
- *   skills fall through to `undefined` (allowed).
- *
- * @param {GuardianPrecastContext} context Cast-validation context.
- * @param {GuardianSkill} skill Candidate skill.
- * @returns {boolean|undefined} Whether a relevant weapon skill is castable.
- */
-export function validateWeaponState(
-  context: GuardianPrecastContext,
-  skill: GuardianSkill,
-): boolean | undefined {
-  if (
-    skill.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME &&
-    Number(
-      professionCoreState(context).availableFlips[
-        GUARDIAN_SKILL_IDS.ZEALOTS_FIRE
-      ] || 0,
-    ) >
-      context.start + context.epsilon
-  ) {
-    return false;
-  }
-  if (skill.flipParentId != null) {
-    // Firebrand mantra flips have persistent ammo/final-charge state rather
-    // than a short parent-skill window. Their specialization owns validation.
-    if (skill.tags?.includes("firebrand-mantra-charge")) return;
-    return (
-      Number(professionCoreState(context).availableFlips[skill.id] || 0) >
-      context.start + context.epsilon
-    );
-  }
-  const chain =
-    typeof skill.id === "number"
-      ? context.catalog.autoattackChainPositions.get(skill.id)
-      : undefined;
-  if (!chain) return;
-  const expected =
-    professionCoreState(context).autoattackChains[chain.root] || chain.root;
-  return expected === skill.id;
-}
-
 /**
  * afterCast hook (order 10): advances the stored per-weapon state once a cast
  * resolves.

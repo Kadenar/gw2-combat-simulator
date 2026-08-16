@@ -2,6 +2,7 @@ import { thiefBaseMaximumHealth } from "../../core/state.js";
 import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 import type { SpecterState, ThiefConfig } from "../../types.js";
 
+// GW2: shadow force pool capacity is 69% of maximum health in absolute HP terms.
 const SHADOW_FORCE_HEALTH_MULTIPLIER = 0.69;
 
 export function createSpecterState(
@@ -19,6 +20,7 @@ export function createSpecterState(
     shadowShroudActive: false,
     shadowForceUpdatedAt: 0,
     darkSentryReadyAt: 0,
+    // Per-ally map so that a barrier given to ally 1 does not lock out ally 2.
     darkSentryReadyAtByAlly: {},
   };
 }

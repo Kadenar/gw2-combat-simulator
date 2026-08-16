@@ -12,6 +12,7 @@ import type {
   EngineerSkill,
 } from "../types.js";
 
+// ammo and cooldown skills use different reduction APIs — ammo tracks charges, not a single timestamp
 function reduceCooldown(
   context: EngineerCastContext,
   skill: EngineerSkill,
@@ -27,12 +28,14 @@ function reduceCooldown(
     ).reducedBy;
   }
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
+  // skill already ready — nothing to reduce, avoid mutating the map unnecessarily
   if (readyAt <= at + context.epsilon) return 0;
   const reduced = Math.min(seconds, readyAt - at);
   context.state.cooldowns.set(skill.id, readyAt - reduced);
   return reduced;
 }
 
+// a skill lives in exactly one of the two maps (ammo OR cooldowns, never both); scan both to catch all
 function reduceMatchingCooldowns(
   context: EngineerCastContext,
   predicate: (skill: EngineerSkill) => boolean,
@@ -63,6 +66,7 @@ export function performEngineerDodge(
     0,
     Number(state.endurance || 0) - ENGINEER_DODGE_ENDURANCE_COST,
   );
+  // enduranceUpdatedAt anchors the regen formula in resources.ts — must update alongside any endurance change
   state.enduranceUpdatedAt = at;
 
   context.emit({
@@ -83,6 +87,7 @@ export function performEngineerDodge(
       3,
       at,
     );
+    // only emit proc when something actually changed — suppresses no-op entries in the event log
     if (reducedBy > 0) {
       context.emit({
         type: "proc",
@@ -120,6 +125,7 @@ export function performEngineerDodge(
     }
   }
 
+  // "dodge" cause lets downstream state subscribers (e.g. scrapper gyro checks) react post-dodge
   emitEngineerState(context, at, "dodge");
 }
 

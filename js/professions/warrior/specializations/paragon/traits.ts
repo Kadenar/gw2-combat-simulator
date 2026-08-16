@@ -32,10 +32,10 @@ function emitParagonState(
 ): void {
   const state = paragonState.from(context);
   context.emit({
-    type: "paragon.state",
+    type: "warrior.paragon-state",
     at,
     source: "Paragon",
-    sourceId: `paragon.state.${reason}`,
+    sourceId: `warrior.paragon-state.${reason}`,
     actorType: "player",
     state: {
       motivation: state.motivation,

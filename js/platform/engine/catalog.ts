@@ -142,9 +142,9 @@ const EFFECT_METADATA_FIELDS = new Set([
   "maximumRecipients",
   "targetCap",
   "companionIds",
-  "elementalistHitboxIndex",
-  "elementalistSmallHitboxCap",
-  "elementalistLargeHitboxOnly",
+  "hitboxIndex",
+  "smallHitboxCap",
+  "largeHitboxOnly",
 ]);
 
 /**

@@ -9,6 +9,8 @@ export function handleGaleshotState(
   event: RangerResolverEvent,
 ): void {
   const state = galeshotState.from(context);
+  // Re-clamp on ingestion: the event value is already bounded, but resolver
+  // state is reconstructed from log entries that may predate the cap.
   state.windForce = Math.max(0, Math.min(5, Number(event.windForce || 0)));
   state.galeForceUntil = Math.max(0, Number(event.galeForceUntil || 0));
   state.mistralUntil = Math.max(0, Number(event.mistralUntil || 0));

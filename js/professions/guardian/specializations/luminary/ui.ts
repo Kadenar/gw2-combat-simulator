@@ -24,10 +24,13 @@ function luminaryEventLogRow(
   _context: SchedulerRecord,
   event: GuardianResolverEvent,
 ): ProfessionEventLogDescriptor | null | undefined {
+  // null = suppress this event from the log entirely (internal bookkeeping
+  // events that have no meaningful display for the user).
   if ([
     "guardian.effulgent-activated",
     "guardian.effulgent-detonate",
   ].includes(event.type)) return null;
+  // undefined = not handled here; let the default renderer decide.
   if (
     event.type !== "guardian.radiant-forge-entered"
     && event.type !== "guardian.radiant-forge-exited"
@@ -54,6 +57,8 @@ const VIRTUE_NAMES = Object.freeze([
 function professionState(
   context: GuardianUiContext,
 ): Partial<GuardianState> {
+  // flattenProfessionState merges core and specialization sub-objects so
+  // callers can read luminary fields without knowing the nested shape.
   return flattenProfessionState(
     context.state?.profession || context.professionState,
   );
@@ -129,6 +134,8 @@ export const luminaryUi = Object.freeze({
       label: "RF",
       skillIds: guardianUiSkillsByMode("radiantForgeSkill"),
       color: "#d6b85c",
+      // Same stackId as the F-key group so these two groups share a single
+      // palette column; they are mutually exclusive at runtime.
       stackId: "luminary-profession",
     },
   ],

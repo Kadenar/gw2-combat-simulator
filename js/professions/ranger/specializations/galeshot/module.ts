@@ -17,6 +17,8 @@ export const galeshotModule = defineNativeModule({
     skillMechanics: GALESHOT_BASE_SKILL_MECHANICS,
     handlers: galeshotSkillHandlers,
   }),
+  // Both sides share the same factory; the resolver only needs the fields
+  // emitted by handleGaleshotState, but reusing the full shape is harmless.
   state: { scheduler: galeshotState.create, resolver: galeshotState.create },
   mechanics: {
     modifiers: galeshotAttributeRules,

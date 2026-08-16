@@ -83,6 +83,10 @@ function selectedMorphNames(context: EngineerSchedulerContext): Set<string> {
   );
 }
 
+// Maps each morph name to the strain effect granted by the Silver Lining trait
+// (or, for Evolve without Silver Lining, applied for each selected morph).
+// Thorns only sets a timestamp-until timer; its damage is handled via the
+// resolver (Rapacious Strain ICD check) rather than emitting here.
 function applyAmalgamStrain(
   context: EngineerSchedulerContext,
   morphName: string,
@@ -156,6 +160,9 @@ function assumesDamagingField(context: EngineerSchedulerContext): boolean {
   );
 }
 
+// Thorns Retaliation fires once per second for 6 s while inside a damaging
+// field. Only emitted when the "inDamagingField" assumption is enabled because
+// the field source and uptime cannot be inferred from the rotation alone.
 function scheduleThornsRetaliation(
   context: EngineerCastContext,
   skill: EngineerSkill,
@@ -280,6 +287,9 @@ export function evolveAmalgam(context: EngineerCastContext): void {
   emitEngineerState(context, at, "evolve");
 }
 
+// Watches the scheduler event stream and queues a Mercurial Tendencies task for
+// every control event. Summon-sourced controls (Jade Mech CC) are excluded
+// because Mercurial Tendencies only procs on the player's own control effects.
 export function observeAmalgamScheduledEvent(
   context: EngineerSchedulerContext,
   event: EngineerSimulationEvent,
@@ -301,6 +311,8 @@ export function observeAmalgamScheduledEvent(
   });
 }
 
+// Reduces Evolve's cooldown by 2.5 s per control event (0.25 s ICD between
+// procs). Works with both standard cooldown and ammo-based recharge tracking.
 export function handleMercurialTendencies(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<MercurialTendenciesPayload>,

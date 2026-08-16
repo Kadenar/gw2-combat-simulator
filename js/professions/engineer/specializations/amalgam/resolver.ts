@@ -8,7 +8,7 @@ import {
   queueDamage,
   recordTrait,
   resolverSkill,
-} from "../../core/resolver.js";
+} from "../../core/shared.js";
 import type {
   EngineerResolverContext,
   EngineerResolverEvent,
@@ -20,6 +20,8 @@ function isAmalgamSkillHit(
   event: EngineerResolverEvent,
 ): boolean {
   if (event.actorType === "summon") return false;
+  // Rapacious Strain fires as an "effect" actor after player hits. Allow it
+  // through so Carbolic Composition also procs on Rapacious damage.
   if (event.actorType === "effect") {
     return event.name === "Rapacious Strain";
   }
@@ -51,6 +53,8 @@ function reactToAmalgamDamage(
       actorType: "effect",
     });
   }
+  // Rapacious Strain requires both Evolved AND Rapacious (Thorns silver-lining)
+  // to be active simultaneously, with a 0.5s ICD between procs.
   if (
     event.actorType !== "summon" &&
     Number(amalgamState.from(context).evolvedUntil || 0) > event.at &&

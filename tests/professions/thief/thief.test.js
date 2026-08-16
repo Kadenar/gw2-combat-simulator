@@ -479,10 +479,10 @@ test("Unload grants 2 initiative when every bullet lands", () => {
   const refund = completed.events.find(
     (event) => event.type === "thief.state" && event.reason === "unload-refund",
   );
-  assert.equal(completed.steps[0].end - completed.steps[0].start, 1500);
+  assert.equal(completed.steps[0].end - completed.steps[0].start, 1980);
   assert.equal(completed.steps[0].interrupted, false);
-  assert.equal(refund.at, 1.5);
-  assert.equal(refund.state.initiative, 3.5);
+  assert.equal(refund.at, 1.98);
+  assert.equal(refund.state.initiative, 3.98);
 
   const quickened = simulate("Core", ["Unload"], {
     initialInitiative: 3,
@@ -501,7 +501,7 @@ test("Unload grants 2 initiative when every bullet lands", () => {
         (event) => event.type === "damage" && event.skillName === "Unload",
       )
       .map((event) => Math.round(event.at * 1000)),
-    [128, 255, 383, 510, 638, 766, 893, 1021],
+    [97, 193, 290, 387, 483, 580, 677, 773],
   );
   assert.equal(quickenedRefund.at, 1.32);
   assert.ok(Math.abs(quickenedRefund.state.initiative - 3.32) < 1e-9);
@@ -561,7 +561,7 @@ test("weapon swap preserves shared initiative", () => {
   const result = simulate("Core", ["Death Blossom", "Swap Weapons", "Unload"]);
   assert.equal(result.warnings.length, 0);
   assert.equal(result.endState.activeWeaponSet, 2);
-  assert.ok(Math.abs(result.endState.profession.initiative - 10.06) < 1e-9);
+  assert.ok(Math.abs(result.endState.profession.initiative - 10.54) < 1e-9);
   assert.ok(result.events.some((event) => event.type === "weapon_set"));
 
   const resetChain = simulate(
@@ -2736,6 +2736,10 @@ test("Thieves Guild uses independent summon weapons and attack profiles", () => 
           event.sourceId === "thief.thieves-guild",
       )
       .reduce((total, event) => total + Number(event.damage || 0), 0);
+  const summonConditionDamage = (simulation) =>
+    simulation.breakdown
+      .filter((entry) => entry.parentSkill === "Thieves Guild")
+      .reduce((total, entry) => total + Number(entry.conditionDamage || 0), 0);
   const lowPower = simulate("Daredevil", rotation, {
     stats: { power: 1000, precision: 1000, ferocity: 0 },
   });
@@ -2743,6 +2747,13 @@ test("Thieves Guild uses independent summon weapons and attack profiles", () => 
     stats: { power: 4000, precision: 3000, ferocity: 1500 },
   });
   assert.equal(summonStrikeDamage(lowPower), summonStrikeDamage(highPower));
+  const withRelic = simulate("Daredevil", rotation, { relic: "Thief" });
+  const withoutRelic = simulate("Daredevil", rotation);
+  assert.equal(summonStrikeDamage(withRelic), summonStrikeDamage(withoutRelic));
+  assert.equal(
+    summonConditionDamage(withRelic),
+    summonConditionDamage(withoutRelic),
+  );
 });
 
 test("Antiquary exposes every artifact from Swipe and Scuffle", () => {
@@ -3371,7 +3382,16 @@ test("Power Daredevil dagger-dagger preset matches the supplied EVTC", async () 
   const thievesGuildStrikeDamage = result.breakdown
     .filter((entry) => entry.parentSkill === "Thieves Guild")
     .reduce((sum, entry) => sum + entry.strikeDamage, 0);
-  assert.ok(relativeError(thievesGuildStrikeDamage, 60772) < 0.02);
+  assert.ok(
+    relativeError(thievesGuildStrikeDamage, 60772) < 0.02,
+    JSON.stringify({
+      thievesGuildStrikeDamage,
+      firstThievesGuildStrike: result.resolvedEvents.find(
+        (event) =>
+          event.type === "damage" && event.parentSkillName === "Thieves Guild",
+      ),
+    }),
+  );
   assert.ok(
     relativeError(
       result.dpsWindow,
@@ -3733,7 +3753,7 @@ test("Condition Specter scepter-dagger preset matches the supplied EVTC", async 
   );
 
   assert.deepEqual(alliedResult.warnings, []);
-  assert.deepEqual(allySpiderCounts, [26, 26, 26, 26]);
+  assert.deepEqual(allySpiderCounts, [27, 27, 27, 27]);
   assert.equal(rotWallowTorments.length, 10);
   assert.ok(rotWallowTorments.every((event) => event.icon === rotWallowIcon));
   assert.ok(rotWallowBreakdown.length > 0);

@@ -35,6 +35,7 @@ export const reaperUi: Partial<ProfessionUiContract> & SchedulerRecord =
         entryId: ID.REAPERS_SHROUD,
         shroud: "reaper",
       }),
+    // Suppress the default 50% Gravedigger threshold when the core layer already defines its own thresholds.
     targetHealthThresholds: (context: NecromancerUiContext) =>
       necromancerCoreTargetHealthThresholds(context).length ? [] : [0.5],
   });

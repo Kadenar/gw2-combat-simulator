@@ -36,9 +36,9 @@ export function guardianUiSkillIdsByName(
   context: GuardianUiContext = {},
 ): SkillId[] {
   const activeFlips =
-    flattenProfessionState(
+    (flattenProfessionState(
       context.state?.profession || context.professionState,
-    ).availableFlips as Record<string, number> || {};
+    ).availableFlips as Record<string, number>) || {};
   return names.flatMap((name) => {
     const id = guardianCatalog.skillsByName.get(name)?.id;
     if (id == null) return [];
@@ -72,7 +72,12 @@ export function guardianEventLogRow(
   _context: SchedulerRecord,
   event: GuardianResolverEvent,
 ): ProfessionEventLogDescriptor | null | undefined {
-  if (event.type === "guardian.righteous-instincts-tick") return null;
+  if (
+    event.type === "guardian.righteous-instincts-tick" ||
+    event.type === "guardian.symbol-of-ignition-field"
+  ) {
+    return null;
+  }
   const base = {
     type: event.type,
     className: "resource",

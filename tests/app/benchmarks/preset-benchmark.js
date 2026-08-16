@@ -20,6 +20,7 @@ export async function assertManifestBenchmarks(professionId) {
   );
   const adapter = await loadProfessionAppAdapter(professionId);
   assert.ok(adapter, `${professionId} has no native app adapter`);
+  const mismatches = [];
 
   for (const section of manifest) {
     for (const preset of section.presets) {
@@ -53,7 +54,12 @@ export async function assertManifestBenchmarks(professionId) {
       adapter.recalculate(app);
       const config = adapter.simulationConfig(app);
       const result = adapter.simulateBuild(build.rotation, config);
-      assert.equal(preset.benchmarkDps, Math.round(result.dps), label);
+      const actualDps = Math.round(result.dps);
+      if (preset.benchmarkDps !== actualDps) {
+        mismatches.push({ label, expected: preset.benchmarkDps, actualDps });
+      }
     }
   }
+
+  assert.deepEqual(mismatches, [], `${professionId} benchmark DPS drift`);
 }

@@ -7,6 +7,7 @@ function emitBeastmodeState(
   skill: RangerSkill,
   active: boolean,
 ): void {
+  // Mutate scheduler state immediately so subsequent casts in the same tick see the correct mode.
   soulbeastState.from(context).beastmodeActive = active;
   context.emit({
     type: "ranger.beastmode",
@@ -38,6 +39,8 @@ export const soulbeastSkillHandlers = Object.freeze({
     mode: "augment" as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
       const duration = soulbeastStanceDuration(context, 6);
+      // oneWolfPackUntil is written here so the resolver's per-hit ICD guard can cheaply
+      // skip the active-buff lookup when the stance has clearly expired.
       soulbeastState.from(context).oneWolfPackUntil = context.start + duration;
       context.emit({
         type: "buff",

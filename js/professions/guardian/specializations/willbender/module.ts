@@ -14,6 +14,8 @@ export const willbenderModule = defineNativeModule({
     handlers: willbenderSkillHandlers,
   }),
   state: {
+    // Scheduler and resolver each get their own independent instance of the same
+    // shape; they must not share a reference because the two phases run separately.
     scheduler: willbenderState.create,
     resolver: willbenderState.create,
   },

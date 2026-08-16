@@ -16,8 +16,7 @@ interface LightningRodTaskPayload extends SchedulerRecord {
 const LIGHTNING_ROD_FIRST_PULSE_DELAY_SECONDS = 0.16;
 const LIGHTNING_ROD_PULSE_INTERVAL_SECONDS = 0.5;
 const LIGHTNING_ROD_PULSE_COUNT = 8;
-// The supplied EVTC unlocks Electric Artillery 4.196-4.203 seconds after
-// Lightning Rod starts across all eleven activations.
+// measured from EVTC across eleven activations — EA becomes available 4.196–4.203s after LR starts
 const ELECTRIC_ARTILLERY_ARMING_TIME_SECONDS = 4.2;
 
 function emitSpearEvent(
@@ -43,16 +42,20 @@ export function scheduleLightningRod(
   skill: EngineerSkill,
 ): void {
   const state = professionCoreState(context);
+  // reservationId becomes the activationId so all tasks from this cast share a cancellable ownerId
   const activationId = context.reservationId;
   const firstAt =
     context.effectiveEnd + LIGHTNING_ROD_FIRST_PULSE_DELAY_SECONDS;
+  // arming time measured from cast START, not effectiveEnd
   const readyAt = context.start + ELECTRIC_ARTILLERY_ARMING_TIME_SECONDS;
   const ownerId = `engineer.lightning-rod:${activationId}`;
+  // lightningRodActivationId gates charge/ready/expire task handlers — stale tasks from an old cast are ignored
   state.lightningRodActivationId = activationId;
   state.lightningRodChargeExpiries = [];
   state.electricArtilleryAvailable = false;
   state.availableFlips[ID.ELECTRIC_ARTILLERY] = false;
   state.electricArtilleryReadyAt = readyAt;
+  // EA expires 14s after it arms; player loses the window if they don't fire it
   state.electricArtilleryExpiresAt = readyAt + 14;
   emitEngineerState(context, context.effectiveEnd, "lightning-rod-active");
 
@@ -70,6 +73,7 @@ export function scheduleLightningRod(
       hitIndex: index + 1,
       totalHits: LIGHTNING_ROD_PULSE_COUNT,
     });
+    // each pulse task adds a charge; the task payload carries activationId to guard against stale casts
     context.tasks.schedule({
       type: "engineer.lightning-rod-charge",
       at,
@@ -96,10 +100,12 @@ export function scheduleConduitSurge(
   skill: EngineerSkill,
 ): void {
   const at = context.effectiveEnd;
+  // update focusedUntil in scheduler state for subsequent availability/damage checks
   professionCoreState(context).focusedUntil = Math.max(
     professionCoreState(context).focusedUntil,
     at + 10,
   );
+  // also emit a state event so the resolver's Focused window is synchronized
   emitEngineerState(context, at, "conduit-surge");
   emitSpearEvent(context, skill, at, "engineer.conduit-surge");
 }
@@ -110,6 +116,7 @@ export function scheduleElectricArtillery(
 ): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
+  // only charges that haven't expired yet contribute — charges have a rolling 14s expiry window
   const charges = state.lightningRodChargeExpiries.filter(
     (expiresAt) => Number(expiresAt) > at,
   ).length;
@@ -124,6 +131,7 @@ export function scheduleElectricArtillery(
     name: skill.name,
     charges,
   });
+  // cancel all remaining LR tasks in one call — charge/ready/expire tasks all share the same ownerId
   context.tasks.cancelOwner(
     `engineer.lightning-rod:${state.lightningRodActivationId}`,
   );
@@ -141,10 +149,13 @@ export function handleLightningRodCharge(
   task: EngineerScheduledTask<LightningRodTaskPayload>,
 ): void {
   const state = professionCoreState(context);
+  // activationId mismatch means this is a stale task from a previous LR cast — discard it
   if (state.lightningRodActivationId !== task.payload?.activationId) return;
+  // prune expired charges before adding the new one
   state.lightningRodChargeExpiries = state.lightningRodChargeExpiries.filter(
     (expiresAt) => Number(expiresAt) > task.at,
   );
+  // 12-charge cap matches EA's maximum charge input; each charge lasts 14s
   if (state.lightningRodChargeExpiries.length < 12) {
     state.lightningRodChargeExpiries.push(task.at + 14);
   }
@@ -181,6 +192,7 @@ export function scheduleRoilingSkiesControl(
   context: EngineerCastContext,
   skill: EngineerSkill,
 ): void {
+  // Focused state changes the CC type from Stun to Launch
   const isFocused =
     professionCoreState(context).focusedUntil > context.effectiveEnd;
   context.emit({
@@ -201,6 +213,7 @@ export function scheduleDevastatorFollowup(
   context: EngineerCastContext,
   skill: EngineerSkill,
 ): void {
+  // fullEnd (not effectiveEnd) — follow-up fires at animation end, not the interrupt-commit point
   const impactAt = context.fullEnd;
   if (professionCoreState(context).focusedUntil <= impactAt) return;
   const activationId = `${context.reservationId}:focused-devastation`;
@@ -222,6 +235,7 @@ export function scheduleDevastatorFollowup(
       totalHits: 6,
       skillWeapon: "Spear",
       weaponStrengthProfileId: "nonweapon.unequipped",
+      // projectile already in flight — events persist even if the cast is interrupted
       persistsAfterInterrupt: true,
     });
     context.emit({
