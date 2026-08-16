@@ -370,6 +370,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       quicknessCastTimeMs: 600,
       cooldown: 18,
       skillFamily: "Meditation",
+      handlerId: "elementalist.evoker-meditation",
       implemented: true,
       effects: [],
     },
@@ -383,6 +384,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       cooldown: 20,
       enduranceCost: 50,
       skillFamily: "Meditation",
+      handlerId: "elementalist.evoker-meditation",
       implemented: true,
       effects: [
         {
@@ -418,6 +420,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       quicknessCastTimeMs: 640,
       cooldown: 15,
       skillFamily: "Meditation",
+      handlerId: "elementalist.evoker-meditation",
       implemented: true,
       effects: [
         {
@@ -456,6 +459,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       quicknessCastTimeMs: 600,
       cooldown: 60,
       skillFamily: "Meditation",
+      handlerId: "elementalist.evoker-meditation",
       implemented: true,
       effects: [],
     },

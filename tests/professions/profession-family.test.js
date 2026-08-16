@@ -77,6 +77,13 @@ import { antiquaryModule as thiefAntiquaryModule } from "../../js/professions/th
 import { daredevilModule as thiefDaredevilModule } from "../../js/professions/thief/specializations/daredevil/module.js";
 import { deadeyeModule as thiefDeadeyeModule } from "../../js/professions/thief/specializations/deadeye/module.js";
 import { specterModule as thiefSpecterModule } from "../../js/professions/thief/specializations/specter/module.js";
+import { elementalistCatalog } from "../../js/professions/elementalist/catalog.js";
+import { elementalistProfession } from "../../js/professions/elementalist/definition.js";
+import { elementalistCoreModule } from "../../js/professions/elementalist/core/module.js";
+import { tempestModule } from "../../js/professions/elementalist/specializations/tempest/module.js";
+import { weaverModule } from "../../js/professions/elementalist/specializations/weaver/module.js";
+import { catalystModule } from "../../js/professions/elementalist/specializations/catalyst/module.js";
+import { evokerModule } from "../../js/professions/elementalist/specializations/evoker/module.js";
 
 function nativeModifierRules(module) {
   const modifiers = module.mechanics?.modifiers;
@@ -95,6 +102,16 @@ function nativeSkillOwnerMap(slices, catalog) {
 
 test("all migrated profession families share one conformance harness", () => {
   for (const fixture of [
+    {
+      family: elementalistProfession,
+      core: elementalistCoreModule,
+      specializations: {
+        Tempest: tempestModule,
+        Weaver: weaverModule,
+        Catalyst: catalystModule,
+        Evoker: evokerModule,
+      },
+    },
     {
       family: engineerProfession,
       core: engineerCoreModule,
@@ -235,6 +252,18 @@ test("elite event presentation is owned by the active specialization", () => {
 
 test("native module contributions assemble disjoint application and runtime catalogs", () => {
   const fixtures = [
+    {
+      name: "Elementalist",
+      family: elementalistProfession,
+      catalog: elementalistCatalog,
+      modules: [
+        elementalistCoreModule,
+        tempestModule,
+        weaverModule,
+        catalystModule,
+        evokerModule,
+      ],
+    },
     {
       name: "Engineer",
       family: engineerProfession,

@@ -1,7 +1,6 @@
 import {
   defineNativeModule,
   onAuraApplied,
-  onComboResolved,
   onConditionApplied,
   onResolvedDamage,
 } from "../../../platform/gw2/native-profession.js";
@@ -24,7 +23,6 @@ import {
   applyElementalistResolverAttunement,
   applyElementalistResolverAura,
   applyElementalistResolverSignetFire,
-  applyElementalistResolvedCombo,
   applyElementalistResolvedCondition,
   applyElementalistResolvedDamage,
 } from "./resolver.js";
@@ -52,10 +50,6 @@ export const elementalistCoreModule = defineNativeModule({
       onConditionApplied({
         id: "elementalist.core.condition",
         handler: applyElementalistResolvedCondition,
-      }),
-      onComboResolved({
-        id: "elementalist.core-combo",
-        handler: applyElementalistResolvedCombo,
       }),
       onAuraApplied({
         id: "elementalist.core-aura",

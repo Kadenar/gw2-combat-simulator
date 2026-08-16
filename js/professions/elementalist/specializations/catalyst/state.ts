@@ -1,12 +1,9 @@
 import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
-import type {
-  SchedulerConfig,
-  SchedulerRecord,
-} from "../../../../platform/engine/types.js";
+import type { ElementalistConfig } from "../../types.js";
 
 export const CATALYST_MAXIMUM_ENERGY = 30;
 
-export interface CatalystState extends SchedulerRecord {
+export interface CatalystState {
   energy: number;
   elementalEmpowermentExpiries: number[];
   maximumEnergy: number;
@@ -15,11 +12,13 @@ export interface CatalystState extends SchedulerRecord {
   shatteringIceUntil: number;
   shatteringIceReadyAt: number;
   viciousEmpowermentReadyAt: number;
+  elementalEpitomeReadyAt: Record<string, number>;
+  elementalSynergyReadyAt: Record<string, number>;
 }
 
 export const catalystState = defineProfessionSpecializationState(
   "Catalyst",
-  (config: Readonly<SchedulerConfig> = {}): CatalystState => ({
+  (config: ElementalistConfig = {}): CatalystState => ({
     energy: Math.max(
       0,
       Math.min(
@@ -34,6 +33,8 @@ export const catalystState = defineProfessionSpecializationState(
     shatteringIceUntil: 0,
     shatteringIceReadyAt: 0,
     viciousEmpowermentReadyAt: 0,
+    elementalEpitomeReadyAt: {},
+    elementalSynergyReadyAt: {},
   }),
 );
 

@@ -11,6 +11,7 @@ import { escapeHtml as esc } from "../../../../platform/ui/html.js";
 import { ELEMENTALIST_WEAVER_SKILL_IDS } from "../../data/ids.js";
 import { getActiveTraits } from "../../data/traits-data.js";
 import type { ElementalistBuildSpecialization } from "../../types.js";
+import { ELEMENTALIST_ATTUNEMENTS } from "../../core/state.js";
 
 function hasElementsOfRage(context: SchedulerRecord): boolean {
   const build = context.build as
@@ -33,6 +34,20 @@ function unravelPaletteAvailability(
     available,
     message: available ? "" : "Requires Elements of Rage.",
   };
+}
+
+function unravelTimelineWeaponLineTransition(
+  context: SchedulerRecord,
+): string | undefined {
+  const skill = context.skill as Skill | undefined;
+  if (skill?.id !== ELEMENTALIST_WEAVER_SKILL_IDS.Unravel) return undefined;
+  const build = context.build as SchedulerRecord | undefined;
+  const currentPrimary = String(context.weaponLine || "").split("/")[0];
+  const primary =
+    ELEMENTALIST_ATTUNEMENTS.find(
+      (attunement) => attunement[0] === currentPrimary,
+    ) || String(build?.startAttunement || "Fire");
+  return `${primary[0]}/${primary[0]}`;
 }
 
 interface WeaverWeaponPaletteRow {
@@ -335,5 +350,6 @@ export const weaverUi: Partial<ProfessionUiContract> & SchedulerRecord =
           ]
         : [],
     paletteSkillAvailability: unravelPaletteAvailability,
+    timelineWeaponLineTransition: unravelTimelineWeaponLineTransition,
     renderWeaponPalette: renderWeaverWeaponPalette,
   });

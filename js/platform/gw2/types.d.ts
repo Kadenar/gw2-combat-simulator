@@ -48,7 +48,8 @@ export interface ComboFieldEvent extends SimulationEventBase<"combo_field"> {
   readonly comboBindingPriority?: number;
 }
 
-export interface ComboFinisherEvent extends SimulationEventBase<"combo_finisher"> {
+export interface ComboFinisherEvent
+  extends SimulationEventBase<"combo_finisher"> {
   readonly attemptId: string;
   readonly finisherType: ComboFinisherType;
   readonly fieldBinding: ComboFieldBinding;
@@ -694,7 +695,8 @@ export interface Gw2ResolverHelpers extends SchedulerRecord {
 }
 
 export type Gw2EventQueue =
-  Gw2ResolverEvent[] | StableEventQueue<Gw2ResolverEvent>;
+  | Gw2ResolverEvent[]
+  | StableEventQueue<Gw2ResolverEvent>;
 
 export interface Gw2ResolverRuntime extends SchedulerRecord {
   config: Gw2Config;
@@ -731,6 +733,11 @@ export interface Gw2ResolverRuntime extends SchedulerRecord {
   random: Readonly<SimulationRandom>;
   weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
   weaponStrengthActivationOrder: number;
+  dispatchReaction(
+    stage: Gw2ResolverStage,
+    event: Gw2ResolverEvent,
+    details?: SchedulerRecord,
+  ): SchedulerRecord | void;
   recordProc(
     type: string,
     name: string,
@@ -919,6 +926,7 @@ export interface ResolveGw2TimelineOptions {
     options: Omit<CreateGw2ResolverRuntimeStateOptions, "createEquipmentState">,
   ) => Gw2ResolverRuntime;
   readonly commonHandlers: Gw2ResolverEventHandlers;
+  readonly reactions?: Gw2ResolverReactionRegistry;
   readonly beforeResolveTimeline: Gw2ResolverExtensions["beforeResolveTimeline"];
   readonly professionHandlers?: Gw2ResolverEventHandlers;
   readonly professionState?: object;
@@ -940,12 +948,14 @@ export interface CreateGw2ResolverRuntimeStateOptions {
   readonly warnings?: string[];
   readonly eventFilterState?: object;
   readonly createEquipmentState: Gw2ResolverExtensions["createEquipmentState"];
+  readonly reactions?: Gw2ResolverReactionRegistry;
 }
 
-export interface Gw2ProfessionContract extends Omit<
-  NormalizedProfessionContract,
-  "eventHandlers" | "eventReactions" | "simulation" | "projectEndState"
-> {
+export interface Gw2ProfessionContract
+  extends Omit<
+    NormalizedProfessionContract,
+    "eventHandlers" | "eventReactions" | "simulation" | "projectEndState"
+  > {
   readonly eventHandlers: Gw2ResolverEventHandlers;
   readonly eventReactions: Gw2ResolverReactions;
   readonly simulation:
@@ -1032,7 +1042,8 @@ export interface Gw2ConversionAttributeEffect extends Gw2AttributeEffectBase {
 }
 
 export type Gw2AttributeEffect =
-  Gw2FlatAttributeEffect | Gw2ConversionAttributeEffect;
+  | Gw2FlatAttributeEffect
+  | Gw2ConversionAttributeEffect;
 
 export interface Gw2AttributeBreakdown {
   final: number;
@@ -1401,7 +1412,8 @@ export interface Gw2NormalizedModifierRule {
 }
 
 export type Gw2IncludeSigilPolicy =
-  boolean | ((context: Gw2ModifierContext) => boolean);
+  | boolean
+  | ((context: Gw2ModifierContext) => boolean);
 
 export interface Gw2DamageBucketPolicy {
   readonly includeSigil: Gw2IncludeSigilPolicy;

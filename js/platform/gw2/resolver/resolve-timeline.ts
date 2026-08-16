@@ -132,6 +132,7 @@ export function resolveGw2Timeline({
   helpers,
   createRuntimeState,
   commonHandlers,
+  reactions,
   beforeResolveTimeline,
   professionHandlers = {},
   professionState = {},
@@ -159,6 +160,7 @@ export function resolveGw2Timeline({
     professionState,
     eventFilterState,
     warnings: [...(handoff.warnings || [])],
+    reactions,
   });
   if (handoff.hasExplicitCombatStart) {
     ctx.combatStartTime = handoff.combatStartTime;

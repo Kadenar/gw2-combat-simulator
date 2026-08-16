@@ -18,10 +18,13 @@ function coreState(
     | Partial<ElementalistCoreState>
     | undefined;
   if (!profession) return {};
-  return "core" in profession && profession.core ? profession.core : profession;
+  if ("core" in profession) return profession.core || {};
+  return profession as Partial<ElementalistCoreState>;
 }
 
-function attunements(context: Gw2ModifierContext): Set<string> {
+export function elementalistAttunements(
+  context: Gw2ModifierContext,
+): Set<string> {
   const state = coreState(context);
   return new Set(
     [state.primaryAttunement, state.secondaryAttunement].filter(
@@ -53,7 +56,7 @@ function targetHas(context: Gw2ModifierContext, condition: string): boolean {
   );
 }
 
-function mightStacks(context: Gw2ModifierContext): number {
+export function elementalistMightStacks(context: Gw2ModifierContext): number {
   return Number(
     context.query?.mightStacksAt(
       context.time,
@@ -76,7 +79,7 @@ function targetHealthFraction(context: Gw2ModifierContext): number {
   return Math.max(0, 1 - damage / maximum);
 }
 
-function timedBuffStacks(
+export function elementalistTimedBuffStacks(
   context: Gw2ModifierContext,
   kind: string,
   maximum = 25,
@@ -123,72 +126,22 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] =
       amount: 0.2,
       when: (context) =>
         hasTrait(context, "Bountiful Power") &&
-        timedBuffStacks(context, "bountiful power active", 1) > 0,
-    },
-    {
-      id: "elementalist.tempestuous-aria-strike",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "damage-additive",
-      amount: 0.1,
-      when: (context) =>
-        hasTrait(context, "Tempestuous Aria") &&
-        timedBuffStacks(context, "tempestuous aria", 1) > 0,
-    },
-    {
-      id: "elementalist.tempestuous-aria-condition",
-      target: MODIFIER_TARGET.CONDITION_DAMAGE,
-      operation: "damage-additive",
-      amount: 0.05,
-      when: (context) =>
-        hasTrait(context, "Tempestuous Aria") &&
-        timedBuffStacks(context, "tempestuous aria", 1) > 0,
+        elementalistTimedBuffStacks(context, "bountiful power active", 1) > 0,
     },
     {
       id: "elementalist.persisting-flames",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
       amount: (context) =>
-        timedBuffStacks(context, "persisting flames", 5) * 0.02,
+        elementalistTimedBuffStacks(context, "persisting flames", 5) * 0.02,
       when: (context) => hasTrait(context, "Persisting Flames"),
-    },
-    {
-      id: "elementalist.weave-self-air",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "damage-additive",
-      amount: 0.1,
-      when: (context) => timedBuffStacks(context, "weave self air", 1) > 0,
-    },
-    {
-      id: "elementalist.weave-self-fire",
-      target: MODIFIER_TARGET.CONDITION_DAMAGE,
-      operation: "damage-additive",
-      amount: 0.2,
-      when: (context) => timedBuffStacks(context, "weave self fire", 1) > 0,
-    },
-    {
-      id: "elementalist.elements-of-rage-strike",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "damage-additive",
-      amount: 0.15,
-      when: (context) =>
-        hasTrait(context, "Elements of Rage") &&
-        timedBuffStacks(context, "elements of rage", 1) > 0,
-    },
-    {
-      id: "elementalist.elements-of-rage-condition",
-      target: MODIFIER_TARGET.CONDITION_DAMAGE,
-      operation: "damage-additive",
-      amount: 0.1,
-      when: (context) =>
-        hasTrait(context, "Elements of Rage") &&
-        timedBuffStacks(context, "elements of rage", 1) > 0,
     },
     {
       id: "elementalist.empowering-auras-strike",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
       amount: (context) =>
-        timedBuffStacks(context, "empowering auras", 5) * 0.01,
+        elementalistTimedBuffStacks(context, "empowering auras", 5) * 0.01,
       when: (context) => hasTrait(context, "Empowering Auras"),
     },
     {
@@ -196,35 +149,8 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] =
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: "damage-additive",
       amount: (context) =>
-        timedBuffStacks(context, "empowering auras", 5) * 0.01,
+        elementalistTimedBuffStacks(context, "empowering auras", 5) * 0.01,
       when: (context) => hasTrait(context, "Empowering Auras"),
-    },
-    {
-      id: "elementalist.relentless-fire",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "damage-additive",
-      amount: 0.1,
-      when: (context) => timedBuffStacks(context, "relentless fire", 1) > 0,
-    },
-    {
-      id: "elementalist.familiars-prowess-strike",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "damage-additive",
-      amount: (context) => (hasTrait(context, "Familiar's Focus") ? 0.1 : 0.05),
-      when: (context) =>
-        context.config?.specialization === "Evoker" &&
-        context.config?.evokerElement === "Air" &&
-        timedBuffStacks(context, "familiar's-prowess", 1) > 0,
-    },
-    {
-      id: "elementalist.familiars-prowess-condition",
-      target: MODIFIER_TARGET.CONDITION_DAMAGE,
-      operation: "damage-additive",
-      amount: (context) => (hasTrait(context, "Familiar's Focus") ? 0.1 : 0.05),
-      when: (context) =>
-        context.config?.specialization === "Evoker" &&
-        context.config?.evokerElement === "Fire" &&
-        timedBuffStacks(context, "familiar's-prowess", 1) > 0,
     },
     {
       id: "elementalist.fiery-might",
@@ -299,16 +225,6 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] =
         playerEvent(context) && hasTrait(context, "Zephyr's Speed"),
     },
     {
-      id: "elementalist.superior-elements",
-      target: MODIFIER_TARGET.CRITICAL_CHANCE,
-      operation: "add",
-      amount: 0.2,
-      when: (context) =>
-        playerEvent(context) &&
-        hasTrait(context, "Superior Elements") &&
-        targetHas(context, "Weakness"),
-    },
-    {
       id: "elementalist.electric-discharge-critical-damage",
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
       operation: "multiply",
@@ -318,53 +234,20 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] =
         "Electric Discharge",
     },
     {
-      id: "elementalist.enhanced-potency-air",
-      target: MODIFIER_TARGET.CRITICAL_CHANCE,
-      operation: "add",
-      amount: 0.15,
-      when: (context) =>
-        context.config?.specialization === "Evoker" &&
-        context.config?.evokerElement === "Air" &&
-        hasTrait(context, "Enhanced Potency") &&
-        Boolean(
-          context.query?.furyActiveAt(
-            context.time,
-            context.runtime,
-            context.event,
-          ),
-        ),
-    },
-    {
-      id: "elementalist.transcendent-tempest-strike",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "damage-additive",
-      amount: 0.25,
-      when: (context) =>
-        hasTrait(context, "Transcendent Tempest") &&
-        timedBuffStacks(context, "transcendent-tempest", 1) > 0,
-    },
-    {
-      id: "elementalist.transcendent-tempest-condition",
-      target: MODIFIER_TARGET.CONDITION_DAMAGE,
-      operation: "damage-additive",
-      amount: 0.2,
-      when: (context) =>
-        hasTrait(context, "Transcendent Tempest") &&
-        timedBuffStacks(context, "transcendent-tempest", 1) > 0,
-    },
-    {
       id: "elementalist.hammer-fire-orb",
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: "damage-additive",
       amount: 0.05,
-      when: (context) => timedBuffStacks(context, "hammer fire orb", 1) > 0,
+      when: (context) =>
+        elementalistTimedBuffStacks(context, "hammer fire orb", 1) > 0,
     },
     {
       id: "elementalist.hammer-air-orb",
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: "add",
       amount: 0.15,
-      when: (context) => timedBuffStacks(context, "hammer air orb", 1) > 0,
+      when: (context) =>
+        elementalistTimedBuffStacks(context, "hammer air orb", 1) > 0,
     },
     {
       id: "elementalist.frost-bow-condition-duration",
@@ -372,16 +255,6 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "multiply",
       factor: 1.2,
       when: (context) => eventWeapon(context) === "Frost Bow",
-    },
-    {
-      id: "elementalist.zap",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "multiply",
-      factor: 1.03,
-      when: (context) =>
-        context.config?.specialization === "Evoker" &&
-        context.config?.evokerElement === "Air" &&
-        timedBuffStacks(context, "zap buff", 1) > 0,
     },
   ]);
 
@@ -396,29 +269,20 @@ export function modifyElementalistAttributes(
   attributes: SchedulerRecord,
 ): SchedulerRecord {
   const modified = { ...attributes };
-  const active = attunements(context);
   const primary = primaryAttunement(context);
   if (hasTrait(context, "Empowering Flame") && primary === "Fire") {
     modified.power = Number(modified.power || 0) + 150;
   }
-  if (hasTrait(context, "Power Overwhelming") && mightStacks(context) >= 10) {
+  if (
+    hasTrait(context, "Power Overwhelming") &&
+    elementalistMightStacks(context) >= 10
+  ) {
     modified.power =
       Number(modified.power || 0) + (primary === "Fire" ? 300 : 150);
   }
-  if (hasTrait(context, "Elemental Polyphony")) {
-    if (active.has("Fire")) {
-      modified.power = Number(modified.power || 0) + 200;
-    }
-    if (active.has("Air")) {
-      modified.ferocity = Number(modified.ferocity || 0) + 200;
-    }
-    if (active.has("Earth")) {
-      modified.conditionDamage = Number(modified.conditionDamage || 0) + 200;
-    }
-  }
   if (
     hasTrait(context, "Fresh Air") &&
-    timedBuffStacks(context, "fresh air", 1) > 0
+    elementalistTimedBuffStacks(context, "fresh air", 1) > 0
   ) {
     modified.ferocity = Number(modified.ferocity || 0) + 250;
   }
@@ -435,18 +299,9 @@ export function modifyElementalistAttributes(
   }
   if (
     hasTrait(context, "Arcane Lightning") &&
-    timedBuffStacks(context, "arcane lightning", 1) > 0
+    elementalistTimedBuffStacks(context, "arcane lightning", 1) > 0
   ) {
     modified.ferocity = Number(modified.ferocity || 0) + 150;
-  }
-  if (
-    context.config?.specialization === "Evoker" &&
-    context.config?.evokerElement === "Air" &&
-    Boolean(
-      context.query?.furyActiveAt(context.time, context.runtime, context.event),
-    )
-  ) {
-    modified.ferocity = Number(modified.ferocity || 0) + 75;
   }
   const weapon = eventWeapon(context);
   if (weapon === "Fiery Greatsword") {
@@ -460,14 +315,6 @@ export function modifyElementalistAttributes(
     Number(coreState(context).signetOfFireDisabledUntil || 0) > context.time
   ) {
     modified.precision = Number(modified.precision || 0) - 180;
-  }
-  if (
-    context.config?.specialization === "Evoker" &&
-    context.config?.evokerElement === "Fire" &&
-    hasTrait(context, "Enhanced Potency")
-  ) {
-    modified.conditionDamage =
-      Number(modified.conditionDamage || 0) + mightStacks(context) * 5;
   }
   return modified;
 }
