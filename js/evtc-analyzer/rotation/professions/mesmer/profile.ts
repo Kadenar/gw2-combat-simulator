@@ -24,6 +24,8 @@ export const mesmerProfileSource: ProfessionProfileSource = {
       56925: 56930,
     },
     virtuoso: {
+      // Older Virtuoso logs use the ID now assigned to Troubadour Bladecall.
+      62560: 69311,
       // The current EVTC missile ID differs from the API skill ID.
       62586: 62617,
     },

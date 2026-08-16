@@ -164,19 +164,50 @@ function chaosArmorActions(
           return delay >= 3000 && delay <= 5500;
         }),
     )
-    .flatMap((signal) =>
-      hasNearbyAction(actions, CHAOS_ARMOR, signal.event.time, 100)
+    .flatMap((signal) => {
+      const recentSwap =
+        context.profile.specializationId === "mirage"
+          ? actions
+              .filter(
+                (action) =>
+                  (action.canonicalSkillId === -3 ||
+                    normalized(action.canonicalName || action.rawName) ===
+                      "swap weapons") &&
+                  action.start < signal.event.time &&
+                  signal.event.time - action.start <= 1500,
+              )
+              .sort((left, right) => right.start - left.start)[0]
+          : null;
+      const priorStaffAction = recentSwap
+        ? actions
+            .filter(
+              (action) =>
+                (action.rawSkillId === CHAOS_STORM.skillId ||
+                  action.canonicalSkillId === CHAOS_STORM.skillId ||
+                  action.rawSkillId === PHASE_RETREAT.skillId ||
+                  action.canonicalSkillId === PHASE_RETREAT.skillId) &&
+                action.start < recentSwap.start,
+            )
+            .sort((left, right) => right.start - left.start)[0]
+        : null;
+      const actionTime = priorStaffAction
+        ? Math.min(
+            recentSwap!.start,
+            Math.max(priorStaffAction.end, priorStaffAction.start),
+          )
+        : signal.event.time;
+      return hasNearbyAction(actions, CHAOS_ARMOR, actionTime, 100)
         ? []
         : [
             canonicalAction(
               signal.eventIndex,
-              signal.event.time,
+              actionTime,
               CHAOS_ARMOR,
               signal.event.skillId,
               "buff-transition",
             ),
-          ],
-    );
+          ];
+    });
 }
 
 function distortionActions(
@@ -209,6 +240,9 @@ function mirrorImagesActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[],
 ): EvtcRecordedRotationAction[] {
+  const phaseRetreatTimes = phaseRetreatSignals(context).map(
+    (signal) => signal.event.time,
+  );
   const spawnsByTime = new Map<number, MesmerSignal[]>();
   for (const signal of firstOwnedAgentSignals(context, STAFF_CLONE_SPECIES)) {
     spawnsByTime.set(signal.event.time, [
@@ -217,7 +251,11 @@ function mirrorImagesActions(
     ]);
   }
   const pairs = [...spawnsByTime.values()].filter(
-    (signals) => signals.length >= 2,
+    (signals) =>
+      signals.length >= 2 &&
+      !phaseRetreatTimes.some(
+        (time) => Math.abs(time - signals[0].event.time) <= 50,
+      ),
   );
   const selected = selectedSkill(context, MIRROR_IMAGES);
   if (selected === false || (selected == null && pairs.length < 2)) return [];

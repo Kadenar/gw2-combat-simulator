@@ -7,6 +7,7 @@ import type {
 } from "./professions/types.js";
 
 export const EFFECT_PACKET_TOLERANCE_MS = 80;
+const AGENT_SPAWN_STATE_CHANGE = 6;
 
 export interface StrikePacketValidation {
   readonly expectedCount: number;
@@ -288,6 +289,9 @@ export function reconcileCastEffectPackets(
   actions: readonly EvtcRecordedRotationAction[],
 ): EvtcRecordedRotationAction[] {
   const validatePackets = createStrikePacketMatcher(context);
+  const skillNames = new Map(
+    context.log.skills.map((skill) => [skill.id, normalized(skill.name)]),
+  );
   const sorted = [...actions].sort(
     (left, right) =>
       left.start - right.start || left.eventIndex - right.eventIndex,
@@ -300,8 +304,6 @@ export function reconcileCastEffectPackets(
       return action;
     }
     const packets = validatePackets(action);
-    if (!packets.anyObserved) return action;
-
     const actualDuration = Math.max(0, action.end - action.start);
     const skill = skillForAction(context, action);
     const evtcQuicknessDuration =
@@ -312,6 +314,57 @@ export function reconcileCastEffectPackets(
       0,
       quicknessRuntimeDurationMs(skill) || evtcQuicknessDuration,
     );
+    let phantasmCommitted = false;
+    if (skill?.phantasm === true) {
+      const phantasmIdentity = normalized(
+        action.canonicalName || action.rawName,
+      ).replace(/^phantasmal\s+/, "");
+      const matchingPhantasmAddresses = new Set(
+        context.log.agents
+          .filter(
+            (agent) =>
+              normalized(agent.character).replace(/^illusionary\s+/, "") ===
+              phantasmIdentity,
+          )
+          .map((agent) => agent.address),
+      );
+      const matchingPhantasmSpawn = context.log.events.some(
+        (event) =>
+          matchingPhantasmAddresses.has(event.source) &&
+          event.stateChange === AGENT_SPAWN_STATE_CHANGE &&
+          Math.abs(event.time - (action.start + runtimeDuration)) <=
+            EFFECT_PACKET_TOLERANCE_MS,
+      );
+      phantasmCommitted =
+        matchingPhantasmSpawn &&
+        (packets.anyObserved ||
+          context.log.events.some(
+            (event) =>
+              event.source === context.playerAddress &&
+              event.buff === 0 &&
+              event.value > 0 &&
+              event.activation === EVTC_ACTIVATION.NONE &&
+              event.stateChange === EVTC_STATE_CHANGE.NONE &&
+              (event.skillId === action.rawSkillId ||
+                event.skillId === action.canonicalSkillId ||
+                skillNames.get(event.skillId) ===
+                  normalized(action.canonicalName || action.rawName)) &&
+              Math.abs(event.time - (action.start + runtimeDuration)) <=
+                EFFECT_PACKET_TOLERANCE_MS,
+          ));
+    }
+    if (!packets.anyObserved && !phantasmCommitted) return action;
+    if (
+      action.status === "interrupted" &&
+      phantasmCommitted &&
+      runtimeDuration > 0
+    ) {
+      return {
+        ...action,
+        status: "completed" as const,
+        replayCastEnd: action.start + runtimeDuration,
+      };
+    }
     let replayDuration = Math.min(
       runtimeDuration || actualDuration,
       actualDuration,

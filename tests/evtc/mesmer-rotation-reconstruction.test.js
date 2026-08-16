@@ -16,6 +16,7 @@ const GUIDS = Object.freeze({
   timeSink: "AB2E22E7EE74DA4C87DA777C62E475EA",
   diversion: "916D8385083F144EBAA5BEEDE21FD47A",
   mirageMirror: "1370CDF5F2061445A656A1D77C37A55C",
+  mesmerTeleport: "C34E250B01FF534292EE6AB36D768337",
   bladeturnRequiem: "87B761200637AC48B71469F553BA6F60",
   thousandCuts: "E4002B7AD7DF024394D0184B47A316E7",
 });
@@ -190,6 +191,79 @@ test("reconstructs Chronomancer shatters and Continuum transitions", () => {
   assert.equal(names(result, "Continuum Shift").length, 1);
 });
 
+test("splits Chronomancer effect packets after four shatter sources", () => {
+  const skills = [skill(56930, "Split Second")];
+  const fixture = mesmerLog(40, skills, [
+    guidMapping(GUIDS.splitSecond, 101),
+    event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    effect(101, 11_000),
+    effect(101, 11_100),
+    effect(101, 11_200),
+    effect(101, 11_300),
+    effect(101, 11_400),
+  ]);
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.equal(names(result, "Split Second").length, 2);
+});
+
+test("recovers a Chronomancer Mirror Images use suppressed at clone cap", () => {
+  const cloneAddresses = Array.from(
+    { length: 6 },
+    (_, index) => 0x3000n + BigInt(index),
+  );
+  const skills = [
+    skill(10202, "Mirror Images"),
+    skill(10192, "Distortion"),
+    skill(56930, "Split Second"),
+  ];
+  const clonePair = (time, offset) =>
+    cloneAddresses.slice(offset, offset + 2).map((source, index) =>
+      event({
+        time,
+        source,
+        sourceInstance: offset + index + 10,
+        sourceMasterInstance: 7,
+      }),
+    );
+  const fixture = mesmerLog(
+    40,
+    skills,
+    [
+      guidMapping(GUIDS.splitSecond, 101),
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      ...clonePair(11_000, 0),
+      ...clonePair(31_000, 2),
+      event({
+        time: 50_500,
+        target: PLAYER,
+        value: 1_000,
+        skillId: 10243,
+        buff: 1,
+      }),
+      effect(101, 51_000),
+      ...clonePair(71_000, 4),
+    ],
+    cloneAddresses.map((address) =>
+      agent(address, 8111, "Illusionary Warlock"),
+    ),
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+  const mirrors = names(result, "Mirror Images");
+
+  assert.equal(mirrors.length, 4);
+  assert.ok(
+    mirrors.some(
+      (action) =>
+        action.evidence === "resource-inference" &&
+        action.timestampMs > 40_000 &&
+        action.timestampMs < 50_000,
+    ),
+  );
+});
+
 test("reconstructs Mirage cloak sources and shatters without packet spam", () => {
   const skills = [
     skill(-1, "Dodge / Mirage Cloak", { type: "Action", slot: "Action" }),
@@ -262,6 +336,137 @@ test("reconstructs Mirage cloak sources and shatters without packet spam", () =>
   assert.equal(names(result, "Distortion").length, 1);
 });
 
+test("does not mistake a Phase Retreat clone pair for Mirror Images", () => {
+  const cloneOne = 0x3100n;
+  const cloneTwo = 0x3101n;
+  const skills = [skill(10310, "Phase Retreat"), skill(10202, "Mirror Images")];
+  const fixture = mesmerLog(
+    59,
+    skills,
+    [
+      guidMapping(GUIDS.mesmerTeleport, 201),
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      event({
+        time: 12_000,
+        source: cloneOne,
+        sourceInstance: 8,
+        sourceMasterInstance: 7,
+      }),
+      event({
+        time: 12_000,
+        source: cloneTwo,
+        sourceInstance: 9,
+        sourceMasterInstance: 7,
+      }),
+      effect(201, 12_000),
+    ],
+    [
+      agent(cloneOne, 8111, "Illusionary Warlock"),
+      agent(cloneTwo, 8111, "Illusionary Warlock"),
+    ],
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.equal(names(result, "Phase Retreat").length, 1);
+  assert.equal(names(result, "Mirror Images").length, 0);
+});
+
+test("places delayed Mirage Chaos Armor evidence before the weapon swap", () => {
+  const skills = [
+    skill(10169, "Chaos Storm", {
+      type: "Weapon",
+      slot: "Weapon_5",
+      castTimeMs: 720,
+      quicknessCastTimeMs: 480,
+    }),
+    skill(10331, "Chaos Armor", {
+      type: "Weapon",
+      slot: "Weapon_4",
+    }),
+  ];
+  const fixture = mesmerLog(59, skills, [
+    event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    event({
+      skillId: 10169,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_START,
+    }),
+    event({
+      time: 10_480,
+      value: 480,
+      skillId: 10169,
+      activation: EVTC_ACTIVATION.CANCEL_FIRE,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+    }),
+    event({
+      time: 10_560,
+      target: 4n,
+      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP,
+    }),
+    event({
+      time: 11_300,
+      target: PLAYER,
+      value: 5_000,
+      skillId: 10332,
+      buff: 1,
+    }),
+  ]);
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+  const chaosArmor = names(result, "Chaos Armor")[0];
+  const weaponSwap = names(result, "Swap Weapons")[0];
+
+  assert.ok(chaosArmor.timestampMs < weaponSwap.timestampMs);
+});
+
+test("keeps a zero-duration phantasm cast when damage and a spawn commit it", () => {
+  const phantasm = 0x3200n;
+  const skills = [
+    skill(10221, "Phantasmal Berserker", {
+      type: "Weapon",
+      slot: "Weapon_4",
+      castTimeMs: 840,
+      quicknessCastTimeMs: 560,
+      phantasm: true,
+    }),
+  ];
+  const fixture = mesmerLog(
+    40,
+    skills,
+    [
+      event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+      event({
+        time: 11_000,
+        value: 840,
+        skillId: 10221,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_START,
+      }),
+      event({
+        time: 11_000,
+        skillId: 10221,
+        activation: EVTC_ACTIVATION.CANCEL_CANCEL,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+      }),
+      direct(10221, 11_560),
+      event({
+        time: 11_560,
+        source: phantasm,
+        stateChange: 6,
+      }),
+    ],
+    [agent(phantasm, 6535, "Illusionary Berserker")],
+  );
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+  const berserker = names(result, "Phantasmal Berserker")[0];
+  const command = result.rotation.find(
+    (entry) => entry.name === "Phantasmal Berserker",
+  );
+
+  assert.equal(berserker.status, "completed");
+  assert.equal(command.interruptMs, undefined);
+});
+
 test("reconstructs Virtuoso effects, opening ticks, and initial phantasms", () => {
   const phantasm = 0x3000n;
   const skills = [
@@ -326,6 +531,39 @@ test("reconstructs Virtuoso effects, opening ticks, and initial phantasms", () =
     names(result, "Phantasmal Duelist")[0].evidence,
     "initial-state",
   );
+});
+
+test("resolves the historical Virtuoso Bladecall ID", () => {
+  const skills = [
+    skill(69311, "Bladecall", {
+      type: "Weapon",
+      slot: "Weapon_2",
+      castTimeMs: 500,
+      quicknessCastTimeMs: 500,
+    }),
+  ];
+  const fixture = mesmerLog(66, skills, [
+    event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    event({
+      time: 11_000,
+      skillId: 62560,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_START,
+    }),
+    event({
+      time: 11_500,
+      value: 500,
+      skillId: 62560,
+      activation: EVTC_ACTIVATION.CANCEL_FIRE,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+    }),
+  ]);
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+  const bladecalls = names(result, "Bladecall");
+
+  assert.equal(bladecalls.length, 1);
+  assert.equal(bladecalls[0].skillId, 69311);
+  assert.equal(bladecalls[0].supportedByCatalog, true);
 });
 
 test("recovers Troubadour opening Mimic and removes Weapon Stow", () => {

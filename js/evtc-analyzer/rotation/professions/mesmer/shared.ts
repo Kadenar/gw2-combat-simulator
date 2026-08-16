@@ -209,6 +209,7 @@ export function buffGainSignals(
 export function clusterSignals(
   signals: readonly MesmerSignal[],
   gapMs: number,
+  maximumClusterSize = Number.POSITIVE_INFINITY,
 ): MesmerSignal[] {
   const sorted = [...signals].sort(
     (left, right) =>
@@ -216,8 +217,16 @@ export function clusterSignals(
   );
   const clustered: MesmerSignal[] = [];
   let previousTime = Number.NEGATIVE_INFINITY;
+  let clusterSize = 0;
   for (const signal of sorted) {
-    if (signal.event.time - previousTime > gapMs) clustered.push(signal);
+    if (
+      signal.event.time - previousTime > gapMs ||
+      clusterSize >= maximumClusterSize
+    ) {
+      clustered.push(signal);
+      clusterSize = 0;
+    }
+    clusterSize += 1;
     previousTime = signal.event.time;
   }
   return clustered;
