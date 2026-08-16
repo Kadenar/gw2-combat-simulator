@@ -897,6 +897,49 @@ function warningList(actions: readonly EvtcRotationAction[]): string[] {
   return warnings;
 }
 
+function rightAlignInferredAmmoFlips(
+  actions: readonly ResolvedAction[],
+): ResolvedAction[] {
+  const sorted = [...actions].sort(
+    (left, right) =>
+      left.start - right.start || left.eventIndex - right.eventIndex,
+  );
+  return actions.map((action) => {
+    if (
+      action.evidence !== "effect" ||
+      action.end !== action.start ||
+      Number(action.skill?.ammo || 0) < 2 ||
+      action.skill?.flipParentId == null
+    ) {
+      return action;
+    }
+    const containingCast = sorted
+      .filter(
+        (candidate) =>
+          candidate !== action &&
+          candidate.start < action.start &&
+          (candidate.replayCastEnd ?? candidate.end) > action.start,
+      )
+      .sort((left, right) => right.start - left.start)[0];
+    if (!containingCast) return action;
+    const containingEnd = containingCast.replayCastEnd ?? containingCast.end;
+    const nextSerialAction = sorted.find(
+      (candidate) =>
+        candidate.start > containingEnd &&
+        candidate.skill?.independentCast !== true &&
+        candidate.skill?.canCastConcurrently !== true,
+    );
+    const idleAfterCast = Math.max(
+      0,
+      Number(nextSerialAction?.start ?? containingEnd) - containingEnd,
+    );
+    const shift = Math.min(idleAfterCast, containingEnd - action.start);
+    return shift > TIMING_TOLERANCE_MS
+      ? { ...action, start: action.start + shift, end: action.end + shift }
+      : action;
+  });
+}
+
 export function reconstructWithProfile(
   log: ParsedEvtc,
   profile: EvtcRotationProfessionProfile,
@@ -989,7 +1032,7 @@ export function reconstructWithProfile(
     ),
   );
   const recorded = [...initialSummons, ...professionActions];
-  const resolved = recorded.map((action) =>
+  let resolved = recorded.map((action) =>
     resolveAction(action, catalog, profile),
   );
   if (options.inferInstantCasts !== false) {
@@ -997,6 +1040,7 @@ export function reconstructWithProfile(
       ...inferInstantActions(log, agent.address, catalog, profile, resolved),
     );
   }
+  resolved = rightAlignInferredAmmoFlips(resolved);
   resolved.sort(
     (left, right) =>
       left.start - right.start || left.eventIndex - right.eventIndex,

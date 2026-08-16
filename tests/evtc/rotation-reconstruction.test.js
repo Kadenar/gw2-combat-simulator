@@ -428,6 +428,55 @@ test("does not infer cast commitment when no effect packet was observed", () => 
   ]);
 });
 
+test("right-aligns damage-inferred ammo flips within an active cast", () => {
+  const fixture = log({
+    skills: [...log().skills, { id: 4_000, name: "Ammo Flip" }],
+    events: [
+      event({ time: 1_000, stateChange: 67, skillId: 1_000, value: 800 }),
+      event({ time: 1_300, target: 0x2000n, skillId: 4_000, value: 100 }),
+      event({
+        time: 1_800,
+        stateChange: 68,
+        skillId: 1_000,
+        value: 800,
+        activation: 3,
+      }),
+      event({ time: 2_200, stateChange: 67, skillId: 3_000, value: 500 }),
+      event({
+        time: 2_700,
+        stateChange: 68,
+        skillId: 3_000,
+        value: 500,
+        activation: 3,
+      }),
+    ],
+  });
+  const rotationCatalog = {
+    skills: [
+      ...catalog.skills,
+      {
+        id: 4_000,
+        name: "Ammo Flip",
+        type: "Utility",
+        slot: "Utility",
+        castTimeMs: 0,
+        ammo: 2,
+        flipParentId: 4_001,
+        canCastConcurrently: true,
+        effects: [{ type: "strike", atMs: 0 }],
+        implemented: true,
+      },
+    ],
+  };
+
+  const result = reconstructEvtcRotation(fixture, rotationCatalog, {
+    includeCombatStart: false,
+  });
+  const ammoFlip = result.actions.find((action) => action.name === "Ammo Flip");
+
+  assert.equal(ammoFlip.timestampMs, 700);
+});
+
 test("pairs a stop before the next same-millisecond animation start", () => {
   const fixture = log({
     events: [
