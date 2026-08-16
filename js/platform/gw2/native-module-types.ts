@@ -17,6 +17,7 @@ import type {
   Gw2ResolverRuntime,
   Gw2ResolverStage,
 } from "./types.js";
+import type { PatchPreview, PatchRuntimeValues } from "./skill-patch.js";
 
 export interface NativeAutoattackChains {
   readonly additional?: readonly (readonly SkillId[])[];
@@ -39,8 +40,7 @@ export interface NativeModuleCatalogData<
   readonly handlers?: NativeSkillHandlerRegistry<THandlerContext>;
   readonly weapons?: readonly string[];
   readonly weaponHands?:
-    | ReadonlyMap<string, string>
-    | Readonly<Record<string, string>>;
+    ReadonlyMap<string, string> | Readonly<Record<string, string>>;
   readonly autoattackChains?: NativeAutoattackChains;
   /**
    * Skills that look like ordinary weapon or Core skills in API metadata but
@@ -59,12 +59,8 @@ export interface NativeStateDefinition<
   TProjectOptions extends object,
   TProjectedState extends object,
 > {
-  readonly scheduler: (
-    config: Readonly<SchedulerConfig>,
-  ) => TSchedulerState;
-  readonly resolver?: (
-    config: Readonly<SchedulerConfig>,
-  ) => TResolverState;
+  readonly scheduler: (config: Readonly<SchedulerConfig>) => TSchedulerState;
+  readonly resolver?: (config: Readonly<SchedulerConfig>) => TResolverState;
   readonly project?: (options: TProjectOptions) => TProjectedState;
 }
 
@@ -104,13 +100,12 @@ export interface NativeResolverMechanic {
 export interface NativeSchedulerMechanic {
   readonly phase: "scheduler";
   readonly hook:
-    | "availability"
-    | "afterCast"
-    | "onCastStart"
-    | "onCastComplete";
+    "availability" | "afterCast" | "onCastStart" | "onCastComplete";
   readonly id: string;
   readonly order: number;
-  readonly handler: (...args: never[]) => object | boolean | number | string | null | void;
+  readonly handler: (
+    ...args: never[]
+  ) => object | boolean | number | string | null | void;
 }
 
 export interface NativeMechanicsDefinition<
@@ -124,7 +119,8 @@ export interface NativeMechanicsDefinition<
   /** Declarative modifier rules or an explicit legacy modifier hook bundle. */
   readonly modifiers?: readonly Gw2ModifierRule[] | TModifierEscape;
   /** Phase-explicit availability declarations. */
-  readonly availability?: NativeSchedulerMechanic | readonly NativeSchedulerMechanic[];
+  readonly availability?:
+    NativeSchedulerMechanic | readonly NativeSchedulerMechanic[];
   /** Phase-explicit cast lifecycle declarations. */
   readonly castLifecycle?: TSchedulerMechanics;
   /** Phase-explicit resolver reactions. */
@@ -169,8 +165,7 @@ export interface NativeModuleDefinition<
     TSchedulerMechanics
   >;
   readonly presentation?:
-    | TPresentation
-    | ((catalog: Readonly<CanonicalCatalog>) => TPresentation);
+    TPresentation | ((catalog: Readonly<CanonicalCatalog>) => TPresentation);
 }
 
 export interface NativeModule<
@@ -184,24 +179,26 @@ export interface NativeModule<
   TCastRulesEscape extends object = object,
   TSchedulerHooksEscape extends object = object,
   TResolverHooksEscape extends object = object,
-  TReactions extends readonly NativeResolverMechanic[] = readonly NativeResolverMechanic[],
-  TSchedulerMechanics extends readonly NativeSchedulerMechanic[] = readonly NativeSchedulerMechanic[],
+  TReactions extends readonly NativeResolverMechanic[] =
+    readonly NativeResolverMechanic[],
+  TSchedulerMechanics extends readonly NativeSchedulerMechanic[] =
+    readonly NativeSchedulerMechanic[],
   TPresentation extends object = object,
 > extends NativeModuleDefinition<
-    TId,
-    TSchedulerState,
-    TResolverState,
-    TProjectOptions,
-    TProjectedState,
-    THandlerContext,
-    TModifierEscape,
-    TCastRulesEscape,
-    TSchedulerHooksEscape,
-    TResolverHooksEscape,
-    TReactions,
-    TSchedulerMechanics,
-    TPresentation
-  > {
+  TId,
+  TSchedulerState,
+  TResolverState,
+  TProjectOptions,
+  TProjectedState,
+  THandlerContext,
+  TModifierEscape,
+  TCastRulesEscape,
+  TSchedulerHooksEscape,
+  TResolverHooksEscape,
+  TReactions,
+  TSchedulerMechanics,
+  TPresentation
+> {
   readonly kind: "native-profession-module";
 }
 
@@ -228,11 +225,11 @@ export type AnyNativeModule<TId extends string = string> = NativeModule<
 
 type NativeModuleState<TModule> = TModule extends {
   readonly state: {
-    readonly scheduler: (
-      config: Readonly<SchedulerConfig>,
-    ) => infer TState;
+    readonly scheduler: (config: Readonly<SchedulerConfig>) => infer TState;
   };
-} ? TState : never;
+}
+  ? TState
+  : never;
 
 type NativeCoreState<TModules extends readonly AnyNativeModule[]> =
   NativeModuleState<Extract<TModules[number], { readonly id: "Core" }>>;
@@ -272,10 +269,15 @@ export interface NativeProfessionDefinition<
   readonly presentation?: TPresentation;
   readonly simulation?: TSimulation | null;
   readonly catalog?: NativeCatalogOptions;
+  /** The repository-wide singular active preview, when one is authored. */
+  readonly patchPreview?: PatchPreview | null;
 }
 
 export type NativeProfessionContract<
   TModules extends readonly AnyNativeModule[],
 > = ProfessionFamilyContract<NativeProfessionRuntimeState<TModules>> & {
   readonly specializationIds: readonly NativeSpecializationId<TModules>[];
+  readonly preview: PatchPreview | null;
+  readonly catalogFor: (patchId?: string) => Readonly<CanonicalCatalog>;
+  readonly patchValuesFor: (patchId?: string) => PatchRuntimeValues;
 };

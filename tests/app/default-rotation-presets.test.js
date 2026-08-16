@@ -181,12 +181,12 @@ test("Necromancer and Thief displayed benchmark DPS stays current", async () => 
 
   assert.equal(
     necromancerDps.get("Scourge:Condition (Pistol / Torch + Scepter / Torch)"),
-    39662,
+    39665,
   );
   assert.equal(necromancerDps.get("Reaper:Power (Greatsword / Spear)"), 43418);
   assert.equal(
     necromancerDps.get("Reaper:Condition (Dagger / Sword + Spear)"),
-    43795,
+    44140,
   );
   assert.equal(
     necromancerDps.get("Ritualist:Power (Greatsword / Spear)"),
@@ -194,7 +194,7 @@ test("Necromancer and Thief displayed benchmark DPS stays current", async () => 
   );
   assert.equal(
     necromancerDps.get("Harbinger:Power (Greatsword / Spear)"),
-    42945,
+    43303,
   );
   assert.deepEqual(
     thiefManifest
@@ -217,7 +217,7 @@ test("new Necromancer rotation presets execute without warnings", async () => {
       (preset) =>
         preset.label === "Condition (Pistol / Torch + Scepter / Dagger)",
     );
-  assert.equal(conditionHarbinger?.benchmarkDps, 45308);
+  assert.equal(conditionHarbinger?.benchmarkDps, 45310);
 
   const presets = [
     ["b-power-reaper.json", "r-power-reaper-bench.json"],

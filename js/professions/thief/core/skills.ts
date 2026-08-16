@@ -918,6 +918,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
   [ID.UNLOAD]: {
     implemented: true,
     castTimeMs: 1500,
+    quicknessCastTimeMs: 1320,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
@@ -927,8 +928,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         hits: 8,
         name: "Unload",
         actorType: "player",
-        atMs: 188,
-        intervalMs: 188,
+        atMs: 145,
+        intervalMs: 145,
         timingAnchor: "castStart",
         timingScale: "cast",
       },

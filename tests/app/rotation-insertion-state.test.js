@@ -4,7 +4,7 @@ import test from "node:test";
 import { createDefaultBuild } from "../../js/app/build/persistence.js";
 import {
   loadProfessionAppAdapter,
-  nativeProfessionRegistry,
+  professionRegistry,
 } from "../../js/app/profession/registry.js";
 import {
   paletteEndState,
@@ -112,8 +112,8 @@ test("palette state uses and caches the selected insertion checkpoint", () => {
   assert.equal(previewCount, 1);
 });
 
-test("every native profession adapter exposes insertion-state previews", async () => {
-  for (const entry of nativeProfessionRegistry) {
+test("every profession adapter exposes insertion-state previews", async () => {
+  for (const entry of professionRegistry) {
     const adapter = await loadProfessionAppAdapter(entry.id);
     assert.equal(typeof adapter.rotationEndStateAt, "function", entry.id);
   }

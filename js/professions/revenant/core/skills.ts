@@ -411,6 +411,15 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     castTimeMs: 750,
     cooldown: 12,
     energyCost: 10,
+    comboFields: [
+      {
+        ownerId: "revenant",
+        fieldType: "Dark",
+        duration: 6,
+        startMs: 560,
+        startAnchor: "castStart",
+      },
+    ],
     effects: [
       {
         type: "strike",
@@ -423,6 +432,14 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingScale: "fixed",
         persistsAfterInterrupt: true,
         metadata: {},
+        comboFinishers: [
+          {
+            ownerId: "revenant",
+            finisherType: "Projectile",
+            chance: 1,
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "boon",
@@ -558,10 +575,17 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        coefficient: 2.2,
+        coefficient: 2.22,
         hits: 1,
         name: "Phase Smash",
         actorType: "player",
+        comboFinishers: [
+          {
+            ownerId: "revenant",
+            finisherType: "Blast",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "condition",
@@ -633,6 +657,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingScale: "fixed",
         persistsAfterInterrupt: true,
         metadata: {},
+        comboFinishers: [
+          {
+            ownerId: "revenant",
+            finisherType: "Blast",
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
       {
         type: "control",
@@ -715,7 +746,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        coefficient: 2.3,
+        coefficient: 3.5,
         hits: 1,
         name: "Coalescence of Ruin",
         actorType: "player",
@@ -986,6 +1017,14 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
         atMs: 481,
         timingAnchor: "castStart",
         timingScale: "fixed",
+        comboFinishers: [
+          {
+            ownerId: "revenant",
+            finisherType: "Projectile",
+            chance: 1,
+            ambiguousFieldSelection: "oldest",
+          },
+        ],
       },
     ],
   },

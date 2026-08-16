@@ -8,6 +8,7 @@ import {
   TARGET_ARMOR_OPTIONS,
   TARGET_CONDITION_GROUPS,
 } from "./options.js";
+import { requiredInput, requiredSelect } from "../../platform/ui/dom.js";
 
 import type {
   ProfessionAppState,
@@ -59,22 +60,6 @@ interface EffectItemOptions {
   readonly type: string;
   readonly key?: string;
   readonly stacks?: number | null;
-}
-
-function requiredInput(id: string): HTMLInputElement {
-  const input = document.getElementById(id);
-  if (!(input instanceof HTMLInputElement)) {
-    throw new Error(`Required assumption input #${id} is missing.`);
-  }
-  return input;
-}
-
-function requiredSelect(id: string): HTMLSelectElement {
-  const select = document.getElementById(id);
-  if (!(select instanceof HTMLSelectElement)) {
-    throw new Error(`Required assumption select #${id} is missing.`);
-  }
-  return select;
 }
 
 /**
@@ -387,10 +372,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
     a.sharePlayerBoonsWithSummons = sharePlayerBoonsWithSummons.checked;
     app.changed();
   });
-  const timeOfDay = document.getElementById("time-of-day");
-  if (!(timeOfDay instanceof HTMLSelectElement)) {
-    throw new Error("Required assumption select #time-of-day is missing.");
-  }
+  const timeOfDay = requiredSelect("time-of-day");
   timeOfDay.addEventListener("change", () => {
     a.timeOfDay = timeOfDay.value === "night" ? "night" : "day";
     app.changed();

@@ -1,7 +1,4 @@
-import {
-  flattenProfessionState,
-  professionCoreState,
-} from "../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * @fileoverview Owns the Core Mesmer scheduler integration boundary. It assembles
  * specialization controllers, normalizes build/runtime data, coordinates cast
@@ -50,18 +47,13 @@ import type {
 } from "../../../platform/engine/types.js";
 import type {
   MesmerActiveEmission,
-  MesmerAvailableFlip,
   MesmerCastContext,
   MesmerCastDetails,
   MesmerCatalog,
   MesmerClone,
-  MesmerEndState,
   MesmerExpectedProcCandidate,
   MesmerMaximumAmmoContext,
   MesmerPendingResource,
-  MesmerPrecastContext,
-  MesmerProfessionState,
-  MesmerProjectedFlip,
   MesmerRechargeContext,
   MesmerRuntime,
   MesmerSchedulerContext,
@@ -232,7 +224,7 @@ function restartSignetIllusionsPassive(
  * @returns {object} Connected Mesmer runtime.
  */
 function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
-  const { state, config, catalog, cooldownController } = context;
+  const { state, config, catalog } = context;
   const traits = traitSet(config, catalog);
   const resourceDefinition = mesmerResourceDefinition(config.specialization);
   const skillsById = catalog.skillsById;

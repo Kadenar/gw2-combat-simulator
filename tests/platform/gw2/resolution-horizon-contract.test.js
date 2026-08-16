@@ -367,6 +367,40 @@ test("interrupt persistence requires the declared commit point", () => {
   assert.ok(resolved.resolvedEvents.some((event) => event.at === 0.9));
 });
 
+test("observed-packet replay preserves delayed effects without extending cast lockout", () => {
+  const ordinaryInterrupt = createScheduler({ profession }).run([
+    {
+      name: "Delayed Packet",
+      interruptMs: 150,
+    },
+    "Long Follow-up",
+  ]);
+  assert.deepEqual(
+    ordinaryInterrupt.events
+      .filter((event) => event.skillName === "Delayed Packet")
+      .filter((event) => event.type === "damage")
+      .map((event) => event.at),
+    [0.1],
+  );
+
+  const observedPacketReplay = createScheduler({ profession }).run([
+    {
+      name: "Delayed Packet",
+      interruptMs: 150,
+      preserveEffectsAfterInterrupt: true,
+    },
+    "Long Follow-up",
+  ]);
+  assert.deepEqual(
+    observedPacketReplay.events
+      .filter((event) => event.skillName === "Delayed Packet")
+      .filter((event) => event.type === "damage")
+      .map((event) => event.at),
+    [0.1, 0.8],
+  );
+  assert.equal(observedPacketReplay.stream.rotationEndTime, 2.15);
+});
+
 test("event metadata cannot extend an unrelated condition", () => {
   const clean = simulateGw2({
     profession,

@@ -7,8 +7,7 @@ import {
 import { FOOD_DATA } from "../../platform/gw2/gear-data.js";
 import { SIMULATION_RANDOMNESS_MODES } from "../../platform/engine/simulation-random.js";
 import { simulateGw2 } from "../../platform/gw2/simulate.js";
-import type { CatalogEntity, Skill } from "../../platform/engine/types.js";
-import type { ObservationPolicy } from "../../platform/engine/types.js";
+import type { ObservationPolicy, Skill } from "../../platform/engine/types.js";
 import type {
   Gw2Config,
   Gw2ProfessionContract,
@@ -89,6 +88,7 @@ export function createProfessionRuntime({
    * @returns {Skill[]}
    */
   function selectedSkills(app: ProfessionAppState): Skill[] {
+    const catalog = app.activeCatalog || profession.catalog;
     const loadout = profession.ui.slotLoadout
       ? (profession.ui.slotLoadout as ProfessionSlotLoadout)
       : null;
@@ -98,12 +98,12 @@ export function createProfessionRuntime({
           build: app.build,
           specialization: eliteSpecialization(app.build),
           professionState: app.results?.endState?.profession,
-          catalog: profession.catalog,
+          catalog,
         })
-        .map((id) => profession.catalog.skillsById.get(Number(id)))
+        .map((id) => catalog.skillsById.get(Number(id)))
         .filter((skill): skill is Skill => skill != null);
     }
-    const skillByName = app.skillByName || profession.catalog.skillsByName;
+    const skillByName = app.skillByName || catalog.skillsByName;
     return Object.values(app.build.selectedSkills)
       .map((name) => skillByName.get(name))
       .filter((skill): skill is Skill => skill != null);
@@ -125,7 +125,7 @@ export function createProfessionRuntime({
   function attributesWithModifierDisabled(
     app: ProfessionAppState,
     disabled: ProfessionModifier | null,
-    weaponSet = Number(app.attributeWeaponSet) === 2 ? 2 : 1,
+    weaponSet?: number,
   ): ProfessionAttributeData {
     if (!app.attributeData) {
       throw new Error(
@@ -133,8 +133,9 @@ export function createProfessionRuntime({
       );
     }
     const displayedWeaponSet = Number(app.attributeWeaponSet) === 2 ? 2 : 1;
+    const targetWeaponSet = weaponSet ?? displayedWeaponSet;
     if (
-      weaponSet === displayedWeaponSet &&
+      targetWeaponSet === displayedWeaponSet &&
       (!disabled || (disabled.type !== "Trait" && disabled.type !== "Boon"))
     ) {
       return app.attributeData;
@@ -153,7 +154,7 @@ export function createProfessionRuntime({
     return calculateAttributes(
       build,
       selectedSkills(app),
-      weaponSet,
+      targetWeaponSet,
       disabled?.type === "Trait" ? disabled.name : null,
     ) as ProfessionAttributeData;
   }
@@ -399,7 +400,27 @@ export function createProfessionRuntime({
 
   function runSimulation(app: ProfessionAppState): Gw2SimulationResult {
     const baselineConfig = baselineSimulationConfig(app);
-    app.results = simulateBuild(app.build.rotation, baselineConfig);
+    const previewId = profession.preview?.id;
+    if (!previewId) {
+      app.patchComparison = null;
+      app.results = simulateBuild(app.build.rotation, baselineConfig);
+      return app.results;
+    }
+    const configForPatch = (patchId: string): Gw2Config => ({
+      ...baselineConfig,
+      patchId,
+      patchValues: profession.patchValuesFor?.(patchId) || Object.freeze({}),
+    });
+    const current = simulateBuild(
+      app.build.rotation,
+      configForPatch("current"),
+    );
+    const preview = simulateBuild(
+      app.build.rotation,
+      configForPatch(previewId),
+    );
+    app.patchComparison = { patchId: previewId, current, preview };
+    app.results = app.patchId === previewId ? preview : current;
     return app.results;
   }
 

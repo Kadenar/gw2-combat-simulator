@@ -1,4 +1,5 @@
 import { defineNativeProfession } from "../../platform/gw2/native-profession.js";
+import { activePatchPreview } from "../../patches/active-preview.js";
 import {
   createElementalistBuildDefaults,
   migrateElementalistBuild,
@@ -15,6 +16,7 @@ export const elementalistProfession = defineNativeProfession({
     validateBuild: validateElementalistBuild,
   },
   modules: elementalistNativeModules,
+  patchPreview: activePatchPreview,
   catalog: { skillNameCollision: "first" },
 });
 

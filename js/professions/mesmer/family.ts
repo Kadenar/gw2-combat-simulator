@@ -2,6 +2,7 @@ import {
   assembleNativeApplicationCatalog,
   defineNativeProfession,
 } from "../../platform/gw2/native-profession.js";
+import { activePatchPreview } from "../../patches/active-preview.js";
 import {
   createMesmerBuildDefaults,
   migrateMesmerBuild,
@@ -63,6 +64,7 @@ export const mesmerProfession = defineNativeProfession({
     validateBuild: validateMesmerBuild,
   },
   modules: mesmerNativeModules,
+  patchPreview: activePatchPreview,
   simulation: Object.freeze({
     projectEndState: projectMesmerSimulationEndState,
   }) as SchedulerRecord,

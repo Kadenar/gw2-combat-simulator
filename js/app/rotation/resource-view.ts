@@ -42,6 +42,7 @@ function activeResourceDefinitions(
       : String(app.build?.specialization || "Core");
   return resourceDisplayViews(app.profession, {
     specialization,
+    build: app.build,
     value: professionState.resource ?? app.build?.initialResource,
     professionState,
     initialResource: app.build?.initialResource,
@@ -240,6 +241,7 @@ export function renderStartResource(app: ProfessionAppState): void {
   const professionState = professionEndState(app.results);
   const definitions = resourceDisplayViews(app.profession, {
     specialization: activeSpecialization(app),
+    build: app.build,
     professionState,
     value: professionState.resource ?? app.build.initialResource,
     initialResource: app.build.initialResource,
@@ -251,7 +253,7 @@ export function renderStartResource(app: ProfessionAppState): void {
     build: app.build,
     specialization: activeSpecialization(app),
     professionState,
-    catalog: app.profession.catalog,
+    catalog: app.activeCatalog,
   });
   const startControlsHtml = startControls
     .map(
@@ -289,7 +291,7 @@ export function renderStartResource(app: ProfessionAppState): void {
     build: app.build,
     specialization: activeSpecialization(app),
     professionState,
-    catalog: app.profession.catalog,
+    catalog: app.activeCatalog,
   });
   const startingLoadoutId =
     loadoutView && slotLoadout ? app.build[slotLoadout.startingKey] : "";
@@ -323,7 +325,7 @@ export function renderStartResource(app: ProfessionAppState): void {
               build: app.build,
               specialization: activeSpecialization(app),
               professionState,
-              catalog: app.profession.catalog,
+              catalog: app.activeCatalog,
             },
           );
           app.changed();

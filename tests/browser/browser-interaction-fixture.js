@@ -255,6 +255,30 @@ frame.addEventListener("load", async () => {
 
     app.build.rotation = [];
     app.changed(false);
+    const draggedWait = icon(document, "__wait");
+    const waitTransfer = dataTransfer();
+    draggedWait.dispatchEvent(dragEvent(window, "dragstart", waitTransfer));
+    const waitDropTimeline = document.getElementById("rotation-timeline");
+    waitDropTimeline.dispatchEvent(dragEvent(window, "dragover", waitTransfer));
+    waitDropTimeline.dispatchEvent(dragEvent(window, "drop", waitTransfer));
+    draggedWait.dispatchEvent(dragEvent(window, "dragend", waitTransfer));
+    const draggedWaitEditor = document.querySelector(
+      ".rotation-duration-editor",
+    );
+    assert(
+      draggedWaitEditor && app.build.rotation.length === 0,
+      "dragged wait did not defer insertion to the duration editor",
+    );
+    draggedWaitEditor.querySelector(".activation-editor-input").value = "600";
+    draggedWaitEditor.querySelector(".activation-editor-apply").click();
+    assert(
+      app.build.rotation[0]?.name === "__wait" &&
+        app.build.rotation[0]?.waitMs === 600,
+      "duration editor did not insert the dragged wait",
+    );
+
+    app.build.rotation = [];
+    app.changed(false);
     icon(document, "Bladecall").click();
     assert(
       app.build.rotation.length === 1,
@@ -392,6 +416,69 @@ frame.addEventListener("load", async () => {
         /-?\d+\.\d+s/.test(concurrentBadge.textContent),
       "concurrent skill badge does not show both delay and cast timestamp",
     );
+    concurrentBadge.click();
+    let durationEditor = document.querySelector(".rotation-duration-editor");
+    assert(
+      durationEditor?.querySelector(".activation-editor-input")?.value ===
+        "100",
+      "offset duration editor did not open with the current value",
+    );
+    durationEditor.querySelector(".activation-editor-input").value = "250";
+    durationEditor.querySelector(".activation-editor-apply").click();
+    assert(
+      app.build.rotation[1].offset === 250,
+      "offset duration editor did not update the concurrent command",
+    );
+
+    app.build.rotation = [];
+    app.changed(false);
+    icon(document, "__wait").click();
+    durationEditor = document.querySelector(".rotation-duration-editor");
+    assert(
+      durationEditor?.querySelector(".activation-editor-input")?.value ===
+        "1000",
+      "wait duration editor did not open with the default value",
+    );
+    durationEditor.querySelector(".activation-editor-input").value = "750";
+    durationEditor.querySelector(".activation-editor-apply").click();
+    assert(
+      app.build.rotation[0]?.name === "__wait" &&
+        app.build.rotation[0]?.waitMs === 750,
+      "wait duration editor did not add the wait",
+    );
+    const waitBadge = document.querySelector(
+      '#rotation-timeline .rot-skill[data-idx="0"] .rot-wait-badge',
+    );
+    waitBadge.click();
+    durationEditor = document.querySelector(".rotation-duration-editor");
+    durationEditor.querySelector(".activation-editor-input").value = "900";
+    durationEditor.querySelector(".activation-editor-apply").click();
+    assert(
+      app.build.rotation[0].waitMs === 900,
+      "wait duration editor did not update the wait",
+    );
+
+    app.build.rotation = [];
+    app.changed(false);
+    icon(document, "Bladecall").dispatchEvent(
+      new MouseEvent("click", { bubbles: true, ctrlKey: true }),
+    );
+    const paletteActivationEditor = document.querySelector(
+      ".rotation-activation-editor",
+    );
+    assert(
+      paletteActivationEditor?.querySelector('input[value="interrupt"]')
+        ?.checked,
+      "Ctrl+click did not open the activation popover in interrupt mode",
+    );
+    paletteActivationEditor.querySelector(".activation-editor-input").value =
+      "120";
+    paletteActivationEditor.querySelector(".activation-editor-apply").click();
+    assert(
+      app.build.rotation[0].interruptMs === 120,
+      "palette activation editor did not add a manual interruption",
+    );
+
     app.build.rotation = ["Bladecall"];
     app.changed(false);
     const editActivation = document.querySelector(

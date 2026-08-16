@@ -39,10 +39,7 @@ import {
   SKILL_HANDLER_MODES,
 } from "../../js/platform/engine/skill-handlers.js";
 import { simulateGw2 } from "../../js/platform/gw2/simulate.js";
-import {
-  nativeProfessionRegistry,
-  professionRegistry,
-} from "../../js/app/profession/registry.js";
+import { professionRegistry } from "../../js/app/profession/registry.js";
 import {
   createProfessionWeaponData,
   WEAPON_DATA,
@@ -82,7 +79,7 @@ import { snapshotMesmerState } from "../../js/professions/mesmer/core/state.js";
 import { testProfession } from "../fixtures/test-profession.js";
 
 test("native professions share one skill timing contract", async () => {
-  for (const entry of nativeProfessionRegistry) {
+  for (const entry of professionRegistry) {
     const catalog = (await entry.loadProfession()).catalog;
     for (const skill of catalog.skills) {
       assert.equal("activation" in skill, false, skill.name);
@@ -123,7 +120,7 @@ test("native skill authoring uses one cast timing source", async () => {
     "../../js/professions",
   );
 
-  for (const entry of nativeProfessionRegistry) {
+  for (const entry of professionRegistry) {
     const files = await javascriptFiles(path.join(professionsRoot, entry.id));
     for (const file of files) {
       const source = ts.createSourceFile(
@@ -224,7 +221,7 @@ test("canonical skills derive base casts and can opt out of Quickness", () => {
 });
 
 test("native profession weapon swaps share timing policy except Elementalist", async () => {
-  for (const entry of nativeProfessionRegistry) {
+  for (const entry of professionRegistry) {
     const catalog = (await entry.loadProfession()).catalog;
     const skill = catalog.skillsByName.get("Swap Weapons");
     if (entry.id === "elementalist") {
@@ -546,6 +543,7 @@ test("normalized commands migrate legacy cast options", () => {
           name: "Fixture Charge",
           offset: 100,
           interruptMs: 50,
+          preserveEffectsAfterInterrupt: true,
           releaseAtCharges: 3,
           doubleEdgeOutcome: "backfire",
         },
@@ -562,6 +560,7 @@ test("normalized commands migrate legacy cast options", () => {
         skillId: 900002,
         concurrentOffsetMs: 100,
         interruptAfterMs: 50,
+        preserveEffectsAfterInterrupt: true,
         releaseAtCharges: 3,
         doubleEdgeOutcome: "backfire",
       },
@@ -574,6 +573,8 @@ test("normalized commands migrate legacy cast options", () => {
       {
         type: "cast",
         skillId: 900002,
+        interruptAfterMs: 50,
+        preserveEffectsAfterInterrupt: true,
         releaseAtCharges: 3,
         doubleEdgeOutcome: "success",
       },
@@ -581,6 +582,8 @@ test("normalized commands migrate legacy cast options", () => {
     ),
     {
       name: "Fixture Charge",
+      interruptMs: 50,
+      preserveEffectsAfterInterrupt: true,
       releaseAtCharges: 3,
       doubleEdgeOutcome: "success",
     },
@@ -2685,7 +2688,7 @@ test("platform import boundaries are profession neutral", async () => {
     const source = await readFile(file, "utf8");
     const relative = path.relative(root, file).replaceAll("\\", "/");
     const modulePath = relative.replace(/\.(?:js|ts)$/, "");
-    for (const entry of nativeProfessionRegistry) {
+    for (const entry of professionRegistry) {
       for (const term of [entry.id, entry.name]) {
         if (
           entry.id === "thief" &&
@@ -2740,7 +2743,7 @@ test("test profession fixture has no native profession dependency", async () => 
     fileURLToPath(new URL("../fixtures/test-profession.js", import.meta.url)),
     "utf8",
   );
-  for (const entry of nativeProfessionRegistry) {
+  for (const entry of professionRegistry) {
     assert.equal(source.toLowerCase().includes(entry.id), false, entry.id);
   }
 });
@@ -2811,7 +2814,7 @@ test("native registry loaders do not pull another profession module graph", asyn
     path.dirname(fileURLToPath(import.meta.url)),
     "../../js",
   );
-  for (const entry of nativeProfessionRegistry) {
+  for (const entry of professionRegistry) {
     const graph = await relativeModuleGraph([
       path.join(root, "professions", entry.id, "definition.js"),
       path.join(root, "professions", entry.id, "app", "app-definition.js"),
@@ -2835,7 +2838,7 @@ test("declarative professions use the standard mechanics module roles", async ()
     path.dirname(fileURLToPath(import.meta.url)),
     "../../js/professions",
   );
-  for (const profession of nativeProfessionRegistry.map((entry) => entry.id)) {
+  for (const profession of professionRegistry.map((entry) => entry.id)) {
     const mechanicsRoot = path.join(root, profession, "mechanics");
     const prefix = profession.toUpperCase();
     const mechanics = await readSourceModule(

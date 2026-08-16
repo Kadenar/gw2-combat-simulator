@@ -16,6 +16,7 @@ import {
 import { thiefCoreCastAvailability } from "./availability.js";
 import {
   advanceThiefCoreResources,
+  completeThiefCoreResources,
   spendThiefCoreResources,
 } from "./resources.js";
 import { hasThiefTrait, snapshotThiefState } from "./state.js";
@@ -37,7 +38,6 @@ import type {
   ThiefCoreState,
   ThiefPrecastContext,
   ThiefQueryRuntime,
-  ThiefRuntimeState,
   ThiefSchedulerContext,
 } from "../types.js";
 
@@ -420,6 +420,11 @@ export const thiefCoreCastRules = Object.freeze({
 export const thiefCoreSchedulerHooks = Object.freeze({
   advance: advanceThiefCoreResources,
   onCastStart: spendThiefCoreResources,
+  onCastComplete: {
+    id: "thief.core-resources",
+    order: 10,
+    handler: completeThiefCoreResources,
+  },
   afterCast: Object.freeze([
     {
       id: "thief.weapon-state",

@@ -127,6 +127,10 @@ export function createGw2SimulationConfig({
       : app.build.weapons)?.[0] || "";
 
   return {
+    patchId: app.patchId || "current",
+    patchValues:
+      app.profession?.patchValuesFor?.(app.patchId || "current") ||
+      Object.freeze({}),
     specialization,
     selectedTraits,
     selectedTraitIds: selectedTraitIds as readonly SkillId[],
@@ -136,7 +140,7 @@ export function createGw2SimulationConfig({
             build: app.build,
             specialization,
             professionState: app.results?.endState?.profession,
-            catalog: app.profession.catalog,
+            catalog: app.activeCatalog || app.profession.catalog,
           })
           .map((id) => app.skillById.get(Number(id))?.name)
           .filter((name): name is string => name != null)

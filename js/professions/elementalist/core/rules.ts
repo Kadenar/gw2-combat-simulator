@@ -143,12 +143,6 @@ const FULL_ETCHING_CHARGE_SKILLS = new Set([
   "Overload Air",
   "Overload Earth",
 ]);
-const SPEAR_FOLLOWUP_ARM_SKILLS = new Set([
-  "Seethe",
-  "Ripple",
-  "Energize",
-  "Harden",
-]);
 const BOON_KINDS = new Set([
   "aegis",
   "alacrity",

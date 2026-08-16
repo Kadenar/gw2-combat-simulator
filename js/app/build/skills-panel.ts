@@ -15,12 +15,7 @@ import {
   groupWeaponSkillsByAttunement,
   weaponBarSkillStacks,
 } from "../profession/weapon-attunement-groups.js";
-
-function requiredElement(id: string): HTMLElement {
-  const element = document.getElementById(id);
-  if (!element) throw new Error(`Required skill panel #${id} is missing.`);
-  return element;
-}
+import { requiredElement } from "../../platform/ui/dom.js";
 
 export function weaponSetLabelVisible(
   professionId: string,
@@ -29,11 +24,7 @@ export function weaponSetLabelVisible(
   return hasSecondWeaponSet || professionId === "engineer";
 }
 
-/**
- * @param {ProfessionAppState} app
- * @param {string} type
- * @returns {Skill[]}
- */
+/** Lists the legal, deduplicated choices for a heal, utility, or elite slot. */
 export function availableSlotSkills(
   app: ProfessionAppState,
   type: string,
@@ -88,6 +79,7 @@ export interface SkillBarInspectionStack {
   readonly children: readonly Skill[];
 }
 
+/** Groups inspection skills into a root skill followed by its chain children. */
 export function skillBarInspectionStacks(
   skills: readonly Skill[],
 ): SkillBarInspectionStack[] {
@@ -121,6 +113,7 @@ export function skillBarInspectionStacks(
     }));
 }
 
+/** Renders one read-only skill icon inside a profession inspection group. */
 function inspectionSkillSlotHtml(skill: Skill, child = false): string {
   return `<div class="skill-bar-inspection-slot${child ? " child-skill" : ""}">
       <div class="sbar-icon" title="${esc(`${skill.name}\n${gw2ApiText(skill.description)}`)}">
@@ -129,6 +122,7 @@ function inspectionSkillSlotHtml(skill: Skill, child = false): string {
   </div>`;
 }
 
+/** Renders root skills with any chained follow-up skills nested beneath them. */
 function inspectionSkillStacksHtml(skills: readonly Skill[]): string {
   return skillBarInspectionStacks(skills)
     .map(
@@ -149,6 +143,7 @@ function inspectionSkillStacksHtml(skills: readonly Skill[]): string {
     .join("");
 }
 
+/** Renders a profession group containing multiple independently selectable slots. */
 function multiSelectionInspectionGroupHtml(
   app: ProfessionAppState,
   group: ProfessionSkillBarGroup,
@@ -236,13 +231,95 @@ function multiSelectionInspectionGroupHtml(
   </div>`;
 }
 
-/**
- * @param {ProfessionAppState} app
- * @returns {void}
- */
+/** Renders a static group or a group with one selectable skill slot. */
+function singleSelectionInspectionGroupHtml(
+  app: ProfessionAppState,
+  group: ProfessionSkillBarGroup,
+): string {
+  const optionSkills = (group.optionSkillIds || [])
+    .map((id) => app.skillById.get(Number(id)))
+    .filter((skill) => skill != null);
+  const optionEntries = group.optionEntries?.length
+    ? group.optionEntries
+    : optionSkills.map((skill) => ({
+        value: String(skill.id),
+        label: skill.name,
+        icon: skill.icon,
+        description: skill.description,
+        skillId: skill.id,
+      }));
+  const selectedEntry = group.optionEntries?.find(
+    (entry) => String(entry.value) === String(group.selectionValue),
+  );
+  const displaySkills = group.skillIds
+    .map((id) => app.skillById.get(Number(id)))
+    .filter((skill): skill is Skill => skill != null);
+  const displayEntries = selectedEntry
+    ? [
+        {
+          name: selectedEntry.label,
+          icon: selectedEntry.icon,
+          description: selectedEntry.description,
+        },
+      ]
+    : displaySkills;
+  const selectable =
+    group.selectionKey &&
+    Number.isInteger(Number(group.selectionIndex)) &&
+    optionEntries.length > 0;
+  return `<div class="skill-bar-inspection-group${
+    group.className ? ` ${esc(group.className)}` : ""
+  }"
+      style="--inspection-color:${esc(group.color || "var(--accent)")}">
+      <span class="skill-bar-inspection-label">${esc(group.label)}</span>
+      <div class="skill-bar-inspection-skills">${
+        !selectable && !selectedEntry
+          ? inspectionSkillStacksHtml(displaySkills)
+          : displayEntries
+              .map(
+                (skill) => `<div class="skill-bar-inspection-slot${
+                  selectable ? " selectable" : ""
+                }"${
+                  selectable
+                    ? ` data-selection-key="${esc(group.selectionKey)}"
+                  data-selection-index="${Number(group.selectionIndex)}"`
+                    : ""
+                }>
+              <div class="sbar-icon" title="${esc(`${skill.name}\n${gw2ApiText(skill.description)}`)}">
+                  <img src="${esc(skill.icon || "")}" alt="">
+              </div>
+              ${
+                selectable
+                  ? `<div class="sbar-arrow">▼</div>
+                  <div class="sbar-dropdown">${optionEntries
+                    .map(
+                      (option) =>
+                        `<div class="dd-item" data-selection-value="${esc(option.value)}"${
+                          option.skillId == null
+                            ? ""
+                            : ` data-skill-id="${esc(option.skillId)}"`
+                        }>
+                          <img src="${esc(option.icon || "")}" alt="">
+                          <span>${esc(option.label)}</span>
+                      </div>`,
+                    )
+                    .join("")}</div>`
+                  : ""
+              }
+          </div>`,
+              )
+              .join("")
+      }
+      </div>
+  </div>`;
+}
+
+/** Renders the weapon, selected-skill, and profession inspection bars. */
 export function renderSkills(app: ProfessionAppState): void {
   const spec = app.adapter.eliteSpecialization(app.build);
   const hasSecondWeaponSet = app.profession.ui.weaponSwapChangesSet !== false;
+
+  // Resolve the weapon skills available to one equipped weapon set.
   const skillsForSet = ([mh, oh]: readonly string[]): Skill[] => {
     return [
       ...new Map(
@@ -259,7 +336,7 @@ export function renderSkills(app: ProfessionAppState): void {
             return app.adapter.weaponSkillMatchesSet(skill, [mh, oh], {
               build: app.build,
               specialization: spec,
-              catalog: app.profession.catalog,
+              catalog: app.activeCatalog,
               weaponData: app.weaponData,
               professionState: app.results?.endState?.profession,
               weaponBarPreview: true,
@@ -278,11 +355,13 @@ export function renderSkills(app: ProfessionAppState): void {
   };
   const set1Skills = skillsForSet(app.build.weapons);
   const set2Skills = skillsForSet(app.build.alternateWeapons);
+
+  // Split profession-provided groups between weapon mechanics and inspections.
   const skillBarGroups =
     app.profession.ui.skillBarGroups?.({
       build: app.build,
       specialization: spec,
-      catalog: app.profession.catalog,
+      catalog: app.activeCatalog,
       professionState: app.results?.endState?.profession,
     }) || [];
   const weaponBarGroups = skillBarGroups.filter(
@@ -294,6 +373,8 @@ export function renderSkills(app: ProfessionAppState): void {
   const separateWeaponChains = document.body.classList.contains(
     "profession-loadout-theme",
   );
+
+  // Render the icon, optional variant badge, and key number for one weapon skill.
   const weaponIcon = (
     skill: Skill,
     chained = false,
@@ -305,6 +386,8 @@ export function renderSkills(app: ProfessionAppState): void {
       </div>
       <span class="wslot-num">${esc(String(displaySlot ?? skill.slot).replace("Weapon_", ""))}</span>
     </div>`;
+
+  // Lay out weapon skills by slot, including chained follow-ups where present.
   const weaponStacks = (
     stacks: readonly (readonly Skill[])[],
     separateChains = false,
@@ -355,6 +438,8 @@ export function renderSkills(app: ProfessionAppState): void {
       )
       .join("");
   };
+
+  // Convert a flat weapon-skill list into the stack layout used by the bar.
   const weaponSlots = (
     skills: readonly Skill[],
     flattenSameSlots = false,
@@ -364,6 +449,8 @@ export function renderSkills(app: ProfessionAppState): void {
       weaponBarSkillStacks(skills, flattenSameSlots),
       separateChains,
     );
+
+  // Render one equipped weapon set, split by attunement when required.
   const weaponSetPreview = (
     setNumber: number,
     skills: readonly Skill[],
@@ -400,6 +487,8 @@ export function renderSkills(app: ProfessionAppState): void {
           .join("")}
       </div>`;
   };
+
+  // Render profession mechanics that occupy extra weapon-bar slots.
   const mechanicWeaponPreview = (group: ProfessionSkillBarGroup): string => {
     const skills = group.skillIds
       .map((id) => app.skillById.get(Number(id)))
@@ -415,6 +504,8 @@ export function renderSkills(app: ProfessionAppState): void {
         ${weaponStacks(stacks, false, true)}
       </div>`;
   };
+
+  // Assemble the primary, alternate, and profession-specific weapon previews.
   requiredElement("weapon-bar").innerHTML = `
             ${weaponSetPreview(1, set1Skills, app.build.weapons)}
             ${
@@ -424,6 +515,7 @@ export function renderSkills(app: ProfessionAppState): void {
             }
             ${weaponBarGroups.map(mechanicWeaponPreview).join("")}`;
 
+  // Professions with fixed slot loadouts provide their own complete lower bar.
   if (app.adapter.slotLoadout) {
     renderFixedSlotLoadout(app, spec);
     return;
@@ -435,6 +527,8 @@ export function renderSkills(app: ProfessionAppState): void {
     ["Utility3", "Utility"],
     ["Elite", "Elite"],
   ];
+
+  // Render the standard heal, utility, and elite selection slots.
   const selectedSkillBarHtml = slots
     .map(([key, type], index) => {
       const current = app.skillByName.get(app.build.selectedSkills[key]);
@@ -457,6 +551,8 @@ export function renderSkills(app: ProfessionAppState): void {
   const inspectionLayout =
     inspectionGroups.find((group) => group.layout)?.layout || "";
   skillBar.classList.toggle("has-inspection", inspectionGroups.length > 0);
+
+  // Place profession inspection groups beside the standard selected-skill bar.
   skillBar.innerHTML = inspectionGroups.length
     ? `<div class="skill-bar-selected">${selectedSkillBarHtml}</div>
                 <div class="skill-bar-inspection${
@@ -466,92 +562,15 @@ export function renderSkills(app: ProfessionAppState): void {
                     ? ` data-layout="${esc(inspectionLayout)}"`
                     : ""
                 }>${inspectionGroups
-                  .map((group) => {
-                    if (group.selections?.length) {
-                      return multiSelectionInspectionGroupHtml(app, group);
-                    }
-                    const optionSkills = (group.optionSkillIds || [])
-                      .map((id) => app.skillById.get(Number(id)))
-                      .filter((skill) => skill != null);
-                    const optionEntries = group.optionEntries?.length
-                      ? group.optionEntries
-                      : optionSkills.map((skill) => ({
-                          value: String(skill.id),
-                          label: skill.name,
-                          icon: skill.icon,
-                          description: skill.description,
-                          skillId: skill.id,
-                        }));
-                    const selectedEntry = group.optionEntries?.find(
-                      (entry) =>
-                        String(entry.value) === String(group.selectionValue),
-                    );
-                    const displaySkills = group.skillIds
-                      .map((id) => app.skillById.get(Number(id)))
-                      .filter((skill): skill is Skill => skill != null);
-                    const displayEntries = selectedEntry
-                      ? [
-                          {
-                            name: selectedEntry.label,
-                            icon: selectedEntry.icon,
-                            description: selectedEntry.description,
-                          },
-                        ]
-                      : displaySkills;
-                    const selectable =
-                      group.selectionKey &&
-                      Number.isInteger(Number(group.selectionIndex)) &&
-                      optionEntries.length > 0;
-                    return `<div class="skill-bar-inspection-group${
-                      group.className ? ` ${esc(group.className)}` : ""
-                    }"
-                        style="--inspection-color:${esc(group.color || "var(--accent)")}">
-                        <span class="skill-bar-inspection-label">${esc(group.label)}</span>
-                        <div class="skill-bar-inspection-skills">${
-                          !selectable && !selectedEntry
-                            ? inspectionSkillStacksHtml(displaySkills)
-                            : displayEntries
-                                .map(
-                                  (
-                                    skill,
-                                  ) => `<div class="skill-bar-inspection-slot${
-                                    selectable ? " selectable" : ""
-                                  }"${
-                                    selectable
-                                      ? ` data-selection-key="${esc(group.selectionKey)}"
-                                    data-selection-index="${Number(group.selectionIndex)}"`
-                                      : ""
-                                  }>
-                                <div class="sbar-icon" title="${esc(`${skill.name}\n${gw2ApiText(skill.description)}`)}">
-                                    <img src="${esc(skill.icon || "")}" alt="">
-                                </div>
-                                ${
-                                  selectable
-                                    ? `<div class="sbar-arrow">▼</div>
-                                    <div class="sbar-dropdown">${optionEntries
-                                      .map(
-                                        (option) =>
-                                          `<div class="dd-item" data-selection-value="${esc(option.value)}"${
-                                            option.skillId == null
-                                              ? ""
-                                              : ` data-skill-id="${esc(option.skillId)}"`
-                                          }>
-                                            <img src="${esc(option.icon || "")}" alt="">
-                                            <span>${esc(option.label)}</span>
-                                        </div>`,
-                                      )
-                                      .join("")}</div>`
-                                    : ""
-                                }
-                            </div>`,
-                                )
-                                .join("")
-                        }
-                        </div>
-                    </div>`;
-                  })
+                  .map((group) =>
+                    group.selections?.length
+                      ? multiSelectionInspectionGroupHtml(app, group)
+                      : singleSelectionInspectionGroupHtml(app, group),
+                  )
                   .join("")}</div>`
     : selectedSkillBarHtml;
+
+  // Wire dropdown selection for the standard heal, utility, and elite slots.
   skillBar.querySelectorAll(".skill-bar-slot").forEach((slot) => {
     if (!(slot instanceof HTMLElement)) return;
     const icon = slot.querySelector(".sbar-icon");
@@ -576,6 +595,8 @@ export function renderSkills(app: ProfessionAppState): void {
       });
     });
   });
+
+  // Wire profession inspection selectors, including optional text filtering.
   skillBar
     .querySelectorAll(".skill-bar-inspection-slot[data-selection-key]")
     .forEach((slot) => {
@@ -646,7 +667,7 @@ export function renderSkills(app: ProfessionAppState): void {
                 build: app.build,
                 specialization: spec,
                 professionState: app.results?.endState?.profession,
-                catalog: app.profession.catalog,
+                catalog: app.activeCatalog,
               },
               {
                 key,
@@ -668,11 +689,7 @@ export function renderSkills(app: ProfessionAppState): void {
     });
 }
 
-/**
- * @param {ProfessionAppState} app
- * @param {string} spec
- * @returns {void}
- */
+/** Renders profession-defined fixed slot bars and their loadout selectors. */
 function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   const loadout = app.adapter.slotLoadout;
   if (!loadout) return;
@@ -680,11 +697,13 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
     build: app.build,
     specialization: spec,
     professionState: app.results?.endState?.profession,
-    catalog: app.profession.catalog,
+    catalog: app.activeCatalog,
   };
   const view = loadout.view(context);
   const skillBar = requiredElement("skill-bar");
   const slotTypes = ["Heal", "Utility", "Utility", "Utility", "Elite"];
+
+  // Render one fixed slot, using a compact variant for chained child skills.
   const slotHtml = (skill: Skill, index: number, child = false): string => {
     const type = slotTypes[index] || "Skill";
     return `<div class="skill-bar-slot fixed-loadout-skill${
@@ -701,6 +720,8 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
         }
     </div>`;
   };
+
+  // Render a fixed root skill together with its profession-defined children.
   const barSkillHtml = (skill: Skill, index: number): string => {
     const childIds =
       typeof loadout.skillChildren === "function"
@@ -722,6 +743,8 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
           .join("")}
       </div>`;
   };
+
+  // Render one complete fixed loadout bar and its active-state styling.
   const barHtml = (bar: ProfessionSlotLoadoutBar): string =>
     `<div class="fixed-loadout-bar skill-bar-selected${
       view.formatActiveBar ? (bar.active ? " active" : " inactive") : " static"
@@ -732,6 +755,8 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
           .map(barSkillHtml)
           .join("")}
       </div>`;
+
+  // Render either an icon dropdown or a native select for one loadout choice.
   const selectorHtml = (
     selector: ProfessionSlotLoadoutSelector,
     index: number,
@@ -785,6 +810,8 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   const pairedIconLoadout =
     view.selectionControl === "icons" &&
     view.selectors.length === view.bars.length;
+
+  // Pair icon selectors with their bars when the profession exposes parallel sets.
   skillBar.innerHTML = pairedIconLoadout
     ? `<div class="fixed-loadout-pairs">${view.selectors
         .map(
@@ -798,6 +825,8 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
     : `<div class="fixed-loadout-selectors">
           ${view.selectors.map(selectorHtml).join("")}
       </div>${view.bars.map(barHtml).join("")}`;
+
+  // Wire icon-selector dropdown toggles and keyboard dismissal.
   skillBar.querySelectorAll("button[data-loadout-toggle]").forEach((button) => {
     if (!(button instanceof HTMLButtonElement)) return;
     const dropdown = button.parentElement?.querySelector(
@@ -825,6 +854,8 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
       button.setAttribute("aria-expanded", "false");
     });
   });
+
+  // Apply changes from native loadout selects.
   skillBar.querySelectorAll("select[data-loadout-key]").forEach((select) => {
     if (!(select instanceof HTMLSelectElement)) return;
     select.addEventListener("change", () => {
@@ -834,6 +865,8 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
       app.changed();
     });
   });
+
+  // Apply changes from icon-based loadout options.
   skillBar.querySelectorAll("button[data-loadout-key]").forEach((button) => {
     if (!(button instanceof HTMLButtonElement)) return;
     button.addEventListener("click", (event) => {

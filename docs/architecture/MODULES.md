@@ -59,29 +59,24 @@ cached runtime resolution, and generic application UI dispatch.
 [registry.ts](js/app/profession/registry.ts) is the single lazy manifest for
 every profession exposed by the application. Each
 entry supplies a stable ID, display metadata, route, optional theme class,
-explicit application kind, and dynamic loaders for the profession contract
-and shared-shell app adapter. Registry entries are validated for stable unique
-IDs and routes when the module loads, then shallow-frozen.
+and dynamic loaders for the profession contract and shared-shell app adapter.
+Registry entries are validated for stable unique IDs and routes when the module
+loads, then shallow-frozen.
 
 The main exports are:
 
-- `professionRegistry`: all routes, including standalone legacy applications.
-- `nativeProfessionRegistry`: entries declared with
-  `applicationKind: "native"`; these must have a shared-shell app adapter.
-- `standaloneProfessionRegistry`: legacy applications declared with
-  `applicationKind: "standalone"` and no shared-shell adapter.
+- `professionRegistry`: all profession routes. Every entry is bootstrapped
+  through the shared-shell app adapter.
 - `professionOptions` and `PROFESSION_ROUTES`: frozen projections for UI and
   compatibility consumers.
 - `getProfessionEntry()` and `professionRoute()`: synchronous metadata and
   route lookup. Unknown IDs resolve to `null` and `index.html`, respectively.
-- `loadProfession()` and `loadProfessionAppAdapter()`: lazy loaders. The
-  adapter loader returns `null` for unknown or standalone applications.
+- `loadProfession()` and `loadProfessionAppAdapter()`: lazy loaders. Both
+  return `null` for unknown IDs.
 
 Loader paths are explicit so they remain statically discoverable. Importing
 the registry itself does not load profession implementations. To expose a new
-profession, add one entry with its page metadata and loader functions;
-native applications use `applicationKind: "native"` and standalone
-applications use `applicationKind: "standalone"`.
+profession, add one entry with its page metadata and loader functions.
 
 [selector.ts](js/app/profession/selector.ts) provides registry-driven
 landing-page and header navigation. `bindProfessionSelector()`

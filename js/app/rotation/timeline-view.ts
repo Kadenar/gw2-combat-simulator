@@ -15,6 +15,10 @@ import {
   suggestedActivationInterruptMs,
 } from "../../platform/ui/activation-editor.js";
 import { closeChargeReleaseEditor } from "../../platform/ui/charge-release-editor.js";
+import {
+  closeDurationEditor,
+  openDurationEditor,
+} from "../../platform/ui/duration-editor.js";
 import { escapeHtml as esc } from "../../platform/ui/html.js";
 import {
   mountRotationInsertionCursor,
@@ -32,7 +36,7 @@ import {
 } from "./icons.js";
 import { renderPalette, resolvePaletteDropItem } from "./palette-view.js";
 import { renderRotationStateSnapshot } from "./state-snapshot-view.js";
-import { createRotationItem } from "./actions.js";
+import { createRotationItem, resolveEntrySkill } from "./actions.js";
 import { openDragonSlashReleaseEditor } from "./charge-release.js";
 import {
   closeDoubleEdgeEditor,
@@ -40,7 +44,7 @@ import {
   hasConfigurableDoubleEdgeOutcome,
   openDoubleEdgeEditor,
 } from "./double-edge.js";
-import { formatResultTimelineTime } from "./result-model.js";
+import { formatTimelineTime, resultCombatReferenceMs } from "./result-model.js";
 import {
   continuumEndTimelineMarkers,
   groupConsecutiveProcSteps,
@@ -63,7 +67,10 @@ import type {
 } from "../../platform/engine/types.js";
 import type { Gw2ProcStep } from "../../platform/gw2/types.js";
 import type { TimelineInteractionOptions } from "../../platform/ui/types.js";
-import type { ProfessionAppState } from "../profession/types.js";
+import type {
+  ProfessionAppState,
+  RotationActionOptions,
+} from "../profession/types.js";
 
 type TimelineItem = SchedulerRecord & {
   name: string;
@@ -101,21 +108,46 @@ export function syncProcVisibility(
   return app.procVisibility as Set<string>;
 }
 
-function editRotationOption(
+function editRotationDuration(
   app: ProfessionAppState,
   index: number,
-  key: string,
-  label: string,
+  key: "offset" | "waitMs",
+  event?: Event,
 ): boolean {
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
-  const raw = prompt(label, String(item?.[key] ?? ""));
-  if (raw == null || Number(raw) < 1) return false;
-  app.build.rotation[index] = updateRotationEntry(entry, {
-    [key]: Math.round(Number(raw)),
-  }) as LegacyRotationItem;
-  return true;
+  const eventTarget = event?.currentTarget;
+  const anchor =
+    (eventTarget instanceof HTMLElement ? eventTarget : null) ||
+    document.querySelector<HTMLElement>(
+      `#rotation-timeline .${key === "offset" ? "rot-offset-badge" : "rot-wait-badge"}[data-idx="${index}"]`,
+    );
+  if (!anchor) return false;
+
+  const skill = resolveEntrySkill(app, item);
+  const isWait = key === "waitMs";
+  openDurationEditor({
+    anchor,
+    heading: isWait ? "Edit wait" : "Edit offset",
+    name: isWait
+      ? "Wait"
+      : String(skill?.displayName || skill?.name || item.name),
+    icon:
+      anchor.closest(".rot-skill")?.querySelector<HTMLImageElement>("img")
+        ?.src || (isWait ? WAIT_ICON : skill?.icon || undefined),
+    label: isWait ? "Duration" : "From start of preceding cast",
+    value: Number(item[key]) || 1,
+    onApply(durationMs) {
+      const currentEntry = app.build.rotation[index];
+      if (currentEntry === undefined) return;
+      app.build.rotation[index] = updateRotationEntry(currentEntry, {
+        [key]: durationMs,
+      }) as LegacyRotationItem;
+      app.changed(false);
+    },
+  });
+  return false;
 }
 
 function editReleaseAtCharges(
@@ -126,11 +158,7 @@ function editReleaseAtCharges(
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
-  const explicitSkillId = item.skillId == null ? null : Number(item.skillId);
-  const skill =
-    explicitSkillId !== null && Number.isFinite(explicitSkillId)
-      ? app.skillById.get(explicitSkillId)
-      : app.skillByName.get(item.name);
+  const skill = resolveEntrySkill(app, item);
   if (!skill?.dragonSlash) return false;
   const eventTarget = event?.currentTarget;
   const anchor =
@@ -166,11 +194,7 @@ function editRotationActivation(
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
-  const explicitSkillId = item.skillId == null ? null : Number(item.skillId);
-  const skill =
-    explicitSkillId !== null && Number.isFinite(explicitSkillId)
-      ? app.skillById.get(explicitSkillId)
-      : app.skillByName.get(item.name);
+  const skill = resolveEntrySkill(app, item);
   if (!skill) return false;
 
   const step = app.results?.steps?.find(
@@ -220,11 +244,7 @@ function editDoubleEdgeOutcome(
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
-  const explicitSkillId = item.skillId == null ? null : Number(item.skillId);
-  const skill =
-    explicitSkillId !== null && Number.isFinite(explicitSkillId)
-      ? app.skillById.get(explicitSkillId)
-      : app.skillByName.get(item.name);
+  const skill = resolveEntrySkill(app, item);
   if (!hasConfigurableDoubleEdgeOutcome(skill)) return false;
   const eventTarget = event?.currentTarget;
   const anchor =
@@ -250,6 +270,20 @@ function editDoubleEdgeOutcome(
   return false;
 }
 
+function paletteDragAnchor(name: string): HTMLElement | null {
+  return (
+    document.querySelector<HTMLElement>(
+      "#rotation-palette .pal-skill.dragging",
+    ) ||
+    [
+      ...document.querySelectorAll<HTMLElement>(
+        "#rotation-palette .pal-skill[data-skill]",
+      ),
+    ].find((element) => element.dataset.skill === name) ||
+    null
+  );
+}
+
 function timelineInteractionOptions(
   app: ProfessionAppState,
 ): TimelineInteractionOptions {
@@ -261,20 +295,35 @@ function timelineInteractionOptions(
     },
     resolvePaletteEntry: (name, drag, insertAt) => {
       const parsedSkillId = Number(drag?.skillId);
-      const skill = Number.isFinite(parsedSkillId)
-        ? app.skillById.get(parsedSkillId)
-        : app.skillByName.get(name);
+      const skill = resolveEntrySkill(app, {
+        name,
+        skillId: drag?.skillId,
+      });
+      const insert = (options: RotationActionOptions = {}): void => {
+        const item = createRotationItem(app, name, {
+          ...(Number.isFinite(parsedSkillId) ? { skillId: parsedSkillId } : {}),
+          ...options,
+        });
+        app.build.rotation.splice(insertAt, 0, item);
+        app.rotationInsertionIndex = null;
+        app.changed(false);
+      };
+      if (name === "__wait") {
+        const anchor = paletteDragAnchor(name);
+        if (!anchor) return null;
+        openDurationEditor({
+          anchor,
+          heading: "Add wait",
+          name: "Wait",
+          icon: WAIT_ICON,
+          label: "Duration",
+          value: 1000,
+          onApply: (waitMs) => insert({ waitMs }),
+        });
+        return null;
+      }
       if (skill?.dragonSlash) {
-        const anchor =
-          document.querySelector<HTMLElement>(
-            "#rotation-palette .pal-skill.dragging",
-          ) ||
-          [
-            ...document.querySelectorAll<HTMLElement>(
-              "#rotation-palette .pal-skill[data-skill]",
-            ),
-          ].find((element) => element.dataset.skill === name) ||
-          null;
+        const anchor = paletteDragAnchor(name);
         if (!anchor) return null;
         openDragonSlashReleaseEditor({
           app,
@@ -282,47 +331,22 @@ function timelineInteractionOptions(
           skill,
           insertionIndex: insertAt,
           onApply(releaseAtCharges) {
-            const item = createRotationItem(app, name, {
-              ...(Number.isFinite(parsedSkillId)
-                ? { skillId: parsedSkillId }
-                : {}),
+            insert({
               ...(releaseAtCharges == null ? {} : { releaseAtCharges }),
             });
-            app.build.rotation.splice(insertAt, 0, item);
-            app.rotationInsertionIndex = null;
-            app.changed(false);
           },
         });
         return null;
       }
       if (hasConfigurableDoubleEdgeOutcome(skill)) {
-        const anchor =
-          document.querySelector<HTMLElement>(
-            "#rotation-palette .pal-skill.dragging",
-          ) ||
-          [
-            ...document.querySelectorAll<HTMLElement>(
-              "#rotation-palette .pal-skill[data-skill]",
-            ),
-          ].find((element) => element.dataset.skill === name) ||
-          null;
+        const anchor = paletteDragAnchor(name);
         if (!anchor) return null;
         openDoubleEdgeEditor({
           anchor,
           skillName: String(skill.displayName || skill.name),
           icon: skill.icon || undefined,
           outcome: "success",
-          onApply(outcome) {
-            const item = createRotationItem(app, name, {
-              ...(Number.isFinite(parsedSkillId)
-                ? { skillId: parsedSkillId }
-                : {}),
-              doubleEdgeOutcome: outcome,
-            });
-            app.build.rotation.splice(insertAt, 0, item);
-            app.rotationInsertionIndex = null;
-            app.changed(false);
-          },
+          onApply: (doubleEdgeOutcome) => insert({ doubleEdgeOutcome }),
         });
         return null;
       }
@@ -338,21 +362,16 @@ function timelineInteractionOptions(
     },
     onRemove: (index) => app.build.rotation.splice(index, 1),
     onTruncate: (index) => app.build.rotation.splice(index),
-    onEditOffset: (index) =>
-      editRotationOption(
-        app,
-        index,
-        "offset",
-        "Offset (ms) from the start of the preceding cast:",
-      ),
+    onEditOffset: (index, event) =>
+      editRotationDuration(app, index, "offset", event),
     onEditActivation: (index, event) =>
       editRotationActivation(app, index, event),
     onEditReleaseAtCharges: (index, event) =>
       editReleaseAtCharges(app, index, event),
     onEditDoubleEdgeOutcome: (index, event) =>
       editDoubleEdgeOutcome(app, index, event),
-    onEditWait: (index) =>
-      editRotationOption(app, index, "waitMs", "Wait duration (ms):"),
+    onEditWait: (index, event) =>
+      editRotationDuration(app, index, "waitMs", event),
   };
 }
 
@@ -360,6 +379,7 @@ export function renderTimeline(app: ProfessionAppState): void {
   closeActivationEditor();
   closeChargeReleaseEditor();
   closeDoubleEdgeEditor();
+  closeDurationEditor();
   const element = document.getElementById("rotation-timeline");
   const procElement = document.getElementById("rotation-procs");
   if (!element) return;
@@ -423,12 +443,7 @@ export function renderTimeline(app: ProfessionAppState): void {
       Boolean(app.build.alternateWeapons?.[0]),
     weaponLineTransition: (entry, current) => {
       const item = timelineItem(entry);
-      const explicitSkillId =
-        item.skillId == null ? null : Number(item.skillId);
-      const skill =
-        explicitSkillId !== null && Number.isFinite(explicitSkillId)
-          ? app.skillById.get(explicitSkillId)
-          : app.skillByName.get(String(item.name));
+      const skill = resolveEntrySkill(app, item);
       return app.profession.ui.timelineWeaponLineTransition({
         entry: item,
         skill,
@@ -438,8 +453,9 @@ export function renderTimeline(app: ProfessionAppState): void {
       });
     },
   });
+  const combatReferenceMs = resultCombatReferenceMs(app.results);
   const formatTime = (timeMs: number): string =>
-    formatResultTimelineTime(timeMs, app.results);
+    formatTimelineTime(timeMs, combatReferenceMs);
   const deadTimes = timelineDeadTimeMarkers(
     timelineStepsWithChargeFills(resultSteps, resourceSpends),
   );
@@ -625,12 +641,7 @@ export function renderTimeline(app: ProfessionAppState): void {
         }
         const item = timelineItem(entry);
         const highlightKey = rotationSkillHighlightKey(entry);
-        const explicitSkillId =
-          item.skillId == null ? null : Number(item.skillId);
-        const skill =
-          explicitSkillId !== null && Number.isFinite(explicitSkillId)
-            ? app.skillById.get(explicitSkillId)
-            : app.skillByName.get(String(item.name));
+        const skill = resolveEntrySkill(app, item);
         const step = steps.get(index);
         const invalid = Boolean(step?.invalid);
         const display =
