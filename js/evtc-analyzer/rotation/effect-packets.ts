@@ -77,9 +77,7 @@ export function strikePacketOffsets(
       ? runtimeDurationMs / baseDurationMs
       : 1;
   if (Array.isArray(effect.ticks) && effect.ticks.length) {
-    return effect.ticks.map(
-      (tick) => origin + Number(tick.atMs) * castScale,
-    );
+    return effect.ticks.map((tick) => origin + Number(tick.atMs) * castScale);
   }
   const hits = Math.max(1, Math.trunc(Number(effect.hits || 1)));
   const first =
@@ -127,6 +125,7 @@ export function createStrikePacketMatcher(
       ({ event }) =>
         event.source === context.playerAddress &&
         event.buff === 0 &&
+        event.value > 0 &&
         event.activation === EVTC_ACTIVATION.NONE &&
         event.stateChange === EVTC_STATE_CHANGE.NONE,
     );
@@ -149,11 +148,13 @@ export function createStrikePacketMatcher(
             return [];
           }
           const effectName = normalized(effect.name || skill.name);
+          const skillName = normalized(skill.name);
+          const rawName = normalized(action.rawName);
           const signalName = availableNames.has(effectName)
             ? effectName
-            : normalized(
-                skill.name || action.canonicalName || action.rawName,
-              );
+            : availableNames.has(skillName)
+              ? skillName
+              : rawName;
           const timingExplicit =
             effect.atMs != null ||
             (Array.isArray(effect.ticks) && effect.ticks.length > 0) ||
@@ -293,17 +294,7 @@ export function reconcileCastEffectPackets(
   );
   return actions.map((action) => {
     if (action.forceCompleteReplay) {
-      const runtimeDuration = quicknessRuntimeDurationMs(
-        skillForAction(context, action),
-      );
-      return {
-        ...action,
-        status: "completed" as const,
-        replayCastEnd: Math.max(
-          action.end,
-          action.start + runtimeDuration,
-        ),
-      };
+      return { ...action, status: "completed" as const };
     }
     if (action.status !== "completed" && action.status !== "interrupted") {
       return action;
@@ -352,10 +343,7 @@ export function reconcileCastEffectPackets(
         replayDuration = runtimeDuration;
       } else {
         preserveEffectsAfterInterrupt = true;
-        if (
-          runtimeDuration > 0 &&
-          nextSerialOffset <= runtimeDuration + 75
-        ) {
+        if (runtimeDuration > 0 && nextSerialOffset <= runtimeDuration + 75) {
           suppressFollowingWait = false;
         }
       }
@@ -369,10 +357,7 @@ export function reconcileCastEffectPackets(
         return {
           ...action,
           status: "completed" as const,
-          replayCastEnd: Math.max(
-            action.end,
-            action.start + replayDuration,
-          ),
+          replayCastEnd: Math.max(action.end, action.start + replayDuration),
         };
       }
       return {

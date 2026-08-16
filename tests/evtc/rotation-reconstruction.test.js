@@ -396,6 +396,7 @@ test("does not infer cast commitment when no effect packet was observed", () => 
         skillId: 1_000,
         activation: 4,
       }),
+      event({ time: 1_350, target: 0x2000n, skillId: 1_000, value: 0 }),
     ],
   });
   const rotationCatalog = {
@@ -1452,35 +1453,38 @@ test("normalizes Necromancer autoattack packets after chain resets", () => {
       },
     ],
     skills: casts.map(([id, name]) => ({ id, name })),
-    events: casts.flatMap(([skillId, , start, duration, activation]) => [
-      event({ time: start, stateChange: 67, skillId, value: duration }),
-      event({
-        time: start + duration,
-        stateChange: 68,
-        skillId,
-        value: duration,
-        activation,
-      }),
-    ]),
+    events: casts
+      .flatMap(([skillId, , start, duration, activation]) => [
+        event({ time: start, stateChange: 67, skillId, value: duration }),
+        event({
+          time: start + duration,
+          stateChange: 68,
+          skillId,
+          value: duration,
+          activation,
+        }),
+      ])
+      .concat(event({ time: 3_450, skillId: 73_012, value: 100 }))
+      .sort((left, right) => left.time - right.time),
   });
   const rotationCatalog = {
     skills: [
       [29_705, "Dusk Strike", "Weapon", "Reaper"],
       [30_799, "Fading Twilight", "Weapon", "Reaper"],
       [29_867, "Chilling Scythe", "Weapon", "Reaper"],
-      [73_012, "Dark Slash", "Weapon", ""],
-      [73_040, "Deadly Slice", "Weapon", ""],
+      [73_012, "Dark Slash", "Weapon", "", [{ type: "strike", atMs: 50 }]],
+      [73_040, "Deadly Slice", "Weapon", "", [{ type: "strike", atMs: 50 }]],
       [73_047, "Sinister Stab", "Weapon", ""],
       [73_013, "Addle", "Weapon", ""],
       [76_739, "Nightmare Weapon", "Utility", "Ritualist"],
-    ].map(([id, name, type, specialization]) => ({
+    ].map(([id, name, type, specialization, effects = []]) => ({
       id,
       name,
       type,
       slot: type === "Weapon" ? "Weapon_1" : "Utility",
       specialization,
       castTimeMs: 100,
-      effects: [],
+      effects,
       implemented: true,
     })),
   };
@@ -1506,6 +1510,7 @@ test("normalizes Necromancer autoattack packets after chain resets", () => {
       [73_012, 73_047, "Sinister Stab"],
       [73_013, 73_013, "Addle"],
       [73_047, 73_012, "Dark Slash"],
+      [73_012, 73_040, "Deadly Slice"],
     ],
   );
   assert.equal(
@@ -2139,6 +2144,7 @@ test("reconstructs Revenant legend, warband, and split animation mechanics", () 
         stateChange: 68,
       }),
       event({ time: 2_100, skillId: 29_256, value: 840, stateChange: 67 }),
+      event({ time: 2_320, skillId: 29_057, value: 100 }),
       event({
         time: 2_660,
         skillId: 29_256,
@@ -2196,7 +2202,13 @@ test("reconstructs Revenant legend, warband, and split animation mechanics", () 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.actions.map((action) => action.name),
-    ["Swap Legends", "Deathstrike", "Brutal Blade", "Razorclaw's Rage"],
+    [
+      "Swap Legends",
+      "Deathstrike",
+      "Preparation Thrust",
+      "Brutal Blade",
+      "Razorclaw's Rage",
+    ],
   );
   assert.equal(
     result.actions.filter((action) => action.name === "Deathstrike").length,
@@ -2854,6 +2866,7 @@ test("reconstructs Daredevil dodge, steal, shared utilities, and truncated casts
     ],
     skills: [
       { id: 13_014, name: "Steal" },
+      { id: 13_004, name: "Dagger Strike" },
       { id: 13_106, name: "Death Blossom" },
       { id: 23_275, name: "Dodge" },
       { id: 44_597, name: "Assassin's Signet Active" },
@@ -2900,6 +2913,15 @@ test("reconstructs Daredevil dodge, steal, shared utilities, and truncated casts
         activation: 4,
         stateChange: 68,
       }),
+      event({ time: 4_000, skillId: 13_004, value: 400, stateChange: 67 }),
+      event({
+        time: 4_050,
+        skillId: 13_004,
+        value: 50,
+        activation: 4,
+        stateChange: 68,
+      }),
+      event({ time: 4_200, skillId: 13_004, value: 100 }),
     ],
   });
   const rotationCatalog = {
@@ -2908,14 +2930,22 @@ test("reconstructs Daredevil dodge, steal, shared utilities, and truncated casts
       [13_014, "Steal", "Profession", "Profession_1", 0],
       [13_046, "Assassin's Signet", "Utility", "Utility", 0],
       [13_106, "Death Blossom", "Weapon", "Weapon_3", 1_040],
-    ].map(([id, name, type, slot, castTimeMs]) => ({
+      [
+        13_004,
+        "Dagger Strike",
+        "Weapon",
+        "Weapon_1",
+        400,
+        [{ type: "strike", atMs: 200 }],
+      ],
+    ].map(([id, name, type, slot, castTimeMs, effects = []]) => ({
       id,
       name,
       type,
       slot,
       castTimeMs,
       quicknessCastTimeMs: castTimeMs,
-      effects: [],
+      effects,
       implemented: true,
     })),
   };
@@ -2927,7 +2957,7 @@ test("reconstructs Daredevil dodge, steal, shared utilities, and truncated casts
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.actions.map((action) => action.name),
-    ["Dodge", "Steal", "Assassin's Signet", "Death Blossom"],
+    ["Dodge", "Steal", "Assassin's Signet", "Death Blossom", "Dagger Strike"],
   );
   assert.deepEqual(
     result.actions.find((action) => action.name === "Death Blossom"),
@@ -2943,6 +2973,15 @@ test("reconstructs Daredevil dodge, steal, shared utilities, and truncated casts
       evidence: "animation",
       status: "completed",
       supportedByCatalog: true,
+    },
+  );
+  assert.deepEqual(
+    result.rotation.find((command) => command.name === "Dagger Strike"),
+    {
+      name: "Dagger Strike",
+      skillId: 13_004,
+      interruptMs: 50,
+      preserveEffectsAfterInterrupt: true,
     },
   );
 });

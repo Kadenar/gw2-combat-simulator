@@ -1,4 +1,5 @@
 import { findRotationSkill } from "../../catalog.js";
+import { committedActionsFromStrikePackets } from "../../effect-packets.js";
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction,
@@ -37,6 +38,10 @@ export function normalizeThiefAnimations(
       left.start - right.start || left.eventIndex - right.eventIndex,
   );
   const normalized: EvtcRecordedRotationAction[] = [];
+  const autoattacks = sorted.filter((action) => isAutoattack(context, action));
+  const committed = committedActionsFromStrikePackets(context, autoattacks, {
+    maxFallbackImpactMs: 2_000,
+  });
   for (const action of sorted) {
     if (action.rawSkillId === MOVEMENT_ARTIFACT_FOLLOW_UP_ANIMATION) continue;
     if (action.rawSkillId === DAREDEVIL_DODGE_ANIMATION) continue;
@@ -47,6 +52,9 @@ export function normalizeThiefAnimations(
       continue;
     }
     if (action.status === "interrupted" && isAutoattack(context, action)) {
+      if (committed.has(action)) {
+        normalized.push(action);
+      }
       continue;
     }
     const previous = normalized.at(-1);
