@@ -1,4 +1,5 @@
 import { findRotationSkill } from "../../catalog.js";
+import { committedActionsFromStrikePackets } from "../../effect-packets.js";
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction,
@@ -65,6 +66,12 @@ export function normalizeNecromancerAutoattackChains(
       positions.set(identity.skillId, { chainIndex, actionIndex });
     });
   });
+  const autoattacks = actions.filter((action) =>
+    isWeaponAutoattack(context, action),
+  );
+  const committed = committedActionsFromStrikePackets(context, autoattacks, {
+    maxFallbackImpactMs: 2_000,
+  });
 
   let activeChainIndex: number | null = null;
   let expectedActionIndex = 0;
@@ -77,7 +84,8 @@ export function normalizeNecromancerAutoattackChains(
       const position = positions.get(action.rawSkillId);
       if (
         action.status === "interrupted" &&
-        (position != null || isWeaponAutoattack(context, action))
+        (position != null || isWeaponAutoattack(context, action)) &&
+        !committed.has(action)
       ) {
         // Arc records canceled auto packets as casts even though no strike
         // completed. Replaying them reserves time and advances the simulator

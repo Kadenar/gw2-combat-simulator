@@ -1,5 +1,8 @@
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from "../../../types.js";
-import { firstStrikePacketOffsetMs } from "../../effect-packets.js";
+import {
+  committedActionsFromStrikePackets,
+  firstStrikePacketOffsetMs,
+} from "../../effect-packets.js";
 import { findRotationSkill } from "../../catalog.js";
 import type {
   EvtcProfessionReconstructionContext,
@@ -66,6 +69,18 @@ export function normalizeRevenantCastPackets(
   actions: readonly EvtcRecordedRotationAction[],
 ): EvtcRecordedRotationAction[] {
   const normalized: EvtcRecordedRotationAction[] = [];
+  const autoattacks = actions.filter((action) => {
+    const skill = findRotationSkill(
+      action.canonicalSkillId ?? action.rawSkillId,
+      action.canonicalName ?? action.rawName,
+      context.catalog,
+      context.profile,
+    );
+    return String(skill?.slot || "").toLowerCase() === "weapon_1";
+  });
+  const committed = committedActionsFromStrikePackets(context, autoattacks, {
+    maxFallbackImpactMs: 2_000,
+  });
   const absorbCanceledAnimation = (
     action: EvtcRecordedRotationAction,
   ): void => {
@@ -93,7 +108,8 @@ export function normalizeRevenantCastPackets(
     );
     if (
       action.status === "interrupted" &&
-      String(skill?.slot || "").toLowerCase() === "weapon_1"
+      String(skill?.slot || "").toLowerCase() === "weapon_1" &&
+      !committed.has(action)
     ) {
       absorbCanceledAnimation(action);
       continue;
@@ -109,6 +125,7 @@ export function normalizeRevenantCastPackets(
     });
     if (
       autoattack &&
+      !committed.has(action) &&
       strikeCommit != null &&
       duration < strikeCommit &&
       cancelFireAtActionEnd(context, action)
