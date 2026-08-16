@@ -10,7 +10,6 @@ import {
 import type {
   RangerResolverContext,
   RangerResolverEvent,
-  RangerSkill,
 } from "../../types.js";
 import { rangerPetByName } from "../../core/state.js";
 import { soulbeastState } from "./state.js";
@@ -98,16 +97,6 @@ export function queueSoulbeastBuff(
     stacks,
     triggeredBy: event.skillName,
   });
-}
-
-function eventSkill(
-  context: RangerResolverContext,
-  event: RangerResolverEvent,
-): RangerSkill | undefined {
-  return event.skillId == null
-    ? undefined
-    : (context.helpers.skillsById?.get(event.skillId) as
-        RangerSkill | undefined);
 }
 
 function firstBeastAbilityHit(

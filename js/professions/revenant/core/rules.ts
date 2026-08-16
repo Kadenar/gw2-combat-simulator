@@ -12,6 +12,8 @@ import {
   beginRevenantWeaponCast,
   completeRevenantWeaponCast,
   expireImperialGuard,
+  observeRevenantWeaponEvent,
+  resetCoalescenceOfRuin,
   updateRevenantWeaponState,
 } from "./weapon-state.js";
 import {
@@ -85,6 +87,7 @@ function onEventScheduled(
   context: RevenantSchedulerContext,
   event: RevenantSimulationEvent,
 ): void {
+  observeRevenantWeaponEvent(context, event);
   observeRevenantSpearEvent(context, event);
   observeRevenantEvent(context, event);
 }
@@ -128,6 +131,7 @@ export const revenantSchedulerHooks = Object.freeze({
     "revenant.upkeep-pulse": handleRevenantUpkeepPulse,
     "revenant.imperial-guard-expire": expireImperialGuard,
     "revenant.impossible-odds-strike": handleImpossibleOddsStrike,
+    "revenant.drop-the-hammer-reset": resetCoalescenceOfRuin,
   }),
 });
 
@@ -167,8 +171,7 @@ function revenantRuntimeState(
   context: RevenantModifierContext,
 ): Partial<RevenantState> | RevenantRuntimeState {
   return (context.runtime?.profession ?? context.state?.profession ?? {}) as
-    | Partial<RevenantState>
-    | RevenantRuntimeState;
+    Partial<RevenantState> | RevenantRuntimeState;
 }
 
 export function revenantRuntimeCoreState(
@@ -206,8 +209,7 @@ export function revenantTargetHealthFraction(
   const maximum = Number(context.config?.target?.health || 0);
   if (!(maximum > 0)) return 1;
   const totals = context.runtime?.totals as
-    | { readonly strike?: number; readonly condition?: number }
-    | undefined;
+    { readonly strike?: number; readonly condition?: number } | undefined;
   const dealt = Number(totals?.strike || 0) + Number(totals?.condition || 0);
   return Math.max(0, 1 - dealt / maximum);
 }
@@ -246,7 +248,7 @@ function targetHasDefensiveBoon(context: RevenantModifierContext): boolean {
   const boons = context.config?.target?.boons || {};
   return Boolean(
     (boons as Record<string, boolean | number>).stability ||
-      (boons as Record<string, boolean | number>).protection,
+    (boons as Record<string, boolean | number>).protection,
   );
 }
 

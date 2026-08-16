@@ -343,9 +343,15 @@ export function observeRevenantEvent(
     context.config.relic === "Peitha" &&
     event.type === "damage" &&
     ((event.skillName === "Deathstrike" && event.name === "Initial Damage") ||
-      event.skillName === "Phantom's Onslaught")
+      event.skillName === "Phantom's Onslaught" ||
+      event.skillId === ID.PHASE_SMASH)
   ) {
-    const delay = event.skillName === "Deathstrike" ? 0.24 : 0.68;
+    const delay =
+      event.skillId === ID.PHASE_SMASH
+        ? 0
+        : event.skillName === "Deathstrike"
+          ? 0.24
+          : 0.68;
     context.emitDerived(event, {
       type: "peitha",
       at: event.at + delay,

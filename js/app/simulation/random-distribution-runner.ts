@@ -233,7 +233,7 @@ export class RandomDistributionRunner {
               if (failed) return;
               failed = true;
               finishWorker();
-              failDistribution(event?.message);
+              failDistribution(event.error ?? event.message);
             },
             { once: true },
           );

@@ -396,9 +396,11 @@ export function necromancerSoulShardResourceViews(
           value: Number(state.soulShards || 0),
           canStart: false,
           step: 1,
-          displayMode: "bar",
-          shortLabel: "Shrd",
+          displayMode: "counter",
+          pipStyle: "necromancer-soul-shards",
+          shortLabel: "Soul",
           statusLabel: "Current",
+          showValue: false,
         },
       ]
     : [];

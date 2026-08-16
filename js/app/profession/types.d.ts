@@ -20,6 +20,10 @@ import type {
   Gw2SlotLoadout,
   Gw2WeaponDataEntry,
 } from "../../platform/gw2/types.js";
+import type {
+  PatchPreview,
+  PatchRuntimeValues,
+} from "../../platform/gw2/skill-patch.js";
 
 export interface ProfessionBuildAssumptions extends SchedulerRecord {
   might?: number;
@@ -51,6 +55,9 @@ export interface ProfessionAppContract {
   readonly name: string;
   readonly catalog: CanonicalCatalog;
   readonly ui: ProfessionUiContract;
+  readonly preview?: PatchPreview | null;
+  readonly catalogFor?: (patchId?: string) => Readonly<CanonicalCatalog>;
+  readonly patchValuesFor?: (patchId?: string) => PatchRuntimeValues;
   createBuildDefaults(): SchedulerRecord;
   migrateBuild(saved: SchedulerRecord): SchedulerRecord;
 }
@@ -60,7 +67,12 @@ export interface ProfessionAttributeData extends Gw2FinalizedAttributeResult {
 }
 
 export type ProfessionModifierType =
-  "Boon" | "Target" | "Sigil" | "Relic" | "Food" | "Trait";
+  | "Boon"
+  | "Target"
+  | "Sigil"
+  | "Relic"
+  | "Food"
+  | "Trait";
 
 export interface ProfessionModifier {
   readonly id: string;
@@ -96,7 +108,8 @@ export interface RandomDistributionRequest {
   readonly seedStart?: number;
 }
 
-export interface RandomDistributionJobRequest extends RandomDistributionRequest {
+export interface RandomDistributionJobRequest
+  extends RandomDistributionRequest {
   readonly professionId: string;
   readonly trials: number;
 }
@@ -117,7 +130,11 @@ export interface RandomDistributionProgress {
 }
 
 export type RandomDistributionMetricCategory =
-  "critical" | "condition" | "proc" | "effect" | "weapon-strength";
+  | "critical"
+  | "condition"
+  | "proc"
+  | "effect"
+  | "weapon-strength";
 
 export type RandomDistributionMetricUnit = "count" | "stacks" | "value";
 
@@ -191,6 +208,7 @@ export interface BuildTemplateSelection {
 export interface RotationActionOptions extends SchedulerRecord {
   readonly skillId?: SkillId | null;
   readonly interruptMs?: number | null;
+  readonly preserveEffectsAfterInterrupt?: boolean | null;
   readonly releaseAtCharges?: number | null;
   readonly doubleEdgeOutcome?: "success" | "backfire" | null;
 }
@@ -329,6 +347,9 @@ export interface ProfessionSlotLoadoutView {
 export interface ProfessionAppState {
   adapter: Gw2AppAdapter;
   profession: ProfessionAppContract;
+  activeCatalog: Readonly<CanonicalCatalog>;
+  patchId: string;
+  patchComparison: PatchComparison | null;
   build: ProfessionApplicationBuild;
   skills: Skill[];
   skillByName: ReadonlyMap<string, Skill>;
@@ -381,6 +402,13 @@ export interface ProfessionAppState {
   addRotation(name: string, options?: RotationActionOptions): void;
   runRandomDistribution(): void;
   resetBuild(): void;
+  selectPatch(patchId: string): void;
+}
+
+export interface PatchComparison {
+  readonly patchId: string;
+  readonly current: Gw2SimulationResult;
+  readonly preview: Gw2SimulationResult;
 }
 
 export interface ProfessionRotationDragState extends SchedulerRecord {

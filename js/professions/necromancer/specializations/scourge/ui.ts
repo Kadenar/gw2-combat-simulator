@@ -2,17 +2,16 @@ import { NECROMANCER_SKILL_IDS as ID } from "../../data/ids.js";
 import {
   necromancerTransformPaletteGroups,
   necromancerTransformSkillBarGroups,
+  necromancerUiState,
 } from "../../core/ui.js";
 import { getActiveTraits } from "../../data/traits-data.js";
 import type {
   PaletteSkillAvailability,
+  ProfessionResourceView,
   ProfessionUiContract,
   SchedulerRecord,
 } from "../../../../platform/engine/types.js";
-import type {
-  NecromancerSkill,
-  NecromancerUiContext,
-} from "../../types.js";
+import type { NecromancerSkill, NecromancerUiContext } from "../../types.js";
 
 const SCOURGE_SKILLS = Object.freeze([
   ID.MANIFEST_SAND_SHADE,
@@ -57,10 +56,7 @@ function scourgePaletteAvailability(
   ) {
     return { available: false, message: "Requires Herald of Sorrow" };
   }
-  if (
-    skill.id === ID.DESERT_SHROUD &&
-    selectedTraits.has("Herald of Sorrow")
-  ) {
+  if (skill.id === ID.DESERT_SHROUD && selectedTraits.has("Herald of Sorrow")) {
     return {
       available: false,
       message: "Replaced by Sandstorm Shroud",
@@ -69,8 +65,8 @@ function scourgePaletteAvailability(
   return { available: true, message: "" };
 }
 
-export const scourgeUi:
-  Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const scourgeUi: Partial<ProfessionUiContract> & SchedulerRecord =
+  Object.freeze({
     paletteGroups: (context: NecromancerUiContext) =>
       necromancerTransformPaletteGroups(context, {
         professionSkillIds: SCOURGE_SKILLS,
@@ -79,5 +75,23 @@ export const scourgeUi:
       necromancerTransformSkillBarGroups(context, {
         professionSkillIds: scourgeSkillBarIds(context),
       }),
+    resourceViews: (
+      context: NecromancerUiContext,
+    ): ProfessionResourceView[] => [
+      {
+        id: "active-shades",
+        singular: "active shade",
+        plural: "active shades",
+        maximum: 3,
+        value: necromancerUiState(context).shades?.length || 0,
+        canStart: false,
+        step: 1,
+        displayMode: "counter",
+        pipStyle: "necromancer-scourge-shades",
+        shortLabel: "Shade",
+        statusLabel: "Current",
+        showValue: false,
+      },
+    ],
     paletteSkillAvailability: scourgePaletteAvailability,
   });

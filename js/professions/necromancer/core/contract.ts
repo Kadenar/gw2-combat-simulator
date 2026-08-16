@@ -62,6 +62,7 @@ function updateNecromancerCastState(
     }
   } else if (
     skill.type === "Weapon" ||
+    Number(skill.castTimeMs || 0) > 0 ||
     requiredShroud(skill) ||
     skill.handlerId === "necromancer.shroud"
   ) {
@@ -258,8 +259,7 @@ function onCastComplete(
 ): void {
   if (skill.id !== ID.GRAVEDIGGER) return;
   const schedulerFeedback = context.config._schedulerFeedback as
-    | { readonly targetBelowHalfAt?: number }
-    | undefined;
+    { readonly targetBelowHalfAt?: number } | undefined;
   const targetBelowHalfAt = Number(schedulerFeedback?.targetBelowHalfAt);
   if (
     Number.isFinite(targetBelowHalfAt) &&

@@ -239,7 +239,7 @@ export function paletteActionSkills(
     ? projectActions(
         {
           specialization,
-          catalog: app.profession.catalog,
+          catalog: app.activeCatalog,
           professionState,
           cooldowns: endState?.cooldowns || {},
           activeWeaponSet:
@@ -291,7 +291,7 @@ export function rotationSelectedSlotSkills(app: ProfessionAppState): Skill[] {
 export function rotationUtilityFlipByParent(
   app: ProfessionAppState,
 ): Map<string, Skill> {
-  const skillById = app.skillById || app.profession.catalog.skillsById;
+  const skillById = app.skillById || app.activeCatalog.skillsById;
   const flips = new Map<string, Skill>();
   for (const skill of app.skills) {
     if (

@@ -16,7 +16,6 @@ import type {
   GuardianResolverEvent,
   GuardianSchedulerContext,
   GuardianSkill,
-  GuardianState,
 } from "../types.js";
 
 type GuardianTraitContext =

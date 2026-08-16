@@ -12,6 +12,7 @@ import type {
   RevenantCastContext,
   RevenantScheduledTask,
   RevenantSchedulerContext,
+  RevenantSimulationEvent,
   RevenantSkill,
 } from "../types.js";
 
@@ -40,6 +41,34 @@ export function updateRevenantWeaponState(
   } else if (skill.id !== ID.TEMPORAL_RIFT && skill.type === "Weapon") {
     state.autoattackChains = {};
   }
+}
+
+/** Resets Coalescence of Ruin when Drop the Hammer's delayed strike lands. */
+export function observeRevenantWeaponEvent(
+  context: RevenantSchedulerContext,
+  event: RevenantSimulationEvent,
+): void {
+  if (
+    event.type !== "damage" ||
+    event.skillId !== ID.DROP_THE_HAMMER ||
+    Number(event.coefficient || 0) <= 0
+  ) {
+    return;
+  }
+  context.tasks.schedule({
+    id: `revenant.drop-the-hammer-reset:${event.__order}`,
+    type: "revenant.drop-the-hammer-reset",
+    at: event.at,
+    payload: {},
+  });
+}
+
+/** Applies Drop the Hammer's on-hit Coalescence recharge. */
+export function resetCoalescenceOfRuin(
+  context: RevenantSchedulerContext,
+  _task: RevenantScheduledTask,
+): void {
+  context.state.cooldowns.delete(ID.COALESCENCE_OF_RUIN);
 }
 
 const IMPERIAL_GUARD_OWNER = "revenant.imperial-guard";

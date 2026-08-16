@@ -123,6 +123,7 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
   fullEnd: number,
   effectiveEnd: number,
   cancelledBeforeCommit: boolean,
+  preserveEffectsAfterInterrupt: boolean,
   observeEffect: (
     event: SimulationEvent,
     effect: SkillEffect,
@@ -150,6 +151,7 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
     const firstAt = effectFirstAt(start, fullEnd, timing);
     const cancelPendingEffects =
       interrupted &&
+      !preserveEffectsAfterInterrupt &&
       (cancelledBeforeCommit || effect.persistsAfterInterrupt !== true);
     // An interrupt only suppresses effects that have not fired yet. Earlier
     // ticks remain in the stream even when the full cast never completes.
@@ -1174,6 +1176,7 @@ export function createScheduler<
         fullEnd,
         effectiveEnd,
         cancelledBeforeCommit,
+        command.preserveEffectsAfterInterrupt === true,
         (event, effect, effectIndex) =>
           handler?.afterEffect?.(lifecycleContext, skill, event, handlerState, {
             effect,

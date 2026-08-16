@@ -1,4 +1,5 @@
 import { defineNativeProfession } from "../../platform/gw2/native-profession.js";
+import { activePatchPreview } from "../../patches/active-preview.js";
 import {
   createWarriorBuildDefaults,
   migrateWarriorBuild,
@@ -16,6 +17,7 @@ export const warriorProfession = defineNativeProfession({
     validateBuild: validateWarriorBuild,
   },
   modules: warriorNativeModules,
+  patchPreview: activePatchPreview,
 });
 
 export default warriorProfession;

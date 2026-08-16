@@ -21,8 +21,6 @@ import {
 } from "../../js/app/build/persistence.js";
 import {
   loadProfessionAppAdapter,
-  nativeProfessionRegistry,
-  PROFESSION_APPLICATION_KINDS,
   professionOptions,
   professionRegistry,
 } from "../../js/app/profession/registry.js";
@@ -574,7 +572,7 @@ test("shared app and platform helpers are profession neutral", async () => {
       "utf8",
     ),
   ]);
-  const professionTerms = nativeProfessionRegistry.flatMap((entry) => [
+  const professionTerms = professionRegistry.flatMap((entry) => [
     entry.id,
     entry.name,
   ]);
@@ -639,23 +637,21 @@ test("the generic landing page and profession simulators have separate entries",
       /<a class="home-link" href="index\.html">← All professions<\/a>/,
     );
     assert.equal(professionRoute(entry.id), entry.route);
-    if (entry.applicationKind === PROFESSION_APPLICATION_KINDS.NATIVE) {
-      assert.match(source, new RegExp(`data-profession="${entry.id}"`));
-      assert.match(source, /js\/app\/app\.js/);
-      assert.match(source, /id="rotation-warnings"/);
-      assert.match(source, /skills-primary-column/);
-      assert.match(source, /panel skills-panel-left weapon-sets-panel/);
-      assert.match(source, /panel skills-panel-left equipped-skills-panel/);
-      assert.match(source, /skill-bar-column weapon-bar-column/);
-      assert.match(source, /skill-bar-column equipped-skill-bar-column/);
-      if (entry.id === "elementalist") {
-        assert.match(source, /class="elementalist-theme"/);
-      } else {
-        assert.match(source, /profession-loadout-theme/);
-      }
-      assert.doesNotMatch(source, /id="skill-info-table"/);
-      assert.doesNotMatch(source, /selected-skills-panel/);
+    assert.match(source, new RegExp(`data-profession="${entry.id}"`));
+    assert.match(source, /js\/app\/app\.js/);
+    assert.match(source, /id="rotation-warnings"/);
+    assert.match(source, /skills-primary-column/);
+    assert.match(source, /panel skills-panel-left weapon-sets-panel/);
+    assert.match(source, /panel skills-panel-left equipped-skills-panel/);
+    assert.match(source, /skill-bar-column weapon-bar-column/);
+    assert.match(source, /skill-bar-column equipped-skill-bar-column/);
+    if (entry.id === "elementalist") {
+      assert.match(source, /class="elementalist-theme"/);
+    } else {
+      assert.match(source, /profession-loadout-theme/);
     }
+    assert.doesNotMatch(source, /id="skill-info-table"/);
+    assert.doesNotMatch(source, /selected-skills-panel/);
   }
 });
 

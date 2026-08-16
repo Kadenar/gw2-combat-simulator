@@ -198,7 +198,6 @@ function distress(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): boolean {
-  const at = context.effectiveEnd;
   delete professionCoreState(context).availableFlips[skill.id];
   context.state.cooldowns.delete(ID.PERFORATE);
   // The simulator models one target, so Distress always receives its
