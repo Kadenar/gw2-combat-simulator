@@ -1,10 +1,9 @@
 import type { SchedulerContext, SimulationEvent } from "../../engine/types.js";
 import { FOOD_DATA } from "../gear-data.js";
 import { isGw2PlayerActorEvent } from "../event-ownership.js";
+import { consumeExpectedCriticalProgress } from "../numeric.js";
 import type { Gw2Config } from "../types.js";
 import type { MaterializerState } from "./materializer-state.js";
-
-const PROC_PROGRESS_TOLERANCE = 1e-9;
 
 export function hasStochasticCriticalFood(config: Gw2Config): boolean {
   return (
@@ -77,13 +76,7 @@ export function resolveCriticalTrigger(
   // Deterministic progress requires an eligible hit with a possible crit.
   if (!canTriggerSigils || !(critical.chance > 0)) return null;
 
-  // Accumulate fractional expected crits across eligible hits.
-  state.sigil.criticalProgress += critical.chance;
-
-  // Wait until the accumulator represents one whole critical hit.
-  if (state.sigil.criticalProgress < 1 - PROC_PROGRESS_TOLERANCE) return null;
-
-  // Consume one crit and retain any fractional remainder for later hits.
-  state.sigil.criticalProgress -= 1;
-  return event;
+  return consumeExpectedCriticalProgress(state.sigil, critical.chance)
+    ? event
+    : null;
 }

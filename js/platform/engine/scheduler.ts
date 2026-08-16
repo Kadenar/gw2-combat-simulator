@@ -298,7 +298,6 @@ export function createScheduler<
   // that recursion so every event is observed exactly once in causal order.
   const observationQueue: SimulationEvent[] = [];
   let observingEvents = false;
-  let observationCount = 0;
   let eventOrder = 0;
   // Derived events share their cause's integer order and use fractional
   // suffixes, keeping them adjacent to the cause at equal timestamps.
@@ -387,6 +386,7 @@ export function createScheduler<
       state.pendingEvents.push(normalized);
       observationQueue.push(normalized);
       if (!observingEvents) {
+        let observationCount = 0;
         observingEvents = true;
         try {
           while (observationQueue.length) {

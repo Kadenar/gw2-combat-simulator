@@ -38,7 +38,8 @@ type MaterializerCapability =
   | "criticalFacts"
   | "procSigils"
   | "relicTriggers"
-  | "swapSigils";
+  | "swapSigils"
+  | "weaponFacts";
 
 // This is the single source of truth for which canonical event types the
 // materializer observes and why each one matters.
@@ -51,7 +52,7 @@ const EVENT_REQUIRED_CAPABILITY: Readonly<
   control: "combatTracking",
   blind: "combatTracking",
   buff: "buffFacts",
-  weapon_set: "procSigils",
+  weapon_set: "weaponFacts",
   sigil_swap: "swapSigils",
   weakness_vulnerability: "relicTriggers",
 });
@@ -91,6 +92,7 @@ export function createGw2TriggerMaterializer(
     relicTriggers: () =>
       typeof state.relic.rules.weaknessVulnerability === "function",
     swapSigils: () => sigilSupport.swap,
+    weaponFacts: () => true,
   });
 
   const processEvent = (

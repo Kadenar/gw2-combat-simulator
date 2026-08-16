@@ -73,8 +73,16 @@ export function createGw2HitResolution({
     event: Gw2ResolverEvent,
     flatStrike: boolean,
   ): Gw2HitResolutionContext["critical"] {
+    if (event.noCrit || flatStrike) {
+      return {
+        chance: 0,
+        chanceBeforeCap: 0,
+        contributors: [],
+        damage: 1,
+        didCrit: ctx.random?.stochastic ? false : null,
+      };
+    }
     const critical = ctx.query.critical(event, event.at, ctx);
-    if (event.noCrit || flatStrike) critical.chance = 0;
     critical.didCrit = ctx.random?.stochastic
       ? typeof event.didCrit === "boolean"
         ? event.didCrit

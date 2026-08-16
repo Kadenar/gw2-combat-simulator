@@ -474,9 +474,7 @@ function composeNativeCatalog(
         ),
         weapons: Object.freeze(
           [...weapons].filter((weapon) =>
-            modules
-              .find((candidate) => candidate.id === module.id)
-              ?.data.weapons?.includes(weapon),
+            module.data.weapons?.includes(weapon),
           ),
         ),
         weaponHands: hands,

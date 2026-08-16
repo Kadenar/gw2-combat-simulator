@@ -251,8 +251,8 @@ function closeTemplateMenus(container: ParentNode | null | undefined): void {
 }
 
 /**
- * Places build templates beside the simulator while keeping the existing
- * section layout together in the main content column.
+ * Places build templates in a bounded sidebar above the simulation config.
+ * The boundary lets the sticky template panel stop before the config panel.
  *
  * @param {HTMLElement} container
  * @returns {void}
@@ -263,7 +263,16 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
 
   const existingMain = buildSection.closest<HTMLElement>(".profession-main");
   if (existingMain?.parentElement) {
-    existingMain.parentElement.insertBefore(container, existingMain);
+    const layout = existingMain.parentElement;
+    let templateRegion = layout.querySelector<HTMLElement>(
+      ":scope > .build-templates-region",
+    );
+    if (!templateRegion) {
+      templateRegion = document.createElement("aside");
+      templateRegion.className = "build-templates-region";
+      layout.insertBefore(templateRegion, existingMain);
+    }
+    templateRegion.append(container);
     return;
   }
 
@@ -272,14 +281,21 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
 
   const layout = document.createElement("div");
   layout.className = "profession-layout";
+  const templateRegion = document.createElement("aside");
+  templateRegion.className = "build-templates-region";
   const main = document.createElement("div");
   main.className = "profession-main";
 
   appRoot.insertBefore(layout, buildSection);
-  layout.append(container, main);
+  layout.append(templateRegion, main);
+  templateRegion.append(container);
   while (layout.nextSibling) {
     main.append(layout.nextSibling);
   }
+  const simulationWorkspace = main.querySelector<HTMLElement>(
+    ":scope > .simulation-workspace",
+  );
+  if (simulationWorkspace) layout.append(simulationWorkspace);
   appRoot.classList.add("has-template-sidebar");
 }
 

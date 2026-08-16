@@ -572,6 +572,10 @@ header .community-actions {
   margin: 0 auto 12px;
 }
 
+.build-templates-region {
+  min-width: 0;
+}
+
 .profession-main {
   container: profession-main / inline-size;
   min-width: 0;
@@ -855,14 +859,26 @@ header .community-actions {
 
 @media (min-width: 1200px) {
   #app.has-template-sidebar {
-    max-width: 1584px;
+    max-width: 1654px;
   }
 
   .profession-layout {
     display: grid;
-    grid-template-columns: 240px minmax(0, 1fr);
-    align-items: start;
+    grid-template-columns: minmax(0, 1fr) 310px;
+    align-items: stretch;
     gap: 12px;
+  }
+
+  .profession-main {
+    min-width: 0;
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .build-templates-region {
+    min-height: 0;
+    grid-column: 2;
+    grid-row: 1;
   }
 
   .build-templates {
@@ -873,6 +889,11 @@ header .community-actions {
     max-width: none;
     max-height: calc(100vh - var(--profession-header-height, 112px) - 24px);
     margin: 0;
+  }
+
+  .profession-layout > .simulation-workspace {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
 
   .build-templates-panel {
@@ -2305,12 +2326,11 @@ body[data-profession][data-simulator-view="workspace"]
 
 body[data-profession][data-simulator-view="analysis"]
   :is(
-    .build-templates,
+    .build-templates-region,
     .build-section,
     .skills-section,
     .rotation-panel-shell,
-    .rotation-section > .perma-section,
-    .simulation-config-button-track
+    .simulation-workspace > .perma-section
   ) {
   display: none;
 }
@@ -2328,6 +2348,10 @@ body[data-profession][data-simulator-view="analysis"] .simulation-workspace,
 body[data-profession][data-simulator-view="analysis"] .rotation-section,
 body[data-profession][data-simulator-view="analysis"] .rotation-results {
   margin: 0;
+}
+
+body[data-profession][data-simulator-view="analysis"] .simulation-workspace {
+  display: block;
 }
 
 body[data-profession][data-simulator-view="analysis"]
@@ -2432,7 +2456,7 @@ body[data-profession] .rotation-section {
 }
 
 .simulation-config-open-button {
-  display: inline-flex;
+  display: none;
   width: 40px;
   height: 40px;
   padding: 0;
@@ -2463,33 +2487,8 @@ body[data-profession] .rotation-section {
   filter: drop-shadow(0 0 4px currentcolor);
 }
 
-.simulation-config-button-track {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 100%;
-  z-index: 2;
-  width: max-content;
-  pointer-events: none;
-}
-
-.simulation-config-button-track > .simulation-config-open-button {
-  position: sticky;
-  top: calc(var(--profession-header-height, 112px) + 12px);
-  border-left: 0;
-  border-radius: 0 var(--radius) var(--radius) 0;
-  pointer-events: auto;
-  transition:
-    opacity 160ms ease,
-    visibility 160ms;
-}
-
-body[data-simulation-config-open]:not([data-rotation-focus])
-  .simulation-config-button-track
-  > .simulation-config-open-button {
-  visibility: hidden;
-  pointer-events: none;
-  opacity: 0;
+body[data-rotation-focus] .simulation-config-open-button {
+  display: inline-flex;
 }
 
 .rotation-focus-toggle::before {
@@ -2501,7 +2500,7 @@ body[data-rotation-focus] {
   overflow: hidden;
 }
 
-body[data-rotation-focus] .build-templates {
+body[data-rotation-focus] .build-templates-region {
   display: none;
 }
 
@@ -5320,29 +5319,17 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
 
 /* ─── Perma Boons ─── */
 .perma-section {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1200;
-  width: min(360px, 100%);
-  margin: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transform: translateX(100%);
-  transition:
-    transform 160ms ease,
-    visibility 160ms;
+  min-width: 0;
+  margin: 0 0 12px;
 }
 
 .perma-panel {
   display: flex;
-  height: 100%;
+  height: auto;
   max-height: none;
   padding: 0;
   overflow: hidden;
   border-radius: var(--radius);
-  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.48);
   flex-direction: column;
 }
 
@@ -5361,7 +5348,7 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
 }
 
 .simulation-config-close-button {
-  display: inline-flex;
+  display: none;
   width: 24px;
   height: 24px;
   padding: 0;
@@ -5386,51 +5373,39 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   outline-offset: 2px;
 }
 
-body[data-simulation-config-open] .perma-section {
-  visibility: visible;
-  pointer-events: auto;
-  transform: translateX(0);
-}
-
-body:not([data-rotation-focus]) .rotation-panel-shell {
-  position: relative;
-  z-index: 1;
-}
-
 body:not([data-rotation-focus]) .rotation-section > .rotation-results {
-  position: relative;
-  z-index: 1;
   margin-top: 0;
   padding-top: 12px;
   background: var(--bg-dark);
 }
 
-body:not([data-rotation-focus]) .rotation-section > .perma-section {
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-  transform: translateX(0);
-}
-
-body[data-simulation-config-open]:not([data-rotation-focus])
-  .rotation-section
-  > .perma-section {
-  transform: translateX(100%);
-}
-
-body:not([data-rotation-focus])
-  .rotation-section
-  > .perma-section
-  > .perma-panel {
-  position: sticky;
-  top: calc(var(--profession-header-height, 112px) + 12px);
-  height: var(--rotation-panel-height, 100%);
-}
-
 body[data-rotation-focus] .perma-section {
   position: fixed;
   inset: 12px 12px 12px auto;
+  z-index: 1200;
+  width: min(360px, 100%);
+  margin: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(100%);
+  transition:
+    transform 160ms ease,
+    visibility 160ms;
+}
+
+body[data-rotation-focus] .perma-panel {
+  height: 100%;
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.48);
+}
+
+body[data-rotation-focus] .simulation-config-close-button {
+  display: inline-flex;
+}
+
+body[data-simulation-config-open][data-rotation-focus] .perma-section {
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(0);
 }
 
 body[data-simulation-config-open][data-rotation-focus] .rotation-section {
@@ -5440,10 +5415,46 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 #perma-boons {
   display: flex;
   min-height: 0;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
   flex-direction: column;
   gap: 0;
+}
+
+body[data-rotation-focus] #perma-boons {
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+@media (min-width: 1200px) {
+  .simulation-workspace {
+    display: grid;
+    grid-template-areas: "rotation config";
+    grid-template-columns: minmax(0, 1fr) 310px;
+    align-items: start;
+    gap: 12px;
+  }
+
+  body:not([data-rotation-focus]) .simulation-workspace > .perma-section {
+    position: sticky;
+    top: calc(var(--profession-header-height, 112px) + 12px);
+    max-height: calc(100vh - var(--profession-header-height, 112px) - 24px);
+    grid-area: config;
+    margin: 0;
+  }
+
+  body:not([data-rotation-focus])
+    .simulation-workspace
+    > .perma-section
+    > .perma-panel {
+    max-height: inherit;
+  }
+
+  body:not([data-rotation-focus])
+    .simulation-workspace
+    > .perma-section
+    #perma-boons {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
 }
 
 #perma-boons[hidden] {
@@ -8789,18 +8800,24 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   }
 }
 
-/* Rotation builder on phones: keep the panel a fixed viewport-height box (the
-   desktop model) so the palette and timeline stay on screen together, then make
-   each an independent scroll region. Without this the wrapping palette (flex:
-   0 0 auto) grows tall enough to crush the timeline down to its 52px minimum.
-   The base panel keeps `overflow:hidden`; we only drop its 680px min-height
-   floor so the box fits short screens. */
+/* Rotation builder on phones: keep the palette and timeline as independent
+   scroll regions. The normal workspace grows with the page; focus mode becomes
+   one scrolling column with results after the full builder. */
 @media (max-width: 700px) {
   body[data-rotation-focus] .rotation-section {
+    display: block;
     padding: 6px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   body[data-rotation-focus] .rotation-panel {
+    height: auto;
+  }
+
+  body[data-rotation-focus] .rotation-panel-shell > .rotation-panel {
     height: auto;
   }
 
@@ -8810,16 +8827,24 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 
   body[data-rotation-focus] .rotation-results {
     grid-template-columns: 1fr;
-    max-height: 38vh;
+    max-height: none;
+    margin-top: 8px;
+    overflow-x: hidden;
   }
 
   body[data-rotation-focus] .rotation-results .res-summary {
-    justify-content: center;
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 8px;
+  }
+
+  body[data-rotation-focus] .rotation-results .res-stat {
+    min-width: 0;
   }
 
   body[data-rotation-focus] .rotation-results .res-breakpoint-grid {
-    grid-template-columns: repeat(5, minmax(100px, 1fr));
-    overflow-x: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .rotation-builder-heading {
@@ -8836,8 +8861,44 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
     display: none;
   }
 
-  .rotation-panel {
-    max-height: 85vh;
+  body:not([data-rotation-focus]) .rotation-panel {
+    max-height: none;
+  }
+
+  .rotation-mid {
+    display: grid;
+    grid-template-areas:
+      "label label"
+      "size dead-time"
+      "start start"
+      "buttons buttons";
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: center;
+    gap: 8px 12px;
+  }
+
+  .rotation-tl-label {
+    grid-area: label;
+  }
+
+  .rotation-size-control {
+    grid-area: size;
+  }
+
+  .rotation-dead-time-control {
+    grid-area: dead-time;
+    justify-self: start;
+  }
+
+  .start-att-selector {
+    min-width: 0;
+    grid-area: start;
+  }
+
+  .rotation-btns {
+    min-width: 0;
+    grid-area: buttons;
+    flex-wrap: wrap;
   }
 
   .rotation-palette {
@@ -8847,10 +8908,20 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
     -webkit-overflow-scrolling: touch;
   }
 
+  body[data-rotation-focus] .rotation-palette {
+    max-height: none;
+    overflow-y: visible;
+  }
+
   .rotation-timeline {
-    flex: 1 1 auto;
-    min-height: 160px;
+    flex: 0 0 clamp(320px, 50vh, 520px);
+    min-height: 320px;
     -webkit-overflow-scrolling: touch;
+  }
+
+  body[data-rotation-focus] .rotation-timeline {
+    flex: 0 0 auto;
+    overflow-y: visible;
   }
 
   .pal-skill {

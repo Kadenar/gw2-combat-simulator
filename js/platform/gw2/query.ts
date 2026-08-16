@@ -175,6 +175,9 @@ export function createGw2CombatQuery<
   ): number | null =>
     runtime
       ? sumActiveStacks(
+          // Scheduler and resolver runtimes append applications in
+          // chronological event-queue order. The stop predicate depends on
+          // that ordering so future applications can terminate the scan.
           runtime.boons?.get(kind) || [],
           (application) =>
             buffMatchesAudience(application, audience, companionId) &&
@@ -292,20 +295,7 @@ export function createGw2CombatQuery<
     ) {
       return true;
     }
-    if (illusionEvent) {
-      return (
-        dynamicBoonStacksAt(
-          "fury",
-          time,
-          1,
-          runtime,
-          "summon",
-          0,
-          summonCompanionId(event),
-        ) > 0
-      );
-    }
-    if (isolatedSummon && !inheritsOwnerCriticalState) {
+    if (illusionEvent || (isolatedSummon && !inheritsOwnerCriticalState)) {
       return (
         dynamicBoonStacksAt(
           "fury",
@@ -370,12 +360,13 @@ export function createGw2CombatQuery<
     runtime: Gw2QueryRuntime | null = null,
   ): number => {
     const name = canonicalTargetConditionName(condition);
-    const permanent = configuredTargetConditionStacks(name);
-    const runtimeStacks = runtimeTargetConditionStacks(runtime, name, time);
     if (name === "Vulnerability") {
       return vulnerabilityStacksAt(time, runtime);
     }
-    return permanent + runtimeStacks;
+    return (
+      configuredTargetConditionStacks(name) +
+      runtimeTargetConditionStacks(runtime, name, time)
+    );
   };
   /**
    * @param {number} time

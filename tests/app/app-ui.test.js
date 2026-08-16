@@ -542,6 +542,54 @@ test("shared app metadata owns common attributes and target conditions", () => {
   );
 });
 
+test("mobile rotation workspace keeps controls, timeline, and focus metrics usable", async () => {
+  const css = await readFile(
+    new URL("../../css/style.css", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(
+    css,
+    /body:not\(\[data-rotation-focus\]\) \.rotation-panel\s*\{\s*max-height: none;/,
+  );
+  assert.match(
+    css,
+    /grid-template-areas:\s*"label label"\s*"size dead-time"\s*"start start"\s*"buttons buttons";/,
+  );
+  assert.match(
+    css,
+    /body\[data-rotation-focus\] \.rotation-section\s*\{\s*display: block;\s*padding: 6px;\s*overflow-x: hidden;\s*overflow-y: auto;/,
+  );
+  assert.match(
+    css,
+    /body\[data-rotation-focus\] \.rotation-panel-shell > \.rotation-panel\s*\{\s*height: auto;/,
+  );
+  assert.match(
+    css,
+    /\.rotation-timeline\s*\{\s*flex: 0 0 clamp\(320px, 50vh, 520px\);\s*min-height: 320px;/,
+  );
+  assert.match(
+    css,
+    /body\[data-rotation-focus\] \.rotation-palette\s*\{\s*max-height: none;\s*overflow-y: visible;/,
+  );
+  assert.match(
+    css,
+    /body\[data-rotation-focus\] \.rotation-timeline\s*\{\s*flex: 0 0 auto;\s*overflow-y: visible;/,
+  );
+  assert.match(
+    css,
+    /body\[data-rotation-focus\] \.rotation-results\s*\{\s*grid-template-columns: 1fr;\s*max-height: none;\s*margin-top: 8px;\s*overflow-x: hidden;/,
+  );
+  assert.match(
+    css,
+    /body\[data-rotation-focus\] \.rotation-results \.res-summary\s*\{\s*display: grid;\s*width: 100%;\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/,
+  );
+  assert.match(
+    css,
+    /body\[data-rotation-focus\] \.rotation-results \.res-breakpoint-grid\s*\{\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/,
+  );
+});
+
 test("shared app and platform helpers are profession neutral", async () => {
   const sources = await Promise.all([
     readFile(

@@ -73,12 +73,6 @@ function fieldDescriptors(
   event: SimulationEvent,
 ): readonly OwnedFieldDescriptor[] {
   const skill = context.catalog.skillsById.get(event.skillId ?? event.sourceId);
-  if (
-    Array.isArray(event.comboFields) &&
-    Number(event.hitIndex ?? event.applicationIndex ?? 1) !== 1
-  ) {
-    return [];
-  }
   const descriptors = Array.isArray(event.comboFields)
     ? event.comboFields
     : event.type === "action" && Array.isArray(skill?.comboFields)
