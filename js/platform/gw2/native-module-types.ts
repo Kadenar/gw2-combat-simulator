@@ -273,6 +273,12 @@ export interface NativeProfessionDefinition<
   readonly patchPreview?: PatchPreview | null;
 }
 
+export interface NativePreviewModifierRuleTarget {
+  readonly id: string;
+  readonly moduleId: string;
+  readonly fields: readonly string[];
+}
+
 export type NativeProfessionContract<
   TModules extends readonly AnyNativeModule[],
 > = ProfessionFamilyContract<NativeProfessionRuntimeState<TModules>> & {
@@ -280,4 +286,6 @@ export type NativeProfessionContract<
   readonly preview: PatchPreview | null;
   readonly catalogFor: (patchId?: string) => Readonly<CanonicalCatalog>;
   readonly patchValuesFor: (patchId?: string) => PatchRuntimeValues;
+  /** Validated report metadata for modifier rules touched by the preview. */
+  readonly previewModifierRuleTargets: readonly NativePreviewModifierRuleTarget[];
 };

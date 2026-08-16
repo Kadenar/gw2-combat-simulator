@@ -8,6 +8,7 @@ import type {
   StrikeEffect,
   StrikeTick,
 } from "../engine/types.js";
+import type { Gw2ModifierRule } from "./types.js";
 
 export const CURRENT_PATCH_ID = "current";
 
@@ -71,8 +72,17 @@ export interface SkillPatchEdit {
   readonly castTimeMs?: NumEdit;
 }
 
+export interface ModifierRulePatchEdit {
+  /** Direct numeric rule declarations. Resolver-backed fields use parameters. */
+  readonly amount?: NumEdit;
+  readonly factor?: NumEdit;
+  /** Named numeric inputs consumed by a resolver-backed amount or factor. */
+  readonly parameters?: Readonly<Record<string, NumEdit>>;
+}
+
 export interface ProfessionPatchPreview {
   readonly skills?: Readonly<Record<string, SkillPatchEdit>>;
+  readonly modifierRules?: Readonly<Record<string, ModifierRulePatchEdit>>;
   readonly constants?: Readonly<Record<string, NumEdit>>;
   readonly notes?: readonly PatchNote[];
 }
@@ -167,6 +177,130 @@ function deepFreeze<T>(value: T): T {
   }
   for (const child of Object.values(value as MutableRecord)) deepFreeze(child);
   return Object.freeze(value);
+}
+
+const MODIFIER_PATCH_FIELDS = new Set(["amount", "factor", "parameters"]);
+
+function assertModifierRulePatchEdit(
+  id: string,
+  edit: ModifierRulePatchEdit,
+): void {
+  if (!edit || typeof edit !== "object" || Array.isArray(edit)) {
+    throw new TypeError(`Modifier rule ${id} patch must be an object.`);
+  }
+  for (const field of Object.keys(edit)) {
+    if (!MODIFIER_PATCH_FIELDS.has(field)) {
+      throw new TypeError(
+        `Modifier rule ${id} patch has unsupported field ${field}.`,
+      );
+    }
+  }
+  if (
+    !Object.hasOwn(edit, "amount") &&
+    !Object.hasOwn(edit, "factor") &&
+    !Object.keys(edit.parameters || {}).length
+  ) {
+    throw new TypeError(`Modifier rule ${id} patch does not edit a value.`);
+  }
+}
+
+function patchModifierRule(
+  rule: Gw2ModifierRule,
+  edit: ModifierRulePatchEdit,
+): Readonly<Gw2ModifierRule> {
+  assertModifierRulePatchEdit(rule.id, edit);
+  const patched = { ...rule } as {
+    id: string;
+    amount?: Gw2ModifierRule["amount"];
+    factor?: Gw2ModifierRule["factor"];
+    parameters?: Readonly<Record<string, number>>;
+  } & Gw2ModifierRule;
+  for (const field of ["amount", "factor"] as const) {
+    if (!Object.hasOwn(edit, field)) continue;
+    const current = rule[field];
+    if (typeof current === "function") {
+      throw new TypeError(
+        `Modifier rule ${rule.id}.${field} is resolver-backed; patch a named parameter instead.`,
+      );
+    }
+    if (typeof current !== "number") {
+      throw new TypeError(
+        `Modifier rule ${rule.id} does not expose numeric ${field}.`,
+      );
+    }
+    patched[field] = applyNumEdit(
+      current,
+      edit[field]!,
+      `Modifier rule ${rule.id}.${field}`,
+    );
+  }
+  if (Object.hasOwn(edit, "parameters")) {
+    if (
+      !edit.parameters ||
+      typeof edit.parameters !== "object" ||
+      Array.isArray(edit.parameters)
+    ) {
+      throw new TypeError(
+        `Modifier rule ${rule.id} parameters patch must be an object.`,
+      );
+    }
+    const parameters = { ...(rule.parameters || {}) };
+    for (const [name, numericEdit] of Object.entries(edit.parameters)) {
+      if (!Object.hasOwn(parameters, name)) {
+        throw new TypeError(
+          `Modifier rule ${rule.id} does not expose parameter ${name}.`,
+        );
+      }
+      parameters[name] = applyNumEdit(
+        parameters[name],
+        numericEdit,
+        `Modifier rule ${rule.id}.parameters.${name}`,
+      );
+    }
+    patched.parameters = Object.freeze(parameters);
+  } else if (rule.parameters) {
+    patched.parameters = Object.freeze({ ...rule.parameters });
+  }
+  return Object.freeze(patched);
+}
+
+/**
+ * Applies a sparse patch to declarative modifier rules before hook compilation.
+ * Untouched declarations retain identity; touched rules and the returned list
+ * are frozen without mutating the live declarations.
+ */
+export function applyModifierRulePatch(
+  rules: readonly Gw2ModifierRule[],
+  patch: Readonly<Record<string, ModifierRulePatchEdit>> | null | undefined,
+): readonly Gw2ModifierRule[] {
+  if (!Array.isArray(rules)) {
+    throw new TypeError("Modifier rules must be an array.");
+  }
+  if (patch != null && (typeof patch !== "object" || Array.isArray(patch))) {
+    throw new TypeError("Modifier rule patch must be an object.");
+  }
+  const rulesById = new Map<string, Gw2ModifierRule>();
+  for (const rule of rules) {
+    const id = String(rule?.id || "").trim();
+    if (!id)
+      throw new TypeError("Modifier rule patch target has no stable id.");
+    if (rulesById.has(id)) {
+      throw new TypeError(`Modifier rule patch target ${id} is duplicated.`);
+    }
+    rulesById.set(id, rule);
+  }
+  const edits = Object.entries(patch || {});
+  if (!edits.length) return rules;
+  const replacements = new Map<Gw2ModifierRule, Readonly<Gw2ModifierRule>>();
+  for (const [id, edit] of edits) {
+    const rule = rulesById.get(id);
+    if (!rule)
+      throw new TypeError(`Patch references unknown modifier rule ${id}.`);
+    replacements.set(rule, patchModifierRule(rule, edit));
+  }
+  return Object.freeze(
+    rules.map((rule) => replacements.get(rule) || rule),
+  ) as readonly Gw2ModifierRule[];
 }
 
 function effectTicks(
