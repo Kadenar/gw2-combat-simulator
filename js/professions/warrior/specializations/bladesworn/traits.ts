@@ -30,6 +30,8 @@ import type {
 const UNSEEN_SWORD_STRIKE_ID = 62847;
 
 function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
+  // Skip trait procs that would fire before combat begins when an explicit
+  // combat start is configured (pre-cast weapon swaps should not trigger it).
   if (
     context.hasExplicitCombatStart &&
     (context.combatStartTime == null ||
@@ -174,6 +176,8 @@ export function enterDragonTrigger(
   state.nextDragonChargeAt =
     context.effectiveEnd + DRAGON_CHARGE_INTERVAL_SECONDS;
   state.dragonCharges = 0;
+  // Tactical Reload doubles charge gain per tick. It is consumed immediately
+  // so it only applies to the single Dragon Trigger entry it was active for.
   state.dragonChargesPerInterval =
     state.tacticalReloadUntil > 0 &&
     state.tacticalReloadUntil + context.epsilon >= context.effectiveEnd
@@ -218,6 +222,8 @@ export function useDragonSlash(
     charges,
     maximumCharges,
   );
+  // Dragon Slash Force deals damage at the midpoint of its cast; all other
+  // Dragon Slash variants hit at cast end.
   const impactAt =
     skill.id === ID.DRAGON_SLASH_FORCE
       ? context.start + (context.effectiveEnd - context.start) / 2
@@ -804,6 +810,7 @@ export function completeBladeswornSkill(
       duration: 10,
     });
   }
+  // Dragonspike Mine resets Dragon Trigger's cooldown on use (no ICD in game).
   if (skill.id === ID.DRAGONSPIKE_MINE) {
     context.state.cooldowns.delete(ID.DRAGON_TRIGGER);
   }

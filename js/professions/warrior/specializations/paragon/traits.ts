@@ -25,6 +25,9 @@ const CHANT_IDS = [
   ID.CHANT_OF_FREEDOM,
 ] as const;
 
+// Broadcasts paragon state as a typed event so the resolver can mirror it.
+// The resolver does not share mutable scheduler state, so motivation and
+// refrain must travel through the event stream.
 function emitParagonState(
   context: WarriorSchedulerContext,
   at: number,
@@ -303,6 +306,7 @@ export function updateParagonCast(
       executePendingEcho(context, echo.id, context.effectiveEnd);
     }
   }
+  // skill.id === -3 is the weapon-swap pseudo-skill.
   if (
     skill.id === -3 &&
     hasTrait(context, TRAIT.INSPIRING_IMPLEMENTS) &&
@@ -319,6 +323,8 @@ export function updateParagonCast(
   }
 }
 
+// Rally the Valiant motivation is added at cast START so it is visible during
+// updateParagonCast (afterCast) when pending command echoes are flushed.
 export function beginParagonCast(
   context: WarriorCastContext,
   skill: WarriorSkill,

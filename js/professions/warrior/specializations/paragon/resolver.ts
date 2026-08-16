@@ -5,6 +5,9 @@ import type {
   WarriorResolverEvent,
 } from "../../types.js";
 
+// Mirrors scheduler-side paragon state into the resolver so modifier rules
+// can read motivation and activeRefrain. structuredClone prevents the resolver
+// copy from aliasing the scheduler's live state objects.
 function handleParagonState(
   context: WarriorResolverContext,
   event: WarriorResolverEvent,

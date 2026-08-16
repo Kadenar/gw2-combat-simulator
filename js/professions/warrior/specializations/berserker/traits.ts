@@ -205,6 +205,8 @@ function criticalCount(
     ) => { chance?: number };
   };
   const state = berserkerState.from(context);
+  // Accumulate fractional crit probability so expected crits fire at the
+  // statistically correct rate in deterministic mode.
   state.kingOfFiresCriticalProgress += Number(
     criticalPolicy.critical?.(context, event)?.chance || 0,
   );
@@ -269,6 +271,7 @@ export function handleKingOfFiresHitTask(
   ) {
     return;
   }
+  // 15-second ICD between King of Fires procs.
   state.kingOfFiresReadyAt = event.at + 15;
   emitFireAura(context, event, "Trait");
   const skill =
