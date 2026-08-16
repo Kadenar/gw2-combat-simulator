@@ -28,7 +28,8 @@ classify every note in a small ledger so nothing disappears silently.
 | Classification                                        | Handling                                                                                                                   |
 | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | PvE numeric skill/effect change                       | Apply through the catalog overlay.                                                                                         |
-| PvE trait or runtime-computed change                  | Apply through a named patchable constant after the code path exposes one.                                                  |
+| PvE declarative trait modifier change                 | Apply through the modifier-rule overlay.                                                                                   |
+| PvE imperative trait or runtime-computed change       | Apply through a named patchable constant after the code path exposes one.                                                  |
 | PvP/WvW-only change                                   | Record as `not-applicable`; this simulator models PvE.                                                                     |
 | `unchanged` or a later note that supersedes a preview | Remove/cancel the earlier edit and record the resolution.                                                                  |
 | Bug fix or behavior change                            | Implement ordinary code behind the preview selector when it changes simulated output; otherwise record it as out of model. |
@@ -53,7 +54,7 @@ The one optional manifest lives at `js/patches/active-preview.ts` and has:
 
 - stable `id`, display `label`, optional source URL, and publication date;
 - optional global patchable constants and General-note ledger entries;
-- per-profession skill edits and patchable constants; and
+- per-profession skill edits, modifier-rule edits, and patchable constants;
 - a per-profession note ledger with `applied`, `tracked`, `not-applicable`,
   `unchanged`, or `superseded` status.
 
@@ -263,12 +264,63 @@ guards. Tick-based strike and condition timelines can target one tick or all
 ticks. Complete effects can also be appended or removed. Ambiguous selectors
 throw unless the author explicitly opts into all matches.
 
+### Trait modifier authoring examples
+
+Declarative trait modifiers are patched by their stable modifier-rule ID. A
+single trait may own multiple rules for different targets or conditions, so
+the rule ID is the executable selector rather than the catalog trait ID.
+
+Static `amount` and `factor` declarations use the same numeric edits as skill
+fields:
+
+```ts
+modifierRules: {
+  "profession.example-strike-bonus": {
+    factor: { from: 1.1, to: 1.15 },
+  },
+},
+```
+
+Resolver-backed rules expose named numeric parameters. The resolver receives
+those parameters as its third argument, allowing preview construction to check
+the live value before any combat context executes:
+
+```ts
+// Owner-local rules.ts
+{
+  id: "profession.example-stacking-bonus",
+  target: MODIFIER_TARGET.STRIKE_DAMAGE,
+  operation: "damage-additive",
+  parameters: { perStack: 0.01 },
+  amount: (context, _target, parameters) =>
+    activeStacks(context) * parameters.perStack,
+  when: (context) => hasTrait(context, TRAIT.EXAMPLE),
+}
+
+// active-preview.ts
+modifierRules: {
+  "profession.example-stacking-bonus": {
+    parameters: {
+      perStack: { from: 0.01, to: 0.015 },
+    },
+  },
+},
+```
+
+Directly patching a function-backed `amount` or `factor` is rejected. The rule
+must expose the changed input as a parameter so `{ from, to }` remains an eager,
+deterministic stale-value guard. Rule IDs must be unique across Core and every
+specialization in the profession. Unknown IDs, wrong fields, unknown
+parameters, and stale parameter values fail preview construction.
+
 Named patchable constants cover numbers computed outside catalog effects. Code
-reads them through the shared helper using the simulation config. A constant
-key is part of the authoring API and must be stable and specific, for example
-`warrior.traits.burst-mastery.factor`. Static attribute calculations that occur
-before simulation need an explicit preview-aware seam before such a note can be
-marked `applied`.
+reads them through the shared helper using the simulation config. Constants are
+the escape hatch for imperative trait behavior, build-time attribute
+calculations, and other values that are not declarative modifier rules. A
+constant key is part of the authoring API and must be stable and specific, for
+example `warrior.traits.burst-mastery.factor`. Static attribute calculations
+that occur before simulation need an explicit preview-aware seam before such a
+note can be marked `applied`.
 
 ```ts
 patchRuntimeValue(
@@ -280,13 +332,15 @@ patchRuntimeValue(
 
 ## Data flow
 
-All native professions already converge at the assembled canonical catalog:
+All native professions converge at the assembled canonical catalog and the
+Core-plus-active-specialization modifier compiler:
 
 ```text
-profession skill fragments
-  -> assembled live CanonicalCatalog
-  -> lazy sparse preview overlay
-  -> current or preview runtime selected by config.patchId
+skill fragments -> live CanonicalCatalog -> sparse preview skill overlay
+module modifier rules -> live family or patched preview family -> compiled hooks
+named constants -> patchValuesFor -> imperative preview-aware consumers
+                                      |
+                                      -> runtime selected by config.patchId
 ```
 
 `defineNativeProfession` accepts the singular optional preview manifest and
@@ -295,15 +349,19 @@ exposes:
 - `catalog` as the backward-compatible live alias;
 - `preview` as metadata or `null`;
 - `catalogFor("current" | preview.id)`; and
-- `patchValuesFor("current" | preview.id)` for runtime constants.
+- `patchValuesFor("current" | preview.id)` for runtime constants; and
+- validated modifier-rule target metadata for the promotion report.
 
-Preview application catalogs and specialization runtime catalogs are built
-lazily. Untouched skills remain referentially identical to live skills. A
-touched skill is cloned before editing because canonical data is frozen.
+Preview application catalogs and specialization runtime families are built
+lazily. Untouched skills and modifier declarations remain referentially
+identical to live source. A touched skill or modifier rule is cloned before
+editing.
 
-Runtime selection wraps the family resolver. This avoids the existing native
-assembly cache collision and ensures scheduler, resolver, and UI lookup all use
-the selected catalog without rebuilding raw module fragments.
+Runtime selection dispatches current configs to the live family and preview
+configs with modifier edits to a separate patched family. Each family retains
+its specialization cache, which prevents live compiled hooks from being reused
+for the preview. The selected runtime catalog is then overlaid with skill edits
+as before.
 
 ## Application behavior
 
@@ -332,10 +390,11 @@ mistaken for a patch effect.
   therefore run unchanged on both catalogs.
 - Adding/removing skills or changing loadout topology requires ordinary code,
   guarded by the patch selector if it must be previewable.
-- Unknown patch IDs, skills, effects, fields, stale `from` values, and ambiguous
-  selectors fail fast. Runtime constant `from` values are checked when their
-  consuming code requests them.
+- Unknown patch IDs, skills, effects, modifier rules, fields, parameters, stale
+  `from` values, and ambiguous selectors fail fast. Runtime constant `from`
+  values are checked when their consuming code requests them.
 - Catalog application never mutates live data.
+- Modifier-rule application never mutates live declarations or compiled hooks.
 - Only one preview manifest may be active.
 - A note is marked `applied` only when the selected preview actually changes
   simulation behavior.
@@ -344,17 +403,18 @@ mistaken for a patch effect.
 
 Promotion is deliberately explicit rather than a blind source codemod. Catalog
 overlays may target generated metadata, handwritten fragments, or packetized
-effects, while constants name arbitrary runtime locations. The promotion
-command validates the manifest and prints a checklist of every applied edit and
-source owner. The developer folds each value into live source, removes the
-manifest, and tests the resulting identity (`current` now equals the former
-preview). This keeps generated data ownership and hand-authored mechanics
-reviewable.
+effects; modifier edits target owner-local rule declarations; and constants
+name arbitrary runtime locations. The promotion command validates the manifest
+and prints a checklist of every applied edit and source owner. The developer
+folds each value into live source, removes the manifest, and tests the resulting
+identity (`current` now equals the former preview). This keeps generated data
+ownership and hand-authored mechanics reviewable.
 
 Run `npm run patch-preview:report` before promotion. It builds the typed
-manifest, constructs every affected preview catalog to catch stale selectors,
-and prints the review checklist. After folding the values into live source,
-set `activePatchPreview` back to `null` and run the full check again.
+manifest, constructs every affected preview catalog, and resolves Core plus
+every specialization preview runtime to catch stale selectors and invalid
+modifier declarations. After folding the values into live source, set
+`activePatchPreview` back to `null` and run the full check again.
 
 ## Validation
 
@@ -365,9 +425,13 @@ Tests must prove:
 3. aggregate effects, selected packets, and tick timelines are targetable;
 4. complete condition effects can be added and removed without mutating live;
 5. live objects are never mutated and untouched skills retain identity;
-6. invalid/stale/ambiguous authoring fails at preview construction;
-7. live and preview runtime catalogs coexist without cache collisions;
-8. `patchId` reaches scheduler/resolver patchable constants;
-9. the same build and rotation produce both deterministic comparison results;
-10. UI controls disappear cleanly when no preview is authored; and
-11. build, typecheck, site checks, and relevant profession benchmarks pass.
+6. static modifier amounts/factors and named resolver parameters are patchable;
+7. invalid/stale/ambiguous authoring fails at preview construction;
+8. live and preview runtime catalogs and compiled hooks coexist without cache
+   collisions;
+9. unselected traits and inactive specialization rules remain inert;
+10. `patchId` reaches scheduler/resolver patchable constants;
+11. the promotion report validates Core and every specialization;
+12. the same build and rotation produce both deterministic comparison results;
+13. UI controls disappear cleanly when no preview is authored; and
+14. build, typecheck, site checks, and relevant profession benchmarks pass.

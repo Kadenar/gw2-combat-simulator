@@ -48,8 +48,7 @@ export interface ComboFieldEvent extends SimulationEventBase<"combo_field"> {
   readonly comboBindingPriority?: number;
 }
 
-export interface ComboFinisherEvent
-  extends SimulationEventBase<"combo_finisher"> {
+export interface ComboFinisherEvent extends SimulationEventBase<"combo_finisher"> {
   readonly attemptId: string;
   readonly finisherType: ComboFinisherType;
   readonly fieldBinding: ComboFieldBinding;
@@ -695,8 +694,7 @@ export interface Gw2ResolverHelpers extends SchedulerRecord {
 }
 
 export type Gw2EventQueue =
-  | Gw2ResolverEvent[]
-  | StableEventQueue<Gw2ResolverEvent>;
+  Gw2ResolverEvent[] | StableEventQueue<Gw2ResolverEvent>;
 
 export interface Gw2ResolverRuntime extends SchedulerRecord {
   config: Gw2Config;
@@ -951,11 +949,10 @@ export interface CreateGw2ResolverRuntimeStateOptions {
   readonly reactions?: Gw2ResolverReactionRegistry;
 }
 
-export interface Gw2ProfessionContract
-  extends Omit<
-    NormalizedProfessionContract,
-    "eventHandlers" | "eventReactions" | "simulation" | "projectEndState"
-  > {
+export interface Gw2ProfessionContract extends Omit<
+  NormalizedProfessionContract,
+  "eventHandlers" | "eventReactions" | "simulation" | "projectEndState"
+> {
   readonly eventHandlers: Gw2ResolverEventHandlers;
   readonly eventReactions: Gw2ResolverReactions;
   readonly simulation:
@@ -1042,8 +1039,7 @@ export interface Gw2ConversionAttributeEffect extends Gw2AttributeEffectBase {
 }
 
 export type Gw2AttributeEffect =
-  | Gw2FlatAttributeEffect
-  | Gw2ConversionAttributeEffect;
+  Gw2FlatAttributeEffect | Gw2ConversionAttributeEffect;
 
 export interface Gw2AttributeBreakdown {
   final: number;
@@ -1386,6 +1382,7 @@ export interface Gw2TraitContext extends SchedulerRecord {
 export type Gw2ModifierNumericResolver = (
   context: Gw2ModifierContext,
   target: Gw2ModifierTarget,
+  parameters: Readonly<Record<string, number>>,
 ) => number;
 
 export interface Gw2ModifierRule {
@@ -1395,6 +1392,8 @@ export interface Gw2ModifierRule {
   readonly operation: Gw2ModifierOperation;
   readonly amount?: number | Gw2ModifierNumericResolver;
   readonly factor?: number | Gw2ModifierNumericResolver;
+  /** Named patchable inputs for resolver-backed amounts or factors. */
+  readonly parameters?: Readonly<Record<string, number>>;
   readonly when?: (context: Gw2ModifierContext) => boolean;
   readonly order?: number;
 }
@@ -1406,14 +1405,14 @@ export interface Gw2NormalizedModifierRule {
   readonly operation: Gw2ModifierOperation;
   readonly amount?: number | Gw2ModifierNumericResolver;
   readonly factor?: number | Gw2ModifierNumericResolver;
+  readonly parameters: Readonly<Record<string, number>>;
   readonly when: ((context: Gw2ModifierContext) => boolean) | null;
   readonly order: number;
   readonly declarationIndex: number;
 }
 
 export type Gw2IncludeSigilPolicy =
-  | boolean
-  | ((context: Gw2ModifierContext) => boolean);
+  boolean | ((context: Gw2ModifierContext) => boolean);
 
 export interface Gw2DamageBucketPolicy {
   readonly includeSigil: Gw2IncludeSigilPolicy;
