@@ -14,6 +14,7 @@ import type { RevenantUiContext } from "../../types.js";
 export const heraldUi: Partial<ProfessionUiContract> & SchedulerRecord =
   Object.freeze({
     paletteGroups: (context: RevenantUiContext) => {
+      // True Nature's skill ID differs per active legend; look it up before deciding which button to show.
       const trueNatureId = (
         HERALD_MECHANICS.trueNatureConsumeByLegendId as Readonly<
           Record<string, SkillId>
@@ -23,6 +24,7 @@ export const heraldUi: Partial<ProfessionUiContract> & SchedulerRecord =
         id: "revenant-profession-specialization",
         label: "F",
         skillIds: [
+          // Show the legend-specific True Nature only when Facet of Nature is already active (flip registered); otherwise show the activating facet.
           trueNatureId != null &&
           revenantUiState(context).availableFlips?.[trueNatureId]
             ? trueNatureId
@@ -32,5 +34,6 @@ export const heraldUi: Partial<ProfessionUiContract> & SchedulerRecord =
         resourceAnchor: true,
       }];
     },
+    // Herald has no custom resource bar; it reuses the core Energy bar declared in revenantCoreUi.
     resourceViews: () => [],
   });

@@ -6,12 +6,7 @@ import {
   onResolvedPlayerCriticalHit,
 } from "../../../platform/gw2/native-profession.js";
 import { createThiefModuleData } from "../catalog-data.js";
-import {
-  reactToThiefCoreBuff,
-  thiefCoreCriticalReactions,
-  thiefCoreResolverEventHandlers,
-  thiefCoreResolverEventReactions,
-} from "./resolver.js";
+import { thiefCoreEventHandlers, thiefCoreEventReactions } from "./resolver.js";
 import {
   thiefCoreAttributeRules,
   thiefCoreCastRules,
@@ -42,27 +37,13 @@ export const thiefCoreModule = defineNativeModule({
     castRules: thiefCoreCastRules,
     schedulerHooks: thiefCoreSchedulerHooks,
     reactions: [
-      onResolvedPlayerCriticalHit(
-        thiefCoreCriticalReactions.unrelentingStrikes,
-      ),
-      onResolvedPlayerCriticalHit(thiefCoreCriticalReactions.noQuarter),
-      onResolvedDamage({
-        id: "thief.core.damage",
-        order: 30,
-        handler: thiefCoreResolverEventReactions.damage,
-      }),
-      onConditionApplied({
-        id: "thief.core.condition",
-        handler: thiefCoreResolverEventReactions.condition,
-      }),
-      onBuffApplied({
-        id: "thief.core.buff",
-        order: 30,
-        handler: reactToThiefCoreBuff,
-      }),
+      ...thiefCoreEventReactions.critical.map(onResolvedPlayerCriticalHit),
+      ...thiefCoreEventReactions.damage.map(onResolvedDamage),
+      ...thiefCoreEventReactions.condition.map(onConditionApplied),
+      ...thiefCoreEventReactions.buff.map(onBuffApplied),
     ],
     resolverHooks: {
-      eventHandlers: thiefCoreResolverEventHandlers,
+      eventHandlers: thiefCoreEventHandlers,
     },
   },
   presentation: thiefCoreUi,

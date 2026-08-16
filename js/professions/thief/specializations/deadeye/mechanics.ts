@@ -29,6 +29,7 @@ export const DEADEYE_STOLEN_ID_BY_CHOICE: Readonly<Record<string, number>> =
   });
 
 export function selectedDeadeyeStolenSkill(context: ThiefCastContext): number {
+  // Fire for Effect locks the stolen skill to Steal Time regardless of the user's assumption control
   if (hasThiefTrait(context.config, TRAIT.FIRE_FOR_EFFECT)) {
     return ID.STEAL_TIME;
   }
@@ -49,6 +50,7 @@ function skillForEvent(
 }
 
 function isInitiativeAttack(skill: ThiefSkill): boolean {
+  // Stealth attacks (malicious or otherwise) gain malice via a separate path; exclude them here to avoid double-counting
   return (
     skill.type === "Weapon" &&
     Number(skill.initiativeCost || 0) > 0 &&
@@ -62,6 +64,7 @@ function markedAt(context: ThiefSchedulerContext, at: number): boolean {
 }
 
 export function initializeDeadeyeMalice(context: ThiefSchedulerContext): void {
+  // Malice gains a bonus stack on a critical hit (deterministic path), so the scheduler must know crit probability up front
   (context.schedulerPolicy as Gw2SchedulerPolicy).requireCriticalFacts();
 }
 
@@ -79,6 +82,7 @@ export function observeDeadeyeScheduledEvent(
   }
   const skill = skillForEvent(context, event);
   if (!skill || (!skill.malicious && !isInitiativeAttack(skill))) return;
+  // Negative priority ensures the task runs after all damage events for this activation have been appended
   context.tasks.schedule({
     type: "thief.deadeye-malice-hit",
     at: event.at,
@@ -101,6 +105,7 @@ function gainInitiativeAttackMalice(
       context as unknown as SchedulerContext,
       event,
     );
+    // Accumulate fractional crit chance and floor to whole malice stacks; epsilon prevents floating-point drift from blocking a threshold crossing
     state.maliceCriticalProgress += Math.max(
       0,
       Math.min(1, Number(critical.chance || 0)),
@@ -122,6 +127,7 @@ function consumeMaliciousAttackMalice(
 ): void {
   const state = deadeyeState.from(context);
   if (hasThiefTrait(context.config, TRAIT.MALICIOUS_INTENT)) {
+    // Malicious Intent grants 2 malice on consumption before zeroing it out, allowing Maleficent Seven to trigger one final time
     state.malice = Math.min(state.maximumMalice, state.malice + 2);
     applyMaleficentSeven(context, event.at);
     emitThiefState(context, event.at, "malicious-intent");
@@ -149,6 +155,7 @@ export function resolveDeadeyeMaliceHit(
   const skill = skillForEvent(context, event);
   if (!skill) return;
   const state = deadeyeState.from(context);
+  // Guard against multi-hit skills scheduling multiple tasks for the same activation; only the first should update malice
   if (state.maliceResolvedActivations[activationId]) return;
   state.maliceResolvedActivations[activationId] = true;
   if (skill.malicious) {
@@ -167,6 +174,7 @@ function updateSilentScope(context: ThiefCastContext, skill: ThiefSkill): void {
   ) {
     return;
   }
+  // Silent Scope grants one out-of-stealth stealth-attack charge, expiring 3s after the dodge ends
   state.stealthAttackCharges = 1;
   state.stealthAttackExpiresAt = context.effectiveEnd + 3;
   emitThiefState(context, context.effectiveEnd, "silent-scope");
@@ -195,6 +203,7 @@ function updateCantripTraits(
     emitThiefState(context, at, "deadeye-relic");
   }
   if (hasThiefTrait(context.config, TRAIT.ONE_IN_THE_CHAMBER)) {
+    // One in the Chamber recharges the stolen skill on every cantrip use, overwriting any previously stored skill
     storeStolenSkill(context, selectedDeadeyeStolenSkill(context));
   }
 }

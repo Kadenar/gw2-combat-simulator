@@ -91,6 +91,7 @@ const DAREDEVIL_DODGE_EFFECTS: Readonly<
   ]),
 });
 
+// Only the physical utility skills grant Brawler's Tenacity endurance — not all Daredevil skills
 const BRAWLERS_TENACITY_PHYSICAL_SKILLS: ReadonlySet<SkillId> = new Set([
   ID.CHANNELED_VIGOR,
   ID.BANDITS_DEFENSE,
@@ -106,6 +107,7 @@ function emitDodgeEffect(
   effect: DaredevilDodgeEffect,
 ): void {
   const state = daredevilState.from(context);
+  // Remap trait names to the in-game skill names that appear in logs/UI
   const dodgeSkillName =
     state.selectedDodge === "Bounding Dodger"
       ? "Bound"
@@ -172,12 +174,15 @@ export function applyDaredevilDodge(
   if (skill.id !== ID.DODGE) return;
   const state = daredevilState.from(context);
   if (state.selectedDodge === "Bounding Dodger") {
+    // +6 s pads the 5 s in-game bonus window to absorb quickness-compressed cast times
     state.boundingDamageUntil = context.effectiveEnd + 6;
   }
   if (state.selectedDodge === "Lotus Training") {
+    // Same padding as Bounding Dodger — resolver checks > context.time so equality is not enough
     state.lotusConditionDamageUntil = context.effectiveEnd + 6;
   }
   if (hasThiefTrait(context.config, TRAIT.WEAKENING_STRIKES)) {
+    // Arm the one-shot Weakness proc; it fires on the very next attacking skill
     state.weakeningStrikeReady = true;
   }
   emitThiefState(context, context.effectiveEnd, "daredevil-dodge");
@@ -196,6 +201,7 @@ function spendDaredevilTraitResources(
     skill.weapon === "Staff" &&
     hasThiefTrait(context.config, TRAIT.STAFF_MASTER)
   ) {
+    // Staff Master refunds 2 endurance per initiative spent, not per cast
     gainThiefEndurance(context, cost * 2, context.start, "staff-master");
   }
   if (
@@ -207,6 +213,7 @@ function spendDaredevilTraitResources(
 }
 
 function skillAttacks(skill: ThiefSkill): boolean {
+  // Dodge itself is excluded so the Weakening Strikes proc from the dodge doesn't immediately consume itself
   return (
     skill.id !== ID.DODGE &&
     (skill.effects || []).some(

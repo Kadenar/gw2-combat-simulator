@@ -10,7 +10,7 @@ import {
   RANGER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
 import { rangerCoreCastAvailability } from "./availability.js";
-import { rangerPetByName } from "./state.js";
+import { rangerPetByName, snapshotRangerState } from "./state.js";
 import { advanceRangerResources } from "./resources.js";
 import { completeRangerTraits } from "./traits.js";
 import { updateRangerWeaponState } from "./weapon-state.js";
@@ -50,6 +50,8 @@ export const rangerCoreSchedulerHooks = Object.freeze({
     },
   },
   taskHandlers: rangerPetTaskHandlers,
+  snapshot: (context: RangerSchedulerContext) =>
+    snapshotRangerState(context.state.profession),
   afterCast: {
     id: "ranger.weapon-state",
     order: 10,

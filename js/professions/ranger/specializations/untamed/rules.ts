@@ -57,6 +57,7 @@ export function untamedCastAvailability(
     if (!state.rangerUnleashed) {
       return deny(skill, "ranger.not-unleashed", "Unleash Ranger first.");
     }
+    // ambushReadyUntil is a deadline, not a cooldown: the window closes when time reaches it.
     if (context.start >= state.ambushReadyUntil - context.epsilon) {
       return deny(
         skill,
@@ -68,6 +69,7 @@ export function untamedCastAvailability(
   return { ready: true };
 }
 
+// Modifier context does not carry typed profession state, so we navigate the runtime via cast.
 function rangerUnleashed(context: Gw2ModifierContext): boolean {
   const profession = context.runtime?.profession as
     | {
@@ -91,6 +93,7 @@ export const untamedModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     amount: 0.25,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
+      // Pet strikes don't benefit from Vow even when Ranger is unleashed.
       context.event?.source !== "ranger-pet" &&
       rangerUnleashed(context) &&
       hasTrait(context, TRAIT.VOW_OF_THE_UNTAMED),
@@ -130,6 +133,7 @@ export const untamedModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       )?.profession?.specialization;
       if (state?.kind !== "Untamed") return 1;
       const pet = context.event?.source === "ranger-pet";
+      // Pet strikes use Pet stacks; player strikes use Player stacks (each built by the other).
       const stacks = pet
         ? context.time < Number(state.state?.ferociousSymbiosisPetUntil || 0)
           ? Number(state.state?.ferociousSymbiosisPetStacks || 0)
@@ -170,6 +174,7 @@ export const untamedSchedulerHooks = Object.freeze({
     if (
       skill.id !== ID.SWAP_WEAPONS ||
       !hasTrait(context, TRAIT.LET_LOOSE) ||
+      // Pre-combat weapon swaps don't trigger Let Loose; only in-combat swaps count.
       context.combatStartTime == null ||
       context.start < context.combatStartTime
     ) {
@@ -178,8 +183,10 @@ export const untamedSchedulerHooks = Object.freeze({
     const state = untamedState.from(context);
     if (context.start + context.epsilon < state.letLooseReadyAt) return;
     state.letLooseReadyAt = context.start + 9;
+    // Weapon swap resets Unleashed Power so the next Unleash Ranger re-opens an ambush window.
     state.unleashedPowerReadyAt = 0;
     if (state.rangerUnleashed) {
+      // Weapon-swap ambush window is counted from effectiveEnd (post-cast), not cast start.
       state.ambushReadyUntil = context.effectiveEnd + 4;
     }
   },

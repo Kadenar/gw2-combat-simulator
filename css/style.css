@@ -876,9 +876,7 @@ header .community-actions {
   }
 
   .build-templates-region {
-    min-height: 0;
-    grid-column: 2;
-    grid-row: 1;
+    display: contents;
   }
 
   .build-templates {
@@ -887,8 +885,13 @@ header .community-actions {
     z-index: 10;
     width: 100%;
     max-width: none;
-    max-height: calc(100vh - var(--profession-header-height, 112px) - 24px);
+    max-height: min(
+      46vh,
+      calc(100vh - var(--profession-header-height, 112px) - 24px)
+    );
     margin: 0;
+    grid-column: 2;
+    grid-row: 1;
   }
 
   .profession-layout > .simulation-workspace {
@@ -5454,6 +5457,39 @@ body[data-rotation-focus] #perma-boons {
     #perma-boons {
     overflow-y: auto;
     scrollbar-gutter: stable;
+  }
+
+  body:not([data-rotation-focus])
+    #app.has-template-sidebar
+    .simulation-workspace
+    > .perma-section {
+    position: fixed;
+    top: calc(
+      var(--profession-header-height, 112px) +
+        var(--build-templates-sticky-height, 0px) + 12px
+    );
+    right: auto;
+    bottom: 12px;
+    left: var(--build-templates-sticky-left, auto);
+    width: var(--build-templates-sticky-width, 310px);
+    max-height: none;
+    z-index: 10;
+  }
+
+  body:not([data-rotation-focus])
+    #app.has-template-sidebar
+    .simulation-workspace
+    > .perma-section
+    > .perma-panel {
+    height: 100%;
+    border-top: 0;
+    border-radius: 0 0 var(--radius) var(--radius);
+  }
+
+  body:not([data-rotation-focus])
+    #app.has-template-sidebar
+    .build-templates-panel {
+    border-radius: var(--radius) var(--radius) 0 0;
   }
 }
 

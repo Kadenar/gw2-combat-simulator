@@ -29,6 +29,7 @@ export function completeSiphon(context: ThiefCastContext): void {
         : SIPHON_BASE_SHADOW_FORCE
     ),
   );
+  // Siphon is a profession skill, not a steal; null clears any stored stolen skill.
   completeStealWithStoredSkill(context, null);
 }
 
@@ -40,6 +41,7 @@ export function enterShadowShroud(
   const at = context.effectiveEnd;
   state.shadowShroudActive = true;
   state.shadowForceUpdatedAt = at;
+  // Enter Shadow Shroud only barriers one ally (tethered target), not the whole party.
   const alliedRecipients = Math.min(
     1,
     gw2AlliedPlayerAssumptions(context.config).count,
@@ -82,6 +84,8 @@ export function exitShadowShroud(
   emitThiefState(context, at, "exit-shadow-shroud");
 }
 
+// Specter converts spent initiative into shadow force instead of consuming it for damage.
+// The core thief handler still deducts initiative; this is a parallel gain on top of that.
 export function spendSpecterResources(
   context: ThiefCastContext,
   skill: ThiefSkill,
@@ -93,6 +97,7 @@ export function spendSpecterResources(
     state.maximumShadowForce,
     state.shadowForce + cost * SHADOW_FORCE_PER_INITIATIVE,
   );
+  // Emit at cast start so the resource timeline reflects the gain immediately.
   emitThiefState(context, context.start, "shadow-force");
 }
 
@@ -110,6 +115,7 @@ export function advanceSpecterResources(
         * state.maximumShadowForce
         * SHADOW_FORCE_DRAIN_FRACTION_PER_SECOND,
     );
+    // When force hits exactly 0, shroud collapses automatically without an explicit exit cast.
     if (state.shadowForce === 0) {
       state.shadowShroudActive = false;
       emitThiefShroudSwap(context, {

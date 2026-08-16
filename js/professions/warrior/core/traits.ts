@@ -1,6 +1,7 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
+import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
 /**
- * Scheduler-side Warrior trait lifecycle and event observation.
+ * Warrior trait lifecycle, event observation, and resolver reactions.
  *
  * Seeds trait-owned proc state, applies cast-start/complete/after-cast trait
  * reactions, and materializes derived trait effects from scheduled damage,
@@ -16,10 +17,78 @@ import {
 import { gainWarriorAdrenaline, gainWarriorEndurance } from "./resources.js";
 import type {
   WarriorCastContext,
+  WarriorResolverContext,
+  WarriorResolverEvent,
   WarriorSchedulerContext,
   WarriorSimulationEvent,
   WarriorSkill,
 } from "../types.js";
+
+export function reactToWarriorDamage(
+  context: WarriorResolverContext,
+  event: WarriorResolverEvent,
+): void {
+  const targetHealth = Number(context.config.target?.health || 0);
+  const damageDone =
+    Number(context.totals.strike || 0) + Number(context.totals.condition || 0);
+  const state = professionCoreState(context);
+  if (
+    event.actorType !== "player" ||
+    !(Number(event.coefficient || 0) > 0) ||
+    !(targetHealth > 0) ||
+    damageDone < targetHealth * 0.5 ||
+    !hasTrait(context, TRAIT.SIGNET_MASTERY) ||
+    event.at < Number(state.traitProcReadyAt.lesserSignetMight || 0)
+  ) {
+    return;
+  }
+
+  state.traitProcReadyAt.lesserSignetMight = event.at + 20;
+  for (const buff of [
+    { kind: "might", stacks: 10, duration: 6 },
+    { kind: "signet-mastery", stacks: 1, duration: 60 },
+  ]) {
+    enqueueOrdered(context.queue, {
+      type: "buff",
+      at: event.at + 1e-9,
+      priority: -5,
+      source: "Trait",
+      sourceId: TRAIT.SIGNET_MASTERY,
+      actorType: "effect",
+      skillId: TRAIT.SIGNET_MASTERY,
+      skillName: "Lesser Signet of Might",
+      name: "Lesser Signet of Might",
+      ...buff,
+    });
+  }
+  context.recordProc(
+    "trait",
+    "Lesser Signet of Might",
+    event.at,
+    event.skillName,
+    "10 might; Signet Mastery stack",
+    String(context.helpers.skillsById?.get(ID.SIGNET_OF_MIGHT)?.icon || ""),
+  );
+}
+
+export function reactToWarriorBuff(
+  context: WarriorResolverContext,
+  event: WarriorResolverEvent,
+): void {
+  if (
+    Number(event.sourceId) !== TRAIT.PEAK_PERFORMANCE ||
+    event.kind !== "peak-performance"
+  ) {
+    return;
+  }
+  context.recordProc(
+    "trait",
+    "Peak Performance",
+    event.at,
+    event.skillName,
+    "+10% strike damage for 6 seconds",
+  );
+}
 
 export const BRAVE_STRIDE_MOVEMENT_SKILL_IDS = Object.freeze([
   ID.SAVAGE_LEAP,

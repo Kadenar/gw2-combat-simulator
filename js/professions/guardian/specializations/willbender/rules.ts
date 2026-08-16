@@ -44,6 +44,7 @@ export const willbenderModifierRules: readonly Gw2ModifierRule[] =
       id: "guardian.willbender.lethal-tempo-strike",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
+      // Tyrant's Momentum raises strike bonus (5 % vs 2 %) to compensate for the shorter window.
       factor: (context) =>
         1 +
         lethalTempoStacks(context) *
@@ -56,6 +57,7 @@ export const willbenderModifierRules: readonly Gw2ModifierRule[] =
       id: "guardian.willbender.lethal-tempo-condition",
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: "multiply",
+      // Condition bonus is identical (2 %) without Tyrant's Momentum; the trait adds 1 % here too.
       factor: (context) =>
         1 +
         lethalTempoStacks(context) *
@@ -70,6 +72,8 @@ export const willbenderModifierRules: readonly Gw2ModifierRule[] =
       operation: "multiply",
       factor: 3,
       order: 100,
+      // willbenderFlames flag is set only on Willbender Flames pulse strikes (rules.ts handleWillbenderFlamePulse),
+      // so this 3× multiplier never applies to normal weapon hits.
       when: (context) =>
         Boolean(context.event?.willbenderFlames) &&
         hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_FOR_POWER),
@@ -173,12 +177,14 @@ function reduceWeaponCooldown(
   at: number,
   reduction = 0.25,
 ): number {
+  // Ammo skills track remaining charges separately, so reduction must go through the
+  // ammo-aware controller path rather than directly mutating the cooldown timestamp.
   if (context.state.ammo.has(skill.id)) {
     return context.cooldownController.reduceAmmoRecharge(skill, reduction, at)
       .reducedBy;
   }
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-  if (readyAt <= at + context.epsilon) return 0;
+  if (readyAt <= at + context.epsilon) return 0; // already ready; nothing to reduce
   const reducedBy = Math.min(reduction, readyAt - at);
   context.state.cooldowns.set(skill.id, readyAt - reducedBy);
   return reducedBy;
@@ -210,6 +216,8 @@ function queueInFlightWeaponCooldownReduction(
     const pending = Number(
       state.pendingWeaponCooldownReduction[activationId] || 0,
     );
+    // Already-accumulated pending reductions are subtracted from the remaining
+    // recharge so that multiple virtue triggers during the same cast don't over-reduce.
     const available = Math.max(0, Number(event.rechargeReadyAt) - at - pending);
     const reduction = Math.min(0.25, available);
     if (reduction <= context.epsilon) continue;
@@ -250,6 +258,8 @@ function applyPendingWeaponCooldownReduction(
   const pending = Number(
     state.pendingWeaponCooldownReduction[activationId] || 0,
   );
+  // Always delete regardless of whether we apply it; stale entries would corrupt
+  // future casts if the skill's own recharge changed between the queue and cast-complete.
   delete state.pendingWeaponCooldownReduction[activationId];
   if (pending <= context.epsilon || skill.type !== "Weapon") return;
   reduceWeaponCooldown(context, skill, context.effectiveEnd, pending);
@@ -310,6 +320,8 @@ function handleWillbenderFlamePulse(
 ): void {
   const payload = task.payload as SchedulerRecord | undefined;
   const state = willbenderState.from(context);
+  // Stale pulses from a previous virtue activation (different flameGeneration) are
+  // silently discarded; only the most recent virtue's pulses should fire.
   if (!payload || Number(payload.flameGeneration) !== state.flameGeneration) {
     return;
   }
@@ -433,6 +445,8 @@ function handleWillbenderVirtueHit(
   for (const virtue of ["justice", "resolve", "courage"] as const) {
     if (state[`${virtue}Until`] <= at + context.epsilon) continue;
     state.virtueHitCounts[virtue] += 1;
+    // Permeating Wrath halves the justice trigger threshold (3 hits vs 5) but
+    // only for justice; resolve and courage always require 5 hits.
     const triggerHits =
       virtue === "justice" &&
       hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
@@ -452,6 +466,9 @@ function observeWillbenderEvent(
   context: GuardianSchedulerContext,
   event: SchedulerRecord,
 ): void {
+  // Only player-owned strikes count as virtue hits. Sigil of Air is the sole
+  // non-player-actor source explicitly permitted because its proc is considered
+  // "player damage" in-game even though its actor classification differs.
   if (
     event.type !== "damage" ||
     !(Number(event.coefficient || 0) > 0) ||
@@ -460,6 +477,8 @@ function observeWillbenderEvent(
     return;
   }
   context.tasks.schedule({
+    // __order (monotone emission index) is preferred over at because multiple events
+    // can share the same timestamp; using at alone would collapse them into one task id.
     id: `guardian.willbender-virtue-hit:${String(event.__order ?? event.at)}`,
     type: "guardian.willbender-virtue-hit",
     at: Number(event.at),
@@ -475,6 +494,8 @@ function finishWillbenderCast(
   skill: GuardianSkill,
 ): void {
   if (skill.id === ID.FLASH_COMBO) {
+    // Flash Combo unlocks Repose as a follow-up flip skill; the 6-second window
+    // is written directly here rather than via a scheduler task to avoid ordering issues.
     context.state.profession.core.availableFlips[ID.REPOSE] =
       context.effectiveEnd + 6;
   }

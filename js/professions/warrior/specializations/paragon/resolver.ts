@@ -16,5 +16,5 @@ function handleParagonState(
 }
 
 export const paragonResolverEventHandlers = Object.freeze({
-  "paragon.state": handleParagonState,
+  "warrior.paragon-state": handleParagonState,
 });

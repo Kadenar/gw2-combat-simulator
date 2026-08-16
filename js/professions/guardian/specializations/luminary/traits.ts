@@ -52,6 +52,8 @@ function activeLightField(
   at: number,
   epsilon: number,
 ): boolean {
+  // Expired fields are pruned eagerly here rather than on a separate sweep so
+  // the array doesn't grow unbounded across a long rotation.
   state.lightFields = (state.lightFields || []).filter(
     (field) => field.endsAt > at + epsilon,
   );
@@ -116,6 +118,9 @@ function grantLightAura(
 }
 
 function isLuminaryDetonator(skill: GuardianSkill): boolean {
+  // Glaring Burst is excluded: it fires from inside the forge and emitting a
+  // detonate there would consume the aura before a leap or other finisher can
+  // land in the same light field.
   if (skill.id === GUARDIAN_SKILL_IDS.GLARING_BURST) return false;
   return Boolean(
     RADIANT_VIRTUE_IDS.has(skill.id) ||
@@ -163,8 +168,9 @@ function processLightAuraAndFields(
       hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND));
   if (grantsImmediately) {
     if (enteringRadiantForge) {
-      // Entering the forge refreshes the trait-granted aura without consuming
-      // an aura that was already active.
+      // Bypass grantLightAura to avoid a spurious Sovereign of Light detonation:
+      // the trait grants the aura at forge entry, not the skill itself, so an
+      // existing aura must be refreshed rather than consumed.
       state.lightAuraUntil = activationAt + 4;
     } else {
       grantLightAura(context, skill, activationAt);
@@ -206,6 +212,8 @@ function processStanceDamageBuffs(
   if (skill.id === GUARDIAN_SKILL_IDS.PIERCING_STANCE) {
     const baseCastMs = Math.max(0, Number(skill.castTimeMs || 0));
     const runtimeCast = Math.max(0, context.fullEnd - context.start);
+    // Scale the impact offset proportionally to the actual cast time in case
+    // quickness or other cast-speed effects changed it from the base.
     const at =
       context.start +
       (baseCastMs > 0
@@ -214,6 +222,8 @@ function processStanceDamageBuffs(
     if (at > context.effectiveEnd + context.epsilon) return;
     const wasActive =
       Number(state.piercingStanceUntil || 0) > at + context.epsilon;
+    // Stack duration additively when already active rather than resetting the
+    // expiry, matching the in-game stacking behavior.
     state.piercingStanceUntil = wasActive
       ? state.piercingStanceUntil + 8
       : at + 8;
@@ -225,6 +235,8 @@ function processStanceDamageBuffs(
       state.piercingStanceUntil - at,
     );
   } else if (skill.id === GUARDIAN_SKILL_IDS.DARING_ADVANCE) {
+    // +0.001 offset ensures the buff is active when the modifier rule evaluates
+    // strikes scheduled at effectiveEnd (strict > comparison in the rule).
     emitGuardianBuff(
       context,
       skill,
@@ -234,6 +246,8 @@ function processStanceDamageBuffs(
     );
   }
   if (skill.id === GUARDIAN_SKILL_IDS.EFFULGENT_STANCE) {
+    // Both events are scheduled at cast time so the window boundaries are fixed
+    // even if other events arrive out of order during resolver playback.
     for (const { type, at } of [
       { type: "guardian.effulgent-activated", at: context.start },
       { type: "guardian.effulgent-detonate", at: context.start + 4 },
@@ -271,6 +285,8 @@ export function handleRadiantWeaponEquipped(
   context: GuardianCastContext,
   skill: GuardianSkill,
 ): void {
+  // Flip skills share the same skill ID as their parent; skip them so traits
+  // only fire once per equip, not again on subsequent autoattack flips.
   if (!skill.radiantWeapon || skill.flipParentId != null) return;
   const at = context.effectiveEnd + 0.001;
   const state = luminaryState.from(context);
@@ -294,6 +310,8 @@ export function handleRadiantWeaponEquipped(
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS)) {
     const wasActive =
       Number(state.empoweredArmamentsUntil || 0) > at + context.epsilon;
+    // Duration stacks additively up to a 20 s cap; the cap prevents the buff
+    // from extending forever if many weapons are equipped in quick succession.
     state.empoweredArmamentsUntil = wasActive
       ? Math.min(at + 20, state.empoweredArmamentsUntil + 6)
       : at + 6;
@@ -326,6 +344,9 @@ export function handleRadiantWeaponEquipped(
 
 function virtueFor(skill: GuardianSkill): GuardianVirtue | null {
   if (!RADIANT_VIRTUE_IDS.has(skill.id)) return null;
+  // Virtues are identified by the trailing digit in their slot name
+  // ("Profession_1" → justice, "Profession_2" → resolve, "Profession_3" → courage)
+  // rather than by skill ID, because each virtue has multiple IDs across game patches.
   const slot = Number(String(skill.slot || "").match(/(\d)$/)?.[1] || 0);
   return ([null, "justice", "resolve", "courage"] as const)[slot] || null;
 }
@@ -396,6 +417,9 @@ export function updateLuminaryTraitCastState(
   skill: GuardianSkill,
 ): void {
   if (skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE) {
+    // Register Exit Radiant Forge as an available flip so the scheduler and
+    // UI treat it as an always-ready option while the forge is active.
+    // POSITIVE_INFINITY means "no cooldown / never expires".
     professionCoreState(context).availableFlips[
       GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE
     ] = Number.POSITIVE_INFINITY;
@@ -412,6 +436,8 @@ export function observeLuminaryScheduledEvent(
   if (
     event.type === "damage" &&
     event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES &&
+    // hitIndex === 1 is the first damaging tick that creates the field; index 0
+    // is the initial impact and does not create a combo field.
     Number(event.hitIndex || 0) === 1
   ) {
     addLightField(luminaryState.from(context), event.at, 4);
@@ -456,7 +482,10 @@ export function reactToEffulgentStrike(
     (event.source === "guardian" && event.actorType === "effect");
   if (
     !guardianOwnedStrike ||
+    // Only count strikes that deal damage (coefficient > 0), not utility hits.
     !(Number(event.coefficient || 0) > 0) ||
+    // Strict less-than with epsilon so a strike at exactly effulgentActiveUntil
+    // does not count — the window is half-open [activated, detonated).
     !(
       event.at <
       Number(state.effulgentActiveUntil || 0) -
@@ -500,12 +529,15 @@ export function handleEffulgentDetonate(
       skillId: GUARDIAN_SKILL_IDS.EFFULGENT_STANCE_DAMAGE,
       skillName: "Effulgent Stance",
       name: "Effulgent Stance",
+      // Base coefficient 0.5 + 0.35 per stack; at 10 stacks this is 4.0.
       coefficient: 0.5 + stacks * 0.35,
       weaponStrengthProfileId: "nonweapon.unequipped",
       stackCount: stacks,
     }),
   );
   if (stacks === 10) {
+    // Daze is only triggered at max stacks; priority 6 > 5 so it sorts after
+    // the strike in the resolver queue at the same timestamp.
     enqueueOrdered(context.queue, {
       type: "control",
       at: event.at,

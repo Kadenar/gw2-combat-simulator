@@ -35,6 +35,10 @@ export const luminaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
         context,
         "guardian-radiant-armaments",
       );
+      // The buff is emitted for every radiant weapon, but the +7% bonus is
+      // exclusive to the hammer (Dazzling Hammer). The manual expiry check is
+      // necessary because latestGuardianTimedBuff returns the most-recently
+      // applied record regardless of whether it has expired.
       return (
         armament?.radiantWeapon === "hammer" &&
         armament.at + Number(armament.duration || 0) > context.time
@@ -54,6 +58,8 @@ export const luminaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
     factor: 1.15,
+    // order: 100 places this after additive stacking; multiplicative modifiers
+    // that interact with additive sums must sort after them.
     order: 100,
     when: (context) =>
       guardianTimedBuffActive(context, "guardian-daring-advance"),
@@ -121,6 +127,9 @@ export const luminarySchedulerHooks = Object.freeze({
   ]),
   onCastComplete: Object.freeze([
     {
+      // The cooldown is deliberately deleted here rather than in the Enter
+      // handler so it only starts counting once the forge is truly active
+      // (afterCast fires at effectiveEnd, not at the start of the cast).
       id: "guardian.radiant-forge",
       order: 10,
       handler: clearRadiantForgeEntryCooldown,

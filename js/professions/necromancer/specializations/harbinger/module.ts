@@ -20,6 +20,7 @@ export const harbingerModule = defineNativeModule({
     skillMechanics: HARBINGER_BASE_SKILL_MECHANICS,
     handlers: harbingerSkillHandlers,
   }),
+  // Scheduler and resolver share the same state factory because blight stacks must be readable in both phases.
   state: { scheduler: harbingerState.create, resolver: harbingerState.create },
   mechanics: {
     modifiers: harbingerAttributeRules,

@@ -22,10 +22,12 @@ export const reaperModule = defineNativeModule({
   data: createNecromancerModuleData("Reaper", {
     skillMechanics: REAPER_BASE_SKILL_MECHANICS,
     handlers: reaperSkillHandlers,
+    // Shroud autoattack chain runs separately from the out-of-shroud chain; both must be registered.
     autoattackChains: {
       additional: [[ID.LIFE_REND, ID.LIFE_SLASH, ID.LIFE_REAP]],
     },
   }),
+  // Reaper adds no persistent specialization state; both phases share the same empty factory.
   state: { scheduler: reaperState.create, resolver: reaperState.create },
   mechanics: {
     modifiers: reaperAttributeRules,

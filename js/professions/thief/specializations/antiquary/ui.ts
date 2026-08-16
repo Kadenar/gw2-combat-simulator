@@ -45,6 +45,7 @@ export const antiquaryUi = Object.freeze({
         resourceAnchor: true,
       },
       ...artifactGroups.map(([id, label, artifactIds, color]) => {
+        // show only the currently available artifact ids; when no uses remain, collapse the group (concealed) while reserving its slots
         const skillIds = hasArtifactUse
           ? artifactIds.filter((skillId) => availableArtifactIds.has(skillId))
           : [];
@@ -52,9 +53,9 @@ export const antiquaryUi = Object.freeze({
           id,
           label,
           skillIds,
-          reservedSkillIds: [...artifactIds],
+          reservedSkillIds: [...artifactIds], // keeps the palette column width stable even when skillIds is empty
           color,
-          stackId: "thief-artifacts",
+          stackId: "thief-artifacts", // offensive + defensive groups share a visual stack so they collapse as one unit
           className: [
             "antiquary-artifact-group",
             skillIds.length ? "" : "pal-group-concealed",
@@ -84,7 +85,7 @@ export const antiquaryUi = Object.freeze({
       id: "artifact-uses",
       singular: "artifact use",
       plural: "artifact uses",
-      maximum: 2,
+      maximum: 2, // Prolific Plunderer + Improvisation can give 3 uses, but the display caps at 2 pips (the normal maximum)
       value: Number(stateFrom(context).artifactUsesRemaining || 0),
       canStart: false,
       step: 1,
@@ -105,6 +106,7 @@ export const antiquaryUi = Object.freeze({
       };
     }
     if (skill.id === ID.RESHUFFLE) {
+      // Reshuffle is always greyed-out in the palette; it is queue-only and blocked by availability when there is nothing to reroll
       return {
         available: false,
         message: "All artifacts are already available to choose",

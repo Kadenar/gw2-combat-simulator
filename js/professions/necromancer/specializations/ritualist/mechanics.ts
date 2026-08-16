@@ -52,9 +52,9 @@ export const RITUALIST_MECHANICS = Object.freeze({
     }),
   }),
   spiritAttackInterval: 4,
-  firstSpiritAttackDelay: 7.36,
-  resummonedSpiritAttackDelay: 4.14,
-  summonSpiritsWeaponStrength: 1056,
+  firstSpiritAttackDelay: 7.36,    // Delay from first-ever summon to first autoattack (EVTC-calibrated)
+  resummonedSpiritAttackDelay: 4.14, // Shorter delay when re-summoning into an existing cycle (observed vs. fresh summon)
+  summonSpiritsWeaponStrength: 1056, // Distinct from spirit autoattack weapon strength; calibrated from Summon Spirits EVTC packets
   essenceBlast: Object.freeze({
     coefficient: 0.75,
     damagePerSpirit: 0.15,
@@ -62,7 +62,7 @@ export const RITUALIST_MECHANICS = Object.freeze({
   painfulBond: Object.freeze({
     duration: 10,
     interval: 1,
-    firstPulseDelay: 0.004,
+    firstPulseDelay: 0.004, // Near-immediate first pulse; 4 ms avoids same-tick ordering ambiguity with the apply event
     flatStrikeBase: 200,
     flatStrikePowerCoeff: 0.4,
     icon: "https://render.guildwars2.com/file/9CA8D4479BEE9A28C810CCB0E234BAC7712104A0/3680170.png",

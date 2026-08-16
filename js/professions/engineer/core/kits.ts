@@ -13,6 +13,7 @@ function equipKit(
   skill: EngineerSkill,
 ): void {
   const state = professionCoreState(context);
+  // kit becomes active at effectiveEnd — weapon bar is replaced from that moment
   const at = context.effectiveEnd;
   const kit = skill.kitName || skill.name;
   state.activeKit = kit;

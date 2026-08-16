@@ -12,6 +12,7 @@ import type {
   EngineerSkill,
 } from "../types.js";
 
+// config.selectedSkills can be an array of names or a slot-keyed object; both normalize to a Set<string>
 export function selectedEngineerSkillNames(
   config: EngineerConfig,
 ): Set<string> {
@@ -21,6 +22,7 @@ export function selectedEngineerSkillNames(
   );
 }
 
+// retryAt=null means the scheduler has no timestamp hint and won't retry until the next natural scan
 export function denyEngineerCast(
   skill: EngineerSkill,
   code: string,
@@ -35,6 +37,7 @@ export function denyEngineerCast(
   };
 }
 
+// autoattackChains[root] tracks the NEXT expected skill in the chain; absent = expect root (first hit)
 export function expectedEngineerChainSkill(
   context: EngineerPrecastContext,
   skill: EngineerSkill,
@@ -54,6 +57,7 @@ export function engineerCoreCastAvailability(
   const state = professionCoreState(context);
   const specialization = String(context.config.specialization || "Core");
   if (skill.id === ID.DODGE) {
+    // epsilon prevents floating-point rounding from blocking a dodge at exactly the threshold
     return Number(state.endurance || 0) + Number(context.epsilon || 0.0001)
         >= ENGINEER_DODGE_ENDURANCE_COST
       ? { ready: true }
@@ -71,6 +75,7 @@ export function engineerCoreCastAvailability(
     skill.name === "Electric Artillery"
     && !state.electricArtilleryAvailable
   ) {
+    // electricArtilleryReadyAt is set while Lightning Rod is still charging; gate EA until then
     const retryAt = Number(state.electricArtilleryReadyAt || 0);
     return denyEngineerCast(
       skill,
@@ -86,6 +91,7 @@ export function engineerCoreCastAvailability(
       || Number(state.electricArtilleryReadyAt || 0) > context.start
     )
   ) {
+    // block re-cast while EA is available OR while the charge window is still open (both share the slot)
     return denyEngineerCast(
       skill,
       "engineer.lightning-rod-active",
@@ -96,6 +102,7 @@ export function engineerCoreCastAvailability(
     );
   }
   if (skill.simulatorExcluded) {
+    // skills marked simulatorExcluded fire automatically from their parent; manual queuing would double them
     return denyEngineerCast(
       skill,
       "engineer.contextual-skill",
@@ -103,6 +110,7 @@ export function engineerCoreCastAvailability(
     );
   }
   if (skill.id === ID.SWAP_WEAPONS) {
+    // engineers have no weapon swap except to exit a kit back to baseline weapons
     return state.activeKit
       ? { ready: true }
       : denyEngineerCast(
@@ -114,6 +122,7 @@ export function engineerCoreCastAvailability(
   if (
     skill.specialization
     && skill.type !== "Weapon"
+    // weapon skills are shared across specializations on the weapon bar; only utility/heal/elite are gated
     && String(skill.specialization).toLowerCase()
       !== specialization.toLowerCase()
   ) {
@@ -135,6 +144,7 @@ export function engineerCoreCastAvailability(
     skill.type === "Weapon"
     && state.activeKit
   ) {
+    // active kit completely replaces the weapon bar; baseline weapon skills are inaccessible
     return denyEngineerCast(
       skill,
       "engineer.weapon-bar-replaced",
@@ -162,6 +172,7 @@ export function engineerCoreCastAvailability(
   }
   if (
     skill.handlerId === "engineer.consume-flip"
+    // availableFlips is populated by the parent skill's handler; absent = parent hasn't fired yet
     && !state.availableFlips?.[skill.id]
   ) {
     return denyEngineerCast(
@@ -172,6 +183,7 @@ export function engineerCoreCastAvailability(
   }
   if (
     skill.toolbeltParentName
+    // Photon Forge toolbelt skills have no conventional utility parent — they are spec-mechanic skills
     && skill.name !== "Engage Photon Forge"
     && !skill.name.startsWith("Deactivate Photon Forge")
     && !selectedEngineerSkillNames(context.config)

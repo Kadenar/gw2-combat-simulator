@@ -18,12 +18,14 @@ export const vindicatorModule = defineNativeModule({
     handlers: vindicatorSkillHandlers,
   }),
   state: {
+    // scheduler and resolver each call create independently; they do not share a state object.
     scheduler: vindicatorState.create,
     resolver: vindicatorState.create,
   },
   mechanics: {
     modifiers: vindicatorAttributeRules,
     castRules: vindicatorCastRules,
+    // Dodge strike emission is a scheduler hook, not a cast handler, because the strike fires in response to the dodge state event rather than directly inside the dodge cast.
     schedulerHooks: vindicatorSchedulerHooks,
     resolverHooks: {
       eventHandlers: vindicatorEventHandlers,

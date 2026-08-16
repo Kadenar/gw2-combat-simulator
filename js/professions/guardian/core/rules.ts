@@ -18,12 +18,14 @@ import type {
 } from "../../../platform/gw2/types.js";
 import type {
   GuardianCastContext,
-  GuardianPrecastContext,
   GuardianSchedulerContext,
   GuardianSkill,
   GuardianState,
 } from "../types.js";
-import { validateGuardianAvailability } from "./availability.js";
+import {
+  guardianCastAvailability,
+  validateGuardianBuild,
+} from "./availability.js";
 import {
   advanceSpearIlluminationState,
   updateSpearIlluminationState,
@@ -33,7 +35,7 @@ import {
   updateGuardianTraitCastState,
 } from "./traits.js";
 import { validateVirtueCast } from "./virtues.js";
-import { updateWeaponCastState, validateWeaponState } from "./weapon-state.js";
+import { updateWeaponCastState } from "./weapon-state.js";
 
 export { snapshotGuardianState } from "./state.js";
 
@@ -398,10 +400,6 @@ export function compileGuardianModifierRules(
   return createModifierHooks({ rules });
 }
 
-const guardianModifierHooks = compileGuardianModifierRules(
-  guardianCoreModifierRules,
-);
-
 /**
  * @param {GuardianRechargeModifierContext} context
  * @param {number} duration
@@ -515,33 +513,21 @@ export const guardianCoreAttributeRules = Object.freeze({
 });
 
 export const guardianCoreCastRules = Object.freeze({
+  availability: {
+    id: "guardian.cast-state",
+    order: 10,
+    handler: guardianCastAvailability,
+  },
   validateCast: Object.freeze([
     {
-      id: "guardian.availability",
+      id: "guardian.build",
       order: 10,
-      handler: validateGuardianAvailability,
+      handler: validateGuardianBuild,
     },
     {
       id: "guardian.virtues",
       order: 20,
       handler: validateVirtueCast,
-    },
-    {
-      id: "guardian.glacial-heart",
-      order: 30,
-      handler: (context: GuardianPrecastContext, skill: GuardianSkill) => {
-        if (skill.id === GUARDIAN_SKILL_IDS.MIGHTY_BLOW) {
-          return !hasTrait(context, GUARDIAN_TRAIT_IDS.GLACIAL_HEART);
-        }
-        if (skill.id === GUARDIAN_SKILL_IDS.GLACIAL_BLOW) {
-          return hasTrait(context, GUARDIAN_TRAIT_IDS.GLACIAL_HEART);
-        }
-      },
-    },
-    {
-      id: "guardian.weapon-state",
-      order: 50,
-      handler: validateWeaponState,
     },
   ]),
   modifyCastDuration: modifyGuardianCastDuration,
@@ -582,5 +568,3 @@ export const guardianCoreSchedulerHooks = Object.freeze({
     },
   ]),
 });
-
-export const guardianCoreModifierHooks = guardianModifierHooks;

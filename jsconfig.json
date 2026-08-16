@@ -14,8 +14,5 @@
     "scripts/**/*.mjs",
     "server.mjs"
   ],
-  "exclude": [
-    "node_modules",
-    "Builds"
-  ]
+  "exclude": ["node_modules", "Builds", "referenced-repos", "**/agent-*/**"]
 }

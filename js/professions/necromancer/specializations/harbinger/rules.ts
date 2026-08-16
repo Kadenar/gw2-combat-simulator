@@ -39,11 +39,13 @@ function afterCast(
 ): void {
   const state = harbingerState.from(context);
   const at = context.effectiveEnd;
+  // Advance blight ticks that elapsed during the cast before checking entrance bonuses.
   advanceHarbingerBlight(context, at);
   if (
     skill.id === ID.HARBINGER_SHROUD &&
     professionCoreState(context).activeShroud === "harbinger"
   ) {
+    // Reset the per-second cursor to the next whole second so blight ticks don't accumulate a fractional offset over time.
     state.nextBlightAt = Math.floor(at) + 1;
     if (hasNecromancerTrait(context, TRAIT.CORRUPTED_TALENT)) {
       gainNecromancerLifeForce(context, 15, at);
@@ -75,6 +77,7 @@ function afterCast(
 }
 
 export const harbingerSchedulerHooks = Object.freeze({
+  // order: -10 ensures Harbinger blight advances before any profession-agnostic advance hooks run.
   advance: {
     id: "harbinger.advance-blight",
     order: -10,
@@ -93,6 +96,8 @@ function modifyHarbingerAttributes(
 ): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
   if (!professionStaticRulesApplied(context.config)) {
+    // Alchemic Vigor is the minor adept trait; the specialization check lets it apply even when only the
+    // spec is selected without the trait being explicitly listed (e.g. from the specialization line bonus).
     if (
       context.config?.specialization === "Harbinger" ||
       hasTrait(context, TRAIT.ALCHEMIC_VIGOR)
@@ -115,6 +120,8 @@ function modifyHarbingerAttributes(
 
 function activeBlight(context: Gw2ModifierContext): number {
   const event = context.event as NecromancerSimulationEvent | undefined;
+  // Prefer the snapshotted blight from the event so that modifier rules see the value at the moment of impact,
+  // not the current (post-impact) blight count which may already be lower due to subsequent consumption.
   return Math.max(
     0,
     Number(
@@ -129,6 +136,8 @@ function wickedCorruptionCriticalFactor(context: Gw2ModifierContext): number {
   const deathPerceptionActive =
     hasTrait(context, TRAIT.DEATH_PERCEPTION) &&
     Boolean(necromancerActiveShroud(context));
+  // Death Perception already contributes a 10% crit-chance bonus in shroud; Wicked Corruption adds another 10%.
+  // To avoid double-counting, compute the combined factor (1.21) and divide out the Death Perception factor (1.1).
   const coreFactor = deathPerceptionActive
     ? necromancerCriticalExpectedFactor(context, 1.1)
     : 1;
@@ -180,6 +189,7 @@ export const harbingerModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: "damage-additive",
       amount: 0.1,
+      // 10% bonus applies only during the 10 s Meltdown window; meltdownUntil is set/cleared in applyCascadingCorruption.
       when: (context) =>
         hasTrait(context, TRAIT.CASCADING_CORRUPTION) &&
         Number(

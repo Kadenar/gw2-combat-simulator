@@ -38,6 +38,7 @@ const HOLOSMITH_PACKET_EVENTS = new Set<string>([
   "engineer.launch-wall",
 ]);
 
+// Populated by bindHolosmithUi at module init time; safe to read thereafter.
 let engineerSkills: readonly EngineerSkill[] = [];
 let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
 
@@ -81,6 +82,8 @@ function holosmithPaletteAvailability(
   return { available: true, message: "" };
 }
 
+// Returns null to suppress an event row, undefined to defer to the next handler.
+// Packet events (laser-disk etc.) are hidden; heat state events are shown as resource rows.
 function holosmithEventLogRow(
   context: EngineerUiContext,
   event: EngineerResolverEvent,

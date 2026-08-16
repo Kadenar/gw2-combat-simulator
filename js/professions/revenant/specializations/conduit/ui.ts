@@ -8,6 +8,7 @@ import type {
 } from "../../../../platform/engine/types.js";
 import type { RevenantUiContext } from "../../types.js";
 
+// Bridges the string-keyed legend map to skill IDs; the legend map returns names, not IDs.
 const RELEASE_ID_BY_NAME: Readonly<Record<string, SkillId>> = Object.freeze({
   "Release Potential: Monk": SKILL.RELEASE_POTENTIAL_MONK,
   "Release Potential: Mesmer": SKILL.RELEASE_POTENTIAL_MESMER,
@@ -19,6 +20,7 @@ const RELEASE_ID_BY_NAME: Readonly<Record<string, SkillId>> = Object.freeze({
 export const conduitUi: Partial<ProfessionUiContract> & SchedulerRecord =
   Object.freeze({
     paletteGroups: (context: RevenantUiContext) => {
+      // Release Potential variant depends on the currently active legend, so the palette rebuilds on legend swap.
       const releaseName =
         REVENANT_RELEASE_POTENTIAL_BY_LEGEND[activeRevenantLegend(context)];
       const releaseId = releaseName ? RELEASE_ID_BY_NAME[releaseName] : null;
@@ -27,6 +29,7 @@ export const conduitUi: Partial<ProfessionUiContract> & SchedulerRecord =
           id: "revenant-profession-specialization",
           label: "F",
           skillIds: [
+            // Release Potential is omitted when the active legend has no mapped variant (e.g. no legend selected).
             ...(releaseId == null ? [] : [releaseId]),
             SKILL.COSMIC_WISDOM,
           ],
@@ -42,6 +45,7 @@ export const conduitUi: Partial<ProfessionUiContract> & SchedulerRecord =
         plural: "affinity",
         maximum: 5,
         value: Number(revenantUiState(context).affinity || 0),
+        // Affinity cannot be manually set by the user; it is always gained through gameplay actions.
         canStart: false,
         step: 1,
         displayMode: "pips",

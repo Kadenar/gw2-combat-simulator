@@ -11,6 +11,7 @@ import type {
 } from "../../../../platform/engine/types.js";
 import type { EngineerResolverEvent, EngineerUiContext } from "../../types.js";
 
+// First 4 toolbelt slots + Function Gyro as the F5 mechanic skill.
 function scrapperProfessionSkills(context: EngineerUiContext) {
   return [
     ...engineerToolbeltSkillIds(context).slice(0, 4),
@@ -18,6 +19,8 @@ function scrapperProfessionSkills(context: EngineerUiContext) {
   ];
 }
 
+// null = hide from the event log; undefined = fall through to default rendering.
+// Internal pulse bookkeeping and state events are not meaningful to the user.
 function scrapperEventLogRow(
   _context: EngineerUiContext,
   event: EngineerResolverEvent,

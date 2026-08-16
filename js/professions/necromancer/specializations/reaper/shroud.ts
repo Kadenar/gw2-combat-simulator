@@ -6,6 +6,7 @@ import type {
   NecromancerSimulationEvent,
 } from "../../types.js";
 
+// Far-future sentinel so the assumption field is never reclaimed during a normal simulation run.
 const ASSUMED_FIELD_EXPIRES_AT = 1_000_000_000;
 
 /** Emits the explicit field selected by the Reaper permanent-field assumption. */
@@ -13,6 +14,7 @@ export function ensurePermanentIceFieldAssumption(
   context: NecromancerSchedulerContext,
   event: NecromancerSimulationEvent,
 ): void {
+  // Guard is idempotent: the field must be emitted only once regardless of how many events trigger the hook.
   if (
     !context.config.professionAssumptions?.permanentIceField ||
     context.events.some(
@@ -35,6 +37,7 @@ export function ensurePermanentIceFieldAssumption(
     expiresAt: ASSUMED_FIELD_EXPIRES_AT,
     ownerId: "necromancer",
     ownerActorType: "player",
+    // Priority 1 ensures this assumption field wins over any zero-priority real fields when both overlap.
     comboBindingPriority: 1,
   });
 }
@@ -67,6 +70,7 @@ export function resolveSummonOwnedComboFinisher(
     }
     enqueueGw2OwnedComboFinisher(context, event, {
       ownerId: "necromancer",
+      // index+1 disambiguates multiple finishers on the same hit (e.g. multi-projectile summon attacks).
       attemptId: `${event.activationId || event.sourceId}:projectile:${event.__order || event.at}:${index + 1}`,
       finisherType: "Projectile",
       at: event.at,

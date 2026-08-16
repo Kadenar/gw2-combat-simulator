@@ -31,6 +31,8 @@ export function specterCastAvailability(
   if (skill.shadowShroudSkill && !state.shadowShroudActive) {
     return deny(skill, "thief.not-in-shroud", "enter Shadow Shroud first.");
   }
+  // While in shroud, only Shadow Shroud skills are castable; all other weapon/slot skills are locked out.
+  // Profession skills (e.g. Siphon, Enter/Exit Shroud) are excluded from this guard via the first two checks above.
   if (
     state.shadowShroudActive
     && !skill.shadowShroudSkill

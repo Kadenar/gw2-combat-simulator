@@ -64,9 +64,11 @@ export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       id: "necromancer.anguish-conditional-damage",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
+      // +2% per target condition and +20% if target is controlled; both are live-calibrated against EVTC
       amount: (context) =>
         necromancerTargetConditionCount(context) * 0.02 +
         (necromancerTargetControlled(context) ? 0.2 : 0),
+      // Flag is set on Anguish autoattacks and summon barrage hits but NOT on innervate or Summon Spirits hits
       when: (context) => Boolean(context.event?.anguishConditionalDamage),
     },
     {
@@ -74,11 +76,13 @@ export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
       factor: 1.5,
+      // order: 100 ensures this multiplicative trait applies after all additive stacking (Lingering Spirits, Anguish conditional, etc.)
       order: 100,
       when: (context) =>
         Boolean(
           (context.event?.actorType === "summon" ||
             context.event?.summonKind === "spirit") &&
+          // Innervate attacks are player-buffed abilities, not spirit autonomous attacks; the trait does not apply to them
           context.event?.spiritAttackType !== "innervate" &&
           hasTrait(context, TRAIT.SPIRITS_STRENGTH),
         ),

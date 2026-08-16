@@ -57,6 +57,7 @@ function selectedMantras(
   context: GuardianSchedulerContext,
 ): readonly MantraDefinition[] {
   const configured = context.config.selectedSkills;
+  // No configured list means "all mantras are equipped"; default to the full set.
   if (!Array.isArray(configured) || configured.length === 0) return MANTRAS;
   const names = new Set(
     configured.map((skill) =>
@@ -84,11 +85,18 @@ function armMantra(
   const normal = context.catalog.skillsById.get(definition.normalId);
   if (!normal) return;
   const core = professionCoreState(context);
+  // Always start fresh at the normal-charge flip, never at the final-charge
+  // flip, so ensureAmmo initialises the charge count from the skill data.
   delete core.availableFlips[definition.finalId];
   core.availableFlips[definition.normalId] = Number.POSITIVE_INFINITY;
+  // Wipe any in-flight ammo/cooldown before ensureAmmo so it doesn't treat
+  // this as a "refill" and add to an existing count.
   context.state.ammo.delete(normal.id);
   context.state.cooldowns.delete(normal.id);
   context.cooldownController.ensureAmmo(normal, at);
+  // Remove the root prepare skill's cooldown so it shows as castable again
+  // immediately after the auto-rearm, and record when it was last armed so
+  // advanceFirebrandMantras can detect future rearm triggers.
   context.state.cooldowns.delete(definition.rootId);
   firebrandState.from(context).mantraRechargeReadyAt[definition.rootId] = at;
 }
@@ -99,10 +107,14 @@ function syncMantraFlip(
   at: number,
 ): void {
   const normal = context.catalog.skillsById.get(definition.normalId);
+  // Guard: if ammo was never set this mantra is in full-recharge mode;
+  // skip so we don't accidentally surface the final-charge flip early.
   if (!normal || !context.state.ammo.has(normal.id)) return;
   const ammo = context.cooldownController.refreshAmmo(normal, at);
   if (!ammo) return;
   const flips = professionCoreState(context).availableFlips;
+  // The final-charge variant is a separate skill ID; the flip registry drives
+  // which button the player sees, so exactly one of the two must be set.
   if (ammo.charges > 1) {
     delete flips[definition.finalId];
     flips[definition.normalId] = Number.POSITIVE_INFINITY;
@@ -121,11 +133,13 @@ function startFullRecharge(
   const normal = context.catalog.skillsById.get(definition.normalId);
   if (!root || !normal) return;
   const flips = professionCoreState(context).availableFlips;
+  // Hide both charge variants until the root prepare skill finishes recharging.
   delete flips[definition.normalId];
   delete flips[definition.finalId];
   context.state.ammo.delete(normal.id);
   context.state.cooldowns.delete(normal.id);
   const readyAt = at + context.rechargeDurationFor(root, at);
+  // Put the root on cooldown so advanceFirebrandMantras knows when to auto-arm.
   context.state.cooldowns.set(root.id, readyAt);
   firebrandState.from(context).mantraRechargeReadyAt[root.id] = readyAt;
 }
@@ -148,6 +162,9 @@ export function advanceFirebrandMantras(
     const readyAt = Number(
       firebrandState.from(context).mantraRechargeReadyAt[definition.rootId],
     );
+    // readyAt === 0 means "already armed at sim start", not "due now"; skip it.
+    // The cooldowns guard prevents double-arming if advance is called twice for
+    // the same tick.
     if (
       readyAt > 0 &&
       readyAt <= target + context.epsilon &&
@@ -184,6 +201,9 @@ export function firebrandMantraAvailability(
   const preparedAt = Number(
     firebrandState.from(context).mantraRechargeReadyAt[definition.rootId],
   );
+  // preparedAt > start means the mantra is currently in full-recharge (not yet
+  // armed), so give the scheduler a concrete retry time rather than blocking
+  // forever with retryAt: null.
   if (preparedAt > context.start + context.epsilon) {
     return {
       ready: false,
@@ -192,6 +212,9 @@ export function firebrandMantraAvailability(
       reason: `${skill.name} is unavailable until ${definition.rootName} is prepared.`,
     };
   }
+  // The flip being absent means this specific charge variant (normal vs. final)
+  // is not the one currently available; no retry time because the scheduler
+  // already controls which flip is live.
   if (professionCoreState(context).availableFlips[expectedId]) return true;
   return {
     ready: false,
@@ -206,6 +229,8 @@ export function completeFirebrandMantra(
   context: GuardianCastContext,
   skill: GuardianSkill,
 ): void {
+  // Interrupted casts must not consume a charge or start a recharge; early-out
+  // when the cast was cut short before its natural end.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const root = MANTRA_BY_ROOT_ID.get(Number(skill.id));
   if (root) {

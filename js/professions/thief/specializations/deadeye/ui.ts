@@ -12,6 +12,7 @@ function stateFrom(context: ThiefUiContext = {}): Partial<ThiefState> {
 
 function professionSkillIds(context: ThiefUiContext = {}): number[] {
   const state = stateFrom(context);
+  // Deadeye's Mark is always shown in the F-slot palette; the stolen skill slot appears only when one is stored
   return [ID.DEADEYES_MARK, state.storedStolenSkillId]
     .filter((value) => value != null)
     .map(Number)
@@ -50,6 +51,7 @@ export const deadeyeUi = Object.freeze({
         id: "malice",
         singular: "malice",
         plural: "malice",
+        // Default to 5 when state is not yet initialized; maximumMalice becomes 7 when Maleficent Seven is equipped
         maximum: Number(state.maximumMalice || 5),
         value: Number(state.malice || 0),
         canStart: false,

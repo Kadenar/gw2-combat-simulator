@@ -10,9 +10,13 @@ function armFlip(
   context: EngineerCastContext,
   skill: EngineerSkill,
 ): void {
+  // paletteFlipSkillId explicitly declares a palette flip; flipSkillId is the raw API
+  // field which conflates palette flips with chain skills. Fall back to flipSkillId
+  // only for skills not yet annotated with an explicit paletteFlipSkillId.
   const flipSkillId = Number(skill.paletteFlipSkillId ?? skill.flipSkillId);
   if (!Number.isFinite(flipSkillId)) return;
   professionCoreState(context).availableFlips[flipSkillId] = true;
+  // effectiveEnd: flip becomes available after the cast completes, not when it starts
   emitEngineerState(context, context.effectiveEnd, "arm-flip");
 }
 
@@ -25,6 +29,7 @@ function consumeFlip(
     skill.flipParentId
     ?? context.catalog.skillsByName.get(skill.flipParentName || "")?.id,
   );
+  // cancel pending turret auto-attack tasks — the turret no longer exists after detonation
   if (Number.isFinite(parentId)) {
     context.tasks.cancelOwner(turretOwnerId(parentId));
   }

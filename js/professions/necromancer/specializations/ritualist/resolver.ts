@@ -21,6 +21,7 @@ interface WeaponSpellDefinition {
   readonly internalCooldown?: number;
 }
 
+// Weapon-spell stacks are tracked per-recipient key; multi-summon events expand into one key per summon index
 function recipientKeys(event: NecromancerResolverEvent): string[] {
   if (event.actorType === "player") return ["player"];
   if (event.actorType !== "summon") return [];
@@ -141,6 +142,7 @@ function reactToDamage(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
 ): void {
+  // Effect-sourced damage (e.g. prior spell proc) must not chain into another proc; coefficient > 0 guards against flat-damage-only strikes
   if (event.actorType === "effect" || !(Number(event.coefficient) > 0)) return;
   const keys = recipientKeys(event);
   if (!keys.length) return;
@@ -156,6 +158,7 @@ function reactToDamage(
         continue;
       }
       recipient.stacks -= 1;
+      // nextAt enforces an ICD so rapid multi-hit attacks cannot consume multiple stacks simultaneously
       recipient.nextAt = event.at + Number(definition.internalCooldown || 0);
       if (spell === "nightmare") {
         queueNightmareWeapon(context, event, definition);

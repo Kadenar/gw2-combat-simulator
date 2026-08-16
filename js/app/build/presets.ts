@@ -250,9 +250,37 @@ function closeTemplateMenus(container: ParentNode | null | undefined): void {
     .forEach((details) => details.removeAttribute("open"));
 }
 
+function trackTemplateSidebarHeight(
+  layout: HTMLElement,
+  container: HTMLElement,
+): void {
+  const panel =
+    container.querySelector<HTMLElement>(".build-templates-panel") ?? container;
+  const sync = (): void => {
+    const bounds = panel.getBoundingClientRect();
+    layout.style.setProperty(
+      "--build-templates-sticky-height",
+      `${bounds.height}px`,
+    );
+    layout.style.setProperty(
+      "--build-templates-sticky-left",
+      `${bounds.left}px`,
+    );
+    layout.style.setProperty(
+      "--build-templates-sticky-width",
+      `${bounds.width}px`,
+    );
+  };
+  sync();
+  const ResizeObserverConstructor = document.defaultView?.ResizeObserver;
+  if (ResizeObserverConstructor) {
+    new ResizeObserverConstructor(sync).observe(panel);
+  }
+  document.defaultView?.addEventListener("resize", sync);
+}
+
 /**
- * Places build templates in a bounded sidebar above the simulation config.
- * The boundary lets the sticky template panel stop before the config panel.
+ * Places build templates in a sticky sidebar beside the main workspace.
  *
  * @param {HTMLElement} container
  * @returns {void}
@@ -273,6 +301,7 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
       layout.insertBefore(templateRegion, existingMain);
     }
     templateRegion.append(container);
+    trackTemplateSidebarHeight(layout, container);
     return;
   }
 
@@ -297,6 +326,7 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
   );
   if (simulationWorkspace) layout.append(simulationWorkspace);
   appRoot.classList.add("has-template-sidebar");
+  trackTemplateSidebarHeight(layout, container);
 }
 
 /**

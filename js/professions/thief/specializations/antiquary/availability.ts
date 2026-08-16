@@ -27,6 +27,7 @@ export function antiquaryCastAvailability(
       state.artifactUsesRemaining <= 0 ||
       !state.artifactSlots.some((slot) => slot.skillId === skill.id)
     ) {
+      // if a Skritt scuffle is in progress, hint the scheduler to retry after the next periodic pilfer rather than looping immediately
       const retryAt =
         Number(state.nextSkrittScufflePilferAt || 0) > context.start
           ? Number(state.nextSkrittScufflePilferAt)
@@ -39,6 +40,7 @@ export function antiquaryCastAvailability(
       );
     }
   }
+  // backfire variants (e.g. Stone Summit Misfire) are not player-selectable; they are emitted internally by resolveDoubleEdge
   if (skill.backfire) {
     return deny(
       skill,
@@ -46,6 +48,7 @@ export function antiquaryCastAvailability(
       "backfire variants are resolved by their Double Edge skill.",
     );
   }
+  // Reshuffle requires an active artifact pool to reroll; it cannot create a pool from nothing
   if (
     skill.id === ID.RESHUFFLE &&
     (state.artifactUsesRemaining <= 0 || state.artifactSlots.length === 0)

@@ -141,8 +141,12 @@ function spiritMetadata(
   };
 }
 
+// All spirits share a single attack cadence (4 s interval, one shared anchor).
+// Re-summoning a spirit does NOT restart the cycle; it snaps the next attack to
+// the nearest future grid point so spirits never drift out of phase with each other.
 function nextSpiritPulse(state: RitualistState, at: number): number {
   if (!Number.isFinite(state.spiritAutoAnchorAt)) {
+    // First summon in the rotation picks the delay (shorter after a re-summon due to in-game animation timing)
     const delay = state.resummonedSpiritAutoCycle
       ? MECHANICS.resummonedSpiritAttackDelay
       : MECHANICS.firstSpiritAttackDelay;
@@ -167,6 +171,7 @@ function queueSpiritAutoattacks(
   const state = ritualistState.from(context);
   const generation = Number(state.spiritGenerations[spirit.key] || 0);
   if (generation > 1) {
+    // Cancel the previous generation's attack loop before starting the new one; generation 0 never had a loop
     context.tasks.schedule({
       type: SPIRIT_ATTACK_STOP_TASK,
       at,
@@ -189,6 +194,7 @@ function handleSpiritAutoattack(
   if (!payload) return;
   const skill = context.catalog.skillsById.get(payload.skillId);
   const spirit = skill ? SPIRITS[skill.id] : undefined;
+  // spirit.key vs payload.spiritKey cross-check guards against a skill ID mapping to the wrong spirit definition
   if (!skill || !spirit || spirit.key !== payload.spiritKey) return;
 
   context.emit({
@@ -352,6 +358,7 @@ function emitWanderlustInitial(
   spirit: SpiritDefinition,
   at: number,
 ): void {
+  // The player's own initial swing lands 0.72 s into the cast animation, before the spirit materialises
   emitDamage(context, skill, spirit.summonCoefficient, {
     at: context.start + 0.72,
     skillWeapon: activePrimaryWeapon(context),
@@ -404,10 +411,12 @@ function summonSpirit(
   state.activeSpirits[spirit.key] = true;
   state.spiritGenerations[spirit.key] =
     Number(state.spiritGenerations[spirit.key] || 0) + 1;
+  // Anguish has a 1.1 s window during which it fires its summoning barrage and cannot immediately respond to Summon Spirits
   const initialDuration = spirit.key === "anguish" ? 1.1 : 0;
   state.spiritInitialUntil[spirit.key] = at + initialDuration;
   state.spiritBusyUntil[spirit.key] = at + initialDuration;
   if (state.soulTwistingAvailable) {
+    // Soul Twisting consumes availability on the first summon that triggers it; resolver picks up pendingSoulTwistSkill
     state.soulTwistingAvailable = false;
     state.pendingSoulTwistSkill = skill.id;
   }
@@ -436,6 +445,7 @@ function summonSpirits(
 ): void {
   const state = ritualistState.from(context);
   for (const spirit of Object.values(SPIRITS)) {
+    // Spirits still in their initial-attack window cannot participate in Summon Spirits
     if (
       !state.activeSpirits[spirit.key] ||
       Number(state.spiritInitialUntil[spirit.key] || 0) > at
@@ -488,6 +498,7 @@ function ritualist(
   if (skill.id === ID.ESSENCE_BLAST) {
     const spirits = Object.keys(state.activeSpirits).length;
     const essence = MECHANICS.essenceBlast;
+    // Impact lands at 14/15 of the way through the cast window (observed from EVTC timing)
     const impactAt =
       context.start + (context.fullEnd - context.start) * (14 / 15);
     emitDamage(context, skill, essence.coefficient, {

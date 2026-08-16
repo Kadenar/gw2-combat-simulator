@@ -172,7 +172,6 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     },
     [ID.FUNCTION_GYRO]: {
       implemented: true,
-      castTimeMs: 250,
       quicknessCastTimeMs: 280,
       cooldown: 25,
       effects: [
@@ -188,7 +187,6 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     },
     [ID.FUNCTION_GYRO_TOOL_BELT_SKILL]: {
       implemented: true,
-      castTimeMs: 250,
       quicknessCastTimeMs: 280,
       cooldown: 25,
       effects: [

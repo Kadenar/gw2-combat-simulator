@@ -81,6 +81,7 @@ function reduceSkrittSwipeRecharge(
   if (!hasThiefTrait(context.config, TRAIT.REPEAT_RANSACKER)) return;
   const readyAt = Number(context.state.cooldowns.get(ID.SKRITT_SWIPE) || 0);
   if (readyAt > at) {
+    // clamp to `at` so the cooldown never goes negative; happens when multiple artifacts are used close together
     context.state.cooldowns.set(ID.SKRITT_SWIPE, Math.max(at, readyAt - 2));
   }
 }
@@ -90,18 +91,18 @@ function grantScoundrelsLuck(context: ThiefSchedulerContext, at: number): void {
   if (
     !hasThiefTrait(context.config, TRAIT.SCOUNDRELS_LUCK) ||
     at + Number(context.epsilon || 0.0001) <
-      Number(state.scoundrelsLuckReadyAt || 0)
+      Number(state.scoundrelsLuckReadyAt || 0) // ICD prevents banking more than one charge per 20s window
   )
     return;
-  state.scoundrelsLuck = 1;
+  state.scoundrelsLuck = 1; // capped at 1: a second Swipe within the ICD does not stack another charge
   state.scoundrelsLuckReadyAt = at + SCOUTREL_LUCK_ICD;
 }
 
 function grantCombatHigh(context: ThiefSchedulerContext, at: number): void {
   if (!hasThiefTrait(context.config, TRAIT.COMBAT_HIGH)) return;
   const state = antiquaryState.from(context);
-  state.combatHighStacks = 10;
-  state.combatHighExpiresAt = at + 20;
+  state.combatHighStacks = 10; // always resets to 10 stacks (full); each Swipe refreshes the entire window
+  state.combatHighExpiresAt = at + 20; // stacks = ceil(remaining / 2), so 10 stacks → 20s window
 }
 
 function reduceUtilityRecharges(
@@ -147,6 +148,7 @@ export function pilferArtifacts(
   const state = antiquaryState.from(context);
   const prolific = hasThiefTrait(context.config, TRAIT.PROLIFIC_PLUNDERER);
   state.artifactSlots = allArtifactChoices();
+  // Prolific Plunderer and Improvisation each add one use, but only when pilfer originates from a Skritt Swipe (not from initiative or scuffle)
   state.artifactUsesRemaining =
     1 +
     (source === "swipe" && prolific ? 1 : 0) +
@@ -171,7 +173,7 @@ export function reshuffleArtifacts(context: ThiefCastContext): void {
 
 function extendExhilaratingEphemera(state: AntiquaryState, at: number): void {
   const remaining = Math.max(0, Number(state.antiquaryDamageUntil || 0) - at);
-  state.antiquaryDamageUntil = at + Math.min(20, remaining + 10);
+  state.antiquaryDamageUntil = at + Math.min(20, remaining + 10); // each artifact use adds 10s, capped at 20s total (the hard in-game maximum)
 }
 
 function applyArtifactIdentity(
@@ -194,6 +196,7 @@ function applyArtifactIdentity(
     state.chakInitiativeRefundUntil = at + (meticulous ? 12 : 10);
   } else if (skill.id === ID.HOLO_DANCER_DECOY) {
     const expiresAt = at + (meticulous ? 12 : 10);
+    // accumulate one entry per Decoy use; each entry will be consumed by the next utility cast (FIFO in modifyAntiquaryRechargeDuration)
     state.holoUtilityCooldownReductionExpirations = [
       ...(state.holoUtilityCooldownReductionExpirations || []),
       expiresAt,
@@ -203,7 +206,7 @@ function applyArtifactIdentity(
       ...state.holoUtilityCooldownReductionExpirations,
     );
   } else if (skill.id === ID.FORGED_SURFER_DASH_ID_76633) {
-    state.forgedSurferGeneration += 1;
+    state.forgedSurferGeneration += 1; // bumped here (before task scheduling) so the task payload and state always agree on which run is current
   }
 }
 
@@ -314,6 +317,7 @@ export function handleForgedSurfer(
   context: ThiefSchedulerContext,
   task: ThiefScheduledTask<ForgedSurferTaskPayload>,
 ): void {
+  // stale task from a previous activation; discard it so a fresh Forged Surfer cast can run independently
   if (
     Number(task.payload.generation || 0) !==
     Number(antiquaryState.from(context).forgedSurferGeneration || 0)
@@ -328,6 +332,7 @@ export function handleForgedSurfer(
     bomb === 0 ? (meticulous ? 12 : 6) : meticulous ? 4.5 : 3.5,
     bomb === 0 && meticulous ? 2 : 1,
   );
+  // user-configurable assumption: allows simulating fewer bombs when the target dies before the full chain lands
   if (
     bomb >=
     Number(antiquaryState.from(context).forgedSurferMaximumBombHits || 5)
@@ -343,6 +348,7 @@ export function handleForgedSurfer(
   });
 }
 
+// Double Edge is only risky when the skill is on cooldown; casting off-cooldown always succeeds
 function riskyDoubleEdge(
   context: ThiefCastContext,
   skill: ThiefSkill,
@@ -452,7 +458,7 @@ function tossCanachCoins(
   const state = antiquaryState.from(context);
   let initiative = 0;
   for (let coin = 0; coin < 3; coin += 1) {
-    const heads = Number(state.canachCoinIndex || 0) % 2 === 0;
+    const heads = Number(state.canachCoinIndex || 0) % 2 === 0; // coins alternate H/T in a deterministic pattern (index 0, 2, 4 … = heads)
     state.canachCoinIndex = Number(state.canachCoinIndex || 0) + 1;
     if (backfire) {
       if (heads) initiative += 1;
@@ -476,6 +482,7 @@ export function resolveDoubleEdge(
   const at = context.effectiveEnd;
   const outcome = consumeDoubleEdgeOutcome(context, skill);
   if (outcome === "backfire") {
+    // record backfire until the cooldown expires; the backfire variant skill blocks itself via availability.ts while this entry is present
     state.backfireState[skill.id] = {
       activeUntil: Number(context.state.cooldowns.get(skill.id) || at),
       skillName: skill.name,
@@ -510,6 +517,7 @@ export function completeSkrittScuffle(
   state.activeAntiquarySummons.push(summon);
   state.nextSkrittScufflePilferAt = at + SCUFFLE_INTERVAL;
   pilferArtifacts(context, at, "skritt-scuffle-artifact", "scuffle");
+  // ownerId encodes both skill id and cast time so a re-summoned scuffle doesn't cancel the previous one's tasks
   context.tasks.schedule({
     type: "thief.skritt-scuffle",
     at: at + SCUFFLE_INTERVAL,
@@ -523,6 +531,7 @@ export function handleSkrittScuffle(
   context: ThiefSchedulerContext,
   task: ThiefScheduledTask<SkrittScuffleTaskPayload>,
 ): void {
+  // epsilon tolerance: a task scheduled exactly at expiresAt is still valid; floating-point overshoot is not a missed tick
   if (
     task.at >
     Number(task.payload.expiresAt || 0) + Number(context.epsilon || 0.0001)

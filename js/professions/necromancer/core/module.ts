@@ -54,22 +54,12 @@ export const necromancerCoreModule = defineNativeModule({
     },
     resolverHooks: { eventHandlers: necromancerCoreResolverEventHandlers },
     reactions: [
-      onResolvedDamage({
-        id: "necromancer.core.damage",
-        handler: necromancerCoreResolverEventReactions.damage,
-      }),
-      onResolvedBlind({
-        id: "necromancer.core.blind",
-        handler: necromancerCoreResolverEventReactions.blind,
-      }),
-      onResolvedControl({
-        id: "necromancer.core.control",
-        handler: necromancerCoreResolverEventReactions.control,
-      }),
-      onConditionApplied({
-        id: "necromancer.core.condition",
-        handler: necromancerCoreResolverEventReactions.condition,
-      }),
+      ...necromancerCoreResolverEventReactions.damage.map(onResolvedDamage),
+      ...necromancerCoreResolverEventReactions.blind.map(onResolvedBlind),
+      ...necromancerCoreResolverEventReactions.control.map(onResolvedControl),
+      ...necromancerCoreResolverEventReactions.condition.map(
+        onConditionApplied,
+      ),
     ],
   },
   presentation: bindNecromancerCoreUi,

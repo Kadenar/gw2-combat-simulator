@@ -46,15 +46,20 @@ export function advanceHarbingerBlight(
 ): void {
   const state = harbingerState.from(context);
   const coreState = professionCoreState(context);
+  // Blight only accrues while inside Harbinger Shroud; advancing outside shroud is a no-op.
   if (coreState.activeShroud !== "harbinger") return;
   const start = Number(coreState.lastResourceAt || 0);
   const end = Math.max(start, Number(target || 0));
+  // Life force drains at 5% of maximum per second inside Harbinger Shroud.
   const drainRate = Number(coreState.maximumLifeForce || 100) * 0.05;
+  // exitAt is the moment life force would hit 0 — Blight stops accruing if shroud exits before `end`.
   const exitAt =
     drainRate > 0 && drainRate * (end - start) >= coreState.lifeForce
       ? start + coreState.lifeForce / drainRate
       : end;
+  // Doom Approaches doubles the passive Blight gain rate (2 → 4 stacks/s).
   const stacksPerSecond = hasTrait(context, TRAIT.DOOM_APPROACHES) ? 4 : 2;
+  // nextBlightAt is a whole-second cursor; each tick adds stacksPerSecond stacks and advances the cursor by 1 s.
   while (
     Number(state.nextBlightAt ?? Number.POSITIVE_INFINITY) <=
     exitAt + context.epsilon
@@ -74,14 +79,17 @@ function applyCascadingCorruption(
   if (
     !hasTrait(context, TRAIT.CASCADING_CORRUPTION) ||
     !consumed ||
+    // Pre-combat Blight consumption (e.g. from initialBlight config) must not trigger Meltdown before the fight starts.
     (context.hasExplicitCombatStart &&
       (context.combatStartTime == null || at < Number(context.combatStartTime)))
   )
     return;
   const state = harbingerState.from(context);
   state.cascadingCorruptionStacks += consumed;
+  // Every 20 accumulated stacks triggers exactly one Meltdown; remainder carries over to the next threshold.
   if (state.cascadingCorruptionStacks < 20) return;
   state.cascadingCorruptionStacks -= 20;
+  // Meltdown lasts 10 s and grants the Cascading Corruption damage bonus during that window.
   state.meltdownUntil = at + 10;
   context.emit({
     type: "proc",
@@ -125,6 +133,8 @@ function elixir(
   skill: NecromancerSkill,
 ): boolean {
   const at = context.effectiveEnd;
+  // These three elixirs have a mid-cast impact time; others (Bliss, Ignorance, Anguish) impact at cast end.
+  // The fraction represents hit-frame / total-cast-time from wiki frame data.
   const impactProgress =
     (
       {
@@ -137,6 +147,7 @@ function elixir(
     context.start + (context.fullEnd - context.start) * impactProgress;
   const state = harbingerState.from(context);
   const ambition = skill.id === ID.ELIXIR_OF_AMBITION;
+  // Elixir of Ambition requires 10 Blight to empower (larger effect); all other elixirs need only 5.
   const threshold = ambition ? 10 : 5;
   const empowered = state.blight >= threshold;
   const consumed = empowered ? consumeBlight(state, threshold, at) : 0;
@@ -230,6 +241,7 @@ function elixir(
     emitBuff(context, skill, "quickness", 5, 1, boonOptions);
     emitBuff(context, skill, "alacrity", 5, 1, boonOptions);
   }
+  // Elixir of Ambition grants more Blight than other elixirs, consistent with its higher empowerment threshold.
   addBlight(state, ambition ? 15 : 10, at);
   emitState(context, at, "blight-gained");
   return true;
@@ -240,6 +252,7 @@ function blightSkill(
   skill: NecromancerSkill,
 ): boolean {
   const at = context.effectiveEnd;
+  // Blight skills have mid-cast hit frames; these fractions come from wiki frame data, not approximations.
   const impactProgress =
     skill.id === ID.DEVOURING_CUT
       ? 0.75
@@ -294,6 +307,7 @@ function blightSkill(
       { at: impactAt },
     );
   }
+  // Devouring Cut has no CC; Voracious Arc normally dazes but Doom Approaches upgrades the daze to a fear.
   if (skill.id !== ID.DEVOURING_CUT) {
     emitControl(
       context,

@@ -9,7 +9,6 @@ import { SIGNAL_WINDOW_MS, skillDuration } from "./shared.js";
 const MOVEMENT_ARTIFACT_FOLLOW_UP_ANIMATION = 18059;
 const METAL_LEGION_GUITAR_FOLLOW_UP_ANIMATION = 76596;
 const DAREDEVIL_DODGE_ANIMATION = 23275;
-const SPECTER_POST_COMBAT_ANIMATION = 23285;
 const TWILIGHT_COMBO_ANIMATION = 63254;
 const TWILIGHT_COMBO_FOLLOW_UP_ANIMATION = 63181;
 const CRIPPLING_STRIKE = Object.freeze({
@@ -45,12 +44,6 @@ export function normalizeThiefAnimations(
   for (const action of sorted) {
     if (action.rawSkillId === MOVEMENT_ARTIFACT_FOLLOW_UP_ANIMATION) continue;
     if (action.rawSkillId === DAREDEVIL_DODGE_ANIMATION) continue;
-    if (
-      action.rawSkillId === SPECTER_POST_COMBAT_ANIMATION &&
-      action.status === "unknown"
-    ) {
-      continue;
-    }
     if (action.status === "interrupted" && isAutoattack(context, action)) {
       if (committed.has(action)) {
         normalized.push(action);

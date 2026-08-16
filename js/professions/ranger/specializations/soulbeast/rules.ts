@@ -25,6 +25,8 @@ function deny(
   };
 }
 
+// Three-layer lookup: static config assumptions → timeline snapshot → live resolver boon map.
+// Config/timeline are checked first because runtime may not be populated during attribute pre-computation.
 function activeBuff(context: Gw2ModifierContext, kind: string): boolean {
   if (context.config?.boons?.[kind]) return true;
   if (context.timeline?.timedActive(kind, context.time)) return true;
@@ -48,6 +50,8 @@ function targetHealthFraction(context: Gw2ModifierContext): number {
   );
 }
 
+// Oppressive Superiority activates when the target's HP fraction is below the player's HP fraction —
+// playerHealthFraction defaults to 1 (full HP) if unset, making the condition always false unless configured.
 function oppressiveSuperiorityActive(context: Gw2ModifierContext): boolean {
   return (
     hasTrait(context, TRAIT.OPPRESSIVE_SUPERIORITY) &&
@@ -62,6 +66,8 @@ export function soulbeastCastAvailability(
 ): AvailabilityResult {
   const state = soulbeastState.from(context);
   const toggle = skill.id === ID.BEASTMODE || skill.id === ID.LEAVE_BEASTMODE;
+  // Wrong-pet check must precede the beastmode-active check: a skill can be a beastmodeSkill
+  // but still invalid if it belongs to a different pet than the one currently selected.
   if (
     skill.beastmodeSkill &&
     !toggle &&
@@ -100,6 +106,7 @@ export const soulbeastModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
       amount: 0.15,
+      // Furious Strength requires the player to have Fury; pet fury does not count.
       when: (context) =>
         hasTrait(context, TRAIT.FURIOUS_STRENGTH) &&
         activeBuff(context, "fury"),
@@ -144,6 +151,7 @@ export const soulbeastModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
 
 export const soulbeastAttributeRules = Object.freeze({
   modifierRules: soulbeastModifierRules,
+  // Oppressive Superiority also extends condition duration (+10%) in addition to its strike modifier.
   modifyConditionDuration(
     context: Gw2ModifierContext,
     duration: number,

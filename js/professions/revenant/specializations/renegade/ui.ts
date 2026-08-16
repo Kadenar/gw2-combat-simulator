@@ -21,12 +21,14 @@ export const renegadeUi: Partial<ProfessionUiContract> & SchedulerRecord =
         SKILL.ORDERS_FROM_ABOVE,
       ],
       color: "#a84f54",
+      // resourceAnchor makes this group the visual attachment point for the energy bar
       resourceAnchor: true,
     }],
     isPaletteSkillInstant: (
       context: RevenantUiContext,
       skill: RevenantSkill,
     ) =>
+      // Band Together is instant only when the one-use enhancement window is active; the UI must expose this so the user can see at a glance that the next press is the empowered summon
       skill.handlerId === "revenant.band-together" &&
       isBandTogetherReady(
         revenantUiState(context),

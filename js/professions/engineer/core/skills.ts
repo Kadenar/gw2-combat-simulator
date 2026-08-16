@@ -3610,7 +3610,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   [ID.POISON_GAS_SHELL]: {
     interruptCommitMs: 0,
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 520,
     cooldown: 10,
     comboFields: [

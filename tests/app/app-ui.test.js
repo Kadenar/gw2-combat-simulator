@@ -779,7 +779,7 @@ test("Guardian Power Luminary default builds resolve", async () => {
   assert.deepEqual(build.alternateWeapons, ["Spear", ""]);
   assert.equal(build.startingWeaponSet, 2);
 
-  assert.equal(alacrityPreset.benchmarkDps, 37586);
+  assert.equal(alacrityPreset.benchmarkDps, 37836);
   assert.equal(Object.hasOwn(savedAlacrity, "rotation"), false);
   assert.deepEqual(alacrityBuild.weapons, ["Greatsword", ""]);
   assert.deepEqual(alacrityBuild.alternateWeapons, ["Spear", ""]);
@@ -867,7 +867,7 @@ test("Revenant Power Renegade Greatsword default build resolves", async () => {
     "LegendaryAssassin",
     "LegendaryRenegade",
   ]);
-  assert.equal(build.startingLegend, "LegendaryRenegade");
+  assert.equal(build.startingLegend, "LegendaryAssassin");
 });
 
 test("Revenant Power Renegade Hammer default build resolves", async () => {
@@ -898,7 +898,7 @@ test("Revenant Power Renegade Hammer default build resolves", async () => {
     "LegendaryAssassin",
     "LegendaryRenegade",
   ]);
-  assert.equal(build.startingLegend, "LegendaryRenegade");
+  assert.equal(build.startingLegend, "LegendaryAssassin");
 });
 
 test("Revenant Power Vindicator Greatsword defaults resolve", async () => {

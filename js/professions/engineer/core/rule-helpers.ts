@@ -36,6 +36,7 @@ export function engineerSchedulerState(
   return professionCoreState(context) as Partial<EngineerState>;
 }
 
+// called from both scheduler (state path) and resolver (runtime path) contexts — checks both paths
 export function engineerSpecializationState(
   context: Gw2ModifierContext,
   expectedKind: string,
@@ -69,6 +70,7 @@ export function vulnerability(context: Gw2ModifierContext): number {
   );
 }
 
+// summon actorType (turrets, mech) must not trigger player-only damage procs
 export function playerStrike(context: Gw2ModifierContext): boolean {
   return context.event?.actorType !== "summon";
 }
@@ -84,6 +86,7 @@ export function eventSkill(
       }
     | undefined;
   const event = engineerEvent(context);
+  // skillId on the event itself; fall back to application.skillId for condition/buff events
   const skillId = event?.skillId ?? event?.application?.skillId;
   if (skillId == null) return;
   return profession?.catalog?.skillsById?.get(skillId);
@@ -114,6 +117,7 @@ export function targetHealthFraction(context: Gw2ModifierContext): number {
   if (Number.isFinite(configured)) {
     return clamp(configured, 0, 1);
   }
+  // no explicit config — compute dynamically from accumulated strike + condition totals
   const maximum = Number(context.config?.target?.health ?? 0);
   if (!(maximum > 0)) return 1;
   const totals = context.runtime?.totals as
@@ -125,6 +129,7 @@ export function targetHealthFraction(context: Gw2ModifierContext): number {
   return clamp(1 - damage / maximum, 0, 1);
 }
 
+// Heavy Metal bonus scales with target health — higher bonus at lower health thresholds
 export function heavyMetalBonus(context: Gw2ModifierContext): number {
   const fraction = targetHealthFraction(context);
   if (fraction < 0.25) return 0.15;
@@ -138,8 +143,10 @@ export function activeBoonStacks(
   kind: string,
   maximum = 25,
 ): number {
+  // config true = permanently 1 stack assumption; numeric = exact assumed stacks
   const permanent = context.config?.boons?.[kind];
   const base = permanent === true ? 1 : Number(permanent || 0);
+  // runtime boons (resolver) take precedence over scheduler state boons
   const schedulerState = context.state as
     | { readonly boons?: Map<string, Gw2TimedBuffApplication[]> }
     | undefined;

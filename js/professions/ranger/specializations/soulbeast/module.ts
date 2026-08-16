@@ -26,6 +26,7 @@ export const soulbeastModule = defineNativeModule({
     skillMechanics: SOULBEAST_BASE_SKILL_MECHANICS,
     handlers: soulbeastSkillHandlers,
   }),
+  // Scheduler and resolver each get their own independent state instance — they run in separate phases.
   state: { scheduler: soulbeastState.create, resolver: soulbeastState.create },
   mechanics: {
     modifiers: soulbeastAttributeRules,
@@ -37,6 +38,7 @@ export const soulbeastModule = defineNativeModule({
         order: 20,
         handler: reactToSoulbeastDamage,
       }),
+      // Winter's Bite runs at order 30 so it fires after the main damage reaction (order 20) has already processed the hit.
       onResolvedDamage({
         id: "ranger.winters-bite",
         order: 30,

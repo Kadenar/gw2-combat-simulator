@@ -3884,7 +3884,8 @@ test("Power Paragon preset preserves the EVTC build and executes", async () => {
   );
   assert.equal(
     simulationEventLogRows(result, build, warriorProfession).some(
-      (row) => row.description === "UNPRESENTED CUSTOM EVENT paragon.state",
+      (row) =>
+        row.description === "UNPRESENTED CUSTOM EVENT warrior.paragon-state",
     ),
     false,
   );

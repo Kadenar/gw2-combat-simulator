@@ -71,12 +71,16 @@ function availability(
 
 export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord =
   Object.freeze({
+    // null = suppress the row entirely; undefined = fall through to default rendering.
+    // State-sync events are internal bookkeeping and should not appear in the log.
     eventLogRow: (_context: RangerUiContext, event: SchedulerRecord) =>
       event.type === "ranger.galeshot-state" ? null : undefined,
     skillBarGroups: (context: RangerUiContext) => [
       {
         id: "ranger-galeshot-f5",
         label: "Cyclone Bow",
+        // Only one of the two toggle skills is shown at a time to mirror the
+        // in-game F5 button that flips between Summon and Dismiss.
         skillIds: [
           rangerUiState(context).cycloneBowActive
             ? ID.DISMISS_CYCLONE_BOW
@@ -95,6 +99,8 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord =
       {
         id: "ranger-galeshot-profession",
         label: "F5",
+        // Both IDs appear in the palette so the user can drag either; the
+        // skillBarGroups function hides the inactive one from the live bar.
         skillIds: [ID.SUMMON_CYCLONE_BOW, ID.DISMISS_CYCLONE_BOW],
         color: "#67b4c4",
         className: "ranger-galeshot-f5",
@@ -133,6 +139,8 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord =
           maximum: 8,
           value: Number(state.arrows ?? context.initialArrows ?? 8),
           startMaximum: 8,
+          // startValue drives the "starting arrows" control in the build panel,
+          // so it must fall back to the build-level setting, not the live state.
           startValue: Number(context.initialArrows ?? 8),
           canStart: true,
           buildKey: "initialArrows",
@@ -156,6 +164,8 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord =
           pipStyle: "ranger-wind-force",
           showValue: false,
           shortLabel: "WF",
+          // Wind Force is meaningless when the Cyclone Bow isn't summoned, so
+          // the status label reflects bow state rather than a numeric count.
           statusLabel: state.cycloneBowActive ? "Cyclone Bow" : "Inactive",
         },
       ];

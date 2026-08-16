@@ -41,8 +41,10 @@ function handleWillbenderVirtueActivation(
   const virtue = event.virtue;
   if (!virtue) return;
   const state = willbenderState.from(context);
-  if (state.flameVirtue !== virtue) state.flameGeneration += 1;
+  if (state.flameVirtue !== virtue) state.flameGeneration += 1; // different virtue = new flame run, so pulse tasks keyed on the old generation are ignored
   state.flameVirtue = virtue;
+  // Resolver state is seeded from scratch, so hit counts from the scheduler phase
+  // may be stale if the virtue window already lapsed by the time this event arrives.
   if (state[`${virtue}Until`] <= event.at + Number(context.epsilon ?? 1e-9)) {
     state.virtueHitCounts[virtue] = 0;
   }
@@ -68,6 +70,8 @@ function handleWillbenderVirtueTrigger(
   core.justiceBurns += 1;
   if (active) core.justiceActiveBurns += 1;
   else core.justicePassiveBurns += 1;
+  // Burning is enqueued into the resolver's condition queue rather than emitted
+  // directly so it respects the condition-application ordering alongside other burns.
   enqueueOrdered(context.queue, {
     type: "condition",
     at: event.at,
@@ -78,7 +82,8 @@ function handleWillbenderVirtueTrigger(
     skillId: ID.WILLBENDER_JUSTICE,
     skillName: "Justice",
     name: `Justice — ${active ? "Active" : "Passive"} Burning`,
-    icon: context.helpers.skillsById?.get(ID.RUSHING_JUSTICE)?.icon || "",
+    icon: context.helpers.skillsById?.get(ID.RUSHING_JUSTICE)?.icon || "", // WILLBENDER_JUSTICE has no icon; Rushing Justice shares the same visual in-game
+
     condition: "Burning",
     stacks: 1,
     duration: Number(event.burningDuration || 2),

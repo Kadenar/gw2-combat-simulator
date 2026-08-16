@@ -16,19 +16,19 @@
         "label": "Power Alacrity (Sword / Sword)",
         "build": "Builds/revenant/b-power-alac-renegade-sword-sword.json",
         "rotation": "Rotations/revenant/r-power-alac-renegade-sword-sword-benchmark.json",
-        "benchmarkDps": 34194
+        "benchmarkDps": 34305
       },
       {
         "label": "Condition (Shortbow / Mace-Axe)",
         "build": "Builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
         "rotation": "Rotations/revenant/r-condi-renegade-shortbow-mace-axe-benchmark.json",
-        "benchmarkDps": 41545
+        "benchmarkDps": 41702
       },
       {
         "label": "Condition (Mace-Axe / Spear)",
         "build": "Builds/revenant/b-condi-renegade-spear-mace-axe.json",
         "rotation": "Rotations/revenant/r-condi-renegade-spear-mace-axe-benchmark.json",
-        "benchmarkDps": 41341
+        "benchmarkDps": 41300
       }
     ]
   },
@@ -39,7 +39,7 @@
         "label": "Condition Quickness (Shortbow / Mace-Axe)",
         "build": "Builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json",
         "rotation": "Rotations/revenant/r-condi-quick-herald-shortbow-mace-axe-benchmark.json",
-        "benchmarkDps": 32624
+        "benchmarkDps": 32556
       }
     ]
   },
@@ -74,7 +74,7 @@
         "label": "Condition (Mistfire)",
         "build": "Builds/revenant/b-condi-conduit-mistfire.json",
         "rotation": "Rotations/revenant/r-condi-conduit-mistfire-benchmark.json",
-        "benchmarkDps": 39944,
+        "benchmarkDps": 40004,
         "upToDate": true
       }
     ]

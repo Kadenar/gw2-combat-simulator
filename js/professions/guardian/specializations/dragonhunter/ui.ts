@@ -9,6 +9,7 @@ function dragonhunterEventLogRow(
   _context: SchedulerRecord,
   event: GuardianResolverEvent,
 ): ProfessionEventLogDescriptor | null | undefined {
+  // null = explicit suppression (hide from log); undefined = no opinion (let platform decide)
   if (event.type.startsWith("guardian.dragonhunter-")) return null;
   return undefined;
 }
@@ -35,7 +36,7 @@ export const dragonhunterUi = Object.freeze({
       label: "F",
       skillIds: guardianUiSkillIdsByName(VIRTUE_NAMES, context),
       color: "#2f7eb8",
-      resourceAnchor: true,
+      resourceAnchor: true, // anchors the virtue tether/resource bar to this palette group
     },
   ],
 });

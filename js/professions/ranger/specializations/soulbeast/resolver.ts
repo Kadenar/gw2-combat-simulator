@@ -21,6 +21,7 @@ export function handleSoulbeastModeEvent(
   soulbeastState.from(context).beastmodeActive = event.active === true;
 }
 
+// Extends active boon applications in the live boon map; only applications already running at event.at are stretched.
 export function handleRangerBoonExtension(
   context: RangerResolverContext,
   event: RangerResolverEvent,
@@ -50,6 +51,7 @@ export function handleRangerBoonExtension(
         application.at <= event.at &&
         application.expiresAt > event.at
       ) {
+        // Cast needed because the runtime type treats expiresAt as readonly after resolution.
         (application as { expiresAt: number }).expiresAt += extension;
       }
     }
@@ -99,6 +101,8 @@ export function queueSoulbeastBuff(
   });
 }
 
+// Beast Ability is always the last skill in beastmodeSkillIds; traits like Live Fast and Go for the Eyes
+// should fire only on the first hit of a multi-hit Beast Ability, not once per packet.
 function firstBeastAbilityHit(
   context: RangerResolverContext,
   event: RangerResolverEvent,
@@ -143,12 +147,14 @@ export function reactToSoulbeastDamage(
   if (!(Number(event.coefficient) > 0)) return;
   const state = soulbeastState.from(context);
 
+  // One Wolf Pack must not trigger from its own echo or from effect-sourced hits to avoid infinite recursion.
   if (
     event.actorType !== "effect" &&
     event.sourceId !== ID.ONE_WOLF_PACK_STRIKE &&
     activeSoulbeastBuff(context, "one-wolf-pack", event.at) &&
     event.at >= state.oneWolfPackReadyAt
   ) {
+    // 1-second ICD between echoes even within a single multi-hit skill.
     state.oneWolfPackReadyAt = event.at + 1;
     enqueueOrdered(context.queue, {
       type: "damage",
@@ -170,6 +176,7 @@ export function reactToSoulbeastDamage(
     });
   }
 
+  // Vulture Stance procs per player hit with a 0.25 s ICD; effect-sourced hits (e.g. OWP echoes) are excluded.
   if (
     activeSoulbeastBuff(context, "vulture-stance", event.at) &&
     event.at >= state.vultureStanceReadyAt &&
@@ -312,6 +319,7 @@ export function reactToSoulbeastControl(
   }
 }
 
+// Predator's Cunning triggers a flat-coefficient strike on every Poisoned application, not once per tick.
 export function reactToSoulbeastCondition(
   context: RangerResolverContext,
   event: RangerResolverEvent,
@@ -341,6 +349,8 @@ export function reactToSoulbeastCondition(
   });
 }
 
+// Essence of Speed reacts to each quickness application and extends all other boons by 2 s, with a 5 s ICD.
+// Quickness itself is excluded from the extension to prevent runaway stacking.
 export function reactToSoulbeastBuff(
   context: RangerResolverContext,
   event: RangerResolverEvent,
@@ -367,6 +377,8 @@ export function reactToSoulbeastBuff(
   });
 }
 
+// Winter's Bite fires once per weapon skill hit via the ranger core flag; the flag is cleared here
+// and is reset by the ranger core when a new weapon cycle begins, not on cooldown expiry.
 export function reactToRangerWinterBite(
   context: RangerResolverContext,
   event: RangerResolverEvent,
@@ -374,6 +386,7 @@ export function reactToRangerWinterBite(
   const core = professionCoreState(context);
   if (
     !core.winterBiteReady ||
+    // Guard against the Winter's Bite proc re-triggering itself.
     event.sourceId === ID.WINTERS_BITE ||
     event.actorType === "effect"
   ) {

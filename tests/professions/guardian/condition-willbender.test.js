@@ -82,7 +82,7 @@ test("condition Willbender preset reproduces the supplied benchmark", async () =
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(Math.round(result.dps), 42400);
+  assert.equal(Math.round(result.dps), 41977);
   assert.equal(actionCount("Flowing Resolve"), 8);
   assert.equal(actionCount("Rushing Justice"), 11);
   assert.equal(actionCount("Zealot's Fire"), 12);

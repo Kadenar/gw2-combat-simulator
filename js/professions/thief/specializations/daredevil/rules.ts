@@ -13,15 +13,18 @@ import { updatePalmStrikeWindow } from "./mechanics.js";
 import { applyDaredevilDodge, beginDaredevilTraits } from "./traits.js";
 
 export const daredevilSchedulerHooks = Object.freeze({
+  // onCastStart runs before the cast so Staff Master / Brawler's Tenacity endurance and Weakening Strikes are armed in time
   onCastStart: beginDaredevilTraits,
   afterCast: Object.freeze([
     {
       id: "thief.daredevil-dodge",
+      // Order 30: runs after core thief afterCast (order 20) so endurance has already been deducted
       order: 30,
       handler: applyDaredevilDodge,
     },
     {
       id: "thief.daredevil-palm-strike",
+      // Order 40: must follow dodge handler so the Palm Strike window is set after dodge effects are emitted
       order: 40,
       handler: updatePalmStrikeWindow,
     },
@@ -48,6 +51,7 @@ export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       when: (context) =>
         thiefPlayerEvent(context) &&
         hasTrait(context, TRAIT.HAVOC_SPECIALIST) &&
+        // Trait activates whenever endurance is not at maximum — any spent dodge qualifies
         Number(thiefRuntimeState(context).endurance || 0) <
           Number(thiefRuntimeState(context).maximumEndurance || 100),
     },

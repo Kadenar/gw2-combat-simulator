@@ -34,6 +34,8 @@ import type {
   RevenantSkill,
 } from "../../types.js";
 
+// Union type allows the same helper functions to be called from both cast contexts (which have start/effectiveEnd)
+// and raw scheduler contexts (which do not), without requiring separate overloads.
 type RevenantMechanicContext = RevenantSchedulerContext & {
   readonly start?: number;
   readonly effectiveEnd?: number;
@@ -100,6 +102,7 @@ function hasTrait(
 }
 
 function effectiveAffinity(context: RevenantSchedulerContext): number {
+  // Kinetic Insight contributes a virtual +2 to affinity for scaling calculations without mutating actual state.
   const bonus = hasTrait(context, TRAIT.KINETIC_INSIGHT) ? 2 : 0;
   return Math.min(
     MECHANICS.conduit.affinityMaximum,
@@ -108,6 +111,7 @@ function effectiveAffinity(context: RevenantSchedulerContext): number {
 }
 
 function targetsHit(context: RevenantCastContext, maximum = 5): number {
+  // Command-level override takes priority so per-skill target counts can differ from the global config value.
   return Math.max(
     1,
     Math.min(
@@ -125,6 +129,7 @@ function targetsHit(context: RevenantCastContext, maximum = 5): number {
 }
 
 function activeWeapon(context: RevenantSchedulerContext): string | undefined {
+  // activeWeaponSet is 1-indexed; value 2 means the swap weapon set is currently active.
   return Number(context.state.activeWeaponSet) === 2
     ? context.config.weaponSet2Primary
     : context.config.primaryWeapon;
@@ -172,9 +177,11 @@ export function emitDervishFormAttack(
   { elite = false }: { readonly elite?: boolean } = {},
 ): void {
   const state = conduitState.from(context);
+  // Guard against non-Conduit builds calling this helper; specialization check is cheaper than checking the form alone.
   if (
     context.config.specialization !== "Conduit" ||
     state.conduitForm !== "Dervish" ||
+    // Use context.start (cast begin) rather than effectiveEnd so the form check reflects the moment of triggering.
     Number(state.cosmicWisdomUntil || 0) <= context.start
   )
     return;
@@ -239,6 +246,7 @@ export function applyCosmicWisdomAfterCast(
   skill: RevenantSkill,
 ): void {
   const at = context.effectiveEnd;
+  // Assassin form procs on any Assassin legend skill; Dervish form procs only on Entity legend skills.
   if (
     skill.legendId === LEGEND.ASSASSIN &&
     revenantConduitFormIsActive(conduitState.from(context), "Assassin", at)
@@ -251,6 +259,7 @@ export function applyCosmicWisdomAfterCast(
   )
     return;
   emitDervishFormAttack(context, skill);
+  // Twin Moon Sweep is the only Entity skill that also triggers the elite Dervish attack.
   if (
     (
       [ID.TWIN_MOON_SWEEP, ID.TWIN_MOON_SWEEP_ID_77001] as readonly number[]
@@ -322,6 +331,7 @@ export function gainConduitAffinity(
     previous + Math.max(0, Number(amount || 0)),
   );
   if (
+    // Only fire the Expanded Consciousness pulse on the transition to maximum, not on every gain while already at max.
     previous < MECHANICS.conduit.affinityMaximum &&
     state.affinity === MECHANICS.conduit.affinityMaximum &&
     hasTrait(context, TRAIT.EXPANDED_CONSCIOUSNESS)
@@ -332,6 +342,7 @@ export function gainConduitAffinity(
     );
   }
   if (state.affinity !== previous) {
+    // Use cast-start time when available so the state event aligns with the skill timeline rather than the clock.
     emitRevenantState(context, context.start ?? context.state.time, reason);
   }
   return state.affinity - previous;
@@ -397,6 +408,7 @@ export function castBeguilingHaze(
 ): void {
   const profile = MECHANICS.conduit.beguilingHaze;
   const state = conduitState.from(context);
+  // Charges > 0 means this is a follow-up cast; the main cast and follow-ups share the same handler id.
   const followUp = Number(state.beguilingHazeCharges || 0) > 0;
   const at =
     context.start +
@@ -409,6 +421,7 @@ export function castBeguilingHaze(
       name: "Beguiling Haze — Follow-Up",
     });
   } else {
+    // Register this cast's reservationId so completeBeguilingHaze can arm follow-up charges for exactly this cast.
     state.beguilingHazeMainReservations.push(context.reservationId);
     emitDamage(context, skill, {
       at,
@@ -429,6 +442,7 @@ export function completeBeguilingHaze(
 ): void {
   if (skill.handlerId !== "revenant.beguiling-haze") return;
   const state = conduitState.from(context);
+  // Only the cast whose reservationId was registered in castBeguilingHaze qualifies as the main cast.
   const index = state.beguilingHazeMainReservations.indexOf(
     context.reservationId,
   );
@@ -437,13 +451,16 @@ export function completeBeguilingHaze(
     state.beguilingHazeMainReservations.splice(index, 1);
     state.beguilingHazeCharges =
       MECHANICS.conduit.beguilingHaze.followUpCharges;
+    // The cooldown starts from effectiveEnd; alacrity shortens it from 10 s to 8 s.
     state.beguilingHazeReadyAt =
       context.effectiveEnd +
       (context.hasBuff?.("alacrity", context.effectiveEnd) ? 8 : 10);
   }
+  // Mirror ConduitState into the platform ammo/cooldown system so the UI and scheduler agree.
   const ammo = context.state.ammo.get(skill.id);
   if (ammo) {
     if (state.beguilingHazeCharges > 0) {
+      // While follow-up charges are available, present them as an ammo-style skill with no cooldown timer.
       ammo.maximum = MECHANICS.conduit.beguilingHaze.followUpCharges;
       ammo.charges = state.beguilingHazeCharges;
       ammo.nextRechargeAt = null;
@@ -469,9 +486,11 @@ function activeSelfConditions(
   at: number,
 ): number {
   const state = professionCoreState(context);
+  // Prune expired dynamic entries before counting; the count represents conditions currently afflicting the player.
   state.selfConditions = state.selfConditions.filter(
     (application) => Number(application.expiresAt || 0) > at,
   );
+  // selfConditionCount is a static config value representing pre-existing/simulated conditions (e.g. from Mesmer RP).
   const configured = Math.max(0, Number(state.selfConditionCount || 0));
   return configured + state.selfConditions.length;
 }
@@ -484,14 +503,17 @@ export function castHexEaterVortex(
   const profile = MECHANICS.conduit.hexEaterVortex;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
+  // Demon legend fires all 6 projectiles regardless of self-condition count; others are limited by active conditions.
   const projectileCount = hasLegend(context, LEGEND.DEMON)
     ? profile.maximumProjectiles
     : Math.min(profile.maximumProjectiles, activeSelfConditions(context, at));
+  // Conditions removed is capped at the actual active count even when Demon fires the full projectile salvo.
   const conditionsRemoved = Math.min(
     profile.maximumProjectiles,
     activeSelfConditions(context, at),
   );
   if (conditionsRemoved > 0) {
+    // Deplete static (configured) conditions first, then peel dynamic (runtime) ones oldest-first.
     const configuredRemoved = Math.min(
       conditionsRemoved,
       Number(state.selfConditionCount || 0),
@@ -558,6 +580,7 @@ export function castTwinMoonSweep(
 ): void {
   const profile = MECHANICS.conduit.twinMoonSweep;
   const at = context.start + profile.impactDelay;
+  // Only the player hit carries affinityOnHit so the single affinity gain fires once per cast, not twice.
   emitDamage(context, skill, {
     at,
     coefficient: profile.playerCoefficient,
@@ -644,6 +667,7 @@ export function castReleasePotential(
   skill: RevenantSkill,
 ): void {
   const affinity = effectiveAffinity(context);
+  // At affinity ≥ 3 the skill gains effects from all equipped legends even if they are not currently active.
   const allLegendEffects =
     affinity >= MECHANICS.conduit.allReleaseEffectsAffinity;
   const releaseProfiles = MECHANICS.conduit
@@ -715,9 +739,11 @@ export function castReleasePotential(
           profile.tormentBaseDuration *
           (1 + affinity * profile.tormentDurationPerAffinity),
       });
+      // Self-torment duration decreases with higher affinity (more skill = less self-harm); clamped to 0 at max.
       const selfDuration =
         profile.selfTormentBaseDuration *
         Math.max(0, 1 - affinity * profile.selfDurationReductionPerAffinity);
+      // One self-condition entry per target hit; Hex Eater Vortex then consumes entries to scale its projectiles.
       const count = targetsHit(context);
       for (let index = 0; index < count; index += 1) {
         professionCoreState(context).selfConditions.push({
@@ -738,6 +764,7 @@ export function castReleasePotential(
           at:
             context.start +
             Number(
+              // Use hard-coded hit delays when available; fall back to evenly spaced hits across the cast window.
               profile.hitDelays?.[index] ??
                 ((context.effectiveEnd - context.start) * (index + 1)) /
                   profile.hits,
@@ -747,6 +774,7 @@ export function castReleasePotential(
           totalHits: profile.hits,
         });
       }
+      // Conditions land with the final hit; both share the same affinity-scaled duration formula.
       emitCondition(context, skill, {
         at: context.start + Number(profile.hitDelays?.at(-1) || 0),
         condition: "Crippled",
@@ -778,6 +806,7 @@ export function activateCosmicWisdom(context: RevenantCastContext): void {
   const at = context.effectiveEnd;
   // Mistfire resolves as part of the activation, before Cosmic Wisdom's
   // doubled Bolstered Bonds attributes become active.
+  // It is emitted directly here rather than via observeConduitTraits because Cosmic Wisdom has no control event.
   if (hasTrait(context, TRAIT.MISTFIRE)) {
     const profile = MECHANICS.traitProcs.mistfire;
     context.emit({
@@ -810,12 +839,15 @@ export function activateCosmicWisdom(context: RevenantCastContext): void {
     });
   }
   state.cosmicWisdomUntil = at + MECHANICS.conduit.cosmicWisdomDuration;
+  // Derive form name from active legend; strip "Release Potential: " prefix to get "Mesmer", "Assassin", etc.
   state.conduitForm =
     REVENANT_RELEASE_POTENTIAL_BY_LEGEND[
       professionCoreState(context).activeLegendId
     ]?.replace("Release Potential: ", "") || "";
+  // Energy overrides must be applied immediately so the very next skill cast sees the correct cost.
   syncConduitEnergyCostOverrides(state);
   emitRevenantState(context, at, "cosmic-wisdom");
+  // Numinous Gift fires on activation for the activating player (not allies); Found Purpose broadcasts to allies on swap.
   emitNuminousGift(context, context.skill);
 }
 

@@ -12,12 +12,14 @@ import type {
 } from "../../../../platform/engine/types.js";
 import type { RevenantUiContext } from "../../types.js";
 
+// Sentinel string used as a skill ID/name for the synthetic palette entry; never maps to a real skill.
 export const VINDICATOR_DODGE_AUTO_ACTION = "__vindicator_dodge_auto";
 
 const VINDICATOR_DODGE_AUTO_ICON =
   "https://render.guildwars2.com/file/2864D963D3FC9156E6F52FA95DD34C2DE30306BE/2491537.png";
 
 function activeAutoattack(context: SchedulerRecord): Skill | null {
+  // activeAutoattack may be a raw ID string rather than a Skill object; guard ensures we only return a full object.
   const skill = context.activeAutoattack;
   return skill && typeof skill === "object" ? (skill as Skill) : null;
 }
@@ -25,7 +27,9 @@ function activeAutoattack(context: SchedulerRecord): Skill | null {
 export function vindicatorDodgeAutoPaletteSkill(
   context: SchedulerRecord,
 ): Skill | null {
+  // Guard specialization first: this helper is called from shared palette code that doesn't know the spec.
   if (String(context.specialization || "") !== "Vindicator") return null;
+  // No auto-attack means there's nothing to pair a dodge with; suppress the synthetic entry.
   if (!activeAutoattack(context)) return null;
   return {
     id: VINDICATOR_DODGE_AUTO_ACTION,
@@ -36,6 +40,7 @@ export function vindicatorDodgeAutoPaletteSkill(
     icon: VINDICATOR_DODGE_AUTO_ICON,
     type: "Action",
     slot: "Action",
+    // castTimeMs: 0 so the palette does not show a cast-time ring around this synthetic entry.
     castTimeMs: 0,
     implemented: true,
   };
@@ -55,6 +60,7 @@ export function vindicatorDodgeAutoRotationEntries(
     {
       name: "Dodge",
       skillId: SKILL.DODGE,
+      // offsetMs positions the dodge relative to the auto; clamped to 0 so a negative offset is ignored.
       offset: Math.max(0, Math.round(Number(offsetMs) || 0)),
     },
   ];
@@ -64,6 +70,7 @@ function vindicatorPaletteActionSkills(
   context: SchedulerRecord,
   skills: readonly Skill[],
 ): Skill[] {
+  // Strip any stale synthetic entry first so it cannot appear twice if called repeatedly.
   const ordinarySkills = skills.filter(
     (skill) => skill.name !== VINDICATOR_DODGE_AUTO_ACTION,
   );
@@ -72,6 +79,7 @@ function vindicatorPaletteActionSkills(
   const dodgeIndex = ordinarySkills.findIndex(
     (skill) => skill.name === "Dodge",
   );
+  // Insert immediately after Dodge in the palette; if Dodge is absent, prepend at index 0.
   ordinarySkills.splice(dodgeIndex < 0 ? 0 : dodgeIndex + 1, 0, dodgeAuto);
   return ordinarySkills;
 }
@@ -80,6 +88,7 @@ function resolveVindicatorPaletteAction(
   context: SchedulerRecord,
   action: ProfessionPaletteActionIdentity,
 ): LegacyRotationItem[] | undefined {
+  // Return undefined for unrecognized actions so the platform can try other resolvers.
   return action.name === VINDICATOR_DODGE_AUTO_ACTION
     ? vindicatorDodgeAutoRotationEntries(context)
     : undefined;
@@ -97,6 +106,7 @@ export const vindicatorUi: Partial<ProfessionUiContract> & SchedulerRecord =
           color: "#a84f54",
           resourceAnchor: true,
         },
+        // Kurzick skill group is only shown while on the Kurzick side; Luxon skills appear in the main bar.
         ...(state.activeLegendId === LEGEND.ALLIANCE &&
         state.allianceSide === "kurzick"
           ? [

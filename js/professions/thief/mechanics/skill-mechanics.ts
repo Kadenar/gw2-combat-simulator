@@ -1,7 +1,4 @@
-import {
-  THIEF_CORE_EXTRA_SKILLS,
-  THIEF_CORE_SKILL_MECHANICS,
-} from "../core/skills.js";
+import { THIEF_CORE_SKILL_MECHANICS } from "../core/skills.js";
 import { DAREDEVIL_SKILL_MECHANICS } from "../specializations/daredevil/skills.js";
 import { DEADEYE_SKILL_MECHANICS } from "../specializations/deadeye/skills.js";
 import { SPECTER_SKILL_MECHANICS } from "../specializations/specter/skills.js";
@@ -30,5 +27,3 @@ export const THIEF_SKILL_MECHANICS = mergeMechanics([
   SPECTER_SKILL_MECHANICS,
   ANTIQUARY_SKILL_MECHANICS,
 ]);
-
-export const THIEF_EXTRA_SKILLS = THIEF_CORE_EXTRA_SKILLS;
