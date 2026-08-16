@@ -1,9 +1,6 @@
 import { ELEMENTALIST_SKILL_IDS as ID } from "../data/ids.js";
 
-/**
- * Fire Elemental timings and packets measured from the supplied 2026-07-16
- * ArcDPS log.
- */
+/** Fire Elemental timings and packets measured from a 2026-07-16 ArcDPS log. */
 export const FIRE_ELEMENTAL_EVTC_PROFILE = Object.freeze({
   lifetime: 120,
   rechargeAfterExpiry: 40,
@@ -42,5 +39,43 @@ export const FIRE_ELEMENTAL_EVTC_PROFILE = Object.freeze({
     cooldown: 15,
     burningStacks: 1,
     burningDuration: 3,
+  }),
+});
+
+/** Earth Elemental timings and packets measured from the supplied 2026-07-18 ArcDPS log. */
+export const EARTH_ELEMENTAL_EVTC_PROFILE = Object.freeze({
+  lifetime: 120,
+  rechargeAfterExpiry: 40,
+  targetAcquisitionDelay: 0.16,
+  postCommandRecovery: 0.56,
+  subsequentCommandRecovery: 0.08,
+  basePower: 1000,
+  basePrecision: 1000,
+  baseFerocity: 0,
+  punch: Object.freeze({
+    skillId: ID.EARTH_ELEMENTAL_PUNCH,
+    baseDamage: 600,
+    impact: 0.36,
+    animationEnd: 1,
+    recovery: 2.3,
+  }),
+  enervatingPunch: Object.freeze({
+    skillId: ID.EARTH_ELEMENTAL_ENERVATING_PUNCH,
+    baseDamage: 1200,
+    impact: 0.52,
+    animationEnd: 1.52,
+    recovery: 2.6,
+    cooldown: 8,
+    weaknessDuration: 3,
+  }),
+  stomp: Object.freeze({
+    skillId: ID.STOMP_ELEMENTAL_COMMAND,
+    baseDamage: 1500,
+    impact: 1.56,
+    animationEnd: 3.52,
+    cooldown: 18,
+    protectionDuration: 3,
+    crippleDuration: 5,
+    immobilizeDuration: 11,
   }),
 });
