@@ -1,4 +1,5 @@
 import type { SkillId } from "../../platform/engine/types.js";
+import { elementalistProfileSource } from "./professions/elementalist/profile.js";
 import { engineerProfileSource } from "./professions/engineer/profile.js";
 import { guardianProfileSource } from "./professions/guardian/profile.js";
 import { mesmerProfileSource } from "./professions/mesmer/profile.js";
@@ -66,18 +67,7 @@ export interface ProfessionProfileSource {
 }
 
 const sources: readonly ProfessionProfileSource[] = [
-  {
-    id: "elementalist",
-    name: "Elementalist",
-    specializations: {
-      core: "Core",
-      tempest: "Tempest",
-      weaver: "Weaver",
-      catalyst: "Catalyst",
-      evoker: "Evoker",
-    },
-    dodgeId: 1100277,
-  },
+  elementalistProfileSource,
   mesmerProfileSource,
   necromancerProfileSource,
   rangerProfileSource,

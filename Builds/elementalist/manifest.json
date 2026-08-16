@@ -92,7 +92,7 @@
         "build": "Builds/elementalist/b-power-alac-tempest-sword.json",
         "rotation": "Rotations/elementalist/r-power-alac-tempest-sword.json",
         "dpsReportUrl": "https://dps.report/4oEj-20260420-081807_golem",
-        "benchmarkDps": 32969,
+        "benchmarkDps": 32953,
         "upToDate": true
       },
       {
@@ -114,7 +114,7 @@
         "label": "Condi (Scepter)",
         "build": "Builds/elementalist/b-condi-tempest-scepter.json",
         "rotation": "Rotations/elementalist/r-condi-tempest-scepter.json",
-        "benchmarkDps": 41116,
+        "benchmarkDps": 41115,
         "upToDate": false
       },
       {
@@ -122,14 +122,14 @@
         "build": "Builds/elementalist/b-condi-alac-tempest-pistol.json",
         "rotation": "Rotations/elementalist/r-condi-alac-tempest-pistol.json",
         "dpsReportUrl": "https://dps.report/4NjC-20260423-082345_golem",
-        "benchmarkDps": 33314,
+        "benchmarkDps": 33460,
         "upToDate": true
       },
       {
         "label": "Condi Alacrity (Scepter)",
         "build": "Builds/elementalist/b-condi-alac-tempest-scepter.json",
         "rotation": "Rotations/elementalist/r-condi-alac-tempest-scepter.json",
-        "benchmarkDps": 34648,
+        "benchmarkDps": 34635,
         "upToDate": false
       },
       {
@@ -212,7 +212,7 @@
         "label": "Condi Quickness (P/Wh)",
         "build": "Builds/elementalist/b-condi-quick-catalyst-pistol-warhorn.json",
         "rotation": "Rotations/elementalist/r-condi-quick-catalyst-pistol-warhorn.json",
-        "benchmarkDps": 35035,
+        "benchmarkDps": 35185,
         "upToDate": false
       },
       {
@@ -220,7 +220,7 @@
         "build": "Builds/elementalist/b-condi-quick-catalyst-pistol-dagger.json",
         "rotation": "Rotations/elementalist/r-condi-quick-catalyst-pistol-dagger.json",
         "dpsReportUrl": "https://dps.report/wJsO-20260416-231016_golem",
-        "benchmarkDps": 31748,
+        "benchmarkDps": 33034,
         "upToDate": true
       },
       {
@@ -303,7 +303,7 @@
         "build": "Builds/elementalist/b-condi-alac-evoker-pistol-warhorn.json",
         "rotation": "Rotations/elementalist/r-condi-alac-evoker-pistol-warhorn.json",
         "dpsReportUrl": "https://dps.report/ZH7U-20260423-182755_golem",
-        "benchmarkDps": 39251,
+        "benchmarkDps": 39092,
         "upToDate": true
       },
       {

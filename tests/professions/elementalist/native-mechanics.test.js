@@ -2929,6 +2929,99 @@ test("Flame Barrage replaces the active Glyph and obeys rotation timing", () => 
   );
 });
 
+test("selected Earth Elemental auto-summons, attacks, and executes Stomp", () => {
+  const result = runNative({
+    lines: [["Fire"], ["Air"], ["Catalyst", "2-1-1"]],
+    rotation: ["Stomp", "Stomp", 9000],
+    selectedSkills: {
+      ...elementalistProfession.createBuildDefaults().selectedSkills,
+      Elite: "Glyph of Elementals (Earth)",
+    },
+    assumptions: {
+      ...elementalistProfession.createBuildDefaults().assumptions,
+      quickness: false,
+      alacrity: false,
+    },
+  });
+  const summonActions = result.events.filter(
+    (event) => event.type === "action" && event.actorType === "summon",
+  );
+  const stompDamage = result.events.find(
+    (event) => event.type === "damage" && event.skillName === "Stomp",
+  );
+  const immobilize = result.events.find(
+    (event) =>
+      event.type === "condition" &&
+      event.skillName === "Stomp" &&
+      event.condition === "Immobilized",
+  );
+  const cripple = result.events.find(
+    (event) =>
+      event.type === "condition" &&
+      event.skillName === "Stomp" &&
+      event.condition === "Crippled",
+  );
+  const protection = result.events.find(
+    (event) =>
+      event.type === "buff" &&
+      event.skillName === "Stomp" &&
+      event.kind === "protection",
+  );
+  const weakness = result.events.find(
+    (event) =>
+      event.type === "condition" &&
+      event.skillName === "Enervating Punch" &&
+      event.condition === "Weakness",
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.endState.profession.summonedElemental.element, "Earth");
+  assert.equal(
+    result.events.some(
+      (event) =>
+        event.type === "action" &&
+        String(event.skillName).startsWith("Glyph of Elementals"),
+    ),
+    false,
+  );
+  assert.deepEqual(
+    summonActions.slice(0, 4).map((event) => event.skillName),
+    ["Stomp", "Enervating Punch", "Punch", "Punch"],
+  );
+  assert.equal(stompDamage.source, "Earth Elemental");
+  assert.equal(stompDamage.actorType, "summon");
+  assert.equal(Math.round(stompDamage.at * 1000), 1560);
+  assert.deepEqual(
+    summonActions
+      .filter((event) => event.skillName === "Stomp")
+      .map((event) => Math.round(event.at * 1000)),
+    [0, 18000],
+  );
+  assert.equal(cripple.condition, "Crippled");
+  assert.equal(cripple.duration, 5);
+  assert.equal(immobilize.condition, "Immobilized");
+  assert.equal(immobilize.duration, 11);
+  assert.equal(immobilize.actorType, "player");
+  assert.equal(immobilize.elementalOwnedCondition, true);
+  assert.equal(protection.duration, 3);
+  assert.equal(protection.recipients, "party");
+  assert.equal(protection.maximumRecipients, 5);
+  assert.equal(weakness.duration, 3);
+  assert.equal(weakness.actorType, "player");
+  assert.equal(
+    result.procSteps.some(
+      (step) =>
+        step.skill === "Vicious Empowerment" && step.sourceSkill === "Stomp",
+    ),
+    true,
+  );
+  assert.equal(result.endState.profession.availableFlips.Stomp, Infinity);
+  assert.equal(
+    result.endState.profession.availableFlips["Flame Barrage"],
+    undefined,
+  );
+});
+
 test("Elementalist small-hitbox caps exclude only excess multi-hit packets", () => {
   const cases = [
     {

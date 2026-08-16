@@ -10,15 +10,7 @@ const ALACRITY_RECHARGE_MS = 12_000;
 const ELEMENTAL_LIFETIME_MS = 120_000;
 const MAXIMUM_AVAILABILITY_DELAY_MS = 1_000;
 const BARRAGE_TIMING_EXCEPTIONS = new Map([
-  ["Catalyst: Condi Quickness (P/Wh)", { maximumAvailabilityDelayMs: 1_500 }],
-  [
-    "Catalyst: Condi Quickness (P/D)",
-    {
-      invalidOpening:
-        "Flame Barrage cannot start before the current simulation clock.",
-      minimumAvailabilityDelayMs: -120,
-    },
-  ],
+  ["Catalyst: Condi Quickness (P/Wh)", 1_500],
 ]);
 
 const root = new URL("../../../", import.meta.url);
@@ -31,7 +23,7 @@ function entryName(entry) {
   return typeof entry === "string" ? entry : entry?.name;
 }
 
-test("every Glyph preset precasts its native Fire Elemental and commands it off cooldown", async () => {
+test("every Glyph preset automatically summons its Fire Elemental and commands it off cooldown", async () => {
   const [manifest, adapter] = await Promise.all([
     readJson("Builds/elementalist/manifest.json"),
     loadProfessionAppAdapter("elementalist"),
@@ -63,25 +55,33 @@ test("every Glyph preset precasts its native Fire Elemental and commands it off 
       };
       adapter.recalculate(app);
       const result = adapter.runSimulation(app);
-      const glyph = result.steps.find((step) => step.skill === GLYPH);
       const combatStart = result.steps.find(
         (step) => step.skill === "Combat Start",
       );
-      const combatAt =
-        combatStart?.start ?? Math.round(result.dpsStartTime * 1000);
+      const firstPlayerAction = result.events.find(
+        (event) => event.type === "action" && event.actorType === "player",
+      );
       assert.equal(
-        entryName(savedRotation.rotation[0]),
-        GLYPH,
-        `${label}: first rotation command`,
+        savedRotation.rotation.some((entry) => entryName(entry) === GLYPH),
+        false,
+        `${label}: explicit Glyph command`,
       );
-      assert.notEqual(glyph, undefined, `${label}: Glyph cast`);
-      assert.equal(glyph.ri, 0, `${label}: Glyph simulation step`);
+      assert.equal(
+        result.steps.some((step) => step.skill === GLYPH),
+        false,
+        `${label}: user-cast Glyph step`,
+      );
+      assert.notEqual(
+        firstPlayerAction,
+        undefined,
+        `${label}: first player action`,
+      );
       assert.ok(
-        glyph.end <= combatAt,
-        `${label}: Glyph ends at ${glyph.end}ms after combat starts at ${combatAt}ms`,
+        result.endState.profession.summonedElemental.summonGeneration > 0,
+        `${label}: automatic Fire Elemental summon`,
       );
-      const summonAt = glyph.end;
-      const firstReadyAt = Math.max(summonAt, combatStart?.start ?? 0);
+      const summonAt = Math.round(firstPlayerAction.at * 1000);
+      const firstReadyAt = Math.max(summonAt, combatStart?.start ?? summonAt);
       const rotationEnd = Math.max(
         ...result.steps
           .filter((step) => step.skill !== BARRAGE)
@@ -96,7 +96,6 @@ test("every Glyph preset precasts its native Fire Elemental and commands it off 
         expectedCastTimes.push(at);
       }
       const barrages = result.steps.filter((step) => step.skill === BARRAGE);
-      const timingException = BARRAGE_TIMING_EXCEPTIONS.get(label) || {};
       const invalidBarrages = barrages.filter((step) => step.invalid);
 
       assert.equal(
@@ -106,25 +105,16 @@ test("every Glyph preset precasts its native Fire Elemental and commands it off 
       );
       assert.equal(
         invalidBarrages.length,
-        timingException.invalidOpening ? 1 : 0,
+        0,
         `${label}: invalid Flame Barrage count`,
       );
-      if (timingException.invalidOpening) {
-        assert.equal(
-          barrages[0].invalidReason,
-          timingException.invalidOpening,
-          `${label}: opening Flame Barrage warning`,
-        );
-      }
       for (let index = 0; index < barrages.length; index += 1) {
         if (barrages[index].invalid) continue;
         const delay = barrages[index].start - expectedCastTimes[index];
-        const minimumDelay = timingException.minimumAvailabilityDelayMs ?? 0;
         const maximumDelay =
-          timingException.maximumAvailabilityDelayMs ??
-          MAXIMUM_AVAILABILITY_DELAY_MS;
+          BARRAGE_TIMING_EXCEPTIONS.get(label) ?? MAXIMUM_AVAILABILITY_DELAY_MS;
         assert.ok(
-          delay >= minimumDelay && delay <= maximumDelay,
+          delay >= 0 && delay <= maximumDelay,
           `${label}: Flame Barrage ${index + 1} availability delay ${delay}ms`,
         );
       }

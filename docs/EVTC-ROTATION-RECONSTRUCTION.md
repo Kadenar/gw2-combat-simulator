@@ -25,7 +25,10 @@ It records:
   and losses, including Reaper, Harbinger, and Ritualist shrouds and
   Bladesworn Gunsaber state;
 - configured instant follow-ups whose use consumes an availability buff, such
-  as Distress; and
+  as Distress;
+- Elementalist attunement changes, attunement-specific Glyph of Storms IDs,
+  and Earth Elemental Stomp commands recovered from the player-owned actor,
+  including a truncated opening Stomp recovered from its animation stop;
 - precombat Necromancer minion summons when the initial EVTC state contains a
   player-owned minion agent;
 - Ritualist Summon Spirits and Innervate actions inferred from their emitted
