@@ -1,14 +1,11 @@
 import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
-import type {
-  SchedulerConfig,
-  SchedulerRecord,
-} from "../../../../platform/engine/types.js";
+import type { ElementalistConfig } from "../../types.js";
 import {
   ELEMENTALIST_ATTUNEMENTS,
   type ElementalistAttunement,
 } from "../../core/state.js";
 
-export interface EvokerState extends SchedulerRecord {
+export interface EvokerState {
   element: ElementalistAttunement;
   charges: number;
   maximumCharges: number;
@@ -54,7 +51,7 @@ export interface EvokerState extends SchedulerRecord {
 
 export const evokerState = defineProfessionSpecializationState(
   "Evoker",
-  (config: Readonly<SchedulerConfig> = {}): EvokerState => {
+  (config: ElementalistConfig = {}): EvokerState => {
     const maximumCharges =
       Array.isArray(config.selectedTraits) &&
       config.selectedTraits.includes("Specialized Elements")

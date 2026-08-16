@@ -1,12 +1,5 @@
 {
   "rotation": [
-    "Glyph of Elementals",
-    "Shattering Stone",
-    {
-      "name": "__wait",
-      "waitMs": 3000
-    },
-    "__combat_start",
     "Elemental Explosion",
     {
       "name": "Flame Barrage",

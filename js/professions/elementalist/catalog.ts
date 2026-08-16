@@ -1,5 +1,8 @@
 import { assembleNativeApplicationCatalog } from "../../platform/gw2/native-profession.js";
-import { elementalistNativeModules } from "./modules.js";
+import {
+  ELEMENTALIST_NATIVE_CATALOG_OPTIONS,
+  elementalistNativeModules,
+} from "./modules.js";
 
 export const ELEMENTALIST_ELITE_SPECIALIZATIONS = Object.freeze([
   "Tempest",
@@ -10,7 +13,7 @@ export const ELEMENTALIST_ELITE_SPECIALIZATIONS = Object.freeze([
 
 export const elementalistCatalog = assembleNativeApplicationCatalog(
   elementalistNativeModules,
-  { skillNameCollision: "first" },
+  ELEMENTALIST_NATIVE_CATALOG_OPTIONS,
 );
 
 export const ELEMENTALIST_SKILLS = elementalistCatalog.skills;

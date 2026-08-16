@@ -110,6 +110,6 @@
     "Fire": true,
     "Water": true,
     "Air": true,
-    "Earth": true
+    "Earth": false
   }
 }

@@ -53,7 +53,7 @@ function coreState(context: Gw2ResolverRuntime): ElementalistCoreState {
   return profession.core || (profession as unknown as ElementalistCoreState);
 }
 
-function sourceSkill(event: Gw2ResolverEvent): string {
+export function elementalistSourceSkill(event: Gw2ResolverEvent): string {
   return String(event.skillName || event.name || event.source || "");
 }
 
@@ -109,7 +109,7 @@ function applyCondition(
     condition,
     stacks,
     duration,
-    triggeredBy: sourceSkill(event),
+    triggeredBy: elementalistSourceSkill(event),
   };
   if (details.applyCondition) {
     details.applyCondition(context, application);
@@ -118,7 +118,7 @@ function applyCondition(
   }
 }
 
-function queueBuff(
+export function queueElementalistBuff(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
   kind: string,
@@ -138,21 +138,25 @@ function queueBuff(
     kind: kind.toLowerCase(),
     stacks,
     duration: adjustedDuration,
-    triggeredBy: sourceSkill(event),
+    triggeredBy: elementalistSourceSkill(event),
     ...(Number(event.priority || 0)
       ? { priority: Number(event.priority) }
       : {}),
   });
 }
 
-function activeBuffs(context: Gw2ResolverRuntime, kind: string, at: number) {
+export function activeElementalistBuffs(
+  context: Gw2ResolverRuntime,
+  kind: string,
+  at: number,
+) {
   return (context.boons.get(kind.toLowerCase()) || []).filter(
     (application) =>
       application.at <= at + EPSILON && application.expiresAt > at + EPSILON,
   );
 }
 
-function refreshBuffs(
+export function refreshElementalistBuffs(
   context: Gw2ResolverRuntime,
   kind: string,
   at: number,
@@ -160,7 +164,7 @@ function refreshBuffs(
 ) {
   const normalized = kind.toLowerCase();
   const applications = context.boons.get(normalized) || [];
-  const active = new Set(activeBuffs(context, normalized, at));
+  const active = new Set(activeElementalistBuffs(context, normalized, at));
   context.boons.set(
     normalized,
     applications.map((application) =>
@@ -175,7 +179,7 @@ function refreshBuffs(
   return [...active];
 }
 
-function queueAura(
+export function queueElementalistAura(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
   aura: string,
@@ -202,7 +206,8 @@ export function applyElementalistResolverAura(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
 ): void {
-  const skillName = sourceSkill(event);
+  if (event.elementalistAuraReactionDispatched === true) return;
+  const skillName = elementalistSourceSkill(event);
   const duration = Math.max(0, Number(event.duration || 0));
   const auraState: ElementalistAuraState = {
     type: String(event.aura || ""),
@@ -215,16 +220,32 @@ export function applyElementalistResolverAura(
     context.resolved.push(event);
   }
   if (hasTrait(context, "Empowering Auras")) {
-    const current = activeBuffs(context, "Empowering Auras", event.at);
-    refreshBuffs(context, "Empowering Auras", event.at, () => event.at + 10);
+    const current = activeElementalistBuffs(
+      context,
+      "Empowering Auras",
+      event.at,
+    );
+    refreshElementalistBuffs(
+      context,
+      "Empowering Auras",
+      event.at,
+      () => event.at + 10,
+    );
     const activeStacks = current.reduce(
       (total, application) => total + Number(application.stacks || 1),
       0,
     );
     if (activeStacks < 5) {
-      queueBuff(context, event, "Empowering Auras", 1, 10, skillName);
+      queueElementalistBuff(
+        context,
+        event,
+        "Empowering Auras",
+        1,
+        10,
+        skillName,
+      );
     }
-    recordTraitProc(context, event, "Empowering Auras");
+    recordElementalistTraitProc(context, event, "Empowering Auras");
   }
   if (context.combatStartTime != null && event.at < context.combatStartTime) {
     return;
@@ -234,38 +255,23 @@ export function applyElementalistResolverAura(
     event.type === "aura"
   ) {
     if (hasTrait(context, "Zephyr's Boon")) {
-      queueBuff(context, event, "Fury", 1, 5, skillName);
-      queueBuff(context, event, "Swiftness", 1, 5, skillName);
+      queueElementalistBuff(context, event, "Fury", 1, 5, skillName);
+      queueElementalistBuff(context, event, "Swiftness", 1, 5, skillName);
     }
     if (hasTrait(context, "Elemental Shielding")) {
-      queueBuff(context, event, "Protection", 1, 3, skillName);
+      queueElementalistBuff(context, event, "Protection", 1, 3, skillName);
     }
     if (hasTrait(context, "Invigorating Torrents")) {
-      queueBuff(context, event, "Vigor", 1, 5, skillName);
-      queueBuff(context, event, "Regeneration", 1, 5, skillName);
+      queueElementalistBuff(context, event, "Vigor", 1, 5, skillName);
+      queueElementalistBuff(context, event, "Regeneration", 1, 5, skillName);
     }
     if (hasTrait(context, "Elemental Bastion")) {
-      queueBuff(context, event, "Alacrity", 1, 4, skillName);
-    }
-    if (
-      context.config.specialization === "Catalyst" &&
-      hasTrait(context, "Elemental Epitome")
-    ) {
-      queueBuff(context, event, "Elemental Empowerment", 1, 15, skillName);
+      queueElementalistBuff(context, event, "Alacrity", 1, 4, skillName);
     }
   }
-  if (hasTrait(context, "Tempestuous Aria")) {
-    const current = activeBuffs(context, "Tempestuous Aria", event.at).at(-1);
-    if (current) {
-      refreshBuffs(context, "Tempestuous Aria", event.at, (expiresAt) =>
-        expiresAt === current.expiresAt
-          ? Math.min(event.at + 10, expiresAt + 5)
-          : expiresAt,
-      );
-    } else {
-      queueBuff(context, event, "Tempestuous Aria", 1, 5, skillName);
-    }
-    recordTraitProc(context, event, "Tempestuous Aria");
+  if (event.type === "elementalist.aura") {
+    Object.assign(event, { elementalistAuraReactionDispatched: true });
+    context.dispatchReaction("aura.applied", event);
   }
 }
 
@@ -276,12 +282,12 @@ export function recordElementalistResolvedEvent(
   context.resolved.push(event);
 }
 
-function recordTraitProc(
+export function recordElementalistTraitProc(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
   name: string,
 ): void {
-  context.recordProc("trait", name, event.at, sourceSkill(event));
+  context.recordProc("trait", name, event.at, elementalistSourceSkill(event));
 }
 
 function applyBurningPrecision(
@@ -314,7 +320,7 @@ function applyBurningPrecision(
     stacks: 1,
     duration: 3,
   });
-  recordTraitProc(context, event, "Burning Precision");
+  recordElementalistTraitProc(context, event, "Burning Precision");
 }
 
 function grantPersistingFlames(
@@ -322,52 +328,14 @@ function grantPersistingFlames(
   event: Gw2ResolverEvent,
 ): void {
   if (!hasTrait(context, "Persisting Flames")) return;
-  queueBuff(context, event, "Persisting Flames", 1, 15, sourceSkill(event));
-}
-
-function triggerComboTraits(
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-): void {
-  if (context.config.specialization !== "Catalyst") return;
-  const state = coreState(context);
-  const attunement = state.primaryAttunement;
-  const epitomeReadyAt = Number(
-    state.procReadyAt[`elementalEpitome${attunement}`] || 0,
+  queueElementalistBuff(
+    context,
+    event,
+    "Persisting Flames",
+    1,
+    15,
+    elementalistSourceSkill(event),
   );
-  if (
-    hasTrait(context, "Elemental Epitome") &&
-    epitomeReadyAt <= event.at + EPSILON
-  ) {
-    state.procReadyAt[`elementalEpitome${attunement}`] = event.at + 10;
-    const aura =
-      attunement === "Fire"
-        ? (["Fire Aura", 4] as const)
-        : attunement === "Water"
-          ? (["Frost Aura", 4] as const)
-          : attunement === "Air"
-            ? (["Shocking Aura", 3] as const)
-            : (["Magnetic Aura", 3] as const);
-    queueAura(context, event, aura[0], aura[1], "Elemental Epitome");
-    recordTraitProc(context, event, "Elemental Epitome");
-  }
-  const synergyReadyAt = Number(
-    state.procReadyAt[`elementalSynergy${attunement}`] || 0,
-  );
-  if (
-    hasTrait(context, "Elemental Synergy") &&
-    synergyReadyAt <= event.at + EPSILON
-  ) {
-    state.procReadyAt[`elementalSynergy${attunement}`] = event.at + 10;
-    if (attunement === "Fire") {
-      queueBuff(context, event, "Might", 6, 10, "Elemental Synergy");
-    } else if (attunement === "Earth") {
-      queueBuff(context, event, "Stability", 2, 6, "Elemental Synergy");
-    } else if (attunement === "Air") {
-      state.endurance = Math.min(100, state.endurance + 50);
-    }
-    recordTraitProc(context, event, "Elemental Synergy");
-  }
 }
 
 export function applyElementalistResolvedDamage(
@@ -378,17 +346,10 @@ export function applyElementalistResolvedDamage(
   applyBurningPrecision(context, event, details);
   if (
     event.damageKind === "field-tick" &&
-    PERSISTING_FLAMES_FIELD_SKILLS.has(sourceSkill(event))
+    PERSISTING_FLAMES_FIELD_SKILLS.has(elementalistSourceSkill(event))
   ) {
     grantPersistingFlames(context, event);
   }
-}
-
-export function applyElementalistResolvedCombo(
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-): void {
-  triggerComboTraits(context, event);
 }
 
 export function applyElementalistResolvedCondition(
@@ -411,7 +372,7 @@ export function applyElementalistResolvedCondition(
         stacks: 3,
         duration: 10,
       });
-      recordTraitProc(context, event, "Strength of Stone");
+      recordElementalistTraitProc(context, event, "Strength of Stone");
     }
   }
   if (event.condition === "Burning") grantPersistingFlames(context, event);

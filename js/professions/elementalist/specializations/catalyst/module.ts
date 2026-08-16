@@ -1,5 +1,6 @@
 import {
   defineNativeModule,
+  onAuraApplied,
   onComboResolved,
   onBuffApplied,
   onConditionApplied,
@@ -9,6 +10,8 @@ import {
 import { createElementalistModuleData } from "../../catalog-data.js";
 import {
   applyCatalystEmpowerment,
+  applyCatalystComboTraits,
+  applyCatalystResolverAura,
   applyCatalystResolvedDamage,
   applySteamshrieker,
   applyViciousEmpowerment,
@@ -33,6 +36,10 @@ export const catalystModule = defineNativeModule({
     castRules: catalystCastRules,
     schedulerHooks: catalystSchedulerHooks,
     reactions: [
+      onAuraApplied({
+        id: "elementalist.catalyst-aura",
+        handler: applyCatalystResolverAura,
+      }),
       onResolvedDamage({
         id: "elementalist.catalyst-shattering-ice",
         handler: applyCatalystResolvedDamage,
@@ -48,6 +55,10 @@ export const catalystModule = defineNativeModule({
       onConditionApplied({
         id: "elementalist.catalyst-vicious-empowerment-immobilize",
         handler: applyViciousEmpowerment,
+      }),
+      onComboResolved({
+        id: "elementalist.catalyst-combo-traits",
+        handler: applyCatalystComboTraits,
       }),
       onComboResolved({
         id: "elementalist.catalyst-steamshrieker",

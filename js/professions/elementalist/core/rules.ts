@@ -8,14 +8,17 @@ import {
 export { elementalistCoreAttributeRules } from "./modifiers.js";
 import type {
   AvailabilityResult,
-  CastContext,
-  CastLifecycleContext,
   SchedulerContext,
   SchedulerRecord,
   SimulationEvent,
   SimulationEventInput,
   Skill,
 } from "../../../platform/engine/types.js";
+import type {
+  ElementalistCastContext as ElementalistLifecycleContext,
+  ElementalistPrecastContext as ElementalistCastContext,
+  ElementalistSchedulerContext,
+} from "../types.js";
 import {
   ELEMENTALIST_ATTUNEMENTS,
   elementalistCoreState,
@@ -36,7 +39,7 @@ import {
 
 const ATTUNEMENT_RECHARGE_SECONDS = 10;
 const OFF_ATTUNEMENT_RECHARGE_SECONDS = 1.5;
-const WEAVER_ATTUNEMENT_RECHARGE_SECONDS = 4;
+const DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
 const DODGE_ENDURANCE_COST = 50;
 const ENDURANCE_PER_SECOND = 5;
 const AUTOATTACK_CHAIN_PRESERVING_SKILLS = new Set([
@@ -159,26 +162,6 @@ const BOON_KINDS = new Set([
   "vigor",
 ]);
 
-type ElementalistCastContext = CastContext<ElementalistRuntimeState>;
-type ElementalistLifecycleContext =
-  CastLifecycleContext<ElementalistRuntimeState>;
-type ElementalistSchedulerContext = SchedulerContext<ElementalistRuntimeState>;
-
-interface ElementalistRuntimeState extends SchedulerRecord {
-  core: ElementalistCoreState;
-  specialization: {
-    kind: string;
-    state: SchedulerRecord;
-  };
-}
-
-interface EvokerAttunementRuntimeState extends SchedulerRecord {
-  pendingOffAttunementRemainingByCommand: Record<
-    number,
-    Partial<Record<ElementalistAttunement, number>>
-  >;
-}
-
 function hasTrait(context: unknown, trait: string): boolean {
   return hasGw2Trait(context as never, trait);
 }
@@ -199,10 +182,6 @@ function unavailable(
     code,
     reason: `${skill.name} is unavailable — ${reason}`,
   };
-}
-
-function specialization(context: ElementalistCastContext): string {
-  return String(context.config.specialization || "Core");
 }
 
 function projectedFreshAirReadyAt(
@@ -368,7 +347,7 @@ function hammerOrbMatchesAttunement(
   state: ElementalistCoreState,
   element: ElementalistAttunement,
 ): boolean {
-  if (specialization(context) !== "Weaver") {
+  if (state.secondaryAttunement == null) {
     return element === state.primaryAttunement;
   }
   const grantedBy = state.hammerOrbGrantedBy[element];
@@ -444,20 +423,6 @@ function shareAttunementVariantRecharge(
   }
 }
 
-function slotNumber(skill: Skill): number {
-  return Number(String(skill.slot || "").match(/(\d+)$/)?.[1] || 0);
-}
-
-function sameElements(
-  required: readonly string[],
-  active: readonly (string | null)[],
-): boolean {
-  return (
-    required.length === active.length &&
-    required.every((element) => active.includes(element))
-  );
-}
-
 function weaponAttunementAvailable(
   context: ElementalistCastContext,
   skill: Skill,
@@ -465,45 +430,14 @@ function weaponAttunementAvailable(
 ): AvailabilityResult {
   const attunement = String(skill.attunement || "");
   if (!attunement) return ready();
+  if (state.secondaryAttunement !== null) return ready();
   const required = attunement.split("+");
-  if (specialization(context) !== "Weaver") {
-    return required.length === 1 && required[0] === state.primaryAttunement
-      ? ready()
-      : unavailable(
-          skill,
-          "elementalist.attunement",
-          `requires ${attunement} attunement.`,
-        );
-  }
-
-  if (state.unravelUntil > context.start) {
-    return required.length === 1 && required[0] === state.primaryAttunement
-      ? ready()
-      : unavailable(
-          skill,
-          "elementalist.unravel-attunement",
-          `requires ${state.primaryAttunement} while Unravel is active.`,
-        );
-  }
-
-  const secondary = state.secondaryAttunement || state.primaryAttunement;
-  const slot = slotNumber(skill);
-  const available =
-    required.length > 1
-      ? slot === 3 &&
-        sameElements(required, [state.primaryAttunement, secondary])
-      : slot <= 2
-        ? required[0] === state.primaryAttunement
-        : slot >= 4
-          ? required[0] === secondary
-          : state.primaryAttunement === secondary &&
-            required[0] === state.primaryAttunement;
-  return available
+  return required.length === 1 && required[0] === state.primaryAttunement
     ? ready()
     : unavailable(
         skill,
-        "elementalist.weaver-attunement",
-        `requires ${attunement} in the matching Weaver hand.`,
+        "elementalist.attunement",
+        `requires ${attunement} attunement.`,
       );
 }
 
@@ -648,18 +582,8 @@ export function elementalistCoreAvailability(
   const target = targetAttunement(skill);
   if (target) {
     if (
-      specialization(context) === "Evoker" &&
-      hasTrait(context, "Specialized Elements")
-    ) {
-      return unavailable(
-        skill,
-        "elementalist.specialized-elements",
-        "attunement swapping is disabled by Specialized Elements.",
-      );
-    }
-    if (
       target === state.primaryAttunement &&
-      (specialization(context) !== "Weaver" ||
+      (state.secondaryAttunement === null ||
         target === state.secondaryAttunement)
     ) {
       return unavailable(
@@ -669,30 +593,6 @@ export function elementalistCoreAvailability(
       );
     }
     const naturalReadyAt = Number(state.attunementReadyAt[target] || 0);
-    if (specialization(context) === "Evoker") {
-      const evokerState = context.state.profession.specialization
-        .state as EvokerAttunementRuntimeState;
-      if (!evokerState.pendingOffAttunementRemainingByCommand) {
-        evokerState.pendingOffAttunementRemainingByCommand = {};
-      }
-      if (
-        !evokerState.pendingOffAttunementRemainingByCommand[
-          context.commandIndex
-        ]
-      ) {
-        evokerState.pendingOffAttunementRemainingByCommand[
-          context.commandIndex
-        ] = Object.fromEntries(
-          ELEMENTALIST_ATTUNEMENTS.map((attunement) => [
-            attunement,
-            Math.max(
-              0,
-              Number(state.attunementReadyAt[attunement] || 0) - context.start,
-            ),
-          ]),
-        );
-      }
-    }
     const freshAirReadyAt =
       target === "Air"
         ? projectedFreshAirReadyAt(context, naturalReadyAt)
@@ -887,21 +787,21 @@ export function elementalistCoreAvailability(
   return ready();
 }
 
-function alacrityAdjusted(
+export function elementalistAlacrityAdjustedDuration(
   context: ElementalistLifecycleContext,
   seconds: number,
 ): number {
   return context.config.boons?.alacrity ? seconds / 1.25 : seconds;
 }
 
-function attunementRechargeSeconds(
+export function elementalistAttunementRechargeDuration(
   context: ElementalistLifecycleContext,
   seconds: number,
 ): number {
   let adjusted = seconds;
   if (hasTrait(context, "Flow State")) adjusted = Math.max(0, adjusted - 1);
   if (hasTrait(context, "Elemental Enchantment")) adjusted *= 0.85;
-  return adjusted;
+  return elementalistAlacrityAdjustedDuration(context, adjusted);
 }
 
 export function emitElementalistBuff(
@@ -1038,15 +938,16 @@ export function emitElementalistProc(
   });
 }
 
-function evokerTraitProcReady(
+function attunementTraitProcReady(
   context: ElementalistSchedulerContext,
   state: ElementalistCoreState,
   key: string,
   at: number,
 ): boolean {
-  if (String(context.config.specialization || "Core") !== "Evoker") return true;
+  const cooldown = state.attunementTraitProcCooldownSeconds;
+  if (cooldown <= 0) return true;
   if (Number(state.procReadyAt[key] || 0) > at + context.epsilon) return false;
-  state.procReadyAt[key] = at + 5;
+  state.procReadyAt[key] = at + cooldown;
   return true;
 }
 
@@ -1105,12 +1006,6 @@ export function applyElementalistAura(
   if (hasTrait(context, "Elemental Bastion")) {
     emitBuff(context, at, "Alacrity", 1, 4, skillName, sourceId);
   }
-  if (
-    String(context.config.specialization || "Core") === "Catalyst" &&
-    hasTrait(context, "Elemental Epitome")
-  ) {
-    emitBuff(context, at, "Elemental Empowerment", 1, 15, skillName, sourceId);
-  }
 }
 
 export function triggerElementalistSunspot(
@@ -1122,7 +1017,7 @@ export function triggerElementalistSunspot(
   if (
     !combatStarted(context, at) ||
     !hasTrait(context, "Sunspot") ||
-    !evokerTraitProcReady(context, state, "sunspot", at)
+    !attunementTraitProcReady(context, state, "sunspot", at)
   ) {
     return;
   }
@@ -1134,8 +1029,7 @@ export function triggerElementalistSunspot(
       skillName: "Sunspot",
       sourceId,
     });
-  const catalyst = context.config.specialization === "Catalyst";
-  if (catalyst) applySunspotAura();
+  applySunspotAura();
   context.emit({
     type: "damage",
     at,
@@ -1147,7 +1041,6 @@ export function triggerElementalistSunspot(
     skillWeapon: "Unequipped",
     noCrit: true,
   });
-  if (!catalyst) applySunspotAura();
   if (hasTrait(context, "Burning Rage")) {
     emitCondition(context, at, "Burning", 2, 4, "Sunspot", sourceId);
   }
@@ -1169,7 +1062,7 @@ export function triggerElementalistFlameExpulsion(
   if (
     !combatStarted(context, at) ||
     !hasTrait(context, "Pyromancer's Puissance") ||
-    !evokerTraitProcReady(context, state, "flameExpulsion", at)
+    !attunementTraitProcReady(context, state, "flameExpulsion", at)
   ) {
     return;
   }
@@ -1247,7 +1140,7 @@ export function triggerElementalistEarthenBlast(
   if (
     !combatStarted(context, at) ||
     !hasTrait(context, "Earthen Blast") ||
-    !evokerTraitProcReady(context, state, "earthenBlast", at)
+    !attunementTraitProcReady(context, state, "earthenBlast", at)
   ) {
     return;
   }
@@ -1280,7 +1173,7 @@ export function grantElementalistRockSolid(
   if (
     !combatStarted(context, at) ||
     !hasTrait(context, "Rock Solid") ||
-    !evokerTraitProcReady(context, state, "rockSolid", at)
+    !attunementTraitProcReady(context, state, "rockSolid", at)
   ) {
     return;
   }
@@ -1313,7 +1206,7 @@ function grantElementalAttunementBoon(
   }
 }
 
-function triggerBountifulPower(
+export function triggerElementalistBountifulPower(
   context: ElementalistSchedulerContext,
   at: number,
   stacks: number,
@@ -1345,6 +1238,7 @@ function onAttunementComplete(
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = context.effectiveEnd;
   const previous = state.primaryAttunement;
+  const attunementReadyAtBefore = { ...state.attunementReadyAt };
   state.autoattackCarryover = progressedAutoattackCarryover(
     context,
     state,
@@ -1353,23 +1247,13 @@ function onAttunementComplete(
   state.pendingAutoattackCarryover = state.autoattackCarryover
     ? null
     : inFlightAutoattackCarryover(context, previous);
-  const specializationState = context.state.profession.specialization
-    .state as SchedulerRecord;
-  const weaveSelfActive =
-    specialization(context) === "Weaver" &&
-    Number(specializationState.weaveSelfUntil || 0) > at;
-  if (specialization(context) === "Weaver") {
-    state.secondaryAttunement =
-      state.unravelUntil > at ? target : state.primaryAttunement;
+  const dualAttunement = state.secondaryAttunement !== null;
+  if (dualAttunement) {
+    state.secondaryAttunement = state.primaryAttunement;
     state.primaryAttunement = target;
-    const recharge = alacrityAdjusted(
+    const recharge = elementalistAttunementRechargeDuration(
       context,
-      weaveSelfActive
-        ? 2
-        : attunementRechargeSeconds(
-            context,
-            WEAVER_ATTUNEMENT_RECHARGE_SECONDS,
-          ),
+      DUAL_ATTUNEMENT_RECHARGE_SECONDS,
     );
     for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
       setElementalistAttunementReadyAt(context, attunement, at + recharge);
@@ -1377,33 +1261,15 @@ function onAttunementComplete(
   } else {
     state.primaryAttunement = target;
     state.secondaryAttunement = null;
-    const isEvoker = specialization(context) === "Evoker";
-    const evokerState = isEvoker
-      ? (specializationState as EvokerAttunementRuntimeState)
-      : null;
-    const preservedOffCooldowns =
-      evokerState?.pendingOffAttunementRemainingByCommand?.[
-        context.commandIndex
-      ];
-    if (evokerState) {
-      delete evokerState.pendingOffAttunementRemainingByCommand?.[
-        context.commandIndex
-      ];
-    }
-    const evokerElement = String(specializationState.element || "");
-    const previousRechargeSeconds =
-      isEvoker && previous === evokerElement
-        ? OFF_ATTUNEMENT_RECHARGE_SECONDS
-        : ATTUNEMENT_RECHARGE_SECONDS;
     setElementalistAttunementReadyAt(
       context,
       previous,
       Math.max(
         state.attunementReadyAt[previous],
         at +
-          alacrityAdjusted(
+          elementalistAttunementRechargeDuration(
             context,
-            attunementRechargeSeconds(context, previousRechargeSeconds),
+            ATTUNEMENT_RECHARGE_SECONDS,
           ),
       ),
     );
@@ -1412,18 +1278,11 @@ function onAttunementComplete(
       const existingReadyAt = state.attunementReadyAt[attunement];
       const defaultReadyAt =
         at +
-        alacrityAdjusted(
+        elementalistAttunementRechargeDuration(
           context,
-          attunementRechargeSeconds(context, OFF_ATTUNEMENT_RECHARGE_SECONDS),
+          OFF_ATTUNEMENT_RECHARGE_SECONDS,
         );
-      const preserveShortEvokerRecharge =
-        isEvoker &&
-        Number.isFinite(preservedOffCooldowns?.[attunement]) &&
-        Number(preservedOffCooldowns?.[attunement]) > 0 &&
-        Number(preservedOffCooldowns?.[attunement]) < defaultReadyAt - at;
-      let nextReadyAt = preserveShortEvokerRecharge
-        ? at + Number(preservedOffCooldowns?.[attunement])
-        : Math.max(existingReadyAt, defaultReadyAt);
+      let nextReadyAt = Math.max(existingReadyAt, defaultReadyAt);
       if (attunement === "Air" && hasTrait(context, "Fresh Air")) {
         const freshAirReadyAt = projectedFreshAirReadyAt(
           context as unknown as ElementalistCastContext,
@@ -1446,9 +1305,11 @@ function onAttunementComplete(
     actorType: "player",
     skillId: skill.id,
     skillName: skill.name,
+    commandIndex: context.commandIndex,
     from: previous,
     to: target,
     secondaryAttunement: state.secondaryAttunement,
+    attunementReadyAtBefore,
   });
   context.emit({
     type: "sigil_swap",
@@ -1459,58 +1320,6 @@ function onAttunementComplete(
     skillId: skill.id,
     skillName: skill.name,
   });
-  // The reference applies Weaver's fully-attuned Elements of Rage window
-  // during setup as well as combat, so a precombat double-attunement can
-  // carry the trait into the opening hit.
-  if (
-    specialization(context) === "Weaver" &&
-    (target === previous || state.unravelUntil > at) &&
-    hasTrait(context, "Elements of Rage")
-  ) {
-    emitBuff(context, at, "Elements of Rage", 1, 8, skill.name, skill.id);
-  }
-  if (weaveSelfActive) {
-    const visited = new Set(
-      Array.isArray(specializationState.weaveSelfVisited)
-        ? specializationState.weaveSelfVisited.map(String)
-        : [],
-    );
-    visited.add(target);
-    specializationState.weaveSelfVisited = [...visited];
-    const remaining = Math.max(
-      0,
-      Number(specializationState.weaveSelfUntil) - at,
-    );
-    if (target === "Fire") {
-      emitBuff(
-        context,
-        at,
-        "Weave Self Fire",
-        1,
-        remaining,
-        skill.name,
-        skill.id,
-      );
-    } else if (target === "Air") {
-      emitBuff(
-        context,
-        at,
-        "Weave Self Air",
-        1,
-        remaining,
-        skill.name,
-        skill.id,
-      );
-    }
-    if (visited.size >= ELEMENTALIST_ATTUNEMENTS.length) {
-      specializationState.weaveSelfUntil = 0;
-      specializationState.weaveSelfVisited = [];
-      specializationState.perfectWeaveUntil = at + 10;
-      emitBuff(context, at, "Perfect Weave", 1, 10, skill.name, skill.id);
-      emitBuff(context, at, "Weave Self Fire", 1, 10, skill.name, skill.id);
-      emitBuff(context, at, "Weave Self Air", 1, 10, skill.name, skill.id);
-    }
-  }
   if (!combatStarted(context, at)) return;
   if (previous === "Fire" && target !== "Fire") {
     triggerElementalistFlameExpulsion(context, at, skill.id);
@@ -1543,20 +1352,11 @@ function onAttunementComplete(
   if (hasTrait(context, "Arcane Prowess")) {
     emitBuff(context, at, "Might", 1, 8, "Arcane Prowess", skill.id);
   }
-  if (specialization(context) !== "Weaver" || target !== previous) {
+  if (!dualAttunement || target !== previous) {
     grantElementalAttunementBoon(context, at, target, skill.id);
   }
-  if (specialization(context) === "Weaver") {
-    const unravelActive = state.unravelUntil > at;
-    if (
-      hasTrait(context, "Weaver's Prowess") &&
-      (unravelActive || target === previous)
-    ) {
-      emitBuff(context, at, "Resistance", 1, 3, "Weaver's Prowess", skill.id);
-    }
-    triggerBountifulPower(context, at, unravelActive ? 1 : 2, skill.id);
-  } else {
-    triggerBountifulPower(context, at, 1, skill.id);
+  if (!dualAttunement) {
+    triggerElementalistBountifulPower(context, at, 1, skill.id);
   }
 }
 
@@ -1861,9 +1661,6 @@ function applyGenericPostCast(
   ) {
     emitBuff(context, at, "Might", 1, 15, skill.name, skill.id);
   }
-  if (hasTrait(context, "Tempestuous Aria") && skill.skillFamily === "Shout") {
-    emitBuff(context, at, "Might", 2, 10, skill.name, skill.id, 0, "party");
-  }
   if (skill.type === "Heal") {
     if (hasTrait(context, "Gale Song")) {
       emitBuff(context, at, "Protection", 1, 3, "Gale Song", skill.id);
@@ -1889,23 +1686,6 @@ function applyGenericPostCast(
       });
       emitBuff(context, at, "Regeneration", 1, 4, "Soothing Ice", skill.id);
     }
-  }
-  if (
-    hasTrait(context, "Altruistic Aspect") &&
-    skill.skillFamily === "Meditation"
-  ) {
-    const boon =
-      skill.name === "Fox's Fury"
-        ? (["Might", 3, 10] as const)
-        : skill.name === "Hare's Agility"
-          ? (["Fury", 1, 5] as const)
-          : skill.name === "Toad's Fortitude"
-            ? (["Stability", 1, 5] as const)
-            : skill.name === "Elemental Procession"
-              ? (["Resistance", 1, 5] as const)
-              : null;
-    if (boon)
-      emitBuff(context, at, boon[0], boon[1], boon[2], skill.name, skill.id);
   }
   if (hasTrait(context, "Written in Stone") && skill.skillFamily === "Signet") {
     const aura =
@@ -2289,7 +2069,7 @@ function applySpecialSkillProgression(
   if (skill.name === "Harden") state.spearNextControlHit = true;
 
   if (
-    specialization(context) === "Weaver" &&
+    state.secondaryAttunement != null &&
     skillWeapon(skill) === "Spear" &&
     String(skill.slot || "") === "Weapon_3" &&
     String(skill.attunement || "").includes("+") &&
@@ -2436,11 +2216,7 @@ function processFreshAirCandidates(
     if (state.freshAirProgress + context.epsilon < 1) continue;
     state.freshAirProgress -= 1;
     if (state.attunementReadyAt.Air > candidate.at + context.epsilon) {
-      setElementalistAttunementReadyAt(
-        context as unknown as SchedulerRecord,
-        "Air",
-        candidate.at,
-      );
+      setElementalistAttunementReadyAt(context, "Air", candidate.at);
       context.state.cooldowns.delete(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air);
       context.state.cooldowns.delete(ELEMENTALIST_OVERLOAD_SKILL_IDS.Air);
     }
@@ -2676,9 +2452,6 @@ export function observeElementalistEvent(
   observeElementalistElementalEvent(context, event);
   extendPersistingFlamesField(context, event);
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
-  if (event.type === "combat_start") {
-    state.catalystBaseEmpowermentActive = true;
-  }
   if (
     event.type === "damage" &&
     event.actorType !== "summon" &&
@@ -2821,15 +2594,6 @@ export const elementalistCoreSchedulerHooks = Object.freeze({
     id: "elementalist.hitbox",
     order: 10,
     handler: prepareElementalistHitboxEvent,
-  },
-  initialize: {
-    id: "elementalist.core-initialize",
-    order: 10,
-    handler(context: ElementalistSchedulerContext) {
-      elementalistCoreState(
-        context as unknown as SchedulerRecord,
-      ).catalystBaseEmpowermentActive = !context.hasExplicitCombatStart;
-    },
   },
   onCastStart: {
     id: "elementalist.core-cast-start",
