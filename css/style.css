@@ -2395,6 +2395,15 @@ body[data-profession][data-simulator-view="analysis"]
   display: none;
 }
 
+.analysis-dps-summary {
+  display: none;
+}
+
+body[data-profession][data-simulator-view="analysis"] .analysis-dps-summary {
+  display: block;
+  margin-bottom: 20px;
+}
+
 .analysis-empty-state {
   display: grid;
   min-height: 210px;

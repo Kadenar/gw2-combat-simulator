@@ -52,6 +52,12 @@ function mountAnalysisHeading(root: Document): void {
     <span>Damage breakdown, DPS over time, and modifier contributions for the current workspace.</span>
   `;
   results.before(heading);
+
+  const summaryMirror = root.createElement("div");
+  summaryMirror.id = "analysis-dps-summary";
+  summaryMirror.className = "analysis-dps-summary";
+  results.before(summaryMirror);
+
   results.setAttribute("aria-labelledby", "analysis-view-title");
 }
 

@@ -254,7 +254,7 @@ export function paletteSkillView(
     maximumAmmo,
   );
   const unavailable = cd.remaining > 0 || !contextAvailable;
-  const highlighted = Boolean(skill.ambush) && !unavailable;
+  const highlighted = (Boolean(skill.ambush) || Boolean(skill.stealthAttack)) && !unavailable;
   const castTimeSeconds = Number(skill.castTimeMs || 0) / 1000;
   const hasEnergyCost = skill.energyCost != null;
   const energyCost = Number(skill.energyCost || 0);

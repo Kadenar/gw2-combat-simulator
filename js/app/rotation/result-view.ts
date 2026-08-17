@@ -47,6 +47,8 @@ export function renderResults(app: ProfessionAppState): void {
       <strong>No analysis yet</strong>
       <span>Add skills to the rotation in the <a href="#workspace">Workspace</a> to generate results.</span>
     </div>`;
+    const mirror = document.getElementById("analysis-dps-summary");
+    if (mirror) mirror.innerHTML = "";
     return;
   }
   const metrics = resultSummaryMetrics(result).map((metric) =>
@@ -118,6 +120,14 @@ export function renderResults(app: ProfessionAppState): void {
       },
     },
   );
+  const mirror = document.getElementById("analysis-dps-summary");
+  if (mirror) {
+    mirror.innerHTML = "";
+    const summary = element.querySelector(".res-summary");
+    const bpDetails = element.querySelector(".res-breakpoints");
+    if (summary) mirror.appendChild(summary.cloneNode(true));
+    if (bpDetails) mirror.appendChild(bpDetails.cloneNode(true));
+  }
   renderPatchComparison(element, app);
   syncRotationFocusResults(document);
 }
