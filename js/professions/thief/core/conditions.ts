@@ -9,6 +9,11 @@ import {
   beginStealthAttack as beginBaseStealthAttack,
   completeStealthAttack as completeBaseStealthAttack,
 } from "./stealth.js";
+import {
+  thiefBalanceProfile,
+  thiefBalanceProfileEffect,
+  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE,
+} from "./profiles.js";
 import type { SkillId } from "../../../platform/engine/types.js";
 import type {
   ThiefCastContext,
@@ -110,8 +115,14 @@ export function observeSpearChainEffect(
     readonly fallingSpiderEmpowered?: boolean;
   };
   if (prepared.fallingSpiderEmpowered && event.type === "damage") {
+    const profile = thiefBalanceProfile(
+      context,
+      PROFILE.fallingSpiderEmpowered,
+    );
     context.replaceEvent(event, {
-      coefficient: Number(event.coefficient || 0) * 1.15,
+      coefficient:
+        Number(event.coefficient || 0) *
+        Number(profile?.damageMultiplier || 1.15),
     });
     return;
   }
@@ -121,7 +132,12 @@ export function observeSpearChainEffect(
     ["Bleeding", "Poisoned"].includes(event.condition)
   ) {
     context.replaceEvent(event, {
-      stacks: Number(event.stacks || 1) + 1,
+      stacks:
+        Number(event.stacks || 1) +
+        Number(
+          thiefBalanceProfile(context, PROFILE.fallingSpiderEmpowered)
+            ?.resourceGain || 1,
+        ),
     });
     return;
   }
@@ -148,7 +164,15 @@ export function completeSpearStealthAttack(
   skill: ThiefSkill,
 ): void {
   const at = context.effectiveEnd;
-  gainThiefInitiative(context, 4, at, "ashen-assault-refund");
+  gainThiefInitiative(
+    context,
+    Number(
+      thiefBalanceProfile(context, PROFILE.ashenAssaultRefund)?.resourceGain ||
+        4,
+    ),
+    at,
+    "ashen-assault-refund",
+  );
   completeBaseStealthAttack(context, skill);
 }
 
@@ -174,7 +198,14 @@ export function updateSpearChainState(
     state.spearChainStage = 1;
     state.spearLastWasFinisher = false;
     state.spearPreviousSkillId = skill.id;
-    if (followsFinisher) state.distractingThrowBuffUntil = at + 10;
+    if (followsFinisher) {
+      state.distractingThrowBuffUntil =
+        at +
+        Number(
+          thiefBalanceProfile(context, PROFILE.distractingThrow)
+            ?.durationMultiplier || 10,
+        );
+    }
     emitThiefState(context, at, "distracting-throw-lead");
     return;
   }
@@ -186,32 +217,33 @@ export function updateSpearChainState(
   }
 }
 
+export function observeSpiderVenomEffect(
+  context: ThiefCastContext,
+  _skill: ThiefSkill,
+  event: ThiefSimulationEvent,
+): void {
+  if (event.type !== "buff" || event.kind !== "spider-venom") return;
+  const party = gw2AlliedPlayerAssumptions(context.config);
+  context.replaceEvent(event, {
+    recipientCount: party.count + 1,
+    maximumRecipients: party.count + 1,
+  });
+}
+
 export function activateSpiderVenom(context: ThiefCastContext): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  const party = gw2AlliedPlayerAssumptions(context.config);
-  state.spiderVenomCharges = 6;
-  state.spiderVenomExpiresAt = at + 24;
+  const profile = thiefBalanceProfile(context, PROFILE.spiderVenomProc);
+  const poison = thiefBalanceProfileEffect(profile, "condition");
+  const maximumStacks = Number(profile?.maximumStacks || 6);
+  const duration = Number(profile?.durationMultiplier || 24);
+  state.spiderVenomCharges = maximumStacks;
+  state.spiderVenomExpiresAt = at + duration;
   state.spiderVenomGeneration += 1;
-  context.emit({
-    type: "buff",
-    at,
-    source: "thief",
-    sourceId: ID.SPIDER_VENOM,
-    actorType: "player",
-    skillId: ID.SPIDER_VENOM,
-    skillName: "Spider Venom",
-    name: "Spider Venom",
-    kind: "spider-venom",
-    duration: 24,
-    stacks: 6,
-    recipients: "party",
-    recipientCount: party.count + 1,
-  });
   const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {
     start: at,
-    duration: 24,
-    maximumPerAlly: 6,
+    duration,
+    maximumPerAlly: maximumStacks,
   });
   for (let index = 0; index < alliedProcs.length; index += 1) {
     const proc = alliedProcs[index];
@@ -220,9 +252,9 @@ export function activateSpiderVenom(context: ThiefCastContext): void {
       skillId: ID.SPIDER_VENOM,
       skillName: "Spider Venom",
       name: `Spider Venom — Ally ${proc.allyIndex} Poison`,
-      condition: "Poisoned",
-      stacks: 1,
-      duration: 3,
+      condition: String(poison?.condition || "Poisoned"),
+      stacks: Number(poison?.stacks || 1),
+      duration: Number(poison?.duration || 3),
       activationId: `${context.reservationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
       triggeredByAlly: proc.allyIndex,
     });
@@ -230,33 +262,25 @@ export function activateSpiderVenom(context: ThiefCastContext): void {
   emitThiefState(context, at, "spider-venom");
 }
 
-export function prepareThousandNeedles(context: ThiefCastContext): void {
+export function prepareThousandNeedles(
+  context: ThiefCastContext,
+  skill: ThiefSkill,
+): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   state.thousandNeedlesPrepared = true;
-  state.thousandNeedlesArmedAt = at + 3;
+  state.thousandNeedlesArmedAt = at + Number(skill.durationMultiplier || 3);
   emitThiefState(context, at, "prepare-thousand-needles");
 }
 
 export function activateThousandNeedles(
   context: ThiefCastContext,
-  skill: ThiefSkill,
+  _skill: ThiefSkill,
 ): void {
   const state = professionCoreState(context);
   state.thousandNeedlesPrepared = false;
   state.thousandNeedlesArmedAt = 0;
   state.thousandNeedlesGeneration += 1;
-  context.tasks.schedule({
-    type: "thief.thousand-needles-pulse",
-    at: context.start,
-    ownerId: `thief.thousand-needles:${state.thousandNeedlesGeneration}`,
-    payload: {
-      generation: state.thousandNeedlesGeneration,
-      pulse: 0,
-      skillId: skill.id,
-      activationId: context.reservationId,
-    },
-  });
   emitThiefState(context, context.start, "thousand-needles");
 }
 

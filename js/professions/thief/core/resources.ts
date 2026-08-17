@@ -5,6 +5,10 @@ import {
 } from "../data/ids.js";
 import { hasThiefTrait } from "./state.js";
 import { emitThiefState, gainThiefInitiative } from "./shared.js";
+import {
+  thiefBalanceProfile,
+  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE,
+} from "./profiles.js";
 import type {
   ThiefPrecastContext,
   ThiefCastContext,
@@ -14,18 +18,14 @@ import type {
   ThiefSkill,
 } from "../types.js";
 
-const ENDURANCE_REGENERATION_PER_SECOND = 5;
-const VIGOR_ENDURANCE_REGENERATION_MULTIPLIER = 1.5;
-const MAXIMUM_ENDURANCE_REGENERATION_PER_SECOND = 10;
-const INITIATIVE_REGENERATION_PER_SECOND = 1;
-const KNEELING_INITIATIVE_REGENERATION_PER_SECOND = 1 / 3;
-
 export function thiefInitiativeRegenerationRate(
   state: Pick<ThiefCoreState, "kneeling">,
+  context?: unknown,
 ): number {
+  const resources = thiefBalanceProfile(context, PROFILE.resources);
   return (
-    INITIATIVE_REGENERATION_PER_SECOND +
-    (state.kneeling ? KNEELING_INITIATIVE_REGENERATION_PER_SECOND : 0)
+    Number(resources?.resourceGain || 1) +
+    (state.kneeling ? Number(resources?.rechargeMultiplier || 1 / 3) : 0)
   );
 }
 
@@ -36,10 +36,12 @@ export function thiefEnduranceRegenerationRate(
   const vigorActive = Boolean(
     context.config?.boons?.vigor || context.hasBuff?.("vigor", at),
   );
+  const resources = thiefBalanceProfile(context, PROFILE.resources);
+  const base = Number(resources?.enduranceRegenerationPerSecond || 5);
+  const vigorMultiplier = Number(resources?.vigorRegenerationMultiplier || 1.5);
   return Math.min(
-    MAXIMUM_ENDURANCE_REGENERATION_PER_SECOND,
-    ENDURANCE_REGENERATION_PER_SECOND *
-      (vigorActive ? VIGOR_ENDURANCE_REGENERATION_MULTIPLIER : 1),
+    Number(resources?.threshold || 10),
+    base * (vigorActive ? vigorMultiplier : 1),
   );
 }
 
@@ -60,6 +62,18 @@ export function advanceThiefCoreResources(
   target: number,
 ): void {
   const state = professionCoreState(context);
+  const resources = thiefBalanceProfile(context, PROFILE.resources);
+  state.maximumInitiative = hasThiefTrait(context.config, TRAIT.PREPAREDNESS)
+    ? Number(resources?.minimumStacks || 15)
+    : Number(resources?.maximumStacks || 12);
+  state.maximumEndurance =
+    context.state.profession.specialization.kind === "Daredevil"
+      ? Number(
+          thiefBalanceProfile(context, "thief.daredevil.resources")
+            ?.maximumStacks || 150,
+        )
+      : 100;
+  state.endurance = Math.min(state.maximumEndurance, state.endurance);
   state.leadAttackExpirations = (state.leadAttackExpirations || []).filter(
     (expiresAt) => Number(expiresAt) > target,
   );
@@ -84,7 +98,8 @@ export function advanceThiefCoreResources(
     state.initiative = Math.min(
       state.maximumInitiative,
       state.initiative +
-        (target - initiativeFrom) * thiefInitiativeRegenerationRate(state),
+        (target - initiativeFrom) *
+          thiefInitiativeRegenerationRate(state, context),
     );
     state.initiativeUpdatedAt = target;
   }
@@ -117,7 +132,14 @@ export function spendThiefCoreResources(
     ) &&
     hasThiefTrait(context.config, TRAIT.SIGNETS_OF_POWER)
   ) {
-    gainThiefInitiative(context, 3, context.start, "signets-of-power");
+    gainThiefInitiative(
+      context,
+      Number(
+        thiefBalanceProfile(context, PROFILE.signetsOfPower)?.resourceGain || 3,
+      ),
+      context.start,
+      "signets-of-power",
+    );
   }
 }
 
@@ -142,5 +164,12 @@ export function completeThiefCoreResources(
   const finalBulletAt =
     context.start + (finalBulletOffsetMs * timingScale) / 1000;
   if (context.effectiveEnd + context.epsilon < finalBulletAt) return;
-  gainThiefInitiative(context, 2, context.effectiveEnd, "unload-refund");
+  gainThiefInitiative(
+    context,
+    Number(
+      thiefBalanceProfile(context, PROFILE.unloadRefund)?.resourceGain || 2,
+    ),
+    context.effectiveEnd,
+    "unload-refund",
+  );
 }

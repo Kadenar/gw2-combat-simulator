@@ -11,11 +11,13 @@ import type {
   RangerSkill,
 } from "../../types.js";
 import { druidState } from "./state.js";
+import {
+  rangerBalanceProfile,
+  rangerBalanceProfileEffect,
+  rangerBalanceValue,
+} from "../../core/profiles.js";
+import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
-const CELESTIAL_AVATAR_DURATION = 15;
-const NATURAL_MENDER_INTERVAL = 3;
-const NATURAL_MENDER_FORCE = 8;
-const DIRECT_DAMAGE_FORCE = 0.75;
 export const DRUID_ASTRAL_FORCE_DAMAGE_TASK =
   "ranger.druid-astral-force-damage";
 
@@ -38,6 +40,10 @@ function applyNaturalBalance(
   at: number,
 ): void {
   if (!hasDruidTrait(context, TRAIT.NATURAL_BALANCE)) return;
+  const effect = rangerBalanceProfileEffect(
+    rangerBalanceProfile(context, PROFILE.naturalBalance),
+    "buff",
+  );
   context.emit({
     type: "buff",
     at,
@@ -47,9 +53,9 @@ function applyNaturalBalance(
     skillId: TRAIT.NATURAL_BALANCE,
     skillName: "Natural Balance",
     name: "Natural Balance",
-    kind: "natural-balance",
-    duration,
-    stacks: 1,
+    kind: String(effect?.kind || "natural-balance"),
+    duration: Number(effect?.duration ?? duration),
+    stacks: Number(effect?.stacks ?? 1),
   });
 }
 
@@ -81,8 +87,14 @@ export function enterAvatar(
   skill: RangerSkill,
 ): void {
   const state = druidState.from(context);
+  const avatarDuration = rangerBalanceValue(
+    context,
+    PROFILE.resources,
+    "durationMultiplier",
+    15,
+  );
   state.celestialAvatarActive = true;
-  state.celestialAvatarEndsAt = context.start + CELESTIAL_AVATAR_DURATION;
+  state.celestialAvatarEndsAt = context.start + avatarDuration;
   // Reset so advance() doesn't count force drained before CA activated
   state.astralForceUpdatedAt = context.start;
   // Release Celestial Avatar is a flip skill; storing endsAt lets the UI show it as expiring automatically
@@ -102,7 +114,10 @@ export function leaveAvatar(
 ): void {
   const state = druidState.from(context);
   // Exhausted (timer or force depleted) zeroes force; manual exit retains half
-  state.astralForce = exhausted ? 0 : state.astralForce * 0.5;
+  state.astralForce = exhausted
+    ? 0
+    : state.astralForce *
+      rangerBalanceValue(context, PROFILE.resources, "rechargeMultiplier", 0.5);
   state.celestialAvatarActive = false;
   state.celestialAvatarEndsAt = 0;
   state.astralForceUpdatedAt = at;
@@ -124,13 +139,41 @@ export function advanceDruidState(
   target: number,
 ): void {
   const state = druidState.from(context);
+  const maximum = rangerBalanceValue(
+    context,
+    PROFILE.resources,
+    "maximumStacks",
+    100,
+  );
+  const avatarDuration = rangerBalanceValue(
+    context,
+    PROFILE.resources,
+    "durationMultiplier",
+    15,
+  );
+  const naturalMenderInterval = rangerBalanceValue(
+    context,
+    PROFILE.naturalMender,
+    "pulseInterval",
+    3,
+  );
+  const naturalMenderForce = rangerBalanceValue(
+    context,
+    PROFILE.naturalMender,
+    "resourceGain",
+    8,
+  );
+  state.maximumAstralForce = maximum;
+  state.astralForce = Math.min(maximum, state.astralForce);
+  if (state.astralForceUpdatedAt === 0 && state.naturalMenderReadyAt === 3) {
+    state.naturalMenderReadyAt = naturalMenderInterval;
+  }
   if (state.celestialAvatarActive) {
     const elapsed = Math.max(0, target - state.astralForceUpdatedAt);
     // Force drains linearly over the full 15s duration regardless of how much was held going in
     state.astralForce = Math.max(
       0,
-      state.astralForce -
-        elapsed * (state.maximumAstralForce / CELESTIAL_AVATAR_DURATION),
+      state.astralForce - elapsed * (state.maximumAstralForce / avatarDuration),
     );
     state.astralForceUpdatedAt = target;
     // Advance Natural Mender clock even during CA so ticks resume at the right time after exit
@@ -138,10 +181,9 @@ export function advanceDruidState(
       const skippedApplications =
         Math.floor(
           (target - state.naturalMenderReadyAt + context.epsilon) /
-            NATURAL_MENDER_INTERVAL,
+            naturalMenderInterval,
         ) + 1;
-      state.naturalMenderReadyAt +=
-        skippedApplications * NATURAL_MENDER_INTERVAL;
+      state.naturalMenderReadyAt += skippedApplications * naturalMenderInterval;
     }
     // Either condition terminates CA as exhausted (force zeroed); caller must not double-exit
     if (
@@ -165,29 +207,48 @@ export function advanceDruidState(
   const applications =
     Math.floor(
       (target - state.naturalMenderReadyAt + context.epsilon) /
-        NATURAL_MENDER_INTERVAL,
+        naturalMenderInterval,
     ) + 1;
   state.astralForce = Math.min(
     state.maximumAstralForce,
-    state.astralForce + applications * NATURAL_MENDER_FORCE,
+    state.astralForce + applications * naturalMenderForce,
   );
-  state.naturalMenderReadyAt += applications * NATURAL_MENDER_INTERVAL;
+  state.naturalMenderReadyAt += applications * naturalMenderInterval;
 }
 
 export function astralForceReadyAt(context: RangerCastContext): number | null {
   const state = druidState.from(context);
-  const maximum = state.maximumAstralForce;
+  const maximum = rangerBalanceValue(
+    context,
+    PROFILE.resources,
+    "maximumStacks",
+    100,
+  );
+  state.maximumAstralForce = maximum;
+  state.astralForce = Math.min(maximum, state.astralForce);
+  const naturalMenderForce = rangerBalanceValue(
+    context,
+    PROFILE.naturalMender,
+    "resourceGain",
+    8,
+  );
+  const naturalMenderInterval = rangerBalanceValue(
+    context,
+    PROFILE.naturalMender,
+    "pulseInterval",
+    3,
+  );
   const naturalMender = hasDruidTrait(context, TRAIT.NATURAL_MENDER);
   if (state.astralForce >= maximum - context.epsilon) return context.start;
   // Without Natural Mender, force only accumulates from damage events; no predictable ready time
   if (!naturalMender) return null;
   const applications = Math.ceil(
-    (maximum - state.astralForce) / NATURAL_MENDER_FORCE,
+    (maximum - state.astralForce) / naturalMenderForce,
   );
   // naturalMenderReadyAt may already be in the past if advance() hasn't run yet; clamp to now
   return (
     Math.max(context.start, state.naturalMenderReadyAt) +
-    (applications - 1) * NATURAL_MENDER_INTERVAL
+    (applications - 1) * naturalMenderInterval
   );
 }
 
@@ -221,9 +282,28 @@ export function handleDruidAstralForceDamageTask(
   // Force doesn't accumulate while CA is active (it's draining instead)
   if (state.celestialAvatarActive) return;
   // Eclipse doubles the astral force gained per hit
+  const directDamageForce = rangerBalanceValue(
+    context,
+    PROFILE.resources,
+    "resourceGain",
+    0.75,
+  );
+  const eclipseMultiplier = rangerBalanceValue(
+    context,
+    PROFILE.resources,
+    "coefficientMultiplier",
+    2,
+  );
+  state.maximumAstralForce = rangerBalanceValue(
+    context,
+    PROFILE.resources,
+    "maximumStacks",
+    100,
+  );
   state.astralForce = Math.min(
     state.maximumAstralForce,
     state.astralForce +
-      DIRECT_DAMAGE_FORCE * (hasDruidTrait(context, TRAIT.ECLIPSE) ? 2 : 1),
+      directDamageForce *
+        (hasDruidTrait(context, TRAIT.ECLIPSE) ? eclipseMultiplier : 1),
   );
 }

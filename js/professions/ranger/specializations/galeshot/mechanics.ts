@@ -18,6 +18,12 @@ import type {
 } from "../../types.js";
 import { RANGER_PET_STRIKE_SCALING } from "../../core/pets.js";
 import { galeshotState } from "./state.js";
+import {
+  rangerBalanceProfile,
+  rangerBalanceProfileEffect,
+  rangerBalanceValue,
+} from "../../core/profiles.js";
+import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 const MISSILE_SKILL_IDS = new Set<number>([
   ID.RICOCHET,
@@ -45,6 +51,13 @@ export function advanceGaleshotArrows(
 ): void {
   const state = galeshotState.from(context);
   if (target <= state.arrowsUpdatedAt) return;
+  state.maximumArrows = rangerBalanceValue(
+    context,
+    PROFILE.resources,
+    "maximumStacks",
+    8,
+  );
+  state.arrows = Math.min(state.maximumArrows, state.arrows);
   const rechargeRate = gw2BuffActiveForAudience(
     context,
     "alacrity",
@@ -53,7 +66,9 @@ export function advanceGaleshotArrows(
   )
     ? Number(context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE)
     : 1;
-  const interval = 5 / Math.max(Number.EPSILON, rechargeRate);
+  const interval =
+    rangerBalanceValue(context, PROFILE.resources, "pulseInterval", 5) /
+    Math.max(Number.EPSILON, rechargeRate);
   const generated = Math.floor((target - state.arrowsUpdatedAt) / interval);
   if (generated <= 0) return;
   state.arrows = Math.min(state.maximumArrows, state.arrows + generated);
@@ -62,9 +77,15 @@ export function advanceGaleshotArrows(
   state.arrowsUpdatedAt += generated * interval;
 }
 
-function restoreArrow(context: RangerSchedulerContext): void {
+function restoreArrow(context: RangerSchedulerContext, amount = 1): void {
   const state = galeshotState.from(context);
-  state.arrows = Math.min(state.maximumArrows, state.arrows + 1);
+  state.maximumArrows = rangerBalanceValue(
+    context,
+    PROFILE.resources,
+    "maximumStacks",
+    8,
+  );
+  state.arrows = Math.min(state.maximumArrows, state.arrows + amount);
 }
 
 export function observeGaleshotEvent(
@@ -131,6 +152,9 @@ export function handleGaleshotMissileHitTask(
     readonly activationId?: string;
   } | null;
   if (task.at <= state.mistralUntil + context.epsilon) {
+    const profile = rangerBalanceProfile(context, PROFILE.mistral);
+    const strike = rangerBalanceProfileEffect(profile, "strike");
+    const chilled = rangerBalanceProfileEffect(profile, "condition");
     context.emit({
       type: "damage",
       at: task.at,
@@ -140,8 +164,8 @@ export function handleGaleshotMissileHitTask(
       skillId: ID.MISTRAL,
       skillName: "Mistral",
       name: "Mistral",
-      coefficient: 0.3,
-      hits: 1,
+      coefficient: Number(strike?.coefficient ?? 0.3),
+      hits: Number(strike?.hits ?? 1),
       canCrit: true,
       damageKind: "galeshot-mistral",
       triggeredBy: payload?.skillName,
@@ -156,20 +180,24 @@ export function handleGaleshotMissileHitTask(
       skillId: ID.MISTRAL,
       skillName: "Mistral",
       name: "Mistral - Chilled",
-      condition: "Chilled",
-      duration: 1,
-      stacks: 1,
+      condition: String(chilled?.condition || "Chilled"),
+      duration: Number(chilled?.duration ?? 1),
+      stacks: Number(chilled?.stacks ?? 1),
       triggeredBy: payload?.skillName,
       activationId: payload?.activationId,
     });
   }
   if (!hasTrait({ config: context.config }, TRAIT.SHRIKE)) return;
+  const profile = rangerBalanceProfile(context, PROFILE.shrike);
+  const threshold = Number(profile?.threshold ?? 12);
+  const strike = rangerBalanceProfileEffect(profile, "strike");
   state.missileHits += 1;
-  if (state.missileHits < 12) return;
+  if (state.missileHits < threshold) return;
   // Subtract rather than reset so any overshoot from burst windows is preserved.
-  state.missileHits -= 12;
-  restoreArrow(context);
-  for (let hitIndex = 1; hitIndex <= 3; hitIndex += 1) {
+  state.missileHits -= threshold;
+  restoreArrow(context, Number(profile?.resourceGain ?? 1));
+  const hits = Number(strike?.hits ?? 3);
+  for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
     context.emit({
       type: "damage",
       at: task.at,
@@ -179,10 +207,10 @@ export function handleGaleshotMissileHitTask(
       skillId: TRAIT.SHRIKE,
       skillName: "Shrike",
       name: "Shrike",
-      coefficient: 0.8,
+      coefficient: Number(strike?.coefficient ?? 0.8),
       hits: 1,
       hitIndex,
-      totalHits: 3,
+      totalHits: hits,
       canCrit: true,
       damageKind: "galeshot-shrike",
       triggeredBy: payload?.skillName,
@@ -210,6 +238,10 @@ export function handleGaleshotPetHitTask(
   }
   state.wutheringWindReady = false;
   if (activationId) state.wutheringWindActivationIds[activationId] = true;
+  const strike = rangerBalanceProfileEffect(
+    rangerBalanceProfile(context, PROFILE.wutheringWind),
+    "strike",
+  );
   context.emit({
     type: "proc",
     at: task.at,
@@ -232,8 +264,8 @@ export function handleGaleshotPetHitTask(
     skillId: ID.WUTHERING_WIND,
     skillName: "Wuthering Wind",
     name: "Wuthering Wind",
-    coefficient: 2,
-    hits: 1,
+    coefficient: Number(strike?.coefficient ?? 2),
+    hits: Number(strike?.hits ?? 1),
     canCrit: true,
     damageKind: "galeshot-wuthering-wind",
     triggeredBy: payload?.skillName,
@@ -259,8 +291,10 @@ export function handleGaleshotDisableTask(
     return;
   }
   // 0.25 s ICD prevents one multi-hit ability from restoring more than one arrow.
-  state.thrillOfTheCatchReadyAt = context.state.time + 0.25;
-  restoreArrow(context);
+  const profile = rangerBalanceProfile(context, PROFILE.thrillOfTheCatch);
+  state.thrillOfTheCatchReadyAt =
+    context.state.time + Number(profile?.internalCooldown ?? 0.25);
+  restoreArrow(context, Number(profile?.resourceGain ?? 1));
 }
 
 function isBeastSkill(skill: RangerSkill): boolean {
@@ -287,7 +321,10 @@ export function completeGaleshotSkill(
   ) {
     return;
   }
-  state.flockTogetherReadyAt = context.effectiveEnd + 20;
+  const profile = rangerBalanceProfile(context, PROFILE.flockTogether);
+  const quickness = rangerBalanceProfileEffect(profile, "boon");
+  state.flockTogetherReadyAt =
+    context.effectiveEnd + Number(profile?.internalCooldown ?? 20);
   context.emit({
     type: "buff",
     at: context.effectiveEnd,
@@ -296,10 +333,10 @@ export function completeGaleshotSkill(
     actorType: "effect",
     skillId: TRAIT.FLOCK_TOGETHER,
     skillName: "Flock Together",
-    kind: "quickness",
-    boon: "quickness",
-    duration: 5,
-    stacks: 1,
+    kind: String(quickness?.boon || "quickness"),
+    boon: String(quickness?.boon || "quickness"),
+    duration: Number(quickness?.duration ?? 5),
+    stacks: Number(quickness?.stacks ?? 1),
     recipients: "party",
     affectsSummons: true,
     maximumRecipients: 5,

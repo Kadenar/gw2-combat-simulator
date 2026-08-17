@@ -47,6 +47,7 @@ export function queueBleeding(
   duration: number,
   sourceId: number,
   name: string,
+  stacks = 1,
 ): void {
   const petSource = isPetStrike(event);
   enqueueOrdered(context.queue, {
@@ -61,7 +62,7 @@ export function queueBleeding(
     name: `${name} — Bleeding`,
     condition: "Bleeding",
     duration,
-    stacks: 1,
+    stacks,
     triggeredBy: event.skillName,
   });
 }

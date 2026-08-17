@@ -4,11 +4,11 @@ import {
 } from "../../../platform/engine/skill-handlers.js";
 import { completeThiefDodge, performThiefDodge } from "./dodge.js";
 import {
-  activateCaltrops,
   activateSpiderVenom,
   activateThousandNeedles,
   completeSpearStealthAttack,
   observeSpearChainEffect,
+  observeSpiderVenomEffect,
   prepareSpearChainSkill,
   prepareSpearStealthAttack,
   prepareThousandNeedles,
@@ -47,10 +47,12 @@ export const thiefCoreSkillHandlers = Object.freeze({
   "thief.spear-stealth-attack": augmentSkillHandler(prepareSpearStealthAttack, {
     afterEffects: completeSpearStealthAttack,
   }),
-  "thief.spider-venom": augmentAfter(activateSpiderVenom),
+  "thief.spider-venom": augmentSkillHandler(null, {
+    afterEffect: observeSpiderVenomEffect,
+    afterEffects: activateSpiderVenom,
+  }),
   "thief.prepare-thousand-needles": augmentAfter(prepareThousandNeedles),
   "thief.thousand-needles": augmentAfter(activateThousandNeedles),
-  "thief.caltrops": augmentAfter(activateCaltrops),
   "thief.assassins-signet": augmentAfter(activateAssassinsSignet),
   "thief.thieves-guild": augmentAfter(summonThievesGuild),
   "thief.weapon-swap": replaceSkillHandler(swapThiefWeapons),

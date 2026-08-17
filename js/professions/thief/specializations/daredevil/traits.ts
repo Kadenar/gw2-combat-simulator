@@ -11,6 +11,11 @@ import {
 } from "../../core/shared.js";
 import type { ThiefCastContext, ThiefDodge, ThiefSkill } from "../../types.js";
 import { daredevilState } from "./state.js";
+import {
+  thiefBalanceProfile,
+  thiefBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 interface DaredevilDodgeEffectBase {
   sourceId: SkillId;
@@ -107,6 +112,14 @@ function emitDodgeEffect(
   effect: DaredevilDodgeEffect,
 ): void {
   const state = daredevilState.from(context);
+  const profile = thiefBalanceProfile(context, effect.sourceId);
+  const authoredEffect =
+    effect.type === "condition"
+      ? profile?.effects?.find(
+          (entry) =>
+            entry.type === "condition" && entry.condition === effect.condition,
+        )
+      : thiefBalanceProfileEffect(profile, effect.type);
   // Remap trait names to the in-game skill names that appear in logs/UI
   const dodgeSkillName =
     state.selectedDodge === "Bounding Dodger"
@@ -128,7 +141,7 @@ function emitDodgeEffect(
     name: dodgeSkillName,
   } as const;
   if (effect.type === "strike") {
-    const hits = Math.max(1, Number(effect.hits || 1));
+    const hits = Math.max(1, Number(authoredEffect?.hits || effect.hits || 1));
     const atMsList = effect.atMsList || [];
     for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
       context.emit({
@@ -139,7 +152,8 @@ function emitDodgeEffect(
             : context.start + atMsList[hitIndex - 1] / 1000,
         type: "damage",
         source: "thief",
-        coefficient: Number(effect.coefficient || 0) / hits,
+        coefficient:
+          Number(authoredEffect?.coefficient || effect.coefficient || 0) / hits,
         hits: 1,
         hitIndex,
         totalHits: hits,
@@ -152,8 +166,8 @@ function emitDodgeEffect(
       type: "condition",
       name: `${dodgeSkillName} — ${effect.condition}`,
       condition: effect.condition,
-      stacks: Number(effect.stacks || 1),
-      duration: Number(effect.duration || 0),
+      stacks: Number(authoredEffect?.stacks || effect.stacks || 1),
+      duration: Number(authoredEffect?.duration || effect.duration || 0),
     });
   } else {
     context.emit({
@@ -161,8 +175,8 @@ function emitDodgeEffect(
       type: "boon",
       name: `${dodgeSkillName} — ${effect.boon}`,
       boon: effect.boon,
-      stacks: Number(effect.stacks || 1),
-      duration: Number(effect.duration || 0),
+      stacks: Number(authoredEffect?.stacks || effect.stacks || 1),
+      duration: Number(authoredEffect?.duration || effect.duration || 0),
     });
   }
 }
@@ -175,11 +189,21 @@ export function applyDaredevilDodge(
   const state = daredevilState.from(context);
   if (state.selectedDodge === "Bounding Dodger") {
     // +6 s pads the 5 s in-game bonus window to absorb quickness-compressed cast times
-    state.boundingDamageUntil = context.effectiveEnd + 6;
+    state.boundingDamageUntil =
+      context.effectiveEnd +
+      Number(
+        thiefBalanceProfile(context, PROFILE.boundingDodger)
+          ?.durationMultiplier || 6,
+      );
   }
   if (state.selectedDodge === "Lotus Training") {
     // Same padding as Bounding Dodger — resolver checks > context.time so equality is not enough
-    state.lotusConditionDamageUntil = context.effectiveEnd + 6;
+    state.lotusConditionDamageUntil =
+      context.effectiveEnd +
+      Number(
+        thiefBalanceProfile(context, PROFILE.lotusTraining)
+          ?.durationMultiplier || 6,
+      );
   }
   if (hasThiefTrait(context.config, TRAIT.WEAKENING_STRIKES)) {
     // Arm the one-shot Weakness proc; it fires on the very next attacking skill
@@ -202,13 +226,29 @@ function spendDaredevilTraitResources(
     hasThiefTrait(context.config, TRAIT.STAFF_MASTER)
   ) {
     // Staff Master refunds 2 endurance per initiative spent, not per cast
-    gainThiefEndurance(context, cost * 2, context.start, "staff-master");
+    gainThiefEndurance(
+      context,
+      cost *
+        Number(
+          thiefBalanceProfile(context, PROFILE.staffMaster)?.resourceGain || 2,
+        ),
+      context.start,
+      "staff-master",
+    );
   }
   if (
     BRAWLERS_TENACITY_PHYSICAL_SKILLS.has(skill.id) &&
     hasThiefTrait(context.config, TRAIT.BRAWLERS_TENACITY)
   ) {
-    gainThiefEndurance(context, 15, context.start, "brawlers-tenacity");
+    gainThiefEndurance(
+      context,
+      Number(
+        thiefBalanceProfile(context, PROFILE.brawlersTenacity)?.resourceGain ||
+          15,
+      ),
+      context.start,
+      "brawlers-tenacity",
+    );
   }
 }
 
@@ -229,11 +269,15 @@ function applyWeakeningStrike(
   const state = daredevilState.from(context);
   if (!state.weakeningStrikeReady || !skillAttacks(skill)) return;
   state.weakeningStrikeReady = false;
+  const weakness = thiefBalanceProfileEffect(
+    thiefBalanceProfile(context, PROFILE.weakeningStrikes),
+    "condition",
+  );
   emitThiefCondition(context, {
     at: context.start,
-    condition: "Weakness",
-    duration: 3,
-    stacks: 1,
+    condition: String(weakness?.condition || "Weakness"),
+    duration: Number(weakness?.duration || 3),
+    stacks: Number(weakness?.stacks || 1),
     sourceId: TRAIT.WEAKENING_STRIKES,
     name: "Weakening Strikes — Weakness",
   });

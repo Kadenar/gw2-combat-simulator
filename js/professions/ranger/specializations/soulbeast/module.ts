@@ -19,11 +19,13 @@ import {
   reactToSoulbeastDamage,
   soulbeastEventHandlers,
 } from "./resolver.js";
+import { SOULBEAST_BALANCE_PROFILES } from "./profiles.js";
 
 export const soulbeastModule = defineNativeModule({
   id: "Soulbeast",
   data: createRangerModuleData("Soulbeast", {
     skillMechanics: SOULBEAST_BASE_SKILL_MECHANICS,
+    balanceProfiles: SOULBEAST_BALANCE_PROFILES,
     handlers: soulbeastSkillHandlers,
   }),
   // Scheduler and resolver each get their own independent state instance — they run in separate phases.

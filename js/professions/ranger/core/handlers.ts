@@ -11,6 +11,12 @@ import {
   applyRangerWeaponSwapTraits,
 } from "./traits.js";
 import { rangerPetByName } from "./state.js";
+import {
+  rangerBalanceProfile,
+  rangerBalanceProfileEffect,
+  rangerBalanceValue,
+  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE,
+} from "./profiles.js";
 
 function swapRangerWeapons(
   context: RangerCastContext,
@@ -35,7 +41,11 @@ function swapRangerWeapons(
 
 function performRangerDodge(context: RangerCastContext): boolean {
   const state = professionCoreState(context);
-  state.endurance = Math.max(0, state.endurance - 50);
+  state.endurance = Math.max(
+    0,
+    state.endurance -
+      rangerBalanceValue(context, PROFILE.resources, "resourceCost", 50),
+  );
   state.enduranceUpdatedAt = context.start;
   applyRangerDodgeTraits(context);
   return true;
@@ -98,6 +108,7 @@ export const rangerCoreSkillHandlers = Object.freeze({
   "ranger.poisonous-strikes": {
     mode: "augment" as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
+      const profile = rangerBalanceProfile(context, PROFILE.poisonousStrikes);
       context.emit({
         type: "ranger.poisonous-strikes",
         at: context.effectiveEnd,
@@ -106,14 +117,15 @@ export const rangerCoreSkillHandlers = Object.freeze({
         actorType: "player",
         skillId: skill.id,
         skillName: skill.name,
-        charges: 2,
-        duration: 10,
+        charges: Number(profile?.playerStacks ?? 2),
+        duration: Number(profile?.durationMultiplier ?? 10),
       });
     },
   },
   "ranger.sharpening-stone": {
     mode: "augment" as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
+      const profile = rangerBalanceProfile(context, PROFILE.sharpeningStone);
       context.emit({
         type: "ranger.sharpening-stone",
         at: context.start,
@@ -122,14 +134,18 @@ export const rangerCoreSkillHandlers = Object.freeze({
         actorType: "player",
         skillId: skill.id,
         skillName: skill.name,
-        charges: 10,
-        duration: 30,
+        charges: Number(profile?.playerStacks ?? 10),
+        duration: Number(profile?.durationMultiplier ?? 30),
       });
     },
   },
   "ranger.sun-spirit": {
     mode: "augment" as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
+      const burning = rangerBalanceProfileEffect(
+        rangerBalanceProfile(context, PROFILE.sunSpirit),
+        "condition",
+      );
       context.emit({
         type: "condition",
         at: context.effectiveEnd,
@@ -140,8 +156,8 @@ export const rangerCoreSkillHandlers = Object.freeze({
         skillName: "Solar Flare",
         name: "Solar Flare - Burning",
         condition: "Burning",
-        stacks: 3,
-        duration: 6,
+        stacks: Number(burning?.stacks ?? 3),
+        duration: Number(burning?.duration ?? 6),
         triggeredBy: skill.name,
       });
     },
@@ -161,7 +177,12 @@ export const rangerCoreSkillHandlers = Object.freeze({
         skillId: skill.id,
         skillName: skill.name,
         kind: merged ? "sic-em" : "sic-em-pet",
-        duration: 10,
+        duration: rangerBalanceValue(
+          context,
+          PROFILE.sicEm,
+          "durationMultiplier",
+          10,
+        ),
         stacks: 1,
       });
     },
@@ -177,7 +198,12 @@ export const rangerCoreSkillHandlers = Object.freeze({
         actorType: "player",
         skillId: skill.id,
         skillName: skill.name,
-        charges: 3,
+        charges: rangerBalanceValue(
+          context,
+          PROFILE.bloodThirst,
+          "playerStacks",
+          3,
+        ),
       });
     },
   },

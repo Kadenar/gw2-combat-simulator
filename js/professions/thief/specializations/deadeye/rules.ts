@@ -23,6 +23,8 @@ import type {
   Gw2ModifierRule,
   Gw2ResolvedStats,
 } from "../../../../platform/gw2/types.js";
+import { thiefBalanceProfile } from "../../core/profiles.js";
+import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 export const deadeyeSchedulerHooks = Object.freeze({
   initialize: {
@@ -99,15 +101,29 @@ function modifyDeadeyeAttributes(
   const result = { ...attributes };
   // These stat bonuses come from the GW2 build panel (professionStaticRules); skip them if the build already includes them to avoid double-counting
   if (!professionStaticRulesApplied(context.config)) {
-    if (hasTrait(context, TRAIT.SILENT_SCOPE)) result.precision += 120;
-    if (hasTrait(context, TRAIT.PREMEDITATION)) result.concentration += 180;
+    if (hasTrait(context, TRAIT.SILENT_SCOPE)) {
+      result.precision += Number(
+        thiefBalanceProfile(context, PROFILE.silentScope)?.attributeBonus ||
+          120,
+      );
+    }
+    if (hasTrait(context, TRAIT.PREMEDITATION)) {
+      result.concentration += Number(
+        thiefBalanceProfile(context, PROFILE.premeditation)?.attributeBonus ||
+          180,
+      );
+    }
   }
   if (
     hasTrait(context, TRAIT.BE_QUICK_OR_BE_KILLED) &&
     boonActive(context, "quickness")
   ) {
-    result.power += 200;
-    result.precision += 200;
+    const bonus = Number(
+      thiefBalanceProfile(context, PROFILE.beQuickOrBeKilled)?.attributeBonus ||
+        200,
+    );
+    result.power += bonus;
+    result.precision += bonus;
   }
   return result;
 }
@@ -127,7 +143,9 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "thief.premeditation",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
-    factor: (context) => 1 + activeBoonCount(context) * 0.01,
+    parameters: { damagePerBoon: 0.01 } as Readonly<Record<string, number>>,
+    factor: (context, _target, parameters) =>
+      1 + activeBoonCount(context) * parameters.damagePerBoon,
     when: (context) =>
       thiefPlayerEvent(context) && hasTrait(context, TRAIT.PREMEDITATION),
   },
@@ -169,14 +187,15 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "damage-additive",
     // Malice at cast time is snapshotted onto the event so the resolver sees the pre-consumption value even after malice is zeroed
-    amount: (context) =>
+    parameters: { damagePerMalice: 0.1 } as Readonly<Record<string, number>>,
+    amount: (context, _target, parameters) =>
       Math.max(
         0,
         Number(
           (context.event as ThiefSimulationEvent | undefined)
             ?.deadeyeMaliceSnapshot || 0,
         ),
-      ) * 0.1,
+      ) * parameters.damagePerMalice,
     when: (context) =>
       thiefPlayerEvent(context) &&
       markedTarget(context) &&

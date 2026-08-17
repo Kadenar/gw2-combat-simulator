@@ -28,6 +28,11 @@ import type {
   ThiefSimulationEvent,
   ThiefSkill,
 } from "../../types.js";
+import {
+  thiefBalanceProfile,
+  thiefBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 interface DeadeyeHandlerState {
   readonly malice?: number;
@@ -41,7 +46,11 @@ function completeDeadeyesMark(context: ThiefCastContext): void {
   const remarkingTarget =
     state.markedTargetId === "primary-target" && state.markExpiresAt > at;
   state.markedTargetId = "primary-target";
-  state.markExpiresAt = at + 30;
+  state.markExpiresAt =
+    at +
+    Number(
+      thiefBalanceProfile(context, PROFILE.resources)?.durationMultiplier || 30,
+    );
   state.markGeneration += 1;
   state.malice = remarkingTarget
     ? Math.min(
@@ -103,7 +112,18 @@ function observeDeadeyeStealthEffect(
   ) {
     // Malicious Sneak Attack scales Torment duration by malice: base 1s + 2s per stack
     context.replaceEvent(event, {
-      duration: 1 + Number(prepared.malice || 0) * 2,
+      duration:
+        Number(
+          thiefBalanceProfileEffect(
+            thiefBalanceProfile(context, PROFILE.maliciousSneakAttack),
+            "condition",
+          )?.duration || 1,
+        ) +
+        Number(prepared.malice || 0) *
+          Number(
+            thiefBalanceProfile(context, PROFILE.maliciousSneakAttack)
+              ?.durationMultiplier || 2,
+          ),
     });
   }
 }
@@ -160,14 +180,26 @@ function completeMercy(context: ThiefCastContext): void {
   // Mercy resets Deadeye's Mark cooldown so the player can re-mark immediately
   context.state.cooldowns.delete(ID.DEADEYES_MARK);
   // Initiative refund is 3 base + 1 per malice stack consumed
-  gainThiefInitiative(context, 3 + malice, context.effectiveEnd, "mercy");
+  const profile = thiefBalanceProfile(context, PROFILE.mercy);
+  gainThiefInitiative(
+    context,
+    Number(profile?.resourceGain || 3) +
+      malice * Number(profile?.attributePerStack || 1),
+    context.effectiveEnd,
+    "mercy",
+  );
   emitThiefState(context, context.effectiveEnd, "mercy");
 }
 
 function completeShadowFlare(context: ThiefCastContext): void {
   const core = professionCoreState(context);
   // Register Shadow Swap as an available flip for 4s; availability.ts gates the cast on this timestamp
-  core.availableFlips[ID.SHADOW_SWAP] = context.effectiveEnd + 4;
+  core.availableFlips[ID.SHADOW_SWAP] =
+    context.effectiveEnd +
+    Number(
+      thiefBalanceProfile(context, PROFILE.shadowFlare)?.durationMultiplier ||
+        4,
+    );
   emitThiefState(context, context.effectiveEnd, "shadow-flare");
 }
 
@@ -209,7 +241,12 @@ function observeDeadeyeSpearStealthEffect(
     context.replaceEvent(event, {
       coefficient:
         Number(event.coefficient || 0) *
-        (1 + Number(prepared.malice || 0) * 0.02),
+        (1 +
+          Number(prepared.malice || 0) *
+            Number(
+              thiefBalanceProfile(context, PROFILE.maliciousAshenAssault)
+                ?.coefficientMultiplier || 0.02,
+            )),
     });
   }
 }
@@ -221,14 +258,23 @@ function completeDeadeyeSpearStealthAttack(
 ): void {
   const prepared = (handlerState || {}) as DeadeyeHandlerState;
   const at = context.effectiveEnd;
-  gainThiefInitiative(context, 4, at, "ashen-assault-refund");
+  const profile = thiefBalanceProfile(context, PROFILE.maliciousAshenAssault);
+  const torment = thiefBalanceProfileEffect(profile, "condition");
+  gainThiefInitiative(
+    context,
+    Number(profile?.resourceGain || 4),
+    at,
+    "ashen-assault-refund",
+  );
   if (Number(prepared.malice || 0) > 0) {
     // Torment duration from Malicious Ashen Assault: 0.5s base + 0.5s per malice stack, only applied when malice > 0
     emitThiefCondition(context, {
       at,
-      condition: "Torment",
-      duration: 0.5 + Number(prepared.malice) * 0.5,
-      stacks: 1,
+      condition: String(torment?.condition || "Torment"),
+      duration:
+        Number(torment?.duration || 0.5) +
+        Number(prepared.malice) * Number(profile?.durationMultiplier || 0.5),
+      stacks: Number(torment?.stacks || 1),
       sourceId: skill.id,
       name: "Malicious Ashen Assault — Torment",
     });

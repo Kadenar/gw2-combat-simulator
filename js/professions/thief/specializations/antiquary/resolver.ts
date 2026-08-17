@@ -9,6 +9,11 @@ import type {
   ThiefResolverEvent,
   ThiefResolverReactionDetails,
 } from "../../types.js";
+import {
+  thiefBalanceProfile,
+  thiefBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 function applyMistburnCharge(
   context: ThiefResolverContext,
@@ -28,6 +33,10 @@ function applyMistburnCharge(
   )
     return;
   state.mistburnCharges -= 1;
+  const burning = thiefBalanceProfileEffect(
+    thiefBalanceProfile(context, PROFILE.mistburnProc),
+    "condition",
+  );
   details.applyCondition?.(context, {
     type: "condition",
     at: event.at,
@@ -37,9 +46,9 @@ function applyMistburnCharge(
     skillId: ID.MISTBURN_MORTAR,
     skillName: "Mistburn Mortar",
     name: "Mistburn Mortar — Charged Strike",
-    condition: "Burning",
-    stacks: 1,
-    duration: 1,
+    condition: String(burning?.condition || "Burning"),
+    stacks: Number(burning?.stacks || 1),
+    duration: Number(burning?.duration || 1),
     triggeredBy: event.skillName,
   });
 }
@@ -56,6 +65,10 @@ function applyMeticulousSunCrystal(
     !hasThiefTrait(context.config, TRAIT.METICULOUS_CUSTODIAN)
   )
     return;
+  const burning = thiefBalanceProfileEffect(
+    thiefBalanceProfile(context, PROFILE.sunCrystalMeticulous),
+    "condition",
+  );
   details.applyCondition?.(context, {
     type: "condition",
     at: event.at,
@@ -65,9 +78,9 @@ function applyMeticulousSunCrystal(
     skillId: ID.ZEPHYRITE_SUN_CRYSTAL,
     skillName: "Zephyrite Sun Crystal",
     name: "Zephyrite Sun Crystal - Meticulous Burning",
-    condition: "Burning",
-    stacks: 1,
-    duration: 5,
+    condition: String(burning?.condition || "Burning"),
+    stacks: Number(burning?.stacks || 1),
+    duration: Number(burning?.duration || 5),
   });
 }
 

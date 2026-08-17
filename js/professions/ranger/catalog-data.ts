@@ -6,6 +6,7 @@ import { RANGER_SUPPLEMENTAL_SKILLS } from "./data/ranger-supplemental-skills.js
 import { TRAITS } from "./data/traits-data.js";
 import { isRangerHammerVariant } from "./core/hammer.js";
 import type {
+  BalanceProfile,
   CatalogEntity,
   SkillFragment,
   SkillHandlerStrategy,
@@ -167,6 +168,7 @@ const WEAPON_HANDS = Object.freeze({
 interface RangerModuleDataOptions<TContext extends object> {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
   readonly extraSkills?: readonly RangerSkill[];
+  readonly balanceProfiles?: readonly BalanceProfile[];
   readonly handlers?:
     | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
     | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
@@ -177,6 +179,7 @@ export function createRangerModuleData<TContext extends object>(
   {
     skillMechanics,
     extraSkills = [],
+    balanceProfiles = [],
     handlers,
   }: RangerModuleDataOptions<TContext>,
 ) {
@@ -185,6 +188,7 @@ export function createRangerModuleData<TContext extends object>(
     generatedSkills: generated,
     skillMechanics,
     extraSkills,
+    balanceProfiles,
     handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,

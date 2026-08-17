@@ -10,11 +10,13 @@ import { GALESHOT_BASE_SKILL_MECHANICS } from "./skills.js";
 import { galeshotState } from "./state.js";
 import { galeshotUi } from "./ui.js";
 import { galeshotEventHandlers } from "./resolver.js";
+import { GALESHOT_BALANCE_PROFILES } from "./profiles.js";
 
 export const galeshotModule = defineNativeModule({
   id: "Galeshot",
   data: createRangerModuleData("Galeshot", {
     skillMechanics: GALESHOT_BASE_SKILL_MECHANICS,
+    balanceProfiles: GALESHOT_BALANCE_PROFILES,
     handlers: galeshotSkillHandlers,
   }),
   // Both sides share the same factory; the resolver only needs the fields

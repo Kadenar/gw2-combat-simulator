@@ -20,6 +20,8 @@ import type {
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
 import type { ThiefPrecastContext } from "../../types.js";
+import { thiefBalanceProfile } from "../../core/profiles.js";
+import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 export const antiquaryTaskHandlers = Object.freeze({
   "thief.forged-surfer": handleForgedSurfer,
@@ -41,17 +43,23 @@ const METICULOUS_ARTIFACT_STRIKE_IDS = new Set<number>([
   ID.HOLO_DANCER_DECOY,
 ]);
 
-function meticulousArtifactStrikeFactor(context: Gw2ModifierContext): number {
+function meticulousArtifactStrikeFactor(
+  context: Gw2ModifierContext,
+  _target: unknown,
+  parameters: Readonly<Record<string, number>>,
+): number {
   const event = context.event;
   if (event?.skillId === ID.METAL_LEGION_GUITAR) {
-    return event.name === "Final Smash" ? 3 / 2.5 : 1.2 / 0.8;
+    return event.name === "Final Smash"
+      ? parameters.guitarFinalFactor
+      : parameters.guitarFactor;
   }
-  if (event?.skillId === ID.MISTBURN_MORTAR) return 0.6 / 0.5;
-  if (event?.skillId === ID.CHAK_SHIELD) return 1;
+  if (event?.skillId === ID.MISTBURN_MORTAR) return parameters.mortarFactor;
+  if (event?.skillId === ID.CHAK_SHIELD) return parameters.chakFactor;
   if (event?.skillId === ID.SUMMON_KRYPTIS_TURRET_ID_77192) {
-    return 3.84 / 2.8;
+    return parameters.kryptisFactor;
   }
-  if (event?.skillId === ID.HOLO_DANCER_DECOY) return 3 / 2;
+  if (event?.skillId === ID.HOLO_DANCER_DECOY) return parameters.holoFactor;
   return 1;
 }
 
@@ -73,9 +81,14 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       id: "thief.combat-high-strike",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
-      amount: (context) =>
+      parameters: {
+        maximumStacks: 10,
+        stackInterval: 2,
+        damagePerStack: 0.03,
+      } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) =>
         Math.min(
-          10,
+          parameters.maximumStacks,
           Math.ceil(
             Math.max(
               0,
@@ -83,9 +96,9 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
                 thiefRuntimeSpecializationState(context, "Antiquary")
                   .combatHighExpiresAt || 0,
               ) - context.time,
-            ) / 2,
+            ) / parameters.stackInterval,
           ),
-        ) * 0.03,
+        ) * parameters.damagePerStack,
       when: (context) =>
         thiefPlayerEvent(context) && hasTrait(context, TRAIT.COMBAT_HIGH),
     },
@@ -93,9 +106,14 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       id: "thief.combat-high-condition",
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: "damage-additive",
-      amount: (context) =>
+      parameters: {
+        maximumStacks: 10,
+        stackInterval: 2,
+        damagePerStack: 0.02,
+      } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) =>
         Math.min(
-          10,
+          parameters.maximumStacks,
           Math.ceil(
             Math.max(
               0,
@@ -103,9 +121,9 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
                 thiefRuntimeSpecializationState(context, "Antiquary")
                   .combatHighExpiresAt || 0,
               ) - context.time,
-            ) / 2,
+            ) / parameters.stackInterval,
           ),
-        ) * 0.02,
+        ) * parameters.damagePerStack,
       when: (context) =>
         thiefPlayerEvent(context) && hasTrait(context, TRAIT.COMBAT_HIGH),
     },
@@ -125,6 +143,14 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       id: "thief.meticulous-custodian-artifact-strike",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
+      parameters: {
+        guitarFinalFactor: 3 / 2.5,
+        guitarFactor: 1.2 / 0.8,
+        mortarFactor: 0.6 / 0.5,
+        chakFactor: 1,
+        kryptisFactor: 3.84 / 2.8,
+        holoFactor: 3 / 2,
+      } as Readonly<Record<string, number>>,
       factor: meticulousArtifactStrikeFactor,
       when: (context) =>
         thiefPlayerEvent(context) &&
@@ -164,6 +190,10 @@ function modifyAntiquaryRechargeDuration(
   duration: number,
 ): number {
   const state = antiquaryState.from(context);
+  const reduction = Number(
+    thiefBalanceProfile(context, PROFILE.artifactWindows)?.rechargeReduction ||
+      0.8,
+  );
   const expirations = (
     state.holoUtilityCooldownReductionExpirations || []
   ).filter((expiresAt) => Number(expiresAt) > context.start);
@@ -173,11 +203,11 @@ function modifyAntiquaryRechargeDuration(
   }
   // consume the earliest slot; each Holo-Dancer Decoy use adds one entry, so stacking is supported
   expirations.shift();
-  state.holoUtilityCooldownReduction = expirations.length ? 0.8 : 0;
+  state.holoUtilityCooldownReduction = expirations.length ? reduction : 0;
   state.holoUtilityCooldownReductionExpiresAt = expirations.length
     ? Math.max(...expirations)
     : 0;
-  return duration * 0.2; // 80% recharge reduction → pay only 20% of the normal cooldown
+  return duration * (1 - reduction);
 }
 
 export const antiquaryCastRules = Object.freeze({

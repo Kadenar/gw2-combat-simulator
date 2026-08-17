@@ -6,6 +6,10 @@ import { hasThiefTrait } from "./state.js";
 import { applyStealCompletionTraits } from "./traits.js";
 import type { SkillId } from "../../../platform/engine/types.js";
 import type { ThiefCastContext } from "../types.js";
+import {
+  thiefBalanceProfile,
+  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE,
+} from "./profiles.js";
 
 const STOLEN_ID_BY_CHOICE: Readonly<Record<string, number>> = Object.freeze({
   "throw-gunk": ID.THROW_GUNK,
@@ -38,7 +42,10 @@ export function storeStolenSkill(
     storedSkillId == null
       ? 0
       : hasThiefTrait(context.config, TRAIT.IMPROVISATION)
-        ? 2
+        ? Number(
+            thiefBalanceProfile(context, PROFILE.improvisation)
+              ?.maximumStacks || 2,
+          )
         : 1;
   if (emitState) emitThiefState(context, context.effectiveEnd, "stolen-skill");
 }

@@ -146,18 +146,18 @@ export const soulbeastModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       factor: 1.1,
       when: oppressiveSuperiorityActive,
     },
+    {
+      id: "ranger.oppressive-superiority-condition-duration",
+      target: MODIFIER_TARGET.CONDITION_DURATION,
+      operation: "add",
+      amount: 0.1,
+      when: oppressiveSuperiorityActive,
+    },
   ],
 );
 
 export const soulbeastAttributeRules = Object.freeze({
   modifierRules: soulbeastModifierRules,
-  // Oppressive Superiority also extends condition duration (+10%) in addition to its strike modifier.
-  modifyConditionDuration(
-    context: Gw2ModifierContext,
-    duration: number,
-  ): number {
-    return oppressiveSuperiorityActive(context) ? duration + 0.1 : duration;
-  },
 });
 export const soulbeastCastRules = Object.freeze({
   availability: {

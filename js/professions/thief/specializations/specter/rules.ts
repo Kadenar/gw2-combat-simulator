@@ -15,6 +15,8 @@ import type {
   Gw2ModifierRule,
   Gw2ResolvedStats,
 } from "../../../../platform/gw2/types.js";
+import { thiefBalanceProfile } from "../../core/profiles.js";
+import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 export const specterSchedulerHooks = Object.freeze({
   advance: advanceSpecterResources,
@@ -47,18 +49,28 @@ function modifySpecterAttributes(
   // Conversions read gear-only stats. config.stats excludes might
   // (baked into the seed's condition damage) and live trait bonuses.
   // Using gear stats directly avoids double-counting the flat bonuses added below.
-  const gearConditionDamage = Number(context.config?.stats?.conditionDamage || 0);
+  const gearConditionDamage = Number(
+    context.config?.stats?.conditionDamage || 0,
+  );
   const gearVitality = Number(context.config?.stats?.vitality || 0);
   if (hasTrait(context, TRAIT.SECOND_OPINION)) {
+    const profile = thiefBalanceProfile(context, PROFILE.secondOpinion);
     result.healingPower =
-      Number(result.healingPower || 0) + gearConditionDamage * 0.07;
+      Number(result.healingPower || 0) +
+      gearConditionDamage * Number(profile?.attributeConversion || 0.07);
     result.conditionDamage =
       Number(result.conditionDamage || 0) +
-      90 +
-      (wieldingScepter(context) ? 90 : 0);
+      Number(profile?.attributeBonus || 90) +
+      (wieldingScepter(context) ? Number(profile?.attributePerStack || 90) : 0);
   }
   if (hasTrait(context, TRAIT.STRENGTH_OF_SHADOWS)) {
-    result.expertise = Number(result.expertise || 0) + gearVitality * 0.13;
+    result.expertise =
+      Number(result.expertise || 0) +
+      gearVitality *
+        Number(
+          thiefBalanceProfile(context, PROFILE.strengthOfShadows)
+            ?.attributeConversion || 0.13,
+        );
   }
   return result;
 }

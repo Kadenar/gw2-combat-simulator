@@ -16,6 +16,8 @@ import type {
   RangerSkill,
 } from "../../types.js";
 import { untamedState } from "./state.js";
+import { rangerBalanceValue } from "../../core/profiles.js";
+import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([
   ID.VENOMOUS_OUTBURST,
@@ -113,7 +115,12 @@ export const untamedModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "ranger.ferocious-symbiosis",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
-    factor: (context) => {
+    parameters: {
+      baseFactor: 1,
+      maximumStacks: 5,
+      damagePerStack: 0.05,
+    } as Readonly<Record<string, number>>,
+    factor: (context, _target, parameters) => {
       const state = (
         context.runtime as
           | {
@@ -141,7 +148,10 @@ export const untamedModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
         : context.time < Number(state.state?.ferociousSymbiosisPlayerUntil || 0)
           ? Number(state.state?.ferociousSymbiosisPlayerStacks || 0)
           : 0;
-      return 1 + Math.min(5, stacks) * 0.05;
+      return (
+        parameters.baseFactor +
+        Math.min(parameters.maximumStacks, stacks) * parameters.damagePerStack
+      );
     },
     when: (context) =>
       hasTrait(context, TRAIT.FEROCIOUS_SYMBIOSIS) &&
@@ -166,7 +176,9 @@ export const untamedSchedulerHooks = Object.freeze({
     if (skill.id === ID.UNLEASH_RANGER || skill.id === ID.UNLEASH_PET) {
       // The F5 flip is a fixed one-second shared recharge, independent of
       // Alacrity.
-      const readyAt = context.start + 1;
+      const readyAt =
+        context.start +
+        rangerBalanceValue(context, PROFILE.resources, "rechargeMultiplier", 1);
       context.state.cooldowns.set(ID.UNLEASH_RANGER, readyAt);
       context.state.cooldowns.set(ID.UNLEASH_PET, readyAt);
       context.replaceEvent(context.action, { rechargeReadyAt: readyAt });
@@ -182,12 +194,17 @@ export const untamedSchedulerHooks = Object.freeze({
     }
     const state = untamedState.from(context);
     if (context.start + context.epsilon < state.letLooseReadyAt) return;
-    state.letLooseReadyAt = context.start + 9;
+    const profileId = PROFILE.letLoose;
+    state.letLooseReadyAt =
+      context.start +
+      rangerBalanceValue(context, profileId, "internalCooldown", 9);
     // Weapon swap resets Unleashed Power so the next Unleash Ranger re-opens an ambush window.
     state.unleashedPowerReadyAt = 0;
     if (state.rangerUnleashed) {
       // Weapon-swap ambush window is counted from effectiveEnd (post-cast), not cast start.
-      state.ambushReadyUntil = context.effectiveEnd + 4;
+      state.ambushReadyUntil =
+        context.effectiveEnd +
+        rangerBalanceValue(context, PROFILE.resources, "durationMultiplier", 4);
     }
   },
 });

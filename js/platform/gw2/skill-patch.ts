@@ -151,6 +151,8 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   "ammoCastLockout",
   "ammoRecharge",
   "alternateEvery",
+  "arrowCost",
+  "arrowsRestored",
   "activeDamageIncrease",
   "basePower",
   "castTimeMs",
@@ -211,6 +213,8 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   "rechargePenalty",
   "weaponStrength",
   "weaponAttributeBonus",
+  "windForceApplyMs",
+  "windForceGain",
   "summons",
   "summonInterval",
 ]);
