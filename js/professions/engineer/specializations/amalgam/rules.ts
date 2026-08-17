@@ -16,8 +16,10 @@ import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
-import type { EngineerMaximumAmmoContext } from "../../types.js";
-import type { EngineerMechAttributes } from "../../types.js";
+import type {
+  EngineerEvolveAttributePool,
+  EngineerMaximumAmmoContext,
+} from "../../types.js";
 import {
   handleMercurialTendencies,
   observeAmalgamScheduledEvent,
@@ -34,21 +36,19 @@ export const amalgamSchedulerHooks = Object.freeze({
   }),
 });
 
-// All secondary stats scaled by Evolved (×1.1, or ×1.2 with Double Helix).
-// Note: armor/critDamage/critChance are derived, not listed — they update
-// automatically when the underlying stats (toughness/ferocity/precision) change.
-const EVOLVE_ATTRIBUTES: readonly (keyof EngineerMechAttributes)[] =
-  Object.freeze([
-    "power",
-    "precision",
-    "toughness",
-    "vitality",
-    "ferocity",
-    "conditionDamage",
-    "expertise",
-    "concentration",
-    "healingPower",
-  ]);
+// Evolved adds 10% of its eligible stat pool, or 20% with Double Helix.
+// Derived armor/crit fields update from toughness, ferocity, and precision.
+const EVOLVE_ATTRIBUTES = Object.freeze([
+  ["power", "Power"],
+  ["precision", "Precision"],
+  ["toughness", "Toughness"],
+  ["vitality", "Vitality"],
+  ["ferocity", "Ferocity"],
+  ["conditionDamage", "Condition Damage"],
+  ["expertise", "Expertise"],
+  ["concentration", "Concentration"],
+  ["healingPower", "Healing Power"],
+] as const);
 
 function morphStrike(context: Gw2ModifierContext): boolean {
   return Boolean(
@@ -114,8 +114,18 @@ function modifyAmalgamAttributes(
           1.2,
         )
       : engineerBalanceValue(context, PROFILE.evolve, "damageMultiplier", 1.1);
-    for (const attribute of EVOLVE_ATTRIBUTES) {
-      modified[attribute] = Number(modified[attribute] || 0) * evolveFactor;
+    const pool = context.config?.amalgamEvolveAttributePool as
+      EngineerEvolveAttributePool | undefined;
+    for (const [attribute, poolAttribute] of EVOLVE_ATTRIBUTES) {
+      const eligible = Number(
+        pool?.[poolAttribute] ?? modified[attribute] ?? 0,
+      );
+      const bonus = eligible * (evolveFactor - 1);
+      modified[attribute] =
+        Number(modified[attribute] || 0) +
+        (["power", "conditionDamage"].includes(attribute)
+          ? Math.round(bonus)
+          : bonus);
     }
   }
   if (activeEngineerSpecializationState(context, "Amalgam", "titanicUntil")) {

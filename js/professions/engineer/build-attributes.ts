@@ -113,9 +113,15 @@ export function applyEngineerBuildAttributeRules(
     attributeEffects,
   );
 
-  return finalizeBuildAttributes(common, {
+  const finalized = finalizeBuildAttributes(common, {
     activeTraits,
     traitStats,
     traitDurations,
   });
+  // Preserve the common conversion pool for runtime percentage-stat effects;
+  // it already excludes temporary trait bonuses and other ineligible sources.
+  return {
+    ...finalized,
+    amalgamEvolveAttributePool: { ...commonConversionPool },
+  };
 }

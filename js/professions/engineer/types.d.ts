@@ -16,6 +16,7 @@ import type {
   Gw2Config,
   Gw2EventDraft,
   Gw2HitResolutionContext,
+  Gw2NumericAttributes,
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
   Gw2Stats,
@@ -50,6 +51,7 @@ export interface EngineerApplicationBuild extends ProfessionApplicationBuild {
 }
 
 export interface EngineerConfig extends Gw2Config {
+  readonly amalgamEvolveAttributePool?: EngineerEvolveAttributePool;
   readonly assumptions?: ProfessionBuildAssumptions;
   readonly inDamagingField?: boolean;
   readonly specialization?: string;
@@ -59,6 +61,8 @@ export interface EngineerConfig extends Gw2Config {
   readonly selectedSkills?:
     readonly string[] | Readonly<Record<string, string>>;
 }
+
+export type EngineerEvolveAttributePool = Readonly<Gw2NumericAttributes>;
 
 export interface EngineerMechAttributes extends SchedulerRecord {
   power: number;

@@ -40,6 +40,7 @@ import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from "../../../js/professions/engin
 import { ENGINEER_TURRET_ATTACK_SKILL_IDS } from "../../../js/professions/engineer/core/turrets.js";
 import { amalgamModule } from "../../../js/professions/engineer/specializations/amalgam/module.js";
 import { AMALGAM_BALANCE_PROFILE_IDS } from "../../../js/professions/engineer/specializations/amalgam/profiles.js";
+import { amalgamAttributeRules } from "../../../js/professions/engineer/specializations/amalgam/rules.js";
 import { holosmithModule } from "../../../js/professions/engineer/specializations/holosmith/module.js";
 import { HOLOSMITH_BALANCE_PROFILE_IDS } from "../../../js/professions/engineer/specializations/holosmith/profiles.js";
 import { mechanistModule } from "../../../js/professions/engineer/specializations/mechanist/module.js";
@@ -53,6 +54,7 @@ import { engineerWeaponSkillMatchesSet } from "../../../js/professions/engineer/
 import {
   recalculate,
   runSimulation,
+  simulationConfig,
 } from "../../../js/professions/engineer/app/app-definition.js";
 import { assertProfessionFamilyConformance } from "../../helpers/profession-family-conformance.js";
 
@@ -3362,6 +3364,84 @@ test("Double Helix gives Evolve two charges and doubles its attribute bonus", ()
   assert.ok(
     Math.abs(puncture(evolved).damage / puncture(baseline).damage - 1.2) <
       1e-12,
+  );
+});
+
+test("Evolve scales only its eligible static attribute pool", () => {
+  const pool = {
+    Power: 1000,
+    Precision: 1000,
+    Toughness: 1000,
+    Vitality: 1000,
+    Ferocity: 1000,
+    "Condition Damage": 1000,
+    Expertise: 1000,
+    Concentration: 1000,
+    "Healing Power": 1000,
+  };
+  const attributes = [
+    "power",
+    "precision",
+    "toughness",
+    "vitality",
+    "ferocity",
+    "conditionDamage",
+    "expertise",
+    "concentration",
+    "healingPower",
+  ];
+  const resolved = Object.fromEntries(
+    attributes.map((attribute) => [attribute, 1500]),
+  );
+  const context = (traits) => ({
+    traits: new Set(traits),
+    config: { amalgamEvolveAttributePool: pool },
+    runtime: {
+      profession: {
+        specialization: {
+          kind: "Amalgam",
+          state: { evolvedUntil: 10 },
+        },
+      },
+    },
+    time: 1,
+  });
+
+  assert.deepEqual(
+    amalgamAttributeRules.modifyAttributes(context([]), resolved),
+    Object.fromEntries(attributes.map((attribute) => [attribute, 1600])),
+  );
+  assert.deepEqual(
+    amalgamAttributeRules.modifyAttributes(
+      context([TRAIT.DOUBLE_HELIX]),
+      resolved,
+    ),
+    Object.fromEntries(attributes.map((attribute) => [attribute, 1700])),
+  );
+});
+
+test("Amalgam app config excludes temporary attributes from Evolve", () => {
+  const canonical = createEngineerBuildDefaults();
+  canonical.specializations = [
+    { name: "Explosives", traits: "3-2-3" },
+    { name: "Firearms", traits: "3-3-2" },
+    { name: "Amalgam", traits: "2-2-3" },
+  ];
+  const app = {
+    build: toApplicationBuild(canonical),
+    skillByName: engineerCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+
+  recalculate(app);
+  const config = simulationConfig(app);
+  assert.deepEqual(
+    config.amalgamEvolveAttributePool,
+    app.attributeData.amalgamEvolveAttributePool,
+  );
+  assert.equal(
+    config.stats.ferocity - config.amalgamEvolveAttributePool.Ferocity,
+    150,
   );
 });
 
