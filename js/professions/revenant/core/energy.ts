@@ -1,6 +1,4 @@
-import {
-  professionCoreState,
-} from "../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Revenant Energy and endurance lifecycle.
  *
@@ -12,7 +10,7 @@ import {
 import { REVENANT_SKILL_IDS as ID } from "../data/ids.js";
 import { hasRevenantTrait } from "./state.js";
 import { emitRevenantState } from "./shared.js";
-import { REVENANT_CORE_MECHANICS } from "./mechanics.js";
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from "./skills.js";
 import type {
   RevenantCoreState,
   RevenantEnergyContext,
@@ -22,7 +20,13 @@ import type {
   RevenantRuntimeState,
 } from "../types.js";
 
-const MECHANICS = REVENANT_CORE_MECHANICS;
+function resourceProfile(context: RevenantEnergyContext) {
+  const profile = context.catalog?.balanceProfilesById.get(
+    REVENANT_CORE_BALANCE_PROFILE_IDS.resources,
+  );
+  if (!profile) throw new Error("Missing Revenant resource balance profile.");
+  return profile;
+}
 
 function syncRevenantCombatState(
   context: RevenantSchedulerContext,
@@ -55,14 +59,14 @@ export function revenantEnduranceRegenerationRate(
   context: RevenantEnergyContext,
   at = Number(context.start ?? context.time ?? context.state?.time ?? 0),
 ): number {
+  const profile = resourceProfile(context);
   const vigorActive = Boolean(
-    context.config?.boons?.vigor ||
-    context.hasBuff?.("vigor", at),
+    context.config?.boons?.vigor || context.hasBuff?.("vigor", at),
   );
   return Math.min(
     10,
-    MECHANICS.endurance.regenerationPerSecond *
-      (vigorActive ? MECHANICS.endurance.vigorRegenerationMultiplier : 1),
+    Number(profile.enduranceRegenerationPerSecond || 0) *
+      (vigorActive ? Number(profile.vigorRegenerationMultiplier || 1) : 1),
   );
 }
 
@@ -85,6 +89,8 @@ export function advanceRevenantEnergy(
   context: RevenantSchedulerContext,
   target: number,
 ): void {
+  const resource = resourceProfile(context);
+  const regeneration = Number(resource.energyRegenerationPerSecond || 0);
   const state = professionCoreState(context);
   syncRevenantCombatState(context, state);
   const from = Number(state.energyUpdatedAt || 0);
@@ -105,7 +111,7 @@ export function advanceRevenantEnergy(
     (sum, active) => sum + Number(active.upkeepCost || 0),
     0,
   );
-  const rate = MECHANICS.energy.regenerationPerSecond - upkeep;
+  const rate = regeneration - upkeep;
   const elapsed = target - from;
   if (rate < 0 && state.energy + rate * elapsed < 0) {
     const starvedAt = from + state.energy / -rate;
@@ -127,7 +133,7 @@ export function advanceRevenantEnergy(
       state,
       starvedAt,
       target,
-      MECHANICS.energy.regenerationPerSecond,
+      regeneration,
     );
     state.energyUpdatedAt = target;
     emitRevenantState(context, target, "energy");
@@ -151,31 +157,28 @@ interface RevenantEnergyCostState {
   readonly energyCostOverrides?: Readonly<Record<string, number>>;
 }
 
-function energyCostStateSlices(
-  context: RevenantEnergyContext,
-): {
+function energyCostStateSlices(context: RevenantEnergyContext): {
   readonly core: RevenantEnergyCostState;
   readonly specialization: RevenantEnergyCostState;
 } {
   const schedulerState =
-    context.state && "profession" in context.state
-      ? context.state
-      : undefined;
-  const candidate = schedulerState?.profession
-    ?? context.professionState
-    ?? context.state
-    ?? {};
+    context.state && "profession" in context.state ? context.state : undefined;
+  const candidate =
+    schedulerState?.profession ??
+    context.professionState ??
+    context.state ??
+    {};
   if (
-    candidate
-    && typeof candidate === "object"
-    && "core" in candidate
-    && "specialization" in candidate
+    candidate &&
+    typeof candidate === "object" &&
+    "core" in candidate &&
+    "specialization" in candidate
   ) {
     const runtime = candidate as RevenantRuntimeState;
     return {
       core: runtime.core,
-      specialization:
-        runtime.specialization.state as unknown as RevenantEnergyCostState,
+      specialization: runtime.specialization
+        .state as unknown as RevenantEnergyCostState,
     };
   }
   // Application UI callers may supply the stable flat public projection.
@@ -209,9 +212,7 @@ export function effectiveRevenantEnergyCost(
   ) {
     return 0;
   }
-  const override = (
-    state.specialization.energyCostOverrides
-  )?.[String(skill.id)];
+  const override = state.specialization.energyCostOverrides?.[String(skill.id)];
   if (override != null) return Math.max(0, Number(override));
   return Math.max(0, Number(skill.energyCost || 0));
 }
@@ -222,9 +223,11 @@ export function spendRevenantEnergy(
   skill: RevenantSkill,
 ): void {
   if (
-    ([ID.SWAP_LEGENDS, ID.DODGE] as readonly number[])
-      .includes(Number(skill.id))
-  ) return;
+    ([ID.SWAP_LEGENDS, ID.DODGE] as readonly number[]).includes(
+      Number(skill.id),
+    )
+  )
+    return;
   const state = professionCoreState(context);
   const cost = effectiveRevenantEnergyCost(context, skill);
   state.energy = Math.max(0, state.energy - cost);

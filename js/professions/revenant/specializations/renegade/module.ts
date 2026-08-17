@@ -18,6 +18,7 @@ import { renegadeState } from "./state.js";
 import { renegadeUi } from "./ui.js";
 import {
   RENEGADE_BASE_SKILL_MECHANICS,
+  RENEGADE_BALANCE_PROFILES,
   RENEGADE_EXTRA_SKILLS,
 } from "./skills.js";
 
@@ -26,6 +27,7 @@ export const renegadeModule = defineNativeModule({
   data: createRevenantModuleData("Renegade", {
     skillMechanics: RENEGADE_BASE_SKILL_MECHANICS,
     extraSkills: RENEGADE_EXTRA_SKILLS,
+    balanceProfiles: RENEGADE_BALANCE_PROFILES,
     handlers: renegadeSkillHandlers,
   }),
   // Renegade state is duplicated for both scheduler and resolver phases because each phase has its own mutable copy; they do not share a reference at runtime

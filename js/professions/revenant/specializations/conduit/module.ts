@@ -9,12 +9,16 @@ import {
 } from "./rules.js";
 import { conduitState } from "./state.js";
 import { conduitUi } from "./ui.js";
-import { CONDUIT_BASE_SKILL_MECHANICS } from "./skills.js";
+import {
+  CONDUIT_BASE_SKILL_MECHANICS,
+  CONDUIT_BALANCE_PROFILES,
+} from "./skills.js";
 
 export const conduitModule = defineNativeModule({
   id: "Conduit",
   data: createRevenantModuleData("Conduit", {
     skillMechanics: CONDUIT_BASE_SKILL_MECHANICS,
+    balanceProfiles: CONDUIT_BALANCE_PROFILES,
     handlers: conduitSkillHandlers,
   }),
   // Scheduler and resolver each get their own independent copy of ConduitState so they never share mutable affinity.

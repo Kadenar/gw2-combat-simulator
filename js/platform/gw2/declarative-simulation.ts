@@ -128,8 +128,7 @@ function simulateDeclarativeGw2Pass({
       traits,
       catalog: runtimeProfession.catalog,
       weaponSkillMatchesSet: runtimeProfession.ui.weaponSkillMatchesSet as
-        | Gw2WeaponSkillMatcher
-        | undefined,
+        Gw2WeaponSkillMatcher | undefined,
     }),
     observationPolicy,
   }).run(rotation);
@@ -183,6 +182,8 @@ function simulateDeclarativeGw2Pass({
       conditionName,
       skillsById: runtimeProfession.catalog?.skillsById || new Map(),
       skillsByName: runtimeProfession.catalog?.skillsByName || new Map(),
+      balanceProfilesById:
+        runtimeProfession.catalog?.balanceProfilesById || new Map(),
       weaponStrength: (event, currentConfig) =>
         gw2WeaponStrength(event, currentConfig, {
           strengths: WEAPON_STRENGTHS,

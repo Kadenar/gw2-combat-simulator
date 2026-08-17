@@ -14,6 +14,7 @@ import {
 import { toEntries } from "./collections.js";
 import type {
   AutoattackChainPosition,
+  BalanceProfile,
   CanonicalCatalog,
   CatalogEntity,
   ConditionTick,
@@ -37,6 +38,7 @@ interface CanonicalCatalogOptions {
   readonly mechanics?: Readonly<Record<string, SkillFragment>>;
   readonly overrides?: Readonly<Record<string, SkillFragment>>;
   readonly extraSkills?: readonly Skill[];
+  readonly balanceProfiles?: readonly BalanceProfile[];
   readonly autoattackChains?: AutoattackChainOptions;
   readonly skillHandlers?:
     ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>>;
@@ -54,6 +56,8 @@ interface NormalizedAutoattackChains {
   readonly positions: Map<number, AutoattackChainPosition>;
 }
 
+// Closed vocabulary sets used for fast membership checks during catalog validation.
+// Any value outside these sets is rejected as an authoring error.
 const EFFECT_TYPES = new Set([
   "strike",
   "condition",
@@ -67,7 +71,9 @@ const TIMING_ANCHORS = new Set(["castStart", "castEnd"]);
 const TIMING_SCALES = new Set(["cast", "fixed"]);
 const DURATION_SCALES = new Set(["boon", "fixed"]);
 const RECHARGE_ANCHORS = new Set(["castStart", "castEnd"]);
+// Quickness increases action speed by 50 %, so unquickened cast time = quicknessCastTimeMs * 1.5.
 const QUICKNESS_ACTION_RATE = 1.5;
+// Allowlist used to catch typos in hand-authored effect objects at catalog-build time.
 const EFFECT_FIELDS = new Set([
   "type",
   "coefficient",
@@ -78,6 +84,9 @@ const EFFECT_FIELDS = new Set([
   "condition",
   "stacks",
   "duration",
+  "durationPerAffinity",
+  "durationReductionPerAffinity",
+  "damageIncreasePerStack",
   "durationScale",
   "boon",
   "kind",
@@ -145,6 +154,10 @@ const EFFECT_METADATA_FIELDS = new Set([
   "hitboxIndex",
   "smallHitboxCap",
   "largeHitboxOnly",
+  "affinityOnHit",
+  "legendId",
+  "target",
+  "trigger",
 ]);
 
 /**
@@ -198,9 +211,11 @@ function normalizeAutoattackChains(
 
   const excludedIds = new Set(excluded.map(Number));
   const chainSources: readonly (readonly SkillId[])[] = [
-    ...deriveAutoattackChains(skills),
-    ...additional,
+    ...deriveAutoattackChains(skills),  // derived from API data flip-skill links
+    ...additional,                       // hand-authored corrections from the profession
   ];
+  // Entire chains containing an excluded skill are dropped; partial chains would
+  // break the chain-step index and produce incorrect autoattack sequencing.
   const chains = Object.freeze(
     chainSources
       .filter(
@@ -208,6 +223,8 @@ function normalizeAutoattackChains(
       )
       .map((chain) => Object.freeze(chain.map(Number))),
   );
+  // All chain members must exist in the skill list — a missing id means the API
+  // data and hand-authored corrections are out of sync.
   const skillIds = new Set(skills.map((skill) => skill.id));
   for (const chain of chains) {
     for (const skillId of chain) {
@@ -404,10 +421,15 @@ function normalizeEffect(effect: unknown): SkillEffect {
     normalizedEffect.type === "condition" && normalizedEffect.ticks != null
       ? normalizeConditionTicks(normalizedEffect.ticks)
       : null;
+  // "Explicit timing" means the effect carries its own schedule rather than
+  // inheriting placement from the parent skill's cast window.
   const hasTicks = Boolean(strikeTicks || conditionTicks);
   const hasAtMs = normalizedEffect.atMs != null;
   const hasInterval = normalizedEffect.intervalMs != null;
   const hasExplicitTiming = hasTicks || hasAtMs || hasInterval;
+
+  // `applications` drives repeated non-strike pulses (e.g. multi-application boons).
+  // Mutually exclusive with tick timelines because ticks already encode per-packet timing.
   let applications = null;
   if (normalizedEffect.applications != null) {
     if (
@@ -437,6 +459,9 @@ function normalizeEffect(effect: unknown): SkillEffect {
       throw new TypeError("Repeated effects require an intervalMs value.");
     }
   }
+
+  // `coefficientModifiers` scale strike damage based on target health thresholds
+  // (e.g. execute-style bonuses). Only the "target-health-below" kind is supported.
   let coefficientModifiers = null;
   if (normalizedEffect.coefficientModifiers != null) {
     if (
@@ -468,6 +493,9 @@ function normalizeEffect(effect: unknown): SkillEffect {
       }),
     );
   }
+
+  // timingAnchor and timingScale are only meaningful when the effect carries an
+  // explicit schedule; bare effects inherit timing from the cast window implicitly.
   if (hasExplicitTiming) {
     if (!TIMING_ANCHORS.has(String(normalizedEffect.timingAnchor))) {
       throw new TypeError(
@@ -479,6 +507,8 @@ function normalizeEffect(effect: unknown): SkillEffect {
         "Explicit effect timing requires timingScale cast or fixed.",
       );
     }
+    // "cast" scale means the offset is proportional to cast duration (quickness-aware);
+    // it can only be measured relative to the start of the cast, not the end.
     if (
       normalizedEffect.timingScale === "cast" &&
       normalizedEffect.timingAnchor !== "castStart"
@@ -487,6 +517,8 @@ function normalizeEffect(effect: unknown): SkillEffect {
         "Cast-scaled effect timing must be anchored to castStart.",
       );
     }
+    // An interval with no atMs means "start immediately after the anchor" — castEnd
+    // is the only sensible anchor for that pattern (castStart + 0 = during cast).
     if (!hasTicks && !hasAtMs && normalizedEffect.timingAnchor !== "castEnd") {
       throw new TypeError(
         "An interval without atMs must be anchored to castEnd.",
@@ -516,6 +548,8 @@ function normalizeEffect(effect: unknown): SkillEffect {
       "Timing metadata is only valid for explicitly timed effects.",
     );
   }
+
+  // Tick timelines own the full schedule; aggregate fields would be ambiguous or redundant.
   if (
     strikeTicks &&
     (normalizedEffect.coefficient != null ||
@@ -591,6 +625,7 @@ function normalizeEffect(effect: unknown): SkillEffect {
       throw new TypeError("Boon and buff effects require a positive duration.");
     }
   }
+  // Spread normalized numeric fields on top so runtime consumers always get typed values.
   return Object.freeze({
     ...normalizedEffect,
     ...(hasAtMs ? { atMs: Number(normalizedEffect.atMs) } : {}),
@@ -662,6 +697,7 @@ export function createCanonicalCatalog({
   mechanics = {},
   overrides = {},
   extraSkills = [],
+  balanceProfiles = [],
   autoattackChains = {},
   skillHandlers = {},
   traits = [],
@@ -692,6 +728,8 @@ export function createCanonicalCatalog({
     ...extraSkills.map((skill) => skill.id),
   ]);
   const normalizedSkills: Skill[] = [...allIds].map((id) => {
+    // Merge priority (lowest → highest): generated API data → hand-authored mechanics
+    // → explicit overrides → extraSkills. Each layer shadows fields from the layer below.
     const mergedSource = {
       ...(generatedById.get(id) || {}),
       ...(mechanics[id] || {}),
@@ -716,6 +754,8 @@ export function createCanonicalCatalog({
     ) {
       throw new TypeError(`Skill ${id} has an invalid quicknessCastTimeMs.`);
     }
+    // If only quicknessCastTimeMs is provided, derive the unquickened cast time by
+    // applying QUICKNESS_ACTION_RATE so both paths share a single source of truth.
     const castTimeMs = Number(
       merged.castTimeMs ??
         (quicknessCastTimeMs == null
@@ -749,6 +789,8 @@ export function createCanonicalCatalog({
       throw new TypeError(`Skill ${id} has an invalid interruptCommitMs.`);
     }
     const effects = Object.freeze((merged.effects || []).map(normalizeEffect));
+    // persistsAfterInterrupt effects schedule future packets at cast time; the
+    // scheduler needs interruptCommitMs to know when to stop honoring them.
     if (
       effects.some((effect) => effect.persistsAfterInterrupt === true) &&
       interruptCommitMs == null
@@ -798,6 +840,8 @@ export function createCanonicalCatalog({
     normalizedSkills,
     autoattackChains,
   );
+  // Inject chain position data (root id + step index) into each skill after the chain
+  // index is built, since chains depend on the complete normalized skill list.
   const skills = normalizedSkills.map((skill) => {
     const position = normalizedAutoattacks.positions.get(Number(skill.id));
     return Object.freeze({
@@ -806,16 +850,48 @@ export function createCanonicalCatalog({
       chainStep: position?.step ?? null,
     });
   });
+  // skillsByName is used for name-based lookups (e.g. from trait/effect references).
+  // The collision policy controls which skill wins when two share the same name.
   const skillsByName = new Map<string, Skill>();
   for (const skill of skills) {
     if (skillNameCollision === "last" || !skillsByName.has(skill.name)) {
       skillsByName.set(skill.name, skill);
     }
   }
+  const profiles = balanceProfiles.map((profile) =>
+    Object.freeze({
+      ...profile,
+      effects: Object.freeze((profile.effects || []).map(normalizeEffect)),
+    }),
+  );
+  const profileIds = new Set<SkillId>();
+  for (const profile of profiles) {
+    if (profileIds.has(profile.id)) {
+      throw new TypeError(
+        `Duplicate balance profile id: ${String(profile.id)}`,
+      );
+    }
+    profileIds.add(profile.id);
+    if (!String(profile.name || "")) {
+      throw new TypeError(`Balance profile ${String(profile.id)} has no name.`);
+    }
+    if (!profile.profileKind) {
+      throw new TypeError(
+        `Balance profile ${String(profile.id)} has no profileKind.`,
+      );
+    }
+  }
   const catalog: CanonicalCatalog = {
     skills: Object.freeze(skills),
     skillsById: new Map(skills.map((skill) => [skill.id, skill])),
     skillsByName,
+    balanceProfiles: Object.freeze(profiles),
+    balanceProfilesById: new Map(
+      profiles.map((profile) => [profile.id, profile]),
+    ),
+    balanceProfilesByName: new Map(
+      profiles.map((profile) => [profile.name, profile]),
+    ),
     autoattackChains: normalizedAutoattacks.chains,
     autoattackChainPositions: normalizedAutoattacks.positions,
     skillHandlers: normalizeSkillHandlers(skillHandlers),
@@ -875,6 +951,9 @@ export function validateCanonicalCatalog(
       );
     }
     const handler = catalog.skillHandlers?.get(String(skill.handlerId || ""));
+    // REPLACE handlers own the entire skill execution; declarative effects would be
+    // silently ignored at runtime. Require an empty list to surface authoring mistakes.
+    // Exception: handlers with resolveMode still process effects in the resolve phase.
     if (
       handler?.mode === SKILL_HANDLER_MODES.REPLACE &&
       !handler.resolveMode &&
@@ -892,6 +971,8 @@ export function validateCanonicalCatalog(
         );
       }
     }
+    // Weapon validation only runs when the catalog declares a weapon set; professions
+    // that don't restrict weapons leave the set empty and skip this check.
     if (
       skill.weapon &&
       catalog.weapons.size &&

@@ -3,7 +3,10 @@ import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import type { Gw2ModifierRule } from "../../../../platform/gw2/types.js";
 import { revenantCombatActive } from "../../core/legend.js";
-import { emitLegendInvocationSkill } from "../../core/legend-traits.js";
+import {
+  emitLegendInvocationProfile,
+  emitLegendInvocationSkill,
+} from "../../core/legend-traits.js";
 import {
   revenantActiveBoonCount,
   revenantPlayer,
@@ -19,7 +22,7 @@ import type {
   RevenantSchedulerContext,
   RevenantSimulationEvent,
 } from "../../types.js";
-import { HERALD_SPIRIT_BOON_SKILL_ID } from "./skills.js";
+import { HERALD_SPIRIT_BOON_PROFILE_ID } from "./skills.js";
 
 export const heraldModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -67,9 +70,9 @@ function observeHeraldEvent(
     return;
   }
   if (hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
-    emitLegendInvocationSkill(
+    emitLegendInvocationProfile(
       context,
-      HERALD_SPIRIT_BOON_SKILL_ID,
+      HERALD_SPIRIT_BOON_PROFILE_ID,
       event.at,
       TRAIT.SPIRIT_BOON,
     );

@@ -10,6 +10,7 @@ import {
 import { createRevenantCoreState, projectRevenantEndState } from "./state.js";
 import { revenantCoreUi } from "./ui.js";
 import {
+  REVENANT_CORE_BALANCE_PROFILES,
   REVENANT_CORE_BASE_SKILL_MECHANICS,
   REVENANT_CORE_EXTRA_SKILLS,
 } from "./skills.js";
@@ -21,6 +22,7 @@ export const revenantCoreModule = defineNativeModule({
   data: createRevenantModuleData("Core", {
     skillMechanics: REVENANT_CORE_BASE_SKILL_MECHANICS,
     extraSkills: REVENANT_CORE_EXTRA_SKILLS,
+    balanceProfiles: REVENANT_CORE_BALANCE_PROFILES,
     handlers: revenantCoreSkillHandlers,
   }),
   state: {

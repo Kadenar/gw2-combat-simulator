@@ -1,6 +1,7 @@
 import type { SkillEffect } from "../../platform/engine/types.js";
 import type {
   NativePatchAuthoringMetadata,
+  NativePatchAuthoringBalanceProfile,
   NativePatchAuthoringModifierRule,
   NativePatchAuthoringModule,
   NativePatchAuthoringSkill,
@@ -44,10 +45,11 @@ let payload: AuthoringPayload | null = null;
 let draft = createPatchPreviewDraft();
 let selectedProfessionId = "";
 let selectedModuleId = "Core";
-type AuthoringSection = "traits" | "skills" | "overview";
+type AuthoringSection = "traits" | "skills" | "profiles" | "overview";
 
 let selectedSection: AuthoringSection = "traits";
 let selectedSkillId = "";
+let selectedProfileId = "";
 let search = "";
 let changedOnly = false;
 let dirty = false;
@@ -121,6 +123,20 @@ function skillEdit(skillId: string, create = false): DraftRecord | null {
   return asRecord(skills[skillId]);
 }
 
+function balanceProfileEdit(
+  profileId: string,
+  create = false,
+): DraftRecord | null {
+  const patch = professionPatch(selectedProfessionId, create);
+  if (!patch) return null;
+  const profiles = create
+    ? ensureRecord(patch, "balanceProfiles")
+    : asRecord(patch.balanceProfiles);
+  if (!profiles) return null;
+  if (create) return ensureRecord(profiles, profileId);
+  return asRecord(profiles[profileId]);
+}
+
 function modifierEdit(ruleId: string, create = false): DraftRecord | null {
   const patch = professionPatch(selectedProfessionId, create);
   if (!patch) return null;
@@ -142,7 +158,12 @@ function cleanupProfessionPatch(): void {
   const professions = asRecord(root.professions);
   const patch = professions && asRecord(professions[selectedProfessionId]);
   if (!patch || !professions) return;
-  for (const key of ["skills", "modifierRules", "constants"]) {
+  for (const key of [
+    "skills",
+    "balanceProfiles",
+    "modifierRules",
+    "constants",
+  ]) {
     removeEmptyRecord(patch, key);
   }
   if (!Object.keys(patch).length) delete professions[selectedProfessionId];
@@ -176,6 +197,7 @@ function editCount(professionId: string): number {
   if (!patch) return 0;
   return (
     Object.keys(asRecord(patch.skills) || {}).length +
+    Object.keys(asRecord(patch.balanceProfiles) || {}).length +
     Object.keys(asRecord(patch.modifierRules) || {}).length
   );
 }
@@ -191,6 +213,10 @@ function hasSkillEdit(skillId: string): boolean {
   return Boolean(skillEdit(skillId));
 }
 
+function hasBalanceProfileEdit(profileId: string): boolean {
+  return Boolean(balanceProfileEdit(profileId));
+}
+
 function hasModifierEdit(ruleId: string): boolean {
   return Boolean(modifierEdit(ruleId));
 }
@@ -202,6 +228,7 @@ function numberInput(options: {
   current: number;
   edit?: NumEdit;
   tick?: number;
+  effect?: number;
 }): string {
   const preview = numericEditValue(options.current, options.edit);
   const changed = options.edit != null;
@@ -214,6 +241,7 @@ function numberInput(options: {
       data-numeric-id="${escapeHtml(options.id)}"
       data-numeric-field="${escapeHtml(options.field)}"
       data-live-value="${escapeHtml(options.current)}"
+      ${options.effect == null ? "" : `data-effect-index="${options.effect}"`}
       ${options.tick == null ? "" : `data-tick-index="${options.tick}"`} />
   </label>`;
 }
@@ -529,6 +557,160 @@ function skillSection(module: NativePatchAuthoringModule): string {
   </section>`;
 }
 
+function balanceProfileEffectRows(
+  profileId: string,
+  effectIndex: number,
+  effect: Readonly<SkillEffect>,
+  edit: SkillPatchEdit | null,
+): string {
+  const topPatch = effectPatchFor(edit, effectIndex);
+  const rows = PATCHABLE_EFFECT_NUMERIC_FIELDS.flatMap((field) => {
+    const current = effect[field];
+    return typeof current === "number"
+      ? [
+          numberInput({
+            entity: "balance-profile-effect",
+            id: profileId,
+            field,
+            current,
+            edit: topPatch?.[field],
+            effect: effectIndex,
+          }),
+        ]
+      : [];
+  });
+  const ticks = Array.isArray(effect.ticks) ? effect.ticks : [];
+  for (const [tickIndex, tick] of ticks.entries()) {
+    const tickPatch = effectPatchFor(edit, effectIndex, tickIndex);
+    const tickRows = PATCHABLE_EFFECT_NUMERIC_FIELDS.flatMap((field) => {
+      const current = tick[field];
+      return typeof current === "number"
+        ? [
+            numberInput({
+              entity: "balance-profile-effect",
+              id: profileId,
+              field,
+              current,
+              edit: tickPatch?.[field],
+              effect: effectIndex,
+              tick: tickIndex,
+            }),
+          ]
+        : [];
+    });
+    rows.push(
+      `<div class="patch-tick"><strong>Tick ${tickIndex}</strong>${tickRows.join("")}</div>`,
+    );
+  }
+  return rows.join("");
+}
+
+function balanceProfileDetail(
+  entry: NativePatchAuthoringBalanceProfile | null,
+): string {
+  if (!entry) {
+    return '<div class="patch-empty patch-empty-detail">Select a balance profile to inspect and author.</div>';
+  }
+  const id = String(entry.id);
+  const edit = balanceProfileEdit(id) as SkillPatchEdit | null;
+  const effects = (entry.profile.effects || []) as readonly SkillEffect[];
+  const rawMetadata = Object.fromEntries(
+    Object.entries(entry.profile).filter(([key]) => key !== "effects"),
+  );
+  return `<article class="patch-skill-detail">
+    <header class="patch-skill-heading">
+      <div><p class="patch-eyebrow">${escapeHtml(entry.profile.profileKind)} balance profile</p><h2>${escapeHtml(entry.name)}</h2><code>${escapeHtml(id)}</code></div>
+      ${edit ? `<button type="button" class="patch-link-button" data-clear-profile="${escapeHtml(id)}">Remove all profile changes</button>` : ""}
+    </header>
+    <section class="patch-detail-section">
+      <h3>Numeric fields</h3>
+      <div class="patch-number-grid">${
+        Object.entries(entry.patchableFields).length
+          ? Object.entries(entry.patchableFields)
+              .map(([field, current]) =>
+                numberInput({
+                  entity: "balance-profile",
+                  id,
+                  field,
+                  current,
+                  edit: edit?.fields?.[field],
+                }),
+              )
+              .join("")
+          : '<p class="patch-empty-inline">No patchable numeric profile fields.</p>'
+      }</div>
+    </section>
+    <section class="patch-detail-section">
+      <div class="patch-section-heading compact"><h3>Effects</h3><span>${effects.length} live</span></div>
+      <div class="patch-effect-list">${
+        effects.length
+          ? effects
+              .map((effect, effectIndex) => {
+                const detail =
+                  effect.name ||
+                  effect.condition ||
+                  effect.boon ||
+                  effect.kind ||
+                  "";
+                return `<article class="patch-effect">
+                  <header><div><span class="patch-effect-index">${effectIndex}</span><strong>${escapeHtml(effect.type)}</strong> ${escapeHtml(detail)}</div></header>
+                  <div class="patch-number-grid">${balanceProfileEffectRows(id, effectIndex, effect, edit)}</div>
+                  <details><summary>Complete live effect metadata</summary><pre>${jsonHtml(effect)}</pre></details>
+                </article>`;
+              })
+              .join("")
+          : '<p class="patch-empty-inline">No live effects.</p>'
+      }</div>
+    </section>
+    <details class="patch-reference" open><summary>Complete balance profile metadata</summary><pre>${jsonHtml(rawMetadata)}</pre></details>
+    ${edit ? `<details class="patch-reference"><summary>Authored balance profile patch</summary><pre>${jsonHtml(edit)}</pre></details>` : ""}
+  </article>`;
+}
+
+function balanceProfileSection(module: NativePatchAuthoringModule): string {
+  const query = search.trim().toLocaleLowerCase();
+  const profiles = [...module.balanceProfiles]
+    .filter((entry) => {
+      if (changedOnly && !hasBalanceProfileEdit(String(entry.id))) return false;
+      return (
+        !query ||
+        patchSearchText(
+          entry.id,
+          entry.name,
+          entry.profile.profileKind,
+        ).includes(query)
+      );
+    })
+    .sort((left, right) => left.name.localeCompare(right.name));
+  const selected =
+    module.balanceProfiles.find(
+      (entry) => String(entry.id) === selectedProfileId,
+    ) || null;
+  return `<section class="patch-work-section patch-skills" aria-labelledby="profile-heading">
+    <div class="patch-section-heading">
+      <div><p class="patch-eyebrow">Non-skill balance authoring</p><h2 id="profile-heading">Balance profiles</h2></div>
+      <span>${profiles.length} of ${module.balanceProfiles.length} profiles</span>
+    </div>
+    <p class="patch-section-description">Trait effects, mechanic values, and skill-state variants that are not independently castable skills.</p>
+    <div class="patch-skill-workspace">
+      <nav class="patch-skill-list" aria-label="Balance profiles">${
+        profiles.length
+          ? profiles
+              .map(
+                (
+                  entry,
+                ) => `<button type="button" class="patch-skill-option${String(entry.id) === selectedProfileId ? " is-selected" : ""}${hasBalanceProfileEdit(String(entry.id)) ? " is-changed" : ""}" data-select-profile="${escapeHtml(entry.id)}">
+                  <span><strong>${escapeHtml(entry.name)}</strong><small>${escapeHtml(entry.profile.profileKind)} Â· ${escapeHtml(entry.id)}</small></span>
+                </button>`,
+              )
+              .join("")
+          : '<p class="patch-empty-inline">No balance profiles match these filters.</p>'
+      }</nav>
+      <div class="patch-skill-editor">${balanceProfileDetail(selected)}</div>
+    </div>
+  </section>`;
+}
+
 function overviewCard(entry: PatchOverviewEntry): string {
   return `<article class="patch-note-editor is-generated">
     <header>
@@ -633,6 +815,7 @@ function render(): void {
         <div class="patch-section-tabs" role="tablist" aria-label="Authoring section">
           <button type="button" data-select-section="traits" class="${selectedSection === "traits" ? "is-selected" : ""}">Traits &amp; modifiers</button>
           <button type="button" data-select-section="skills" class="${selectedSection === "skills" ? "is-selected" : ""}">Skills</button>
+          <button type="button" data-select-section="profiles" class="${selectedSection === "profiles" ? "is-selected" : ""}">Balance profiles</button>
           <button type="button" data-select-section="overview" class="${selectedSection === "overview" ? "is-selected" : ""}">Overview &amp; source</button>
         </div>
       </div>
@@ -642,7 +825,9 @@ function render(): void {
             ? modifierSection(module)
             : selectedSection === "skills"
               ? skillSection(module)
-              : overviewSection(profession)
+              : selectedSection === "profiles"
+                ? balanceProfileSection(module)
+                : overviewSection(profession)
           : '<p class="patch-empty">No authoring metadata is available.</p>'
       }
       <details class="patch-generated-preview"><summary>Preview object to be written</summary><pre>${jsonHtml(compactPatchPreview(draft))}</pre></details>
@@ -661,6 +846,13 @@ function deleteSkillEdit(skillId: string): void {
   const patch = professionPatch(selectedProfessionId);
   const skills = patch && asRecord(patch.skills);
   if (skills) delete skills[skillId];
+  cleanupProfessionPatch();
+}
+
+function deleteBalanceProfileEdit(profileId: string): void {
+  const patch = professionPatch(selectedProfessionId);
+  const profiles = patch && asRecord(patch.balanceProfiles);
+  if (profiles) delete profiles[profileId];
   cleanupProfessionPatch();
 }
 
@@ -695,6 +887,18 @@ function setNumericEdit(input: HTMLInputElement): void {
     else if (fields) delete fields[field];
     removeEmptyRecord(edit, "fields");
     if (!Object.keys(edit).length) deleteSkillEdit(id);
+    return;
+  }
+  if (entity === "balance-profile") {
+    const edit = balanceProfileEdit(id, Boolean(numericEdit));
+    if (!edit) return;
+    const fields = numericEdit
+      ? ensureRecord(edit, "fields")
+      : asRecord(edit.fields);
+    if (numericEdit) fields![field] = numericEdit;
+    else if (fields) delete fields[field];
+    removeEmptyRecord(edit, "fields");
+    if (!Object.keys(edit).length) deleteBalanceProfileEdit(id);
     return;
   }
   if (entity === "effect") {
@@ -732,6 +936,38 @@ function setNumericEdit(input: HTMLInputElement): void {
     if (retained.length) edit.effects = retained;
     else delete edit.effects;
     if (!Object.keys(edit).length) deleteSkillEdit(id);
+    return;
+  }
+  if (entity === "balance-profile-effect") {
+    const effectIndex = Number(input.dataset.effectIndex);
+    const tickIndex = input.dataset.tickIndex;
+    const edit = balanceProfileEdit(id, Boolean(numericEdit));
+    if (!edit || !Number.isInteger(effectIndex)) return;
+    const effects = Array.isArray(edit.effects)
+      ? (edit.effects as DraftRecord[])
+      : [];
+    let effect = effects.find(
+      (entry) =>
+        entry.effectIndex === effectIndex &&
+        entry.tickIndex === (tickIndex == null ? undefined : Number(tickIndex)),
+    );
+    if (!effect && numericEdit) {
+      effect = {
+        effectIndex,
+        ...(tickIndex == null ? {} : { tickIndex: Number(tickIndex) }),
+      };
+      effects.push(effect);
+    }
+    if (effect && numericEdit) effect[field] = numericEdit;
+    else if (effect) delete effect[field];
+    const retained = effects.filter((entry) =>
+      Object.keys(entry).some(
+        (key) => !["effectIndex", "tickIndex"].includes(key),
+      ),
+    );
+    if (retained.length) edit.effects = retained;
+    else delete edit.effects;
+    if (!Object.keys(edit).length) deleteBalanceProfileEdit(id);
   }
 }
 
@@ -794,6 +1030,7 @@ async function loadAuthoring(): Promise<void> {
       "";
     selectedModuleId = "Core";
     selectedSkillId = "";
+    selectedProfileId = "";
     dirty = false;
     status = result.preview
       ? `Loaded ${result.sourceFile}`
@@ -853,18 +1090,25 @@ app.addEventListener("click", (event) => {
     selectedProfessionId = button.dataset.selectProfession;
     selectedModuleId = "Core";
     selectedSkillId = "";
+    selectedProfileId = "";
   } else if (button.dataset.selectModule) {
     selectedModuleId = button.dataset.selectModule;
     selectedSkillId = "";
+    selectedProfileId = "";
   } else if (button.dataset.selectSection) {
     selectedSection = button.dataset.selectSection as AuthoringSection;
   } else if (button.dataset.selectSkill) {
     selectedSkillId = button.dataset.selectSkill;
+  } else if (button.dataset.selectProfile) {
+    selectedProfileId = button.dataset.selectProfile;
   } else if (button.dataset.clearModifier) {
     deleteModifierEdit(button.dataset.clearModifier);
     markDirty();
   } else if (button.dataset.clearSkill) {
     deleteSkillEdit(button.dataset.clearSkill);
+    markDirty();
+  } else if (button.dataset.clearProfile) {
+    deleteBalanceProfileEdit(button.dataset.clearProfile);
     markDirty();
   } else if (button.dataset.toggleEffect != null) {
     toggleEffect(

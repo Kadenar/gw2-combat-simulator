@@ -11,9 +11,11 @@ import type {
 import { getNativeCatalogAssembly } from "./native-catalog-assembly.js";
 import {
   CURRENT_PATCH_ID,
+  applyBalanceProfilePatch,
   applyModifierRulePatch,
   applySkillPatch,
   patchRuntimeValuesFor,
+  balanceProfilePatchableNumericFields,
   professionPatchFor,
   skillPatchableNumericFields,
   validatePatchOverview,
@@ -261,6 +263,17 @@ function createPatchAuthoringMetadata(
               }),
             ),
           ),
+          balanceProfiles: Object.freeze(
+            (fragment.balanceProfiles || []).map((profile) =>
+              Object.freeze({
+                id: profile.id,
+                name: profile.name,
+                moduleId: module.id,
+                profile,
+                patchableFields: balanceProfilePatchableNumericFields(profile),
+              }),
+            ),
+          ),
           modifierRules: Object.freeze(
             nativeModuleModifierRules(module).map((rule) =>
               Object.freeze({
@@ -287,6 +300,7 @@ function createPatchAuthoringMetadata(
 
 const PROFESSION_PATCH_FIELDS = new Set([
   "skills",
+  "balanceProfiles",
   "modifierRules",
   "constants",
   "overview",
@@ -304,7 +318,12 @@ function assertProfessionPatchShape(
       );
     }
   }
-  for (const field of ["skills", "modifierRules", "constants"] as const) {
+  for (const field of [
+    "skills",
+    "balanceProfiles",
+    "modifierRules",
+    "constants",
+  ] as const) {
     if (patch[field] != null) {
       assertObject(patch[field], `${professionId} patch ${field}`);
     }
@@ -537,7 +556,10 @@ export function defineNativeProfession<
   };
   let previewCatalog: Readonly<CanonicalCatalog> | null = null;
   const validatedPreviewCatalog = (): Readonly<CanonicalCatalog> => {
-    previewCatalog ||= applySkillPatch(family.catalog, professionPatch);
+    previewCatalog ||= applyBalanceProfilePatch(
+      applySkillPatch(family.catalog, professionPatch),
+      professionPatch,
+    );
     return previewCatalog;
   };
   // Cache patched runtime catalogs per original catalog object so we don't
@@ -571,6 +593,7 @@ export function defineNativeProfession<
     if (!candidate) return true;
     assertProfessionPatchShape(definition.id, candidate);
     applySkillPatch(family.catalog, candidate);
+    applyBalanceProfilePatch(family.catalog, candidate);
     applyModifierRulePatch(modifierRules, candidate.modifierRules);
     return true;
   };
@@ -587,9 +610,13 @@ export function defineNativeProfession<
     const cached = runtimeCatalogs.get(runtime.catalog);
     const catalog =
       cached ||
-      applySkillPatch(runtime.catalog, professionPatch, {
-        unknownSkills: "ignore",
-      });
+      applyBalanceProfilePatch(
+        applySkillPatch(runtime.catalog, professionPatch, {
+          unknownSkills: "ignore",
+        }),
+        professionPatch,
+        { unknownProfiles: "ignore" },
+      );
     if (!cached) runtimeCatalogs.set(runtime.catalog, catalog);
     if (catalog === runtime.catalog) return runtime;
     const overlay = Object.freeze({ ...runtime, catalog });

@@ -14,10 +14,12 @@ import { hasRevenantTrait } from "../../core/state.js";
 import { renegadeState } from "./state.js";
 import {
   RENEGADE_ENHANCED_SKILL_BY_ID,
-  RENEGADE_PROFILE_SKILL_IDS,
+  RENEGADE_PROFILE_IDS,
 } from "./skills.js";
 import type {
+  BalanceProfile,
   SimulationEvent,
+  Skill,
   SkillEffect,
   SkillId,
 } from "../../../../platform/engine/types.js";
@@ -48,28 +50,35 @@ function skillById(
   return context.catalog.skillsById.get(skillId);
 }
 
+function balanceProfileById(
+  context: RevenantSchedulerContext,
+  profileId: SkillId,
+): BalanceProfile | undefined {
+  return context.catalog.balanceProfilesById.get(profileId);
+}
+
 function effectByType(
-  skill: RevenantSkill | undefined,
+  skill: RevenantSkill | BalanceProfile | undefined,
   type: SkillEffect["type"],
 ): SkillEffect | undefined {
   return skill?.effects?.find((effect) => effect.type === type);
 }
 
-function kallasFervorSkill(
+function kallasFervorProfile(
   context: RevenantSchedulerContext,
-): RevenantSkill | undefined {
-  return skillById(
+): BalanceProfile | undefined {
+  return balanceProfileById(
     context,
     hasTrait(context, TRAIT.LASTING_LEGACY)
-      ? RENEGADE_PROFILE_SKILL_IDS.kallasFervorLastingLegacy
-      : RENEGADE_PROFILE_SKILL_IDS.kallasFervor,
+      ? RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy
+      : RENEGADE_PROFILE_IDS.kallasFervor,
   );
 }
 
 function emitProfileEffects(
   context: RevenantCastContext,
-  eventSkill: RevenantSkill,
-  profileSkill: RevenantSkill,
+  eventSkill: RevenantSkill | BalanceProfile,
+  profileSkill: RevenantSkill | BalanceProfile,
   effects: readonly SkillEffect[] = profileSkill.effects || [],
 ): void {
   for (const effect of effects) {
@@ -82,12 +91,12 @@ function emitProfileEffects(
         ? undefined
         : (context.schedulerPolicy.effectDuration?.(
             context,
-            eventSkill,
+            eventSkill as Skill,
             effect,
             baseDuration,
           ) ?? baseDuration);
     const applications = materializeSkillEffectApplications({
-      skill: profileSkill,
+      skill: profileSkill as BalanceProfile & Skill,
       effect,
       start: context.start,
       fullEnd: context.effectiveEnd,
@@ -182,7 +191,7 @@ export function grantKallasFervor(
   } = {},
 ): boolean {
   const state = renegadeState.from(context);
-  const profile = kallasFervorSkill(context);
+  const profile = kallasFervorProfile(context);
   const effect = effectByType(profile, "buff");
   if (!profile || !effect) return false;
   const maximumStacks = Math.max(1, Number(profile.maximumStacks || 1));
@@ -215,7 +224,7 @@ function refreshKallasFervor(
   at: number,
 ): number {
   const state = renegadeState.from(context);
-  const profile = kallasFervorSkill(context);
+  const profile = kallasFervorProfile(context);
   const effect = effectByType(profile, "buff");
   if (!profile || !effect) return 0;
   state.kallasFervorMaximumStacks = Math.max(
@@ -248,7 +257,10 @@ export function castHeroicCommand(
   const stacks = refreshKallasFervor(context, context.effectiveEnd);
   if (!stacks) return;
   const profile = hasTrait(context, TRAIT.LASTING_LEGACY)
-    ? skillById(context, RENEGADE_PROFILE_SKILL_IDS.heroicCommandLastingLegacy)
+    ? balanceProfileById(
+        context,
+        RENEGADE_PROFILE_IDS.heroicCommandLastingLegacy,
+      )
     : skill;
   const effect = effectByType(profile, "boon");
   if (!profile || !effect) return;
@@ -263,9 +275,9 @@ export function castOrdersFromAbove(
   skill: RevenantSkill,
 ): void {
   const profile = hasTrait(context, TRAIT.RIGHTEOUS_REBEL)
-    ? skillById(
+    ? balanceProfileById(
         context,
-        RENEGADE_PROFILE_SKILL_IDS.ordersFromAboveRighteousRebel,
+        RENEGADE_PROFILE_IDS.ordersFromAboveRighteousRebel,
       )
     : skill;
   if (profile) emitProfileEffects(context, skill, profile);
@@ -282,7 +294,10 @@ export function beginBandTogether(
   state.bandTogetherReady = false;
   state.bandTogetherExpiresAt = 0;
   if (enhanced && hasTrait(context, TRAIT.ALL_FOR_ONE)) {
-    const allForOne = skillById(context, RENEGADE_PROFILE_SKILL_IDS.allForOne);
+    const allForOne = balanceProfileById(
+      context,
+      RENEGADE_PROFILE_IDS.allForOne,
+    );
     const core = professionCoreState(context);
     core.energy = Math.min(
       core.maximumEnergy,
@@ -319,10 +334,7 @@ function grantRazorclawsRage(
   const buff = profile.effects?.find(
     (effect) => effect.type === "buff" && effect.kind === "razorclaws-rage",
   );
-  const proc = skillById(
-    context,
-    RENEGADE_PROFILE_SKILL_IDS.razorclawsRageProc,
-  );
+  const proc = skillById(context, RENEGADE_PROFILE_IDS.razorclawsRageProc);
   const bleed = effectByType(proc, "condition");
   if (!buff || !proc || !bleed) return;
   const at = context.effectiveEnd;
@@ -368,9 +380,9 @@ export function completeBandTogether(
     grantRazorclawsRage(context, skill, profile);
   }
   if (state.enhanced) return;
-  const bandTogether = skillById(
+  const bandTogether = balanceProfileById(
     context,
-    RENEGADE_PROFILE_SKILL_IDS.bandTogether,
+    RENEGADE_PROFILE_IDS.bandTogether,
   );
   const effect = effectByType(bandTogether, "buff");
   if (!bandTogether || !effect) return;

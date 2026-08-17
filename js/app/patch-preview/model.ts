@@ -187,6 +187,24 @@ function generatedSkillOverview(
   }));
 }
 
+function generatedBalanceProfileOverview(
+  profiles: Readonly<Record<string, SkillPatchEdit>>,
+  metadata: NativePatchAuthoringMetadata | undefined,
+): PatchOverviewEntry[] {
+  const names = new Map<string, string>();
+  for (const module of metadata?.modules || []) {
+    for (const entry of module.balanceProfiles || []) {
+      names.set(String(entry.id), entry.name);
+      names.set(entry.name, entry.name);
+    }
+  }
+  return Object.entries(profiles).map(([key, edit]) => ({
+    subject: names.get(key) || key,
+    text: skillPatchSummary(edit),
+    source: "profile-diff",
+  }));
+}
+
 function modifierPatchSummary(edit: ModifierRulePatchEdit): string {
   const changes: string[] = [];
   for (const field of ["amount", "factor"] as const) {
@@ -240,8 +258,12 @@ export function generatePatchOverview(
     const modifierRules = (patch.modifierRules || {}) as Readonly<
       Record<string, ModifierRulePatchEdit>
     >;
+    const balanceProfiles = (patch.balanceProfiles || {}) as Readonly<
+      Record<string, SkillPatchEdit>
+    >;
     const overview = [
       ...generatedSkillOverview(skills, professionMetadata),
+      ...generatedBalanceProfileOverview(balanceProfiles, professionMetadata),
       ...generatedModifierOverview(modifierRules, professionMetadata),
     ];
     if (overview.length) patch.overview = overview;

@@ -12,7 +12,7 @@ import {
   revenantConduitFormIsActive,
 } from "../../core/state.js";
 import { applyCosmicWisdomAfterCast } from "./conduit.js";
-import { CONDUIT_MECHANICS as MECHANICS } from "./mechanics.js";
+import { CONDUIT_BALANCE_PROFILE_IDS } from "./skills.js";
 import type { SkillId } from "../../../../platform/engine/types.js";
 import type {
   RevenantCastContext,
@@ -35,13 +35,25 @@ export function modifyConduitCastDuration(
 ): number {
   if (context.skill?.handlerId !== "revenant.beguiling-haze") return duration;
   const quickness = context.hasBuff?.("quickness", context.start);
+  const profile = context.catalog.balanceProfilesById.get(
+    CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp,
+  );
+  if (!profile) throw new Error("Missing Beguiling Haze follow-up profile.");
   // Follow-up charges use a near-instant fixed cast time (0.25 s / 0.24 s with quickness).
   // The main cast appends an extra 0.4 s wind-up on top of the base skill duration.
-  return Number(conduitState.from(context).beguilingHazeCharges || 0) > 0
-    ? quickness
-      ? 0.24
-      : 0.25
-    : duration + (quickness ? 0.36 : 0.4);
+  if (Number(conduitState.from(context).beguilingHazeCharges || 0) > 0) {
+    const followUpDuration = Number(profile.castTimeMs || 0) / 1000;
+    return (
+      followUpDuration *
+      (quickness ? Number(profile.quicknessCastMultiplier || 1) : 1)
+    );
+  }
+  const mainExtension = Number(profile.mainCastExtensionMs || 0) / 1000;
+  return (
+    duration +
+    mainExtension *
+      (quickness ? Number(profile.mainQuicknessCastMultiplier || 1) : 1)
+  );
 }
 
 export function modifyConduitRechargeDuration(
@@ -56,10 +68,14 @@ export function modifyConduitRechargeDuration(
     revenantCombatActive(context, context.at) &&
     hasRevenantTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)
   ) {
+    const profile = context.catalog.balanceProfilesById.get(
+      CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment,
+    );
     // Enhanced Embodiment reduces the legend swap cooldown to 60%; read from skill data, not the incoming duration,
     // because the duration may already have been modified by alacrity at this point.
     return (
-      Math.max(0, Number(skill.cooldown ?? skill.recharge ?? duration)) * 0.6
+      Math.max(0, Number(skill.cooldown ?? skill.recharge ?? duration)) *
+      Math.max(0, Number(profile?.rechargeMultiplier ?? 1))
     );
   }
   if (
@@ -77,7 +93,10 @@ export function modifyConduitRechargeDuration(
     )
   ) {
     // Mesmer form overrides Banish Enchantment's cooldown entirely; alacrity still applies to the new 5 s base.
-    const base = MECHANICS.conduit.formOfTheMesmer.banishEnchantmentCooldown;
+    const profile = context.catalog.balanceProfilesById.get(
+      CONDUIT_BALANCE_PROFILE_IDS.mesmerBanishEnchantment,
+    );
+    const base = Math.max(0, Number(profile?.cooldown || 0));
     const rate = context.hasBuff?.("alacrity", context.at)
       ? Number(context.config.alacrityRechargeRate || 1.25)
       : 1;
@@ -101,12 +120,18 @@ export function afterConduitTraitCast(
     skill.legendId === LEGEND.ENTITY &&
     hasRevenantTrait(context.config, TRAIT.SHARED_WISDOM)
   ) {
-    emitRevenantBoon(
-      context,
-      skill,
-      "swiftness",
-      MECHANICS.conduit.sharedWisdomSwiftness,
-    );
+    const shared = context.catalog.balanceProfilesById
+      .get(CONDUIT_BALANCE_PROFILE_IDS.sharedWisdom)
+      ?.effects?.find((effect) => effect.metadata?.trigger === "entity-skill");
+    if (shared?.type === "boon" && shared.boon) {
+      emitRevenantBoon(
+        context,
+        skill,
+        shared.boon,
+        Number(shared.duration || 0),
+        Number(shared.stacks || 1),
+      );
+    }
   }
 }
 
@@ -155,11 +180,17 @@ export function observeConduitTraits(
     return;
   }
   const state = professionCoreState(context);
-  const profile = MECHANICS.traitProcs.mistfire;
+  const profile = context.catalog.balanceProfilesById.get(
+    CONDUIT_BALANCE_PROFILE_IDS.mistfire,
+  );
+  const burning = profile?.effects?.find(
+    (effect) => effect.type === "condition",
+  );
   const readyAt = Number(state.traitProcReadyAt.mistfire || 0);
   // epsilon tolerance prevents floating-point near-miss from silently dropping a proc at the interval boundary.
   if (event.at + context.epsilon < readyAt) return;
-  state.traitProcReadyAt.mistfire = event.at + profile.interval;
+  state.traitProcReadyAt.mistfire =
+    event.at + Math.max(0, Number(profile?.cooldown || 0));
   context.emitDerived(event, {
     type: "condition",
     at: event.at,
@@ -169,8 +200,8 @@ export function observeConduitTraits(
     skillId: TRAIT.MISTFIRE,
     skillName: "Mistfire",
     name: "Mistfire — Burning",
-    condition: "Burning",
-    stacks: profile.burningStacks,
-    duration: profile.burningDuration,
+    condition: String(burning?.condition || "Burning"),
+    stacks: Number(burning?.stacks || 1),
+    duration: Number(burning?.duration || 0),
   });
 }

@@ -103,6 +103,16 @@ test("patch authoring generates an overview and discards manual notes", () => {
               ],
             },
           },
+          balanceProfiles: {
+            "necromancer.fixture-profile": {
+              effects: [
+                {
+                  effectIndex: 0,
+                  duration: { from: 5, to: 6 },
+                },
+              ],
+            },
+          },
           modifierRules: {
             "necromancer.fixture-modifier": {
               factor: { from: 1.1, to: 1.2 },
@@ -121,6 +131,12 @@ test("patch authoring generates an overview and discards manual notes", () => {
             id: "Core",
             traits: [],
             skills: [{ id: 30670, name: "Suffer!" }],
+            balanceProfiles: [
+              {
+                id: "necromancer.fixture-profile",
+                name: "Fixture profile",
+              },
+            ],
             modifierRules: [
               {
                 id: "necromancer.fixture-modifier",
@@ -136,13 +152,18 @@ test("patch authoring generates an overview and discards manual notes", () => {
   const overview = preview.professions.necromancer.overview;
   assert.equal(preview.notes, undefined);
   assert.equal(preview.professions.necromancer.notes, undefined);
-  assert.equal(overview.length, 2);
+  assert.equal(overview.length, 3);
   assert.deepEqual(overview[0], {
     subject: "Suffer!",
     text: "Effect 0 coefficient 1.5 → 2; effect 0 hits 1 → 2.",
     source: "skill-diff",
   });
   assert.deepEqual(overview[1], {
+    subject: "Fixture profile",
+    text: "Effect 0 duration 5 → 6.",
+    source: "profile-diff",
+  });
+  assert.deepEqual(overview[2], {
     subject: "Fixture modifier",
     text: "Factor 1.1 → 1.2; parameter threshold 90 → 80.",
     source: "modifier-diff",

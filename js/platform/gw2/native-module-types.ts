@@ -1,5 +1,6 @@
 import type {
   CanonicalCatalog,
+  BalanceProfile,
   CatalogEntity,
   ProfessionBuildDefinition,
   ProfessionFamilyContract,
@@ -39,6 +40,7 @@ export interface NativeModuleCatalogData<
   readonly skillMechanics?: Readonly<Record<string, SkillFragment>>;
   readonly skillOverrides?: Readonly<Record<string, SkillFragment>>;
   readonly extraSkills?: readonly Skill[];
+  readonly balanceProfiles?: readonly BalanceProfile[];
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
   readonly handlers?: NativeSkillHandlerRegistry<THandlerContext>;
@@ -291,6 +293,14 @@ export interface NativePatchAuthoringSkill {
   readonly patchableFields: Readonly<Record<string, number>>;
 }
 
+export interface NativePatchAuthoringBalanceProfile {
+  readonly id: SkillId;
+  readonly name: string;
+  readonly moduleId: string;
+  readonly profile: Readonly<BalanceProfile>;
+  readonly patchableFields: Readonly<Record<string, number>>;
+}
+
 export interface NativePatchAuthoringModifierValue {
   readonly kind: "static" | "resolver" | "absent";
   readonly value?: number;
@@ -313,6 +323,7 @@ export interface NativePatchAuthoringModule {
   readonly id: string;
   readonly traits: readonly Readonly<CatalogEntity>[];
   readonly skills: readonly NativePatchAuthoringSkill[];
+  readonly balanceProfiles: readonly NativePatchAuthoringBalanceProfile[];
   readonly modifierRules: readonly NativePatchAuthoringModifierRule[];
 }
 

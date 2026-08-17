@@ -1187,6 +1187,16 @@ header .community-actions {
 }
 
 /* ─── Gear selects ─── */
+.gear-rotation-result {
+  margin-top: 10px;
+}
+
+.gear-rotation-dps {
+  color: var(--health);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
 .gear-select {
   background: var(--bg-panel-alt);
   border: 1px solid var(--border-light);

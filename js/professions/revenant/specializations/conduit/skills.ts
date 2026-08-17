@@ -1,8 +1,169 @@
 /**
  * Conduit skill mechanics owned by the Conduit Revenant module.
  */
-import { REVENANT_SKILL_IDS as ID } from "../../data/ids.js";
-import type { SkillFragment } from "../../../../platform/engine/types.js";
+import {
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_SKILL_IDS as ID,
+} from "../../data/ids.js";
+import type {
+  BalanceProfile,
+  SkillFragment,
+} from "../../../../platform/engine/types.js";
+
+export const CONDUIT_BALANCE_PROFILE_IDS = Object.freeze({
+  affinity: "revenant.conduit.affinity",
+  beguilingHazeFollowUp: "revenant.conduit.beguiling-haze-follow-up",
+  lingeringDetermination: "revenant.conduit.lingering-determination",
+  enhancedEmbodiment: "revenant.conduit.enhanced-embodiment",
+  expandedConsciousness: "revenant.conduit.expanded-consciousness",
+  sharedWisdom: "revenant.conduit.shared-wisdom",
+  numinousGift: "revenant.conduit.numinous-gift",
+  mistfire: "revenant.conduit.mistfire",
+  mesmerBanishEnchantment: "revenant.conduit.mesmer-banish-enchantment",
+  mesmerCallToAnguish: "revenant.conduit.mesmer-call-to-anguish",
+  mesmerUnyieldingImpact: "revenant.conduit.mesmer-unyielding-impact",
+  mesmerEmbraceTheDarkness: "revenant.conduit.mesmer-embrace-the-darkness",
+});
+
+const BEGUILING_HAZE_EFFECTS = Object.freeze([
+  {
+    type: "strike",
+    name: "Beguiling Haze",
+    actorType: "player",
+    ticks: [{ atMs: 522, coefficient: 2.2 }],
+    timingAnchor: "castStart",
+    timingScale: "fixed",
+  },
+] as const);
+
+const HEX_EATER_VORTEX_EFFECTS = Object.freeze([
+  {
+    type: "strike",
+    name: "Hex-Eater Vortex",
+    actorType: "player",
+    ticks: [443, 562, 682, 802, 920, 1039].map((atMs) => ({
+      atMs,
+      coefficient: 0.2,
+    })),
+    timingAnchor: "castStart",
+    timingScale: "fixed",
+  },
+  {
+    type: "condition",
+    name: "Hex-Eater Vortex",
+    actorType: "player",
+    ticks: [443, 562, 682, 802, 920, 1039].map((atMs) => ({
+      atMs,
+      condition: "Torment",
+      stacks: 1,
+      duration: 1.5,
+    })),
+    timingAnchor: "castStart",
+    timingScale: "fixed",
+  },
+] as const);
+
+const GLADIATORS_DEFENSE_EFFECTS = Object.freeze([
+  {
+    type: "strike",
+    coefficient: 1.5,
+    hits: 1,
+    name: "Gladiator's Defense",
+    actorType: "player",
+  },
+  {
+    type: "condition",
+    condition: "Weakness",
+    stacks: 1,
+    duration: 5,
+    actorType: "player",
+  },
+  { type: "boon", boon: "resolution", duration: 3, stacks: 1 },
+  { type: "boon", boon: "resistance", duration: 3, stacks: 1 },
+] as const);
+
+const TWIN_MOON_SWEEP_EFFECTS = Object.freeze([
+  {
+    type: "strike",
+    coefficient: 2.5,
+    hits: 1,
+    name: "Twin Moon Sweep — Player",
+    actorType: "player",
+    atMs: 880,
+    timingAnchor: "castStart",
+    timingScale: "fixed",
+    metadata: { affinityOnHit: true },
+  },
+  {
+    type: "strike",
+    coefficient: 2.5,
+    hits: 1,
+    name: "Twin Moon Sweep — Fragment",
+    actorType: "player",
+    atMs: 880,
+    timingAnchor: "castStart",
+    timingScale: "fixed",
+  },
+  {
+    type: "condition",
+    condition: "Bleeding",
+    stacks: 2,
+    duration: 3,
+    applications: 2,
+    intervalMs: 0,
+    actorType: "player",
+    atMs: 880,
+    timingAnchor: "castStart",
+    timingScale: "fixed",
+  },
+  {
+    type: "boon",
+    boon: "might",
+    stacks: 2,
+    duration: 8,
+    applications: 2,
+    intervalMs: 0,
+    atMs: 880,
+    timingAnchor: "castStart",
+    timingScale: "fixed",
+  },
+  {
+    type: "condition",
+    condition: "Immobilized",
+    stacks: 1,
+    duration: 2,
+    actorType: "player",
+    atMs: 880,
+    timingAnchor: "castStart",
+    timingScale: "fixed",
+    metadata: { legendId: LEGEND.ASSASSIN },
+  },
+  {
+    type: "strike",
+    coefficient: 0.4,
+    hits: 2,
+    intervalMs: 0,
+    name: "Twin Moon Sweep — Shatter",
+    actorType: "player",
+    atMs: 1402,
+    timingAnchor: "castStart",
+    timingScale: "fixed",
+    metadata: { legendId: LEGEND.DEMON },
+  },
+  {
+    type: "condition",
+    condition: "Confusion",
+    stacks: 3,
+    duration: 3,
+    applications: 2,
+    intervalMs: 0,
+    actorType: "player",
+    atMs: 1402,
+    timingAnchor: "castStart",
+    timingScale: "fixed",
+    metadata: { legendId: LEGEND.DEMON },
+  },
+] as const);
 
 export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
   Record<number, SkillFragment>
@@ -17,7 +178,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
     ammoRecharge: 10,
     energyCost: 20,
     freeWhenStatePositive: "beguilingHazeCharges",
-    effects: [],
+    effects: BEGUILING_HAZE_EFFECTS,
     legendId: "LegendaryEntity",
   },
   [ID.FORM_OF_THE_DERVISH_ATTACK]: {
@@ -45,7 +206,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
     ammoRecharge: 10,
     energyCost: 20,
     freeWhenStatePositive: "beguilingHazeCharges",
-    effects: [],
+    effects: BEGUILING_HAZE_EFFECTS,
     legendId: "LegendaryEntity",
   },
   [ID.TWIN_MOON_SWEEP]: {
@@ -64,7 +225,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
         ambiguousFieldSelection: "oldest",
       },
     ],
-    effects: [],
+    effects: TWIN_MOON_SWEEP_EFFECTS,
     legendId: "LegendaryEntity",
   },
   [ID.TWIN_MOON_SWEEP_ID_77001]: {
@@ -83,7 +244,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
         ambiguousFieldSelection: "oldest",
       },
     ],
-    effects: [],
+    effects: TWIN_MOON_SWEEP_EFFECTS,
     legendId: "LegendaryEntity",
   },
   [ID.SHIELDING_HANDS]: {
@@ -119,7 +280,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
     ammoRecharge: 10,
     energyCost: 20,
     freeWhenStatePositive: "beguilingHazeCharges",
-    effects: [],
+    effects: BEGUILING_HAZE_EFFECTS,
     legendId: "LegendaryEntity",
   },
   [ID.BEGUILING_HAZE_ID_77159]: {
@@ -132,7 +293,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
     ammoRecharge: 10,
     energyCost: 20,
     freeWhenStatePositive: "beguilingHazeCharges",
-    effects: [],
+    effects: BEGUILING_HAZE_EFFECTS,
     legendId: "LegendaryEntity",
   },
   [ID.HEX_EATER_VORTEX]: {
@@ -141,7 +302,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 526,
     cooldown: 5,
     energyCost: 15,
-    effects: [],
+    effects: HEX_EATER_VORTEX_EFFECTS,
     legendId: "LegendaryEntity",
   },
   [ID.GLADIATORS_DEFENSE]: {
@@ -151,7 +312,7 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
     defaultInterruptMs: 40,
     cooldown: 5,
     energyCost: 10,
-    effects: [],
+    effects: GLADIATORS_DEFENSE_EFFECTS,
     legendId: "LegendaryEntity",
   },
   [ID.COSMIC_WISDOM]: {
@@ -160,7 +321,16 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
     castTimeMs: 0,
     cooldown: 20,
     energyCost: 0,
-    effects: [],
+    effects: [
+      {
+        type: "buff",
+        kind: "cosmic-wisdom",
+        duration: 7,
+        durationScale: "fixed",
+        stacks: 1,
+        actorType: "player",
+      },
+    ],
   },
   [ID.DWARVEN_RETRIBUTION]: {
     implemented: true,
@@ -183,7 +353,10 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
     castTimeMs: 500,
     cooldown: 10,
     energyCost: 0,
-    effects: [],
+    effects: [
+      { type: "boon", boon: "resistance", duration: 2, stacks: 1 },
+      { type: "boon", boon: "regeneration", duration: 6, stacks: 1 },
+    ],
   },
   [ID.RELEASE_POTENTIAL_MESMER]: {
     implemented: true,
@@ -191,7 +364,50 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 440,
     cooldown: 10,
     energyCost: 0,
-    effects: [],
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.98,
+        hits: 1,
+        name: "Release Potential: Mesmer",
+        actorType: "player",
+        atMs: 280,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      },
+      {
+        type: "condition",
+        condition: "Torment",
+        stacks: 2,
+        duration: 3,
+        durationPerAffinity: 0.1,
+        actorType: "player",
+        atMs: 280,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      },
+      {
+        type: "condition",
+        condition: "Torment",
+        stacks: 1,
+        duration: 8,
+        durationReductionPerAffinity: 0.15,
+        actorType: "player",
+        atMs: 280,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        metadata: { target: "self" },
+      },
+      {
+        type: "control",
+        duration: 2,
+        actorType: "player",
+        atMs: 280,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        metadata: { controlKind: "daze", breakbar: 200 },
+      },
+    ],
   },
   [ID.RELEASE_POTENTIAL_DERVISH]: {
     implemented: true,
@@ -199,7 +415,49 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 680,
     cooldown: 10,
     energyCost: 0,
-    effects: [],
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.98,
+        hits: 1,
+        name: "Release Potential: Dervish",
+        actorType: "player",
+        atMs: 560,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 3,
+        duration: 6,
+        actorType: "player",
+        atMs: 560,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        metadata: { legendId: LEGEND.DEMON },
+      },
+      {
+        type: "boon",
+        boon: "might",
+        stacks: 10,
+        duration: 8,
+        atMs: 560,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        metadata: { legendId: LEGEND.CENTAUR },
+      },
+      {
+        type: "boon",
+        boon: "fury",
+        stacks: 1,
+        duration: 8,
+        atMs: 560,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        metadata: { legendId: LEGEND.CENTAUR },
+      },
+    ],
   },
   [ID.RELEASE_POTENTIAL_ASSASSIN]: {
     implemented: true,
@@ -207,7 +465,41 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 740,
     cooldown: 10,
     energyCost: 0,
-    effects: [],
+    effects: [
+      {
+        type: "strike",
+        name: "Release Potential: Assassin",
+        actorType: "player",
+        ticks: [160, 480, 800].map((atMs) => ({
+          atMs,
+          coefficient: 0.6,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      },
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 2,
+        durationPerAffinity: 0.2,
+        actorType: "player",
+        atMs: 800,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      },
+      {
+        type: "condition",
+        condition: "Immobilized",
+        stacks: 1,
+        duration: 2,
+        durationPerAffinity: 0.2,
+        actorType: "player",
+        atMs: 800,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      },
+    ],
   },
   [ID.RELEASE_POTENTIAL_WARRIOR]: {
     implemented: true,
@@ -215,12 +507,20 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
     castTimeMs: 750,
     cooldown: 10,
     energyCost: 0,
-    effects: [],
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.649,
+        hits: 1,
+        name: "Release Potential: Warrior",
+        actorType: "player",
+      },
+    ],
   },
   [ID.LESSER_ENCHANTED_DAGGERS]: {
     implemented: true,
     castTimeMs: 0,
-    cooldown: 0,
+    cooldown: 1,
     energyCost: 0,
     effects: [
       {
@@ -233,3 +533,205 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
     ],
   },
 });
+
+export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] =
+  Object.freeze([
+    {
+      id: CONDUIT_BALANCE_PROFILE_IDS.affinity,
+      name: "Affinity",
+      profileKind: "mechanic",
+      maximumStacks: 5,
+      minimumStacks: 3,
+      effects: [],
+    },
+    {
+      id: CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp,
+      name: "Beguiling Haze (Follow-Up)",
+      profileKind: "skill-variant",
+      castTimeMs: 250,
+      quicknessCastMultiplier: 0.96,
+      mainCastExtensionMs: 400,
+      mainQuicknessCastMultiplier: 0.9,
+      maximumStacks: 2,
+      effects: [
+        {
+          type: "strike",
+          name: "Beguiling Haze — Follow-Up",
+          actorType: "player",
+          ticks: [{ atMs: 200, coefficient: 0.6 }],
+          timingAnchor: "castStart",
+          timingScale: "fixed",
+        },
+      ],
+    },
+    {
+      id: CONDUIT_BALANCE_PROFILE_IDS.lingeringDetermination,
+      name: "Lingering Determination",
+      profileKind: "trait",
+      resourceGain: 2,
+      effects: [],
+    },
+    {
+      id: CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment,
+      name: "Enhanced Embodiment",
+      profileKind: "trait",
+      rechargeMultiplier: 0.6,
+      effects: [
+        {
+          type: "buff",
+          kind: "cosmic-wisdom-extension",
+          duration: 1,
+          durationScale: "fixed",
+          stacks: 1,
+        },
+      ],
+    },
+    {
+      id: CONDUIT_BALANCE_PROFILE_IDS.expandedConsciousness,
+      name: "Expanded Consciousness",
+      profileKind: "trait",
+      resourceGain: 15,
+      effects: [],
+    },
+    {
+      id: CONDUIT_BALANCE_PROFILE_IDS.sharedWisdom,
+      name: "Shared Wisdom",
+      profileKind: "trait",
+      effects: [
+        {
+          type: "boon",
+          boon: "swiftness",
+          duration: 5,
+          stacks: 1,
+          metadata: { trigger: "entity-skill" },
+        },
+        {
+          type: "boon",
+          boon: "fury",
+          duration: 5,
+          stacks: 1,
+          metadata: { trigger: "beguiling-haze" },
+        },
+        {
+          type: "boon",
+          boon: "resolution",
+          duration: 3,
+          stacks: 1,
+          metadata: { trigger: "hex-eater-vortex" },
+        },
+        {
+          type: "boon",
+          boon: "stability",
+          duration: 3,
+          stacks: 1,
+          metadata: { trigger: "gladiators-defense" },
+        },
+        {
+          type: "boon",
+          boon: "might",
+          duration: 10,
+          stacks: 5,
+          applications: 2,
+          atMs: 0,
+          intervalMs: 0,
+          timingAnchor: "castStart",
+          timingScale: "fixed",
+          metadata: { trigger: "twin-moon-sweep" },
+        },
+      ],
+    },
+    {
+      id: CONDUIT_BALANCE_PROFILE_IDS.numinousGift,
+      name: "Numinous Gift",
+      profileKind: "trait",
+      effects: [
+        { type: "boon", boon: "might", duration: 10, stacks: 5 },
+        {
+          type: "boon",
+          boon: "fury",
+          duration: 10,
+          stacks: 1,
+          metadata: { legendId: LEGEND.ASSASSIN },
+        },
+        {
+          type: "boon",
+          boon: "resistance",
+          duration: 5,
+          stacks: 1,
+          metadata: { legendId: LEGEND.DEMON },
+        },
+        {
+          type: "boon",
+          boon: "stability",
+          duration: 5,
+          stacks: 1,
+          metadata: { legendId: LEGEND.DWARF },
+        },
+        {
+          type: "boon",
+          boon: "protection",
+          duration: 5,
+          stacks: 1,
+          metadata: { legendId: LEGEND.CENTAUR },
+        },
+        {
+          type: "boon",
+          boon: "quickness",
+          duration: 5,
+          stacks: 1,
+          metadata: { legendId: LEGEND.ENTITY },
+        },
+      ],
+    },
+    {
+      id: CONDUIT_BALANCE_PROFILE_IDS.mistfire,
+      name: "Mistfire",
+      profileKind: "trait",
+      cooldown: 1,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 0.6,
+          hits: 1,
+          name: "Mistfire",
+          actorType: "effect",
+        },
+        {
+          type: "condition",
+          condition: "Burning",
+          stacks: 1,
+          duration: 6,
+          actorType: "effect",
+        },
+      ],
+    },
+    {
+      id: CONDUIT_BALANCE_PROFILE_IDS.mesmerBanishEnchantment,
+      name: "Banish Enchantment (Form of the Mesmer)",
+      profileKind: "skill-variant",
+      energyCost: 5,
+      cooldown: 5,
+      effects: [],
+    },
+    {
+      id: CONDUIT_BALANCE_PROFILE_IDS.mesmerCallToAnguish,
+      name: "Call to Anguish (Form of the Mesmer)",
+      profileKind: "skill-variant",
+      energyCost: 10,
+      effects: [],
+    },
+    {
+      id: CONDUIT_BALANCE_PROFILE_IDS.mesmerUnyieldingImpact,
+      name: "Unyielding Impact (Form of the Mesmer)",
+      profileKind: "skill-variant",
+      energyCost: 0,
+      effects: [],
+    },
+    {
+      id: CONDUIT_BALANCE_PROFILE_IDS.mesmerEmbraceTheDarkness,
+      name: "Embrace the Darkness (Form of the Mesmer)",
+      profileKind: "skill-variant",
+      energyCost: 0,
+      effects: [],
+    },
+  ]);
