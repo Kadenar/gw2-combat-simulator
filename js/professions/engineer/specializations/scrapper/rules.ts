@@ -1,4 +1,9 @@
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
+import {
+  gw2BoonDurationMultiplier,
+  gw2SigilSet,
+  gw2StatsForWeaponSet,
+} from "../../../../platform/gw2/runtime-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { activeBoonStacks, playerStrike } from "../../core/rule-helpers.js";
@@ -7,11 +12,84 @@ import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
-import type { EngineerMaximumAmmoContext } from "../../types.js";
+import type {
+  SchedulerRecord,
+  SimulationEvent,
+} from "../../../../platform/engine/types.js";
+import type {
+  EngineerMaximumAmmoContext,
+  EngineerSchedulerContext,
+} from "../../types.js";
+import { SCRAPPER_KINETIC_ACCELERATORS } from "./mechanics.js";
+import { scrapperState } from "./state.js";
 import { applyScrapperCastTraits } from "./traits.js";
 
+function kineticAcceleratorsTriggerAllowed(
+  context: EngineerSchedulerContext,
+  event: SimulationEvent,
+): boolean {
+  if (
+    !hasEngineerTrait(context.config, TRAIT.KINETIC_ACCELERATORS) ||
+    event.type !== "combo" ||
+    event.schedulerPrediction !== "combo-result" ||
+    !["Blast", "Leap", "Whirl"].includes(String(event.finisherType))
+  ) {
+    return false;
+  }
+  if (event.finisherType !== "Whirl") return true;
+  const state = scrapperState.from(context);
+  if (state.kineticAcceleratorsWhirlReadyAt > event.at + context.epsilon) {
+    return false;
+  }
+  state.kineticAcceleratorsWhirlReadyAt =
+    event.at + SCRAPPER_KINETIC_ACCELERATORS.whirlInternalCooldown;
+  return true;
+}
+
+function observeScrapperScheduledEvent(
+  context: EngineerSchedulerContext,
+  event: SimulationEvent,
+): void {
+  if (!kineticAcceleratorsTriggerAllowed(context, event)) return;
+  const weaponSet = context.state.activeWeaponSet;
+  const stats = gw2StatsForWeaponSet(context.config, weaponSet);
+  const sigils = gw2SigilSet(context.config, weaponSet);
+  const emitBoon = (
+    kind: string,
+    baseDuration: number,
+    stacks: number,
+  ): void => {
+    // Keep this as a canonical buff event: the scheduler needs it for cast
+    // timing and the result timeline needs it for effects-over-time graphs.
+    context.emitDerived(event, {
+      type: "buff",
+      at: event.at,
+      source: "Trait",
+      sourceId: TRAIT.KINETIC_ACCELERATORS,
+      actorType: "effect",
+      skillId: event.skillId,
+      skillName: event.skillName,
+      name: `Kinetic Accelerators — ${kind}`,
+      kind,
+      duration: baseDuration * gw2BoonDurationMultiplier(kind, stats, sigils),
+      stacks,
+      recipients: "party",
+    });
+  };
+  emitBoon("quickness", SCRAPPER_KINETIC_ACCELERATORS.quicknessDuration, 1);
+  emitBoon(
+    "might",
+    SCRAPPER_KINETIC_ACCELERATORS.mightDuration,
+    SCRAPPER_KINETIC_ACCELERATORS.mightStacks,
+  );
+}
+
 export const scrapperSchedulerHooks = Object.freeze({
+  onEventScheduled: {
+    id: "engineer.kinetic-accelerators",
+    order: 30,
+    handler: observeScrapperScheduledEvent,
+  },
   // order 30 runs after core engineer hooks (10/20) but before any finisher hooks
   afterCast: {
     id: "engineer.scrapper-traits",

@@ -189,7 +189,7 @@
         "build": "Builds/elementalist/b-power-quick-catalyst-sword-fa.json",
         "rotation": "Rotations/elementalist/r-power-quick-catalyst-sword-fa.json",
         "dpsReportUrl": "https://dps.report/iKCM-20260416-002204_golem",
-        "benchmarkDps": 34140,
+        "benchmarkDps": 34282,
         "upToDate": true
       },
       {
@@ -197,7 +197,7 @@
         "build": "Builds/elementalist/b-power-quick-catalyst-scepter-btth.json",
         "rotation": "Rotations/elementalist/r-power-quick-catalyst-scepter-btth.json",
         "dpsReportUrl": "https://dps.report/63Dx-20260416-134815_golem",
-        "benchmarkDps": 34877,
+        "benchmarkDps": 34968,
         "upToDate": true
       },
       {
@@ -220,7 +220,7 @@
         "build": "Builds/elementalist/b-condi-quick-catalyst-pistol-dagger.json",
         "rotation": "Rotations/elementalist/r-condi-quick-catalyst-pistol-dagger.json",
         "dpsReportUrl": "https://dps.report/wJsO-20260416-231016_golem",
-        "benchmarkDps": 33034,
+        "benchmarkDps": 33033,
         "upToDate": true
       },
       {

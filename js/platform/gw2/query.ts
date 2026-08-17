@@ -1,4 +1,10 @@
-import { buffMatchesAudience, sumActiveStacks } from "./boon-state.js";
+import {
+  buffMatchesAudience,
+  GW2_BOON_DURATION_CAP_SECONDS,
+  isDurationStackingBoon,
+  remainingDurationStackSeconds,
+  sumActiveStacks,
+} from "./boon-state.js";
 import { criticalChance, criticalDamageMultiplier } from "./damage.js";
 import { gw2EventActorType } from "./event-ownership.js";
 import { clamp } from "./numeric.js";
@@ -180,22 +186,31 @@ export function createGw2CombatQuery<
     maximum: number,
     audience: Gw2BuffAudience = "all",
     companionId: string | null = null,
-  ): number | null =>
-    runtime
-      ? sumActiveStacks(
-          // Scheduler and resolver runtimes append applications in
-          // chronological event-queue order. The stop predicate depends on
-          // that ordering so future applications can terminate the scan.
-          runtime.boons?.get(kind) || [],
-          (application) =>
-            buffMatchesAudience(application, audience, companionId) &&
-            application.at <= time &&
-            application.expiresAt > time,
-          (application) => Number(application.stacks || 1),
-          maximum,
-          (application) => application.at > time,
-        )
-      : null;
+  ): number | null => {
+    if (!runtime) return null;
+    const applications = runtime.boons?.get(kind) || [];
+    if (isDurationStackingBoon(kind)) {
+      const remaining = remainingDurationStackSeconds(applications, time, {
+        includes: (application) =>
+          buffMatchesAudience(application, audience, companionId),
+        maximum: GW2_BOON_DURATION_CAP_SECONDS,
+      });
+      return remaining > 0 ? Math.min(1, Math.max(0, maximum)) : 0;
+    }
+    return sumActiveStacks(
+      // Scheduler and resolver runtimes append applications in
+      // chronological event-queue order. The stop predicate depends on that
+      // ordering so future applications can terminate the scan.
+      applications,
+      (application) =>
+        buffMatchesAudience(application, audience, companionId) &&
+        application.at <= time &&
+        application.expiresAt > time,
+      (application) => Number(application.stacks || 1),
+      maximum,
+      (application) => application.at > time,
+    );
+  };
 
   /** Uses chronological runtime state when present, otherwise scheduled state. */
   const dynamicBoonStacksAt = (

@@ -57,8 +57,7 @@ export interface EngineerConfig extends Gw2Config {
   readonly professionAssumptions?: ProfessionBuildAssumptions;
   readonly selectedMorphSkillIds?: readonly number[];
   readonly selectedSkills?:
-    | readonly string[]
-    | Readonly<Record<string, string>>;
+    readonly string[] | Readonly<Record<string, string>>;
 }
 
 export interface EngineerMechAttributes extends SchedulerRecord {
@@ -99,7 +98,9 @@ export interface EngineerCoreState {
   traitProcReadyAt: Record<string, number | boolean>;
 }
 
-export interface ScrapperState {}
+export interface ScrapperState {
+  kineticAcceleratorsWhirlReadyAt: number;
+}
 
 export interface HolosmithState {
   heat: number;
@@ -133,7 +134,8 @@ export interface AmalgamState {
 }
 
 export interface EngineerState
-  extends EngineerCoreState,
+  extends
+    EngineerCoreState,
     ScrapperState,
     HolosmithState,
     MechanistState,

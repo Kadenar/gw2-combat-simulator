@@ -938,15 +938,15 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
     ["Force", "Impact"],
   ]);
   assert.equal(build.assumptions.sharePlayerBoonsWithSummons, false);
-  assert.equal(hits(ID.FELINE_SLASH), 69);
-  assert.equal(hits(ID.FELINE_BITE), 12);
+  assert.equal(hits(ID.FELINE_SLASH), 54);
+  assert.equal(hits(ID.FELINE_BITE), 13);
   assert.equal(hits(ID.FELINE_MAUL), 14);
   assert.equal(hits(ID.FURIOUS_POUNCE), 6);
-  assert.equal(hits(ID.ENVELOPING_HAZE), 34);
+  assert.equal(hits(ID.ENVELOPING_HAZE), 36);
   assert.equal(hits(ID.VENOMOUS_OUTBURST), 11);
   assert.equal(hits(ID.RENDING_VINES), 11);
   assert.equal(namedHits(ID.RELENTLESS_WHIRL, "Relentless Whirl"), 20);
-  assert.equal(namedHits(ID.DEFT_STRIKE, "Deft Strike"), 3);
+  assert.equal(namedHits(ID.DEFT_STRIKE, "Deft Strike"), 4);
   assert.equal(
     result.steps.filter(
       (step) => step.skill === "Deft Strike" && step.invalid !== true,

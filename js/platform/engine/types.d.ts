@@ -569,6 +569,14 @@ export interface SchedulerPolicy<
     effect: SkillEffect,
     duration: number,
   ) => number | undefined;
+  readonly buffStacks?: (
+    context: SchedulerContext<TProfessionState>,
+    kind: string,
+    at: number,
+    configuredStacks: number,
+    applications: readonly SimulationEvent[],
+    defaultStacks: number,
+  ) => number | undefined;
   readonly onEventScheduled?: (
     context: SchedulerContext<TProfessionState>,
     event: SimulationEvent,

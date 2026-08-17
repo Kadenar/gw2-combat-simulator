@@ -1,5 +1,11 @@
 import { EPSILON } from "../engine/clock.js";
-import { buffMatchesAudience, sumActiveStacks } from "./boon-state.js";
+import {
+  buffMatchesAudience,
+  GW2_BOON_DURATION_CAP_SECONDS,
+  isDurationStackingBoon,
+  remainingDurationStackSeconds,
+  sumActiveStacks,
+} from "./boon-state.js";
 import { gw2SigilSet } from "./runtime-rules.js";
 
 import type { SimulationEvent, SkillId } from "../engine/types.js";
@@ -152,6 +158,19 @@ export function createGw2TimelineIndex({
         : audience === "summon"
           ? bucket?.summon
           : bucket?.all;
+    if (isDurationStackingBoon(kind)) {
+      const remaining = remainingDurationStackSeconds(
+        applications || [],
+        time + EPSILON,
+        {
+          includes: (event) =>
+            buffMatchesAudience(event, audience, companionId),
+          duration: (event) => Number(event.duration || duration),
+          maximum: GW2_BOON_DURATION_CAP_SECONDS,
+        },
+      );
+      return remaining > EPSILON ? Math.min(1, Math.max(0, maximum)) : 0;
+    }
     return sumActiveStacks(
       applications || [],
       // Event duration wins; duration is a fallback for compact buff records.
@@ -176,14 +195,7 @@ export function createGw2TimelineIndex({
    * @param {number} time
    */
   const timedActive = (kind: string, time: number): boolean => {
-    refreshIndex();
-    const applications =
-      indexedBuffs.get(String(kind || "").toLowerCase())?.all || [];
-    for (const event of applications) {
-      if (event.at > time + EPSILON) break;
-      if (event.at + Number(event.duration || 0) > time) return true;
-    }
-    return false;
+    return buffStacksAt(kind, time, 0, 1) > 0;
   };
 
   /** @param {number} time */

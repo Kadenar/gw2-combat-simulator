@@ -491,7 +491,11 @@ test("shared chart markup escapes effect names and uses scoped roles without ids
     {
       durationMs: 1000,
       dps: [{ t: 0, v: 0 }],
-      effects: { 'Bad"><img src=x>': [{ t: 0, v: 1 }] },
+      effects: {
+        'Bad"><img src=x>': [{ t: 0, v: 1 }],
+        Quickness: [{ t: 0, v: 2.5 }],
+      },
+      effectUnits: { Quickness: "s" },
       cumulativeDamage: [
         { t: 0, v: 0 },
         { t: 1000, v: 1000 },
@@ -508,6 +512,7 @@ test("shared chart markup escapes effect names and uses scoped roles without ids
   );
   assert.match(container.innerHTML, /data-role="dps-canvas"/);
   assert.match(container.innerHTML, /Bad&quot;&gt;&lt;img src=x&gt;/);
+  assert.match(container.innerHTML, /Quickness \(s\)/);
   assert.match(container.innerHTML, /data-role="chart-phase-toggles"/);
   assert.match(container.innerHTML, /Chart range/);
   assert.match(container.innerHTML, /data-role="effects-panel-title"/);
