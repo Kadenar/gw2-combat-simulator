@@ -728,7 +728,7 @@ function balanceProfileSection(module: NativePatchAuthoringModule): string {
                 (
                   entry,
                 ) => `<button type="button" class="patch-skill-option${String(entry.id) === selectedProfileId ? " is-selected" : ""}${hasBalanceProfileEdit(String(entry.id)) ? " is-changed" : ""}" data-select-profile="${escapeHtml(entry.id)}">
-                  <span><strong>${escapeHtml(entry.name)}</strong><small>${escapeHtml(entry.profile.profileKind)} Â· ${escapeHtml(entry.id)}</small></span>
+                  <span><strong>${escapeHtml(entry.name)}</strong><small>${escapeHtml(entry.profile.profileKind)} · ${escapeHtml(entry.id)}</small></span>
                 </button>`,
               )
               .join("")

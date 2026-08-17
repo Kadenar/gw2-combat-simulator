@@ -5,6 +5,11 @@
 
 import { isInternalCooldownReady } from "../../../platform/engine/clock.js";
 import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
+import {
+  mesmerBalanceProfile,
+  mesmerBalanceProfileEffect,
+  mesmerBalanceValue,
+} from "./profiles.js";
 import type {
   MesmerApplyCondition,
   MesmerResolverContext,
@@ -19,6 +24,10 @@ function applyIneptitudeConfusion(
 ): void {
   if (!ctx.traits.has(TRAIT.INEPTITUDE)) return;
   const count = Math.max(1, Math.trunc(Number(event.count || 1)));
+  const effect = mesmerBalanceProfileEffect(
+    mesmerBalanceProfile(ctx, TRAIT.INEPTITUDE),
+    "condition",
+  );
   ctx.recordProc(
     "trait",
     "Ineptitude",
@@ -31,9 +40,9 @@ function applyIneptitudeConfusion(
     at: event.at,
     name: `${event.skillName} — Ineptitude`,
     skillName: event.skillName,
-    condition: "Confusion",
-    duration: 5,
-    stacks: 2 * count,
+    condition: String(effect?.condition || "Confusion"),
+    duration: Number(effect?.duration || 5),
+    stacks: Number(effect?.stacks || 2) * count,
     source: "Player",
   });
 }
@@ -54,7 +63,11 @@ export function triggerIneptitudeFromInterrupt(
     !isInternalCooldownReady(event.at, ctx.profession.ineptitudeReadyAt)
   )
     return;
-  if (defiant) ctx.profession.ineptitudeReadyAt = event.at + 3;
+  if (defiant) {
+    ctx.profession.ineptitudeReadyAt =
+      event.at +
+      mesmerBalanceValue(ctx, TRAIT.INEPTITUDE, "internalCooldown", 3);
+  }
   applyIneptitudeConfusion(
     ctx,
     { ...event, count: defiant ? 1 : event.count },

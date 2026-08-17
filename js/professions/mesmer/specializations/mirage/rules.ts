@@ -73,8 +73,14 @@ export const mirageModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "mesmer.nomads-endurance",
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: "damage-additive",
-    amount: (_context, target) =>
-      target === MODIFIER_TARGET.STRIKE_DAMAGE ? 0.1 : 0.05,
+    parameters: {
+      strikeBonus: 0.1,
+      conditionBonus: 0.05,
+    } as Readonly<Record<string, number>>,
+    amount: (_context, target, parameters) =>
+      target === MODIFIER_TARGET.STRIKE_DAMAGE
+        ? parameters.strikeBonus
+        : parameters.conditionBonus,
     when: (context) =>
       hasTrait(context, TRAIT.NOMADS_ENDURANCE) &&
       Boolean(context.timeline?.vigorActiveAt(context.time)),
@@ -83,9 +89,22 @@ export const mirageModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "mesmer.phantom-pain",
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: "damage-additive",
-    amount: (context, target) =>
-      timedStacks(context, "phantom-pain", 10, 4) *
-      (target === MODIFIER_TARGET.CONDITION_DAMAGE ? 0.05 : 0.0625),
+    parameters: {
+      duration: 10,
+      maximumStacks: 4,
+      strikePerStack: 0.0625,
+      conditionPerStack: 0.05,
+    } as Readonly<Record<string, number>>,
+    amount: (context, target, parameters) =>
+      timedStacks(
+        context,
+        "phantom-pain",
+        parameters.duration,
+        parameters.maximumStacks,
+      ) *
+      (target === MODIFIER_TARGET.CONDITION_DAMAGE
+        ? parameters.conditionPerStack
+        : parameters.strikePerStack),
   },
 ]);
 

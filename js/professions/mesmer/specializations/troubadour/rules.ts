@@ -3,6 +3,7 @@ import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { illusionSource, timedActive } from "../../core/rules.js";
 import { initializeTroubadourRuntime } from "./runtime.js";
+import { mesmerBalanceValue } from "../../core/profiles.js";
 import type { SimulationEvent } from "../../../../platform/engine/types.js";
 import type {
   Gw2ModifierContext,
@@ -66,7 +67,16 @@ export function applyTroubadourAttributes(
   const instrumentCount = hasTrait(context, TRAIT.FORTISSIMO)
     ? activeInstrumentCount(context)
     : 0;
-  const fortissimo = instrumentCount ? 1 + instrumentCount * 0.04 : 1;
+  const fortissimo = instrumentCount
+    ? 1 +
+      instrumentCount *
+        mesmerBalanceValue(
+          context,
+          TRAIT.FORTISSIMO,
+          "attributeConversion",
+          0.04,
+        )
+    : 1;
   if (fortissimo === 1) return attributes;
   return {
     ...attributes,

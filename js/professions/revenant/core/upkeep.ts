@@ -86,8 +86,8 @@ export function emitCondition(
   });
 }
 
-function upkeepPulseInterval(skill: RevenantSkill | undefined): number {
-  return Math.max(0, Number(skill?.upkeepPulseInterval ?? 1));
+function pulseIntervalForUpkeep(skill: RevenantSkill | undefined): number {
+  return Math.max(0, Number(skill?.pulseInterval ?? 1));
 }
 
 function facetConsumeId(
@@ -184,7 +184,7 @@ export function toggleRevenantUpkeep(
     at:
       skill.id === ID.EMBRACE_THE_DARKNESS
         ? Math.floor(at + context.epsilon) + 1
-        : at + upkeepPulseInterval(skill),
+        : at + pulseIntervalForUpkeep(skill),
     ownerId: `revenant.upkeep:${skill.id}`,
     payload: { skillId: skill.id },
   });
@@ -261,7 +261,7 @@ export function handleRevenantUpkeepPulse(
   }
   context.tasks.schedule({
     type: "revenant.upkeep-pulse",
-    at: task.at + upkeepPulseInterval(skill),
+    at: task.at + pulseIntervalForUpkeep(skill),
     ownerId: `revenant.upkeep:${payload.skillId}`,
     payload,
   });

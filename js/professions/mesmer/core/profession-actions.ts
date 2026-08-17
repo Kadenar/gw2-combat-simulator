@@ -23,12 +23,21 @@ import type {
   MesmerRuntimeState,
   MesmerQueueResources,
   MesmerResourceDefinition,
+  MesmerRuntime,
   MesmerResourceSpendDetails,
   MesmerShatter,
   MesmerShatterTraitOptions,
   MesmerSkill,
   MesmerTraitDamage,
 } from "../types.js";
+
+const TROUBADOUR_PROFILE = Object.freeze({
+  instruments: "mesmer.troubadour.instruments",
+  crescendo: "mesmer.troubadour.crescendo",
+  honorableRogue: "mesmer.troubadour.tale-honorable-rogue",
+  soulkeeper: "mesmer.troubadour.tale-soulkeeper",
+  valiantMarshal: "mesmer.troubadour.tale-valiant-marshal",
+});
 
 interface ProfessionActionControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
@@ -47,6 +56,7 @@ interface ProfessionActionControllerOptions {
   readonly queueResources: MesmerQueueResources;
   readonly byId: (id: number) => MesmerSkill | undefined;
   readonly traitDamage: Readonly<Record<string, MesmerTraitDamage>>;
+  readonly balanceProfile: MesmerRuntime["balanceProfile"];
 }
 
 export function createProfessionActionController({
@@ -66,7 +76,31 @@ export function createProfessionActionController({
   queueResources,
   byId,
   traitDamage,
+  balanceProfile,
 }: ProfessionActionControllerOptions): MesmerProfessionActionController {
+  const profileValue = (
+    id: number | string,
+    field: string,
+    fallback: number,
+  ) => {
+    const value = balanceProfile(id)?.[field];
+    return Number.isFinite(Number(value)) ? Number(value) : fallback;
+  };
+  const profileEffect = (id: number | string, type: string, index = 0) =>
+    balanceProfile(id)?.effects?.filter((effect) => effect.type === type)[
+      index
+    ];
+  const conditionFromProfile = (
+    id: number | string,
+    fallback: { name: string; duration: number; stacks: number },
+  ) => {
+    const effect = profileEffect(id, "condition");
+    return {
+      name: String(effect?.condition || fallback.name),
+      duration: Number(effect?.duration ?? fallback.duration),
+      stacks: Number(effect?.stacks ?? fallback.stacks),
+    };
+  };
   const numericResourceState = () => {
     const active = state.profession.specialization;
     if (active.kind !== "Virtuoso" && active.kind !== "Troubadour") {
@@ -183,10 +217,15 @@ export function createProfessionActionController({
     const shatter = shatters[skill.id];
     const sources = bladeSong ? 1 : spent + 1;
     if (!skipMaim && traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) {
+      const maim = conditionFromProfile(TRAIT.MAIM_THE_DISILLUSIONED, {
+        name: "Torment",
+        duration: 6,
+        stacks: 1,
+      });
       addCondition(
         skill.name,
         at,
-        { name: "Torment", duration: 6, stacks: sources },
+        { ...maim, stacks: maim.stacks * sources },
         "Player",
         `${skill.name} — Maim the Disillusioned`,
       );
@@ -197,18 +236,22 @@ export function createProfessionActionController({
         type: "buff",
         at: at + epsilon,
         kind: "phantom-pain",
-        stacks: Math.min(4, spent + 1),
-        duration: 10,
+        stacks: Math.min(
+          profileValue(TRAIT.PHANTOM_PAIN, "maximumStacks", 4),
+          spent + 1,
+        ),
+        duration: profileValue(TRAIT.PHANTOM_PAIN, "durationMultiplier", 10),
       });
       addTraitProc("Phantom Pain", at + epsilon, skill.name);
     }
     if (shatter?.slot === 2 && traits.has(TRAIT.ILLUSIONARY_MEMBRANE)) {
+      const effect = profileEffect(TRAIT.ILLUSIONARY_MEMBRANE, "buff");
       addEvent({
         type: "buff",
         at: at + epsilon,
         kind: "illusionary-membrane",
-        stacks: 1,
-        duration: 15,
+        stacks: Number(effect?.stacks || 1),
+        duration: Number(effect?.duration || 15),
       });
       addTraitProc("Illusionary Membrane", at + epsilon, skill.name);
     }
@@ -218,18 +261,18 @@ export function createProfessionActionController({
         at: at + epsilon,
         kind: "deadly-blades",
         stacks: 1,
-        duration: 7,
+        duration: profileValue(TRAIT.DEADLY_BLADES, "durationMultiplier", 7),
       });
       addTraitProc("Deadly Blades", at + epsilon, skill.name);
     }
     if (
       resourceDefinition.singular === "clone" &&
-      spent === 3 &&
+      spent === profileValue(TRAIT.ILLUSIONARY_REVERSION, "threshold", 3) &&
       traits.has(TRAIT.ILLUSIONARY_REVERSION)
     ) {
       queueResources(
         at + epsilon,
-        1,
+        profileValue(TRAIT.ILLUSIONARY_REVERSION, "resourceGain", 1),
         activePrimaryWeapon(),
         "Illusionary Reversion",
         {
@@ -254,10 +297,15 @@ export function createProfessionActionController({
     let maimTriggered = false;
     const addMaimOnHit = (hitAt: number) => {
       if (!traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) return;
+      const maim = conditionFromProfile(TRAIT.MAIM_THE_DISILLUSIONED, {
+        name: "Torment",
+        duration: 6,
+        stacks: 1,
+      });
       addCondition(
         skill.name,
         hitAt,
-        { name: "Torment", duration: 6, stacks: 1 },
+        maim,
         "Player",
         `${skill.name} — Maim the Disillusioned`,
       );
@@ -314,11 +362,16 @@ export function createProfessionActionController({
         },
         { shatter: true },
       );
-      const cryBonus = traits.has(TRAIT.CRY_OF_PAIN) ? 2 : 1;
+      const baseConfusion = conditionFromProfile(
+        shatter.balanceProfileId || skill.id,
+        { name: "Confusion", duration: 3, stacks: 1 },
+      );
+      const confusion = traits.has(TRAIT.CRY_OF_PAIN)
+        ? conditionFromProfile(TRAIT.CRY_OF_PAIN, baseConfusion)
+        : baseConfusion;
       addCondition(skill.name, at, {
-        name: "Confusion",
-        duration: traits.has(TRAIT.CRY_OF_PAIN) ? 4 : 3,
-        stacks: sources * cryBonus,
+        ...confusion,
+        stacks: sources * confusion.stacks,
       });
       if (traits.has(TRAIT.BLINDING_DISSIPATION)) {
         addEvent({
@@ -353,11 +406,16 @@ export function createProfessionActionController({
         },
         { shatter: true },
       );
-      const cryBonus = traits.has(TRAIT.CRY_OF_PAIN) ? 2 : 1;
+      const baseConfusion = conditionFromProfile(
+        shatter.balanceProfileId || skill.id,
+        { name: "Confusion", duration: 3, stacks: 1 },
+      );
+      const confusion = traits.has(TRAIT.CRY_OF_PAIN)
+        ? conditionFromProfile(TRAIT.CRY_OF_PAIN, baseConfusion)
+        : baseConfusion;
       addCondition(skill.name, at, {
-        name: "Confusion",
-        duration: traits.has(TRAIT.CRY_OF_PAIN) ? 4 : 3,
-        stacks: sources * cryBonus,
+        ...confusion,
+        stacks: sources * confusion.stacks,
       });
       if (traits.has(TRAIT.BLINDING_DISSIPATION)) {
         addEvent({
@@ -373,9 +431,15 @@ export function createProfessionActionController({
       addBladeDamage(ticks);
       for (const tick of ticks) addMaimOnHit(at + tick.atMs / 1000);
     } else if (shatter.kind === "blade-confusion") {
-      const hasCryOfPain = traits.has(TRAIT.CRY_OF_PAIN);
-      const duration = hasCryOfPain ? 4 : 3;
-      const stacks = hasCryOfPain ? 2 : 1;
+      const baseConfusion = conditionFromProfile(
+        shatter.balanceProfileId || skill.id,
+        { name: "Confusion", duration: 3, stacks: 1 },
+      );
+      const confusion = traits.has(TRAIT.CRY_OF_PAIN)
+        ? conditionFromProfile(TRAIT.CRY_OF_PAIN, baseConfusion)
+        : baseConfusion;
+      const duration = confusion.duration;
+      const stacks = confusion.stacks;
       const ticks = bladePacketTicks(() => 0);
       addBladeDamage(ticks);
       addCondition(skill.name, at, {
@@ -453,10 +517,14 @@ export function createProfessionActionController({
       );
       addTraitProc("Time Bomb", at, skill.name, "explodes after 5s");
     }
-    if (isBladeSong && traits.has(TRAIT.INFINITE_FORGE) && spent >= 5) {
+    if (
+      isBladeSong &&
+      traits.has(TRAIT.INFINITE_FORGE) &&
+      spent >= profileValue(TRAIT.INFINITE_FORGE, "threshold", 5)
+    ) {
       queueResources(
         at + epsilon * 2,
-        2,
+        profileValue(TRAIT.INFINITE_FORGE, "resourceGain", 2),
         activePrimaryWeapon(),
         "Infinite Forge refund",
         {
@@ -482,15 +550,21 @@ export function createProfessionActionController({
     actorType: "player" | "summon" = "player",
   ): void => {
     if (data.coefficient) {
+      const shredding = profileEffect(TRAIT.SHREDDING, "strike");
+      const shreddingCoefficient = Number(shredding?.coefficient || 1);
+      const shreddingHits = Number(shredding?.hits || 1);
       const coefficient =
         data.coefficient +
-        (data.instrument === "Lute" && traits.has(TRAIT.SHREDDING) ? 1 : 0);
+        (data.instrument === "Lute" && traits.has(TRAIT.SHREDDING)
+          ? shreddingCoefficient
+          : 0);
       addDamage(
         skill,
         damageAt,
         {
           coefficient,
-          hits: data.hits + (coefficient > data.coefficient ? 1 : 0),
+          hits:
+            data.hits + (coefficient > data.coefficient ? shreddingHits : 0),
           intervalMs: data.intervalMs,
           source,
           actorType,
@@ -511,7 +585,11 @@ export function createProfessionActionController({
       addCondition(
         skill.name,
         damageAt,
-        { name: "Torment", duration: 5, stacks: 4 },
+        conditionFromProfile(TRAIT.MAYHEM, {
+          name: "Torment",
+          duration: 5,
+          stacks: 4,
+        }),
         source,
         "Mayhem — Torment",
         { source, sourceId: TRAIT.MAYHEM, skillId: skill.id, actorType },
@@ -529,7 +607,8 @@ export function createProfessionActionController({
       });
     }
     if (data.instrument === "Drum" && traits.has(TRAIT.SYNCOPATE)) {
-      const delayedAt = damageAt + 3;
+      const delayedAt =
+        damageAt + profileValue(TRAIT.SYNCOPATE, "initialDelay", 3);
       const delayedWave = traitDamage.SyncopateDelayedWave;
       addDamage(
         {
@@ -567,12 +646,14 @@ export function createProfessionActionController({
       addTraitProc("Syncopate", delayedAt, skill.name, "delayed drum wave");
     }
     if (traits.has(TRAIT.LIFE_OF_THE_PARTY) && data.instrument === "Lute") {
+      const quickness = profileEffect(TRAIT.LIFE_OF_THE_PARTY, "boon", 0);
+      const might = profileEffect(TRAIT.LIFE_OF_THE_PARTY, "boon", 1);
       addEvent({
         type: "buff",
         at: damageAt,
-        kind: "quickness",
-        stacks: 1,
-        duration: 6,
+        kind: String(quickness?.boon || "quickness"),
+        stacks: Number(quickness?.stacks || 1),
+        duration: Number(quickness?.duration || 6),
         skillName: skill.name,
         sourceSkill: skill.name,
         ...partyBoonRecipients(),
@@ -580,9 +661,9 @@ export function createProfessionActionController({
       addEvent({
         type: "buff",
         at: damageAt,
-        kind: "might",
-        stacks: 5,
-        duration: 8,
+        kind: String(might?.boon || "might"),
+        stacks: Number(might?.stacks || 5),
+        duration: Number(might?.duration || 8),
         skillName: skill.name,
         sourceSkill: skill.name,
         ...partyBoonRecipients(),
@@ -603,7 +684,17 @@ export function createProfessionActionController({
     const spent = consumeResources(at, spendDetails);
     const damageAt = castStart + Number(data.damageAtMs || 0) / 1000;
     instrumentAttack(skill, data, damageAt);
-    const expiresAt = at + 5 + spent * 5;
+    const baseDuration = profileValue(
+      TROUBADOUR_PROFILE.instruments,
+      "durationMultiplier",
+      5,
+    );
+    const durationPerNote = profileValue(
+      TROUBADOUR_PROFILE.instruments,
+      "durationPerTier",
+      5,
+    );
+    const expiresAt = at + baseDuration + spent * durationPerNote;
     troubadourState().instruments[data.instrument] = expiresAt;
     troubadourState().lastInstrument = data.instrument;
     addEvent({
@@ -614,18 +705,23 @@ export function createProfessionActionController({
     });
 
     if (data.instrument === "Harp") {
+      const distortion = profileEffect(TROUBADOUR_PROFILE.instruments, "buff");
       addEvent({
         type: "buff",
         at: castStart,
         kind: "distortion",
-        stacks: 1,
-        duration: 2,
+        stacks: Number(distortion?.stacks || 1),
+        duration: Number(distortion?.duration || 2),
         sourceSkill: skill.name,
       });
     }
 
-    if (traits.has(TRAIT.CALL_AND_RESPONSE) && spent === 3) {
-      const afterimageAt = at + 1.5;
+    if (
+      traits.has(TRAIT.CALL_AND_RESPONSE) &&
+      spent === profileValue(TRAIT.CALL_AND_RESPONSE, "threshold", 3)
+    ) {
+      const afterimageAt =
+        at + profileValue(TRAIT.CALL_AND_RESPONSE, "initialDelay", 1.5);
       instrumentAttack(skill, data, afterimageAt, "Afterimage", "summon");
       addTraitProc("Call and Response", afterimageAt, skill.name);
     }
@@ -633,14 +729,23 @@ export function createProfessionActionController({
       type: "marker",
       at,
       name: skill.name,
-      detail: `${data.instrument} playing for ${(5 + spent * 5).toFixed(0)}s`,
+      detail: `${data.instrument} playing for ${(
+        baseDuration +
+        spent * durationPerNote
+      ).toFixed(0)}s`,
     });
 
     if (traits.has(TRAIT.ALTERED_CHORD) && spent > 0) {
       const crescendo = byId(ID.CRESCENDO);
       const ready = crescendo ? state.cooldowns.get(crescendo.id) : undefined;
       if (crescendo && ready) {
-        state.cooldowns.set(crescendo.id, Math.max(at, ready - 2));
+        state.cooldowns.set(
+          crescendo.id,
+          Math.max(
+            at,
+            ready - profileValue(TRAIT.ALTERED_CHORD, "rechargeReduction", 2),
+          ),
+        );
       }
     }
   };
@@ -654,29 +759,40 @@ export function createProfessionActionController({
     const activeInstruments = Object.entries(
       troubadourState().instruments,
     ).filter(([, expiresAt]) => expiresAt > damageAt);
+    const strike = profileEffect(TROUBADOUR_PROFILE.crescendo, "strike");
     addDamage(skill, damageAt, {
       coefficient:
-        Number(skill.baseCoefficient || 0) *
+        Number(strike?.coefficient ?? 2.25) *
         (1 +
           activeInstruments.length *
-            Number(skill.instrumentDamageIncrease || 0)),
-      hits: 1,
+            profileValue(
+              TROUBADOUR_PROFILE.crescendo,
+              "damageIncreasePerStack",
+              0.25,
+            )),
+      hits: Number(strike?.hits ?? 1),
       source: "Player",
       weaponStrengthProfileId: "nonweapon.profession-mechanic",
     });
 
     if (traits.has(TRAIT.LIFE_OF_THE_PARTY)) {
-      for (const [kind, stacks, duration] of [
+      const effects = [
+        profileEffect(TRAIT.LIFE_OF_THE_PARTY, "boon", 2),
+        profileEffect(TRAIT.LIFE_OF_THE_PARTY, "boon", 3),
+        profileEffect(TRAIT.LIFE_OF_THE_PARTY, "boon", 4),
+      ];
+      for (const [index, [kind, stacks, duration]] of [
         ["quickness", 1, 8],
         ["might", 8, 15],
         ["fury", 1, 8],
-      ] as const) {
+      ].entries()) {
+        const effect = effects[index];
         addEvent({
           type: "buff",
           at: damageAt,
-          kind,
-          stacks,
-          duration,
+          kind: String(effect?.boon || kind),
+          stacks: Number(effect?.stacks || stacks),
+          duration: Number(effect?.duration || duration),
           skillName: skill.name,
           sourceSkill: skill.name,
           ...partyBoonRecipients(),
@@ -691,14 +807,18 @@ export function createProfessionActionController({
           at: damageAt + epsilon,
           kind: "altered-chord",
           stacks: 1,
-          duration: 10,
+          duration: profileValue(TRAIT.ALTERED_CHORD, "durationMultiplier", 10),
         });
         addTraitProc("Altered Chord", damageAt + epsilon, skill.name, "Lute");
       } else if (troubadourState().lastInstrument === "Flute") {
         addCondition(
           skill.name,
           damageAt,
-          { name: "Confusion", duration: 8, stacks: 5 },
+          conditionFromProfile(TRAIT.ALTERED_CHORD, {
+            name: "Confusion",
+            duration: 8,
+            stacks: 5,
+          }),
           "Player",
           "Altered Chord — Confusion",
         );
@@ -717,51 +837,40 @@ export function createProfessionActionController({
       }
     }
     if (traits.has(TRAIT.FORTISSIMO)) {
-      for (let index = 1; index <= 5; index += 1) {
-        queueResources(at + index, 1, activePrimaryWeapon(), "Fortissimo", {
-          traitId: TRAIT.FORTISSIMO,
-          traitName: "Fortissimo",
-        });
+      const applications = profileValue(TRAIT.FORTISSIMO, "maximumStacks", 5);
+      const interval = profileValue(TRAIT.FORTISSIMO, "pulseInterval", 1);
+      const resourceGain = profileValue(TRAIT.FORTISSIMO, "resourceGain", 1);
+      for (let index = 1; index <= applications; index += 1) {
+        queueResources(
+          at + index * interval,
+          resourceGain,
+          activePrimaryWeapon(),
+          "Fortissimo",
+          {
+            traitId: TRAIT.FORTISSIMO,
+            traitName: "Fortissimo",
+          },
+        );
       }
     }
   };
 
   const handleTale = (skill: MesmerSkill, at: number, castStart = at): void => {
-    const taleBoons = new Map<
-      number,
-      readonly {
-        readonly kind: string;
-        readonly duration: number;
-        readonly stacks: number;
-      }[]
-    >([
-      [
-        ID.TALE_OF_THE_HONORABLE_ROGUE,
-        [{ kind: "aegis", duration: 4, stacks: 1 }],
-      ],
-      [
-        ID.TALE_OF_THE_SOULKEEPER,
-        [
-          { kind: "might", duration: 15, stacks: 10 },
-          { kind: "fury", duration: 10, stacks: 1 },
-          { kind: "quickness", duration: 4, stacks: 1 },
-        ],
-      ],
-      [
-        ID.TALE_OF_THE_VALIANT_MARSHAL,
-        [
-          { kind: "stability", duration: 4, stacks: 5 },
-          { kind: "resistance", duration: 3, stacks: 1 },
-        ],
-      ],
-    ]);
-    for (const boon of taleBoons.get(skill.id) || []) {
+    const taleProfileId = new Map<number, string>([
+      [ID.TALE_OF_THE_HONORABLE_ROGUE, TROUBADOUR_PROFILE.honorableRogue],
+      [ID.TALE_OF_THE_SOULKEEPER, TROUBADOUR_PROFILE.soulkeeper],
+      [ID.TALE_OF_THE_VALIANT_MARSHAL, TROUBADOUR_PROFILE.valiantMarshal],
+    ]).get(skill.id);
+    const taleProfile = taleProfileId ? balanceProfile(taleProfileId) : null;
+    for (const boon of (taleProfile?.effects || []).filter(
+      (effect) => effect.type === "boon",
+    )) {
       addEvent({
         type: "buff",
         at,
-        kind: boon.kind,
-        stacks: boon.stacks,
-        duration: boon.duration,
+        kind: String(boon.boon || ""),
+        stacks: Number(boon.stacks || 1),
+        duration: Number(boon.duration || 0),
         skillName: skill.name,
         sourceSkill: skill.name,
         ...partyBoonRecipients(),
@@ -777,7 +886,7 @@ export function createProfessionActionController({
       requiredInstrument &&
       Number(troubadourState().instruments[requiredInstrument] || 0) > castStart
     ) {
-      const count = skill.id === ID.TALE_OF_THE_SOULKEEPER ? 2 : 1;
+      const count = Number(taleProfile?.resourceGain || 1);
       queueResources(at + epsilon, count, activePrimaryWeapon(), skill.name);
     }
     if (skill.id === ID.TALE_OF_THE_HONORABLE_ROGUE) {
@@ -789,12 +898,13 @@ export function createProfessionActionController({
       });
     }
     if (traits.has(TRAIT.RACONTEUR)) {
+      const protection = profileEffect(TRAIT.RACONTEUR, "boon");
       addEvent({
         type: "buff",
         at,
-        kind: "protection",
-        stacks: 1,
-        duration: 3,
+        kind: String(protection?.boon || "protection"),
+        stacks: Number(protection?.stacks || 1),
+        duration: Number(protection?.duration || 3),
         skillName: skill.name,
         sourceSkill: skill.name,
         ...partyBoonRecipients(),

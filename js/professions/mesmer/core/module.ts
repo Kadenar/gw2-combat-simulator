@@ -26,6 +26,7 @@ import {
   MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS,
 } from "./skills.js";
 import { mesmerCoreSkillHandlers } from "./handlers.js";
+import { MESMER_CORE_BALANCE_PROFILES } from "./profiles.js";
 import type { MesmerSchedulerContext } from "../types.js";
 
 export const mesmerCoreModule = defineNativeModule({
@@ -34,6 +35,7 @@ export const mesmerCoreModule = defineNativeModule({
     skillMechanics: MESMER_CORE_SKILL_MECHANICS,
     supplementalSkillMechanics: MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS,
     extraSkills: MESMER_CORE_EXTRA_SKILLS,
+    balanceProfiles: MESMER_CORE_BALANCE_PROFILES,
     handlers: mesmerCoreSkillHandlers,
   }),
   state: {

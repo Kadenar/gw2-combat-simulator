@@ -1,5 +1,6 @@
 import type {
   AmmoState,
+  BalanceProfile,
   CanonicalCatalog,
   CastCommand,
   ScheduledTask,
@@ -55,8 +56,10 @@ export interface MesmerApplicationBuild extends ProfessionApplicationBuild {
   initialResource: number;
 }
 
-export interface MesmerBuildAttributeRuleContext
-  extends Omit<Gw2BuildAttributeRuleContext, "build"> {
+export interface MesmerBuildAttributeRuleContext extends Omit<
+  Gw2BuildAttributeRuleContext,
+  "build"
+> {
   readonly build: MesmerBuild;
 }
 
@@ -190,7 +193,8 @@ export interface MesmerTroubadourState {
 }
 
 export interface MesmerProfessionState
-  extends MesmerCoreState,
+  extends
+    MesmerCoreState,
     MesmerChronomancerState,
     MesmerMirageState,
     MesmerVirtuosoState,
@@ -343,8 +347,6 @@ export interface MesmerSkill extends Skill {
   readonly blade?: boolean;
   readonly pulseCount?: number;
   readonly boonlessCoefficient?: number;
-  readonly baseCoefficient?: number;
-  readonly instrumentDamageIncrease?: number;
   readonly applyConditionsOnInterrupt?: boolean;
   readonly armedAtStart?: boolean;
   readonly flipDelay?: number;
@@ -399,6 +401,7 @@ export interface MesmerRuntime {
   traitDamage: Record<string, MesmerTraitDamage>;
   shatters: Record<number, MesmerShatter>;
   instruments: Record<number, MesmerInstrument>;
+  balanceProfile: (id: SkillId) => BalanceProfile | undefined;
   controlSkills: Set<number>;
   blindSkills: Set<number>;
   aristocracySkills: Set<number>;
@@ -437,8 +440,7 @@ export interface MesmerContinuumController {
 
 export type MesmerCatalog = CanonicalCatalog<MesmerSkill>;
 
-export interface MesmerSchedulerPolicy
-  extends SchedulerPolicy<MesmerRuntimeState> {
+export interface MesmerSchedulerPolicy extends SchedulerPolicy<MesmerRuntimeState> {
   critical(
     context: SchedulerContext<MesmerRuntimeState>,
     event: SimulationEvent,
@@ -655,8 +657,7 @@ export type MesmerRefreshAmmo = (
 ) => AmmoState | null;
 
 export type MesmerState =
-  | SchedulerState<MesmerRuntimeState>
-  | Pick<MesmerProfessionState, "clones">;
+  SchedulerState<MesmerRuntimeState> | Pick<MesmerProfessionState, "clones">;
 
 export interface MesmerProjectedFlip {
   readonly availableAt: number;
@@ -751,8 +752,7 @@ export interface MesmerCloneAttackBase {
 }
 
 export interface MesmerDirectCloneAttack
-  extends MesmerCloneAttackBase,
-    MesmerCloneAttackStep {
+  extends MesmerCloneAttackBase, MesmerCloneAttackStep {
   readonly sequence?: undefined;
 }
 
@@ -764,8 +764,7 @@ export interface MesmerSequencedCloneAttack extends MesmerCloneAttackBase {
 }
 
 export type MesmerCloneAttack =
-  | MesmerDirectCloneAttack
-  | MesmerSequencedCloneAttack;
+  MesmerDirectCloneAttack | MesmerSequencedCloneAttack;
 
 export interface MesmerAmbushStrike {
   readonly coefficient: number;
@@ -776,6 +775,7 @@ export interface MesmerAmbushStrike {
 }
 
 export interface MesmerAmbushAttack {
+  readonly balanceProfileId?: SkillId;
   readonly id: number;
   readonly name: string;
   readonly icon: string;
@@ -824,6 +824,7 @@ export interface MesmerPhantasmAttackTiming {
 }
 
 export interface MesmerTraitDamage {
+  readonly balanceProfileId?: SkillId;
   readonly coefficient: number;
   readonly hits: number;
   readonly intervalMs?: number;
@@ -834,6 +835,7 @@ export interface MesmerTraitDamage {
 }
 
 export interface MesmerShatter {
+  readonly balanceProfileId?: SkillId;
   readonly slot: number;
   readonly kind: string;
   readonly coefficients: readonly number[];
@@ -844,6 +846,7 @@ export interface MesmerShatter {
 }
 
 export interface MesmerInstrument {
+  readonly balanceProfileId?: SkillId;
   readonly slot: number;
   readonly instrument: string;
   readonly coefficient: number;

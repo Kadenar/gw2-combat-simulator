@@ -12,6 +12,8 @@ import type {
 
 export const CONDUIT_BALANCE_PROFILE_IDS = Object.freeze({
   affinity: "revenant.conduit.affinity",
+  beguilingHazeMainCastExtension:
+    "revenant.conduit.beguiling-haze-main-cast-extension",
   beguilingHazeFollowUp: "revenant.conduit.beguiling-haze-follow-up",
   lingeringDetermination: "revenant.conduit.lingering-determination",
   enhancedEmbodiment: "revenant.conduit.enhanced-embodiment",
@@ -545,13 +547,19 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] =
       effects: [],
     },
     {
+      id: CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension,
+      name: "Beguiling Haze (Main Cast Extension)",
+      profileKind: "skill-variant",
+      castTimeMs: 400,
+      quicknessCastMultiplier: 0.9,
+      effects: [],
+    },
+    {
       id: CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp,
       name: "Beguiling Haze (Follow-Up)",
       profileKind: "skill-variant",
       castTimeMs: 250,
       quicknessCastMultiplier: 0.96,
-      mainCastExtensionMs: 400,
-      mainQuicknessCastMultiplier: 0.9,
       maximumStacks: 2,
       effects: [
         {

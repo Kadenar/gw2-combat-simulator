@@ -38,7 +38,7 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 2,
     energyCost: 0,
     upkeepCost: 5,
-    upkeepPulseInterval: 1,
+    pulseInterval: 1,
     effects: [],
     legendId: "LegendaryAlliance",
     allianceSide: "kurzick",

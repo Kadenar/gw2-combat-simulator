@@ -12,6 +12,7 @@ import type {
   MesmerAddEvent,
   MesmerAddTraitProc,
   MesmerInstrument,
+  MesmerRuntime,
   MesmerRuntimeState,
   MesmerShatter,
   MesmerSkill,
@@ -47,6 +48,7 @@ interface SkillSpecialEffectControllerOptions {
   readonly traitDamage: Readonly<Record<string, MesmerTraitDamage>>;
   readonly shatters: Readonly<Record<number, MesmerShatter>>;
   readonly instruments: Readonly<Record<number, MesmerInstrument>>;
+  readonly balanceProfile: MesmerRuntime["balanceProfile"];
 }
 
 export function createSkillSpecialEffectController({
@@ -60,25 +62,19 @@ export function createSkillSpecialEffectController({
   traitDamage,
   shatters,
   instruments,
+  balanceProfile,
 }: SkillSpecialEffectControllerOptions): MesmerSkillSpecialEffectController {
-  const consumeClarity = (
-    skill: MesmerSkill,
-    castStart: number,
-  ): boolean => {
+  const consumeClarity = (skill: MesmerSkill, castStart: number): boolean => {
     const consumed =
-      CLARITY_CONSUMERS.has(skill.id)
-      && professionCoreState(state).clarityUntil > castStart;
+      CLARITY_CONSUMERS.has(skill.id) &&
+      professionCoreState(state).clarityUntil > castStart;
     if (CLARITY_CONSUMERS.has(skill.id)) {
       professionCoreState(state).clarityUntil = 0;
     }
     return consumed;
   };
 
-  const apply = (
-    skill: MesmerSkill,
-    at: number,
-    castStart = at,
-  ): void => {
+  const apply = (skill: MesmerSkill, at: number, castStart = at): void => {
     if (skill.id === ID.AXES_OF_SYMMETRY) {
       const axeClones = professionCoreState(state).clones.filter(
         (clone) =>
@@ -117,7 +113,12 @@ export function createSkillSpecialEffectController({
       }
     }
     if (skill.id === ID.MIND_THE_GAP) {
-      professionCoreState(state).clarityUntil = at + CLARITY_DURATION;
+      professionCoreState(state).clarityUntil =
+        at +
+        Number(
+          balanceProfile("mesmer.core.clarity")?.durationMultiplier ||
+            CLARITY_DURATION,
+        );
       addEvent({
         type: "proc",
         procType: "skill",
@@ -144,8 +145,8 @@ export function createSkillSpecialEffectController({
     if (skill.id === ID.SIGNET_OF_ILLUSIONS) {
       for (const target of allSkills.filter(
         (candidate) =>
-          (shatters[candidate.id] || instruments[candidate.id])
-          && !SIGNET_ILLUSIONS_RESET_EXCLUSIONS.has(candidate.id),
+          (shatters[candidate.id] || instruments[candidate.id]) &&
+          !SIGNET_ILLUSIONS_RESET_EXCLUSIONS.has(candidate.id),
       )) {
         const ammo = state.ammo.get(target.id);
         if (ammo) {

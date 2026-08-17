@@ -14,6 +14,7 @@ import {
 } from "./skills.js";
 import { chronomancerSkillHandlers } from "./handlers.js";
 import { chronomancerEventHandlers } from "./resolver.js";
+import { CHRONOMANCER_BALANCE_PROFILES } from "./profiles.js";
 
 export const chronomancerModule = defineNativeModule({
   id: "Chronomancer",
@@ -22,6 +23,7 @@ export const chronomancerModule = defineNativeModule({
     supplementalSkillMechanics:
       MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
     extraSkills: MESMER_CHRONOMANCER_EXTRA_SKILLS,
+    balanceProfiles: CHRONOMANCER_BALANCE_PROFILES,
     handlers: chronomancerSkillHandlers,
   }),
   state: {

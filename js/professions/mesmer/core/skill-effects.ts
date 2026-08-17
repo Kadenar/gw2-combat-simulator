@@ -2,9 +2,7 @@ import type { SchedulerState } from "../../../platform/engine/types.js";
 import { createIllusionResourceController } from "./illusion-resources.js";
 import { createPhantasmEffectController } from "./phantasms.js";
 import { createSkillDamageController } from "./skill-damage.js";
-import {
-  createSkillSpecialEffectController,
-} from "./skill-special-effects.js";
+import { createSkillSpecialEffectController } from "./skill-special-effects.js";
 import type {
   MesmerActivePrimaryWeapon,
   MesmerAddCondition,
@@ -19,6 +17,7 @@ import type {
   MesmerPhantasmAttackTiming,
   MesmerQueueResources,
   MesmerResourceDefinition,
+  MesmerRuntime,
   MesmerRuntimeState,
   MesmerShatter,
   MesmerSkill,
@@ -47,6 +46,7 @@ interface SkillEffectControllerOptions {
   readonly traitDamage: Readonly<Record<string, MesmerTraitDamage>>;
   readonly shatters?: Readonly<Record<number, MesmerShatter>>;
   readonly instruments?: Readonly<Record<number, MesmerInstrument>>;
+  readonly balanceProfile: MesmerRuntime["balanceProfile"];
 }
 
 /**
@@ -73,6 +73,7 @@ export function createSkillEffectController({
   traitDamage,
   shatters = {},
   instruments = {},
+  balanceProfile,
 }: SkillEffectControllerOptions): MesmerSkillEffectController {
   const phantasms = createPhantasmEffectController({
     traits,
@@ -86,6 +87,7 @@ export function createSkillEffectController({
     addCondition,
     addDamage,
     traitDamage,
+    balanceProfile,
   });
   const illusionResources = createIllusionResourceController({
     resourceDefinition,
@@ -117,6 +119,7 @@ export function createSkillEffectController({
     traitDamage,
     shatters,
     instruments,
+    balanceProfile,
   });
 
   const schedule = (
@@ -130,13 +133,14 @@ export function createSkillEffectController({
   ): boolean => {
     const clarityConsumed = specialEffects.consumeClarity(skill, castStart);
     const pulseCount = Math.max(1, Math.trunc(Number(skill.pulseCount || 1)));
-    const pulseTimes = pulseCount > 1
-      ? Array.from(
-          { length: pulseCount },
-          (_, index) =>
-            castStart + ((at - castStart) * (index + 1)) / pulseCount,
-        )
-      : [];
+    const pulseTimes =
+      pulseCount > 1
+        ? Array.from(
+            { length: pulseCount },
+            (_, index) =>
+              castStart + ((at - castStart) * (index + 1)) / pulseCount,
+          )
+        : [];
     const cloneAtMaximum = illusionResources.cloneAtMaximum(skill);
     const phantasmExecutions = phantasms.prepare(
       skill,
@@ -149,11 +153,9 @@ export function createSkillEffectController({
       ? skill.maxCloneEffects || []
       : (skill.effects || []).filter(
           (effect): effect is MesmerConditionEffect =>
-            effect.type === "condition"
-            && (
-              effect.requiredTrait == null
-              || traits.has(Number(effect.requiredTrait))
-            ),
+            effect.type === "condition" &&
+            (effect.requiredTrait == null ||
+              traits.has(Number(effect.requiredTrait))),
         );
     const damageResult = damage.schedule(
       skill,

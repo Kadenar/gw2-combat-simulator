@@ -294,7 +294,7 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 3,
     energyCost: 5,
     upkeepCost: 5,
-    upkeepPulseInterval: 1,
+    pulseInterval: 1,
     manualReleaseCooldown: 3,
     flipSkillId: ID.DISMISS_LIEUTENANT_SOULCLEAVE,
     effects: [],

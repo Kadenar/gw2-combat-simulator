@@ -10,6 +10,7 @@ import {
 } from "./skills.js";
 import { troubadourSkillHandlers } from "./handlers.js";
 import { troubadourEventHandlers } from "./resolver.js";
+import { TROUBADOUR_BALANCE_PROFILES } from "./profiles.js";
 
 export const troubadourModule = defineNativeModule({
   id: "Troubadour",
@@ -17,6 +18,7 @@ export const troubadourModule = defineNativeModule({
     skillMechanics: MESMER_TROUBADOUR_SKILL_MECHANICS,
     supplementalSkillMechanics: MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS,
     extraSkills: MESMER_TROUBADOUR_EXTRA_SKILLS,
+    balanceProfiles: TROUBADOUR_BALANCE_PROFILES,
     handlers: troubadourSkillHandlers,
   }),
   state: {

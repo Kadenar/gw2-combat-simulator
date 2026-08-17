@@ -296,6 +296,14 @@ test("Ranger modules expose isolated balance-profile authoring", () => {
     ),
   );
   assert.deepEqual(opaqueModifierRules, []);
+  assert.deepEqual(
+    modules
+      .get("Core")
+      .modifierRules.find(
+        (rule) => rule.id === "ranger.consuming-bite-condition-count",
+      ).parameters,
+    { maximumConditions: 5, coefficientPerCondition: 0.025 },
+  );
 
   const preview = applyRangerPatch({
     skills: {

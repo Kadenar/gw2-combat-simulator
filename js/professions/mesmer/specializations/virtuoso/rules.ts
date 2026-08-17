@@ -9,6 +9,7 @@ import type {
   MesmerSchedulerContext,
   MesmerSchedulerTask,
 } from "../../types.js";
+import { mesmerBalanceValue } from "../../core/profiles.js";
 
 export const virtuosoModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -31,8 +32,11 @@ export const virtuosoModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "mesmer.deadly-blades",
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: "damage-additive",
-    amount: (_context, target) =>
-      target === MODIFIER_TARGET.CONDITION_DAMAGE ? 0.1 : 0.05,
+    parameters: { strikeBonus: 0.05, conditionBonus: 0.1 },
+    amount: (_context, target, parameters) =>
+      target === MODIFIER_TARGET.CONDITION_DAMAGE
+        ? parameters.conditionBonus
+        : parameters.strikeBonus,
     when: (context) =>
       !illusionSource(context) && timedActive(context, "deadly-blades"),
   },
@@ -92,7 +96,7 @@ export function handleInfiniteForgeTask(
   const runtime = mesmerRuntimeFor(context);
   runtime.resources.gainResources(
     task.at,
-    1,
+    mesmerBalanceValue(context, TRAIT.INFINITE_FORGE, "playerStacks", 1),
     runtime.activePrimaryWeapon(),
     "Infinite Forge",
     {
@@ -102,7 +106,9 @@ export function handleInfiniteForgeTask(
   );
   context.tasks.schedule({
     type: "mesmer.infinite-forge",
-    at: task.at + 3,
+    at:
+      task.at +
+      mesmerBalanceValue(context, TRAIT.INFINITE_FORGE, "pulseInterval", 3),
     priority: -20,
     ownerId: "mesmer.infinite-forge",
     payload: {},

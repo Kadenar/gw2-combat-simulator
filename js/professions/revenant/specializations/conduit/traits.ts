@@ -35,24 +35,31 @@ export function modifyConduitCastDuration(
 ): number {
   if (context.skill?.handlerId !== "revenant.beguiling-haze") return duration;
   const quickness = context.hasBuff?.("quickness", context.start);
-  const profile = context.catalog.balanceProfilesById.get(
+  const followUpProfile = context.catalog.balanceProfilesById.get(
     CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp,
   );
-  if (!profile) throw new Error("Missing Beguiling Haze follow-up profile.");
+  const mainExtensionProfile = context.catalog.balanceProfilesById.get(
+    CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension,
+  );
+  if (!followUpProfile || !mainExtensionProfile) {
+    throw new Error("Missing Beguiling Haze cast-duration profiles.");
+  }
   // Follow-up charges use a near-instant fixed cast time (0.25 s / 0.24 s with quickness).
   // The main cast appends an extra 0.4 s wind-up on top of the base skill duration.
   if (Number(conduitState.from(context).beguilingHazeCharges || 0) > 0) {
-    const followUpDuration = Number(profile.castTimeMs || 0) / 1000;
+    const followUpDuration = Number(followUpProfile.castTimeMs || 0) / 1000;
     return (
       followUpDuration *
-      (quickness ? Number(profile.quicknessCastMultiplier || 1) : 1)
+      (quickness ? Number(followUpProfile.quicknessCastMultiplier || 1) : 1)
     );
   }
-  const mainExtension = Number(profile.mainCastExtensionMs || 0) / 1000;
+  const mainExtension = Number(mainExtensionProfile.castTimeMs || 0) / 1000;
   return (
     duration +
     mainExtension *
-      (quickness ? Number(profile.mainQuicknessCastMultiplier || 1) : 1)
+      (quickness
+        ? Number(mainExtensionProfile.quicknessCastMultiplier || 1)
+        : 1)
   );
 }
 

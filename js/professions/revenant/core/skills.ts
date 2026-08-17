@@ -40,7 +40,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 0,
     energyCost: 5,
     upkeepCost: 6,
-    upkeepPulseInterval: 1 / 3,
+    pulseInterval: 1 / 3,
     effects: [
       {
         type: "strike",
@@ -187,7 +187,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 5,
     energyCost: 5,
     upkeepCost: 8,
-    upkeepPulseInterval: 1,
+    pulseInterval: 1,
     effects: [],
     legendId: "LegendaryCentaur",
   },
@@ -314,7 +314,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     upkeepCost: 6,
     manualReleaseCooldown: 1,
     starvationCooldown: 4,
-    upkeepPulseInterval: 1,
+    pulseInterval: 1,
     effects: [
       {
         type: "strike",
@@ -842,7 +842,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 3,
     energyCost: 5,
     upkeepCost: 6,
-    upkeepPulseInterval: 1,
+    pulseInterval: 1,
     effects: [
       {
         type: "strike",
@@ -1625,7 +1625,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 5,
     energyCost: 5,
     upkeepCost: 8,
-    upkeepPulseInterval: 1,
+    pulseInterval: 1,
     effects: [],
     legendId: "LegendaryCentaur",
   },
@@ -2452,7 +2452,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 0,
     energyCost: 5,
     upkeepCost: 6,
-    upkeepPulseInterval: 1 / 3,
+    pulseInterval: 1 / 3,
     effects: [
       {
         type: "strike",

@@ -15,13 +15,22 @@ import {
   MESMER_MIRAGE_TRAIT_DAMAGE,
 } from "./mechanics.js";
 import type { MesmerSchedulerContext } from "../../types.js";
+import { MIRAGE_AMBUSH_PROFILE_IDS } from "./profiles.js";
+import { mesmerProfiledAmbush } from "../../core/profiles.js";
 
-export function initializeMirageRuntime(
-  context: MesmerSchedulerContext,
-): void {
+export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
   const runtime = mesmerRuntimeFor(context);
   applyMesmerRuntimeManifest(runtime, {
-    ambushAttacks: MESMER_MIRAGE_AMBUSH_ATTACKS,
+    ambushAttacks: Object.fromEntries(
+      Object.entries(MESMER_MIRAGE_AMBUSH_ATTACKS).map(([weapon, attack]) => [
+        weapon,
+        mesmerProfiledAmbush(
+          context,
+          attack,
+          MIRAGE_AMBUSH_PROFILE_IDS[weapon],
+        ),
+      ]),
+    ),
     shatters: MESMER_MIRAGE_SHATTERS,
     instruments: MESMER_MIRAGE_INSTRUMENTS,
     traitDamage: MESMER_MIRAGE_TRAIT_DAMAGE,
@@ -45,8 +54,7 @@ export function initializeMirageRuntime(
     activePrimaryWeapon: runtime.activePrimaryWeapon,
     queueResources: runtime.resources.queueResources,
     currentResource: runtime.actions.currentResource,
+    balanceProfile: runtime.balanceProfile,
   });
-  runtime.resources.setAmbushCreatedClones(
-    runtime.mirage.executeCloneAmbushes,
-  );
+  runtime.resources.setAmbushCreatedClones(runtime.mirage.executeCloneAmbushes);
 }

@@ -459,14 +459,14 @@ test("Herald facets expose recurring pulse fields to patch authoring", () => {
         "upkeepCost",
         "upkeepPulse.duration",
         "upkeepPulse.stacks",
-        "upkeepPulseInterval",
+        "pulseInterval",
       ].map((field) => [field, strength.patchableFields[field]]),
     ),
     {
       upkeepCost: 2,
       "upkeepPulse.duration": 12,
       "upkeepPulse.stacks": 1,
-      upkeepPulseInterval: 3,
+      pulseInterval: 3,
     },
   );
 
@@ -477,7 +477,7 @@ test("Herald facets expose recurring pulse fields to patch authoring", () => {
           upkeepCost: { from: 2, to: 3 },
           "upkeepPulse.duration": { from: 12, to: 15 },
           "upkeepPulse.stacks": { from: 1, to: 2 },
-          upkeepPulseInterval: { from: 3, to: 2 },
+          pulseInterval: { from: 3, to: 2 },
         },
       },
     },
@@ -489,7 +489,58 @@ test("Herald facets expose recurring pulse fields to patch authoring", () => {
     duration: 15,
     stacks: 2,
   });
-  assert.equal(patchedStrength.upkeepPulseInterval, 2);
+  assert.equal(patchedStrength.pulseInterval, 2);
+});
+
+test("Beguiling Haze variants share the common cast timing fields", () => {
+  const conduit = revenantProfession.patchAuthoring.modules.find(
+    (module) => module.id === "Conduit",
+  );
+  const profile = (id) =>
+    conduit.balanceProfiles.find((entry) => entry.id === id);
+  const mainExtension = profile(
+    CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension,
+  );
+  const followUp = profile(CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
+
+  assert.equal(mainExtension.patchableFields.castTimeMs, 400);
+  assert.equal(mainExtension.patchableFields.quicknessCastMultiplier, 0.9);
+  assert.equal(followUp.patchableFields.castTimeMs, 250);
+  assert.equal(followUp.patchableFields.quicknessCastMultiplier, 0.96);
+  assert.equal(Object.hasOwn(followUp.profile, "mainCastExtensionMs"), false);
+  assert.equal(
+    Object.hasOwn(followUp.profile, "mainQuicknessCastMultiplier"),
+    false,
+  );
+
+  const preview = applyRevenantPatch({
+    balanceProfiles: {
+      [CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension]: {
+        fields: {
+          castTimeMs: { from: 400, to: 450 },
+          quicknessCastMultiplier: { from: 0.9, to: 0.85 },
+        },
+      },
+      [CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp]: {
+        fields: {
+          castTimeMs: { from: 250, to: 200 },
+          quicknessCastMultiplier: { from: 0.96, to: 0.9 },
+        },
+      },
+    },
+  });
+  assert.equal(
+    preview.balanceProfilesById.get(
+      CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension,
+    ).castTimeMs,
+    450,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(
+      CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp,
+    ).quicknessCastMultiplier,
+    0.9,
+  );
 });
 
 test("Herald invocation effects use patch-authorable skill declarations", () => {
