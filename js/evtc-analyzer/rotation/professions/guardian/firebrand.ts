@@ -62,6 +62,19 @@ const FIREBRAND_TOME_ACTION_IDS = new Set<number>([
   TOME_OF_RESOLVE.skillId,
   TOME_OF_COURAGE.skillId,
 ]);
+const FIREBRAND_TOME_IDS = new Set<number>(FIREBRAND_TOME_ACTION_IDS);
+const TWO_PAGE_CHAPTER_IDS = new Set<number>([42925, 44455]);
+const FINAL_MANTRA_CHARGE_IDS = new Set<number>([41328, 42924, 42960]);
+const ARCHIVIST_OF_WHISPERS = 2086;
+const WEIGHTY_TERMS = 2063;
+const LOREMASTER = 2159;
+
+interface FirebrandTomeResourceEvent {
+  readonly action: EvtcRecordedRotationAction;
+  readonly at: number;
+  readonly kind: "open" | "page" | "page-gain" | "stow";
+  readonly tomeId: number | null;
+}
 
 export function isFirebrandTomeActionId(skillId: number): boolean {
   return FIREBRAND_TOME_ACTION_IDS.has(skillId);
@@ -78,6 +91,169 @@ function tomeIdentityBetween(
     if (identity) return identity;
   }
   return null;
+}
+
+function actionSkillId(action: EvtcRecordedRotationAction): number {
+  return Number(action.canonicalSkillId ?? action.rawSkillId);
+}
+
+function tomePageCost(
+  context: EvtcProfessionReconstructionContext,
+  action: EvtcRecordedRotationAction,
+): number {
+  const skillId = actionSkillId(action);
+  const skill = context.catalog?.skills.find(
+    (candidate) => Number(candidate.id) === skillId,
+  );
+  const configured = Number(skill?.pageCost);
+  return Number.isFinite(configured) && configured > 0
+    ? configured
+    : TWO_PAGE_CHAPTER_IDS.has(skillId)
+      ? 2
+      : 1;
+}
+
+function firebrandResourceEvents(
+  context: EvtcProfessionReconstructionContext,
+  actions: readonly EvtcRecordedRotationAction[],
+): FirebrandTomeResourceEvent[] {
+  return actions
+    .flatMap((action): FirebrandTomeResourceEvent[] => {
+      const skillId = actionSkillId(action);
+      if (FIREBRAND_TOME_IDS.has(skillId)) {
+        return [{ action, at: action.start, kind: "open", tomeId: skillId }];
+      }
+      const chapterTome = FIREBRAND_TOME_CHAPTERS.get(skillId);
+      if (chapterTome && action.status !== "interrupted") {
+        return [
+          {
+            action,
+            at: action.end,
+            kind: "page",
+            tomeId: chapterTome.skillId,
+          },
+        ];
+      }
+      if (skillId === STOW_TOME.skillId) {
+        return [{ action, at: action.start, kind: "stow", tomeId: null }];
+      }
+      const skill = context.catalog?.skills.find(
+        (candidate) => Number(candidate.id) === skillId,
+      );
+      if (
+        FINAL_MANTRA_CHARGE_IDS.has(skillId) ||
+        /^Final Charge\./.test(String(skill?.description || ""))
+      ) {
+        return [{ action, at: action.end, kind: "page-gain", tomeId: null }];
+      }
+      return [];
+    })
+    .sort(
+      (left, right) =>
+        left.at - right.at ||
+        Number(left.kind === "stow") - Number(right.kind === "stow") ||
+        left.action.eventIndex - right.action.eventIndex,
+    );
+}
+
+function omitAutomaticTomeStows(
+  context: EvtcProfessionReconstructionContext,
+  actions: readonly EvtcRecordedRotationAction[],
+): EvtcRecordedRotationAction[] {
+  const config = context.professionConfig || {};
+  const selectedTraits = new Set(
+    (Array.isArray(config.selectedTraitIds) ? config.selectedTraitIds : []).map(
+      Number,
+    ),
+  );
+  const maximumPages = selectedTraits.has(ARCHIVIST_OF_WHISPERS) ? 8 : 5;
+  const configuredInitialPages = Number(
+    config.initialTomePages ?? maximumPages,
+  );
+  const normalizedInitialPages = Number.isFinite(configuredInitialPages)
+    ? configuredInitialPages
+    : maximumPages;
+  const initialPages =
+    selectedTraits.has(ARCHIVIST_OF_WHISPERS) && normalizedInitialPages === 5
+      ? maximumPages
+      : normalizedInitialPages;
+  let pages = Math.max(0, Math.min(maximumPages, initialPages));
+  const pageInterval = selectedTraits.has(LOREMASTER) ? 5_000 : 8_000;
+  const timelineOriginMs = Math.min(
+    context.timelineOriginMs,
+    ...actions.map((action) => action.start),
+  );
+  let nextPageAt =
+    pages < maximumPages
+      ? timelineOriginMs + pageInterval
+      : Number.POSITIVE_INFINITY;
+  let activeTomeId: number | null = null;
+  let swiftScholarTomeId: number | null = null;
+  let swiftScholarCount = 0;
+  let automaticStowPending = false;
+  const omitted = new Set<EvtcRecordedRotationAction>();
+
+  const regeneratePages = (at: number): void => {
+    while (pages < maximumPages && nextPageAt <= at) {
+      pages += 1;
+      nextPageAt =
+        pages >= maximumPages
+          ? Number.POSITIVE_INFINITY
+          : nextPageAt + pageInterval;
+    }
+  };
+
+  // Replay page costs, regeneration, and trait gains at EVTC timestamps so only
+  // involuntary weapon-set exits become implicit; genuine stows remain actions.
+  for (const event of firebrandResourceEvents(context, actions)) {
+    regeneratePages(event.at);
+    if (event.kind === "open") {
+      activeTomeId = event.tomeId;
+      automaticStowPending = false;
+      if (swiftScholarTomeId !== event.tomeId) {
+        swiftScholarTomeId = event.tomeId;
+        swiftScholarCount = 0;
+      }
+      continue;
+    }
+    if (event.kind === "page") {
+      if (pages >= maximumPages) nextPageAt = event.at + pageInterval;
+      pages = Math.max(0, pages - tomePageCost(context, event.action));
+      if (swiftScholarTomeId !== event.tomeId) {
+        swiftScholarTomeId = event.tomeId;
+        swiftScholarCount = 0;
+      }
+      swiftScholarCount += 1;
+      if (swiftScholarCount >= 3) {
+        swiftScholarCount = 0;
+        pages = Math.min(maximumPages, pages + 1);
+        if (pages >= maximumPages) nextPageAt = Number.POSITIVE_INFINITY;
+      }
+      if (pages === 0) {
+        activeTomeId = null;
+        automaticStowPending = true;
+      }
+      continue;
+    }
+    if (event.kind === "page-gain") {
+      if (selectedTraits.has(WEIGHTY_TERMS)) {
+        pages = Math.min(maximumPages, pages + 2);
+        if (pages >= maximumPages) nextPageAt = Number.POSITIVE_INFINITY;
+      }
+      continue;
+    }
+    if (automaticStowPending && activeTomeId === null) {
+      omitted.add(event.action);
+      automaticStowPending = false;
+      continue;
+    }
+    activeTomeId = null;
+    swiftScholarTomeId = null;
+    swiftScholarCount = 0;
+    automaticStowPending = false;
+  }
+
+  return actions.filter((action) => !omitted.has(action));
 }
 
 export function normalizeFirebrandWeaponTransitions(
@@ -121,7 +297,7 @@ export function normalizeFirebrandWeaponTransitions(
     ]),
   );
 
-  return actions.flatMap((action) => {
+  const normalized = actions.flatMap((action) => {
     if (action.rawName !== SWAP_WEAPONS.name) return [action];
     const event = context.log.events[action.eventIndex];
     if (!event) return [];
@@ -155,6 +331,7 @@ export function normalizeFirebrandWeaponTransitions(
     }
     return [];
   });
+  return normalized;
 }
 
 function inferFirebrandDamageInstants(
@@ -237,9 +414,9 @@ export function reconstructFirebrandActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[],
 ): EvtcRecordedRotationAction[] {
-  return [
+  return omitAutomaticTomeStows(context, [
     ...actions,
     ...inferFirebrandDamageInstants(context),
     ...inferFirebrandHealMantras(context),
-  ];
+  ]);
 }

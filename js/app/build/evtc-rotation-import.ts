@@ -62,6 +62,15 @@ export async function readEvtcRotationFile(
     );
   }
   const selected = matchingPlayers[0];
+  // Forward active build mechanics when the full app adapter is available;
+  // lightweight parser consumers can still use the build's resource default.
+  const professionConfig = app.adapter.simulationConfig?.(app) || {
+    initialTomePages: (
+      app.build as ProfessionAppState["build"] & {
+        readonly initialTomePages?: number;
+      }
+    ).initialTomePages,
+  };
   const result = rotationModule.reconstructEvtcRotation(
     log,
     app.activeCatalog,
@@ -72,6 +81,7 @@ export async function readEvtcRotationFile(
         ...((app.build as { selectedMorphSkillIds?: readonly number[] })
           .selectedMorphSkillIds || []),
       ],
+      professionConfig,
     },
   );
   return {

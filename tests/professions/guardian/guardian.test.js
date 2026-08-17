@@ -3,7 +3,10 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { loadProfession } from "../../../js/app/profession/registry.js";
-import { timelineWeaponRows } from "../../../js/app/rotation/timeline-model.js";
+import {
+  automaticTomeStowTimelineMarkers,
+  timelineWeaponRows,
+} from "../../../js/app/rotation/timeline-model.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import {
   applyBalanceProfilePatch,
@@ -2404,6 +2407,55 @@ test("Firebrand page exhaustion stows the tome and pages regenerate", () => {
   assert.equal(traited.endState.profession.maximumTomePages, 8);
   assert.equal(traited.endState.profession.tomePages, 8);
   assert.equal(traited.endState.profession.tomePageInterval, 5);
+});
+
+test("Firebrand page exhaustion injects a timeline stow and closes its lane", () => {
+  const rotation = [
+    "Tome of Resolve",
+    "Epilogue: Eternal Oasis",
+    "True Strike",
+  ];
+  const firebrandConfig = {
+    ...config,
+    specialization: "Firebrand",
+    primaryWeapon: "Mace",
+    initialTomePages: 2,
+  };
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation,
+    config: firebrandConfig,
+  });
+
+  assert.deepEqual(automaticTomeStowTimelineMarkers(result, rotation.length), [
+    {
+      insertionIndex: 2,
+      skill: "Stow Tome",
+      start: 200,
+      detail: "page exhaustion",
+    },
+  ]);
+  const transition = guardianProfession.ui.timelineWeaponLineTransition;
+  const rows = timelineWeaponRows(rotation, {
+    weaponLineEndIndexes: new Set(
+      automaticTomeStowTimelineMarkers(result, rotation.length).map(
+        (marker) => marker.insertionIndex,
+      ),
+    ),
+    weaponLineTransition(entry, current) {
+      const name = typeof entry === "string" ? entry : entry.name;
+      return transition({
+        entry: { name },
+        skill: guardianCatalog.skillsByName.get(name),
+        specialization: "Firebrand",
+        ...current,
+      });
+    },
+  });
+  assert.deepEqual(
+    rows.map((row) => row.weaponLine),
+    [null, "Tome of Resolve", null],
+  );
 });
 
 test("Firebrand tome page cost waits for a regenerating page", () => {

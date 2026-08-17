@@ -146,9 +146,11 @@ export interface TimelineWeaponRowOptions {
   readonly startingWeaponSet?: number;
   readonly startingWeaponLine?: string | null;
   readonly weaponSwapChangesSet?: boolean;
+  readonly weaponLineEndIndexes?: ReadonlySet<number>;
   readonly weaponLineTransition?: (
     entry: LegacyRotationItem,
     current: { weaponSet: number; weaponLine: string | null },
+    index: number,
   ) => string | null | undefined;
 }
 
@@ -158,6 +160,7 @@ export function timelineWeaponRows(
     startingWeaponSet = 1,
     startingWeaponLine = null,
     weaponSwapChangesSet = true,
+    weaponLineEndIndexes = new Set<number>(),
     weaponLineTransition = () => undefined,
   }: TimelineWeaponRowOptions = {},
 ) {
@@ -176,8 +179,19 @@ export function timelineWeaponRows(
         WEAPON_SET_REFRESH_SKILLS.has(name)
       );
     },
-    weaponLineTransition(entry, current) {
-      return weaponLineTransition(entry as LegacyRotationItem, current);
+    weaponLineTransition(entry, current, index) {
+      const authoredTransition = weaponLineTransition(
+        entry as LegacyRotationItem,
+        current,
+        index,
+      );
+      // Simulated automatic exits close a named lane after the matching
+      // authored entry without requiring a synthetic rotation command.
+      return authoredTransition !== undefined
+        ? authoredTransition
+        : current.weaponLine !== null && weaponLineEndIndexes.has(index + 1)
+          ? null
+          : undefined;
     },
   });
 }
@@ -194,6 +208,26 @@ export function continuumEndTimelineMarkers(
       event.name === "Continuum Shift" &&
       event.detail === "split expired",
   );
+}
+
+export function automaticTomeStowTimelineMarkers(
+  result: Gw2SimulationResult | null | undefined,
+  rotationLength = 0,
+) {
+  // Page exhaustion is emitted by the final chapter rather than as an
+  // authored Stow Tome cast; expose that state transition as a timeline item.
+  return eventTimelineMarkers(
+    result,
+    rotationLength,
+    (event) =>
+      event.type === "guardian.tome-page-used" &&
+      Number(event.pagesRemaining) === 0 &&
+      !event.activeTome,
+  ).map((marker) => ({
+    ...marker,
+    skill: "Stow Tome",
+    detail: "page exhaustion",
+  }));
 }
 
 export function targetHealthTimelineMarkers(

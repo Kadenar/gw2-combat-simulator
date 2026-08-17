@@ -508,6 +508,11 @@ test("Guardian and Mesmer rotations are paired with their build templates", asyn
       rotation: "Rotations/guardian/r-condition-firebrand-bench.json",
     },
     {
+      section: "Firebrand",
+      label: "Condition Quickness (Axe / Torch + Pistol / Pistol)",
+      rotation: "Rotations/guardian/r-condi-qfb-ritualists-bench.json",
+    },
+    {
       section: "Dragonhunter",
       label: "Power (Spear / Greatsword)",
       rotation:

@@ -436,6 +436,7 @@ test("reconstructs Firebrand tomes, mantras, Zealot's Flame, and damage instants
       : []),
   ];
   const fixture = guardianLog(62, skills, [
+    event({ time: 900, skillId: 42_924, value: 1_000 }),
     event({
       time: 1_000,
       target: 2n,
@@ -465,11 +466,40 @@ test("reconstructs Firebrand tomes, mantras, Zealot's Flame, and damage instants
   ]);
 
   const result = reconstructEvtcRotation(fixture, { skills });
+  const exhausted = reconstructEvtcRotation(
+    fixture,
+    { skills },
+    {
+      professionConfig: { initialTomePages: 1 },
+    },
+  );
+  const weightyTerms = reconstructEvtcRotation(
+    fixture,
+    { skills },
+    {
+      professionConfig: {
+        initialTomePages: 1,
+        selectedTraitIds: [2_063],
+      },
+    },
+  );
   const names = result.actions.map((action) => action.name);
 
   assert.deepEqual(result.warnings, []);
   assert.equal(names.filter((name) => name === "Tome of Justice").length, 1);
   assert.equal(names.filter((name) => name === "Stow Tome").length, 1);
+  assert.equal(
+    exhausted.actions.some((action) => action.name === "Stow Tome"),
+    false,
+  );
+  assert.equal(
+    exhausted.rotation.some((command) => command.name === "Stow Tome"),
+    false,
+  );
+  assert.equal(
+    weightyTerms.actions.some((action) => action.name === "Stow Tome"),
+    true,
+  );
   assert.equal(names.filter((name) => name === "Jurisdiction").length, 1);
   assert.ok(names.includes("Zealot's Flame"));
   assert.ok(names.includes("Flame Rush"));

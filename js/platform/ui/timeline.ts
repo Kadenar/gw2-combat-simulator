@@ -424,6 +424,7 @@ export function timelineRows(
     readonly weaponLineTransition?: (
       entry: TimelineRotationEntry,
       current: { weaponSet: number; weaponLine: string | null },
+      index: number,
     ) => string | null | undefined;
   } = {},
 ): TimelineRow[] {
@@ -439,10 +440,16 @@ export function timelineRows(
   rotation.forEach((entry, index) => {
     rows.at(-1)?.skills.push({ entry, index });
     const swapsWeaponSet = isWeaponSwap(entry);
-    const nextWeaponLine = weaponLineTransition(entry, {
-      weaponSet,
-      weaponLine,
-    });
+    // Supply the source rotation index so callers can apply simulated
+    // transitions that occur immediately after this authored entry.
+    const nextWeaponLine = weaponLineTransition(
+      entry,
+      {
+        weaponSet,
+        weaponLine,
+      },
+      index,
+    );
     const changesWeaponLine = nextWeaponLine !== undefined;
     if (!swapsWeaponSet && !isWeaponSetRefresh(entry) && !changesWeaponLine)
       return;
