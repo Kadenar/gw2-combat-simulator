@@ -80,6 +80,7 @@ const EFFECT_FIELDS = new Set([
   "coefficientModifiers",
   "hits",
   "applications",
+  "allyStacks",
   "ticks",
   "condition",
   "stacks",
@@ -87,10 +88,12 @@ const EFFECT_FIELDS = new Set([
   "durationPerAffinity",
   "durationReductionPerAffinity",
   "damageIncreasePerStack",
+  "damagePerCoefficient",
   "durationScale",
   "boon",
   "kind",
   "name",
+  "icon",
   "atMs",
   "intervalMs",
   "intervalTimingScale",
@@ -211,8 +214,8 @@ function normalizeAutoattackChains(
 
   const excludedIds = new Set(excluded.map(Number));
   const chainSources: readonly (readonly SkillId[])[] = [
-    ...deriveAutoattackChains(skills),  // derived from API data flip-skill links
-    ...additional,                       // hand-authored corrections from the profession
+    ...deriveAutoattackChains(skills), // derived from API data flip-skill links
+    ...additional, // hand-authored corrections from the profession
   ];
   // Entire chains containing an excluded skill are dropped; partial chains would
   // break the chain-step index and produce incorrect autoattack sequencing.

@@ -3,7 +3,6 @@ import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
-import { HARBINGER_MECHANICS as MECHANICS } from "./mechanics.js";
 import {
   applyTraitCondition,
   applyTraitVulnerability,
@@ -13,6 +12,11 @@ import type {
   NecromancerResolverEvent,
   NecromancerResolverReactionDetails,
 } from "../../types.js";
+import {
+  balanceProfileEffect,
+  necromancerBalanceProfile,
+} from "../../core/profiles.js";
+import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 function reactToDamage(
   context: NecromancerResolverContext,
@@ -32,21 +36,30 @@ function reactToDamage(
     firstHit &&
     skill?.id === ID.TAINTED_BOLTS
   ) {
+    const vulnerability = balanceProfileEffect(
+      necromancerBalanceProfile(context, PROFILE.doomApproaches),
+      "buff",
+    );
     applyTraitVulnerability(context, event, {
       name: "Doom Approaches",
       traitId: TRAIT.DOOM_APPROACHES,
-      stacks: 2,
-      duration: 6,
+      stacks: Number(vulnerability?.stacks || 2),
+      duration: Number(vulnerability?.duration || 6),
     });
   }
   // Septic Corruption procs on shroud slot 2 specifically (the pistol #2 skill), not all pistol hits.
   if (hasTrait(context, TRAIT.SEPTIC_CORRUPTION) && skill?.shroudSlot === 2) {
-    applyTraitCondition(
-      details,
-      context,
-      event,
-      MECHANICS.traitProcs[TRAIT.SEPTIC_CORRUPTION],
+    const condition = balanceProfileEffect(
+      necromancerBalanceProfile(context, PROFILE.septicCorruption),
+      "condition",
     );
+    applyTraitCondition(details, context, event, {
+      name: "Septic Corruption",
+      traitId: TRAIT.SEPTIC_CORRUPTION,
+      condition: String(condition?.condition || "Poisoned"),
+      stacks: Number(condition?.stacks || 1),
+      duration: Number(condition?.duration || 3),
+    });
   }
 }
 

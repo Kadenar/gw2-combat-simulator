@@ -89,7 +89,18 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.PUTRID_EXPLOSION]: {
     implemented: true,
     castTimeMs: 500,
-    effects: [],
+    minionKey: "bone-minion",
+    consumes: 1,
+    effects: [
+      { type: "strike", coefficient: 1, hits: 1, actorType: "summon" },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 1,
+        duration: 5,
+        actorType: "summon",
+      },
+    ],
     handlerId: "necromancer.minion-command",
   },
   [ID.SUMMON_BONE_MINIONS]: {
@@ -635,7 +646,50 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.RIGOR_MORTIS]: {
     implemented: true,
     castTimeMs: 0,
-    effects: [],
+    minionKey: "bone-fiend",
+    controlWindow: 4,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          {
+            atMs: 720,
+            coefficient: 0.25,
+            sourceId: 3634,
+            name: "Rigor Mortis - Bone Shard",
+            controlKind: "immobilize",
+            controlDuration: 2,
+            comboFinishers: [
+              {
+                ownerId: "necromancer",
+                finisherType: "Projectile",
+                chance: 1,
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+          },
+          {
+            atMs: 760,
+            coefficient: 0.25,
+            sourceId: 3634,
+            name: "Rigor Mortis - Bone Shard",
+            controlKind: "immobilize",
+            controlDuration: 2,
+            comboFinishers: [
+              {
+                ownerId: "necromancer",
+                finisherType: "Projectile",
+                chance: 1,
+                ambiguousFieldSelection: "oldest",
+              },
+            ],
+          },
+        ],
+        timingAnchor: "castEnd",
+        timingScale: "fixed",
+        actorType: "summon",
+      },
+    ],
     handlerId: "necromancer.minion-command",
   },
   [ID.DEATH_SHROUD]: {
@@ -648,6 +702,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.TASTE_OF_DEATH]: {
     implemented: true,
     castTimeMs: 1000,
+    minionKey: "blood-fiend",
+    consumes: 1,
     effects: [],
     handlerId: "necromancer.minion-command",
   },
@@ -702,7 +758,27 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.HAUNT]: {
     implemented: true,
     castTimeMs: 0,
-    effects: [],
+    minionKey: "shadow-fiend",
+    impactDelay: 2,
+    lifeForceOnHit: 10,
+    effects: [
+      { type: "strike", coefficient: 0.4, hits: 1, actorType: "summon" },
+      { type: "blind", actorType: "summon", metadata: { duration: 5 } },
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 1,
+        duration: 3,
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Weakness",
+        stacks: 1,
+        duration: 5,
+        actorType: "summon",
+      },
+    ],
     handlerId: "necromancer.minion-command",
   },
   [ID.LIFE_TRANSFER]: {
@@ -936,9 +1012,14 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.SIGNET_OF_UNDEATH]: {
     implemented: true,
     castTimeMs: 500,
-    effects: [],
+    effects: [
+      {
+        type: "custom",
+        eventType: "necromancer.revive",
+        event: {},
+      },
+    ],
     lifeForceGain: 0,
-    handlerId: "necromancer.signet-undeath",
   },
   [ID.SIGNET_OF_THE_LOCUST]: {
     implemented: true,
@@ -1180,7 +1261,32 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.SUMMON_MADNESS]: {
     implemented: true,
     castTimeMs: 1500,
-    effects: [],
+    summons: 8,
+    summonInterval: 1,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.33,
+        hits: 1,
+        atMs: 1000,
+        timingAnchor: "castEnd",
+        timingScale: "fixed",
+        actorType: "summon",
+        packetLabel: "attack",
+        name: "Unstable Horror - Attack",
+      },
+      {
+        type: "strike",
+        coefficient: 1.25,
+        hits: 1,
+        atMs: 6000,
+        timingAnchor: "castEnd",
+        timingScale: "fixed",
+        actorType: "summon",
+        packetLabel: "explosion",
+        name: "Unstable Horror - Explosion",
+      },
+    ],
     handlerId: "necromancer.summon-madness",
   },
   [ID.SUMMON_FLESH_GOLEM]: {
@@ -1193,7 +1299,15 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.CHARGE]: {
     implemented: true,
     castTimeMs: 1000,
-    effects: [],
+    minionKey: "flesh-golem",
+    effects: [
+      { type: "strike", coefficient: 1.5, hits: 1, actorType: "summon" },
+      {
+        type: "control",
+        actorType: "summon",
+        metadata: { controlKind: "knockdown" },
+      },
+    ],
     handlerId: "necromancer.minion-command",
   },
   [ID.SPECTRAL_WALK]: {
@@ -1519,8 +1633,22 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.SIGNET_OF_VAMPIRISM]: {
     implemented: true,
     quicknessCastTimeMs: 880,
-    effects: [],
-    handlerId: "necromancer.signet-vampirism",
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0,
+        hits: 6,
+        atMs: 1000,
+        intervalMs: 1000,
+        timingAnchor: "castEnd",
+        timingScale: "fixed",
+        flatStrikeBase: 163,
+        flatStrikePowerCoeff: 0.05,
+        actorType: "effect",
+        name: "Signet of Vampirism - Vampiric Mark",
+        metadata: { noCrit: true, damageKind: "life-steal" },
+      },
+    ],
   },
   [ID.DUSK_STRIKE]: {
     implemented: true,
@@ -1536,8 +1664,10 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.GRASPING_DARKNESS]: {
     interruptCommitMs: 0,
+    commitAtMs: 180,
     implemented: true,
     quicknessCastTimeMs: 520,
+    lifeForceOnHit: 10,
     effects: [
       {
         type: "strike",
@@ -1576,6 +1706,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     interruptCommitMs: 0,
     implemented: true,
     quicknessCastTimeMs: 480,
+    lifeForcePerPulse: 7,
     effects: [
       {
         type: "strike",

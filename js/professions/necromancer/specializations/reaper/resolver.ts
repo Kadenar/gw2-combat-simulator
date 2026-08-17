@@ -3,7 +3,6 @@ import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { onResolvedPlayerCriticalHit } from "../../../../platform/gw2/native-profession.js";
 import { NECROMANCER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
-import { REAPER_MECHANICS as MECHANICS } from "./mechanics.js";
 import { resolveSummonOwnedComboFinisher } from "./shroud.js";
 import {
   applyTraitCondition,
@@ -15,6 +14,11 @@ import type {
   NecromancerResolverEvent,
   NecromancerResolverReactionDetails,
 } from "../../types.js";
+import {
+  balanceProfileEffect,
+  necromancerBalanceProfile,
+} from "../../core/profiles.js";
+import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 // Chilling Nova is gated on the target already being Chilled at the moment of the crit, not just on trait presence.
 const chillingNovaCriticalHit = onResolvedPlayerCriticalHit<
@@ -23,7 +27,11 @@ const chillingNovaCriticalHit = onResolvedPlayerCriticalHit<
   NecromancerResolverReactionDetails
 >({
   id: "necromancer.chilling-nova",
-  chanceOnCriticalHit: 1,
+  chanceOnCriticalHit: (context) =>
+    Number(
+      necromancerBalanceProfile(context, PROFILE.chillingNova)
+        ?.criticalChance || 1,
+    ),
   when: (context, event) =>
     Number(event.coefficient) > 0 &&
     hasTrait(context, TRAIT.CHILLING_NOVA) &&
@@ -35,7 +43,10 @@ const chillingNovaCriticalHit = onResolvedPlayerCriticalHit<
     },
   },
   internalCooldown: {
-    duration: 3,
+    duration: (context) =>
+      Number(
+        necromancerBalanceProfile(context, PROFILE.chillingNova)?.cooldown || 3,
+      ),
     readyAt: (context) =>
       Number(professionCoreState(context).traitProcReadyAt.chillingNova || 0),
     setReadyAt: (context, readyAt) => {
@@ -44,10 +55,13 @@ const chillingNovaCriticalHit = onResolvedPlayerCriticalHit<
   },
   attribution: { kind: "trait", id: TRAIT.CHILLING_NOVA },
   handler: (context, event) => {
+    const profile = necromancerBalanceProfile(context, PROFILE.chillingNova);
+    const strike = balanceProfileEffect(profile, "strike");
+    const chill = balanceProfileEffect(profile, "condition");
     queueTraitCoefficientDamage(context, event, {
       name: "Chilling Nova",
       traitId: TRAIT.CHILLING_NOVA,
-      coefficient: 1.125,
+      coefficient: Number(strike?.coefficient || 1.125),
     });
     enqueueOrdered(context.queue, {
       type: "necromancer.chill",
@@ -56,7 +70,7 @@ const chillingNovaCriticalHit = onResolvedPlayerCriticalHit<
       sourceId: TRAIT.CHILLING_NOVA,
       actorType: "effect",
       skillName: "Chilling Nova",
-      duration: 2,
+      duration: Number(chill?.duration || 2),
     });
   },
 });
@@ -76,12 +90,17 @@ function reactToCondition(
   details: NecromancerResolverReactionDetails = {},
 ): void {
   if (event.condition === "Chilled" && hasTrait(context, TRAIT.DEATHLY_CHILL)) {
-    applyTraitCondition(
-      details,
-      context,
-      event,
-      MECHANICS.traitProcs[TRAIT.DEATHLY_CHILL],
+    const effect = balanceProfileEffect(
+      necromancerBalanceProfile(context, PROFILE.deathlyChill),
+      "condition",
     );
+    applyTraitCondition(details, context, event, {
+      name: "Deathly Chill",
+      traitId: TRAIT.DEATHLY_CHILL,
+      condition: String(effect?.condition || "Bleeding"),
+      stacks: Number(effect?.stacks || 4),
+      duration: Number(effect?.duration || 4),
+    });
   }
 }
 
@@ -96,6 +115,10 @@ function reactToControl(
   ) {
     return;
   }
+  const chill = balanceProfileEffect(
+    necromancerBalanceProfile(context, PROFILE.shiversOfDread),
+    "condition",
+  );
   enqueueOrdered(context.queue, {
     type: "necromancer.chill",
     at: event.at,
@@ -103,7 +126,7 @@ function reactToControl(
     sourceId: TRAIT.SHIVERS_OF_DREAD,
     actorType: "effect",
     skillName: "Shivers of Dread",
-    duration: 2,
+    duration: Number(chill?.duration || 2),
   });
 }
 

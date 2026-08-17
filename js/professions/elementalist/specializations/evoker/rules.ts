@@ -149,7 +149,7 @@ function availability(
         ready: false,
         retryAt: null,
         code: "elementalist.specialized-elements",
-        reason: `${skill.name} is unavailable â€” attunement swapping is disabled by Specialized Elements.`,
+        reason: `${skill.name} is unavailable - attunement swapping is disabled by Specialized Elements.`,
       };
     }
     if (!state.pendingOffAttunementRemainingByCommand[context.commandIndex]) {
@@ -184,7 +184,7 @@ function availability(
       ready: false,
       retryAt: null,
       code: "elementalist.evoker-element",
-      reason: `${skill.name} is unavailable — the ${element} familiar is not selected.`,
+      reason: `${skill.name} is unavailable - the ${element} familiar is not selected.`,
     };
   }
   if (BASIC_FAMILIARS.has(skill.name)) {
@@ -194,7 +194,7 @@ function availability(
           ready: false,
           retryAt: null,
           code: "elementalist.evoker-basic",
-          reason: `${skill.name} is unavailable — requires ${state.maximumCharges} charges and no empowered familiar.`,
+          reason: `${skill.name} is unavailable - requires ${state.maximumCharges} charges and no empowered familiar.`,
         };
   }
   return state.empowered >= 3
@@ -203,7 +203,7 @@ function availability(
         ready: false,
         retryAt: null,
         code: "elementalist.evoker-empowered",
-        reason: `${skill.name} is unavailable — requires three empowered charges.`,
+        reason: `${skill.name} is unavailable - requires three empowered charges.`,
       };
 }
 

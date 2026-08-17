@@ -1,6 +1,6 @@
 import {
   buffMatchesAudience,
-  GW2_BOON_DURATION_CAP_SECONDS,
+  durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   remainingDurationStackSeconds,
   sumActiveStacks,
@@ -193,7 +193,7 @@ export function createGw2CombatQuery<
       const remaining = remainingDurationStackSeconds(applications, time, {
         includes: (application) =>
           buffMatchesAudience(application, audience, companionId),
-        maximum: GW2_BOON_DURATION_CAP_SECONDS,
+        maximum: durationStackingBoonCapSeconds(kind),
       });
       return remaining > 0 ? Math.min(1, Math.max(0, maximum)) : 0;
     }

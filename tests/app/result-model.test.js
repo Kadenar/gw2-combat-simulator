@@ -54,7 +54,70 @@ test("Empowered Armaments chart series remains capped at one stack", () => {
   );
 });
 
-test("Quickness and Alacrity chart series show remaining stacked duration", () => {
+test("Elemental Empowerment chart series includes emitted stacks and caps at ten", () => {
+  const series = buildChartSeries(
+    {
+      duration: 3,
+      events: [
+        {
+          type: "buff",
+          at: 0,
+          kind: "elemental empowerment",
+          stacks: 3,
+          duration: 15,
+        },
+        {
+          type: "buff",
+          at: 1,
+          kind: "elemental empowerment",
+          stacks: 8,
+          duration: 15,
+        },
+      ],
+    },
+    1000,
+  );
+
+  assert.deepEqual(
+    series.effects["Elemental Empowerment"].map((point) => point.v),
+    [3, 10, 10, 10],
+  );
+});
+
+test("chart series classify boons, conditions, and profession buffs", () => {
+  const series = buildChartSeries(
+    {
+      duration: 2,
+      resolvedEvents: [
+        {
+          type: "condition",
+          at: 0,
+          condition: "burning",
+          duration: 2,
+          stacks: 1,
+        },
+      ],
+      events: [
+        { type: "buff", at: 0, kind: "might", duration: 2 },
+        {
+          type: "buff",
+          at: 0,
+          kind: "guardian-empowered-armaments",
+          duration: 2,
+        },
+      ],
+    },
+    1000,
+  );
+
+  assert.deepEqual(series.effectTypes, {
+    Burning: "condition",
+    Might: "boon",
+    "Empowered Armaments": "buff",
+  });
+});
+
+test("duration-stacking boon charts show remaining stacked seconds", () => {
   const series = buildChartSeries(
     {
       duration: 7,
@@ -63,6 +126,14 @@ test("Quickness and Alacrity chart series show remaining stacked duration", () =
         { type: "buff", at: 1, kind: "quickness", duration: 3 },
         { type: "buff", at: 0, kind: "alacrity", duration: 2 },
         { type: "buff", at: 3, kind: "alacrity", duration: 2 },
+        { type: "buff", at: 0, kind: "fury", duration: 3 },
+        { type: "buff", at: 1, kind: "fury", duration: 3 },
+        { type: "buff", at: 0, kind: "protection", duration: 3 },
+        { type: "buff", at: 1, kind: "protection", duration: 3 },
+        { type: "buff", at: 0, kind: "vigor", duration: 3 },
+        { type: "buff", at: 1, kind: "vigor", duration: 3 },
+        { type: "buff", at: 0, kind: "swiftness", duration: 3 },
+        { type: "buff", at: 1, kind: "swiftness", duration: 3 },
       ],
     },
     1000,
@@ -76,7 +147,21 @@ test("Quickness and Alacrity chart series show remaining stacked duration", () =
     series.effects.Alacrity.map((point) => point.v),
     [2, 1, 0, 2, 1, 0, 0, 0],
   );
-  assert.deepEqual(series.effectUnits, { Quickness: "s", Alacrity: "s" });
+  for (const name of ["Fury", "Protection", "Vigor", "Swiftness"]) {
+    assert.deepEqual(
+      series.effects[name].map((point) => point.v),
+      [3, 5, 4, 3, 2, 1, 0, 0],
+      name,
+    );
+  }
+  assert.deepEqual(series.effectUnits, {
+    Quickness: "s",
+    Alacrity: "s",
+    Fury: "s",
+    Protection: "s",
+    Vigor: "s",
+    Swiftness: "s",
+  });
 });
 
 test("duration-stacking boon charts discard grants above the 30-second cap", () => {
@@ -94,6 +179,23 @@ test("duration-stacking boon charts discard grants above the 30-second cap", () 
   assert.equal(series.effects.Quickness[1].v, 30);
   assert.equal(series.effects.Quickness[30].v, 1);
   assert.equal(series.effects.Quickness[31].v, 0);
+});
+
+test("Swiftness duration stacking caps at 60 seconds", () => {
+  const series = buildChartSeries(
+    {
+      duration: 62,
+      events: [
+        { type: "buff", at: 0, kind: "swiftness", duration: 59 },
+        { type: "buff", at: 1, kind: "swiftness", duration: 5 },
+      ],
+    },
+    1000,
+  );
+
+  assert.equal(series.effects.Swiftness[1].v, 60);
+  assert.equal(series.effects.Swiftness[60].v, 1);
+  assert.equal(series.effects.Swiftness[61].v, 0);
 });
 
 test("Radiant Armaments chart series identifies the active radiant weapon", () => {

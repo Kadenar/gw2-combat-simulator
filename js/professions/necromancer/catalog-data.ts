@@ -4,6 +4,7 @@ import { NECROMANCER_SKILL_IDS as ID } from "./data/ids.js";
 import { NECROMANCER_SUPPLEMENTAL_SKILLS } from "./data/necromancer-supplemental-skills.js";
 import { TRAITS } from "./data/traits-data.js";
 import type {
+  BalanceProfile,
   CatalogEntity,
   Skill,
   SkillFragment,
@@ -12,11 +13,19 @@ import type {
 } from "../../platform/engine/types.js";
 import type { NativeAutoattackChains } from "../../platform/gw2/native-profession.js";
 
-export const NECROMANCER_NON_DPS_SKILL_NAMES = Object.freeze(new Set([
-  "Well of Blood", "Consume Conditions", "Spectral Armor", "Spectral Walk",
-  "Spectral Recall", "Well of Power", "Weapon of Warding",
-  "Weapon of Remedy", "Xinrae's Weapon",
-]));
+export const NECROMANCER_NON_DPS_SKILL_NAMES = Object.freeze(
+  new Set([
+    "Well of Blood",
+    "Consume Conditions",
+    "Spectral Armor",
+    "Spectral Walk",
+    "Spectral Recall",
+    "Well of Power",
+    "Weapon of Warding",
+    "Weapon of Remedy",
+    "Xinrae's Weapon",
+  ]),
+);
 
 const CANONICAL_ALIAS_ID_BY_NAME: Readonly<Record<string, SkillId>> =
   Object.freeze({ "Manifest Sand Shade": ID.MANIFEST_SAND_SHADE });
@@ -26,16 +35,23 @@ const STATIC_REPLACEMENT_PAIRS = new Set<string>([
   `${ID.DESERT_SHROUD}:${ID.SANDSTORM_SHROUD}`,
 ]);
 const UNSUPPORTED_SKILL_IDS = new Set<SkillId>([
-  ID.SUMMON_FLESH_WURM, ID.NECROTIC_TRAVERSAL, ID.CORRUPT_BOON,
-  ID.EPIDEMIC, ID.SPECTRAL_RING,
+  ID.SUMMON_FLESH_WURM,
+  ID.NECROTIC_TRAVERSAL,
+  ID.CORRUPT_BOON,
+  ID.EPIDEMIC,
+  ID.SPECTRAL_RING,
 ]);
 const allSkills: readonly Skill[] = Object.freeze(
   [...SKILLS, ...NECROMANCER_SUPPLEMENTAL_SKILLS]
     .filter((skill) => !UNSUPPORTED_SKILL_IDS.has(skill.id))
     .sort((left, right) => {
-      const leftCanonical = CANONICAL_ALIAS_ID_BY_NAME[left.name] === left.id ? 0 : 1;
-      const rightCanonical = CANONICAL_ALIAS_ID_BY_NAME[right.name] === right.id ? 0 : 1;
-      return leftCanonical - rightCanonical || Number(left.id) - Number(right.id);
+      const leftCanonical =
+        CANONICAL_ALIAS_ID_BY_NAME[left.name] === left.id ? 0 : 1;
+      const rightCanonical =
+        CANONICAL_ALIAS_ID_BY_NAME[right.name] === right.id ? 0 : 1;
+      return (
+        leftCanonical - rightCanonical || Number(left.id) - Number(right.id)
+      );
     }),
 );
 const generatedById = new Map<SkillId, Skill>(
@@ -43,12 +59,16 @@ const generatedById = new Map<SkillId, Skill>(
 );
 const flipParentById = new Map<SkillId, SkillId>();
 for (const skill of allSkills) {
-  const child = skill.flipSkillId == null
-    ? undefined
-    : generatedById.get(skill.flipSkillId);
-  if (child && skill.flipSkillId !== skill.nextChainId &&
+  const child =
+    skill.flipSkillId == null
+      ? undefined
+      : generatedById.get(skill.flipSkillId);
+  if (
+    child &&
+    skill.flipSkillId !== skill.nextChainId &&
     child.name !== skill.name &&
-    !STATIC_REPLACEMENT_PAIRS.has(`${skill.id}:${skill.flipSkillId}`)) {
+    !STATIC_REPLACEMENT_PAIRS.has(`${skill.id}:${skill.flipSkillId}`)
+  ) {
     flipParentById.set(skill.flipSkillId!, skill.id);
   }
 }
@@ -57,15 +77,19 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
   const flipParentId = flipParentById.get(skill.id);
   return {
     ...skill,
-    cooldown: Number(skill.ammo || 0) > 0
-      ? skill.ammoRecharge || skill.recharge
-      : skill.recharge,
+    cooldown:
+      Number(skill.ammo || 0) > 0
+        ? skill.ammoRecharge || skill.recharge
+        : skill.recharge,
     flipParentId: flipParentId ?? null,
-    flipParent: flipParentId == null ? "" : generatedById.get(flipParentId)?.name || "",
-    simulatorAliasOfId: canonicalAliasId && canonicalAliasId !== skill.id
-      ? canonicalAliasId
-      : null,
-    simulatorExcluded: NECROMANCER_NON_DPS_SKILL_NAMES.has(skill.name) ||
+    flipParent:
+      flipParentId == null ? "" : generatedById.get(flipParentId)?.name || "",
+    simulatorAliasOfId:
+      canonicalAliasId && canonicalAliasId !== skill.id
+        ? canonicalAliasId
+        : null,
+    simulatorExcluded:
+      NECROMANCER_NON_DPS_SKILL_NAMES.has(skill.name) ||
       Boolean(canonicalAliasId && canonicalAliasId !== skill.id),
     implemented: false,
     effects: [],
@@ -80,24 +104,44 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
       ID.MANIFEST_SAND_SHADE_ID_46474,
     ],
   });
-const SPECIALIZATION_ONLY_SKILL_OWNERS = Object.freeze(Object.fromEntries(
-  Object.entries(SPECIALIZATION_ONLY_SKILLS).flatMap(([owner, skillIds]) =>
-    skillIds.map((skillId) => [String(skillId), owner])
+const SPECIALIZATION_ONLY_SKILL_OWNERS = Object.freeze(
+  Object.fromEntries(
+    Object.entries(SPECIALIZATION_ONLY_SKILLS).flatMap(([owner, skillIds]) =>
+      skillIds.map((skillId) => [String(skillId), owner]),
+    ),
   ),
-));
+);
 const WEAPONS = Object.freeze([
-  "Axe", "Dagger", "Focus", "Greatsword", "Pistol", "Scepter", "Spear",
-  "Staff", "Sword", "Torch", "Warhorn",
+  "Axe",
+  "Dagger",
+  "Focus",
+  "Greatsword",
+  "Pistol",
+  "Scepter",
+  "Spear",
+  "Staff",
+  "Sword",
+  "Torch",
+  "Warhorn",
 ]);
 const WEAPON_HANDS = Object.freeze({
-  Axe: "mh", Dagger: "mh+oh", Focus: "oh", Greatsword: "2h", Pistol: "mh",
-  Scepter: "mh", Spear: "2h", Staff: "2h", Sword: "mh+oh", Torch: "oh",
+  Axe: "mh",
+  Dagger: "mh+oh",
+  Focus: "oh",
+  Greatsword: "2h",
+  Pistol: "mh",
+  Scepter: "mh",
+  Spear: "2h",
+  Staff: "2h",
+  Sword: "mh+oh",
+  Torch: "oh",
   Warhorn: "oh",
 });
 
 interface NecromancerModuleDataOptions {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
   readonly extraSkills?: readonly Skill[];
+  readonly balanceProfiles?: readonly BalanceProfile[];
   readonly handlers?:
     | ReadonlyMap<string, SkillHandlerStrategy<never>>
     | Readonly<Record<string, SkillHandlerStrategy<never>>>;
@@ -107,17 +151,24 @@ interface NecromancerModuleDataOptions {
 function applyNecromancerSkillDefaults(
   mechanicsById: Readonly<Record<string, SkillFragment>>,
 ): Readonly<Record<string, SkillFragment>> {
-  return Object.freeze(Object.fromEntries(
-    Object.entries(mechanicsById).map(([skillId, mechanics]) => {
-      const shroudSkillWeapon = ["death", "reaper", "harbinger"].includes(
-        String(mechanics.shroud || ""),
-      ) ? "Hammer" : null;
-      return [skillId, {
-        ...mechanics,
-        ...(shroudSkillWeapon ? { skillWeapon: shroudSkillWeapon } : {}),
-      }];
-    }),
-  ));
+  return Object.freeze(
+    Object.fromEntries(
+      Object.entries(mechanicsById).map(([skillId, mechanics]) => {
+        const shroudSkillWeapon = ["death", "reaper", "harbinger"].includes(
+          String(mechanics.shroud || ""),
+        )
+          ? "Hammer"
+          : null;
+        return [
+          skillId,
+          {
+            ...mechanics,
+            ...(shroudSkillWeapon ? { skillWeapon: shroudSkillWeapon } : {}),
+          },
+        ];
+      }),
+    ),
+  );
 }
 
 export function createNecromancerModuleData(
@@ -125,6 +176,7 @@ export function createNecromancerModuleData(
   {
     skillMechanics,
     extraSkills = [],
+    balanceProfiles = [],
     handlers,
     autoattackChains,
   }: NecromancerModuleDataOptions,
@@ -134,6 +186,7 @@ export function createNecromancerModuleData(
     generatedSkills: generated,
     skillMechanics: applyNecromancerSkillDefaults(skillMechanics),
     extraSkills,
+    balanceProfiles,
     handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,

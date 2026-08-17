@@ -12,7 +12,6 @@ import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
-import { HARBINGER_MECHANICS as MECHANICS } from "./mechanics.js";
 import {
   addBlight,
   consumeBlight,
@@ -29,6 +28,18 @@ import type {
   NecromancerSchedulerContext,
   NecromancerSkill,
 } from "../../types.js";
+import type {
+  BalanceProfile,
+  SkillEffect,
+} from "../../../../platform/engine/types.js";
+import {
+  balanceProfileEffect,
+  necromancerBalanceProfile,
+} from "../../core/profiles.js";
+import {
+  HARBINGER_BALANCE_PROFILE_IDS as PROFILE,
+  HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID,
+} from "./profiles.js";
 
 export const MELTDOWN_ICON =
   "https://wiki.guildwars2.com/wiki/Special:FilePath/Meltdown.png";
@@ -51,14 +62,23 @@ export function advanceHarbingerBlight(
   const start = Number(coreState.lastResourceAt || 0);
   const end = Math.max(start, Number(target || 0));
   // Life force drains at 5% of maximum per second inside Harbinger Shroud.
-  const drainRate = Number(coreState.maximumLifeForce || 100) * 0.05;
+  const resources = necromancerBalanceProfile(context, PROFILE.resources);
+  const drainRate =
+    (Number(coreState.maximumLifeForce || 100) *
+      Number(resources?.lifeForceDrain || 5)) /
+    100;
   // exitAt is the moment life force would hit 0 — Blight stops accruing if shroud exits before `end`.
   const exitAt =
     drainRate > 0 && drainRate * (end - start) >= coreState.lifeForce
       ? start + coreState.lifeForce / drainRate
       : end;
   // Doom Approaches doubles the passive Blight gain rate (2 → 4 stacks/s).
-  const stacksPerSecond = hasTrait(context, TRAIT.DOOM_APPROACHES) ? 4 : 2;
+  const stacksPerSecond = Number(
+    hasTrait(context, TRAIT.DOOM_APPROACHES)
+      ? necromancerBalanceProfile(context, PROFILE.doomApproaches)
+          ?.blightGain || 4
+      : resources?.blightGain || 2,
+  );
   // nextBlightAt is a whole-second cursor; each tick adds stacksPerSecond stacks and advances the cursor by 1 s.
   while (
     Number(state.nextBlightAt ?? Number.POSITIVE_INFINITY) <=
@@ -85,19 +105,25 @@ function applyCascadingCorruption(
   )
     return;
   const state = harbingerState.from(context);
+  const profile = necromancerBalanceProfile(
+    context,
+    PROFILE.cascadingCorruption,
+  );
+  const threshold = Number(profile?.minimumStacks || 20);
   state.cascadingCorruptionStacks += consumed;
   // Every 20 accumulated stacks triggers exactly one Meltdown; remainder carries over to the next threshold.
-  if (state.cascadingCorruptionStacks < 20) return;
-  state.cascadingCorruptionStacks -= 20;
+  if (state.cascadingCorruptionStacks < threshold) return;
+  state.cascadingCorruptionStacks -= threshold;
   // Meltdown lasts 10 s and grants the Cascading Corruption damage bonus during that window.
-  state.meltdownUntil = at + 10;
+  state.meltdownUntil =
+    at + Number(balanceProfileEffect(profile, "buff")?.duration || 10);
   context.emit({
     type: "proc",
     procType: "trait",
     at,
     name: "Meltdown",
     sourceSkill: skill.name,
-    detail: "Consumed 20 Cascading Corruption stacks",
+    detail: `Consumed ${threshold} Cascading Corruption stacks`,
     icon: MELTDOWN_ICON,
     source: "Trait",
     sourceId: TRAIT.CASCADING_CORRUPTION,
@@ -106,7 +132,7 @@ function applyCascadingCorruption(
   emitDamage(
     context,
     CASCADING_CORRUPTION_EFFECT,
-    MECHANICS.cascadingCorruptionCoefficient,
+    Number(balanceProfileEffect(profile, "strike")?.coefficient || 4.5),
     {
       at,
       source: "Trait",
@@ -117,15 +143,73 @@ function applyCascadingCorruption(
       },
     },
   );
-  emitCondition(context, CASCADING_CORRUPTION_EFFECT, "Torment", 6, 6, {
-    at,
-    source: "Trait",
-    sourceId: TRAIT.CASCADING_CORRUPTION,
-    actorType: "effect",
-    metadata: {
-      parentSkillName: skill.name,
+  const torment = balanceProfileEffect(profile, "condition");
+  emitCondition(
+    context,
+    CASCADING_CORRUPTION_EFFECT,
+    String(torment?.condition || "Torment"),
+    Number(torment?.stacks || 6),
+    Number(torment?.duration || 6),
+    {
+      at,
+      source: "Trait",
+      sourceId: TRAIT.CASCADING_CORRUPTION,
+      actorType: "effect",
+      metadata: {
+        parentSkillName: skill.name,
+      },
     },
-  });
+  );
+}
+
+function emitElixirEffects(
+  context: NecromancerCastContext,
+  skill: NecromancerSkill,
+  source: NecromancerSkill | BalanceProfile,
+  impactAt: number,
+  boonOptions: Parameters<typeof emitBuff>[5],
+  blight: number,
+): void {
+  for (const effect of (source.effects || []) as readonly SkillEffect[]) {
+    if (effect.type === "strike") {
+      emitDamage(context, skill, Number(effect.coefficient || 0), {
+        at: impactAt,
+        hits: Number(effect.hits || 1),
+        metadata: {
+          blightEmpowered: source !== skill,
+          necromancerBlight: blight,
+        },
+      });
+    } else if (effect.type === "condition") {
+      emitCondition(
+        context,
+        skill,
+        String(effect.condition || ""),
+        Number(effect.stacks || 1),
+        Number(effect.duration || 0),
+        { at: impactAt },
+      );
+    } else if (effect.type === "boon") {
+      emitBuff(
+        context,
+        skill,
+        String(effect.boon || ""),
+        Number(effect.duration || 0),
+        Number(effect.stacks || 1),
+        boonOptions,
+      );
+    } else if (effect.type === "blind") {
+      context.emit({
+        type: "blind",
+        at: context.effectiveEnd,
+        source: "necromancer",
+        sourceId: skill.id,
+        actorType: "player",
+        skillId: skill.id,
+        skillName: skill.name,
+      });
+    }
+  }
 }
 
 function elixir(
@@ -147,102 +231,48 @@ function elixir(
     context.start + (context.fullEnd - context.start) * impactProgress;
   const state = harbingerState.from(context);
   const ambition = skill.id === ID.ELIXIR_OF_AMBITION;
-  // Elixir of Ambition requires 10 Blight to empower (larger effect); all other elixirs need only 5.
-  const threshold = ambition ? 10 : 5;
+  const empoweredProfile = necromancerBalanceProfile(
+    context,
+    HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(skill.id)],
+  );
+  const threshold = Number(
+    empoweredProfile?.blightCost || skill.blightCost || 5,
+  );
   const empowered = state.blight >= threshold;
   const consumed = empowered ? consumeBlight(state, threshold, at) : 0;
   applyCascadingCorruption(context, skill, consumed, at);
   emitState(context, at, "blight-consumed");
-  const elixirMechanics = MECHANICS.elixirs;
-  const durationMultiplier = empowered ? elixirMechanics.durationMultiplier : 1;
   const boonOptions = hasTrait(context, TRAIT.TWISTED_MEDICINE)
     ? { metadata: necromancerPartyBoonRecipients(context) }
     : undefined;
-  const coefficient =
-    (
-      elixirMechanics.coefficientBySkillId as Readonly<
-        Record<string | number, number>
-      >
-    )[skill.id] || 0;
   if (hasTrait(context, TRAIT.BOLSTERING_BREW)) {
-    emitBuff(context, skill, "protection", 3, 1, boonOptions);
+    const protection = balanceProfileEffect(
+      necromancerBalanceProfile(context, PROFILE.bolsteringBrew),
+      "boon",
+    );
+    emitBuff(
+      context,
+      skill,
+      String(protection?.boon || "protection"),
+      Number(protection?.duration || 3),
+      Number(protection?.stacks || 1),
+      boonOptions,
+    );
   }
-  emitDamage(
+  emitElixirEffects(
     context,
     skill,
-    coefficient *
-      (empowered ? elixirMechanics.empoweredCoefficientMultiplier : 1),
-    {
-      at: impactAt,
-      metadata: {
-        blightEmpowered: empowered,
-        necromancerBlight: state.blight,
-      },
-    },
+    empowered && empoweredProfile ? empoweredProfile : skill,
+    impactAt,
+    boonOptions,
+    state.blight,
   );
-  if (skill.id === ID.ELIXIR_OF_PROMISE) {
-    const [name, stacks, duration] = (
-      elixirMechanics.conditionBySkillId as Readonly<
-        Record<string | number, readonly (string | number)[]>
-      >
-    )[skill.id];
-    emitCondition(
-      context,
-      skill,
-      String(name),
-      Number(stacks),
-      Number(duration) * durationMultiplier,
-      { at: impactAt },
-    );
-  } else if (skill.id === ID.ELIXIR_OF_RISK) {
-    const [name, stacks, duration] = (
-      elixirMechanics.conditionBySkillId as Readonly<
-        Record<string | number, readonly (string | number)[]>
-      >
-    )[skill.id];
-    emitCondition(
-      context,
-      skill,
-      String(name),
-      Number(stacks),
-      Number(duration) * durationMultiplier,
-      { at: impactAt },
-    );
-    emitCondition(context, skill, "Weakness", 1, 5 * durationMultiplier, {
-      at: impactAt,
-    });
-    emitBuff(context, skill, "might", 10, 10, boonOptions);
-    emitBuff(context, skill, "fury", 10, 1, boonOptions);
-  } else if (skill.id === ID.ELIXIR_OF_IGNORANCE) {
-    context.emit({
-      type: "blind",
-      at,
-      source: "necromancer",
-      sourceId: skill.id,
-      actorType: "player",
-      skillId: skill.id,
-      skillName: skill.name,
-    });
-  } else if (skill.id === ID.ELIXIR_OF_ANGUISH) {
-    emitBuff(context, skill, "quickness", 5, 1, boonOptions);
-  } else if (skill.id === ID.ELIXIR_OF_AMBITION) {
-    for (const name of elixirMechanics.ambitionConditions) {
-      emitCondition(
-        context,
-        skill,
-        name,
-        elixirMechanics.ambitionConditionStacks,
-        elixirMechanics.ambitionConditionDuration * durationMultiplier,
-        { at: impactAt },
-      );
-    }
-    emitBuff(context, skill, "might", 5, 25, boonOptions);
-    emitBuff(context, skill, "fury", 5, 1, boonOptions);
-    emitBuff(context, skill, "quickness", 5, 1, boonOptions);
-    emitBuff(context, skill, "alacrity", 5, 1, boonOptions);
-  }
   // Elixir of Ambition grants more Blight than other elixirs, consistent with its higher empowerment threshold.
-  addBlight(state, ambition ? 15 : 10, at);
+  addBlight(
+    state,
+    Number((empoweredProfile || skill).blightGain || (ambition ? 15 : 10)),
+    at,
+  );
   emitState(context, at, "blight-gained");
   return true;
 }
@@ -262,50 +292,40 @@ function blightSkill(
   const impactAt =
     context.start + (context.fullEnd - context.start) * impactProgress;
   const state = harbingerState.from(context);
-  const empowered = state.blight >= 5;
-  const consumed = empowered ? consumeBlight(state, 5, at) : 0;
+  const empoweredProfile = necromancerBalanceProfile(
+    context,
+    HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(skill.id)],
+  );
+  const cost = Number(empoweredProfile?.blightCost || skill.blightCost || 5);
+  const empowered = state.blight >= cost;
+  const consumed = empowered ? consumeBlight(state, cost, at) : 0;
   // The strike snapshots Blight after the five-stack activation cost. Blight
   // generated during the cast is advanced afterward and affects later skills.
   const damageBlight = state.blight;
   applyCascadingCorruption(context, skill, consumed, at);
   emitState(context, at, "blight-skill");
-  const skillMechanics = (
-    MECHANICS.blightSkills as Readonly<
-      Record<
-        string | number,
-        {
-          readonly coefficient: number;
-          readonly empoweredCoefficient: number;
-          readonly empoweredCondition: readonly (string | number)[];
-        }
-      >
-    >
-  )[skill.id];
-  if (!skillMechanics) return false;
-  emitDamage(
-    context,
-    skill,
-    empowered
-      ? skillMechanics.empoweredCoefficient
-      : skillMechanics.coefficient,
-    {
-      at: impactAt,
-      metadata: {
-        blightEmpowered: empowered,
-        necromancerBlight: damageBlight,
-      },
+  const source = empowered && empoweredProfile ? empoweredProfile : skill;
+  const strike = balanceProfileEffect(source, "strike");
+  if (!strike) return false;
+  emitDamage(context, skill, Number(strike.coefficient || 0), {
+    at: impactAt,
+    metadata: {
+      blightEmpowered: empowered,
+      necromancerBlight: damageBlight,
     },
-  );
+  });
   if (empowered) {
-    const [name, stacks, duration] = skillMechanics.empoweredCondition;
-    emitCondition(
-      context,
-      skill,
-      String(name),
-      Number(stacks),
-      Number(duration),
-      { at: impactAt },
-    );
+    const condition = balanceProfileEffect(source, "condition");
+    if (condition) {
+      emitCondition(
+        context,
+        skill,
+        String(condition.condition || "Torment"),
+        Number(condition.stacks || 1),
+        Number(condition.duration || 0),
+        { at: impactAt },
+      );
+    }
   }
   // Devouring Cut has no CC; Voracious Arc normally dazes but Doom Approaches upgrades the daze to a fear.
   if (skill.id !== ID.DEVOURING_CUT) {

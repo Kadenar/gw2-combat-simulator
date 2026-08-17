@@ -33,7 +33,7 @@ import {
 } from "./combo-materializer.js";
 import { createGw2EventPreparer } from "./event-preparer.js";
 import {
-  GW2_BOON_DURATION_CAP_SECONDS,
+  durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   remainingDurationStackSeconds,
 } from "../boon-state.js";
@@ -53,8 +53,10 @@ import {
   weaponSkillMatchesSet,
 } from "../weapon-skill-matcher.js";
 import type {
+  Gw2CombatQuery,
   Gw2Config,
   Gw2SchedulerPolicy,
+  Gw2Stats,
   Gw2WeaponSkillMatcher,
 } from "../types.js";
 
@@ -150,7 +152,7 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
           String(event.kind || "").toLowerCase() === normalized &&
           event.affectsSummons === true &&
           Number(event.stacks || 1) > 0,
-        maximum: GW2_BOON_DURATION_CAP_SECONDS,
+        maximum: durationStackingBoonCapSeconds(normalized),
       }) > context.epsilon
     );
   }
@@ -281,7 +283,32 @@ export function createGw2SchedulerPolicy(
       const name = titleCase(effect.boon || effect.kind || effect.name);
       const weaponSet = _context.state?.activeWeaponSet === 2 ? 2 : 1;
       const sigils = config.sigilSets?.[weaponSet - 1] || {};
-      const stats = gw2StatsForWeaponSet(config, weaponSet);
+      const staticStats = gw2StatsForWeaponSet(config, weaponSet);
+      const runtime = {
+        ...materializer.state,
+        activeWeaponSet: weaponSet,
+        combatStartTime: _context.combatStartTime,
+        profession: _context.state.profession,
+      };
+      const query = materializer.state.query as
+        Readonly<Gw2CombatQuery> | null | undefined;
+      const stats = _context.profession.modifyAttributes(
+        {
+          profession: _context.profession,
+          config,
+          time: _context.state.time,
+          skillId: _skill.id,
+          sourceId: _skill.id,
+          actorType: "player",
+          traits,
+          query,
+          timeline: query?.timeline,
+          events: _context.events,
+          runtime,
+          state: _context.state,
+        },
+        staticStats,
+      ) as Gw2Stats;
       const bonus =
         Number(stats.concentration || 0) / 1500 +
         Number(stats.boonDurationBonus || 0) / 100 +
@@ -302,7 +329,7 @@ export function createGw2SchedulerPolicy(
       if (!isDurationStackingBoon(kind)) return defaultStacks;
       if (configuredStacks > 0) return 1;
       return remainingDurationStackSeconds(applications, at + context.epsilon, {
-        maximum: GW2_BOON_DURATION_CAP_SECONDS,
+        maximum: durationStackingBoonCapSeconds(kind),
       }) > context.epsilon
         ? 1
         : 0;

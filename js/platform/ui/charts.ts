@@ -7,10 +7,13 @@ export interface ChartPoint {
   readonly v: number;
 }
 
+export type ChartEffectType = "boon" | "condition" | "buff";
+
 export interface ChartSeries {
   readonly durationMs: number;
   readonly dps: readonly ChartPoint[];
   readonly effects: Readonly<Record<string, readonly ChartPoint[]>>;
+  readonly effectTypes?: Readonly<Record<string, ChartEffectType>>;
   readonly effectUnits?: Readonly<Record<string, string>>;
   readonly cumulativeDamage?: readonly ChartPoint[];
 }
@@ -34,6 +37,10 @@ export interface ChartOptions {
 
 export interface BuildChartSeriesOptions {
   readonly effectName?: (value: unknown, event: Gw2ResolverEvent) => string;
+  readonly effectType?: (
+    value: unknown,
+    event: Gw2ResolverEvent,
+  ) => ChartEffectType;
   readonly replacementGroup?: (
     value: unknown,
     event: Gw2ResolverEvent,
@@ -44,6 +51,7 @@ export interface BuildChartSeriesOptions {
 
 interface ChartEffectApplication {
   readonly name: string;
+  readonly type: ChartEffectType;
   readonly start: number;
   readonly end: number;
   readonly stacks: number;
@@ -126,6 +134,8 @@ export function buildChartSeries(
   sampleStepMs = 250,
   {
     effectName = (value) => String(value || ""),
+    effectType = (_value, event) =>
+      event.type === "condition" ? "condition" : "buff",
     replacementGroup = () => "",
     stackCaps = {},
     durationStackCaps = {},
@@ -196,6 +206,7 @@ export function buildChartSeries(
     if (end > start) {
       applications.push({
         name: effectName(event.condition, event),
+        type: effectType(event.condition, event),
         start,
         end,
         stacks: Number(event.stacks || 1),
@@ -213,6 +224,7 @@ export function buildChartSeries(
     const start = Number(event.at || 0) * 1000 - dpsStartMs;
     applications.push({
       name: effectName(event.kind, event),
+      type: effectType(event.kind, event),
       start,
       end: start + Number(event.duration) * 1000,
       stacks: Number(event.stacks || 1),
@@ -220,10 +232,12 @@ export function buildChartSeries(
     });
   }
   const effects: Record<string, ChartPoint[]> = {};
+  const effectTypes: Record<string, ChartEffectType> = {};
   for (const name of new Set(applications.map((entry) => entry.name))) {
     const matching = applications
       .filter((entry) => entry.name === name)
       .sort((left, right) => left.start - right.start);
+    effectTypes[name] = matching[0]?.type || "buff";
     const durationApplications = matching.map((entry) => ({
       at: entry.start / 1000,
       duration: (entry.end - entry.start) / 1000,
@@ -276,6 +290,7 @@ export function buildChartSeries(
     durationMs,
     dps,
     effects,
+    effectTypes,
     effectUnits: Object.fromEntries(
       Object.keys(durationStackCaps).map((name) => [name, "s"]),
     ),
@@ -678,19 +693,50 @@ function chartHtml(
   phases: readonly ChartFightPhase[],
 ): string {
   const effects = Object.keys(series.effects || {});
+  const visibleEffects = new Set(
+    effects.slice(0, Math.max(0, options.defaultVisibleEffectLimit)),
+  );
+  const effectIndexes = new Map(effects.map((name, index) => [name, index]));
+  const effectGroups: readonly {
+    type: ChartEffectType;
+    label: string;
+  }[] = [
+    { type: "boon", label: "Boons" },
+    { type: "condition", label: "Conditions" },
+    { type: "buff", label: "Buffs" },
+  ];
   return `<div class="chart-wrap">
     <div class="chart-title">${escapeHtml(options.title)}</div>
     <div class="chart-toggles" data-role="chart-toggles">
-      <label><input type="checkbox" data-series="dps" checked />
-        <span class="swatch" style="background:${escapeHtml(options.dpsColor)}"></span>${escapeHtml(options.dpsLabel)}</label>
-      ${effects
-        .map(
-          (name, index) => `<label>
-        <input type="checkbox" data-series="${escapeHtml(name)}" ${index < options.defaultVisibleEffectLimit ? "checked" : ""} />
-        <span class="swatch" style="background:${escapeHtml(options.colors[name] || fallbackColor(index))}"></span>
-        ${escapeHtml(`${name}${series.effectUnits?.[name] ? ` (${series.effectUnits[name]})` : ""}`)}
-      </label>`,
-        )
+      <div class="chart-toggle-dps"><label><input type="checkbox" data-series="dps" checked />
+        <span class="swatch" style="background:${escapeHtml(options.dpsColor)}"></span>${escapeHtml(options.dpsLabel)}</label></div>
+      ${effectGroups
+        .map(({ type, label }) => {
+          const groupEffects = effects
+            .filter((name) => (series.effectTypes?.[name] || "buff") === type)
+            .sort((left, right) => left.localeCompare(right));
+          if (!groupEffects.length) return "";
+          return `<div class="chart-toggle-group" data-role="chart-toggle-group" data-effect-type="${type}">
+        <div class="chart-toggle-group-header">
+          <span class="chart-toggle-label">${label}</span>
+          <span class="chart-toggle-actions" aria-label="${label} visibility">
+            <button type="button" data-toggle-action="all">All</button><span aria-hidden="true">/</span><button type="button" data-toggle-action="none">None</button>
+          </span>
+        </div>
+        <div class="chart-toggle-items">
+          ${groupEffects
+            .map((name) => {
+              const index = effectIndexes.get(name) || 0;
+              return `<label>
+            <input type="checkbox" data-series="${escapeHtml(name)}" ${visibleEffects.has(name) ? "checked" : ""} />
+            <span class="swatch" style="background:${escapeHtml(options.colors[name] || fallbackColor(index))}"></span>
+            ${escapeHtml(`${name}${series.effectUnits?.[name] ? ` (${series.effectUnits[name]})` : ""}`)}
+          </label>`;
+            })
+            .join("")}
+        </div>
+      </div>`;
+        })
         .join("")}
     </div>
     ${
@@ -750,6 +796,7 @@ export function mountTimeSeriesCharts(
     durationMs: Math.max(1, Number(series?.durationMs || 0)),
     dps: resolvedDps,
     effects: series?.effects || {},
+    effectTypes: series?.effectTypes || {},
     effectUnits: series?.effectUnits || {},
     cumulativeDamage:
       series?.cumulativeDamage ||
@@ -846,10 +893,12 @@ export function mountTimeSeriesCharts(
     );
     chartState.effectLines = Object.entries(chartState.effectsView.effects)
       .filter(([name]) => selected.has(name))
-      .map(([name, points], index) => ({
+      .map(([name, points]) => ({
         name,
         points,
-        color: resolvedOptions.colors[name] || fallbackColor(index),
+        color:
+          resolvedOptions.colors[name] ||
+          fallbackColor(Object.keys(resolvedSeries.effects).indexOf(name)),
       }));
     chartState.effectsLayout = drawLineChart(
       container.querySelector<HTMLCanvasElement>(
@@ -954,6 +1003,21 @@ export function mountTimeSeriesCharts(
     '[data-role="chart-toggles"] input',
   )) {
     input.onchange = redraw;
+  }
+  for (const button of container.querySelectorAll<HTMLButtonElement>(
+    '[data-role="chart-toggle-group"] [data-toggle-action]',
+  )) {
+    button.onclick = () => {
+      const group = button.closest('[data-role="chart-toggle-group"]');
+      if (!group) return;
+      const checked = button.dataset.toggleAction === "all";
+      for (const input of group.querySelectorAll<HTMLInputElement>(
+        'input[type="checkbox"]',
+      )) {
+        input.checked = checked;
+      }
+      redraw();
+    };
   }
   for (const button of container.querySelectorAll<HTMLButtonElement>(
     '[data-role="chart-phase-toggles"] button',

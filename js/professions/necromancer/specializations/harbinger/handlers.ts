@@ -2,22 +2,28 @@ import { necromancerBlightSkillHandlers } from "./blight.js";
 import { darkBarrage } from "./dark-barrage.js";
 import { darkBarrageHandlerMode } from "./traits.js";
 import {
-  replaceSkillHandler,
   skillHandler,
   SKILL_HANDLER_MODES,
 } from "../../../../platform/engine/skill-handlers.js";
 
 export const harbingerSkillHandlers = new Map([
   [
-    // replaceSkillHandler: elixirs and blight skills are fully Harbinger-specific; the base necromancer handler is not run.
+    // The declarations own the patchable values, while the handler materializes
+    // them because empowerment and allied recipients are runtime-dependent.
     "necromancer.elixir",
-    replaceSkillHandler(necromancerBlightSkillHandlers["necromancer.elixir"]),
+    skillHandler({
+      mode: SKILL_HANDLER_MODES.AUGMENT,
+      resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+      beforeEffects: necromancerBlightSkillHandlers["necromancer.elixir"],
+    }),
   ],
   [
     "necromancer.blight-skill",
-    replaceSkillHandler(
-      necromancerBlightSkillHandlers["necromancer.blight-skill"],
-    ),
+    skillHandler({
+      mode: SKILL_HANDLER_MODES.AUGMENT,
+      resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+      beforeEffects: necromancerBlightSkillHandlers["necromancer.blight-skill"],
+    }),
   ],
   [
     // AUGMENT by default so the base skill still fires; resolveMode switches to REPLACE when Doom Approaches is equipped,

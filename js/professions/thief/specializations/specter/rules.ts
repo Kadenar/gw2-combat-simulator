@@ -44,7 +44,7 @@ function modifySpecterAttributes(
 ): Gw2ResolvedStats {
   if (professionStaticRulesApplied(context.config)) return attributes;
   const result = { ...attributes };
-  // Pattern C: conversions read gear-only stats. config.stats excludes might
+  // Conversions read gear-only stats. config.stats excludes might
   // (baked into the seed's condition damage) and live trait bonuses.
   // Using gear stats directly avoids double-counting the flat bonuses added below.
   const gearConditionDamage = Number(context.config?.stats?.conditionDamage || 0);

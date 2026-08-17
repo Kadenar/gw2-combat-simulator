@@ -9,6 +9,10 @@ import {
 } from "../../../js/app/profession/registry.js";
 import { professionRoute } from "../../../js/app/profession/selector.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
+import {
+  applyBalanceProfilePatch,
+  applySkillPatch,
+} from "../../../js/platform/gw2/skill-patch.js";
 import { skillBreakdownRows } from "../../../js/platform/ui/result-tables.js";
 import { buildChartSeries } from "../../../js/app/rotation/result-model.js";
 import { formatResourceValue } from "../../../js/app/rotation/resource-view.js";
@@ -27,8 +31,6 @@ import {
 import { DATA_SNAPSHOT } from "../../../js/professions/necromancer/data/necromancer-api-metadata.js";
 import { necromancerProfession } from "../../../js/professions/necromancer/definition.js";
 import { NECROMANCER_QUICKNESS_CAST_TIMES_MS } from "../../../js/professions/necromancer/mechanics/skill-mechanics.js";
-import { SCOURGE_MECHANICS } from "../../../js/professions/necromancer/specializations/scourge/mechanics.js";
-import { RITUALIST_MECHANICS } from "../../../js/professions/necromancer/specializations/ritualist/mechanics.js";
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
@@ -37,6 +39,11 @@ import {
   actualNecromancerLifeForceCost,
   normalizedNecromancerLifeForceCost,
 } from "../../../js/professions/necromancer/core/state.js";
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from "../../../js/professions/necromancer/core/profiles.js";
+import { REAPER_BALANCE_PROFILE_IDS } from "../../../js/professions/necromancer/specializations/reaper/profiles.js";
+import { SCOURGE_BALANCE_PROFILE_IDS } from "../../../js/professions/necromancer/specializations/scourge/profiles.js";
+import { HARBINGER_BALANCE_PROFILE_IDS } from "../../../js/professions/necromancer/specializations/harbinger/profiles.js";
+import { RITUALIST_BALANCE_PROFILE_IDS } from "../../../js/professions/necromancer/specializations/ritualist/profiles.js";
 import {
   calculateModifierContributions,
   modifierCandidates,
@@ -88,6 +95,9 @@ function simulate(
 
 const observationTail = (durationMs) => ({ kind: "tail", durationMs });
 
+const applyNecromancerPatch = (patch) =>
+  applyBalanceProfilePatch(applySkillPatch(necromancerCatalog, patch), patch);
+
 test("Necromancer uses the current API catalog and all nine trait lines", () => {
   assert.equal(DATA_SNAPSHOT, "2026-07-25");
   assert.equal(necromancerCatalog.specializations.length, 9);
@@ -111,6 +121,144 @@ test("Necromancer uses the current API catalog and all nine trait lines", () => 
       .filter((specialization) => specialization.elite)
       .map((specialization) => specialization.name),
     ["Reaper", "Scourge", "Harbinger", "Ritualist"],
+  );
+});
+
+test("Necromancer modules expose isolated balance-profile authoring", () => {
+  const modules = new Map(
+    necromancerProfession.patchAuthoring.modules.map((module) => [
+      module.id,
+      module,
+    ]),
+  );
+  assert.deepEqual(
+    [...modules.keys()],
+    ["Core", "Reaper", "Scourge", "Harbinger", "Ritualist"],
+  );
+  assert.equal(
+    [...modules.values()].every((module) => module.balanceProfiles.length > 0),
+    true,
+  );
+
+  const profile = (moduleId, profileId) =>
+    modules
+      .get(moduleId)
+      .balanceProfiles.find((entry) => entry.id === profileId);
+  const bloodFiend = profile(
+    "Core",
+    NECROMANCER_CORE_BALANCE_PROFILE_IDS.bloodFiendAttack,
+  );
+  const shade = profile("Scourge", SCOURGE_BALANCE_PROFILE_IDS.shade);
+  const blight = profile("Harbinger", HARBINGER_BALANCE_PROFILE_IDS.resources);
+  const spirit = profile("Ritualist", RITUALIST_BALANCE_PROFILE_IDS.anguish);
+  const reaper = profile("Reaper", REAPER_BALANCE_PROFILE_IDS.resources);
+
+  assert.equal(bloodFiend.profile.profileKind, "skill-variant");
+  assert.equal(bloodFiend.patchableFields.damagePerCoefficient, 4338);
+  assert.equal(shade.profile.effects[0].coefficient, 0.666);
+  assert.equal(blight.patchableFields.maximumStacks, 25);
+  assert.equal(spirit.profile.effects[1].ticks.length, 7);
+  assert.equal(reaper.patchableFields.lifeForceDrain, 4);
+  assert.deepEqual(
+    modules
+      .get("Core")
+      .modifierRules.find(
+        (rule) => rule.id === "necromancer.target-the-weak-critical-chance",
+      ).parameters,
+    { criticalChancePerCondition: 0.02 },
+  );
+  assert.deepEqual(
+    modules
+      .get("Ritualist")
+      .modifierRules.find(
+        (rule) => rule.id === "necromancer.anguish-conditional-damage",
+      ).parameters,
+    { damagePerCondition: 0.02, controlledBonus: 0.2 },
+  );
+
+  const preview = applyNecromancerPatch({
+    skills: {
+      [ID.NIGHTMARE_WEAPON]: {
+        effects: [
+          {
+            effectIndex: 0,
+            allyStacks: { from: 3, to: 4 },
+            maximumRecipients: { from: 5, to: 6 },
+          },
+        ],
+      },
+      [ID.RIGOR_MORTIS]: {
+        effects: [
+          {
+            effectIndex: 0,
+            tickIndex: 0,
+            coefficient: { from: 0.25, to: 0.3 },
+          },
+        ],
+      },
+    },
+    balanceProfiles: {
+      [SCOURGE_BALANCE_PROFILE_IDS.shade]: {
+        effects: [
+          {
+            effectIndex: 0,
+            coefficient: { from: 0.666, to: 0.7 },
+          },
+        ],
+      },
+      [HARBINGER_BALANCE_PROFILE_IDS.resources]: {
+        fields: { maximumStacks: { from: 25, to: 30 } },
+      },
+      [RITUALIST_BALANCE_PROFILE_IDS.resources]: {
+        fields: { pulseInterval: { from: 4, to: 3 } },
+      },
+    },
+  });
+
+  assert.equal(
+    preview.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0].allyStacks,
+    4,
+  );
+  assert.equal(
+    preview.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0].maximumRecipients,
+    6,
+  );
+  assert.equal(
+    preview.skillsById.get(ID.RIGOR_MORTIS).effects[0].ticks[0].coefficient,
+    0.3,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(SCOURGE_BALANCE_PROFILE_IDS.shade)
+      .effects[0].coefficient,
+    0.7,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(HARBINGER_BALANCE_PROFILE_IDS.resources)
+      .maximumStacks,
+    30,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(RITUALIST_BALANCE_PROFILE_IDS.resources)
+      .pulseInterval,
+    3,
+  );
+
+  assert.equal(
+    necromancerCatalog.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0]
+      .allyStacks,
+    3,
+  );
+  assert.equal(
+    necromancerCatalog.balanceProfilesById.get(
+      SCOURGE_BALANCE_PROFILE_IDS.shade,
+    ).effects[0].coefficient,
+    0.666,
+  );
+  assert.equal(
+    necromancerCatalog.balanceProfilesById.get(
+      HARBINGER_BALANCE_PROFILE_IDS.resources,
+    ).maximumStacks,
+    25,
   );
 });
 
@@ -1130,12 +1278,18 @@ test("Scourge shade costs and packets use their fixed PvE values", () => {
     torment.every((event) => event.stacks === 1 && event.duration === 5),
     true,
   );
-  assert.equal(SCOURGE_MECHANICS.shade.manifest.coefficient, 0.666);
-  assert.deepEqual(SCOURGE_MECHANICS.shade.manifest.condition, [
-    "Torment",
-    1,
-    2,
-  ]);
+  const shadeProfile = necromancerCatalog.balanceProfilesById.get(
+    SCOURGE_BALANCE_PROFILE_IDS.shade,
+  );
+  assert.equal(shadeProfile.effects[0].coefficient, 0.666);
+  assert.deepEqual(
+    [
+      shadeProfile.effects[1].condition,
+      shadeProfile.effects[1].stacks,
+      shadeProfile.effects[1].duration,
+    ],
+    ["Torment", 1, 2],
+  );
 });
 
 test("Scourge barrier, shroud, and greater-shade traits trigger precisely", () => {
@@ -2408,7 +2562,7 @@ test("minion summons persist, attack, and unlock their command", () => {
   assert.ok(result.breakdown.some((entry) => entry.name === "Bone Shard"));
   assert.ok(
     result.breakdown.some(
-      (entry) => entry.name === "Rigor Mortis — Bone Shard",
+      (entry) => entry.name === "Rigor Mortis - Bone Shard",
     ),
   );
   assert.match(invalid.warnings.join(" "), /Rigor Mortis is unavailable/);
@@ -2724,7 +2878,7 @@ test("unequipped Necromancer slot skills cannot execute", () => {
   assert.match(denied.warnings.join(" "), /skill is not equipped/);
   assert.equal(
     denied.resolvedEvents.some(
-      (event) => event.skillName === "Summon Bone Minions — Minion Attack",
+      (event) => event.skillName === "Summon Bone Minions - Minion Attack",
     ),
     false,
   );
@@ -2822,12 +2976,12 @@ test("minion attacks use their canonical cadence, coefficients, and icons", () =
   const bloodAttacks = bloodFiend.resolvedEvents.filter(
     (event) =>
       event.type === "damage" &&
-      event.skillName === "Summon Blood Fiend — Minion Attack",
+      event.skillName === "Summon Blood Fiend - Minion Attack",
   );
   const boneAttacks = boneMinions.resolvedEvents.filter(
     (event) =>
       event.type === "damage" &&
-      event.skillName === "Summon Bone Minions — Minion Attack",
+      event.skillName === "Summon Bone Minions - Minion Attack",
   );
   const golemAttacks = fleshGolem.resolvedEvents.filter(
     (event) =>
@@ -3129,7 +3283,7 @@ test("Reaper traits reduce shroud cooldowns and ignore minion critical hits", ()
   assert.ok(novaProcs.length > 0);
   assert.equal(
     novaProcs.some(
-      (step) => step.sourceSkill === "Summon Flesh Golem — Minion Attack",
+      (step) => step.sourceSkill === "Summon Flesh Golem - Minion Attack",
     ),
     false,
   );
@@ -3460,14 +3614,11 @@ test("Ritualist weapon spells consume stacks and Resilient Weapon is usable", ()
     splinterProcs.every((step) => step.icon === splinterIcon),
     true,
   );
-  assert.equal(
-    RITUALIST_MECHANICS.weaponSpells.nightmare.vulnerabilityStacks,
-    2,
+  const nightmareProc = necromancerCatalog.balanceProfilesById.get(
+    RITUALIST_BALANCE_PROFILE_IDS.nightmareWeaponProc,
   );
-  assert.equal(
-    RITUALIST_MECHANICS.weaponSpells.nightmare.vulnerabilityDuration,
-    8,
-  );
+  assert.equal(nightmareProc.effects[1].stacks, 2);
+  assert.equal(nightmareProc.effects[1].duration, 8);
   assert.deepEqual(resilient.warnings, []);
   assert.equal(
     resilient.events.some(
@@ -3623,17 +3774,17 @@ test("Necromancer trait procs resolve from real event state", () => {
 
   assert.ok(
     dhuumfire.resolvedEvents.some(
-      (event) => event.name === "Dhuumfire — Burning",
+      (event) => event.name === "Dhuumfire - Burning",
     ),
   );
   assert.ok(
     demonicLore.resolvedEvents.some(
-      (event) => event.name === "Demonic Lore — Burning",
+      (event) => event.name === "Demonic Lore - Burning",
     ),
   );
   assert.ok(
     deathlyChill.resolvedEvents.some(
-      (event) => event.name === "Deathly Chill — Bleeding",
+      (event) => event.name === "Deathly Chill - Bleeding",
     ),
   );
 });
@@ -4359,7 +4510,7 @@ test("signet passives and Soul Battery are profession-owned resources", () => {
   assert.equal(signets.endState.profession.lifeForce, 4);
   assert.ok(
     signets.breakdown.some(
-      (entry) => entry.name === "Signet of Vampirism — Passive Life Siphon",
+      (entry) => entry.name === "Signet of Vampirism - Passive Life Siphon",
     ),
   );
   assert.equal(battery.endState.profession.maximumLifeForce, 120);

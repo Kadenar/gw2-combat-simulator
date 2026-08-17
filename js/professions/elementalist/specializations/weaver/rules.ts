@@ -99,8 +99,8 @@ function availability(
           ? "elementalist.unravel-attunement"
           : "elementalist.weaver-attunement",
         reason: unravelActive
-          ? `${skill.name} is unavailable â€” requires ${core.primaryAttunement} while Unravel is active.`
-          : `${skill.name} is unavailable â€” requires ${attunement} in the matching Weaver hand.`,
+          ? `${skill.name} is unavailable - requires ${core.primaryAttunement} while Unravel is active.`
+          : `${skill.name} is unavailable - requires ${attunement} in the matching Weaver hand.`,
       };
     }
   }

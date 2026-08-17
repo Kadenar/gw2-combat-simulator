@@ -20,6 +20,11 @@ import {
   necromancerTargetChilled,
 } from "../../core/rules.js";
 import { ensurePermanentIceFieldAssumption } from "./shroud.js";
+import {
+  balanceProfileEffect,
+  necromancerBalanceProfile,
+} from "../../core/profiles.js";
+import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import type {
   Gw2ModifierContext,
@@ -38,11 +43,15 @@ function reduceShroudCooldowns(
   context: NecromancerSchedulerContext,
   at: number,
 ): void {
+  const reduction = Number(
+    necromancerBalanceProfile(context, PROFILE.reapersOnslaught)
+      ?.rechargeReduction || 1,
+  );
   for (const candidate of context.catalog.skills || []) {
     if (candidate.shroud !== "reaper") continue;
     const readyAt = Number(context.state.cooldowns.get(candidate.id) || 0);
     if (!(readyAt > at + context.epsilon)) continue;
-    const reduced = Math.max(at, readyAt - 1);
+    const reduced = Math.max(at, readyAt - reduction);
     // Delete rather than set to 0 so the cooldown map stays clean and future lookups default correctly.
     if (reduced <= at + context.epsilon) {
       context.state.cooldowns.delete(candidate.id);
@@ -70,6 +79,10 @@ function afterCast(
     skill.categories?.includes("Shout") &&
     hasNecromancerTrait(context, TRAIT.AUGURY_OF_DEATH)
   ) {
+    const effect = balanceProfileEffect(
+      necromancerBalanceProfile(context, PROFILE.auguryOfDeath),
+      "strike",
+    );
     emitDamage(context, skill, 0, {
       name: "Augury of Death",
       source: "Trait",
@@ -77,8 +90,8 @@ function afterCast(
       actorType: "effect",
       skillWeapon: "Unequipped",
       metadata: {
-        flatStrikeBase: 276,
-        flatStrikePowerCoeff: 0.02,
+        flatStrikeBase: Number(effect?.flatStrikeBase || 276),
+        flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff || 0.02),
         noCrit: true,
         damageKind: "life-steal",
       },
@@ -97,13 +110,15 @@ function afterCast(
     // Configured Chilled on target stands in for "target is chilled" since scheduler has no live condition state.
     context.config?.target?.conditions?.Chilled
   ) {
+    const profile = necromancerBalanceProfile(context, PROFILE.chillingVictory);
     gainNecromancerLifeForce(
       context,
-      1,
+      Number(profile?.lifeForceGain || 1),
       context.effectiveEnd,
       "chilling-victory",
     );
-    state.traitProcReadyAt.chillingVictory = context.effectiveEnd + 1;
+    state.traitProcReadyAt.chillingVictory =
+      context.effectiveEnd + Number(profile?.cooldown || 1);
   }
 }
 
@@ -119,7 +134,15 @@ function onEventScheduled(
     event.kind !== "target-vulnerability" &&
     hasNecromancerTrait(context, TRAIT.BLIGHTERS_BOON)
   ) {
-    gainNecromancerLifeForce(context, 1, event.at, "blighters-boon");
+    gainNecromancerLifeForce(
+      context,
+      Number(
+        necromancerBalanceProfile(context, PROFILE.blightersBoon)
+          ?.lifeForceGain || 1,
+      ),
+      event.at,
+      "blighters-boon",
+    );
   }
 }
 
@@ -137,7 +160,10 @@ function modifyReaperAttributes(
     hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) &&
     necromancerActiveShroud(context) === "reaper"
   ) {
-    result.ferocity += 300;
+    result.ferocity += Number(
+      necromancerBalanceProfile(context, PROFILE.reapersOnslaught)
+        ?.attributeBonus || 300,
+    );
   }
   return result;
 }
@@ -150,7 +176,11 @@ function modifyReaperCastDuration(
   return hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) &&
     professionCoreState(context).activeShroud === "reaper" &&
     !context.hasBuff?.("quickness", context.start)
-    ? duration / 1.5
+    ? duration /
+        Number(
+          necromancerBalanceProfile(context, PROFILE.reapersOnslaught)
+            ?.quicknessCastMultiplier || 1.5,
+        )
     : duration;
 }
 
@@ -176,9 +206,12 @@ export const reaperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: "add",
     // Each stack of Vulnerability adds 2% crit chance, capped at 25 stacks (50% max bonus).
     // Falls back to configured static stacks when a live query runtime isn't available.
-    amount: (context) =>
+    parameters: { maximumStacks: 25, criticalChancePerStack: 0.02 } as Readonly<
+      Record<string, number>
+    >,
+    amount: (context, _target, parameters) =>
       Math.min(
-        25,
+        parameters.maximumStacks,
         Number(
           context.query?.targetConditionStacks
             ? context.query.targetConditionStacks(
@@ -193,7 +226,7 @@ export const reaperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
                 context.runtime,
               ),
         ),
-      ) * 0.02,
+      ) * parameters.criticalChancePerStack,
     when: (context) => hasTrait(context, TRAIT.DECIMATE_DEFENSES),
   },
   {

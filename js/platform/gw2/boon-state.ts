@@ -22,12 +22,28 @@ interface DurationStackOptions<T> {
   readonly maximum?: number;
 }
 
-const DURATION_STACKING_BOONS = new Set(["quickness", "alacrity"]);
 export const GW2_BOON_DURATION_CAP_SECONDS = 30;
+export const GW2_SWIFTNESS_DURATION_CAP_SECONDS = 60;
+const DURATION_STACKING_BOON_CAPS = new Map([
+  ["quickness", GW2_BOON_DURATION_CAP_SECONDS],
+  ["alacrity", GW2_BOON_DURATION_CAP_SECONDS],
+  ["fury", GW2_BOON_DURATION_CAP_SECONDS],
+  ["protection", GW2_BOON_DURATION_CAP_SECONDS],
+  ["vigor", GW2_BOON_DURATION_CAP_SECONDS],
+  ["swiftness", GW2_SWIFTNESS_DURATION_CAP_SECONDS],
+]);
 
 /** Returns whether repeated applications add duration instead of intensity. */
 export function isDurationStackingBoon(kind: unknown): boolean {
-  return DURATION_STACKING_BOONS.has(String(kind || "").toLowerCase());
+  return DURATION_STACKING_BOON_CAPS.has(String(kind || "").toLowerCase());
+}
+
+/** Returns the in-game duration cap for a duration-stacking boon. */
+export function durationStackingBoonCapSeconds(kind: unknown): number {
+  return (
+    DURATION_STACKING_BOON_CAPS.get(String(kind || "").toLowerCase()) ??
+    GW2_BOON_DURATION_CAP_SECONDS
+  );
 }
 
 /**

@@ -18,7 +18,6 @@ import {
   normalizedNecromancerLifeForceCost,
   syncNecromancerResources,
 } from "../../core/state.js";
-import { SCOURGE_MECHANICS as MECHANICS } from "./mechanics.js";
 import { removeNecromancerSelfCondition } from "../../core/conditions.js";
 import {
   emitBuff,
@@ -30,19 +29,25 @@ import {
   necromancerPartyBoonRecipients,
 } from "../../core/shared.js";
 import type { NecromancerCastContext, NecromancerSkill } from "../../types.js";
+import {
+  balanceProfileEffect,
+  necromancerBalanceProfile,
+} from "../../core/profiles.js";
+import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
+import type { SkillEffect } from "../../../../platform/engine/types.js";
 
 function emitShadeCondition(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
-  condition: readonly (string | number)[],
+  condition: SkillEffect | undefined,
   options?: Parameters<typeof emitCondition>[5],
 ): void {
   emitCondition(
     context,
     skill,
-    String(condition[0]),
-    Number(condition[1]),
-    Number(condition[2]),
+    String(condition?.condition || ""),
+    Number(condition?.stacks || 1),
+    Number(condition?.duration || 0),
     options,
   );
 }
@@ -54,24 +59,31 @@ function applyBarrierTraits(
   skill: NecromancerSkill,
   at = context.effectiveEnd,
 ): void {
-  const shadeMechanics = MECHANICS.shade;
   if (hasTrait(context, TRAIT.ABRASIVE_GRIT)) {
+    const might = balanceProfileEffect(
+      necromancerBalanceProfile(context, PROFILE.abrasiveGrit),
+      "boon",
+    );
     emitBuff(
       context,
       skill,
-      "might",
-      shadeMechanics.abrasiveGrit.mightDuration,
-      shadeMechanics.abrasiveGrit.mightStacks,
+      String(might?.boon || "might"),
+      Number(might?.duration || 6),
+      Number(might?.stacks || 2),
       { at, metadata: necromancerPartyBoonRecipients(context) },
     );
   }
   if (hasTrait(context, TRAIT.DESERT_EMPOWERMENT)) {
+    const alacrity = balanceProfileEffect(
+      necromancerBalanceProfile(context, PROFILE.desertEmpowerment),
+      "boon",
+    );
     emitBuff(
       context,
       skill,
-      "alacrity",
-      shadeMechanics.desertEmpowerment.alacrityDuration,
-      1,
+      String(alacrity?.boon || "alacrity"),
+      Number(alacrity?.duration || 1.5),
+      Number(alacrity?.stacks || 1),
       { at, metadata: necromancerPartyBoonRecipients(context) },
     );
   }
@@ -97,12 +109,15 @@ function shade(
     skill.id === ID.MANIFEST_SAND_SHADE
       ? context.start + (context.fullEnd - context.start) * (11 / 12)
       : at;
-  const shadeMechanics = MECHANICS.shade;
+  const shadeProfile = necromancerBalanceProfile(context, PROFILE.shade);
   if (skill.id === ID.MANIFEST_SAND_SHADE) {
-    const maximum = hasTrait(context, TRAIT.SAND_SAVANT) ? 1 : 3;
-    const duration = hasTrait(context, TRAIT.SAND_SAVANT)
-      ? shadeMechanics.manifest.sandSavantDuration
-      : shadeMechanics.manifest.duration;
+    const profile = hasTrait(context, TRAIT.SAND_SAVANT)
+      ? necromancerBalanceProfile(context, PROFILE.sandSavant)
+      : shadeProfile;
+    const maximum = Number(profile?.maximumStacks || 3);
+    const duration = Number(
+      balanceProfileEffect(profile, "buff")?.duration || 15,
+    );
     // Sort ascending then take the last `maximum` entries so that when the cap
     // is exceeded the oldest (soonest-expiring) shade is evicted, not the newest
     state.shades = [...state.shades, at + duration]
@@ -154,9 +169,10 @@ function shade(
     skill.id === ID.NEFARIOUS_FAVOR
       ? "Manifest Sand Shade"
       : "Manifest Sand Shade (F1/F5)";
-  emitDamage(context, skill, shadeMechanics.manifest.coefficient, {
+  const shadeStrike = balanceProfileEffect(shadeProfile, "strike");
+  emitDamage(context, skill, Number(shadeStrike?.coefficient || 0.666), {
     at: impactAt,
-    name: "Sand Shade — Strike",
+    name: "Sand Shade - Strike",
     sourceId: ID.MANIFEST_SAND_SHADE,
     skillWeapon: "Unequipped",
     metadata: {
@@ -168,10 +184,15 @@ function shade(
       dhuumfireInterval: 1,
     },
   });
-  emitShadeCondition(context, skill, shadeMechanics.manifest.condition, {
-    at: impactAt,
-    sourceId: ID.MANIFEST_SAND_SHADE,
-  });
+  emitShadeCondition(
+    context,
+    skill,
+    balanceProfileEffect(shadeProfile, "condition"),
+    {
+      at: impactAt,
+      sourceId: ID.MANIFEST_SAND_SHADE,
+    },
+  );
 
   if (
     skill.id === ID.NEFARIOUS_FAVOR &&
@@ -180,7 +201,10 @@ function shade(
     emitShadeCondition(
       context,
       skill,
-      shadeMechanics.sadisticSearing.condition,
+      balanceProfileEffect(
+        necromancerBalanceProfile(context, PROFILE.sadisticSearing),
+        "condition",
+      ),
       {
         source: "Trait",
         sourceId: TRAIT.SADISTIC_SEARING,
@@ -195,64 +219,81 @@ function shade(
       skill,
       "fear",
       at,
-      shadeMechanics.garishPillar.fearDuration,
+      Number(
+        balanceProfileEffect(
+          necromancerBalanceProfile(context, PROFILE.garishPillar),
+          "control",
+        )?.duration || 1,
+      ),
     );
   } else if (skill.id === ID.DESERT_SHROUD) {
     if (hasTrait(context, TRAIT.SOUL_BARBS)) {
       emitBuff(context, skill, "necromancer-soul-barbs", 15, 1, { at });
     }
     applyBarrierTraits(context, skill, at);
-    emitDamage(context, skill, shadeMechanics.desertShroud.coefficient, {
+    const desert = necromancerBalanceProfile(context, PROFILE.desertShroud);
+    const strike = balanceProfileEffect(desert, "strike");
+    const torment = balanceProfileEffect(desert, "condition");
+    const hits = Number(strike?.hits || 7);
+    const interval = Number(strike?.intervalMs || 1000) / 1000;
+    emitDamage(context, skill, Number(strike?.coefficient || 3.15), {
       at,
-      hits: shadeMechanics.desertShroud.hits,
-      interval: shadeMechanics.desertShroud.interval,
+      hits,
+      interval,
     });
-    for (let index = 0; index < shadeMechanics.desertShroud.hits; index += 1) {
-      emitShadeCondition(
-        context,
-        skill,
-        shadeMechanics.desertShroud.condition,
-        { at: at + index * shadeMechanics.desertShroud.interval },
-      );
+    for (let index = 0; index < hits; index += 1) {
+      emitShadeCondition(context, skill, torment, {
+        at: at + index * interval,
+      });
     }
   } else if (skill.id === ID.SANDSTORM_SHROUD) {
-    const sandstorm = shadeMechanics.sandstormShroud;
+    const sandstorm = necromancerBalanceProfile(
+      context,
+      PROFILE.sandstormShroud,
+    );
+    const strike = balanceProfileEffect(sandstorm, "strike");
+    const torment = balanceProfileEffect(sandstorm, "condition");
+    const pulseProtection = balanceProfileEffect(sandstorm, "boon");
+    const detonationProtection = balanceProfileEffect(sandstorm, "boon", 1);
+    const delay = Number(strike?.atMs || 3500) / 1000;
+    const pulseCount = Number(pulseProtection?.applications || 3);
+    const pulseInterval = Number(pulseProtection?.intervalMs || 1000) / 1000;
     if (hasTrait(context, TRAIT.SOUL_BARBS)) {
       emitBuff(context, skill, "necromancer-soul-barbs", 15, 1, { at });
     }
     // Pulses fire at cast-end + 0s, 1s, 2s; detonation fires separately at cast-end + 3.5s
-    for (let index = 0; index < sandstorm.pulseCount; index += 1) {
-      const pulseAt = at + index * sandstorm.pulseInterval;
+    for (let index = 0; index < pulseCount; index += 1) {
+      const pulseAt = at + index * pulseInterval;
       applyBarrierTraits(context, skill, pulseAt);
       emitBuff(
         context,
         skill,
         "protection",
-        sandstorm.pulseProtectionDuration,
-        1,
+        Number(pulseProtection?.duration || 1.5),
+        Number(pulseProtection?.stacks || 1),
         {
           at: pulseAt,
           metadata: necromancerPartyBoonRecipients(context),
         },
       );
     }
-    applyBarrierTraits(context, skill, at + sandstorm.delay);
+    applyBarrierTraits(context, skill, at + delay);
     emitBuff(
       context,
       skill,
       "protection",
-      sandstorm.detonationProtectionDuration,
-      1,
+      Number(detonationProtection?.duration || 3),
+      Number(detonationProtection?.stacks || 1),
       {
-        at: at + sandstorm.delay,
+        at: at + delay,
         metadata: necromancerPartyBoonRecipients(context),
       },
     );
-    emitDamage(context, skill, sandstorm.coefficient, {
-      at: at + sandstorm.delay,
+    emitDamage(context, skill, Number(strike?.coefficient || 3), {
+      at: at + delay,
     });
-    emitShadeCondition(context, skill, sandstorm.condition, {
-      at: at + sandstorm.delay,
+    emitShadeCondition(context, skill, torment, {
+      at: at + delay,
     });
   }
   return true;

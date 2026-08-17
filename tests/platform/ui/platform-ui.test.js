@@ -377,6 +377,10 @@ test("shared chart lookup and series cover damage timing and configurable effect
   assert.equal(series.effects["Effect <burn>"][1].v, 2);
   assert.equal(series.effects["Effect <burn>"].at(-1).v, 2);
   assert.equal(series.effects["Effect <power>"][0].v, 2);
+  assert.deepEqual(series.effectTypes, {
+    "Effect <burn>": "condition",
+    "Effect <power>": "buff",
+  });
 });
 
 test("shared DPS charts start their sample grid at the first hit", () => {
@@ -494,6 +498,14 @@ test("shared chart markup escapes effect names and uses scoped roles without ids
       effects: {
         'Bad"><img src=x>': [{ t: 0, v: 1 }],
         Quickness: [{ t: 0, v: 2.5 }],
+        Alacrity: [{ t: 0, v: 1.5 }],
+        Torment: [{ t: 0, v: 3 }],
+      },
+      effectTypes: {
+        Quickness: "boon",
+        Alacrity: "boon",
+        Torment: "condition",
+        'Bad"><img src=x>': "buff",
       },
       effectUnits: { Quickness: "s" },
       cumulativeDamage: [
@@ -513,6 +525,29 @@ test("shared chart markup escapes effect names and uses scoped roles without ids
   assert.match(container.innerHTML, /data-role="dps-canvas"/);
   assert.match(container.innerHTML, /Bad&quot;&gt;&lt;img src=x&gt;/);
   assert.match(container.innerHTML, /Quickness \(s\)/);
+  assert.deepEqual(
+    [
+      ...container.innerHTML.matchAll(
+        /data-role="chart-toggle-group" data-effect-type="([^"]+)"/g,
+      ),
+    ].map((match) => match[1]),
+    ["boon", "condition", "buff"],
+  );
+  assert.equal(
+    container.innerHTML.indexOf("Alacrity"),
+    Math.min(
+      container.innerHTML.indexOf("Alacrity"),
+      container.innerHTML.indexOf("Quickness"),
+    ),
+  );
+  assert.equal(
+    [...container.innerHTML.matchAll(/data-toggle-action="all"/g)].length,
+    3,
+  );
+  assert.equal(
+    [...container.innerHTML.matchAll(/data-toggle-action="none"/g)].length,
+    3,
+  );
   assert.match(container.innerHTML, /data-role="chart-phase-toggles"/);
   assert.match(container.innerHTML, /Chart range/);
   assert.match(container.innerHTML, /data-role="effects-panel-title"/);

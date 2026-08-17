@@ -17,6 +17,8 @@ import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
+import { necromancerBalanceProfile } from "../../core/profiles.js";
+import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 export { ritualistSchedulerHooks } from "./spirits.js";
 
@@ -29,7 +31,10 @@ function modifyRitualistAttributes(
     !professionStaticRulesApplied(context.config) &&
     hasTrait(context, TRAIT.BOON_OF_CREATION)
   ) {
-    result.concentration += 180;
+    result.concentration += Number(
+      necromancerBalanceProfile(context, PROFILE.boonOfCreation)
+        ?.attributeBonus || 180,
+    );
   }
   return result;
 }
@@ -40,9 +45,9 @@ export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       id: "necromancer.essence-blast-active-spirits",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
-      amount: (context) =>
-        Number(context.event?.activeSpirits || 0) *
-        Number(context.event?.essenceBlastDamagePerSpirit || 0),
+      parameters: { damagePerSpirit: 0.15 } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) =>
+        Number(context.event?.activeSpirits || 0) * parameters.damagePerSpirit,
       when: (context) =>
         Boolean(
           necromancerEventSkill(context)?.id === ID.ESSENCE_BLAST &&
@@ -65,9 +70,14 @@ export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
       // +2% per target condition and +20% if target is controlled; both are live-calibrated against EVTC
-      amount: (context) =>
-        necromancerTargetConditionCount(context) * 0.02 +
-        (necromancerTargetControlled(context) ? 0.2 : 0),
+      parameters: {
+        damagePerCondition: 0.02,
+        controlledBonus: 0.2,
+      } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) =>
+        necromancerTargetConditionCount(context) *
+          parameters.damagePerCondition +
+        (necromancerTargetControlled(context) ? parameters.controlledBonus : 0),
       // Flag is set on Anguish autoattacks and summon barrage hits but NOT on innervate or Summon Spirits hits
       when: (context) => Boolean(context.event?.anguishConditionalDamage),
     },

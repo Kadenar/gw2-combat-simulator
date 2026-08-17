@@ -5201,9 +5201,8 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
 }
 
 .chart-toggles {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
+  display: grid;
+  gap: 8px;
   margin-bottom: 8px;
   font-size: 11px;
 }
@@ -5231,6 +5230,56 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   width: 10px;
   height: 10px;
   border-radius: 2px;
+}
+
+.chart-toggle-dps {
+  display: flex;
+}
+
+.chart-toggle-group {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.chart-toggle-group-header,
+.chart-toggle-actions,
+.chart-toggle-items {
+  display: flex;
+  align-items: center;
+}
+
+.chart-toggle-group-header {
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 18px;
+}
+
+.chart-toggle-actions {
+  gap: 3px;
+  color: var(--text-dim);
+}
+
+.chart-toggle-actions button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.chart-toggle-actions button:hover {
+  color: var(--text-bright);
+}
+
+.chart-toggle-items {
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  min-height: 18px;
 }
 
 .chart-toggle-label {

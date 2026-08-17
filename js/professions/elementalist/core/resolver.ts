@@ -64,18 +64,30 @@ function titleCase(value: string): string {
 
 function buffDuration(
   context: Gw2ResolverRuntime,
+  event: Gw2ResolverEvent,
   kind: string,
   duration: number,
 ): number {
   const normalized = kind.toLowerCase();
   if (!BOON_KINDS.has(normalized)) return duration;
   const weaponSet = context.activeWeaponSet === 2 ? 2 : 1;
-  const stats = gw2StatsForWeaponSet(context.config, weaponSet);
+  const stats = context.query.statsAt(
+    event.at,
+    {
+      ...event,
+      type: "buff",
+      actorType: "player",
+      kind: normalized,
+    },
+    context,
+  );
+  const staticStats = gw2StatsForWeaponSet(context.config, weaponSet);
   const sigils = context.config.sigilSets?.[weaponSet - 1] || {};
   const bonus =
     Number(stats.concentration || 0) / 1500 +
-    Number(stats.boonDurationBonus || 0) / 100 +
-    Number(stats.boonDurationBonuses?.[titleCase(normalized)] || 0) / 100 +
+    Number(staticStats.boonDurationBonus || 0) / 100 +
+    Number(staticStats.boonDurationBonuses?.[titleCase(normalized)] || 0) /
+      100 +
     Number(sigils.boonDurationBonus || 0) / 100;
   return duration * Math.min(2, Math.max(1, 1 + bonus));
 }
@@ -126,7 +138,7 @@ export function queueElementalistBuff(
   duration: number,
   source: string,
 ): void {
-  const adjustedDuration = buffDuration(context, kind, duration);
+  const adjustedDuration = buffDuration(context, event, kind, duration);
   enqueueOrdered(context.queue, {
     type: "buff",
     at: event.at,

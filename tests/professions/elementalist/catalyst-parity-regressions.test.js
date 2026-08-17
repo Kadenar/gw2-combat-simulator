@@ -73,7 +73,7 @@ test("Catalyst empowerment uses only eligible build-stat sources", async () => {
   assert.equal(app.attributeData.attributes["Condition Damage"].final, 1947);
 });
 
-test("Elemental Empowerment keeps three base stacks and seven timed stacks", () => {
+test("Elemental Empowerment tracks all ten stacks in its timed pool", () => {
   const state = createCatalystState();
   const context = {
     profession: {
@@ -81,7 +81,7 @@ test("Elemental Empowerment keeps three base stacks and seven timed stacks", () 
     },
   };
 
-  for (let index = 1; index <= 8; index += 1) {
+  for (let index = 1; index <= 11; index += 1) {
     applyCatalystEmpowerment(context, {
       type: "buff",
       at: index,
@@ -93,7 +93,7 @@ test("Elemental Empowerment keeps three base stacks and seven timed stacks", () 
 
   assert.deepEqual(
     state.elementalEmpowermentExpiries,
-    [22, 23, 24, 25, 26, 27, 28],
+    [22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
   );
 
   const attributes = catalystAttributeRules.modifyAttributes(
@@ -115,7 +115,7 @@ test("Elemental Empowerment keeps three base stacks and seven timed stacks", () 
           specialization: { kind: "Catalyst", state },
         },
       },
-      time: 10,
+      time: 12,
     },
     {
       power: 1500,
@@ -135,6 +135,79 @@ test("Elemental Empowerment keeps three base stacks and seven timed stacks", () 
     expertise: 1700,
     concentration: 1700,
   });
+});
+
+test("Jade Sphere boons use current Sphere Specialist and runtime concentration", async () => {
+  const { result } = await loadCatalystFixture(
+    "power-quick-catalyst-scepter-btth",
+  );
+  const sphereQuickness = result.events
+    .filter(
+      (event) =>
+        event.type === "buff" &&
+        event.kind === "quickness" &&
+        String(event.skillName || "").startsWith("Deploy Jade Sphere"),
+    )
+    .sort((left, right) => left.at - right.at);
+  const firstFireAt = sphereQuickness[0].at;
+  const firstFireBoons = result.events.filter(
+    (event) =>
+      event.type === "buff" &&
+      event.skillName === "Deploy Jade Sphere (Fire)" &&
+      event.at >= firstFireAt &&
+      event.at <= firstFireAt + 5,
+  );
+  const fireMight = firstFireBoons.filter((event) => event.kind === "might");
+  const baseEmpowerment = result.events.filter(
+    (event) =>
+      event.type === "buff" && event.skillName === "Elemental Empowerment",
+  );
+  const combatStart =
+    result.steps.find((step) => step.skill === "Combat Start").start / 1000;
+
+  // Four Elemental Empowerment stacks raise 465 concentration to 483.6.
+  // Spectacular Sphere Quickness is 2s * 1.5 before boon duration.
+  assert.ok(Math.abs(sphereQuickness[0].duration - 3.9672) < 1e-9);
+  assert.ok(Math.abs(sphereQuickness[1].duration - 3.9765) < 1e-9);
+  assert.deepEqual(
+    baseEmpowerment
+      .slice(0, 2)
+      .map((event) => [event.at, event.stacks, event.duration]),
+    [
+      [combatStart, 3, 15],
+      [combatStart + 15, 3, 15],
+    ],
+  );
+  assert.deepEqual(
+    fireMight.map((event) => [event.at - firstFireAt, event.stacks]),
+    [
+      [0, 5],
+      [0, 1],
+      [1, 1],
+      [2, 1],
+      [3, 1],
+      [4, 1],
+      [5, 1],
+    ],
+  );
+  assert.equal(
+    fireMight.every((event) => Math.abs(event.duration - 19.836) < 1e-9),
+    true,
+  );
+
+  let remaining = 0;
+  let previousAt = sphereQuickness[0].at;
+  for (const [index, event] of sphereQuickness.entries()) {
+    if (index > 0) {
+      remaining -= event.at - previousAt;
+      assert.ok(
+        remaining >= -1e-9,
+        `Quickness dropped before sphere at ${event.at.toFixed(3)}s.`,
+      );
+    }
+    remaining = Math.min(30, Math.max(0, remaining) + event.duration);
+    previousAt = event.at;
+  }
 });
 
 test("Catalyst zero-damage finishers preserve combo metadata", () => {

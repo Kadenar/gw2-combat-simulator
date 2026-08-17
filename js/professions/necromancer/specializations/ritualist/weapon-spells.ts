@@ -15,21 +15,14 @@ import {
   gw2AlliedEffectRecipients,
   gw2AlliedPlayerProcTimeline,
 } from "../../../../platform/gw2/allied-players.js";
-import { RITUALIST_MECHANICS as MECHANICS } from "./mechanics.js";
 import { hasTrait } from "../../core/shared.js";
+import { necromancerBalanceProfile } from "../../core/profiles.js";
+import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 import type {
   NecromancerCastContext,
   NecromancerCoreState,
   NecromancerSkill,
 } from "../../types.js";
-
-interface WeaponSpellDefinition {
-  readonly duration: number;
-  readonly playerStacks: number;
-  readonly allyStacks: number;
-  readonly maxAllies: number;
-  readonly internalCooldown?: number;
-}
 
 const SPELL_BY_SKILL_ID: Readonly<Record<string | number, string>> =
   Object.freeze({
@@ -53,17 +46,19 @@ function applyWeaponSpell(
   skill: NecromancerSkill,
 ): boolean {
   const spell = SPELL_BY_SKILL_ID[skill.id];
-  const definition = (
-    MECHANICS.weaponSpells as Readonly<Record<string, WeaponSpellDefinition>>
-  )[spell];
+  const definition = skill.effects?.find((effect) => effect.type === "buff");
   if (!definition) return false;
+  const playerStacks = Number(definition.stacks || 0);
+  const defaultAllyStacks = Number(definition.allyStacks || 0);
+  const maximumAllies = Math.max(
+    Number(definition.maximumRecipients || 1) - 1,
+    0,
+  );
   // Wielder's Boon grants allies the same stack count as the player instead of the reduced ally default
   const fullAlliedBenefit = hasTrait(context, TRAIT.WIELDERS_BOON);
-  const allyStacks = fullAlliedBenefit
-    ? definition.playerStacks
-    : definition.allyStacks;
+  const allyStacks = fullAlliedBenefit ? playerStacks : defaultAllyStacks;
   const party = gw2AlliedEffectRecipients(context.config, {
-    maximumRecipients: definition.maxAllies + 1,
+    maximumRecipients: maximumAllies + 1,
     companionIds: activeMinionRecipients(professionCoreState(context)),
   });
   context.emit({
@@ -76,23 +71,29 @@ function applyWeaponSpell(
     skillName: skill.name,
     name: skill.name,
     spell,
-    duration: definition.duration,
-    playerStacks: definition.playerStacks,
+    duration: Number(definition.duration || 0),
+    playerStacks,
     allyStacks,
-    maxAllies: definition.maxAllies,
+    maxAllies: maximumAllies,
     recipients: party.companionIds,
     alliedPlayerCount: party.alliedPlayerCount,
     recipientCount: party.recipientCount,
     alliesReceiveFullBenefit: fullAlliedBenefit,
   });
   if (spell === "nightmare" || spell === "splinter") {
+    const proc = necromancerBalanceProfile(
+      context,
+      spell === "nightmare"
+        ? PROFILE.nightmareWeaponProc
+        : PROFILE.splinterWeaponProc,
+    );
     // Resilient Weapon has no damage component, so ally proc timeline is only needed for damaging spells
     const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {
       start: context.effectiveEnd,
-      duration: definition.duration,
+      duration: Number(definition.duration || 0),
       maximumAllies: party.alliedPlayerCount,
       maximumPerAlly: allyStacks,
-      internalCooldown: definition.internalCooldown,
+      internalCooldown: Number(proc?.internalCooldown || 0),
     });
     for (let index = 0; index < alliedProcs.length; index += 1) {
       const proc = alliedProcs[index];
@@ -104,7 +105,7 @@ function applyWeaponSpell(
         actorType: "effect",
         skillId: skill.id,
         skillName: skill.name,
-        name: `${skill.name} — Ally ${proc.allyIndex} Trigger`,
+        name: `${skill.name} - Ally ${proc.allyIndex} Trigger`,
         spell,
         triggeredByAlly: proc.allyIndex,
         procIndex: proc.procIndex,

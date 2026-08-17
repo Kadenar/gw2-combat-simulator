@@ -5,7 +5,6 @@ import type {
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
 } from "../../../../platform/gw2/types.js";
-import { gw2StatsForWeaponSet } from "../../../../platform/gw2/runtime-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import type { ElementalistResolverContext } from "../../types.js";
 import {
@@ -14,9 +13,7 @@ import {
   queueElementalistBuff,
   recordElementalistTraitProc,
 } from "../../core/resolver.js";
-import { catalystState } from "./state.js";
-
-const MAXIMUM_TIMED_EMPOWERMENT_STACKS = 7;
+import { catalystState, grantCatalystElementalEmpowerment } from "./state.js";
 
 export function applyCatalystResolverAura(
   context: ElementalistResolverContext,
@@ -100,23 +97,6 @@ export function applyCatalystComboTraits(
   }
 }
 
-function catalystBoonDuration(
-  context: Gw2ResolverRuntime,
-  kind: string,
-  duration: number,
-): number {
-  const weaponSet = context.activeWeaponSet === 2 ? 2 : 1;
-  const stats = gw2StatsForWeaponSet(context.config, weaponSet);
-  const sigils = context.config.sigilSets?.[weaponSet - 1] || {};
-  const name = kind.charAt(0).toUpperCase() + kind.slice(1).toLowerCase();
-  const bonus =
-    Number(stats.concentration || 0) / 1500 +
-    Number(stats.boonDurationBonus || 0) / 100 +
-    Number(stats.boonDurationBonuses?.[name] || 0) / 100 +
-    Number(sigils.boonDurationBonus || 0) / 100;
-  return duration * Math.min(2, Math.max(1, 1 + bonus));
-}
-
 function queueCatalystBuff(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
@@ -124,21 +104,14 @@ function queueCatalystBuff(
   stacks: number,
   duration: number,
 ): void {
-  enqueueOrdered(context.queue, {
-    type: "buff",
-    at: event.at,
-    source: "Vicious Empowerment",
-    sourceId: event.skillId ?? event.sourceId ?? "Vicious Empowerment",
-    actorType: "player",
-    skillName: "Vicious Empowerment",
+  queueElementalistBuff(
+    context,
+    event,
     kind,
     stacks,
-    duration:
-      kind === "might"
-        ? catalystBoonDuration(context, kind, duration)
-        : duration,
-    triggeredBy: event.skillName,
-  });
+    duration,
+    "Vicious Empowerment",
+  );
 }
 
 export function applyViciousEmpowerment(
@@ -219,19 +192,13 @@ export function applyCatalystEmpowerment(
   }
 
   const state = catalystState.from(context);
-  const expiresAt = event.at + Math.max(0, Number(event.duration || 0));
-  const grantedStacks = Math.max(1, Number(event.stacks || 1));
-  const active = state.elementalEmpowermentExpiries
-    .filter((expiry) => expiry > event.at + EPSILON)
-    .sort((left, right) => left - right);
-
-  for (let stack = 0; stack < grantedStacks; stack += 1) {
-    if (active.length >= MAXIMUM_TIMED_EMPOWERMENT_STACKS) active.shift();
-    if (expiresAt > event.at + EPSILON) active.push(expiresAt);
-    active.sort((left, right) => left - right);
-  }
-
-  state.elementalEmpowermentExpiries = active;
+  grantCatalystElementalEmpowerment(
+    state,
+    event.at,
+    Number(event.duration || 0),
+    Number(event.stacks || 1),
+    EPSILON,
+  );
 }
 
 export function applyCatalystResolvedDamage(

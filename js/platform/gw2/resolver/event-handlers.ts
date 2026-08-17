@@ -9,7 +9,7 @@ import type {
 } from "../types.js";
 import { gw2BoonApplicationRecipients } from "../allied-players.js";
 import {
-  GW2_BOON_DURATION_CAP_SECONDS,
+  durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   remainingDurationStackSeconds,
 } from "../boon-state.js";
@@ -63,7 +63,7 @@ function handleBuff(
     ? Number(
         remainingDurationStackSeconds(applications, event.at, {
           includes: (application) => application.affectsSelf !== false,
-          maximum: GW2_BOON_DURATION_CAP_SECONDS,
+          maximum: durationStackingBoonCapSeconds(kind),
         }) > 0,
       )
     : applications
