@@ -16,6 +16,10 @@ import {
 } from "../../../js/app/rotation/result-model.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import {
+  applyBalanceProfilePatch,
+  applySkillPatch,
+} from "../../../js/platform/gw2/skill-patch.js";
+import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,
   toApplicationBuild,
@@ -31,7 +35,18 @@ import {
 } from "../../../js/professions/engineer/data/ids.js";
 import { ENGINEER_SKILL_MECHANICS } from "../../../js/professions/engineer/mechanics/skill-mechanics.js";
 import { engineerProfession } from "../../../js/professions/engineer/definition.js";
+import { engineerCoreModule } from "../../../js/professions/engineer/core/module.js";
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from "../../../js/professions/engineer/core/profiles.js";
+import { ENGINEER_TURRET_ATTACK_SKILL_IDS } from "../../../js/professions/engineer/core/turrets.js";
+import { amalgamModule } from "../../../js/professions/engineer/specializations/amalgam/module.js";
+import { AMALGAM_BALANCE_PROFILE_IDS } from "../../../js/professions/engineer/specializations/amalgam/profiles.js";
+import { holosmithModule } from "../../../js/professions/engineer/specializations/holosmith/module.js";
+import { HOLOSMITH_BALANCE_PROFILE_IDS } from "../../../js/professions/engineer/specializations/holosmith/profiles.js";
+import { mechanistModule } from "../../../js/professions/engineer/specializations/mechanist/module.js";
+import { MECHANIST_BALANCE_PROFILE_IDS } from "../../../js/professions/engineer/specializations/mechanist/profiles.js";
 import { engineerMechAttributes } from "../../../js/professions/engineer/specializations/mechanist/state.js";
+import { scrapperModule } from "../../../js/professions/engineer/specializations/scrapper/module.js";
+import { SCRAPPER_BALANCE_PROFILE_IDS } from "../../../js/professions/engineer/specializations/scrapper/profiles.js";
 import { scrapperSchedulerHooks } from "../../../js/professions/engineer/specializations/scrapper/rules.js";
 import { createScrapperState } from "../../../js/professions/engineer/specializations/scrapper/state.js";
 import { engineerWeaponSkillMatchesSet } from "../../../js/professions/engineer/core/ui.js";
@@ -39,6 +54,7 @@ import {
   recalculate,
   runSimulation,
 } from "../../../js/professions/engineer/app/app-definition.js";
+import { assertProfessionFamilyConformance } from "../../helpers/profession-family-conformance.js";
 
 const baseConfig = Object.freeze({
   selectedSkills: [
@@ -88,6 +104,9 @@ const observationTail = (durationMs) => ({ kind: "tail", durationMs });
 function mechanic(name) {
   return engineerCatalog.skillsByName.get(name);
 }
+
+const applyEngineerPatch = (patch) =>
+  applyBalanceProfilePatch(applySkillPatch(engineerCatalog, patch), patch);
 
 test("Engineer catalog pins API identity and explicit skill mechanics", () => {
   assert.equal(DATA_SNAPSHOT, "2026-07-28");
@@ -181,6 +200,147 @@ test("Engineer catalog pins API identity and explicit skill mechanics", () => {
         !Object.hasOwn(skill, "cooldown") &&
         !Object.hasOwn(skill, "recharge"),
     ),
+  );
+});
+
+test("Engineer modules expose isolated balance-profile authoring", () => {
+  assertProfessionFamilyConformance({
+    family: engineerProfession,
+    core: engineerCoreModule,
+    specializations: {
+      Scrapper: scrapperModule,
+      Holosmith: holosmithModule,
+      Mechanist: mechanistModule,
+      Amalgam: amalgamModule,
+    },
+  });
+
+  const modules = new Map(
+    engineerProfession.patchAuthoring.modules.map((module) => [
+      module.id,
+      module,
+    ]),
+  );
+  assert.deepEqual(
+    [...modules.keys()],
+    ["Core", "Scrapper", "Holosmith", "Mechanist", "Amalgam"],
+  );
+  assert.equal(
+    [...modules.values()].every((module) => module.balanceProfiles.length > 0),
+    true,
+  );
+
+  const profile = (moduleId, profileId) =>
+    modules
+      .get(moduleId)
+      .balanceProfiles.find((entry) => entry.id === profileId);
+  assert.equal(
+    profile("Core", ENGINEER_CORE_BALANCE_PROFILE_IDS.resources).patchableFields
+      .resourceCost,
+    50,
+  );
+  assert.equal(
+    profile("Scrapper", SCRAPPER_BALANCE_PROFILE_IDS.appliedForce)
+      .patchableFields.attributePerStack,
+    30,
+  );
+  assert.equal(
+    profile("Holosmith", HOLOSMITH_BALANCE_PROFILE_IDS.enhancedCapacity)
+      .patchableFields.threshold,
+    100,
+  );
+  assert.equal(
+    profile("Mechanist", MECHANIST_BALANCE_PROFILE_IDS.resources)
+      .patchableFields.attributeConversion,
+    0.5,
+  );
+  assert.equal(
+    profile("Amalgam", AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies)
+      .patchableFields.rechargeReduction,
+    2.5,
+  );
+
+  const rifleTurretAttack = engineerCatalog.skillsById.get(
+    ENGINEER_TURRET_ATTACK_SKILL_IDS.rifle,
+  );
+  assert.equal(rifleTurretAttack.simulatorExcluded, true);
+  assert.equal(rifleTurretAttack.effects[0].actorType, "summon");
+  assert.equal(rifleTurretAttack.effects[0].coefficient, 0.75);
+
+  const opaqueModifierRules = [...modules.values()].flatMap((module) =>
+    module.modifierRules.filter(
+      (rule) =>
+        (typeof rule.amount === "function" ||
+          typeof rule.factor === "function") &&
+        Object.keys(rule.parameters).length === 0,
+    ),
+  );
+  assert.deepEqual(opaqueModifierRules, []);
+
+  const preview = applyEngineerPatch({
+    skills: {
+      [ENGINEER_TURRET_ATTACK_SKILL_IDS.rifle]: {
+        effects: [{ effectIndex: 0, coefficient: { from: 0.75, to: 0.8 } }],
+      },
+    },
+    balanceProfiles: {
+      [ENGINEER_CORE_BALANCE_PROFILE_IDS.resources]: {
+        fields: { resourceCost: { from: 50, to: 45 } },
+      },
+      [SCRAPPER_BALANCE_PROFILE_IDS.appliedForce]: {
+        fields: { attributePerStack: { from: 30, to: 35 } },
+      },
+      [HOLOSMITH_BALANCE_PROFILE_IDS.enhancedCapacity]: {
+        fields: { threshold: { from: 100, to: 90 } },
+      },
+      [MECHANIST_BALANCE_PROFILE_IDS.resources]: {
+        fields: { attributeConversion: { from: 0.5, to: 0.6 } },
+      },
+      [AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies]: {
+        fields: { rechargeReduction: { from: 2.5, to: 3 } },
+      },
+    },
+  });
+
+  assert.equal(
+    preview.skillsById.get(ENGINEER_TURRET_ATTACK_SKILL_IDS.rifle).effects[0]
+      .coefficient,
+    0.8,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(ENGINEER_CORE_BALANCE_PROFILE_IDS.resources)
+      .resourceCost,
+    45,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(SCRAPPER_BALANCE_PROFILE_IDS.appliedForce)
+      .attributePerStack,
+    35,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(
+      HOLOSMITH_BALANCE_PROFILE_IDS.enhancedCapacity,
+    ).threshold,
+    90,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(MECHANIST_BALANCE_PROFILE_IDS.resources)
+      .attributeConversion,
+    0.6,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(
+      AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies,
+    ).rechargeReduction,
+    3,
+  );
+
+  assert.equal(rifleTurretAttack.effects[0].coefficient, 0.75);
+  assert.equal(
+    engineerCatalog.balanceProfilesById.get(
+      ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
+    ).resourceCost,
+    50,
   );
 });
 

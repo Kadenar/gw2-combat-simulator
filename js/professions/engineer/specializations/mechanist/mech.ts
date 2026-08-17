@@ -1,13 +1,16 @@
 import { mechanistState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { emitEngineerState } from "../../core/events.js";
 import {
   ENGINEER_SKILL_IDS as ID,
   ENGINEER_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
 import { hasEngineerTrait } from "../../core/state.js";
+import {
+  engineerBalanceEffectValue,
+  engineerBalanceValue,
+} from "../../core/profiles.js";
+import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 import {
   MECHANIST_ATTACK_TIMING,
   MECHANIST_COMMAND_DURATIONS,
@@ -48,22 +51,25 @@ const MECH_BASIC_SKILL_IDS = new Set<SkillId>([
   ID.ROCKET_PUNCH_MECH,
 ]);
 
-const MECH_WEAPON_PROFILE_BY_SKILL_ID: ReadonlyMap<SkillId, string> =
-  new Map<SkillId, string>([
-    [ID.JADE_ENERGY_SHOT, MECH_TYPE_1_PROFILE_ID],
-    [ID.JADE_ENERGY_SHOT_ID_63348, MECH_TYPE_1_PROFILE_ID],
-    [ID.CORE_REACTOR_SHOT, MECH_TYPE_1_PROFILE_ID],
-    [ID.ROCKET_PUNCH_MECH, MECH_TYPE_1_PROFILE_ID],
-    [ID.JADE_MORTAR, MECH_TYPE_2_PROFILE_ID],
-    [ID.SPARK_REVOLVER, MECH_TYPE_2_PROFILE_ID],
-    [ID.EXPLOSIVE_KNUCKLE, MECH_TYPE_2_PROFILE_ID],
-    [ID.HARD_STRIKE, MECH_TYPE_2_PROFILE_ID],
-    [ID.HEAVY_SMASH_MECH, MECH_TYPE_2_PROFILE_ID],
-    [ID.TWIN_STRIKE_MECH, MECH_TYPE_2_PROFILE_ID],
-    [ID.JADE_BUSTER_CANNON, MECH_TYPE_3_PROFILE_ID],
-  ]);
+const MECH_WEAPON_PROFILE_BY_SKILL_ID: ReadonlyMap<SkillId, string> = new Map<
+  SkillId,
+  string
+>([
+  [ID.JADE_ENERGY_SHOT, MECH_TYPE_1_PROFILE_ID],
+  [ID.JADE_ENERGY_SHOT_ID_63348, MECH_TYPE_1_PROFILE_ID],
+  [ID.CORE_REACTOR_SHOT, MECH_TYPE_1_PROFILE_ID],
+  [ID.ROCKET_PUNCH_MECH, MECH_TYPE_1_PROFILE_ID],
+  [ID.JADE_MORTAR, MECH_TYPE_2_PROFILE_ID],
+  [ID.SPARK_REVOLVER, MECH_TYPE_2_PROFILE_ID],
+  [ID.EXPLOSIVE_KNUCKLE, MECH_TYPE_2_PROFILE_ID],
+  [ID.HARD_STRIKE, MECH_TYPE_2_PROFILE_ID],
+  [ID.HEAVY_SMASH_MECH, MECH_TYPE_2_PROFILE_ID],
+  [ID.TWIN_STRIKE_MECH, MECH_TYPE_2_PROFILE_ID],
+  [ID.JADE_BUSTER_CANNON, MECH_TYPE_3_PROFILE_ID],
+]);
 
 function mechWeaponScaling(
+  context: EngineerSchedulerContext | EngineerCastContext,
   skillId: SkillId | null | undefined,
 ): Readonly<{
   damagePerCoefficient: number;
@@ -72,16 +78,24 @@ function mechWeaponScaling(
   // Fall back to type-2 (melee) profile for any mech attack whose native
   // weapon profile has not yet been empirically measured.
   const profileId =
-    (skillId == null
-      ? null
-      : MECH_WEAPON_PROFILE_BY_SKILL_ID.get(skillId)) ||
+    (skillId == null ? null : MECH_WEAPON_PROFILE_BY_SKILL_ID.get(skillId)) ||
     MECH_TYPE_2_PROFILE_ID;
-  const midpoint = weaponStrengthMidpoint(
-    weaponStrengthProfile(profileId),
-  );
+  const midpoint = weaponStrengthMidpoint(weaponStrengthProfile(profileId));
   return {
     damagePerCoefficient:
-      midpoint * MECH_REFERENCE_POWER / STANDARD_TARGET_ARMOR,
+      (midpoint *
+        engineerBalanceValue(
+          context,
+          PROFILE.attackTiming,
+          "basePower",
+          MECH_REFERENCE_POWER,
+        )) /
+      engineerBalanceValue(
+        context,
+        PROFILE.attackTiming,
+        "weaponStrength",
+        STANDARD_TARGET_ARMOR,
+      ),
     profileId,
   };
 }
@@ -113,7 +127,12 @@ function selectedSkillNames(config: EngineerConfig = {}): Set<string> {
 function mechAttackRate(context: EngineerSchedulerContext): number {
   return context.config.boons?.quickness &&
     selectedSkillNames(context.config).has("Shift Signet")
-    ? 1.5
+    ? engineerBalanceValue(
+        context,
+        PROFILE.attackTiming,
+        "quicknessCastMultiplier",
+        1.5,
+      )
     : 1;
 }
 
@@ -130,7 +149,7 @@ function emitMechStrike(
     basicAttack = true,
   }: MechStrikeOptions,
 ): void {
-  const scaling = mechWeaponScaling(skillId);
+  const scaling = mechWeaponScaling(context, skillId);
   context.emit({
     type: "damage",
     at,
@@ -148,7 +167,12 @@ function emitMechStrike(
     independentSummonStrike: true,
     summonInheritsAttributes: true,
     summonUsesProfessionModifiers: true,
-    summonBasePower: MECH_REFERENCE_POWER,
+    summonBasePower: engineerBalanceValue(
+      context,
+      PROFILE.attackTiming,
+      "basePower",
+      MECH_REFERENCE_POWER,
+    ),
     summonDamagePerCoefficient: scaling.damagePerCoefficient,
     weaponStrengthProfileId: scaling.profileId,
     engineerMech: true,
@@ -184,14 +208,17 @@ export function observeEngineerMechEvent(
     const basicAttack =
       event.mechBasicAttack === true ||
       (event.skillId != null && MECH_BASIC_SKILL_IDS.has(event.skillId));
-    const scaling = mechWeaponScaling(
-      event.skillId ?? event.sourceId,
-    );
+    const scaling = mechWeaponScaling(context, event.skillId ?? event.sourceId);
     Object.assign(updates, {
       independentSummonStrike: true,
       summonInheritsAttributes: true,
       summonUsesProfessionModifiers: true,
-      summonBasePower: MECH_REFERENCE_POWER,
+      summonBasePower: engineerBalanceValue(
+        context,
+        PROFILE.attackTiming,
+        "basePower",
+        MECH_REFERENCE_POWER,
+      ),
       summonDamagePerCoefficient: scaling.damagePerCoefficient,
       weaponStrengthProfileId: scaling.profileId,
       mechBasicAttack: basicAttack,
@@ -238,7 +265,7 @@ function emitRocketPunch(
   skill: EngineerSkill,
   at: number,
 ): void {
-  const scaling = mechWeaponScaling(ID.ROCKET_PUNCH_MECH);
+  const scaling = mechWeaponScaling(context, ID.ROCKET_PUNCH_MECH);
   context.emit({
     type: "damage",
     at,
@@ -248,14 +275,25 @@ function emitRocketPunch(
     skillId: ID.ROCKET_PUNCH_MECH,
     skillName: "Rocket Punch (Mech)",
     name: "Rocket Punch (Mech)",
-    coefficient: 1,
+    coefficient: engineerBalanceEffectValue(
+      context,
+      PROFILE.rocketPunch,
+      "strike",
+      "coefficient",
+      1,
+    ),
     hits: 1,
     hitIndex: 1,
     totalHits: 1,
     independentSummonStrike: true,
     summonInheritsAttributes: true,
     summonUsesProfessionModifiers: true,
-    summonBasePower: MECH_REFERENCE_POWER,
+    summonBasePower: engineerBalanceValue(
+      context,
+      PROFILE.attackTiming,
+      "basePower",
+      MECH_REFERENCE_POWER,
+    ),
     summonDamagePerCoefficient: scaling.damagePerCoefficient,
     weaponStrengthProfileId: scaling.profileId,
     engineerMech: true,
@@ -272,8 +310,20 @@ function emitRocketPunch(
     skillName: "Rocket Punch (Mech)",
     name: "Rocket Punch (Mech) — Burning",
     condition: "Burning",
-    stacks: 1,
-    duration: 5,
+    stacks: engineerBalanceEffectValue(
+      context,
+      PROFILE.rocketPunch,
+      "condition",
+      "stacks",
+      1,
+    ),
+    duration: engineerBalanceEffectValue(
+      context,
+      PROFILE.rocketPunch,
+      "condition",
+      "duration",
+      5,
+    ),
     engineerMech: true,
     triggeredBy: skill.name,
   });
@@ -287,7 +337,13 @@ function emitRocketPunch(
     skillName: "Rocket Punch (Mech)",
     name: "Rocket Punch (Mech)",
     controlKind: "defiance",
-    duration: 100,
+    duration: engineerBalanceEffectValue(
+      context,
+      PROFILE.rocketPunch,
+      "control",
+      "duration",
+      100,
+    ),
     engineerMech: true,
     triggeredBy: skill.name,
   });
@@ -302,8 +358,20 @@ export function applyEngineerMechCastTraits(
   const at = context.effectiveEnd;
 
   if (state.mech.active && isEngineerMechCommand(skill)) {
+    const commandDuration = Number(
+      MECHANIST_COMMAND_DURATIONS[Number(skill.id)] || 0,
+    );
     const busyUntil =
-      at + Number(MECHANIST_COMMAND_DURATIONS[Number(skill.id)] || 0);
+      at +
+      (commandDuration > 0
+        ? commandDuration +
+          engineerBalanceValue(
+            context,
+            PROFILE.attackTiming,
+            "durationMultiplier",
+            0.35,
+          )
+        : 0);
     state.mech.busyUntil = Math.max(
       Number(state.mech.busyUntil || 0),
       busyUntil,
@@ -315,11 +383,12 @@ export function applyEngineerMechCastTraits(
     skill.type === "Weapon" &&
     !skill.kit &&
     skill.slot === "Weapon_3" &&
-    Number(
-      professionCoreState(context).traitProcReadyAt.rocketPunch || 0
-    ) <= at + context.epsilon
+    Number(professionCoreState(context).traitProcReadyAt.rocketPunch || 0) <=
+      at + context.epsilon
   ) {
-    professionCoreState(context).traitProcReadyAt.rocketPunch = at + 5;
+    professionCoreState(context).traitProcReadyAt.rocketPunch =
+      at +
+      engineerBalanceValue(context, PROFILE.rocketPunch, "internalCooldown", 5);
     emitRocketPunch(context, skill, at);
   }
 
@@ -337,8 +406,20 @@ export function applyEngineerMechCastTraits(
       skillName: skill.name,
       name: "Jade Dynamo — quickness",
       kind: "quickness",
-      stacks: 1,
-      duration: 2.5,
+      stacks: engineerBalanceEffectValue(
+        context,
+        PROFILE.jadeDynamo,
+        "boon",
+        "stacks",
+        1,
+      ),
+      duration: engineerBalanceEffectValue(
+        context,
+        PROFILE.jadeDynamo,
+        "boon",
+        "duration",
+        2.5,
+      ),
     });
   }
 }
@@ -348,7 +429,11 @@ export function initializeEngineerMech(
 ): void {
   const state = mechanistState.from(context);
   if (!state.mech.enabled || !state.mech.active) return;
-  scheduleMechAttack(context, 1, { phase: 0 });
+  scheduleMechAttack(
+    context,
+    engineerBalanceValue(context, PROFILE.attackTiming, "initialDelay", 1),
+    { phase: 0 },
+  );
 }
 
 export function handleEngineerMechAttack(
@@ -375,48 +460,85 @@ export function handleEngineerMechAttack(
     const firstArm = phase === 0;
     emitMechStrike(context, {
       at: task.at,
-      coefficient: 0.42,
+      coefficient: engineerBalanceEffectValue(
+        context,
+        PROFILE.jadeCannons,
+        "strike",
+        "coefficient",
+        0.42,
+      ),
       name: "Jade Energy Shot",
       skillId: firstArm ? ID.JADE_ENERGY_SHOT : ID.JADE_ENERGY_SHOT_ID_63348,
     });
     scheduleMechAttack(
       context,
-      task.at + (
-        firstArm
-          ? MECHANIST_ATTACK_TIMING.jadeCannonArmGap
-          : MECHANIST_ATTACK_TIMING.jadeCannonCycleGap
-      ) / rate,
+      task.at +
+        (firstArm
+          ? engineerBalanceValue(
+              context,
+              PROFILE.attackTiming,
+              "minimumStacks",
+              MECHANIST_ATTACK_TIMING.jadeCannonArmGap,
+            )
+          : engineerBalanceValue(
+              context,
+              PROFILE.attackTiming,
+              "threshold",
+              MECHANIST_ATTACK_TIMING.jadeCannonCycleGap,
+            )) /
+          rate,
       { phase: firstArm ? 1 : 0 },
     );
     return;
   }
 
   const melee = [
-    { coefficient: 0.45, name: "Hard Strike", skillId: ID.HARD_STRIKE },
+    { name: "Hard Strike", skillId: ID.HARD_STRIKE },
     {
-      coefficient: 0.45,
       name: "Heavy Smash (Mech)",
       skillId: ID.HEAVY_SMASH_MECH,
     },
     {
-      coefficient: 0.8,
-      hits: 2,
       name: "Twin Strike (Mech)",
       skillId: ID.TWIN_STRIKE_MECH,
     },
   ][phase] || {
-    coefficient: 0.45,
     name: "Hard Strike",
     skillId: ID.HARD_STRIKE,
   };
   emitMechStrike(context, {
     at: task.at,
     ...melee,
+    coefficient: engineerBalanceEffectValue(
+      context,
+      PROFILE.meleeChain,
+      "strike",
+      "coefficient",
+      phase === 2 ? 0.8 : 0.45,
+      phase,
+    ),
+    hits: engineerBalanceEffectValue(
+      context,
+      PROFILE.meleeChain,
+      "strike",
+      "hits",
+      phase === 2 ? 2 : 1,
+      phase,
+    ),
   });
   scheduleMechAttack(
     context,
-    task.at
-      + MECHANIST_ATTACK_TIMING.meleeChainIntervals[phase] / rate,
+    task.at +
+      engineerBalanceEffectValue(
+        context,
+        PROFILE.meleeChain,
+        "strike",
+        "intervalMs",
+        MECHANIST_ATTACK_TIMING.meleeChainIntervals[phase] * 1000,
+        phase,
+      ) /
+        1000 /
+        rate,
     {
       phase: (phase + 1) % 3,
     },
@@ -430,8 +552,18 @@ export function activateOverclockSignet(
   const state = mechanistState.from(context);
   if (!state.mech?.active) return;
   const at = context.effectiveEnd;
-  const interval = 0.65;
-  const hits = 5;
+  const interval = engineerBalanceValue(
+    context,
+    PROFILE.overclock,
+    "pulseInterval",
+    0.65,
+  );
+  const hits = engineerBalanceValue(
+    context,
+    PROFILE.overclock,
+    "maximumStacks",
+    5,
+  );
   // Block the basic attack loop for the full cannon burst so hits don't overlap.
   state.mech.busyUntil = Math.max(
     Number(state.mech.busyUntil || 0),
@@ -441,7 +573,13 @@ export function activateOverclockSignet(
     const impactAt = at + interval * hit;
     emitMechStrike(context, {
       at: impactAt,
-      coefficient: 0.95,
+      coefficient: engineerBalanceEffectValue(
+        context,
+        PROFILE.overclock,
+        "strike",
+        "coefficient",
+        0.95,
+      ),
       hits: 1,
       name: "Jade Buster Cannon",
       skillId: ID.JADE_BUSTER_CANNON,
@@ -459,8 +597,20 @@ export function activateOverclockSignet(
       skillName: "Jade Buster Cannon",
       name: "Jade Buster Cannon — Burning",
       condition: "Burning",
-      stacks: 1,
-      duration: 6,
+      stacks: engineerBalanceEffectValue(
+        context,
+        PROFILE.overclock,
+        "condition",
+        "stacks",
+        1,
+      ),
+      duration: engineerBalanceEffectValue(
+        context,
+        PROFILE.overclock,
+        "condition",
+        "duration",
+        6,
+      ),
       engineerMech: true,
       triggeredBy: skill.name,
     });

@@ -8,9 +8,13 @@ import { professionCoreState } from "../../../../platform/engine/profession.js";
 
 import { GUARDIAN_SKILL_IDS } from "../../data/ids.js";
 import { selectedGuardianSpecialization } from "../../core/availability.js";
-import { LUMINARY_MECHANICS } from "./mechanics.js";
 import { handleRadiantWeaponEquipped } from "./traits.js";
 import { buildGuardianStrike, emitGuardianEvent } from "../../core/events.js";
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 import type {
   GuardianCastContext,
   GuardianEventContext,
@@ -118,7 +122,15 @@ function radiantForge(
     finalizeRadiantForgeCooldown(context, context.effectiveEnd);
   }
   state.radiantForge = entering;
-  state.radiantForgeEndsAt = entering ? context.effectiveEnd + 20 : 0;
+  state.radiantForgeEndsAt = entering
+    ? context.effectiveEnd +
+      Number(
+        guardianBalanceProfileEffect(
+          guardianBalanceProfile(context, PROFILE.forge),
+          "buff",
+        )?.duration || 20,
+      )
+    : 0;
   state.radiantForgeEnteredAt = entering ? context.effectiveEnd : 0;
   // Reset active weapon so traits don't carry stale weapon state across entries.
   state.radiantWeapon = "";
@@ -170,28 +182,35 @@ function radiantWeapon(
     skill.id === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER &&
     luminaryState.from(context).radiantJusticeArmed
   ) {
+    const profile = guardianBalanceProfile(
+      context,
+      PROFILE.radiantJusticeImpact,
+    );
+    const strike = guardianBalanceProfileEffect(profile, "strike");
+    const vulnerability = guardianBalanceProfileEffect(profile, "buff");
+    const delay = Number(strike?.atMs || 750) / 1000;
     luminaryState.from(context).radiantJusticeArmed = false;
     context.emit(
       buildGuardianStrike({
-        at: context.effectiveEnd + 0.75,
+        at: context.effectiveEnd + delay,
         sourceId: skill.id,
         skillId: skill.id,
         skillName: skill.name,
         name: "Dazzling Hammer — Radiant Justice Impact",
-        coefficient: 1.5,
+        coefficient: Number(strike?.coefficient || 1.5),
       }),
     );
     context.emit({
       type: "buff",
-      at: context.effectiveEnd + 0.75,
+      at: context.effectiveEnd + delay,
       source: "guardian",
       sourceId: skill.id,
       actorType: "effect",
       skillId: skill.id,
       skillName: skill.name,
       kind: "target-vulnerability",
-      stacks: 8,
-      duration: 8,
+      stacks: Number(vulnerability?.stacks || 8),
+      duration: Number(vulnerability?.duration || 8),
     });
   }
   if (
@@ -238,12 +257,18 @@ function glaringBurst(
 ): void {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const radiantWeapon = luminaryState.from(context).radiantWeapon;
-  const coefficient =
-    radiantWeapon === "hammer" || radiantWeapon === "blade"
-      ? LUMINARY_MECHANICS.radiantForge.glaringBurstCoefficientByWeapon[
-          radiantWeapon
-        ]
-      : 0;
+  const profileId =
+    radiantWeapon === "hammer"
+      ? PROFILE.glaringBurstHammer
+      : radiantWeapon === "blade"
+        ? PROFILE.glaringBurstBlade
+        : null;
+  const coefficient = Number(
+    guardianBalanceProfileEffect(
+      profileId ? guardianBalanceProfile(context, profileId) : undefined,
+      "strike",
+    )?.coefficient || 0,
+  );
   if (coefficient <= 0) return;
   context.emit(
     buildGuardianStrike({
@@ -278,13 +303,17 @@ function finalizeRadiantForgeCooldown(
   const used = Object.keys(state.radiantWeaponsUsed || {}).filter((weapon) =>
     ["hammer", "staff", "blade", "bulwark"].includes(weapon),
   ).length;
+  const forge = guardianBalanceProfile(context, PROFILE.forge);
   // Each unused weapon slot adds 5 s to the recharge (capped at 5 s minimum).
-  const unused = Math.max(0, 4 - used);
+  const unused = Math.max(0, Number(forge?.maximumStacks || 4) - used);
   const baseRecharge = Math.max(
     0,
     Number(enter.cooldown ?? enter.recharge ?? 10),
   );
-  const adjustedBase = Math.max(5, baseRecharge - unused * 5);
+  const adjustedBase = Math.max(
+    Number(forge?.threshold || 5),
+    baseRecharge - unused * Number(forge?.rechargeReduction || 5),
+  );
   // Preserve the ratio of effective-to-base recharge so alacrity/recharge
   // traits still apply proportionally to the adjusted cooldown.
   const fullEffective = context.rechargeDurationFor(enter, at);

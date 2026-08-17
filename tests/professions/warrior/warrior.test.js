@@ -24,6 +24,10 @@ import { timelineDeadTimeMarkers } from "../../../js/platform/ui/timeline.js";
 import { createSimulationRandom } from "../../../js/platform/engine/simulation-random.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import {
+  applyBalanceProfilePatch,
+  applySkillPatch,
+} from "../../../js/platform/gw2/skill-patch.js";
+import {
   createWarriorBuildDefaults,
   migrateWarriorBuild,
   validateWarriorBuild,
@@ -41,6 +45,7 @@ import {
 } from "../../../js/professions/warrior/app/app-definition.js";
 import { createWarriorCoreState } from "../../../js/professions/warrior/core/state.js";
 import { BRAVE_STRIDE_MOVEMENT_SKILL_IDS } from "../../../js/professions/warrior/core/traits.js";
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from "../../../js/professions/warrior/core/profiles.js";
 import { DATA_SNAPSHOT } from "../../../js/professions/warrior/data/warrior-api-metadata.js";
 import {
   WARRIOR_SKILL_IDS as ID,
@@ -49,6 +54,7 @@ import {
 import { warriorProfession } from "../../../js/professions/warrior/definition.js";
 import { berserkerModule } from "../../../js/professions/warrior/specializations/berserker/module.js";
 import { berserkerAttributeRules } from "../../../js/professions/warrior/specializations/berserker/rules.js";
+import { BERSERKER_BALANCE_PROFILE_IDS } from "../../../js/professions/warrior/specializations/berserker/profiles.js";
 import { bladeswornModule } from "../../../js/professions/warrior/specializations/bladesworn/module.js";
 import {
   DRAGON_TRIGGER_DURATION_SECONDS,
@@ -59,8 +65,11 @@ import {
 } from "../../../js/professions/warrior/specializations/bladesworn/dragon-trigger.js";
 import { advanceBladesworn } from "../../../js/professions/warrior/specializations/bladesworn/traits.js";
 import { createBladeswornState } from "../../../js/professions/warrior/specializations/bladesworn/state.js";
+import { BLADESWORN_BALANCE_PROFILE_IDS } from "../../../js/professions/warrior/specializations/bladesworn/profiles.js";
 import { paragonModule } from "../../../js/professions/warrior/specializations/paragon/module.js";
+import { PARAGON_BALANCE_PROFILE_IDS } from "../../../js/professions/warrior/specializations/paragon/profiles.js";
 import { spellbreakerModule } from "../../../js/professions/warrior/specializations/spellbreaker/module.js";
+import { SPELLBREAKER_BALANCE_PROFILE_IDS } from "../../../js/professions/warrior/specializations/spellbreaker/profiles.js";
 import { spellbreakerAttributeRules } from "../../../js/professions/warrior/specializations/spellbreaker/rules.js";
 import { assertProfessionFamilyConformance } from "../../helpers/profession-family-conformance.js";
 
@@ -103,6 +112,9 @@ function simulate(
 }
 
 const observationTail = (durationMs) => ({ kind: "tail", durationMs });
+
+const applyWarriorPatch = (patch) =>
+  applyBalanceProfilePatch(applySkillPatch(warriorCatalog, patch), patch);
 
 test("Warrior catalog pins the API snapshot and all elite specializations", () => {
   assert.equal(DATA_SNAPSHOT, "2026-08-08");
@@ -171,6 +183,131 @@ test("Warrior catalog pins the API snapshot and all elite specializations", () =
       (skillId) => warriorCatalog.skillsById.get(skillId).simulatorExcluded,
     ),
     true,
+  );
+});
+
+test("Warrior modules expose isolated balance-profile authoring", () => {
+  const modules = new Map(
+    warriorProfession.patchAuthoring.modules.map((module) => [
+      module.id,
+      module,
+    ]),
+  );
+  assert.deepEqual(
+    [...modules.keys()],
+    ["Core", "Berserker", "Spellbreaker", "Bladesworn", "Paragon"],
+  );
+  assert.equal(
+    [...modules.values()].every((module) => module.balanceProfiles.length > 0),
+    true,
+  );
+
+  const profile = (moduleId, profileId) =>
+    modules
+      .get(moduleId)
+      .balanceProfiles.find((entry) => entry.id === profileId);
+  assert.equal(
+    profile("Core", WARRIOR_CORE_BALANCE_PROFILE_IDS.burstTiers).patchableFields
+      .threshold,
+    20,
+  );
+  assert.equal(
+    profile("Berserker", BERSERKER_BALANCE_PROFILE_IDS.resources).profile
+      .effects[0].duration,
+    20,
+  );
+  assert.equal(
+    profile("Spellbreaker", SPELLBREAKER_BALANCE_PROFILE_IDS.magebaneTether)
+      .profile.effects[0].duration,
+    8,
+  );
+  assert.equal(
+    profile("Bladesworn", BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger)
+      .patchableFields.maximumStacks,
+    10,
+  );
+  assert.equal(
+    profile("Paragon", PARAGON_BALANCE_PROFILE_IDS.resources).patchableFields
+      .maximumStacks,
+    10,
+  );
+
+  const opaqueModifierRules = [...modules.values()].flatMap((module) =>
+    module.modifierRules.filter(
+      (rule) =>
+        (typeof rule.amount === "function" ||
+          typeof rule.factor === "function") &&
+        Object.keys(rule.parameters).length === 0,
+    ),
+  );
+  assert.deepEqual(opaqueModifierRules, []);
+  assert.deepEqual(
+    modules
+      .get("Core")
+      .modifierRules.find((rule) => rule.id === "warrior.berserkers-power")
+      .parameters,
+    { maximumStacks: 4, damagePerStack: 0.0375 },
+  );
+
+  const preview = applyWarriorPatch({
+    balanceProfiles: {
+      [WARRIOR_CORE_BALANCE_PROFILE_IDS.burstTiers]: {
+        fields: { threshold: { from: 20, to: 15 } },
+      },
+      [BERSERKER_BALANCE_PROFILE_IDS.resources]: {
+        effects: [{ effectIndex: 0, duration: { from: 20, to: 25 } }],
+      },
+      [SPELLBREAKER_BALANCE_PROFILE_IDS.magebaneTether]: {
+        effects: [{ effectIndex: 0, duration: { from: 8, to: 9 } }],
+      },
+      [BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger]: {
+        fields: { maximumStacks: { from: 10, to: 12 } },
+      },
+      [PARAGON_BALANCE_PROFILE_IDS.resources]: {
+        fields: { maximumStacks: { from: 10, to: 12 } },
+      },
+    },
+  });
+
+  assert.equal(
+    preview.balanceProfilesById.get(WARRIOR_CORE_BALANCE_PROFILE_IDS.burstTiers)
+      .threshold,
+    15,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(BERSERKER_BALANCE_PROFILE_IDS.resources)
+      .effects[0].duration,
+    25,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(
+      SPELLBREAKER_BALANCE_PROFILE_IDS.magebaneTether,
+    ).effects[0].duration,
+    9,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(
+      BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger,
+    ).maximumStacks,
+    12,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(PARAGON_BALANCE_PROFILE_IDS.resources)
+      .maximumStacks,
+    12,
+  );
+
+  assert.equal(
+    warriorCatalog.balanceProfilesById.get(
+      WARRIOR_CORE_BALANCE_PROFILE_IDS.burstTiers,
+    ).threshold,
+    20,
+  );
+  assert.equal(
+    warriorCatalog.balanceProfilesById.get(
+      BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger,
+    ).maximumStacks,
+    10,
   );
 });
 

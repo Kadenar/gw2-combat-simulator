@@ -1,11 +1,9 @@
-import {
-  augmentSkill,
-  replaceSkill,
-} from "../../../../platform/gw2/native-profession.js";
+import { augmentSkill } from "../../../../platform/gw2/native-profession.js";
 import { GUARDIAN_SKILL_IDS as ID } from "../../data/ids.js";
-import { buildGuardianStrike, emitGuardianEvent } from "../../core/events.js";
+import { emitGuardianEvent } from "../../core/events.js";
 import { guardianVirtueSkillHandlers } from "../../core/virtues.js";
 import type { GuardianCastContext, GuardianSkill } from "../../types.js";
+import type { SimulationEvent } from "../../../../platform/engine/types.js";
 import { dragonhunterState } from "./state.js";
 import {
   applySoaringDevastation,
@@ -38,7 +36,6 @@ function activateSpearOfJustice(
   context: GuardianCastContext,
   skill: GuardianSkill,
 ): boolean {
-  guardianVirtueSkillHandlers["guardian.virtue"](context, skill);
   const at = context.effectiveEnd;
   const tetherDuration = bigGameHunterTetherDuration(context);
   const tetherUntil = at + tetherDuration;
@@ -46,17 +43,6 @@ function activateSpearOfJustice(
   // during the same advance tick see the correct window immediately.
   dragonhunterState.from(context).tetherUntil = tetherUntil;
 
-  context.emit(
-    buildGuardianStrike({
-      at,
-      sourceId: skill.id,
-      skillId: skill.id,
-      skillName: skill.name,
-      name: skill.name,
-      coefficient: 0.8,
-      skillWeapon: activePrimaryWeapon(context),
-    }),
-  );
   emitGuardianEvent(context, skill, "guardian.dragonhunter-tethered", {
     at,
     tetherUntil,
@@ -73,6 +59,25 @@ function activateSpearOfJustice(
   return true;
 }
 
+function prepareSpearOfJustice(
+  context: GuardianCastContext,
+  skill: GuardianSkill,
+): boolean {
+  guardianVirtueSkillHandlers["guardian.virtue"](context, skill);
+  return false;
+}
+
+function decorateSpearOfJusticeStrike(
+  context: GuardianCastContext,
+  _skill: GuardianSkill,
+  event: SimulationEvent,
+): void {
+  if (event.type !== "damage") return;
+  context.replaceEvent(event, {
+    skillWeapon: activePrimaryWeapon(context),
+  });
+}
+
 function activateHuntersVerdict(
   context: GuardianCastContext,
   skill: GuardianSkill,
@@ -86,8 +91,10 @@ function activateHuntersVerdict(
 
 export const dragonhunterSkillHandlers = Object.freeze({
   // replaceSkill: handler fully owns the emitted event profile (no declarative effects run)
-  "guardian.dragonhunter-justice": replaceSkill({
-    beforeEffects: activateSpearOfJustice,
+  "guardian.dragonhunter-justice": augmentSkill({
+    beforeEffects: prepareSpearOfJustice,
+    afterEffect: decorateSpearOfJusticeStrike,
+    afterEffects: activateSpearOfJustice,
   }),
   // augmentSkill: handler runs then the skill's declarative effects also run
   "guardian.dragonhunter-virtue": augmentSkill({

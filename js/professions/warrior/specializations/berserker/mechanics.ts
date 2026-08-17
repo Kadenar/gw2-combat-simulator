@@ -1,6 +1,10 @@
 import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { WARRIOR_SKILL_IDS as ID } from "../../data/ids.js";
 import { syncWarriorAdrenaline } from "../../core/resources.js";
+import {
+  warriorBalanceProfile,
+  WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
+} from "../../core/profiles.js";
 import type {
   WarriorCastContext,
   WarriorSchedulerContext,
@@ -38,7 +42,10 @@ export function advanceBerserker(
     state.berserkUntil = 0;
     const core = professionCoreState(context);
     // Restore the full three-bar adrenaline cap when berserk expires.
-    core.maximumAdrenaline = 30;
+    core.maximumAdrenaline = Number(
+      warriorBalanceProfile(context, CORE_PROFILE.resources)?.maximumStacks ??
+        30,
+    );
     syncWarriorAdrenaline(context);
   }
 }

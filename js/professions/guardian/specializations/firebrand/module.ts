@@ -15,11 +15,13 @@ import {
 import { FIREBRAND_SKILL_MECHANICS } from "./skills.js";
 import { firebrandState } from "./state.js";
 import { firebrandUi } from "./ui.js";
+import { FIREBRAND_BALANCE_PROFILES } from "./profiles.js";
 
 export const firebrandModule = defineNativeModule({
   id: "Firebrand",
   data: createGuardianModuleData("Firebrand", {
     skillMechanics: FIREBRAND_SKILL_MECHANICS,
+    balanceProfiles: FIREBRAND_BALANCE_PROFILES,
     handlers: firebrandSkillHandlers,
   }),
   state: {

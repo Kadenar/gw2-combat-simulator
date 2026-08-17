@@ -11,6 +11,10 @@ import {
   applyWarriorSkillResource,
   gainWarriorAdrenaline,
 } from "../../core/resources.js";
+import {
+  warriorBalanceProfile,
+  warriorBalanceProfileEffect,
+} from "../../core/profiles.js";
 import type {
   WarriorCastContext,
   WarriorSchedulerContext,
@@ -18,6 +22,7 @@ import type {
   WarriorSkill,
 } from "../../types.js";
 import { paragonState } from "./state.js";
+import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 const CHANT_IDS = [
   ID.CHANT_OF_ACTION,
@@ -88,8 +93,16 @@ function gainMotivation(
   );
 }
 
-function motivationLevel(motivation: number): 1 | 2 | 3 {
-  return motivation >= 7 ? 3 : motivation >= 4 ? 2 : 1;
+function motivationLevel(
+  context: WarriorSchedulerContext,
+  motivation: number,
+): 1 | 2 | 3 {
+  const profile = warriorBalanceProfile(context, PROFILE.resources);
+  return motivation >= Number(profile?.threshold ?? 7)
+    ? 3
+    : motivation >= Number(profile?.minimumStacks ?? 4)
+      ? 2
+      : 1;
 }
 
 export function activateChant(
@@ -99,31 +112,89 @@ export function activateChant(
   applyWarriorSkillResource(context, skill);
   const at = context.effectiveEnd;
   const state = paragonState.from(context);
+  const resources = warriorBalanceProfile(context, PROFILE.resources);
+  const chants = warriorBalanceProfile(context, PROFILE.chants);
   state.activeRefrain = skill.name;
-  state.nextRefrainAt = at + 3;
+  state.nextRefrainAt = at + Number(resources?.pulseInterval ?? 3);
   gainMotivation(
     context,
-    4 + (hasTrait(context, TRAIT.ENDURING_REFRAIN) ? 1 : 0),
+    Number(chants?.resourceGain ?? 4) +
+      (hasTrait(context, TRAIT.ENDURING_REFRAIN)
+        ? Number(
+            warriorBalanceProfile(context, PROFILE.enduringRefrain)
+              ?.resourceGain ?? 1,
+          )
+        : 0),
   );
 
   if (skill.id === ID.CHANT_OF_ACTION) {
-    emitBoon(context, at, skill.id, skill.name, "might", 8, 5);
-    emitBoon(context, at, skill.id, skill.name, "fury", 5);
+    const might = warriorBalanceProfileEffect(chants, "boon", 0);
+    const fury = warriorBalanceProfileEffect(chants, "boon", 1);
+    emitBoon(
+      context,
+      at,
+      skill.id,
+      skill.name,
+      "might",
+      Number(might?.duration ?? 8),
+      Number(might?.stacks ?? 5),
+    );
+    emitBoon(
+      context,
+      at,
+      skill.id,
+      skill.name,
+      "fury",
+      Number(fury?.duration ?? 5),
+      Number(fury?.stacks ?? 1),
+    );
   } else if (skill.id === ID.CHANT_OF_RECUPERATION) {
-    emitBoon(context, at, skill.id, skill.name, "vigor", 5);
+    const vigor = warriorBalanceProfileEffect(chants, "boon", 2);
+    emitBoon(
+      context,
+      at,
+      skill.id,
+      skill.name,
+      "vigor",
+      Number(vigor?.duration ?? 5),
+      Number(vigor?.stacks ?? 1),
+    );
   } else if (skill.id === ID.CHANT_OF_FREEDOM) {
-    emitBoon(context, at, skill.id, skill.name, "stability", 3);
+    const stability = warriorBalanceProfileEffect(chants, "boon", 3);
+    emitBoon(
+      context,
+      at,
+      skill.id,
+      skill.name,
+      "stability",
+      Number(stability?.duration ?? 3),
+      Number(stability?.stacks ?? 1),
+    );
   }
 
   if (hasTrait(context, TRAIT.FEVERISH_PULSE)) {
+    const profile = warriorBalanceProfile(context, PROFILE.feverishPulse);
+    const alacrity = warriorBalanceProfileEffect(profile, "boon");
     for (const chantId of CHANT_IDS) {
       if (chantId === skill.id) continue;
       const readyAt = Number(context.state.cooldowns.get(chantId) || 0);
       if (readyAt > at) {
-        context.state.cooldowns.set(chantId, Math.max(at, readyAt - 2));
+        context.state.cooldowns.set(
+          chantId,
+          Math.max(at, readyAt - Number(profile?.rechargeReduction ?? 2)),
+        );
       }
     }
-    emitBoon(context, at, skill.id, skill.name, "alacrity", 6, 1, false);
+    emitBoon(
+      context,
+      at,
+      skill.id,
+      skill.name,
+      "alacrity",
+      Number(alacrity?.duration ?? 6),
+      Number(alacrity?.stacks ?? 1),
+      false,
+    );
   }
   emitParagonState(context, at + context.epsilon, "chant");
 }
@@ -187,7 +258,15 @@ function executePendingEcho(
   const [echo] = state.pendingCommandEchoes.splice(index, 1);
   executeCommandEcho(context, Number(echo.skillId), at);
   if (echo.repeats > 1) {
-    const next = { ...echo, dueAt: at + 3, repeats: echo.repeats - 1 };
+    const next = {
+      ...echo,
+      dueAt:
+        at +
+        Number(
+          warriorBalanceProfile(context, PROFILE.commands)?.pulseInterval ?? 3,
+        ),
+      repeats: echo.repeats - 1,
+    };
     state.pendingCommandEchoes.push(next);
     context.tasks.schedule({
       type: "warrior.paragon-command-echo",
@@ -206,11 +285,19 @@ export function activateCommand(
   if (skill.id === ID.BRACE_YOURSELVES) gainWarriorAdrenaline(context, 10);
 
   const state = paragonState.from(context);
+  const commands = warriorBalanceProfile(context, PROFILE.commands);
   const echo = {
     id: ++state.commandEchoSequence,
     skillId: skill.id,
-    dueAt: context.effectiveEnd + 3,
-    repeats: hasTrait(context, TRAIT.REVERBERATION) ? 2 : 1,
+    dueAt: context.effectiveEnd + Number(commands?.pulseInterval ?? 3),
+    repeats: hasTrait(context, TRAIT.REVERBERATION)
+      ? Number(
+          warriorBalanceProfile(context, PROFILE.reverberation)
+            ?.maximumStacks ??
+            commands?.maximumStacks ??
+            2,
+        )
+      : 1,
   };
   state.pendingCommandEchoes.push(echo);
   context.tasks.schedule({
@@ -224,7 +311,7 @@ export function activateCommand(
 function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
   const state = paragonState.from(context);
   const motivation = state.motivation;
-  const level = motivationLevel(motivation);
+  const level = motivationLevel(context, motivation);
   const skill = [...context.catalog.skillsById.values()].find(
     (candidate) => candidate.name === state.activeRefrain,
   );
@@ -253,7 +340,11 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
 
   state.motivation = Math.max(0, motivation - cost);
   if (state.motivation > 0) {
-    state.nextRefrainAt = at + 3;
+    state.nextRefrainAt =
+      at +
+      Number(
+        warriorBalanceProfile(context, PROFILE.resources)?.pulseInterval ?? 3,
+      );
   } else {
     state.activeRefrain = "";
     state.nextRefrainAt = 0;
@@ -288,10 +379,19 @@ export function observeParagonEvent(
     return;
   }
   state.callToActionActivated = true;
-  gainMotivation(context, 4);
+  gainMotivation(
+    context,
+    Number(
+      warriorBalanceProfile(context, PROFILE.callToAction)?.resourceGain ?? 4,
+    ),
+  );
   if (!state.activeRefrain) {
     state.activeRefrain = "Chant of Action";
-    state.nextRefrainAt = event.at + 3;
+    state.nextRefrainAt =
+      event.at +
+      Number(
+        warriorBalanceProfile(context, PROFILE.resources)?.pulseInterval ?? 3,
+      );
   }
   emitParagonState(context, event.at + context.epsilon, "call-to-action");
 }
@@ -312,9 +412,11 @@ export function updateParagonCast(
     hasTrait(context, TRAIT.INSPIRING_IMPLEMENTS) &&
     context.effectiveEnd + context.epsilon >= state.inspiringImplementsReadyAt
   ) {
-    state.inspiringImplementsReadyAt = context.effectiveEnd + 4;
-    gainWarriorAdrenaline(context, 5);
-    gainMotivation(context, 2);
+    const profile = warriorBalanceProfile(context, PROFILE.inspiringImplements);
+    state.inspiringImplementsReadyAt =
+      context.effectiveEnd + Number(profile?.internalCooldown ?? 4);
+    gainWarriorAdrenaline(context, Number(profile?.resourceGain ?? 5));
+    gainMotivation(context, Number(profile?.minimumStacks ?? 2));
     emitParagonState(
       context,
       context.effectiveEnd + context.epsilon,
@@ -338,7 +440,13 @@ export function beginParagonCast(
   ) {
     return;
   }
-  gainMotivation(context, 4);
+  gainMotivation(
+    context,
+    Number(
+      warriorBalanceProfile(context, PROFILE.rallyTheValiant)?.resourceGain ??
+        4,
+    ),
+  );
   emitParagonState(context, context.start + context.epsilon, "rally");
 }
 

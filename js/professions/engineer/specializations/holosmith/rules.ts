@@ -63,7 +63,25 @@ export const {
 
 // Heat-tier bonus multipliers applied per-hit. Sword skills (Sun Edge etc.) and
 // some forge skills have unique scaling distinct from the general ECSU tier check.
-function heatTierStrikeFactor(context: Gw2ModifierContext): number {
+const HEAT_TIER_STRIKE_PARAMETERS: Readonly<Record<string, number>> =
+  Object.freeze({
+    highHeatThreshold: 50,
+    enhancedHeatThreshold: 100,
+    swordHighFactor: 1.2,
+    swordEnhancedFactor: 1.3,
+    bladeBurstHighFactor: 1.25,
+    bladeBurstEnhancedFactor: 1.35,
+    particleHighFactor: 1.1,
+    particleEnhancedFactor: 1.35,
+    generalEnhancedFactor: 1.35,
+    singularityFactor: 1.25,
+    beamFactor: 1.2,
+  });
+
+function heatTierStrikeFactor(
+  context: Gw2ModifierContext,
+  parameters: Readonly<Record<string, number>>,
+): number {
   const heat = Number(
     engineerSpecializationState(context, "Holosmith").heat || 0,
   );
@@ -71,38 +89,46 @@ function heatTierStrikeFactor(context: Gw2ModifierContext): number {
   const skillName = String(eventSkill(context)?.name || event?.skillName || "");
   if (["Sun Edge", "Sun Ripper", "Gleam Saber"].includes(skillName)) {
     if (
-      heat >= 100 &&
+      heat >= parameters.enhancedHeatThreshold &&
       hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
     ) {
-      return 1.3;
+      return parameters.swordEnhancedFactor;
     }
-    return heat > 50 ? 1.2 : 1;
+    return heat > parameters.highHeatThreshold ? parameters.swordHighFactor : 1;
   }
-  if (skillName === "Blade Burst" && heat > 50) {
+  if (skillName === "Blade Burst" && heat > parameters.highHeatThreshold) {
     if (
-      heat >= 100 &&
+      heat >= parameters.enhancedHeatThreshold &&
       hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
     ) {
-      return 1.35;
+      return parameters.bladeBurstEnhancedFactor;
     }
-    return 1.25;
+    return parameters.bladeBurstHighFactor;
   }
   const enhancedCapacityTier =
     event?.enhancedCapacityTier === true ||
-    (heat >= 100 && hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT));
-  if (skillName === "Particle Accelerator" && heat > 50) {
-    return enhancedCapacityTier ? 1.35 : 1.1;
+    (heat >= parameters.enhancedHeatThreshold &&
+      hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT));
+  if (
+    skillName === "Particle Accelerator" &&
+    heat > parameters.highHeatThreshold
+  ) {
+    return enhancedCapacityTier
+      ? parameters.particleEnhancedFactor
+      : parameters.particleHighFactor;
   }
   if (!enhancedCapacityTier) return 1;
-  if (["Laser Disk", "Launch Wall"].includes(skillName)) return 1.35;
+  if (["Laser Disk", "Launch Wall"].includes(skillName)) {
+    return parameters.generalEnhancedFactor;
+  }
   if (
     skillName === "Prismatic Singularity" &&
     event?.name === "Explosion Damage"
   ) {
-    return 1.25;
+    return parameters.singularityFactor;
   }
   if (skillName === "Prime Light Beam" && event?.name === "Field Damage") {
-    return 1.2;
+    return parameters.beamFactor;
   }
   return 1;
 }
@@ -113,12 +139,20 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       id: "engineer.lasers-edge",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
-      factor: (context) => {
+      parameters: {
+        standardMaximum: 0.15,
+        enhancedMaximum: 0.225,
+        bonusPerHeat: 0.0015,
+      } as Readonly<Record<string, number>>,
+      factor: (context, _target, parameters) => {
         const state = engineerSpecializationState(context, "Holosmith");
         const maximum = hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
-          ? 0.225
-          : 0.15;
-        return 1 + Math.min(maximum, Number(state.heat || 0) * 0.0015);
+          ? parameters.enhancedMaximum
+          : parameters.standardMaximum;
+        return (
+          1 +
+          Math.min(maximum, Number(state.heat || 0) * parameters.bonusPerHeat)
+        );
       },
       when: (context) => {
         const state = engineerSpecializationState(context, "Holosmith");
@@ -146,9 +180,12 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       id: "engineer.enhanced-capacity-damage-tier",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
-      factor: heatTierStrikeFactor,
+      parameters: HEAT_TIER_STRIKE_PARAMETERS,
+      factor: (context, _target, parameters) =>
+        heatTierStrikeFactor(context, parameters),
       when: (context) =>
-        playerStrike(context) && heatTierStrikeFactor(context) > 1,
+        playerStrike(context) &&
+        heatTierStrikeFactor(context, HEAT_TIER_STRIKE_PARAMETERS) > 1,
     },
     {
       id: "engineer.enhanced-capacity-prime-light-beam-duration",

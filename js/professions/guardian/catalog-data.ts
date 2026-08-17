@@ -4,6 +4,7 @@ import { GUARDIAN_BUNDLE_SKILLS } from "./data/guardian-bundle-skills.js";
 import { GUARDIAN_SKILL_IDS as ID } from "./data/ids.js";
 import { TRAITS } from "./data/traits-data.js";
 import type {
+  BalanceProfile,
   CatalogEntity,
   Skill,
   SkillFragment,
@@ -157,6 +158,7 @@ const WEAPON_HANDS = Object.freeze({
 interface GuardianModuleDataOptions<TContext extends object> {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
   readonly extraSkills?: readonly Skill[];
+  readonly balanceProfiles?: readonly BalanceProfile[];
   readonly handlers?:
     | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
     | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
@@ -168,6 +170,7 @@ export function createGuardianModuleData<TContext extends object>(
   {
     skillMechanics,
     extraSkills = [],
+    balanceProfiles = [],
     handlers,
     autoattackChains,
   }: GuardianModuleDataOptions<TContext>,
@@ -177,6 +180,7 @@ export function createGuardianModuleData<TContext extends object>(
     generatedSkills: generated,
     skillMechanics,
     extraSkills,
+    balanceProfiles,
     handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,

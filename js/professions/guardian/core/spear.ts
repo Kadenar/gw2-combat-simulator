@@ -5,8 +5,12 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  */
 
 import { GUARDIAN_SKILL_IDS as ID } from "../data/ids.js";
-import { GUARDIAN_CORE_MECHANICS } from "./mechanics.js";
 import { buildGuardianStrike } from "./events.js";
+import {
+  GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect,
+} from "./profiles.js";
 import type { SkillEffect, SkillId } from "../../../platform/engine/types.js";
 import type {
   GuardianCastContext,
@@ -37,11 +41,17 @@ type GuardianSpearEffect = SkillEffect & { readonly at?: number };
 //   Helio Rush     1.5 → 2.25 (×1.50)
 //   Gleaming Disc  3.0 → 3.75 (×1.25 aggregate; shock-wave bonus)
 //   Solar Storm    3.6 → 4.5   (+4th/5th shard ≈ ×1.25)
-const SPEAR_ILLUMINATED_MULT: Readonly<Record<string | number, number>> =
-  GUARDIAN_CORE_MECHANICS.spear.illuminatedMultiplierBySkillId;
-const SPEAR_ILLUMINATION_ARMERS: ReadonlySet<SkillId> = new Set(
-  GUARDIAN_CORE_MECHANICS.spear.illuminationArmers,
-);
+const SPEAR_ILLUMINATION_ARMERS: ReadonlySet<SkillId> = new Set([
+  ID.HELIO_RUSH,
+  ID.GLEAMING_DISC,
+  ID.SOLAR_STORM,
+]);
+const SPEAR_PROFILE_BY_SKILL_ID: Readonly<Record<string | number, SkillId>> =
+  Object.freeze({
+    [ID.HELIO_RUSH]: PROFILE.spearHelioRush,
+    [ID.GLEAMING_DISC]: PROFILE.spearGleamingDisc,
+    [ID.SOLAR_STORM]: PROFILE.spearSolarStorm,
+  });
 
 const ILLUMINATED_ICON =
   "https://wiki.guildwars2.com/images/7/7d/Illuminated.png";
@@ -83,22 +93,26 @@ function emitIlluminatedBonus(
   const bonusFraction = multiplier - 1;
   let emittedAt: number | null = null;
   if (skill.id === ID.SOLAR_STORM) {
-    const extraProjectiles = [
-      { at: context.start + 1.16, coefficient: 0.6, hitIndex: 4 },
-      { at: context.start + 1.36, coefficient: 0.3, hitIndex: 5 },
-    ];
+    const profile = guardianBalanceProfile(
+      context,
+      SPEAR_PROFILE_BY_SKILL_ID[skill.id],
+    );
+    const extraProjectiles = (profile?.effects || [])
+      .filter((effect) => effect.type === "strike")
+      .map((effect, index) => ({ ...effect, hitIndex: index + 4 }));
     for (const projectile of extraProjectiles) {
-      if (interrupted && projectile.at > context.effectiveEnd + context.epsilon)
-        continue;
+      const at = context.start + Number(projectile.atMs || 0) / 1000;
+      const hitIndex = projectile.hitIndex;
+      if (interrupted && at > context.effectiveEnd + context.epsilon) continue;
       context.emit(
         buildGuardianStrike({
           sourceId: skill.id,
           skillId: skill.id,
           skillName: skill.name,
-          at: projectile.at,
+          at,
           name: `Solar Storm — ${projectile.hitIndex}th Strike`,
-          coefficient: projectile.coefficient,
-          hitIndex: projectile.hitIndex,
+          coefficient: Number(projectile.coefficient || 0),
+          hitIndex,
           totalHits: 5,
           skillWeapon: "Spear",
         }),
@@ -230,7 +244,10 @@ export function updateSpearIlluminationState(
     Number(state.spearIlluminatedUntil || 0) > context.start + context.epsilon;
   state.spearIlluminatedArmed = illuminatedArmed;
   const illuminated = luminanceActive || illuminatedArmed;
-  const multiplier = SPEAR_ILLUMINATED_MULT[skill.id] || 1;
+  const multiplier = Number(
+    guardianBalanceProfile(context, SPEAR_PROFILE_BY_SKILL_ID[skill.id])
+      ?.damageMultiplier || 1,
+  );
 
   if (illuminated && multiplier > 1) {
     const at = emitIlluminatedBonus(context, skill, multiplier);
@@ -253,9 +270,13 @@ export function updateSpearIlluminationState(
   }
 
   if (skill.id === ID.SYMBOL_OF_LUMINANCE) {
-    state.spearLuminanceUntil =
-      context.effectiveEnd +
-      GUARDIAN_CORE_MECHANICS.spear.symbolLuminanceDurationMs / 1000;
+    const duration = Number(
+      guardianBalanceProfileEffect(
+        guardianBalanceProfile(context, PROFILE.spearLuminance),
+        "buff",
+      )?.duration || 5,
+    );
+    state.spearLuminanceUntil = context.effectiveEnd + duration;
     emitProc(
       context,
       context.effectiveEnd,
@@ -274,7 +295,14 @@ export function updateSpearIlluminationState(
         .map((effect) => strikeStartSeconds(context, effect))
         .sort((left, right) => left - right)[0] ?? context.effectiveEnd;
     state.spearIlluminatedArmed = true;
-    state.spearIlluminatedUntil = firstStrikeAt + 5;
+    state.spearIlluminatedUntil =
+      firstStrikeAt +
+      Number(
+        guardianBalanceProfileEffect(
+          guardianBalanceProfile(context, PROFILE.spearLuminance),
+          "buff",
+        )?.duration || 5,
+      );
   }
 }
 

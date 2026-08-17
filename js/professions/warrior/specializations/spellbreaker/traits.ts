@@ -5,6 +5,11 @@ import {
   WARRIOR_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
 import { warriorBoonRemovalCounts } from "../../core/resolver.js";
+import {
+  warriorBalanceProfile,
+  warriorBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 import { spellbreakerState } from "./state.js";
 import type {
   WarriorResolverContext,
@@ -13,27 +18,26 @@ import type {
   WarriorSimulationEvent,
 } from "../../types.js";
 
-const ATTACKERS_INSIGHT_DURATION = 15;
-const ATTACKERS_INSIGHT_MAXIMUM = 5;
-const MAGEBANE_TETHER_DURATION = 8;
-const MAGEBANE_TETHER_COOLDOWN = 12;
 // Kick grants 2 Attacker's Insight stacks instead of 1 against defiant targets.
 const DOUBLE_DEFIANT_CONTROL_INSIGHT_SKILLS = new Set<number>([ID.KICK]);
 
 function gainAttackersInsight(
+  context: WarriorSchedulerContext | WarriorResolverContext,
   state: { attackerInsightExpiries: number[] },
   at: number,
   applications = 1,
 ): void {
+  const profile = warriorBalanceProfile(context, PROFILE.attackersInsight);
+  const effect = warriorBalanceProfileEffect(profile, "buff");
   const expiries = Array.from(
     { length: Math.max(1, Math.trunc(applications)) },
-    () => at + ATTACKERS_INSIGHT_DURATION,
+    () => at + Number(effect?.duration ?? 15),
   );
   // slice(-max) drops the oldest stacks when at cap, matching game behavior.
   state.attackerInsightExpiries = state.attackerInsightExpiries
     .filter((expiresAt) => expiresAt > at)
     .concat(expiries)
-    .slice(-ATTACKERS_INSIGHT_MAXIMUM);
+    .slice(-Number(profile?.maximumStacks ?? 5));
 }
 
 function attackerInsightApplications(
@@ -63,10 +67,12 @@ function triggerMagebaneTether(
   at: number,
 ): boolean {
   if (at < state.magebaneTetherReadyAt) return false;
-  state.magebaneTetherUntil = at + MAGEBANE_TETHER_DURATION;
+  const profile = warriorBalanceProfile(context, PROFILE.magebaneTether);
+  const effect = warriorBalanceProfileEffect(profile, "buff");
+  state.magebaneTetherUntil = at + Number(effect?.duration ?? 8);
   // Divide by recharge rate so alacrity reduces the internal cooldown.
   state.magebaneTetherReadyAt =
-    at + MAGEBANE_TETHER_COOLDOWN / gw2RechargeRate(context.config);
+    at + Number(profile?.cooldown ?? 12) / gw2RechargeRate(context.config);
   return true;
 }
 
@@ -79,6 +85,7 @@ export function observeSpellbreakerEvent(
     const { applications } = attackerInsightFromBoonRemoval(context, event);
     if (applications > 0 && hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
       gainAttackersInsight(
+        context,
         spellbreakerState.from(context),
         event.at,
         applications,
@@ -89,6 +96,7 @@ export function observeSpellbreakerEvent(
   if (event.type === "control") {
     if (hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
       gainAttackersInsight(
+        context,
         spellbreakerState.from(context),
         event.at,
         attackerInsightApplications(context, event),
@@ -98,6 +106,10 @@ export function observeSpellbreakerEvent(
       hasTrait(context, TRAIT.NO_ESCAPE) &&
       ["daze", "stun"].includes(String(event.controlKind || "").toLowerCase())
     ) {
+      const effect = warriorBalanceProfileEffect(
+        warriorBalanceProfile(context, PROFILE.noEscape),
+        "condition",
+      );
       context.emitDerived(event, {
         type: "condition",
         at: event.at,
@@ -108,8 +120,8 @@ export function observeSpellbreakerEvent(
         skillName: event.skillName,
         name: "No Escape - Immobilized",
         condition: "Immobilized",
-        stacks: 1,
-        duration: 1,
+        stacks: Number(effect?.stacks ?? 1),
+        duration: Number(effect?.duration ?? 1),
       });
     }
     return;
@@ -136,6 +148,7 @@ export function reactToSpellbreakerControl(
     hasTrait(context, TRAIT.ATTACKERS_INSIGHT)
   ) {
     gainAttackersInsight(
+      context,
       spellbreakerState.from(context),
       event.at,
       attackerInsightApplications(context, event),

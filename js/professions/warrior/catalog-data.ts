@@ -9,6 +9,7 @@ import { BLADESWORN_SKILL_MECHANICS } from "./specializations/bladesworn/skills.
 import { PARAGON_SKILL_MECHANICS } from "./specializations/paragon/skills.js";
 import type {
   CatalogEntity,
+  BalanceProfile,
   Skill,
   SkillFragment,
   SkillHandlerStrategy,
@@ -140,6 +141,7 @@ const WEAPON_HANDS = Object.freeze({
 
 interface WarriorModuleDataOptions<TContext extends object> {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
+  readonly balanceProfiles?: readonly BalanceProfile[];
   readonly extraSkills?: readonly Skill[];
   readonly handlers?:
     | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
@@ -151,6 +153,7 @@ export function createWarriorModuleData<TContext extends object>(
   id: string,
   {
     skillMechanics,
+    balanceProfiles = [],
     extraSkills = [],
     handlers,
     autoattackChains,
@@ -172,6 +175,7 @@ export function createWarriorModuleData<TContext extends object>(
     id,
     generatedSkills: generated,
     skillMechanics: normalizedSkillMechanics,
+    balanceProfiles,
     extraSkills,
     handlers,
     traits: TRAITS as readonly CatalogEntity[],

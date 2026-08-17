@@ -16,11 +16,13 @@ import {
 } from "./rules.js";
 import { spellbreakerState } from "./state.js";
 import { spellbreakerUi } from "./ui.js";
+import { SPELLBREAKER_BALANCE_PROFILES } from "./profiles.js";
 
 export const spellbreakerModule = defineNativeModule({
   id: "Spellbreaker",
   data: createWarriorModuleData("Spellbreaker", {
     skillMechanics: SPELLBREAKER_SKILL_MECHANICS,
+    balanceProfiles: SPELLBREAKER_BALANCE_PROFILES,
     handlers: spellbreakerSkillHandlers,
   }),
   state: {
