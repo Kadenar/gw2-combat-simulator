@@ -18,7 +18,7 @@ import {
   revenantTargetVulnerability,
 } from "../../core/rules.js";
 import { denyRevenantSkill } from "../../core/availability.js";
-import { CONDUIT_MECHANICS as MECHANICS } from "./mechanics.js";
+import { CONDUIT_BALANCE_PROFILE_IDS } from "./skills.js";
 import {
   completeBeguilingHaze,
   emitNuminousGift,
@@ -53,7 +53,10 @@ function affinity(context: Gw2ModifierContext): number {
   // Kinetic Insight adds a flat +2 bonus to affinity for modifier calculations without changing actual state.
   const bonus = hasTrait(context, TRAIT.KINETIC_INSIGHT) ? 2 : 0;
   return Math.min(
-    5,
+    Math.max(
+      1,
+      Number(revenantRuntimeSpecializationState(context).affinityMaximum || 5),
+    ),
     Number(revenantRuntimeSpecializationState(context).affinity || 0) + bonus,
   );
 }
@@ -72,11 +75,17 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "revenant.targeted-destruction-numinous-gift",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
+    parameters: {
+      vulnerabilityPerStack: 0.005,
+      bonus: 0.05,
+    } as Readonly<Record<string, number>>,
     // Numinous Gift unlocks Targeted Destruction's bonus; the factor is expressed as a multiplier delta on top of
     // the existing vulnerability bonus so both traits stack multiplicatively with the base formula.
-    factor: (context) => {
-      const base = 1 + revenantTargetVulnerability(context) * 0.005;
-      return (base + 0.05) / base;
+    factor: (context, _target, parameters) => {
+      const base =
+        1 +
+        revenantTargetVulnerability(context) * parameters.vulnerabilityPerStack;
+      return (base + parameters.bonus) / base;
     },
     when: (context) =>
       revenantPlayer(context) &&
@@ -87,7 +96,9 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "revenant.release-dervish-assassin-affinity",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
-    factor: (context) => 1 + affinity(context) * 0.1,
+    parameters: { damagePerAffinity: 0.1 } as Readonly<Record<string, number>>,
+    factor: (context, _target, parameters) =>
+      1 + affinity(context) * parameters.damagePerAffinity,
     when: (context) =>
       ["Release Potential: Dervish", "Release Potential: Assassin"].includes(
         String(context.event?.skillName || ""),
@@ -97,7 +108,9 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "revenant.release-warrior-affinity",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
-    factor: (context) => 1 + affinity(context) * 0.15,
+    parameters: { damagePerAffinity: 0.15 } as Readonly<Record<string, number>>,
+    factor: (context, _target, parameters) =>
+      1 + affinity(context) * parameters.damagePerAffinity,
     when: (context) =>
       context.event?.skillName === "Release Potential: Warrior",
   },
@@ -120,28 +133,20 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       context.event?.skillName === "Twin Moon Sweep" &&
       equippedLegend(context, LEGEND.ASSASSIN),
   },
+  {
+    id: "revenant.yearning-empowerment-numinous-gift",
+    target: MODIFIER_TARGET.CONDITION_DURATION,
+    operation: "add",
+    amount: 0.05,
+    when: (context) =>
+      ["Bleeding", "Burning", "Confusion", "Poisoned", "Torment"].includes(
+        String(context.condition || ""),
+      ) &&
+      hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) &&
+      hasTrait(context, TRAIT.NUMINOUS_GIFT) &&
+      !professionStaticRulesApplied(context.config),
+  },
 ]);
-
-function modifyConduitConditionDuration(
-  context: Gw2ModifierContext,
-  duration: number,
-): number {
-  const damaging = new Set([
-    "Bleeding",
-    "Burning",
-    "Confusion",
-    "Poisoned",
-    "Torment",
-  ]);
-  // Yearning Empowerment's bonus only applies to damaging conditions and requires Numinous Gift as the unlock trait.
-  // The guard against professionStaticRulesApplied prevents double-counting when build attributes are pre-computed.
-  return damaging.has(String(context.condition || "")) &&
-    hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) &&
-    hasTrait(context, TRAIT.NUMINOUS_GIFT) &&
-    !professionStaticRulesApplied(context.config)
-    ? duration + 0.05
-    : duration;
-}
 
 function modifyConduitAttributes(
   context: Gw2ModifierContext,
@@ -182,7 +187,6 @@ function modifyConduitAttributes(
 export const conduitAttributeRules = Object.freeze({
   modifierRules: conduitModifierRules,
   modifyAttributes: modifyConduitAttributes,
-  modifyConditionDuration: modifyConduitConditionDuration,
 });
 
 const RELEASE_POTENTIAL_IDS = new Set(
@@ -275,7 +279,7 @@ function advanceConduitUpkeep(
     // Form expiry clears the form name and restores native energy costs in the same tick.
     state.cosmicWisdomUntil = 0;
     state.conduitForm = "";
-    syncConduitEnergyCostOverrides(state);
+    syncConduitEnergyCostOverrides(context);
   }
   for (const active of professionCoreState(context).activeUpkeeps) {
     if (
@@ -339,9 +343,12 @@ function observeConduitEvent(
     hasRevenantTrait(context.config, TRAIT.LINGERING_DETERMINATION)
   ) {
     // Lingering Determination immediately restores 2 affinity after the reset; out-of-combat swaps do not proc it.
+    const lingering = context.catalog.balanceProfilesById.get(
+      CONDUIT_BALANCE_PROFILE_IDS.lingeringDetermination,
+    );
     gainConduitAffinity(
       context,
-      MECHANICS.legendInvocation.lingeringDeterminationAffinity,
+      Math.max(0, Number(lingering?.resourceGain || 0)),
       "lingering-determination",
     );
   }
@@ -349,8 +356,13 @@ function observeConduitEvent(
     cosmicWisdomActive &&
     hasRevenantTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)
   ) {
-    state.cosmicWisdomUntil +=
-      MECHANICS.legendInvocation.enhancedEmbodimentExtension;
+    const enhanced = context.catalog.balanceProfilesById.get(
+      CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment,
+    );
+    const extension = enhanced?.effects?.find(
+      (effect) => effect.type === "buff",
+    );
+    state.cosmicWisdomUntil += Math.max(0, Number(extension?.duration || 0));
   }
   if (cosmicWisdomActive) {
     // On legend swap the form updates to match the newly active legend (e.g. swapping to Demon yields Mesmer form).
@@ -358,7 +370,7 @@ function observeConduitEvent(
       REVENANT_RELEASE_POTENTIAL_BY_LEGEND[
         professionCoreState(context).activeLegendId
       ]?.replace("Release Potential: ", "") || "";
-    syncConduitEnergyCostOverrides(state);
+    syncConduitEnergyCostOverrides(context);
   }
   const swapSkill =
     event.skillId == null

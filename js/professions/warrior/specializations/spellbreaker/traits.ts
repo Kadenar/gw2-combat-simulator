@@ -17,6 +17,7 @@ const ATTACKERS_INSIGHT_DURATION = 15;
 const ATTACKERS_INSIGHT_MAXIMUM = 5;
 const MAGEBANE_TETHER_DURATION = 8;
 const MAGEBANE_TETHER_COOLDOWN = 12;
+// Kick grants 2 Attacker's Insight stacks instead of 1 against defiant targets.
 const DOUBLE_DEFIANT_CONTROL_INSIGHT_SKILLS = new Set<number>([ID.KICK]);
 
 function gainAttackersInsight(
@@ -28,6 +29,7 @@ function gainAttackersInsight(
     { length: Math.max(1, Math.trunc(applications)) },
     () => at + ATTACKERS_INSIGHT_DURATION,
   );
+  // slice(-max) drops the oldest stacks when at cap, matching game behavior.
   state.attackerInsightExpiries = state.attackerInsightExpiries
     .filter((expiresAt) => expiresAt > at)
     .concat(expiries)
@@ -62,6 +64,7 @@ function triggerMagebaneTether(
 ): boolean {
   if (at < state.magebaneTetherReadyAt) return false;
   state.magebaneTetherUntil = at + MAGEBANE_TETHER_DURATION;
+  // Divide by recharge rate so alacrity reduces the internal cooldown.
   state.magebaneTetherReadyAt =
     at + MAGEBANE_TETHER_COOLDOWN / gw2RechargeRate(context.config);
   return true;

@@ -96,51 +96,48 @@ export function createRevenantCoreState(
   };
 }
 
-export function snapshotRevenantState(
-  state: unknown,
-): RevenantState {
+export function snapshotRevenantState(state: unknown): RevenantState {
   return structuredClone(
     flattenProfessionState(state),
   ) as unknown as RevenantState;
 }
 
-export const REVENANT_PUBLIC_END_STATE_KEYS: readonly (
-  keyof RevenantState
-)[] = Object.freeze([
-  "energy",
-  "maximumEnergy",
-  "activeLegendId",
-  "activeLoadoutId",
-  "selectedLegendIds",
-  "legendSwapReadyAt",
-  "activeUpkeeps",
-  "availableFlips",
-  "autoattackChains",
-  "abyssalStrikeSecondCast",
-  "allianceSide",
-  "endurance",
-  "maximumEndurance",
-  "selectedDodge",
-  "reaversCurseUntil",
-  "forerunnerOfDeathUntil",
-  "affinity",
-  "cosmicWisdomUntil",
-  "conduitForm",
-  "beguilingHazeCharges",
-  "beguilingHazeReadyAt",
-  "bandTogetherReady",
-  "bandTogetherExpiresAt",
-  "kallasFervor",
-  "enchantedDaggers",
-  "razorclawsRage",
-  "battleScars",
-  "crushingAbyss",
-  "combatBeganAt",
-  "selfConditionDurationMultiplier",
-  "selfConditions",
-  "selfConditionCount",
-  "activeLegendSummons",
-]);
+export const REVENANT_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantState)[] =
+  Object.freeze([
+    "energy",
+    "maximumEnergy",
+    "activeLegendId",
+    "activeLoadoutId",
+    "selectedLegendIds",
+    "legendSwapReadyAt",
+    "activeUpkeeps",
+    "availableFlips",
+    "autoattackChains",
+    "abyssalStrikeSecondCast",
+    "allianceSide",
+    "endurance",
+    "maximumEndurance",
+    "selectedDodge",
+    "reaversCurseUntil",
+    "forerunnerOfDeathUntil",
+    "affinity",
+    "cosmicWisdomUntil",
+    "conduitForm",
+    "beguilingHazeCharges",
+    "beguilingHazeReadyAt",
+    "bandTogetherReady",
+    "bandTogetherExpiresAt",
+    "kallasFervor",
+    "enchantedDaggers",
+    "razorclawsRage",
+    "battleScars",
+    "crushingAbyss",
+    "combatBeganAt",
+    "selfConditionDurationMultiplier",
+    "selfConditions",
+    "selfConditionCount",
+    "activeLegendSummons",
+  ]);
 
 const REVENANT_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<
   Partial<RevenantState>
@@ -164,9 +161,11 @@ const REVENANT_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<
   },
 });
 
-export function projectRevenantEndState(
-  { schedulerState }: { schedulerState: SchedulerState<RevenantRuntimeState> },
-): Partial<RevenantState> {
+export function projectRevenantEndState({
+  schedulerState,
+}: {
+  schedulerState: SchedulerState<RevenantRuntimeState>;
+}): Partial<RevenantState> {
   const state = snapshotRevenantState(schedulerState.profession);
   return Object.fromEntries(
     REVENANT_PUBLIC_END_STATE_KEYS.map((key) => [

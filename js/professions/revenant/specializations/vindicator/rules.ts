@@ -9,7 +9,10 @@ import {
   REVENANT_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
 import { denyRevenantSkill } from "../../core/availability.js";
-import { emitRevenantBoon } from "../../core/boons.js";
+import {
+  emitLegendInvocationProfile,
+  emitLegendInvocationSkill,
+} from "../../core/legend-traits.js";
 import { revenantCombatActive } from "../../core/legend.js";
 import { hasRevenantTrait } from "../../core/state.js";
 import {
@@ -17,8 +20,8 @@ import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState,
 } from "../../core/rules.js";
-import { VINDICATOR_MECHANICS as MECHANICS } from "./mechanics.js";
 import { completeVindicatorDodge } from "./dodge.js";
+import { VINDICATOR_BALANCE_PROFILE_IDS } from "./skills.js";
 import {
   modifyVindicatorCastDuration,
   modifyVindicatorRechargeDuration,
@@ -50,7 +53,7 @@ export const vindicatorModifierRules: readonly Gw2ModifierRule[] =
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // "multiply" runs after the damage-additive bucket, so Leviathan compounds on top of Forerunner.
       operation: "multiply",
-      factor: MECHANICS.endurance.leviathanStrengthStrikeMultiplier,
+      factor: 1.1,
       when: (context) =>
         revenantPlayer(context) &&
         hasTrait(context, TRAIT.LEVIATHAN_STRENGTH) &&
@@ -61,7 +64,7 @@ export const vindicatorModifierRules: readonly Gw2ModifierRule[] =
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // "damage-additive" goes into the GW2 shared outgoing-damage bucket alongside other % modifiers.
       operation: "damage-additive",
-      amount: MECHANICS.endurance.forerunnerOfDeathStrikeBonus,
+      amount: 0.25,
       when: (context) =>
         revenantPlayer(context) &&
         hasTrait(context, TRAIT.FORERUNNER_OF_DEATH) &&
@@ -84,11 +87,9 @@ function modifyVindicatorAttributes(
     hasTrait(context, TRAIT.EMPIRE_DIVIDED) &&
     // Skip if the caller already baked static profession rules into the supplied attributes.
     !professionStaticRulesApplied(context.config) &&
-    Number(context.config?.playerHealthFraction ?? 1) >
-      MECHANICS.endurance.empireDividedHealthThreshold
+    Number(context.config?.playerHealthFraction ?? 1) > 0.5
   ) {
-    modified.power =
-      Number(modified.power || 0) + MECHANICS.endurance.empireDividedPower;
+    modified.power = Number(modified.power || 0) + 240;
   }
   return modified;
 }
@@ -124,43 +125,26 @@ function observeVindicatorEvent(
       ? undefined
       : context.catalog.skillsById.get(event.skillId);
   if (!swapSkill) return;
-  const invocation = MECHANICS.legendInvocation;
   if (hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
-    const boon = invocation.spiritBoon;
-    emitRevenantBoon(
+    emitLegendInvocationProfile(
       context,
-      swapSkill,
-      boon.kind,
-      boon.duration,
-      boon.stacks,
-      {
-        at: event.at,
-        sourceId: TRAIT.SPIRIT_BOON,
-        name: `Spirit Boon — ${boon.kind}`,
-      },
+      VINDICATOR_BALANCE_PROFILE_IDS.spiritBoon,
+      event.at,
+      TRAIT.SPIRIT_BOON,
     );
   }
   if (!hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
-  const song = invocation.song;
-  context.emit({
-    type: "damage",
-    at: event.at,
-    source: "revenant",
-    sourceId: TRAIT.SONG_OF_THE_MISTS,
-    actorType: "player",
-    skillId: TRAIT.SONG_OF_THE_MISTS,
-    skillName: song.name,
-    name: song.name,
-    coefficient: song.coefficient,
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
-    skillWeapon: "Unequipped",
-  });
-  // Song of the Mists grants endurance on cast + per hit; with hits=1 the total is always 8.
+  const song = context.catalog.skillsById.get(ID.CALL_OF_THE_ALLIANCE);
+  if (!song) return;
+  emitLegendInvocationSkill(
+    context,
+    ID.CALL_OF_THE_ALLIANCE,
+    event.at,
+    TRAIT.SONG_OF_THE_MISTS,
+  );
   coreState.endurance = Math.min(
     coreState.maximumEndurance,
-    coreState.endurance + song.enduranceOnCast + song.endurancePerHit,
+    coreState.endurance + Math.max(0, Number(song.resourceGain || 0)),
   );
   coreState.enduranceUpdatedAt = event.at;
 }

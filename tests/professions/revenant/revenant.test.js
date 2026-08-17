@@ -25,6 +25,10 @@ import {
 import { insertRotationItems } from "../../../js/app/rotation/actions.js";
 import { simulationEventLogRows } from "../../../js/app/rotation/event-log.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
+import {
+  applyBalanceProfilePatch,
+  applySkillPatch,
+} from "../../../js/platform/gw2/skill-patch.js";
 import { skillBreakdownRows } from "../../../js/platform/ui/result-tables.js";
 import {
   createRevenantBuildDefaults,
@@ -49,11 +53,8 @@ import {
   REVENANT_IMPLEMENTED_SKILL_IDS,
   REVENANT_SKILL_MECHANICS,
 } from "../../../js/professions/revenant/mechanics/skill-mechanics.js";
-import { REVENANT_CORE_MECHANICS } from "../../../js/professions/revenant/core/mechanics.js";
-import { CONDUIT_MECHANICS } from "../../../js/professions/revenant/specializations/conduit/mechanics.js";
-import { HERALD_MECHANICS } from "../../../js/professions/revenant/specializations/herald/mechanics.js";
-import { RENEGADE_MECHANICS } from "../../../js/professions/revenant/specializations/renegade/mechanics.js";
-import { VINDICATOR_MECHANICS } from "../../../js/professions/revenant/specializations/vindicator/mechanics.js";
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from "../../../js/professions/revenant/core/skills.js";
+import { CONDUIT_BALANCE_PROFILE_IDS } from "../../../js/professions/revenant/specializations/conduit/skills.js";
 import { revenantProfession } from "../../../js/professions/revenant/definition.js";
 import {
   legalRevenantLegendIds,
@@ -94,33 +95,6 @@ const revenantAttributeRules = Object.freeze({
   },
 });
 
-const REVENANT_HANDLER_MECHANICS = Object.freeze({
-  ...REVENANT_CORE_MECHANICS,
-  ...RENEGADE_MECHANICS,
-  ...VINDICATOR_MECHANICS,
-  ...CONDUIT_MECHANICS,
-  legendInvocation: Object.freeze({
-    ...REVENANT_CORE_MECHANICS.legendInvocation,
-    ...CONDUIT_MECHANICS.legendInvocation,
-    spiritBoons: Object.freeze({
-      ...REVENANT_CORE_MECHANICS.legendInvocation.spiritBoons,
-      [LEGEND.DRAGON]: HERALD_MECHANICS.legendInvocation.spiritBoon,
-      [LEGEND.RENEGADE]: RENEGADE_MECHANICS.legendInvocation.spiritBoon,
-      [LEGEND.ALLIANCE]: VINDICATOR_MECHANICS.legendInvocation.spiritBoon,
-    }),
-    songs: Object.freeze({
-      ...REVENANT_CORE_MECHANICS.legendInvocation.songs,
-      [LEGEND.DRAGON]: HERALD_MECHANICS.legendInvocation.song,
-      [LEGEND.RENEGADE]: RENEGADE_MECHANICS.legendInvocation.song,
-      [LEGEND.ALLIANCE]: VINDICATOR_MECHANICS.legendInvocation.song,
-    }),
-  }),
-  upkeep: Object.freeze({
-    ...REVENANT_CORE_MECHANICS.upkeep,
-    ...HERALD_MECHANICS,
-  }),
-});
-
 const baseConfig = Object.freeze({
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
   startingLegend: LEGEND.ASSASSIN,
@@ -137,6 +111,9 @@ const baseConfig = Object.freeze({
   },
   target: { armor: 2597, conditions: { Vulnerability: 25 } },
 });
+
+const applyRevenantPatch = (patch) =>
+  applyBalanceProfilePatch(applySkillPatch(revenantCatalog, patch), patch);
 
 function simulate(
   specialization,
@@ -339,8 +316,16 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
       ),
     ].sort(),
   );
-  assert.equal(REVENANT_HANDLER_MECHANICS.energy.legendSwap, 50);
-  assert.equal(Object.isFrozen(REVENANT_HANDLER_MECHANICS), true);
+  assert.equal(
+    revenantCatalog.skillsById.get(SKILL.SWAP_LEGENDS).resourceGain,
+    50,
+  );
+  assert.equal(
+    revenantCatalog.balanceProfilesById.get(
+      REVENANT_CORE_BALANCE_PROFILE_IDS.resources,
+    ).energyRegenerationPerSecond,
+    5,
+  );
   assert.ok(
     Object.values(REVENANT_SKILL_MECHANICS).every(
       (skill) =>
@@ -349,19 +334,477 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
     ),
   );
   assert.deepEqual(
-    REVENANT_HANDLER_MECHANICS.endurance.dodgeByName["Death Drop"],
+    Object.fromEntries(
+      ["coefficient", "hits"].map((field) => [
+        field,
+        revenantCatalog.skillsById
+          .get(SKILL.DEATH_DROP)
+          .effects.find((effect) => effect.type === "strike")[field],
+      ]),
+    ),
     { coefficient: 3.3, hits: 1 },
-  );
-  assert.deepEqual(
-    REVENANT_HANDLER_MECHANICS.upkeep.facetPulseBySkillId[
-      SKILL.FACET_OF_STRENGTH
-    ],
-    { kind: "might", duration: 12, stacks: 1 },
   );
 });
 
-test("Revenant mechanics modules preserve the declarative contract", async () => {
-  const [ids, skillMechanics, coreSkills, localMechanics, catalog, modules] =
+test("Core Revenant mechanics expose patch-authorable declarations", () => {
+  const core = revenantProfession.patchAuthoring.modules.find(
+    (module) => module.id === "Core",
+  );
+  const skill = (id) => core.skills.find((entry) => entry.id === id);
+  const profile = (id) => core.balanceProfiles.find((entry) => entry.id === id);
+  const resources = profile(REVENANT_CORE_BALANCE_PROFILE_IDS.resources);
+  const chargedMists = profile(REVENANT_CORE_BALANCE_PROFILE_IDS.chargedMists);
+  const battleScars = profile(REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
+
+  assert.equal(skill(SKILL.DODGE).patchableFields.resourceCost, 50);
+  assert.equal(skill(SKILL.SWAP_LEGENDS).patchableFields.resourceGain, 50);
+  assert.equal(skill(SKILL.ANCIENT_ECHO).patchableFields.resourceGain, 25);
+  assert.deepEqual(resources.patchableFields, {
+    energyRegenerationPerSecond: 5,
+    enduranceRegenerationPerSecond: 5,
+    vigorRegenerationMultiplier: 1.5,
+  });
+  assert.deepEqual(chargedMists.patchableFields, {
+    resourceGain: 75,
+    threshold: 10,
+  });
+  assert.equal(battleScars.profile.effects[1].flatStrikeBase, 117);
+  assert.equal(
+    skill(SKILL.ABYSSAL_RAZE).skill.effects.find(
+      (effect) => effect.type === "strike",
+    ).damageIncreasePerStack,
+    0.33,
+  );
+
+  const preview = applyRevenantPatch({
+    skills: {
+      [SKILL.DODGE]: {
+        fields: { resourceCost: { from: 50, to: 40 } },
+      },
+      [SKILL.ABYSSAL_RAZE]: {
+        effects: [
+          {
+            effectIndex: 0,
+            damageIncreasePerStack: { from: 0.33, to: 0.4 },
+          },
+        ],
+      },
+    },
+    balanceProfiles: {
+      [resources.id]: {
+        fields: {
+          energyRegenerationPerSecond: { from: 5, to: 6 },
+        },
+      },
+    },
+  });
+  assert.equal(preview.skillsById.get(SKILL.DODGE).resourceCost, 40);
+  assert.equal(
+    preview.skillsById
+      .get(SKILL.ABYSSAL_RAZE)
+      .effects.find((effect) => effect.type === "strike")
+      .damageIncreasePerStack,
+    0.4,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(resources.id).energyRegenerationPerSecond,
+    6,
+  );
+});
+
+test("Elemental Blast exposes patch-authorable packet timelines", () => {
+  const herald = revenantProfession.patchAuthoring.modules.find(
+    (module) => module.id === "Herald",
+  );
+  const elementalBlast = herald.skills.find(
+    (skill) => skill.id === SKILL.ELEMENTAL_BLAST,
+  ).skill;
+  const [strike, conditions] = elementalBlast.effects;
+
+  assert.equal(elementalBlast.handlerId, "revenant.facet-consume");
+  assert.deepEqual(
+    strike.ticks.map((tick) => [tick.atMs, tick.coefficient]),
+    [
+      [280, 1.5],
+      [1280, 1.5],
+      [2280, 1.5],
+    ],
+  );
+  assert.deepEqual(
+    conditions.ticks.map((tick) => [
+      tick.atMs,
+      tick.condition,
+      tick.stacks,
+      tick.duration,
+    ]),
+    [
+      [280, "Weakness", 1, 5],
+      [1280, "Chilled", 1, 3],
+      [2280, "Burning", 2, 4],
+    ],
+  );
+});
+
+test("Herald facets expose recurring pulse fields to patch authoring", () => {
+  const herald = revenantProfession.patchAuthoring.modules.find(
+    (module) => module.id === "Herald",
+  );
+  const strength = herald.skills.find(
+    (skill) => skill.id === SKILL.FACET_OF_STRENGTH,
+  );
+
+  assert.deepEqual(
+    Object.fromEntries(
+      [
+        "upkeepCost",
+        "upkeepPulse.duration",
+        "upkeepPulse.stacks",
+        "upkeepPulseInterval",
+      ].map((field) => [field, strength.patchableFields[field]]),
+    ),
+    {
+      upkeepCost: 2,
+      "upkeepPulse.duration": 12,
+      "upkeepPulse.stacks": 1,
+      upkeepPulseInterval: 3,
+    },
+  );
+
+  const preview = applyRevenantPatch({
+    skills: {
+      [SKILL.FACET_OF_STRENGTH]: {
+        fields: {
+          upkeepCost: { from: 2, to: 3 },
+          "upkeepPulse.duration": { from: 12, to: 15 },
+          "upkeepPulse.stacks": { from: 1, to: 2 },
+          upkeepPulseInterval: { from: 3, to: 2 },
+        },
+      },
+    },
+  });
+  const patchedStrength = preview.skillsById.get(SKILL.FACET_OF_STRENGTH);
+  assert.equal(patchedStrength.upkeepCost, 3);
+  assert.deepEqual(patchedStrength.upkeepPulse, {
+    kind: "might",
+    duration: 15,
+    stacks: 2,
+  });
+  assert.equal(patchedStrength.upkeepPulseInterval, 2);
+});
+
+test("Herald invocation effects use patch-authorable skill declarations", () => {
+  const core = revenantProfession.patchAuthoring.modules.find(
+    (module) => module.id === "Core",
+  );
+  const herald = revenantProfession.patchAuthoring.modules.find(
+    (module) => module.id === "Herald",
+  );
+  const call = core.skills.find(
+    (skill) => skill.id === SKILL.CALL_OF_THE_DRAGON,
+  );
+  const spiritBoon = herald.balanceProfiles.find(
+    (profile) => profile.name === "Spirit Boon (Dragon)",
+  );
+
+  assert.deepEqual(
+    call.skill.effects.map((effect) => [
+      effect.type,
+      effect.coefficient,
+      effect.condition,
+      effect.stacks,
+      effect.duration,
+    ]),
+    [
+      ["strike", 0.75, undefined, undefined, undefined],
+      ["condition", undefined, "Burning", 2, 3],
+      ["condition", undefined, "Chilled", 1, 3],
+    ],
+  );
+  assert.deepEqual(spiritBoon.profile.effects, [
+    {
+      type: "boon",
+      boon: "protection",
+      duration: 3,
+      stacks: 1,
+      actorType: "player",
+    },
+  ]);
+
+  const preview = applyRevenantPatch({
+    skills: {
+      [SKILL.CALL_OF_THE_DRAGON]: {
+        effects: [
+          {
+            effectIndex: 0,
+            coefficient: { from: 0.75, to: 1 },
+          },
+        ],
+      },
+    },
+    balanceProfiles: {
+      [spiritBoon.id]: {
+        effects: [
+          {
+            effectIndex: 0,
+            duration: { from: 3, to: 4 },
+          },
+        ],
+      },
+    },
+  });
+  assert.equal(
+    preview.skillsById.get(SKILL.CALL_OF_THE_DRAGON).effects[0].coefficient,
+    1,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(spiritBoon.id).effects[0].duration,
+    4,
+  );
+});
+
+test("Renegade invocation effects use patch-authorable skill declarations", () => {
+  const core = revenantProfession.patchAuthoring.modules.find(
+    (module) => module.id === "Core",
+  );
+  const renegade = revenantProfession.patchAuthoring.modules.find(
+    (module) => module.id === "Renegade",
+  );
+  const call = core.skills.find(
+    (skill) => skill.id === SKILL.CALL_OF_THE_RENEGADE,
+  );
+  const spiritBoon = renegade.balanceProfiles.find(
+    (profile) => profile.name === "Spirit Boon (Renegade)",
+  );
+
+  assert.deepEqual(
+    call.skill.effects.map((effect) => [
+      effect.type,
+      effect.coefficient,
+      effect.condition,
+      effect.stacks,
+      effect.duration,
+    ]),
+    [
+      ["strike", 0.5, undefined, undefined, undefined],
+      ["condition", undefined, "Bleeding", 2, 8],
+    ],
+  );
+  assert.deepEqual(spiritBoon.profile.effects, [
+    {
+      type: "boon",
+      boon: "resolution",
+      duration: 4,
+      stacks: 1,
+      actorType: "player",
+    },
+  ]);
+
+  const preview = applyRevenantPatch({
+    skills: {
+      [SKILL.CALL_OF_THE_RENEGADE]: {
+        effects: [
+          {
+            effectIndex: 1,
+            stacks: { from: 2, to: 3 },
+          },
+        ],
+      },
+    },
+    balanceProfiles: {
+      [spiritBoon.id]: {
+        effects: [
+          {
+            effectIndex: 0,
+            duration: { from: 4, to: 5 },
+          },
+        ],
+      },
+    },
+  });
+  assert.equal(
+    preview.skillsById.get(SKILL.CALL_OF_THE_RENEGADE).effects[1].stacks,
+    3,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(spiritBoon.id).effects[0].duration,
+    5,
+  );
+});
+
+test("Renegade mechanics use authorable skills and modifier parameters", () => {
+  const renegade = revenantProfession.patchAuthoring.modules.find(
+    (module) => module.id === "Renegade",
+  );
+  const skill = (id) => renegade.skills.find((entry) => entry.id === id);
+  const named = (name) => renegade.skills.find((entry) => entry.name === name);
+  const namedProfile = (name) =>
+    renegade.balanceProfiles.find((entry) => entry.name === name);
+  const baseIcerazor = skill(SKILL.ICERAZORS_IRE);
+  const enhancedIcerazor = skill(SKILL.ICERAZORS_IRE_ID_72359);
+  const razorclaw = skill(SKILL.RAZORCLAWS_RAGE);
+  const enhancedRazorclaw = skill(SKILL.RAZORCLAWS_RAGE_ID_72363);
+  const bombardment = skill(SKILL.CITADEL_BOMBARDMENT);
+  const heroic = skill(SKILL.HEROIC_COMMAND);
+  const orders = skill(SKILL.ORDERS_FROM_ABOVE);
+  const improvedHeroic = namedProfile("Heroic Command (Lasting Legacy)");
+  const improvedOrders = namedProfile("Orders from Above (Righteous Rebel)");
+  const kallasFervor = namedProfile("Kalla's Fervor");
+  const soulcleaveProc = named("Soulcleave's Summit — Triggered Attack");
+  const allForOne = namedProfile("All for One");
+
+  assert.deepEqual(
+    baseIcerazor.skill.effects[0].ticks.map((tick) => [
+      tick.atMs,
+      tick.coefficient,
+    ]),
+    [
+      [500, 2],
+      [661, 2],
+      [822, 2],
+    ],
+  );
+  assert.equal(enhancedIcerazor.skill.simulatorExcluded, true);
+  assert.deepEqual(
+    enhancedIcerazor.skill.effects[0].ticks.map((tick) => [
+      tick.atMs,
+      tick.coefficient,
+    ]),
+    [
+      [1200, 2],
+      [1361, 2],
+      [1522, 2],
+    ],
+  );
+  assert.deepEqual(
+    razorclaw.skill.effects.find((effect) => effect.kind === "razorclaws-rage"),
+    {
+      type: "buff",
+      kind: "razorclaws-rage",
+      duration: 5,
+      durationScale: "fixed",
+      stacks: 4,
+      actorType: "player",
+      recipients: "party",
+    },
+  );
+  assert.ok(
+    enhancedRazorclaw.skill.effects.some(
+      (effect) =>
+        effect.type === "condition" &&
+        effect.condition === "Torment" &&
+        effect.stacks === 3 &&
+        effect.duration === 6,
+    ),
+  );
+  assert.equal(bombardment.skill.effects[0].ticks.length, 10);
+  assert.deepEqual(heroic.skill.effects[0], {
+    type: "boon",
+    boon: "might",
+    duration: 8,
+    stacks: 2,
+    actorType: "player",
+  });
+  assert.equal(improvedHeroic.profile.effects[0].stacks, 3);
+  assert.deepEqual(
+    [
+      orders.skill.effects[0].applications,
+      orders.skill.effects[0].intervalMs,
+      improvedOrders.profile.effects[0].applications,
+    ],
+    [4, 1000, 6],
+  );
+  assert.deepEqual(
+    [
+      soulcleaveProc.skill.cooldown,
+      soulcleaveProc.skill.effects[0].coefficient,
+      soulcleaveProc.skill.effects[1].flatStrikeBase,
+      soulcleaveProc.skill.effects[1].flatStrikePowerCoeff,
+    ],
+    [1, 0.8, 325, 0.1],
+  );
+  assert.deepEqual(
+    Object.fromEntries(
+      ["resourceGain", "rechargeMultiplier"].map((field) => [
+        field,
+        allForOne.patchableFields[field],
+      ]),
+    ),
+    { resourceGain: 10, rechargeMultiplier: 0.5 },
+  );
+  assert.deepEqual(
+    renegade.modifierRules.find(
+      (rule) => rule.id === "revenant.kallas-fervor-strike",
+    ).parameters,
+    { damagePerStack: 0.02, improvedDamagePerStack: 0.05 },
+  );
+  assert.equal(
+    renegade.modifierRules.find(
+      (rule) => rule.id === "revenant.blood-fury-bleeding-duration",
+    ).amount.value,
+    0.25,
+  );
+
+  const preview = applyRevenantPatch({
+    skills: {
+      [SKILL.ICERAZORS_IRE_ID_72359]: {
+        effects: [
+          {
+            effectIndex: 0,
+            tickIndex: 0,
+            coefficient: { from: 2, to: 2.5 },
+          },
+        ],
+      },
+      [SKILL.ORDERS_FROM_ABOVE]: {
+        effects: [
+          {
+            effectIndex: 0,
+            applications: { from: 4, to: 5 },
+            intervalMs: { from: 1000, to: 750 },
+          },
+        ],
+      },
+      [soulcleaveProc.id]: {
+        effects: [
+          {
+            effectIndex: 1,
+            flatStrikeBase: { from: 325, to: 400 },
+          },
+        ],
+      },
+    },
+    balanceProfiles: {
+      [kallasFervor.id]: {
+        fields: {
+          maximumStacks: { from: 5, to: 6 },
+        },
+      },
+    },
+  });
+  assert.equal(
+    preview.skillsById.get(SKILL.ICERAZORS_IRE_ID_72359).effects[0].ticks[0]
+      .coefficient,
+    2.5,
+  );
+  assert.deepEqual(
+    [
+      preview.skillsById.get(SKILL.ORDERS_FROM_ABOVE).effects[0].applications,
+      preview.skillsById.get(SKILL.ORDERS_FROM_ABOVE).effects[0].intervalMs,
+    ],
+    [5, 750],
+  );
+  assert.equal(
+    preview.skillsById.get(soulcleaveProc.id).effects[1].flatStrikeBase,
+    400,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(kallasFervor.id).maximumStacks,
+    6,
+  );
+});
+
+test("Revenant modules preserve the declarative authoring contract", async () => {
+  const [ids, skillMechanics, coreSkills, renegadeSkills, catalog, modules] =
     await Promise.all([
       readFile(
         new URL(
@@ -384,22 +827,12 @@ test("Revenant mechanics modules preserve the declarative contract", async () =>
         ),
         "utf8",
       ),
-      Promise.all(
-        [
-          "core",
-          "specializations/herald",
-          "specializations/renegade",
-          "specializations/vindicator",
-          "specializations/conduit",
-        ].map((directory) =>
-          readFile(
-            new URL(
-              `../../../js/professions/revenant/${directory}/mechanics.ts`,
-              import.meta.url,
-            ),
-            "utf8",
-          ),
+      readFile(
+        new URL(
+          "../../../js/professions/revenant/specializations/renegade/skills.ts",
+          import.meta.url,
         ),
+        "utf8",
       ),
       readFile(
         new URL("../../../js/professions/revenant/catalog.ts", import.meta.url),
@@ -416,12 +849,10 @@ test("Revenant mechanics modules preserve the declarative contract", async () =>
   assert.match(skillMechanics, /REVENANT_CORE_BASE_SKILL_MECHANICS/);
   assert.match(skillMechanics, /REVENANT_IMPLEMENTED_SKILL_IDS/);
   assert.match(coreSkills, /REVENANT_CORE_BASE_SKILL_MECHANICS/);
-  assert.ok(
-    localMechanics.every((source) => /export const \w+_MECHANICS/.test(source)),
-  );
-  assert.ok(
-    localMechanics.every((source) => !/HANDLER_MECHANICS/.test(source)),
-  );
+  assert.match(coreSkills, /REVENANT_CORE_BALANCE_PROFILES/);
+  assert.match(renegadeSkills, /RENEGADE_PROFILE_IDS/);
+  assert.match(renegadeSkills, /RENEGADE_BALANCE_PROFILES/);
+  assert.doesNotMatch(renegadeSkills, /RENEGADE_MECHANICS/);
   assert.doesNotMatch(catalog, /DYNAMIC_EFFECT_HANDLER_IDS/);
   assert.match(catalog, /assembleNativeApplicationCatalog/);
   assert.match(catalog, /revenantNativeModules/);
@@ -1380,8 +1811,11 @@ test("Crushing Abyss scales Raze and triggers at three stacks on weapon swap", (
     ).length,
     3,
   );
-  const crushingAbyssEffect =
-    REVENANT_HANDLER_MECHANICS.spear.abyssalRaze.crushingAbyssEffect;
+  const abyssalRaze = revenantCatalog.skillsById.get(SKILL.ABYSSAL_RAZE);
+  const crushingAbyssEffect = abyssalRaze.effects.find(
+    (effect) => effect.type === "buff" && effect.kind === "crushing-abyss",
+  );
+  assert.equal(crushingAbyssEffect.sourceId, 72962);
   assert.deepEqual(
     result.procSteps
       .filter((proc) => proc.skill === "Crushing Abyss")
@@ -1389,7 +1823,7 @@ test("Crushing Abyss scales Raze and triggers at three stacks on weapon swap", (
     ["1/3 stacks", "2/3 stacks", "3/3 stacks"].map((detail) => [
       "Abyssal Raze",
       detail,
-      crushingAbyssEffect.icon,
+      abyssalRaze.icon,
     ]),
   );
   assert.deepEqual(
@@ -1801,6 +2235,59 @@ test("legend invocation traits resolve after swap effects", () => {
         event.duration === 2,
     ),
   );
+});
+
+test("Herald invocation traits emit their declared proc skills", () => {
+  const result = simulate("Herald", ["Swap Legends"], {
+    selectedLegends: [LEGEND.ASSASSIN, LEGEND.DRAGON],
+    startingLegend: LEGEND.ASSASSIN,
+    selectedTraitIds: [TRAIT.SPIRIT_BOON, TRAIT.SONG_OF_THE_MISTS],
+  });
+  const call = result.events.find(
+    (event) => event.type === "damage" && event.name === "Call of the Dragon",
+  );
+  const spiritBoon = result.events.find(
+    (event) =>
+      event.type === "buff" && event.skillName === "Spirit Boon (Dragon)",
+  );
+
+  assert.equal(call.skillId, SKILL.CALL_OF_THE_DRAGON);
+  assert.equal(call.sourceId, TRAIT.SONG_OF_THE_MISTS);
+  assert.equal(call.coefficient, 0.75);
+  assert.equal(spiritBoon.sourceId, TRAIT.SPIRIT_BOON);
+  assert.equal(spiritBoon.kind, "protection");
+  assert.equal(spiritBoon.duration, 3);
+});
+
+test("Renegade invocation traits emit declared proc skills and grant fervor", () => {
+  const result = simulate("Renegade", ["Swap Legends"], {
+    selectedLegends: [LEGEND.ASSASSIN, LEGEND.RENEGADE],
+    startingLegend: LEGEND.ASSASSIN,
+    selectedTraitIds: [TRAIT.SPIRIT_BOON, TRAIT.SONG_OF_THE_MISTS],
+  });
+  const call = result.events.find(
+    (event) => event.type === "damage" && event.name === "Call of the Renegade",
+  );
+  const bleeding = result.events.find(
+    (event) =>
+      event.type === "condition" &&
+      event.skillName === "Call of the Renegade" &&
+      event.condition === "Bleeding",
+  );
+  const spiritBoon = result.events.find(
+    (event) =>
+      event.type === "buff" && event.skillName === "Spirit Boon (Renegade)",
+  );
+
+  assert.equal(call.skillId, SKILL.CALL_OF_THE_RENEGADE);
+  assert.equal(call.sourceId, TRAIT.SONG_OF_THE_MISTS);
+  assert.equal(call.coefficient, 0.5);
+  assert.equal(bleeding.stacks, 2);
+  assert.equal(bleeding.duration, 8);
+  assert.equal(spiritBoon.sourceId, TRAIT.SPIRIT_BOON);
+  assert.equal(spiritBoon.kind, "resolution");
+  assert.equal(spiritBoon.duration, 4);
+  assert.equal(result.endState.profession.kallasFervor.length, 2);
 });
 
 test("Corruption traits update attributes, duration, and chill triggers", () => {
@@ -2436,7 +2923,7 @@ test("Herald consume skills apply their full outgoing profiles", () => {
     [
       [0.28, 1.5],
       [1.28, 1.5],
-      [2.2800000000000002, 1.5],
+      [2.28, 1.5],
     ],
   );
   assert.deepEqual(
@@ -3148,7 +3635,8 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
         specialization: {
           kind: "Renegade",
           state: {
-            kallasFervor: Array.from({ length: 5 }, () => ({
+            kallasFervorMaximumStacks: 5,
+            kallasFervor: Array.from({ length: 6 }, () => ({
               at: 0,
               expiresAt: 10,
             })),
@@ -4209,17 +4697,9 @@ test("Call of the Alliance grants five endurance plus three per hit", () => {
       event.type === "revenant.state" && event.reason === "legend-swap",
   );
 
-  assert.deepEqual(
-    REVENANT_HANDLER_MECHANICS.legendInvocation.songs[LEGEND.ALLIANCE],
-    {
-      name: "Call of the Alliance",
-      coefficient: 0.93,
-      conditions: [],
-      boons: [],
-      enduranceOnCast: 5,
-      endurancePerHit: 3,
-    },
-  );
+  const call = revenantCatalog.skillsById.get(SKILL.CALL_OF_THE_ALLIANCE);
+  assert.equal(call.resourceGain, 8);
+  assert.equal(call.effects[0].coefficient, 0.93);
   assert.ok(
     result.events.some(
       (event) =>
@@ -4543,21 +5023,28 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
   assert.equal(skill("Phantom's Onslaught").rechargeAnchor, "castStart");
   assert.equal(skill("Phantom's Onslaught").rechargeOffsetMs, 420);
   assert.equal(
-    REVENANT_HANDLER_MECHANICS.legendInvocation.enhancedEmbodimentExtension,
+    revenantCatalog.balanceProfilesById
+      .get(CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment)
+      .effects.find((effect) => effect.kind === "cosmic-wisdom-extension")
+      .duration,
     1,
   );
   assert.equal(
-    REVENANT_HANDLER_MECHANICS.conduit.formOfTheDervishCoefficient,
+    revenantCatalog.skillsById
+      .get(SKILL.FORM_OF_THE_DERVISH_ATTACK)
+      .effects.find((effect) => effect.type === "strike").coefficient,
     0.8,
   );
   assert.equal(
-    REVENANT_HANDLER_MECHANICS.conduit.gladiatorsDefense.coefficient,
+    revenantCatalog.skillsById
+      .get(SKILL.GLADIATORS_DEFENSE)
+      .effects.find((effect) => effect.type === "strike").coefficient,
     1.5,
   );
   assert.equal(
-    REVENANT_HANDLER_MECHANICS.conduit.releasePotential[
-      SKILL.RELEASE_POTENTIAL_ASSASSIN
-    ].coefficientPerHit,
+    revenantCatalog.skillsById
+      .get(SKILL.RELEASE_POTENTIAL_ASSASSIN)
+      .effects.find((effect) => effect.type === "strike").ticks[0].coefficient,
     0.6,
   );
 

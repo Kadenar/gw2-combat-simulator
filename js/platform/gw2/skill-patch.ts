@@ -1,4 +1,5 @@
 import type {
+  BalanceProfile,
   CanonicalCatalog,
   ConditionEffect,
   ConditionTick,
@@ -8,6 +9,7 @@ import type {
   StrikeEffect,
   StrikeTick,
 } from "../engine/types.js";
+import type { Gw2ModifierRule } from "./types.js";
 
 export const CURRENT_PATCH_ID = "current";
 
@@ -17,14 +19,47 @@ export type NumEdit =
   | { readonly multiply: number }
   | { readonly add: number };
 
-export type PatchNoteStatus =
-  "applied" | "tracked" | "not-applicable" | "unchanged" | "superseded";
-
-export interface PatchNote {
+export interface PatchOverviewEntry {
   readonly subject: string;
   readonly text: string;
-  readonly status: PatchNoteStatus;
-  readonly reason?: string;
+  readonly source: "skill-diff" | "profile-diff" | "modifier-diff";
+}
+
+const PATCH_OVERVIEW_FIELDS = new Set(["subject", "text", "source"]);
+
+export function validatePatchOverview(
+  entries: readonly PatchOverviewEntry[] | null | undefined,
+  label = "Patch preview overview",
+): void {
+  if (entries == null) return;
+  if (!Array.isArray(entries)) {
+    throw new TypeError(`${label} must be an array.`);
+  }
+  for (const [index, entry] of entries.entries()) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      throw new TypeError(`${label}[${index}] must be an object.`);
+    }
+    for (const field of Object.keys(entry)) {
+      if (!PATCH_OVERVIEW_FIELDS.has(field)) {
+        throw new TypeError(
+          `${label}[${index}] has unsupported field ${field}.`,
+        );
+      }
+    }
+    if (!String(entry.subject || "").trim()) {
+      throw new TypeError(`${label}[${index}].subject is required.`);
+    }
+    if (!String(entry.text || "").trim()) {
+      throw new TypeError(`${label}[${index}].text is required.`);
+    }
+    if (
+      entry.source !== "skill-diff" &&
+      entry.source !== "profile-diff" &&
+      entry.source !== "modifier-diff"
+    ) {
+      throw new TypeError(`${label}[${index}].source is invalid.`);
+    }
+  }
 }
 
 export interface EffectSelector {
@@ -48,6 +83,12 @@ export interface EffectPatch extends EffectSelector {
   readonly applications?: NumEdit;
   readonly atMs?: NumEdit;
   readonly intervalMs?: NumEdit;
+  readonly flatDamage?: NumEdit;
+  readonly flatStrikeBase?: NumEdit;
+  readonly flatStrikePowerCoeff?: NumEdit;
+  readonly durationPerAffinity?: NumEdit;
+  readonly durationReductionPerAffinity?: NumEdit;
+  readonly damageIncreasePerStack?: NumEdit;
 }
 
 export interface SkillPatchEdit {
@@ -71,10 +112,24 @@ export interface SkillPatchEdit {
   readonly castTimeMs?: NumEdit;
 }
 
+/** Patches a non-skill balance profile using the same numeric/effect grammar. */
+export type BalanceProfilePatchEdit = SkillPatchEdit;
+
+export interface ModifierRulePatchEdit {
+  /** Direct numeric rule declarations. Resolver-backed fields use parameters. */
+  readonly amount?: NumEdit;
+  readonly factor?: NumEdit;
+  /** Named numeric inputs consumed by a resolver-backed amount or factor. */
+  readonly parameters?: Readonly<Record<string, NumEdit>>;
+}
+
 export interface ProfessionPatchPreview {
   readonly skills?: Readonly<Record<string, SkillPatchEdit>>;
+  readonly balanceProfiles?: Readonly<Record<string, BalanceProfilePatchEdit>>;
+  readonly modifierRules?: Readonly<Record<string, ModifierRulePatchEdit>>;
   readonly constants?: Readonly<Record<string, NumEdit>>;
-  readonly notes?: readonly PatchNote[];
+  /** Deterministic summaries generated from skills and modifierRules. */
+  readonly overview?: readonly PatchOverviewEntry[];
 }
 
 export interface PatchPreview {
@@ -83,13 +138,12 @@ export interface PatchPreview {
   readonly publishedAt?: string;
   readonly sourceUrl?: string;
   readonly constants?: Readonly<Record<string, NumEdit>>;
-  readonly notes?: readonly PatchNote[];
   readonly professions?: Readonly<Record<string, ProfessionPatchPreview>>;
 }
 
 export type PatchRuntimeValues = Readonly<Record<string, NumEdit>>;
 
-const SKILL_NUMERIC_FIELDS = new Set([
+export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   "ammo",
   "ammoCastLockout",
   "ammoRecharge",
@@ -102,9 +156,28 @@ const SKILL_NUMERIC_FIELDS = new Set([
   "rechargeOffsetMs",
   "resourceCost",
   "selfStunMs",
+  "upkeepCost",
+  "upkeepPulse.duration",
+  "upkeepPulse.stacks",
+  "upkeepPulseInterval",
+  "maximumStacks",
+  "minimumStacks",
+  "lifeSiphonDamagePerStack",
+  "resourceGain",
+  "rechargeMultiplier",
+  "damageMultiplier",
+  "damageIncreasePerStack",
+  "rechargeReduction",
+  "threshold",
+  "energyRegenerationPerSecond",
+  "enduranceRegenerationPerSecond",
+  "vigorRegenerationMultiplier",
+  "quicknessCastMultiplier",
+  "mainCastExtensionMs",
+  "mainQuicknessCastMultiplier",
 ]);
 
-const EFFECT_NUMERIC_FIELDS = [
+export const PATCHABLE_EFFECT_NUMERIC_FIELDS = Object.freeze([
   "coefficient",
   "hits",
   "stacks",
@@ -112,9 +185,68 @@ const EFFECT_NUMERIC_FIELDS = [
   "applications",
   "atMs",
   "intervalMs",
-] as const;
+  "flatDamage",
+  "flatStrikeBase",
+  "flatStrikePowerCoeff",
+  "durationPerAffinity",
+  "durationReductionPerAffinity",
+  "damageIncreasePerStack",
+] as const);
+
+const SKILL_NUMERIC_FIELDS = new Set(PATCHABLE_SKILL_NUMERIC_FIELDS);
+const EFFECT_NUMERIC_FIELDS = PATCHABLE_EFFECT_NUMERIC_FIELDS;
 
 type MutableRecord = Record<string, unknown>;
+
+function valueAtPath(root: unknown, path: string): unknown {
+  let value = root;
+  for (const segment of path.split(".")) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return undefined;
+    }
+    const record = value as Readonly<Record<string, unknown>>;
+    if (!Object.hasOwn(record, segment)) return undefined;
+    value = record[segment];
+  }
+  return value;
+}
+
+export function skillPatchableNumericFields(
+  skill: Readonly<Skill | BalanceProfile>,
+): Readonly<Record<string, number>> {
+  return Object.freeze(
+    Object.fromEntries(
+      PATCHABLE_SKILL_NUMERIC_FIELDS.flatMap((field) => {
+        const value = valueAtPath(skill, field);
+        return typeof value === "number" ? [[field, value]] : [];
+      }),
+    ),
+  );
+}
+
+export const balanceProfilePatchableNumericFields = skillPatchableNumericFields;
+
+function patchSkillNumericField(
+  skill: MutableRecord,
+  field: string,
+  edit: NumEdit,
+  skillName: string,
+): void {
+  const segments = field.split(".");
+  const key = segments.pop()!;
+  let owner = skill;
+  for (const segment of segments) {
+    const value = owner[segment];
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      throw new TypeError(`Skill ${skillName} does not expose ${field}.`);
+    }
+    owner = value as MutableRecord;
+  }
+  if (owner[key] == null) {
+    throw new TypeError(`Skill ${skillName} does not expose ${field}.`);
+  }
+  owner[key] = applyNumEdit(Number(owner[key]), edit, `${skillName}.${field}`);
+}
 
 function numericValue(value: unknown, label: string): number {
   const numeric = Number(value);
@@ -167,6 +299,130 @@ function deepFreeze<T>(value: T): T {
   }
   for (const child of Object.values(value as MutableRecord)) deepFreeze(child);
   return Object.freeze(value);
+}
+
+const MODIFIER_PATCH_FIELDS = new Set(["amount", "factor", "parameters"]);
+
+function assertModifierRulePatchEdit(
+  id: string,
+  edit: ModifierRulePatchEdit,
+): void {
+  if (!edit || typeof edit !== "object" || Array.isArray(edit)) {
+    throw new TypeError(`Modifier rule ${id} patch must be an object.`);
+  }
+  for (const field of Object.keys(edit)) {
+    if (!MODIFIER_PATCH_FIELDS.has(field)) {
+      throw new TypeError(
+        `Modifier rule ${id} patch has unsupported field ${field}.`,
+      );
+    }
+  }
+  if (
+    !Object.hasOwn(edit, "amount") &&
+    !Object.hasOwn(edit, "factor") &&
+    !Object.keys(edit.parameters || {}).length
+  ) {
+    throw new TypeError(`Modifier rule ${id} patch does not edit a value.`);
+  }
+}
+
+function patchModifierRule(
+  rule: Gw2ModifierRule,
+  edit: ModifierRulePatchEdit,
+): Readonly<Gw2ModifierRule> {
+  assertModifierRulePatchEdit(rule.id, edit);
+  const patched = { ...rule } as {
+    id: string;
+    amount?: Gw2ModifierRule["amount"];
+    factor?: Gw2ModifierRule["factor"];
+    parameters?: Readonly<Record<string, number>>;
+  } & Gw2ModifierRule;
+  for (const field of ["amount", "factor"] as const) {
+    if (!Object.hasOwn(edit, field)) continue;
+    const current = rule[field];
+    if (typeof current === "function") {
+      throw new TypeError(
+        `Modifier rule ${rule.id}.${field} is resolver-backed; patch a named parameter instead.`,
+      );
+    }
+    if (typeof current !== "number") {
+      throw new TypeError(
+        `Modifier rule ${rule.id} does not expose numeric ${field}.`,
+      );
+    }
+    patched[field] = applyNumEdit(
+      current,
+      edit[field]!,
+      `Modifier rule ${rule.id}.${field}`,
+    );
+  }
+  if (Object.hasOwn(edit, "parameters")) {
+    if (
+      !edit.parameters ||
+      typeof edit.parameters !== "object" ||
+      Array.isArray(edit.parameters)
+    ) {
+      throw new TypeError(
+        `Modifier rule ${rule.id} parameters patch must be an object.`,
+      );
+    }
+    const parameters = { ...(rule.parameters || {}) };
+    for (const [name, numericEdit] of Object.entries(edit.parameters)) {
+      if (!Object.hasOwn(parameters, name)) {
+        throw new TypeError(
+          `Modifier rule ${rule.id} does not expose parameter ${name}.`,
+        );
+      }
+      parameters[name] = applyNumEdit(
+        parameters[name],
+        numericEdit,
+        `Modifier rule ${rule.id}.parameters.${name}`,
+      );
+    }
+    patched.parameters = Object.freeze(parameters);
+  } else if (rule.parameters) {
+    patched.parameters = Object.freeze({ ...rule.parameters });
+  }
+  return Object.freeze(patched);
+}
+
+/**
+ * Applies a sparse patch to declarative modifier rules before hook compilation.
+ * Untouched declarations retain identity; touched rules and the returned list
+ * are frozen without mutating the live declarations.
+ */
+export function applyModifierRulePatch(
+  rules: readonly Gw2ModifierRule[],
+  patch: Readonly<Record<string, ModifierRulePatchEdit>> | null | undefined,
+): readonly Gw2ModifierRule[] {
+  if (!Array.isArray(rules)) {
+    throw new TypeError("Modifier rules must be an array.");
+  }
+  if (patch != null && (typeof patch !== "object" || Array.isArray(patch))) {
+    throw new TypeError("Modifier rule patch must be an object.");
+  }
+  const rulesById = new Map<string, Gw2ModifierRule>();
+  for (const rule of rules) {
+    const id = String(rule?.id || "").trim();
+    if (!id)
+      throw new TypeError("Modifier rule patch target has no stable id.");
+    if (rulesById.has(id)) {
+      throw new TypeError(`Modifier rule patch target ${id} is duplicated.`);
+    }
+    rulesById.set(id, rule);
+  }
+  const edits = Object.entries(patch || {});
+  if (!edits.length) return rules;
+  const replacements = new Map<Gw2ModifierRule, Readonly<Gw2ModifierRule>>();
+  for (const [id, edit] of edits) {
+    const rule = rulesById.get(id);
+    if (!rule)
+      throw new TypeError(`Patch references unknown modifier rule ${id}.`);
+    replacements.set(rule, patchModifierRule(rule, edit));
+  }
+  return Object.freeze(
+    rules.map((rule) => replacements.get(rule) || rule),
+  ) as readonly Gw2ModifierRule[];
 }
 
 function effectTicks(
@@ -338,14 +594,7 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit): Skill {
         `Skill ${skill.name} has unsupported patch field ${field}.`,
       );
     }
-    if (mutable[field] == null) {
-      throw new TypeError(`Skill ${skill.name} does not expose ${field}.`);
-    }
-    mutable[field] = applyNumEdit(
-      Number(mutable[field]),
-      numericEdit,
-      `${skill.name}.${field}`,
-    );
+    patchSkillNumericField(mutable, field, numericEdit, skill.name);
   }
   const effects = [...(clone.effects || [])];
   for (const effectPatch of shorthandEffects(edit)) {
@@ -386,30 +635,100 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit): Skill {
   return deepFreeze(clone);
 }
 
-function findSkill(catalog: Readonly<CanonicalCatalog>, key: string): Skill {
-  const numericId = /^\d+$/.test(key) ? Number(key) : null;
+function patchBalanceProfile(
+  profile: BalanceProfile,
+  edit: BalanceProfilePatchEdit,
+): BalanceProfile {
+  const clone = structuredClone(profile) as BalanceProfile;
+  const mutable = clone as unknown as MutableRecord;
+  const fields: Record<string, NumEdit> = {
+    ...(edit.fields || {}),
+    ...(edit.cooldown == null ? {} : { cooldown: edit.cooldown }),
+    ...(edit.castTimeMs == null ? {} : { castTimeMs: edit.castTimeMs }),
+  };
+  for (const [field, numericEdit] of Object.entries(fields)) {
+    if (!SKILL_NUMERIC_FIELDS.has(field)) {
+      throw new TypeError(
+        `Balance profile ${profile.name} has unsupported patch field ${field}.`,
+      );
+    }
+    patchSkillNumericField(mutable, field, numericEdit, profile.name);
+  }
+  const effects = [...(clone.effects || [])];
+  for (const effectPatch of shorthandEffects(edit)) {
+    for (const { index } of selectedEffects(
+      effects,
+      effectPatch,
+      `Balance profile ${profile.name}`,
+    )) {
+      effects[index] = patchEffect(
+        effects[index],
+        effectPatch,
+        `${profile.name}.effects[${index}]`,
+      );
+    }
+  }
+  const removedIndexes = new Set<number>();
+  for (const selector of edit.removeEffects || []) {
+    for (const { index } of selectedEffects(
+      effects,
+      selector,
+      `Balance profile ${profile.name} removal`,
+    )) {
+      removedIndexes.add(index);
+    }
+  }
+  const addedEffects = (edit.addEffects || []).map((effect, index) => {
+    if (!effect || typeof effect !== "object" || !String(effect.type || "")) {
+      throw new TypeError(
+        `Balance profile ${profile.name} added effect ${index} must declare a type.`,
+      );
+    }
+    return structuredClone(effect);
+  });
+  mutable.effects = [
+    ...effects.filter((_, index) => !removedIndexes.has(index)),
+    ...addedEffects,
+  ];
+  return deepFreeze(clone);
+}
+
+function findSkill(
+  catalog: Readonly<CanonicalCatalog>,
+  key: string,
+): Skill | undefined {
+  const numericId = /^-?\d+$/.test(key) ? Number(key) : null;
   const byId =
     catalog.skillsById.get(key as SkillId) ||
     (numericId == null ? undefined : catalog.skillsById.get(numericId));
-  const skill = byId || catalog.skillsByName.get(key);
-  if (!skill) throw new TypeError(`Patch references unknown skill ${key}.`);
-  return skill;
+  return byId || catalog.skillsByName.get(key);
+}
+
+export interface ApplySkillPatchOptions {
+  /** Used only after strict validation against the profession-wide catalog. */
+  readonly unknownSkills?: "error" | "ignore";
 }
 
 export function applySkillPatch(
   catalog: Readonly<CanonicalCatalog>,
   patch: ProfessionPatchPreview | null | undefined,
+  options: ApplySkillPatchOptions = {},
 ): Readonly<CanonicalCatalog> {
   const edits = Object.entries(patch?.skills || {});
   if (!edits.length) return catalog;
   const replacements = new Map<Skill, Skill>();
   for (const [key, edit] of edits) {
     const skill = findSkill(catalog, key);
+    if (!skill) {
+      if (options.unknownSkills === "ignore") continue;
+      throw new TypeError(`Patch references unknown skill ${key}.`);
+    }
     if (replacements.has(skill)) {
       throw new TypeError(`Patch edits skill ${skill.name} more than once.`);
     }
     replacements.set(skill, patchSkill(skill, edit));
   }
+  if (!replacements.size) return catalog;
   const replacementFor = (skill: Skill): Skill =>
     replacements.get(skill) || skill;
   const skills = Object.freeze(catalog.skills.map(replacementFor));
@@ -427,6 +746,57 @@ export function applySkillPatch(
     skills,
     skillsById,
     skillsByName,
+  });
+}
+
+export function applyBalanceProfilePatch(
+  catalog: Readonly<CanonicalCatalog>,
+  patch: ProfessionPatchPreview | null | undefined,
+  options: { readonly unknownProfiles?: "error" | "ignore" } = {},
+): Readonly<CanonicalCatalog> {
+  const edits = Object.entries(patch?.balanceProfiles || {});
+  if (!edits.length) return catalog;
+  const replacements = new Map<BalanceProfile, BalanceProfile>();
+  for (const [key, edit] of edits) {
+    const numericId = /^-?\d+$/.test(key) ? Number(key) : null;
+    const profile =
+      catalog.balanceProfilesById.get(key) ||
+      (numericId == null
+        ? undefined
+        : catalog.balanceProfilesById.get(numericId)) ||
+      catalog.balanceProfilesByName.get(key);
+    if (!profile) {
+      if (options.unknownProfiles === "ignore") continue;
+      throw new TypeError(`Patch references unknown balance profile ${key}.`);
+    }
+    if (replacements.has(profile)) {
+      throw new TypeError(
+        `Patch edits balance profile ${profile.name} more than once.`,
+      );
+    }
+    replacements.set(profile, patchBalanceProfile(profile, edit));
+  }
+  if (!replacements.size) return catalog;
+  const replacementFor = (profile: BalanceProfile): BalanceProfile =>
+    replacements.get(profile) || profile;
+  const balanceProfiles = Object.freeze(
+    catalog.balanceProfiles.map(replacementFor),
+  );
+  return Object.freeze({
+    ...catalog,
+    balanceProfiles,
+    balanceProfilesById: new Map(
+      [...catalog.balanceProfilesById].map(([id, profile]) => [
+        id,
+        replacementFor(profile),
+      ]),
+    ),
+    balanceProfilesByName: new Map(
+      [...catalog.balanceProfilesByName].map(([name, profile]) => [
+        name,
+        replacementFor(profile),
+      ]),
+    ),
   });
 }
 
@@ -459,6 +829,31 @@ export function validatePatchPreview(preview: PatchPreview): PatchPreview {
   }
   if (!String(preview.label || "").trim()) {
     throw new TypeError("Patch preview label is required.");
+  }
+  if (Object.hasOwn(preview, "notes")) {
+    throw new TypeError("Patch preview has unsupported field notes.");
+  }
+  if (preview.sourceUrl != null) {
+    if (typeof preview.sourceUrl !== "string") {
+      throw new TypeError("Patch preview source URL must be a string.");
+    }
+    let sourceUrl: URL;
+    try {
+      sourceUrl = new URL(preview.sourceUrl);
+    } catch {
+      throw new TypeError("Patch preview source URL must be an absolute URL.");
+    }
+    if (sourceUrl.protocol !== "https:" && sourceUrl.protocol !== "http:") {
+      throw new TypeError("Patch preview source URL must use HTTP or HTTPS.");
+    }
+  }
+  for (const [professionId, patch] of Object.entries(
+    preview.professions || {},
+  )) {
+    if (Object.hasOwn(patch, "notes")) {
+      throw new TypeError(`${professionId} patch has unsupported field notes.`);
+    }
+    validatePatchOverview(patch.overview, `${professionId} patch overview`);
   }
   return deepFreeze(structuredClone(preview));
 }

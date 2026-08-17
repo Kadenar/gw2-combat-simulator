@@ -1,8 +1,5 @@
 import { SKILL_HANDLER_MODES } from "../../../../platform/engine/skill-handlers.js";
-import {
-  augmentSkill,
-  replaceSkill,
-} from "../../../../platform/gw2/native-profession.js";
+import { augmentSkill } from "../../../../platform/gw2/native-profession.js";
 import type {
   Skill,
   SkillHandlerPhase,
@@ -23,35 +20,36 @@ function bandTogetherHandlerMode(
   context: RevenantCastContext,
   skill: Skill,
 ): SkillHandlerMode {
-  // REPLACE suppresses catalog effects (enhanced Icerazor re-emits them); AUGMENT lets catalog through and handler observes/modifies
+  // Enhanced casts replace the selectable skill's effects with the declared 72xxx profile.
   return bandTogether.replacesEffects(context, skill)
     ? SKILL_HANDLER_MODES.REPLACE
     : SKILL_HANDLER_MODES.AUGMENT;
 }
 
 const handlers = Object.freeze({
-  // Heroic Command / Orders from Above have no catalog damage effects; replaceSkill owns all emitted events in afterEffects
-  "revenant.heroic-command": replaceSkill<RevenantCastContext>({
+  // These effects are templates: the handler selects a trait-adjusted profile and materializes it after resolving live state.
+  "revenant.heroic-command": augmentSkill<RevenantCastContext>({
+    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
     afterEffects: revenantAssassinRenegadeSkillHandlers[
       "revenant.heroic-command"
     ] as SkillHandlerPhase<RevenantCastContext>,
   }),
-  "revenant.orders-from-above": replaceSkill<RevenantCastContext>({
+  "revenant.orders-from-above": augmentSkill<RevenantCastContext>({
+    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
     afterEffects: revenantAssassinRenegadeSkillHandlers[
       "revenant.orders-from-above"
     ] as SkillHandlerPhase<RevenantCastContext>,
   }),
-  // Band Together uses dynamic mode: enhanced Icerazor must replace catalog packets; normal summons augment them
+  // Band Together uses dynamic mode: enhanced casts replace the base profile; normal casts remain declarative.
   "revenant.band-together": augmentSkill<RevenantCastContext>({
     beforeEffects:
       bandTogether.beforeEffects as SkillHandlerPhase<RevenantCastContext>,
     resolveMode: bandTogetherHandlerMode,
-    afterEffect: (context, skill, event, state) =>
+    afterEffect: (context, skill, event) =>
       bandTogether.afterEffect(
         context,
         skill as RevenantSkill,
         event as RevenantSimulationEvent,
-        state as BandTogetherState,
       ),
     afterEffects: (context, skill, state) =>
       bandTogether.afterEffects(

@@ -4,6 +4,7 @@ import { defineProfessionSpecializationState } from "../../../../platform/engine
 export function createConduitState(): ConduitState {
   return {
     affinity: 0,
+    affinityMaximum: 5,
     cosmicWisdomUntil: 0,
     // Empty string means no active form; presence is tested via revenantConduitFormIsActive, not a separate boolean.
     conduitForm: "",

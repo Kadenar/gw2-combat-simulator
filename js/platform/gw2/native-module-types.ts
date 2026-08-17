@@ -1,5 +1,6 @@
 import type {
   CanonicalCatalog,
+  BalanceProfile,
   CatalogEntity,
   ProfessionBuildDefinition,
   ProfessionFamilyContract,
@@ -17,7 +18,11 @@ import type {
   Gw2ResolverRuntime,
   Gw2ResolverStage,
 } from "./types.js";
-import type { PatchPreview, PatchRuntimeValues } from "./skill-patch.js";
+import type {
+  PatchPreview,
+  PatchRuntimeValues,
+  ProfessionPatchPreview,
+} from "./skill-patch.js";
 
 export interface NativeAutoattackChains {
   readonly additional?: readonly (readonly SkillId[])[];
@@ -35,6 +40,7 @@ export interface NativeModuleCatalogData<
   readonly skillMechanics?: Readonly<Record<string, SkillFragment>>;
   readonly skillOverrides?: Readonly<Record<string, SkillFragment>>;
   readonly extraSkills?: readonly Skill[];
+  readonly balanceProfiles?: readonly BalanceProfile[];
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
   readonly handlers?: NativeSkillHandlerRegistry<THandlerContext>;
@@ -273,6 +279,60 @@ export interface NativeProfessionDefinition<
   readonly patchPreview?: PatchPreview | null;
 }
 
+export interface NativePreviewModifierRuleTarget {
+  readonly id: string;
+  readonly moduleId: string;
+  readonly fields: readonly string[];
+}
+
+export interface NativePatchAuthoringSkill {
+  readonly id: SkillId;
+  readonly name: string;
+  readonly moduleId: string;
+  readonly skill: Readonly<Skill>;
+  readonly patchableFields: Readonly<Record<string, number>>;
+}
+
+export interface NativePatchAuthoringBalanceProfile {
+  readonly id: SkillId;
+  readonly name: string;
+  readonly moduleId: string;
+  readonly profile: Readonly<BalanceProfile>;
+  readonly patchableFields: Readonly<Record<string, number>>;
+}
+
+export interface NativePatchAuthoringModifierValue {
+  readonly kind: "static" | "resolver" | "absent";
+  readonly value?: number;
+}
+
+export interface NativePatchAuthoringModifierRule {
+  readonly id: string;
+  readonly label: string | null;
+  readonly moduleId: string;
+  readonly targets: readonly string[];
+  readonly operation: string;
+  readonly amount: NativePatchAuthoringModifierValue;
+  readonly factor: NativePatchAuthoringModifierValue;
+  readonly parameters: Readonly<Record<string, number>>;
+  readonly conditional: boolean;
+  readonly order: number;
+}
+
+export interface NativePatchAuthoringModule {
+  readonly id: string;
+  readonly traits: readonly Readonly<CatalogEntity>[];
+  readonly skills: readonly NativePatchAuthoringSkill[];
+  readonly balanceProfiles: readonly NativePatchAuthoringBalanceProfile[];
+  readonly modifierRules: readonly NativePatchAuthoringModifierRule[];
+}
+
+export interface NativePatchAuthoringMetadata {
+  readonly professionId: string;
+  readonly professionName: string;
+  readonly modules: readonly NativePatchAuthoringModule[];
+}
+
 export type NativeProfessionContract<
   TModules extends readonly AnyNativeModule[],
 > = ProfessionFamilyContract<NativeProfessionRuntimeState<TModules>> & {
@@ -280,4 +340,12 @@ export type NativeProfessionContract<
   readonly preview: PatchPreview | null;
   readonly catalogFor: (patchId?: string) => Readonly<CanonicalCatalog>;
   readonly patchValuesFor: (patchId?: string) => PatchRuntimeValues;
+  /** Serializable live metadata consumed by the local patch authoring UI. */
+  readonly patchAuthoring: NativePatchAuthoringMetadata;
+  /** Validates one profession's authored edits against live declarations. */
+  readonly validatePatch: (
+    patch: ProfessionPatchPreview | null | undefined,
+  ) => true;
+  /** Validated report metadata for modifier rules touched by the preview. */
+  readonly previewModifierRuleTargets: readonly NativePreviewModifierRuleTarget[];
 };

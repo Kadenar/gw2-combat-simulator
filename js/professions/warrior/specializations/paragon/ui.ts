@@ -42,6 +42,8 @@ export const paragonUi: Partial<ProfessionUiContract> = Object.freeze({
   skillBarGroups: (context: WarriorUiContext) =>
     warriorSkillBarGroups(context, CHANTS),
   resourceViews: resources,
+  // null hides the row; undefined defers to default rendering. Paragon-state
+  // events are internal bookkeeping and should not appear in the event log.
   eventLogRow: (_context: WarriorUiContext, event: SimulationEvent) =>
     event.type === "warrior.paragon-state" ? null : undefined,
 });

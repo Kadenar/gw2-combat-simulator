@@ -32,6 +32,26 @@ npm start
 
 Open `http://127.0.0.1:4173`.
 
+### Author a patch preview
+
+Start the dedicated authoring server and open `http://127.0.0.1:4174`. The
+standalone authoring page loads every profession's live skill, trait, and
+declarative modifier metadata. It groups entries by Core or elite
+specialization, supports search, and writes a validated preview to
+`js/patches/active-preview.ts`.
+
+```powershell
+npm run author:patch-preview
+```
+
+Existing effects can be numerically edited or removed, and complete new effect
+objects can be added. Add the official ArenaNet patch-notes URL as preview
+metadata; the UI generates a read-only change overview from the authored skill
+and modifier diffs. A successful save updates source on disk; rebuild or
+restart the simulator before using the preview in simulations. The authoring
+server binds only to loopback on port `4174`; the normal simulator server on
+port `4173` remains read-only and does not expose the authoring API.
+
 `npm start`, `npm test`, and `npm run check` compile the migrated TypeScript
 modules automatically. Local startup creates an unminified, source-mapped
 multi-page bundle in `dist/site/`; `npm run build` creates the minified
@@ -87,6 +107,7 @@ gw2-combat-simulator/
   Rotations/
     <profession>/              profession rotation examples
   index.html                   Generic profession landing page
+  patch-preview.html           Local patch preview authoring interface
   mesmer.html                  Mesmer application
   elementalist.html            Elementalist application
   guardian.html                Guardian application

@@ -401,12 +401,12 @@ test("native module contributions assemble disjoint application and runtime cata
       ["specializations", catalog.specializations],
     ]) {
       assert.deepEqual(
-        [...contributed[kind].keys()].sort(
-          (left, right) => Number(left) - Number(right),
+        [...contributed[kind].keys()].sort((left, right) =>
+          String(left).localeCompare(String(right)),
         ),
         entries
           .map((entry) => entry.id)
-          .sort((left, right) => Number(left) - Number(right)),
+          .sort((left, right) => String(left).localeCompare(String(right))),
         `${name}:${kind}`,
       );
     }
@@ -1338,7 +1338,6 @@ test("Mesmer modules are vertical slices with disjoint catalog ownership", () =>
     "state.ts",
     "skills.ts",
     "handlers.ts",
-    "mechanics.ts",
     "rules.ts",
     "ui.ts",
   ]
@@ -1506,7 +1505,6 @@ test("Revenant modules are vertical slices with disjoint ownership", () => {
       "state.ts",
       "skills.ts",
       "handlers.ts",
-      "mechanics.ts",
       "rules.ts",
       "ui.ts",
     ]) {
@@ -1539,6 +1537,15 @@ test("Revenant modules are vertical slices with disjoint ownership", () => {
         );
       }
     }
+    const mechanicsUrl = new URL(
+      `../../js/professions/revenant/${directory}/mechanics.ts`,
+      import.meta.url,
+    );
+    assert.equal(
+      existsSync(mechanicsUrl),
+      directory === "specializations/herald",
+      `${directory}/mechanics.ts`,
+    );
     assert.equal(typeof module.state?.scheduler, "function");
     assert.ok(
       (module.data?.generatedSkills?.length || 0) +
@@ -1572,7 +1579,6 @@ test("Revenant modules are vertical slices with disjoint ownership", () => {
     "state.ts",
     "skills.ts",
     "handlers.ts",
-    "mechanics.ts",
     "rules.ts",
     "ui.ts",
   ]

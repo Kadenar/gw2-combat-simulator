@@ -290,6 +290,7 @@ export function onResolvedPlayerCriticalHit<
           )
         : 0;
       if (context.random.stochastic) {
+        // Use the already-resolved didCrit flag instead of re-rolling the crit.
         if (details.hitContext?.critical?.didCrit !== true) return;
         if (
           chanceOnCritical < 1 &&
@@ -308,6 +309,10 @@ export function onResolvedPlayerCriticalHit<
         }
         return;
       }
+      // Deterministic mode: accumulate critChance × procChance per hit.
+      // The while loop fires multiple times if progress is very high (e.g. 2.5 → 2 procs),
+      // but the break after setting the ICD caps it at one proc per event — the ICD
+      // then blocks further accumulation until it expires.
       const criticalChance = Number(
         details.hitContext?.critical?.chance ?? details.criticalChance ?? 0,
       );
@@ -363,6 +368,8 @@ export function afterSkillEffects(
   return schedulerMechanic("afterCast", declaration);
 }
 
+// The underlying handler functions take beforeEffects as a separate positional
+// parameter; these wrappers provide a flat object API and split it out internally.
 export function augmentSkill<TContext extends object>(
   phases: Omit<Partial<SkillHandlerStrategy<TContext>>, "mode">,
 ): Readonly<SkillHandlerStrategy<TContext>> {

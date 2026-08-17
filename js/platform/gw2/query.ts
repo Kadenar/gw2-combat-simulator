@@ -66,6 +66,9 @@ interface HookContextOptions {
  * @param {{readonly traits?: readonly CatalogEntity[]}} [catalog]
  * @returns {Set<string | number>}
  */
+// Merges three legacy config fields into one set and ensures every recognized
+// trait is present under both its numeric ID and its string name. This lets
+// trait membership checks throughout the codebase use either form.
 export function selectedGw2TraitValues(
   config: Gw2Config = {},
   catalog: TraitCatalog = {},
@@ -127,6 +130,9 @@ export function createGw2CombatQuery<
   const historicalRelicContext = Object.freeze({
     relic: createRelicTimelineRuntime(config.relic, events),
   });
+  // `query` is assigned after `completedQuery` is constructed. Hook handlers
+  // that reference `query` are only called during scheduling/resolution (after
+  // this function returns), so the null-during-construction window is safe.
   // Keep the exported standalone query backward compatible. Production
   // resolver composition supplies this capability explicitly.
   const equipmentConditionDurationBonus =
@@ -165,6 +171,8 @@ export function createGw2CombatQuery<
    * @param {number} maximum
    * @param {Gw2BuffAudience} [audience]
    */
+  // Returns null (not 0) when no runtime is present — null signals the caller
+  // to fall back to the scheduled timeline rather than overriding with zero.
   const runtimeBuffStacks = (
     runtime: Gw2QueryRuntime | null | undefined,
     kind: string,
@@ -242,6 +250,8 @@ export function createGw2CombatQuery<
     event: SimulationEvent | null | undefined,
   ): number => {
     const isolatedSummon = isBoonIsolatedSummonEvent(event);
+    // Isolated summons don't inherit the player's configured permanent boons —
+    // they only receive boons explicitly targeted at summons via the runtime.
     const configured = isolatedSummon ? 0 : Number(config.boons?.[kind] || 0);
     if (isolatedSummon) {
       return dynamicBoonStacksAt(
@@ -454,6 +464,9 @@ export function createGw2CombatQuery<
         activeWeaponSetAt(time, runtime),
       ),
     ) as unknown as Gw2ResolvedStats;
+    // Independent summons use their own base stats instead of the player's.
+    // summonInheritsCriticalAttributes=true lets them share precision/ferocity
+    // (e.g., for illusions that scale with the player's crit chance).
     if (
       event?.independentSummonStrike === true &&
       event?.summonInheritsAttributes !== true &&
@@ -581,8 +594,7 @@ export function createGw2CombatQuery<
       damage += sigilCritical.damage;
       let chanceBeforeCap = chance;
       if (event.canCrit === false || event.noCrit) chance = 0;
-      // Skills flagged forceCrit (e.g. Wild Blow) always land a critical hit,
-      // independent of precision. This overrides every other crit gate.
+      // forceCrit (e.g. Wild Blow) overrides everything including canCrit=false.
       if (event.forceCrit) {
         chance = 1;
         chanceBeforeCap = 1;
@@ -702,6 +714,8 @@ export function createGw2CombatQuery<
         }),
         base,
       );
+      // Clamped to [1, 2]: condition duration never drops below baseline and
+      // cannot exceed +100% regardless of how many sources stack.
       return clamp(Number(modified || 1), 1, 2);
     },
     conditionBaseDurationMultiplier(

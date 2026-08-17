@@ -114,6 +114,31 @@ test("target arrays and functional amounts resolve for the active target", () =>
   );
 });
 
+test("resolver-backed modifier rules receive frozen named parameters", () => {
+  let receivedParameters = null;
+  const hooks = createModifierHooks({
+    rules: [
+      {
+        id: "test.parameterized",
+        target: MODIFIER_TARGET.CRITICAL_CHANCE,
+        operation: "add",
+        parameters: { perStack: 0.02 },
+        amount: (current, _target, parameters) => {
+          receivedParameters = parameters;
+          return Number(current.stacks || 0) * parameters.perStack;
+        },
+      },
+    ],
+  });
+
+  assert.equal(
+    hooks.modifyCriticalChance({ ...context(), stacks: 3 }, 0.1),
+    0.16,
+  );
+  assert.deepEqual(receivedParameters, { perStack: 0.02 });
+  assert.equal(Object.isFrozen(receivedParameters), true);
+});
+
 test("inactive rules do not call their numeric resolver", () => {
   let calls = 0;
   const hooks = createModifierHooks({
@@ -324,6 +349,26 @@ test("modifier declarations reject invalid schemas with the rule id", () => {
         amount: "0.1",
       },
       /bad\.numeric-string/,
+    ],
+    [
+      {
+        id: "bad.parameters",
+        target: "criticalChance",
+        operation: "add",
+        parameters: { value: Number.NaN },
+        amount: () => 0.1,
+      },
+      /bad\.parameters/,
+    ],
+    [
+      {
+        id: "bad.static-parameters",
+        target: "criticalChance",
+        operation: "add",
+        parameters: { value: 0.1 },
+        amount: 0.1,
+      },
+      /bad\.static-parameters/,
     ],
   ];
 

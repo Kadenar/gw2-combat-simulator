@@ -8,7 +8,6 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  */
 import { emitRevenantState } from "./shared.js";
 import { emitRevenantBoon } from "./boons.js";
-import { REVENANT_CORE_MECHANICS } from "./mechanics.js";
 import { REVENANT_SKILL_IDS as ID } from "../data/ids.js";
 import type {
   SchedulerRecord,
@@ -24,7 +23,10 @@ import type {
   RevenantUpkeepState,
 } from "../types.js";
 
-const MECHANICS = REVENANT_CORE_MECHANICS;
+const VENGEFUL_HAMMERS_IDS = new Set<SkillId>([
+  ID.VENGEFUL_HAMMERS,
+  ID.VENGEFUL_HAMMERS_ID_56752,
+]);
 
 interface UpkeepDamageOptions {
   readonly actorType?: SimulationActorType;
@@ -85,14 +87,7 @@ export function emitCondition(
 }
 
 function upkeepPulseInterval(skill: RevenantSkill | undefined): number {
-  const profile = MECHANICS.upkeep;
-  if (skill?.id === ID.VENGEFUL_HAMMERS) {
-    return profile.vengefulHammersPulseInterval;
-  }
-  if (skill?.upkeepPulseInterval != null) {
-    return Number(skill.upkeepPulseInterval);
-  }
-  return profile.defaultPulseInterval;
+  return Math.max(0, Number(skill?.upkeepPulseInterval ?? 1));
 }
 
 function facetConsumeId(
@@ -113,17 +108,24 @@ function emitEmbraceTheDarknessPulse(
   active: RevenantUpkeepState,
   at: number,
 ): void {
-  const profile = MECHANICS.upkeep.embraceTheDarkness;
-  emitDamage(context, skill, at, profile.coefficient);
+  const strike = skill.effects?.find((effect) => effect.type === "strike");
+  const torment = skill.effects?.find(
+    (effect) =>
+      effect.type === "condition" &&
+      String(effect.metadata?.trigger || "") ===
+        (active.empoweredNextPulse ? "empowered-upkeep-pulse" : ""),
+  );
+  if (!strike || !torment) {
+    throw new Error("Embrace the Darkness is missing its pulse effects.");
+  }
+  emitDamage(context, skill, at, Number(strike.coefficient || 0));
   emitCondition(
     context,
     skill,
     at,
     "Torment",
-    active.empoweredNextPulse
-      ? profile.empoweredTormentStacks
-      : profile.tormentStacks,
-    profile.tormentDuration,
+    Number(torment.stacks || 0),
+    Number(torment.duration || 0),
   );
   active.empoweredNextPulse = false;
 }
@@ -166,11 +168,15 @@ export function toggleRevenantUpkeep(
       : context.catalog.skillsById.get(skill.flipSkillId);
   if (release) state.availableFlips[release.id] = true;
   if (skill.id === ID.EMBRACE_THE_DARKNESS) {
+    const strike = skill.effects?.find((effect) => effect.type === "strike");
+    if (!strike) {
+      throw new Error("Embrace the Darkness is missing its strike effect.");
+    }
     emitEmbraceTheDarknessPulse(
       context,
       skill,
       active,
-      context.start + MECHANICS.upkeep.embraceTheDarkness.initialStrikeDelay,
+      context.start + Number(strike.atMs || 0) / 1000,
     );
   }
   context.tasks.schedule({
@@ -209,45 +215,6 @@ export function releaseRevenantUpkeep(
   emitRevenantState(context, at, "upkeep-released");
 }
 
-/** Emits Inspiring Reinforcement's dynamic strike, condition, and boon field. */
-export function castInspiringReinforcement(
-  context: RevenantCastContext,
-  skill: RevenantSkill,
-): void {
-  const profile = MECHANICS.upkeep.inspiringReinforcement;
-  const at = context.effectiveEnd;
-  emitDamage(context, skill, at, profile.coefficient);
-  emitCondition(
-    context,
-    skill,
-    at,
-    "Weakness",
-    profile.weaknessStacks,
-    profile.weaknessDuration,
-  );
-  emitRevenantBoon(
-    context,
-    skill,
-    "stability",
-    profile.stabilityDuration,
-    profile.stabilityStacks,
-    { at },
-  );
-  for (let index = 0; index < profile.pulses; index += 1) {
-    emitRevenantBoon(
-      context,
-      skill,
-      "stability",
-      profile.stabilityDuration,
-      profile.stabilityStacks,
-      {
-        at: at + profile.firstPulseDelay + index * profile.pulseInterval,
-        name: `Inspiring Reinforcement — Stability ${index + 1}`,
-      },
-    );
-  }
-}
-
 /** Resolves one recurring upkeep pulse and schedules the next occurrence. */
 export function handleRevenantUpkeepPulse(
   context: RevenantSchedulerContext,
@@ -262,13 +229,17 @@ export function handleRevenantUpkeepPulse(
   const skill = context.catalog.skillsById.get(payload.skillId);
   if (skill?.id === ID.EMBRACE_THE_DARKNESS) {
     emitEmbraceTheDarknessPulse(context, skill, active, task.at);
-  } else if (skill?.id === ID.VENGEFUL_HAMMERS) {
-    const profile = MECHANICS.upkeep.vengefulHammers;
-    for (let hammer = 1; hammer <= profile.hammers; hammer += 1) {
-      emitDamage(context, skill, task.at, profile.coefficientPerHammer, {
+  } else if (skill && VENGEFUL_HAMMERS_IDS.has(skill.id)) {
+    const strike = skill.effects?.find((effect) => effect.type === "strike");
+    if (!strike)
+      throw new Error("Vengeful Hammers is missing its strike effect.");
+    const hammers = Math.max(0, Math.trunc(Number(strike.hits || 0)));
+    const coefficient = Number(strike.coefficient || 0);
+    for (let hammer = 1; hammer <= hammers; hammer += 1) {
+      emitDamage(context, skill, task.at, coefficient, {
         name: `Vengeful Hammers — Hammer ${hammer}`,
         hitIndex: hammer,
-        totalHits: profile.hammers,
+        totalHits: hammers,
       });
     }
   } else if (skill?.upkeepPulse) {
@@ -300,5 +271,4 @@ export function handleRevenantUpkeepPulse(
 export const revenantUpkeepSkillHandlers = Object.freeze({
   "revenant.upkeep": toggleRevenantUpkeep,
   "revenant.upkeep-release": releaseRevenantUpkeep,
-  "revenant.inspiring-reinforcement": castInspiringReinforcement,
 });

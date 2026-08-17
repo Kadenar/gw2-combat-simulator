@@ -5,6 +5,8 @@ import type { WarriorCastContext, WarriorSkill } from "../../types.js";
 
 function fullCounter(context: WarriorCastContext, skill: WarriorSkill): void {
   applyWarriorSkillResource(context, skill);
+  // +1 second extends the active window past the cast-end boundary so
+  // availability checks at exactly effectiveEnd still see it as active.
   spellbreakerState.from(context).fullCounterActiveUntil =
     context.effectiveEnd + 1;
 }
