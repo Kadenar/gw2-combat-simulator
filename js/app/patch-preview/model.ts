@@ -1,5 +1,8 @@
 import type { SkillEffect } from "../../platform/engine/types.js";
-import type { NativePatchAuthoringMetadata } from "../../platform/gw2/native-module-types.js";
+import type {
+  NativePatchAuthoringMetadata,
+  NativePatchAuthoringSkill,
+} from "../../platform/gw2/native-module-types.js";
 import {
   PATCHABLE_EFFECT_NUMERIC_FIELDS,
   type EffectPatch,
@@ -11,6 +14,78 @@ import {
 } from "../../platform/gw2/skill-patch.js";
 
 type MutableRecord = Record<string, unknown>;
+
+export interface PatchAuthoringSkillGroup {
+  readonly key: string;
+  readonly label: string;
+  readonly skills: readonly NativePatchAuthoringSkill[];
+}
+
+interface SkillGroupIdentity {
+  readonly key: string;
+  readonly label: string;
+  readonly order: number;
+}
+
+function skillGroupIdentity(
+  entry: NativePatchAuthoringSkill,
+): SkillGroupIdentity {
+  const type = String(entry.skill.type || "Skill");
+  if (type === "Weapon") {
+    const weapon = String(entry.skill.weapon || "").trim();
+    return weapon
+      ? { key: `weapon:${weapon}`, label: `${weapon} weapon`, order: 0 }
+      : {
+          key: "weapon:other",
+          label: "Weapon and kit skills",
+          order: 1,
+        };
+  }
+  if (type === "Heal") {
+    return { key: "slot:heal", label: "Heal skills", order: 2 };
+  }
+  if (type === "Utility") {
+    return { key: "slot:utility", label: "Utility skills", order: 3 };
+  }
+  if (type === "Elite") {
+    return { key: "slot:elite", label: "Elite skills", order: 4 };
+  }
+  if (type === "Profession") {
+    return { key: "profession", label: "Profession skills", order: 5 };
+  }
+  return {
+    key: "triggered",
+    label: "Actions and triggered skills",
+    order: 6,
+  };
+}
+
+export function groupPatchAuthoringSkills(
+  skills: readonly NativePatchAuthoringSkill[],
+): readonly PatchAuthoringSkillGroup[] {
+  const groups = new Map<
+    string,
+    SkillGroupIdentity & { skills: NativePatchAuthoringSkill[] }
+  >();
+  for (const skill of skills) {
+    const identity = skillGroupIdentity(skill);
+    const group = groups.get(identity.key) || { ...identity, skills: [] };
+    group.skills.push(skill);
+    groups.set(identity.key, group);
+  }
+  return [...groups.values()]
+    .sort(
+      (left, right) =>
+        left.order - right.order || left.label.localeCompare(right.label),
+    )
+    .map(({ key, label, skills: entries }) => ({
+      key,
+      label,
+      skills: entries.sort((left, right) =>
+        left.name.localeCompare(right.name),
+      ),
+    }));
+}
 
 export function createPatchPreviewDraft(): PatchPreview {
   return {

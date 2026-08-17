@@ -33,6 +33,18 @@ const WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS = new Set<number>([
   45380, // Featherfoot Grace
   62804, // Electric Fence
 ]);
+const WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS = new Set<SkillId>([
+  14443, // Whirling Strike
+  14469, // Forceful Shot
+  30989, // Burning Shackles
+  31048, // Wild Whirl
+  39972, // Silencer
+  41283, // Boon Crusher
+  41543, // Wounding Strike
+  43488, // Fleeting Stability
+  44397, // Dissonance
+  46044, // Magehunter Strike
+]);
 
 const allSkills: readonly Skill[] = Object.freeze([
   ...SKILLS.filter((skill) => !/^\(\(/.test(String(skill.name || ""))),
@@ -79,6 +91,11 @@ const generated: readonly Skill[] = Object.freeze(
       simulatorExcluded:
         canonicalId !== skill.id ||
         WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS.has(Number(skill.id)),
+      ...(canonicalId !== skill.id ||
+      WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS.has(Number(skill.id)) ||
+      WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS.has(skill.id)
+        ? { patchAuthoringExcluded: true }
+        : {}),
       implemented: false,
       effects: [],
     };

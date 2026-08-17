@@ -12,6 +12,38 @@ import type {
   SkillId,
 } from "../../platform/engine/types.js";
 
+// API and supplemental records with no selectable or indirect runtime path.
+const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
+  ID.DOME_OF_THE_MISTS,
+  ID.IGNITING_BRAND,
+  ID.SPEAR_OF_ANGUISH,
+  ID.FRIGID_DISCHARGE,
+  ID.DEVOUR_BRAND,
+  ID.VENOMOUS_SPHERE,
+  ID.RAPID_ASSAULT,
+  ID.RIFT_CONTAINMENT,
+  ID.HEALING_ORB,
+  ID.RITE_OF_THE_GREAT_DWARF_TRAIT_SKILL,
+  ID.VENGEFUL_SNOWBALLS,
+  ID.ESSENCE_SAP_DOPPELGANGER,
+  ID.CALL_OF_THE_DWARF,
+  ID.CALL_OF_THE_CENTAUR,
+  ID.CALL_OF_THE_ASSASSIN,
+  ID.CALL_OF_THE_DEMON,
+  ID.UNCHAINED_DESOLATION,
+  ID.LEGENDARY_PRISONER_STANCE,
+  ID.RIFT_OF_PAIN,
+  ID.MISTSFIRE,
+  ID.RECKONING_BLAST,
+  ID.PORTAL_FIRE,
+  ID.TORRENTIAL_MISTS,
+  ID.INVOKE_TORMENT,
+  ID.OTHERWORLDLY_ATTRACTION_ALLY,
+  ID.OTHERWORLDLY_ATTRACTION_ENEMY,
+  ID.BLITZ_MINES,
+  ID.REPLENISHING_DESPAIR_TRAIT_SKILL,
+]);
+
 const generatedSource = SKILLS.filter(
   (skill) => skill.name !== "Duelist's Preparation",
 ).map((skill) => ({ ...skill }));
@@ -35,6 +67,9 @@ for (const skill of allDeclared) {
 const normalize = (skill: Skill): Skill => ({
   ...skill,
   simulatorExcluded: false,
+  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
+    ? { patchAuthoringExcluded: true }
+    : {}),
   ...(skill.recharge == null && skill.ammoRecharge == null
     ? {}
     : {

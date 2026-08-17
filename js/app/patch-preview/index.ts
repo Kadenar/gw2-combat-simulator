@@ -21,6 +21,7 @@ import {
   createEffectTemplate,
   createPatchPreviewDraft,
   generatePatchOverview,
+  groupPatchAuthoringSkills,
   numericEditForValue,
   numericEditValue,
   patchSearchText,
@@ -530,6 +531,7 @@ function skillSection(module: NativePatchAuthoringModule): string {
       return !query || skillSearchText(skill).includes(query);
     })
     .sort((left, right) => left.name.localeCompare(right.name));
+  const groups = groupPatchAuthoringSkills(skills);
   const selected =
     module.skills.find((skill) => String(skill.id) === selectedSkillId) || null;
   return `<section class="patch-work-section patch-skills" aria-labelledby="skill-heading">
@@ -540,14 +542,23 @@ function skillSection(module: NativePatchAuthoringModule): string {
     <div class="patch-skill-workspace">
       <nav class="patch-skill-list" aria-label="Skills">${
         skills.length
-          ? skills
+          ? groups
               .map(
                 (
-                  skill,
-                ) => `<button type="button" class="patch-skill-option${String(skill.id) === selectedSkillId ? " is-selected" : ""}${hasSkillEdit(skill.id.toString()) ? " is-changed" : ""}" data-select-skill="${escapeHtml(skill.id)}">
-                  ${skill.skill.icon ? `<img src="${escapeHtml(skill.skill.icon)}" alt="" />` : ""}
-                  <span><strong>${escapeHtml(skill.name)}</strong><small>${escapeHtml(skill.skill.type || "Skill")} · ${escapeHtml(skill.id)}</small></span>
-                </button>`,
+                  group,
+                ) => `<section class="patch-skill-group" data-skill-group="${escapeHtml(group.key)}">
+                  <h3 class="patch-skill-group-heading"><span>${escapeHtml(group.label)}</span><small>${group.skills.length}</small></h3>
+                  ${group.skills
+                    .map(
+                      (
+                        skill,
+                      ) => `<button type="button" class="patch-skill-option${String(skill.id) === selectedSkillId ? " is-selected" : ""}${hasSkillEdit(skill.id.toString()) ? " is-changed" : ""}" data-select-skill="${escapeHtml(skill.id)}">
+                        ${skill.skill.icon ? `<img src="${escapeHtml(skill.skill.icon)}" alt="" />` : ""}
+                        <span><strong>${escapeHtml(skill.name)}</strong><small>${escapeHtml(skill.skill.type || "Skill")} · ${escapeHtml(skill.id)}</small></span>
+                      </button>`,
+                    )
+                    .join("")}
+                </section>`,
               )
               .join("")
           : '<p class="patch-empty-inline">No skills match these filters.</p>'
@@ -555,6 +566,23 @@ function skillSection(module: NativePatchAuthoringModule): string {
       <div class="patch-skill-editor">${skillDetail(selected)}</div>
     </div>
   </section>`;
+}
+
+function renderSelectedSkill(): void {
+  const module = selectedModule();
+  const selected =
+    module?.skills.find((skill) => String(skill.id) === selectedSkillId) ||
+    null;
+  for (const option of app.querySelectorAll<HTMLButtonElement>(
+    "[data-select-skill]",
+  )) {
+    option.classList.toggle(
+      "is-selected",
+      option.dataset.selectSkill === selectedSkillId,
+    );
+  }
+  const editor = app.querySelector<HTMLElement>(".patch-skill-editor");
+  if (editor) editor.innerHTML = skillDetail(selected);
 }
 
 function balanceProfileEffectRows(
@@ -1099,6 +1127,8 @@ app.addEventListener("click", (event) => {
     selectedSection = button.dataset.selectSection as AuthoringSection;
   } else if (button.dataset.selectSkill) {
     selectedSkillId = button.dataset.selectSkill;
+    renderSelectedSkill();
+    return;
   } else if (button.dataset.selectProfile) {
     selectedProfileId = button.dataset.selectProfile;
   } else if (button.dataset.clearModifier) {
