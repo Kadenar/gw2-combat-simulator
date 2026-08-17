@@ -7,6 +7,7 @@ import {
   applyNumEdit,
   applySkillPatch,
   patchRuntimeValue,
+  validatePatchPreview,
 } from "../../../js/platform/gw2/skill-patch.js";
 import {
   createModifierHooks,
@@ -339,6 +340,68 @@ test("patch authoring rejects unknown, ambiguous, and stale targets", () => {
   );
 });
 
+test("patch preview accepts generated overviews and rejects manual notes", () => {
+  const preview = validatePatchPreview({
+    id: "fixture-preview",
+    label: "Fixture Preview",
+    professions: {
+      fixture: {
+        overview: [
+          {
+            subject: "Fixture skill",
+            text: "Coefficient increased.",
+            source: "skill-diff",
+          },
+        ],
+      },
+    },
+  });
+
+  assert.equal(Object.isFrozen(preview.professions.fixture.overview[0]), true);
+  assert.throws(
+    () =>
+      validatePatchPreview({
+        id: "fixture-preview",
+        label: "Fixture Preview",
+        notes: [
+          {
+            subject: "Manual note",
+            text: "No longer supported.",
+            status: "tracked",
+          },
+        ],
+      }),
+    /unsupported field notes/,
+  );
+  assert.throws(
+    () =>
+      validatePatchPreview({
+        id: "fixture-preview",
+        label: "Fixture Preview",
+        professions: {
+          fixture: {
+            overview: [
+              {
+                subject: "Missing source",
+                text: "Not generated from a diff.",
+              },
+            ],
+          },
+        },
+      }),
+    /source is invalid/,
+  );
+  assert.throws(
+    () =>
+      validatePatchPreview({
+        id: "fixture-preview",
+        label: "Fixture Preview",
+        sourceUrl: "javascript:alert(1)",
+      }),
+    /must use HTTP or HTTPS/,
+  );
+});
+
 test("native professions keep live and lazy preview catalogs side by side", () => {
   const core = defineNativeModule({
     id: "Core",
@@ -423,6 +486,71 @@ test("native professions keep live and lazy preview catalogs side by side", () =
     config: { ...config, patchId: "fixture-preview" },
   });
   assert.equal(previewResult.totalDamage, currentResult.totalDamage * 2);
+});
+
+test("specialization skill previews stay inert in other runtime catalogs", () => {
+  const core = defineNativeModule({
+    id: "Core",
+    data: {
+      generatedSkills: [
+        {
+          id: 1,
+          name: "Core Skill",
+          implemented: true,
+          effects: [{ type: "strike", coefficient: 1, hits: 1 }],
+        },
+      ],
+    },
+    state: { scheduler: () => ({}) },
+  });
+  const elite = defineNativeModule({
+    id: "Elite",
+    data: {
+      generatedSkills: [
+        {
+          id: 2,
+          name: "Elite Skill",
+          implemented: true,
+          effects: [{ type: "strike", coefficient: 1, hits: 1 }],
+        },
+      ],
+    },
+    state: { scheduler: () => ({}) },
+  });
+  const family = defineNativeProfession({
+    id: "fixture",
+    name: "Fixture",
+    modules: [core, elite],
+    patchPreview: {
+      id: "fixture-preview",
+      label: "Fixture Preview",
+      professions: {
+        fixture: {
+          skills: { 2: { coefficient: { from: 1, to: 2 } } },
+        },
+      },
+    },
+  });
+
+  const corePreview = family.resolveRuntime({
+    specialization: "Core",
+    patchId: "fixture-preview",
+  });
+  const elitePreview = family.resolveRuntime({
+    specialization: "Elite",
+    patchId: "fixture-preview",
+  });
+
+  assert.equal(corePreview.catalog.skillsById.has(2), false);
+  assert.equal(
+    elitePreview.catalog.skillsById.get(2).effects[0].coefficient,
+    2,
+  );
+  assert.equal(
+    family.catalogFor("fixture-preview").skillsById.get(2).effects[0]
+      .coefficient,
+    2,
+  );
 });
 
 test("native professions compile preview modifier rules in isolated runtimes", () => {
@@ -551,6 +679,56 @@ test("native professions compile preview modifier rules in isolated runtimes", (
       fields: ["parameters.perStack"],
     },
   ]);
+  assert.deepEqual(
+    family.patchAuthoring.modules.map((module) => ({
+      id: module.id,
+      skills: module.skills.map((skill) => skill.name),
+      rules: module.modifierRules.map((rule) => ({
+        id: rule.id,
+        amount: rule.amount,
+        parameters: rule.parameters,
+      })),
+    })),
+    [
+      {
+        id: "Core",
+        skills: ["Modifier Strike"],
+        rules: [
+          {
+            id: "fixture.trait-critical-chance",
+            amount: { kind: "static", value: 0.1 },
+            parameters: {},
+          },
+        ],
+      },
+      {
+        id: "Elite",
+        skills: [],
+        rules: [
+          {
+            id: "fixture.elite-stacking-critical-chance",
+            amount: { kind: "resolver" },
+            parameters: { perStack: 0.01 },
+          },
+        ],
+      },
+    ],
+  );
+  assert.equal(
+    family.validatePatch({
+      skills: { 10: { fields: { castTimeMs: { from: 0, to: 250 } } } },
+      modifierRules: {
+        "fixture.trait-critical-chance": {
+          amount: { from: 0.1, to: 0.15 },
+        },
+      },
+    }),
+    true,
+  );
+  assert.throws(
+    () => family.validatePatch({ skills: { missing: { cooldown: 10 } } }),
+    /unknown skill missing/,
+  );
 
   const config = {
     specialization: "Core",

@@ -31,12 +31,16 @@ function normalizedText(value: unknown): string {
   return String(value || "").trim();
 }
 
+// Strips non-alphanumerics so "Feline Grace." and "Feline Grace" compare equal —
+// prevents a description that is just the trait name with punctuation.
 function comparableText(value: unknown): string {
   return normalizedText(value)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "");
 }
 
+// Rejects boilerplate placeholders and overly short strings that don't actually
+// explain why a trait is pending or out of model.
 function concreteReason(value: unknown): boolean {
   const reason = normalizedText(value);
   if (reason.length < 12) return false;
@@ -61,6 +65,8 @@ function normalizeEffect(
   trait: CatalogEntity,
   index: number,
 ): Gw2TraitCoverageEffect {
+  // A bare string is shorthand for an effect that inherits the entry-level status —
+  // convenient for simple traits where every effect has the same status.
   const value = (
     typeof effect === "string"
       ? { description: effect, status: entry.status }
@@ -217,6 +223,8 @@ export function validateTraitCoverageManifest(
         normalizeEffect(effect, entry, trait, index),
     );
     const status = entry.status as Gw2TraitCoverageStatus;
+    // Implemented traits (or entries with at least one implemented effect) must
+    // link a behavioral test — can't claim "implemented" without verifiable evidence.
     if (
       (status === TRAIT_COVERAGE_STATUSES.IMPLEMENTED ||
         effects.some(
@@ -252,6 +260,8 @@ export function validateTraitCoverageManifest(
     );
   }
 
+  // After processing all entries, verify every catalog trait has coverage —
+  // traits added to the catalog without a coverage entry are a silent omission.
   const missing = traits
     .filter((trait) => !coverageById.has(Number(trait.id)))
     .map((trait) => `${trait.id} (${trait.name})`);

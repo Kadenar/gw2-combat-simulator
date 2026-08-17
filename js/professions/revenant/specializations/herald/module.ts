@@ -9,12 +9,13 @@ import {
 } from "./rules.js";
 import { heraldState } from "./state.js";
 import { heraldUi } from "./ui.js";
-import { HERALD_BASE_SKILL_MECHANICS } from "./skills.js";
+import { HERALD_BASE_SKILL_MECHANICS, HERALD_EXTRA_SKILLS } from "./skills.js";
 
 export const heraldModule = defineNativeModule({
   id: "Herald",
   data: createRevenantModuleData("Herald", {
     skillMechanics: HERALD_BASE_SKILL_MECHANICS,
+    extraSkills: HERALD_EXTRA_SKILLS,
     handlers: heraldSkillHandlers,
   }),
   // Scheduler and resolver share the same (empty) state factory; Herald needs no resolver-private fields.

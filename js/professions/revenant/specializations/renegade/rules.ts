@@ -1,3 +1,4 @@
+import { materializeSkillEffectApplications } from "../../../../platform/engine/effect-materializer.js";
 import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { gw2AlliedPlayerAssumptions } from "../../../../platform/gw2/allied-players.js";
@@ -14,12 +15,14 @@ import {
   revenantTargetHasCondition,
   revenantTimedBuff,
 } from "../../core/rules.js";
-import { RENEGADE_MECHANICS as MECHANICS } from "./mechanics.js";
-import { emitDamage } from "../../core/upkeep.js";
-import { emitRevenantBoon } from "../../core/boons.js";
 import { revenantCombatActive } from "../../core/legend.js";
+import { emitLegendInvocationSkill } from "../../core/legend-traits.js";
 import { hasRevenantTrait } from "../../core/state.js";
 import { grantKallasFervor } from "./renegade.js";
+import {
+  RENEGADE_PROFILE_SKILL_IDS,
+  RENEGADE_SPIRIT_BOON_SKILL_ID,
+} from "./skills.js";
 import {
   handleRenegadeCriticalTraitsTask,
   initializeRenegadeTraits,
@@ -41,9 +44,10 @@ import type {
 
 function kallasFervorStacks(context: Gw2ModifierContext): number {
   // Count only applications that have started (at ≤ time) and not yet expired (expiresAt > time)
+  const state = revenantRuntimeSpecializationState(context);
   return Math.min(
-    MECHANICS.renegade.kallasFervor.maximumStacks,
-    (revenantRuntimeSpecializationState(context).kallasFervor || []).filter(
+    Math.max(1, Number(state.kallasFervorMaximumStacks)),
+    (state.kallasFervor || []).filter(
       (application) =>
         Number(application.at || 0) <= context.time &&
         Number(application.expiresAt || 0) > context.time,
@@ -76,11 +80,14 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "revenant.kallas-fervor-strike",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "damage-additive",
-    amount: (context) => {
-      const profile = MECHANICS.renegade.kallasFervor;
+    parameters: {
+      damagePerStack: 0.02,
+      improvedDamagePerStack: 0.05,
+    },
+    amount: (context, _target, parameters) => {
       const perStack = hasTrait(context, TRAIT.LASTING_LEGACY)
-        ? profile.improvedStrikeDamagePerStack
-        : profile.strikeDamagePerStack;
+        ? parameters.improvedDamagePerStack
+        : parameters.damagePerStack;
       return kallasFervorStacks(context) * perStack;
     },
     when: (context) =>
@@ -90,15 +97,28 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "revenant.kallas-fervor-condition",
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: "damage-additive",
-    amount: (context) => {
-      const profile = MECHANICS.renegade.kallasFervor;
+    parameters: {
+      damagePerStack: 0.02,
+      improvedDamagePerStack: 0.03,
+    },
+    amount: (context, _target, parameters) => {
       const perStack = hasTrait(context, TRAIT.LASTING_LEGACY)
-        ? profile.improvedConditionDamagePerStack
-        : profile.conditionDamagePerStack;
+        ? parameters.improvedDamagePerStack
+        : parameters.damagePerStack;
       return kallasFervorStacks(context) * perStack;
     },
     when: (context) =>
       revenantPlayer(context) && kallasFervorStacks(context) > 0,
+  },
+  {
+    id: "revenant.blood-fury-bleeding-duration",
+    target: MODIFIER_TARGET.CONDITION_DURATION,
+    operation: "add",
+    amount: 0.25,
+    when: (context) =>
+      context.condition === "Bleeding" &&
+      hasTrait(context, TRAIT.BLOOD_FURY) &&
+      revenantTimedBuff(context, "fury"),
   },
 ]);
 
@@ -115,22 +135,9 @@ function modifyRenegadeCriticalChance(
   return chance + (full ? 0.33 : 0.1);
 }
 
-function modifyRenegadeConditionDuration(
-  context: Gw2ModifierContext,
-  duration: number,
-): number {
-  // Blood Fury extends Bleeding duration additively by 25% (multiplier − 1 = 0.25 added to base multiplier)
-  return context.condition === "Bleeding" &&
-    hasTrait(context, TRAIT.BLOOD_FURY) &&
-    revenantTimedBuff(context, "fury")
-    ? duration + (MECHANICS.renegade.bloodFury.bleedingDurationMultiplier - 1)
-    : duration;
-}
-
 export const renegadeAttributeRules = Object.freeze({
   modifierRules: renegadeModifierRules,
   modifyCriticalChance: modifyRenegadeCriticalChance,
-  modifyConditionDuration: modifyRenegadeConditionDuration,
 });
 
 export const renegadeCastRules = Object.freeze({
@@ -172,9 +179,11 @@ function advanceRenegadeUpkeep(
     return;
   }
   const skill = context.catalog.skillsById.get(ID.SOULCLEAVES_SUMMIT);
+  const proc = context.catalog.skillsById.get(
+    RENEGADE_PROFILE_SKILL_IDS.soulcleavesSummitProc,
+  );
   const allies = gw2AlliedPlayerAssumptions(context.config);
-  if (!skill || !allies.count || !allies.strikesPerSecond) return;
-  const profile = MECHANICS.soulcleave;
+  if (!skill || !proc || !allies.count || !allies.strikesPerSecond) return;
   // Loop catches up all missed intervals when the scheduler jumps ahead (e.g., after a long cast)
   while (
     active.nextAlliedProcAt != null &&
@@ -182,33 +191,35 @@ function advanceRenegadeUpkeep(
   ) {
     const at = active.nextAlliedProcAt;
     for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1) {
-      emitDamage(context, skill, at, profile.coefficient, {
-        actorType: "effect",
-        name: `Soulcleave's Summit — Ally ${allyIndex} Additional Strike`,
-      });
-      context.emit({
-        type: "damage",
-        at,
-        source: "revenant",
-        sourceId: skill.id,
-        actorType: "effect",
-        skillId: skill.id,
-        skillName: skill.name,
-        // Allied life siphon uses the flat-strike formula, not a coefficient, like the player's siphon
-        name: `Soulcleave's Summit — Ally ${allyIndex} Life Siphon`,
-        coefficient: 0,
-        flatStrikeBase: profile.siphon.flatStrikeBase,
-        flatStrikePowerCoeff: profile.siphon.flatStrikePowerCoeff,
-        noCrit: true,
-        hits: 1,
-        hitIndex: 1,
-        totalHits: 1,
-        skillWeapon: "Unequipped",
-      });
+      for (const effect of proc.effects || []) {
+        const applications = materializeSkillEffectApplications({
+          skill: proc,
+          effect,
+          start: at,
+          fullEnd: at,
+          baseEvent: {
+            source: "revenant",
+            sourceId: skill.id,
+            actorType: effect.actorType || "effect",
+            skillId: skill.id,
+            skillName: skill.name,
+          },
+          skillWeaponFallback: "Unequipped",
+        });
+        for (const application of applications) {
+          context.emit({
+            ...application.event,
+            name: String(application.event.name || proc.name).replace(
+              "Soulcleave's Summit — ",
+              `Soulcleave's Summit — Ally ${allyIndex} `,
+            ),
+          });
+        }
+      }
     }
     // Advance by whichever is larger: the 1s internal cooldown or the ally's natural strike interval, preventing proc rates from exceeding what allies can realistically trigger
     active.nextAlliedProcAt += Math.max(
-      profile.interval,
+      Math.max(0, Number(proc.cooldown || 0)),
       1 / allies.strikesPerSecond,
     );
   }
@@ -227,57 +238,23 @@ function observeRenegadeEvent(
   ) {
     return;
   }
-  const swapSkill =
-    event.skillId == null
-      ? undefined
-      : context.catalog.skillsById.get(event.skillId);
-  if (!swapSkill) return;
-  const invocation = MECHANICS.legendInvocation;
   if (hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
-    const boon = invocation.spiritBoon;
-    emitRevenantBoon(
+    emitLegendInvocationSkill(
       context,
-      swapSkill,
-      boon.kind,
-      boon.duration,
-      boon.stacks,
-      {
-        at: event.at,
-        sourceId: TRAIT.SPIRIT_BOON,
-        name: `Spirit Boon — ${boon.kind}`,
-      },
+      RENEGADE_SPIRIT_BOON_SKILL_ID,
+      event.at,
+      TRAIT.SPIRIT_BOON,
     );
   }
   if (!hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
-  const song = invocation.song;
-  context.emit({
-    type: "damage",
-    at: event.at,
-    source: "revenant",
-    sourceId: TRAIT.SONG_OF_THE_MISTS,
-    actorType: "player",
-    skillId: TRAIT.SONG_OF_THE_MISTS,
-    skillName: song.name,
-    name: song.name,
-    coefficient: song.coefficient,
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
-    skillWeapon: "Unequipped",
-  });
-  context.emit({
-    type: "condition",
-    at: event.at,
-    source: "revenant",
-    sourceId: TRAIT.SONG_OF_THE_MISTS,
-    actorType: "player",
-    skillId: TRAIT.SONG_OF_THE_MISTS,
-    skillName: song.name,
-    name: `${song.name} — ${song.conditions[0][0]}`,
-    condition: String(song.conditions[0][0]),
-    stacks: Number(song.conditions[0][1]),
-    duration: Number(song.conditions[0][2]),
-  });
+  const song = context.catalog.skillsById.get(ID.CALL_OF_THE_RENEGADE);
+  if (!song) return;
+  emitLegendInvocationSkill(
+    context,
+    ID.CALL_OF_THE_RENEGADE,
+    event.at,
+    TRAIT.SONG_OF_THE_MISTS,
+  );
   // Song of the Mists grants 2 Kalla's Fervor stacks on each legend swap
   for (let index = 0; index < 2; index += 1) {
     grantKallasFervor(context, event, {

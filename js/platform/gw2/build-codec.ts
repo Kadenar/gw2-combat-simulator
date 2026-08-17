@@ -111,9 +111,13 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     });
     const defaults = createDefaults();
     const assumptions = plainObject(saved.assumptions);
+    // Only inherit saved targetConditions when the key is explicitly present;
+    // a partial assumptions object must not silently drop target condition defaults.
     const targetConditions = Object.hasOwn(assumptions, "targetConditions")
       ? plainObject(assumptions.targetConditions)
       : plainObject(defaults.assumptions.targetConditions);
+    // Old builds stored a single sigils array shared by both weapon sets.
+    // Duplicate it into the two-weapon-set format so downstream code is uniform.
     const legacySigils =
       !Array.isArray(saved.weaponSigils) && Array.isArray(saved.sigils)
         ? [saved.sigils, saved.sigils]
@@ -130,12 +134,14 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       schemaVersion,
       profession: professionId,
       gear,
+      // Fall back to main weapon gear prefix if alternateWeaponPrefixes is missing.
       alternateWeaponPrefixes: normalizeWeaponPrefixes(
         saved.alternateWeaponPrefixes,
         [gear.Weapon1, gear.Weapon2],
         aliases,
       ),
       weapons: normalizeWeaponPair(saved.weapons, defaults.weapons, catalog),
+      // Second weapon set is optional; allowEmpty=true lets both slots be "".
       alternateWeapons: normalizeWeaponPair(
         saved.alternateWeapons,
         defaults.alternateWeapons,
@@ -156,6 +162,8 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
           ? saved.jadeBotCore
           : Boolean(defaults.jadeBotCore),
       specializations,
+      // Slot-loadout professions (e.g. revenant) manage their own skill slot
+      // logic; bypass catalog validation and just merge saved over defaults.
       selectedSkills: slotLoadout
         ? {
             ...plainObject(defaults.selectedSkills),
@@ -168,6 +176,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
         targetConditions: { ...targetConditions },
       },
       infusions: normalizeInfusions(saved.infusions, defaults.infusions),
+      // Any value other than exactly 2 collapses to 1.
       startingWeaponSet: Number(saved.startingWeaponSet) === 2 ? 2 : 1,
       targetHealth: Math.max(
         0,
@@ -185,6 +194,8 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       ),
       rotation: normalizeRotation(saved.rotation, catalog),
     } as unknown as TBuild;
+    // relic validation happens after the spread because it is not part of the
+    // normalizeGear flow and may have been overwritten by the saved spread above.
     if (!RELIC_NAMES.includes(migrated.relic)) {
       migrated.relic = defaults.relic;
     }
@@ -192,12 +203,16 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     if (!migrated || typeof migrated !== "object" || Array.isArray(migrated)) {
       throw new TypeError("normalizeExtra must return a build object.");
     }
+    // Re-stamp after normalizeExtra so a buggy hook can't change the identity fields.
     migrated.schemaVersion = schemaVersion;
     migrated.profession = professionId;
+    // Can't start on set 2 if no second weapon set was saved.
     if (!migrated.alternateWeapons[0]) {
       migrated.startingWeaponSet = 1;
     }
     if (slotLoadout) {
+      // Determine which elite spec is active (or "Core") so the slot-loadout
+      // system can pick the correct skill palette for that specialization.
       const eliteNames = new Set(
         catalog.specializations
           .filter((specialization) => specialization.elite)
@@ -216,6 +231,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
         }),
       );
     }
+    // Strip legacy fields so they don't leak into the canonical output.
     delete migrated.selectedSkillIds;
     delete migrated.sigils;
     return migrated;
@@ -299,17 +315,26 @@ function normalizeGear(
   defaults: Gw2CanonicalBuild,
   aliases: Readonly<Record<string, string>>,
 ): Record<string, string> {
+  // Start from defaults so unrecognised or missing slots keep a valid prefix.
   const gear = { ...defaults.gear };
   for (const [slot, prefix] of Object.entries(plainObject(value))) {
     if (typeof prefix === "string") gear[slot] = prefix;
   }
   for (const slot of GEAR_SLOTS) {
+    // Resolve abbreviated names ("Berserker" → "Berserker's") before lookup.
     gear[slot] = aliases[gear[slot]] || gear[slot];
+    // If the resolved prefix still isn't a known stat, fall back to the default.
     if (!GEAR_STATS_BY_NAME[gear[slot]]) gear[slot] = defaults.gear[slot];
   }
   return gear;
 }
 
+/**
+ * @param {unknown} value
+ * @param {readonly string[]} fallback
+ * @param {Readonly<Record<string, string>>} aliases
+ * @returns {string[]}
+ */
 function normalizeWeaponPrefixes(
   value: unknown,
   fallback: readonly string[],
@@ -338,13 +363,17 @@ function normalizeWeaponPair(
   allowEmpty = false,
 ): string[] {
   if (!Array.isArray(value)) return [...fallback];
+  // allowEmpty=true means "no second weapon set" is a valid state.
   if (allowEmpty && !value[0]) return ["", ""];
+  // "mh+oh" weapons (e.g. torch) can fill either slot; only "oh"-only weapons
+  // are excluded from the main hand.
   const requestedMain = catalog.weapons.has(value[0]) ? value[0] : "";
   const mainHand = ["mh", "mh+oh", "2h"].includes(
     catalog.weaponHands.get(requestedMain) || "",
   )
     ? requestedMain
     : fallback[0];
+  // Two-handed weapons have no off-hand slot.
   if (catalog.weaponHands.get(mainHand) === "2h") return [mainHand, ""];
 
   const requestedOff = catalog.weapons.has(value[1]) ? value[1] : "";
@@ -377,18 +406,21 @@ function normalizeSpecializations(
   const selected = value
     .slice(0, 3)
     .map((entry) => {
+      // Accept a bare string as shorthand for { name, traits: "1-1-1" }.
       if (typeof entry === "string") {
         return { name: entry, traits: "1-1-1" };
       }
       const candidate = plainObject(entry);
       return {
         name: String(candidate.name || ""),
+        // Invalid or missing trait selection resets to tier-1 across all columns.
         traits: /^[1-3]-[1-3]-[1-3]$/.test(String(candidate.traits || ""))
           ? String(candidate.traits)
           : "1-1-1",
       };
     })
     .filter((entry) => known.has(entry.name))
+    // Keep only the first occurrence of each specialization line.
     .filter(
       (entry, index, entries) =>
         entries.findIndex((candidate) => candidate.name === entry.name) ===
@@ -397,6 +429,8 @@ function normalizeSpecializations(
   const eliteCount = selected.filter(
     (entry) => known.get(entry.name)?.elite,
   ).length;
+  // The entire selection must be exactly 3 lines with at most one elite;
+  // any violation falls back to defaults rather than partial normalization.
   return selected.length === 3 && eliteCount <= 1
     ? selected
     : clone([...fallback]);
@@ -407,6 +441,8 @@ function normalizeSpecializations(
  * @param {CanonicalCatalog} catalog
  * @returns {Record<string, string>}
  */
+// Older builds stored skill IDs instead of names. Resolve each ID through the
+// catalog and convert to the slot-keyed name map the current schema uses.
 function selectedSkillsFromLegacy(
   saved: SchedulerRecord,
   catalog: CanonicalCatalog,
@@ -445,18 +481,30 @@ function selectableSlotSkill(
       skill.slotSelectable !== false &&
       !skill.simulatorExcluded &&
       skill.type === type &&
+      // Exclude flip/chain skills (e.g. the follow-up hit of a two-stage
+      // attack); only the root skill can appear in the loadout panel.
       skill.flipParentId == null &&
+      // Elite-spec skills are only available when that spec line is selected.
       (!skill.specialization ||
         selectedSpecializations?.has(skill.specialization)),
   );
 }
 
+/**
+ * @param {SchedulerRecord} saved
+ * @param {Gw2CanonicalBuild} defaults
+ * @param {CanonicalCatalog} catalog
+ * @param {readonly Gw2BuildSpecialization[]} specializations
+ * @returns {Record<string, string>}
+ */
 function normalizeSelectedSkills(
   saved: SchedulerRecord,
   defaults: Gw2CanonicalBuild,
   catalog: CanonicalCatalog,
   specializations: readonly Gw2BuildSpecialization[],
 ): Record<string, string> {
+  // Legacy ID-based format is overlaid first so that the newer name-based
+  // selectedSkills field takes precedence when both are present.
   const source = {
     ...selectedSkillsFromLegacy(saved, catalog),
     ...plainObject(saved.selectedSkills),
@@ -475,11 +523,14 @@ function normalizeSelectedSkills(
     const defaultSkill = catalog.skillsByName.get(
       defaults.selectedSkills[slot],
     );
+    // Priority: user's saved pick → profession default → first valid in catalog.
+    // This ensures a slot is never left empty as long as any valid skill exists.
     const candidates = [requested, defaultSkill, ...catalog.skills];
     const skill = candidates.find(
       (candidate) =>
         candidate != null &&
         selectableSlotSkill(candidate, type, selectedSpecializations) &&
+        // Prevent the same utility from filling two slots.
         (type !== "Utility" || !selectedUtilityIds.has(candidate.id)),
     );
     normalized[slot] = skill?.name || "";
@@ -498,6 +549,7 @@ function normalizeInfusions(
   fallback: readonly Gw2BuildInfusion[],
 ): Gw2BuildInfusion[] {
   if (!Array.isArray(value)) return clone([...fallback]);
+  // remaining tracks the budget across entries so total count never exceeds 18.
   let remaining = 18;
   const infusions = value
     .filter(
@@ -505,6 +557,8 @@ function normalizeInfusions(
     )
     .map((entry) => {
       const infusion = entry as SchedulerRecord;
+      // Clamp each entry against the remaining budget rather than rejecting it,
+      // so partially valid saves degrade gracefully.
       const count = clamp(
         Math.trunc(Number(infusion.count) || 0),
         0,
@@ -513,6 +567,8 @@ function normalizeInfusions(
       remaining -= count;
       return { stat: infusion.stat as string, count };
     });
+  // If no valid entries survived filtering, the whole list is unreadable;
+  // fall back to defaults rather than returning an empty array.
   if (!infusions.length) return clone([...fallback]);
   // Ensure the canonical stat rows are always present (count 0 when absent)
   // so the gear panel never collapses to a single infusion type.
@@ -526,6 +582,16 @@ function normalizeInfusions(
   return infusions;
 }
 
+/**
+ * Deep-clones the candidate and applies numbered migration functions in order
+ * until `schemaVersion` is reached. Throws for wrong profession or an
+ * unrecognized (future) schema version. Missing migration steps are skipped
+ * by bumping `schemaVersion` without transforming the data.
+ *
+ * @param {unknown} candidate
+ * @param {{ professionId: string, schemaVersion: number, migrations: Readonly<Record<number, (saved: SchedulerRecord) => SchedulerRecord>> }} options
+ * @returns {SchedulerRecord}
+ */
 function migrateVersionedBuild(
   candidate: unknown,
   {
@@ -544,19 +610,25 @@ function migrateVersionedBuild(
     return {};
   }
   const candidateBuild = candidate as SchedulerRecord;
+  // A missing profession field is treated as matching (e.g. very old saves);
+  // a present but wrong profession is a hard error to prevent silent data corruption.
   if (candidateBuild.profession && candidateBuild.profession !== professionId) {
     throw new Error(
       `Cannot load ${candidateBuild.profession} build as ` +
         `${professionName(professionId)}.`,
     );
   }
+  // Clone before mutating so the original candidate object is never modified.
   let saved = clone(candidateBuild);
   let version = Number(saved.schemaVersion ?? 0);
+  // A version newer than this codec would need transforms we don't have yet.
   if (!Number.isInteger(version) || version < 0 || version > schemaVersion) {
     throw new Error(`Unsupported build schema version: ${saved.schemaVersion}`);
   }
   while (version < schemaVersion) {
     const migrate = migrations[version];
+    // If no migration function is registered for a version gap, just bump
+    // the version; normalizeGear/normalizeWeaponPair etc. handle the rest.
     saved =
       typeof migrate === "function"
         ? migrate(saved)
@@ -672,6 +744,7 @@ function validCanonicalMilliseconds(
   return Number.isFinite(value) && value >= 0;
 }
 
+/** Allows any finite number (including negative) — used for combat-start concurrentOffsetMs. */
 function validCanonicalOffset(
   command: SchedulerRecord,
   field: string,
@@ -680,6 +753,7 @@ function validCanonicalOffset(
   return Number.isFinite(Number(command[field]));
 }
 
+/** Field is optional; when present must be an integer ≥ 1 (used for releaseAtCharges). */
 function validCanonicalPositiveInteger(
   command: SchedulerRecord,
   field: string,
@@ -810,6 +884,7 @@ function validateCommonBuild(
     errors.push(`schemaVersion must be ${schemaVersion}.`);
   }
   validateWeaponPair(candidate.weapons, "weapons", catalog, errors);
+  // Alternate weapons are optional; allowEmpty=true lets both slots be absent.
   validateWeaponPair(
     candidate.alternateWeapons,
     "alternateWeapons",
@@ -834,6 +909,8 @@ function validateCommonBuild(
   }
   validateSpecializations(candidate, catalog, professionId, errors);
   if (slotLoadout) {
+    // Slot-loadout professions (e.g. revenant) manage skill slots through
+    // their own legend/palette system; delegate validation to that system.
     const eliteNames = new Set(
       catalog.specializations
         .filter((specialization) => specialization.elite)
@@ -860,6 +937,7 @@ function validateCommonBuild(
         (specialization) => specialization?.name,
       ),
     );
+    // Track already-used utility IDs so duplicates across Utility1-3 are flagged.
     const selectedUtilityIds = new Set();
     for (const [slot, type] of Object.entries(SLOT_TYPES)) {
       const skill = catalog.skillsByName.get(candidate.selectedSkills[slot]);
@@ -881,6 +959,8 @@ function validateCommonBuild(
       }
     }
   }
+  // alternateWeaponPrefixes is optional (null/undefined = inherit main-hand gear);
+  // only validate it when the field is actually present.
   if (
     candidate.alternateWeaponPrefixes != null &&
     (!Array.isArray(candidate.alternateWeaponPrefixes) ||

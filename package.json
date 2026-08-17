@@ -11,6 +11,8 @@
     "build:site": "vite build",
     "prestart": "npm run build:dev",
     "start": "node server.mjs",
+    "preauthor:patch-preview": "npm run build:dev",
+    "author:patch-preview": "node --import ./scripts/testing/register-dist-loader.mjs scripts/patch-preview-authoring-server.mjs",
     "pretest": "npm run build",
     "test": "node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none",
     "typecheck": "tsc -p jsconfig.typed.json",

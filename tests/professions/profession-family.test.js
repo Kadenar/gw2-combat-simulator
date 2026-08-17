@@ -401,12 +401,12 @@ test("native module contributions assemble disjoint application and runtime cata
       ["specializations", catalog.specializations],
     ]) {
       assert.deepEqual(
-        [...contributed[kind].keys()].sort(
-          (left, right) => Number(left) - Number(right),
+        [...contributed[kind].keys()].sort((left, right) =>
+          String(left).localeCompare(String(right)),
         ),
         entries
           .map((entry) => entry.id)
-          .sort((left, right) => Number(left) - Number(right)),
+          .sort((left, right) => String(left).localeCompare(String(right))),
         `${name}:${kind}`,
       );
     }

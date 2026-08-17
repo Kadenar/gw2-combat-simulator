@@ -175,6 +175,8 @@ function syncAristocracyTimeline(state: AristocracyState): void {
   state.timelineLength = events.length;
 }
 
+// syncAristocracyTimeline replays only when the event array has grown since the
+// last call — this lazily keeps historical query state in sync with new events.
 function aristocracyActivationAt(
   state: AristocracyState,
   at: number,
@@ -322,6 +324,9 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> =
         ) {
           return;
         }
+        // Deduplicate by activationId (or a synthesized key) so a single skill
+        // application that produces multiple poison stacks only increments the
+        // Blightbringer counter once.
         const tracked = state.trackedActivations as Set<string> | undefined;
         const key = String(
           application.activationId ||
@@ -498,6 +503,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> =
 
     Eagle: defineRelic({
       strikeMultiplier(ctx) {
+        // Activates when cumulative damage dealt (strike + condition) reaches
+        // 50% of target health — not remaining health; it's a threshold on total output.
         const targetHealth = Number(ctx.config.target?.health || 0);
         return targetHealth > 0 &&
           ctx.totals.strike + ctx.totals.condition >= targetHealth * 0.5
@@ -544,8 +551,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> =
           return;
         }
 
-        // The triggering bleed is already in conditionState. Fractal requires
-        // six stacks to exist before that application lands.
+        // The condition hook fires with the new stacks already counted, so subtract
+        // application.stacks to check for the required six pre-existing stacks.
         state.readyAt = application.at + 20;
         ctx.recordProc(
           "relic",
@@ -687,6 +694,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> =
         }
       },
       outgoingDamageBonus(ctx, state, _damageType, at) {
+        // nourysActiveAt uses modulo arithmetic on elapsed time from combat start
+        // to determine the current phase — no event tracking needed.
         return nourysActiveAt(ctx, state, at) ? NOURYS_DAMAGE_BONUS : 0;
       },
     }),
@@ -698,6 +707,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> =
         if (!isInternalCooldownReady(triggerAt, state.readyAt)) return;
         state.readyAt = triggerAt + 4;
         const combatStart = Number(ctx.combatStartTime ?? -Infinity);
+        // If the trigger fires before combat starts (pre-cast), clamp the impact
+        // to combatStartTime so the damage and condition don't preload before combat.
         const impactAt =
           triggerAt < combatStart
             ? combatStart
@@ -812,6 +823,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> =
           `${state.stacks}/5 stacks`,
         );
       },
+      // Returns 1 (not 0) when no stacks are active — it's a multiplier, not additive.
       strikeMultiplier(_ctx, state, event) {
         return Number(state.stacks || 0) > 0 &&
           Number(state.expiresAt || 0) > event.at
@@ -857,7 +869,9 @@ export function createRelicRuntime(name: unknown): Readonly<Gw2RelicRuntime> {
   });
 }
 
-/** Creates a rule-owned historical runtime for queries without live state. */
+// Sets timelineLength to -1 (not events.length) so syncAristocracyTimeline
+// treats the state as dirty and replays on the first call even when the
+// events array is empty.
 export function createRelicTimelineRuntime(
   name: unknown,
   events: readonly SimulationEvent[],

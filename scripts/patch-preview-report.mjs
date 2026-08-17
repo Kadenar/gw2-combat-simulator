@@ -72,17 +72,7 @@ for (const [professionId, patch] of Object.entries(
   for (const key of Object.keys(patch.constants || {})) {
     console.log(`  [ ] constant ${key}`);
   }
-  for (const note of patch.notes || []) {
-    console.log(
-      `  [${note.status === "applied" ? " " : "-"}] ${note.status}: ${note.subject}`,
-    );
-  }
 }
 for (const key of Object.keys(activePatchPreview.constants || {})) {
   console.log(`\n[ ] global constant ${key}`);
-}
-for (const note of activePatchPreview.notes || []) {
-  console.log(
-    `\n[${note.status === "applied" ? " " : "-"}] ${note.status}: ${note.subject}`,
-  );
 }

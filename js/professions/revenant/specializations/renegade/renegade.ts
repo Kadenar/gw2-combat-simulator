@@ -1,35 +1,29 @@
-import { renegadeState } from "./state.js";
+/** Renegade runtime state machines backed by declarative skill profiles. */
+import { materializeSkillEffectApplications } from "../../../../platform/engine/effect-materializer.js";
 import { professionCoreState } from "../../../../platform/engine/profession.js";
-/**
- * Renegade runtime mechanics.
- *
- * Owns Kalla's Fervor, Citadel Orders, Razorclaw's allied-player model, and
- * the Band Together state machine. The exported
- * handler map exposes raw phase callbacks; handlers.js assigns their shared
- * augment/replace strategies. Enhanced Icerazor is emitted as a replacement
- * profile so event observers receive its accelerated timestamps immediately.
- */
 import {
   gw2AlliedPlayerAssumptions,
   gw2AlliedPlayerProcTimeline,
 } from "../../../../platform/gw2/allied-players.js";
 import { emitRevenantState } from "../../core/shared.js";
-import { emitRevenantBoon } from "../../core/boons.js";
-import { RENEGADE_MECHANICS as MECHANICS } from "./mechanics.js";
 import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
 import { hasRevenantTrait } from "../../core/state.js";
+import { renegadeState } from "./state.js";
+import {
+  RENEGADE_ENHANCED_SKILL_BY_ID,
+  RENEGADE_PROFILE_SKILL_IDS,
+} from "./skills.js";
 import type {
-  SchedulerRecord,
-  SimulationActorType,
   SimulationEvent,
+  SkillEffect,
   SkillId,
 } from "../../../../platform/engine/types.js";
 import type {
-  RevenantCastContext,
   RenegadeState,
+  RevenantCastContext,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill,
@@ -37,15 +31,7 @@ import type {
 
 export interface BandTogetherState {
   readonly enhanced: boolean;
-}
-
-interface RenegadeConditionOptions extends SchedulerRecord {
-  readonly at?: number;
-  readonly condition: string;
-  readonly stacks: number;
-  readonly duration: number;
-  readonly actorType?: SimulationActorType;
-  readonly name?: string;
+  readonly profileSkillId: SkillId;
 }
 
 function hasTrait(
@@ -53,6 +39,81 @@ function hasTrait(
   traitId: SkillId,
 ): boolean {
   return hasRevenantTrait(context.config, traitId);
+}
+
+function skillById(
+  context: RevenantSchedulerContext,
+  skillId: SkillId,
+): RevenantSkill | undefined {
+  return context.catalog.skillsById.get(skillId);
+}
+
+function effectByType(
+  skill: RevenantSkill | undefined,
+  type: SkillEffect["type"],
+): SkillEffect | undefined {
+  return skill?.effects?.find((effect) => effect.type === type);
+}
+
+function kallasFervorSkill(
+  context: RevenantSchedulerContext,
+): RevenantSkill | undefined {
+  return skillById(
+    context,
+    hasTrait(context, TRAIT.LASTING_LEGACY)
+      ? RENEGADE_PROFILE_SKILL_IDS.kallasFervorLastingLegacy
+      : RENEGADE_PROFILE_SKILL_IDS.kallasFervor,
+  );
+}
+
+function emitProfileEffects(
+  context: RevenantCastContext,
+  eventSkill: RevenantSkill,
+  profileSkill: RevenantSkill,
+  effects: readonly SkillEffect[] = profileSkill.effects || [],
+): void {
+  for (const effect of effects) {
+    const baseDuration =
+      effect.type === "boon" || effect.type === "buff"
+        ? Math.max(0, Number(effect.duration || 0))
+        : undefined;
+    const statusDuration =
+      baseDuration == null
+        ? undefined
+        : (context.schedulerPolicy.effectDuration?.(
+            context,
+            eventSkill,
+            effect,
+            baseDuration,
+          ) ?? baseDuration);
+    const applications = materializeSkillEffectApplications({
+      skill: profileSkill,
+      effect,
+      start: context.start,
+      fullEnd: context.effectiveEnd,
+      baseEvent: {
+        source: "revenant",
+        sourceId: eventSkill.id,
+        actorType: effect.actorType || "player",
+        skillId: eventSkill.id,
+        skillName: eventSkill.name,
+      },
+      skillWeaponFallback: "Unequipped",
+      statusDuration,
+    });
+    for (const application of applications) {
+      const emitted = context.emit(application.event);
+      if (
+        eventSkill.id === ID.RAZORCLAWS_RAGE &&
+        emitted.type === "buff" &&
+        emitted.kind === "razorclaws-rage"
+      ) {
+        context.replaceEvent(emitted, {
+          recipientCount: gw2AlliedPlayerAssumptions(context.config).count + 1,
+        });
+      }
+    }
+  }
 }
 
 /** Returns whether the one-use Band Together enhancement is active at `at`. */
@@ -66,32 +127,32 @@ export function isBandTogetherReady(
   );
 }
 
+function enhancedSkill(
+  context: RevenantSchedulerContext,
+  skill: RevenantSkill,
+): RevenantSkill | undefined {
+  const enhancedId = RENEGADE_ENHANCED_SKILL_BY_ID[Number(skill.id)];
+  return enhancedId == null ? undefined : skillById(context, enhancedId);
+}
+
 function replacesBandTogetherEffects(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): boolean {
-  // Only enhanced Icerazor's Ire replaces catalog effects; Darkrazor and Razorclaw always augment
   return (
-    skill.id === ID.ICERAZORS_IRE &&
-    isBandTogetherReady(renegadeState.from(context), context.start)
+    isBandTogetherReady(renegadeState.from(context), context.start) &&
+    enhancedSkill(context, skill) != null
   );
 }
 
-function fervorDuration(context: RevenantSchedulerContext): number {
-  const profile = MECHANICS.renegade.kallasFervor;
-  return hasTrait(context, TRAIT.LASTING_LEGACY)
-    ? profile.improvedDuration
-    : profile.duration;
-}
-
-/** Counts unexpired Kalla's Fervor applications, capped by the live maximum. */
+/** Counts unexpired Kalla's Fervor applications. */
 export function activeKallasFervorStacks(
   state: RenegadeState,
   at: number,
+  maximumStacks = state.kallasFervorMaximumStacks,
 ): number {
-  const maximum = MECHANICS.renegade.kallasFervor.maximumStacks;
   return Math.min(
-    maximum,
+    Math.max(1, Number(maximumStacks)),
     (state.kallasFervor || []).filter(
       (application) =>
         Number(application.at || 0) <= at &&
@@ -100,17 +161,13 @@ export function activeKallasFervorStacks(
   );
 }
 
-// Prune is called before every grant and refresh to keep the array from growing unboundedly; it is intentionally not called on every read so that stack-count queries stay O(n) without mutation
 function pruneKallasFervor(state: RenegadeState, at: number): void {
   state.kallasFervor = (state.kallasFervor || []).filter(
     (application) => Number(application.expiresAt || 0) > at,
   );
 }
 
-/**
- * Adds one Kalla's Fervor application and emits its causal buff/state events.
- * Returns false when the stack cap has already been reached.
- */
+/** Adds one Kalla's Fervor application and emits its causal state. */
 export function grantKallasFervor(
   context: RevenantSchedulerContext,
   cause: SimulationEvent,
@@ -125,41 +182,49 @@ export function grantKallasFervor(
   } = {},
 ): boolean {
   const state = renegadeState.from(context);
-  const profile = MECHANICS.renegade.kallasFervor;
+  const profile = kallasFervorSkill(context);
+  const effect = effectByType(profile, "buff");
+  if (!profile || !effect) return false;
+  const maximumStacks = Math.max(1, Number(profile.maximumStacks || 1));
+  state.kallasFervorMaximumStacks = maximumStacks;
   pruneKallasFervor(state, at);
-  if (activeKallasFervorStacks(state, at) >= profile.maximumStacks)
+  if (activeKallasFervorStacks(state, at, maximumStacks) >= maximumStacks) {
     return false;
-  const duration = fervorDuration(context);
-  // Push a new application record; each element is independent so that each stack expires at its own time
+  }
+  const duration = Math.max(0, Number(effect.duration || 0));
   state.kallasFervor.push({ at, expiresAt: at + duration });
   context.emitDerived(cause, {
     type: "buff",
     at,
     source: "revenant",
     sourceId,
-    actorType: "player",
+    actorType: effect.actorType || "player",
     skillId: sourceId,
     skillName: sourceName,
     name: `${sourceName} — Kalla's Fervor`,
-    kind: "kallas-fervor",
+    kind: String(effect.kind || "kallas-fervor"),
     duration,
-    stacks: 1,
+    stacks: Number(effect.stacks || 1),
   });
-  // emitRevenantState notifies the timeline so the UI and EVTC recorder can track fervor count changes
   emitRevenantState(context, at, "kallas-fervor");
   return true;
 }
 
-// Heroic Command refreshes all current fervor stacks: extends their expiry without granting new stacks
 function refreshKallasFervor(
   context: RevenantSchedulerContext,
   at: number,
 ): number {
   const state = renegadeState.from(context);
+  const profile = kallasFervorSkill(context);
+  const effect = effectByType(profile, "buff");
+  if (!profile || !effect) return 0;
+  state.kallasFervorMaximumStacks = Math.max(
+    1,
+    Number(profile.maximumStacks || 1),
+  );
   pruneKallasFervor(state, at);
-  const duration = fervorDuration(context);
+  const duration = Math.max(0, Number(effect.duration || 0));
   for (const application of state.kallasFervor) {
-    // Only refresh stacks that have already started; future-dated applications are left alone
     if (Number(application.at || 0) <= at) {
       application.expiresAt = at + duration;
     }
@@ -167,209 +232,81 @@ function refreshKallasFervor(
   if (state.kallasFervor.length) {
     emitRevenantState(context, at, "kallas-fervor-refreshed");
   }
-  return activeKallasFervorStacks(state, at);
-}
-
-function scaledBoonDuration(
-  context: RevenantCastContext,
-  skill: RevenantSkill,
-  boon: string,
-  duration: number,
-): number {
-  return (
-    context.schedulerPolicy.effectDuration?.(
-      context,
-      skill,
-      { type: "boon", boon, duration },
-      duration,
-    ) ?? duration
+  return activeKallasFervorStacks(
+    state,
+    at,
+    Math.max(1, Number(profile.maximumStacks || 1)),
   );
 }
 
-/** Refreshes current fervor and converts its stack count into Might. */
+/** Refreshes current Fervor and materializes Heroic Command's selected profile. */
 export function castHeroicCommand(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): void {
-  // Bail out if the cast was interrupted before its commit point; Heroic Command only fires on full completion
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
-  const at = context.effectiveEnd;
-  const stacks = refreshKallasFervor(context, at);
+  const stacks = refreshKallasFervor(context, context.effectiveEnd);
   if (!stacks) return;
-  const profile = MECHANICS.renegade.heroicCommand;
-  const mightPerFervor = hasTrait(context, TRAIT.LASTING_LEGACY)
-    ? profile.improvedMightPerFervor
-    : profile.mightPerFervor;
-  emitRevenantBoon(
-    context,
-    skill,
-    "might",
-    scaledBoonDuration(context, skill, "might", profile.mightDuration),
-    stacks * mightPerFervor,
-    { at },
-  );
+  const profile = hasTrait(context, TRAIT.LASTING_LEGACY)
+    ? skillById(context, RENEGADE_PROFILE_SKILL_IDS.heroicCommandLastingLegacy)
+    : skill;
+  const effect = effectByType(profile, "boon");
+  if (!profile || !effect) return;
+  emitProfileEffects(context, skill, profile, [
+    { ...effect, stacks: Math.max(1, Number(effect.stacks || 1)) * stacks },
+  ]);
 }
 
-/** Emits the trait-adjusted Orders from Above Alacrity pulse train. */
+/** Materializes the normal or Righteous Rebel Orders from Above profile. */
 export function castOrdersFromAbove(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): void {
-  const profile = MECHANICS.renegade.ordersFromAbove;
-  const pulses = hasTrait(context, TRAIT.RIGHTEOUS_REBEL)
-    ? profile.improvedPulses
-    : profile.pulses;
-  const duration = scaledBoonDuration(
-    context,
-    skill,
-    "alacrity",
-    profile.alacrityDuration,
-  );
-  for (let index = 0; index < pulses; index += 1) {
-    emitRevenantBoon(context, skill, "alacrity", duration, 1, {
-      at: context.effectiveEnd + index * profile.interval,
-    });
-  }
+  const profile = hasTrait(context, TRAIT.RIGHTEOUS_REBEL)
+    ? skillById(
+        context,
+        RENEGADE_PROFILE_SKILL_IDS.ordersFromAboveRighteousRebel,
+      )
+    : skill;
+  if (profile) emitProfileEffects(context, skill, profile);
 }
 
-function emitCondition(
-  context: RevenantCastContext,
-  skill: RevenantSkill,
-  {
-    at = context.effectiveEnd,
-    condition,
-    stacks,
-    duration,
-    actorType = "summon",
-    name = `${skill.name} — ${condition}`,
-    ...metadata
-  }: RenegadeConditionOptions,
-): void {
-  context.emit({
-    type: "condition",
-    at,
-    source: "revenant",
-    sourceId: skill.id,
-    actorType,
-    skillId: skill.id,
-    skillName: skill.name,
-    name,
-    condition,
-    stacks,
-    duration,
-    ...metadata,
-  });
-}
-
-/**
- * Band Together `beforeEffects` phase: consumes any prior enhancement, applies
- * All for One, and emits enhanced Icerazor's replacement packets when needed.
- */
+/** Consumes Band Together and materializes the selected enhanced profile. */
 export function beginBandTogether(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): BandTogetherState {
-  const profession = renegadeState.from(context);
-  const enhanced = isBandTogetherReady(profession, context.start);
-  // Consume the enhancement window immediately in beforeEffects so that subsequent hooks (recharge modifier, afterEffects) can read it from the returned BandTogetherState instead of re-checking live state
-  profession.bandTogetherReady = false;
-  profession.bandTogetherExpiresAt = 0;
+  const state = renegadeState.from(context);
+  const enhanced = isBandTogetherReady(state, context.start);
+  const profile = enhanced ? enhancedSkill(context, skill) : undefined;
+  state.bandTogetherReady = false;
+  state.bandTogetherExpiresAt = 0;
   if (enhanced && hasTrait(context, TRAIT.ALL_FOR_ONE)) {
-    const state = professionCoreState(context);
-    // Energy gain is capped at maximum; the cap prevents exploiting instant-cast timing to bank excess energy
-    state.energy = Math.min(
-      state.maximumEnergy,
-      state.energy + MECHANICS.renegade.allForOne.energy,
+    const allForOne = skillById(context, RENEGADE_PROFILE_SKILL_IDS.allForOne);
+    const core = professionCoreState(context);
+    core.energy = Math.min(
+      core.maximumEnergy,
+      core.energy + Math.max(0, Number(allForOne?.resourceGain || 0)),
     );
     emitRevenantState(context, context.start, "all-for-one");
   }
-  if (enhanced && skill.id === ID.ICERAZORS_IRE) {
-    // Enhanced Icerazor is emitted here (REPLACE mode) so its re-timed packets are in the event stream before afterEffect runs; this lets trait hooks see the correct timestamps
-    const profile = MECHANICS.bandTogether.icerazor;
-    const effects = skill.effects || [];
-    const strike = effects.find((effect) => effect.type === "strike");
-    const hits = Math.max(1, Math.trunc(Number(strike?.hits || 1)));
-    for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
-      context.emit({
-        type: "damage",
-        at:
-          context.start +
-          profile.enhancedFirstImpactDelay +
-          (hitIndex - 1) * profile.packetInterval,
-        source: "revenant",
-        sourceId: skill.id,
-        actorType: "player",
-        skillId: skill.id,
-        skillName: skill.name,
-        name: strike?.name || skill.name,
-        // Total coefficient is split evenly across all hits
-        coefficient: Number(strike?.coefficient || 0) / hits,
-        hits: 1,
-        hitIndex,
-        totalHits: hits,
-        skillWeapon: "Unequipped",
-        canCrit: strike?.canCrit !== false,
-        ...(strike?.metadata || {}),
-      });
-    }
-    for (const effect of effects.filter(
-      (candidate) => candidate.type === "condition",
-    )) {
-      emitCondition(context, skill, {
-        at:
-          context.start +
-          profile.enhancedFirstImpactDelay +
-          // Immobilize lands after the full hit span (all projectiles landed); other conditions land with the first hit
-          (effect.condition === "Immobilized" ? profile.enhancedImpactSpan : 0),
-        condition: String(effect.condition || ""),
-        stacks: Number(effect.stacks || 0),
-        duration: Number(effect.duration || 0),
-        actorType: "player",
-        ...(effect.metadata || {}),
-      });
-    }
-  }
-  return { enhanced };
+  if (profile) emitProfileEffects(context, skill, profile);
+  return { enhanced, profileSkillId: profile?.id || skill.id };
 }
 
-/** Band Together `afterEffect` phase for ownership, timing, and control edits. */
+/** Adds dynamic recipient information to the declarative Razorclaw buff. */
 export function observeBandTogetherEffect(
   context: RevenantCastContext,
   skill: RevenantSkill,
   event: RevenantSimulationEvent,
-  state: BandTogetherState,
 ): void {
-  if (skill.id === ID.ICERAZORS_IRE && state.enhanced) {
-    // In REPLACE mode the handler still receives afterEffect for any events it emitted in beforeEffects; re-stamp each packet's `at` to the correct enhanced timeline position using hitIndex
-    const profile = MECHANICS.bandTogether.icerazor;
+  if (
+    skill.id === ID.RAZORCLAWS_RAGE &&
+    event.type === "buff" &&
+    event.kind === "razorclaws-rage"
+  ) {
     context.replaceEvent(event, {
-      at:
-        context.start +
-        profile.enhancedFirstImpactDelay +
-        (event.type === "damage"
-          ? Math.max(0, Number(event.hitIndex || 1) - 1) *
-            profile.packetInterval
-          : event.condition === "Immobilized"
-            ? profile.enhancedImpactSpan
-            : 0),
-    });
-    return;
-  }
-  if (skill.id !== ID.DARKRAZORS_DARING) return;
-  if (event.type === "buff" && event.kind === "stability") {
-    const profile = MECHANICS.bandTogether.darkrazor;
-    // The catalog emits two stability events; duration distinguishes which belongs to the caster vs allies
-    context.replaceEvent(event, {
-      recipients:
-        event.duration === profile.casterStabilityDuration ? "self" : "allies",
-    });
-  }
-  if (state.enhanced && event.type === "control") {
-    const profile = MECHANICS.bandTogether.darkrazor;
-    // Enhanced Darkrazor's control event gets boosted breakbar values; normal version uses catalog defaults
-    context.replaceEvent(event, {
-      breakbar: profile.enhancedBreakbar,
-      bonusDefianceBreak: profile.bonusDefianceBreak,
+      recipientCount: gw2AlliedPlayerAssumptions(context.config).count + 1,
     });
   }
 }
@@ -377,109 +314,72 @@ export function observeBandTogetherEffect(
 function grantRazorclawsRage(
   context: RevenantCastContext,
   skill: RevenantSkill,
+  profile: RevenantSkill,
 ): void {
-  const profile = MECHANICS.bandTogether.razorclaw;
+  const buff = profile.effects?.find(
+    (effect) => effect.type === "buff" && effect.kind === "razorclaws-rage",
+  );
+  const proc = skillById(
+    context,
+    RENEGADE_PROFILE_SKILL_IDS.razorclawsRageProc,
+  );
+  const bleed = effectByType(proc, "condition");
+  if (!buff || !proc || !bleed) return;
   const at = context.effectiveEnd;
-  const party = gw2AlliedPlayerAssumptions(context.config);
-  // Reset the state record on each new cast; the previous window's charges and timing are discarded
+  const duration = Math.max(0, Number(buff.duration || 0));
+  const charges = Math.max(0, Math.trunc(Number(buff.stacks || 0)));
   renegadeState.from(context).razorclawsRage = {
-    charges: profile.charges,
-    expiresAt: at + profile.duration,
+    charges,
+    expiresAt: at + duration,
     readyAt: at,
   };
-  context.emit({
-    type: "buff",
-    at,
-    source: "revenant",
-    sourceId: skill.id,
-    actorType: "player",
-    skillId: skill.id,
-    skillName: skill.name,
-    name: "Razorclaw's Rage",
-    kind: "razorclaws-rage",
-    duration: profile.duration,
-    // stacks = total charges; recipientCount = allies + 1 (the player counts as a recipient too)
-    stacks: profile.charges,
-    recipients: "party",
-    recipientCount: party.count + 1,
-  });
-  // Pre-compute when each ally will trigger a bleed so the schedule is deterministic at cast time
   const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {
     start: at,
-    duration: profile.duration,
-    maximumPerAlly: profile.charges,
-    internalCooldown: profile.interval,
+    duration,
+    maximumPerAlly: charges,
+    internalCooldown: Math.max(0, Number(proc.cooldown || 0)),
   });
-  for (let index = 0; index < alliedProcs.length; index += 1) {
-    const proc = alliedProcs[index];
-    emitCondition(context, skill, {
-      at: proc.at,
-      condition: "Bleeding",
-      stacks: 1,
-      duration: profile.bleedDuration,
-      actorType: "player",
-      name: `Razorclaw's Rage — Ally ${proc.allyIndex} Bleeding`,
-      triggeredByAlly: proc.allyIndex,
+  for (const alliedProc of alliedProcs) {
+    context.emit({
+      type: "condition",
+      at: alliedProc.at,
+      source: "revenant",
+      sourceId: skill.id,
+      actorType: bleed.actorType || "player",
+      skillId: skill.id,
+      skillName: skill.name,
+      name: `${skill.name} — Ally ${alliedProc.allyIndex} Bleeding`,
+      condition: String(bleed.condition || ""),
+      stacks: Number(bleed.stacks || 0),
+      duration: Number(bleed.duration || 0),
+      triggeredByAlly: alliedProc.allyIndex,
     });
   }
 }
 
-/**
- * Band Together `afterEffects` phase: commits summon-specific enhancements or
- * arms the next-summon window after a normal Renegade summon.
- */
+/** Commits summon state after its declarative effects have been emitted. */
 export function completeBandTogether(
   context: RevenantCastContext,
   skill: RevenantSkill,
   state: BandTogetherState,
 ): void {
-  // Normal Razorclaw summon always runs grantRazorclawsRage regardless of enhancement status
+  const profile = skillById(context, state.profileSkillId) || skill;
   if (skill.id === ID.RAZORCLAWS_RAGE) {
-    grantRazorclawsRage(context, skill);
+    grantRazorclawsRage(context, skill, profile);
   }
-  if (state.enhanced) {
-    if (skill.id === ID.RAZORCLAWS_RAGE) {
-      const profile = MECHANICS.bandTogether.razorclaw;
-      // Enhanced Razorclaw also applies Torment to the caster (in addition to the normal bleed charges)
-      emitCondition(context, skill, {
-        condition: "Torment",
-        stacks: profile.enhancedTormentStacks,
-        duration: profile.enhancedTormentDuration,
-        actorType: "player",
-      });
-    } else if (skill.id === ID.ICERAZORS_IRE) {
-      const profile = MECHANICS.bandTogether.icerazor;
-      // Enhanced Icerazor emits Chill on 3 impacts; hardcoded 3 because only the first 3 hits apply Chill
-      for (let hitIndex = 0; hitIndex < 3; hitIndex += 1) {
-        emitCondition(context, skill, {
-          at:
-            context.start +
-            profile.enhancedFirstImpactDelay +
-            hitIndex * profile.packetInterval,
-          condition: "Chilled",
-          stacks: 1,
-          duration: profile.enhancedChill,
-          actorType: "player",
-        });
-      }
-    } else if (skill.id === ID.DARKRAZORS_DARING) {
-      const profile = MECHANICS.bandTogether.darkrazor;
-      // Enhanced Darkrazor grants Resistance and Protection to allies (not self); boons go to "allies"
-      emitRevenantBoon(context, skill, "resistance", profile.resistance, 1, {
-        recipients: "allies",
-      });
-      emitRevenantBoon(context, skill, "protection", profile.protection, 1, {
-        recipients: "allies",
-      });
-    }
-  }
-  if (!state.enhanced) {
-    // Arm the enhancement window for the next Band Together press; only a normal (non-enhanced) summon opens the window — using the enhanced press does not re-arm it
-    renegadeState.from(context).bandTogetherReady = true;
-    renegadeState.from(context).bandTogetherExpiresAt =
-      context.effectiveEnd + MECHANICS.bandTogether.duration;
-    emitRevenantState(context, context.effectiveEnd, "band-together");
-  }
+  if (state.enhanced) return;
+  const bandTogether = skillById(
+    context,
+    RENEGADE_PROFILE_SKILL_IDS.bandTogether,
+  );
+  const effect = effectByType(bandTogether, "buff");
+  if (!bandTogether || !effect) return;
+  const profession = renegadeState.from(context);
+  profession.bandTogetherReady = true;
+  profession.bandTogetherExpiresAt =
+    context.effectiveEnd + Math.max(0, Number(effect.duration || 0));
+  emitProfileEffects(context, bandTogether, bandTogether);
+  emitRevenantState(context, context.effectiveEnd, "band-together");
 }
 
 /** Raw Renegade callbacks consumed by the module handler registry. */

@@ -3281,6 +3281,7 @@ test("application shell uses feature-owned modules without legacy facades", asyn
   );
   assert.deepEqual([...directories].sort(), [
     "build",
+    "patch-preview",
     "profession",
     "rotation",
     "simulation",

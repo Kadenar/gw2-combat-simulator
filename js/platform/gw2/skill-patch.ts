@@ -18,14 +18,43 @@ export type NumEdit =
   | { readonly multiply: number }
   | { readonly add: number };
 
-export type PatchNoteStatus =
-  "applied" | "tracked" | "not-applicable" | "unchanged" | "superseded";
-
-export interface PatchNote {
+export interface PatchOverviewEntry {
   readonly subject: string;
   readonly text: string;
-  readonly status: PatchNoteStatus;
-  readonly reason?: string;
+  readonly source: "skill-diff" | "modifier-diff";
+}
+
+const PATCH_OVERVIEW_FIELDS = new Set(["subject", "text", "source"]);
+
+export function validatePatchOverview(
+  entries: readonly PatchOverviewEntry[] | null | undefined,
+  label = "Patch preview overview",
+): void {
+  if (entries == null) return;
+  if (!Array.isArray(entries)) {
+    throw new TypeError(`${label} must be an array.`);
+  }
+  for (const [index, entry] of entries.entries()) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      throw new TypeError(`${label}[${index}] must be an object.`);
+    }
+    for (const field of Object.keys(entry)) {
+      if (!PATCH_OVERVIEW_FIELDS.has(field)) {
+        throw new TypeError(
+          `${label}[${index}] has unsupported field ${field}.`,
+        );
+      }
+    }
+    if (!String(entry.subject || "").trim()) {
+      throw new TypeError(`${label}[${index}].subject is required.`);
+    }
+    if (!String(entry.text || "").trim()) {
+      throw new TypeError(`${label}[${index}].text is required.`);
+    }
+    if (entry.source !== "skill-diff" && entry.source !== "modifier-diff") {
+      throw new TypeError(`${label}[${index}].source is invalid.`);
+    }
+  }
 }
 
 export interface EffectSelector {
@@ -49,6 +78,9 @@ export interface EffectPatch extends EffectSelector {
   readonly applications?: NumEdit;
   readonly atMs?: NumEdit;
   readonly intervalMs?: NumEdit;
+  readonly flatDamage?: NumEdit;
+  readonly flatStrikeBase?: NumEdit;
+  readonly flatStrikePowerCoeff?: NumEdit;
 }
 
 export interface SkillPatchEdit {
@@ -84,7 +116,8 @@ export interface ProfessionPatchPreview {
   readonly skills?: Readonly<Record<string, SkillPatchEdit>>;
   readonly modifierRules?: Readonly<Record<string, ModifierRulePatchEdit>>;
   readonly constants?: Readonly<Record<string, NumEdit>>;
-  readonly notes?: readonly PatchNote[];
+  /** Deterministic summaries generated from skills and modifierRules. */
+  readonly overview?: readonly PatchOverviewEntry[];
 }
 
 export interface PatchPreview {
@@ -93,13 +126,12 @@ export interface PatchPreview {
   readonly publishedAt?: string;
   readonly sourceUrl?: string;
   readonly constants?: Readonly<Record<string, NumEdit>>;
-  readonly notes?: readonly PatchNote[];
   readonly professions?: Readonly<Record<string, ProfessionPatchPreview>>;
 }
 
 export type PatchRuntimeValues = Readonly<Record<string, NumEdit>>;
 
-const SKILL_NUMERIC_FIELDS = new Set([
+export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   "ammo",
   "ammoCastLockout",
   "ammoRecharge",
@@ -112,9 +144,17 @@ const SKILL_NUMERIC_FIELDS = new Set([
   "rechargeOffsetMs",
   "resourceCost",
   "selfStunMs",
+  "upkeepCost",
+  "upkeepPulse.duration",
+  "upkeepPulse.stacks",
+  "upkeepPulseInterval",
+  "maximumStacks",
+  "lifeSiphonDamagePerStack",
+  "resourceGain",
+  "rechargeMultiplier",
 ]);
 
-const EFFECT_NUMERIC_FIELDS = [
+export const PATCHABLE_EFFECT_NUMERIC_FIELDS = Object.freeze([
   "coefficient",
   "hits",
   "stacks",
@@ -122,9 +162,63 @@ const EFFECT_NUMERIC_FIELDS = [
   "applications",
   "atMs",
   "intervalMs",
-] as const;
+  "flatDamage",
+  "flatStrikeBase",
+  "flatStrikePowerCoeff",
+] as const);
+
+const SKILL_NUMERIC_FIELDS = new Set(PATCHABLE_SKILL_NUMERIC_FIELDS);
+const EFFECT_NUMERIC_FIELDS = PATCHABLE_EFFECT_NUMERIC_FIELDS;
 
 type MutableRecord = Record<string, unknown>;
+
+function valueAtPath(root: unknown, path: string): unknown {
+  let value = root;
+  for (const segment of path.split(".")) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return undefined;
+    }
+    const record = value as Readonly<Record<string, unknown>>;
+    if (!Object.hasOwn(record, segment)) return undefined;
+    value = record[segment];
+  }
+  return value;
+}
+
+export function skillPatchableNumericFields(
+  skill: Readonly<Skill>,
+): Readonly<Record<string, number>> {
+  return Object.freeze(
+    Object.fromEntries(
+      PATCHABLE_SKILL_NUMERIC_FIELDS.flatMap((field) => {
+        const value = valueAtPath(skill, field);
+        return typeof value === "number" ? [[field, value]] : [];
+      }),
+    ),
+  );
+}
+
+function patchSkillNumericField(
+  skill: MutableRecord,
+  field: string,
+  edit: NumEdit,
+  skillName: string,
+): void {
+  const segments = field.split(".");
+  const key = segments.pop()!;
+  let owner = skill;
+  for (const segment of segments) {
+    const value = owner[segment];
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      throw new TypeError(`Skill ${skillName} does not expose ${field}.`);
+    }
+    owner = value as MutableRecord;
+  }
+  if (owner[key] == null) {
+    throw new TypeError(`Skill ${skillName} does not expose ${field}.`);
+  }
+  owner[key] = applyNumEdit(Number(owner[key]), edit, `${skillName}.${field}`);
+}
 
 function numericValue(value: unknown, label: string): number {
   const numeric = Number(value);
@@ -472,14 +566,7 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit): Skill {
         `Skill ${skill.name} has unsupported patch field ${field}.`,
       );
     }
-    if (mutable[field] == null) {
-      throw new TypeError(`Skill ${skill.name} does not expose ${field}.`);
-    }
-    mutable[field] = applyNumEdit(
-      Number(mutable[field]),
-      numericEdit,
-      `${skill.name}.${field}`,
-    );
+    patchSkillNumericField(mutable, field, numericEdit, skill.name);
   }
   const effects = [...(clone.effects || [])];
   for (const effectPatch of shorthandEffects(edit)) {
@@ -520,25 +607,36 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit): Skill {
   return deepFreeze(clone);
 }
 
-function findSkill(catalog: Readonly<CanonicalCatalog>, key: string): Skill {
+function findSkill(
+  catalog: Readonly<CanonicalCatalog>,
+  key: string,
+): Skill | undefined {
   const numericId = /^\d+$/.test(key) ? Number(key) : null;
   const byId =
     catalog.skillsById.get(key as SkillId) ||
     (numericId == null ? undefined : catalog.skillsById.get(numericId));
-  const skill = byId || catalog.skillsByName.get(key);
-  if (!skill) throw new TypeError(`Patch references unknown skill ${key}.`);
-  return skill;
+  return byId || catalog.skillsByName.get(key);
+}
+
+export interface ApplySkillPatchOptions {
+  /** Used only after strict validation against the profession-wide catalog. */
+  readonly unknownSkills?: "error" | "ignore";
 }
 
 export function applySkillPatch(
   catalog: Readonly<CanonicalCatalog>,
   patch: ProfessionPatchPreview | null | undefined,
+  options: ApplySkillPatchOptions = {},
 ): Readonly<CanonicalCatalog> {
   const edits = Object.entries(patch?.skills || {});
   if (!edits.length) return catalog;
   const replacements = new Map<Skill, Skill>();
   for (const [key, edit] of edits) {
     const skill = findSkill(catalog, key);
+    if (!skill) {
+      if (options.unknownSkills === "ignore") continue;
+      throw new TypeError(`Patch references unknown skill ${key}.`);
+    }
     if (replacements.has(skill)) {
       throw new TypeError(`Patch edits skill ${skill.name} more than once.`);
     }
@@ -593,6 +691,31 @@ export function validatePatchPreview(preview: PatchPreview): PatchPreview {
   }
   if (!String(preview.label || "").trim()) {
     throw new TypeError("Patch preview label is required.");
+  }
+  if (Object.hasOwn(preview, "notes")) {
+    throw new TypeError("Patch preview has unsupported field notes.");
+  }
+  if (preview.sourceUrl != null) {
+    if (typeof preview.sourceUrl !== "string") {
+      throw new TypeError("Patch preview source URL must be a string.");
+    }
+    let sourceUrl: URL;
+    try {
+      sourceUrl = new URL(preview.sourceUrl);
+    } catch {
+      throw new TypeError("Patch preview source URL must be an absolute URL.");
+    }
+    if (sourceUrl.protocol !== "https:" && sourceUrl.protocol !== "http:") {
+      throw new TypeError("Patch preview source URL must use HTTP or HTTPS.");
+    }
+  }
+  for (const [professionId, patch] of Object.entries(
+    preview.professions || {},
+  )) {
+    if (Object.hasOwn(patch, "notes")) {
+      throw new TypeError(`${professionId} patch has unsupported field notes.`);
+    }
+    validatePatchOverview(patch.overview, `${professionId} patch overview`);
   }
   return deepFreeze(structuredClone(preview));
 }

@@ -3,7 +3,7 @@ import type {
   PatchComparison,
   ProfessionAppState,
 } from "../profession/types.js";
-import type { PatchNote } from "../../platform/gw2/skill-patch.js";
+import type { PatchOverviewEntry } from "../../platform/gw2/skill-patch.js";
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "")
@@ -12,6 +12,18 @@ function escapeHtml(value: unknown): string {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function httpUrl(value: string | undefined): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:"
+      ? url.href
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 function signed(value: number, digits = 0): string {
@@ -48,17 +60,15 @@ function skillDeltas(comparison: PatchComparison) {
     .sort((left, right) => Math.abs(right.delta) - Math.abs(left.delta));
 }
 
-function noteRows(notes: readonly PatchNote[]): string {
-  if (!notes.length) {
-    return '<p class="patch-preview-empty">No profession-specific notes are authored.</p>';
+function overviewRows(entries: readonly PatchOverviewEntry[]): string {
+  if (!entries.length) {
+    return '<p class="patch-preview-empty">No skill or trait modifier changes are authored for this profession.</p>';
   }
-  return `<ul class="patch-note-list">${notes
+  return `<ul class="patch-note-list">${entries
     .map(
-      (note) => `<li data-status="${escapeHtml(note.status)}">
-        <span class="patch-note-status">${escapeHtml(note.status)}</span>
-        <span><strong>${escapeHtml(note.subject)}</strong> ${escapeHtml(note.text)}${
-          note.reason ? `<small>${escapeHtml(note.reason)}</small>` : ""
-        }</span>
+      (entry) => `<li>
+        <span class="patch-note-status">changed</span>
+        <span><strong>${escapeHtml(entry.subject)}</strong> ${escapeHtml(entry.text)}</span>
       </li>`,
     )
     .join("")}</ul>`;
@@ -120,13 +130,10 @@ export function renderPatchComparison(
   const delta = previewDps - currentDps;
   const percent = currentDps === 0 ? 0 : (delta / currentDps) * 100;
   const deltas = skillDeltas(comparison);
-  const notes = [
-    ...(preview.notes || []),
-    ...(preview.professions?.[app.profession.id]?.notes || []),
-  ];
-  const applied = notes.filter((note) => note.status === "applied").length;
+  const overview = preview.professions?.[app.profession.id]?.overview || [];
   const selectedLabel =
     app.patchId === preview.id ? preview.label : "Live game data";
+  const sourceUrl = httpUrl(preview.sourceUrl);
   const section = document.createElement("section");
   section.className = "patch-comparison";
   section.setAttribute("aria-label", "Patch preview comparison");
@@ -136,7 +143,14 @@ export function renderPatchComparison(
         <span class="patch-comparison-eyebrow">Patch comparison</span>
         <h3>Live vs ${escapeHtml(preview.label)}</h3>
       </div>
-      <span class="patch-selected-badge">Showing ${escapeHtml(selectedLabel)}</span>
+      <div class="patch-comparison-actions">
+        <span class="patch-selected-badge">Showing ${escapeHtml(selectedLabel)}</span>
+        ${
+          sourceUrl
+            ? `<a class="patch-source-link" href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">Official patch notes <span aria-hidden="true">↗</span></a>`
+            : ""
+        }
+      </div>
     </div>
     <div class="patch-comparison-metrics">
       <div><span>Live DPS</span><strong>${Math.round(currentDps).toLocaleString()}</strong></div>
@@ -162,8 +176,8 @@ export function renderPatchComparison(
       }
     </details>
     <details class="patch-note-ledger">
-      <summary>Patch-note coverage (${applied} applied of ${notes.length})</summary>
-      ${noteRows(notes)}
+      <summary>Change overview (${overview.length})</summary>
+      ${overviewRows(overview)}
     </details>`;
   container.prepend(section);
 }
