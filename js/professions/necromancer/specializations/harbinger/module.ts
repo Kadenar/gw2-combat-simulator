@@ -13,11 +13,13 @@ import { harbingerState } from "./state.js";
 import { harbingerUi } from "./ui.js";
 import { HARBINGER_BASE_SKILL_MECHANICS } from "./skills.js";
 import { harbingerSkillHandlers } from "./handlers.js";
+import { HARBINGER_BALANCE_PROFILES } from "./profiles.js";
 
 export const harbingerModule = defineNativeModule({
   id: "Harbinger",
   data: createNecromancerModuleData("Harbinger", {
     skillMechanics: HARBINGER_BASE_SKILL_MECHANICS,
+    balanceProfiles: HARBINGER_BALANCE_PROFILES,
     handlers: harbingerSkillHandlers,
   }),
   // Scheduler and resolver share the same state factory because blight stacks must be readable in both phases.

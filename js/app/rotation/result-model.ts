@@ -1,5 +1,5 @@
 import type { Gw2SimulationResult } from "../../platform/gw2/types.js";
-import { GW2_BOON_DURATION_CAP_SECONDS } from "../../platform/gw2/boon-state.js";
+import { durationStackingBoonCapSeconds } from "../../platform/gw2/boon-state.js";
 import {
   buildChartSeries as buildSharedChartSeries,
   chartValueAt,
@@ -26,6 +26,7 @@ const EFFECT_NAMES: Readonly<Record<string, string>> = {
   aegis: "Aegis",
   "target-vulnerability": "Vulnerability",
   "kallas-fervor": "Kalla's Fervor",
+  "elemental empowerment": "Elemental Empowerment",
   "necromancer-soul-barbs": "Soul Barbs",
   "berserkers-power": "Berserker's Power",
   "lethal-tempo": "Lethal Tempo",
@@ -45,6 +46,7 @@ const EFFECT_STACK_CAPS: Readonly<Record<string, number>> = {
   Might: 25,
   Vulnerability: 25,
   "Kalla's Fervor": 5,
+  "Elemental Empowerment": 10,
   "Compounding Power": 5,
   "Soul Barbs": 1,
   "Berserker's Power": 4,
@@ -60,9 +62,28 @@ const EFFECT_STACK_CAPS: Readonly<Record<string, number>> = {
 };
 
 const DURATION_STACK_CAPS: Readonly<Record<string, number>> = {
-  Quickness: GW2_BOON_DURATION_CAP_SECONDS,
-  Alacrity: GW2_BOON_DURATION_CAP_SECONDS,
+  Quickness: durationStackingBoonCapSeconds("quickness"),
+  Alacrity: durationStackingBoonCapSeconds("alacrity"),
+  Fury: durationStackingBoonCapSeconds("fury"),
+  Protection: durationStackingBoonCapSeconds("protection"),
+  Vigor: durationStackingBoonCapSeconds("vigor"),
+  Swiftness: durationStackingBoonCapSeconds("swiftness"),
 };
+
+const BOON_EFFECTS = new Set([
+  "aegis",
+  "alacrity",
+  "fury",
+  "might",
+  "protection",
+  "quickness",
+  "regeneration",
+  "resistance",
+  "resolution",
+  "stability",
+  "swiftness",
+  "vigor",
+]);
 
 export function resultSummaryMetrics(result: Gw2SimulationResult) {
   // Metric duration follows the resolver's DPS clock. This is intentionally
@@ -139,6 +160,12 @@ export function buildChartSeries(
 ) {
   return buildSharedChartSeries(result, sampleStepMs, {
     effectName,
+    effectType: (kind, event) =>
+      event.type === "condition"
+        ? "condition"
+        : BOON_EFFECTS.has(String(kind || "").toLowerCase())
+          ? "boon"
+          : "buff",
     replacementGroup: (kind) =>
       kind === "guardian-radiant-armaments" ? String(kind) : "",
     stackCaps: EFFECT_STACK_CAPS,

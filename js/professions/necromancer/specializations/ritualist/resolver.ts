@@ -2,7 +2,6 @@ import { ritualistState } from "./state.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import type { SkillId } from "../../../../platform/engine/types.js";
 import { NECROMANCER_SKILL_IDS as ID } from "../../data/ids.js";
-import { RITUALIST_MECHANICS as MECHANICS } from "./mechanics.js";
 import {
   handleNecromancerPainfulBond,
   handleNecromancerWeaponSpell,
@@ -11,15 +10,12 @@ import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
 } from "../../types.js";
-
-interface WeaponSpellDefinition {
-  readonly flatStrikeBase?: number;
-  readonly flatStrikePowerCoeff?: number;
-  readonly vulnerabilityStacks?: number;
-  readonly vulnerabilityDuration?: number;
-  readonly coefficient?: number;
-  readonly internalCooldown?: number;
-}
+import type { BalanceProfile } from "../../../../platform/engine/types.js";
+import {
+  balanceProfileEffect,
+  necromancerBalanceProfile,
+} from "../../core/profiles.js";
+import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 // Weapon-spell stacks are tracked per-recipient key; multi-summon events expand into one key per summon index
 function recipientKeys(event: NecromancerResolverEvent): string[] {
@@ -44,16 +40,18 @@ function spellIcon(
 function queueNightmareWeapon(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  definition: WeaponSpellDefinition,
+  definition: BalanceProfile,
 ): void {
+  const strike = balanceProfileEffect(definition, "strike");
+  const vulnerability = balanceProfileEffect(definition, "buff");
   enqueueOrdered(context.queue, {
     type: "damage",
     at: event.at,
     name: "Nightmare Weapon",
     skillName: "Nightmare Weapon",
     coefficient: 0,
-    flatStrikeBase: definition.flatStrikeBase,
-    flatStrikePowerCoeff: definition.flatStrikePowerCoeff,
+    flatStrikeBase: Number(strike?.flatStrikeBase || 0),
+    flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff || 0),
     hits: 1,
     hitIndex: 1,
     totalHits: 1,
@@ -73,8 +71,8 @@ function queueNightmareWeapon(
     name: "Nightmare Weapon",
     skillName: "Nightmare Weapon",
     kind: "target-vulnerability",
-    stacks: definition.vulnerabilityStacks,
-    duration: definition.vulnerabilityDuration,
+    stacks: Number(vulnerability?.stacks || 0),
+    duration: Number(vulnerability?.duration || 0),
     source: "Weapon Spell",
     sourceId: ID.NIGHTMARE_WEAPON,
     actorType: "effect",
@@ -94,14 +92,15 @@ function queueNightmareWeapon(
 function queueSplinterWeapon(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  definition: WeaponSpellDefinition,
+  definition: BalanceProfile,
 ): void {
+  const strike = balanceProfileEffect(definition, "strike");
   enqueueOrdered(context.queue, {
     type: "damage",
     at: event.at,
     name: "Splinter Weapon",
     skillName: "Splinter Weapon",
-    coefficient: Number(definition.coefficient || 0),
+    coefficient: Number(strike?.coefficient || 0),
     hits: 1,
     hitIndex: 1,
     totalHits: 1,
@@ -127,9 +126,12 @@ export function handleNecromancerWeaponSpellAllyTrigger(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
 ): void {
-  const definition = (
-    MECHANICS.weaponSpells as Readonly<Record<string, WeaponSpellDefinition>>
-  )[String(event.spell || "")];
+  const definition = necromancerBalanceProfile(
+    context,
+    event.spell === "nightmare"
+      ? PROFILE.nightmareWeaponProc
+      : PROFILE.splinterWeaponProc,
+  );
   if (!definition) return;
   if (event.spell === "nightmare") {
     queueNightmareWeapon(context, event, definition);
@@ -149,9 +151,13 @@ function reactToDamage(
   for (const spell of ["nightmare", "splinter"]) {
     const active = ritualistState.from(context).weaponSpells?.[spell];
     if (!active || Number(active.expiresAt || 0) <= event.at) continue;
-    const definition = (
-      MECHANICS.weaponSpells as Readonly<Record<string, WeaponSpellDefinition>>
-    )[spell];
+    const definition = necromancerBalanceProfile(
+      context,
+      spell === "nightmare"
+        ? PROFILE.nightmareWeaponProc
+        : PROFILE.splinterWeaponProc,
+    );
+    if (!definition) continue;
     for (const key of keys) {
       const recipient = active.recipients?.[key];
       if (!recipient || recipient.stacks <= 0 || recipient.nextAt > event.at) {

@@ -48,7 +48,16 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   [ID.NIGHTMARE_WEAPON]: {
     implemented: true,
     quicknessCastTimeMs: 240,
-    effects: [],
+    effects: [
+      {
+        type: "buff",
+        kind: "nightmare-weapon",
+        duration: 10,
+        stacks: 5,
+        allyStacks: 3,
+        maximumRecipients: 5,
+      },
+    ],
     handlerId: "necromancer.weapon-spell",
   },
   [ID.WEAPON_OF_WARDING]: {
@@ -108,13 +117,26 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   [ID.SPLINTER_WEAPON]: {
     implemented: true,
     quicknessCastTimeMs: 240,
-    effects: [],
+    effects: [
+      {
+        type: "buff",
+        kind: "splinter-weapon",
+        duration: 10,
+        stacks: 5,
+        allyStacks: 3,
+        maximumRecipients: 5,
+      },
+    ],
     handlerId: "necromancer.weapon-spell",
   },
   [ID.INNERVATE_ANGUISH]: {
     implemented: true,
     castTimeMs: 0,
-    effects: [],
+    effects: [
+      { type: "strike", coefficient: 1.3, hits: 1 },
+      { type: "boon", boon: "might", duration: 10, stacks: 8 },
+      { type: "boon", boon: "fury", duration: 5, stacks: 1 },
+    ],
     handlerId: "necromancer.innervate",
   },
   [ID.WEAPON_OF_REMEDY]: {
@@ -125,7 +147,14 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   [ID.ESSENCE_BLAST]: {
     implemented: true,
     quicknessCastTimeMs: 600,
-    effects: [],
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.75,
+        hits: 1,
+        damageIncreasePerStack: 0.15,
+      },
+    ],
     type: "Profession",
     slot: "Weapon_1",
     shroud: "ritualist",
@@ -144,7 +173,16 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   [ID.RESILIENT_WEAPON]: {
     implemented: true,
     castTimeMs: 1000,
-    effects: [],
+    effects: [
+      {
+        type: "buff",
+        kind: "resilient-weapon",
+        duration: 10,
+        stacks: 5,
+        allyStacks: 3,
+        maximumRecipients: 5,
+      },
+    ],
     handlerId: "necromancer.weapon-spell",
   },
 });

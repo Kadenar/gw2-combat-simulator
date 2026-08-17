@@ -13,7 +13,11 @@ import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
-import { NECROMANCER_CORE_MECHANICS as MECHANICS } from "./mechanics.js";
+import {
+  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  balanceProfileEffect,
+  necromancerBalanceProfile,
+} from "./profiles.js";
 import {
   addSoulShards,
   consumeSoulShards,
@@ -123,7 +127,9 @@ function soulShardDamage(
   index: number,
   total: number,
 ): void {
-  const profile = MECHANICS.soulShards;
+  const profile = necromancerBalanceProfile(context, PROFILE.soulShards);
+  const strike = balanceProfileEffect(profile, "strike");
+  const metadata = strike?.metadata || {};
   context.emit({
     type: "damage",
     at,
@@ -140,17 +146,17 @@ function soulShardDamage(
     hitIndex: index,
     totalHits: total,
     skillWeapon: "Unequipped",
-    flatStrikeBase: profile.flatStrikeBase,
-    flatStrikePowerCoeff: profile.flatStrikePowerCoeff,
+    flatStrikeBase: Number(strike?.flatStrikeBase || 0),
+    flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff || 0),
     flatStrikeMultiplier:
       hasTrait(context, TRAIT.SOUL_BARBS) &&
       context.hasBuff("necromancer-soul-barbs", at)
         ? 1.1
         : 1,
-    flatStrikeHealthThreshold: profile.flatStrikeHealthThreshold,
-    flatStrikeThresholdMultiplier: profile.flatStrikeThresholdMultiplier,
-    noCrit: profile.noCrit,
-    damageKind: profile.damageKind,
+    flatStrikeHealthThreshold: Number(profile?.threshold || 0),
+    flatStrikeThresholdMultiplier: Number(profile?.damageMultiplier || 1),
+    noCrit: metadata.noCrit === true,
+    damageKind: String(metadata.damageKind || ""),
   });
 }
 
@@ -243,11 +249,7 @@ function graspingDarknessCommitted(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): boolean {
-  return committedAtBaseOffset(
-    context,
-    skill,
-    MECHANICS.graspingDarkness.baseCommitAtMs,
-  );
+  return committedAtBaseOffset(context, skill, Number(skill.commitAtMs || 0));
 }
 
 function nightfallCommitted(
@@ -264,7 +266,7 @@ function nightfallCommitted(
 
 function afterGraspingDarknessEffect(
   context: NecromancerCastContext,
-  _skill: NecromancerSkill,
+  skill: NecromancerSkill,
   event: NecromancerSimulationEvent,
 ): void {
   if (event?.type !== "damage") return;
@@ -273,7 +275,7 @@ function afterGraspingDarknessEffect(
     type: GRASPING_DARKNESS_LIFE_FORCE_TASK,
     at: event.at,
     ownerId: context.reservationId,
-    payload: {},
+    payload: { lifeForceGain: Number(skill.lifeForceOnHit || 0) },
   });
 }
 
@@ -283,7 +285,7 @@ function handleGraspingDarknessLifeForce(
 ): void {
   gainNecromancerLifeForce(
     context,
-    MECHANICS.graspingDarkness.lifeForceOnHit,
+    Number(task.payload?.lifeForceGain || 0),
     task.at,
     "grasping-darkness-hit",
   );
@@ -291,7 +293,7 @@ function handleGraspingDarknessLifeForce(
 
 function afterNightfallEffect(
   context: NecromancerCastContext,
-  _skill: NecromancerSkill,
+  skill: NecromancerSkill,
   event: NecromancerSimulationEvent,
 ): void {
   if (event?.type !== "damage") return;
@@ -302,7 +304,7 @@ function afterNightfallEffect(
     type: NIGHTFALL_LIFE_FORCE_TASK,
     at: event.at,
     ownerId: context.reservationId,
-    payload: {},
+    payload: { lifeForceGain: Number(skill.lifeForcePerPulse || 0) },
   });
 }
 
@@ -312,7 +314,7 @@ function handleNightfallLifeForce(
 ): void {
   gainNecromancerLifeForce(
     context,
-    MECHANICS.nightfall.lifeForcePerPulse,
+    Number(task.payload?.lifeForceGain || 0),
     task.at,
     "nightfall-pulse",
   );

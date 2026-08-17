@@ -18,7 +18,7 @@ resolves one cached simulation contract from:
 - `specializations/ritualist/`.
 
 Each directory contains `module.ts`, `state.ts`, `skills.ts`, `handlers.ts`,
-`mechanics.ts`, `rules.ts`, and `ui.ts`. `module.ts` only assembles its local
+`profiles.ts`, `rules.ts`, and `ui.ts`. `module.ts` only assembles its local
 vertical slice. `skills.ts` owns the module's declarative skill mechanics and
 measured Quickness timings; the top-level skill-mechanics file only normalizes
 and composes those fragments for the complete application catalog.
@@ -62,6 +62,12 @@ the shared-schema module `skills.js` fragments, with the
 Chains and handlers support complex state. Missing-but-stable entries stay in
 `data/necromancer-supplemental-skills.js`, so refreshes do not overwrite them.
 Same-name API mode aliases resolve to one canonical selectable skill.
+
+Trait, resource, summon, and state-specific balance values use stable
+`trait`, `mechanic`, or `skill-variant` profiles registered by their owning
+module. Castable attacks and minion commands remain in skill declarations.
+Both forms are exposed through patch authoring, and preview catalogs are cloned
+without mutating the live catalog.
 
 ## Implemented mechanics
 

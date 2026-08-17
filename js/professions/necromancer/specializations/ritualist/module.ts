@@ -12,11 +12,13 @@ import { ritualistState } from "./state.js";
 import { ritualistUi } from "./ui.js";
 import { RITUALIST_BASE_SKILL_MECHANICS } from "./skills.js";
 import { ritualistSkillHandlers } from "./handlers.js";
+import { RITUALIST_BALANCE_PROFILES } from "./profiles.js";
 
 export const ritualistModule = defineNativeModule({
   id: "Ritualist",
   data: createNecromancerModuleData("Ritualist", {
     skillMechanics: RITUALIST_BASE_SKILL_MECHANICS,
+    balanceProfiles: RITUALIST_BALANCE_PROFILES,
     handlers: ritualistSkillHandlers,
   }),
   // Scheduler and resolver each get their own independent state instance; they do not share the same object

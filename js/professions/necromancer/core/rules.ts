@@ -14,6 +14,10 @@ import {
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
 import { necromancerCastRules, necromancerSchedulerHooks } from "./contract.js";
+import {
+  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  necromancerBalanceProfile,
+} from "./profiles.js";
 import type {
   SchedulerRecord,
   SkillId,
@@ -209,18 +213,22 @@ export function modifyNecromancerCoreAttributes(
   attributes: SchedulerRecord,
 ): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
-  // Pattern C: conversions read gear-only stats. config.stats excludes might
+  // Conversions read gear-only stats. config.stats excludes might
   // (baked into the seed's power/condition damage) and live trait bonuses
   // (accrued on `result`).
   const gearPower = Number(context.config?.stats?.power || 0);
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   if (selectedSkill(context, "Signet of Spite")) {
+    const signetPower = Number(
+      necromancerBalanceProfile(context, PROFILE.signetOfSpite)
+        ?.attributeBonus || 180,
+    );
     const passiveActive =
       context.actorType !== "summon" && signetOfSpitePassiveActive(context);
     if (staticRulesApplied) {
-      if (!passiveActive) result.power -= 180;
+      if (!passiveActive) result.power -= signetPower;
     } else if (passiveActive) {
-      result.power += 180;
+      result.power += signetPower;
     }
   }
   const timedCarapace = (
@@ -230,16 +238,36 @@ export function modifyNecromancerCoreAttributes(
     ? Object.values(
         necromancerRuntimeCoreState(context).activeMinions || {},
       ).reduce(
-        (total: number, count: number) => total + Number(count || 0) * 2,
+        (total: number, count: number) =>
+          total +
+          Number(count || 0) *
+            Number(
+              necromancerBalanceProfile(context, PROFILE.fleshOfTheMaster)
+                ?.resourceGain || 2,
+            ),
         0,
       )
     : 0;
-  const carapace = Math.min(30, timedCarapace + minionCarapace);
+  const carapace = Math.min(
+    Number(
+      necromancerBalanceProfile(context, PROFILE.fleshOfTheMaster)
+        ?.maximumStacks || 30,
+    ),
+    timedCarapace + minionCarapace,
+  );
   if (hasTrait(context, TRAIT.DEADLY_STRENGTH) && carapace > 0) {
-    result.power += carapace * 10;
-    result.conditionDamage += carapace * 10;
+    const perStack = Number(
+      necromancerBalanceProfile(context, PROFILE.deadlyStrength)
+        ?.attributePerStack || 10,
+    );
+    result.power += carapace * perStack;
+    result.conditionDamage += carapace * perStack;
   }
   if (hasTrait(context, TRAIT.AWAKEN_THE_PAIN)) {
+    const perStack = Number(
+      necromancerBalanceProfile(context, PROFILE.awakenThePain)
+        ?.attributePerStack || 10,
+    );
     result.power +=
       Number(
         context.query?.mightStacksAt(
@@ -247,21 +275,45 @@ export function modifyNecromancerCoreAttributes(
           context.runtime,
           context.event,
         ) || 0,
-      ) * 10;
+      ) * perStack;
   }
   if (!staticRulesApplied) {
     if (hasTrait(context, TRAIT.SPITEFUL_FORTITUDE)) {
-      result.vitality += gearPower * 0.1;
+      result.vitality +=
+        gearPower *
+        Number(
+          necromancerBalanceProfile(context, PROFILE.spitefulFortitude)
+            ?.attributeConversion || 0.1,
+        );
     }
-    if (hasTrait(context, TRAIT.FURIOUS_DEMISE)) result.precision += 180;
+    if (hasTrait(context, TRAIT.FURIOUS_DEMISE)) {
+      result.precision += Number(
+        necromancerBalanceProfile(context, PROFILE.furiousDemise)
+          ?.attributeBonus || 180,
+      );
+    }
     if (hasTrait(context, TRAIT.TARGET_THE_WEAK)) {
       // Flat Precision from Furious Demise is present before the conversion.
-      result.conditionDamage += Math.floor(result.precision * 0.13);
+      result.conditionDamage += Math.floor(
+        result.precision *
+          Number(
+            necromancerBalanceProfile(context, PROFILE.targetTheWeak)
+              ?.attributeConversion || 0.13,
+          ),
+      );
     }
     if (hasTrait(context, TRAIT.LINGERING_CURSE)) {
-      result.conditionDamage += 200;
+      result.conditionDamage += Number(
+        necromancerBalanceProfile(context, PROFILE.lingeringCurse)
+          ?.attributeBonus || 200,
+      );
     }
-    if (hasTrait(context, TRAIT.VITAL_PERSISTENCE)) result.vitality += 180;
+    if (hasTrait(context, TRAIT.VITAL_PERSISTENCE)) {
+      result.vitality += Number(
+        necromancerBalanceProfile(context, PROFILE.vitalPersistence)
+          ?.attributeBonus || 180,
+      );
+    }
   }
   return result;
 }
@@ -285,7 +337,12 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] =
       label: "Target the Weak",
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: "add",
-      amount: (context) => necromancerTargetConditionCount(context) * 0.02,
+      parameters: { criticalChancePerCondition: 0.02 } as Readonly<
+        Record<string, number>
+      >,
+      amount: (context, _target, parameters) =>
+        necromancerTargetConditionCount(context) *
+        parameters.criticalChancePerCondition,
       when: (context) => hasTrait(context, TRAIT.TARGET_THE_WEAK),
     },
     {
@@ -321,7 +378,14 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] =
       id: "necromancer.death-perception-critical-hit-damage",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
-      factor: (context) => necromancerCriticalExpectedFactor(context, 1.1),
+      parameters: { criticalHitFactor: 1.1 } as Readonly<
+        Record<string, number>
+      >,
+      factor: (context, _target, parameters) =>
+        necromancerCriticalExpectedFactor(
+          context,
+          parameters.criticalHitFactor,
+        ),
       order: 100,
       when: (context) =>
         hasTrait(context, TRAIT.DEATH_PERCEPTION) &&
@@ -331,7 +395,13 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] =
       id: "necromancer.spiteful-talisman",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
-      factor: (context) => (context.config?.target?.boonless ? 1.05 : 1.03),
+      parameters: { boonlessFactor: 1.05, boonedFactor: 1.03 } as Readonly<
+        Record<string, number>
+      >,
+      factor: (context, _target, parameters) =>
+        context.config?.target?.boonless
+          ? parameters.boonlessFactor
+          : parameters.boonedFactor,
       order: 100,
       when: (context) => hasTrait(context, TRAIT.SPITEFUL_TALISMAN),
     },
@@ -414,7 +484,11 @@ function modifyNecromancerConditionBaseDuration(
   return necromancerEventSkill(context)?.weapon === "Scepter" &&
     context.event?.skillId !== ID.DEVOURING_DARKNESS &&
     hasTrait(context, TRAIT.LINGERING_CURSE)
-    ? duration * 1.5
+    ? duration *
+        Number(
+          necromancerBalanceProfile(context, PROFILE.lingeringCurse)
+            ?.durationMultiplier || 1.5,
+        )
     : duration;
 }
 

@@ -32,6 +32,11 @@ import type {
   NecromancerCastContext,
   NecromancerSkill,
 } from "../../types.js";
+import {
+  balanceProfileEffect,
+  necromancerBalanceProfile,
+} from "../../core/profiles.js";
+import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 function afterCast(
   context: NecromancerCastContext,
@@ -48,31 +53,87 @@ function afterCast(
     // Reset the per-second cursor to the next whole second so blight ticks don't accumulate a fractional offset over time.
     state.nextBlightAt = Math.floor(at) + 1;
     if (hasNecromancerTrait(context, TRAIT.CORRUPTED_TALENT)) {
-      gainNecromancerLifeForce(context, 15, at);
+      gainNecromancerLifeForce(
+        context,
+        Number(
+          necromancerBalanceProfile(context, PROFILE.corruptedTalent)
+            ?.lifeForceGain || 15,
+        ),
+        at,
+      );
     }
     if (hasNecromancerTrait(context, TRAIT.DEATHLY_HASTE)) {
+      const profile = necromancerBalanceProfile(context, PROFILE.deathlyHaste);
+      const quickness = balanceProfileEffect(profile, "boon");
+      const fury = balanceProfileEffect(profile, "boon", 1);
       const recipients = necromancerPartyBoonRecipients(context);
-      emitBuff(context, skill, "quickness", 4, 1, {
-        metadata: recipients,
-      });
-      emitBuff(context, skill, "fury", 4, 1, { metadata: recipients });
+      emitBuff(
+        context,
+        skill,
+        String(quickness?.boon || "quickness"),
+        Number(quickness?.duration || 4),
+        Number(quickness?.stacks || 1),
+        {
+          metadata: recipients,
+        },
+      );
+      emitBuff(
+        context,
+        skill,
+        String(fury?.boon || "fury"),
+        Number(fury?.duration || 4),
+        Number(fury?.stacks || 1),
+        { metadata: recipients },
+      );
     }
     if (hasNecromancerTrait(context, TRAIT.IMPLACABLE_FOE)) {
-      emitBuff(context, skill, "stability", 5, 3);
-      emitBuff(context, skill, "implacable-foe", 2);
+      const profile = necromancerBalanceProfile(context, PROFILE.implacableFoe);
+      const stability = balanceProfileEffect(profile, "boon");
+      const buff = balanceProfileEffect(profile, "buff");
+      emitBuff(
+        context,
+        skill,
+        String(stability?.boon || "stability"),
+        Number(stability?.duration || 5),
+        Number(stability?.stacks || 3),
+      );
+      emitBuff(
+        context,
+        skill,
+        String(buff?.kind || "implacable-foe"),
+        Number(buff?.duration || 2),
+        Number(buff?.stacks || 1),
+      );
     }
   }
   if (
     skill.id === ID.DARK_BARRAGE &&
     hasNecromancerTrait(context, TRAIT.DEATHLY_HASTE)
   ) {
+    const profile = necromancerBalanceProfile(context, PROFILE.deathlyHaste);
+    const quickness = balanceProfileEffect(profile, "boon");
+    const fury = balanceProfileEffect(profile, "boon", 1);
     const deathlyHaste = {
       source: "Trait",
       sourceId: TRAIT.DEATHLY_HASTE,
       ...necromancerPartyBoonRecipients(context),
     };
-    emitBuff(context, skill, "quickness", 4, 1, { at, metadata: deathlyHaste });
-    emitBuff(context, skill, "fury", 4, 1, { at, metadata: deathlyHaste });
+    emitBuff(
+      context,
+      skill,
+      String(quickness?.boon || "quickness"),
+      Number(quickness?.duration || 4),
+      Number(quickness?.stacks || 1),
+      { at, metadata: deathlyHaste },
+    );
+    emitBuff(
+      context,
+      skill,
+      String(fury?.boon || "fury"),
+      Number(fury?.duration || 4),
+      Number(fury?.stacks || 1),
+      { at, metadata: deathlyHaste },
+    );
   }
 }
 
@@ -102,17 +163,36 @@ function modifyHarbingerAttributes(
       context.config?.specialization === "Harbinger" ||
       hasTrait(context, TRAIT.ALCHEMIC_VIGOR)
     ) {
-      result.vitality += 240;
+      result.vitality += Number(
+        necromancerBalanceProfile(context, PROFILE.alchemicVigor)
+          ?.attributeBonus || 240,
+      );
     }
     if (hasTrait(context, TRAIT.IMPLACABLE_FOE)) {
-      result.ferocity += result.vitality * 0.13;
+      result.ferocity +=
+        result.vitality *
+        Number(
+          necromancerBalanceProfile(context, PROFILE.implacableFoe)
+            ?.attributeConversion || 0.13,
+        );
     }
     if (hasTrait(context, TRAIT.TWISTED_MEDICINE)) {
-      result.concentration += result.vitality * 0.13;
+      result.concentration +=
+        result.vitality *
+        Number(
+          necromancerBalanceProfile(context, PROFILE.twistedMedicine)
+            ?.attributeConversion || 0.13,
+        );
     }
     if (hasTrait(context, TRAIT.DARK_GUNSLINGER)) {
       // Alchemic Vigor and other flat Vitality bonuses precede conversion.
-      result.expertise += Math.round(result.vitality * 0.1);
+      result.expertise += Math.round(
+        result.vitality *
+          Number(
+            necromancerBalanceProfile(context, PROFILE.darkGunslinger)
+              ?.attributeConversion || 0.1,
+          ),
+      );
     }
   }
   return result;
@@ -132,18 +212,26 @@ function activeBlight(context: Gw2ModifierContext): number {
   );
 }
 
-function wickedCorruptionCriticalFactor(context: Gw2ModifierContext): number {
+function wickedCorruptionCriticalFactor(
+  context: Gw2ModifierContext,
+  parameters: Readonly<Record<string, number>>,
+): number {
   const deathPerceptionActive =
     hasTrait(context, TRAIT.DEATH_PERCEPTION) &&
     Boolean(necromancerActiveShroud(context));
   // Death Perception already contributes a 10% crit-chance bonus in shroud; Wicked Corruption adds another 10%.
   // To avoid double-counting, compute the combined factor (1.21) and divide out the Death Perception factor (1.1).
   const coreFactor = deathPerceptionActive
-    ? necromancerCriticalExpectedFactor(context, 1.1)
+    ? necromancerCriticalExpectedFactor(
+        context,
+        parameters.deathPerceptionCriticalHitFactor,
+      )
     : 1;
   const combinedFactor = necromancerCriticalExpectedFactor(
     context,
-    deathPerceptionActive ? 1.21 : 1.1,
+    deathPerceptionActive
+      ? parameters.combinedCriticalHitFactor
+      : parameters.criticalHitFactor,
   );
   return combinedFactor / coreFactor;
 }
@@ -154,7 +242,11 @@ function modifyHarbingerRechargeDuration(
 ): number {
   return context.skill?.weapon === "Pistol" &&
     hasTrait(context, TRAIT.DARK_GUNSLINGER)
-    ? duration * 0.8
+    ? duration *
+        Number(
+          necromancerBalanceProfile(context, PROFILE.darkGunslinger)
+            ?.rechargeMultiplier || 0.8,
+        )
     : duration;
 }
 
@@ -164,14 +256,22 @@ export const harbingerModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       id: "necromancer.wicked-corruption-blight",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
-      amount: (context) => activeBlight(context) * 0.01,
+      parameters: { damagePerStack: 0.01 } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) =>
+        activeBlight(context) * parameters.damagePerStack,
       when: (context) => hasTrait(context, TRAIT.WICKED_CORRUPTION),
     },
     {
       id: "necromancer.wicked-corruption-critical-hit-damage",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
-      factor: wickedCorruptionCriticalFactor,
+      parameters: {
+        criticalHitFactor: 1.1,
+        deathPerceptionCriticalHitFactor: 1.1,
+        combinedCriticalHitFactor: 1.21,
+      } as Readonly<Record<string, number>>,
+      factor: (context, _target, parameters) =>
+        wickedCorruptionCriticalFactor(context, parameters),
       order: 100,
       when: (context) =>
         hasTrait(context, TRAIT.WICKED_CORRUPTION) &&
@@ -181,7 +281,11 @@ export const harbingerModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       id: "necromancer.septic-corruption-blight",
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: "damage-additive",
-      amount: (context) => activeBlight(context) * 0.0025,
+      parameters: { damagePerStack: 0.0025 } as Readonly<
+        Record<string, number>
+      >,
+      amount: (context, _target, parameters) =>
+        activeBlight(context) * parameters.damagePerStack,
       when: (context) => hasTrait(context, TRAIT.SEPTIC_CORRUPTION),
     },
     {

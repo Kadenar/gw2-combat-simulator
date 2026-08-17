@@ -21,12 +21,6 @@ const handlers = Object.freeze({
   "necromancer.flip": augmentSkill({
     beforeEffects: rawCoreHandlers["necromancer.flip"],
   }),
-  "necromancer.signet-vampirism": replaceSkill({
-    beforeEffects: rawCoreHandlers["necromancer.signet-vampirism"],
-  }),
-  "necromancer.signet-undeath": replaceSkill({
-    beforeEffects: rawCoreHandlers["necromancer.signet-undeath"],
-  }),
   "necromancer.corruption": augmentSkill({
     beforeEffects: necromancerConditionSkillHandlers["necromancer.corruption"],
   }),
@@ -47,10 +41,12 @@ const handlers = Object.freeze({
   "necromancer.minion": replaceSkill({
     beforeEffects: necromancerMinionSkillHandlers["necromancer.minion"],
   }),
-  "necromancer.minion-command": replaceSkill({
+  "necromancer.minion-command": augmentSkill({
+    resolveMode: () => "replace",
     beforeEffects: necromancerMinionSkillHandlers["necromancer.minion-command"],
   }),
-  "necromancer.summon-madness": replaceSkill({
+  "necromancer.summon-madness": augmentSkill({
+    resolveMode: () => "replace",
     beforeEffects: necromancerMinionSkillHandlers["necromancer.summon-madness"],
   }),
   "necromancer.deadly-slice": augmentSkill({

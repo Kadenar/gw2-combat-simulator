@@ -1,6 +1,4 @@
-import {
-  professionStaticRulesApplied,
-} from "../../../../platform/gw2/attribute-provenance.js";
+import { professionStaticRulesApplied } from "../../../../platform/gw2/attribute-provenance.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import {
@@ -20,6 +18,8 @@ import type {
   NecromancerAmmoModifierContext,
   NecromancerRechargeModifierContext,
 } from "../../types.js";
+import { necromancerBalanceProfile } from "../../core/profiles.js";
+import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 function modifyScourgeAttributes(
   context: Gw2ModifierContext,
@@ -33,7 +33,12 @@ function modifyScourgeAttributes(
     // Fell Beacon converts 7% of condition damage into expertise; must use raw
     // gear stats (config.stats) not the merged attribute record because might
     // stacks and trait bonuses like Lingering Curse are already folded in there
-    result.expertise += Number(context.config?.stats?.conditionDamage || 0) * 0.07;
+    result.expertise +=
+      Number(context.config?.stats?.conditionDamage || 0) *
+      Number(
+        necromancerBalanceProfile(context, PROFILE.fellBeacon)
+          ?.attributeConversion || 0.07,
+      );
   }
   if (
     hasTrait(context, TRAIT.SAND_SAGE) &&
@@ -42,8 +47,12 @@ function modifyScourgeAttributes(
       (expiresAt: number) => expiresAt > context.time,
     )
   ) {
-    result.concentration += 225;
-    result.expertise += 225;
+    const bonus = Number(
+      necromancerBalanceProfile(context, PROFILE.sandSage)?.attributeBonus ||
+        225,
+    );
+    result.concentration += bonus;
+    result.expertise += bonus;
   }
   return result;
 }
@@ -53,11 +62,13 @@ function modifyScourgeRechargeDuration(
   duration: number,
 ): number {
   // Sand Savant adds a 25% recharge penalty alongside the ammo cap reduction to 1
-  return (
-    context.skill?.id === ID.MANIFEST_SAND_SHADE &&
+  return context.skill?.id === ID.MANIFEST_SAND_SHADE &&
     hasTrait(context, TRAIT.SAND_SAVANT)
-  )
-    ? duration * 1.25
+    ? duration *
+        Number(
+          necromancerBalanceProfile(context, PROFILE.sandSavant)
+            ?.rechargePenalty || 1.25,
+        )
     : duration;
 }
 
@@ -66,11 +77,12 @@ function modifyScourgeMaximumAmmo(
   maximum: number,
 ): number {
   // Sand Savant merges all 3 shades into a single more-powerful shade; only 1 charge allowed
-  return (
-    context.skill?.id === ID.MANIFEST_SAND_SHADE &&
+  return context.skill?.id === ID.MANIFEST_SAND_SHADE &&
     hasTrait(context, TRAIT.SAND_SAVANT)
-  )
-    ? 1
+    ? Number(
+        necromancerBalanceProfile(context, PROFILE.sandSavant)?.maximumStacks ||
+          1,
+      )
     : maximum;
 }
 
@@ -82,8 +94,7 @@ export const scourgeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     factor: 1.1,
     order: 100,
     when: (context) =>
-      context.condition === "Burning" &&
-      hasTrait(context, TRAIT.FELL_BEACON),
+      context.condition === "Burning" && hasTrait(context, TRAIT.FELL_BEACON),
   },
   {
     id: "necromancer.demonic-lore",
@@ -92,8 +103,7 @@ export const scourgeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     factor: 1.33,
     order: 100,
     when: (context) =>
-      context.condition === "Torment" &&
-      hasTrait(context, TRAIT.DEMONIC_LORE),
+      context.condition === "Torment" && hasTrait(context, TRAIT.DEMONIC_LORE),
   },
 ]);
 

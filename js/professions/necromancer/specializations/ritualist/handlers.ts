@@ -1,23 +1,38 @@
 import { necromancerSpiritSkillHandlers } from "./spirits.js";
 import { necromancerWeaponSpellSkillHandlers } from "./weapon-spells.js";
-import { replaceSkillHandler } from "../../../../platform/engine/skill-handlers.js";
+import {
+  skillHandler,
+  SKILL_HANDLER_MODES,
+} from "../../../../platform/engine/skill-handlers.js";
+import type { SkillHandlerPhase } from "../../../../platform/engine/types.js";
+import type { NecromancerCastContext } from "../../types.js";
+
+function declarativeReplacingHandler(
+  beforeEffects: SkillHandlerPhase<NecromancerCastContext>,
+) {
+  return skillHandler<NecromancerCastContext>({
+    mode: SKILL_HANDLER_MODES.AUGMENT,
+    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
+    beforeEffects,
+  });
+}
 
 export const ritualistSkillHandlers = new Map([
   [
     "necromancer.ritualist",
-    replaceSkillHandler(
+    declarativeReplacingHandler(
       necromancerSpiritSkillHandlers["necromancer.ritualist"],
     ),
   ],
   [
     "necromancer.innervate",
-    replaceSkillHandler(
+    declarativeReplacingHandler(
       necromancerSpiritSkillHandlers["necromancer.innervate"],
     ),
   ],
   [
     "necromancer.weapon-spell",
-    replaceSkillHandler(
+    declarativeReplacingHandler(
       necromancerWeaponSpellSkillHandlers["necromancer.weapon-spell"],
     ),
   ],

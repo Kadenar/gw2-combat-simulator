@@ -2,7 +2,6 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
 import { isInternalCooldownReady } from "../../../platform/engine/clock.js";
 import { NECROMANCER_TRAIT_IDS as TRAIT } from "../data/ids.js";
-import { NECROMANCER_CORE_MECHANICS as MECHANICS } from "./mechanics.js";
 import { addCarapace } from "./shared.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
 import { onResolvedPlayerCriticalHit } from "../../../platform/gw2/native-profession.js";
@@ -13,6 +12,11 @@ import type {
   NecromancerResolverEvent,
   NecromancerResolverReactionDetails,
 } from "../types.js";
+import {
+  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  balanceProfileEffect,
+  necromancerBalanceProfile,
+} from "./profiles.js";
 
 interface TraitDamageDefinition {
   readonly name: string;
@@ -84,7 +88,7 @@ export function applyTraitCondition(
   const application: Gw2EventDraft = {
     type: "condition",
     at: event.at,
-    name: `${name} — ${condition}`,
+    name: `${name} - ${condition}`,
     skillName: name,
     condition,
     stacks,
@@ -209,14 +213,18 @@ export function reactToNecromancerCoreDamage(
   const shroudSkillOne =
     skill?.shroudSlot === 1 || event.necromancerShroudSkillOne === true;
   if (hasTrait(context, TRAIT.REAPERS_MIGHT) && firstHit && shroudSkillOne) {
+    const effect = balanceProfileEffect(
+      necromancerBalanceProfile(context, PROFILE.reapersMight),
+      "boon",
+    );
     enqueueOrdered(context.queue, {
       type: "buff",
       at: event.at,
       name: "Reaper's Might",
       skillName: "Reaper's Might",
-      kind: "might",
-      stacks: 1,
-      duration: 15,
+      kind: String(effect?.boon || "might"),
+      stacks: Number(effect?.stacks || 1),
+      duration: Number(effect?.duration || 15),
       source: "Trait",
       sourceId: TRAIT.REAPERS_MIGHT,
       actorType: "effect",
@@ -232,15 +240,18 @@ export function reactToNecromancerCoreDamage(
       Number(professionCoreState(context).traitProcReadyAt.siphonedPower || 0),
     )
   ) {
-    professionCoreState(context).traitProcReadyAt.siphonedPower = event.at + 1;
+    const profile = necromancerBalanceProfile(context, PROFILE.siphonedPower);
+    const effect = balanceProfileEffect(profile, "boon");
+    professionCoreState(context).traitProcReadyAt.siphonedPower =
+      event.at + Number(profile?.cooldown || 1);
     enqueueOrdered(context.queue, {
       type: "buff",
       at: event.at,
       name: "Siphoned Power",
       skillName: "Siphoned Power",
-      kind: "might",
-      stacks: 3,
-      duration: 8,
+      kind: String(effect?.boon || "might"),
+      stacks: Number(effect?.stacks || 3),
+      duration: Number(effect?.duration || 8),
       source: "Trait",
       sourceId: TRAIT.SIPHONED_POWER,
       actorType: "effect",
@@ -255,7 +266,11 @@ export function reactToNecromancerCoreDamage(
   ) {
     professionCoreState(context).spitefulFortitudeLifeForce =
       Number(professionCoreState(context).spitefulFortitudeLifeForce || 0) +
-      (hasTrait(context, TRAIT.GLUTTONY) ? 1.1 : 1);
+      Number(
+        necromancerBalanceProfile(context, PROFILE.spitefulFortitude)
+          ?.lifeForceGain || 1,
+      ) *
+        (hasTrait(context, TRAIT.GLUTTONY) ? 1.1 : 1);
   }
   if (
     hasTrait(context, TRAIT.CHILL_OF_DEATH) &&
@@ -265,7 +280,9 @@ export function reactToNecromancerCoreDamage(
       Number(professionCoreState(context).traitProcReadyAt.chillOfDeath || 0),
     )
   ) {
-    professionCoreState(context).traitProcReadyAt.chillOfDeath = event.at + 16;
+    const profile = necromancerBalanceProfile(context, PROFILE.chillOfDeath);
+    professionCoreState(context).traitProcReadyAt.chillOfDeath =
+      event.at + Number(profile?.cooldown || 16);
     const boons = context.config.target?.boonless
       ? 0
       : Math.min(
@@ -280,7 +297,10 @@ export function reactToNecromancerCoreDamage(
             ),
           ),
         );
-    const coefficient = [0.6, 0.9, 1.5, 2.1][boons];
+    const coefficient = Number(
+      profile?.effects?.filter((effect) => effect.type === "strike")[boons]
+        ?.coefficient || [0.6, 0.9, 1.5, 2.1][boons],
+    );
     queueTraitCoefficientDamage(context, event, {
       name: "Lesser Spinal Shivers",
       traitId: TRAIT.CHILL_OF_DEATH,
@@ -294,11 +314,16 @@ export function reactToNecromancerCoreDamage(
       sourceId: TRAIT.CHILL_OF_DEATH,
       actorType: "effect",
       skillName: "Lesser Spinal Shivers",
-      duration: 5,
+      duration: Number(
+        balanceProfileEffect(profile, "condition")?.duration || 5,
+      ),
     });
   }
   if (hasTrait(context, TRAIT.DHUUMFIRE) && shroudSkillOne) {
-    const proc = MECHANICS.traitProcs[TRAIT.DHUUMFIRE];
+    const effect = balanceProfileEffect(
+      necromancerBalanceProfile(context, PROFILE.dhuumfire),
+      "condition",
+    );
     const interval = Number(event.dhuumfireInterval || 0);
     if (
       interval > 0 &&
@@ -314,19 +339,30 @@ export function reactToNecromancerCoreDamage(
           event.at + interval;
       }
       applyTraitCondition(details, context, event, {
-        ...proc,
+        name: "Dhuumfire",
+        traitId: TRAIT.DHUUMFIRE,
+        condition: String(effect?.condition || "Burning"),
+        stacks: Number(effect?.stacks || 1),
         duration: Number(
-          event.dhuumfireDuration ?? skill?.dhuumfireDuration ?? proc.duration,
+          event.dhuumfireDuration ??
+            skill?.dhuumfireDuration ??
+            effect?.duration ??
+            3,
         ),
       });
     }
   }
   if (hasTrait(context, TRAIT.UNYIELDING_BLAST) && firstHit && shroudSkillOne) {
-    applyTraitVulnerability(
-      context,
-      event,
-      MECHANICS.traitProcs[TRAIT.UNYIELDING_BLAST],
+    const effect = balanceProfileEffect(
+      necromancerBalanceProfile(context, PROFILE.unyieldingBlast),
+      "buff",
     );
+    applyTraitVulnerability(context, event, {
+      name: "Unyielding Blast",
+      traitId: TRAIT.UNYIELDING_BLAST,
+      stacks: Number(effect?.stacks || 2),
+      duration: Number(effect?.duration || 10),
+    });
   }
   necromancerBarbedPrecisionReaction.handler(context, event, details);
   if (
@@ -336,10 +372,19 @@ export function reactToNecromancerCoreDamage(
       Number(professionCoreState(context).vampiricPresenceReadyAt || 0),
     )
   ) {
-    const proc = MECHANICS.traitProcs[TRAIT.VAMPIRIC_PRESENCE];
+    const profile = necromancerBalanceProfile(
+      context,
+      PROFILE.vampiricPresence,
+    );
+    const effect = balanceProfileEffect(profile, "strike");
     professionCoreState(context).vampiricPresenceReadyAt =
-      event.at + proc.interval;
-    queueTraitDamage(context, event, proc);
+      event.at + Number(profile?.cooldown || 1);
+    queueTraitDamage(context, event, {
+      name: "Vampiric Presence",
+      traitId: TRAIT.VAMPIRIC_PRESENCE,
+      flatStrikeBase: Number(effect?.flatStrikeBase || 80),
+      flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff || 0.03),
+    });
   }
   if (
     hasTrait(context, TRAIT.OVERFLOWING_THIRST) &&
@@ -354,7 +399,6 @@ export function reactToNecromancerCoreDamage(
   }
 }
 
-const barbedPrecision = MECHANICS.traitProcs[TRAIT.BARBED_PRECISION];
 export const necromancerBarbedPrecisionReaction = onResolvedPlayerCriticalHit<
   NecromancerResolverContext,
   NecromancerResolverEvent,
@@ -363,7 +407,11 @@ export const necromancerBarbedPrecisionReaction = onResolvedPlayerCriticalHit<
   id: "necromancer.barbed-precision",
   order: 0,
   actorTypes: ["player", "summon", "unknown"],
-  chanceOnCriticalHit: barbedPrecision.chanceOnCriticalHit,
+  chanceOnCriticalHit: (context) =>
+    Number(
+      necromancerBalanceProfile(context, PROFILE.barbedPrecision)
+        ?.criticalChance || 0.33,
+    ),
   randomStream: "necromancer.barbed-precision",
   when: (context, event) =>
     Number(event.coefficient) > 0 && hasTrait(context, TRAIT.BARBED_PRECISION),
@@ -374,8 +422,19 @@ export const necromancerBarbedPrecisionReaction = onResolvedPlayerCriticalHit<
     },
   },
   attribution: { kind: "trait", id: TRAIT.BARBED_PRECISION },
-  handler: (context, event, details) =>
-    applyTraitCondition(details, context, event, barbedPrecision),
+  handler: (context, event, details) => {
+    const effect = balanceProfileEffect(
+      necromancerBalanceProfile(context, PROFILE.barbedPrecision),
+      "condition",
+    );
+    applyTraitCondition(details, context, event, {
+      name: "Barbed Precision",
+      traitId: TRAIT.BARBED_PRECISION,
+      condition: String(effect?.condition || "Bleeding"),
+      stacks: Number(effect?.stacks || 1),
+      duration: Number(effect?.duration || 3),
+    });
+  },
 });
 
 export function reactToNecromancerCoreCondition(
@@ -412,13 +471,17 @@ export function reactToNecromancerBlind(
     )
   )
     return;
-  professionCoreState(context).traitProcReadyAt.chillingDarkness = event.at + 3;
-  applyTraitCondition(
-    details,
-    context,
-    event,
-    MECHANICS.traitProcs[TRAIT.CHILLING_DARKNESS],
-  );
+  const profile = necromancerBalanceProfile(context, PROFILE.chillingDarkness);
+  const effect = balanceProfileEffect(profile, "condition");
+  professionCoreState(context).traitProcReadyAt.chillingDarkness =
+    event.at + Number(profile?.cooldown || 3);
+  applyTraitCondition(details, context, event, {
+    name: "Chilling Darkness",
+    traitId: TRAIT.CHILLING_DARKNESS,
+    condition: String(effect?.condition || "Chilled"),
+    stacks: Number(effect?.stacks || 1),
+    duration: Number(effect?.duration || 2),
+  });
 }
 
 export function reactToNecromancerCoreControl(
@@ -445,11 +508,16 @@ export function reactToNecromancerCoreControl(
     }
   }
   if (hasTrait(context, TRAIT.INSIDIOUS_DISRUPTION)) {
-    applyTraitCondition(
-      details,
-      context,
-      event,
-      MECHANICS.traitProcs[TRAIT.INSIDIOUS_DISRUPTION],
+    const effect = balanceProfileEffect(
+      necromancerBalanceProfile(context, PROFILE.insidiousDisruption),
+      "condition",
     );
+    applyTraitCondition(details, context, event, {
+      name: "Insidious Disruption",
+      traitId: TRAIT.INSIDIOUS_DISRUPTION,
+      condition: String(effect?.condition || "Torment"),
+      stacks: Number(effect?.stacks || 1),
+      duration: Number(effect?.duration || 5),
+    });
   }
 }

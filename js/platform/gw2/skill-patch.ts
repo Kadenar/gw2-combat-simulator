@@ -76,6 +76,7 @@ export interface EffectSelector {
 export interface EffectPatch extends EffectSelector {
   /** Zero-based index in the selected effect's ticks, or every matching tick. */
   readonly tickIndex?: number | "all";
+  readonly allyStacks?: NumEdit;
   readonly coefficient?: NumEdit;
   readonly hits?: NumEdit;
   readonly stacks?: NumEdit;
@@ -89,6 +90,8 @@ export interface EffectPatch extends EffectSelector {
   readonly durationPerAffinity?: NumEdit;
   readonly durationReductionPerAffinity?: NumEdit;
   readonly damageIncreasePerStack?: NumEdit;
+  readonly damagePerCoefficient?: NumEdit;
+  readonly maximumRecipients?: NumEdit;
 }
 
 export interface SkillPatchEdit {
@@ -147,7 +150,10 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   "ammo",
   "ammoCastLockout",
   "ammoRecharge",
+  "alternateEvery",
+  "basePower",
   "castTimeMs",
+  "commitAtMs",
   "cooldown",
   "energyCost",
   "initiativeCost",
@@ -162,6 +168,7 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   "upkeepPulseInterval",
   "maximumStacks",
   "minimumStacks",
+  "minionCount",
   "lifeSiphonDamagePerStack",
   "resourceGain",
   "rechargeMultiplier",
@@ -175,9 +182,33 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   "quicknessCastMultiplier",
   "mainCastExtensionMs",
   "mainQuicknessCastMultiplier",
+  "allyStacks",
+  "attributeBonus",
+  "attributeConversion",
+  "attributePerStack",
+  "blightCost",
+  "blightGain",
+  "coefficientMultiplier",
+  "criticalChance",
+  "criticalDamage",
+  "damagePerCoefficient",
+  "durationMultiplier",
+  "initialDelay",
+  "internalCooldown",
+  "lifeForceDrain",
+  "lifeForceGain",
+  "lifeForceOnHit",
+  "maximumTargets",
+  "playerStacks",
+  "pulseInterval",
+  "rechargePenalty",
+  "weaponStrength",
+  "summons",
+  "summonInterval",
 ]);
 
 export const PATCHABLE_EFFECT_NUMERIC_FIELDS = Object.freeze([
+  "allyStacks",
   "coefficient",
   "hits",
   "stacks",
@@ -191,6 +222,8 @@ export const PATCHABLE_EFFECT_NUMERIC_FIELDS = Object.freeze([
   "durationPerAffinity",
   "durationReductionPerAffinity",
   "damageIncreasePerStack",
+  "damagePerCoefficient",
+  "maximumRecipients",
 ] as const);
 
 const SKILL_NUMERIC_FIELDS = new Set(PATCHABLE_SKILL_NUMERIC_FIELDS);

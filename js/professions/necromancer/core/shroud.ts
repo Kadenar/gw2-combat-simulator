@@ -13,7 +13,11 @@ import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
-import { NECROMANCER_CORE_MECHANICS as MECHANICS } from "./mechanics.js";
+import {
+  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  balanceProfileEffect,
+  necromancerBalanceProfile,
+} from "./profiles.js";
 import { advanceNecromancerState, leaveShroud } from "./life-force.js";
 import {
   EXIT_ID_BY_SHROUD,
@@ -126,7 +130,11 @@ function activateShroud(
     });
   }
   if (hasTrait(context, TRAIT.SPITEFUL_SPIRIT)) {
-    emitDamage(context, skill, MECHANICS.spitefulSpiritCoefficient, {
+    const strike = balanceProfileEffect(
+      necromancerBalanceProfile(context, PROFILE.spitefulSpirit),
+      "strike",
+    );
+    emitDamage(context, skill, Number(strike?.coefficient || 0), {
       name: "Spiteful Spirit",
       source: "Trait",
       sourceId: TRAIT.SPITEFUL_SPIRIT,

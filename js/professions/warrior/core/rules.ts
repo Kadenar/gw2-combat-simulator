@@ -192,7 +192,7 @@ function modifyWarriorAttributes(
   result.vitality = Number(result.vitality || 0);
   result.healingPower = Number(result.healingPower || 0);
   result.concentration = Number(result.concentration || 0);
-  // Pattern C: attribute conversions read the gear-only pool. config.stats
+  // Attribute conversions read the gear-only pool. config.stats
   // holds pre-boon gear attributes (might is baked into the seed's power, and
   // live trait bonuses accrue on `result`), so this converts gear power only.
   const gearPower = Number(context.config?.stats?.power || 0);
@@ -259,7 +259,7 @@ function modifyWarriorAttributes(
       const delta = staticRulesApplied ? -180 : 180;
       // Signet power/precision toggles are real stat changes, but they are not
       // part of the gear pool, so they no longer feed Great Fortitude /
-      // Wounding Precision conversions (Pattern C).
+      // Wounding Precision conversions
       result[attribute] += delta;
     }
   }

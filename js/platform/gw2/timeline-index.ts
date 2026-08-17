@@ -1,7 +1,7 @@
 import { EPSILON } from "../engine/clock.js";
 import {
   buffMatchesAudience,
-  GW2_BOON_DURATION_CAP_SECONDS,
+  durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   remainingDurationStackSeconds,
   sumActiveStacks,
@@ -166,7 +166,7 @@ export function createGw2TimelineIndex({
           includes: (event) =>
             buffMatchesAudience(event, audience, companionId),
           duration: (event) => Number(event.duration || duration),
-          maximum: GW2_BOON_DURATION_CAP_SECONDS,
+          maximum: durationStackingBoonCapSeconds(kind),
         },
       );
       return remaining > EPSILON ? Math.min(1, Math.max(0, maximum)) : 0;

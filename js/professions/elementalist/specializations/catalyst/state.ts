@@ -2,10 +2,12 @@ import { defineProfessionSpecializationState } from "../../../../platform/engine
 import type { ElementalistConfig } from "../../types.js";
 
 export const CATALYST_MAXIMUM_ENERGY = 30;
+export const CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS = 10;
 
 export interface CatalystState {
   energy: number;
   elementalEmpowermentExpiries: number[];
+  elementalEmpowermentRefreshStarted: boolean;
   maximumEnergy: number;
   sphereActiveUntil: number;
   sphereExpiry: Record<string, number>;
@@ -27,6 +29,7 @@ export const catalystState = defineProfessionSpecializationState(
       ),
     ),
     elementalEmpowermentExpiries: [],
+    elementalEmpowermentRefreshStarted: false,
     maximumEnergy: CATALYST_MAXIMUM_ENERGY,
     sphereActiveUntil: 0,
     sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
@@ -39,3 +42,26 @@ export const catalystState = defineProfessionSpecializationState(
 );
 
 export const createCatalystState = catalystState.create;
+
+export function grantCatalystElementalEmpowerment(
+  state: CatalystState,
+  at: number,
+  duration: number,
+  stacks = 1,
+  epsilon = Number.EPSILON,
+): void {
+  const expiresAt = at + Math.max(0, duration);
+  const active = state.elementalEmpowermentExpiries
+    .filter((expiry) => expiry > at + epsilon)
+    .sort((left, right) => left - right);
+
+  for (let stack = 0; stack < Math.max(1, stacks); stack += 1) {
+    if (active.length >= CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS) {
+      active.shift();
+    }
+    if (expiresAt > at + epsilon) active.push(expiresAt);
+    active.sort((left, right) => left - right);
+  }
+
+  state.elementalEmpowermentExpiries = active;
+}

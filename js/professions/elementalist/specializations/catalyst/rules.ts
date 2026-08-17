@@ -22,11 +22,24 @@ import type {
   ElementalistPrecastContext,
   ElementalistSchedulerContext,
 } from "../../types.js";
-import { CATALYST_MAXIMUM_ENERGY, catalystState } from "./state.js";
+import {
+  CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS,
+  CATALYST_MAXIMUM_ENERGY,
+  catalystState,
+  grantCatalystElementalEmpowerment,
+} from "./state.js";
 import { catalystModifierRules } from "./modifiers.js";
 
 const SPHERE_COST = 10;
+const SPHERE_SPECIALIST_DURATION_MULTIPLIER = 1.5;
+const SPECTACULAR_SPHERE_QUICKNESS_DURATION = 2;
 const CATALYST_ENERGY_HIT_TASK = "elementalist.catalyst-energy-hit";
+const CATALYST_EMPOWERMENT_TASK = "elementalist.catalyst-empowerment";
+const CATALYST_BASE_EMPOWERMENT_TASK = "elementalist.catalyst-base-empowerment";
+const CATALYST_VICIOUS_EMPOWERMENT_TASK =
+  "elementalist.catalyst-vicious-empowerment";
+const CATALYST_BASE_EMPOWERMENT_STACKS = 3;
+const CATALYST_BASE_EMPOWERMENT_DURATION = 15;
 
 function hasTrait(context: unknown, trait: string): boolean {
   return hasGw2Trait(context as never, trait);
@@ -50,11 +63,6 @@ interface CatalystStateLike {
   readonly elementalEmpowermentExpiries?: readonly number[];
 }
 
-function catalystBaseEmpowermentActive(context: Gw2ModifierContext): boolean {
-  const combatStartTime = context.runtime?.combatStartTime;
-  return combatStartTime == null || context.time >= Number(combatStartTime);
-}
-
 function modifyCatalystAttributes(
   context: Gw2ModifierContext,
   attributes: SchedulerRecord,
@@ -65,8 +73,8 @@ function modifyCatalystAttributes(
     catalystModifierState(context).elementalEmpowermentExpiries || []
   ).filter((expiresAt) => expiresAt > context.time).length;
   const stacks = Math.min(
-    10,
-    (catalystBaseEmpowermentActive(context) ? 3 : 0) + timedStacks,
+    CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS,
+    timedStacks,
   );
   const multiplier = hasTrait(context, "Empowered Empowerment")
     ? stacks === 10
@@ -74,8 +82,7 @@ function modifyCatalystAttributes(
       : stacks * 0.015
     : stacks * 0.01;
   const pool = context.config?.catalystEmpowermentPool as
-    | Partial<CatalystEmpowermentPool>
-    | undefined;
+    Partial<CatalystEmpowermentPool> | undefined;
   const modified = { ...attributes };
 
   for (const stat of [
@@ -108,7 +115,7 @@ function availability(
       ready: false,
       retryAt: null,
       code: "elementalist.catalyst-attunement",
-      reason: `${skill.name} is unavailable — requires ${String(skill.attunement)} attunement.`,
+      reason: `${skill.name} is unavailable - requires ${String(skill.attunement)} attunement.`,
     };
   }
   return state.energy >= SPHERE_COST
@@ -117,7 +124,7 @@ function availability(
         ready: false,
         retryAt: null,
         code: "elementalist.catalyst-energy",
-        reason: `${skill.name} is unavailable — requires ${SPHERE_COST} energy.`,
+        reason: `${skill.name} is unavailable - requires ${SPHERE_COST} energy.`,
       };
 }
 
@@ -151,7 +158,9 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
     change: -SPHERE_COST,
   });
   if (hasTrait(context, "Spectacular Sphere")) {
-    const durationMultiplier = hasTrait(context, "Sphere Specialist") ? 2 : 1;
+    const durationMultiplier = hasTrait(context, "Sphere Specialist")
+      ? SPHERE_SPECIALIST_DURATION_MULTIPLIER
+      : 1;
     context.emit({
       type: "buff",
       at: context.start,
@@ -164,7 +173,7 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
       duration: elementalistBuffDuration(
         context as never,
         "quickness",
-        durationMultiplier,
+        SPECTACULAR_SPHERE_QUICKNESS_DURATION * durationMultiplier,
         skill.name,
         skill.id,
       ),
@@ -217,7 +226,8 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
       event.sphereSpecialistScaled !== true
     ) {
       context.replaceEvent(event, {
-        duration: Number(event.duration || 0) * 2,
+        duration:
+          Number(event.duration || 0) * SPHERE_SPECIALIST_DURATION_MULTIPLIER,
       });
     }
   }
@@ -298,6 +308,40 @@ function onEventScheduled(
 ): void {
   const state = catalystState.from(context);
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  const implicitCombatEvent =
+    !context.hasExplicitCombatStart &&
+    ["player", "summon"].includes(String(event.actorType || "")) &&
+    ["damage", "condition", "control", "blind"].includes(event.type);
+  const startsCombat = event.type === "combat_start" || implicitCombatEvent;
+  if (
+    startsCombat &&
+    hasTrait(context, "Elemental Empowerment") &&
+    !state.elementalEmpowermentRefreshStarted
+  ) {
+    state.elementalEmpowermentRefreshStarted = true;
+    context.tasks.schedule({
+      type: CATALYST_BASE_EMPOWERMENT_TASK,
+      at: Math.max(context.state.time, event.at),
+      payload: { applicationAt: event.at },
+    });
+  }
+  if (
+    event.type === "buff" &&
+    String(event.kind || "").toLowerCase() === "elemental empowerment" &&
+    event.affectsSelf !== false &&
+    event.elementalEmpowermentTracked !== true
+  ) {
+    context.tasks.schedule({
+      type: CATALYST_EMPOWERMENT_TASK,
+      at: Math.max(context.state.time, event.at),
+      payload: {
+        applicationAt: event.at,
+        duration: Number(event.duration || 0),
+        stacks: Number(event.stacks || 1),
+      },
+    });
+    return;
+  }
   if (
     event.type === "elementalist.aura" &&
     hasTrait(context, "Elemental Epitome")
@@ -392,6 +436,20 @@ function onEventScheduled(
     }
     return;
   }
+  const immobilize =
+    event.type === "condition" &&
+    ["Immobilize", "Immobilized"].includes(String(event.condition || ""));
+  if (
+    hasTrait(context, "Vicious Empowerment") &&
+    event.actorType === "player" &&
+    (event.type === "control" || immobilize)
+  ) {
+    context.tasks.schedule({
+      type: CATALYST_VICIOUS_EMPOWERMENT_TASK,
+      at: Math.max(context.state.time, event.at),
+      payload: { applicationAt: event.at },
+    });
+  }
   if (
     event.type !== "damage" ||
     event.actorType === "summon" ||
@@ -438,6 +496,64 @@ function handleCatalystEnergyHit(
   });
 }
 
+function handleCatalystEmpowerment(
+  context: ElementalistSchedulerContext,
+  task: ScheduledTask<SchedulerRecord>,
+): void {
+  grantCatalystElementalEmpowerment(
+    catalystState.from(context),
+    Number(task.payload?.applicationAt ?? task.at),
+    Number(task.payload?.duration || 0),
+    Number(task.payload?.stacks || 1),
+    context.epsilon,
+  );
+}
+
+function handleBaseEmpowerment(
+  context: ElementalistSchedulerContext,
+  task: ScheduledTask<SchedulerRecord>,
+): void {
+  const at = Number(task.payload?.applicationAt ?? task.at);
+  grantCatalystElementalEmpowerment(
+    catalystState.from(context),
+    at,
+    CATALYST_BASE_EMPOWERMENT_DURATION,
+    CATALYST_BASE_EMPOWERMENT_STACKS,
+    context.epsilon,
+  );
+  context.emit({
+    type: "buff",
+    at,
+    source: "Elemental Empowerment",
+    sourceId: "Elemental Empowerment",
+    actorType: "player",
+    skillName: "Elemental Empowerment",
+    kind: "elemental empowerment",
+    stacks: CATALYST_BASE_EMPOWERMENT_STACKS,
+    duration: CATALYST_BASE_EMPOWERMENT_DURATION,
+    elementalEmpowermentTracked: true,
+  });
+  context.tasks.schedule({
+    type: CATALYST_BASE_EMPOWERMENT_TASK,
+    at: at + CATALYST_BASE_EMPOWERMENT_DURATION,
+    payload: {
+      applicationAt: at + CATALYST_BASE_EMPOWERMENT_DURATION,
+    },
+  });
+}
+
+function handleViciousEmpowerment(
+  context: ElementalistSchedulerContext,
+  task: ScheduledTask<SchedulerRecord>,
+): void {
+  const at = Number(task.payload?.applicationAt ?? task.at);
+  if (context.combatStartTime != null && at < context.combatStartTime) return;
+  const state = catalystState.from(context);
+  if (state.viciousEmpowermentReadyAt > at + context.epsilon) return;
+  state.viciousEmpowermentReadyAt = at + 0.25;
+  grantCatalystElementalEmpowerment(state, at, 15, 2, context.epsilon);
+}
+
 export const catalystCastRules = Object.freeze({
   availability: {
     id: "elementalist.catalyst-availability",
@@ -469,6 +585,9 @@ export const catalystSchedulerHooks = Object.freeze({
   },
   taskHandlers: Object.freeze({
     [CATALYST_ENERGY_HIT_TASK]: handleCatalystEnergyHit,
+    [CATALYST_EMPOWERMENT_TASK]: handleCatalystEmpowerment,
+    [CATALYST_BASE_EMPOWERMENT_TASK]: handleBaseEmpowerment,
+    [CATALYST_VICIOUS_EMPOWERMENT_TASK]: handleViciousEmpowerment,
   }),
   onCastComplete: {
     id: "elementalist.catalyst-complete",

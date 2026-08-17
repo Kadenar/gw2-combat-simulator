@@ -10,7 +10,11 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  * `necromancerMinionSkillHandlers`.
  */
 import { NECROMANCER_TRAIT_IDS as TRAIT } from "../data/ids.js";
-import { NECROMANCER_CORE_MECHANICS as MECHANICS } from "./mechanics.js";
+import {
+  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  NECROMANCER_MINION_PROFILE_BY_SKILL_ID,
+  necromancerBalanceProfile,
+} from "./profiles.js";
 import {
   emitCondition,
   emitControl,
@@ -23,6 +27,7 @@ import {
 import type {
   ScheduledTask,
   SchedulerRecord,
+  SkillEffect,
   SkillId,
 } from "../../../platform/engine/types.js";
 import type { NecromancerCastContext, NecromancerSkill } from "../types.js";
@@ -75,12 +80,6 @@ interface MinionCommandDefinition {
   readonly attacks?: readonly MinionAttack[];
 }
 
-const MINIONS = MECHANICS.minions as unknown as Readonly<
-  Record<SkillId, MinionDefinition>
->;
-const COMMANDS = MECHANICS.minionCommands as unknown as Readonly<
-  Record<SkillId, MinionCommandDefinition>
->;
 const MINION_COMMAND_IMPACT_TASK = "necromancer.minion-command-impact";
 const MINION_ATTACK_TASK = "necromancer.minion-attack";
 const MINION_ATTACK_STOP_TASK = "necromancer.minion-attack-stop";
@@ -118,8 +117,154 @@ function queueMinionAttackStop(
   });
 }
 
-function minionDefinitionFor(key: string): MinionDefinition | undefined {
-  return Object.values(MINIONS).find((definition) => definition.key === key);
+function minionAttackFromEffect(
+  effect: SkillEffect,
+  fallbackName: string,
+): MinionAttack {
+  return {
+    name: String(effect.name || fallbackName),
+    coefficient: Number(effect.coefficient || 0),
+    offset: Number(effect.atMs || 0) / 1000,
+    skillId: effect.sourceId,
+    icon: effect.icon == null ? undefined : String(effect.icon),
+    damagePerCoefficient:
+      effect.damagePerCoefficient == null
+        ? undefined
+        : Number(effect.damagePerCoefficient),
+    comboFinishers: effect.comboFinishers,
+  };
+}
+
+function minionDefinitionForSkill(
+  context: NecromancerCastContext,
+  skillId: SkillId,
+): MinionDefinition | undefined {
+  const profileId = NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skillId)];
+  const profile = necromancerBalanceProfile(context, profileId);
+  if (!profile) return undefined;
+  const strikes = (profile.effects || []).filter(
+    (effect) => effect.type === "strike",
+  );
+  const ordinary = strikes.filter(
+    (effect) => effect.packetLabel !== "alternate",
+  );
+  const alternate = strikes.filter(
+    (effect) => effect.packetLabel === "alternate",
+  );
+  const alternateCondition = (profile.effects || []).find(
+    (effect) =>
+      effect.type === "condition" && effect.packetLabel === "alternate",
+  );
+  const toAttack = (effect: SkillEffect): MinionAttack => ({
+    ...minionAttackFromEffect(effect, profile.name),
+    ...(alternateCondition
+      ? {
+          condition: [
+            String(alternateCondition.condition || ""),
+            Number(alternateCondition.stacks || 1),
+            Number(alternateCondition.duration || 0),
+          ],
+        }
+      : {}),
+  });
+  return {
+    key: String(profile.minionKey || ""),
+    count: Number(profile.minionCount || 1),
+    interval: Number(profile.pulseInterval || 0),
+    initialDelay:
+      profile.initialDelay == null ? undefined : Number(profile.initialDelay),
+    coefficient: Number(ordinary[0]?.coefficient || 0),
+    commandId: profile.commandId as SkillId | undefined,
+    weaponStrength:
+      profile.weaponStrength == null
+        ? undefined
+        : Number(profile.weaponStrength),
+    basePower: Number(profile.basePower || 0),
+    damagePerCoefficient: Number(profile.damagePerCoefficient || 0),
+    criticalChance: Number(profile.criticalChance || 0),
+    criticalDamage: Number(profile.criticalDamage || 0),
+    commandRecoveryDelay:
+      profile.rechargeOffsetMs == null
+        ? undefined
+        : Number(profile.rechargeOffsetMs) / 1000,
+    attacks: ordinary.map(toAttack),
+    alternateEvery: Number(profile.alternateEvery || 0),
+    alternateAttacks: alternate.map(toAttack),
+  };
+}
+
+function minionDefinitionFor(
+  context: NecromancerCastContext,
+  key: string,
+): MinionDefinition | undefined {
+  for (const skillId of Object.keys(NECROMANCER_MINION_PROFILE_BY_SKILL_ID)) {
+    const definition = minionDefinitionForSkill(context, Number(skillId));
+    if (definition?.key === key) return definition;
+  }
+  return undefined;
+}
+
+function summonWeaponStrength(context: NecromancerCastContext): number {
+  return Number(
+    necromancerBalanceProfile(context, PROFILE.summonAttributes)
+      ?.weaponStrength || 1048,
+  );
+}
+
+function commandDefinitionFor(
+  skill: NecromancerSkill,
+): MinionCommandDefinition {
+  const effects = skill.effects || [];
+  const strike = effects.find(
+    (effect) => effect.type === "strike" && !Array.isArray(effect.ticks),
+  );
+  const tickStrike = effects.find(
+    (effect) => effect.type === "strike" && Array.isArray(effect.ticks),
+  );
+  const ticks = Array.isArray(tickStrike?.ticks) ? tickStrike.ticks : [];
+  const attacks: MinionAttack[] = ticks.map((tick) => ({
+    name: String(tick.name || skill.name),
+    coefficient: Number(tick.coefficient || 0),
+    offset: Number(tick.atMs || 0) / 1000,
+    skillId: tick.sourceId as SkillId | undefined,
+    comboFinishers: Array.isArray(tick.comboFinishers)
+      ? tick.comboFinishers
+      : undefined,
+    controlKind: String(tick.controlKind || ""),
+    controlDuration: Number(tick.controlDuration || 0),
+  }));
+  const conditions = effects
+    .filter((effect) => effect.type === "condition")
+    .map((effect) =>
+      Object.freeze([
+        String(effect.condition || ""),
+        Number(effect.stacks || 1),
+        Number(effect.duration || 0),
+      ]),
+    );
+  const controlEffect = effects.find(
+    (effect) => effect.type === "control" || effect.type === "blind",
+  );
+  const controlMetadata = controlEffect?.metadata || {};
+  return {
+    minion: String(skill.minionKey || ""),
+    coefficient: Number(strike?.coefficient || 0),
+    conditions,
+    control: String(
+      controlEffect?.type === "blind"
+        ? "blind"
+        : controlMetadata.controlKind || attacks[0]?.controlKind || "",
+    ),
+    controlDuration: Number(
+      controlMetadata.duration || attacks[0]?.controlDuration || 0,
+    ),
+    controlWindow: Number(skill.controlWindow || 0),
+    blindDuration: Number(controlMetadata.duration || 0),
+    impactDelay: Number(skill.impactDelay || 0),
+    consumes: Number(skill.consumes || 0),
+    lifeForceGain: Number(skill.lifeForceOnHit || 0),
+    attacks,
+  };
 }
 
 function summonStrikeMetadata(
@@ -196,12 +341,14 @@ function handleMinionAttack(
   const payload = task.payload;
   if (!payload) return;
   const skill = context.catalog.skillsById.get(payload.skillId);
-  const definition = skill ? MINIONS[skill.id] : undefined;
+  const definition = skill
+    ? minionDefinitionForSkill(context, skill.id)
+    : undefined;
   if (!skill || !definition || definition.key !== payload.minionKey) return;
 
   const defaultAttacks = definition.attacks || [
     {
-      name: `${skill.name} — Minion Attack`,
+      name: `${skill.name} - Minion Attack`,
       coefficient: definition.coefficient,
       offset: 0,
     },
@@ -247,7 +394,7 @@ function handleMinionAttack(
               weaponStrength:
                 attack.weaponStrength ??
                 definition.weaponStrength ??
-                MECHANICS.summonWeaponStrength,
+                summonWeaponStrength(context),
             }),
         requiresMinion: definition.key,
         requiresMinionIndex: index,
@@ -291,7 +438,7 @@ function queueMinionCommandAttacks(
   skill: NecromancerSkill,
   definition: MinionCommandDefinition,
 ): void {
-  const minion = minionDefinitionFor(definition.minion);
+  const minion = minionDefinitionFor(context, definition.minion);
   if (!minion || !definition.attacks?.length) return;
   const state = professionCoreState(context);
   const generation = Number(state.minionGenerations[minion.key] || 0);
@@ -324,7 +471,7 @@ function queueMinionCommandAttacks(
               weaponStrength:
                 attack.weaponStrength ??
                 minion.weaponStrength ??
-                MECHANICS.summonWeaponStrength,
+                summonWeaponStrength(context),
             }),
         requiresMinion: minion.key,
         requiresMinionIndex: index,
@@ -344,7 +491,7 @@ function summonMinion(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): boolean {
-  const definition = MINIONS[skill.id];
+  const definition = minionDefinitionForSkill(context, skill.id);
   if (!definition) return false;
   const state = professionCoreState(context);
   state.activeMinions[definition.key] = definition.count;
@@ -379,7 +526,7 @@ function emitMinionCommandEffects(
   definition: MinionCommandDefinition,
   at: number,
 ): void {
-  const minion = minionDefinitionFor(definition.minion);
+  const minion = minionDefinitionFor(context, definition.minion);
   if (Number(definition.coefficient || 0) > 0) {
     emitDamage(context, skill, Number(definition.coefficient), {
       at,
@@ -433,7 +580,7 @@ function restartMinionAttacks(
   skill: NecromancerSkill,
   definition: MinionCommandDefinition,
 ): void {
-  const minion = minionDefinitionFor(definition.minion);
+  const minion = minionDefinitionFor(context, definition.minion);
   if (!minion || !Number.isFinite(Number(minion.commandRecoveryDelay))) return;
   const state = professionCoreState(context);
   const previousAnchor = Number(
@@ -471,8 +618,8 @@ function minionCommand(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): boolean {
-  const definition = COMMANDS[skill.id];
-  if (!definition) return false;
+  const definition = commandDefinitionFor(skill);
+  if (!definition.minion) return false;
   restartMinionAttacks(context, skill, definition);
   const impactDelay = Math.max(0, Number(definition.impactDelay || 0));
   if (definition.attacks?.length) {
@@ -547,7 +694,7 @@ function handleMinionCommandImpact(
 ): void {
   if (!task.payload) return;
   const skill = context.catalog.skillsById.get(task.payload.skillId);
-  const definition = COMMANDS[task.payload.skillId];
+  const definition = skill ? commandDefinitionFor(skill) : undefined;
   if (
     !skill ||
     !definition ||
@@ -572,21 +719,26 @@ function summonMadness(
   skill: NecromancerSkill,
 ): boolean {
   const start = context.effectiveEnd;
-  const madness = MECHANICS.summonMadness;
-  for (let index = 0; index < madness.summons; index += 1) {
-    const summonAt = start + index * madness.summonInterval;
+  const attack = skill.effects?.find(
+    (effect) => effect.type === "strike" && effect.packetLabel === "attack",
+  );
+  const explosion = skill.effects?.find(
+    (effect) => effect.type === "strike" && effect.packetLabel === "explosion",
+  );
+  for (let index = 0; index < Number(skill.summons || 0); index += 1) {
+    const summonAt = start + index * Number(skill.summonInterval || 0);
     runCreatureSummonReactions(context, skill, summonAt);
-    emitDamage(context, skill, madness.attack.coefficient, {
-      at: summonAt + madness.attack.delay,
-      name: "Unstable Horror — Attack",
+    emitDamage(context, skill, Number(attack?.coefficient || 0), {
+      at: summonAt + Number(attack?.atMs || 0) / 1000,
+      name: String(attack?.name || "Unstable Horror - Attack"),
       source: "Minion",
       sourceId: `unstable-horror.${index}`,
       actorType: "summon",
       metadata: { summonKind: "minion" },
     });
-    emitDamage(context, skill, madness.explosion.coefficient, {
-      at: summonAt + madness.explosion.delay,
-      name: "Unstable Horror — Explosion",
+    emitDamage(context, skill, Number(explosion?.coefficient || 0), {
+      at: summonAt + Number(explosion?.atMs || 0) / 1000,
+      name: String(explosion?.name || "Unstable Horror - Explosion"),
       source: "Minion",
       sourceId: `unstable-horror.${index}`,
       actorType: "summon",

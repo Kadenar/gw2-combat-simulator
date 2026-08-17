@@ -1,6 +1,6 @@
 # Balance Profile Profession Tracker
 
-Status: audit complete; implementation not started.
+Status: Necromancer complete; remaining profession implementations not started.
 
 Scope: bring every non-Revenant profession to the balance-preview model used by
 [Revenant](../js/professions/revenant/catalog-data.ts). Each profession below is
@@ -89,26 +89,26 @@ today: 0. Recommended first implementation.
 
 ### Tracked issues
 
-- [ ] `NEC-01` Add profile plumbing to
+- [x] `NEC-01` Add profile plumbing to
       [catalog-data.ts](../js/professions/necromancer/catalog-data.ts) and all
       five modules.
-- [ ] `NEC-02` Split trait/mechanic values from castable, signet, minion, and
+- [x] `NEC-02` Split trait/mechanic values from castable, signet, minion, and
       summon values concentrated in
-      [core mechanics](../js/professions/necromancer/core/mechanics.ts).
-- [ ] `NEC-03` Profile Reaper chill, Scourge shades, Harbinger blight/elixirs,
+      [core profiles](../js/professions/necromancer/core/profiles.ts).
+- [x] `NEC-03` Profile Reaper chill, Scourge shades, Harbinger blight/elixirs,
       and Ritualist spirits/weapon spells.
-- [ ] `NEC-04` Make nine opaque modifier formulas authorable; replace or expose
+- [x] `NEC-04` Make nine opaque modifier formulas authorable; replace or expose
       imperative attribute changes in every module.
-- [ ] `NEC-05` Normalize minion commands, shades, elixirs, spirits, and weapon
+- [x] `NEC-05` Normalize minion commands, shades, elixirs, spirits, and weapon
       spells into skills or skill variants.
 
 ### Remediation steps
 
-- [ ] Migrate the centralized Core mechanics first, then each specialization.
-- [ ] Wire module profiles into the profession catalog.
-- [ ] Add tests for a minion, shade, blight skill, spirit, trait, and dynamic
+- [x] Migrate the centralized Core mechanics first, then each specialization.
+- [x] Wire module profiles into the profession catalog.
+- [x] Add tests for a minion, shade, blight skill, spirit, trait, and dynamic
       modifier.
-- [ ] Verify the shared completion contract.
+- [x] Verify the shared completion contract.
 
 ## Ranger
 
