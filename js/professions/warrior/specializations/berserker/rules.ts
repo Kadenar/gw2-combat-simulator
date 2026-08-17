@@ -8,7 +8,12 @@ import type {
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
 import type { WarriorCastContext } from "../../types.js";
+import {
+  warriorBalanceProfile,
+  WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
+} from "../../core/profiles.js";
 import { advanceBerserker } from "./mechanics.js";
+import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 import {
   finishBerserkerCast,
   handleKingOfFiresDetonationTask,
@@ -82,15 +87,24 @@ function modifyAttributes(
     conditionDamage: number;
   };
   if (active(context)) {
-    result.power += 300;
-    result.conditionDamage += 150;
+    const resources = warriorBalanceProfile(context, PROFILE.resources);
+    const powerBonus = Number(resources?.attributeBonus ?? 300);
+    result.power += powerBonus;
+    result.conditionDamage += Number(resources?.attributePerStack ?? 150);
     if (hasTrait(context, TRAIT.GREAT_FORTITUDE)) {
-      result.vitality = Number(result.vitality || 0) + 30;
-      result.ferocity += 30;
+      const conversion = Number(
+        warriorBalanceProfile(context, CORE_PROFILE.greatFortitude)
+          ?.attributeConversion ?? 0.1,
+      );
+      result.vitality = Number(result.vitality || 0) + powerBonus * conversion;
+      result.ferocity += powerBonus * conversion;
     }
   }
   if (hasTrait(context, TRAIT.BLOOD_REACTION)) {
-    const conversion = active(context) ? 0.24 : 0.12;
+    const profile = warriorBalanceProfile(context, PROFILE.bloodReaction);
+    const conversion = active(context)
+      ? Number(profile?.coefficientMultiplier ?? 0.24)
+      : Number(profile?.attributeConversion ?? 0.12);
     result.ferocity += conversionPrecision * conversion;
     result.conditionDamage += conversionPower * conversion;
   }
@@ -125,7 +139,11 @@ function modifyCastDuration(
 ): number {
   return berserkerState.from(context).berserkActive &&
     !context.hasBuff("quickness", context.start)
-    ? duration / 1.15
+    ? duration /
+        Number(
+          warriorBalanceProfile(context, PROFILE.resources)
+            ?.quicknessCastMultiplier ?? 1.15,
+        )
     : duration;
 }
 

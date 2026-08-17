@@ -1228,6 +1228,37 @@ test("canonical strike timelines reject invalid or ambiguous hits", () => {
   );
 });
 
+test("canonical effects allow negative offsets only from cast end", () => {
+  const effect = {
+    type: "strike",
+    coefficient: 1,
+    hits: 1,
+    atMs: -40,
+    timingAnchor: "castEnd",
+    timingScale: "fixed",
+  };
+  const catalog = createCanonicalCatalog({
+    generated: [
+      { id: 930025, name: "Cast-End Offset Fixture", effects: [effect] },
+    ],
+  });
+
+  assert.equal(catalog.skillsById.get(930025).effects[0].atMs, -40);
+  assert.throws(
+    () =>
+      createCanonicalCatalog({
+        generated: [
+          {
+            id: 930025,
+            name: "Cast-Start Offset Fixture",
+            effects: [{ ...effect, timingAnchor: "castStart" }],
+          },
+        ],
+      }),
+    /may only be negative when anchored to castEnd/,
+  );
+});
+
 test("canonical condition timelines reject invalid or ambiguous applications", () => {
   const skillWithTicks = (ticks) => ({
     id: 930026,

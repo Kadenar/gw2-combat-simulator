@@ -16,6 +16,20 @@ import type {
   WarriorSimulationEvent,
   WarriorSkill,
 } from "../types.js";
+import {
+  warriorBalanceProfile,
+  warriorBalanceProfileEffect,
+  WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE,
+} from "./profiles.js";
+
+function burstTier(context: WarriorCastContext, spent: number): number {
+  const tiers = warriorBalanceProfile(context, PROFILE.burstTiers);
+  return spent >= Number(tiers?.maximumStacks || 30)
+    ? 3
+    : spent >= Number(tiers?.threshold || 20)
+      ? 2
+      : 1;
+}
 
 function afterResourceSkill(
   context: WarriorCastContext,
@@ -48,8 +62,16 @@ function adjustResourceSkillEffect(
     event.type === "condition" &&
     event.condition === "Bleeding"
   ) {
-    const tier = spent >= 30 ? 3 : spent >= 20 ? 2 : 1;
-    context.replaceEvent(event, { stacks: tier * 3 });
+    const tier = burstTier(context, spent);
+    const bleeding = warriorBalanceProfileEffect(
+      warriorBalanceProfile(context, PROFILE.bloodthirsterTiers),
+      "condition",
+      tier - 1,
+    );
+    context.replaceEvent(event, {
+      stacks: Number(bleeding?.stacks || tier * 3),
+      duration: Number(bleeding?.duration || event.duration),
+    });
   }
   if (
     skill.id !== ID.EVISCERATE ||
@@ -58,9 +80,19 @@ function adjustResourceSkillEffect(
   ) {
     return;
   }
+  const tier = burstTier(context, spent);
+  const variantId = [
+    PROFILE.eviscerateTier1,
+    PROFILE.eviscerateTier2,
+    PROFILE.eviscerateTier3,
+  ][tier - 1];
+  const strike = warriorBalanceProfileEffect(
+    warriorBalanceProfile(context, variantId),
+    "strike",
+  );
   context.replaceEvent(event, {
-    coefficient: spent >= 30 ? 3 : spent >= 20 ? 2.5 : 2,
-    name: `Eviscerate — Level ${spent >= 30 ? 3 : spent >= 20 ? 2 : 1} Damage`,
+    coefficient: Number(strike?.coefficient || [2, 2.5, 3][tier - 1]),
+    name: `Eviscerate — Level ${tier} Damage`,
   });
 }
 
@@ -69,19 +101,24 @@ function useCombustiveShot(
   skill: WarriorSkill,
 ): void {
   const resource = afterResourceSkill(context, skill);
-  const tier = resource.spent >= 30 ? 3 : resource.spent >= 20 ? 2 : 1;
+  const tier = burstTier(context, resource.spent);
   const pulses = tier + 1;
+  const profile = warriorBalanceProfile(context, PROFILE.combustiveShot);
+  const strike = warriorBalanceProfileEffect(profile, "strike");
+  const burning = warriorBalanceProfileEffect(profile, "condition");
+  const interval = Number(profile?.pulseInterval || 3);
+  const durationPerTier = Number(profile?.durationPerTier || 3);
   const ownedField = skill.comboFields?.find(
     (field) => field.ownerId === "warrior",
   );
   context.replaceEvent(context.action, {
     burstTier: tier,
     ...(ownedField
-      ? { comboFields: [{ ...ownedField, duration: tier * 3 }] }
+      ? { comboFields: [{ ...ownedField, duration: tier * durationPerTier }] }
       : {}),
   });
   for (let pulse = 0; pulse < pulses; pulse += 1) {
-    const at = context.fullEnd + pulse * 3;
+    const at = context.fullEnd + pulse * interval;
     const damage = context.emit({
       type: "damage",
       at,
@@ -91,7 +128,7 @@ function useCombustiveShot(
       skillId: skill.id,
       skillName: skill.name,
       name: `${skill.name} - Level ${tier} Damage`,
-      coefficient: 0.5,
+      coefficient: Number(strike?.coefficient || 0.5),
       hits: 1,
       hitIndex: pulse + 1,
       totalHits: pulses,
@@ -118,9 +155,9 @@ function useCombustiveShot(
       skillId: skill.id,
       skillName: skill.name,
       name: `${skill.name} - Burning`,
-      condition: "Burning",
-      stacks: 1,
-      duration: 5,
+      condition: String(burning?.condition || "Burning"),
+      stacks: Number(burning?.stacks || 1),
+      duration: Number(burning?.duration || 5),
       applicationIndex: pulse + 1,
       totalApplications: pulses,
       persistsAfterInterrupt: true,
@@ -192,9 +229,13 @@ function consumeDragonRoarAmmo(
   skill: WarriorSkill,
 ): void {
   const bullets = Math.max(1, Number(context.ammo?.charges || 1));
+  const profile = warriorBalanceProfile(context, PROFILE.dragonsRoar);
+  const strike = warriorBalanceProfileEffect(profile, "strike");
   const castDuration = Math.max(0, context.effectiveEnd - context.start);
-  const firstBulletAt = context.start + (castDuration * 6) / 7;
-  const bulletInterval = (castDuration * 2) / 7;
+  const firstBulletAt =
+    context.start + castDuration * Number(profile?.firstPacketRatio || 6 / 7);
+  const bulletInterval =
+    castDuration * Number(profile?.packetIntervalRatio || 2 / 7);
   if (context.state.profession.specialization.kind === "Bladesworn") {
     const state = context.state.profession.specialization.state;
     state.ammoRoundsSpentByActivation[context.reservationId] = bullets;
@@ -217,7 +258,7 @@ function consumeDragonRoarAmmo(
       skillId: skill.id,
       skillName: skill.name,
       name: "Dragon's Roar — Damage per Bullet",
-      coefficient: 0.75,
+      coefficient: Number(strike?.coefficient || 0.75),
       hits: 1,
       hitIndex,
       totalHits: bullets,
@@ -232,7 +273,10 @@ function performWarriorDodge(
   skill: WarriorSkill,
 ): boolean {
   const state = professionCoreState(context);
-  state.endurance = Math.max(0, state.endurance - 50);
+  const cost = Number(
+    warriorBalanceProfile(context, PROFILE.resources)?.resourceCost || 50,
+  );
+  state.endurance = Math.max(0, state.endurance - cost);
   state.enduranceUpdatedAt = context.start;
   applyRecklessDodge(context, skill);
   return true;

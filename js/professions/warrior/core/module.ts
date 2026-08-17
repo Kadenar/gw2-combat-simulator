@@ -23,11 +23,13 @@ import {
   warriorCoreEventHandlers,
   warriorCoreEventReactions,
 } from "./resolver.js";
+import { WARRIOR_CORE_BALANCE_PROFILES } from "./profiles.js";
 
 export const warriorCoreModule = defineNativeModule({
   id: "Core",
   data: createWarriorModuleData("Core", {
     skillMechanics: WARRIOR_CORE_SKILL_MECHANICS,
+    balanceProfiles: WARRIOR_CORE_BALANCE_PROFILES,
     extraSkills: [WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS],
     handlers: warriorCoreSkillHandlers,
   }),

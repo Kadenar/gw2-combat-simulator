@@ -22,6 +22,11 @@ import type {
   GuardianSkill,
 } from "../../types.js";
 import { dragonhunterState } from "./state.js";
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 function targetHasCondition(
   context: Gw2ModifierContext,
@@ -90,8 +95,18 @@ export function advanceDragonhunterState(
     context,
     GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE,
   )
-    ? 30
-    : 40;
+    ? Number(
+        guardianBalanceProfile(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)
+          ?.pulseInterval || 30,
+      )
+    : Number(
+        guardianBalanceProfile(context, PROFILE.passiveCourage)
+          ?.pulseInterval || 40,
+      );
+  const aegis = guardianBalanceProfileEffect(
+    guardianBalanceProfile(context, PROFILE.passiveCourage),
+    "boon",
+  );
   const courage = context.catalog.skillsById.get(ID.SHIELD_OF_COURAGE);
   while (
     courage &&
@@ -116,8 +131,8 @@ export function advanceDragonhunterState(
         skillName: courage.name,
         name: "Shield of Courage — Passive Aegis",
         kind: "aegis",
-        stacks: 1,
-        duration: 20,
+        stacks: Number(aegis?.stacks || 1),
+        duration: Number(aegis?.duration || 20),
       });
     }
     state.nextShieldOfCourageAegisAt += interval;
@@ -135,13 +150,20 @@ export function updateDragonhunterCastState(
     const core = professionCoreState(context);
     // Endurance is applied directly to scheduler state (not via an emit) so
     // the dodge-availability check sees it immediately on the same advance tick.
-    core.endurance = Math.min(core.maximumEndurance, core.endurance + 100);
+    const endurance = Number(
+      guardianBalanceProfile(context, PROFILE.huntersDetermination)
+        ?.resourceGain || 100,
+    );
+    core.endurance = Math.min(
+      core.maximumEndurance,
+      core.endurance + endurance,
+    );
     core.enduranceUpdatedAt = context.effectiveEnd;
     emitGuardianProc(context, {
       name: "Hunter's Determination",
       at: context.effectiveEnd,
       sourceSkill: skill.name,
-      detail: "100 endurance",
+      detail: `${endurance} endurance`,
       icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.HUNTERS_DETERMINATION),
     });
   }
@@ -158,7 +180,17 @@ export function updateDragonhunterCastState(
   ) {
     // Hunter's Premonition fires on any trap cast, not just DH traps;
     // the "Trap" category tag on the skill definition is the only gate.
-    emitGuardianBuff(context, skill, context.effectiveEnd, "aegis", 3);
+    const aegis = guardianBalanceProfileEffect(
+      guardianBalanceProfile(context, PROFILE.huntersPremonition),
+      "boon",
+    );
+    emitGuardianBuff(
+      context,
+      skill,
+      context.effectiveEnd,
+      "aegis",
+      Number(aegis?.duration || 3),
+    );
   }
 }
 

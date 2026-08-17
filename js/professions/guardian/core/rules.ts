@@ -14,7 +14,6 @@ import type {
 import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
-  Gw2ResolvedStats,
 } from "../../../platform/gw2/types.js";
 import type {
   GuardianCastContext,
@@ -36,6 +35,10 @@ import {
 } from "./traits.js";
 import { validateVirtueCast } from "./virtues.js";
 import { updateWeaponCastState } from "./weapon-state.js";
+import {
+  GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  guardianBalanceProfile,
+} from "./profiles.js";
 
 export { snapshotGuardianState } from "./state.js";
 
@@ -188,74 +191,128 @@ export function guardianTargetDisabled(context: Gw2ModifierContext): boolean {
  * @param {Gw2ResolvedStats} attributes
  * @returns {Gw2ResolvedStats}
  */
-function modifyGuardianAttributes(
-  context: Gw2ModifierContext,
-  attributes: Gw2ResolvedStats,
-): Gw2ResolvedStats {
-  const result = { ...attributes };
-  const currentWeapon = activeWeapon(context);
-  const provenance = attributeProvenance(context.config);
-  const staticWeapon = provenance.calculatedPrimaryWeapon;
-  const staticApplied = provenance.professionStaticRulesApplied;
-  if (hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE)) {
-    if (staticApplied) {
-      result.power +=
-        (Number(currentWeapon === "Greatsword") -
-          Number(staticWeapon === "Greatsword")) *
-        120;
-    } else {
-      result.power += 120;
-      if (currentWeapon === "Greatsword") result.power += 120;
-    }
-  }
-  if (hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH)) {
-    if (staticApplied) {
-      result.power +=
-        (Number(isOneHandedWeapon(currentWeapon)) -
-          Number(isOneHandedWeapon(staticWeapon))) *
-        80;
-    } else {
-      result.precision += 80;
-      if (isOneHandedWeapon(currentWeapon)) result.power += 80;
-    }
-  }
-  if (!staticApplied && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER)) {
-    result.ferocity += 150;
-  }
-  if (
-    !staticApplied &&
-    hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
-  ) {
-    // Convert gear-only vitality (config.stats), excluding trait
-    // bonuses such as Force of Will / Defender's Dogma.
-    result.conditionDamage +=
-      Number(context.config?.stats?.vitality || 0) * 0.07;
-  }
-  if (selectedSkill(context, "Signet of Wrath")) {
-    const perfectInscriptions = hasTrait(
-      context,
-      GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS,
-    );
-    const passiveActive =
-      perfectInscriptions ||
-      !context.timeline?.skillOnCooldownAt(
-        GUARDIAN_SKILL_IDS.SIGNET_OF_WRATH,
-        context.time,
-      );
-    const amount = 180 * (perfectInscriptions ? 1.2 : 1);
-    if (staticApplied && !passiveActive) result.conditionDamage -= amount;
-    if (!staticApplied && passiveActive) result.conditionDamage += amount;
-  }
-  return result;
-}
-
 export const guardianCoreModifierRules: readonly Gw2ModifierRule[] =
   Object.freeze([
+    {
+      id: "guardian.zealous-blade-power",
+      label: "Zealous Blade",
+      target: MODIFIER_TARGET.ATTRIBUTE_POWER,
+      operation: "add",
+      parameters: { baseBonus: 120, greatswordBonus: 120 } as Readonly<
+        Record<string, number>
+      >,
+      amount: (context, _target, parameters) => {
+        const provenance = attributeProvenance(context.config);
+        const currentWeapon = activeWeapon(context);
+        return provenance.professionStaticRulesApplied
+          ? (Number(currentWeapon === "Greatsword") -
+              Number(provenance.calculatedPrimaryWeapon === "Greatsword")) *
+              parameters.greatswordBonus
+          : parameters.baseBonus +
+              Number(currentWeapon === "Greatsword") *
+                parameters.greatswordBonus;
+      },
+      when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE),
+    },
+    {
+      id: "guardian.right-hand-strength-precision",
+      label: "Right-Hand Strength",
+      target: MODIFIER_TARGET.ATTRIBUTE_PRECISION,
+      operation: "add",
+      parameters: { attributeBonus: 80 } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) =>
+        attributeProvenance(context.config).professionStaticRulesApplied
+          ? 0
+          : parameters.attributeBonus,
+      when: (context) =>
+        hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH),
+    },
+    {
+      id: "guardian.right-hand-strength-power",
+      label: "Right-Hand Strength",
+      target: MODIFIER_TARGET.ATTRIBUTE_POWER,
+      operation: "add",
+      parameters: { attributeBonus: 80 } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) => {
+        const provenance = attributeProvenance(context.config);
+        const currentWeapon = activeWeapon(context);
+        return provenance.professionStaticRulesApplied
+          ? (Number(isOneHandedWeapon(currentWeapon)) -
+              Number(isOneHandedWeapon(provenance.calculatedPrimaryWeapon))) *
+              parameters.attributeBonus
+          : Number(isOneHandedWeapon(currentWeapon)) *
+              parameters.attributeBonus;
+      },
+      when: (context) =>
+        hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH),
+    },
+    {
+      id: "guardian.radiant-power-ferocity",
+      label: "Radiant Power",
+      target: MODIFIER_TARGET.ATTRIBUTE_FEROCITY,
+      operation: "add",
+      parameters: { attributeBonus: 150 } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) =>
+        attributeProvenance(context.config).professionStaticRulesApplied
+          ? 0
+          : parameters.attributeBonus,
+      when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER),
+    },
+    {
+      id: "guardian.power-of-the-virtuous-condition-damage",
+      label: "Power of the Virtuous",
+      target: MODIFIER_TARGET.ATTRIBUTE_CONDITION_DAMAGE,
+      operation: "add",
+      parameters: { vitalityConversion: 0.07 } as Readonly<
+        Record<string, number>
+      >,
+      amount: (context, _target, parameters) =>
+        attributeProvenance(context.config).professionStaticRulesApplied
+          ? 0
+          : Number(context.config?.stats?.vitality || 0) *
+            parameters.vitalityConversion,
+      when: (context) =>
+        hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS),
+    },
+    {
+      id: "guardian.signet-of-wrath-condition-damage",
+      label: "Signet of Wrath",
+      target: MODIFIER_TARGET.ATTRIBUTE_CONDITION_DAMAGE,
+      operation: "add",
+      parameters: {
+        attributeBonus: 180,
+        perfectInscriptionsMultiplier: 1.2,
+      } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) => {
+        const perfectInscriptions = hasTrait(
+          context,
+          GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS,
+        );
+        const passiveActive =
+          perfectInscriptions ||
+          !context.timeline?.skillOnCooldownAt(
+            GUARDIAN_SKILL_IDS.SIGNET_OF_WRATH,
+            context.time,
+          );
+        const amount =
+          parameters.attributeBonus *
+          (perfectInscriptions ? parameters.perfectInscriptionsMultiplier : 1);
+        return attributeProvenance(context.config).professionStaticRulesApplied
+          ? passiveActive
+            ? 0
+            : -amount
+          : passiveActive
+            ? amount
+            : 0;
+      },
+      when: (context) => selectedSkill(context, "Signet of Wrath"),
+    },
     {
       id: "guardian.inspired-virtue",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
-      amount: (context) =>
+      parameters: { damagePerBoon: 0.005 } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) =>
         [
           "aegis",
           "alacrity",
@@ -269,7 +326,8 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] =
           "stability",
           "swiftness",
           "vigor",
-        ].filter((boon) => guardianBoonActive(context, boon)).length * 0.005,
+        ].filter((boon) => guardianBoonActive(context, boon)).length *
+        parameters.damagePerBoon,
       when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE),
     },
     {
@@ -344,11 +402,15 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] =
       id: "guardian.symbolic-avenger",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
-      amount: (context) =>
+      parameters: {
+        maximumStacks: 5,
+        damagePerStack: 0.01,
+      } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) =>
         Math.min(
-          5,
+          parameters.maximumStacks,
           Number(guardianRuntimeState(context).symbolicAvengerStacks || 0),
-        ) / 100,
+        ) * parameters.damagePerStack,
       when: (context) =>
         hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER) &&
         Number(guardianRuntimeState(context).symbolicAvengerUntil || 0) >
@@ -414,26 +476,38 @@ function modifyGuardianRechargeDuration(
     skill?.weapon === "Greatsword" &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE)
   ) {
-    result *= 0.8;
+    result *= Number(
+      guardianBalanceProfile(context, PROFILE.zealousBlade)
+        ?.rechargeMultiplier || 0.8,
+    );
   }
   if (
     skill?.weapon === "Torch" &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)
   ) {
-    result *= 0.8;
+    result *= Number(
+      guardianBalanceProfile(context, PROFILE.radiantFire)
+        ?.rechargeMultiplier || 0.8,
+    );
   }
   if (
     skill?.weapon === "Focus" &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.FOCUS_MASTERY)
   ) {
-    result *= 0.8;
+    result *= Number(
+      guardianBalanceProfile(context, PROFILE.focusMastery)
+        ?.rechargeMultiplier || 0.8,
+    );
   }
   if (
     skill?.categories?.includes("Virtue") &&
     /^Profession_[1-3]$/.test(String(skill.slot || "")) &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
   ) {
-    result *= 0.85;
+    result *= Number(
+      guardianBalanceProfile(context, PROFILE.powerOfTheVirtuous)
+        ?.rechargeMultiplier || 0.85,
+    );
   }
   return result;
 }
@@ -451,13 +525,21 @@ function modifyGuardianMaximumAmmo(
     context.skill?.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)
   ) {
-    result = Math.max(result, 2);
+    result = Math.max(
+      result,
+      Number(
+        guardianBalanceProfile(context, PROFILE.radiantFire)?.maximumStacks ||
+          2,
+      ),
+    );
   }
   if (
     context.skill?.categories?.includes("SpiritWeapon") &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.ETERNAL_ARMORY)
   ) {
-    result += 1;
+    result += Number(
+      guardianBalanceProfile(context, PROFILE.eternalArmory)?.resourceGain || 1,
+    );
   }
   return result;
 }
@@ -473,14 +555,20 @@ function modifyGuardianConditionBaseDuration(
       context.event?.skillId === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME) &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)
   ) {
-    result *= 1.5;
+    result *= Number(
+      guardianBalanceProfile(context, PROFILE.radiantFire)
+        ?.durationMultiplier || 1.5,
+    );
   }
   if (
     (context.sourceId === "guardian.justice-passive" ||
       context.event?.sourceId === "guardian.justice-passive") &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH)
   ) {
-    result *= 1.2;
+    result *= Number(
+      guardianBalanceProfile(context, PROFILE.amplifiedWrath)
+        ?.durationMultiplier || 1.2,
+    );
   }
   return result;
 }
@@ -506,7 +594,6 @@ function modifyGuardianCastDuration(
 }
 
 export const guardianCoreAttributeRules = Object.freeze({
-  modifyAttributes: modifyGuardianAttributes,
   modifyConditionBaseDuration: modifyGuardianConditionBaseDuration,
   modifierRules: guardianCoreModifierRules,
   compileModifierRules: compileGuardianModifierRules,

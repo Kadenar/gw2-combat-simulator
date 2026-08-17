@@ -6,6 +6,8 @@
  */
 import { ENGINEER_SKILL_IDS as ID } from "../data/ids.js";
 import type { Skill, SkillFragment } from "../../../platform/engine/types.js";
+
+export { ENGINEER_TURRET_ATTACK_SKILLS } from "./turrets.js";
 export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   Record<string, SkillFragment>
 > = Object.freeze({

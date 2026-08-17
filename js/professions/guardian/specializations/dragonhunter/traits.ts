@@ -1,7 +1,12 @@
 import { GUARDIAN_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { buildGuardianStrike } from "../../core/events.js";
 import { hasGuardianTrait } from "../../core/traits.js";
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect,
+} from "../../core/profiles.js";
 import type { GuardianCastContext, GuardianSkill } from "../../types.js";
+import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 export function applySoaringDevastation(
   context: GuardianCastContext,
@@ -10,6 +15,9 @@ export function applySoaringDevastation(
 ): void {
   if (!hasGuardianTrait(context, TRAIT.SOARING_DEVASTATION)) return;
   const at = context.effectiveEnd;
+  const profile = guardianBalanceProfile(context, PROFILE.soaringDevastation);
+  const strike = guardianBalanceProfileEffect(profile, "strike");
+  const immobilized = guardianBalanceProfileEffect(profile, "condition");
   // skillWeapon must come from the caller (resolved to the active weapon set)
   // because traits.ts has no direct access to config at emit time.
   context.emit(
@@ -19,7 +27,7 @@ export function applySoaringDevastation(
       skillId: skill.id,
       skillName: skill.name,
       name: "Wings of Resolve — Soaring Devastation",
-      coefficient: 1.5,
+      coefficient: Number(strike?.coefficient || 1.5),
       skillWeapon,
     }),
   );
@@ -32,9 +40,9 @@ export function applySoaringDevastation(
     skillId: skill.id,
     skillName: skill.name,
     name: "Soaring Devastation — Immobilized",
-    condition: "Immobilized",
-    stacks: 1,
-    duration: 3,
+    condition: String(immobilized?.condition || "Immobilized"),
+    stacks: Number(immobilized?.stacks || 1),
+    duration: Number(immobilized?.duration || 3),
   });
 }
 
@@ -43,5 +51,10 @@ export function bigGameHunterTetherDuration(
 ): number {
   // Big Game Hunter doubles tether duration (6 → 12s) and is also what
   // unlocks the target-vulnerability buff and the passive Crippled in the resolver.
-  return hasGuardianTrait(context, TRAIT.BIG_GAME_HUNTER) ? 12 : 6;
+  return hasGuardianTrait(context, TRAIT.BIG_GAME_HUNTER)
+    ? Number(
+        guardianBalanceProfile(context, PROFILE.bigGameHunter)?.pulseInterval ||
+          12,
+      )
+    : 6;
 }

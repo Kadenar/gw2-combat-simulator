@@ -13,12 +13,14 @@ import {
 } from "./rules.js";
 import { HOLOSMITH_SKILL_MECHANICS } from "./skills.js";
 import { holosmithState } from "./state.js";
+import { HOLOSMITH_BALANCE_PROFILES } from "./profiles.js";
 import { bindHolosmithUi } from "./ui.js";
 
 export const holosmithModule = defineNativeModule({
   id: "Holosmith",
   data: createEngineerModuleData("Holosmith", {
     skillMechanics: HOLOSMITH_SKILL_MECHANICS,
+    balanceProfiles: HOLOSMITH_BALANCE_PROFILES,
     handlers: holosmithSkillHandlers,
   }),
   // Scheduler and resolver share the same state factory so heat values are consistent

@@ -1,7 +1,12 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { ENGINEER_SKILL_IDS as ID } from "../data/ids.js";
 import { emitEngineerState } from "./events.js";
-import type { SchedulerRecord, SkillId } from "../../../platform/engine/types.js";
+import type {
+  SchedulerRecord,
+  Skill,
+  SkillEffect,
+  SkillId,
+} from "../../../platform/engine/types.js";
 import type {
   EngineerCastContext,
   EngineerScheduledTask,
@@ -9,45 +14,101 @@ import type {
   EngineerSkill,
 } from "../types.js";
 
-interface TurretProfile {
-  readonly name: string;
-  readonly coefficient: number;
-  readonly interval: number;
-  readonly condition?: string;
-  readonly conditionDuration?: number;
-}
-
 interface TurretAttackPayload extends SchedulerRecord {
   readonly skillId: number;
   readonly attackIndex: number;
 }
 
-const TURRET_PROFILES: Readonly<Record<number, TurretProfile>> = Object.freeze({
-  [ID.RIFLE_TURRET]: {
-    name: "Rifle Turret",
-    coefficient: 0.75,
-    interval: 2,
-  },
-  [ID.FLAME_TURRET]: {
-    name: "Flame Turret",
-    coefficient: 0.2,
-    interval: 3,
-    condition: "Burning",
-    conditionDuration: 2,
-  },
-  [ID.THUMPER_TURRET]: {
-    name: "Thumper Turret",
-    coefficient: 1,
-    interval: 3,
-    condition: "Crippled",
-    conditionDuration: 3,
-  },
-  [ID.ROCKET_TURRET]: {
-    name: "Rocket Turret",
-    coefficient: 2.25,
-    interval: 4,
-  },
+export const ENGINEER_TURRET_ATTACK_SKILL_IDS = Object.freeze({
+  rifle: "engineer.turret.rifle.attack",
+  flame: "engineer.turret.flame.attack",
+  thumper: "engineer.turret.thumper.attack",
+  rocket: "engineer.turret.rocket.attack",
 });
+
+const turretAttack = (
+  id: string,
+  name: string,
+  cooldown: number,
+  coefficient: number,
+  condition?: string,
+  conditionDuration?: number,
+): Skill => ({
+  id,
+  name: `${name} Attack`,
+  description: `Autonomous attack performed by ${name}.`,
+  type: "Profession",
+  slot: "Action",
+  categories: ["Turret", "Summon"],
+  castTimeMs: 0,
+  cooldown,
+  ammo: 5,
+  implemented: true,
+  simulatorExcluded: true,
+  slotSelectable: false,
+  effects: [
+    {
+      type: "strike",
+      coefficient,
+      hits: 1,
+      name,
+      actorType: "summon",
+    },
+    ...(condition
+      ? [
+          {
+            type: "condition" as const,
+            condition,
+            stacks: 1,
+            duration: Number(conditionDuration || 0),
+            name: `${name} — ${condition}`,
+            actorType: "summon" as const,
+          },
+        ]
+      : []),
+  ],
+});
+
+export const ENGINEER_TURRET_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
+  turretAttack(ENGINEER_TURRET_ATTACK_SKILL_IDS.rifle, "Rifle Turret", 2, 0.75),
+  turretAttack(
+    ENGINEER_TURRET_ATTACK_SKILL_IDS.flame,
+    "Flame Turret",
+    3,
+    0.2,
+    "Burning",
+    2,
+  ),
+  turretAttack(
+    ENGINEER_TURRET_ATTACK_SKILL_IDS.thumper,
+    "Thumper Turret",
+    3,
+    1,
+    "Crippled",
+    3,
+  ),
+  turretAttack(
+    ENGINEER_TURRET_ATTACK_SKILL_IDS.rocket,
+    "Rocket Turret",
+    4,
+    2.25,
+  ),
+]);
+
+const TURRET_ATTACK_SKILL_BY_DEPLOYMENT: Readonly<Record<number, SkillId>> =
+  Object.freeze({
+    [ID.RIFLE_TURRET]: ENGINEER_TURRET_ATTACK_SKILL_IDS.rifle,
+    [ID.FLAME_TURRET]: ENGINEER_TURRET_ATTACK_SKILL_IDS.flame,
+    [ID.THUMPER_TURRET]: ENGINEER_TURRET_ATTACK_SKILL_IDS.thumper,
+    [ID.ROCKET_TURRET]: ENGINEER_TURRET_ATTACK_SKILL_IDS.rocket,
+  });
+
+function attackEffect(
+  skill: Skill,
+  type: SkillEffect["type"],
+): SkillEffect | undefined {
+  return skill.effects?.find((effect) => effect.type === type);
+}
 
 // consistent ownerId format lets consumeFlip's cancelOwner call stop all pending attacks in one call
 export function turretOwnerId(skillId: SkillId): string {
@@ -59,9 +120,7 @@ export function deployEngineerTurret(
   skill: EngineerSkill,
 ): void {
   const at = context.effectiveEnd;
-  const flipSkillId = Number(
-    skill.paletteFlipSkillId ?? skill.flipSkillId,
-  );
+  const flipSkillId = Number(skill.paletteFlipSkillId ?? skill.flipSkillId);
   if (Number.isFinite(flipSkillId)) {
     professionCoreState(context).availableFlips[flipSkillId] = true;
   }
@@ -80,7 +139,7 @@ export function deployEngineerTurret(
       duration: 3,
     });
   }
-  if (TURRET_PROFILES[Number(skill.id)]) {
+  if (TURRET_ATTACK_SKILL_BY_DEPLOYMENT[Number(skill.id)]) {
     // schedule the first attack; each attack task schedules the next up to the 5-attack max
     context.tasks.schedule({
       type: "engineer.turret-attack",
@@ -101,9 +160,14 @@ export function handleEngineerTurretAttack(
 ): void {
   if (!task.payload) return;
   const skillId = Number(task.payload.skillId);
-  const profile = TURRET_PROFILES[skillId];
-  if (!profile) return;
+  const attackSkillId = TURRET_ATTACK_SKILL_BY_DEPLOYMENT[skillId];
+  const attackSkill = context.catalog.skillsById.get(attackSkillId);
+  if (!attackSkill) return;
+  const strike = attackEffect(attackSkill, "strike");
+  if (!strike) return;
   const attackIndex = Number(task.payload.attackIndex || 1);
+  const maximumAttacks = Number(attackSkill.ammo || 1);
+  const attackName = String(strike.name || attackSkill.name);
   context.emit({
     type: "damage",
     at: task.at,
@@ -112,15 +176,17 @@ export function handleEngineerTurretAttack(
     // summon actorType prevents player-only trait procs (e.g. Explosive Entrance) from firing
     actorType: "summon",
     skillId,
-    skillName: profile.name,
-    name: profile.name,
-    coefficient: profile.coefficient,
+    skillName: attackName,
+    name: attackName,
+    coefficient: Number(strike.coefficient || 0),
     hits: 1,
     hitIndex: attackIndex,
-    totalHits: 5,
+    totalHits: maximumAttacks,
     skillWeapon: "Unequipped",
   });
-  if (profile.condition) {
+  const condition = attackEffect(attackSkill, "condition");
+  const profile = { name: attackName, condition: condition?.condition };
+  if (condition) {
     context.emit({
       type: "condition",
       at: task.at,
@@ -128,18 +194,18 @@ export function handleEngineerTurretAttack(
       sourceId: skillId,
       actorType: "summon",
       skillId,
-      skillName: profile.name,
+      skillName: attackName,
       name: `${profile.name} — ${profile.condition}`,
-      condition: profile.condition,
-      stacks: 1,
-      duration: Number(profile.conditionDuration || 0),
+      condition: condition.condition,
+      stacks: Number(condition.stacks || 1),
+      duration: Number(condition.duration || 0),
     });
   }
   // 5 attacks per deployment — stop scheduling after the last one
-  if (attackIndex >= 5) return;
+  if (attackIndex >= maximumAttacks) return;
   context.tasks.schedule({
     type: "engineer.turret-attack",
-    at: task.at + profile.interval,
+    at: task.at + Number(attackSkill.cooldown || 0),
     ownerId: turretOwnerId(skillId),
     payload: {
       skillId,

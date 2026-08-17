@@ -5,9 +5,10 @@ import type {
   WarriorSchedulerContext,
   WarriorSkill,
 } from "../types.js";
-
-const WARRIOR_ENDURANCE_PER_SECOND = 5;
-const WARRIOR_VIGOR_REGENERATION_BONUS = 0.5;
+import {
+  warriorBalanceProfile,
+  WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE,
+} from "./profiles.js";
 
 function warriorEnduranceRegenerationRate(
   context: WarriorSchedulerContext,
@@ -16,10 +17,10 @@ function warriorEnduranceRegenerationRate(
   const vigor = Boolean(
     context.config.boons?.vigor || context.hasBuff?.("vigor", at),
   );
-  return (
-    WARRIOR_ENDURANCE_PER_SECOND *
-    (1 + (vigor ? WARRIOR_VIGOR_REGENERATION_BONUS : 0))
-  );
+  const resources = warriorBalanceProfile(context, PROFILE.resources);
+  const base = Number(resources?.enduranceRegenerationPerSecond || 5);
+  const vigorMultiplier = Number(resources?.vigorRegenerationMultiplier || 1.5);
+  return base * (vigor ? vigorMultiplier : 1);
 }
 
 export function advanceWarriorResources(

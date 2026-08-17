@@ -675,6 +675,10 @@ pre {
   text-align: left;
 }
 
+.patch-skill-option > span:only-child {
+  grid-column: 1 / -1;
+}
+
 .patch-skill-option:hover,
 .patch-skill-option.is-selected {
   border-color: var(--border-strong);

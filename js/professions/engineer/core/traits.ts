@@ -7,6 +7,11 @@ import {
 import { hasEngineerTrait } from "./state.js";
 import { emitEngineerState } from "./events.js";
 import {
+  ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  engineerBalanceEffectValue,
+  engineerBalanceValue,
+} from "./profiles.js";
+import {
   applyCondition,
   procState,
   queueBuff,
@@ -141,15 +146,31 @@ function applyGrenadier(
     at + context.epsilon < Number(state.traitProcReadyAt.grenadier || 0)
   )
     return;
-  state.traitProcReadyAt.grenadier = at + 20;
-  for (let hitIndex = 1; hitIndex <= 6; hitIndex += 1) {
+  state.traitProcReadyAt.grenadier =
+    at +
+    engineerBalanceValue(context, PROFILE.grenadier, "internalCooldown", 20);
+  const hits = engineerBalanceEffectValue(
+    context,
+    PROFILE.grenadier,
+    "strike",
+    "hits",
+    6,
+  );
+  const coefficient = engineerBalanceEffectValue(
+    context,
+    PROFILE.grenadier,
+    "strike",
+    "coefficient",
+    0.5,
+  );
+  for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
     emitTraitDamage(context, skill, {
       name: "Lesser Grenade Barrage",
-      coefficient: 0.5,
+      coefficient,
       sourceId: TRAIT.GRENADIER,
       at,
       hitIndex,
-      totalHits: 6,
+      totalHits: hits,
       explosion: true,
     });
   }
@@ -168,16 +189,41 @@ function applyStreamlinedKits(
     at + context.epsilon < Number(state.traitProcReadyAt.streamlinedKits || 0)
   )
     return;
-  state.traitProcReadyAt.streamlinedKits = at + 20;
-  emitBuff(context, skill, "swiftness", 20, {
-    at,
-    sourceId: TRAIT.STREAMLINED_KITS,
-    name: "Streamlined Kits — swiftness",
-  });
+  state.traitProcReadyAt.streamlinedKits =
+    at +
+    engineerBalanceValue(
+      context,
+      PROFILE.streamlinedKits,
+      "internalCooldown",
+      20,
+    );
+  emitBuff(
+    context,
+    skill,
+    "swiftness",
+    engineerBalanceEffectValue(
+      context,
+      PROFILE.streamlinedKits,
+      "boon",
+      "duration",
+      20,
+    ),
+    {
+      at,
+      sourceId: TRAIT.STREAMLINED_KITS,
+      name: "Streamlined Kits — swiftness",
+    },
+  );
   if ((skill.kitName || skill.name) === "Grenade Kit") {
     emitTraitDamage(context, skill, {
       name: "Drop Mine",
-      coefficient: 1.75,
+      coefficient: engineerBalanceEffectValue(
+        context,
+        PROFILE.streamlinedKits,
+        "strike",
+        "coefficient",
+        1.75,
+      ),
       sourceId: TRAIT.STREAMLINED_KITS,
       at,
       explosion: true,
@@ -194,17 +240,35 @@ function applyToolbeltTraits(
   const state = professionCoreState(context);
 
   if (hasEngineerTrait(context.config, TRAIT.OPTIMIZED_ACTIVATION)) {
-    emitBuff(context, skill, "vigor", 4, {
-      at,
-      sourceId: TRAIT.OPTIMIZED_ACTIVATION,
-      name: "Optimized Activation — vigor",
-    });
+    emitBuff(
+      context,
+      skill,
+      "vigor",
+      engineerBalanceEffectValue(
+        context,
+        PROFILE.optimizedActivation,
+        "boon",
+        "duration",
+        4,
+      ),
+      {
+        at,
+        sourceId: TRAIT.OPTIMIZED_ACTIVATION,
+        name: "Optimized Activation — vigor",
+      },
+    );
   }
 
   if (hasEngineerTrait(context.config, TRAIT.STATIC_DISCHARGE)) {
     emitTraitDamage(context, skill, {
       name: "Static Discharge",
-      coefficient: 0.33,
+      coefficient: engineerBalanceEffectValue(
+        context,
+        PROFILE.staticDischarge,
+        "strike",
+        "coefficient",
+        0.33,
+      ),
       sourceId: TRAIT.STATIC_DISCHARGE,
       at,
       staticDischarge: true,
@@ -212,20 +276,48 @@ function applyToolbeltTraits(
   }
 
   if (hasEngineerTrait(context.config, TRAIT.KINETIC_BATTERY)) {
-    state.kineticCharges = Math.min(5, Number(state.kineticCharges || 0) + 1);
+    const maximumCharges = engineerBalanceValue(
+      context,
+      PROFILE.kineticBattery,
+      "maximumStacks",
+      5,
+    );
+    state.kineticCharges = Math.min(
+      maximumCharges,
+      Number(state.kineticCharges || 0) + 1,
+    );
     // proc quickness and reset charges every 5th toolbelt cast
-    if (state.kineticCharges >= 5) {
+    if (state.kineticCharges >= maximumCharges) {
       state.kineticCharges = 0;
-      emitBuff(context, skill, "kinetic-battery", 5, {
+      const buffDuration = engineerBalanceEffectValue(
+        context,
+        PROFILE.kineticBattery,
+        "buff",
+        "duration",
+        5,
+      );
+      emitBuff(context, skill, "kinetic-battery", buffDuration, {
         at,
         sourceId: TRAIT.KINETIC_BATTERY,
         name: "Kinetic Battery",
       });
-      emitBuff(context, skill, "quickness", 5, {
-        at,
-        sourceId: TRAIT.KINETIC_BATTERY,
-        name: "Kinetic Battery — quickness",
-      });
+      emitBuff(
+        context,
+        skill,
+        "quickness",
+        engineerBalanceEffectValue(
+          context,
+          PROFILE.kineticBattery,
+          "boon",
+          "duration",
+          5,
+        ),
+        {
+          at,
+          sourceId: TRAIT.KINETIC_BATTERY,
+          name: "Kinetic Battery — quickness",
+        },
+      );
     }
     emitEngineerState(context, at, "kinetic-battery");
   }
@@ -305,7 +397,13 @@ export function reactToEngineerDamage(
     state.explosiveEntranceFired = true;
     queueDamage(context, event, {
       name: "Explosive Entrance",
-      coefficient: 1.25,
+      coefficient: engineerBalanceEffectValue(
+        context,
+        PROFILE.explosiveEntrance,
+        "strike",
+        "coefficient",
+        1.25,
+      ),
       sourceId: TRAIT.EXPLOSIVE_ENTRANCE,
       actorType: "effect",
       explosion: true,
@@ -318,8 +416,20 @@ export function reactToEngineerDamage(
     queueBuff(context, event, {
       name: "Steel-Packed Powder",
       kind: "target-vulnerability",
-      stacks: 1,
-      duration: 5,
+      stacks: engineerBalanceEffectValue(
+        context,
+        PROFILE.steelPackedPowder,
+        "condition",
+        "stacks",
+        1,
+      ),
+      duration: engineerBalanceEffectValue(
+        context,
+        PROFILE.steelPackedPowder,
+        "condition",
+        "duration",
+        5,
+      ),
       sourceId: TRAIT.STEEL_PACKED_POWDER,
       actorType: "effect",
     });
@@ -329,12 +439,20 @@ export function reactToEngineerDamage(
     hasTrait(context, TRAIT.SHORT_FUSE) &&
     Number(state.shortFuse || 0) <= event.at
   ) {
-    state.shortFuse = event.at + 3;
+    state.shortFuse =
+      event.at +
+      engineerBalanceValue(context, PROFILE.shortFuse, "internalCooldown", 3);
     queueBuff(context, event, {
       name: "Short Fuse",
       kind: "fury",
       stacks: 1,
-      duration: 4,
+      duration: engineerBalanceEffectValue(
+        context,
+        PROFILE.shortFuse,
+        "boon",
+        "duration",
+        4,
+      ),
       sourceId: TRAIT.SHORT_FUSE,
       actorType: "effect",
     });
@@ -345,7 +463,13 @@ export function reactToEngineerDamage(
       name: "Explosive Temper",
       kind: "explosive-temper",
       stacks: 1,
-      duration: 10,
+      duration: engineerBalanceEffectValue(
+        context,
+        PROFILE.explosiveTemper,
+        "buff",
+        "duration",
+        10,
+      ),
       sourceId: TRAIT.EXPLOSIVE_TEMPER,
       actorType: "effect",
     });
@@ -380,10 +504,15 @@ export function reactToEngineerDamage(
   ) {
     let triggered = false;
     if (usesRandomTraitProcs(context)) {
-      triggered = context.random.roll(0.33, "engineer.shrapnel");
+      triggered = context.random.roll(
+        engineerBalanceValue(context, PROFILE.shrapnel, "procChance", 0.33),
+        "engineer.shrapnel",
+      );
     } else {
       // deterministic: accumulate 0.33 per explosion; trigger and subtract 1 when threshold reached
-      state.shrapnelProgress = Number(state.shrapnelProgress || 0) + 0.33;
+      state.shrapnelProgress =
+        Number(state.shrapnelProgress || 0) +
+        engineerBalanceValue(context, PROFILE.shrapnel, "procChance", 0.33);
       triggered = state.shrapnelProgress >= 1;
     }
     if (triggered) {
@@ -393,16 +522,42 @@ export function reactToEngineerDamage(
       applyCondition(details, context, event, {
         name: "Shrapnel",
         condition: "Bleeding",
-        stacks: 1,
-        duration: 6,
+        stacks: engineerBalanceEffectValue(
+          context,
+          PROFILE.shrapnel,
+          "condition",
+          "stacks",
+          1,
+        ),
+        duration: engineerBalanceEffectValue(
+          context,
+          PROFILE.shrapnel,
+          "condition",
+          "duration",
+          6,
+        ),
         sourceId: TRAIT.SHRAPNEL,
         actorType: "effect",
       });
       queueBuff(context, event, {
         name: "Shrapnel",
         kind: "target-crippled",
-        stacks: 1,
-        duration: 1,
+        stacks: engineerBalanceEffectValue(
+          context,
+          PROFILE.shrapnel,
+          "condition",
+          "stacks",
+          1,
+          1,
+        ),
+        duration: engineerBalanceEffectValue(
+          context,
+          PROFILE.shrapnel,
+          "condition",
+          "duration",
+          1,
+          1,
+        ),
         sourceId: TRAIT.SHRAPNEL,
         actorType: "effect",
       });
@@ -419,11 +574,26 @@ export function reactToEngineerDamage(
     if (usesRandomTraitProcs(context)) {
       triggered =
         rolledCritical(details) &&
-        context.random.roll(0.33, "engineer.serrated-steel");
+        context.random.roll(
+          engineerBalanceValue(
+            context,
+            PROFILE.serratedSteel,
+            "procChance",
+            0.33,
+          ),
+          "engineer.serrated-steel",
+        );
     } else {
       // deterministic: accumulate critChance * 0.33 (combines expected crit rate with proc chance)
       state.serratedSteelProgress =
-        Number(state.serratedSteelProgress || 0) + criticalChance * 0.33;
+        Number(state.serratedSteelProgress || 0) +
+        criticalChance *
+          engineerBalanceValue(
+            context,
+            PROFILE.serratedSteel,
+            "procChance",
+            0.33,
+          );
       triggered = state.serratedSteelProgress >= 1;
     }
     if (triggered) {
@@ -434,8 +604,20 @@ export function reactToEngineerDamage(
       applyCondition(details, context, event, {
         name: "Serrated Steel",
         condition: "Bleeding",
-        stacks: 1,
-        duration: 3,
+        stacks: engineerBalanceEffectValue(
+          context,
+          PROFILE.serratedSteel,
+          "condition",
+          "stacks",
+          1,
+        ),
+        duration: engineerBalanceEffectValue(
+          context,
+          PROFILE.serratedSteel,
+          "condition",
+          "duration",
+          3,
+        ),
         sourceId: TRAIT.SERRATED_STEEL,
         actorType: "effect",
       });
@@ -462,12 +644,20 @@ export function reactToEngineerDamage(
       if (!usesRandomTraitProcs(context)) {
         state.noScopeProgress = Number(state.noScopeProgress || 0) - 1;
       }
-      state.noScope = event.at + 8;
+      state.noScope =
+        event.at +
+        engineerBalanceValue(context, PROFILE.noScope, "internalCooldown", 8);
       queueBuff(context, event, {
         name: "No Scope",
         kind: "fury",
         stacks: 1,
-        duration: 4,
+        duration: engineerBalanceEffectValue(
+          context,
+          PROFILE.noScope,
+          "boon",
+          "duration",
+          4,
+        ),
         sourceId: TRAIT.NO_SCOPE,
         actorType: "effect",
       });
@@ -498,12 +688,31 @@ export function reactToEngineerDamage(
       if (!usesRandomTraitProcs(context)) {
         state[progressKey] = Number(state[progressKey] || 0) - 1;
       }
-      state[readyKey] = event.at + 10;
+      state[readyKey] =
+        event.at +
+        engineerBalanceValue(
+          context,
+          PROFILE.incendiaryPowder,
+          "internalCooldown",
+          10,
+        );
       applyCondition(details, context, event, {
         name: "Incendiary Powder",
         condition: "Burning",
-        stacks: 1,
-        duration: 8,
+        stacks: engineerBalanceEffectValue(
+          context,
+          PROFILE.incendiaryPowder,
+          "condition",
+          "stacks",
+          1,
+        ),
+        duration: engineerBalanceEffectValue(
+          context,
+          PROFILE.incendiaryPowder,
+          "condition",
+          "duration",
+          8,
+        ),
         sourceId: TRAIT.INCENDIARY_POWDER,
         actorType: event.actorType === "summon" ? "summon" : "effect",
         metadata: event.actorType === "summon" ? { engineerMech: true } : {},
@@ -517,19 +726,49 @@ export function reactToEngineerDamage(
     isAimAssistedProjectile(context, event) &&
     Number(state.aimAssistedRocket || 0) <= event.at
   ) {
-    state.aimAssistedRocket = event.at + 3;
+    state.aimAssistedRocket =
+      event.at +
+      engineerBalanceValue(
+        context,
+        PROFILE.aimAssistedRocket,
+        "internalCooldown",
+        3,
+      );
     state.aimAssistedRocketCount =
       Number(state.aimAssistedRocketCount || 0) + 1;
     // every 5th projectile upgrades to Orbital Command Strike (2s delay for call-down)
-    const orbital = state.aimAssistedRocketCount % 5 === 0;
+    const alternateEvery = engineerBalanceValue(
+      context,
+      PROFILE.aimAssistedRocket,
+      "maximumStacks",
+      5,
+    );
+    const orbital = state.aimAssistedRocketCount % alternateEvery === 0;
     queueDamage(context, event, {
       name: orbital ? "Orbital Command Strike" : "Aim-Assisted Rocket",
-      coefficient: orbital ? 1.92 : 1,
+      coefficient: engineerBalanceEffectValue(
+        context,
+        PROFILE.aimAssistedRocket,
+        "strike",
+        "coefficient",
+        orbital ? 1.92 : 1,
+        orbital ? 1 : 0,
+      ),
       sourceId: orbital
         ? ID.ORBITAL_COMMAND_STRIKE
         : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
       actorType: "effect",
-      at: event.at + (orbital ? 2 : 0.04),
+      at:
+        event.at +
+        engineerBalanceEffectValue(
+          context,
+          PROFILE.aimAssistedRocket,
+          "strike",
+          "atMs",
+          orbital ? 2000 : 40,
+          orbital ? 1 : 0,
+        ) /
+          1000,
       explosion: !orbital,
       ...(orbital
         ? {
@@ -564,7 +803,14 @@ export function reactToEngineerCondition(
     // Math.max extends the window — multiple Burning applications stack the active duration
     state.traitProcReadyAt.thermalVisionUntil = Math.max(
       Number(state.traitProcReadyAt.thermalVisionUntil || 0),
-      event.at + 4,
+      event.at +
+        engineerBalanceEffectValue(
+          context,
+          PROFILE.thermalVision,
+          "buff",
+          "duration",
+          4,
+        ),
     );
   }
   if (
@@ -576,7 +822,13 @@ export function reactToEngineerCondition(
       name: "Sanguine Array",
       kind: "might",
       stacks: Math.max(1, Number(event.stacks || 1)),
-      duration: 4,
+      duration: engineerBalanceEffectValue(
+        context,
+        PROFILE.sanguineArray,
+        "boon",
+        "duration",
+        4,
+      ),
       sourceId: TRAIT.SANGUINE_ARRAY,
       actorType: "effect",
     });
@@ -589,12 +841,25 @@ export function reactToEngineerCondition(
   ) {
     const state = procState(context);
     if (Number(state.hematicFocus || 0) <= event.at) {
-      state.hematicFocus = event.at + 8;
+      state.hematicFocus =
+        event.at +
+        engineerBalanceValue(
+          context,
+          PROFILE.hematicFocus,
+          "internalCooldown",
+          8,
+        );
       queueBuff(context, event, {
         name: "Hematic Focus",
         kind: "fury",
         stacks: 1,
-        duration: 8,
+        duration: engineerBalanceEffectValue(
+          context,
+          PROFILE.hematicFocus,
+          "boon",
+          "duration",
+          8,
+        ),
         sourceId: TRAIT.HEMATIC_FOCUS,
         actorType: "effect",
       });

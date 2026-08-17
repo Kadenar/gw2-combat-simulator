@@ -4,6 +4,8 @@ import type {
   WarriorCastContext,
   WarriorSchedulerContext,
 } from "../../types.js";
+import { warriorBalanceProfile } from "../../core/profiles.js";
+import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 // Dragon Trigger ticks every 250 ms to potentially grant one charge.
 export const DRAGON_CHARGE_INTERVAL_SECONDS = 0.25;
@@ -29,6 +31,7 @@ export interface DragonChargeProjectionInput {
   readonly maximumCharges: number;
   readonly chargesPerInterval: number;
   readonly flowPerInterval: number;
+  readonly intervalSeconds?: number;
   readonly flowRateSegments: readonly DragonFlowRateSegment[];
   readonly deadline: number;
 }
@@ -61,8 +64,8 @@ export function projectDragonCharges(
   input: DragonChargeProjectionInput,
 ): readonly DragonChargeTick[] {
   const ticks: DragonChargeTick[] = [];
-  let at =
-    input.firstTickAt ?? input.startTime + DRAGON_CHARGE_INTERVAL_SECONDS;
+  const interval = input.intervalSeconds ?? DRAGON_CHARGE_INTERVAL_SECONDS;
+  let at = input.firstTickAt ?? input.startTime + interval;
   let previousAt = input.startTime;
   let flow = Math.min(input.maximumFlow, Math.max(0, input.flow));
   let charges = Math.min(
@@ -91,7 +94,7 @@ export function projectDragonCharges(
     }
     ticks.push({ at, charges, flowAfter: flow, granted });
     previousAt = at;
-    at += DRAGON_CHARGE_INTERVAL_SECONDS;
+    at += interval;
   }
 
   return ticks;
@@ -122,11 +125,18 @@ export function dragonChargesToAdrenalineSpent(charges: number): number {
 type DragonTriggerContext = WarriorCastContext | WarriorSchedulerContext;
 
 export function maximumDragonCharges(context: DragonTriggerContext): number {
-  return hasTrait(context, TRAIT.DARING_DRAGON) ? 5 : 10;
+  const profile = warriorBalanceProfile(context, PROFILE.dragonTrigger);
+  return hasTrait(context, TRAIT.DARING_DRAGON)
+    ? Number(profile?.minimumStacks ?? 5)
+    : Number(profile?.maximumStacks ?? 10);
 }
 
 export function dragonFlowPerInterval(context: DragonTriggerContext): number {
-  return hasTrait(context, TRAIT.DARING_DRAGON) ? 10 : DRAGON_FLOW_PER_INTERVAL;
+  const cost = Number(
+    warriorBalanceProfile(context, PROFILE.dragonTrigger)?.resourceCost ??
+      DRAGON_FLOW_PER_INTERVAL,
+  );
+  return hasTrait(context, TRAIT.DARING_DRAGON) ? cost * 2 : cost;
 }
 
 export function requestedDragonCharges(

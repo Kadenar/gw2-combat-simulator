@@ -1,5 +1,10 @@
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { hasEngineerTrait } from "../../core/state.js";
+import {
+  engineerBalanceEffectValue,
+  engineerBalanceValue,
+} from "../../core/profiles.js";
+import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 import type { EngineerCastContext, EngineerSkill } from "../../types.js";
 
 // Some skills set type="Heal", others only set slot="Heal"; check both.
@@ -68,7 +73,19 @@ export function applyScrapperCastTraits(
       context,
       skill,
       "superspeed",
-      skill.toolbeltParentName === "Med Kit" ? 12 : 5,
+      skill.toolbeltParentName === "Med Kit"
+        ? engineerBalanceValue(
+            context,
+            PROFILE.speedOfSynergy,
+            "maximumStacks",
+            12,
+          )
+        : engineerBalanceValue(
+            context,
+            PROFILE.speedOfSynergy,
+            "minimumStacks",
+            5,
+          ),
       TRAIT.SPEED_OF_SYNERGY,
       "Speed of Synergy — superspeed",
     );
@@ -84,7 +101,7 @@ export function applyScrapperCastTraits(
       context,
       skill,
       "superspeed",
-      7,
+      engineerBalanceValue(context, PROFILE.speedOfSynergy, "threshold", 7),
       TRAIT.SPEED_OF_SYNERGY,
       "Speed of Synergy — superspeed",
     );
@@ -98,7 +115,13 @@ export function applyScrapperCastTraits(
       context,
       skill,
       "superspeed",
-      5,
+      engineerBalanceEffectValue(
+        context,
+        PROFILE.gyroscopicAcceleration,
+        "buff",
+        "duration",
+        5,
+      ),
       TRAIT.GYROSCOPIC_ACCELERATION,
       "Gyroscopic Acceleration — superspeed",
     );
@@ -141,7 +164,13 @@ export function applyScrapperCastTraits(
       skillName: skill.name,
       name: "System Shocker — daze",
       controlKind: "daze",
-      duration: 1,
+      duration: engineerBalanceEffectValue(
+        context,
+        PROFILE.systemShocker,
+        "control",
+        "duration",
+        1,
+      ),
     });
   }
   // Mass Momentum (GM trait): Function Gyro grants 3 stacks of stability (seeds the pulse loop).
@@ -150,7 +179,14 @@ export function applyScrapperCastTraits(
       context,
       skill,
       "stability",
-      3,
+      engineerBalanceEffectValue(
+        context,
+        PROFILE.massMomentum,
+        "boon",
+        "duration",
+        3,
+        1,
+      ),
       TRAIT.MASS_MOMENTUM,
       "Mass Momentum — stability",
     );

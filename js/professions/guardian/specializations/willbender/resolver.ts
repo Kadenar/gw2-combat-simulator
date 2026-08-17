@@ -12,6 +12,11 @@ import type {
 } from "../../types.js";
 import { gainLethalTempo } from "./mechanics.js";
 import { willbenderState } from "./state.js";
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 function recordLethalTempo(
   context: GuardianResolverContext,
@@ -19,10 +24,25 @@ function recordLethalTempo(
   sourceSkill: string | undefined,
 ): void {
   const state = willbenderState.from(context);
+  const tyrantsMomentum = hasTrait(
+    context,
+    GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM,
+  );
+  const lethalTempo = guardianBalanceProfile(context, PROFILE.lethalTempo);
   const stacks = gainLethalTempo(
     state,
     at,
-    hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM),
+    tyrantsMomentum,
+    Number(lethalTempo?.maximumStacks || 5),
+    Number(
+      guardianBalanceProfileEffect(
+        guardianBalanceProfile(
+          context,
+          tyrantsMomentum ? PROFILE.tyrantsMomentum : PROFILE.lethalTempo,
+        ),
+        "buff",
+      )?.duration || (tyrantsMomentum ? 4 : 6),
+    ),
   );
   context.recordProc(
     "trait",
