@@ -54,6 +54,24 @@ test("Empowered Armaments chart series remains capped at one stack", () => {
   );
 });
 
+test("Quickness chart series remains capped at one stack", () => {
+  const series = buildChartSeries(
+    {
+      duration: 4,
+      events: [
+        { type: "buff", at: 0, kind: "quickness", duration: 3 },
+        { type: "buff", at: 1, kind: "quickness", duration: 3 },
+      ],
+    },
+    1000,
+  );
+
+  assert.deepEqual(
+    series.effects.Quickness.map((point) => point.v),
+    [1, 1, 1, 1, 0],
+  );
+});
+
 test("Radiant Armaments chart series identifies the active radiant weapon", () => {
   const radiantBuff = (at, radiantWeapon) => ({
     type: "buff",

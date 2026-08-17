@@ -43,6 +43,7 @@ const RADIANT_ARMAMENT_NAMES: Readonly<Record<string, string>> = {
 const EFFECT_STACK_CAPS: Readonly<Record<string, number>> = {
   Might: 25,
   Vulnerability: 25,
+  Quickness: 1,
   "Kalla's Fervor": 5,
   "Compounding Power": 5,
   "Soul Barbs": 1,
