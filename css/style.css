@@ -205,6 +205,261 @@ header .community-actions {
   }
 }
 
+/* Shared tutorial launcher and lazy-loaded walkthrough dialog. */
+.tutorial-trigger {
+  appearance: none;
+  font: inherit;
+}
+
+.tutorial-trigger-icon {
+  color: var(--accent);
+  font-size: 9px;
+}
+
+.tutorial-trigger-primary {
+  display: inline-flex;
+  min-height: 42px;
+  margin: 24px auto 0;
+  padding: 10px 18px;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, var(--border));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 13%, var(--bg-panel));
+  color: var(--text-bright);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.tutorial-trigger-primary:hover,
+.tutorial-trigger-primary:focus-visible {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, var(--bg-panel));
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.tutorial-trigger-compact {
+  white-space: nowrap;
+}
+
+.tutorial-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(1180px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100vh - 32px);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, var(--border));
+  border-radius: 14px;
+  background: var(--bg-panel);
+  color: var(--text);
+  box-shadow: 0 26px 90px rgba(0, 0, 0, 0.72);
+}
+
+.tutorial-dialog::backdrop {
+  background: rgba(3, 3, 9, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+.tutorial-dialog-shell {
+  padding: 22px;
+}
+
+.tutorial-dialog-header {
+  display: flex;
+  padding: 0 0 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  text-align: left;
+}
+
+.tutorial-dialog-eyebrow {
+  margin-bottom: 4px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.tutorial-dialog-header h2 {
+  color: var(--text-bright);
+  font-size: 24px;
+  font-weight: 650;
+}
+
+.tutorial-dialog-header p:last-child {
+  margin-top: 5px;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.tutorial-dialog-close {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border: 1px solid var(--border-light);
+  border-radius: 50%;
+  background: var(--bg-panel-alt);
+  color: var(--text-dim);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tutorial-dialog-close:hover,
+.tutorial-dialog-close:focus-visible {
+  border-color: var(--accent);
+  color: var(--text-bright);
+  outline: none;
+}
+
+.tutorial-dialog-body {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(250px, 0.8fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.tutorial-animation-frame {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-deep);
+  place-items: center;
+}
+
+.tutorial-animation {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: calc(100vh - 170px);
+  object-fit: contain;
+}
+
+.tutorial-reduced-motion {
+  display: none;
+  min-height: 280px;
+  padding: 32px;
+  align-content: center;
+  justify-items: center;
+  gap: 7px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.tutorial-reduced-motion strong {
+  color: var(--text-bright);
+  font-size: 18px;
+}
+
+.tutorial-guide-copy {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+}
+
+.tutorial-step-list {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  counter-reset: tutorial-step;
+}
+
+.tutorial-step-list li {
+  display: grid;
+  padding: 12px;
+  grid-template-columns: 28px minmax(0, 1fr);
+  column-gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg-panel-alt) 82%, black);
+  counter-increment: tutorial-step;
+}
+
+.tutorial-step-list li::before {
+  grid-row: 1 / span 2;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  content: "0" counter(tutorial-step);
+}
+
+.tutorial-step-list strong {
+  color: var(--text-bright);
+  font-size: 13px;
+}
+
+.tutorial-step-list span {
+  margin-top: 3px;
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.tutorial-dialog-actions {
+  display: flex;
+  margin-top: auto;
+  padding-top: 16px;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.tutorial-replay {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  color: var(--accent);
+}
+
+@media (max-width: 820px) {
+  .tutorial-dialog {
+    width: min(680px, calc(100vw - 20px));
+    max-height: calc(100vh - 20px);
+  }
+
+  .tutorial-dialog-shell {
+    padding: 16px;
+  }
+
+  .tutorial-dialog-body {
+    grid-template-columns: 1fr;
+  }
+
+  .tutorial-animation {
+    max-height: 50vh;
+  }
+
+  .tutorial-dialog-actions {
+    margin-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-trigger-primary {
+    transition: none;
+  }
+
+  .tutorial-animation,
+  .tutorial-replay {
+    display: none;
+  }
+
+  .tutorial-reduced-motion {
+    display: grid;
+  }
+}
+
 .profession-picker {
   display: inline-flex;
   align-items: center;
@@ -2818,6 +3073,52 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
 
 .antiquary-artifact-group {
   min-height: 48px;
+}
+
+/* Seat Skritt Swipe (F) beside its artifact rows: F over the initiative pips in
+   column one, the offensive and defensive artifact rows stacked in column two. */
+.profession-resource-stack:has(
+  > .profession-palette-stack[data-palette-stack="thief-artifacts"]
+) {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: start;
+  justify-items: start;
+  gap: 6px;
+}
+
+.profession-resource-stack:has(
+    > .profession-palette-stack[data-palette-stack="thief-artifacts"]
+  )
+  > .profession-palette-stack,
+.profession-resource-stack:has(
+    > .profession-palette-stack[data-palette-stack="thief-artifacts"]
+  )
+  > .active-resource-stack {
+  display: contents;
+}
+
+.antiquary-f-skill {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.antiquary-artifacts-offensive {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.antiquary-artifacts-defensive {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.profession-resource-stack:has(
+    > .profession-palette-stack[data-palette-stack="thief-artifacts"]
+  )
+  .active-resource-group:has([data-resource-id="initiative"]) {
+  grid-column: 1;
+  grid-row: 2;
 }
 
 .pal-label {

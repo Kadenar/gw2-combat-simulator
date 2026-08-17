@@ -12,6 +12,7 @@ import { embedRoute, isEmbedded } from "../embed.js";
 import { mountGw2IconFallback } from "../../platform/ui/gw2-icon-fallback.js";
 import { mountRotationTimelineSize } from "../../platform/ui/rotation-timeline-size.js";
 import { mountRotationWorkspace } from "../../platform/ui/rotation-workspace.js";
+import { mountSimulatorTutorial } from "../tutorial.js";
 import { mountSimulatorNavigation } from "./navigation.js";
 import {
   getProfessionEntry,
@@ -228,6 +229,7 @@ export function bindProfessionSelector(root: Document = document): void {
   mountRotationWorkspace(root);
   mountRotationTimelineSize(root);
   mountCommunityActions(root);
+  mountSimulatorTutorial(root);
   mountSimulatorNavigation(root);
   mountStickyProfessionHeader(root);
   const select = root.getElementById(

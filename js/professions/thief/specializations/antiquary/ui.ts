@@ -11,12 +11,7 @@ function stateFrom(context: ThiefUiContext = {}): Partial<ThiefState> {
 
 export const antiquaryUi = Object.freeze({
   assumptionControls: THIEF_ANTIQUARY_ASSUMPTION_CONTROLS,
-  paletteGroups: (context: ThiefUiContext) => {
-    const state = stateFrom(context);
-    const hasArtifactUse = Number(state.artifactUsesRemaining || 0) > 0;
-    const availableArtifactIds = new Set(
-      state.artifactSlots?.map((slot) => Number(slot.skillId)) || [],
-    );
+  paletteGroups: () => {
     const artifactGroups: readonly [
       string,
       string,
@@ -43,27 +38,25 @@ export const antiquaryUi = Object.freeze({
         skillIds: [ID.SKRITT_SWIPE],
         color: "#9a535c",
         resourceAnchor: true,
+        // Shares the artifact stack so CSS can seat the offensive/defensive
+        // rows beside Skritt Swipe rather than stacking them below it.
+        className: "antiquary-f-skill",
+        stackId: "thief-artifacts",
       },
-      ...artifactGroups.map(([id, label, artifactIds, color]) => {
-        // show only the currently available artifact ids; when no uses remain, collapse the group (concealed) while reserving its slots
-        const skillIds = hasArtifactUse
-          ? artifactIds.filter((skillId) => availableArtifactIds.has(skillId))
-          : [];
-        return {
-          id,
-          label,
-          skillIds,
-          reservedSkillIds: [...artifactIds], // keeps the palette column width stable even when skillIds is empty
-          color,
-          stackId: "thief-artifacts", // offensive + defensive groups share a visual stack so they collapse as one unit
-          className: [
-            "antiquary-artifact-group",
-            skillIds.length ? "" : "pal-group-concealed",
-          ]
-            .filter(Boolean)
-            .join(" "),
-        };
-      }),
+      ...artifactGroups.map(([id, label, artifactIds, color]) => ({
+        id,
+        label,
+        // Always list every artifact; paletteSkillAvailability greys out the
+        // ones that are not pilfered yet or already spent this pilfer, so a
+        // used artifact stays visible but disabled instead of disappearing.
+        skillIds: [...artifactIds],
+        color,
+        stackId: "thief-artifacts",
+        className: `antiquary-artifact-group antiquary-${id.replace(
+          "thief-",
+          "",
+        )}`,
+      })),
     ];
   },
   skillBarGroups: () => [
@@ -80,29 +73,23 @@ export const antiquaryUi = Object.freeze({
       color: "#6f9cb8",
     },
   ],
-  resourceViews: (context: ThiefUiContext) => [
-    {
-      id: "artifact-uses",
-      singular: "artifact use",
-      plural: "artifact uses",
-      maximum: 2, // Prolific Plunderer + Improvisation can give 3 uses, but the display caps at 2 pips (the normal maximum)
-      value: Number(stateFrom(context).artifactUsesRemaining || 0),
-      canStart: false,
-      step: 1,
-      displayMode: "pips",
-      shortLabel: "Art",
-      statusLabel: "Available",
-    },
-  ],
+  // Available artifact uses are a backend gate (state.artifactUsesRemaining),
+  // not a palette meter, so Antiquary contributes no artifact resource view.
   paletteSkillAvailability: (context: ThiefUiContext, skill: ThiefSkill) => {
     const state = stateFrom(context);
     if (skill.artifactKind) {
-      const available =
-        Number(state.artifactUsesRemaining || 0) > 0 &&
-        state.artifactSlots?.some((slot) => slot.skillId === skill.id);
+      const hasUse = Number(state.artifactUsesRemaining || 0) > 0;
+      const inSlot = Boolean(
+        state.artifactSlots?.some((slot) => slot.skillId === skill.id),
+      );
       return {
-        available,
-        message: available ? "" : "Pilfer this artifact before using it",
+        available: hasUse && inSlot,
+        message:
+          hasUse && inSlot
+            ? ""
+            : !hasUse
+              ? "Pilfer with Skritt Swipe before using an artifact"
+              : "This artifact was already used this pilfer",
       };
     }
     if (skill.id === ID.RESHUFFLE) {

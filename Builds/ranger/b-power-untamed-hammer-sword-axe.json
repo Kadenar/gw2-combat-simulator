@@ -60,7 +60,6 @@
     "swiftness": true,
     "vigor": true,
     "aegis": false,
-    "flanking": true,
     "targetDefiant": true,
     "targetMoving": false,
     "targetBoonless": true,

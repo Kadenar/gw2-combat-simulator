@@ -958,9 +958,7 @@ export function reactToRangerCoreDamage(
   if (
     skill?.id === ID.CONCUSSION_SHOT &&
     hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
-    (context.config?.target?.defiant ||
-      context.config?.target?.flanking ||
-      context.config?.target?.behind)
+    context.config?.target?.defiant
   ) {
     const vulnerability = rangerBalanceProfileEffect(
       rangerBalanceProfile(context, PROFILE.lightOnYourFeet),

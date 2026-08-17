@@ -75,7 +75,6 @@ const baseConfig = Object.freeze({
     ID.THUMP,
   ],
   professionAssumptions: {
-    flanking: true,
     targetDefiant: true,
   },
   stats: {
@@ -89,7 +88,6 @@ const baseConfig = Object.freeze({
   target: {
     armor: 2597,
     defiant: true,
-    flanking: true,
     conditions: { Vulnerability: 25 },
   },
 });
@@ -404,7 +402,7 @@ test("Ranger builds migrate and validate against the canonical catalog", () => {
   assert.equal(Object.hasOwn(defaults.assumptions, "targetDistance"), false);
   assert.deepEqual(
     rangerProfession.ui.assumptionControls.map((control) => control.key),
-    ["flanking", "behind", "targetDefiant", "simulationMode"],
+    ["targetDefiant", "simulationMode"],
   );
 
   const migrated = migrateRangerBuild({
@@ -551,7 +549,7 @@ test("Soulbeast condition modifiers and duration bonuses use their actual target
     primaryWeapon: "Axe",
     secondaryWeapon: "Axe",
     selectedPet: "Pig",
-    professionAssumptions: { flanking: true, targetDefiant: true },
+    professionAssumptions: { targetDefiant: true },
     stats: { conditionDamage: 1000, expertise: 0 },
     target: { health: 10000000 },
   };

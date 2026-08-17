@@ -1013,7 +1013,6 @@ test("Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
       strike([TRAIT.TWIN_FANGS], {
         ...modifierConfig.target,
         defiant: false,
-        behind: true,
       }).criticalChance - 0.05,
     ) < 1e-12,
   );
@@ -1926,10 +1925,10 @@ test("Dagger runtime applies endurance, shadowstep, and per-packet mechanics", (
 
 test("Malicious stealth attacks use their supplied coefficients and malice scaling", () => {
   const front = simulate("Core", ["Cloak and Dagger", "Backstab"], {
-    target: { defiant: false, behind: false },
+    target: { defiant: false },
   });
   const behind = simulate("Core", ["Cloak and Dagger", "Backstab"], {
-    target: { defiant: false, behind: true },
+    target: { defiant: true },
   });
   const skillDamage = (result, name) =>
     result.breakdown.find((entry) => entry.sourceSkill === name)?.damage || 0;
@@ -2935,20 +2934,31 @@ test("Antiquary exposes every artifact from Swipe and Scuffle", () => {
   );
   assert.equal(picked.warnings.length, 0);
   assert.equal(picked.endState.profession.artifactUsesRemaining, 0);
+  // Spent artifacts stay listed (never concealed); paletteSkillAvailability is
+  // what greys them out, so a used artifact is disabled rather than removed.
+  const spentContext = {
+    specialization: "Antiquary",
+    professionState: picked.endState.profession,
+    build: { assumptions: {} },
+  };
   assert.equal(
     thiefProfession.ui
-      .paletteGroups({
-        specialization: "Antiquary",
-        professionState: picked.endState.profession,
-        build: { assumptions: {} },
-      })
+      .paletteGroups(spentContext)
       .filter((group) => group.id.startsWith("thief-artifacts-"))
       .every(
         (group) =>
-          group.skillIds.length === 0 &&
-          group.className.includes("pal-group-concealed"),
+          group.skillIds.length > 0 &&
+          !group.className.includes("pal-group-concealed"),
       ),
     true,
+  );
+  assert.equal(
+    thiefProfession.ui.paletteSkillAvailability(spentContext, {
+      id: ID.MISTBURN_MORTAR,
+      name: "Mistburn Mortar",
+      artifactKind: "offensive",
+    }).available,
+    false,
   );
 
   const scuffle = simulate(
@@ -3105,7 +3115,7 @@ test("Thief is a loadable native application", async () => {
   const adapter = await loadProfessionAppAdapter("thief");
   assert.equal(adapter.profession.id, "thief");
   assert.equal(adapter.weaponSkillMatchesSet, thiefWeaponSkillMatchesSet);
-  assert.ok(adapter.assumptionControls.length >= 7);
+  assert.ok(adapter.assumptionControls.length >= 5);
   const html = await readFile(
     new URL("../../../thief.html", import.meta.url),
     "utf8",

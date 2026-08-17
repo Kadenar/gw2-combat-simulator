@@ -1003,7 +1003,7 @@ test("legend palette renders both selected legends through shared swap cooldown"
   assert.deepEqual(rotationSelectedSlotSkills(rotationApp), []);
 });
 
-test("Revenant utilities and Conduit resources render in the right-side region", async () => {
+test("Revenant utilities and Conduit resources render by their related skills", async () => {
   const adapter = await loadProfessionAppAdapter("revenant");
   const canonicalBuild = createRevenantBuildDefaults();
   canonicalBuild.specializations[2] = {
@@ -1036,6 +1036,9 @@ test("Revenant utilities and Conduit resources render in the right-side region",
 
   const html = palette.innerHTML;
   const profession = html.indexOf("revenant-f-skills");
+  const affinityGroup = html.indexOf(
+    "profession-palette-resource-group resource-above",
+  );
   const state = html.indexOf('data-role="profession-resource-stack"');
   const combat = html.indexOf('data-role="weapon-palette-section"');
   const utility = html.indexOf('data-role="loadout-utility-palette-group"');
@@ -1043,14 +1046,16 @@ test("Revenant utilities and Conduit resources render in the right-side region",
   const energy = html.indexOf('data-resource-id="energy"');
   const affinity = html.indexOf('data-resource-id="affinity"');
   const tools = html.indexOf('data-role="timeline-tools-palette-stack"');
+  assert.ok(affinityGroup >= 0);
+  assert.ok(affinity > affinityGroup);
+  assert.ok(profession > affinity);
   assert.ok(profession >= 0);
   assert.ok(combat > profession);
   assert.ok(utility > combat);
   assert.ok(state > utility);
   assert.ok(legends > state);
   assert.ok(energy > legends);
-  assert.ok(affinity > energy);
-  assert.ok(tools > affinity);
+  assert.ok(tools > energy);
   assert.equal(html.match(/data-resource-id="energy"/g)?.length, 1);
   assert.equal(html.match(/data-resource-id="affinity"/g)?.length, 1);
   assert.match(html, /compact-resource-palette revenant-legend-skills/);
@@ -3763,7 +3768,7 @@ test("Renegade critical traits and Blood Fury use their supplied intervals", () 
       TRAIT.ENDLESS_ENMITY,
       TRAIT.BLOOD_FURY,
     ],
-    target: { defiant: false, flanking: false, behind: false },
+    target: { defiant: false },
     boons: { fury: false },
     stats: { precision: 4000 },
     initialEnergy: 100,
@@ -3837,7 +3842,7 @@ test("Renegade critical traits consume seeded critical outcomes", () => {
       selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
       startingLegend: LEGEND.ASSASSIN,
       selectedTraitIds: [TRAIT.AMBUSH_COMMANDER, TRAIT.ENDLESS_ENMITY],
-      target: { defiant: false, flanking: false, behind: false },
+      target: { defiant: false },
       boons: { fury: false },
       stats: { precision: 1945 },
       initialEnergy: 100,

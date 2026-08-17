@@ -33,7 +33,6 @@ export interface RangerBuild extends Gw2Build {
 }
 
 export interface RangerAssumptions extends Record<string, unknown> {
-  readonly flanking?: boolean;
   readonly targetDefiant?: boolean;
 }
 
