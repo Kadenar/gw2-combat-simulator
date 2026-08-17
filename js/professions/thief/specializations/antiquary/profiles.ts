@@ -68,7 +68,7 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] =
       threshold: 10,
       playerStacks: 5,
       resourceGain: 3,
-      rechargeReduction: 0.8,
+      rechargeMultiplier: 0.2,
       effects: [],
     },
     {

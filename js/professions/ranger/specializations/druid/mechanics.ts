@@ -117,7 +117,12 @@ export function leaveAvatar(
   state.astralForce = exhausted
     ? 0
     : state.astralForce *
-      rangerBalanceValue(context, PROFILE.resources, "rechargeMultiplier", 0.5);
+      rangerBalanceValue(
+        context,
+        PROFILE.resources,
+        "astralForceRetentionMultiplier",
+        0.5,
+      );
   state.celestialAvatarActive = false;
   state.celestialAvatarEndsAt = 0;
   state.astralForceUpdatedAt = at;

@@ -8,11 +8,13 @@ import {
 import { createWeaverState } from "./state.js";
 import { weaverUi } from "./ui.js";
 import { WEAVER_SKILL_MECHANICS } from "./skills.js";
+import { WEAVER_BALANCE_PROFILES } from "./profiles.js";
 
 export const weaverModule = defineNativeModule({
   id: "Weaver",
   data: createElementalistModuleData("Weaver", {
     skillMechanics: WEAVER_SKILL_MECHANICS,
+    balanceProfiles: WEAVER_BALANCE_PROFILES,
   }),
   state: { scheduler: createWeaverState, resolver: createWeaverState },
   mechanics: {

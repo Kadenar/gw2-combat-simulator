@@ -19,6 +19,7 @@ import {
   ELEMENTALIST_CORE_EXTRA_SKILLS,
   ELEMENTALIST_CORE_SKILL_MECHANICS,
 } from "./skills.js";
+import { ELEMENTALIST_CORE_BALANCE_PROFILES } from "./profiles.js";
 import {
   applyElementalistResolverAttunement,
   applyElementalistResolverAura,
@@ -32,6 +33,7 @@ export const elementalistCoreModule = defineNativeModule({
   data: createElementalistModuleData("Core", {
     skillMechanics: ELEMENTALIST_CORE_SKILL_MECHANICS,
     extraSkills: ELEMENTALIST_CORE_EXTRA_SKILLS,
+    balanceProfiles: ELEMENTALIST_CORE_BALANCE_PROFILES,
   }),
   state: {
     scheduler: createElementalistCoreState,

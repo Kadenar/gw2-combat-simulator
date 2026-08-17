@@ -1076,7 +1076,7 @@ test("Daredevil benchmark skills and endurance traits use supplied values", () =
     true,
   );
   assert.equal(
-    thiefCatalog.skillsById.get(ID.CHANNELED_VIGOR).enduranceGain,
+    thiefCatalog.skillsById.get(ID.CHANNELED_VIGOR).resourceGain,
     125,
   );
 

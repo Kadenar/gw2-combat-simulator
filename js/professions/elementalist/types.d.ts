@@ -74,8 +74,7 @@ export interface ElementalistConfig extends Gw2Config {
     Partial<Record<"Fire" | "Water" | "Air" | "Earth", boolean>>
   >;
   readonly selectedSkills?:
-    | readonly string[]
-    | Readonly<Record<string, string>>;
+    readonly string[] | Readonly<Record<string, string>>;
 }
 
 export interface ElementalistRuntimeState {
@@ -89,16 +88,12 @@ export interface ElementalistRuntimeState {
 }
 
 export interface ElementalistState
-  extends ElementalistCoreState,
-    WeaverState,
-    CatalystState,
-    EvokerState {}
+  extends ElementalistCoreState, WeaverState, CatalystState, EvokerState {}
 
 export interface ElementalistSkill extends Skill {
   readonly attunement?: string;
   readonly aura?: string;
   readonly chainRoot?: SkillId;
-  readonly enduranceCost?: number;
   readonly overload?: boolean;
   readonly skillFamily?: string;
   readonly skillWeapon?: string;
@@ -155,8 +150,7 @@ export interface ElementalistEndStateProjectionOptions {
   readonly schedulerState: SchedulerState<ElementalistRuntimeState>;
 }
 
-export interface ElementalistApplicationBuild
-  extends ProfessionApplicationBuild {
+export interface ElementalistApplicationBuild extends ProfessionApplicationBuild {
   startAttunement: string;
   secondaryAttunement: string;
   initialCatalystEnergy: number;

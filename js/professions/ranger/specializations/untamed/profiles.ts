@@ -37,7 +37,7 @@ export const UNTAMED_BALANCE_PROFILES: readonly BalanceProfile[] =
       profileKind: "mechanic",
       durationMultiplier: 4,
       internalCooldown: 9,
-      rechargeMultiplier: 1,
+      recharge: 1,
       maximumStacks: 5,
       pulseInterval: 0.5,
       effects: [],

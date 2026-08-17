@@ -9,13 +9,22 @@ import {
   elementalistMightStacks,
   elementalistTimedBuffStacks,
 } from "../../core/modifiers.js";
+import { elementalistBalanceValue } from "../../core/profiles.js";
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
+// Familiar's Prowess buffs strike for Air element, condition for Fire — damage type bonus is element-gated
 export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: "elementalist.familiars-prowess-strike",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "damage-additive",
-    amount: (context) => (hasTrait(context, "Familiar's Focus") ? 0.1 : 0.05),
+    parameters: { baseAmount: 0.05, focusedAmount: 0.1 } as Readonly<
+      Record<string, number>
+    >,
+    amount: (context, _target, parameters) =>
+      hasTrait(context, "Familiar's Focus")
+        ? parameters.focusedAmount
+        : parameters.baseAmount,
     when: (context) =>
       context.config?.evokerElement === "Air" &&
       elementalistTimedBuffStacks(context, "familiar's-prowess", 1) > 0,
@@ -24,7 +33,13 @@ export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "elementalist.familiars-prowess-condition",
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: "damage-additive",
-    amount: (context) => (hasTrait(context, "Familiar's Focus") ? 0.1 : 0.05),
+    parameters: { baseAmount: 0.05, focusedAmount: 0.1 } as Readonly<
+      Record<string, number>
+    >,
+    amount: (context, _target, parameters) =>
+      hasTrait(context, "Familiar's Focus")
+        ? parameters.focusedAmount
+        : parameters.baseAmount,
     when: (context) =>
       context.config?.evokerElement === "Fire" &&
       elementalistTimedBuffStacks(context, "familiar's-prowess", 1) > 0,
@@ -56,6 +71,7 @@ export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   },
 ]);
 
+// ferocity and conditionDamage added here rather than as modifier rules because they must feed into crit-damage and condition scaling before those are computed
 export function modifyEvokerAttributes(
   context: Gw2ModifierContext,
   attributes: SchedulerRecord,
@@ -67,15 +83,29 @@ export function modifyEvokerAttributes(
       context.query?.furyActiveAt(context.time, context.runtime, context.event),
     )
   ) {
-    modified.ferocity = Number(modified.ferocity || 0) + 75;
+    modified.ferocity =
+      Number(modified.ferocity || 0) +
+      elementalistBalanceValue(
+        context,
+        PROFILE.enhancedPotency,
+        "attributeBonus",
+        75,
+      );
   }
   if (
     context.config?.evokerElement === "Fire" &&
     hasTrait(context, "Enhanced Potency")
   ) {
+    // Fire Enhanced Potency scales condition damage per might stack
     modified.conditionDamage =
       Number(modified.conditionDamage || 0) +
-      elementalistMightStacks(context) * 5;
+      elementalistMightStacks(context) *
+        elementalistBalanceValue(
+          context,
+          PROFILE.enhancedPotency,
+          "attributePerStack",
+          5,
+        );
   }
   return modified;
 }

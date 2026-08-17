@@ -10,6 +10,8 @@ import {
   elementalistTimedBuffStacks,
 } from "../../core/modifiers.js";
 import type { ElementalistRuntimeState } from "../../types.js";
+import { elementalistBalanceValue } from "../../core/profiles.js";
+import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 function playerEvent(context: Gw2ModifierContext): boolean {
   return context.event?.actorType !== "summon";
@@ -84,12 +86,21 @@ function modifyWeaverAttributes(
   ) {
     active.add(context.config.secondaryAttunement);
   }
-  if (active.has("Fire")) modified.power = Number(modified.power || 0) + 200;
+  const attributeBonus = elementalistBalanceValue(
+    context,
+    PROFILE.elementalPolyphony,
+    "attributeBonus",
+    200,
+  );
+  if (active.has("Fire")) {
+    modified.power = Number(modified.power || 0) + attributeBonus;
+  }
   if (active.has("Air")) {
-    modified.ferocity = Number(modified.ferocity || 0) + 200;
+    modified.ferocity = Number(modified.ferocity || 0) + attributeBonus;
   }
   if (active.has("Earth")) {
-    modified.conditionDamage = Number(modified.conditionDamage || 0) + 200;
+    modified.conditionDamage =
+      Number(modified.conditionDamage || 0) + attributeBonus;
   }
   return modified;
 }

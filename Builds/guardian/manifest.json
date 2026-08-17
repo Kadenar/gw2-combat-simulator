@@ -30,6 +30,15 @@
         "benchmarkDps": 41671,
         "sourceBenchmarkDps": 40916,
         "upToDate": true
+      },
+      {
+        "label": "Condition Quickness (Axe / Torch + Pistol / Pistol)",
+        "build": "Builds/guardian/b-condi-qfb-ritualists.json",
+        "rotation": "Rotations/guardian/r-condi-qfb-ritualists-bench.json",
+        "benchmarkDps": 33198,
+        "sourceBenchmarkDps": 33198,
+        "dpsReportUrl": "https://dps.report/qhoR-20260509-162737_golem",
+        "upToDate": true
       }
     ]
   },

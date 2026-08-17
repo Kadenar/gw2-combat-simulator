@@ -9,6 +9,10 @@ import type {
   Gw2ModifierRule,
 } from "../../../platform/gw2/types.js";
 import type { ElementalistAttunement, ElementalistCoreState } from "./state.js";
+import {
+  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  elementalistBalanceValue,
+} from "./profiles.js";
 
 function coreState(
   context: Gw2ModifierContext,
@@ -97,7 +101,11 @@ export function elementalistTimedBuffStacks(
   );
 }
 
-function infernoBurningFactor(context: Gw2ModifierContext): number {
+function infernoBurningFactor(
+  context: Gw2ModifierContext,
+  _target: string,
+  parameters: Readonly<Record<string, number>>,
+): number {
   const stats = context.query?.statsAt(
     context.time,
     context.event,
@@ -105,8 +113,12 @@ function infernoBurningFactor(context: Gw2ModifierContext): number {
   );
   const power = Number(stats?.power || 0);
   const conditionDamage = Number(stats?.conditionDamage || 0);
-  const normalBurningRate = 131 + 0.155 * conditionDamage;
-  return normalBurningRate > 0 ? (131 + 0.0825 * power) / normalBurningRate : 1;
+  const normalBurningRate =
+    parameters.conditionBase + parameters.conditionScaling * conditionDamage;
+  return normalBurningRate > 0
+    ? (parameters.powerBase + parameters.powerScaling * power) /
+        normalBurningRate
+    : parameters.fallbackFactor;
 }
 
 export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] =
@@ -115,6 +127,13 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] =
       id: "elementalist.inferno",
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: "multiply",
+      parameters: {
+        conditionBase: 131,
+        conditionScaling: 0.155,
+        powerBase: 131,
+        powerScaling: 0.0825,
+        fallbackFactor: 1,
+      } as Readonly<Record<string, number>>,
       factor: infernoBurningFactor,
       when: (context) =>
         hasTrait(context, "Inferno") && context.condition === "Burning",
@@ -132,24 +151,45 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] =
       id: "elementalist.persisting-flames",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
-      amount: (context) =>
-        elementalistTimedBuffStacks(context, "persisting flames", 5) * 0.02,
+      parameters: { maximumStacks: 5, damagePerStack: 0.02 } as Readonly<
+        Record<string, number>
+      >,
+      amount: (context, _target, parameters) =>
+        elementalistTimedBuffStacks(
+          context,
+          "persisting flames",
+          parameters.maximumStacks,
+        ) * parameters.damagePerStack,
       when: (context) => hasTrait(context, "Persisting Flames"),
     },
     {
       id: "elementalist.empowering-auras-strike",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
-      amount: (context) =>
-        elementalistTimedBuffStacks(context, "empowering auras", 5) * 0.01,
+      parameters: { maximumStacks: 5, damagePerStack: 0.01 } as Readonly<
+        Record<string, number>
+      >,
+      amount: (context, _target, parameters) =>
+        elementalistTimedBuffStacks(
+          context,
+          "empowering auras",
+          parameters.maximumStacks,
+        ) * parameters.damagePerStack,
       when: (context) => hasTrait(context, "Empowering Auras"),
     },
     {
       id: "elementalist.empowering-auras-condition",
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: "damage-additive",
-      amount: (context) =>
-        elementalistTimedBuffStacks(context, "empowering auras", 5) * 0.01,
+      parameters: { maximumStacks: 5, damagePerStack: 0.01 } as Readonly<
+        Record<string, number>
+      >,
+      amount: (context, _target, parameters) =>
+        elementalistTimedBuffStacks(
+          context,
+          "empowering auras",
+          parameters.maximumStacks,
+        ) * parameters.damagePerStack,
       when: (context) => hasTrait(context, "Empowering Auras"),
     },
     {
@@ -209,8 +249,13 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] =
       id: "elementalist.piercing-shards",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
-      factor: (context) =>
-        primaryAttunement(context) === "Water" ? 1.14 : 1.07,
+      parameters: { waterFactor: 1.14, otherFactor: 1.07 } as Readonly<
+        Record<string, number>
+      >,
+      factor: (context, _target, parameters) =>
+        primaryAttunement(context) === "Water"
+          ? parameters.waterFactor
+          : parameters.otherFactor,
       when: (context) =>
         playerEvent(context) &&
         hasTrait(context, "Piercing Shards") &&
@@ -271,23 +316,63 @@ export function modifyElementalistAttributes(
   const modified = { ...attributes };
   const primary = primaryAttunement(context);
   if (hasTrait(context, "Empowering Flame") && primary === "Fire") {
-    modified.power = Number(modified.power || 0) + 150;
+    modified.power =
+      Number(modified.power || 0) +
+      elementalistBalanceValue(
+        context,
+        PROFILE.empoweringFlame,
+        "attributeBonus",
+        150,
+      );
   }
   if (
     hasTrait(context, "Power Overwhelming") &&
-    elementalistMightStacks(context) >= 10
+    elementalistMightStacks(context) >=
+      elementalistBalanceValue(
+        context,
+        PROFILE.powerOverwhelming,
+        "minimumStacks",
+        10,
+      )
   ) {
     modified.power =
-      Number(modified.power || 0) + (primary === "Fire" ? 300 : 150);
+      Number(modified.power || 0) +
+      (primary === "Fire"
+        ? elementalistBalanceValue(
+            context,
+            PROFILE.powerOverwhelming,
+            "weaponAttributeBonus",
+            300,
+          )
+        : elementalistBalanceValue(
+            context,
+            PROFILE.powerOverwhelming,
+            "attributeBonus",
+            150,
+          ));
   }
   if (
     hasTrait(context, "Fresh Air") &&
     elementalistTimedBuffStacks(context, "fresh air", 1) > 0
   ) {
-    modified.ferocity = Number(modified.ferocity || 0) + 250;
+    modified.ferocity =
+      Number(modified.ferocity || 0) +
+      elementalistBalanceValue(
+        context,
+        PROFILE.freshAir,
+        "attributeBonus",
+        250,
+      );
   }
   if (hasTrait(context, "Aeromancer's Training") && primary === "Air") {
-    modified.ferocity = Number(modified.ferocity || 0) + 150;
+    modified.ferocity =
+      Number(modified.ferocity || 0) +
+      elementalistBalanceValue(
+        context,
+        PROFILE.aeromancersTraining,
+        "attributeBonus",
+        150,
+      );
   }
   if (
     hasTrait(context, "Raging Storm") &&
@@ -295,26 +380,75 @@ export function modifyElementalistAttributes(
       context.query?.furyActiveAt(context.time, context.runtime, context.event),
     )
   ) {
-    modified.ferocity = Number(modified.ferocity || 0) + 180;
+    modified.ferocity =
+      Number(modified.ferocity || 0) +
+      elementalistBalanceValue(
+        context,
+        PROFILE.ragingStorm,
+        "attributeBonus",
+        180,
+      );
   }
   if (
     hasTrait(context, "Arcane Lightning") &&
     elementalistTimedBuffStacks(context, "arcane lightning", 1) > 0
   ) {
-    modified.ferocity = Number(modified.ferocity || 0) + 150;
+    modified.ferocity =
+      Number(modified.ferocity || 0) +
+      elementalistBalanceValue(
+        context,
+        PROFILE.arcaneLightning,
+        "attributeBonus",
+        150,
+      );
   }
   const weapon = eventWeapon(context);
   if (weapon === "Fiery Greatsword") {
-    modified.power = Number(modified.power || 0) + 260;
-    modified.conditionDamage = Number(modified.conditionDamage || 0) + 180;
+    modified.power =
+      Number(modified.power || 0) +
+      elementalistBalanceValue(
+        context,
+        PROFILE.fieryGreatsword,
+        "weaponAttributeBonus",
+        260,
+      );
+    modified.conditionDamage =
+      Number(modified.conditionDamage || 0) +
+      elementalistBalanceValue(
+        context,
+        PROFILE.fieryGreatsword,
+        "attributeBonus",
+        180,
+      );
   } else if (weapon === "Lightning Hammer") {
-    modified.precision = Number(modified.precision || 0) + 180;
-    modified.ferocity = Number(modified.ferocity || 0) + 75;
+    modified.precision =
+      Number(modified.precision || 0) +
+      elementalistBalanceValue(
+        context,
+        PROFILE.lightningHammer,
+        "weaponAttributeBonus",
+        180,
+      );
+    modified.ferocity =
+      Number(modified.ferocity || 0) +
+      elementalistBalanceValue(
+        context,
+        PROFILE.lightningHammer,
+        "attributeBonus",
+        75,
+      );
   }
   if (
     Number(coreState(context).signetOfFireDisabledUntil || 0) > context.time
   ) {
-    modified.precision = Number(modified.precision || 0) - 180;
+    modified.precision =
+      Number(modified.precision || 0) -
+      elementalistBalanceValue(
+        context,
+        PROFILE.signetOfFire,
+        "attributeBonus",
+        180,
+      );
   }
   return modified;
 }

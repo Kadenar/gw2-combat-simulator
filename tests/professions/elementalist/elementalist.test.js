@@ -14,16 +14,35 @@ import {
   professionRoute,
 } from "../../../js/app/profession/selector.js";
 import {
+  applyBalanceProfilePatch,
+  applySkillPatch,
+} from "../../../js/platform/gw2/skill-patch.js";
+import {
   createElementalistBuildDefaults,
   migrateElementalistBuild,
   toApplicationBuild,
   validateElementalistBuild,
 } from "../../../js/professions/elementalist/build.js";
 import { elementalistCatalog } from "../../../js/professions/elementalist/catalog.js";
+import { elementalistProfession } from "../../../js/professions/elementalist/definition.js";
+import { ELEMENTALIST_SKILL_IDS as ID } from "../../../js/professions/elementalist/data/ids.js";
+import { FIRE_ELEMENTAL_EVTC_PROFILE } from "../../../js/professions/elementalist/core/elemental-profile.js";
+import {
+  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS,
+  elementalistBalanceValue,
+} from "../../../js/professions/elementalist/core/profiles.js";
+import { elementalistAttunementRechargeDuration } from "../../../js/professions/elementalist/core/rules.js";
+import { TEMPEST_BALANCE_PROFILE_IDS } from "../../../js/professions/elementalist/specializations/tempest/profiles.js";
+import { WEAVER_BALANCE_PROFILE_IDS } from "../../../js/professions/elementalist/specializations/weaver/profiles.js";
+import { CATALYST_BALANCE_PROFILE_IDS } from "../../../js/professions/elementalist/specializations/catalyst/profiles.js";
+import { EVOKER_BALANCE_PROFILE_IDS } from "../../../js/professions/elementalist/specializations/evoker/profiles.js";
 const professionRoot = new URL(
   "../../../js/professions/elementalist/",
   import.meta.url,
 );
+
+const applyElementalistPatch = (patch) =>
+  applyBalanceProfilePatch(applySkillPatch(elementalistCatalog, patch), patch);
 
 async function professionSourceFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -88,6 +107,167 @@ test("Elementalist is registered through the generic profession contract", async
   );
   assert.equal(profession.simulation, null);
   assert.equal(adapter.id, "elementalist");
+});
+
+test("Elementalist modules expose isolated balance-profile authoring", () => {
+  const modules = new Map(
+    elementalistProfession.patchAuthoring.modules.map((module) => [
+      module.id,
+      module,
+    ]),
+  );
+  assert.deepEqual(
+    [...modules.keys()],
+    ["Core", "Tempest", "Weaver", "Catalyst", "Evoker"],
+  );
+  assert.equal(
+    [...modules.values()].every((module) => module.balanceProfiles.length > 0),
+    true,
+  );
+
+  const profile = (moduleId, profileId) =>
+    modules
+      .get(moduleId)
+      .balanceProfiles.find((entry) => entry.id === profileId);
+  assert.equal(
+    profile("Core", ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources)
+      .patchableFields.recharge,
+    10,
+  );
+  assert.equal(
+    profile("Core", ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental)
+      .patchableFields.durationMultiplier,
+    120,
+  );
+  assert.equal(
+    profile("Tempest", TEMPEST_BALANCE_PROFILE_IDS.lightningJolt).profile
+      .effects[0].coefficient,
+    2.64,
+  );
+  assert.equal(
+    profile("Weaver", WEAVER_BALANCE_PROFILE_IDS.primordialStance).profile
+      .effects[0].coefficient,
+    0.33,
+  );
+  assert.equal(
+    profile("Catalyst", CATALYST_BALANCE_PROFILE_IDS.resources).patchableFields
+      .maximumStacks,
+    30,
+  );
+  assert.equal(
+    profile("Evoker", EVOKER_BALANCE_PROFILE_IDS.resources).patchableFields
+      .maximumStacks,
+    6,
+  );
+
+  const opaqueModifierRules = [...modules.values()].flatMap((module) =>
+    module.modifierRules.filter(
+      (rule) =>
+        (typeof rule.amount === "function" ||
+          typeof rule.factor === "function") &&
+        Object.keys(rule.parameters).length === 0,
+    ),
+  );
+  assert.deepEqual(opaqueModifierRules, []);
+
+  const preview = applyElementalistPatch({
+    skills: {
+      [ID.OVERLOAD_AIR]: {
+        fields: { cooldown: { from: 20, to: 18 } },
+      },
+    },
+    balanceProfiles: {
+      [ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources]: {
+        fields: { recharge: { from: 10, to: 9 } },
+      },
+      [ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental]: {
+        fields: { durationMultiplier: { from: 120, to: 100 } },
+      },
+      [ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.elementalEnchantment]: {
+        fields: { rechargeMultiplier: { from: 0.85, to: 0.8 } },
+      },
+      [TEMPEST_BALANCE_PROFILE_IDS.lightningJolt]: {
+        effects: [{ effectIndex: 0, coefficient: { from: 2.64, to: 2.8 } }],
+      },
+      [WEAVER_BALANCE_PROFILE_IDS.primordialStance]: {
+        effects: [{ effectIndex: 0, coefficient: { from: 0.33, to: 0.4 } }],
+      },
+      [CATALYST_BALANCE_PROFILE_IDS.resources]: {
+        fields: { maximumStacks: { from: 30, to: 40 } },
+      },
+      [EVOKER_BALANCE_PROFILE_IDS.resources]: {
+        fields: { maximumStacks: { from: 6, to: 8 } },
+      },
+    },
+  });
+
+  assert.equal(preview.skillsById.get(ID.OVERLOAD_AIR).cooldown, 18);
+  assert.equal(
+    preview.balanceProfilesById.get(
+      ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources,
+    ).recharge,
+    9,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(TEMPEST_BALANCE_PROFILE_IDS.lightningJolt)
+      .effects[0].coefficient,
+    2.8,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(WEAVER_BALANCE_PROFILE_IDS.primordialStance)
+      .effects[0].coefficient,
+    0.4,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(CATALYST_BALANCE_PROFILE_IDS.resources)
+      .maximumStacks,
+    40,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(EVOKER_BALANCE_PROFILE_IDS.resources)
+      .maximumStacks,
+    8,
+  );
+  assert.equal(
+    elementalistBalanceValue(
+      { catalog: preview },
+      ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental,
+      "durationMultiplier",
+      120,
+    ),
+    100,
+  );
+  assert.equal(
+    elementalistAttunementRechargeDuration(
+      {
+        catalog: preview,
+        config: {
+          selectedTraits: ["Elemental Enchantment"],
+          boons: {},
+        },
+      },
+      10,
+    ),
+    8,
+  );
+
+  assert.equal(
+    elementalistCatalog.skillsById.get(ID.OVERLOAD_AIR).cooldown,
+    20,
+  );
+  assert.equal(
+    elementalistCatalog.balanceProfilesById.get(
+      ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources,
+    ).recharge,
+    10,
+  );
+  assert.equal(FIRE_ELEMENTAL_EVTC_PROFILE.fireball.baseDamage, 995);
+  assert.equal(
+    [...elementalistCatalog.balanceProfilesById.values()].some(
+      (entry) => entry.parentId === ID.FIRE_ELEMENTAL_FIREBALL,
+    ),
+    false,
+  );
 });
 
 test("Elementalist build defaults and saved snapshots migrate explicitly", () => {

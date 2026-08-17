@@ -32,7 +32,7 @@ export const DRUID_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
     profileKind: "mechanic",
     maximumStacks: 100,
     durationMultiplier: 15,
-    rechargeMultiplier: 0.5,
+    astralForceRetentionMultiplier: 0.5,
     resourceGain: 0.75,
     coefficientMultiplier: 2,
     effects: [],

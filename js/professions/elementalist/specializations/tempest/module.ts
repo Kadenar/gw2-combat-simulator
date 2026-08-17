@@ -13,11 +13,13 @@ import { tempestUi } from "./ui.js";
 import { TEMPEST_SKILL_MECHANICS } from "./skills.js";
 import { applyTempestResolverAura } from "./resolver.js";
 import { tempestSkillHandlers } from "./handlers.js";
+import { TEMPEST_BALANCE_PROFILES } from "./profiles.js";
 
 export const tempestModule = defineNativeModule({
   id: "Tempest",
   data: createElementalistModuleData("Tempest", {
     skillMechanics: TEMPEST_SKILL_MECHANICS,
+    balanceProfiles: TEMPEST_BALANCE_PROFILES,
     handlers: tempestSkillHandlers,
   }),
   state: { scheduler: createTempestState, resolver: createTempestState },

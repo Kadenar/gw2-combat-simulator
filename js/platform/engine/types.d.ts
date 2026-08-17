@@ -332,6 +332,8 @@ export interface Skill extends CatalogSkill {
   readonly tags?: readonly string[];
   readonly categories?: readonly string[];
   readonly resource?: unknown;
+  /** Amount of the resource selected by the consuming profession mechanic. */
+  readonly resourceGain?: number;
   readonly implemented?: boolean;
 }
 
@@ -343,6 +345,8 @@ export interface Skill extends CatalogSkill {
 export interface BalanceProfile extends CatalogSkill {
   readonly profileKind: "trait" | "mechanic" | "skill-variant";
   readonly effects?: readonly SkillEffect[];
+  /** Amount of the resource selected by the consuming profession mechanic. */
+  readonly resourceGain?: number;
   readonly [field: string]: unknown;
 }
 

@@ -15,6 +15,12 @@ import {
   type ElementalistAuraState,
   type ElementalistCoreState,
 } from "./state.js";
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from "../data/ids.js";
+import {
+  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  elementalistBalanceEffect,
+  elementalistBalanceValue,
+} from "./profiles.js";
 
 const PERSISTING_FLAMES_FIELD_SKILLS = new Set([
   "Flamewall",
@@ -199,7 +205,13 @@ export function queueElementalistAura(
   skillName: string,
 ): void {
   const adjustedDuration = hasTrait(context, "Smothering Auras")
-    ? duration * 1.33
+    ? duration *
+      elementalistBalanceValue(
+        context,
+        PROFILE.smotheringAuras,
+        "durationMultiplier",
+        1.33,
+      )
     : duration;
   enqueueOrdered(context.queue, {
     type: "elementalist.aura",
@@ -232,6 +244,18 @@ export function applyElementalistResolverAura(
     context.resolved.push(event);
   }
   if (hasTrait(context, "Empowering Auras")) {
+    const maximumStacks = elementalistBalanceValue(
+      context,
+      TRAIT.EMPOWERING_AURAS,
+      "maximumStacks",
+      5,
+    );
+    const duration = elementalistBalanceValue(
+      context,
+      TRAIT.EMPOWERING_AURAS,
+      "durationMultiplier",
+      10,
+    );
     const current = activeElementalistBuffs(
       context,
       "Empowering Auras",
@@ -241,19 +265,19 @@ export function applyElementalistResolverAura(
       context,
       "Empowering Auras",
       event.at,
-      () => event.at + 10,
+      () => event.at + duration,
     );
     const activeStacks = current.reduce(
       (total, application) => total + Number(application.stacks || 1),
       0,
     );
-    if (activeStacks < 5) {
+    if (activeStacks < maximumStacks) {
       queueElementalistBuff(
         context,
         event,
         "Empowering Auras",
         1,
-        10,
+        duration,
         skillName,
       );
     }
@@ -267,18 +291,87 @@ export function applyElementalistResolverAura(
     event.type === "aura"
   ) {
     if (hasTrait(context, "Zephyr's Boon")) {
-      queueElementalistBuff(context, event, "Fury", 1, 5, skillName);
-      queueElementalistBuff(context, event, "Swiftness", 1, 5, skillName);
+      const fury = elementalistBalanceEffect(
+        context,
+        PROFILE.zephyrsBoon,
+        "boon",
+        "Fury",
+      );
+      const swiftness = elementalistBalanceEffect(
+        context,
+        PROFILE.zephyrsBoon,
+        "boon",
+        "Swiftness",
+      );
+      queueElementalistBuff(
+        context,
+        event,
+        String(fury?.boon || "Fury"),
+        Number(fury?.stacks ?? 1),
+        Number(fury?.duration ?? 5),
+        skillName,
+      );
+      queueElementalistBuff(
+        context,
+        event,
+        String(swiftness?.boon || "Swiftness"),
+        Number(swiftness?.stacks ?? 1),
+        Number(swiftness?.duration ?? 5),
+        skillName,
+      );
     }
     if (hasTrait(context, "Elemental Shielding")) {
-      queueElementalistBuff(context, event, "Protection", 1, 3, skillName);
+      const protection = elementalistBalanceEffect(
+        context,
+        PROFILE.elementalShielding,
+        "boon",
+        "Protection",
+      );
+      queueElementalistBuff(
+        context,
+        event,
+        String(protection?.boon || "Protection"),
+        Number(protection?.stacks ?? 1),
+        Number(protection?.duration ?? 3),
+        skillName,
+      );
     }
     if (hasTrait(context, "Invigorating Torrents")) {
-      queueElementalistBuff(context, event, "Vigor", 1, 5, skillName);
-      queueElementalistBuff(context, event, "Regeneration", 1, 5, skillName);
+      for (const [name, kind] of [
+        ["Vigor", "Vigor"],
+        ["Regeneration", "Regeneration"],
+      ] as const) {
+        const effect = elementalistBalanceEffect(
+          context,
+          TRAIT.INVIGORATING_TORRENTS,
+          "boon",
+          name,
+        );
+        queueElementalistBuff(
+          context,
+          event,
+          String(effect?.boon || kind),
+          Number(effect?.stacks ?? 1),
+          Number(effect?.duration ?? 5),
+          skillName,
+        );
+      }
     }
     if (hasTrait(context, "Elemental Bastion")) {
-      queueElementalistBuff(context, event, "Alacrity", 1, 4, skillName);
+      const alacrity = elementalistBalanceEffect(
+        context,
+        TRAIT.ELEMENTAL_BASTION,
+        "boon",
+        "Alacrity",
+      );
+      queueElementalistBuff(
+        context,
+        event,
+        String(alacrity?.boon || "Alacrity"),
+        Number(alacrity?.stacks ?? 1),
+        Number(alacrity?.duration ?? 4),
+        skillName,
+      );
     }
   }
   if (event.type === "elementalist.aura") {
@@ -316,7 +409,14 @@ function applyBurningPrecision(
   }
   const state = coreState(context);
   const chance = Number(details.hitContext.critical.chance || 0);
-  state.burningPrecisionProgress += chance * 0.33;
+  state.burningPrecisionProgress +=
+    chance *
+    elementalistBalanceValue(
+      context,
+      PROFILE.burningPrecision,
+      "procChance",
+      0.33,
+    );
   if (
     state.burningPrecisionProgress < 1 ||
     Number(state.procReadyAt.burningPrecision || 0) >= event.at - EPSILON
@@ -324,13 +424,26 @@ function applyBurningPrecision(
     return;
   }
   state.burningPrecisionProgress -= 1;
-  state.procReadyAt.burningPrecision = event.at + 5;
+  state.procReadyAt.burningPrecision =
+    event.at +
+    elementalistBalanceValue(
+      context,
+      PROFILE.burningPrecision,
+      "internalCooldown",
+      5,
+    );
+  const burning = elementalistBalanceEffect(
+    context,
+    PROFILE.burningPrecision,
+    "condition",
+    "Burning Precision",
+  );
   applyCondition(context, details, event, {
     source: "Burning Precision",
     sourceId: "Burning Precision",
-    condition: "Burning",
-    stacks: 1,
-    duration: 3,
+    condition: String(burning?.condition || "Burning"),
+    stacks: Number(burning?.stacks ?? 1),
+    duration: Number(burning?.duration ?? 3),
   });
   recordElementalistTraitProc(context, event, "Burning Precision");
 }
@@ -345,7 +458,12 @@ function grantPersistingFlames(
     event,
     "Persisting Flames",
     1,
-    15,
+    elementalistBalanceValue(
+      context,
+      PROFILE.persistingFlames,
+      "durationMultiplier",
+      15,
+    ),
     elementalistSourceSkill(event),
   );
 }
@@ -376,13 +494,26 @@ export function applyElementalistResolvedCondition(
   ) {
     const state = coreState(context);
     if (Number(state.procReadyAt.strengthOfStone || 0) < event.at - EPSILON) {
-      state.procReadyAt.strengthOfStone = event.at + 3;
+      state.procReadyAt.strengthOfStone =
+        event.at +
+        elementalistBalanceValue(
+          context,
+          PROFILE.strengthOfStone,
+          "internalCooldown",
+          3,
+        );
+      const bleeding = elementalistBalanceEffect(
+        context,
+        PROFILE.strengthOfStone,
+        "condition",
+        "Strength of Stone",
+      );
       applyCondition(context, details, event, {
         source: "Strength of Stone",
         sourceId: "Strength of Stone",
-        condition: "Bleeding",
-        stacks: 3,
-        duration: 10,
+        condition: String(bleeding?.condition || "Bleeding"),
+        stacks: Number(bleeding?.stacks ?? 3),
+        duration: Number(bleeding?.duration ?? 10),
       });
       recordElementalistTraitProc(context, event, "Strength of Stone");
     }

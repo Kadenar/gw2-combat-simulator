@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 3,
+  "profession": "guardian",
+  "gear": {
+    "Helm": "Ritualist's",
+    "Shoulders": "Ritualist's",
+    "Chest": "Ritualist's",
+    "Gloves": "Ritualist's",
+    "Leggins": "Ritualist's",
+    "Boots": "Ritualist's",
+    "Amulet": "Ritualist's",
+    "Ring1": "Ritualist's",
+    "Ring2": "Ritualist's",
+    "Accessory1": "Ritualist's",
+    "Accessory2": "Ritualist's",
+    "Back": "Sinister",
+    "Weapon1": "Ritualist's",
+    "Weapon2": "Ritualist's"
+  },
+  "weapons": ["Axe", "Torch"],
+  "alternateWeapons": ["Pistol", "Pistol"],
+  "rune": "Trapper",
+  "weaponSigils": [
+    ["Bursting", "Smoldering"],
+    ["Bursting", "Smoldering"]
+  ],
+  "relic": "Fractal",
+  "food": "Cilantro and Cured Meat Flatbread",
+  "utility": "Magnanimous Tuning Crystal",
+  "jadeBotCore": true,
+  "infusions": [
+    { "stat": "Power", "count": 0 },
+    { "stat": "Precision", "count": 0 },
+    { "stat": "Condition Damage", "count": 18 }
+  ],
+  "specializations": [
+    { "name": "Radiance", "traits": "2-2-1" },
+    { "name": "Virtues", "traits": "1-2-1" },
+    { "name": "Firebrand", "traits": "2-1-2" }
+  ],
+  "selectedSkills": {
+    "Heal": "Mantra of Solace",
+    "Utility1": "Mantra of Potence",
+    "Utility2": "Mantra of Flame",
+    "Utility3": "Signet of Wrath",
+    "Elite": "\"Feel My Wrath!\""
+  },
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": false,
+    "alliedPlayerCount": 4,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    },
+    "targetSkillActivationsPerSecond": 0
+  },
+  "initialTomePages": 5,
+  "startingWeaponSet": 2,
+  "targetHealth": 3970000,
+  "targetArmor": 2597
+}

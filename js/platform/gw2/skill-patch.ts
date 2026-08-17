@@ -157,8 +157,8 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   "cooldown",
   "recharge",
   "rechargeOffsetMs",
-  "rechargeMultiplier",
-  "rechargeReduction",
+  "rechargeMultiplier", // fraction of recharge duration retained
+  "rechargeReduction", // flat seconds removed from recharge
   "rechargePenalty",
   "ammo",
   "ammoCastLockout",
@@ -175,6 +175,8 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   "upkeepPulse.stacks",
   "energyRegenerationPerSecond",
   "enduranceRegenerationPerSecond",
+  "kneelingInitiativeRegenerationBonus",
+  "astralForceRetentionMultiplier",
   "vigorRegenerationMultiplier",
 
   // Strike, condition, and general damage scaling.

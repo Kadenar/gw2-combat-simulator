@@ -1,0 +1,73 @@
+import { hasTrait as hasGw2Trait } from "../../../platform/gw2/trait-state.js";
+import type { SchedulerRecord, Skill } from "../../../platform/engine/types.js";
+import type { ElementalistCastContext as ElementalistLifecycleContext } from "../types.js";
+import { elementalistCoreState } from "./state.js";
+import { CONJURE_SKILLS } from "./constants.js";
+import { applyElementalistAura } from "./mechanics.js";
+import {
+  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  elementalistBalanceValue,
+  elementalistEffectValue,
+} from "./profiles.js";
+
+function hasTrait(context: unknown, trait: string): boolean {
+  return hasGw2Trait(context as never, trait);
+}
+
+export function applyConjureState(
+  context: ElementalistLifecycleContext,
+  skill: Skill,
+): void {
+  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const at = context.effectiveEnd;
+  const conjuredWeapon = CONJURE_SKILLS[skill.name];
+  let swapped = false;
+  if (conjuredWeapon) {
+    state.conjureEquipped = conjuredWeapon;
+    state.conjurePickups[conjuredWeapon] =
+      at +
+      elementalistBalanceValue(
+        context,
+        PROFILE.conjurePickups,
+        "durationMultiplier",
+        35,
+      );
+    swapped = true;
+    if (hasTrait(context, "Conjurer")) {
+      applyElementalistAura(context, {
+        at,
+        aura: "Fire Aura",
+        duration: elementalistEffectValue(
+          context,
+          PROFILE.conjurer,
+          "buff",
+          "duration",
+          4,
+          "Conjurer",
+        ),
+        skillName: "Conjurer",
+        sourceId: skill.id,
+      });
+    }
+  } else if (skill.name === "__drop_bundle") {
+    swapped = state.conjureEquipped != null;
+    state.conjureEquipped = null;
+  } else if (skill.name.startsWith("__pickup_")) {
+    const weapon = skill.name.slice("__pickup_".length);
+    if (Number(state.conjurePickups[weapon] || 0) >= context.start) {
+      state.conjureEquipped = weapon;
+      delete state.conjurePickups[weapon];
+      swapped = true;
+    }
+  }
+  if (swapped) {
+    context.emit({
+      type: "sigil_swap",
+      at,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: "player",
+      skillName: skill.name,
+    });
+  }
+}

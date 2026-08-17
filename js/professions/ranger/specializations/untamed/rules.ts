@@ -178,7 +178,7 @@ export const untamedSchedulerHooks = Object.freeze({
       // Alacrity.
       const readyAt =
         context.start +
-        rangerBalanceValue(context, PROFILE.resources, "rechargeMultiplier", 1);
+        rangerBalanceValue(context, PROFILE.resources, "recharge", 1);
       context.state.cooldowns.set(ID.UNLEASH_RANGER, readyAt);
       context.state.cooldowns.set(ID.UNLEASH_PET, readyAt);
       context.replaceEvent(context.action, { rechargeReadyAt: readyAt });

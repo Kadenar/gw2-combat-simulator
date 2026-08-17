@@ -1,7 +1,6 @@
 # Balance Profile Profession Tracker
 
-Status: Necromancer, Guardian, Warrior, Engineer, Thief, Ranger, and Mesmer
-complete; Elementalist remains.
+Status: all tracked profession migrations are complete.
 
 Scope: bring every non-Revenant profession to the balance-preview model used by
 [Revenant](../js/professions/revenant/catalog-data.ts). Each profession below is
@@ -27,31 +26,36 @@ continuing that profession.
 
 ## Elementalist
 
-Size: Large. Modules: Core, Tempest, Weaver, Catalyst, Evoker. Profiles today: 0.
+Size: Large. Modules: Core, Tempest, Weaver, Catalyst, Evoker.
 
 ### Tracked issues
 
-- [ ] `ELE-01` Add profile plumbing to
+- [x] `ELE-01` Add profile plumbing to
       [catalog-data.ts](../js/professions/elementalist/catalog-data.ts) and all
       five modules.
-- [ ] `ELE-02` Move attunement, endurance, trait-proc, and summon values out of
-      [core rules](../js/professions/elementalist/core/rules.ts) and
-      [elemental profiles](../js/professions/elementalist/core/elemental-profile.ts).
-- [ ] `ELE-03` Profile Tempest overload/shout, Weaver stance, Catalyst sphere,
+- [x] `ELE-02` Move attunement, endurance, trait-proc, and summoned-elemental
+      lifecycle values out of
+      [core rules](../js/professions/elementalist/core/rules.ts). Autonomous
+      elemental attack packets, timings, and base attributes remain static in
+      [elemental profiles](../js/professions/elementalist/core/elemental-profile.ts)
+      by design.
+- [x] `ELE-03` Profile Tempest overload/shout, Weaver stance, Catalyst sphere,
       and Evoker familiar/enchantment values.
-- [ ] `ELE-04` Make seven opaque modifier formulas authorable; replace or expose
+- [x] `ELE-04` Make seven opaque modifier formulas authorable; replace or expose
       imperative attribute changes in Core, Weaver, Catalyst, and Evoker.
-- [ ] `ELE-05` Move castable and summon attack packets into skill declarations
-      or explicit skill variants.
+- [x] `ELE-05` Keep castable packets in skill declarations and move
+      state-specific player packets into explicit skill variants. Summoned
+      elemental attack packets remain static by design.
 
 ### Remediation steps
 
-- [ ] Add stable IDs and `trait`, `mechanic`, or `skill-variant` ownership for
+- [x] Add stable IDs and `trait`, `mechanic`, or `skill-variant` ownership for
       every migrated value.
-- [ ] Wire module profiles into the profession catalog.
-- [ ] Add tests for attunement/resource values, one trait proc, one summon
-      packet, and one dynamic modifier.
-- [ ] Verify the shared completion contract.
+- [x] Wire module profiles into the profession catalog.
+- [x] Add tests for attunement/resource values, trait interactions, summon
+      lifecycle authoring, static summon-packet exclusion, and dynamic
+      modifiers.
+- [x] Verify the shared completion contract.
 
 ## Mesmer
 
@@ -259,6 +263,4 @@ Profiles today: 0.
 
 ## Suggested implementation order
 
-1. Elementalist
-
-All other tracked profession migrations are complete.
+All tracked profession migrations are complete.

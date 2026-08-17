@@ -190,9 +190,9 @@ function modifyAntiquaryRechargeDuration(
   duration: number,
 ): number {
   const state = antiquaryState.from(context);
-  const reduction = Number(
-    thiefBalanceProfile(context, PROFILE.artifactWindows)?.rechargeReduction ||
-      0.8,
+  const multiplier = Number(
+    thiefBalanceProfile(context, PROFILE.artifactWindows)?.rechargeMultiplier ??
+      0.2,
   );
   const expirations = (
     state.holoUtilityCooldownReductionExpirations || []
@@ -203,11 +203,11 @@ function modifyAntiquaryRechargeDuration(
   }
   // consume the earliest slot; each Holo-Dancer Decoy use adds one entry, so stacking is supported
   expirations.shift();
-  state.holoUtilityCooldownReduction = expirations.length ? reduction : 0;
+  state.holoUtilityCooldownReduction = expirations.length ? 1 - multiplier : 0;
   state.holoUtilityCooldownReductionExpiresAt = expirations.length
     ? Math.max(...expirations)
     : 0;
-  return duration * (1 - reduction);
+  return duration * multiplier;
 }
 
 export const antiquaryCastRules = Object.freeze({
