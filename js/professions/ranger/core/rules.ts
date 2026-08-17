@@ -1104,18 +1104,18 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "multiply",
       parameters: {
         maximumConditions: 5,
-        baseCoefficient: 0.45,
         coefficientPerCondition: 0.025,
       } as Readonly<Record<string, number>>,
       factor: (context, _target, parameters) => {
+        const coefficient = Number(context.event?.coefficient || 0);
+        if (!(coefficient > 0)) return 1;
         const conditions = Math.min(
           parameters.maximumConditions,
           targetConditionCount(context),
         );
         return (
-          (parameters.baseCoefficient +
-            conditions * parameters.coefficientPerCondition) /
-          parameters.baseCoefficient
+          (coefficient + conditions * parameters.coefficientPerCondition) /
+          coefficient
         );
       },
       when: (context) =>

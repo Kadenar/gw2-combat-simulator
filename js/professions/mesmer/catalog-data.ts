@@ -12,6 +12,7 @@ import {
   prepareMesmerSkillForCatalog,
 } from "./mechanics/handler-mechanics.js";
 import type {
+  BalanceProfile,
   CatalogEntity,
   Skill,
   SkillFragment,
@@ -28,44 +29,74 @@ const generated: readonly Skill[] = [
 const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
   Object.freeze({
     Mirage: [
-      ID.DODGE_MIRAGE_CLOAK, ID.PICK_UP_MIRAGE_MIRROR,
-      ID.ETHER_BARRAGE, ID.IMAGINARY_AXES,
-      ID.MIRAGE_THRUST, ID.PHANTOM_RAZOR, ID.EFFERVESCENCE,
-      ID.FRACTURED_GLASS, ID.SPLIT_SURGE, ID.CHAOS_VORTEX,
+      ID.DODGE_MIRAGE_CLOAK,
+      ID.PICK_UP_MIRAGE_MIRROR,
+      ID.ETHER_BARRAGE,
+      ID.IMAGINARY_AXES,
+      ID.MIRAGE_THRUST,
+      ID.PHANTOM_RAZOR,
+      ID.EFFERVESCENCE,
+      ID.FRACTURED_GLASS,
+      ID.SPLIT_SURGE,
+      ID.CHAOS_VORTEX,
     ],
     Troubadour: [ID.TROUBADOUR_BLADECALL, ID.DODGE_TROUBADOUR],
   });
-const SPECIALIZATION_ONLY_SKILL_OWNERS = Object.freeze(Object.fromEntries(
-  Object.entries(SPECIALIZATION_ONLY_SKILLS).flatMap(([owner, skillIds]) =>
-    skillIds.map((skillId) => [String(skillId), owner])
+const SPECIALIZATION_ONLY_SKILL_OWNERS = Object.freeze(
+  Object.fromEntries(
+    Object.entries(SPECIALIZATION_ONLY_SKILLS).flatMap(([owner, skillIds]) =>
+      skillIds.map((skillId) => [String(skillId), owner]),
+    ),
   ),
-));
+);
 
 const WEAPONS = Object.freeze([
-  "Axe", "Dagger", "Focus", "Greatsword", "Pistol", "Rifle", "Scepter",
-  "Shield", "Spear", "Staff", "Sword", "Torch",
+  "Axe",
+  "Dagger",
+  "Focus",
+  "Greatsword",
+  "Pistol",
+  "Rifle",
+  "Scepter",
+  "Shield",
+  "Spear",
+  "Staff",
+  "Sword",
+  "Torch",
 ]);
 const WEAPON_HANDS = Object.freeze({
-  Axe: "mh", Dagger: "mh", Focus: "oh", Greatsword: "2h", Pistol: "oh",
-  Rifle: "2h", Scepter: "mh", Shield: "oh", Spear: "2h", Staff: "2h",
-  Sword: "mh+oh", Torch: "oh",
+  Axe: "mh",
+  Dagger: "mh",
+  Focus: "oh",
+  Greatsword: "2h",
+  Pistol: "oh",
+  Rifle: "2h",
+  Scepter: "mh",
+  Shield: "oh",
+  Spear: "2h",
+  Staff: "2h",
+  Sword: "mh+oh",
+  Torch: "oh",
 });
 
 export const MESMER_NATIVE_CATALOG_OPTIONS: NativeCatalogOptions =
   Object.freeze({
     skillNameCollision: "first",
-    skillNameOverrides: Object.freeze(Object.fromEntries(
-      MESMER_DUPLICATE_SKILL_NAMES.flatMap((name) => {
-        const id = defaultMesmerLegacySkillId(name);
-        return id == null ? [] : [[name, id]];
-      }),
-    )),
+    skillNameOverrides: Object.freeze(
+      Object.fromEntries(
+        MESMER_DUPLICATE_SKILL_NAMES.flatMap((name) => {
+          const id = defaultMesmerLegacySkillId(name);
+          return id == null ? [] : [[name, id]];
+        }),
+      ),
+    ),
   });
 
 interface MesmerModuleDataOptions<TContext extends object> {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
   readonly supplementalSkillMechanics?: Readonly<Record<string, SkillFragment>>;
   readonly extraSkills?: readonly Skill[];
+  readonly balanceProfiles?: readonly BalanceProfile[];
   readonly handlers?:
     | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
     | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
@@ -74,12 +105,14 @@ interface MesmerModuleDataOptions<TContext extends object> {
 function prepareMechanics(
   mechanics: Readonly<Record<string, SkillFragment>>,
 ): Readonly<Record<string, SkillFragment>> {
-  return Object.freeze(Object.fromEntries(
-    Object.entries(mechanics).map(([id, skill]) => [
-      id,
-      prepareMesmerSkillForCatalog({ ...skill, id: Number(id) }),
-    ]),
-  ));
+  return Object.freeze(
+    Object.fromEntries(
+      Object.entries(mechanics).map(([id, skill]) => [
+        id,
+        prepareMesmerSkillForCatalog({ ...skill, id: Number(id) }),
+      ]),
+    ),
+  );
 }
 
 export function createMesmerModuleData<TContext extends object>(
@@ -88,6 +121,7 @@ export function createMesmerModuleData<TContext extends object>(
     skillMechanics,
     supplementalSkillMechanics = {},
     extraSkills = [],
+    balanceProfiles = [],
     handlers,
   }: MesmerModuleDataOptions<TContext>,
 ) {
@@ -100,11 +134,13 @@ export function createMesmerModuleData<TContext extends object>(
       }),
   );
   const skillOverrides: Readonly<Record<SkillId, SkillFragment>> =
-    Object.freeze(Object.fromEntries(
-      generated
-        .filter((skill) => flipParentsWithAmmoChild.has(Number(skill.id)))
-        .map((skill) => [skill.id, { ammo: 0, ammoRecharge: 0 }]),
-    ));
+    Object.freeze(
+      Object.fromEntries(
+        generated
+          .filter((skill) => flipParentsWithAmmoChild.has(Number(skill.id)))
+          .map((skill) => [skill.id, { ammo: 0, ammoRecharge: 0 }]),
+      ),
+    );
   return createNativeModuleData({
     id,
     generatedSkills: generated,
@@ -114,8 +150,9 @@ export function createMesmerModuleData<TContext extends object>(
     }),
     skillOverrides,
     extraSkills: extraSkills.map((skill) =>
-      prepareMesmerSkillForCatalog({ ...skill, id: Number(skill.id) })
+      prepareMesmerSkillForCatalog({ ...skill, id: Number(skill.id) }),
     ),
+    balanceProfiles,
     handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,

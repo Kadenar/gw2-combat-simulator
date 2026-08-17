@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  applyBalanceProfilePatch,
+  applySkillPatch,
+} from "../../../js/platform/gw2/skill-patch.js";
+import {
   SKILLS,
   SPECIALIZATIONS,
 } from "../../../js/professions/mesmer/data/mesmer-api-metadata.js";
@@ -11,6 +15,7 @@ import {
   MESMER_MIRAGE_AMBUSH_ATTACKS as AMBUSH_ATTACKS,
   AMBUSH_SKILLS,
   MESMER_CORE_CLONE_ATTACKS as CLONE_ATTACKS,
+  MESMER_CORE_WEAPON_STRENGTH as WEAPON_STRENGTH,
   MESMER_TROUBADOUR_INSTRUMENTS as INSTRUMENTS,
   MECHANIC_SKILLS,
   PHANTASM_ATTACK_TIMINGS,
@@ -25,6 +30,23 @@ import { mesmerProfession } from "../../../js/professions/mesmer/definition.js";
 import { MESMER_SKILL_IDS as ID } from "../../../js/professions/mesmer/data/ids.js";
 import { MESMER_SUPPLEMENTAL_SKILLS } from "../../../js/professions/mesmer/data/mesmer-supplemental-skills.js";
 import { MESMER_TRAIT_COVERAGE } from "../../../js/professions/mesmer/data/trait-coverage.js";
+import {
+  MESMER_CORE_BALANCE_PROFILE_IDS,
+  MESMER_CORE_SHATTER_PROFILE_IDS,
+  mesmerProfiledAmbush,
+  mesmerProfiledInstrument,
+  mesmerProfiledShatters,
+} from "../../../js/professions/mesmer/core/profiles.js";
+import { CHRONOMANCER_BALANCE_PROFILE_IDS } from "../../../js/professions/mesmer/specializations/chronomancer/profiles.js";
+import {
+  MIRAGE_AMBUSH_PROFILE_IDS,
+  MIRAGE_BALANCE_PROFILE_IDS,
+} from "../../../js/professions/mesmer/specializations/mirage/profiles.js";
+import { VIRTUOSO_BALANCE_PROFILE_IDS } from "../../../js/professions/mesmer/specializations/virtuoso/profiles.js";
+import {
+  TROUBADOUR_BALANCE_PROFILE_IDS,
+  TROUBADOUR_INSTRUMENT_PROFILE_IDS,
+} from "../../../js/professions/mesmer/specializations/troubadour/profiles.js";
 import {
   defaultMesmerLegacySkillId,
   MESMER_DUPLICATE_SKILL_NAMES,
@@ -45,6 +67,9 @@ const totalStrikeCoefficient = (skill) =>
     (sum, effect) => sum + strikeCoefficient(effect),
     0,
   );
+
+const applyMesmerPatch = (patch) =>
+  applyBalanceProfilePatch(applySkillPatch(mesmerCatalog, patch), patch);
 
 test("catalog contains every terrestrial Mesmer skill and trait line", () => {
   assert.deepEqual(
@@ -67,6 +92,182 @@ test("catalog contains every terrestrial Mesmer skill and trait line", () => {
     SKILLS.filter((skill) => ["Arcane Thievery", "Veil"].includes(skill.name)),
     [],
   );
+});
+
+test("Mesmer modules expose isolated balance-profile authoring", () => {
+  const modules = new Map(
+    mesmerProfession.patchAuthoring.modules.map((module) => [
+      module.id,
+      module,
+    ]),
+  );
+  assert.deepEqual(
+    [...modules.keys()],
+    ["Core", "Chronomancer", "Mirage", "Virtuoso", "Troubadour"],
+  );
+  assert.equal(
+    [...modules.values()].every((module) => module.balanceProfiles.length > 0),
+    true,
+  );
+
+  const profile = (moduleId, profileId) =>
+    modules
+      .get(moduleId)
+      .balanceProfiles.find((entry) => entry.id === profileId);
+  assert.equal(
+    profile("Core", MESMER_CORE_BALANCE_PROFILE_IDS.mindWrack).profile
+      .effects[1].coefficient,
+    1.61,
+  );
+  assert.equal(
+    profile("Chronomancer", CHRONOMANCER_BALANCE_PROFILE_IDS.dangerTime)
+      .patchableFields.durationMultiplier,
+    10,
+  );
+  assert.equal(
+    profile("Mirage", MIRAGE_BALANCE_PROFILE_IDS.imaginaryAxes).profile
+      .effects[0].coefficient,
+    1,
+  );
+  assert.equal(
+    profile("Virtuoso", VIRTUOSO_BALANCE_PROFILE_IDS.resources).patchableFields
+      .maximumStacks,
+    5,
+  );
+  assert.equal(
+    profile("Troubadour", TROUBADOUR_BALANCE_PROFILE_IDS.livelyLute).profile
+      .effects[0].coefficient,
+    3,
+  );
+  assert.equal(
+    profile("Troubadour", TROUBADOUR_BALANCE_PROFILE_IDS.crescendo).profile
+      .effects[0].coefficient,
+    2.25,
+  );
+  assert.equal(
+    profile("Troubadour", TROUBADOUR_BALANCE_PROFILE_IDS.crescendo)
+      .patchableFields.damageIncreasePerStack,
+    0.25,
+  );
+  assert.equal(
+    Object.hasOwn(
+      mesmerCatalog.skillsById.get(ID.CRESCENDO),
+      "baseCoefficient",
+    ),
+    false,
+  );
+
+  const opaqueModifierRules = [...modules.values()].flatMap((module) =>
+    module.modifierRules.filter(
+      (rule) =>
+        (typeof rule.amount === "function" ||
+          typeof rule.factor === "function") &&
+        Object.keys(rule.parameters).length === 0,
+    ),
+  );
+  assert.deepEqual(opaqueModifierRules, []);
+
+  const preview = applyMesmerPatch({
+    skills: {
+      [ID.MIND_WRACK]: {
+        fields: { cooldown: { from: 12, to: 10 } },
+      },
+    },
+    balanceProfiles: {
+      [MESMER_CORE_BALANCE_PROFILE_IDS.mindWrack]: {
+        effects: [{ effectIndex: 1, coefficient: { from: 1.61, to: 1.75 } }],
+      },
+      [MESMER_CORE_BALANCE_PROFILE_IDS.cryOfFrustration]: {
+        effects: [{ effectIndex: 4, duration: { from: 3, to: 4 } }],
+      },
+      [MESMER_CORE_BALANCE_PROFILE_IDS.fencersFinesse]: {
+        fields: { attributePerStack: { from: 15, to: 20 } },
+      },
+      [CHRONOMANCER_BALANCE_PROFILE_IDS.dangerTime]: {
+        fields: { durationMultiplier: { from: 10, to: 12 } },
+      },
+      [MIRAGE_BALANCE_PROFILE_IDS.imaginaryAxes]: {
+        effects: [{ effectIndex: 0, coefficient: { from: 1, to: 1.1 } }],
+      },
+      [VIRTUOSO_BALANCE_PROFILE_IDS.resources]: {
+        fields: { maximumStacks: { from: 5, to: 6 } },
+      },
+      [TROUBADOUR_BALANCE_PROFILE_IDS.livelyLute]: {
+        effects: [{ effectIndex: 0, coefficient: { from: 3, to: 3.2 } }],
+      },
+      [TROUBADOUR_BALANCE_PROFILE_IDS.crescendo]: {
+        fields: { damageIncreasePerStack: { from: 0.25, to: 0.3 } },
+        effects: [{ effectIndex: 0, coefficient: { from: 2.25, to: 2.5 } }],
+      },
+    },
+  });
+
+  assert.equal(preview.skillsById.get(ID.MIND_WRACK).cooldown, 10);
+  assert.equal(
+    preview.balanceProfilesById.get(
+      MESMER_CORE_BALANCE_PROFILE_IDS.cryOfFrustration,
+    ).effects[4].duration,
+    4,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(
+      MESMER_CORE_BALANCE_PROFILE_IDS.fencersFinesse,
+    ).attributePerStack,
+    20,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(CHRONOMANCER_BALANCE_PROFILE_IDS.dangerTime)
+      .durationMultiplier,
+    12,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(VIRTUOSO_BALANCE_PROFILE_IDS.resources)
+      .maximumStacks,
+    6,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(TROUBADOUR_BALANCE_PROFILE_IDS.crescendo)
+      .effects[0].coefficient,
+    2.5,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(TROUBADOUR_BALANCE_PROFILE_IDS.crescendo)
+      .damageIncreasePerStack,
+    0.3,
+  );
+
+  const profiledShatter = mesmerProfiledShatters(
+    { catalog: preview },
+    { [ID.MIND_WRACK]: SHATTERS[ID.MIND_WRACK] },
+    MESMER_CORE_SHATTER_PROFILE_IDS,
+  )[ID.MIND_WRACK];
+  assert.deepEqual(profiledShatter.coefficients, [0.81, 1.75, 2.42, 3.22]);
+  assert.equal(
+    mesmerProfiledAmbush(
+      { catalog: preview },
+      AMBUSH_ATTACKS.Axe,
+      MIRAGE_AMBUSH_PROFILE_IDS.Axe,
+    ).player.coefficient,
+    1.1,
+  );
+  assert.equal(
+    mesmerProfiledInstrument(
+      { catalog: preview },
+      INSTRUMENTS[ID.LIVELY_LUTE],
+      TROUBADOUR_INSTRUMENT_PROFILE_IDS[ID.LIVELY_LUTE],
+    ).coefficient,
+    3.2,
+  );
+
+  assert.equal(mesmerCatalog.skillsById.get(ID.MIND_WRACK).cooldown, 12);
+  assert.equal(
+    mesmerCatalog.balanceProfilesById.get(
+      MESMER_CORE_BALANCE_PROFILE_IDS.fencersFinesse,
+    ).attributePerStack,
+    15,
+  );
+  assert.equal(WEAPON_STRENGTH.Sword, 1000);
+  assert.equal(CLONE_ATTACKS.Sword.firstAttackDelay, 2.48);
 });
 
 test("Mesmer and Guardian API catalogs use the same skill record shape", () => {

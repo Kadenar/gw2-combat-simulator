@@ -13,6 +13,7 @@ import type {
   MesmerEmitDerivedEvent,
   MesmerExpectedProcCandidate,
   MesmerExpectedProcTracker,
+  MesmerRuntime,
   MesmerRuntimeState,
   MesmerQueueResources,
 } from "../types.js";
@@ -30,6 +31,7 @@ interface ExpectedProcTrackerOptions {
   readonly emitEvent: MesmerEmitDerivedEvent;
   readonly boonDuration: (boon: string, baseDuration: number) => number;
   readonly addTraitProc: MesmerAddTraitProc;
+  readonly balanceProfile: MesmerRuntime["balanceProfile"];
 }
 
 /**
@@ -48,7 +50,12 @@ export function createExpectedProcTracker({
   emitEvent,
   boonDuration,
   addTraitProc,
+  balanceProfile,
 }: ExpectedProcTrackerOptions): Readonly<MesmerExpectedProcTracker> {
+  const profileEffect = (id: number, type: string, index = 0) =>
+    balanceProfile(id)?.effects?.filter((effect) => effect.type === type)[
+      index
+    ];
   const stochastic = config.randomness?.mode === "stochastic";
   const sampledCritical = (event: SimulationEvent): boolean => {
     if (typeof event.didCrit !== "boolean") {
@@ -67,12 +74,23 @@ export function createExpectedProcTracker({
     const active = state.profession.specialization;
     if (active.kind !== "Virtuoso") return;
     active.state.bloodsongProgress += Number(bleedingStacks || 0);
-    while (active.state.bloodsongProgress >= 5 - PROC_PROGRESS_TOLERANCE) {
-      active.state.bloodsongProgress -= 5;
-      queueResources(at + epsilon, 1, activePrimaryWeapon(), "Bloodsong", {
-        traitId: TRAIT.BLOODSONG,
-        traitName: "Bloodsong",
-      });
+    const profile = balanceProfile(TRAIT.BLOODSONG);
+    const threshold = Number(profile?.threshold || 5);
+    while (
+      active.state.bloodsongProgress >=
+      threshold - PROC_PROGRESS_TOLERANCE
+    ) {
+      active.state.bloodsongProgress -= threshold;
+      queueResources(
+        at + epsilon,
+        Number(profile?.resourceGain || 1),
+        activePrimaryWeapon(),
+        "Bloodsong",
+        {
+          traitId: TRAIT.BLOODSONG,
+          traitName: "Bloodsong",
+        },
+      );
     }
   };
 
@@ -105,7 +123,9 @@ export function createExpectedProcTracker({
       return;
     }
 
-    core.traitReadyAt[TRAIT.MASTER_FENCER] = event.at + 8;
+    const profile = balanceProfile(TRAIT.MASTER_FENCER);
+    core.traitReadyAt[TRAIT.MASTER_FENCER] =
+      event.at + Number(profile?.internalCooldown || 8);
     addTraitProc(
       "Master Fencer",
       event.at,
@@ -115,10 +135,14 @@ export function createExpectedProcTracker({
     const companionIds = professionCoreState(state).clones.map(
       (clone) => `mesmer.clone:${clone.id}`,
     );
-    for (const application of [
-      { recipients: "self", duration: 8 },
-      { recipients: "allies", duration: 4 },
-    ] as const) {
+    const furyEffects = (profile?.effects || []).filter(
+      (effect) => effect.type === "boon",
+    );
+    for (const [index, application] of [
+      { recipients: "self" as const, duration: 8 },
+      { recipients: "allies" as const, duration: 4 },
+    ].entries()) {
+      const effect = furyEffects[index];
       emitEvent(event, {
         type: "buff",
         at: event.at,
@@ -129,13 +153,16 @@ export function createExpectedProcTracker({
         skillName: "Master Fencer",
         name: `Master Fencer — ${application.recipients} fury`,
         kind: "fury",
-        duration: boonDuration("fury", application.duration),
-        stacks: 1,
+        duration: boonDuration(
+          String(effect?.boon || "fury"),
+          Number(effect?.duration ?? application.duration),
+        ),
+        stacks: Number(effect?.stacks || 1),
         recipients: application.recipients,
         affectsSelf: application.recipients === "self",
         ...(application.recipients === "allies"
           ? {
-              maximumRecipients: 4,
+              maximumRecipients: Number(effect?.maximumRecipients || 4),
               companionIds,
             }
           : {}),
@@ -170,8 +197,14 @@ export function createExpectedProcTracker({
           name: `${event.name} — Sharper Images`,
           skillName: event.skillName,
           condition: "Bleeding",
-          duration: 5,
-          stacks: procCount,
+          duration: Number(
+            profileEffect(TRAIT.SHARPER_IMAGES, "condition")?.duration || 5,
+          ),
+          stacks:
+            procCount *
+            Number(
+              profileEffect(TRAIT.SHARPER_IMAGES, "condition")?.stacks || 1,
+            ),
           source: "Player",
           sourceId: TRAIT.SHARPER_IMAGES,
           actorType: "player",
@@ -199,8 +232,12 @@ export function createExpectedProcTracker({
         skillName: event.skillName,
         parentSkillName: event.parentSkillName,
         condition: "Bleeding",
-        duration: 4,
-        stacks: jaggedMindStacks,
+        duration: Number(
+          profileEffect(TRAIT.JAGGED_MIND, "condition")?.duration || 4,
+        ),
+        stacks:
+          jaggedMindStacks *
+          Number(profileEffect(TRAIT.JAGGED_MIND, "condition")?.stacks || 1),
         source: event.source,
         sourceId: TRAIT.JAGGED_MIND,
         actorType: event.actorType,

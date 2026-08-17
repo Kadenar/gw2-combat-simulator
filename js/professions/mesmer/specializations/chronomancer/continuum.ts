@@ -1,7 +1,5 @@
 import { chronomancerState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 /**
  * Chronomancer-owned Continuum Split checkpoints and restoration.
  */
@@ -30,6 +28,7 @@ interface ContinuumControllerOptions {
     bladeSong?: boolean,
   ) => void;
   readonly addEvent: MesmerAddEvent;
+  readonly durationPerSource: number;
   readonly scheduleExpiry?: ((at: number) => unknown) | null;
 }
 
@@ -47,6 +46,7 @@ export function createContinuumController({
   consumeResources,
   triggerShatterTraits,
   addEvent,
+  durationPerSource,
   scheduleExpiry = null,
 }: ContinuumControllerOptions): ContinuumController {
   const restoreContinuum = (at: number, reason: string) => {
@@ -62,12 +62,7 @@ export function createContinuumController({
       ...unaffectedCooldowns,
       ...[...continuum.remainingCooldowns]
         .filter(([, remaining]) => remaining > epsilon)
-        .map(
-          ([id, remaining]): [SkillId, number] => [
-            id,
-            at + remaining,
-          ],
-        ),
+        .map(([id, remaining]): [SkillId, number] => [id, at + remaining]),
     ]);
     if (splitReady)
       state.cooldowns.set(continuum.splitId, at + splitReady - openAt);
@@ -133,7 +128,7 @@ export function createContinuumController({
       remainingCooldowns,
       ammo,
       autoattackChains: { ...professionCoreState(state).autoattackChains },
-      expiresAt: at + 1.5 * (spent + 1),
+      expiresAt: at + durationPerSource * (spent + 1),
     };
     scheduleExpiry?.(chronomancer.continuum.expiresAt);
     triggerShatterTraits(skill, at, spent, false);
@@ -141,7 +136,7 @@ export function createContinuumController({
       type: "marker",
       at,
       name: "Continuum Split",
-      detail: `${(1.5 * (spent + 1)).toFixed(1)}s window`,
+      detail: `${(durationPerSource * (spent + 1)).toFixed(1)}s window`,
     });
   };
 

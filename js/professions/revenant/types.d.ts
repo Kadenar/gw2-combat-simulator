@@ -50,7 +50,7 @@ export interface RevenantSkill extends Skill {
     readonly duration: number;
     readonly stacks: number;
   };
-  readonly upkeepPulseInterval?: number;
+  readonly pulseInterval?: number;
 }
 
 export type RevenantDodge =

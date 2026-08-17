@@ -149,8 +149,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     environment: "Terrestrial",
     quicknessCastTimeMs: 1000,
     cooldown: 35,
-    baseCoefficient: 2.25,
-    instrumentDamageIncrease: 0.25,
     damageAtMs: 850,
     phantasm: false,
     resource: null,

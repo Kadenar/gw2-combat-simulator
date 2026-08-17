@@ -1,7 +1,7 @@
 # Balance Profile Profession Tracker
 
-Status: Necromancer, Guardian, Warrior, Engineer, Thief, and Ranger complete;
-remaining profession implementations not started.
+Status: Necromancer, Guardian, Warrior, Engineer, Thief, Ranger, and Mesmer
+complete; Elementalist remains.
 
 Scope: bring every non-Revenant profession to the balance-preview model used by
 [Revenant](../js/professions/revenant/catalog-data.ts). Each profession below is
@@ -56,32 +56,33 @@ Size: Large. Modules: Core, Tempest, Weaver, Catalyst, Evoker. Profiles today: 0
 ## Mesmer
 
 Size: Extra large. Modules: Core, Chronomancer, Mirage, Virtuoso, Troubadour.
-Profiles today: 0.
 
 ### Tracked issues
 
-- [ ] `MES-01` Add profile plumbing to
+- [x] `MES-01` Add profile plumbing to
       [catalog-data.ts](../js/professions/mesmer/catalog-data.ts) and all five
       modules.
-- [ ] `MES-02` Extract clone, phantasm, shatter, blade, ambush, instrument, and
-      Syncopate values from specialization mechanics and
-      [core mechanics](../js/professions/mesmer/core/mechanics.ts).
-- [ ] `MES-03` Extract trait packets from
+- [x] `MES-02` Extract shatter, blade, ambush, instrument, and Syncopate values
+      from specialization mechanics and
+      [core mechanics](../js/professions/mesmer/core/mechanics.ts), while
+      retaining weapon strengths, clone attack delays, and measured phantasm
+      timings as static data by design.
+- [x] `MES-03` Extract trait packets from
       [expected-procs.ts](../js/professions/mesmer/core/expected-procs.ts),
       [profession-actions.ts](../js/professions/mesmer/core/profession-actions.ts),
       and specialization handlers.
-- [ ] `MES-04` Make twelve opaque modifier formulas authorable; replace or expose
+- [x] `MES-04` Make twelve opaque modifier formulas authorable; replace or expose
       imperative attribute changes in Core and Troubadour.
-- [ ] `MES-05` Normalize handler-owned attacks into skills or skill variants.
+- [x] `MES-05` Normalize handler-owned attacks into skills or skill variants.
 
 ### Remediation steps
 
-- [ ] Migrate one actor family at a time: player, clones, phantasms, then
-      specialization resources.
-- [ ] Wire module profiles into the profession catalog.
-- [ ] Add tests for clone/blade/note resources, a phantasm repeat, a trait proc,
-      and a dynamic modifier.
-- [ ] Verify the shared completion contract.
+- [x] Preserve static weapon-strength, clone-cadence, and measured phantasm
+      timing data while profiling player packets and specialization resources.
+- [x] Wire module profiles into the profession catalog.
+- [x] Add tests for clone/blade/note resources, shatters, trait interactions,
+      specialization packets, and dynamic modifiers.
+- [x] Verify the shared completion contract.
 
 ## Necromancer
 
@@ -258,14 +259,6 @@ Profiles today: 0.
 
 ## Suggested implementation order
 
-1. Necromancer
-2. Guardian
-3. Warrior
-4. Thief
-5. Elementalist
-6. Ranger
-7. Engineer
-8. Mesmer
+1. Elementalist
 
-The order starts with centralized mechanics and leaves the multi-actor,
-handler-heavy professions until the conventions have been exercised.
+All other tracked profession migrations are complete.

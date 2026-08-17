@@ -12,6 +12,7 @@ import type {
   MesmerPhantasmAttackTiming,
   MesmerQueueResources,
   MesmerResourceDefinition,
+  MesmerRuntime,
   MesmerSkill,
   MesmerStrikeEffect,
   MesmerTraitDamage,
@@ -87,6 +88,7 @@ interface PhantasmEffectControllerOptions {
   readonly addCondition: MesmerAddCondition;
   readonly addDamage: MesmerAddDamage;
   readonly traitDamage: Readonly<Record<string, MesmerTraitDamage>>;
+  readonly balanceProfile: MesmerRuntime["balanceProfile"];
 }
 
 function phantasmAttackDisplayName(
@@ -111,6 +113,7 @@ export function createPhantasmEffectController({
   addCondition,
   addDamage,
   traitDamage,
+  balanceProfile,
 }: PhantasmEffectControllerOptions): MesmerPhantasmEffectController {
   const prepare = (
     skill: MesmerSkill,
@@ -126,10 +129,11 @@ export function createPhantasmEffectController({
       traits.has(TRAIT.BOUNTIFUL_BLADES);
 
     // Clarity (Herald legend) doubles Lancer's phantasm count when consumed on cast.
+    const bountifulProfile = balanceProfile(TRAIT.BOUNTIFUL_BLADES);
     const count =
       Number(skill.resource.count || 1) *
       (skill.id === ID.PHANTASMAL_LANCER && clarityConsumed ? 2 : 1) *
-      (bountifulBerserker ? 2 : 1);
+      (bountifulBerserker ? Number(bountifulProfile?.summons || 2) : 1);
 
     const timing = phantasmAttackTimings[skill.id];
     if (!timing) {
@@ -139,7 +143,12 @@ export function createPhantasmEffectController({
     }
 
     // Phantasmal Haste compresses all post-cast timing offsets by 1/speed.
-    const speed = traits.has(TRAIT.PHANTASMAL_HASTE) ? 1.5 : 1;
+    const speed = traits.has(TRAIT.PHANTASMAL_HASTE)
+      ? Number(
+          balanceProfile(TRAIT.PHANTASMAL_HASTE)?.quicknessCastMultiplier ||
+            1.5,
+        )
+      : 1;
     const endpoint = (atMs: number | undefined): number => {
       const measuredPostCast = Number(atMs) / 1000;
       const actualCastTime = summonAt - castStart;
@@ -167,7 +176,9 @@ export function createPhantasmEffectController({
       return {
         skill,
         entityIndex,
-        damageMultiplier: bountifulBerserker ? 0.66 : 1,
+        damageMultiplier: bountifulBerserker
+          ? Number(bountifulProfile?.damageMultiplier || 0.66)
+          : 1,
         summonAt,
         damageAt,
         spawnAt,
@@ -324,13 +335,13 @@ export function createPhantasmEffectController({
     const baseHits =
       baseTicks?.length ||
       Math.max(1, Math.trunc(Number(sourcedGroup.hits || 1)));
-    const baseCoefficient = baseTicks
+    const totalCoefficient = baseTicks
       ? baseTicks.reduce((total, tick) => total + Number(tick.coefficient), 0)
       : Number(sourcedGroup.coefficient || 0);
     const damageGroup: MesmerDamageGroup = {
       ...sourcedGroup,
       ticks: undefined,
-      coefficient: baseCoefficient * execution.damageMultiplier,
+      coefficient: totalCoefficient * execution.damageMultiplier,
       hits: baseHits,
     };
     const groupName = group.name || "";
@@ -395,7 +406,7 @@ export function createPhantasmEffectController({
         },
         initialEventExtra,
       );
-    // Branch 2: interval-based multi-hit (e.g. sustained channel with regular spacing).
+      // Branch 2: interval-based multi-hit (e.g. sustained channel with regular spacing).
     } else if (interval > 0 && Number(damageGroup.hits || 1) > 1) {
       const timingAnchorAt =
         group.timingAnchor === "castStart" ? castStart : at;
@@ -405,7 +416,7 @@ export function createPhantasmEffectController({
         damageGroup,
         initialEventExtra,
       );
-    // Branch 3: single-hit or simple multi-hit at the phantasm's damage timestamp.
+      // Branch 3: single-hit or simple multi-hit at the phantasm's damage timestamp.
     } else {
       initialEvents = addDamage(
         execution.skill,
@@ -431,9 +442,11 @@ export function createPhantasmEffectController({
         ]?.[groupName] ??
         execution.timing.chronophantasmaDamageTicks?.[groupName] ??
         null;
+      const chronophantasmaMultiplier = Number(
+        balanceProfile(TRAIT.CHRONOPHANTASMA)?.damageMultiplier || 1.05,
+      );
       if (repeatMeasuredTicks?.length) {
         const hits = Math.max(1, Math.trunc(Number(damageGroup.hits || 1)));
-        // Chronophantasma deals 5% more damage (1.05 multiplier).
         repeatHitTimes = addDamage(
           execution.skill,
           castStart,
@@ -460,7 +473,7 @@ export function createPhantasmEffectController({
             ...(attackDisplayName
               ? { parentSkillName: execution.skill.name }
               : {}),
-            multiplier: 1.05,
+            multiplier: chronophantasmaMultiplier,
           },
         ).map((event) => event.at);
       } else {
@@ -492,7 +505,7 @@ export function createPhantasmEffectController({
               ...(attackDisplayName
                 ? { parentSkillName: execution.skill.name }
                 : {}),
-              multiplier: 1.05,
+              multiplier: chronophantasmaMultiplier,
             },
           ).map((event) => event.at);
         }
