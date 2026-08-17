@@ -11,7 +11,6 @@ import {
   isBandTogetherReady,
 } from "./renegade.js";
 import { RENEGADE_PROFILE_IDS } from "./skills.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import type {
   RevenantPrecastContext,
   RevenantRechargeContext,
@@ -29,8 +28,12 @@ function scaledBoonDuration(
   boon: string,
   duration: number,
 ): number {
-  // The scheduler context doesn't expose the triggering skill directly, but the platform attaches it as `skill` on the same record during onEventScheduled
-  const skill = (context as unknown as SchedulerRecord).skill as RevenantSkill;
+  // Trait-triggered boons have no cast skill, so identify Endless Enmity explicitly
+  // when applying shared boon-duration rules.
+  const skill = {
+    id: TRAIT.ENDLESS_ENMITY,
+    name: "Endless Enmity",
+  } as RevenantSkill;
   return (
     context.schedulerPolicy.effectDuration?.(
       context,

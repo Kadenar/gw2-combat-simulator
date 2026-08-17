@@ -1,5 +1,6 @@
 import {
   handleNecromancerChillEvent,
+  handleNecromancerReviveEvent,
   handleNecromancerStateEvent,
   handleNecromancerSummonAttack,
 } from "./events.js";
@@ -16,6 +17,7 @@ import {
 export const necromancerCoreResolverEventHandlers = Object.freeze({
   "necromancer.state": handleNecromancerStateEvent,
   "necromancer.chill": handleNecromancerChillEvent,
+  "necromancer.revive": handleNecromancerReviveEvent,
   "necromancer.summon-attack": handleNecromancerSummonAttack,
 });
 

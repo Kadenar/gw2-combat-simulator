@@ -339,7 +339,11 @@ export function necromancerEventLogRow(
       flags: [],
     };
   }
-  if (["necromancer.summon-attack"].includes(event?.type)) {
+  // Revive has no modeled target state, and summon attacks are replaced by
+  // their materialized events, so neither needs a separate log row.
+  if (
+    ["necromancer.revive", "necromancer.summon-attack"].includes(event?.type)
+  ) {
     return null;
   }
   if (event?.type !== "necromancer.state") return undefined;

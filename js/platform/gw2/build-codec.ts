@@ -162,8 +162,8 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
           ? saved.jadeBotCore
           : Boolean(defaults.jadeBotCore),
       specializations,
-      // Slot-loadout professions (e.g. revenant) manage their own skill slot
-      // logic; bypass catalog validation and just merge saved over defaults.
+      // Slot-loadout professions manage their own skill-slot logic; bypass
+      // catalog validation and just merge saved values over defaults.
       selectedSkills: slotLoadout
         ? {
             ...plainObject(defaults.selectedSkills),
@@ -478,15 +478,15 @@ function selectableSlotSkill(
 ): boolean {
   return Boolean(
     skill?.implemented &&
-      skill.slotSelectable !== false &&
-      !skill.simulatorExcluded &&
-      skill.type === type &&
-      // Exclude flip/chain skills (e.g. the follow-up hit of a two-stage
-      // attack); only the root skill can appear in the loadout panel.
-      skill.flipParentId == null &&
-      // Elite-spec skills are only available when that spec line is selected.
-      (!skill.specialization ||
-        selectedSpecializations?.has(skill.specialization)),
+    skill.slotSelectable !== false &&
+    !skill.simulatorExcluded &&
+    skill.type === type &&
+    // Exclude flip/chain skills (e.g. the follow-up hit of a two-stage
+    // attack); only the root skill can appear in the loadout panel.
+    skill.flipParentId == null &&
+    // Elite-spec skills are only available when that spec line is selected.
+    (!skill.specialization ||
+      selectedSpecializations?.has(skill.specialization)),
   );
 }
 
@@ -909,8 +909,8 @@ function validateCommonBuild(
   }
   validateSpecializations(candidate, catalog, professionId, errors);
   if (slotLoadout) {
-    // Slot-loadout professions (e.g. revenant) manage skill slots through
-    // their own legend/palette system; delegate validation to that system.
+    // Slot-loadout professions manage skill slots through their own palette
+    // system; delegate validation to that system.
     const eliteNames = new Set(
       catalog.specializations
         .filter((specialization) => specialization.elite)

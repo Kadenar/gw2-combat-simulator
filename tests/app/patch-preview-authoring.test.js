@@ -122,10 +122,10 @@ test("patch authoring omits unreachable skills for the remaining professions", (
   }
 
   const revenantIds = idsFor(revenantProfession);
-  for (const unusedId of [27198, 34198, 48170, 71827, 73149]) {
+  for (const unusedId of [27198, 34198, 48170, 71827]) {
     assert.equal(revenantIds.has(unusedId), false, String(unusedId));
   }
-  for (const usedId of [62689, 77920]) {
+  for (const usedId of [62689, 73149, 77920]) {
     assert.equal(revenantIds.has(usedId), true, String(usedId));
   }
   assert.equal(revenantIds.has("revenant.renegade.razorclaws-rage-proc"), true);

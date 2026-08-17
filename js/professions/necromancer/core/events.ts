@@ -19,6 +19,12 @@ import type {
   NecromancerResolverEvent,
 } from "../types.js";
 
+/**
+ * Declares revive-only skills as supported without changing combat state,
+ * because allied downstate and revive progress are outside this simulator.
+ */
+export function handleNecromancerReviveEvent(): void {}
+
 function mergeExpiryStacks(
   left: readonly number[] = [],
   right: readonly number[] = [],

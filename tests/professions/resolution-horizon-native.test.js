@@ -95,7 +95,7 @@ test("native summons and condition builds stop at the observation boundary", () 
   const summonAttacks = summon.resolvedEvents.filter(
     (event) =>
       event.type === "damage" &&
-      event.skillName === "Summon Blood Fiend — Minion Attack",
+      event.skillName === "Summon Blood Fiend - Minion Attack",
   );
   assert.ok(summonAttacks.length >= 2);
   assert.equal(

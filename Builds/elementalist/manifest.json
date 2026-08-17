@@ -60,7 +60,7 @@
         "build": "Builds/elementalist/b-power-tempest-sword.json",
         "rotation": "Rotations/elementalist/r-power-tempest-sword.json",
         "dpsReportUrl": "https://dps.report/y7fU-20260414-200827_golem",
-        "benchmarkDps": 42090,
+        "benchmarkDps": 41926,
         "upToDate": true
       },
       {
@@ -76,7 +76,7 @@
         "build": "Builds/elementalist/b-power-tempest-spear.json",
         "rotation": "Rotations/elementalist/r-power-tempest-spear.json",
         "dpsReportUrl": "https://dps.report/Xrj5-20260415-121634_golem",
-        "benchmarkDps": 41907,
+        "benchmarkDps": 41912,
         "upToDate": true
       },
       {
@@ -92,14 +92,14 @@
         "build": "Builds/elementalist/b-power-alac-tempest-sword.json",
         "rotation": "Rotations/elementalist/r-power-alac-tempest-sword.json",
         "dpsReportUrl": "https://dps.report/4oEj-20260420-081807_golem",
-        "benchmarkDps": 32953,
+        "benchmarkDps": 32968,
         "upToDate": true
       },
       {
         "label": "Power Alacrity (Hammer)",
         "build": "Builds/elementalist/b-power-alac-tempest-hammer.json",
         "rotation": "Rotations/elementalist/r-power-alac-tempest-hammer.json",
-        "benchmarkDps": 29940,
+        "benchmarkDps": 29956,
         "upToDate": false
       },
       {
@@ -137,7 +137,7 @@
         "build": "Builds/elementalist/b-inferno-tempest.json",
         "rotation": "Rotations/elementalist/r-inferno-tempest.json",
         "dpsReportUrl": "https://dps.report/j7LY-20260414-172451_golem",
-        "benchmarkDps": 41325,
+        "benchmarkDps": 41398,
         "upToDate": true
       },
       {
@@ -181,7 +181,7 @@
         "build": "Builds/elementalist/b-power-catalyst-spear.json",
         "rotation": "Rotations/elementalist/r-power-catalyst-spear.json",
         "dpsReportUrl": "https://dps.report/MZij-20260417-144821_golem",
-        "benchmarkDps": 41770,
+        "benchmarkDps": 41763,
         "upToDate": true
       },
       {
@@ -189,7 +189,7 @@
         "build": "Builds/elementalist/b-power-quick-catalyst-sword-fa.json",
         "rotation": "Rotations/elementalist/r-power-quick-catalyst-sword-fa.json",
         "dpsReportUrl": "https://dps.report/iKCM-20260416-002204_golem",
-        "benchmarkDps": 34282,
+        "benchmarkDps": 34141,
         "upToDate": true
       },
       {
@@ -197,7 +197,7 @@
         "build": "Builds/elementalist/b-power-quick-catalyst-scepter-btth.json",
         "rotation": "Rotations/elementalist/r-power-quick-catalyst-scepter-btth.json",
         "dpsReportUrl": "https://dps.report/63Dx-20260416-134815_golem",
-        "benchmarkDps": 34968,
+        "benchmarkDps": 34815,
         "upToDate": true
       },
       {
@@ -212,7 +212,7 @@
         "label": "Condi Quickness (P/Wh)",
         "build": "Builds/elementalist/b-condi-quick-catalyst-pistol-warhorn.json",
         "rotation": "Rotations/elementalist/r-condi-quick-catalyst-pistol-warhorn.json",
-        "benchmarkDps": 35185,
+        "benchmarkDps": 35248,
         "upToDate": false
       },
       {
@@ -220,7 +220,7 @@
         "build": "Builds/elementalist/b-condi-quick-catalyst-pistol-dagger.json",
         "rotation": "Rotations/elementalist/r-condi-quick-catalyst-pistol-dagger.json",
         "dpsReportUrl": "https://dps.report/wJsO-20260416-231016_golem",
-        "benchmarkDps": 33033,
+        "benchmarkDps": 32967,
         "upToDate": true
       },
       {
@@ -234,7 +234,7 @@
         "label": "Inferno Quickness",
         "build": "Builds/elementalist/b-inferno-quick-catalyst.json",
         "rotation": "Rotations/elementalist/r-inferno-quick-catalyst.json",
-        "benchmarkDps": 37272,
+        "benchmarkDps": 37372,
         "upToDate": false
       }
     ]
