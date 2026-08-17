@@ -26,6 +26,9 @@ const THROW_MINE = Object.freeze({ name: "Throw Mine", skillId: 6161 });
 const EVOLVE = Object.freeze({ name: "Evolve", skillId: 76642 });
 const FLUX_STATE = Object.freeze({ name: "Flux State", skillId: 76993 });
 const THUNDERCLAP = Object.freeze({ name: "Thunderclap", skillId: 30713 });
+const GALVANIC_BOMB = PRECOMBAT_BOMBS.find(
+  (identity) => identity.name === "Galvanic Bomb",
+)!;
 const EVOLVED_BUFF = 77008;
 const EVOLVE_EFFECT_DELAY_MS = 520;
 const PRECAST_MINE_WAIT_MS = 5000;
@@ -171,14 +174,20 @@ function hasInitialEvolve(
 function openingPrecastActions(
   context: EvtcProfessionReconstructionContext,
 ): EvtcRecordedRotationAction[] {
+  // Rifle openings expose the truncated Galvanic Bomb animation instead of a
+  // weapon cast, so use that boundary to rebuild the otherwise missing setup.
   const opening = findOpeningPrecast(
     context,
     new Map<string, EngineerActionIdentity>([
       [THUNDERCLAP.name, THUNDERCLAP],
       [FLUX_STATE.name, FLUX_STATE],
+      [GALVANIC_BOMB.name, GALVANIC_BOMB],
     ]),
   );
   if (!opening) return [];
+  const openingIsBomb = PRECOMBAT_BOMBS.some(
+    (identity) => identity.name === opening.rawName,
+  );
   const initialBombNames = openingDamageSkillNames(context);
   const bombs = selectedSkill(context, "Bomb Kit")
     ? PRECOMBAT_BOMBS.filter((identity) => initialBombNames.has(identity.name))
@@ -192,7 +201,9 @@ function openingPrecastActions(
     if (bomb.name === "Fire Bomb" && hasInitialEvolve(context)) {
       ordered.push({ ...EVOLVE, evidence: "initial-state" });
     }
-    ordered.push({ ...bomb, evidence: "initial-state" });
+    if (bomb.name !== opening.rawName) {
+      ordered.push({ ...bomb, evidence: "initial-state" });
+    }
   }
   if (!bombs.length && hasInitialEvolve(context)) {
     ordered.push({ ...EVOLVE, evidence: "initial-state" });
@@ -235,8 +246,9 @@ function openingPrecastActions(
     }
     if (stow) {
       const openingSkill = skillForAction(context, opening);
-      const stowTime =
-        normalized(openingSkill?.type) === "weapon"
+      const stowTime = openingIsBomb
+        ? opening.end
+        : normalized(openingSkill?.type) === "weapon"
           ? opening.start
           : opening.end;
       scheduled.push(
