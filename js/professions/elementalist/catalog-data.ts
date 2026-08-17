@@ -6,6 +6,7 @@ import {
 import { ELEMENTALIST_SKILL_IDS as ID } from "./data/ids.js";
 import { TRAITS } from "./data/traits-data.js";
 import type {
+  BalanceProfile,
   CatalogEntity,
   SchedulerRecord,
   Skill,
@@ -412,6 +413,7 @@ const WEAPON_HANDS = Object.freeze({
 interface ElementalistModuleDataOptions<TContext extends object> {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
   readonly extraSkills?: readonly Skill[];
+  readonly balanceProfiles?: readonly BalanceProfile[];
   readonly handlers?:
     | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
     | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
@@ -424,6 +426,7 @@ export function createElementalistModuleData<
   {
     skillMechanics,
     extraSkills = [],
+    balanceProfiles = [],
     handlers,
   }: ElementalistModuleDataOptions<TContext>,
 ) {
@@ -432,6 +435,7 @@ export function createElementalistModuleData<
     generatedSkills: generated,
     skillMechanics: finalizedSkillMechanics(skillMechanics),
     extraSkills,
+    balanceProfiles,
     handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: ELEMENTALIST_API_SPECIALIZATIONS,

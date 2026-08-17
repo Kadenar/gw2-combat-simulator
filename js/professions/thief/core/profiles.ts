@@ -73,7 +73,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] =
       maximumStacks: 12,
       minimumStacks: 15,
       resourceGain: 1,
-      rechargeMultiplier: 1 / 3,
+      kneelingInitiativeRegenerationBonus: 1 / 3,
       resourceCost: 50,
       enduranceRegenerationPerSecond: 5,
       vigorRegenerationMultiplier: 1.5,
@@ -216,7 +216,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] =
       ],
     }),
     trait(THIEF_CORE_BALANCE_PROFILE_IDS.sleightOfHand, "Sleight of Hand", {
-      rechargeReduction: 0.2,
+      rechargeMultiplier: 0.8,
       effects: [{ type: "control", kind: "daze", duration: 1 }],
     }),
     trait(THIEF_CORE_BALANCE_PROFILE_IDS.hiddenThief, "Hidden Thief", {
@@ -236,7 +236,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] =
       maximumStacks: 15,
       durationMultiplier: 10,
       damageIncreasePerStack: 0.01,
-      rechargeReduction: 0.15,
+      rechargeMultiplier: 0.85,
     }),
     trait(THIEF_CORE_BALANCE_PROFILE_IDS.fluidStrikes, "Fluid Strikes", {
       damageIncrease: 0.1,

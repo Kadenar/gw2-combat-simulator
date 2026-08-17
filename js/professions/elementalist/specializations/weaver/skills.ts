@@ -2612,7 +2612,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       categories: ["Stance"],
       quicknessCastTimeMs: 640,
       cooldown: 20,
-      enduranceCost: 50,
+      resourceGain: 50,
       skillFamily: "Stance",
       implemented: true,
       effects: [],

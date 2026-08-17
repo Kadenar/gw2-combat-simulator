@@ -31,6 +31,7 @@ const FAMILIAR_SKILL_NAMES = Object.freeze({
   Earth: { basic: "Calcify", empowered: "SeismicImpact" },
 } as const);
 
+// returns the empowered form when 3 stacks are ready so the UI shows which familiar is currently usable
 function familiarSkillId(
   context: SchedulerRecord,
   element = selectedElement(context),
@@ -45,6 +46,7 @@ function familiarSkillId(
   return ELEMENTALIST_FAMILIAR_SKILL_IDS[name];
 }
 
+// returns boolean to signal whether the platform should treat the update as consumed
 function updateFamiliarSelection(
   context: SchedulerRecord,
   selection: SchedulerRecord,
@@ -112,7 +114,7 @@ export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord =
         label: "F5",
         skillIds: [familiarSkillId(context)],
         color: "#c85142",
-        resourceAnchor: true,
+        resourceAnchor: true, // links this palette entry to the charge resource bar display
       },
     ],
     resourceViews: (context: SchedulerRecord): ProfessionResourceView[] => {

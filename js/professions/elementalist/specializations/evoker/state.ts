@@ -21,6 +21,7 @@ export interface EvokerState {
     { skill: string; activationId: string; start: number } | null
   >;
   cancelledFamiliarActivations: Record<string, boolean>;
+  // keyed by commandIndex (not reservationId) because availability runs at command scheduling time, before the event fires
   pendingOffAttunementRemainingByCommand: Record<
     number,
     Partial<Record<ElementalistAttunement, number>>
@@ -52,6 +53,7 @@ export interface EvokerState {
 export const evokerState = defineProfessionSpecializationState(
   "Evoker",
   (config: ElementalistConfig = {}): EvokerState => {
+    // pre-simulation default; initialize() in resources.ts overwrites this from the balance profile once traits are resolved
     const maximumCharges =
       Array.isArray(config.selectedTraits) &&
       config.selectedTraits.includes("Specialized Elements")
@@ -80,7 +82,7 @@ export const evokerState = defineProfessionSpecializationState(
       elementalBalanceProgress: 0,
       elementalBalanceUntil: 0,
       igniteTier: 0,
-      igniteLastUsedAt: Number.NEGATIVE_INFINITY,
+      igniteLastUsedAt: Number.NEGATIVE_INFINITY, // guarantees first use always starts at tier 0 without a special-case check
       ignitePassiveReadyAt: 0,
       lastEmpoweredFamiliarByBasic: {},
       cancelledFamiliarActivations: {},

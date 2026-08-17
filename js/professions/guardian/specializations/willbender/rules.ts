@@ -178,12 +178,12 @@ export function applyWillbenderVirtueActivationTraits(
       actorType: "player",
       skillId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
       skillName: "Phoenix Protocol",
-      name: "Phoenix Protocol — Allied Alacrity",
+      name: "Phoenix Protocol — Activation Alacrity",
       kind: "alacrity",
       stacks: Number(alacrity?.stacks || 1),
       duration: Number(alacrity?.duration || 5),
-      recipients: "allies",
-      affectsSelf: false,
+      recipients: "self",
+      affectsSelf: true,
     });
   }
   return duration;

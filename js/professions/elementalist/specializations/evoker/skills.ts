@@ -382,7 +382,7 @@ export const EVOKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       categories: ["Meditation"],
       quicknessCastTimeMs: 0,
       cooldown: 20,
-      enduranceCost: 50,
+      resourceGain: 50,
       skillFamily: "Meditation",
       handlerId: "elementalist.evoker-meditation",
       implemented: true,

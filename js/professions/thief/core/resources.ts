@@ -25,7 +25,9 @@ export function thiefInitiativeRegenerationRate(
   const resources = thiefBalanceProfile(context, PROFILE.resources);
   return (
     Number(resources?.resourceGain || 1) +
-    (state.kneeling ? Number(resources?.rechargeMultiplier || 1 / 3) : 0)
+    (state.kneeling
+      ? Number(resources?.kneelingInitiativeRegenerationBonus ?? 1 / 3)
+      : 0)
   );
 }
 

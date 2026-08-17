@@ -1861,7 +1861,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 400,
     cooldown: 0,
     initiativeCost: 0,
-    enduranceGain: 10,
+    resourceGain: 10,
     effects: [
       {
         type: "strike",

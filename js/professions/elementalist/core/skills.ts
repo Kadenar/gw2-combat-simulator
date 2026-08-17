@@ -8736,7 +8736,6 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
     castTimeMs: 800,
     unaffectedByQuickness: true,
     cooldown: 0,
-    enduranceCost: -50,
     skillFamily: "Dodge",
     implemented: true,
     effects: [],

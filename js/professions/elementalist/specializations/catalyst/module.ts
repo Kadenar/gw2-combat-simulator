@@ -24,11 +24,13 @@ import {
 import { createCatalystState } from "./state.js";
 import { catalystUi } from "./ui.js";
 import { CATALYST_SKILL_MECHANICS } from "./skills.js";
+import { CATALYST_BALANCE_PROFILES } from "./profiles.js";
 
 export const catalystModule = defineNativeModule({
   id: "Catalyst",
   data: createElementalistModuleData("Catalyst", {
     skillMechanics: CATALYST_SKILL_MECHANICS,
+    balanceProfiles: CATALYST_BALANCE_PROFILES,
   }),
   state: { scheduler: createCatalystState, resolver: createCatalystState },
   mechanics: {

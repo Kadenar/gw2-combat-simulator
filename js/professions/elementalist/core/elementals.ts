@@ -21,6 +21,10 @@ import {
   FIRE_ELEMENTAL_EVTC_PROFILE,
 } from "./elemental-profile.js";
 import { elementalistCoreState } from "./state.js";
+import {
+  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  elementalistBalanceValue,
+} from "./profiles.js";
 
 export {
   EARTH_ELEMENTAL_EVTC_PROFILE,
@@ -809,13 +813,17 @@ function handleElementalExpireTask(
   delete state.availableFlips[commandName(element)];
   const glyph = glyphSkillForElement(context, element);
   if (glyph) {
-    const profile =
-      element === "Earth"
-        ? EARTH_ELEMENTAL_EVTC_PROFILE
-        : FIRE_ELEMENTAL_EVTC_PROFILE;
     context.state.cooldowns.set(
       glyph.id,
-      task.at + profile.rechargeAfterExpiry,
+      task.at +
+        elementalistBalanceValue(
+          context,
+          PROFILE.summonedElemental,
+          "recharge",
+          element === "Earth"
+            ? EARTH_ELEMENTAL_EVTC_PROFILE.rechargeAfterExpiry
+            : FIRE_ELEMENTAL_EVTC_PROFILE.rechargeAfterExpiry,
+        ),
     );
   }
 }
@@ -841,10 +849,14 @@ function startElemental(
   ) {
     return;
   }
-  const delay =
+  const delay = elementalistBalanceValue(
+    context,
+    PROFILE.summonedElemental,
+    "initialDelay",
     elemental.element === "Earth"
       ? EARTH_ELEMENTAL_EVTC_PROFILE.targetAcquisitionDelay
-      : FIRE_ELEMENTAL_EVTC_PROFILE.targetAcquisitionDelay;
+      : FIRE_ELEMENTAL_EVTC_PROFILE.targetAcquisitionDelay,
+  );
   scheduleNextAi(context, at + delay, elemental.actionGeneration);
 }
 
@@ -875,7 +887,14 @@ function summonElemental(
     element,
     summonGeneration,
     actionGeneration: 0,
-    activeUntil: at + profile.lifetime,
+    activeUntil:
+      at +
+      elementalistBalanceValue(
+        context,
+        PROFILE.summonedElemental,
+        "durationMultiplier",
+        profile.lifetime,
+      ),
     busyUntil: at,
     nextActionAt: 0,
     secondaryAttackReadyAt: at,

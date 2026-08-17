@@ -120,7 +120,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 480,
     cooldown: 20,
     initiativeCost: 0,
-    enduranceGain: 125,
+    resourceGain: 125,
     effects: [],
   },
   [ID.REFLEXIVE_STRIKE]: {

@@ -1640,23 +1640,44 @@ test("Willbender flame replacement and Phoenix Protocol follow virtue triggers",
       courageTriggers.length,
     );
   }
-  assert.equal(
-    phoenix.events.some(
-      (event) =>
-        event.type === "buff" &&
-        event.name === "Phoenix Protocol — Allied Alacrity" &&
-        event.duration === 5 &&
-        event.recipients === "allies" &&
-        event.affectsSelf === false,
-    ),
-    true,
+  const phoenixResolveTriggers = phoenix.events.filter(
+    (event) =>
+      event.type === "guardian.willbender-virtue-triggered" &&
+      event.virtue === "resolve",
+  );
+  const phoenixActivationAlacrity = phoenix.events.filter(
+    (event) =>
+      event.type === "buff" &&
+      event.name === "Phoenix Protocol — Activation Alacrity",
+  );
+  const phoenixTriggeredAlacrity = phoenix.events.filter(
+    (event) =>
+      event.type === "buff" && event.name === "Phoenix Protocol — Alacrity",
+  );
+  assert.deepEqual(
+    phoenixActivationAlacrity.map((event) => [
+      event.duration,
+      event.recipients,
+      event.affectsSelf,
+      event.alliedPlayerCount,
+    ]),
+    [[5, "self", true, 0]],
+  );
+  assert.equal(phoenixResolveTriggers.length > 0, true);
+  assert.equal(phoenixTriggeredAlacrity.length, phoenixResolveTriggers.length);
+  assert.deepEqual(
+    phoenixTriggeredAlacrity.map((event) => [
+      event.at,
+      event.duration,
+      event.affectsSelf,
+      event.alliedPlayerCount,
+    ]),
+    phoenixResolveTriggers.map((event) => [event.at, 1, true, 0]),
   );
   assert.equal(
-    phoenix.events.some(
+    phoenixTriggeredAlacrity.every(
       (event) =>
-        event.type === "buff" &&
-        event.name === "Phoenix Protocol — Alacrity" &&
-        event.duration === 1,
+        event.triggeredBy != null && String(event.triggeredBy).length > 0,
     ),
     true,
   );

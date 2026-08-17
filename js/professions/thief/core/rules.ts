@@ -415,24 +415,24 @@ function modifyThiefCoreRechargeDuration(
   if (skill.id === state.professionSkillId) {
     const leadAttacks = hasThiefTrait(context.config, TRAIT.LEAD_ATTACKS);
     const sleightOfHand = hasThiefTrait(context.config, TRAIT.SLEIGHT_OF_HAND);
-    const leadReduction = Number(
-      thiefBalanceProfile(context, PROFILE.leadAttacks)?.rechargeReduction ||
-        0.15,
+    const leadMultiplier = Number(
+      thiefBalanceProfile(context, PROFILE.leadAttacks)?.rechargeMultiplier ??
+        0.85,
     );
-    const sleightReduction = Number(
-      thiefBalanceProfile(context, PROFILE.sleightOfHand)?.rechargeReduction ||
-        0.2,
+    const sleightMultiplier = Number(
+      thiefBalanceProfile(context, PROFILE.sleightOfHand)?.rechargeMultiplier ??
+        0.8,
     );
     if (skill.id === ID.SIPHON) {
       // Specter's Siphon is the exception to the ordinary multiplicative
       // stacking used by Steal replacements: these two reductions add.
       result *=
         1 -
-        Number(leadAttacks) * leadReduction -
-        Number(sleightOfHand) * sleightReduction;
+        Number(leadAttacks) * (1 - leadMultiplier) -
+        Number(sleightOfHand) * (1 - sleightMultiplier);
     } else {
-      if (leadAttacks) result *= 1 - leadReduction;
-      if (sleightOfHand) result *= 1 - sleightReduction;
+      if (leadAttacks) result *= leadMultiplier;
+      if (sleightOfHand) result *= sleightMultiplier;
     }
   }
   return result;

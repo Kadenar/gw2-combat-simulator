@@ -29,6 +29,7 @@ function fixtureCatalog() {
         implemented: true,
         castTimeMs: 1000,
         cooldown: 10,
+        resourceGain: 50,
         effects: [
           { type: "strike", coefficient: 2, hits: 2, name: "Initial" },
           {
@@ -232,7 +233,10 @@ test("skill patches target fields, effects, and individual timeline ticks", () =
   const preview = applySkillPatch(live, {
     skills: {
       1: {
-        fields: { cooldown: { from: 10, to: 8 } },
+        fields: {
+          cooldown: { from: 10, to: 8 },
+          resourceGain: { from: 50, to: 40 },
+        },
         effects: [
           {
             effectIndex: 0,
@@ -274,7 +278,9 @@ test("skill patches target fields, effects, and individual timeline ticks", () =
 
   assert.notEqual(preview, live);
   assert.equal(live.skillsById.get(1).cooldown, 10);
+  assert.equal(live.skillsById.get(1).resourceGain, 50);
   assert.equal(preview.skillsById.get(1).cooldown, 8);
+  assert.equal(preview.skillsById.get(1).resourceGain, 40);
   assert.equal(preview.skillsById.get(1).effects[0].coefficient, 1);
   assert.equal(preview.skillsById.get(1).effects[1].duration, 6);
   assert.equal(preview.skillsById.get(1).effects[2].duration, 3);

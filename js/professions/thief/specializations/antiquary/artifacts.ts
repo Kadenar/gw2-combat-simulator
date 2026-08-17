@@ -253,9 +253,8 @@ function applyArtifactIdentity(
       ...(state.holoUtilityCooldownReductionExpirations || []),
       expiresAt,
     ];
-    state.holoUtilityCooldownReduction = Number(
-      profile?.rechargeReduction || 0.8,
-    );
+    state.holoUtilityCooldownReduction =
+      1 - Number(profile?.rechargeMultiplier ?? 0.2);
     state.holoUtilityCooldownReductionExpiresAt = Math.max(
       ...state.holoUtilityCooldownReductionExpirations,
     );

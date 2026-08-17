@@ -74,8 +74,8 @@ export function updateThiefWeaponState(
   if (completed && !(skill.categories || []).includes("stolen skill")) {
     grantThiefStealth(context, skill, at);
   }
-  if (completed && Number(skill.enduranceGain || 0) > 0) {
-    gainThiefEndurance(context, Number(skill.enduranceGain), at, skill.name);
+  if (completed && Number(skill.resourceGain || 0) > 0) {
+    gainThiefEndurance(context, Number(skill.resourceGain), at, skill.name);
   }
   if (skill.shadowstepSkill && context.config.relic === "Peitha" && completed) {
     context.emit({

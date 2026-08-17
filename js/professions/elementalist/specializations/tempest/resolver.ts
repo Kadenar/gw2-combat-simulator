@@ -8,12 +8,26 @@ import {
   recordElementalistTraitProc,
   refreshElementalistBuffs,
 } from "../../core/resolver.js";
+import { elementalistBalanceValue } from "../../core/profiles.js";
+import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 export function applyTempestResolverAura(
   context: ElementalistResolverContext,
   event: Gw2ResolverEvent,
 ): void {
   if (!hasTrait(context, "Tempestuous Aria")) return;
+  const extension = elementalistBalanceValue(
+    context,
+    PROFILE.tempestuousAria,
+    "durationMultiplier",
+    5,
+  );
+  const maximum = elementalistBalanceValue(
+    context,
+    PROFILE.tempestuousAria,
+    "maximumStacks",
+    10,
+  );
   const current = activeElementalistBuffs(
     context,
     "Tempestuous Aria",
@@ -26,7 +40,7 @@ export function applyTempestResolverAura(
       event.at,
       (expiresAt) =>
         expiresAt === current.expiresAt
-          ? Math.min(event.at + 10, expiresAt + 5)
+          ? Math.min(event.at + maximum, expiresAt + extension)
           : expiresAt,
     );
   } else {
@@ -35,7 +49,7 @@ export function applyTempestResolverAura(
       event,
       "Tempestuous Aria",
       1,
-      5,
+      extension,
       elementalistSourceSkill(event),
     );
   }

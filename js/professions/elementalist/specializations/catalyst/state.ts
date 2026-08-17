@@ -49,6 +49,7 @@ export function grantCatalystElementalEmpowerment(
   duration: number,
   stacks = 1,
   epsilon = Number.EPSILON,
+  maximumStacks = CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS,
 ): void {
   const expiresAt = at + Math.max(0, duration);
   const active = state.elementalEmpowermentExpiries
@@ -56,7 +57,7 @@ export function grantCatalystElementalEmpowerment(
     .sort((left, right) => left - right);
 
   for (let stack = 0; stack < Math.max(1, stacks); stack += 1) {
-    if (active.length >= CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS) {
+    if (active.length >= maximumStacks) {
       active.shift();
     }
     if (expiresAt > at + epsilon) active.push(expiresAt);

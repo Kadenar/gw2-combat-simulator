@@ -25,8 +25,13 @@ import {
   type ElementalistAttunement,
 } from "../../core/state.js";
 import { weaverState } from "./state.js";
+import {
+  elementalistBalanceEffect,
+  elementalistBalanceValue,
+  elementalistEffectValue,
+} from "../../core/profiles.js";
+import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
-const WEAVE_SELF_ACTIVATION_RATIO = 0.65;
 const WEAVE_SELF_ACTIVATION_TASK = "elementalist.weave-self-activation";
 
 function initialize(context: ElementalistSchedulerContext): void {
@@ -45,7 +50,12 @@ function initialize(context: ElementalistSchedulerContext): void {
       context.state.time,
       "Elements of Rage",
       1,
-      8,
+      elementalistBalanceValue(
+        context,
+        PROFILE.elementsOfRage,
+        "durationMultiplier",
+        8,
+      ),
       "Starting Attunement",
       "starting-attunement",
     );
@@ -143,7 +153,10 @@ function onEventScheduled(
     context.replaceEvent(event, { secondaryAttunement: target });
   }
   if (weaveSelfActive) {
-    const recharge = elementalistAlacrityAdjustedDuration(context as never, 2);
+    const recharge = elementalistAlacrityAdjustedDuration(
+      context as never,
+      elementalistBalanceValue(context, PROFILE.resources, "initialDelay", 2),
+    );
     for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
       setElementalistAttunementReadyAt(context, attunement, at + recharge);
     }
@@ -159,7 +172,12 @@ function onEventScheduled(
       at,
       "Elements of Rage",
       1,
-      8,
+      elementalistBalanceValue(
+        context,
+        PROFILE.elementsOfRage,
+        "durationMultiplier",
+        8,
+      ),
       source,
       sourceId,
     );
@@ -183,13 +201,19 @@ function onEventScheduled(
     if (visited.size >= ELEMENTALIST_ATTUNEMENTS.length) {
       state.weaveSelfUntil = 0;
       state.weaveSelfVisited = [];
-      state.perfectWeaveUntil = at + 10;
+      const perfectWeaveDuration = elementalistBalanceValue(
+        context,
+        PROFILE.resources,
+        "recharge",
+        10,
+      );
+      state.perfectWeaveUntil = at + perfectWeaveDuration;
       emitElementalistBuff(
         context as never,
         at,
         "Perfect Weave",
         1,
-        10,
+        perfectWeaveDuration,
         source,
         sourceId,
       );
@@ -198,7 +222,7 @@ function onEventScheduled(
         at,
         "Weave Self Fire",
         1,
-        10,
+        perfectWeaveDuration,
         source,
         sourceId,
       );
@@ -207,7 +231,7 @@ function onEventScheduled(
         at,
         "Weave Self Air",
         1,
-        10,
+        perfectWeaveDuration,
         source,
         sourceId,
       );
@@ -219,12 +243,18 @@ function onEventScheduled(
     hasTrait(context, "Weaver's Prowess") &&
     (unravelActive || target === previous)
   ) {
+    const resistance = elementalistBalanceEffect(
+      context,
+      PROFILE.weaversProwess,
+      "boon",
+      "Resistance",
+    );
     emitElementalistBuff(
       context as never,
       at,
-      "Resistance",
-      1,
-      3,
+      String(resistance?.boon || "Resistance"),
+      Number(resistance?.stacks ?? 1),
+      Number(resistance?.duration ?? 3),
       "Weaver's Prowess",
       sourceId,
     );
@@ -259,7 +289,13 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   if (skill.name !== "Weave Self") return;
   const at =
     context.start +
-    (context.fullEnd - context.start) * WEAVE_SELF_ACTIVATION_RATIO;
+    (context.fullEnd - context.start) *
+      elementalistBalanceValue(
+        context,
+        PROFILE.resources,
+        "firstPacketRatio",
+        0.65,
+      );
   if (at > context.effectiveEnd + context.epsilon) return;
   context.tasks.schedule({
     type: WEAVE_SELF_ACTIVATION_TASK,
@@ -276,7 +312,13 @@ function modifyRechargeStart(
   if (context.skill.name !== "Weave Self") return rechargeStart;
   return (
     context.start +
-    (rechargeStart - context.start) * WEAVE_SELF_ACTIVATION_RATIO
+    (rechargeStart - context.start) *
+      elementalistBalanceValue(
+        context,
+        PROFILE.resources,
+        "firstPacketRatio",
+        0.65,
+      )
   );
 }
 
@@ -290,7 +332,14 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
     const previousPrimary = core.primaryAttunement;
     const previousSecondary = core.secondaryAttunement;
     core.secondaryAttunement = core.primaryAttunement;
-    state.unravelUntil = at + 5;
+    state.unravelUntil =
+      at +
+      elementalistBalanceValue(
+        context,
+        PROFILE.unravel,
+        "durationMultiplier",
+        5,
+      );
     core.attunementEnteredAt = at;
     context.emit({
       type: "elementalist.attunement",
@@ -315,33 +364,69 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
     }
     const boon =
       previousPrimary === "Fire"
-        ? (["Might", 5] as const)
+        ? (["Fire", "Might", 5] as const)
         : previousPrimary === "Water"
-          ? (["Vigor", 1] as const)
+          ? (["Water", "Vigor", 1] as const)
           : previousPrimary === "Air"
-            ? (["Fury", 1] as const)
-            : (["Protection", 1] as const);
-    emitBuff(context, skill, boon[0], boon[1], 5);
+            ? (["Air", "Fury", 1] as const)
+            : (["Earth", "Protection", 1] as const);
+    const profiledBoon = elementalistBalanceEffect(
+      context,
+      PROFILE.unravel,
+      "boon",
+      boon[0],
+    );
+    emitBuff(
+      context,
+      skill,
+      String(profiledBoon?.boon || boon[1]),
+      Number(profiledBoon?.stacks ?? boon[2]),
+      Number(profiledBoon?.duration ?? 5),
+    );
     if (
       hasTrait(context, "Elements of Rage") &&
       previousPrimary !== previousSecondary
     ) {
-      emitBuff(context, skill, "Elements of Rage", 1, 8);
+      emitBuff(
+        context,
+        skill,
+        "Elements of Rage",
+        1,
+        elementalistBalanceValue(
+          context,
+          PROFILE.elementsOfRage,
+          "durationMultiplier",
+          8,
+        ),
+      );
     }
   } else if (skill.name === "Fervent Stance") {
-    state.ferventStanceUntil = at + 8;
+    state.ferventStanceUntil =
+      at +
+      elementalistBalanceValue(
+        context,
+        PROFILE.ferventStance,
+        "durationMultiplier",
+        8,
+      );
   }
 
   if (
     String(skill.attunement || "").includes("+") &&
     state.ferventStanceUntil >= at
   ) {
+    const might = elementalistBalanceEffect(
+      context,
+      PROFILE.ferventStance,
+      "boon",
+      "Might",
+    );
     emitElementalistBuff(
       context as never,
       at,
-      "Might",
-      3,
-      8,
+      String(might?.boon || "Might"),
+      Number(might?.stacks ?? 3),
+      Number(might?.duration ?? 8),
       "Fervent Stance",
       skill.id,
     );
@@ -356,7 +441,13 @@ function handleWeaveSelfActivation(
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = task.at;
   const sourceId = String(task.payload?.sourceId || "weave-self");
-  state.weaveSelfUntil = at + 20;
+  const duration = elementalistBalanceValue(
+    context,
+    PROFILE.resources,
+    "durationMultiplier",
+    20,
+  );
+  state.weaveSelfUntil = at + duration;
   state.weaveSelfVisited = [core.primaryAttunement];
   state.perfectWeaveUntil = 0;
   if (core.primaryAttunement === "Fire") {
@@ -365,7 +456,7 @@ function handleWeaveSelfActivation(
       at,
       "Weave Self Fire",
       1,
-      20,
+      duration,
       "Weave Self",
       sourceId,
     );
@@ -375,7 +466,7 @@ function handleWeaveSelfActivation(
       at,
       "Weave Self Air",
       1,
-      20,
+      duration,
       "Weave Self",
       sourceId,
     );
@@ -386,7 +477,14 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
   if (skill.name === "Unravel") {
     const state = weaverState.from(context);
     const core = elementalistCoreState(context as unknown as SchedulerRecord);
-    state.unravelUntil = context.effectiveEnd + 5;
+    state.unravelUntil =
+      context.effectiveEnd +
+      elementalistBalanceValue(
+        context,
+        PROFILE.unravel,
+        "durationMultiplier",
+        5,
+      );
     for (const attunement of Object.keys(core.attunementReadyAt)) {
       setElementalistAttunementReadyAt(
         context,
@@ -451,12 +549,24 @@ function handlePrimordialStanceTick(
     actorType: "player",
     skillName: "Primordial Stance",
     skillId: sourceId,
-    coefficient: 0.33,
+    coefficient: elementalistEffectValue(
+      context,
+      PROFILE.primordialStance,
+      "strike",
+      "coefficient",
+      0.33,
+    ),
     skillWeapon: "Unequipped",
     damageKind: "field-tick",
   });
   for (const attunement of attunements) {
     const [condition, stacks, duration] = effects[attunement];
+    const effect = elementalistBalanceEffect(
+      context,
+      PROFILE.primordialStance,
+      "condition",
+      attunement,
+    );
     context.emit({
       type: "condition",
       at: task.at,
@@ -464,9 +574,9 @@ function handlePrimordialStanceTick(
       sourceId,
       actorType: "player",
       skillName: "Primordial Stance",
-      condition,
-      stacks,
-      duration,
+      condition: String(effect?.condition || condition),
+      stacks: Number(effect?.stacks ?? stacks),
+      duration: Number(effect?.duration ?? duration),
     });
   }
 }

@@ -14,6 +14,12 @@ import {
   recordElementalistTraitProc,
 } from "../../core/resolver.js";
 import { catalystState, grantCatalystElementalEmpowerment } from "./state.js";
+import {
+  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
+  elementalistBalanceEffect,
+  elementalistBalanceValue,
+} from "../../core/profiles.js";
+import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 export function applyCatalystResolverAura(
   context: ElementalistResolverContext,
@@ -25,12 +31,18 @@ export function applyCatalystResolverAura(
   ) {
     return;
   }
+  const empowerment = elementalistBalanceEffect(
+    context,
+    PROFILE.elementalEpitome,
+    "buff",
+    "Empowerment",
+  );
   queueElementalistBuff(
     context,
     event,
     "Elemental Empowerment",
-    1,
-    15,
+    Number(empowerment?.stacks ?? 1),
+    Number(empowerment?.duration ?? 15),
     elementalistSourceSkill(event),
   );
 }
@@ -47,7 +59,14 @@ export function applyCatalystComboTraits(
     hasTrait(context, "Elemental Epitome") &&
     epitomeReadyAt <= event.at + EPSILON
   ) {
-    state.elementalEpitomeReadyAt[attunement] = event.at + 10;
+    state.elementalEpitomeReadyAt[attunement] =
+      event.at +
+      elementalistBalanceValue(
+        context,
+        PROFILE.elementalEpitome,
+        "internalCooldown",
+        10,
+      );
     const aura =
       attunement === "Fire"
         ? (["Fire Aura", 4] as const)
@@ -60,7 +79,14 @@ export function applyCatalystComboTraits(
       context,
       event,
       aura[0],
-      aura[1],
+      Number(
+        elementalistBalanceEffect(
+          context,
+          PROFILE.elementalEpitome,
+          "buff",
+          attunement,
+        )?.duration ?? aura[1],
+      ),
       "Elemental Epitome",
     );
     recordElementalistTraitProc(context, event, "Elemental Epitome");
@@ -71,27 +97,60 @@ export function applyCatalystComboTraits(
     hasTrait(context, "Elemental Synergy") &&
     synergyReadyAt <= event.at + EPSILON
   ) {
-    state.elementalSynergyReadyAt[attunement] = event.at + 10;
+    state.elementalSynergyReadyAt[attunement] =
+      event.at +
+      elementalistBalanceValue(
+        context,
+        PROFILE.elementalSynergy,
+        "internalCooldown",
+        10,
+      );
     if (attunement === "Fire") {
+      const might = elementalistBalanceEffect(
+        context,
+        PROFILE.elementalSynergy,
+        "boon",
+        "Fire",
+      );
       queueElementalistBuff(
         context,
         event,
-        "Might",
-        6,
-        10,
+        String(might?.boon || "Might"),
+        Number(might?.stacks ?? 6),
+        Number(might?.duration ?? 10),
         "Elemental Synergy",
       );
     } else if (attunement === "Earth") {
+      const stability = elementalistBalanceEffect(
+        context,
+        PROFILE.elementalSynergy,
+        "boon",
+        "Earth",
+      );
       queueElementalistBuff(
         context,
         event,
-        "Stability",
-        2,
-        6,
+        String(stability?.boon || "Stability"),
+        Number(stability?.stacks ?? 2),
+        Number(stability?.duration ?? 6),
         "Elemental Synergy",
       );
     } else if (attunement === "Air") {
-      core.endurance = Math.min(100, core.endurance + 50);
+      core.endurance = Math.min(
+        elementalistBalanceValue(
+          context,
+          CORE_PROFILE.resources,
+          "maximumStacks",
+          100,
+        ),
+        core.endurance +
+          elementalistBalanceValue(
+            context,
+            PROFILE.elementalSynergy,
+            "resourceGain",
+            50,
+          ),
+      );
     }
     recordElementalistTraitProc(context, event, "Elemental Synergy");
   }
@@ -131,9 +190,40 @@ export function applyViciousEmpowerment(
   }
   const state = catalystState.from(context);
   if (state.viciousEmpowermentReadyAt > event.at + EPSILON) return;
-  state.viciousEmpowermentReadyAt = event.at + 0.25;
-  queueCatalystBuff(context, event, "elemental empowerment", 2, 15);
-  queueCatalystBuff(context, event, "might", 2, 10);
+  state.viciousEmpowermentReadyAt =
+    event.at +
+    elementalistBalanceValue(
+      context,
+      PROFILE.viciousEmpowerment,
+      "internalCooldown",
+      0.25,
+    );
+  const empowerment = elementalistBalanceEffect(
+    context,
+    PROFILE.viciousEmpowerment,
+    "buff",
+    "Empowerment",
+  );
+  const might = elementalistBalanceEffect(
+    context,
+    PROFILE.viciousEmpowerment,
+    "boon",
+    "Might",
+  );
+  queueCatalystBuff(
+    context,
+    event,
+    "elemental empowerment",
+    Number(empowerment?.stacks ?? 2),
+    Number(empowerment?.duration ?? 15),
+  );
+  queueCatalystBuff(
+    context,
+    event,
+    String(might?.boon || "might"),
+    Number(might?.stacks ?? 2),
+    Number(might?.duration ?? 10),
+  );
   context.recordProc("trait", "Vicious Empowerment", event.at, event.skillName);
 }
 
@@ -198,6 +288,12 @@ export function applyCatalystEmpowerment(
     Number(event.duration || 0),
     Number(event.stacks || 1),
     EPSILON,
+    elementalistBalanceValue(
+      context,
+      PROFILE.elementalEmpowerment,
+      "maximumStacks",
+      10,
+    ),
   );
 }
 
@@ -217,7 +313,24 @@ export function applyCatalystResolvedDamage(
     return;
   }
 
-  state.shatteringIceReadyAt = event.at + 1;
+  state.shatteringIceReadyAt =
+    event.at +
+    elementalistBalanceValue(
+      context,
+      PROFILE.shatteringIce,
+      "internalCooldown",
+      1,
+    );
+  const strike = elementalistBalanceEffect(
+    context,
+    PROFILE.shatteringIce,
+    "strike",
+  );
+  const chilled = elementalistBalanceEffect(
+    context,
+    PROFILE.shatteringIce,
+    "condition",
+  );
   enqueueOrdered(context.queue, {
     type: "damage",
     at: event.at,
@@ -225,7 +338,7 @@ export function applyCatalystResolvedDamage(
     sourceId: event.skillId ?? event.sourceId,
     actorType: "effect",
     skillName: "Shattering Ice Proc",
-    coefficient: 0.6,
+    coefficient: Number(strike?.coefficient ?? 0.6),
     skillWeapon: "Unequipped",
     triggeredBy: event.skillName,
   });
@@ -236,9 +349,9 @@ export function applyCatalystResolvedDamage(
     sourceId: event.skillId ?? event.sourceId,
     actorType: "effect",
     skillName: "Shattering Ice Proc",
-    condition: "Chilled",
-    stacks: 1,
-    duration: 1,
+    condition: String(chilled?.condition || "Chilled"),
+    stacks: Number(chilled?.stacks ?? 1),
+    duration: Number(chilled?.duration ?? 1),
     triggeredBy: event.skillName,
   });
 }

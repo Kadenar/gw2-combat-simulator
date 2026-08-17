@@ -23,18 +23,30 @@ import {
   setElementalistAttunementReadyAt,
 } from "../../core/state.js";
 import { tempestModifierRules } from "./modifiers.js";
+import {
+  elementalistBalanceEffect,
+  elementalistBalanceValue,
+  elementalistEffectValue,
+} from "../../core/profiles.js";
+import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 export function applyTempestShoutTraits(
   context: ElementalistCastContext,
   skill: Skill,
 ): void {
   if (!hasTrait(context, "Tempestuous Aria")) return;
+  const might = elementalistBalanceEffect(
+    context,
+    PROFILE.tempestuousAria,
+    "boon",
+    "Shout Might",
+  );
   emitElementalistBuff(
     context as never,
     context.effectiveEnd,
-    "Might",
-    2,
-    10,
+    String(might?.boon || "Might"),
+    Number(might?.stacks ?? 2),
+    Number(might?.duration ?? 10),
     skill.name,
     skill.id,
     0,
@@ -45,32 +57,50 @@ export function applyTempestShoutTraits(
 function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   if (!skill.overload) return;
   if (hasTrait(context, "Hardy Conduit")) {
+    const protection = elementalistBalanceEffect(
+      context,
+      PROFILE.hardyConduit,
+      "boon",
+      "Protection",
+    );
     emitElementalistBuff(
       context as never,
       context.start,
-      "Protection",
-      1,
-      3,
+      String(protection?.boon || "Protection"),
+      Number(protection?.stacks ?? 1),
+      Number(protection?.duration ?? 3),
       "Hardy Conduit",
       skill.id,
     );
   }
   if (hasTrait(context, "Harmonious Conduit")) {
+    const swiftness = elementalistBalanceEffect(
+      context,
+      PROFILE.harmoniousConduit,
+      "boon",
+      "Swiftness",
+    );
+    const stability = elementalistBalanceEffect(
+      context,
+      PROFILE.harmoniousConduit,
+      "boon",
+      "Stability",
+    );
     emitElementalistBuff(
       context as never,
       context.start,
-      "Swiftness",
-      1,
-      8,
+      String(swiftness?.boon || "Swiftness"),
+      Number(swiftness?.stacks ?? 1),
+      Number(swiftness?.duration ?? 8),
       "Harmonious Conduit",
       skill.id,
     );
     emitElementalistBuff(
       context as never,
       context.start,
-      "Stability",
-      1,
-      4,
+      String(stability?.boon || "Stability"),
+      Number(stability?.stacks ?? 1),
+      Number(stability?.duration ?? 4),
       "Harmonious Conduit",
       skill.id,
     );
@@ -103,8 +133,19 @@ function availability(
     };
   }
   const dwell =
-    (hasTrait(context, "Transcendent Tempest") ? 4 : 6) /
-    (context.config.boons?.alacrity ? 1.25 : 1);
+    (hasTrait(context, "Transcendent Tempest")
+      ? elementalistBalanceValue(
+          context,
+          PROFILE.overloads,
+          "durationMultiplier",
+          4,
+        )
+      : elementalistBalanceValue(
+          context,
+          PROFILE.overloads,
+          "initialDelay",
+          6,
+        )) / (context.config.boons?.alacrity ? 1.25 : 1);
   const startingAttunementReady = state.attunementEnteredAt === 0;
   const readyAt = startingAttunementReady
     ? context.start
@@ -129,14 +170,43 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
         Number(event.coefficient || 0) > 0,
     )
     .sort((left: SimulationEvent, right: SimulationEvent) => left.at - right.at)
-    .slice(0, 5);
+    .slice(
+      0,
+      elementalistBalanceValue(
+        context,
+        PROFILE.lucidSingularity,
+        "maximumStacks",
+        5,
+      ),
+    );
   hits.forEach((event: SimulationEvent, index: number) => {
     emitElementalistBuff(
       context as never,
       event.at,
-      "Alacrity",
-      1,
-      index === 4 ? 4.5 : 1,
+      String(
+        elementalistBalanceEffect(
+          context,
+          PROFILE.lucidSingularity,
+          "boon",
+          index === hits.length - 1 ? "Final Alacrity" : "Pulse Alacrity",
+        )?.boon || "Alacrity",
+      ),
+      Number(
+        elementalistBalanceEffect(
+          context,
+          PROFILE.lucidSingularity,
+          "boon",
+          index === hits.length - 1 ? "Final Alacrity" : "Pulse Alacrity",
+        )?.stacks ?? 1,
+      ),
+      elementalistEffectValue(
+        context,
+        PROFILE.lucidSingularity,
+        "boon",
+        "duration",
+        index === hits.length - 1 ? 4.5 : 1,
+        index === hits.length - 1 ? "Final Alacrity" : "Pulse Alacrity",
+      ),
       "Lucid Singularity",
       skill.id,
     );
@@ -170,7 +240,14 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
     applyElementalistAura(context as never, {
       at: context.effectiveEnd,
       aura,
-      duration: 4,
+      duration: elementalistEffectValue(
+        context,
+        PROFILE.unstableConduit,
+        "buff",
+        "duration",
+        4,
+        attunement,
+      ),
       skillName: "Unstable Conduit",
       sourceId: skill.id,
       // The completion aura precedes the same-time Overload packet.
@@ -197,7 +274,12 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
       skillName: "Transcendent Tempest",
       kind: "transcendent-tempest",
       stacks: 1,
-      duration: 7,
+      duration: elementalistBalanceValue(
+        context,
+        PROFILE.transcendentTempest,
+        "durationMultiplier",
+        7,
+      ),
     });
   }
   if (skill.name === "Overload Air") {
@@ -208,7 +290,13 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
       sourceId: skill.id,
       actorType: "effect",
       skillName: "Lightning Jolt",
-      coefficient: 2.64,
+      coefficient: elementalistEffectValue(
+        context,
+        PROFILE.lightningJolt,
+        "strike",
+        "coefficient",
+        2.64,
+      ),
       skillWeapon: "Unequipped",
       noCrit: true,
     });

@@ -16,6 +16,10 @@ import { catalystModule } from "../../../js/professions/elementalist/specializat
 import { CATALYST_JADE_SPHERE_EFFECTS } from "../../../js/professions/elementalist/specializations/catalyst/jade-sphere-effects.js";
 import { CATALYST_SKILL_MECHANICS } from "../../../js/professions/elementalist/specializations/catalyst/skills.js";
 import { evokerModule } from "../../../js/professions/elementalist/specializations/evoker/module.js";
+import {
+  EVOKER_BALANCE_PROFILE_IDS,
+  EVOKER_BALANCE_PROFILES,
+} from "../../../js/professions/elementalist/specializations/evoker/profiles.js";
 import { EVOKER_SKILL_MECHANICS } from "../../../js/professions/elementalist/specializations/evoker/skills.js";
 import { tempestModule } from "../../../js/professions/elementalist/specializations/tempest/module.js";
 import { TEMPEST_OVERLOAD_EFFECTS } from "../../../js/professions/elementalist/specializations/tempest/overload-effects.js";
@@ -126,6 +130,23 @@ test("Lightning Blitz uses a flat 0.28 coefficient", () => {
     lightningBlitz.effects[0].ticks.map((tick) => tick.coefficient),
     [0.28, 0.28, 0.28, 0.28, 0.28],
   );
+});
+
+test("Specialized Elements models percentage recharge changes as multipliers", () => {
+  const profiles = new Map(
+    EVOKER_BALANCE_PROFILES.map((profile) => [profile.id, profile]),
+  );
+  const trait = profiles.get(EVOKER_BALANCE_PROFILE_IDS.specializedElements);
+  const basic = profiles.get(
+    EVOKER_BALANCE_PROFILE_IDS.specializedElementsBasicRecharge,
+  );
+  const empowered = profiles.get(
+    EVOKER_BALANCE_PROFILE_IDS.specializedElementsEmpoweredRecharge,
+  );
+
+  assert.equal(Object.hasOwn(trait, "rechargeReduction"), false);
+  assert.equal(basic.rechargeMultiplier, 0.9);
+  assert.equal(empowered.rechargeMultiplier, 0.67);
 });
 
 test("Arc Lightning models its damage packets as one tick sequence", () => {

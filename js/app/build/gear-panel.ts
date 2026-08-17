@@ -89,7 +89,14 @@ export function renderGear(app: ProfessionAppState): void {
           )
           .join("")}`;
   };
-  requiredElement("gear-slots").innerHTML = `${armorRows}
+  requiredElement("gear-slots").innerHTML = `<div class="gear-row gear-set-all-row">
+        <span class="gear-label">Set all</span>
+        <select class="gear-select" id="sel-set-all">
+          <option value="">— choose prefix —</option>
+          ${groupedOptions(PREFIX_GROUPS, "")}
+        </select>
+      </div>
+      ${armorRows}
       ${weaponPrefixRows(1, b.weapons, [b.gear.Weapon1, b.gear.Weapon2])}
       ${
         hasSecondWeaponSet
@@ -133,6 +140,21 @@ export function renderGear(app: ProfessionAppState): void {
       app.changed(true, false);
     });
   });
+  const setAllSelect = document.getElementById("sel-set-all");
+  if (setAllSelect instanceof HTMLSelectElement) {
+    setAllSelect.addEventListener("change", () => {
+      const value = setAllSelect.value;
+      if (!value) return;
+      for (const slot of GEAR_SLOTS) {
+        b.gear[slot] = value;
+      }
+      if (hasSecondWeaponSet) {
+        b.alternateWeaponPrefixes[0] = value;
+        b.alternateWeaponPrefixes[1] = value;
+      }
+      app.changed();
+    });
+  }
 
   const mainHands = Object.entries(app.weaponData)
     .filter(([, data]) => ["mh", "mh+oh", "2h"].includes(data.wielding))
