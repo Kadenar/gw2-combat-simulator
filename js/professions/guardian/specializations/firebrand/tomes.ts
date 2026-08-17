@@ -14,8 +14,12 @@ import {
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from "../../data/ids.js";
 import { selectedGuardianSpecialization } from "../../core/availability.js";
 import { emitGuardianEvent } from "../../core/events.js";
-import { FIREBRAND_MECHANICS } from "./mechanics.js";
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect,
+} from "../../core/profiles.js";
 import { hasGuardianTrait } from "../../core/traits.js";
+import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 import type { AvailabilityResult } from "../../../../platform/engine/types.js";
 import type { Gw2ConditionResolution } from "../../../../platform/gw2/types.js";
 import type {
@@ -31,8 +35,6 @@ interface AshesHitDependencies {
   readonly hitContext?: object;
   readonly applyCondition?: Gw2ConditionResolution["applyCondition"];
 }
-
-const ASHES_DURATION = 10;
 
 /**
  * Determines whether a tome page or Stow Tome is compatible with the currently
@@ -159,9 +161,14 @@ function useTomePage(
     state.swiftScholarCount = 0;
   }
   state.swiftScholarCount += 1;
-  if (state.swiftScholarCount >= 3) {
+  const swiftScholar = guardianBalanceProfile(context, PROFILE.swiftScholar);
+  if (state.swiftScholarCount >= Number(swiftScholar?.minimumStacks || 3)) {
     state.swiftScholarCount = 0;
-    state.tomePages = Math.min(state.maximumTomePages, state.tomePages + 1);
+    const pageGain = Number(swiftScholar?.resourceGain || 1);
+    state.tomePages = Math.min(
+      state.maximumTomePages,
+      state.tomePages + pageGain,
+    );
     if (state.tomePages >= state.maximumTomePages) {
       state.nextTomePageAt = Number.POSITIVE_INFINITY;
     }
@@ -174,18 +181,15 @@ function useTomePage(
       actorType: "effect",
       name: "Swift Scholar",
       sourceSkill: skill.name,
-      detail: "+1 tome page",
+      detail: `+${pageGain} tome page${pageGain === 1 ? "" : "s"}`,
     });
   }
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.LEGENDARY_LORE)) {
-    const boon =
-      skill.tome === "justice"
-        ? { kind: "might", stacks: 2, duration: 10 }
-        : skill.tome === "resolve"
-          ? { kind: "regeneration", stacks: 1, duration: 6 }
-          : skill.tome === "courage"
-            ? { kind: "protection", stacks: 1, duration: 4 }
-            : null;
+    const boon = guardianBalanceProfileEffect(
+      guardianBalanceProfile(context, PROFILE.legendaryLore),
+      "boon",
+      skill.tome === "justice" ? 0 : skill.tome === "resolve" ? 1 : 2,
+    );
     if (boon) {
       context.emit({
         type: "buff",
@@ -196,17 +200,24 @@ function useTomePage(
         skillId: skill.id,
         skillName: skill.name,
         name: "Legendary Lore",
-        ...boon,
+        kind: String(boon.boon || ""),
+        stacks: Number(boon.stacks || 1),
+        duration: Number(boon.duration || 0),
       });
     }
   }
   if (skill.id === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST) {
     const at = context.effectiveEnd;
     const party = gw2AlliedPlayerAssumptions(context.config);
-    state.ashesCharges = 2;
-    state.ashesBurnDuration = FIREBRAND_MECHANICS.ashesBurn.duration;
+    const ashes = guardianBalanceProfile(context, PROFILE.ashes);
+    const burn = guardianBalanceProfileEffect(ashes, "condition");
+    const ashesBuff = guardianBalanceProfileEffect(ashes, "buff");
+    const might = guardianBalanceProfileEffect(ashes, "boon");
+    const ashesDuration = Number(ashesBuff?.duration || 10);
+    state.ashesCharges = Number(ashes?.maximumStacks || ashesBuff?.stacks || 2);
+    state.ashesBurnDuration = Number(burn?.duration || 2);
     state.ashesNextTriggerAt = at;
-    state.ashesExpiresAt = at + ASHES_DURATION;
+    state.ashesExpiresAt = at + ashesDuration;
     context.emit({
       type: "buff",
       at,
@@ -217,8 +228,8 @@ function useTomePage(
       skillName: skill.name,
       name: "Ashes of the Just",
       kind: "ashes-of-the-just",
-      stacks: 2,
-      duration: ASHES_DURATION,
+      stacks: state.ashesCharges,
+      duration: ashesDuration,
       recipients: "party",
       recipientCount: party.count + 1,
     });
@@ -232,16 +243,16 @@ function useTomePage(
       skillName: skill.name,
       name: "Might",
       kind: "might",
-      stacks: 8,
-      duration: 10,
+      stacks: Number(might?.stacks || 8),
+      duration: Number(might?.duration || 10),
       recipients: "party",
       recipientCount: party.count + 1,
     });
     const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {
       start: at,
-      duration: ASHES_DURATION,
-      maximumPerAlly: 2,
-      internalCooldown: 1,
+      duration: ashesDuration,
+      maximumPerAlly: state.ashesCharges,
+      internalCooldown: Number(ashes?.internalCooldown || 1),
     });
     for (let index = 0; index < alliedProcs.length; index += 1) {
       const proc = alliedProcs[index];
@@ -254,9 +265,9 @@ function useTomePage(
         skillId: skill.id,
         skillName: skill.name,
         name: `Ashes of the Just — Ally ${proc.allyIndex} Burning`,
-        condition: "Burning",
-        stacks: 1,
-        duration: FIREBRAND_MECHANICS.ashesBurn.duration,
+        condition: String(burn?.condition || "Burning"),
+        stacks: Number(burn?.stacks || 1),
+        duration: Number(burn?.duration || 2),
         activationId: `${context.reservationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
         triggeredByAlly: proc.allyIndex,
       });
@@ -414,6 +425,11 @@ export function advanceTomeState(
   const courage = context.catalog.skillsById.get(
     GUARDIAN_SKILL_IDS.TOME_OF_COURAGE,
   );
+  const passiveCourage = guardianBalanceProfile(
+    context,
+    PROFILE.passiveCourage,
+  );
+  const aegis = guardianBalanceProfileEffect(passiveCourage, "boon");
   while (courage && state.nextCourageAegisAt <= target + context.epsilon) {
     const at = state.nextCourageAegisAt;
     // Suppress passive aegis when the virtue is on its dormant cooldown (i.e.
@@ -435,11 +451,11 @@ export function advanceTomeState(
         skillName: courage.name,
         name: "Tome of Courage — Passive Aegis",
         kind: "aegis",
-        stacks: 1,
-        duration: 40,
+        stacks: Number(aegis?.stacks || 1),
+        duration: Number(aegis?.duration || 40),
       });
     }
-    state.nextCourageAegisAt += 40;
+    state.nextCourageAegisAt += Number(passiveCourage?.pulseInterval || 40);
   }
 }
 
@@ -457,7 +473,8 @@ export function reactToAshesHit(
   event: GuardianResolverEvent,
   { hitContext, applyCondition }: AshesHitDependencies = {},
 ): void {
-  const burn = FIREBRAND_MECHANICS.ashesBurn;
+  const ashes = guardianBalanceProfile(context, PROFILE.ashes);
+  const burn = guardianBalanceProfileEffect(ashes, "condition");
   if (
     !hitContext ||
     typeof applyCondition !== "function" ||
@@ -483,12 +500,12 @@ export function reactToAshesHit(
     skillId: GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST,
     skillName: "Epilogue: Ashes of the Just",
     name: "Ashes of the Just — Burning",
-    condition: burn.condition,
-    stacks: burn.stacks,
+    condition: String(burn?.condition || "Burning"),
+    stacks: Number(burn?.stacks || 1),
     duration: state.ashesBurnDuration,
   });
   state.ashesCharges -= 1;
-  state.ashesNextTriggerAt = event.at + burn.interval;
+  state.ashesNextTriggerAt = event.at + Number(ashes?.internalCooldown || 1);
   context.recordProc(
     "profession",
     "Ashes of the Just",

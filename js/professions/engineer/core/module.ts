@@ -19,8 +19,10 @@ import {
 import {
   ENGINEER_CORE_EXTRA_SKILLS,
   ENGINEER_CORE_SKILL_MECHANICS,
+  ENGINEER_TURRET_ATTACK_SKILLS,
 } from "./skills.js";
 import { createEngineerCoreState, projectEngineerEndState } from "./state.js";
+import { ENGINEER_CORE_BALANCE_PROFILES } from "./profiles.js";
 import { bindEngineerCoreUi } from "./ui.js";
 import type { EngineerSchedulerContext } from "../types.js";
 
@@ -28,7 +30,11 @@ export const engineerCoreModule = defineNativeModule({
   id: "Core",
   data: createEngineerModuleData("Core", {
     skillMechanics: ENGINEER_CORE_SKILL_MECHANICS,
-    extraSkills: ENGINEER_CORE_EXTRA_SKILLS,
+    balanceProfiles: ENGINEER_CORE_BALANCE_PROFILES,
+    extraSkills: [
+      ...ENGINEER_CORE_EXTRA_SKILLS,
+      ...ENGINEER_TURRET_ATTACK_SKILLS,
+    ],
     handlers: engineerCoreSkillHandlers,
     // RIFLE_BURST_GRENADE is a sub-packet of Rifle Burst, not a standalone chain member
     autoattackChains: { excludeSkillIds: [ID.RIFLE_BURST_GRENADE] },

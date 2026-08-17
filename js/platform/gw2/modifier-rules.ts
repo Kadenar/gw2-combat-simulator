@@ -1,6 +1,7 @@
 import { applyAdditiveDamageBucket } from "./damage-modifier-buckets.js";
 
 import type {
+  Gw2AttributeModifierHook,
   Gw2DamageBucketPolicies,
   Gw2DamageBucketPolicy,
   Gw2DamageModifierTarget,
@@ -12,6 +13,7 @@ import type {
   Gw2ModifierRule,
   Gw2ModifierTarget,
   Gw2NormalizedModifierRule,
+  Gw2ResolvedStats,
 } from "./types.js";
 
 interface NormalizeResolverOptions {
@@ -39,14 +41,22 @@ interface CreateModifierHooksOptions {
  */
 
 /**
- * Supported rule targets. Each value maps to one hook on the profession
- * contract returned by `createModifierHooks`.
+ * Supported rule targets. Scalar combat targets map one-to-one to profession
+ * hooks, following the existing declarative modifier pattern. Attribute
+ * targets extend that pattern to individual fields processed together by the
+ * `modifyAttributes` hook returned by `createModifierHooks`.
+ *
+ * At runtime, `modifyAttributes` resolves attributes first. Critical chance
+ * and critical damage are then derived from the resulting precision and
+ * ferocity, respectively, before `modifyCriticalChance` and
+ * `modifyCriticalDamage` apply their direct adjustments.
  *
  * - `criticalChance` → `modifyCriticalChance`
  * - `criticalDamage` → `modifyCriticalDamage`
  * - `strikeDamage` → `modifyStrikeDamage`
  * - `conditionDamage` → `modifyConditionDamage`
  * - `conditionDuration` → `modifyConditionDuration`
+ * - `attribute*` → the corresponding resolved-stat field through `modifyAttributes`
  */
 export const MODIFIER_TARGET = Object.freeze({
   CRITICAL_CHANCE: "criticalChance",
@@ -54,6 +64,12 @@ export const MODIFIER_TARGET = Object.freeze({
   STRIKE_DAMAGE: "strikeDamage",
   CONDITION_DAMAGE: "conditionDamage",
   CONDITION_DURATION: "conditionDuration",
+  ATTRIBUTE_POWER: "attributePower",
+  ATTRIBUTE_PRECISION: "attributePrecision",
+  ATTRIBUTE_FEROCITY: "attributeFerocity",
+  ATTRIBUTE_CONDITION_DAMAGE: "attributeConditionDamage",
+  ATTRIBUTE_HEALING_POWER: "attributeHealingPower",
+  ATTRIBUTE_VITALITY: "attributeVitality",
 });
 
 const TARGETS: ReadonlySet<Gw2ModifierTarget> = new Set(
@@ -63,13 +79,29 @@ const DAMAGE_TARGETS: ReadonlySet<Gw2DamageModifierTarget> = new Set([
   MODIFIER_TARGET.STRIKE_DAMAGE,
   MODIFIER_TARGET.CONDITION_DAMAGE,
 ]);
+const ATTRIBUTE_KEY_BY_TARGET = Object.freeze({
+  [MODIFIER_TARGET.ATTRIBUTE_POWER]: "power",
+  [MODIFIER_TARGET.ATTRIBUTE_PRECISION]: "precision",
+  [MODIFIER_TARGET.ATTRIBUTE_FEROCITY]: "ferocity",
+  [MODIFIER_TARGET.ATTRIBUTE_CONDITION_DAMAGE]: "conditionDamage",
+  [MODIFIER_TARGET.ATTRIBUTE_HEALING_POWER]: "healingPower",
+  [MODIFIER_TARGET.ATTRIBUTE_VITALITY]: "vitality",
+} as const);
+const ATTRIBUTE_TARGETS: ReadonlySet<Gw2ModifierTarget> = new Set(
+  Object.keys(ATTRIBUTE_KEY_BY_TARGET) as Gw2ModifierTarget[],
+);
 const OPERATIONS: ReadonlySet<Gw2ModifierOperation> = new Set([
   "add",
   "damage-additive",
   "multiply",
 ]);
 const HOOK_BY_TARGET: Readonly<
-  Record<Gw2ModifierTarget, keyof Gw2ModifierHooks>
+  Partial<
+    Record<
+      Gw2ModifierTarget,
+      Exclude<keyof Gw2ModifierHooks, "modifyAttributes">
+    >
+  >
 > = Object.freeze({
   [MODIFIER_TARGET.CRITICAL_CHANCE]: "modifyCriticalChance",
   [MODIFIER_TARGET.CRITICAL_DAMAGE]: "modifyCriticalDamage",
@@ -433,6 +465,41 @@ function createScalarHook(
   );
 }
 
+function createAttributeHook(
+  rulesByTarget: Readonly<
+    Record<Gw2ModifierTarget, readonly Readonly<Gw2NormalizedModifierRule>[]>
+  >,
+): Gw2AttributeModifierHook {
+  return Object.freeze(
+    (
+      context: Gw2ModifierContext,
+      initialValue: Gw2ResolvedStats,
+    ): Gw2ResolvedStats => {
+      const result = { ...initialValue };
+      for (const target of ATTRIBUTE_TARGETS) {
+        const key = ATTRIBUTE_KEY_BY_TARGET[
+          target as keyof typeof ATTRIBUTE_KEY_BY_TARGET
+        ] as keyof Gw2ResolvedStats;
+        const hadKey = Object.hasOwn(result, key);
+        let applied = false;
+        let value = Number(result[key] || 0);
+        for (const rule of rulesByTarget[target]) {
+          if (rule.when && !rule.when(context)) continue;
+          applied = true;
+          value =
+            rule.operation === "add"
+              ? value + resolveNumeric(rule, "amount", context, target)
+              : value * resolveNumeric(rule, "factor", context, target);
+        }
+        if (hadKey || applied) {
+          (result as Record<string, unknown>)[key] = value;
+        }
+      }
+      return result;
+    },
+  );
+}
+
 /**
  * Builds a strike- or condition-damage hook.
  *
@@ -546,23 +613,26 @@ export function createModifierHooks({
   }
   Object.freeze(rulesByTarget);
 
-  const hooks: Partial<Record<keyof Gw2ModifierHooks, Gw2ModifierHook>> = {};
+  const hooks: {
+    -readonly [K in keyof Gw2ModifierHooks]?: Gw2ModifierHooks[K];
+  } = {};
   for (const target of TARGETS) {
+    if (ATTRIBUTE_TARGETS.has(target)) continue;
+    const hook = HOOK_BY_TARGET[target];
+    if (!hook) continue;
     if (
       target === MODIFIER_TARGET.STRIKE_DAMAGE ||
       target === MODIFIER_TARGET.CONDITION_DAMAGE
     ) {
-      hooks[HOOK_BY_TARGET[target]] = createDamageHook(
+      hooks[hook] = createDamageHook(
         rulesByTarget[target],
         target,
         policies[target],
       );
     } else {
-      hooks[HOOK_BY_TARGET[target]] = createScalarHook(
-        rulesByTarget[target],
-        target,
-      );
+      hooks[hook] = createScalarHook(rulesByTarget[target], target);
     }
   }
+  hooks.modifyAttributes = createAttributeHook(rulesByTarget);
   return Object.freeze(hooks) as Readonly<Gw2ModifierHooks>;
 }

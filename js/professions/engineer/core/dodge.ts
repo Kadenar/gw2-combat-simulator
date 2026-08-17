@@ -6,11 +6,11 @@ import {
 import { hasEngineerTrait } from "./state.js";
 import { emitEngineerState } from "./events.js";
 import { isEngineerToolbeltSkill } from "./traits.js";
-import { ENGINEER_DODGE_ENDURANCE_COST } from "./mechanics.js";
-import type {
-  EngineerCastContext,
-  EngineerSkill,
-} from "../types.js";
+import {
+  ENGINEER_CORE_BALANCE_PROFILE_IDS,
+  engineerBalanceValue,
+} from "./profiles.js";
+import type { EngineerCastContext, EngineerSkill } from "../types.js";
 
 // ammo and cooldown skills use different reduction APIs — ammo tracks charges, not a single timestamp
 function reduceCooldown(
@@ -21,11 +21,8 @@ function reduceCooldown(
 ): number {
   const ammo = context.state.ammo.get(skill.id);
   if (ammo) {
-    return context.cooldownController.reduceAmmoRecharge(
-      skill,
-      seconds,
-      at,
-    ).reducedBy;
+    return context.cooldownController.reduceAmmoRecharge(skill, seconds, at)
+      .reducedBy;
   }
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
   // skill already ready — nothing to reduce, avoid mutating the map unnecessarily
@@ -62,10 +59,13 @@ export function performEngineerDodge(
 ): void {
   const state = professionCoreState(context);
   const at = context.start;
-  state.endurance = Math.max(
-    0,
-    Number(state.endurance || 0) - ENGINEER_DODGE_ENDURANCE_COST,
+  const enduranceCost = engineerBalanceValue(
+    context,
+    ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
+    "resourceCost",
+    50,
   );
+  state.endurance = Math.max(0, Number(state.endurance || 0) - enduranceCost);
   // enduranceUpdatedAt anchors the regen formula in resources.ts — must update alongside any endurance change
   state.enduranceUpdatedAt = at;
 
@@ -82,8 +82,7 @@ export function performEngineerDodge(
   if (hasEngineerTrait(context.config, TRAIT.POWER_WRENCH)) {
     const reducedBy = reduceMatchingCooldowns(
       context,
-      candidate =>
-        candidate.type === "Elite" || candidate.slot === "Elite",
+      (candidate) => candidate.type === "Elite" || candidate.slot === "Elite",
       3,
       at,
     );

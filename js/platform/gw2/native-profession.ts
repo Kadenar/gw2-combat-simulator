@@ -253,15 +253,21 @@ function createPatchAuthoringMetadata(
           id: module.id,
           traits: Object.freeze([...(fragment.traits || [])]),
           skills: Object.freeze(
-            (fragment.skills || []).map((skill) =>
-              Object.freeze({
-                id: skill.id,
-                name: skill.name,
-                moduleId: module.id,
-                skill,
-                patchableFields: skillPatchableNumericFields(skill),
-              }),
-            ),
+            (fragment.skills || [])
+              .filter(
+                (skill) =>
+                  skill.implemented !== false &&
+                  skill.patchAuthoringExcluded !== true,
+              )
+              .map((skill) =>
+                Object.freeze({
+                  id: skill.id,
+                  name: skill.name,
+                  moduleId: module.id,
+                  skill,
+                  patchableFields: skillPatchableNumericFields(skill),
+                }),
+              ),
           ),
           balanceProfiles: Object.freeze(
             (fragment.balanceProfiles || []).map((profile) =>

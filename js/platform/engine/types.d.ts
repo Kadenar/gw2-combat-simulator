@@ -251,6 +251,12 @@ export interface Skill extends CatalogSkill {
   readonly description?: string;
   readonly icon?: string;
   readonly variantBadge?: string;
+  /**
+   * Retain the catalog record but omit it from patch authoring because no
+   * simulator path consumes it. This is independent of simulatorExcluded,
+   * which also covers live indirect skills.
+   */
+  readonly patchAuthoringExcluded?: boolean;
   readonly type?: string;
   readonly slot?: string | number;
   readonly weapon?: string;

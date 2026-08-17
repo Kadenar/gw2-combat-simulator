@@ -25,14 +25,13 @@ import type {
   GuardianSkill,
   GuardianVirtue,
 } from "../../types.js";
-import {
-  activeLethalTempo,
-  gainLethalTempo,
-  WILLBENDER_FLAME_DURATION,
-  WILLBENDER_FLAME_INTERVAL,
-  WILLBENDER_TRIGGER_HITS,
-} from "./mechanics.js";
+import { activeLethalTempo, gainLethalTempo } from "./mechanics.js";
 import { willbenderState } from "./state.js";
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 function lethalTempoStacks(context: Gw2ModifierContext): number {
   return activeLethalTempo(willbenderState.from(context), context.time);
@@ -45,12 +44,16 @@ export const willbenderModifierRules: readonly Gw2ModifierRule[] =
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
       // Tyrant's Momentum raises strike bonus (5 % vs 2 %) to compensate for the shorter window.
-      factor: (context) =>
+      parameters: {
+        damagePerStack: 0.02,
+        tyrantsMomentumDamagePerStack: 0.05,
+      } as Readonly<Record<string, number>>,
+      factor: (context, _target, parameters) =>
         1 +
         lethalTempoStacks(context) *
           (hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM)
-            ? 0.05
-            : 0.02),
+            ? parameters.tyrantsMomentumDamagePerStack
+            : parameters.damagePerStack),
       order: 100,
     },
     {
@@ -58,12 +61,16 @@ export const willbenderModifierRules: readonly Gw2ModifierRule[] =
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: "multiply",
       // Condition bonus is identical (2 %) without Tyrant's Momentum; the trait adds 1 % here too.
-      factor: (context) =>
+      parameters: {
+        damagePerStack: 0.02,
+        tyrantsMomentumDamagePerStack: 0.03,
+      } as Readonly<Record<string, number>>,
+      factor: (context, _target, parameters) =>
         1 +
         lethalTempoStacks(context) *
           (hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM)
-            ? 0.03
-            : 0.02),
+            ? parameters.tyrantsMomentumDamagePerStack
+            : parameters.damagePerStack),
       order: 100,
     },
     {
@@ -94,9 +101,32 @@ export function applyWillbenderVirtueActivationTraits(
     context,
     GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM,
   );
-  const duration = virtue === "justice" ? (tyrantsMomentum ? 10 : 8) : 6;
+  const virtueWindows = guardianBalanceProfile(context, PROFILE.virtueWindows);
+  const window = guardianBalanceProfileEffect(
+    virtueWindows,
+    "buff",
+    virtue === "justice" ? 0 : virtue === "resolve" ? 1 : 2,
+  );
+  const tyrants = guardianBalanceProfile(context, PROFILE.tyrantsMomentum);
+  const duration =
+    virtue === "justice" && tyrantsMomentum
+      ? Number(guardianBalanceProfileEffect(tyrants, "buff", 1)?.duration || 10)
+      : Number(window?.duration || (virtue === "justice" ? 8 : 6));
+  const lethalTempo = guardianBalanceProfile(context, PROFILE.lethalTempo);
+  const tempoDuration = Number(
+    guardianBalanceProfileEffect(
+      tyrantsMomentum ? tyrants : lethalTempo,
+      "buff",
+    )?.duration || (tyrantsMomentum ? 4 : 6),
+  );
   state[`${virtue}Until`] = at + duration;
-  gainLethalTempo(state, at, tyrantsMomentum);
+  gainLethalTempo(
+    state,
+    at,
+    tyrantsMomentum,
+    Number(lethalTempo?.maximumStacks || 5),
+    tempoDuration,
+  );
   context.emit({
     type: "buff",
     at,
@@ -114,6 +144,10 @@ export function applyWillbenderVirtueActivationTraits(
     virtue === "resolve" &&
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)
   ) {
+    const vigor = guardianBalanceProfileEffect(
+      guardianBalanceProfile(context, PROFILE.restorativeVirtues),
+      "boon",
+    );
     context.emit({
       type: "buff",
       at,
@@ -124,14 +158,18 @@ export function applyWillbenderVirtueActivationTraits(
       skillName: "Restorative Virtues",
       name: "Restorative Virtues — Vigor",
       kind: "vigor",
-      stacks: 1,
-      duration: 3,
+      stacks: Number(vigor?.stacks || 1),
+      duration: Number(vigor?.duration || 3),
     });
   }
   if (
     virtue === "resolve" &&
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)
   ) {
+    const alacrity = guardianBalanceProfileEffect(
+      guardianBalanceProfile(context, PROFILE.phoenixProtocol),
+      "boon",
+    );
     context.emit({
       type: "buff",
       at,
@@ -142,8 +180,8 @@ export function applyWillbenderVirtueActivationTraits(
       skillName: "Phoenix Protocol",
       name: "Phoenix Protocol — Allied Alacrity",
       kind: "alacrity",
-      stacks: 1,
-      duration: 5,
+      stacks: Number(alacrity?.stacks || 1),
+      duration: Number(alacrity?.duration || 5),
       recipients: "allies",
       affectsSelf: false,
     });
@@ -175,17 +213,26 @@ function reduceWeaponCooldown(
   context: GuardianSchedulerContext,
   skill: GuardianSkill,
   at: number,
-  reduction = 0.25,
+  reduction?: number,
 ): number {
+  const reductionAmount =
+    reduction ??
+    Number(
+      guardianBalanceProfile(context, PROFILE.restorativeVirtues)
+        ?.rechargeReduction || 0.25,
+    );
   // Ammo skills track remaining charges separately, so reduction must go through the
   // ammo-aware controller path rather than directly mutating the cooldown timestamp.
   if (context.state.ammo.has(skill.id)) {
-    return context.cooldownController.reduceAmmoRecharge(skill, reduction, at)
-      .reducedBy;
+    return context.cooldownController.reduceAmmoRecharge(
+      skill,
+      reductionAmount,
+      at,
+    ).reducedBy;
   }
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
   if (readyAt <= at + context.epsilon) return 0; // already ready; nothing to reduce
-  const reducedBy = Math.min(reduction, readyAt - at);
+  const reducedBy = Math.min(reductionAmount, readyAt - at);
   context.state.cooldowns.set(skill.id, readyAt - reducedBy);
   return reducedBy;
 }
@@ -219,7 +266,13 @@ function queueInFlightWeaponCooldownReduction(
     // Already-accumulated pending reductions are subtracted from the remaining
     // recharge so that multiple virtue triggers during the same cast don't over-reduce.
     const available = Math.max(0, Number(event.rechargeReadyAt) - at - pending);
-    const reduction = Math.min(0.25, available);
+    const reduction = Math.min(
+      Number(
+        guardianBalanceProfile(context, PROFILE.restorativeVirtues)
+          ?.rechargeReduction || 0.25,
+      ),
+      available,
+    );
     if (reduction <= context.epsilon) continue;
     state.pendingWeaponCooldownReduction[activationId] = pending + reduction;
     reducedBy += reduction;
@@ -275,7 +328,20 @@ function emitLethalTempo(
     context,
     GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM,
   );
-  gainLethalTempo(state, at, tyrantsMomentum);
+  const lethalTempo = guardianBalanceProfile(context, PROFILE.lethalTempo);
+  const tyrants = guardianBalanceProfile(context, PROFILE.tyrantsMomentum);
+  gainLethalTempo(
+    state,
+    at,
+    tyrantsMomentum,
+    Number(lethalTempo?.maximumStacks || 5),
+    Number(
+      guardianBalanceProfileEffect(
+        tyrantsMomentum ? tyrants : lethalTempo,
+        "buff",
+      )?.duration || (tyrantsMomentum ? 4 : 6),
+    ),
+  );
   context.emit({
     type: "buff",
     at,
@@ -304,11 +370,14 @@ function handleWillbenderFlameActivation(
   state.flameVirtue = virtue;
   const flameGeneration = state.flameGeneration;
   const flameId = Number(payload.flameId);
-  for (let pulse = 1; pulse <= WILLBENDER_FLAME_DURATION; pulse += 1) {
+  const flames = guardianBalanceProfile(context, PROFILE.flames);
+  const pulses = Math.max(1, Math.trunc(Number(flames?.maximumStacks || 5)));
+  const interval = Number(flames?.pulseInterval || 1);
+  for (let pulse = 1; pulse <= pulses; pulse += 1) {
     context.tasks.schedule({
       id: `guardian.willbender-flame:${flameGeneration}:${task.at}:${pulse}`,
       type: "guardian.willbender-flame-pulse",
-      at: Number(task.at) + pulse * WILLBENDER_FLAME_INTERVAL,
+      at: Number(task.at) + pulse * interval,
       payload: { flameGeneration, flameId, pulse },
     });
   }
@@ -328,6 +397,9 @@ function handleWillbenderFlamePulse(
   const at = Number(task.at);
   const flameId = Number(payload.flameId);
   const pulse = Number(payload.pulse);
+  const flames = guardianBalanceProfile(context, PROFILE.flames);
+  const strike = guardianBalanceProfileEffect(flames, "strike");
+  const totalHits = Math.max(1, Math.trunc(Number(strike?.hits || 5)));
   context.emit(
     buildGuardianStrike({
       at,
@@ -335,14 +407,18 @@ function handleWillbenderFlamePulse(
       skillId: flameId,
       skillName: "Willbender Flames",
       name: "Willbender Flames",
-      coefficient: 0.22,
+      coefficient: Number(strike?.coefficient || 0.22),
       skillWeapon: "Unequipped",
       hitIndex: pulse,
-      totalHits: 5,
+      totalHits,
       willbenderFlames: true,
     }),
   );
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.SEARING_PACT)) {
+    const burning = guardianBalanceProfileEffect(
+      guardianBalanceProfile(context, PROFILE.searingPact),
+      "condition",
+    );
     context.emit({
       type: "condition",
       at,
@@ -352,9 +428,9 @@ function handleWillbenderFlamePulse(
       skillId: GUARDIAN_TRAIT_IDS.SEARING_PACT,
       skillName: "Searing Pact",
       name: "Searing Pact — Burning",
-      condition: "Burning",
-      stacks: 1,
-      duration: 1,
+      condition: String(burning?.condition || "Burning"),
+      stacks: Number(burning?.stacks || 1),
+      duration: Number(burning?.duration || 1),
       triggeredBy: "Willbender Flames",
     });
   }
@@ -404,7 +480,11 @@ function handleWillbenderVirtueHit(
       ...(justiceActive == null ? {} : { justiceActive }),
     });
     if (virtue === "courage") {
-      for (const kind of ["aegis", "stability"] as const) {
+      const courage = guardianBalanceProfile(context, PROFILE.courageTrigger);
+      for (const boon of (courage?.effects || []).filter(
+        (effect) => effect.type === "boon",
+      )) {
+        const kind = String(boon.boon || "");
         context.emit({
           type: "buff",
           at,
@@ -415,8 +495,8 @@ function handleWillbenderVirtueHit(
           skillName: "Crashing Courage",
           name: `Crashing Courage — Triggered ${kind === "aegis" ? "Aegis" : "Stability"}`,
           kind,
-          stacks: 1,
-          duration: 4,
+          stacks: Number(boon.stacks || 1),
+          duration: Number(boon.duration || 4),
           triggeredBy: sourceSkill,
         });
       }
@@ -425,6 +505,11 @@ function handleWillbenderVirtueHit(
       virtue === "resolve" &&
       hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)
     ) {
+      const alacrity = guardianBalanceProfileEffect(
+        guardianBalanceProfile(context, PROFILE.phoenixProtocol),
+        "boon",
+        1,
+      );
       context.emit({
         type: "buff",
         at,
@@ -435,8 +520,8 @@ function handleWillbenderVirtueHit(
         skillName: "Phoenix Protocol",
         name: "Phoenix Protocol — Alacrity",
         kind: "alacrity",
-        stacks: 1,
-        duration: 1,
+        stacks: Number(alacrity?.stacks || 1),
+        duration: Number(alacrity?.duration || 1),
         triggeredBy: sourceSkill,
       });
     }
@@ -450,8 +535,14 @@ function handleWillbenderVirtueHit(
     const triggerHits =
       virtue === "justice" &&
       hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
-        ? 3
-        : WILLBENDER_TRIGGER_HITS;
+        ? Number(
+            guardianBalanceProfile(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
+              ?.threshold || 3,
+          )
+        : Number(
+            guardianBalanceProfile(context, PROFILE.virtueWindows)?.threshold ||
+              5,
+          );
     if (state.virtueHitCounts[virtue] < triggerHits) continue;
     state.virtueHitCounts[virtue] = 0;
     triggerVirtue(

@@ -1,10 +1,11 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { ENGINEER_SKILL_IDS as ID } from "../data/ids.js";
-import { ENGINEER_DODGE_ENDURANCE_COST } from "./mechanics.js";
+import {
+  ENGINEER_CORE_BALANCE_PROFILE_IDS,
+  engineerBalanceValue,
+} from "./profiles.js";
 import { engineerEnduranceReadyAt } from "./resources.js";
-import type {
-  AvailabilityResult,
-} from "../../../platform/engine/types.js";
+import type { AvailabilityResult } from "../../../platform/engine/types.js";
 import type {
   EngineerConfig,
   EngineerCoreState,
@@ -43,9 +44,10 @@ export function expectedEngineerChainSkill(
   skill: EngineerSkill,
   state: EngineerCoreState,
 ): boolean {
-  const chain = typeof skill.id === "number"
-    ? context.catalog.autoattackChainPositions.get(skill.id)
-    : undefined;
+  const chain =
+    typeof skill.id === "number"
+      ? context.catalog.autoattackChainPositions.get(skill.id)
+      : undefined;
   if (!chain) return true;
   return (state.autoattackChains[chain.root] || chain.root) === skill.id;
 }
@@ -57,23 +59,26 @@ export function engineerCoreCastAvailability(
   const state = professionCoreState(context);
   const specialization = String(context.config.specialization || "Core");
   if (skill.id === ID.DODGE) {
+    const enduranceCost = engineerBalanceValue(
+      context,
+      ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
+      "resourceCost",
+      50,
+    );
     // epsilon prevents floating-point rounding from blocking a dodge at exactly the threshold
-    return Number(state.endurance || 0) + Number(context.epsilon || 0.0001)
-        >= ENGINEER_DODGE_ENDURANCE_COST
+    return Number(state.endurance || 0) + Number(context.epsilon || 0.0001) >=
+      enduranceCost
       ? { ready: true }
       : denyEngineerCast(
-        skill,
-        "engineer.insufficient-endurance",
-        `requires ${ENGINEER_DODGE_ENDURANCE_COST} endurance.`,
-        engineerEnduranceReadyAt(
-          context,
-          ENGINEER_DODGE_ENDURANCE_COST,
-        ),
-      );
+          skill,
+          "engineer.insufficient-endurance",
+          `requires ${enduranceCost} endurance.`,
+          engineerEnduranceReadyAt(context, enduranceCost),
+        );
   }
   if (
-    skill.name === "Electric Artillery"
-    && !state.electricArtilleryAvailable
+    skill.name === "Electric Artillery" &&
+    !state.electricArtilleryAvailable
   ) {
     // electricArtilleryReadyAt is set while Lightning Rod is still charging; gate EA until then
     const retryAt = Number(state.electricArtilleryReadyAt || 0);
@@ -85,11 +90,9 @@ export function engineerCoreCastAvailability(
     );
   }
   if (
-    skill.name === "Lightning Rod"
-    && (
-      state.electricArtilleryAvailable
-      || Number(state.electricArtilleryReadyAt || 0) > context.start
-    )
+    skill.name === "Lightning Rod" &&
+    (state.electricArtilleryAvailable ||
+      Number(state.electricArtilleryReadyAt || 0) > context.start)
   ) {
     // block re-cast while EA is available OR while the charge window is still open (both share the slot)
     return denyEngineerCast(
@@ -114,17 +117,16 @@ export function engineerCoreCastAvailability(
     return state.activeKit
       ? { ready: true }
       : denyEngineerCast(
-        skill,
-        "engineer.weapon-swap-disabled",
-        "engineers can use weapon swap only to leave an active kit.",
-      );
+          skill,
+          "engineer.weapon-swap-disabled",
+          "engineers can use weapon swap only to leave an active kit.",
+        );
   }
   if (
-    skill.specialization
-    && skill.type !== "Weapon"
+    skill.specialization &&
+    skill.type !== "Weapon" &&
     // weapon skills are shared across specializations on the weapon bar; only utility/heal/elite are gated
-    && String(skill.specialization).toLowerCase()
-      !== specialization.toLowerCase()
+    String(skill.specialization).toLowerCase() !== specialization.toLowerCase()
   ) {
     return denyEngineerCast(
       skill,
@@ -140,10 +142,7 @@ export function engineerCoreCastAvailability(
         `equip ${skill.kit} first.`,
       );
     }
-  } else if (
-    skill.type === "Weapon"
-    && state.activeKit
-  ) {
+  } else if (skill.type === "Weapon" && state.activeKit) {
     // active kit completely replaces the weapon bar; baseline weapon skills are inaccessible
     return denyEngineerCast(
       skill,
@@ -153,8 +152,9 @@ export function engineerCoreCastAvailability(
   }
   if (skill.handlerId === "engineer.kit-equip") {
     if (
-      !selectedEngineerSkillNames(context.config)
-        .has(skill.kitName || skill.name)
+      !selectedEngineerSkillNames(context.config).has(
+        skill.kitName || skill.name,
+      )
     ) {
       return denyEngineerCast(
         skill,
@@ -171,9 +171,9 @@ export function engineerCoreCastAvailability(
     }
   }
   if (
-    skill.handlerId === "engineer.consume-flip"
+    skill.handlerId === "engineer.consume-flip" &&
     // availableFlips is populated by the parent skill's handler; absent = parent hasn't fired yet
-    && !state.availableFlips?.[skill.id]
+    !state.availableFlips?.[skill.id]
   ) {
     return denyEngineerCast(
       skill,
@@ -182,12 +182,11 @@ export function engineerCoreCastAvailability(
     );
   }
   if (
-    skill.toolbeltParentName
+    skill.toolbeltParentName &&
     // Photon Forge toolbelt skills have no conventional utility parent — they are spec-mechanic skills
-    && skill.name !== "Engage Photon Forge"
-    && !skill.name.startsWith("Deactivate Photon Forge")
-    && !selectedEngineerSkillNames(context.config)
-      .has(skill.toolbeltParentName)
+    skill.name !== "Engage Photon Forge" &&
+    !skill.name.startsWith("Deactivate Photon Forge") &&
+    !selectedEngineerSkillNames(context.config).has(skill.toolbeltParentName)
   ) {
     return denyEngineerCast(
       skill,

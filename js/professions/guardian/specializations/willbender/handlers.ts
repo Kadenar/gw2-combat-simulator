@@ -1,12 +1,13 @@
-import { replaceSkill } from "../../../../platform/gw2/native-profession.js";
+import { augmentSkill } from "../../../../platform/gw2/native-profession.js";
 import { GUARDIAN_SKILL_IDS as ID } from "../../data/ids.js";
-import { buildGuardianStrike, emitGuardianEvent } from "../../core/events.js";
+import { emitGuardianEvent } from "../../core/events.js";
 import { guardianVirtueSkillHandlers } from "../../core/virtues.js";
 import type {
   GuardianCastContext,
   GuardianSkill,
   GuardianVirtue,
 } from "../../types.js";
+import type { SimulationEvent } from "../../../../platform/engine/types.js";
 import { applyWillbenderVirtueActivationTraits } from "./rules.js";
 import { willbenderState } from "./state.js";
 
@@ -23,72 +24,6 @@ function virtueFor(skill: GuardianSkill): GuardianVirtue | null {
   return ([null, "justice", "resolve", "courage"] as const)[slot] || null;
 }
 
-function emitRushingJusticeImpact(
-  context: GuardianCastContext,
-  skill: GuardianSkill,
-  at: number,
-): void {
-  context.emit(
-    buildGuardianStrike({
-      at,
-      sourceId: ID.RUSHING_JUSTICE_IMPACT,
-      skillId: ID.RUSHING_JUSTICE_IMPACT,
-      skillName: skill.name,
-      name: `${skill.name} — Impact Damage`,
-      coefficient: 1.5,
-      skillWeapon: "Profession Mechanic",
-    }),
-  );
-  context.emit({
-    type: "condition",
-    at,
-    source: "guardian",
-    sourceId: ID.RUSHING_JUSTICE_IMPACT,
-    actorType: "player",
-    skillId: ID.RUSHING_JUSTICE_IMPACT,
-    skillName: skill.name,
-    name: `${skill.name} — Initial Burning`,
-    condition: "Burning",
-    stacks: 1,
-    duration: 4,
-  });
-}
-
-function emitCrashingCourageImpact(
-  context: GuardianCastContext,
-  skill: GuardianSkill,
-  at: number,
-): void {
-  context.emit(
-    buildGuardianStrike({
-      at,
-      sourceId: skill.id,
-      skillId: skill.id,
-      skillName: skill.name,
-      name: `${skill.name} — Initial Damage`,
-      coefficient: 1,
-      skillWeapon: "Profession Mechanic",
-    }),
-  );
-  for (const [kind, duration] of [
-    ["aegis", 4],
-    ["stability", 4],
-  ] as const) {
-    context.emit({
-      type: "buff",
-      at,
-      source: "guardian",
-      sourceId: skill.id,
-      actorType: "player",
-      skillId: skill.id,
-      skillName: skill.name,
-      kind,
-      stacks: 1,
-      duration,
-    });
-  }
-}
-
 function activateWillbenderVirtue(
   context: GuardianCastContext,
   skill: GuardianSkill,
@@ -99,8 +34,8 @@ function activateWillbenderVirtue(
   const virtue = virtueFor(skill);
   if (!virtue) return;
 
-  // Justice impact fires near the start of the cast (~40 ms); Courage impact fires
-  // after the lunge animation (~520 ms). Resolve has no early-hit, so it uses effectiveEnd.
+  // Justice impact fires 40 ms before cast end; Courage impact fires after the
+  // lunge animation (~520 ms). Resolve has no early hit, so it uses effectiveEnd.
   // Min-clamping ensures these don't overshoot when the cast is interrupted.
   const at =
     virtue === "justice"
@@ -133,13 +68,31 @@ function activateWillbenderVirtue(
     priority: -10, // run after same-timestamp strike/condition events so flame window opens last
     payload: { flameId, virtue },
   });
+}
 
-  if (virtue === "justice") emitRushingJusticeImpact(context, skill, flameAt);
-  if (virtue === "courage") emitCrashingCourageImpact(context, skill, flameAt);
+function decorateWillbenderVirtueEffect(
+  context: GuardianCastContext,
+  skill: GuardianSkill,
+  event: SimulationEvent,
+): void {
+  if (
+    skill.id !== ID.RUSHING_JUSTICE &&
+    skill.id !== ID.CRASHING_COURAGE &&
+    skill.id !== ID.CRASHING_COURAGE_ID_62648
+  ) {
+    return;
+  }
+  context.replaceEvent(event, {
+    ...(skill.id === ID.RUSHING_JUSTICE
+      ? { sourceId: ID.RUSHING_JUSTICE_IMPACT }
+      : {}),
+    ...(event.type === "damage" ? { skillWeapon: "Profession Mechanic" } : {}),
+  });
 }
 
 export const willbenderSkillHandlers = Object.freeze({
-  "guardian.willbender-virtue": replaceSkill({
+  "guardian.willbender-virtue": augmentSkill({
     beforeEffects: activateWillbenderVirtue,
+    afterEffect: decorateWillbenderVirtueEffect,
   }),
 });

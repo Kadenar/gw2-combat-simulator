@@ -13,12 +13,12 @@ export const ENGINEER_TRIGGERED_MECHANICS = Object.freeze({
 
 // How long the mech is busy executing each command (measured animation + 0.35 s
 // recovery before it resumes its basic attack chain).
-export const MECHANIST_COMMAND_DURATIONS:
-Readonly<Record<number, number>> = Object.freeze({
-  [ID.SPARK_REVOLVER]: 1.401 + 0.35,
-  [ID.CORE_REACTOR_SHOT]: 1 + 0.35,
-  [ID.JADE_MORTAR]: 1.085 + 0.35,
-});
+export const MECHANIST_COMMAND_DURATIONS: Readonly<Record<number, number>> =
+  Object.freeze({
+    [ID.SPARK_REVOLVER]: 1.401,
+    [ID.CORE_REACTOR_SHOT]: 1,
+    [ID.JADE_MORTAR]: 1.085,
+  });
 
 export const MECHANIST_ATTACK_TIMING = Object.freeze({
   jadeCannonArmGap: 0.5,

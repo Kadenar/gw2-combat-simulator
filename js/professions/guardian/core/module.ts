@@ -22,12 +22,14 @@ import {
 import { createGuardianCoreState, projectGuardianEndState } from "./state.js";
 import { bindGuardianCoreUi } from "./ui.js";
 import type { GuardianSchedulerContext } from "../types.js";
+import { GUARDIAN_CORE_BALANCE_PROFILES } from "./profiles.js";
 
 export const guardianCoreModule = defineNativeModule({
   id: "Core",
   data: createGuardianModuleData("Core", {
     skillMechanics: GUARDIAN_CORE_SKILL_MECHANICS,
     extraSkills: GUARDIAN_CORE_EXTRA_SKILLS,
+    balanceProfiles: GUARDIAN_CORE_BALANCE_PROFILES,
     handlers: guardianCoreSkillHandlers,
   }),
   state: {

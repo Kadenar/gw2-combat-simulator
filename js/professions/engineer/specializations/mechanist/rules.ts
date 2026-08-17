@@ -13,6 +13,12 @@ import {
   selectedSkillNames,
 } from "../../core/rule-helpers.js";
 import { hasEngineerTrait } from "../../core/state.js";
+import {
+  ENGINEER_CORE_BALANCE_PROFILE_IDS,
+  engineerBalanceProfile,
+  engineerBalanceValue,
+} from "../../core/profiles.js";
+import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 import { mechanistCastAvailability } from "./availability.js";
 import {
   applyEngineerMechCastTraits,
@@ -96,8 +102,24 @@ export const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       id: "engineer.force-signet",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
-      amount: (context) =>
-        hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ? 0.18 : 0.15,
+      parameters: {
+        baseBonus: 0.15,
+        jDriveBonus: 0.18,
+      } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) =>
+        hasTrait(context, TRAIT.MECH_CORE_J_DRIVE)
+          ? engineerBalanceValue(
+              context,
+              PROFILE.forceSignet,
+              "activeDamageIncrease",
+              parameters.jDriveBonus,
+            )
+          : engineerBalanceValue(
+              context,
+              PROFILE.forceSignet,
+              "damageIncrease",
+              parameters.baseBonus,
+            ),
       when: (context) => selectedSignet(context, "Force Signet"),
     },
     {
@@ -120,7 +142,16 @@ export const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       id: "engineer.jade-cannons-critical-chance",
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: "add",
-      amount: 0.2,
+      parameters: {
+        criticalChance: 0.2,
+      } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) =>
+        engineerBalanceValue(
+          context,
+          PROFILE.jadeCannons,
+          "criticalChance",
+          parameters.criticalChance,
+        ),
       when: (context) =>
         engineerMechEvent(context) &&
         hasTrait(context, TRAIT.MECH_ARMS_JADE_CANNONS),
@@ -151,7 +182,12 @@ function modifyMechanistAttributes(
       Number(modified.ferocity || 0) -
         (hasTrait(context, TRAIT.NO_SCOPE) &&
         activeBoonStacks(context, "fury", 1) > 0
-          ? 150
+          ? engineerBalanceValue(
+              context,
+              ENGINEER_CORE_BALANCE_PROFILE_IDS.noScope,
+              "attributeBonus",
+              150,
+            )
           : 0),
     ),
     conditionDamage: Math.max(
@@ -160,7 +196,11 @@ function modifyMechanistAttributes(
         mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
     ),
   };
-  const mech = engineerMechAttributes(context.config, inheritedSource);
+  const mech = engineerMechAttributes(
+    context.config,
+    inheritedSource,
+    engineerBalanceProfile(context, PROFILE.resources),
+  );
   if (selectedSignet(context, "Shift Signet")) {
     mech.power += mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK;
     mech.conditionDamage += mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK;
@@ -177,7 +217,15 @@ function modifyMechanistRechargeDuration(
     isEngineerMechCommand(skill) &&
     hasEngineerTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)
   ) {
-    return duration * 0.8;
+    return (
+      duration *
+      engineerBalanceValue(
+        context,
+        PROFILE.jadeDynamo,
+        "rechargeMultiplier",
+        0.8,
+      )
+    );
   }
   if (
     skill?.id !== ID.OVERCLOCK_SIGNET &&

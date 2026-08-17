@@ -1358,7 +1358,13 @@ export type Gw2ModifierTarget =
   | "criticalDamage"
   | "strikeDamage"
   | "conditionDamage"
-  | "conditionDuration";
+  | "conditionDuration"
+  | "attributePower"
+  | "attributePrecision"
+  | "attributeFerocity"
+  | "attributeConditionDamage"
+  | "attributeHealingPower"
+  | "attributeVitality";
 
 export type Gw2DamageModifierTarget = "strikeDamage" | "conditionDamage";
 
@@ -1434,7 +1440,13 @@ export type Gw2ModifierHook = (
   initialValue: number,
 ) => number;
 
+export type Gw2AttributeModifierHook = (
+  context: Gw2ModifierContext,
+  initialValue: Gw2ResolvedStats,
+) => Gw2ResolvedStats;
+
 export interface Gw2ModifierHooks {
+  readonly modifyAttributes: Gw2AttributeModifierHook;
   readonly modifyCriticalChance: Gw2ModifierHook;
   readonly modifyCriticalDamage: Gw2ModifierHook;
   readonly modifyStrikeDamage: Gw2ModifierHook;

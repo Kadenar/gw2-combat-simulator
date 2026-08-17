@@ -23,7 +23,14 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 560,
     cooldown: 20,
     handlerId: "guardian.dragonhunter-justice",
-    effects: [],
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.8,
+        hits: 1,
+        weaponStrengthSource: "equipped",
+      },
+    ],
   },
   [ID.PURIFICATION]: {
     implemented: true,

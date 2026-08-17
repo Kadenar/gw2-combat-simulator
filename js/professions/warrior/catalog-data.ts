@@ -9,6 +9,7 @@ import { BLADESWORN_SKILL_MECHANICS } from "./specializations/bladesworn/skills.
 import { PARAGON_SKILL_MECHANICS } from "./specializations/paragon/skills.js";
 import type {
   CatalogEntity,
+  BalanceProfile,
   Skill,
   SkillFragment,
   SkillHandlerStrategy,
@@ -31,6 +32,18 @@ const WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS = new Set<number>([
   43745, // Sight beyond Sight
   45380, // Featherfoot Grace
   62804, // Electric Fence
+]);
+const WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS = new Set<SkillId>([
+  14443, // Whirling Strike
+  14469, // Forceful Shot
+  30989, // Burning Shackles
+  31048, // Wild Whirl
+  39972, // Silencer
+  41283, // Boon Crusher
+  41543, // Wounding Strike
+  43488, // Fleeting Stability
+  44397, // Dissonance
+  46044, // Magehunter Strike
 ]);
 
 const allSkills: readonly Skill[] = Object.freeze([
@@ -78,6 +91,11 @@ const generated: readonly Skill[] = Object.freeze(
       simulatorExcluded:
         canonicalId !== skill.id ||
         WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS.has(Number(skill.id)),
+      ...(canonicalId !== skill.id ||
+      WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS.has(Number(skill.id)) ||
+      WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS.has(skill.id)
+        ? { patchAuthoringExcluded: true }
+        : {}),
       implemented: false,
       effects: [],
     };
@@ -140,6 +158,7 @@ const WEAPON_HANDS = Object.freeze({
 
 interface WarriorModuleDataOptions<TContext extends object> {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
+  readonly balanceProfiles?: readonly BalanceProfile[];
   readonly extraSkills?: readonly Skill[];
   readonly handlers?:
     | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
@@ -151,6 +170,7 @@ export function createWarriorModuleData<TContext extends object>(
   id: string,
   {
     skillMechanics,
+    balanceProfiles = [],
     extraSkills = [],
     handlers,
     autoattackChains,
@@ -172,6 +192,7 @@ export function createWarriorModuleData<TContext extends object>(
     id,
     generatedSkills: generated,
     skillMechanics: normalizedSkillMechanics,
+    balanceProfiles,
     extraSkills,
     handlers,
     traits: TRAITS as readonly CatalogEntity[],

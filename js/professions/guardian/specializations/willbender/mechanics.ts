@@ -15,15 +15,17 @@ export function gainLethalTempo(
   state: GuardianWillbenderState,
   at: number,
   tyrantsMomentum: boolean,
+  maximumStacks = WILLBENDER_MAX_LETHAL_TEMPO,
+  duration = lethalTempoDuration(tyrantsMomentum),
 ): number {
   // Stacks must reset when the previous window has fully expired before adding the new one;
   // otherwise a new activation mid-window would compound on a stale count.
   if (at >= state.lethalTempoUntil) state.lethalTempoStacks = 0;
   state.lethalTempoStacks = Math.min(
-    WILLBENDER_MAX_LETHAL_TEMPO,
+    maximumStacks,
     state.lethalTempoStacks + 1,
   );
-  state.lethalTempoUntil = at + lethalTempoDuration(tyrantsMomentum);
+  state.lethalTempoUntil = at + duration;
   return state.lethalTempoStacks;
 }
 

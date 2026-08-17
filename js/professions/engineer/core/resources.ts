@@ -2,10 +2,11 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import { hasEngineerTrait } from "./state.js";
 import { emitEngineerState } from "./events.js";
-import { ENGINEER_ENDURANCE_REGENERATION } from "./mechanics.js";
-import type {
-  EngineerSchedulerContext,
-} from "../types.js";
+import {
+  ENGINEER_CORE_BALANCE_PROFILE_IDS,
+  engineerBalanceValue,
+} from "./profiles.js";
+import type { EngineerSchedulerContext } from "../types.js";
 
 // start is optional because this context is used in both precast (has start) and general advance calls
 type EngineerResourceContext = EngineerSchedulerContext & {
@@ -17,18 +18,34 @@ export function engineerEnduranceRegenerationRate(
   at = Number(context.start ?? context.state?.time ?? 0),
 ): number {
   const vigor = Boolean(
-    context.config?.boons?.vigor
-    || context.hasBuff?.("vigor", at),
+    context.config?.boons?.vigor || context.hasBuff?.("vigor", at),
   );
   const multiplier =
-    1
-    + (vigor ? ENGINEER_ENDURANCE_REGENERATION.vigorBonus : 0)
-    + (
-      hasEngineerTrait(context.config, TRAIT.ADRENAL_IMPLANT)
-        ? ENGINEER_ENDURANCE_REGENERATION.adrenalImplantBonus
-        : 0
-    );
-  return ENGINEER_ENDURANCE_REGENERATION.basePerSecond * multiplier;
+    1 +
+    (vigor
+      ? engineerBalanceValue(
+          context,
+          ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
+          "vigorRegenerationMultiplier",
+          1.5,
+        ) - 1
+      : 0) +
+    (hasEngineerTrait(context.config, TRAIT.ADRENAL_IMPLANT)
+      ? engineerBalanceValue(
+          context,
+          ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
+          "coefficientMultiplier",
+          1.25,
+        ) - 1
+      : 0);
+  return (
+    engineerBalanceValue(
+      context,
+      ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
+      "enduranceRegenerationPerSecond",
+      5,
+    ) * multiplier
+  );
 }
 
 export function engineerEnduranceReadyAt(
@@ -52,12 +69,18 @@ export function advanceEngineerResources(
   if (target <= from) return;
   // rate is evaluated at the midpoint of the window — accurate when vigor doesn't toggle mid-advance
   state.endurance = Math.min(
-    Number(state.maximumEndurance || 100),
-    Number(state.endurance || 0)
-      + (target - from) * engineerEnduranceRegenerationRate(
-        context,
-        (from + target) / 2,
-      ),
+    Number(
+      state.maximumEndurance ||
+        engineerBalanceValue(
+          context,
+          ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
+          "maximumStacks",
+          100,
+        ),
+    ),
+    Number(state.endurance || 0) +
+      (target - from) *
+        engineerEnduranceRegenerationRate(context, (from + target) / 2),
   );
   state.enduranceUpdatedAt = target;
   emitEngineerState(context, target, "resources");

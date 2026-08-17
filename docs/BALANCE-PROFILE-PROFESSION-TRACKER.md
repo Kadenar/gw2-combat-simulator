@@ -1,6 +1,7 @@
 # Balance Profile Profession Tracker
 
-Status: Necromancer complete; remaining profession implementations not started.
+Status: Necromancer, Guardian, Warrior, and Engineer complete; remaining
+profession implementations not started.
 
 Scope: bring every non-Revenant profession to the balance-preview model used by
 [Revenant](../js/professions/revenant/catalog-data.ts). Each profession below is
@@ -172,26 +173,26 @@ Profiles today: 0.
 
 ### Tracked issues
 
-- [ ] `ENG-01` Add profile plumbing to
+- [x] `ENG-01` Add profile plumbing to
       [catalog-data.ts](../js/professions/engineer/catalog-data.ts) and all five
       modules.
-- [ ] `ENG-02` Extract endurance and trait-proc values from
+- [x] `ENG-02` Extract endurance and trait-proc values from
       [core traits](../js/professions/engineer/core/traits.ts) and mechanics.
-- [ ] `ENG-03` Convert autonomous attacks in
+- [x] `ENG-03` Convert autonomous attacks in
       [turrets.ts](../js/professions/engineer/core/turrets.ts) into supplemental
       skill declarations.
-- [ ] `ENG-04` Profile Scrapper traits, Holosmith heat/forge, Mechanist mech and
+- [x] `ENG-04` Profile Scrapper traits, Holosmith heat/forge, Mechanist mech and
       command, and Amalgam strain/morph values.
-- [ ] `ENG-05` Make eight opaque modifier formulas authorable; replace or expose
+- [x] `ENG-05` Make eight opaque modifier formulas authorable; replace or expose
       imperative attribute changes in Core, Scrapper, Mechanist, and Amalgam.
 
 ### Remediation steps
 
-- [ ] Preserve player, turret, and mech ownership in all migrated declarations.
-- [ ] Wire module profiles into the profession catalog.
-- [ ] Add tests for turret/mech packets, heat thresholds, Amalgam cooldown
+- [x] Preserve player, turret, and mech ownership in all migrated declarations.
+- [x] Wire module profiles into the profession catalog.
+- [x] Add tests for turret/mech packets, heat thresholds, Amalgam cooldown
       reduction, a trait proc, and a dynamic modifier.
-- [ ] Verify the shared completion contract.
+- [x] Verify the shared completion contract.
 
 ## Guardian
 
@@ -200,30 +201,30 @@ Profiles today: 0.
 
 ### Tracked issues
 
-- [ ] `GRD-01` Add profile plumbing to
+- [x] `GRD-01` Add profile plumbing to
       [catalog-data.ts](../js/professions/guardian/catalog-data.ts) and all five
       modules.
-- [ ] `GRD-02` Extract virtue, spear illumination, Justice burn, and trait values
+- [x] `GRD-02` Extract virtue, spear illumination, Justice burn, and trait values
       from [core mechanics](../js/professions/guardian/core/mechanics.ts),
       [core traits](../js/professions/guardian/core/traits.ts), and virtues.
-- [ ] `GRD-03` Profile Dragonhunter tether, Firebrand page/Ashes/tome,
+- [x] `GRD-03` Profile Dragonhunter tether, Firebrand page/Ashes/tome,
       Willbender flame/Lethal Tempo, and Luminary forge values.
-- [ ] `GRD-04` Add declarative Firebrand modifier rules; replace its imperative
+- [x] `GRD-04` Add declarative Firebrand modifier rules; replace its imperative
       Imbued Haste attribute changes.
-- [ ] `GRD-05` Make four opaque modifier formulas authorable and replace or
+- [x] `GRD-05` Make four opaque modifier formulas authorable and replace or
       expose remaining Core imperative attribute changes.
 
 ### Remediation steps
 
-- [ ] Treat page caps and regeneration in
+- [x] Treat page caps and regeneration in
       [Firebrand state](../js/professions/guardian/specializations/firebrand/state.ts)
       as mechanics, and Imbued Haste in
       [Firebrand rules](../js/professions/guardian/specializations/firebrand/rules.ts)
       as a modifier.
-- [ ] Wire module profiles into the profession catalog.
-- [ ] Add tests for Justice, page regeneration, Ashes, Willbender flames,
+- [x] Wire module profiles into the profession catalog.
+- [x] Add tests for Justice, page regeneration, Ashes, Willbender flames,
       Radiant Forge variants, and a dynamic modifier.
-- [ ] Verify the shared completion contract.
+- [x] Verify the shared completion contract.
 
 ## Warrior
 
@@ -232,26 +233,26 @@ Profiles today: 0.
 
 ### Tracked issues
 
-- [ ] `WAR-01` Add profile plumbing to
+- [x] `WAR-01` Add profile plumbing to
       [catalog-data.ts](../js/professions/warrior/catalog-data.ts) and all five
       modules.
-- [ ] `WAR-02` Extract burst, dodge, Soldier's Focus, critical-proc, and trait
+- [x] `WAR-02` Extract burst, dodge, Soldier's Focus, critical-proc, and trait
       values from [core traits](../js/professions/warrior/core/traits.ts).
-- [ ] `WAR-03` Move burst-tier and ammo-dependent packets from
+- [x] `WAR-03` Move burst-tier and ammo-dependent packets from
       [handlers.ts](../js/professions/warrior/core/handlers.ts) into skills or
       skill variants.
-- [ ] `WAR-04` Profile Berserker rage/trait, Spellbreaker Insight/tether,
+- [x] `WAR-04` Profile Berserker rage/trait, Spellbreaker Insight/tether,
       Bladesworn flow/Dragon Trigger, and Paragon motivation/chant values.
-- [ ] `WAR-05` Make ten opaque modifier formulas authorable; replace or expose
+- [x] `WAR-05` Make ten opaque modifier formulas authorable; replace or expose
       Core's imperative attribute changes.
 
 ### Remediation steps
 
-- [ ] Keep resource costs and state thresholds separate from emitted attacks.
-- [ ] Wire module profiles into the profession catalog.
-- [ ] Add tests for burst tiers, Berserk, tether, Dragon Trigger, Paragon chants,
+- [x] Keep resource costs and state thresholds separate from emitted attacks.
+- [x] Wire module profiles into the profession catalog.
+- [x] Add tests for burst tiers, Berserk, tether, Dragon Trigger, Paragon chants,
       and a dynamic modifier.
-- [ ] Verify the shared completion contract.
+- [x] Verify the shared completion contract.
 
 ## Suggested implementation order
 

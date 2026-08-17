@@ -8,6 +8,8 @@ import {
   eventSkill,
 } from "../../core/rule-helpers.js";
 import { hasEngineerTrait } from "../../core/state.js";
+import { engineerBalanceValue } from "../../core/profiles.js";
+import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 import { amalgamCastAvailability } from "./availability.js";
 import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import type {
@@ -104,7 +106,14 @@ function modifyAmalgamAttributes(
 ): SchedulerRecord {
   const modified = cloneEngineerAttributes(attributes);
   if (activeEngineerSpecializationState(context, "Amalgam", "evolvedUntil")) {
-    const evolveFactor = hasTrait(context, TRAIT.DOUBLE_HELIX) ? 1.2 : 1.1;
+    const evolveFactor = hasTrait(context, TRAIT.DOUBLE_HELIX)
+      ? engineerBalanceValue(
+          context,
+          PROFILE.evolve,
+          "coefficientMultiplier",
+          1.2,
+        )
+      : engineerBalanceValue(context, PROFILE.evolve, "damageMultiplier", 1.1);
     for (const attribute of EVOLVE_ATTRIBUTES) {
       modified[attribute] = Number(modified[attribute] || 0) * evolveFactor;
     }
@@ -112,7 +121,9 @@ function modifyAmalgamAttributes(
   if (activeEngineerSpecializationState(context, "Amalgam", "titanicUntil")) {
     // Titanic Strain adds 5 power + 5 condition damage per might stack on top
     // of the standard 30 power per stack that's already in the base attributes.
-    const improvedMight = activeBoonStacks(context, "might") * 5;
+    const improvedMight =
+      activeBoonStacks(context, "might") *
+      engineerBalanceValue(context, PROFILE.strains, "attributePerStack", 5);
     modified.power += improvedMight;
     modified.conditionDamage += improvedMight;
   }
@@ -127,7 +138,10 @@ function modifyAmalgamMaximumAmmo(
 ): number {
   return context.skill?.name === "Evolve" &&
     hasEngineerTrait(context.config, TRAIT.DOUBLE_HELIX)
-    ? Math.max(2, Number(maximum || 0))
+    ? Math.max(
+        engineerBalanceValue(context, PROFILE.evolve, "maximumStacks", 2),
+        Number(maximum || 0),
+      )
     : maximum;
 }
 

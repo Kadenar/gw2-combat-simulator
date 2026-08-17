@@ -13,6 +13,11 @@ import {
   isGuardianSymbolSkill,
 } from "../../core/traits.js";
 import { reactToJusticeHitWithOptions } from "../../core/virtues.js";
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 import type { SkillId } from "../../../../platform/engine/types.js";
 import type { Gw2ConditionResolution } from "../../../../platform/gw2/types.js";
 import type {
@@ -78,6 +83,10 @@ function detonateLightAura(
 ): boolean {
   const state = luminaryState.from(context);
   if (!lightAuraActive(state, at, context.epsilon)) return false;
+  const strike = guardianBalanceProfileEffect(
+    guardianBalanceProfile(context, PROFILE.sovereignOfLight),
+    "strike",
+  );
   state.lightAuraUntil = 0;
   context.emit(
     buildGuardianStrike({
@@ -88,7 +97,7 @@ function detonateLightAura(
       skillId: GUARDIAN_SKILL_IDS.SOVEREIGN_OF_LIGHT_DAMAGE,
       skillName: "Sovereign of Light",
       name: "Sovereign of Light",
-      coefficient: 1.5,
+      coefficient: Number(strike?.coefficient || 1.5),
       skillWeapon: "Unequipped",
       triggeredBy: skill.name,
     }),
@@ -114,7 +123,14 @@ function grantLightAura(
   ) {
     detonateLightAura(context, skill, at);
   }
-  luminaryState.from(context).lightAuraUntil = at + 4;
+  luminaryState.from(context).lightAuraUntil =
+    at +
+    Number(
+      guardianBalanceProfileEffect(
+        guardianBalanceProfile(context, PROFILE.lightAura),
+        "buff",
+      )?.duration || 4,
+    );
 }
 
 function isLuminaryDetonator(skill: GuardianSkill): boolean {
@@ -171,7 +187,14 @@ function processLightAuraAndFields(
       // Bypass grantLightAura to avoid a spurious Sovereign of Light detonation:
       // the trait grants the aura at forge entry, not the skill itself, so an
       // existing aura must be refreshed rather than consumed.
-      state.lightAuraUntil = activationAt + 4;
+      state.lightAuraUntil =
+        activationAt +
+        Number(
+          guardianBalanceProfileEffect(
+            guardianBalanceProfile(context, PROFILE.lightAura),
+            "buff",
+          )?.duration || 4,
+        );
     } else {
       grantLightAura(context, skill, activationAt);
     }
@@ -180,6 +203,10 @@ function processLightAuraAndFields(
     virtueOne &&
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND)
   ) {
+    const blind = guardianBalanceProfileEffect(
+      guardianBalanceProfile(context, PROFILE.justiceIsBlind),
+      "blind",
+    );
     context.emit({
       type: "blind",
       at: activationAt,
@@ -189,7 +216,7 @@ function processLightAuraAndFields(
       skillId: GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND,
       skillName: "Justice is Blind",
       triggeredBy: skill.name,
-      duration: 3,
+      duration: Number(blind?.duration || 3),
     });
   }
   if (isGuardianSymbolSkill(skill)) addLightField(state, impactAt, 4);
@@ -268,11 +295,12 @@ function processStanceDamageBuffs(
 function reduceVirtueCooldowns(
   context: GuardianSchedulerContext,
   at: number,
+  reduction: number,
 ): void {
   for (const skillId of RADIANT_VIRTUE_IDS) {
     const readyAt = Number(context.state.cooldowns.get(skillId) || 0);
     if (!(readyAt > at + context.epsilon)) continue;
-    const reduced = Math.max(at, readyAt - 4);
+    const reduced = Math.max(at, readyAt - reduction);
     if (reduced <= at + context.epsilon) {
       context.state.cooldowns.delete(skillId);
     } else {
@@ -293,9 +321,20 @@ export function handleRadiantWeaponEquipped(
   const weapon = skill.radiantWeapon;
   state.radiantWeaponsUsed[weapon] = true;
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)) {
-    emitGuardianBuff(context, skill, at, "guardian-radiant-armaments", 10, {
-      radiantWeapon: weapon,
-    });
+    const armaments = guardianBalanceProfileEffect(
+      guardianBalanceProfile(context, PROFILE.radiantArmaments),
+      "buff",
+    );
+    emitGuardianBuff(
+      context,
+      skill,
+      at,
+      "guardian-radiant-armaments",
+      Number(armaments?.duration || 10),
+      {
+        radiantWeapon: weapon,
+      },
+    );
     emitGuardianProc(context, {
       name: "Radiant Armaments",
       at,
@@ -308,13 +347,16 @@ export function handleRadiantWeaponEquipped(
     });
   }
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS)) {
+    const profile = guardianBalanceProfile(context, PROFILE.empoweredArmaments);
+    const duration = Number(profile?.resourceGain || 6);
+    const maximumDuration = Number(profile?.maximumStacks || 20);
     const wasActive =
       Number(state.empoweredArmamentsUntil || 0) > at + context.epsilon;
     // Duration stacks additively up to a 20 s cap; the cap prevents the buff
     // from extending forever if many weapons are equipped in quick succession.
     state.empoweredArmamentsUntil = wasActive
-      ? Math.min(at + 20, state.empoweredArmamentsUntil + 6)
-      : at + 6;
+      ? Math.min(at + maximumDuration, state.empoweredArmamentsUntil + duration)
+      : at + duration;
     emitGuardianBuff(
       context,
       skill,
@@ -331,12 +373,16 @@ export function handleRadiantWeaponEquipped(
     });
   }
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.ILLUMINATING_INSPIRATION)) {
-    reduceVirtueCooldowns(context, at);
+    const reduction = Number(
+      guardianBalanceProfile(context, PROFILE.illuminatingInspiration)
+        ?.rechargeReduction || 4,
+    );
+    reduceVirtueCooldowns(context, at, reduction);
     emitGuardianProc(context, {
       name: "Illuminating Inspiration",
       at,
       sourceSkill: skill.name,
-      detail: "Virtue recharges reduced by 4 seconds",
+      detail: `Virtue recharges reduced by ${reduction} seconds`,
       icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.ILLUMINATING_INSPIRATION),
     });
   }
@@ -477,6 +523,10 @@ export function reactToEffulgentStrike(
   event: GuardianResolverEvent,
 ): void {
   const state = luminaryState.from(context);
+  const maximumStacks = Number(
+    guardianBalanceProfile(context, PROFILE.effulgentStance)?.maximumStacks ||
+      10,
+  );
   const guardianOwnedStrike =
     isGw2PlayerActorEvent(event) ||
     (event.source === "guardian" && event.actorType === "effect");
@@ -494,7 +544,10 @@ export function reactToEffulgentStrike(
   ) {
     return;
   }
-  state.effulgentStacks = Math.min(10, Number(state.effulgentStacks || 0) + 1);
+  state.effulgentStacks = Math.min(
+    maximumStacks,
+    Number(state.effulgentStacks || 0) + 1,
+  );
 }
 
 export function handleEffulgentActivated(
@@ -510,7 +563,14 @@ export function handleEffulgentDetonate(
   event: GuardianResolverEvent,
 ): void {
   const state = luminaryState.from(context);
-  const stacks = Math.max(0, Math.min(10, Number(state.effulgentStacks || 0)));
+  const profile = guardianBalanceProfile(context, PROFILE.effulgentStance);
+  const strike = guardianBalanceProfileEffect(profile, "strike");
+  const control = guardianBalanceProfileEffect(profile, "control");
+  const maximumStacks = Number(profile?.maximumStacks || 10);
+  const stacks = Math.max(
+    0,
+    Math.min(maximumStacks, Number(state.effulgentStacks || 0)),
+  );
   state.effulgentActiveUntil = 0;
   state.effulgentStacks = 0;
   context.recordProc(
@@ -530,12 +590,14 @@ export function handleEffulgentDetonate(
       skillName: "Effulgent Stance",
       name: "Effulgent Stance",
       // Base coefficient 0.5 + 0.35 per stack; at 10 stacks this is 4.0.
-      coefficient: 0.5 + stacks * 0.35,
+      coefficient:
+        Number(strike?.coefficient || 0.5) +
+        stacks * Number(profile?.damageIncreasePerStack || 0.35),
       weaponStrengthProfileId: "nonweapon.unequipped",
       stackCount: stacks,
     }),
   );
-  if (stacks === 10) {
+  if (stacks === maximumStacks) {
     // Daze is only triggered at max stacks; priority 6 > 5 so it sorts after
     // the strike in the resolver queue at the same timestamp.
     enqueueOrdered(context.queue, {
@@ -548,7 +610,7 @@ export function handleEffulgentDetonate(
       skillId: GUARDIAN_SKILL_IDS.EFFULGENT_STANCE_DAMAGE,
       skillName: "Effulgent Stance",
       controlKind: "daze",
-      duration: 2,
+      duration: Number(control?.duration || 2),
     });
   }
 }

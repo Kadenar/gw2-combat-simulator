@@ -13,11 +13,13 @@ import {
 import { LUMINARY_SKILL_MECHANICS } from "./skills.js";
 import { luminaryState } from "./state.js";
 import { luminaryUi } from "./ui.js";
+import { LUMINARY_BALANCE_PROFILES } from "./profiles.js";
 
 export const luminaryModule = defineNativeModule({
   id: "Luminary",
   data: createGuardianModuleData("Luminary", {
     skillMechanics: LUMINARY_SKILL_MECHANICS,
+    balanceProfiles: LUMINARY_BALANCE_PROFILES,
     handlers: luminarySkillHandlers,
   }),
   state: {

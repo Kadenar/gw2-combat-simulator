@@ -41,22 +41,16 @@ export function engineerSpecializationState(
   context: Gw2ModifierContext,
   expectedKind: string,
 ): Partial<EngineerState> {
-  const state = (
-    context.runtime?.profession
-    ?? (context.state as { readonly profession?: unknown } | undefined)
-      ?.profession
-  ) as EngineerRuntimeState | undefined;
+  const state = (context.runtime?.profession ??
+    (context.state as { readonly profession?: unknown } | undefined)
+      ?.profession) as EngineerRuntimeState | undefined;
   if (state?.specialization.kind !== expectedKind) return {};
   return state.specialization.state as Partial<EngineerState>;
 }
 
 export function targetConditionCount(context: Gw2ModifierContext): number {
   return CANONICAL_TARGET_CONDITIONS.filter((condition) =>
-    context.query?.targetHasCondition(
-      condition,
-      context.time,
-      context.runtime,
-    ),
+    context.query?.targetHasCondition(condition, context.time, context.runtime),
   ).length;
 }
 
@@ -92,9 +86,7 @@ export function eventSkill(
   return profession?.catalog?.skillsById?.get(skillId);
 }
 
-export function selectedSkillNames(
-  context: Gw2ModifierContext,
-): Set<string> {
+export function selectedSkillNames(context: Gw2ModifierContext): Set<string> {
   const config = (context.config || {}) as EngineerConfig;
   const selected = config.selectedSkills || [];
   return new Set(
@@ -111,8 +103,8 @@ export function playerHealthFraction(context: Gw2ModifierContext): number {
 
 export function targetHealthFraction(context: Gw2ModifierContext): number {
   const configured = Number(
-    context.config?.targetHealthFraction
-      ?? context.config?.target?.healthFraction,
+    context.config?.targetHealthFraction ??
+      context.config?.target?.healthFraction,
   );
   if (Number.isFinite(configured)) {
     return clamp(configured, 0, 1);
@@ -121,20 +113,20 @@ export function targetHealthFraction(context: Gw2ModifierContext): number {
   const maximum = Number(context.config?.target?.health ?? 0);
   if (!(maximum > 0)) return 1;
   const totals = context.runtime?.totals as
-    | { readonly strike?: number; readonly condition?: number }
-    | undefined;
-  const damage =
-    Number(totals?.strike || 0)
-    + Number(totals?.condition || 0);
+    { readonly strike?: number; readonly condition?: number } | undefined;
+  const damage = Number(totals?.strike || 0) + Number(totals?.condition || 0);
   return clamp(1 - damage / maximum, 0, 1);
 }
 
 // Heavy Metal bonus scales with target health — higher bonus at lower health thresholds
-export function heavyMetalBonus(context: Gw2ModifierContext): number {
+export function heavyMetalBonus(
+  context: Gw2ModifierContext,
+  parameters: Readonly<Record<string, number>>,
+): number {
   const fraction = targetHealthFraction(context);
-  if (fraction < 0.25) return 0.15;
-  if (fraction < 0.5) return 0.1;
-  if (fraction < 0.75) return 0.05;
+  if (fraction < parameters.lowerThreshold) return parameters.lowerBonus;
+  if (fraction < parameters.middleThreshold) return parameters.middleBonus;
+  if (fraction < parameters.upperThreshold) return parameters.upperBonus;
   return 0;
 }
 
@@ -148,19 +140,14 @@ export function activeBoonStacks(
   const base = permanent === true ? 1 : Number(permanent || 0);
   // runtime boons (resolver) take precedence over scheduler state boons
   const schedulerState = context.state as
-    | { readonly boons?: Map<string, Gw2TimedBuffApplication[]> }
-    | undefined;
+    { readonly boons?: Map<string, Gw2TimedBuffApplication[]> } | undefined;
   const boons = context.runtime?.boons ?? schedulerState?.boons;
   const dynamic = (boons?.get(kind) || [])
     .filter(
       (application) =>
-        application.at <= context.time
-        && application.expiresAt > context.time,
+        application.at <= context.time && application.expiresAt > context.time,
     )
-    .reduce(
-      (sum, application) => sum + Number(application.stacks || 1),
-      0,
-    );
+    .reduce((sum, application) => sum + Number(application.stacks || 1), 0);
   return clamp(base + dynamic, 0, maximum);
 }
 
