@@ -38,7 +38,7 @@
         "label": "Power (Hammer / Sword-Axe)",
         "build": "Builds/ranger/b-power-untamed-hammer-sword-axe.json",
         "rotation": "Rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json",
-        "benchmarkDps": 44198,
+        "benchmarkDps": 43605,
         "upToDate": true
       }
     ]

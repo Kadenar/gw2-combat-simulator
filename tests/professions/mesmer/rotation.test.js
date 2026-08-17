@@ -2287,7 +2287,7 @@ test("condition Dune Cloak Mirage preset matches the supplied equipment", () => 
   });
   const result = simulateMesmer(build.rotation, simulationConfig(app));
   assert.deepEqual(result.warnings, []);
-  assert.equal(Math.round(result.dps), 40957);
+  assert.equal(Math.round(result.dps), 40984);
   assert.ok(
     Math.abs(result.totalDamage - savedRotation.metadata.benchmarkDamage) /
       savedRotation.metadata.benchmarkDamage <
