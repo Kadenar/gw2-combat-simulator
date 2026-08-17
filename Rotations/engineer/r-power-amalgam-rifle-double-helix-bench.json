@@ -1,0 +1,530 @@
+{
+  "metadata": {
+    "log": "double helix rifle amalgam.zevtc",
+    "benchmarkDurationSeconds": 91.165,
+    "benchmarkDamage": 3975911,
+    "benchmarkDps": 43612.252509186634,
+    "timingSource": "EVTC animation activations, weapon swaps, and direct skill effects",
+    "note": "Throw Mine, Bomb Kit, Evolve, and the opening bombs are reconstructed from initial EVTC state; combat begins during Galvanic Bomb."
+  },
+  "rotation": [
+    "Throw Mine",
+    {
+      "name": "__wait",
+      "waitMs": 5000
+    },
+    "Bomb Kit",
+    "Big Ol' Bomb",
+    "Magnetic Bomb",
+    {
+      "name": "Evolve",
+      "skillId": 76642
+    },
+    "Fire Bomb",
+    "Galvanic Bomb",
+    {
+      "name": "__combat_start",
+      "offset": 521
+    },
+    "Stow Bomb Kit",
+    "Flux State",
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77104,
+      "offset": 163
+    },
+    {
+      "name": "Detonate",
+      "offset": 357
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76705
+    },
+    "Blunderbuss",
+    {
+      "name": "Grenade Kit",
+      "offset": 159
+    },
+    "Shrapnel Grenade",
+    "Poison Grenade",
+    "Freeze Grenade",
+    {
+      "name": "Offensive Protocol: Demolish",
+      "skillId": 76927
+    },
+    {
+      "name": "Stow Grenade Kit",
+      "offset": 360
+    },
+    "Throw Mine",
+    "Detonate",
+    "Jump Shot",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 638
+    },
+    "Blunderbuss",
+    {
+      "name": "Bomb Kit",
+      "offset": 202
+    },
+    "Fire Bomb",
+    {
+      "name": "Grenade Kit",
+      "offset": 359
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 481
+    },
+    "Stow Grenade Kit",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 601,
+      "preserveEffectsAfterInterrupt": true
+    },
+    "Overcharged Shot",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 643
+    },
+    "Net Shot",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 643
+    },
+    {
+      "name": "Bomb Kit",
+      "offset": 401
+    },
+    "Bomb",
+    "Stow Bomb Kit",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 641
+    },
+    "Blunderbuss",
+    {
+      "name": "Grenade Kit",
+      "offset": 279
+    },
+    "Shrapnel Grenade",
+    {
+      "name": "Bomb Kit",
+      "offset": 318
+    },
+    "Big Ol' Bomb",
+    "Magnetic Bomb",
+    "Fire Bomb",
+    "Galvanic Bomb",
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77104,
+      "offset": 238
+    },
+    {
+      "name": "Evolve",
+      "skillId": 76642
+    },
+    "Throw Mine",
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76705
+    },
+    {
+      "name": "Detonate",
+      "offset": 41
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "offset": 403
+    },
+    "Blunderbuss",
+    "Grenade Kit",
+    "Shrapnel Grenade",
+    "Poison Grenade",
+    "Freeze Grenade",
+    {
+      "name": "Offensive Protocol: Demolish",
+      "skillId": 76927
+    },
+    {
+      "name": "Stow Grenade Kit",
+      "offset": 323
+    },
+    "Jump Shot",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 680
+    },
+    "Blunderbuss",
+    {
+      "name": "Bomb Kit",
+      "offset": 159
+    },
+    "Fire Bomb",
+    {
+      "name": "Grenade Kit",
+      "offset": 280
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 483
+    },
+    "Stow Grenade Kit",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 677
+    },
+    "Overcharged Shot",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 679
+    },
+    "Throw Mine",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 678
+    },
+    {
+      "name": "Detonate",
+      "offset": 80
+    },
+    "Net Shot",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 642
+    },
+    "Blunderbuss",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 683
+    },
+    {
+      "name": "Grenade Kit",
+      "offset": 564
+    },
+    "Shrapnel Grenade",
+    {
+      "name": "Bomb Kit",
+      "offset": 279
+    },
+    "Big Ol' Bomb",
+    "Magnetic Bomb",
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77104
+    },
+    "Fire Bomb",
+    "Galvanic Bomb",
+    {
+      "name": "Evolve",
+      "skillId": 76642
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76705
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "offset": 280
+    },
+    "Blunderbuss",
+    {
+      "name": "Grenade Kit",
+      "offset": 284
+    },
+    "Shrapnel Grenade",
+    "Poison Grenade",
+    "Freeze Grenade",
+    {
+      "name": "Offensive Protocol: Demolish",
+      "skillId": 76927
+    },
+    {
+      "name": "Stow Grenade Kit",
+      "offset": 561
+    },
+    "Throw Mine",
+    "Detonate",
+    "Jump Shot",
+    "Flux State",
+    "Blunderbuss",
+    {
+      "name": "Bomb Kit",
+      "offset": 159
+    },
+    "Fire Bomb",
+    {
+      "name": "Grenade Kit",
+      "offset": 324
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 478
+    },
+    "Stow Grenade Kit",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 639
+    },
+    "Overcharged Shot",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 642
+    },
+    "Net Shot",
+    "Rifle Burst",
+    {
+      "name": "Bomb Kit",
+      "offset": 481
+    },
+    "Bomb",
+    "Stow Bomb Kit",
+    "Rifle Burst",
+    "Blunderbuss",
+    {
+      "name": "Grenade Kit",
+      "offset": 239
+    },
+    "Shrapnel Grenade",
+    {
+      "name": "Bomb Kit",
+      "offset": 322
+    },
+    "Big Ol' Bomb",
+    "Magnetic Bomb",
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77104,
+      "offset": 161
+    },
+    "Fire Bomb",
+    "Galvanic Bomb",
+    {
+      "name": "Evolve",
+      "skillId": 76642
+    },
+    "Throw Mine",
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76705
+    },
+    {
+      "name": "Detonate",
+      "offset": 43
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "offset": 278
+    },
+    "Blunderbuss",
+    {
+      "name": "Grenade Kit",
+      "offset": 280
+    },
+    "Shrapnel Grenade",
+    "Poison Grenade",
+    "Freeze Grenade",
+    {
+      "name": "Offensive Protocol: Demolish",
+      "skillId": 76927
+    },
+    {
+      "name": "Stow Grenade Kit",
+      "offset": 361
+    },
+    "Jump Shot",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 600,
+      "preserveEffectsAfterInterrupt": true
+    },
+    "Blunderbuss",
+    {
+      "name": "Bomb Kit",
+      "offset": 242
+    },
+    "Fire Bomb",
+    {
+      "name": "Grenade Kit",
+      "offset": 284
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 480
+    },
+    "Stow Grenade Kit",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 598,
+      "preserveEffectsAfterInterrupt": true
+    },
+    "Overcharged Shot",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 684
+    },
+    "Throw Mine",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 638
+    },
+    {
+      "name": "Detonate",
+      "offset": 79
+    },
+    "Net Shot",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 644
+    },
+    "Blunderbuss",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 643
+    },
+    {
+      "name": "Grenade Kit",
+      "offset": 482
+    },
+    "Shrapnel Grenade",
+    {
+      "name": "Bomb Kit",
+      "offset": 282
+    },
+    "Big Ol' Bomb",
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77104,
+      "offset": 125
+    },
+    "Magnetic Bomb",
+    "Fire Bomb",
+    "Galvanic Bomb",
+    {
+      "name": "Evolve",
+      "skillId": 76642
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76705
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "offset": 281
+    },
+    "Blunderbuss",
+    {
+      "name": "Grenade Kit",
+      "offset": 321
+    },
+    "Shrapnel Grenade",
+    "Poison Grenade",
+    "Freeze Grenade",
+    {
+      "name": "Offensive Protocol: Demolish",
+      "skillId": 76927
+    },
+    {
+      "name": "Stow Grenade Kit",
+      "offset": 403
+    },
+    "Throw Mine",
+    "Jump Shot",
+    {
+      "name": "Detonate",
+      "offset": 41
+    },
+    "Blunderbuss",
+    "Bomb Kit",
+    "Fire Bomb",
+    {
+      "name": "Grenade Kit",
+      "offset": 321
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 481
+    },
+    "Stow Grenade Kit",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 602
+    },
+    "Overcharged Shot",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 641
+    },
+    "Net Shot",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 560
+    },
+    {
+      "name": "Bomb Kit",
+      "offset": 245
+    },
+    "Bomb",
+    "Stow Bomb Kit",
+    {
+      "name": "Rifle Burst",
+      "interruptMs": 681
+    },
+    "Blunderbuss",
+    {
+      "name": "Grenade Kit",
+      "offset": 201
+    },
+    "Shrapnel Grenade",
+    "Flux State",
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77104,
+      "offset": 80
+    },
+    {
+      "name": "Bomb Kit",
+      "offset": 160
+    },
+    "Big Ol' Bomb",
+    {
+      "name": "Evolve",
+      "skillId": 76642
+    },
+    "Magnetic Bomb",
+    "Fire Bomb",
+    "Galvanic Bomb",
+    {
+      "name": "Stow Bomb Kit",
+      "offset": 199
+    },
+    "Throw Mine",
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76705
+    },
+    {
+      "name": "Detonate",
+      "offset": 81
+    },
+    "Blunderbuss",
+    {
+      "name": "Grenade Kit",
+      "offset": 162
+    },
+    "Shrapnel Grenade",
+    "Poison Grenade",
+    "Freeze Grenade",
+    {
+      "name": "Offensive Protocol: Demolish",
+      "skillId": 76927
+    },
+    {
+      "name": "Stow Grenade Kit",
+      "offset": 322
+    }
+  ]
+}

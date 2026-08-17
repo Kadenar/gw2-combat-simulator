@@ -1,7 +1,18 @@
 const TUTORIAL_DIALOG_ID = "simulator-tutorial-dialog";
+const DEFAULT_TUTORIAL_ID = "quick-start";
 
 export const TUTORIAL_GIF_URL = new URL(
   "../../docs/assets/gw2-combat-simulator-usage.gif",
+  import.meta.url,
+).href;
+
+export const ROTATION_TUTORIAL_GIF_URL = new URL(
+  "../../docs/assets/gw2-combat-simulator-rotation-builder.gif",
+  import.meta.url,
+).href;
+
+export const ANALYSIS_TUTORIAL_GIF_URL = new URL(
+  "../../docs/assets/gw2-combat-simulator-analysis.gif",
   import.meta.url,
 ).href;
 
@@ -43,6 +54,37 @@ export function tutorialPrefersReducedMotion(
   );
 }
 
+/** Switches the visible walkthrough and keeps every inactive GIF unloaded. */
+export function activateTutorialPanel(
+  root: ParentNode,
+  tutorialId: string,
+  shouldPlay: boolean,
+): HTMLImageElement | null {
+  root
+    .querySelectorAll<HTMLElement>("[data-tutorial-choice]")
+    .forEach((choice) => {
+      const isActive = choice.dataset.tutorialChoice === tutorialId;
+      choice.setAttribute("aria-pressed", String(isActive));
+    });
+
+  let activeImage: HTMLImageElement | null = null;
+  root
+    .querySelectorAll<HTMLElement>("[data-tutorial-panel]")
+    .forEach((panel) => {
+      const isActive = panel.dataset.tutorialPanel === tutorialId;
+      panel.hidden = !isActive;
+      const image = panel.querySelector<HTMLImageElement>(
+        ".tutorial-animation",
+      );
+      if (!image) return;
+
+      setTutorialAnimationState(image, isActive && shouldPlay);
+      if (isActive) activeImage = image;
+    });
+
+  return activeImage;
+}
+
 function tutorialTrigger(
   root: Document,
   prominent: boolean,
@@ -69,15 +111,20 @@ function tutorialDialog(root: Document): HTMLDialogElement {
     <div class="tutorial-dialog-shell">
       <div class="tutorial-dialog-header">
         <div>
-          <p class="tutorial-dialog-eyebrow">Quick start</p>
+          <p class="tutorial-dialog-eyebrow">Tutorials</p>
           <h2 id="simulator-tutorial-title">How to use the simulator</h2>
-          <p id="simulator-tutorial-description">A short walkthrough from profession selection to combat analysis.</p>
+          <p id="simulator-tutorial-description">Choose a walkthrough, then follow the animation and written steps.</p>
         </div>
         <button type="button" class="tutorial-dialog-close" data-tutorial-close aria-label="Close tutorial">&times;</button>
       </div>
-      <div class="tutorial-dialog-body">
+      <div class="tutorial-picker" role="group" aria-label="Choose a tutorial">
+        <button type="button" class="tutorial-picker-button" data-tutorial-choice="quick-start" aria-pressed="true">Quick start</button>
+        <button type="button" class="tutorial-picker-button" data-tutorial-choice="rotation-builder" aria-pressed="false">Rotation builder</button>
+        <button type="button" class="tutorial-picker-button" data-tutorial-choice="analysis" aria-pressed="false">Analysis</button>
+      </div>
+      <div class="tutorial-dialog-body" data-tutorial-panel="quick-start">
         <div class="tutorial-animation-frame">
-          <img class="tutorial-animation" alt="" width="1280" height="900" decoding="async" />
+          <img class="tutorial-animation" data-tutorial-src="${TUTORIAL_GIF_URL}" alt="" width="1280" height="900" decoding="async" />
           <div class="tutorial-reduced-motion" role="note">
             <strong>Animation is paused.</strong>
             <span>Your reduced-motion preference is enabled. Use the written steps beside this panel.</span>
@@ -96,9 +143,53 @@ function tutorialDialog(root: Document): HTMLDialogElement {
           </div>
         </div>
       </div>
+      <div class="tutorial-dialog-body" data-tutorial-panel="rotation-builder" hidden>
+        <div class="tutorial-animation-frame">
+          <img class="tutorial-animation" data-tutorial-src="${ROTATION_TUTORIAL_GIF_URL}" alt="" width="1280" height="900" decoding="async" />
+          <div class="tutorial-reduced-motion" role="note">
+            <strong>Animation is paused.</strong>
+            <span>Your reduced-motion preference is enabled. Use the written steps beside this panel.</span>
+          </div>
+        </div>
+        <div class="tutorial-guide-copy">
+          <ol class="tutorial-step-list">
+            <li><strong>Queue skills manually</strong><span>Click available skills in the palette to add them to the timeline in order.</span></li>
+            <li><strong>Review and refine</strong><span>Inspect the timeline, then use Undo, Redo, Clear, or the insertion cursor to make changes.</span></li>
+            <li><strong>Save the rotation</strong><span>Use Save Rotation to download the current sequence as a portable JSON file.</span></li>
+            <li><strong>Load a rotation</strong><span>Restore a saved JSON rotation, or import an EVTC or EVTC ZIP combat log.</span></li>
+          </ol>
+          <div class="tutorial-dialog-actions">
+            <button type="button" class="btn tutorial-replay" data-tutorial-replay>Replay animation</button>
+            <button type="button" class="btn btn-clear" data-tutorial-close>Close</button>
+          </div>
+        </div>
+      </div>
+      <div class="tutorial-dialog-body" data-tutorial-panel="analysis" hidden>
+        <div class="tutorial-animation-frame">
+          <img class="tutorial-animation" data-tutorial-src="${ANALYSIS_TUTORIAL_GIF_URL}" alt="" width="1280" height="900" decoding="async" />
+          <div class="tutorial-reduced-motion" role="note">
+            <strong>Animation is paused.</strong>
+            <span>Your reduced-motion preference is enabled. Use the written steps beside this panel.</span>
+          </div>
+        </div>
+        <div class="tutorial-guide-copy">
+          <ol class="tutorial-step-list">
+            <li><strong>Open combat analysis</strong><span>Load or build a rotation, then switch from Workspace to Analysis.</span></li>
+            <li><strong>Trace each damage source</strong><span>Compare strike, condition, total damage, DPS, casts, hits, and average damage per cast.</span></li>
+            <li><strong>Explore the timeline</strong><span>Hover the DPS and effects charts, then toggle the boons, conditions, and buffs you want to compare.</span></li>
+          </ol>
+          <aside class="tutorial-secondary-callout">
+            <span>Optional</span>
+            <strong>Patch Preview</strong>
+            <p>When preview data is available, switch Game data versions to compare total and per-skill DPS changes for the same rotation.</p>
+          </aside>
+          <div class="tutorial-dialog-actions">
+            <button type="button" class="btn tutorial-replay" data-tutorial-replay>Replay animation</button>
+            <button type="button" class="btn btn-clear" data-tutorial-close>Close</button>
+          </div>
+        </div>
+      </div>
     </div>`;
-  const image = dialog.querySelector<HTMLImageElement>(".tutorial-animation");
-  if (image) image.dataset.tutorialSrc = TUTORIAL_GIF_URL;
   return dialog;
 }
 
@@ -113,8 +204,7 @@ export function mountSimulatorTutorial(root: Document = document): void {
 
   const trigger = tutorialTrigger(root, Boolean(landingHeader));
   const dialog = tutorialDialog(root);
-  const image = dialog.querySelector<HTMLImageElement>(".tutorial-animation");
-  if (!image) return;
+  let activeTutorialId = DEFAULT_TUTORIAL_ID;
 
   if (landingHeader) host.append(trigger);
   else host.prepend(trigger);
@@ -125,7 +215,7 @@ export function mountSimulatorTutorial(root: Document = document): void {
   );
   const shouldPlay = (): boolean => !motionPreference?.matches;
   const closeDialog = (): void => {
-    setTutorialAnimationState(image, false);
+    activateTutorialPanel(dialog, activeTutorialId, false);
     if (typeof dialog.close === "function") dialog.close();
     else dialog.removeAttribute("open");
   };
@@ -135,7 +225,7 @@ export function mountSimulatorTutorial(root: Document = document): void {
       if (typeof dialog.showModal === "function") dialog.showModal();
       else dialog.setAttribute("open", "");
     }
-    setTutorialAnimationState(image, shouldPlay());
+    activateTutorialPanel(dialog, activeTutorialId, shouldPlay());
   });
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) {
@@ -143,16 +233,26 @@ export function mountSimulatorTutorial(root: Document = document): void {
       return;
     }
     const target = event.target as { closest?: (selector: string) => Element };
-    if (target.closest?.("[data-tutorial-close]")) {
+    const choice = target.closest?.("[data-tutorial-choice]") as
+      | HTMLElement
+      | undefined;
+    if (choice?.dataset.tutorialChoice) {
+      activeTutorialId = choice.dataset.tutorialChoice;
+      activateTutorialPanel(dialog, activeTutorialId, shouldPlay());
+    } else if (target.closest?.("[data-tutorial-close]")) {
       closeDialog();
     } else if (target.closest?.("[data-tutorial-replay]")) {
-      restartTutorialAnimation(image, root.defaultView);
+      const image = dialog.querySelector<HTMLImageElement>(
+        `[data-tutorial-panel="${activeTutorialId}"] .tutorial-animation`,
+      );
+      if (image) restartTutorialAnimation(image, root.defaultView);
     }
   });
   dialog.addEventListener("close", () =>
-    setTutorialAnimationState(image, false),
+    activateTutorialPanel(dialog, activeTutorialId, false),
   );
   motionPreference?.addEventListener("change", () => {
-    if (dialog.open) setTutorialAnimationState(image, shouldPlay());
+    if (dialog.open)
+      activateTutorialPanel(dialog, activeTutorialId, shouldPlay());
   });
 }

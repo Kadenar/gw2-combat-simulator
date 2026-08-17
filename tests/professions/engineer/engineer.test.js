@@ -1943,8 +1943,8 @@ test("Mechanist sword uses the non-heat skill set and complete packets", () => {
 test("Mechanist rifle uses live close-range packets and measured cadence", () => {
   const skill = (name) => engineerCatalog.skillsByName.get(name);
   const burst = skill("Rifle Burst");
-  assert.equal(burst.castTimeMs, 1252.5);
-  assert.equal(burst.quicknessCastTimeMs, 835);
+  assert.equal(burst.castTimeMs, 960);
+  assert.equal(burst.quicknessCastTimeMs, 640);
   assert.deepEqual(
     burst.effects.map((effect) => [effect.coefficient, effect.atMs]),
     [

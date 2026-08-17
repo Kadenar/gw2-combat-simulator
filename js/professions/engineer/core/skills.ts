@@ -1759,7 +1759,8 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.RIFLE_BURST]: {
     implemented: true,
-    quicknessCastTimeMs: 835,
+    // Use the measured quickness cadence so chained rifle actions finish on the live 640 ms cycle.
+    quicknessCastTimeMs: 640,
     cooldown: 0,
     effects: [
       {

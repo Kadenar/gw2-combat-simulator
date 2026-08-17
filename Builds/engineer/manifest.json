@@ -11,6 +11,13 @@
         "upToDate": true
       },
       {
+        "label": "Power (Rifle - Double Helix)",
+        "build": "Builds/engineer/b-power-amalgam-rifle-double-helix.json",
+        "rotation": "Rotations/engineer/r-power-amalgam-rifle-double-helix-bench.json",
+          "benchmarkDps": 44979,
+        "upToDate": true
+      },
+      {
         "label": "Condition Alacrity (2 Kit)",
         "build": "Builds/engineer/b-condi-alac-amalgam-2kit.json",
         "rotation": "Rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",

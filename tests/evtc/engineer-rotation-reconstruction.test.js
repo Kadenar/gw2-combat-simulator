@@ -261,7 +261,7 @@ test("validates Engineer cast completion from observed strike packets", () => {
     }),
     skill(6003, "Rifle Burst", {
       slot: "Weapon_1",
-      quicknessCastTimeMs: 835,
+      quicknessCastTimeMs: 640,
       effects: [
         {
           type: "strike",
@@ -639,6 +639,130 @@ test("recovers Bomb Kit, Throw Mine, and Hammer 5 precasts from opening evidence
     { name: "Electro-whirl", skillId: 30088 },
     { name: "Detonate", skillId: 6162, offset: 325 },
   ]);
+});
+
+test("recovers a rifle Amalgam opening from a truncated Galvanic Bomb", () => {
+  const skills = [
+    skill(6161, "Throw Mine", {
+      type: "Utility",
+      slot: "Utility_1",
+      quicknessCastTimeMs: 400,
+    }),
+    skill(6162, "Detonate", {
+      type: "Utility",
+      slot: "Utility_1",
+      independentCast: true,
+    }),
+    skill(5812, "Bomb Kit", {
+      type: "Utility",
+      slot: "Utility_2",
+      kitName: "Bomb Kit",
+      handlerId: "engineer.kit-equip",
+    }),
+    skill(6111, "Stow Bomb Kit", {
+      type: "Bundle",
+      slot: "Bundle",
+      kit: "Bomb Kit",
+      handlerId: "engineer.kit-stow",
+    }),
+    skill(5813, "Big Ol' Bomb", {
+      kit: "Bomb Kit",
+      quicknessCastTimeMs: 600,
+    }),
+    skill(76530, "Magnetic Bomb", {
+      kit: "Bomb Kit",
+      quicknessCastTimeMs: 600,
+    }),
+    skill(5823, "Fire Bomb", {
+      kit: "Bomb Kit",
+      quicknessCastTimeMs: 600,
+    }),
+    skill(5822, "Galvanic Bomb", {
+      kit: "Bomb Kit",
+      quicknessCastTimeMs: 600,
+    }),
+    skill(76642, "Evolve", {
+      type: "Profession",
+      slot: "Profession_5",
+      quicknessCastTimeMs: 640,
+    }),
+    skill(6153, "Blunderbuss", {
+      slot: "Weapon_3",
+      quicknessCastTimeMs: 400,
+    }),
+    skill(5805, "Grenade Kit", {
+      type: "Utility",
+      slot: "Utility_1",
+      kitName: "Grenade Kit",
+      handlerId: "engineer.kit-equip",
+    }),
+    skill(5807, "Shrapnel Grenade", {
+      kit: "Grenade Kit",
+      quicknessCastTimeMs: 680,
+    }),
+  ];
+  const fixture = engineerLog(skills, [
+    event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    event({ target: TARGET, value: 1_000, skillId: 76530 }),
+    event({ target: TARGET, value: 1_000, skillId: 5813, time: 10_400 }),
+    event({ target: TARGET, value: 1_000, skillId: 6161, time: 10_600 }),
+    event({ target: TARGET, value: 1_000, skillId: 5822, time: 10_845 }),
+    event({ target: TARGET, value: 1_000, skillId: 5823, time: 10_243 }),
+    event({
+      target: PLAYER,
+      skillId: 77008,
+      value: 6_760,
+      buffDamage: 8_000,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL,
+    }),
+    event({
+      time: 10_080,
+      value: 601,
+      buffDamage: 914,
+      skillId: 5822,
+      activation: EVTC_ACTIVATION.CANCEL_FIRE,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+    }),
+    ...animation(6153, 11_522, 397),
+    event({
+      time: 11_681,
+      target: 2n,
+      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP,
+    }),
+    ...animation(5807, 11_919, 680),
+  ]);
+
+  const result = reconstructEvtcRotation(
+    fixture,
+    { skills },
+    {
+      selectedSkillNames: ["Bomb Kit", "Grenade Kit", "Throw Mine"],
+      selectedSkillIds: [76642],
+    },
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.combatStartTimestampMs, 8_361);
+  assert.deepEqual(result.rotation.slice(0, 10), [
+    { name: "Throw Mine", skillId: 6161 },
+    { name: "__wait", waitMs: 5000 },
+    { name: "Bomb Kit", skillId: 5812 },
+    { name: "Big Ol' Bomb", skillId: 5813 },
+    { name: "Magnetic Bomb", skillId: 76530 },
+    { name: "Evolve", skillId: 76642 },
+    { name: "Fire Bomb", skillId: 5823 },
+    { name: "Galvanic Bomb", skillId: 5822 },
+    { name: "__combat_start", offset: 521 },
+    { name: "Stow Bomb Kit", skillId: 6111 },
+  ]);
+  assert.ok(
+    result.rotation.findIndex((command) => command.name === "Blunderbuss") <
+      result.rotation.findIndex((command) => command.name === "Grenade Kit"),
+  );
+  assert.deepEqual(
+    result.rotation.find((command) => command.name === "Grenade Kit"),
+    { name: "Grenade Kit", skillId: 5805, offset: 159 },
+  );
 });
 
 test("maps Engineer kit swaps, Amalgam morphs, and passive packets", () => {

@@ -325,6 +325,45 @@ header .community-actions {
   outline: none;
 }
 
+/* Presents the available walkthroughs as one compact choice without loading both GIFs. */
+.tutorial-picker {
+  display: inline-flex;
+  margin: 0 0 18px;
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--bg-deep);
+}
+
+.tutorial-picker-button {
+  padding: 8px 13px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tutorial-picker-button:hover,
+.tutorial-picker-button:focus-visible {
+  color: var(--text-bright);
+  outline: none;
+}
+
+.tutorial-picker-button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  background: color-mix(in srgb, var(--accent) 15%, var(--bg-panel-alt));
+  color: var(--accent);
+}
+
+.tutorial-dialog-body[hidden] {
+  display: none;
+}
+
 .tutorial-dialog-body {
   display: grid;
   grid-template-columns: minmax(0, 2.2fr) minmax(250px, 0.8fr);
@@ -406,6 +445,38 @@ header .community-actions {
   margin-top: 3px;
   color: var(--text-dim);
   font-size: 12px;
+  line-height: 1.45;
+}
+
+/* Keeps optional Patch Preview guidance visually secondary to the core analysis steps. */
+.tutorial-secondary-callout {
+  margin-top: 10px;
+  padding: 11px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border));
+  border-left: 3px solid var(--accent);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--accent) 7%, var(--bg-panel-alt));
+}
+
+.tutorial-secondary-callout > span {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.tutorial-secondary-callout strong {
+  color: var(--text-bright);
+  font-size: 13px;
+}
+
+.tutorial-secondary-callout p {
+  margin: 4px 0 0;
+  color: var(--text-dim);
+  font-size: 11px;
   line-height: 1.45;
 }
 
