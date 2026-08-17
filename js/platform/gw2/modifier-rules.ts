@@ -77,6 +77,8 @@ const HOOK_BY_TARGET: Readonly<
   [MODIFIER_TARGET.CONDITION_DAMAGE]: "modifyConditionDamage",
   [MODIFIER_TARGET.CONDITION_DURATION]: "modifyConditionDuration",
 });
+const EMPTY_MODIFIER_PARAMETERS: Readonly<Record<string, number>> =
+  Object.freeze({});
 
 /**
  * Creates an error tied to a declaration's stable id so invalid profession
@@ -122,6 +124,30 @@ function normalizeResolver(
     );
   }
   return resolver;
+}
+
+function normalizeParameters(
+  rule: Gw2ModifierRule,
+): Readonly<Record<string, number>> {
+  if (!Object.hasOwn(rule, "parameters")) return EMPTY_MODIFIER_PARAMETERS;
+  if (
+    !rule.parameters ||
+    typeof rule.parameters !== "object" ||
+    Array.isArray(rule.parameters)
+  ) {
+    throw ruleError(rule.id, "parameters must be an object.");
+  }
+  const parameters: Record<string, number> = {};
+  for (const [name, value] of Object.entries(rule.parameters)) {
+    if (!name.trim()) {
+      throw ruleError(rule.id, "parameter names must not be empty.");
+    }
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      throw ruleError(rule.id, `parameter ${name} must be a finite number.`);
+    }
+    parameters[name] = value;
+  }
+  return Object.freeze(parameters);
 }
 
 /**
@@ -209,23 +235,27 @@ function normalizeRule(
     label: label || null,
     targets,
     operation,
+    parameters: normalizeParameters({ ...rule, id }),
     when: rule.when || null,
     order,
     declarationIndex,
   };
-  return Object.freeze(
-    operation === "multiply"
-      ? {
-          ...normalized,
-          factor: normalizeResolver({ ...rule, id }, "factor", {
-            positive: true,
-          }),
-        }
-      : {
-          ...normalized,
-          amount: normalizeResolver({ ...rule, id }, "amount"),
-        },
-  ) as Readonly<Gw2NormalizedModifierRule>;
+  const field = operation === "multiply" ? "factor" : "amount";
+  const resolver = normalizeResolver(
+    { ...rule, id },
+    field,
+    field === "factor" ? { positive: true } : undefined,
+  );
+  if (
+    Object.keys(normalized.parameters).length &&
+    typeof resolver !== "function"
+  ) {
+    throw ruleError(id, "parameters require a resolver-backed numeric value.");
+  }
+  return Object.freeze({
+    ...normalized,
+    [field]: resolver,
+  }) as Readonly<Gw2NormalizedModifierRule>;
 }
 
 /**
@@ -335,7 +365,9 @@ function resolveNumeric(
 ): number {
   const declared = rule[field];
   const value =
-    typeof declared === "function" ? declared(context, target) : declared;
+    typeof declared === "function"
+      ? declared(context, target, rule.parameters)
+      : declared;
   if (
     typeof value !== "number" ||
     !Number.isFinite(value) ||
@@ -474,6 +506,8 @@ function createDamageHook(
  * - `operation`: `add`, `damage-additive`, or `multiply`.
  * - `amount`: finite number or `(context, target) => number` for additive rules.
  * - `factor`: positive finite number or resolver for multiplicative rules.
+ * - `parameters`: optional finite named inputs passed to a resolver as its third
+ *   argument so preview overlays can patch dynamic formulas safely.
  * - `when`: optional `(context) => boolean` predicate.
  * - `order`: optional finite number; defaults to zero.
  *

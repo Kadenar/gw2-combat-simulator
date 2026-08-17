@@ -27,6 +27,8 @@ import {
   trackBladeswornAmmoCast,
 } from "./traits.js";
 
+// Shared reason string so both the availability check and the charge-release
+// projection surface the same message in the UI.
 export const ENTER_DRAGON_TRIGGER_REASON =
   "Enter Dragon Trigger before using this skill.";
 
@@ -178,6 +180,7 @@ function availability(
         state.nextDragonChargeAt > context.start + context.epsilon
           ? state.nextDragonChargeAt
           : context.start + DRAGON_CHARGE_INTERVAL_SECONDS;
+      // Even the next possible tick would land after the deadline — stop waiting.
       if (nextChargeAt > state.dragonTriggerChargeDeadline + context.epsilon) {
         return {
           ready: false,

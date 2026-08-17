@@ -8,6 +8,8 @@ export function createRenegadeState(): RenegadeState {
     bandTogetherExpiresAt: 0,
     // each element records the application timestamp and expiry; the array is pruned lazily
     kallasFervor: [],
+    // synchronized from the active patchable Kalla's Fervor profile
+    kallasFervorMaximumStacks: 5,
     // fractional crit accumulator for deterministic mode: carries forward the leftover probability between events so that expected crit count is preserved across the full simulation
     renegadeCriticalProgress: 0,
     razorclawsRage: {

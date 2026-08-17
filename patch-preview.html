@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Local authoring interface for Guild Wars 2 simulator patch previews."
+    />
+    <title>Patch Preview Authoring</title>
+    <link rel="stylesheet" href="css/patch-preview.css" />
+  </head>
+  <body>
+    <div class="patch-page-shell">
+      <nav class="patch-page-nav">
+        <a href="http://127.0.0.1:4173/">← Simulator</a>
+        <span
+          >Writes directly to <code>js/patches/active-preview.ts</code></span
+        >
+      </nav>
+      <div data-patch-authoring-app>
+        <div class="patch-loading">Loading patch preview authoring…</div>
+      </div>
+    </div>
+    <script type="module" src="js/app/patch-preview/index.js"></script>
+  </body>
+</html>

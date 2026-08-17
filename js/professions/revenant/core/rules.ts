@@ -7,7 +7,7 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
 import { revenantCastAvailability } from "./availability.js";
 import { advanceRevenantEnergy, spendRevenantEnergy } from "./energy.js";
 import { handleRevenantUpkeepPulse } from "./upkeep.js";
-import { completeRevenantFollowup } from "./followups.js";
+import { completeRevenantFollowup } from "./actions.js";
 import {
   beginRevenantWeaponCast,
   completeRevenantWeaponCast,

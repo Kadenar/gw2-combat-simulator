@@ -5,6 +5,7 @@ import type {
   WarriorSchedulerContext,
 } from "../../types.js";
 
+// Dragon Trigger ticks every 250 ms to potentially grant one charge.
 export const DRAGON_CHARGE_INTERVAL_SECONDS = 0.25;
 export const DRAGON_FLOW_PER_INTERVAL = 5;
 export const DRAGON_TRIGGER_FLOW_COST = 15;
@@ -110,6 +111,8 @@ export function dragonSlashCoefficient(
   );
 }
 
+// Maps charges to adrenaline bars spent (1 bar = 10): 1–4 charges → 10,
+// 5–9 → 20, 10 → 30. Used by burst traits that scale on adrenaline bars.
 export function dragonChargesToAdrenalineSpent(charges: number): number {
   if (charges >= 10) return 30;
   if (charges >= 5) return 20;

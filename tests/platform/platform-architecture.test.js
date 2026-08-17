@@ -3021,12 +3021,13 @@ test("declarative professions use the standard mechanics module roles", async ()
         "specializations/vindicator",
         "specializations/conduit",
       ];
-      const localMechanics = await Promise.all(
+      const authorableSlices = await Promise.all(
         sliceDirectories.map((directory) =>
-          readSourceModule(
-            path.join(root, profession, directory, "mechanics.js"),
-          ),
+          readSourceModule(path.join(root, profession, directory, "skills.js")),
         ),
+      );
+      const heraldMechanics = await readSourceModule(
+        path.join(root, profession, "specializations/herald/mechanics.js"),
       );
       const handlers = (
         await Promise.all(
@@ -3037,10 +3038,11 @@ test("declarative professions use the standard mechanics module roles", async ()
           ),
         )
       ).join("\n");
-      for (const source of localMechanics) {
-        assert.match(source, /export const \w+_MECHANICS\b/);
-        assert.doesNotMatch(source, /HANDLER_MECHANICS/);
-      }
+      assert.match(heraldMechanics, /export const HERALD_MECHANICS\b/);
+      assert.doesNotMatch(heraldMechanics, /HANDLER_MECHANICS/);
+      assert.ok(
+        authorableSlices.every((source) => /BALANCE_PROFILES\b/.test(source)),
+      );
       assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
       assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
       assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
@@ -3281,6 +3283,7 @@ test("application shell uses feature-owned modules without legacy facades", asyn
   );
   assert.deepEqual([...directories].sort(), [
     "build",
+    "patch-preview",
     "profession",
     "rotation",
     "simulation",

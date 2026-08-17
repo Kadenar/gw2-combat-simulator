@@ -54,9 +54,7 @@ export interface RevenantSkill extends Skill {
 }
 
 export type RevenantDodge =
-  | "Death Drop"
-  | "Saint of zu Heltzer"
-  | "Imperial Impact";
+  "Death Drop" | "Saint of zu Heltzer" | "Imperial Impact";
 export type RevenantAllianceSide = "luxon" | "kurzick";
 
 export interface RevenantBuild extends Gw2Build {
@@ -161,6 +159,7 @@ export interface RenegadeState {
   bandTogetherReady: boolean;
   bandTogetherExpiresAt: number;
   kallasFervor: RevenantTimedStack[];
+  kallasFervorMaximumStacks: number;
   renegadeCriticalProgress: number;
   razorclawsRage: RevenantChargeState;
 }
@@ -174,6 +173,7 @@ export interface VindicatorState {
 
 export interface ConduitState {
   affinity: number;
+  affinityMaximum: number;
   cosmicWisdomUntil: number;
   conduitForm: string;
   beguilingHazeCharges: number;
@@ -183,7 +183,8 @@ export interface ConduitState {
 }
 
 export interface RevenantState
-  extends RevenantCoreState,
+  extends
+    RevenantCoreState,
     HeraldState,
     RenegadeState,
     VindicatorState,
@@ -235,6 +236,7 @@ export type RevenantRechargeContext = RevenantSchedulerContext &
   };
 
 export interface RevenantEnergyContext {
+  readonly catalog?: CanonicalCatalog<RevenantSkill>;
   readonly config?: RevenantConfig;
   readonly state?:
     | SchedulerState<RevenantRuntimeState>

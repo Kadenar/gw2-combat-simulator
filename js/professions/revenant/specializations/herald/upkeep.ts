@@ -1,34 +1,9 @@
 import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { emitRevenantState } from "../../core/shared.js";
-import { emitCondition, emitDamage } from "../../core/upkeep.js";
 import { REVENANT_SKILL_IDS as ID } from "../../data/ids.js";
 import { HERALD_MECHANICS as MECHANICS } from "./mechanics.js";
 import type { SkillId } from "../../../../platform/engine/types.js";
 import type { RevenantCastContext, RevenantSkill } from "../../types.js";
-
-/** Emits Elemental Blast's ordered damage/condition pulse sequence. */
-export function castElementalBlast(
-  context: RevenantCastContext,
-  skill: RevenantSkill,
-): void {
-  const profile = MECHANICS.elementalBlast;
-  // Pulses are emitted eagerly at cast time with future `at` timestamps rather than via recurring tasks, so they survive facet teardown.
-  const firstAt = context.start + profile.firstImpactDelay;
-  // pulse count is derived from conditions.length so mechanics.ts stays the single source of truth.
-  const pulses = profile.conditions.length;
-  for (let pulse = 1; pulse <= pulses; pulse += 1) {
-    const at = firstAt + (pulse - 1) * profile.pulseInterval;
-    emitDamage(context, skill, at, profile.coefficientPerPulse, {
-      name: `Elemental Blast — Pulse ${pulse}`,
-      hitIndex: pulse,
-      totalHits: pulses,
-    });
-    const [condition, stacks, duration] = (
-      profile.conditions as readonly (readonly [string, number, number])[]
-    )[pulse - 1];
-    emitCondition(context, skill, at, condition, stacks, duration);
-  }
-}
 
 /** Removes the active facet and consumes its temporary flip. */
 export function consumeRevenantFacet(

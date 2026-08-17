@@ -5,6 +5,7 @@ import process from "node:process";
 const siteRoot = path.resolve("dist", "site");
 const pages = [
   "index.html",
+  "patch-preview.html",
   "elementalist.html",
   "engineer.html",
   "guardian.html",

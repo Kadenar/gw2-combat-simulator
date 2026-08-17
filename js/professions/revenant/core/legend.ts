@@ -9,7 +9,7 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
 import { REVENANT_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import { hasRevenantTrait } from "./state.js";
 import { applyLegendInvocationTraits } from "./legend-traits.js";
-import { REVENANT_CORE_MECHANICS as MECHANICS } from "./mechanics.js";
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from "./skills.js";
 import { emitRevenantState } from "./shared.js";
 import type {
   RevenantCastContext,
@@ -44,11 +44,15 @@ export function swapRevenantLegend(
   state.activeLoadoutId = state.activeLegendId;
   state.legendSwapReadyAt =
     at + Math.max(0, Number(context.rechargeDuration ?? 10));
+  const chargedMists = context.catalog.balanceProfilesById.get(
+    REVENANT_CORE_BALANCE_PROFILE_IDS.chargedMists,
+  );
+  if (!chargedMists) throw new Error("Missing Charged Mists balance profile.");
   state.energy =
-    Math.floor(previousEnergy) <= MECHANICS.energy.chargedMistsThreshold &&
+    Math.floor(previousEnergy) <= Number(chargedMists.threshold || 0) &&
     hasRevenantTrait(context.config, TRAIT.CHARGED_MISTS)
-      ? MECHANICS.energy.chargedMistsSwap
-      : MECHANICS.energy.legendSwap;
+      ? Number(chargedMists.resourceGain || 0)
+      : Number(skill.resourceGain || 0);
   state.energyUpdatedAt = at;
   state.activeUpkeeps = [];
   state.availableFlips = {};

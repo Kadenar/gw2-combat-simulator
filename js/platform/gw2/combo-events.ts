@@ -95,6 +95,9 @@ export function selectComboFieldForFinisher(
       left.at - right.at ||
       Number(left.__order || 0) - Number(right.__order || 0),
   );
+  // comboBindingPriority > 0 marks an authoritative field (e.g., the specific
+  // field placed by a skill that also carries a finisher). When present, only
+  // those high-priority fields are candidates — ambient fields are ignored.
   const highestBindingPriority = ordered.reduce(
     (highest, field) =>
       Math.max(highest, Number(field.comboBindingPriority || 0)),
@@ -115,8 +118,10 @@ export function selectComboFieldForFinisher(
       candidates.find((field) => field.fieldType === fieldType),
     )
     .find(Boolean);
+  // Ambiguous means multiple different field types are present; same type repeated is not ambiguous.
   const ambiguous =
     new Set(candidates.map((field) => field.fieldType)).size > 1;
+  // Priority: preferred type → oldest unambiguous → undefined when ambiguous with no match/override.
   return {
     field:
       preferred ||
@@ -177,6 +182,8 @@ export function prepareGw2ComboEvent(
     }
     return {
       ...event,
+      // Fields default to priority -1 so they sort before finishers (default 0)
+      // and are visible in state before the finisher that reacts to them.
       priority: event.priority ?? -1,
       fieldId: requiredString(event.fieldId, "Combo field fieldId"),
       fieldType: normalizeComboFieldType(event.fieldType),
@@ -231,6 +238,8 @@ export function prepareGw2ComboEvent(
       fieldId: requiredString(event.fieldId, "Combo fieldId"),
       fieldType: normalizeComboFieldType(event.fieldType),
       finisherType: normalizeComboFinisherType(event.finisherType),
+      // Reconstruct a full binding object just to validate and then discard
+      // everything except .kind — combo events only record how the field was bound.
       bindingKind: normalizeComboFieldBinding(
         event.bindingKind === "field-id"
           ? { kind: "field-id", fieldId: event.fieldId }
@@ -280,6 +289,8 @@ function activeAt(field: ComboFieldEvent, at: number): boolean {
   return field.at <= at + EPSILON && field.expiresAt > at + EPSILON;
 }
 
+// Expired fields are cleaned up lazily inside boundField, not on every event,
+// so they accumulate in state until a finisher actually queries them.
 function discardExpiredFields(state: Gw2ComboRuntimeState, at: number): void {
   for (const [fieldId, field] of state.fields) {
     if (field.expiresAt <= at + EPSILON) state.fields.delete(fieldId);
@@ -312,6 +323,8 @@ function boundField(
   const label = warningLabel(event);
   const time = event.at.toFixed(3);
   if (event.fieldBinding.kind === "none") {
+    // warnOnUnbound=false suppresses the warning for finishers that are
+    // intentionally unbound (e.g. a Whirl that self-manages its field choice).
     if (event.warnOnUnbound === false) return null;
     warnOnce(
       state,
@@ -350,6 +363,9 @@ function boundField(
   return null;
 }
 
+// Accumulates fractional expected procs per unique {field+finisher+outcome} key.
+// Progress fires and resets by 1.0 each time it crosses the threshold — this
+// spreads proc events evenly across the rotation rather than rounding up or down.
 function deterministicSuccess(
   state: Gw2ComboRuntimeState,
   event: ComboFinisherEvent,
@@ -385,6 +401,8 @@ export function resolveComboAttempt(
   event: ComboFinisherEvent,
   { stochastic, roll, warn }: ResolveComboAttemptOptions,
 ): readonly ComboEvent[] {
+  // Guard against the same attempt being processed twice if the finisher event
+  // appears more than once in the event queue.
   if (state.handledAttemptIds.has(event.attemptId)) return [];
   state.handledAttemptIds.add(event.attemptId);
   const field = boundField(state, event, warn);

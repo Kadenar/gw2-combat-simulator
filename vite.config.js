@@ -4,6 +4,7 @@ import { defineConfig } from "vite";
 
 const pageEntries = [
   "index.html",
+  "patch-preview.html",
   "elementalist.html",
   "engineer.html",
   "guardian.html",

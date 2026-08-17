@@ -9,6 +9,8 @@ export function createParagonState(): ParagonState {
     nextRefrainAt: 0,
     inspiringImplementsReadyAt: 0,
     callToActionActivated: false,
+    // Monotonic counter used to generate unique IDs for pending command echoes
+    // so individual echoes can be located and removed by identity, not position.
     commandEchoSequence: 0,
     pendingCommandEchoes: [],
   };

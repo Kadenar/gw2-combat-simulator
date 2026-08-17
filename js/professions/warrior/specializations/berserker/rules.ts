@@ -38,6 +38,9 @@ export const berserkerSchedulerHooks = Object.freeze({
   }),
 });
 
+// Berserk active state must be read from two sources: the timeline buff (used
+// during the resolver pass) and the live runtime state (used during scheduling,
+// before events are committed to the timeline).
 function active(context: Gw2ModifierContext): boolean {
   if (
     (context.timeline?.buffStacksAt("berserk", context.time, 0, 1) || 0) > 0
@@ -113,6 +116,9 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   },
 ]);
 
+// Berserk grants an inherent 15% attack speed bonus. The bonus is skipped when
+// quickness is active because quickness already provides superior haste and the
+// two are not additive in the game's speed model.
 function modifyCastDuration(
   context: WarriorCastContext,
   duration: number,

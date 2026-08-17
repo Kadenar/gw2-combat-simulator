@@ -1,6 +1,7 @@
 import { createCanonicalCatalog } from "../engine/catalog.js";
 import type {
   CanonicalCatalog,
+  BalanceProfile,
   CatalogEntity,
   ProfessionModuleCatalogFragment,
   Skill,
@@ -24,6 +25,7 @@ interface NativeModuleDataSelection<TContext extends object> {
   readonly skillMechanics?: Readonly<Record<string, SkillFragment>>;
   readonly skillOverrides?: Readonly<Record<string, SkillFragment>>;
   readonly extraSkills?: readonly Skill[];
+  readonly balanceProfiles?: readonly BalanceProfile[];
   readonly handlers?: NativeSkillHandlerRegistry<TContext>;
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
@@ -35,6 +37,9 @@ interface NativeModuleDataSelection<TContext extends object> {
   readonly specializationOnlySkillOwners?: Readonly<Record<string, string>>;
 }
 
+// Resolves which module owns an entity by matching its .specialization field
+// against the elite spec names. Falls back to "Core" when there's no match,
+// so base-game skills and traits always land in the Core module.
 function canonicalModuleName(
   value: object,
   specializations: readonly CatalogEntity[],
@@ -60,6 +65,7 @@ export function createNativeModuleData<TContext extends object>({
   skillMechanics = {},
   skillOverrides = {},
   extraSkills = [],
+  balanceProfiles = [],
   handlers,
   traits = [],
   specializations = [],
@@ -71,6 +77,8 @@ export function createNativeModuleData<TContext extends object>({
 }: NativeModuleDataSelection<TContext>): NativeModuleCatalogData<TContext> {
   const forced = new Set(specializationOnlySkillIds.map(String));
   const ownsSkill = (skill: Skill): boolean => {
+    // specializationOnlySkillOwners can pin specific skill IDs to a module,
+    // overriding the automatic elite-spec-name-based ownership resolution.
     const forcedOwner = specializationOnlySkillOwners[String(skill.id)];
     if (forcedOwner) return forcedOwner === id;
     if (forced.has(String(skill.id))) return true;
@@ -79,6 +87,8 @@ export function createNativeModuleData<TContext extends object>({
   const generated = generatedSkills.filter(ownsSkill);
   const sharedExtra = sharedExtraSkills.filter(ownsSkill);
   const generatedIds = new Set(generated.map((skill) => String(skill.id)));
+  // Restrict skillOverrides to skills this module actually owns — prevents one
+  // module from patching another module's generated skills.
   const localOverrides = Object.fromEntries(
     Object.entries(skillOverrides).filter(([skillId]) =>
       generatedIds.has(String(skillId)),
@@ -92,6 +102,7 @@ export function createNativeModuleData<TContext extends object>({
     skillMechanics: Object.freeze({ ...skillMechanics }),
     skillOverrides: Object.freeze(localOverrides),
     extraSkills: Object.freeze([...sharedExtra, ...extraSkills]),
+    balanceProfiles: Object.freeze([...balanceProfiles]),
     sharedExtraSkillOrder: new Map(
       sharedExtra.map((skill) => [skill.id, sharedExtraSkills.indexOf(skill)]),
     ),
@@ -166,6 +177,11 @@ function mergeEntityArrays<T extends CatalogEntity>(
   return { values, owners };
 }
 
+// Mutates skillsByName after the catalog is otherwise frozen. This is a
+// controlled exception: name overrides must be applied post-assembly because
+// they depend on the canonical skill objects the assembly produced.
+// Validates that the override key matches the skill's actual name to prevent
+// remapping to unrelated skills.
 function applySkillNameOverrides(
   catalog: Readonly<CanonicalCatalog>,
   overrides: Readonly<Record<string, SkillId>> | undefined,
@@ -186,6 +202,10 @@ function applySkillNameOverrides(
   }
 }
 
+// After merging entity arrays from multiple modules, the insertion order is
+// per-module rather than per-position in the original shared array. This restores
+// the original position ordering so that catalog.skills has a stable, predictable
+// sequence regardless of module declaration order.
 function restoreSharedSourceOrder(
   values: CatalogEntity[],
   modules: readonly AnyNativeModule[],
@@ -224,6 +244,11 @@ function composeNativeCatalog(
     modules,
     (module) => module.data.extraSkills || [],
     "extra skill id",
+  );
+  const balanceProfiles = mergeEntityArrays(
+    modules,
+    (module) => module.data.balanceProfiles || [],
+    "balance profile id",
   );
   restoreSharedSourceOrder(
     generated.values,
@@ -330,6 +355,7 @@ function composeNativeCatalog(
     mechanics,
     overrides,
     extraSkills: extras.values as Skill[],
+    balanceProfiles: balanceProfiles.values,
     skillHandlers: handlers,
     traits: traits.values,
     specializations: specializations.values,
@@ -357,6 +383,13 @@ function composeNativeCatalog(
     ...extras.owners,
   ]);
   const skillOwners = new Map<SkillId, string>();
+  // Skill ownership resolution priority:
+  //   1. specializationOnly explicit pin
+  //   2. Weapon-type skills always go to Core (shared by all specs)
+  //   3. Elite spec name on the skill
+  //   4. Module that contributed the skill (generated or extra)
+  //   5. Module that declared the skill's mechanics
+  //   6. Core as final fallback
   for (const skill of catalog.skills) {
     const explicit = exclusiveOwners.get(String(skill.id));
     const specialization = eliteNames.get(
@@ -384,6 +417,9 @@ function composeNativeCatalog(
       );
     }
   }
+  // Each handler must be owned by the same module as the skills that use it.
+  // Core handlers may serve skills in any module (since Core is the base layer),
+  // but a non-Core handler must not cross into another module's skills.
   for (const [handlerId, owner] of handlerOwners) {
     const referencedOwners = new Set(
       catalog.skills
@@ -409,6 +445,8 @@ function composeNativeCatalog(
   for (const module of modules) {
     chainContributions.set(module.id, { additional: [], excludeSkillIds: [] });
   }
+  // Each autoattack chain must be entirely within one runtime module — a chain
+  // that spans Core and a spec module would be impossible to schedule correctly.
   for (const { owner: declarationOwner, chain } of additionalChains) {
     const owners = new Set(chain.map((skillId) => skillOwners.get(skillId)));
     if (owners.size !== 1 || owners.has(undefined)) {
@@ -460,6 +498,11 @@ function composeNativeCatalog(
             (skill) => skillOwners.get(skill.id) === module.id,
           ),
         ),
+        balanceProfiles: Object.freeze(
+          catalog.balanceProfiles.filter(
+            (profile) => balanceProfiles.owners.get(profile.id) === module.id,
+          ),
+        ),
         skillHandlers: moduleHandlers,
         traits: Object.freeze(
           catalog.traits.filter(
@@ -491,6 +534,10 @@ function composeNativeCatalog(
   return Object.freeze({ catalog, fragments, skillOwners });
 }
 
+// Caches assembled catalogs keyed by the first (Core) module so the expensive
+// composition step is only run once per unique combination of modules+options.
+// The WeakMap entry is tied to the Core module's lifetime, so cache entries are
+// automatically freed when the profession is garbage collected.
 export function getNativeCatalogAssembly(
   modules: readonly AnyNativeModule[],
   options: NativeCatalogOptions | undefined,

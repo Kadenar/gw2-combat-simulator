@@ -1,7 +1,5 @@
 import { renegadeState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT,
@@ -12,7 +10,7 @@ import {
   grantKallasFervor,
   isBandTogetherReady,
 } from "./renegade.js";
-import { RENEGADE_MECHANICS as MECHANICS } from "./mechanics.js";
+import { RENEGADE_PROFILE_IDS } from "./skills.js";
 import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import type {
   RevenantPrecastContext,
@@ -100,8 +98,15 @@ function applyCriticalTraits(
   ) {
     return;
   }
-  const profile = MECHANICS.renegade.endlessEnmity;
-  state.traitProcReadyAt.endlessEnmity = event.at + profile.interval;
+  const profile = context.catalog.balanceProfilesById.get(
+    RENEGADE_PROFILE_IDS.endlessEnmity,
+  );
+  const effect = profile?.effects?.find(
+    (candidate) => candidate.type === "boon",
+  );
+  if (!profile || !effect) return;
+  state.traitProcReadyAt.endlessEnmity =
+    event.at + Math.max(0, Number(profile.cooldown || 0));
   context.emitDerived(event, {
     type: "buff",
     at: event.at,
@@ -112,9 +117,13 @@ function applyCriticalTraits(
     skillName: "Endless Enmity",
     name: "Endless Enmity — fury",
     kind: "fury",
-    duration: scaledBoonDuration(context, "fury", profile.furyDuration),
-    stacks: 1,
-    recipients: "party",
+    duration: scaledBoonDuration(
+      context,
+      String(effect.boon || effect.kind || "fury"),
+      Number(effect.duration || 0),
+    ),
+    stacks: Number(effect.stacks || 1),
+    recipients: effect.recipients || "party",
   });
 }
 
@@ -130,7 +139,14 @@ function applyVindication(
   ) {
     return;
   }
-  const duration = MECHANICS.renegade.vindication.dazeDuration;
+  const profile = context.catalog.balanceProfilesById.get(
+    RENEGADE_PROFILE_IDS.vindication,
+  );
+  const effect = profile?.effects?.find(
+    (candidate) => candidate.type === "control",
+  );
+  if (!profile || !effect) return;
+  const duration = Number(effect.duration || effect.metadata?.duration || 0);
   context.emitDerived(event, {
     type: "control",
     at: event.at,
@@ -140,9 +156,10 @@ function applyVindication(
     skillId: TRAIT.VINDICATION,
     skillName: "Vindication",
     name: "Vindication — Daze",
-    controlKind: "daze",
+    ...(effect.metadata || {}),
+    controlKind: effect.metadata?.controlKind || "daze",
     duration,
-    breakbar: duration * 100,
+    breakbar: Number(effect.metadata?.breakbar ?? duration * 100),
   });
 }
 
@@ -159,12 +176,17 @@ function applyKallasFervorLifeSiphon(
   }
   // Name-based guard distinguishes Soulcleave's life-siphon packet from other flat-strike effects
   if (!/siphon/i.test(`${event.name || ""} ${event.skillName || ""}`)) return;
-  const stacks = activeKallasFervorStacks(renegadeState.from(context), event.at);
+  const stacks = activeKallasFervorStacks(
+    renegadeState.from(context),
+    event.at,
+  );
   if (!stacks) return;
-  const profile = MECHANICS.renegade.kallasFervor;
-  const perStack = hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
-    ? profile.improvedLifeSiphonDamagePerStack
-    : profile.lifeSiphonDamagePerStack;
+  const profile = context.catalog.balanceProfilesById.get(
+    hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
+      ? RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy
+      : RENEGADE_PROFILE_IDS.kallasFervor,
+  );
+  const perStack = Number(profile?.lifeSiphonDamagePerStack || 0);
   context.replaceEvent(event, {
     flatStrikeMultiplier:
       Number(event.flatStrikeMultiplier ?? 1) * (1 + stacks * perStack),
@@ -174,6 +196,15 @@ function applyKallasFervorLifeSiphon(
 export function initializeRenegadeTraits(
   context: RevenantSchedulerContext,
 ): void {
+  const fervorProfile = context.catalog.balanceProfilesById.get(
+    hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
+      ? RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy
+      : RENEGADE_PROFILE_IDS.kallasFervor,
+  );
+  renegadeState.from(context).kallasFervorMaximumStacks = Math.max(
+    1,
+    Number(fervorProfile?.maximumStacks || 1),
+  );
   if (
     hasRevenantTrait(context.config, TRAIT.AMBUSH_COMMANDER) ||
     hasRevenantTrait(context.config, TRAIT.ENDLESS_ENMITY)
@@ -192,9 +223,7 @@ export function handleRenegadeCriticalTraitsTask(
     (candidate) => candidate.__order === eventOrder,
   ) as RevenantSimulationEvent | undefined;
   if (!event) {
-    throw new Error(
-      `Missing Renegade critical event ${String(eventOrder)}.`,
-    );
+    throw new Error(`Missing Renegade critical event ${String(eventOrder)}.`);
   }
   applyCriticalTraits(context, event);
 }
@@ -205,7 +234,7 @@ export function modifyRenegadeCastDuration(
 ): number {
   // Empowered Band Together is instant-cast (0 duration) so no animation lane is reserved; normal summons keep their full cast time
   return context.skill?.handlerId === "revenant.band-together" &&
-      isBandTogetherReady(renegadeState.from(context), context.start)
+    isBandTogetherReady(renegadeState.from(context), context.start)
     ? 0
     : duration;
 }
@@ -215,14 +244,17 @@ export function modifyRenegadeRechargeDuration(
   duration: number,
 ): number {
   // All for One halves Band Together's recharge only when the empowered version was just used; checking the state here (before the window clears) is safe because the window was consumed in beforeEffects, which runs before the recharge hook fires
+  const allForOne = context.catalog.balanceProfilesById.get(
+    RENEGADE_PROFILE_IDS.allForOne,
+  );
   return context.skill?.handlerId === "revenant.band-together" &&
-      isBandTogetherReady(
-        renegadeState.from(context),
-        // context.start is preferred; context.at is the fallback for recharge-only contexts
-        Number(context.start ?? context.at),
-      ) &&
-      hasRevenantTrait(context.config, TRAIT.ALL_FOR_ONE)
-    ? duration * MECHANICS.renegade.allForOne.enhancedRechargeMultiplier
+    isBandTogetherReady(
+      renegadeState.from(context),
+      // context.start is preferred; context.at is the fallback for recharge-only contexts
+      Number(context.start ?? context.at),
+    ) &&
+    hasRevenantTrait(context.config, TRAIT.ALL_FOR_ONE)
+    ? duration * Math.max(0, Number(allForOne?.rechargeMultiplier ?? 1))
     : duration;
 }
 
@@ -236,12 +268,14 @@ export function observeRenegadeTraits(
     event.type === "buff" &&
     String(event.kind || "").toLowerCase() === "fury" &&
     hasRevenantTrait(context.config, TRAIT.BLOOD_FURY) &&
-    event.at + context.epsilon >= Number(
-      coreState.traitProcReadyAt.bloodFury || 0
-    )
+    event.at + context.epsilon >=
+      Number(coreState.traitProcReadyAt.bloodFury || 0)
   ) {
+    const profile = context.catalog.balanceProfilesById.get(
+      RENEGADE_PROFILE_IDS.bloodFury,
+    );
     coreState.traitProcReadyAt.bloodFury =
-      event.at + MECHANICS.renegade.bloodFury.interval;
+      event.at + Math.max(0, Number(profile?.cooldown || 0));
     grantKallasFervor(context, event, {
       sourceId: TRAIT.BLOOD_FURY,
       sourceName: "Blood Fury",
@@ -287,9 +321,15 @@ export function observeRenegadeTraits(
   ) {
     return;
   }
-  const profile = MECHANICS.bandTogether.razorclaw;
+  const profile = context.catalog.skillsById.get(
+    RENEGADE_PROFILE_IDS.razorclawsRageProc,
+  );
+  const effect = profile?.effects?.find(
+    (candidate) => candidate.type === "condition",
+  );
+  if (!profile || !effect) return;
   razorclaw.charges -= 1;
-  razorclaw.readyAt = event.at + profile.interval;
+  razorclaw.readyAt = event.at + Math.max(0, Number(profile.cooldown || 0));
   context.emitDerived(event, {
     type: "condition",
     at: event.at,
@@ -299,8 +339,8 @@ export function observeRenegadeTraits(
     skillId: ID.RAZORCLAWS_RAGE,
     skillName: "Razorclaw's Rage",
     name: "Razorclaw's Rage — Bleeding",
-    condition: "Bleeding",
-    stacks: 1,
-    duration: profile.bleedDuration,
+    condition: String(effect.condition || "Bleeding"),
+    stacks: Number(effect.stacks || 1),
+    duration: Number(effect.duration || 0),
   });
 }

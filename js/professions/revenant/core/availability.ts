@@ -1,7 +1,6 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { isLegalRevenantLegendId } from "../legend-rules.js";
 import { REVENANT_SKILL_IDS as ID } from "../data/ids.js";
-import { REVENANT_CORE_MECHANICS } from "./mechanics.js";
 import {
   effectiveRevenantEnergyCost,
   revenantEnduranceReadyAt,
@@ -10,12 +9,8 @@ import type {
   AvailabilityResult,
   SkillId,
 } from "../../../platform/engine/types.js";
-import type {
-  RevenantPrecastContext,
-  RevenantSkill,
-} from "../types.js";
+import type { RevenantPrecastContext, RevenantSkill } from "../types.js";
 
-const MECHANICS = REVENANT_CORE_MECHANICS;
 const UPKEEP_RELEASES = new Set<SkillId>([
   ID.RELEASE_HAMMERS,
   ID.RESIST_THE_DARKNESS,
@@ -43,7 +38,11 @@ export function revenantCastAvailability(
   const state = professionCoreState(context);
   const specialization = String(context.config.specialization || "Core");
   if (skill.id === ID.ABYSSAL_FIRE) {
-    return denyRevenantSkill(skill, "revenant.abyssal-fire-hidden", "use Abyssal Strike.");
+    return denyRevenantSkill(
+      skill,
+      "revenant.abyssal-fire-hidden",
+      "use Abyssal Strike.",
+    );
   }
   if (
     skill.id === ID.UNYIELDING_IMPACT &&
@@ -86,7 +85,11 @@ export function revenantCastAvailability(
         (legendId) => !isLegalRevenantLegendId(legendId, specialization),
       )
     ) {
-      return denyRevenantSkill(skill, "revenant.legend-pair", "select two legal legends.");
+      return denyRevenantSkill(
+        skill,
+        "revenant.legend-pair",
+        "select two legal legends.",
+      );
     }
     if (context.start < state.legendSwapReadyAt) {
       return denyRevenantSkill(
@@ -99,7 +102,7 @@ export function revenantCastAvailability(
     return { ready: true };
   }
   if (skill.id === -5) {
-    const cost = MECHANICS.endurance.dodgeCost;
+    const cost = Math.max(0, Number(skill.resourceCost || 0));
     return state.endurance + Number(context.epsilon || 0.0001) >= cost
       ? { ready: true }
       : denyRevenantSkill(

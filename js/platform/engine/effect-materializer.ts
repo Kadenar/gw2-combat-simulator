@@ -67,6 +67,17 @@ export function materializeSkillEffectApplications({
   const comboFieldMetadata = effect.comboFields
     ? { comboFields: effect.comboFields }
     : {};
+  const flatStrikeMetadata = {
+    ...(effect.flatDamage != null
+      ? { flatDamage: Number(effect.flatDamage) }
+      : {}),
+    ...(effect.flatStrikeBase != null
+      ? { flatStrikeBase: Number(effect.flatStrikeBase) }
+      : {}),
+    ...(effect.flatStrikePowerCoeff != null
+      ? { flatStrikePowerCoeff: Number(effect.flatStrikePowerCoeff) }
+      : {}),
+  };
 
   if (effect.type === "strike") {
     const ticks = Array.isArray(effect.ticks) ? effect.ticks : null;
@@ -105,6 +116,7 @@ export function materializeSkillEffectApplications({
             : {}),
           ...(effect.metadata || {}),
           ...(tick?.metadata || {}),
+          ...flatStrikeMetadata,
           ...comboMetadata,
           ...comboFieldMetadata,
           ...(tick?.comboFinishers
@@ -189,6 +201,9 @@ export function materializeSkillEffectApplications({
           ...baseEvent,
           at,
           type: effect.type,
+          ...(effect.duration != null
+            ? { duration: Number(effect.duration) }
+            : {}),
           applicationIndex,
           totalApplications: count,
           ...(effect.metadata || {}),
@@ -214,23 +229,33 @@ export function materializeSkillEffectApplications({
         ? { companionIds: effect.companionIds }
         : {}),
     };
-    applications.push({
-      at: firstAt,
-      event: {
-        ...baseEvent,
-        at: firstAt,
-        type: "buff",
-        kind: String(
-          effect.boon || effect.kind || effect.name || "",
-        ).toLowerCase(),
-        stacks: Math.max(1, Number(effect.stacks || 1)),
-        duration: Math.max(0, Number(statusDuration ?? effect.duration ?? 0)),
-        ...recipientMetadata,
-        ...(effect.metadata || {}),
-        ...comboMetadata,
-        ...comboFieldMetadata,
-      },
-    });
+    const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
+    const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
+    for (
+      let applicationIndex = 1;
+      applicationIndex <= count;
+      applicationIndex += 1
+    ) {
+      const at = firstAt + (applicationIndex - 1) * interval;
+      applications.push({
+        at,
+        event: {
+          ...baseEvent,
+          at,
+          type: "buff",
+          kind: String(
+            effect.boon || effect.kind || effect.name || "",
+          ).toLowerCase(),
+          stacks: Math.max(1, Number(effect.stacks || 1)),
+          duration: Math.max(0, Number(statusDuration ?? effect.duration ?? 0)),
+          ...(count > 1 ? { applicationIndex, totalApplications: count } : {}),
+          ...recipientMetadata,
+          ...(effect.metadata || {}),
+          ...comboMetadata,
+          ...comboFieldMetadata,
+        },
+      });
+    }
   } else if (effect.type === "custom") {
     const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
     const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;

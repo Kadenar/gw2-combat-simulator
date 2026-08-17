@@ -1,14 +1,16 @@
 import { renegadeState } from "./state.js";
+import { materializeSkillEffectApplications } from "../../../../platform/engine/effect-materializer.js";
 import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
-import { RENEGADE_MECHANICS as MECHANICS } from "./mechanics.js";
 import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
 import { hasRevenantTrait } from "../../core/state.js";
 import { activeKallasFervorStacks } from "./renegade.js";
+import { RENEGADE_PROFILE_IDS } from "./skills.js";
 import type {
+  BalanceProfile,
   SchedulerRecord,
   SkillId,
 } from "../../../../platform/engine/types.js";
@@ -31,16 +33,26 @@ function skillById(
   return context.helpers.skillsById?.get(id) as RevenantSkill | undefined;
 }
 
+function balanceProfileById(
+  context: RevenantResolverContext,
+  id: SkillId,
+): BalanceProfile | undefined {
+  return context.helpers.balanceProfilesById?.get(id);
+}
+
 function kallasFervorLifeSiphonMultiplier(
   context: RevenantResolverContext,
   at: number,
 ): number {
   const stacks = activeKallasFervorStacks(renegadeState.from(context), at);
   if (!stacks) return 1;
-  const profile = MECHANICS.renegade.kallasFervor;
-  const perStack = hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
-    ? profile.improvedLifeSiphonDamagePerStack
-    : profile.lifeSiphonDamagePerStack;
+  const profile = balanceProfileById(
+    context,
+    hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
+      ? RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy
+      : RENEGADE_PROFILE_IDS.kallasFervor,
+  );
+  const perStack = Number(profile?.lifeSiphonDamagePerStack || 0);
   return 1 + stacks * perStack;
 }
 
@@ -52,56 +64,49 @@ function reactToDamage(
   if (event.actorType !== "player" || !(Number(event.coefficient) > 0)) return;
   const active = activeSkillIds(context);
   const soulcleave = skillById(context, ID.SOULCLEAVES_SUMMIT);
+  const proc = skillById(context, RENEGADE_PROFILE_IDS.soulcleavesSummitProc);
   if (
     soulcleave &&
+    proc &&
     active.has(soulcleave.id) &&
     // Exclude Soulcleave's own events to prevent self-triggering
     event.skillId !== soulcleave.id &&
     event.at >=
       Number(professionCoreState(context).traitProcReadyAt.soulcleave || 0)
   ) {
-    const profile = MECHANICS.soulcleave;
     professionCoreState(context).traitProcReadyAt.soulcleave =
-      event.at + profile.interval;
-    enqueueOrdered(context.queue, {
-      type: "damage",
-      at: event.at,
-      name: "Soulcleave's Summit — Additional Strike",
-      skillName: "Soulcleave's Summit",
-      coefficient: profile.coefficient,
-      hits: 1,
-      hitIndex: 1,
-      totalHits: 1,
-      source: "revenant",
-      sourceId: soulcleave.id,
-      // actorType "effect" keeps this packet from re-triggering Soulcleave or critical-trait hooks
-      actorType: "effect",
-      skillId: soulcleave.id,
-      skillWeapon: "Unequipped",
-      triggeredBy: event.skillName,
-    });
-    enqueueOrdered(context.queue, {
-      type: "damage",
-      at: event.at,
-      name: "Soulcleave's Summit — Life Siphon",
-      skillName: "Soulcleave's Summit",
-      // coefficient 0 so the resolver uses only the flat-strike formula for healing-derived damage
-      coefficient: 0,
-      flatStrikeBase: profile.siphon.flatStrikeBase,
-      flatStrikePowerCoeff: profile.siphon.flatStrikePowerCoeff,
-      flatStrikeMultiplier: kallasFervorLifeSiphonMultiplier(context, event.at),
-      // Life Siphon cannot critically strike
-      noCrit: true,
-      hits: 1,
-      hitIndex: 1,
-      totalHits: 1,
-      source: "revenant",
-      sourceId: soulcleave.id,
-      actorType: "effect",
-      skillId: soulcleave.id,
-      skillWeapon: "Unequipped",
-      triggeredBy: event.skillName,
-    });
+      event.at + Math.max(0, Number(proc.cooldown || 0));
+    for (const effect of proc.effects || []) {
+      const applications = materializeSkillEffectApplications({
+        skill: proc,
+        effect,
+        start: event.at,
+        fullEnd: event.at,
+        baseEvent: {
+          source: "revenant",
+          sourceId: soulcleave.id,
+          actorType: effect.actorType || "effect",
+          skillId: soulcleave.id,
+          skillName: soulcleave.name,
+        },
+        skillWeaponFallback: "Unequipped",
+      });
+      for (const application of applications) {
+        enqueueOrdered(context.queue, {
+          ...application.event,
+          ...(Number(application.event.flatStrikeBase) ||
+          Number(application.event.flatStrikePowerCoeff)
+            ? {
+                flatStrikeMultiplier: kallasFervorLifeSiphonMultiplier(
+                  context,
+                  event.at,
+                ),
+              }
+            : {}),
+          triggeredBy: event.skillName,
+        } as RevenantResolverEvent);
+      }
+    }
   }
 }
 

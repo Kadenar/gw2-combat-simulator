@@ -9,12 +9,16 @@ import {
 } from "./rules.js";
 import { vindicatorState } from "./state.js";
 import { vindicatorUi } from "./ui.js";
-import { VINDICATOR_BASE_SKILL_MECHANICS } from "./skills.js";
+import {
+  VINDICATOR_BASE_SKILL_MECHANICS,
+  VINDICATOR_BALANCE_PROFILES,
+} from "./skills.js";
 
 export const vindicatorModule = defineNativeModule({
   id: "Vindicator",
   data: createRevenantModuleData("Vindicator", {
     skillMechanics: VINDICATOR_BASE_SKILL_MECHANICS,
+    balanceProfiles: VINDICATOR_BALANCE_PROFILES,
     handlers: vindicatorSkillHandlers,
   }),
   state: {
