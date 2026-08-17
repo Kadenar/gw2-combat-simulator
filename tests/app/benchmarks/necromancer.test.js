@@ -1,6 +1,6 @@
 import test from "node:test";
 
-import { assertManifestBenchmarks } from "./preset-benchmark.js";
+import { assertManifestRegressions } from "./preset-benchmark.js";
 
-test("Necromancer manifest benchmark DPS matches saved rotations", () =>
-  assertManifestBenchmarks("necromancer"));
+test("Necromancer presets load and stay within 1% DPS", () =>
+  assertManifestRegressions("necromancer"));

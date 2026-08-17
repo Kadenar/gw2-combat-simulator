@@ -93,84 +93,6 @@ function outOfModelReason(trait: CatalogEntity): string {
 }
 
 /** @param {CatalogEntity} trait */
-function implementedEvidence(trait: CatalogEntity): {
-  readonly file: string;
-  readonly name: string;
-} {
-  if (trait.specialization === "Dragonhunter") {
-    return {
-      file: "tests/professions/guardian/guardian.test.js",
-      name: "Dragonhunter traps and control traits apply their complete effects",
-    };
-  }
-  if (
-    [
-      "Inspired Virtue",
-      "Virtue of Resolution",
-      "Unscathed Contender",
-      "Inspiring Virtue",
-      "Indomitable Courage",
-    ].includes(trait.name)
-  ) {
-    return {
-      file: "tests/professions/guardian/guardian.test.js",
-      name: "Dragonhunter virtues apply tether, passive aegis, and virtue traits",
-    };
-  }
-  if (["Master of Consecrations", "Glacial Heart"].includes(trait.name)) {
-    return {
-      file: "tests/professions/guardian/guardian.test.js",
-      name: "Glacial Heart and Master of Consecrations replace their numeric effects",
-    };
-  }
-  if (trait.specialization === "Firebrand") {
-    return {
-      file: "tests/professions/guardian/guardian.test.js",
-      name: "Firebrand page exhaustion stows the tome and pages regenerate",
-    };
-  }
-  if (trait.specialization === "Willbender") {
-    return {
-      file: "tests/professions/guardian/guardian.test.js",
-      name: "Willbender virtues, flames, and trait triggers use their full mechanics",
-    };
-  }
-  if (trait.specialization === "Luminary") {
-    return {
-      file: "tests/professions/guardian/guardian.test.js",
-      name: "Luminary recharge traits alter the intended cooldown families",
-    };
-  }
-  if (
-    [
-      "Kindled Zeal",
-      "Zealous Blade",
-      "Radiant Power",
-      "Right-Hand Strength",
-      "Perfect Inscriptions",
-      "Stalwart Defender",
-      "Honorable Staff",
-      "Force of Will",
-      "Power of the Virtuous",
-      "Defender's Dogma",
-      "Imbued Haste",
-      "Searing Pact",
-      "Power for Power",
-      "Conceited Curate",
-      "Light's Gift",
-    ].includes(trait.name)
-  ) {
-    return {
-      file: "tests/professions/guardian/guardian.test.js",
-      name: "Guardian build attributes expose static Zeal and Radiance bonuses",
-    };
-  }
-  return {
-    file: "tests/professions/guardian/guardian.test.js",
-    name: "Zeal symbol traits emit their full profiles and stack damage",
-  };
-}
-
 const manifest = guardianCatalog.traits.map((trait) => {
   const implemented = IMPLEMENTED.has(trait.name);
   const status = implemented
@@ -189,7 +111,7 @@ const manifest = guardianCatalog.traits.map((trait) => {
         ...(implemented ? {} : { reason }),
       },
     ],
-    ...(implemented ? { tests: [implementedEvidence(trait)] } : { reason }),
+    ...(implemented ? {} : { reason }),
   };
 });
 

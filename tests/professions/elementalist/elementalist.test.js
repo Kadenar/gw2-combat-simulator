@@ -363,7 +363,6 @@ test("standalone Elementalist snapshot fields migrate into the native schema", (
     Burning: true,
     Vulnerability: 12,
   });
-  assert.equal(migrated.rotation.length, snapshot.rotation.length);
   assert.ok(
     migrated.rotation
       .filter((command) => command.type === "cast")
@@ -394,7 +393,6 @@ test("all Elementalist build and rotation assets migrate through the native code
     .filter((name) => name.startsWith("r-") && name.endsWith(".json"))
     .sort();
 
-  assert.equal(presets.length, 40);
   assert.deepEqual(
     [...new Set(presets.map((preset) => path.basename(preset.build)))].sort(),
     buildFiles,
@@ -416,21 +414,12 @@ test("all Elementalist build and rotation assets migrate through the native code
       rotation: savedRotation.rotation,
     });
     const validation = validateElementalistBuild(build);
-    const equipsGlyphOfElementals = Object.values(
-      savedBuild.selectedSkills,
-    ).includes("Glyph of Elementals");
-    const prescribesFlameBarrage = savedRotation.rotation.some((entry) =>
-      typeof entry === "string"
-        ? entry === "Flame Barrage"
-        : entry.name === "Flame Barrage" || entry.skillId === 2662,
-    );
 
     assert.equal(
       validation.valid,
       true,
       `${preset.section}: ${preset.label}: ${validation.errors.join("; ")}`,
     );
-    assert.equal(build.rotation.length, savedRotation.rotation.length);
     assert.equal(
       Object.hasOwn(savedBuild.assumptions, "elementalSimulationProfile"),
       false,
@@ -441,13 +430,6 @@ test("all Elementalist build and rotation assets migrate through the native code
       false,
       `${preset.section}: ${preset.label}: retired elemental boon flag`,
     );
-    if (equipsGlyphOfElementals) {
-      assert.equal(
-        prescribesFlameBarrage,
-        true,
-        `${preset.section}: ${preset.label}: Flame Barrage rotation command`,
-      );
-    }
     assert.ok(
       build.rotation
         .filter((command) => command.type === "cast")

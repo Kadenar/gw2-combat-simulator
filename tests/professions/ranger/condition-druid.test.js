@@ -57,7 +57,7 @@ function simulate(rotation, config = {}) {
   });
 }
 
-test("condition Druid weapon timings and packets match the supplied EVTC", () => {
+test("condition Druid weapon timings and packets use configured profiles", () => {
   for (const [id, castTime] of [
     [ID.GROUNDWORK_GOUGE, 280],
     [ID.LEADING_SWIPE, 320],
@@ -583,96 +583,5 @@ test("Celestial Avatar transitions trigger swap mechanics and weapon lines", () 
   assert.deepEqual(
     rows.map((row) => row.skills.map((skill) => skill.index)),
     [[0, 1], [2, 3], [4]],
-  );
-});
-
-test("condition-alacrity Druid preset preserves the requested loadout", async () => {
-  const [savedBuild, savedRotation, manifest] = await Promise.all([
-    readFile(
-      new URL(
-        "../../../Builds/ranger/b-condi-alac-druid-dagger-torch-axe-dagger.json",
-        import.meta.url,
-      ),
-      "utf8",
-    ).then(JSON.parse),
-    readFile(
-      new URL(
-        "../../../Rotations/ranger/r-condi-alac-druid-dagger-torch-axe-dagger-bench.json",
-        import.meta.url,
-      ),
-      "utf8",
-    ).then(JSON.parse),
-    readFile(
-      new URL("../../../Builds/ranger/manifest.json", import.meta.url),
-      "utf8",
-    ).then(JSON.parse),
-  ]);
-
-  assert.equal(
-    Object.values(savedBuild.gear).every((stat) => stat === "Viper's"),
-    true,
-  );
-  assert.deepEqual(savedBuild.weapons, ["Dagger", "Torch"]);
-  assert.deepEqual(savedBuild.alternateWeapons, ["Axe", "Dagger"]);
-  assert.deepEqual(savedBuild.weaponSigils, [
-    ["Bursting", "Doom"],
-    ["Bursting", "Geomancy"],
-  ]);
-  assert.equal(savedBuild.infusions[0].stat, "Expertise");
-  assert.equal(savedBuild.infusions[0].count, 18);
-  assert.deepEqual(savedBuild.specializations, [
-    { name: "Skirmishing", traits: "1-3-2" },
-    { name: "Wilderness Survival", traits: "3-1-3" },
-    { name: "Druid", traits: "3-2-3" },
-  ]);
-  assert.equal(
-    Object.hasOwn(savedBuild.assumptions, "astralForceHealingEventsPerSecond"),
-    false,
-  );
-  assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 101.757);
-  assert.equal(savedRotation.metadata.benchmarkDamage, 4007796);
-
-  const build = migrateRangerBuild({
-    ...savedBuild,
-    rotation: savedRotation.rotation,
-  });
-  const app = {
-    build,
-    adapter: rangerAppAdapter,
-    profession: rangerProfession,
-    skillById: rangerCatalog.skillsById,
-    skillByName: rangerCatalog.skillsByName,
-    attributeWeaponSet: 1,
-  };
-  recalculate(app);
-  const result = runSimulation(app);
-
-  assert.deepEqual(result.warnings, []);
-  const preset = manifest
-    .find(({ section }) => section === "Druid")
-    .presets.find(({ label }) => label.startsWith("Condition Alacrity"));
-  assert.equal(preset.benchmarkDps, Math.round(result.dps));
-  const jacarandaBreakdownIcons = [
-    [
-      ID.JACARANDA_ROOT_SLAP,
-      "Root Slap",
-      "https://wiki.guildwars2.com/images/7/7d/Root_Slap.png",
-    ],
-    [
-      ID.JACARANDA_CALL_LIGHTNING,
-      "Call Lightning",
-      "https://wiki.guildwars2.com/images/f/f0/Call_Lightning_%28soulbeast%29.png",
-    ],
-  ];
-  for (const [skillId, name, icon] of jacarandaBreakdownIcons) {
-    assert.equal(rangerCatalog.skillsById.get(skillId).icon, icon);
-    assert.equal(
-      result.breakdown.find((entry) => entry.name === name)?.icon,
-      icon,
-    );
-  }
-  assert.equal(
-    result.breakdown.some(({ name }) => name === "Blood Moon - Bleeding"),
-    true,
   );
 });

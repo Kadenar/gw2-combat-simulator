@@ -1,6 +1,6 @@
 import test from "node:test";
 
-import { assertManifestBenchmarks } from "./preset-benchmark.js";
+import { assertManifestRegressions } from "./preset-benchmark.js";
 
-test("Elementalist manifest benchmark DPS matches saved rotations", () =>
-  assertManifestBenchmarks("elementalist"));
+test("Elementalist presets load and stay within 1% DPS", () =>
+  assertManifestRegressions("elementalist"));

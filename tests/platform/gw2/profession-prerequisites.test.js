@@ -507,7 +507,7 @@ test("summon-targeted trait boons bypass disabled player boon sharing", () => {
   assert.equal(query.statsAt(1, summonEvent, runtime).power, 1060);
 });
 
-test("trait coverage validates complete, behavioral, mixed-effect manifests", () => {
+test("trait coverage validates complete mixed-effect implementation manifests", () => {
   const catalog = {
     traits: [
       { id: 1, name: "Mixed Trait" },
@@ -532,19 +532,12 @@ test("trait coverage validates complete, behavioral, mixed-effect manifests", ()
             reason: "Ally healing is outside the single-target damage model.",
           },
         ],
-        tests: [
-          {
-            file: "tests/fixture.test.js",
-            name: "mixed poisoned damage",
-          },
-        ],
         reason: null,
       },
       {
         traitId: 2,
         status: "out-of-model",
         effects: ["Revives and heals nearby allied players."],
-        tests: [],
         reason:
           "Ally healing and revival are not represented by the simulator.",
       },
@@ -557,7 +550,7 @@ test("trait coverage validates complete, behavioral, mixed-effect manifests", ()
   assert.equal(coverage[0].effects[1].status, "out-of-model");
 });
 
-test("trait coverage rejects gaps, unknown traits, names, and weak evidence", () => {
+test("trait coverage rejects gaps, unknown traits, names, and title evidence", () => {
   const catalog = { traits: [{ id: 1, name: "Known Trait" }] };
   assert.throws(
     () => validateTraitCoverageManifest(catalog, []),
@@ -570,12 +563,6 @@ test("trait coverage rejects gaps, unknown traits, names, and weak evidence", ()
           traitId: 2,
           status: "implemented",
           effects: ["Deals strike damage after using a tool-belt skill."],
-          tests: [
-            {
-              file: "tests/fixture.test.js",
-              name: "unknown trait",
-            },
-          ],
           reason: null,
         },
       ]),
@@ -588,12 +575,6 @@ test("trait coverage rejects gaps, unknown traits, names, and weak evidence", ()
           traitId: 1,
           status: "implemented",
           effects: ["Known Trait"],
-          tests: [
-            {
-              file: "tests/fixture.test.js",
-              name: "known trait",
-            },
-          ],
           reason: null,
         },
       ]),
@@ -606,11 +587,16 @@ test("trait coverage rejects gaps, unknown traits, names, and weak evidence", ()
           traitId: 1,
           status: "implemented",
           effects: ["Deals strike damage after using a tool-belt skill."],
-          tests: [],
+          tests: [
+            {
+              file: "tests/fixture.test.js",
+              name: "claimed behavior",
+            },
+          ],
           reason: null,
         },
       ]),
-    /behavioral test reference/,
+    /cannot use test-title evidence/,
   );
   assert.throws(
     () =>
@@ -619,7 +605,6 @@ test("trait coverage rejects gaps, unknown traits, names, and weak evidence", ()
           traitId: 1,
           status: "out-of-model",
           effects: ["Heals nearby allied players."],
-          tests: [],
           reason: "unsupported",
         },
       ]),

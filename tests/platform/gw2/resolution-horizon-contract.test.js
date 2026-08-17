@@ -486,7 +486,7 @@ test("production source and catalog data cannot declare event-owned horizons", (
   assert.deepEqual(violations, []);
 });
 
-test("saved rotations and benchmark tooling cannot select observation policy", () => {
+test("saved rotations and regression tooling cannot select observation policy", () => {
   const observationPolicyField = ["observation", "Policy"].join("");
   const violations = [];
   const visit = (entry) => {

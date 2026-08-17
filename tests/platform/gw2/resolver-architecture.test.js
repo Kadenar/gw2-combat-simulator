@@ -476,7 +476,7 @@ function assertEventTimes(actual, expected, message) {
   }
 }
 
-test("Phantasmal Swordsman follows the EVTC packet, bleed, and blade timeline", () => {
+test("Phantasmal Swordsman follows its packet, bleed, and blade timeline", () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
     ["Phantasmal Swordsman", { name: "__wait", waitMs: 7000 }],
@@ -538,7 +538,7 @@ test("Phantasmal Swordsman follows the EVTC packet, bleed, and blade timeline", 
   );
 });
 
-test("Thousand Cuts spreads its ten EVTC packets and Bloodsong triggers", () => {
+test("Thousand Cuts spreads ten packets and triggers Bloodsong", () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
     ["Thousand Cuts", { name: "__wait", waitMs: 6000 }],
@@ -583,7 +583,7 @@ test("Thousand Cuts spreads its ten EVTC packets and Bloodsong triggers", () => 
   assert.equal(result.endState.profession.resource, 2);
 });
 
-test("Unstable Bladestorm anchors its paired EVTC packets to cast start", () => {
+test("Unstable Bladestorm anchors paired packets to cast start", () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
     ["Unstable Bladestorm", { name: "__wait", waitMs: 6000 }],

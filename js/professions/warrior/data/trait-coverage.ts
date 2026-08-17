@@ -120,16 +120,7 @@ const manifest = warriorCatalog.traits.map((trait) => {
         ...(implemented ? {} : { reason }),
       },
     ],
-    ...(implemented
-      ? {
-          tests: [
-            {
-              file: "tests/professions/warrior/warrior.test.js",
-              name: "Warrior core and elite profession resources remain isolated",
-            },
-          ],
-        }
-      : { reason }),
+    ...(implemented ? {} : { reason }),
   };
 });
 

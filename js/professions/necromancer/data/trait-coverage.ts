@@ -140,67 +140,6 @@ const OUT_OF_MODEL_REASON_BY_NAME: Readonly<Record<string, string>> =
       "Ally condition removal on creature summons is outside the single-player target model.",
   });
 
-const EVIDENCE_BY_SPECIALIZATION: Readonly<Record<string, string>> =
-  Object.freeze({
-    Spite: "cross-specialization Necromancer trait triggers remain executable",
-    Curses: "requested Harbinger damage traits apply at their per-hit triggers",
-    "Death Magic":
-      "remaining outgoing Necromancer trait families affect combat state",
-    "Blood Magic":
-      "cross-specialization Necromancer trait triggers remain executable",
-    "Soul Reaping":
-      "signet passives and Soul Battery are profession-owned resources",
-    Reaper:
-      "Reaper traits reduce shroud cooldowns and ignore minion critical hits",
-    Scourge:
-      "Scourge barrier, shroud, and greater-shade traits trigger precisely",
-    Harbinger:
-      "current Harbinger grandmaster traits use their live PvE mechanics",
-    Ritualist:
-      "Ritualist live spirit packets retain independent ownership and cadence",
-  });
-
-const EVIDENCE_BY_TRAIT: Readonly<Record<string, string>> = Object.freeze({
-  "Barbed Precision":
-    "Barbed Precision uses centered deterministic expected procs",
-  "Lingering Curse":
-    "Lingering Curse increases scepter base duration beyond the stat cap",
-  "Master of Corruption":
-    "Blood Is Power and Plague Signet preserve transferred conditions",
-  "Plague Sending": "Plague Sending treats Scourge F5 as entering shroud",
-  Dhuumfire: "Dhuumfire uses the specialization duration split and Scourge ICD",
-  "Soul Barbs":
-    "Soul Barbs and Dark Gunslinger change their documented outputs",
-  "Dark Gunslinger":
-    "Soul Barbs and Dark Gunslinger change their documented outputs",
-  "Corrupted Talent":
-    "Corrupted Talent owns the Harbinger shroud-entry life-force gain",
-  "Death Perception":
-    "the Power Harbinger trait set uses current critical and resource rules",
-  "Wicked Corruption":
-    "the Power Harbinger trait set uses current critical and resource rules",
-  "Implacable Foe":
-    "the Power Harbinger trait set uses current critical and resource rules",
-  "Shroud Knight": "Reaper Shroud enforces its chain and four-percent drain",
-  "Mantle of Sand": "Scourge shades use ammo and shade skills spend life force",
-  "Dark Disciple": "Harbinger Shroud generates and consumes expiring blight",
-  "Spawning Power":
-    "Ritualist spirits attack, empower Essence Blast, and innervate",
-  "Charged Souls":
-    "Ritualist spirits attack, empower Essence Blast, and innervate",
-  "Lingering Spirits":
-    "Ritualist spirits attack, empower Essence Blast, and innervate",
-});
-
-function implementedEvidence(trait: CatalogEntity) {
-  return {
-    file: "tests/professions/necromancer/necromancer.test.js",
-    name:
-      EVIDENCE_BY_TRAIT[trait.name] ||
-      EVIDENCE_BY_SPECIALIZATION[String(trait.specialization || "")],
-  };
-}
-
 const manifest = necromancerCatalog.traits.map((trait) => {
   const implemented = IMPLEMENTED.has(trait.name);
   const status = implemented
@@ -224,7 +163,7 @@ const manifest = necromancerCatalog.traits.map((trait) => {
         ...(implemented ? {} : { reason }),
       },
     ],
-    ...(implemented ? { tests: [implementedEvidence(trait)] } : { reason }),
+    ...(implemented ? {} : { reason }),
   };
 });
 
