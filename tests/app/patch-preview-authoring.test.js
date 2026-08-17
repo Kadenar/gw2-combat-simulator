@@ -109,7 +109,9 @@ test("patch authoring omits unreachable skills for the remaining professions", (
   for (const unusedId of [14372, 14422, 14443, 30989, 39972, 62804]) {
     assert.equal(warriorIds.has(unusedId), false, String(unusedId));
   }
-  assert.equal(warriorIds.has(14353), true, "canonical Eviscerate");
+  for (const usedId of [14353, 30435, 69297, 69433]) {
+    assert.equal(warriorIds.has(usedId), true, String(usedId));
+  }
 
   const rangerIds = idsFor(rangerProfession);
   for (const unusedId of [42809, 59554, 64882, 67382]) {

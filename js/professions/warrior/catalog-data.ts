@@ -45,6 +45,12 @@ const WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS = new Set<SkillId>([
   44397, // Dissonance
   46044, // Magehunter Strike
 ]);
+// These duplicate-name records are addressed directly by live mechanics.
+const WARRIOR_AUTHORABLE_RUNTIME_ALIAS_IDS = new Set<SkillId>([
+  30435, // Berserk
+  69297, // Breaching Strike
+  69433, // Breaching Strike
+]);
 
 const allSkills: readonly Skill[] = Object.freeze([
   ...SKILLS.filter((skill) => !/^\(\(/.test(String(skill.name || ""))),
@@ -91,7 +97,8 @@ const generated: readonly Skill[] = Object.freeze(
       simulatorExcluded:
         canonicalId !== skill.id ||
         WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS.has(Number(skill.id)),
-      ...(canonicalId !== skill.id ||
+      ...((canonicalId !== skill.id &&
+        !WARRIOR_AUTHORABLE_RUNTIME_ALIAS_IDS.has(skill.id)) ||
       WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS.has(Number(skill.id)) ||
       WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS.has(skill.id)
         ? { patchAuthoringExcluded: true }
