@@ -56,7 +56,9 @@ const IMPLEMENTED: ReadonlySet<number> = new Set([
   TRAIT.SELF_DECEPTION,
   TRAIT.SHARPER_IMAGES,
   TRAIT.SHATTER_STORM,
+  TRAIT.SEIZE_THE_MOMENT,
   TRAIT.SHREDDING,
+  TRAIT.STRETCHED_TIME,
   TRAIT.SUPERIORITY_COMPLEX,
   TRAIT.SYNCOPATE,
   TRAIT.RACONTEUR,
@@ -69,9 +71,10 @@ const IMPLEMENTED: ReadonlySet<number> = new Set([
 const OUT_OF_MODEL_REASON =
   "This defensive, healing, ally-only, movement, incoming-hit, boon-support, or competitive-only effect does not change the deterministic single-target damage model.";
 
-function implementedEvidence(
-  trait: CatalogEntity,
-): { readonly file: string; readonly name: string } {
+function implementedEvidence(trait: CatalogEntity): {
+  readonly file: string;
+  readonly name: string;
+} {
   if (Number(trait.id) === TRAIT.MASTER_FENCER) {
     return {
       file: "tests/platform/gw2/resolver-architecture.test.js",

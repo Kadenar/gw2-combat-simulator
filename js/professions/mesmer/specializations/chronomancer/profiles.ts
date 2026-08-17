@@ -21,6 +21,8 @@ export const CHRONOMANCER_BALANCE_PROFILE_IDS = Object.freeze({
   dangerTime: TRAIT.DANGER_TIME,
   timeBomb: TRAIT.TIME_BOMB,
   illusionaryReversion: TRAIT.ILLUSIONARY_REVERSION,
+  stretchedTime: TRAIT.STRETCHED_TIME,
+  seizeTheMoment: TRAIT.SEIZE_THE_MOMENT,
   chronophantasma: TRAIT.CHRONOPHANTASMA,
 });
 
@@ -89,6 +91,32 @@ export const CHRONOMANCER_BALANCE_PROFILES: readonly BalanceProfile[] =
       "Illusionary Reversion",
       { threshold: 3, resourceGain: 1 },
     ),
+    trait(CHRONOMANCER_BALANCE_PROFILE_IDS.stretchedTime, "Stretched Time", {
+      durationPerTier: 1,
+      effects: [
+        {
+          type: "boon",
+          boon: "alacrity",
+          duration: 3,
+          stacks: 1,
+          recipients: "party",
+          maximumRecipients: 5,
+        },
+      ],
+    }),
+    trait(CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment, "Seize the Moment", {
+      durationPerTier: 1,
+      effects: [
+        {
+          type: "boon",
+          boon: "quickness",
+          duration: 3,
+          stacks: 1,
+          recipients: "party",
+          maximumRecipients: 5,
+        },
+      ],
+    }),
     trait(CHRONOMANCER_BALANCE_PROFILE_IDS.chronophantasma, "Chronophantasma", {
       damageMultiplier: 1.05,
     }),

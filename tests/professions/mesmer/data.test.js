@@ -125,6 +125,23 @@ test("Mesmer modules expose isolated balance-profile authoring", () => {
     10,
   );
   assert.equal(
+    profile("Chronomancer", CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment)
+      .patchableFields.durationPerTier,
+    1,
+  );
+  assert.deepEqual(
+    profile("Chronomancer", CHRONOMANCER_BALANCE_PROFILE_IDS.stretchedTime)
+      .profile.effects[0],
+    {
+      type: "boon",
+      boon: "alacrity",
+      duration: 3,
+      stacks: 1,
+      recipients: "party",
+      maximumRecipients: 5,
+    },
+  );
+  assert.equal(
     profile("Mirage", MIRAGE_BALANCE_PROFILE_IDS.imaginaryAxes).profile
       .effects[0].coefficient,
     1,
@@ -186,6 +203,16 @@ test("Mesmer modules expose isolated balance-profile authoring", () => {
       [CHRONOMANCER_BALANCE_PROFILE_IDS.dangerTime]: {
         fields: { durationMultiplier: { from: 10, to: 12 } },
       },
+      [CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment]: {
+        fields: { durationPerTier: { from: 1, to: 2 } },
+        effects: [
+          {
+            effectIndex: 0,
+            duration: { from: 3, to: 4 },
+            maximumRecipients: { from: 5, to: 10 },
+          },
+        ],
+      },
       [MIRAGE_BALANCE_PROFILE_IDS.imaginaryAxes]: {
         effects: [{ effectIndex: 0, coefficient: { from: 1, to: 1.1 } }],
       },
@@ -219,6 +246,25 @@ test("Mesmer modules expose isolated balance-profile authoring", () => {
     preview.balanceProfilesById.get(CHRONOMANCER_BALANCE_PROFILE_IDS.dangerTime)
       .durationMultiplier,
     12,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(
+      CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment,
+    ).durationPerTier,
+    2,
+  );
+  assert.deepEqual(
+    preview.balanceProfilesById.get(
+      CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment,
+    ).effects[0],
+    {
+      type: "boon",
+      boon: "quickness",
+      duration: 4,
+      stacks: 1,
+      recipients: "party",
+      maximumRecipients: 10,
+    },
   );
   assert.equal(
     preview.balanceProfilesById.get(VIRTUOSO_BALANCE_PROFILE_IDS.resources)

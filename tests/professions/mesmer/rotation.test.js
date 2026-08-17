@@ -6,6 +6,9 @@ import {
   createDefaultConfig,
   simulateMesmer,
 } from "../../helpers/mesmer-simulation.js";
+import { prepareSimulationConfig } from "../../../js/platform/engine/prepare-config.js";
+import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
+import { applyBalanceProfilePatch } from "../../../js/platform/gw2/skill-patch.js";
 import { chartValueAt } from "../../../js/platform/ui/charts.js";
 import {
   formatConcurrentTimelineBadge,
@@ -41,6 +44,7 @@ import {
 } from "../../../js/professions/mesmer/data/ids.js";
 import { mesmerCatalog } from "../../../js/professions/mesmer/catalog.js";
 import { mesmerProfession } from "../../../js/professions/mesmer/definition.js";
+import { CHRONOMANCER_BALANCE_PROFILE_IDS } from "../../../js/professions/mesmer/specializations/chronomancer/profiles.js";
 import { toApplicationBuild } from "../../../js/professions/mesmer/build.js";
 import {
   recalculate,
@@ -285,6 +289,117 @@ test("Master of Misdirection reduces shatter cooldowns by 15%", () => {
 
   assert.equal(result.steps[1].start, 2010);
   assert.equal(result.endState.cooldowns["Continuum Split"].readyAt, 61510);
+});
+
+test("Chronomancer shatter-boon traits count the mesmer and scale per shattered clone", () => {
+  const durationFor = (trait, kind, initialResource) => {
+    const result = simulateMesmer(
+      ["Split Second"],
+      defaultSimulationConfig({
+        specialization: "Chronomancer",
+        selectedTraits: [trait],
+        initialResource,
+        allies: { count: 4, strikesPerSecond: 1 },
+        boons: { quickness: false, alacrity: false },
+      }),
+    );
+    const boon = result.events.find(
+      (event) =>
+        event.type === "buff" &&
+        event.kind === kind &&
+        event.sourceSkill === "Split Second",
+    );
+    assert.ok(boon);
+    assert.equal(boon.stacks, 1);
+    assert.equal(boon.recipients, "party");
+    assert.equal(boon.maximumRecipients, 5);
+    assert.equal(boon.recipientCount, 5);
+    assert.ok(
+      result.procSteps.some(
+        (step) => step.skill === trait && step.sourceSkill === "Split Second",
+      ),
+    );
+    return boon.duration;
+  };
+
+  for (const [trait, kind] of [
+    ["Seize the Moment", "quickness"],
+    ["Stretched Time", "alacrity"],
+  ]) {
+    assert.deepEqual(
+      [0, 1, 2, 3].map((clones) => durationFor(trait, kind, clones)),
+      [4, 5, 6, 7],
+    );
+  }
+});
+
+test("Chronomancer shatter boons use boon duration and include Continuum Split", () => {
+  const result = simulateMesmer(
+    [{ name: "__wait", waitMs: 2010 }, "Continuum Split"],
+    defaultSimulationConfig({
+      specialization: "Chronomancer",
+      selectedTraits: ["Seize the Moment"],
+      initialResource: 1,
+      stats: { concentration: 750 },
+      boons: { quickness: false, alacrity: false },
+    }),
+  );
+  const quickness = result.events.find(
+    (event) =>
+      event.type === "buff" &&
+      event.kind === "quickness" &&
+      event.sourceSkill === "Continuum Split",
+  );
+
+  assert.ok(quickness);
+  assert.equal(quickness.duration, 7.5);
+});
+
+test("Chronomancer shatter boons consume patched balance-profile values", () => {
+  const profession = {
+    resolveRuntime(config) {
+      const runtime = mesmerProfession.resolveRuntime(config);
+      return {
+        ...runtime,
+        catalog: applyBalanceProfilePatch(runtime.catalog, {
+          balanceProfiles: {
+            [CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment]: {
+              fields: { durationPerTier: { from: 1, to: 2 } },
+              effects: [
+                {
+                  effectIndex: 0,
+                  duration: { from: 3, to: 4 },
+                  maximumRecipients: { from: 5, to: 10 },
+                },
+              ],
+            },
+          },
+        }),
+      };
+    },
+  };
+  const config = prepareSimulationConfig(
+    createDefaultConfig(),
+    defaultSimulationConfig({
+      specialization: "Chronomancer",
+      selectedTraits: ["Seize the Moment"],
+      initialResource: 2,
+      boons: { quickness: false, alacrity: false },
+    }),
+    { duration: 600 },
+  );
+  const result = simulateGw2({
+    profession,
+    rotation: ["Split Second"],
+    config,
+  });
+  const quickness = result.events.find(
+    (event) => event.type === "buff" && event.kind === "quickness",
+  );
+
+  assert.ok(quickness);
+  assert.equal(quickness.duration, 10);
+  assert.equal(quickness.maximumRecipients, 10);
 });
 
 test("Fencer's Finesse reduces sword skill cooldowns by 20%", () => {
