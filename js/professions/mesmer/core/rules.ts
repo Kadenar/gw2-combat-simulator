@@ -419,6 +419,13 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
     byId: (id) => skillsById.get(id),
     traitDamage: runtime.traitDamage,
     balanceProfile: runtime.balanceProfile,
+    boonDuration: (sourceId, sourceName, effect, duration) =>
+      context.schedulerPolicy.effectDuration?.(
+        context,
+        { id: sourceId, name: sourceName },
+        effect,
+        duration,
+      ) ?? duration,
   });
   const continuum = {
     beginContinuumSplit: () => undefined,
