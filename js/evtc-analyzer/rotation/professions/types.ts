@@ -37,6 +37,8 @@ export interface EvtcProfessionReconstructionContext {
   readonly recordedActions: readonly EvtcRecordedRotationAction[];
   readonly selectedSkillNames?: readonly string[];
   readonly selectedSkillIds?: readonly number[];
+  readonly professionConfig?: Readonly<Record<string, unknown>>;
+  readonly timelineOriginMs: number;
 }
 
 export type EvtcProfessionActionReconstructor = (

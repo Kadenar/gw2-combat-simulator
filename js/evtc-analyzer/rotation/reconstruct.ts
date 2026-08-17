@@ -66,6 +66,7 @@ export interface EvtcRotationOptions {
   readonly inferInstantCasts?: boolean;
   readonly selectedSkillNames?: readonly string[];
   readonly selectedSkillIds?: readonly number[];
+  readonly professionConfig?: Readonly<Record<string, unknown>>;
 }
 
 type RecordedAction = EvtcRecordedRotationAction;
@@ -1021,6 +1022,11 @@ export function reconstructWithProfile(
     recordedActions: genericActions,
     selectedSkillNames: options.selectedSkillNames,
     selectedSkillIds: options.selectedSkillIds,
+    professionConfig: options.professionConfig,
+    timelineOriginMs: Math.min(
+      ...genericActions.map((action) => action.start),
+      combatStart == null ? Number.POSITIVE_INFINITY : combatStart,
+    ),
   };
   const professionActions = reconcileCastEffectPackets(
     professionContext,

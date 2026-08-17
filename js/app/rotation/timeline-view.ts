@@ -46,6 +46,7 @@ import {
 } from "./double-edge.js";
 import { formatTimelineTime, resultCombatReferenceMs } from "./result-model.js";
 import {
+  automaticTomeStowTimelineMarkers,
   continuumEndTimelineMarkers,
   groupConsecutiveProcSteps,
   procBadgeLabel,
@@ -82,6 +83,7 @@ type TimelineItem = SchedulerRecord & {
   waitMs?: unknown;
 };
 
+// Normalizes legacy string rotation entries (bare skill names) into object shape.
 function timelineItem(
   entry: LegacyRotationItem | SchedulerRecord,
 ): TimelineItem {
@@ -91,6 +93,8 @@ function timelineItem(
   return { name: String(entry || "") };
 }
 
+// Merges new proc keys into the visible set. New procs auto-show; previously
+// hidden procs stay hidden; procs that disappeared are dropped.
 export function syncProcVisibility(
   app: ProfessionAppState,
   procSteps: readonly Gw2ProcStep[],
@@ -108,6 +112,12 @@ export function syncProcVisibility(
   return app.procVisibility as Set<string>;
 }
 
+// Shared editor for two distinct duration fields:
+//   offset  — ms from start of preceding cast to start this cast (concurrent/overlapping skills)
+//   waitMs  — explicit idle gap inserted between skills
+// Anchor falls back to a DOM query so the editor can be opened programmatically (e.g. keyboard).
+// onApply re-reads the rotation entry rather than closing over `entry` to guard against
+// rotation mutations between the editor opening and the user confirming.
 function editRotationDuration(
   app: ProfessionAppState,
   index: number,
@@ -150,6 +160,10 @@ function editRotationDuration(
   return false;
 }
 
+// Dragon Slash variants accumulate charges before releasing; this editor sets the
+// charge threshold at which the skill fires. releaseAtCharges == null means "wait
+// for maximum charges" (the default). insertionIndex lets the editor know where in
+// the rotation this cast falls so it can show available charge counts in context.
 function editReleaseAtCharges(
   app: ProfessionAppState,
   index: number,
@@ -186,6 +200,13 @@ function editReleaseAtCharges(
   return false;
 }
 
+// "Activation" here means cast behavior: how long the skill runs before it's
+// interrupted (early-cancelled to skip the aftercast). fullCastMs comes from the
+// simulation result because traits/haste can extend the catalog cast time; falls
+// back to catalog value when no sim result exists yet. The anchor is the whole
+// .rot-skill card rather than the edit button so the popover positions correctly.
+// interruptMs null → no interrupt configured; onApply passes undefined (not null)
+// to remove the field from the rotation entry cleanly.
 function editRotationActivation(
   app: ProfessionAppState,
   index: number,
@@ -236,6 +257,9 @@ function editRotationActivation(
   return false;
 }
 
+// Double Edge is a warrior skill with a random success/backfire outcome in-game;
+// the sim lets users pin the outcome so benchmarks are deterministic. Defaults to
+// "success" for any value other than the explicit "backfire" string, including unset.
 function editDoubleEdgeOutcome(
   app: ProfessionAppState,
   index: number,
@@ -376,6 +400,7 @@ function timelineInteractionOptions(
 }
 
 export function renderTimeline(app: ProfessionAppState): void {
+  // Close any open popover editors — their anchors are about to be replaced by innerHTML.
   closeActivationEditor();
   closeChargeReleaseEditor();
   closeDoubleEdgeEditor();
@@ -386,6 +411,7 @@ export function renderTimeline(app: ProfessionAppState): void {
   const procPanel =
     procElement?.querySelector<HTMLDetailsElement>(".rotation-procs-wrap") ||
     null;
+  // Capture open state before innerHTML wipes the element, so the panel stays open after re-render.
   const procPanelWasOpen = procPanel?.open ?? false;
   element.ondragover = null;
   element.ondragleave = null;
@@ -420,11 +446,20 @@ export function renderTimeline(app: ProfessionAppState): void {
   }
   element.classList.remove("is-empty");
   const resultSteps = app.results?.steps || [];
+  // ri < 0 marks injected/synthetic steps (e.g. auto-attacks) not tied to a rotation entry.
   const steps = new Map<number, SchedulerStep>(
     resultSteps.filter((step) => step.ri >= 0).map((step) => [step.ri, step]),
   );
   const castOrdinals = timelineSkillCastOrdinals(resultSteps);
   const resourceSpends = shatterResourceSpends(app.results);
+  const automaticTomeStows = automaticTomeStowTimelineMarkers(
+    app.results,
+    app.build.rotation.length,
+  );
+  // Tome stow indexes act as weapon-row boundaries — the tome weapon line ends when pages run out.
+  const automaticTomeStowIndexes = new Set(
+    automaticTomeStows.map((marker) => marker.insertionIndex),
+  );
   const startingWeaponSet = app.build.startingWeaponSet;
   const specialization = activeSpecialization(app);
   const startingWeaponLine =
@@ -441,6 +476,7 @@ export function renderTimeline(app: ProfessionAppState): void {
     weaponSwapChangesSet:
       app.profession.ui.weaponSwapChangesSet !== false &&
       Boolean(app.build.alternateWeapons?.[0]),
+    weaponLineEndIndexes: automaticTomeStowIndexes,
     weaponLineTransition: (entry, current) => {
       const item = timelineItem(entry);
       const skill = resolveEntrySkill(app, item);
@@ -505,6 +541,15 @@ export function renderTimeline(app: ProfessionAppState): void {
     markers.push(marker);
     continuumEndsByIndex.set(marker.insertionIndex, markers);
   }
+  const automaticTomeStowsByIndex = new Map<
+    number,
+    typeof automaticTomeStows
+  >();
+  for (const marker of automaticTomeStows) {
+    const markers = automaticTomeStowsByIndex.get(marker.insertionIndex) || [];
+    markers.push(marker);
+    automaticTomeStowsByIndex.set(marker.insertionIndex, markers);
+  }
   const targetThresholds =
     app.profession.ui.targetHealthThresholds?.({
       specialization: activeSpecialization(app),
@@ -535,6 +580,26 @@ export function renderTimeline(app: ProfessionAppState): void {
     return `<div class="rot-skill rot-injected" title="${esc(detail)}"
             style="--att-border:#d6b46b">
             <img src="${esc(ACTION_ICONS["Continuum Shift"])}" alt="" />
+            <span class="rot-injected-badge">AUTO</span>
+            <span class="rot-time">${time}</span>
+        </div>`;
+  };
+  const renderAutomaticTomeStow = (
+    marker: (typeof automaticTomeStows)[number],
+  ): string => {
+    const time = formatTime(marker.start);
+    const detail = [
+      "Stow Tome",
+      `Tome closed automatically at ${time}`,
+      "No tome pages remaining",
+    ].join("\n");
+    const icon =
+      app.activeCatalog.skillsByName.get("Stow Tome")?.icon ||
+      ACTION_ICONS["Stow Tome"] ||
+      PLACEHOLDER_ICON;
+    return `<div class="rot-skill rot-injected" title="${esc(detail)}"
+            style="--att-border:#d6b46b">
+            <img src="${esc(icon)}" alt="" />
             <span class="rot-injected-badge">AUTO</span>
             <span class="rot-time">${time}</span>
         </div>`;
@@ -639,6 +704,9 @@ export function renderTimeline(app: ProfessionAppState): void {
         for (const marker of continuumEndsByIndex.get(index) || []) {
           rowItems.push(renderContinuumEnd(marker));
         }
+        for (const marker of automaticTomeStowsByIndex.get(index) || []) {
+          rowItems.push(renderAutomaticTomeStow(marker));
+        }
         const item = timelineItem(entry);
         const highlightKey = rotationSkillHighlightKey(entry);
         const skill = resolveEntrySkill(app, item);
@@ -676,6 +744,7 @@ export function renderTimeline(app: ProfessionAppState): void {
         const resourceSingular = resourceSpend?.resource.endsWith("s")
           ? resourceSpend.resource.slice(0, -1)
           : resourceSpend?.resource;
+        // Blades and notes are consumed on cast end (when the hit lands); other resources on cast start.
         const resourceSpendTiming =
           resourceSpend?.resource === "blades" ||
           resourceSpend?.resource === "notes"
@@ -710,6 +779,7 @@ export function renderTimeline(app: ProfessionAppState): void {
         const actualCharges = Number(
           dragonOutcome?.chargesReached ?? dragonOutcome?.count,
         );
+        // Mismatch means the sim ran out of flow before reaching the requested charge count.
         const chargeMismatch =
           Boolean(dragonOutcome) &&
           Number.isFinite(requestedCharges) &&
@@ -764,6 +834,7 @@ export function renderTimeline(app: ProfessionAppState): void {
         const fullCastMs = Math.round(
           Number(step?.fullCastMs) || catalogCastMs,
         );
+        // Show the edit button only if there is something to configure (instant skills have nothing to interrupt).
         const canEditActivation =
           item.interruptMs != null || fullCastMs > 0 || catalogCastMs > 0;
         rowItems.push(
@@ -818,6 +889,7 @@ export function renderTimeline(app: ProfessionAppState): void {
           ),
         );
       });
+      // Trailing markers (insertionIndex === rotation.length) belong after the last skill in the last row.
       if (rowNumber === rows.length - 1) {
         for (const marker of overlayProcMarkersByIndex.get(
           app.build.rotation.length,
@@ -839,6 +911,11 @@ export function renderTimeline(app: ProfessionAppState): void {
           app.build.rotation.length,
         ) || []) {
           rowItems.push(renderContinuumEnd(marker));
+        }
+        for (const marker of automaticTomeStowsByIndex.get(
+          app.build.rotation.length,
+        ) || []) {
+          rowItems.push(renderAutomaticTomeStow(marker));
         }
       }
       const skills = rowItems.join("");
@@ -1006,6 +1083,8 @@ export function renderTimeline(app: ProfessionAppState): void {
     procFilter.addEventListener("toggle", () => {
       app.procFilterOpen = procFilter.open;
     });
+    // Proc filter toggles update DOM visibility directly rather than re-rendering,
+    // keeping the panel open and avoiding an expensive full timeline rebuild.
     procFilter.querySelectorAll("input[data-proc-key]").forEach((input) => {
       if (!(input instanceof HTMLInputElement)) return;
       input.addEventListener("change", () => {
