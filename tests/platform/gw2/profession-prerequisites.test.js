@@ -210,6 +210,22 @@ test("timeline indexes buff stacks by kind and summon audience", () => {
         affectsSelf: false,
         affectsSummons: true,
       },
+      {
+        type: "buff",
+        at: 0,
+        source: "Player",
+        sourceId: "quickness-one",
+        kind: "quickness",
+        duration: 2,
+      },
+      {
+        type: "buff",
+        at: 1,
+        source: "Trait",
+        sourceId: "quickness-two",
+        kind: "quickness",
+        duration: 2,
+      },
     ],
   });
 
@@ -226,6 +242,8 @@ test("timeline indexes buff stacks by kind and summon audience", () => {
   assert.equal(timeline.buffStacksAt("might", 1, 0, 25, "summon-trait"), 7);
   assert.equal(timeline.buffStacksAt("might", 1, 0, 5), 5);
   assert.equal(timeline.buffStacksAt("might", 2, 0, 25), 0);
+  assert.equal(timeline.buffStacksAt("quickness", 3.5, 0, 1), 1);
+  assert.equal(timeline.buffStacksAt("quickness", 4, 0, 1), 0);
 });
 
 test("effective boon queries replace scheduled buffs with runtime state", () => {

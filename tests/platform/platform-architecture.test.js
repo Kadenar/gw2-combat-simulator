@@ -1405,6 +1405,67 @@ test("GW2 Quickness quantizes casts and scales explicit cast timing", () => {
   });
 });
 
+test("GW2 duration-stacks Quickness and Alacrity from repeated grants", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 930024,
+        name: "Grant Quickness",
+        castTimeMs: 0,
+        effects: [boon("Quickness", 2)],
+      },
+      {
+        id: 930025,
+        name: "Grant Alacrity",
+        castTimeMs: 0,
+        effects: [boon("Alacrity", 2)],
+      },
+      {
+        id: 930026,
+        name: "Stacked Quickness Cast",
+        castTimeMs: 600,
+        effects: [],
+      },
+      {
+        id: 930027,
+        name: "Stacked Alacrity Cooldown",
+        castTimeMs: 0,
+        cooldown: 10,
+        effects: [],
+      },
+    ],
+  });
+  const profession = defineProfession({
+    id: "duration-stacking-boon-fixture",
+    name: "Duration Stacking Boon Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [
+      "Grant Quickness",
+      "Grant Alacrity",
+      { type: "wait", durationMs: 1000 },
+      "Grant Quickness",
+      "Grant Alacrity",
+      { type: "wait", durationMs: 2000 },
+      "Stacked Quickness Cast",
+      "Stacked Alacrity Cooldown",
+    ],
+  });
+  const quicknessAction = result.events.find(
+    (event) =>
+      event.type === "action" && event.skillName === "Stacked Quickness Cast",
+  );
+
+  assert.equal(quicknessAction.at, 3);
+  assert.equal(quicknessAction.endsAt, 3.4);
+  assert.equal(
+    result.endState.cooldowns["Stacked Alacrity Cooldown"].readyAt,
+    11400,
+  );
+});
+
 test("GW2 declarative policy enforces active weapons and skill weapon strength", () => {
   const catalog = createCanonicalCatalog({
     generated: [

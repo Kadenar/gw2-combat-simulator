@@ -1,4 +1,5 @@
 import type { Gw2SimulationResult } from "../../platform/gw2/types.js";
+import { GW2_BOON_DURATION_CAP_SECONDS } from "../../platform/gw2/boon-state.js";
 import {
   buildChartSeries as buildSharedChartSeries,
   chartValueAt,
@@ -43,7 +44,6 @@ const RADIANT_ARMAMENT_NAMES: Readonly<Record<string, string>> = {
 const EFFECT_STACK_CAPS: Readonly<Record<string, number>> = {
   Might: 25,
   Vulnerability: 25,
-  Quickness: 1,
   "Kalla's Fervor": 5,
   "Compounding Power": 5,
   "Soul Barbs": 1,
@@ -57,6 +57,11 @@ const EFFECT_STACK_CAPS: Readonly<Record<string, number>> = {
   "Radiant Armaments (Sword)": 1,
   "Radiant Armaments (Shield)": 1,
   Berserk: 1,
+};
+
+const DURATION_STACK_CAPS: Readonly<Record<string, number>> = {
+  Quickness: GW2_BOON_DURATION_CAP_SECONDS,
+  Alacrity: GW2_BOON_DURATION_CAP_SECONDS,
 };
 
 export function resultSummaryMetrics(result: Gw2SimulationResult) {
@@ -137,6 +142,7 @@ export function buildChartSeries(
     replacementGroup: (kind) =>
       kind === "guardian-radiant-armaments" ? String(kind) : "",
     stackCaps: EFFECT_STACK_CAPS,
+    durationStackCaps: DURATION_STACK_CAPS,
   });
 }
 

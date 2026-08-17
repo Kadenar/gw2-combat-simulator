@@ -2,6 +2,7 @@ import {
   afterSkillEffects,
   defineNativeModule,
   onBuffApplied,
+  onComboResolved,
   onResolvedDamage,
 } from "../../../../platform/gw2/native-profession.js";
 import { createEngineerModuleData } from "../../catalog-data.js";
@@ -31,6 +32,9 @@ export const scrapperModule = defineNativeModule({
     // afterSkillEffects runs after all skill effects are emitted, allowing trait buffs
     // to observe the completed cast (e.g. superspeed emitted at effectiveEnd).
     castLifecycle: [afterSkillEffects(scrapperSchedulerHooks.afterCast)],
+    schedulerHooks: {
+      onEventScheduled: scrapperSchedulerHooks.onEventScheduled,
+    },
     reactions: [
       onResolvedDamage({
         id: "engineer.scrapper.damage",
@@ -39,6 +43,10 @@ export const scrapperModule = defineNativeModule({
       onBuffApplied({
         id: "engineer.scrapper.buff",
         handler: scrapperResolverEventReactions.buff,
+      }),
+      onComboResolved({
+        id: "engineer.scrapper.kinetic-accelerators",
+        handler: scrapperResolverEventReactions.combo,
       }),
     ],
     resolverHooks: {

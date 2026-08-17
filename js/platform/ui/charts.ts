@@ -1,4 +1,5 @@
 import type { Gw2ResolverEvent, Gw2ResolverResult } from "../gw2/types.js";
+import { remainingDurationStackSeconds } from "../gw2/boon-state.js";
 import { escapeHtml } from "./html.js";
 
 export interface ChartPoint {
@@ -10,6 +11,7 @@ export interface ChartSeries {
   readonly durationMs: number;
   readonly dps: readonly ChartPoint[];
   readonly effects: Readonly<Record<string, readonly ChartPoint[]>>;
+  readonly effectUnits?: Readonly<Record<string, string>>;
   readonly cumulativeDamage?: readonly ChartPoint[];
 }
 
@@ -37,6 +39,15 @@ export interface BuildChartSeriesOptions {
     event: Gw2ResolverEvent,
   ) => string;
   readonly stackCaps?: Readonly<Record<string, number>>;
+  readonly durationStackCaps?: Readonly<Record<string, number>>;
+}
+
+interface ChartEffectApplication {
+  readonly name: string;
+  readonly start: number;
+  readonly end: number;
+  readonly stacks: number;
+  readonly replacementGroup: string;
 }
 
 interface ChartLine {
@@ -117,6 +128,7 @@ export function buildChartSeries(
     effectName = (value) => String(value || ""),
     replacementGroup = () => "",
     stackCaps = {},
+    durationStackCaps = {},
   }: BuildChartSeriesOptions = {},
 ): ChartSeries {
   // Chart time is relative to the DPS window, while simulation events use
@@ -167,13 +179,7 @@ export function buildChartSeries(
     }
     return { t: time, v: damage / elapsed };
   });
-  const applications: Array<{
-    name: string;
-    start: number;
-    end: number;
-    stacks: number;
-    replacementGroup: string;
-  }> = [];
+  const applications: ChartEffectApplication[] = [];
   // Convert conditions and buffs to half-open [start, end) stack intervals.
   for (const event of resolved) {
     if (event.type !== "condition") continue;
@@ -215,8 +221,23 @@ export function buildChartSeries(
   }
   const effects: Record<string, ChartPoint[]> = {};
   for (const name of new Set(applications.map((entry) => entry.name))) {
-    const matching = applications.filter((entry) => entry.name === name);
+    const matching = applications
+      .filter((entry) => entry.name === name)
+      .sort((left, right) => left.start - right.start);
+    const durationApplications = matching.map((entry) => ({
+      at: entry.start / 1000,
+      duration: (entry.end - entry.start) / 1000,
+      stacks: entry.stacks,
+    }));
     effects[name] = times.map((time) => {
+      if (durationStackCaps[name] != null) {
+        return {
+          t: time,
+          v: remainingDurationStackSeconds(durationApplications, time / 1000, {
+            maximum: durationStackCaps[name],
+          }),
+        };
+      }
       const activeReplacements = new Map<
         string,
         (typeof applications)[number]
@@ -255,6 +276,9 @@ export function buildChartSeries(
     durationMs,
     dps,
     effects,
+    effectUnits: Object.fromEntries(
+      Object.keys(durationStackCaps).map((name) => [name, "s"]),
+    ),
     cumulativeDamage,
   };
 }
@@ -664,7 +688,7 @@ function chartHtml(
           (name, index) => `<label>
         <input type="checkbox" data-series="${escapeHtml(name)}" ${index < options.defaultVisibleEffectLimit ? "checked" : ""} />
         <span class="swatch" style="background:${escapeHtml(options.colors[name] || fallbackColor(index))}"></span>
-        ${escapeHtml(name)}
+        ${escapeHtml(`${name}${series.effectUnits?.[name] ? ` (${series.effectUnits[name]})` : ""}`)}
       </label>`,
         )
         .join("")}
@@ -726,6 +750,7 @@ export function mountTimeSeriesCharts(
     durationMs: Math.max(1, Number(series?.durationMs || 0)),
     dps: resolvedDps,
     effects: series?.effects || {},
+    effectUnits: series?.effectUnits || {},
     cumulativeDamage:
       series?.cumulativeDamage ||
       resolvedDps.map((point) => ({
@@ -896,17 +921,23 @@ export function mountTimeSeriesCharts(
           `<div>${escapeHtml(resolvedOptions.dpsLabel)}: ${dps.toLocaleString()}</div>`;
       } else {
         const entries = chartState.effectLines
-          .map((line) => ({
-            name: line.name,
-            value: Math.round(chartValueAt(line.points, time)),
-          }))
+          .map((line) => {
+            const value = chartValueAt(line.points, time);
+            return {
+              name: line.name,
+              value,
+              displayValue: resolvedSeries.effectUnits?.[line.name]
+                ? `${Number(value.toFixed(2))}${resolvedSeries.effectUnits[line.name]}`
+                : String(Math.round(value)),
+            };
+          })
           .filter((entry) => entry.value > 0)
           .sort((a, b) => b.value - a.value);
         body = entries.length
           ? entries
               .map(
                 (entry) =>
-                  `<div>${escapeHtml(entry.name)}: ${entry.value}</div>`,
+                  `<div>${escapeHtml(entry.name)}: ${escapeHtml(entry.displayValue)}</div>`,
               )
               .join("")
           : "<div>No visible stack effects</div>";

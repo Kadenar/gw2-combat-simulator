@@ -10,7 +10,10 @@ import {
 import { weaponSetLabelVisible } from "../../../js/app/build/skills-panel.js";
 import { simulationEventLogRows } from "../../../js/app/rotation/event-log.js";
 import { renderPalette } from "../../../js/app/rotation/palette-view.js";
-import { skillBreakdownRows } from "../../../js/app/rotation/result-model.js";
+import {
+  buildChartSeries,
+  skillBreakdownRows,
+} from "../../../js/app/rotation/result-model.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import {
   createEngineerBuildDefaults,
@@ -29,6 +32,8 @@ import {
 import { ENGINEER_SKILL_MECHANICS } from "../../../js/professions/engineer/mechanics/skill-mechanics.js";
 import { engineerProfession } from "../../../js/professions/engineer/definition.js";
 import { engineerMechAttributes } from "../../../js/professions/engineer/specializations/mechanist/state.js";
+import { scrapperSchedulerHooks } from "../../../js/professions/engineer/specializations/scrapper/rules.js";
+import { createScrapperState } from "../../../js/professions/engineer/specializations/scrapper/state.js";
 import { engineerWeaponSkillMatchesSet } from "../../../js/professions/engineer/core/ui.js";
 import {
   recalculate,
@@ -4110,6 +4115,198 @@ test("Scrapper traits apply gyro control, superspeed, boons, and charges", () =>
         ).damage -
         3500 / 2750,
     ) < 1e-12,
+  );
+});
+
+test("Kinetic Accelerators emits party quickness and might from successful combos", () => {
+  const config = {
+    selectedSkills: [
+      "Medic Gyro",
+      "Grenade Kit",
+      "Throw Mine",
+      "Rifle Turret",
+      "Supply Crate",
+    ],
+    selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS],
+    boons: { quickness: false },
+    stats: { power: 2000, concentration: 260 },
+  };
+  const result = simulate(
+    "Scrapper",
+    [
+      "Medic Gyro",
+      "Function Gyro",
+      { type: "wait", durationMs: 3200 },
+      "Positive Strike",
+    ],
+    config,
+  );
+  const withoutTrait = simulate(
+    "Scrapper",
+    [
+      "Medic Gyro",
+      "Function Gyro",
+      { type: "wait", durationMs: 3200 },
+      "Positive Strike",
+    ],
+    { ...config, selectedTraitIds: [] },
+  );
+
+  assert.equal(result.warnings.length, 0);
+  assert.ok(
+    result.resolvedEvents.some(
+      (event) =>
+        event.type === "combo" &&
+        event.skillName === "Function Gyro" &&
+        event.finisherType === "Blast",
+    ),
+  );
+  assert.equal(
+    withoutTrait.resolvedEvents.some(
+      (event) => event.type === "combo" && event.skillName === "Function Gyro",
+    ),
+    false,
+  );
+  assert.equal(
+    result.procSteps.filter((step) => step.skill === "Kinetic Accelerators")
+      .length,
+    1,
+  );
+  const quickness = result.events.find(
+    (event) =>
+      event.type === "buff" &&
+      event.name === "Kinetic Accelerators — quickness",
+  );
+  const might = result.events.find(
+    (event) =>
+      event.type === "buff" && event.name === "Kinetic Accelerators — might",
+  );
+  assert.equal(quickness.recipients, "party");
+  assert.equal(quickness.duration, 3.52);
+  assert.equal(might.recipients, "party");
+  assert.equal(might.duration, 10 * (1 + 260 / 1500));
+  assert.equal(might.stacks, 3);
+  const chart = buildChartSeries(result, 40);
+  assert.equal(chart.effectUnits.Quickness, "s");
+  assert.equal(chart.effects.Quickness[0].v, 3.52);
+  assert.ok(chart.effects.Quickness.some((point) => point.v > 0));
+
+  const acceleratedStep = result.steps.find(
+    (step) => step.skill === "Positive Strike",
+  );
+  const baseStep = withoutTrait.steps.find(
+    (step) => step.skill === "Positive Strike",
+  );
+  assert.equal(acceleratedStep.end - acceleratedStep.start, 480);
+  assert.equal(baseStep.end - baseStep.start, 720);
+
+  const acceleratedHit = result.resolvedEvents.find(
+    (event) => event.type === "damage" && event.name === "Positive Strike",
+  );
+  const baseHit = withoutTrait.resolvedEvents.find(
+    (event) => event.type === "damage" && event.name === "Positive Strike",
+  );
+  assert.ok(
+    Math.abs(acceleratedHit.damage / baseHit.damage - 2090 / 2000) < 1e-12,
+  );
+});
+
+test("Kinetic Accelerators applies its ICD only to whirl finishers", () => {
+  const boons = [];
+  const context = {
+    config: {
+      selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS],
+      stats: { concentration: 0 },
+    },
+    state: {
+      activeWeaponSet: 1,
+      profession: {
+        core: {},
+        specialization: { kind: "Scrapper", state: createScrapperState() },
+      },
+    },
+    epsilon: 1e-9,
+    emitDerived(_event, boon) {
+      boons.push(boon);
+    },
+  };
+  const combo = (finisherType, at) => ({
+    type: "combo",
+    at,
+    source: "engineer",
+    sourceId: 1,
+    actorType: "player",
+    skillName: `${finisherType} test`,
+    finisherType,
+    schedulerPrediction: "combo-result",
+  });
+
+  const observe = scrapperSchedulerHooks.onEventScheduled.handler;
+  observe(context, combo("Whirl", 1));
+  observe(context, combo("Whirl", 2));
+  observe(context, combo("Leap", 2));
+  observe(context, combo("Blast", 2));
+  observe(context, combo("Whirl", 4));
+
+  const quickness = boons.filter((event) => event.kind === "quickness");
+  const might = boons.filter((event) => event.kind === "might");
+  assert.deepEqual(
+    quickness.map((event) => [event.at, event.duration]),
+    [
+      [1, 3],
+      [2, 3],
+      [2, 3],
+      [4, 3],
+    ],
+  );
+  assert.deepEqual(
+    might.map((event) => [event.at, event.duration, event.stacks]),
+    [
+      [1, 10, 3],
+      [2, 10, 3],
+      [2, 10, 3],
+      [4, 10, 3],
+    ],
+  );
+  assert.ok(boons.every((event) => event.recipients === "party"));
+  assert.ok(boons.every((event) => event.schedulerPrediction == null));
+});
+
+test("Scrapper 1-3-2 converts 13% of Power into Concentration", () => {
+  const canonical = createEngineerBuildDefaults();
+  canonical.gear = Object.fromEntries(
+    Object.keys(canonical.gear).map((slot) => [slot, "Berserker's"]),
+  );
+  canonical.rune = "";
+  canonical.food = "";
+  canonical.utility = "";
+  canonical.jadeBotCore = false;
+  canonical.infusions = canonical.infusions.map((infusion) => ({
+    ...infusion,
+    count: 0,
+  }));
+  canonical.specializations = [
+    { name: "Explosives", traits: "3-2-3" },
+    { name: "Firearms", traits: "3-3-1" },
+    { name: "Scrapper", traits: "1-3-2" },
+  ];
+  canonical.assumptions.quickness = false;
+  const app = {
+    build: toApplicationBuild(canonical),
+    skillByName: engineerCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+
+  recalculate(app);
+
+  assert.ok(
+    app.attributeData.activeTraits.some(
+      (trait) => trait.name === "Kinetic Accelerators",
+    ),
+  );
+  assert.equal(
+    app.attributeData.attributes.Concentration.traits,
+    Math.round(app.attributeData.attributes.Power.final * 0.13),
   );
 });
 

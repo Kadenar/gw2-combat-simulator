@@ -8,6 +8,11 @@ import type {
   Gw2ResolverRuntime,
 } from "../types.js";
 import { gw2BoonApplicationRecipients } from "../allied-players.js";
+import {
+  GW2_BOON_DURATION_CAP_SECONDS,
+  isDurationStackingBoon,
+  remainingDurationStackSeconds,
+} from "../boon-state.js";
 import { createGw2ComboResolution } from "./combo-resolution.js";
 
 interface CreateGw2ResolverEventHandlersOptions {
@@ -54,12 +59,20 @@ function handleBuff(
   ctx.boons.set(kind, applications);
   // Keep expired applications for historical timestamp queries, but report
   // only stacks active immediately after this application.
-  const activeStacks = applications
-    .filter(
-      (application) =>
-        application.affectsSelf !== false && application.expiresAt > event.at,
-    )
-    .reduce((sum, application) => sum + application.stacks, 0);
+  const activeStacks = isDurationStackingBoon(kind)
+    ? Number(
+        remainingDurationStackSeconds(applications, event.at, {
+          includes: (application) => application.affectsSelf !== false,
+          maximum: GW2_BOON_DURATION_CAP_SECONDS,
+        }) > 0,
+      )
+    : applications
+        .filter(
+          (application) =>
+            application.affectsSelf !== false &&
+            application.expiresAt > event.at,
+        )
+        .reduce((sum, application) => sum + application.stacks, 0);
   reactions.dispatch("buff.applied", ctx, event, {
     activeStacks,
     applications,

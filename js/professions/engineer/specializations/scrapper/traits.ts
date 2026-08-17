@@ -1,9 +1,6 @@
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { hasEngineerTrait } from "../../core/state.js";
-import type {
-  EngineerCastContext,
-  EngineerSkill,
-} from "../../types.js";
+import type { EngineerCastContext, EngineerSkill } from "../../types.js";
 
 // Some skills set type="Heal", others only set slot="Heal"; check both.
 function isHealingSkill(skill: EngineerSkill | undefined): boolean {
@@ -64,8 +61,8 @@ export function applyScrapperCastTraits(
   // Speed of Synergy (master trait): healing toolbelt skills grant superspeed.
   // Med Kit toolbelt gets 12s (exceptional duration from the kit design); all others get 5s.
   if (
-    hasEngineerTrait(context.config, TRAIT.SPEED_OF_SYNERGY)
-    && isHealingToolbeltSkill(context, skill)
+    hasEngineerTrait(context.config, TRAIT.SPEED_OF_SYNERGY) &&
+    isHealingToolbeltSkill(context, skill)
   ) {
     emitBuff(
       context,
@@ -79,9 +76,9 @@ export function applyScrapperCastTraits(
   // Speed of Synergy also applies when casting the heal skill itself (7s),
   // but Med Kit is excluded because equipping it doesn't constitute a cast.
   if (
-    hasEngineerTrait(context.config, TRAIT.SPEED_OF_SYNERGY)
-    && isHealingSkill(skill)
-    && skill.name !== "Med Kit"
+    hasEngineerTrait(context.config, TRAIT.SPEED_OF_SYNERGY) &&
+    isHealingSkill(skill) &&
+    skill.name !== "Med Kit"
   ) {
     emitBuff(
       context,
@@ -94,8 +91,8 @@ export function applyScrapperCastTraits(
   }
   // Gyroscopic Acceleration (adept trait): Well skills and Function Gyro grant 5s superspeed.
   if (
-    hasEngineerTrait(context.config, TRAIT.GYROSCOPIC_ACCELERATION)
-    && (category(skill, "Well") || isFunctionGyro(skill))
+    hasEngineerTrait(context.config, TRAIT.GYROSCOPIC_ACCELERATION) &&
+    (category(skill, "Well") || isFunctionGyro(skill))
   ) {
     emitBuff(
       context,
@@ -108,6 +105,30 @@ export function applyScrapperCastTraits(
   }
   // Remaining traits only proc on Function Gyro.
   if (!isFunctionGyro(skill)) return;
+  // Kinetic Accelerators (GM trait): Function Gyro becomes a blast finisher.
+  // The marker gives the shared combo materializer a trait-gated descriptor
+  // while preserving Function Gyro as the source of the resulting combo.
+  if (hasEngineerTrait(context.config, TRAIT.KINETIC_ACCELERATORS)) {
+    context.emitDerived(context.action, {
+      type: "marker",
+      at: context.effectiveEnd,
+      source: "engineer",
+      sourceId: skill.id,
+      actorType: "player",
+      skillId: skill.id,
+      skillName: skill.name,
+      name: "Kinetic Accelerators — Function Gyro blast finisher",
+      activationId: context.action.activationId,
+      comboFinishers: [
+        {
+          ownerId: "engineer",
+          finisherType: "Blast",
+          chance: 1,
+          ambiguousFieldSelection: "oldest",
+        },
+      ],
+    });
+  }
   // System Shocker (master trait): Function Gyro dazes for 1s on cast.
   if (hasEngineerTrait(context.config, TRAIT.SYSTEM_SHOCKER)) {
     context.emit({

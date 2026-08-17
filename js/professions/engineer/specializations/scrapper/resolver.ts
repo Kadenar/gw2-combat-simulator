@@ -7,7 +7,11 @@ import {
   queueBuff,
   recordTrait,
 } from "../../core/shared.js";
-import { SCRAPPER_MASS_MOMENTUM } from "./mechanics.js";
+import {
+  SCRAPPER_KINETIC_ACCELERATORS,
+  SCRAPPER_MASS_MOMENTUM,
+} from "./mechanics.js";
+import { scrapperState } from "./state.js";
 import type {
   EngineerResolverContext,
   EngineerResolverEvent,
@@ -113,6 +117,28 @@ function reactToScrapperBuff(
   if (kind === "stability") triggerMassMomentum(context, event);
 }
 
+function reactToScrapperCombo(
+  context: EngineerResolverContext,
+  event: EngineerResolverEvent,
+): void {
+  if (
+    !hasTrait(context, TRAIT.KINETIC_ACCELERATORS) ||
+    !["Blast", "Leap", "Whirl"].includes(String(event.finisherType))
+  ) {
+    return;
+  }
+  const state = scrapperState.from(context);
+  if (event.finisherType === "Whirl") {
+    if (state.kineticAcceleratorsWhirlReadyAt > event.at + 1e-9) return;
+    state.kineticAcceleratorsWhirlReadyAt =
+      event.at + SCRAPPER_KINETIC_ACCELERATORS.whirlInternalCooldown;
+  }
+  // Boons are emitted by the scheduler's resolved-combo prediction so they
+  // remain visible in the canonical result timeline. Resolver confirmation
+  // owns only proc attribution and its independent whirl ICD state.
+  recordTrait(context, "Kinetic Accelerators", event);
+}
+
 export const scrapperResolverEventHandlers = Object.freeze({
   "engineer.mass-momentum-pulse": handleMassMomentumPulse,
 });
@@ -120,4 +146,5 @@ export const scrapperResolverEventHandlers = Object.freeze({
 export const scrapperResolverEventReactions = Object.freeze({
   damage: reactToScrapperDamage,
   buff: reactToScrapperBuff,
+  combo: reactToScrapperCombo,
 });

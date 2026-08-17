@@ -32,6 +32,11 @@ import {
   GW2_COMBO_MATERIALIZE_EVENT_TASK,
 } from "./combo-materializer.js";
 import { createGw2EventPreparer } from "./event-preparer.js";
+import {
+  GW2_BOON_DURATION_CAP_SECONDS,
+  isDurationStackingBoon,
+  remainingDurationStackSeconds,
+} from "../boon-state.js";
 import { clamp } from "../numeric.js";
 import { gw2StatsForWeaponSet } from "../runtime-rules.js";
 import type {
@@ -137,6 +142,18 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
 ): boolean {
   if (audience === "self") return context.hasBuff(kind, at);
   const normalized = String(kind || "").toLowerCase();
+  if (isDurationStackingBoon(normalized)) {
+    return (
+      remainingDurationStackSeconds(context.events, at + context.epsilon, {
+        includes: (event) =>
+          event.type === "buff" &&
+          String(event.kind || "").toLowerCase() === normalized &&
+          event.affectsSummons === true &&
+          Number(event.stacks || 1) > 0,
+        maximum: GW2_BOON_DURATION_CAP_SECONDS,
+      }) > context.epsilon
+    );
+  }
   return context.events.some(
     (event) =>
       event.type === "buff" &&
@@ -272,6 +289,23 @@ export function createGw2SchedulerPolicy(
         Number(sigils.boonDurationBonus || 0) / 100;
       // GW2 boon duration cannot be reduced below base here and caps at +100%.
       return baseDuration * clamp(1 + bonus, 1, 2);
+    },
+
+    buffStacks(
+      context,
+      kind,
+      at,
+      configuredStacks,
+      applications,
+      defaultStacks,
+    ) {
+      if (!isDurationStackingBoon(kind)) return defaultStacks;
+      if (configuredStacks > 0) return 1;
+      return remainingDurationStackSeconds(applications, at + context.epsilon, {
+        maximum: GW2_BOON_DURATION_CAP_SECONDS,
+      }) > context.epsilon
+        ? 1
+        : 0;
     },
 
     castDuration(context, skill, baseDuration) {

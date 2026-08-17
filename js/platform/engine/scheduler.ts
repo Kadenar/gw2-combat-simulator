@@ -449,9 +449,8 @@ export function createScheduler<
       // not reached them, so both their start and half-open expiry are checked.
       // Only this kind's indexed buffs are scanned, not the entire event log.
       const bucket = buffIndex.get(normalized);
-      if (!bucket) return base;
       let stacks = base;
-      for (const event of bucket) {
+      for (const event of bucket || []) {
         if (
           event.at <= at + epsilon &&
           event.at + Number(event.duration || 0) > at + epsilon
@@ -459,7 +458,19 @@ export function createScheduler<
           stacks += Number(event.stacks || 1);
         }
       }
-      return stacks;
+      return Math.max(
+        0,
+        Number(
+          schedulerPolicy.buffStacks?.(
+            context,
+            normalized,
+            at,
+            base,
+            bucket || [],
+            stacks,
+          ) ?? stacks,
+        ),
+      );
     },
     hasBuff(/** @type {string} */ kind, at = state.time) {
       return context.buffStacks(kind, at) > 0;

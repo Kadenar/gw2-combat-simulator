@@ -54,13 +54,15 @@ test("Empowered Armaments chart series remains capped at one stack", () => {
   );
 });
 
-test("Quickness chart series remains capped at one stack", () => {
+test("Quickness and Alacrity chart series show remaining stacked duration", () => {
   const series = buildChartSeries(
     {
-      duration: 4,
+      duration: 7,
       events: [
         { type: "buff", at: 0, kind: "quickness", duration: 3 },
         { type: "buff", at: 1, kind: "quickness", duration: 3 },
+        { type: "buff", at: 0, kind: "alacrity", duration: 2 },
+        { type: "buff", at: 3, kind: "alacrity", duration: 2 },
       ],
     },
     1000,
@@ -68,8 +70,30 @@ test("Quickness chart series remains capped at one stack", () => {
 
   assert.deepEqual(
     series.effects.Quickness.map((point) => point.v),
-    [1, 1, 1, 1, 0],
+    [3, 5, 4, 3, 2, 1, 0, 0],
   );
+  assert.deepEqual(
+    series.effects.Alacrity.map((point) => point.v),
+    [2, 1, 0, 2, 1, 0, 0, 0],
+  );
+  assert.deepEqual(series.effectUnits, { Quickness: "s", Alacrity: "s" });
+});
+
+test("duration-stacking boon charts discard grants above the 30-second cap", () => {
+  const series = buildChartSeries(
+    {
+      duration: 32,
+      events: [
+        { type: "buff", at: 0, kind: "quickness", duration: 29 },
+        { type: "buff", at: 1, kind: "quickness", duration: 5 },
+      ],
+    },
+    1000,
+  );
+
+  assert.equal(series.effects.Quickness[1].v, 30);
+  assert.equal(series.effects.Quickness[30].v, 1);
+  assert.equal(series.effects.Quickness[31].v, 0);
 });
 
 test("Radiant Armaments chart series identifies the active radiant weapon", () => {
