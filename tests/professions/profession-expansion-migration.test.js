@@ -454,8 +454,7 @@ test("profession registry entries conform to the shared contracts", async () => 
   }
 });
 
-test("ready native professions have complete trait evidence with no pending entries", async () => {
-  const testFiles = new Map();
+test("ready native professions classify every trait with no pending entries", async () => {
   for (const entry of professionRegistry) {
     const profession = await entry.loadProfession();
     const coverage = TRAIT_COVERAGE_BY_PROFESSION[entry.id];
@@ -476,39 +475,6 @@ test("ready native professions have complete trait evidence with no pending entr
       false,
       `${entry.id} pending trait coverage`,
     );
-    for (const item of coverage) {
-      if (
-        item.status !== TRAIT_COVERAGE_STATUSES.IMPLEMENTED &&
-        !item.effects.some(
-          (effect) => effect.status === TRAIT_COVERAGE_STATUSES.IMPLEMENTED,
-        )
-      )
-        continue;
-      assert.ok(item.tests.length > 0, `${entry.id} trait ${item.traitId}`);
-      for (const evidence of item.tests) {
-        if (!testFiles.has(evidence.file)) {
-          testFiles.set(
-            evidence.file,
-            await readFile(
-              new URL(`../../${evidence.file}`, import.meta.url),
-              "utf8",
-            ),
-          );
-        }
-        const source = testFiles.get(evidence.file);
-        assert.equal(
-          source.includes(`test("${evidence.name}"`) ||
-            source.includes(`test('${evidence.name}'`),
-          true,
-          `${entry.id} trait ${item.traitId}: ${evidence.file}#${evidence.name}`,
-        );
-        assert.equal(
-          /trait[- ]coverage manifest/i.test(evidence.name),
-          false,
-          `${entry.id} trait ${item.traitId} uses readiness-only evidence`,
-        );
-      }
-    }
   }
 });
 

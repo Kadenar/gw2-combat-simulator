@@ -91,16 +91,7 @@ const manifest = rangerCatalog.traits.map((trait) => {
         ...(reason ? { reason } : {}),
       },
     ],
-    ...(implemented
-      ? {
-          tests: [
-            {
-              file: "tests/professions/ranger/ranger.test.js",
-              name: "Ranger trait rules affect their owned damage and attributes",
-            },
-          ],
-        }
-      : { reason }),
+    ...(implemented ? {} : { reason }),
   };
 });
 

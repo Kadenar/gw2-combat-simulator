@@ -1,7 +1,4 @@
-import type {
-  CatalogEntity,
-  SchedulerRecord,
-} from "../engine/types.js";
+import type { CatalogEntity } from "../engine/types.js";
 import type {
   Gw2TraitCoverageCatalog,
   Gw2TraitCoverageEffect,
@@ -9,7 +6,6 @@ import type {
   Gw2TraitCoverageEntry,
   Gw2TraitCoverageEntryInput,
   Gw2TraitCoverageStatus,
-  Gw2TraitCoverageTestEvidence,
 } from "./types.js";
 
 /** @type {{
@@ -24,8 +20,9 @@ export const TRAIT_COVERAGE_STATUSES = Object.freeze({
   PENDING: "pending",
 } as const);
 
-const VALID_STATUSES: ReadonlySet<Gw2TraitCoverageStatus> =
-  new Set(Object.values(TRAIT_COVERAGE_STATUSES));
+const VALID_STATUSES: ReadonlySet<Gw2TraitCoverageStatus> = new Set(
+  Object.values(TRAIT_COVERAGE_STATUSES),
+);
 
 function normalizedText(value: unknown): string {
   return String(value || "").trim();
@@ -97,10 +94,8 @@ function normalizeEffect(
   const status = rawStatus as Gw2TraitCoverageStatus;
   const reason = normalizedText(value.reason || entry.reason);
   if (
-    (
-      status === TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL
-      || status === TRAIT_COVERAGE_STATUSES.PENDING
-    ) &&
+    (status === TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL ||
+      status === TRAIT_COVERAGE_STATUSES.PENDING) &&
     !concreteReason(reason)
   ) {
     throw new TypeError(
@@ -115,39 +110,8 @@ function normalizeEffect(
 }
 
 /**
- * @param {unknown} value
- * @param {CatalogEntity} trait
- * @param {number} index
- * @returns {Gw2TraitCoverageTestEvidence}
- */
-function normalizeTestEvidence(
-  value: unknown,
-  trait: CatalogEntity,
-  index: number,
-): Gw2TraitCoverageTestEvidence {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new TypeError(
-      `Trait ${trait.id} test evidence ${index + 1} must be an object.`,
-    );
-  }
-  const evidence = value as SchedulerRecord;
-  const file = normalizedText(evidence.file);
-  const name = normalizedText(evidence.name);
-  if (!/^tests\/.+\.test\.js$/.test(file)) {
-    throw new TypeError(
-      `Trait ${trait.id} test evidence ${index + 1} needs a tests/**/*.test.js file.`,
-    );
-  }
-  if (!name) {
-    throw new TypeError(
-      `Trait ${trait.id} test evidence ${index + 1} needs a test name.`,
-    );
-  }
-  return Object.freeze({ file, name });
-}
-
-/**
- * Validates behavioral coverage for every trait in a profession catalog.
+ * Validates the modeled implementation scope for every trait in a profession
+ * catalog without treating source-code test titles as behavioral proof.
  *
  * Effects may be compact strings, inheriting the entry status, or structured
  * objects with their own status/reason for mixed traits.
@@ -160,13 +124,13 @@ function normalizeTestEvidence(
 export function validateTraitCoverageManifest(
   catalog: Gw2TraitCoverageCatalog | null | undefined,
   manifest: unknown,
-  { professionId = "profession" }: {
+  {
+    professionId = "profession",
+  }: {
     readonly professionId?: string;
   } = {},
 ): readonly Gw2TraitCoverageEntry[] {
-  const traits = Array.isArray(catalog?.traits)
-    ? catalog.traits
-    : [];
+  const traits = Array.isArray(catalog?.traits) ? catalog.traits : [];
   if (!Array.isArray(manifest)) {
     throw new TypeError(`${professionId} trait coverage must be an array.`);
   }
@@ -176,16 +140,17 @@ export function validateTraitCoverageManifest(
   const coverageById = new Map<number, Gw2TraitCoverageEntry>();
 
   for (const rawEntry of manifest) {
-    if (
-      !rawEntry ||
-      typeof rawEntry !== "object" ||
-      Array.isArray(rawEntry)
-    ) {
+    if (!rawEntry || typeof rawEntry !== "object" || Array.isArray(rawEntry)) {
       throw new TypeError(
         `${professionId} trait coverage entries must be objects.`,
       );
     }
     const entry = rawEntry as Gw2TraitCoverageEntryInput;
+    if (Object.hasOwn(entry, "tests")) {
+      throw new TypeError(
+        `${professionId} trait coverage cannot use test-title evidence.`,
+      );
+    }
     const traitId = Number(entry.traitId);
     const trait = traitsById.get(traitId);
     if (!trait) {
@@ -200,9 +165,7 @@ export function validateTraitCoverageManifest(
     }
     if (
       typeof entry.status !== "string" ||
-      !VALID_STATUSES.has(
-        entry.status as Gw2TraitCoverageStatus,
-      )
+      !VALID_STATUSES.has(entry.status as Gw2TraitCoverageStatus)
     ) {
       throw new TypeError(
         `${professionId} trait ${traitId} has invalid coverage status.`,
@@ -213,35 +176,14 @@ export function validateTraitCoverageManifest(
         `${professionId} trait ${traitId} must document every reviewed effect.`,
       );
     }
-    const tests = Array.isArray(entry.tests)
-      ? (entry.tests as unknown[]).map((value, index) =>
-          normalizeTestEvidence(value, trait, index),
-        )
-      : [];
-    const effects = (entry.effects as unknown[]).map(
-      (effect, index) =>
-        normalizeEffect(effect, entry, trait, index),
+    const effects = (entry.effects as unknown[]).map((effect, index) =>
+      normalizeEffect(effect, entry, trait, index),
     );
     const status = entry.status as Gw2TraitCoverageStatus;
-    // Implemented traits (or entries with at least one implemented effect) must
-    // link a behavioral test — can't claim "implemented" without verifiable evidence.
-    if (
-      (status === TRAIT_COVERAGE_STATUSES.IMPLEMENTED ||
-        effects.some(
-          (effect) => effect.status === TRAIT_COVERAGE_STATUSES.IMPLEMENTED,
-        )) &&
-      tests.length === 0
-    ) {
-      throw new TypeError(
-        `${professionId} implemented trait ${traitId} needs a behavioral test reference.`,
-      );
-    }
     const reason = normalizedText(entry.reason);
     if (
-      (
-        status === TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL
-        || status === TRAIT_COVERAGE_STATUSES.PENDING
-      ) &&
+      (status === TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL ||
+        status === TRAIT_COVERAGE_STATUSES.PENDING) &&
       !concreteReason(reason)
     ) {
       throw new TypeError(
@@ -254,7 +196,6 @@ export function validateTraitCoverageManifest(
         traitId,
         status,
         effects: Object.freeze(effects),
-        tests: Object.freeze(tests),
         reason: reason || null,
       }),
     );

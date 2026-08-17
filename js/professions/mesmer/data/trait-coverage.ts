@@ -71,34 +71,6 @@ const IMPLEMENTED: ReadonlySet<number> = new Set([
 const OUT_OF_MODEL_REASON =
   "This defensive, healing, ally-only, movement, incoming-hit, boon-support, or competitive-only effect does not change the deterministic single-target damage model.";
 
-function implementedEvidence(trait: CatalogEntity): {
-  readonly file: string;
-  readonly name: string;
-} {
-  if (Number(trait.id) === TRAIT.MASTER_FENCER) {
-    return {
-      file: "tests/platform/gw2/resolver-architecture.test.js",
-      name: "Master Fencer grants self and allied fury on critical hits with an eight-second ICD",
-    };
-  }
-  if (trait.specialization === "Mirage") {
-    return {
-      file: "tests/professions/mesmer/rotation.test.js",
-      name: "Mirage support and cloak traits emit their current effects",
-    };
-  }
-  if (trait.specialization === "Chronomancer") {
-    return {
-      file: "tests/professions/mesmer/rotation.test.js",
-      name: "Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it first",
-    };
-  }
-  return {
-    file: "tests/professions/mesmer/rotation.test.js",
-    name: "supplied trait attacks execute with their exact coefficients",
-  };
-}
-
 const manifest = mesmerCatalog.traits.map((trait) => {
   const implemented = IMPLEMENTED.has(Number(trait.id));
   const status = implemented
@@ -116,9 +88,7 @@ const manifest = mesmerCatalog.traits.map((trait) => {
         ...(implemented ? {} : { reason: OUT_OF_MODEL_REASON }),
       },
     ],
-    ...(implemented
-      ? { tests: [implementedEvidence(trait)] }
-      : { reason: OUT_OF_MODEL_REASON }),
+    ...(implemented ? {} : { reason: OUT_OF_MODEL_REASON }),
   };
 });
 

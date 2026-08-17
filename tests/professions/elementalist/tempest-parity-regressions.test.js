@@ -6,21 +6,19 @@ import { loadProfessionAppAdapter } from "../../../js/app/profession/registry.js
 
 const repoUrl = (path) => new URL(`../../../${path}`, import.meta.url);
 
+// A two-skill rotation isolates the instant-cast scheduling rule without
+// depending on the composition or indices of a saved full rotation.
 test("delayed Tempest shouts do not advance the serial rotation lane", async () => {
-  const [savedBuild, savedRotation, adapter] = await Promise.all([
+  const [savedBuild, adapter] = await Promise.all([
     readFile(
       repoUrl("Builds/elementalist/b-condi-alac-tempest-pistol.json"),
-      "utf8",
-    ).then(JSON.parse),
-    readFile(
-      repoUrl("Rotations/elementalist/r-condi-alac-tempest-pistol.json"),
       "utf8",
     ).then(JSON.parse),
     loadProfessionAppAdapter("elementalist"),
   ]);
   const build = adapter.toApplicationBuild({
     ...savedBuild,
-    rotation: savedRotation.rotation,
+    rotation: ["Feel the Burn!", "Scorching Shot"],
   });
   const app = {
     build,
@@ -33,18 +31,10 @@ test("delayed Tempest shouts do not advance the serial rotation lane", async () 
 
   adapter.recalculate(app);
   const result = adapter.runSimulation(app);
-  const shout = result.steps.find(
-    (step) =>
-      step.skill === "Feel the Burn!" &&
-      result.steps.find((candidate) => candidate.ri === step.ri + 1)?.skill ===
-        "Scorching Shot",
-  );
-  assert.ok(shout);
-  const followingSerialCast = result.steps.find(
-    (step) => step.ri === shout.ri + 1,
-  );
-  assert.ok(followingSerialCast);
+  const [shout, followingSerialCast] = result.steps;
 
+  assert.equal(shout.skill, "Feel the Burn!");
+  assert.equal(followingSerialCast.skill, "Scorching Shot");
   assert.equal(shout.start, shout.end);
   assert.equal(followingSerialCast.start, shout.start);
   assert.equal(

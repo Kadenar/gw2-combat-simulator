@@ -1214,7 +1214,6 @@ export interface Gw2TraitCoverageEntryInput extends SchedulerRecord {
   readonly traitId?: unknown;
   readonly status?: unknown;
   readonly effects?: unknown;
-  readonly tests?: unknown;
   readonly reason?: unknown;
 }
 
@@ -1224,16 +1223,10 @@ export interface Gw2TraitCoverageEffect {
   readonly reason: string | null;
 }
 
-export interface Gw2TraitCoverageTestEvidence {
-  readonly file: string;
-  readonly name: string;
-}
-
 export interface Gw2TraitCoverageEntry {
   readonly traitId: number;
   readonly status: Gw2TraitCoverageStatus;
   readonly effects: readonly Gw2TraitCoverageEffect[];
-  readonly tests: readonly Gw2TraitCoverageTestEvidence[];
   readonly reason: string | null;
 }
 

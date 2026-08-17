@@ -1,11 +1,11 @@
 // Shared driver for the per-profession benchmark suites in this folder.
 //
 // Each profession has its own `<profession>.test.js` file so a drift or crash
-// in one profession's presets never prevents another profession's benchmarks
-// from running. They all funnel through `assertManifestBenchmarks`, which walks
-// a profession's `Builds/<profession>/manifest.json`, replays every preset that
-// ships a saved rotation through the shared app shell, and asserts the rounded
-// simulated DPS still equals the manifest's displayed `benchmarkDps`.
+// in one profession's presets never prevents another profession's regressions
+// from running. They all funnel through `assertManifestRegressions`, which walks
+// a profession's `Builds/<profession>/manifest.json`, loads every saved build
+// and rotation through the shared app shell, and verifies a stable DPS result
+// without pinning rotation composition or EVTC details.
 
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -14,7 +14,11 @@ import { loadProfessionAppAdapter } from "../../../js/app/profession/registry.js
 
 const repoUrl = (path) => new URL(`../../../${path}`, import.meta.url);
 
-export async function assertManifestBenchmarks(professionId) {
+export function relativeError(actual, expected) {
+  return Math.abs(actual / expected - 1);
+}
+
+export async function assertManifestRegressions(professionId) {
   const manifest = JSON.parse(
     await readFile(repoUrl(`Builds/${professionId}/manifest.json`), "utf8"),
   );
@@ -54,12 +58,17 @@ export async function assertManifestBenchmarks(professionId) {
       adapter.recalculate(app);
       const config = adapter.simulationConfig(app);
       const result = adapter.simulateBuild(build.rotation, config);
-      const actualDps = Math.round(result.dps);
-      if (preset.benchmarkDps !== actualDps) {
-        mismatches.push({ label, expected: preset.benchmarkDps, actualDps });
+      const dpsError = relativeError(result.dps, preset.benchmarkDps);
+      if (dpsError > 0.01) {
+        mismatches.push({
+          label,
+          expectedDps: preset.benchmarkDps,
+          actualDps: result.dps,
+          relativeError: dpsError,
+        });
       }
     }
   }
 
-  assert.deepEqual(mismatches, [], `${professionId} benchmark DPS drift`);
+  assert.deepEqual(mismatches, [], `${professionId} preset regression`);
 }

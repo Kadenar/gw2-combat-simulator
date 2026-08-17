@@ -2658,21 +2658,7 @@ test("Evoker traits enforce familiar boons, enchantments, and charge rules", () 
   );
 });
 
-test("Elementalist trait coverage requires effect-specific behavioral evidence", () => {
-  const evidenceNames = new Set([
-    "core damage traits expose their exact resolver modifiers",
-    "core attunement and aura traits emit named boon and damage payloads",
-    "core critical-hit and control traits enforce their proc rules",
-    "Fresh Air resets both Air Attunement and Overload Air",
-    "core attunements enforce and report their individual recharge",
-    "Evasive Arcana uses the active attunement's native trait skill",
-    "Tempest traits enforce overload dwell, auras, boons, and damage windows",
-    "Alacrity shortens overload dwell and Lucid Singularity follows hit timing",
-    "Weaver traits enforce dual-attunement, boon, modifier, and recharge rules",
-    "Catalyst traits enforce energy, empowerment, aura, and sphere rules",
-    "Evoker traits enforce familiar boons, enchantments, and charge rules",
-    "Specialized Elements forces and locks the selected attunement",
-  ]);
+test("Elementalist trait coverage documents implementation scope", () => {
   const traitsById = new Map(
     elementalistCatalog.traits.map((trait) => [trait.id, trait]),
   );
@@ -2691,16 +2677,7 @@ test("Elementalist trait coverage requires effect-specific behavioral evidence",
       entry.effects[0].description,
       String(trait.description).trim(),
     );
-    assert.equal(entry.tests.length, 1, trait.name);
-    assert.equal(
-      entry.tests[0].file,
-      "tests/professions/elementalist/native-mechanics.test.js",
-    );
-    assert.equal(evidenceNames.has(entry.tests[0].name), true, trait.name);
-    assert.doesNotMatch(
-      entry.tests[0].name,
-      /mechanics execute through native hooks/i,
-    );
+    assert.equal(Object.hasOwn(entry, "tests"), false, trait.name);
   }
 
   for (const name of [
