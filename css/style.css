@@ -322,6 +322,28 @@ header .community-actions {
   text-transform: uppercase;
 }
 
+.patch-comparison-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.patch-source-link {
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border));
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.patch-source-link:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
 .patch-selected-badge,
 .patch-note-status {
   padding: 3px 8px;
@@ -414,18 +436,6 @@ header .community-actions {
   gap: 10px;
 }
 
-.patch-note-list small {
-  display: block;
-  margin-top: 2px;
-  color: var(--text-dim);
-}
-
-.patch-note-list li[data-status="tracked"] .patch-note-status,
-.patch-note-list li[data-status="not-applicable"] .patch-note-status {
-  border-color: var(--border-light);
-  color: var(--text-dim);
-}
-
 .patch-preview-empty {
   margin-top: 8px;
   color: var(--text-dim);
@@ -445,6 +455,11 @@ header .community-actions {
   }
 
   .patch-comparison-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .patch-comparison-actions {
     align-items: flex-start;
     flex-direction: column;
   }

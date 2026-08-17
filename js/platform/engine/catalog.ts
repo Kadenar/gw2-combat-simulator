@@ -414,6 +414,8 @@ function normalizeEffect(effect: unknown): SkillEffect {
       normalizedEffect.type !== "condition" &&
       normalizedEffect.type !== "control" &&
       normalizedEffect.type !== "blind" &&
+      normalizedEffect.type !== "boon" &&
+      normalizedEffect.type !== "buff" &&
       normalizedEffect.type !== "custom"
     ) {
       throw new TypeError(

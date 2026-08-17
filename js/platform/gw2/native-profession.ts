@@ -15,12 +15,15 @@ import {
   applySkillPatch,
   patchRuntimeValuesFor,
   professionPatchFor,
+  skillPatchableNumericFields,
+  validatePatchOverview,
   validatePatchPreview,
 } from "./skill-patch.js";
 import type {
   AnyNativeModule,
   NativeModule,
   NativeModuleDefinition,
+  NativePatchAuthoringMetadata,
   NativeProfessionContract,
   NativeProfessionDefinition,
   NativeProfessionRuntimeState,
@@ -29,7 +32,10 @@ import type {
   NativeResolverMechanic,
   NativeSchedulerMechanic,
 } from "./native-module-types.js";
-import type { ModifierRulePatchEdit } from "./skill-patch.js";
+import type {
+  ModifierRulePatchEdit,
+  ProfessionPatchPreview,
+} from "./skill-patch.js";
 import type {
   Gw2ModifierRule,
   Gw2ResolverEvent,
@@ -84,6 +90,7 @@ function assertNativeModuleDefinition(definition: object): void {
       throw new TypeError(`${candidate.id}.state.${name} must be a function.`);
     }
   }
+  // availability can be a single mechanic or an array; normalize to array for uniform validation.
   const schedulerDeclarations = [
     ...(candidate.mechanics?.availability == null
       ? []
@@ -214,6 +221,100 @@ function nativeModuleModifierRules(
   return rules as readonly Gw2ModifierRule[];
 }
 
+function modifierAuthoringValue(
+  value: Gw2ModifierRule["amount"] | Gw2ModifierRule["factor"],
+): {
+  readonly kind: "static" | "resolver" | "absent";
+  readonly value?: number;
+} {
+  if (typeof value === "number") {
+    return Object.freeze({ kind: "static", value });
+  }
+  return Object.freeze({
+    kind: typeof value === "function" ? "resolver" : "absent",
+  });
+}
+
+function createPatchAuthoringMetadata(
+  professionId: string,
+  professionName: string,
+  modules: readonly AnyNativeModule[],
+  fragments: ReadonlyMap<string, Readonly<ProfessionModuleCatalogFragment>>,
+): NativePatchAuthoringMetadata {
+  return Object.freeze({
+    professionId,
+    professionName,
+    modules: Object.freeze(
+      modules.map((module) => {
+        const fragment = fragments.get(module.id)!;
+        return Object.freeze({
+          id: module.id,
+          traits: Object.freeze([...(fragment.traits || [])]),
+          skills: Object.freeze(
+            (fragment.skills || []).map((skill) =>
+              Object.freeze({
+                id: skill.id,
+                name: skill.name,
+                moduleId: module.id,
+                skill,
+                patchableFields: skillPatchableNumericFields(skill),
+              }),
+            ),
+          ),
+          modifierRules: Object.freeze(
+            nativeModuleModifierRules(module).map((rule) =>
+              Object.freeze({
+                id: rule.id,
+                label: rule.label || null,
+                moduleId: module.id,
+                targets: Object.freeze(
+                  Array.isArray(rule.target) ? [...rule.target] : [rule.target],
+                ),
+                operation: rule.operation,
+                amount: modifierAuthoringValue(rule.amount),
+                factor: modifierAuthoringValue(rule.factor),
+                parameters: Object.freeze({ ...(rule.parameters || {}) }),
+                conditional: typeof rule.when === "function",
+                order: Number(rule.order || 0),
+              }),
+            ),
+          ),
+        });
+      }),
+    ),
+  });
+}
+
+const PROFESSION_PATCH_FIELDS = new Set([
+  "skills",
+  "modifierRules",
+  "constants",
+  "overview",
+]);
+
+function assertProfessionPatchShape(
+  professionId: string,
+  patch: ProfessionPatchPreview,
+): void {
+  assertObject(patch, `${professionId} patch`);
+  for (const field of Object.keys(patch)) {
+    if (!PROFESSION_PATCH_FIELDS.has(field)) {
+      throw new TypeError(
+        `${professionId} patch has unsupported field ${field}.`,
+      );
+    }
+  }
+  for (const field of ["skills", "modifierRules", "constants"] as const) {
+    if (patch[field] != null) {
+      assertObject(patch[field], `${professionId} patch ${field}`);
+    }
+  }
+  if (patch.overview != null && !Array.isArray(patch.overview)) {
+    throw new TypeError(`${professionId} patch overview must be an array.`);
+  }
+  validatePatchOverview(patch.overview, `${professionId} patch overview`);
+}
+
 function modifierPatchFields(edit: ModifierRulePatchEdit): readonly string[] {
   return Object.freeze([
     ...(Object.hasOwn(edit, "amount") ? ["amount"] : []),
@@ -275,6 +376,8 @@ function compileNativeModule(
   const schedulerHooks = {
     ...((mechanics.schedulerHooks || {}) as SchedulerRecord),
   };
+  // availability mechanics go into castRules (gate whether a skill can be cast);
+  // castLifecycle mechanics go into schedulerHooks (run during and after cast).
   for (const declaration of [
     ...(mechanics.availability == null
       ? []
@@ -335,6 +438,8 @@ function compileNativeModule(
       createProfessionState: module.state.scheduler as (
         config: Readonly<SchedulerConfig>,
       ) => SchedulerRecord,
+      // Resolver state defaults to the same factory as scheduler state so that
+      // modules that don't need separate resolver state share one object.
       createResolverState: module.state.resolver || module.state.scheduler,
       ...(module.state.project == null
         ? {}
@@ -373,6 +478,15 @@ export function defineNativeProfession<
     : null;
   const professionPatch = professionPatchFor(preview, definition.id);
   const assembly = getNativeCatalogAssembly(modules, definition.catalog);
+  const modifierRules = modules.flatMap((module) => [
+    ...nativeModuleModifierRules(module),
+  ]);
+  const patchAuthoring = createPatchAuthoringMetadata(
+    definition.id,
+    definition.name,
+    modules,
+    assembly.fragments,
+  );
   const core = modules[0];
   const previewModifierRules = preparePreviewModifierRules(
     modules,
@@ -411,6 +525,8 @@ export function defineNativeProfession<
     simulation: definition.simulation as SchedulerRecord | null | undefined,
   });
   const family = defineProfessionFamily(createEngineDefinition());
+  // previewFamily is lazily created only when there are modifier rule changes
+  // in the patch — if only skill values changed, the baseline family is reused.
   let previewFamily: typeof family | null = null;
   const familyForPreview = () => {
     if (!previewModifierRules.targets.length) return family;
@@ -420,6 +536,12 @@ export function defineNativeProfession<
     return previewFamily;
   };
   let previewCatalog: Readonly<CanonicalCatalog> | null = null;
+  const validatedPreviewCatalog = (): Readonly<CanonicalCatalog> => {
+    previewCatalog ||= applySkillPatch(family.catalog, professionPatch);
+    return previewCatalog;
+  };
+  // Cache patched runtime catalogs per original catalog object so we don't
+  // re-apply the skill patch for every simulation that runs in preview mode.
   const runtimeCatalogs = new WeakMap<
     Readonly<CanonicalCatalog>,
     Readonly<CanonicalCatalog>
@@ -437,13 +559,21 @@ export function defineNativeProfession<
     patchId = CURRENT_PATCH_ID,
   ): Readonly<CanonicalCatalog> => {
     if (assertPatchId(patchId) === CURRENT_PATCH_ID) return family.catalog;
-    previewCatalog ||= applySkillPatch(family.catalog, professionPatch);
-    return previewCatalog;
+    return validatedPreviewCatalog();
   };
   const patchValuesFor = (patchId = CURRENT_PATCH_ID) =>
     assertPatchId(patchId) === CURRENT_PATCH_ID
       ? Object.freeze({})
       : patchRuntimeValuesFor(preview, definition.id);
+  const validatePatch = (
+    candidate: ProfessionPatchPreview | null | undefined,
+  ): true => {
+    if (!candidate) return true;
+    assertProfessionPatchShape(definition.id, candidate);
+    applySkillPatch(family.catalog, candidate);
+    applyModifierRulePatch(modifierRules, candidate.modifierRules);
+    return true;
+  };
   const resolveRuntime = (config: Readonly<SchedulerConfig> = {}) => {
     const patchId = assertPatchId(String(config.patchId || CURRENT_PATCH_ID));
     const runtime =
@@ -451,10 +581,15 @@ export function defineNativeProfession<
         ? family.resolveRuntime(config)
         : familyForPreview().resolveRuntime(config);
     if (patchId === CURRENT_PATCH_ID) return runtime;
+    validatedPreviewCatalog();
     const cachedRuntime = runtimeOverlays.get(runtime);
     if (cachedRuntime) return cachedRuntime as typeof runtime;
     const cached = runtimeCatalogs.get(runtime.catalog);
-    const catalog = cached || applySkillPatch(runtime.catalog, professionPatch);
+    const catalog =
+      cached ||
+      applySkillPatch(runtime.catalog, professionPatch, {
+        unknownSkills: "ignore",
+      });
     if (!cached) runtimeCatalogs.set(runtime.catalog, catalog);
     if (catalog === runtime.catalog) return runtime;
     const overlay = Object.freeze({ ...runtime, catalog });
@@ -466,6 +601,8 @@ export function defineNativeProfession<
     preview,
     catalogFor,
     patchValuesFor,
+    patchAuthoring,
+    validatePatch,
     resolveRuntime,
     previewModifierRuleTargets: previewModifierRules.targets,
     specializationIds: Object.freeze(

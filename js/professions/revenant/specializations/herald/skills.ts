@@ -2,7 +2,12 @@
  * Herald skill mechanics owned by the Herald Revenant module.
  */
 import { REVENANT_SKILL_IDS as ID } from "../../data/ids.js";
-import type { SkillFragment } from "../../../../platform/engine/types.js";
+import type {
+  Skill,
+  SkillFragment,
+} from "../../../../platform/engine/types.js";
+
+export const HERALD_SPIRIT_BOON_SKILL_ID = "revenant.herald.spirit-boon-dragon";
 
 export const HERALD_BASE_SKILL_MECHANICS: Readonly<
   Record<number, SkillFragment>
@@ -69,11 +74,62 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ELEMENTAL_BLAST]: {
     implemented: true,
-    handlerId: "revenant.elemental-blast",
+    handlerId: "revenant.facet-consume",
     quicknessCastTimeMs: 480,
     cooldown: 12,
     energyCost: 0,
-    effects: [],
+    effects: [
+      {
+        type: "strike",
+        name: "Elemental Blast",
+        actorType: "player",
+        ticks: [
+          {
+            atMs: 280,
+            coefficient: 1.5,
+            metadata: { name: "Elemental Blast — Pulse 1" },
+          },
+          {
+            atMs: 1280,
+            coefficient: 1.5,
+            metadata: { name: "Elemental Blast — Pulse 2" },
+          },
+          {
+            atMs: 2280,
+            coefficient: 1.5,
+            metadata: { name: "Elemental Blast — Pulse 3" },
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      },
+      {
+        type: "condition",
+        actorType: "player",
+        ticks: [
+          {
+            atMs: 280,
+            condition: "Weakness",
+            stacks: 1,
+            duration: 5,
+          },
+          {
+            atMs: 1280,
+            condition: "Chilled",
+            stacks: 1,
+            duration: 3,
+          },
+          {
+            atMs: 2280,
+            condition: "Burning",
+            stacks: 2,
+            duration: 4,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      },
+    ],
     legendId: "LegendaryDragon",
     consume: true,
   },
@@ -293,3 +349,30 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<
     consume: true,
   },
 });
+
+export const HERALD_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+  {
+    id: HERALD_SPIRIT_BOON_SKILL_ID,
+    name: "Spirit Boon (Dragon)",
+    description:
+      "Invoking Legendary Dragon grants protection to nearby allies.",
+    icon: "https://render.guildwars2.com/file/62279406A52F47A00CE7BFFB43D405907A67A60F/1012681.png",
+    type: "Action",
+    slot: "Action",
+    categories: ["Trait"],
+    slotSelectable: false,
+    skillFamily: "Trait",
+    specialization: "Herald",
+    implemented: true,
+    simulatorExcluded: true,
+    effects: [
+      {
+        type: "boon",
+        boon: "protection",
+        duration: 3,
+        stacks: 1,
+        actorType: "player",
+      },
+    ],
+  },
+]);

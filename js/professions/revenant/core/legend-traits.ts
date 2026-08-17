@@ -1,3 +1,4 @@
+import { materializeSkillEffectApplications } from "../../../platform/engine/effect-materializer.js";
 import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Trait effects triggered by invoking a legend.
@@ -17,6 +18,7 @@ import type { SkillId } from "../../../platform/engine/types.js";
 import type {
   RevenantCastContext,
   RevenantCoreState,
+  RevenantSchedulerContext,
   RevenantSkill,
 } from "../types.js";
 
@@ -49,6 +51,38 @@ const CORE_LEGENDS = new Set<string>([
   LEGEND.DWARF,
   LEGEND.CENTAUR,
 ]);
+
+/** Emits a declarative proc skill while preserving the triggering trait as its source. */
+export function emitLegendInvocationSkill(
+  context: RevenantSchedulerContext,
+  skillId: SkillId,
+  at: number,
+  sourceId: SkillId,
+): void {
+  const skill = context.catalog.skillsById.get(skillId);
+  if (!skill) return;
+  const activationId = context.createActivationId("legend-invocation");
+  for (const effect of skill.effects || []) {
+    const applications = materializeSkillEffectApplications({
+      skill,
+      effect,
+      start: at,
+      fullEnd: at,
+      baseEvent: {
+        activationId,
+        source: "revenant",
+        sourceId,
+        actorType: effect.actorType || "player",
+        skillId: skill.id,
+        skillName: skill.name,
+      },
+      skillWeaponFallback: "Unequipped",
+    });
+    for (const application of applications) {
+      context.emit(application.event);
+    }
+  }
+}
 
 function emitDamage(
   context: RevenantCastContext,

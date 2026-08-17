@@ -22,18 +22,20 @@ There is no preview history and there are no concurrent previews.
 
 ## Patch-note intake
 
-Patch-note prose is not the simulator data model. Before authoring an overlay,
-classify every note in a small ledger so nothing disappears silently.
+Patch-note prose is not the simulator data model. The preview links to the
+official ArenaNet patch notes and stores only structured simulator edits. The
+authoring and save paths generate a short, deterministic overview from those
+diffs instead of asking an author to duplicate ArenaNet's prose.
 
-| Classification                                        | Handling                                                                                                                   |
-| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| PvE numeric skill/effect change                       | Apply through the catalog overlay.                                                                                         |
-| PvE declarative trait modifier change                 | Apply through the modifier-rule overlay.                                                                                   |
-| PvE imperative trait or runtime-computed change       | Apply through a named patchable constant after the code path exposes one.                                                  |
-| PvP/WvW-only change                                   | Record as `not-applicable`; this simulator models PvE.                                                                     |
-| `unchanged` or a later note that supersedes a preview | Remove/cancel the earlier edit and record the resolution.                                                                  |
-| Bug fix or behavior change                            | Implement ordinary code behind the preview selector when it changes simulated output; otherwise record it as out of model. |
-| Description-only or unsupported system                | Record it as `tracked` with a reason. Do not pretend it affects comparison results.                                        |
+| Classification                                        | Handling                                                                                             |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| PvE numeric skill/effect change                       | Apply through the catalog overlay.                                                                   |
+| PvE declarative trait modifier change                 | Apply through the modifier-rule overlay.                                                             |
+| PvE imperative trait or runtime-computed change       | Apply through a named patchable constant after the code path exposes one.                            |
+| PvP/WvW-only change                                   | Do not author a simulator edit; this simulator models PvE. Refer users to the linked official notes. |
+| `unchanged` or a later note that supersedes a preview | Remove or replace the earlier structured edit.                                                       |
+| Bug fix or behavior change                            | Implement ordinary code behind the preview selector when it changes simulated output.                |
+| Description-only or unsupported system                | Do not create an inert simulator entry. It remains available in the linked official notes.           |
 
 The supplied notes demonstrate cases the original design did not cover:
 
@@ -45,18 +47,19 @@ The supplied notes demonstrate cases the original design did not cover:
 - additions can supersede, rather than supplement, an earlier preview value;
 - fixes can change behavior without containing an old/new number.
 
-The manifest therefore stores authoritative structured edits and human-readable
-notes/statuses. It does not attempt to parse ArenaNet prose at runtime.
+The manifest therefore stores authoritative structured edits, their generated
+overview, and the official source URL. It does not parse or reproduce ArenaNet
+prose at runtime. Hand-authored note entries are not part of the schema.
 
 ## Authoring surface
 
 The one optional manifest lives at `js/patches/active-preview.ts` and has:
 
 - stable `id`, display `label`, optional source URL, and publication date;
-- optional global patchable constants and General-note ledger entries;
+- optional global patchable constants;
 - per-profession skill edits, modifier-rule edits, and patchable constants;
-- a per-profession note ledger with `applied`, `tracked`, `not-applicable`,
-  `unchanged`, or `superseded` status.
+- generated per-profession overview entries derived from skill and
+  modifier-rule edits.
 
 The checked-in export is `null` when no upcoming preview exists. To author one,
 replace only that value with a typed manifest:
@@ -65,6 +68,7 @@ replace only that value with a typed manifest:
 export const activePatchPreview: PatchPreview | null = {
   id: "next-balance-preview",
   label: "Next Balance Preview",
+  sourceUrl: "https://en-forum.guildwars2.com/topic/example-patch-notes/",
   professions: {
     professionId: {
       skills: {
@@ -78,13 +82,6 @@ export const activePatchPreview: PatchPreview | null = {
           ],
         },
       },
-      notes: [
-        {
-          subject: "Example Skill",
-          text: "Reduced its first strike coefficient.",
-          status: "applied",
-        },
-      ],
     },
   },
 };
@@ -320,7 +317,7 @@ calculations, and other values that are not declarative modifier rules. A
 constant key is part of the authoring API and must be stable and specific, for
 example `warrior.traits.burst-mastery.factor`. Static attribute calculations
 that occur before simulation need an explicit preview-aware seam before such a
-note can be marked `applied`.
+change can be represented in the preview.
 
 ```ts
 patchRuntimeValue(
@@ -329,6 +326,34 @@ patchRuntimeValue(
   liveFactor,
 );
 ```
+
+## Local authoring UI
+
+Run `npm run author:patch-preview`, then open `http://127.0.0.1:4174`. The
+standalone page reads an authoring manifest from its dedicated loopback-only
+server. That manifest is derived from the same native profession modules used
+by simulation and groups live skills, traits, and declarative modifier rules
+by profession and Core or elite specialization. The ordinary simulator server
+on port `4173` remains read-only and does not register the authoring API.
+
+The trait section exposes catalog trait metadata as reference and numeric
+editors for patchable modifier amounts, factors, and resolver parameters. The
+skill section exposes complete live metadata, supported numeric fields,
+effect/tick numeric editors, effect removal, and complete new-effect JSON
+objects. All numeric controls emit `{ from, to }` edits so a later live-data
+change becomes a validation failure instead of silently retargeting the patch.
+
+The Overview & source section links to the official patch notes and renders the
+read-only overview generated from the selected profession's skill and modifier
+diffs. Manual repository-wide or profession notes are unsupported and are
+rejected by validation. The authoring model strips them when normalizing an
+older in-memory draft.
+
+Saving sends the complete draft to `PUT /api/patch-preview`. The local server
+validates every profession patch against its canonical catalog and modifier
+declarations, rejects unknown professions or targets, and writes only
+`js/patches/active-preview.ts`. A rebuild or server restart is required before
+the simulator uses the newly written preview.
 
 ## Data flow
 
@@ -350,6 +375,8 @@ exposes:
 - `preview` as metadata or `null`;
 - `catalogFor("current" | preview.id)`; and
 - `patchValuesFor("current" | preview.id)` for runtime constants; and
+- `patchAuthoring` as serializable module-owned authoring metadata;
+- `validatePatch(...)` for candidate profession edits; and
 - validated modifier-rule target metadata for the promotion report.
 
 Preview application catalogs and specialization runtime families are built
@@ -376,7 +403,8 @@ When a preview exists, every profession page renders:
 - the selected data set's normal detailed analysis;
 - live and preview total DPS from the same build/rotation/assumptions;
 - total and percentage delta plus per-skill deltas; and
-- the authored note ledger/diff summary for that profession.
+- a link to the official patch notes and the generated diff overview for that
+  profession.
 
 Random distributions and modifier-contribution jobs use the selected patch.
 The automatic A/B result stays deterministic so comparison noise cannot be
@@ -384,8 +412,8 @@ mistaken for a patch effect.
 
 ## Scope and invariants
 
-- The simulator is PvE-only. Competitive-only notes are visible in the ledger
-  but never mutate PvE data.
+- The simulator is PvE-only. Competitive-only changes remain in the linked
+  official notes and do not mutate PvE data.
 - Preview edits change numbers/behavior, not IDs or names. Existing rotations
   therefore run unchanged on both catalogs.
 - Adding/removing skills or changing loadout topology requires ordinary code,
@@ -396,8 +424,8 @@ mistaken for a patch effect.
 - Catalog application never mutates live data.
 - Modifier-rule application never mutates live declarations or compiled hooks.
 - Only one preview manifest may be active.
-- A note is marked `applied` only when the selected preview actually changes
-  simulation behavior.
+- Generated overview entries describe only structured preview edits and are
+  replaced whenever those edits change.
 
 ## Promotion
 

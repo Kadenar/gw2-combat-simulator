@@ -122,6 +122,10 @@ function normalizeFinisherDescriptors(
   );
 }
 
+// Legacy data encoded finisherValue with type-specific semantics:
+//   Projectile → chance (0..1)
+//   Whirl      → number of applications (hits that each trigger a combo)
+//   Blast      → successfulCombos (combos produced on a single success)
 function legacyFinisher(
   finisherType: unknown,
   finisherValue: unknown,
@@ -143,6 +147,8 @@ function legacyFinisher(
   );
 }
 
+// Strips the old finisherType/finisherValue fields from tick/effect metadata
+// so they aren't re-processed now that we have an explicit comboFinishers array.
 function withoutLegacyFinisherAliases(
   metadata: SchedulerRecord | undefined,
 ): SchedulerRecord | undefined {
@@ -162,6 +168,8 @@ function normalizeTick(
   allowLegacy: boolean,
 ): SchedulerRecord {
   const attemptGroup = `effect:${effectIndex + 1}:tick:${tickIndex + 1}`;
+  // Legacy finisher metadata is only promoted on strike ticks (allowLegacy=true).
+  // Non-strike ticks instead have the old fields stripped from their metadata.
   const comboFinishers =
     tick.comboFinishers == null
       ? allowLegacy
@@ -198,6 +206,8 @@ function normalizeEffect(
     effect.comboFields == null
       ? undefined
       : normalizeFieldDescriptors(effect.comboFields);
+  // Legacy finisher fields in metadata are only promoted to comboFinishers on
+  // strike effects. Non-strike effects (buffs, conditions, etc.) have them stripped.
   const comboFinishers =
     effect.comboFinishers == null
       ? effect.type === "strike"
@@ -243,6 +253,8 @@ export function normalizeGw2ComboCatalogSkill(
   const legacyDuration = Number(
     skill.comboFieldDuration ?? skill.fieldDuration ?? skill.duration ?? 0,
   );
+  // When comboFieldStartMs is absent the field activates at the end of the cast
+  // animation rather than the beginning. Most fields use this implicit behavior.
   const comboFields =
     skill.comboFields != null
       ? normalizeFieldDescriptors(skill.comboFields)

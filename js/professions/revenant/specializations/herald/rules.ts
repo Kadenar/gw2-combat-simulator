@@ -1,24 +1,25 @@
 import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
-import {
-  REVENANT_LEGEND_IDS as LEGEND,
-  REVENANT_TRAIT_IDS as TRAIT,
-} from "../../data/ids.js";
+import type { Gw2ModifierRule } from "../../../../platform/gw2/types.js";
+import { revenantCombatActive } from "../../core/legend.js";
+import { emitLegendInvocationSkill } from "../../core/legend-traits.js";
 import {
   revenantActiveBoonCount,
   revenantPlayer,
   revenantTimedBuff,
 } from "../../core/rules.js";
-import { emitRevenantBoon } from "../../core/boons.js";
-import { revenantCombatActive } from "../../core/legend.js";
 import { hasRevenantTrait } from "../../core/state.js";
-import { HERALD_MECHANICS as MECHANICS } from "./mechanics.js";
-import type { Gw2ModifierRule } from "../../../../platform/gw2/types.js";
+import {
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_SKILL_IDS as ID,
+  REVENANT_TRAIT_IDS as TRAIT,
+} from "../../data/ids.js";
 import type {
   RevenantSchedulerContext,
   RevenantSimulationEvent,
 } from "../../types.js";
+import { HERALD_SPIRIT_BOON_SKILL_ID } from "./skills.js";
 
 export const heraldModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -57,7 +58,7 @@ function observeHeraldEvent(
   context: RevenantSchedulerContext,
   event: RevenantSimulationEvent,
 ): void {
-  // activeLegendId is already updated to the destination legend by the time sigil_swap is emitted (see legend.ts swapRevenantLegend), so this correctly tests the legend just swapped INTO.
+  // activeLegendId is already updated to the destination legend by the time sigil_swap is emitted, so this tests the legend just swapped into.
   if (
     event.type !== "sigil_swap" ||
     professionCoreState(context).activeLegendId !== LEGEND.DRAGON ||
@@ -65,62 +66,21 @@ function observeHeraldEvent(
   ) {
     return;
   }
-  // The swap skill is retrieved from the catalog to supply weapon metadata (e.g. skillWeapon) to the emitted events.
-  const swapSkill =
-    event.skillId == null
-      ? undefined
-      : context.catalog.skillsById.get(event.skillId);
-  if (!swapSkill) return;
-  const invocation = MECHANICS.legendInvocation;
   if (hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
-    const boon = invocation.spiritBoon;
-    emitRevenantBoon(
+    emitLegendInvocationSkill(
       context,
-      swapSkill,
-      boon.kind,
-      boon.duration,
-      boon.stacks,
-      {
-        at: event.at,
-        sourceId: TRAIT.SPIRIT_BOON,
-        name: `Spirit Boon — ${boon.kind}`,
-      },
+      HERALD_SPIRIT_BOON_SKILL_ID,
+      event.at,
+      TRAIT.SPIRIT_BOON,
     );
   }
   if (!hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
-  const song = invocation.song;
-  // Song of the Mists uses the trait ID as both sourceId and skillId because it has no dedicated skill entry in the catalog.
-  context.emit({
-    type: "damage",
-    at: event.at,
-    source: "revenant",
-    sourceId: TRAIT.SONG_OF_THE_MISTS,
-    actorType: "player",
-    skillId: TRAIT.SONG_OF_THE_MISTS,
-    skillName: song.name,
-    name: song.name,
-    coefficient: song.coefficient,
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
-    skillWeapon: "Unequipped",
-  });
-  // Explicit String/Number coercions guard against the frozen tuple being typed as `readonly unknown[]`.
-  for (const [condition, stacks, duration] of song.conditions) {
-    context.emit({
-      type: "condition",
-      at: event.at,
-      source: "revenant",
-      sourceId: TRAIT.SONG_OF_THE_MISTS,
-      actorType: "player",
-      skillId: TRAIT.SONG_OF_THE_MISTS,
-      skillName: song.name,
-      name: `${song.name} — ${condition}`,
-      condition: String(condition),
-      stacks: Number(stacks),
-      duration: Number(duration),
-    });
-  }
+  emitLegendInvocationSkill(
+    context,
+    ID.CALL_OF_THE_DRAGON,
+    event.at,
+    TRAIT.SONG_OF_THE_MISTS,
+  );
 }
 
 export const heraldSchedulerHooks = Object.freeze({

@@ -54,9 +54,7 @@ export interface RevenantSkill extends Skill {
 }
 
 export type RevenantDodge =
-  | "Death Drop"
-  | "Saint of zu Heltzer"
-  | "Imperial Impact";
+  "Death Drop" | "Saint of zu Heltzer" | "Imperial Impact";
 export type RevenantAllianceSide = "luxon" | "kurzick";
 
 export interface RevenantBuild extends Gw2Build {
@@ -161,6 +159,7 @@ export interface RenegadeState {
   bandTogetherReady: boolean;
   bandTogetherExpiresAt: number;
   kallasFervor: RevenantTimedStack[];
+  kallasFervorMaximumStacks: number;
   renegadeCriticalProgress: number;
   razorclawsRage: RevenantChargeState;
 }
@@ -183,7 +182,8 @@ export interface ConduitState {
 }
 
 export interface RevenantState
-  extends RevenantCoreState,
+  extends
+    RevenantCoreState,
     HeraldState,
     RenegadeState,
     VindicatorState,
