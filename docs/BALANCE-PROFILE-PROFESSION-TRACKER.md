@@ -1,7 +1,7 @@
 # Balance Profile Profession Tracker
 
-Status: Necromancer, Guardian, Warrior, and Engineer complete; remaining
-profession implementations not started.
+Status: Necromancer, Guardian, Warrior, Engineer, Thief, and Ranger complete;
+remaining profession implementations not started.
 
 Scope: bring every non-Revenant profession to the balance-preview model used by
 [Revenant](../js/professions/revenant/catalog-data.ts). Each profession below is
@@ -117,26 +117,28 @@ Size: Large. Modules: Core, Druid, Soulbeast, Untamed, Galeshot. Profiles today:
 
 ### Tracked issues
 
-- [ ] `RNG-01` Add profile plumbing to
+- [x] `RNG-01` Add profile plumbing to
       [catalog-data.ts](../js/professions/ranger/catalog-data.ts) and all five
       modules.
-- [ ] `RNG-02` Extract dodge, swap, Opening Strike, boon, poison, and control
+- [x] `RNG-02` Extract dodge, swap, Opening Strike, boon, poison, and control
       values from [core traits](../js/professions/ranger/core/traits.ts).
-- [ ] `RNG-03` Convert autonomous attacks and commands in
-      [pets.ts](../js/professions/ranger/core/pets.ts) into supplemental skills
-      or skill variants.
-- [ ] `RNG-04` Profile Druid avatar/force, Soulbeast stance/proc, Untamed
+- [x] `RNG-03` Preserve autonomous attacks and commands in
+      [pets.ts](../js/professions/ranger/core/pets.ts) without balance profiles.
+      Per the Ranger migration requirements, pet base attributes and pet skills
+      remain unchanged; trait attribute bonuses applied to pets are
+      profile-backed.
+- [x] `RNG-04` Profile Druid avatar/force, Soulbeast stance/proc, Untamed
       unleash/ambush, and Galeshot arrow values.
-- [ ] `RNG-05` Make seven opaque modifier formulas authorable; replace or expose
+- [x] `RNG-05` Make seven opaque modifier formulas authorable; replace or expose
       Core's imperative attribute and condition-duration changes.
 
 ### Remediation steps
 
-- [ ] Keep player and pet ownership explicit in every declaration.
-- [ ] Wire module profiles into the profession catalog.
-- [ ] Add tests for player/pet packets, astral force, arrow regeneration, a
+- [x] Keep player and pet ownership explicit in every declaration.
+- [x] Wire module profiles into the profession catalog.
+- [x] Add tests for player/pet packets, astral force, arrow regeneration, a
       trait proc, and a dynamic modifier.
-- [ ] Verify the shared completion contract.
+- [x] Verify the shared completion contract.
 
 ## Thief
 
@@ -145,26 +147,26 @@ today: 0.
 
 ### Tracked issues
 
-- [ ] `THF-01` Add profile plumbing to
+- [x] `THF-01` Add profile plumbing to
       [catalog-data.ts](../js/professions/thief/catalog-data.ts) and all five
       modules.
-- [ ] `THF-02` Extract steal, venom, siphon, dodge, and stealth values from
+- [x] `THF-02` Extract steal, venom, siphon, dodge, and stealth values from
       [core traits](../js/professions/thief/core/traits.ts) and related handlers.
-- [ ] `THF-03` Move Spider Venom, Thousand Needles, Caltrops, and other castable
+- [x] `THF-03` Move Spider Venom, Thousand Needles, Caltrops, and other castable
       data out of [conditions.ts](../js/professions/thief/core/conditions.ts) and
       into skill declarations.
-- [ ] `THF-04` Profile Daredevil dodge, Deadeye malice, Specter shadow-force,
+- [x] `THF-04` Profile Daredevil dodge, Deadeye malice, Specter shadow-force,
       and Antiquary artifact/scuffle values.
-- [ ] `THF-05` Make seven opaque modifier formulas authorable; replace or expose
+- [x] `THF-05` Make seven opaque modifier formulas authorable; replace or expose
       imperative attribute changes in Core, Deadeye, and Specter.
 
 ### Remediation steps
 
-- [ ] Separate resource mechanics from the attacks they trigger.
-- [ ] Wire module profiles into the profession catalog.
-- [ ] Add tests for initiative, dodge, malice, shadow force, artifact outcomes,
+- [x] Separate resource mechanics from the attacks they trigger.
+- [x] Wire module profiles into the profession catalog.
+- [x] Add tests for initiative, dodge, malice, shadow force, artifact outcomes,
       and a dynamic modifier.
-- [ ] Verify the shared completion contract.
+- [x] Verify the shared completion contract.
 
 ## Engineer
 

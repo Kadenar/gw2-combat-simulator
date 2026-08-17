@@ -7,6 +7,7 @@ import { TRAITS } from "./data/traits-data.js";
 import { spearChainStageForSkill } from "./core/conditions.js";
 import { thiefWeaponSkillMatchesSet as thiefCoreWeaponSkillMatchesSet } from "./core/weapons.js";
 import type {
+  BalanceProfile,
   CatalogEntity,
   SkillFragment,
   SkillHandlerStrategy,
@@ -276,6 +277,7 @@ const WEAPON_HANDS = Object.freeze({
 interface ThiefModuleDataOptions<TContext extends object> {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
   readonly extraSkills?: readonly ThiefSkill[];
+  readonly balanceProfiles?: readonly BalanceProfile[];
   readonly handlers?:
     | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
     | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
@@ -286,6 +288,7 @@ export function createThiefModuleData<TContext extends object>(
   {
     skillMechanics,
     extraSkills = [],
+    balanceProfiles = [],
     handlers,
   }: ThiefModuleDataOptions<TContext>,
 ) {
@@ -311,6 +314,7 @@ export function createThiefModuleData<TContext extends object>(
     sharedExtraSkills: supplemental,
     skillMechanics: terrestrialMechanics,
     extraSkills,
+    balanceProfiles,
     handlers,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,

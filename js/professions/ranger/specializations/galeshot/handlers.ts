@@ -4,6 +4,8 @@ import { applyRangerWeaponSwapTraits } from "../../core/traits.js";
 import { applyGaleshotCycloneBowTraits } from "./rules.js";
 import { galeshotState } from "./state.js";
 import type { RangerCastContext, RangerSkill } from "../../types.js";
+import { rangerBalanceValue } from "../../core/profiles.js";
+import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 function emitGaleshotState(
   context: RangerCastContext,
@@ -50,6 +52,12 @@ function countAsWeaponSwap(
 
 function restoreArrows(context: RangerCastContext, skill: RangerSkill): void {
   const state = galeshotState.from(context);
+  state.maximumArrows = rangerBalanceValue(
+    context,
+    PROFILE.resources,
+    "maximumStacks",
+    8,
+  );
   state.arrows = Math.min(
     state.maximumArrows,
     state.arrows + Number(skill.arrowsRestored || 0),
@@ -87,7 +95,7 @@ export const galeshotSkillHandlers = Object.freeze({
         state.windForce = 0;
       } else {
         state.windForce = Math.min(
-          5,
+          rangerBalanceValue(context, PROFILE.resources, "minimumStacks", 5),
           state.windForce + Number(skill.windForceGain || 0),
         );
       }
@@ -117,7 +125,9 @@ export const galeshotSkillHandlers = Object.freeze({
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
       const state = galeshotState.from(context);
       restoreArrows(context, skill);
-      state.mistralUntil = context.start + 6;
+      state.mistralUntil =
+        context.start +
+        rangerBalanceValue(context, PROFILE.mistral, "durationMultiplier", 6);
       emitGaleshotState(context, skill);
     },
   },

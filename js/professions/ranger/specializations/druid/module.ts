@@ -14,11 +14,13 @@ import { reactToDruidCondition, reactToDruidControl } from "./resolver.js";
 import { DRUID_BASE_SKILL_MECHANICS } from "./skills.js";
 import { druidState } from "./state.js";
 import { druidUi } from "./ui.js";
+import { DRUID_BALANCE_PROFILES } from "./profiles.js";
 
 export const druidModule = defineNativeModule({
   id: "Druid",
   data: createRangerModuleData("Druid", {
     skillMechanics: DRUID_BASE_SKILL_MECHANICS,
+    balanceProfiles: DRUID_BALANCE_PROFILES,
     handlers: druidSkillHandlers,
   }),
   // Same state factory for both phases: resolver reads celestialAvatarActive and astralForce during damage resolution

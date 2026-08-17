@@ -13,11 +13,13 @@ import { specterState } from "./state.js";
 import { specterUi } from "./ui.js";
 import { SPECTER_SKILL_MECHANICS } from "./skills.js";
 import { applyLarcenousTorment } from "./resolver.js";
+import { SPECTER_BALANCE_PROFILES } from "./profiles.js";
 
 export const specterModule = defineNativeModule({
   id: "Specter",
   data: createThiefModuleData("Specter", {
     skillMechanics: SPECTER_SKILL_MECHANICS,
+    balanceProfiles: SPECTER_BALANCE_PROFILES,
     handlers: specterSkillHandlers,
   }),
   // Both phases get independent state instances; sharing the factory is fine because create is called twice.

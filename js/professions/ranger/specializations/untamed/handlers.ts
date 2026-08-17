@@ -1,5 +1,11 @@
 import { untamedState } from "./state.js";
 import type { RangerCastContext, RangerSkill } from "../../types.js";
+import {
+  rangerBalanceProfile,
+  rangerBalanceProfileEffect,
+  rangerBalanceValue,
+} from "../../core/profiles.js";
+import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 function unleash(context: RangerCastContext, rangerUnleashed: boolean): void {
   const state = untamedState.from(context);
@@ -22,8 +28,12 @@ function unleash(context: RangerCastContext, rangerUnleashed: boolean): void {
     return;
   }
   // 4-second window from the cast start, not effectiveEnd, matching the in-game timing.
-  state.ambushReadyUntil = context.start + 4;
-  state.unleashedPowerReadyAt = context.start + 9;
+  state.ambushReadyUntil =
+    context.start +
+    rangerBalanceValue(context, PROFILE.resources, "durationMultiplier", 4);
+  state.unleashedPowerReadyAt =
+    context.start +
+    rangerBalanceValue(context, PROFILE.resources, "internalCooldown", 9);
 }
 
 export const untamedSkillHandlers = Object.freeze({
@@ -58,7 +68,16 @@ export const untamedSkillHandlers = Object.freeze({
       rangerWasUnleashed: unknown,
     ) {
       // Boon and duration differ depending on which side was unleashed when the skill was cast.
-      const boon = rangerWasUnleashed ? "might" : "protection";
+      const profileId = rangerWasUnleashed
+        ? PROFILE.explodingSporesRanger
+        : PROFILE.explodingSporesPet;
+      const effect = rangerBalanceProfileEffect(
+        rangerBalanceProfile(context, profileId),
+        "boon",
+      );
+      const boon = String(
+        effect?.boon || (rangerWasUnleashed ? "might" : "protection"),
+      );
       context.emit({
         type: "buff",
         at: context.effectiveEnd,
@@ -69,8 +88,8 @@ export const untamedSkillHandlers = Object.freeze({
         skillName: skill.name,
         name: `${skill.name} - ${boon}`,
         kind: boon,
-        duration: rangerWasUnleashed ? 10 : 4,
-        stacks: rangerWasUnleashed ? 8 : 1,
+        duration: Number(effect?.duration ?? (rangerWasUnleashed ? 10 : 4)),
+        stacks: Number(effect?.stacks ?? (rangerWasUnleashed ? 8 : 1)),
       });
     },
   },

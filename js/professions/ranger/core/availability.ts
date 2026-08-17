@@ -10,6 +10,10 @@ import {
   normalizeRangerHammerSkillIds,
 } from "./hammer.js";
 import { rangerEnduranceReadyAt } from "./resources.js";
+import {
+  rangerBalanceValue,
+  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE,
+} from "./profiles.js";
 
 function deny(
   skill: RangerSkill,
@@ -28,13 +32,19 @@ export function rangerCoreCastAvailability(
   skill: RangerSkill,
 ): AvailabilityResult {
   if (skill.id === ID.DODGE) {
-    return professionCoreState(context).endurance + context.epsilon >= 50
+    const cost = rangerBalanceValue(
+      context,
+      PROFILE.resources,
+      "resourceCost",
+      50,
+    );
+    return professionCoreState(context).endurance + context.epsilon >= cost
       ? { ready: true }
       : {
           ready: false,
-          retryAt: rangerEnduranceReadyAt(context, 50),
+          retryAt: rangerEnduranceReadyAt(context, cost),
           code: "ranger.endurance",
-          reason: "Dodge requires 50 endurance.",
+          reason: `Dodge requires ${cost} endurance.`,
         };
   }
   if (

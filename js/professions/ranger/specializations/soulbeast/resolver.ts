@@ -13,6 +13,25 @@ import type {
 } from "../../types.js";
 import { rangerPetByName } from "../../core/state.js";
 import { soulbeastState } from "./state.js";
+import {
+  rangerBalanceProfile,
+  rangerBalanceProfileEffect,
+  RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
+} from "../../core/profiles.js";
+import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
+
+function profileEffect(
+  context: unknown,
+  id: number | string,
+  type: string,
+  index = 0,
+) {
+  return rangerBalanceProfileEffect(
+    rangerBalanceProfile(context, id),
+    type,
+    index,
+  );
+}
 
 export function handleSoulbeastModeEvent(
   context: RangerResolverContext,
@@ -154,21 +173,24 @@ export function reactToSoulbeastDamage(
     activeSoulbeastBuff(context, "one-wolf-pack", event.at) &&
     event.at >= state.oneWolfPackReadyAt
   ) {
+    const profile = rangerBalanceProfile(context, PROFILE.oneWolfPack);
+    const strike = rangerBalanceProfileEffect(profile, "strike");
     // 1-second ICD between echoes even within a single multi-hit skill.
-    state.oneWolfPackReadyAt = event.at + 1;
+    state.oneWolfPackReadyAt =
+      event.at + Number(profile?.internalCooldown ?? 1);
     enqueueOrdered(context.queue, {
       type: "damage",
-      at: event.at + 0.28,
+      at: event.at + Number(profile?.initialDelay ?? 0.28),
       source: "ranger",
       sourceId: ID.ONE_WOLF_PACK_STRIKE,
       actorType: "effect",
       skillId: ID.ONE_WOLF_PACK,
       skillName: "One Wolf Pack",
       name: "One Wolf Pack",
-      coefficient: 0.95,
-      hits: 1,
+      coefficient: Number(strike?.coefficient ?? 0.95),
+      hits: Number(strike?.hits ?? 1),
       hitIndex: 1,
-      totalHits: 1,
+      totalHits: Number(strike?.hits ?? 1),
       skillWeapon: event.skillWeapon || "Unequipped",
       weaponStrengthProfileId: event.weaponStrengthProfileId,
       canCrit: true,
@@ -182,21 +204,25 @@ export function reactToSoulbeastDamage(
     event.at >= state.vultureStanceReadyAt &&
     event.actorType !== "effect"
   ) {
-    state.vultureStanceReadyAt = event.at + 0.25;
+    const profile = rangerBalanceProfile(context, PROFILE.vultureStance);
+    const poison = rangerBalanceProfileEffect(profile, "condition");
+    const might = rangerBalanceProfileEffect(profile, "boon");
+    state.vultureStanceReadyAt =
+      event.at + Number(profile?.internalCooldown ?? 0.25);
     queueCondition(
       context,
       event,
-      "Poisoned",
-      4,
+      String(poison?.condition || "Poisoned"),
+      Number(poison?.duration ?? 4),
       ID.VULTURE_STANCE,
       "Vulture Stance",
     );
     queueSoulbeastBuff(
       context,
       event,
-      "might",
-      4,
-      1,
+      String(might?.boon || "might"),
+      Number(might?.duration ?? 4),
+      Number(might?.stacks ?? 1),
       "Vulture Stance",
       ID.VULTURE_STANCE,
     );
@@ -204,31 +230,34 @@ export function reactToSoulbeastDamage(
 
   if (!firstBeastAbilityHit(context, event)) return;
   if (hasTrait(context, TRAIT.LIVE_FAST)) {
+    const fury = profileEffect(context, PROFILE.liveFast, "boon", 0);
+    const quickness = profileEffect(context, PROFILE.liveFast, "boon", 1);
     queueSoulbeastBuff(
       context,
       event,
-      "fury",
-      6,
-      1,
+      String(fury?.boon || "fury"),
+      Number(fury?.duration ?? 6),
+      Number(fury?.stacks ?? 1),
       "Live Fast",
       TRAIT.LIVE_FAST,
     );
     queueSoulbeastBuff(
       context,
       event,
-      "quickness",
-      3,
-      1,
+      String(quickness?.boon || "quickness"),
+      Number(quickness?.duration ?? 3),
+      Number(quickness?.stacks ?? 1),
       "Live Fast",
       TRAIT.LIVE_FAST,
     );
   }
   if (hasTrait(context, TRAIT.WILTING_STRIKE)) {
+    const weakness = profileEffect(context, PROFILE.wiltingStrike, "condition");
     queueCondition(
       context,
       event,
-      "Weakness",
-      4,
+      String(weakness?.condition || "Weakness"),
+      Number(weakness?.duration ?? 4),
       TRAIT.WILTING_STRIKE,
       "Wilting Strike",
     );
@@ -237,7 +266,10 @@ export function reactToSoulbeastDamage(
     hasTrait(context, TRAIT.GO_FOR_THE_EYES) &&
     event.at >= state.goForTheEyesReadyAt
   ) {
-    state.goForTheEyesReadyAt = event.at + 12;
+    const profile = rangerBalanceProfile(context, PROFILE.goForTheEyes);
+    const blind = rangerBalanceProfileEffect(profile, "blind");
+    state.goForTheEyesReadyAt =
+      event.at + Number(profile?.internalCooldown ?? 12);
     enqueueOrdered(context.queue, {
       type: "blind",
       at: event.at,
@@ -246,7 +278,7 @@ export function reactToSoulbeastDamage(
       actorType: "effect",
       skillId: TRAIT.GO_FOR_THE_EYES,
       skillName: "Go for the Eyes",
-      duration: 5,
+      duration: Number(blind?.duration ?? 5),
       triggeredBy: event.skillName,
     });
   }
@@ -254,13 +286,17 @@ export function reactToSoulbeastDamage(
     hasTrait(context, TRAIT.GO_FOR_THE_THROAT) &&
     event.at >= state.goForTheThroatReadyAt
   ) {
-    state.goForTheThroatReadyAt = event.at + 10;
+    const profile = rangerBalanceProfile(context, CORE_PROFILE.goForTheThroat);
+    const lesserSicEm = rangerBalanceProfileEffect(profile, "buff", 1);
+    state.goForTheThroatReadyAt =
+      event.at + Number(profile?.internalCooldown ?? 10);
+    const duration = Number(lesserSicEm?.duration ?? 5);
     context.recordProc(
       "trait",
       'Lesser "Sic \'Em!"',
       event.at,
       event.skillName,
-      "5s, +15% strike damage",
+      `${duration}s, +15% strike damage`,
       context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon ||
         context.helpers.skillsById?.get(ID.SIC_EM)?.icon ||
         "",
@@ -268,9 +304,9 @@ export function reactToSoulbeastDamage(
     queueSoulbeastBuff(
       context,
       event,
-      "lesser-sic-em",
-      5,
-      1,
+      String(lesserSicEm?.kind || "lesser-sic-em"),
+      duration,
+      Number(lesserSicEm?.stacks ?? 1),
       'Lesser "Sic \'Em!"',
       ID.LESSER_SIC_EM,
     );
@@ -283,12 +319,13 @@ export function reactToSoulbeastControl(
 ): void {
   const state = soulbeastState.from(context);
   if (hasTrait(context, TRAIT.TWICE_AS_VICIOUS)) {
+    const buff = profileEffect(context, PROFILE.twiceAsVicious, "buff");
     queueSoulbeastBuff(
       context,
       event,
-      "twice-as-vicious",
-      10,
-      1,
+      String(buff?.kind || "twice-as-vicious"),
+      Number(buff?.duration ?? 10),
+      Number(buff?.stacks ?? 1),
       "Twice as Vicious",
       TRAIT.TWICE_AS_VICIOUS,
     );
@@ -297,22 +334,26 @@ export function reactToSoulbeastControl(
     hasTrait(context, TRAIT.BESTIAL_RAGE) &&
     event.at >= state.bestialRageReadyAt
   ) {
-    state.bestialRageReadyAt = event.at + 0.25;
+    const profile = rangerBalanceProfile(context, PROFILE.bestialRage);
+    const might = rangerBalanceProfileEffect(profile, "boon", 0);
+    const fury = rangerBalanceProfileEffect(profile, "boon", 1);
+    state.bestialRageReadyAt =
+      event.at + Number(profile?.internalCooldown ?? 0.25);
     queueSoulbeastBuff(
       context,
       event,
-      "might",
-      8,
-      5,
+      String(might?.boon || "might"),
+      Number(might?.duration ?? 8),
+      Number(might?.stacks ?? 5),
       "Bestial Rage",
       TRAIT.BESTIAL_RAGE,
     );
     queueSoulbeastBuff(
       context,
       event,
-      "fury",
-      3,
-      1,
+      String(fury?.boon || "fury"),
+      Number(fury?.duration ?? 3),
+      Number(fury?.stacks ?? 1),
       "Bestial Rage",
       TRAIT.BESTIAL_RAGE,
     );
@@ -330,6 +371,7 @@ export function reactToSoulbeastCondition(
   ) {
     return;
   }
+  const strike = profileEffect(context, PROFILE.predatorsCunning, "strike");
   enqueueOrdered(context.queue, {
     type: "damage",
     at: event.at,
@@ -339,10 +381,10 @@ export function reactToSoulbeastCondition(
     skillId: TRAIT.PREDATORS_CUNNING,
     skillName: "Predator's Cunning",
     name: "Predator's Cunning",
-    coefficient: 0.006,
-    hits: 1,
+    coefficient: Number(strike?.coefficient ?? 0.006),
+    hits: Number(strike?.hits ?? 1),
     hitIndex: 1,
-    totalHits: 1,
+    totalHits: Number(strike?.hits ?? 1),
     skillWeapon: "Unequipped",
     canCrit: false,
     triggeredBy: event.skillName,
@@ -363,7 +405,9 @@ export function reactToSoulbeastBuff(
   ) {
     return;
   }
-  state.essenceOfSpeedReadyAt = event.at + 5;
+  const profile = rangerBalanceProfile(context, PROFILE.essenceOfSpeed);
+  state.essenceOfSpeedReadyAt =
+    event.at + Number(profile?.internalCooldown ?? 5);
   enqueueOrdered(context.queue, {
     type: "ranger.boon-extension",
     at: event.at,
@@ -372,7 +416,7 @@ export function reactToSoulbeastBuff(
     actorType: "effect",
     skillId: TRAIT.ESSENCE_OF_SPEED,
     skillName: "Essence of Speed",
-    duration: 2,
+    duration: Number(profile?.durationMultiplier ?? 2),
     excludedKind: "quickness",
   });
 }
@@ -393,11 +437,12 @@ export function reactToRangerWinterBite(
     return;
   }
   core.winterBiteReady = false;
+  const weakness = profileEffect(context, PROFILE.wintersBite, "condition");
   queueCondition(
     context,
     event,
-    "Weakness",
-    10,
+    String(weakness?.condition || "Weakness"),
+    Number(weakness?.duration ?? 10),
     ID.WINTERS_BITE,
     "Winter's Bite",
   );

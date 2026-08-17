@@ -1,6 +1,8 @@
 import { soulbeastState } from "./state.js";
 import type { RangerCastContext, RangerSkill } from "../../types.js";
 import { applyUnstoppableUnion, soulbeastStanceDuration } from "./traits.js";
+import { rangerBalanceValue } from "../../core/profiles.js";
+import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 function emitBeastmodeState(
   context: RangerCastContext,
@@ -38,7 +40,15 @@ export const soulbeastSkillHandlers = Object.freeze({
   "ranger.one-wolf-pack": {
     mode: "augment" as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
-      const duration = soulbeastStanceDuration(context, 6);
+      const duration = soulbeastStanceDuration(
+        context,
+        rangerBalanceValue(
+          context,
+          PROFILE.oneWolfPack,
+          "durationMultiplier",
+          6,
+        ),
+      );
       // oneWolfPackUntil is written here so the resolver's per-hit ICD guard can cheaply
       // skip the active-buff lookup when the stance has clearly expired.
       soulbeastState.from(context).oneWolfPackUntil = context.start + duration;
@@ -68,7 +78,15 @@ export const soulbeastSkillHandlers = Object.freeze({
         skillId: skill.id,
         skillName: skill.name,
         kind: "vulture-stance",
-        duration: soulbeastStanceDuration(context, 6),
+        duration: soulbeastStanceDuration(
+          context,
+          rangerBalanceValue(
+            context,
+            PROFILE.vultureStance,
+            "durationMultiplier",
+            6,
+          ),
+        ),
         stacks: 1,
       });
     },

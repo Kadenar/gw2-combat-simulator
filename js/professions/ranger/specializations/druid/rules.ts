@@ -27,6 +27,11 @@ import {
   handleDruidAstralForceDamageTask,
   observeDruidAstralForceEvent,
 } from "./mechanics.js";
+import {
+  rangerBalanceProfile,
+  rangerBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 // Grace of the Land emits alacrity; duration scales with concentration/boon duration like any boon
 function druidBoonDuration(
@@ -50,6 +55,10 @@ function emitGraceOfTheLand(
   skill: RangerSkill,
   at: number,
 ): void {
+  const effect = rangerBalanceProfileEffect(
+    rangerBalanceProfile(context, PROFILE.graceOfTheLand),
+    "boon",
+  );
   context.emit({
     type: "buff",
     at,
@@ -59,9 +68,9 @@ function emitGraceOfTheLand(
     skillId: TRAIT.GRACE_OF_THE_LAND,
     skillName: "Grace of the Land",
     name: "Grace of the Land - Alacrity",
-    kind: "alacrity",
-    duration: druidBoonDuration(context, 1),
-    stacks: 1,
+    kind: String(effect?.boon || "alacrity"),
+    duration: druidBoonDuration(context, Number(effect?.duration ?? 1)),
+    stacks: Number(effect?.stacks ?? 1),
     triggeredBy: skill.name,
   });
 }
@@ -90,6 +99,14 @@ function emitEclipseCondition(
   });
 }
 
+function eclipseEffect(context: RangerCastContext, index: number) {
+  return rangerBalanceProfileEffect(
+    rangerBalanceProfile(context, PROFILE.eclipse),
+    "condition",
+    index,
+  );
+}
+
 export function applyCelestialAvatarTraits(
   context: RangerCastContext,
   skill: RangerSkill,
@@ -105,34 +122,72 @@ export function applyCelestialAvatarTraits(
   if (!hasTrait(context, TRAIT.ECLIPSE)) return;
   switch (skill.id) {
     case ID.COSMIC_RAY:
-      emitEclipseCondition(context, skill, context.start, "Vulnerability", 8);
+      {
+        const effect = eclipseEffect(context, 0);
+        emitEclipseCondition(
+          context,
+          skill,
+          context.start,
+          String(effect?.condition || "Vulnerability"),
+          Number(effect?.duration ?? 8),
+          Number(effect?.stacks ?? 1),
+        );
+      }
       break;
     case ID.SEED_OF_LIFE:
-      emitEclipseCondition(context, skill, context.start, "Poisoned", 8, 3);
+      {
+        const effect = eclipseEffect(context, 1);
+        emitEclipseCondition(
+          context,
+          skill,
+          context.start,
+          String(effect?.condition || "Poisoned"),
+          Number(effect?.duration ?? 8),
+          Number(effect?.stacks ?? 3),
+        );
+      }
       break;
     case ID.LUNAR_IMPACT:
       // Lunar Impact lands at effectiveEnd (it's a ground-targeted projectile with travel time)
-      emitEclipseCondition(
-        context,
-        skill,
-        context.effectiveEnd,
-        "Immobilized",
-        3,
-      );
+      {
+        const effect = eclipseEffect(context, 2);
+        emitEclipseCondition(
+          context,
+          skill,
+          context.effectiveEnd,
+          String(effect?.condition || "Immobilized"),
+          Number(effect?.duration ?? 3),
+          Number(effect?.stacks ?? 1),
+        );
+      }
       break;
     case ID.REJUVENATING_TIDES:
-      emitEclipseCondition(context, skill, context.start, "Chilled", 2);
+      {
+        const effect = eclipseEffect(context, 3);
+        emitEclipseCondition(
+          context,
+          skill,
+          context.start,
+          String(effect?.condition || "Chilled"),
+          Number(effect?.duration ?? 2),
+          Number(effect?.stacks ?? 1),
+        );
+      }
       break;
     case ID.NATURAL_CONVERGENCE:
       for (const [index, atMs] of pulses.entries()) {
         // Final pulse applies 3 stacks of Burning; all prior pulses apply 1
+        const effect = eclipseEffect(
+          context,
+          index === pulses.length - 1 ? 5 : 4,
+        );
         emitEclipseCondition(
           context,
           skill,
           context.start + atMs / 1000,
-          "Burning",
-          5,
-          index === pulses.length - 1 ? 3 : 1,
+          String(effect?.condition || "Burning"),
+          Number(effect?.duration ?? 5),
+          Number(effect?.stacks ?? (index === pulses.length - 1 ? 3 : 1)),
         );
       }
       break;

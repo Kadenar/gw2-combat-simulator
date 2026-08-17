@@ -40,6 +40,10 @@ import type {
   ThiefQueryRuntime,
   ThiefSchedulerContext,
 } from "../types.js";
+import {
+  thiefBalanceProfile,
+  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE,
+} from "./profiles.js";
 
 export function thiefEventSkill(
   context: Gw2ModifierContext,
@@ -155,7 +159,11 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       id: "thief.exposed-weakness",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
-      factor: (context) => 1 + targetConditionCount(context) * 0.02,
+      parameters: {
+        damagePerCondition: 0.02,
+      } as Readonly<Record<string, number>>,
+      factor: (context, _target, parameters) =>
+        1 + targetConditionCount(context) * parameters.damagePerCondition,
       when: (context) =>
         thiefPlayerEvent(context) && hasTrait(context, TRAIT.EXPOSED_WEAKNESS),
     },
@@ -231,11 +239,15 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       id: "thief.lead-attacks",
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: "damage-additive",
-      amount: (context) =>
+      parameters: {
+        maximumStacks: 15,
+        damagePerStack: 0.01,
+      } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) =>
         Math.min(
-          15,
+          parameters.maximumStacks,
           Number(thiefRuntimeState(context).leadAttacksStacks || 0),
-        ) * 0.01,
+        ) * parameters.damagePerStack,
       when: (context) =>
         thiefPlayerEvent(context) && hasTrait(context, TRAIT.LEAD_ATTACKS),
     },
@@ -337,21 +349,26 @@ function modifyThiefCoreAttributes(
   const state = thiefRuntimeState(context);
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   if (selectedSkill(context, "Assassin's Signet")) {
+    const profile = thiefBalanceProfile(context, PROFILE.assassinsSignet);
+    const passive = Number(profile?.attributeBonus || 180);
     const passiveDisabled =
       Number(state.assassinsSignetPassiveDisabledUntil || 0) > context.time;
-    if (staticRulesApplied && passiveDisabled) result.power -= 180;
-    if (!staticRulesApplied && !passiveDisabled) result.power += 180;
+    if (staticRulesApplied && passiveDisabled) result.power -= passive;
+    if (!staticRulesApplied && !passiveDisabled) result.power += passive;
     if (Number(state.assassinsSignetActiveUntil || 0) > context.time) {
-      result.power += 540;
+      result.power += Number(profile?.attributePerStack || 540);
     }
   }
   if (hasTrait(context, TRAIT.REVEALED_TRAINING)) {
-    if (!staticRulesApplied) result.power += 80;
+    const profile = thiefBalanceProfile(context, PROFILE.revealedTraining);
+    if (!staticRulesApplied) {
+      result.power += Number(profile?.attributeBonus || 80);
+    }
     if (
       Number(state.revealedUntil || 0) > context.time &&
       !thiefEventSkill(context)?.stealthAttack
     ) {
-      result.power += 120;
+      result.power += Number(profile?.attributePerStack || 120);
     }
   }
   if (
@@ -362,7 +379,9 @@ function modifyThiefCoreAttributes(
       Boolean((context.config?.boons as Record<string, unknown>)?.fury)
     )
   ) {
-    result.ferocity += 250;
+    result.ferocity += Number(
+      thiefBalanceProfile(context, PROFILE.noQuarter)?.attributeBonus || 250,
+    );
   }
   return result;
 }
@@ -396,13 +415,24 @@ function modifyThiefCoreRechargeDuration(
   if (skill.id === state.professionSkillId) {
     const leadAttacks = hasThiefTrait(context.config, TRAIT.LEAD_ATTACKS);
     const sleightOfHand = hasThiefTrait(context.config, TRAIT.SLEIGHT_OF_HAND);
+    const leadReduction = Number(
+      thiefBalanceProfile(context, PROFILE.leadAttacks)?.rechargeReduction ||
+        0.15,
+    );
+    const sleightReduction = Number(
+      thiefBalanceProfile(context, PROFILE.sleightOfHand)?.rechargeReduction ||
+        0.2,
+    );
     if (skill.id === ID.SIPHON) {
       // Specter's Siphon is the exception to the ordinary multiplicative
       // stacking used by Steal replacements: these two reductions add.
-      result *= 1 - Number(leadAttacks) * 0.15 - Number(sleightOfHand) * 0.2;
+      result *=
+        1 -
+        Number(leadAttacks) * leadReduction -
+        Number(sleightOfHand) * sleightReduction;
     } else {
-      if (leadAttacks) result *= 0.85;
-      if (sleightOfHand) result *= 0.8;
+      if (leadAttacks) result *= 1 - leadReduction;
+      if (sleightOfHand) result *= 1 - sleightReduction;
     }
   }
   return result;

@@ -8,6 +8,8 @@ import type {
   ThiefSchedulerContext,
   ThiefSkill,
 } from "../../types.js";
+import { thiefBalanceProfile } from "../../core/profiles.js";
+import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 export function advanceAntiquaryResources(
   context: ThiefSchedulerContext,
@@ -21,7 +23,11 @@ export function advanceAntiquaryResources(
     0,
     Number(state.combatHighExpiresAt || 0) - target,
   );
-  state.combatHighStacks = Math.min(10, Math.ceil(combatHighRemaining / 2)); // 1 stack per 2s remaining, capped at 10; matches the in-game decay rate
+  const combatHigh = thiefBalanceProfile(context, PROFILE.combatHigh);
+  state.combatHighStacks = Math.min(
+    Number(combatHigh?.maximumStacks || 10),
+    Math.ceil(combatHighRemaining / Number(combatHigh?.pulseInterval || 2)),
+  );
   if (Number(state.stealthAttackExpiresAt || 0) <= target) {
     state.stealthAttackCharges = 0;
   }
@@ -61,7 +67,11 @@ export function spendAntiquaryResources(
   if (
     inCombat &&
     hasThiefTrait(context.config, TRAIT.PRODIGIOUS_PINCHER) &&
-    state.initiativeSpentSincePilfer >= 15
+    state.initiativeSpentSincePilfer >=
+      Number(
+        thiefBalanceProfile(context, PROFILE.prodigiousPincher)?.threshold ||
+          15,
+      )
   ) {
     pilferArtifacts(context, context.start, "prodigious-pincher", "initiative");
   }

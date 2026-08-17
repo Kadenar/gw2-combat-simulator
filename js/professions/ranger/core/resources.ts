@@ -2,10 +2,10 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
 import { RANGER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import type { RangerCastContext, RangerSchedulerContext } from "../types.js";
-
-const ENDURANCE_PER_SECOND = 5;
-const VIGOR_REGENERATION_BONUS = 0.5;
-const NATURAL_VIGOR_REGENERATION_BONUS = 0.25;
+import {
+  rangerBalanceValue,
+  RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE,
+} from "./profiles.js";
 
 function rangerEnduranceRegenerationRate(
   context: RangerSchedulerContext,
@@ -15,11 +15,28 @@ function rangerEnduranceRegenerationRate(
     context.config.boons?.vigor || context.hasBuff?.("vigor", at),
   );
   return (
-    ENDURANCE_PER_SECOND *
+    rangerBalanceValue(
+      context,
+      PROFILE.resources,
+      "enduranceRegenerationPerSecond",
+      5,
+    ) *
     (1 +
-      (vigor ? VIGOR_REGENERATION_BONUS : 0) +
+      (vigor
+        ? rangerBalanceValue(
+            context,
+            PROFILE.resources,
+            "vigorRegenerationMultiplier",
+            1.5,
+          ) - 1
+        : 0) +
       (hasTrait({ config: context.config }, TRAIT.NATURAL_VIGOR)
-        ? NATURAL_VIGOR_REGENERATION_BONUS
+        ? rangerBalanceValue(
+            context,
+            PROFILE.naturalVigor,
+            "vigorRegenerationMultiplier",
+            0.25,
+          )
         : 0))
   );
 }

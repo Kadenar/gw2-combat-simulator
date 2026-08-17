@@ -20,6 +20,10 @@ import {
 } from "../../../js/app/profession/registry.js";
 import { professionRoute } from "../../../js/app/profession/selector.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
+import {
+  applyBalanceProfilePatch,
+  applySkillPatch,
+} from "../../../js/platform/gw2/skill-patch.js";
 import { skillBreakdownRows } from "../../../js/platform/ui/result-tables.js";
 import {
   createRangerBuildDefaults,
@@ -39,6 +43,11 @@ import {
 import { RANGER_PETS } from "../../../js/professions/ranger/data/ranger-pet-data.js";
 import { RANGER_TRAIT_COVERAGE } from "../../../js/professions/ranger/data/trait-coverage.js";
 import { rangerProfession } from "../../../js/professions/ranger/definition.js";
+import { RANGER_CORE_BALANCE_PROFILE_IDS } from "../../../js/professions/ranger/core/profiles.js";
+import { DRUID_BALANCE_PROFILE_IDS } from "../../../js/professions/ranger/specializations/druid/profiles.js";
+import { SOULBEAST_BALANCE_PROFILE_IDS } from "../../../js/professions/ranger/specializations/soulbeast/profiles.js";
+import { UNTAMED_BALANCE_PROFILE_IDS } from "../../../js/professions/ranger/specializations/untamed/profiles.js";
+import { GALESHOT_BALANCE_PROFILE_IDS } from "../../../js/professions/ranger/specializations/galeshot/profiles.js";
 import { rangerPetCombatMetadata } from "../../../js/professions/ranger/core/pets.js";
 import {
   rangerCoreAttributeRules,
@@ -103,6 +112,9 @@ function simulate(specialization, rotation, config = {}) {
     mode: "sequence",
   });
 }
+
+const applyRangerPatch = (patch) =>
+  applyBalanceProfilePatch(applySkillPatch(rangerCatalog, patch), patch);
 
 test("Ranger scheduler snapshots expose flat profession state", () => {
   const result = simulate("Soulbeast", []);
@@ -226,6 +238,139 @@ test("Ranger catalog pins API identity and explicit module-owned mechanics", () 
       "https://render.guildwars2.com/file/1FD6BA0D5205082CF724026543A9CE3EA9E3AB10/2565748.png",
       "https://render.guildwars2.com/file/583FF23D285DAFF432CF2C3BFBE27FF4142D4C9B/2565753.png",
     ],
+  );
+});
+
+test("Ranger modules expose isolated balance-profile authoring", () => {
+  const modules = new Map(
+    rangerProfession.patchAuthoring.modules.map((module) => [
+      module.id,
+      module,
+    ]),
+  );
+  assert.deepEqual(
+    [...modules.keys()],
+    ["Core", "Druid", "Soulbeast", "Untamed", "Galeshot"],
+  );
+  assert.equal(
+    [...modules.values()].every((module) => module.balanceProfiles.length > 0),
+    true,
+  );
+
+  const profile = (moduleId, profileId) =>
+    modules
+      .get(moduleId)
+      .balanceProfiles.find((entry) => entry.id === profileId);
+  assert.equal(
+    profile("Core", RANGER_CORE_BALANCE_PROFILE_IDS.packAlpha).patchableFields
+      .weaponAttributeBonus,
+    300,
+  );
+  assert.equal(
+    profile("Druid", DRUID_BALANCE_PROFILE_IDS.resources).patchableFields
+      .maximumStacks,
+    100,
+  );
+  assert.equal(
+    profile("Soulbeast", SOULBEAST_BALANCE_PROFILE_IDS.oneWolfPack).profile
+      .effects[0].coefficient,
+    0.95,
+  );
+  assert.equal(
+    profile("Untamed", UNTAMED_BALANCE_PROFILE_IDS.resources).patchableFields
+      .durationMultiplier,
+    4,
+  );
+  assert.equal(
+    profile("Galeshot", GALESHOT_BALANCE_PROFILE_IDS.resources).patchableFields
+      .pulseInterval,
+    5,
+  );
+
+  const opaqueModifierRules = [...modules.values()].flatMap((module) =>
+    module.modifierRules.filter(
+      (rule) =>
+        (typeof rule.amount === "function" ||
+          typeof rule.factor === "function") &&
+        Object.keys(rule.parameters).length === 0,
+    ),
+  );
+  assert.deepEqual(opaqueModifierRules, []);
+
+  const preview = applyRangerPatch({
+    skills: {
+      [ID.SUPERSONIC_ARROW]: {
+        fields: { arrowCost: { from: 3, to: 2 } },
+      },
+    },
+    balanceProfiles: {
+      [RANGER_CORE_BALANCE_PROFILE_IDS.packAlpha]: {
+        fields: { weaponAttributeBonus: { from: 300, to: 350 } },
+      },
+      [DRUID_BALANCE_PROFILE_IDS.resources]: {
+        fields: { maximumStacks: { from: 100, to: 120 } },
+      },
+      [SOULBEAST_BALANCE_PROFILE_IDS.oneWolfPack]: {
+        effects: [{ effectIndex: 0, coefficient: { from: 0.95, to: 1 } }],
+      },
+      [UNTAMED_BALANCE_PROFILE_IDS.resources]: {
+        fields: { durationMultiplier: { from: 4, to: 5 } },
+      },
+      [GALESHOT_BALANCE_PROFILE_IDS.resources]: {
+        fields: { pulseInterval: { from: 5, to: 4 } },
+      },
+    },
+  });
+
+  assert.equal(preview.skillsById.get(ID.SUPERSONIC_ARROW).arrowCost, 2);
+  assert.equal(
+    preview.balanceProfilesById.get(RANGER_CORE_BALANCE_PROFILE_IDS.packAlpha)
+      .weaponAttributeBonus,
+    350,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(DRUID_BALANCE_PROFILE_IDS.resources)
+      .maximumStacks,
+    120,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(SOULBEAST_BALANCE_PROFILE_IDS.oneWolfPack)
+      .effects[0].coefficient,
+    1,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(UNTAMED_BALANCE_PROFILE_IDS.resources)
+      .durationMultiplier,
+    5,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(GALESHOT_BALANCE_PROFILE_IDS.resources)
+      .pulseInterval,
+    4,
+  );
+
+  const petMetadata = rangerPetCombatMetadata({
+    catalog: preview,
+    config: {
+      selectedPet: "Pig",
+      selectedTraitIds: [TRAIT.PACK_ALPHA],
+    },
+    state: {
+      time: 0,
+      cooldowns: new Map(),
+      profession: {
+        core: { activePet: "Pig", activePetSlot: 1, petAutoGeneration: 0 },
+      },
+    },
+  });
+  assert.equal(petMetadata.summonBasePower, 1874);
+
+  assert.equal(rangerCatalog.skillsById.get(ID.SUPERSONIC_ARROW).arrowCost, 3);
+  assert.equal(
+    rangerCatalog.balanceProfilesById.get(
+      RANGER_CORE_BALANCE_PROFILE_IDS.packAlpha,
+    ).weaponAttributeBonus,
+    300,
   );
 });
 

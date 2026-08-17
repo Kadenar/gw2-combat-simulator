@@ -13,11 +13,13 @@ import {
 import { antiquaryState } from "./state.js";
 import { antiquaryUi } from "./ui.js";
 import { ANTIQUARY_SKILL_MECHANICS } from "./skills.js";
+import { ANTIQUARY_BALANCE_PROFILES } from "./profiles.js";
 
 export const antiquaryModule = defineNativeModule({
   id: "Antiquary",
   data: createThiefModuleData("Antiquary", {
     skillMechanics: ANTIQUARY_SKILL_MECHANICS,
+    balanceProfiles: ANTIQUARY_BALANCE_PROFILES,
     handlers: antiquarySkillHandlers,
   }),
   state: { scheduler: antiquaryState.create, resolver: antiquaryState.create },

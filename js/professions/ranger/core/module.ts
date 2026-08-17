@@ -22,11 +22,13 @@ import {
   rangerCoreEventHandlers,
   rangerCoreEventReactions,
 } from "./resolver.js";
+import { RANGER_CORE_BALANCE_PROFILES } from "./profiles.js";
 
 export const rangerCoreModule = defineNativeModule({
   id: "Core",
   data: createRangerModuleData("Core", {
     skillMechanics: RANGER_CORE_BASE_SKILL_MECHANICS,
+    balanceProfiles: RANGER_CORE_BALANCE_PROFILES,
     extraSkills: RANGER_CORE_EXTRA_SKILLS,
     handlers: rangerCoreSkillHandlers,
   }),

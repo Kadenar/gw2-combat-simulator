@@ -12,6 +12,11 @@ import type {
   ThiefCoreState,
   ThiefSkill,
 } from "../types.js";
+import {
+  thiefBalanceProfile,
+  thiefBalanceProfileEffect,
+  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE,
+} from "./profiles.js";
 
 export function beginStealthAttack(
   context: ThiefCastContext,
@@ -37,14 +42,25 @@ export function beginStealthAttack(
       Number(stealthAttackState.stealthAttackCharges || 0) - 1;
   }
   if (stealthed && hasThiefTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
-    gainThiefInitiative(context, 1, context.start, "leave-stealth");
+    gainThiefInitiative(
+      context,
+      Number(
+        thiefBalanceProfile(context, PROFILE.shadowsRejuvenation)
+          ?.resourceGain || 1,
+      ),
+      context.start,
+      "leave-stealth",
+    );
   }
   if (stealthed && hasThiefTrait(context.config, TRAIT.LEECHING_VENOMS)) {
+    const profile = thiefBalanceProfile(context, PROFILE.leechingVenoms);
     state.spiderVenomCharges = Math.min(
-      6,
-      Number(state.spiderVenomCharges || 0) + 3,
+      Number(profile?.maximumStacks || 6),
+      Number(state.spiderVenomCharges || 0) +
+        Number(profile?.resourceGain || 3),
     );
-    state.spiderVenomExpiresAt = context.start + 24;
+    state.spiderVenomExpiresAt =
+      context.start + Number(profile?.durationMultiplier || 24);
     state.spiderVenomGeneration += 1;
   }
   state.stealthUntil = context.start;
@@ -60,11 +76,15 @@ export function completeStealthAttack(
 ): void {
   const at = context.effectiveEnd;
   if (hasThiefTrait(context.config, TRAIT.SUNDERING_SHADE)) {
+    const vulnerability = thiefBalanceProfileEffect(
+      thiefBalanceProfile(context, PROFILE.sunderingShade),
+      "condition",
+    );
     emitThiefCondition(context, {
       at,
-      condition: "Vulnerability",
-      duration: 5,
-      stacks: 10,
+      condition: String(vulnerability?.condition || "Vulnerability"),
+      duration: Number(vulnerability?.duration || 5),
+      stacks: Number(vulnerability?.stacks || 10),
       sourceId: TRAIT.SUNDERING_SHADE,
       name: "Sundering Shade — Vulnerability",
     });

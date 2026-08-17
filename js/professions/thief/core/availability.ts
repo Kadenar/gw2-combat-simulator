@@ -178,7 +178,7 @@ export function thiefCoreCastAvailability(
       "thief.initiative",
       `requires ${skill.initiativeCost} initiative.`,
       context.start +
-        Math.max(0, missing) / thiefInitiativeRegenerationRate(state),
+        Math.max(0, missing) / thiefInitiativeRegenerationRate(state, context),
     );
   }
   const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));

@@ -19,11 +19,13 @@ import {
   THIEF_CORE_SKILL_MECHANICS,
 } from "./skills.js";
 import { thiefCoreSkillHandlers } from "./handlers.js";
+import { THIEF_CORE_BALANCE_PROFILES } from "./profiles.js";
 
 export const thiefCoreModule = defineNativeModule({
   id: "Core",
   data: createThiefModuleData("Core", {
     skillMechanics: THIEF_CORE_SKILL_MECHANICS,
+    balanceProfiles: THIEF_CORE_BALANCE_PROFILES,
     extraSkills: THIEF_CORE_EXTRA_SKILLS,
     handlers: thiefCoreSkillHandlers,
   }),

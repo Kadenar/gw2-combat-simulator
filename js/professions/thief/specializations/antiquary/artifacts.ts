@@ -6,11 +6,6 @@ import {
 } from "../../data/ids.js";
 import { hasThiefTrait } from "../../core/state.js";
 import { emitThiefState, gainThiefInitiative } from "../../core/shared.js";
-import {
-  ANTIQUARY_SCOUNDRELS_LUCK_ICD,
-  ANTIQUARY_SCUFFLE_DURATION,
-  ANTIQUARY_SCUFFLE_INTERVAL,
-} from "./mechanics.js";
 import type { SkillId } from "../../../../platform/engine/types.js";
 import type {
   AntiquaryState,
@@ -22,6 +17,12 @@ import type {
   ThiefSchedulerContext,
   ThiefSkill,
 } from "../../types.js";
+import {
+  thiefBalanceProfile,
+  thiefBalanceProfileEffect,
+  THIEF_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
+} from "../../core/profiles.js";
+import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 interface ForgedSurferTaskPayload extends Record<string, unknown> {
   readonly generation: number;
@@ -32,10 +33,6 @@ interface ForgedSurferTaskPayload extends Record<string, unknown> {
 interface SkrittScuffleTaskPayload extends Record<string, unknown> {
   readonly expiresAt: number;
 }
-
-const SCUFFLE_INTERVAL = ANTIQUARY_SCUFFLE_INTERVAL;
-const SCUFFLE_DURATION = ANTIQUARY_SCUFFLE_DURATION;
-const SCOUTREL_LUCK_ICD = ANTIQUARY_SCOUNDRELS_LUCK_ICD;
 
 function allArtifactChoices(): ThiefArtifactSlot[] {
   return [
@@ -82,7 +79,17 @@ function reduceSkrittSwipeRecharge(
   const readyAt = Number(context.state.cooldowns.get(ID.SKRITT_SWIPE) || 0);
   if (readyAt > at) {
     // clamp to `at` so the cooldown never goes negative; happens when multiple artifacts are used close together
-    context.state.cooldowns.set(ID.SKRITT_SWIPE, Math.max(at, readyAt - 2));
+    context.state.cooldowns.set(
+      ID.SKRITT_SWIPE,
+      Math.max(
+        at,
+        readyAt -
+          Number(
+            thiefBalanceProfile(context, PROFILE.repeatRansacker)
+              ?.rechargeReduction || 2,
+          ),
+      ),
+    );
   }
 }
 
@@ -95,14 +102,17 @@ function grantScoundrelsLuck(context: ThiefSchedulerContext, at: number): void {
   )
     return;
   state.scoundrelsLuck = 1; // capped at 1: a second Swipe within the ICD does not stack another charge
-  state.scoundrelsLuckReadyAt = at + SCOUTREL_LUCK_ICD;
+  const profile = thiefBalanceProfile(context, PROFILE.scoundrelsLuck);
+  state.scoundrelsLuck = Number(profile?.maximumStacks || 1);
+  state.scoundrelsLuckReadyAt = at + Number(profile?.internalCooldown || 20);
 }
 
 function grantCombatHigh(context: ThiefSchedulerContext, at: number): void {
   if (!hasThiefTrait(context.config, TRAIT.COMBAT_HIGH)) return;
   const state = antiquaryState.from(context);
-  state.combatHighStacks = 10; // always resets to 10 stacks (full); each Swipe refreshes the entire window
-  state.combatHighExpiresAt = at + 20; // stacks = ceil(remaining / 2), so 10 stacks → 20s window
+  const profile = thiefBalanceProfile(context, PROFILE.combatHigh);
+  state.combatHighStacks = Number(profile?.maximumStacks || 10);
+  state.combatHighExpiresAt = at + Number(profile?.durationMultiplier || 20);
 }
 
 function reduceUtilityRecharges(
@@ -127,10 +137,23 @@ function reduceUtilityRecharges(
     if (skill?.type !== "Utility") continue;
     const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
     if (readyAt > at) {
-      context.state.cooldowns.set(skill.id, at + (readyAt - at) * 0.75);
+      context.state.cooldowns.set(
+        skill.id,
+        at +
+          (readyAt - at) *
+            Number(
+              thiefBalanceProfile(context, CORE_PROFILE.improvisation)
+                ?.rechargeMultiplier || 0.75,
+            ),
+      );
     }
   }
-  state.improvisationReadyAt = at + 15;
+  state.improvisationReadyAt =
+    at +
+    Number(
+      thiefBalanceProfile(context, CORE_PROFILE.improvisation)
+        ?.internalCooldown || 15,
+    );
 }
 
 /**
@@ -147,13 +170,22 @@ export function pilferArtifacts(
 ): void {
   const state = antiquaryState.from(context);
   const prolific = hasThiefTrait(context.config, TRAIT.PROLIFIC_PLUNDERER);
+  const resources = thiefBalanceProfile(context, PROFILE.resources);
   state.artifactSlots = allArtifactChoices();
   // Prolific Plunderer and Improvisation each add one use, but only when pilfer originates from a Skritt Swipe (not from initiative or scuffle)
   state.artifactUsesRemaining =
-    1 +
-    (source === "swipe" && prolific ? 1 : 0) +
+    Number(resources?.maximumStacks || 1) +
+    (source === "swipe" && prolific
+      ? Number(
+          thiefBalanceProfile(context, PROFILE.prolificPlunderer)
+            ?.resourceGain || 1,
+        )
+      : 0) +
     (source === "swipe" && hasThiefTrait(context.config, TRAIT.IMPROVISATION)
-      ? 1
+      ? Number(
+          thiefBalanceProfile(context, CORE_PROFILE.improvisation)
+            ?.resourceGain || 1,
+        )
       : 0);
   state.initiativeSpentSincePilfer = 0;
   if (source === "swipe") {
@@ -171,9 +203,19 @@ export function reshuffleArtifacts(context: ThiefCastContext): void {
   emitThiefState(context, at, "artifacts-reshuffled");
 }
 
-function extendExhilaratingEphemera(state: AntiquaryState, at: number): void {
+function extendExhilaratingEphemera(
+  context: ThiefCastContext,
+  state: AntiquaryState,
+  at: number,
+): void {
+  const profile = thiefBalanceProfile(context, PROFILE.exhilaratingEphemera);
   const remaining = Math.max(0, Number(state.antiquaryDamageUntil || 0) - at);
-  state.antiquaryDamageUntil = at + Math.min(20, remaining + 10); // each artifact use adds 10s, capped at 20s total (the hard in-game maximum)
+  state.antiquaryDamageUntil =
+    at +
+    Math.min(
+      Number(profile?.maximumStacks || 20),
+      remaining + Number(profile?.durationMultiplier || 10),
+    );
 }
 
 function applyArtifactIdentity(
@@ -183,25 +225,37 @@ function applyArtifactIdentity(
 ): void {
   const state = antiquaryState.from(context);
   const meticulous = hasThiefTrait(context.config, TRAIT.METICULOUS_CUSTODIAN);
+  const profile = thiefBalanceProfile(context, PROFILE.artifactWindows);
+  const standardDuration = Number(profile?.durationMultiplier || 10);
+  const enhancedDuration = Number(profile?.maximumStacks || 12);
   if (skill.id === ID.METAL_LEGION_GUITAR) {
-    state.stealthAttackCharges = 3;
-    state.stealthAttackExpiresAt = at + (meticulous ? 12 : 10);
+    state.stealthAttackCharges = Number(profile?.resourceGain || 3);
+    state.stealthAttackExpiresAt =
+      at + (meticulous ? enhancedDuration : standardDuration);
   } else if (skill.id === ID.MISTBURN_MORTAR) {
-    state.mistburnCharges = 5;
-    state.mistburnExpiresAt = at + (meticulous ? 12 : 10);
+    state.mistburnCharges = Number(profile?.playerStacks || 5);
+    state.mistburnExpiresAt =
+      at + (meticulous ? enhancedDuration : standardDuration);
     state.mistburnGeneration += 1;
   } else if (skill.id === ID.SUMMON_KRYPTIS_TURRET_ID_77192) {
-    state.kryptisDamageUntil = at + (meticulous ? 10 : 8);
+    state.kryptisDamageUntil =
+      at +
+      (meticulous
+        ? Number(profile?.threshold || 10)
+        : Number(profile?.minimumStacks || 8));
   } else if (skill.id === ID.CHAK_SHIELD) {
-    state.chakInitiativeRefundUntil = at + (meticulous ? 12 : 10);
+    state.chakInitiativeRefundUntil =
+      at + (meticulous ? enhancedDuration : standardDuration);
   } else if (skill.id === ID.HOLO_DANCER_DECOY) {
-    const expiresAt = at + (meticulous ? 12 : 10);
+    const expiresAt = at + (meticulous ? enhancedDuration : standardDuration);
     // accumulate one entry per Decoy use; each entry will be consumed by the next utility cast (FIFO in modifyAntiquaryRechargeDuration)
     state.holoUtilityCooldownReductionExpirations = [
       ...(state.holoUtilityCooldownReductionExpirations || []),
       expiresAt,
     ];
-    state.holoUtilityCooldownReduction = 0.8;
+    state.holoUtilityCooldownReduction = Number(
+      profile?.rechargeReduction || 0.8,
+    );
     state.holoUtilityCooldownReductionExpiresAt = Math.max(
       ...state.holoUtilityCooldownReductionExpirations,
     );
@@ -222,24 +276,61 @@ export function consumeArtifact(
     (value) => value.skillId !== skill.id,
   );
   if (hasThiefTrait(context.config, TRAIT.ENTERPRISING_ARISTOCRAT)) {
-    gainThiefInitiative(context, 2, at, "enterprising-aristocrat");
+    gainThiefInitiative(
+      context,
+      Number(
+        thiefBalanceProfile(context, PROFILE.enterprisingAristocrat)
+          ?.resourceGain || 2,
+      ),
+      at,
+      "enterprising-aristocrat",
+    );
   }
   if (hasThiefTrait(context.config, TRAIT.EXHILARATING_EPHEMERA)) {
-    extendExhilaratingEphemera(state, at);
+    extendExhilaratingEphemera(context, state, at);
   }
   if (hasThiefTrait(context.config, TRAIT.POSSESSIVE_HOARDER)) {
+    const profile = thiefBalanceProfile(context, PROFILE.possessiveHoarder);
+    const might = thiefBalanceProfileEffect(profile, "boon", 0);
+    const protection = thiefBalanceProfileEffect(profile, "boon", 1);
+    const alacrity = thiefBalanceProfileEffect(profile, "boon", 2);
     if (slot?.kind === "offensive") {
-      emitBoon(context, at, "might", 12, 10, "Possessive Hoarder");
+      emitBoon(
+        context,
+        at,
+        String(might?.boon || "might"),
+        Number(might?.duration || 12),
+        Number(might?.stacks || 10),
+        "Possessive Hoarder",
+      );
     }
     if (slot?.kind === "defensive") {
-      emitBoon(context, at, "protection", 5, 1, "Possessive Hoarder");
+      emitBoon(
+        context,
+        at,
+        String(protection?.boon || "protection"),
+        Number(protection?.duration || 5),
+        Number(protection?.stacks || 1),
+        "Possessive Hoarder",
+      );
     }
-    emitBoon(context, at, "alacrity", 5, 1, "Possessive Hoarder");
+    emitBoon(
+      context,
+      at,
+      String(alacrity?.boon || "alacrity"),
+      Number(alacrity?.duration || 5),
+      Number(alacrity?.stacks || 1),
+      "Possessive Hoarder",
+    );
   }
   if (
     skill.id === ID.CHAK_SHIELD &&
     hasThiefTrait(context.config, TRAIT.METICULOUS_CUSTODIAN)
   ) {
+    const strike = thiefBalanceProfileEffect(
+      thiefBalanceProfile(context, PROFILE.meticulousCustodian),
+      "strike",
+    );
     context.emit({
       type: "damage",
       at,
@@ -249,8 +340,8 @@ export function consumeArtifact(
       skillId: skill.id,
       skillName: skill.name,
       name: "Chak Shield",
-      coefficient: 0.3,
-      hits: 1,
+      coefficient: Number(strike?.coefficient || 0.3),
+      hits: Number(strike?.hits || 1),
       activationId: context.reservationId,
     });
   }
@@ -265,9 +356,10 @@ export function completeForgedSurfer(
 ): void {
   consumeArtifact(context, skill);
   const state = antiquaryState.from(context);
+  const profile = thiefBalanceProfile(context, PROFILE.forgedSurfer);
   context.tasks.schedule({
     type: "thief.forged-surfer",
-    at: context.effectiveEnd + 1,
+    at: context.effectiveEnd + Number(profile?.initialDelay || 1),
     ownerId: `thief.forged-surfer:${state.forgedSurferGeneration}`,
     payload: {
       generation: state.forgedSurferGeneration,
@@ -325,22 +417,40 @@ export function handleForgedSurfer(
     return;
   const bomb = Number(task.payload.bomb || 0);
   const meticulous = hasThiefTrait(context.config, TRAIT.METICULOUS_CUSTODIAN);
+  const profile = thiefBalanceProfile(
+    context,
+    meticulous ? PROFILE.forgedSurferMeticulous : PROFILE.forgedSurfer,
+  );
+  const strikes = (profile?.effects || []).filter(
+    (effect) => effect.type === "strike",
+  );
+  const burns = (profile?.effects || []).filter(
+    (effect) => effect.type === "condition",
+  );
+  const packetIndex = bomb === 0 ? 0 : 1;
   emitForgedSurferPacket(
     context,
     task,
-    bomb === 0 ? (meticulous ? 2.8 : 2.4) : meticulous ? 1.4 : 1.2,
-    bomb === 0 ? (meticulous ? 12 : 6) : meticulous ? 4.5 : 3.5,
-    bomb === 0 && meticulous ? 2 : 1,
+    Number(strikes[packetIndex]?.coefficient || (bomb === 0 ? 2.4 : 1.2)),
+    Number(burns[packetIndex]?.duration || (bomb === 0 ? 6 : 3.5)),
+    Number(burns[packetIndex]?.stacks || 1),
   );
   // user-configurable assumption: allows simulating fewer bombs when the target dies before the full chain lands
   if (
     bomb >=
-    Number(antiquaryState.from(context).forgedSurferMaximumBombHits || 5)
+    Math.min(
+      Number(profile?.maximumStacks || 5),
+      Number(antiquaryState.from(context).forgedSurferMaximumBombHits || 5),
+    )
   )
     return;
   context.tasks.schedule({
     ...task,
-    at: task.at + 3,
+    at:
+      task.at +
+      Number(
+        thiefBalanceProfile(context, PROFILE.forgedSurfer)?.pulseInterval || 3,
+      ),
     payload: {
       ...task.payload,
       bomb: bomb + 1,
@@ -390,36 +500,47 @@ function consumeDoubleEdgeOutcome(
 }
 
 function emitCannonBackfire(context: ThiefCastContext, at: number): void {
+  const profile = thiefBalanceProfile(context, PROFILE.cannonBackfire);
+  const strike = thiefBalanceProfileEffect(profile, "strike");
+  const burning = thiefBalanceProfileEffect(profile, "condition");
+  const impactAt = at + Number(profile?.initialDelay || 2);
   context.emit({
     type: "damage",
-    at: at + 2,
+    at: impactAt,
     source: "thief",
     sourceId: ID.STONE_SUMMIT_CANNON,
     actorType: "player",
     skillId: ID.STONE_SUMMIT_CANNON,
     skillName: "Stone Summit Cannon",
     name: "Stone Summit Cannon — Backfire",
-    coefficient: 3,
-    hits: 1,
+    coefficient: Number(strike?.coefficient || 3),
+    hits: Number(strike?.hits || 1),
   });
   context.emit({
     type: "condition",
-    at: at + 2,
+    at: impactAt,
     source: "thief",
     sourceId: ID.STONE_SUMMIT_CANNON,
     actorType: "player",
     skillId: ID.STONE_SUMMIT_CANNON,
     skillName: "Stone Summit Cannon",
     name: "Stone Summit Cannon — Backfire",
-    condition: "Burning",
-    stacks: 3,
-    duration: 4,
+    condition: String(burning?.condition || "Burning"),
+    stacks: Number(burning?.stacks || 3),
+    duration: Number(burning?.duration || 4),
   });
 }
 
 function emitCannonSuccess(context: ThiefCastContext): void {
-  for (let hitIndex = 1; hitIndex <= 3; hitIndex += 1) {
-    const at = context.effectiveEnd + 0.44 + (hitIndex - 1) * 0.283;
+  const profile = thiefBalanceProfile(context, PROFILE.cannonSuccess);
+  const strike = thiefBalanceProfileEffect(profile, "strike");
+  const burning = thiefBalanceProfileEffect(profile, "condition");
+  const hits = Math.max(1, Number(strike?.hits || 3));
+  for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
+    const at =
+      context.effectiveEnd +
+      Number(profile?.initialDelay || 0.44) +
+      (hitIndex - 1) * Number(profile?.pulseInterval || 0.283);
     context.emit({
       type: "damage",
       at,
@@ -429,10 +550,10 @@ function emitCannonSuccess(context: ThiefCastContext): void {
       skillId: ID.STONE_SUMMIT_CANNON,
       skillName: "Stone Summit Cannon",
       name: "Stone Summit Cannon",
-      coefficient: 1,
+      coefficient: Number(strike?.coefficient || 1),
       hits: 1,
       hitIndex,
-      totalHits: 3,
+      totalHits: hits,
     });
     context.emit({
       type: "condition",
@@ -443,9 +564,9 @@ function emitCannonSuccess(context: ThiefCastContext): void {
       skillId: ID.STONE_SUMMIT_CANNON,
       skillName: "Stone Summit Cannon",
       name: "Stone Summit Cannon — Burning",
-      condition: "Burning",
-      stacks: 1,
-      duration: 3,
+      condition: String(burning?.condition || "Burning"),
+      stacks: Number(burning?.stacks || 1),
+      duration: Number(burning?.duration || 3),
     });
   }
 }
@@ -509,18 +630,20 @@ export function completeSkrittScuffle(
 ): void {
   const state = antiquaryState.from(context);
   const at = context.effectiveEnd;
+  const profile = thiefBalanceProfile(context, PROFILE.scuffle);
+  const interval = Number(profile?.pulseInterval || 3);
   const summon = {
     skillId: skill.id,
     name: "Skritt Assistant",
-    expiresAt: at + SCUFFLE_DURATION,
+    expiresAt: at + Number(profile?.durationMultiplier || 15),
   };
   state.activeAntiquarySummons.push(summon);
-  state.nextSkrittScufflePilferAt = at + SCUFFLE_INTERVAL;
+  state.nextSkrittScufflePilferAt = at + interval;
   pilferArtifacts(context, at, "skritt-scuffle-artifact", "scuffle");
   // ownerId encodes both skill id and cast time so a re-summoned scuffle doesn't cancel the previous one's tasks
   context.tasks.schedule({
     type: "thief.skritt-scuffle",
-    at: at + SCUFFLE_INTERVAL,
+    at: at + interval,
     ownerId: `thief.skritt-scuffle:${skill.id}:${at}`,
     payload: { expiresAt: summon.expiresAt },
   });
@@ -531,20 +654,23 @@ export function handleSkrittScuffle(
   context: ThiefSchedulerContext,
   task: ThiefScheduledTask<SkrittScuffleTaskPayload>,
 ): void {
+  const interval = Number(
+    thiefBalanceProfile(context, PROFILE.scuffle)?.pulseInterval || 3,
+  );
   // epsilon tolerance: a task scheduled exactly at expiresAt is still valid; floating-point overshoot is not a missed tick
   if (
     task.at >
     Number(task.payload.expiresAt || 0) + Number(context.epsilon || 0.0001)
   )
     return;
-  const nextPilferAt = task.at + SCUFFLE_INTERVAL;
+  const nextPilferAt = task.at + interval;
   antiquaryState.from(context).nextSkrittScufflePilferAt =
     nextPilferAt <= Number(task.payload.expiresAt || 0) ? nextPilferAt : 0;
   pilferArtifacts(context, task.at, "skritt-scuffle-artifact", "scuffle");
-  if (task.at + SCUFFLE_INTERVAL <= Number(task.payload.expiresAt || 0)) {
+  if (task.at + interval <= Number(task.payload.expiresAt || 0)) {
     context.tasks.schedule({
       ...task,
-      at: task.at + SCUFFLE_INTERVAL,
+      at: task.at + interval,
     });
   }
 }

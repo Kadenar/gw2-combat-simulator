@@ -3,17 +3,27 @@ import { hasThiefTrait } from "../../core/state.js";
 import { gainThiefInitiative } from "../../core/shared.js";
 import type { ThiefCastContext, ThiefEmissionContext } from "../../types.js";
 import { deadeyeState } from "./state.js";
+import {
+  thiefBalanceProfile,
+  thiefBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 // Starting malice when Deadeye's Mark is applied to a fresh target (Malicious Intent: 2, otherwise: 0)
 export function initialDeadeyeMalice(context: ThiefCastContext): number {
-  return hasThiefTrait(context.config, TRAIT.MALICIOUS_INTENT) ? 2 : 0;
+  return hasThiefTrait(context.config, TRAIT.MALICIOUS_INTENT)
+    ? Number(
+        thiefBalanceProfile(context, PROFILE.maliciousIntent)?.resourceGain ||
+          2,
+      )
+    : 0;
 }
 
 // Additional malice added to the snapshot before a stealth attack resolves (same trait, same value — two separate game effects)
 export function deadeyeStealthAttackMaliceBonus(
   context: ThiefCastContext,
 ): number {
-  return hasThiefTrait(context.config, TRAIT.MALICIOUS_INTENT) ? 2 : 0;
+  return initialDeadeyeMalice(context);
 }
 
 export function emitDeadeyeBoon(
@@ -47,7 +57,18 @@ export function applyDeadeyesMarkTraits(
   at: number,
 ): void {
   if (!hasThiefTrait(context.config, TRAIT.BE_QUICK_OR_BE_KILLED)) return;
-  emitDeadeyeBoon(context, at, "Quickness", 4, 1, "Be Quick or Be Killed");
+  const quickness = thiefBalanceProfileEffect(
+    thiefBalanceProfile(context, PROFILE.beQuickOrBeKilled),
+    "boon",
+  );
+  emitDeadeyeBoon(
+    context,
+    at,
+    String(quickness?.boon || "Quickness"),
+    Number(quickness?.duration || 4),
+    Number(quickness?.stacks || 1),
+    "Be Quick or Be Killed",
+  );
 }
 
 export function applyDeadeyeStolenSkillTraits(
@@ -55,8 +76,20 @@ export function applyDeadeyeStolenSkillTraits(
   at: number,
 ): void {
   if (!hasThiefTrait(context.config, TRAIT.FIRE_FOR_EFFECT)) return;
-  emitDeadeyeBoon(context, at, "Might", 12, 8, "Fire for Effect", true);
-  emitDeadeyeBoon(context, at, "Fury", 12, 1, "Fire for Effect", true);
+  const profile = thiefBalanceProfile(context, PROFILE.fireForEffect);
+  for (const effect of (profile?.effects || []).filter(
+    (entry) => entry.type === "boon",
+  )) {
+    emitDeadeyeBoon(
+      context,
+      at,
+      String(effect.boon || effect.kind || ""),
+      Number(effect.duration || 12),
+      Number(effect.stacks || 1),
+      "Fire for Effect",
+      true,
+    );
+  }
 }
 
 export function applyMaleficentSeven(
@@ -73,15 +106,23 @@ export function applyMaleficentSeven(
     return;
   }
   state.maleficentSevenTriggered = true;
-  gainThiefInitiative(context, 7, at, "maleficent-seven");
-  for (const [boon, duration, stacks] of [
-    ["Might", 10, 10],
-    ["Fury", 10, 1],
-    ["Protection", 5, 1],
-    ["Regeneration", 10, 1],
-    ["Swiftness", 10, 1],
-    ["Vigor", 10, 1],
-  ] as const) {
-    emitDeadeyeBoon(context, at, boon, duration, stacks, "Maleficent Seven");
+  const profile = thiefBalanceProfile(context, PROFILE.maleficentSeven);
+  gainThiefInitiative(
+    context,
+    Number(profile?.resourceGain || 7),
+    at,
+    "maleficent-seven",
+  );
+  for (const effect of (profile?.effects || []).filter(
+    (entry) => entry.type === "boon",
+  )) {
+    emitDeadeyeBoon(
+      context,
+      at,
+      String(effect.boon || effect.kind || ""),
+      Number(effect.duration || 0),
+      Number(effect.stacks || 1),
+      "Maleficent Seven",
+    );
   }
 }

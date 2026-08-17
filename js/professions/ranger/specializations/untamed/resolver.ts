@@ -9,6 +9,24 @@ import type {
   RangerResolverEvent,
 } from "../../types.js";
 import { untamedState } from "./state.js";
+import {
+  rangerBalanceProfile,
+  rangerBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
+
+function profileEffect(
+  context: unknown,
+  id: number | string,
+  type: string,
+  index = 0,
+) {
+  return rangerBalanceProfileEffect(
+    rangerBalanceProfile(context, id),
+    type,
+    index,
+  );
+}
 
 const AMBUSH_SKILL_IDS = new Set<number>([ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
 
@@ -95,26 +113,30 @@ function triggerFerociousSymbiosis(
 ): void {
   if (!hasTrait(context, TRAIT.FEROCIOUS_SYMBIOSIS)) return;
   const state = untamedState.from(context);
+  const profile = rangerBalanceProfile(context, PROFILE.ferociousSymbiosis);
+  const maximumStacks = Number(profile?.maximumStacks ?? 5);
+  const duration = Number(profile?.durationMultiplier ?? 5);
+  const internalCooldown = Number(profile?.internalCooldown ?? 0.5);
   if (isPlayerStrike(event)) {
     if (event.at + epsilon(context) < state.ferociousSymbiosisPetReadyAt)
       return;
     // A player hit builds Pet stacks (cross-buff: player hits power the pet).
     state.ferociousSymbiosisPetStacks =
       event.at < state.ferociousSymbiosisPetUntil
-        ? Math.min(5, state.ferociousSymbiosisPetStacks + 1)
+        ? Math.min(maximumStacks, state.ferociousSymbiosisPetStacks + 1)
         : 1;
-    state.ferociousSymbiosisPetUntil = event.at + 5;
-    state.ferociousSymbiosisPetReadyAt = event.at + 0.5;
+    state.ferociousSymbiosisPetUntil = event.at + duration;
+    state.ferociousSymbiosisPetReadyAt = event.at + internalCooldown;
   } else if (isPetStrike(event)) {
     if (event.at + epsilon(context) < state.ferociousSymbiosisPlayerReadyAt)
       return;
     // A pet hit builds Player stacks (cross-buff: pet hits power the player).
     state.ferociousSymbiosisPlayerStacks =
       event.at < state.ferociousSymbiosisPlayerUntil
-        ? Math.min(5, state.ferociousSymbiosisPlayerStacks + 1)
+        ? Math.min(maximumStacks, state.ferociousSymbiosisPlayerStacks + 1)
         : 1;
-    state.ferociousSymbiosisPlayerUntil = event.at + 5;
-    state.ferociousSymbiosisPlayerReadyAt = event.at + 0.5;
+    state.ferociousSymbiosisPlayerUntil = event.at + duration;
+    state.ferociousSymbiosisPlayerReadyAt = event.at + internalCooldown;
   }
 }
 
@@ -135,12 +157,14 @@ function triggerLetLoose(
   // Each ambush activation grants boons exactly once even if the skill hits multiple times.
   if (activations[event.activationId]) return;
   activations[event.activationId] = true;
+  const quickness = profileEffect(context, PROFILE.letLoose, "boon", 0);
+  const might = profileEffect(context, PROFILE.letLoose, "boon", 1);
   queueTraitBuff(
     context,
     event,
-    "quickness",
-    5,
-    1,
+    String(quickness?.boon || "quickness"),
+    Number(quickness?.duration ?? 5),
+    Number(quickness?.stacks ?? 1),
     TRAIT.LET_LOOSE,
     "Let Loose",
     true,
@@ -148,9 +172,9 @@ function triggerLetLoose(
   queueTraitBuff(
     context,
     event,
-    "might",
-    10,
-    5,
+    String(might?.boon || "might"),
+    Number(might?.duration ?? 10),
+    Number(might?.stacks ?? 5),
     TRAIT.LET_LOOSE,
     "Let Loose",
     true,
@@ -167,12 +191,17 @@ function triggerBlindingOutburst(
   ) {
     return;
   }
+  const blindness = profileEffect(
+    context,
+    PROFILE.blindingOutburst,
+    "condition",
+  );
   queueTraitCondition(
     context,
     event,
-    "Blindness",
-    2,
-    1,
+    String(blindness?.condition || "Blindness"),
+    Number(blindness?.duration ?? 2),
+    Number(blindness?.stacks ?? 1),
     TRAIT.BLINDING_OUTBURST,
     "Blinding Outburst",
   );
@@ -205,25 +234,29 @@ export function reactToUntamedControl(
     hasTrait(context, TRAIT.DEBILITATING_BLOWS) &&
     event.at + epsilon(context) >= state.debilitatingBlowsReadyAt
   ) {
-    state.debilitatingBlowsReadyAt = event.at + 1;
+    const profile = rangerBalanceProfile(context, PROFILE.debilitatingBlows);
+    state.debilitatingBlowsReadyAt =
+      event.at + Number(profile?.internalCooldown ?? 1);
     // Unleash state determines which condition is applied: Poisoned when Ranger unleashed, Slow otherwise.
     if (state.rangerUnleashed) {
+      const poison = rangerBalanceProfileEffect(profile, "condition", 0);
       queueTraitCondition(
         context,
         event,
-        "Poisoned",
-        5,
-        2,
+        String(poison?.condition || "Poisoned"),
+        Number(poison?.duration ?? 5),
+        Number(poison?.stacks ?? 2),
         TRAIT.DEBILITATING_BLOWS,
         "Debilitating Blows",
       );
     } else {
+      const slow = rangerBalanceProfileEffect(profile, "condition", 1);
       queueTraitCondition(
         context,
         event,
-        "Slow",
-        2,
-        2,
+        String(slow?.condition || "Slow"),
+        Number(slow?.duration ?? 2),
+        Number(slow?.stacks ?? 2),
         TRAIT.DEBILITATING_BLOWS,
         "Debilitating Blows",
       );
@@ -233,14 +266,23 @@ export function reactToUntamedControl(
     hasTrait(context, TRAIT.ENHANCING_IMPACT) &&
     event.at + epsilon(context) >= state.enhancingImpactReadyAt
   ) {
-    state.enhancingImpactReadyAt = event.at + 1;
+    const profile = rangerBalanceProfile(context, PROFILE.enhancingImpact);
+    const effect = rangerBalanceProfileEffect(
+      profile,
+      "boon",
+      state.rangerUnleashed ? 0 : 1,
+    );
+    state.enhancingImpactReadyAt =
+      event.at + Number(profile?.internalCooldown ?? 1);
     // Unleash state determines the boon: Quickness when Ranger unleashed, Stability otherwise.
     queueTraitBuff(
       context,
       event,
-      state.rangerUnleashed ? "quickness" : "stability",
-      3,
-      1,
+      String(
+        effect?.boon || (state.rangerUnleashed ? "quickness" : "stability"),
+      ),
+      Number(effect?.duration ?? 3),
+      Number(effect?.stacks ?? 1),
       TRAIT.ENHANCING_IMPACT,
       "Enhancing Impact",
     );

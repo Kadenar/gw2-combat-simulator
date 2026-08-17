@@ -5,12 +5,21 @@ import type {
   RangerResolverContext,
   RangerResolverEvent,
 } from "../../types.js";
+import {
+  rangerBalanceProfile,
+  rangerBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 function triggerBloodMoon(
   context: RangerResolverContext,
   event: RangerResolverEvent,
 ): void {
   if (!hasTrait(context, TRAIT.BLOOD_MOON)) return;
+  const bleeding = rangerBalanceProfileEffect(
+    rangerBalanceProfile(context, PROFILE.bloodMoon),
+    "condition",
+  );
   enqueueOrdered(context.queue, {
     type: "condition",
     at: event.at,
@@ -20,9 +29,9 @@ function triggerBloodMoon(
     skillId: TRAIT.BLOOD_MOON,
     skillName: "Blood Moon",
     name: "Blood Moon - Bleeding",
-    condition: "Bleeding",
-    duration: 4,
-    stacks: 2,
+    condition: String(bleeding?.condition || "Bleeding"),
+    duration: Number(bleeding?.duration ?? 4),
+    stacks: Number(bleeding?.stacks ?? 2),
     triggeredBy: event.skillName,
   });
 }

@@ -15,11 +15,12 @@ import type {
   ThiefSimulationEvent,
   ThiefSkill,
 } from "../../types.js";
+import {
+  thiefBalanceProfile,
+  thiefBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
-const LARCENOUS_TORMENT_SHADOW_FORCE_PER_STACK = 0.5;
-const LARCENOUS_TORMENT_SIPHON_COEFFICIENT = 0.005;
-// GW2: Dark Sentry has a 1-second ICD tracked separately per allied recipient.
-const DARK_SENTRY_INTERNAL_COOLDOWN = 1;
 const ROT_WALLOW_VENOM_ICON =
   "https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png";
 
@@ -64,19 +65,37 @@ export function completeShadowShroudSkill(
   // Shadow shroud skills suppressed mid-cast should not grant their trait effects.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   if (hasThiefTrait(context.config, TRAIT.SHADESTEP)) {
+    const profile = thiefBalanceProfile(context, PROFILE.shadeStep);
     if (skill.id === ID.GRASPING_SHADOWS) {
-      emitShadeStepBoon(context, "alacrity", 5);
+      const boon = thiefBalanceProfileEffect(profile, "boon", 0);
+      emitShadeStepBoon(
+        context,
+        String(boon?.boon || "alacrity"),
+        Number(boon?.duration || 5),
+      );
     } else if (skill.id === ID.DAWNS_REPOSE) {
-      emitShadeStepBoon(context, "protection", 5);
+      const boon = thiefBalanceProfileEffect(profile, "boon", 1);
+      emitShadeStepBoon(
+        context,
+        String(boon?.boon || "protection"),
+        Number(boon?.duration || 5),
+      );
     } else if (skill.id === ID.MIND_SHOCK) {
-      emitShadeStepBoon(context, "aegis", 4);
+      const boon = thiefBalanceProfileEffect(profile, "boon", 2);
+      emitShadeStepBoon(
+        context,
+        String(boon?.boon || "aegis"),
+        Number(boon?.duration || 4),
+      );
     }
   }
   // Dawn's Repose grants barrier to the tethered ally and nearby allies.
   // Dark Sentry is a mandatory Specter minor trait.
   if (skill.id === ID.DAWNS_REPOSE) {
+    const profile = thiefBalanceProfile(context, PROFILE.dawnsReposeBarrier);
+    const barrier = thiefBalanceProfileEffect(profile, "buff");
     const alliedRecipients = Math.min(
-      4,
+      Number(profile?.maximumTargets || 4),
       gw2AlliedPlayerAssumptions(context.config).count,
     );
     if (!alliedRecipients) return;
@@ -94,8 +113,8 @@ export function completeShadowShroudSkill(
       skillName: skill.name,
       name: "Dawn's Repose - Barrier",
       kind: "barrier",
-      duration: 5,
-      stacks: 1,
+      duration: Number(barrier?.duration || 5),
+      stacks: Number(barrier?.stacks || 1),
       affectsSelf: false,
       recipients: "allies",
       recipientCount: alliedRecipients,
@@ -137,9 +156,10 @@ export function handleLarcenousTorment(
   const stacks = Math.max(0, Number(task.payload.stacks || 0));
   if (!(stacks > 0)) return;
   const state = specterState.from(context);
+  const profile = thiefBalanceProfile(context, PROFILE.larcenousTorment);
   state.shadowForce = Math.min(
     state.maximumShadowForce,
-    state.shadowForce + stacks * LARCENOUS_TORMENT_SHADOW_FORCE_PER_STACK,
+    state.shadowForce + stacks * Number(profile?.resourceGain || 0.5),
   );
   emitThiefState(context, task.at, "larcenous-torment");
 }
@@ -178,9 +198,12 @@ export function handleDarkSentry(
   );
   const recipientCount = eligibleAllies.length;
   if (!recipientCount) return;
+  const profile = thiefBalanceProfile(context, PROFILE.darkSentry);
+  const venom = thiefBalanceProfileEffect(profile, "buff");
+  const torment = thiefBalanceProfileEffect(profile, "condition");
   for (const allyIndex of eligibleAllies) {
     state.darkSentryReadyAtByAlly[String(allyIndex)] =
-      task.at + DARK_SENTRY_INTERNAL_COOLDOWN;
+      task.at + Number(profile?.internalCooldown || 1);
   }
   state.darkSentryReadyAt = Math.max(
     0,
@@ -197,8 +220,8 @@ export function handleDarkSentry(
     name: "Rot Wallow Venom",
     icon: ROT_WALLOW_VENOM_ICON,
     kind: "rot-wallow-venom",
-    duration: 10,
-    stacks: 1,
+    duration: Number(venom?.duration || 10),
+    stacks: Number(venom?.stacks || 1),
     affectsSelf: false,
     recipients: "allies",
     recipientCount,
@@ -218,9 +241,9 @@ export function handleDarkSentry(
         skillName: "Rot Wallow Venom",
         name: `Rot Wallow Venom - Ally ${allyIndex} Torment`,
         icon: ROT_WALLOW_VENOM_ICON,
-        condition: "Torment",
-        stacks: 1,
-        duration: 2,
+        condition: String(torment?.condition || "Torment"),
+        stacks: Number(torment?.stacks || 1),
+        duration: Number(torment?.duration || 2),
         triggeredByAlly: allyIndex,
       });
     }
@@ -241,6 +264,8 @@ export function applyLarcenousTorment(
     return;
   // One life-siphon event per stack so each stack shows as a separate hit in the log.
   const stacks = Math.max(0, Math.trunc(Number(application.stacks || 0)));
+  const profile = thiefBalanceProfile(context, PROFILE.larcenousTorment);
+  const strike = thiefBalanceProfileEffect(profile, "strike");
   for (let stack = 1; stack <= stacks; stack += 1) {
     enqueueOrdered(context.queue, {
       type: "damage",
@@ -251,7 +276,7 @@ export function applyLarcenousTorment(
       skillId: TRAIT.LARCENOUS_TORMENT,
       skillName: "Larcenous Torment",
       name: "Larcenous Torment - Life Siphon",
-      coefficient: LARCENOUS_TORMENT_SIPHON_COEFFICIENT,
+      coefficient: Number(strike?.coefficient || 0.005),
       hits: 1,
       canCrit: false,
       noCrit: true,
@@ -263,6 +288,6 @@ export function applyLarcenousTorment(
   const state = specterState.from(context);
   state.shadowForce = Math.min(
     state.maximumShadowForce,
-    state.shadowForce + stacks * LARCENOUS_TORMENT_SHADOW_FORCE_PER_STACK,
+    state.shadowForce + stacks * Number(profile?.resourceGain || 0.5),
   );
 }

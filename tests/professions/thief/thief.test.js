@@ -10,6 +10,10 @@ import {
 import { assumptionControlsForSpecialization } from "../../../js/app/profession/assumptions.js";
 import { weaponSkills } from "../../../js/app/rotation/palette-model.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
+import {
+  applyBalanceProfilePatch,
+  applySkillPatch,
+} from "../../../js/platform/gw2/skill-patch.js";
 import { createGw2CombatQuery } from "../../../js/platform/gw2/query.js";
 import { resolveProfessionRuntime } from "../../../js/platform/engine/profession.js";
 import { normalizeRotation } from "../../../js/platform/engine/rotation-commands.js";
@@ -41,6 +45,11 @@ import {
 } from "../../../js/professions/thief/app/app-definition.js";
 import { thiefProfession } from "../../../js/professions/thief/definition.js";
 import { daredevilModifierRules } from "../../../js/professions/thief/specializations/daredevil/rules.js";
+import { THIEF_CORE_BALANCE_PROFILE_IDS } from "../../../js/professions/thief/core/profiles.js";
+import { DAREDEVIL_BALANCE_PROFILE_IDS } from "../../../js/professions/thief/specializations/daredevil/profiles.js";
+import { DEADEYE_BALANCE_PROFILE_IDS } from "../../../js/professions/thief/specializations/deadeye/profiles.js";
+import { SPECTER_BALANCE_PROFILE_IDS } from "../../../js/professions/thief/specializations/specter/profiles.js";
+import { ANTIQUARY_BALANCE_PROFILE_IDS } from "../../../js/professions/thief/specializations/antiquary/profiles.js";
 
 const baseConfig = Object.freeze({
   selectedSkills: [
@@ -100,6 +109,9 @@ function simulate(
 }
 
 const observationTail = (durationMs) => ({ kind: "tail", durationMs });
+
+const applyThiefPatch = (patch) =>
+  applyBalanceProfilePatch(applySkillPatch(thiefCatalog, patch), patch);
 
 test("Thief catalog pins API identity and explicit terrestrial mechanics", () => {
   assert.equal(DATA_SNAPSHOT, "2026-07-28");
@@ -177,6 +189,123 @@ test("Thief catalog pins API identity and explicit terrestrial mechanics", () =>
     thiefCatalog.skills
       .filter((skill) => skill.type === "Weapon")
       .every((skill) => Number.isFinite(Number(skill.initiativeCost))),
+  );
+});
+
+test("Thief modules expose isolated balance-profile authoring", () => {
+  const modules = new Map(
+    thiefProfession.patchAuthoring.modules.map((module) => [module.id, module]),
+  );
+  assert.deepEqual(
+    [...modules.keys()],
+    ["Core", "Daredevil", "Deadeye", "Specter", "Antiquary"],
+  );
+  assert.equal(
+    [...modules.values()].every((module) => module.balanceProfiles.length > 0),
+    true,
+  );
+
+  const profile = (moduleId, profileId) =>
+    modules
+      .get(moduleId)
+      .balanceProfiles.find((entry) => entry.id === profileId);
+  assert.equal(
+    profile("Core", THIEF_CORE_BALANCE_PROFILE_IDS.resources).patchableFields
+      .maximumStacks,
+    12,
+  );
+  assert.equal(
+    profile("Daredevil", DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining).profile
+      .effects[0].coefficient,
+    0.5625,
+  );
+  assert.equal(
+    profile("Deadeye", DEADEYE_BALANCE_PROFILE_IDS.resources).patchableFields
+      .maximumStacks,
+    5,
+  );
+  assert.equal(
+    profile("Specter", SPECTER_BALANCE_PROFILE_IDS.resources).patchableFields
+      .resourceGain,
+    1,
+  );
+  assert.equal(
+    profile("Antiquary", ANTIQUARY_BALANCE_PROFILE_IDS.scuffle).patchableFields
+      .pulseInterval,
+    3,
+  );
+
+  const opaqueModifierRules = [...modules.values()].flatMap((module) =>
+    module.modifierRules.filter(
+      (rule) =>
+        (typeof rule.amount === "function" ||
+          typeof rule.factor === "function") &&
+        Object.keys(rule.parameters).length === 0,
+    ),
+  );
+  assert.deepEqual(opaqueModifierRules, []);
+
+  const preview = applyThiefPatch({
+    skills: {
+      [ID.CALTROPS]: {
+        effects: [{ effectIndex: 0, duration: { from: 10, to: 12 } }],
+      },
+    },
+    balanceProfiles: {
+      [THIEF_CORE_BALANCE_PROFILE_IDS.resources]: {
+        fields: { maximumStacks: { from: 12, to: 13 } },
+      },
+      [DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining]: {
+        effects: [{ effectIndex: 0, coefficient: { from: 0.5625, to: 0.6 } }],
+      },
+      [DEADEYE_BALANCE_PROFILE_IDS.resources]: {
+        fields: { maximumStacks: { from: 5, to: 6 } },
+      },
+      [SPECTER_BALANCE_PROFILE_IDS.resources]: {
+        fields: { resourceGain: { from: 1, to: 1.25 } },
+      },
+      [ANTIQUARY_BALANCE_PROFILE_IDS.scuffle]: {
+        fields: { pulseInterval: { from: 3, to: 2.5 } },
+      },
+    },
+  });
+
+  assert.equal(preview.skillsById.get(ID.CALTROPS).effects[0].duration, 12);
+  assert.equal(
+    preview.balanceProfilesById.get(THIEF_CORE_BALANCE_PROFILE_IDS.resources)
+      .maximumStacks,
+    13,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining)
+      .effects[0].coefficient,
+    0.6,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(DEADEYE_BALANCE_PROFILE_IDS.resources)
+      .maximumStacks,
+    6,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(SPECTER_BALANCE_PROFILE_IDS.resources)
+      .resourceGain,
+    1.25,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(ANTIQUARY_BALANCE_PROFILE_IDS.scuffle)
+      .pulseInterval,
+    2.5,
+  );
+
+  assert.equal(
+    thiefCatalog.skillsById.get(ID.CALTROPS).effects[0].duration,
+    10,
+  );
+  assert.equal(
+    thiefCatalog.balanceProfilesById.get(
+      THIEF_CORE_BALANCE_PROFILE_IDS.resources,
+    ).maximumStacks,
+    12,
   );
 });
 

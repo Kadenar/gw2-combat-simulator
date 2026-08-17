@@ -18,11 +18,13 @@ import {
 import { UNTAMED_BASE_SKILL_MECHANICS } from "./skills.js";
 import { untamedState } from "./state.js";
 import { bindUntamedUi } from "./ui.js";
+import { UNTAMED_BALANCE_PROFILES } from "./profiles.js";
 
 export const untamedModule = defineNativeModule({
   id: "Untamed",
   data: createRangerModuleData("Untamed", {
     skillMechanics: UNTAMED_BASE_SKILL_MECHANICS,
+    balanceProfiles: UNTAMED_BALANCE_PROFILES,
     handlers: untamedSkillHandlers,
   }),
   // Scheduler and resolver each maintain independent copies of UntamedState.

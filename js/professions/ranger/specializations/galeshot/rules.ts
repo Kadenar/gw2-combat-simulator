@@ -24,6 +24,12 @@ import {
   handleGaleshotPetHitTask,
   observeGaleshotEvent,
 } from "./mechanics.js";
+import {
+  rangerBalanceProfile,
+  rangerBalanceProfileEffect,
+  rangerBalanceValue,
+} from "../../core/profiles.js";
+import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 function emitCloudburstBoons(
   context: RangerCastContext,
@@ -31,10 +37,14 @@ function emitCloudburstBoons(
 ): void {
   if (!hasTrait(context, TRAIT.CLOUDBURST)) return;
   const hawkeye = skill.id === ID.HAWKEYE;
-  for (const [kind, duration, stacks] of [
-    ["quickness", hawkeye ? 8 : 4, 1],
-    ["might", 10, hawkeye ? 8 : 4],
-  ] as const) {
+  const profile = rangerBalanceProfile(context, PROFILE.cloudburst);
+  for (let boonIndex = 0; boonIndex < 2; boonIndex += 1) {
+    const effect = rangerBalanceProfileEffect(
+      profile,
+      "boon",
+      (hawkeye ? 2 : 0) + boonIndex,
+    );
+    const kind = String(effect?.boon || ["quickness", "might"][boonIndex]);
     context.emit({
       type: "buff",
       at: context.effectiveEnd,
@@ -46,8 +56,10 @@ function emitCloudburstBoons(
       name: `Cloudburst - ${kind}`,
       kind,
       boon: kind,
-      duration,
-      stacks,
+      duration: Number(
+        effect?.duration ?? (boonIndex === 0 ? (hawkeye ? 8 : 4) : 10),
+      ),
+      stacks: Number(effect?.stacks ?? (boonIndex === 0 ? 1 : hawkeye ? 8 : 4)),
       recipients: "party",
       maximumRecipients: 5,
       triggeredBy: skill.name,
@@ -62,8 +74,13 @@ export function applyGaleshotCycloneBowTraits(
   const state = galeshotState.from(context);
   if (skill.id === ID.HAWKEYE) {
     if (hasTrait(context, TRAIT.GALE_FORCE)) {
+      const effect = rangerBalanceProfileEffect(
+        rangerBalanceProfile(context, PROFILE.galeForce),
+        "buff",
+      );
+      const duration = Number(effect?.duration ?? 10);
       // galeForceUntil is a timestamp, not a duration; compare against context.time in modifiers.
-      state.galeForceUntil = context.effectiveEnd + 10;
+      state.galeForceUntil = context.effectiveEnd + duration;
       context.emit({
         type: "buff",
         at: context.effectiveEnd,
@@ -72,9 +89,9 @@ export function applyGaleshotCycloneBowTraits(
         actorType: "effect",
         skillId: TRAIT.GALE_FORCE,
         skillName: "Gale Force",
-        kind: "gale-force",
-        duration: 10,
-        stacks: 1,
+        kind: String(effect?.kind || "gale-force"),
+        duration,
+        stacks: Number(effect?.stacks ?? 1),
         triggeredBy: skill.name,
       });
     }
@@ -163,10 +180,20 @@ export function galeshotCastAvailability(
   if (Number(skill.arrowCost || 0) > state.arrows) {
     return deny(skill, "ranger.arrows", `requires ${skill.arrowCost} arrows.`);
   }
-  if (skill.id === ID.HAWKEYE && state.windForce < 5) {
-    return deny(skill, "ranger.wind-force", "requires 5 Wind Force.");
+  const maximumWindForce = rangerBalanceValue(
+    context,
+    PROFILE.resources,
+    "minimumStacks",
+    5,
+  );
+  if (skill.id === ID.HAWKEYE && state.windForce < maximumWindForce) {
+    return deny(
+      skill,
+      "ranger.wind-force",
+      `requires ${maximumWindForce} Wind Force.`,
+    );
   }
-  if (skill.id === ID.KEEN_SHOT && state.windForce >= 5) {
+  if (skill.id === ID.KEEN_SHOT && state.windForce >= maximumWindForce) {
     return deny(
       skill,
       "ranger.hawkeye-ready",
@@ -218,14 +245,17 @@ function windForce(context: Gw2ModifierContext): number {
   return Number(galeshotRuntimeState(context)?.windForce || 0);
 }
 
-function galeForceAmount(context: Gw2ModifierContext): number {
+function galeForceAmount(
+  context: Gw2ModifierContext,
+  parameters: Readonly<Record<string, number>>,
+): number {
   const galeForce =
     Number(galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time
-      ? 0.25
+      ? parameters.galeForceBonus
       : 0;
   // Hawkeye converts the five existing stacks into a 25% flat bonus (galeForce),
   // but Wind Force earned while Gale Force is active still adds 3% per stack on top.
-  return galeForce + windForce(context) * 0.03;
+  return galeForce + windForce(context) * parameters.windForcePerStack;
 }
 
 function activePetIsFeathered(context: Gw2ModifierContext): boolean {
@@ -258,11 +288,18 @@ export const galeshotModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "ranger.gale-force",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "damage-additive",
-    amount: galeForceAmount,
+    parameters: {
+      galeForceBonus: 0.25,
+      windForcePerStack: 0.03,
+    } as Readonly<Record<string, number>>,
+    amount: (context, _target, parameters) =>
+      galeForceAmount(context, parameters),
     when: (context) =>
       context.event?.actorType !== "summon" &&
       hasTrait(context, TRAIT.GALE_FORCE) &&
-      galeForceAmount(context) > 0,
+      (Number(galeshotRuntimeState(context)?.galeForceUntil || 0) >
+        context.time ||
+        windForce(context) > 0),
   },
   {
     id: "ranger.flock-together",
@@ -283,15 +320,19 @@ export const galeshotModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     // stack) in addition to the standard vulnerability already baked into the
     // platform strikeMultiplier, effectively tripling the vulnerability bonus
     // for this skill.
-    factor: (context) =>
-      1 +
+    parameters: {
+      baseFactor: 1,
+      vulnerabilityPerStack: 0.02,
+    } as Readonly<Record<string, number>>,
+    factor: (context, _target, parameters) =>
+      parameters.baseFactor +
       Number(
         context.query?.vulnerabilityStacksAt(
           context.time,
           context.runtime || undefined,
         ) || 0,
       ) *
-        0.02,
+        parameters.vulnerabilityPerStack,
     when: (context) => eventSkillId(context) === ID.PIERCING_GALES,
   },
 ]);

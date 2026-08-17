@@ -8,6 +8,7 @@ import {
 } from "./events.js";
 import {
   rangerCoreCriticalReactions,
+  rangerCoreProfiledCriticalReaction,
   reactToRangerCoreBuff,
   reactToRangerCoreControl,
   reactToRangerCoreDamage,
@@ -25,7 +26,7 @@ export const rangerCoreEventHandlers = Object.freeze({
 });
 
 export const rangerCoreEventReactions = Object.freeze({
-  critical: Object.freeze([rangerCoreCriticalReactions]),
+  critical: Object.freeze([rangerCoreProfiledCriticalReaction]),
   damage: Object.freeze([
     {
       id: "ranger.core-damage",
