@@ -844,6 +844,7 @@ test("Necromancer modules contain complete vertical slices", () => {
       "state.ts",
       "skills.ts",
       "handlers.ts",
+      "mechanics.ts",
       "rules.ts",
       "ui.ts",
     ]) {
@@ -881,15 +882,6 @@ test("Necromancer modules contain complete vertical slices", () => {
         );
       }
     }
-    const mechanicsUrl = new URL(
-      `../../js/professions/revenant/${directory}/mechanics.ts`,
-      import.meta.url,
-    );
-    assert.equal(
-      existsSync(mechanicsUrl),
-      directory === "specializations/herald",
-      `${directory}/mechanics.ts`,
-    );
     assert.equal(typeof module.state?.scheduler, "function");
     assert.ok(
       (module.data?.generatedSkills?.length || 0) +
@@ -1513,7 +1505,6 @@ test("Revenant modules are vertical slices with disjoint ownership", () => {
       "state.ts",
       "skills.ts",
       "handlers.ts",
-      "mechanics.ts",
       "rules.ts",
       "ui.ts",
     ]) {
@@ -1546,6 +1537,15 @@ test("Revenant modules are vertical slices with disjoint ownership", () => {
         );
       }
     }
+    const mechanicsUrl = new URL(
+      `../../js/professions/revenant/${directory}/mechanics.ts`,
+      import.meta.url,
+    );
+    assert.equal(
+      existsSync(mechanicsUrl),
+      directory === "specializations/herald",
+      `${directory}/mechanics.ts`,
+    );
     assert.equal(typeof module.state?.scheduler, "function");
     assert.ok(
       (module.data?.generatedSkills?.length || 0) +
@@ -1579,7 +1579,6 @@ test("Revenant modules are vertical slices with disjoint ownership", () => {
     "state.ts",
     "skills.ts",
     "handlers.ts",
-    "mechanics.ts",
     "rules.ts",
     "ui.ts",
   ]
