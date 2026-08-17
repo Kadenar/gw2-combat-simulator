@@ -214,9 +214,9 @@ export function createGw2SimulationConfig({
       health: Math.max(0, Number(app.build.targetHealth) || 0),
       count: Math.max(1, Math.trunc(Number(assumptions.targetCount) || 1)),
       // Existing professions retain the historical defiant-golem default.
+      // Defiant doubles as the positional proxy: a defiant golem never rotates,
+      // so flanking/behind bonuses always apply and need no separate control.
       defiant: Boolean(assumptions.targetDefiant ?? true),
-      flanking: Boolean(assumptions.flanking),
-      behind: Boolean(assumptions.behind),
       distance: Math.max(0, Number(assumptions.targetDistance ?? 130)),
       conditions: targetConditions,
       moving: Boolean(assumptions.targetMoving),

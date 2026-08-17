@@ -303,11 +303,9 @@ test("Thief runtimes exclude inactive elite state, catalogs, and registries", ()
       active === "Specter",
       active,
     );
-    assert.equal(
-      resources.includes("artifact-uses"),
-      active === "Antiquary",
-      active,
-    );
+    // Available artifact uses are a backend gate, not a palette resource, so no
+    // specialization (including Antiquary) contributes an artifact-uses view.
+    assert.equal(resources.includes("artifact-uses"), false, active);
   }
   assert.throws(
     () => thiefProfession.resolveRuntime({ specialization: "Missing" }),

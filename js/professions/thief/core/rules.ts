@@ -282,9 +282,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
         ["Backstab", "Malicious Backstab"].includes(
           thiefEventSkill(context)?.name || "",
         ) &&
-        Boolean(
-          context.config?.target?.behind || context.config?.target?.defiant,
-        ),
+        Boolean(context.config?.target?.defiant),
     },
     {
       id: "thief.potent-poison-damage",

@@ -1359,6 +1359,14 @@ function normalizeApplicationUiList(
     groups[firstIndex] = {
       ...first,
       skillIds: last.skillIds,
+      // The specialization replaces the anchored profession skills, so its
+      // targeted resource layout must follow those skills into the retained group.
+      ...(Object.hasOwn(last, "resourceIds")
+        ? { resourceIds: last.resourceIds }
+        : {}),
+      ...(Object.hasOwn(last, "resourcePlacement")
+        ? { resourcePlacement: last.resourcePlacement }
+        : {}),
     };
     for (const index of anchorIndexes.slice(1).reverse()) {
       groups.splice(index, 1);

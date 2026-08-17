@@ -1044,8 +1044,6 @@ test("profession assumption controls normalize and validate deterministic inputs
   ]);
   const assumptions = normalizeProfessionAssumptions(
     {
-      flanking: 1,
-      behind: false,
       targetDistance: 9999,
       playerHealthPercent: -5,
       targetDefiant: false,
@@ -1054,8 +1052,6 @@ test("profession assumption controls normalize and validate deterministic inputs
     controls,
   );
   assert.deepEqual(assumptions, {
-    flanking: true,
-    behind: false,
     targetDistance: 2000,
     playerHealthPercent: 0,
     targetDefiant: false,

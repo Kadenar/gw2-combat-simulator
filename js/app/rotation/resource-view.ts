@@ -84,6 +84,41 @@ function resourcePipRows(maximum: number, rowCount: number): number[] {
   return rows;
 }
 
+/**
+ * Rows the pip lattice shifts right by half a pip so the rows interlock. Must
+ * mirror the `margin-left` offsets in `.thief-initiative .resource-pip-row`:
+ * the top row nests over a two-row lattice, the middle row nests within three.
+ */
+function offsetPipRows(rowCount: number): ReadonlySet<number> {
+  if (rowCount === 2) return new Set([0]);
+  if (rowCount === 3) return new Set([1]);
+  return new Set();
+}
+
+/**
+ * Assigns each pip its fill rank in on-screen left-to-right order. Columns are
+ * two half-pitch units wide and an interlocking (offset) row adds one, so
+ * sorting by that x — tie-broken top-to-bottom — makes the active state advance
+ * across the zigzag rather than lighting an entire row before the next begins.
+ * Single-row resources keep their natural left-to-right order.
+ */
+function pipFillRanks(rows: readonly number[]): number[][] {
+  const offsetRows = offsetPipRows(rows.length);
+  const cells: { row: number; col: number; x: number }[] = [];
+  rows.forEach((count, row) => {
+    const offset = offsetRows.has(row) ? 1 : 0;
+    for (let col = 0; col < count; col += 1) {
+      cells.push({ row, col, x: col * 2 + offset });
+    }
+  });
+  cells.sort((a, b) => a.x - b.x || a.row - b.row);
+  const ranks = rows.map((count) => new Array<number>(count));
+  cells.forEach((cell, rank) => {
+    ranks[cell.row][cell.col] = rank;
+  });
+  return ranks;
+}
+
 function resourcePipsHtml(
   definition: ProfessionResourceView,
   value: number,
@@ -92,18 +127,19 @@ function resourcePipsHtml(
   const pipClass = definition.pipStyle ? ` ${esc(definition.pipStyle)}` : "";
   const pipRows = Number(definition.pipRows || 1);
   const rows = resourcePipRows(definition.maximum, pipRows);
-  let index = 0;
+  const fillRank = pipFillRanks(rows);
   const content = rows
-    .map((count) => {
-      const pips = Array.from({ length: count }, () => {
-        const stateClass = index < value ? " active" : "";
-        index += 1;
+    .map((count, row) => {
+      const pips = Array.from({ length: count }, (_, col) => {
+        const rank = fillRank[row][col];
+        const stateClass = rank < value ? " active" : "";
+        const label = rank + 1;
         if (!interactive) {
           return `<span class="active-resource-pip${stateClass}"></span>`;
         }
         return `<button class="resource-pip${stateClass}"
-                data-count="${index}" data-resource-key="${esc(definition.buildKey)}"
-                title="${index} ${esc(definition.plural)}"></button>`;
+                data-count="${label}" data-resource-key="${esc(definition.buildKey)}"
+                title="${label} ${esc(definition.plural)}"></button>`;
       }).join("");
       return pipRows > 1
         ? `<span class="resource-pip-row">${pips}</span>`
@@ -198,6 +234,9 @@ export function activeResourceGroup(
         Math.min(definition.maximum, Number(definition.value ?? buildValue)),
       );
       const displayValue = formatResourceValue(value);
+      // The pips/bars/counter presentation is the display; the numeric count is
+      // never printed beside it (it only takes up space). The count still lives
+      // in the aria-label, and in the hover tooltip unless showValue is false.
       const valueLabel = `${definition.statusLabel} ${definition.plural}: ${displayValue}/${definition.maximum}`;
       const title =
         definition.showValue === false
@@ -215,7 +254,6 @@ export function activeResourceGroup(
                 data-resource-count="${value}" title="${esc(title)}"
                 aria-label="${esc(valueLabel)}">
                 ${indicator}
-                ${definition.displayMode === "counter" || definition.showValue === false ? "" : `<strong>${displayValue}/${definition.maximum}</strong>`}
             </div>
             ${resourceStatusItemsHtml(definition)}
         </div>`;

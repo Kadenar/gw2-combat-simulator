@@ -35,6 +35,10 @@ export const conduitUi: Partial<ProfessionUiContract> & SchedulerRecord =
           ],
           color: "#a84f54",
           resourceAnchor: true,
+          // Affinity powers the Conduit profession skills, so keep its pips
+          // directly above those F skills while Energy stays with the legends.
+          resourceIds: ["affinity"],
+          resourcePlacement: "above" as const,
         },
       ];
     },

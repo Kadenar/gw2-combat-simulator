@@ -825,11 +825,9 @@ function modifyRangerConditionBaseDuration(
 }
 
 function positional(context: Gw2ModifierContext): boolean {
-  return Boolean(
-    context.config?.target?.behind ||
-    context.config?.target?.flanking ||
-    context.config?.target?.defiant,
-  );
+  // Defiant is the positional proxy: a defiant golem never rotates, so
+  // flanking/behind bonuses always apply and need no separate control.
+  return Boolean(context.config?.target?.defiant);
 }
 
 function targetImpaired(context: Gw2ModifierContext): boolean {

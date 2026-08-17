@@ -80,12 +80,9 @@ function applyCriticalTraits(
   const enmity = hasRevenantTrait(context.config, TRAIT.ENDLESS_ENMITY);
   if (!ambush && !enmity) return;
   const criticals = criticalCount(context, event);
-  // Ambush Commander procs on any positional advantage OR any crit; both paths share the same grant
-  const positionalTrigger = Boolean(
-    context.config.target?.flanking ||
-    context.config.target?.behind ||
-    context.config.target?.defiant,
-  );
+  // Ambush Commander procs on any positional advantage OR any crit; both paths share the same grant.
+  // Defiant is the positional proxy (a defiant golem never rotates, so flanking/behind always apply).
+  const positionalTrigger = Boolean(context.config.target?.defiant);
   if (ambush && (positionalTrigger || criticals > 0)) {
     grantKallasFervor(context, event, {
       sourceId: TRAIT.AMBUSH_COMMANDER,

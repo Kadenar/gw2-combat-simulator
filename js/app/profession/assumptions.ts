@@ -10,18 +10,6 @@ import type {
 export const STANDARD_POSITION_ASSUMPTION_CONTROLS: ReadonlyArray<ProfessionAssumptionControl> =
   Object.freeze([
     Object.freeze({
-      key: "flanking",
-      label: "Flanking",
-      type: "boolean",
-      defaultValue: false,
-    }),
-    Object.freeze({
-      key: "behind",
-      label: "Behind target",
-      type: "boolean",
-      defaultValue: false,
-    }),
-    Object.freeze({
       key: "targetDistance",
       label: "Target distance",
       type: "number",
