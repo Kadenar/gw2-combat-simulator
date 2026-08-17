@@ -91,6 +91,9 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
     simulatorExcluded:
       NECROMANCER_NON_DPS_SKILL_NAMES.has(skill.name) ||
       Boolean(canonicalAliasId && canonicalAliasId !== skill.id),
+    ...(NECROMANCER_NON_DPS_SKILL_NAMES.has(skill.name)
+      ? { patchAuthoringExcluded: true }
+      : {}),
     implemented: false,
     effects: [],
   };

@@ -65,9 +65,29 @@ for (const skill of allSkills) {
 for (const [normalId, finalId] of firebrandFinalFlipByNormalId) {
   flipParentById.set(finalId, normalId);
 }
+const patchAuthoringExcludedSkillIds = new Set<SkillId>(
+  allSkills
+    .filter((skill) => GUARDIAN_NON_DPS_SKILL_NAMES.has(skill.name))
+    .map((skill) => skill.id),
+);
+let discoveredExcludedFlip = true;
+while (discoveredExcludedFlip) {
+  discoveredExcludedFlip = false;
+  for (const [skillId, parentId] of flipParentById) {
+    if (
+      patchAuthoringExcludedSkillIds.has(parentId) &&
+      !patchAuthoringExcludedSkillIds.has(skillId)
+    ) {
+      patchAuthoringExcludedSkillIds.add(skillId);
+      discoveredExcludedFlip = true;
+    }
+  }
+}
 
 const generated: readonly Skill[] = allSkills.map((skill) => {
   const flipParentId = flipParentById.get(skill.id);
+  const flipParent =
+    flipParentId == null ? undefined : generatedById.get(flipParentId);
   return {
     ...skill,
     flipSkillId:
@@ -77,9 +97,11 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
         ? skill.ammoRecharge || skill.recharge
         : skill.recharge,
     flipParentId: flipParentId ?? null,
-    flipParent:
-      flipParentId == null ? "" : generatedById.get(flipParentId)?.name || "",
+    flipParent: flipParent?.name || "",
     simulatorExcluded: GUARDIAN_NON_DPS_SKILL_NAMES.has(skill.name),
+    ...(patchAuthoringExcludedSkillIds.has(skill.id)
+      ? { patchAuthoringExcluded: true }
+      : {}),
     implemented: false,
     effects: [],
   };

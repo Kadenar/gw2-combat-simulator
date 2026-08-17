@@ -41,14 +41,22 @@ interface CreateModifierHooksOptions {
  */
 
 /**
- * Supported rule targets. Each value maps to one hook on the profession
- * contract returned by `createModifierHooks`.
+ * Supported rule targets. Scalar combat targets map one-to-one to profession
+ * hooks, following the existing declarative modifier pattern. Attribute
+ * targets extend that pattern to individual fields processed together by the
+ * `modifyAttributes` hook returned by `createModifierHooks`.
+ *
+ * At runtime, `modifyAttributes` resolves attributes first. Critical chance
+ * and critical damage are then derived from the resulting precision and
+ * ferocity, respectively, before `modifyCriticalChance` and
+ * `modifyCriticalDamage` apply their direct adjustments.
  *
  * - `criticalChance` → `modifyCriticalChance`
  * - `criticalDamage` → `modifyCriticalDamage`
  * - `strikeDamage` → `modifyStrikeDamage`
  * - `conditionDamage` → `modifyConditionDamage`
  * - `conditionDuration` → `modifyConditionDuration`
+ * - `attribute*` → the corresponding resolved-stat field through `modifyAttributes`
  */
 export const MODIFIER_TARGET = Object.freeze({
   CRITICAL_CHANCE: "criticalChance",

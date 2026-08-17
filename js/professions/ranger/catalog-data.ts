@@ -25,6 +25,12 @@ const simulatorExcludedSkillIds = new Set<SkillId>([
   ID.EXPLODING_SPORE,
   ID.WUTHERING_WIND,
 ]);
+const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
+  ID.WORLDLY_IMPACT_ID_42809,
+  ID.ETERNAL_BOND,
+  ID.UNDEAD_PLAGUE,
+  ID.PHASE_POUNCE,
+]);
 const flipParentById = new Map<SkillId, SkillId>();
 for (const skill of allSkills) {
   if (
@@ -123,6 +129,9 @@ function normalize(skill: RangerSkill): RangerSkill {
 const generated = allSkills.map((skill) => ({
   ...normalize(skill),
   simulatorExcluded: simulatorExcludedSkillIds.has(skill.id),
+  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
+    ? { patchAuthoringExcluded: true }
+    : {}),
   implemented: false,
   effects: [],
 }));

@@ -13,7 +13,11 @@ import type {
 } from "../../platform/engine/types.js";
 import type { NativeAutoattackChains } from "../../platform/gw2/native-profession.js";
 
-const AMALGAM_PROTOCOL_ICONS = new Map<string, string>([
+const ENGINEER_SKILL_ICON_OVERRIDES = new Map<string, string>([
+  [
+    "Lesser Grenade Barrage",
+    "https://render.guildwars2.com/file/5B2AB667667749BC1BC7AEFD27362E3E0E0F2FE6/103294.png",
+  ],
   [
     "Defensive Protocol: Cleanse",
     "https://render.guildwars2.com/file/71A2EA9B60E691E61521C2B621E665146BF1D1DD/3680127.png",
@@ -51,6 +55,93 @@ const UNSELECTABLE_SLOT_SKILLS = new Set([
   "Elixir R",
   "Utility Goggles",
   "Rocket Boots",
+]);
+
+// These API records have numeric definitions but no path into the simulator.
+const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
+  ID.JUMP_SHOT_ID_5817,
+  ID.ELIXIR_B,
+  ID.ELIXIR_C,
+  ID.ELIXIR_S,
+  ID.ELIXIR_U,
+  ID.UTILITY_GOGGLES,
+  ID.TOSS_ELIXIR_R,
+  ID.AUTOMATIC_FIRE,
+  ID.THUMP,
+  ID.ROCKET_BOOTS,
+  ID.TOSS_ELIXIR_B,
+  ID.ELIXIR_R,
+  ID.TOSS_ELIXIR_C,
+  ID.TOSS_ELIXIR_U,
+  ID.TOSS_ELIXIR_S,
+  ID.CLEANSING_BURST,
+  ID.ROCKET_KICK,
+  ID.TOSS_ELIXIR_C_ID_6077,
+  ID.DETONATE_ELIXIR_C,
+  ID.DETONATE_ELIXIR_B,
+  ID.DETONATE_ELIXIR_S,
+  ID.DETONATE_ELIXIR_R,
+  ID.DETONATE_ELIXIR_U,
+  ID.DETONATE_ELIXIR_H,
+  ID.TOSS_ELIXIR_U_ID_6089,
+  ID.TOSS_ELIXIR_S_ID_6090,
+  ID.TOSS_ELIXIR_R_ID_6091,
+  ID.TOSS_ELIXIR_B_ID_6092,
+  ID.HARPOON_TURRET,
+  ID.DETONATE_HARPOON_TURRET,
+  ID.AUTOMATIC_FIRE_HARPOON_TURRET,
+  ID.DEPLOY_MINE,
+  ID.HARPOON_ENGINEER_SKILL,
+  ID.WITHERING_PLAGUE,
+  ID.PLAGUE_OF_DARKNESS,
+  ID.PLAGUE_OF_PESTILENCE,
+  ID.CONFUSING_SPEECH,
+  ID.PAIN_TRANSFERENCE,
+  ID.VENT_RADIATION,
+  ID.INVIGORATING_ROAR,
+  ID.BOOBY_TRAP_CHARR_SKILL,
+  ID.HIDDEN_PISTOLS,
+  ID.BLESSING_OF_DWAYNA,
+  ID.BLESSING_OF_KORMIR,
+  ID.BLESSING_OF_LYSSA,
+  ID.EAT_WURM_EGG,
+  ID.EAT_OWL_EGG,
+  ID.THROW_VINE,
+  ID.VINE_SHIELD,
+  ID.LEAFY_BANDAGE,
+  ID.LESSER_ELIXIR_B,
+  ID.ALLY_WARD,
+  ID.STATIC_DISCHARGE_TRAIT_SKILL,
+  ID.PLAGUE,
+  ID.SNOWMAN_TURRET_SKILL,
+  ID.DETONATE_SNOWMAN_TURRET,
+  ID.MAGNETIC_BOMB_TRAIT_SKILL,
+  ID.SUPERSPEED_TRAIT_SKILL,
+  ID.FIRE_SHIELD_TRAIT_SKILL,
+  ID.MAGNETIC_AURA_TRAIT_SKILL,
+  ID.GLUE_TRAIL,
+  ID.BUNKER_DOWN_TRAIT_SKILL,
+  ID.OVERFUELED_FLAME_JET,
+  ID.DETONATE_SUPPLY_CRATE_TURRETS,
+  ID.ROCKET_BOOTS_ID_29522,
+  ID.UTILITY_GOGGLES_ID_29591,
+  ID.INVISIBLE_ANALYSIS,
+  ID.CLEANSING_PULSE,
+  ID.DETONATE_ELIXIR_X,
+  ID.LESSER_UTILITY_GOGGLES,
+  ID.DROP_GUNK,
+  ID.PERSONAL_BATTERING_RAM_ID_29991,
+  ID.BANDAGE_TRAIT_SKILL,
+  ID.FLASHBANG,
+  ID.OVERCHARGE_SUPPLY_CRATE,
+  ID.LONG_FUSED_POWDER_PACK,
+  ID.SLICK_SHOES_ID_30828,
+  ID.A_E_D_ID_30881,
+  ID.DEPLOY_MINE_ID_30893,
+  ID.THROW_JUNK_DOPPELGANGER,
+  ID.CONTROLLED_ANALYSIS,
+  ID.LESSER_ELIXIR_C,
+  ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL,
 ]);
 
 const generatedIds = new Set<SkillId>(SKILLS.map((skill) => skill.id));
@@ -95,6 +186,9 @@ const generated: readonly Skill[] = generatedSource.map((skill) => ({
   flipParentId: resolvedFlipParentId(skill.id),
   implemented: false,
   effects: [],
+  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
+    ? { patchAuthoringExcluded: true }
+    : {}),
   ...(UNSELECTABLE_SLOT_SKILLS.has(skill.name)
     ? { slotSelectable: false }
     : {}),
@@ -102,9 +196,12 @@ const generated: readonly Skill[] = generatedSource.map((skill) => ({
 const supplemental: readonly Skill[] = ENGINEER_SUPPLEMENTAL_SKILLS.map(
   (skill) => ({
     ...skill,
-    icon: AMALGAM_PROTOCOL_ICONS.get(skill.name) || skill.icon,
+    icon: ENGINEER_SKILL_ICON_OVERRIDES.get(skill.name) || skill.icon,
     flipParentId: resolvedFlipParentId(skill.id),
     slotSelectable: false,
+    ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
+      ? { patchAuthoringExcluded: true }
+      : {}),
   }),
 );
 
