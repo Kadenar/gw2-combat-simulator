@@ -1,4 +1,5 @@
 import type {
+  BalanceProfile,
   CanonicalCatalog,
   ConditionEffect,
   ConditionTick,
@@ -21,7 +22,7 @@ export type NumEdit =
 export interface PatchOverviewEntry {
   readonly subject: string;
   readonly text: string;
-  readonly source: "skill-diff" | "modifier-diff";
+  readonly source: "skill-diff" | "profile-diff" | "modifier-diff";
 }
 
 const PATCH_OVERVIEW_FIELDS = new Set(["subject", "text", "source"]);
@@ -51,7 +52,11 @@ export function validatePatchOverview(
     if (!String(entry.text || "").trim()) {
       throw new TypeError(`${label}[${index}].text is required.`);
     }
-    if (entry.source !== "skill-diff" && entry.source !== "modifier-diff") {
+    if (
+      entry.source !== "skill-diff" &&
+      entry.source !== "profile-diff" &&
+      entry.source !== "modifier-diff"
+    ) {
       throw new TypeError(`${label}[${index}].source is invalid.`);
     }
   }
@@ -81,6 +86,9 @@ export interface EffectPatch extends EffectSelector {
   readonly flatDamage?: NumEdit;
   readonly flatStrikeBase?: NumEdit;
   readonly flatStrikePowerCoeff?: NumEdit;
+  readonly durationPerAffinity?: NumEdit;
+  readonly durationReductionPerAffinity?: NumEdit;
+  readonly damageIncreasePerStack?: NumEdit;
 }
 
 export interface SkillPatchEdit {
@@ -104,6 +112,9 @@ export interface SkillPatchEdit {
   readonly castTimeMs?: NumEdit;
 }
 
+/** Patches a non-skill balance profile using the same numeric/effect grammar. */
+export type BalanceProfilePatchEdit = SkillPatchEdit;
+
 export interface ModifierRulePatchEdit {
   /** Direct numeric rule declarations. Resolver-backed fields use parameters. */
   readonly amount?: NumEdit;
@@ -114,6 +125,7 @@ export interface ModifierRulePatchEdit {
 
 export interface ProfessionPatchPreview {
   readonly skills?: Readonly<Record<string, SkillPatchEdit>>;
+  readonly balanceProfiles?: Readonly<Record<string, BalanceProfilePatchEdit>>;
   readonly modifierRules?: Readonly<Record<string, ModifierRulePatchEdit>>;
   readonly constants?: Readonly<Record<string, NumEdit>>;
   /** Deterministic summaries generated from skills and modifierRules. */
@@ -149,9 +161,20 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   "upkeepPulse.stacks",
   "upkeepPulseInterval",
   "maximumStacks",
+  "minimumStacks",
   "lifeSiphonDamagePerStack",
   "resourceGain",
   "rechargeMultiplier",
+  "damageMultiplier",
+  "damageIncreasePerStack",
+  "rechargeReduction",
+  "threshold",
+  "energyRegenerationPerSecond",
+  "enduranceRegenerationPerSecond",
+  "vigorRegenerationMultiplier",
+  "quicknessCastMultiplier",
+  "mainCastExtensionMs",
+  "mainQuicknessCastMultiplier",
 ]);
 
 export const PATCHABLE_EFFECT_NUMERIC_FIELDS = Object.freeze([
@@ -165,6 +188,9 @@ export const PATCHABLE_EFFECT_NUMERIC_FIELDS = Object.freeze([
   "flatDamage",
   "flatStrikeBase",
   "flatStrikePowerCoeff",
+  "durationPerAffinity",
+  "durationReductionPerAffinity",
+  "damageIncreasePerStack",
 ] as const);
 
 const SKILL_NUMERIC_FIELDS = new Set(PATCHABLE_SKILL_NUMERIC_FIELDS);
@@ -186,7 +212,7 @@ function valueAtPath(root: unknown, path: string): unknown {
 }
 
 export function skillPatchableNumericFields(
-  skill: Readonly<Skill>,
+  skill: Readonly<Skill | BalanceProfile>,
 ): Readonly<Record<string, number>> {
   return Object.freeze(
     Object.fromEntries(
@@ -197,6 +223,8 @@ export function skillPatchableNumericFields(
     ),
   );
 }
+
+export const balanceProfilePatchableNumericFields = skillPatchableNumericFields;
 
 function patchSkillNumericField(
   skill: MutableRecord,
@@ -607,11 +635,69 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit): Skill {
   return deepFreeze(clone);
 }
 
+function patchBalanceProfile(
+  profile: BalanceProfile,
+  edit: BalanceProfilePatchEdit,
+): BalanceProfile {
+  const clone = structuredClone(profile) as BalanceProfile;
+  const mutable = clone as unknown as MutableRecord;
+  const fields: Record<string, NumEdit> = {
+    ...(edit.fields || {}),
+    ...(edit.cooldown == null ? {} : { cooldown: edit.cooldown }),
+    ...(edit.castTimeMs == null ? {} : { castTimeMs: edit.castTimeMs }),
+  };
+  for (const [field, numericEdit] of Object.entries(fields)) {
+    if (!SKILL_NUMERIC_FIELDS.has(field)) {
+      throw new TypeError(
+        `Balance profile ${profile.name} has unsupported patch field ${field}.`,
+      );
+    }
+    patchSkillNumericField(mutable, field, numericEdit, profile.name);
+  }
+  const effects = [...(clone.effects || [])];
+  for (const effectPatch of shorthandEffects(edit)) {
+    for (const { index } of selectedEffects(
+      effects,
+      effectPatch,
+      `Balance profile ${profile.name}`,
+    )) {
+      effects[index] = patchEffect(
+        effects[index],
+        effectPatch,
+        `${profile.name}.effects[${index}]`,
+      );
+    }
+  }
+  const removedIndexes = new Set<number>();
+  for (const selector of edit.removeEffects || []) {
+    for (const { index } of selectedEffects(
+      effects,
+      selector,
+      `Balance profile ${profile.name} removal`,
+    )) {
+      removedIndexes.add(index);
+    }
+  }
+  const addedEffects = (edit.addEffects || []).map((effect, index) => {
+    if (!effect || typeof effect !== "object" || !String(effect.type || "")) {
+      throw new TypeError(
+        `Balance profile ${profile.name} added effect ${index} must declare a type.`,
+      );
+    }
+    return structuredClone(effect);
+  });
+  mutable.effects = [
+    ...effects.filter((_, index) => !removedIndexes.has(index)),
+    ...addedEffects,
+  ];
+  return deepFreeze(clone);
+}
+
 function findSkill(
   catalog: Readonly<CanonicalCatalog>,
   key: string,
 ): Skill | undefined {
-  const numericId = /^\d+$/.test(key) ? Number(key) : null;
+  const numericId = /^-?\d+$/.test(key) ? Number(key) : null;
   const byId =
     catalog.skillsById.get(key as SkillId) ||
     (numericId == null ? undefined : catalog.skillsById.get(numericId));
@@ -642,6 +728,7 @@ export function applySkillPatch(
     }
     replacements.set(skill, patchSkill(skill, edit));
   }
+  if (!replacements.size) return catalog;
   const replacementFor = (skill: Skill): Skill =>
     replacements.get(skill) || skill;
   const skills = Object.freeze(catalog.skills.map(replacementFor));
@@ -659,6 +746,57 @@ export function applySkillPatch(
     skills,
     skillsById,
     skillsByName,
+  });
+}
+
+export function applyBalanceProfilePatch(
+  catalog: Readonly<CanonicalCatalog>,
+  patch: ProfessionPatchPreview | null | undefined,
+  options: { readonly unknownProfiles?: "error" | "ignore" } = {},
+): Readonly<CanonicalCatalog> {
+  const edits = Object.entries(patch?.balanceProfiles || {});
+  if (!edits.length) return catalog;
+  const replacements = new Map<BalanceProfile, BalanceProfile>();
+  for (const [key, edit] of edits) {
+    const numericId = /^-?\d+$/.test(key) ? Number(key) : null;
+    const profile =
+      catalog.balanceProfilesById.get(key) ||
+      (numericId == null
+        ? undefined
+        : catalog.balanceProfilesById.get(numericId)) ||
+      catalog.balanceProfilesByName.get(key);
+    if (!profile) {
+      if (options.unknownProfiles === "ignore") continue;
+      throw new TypeError(`Patch references unknown balance profile ${key}.`);
+    }
+    if (replacements.has(profile)) {
+      throw new TypeError(
+        `Patch edits balance profile ${profile.name} more than once.`,
+      );
+    }
+    replacements.set(profile, patchBalanceProfile(profile, edit));
+  }
+  if (!replacements.size) return catalog;
+  const replacementFor = (profile: BalanceProfile): BalanceProfile =>
+    replacements.get(profile) || profile;
+  const balanceProfiles = Object.freeze(
+    catalog.balanceProfiles.map(replacementFor),
+  );
+  return Object.freeze({
+    ...catalog,
+    balanceProfiles,
+    balanceProfilesById: new Map(
+      [...catalog.balanceProfilesById].map(([id, profile]) => [
+        id,
+        replacementFor(profile),
+      ]),
+    ),
+    balanceProfilesByName: new Map(
+      [...catalog.balanceProfilesByName].map(([name, profile]) => [
+        name,
+        replacementFor(profile),
+      ]),
+    ),
   });
 }
 

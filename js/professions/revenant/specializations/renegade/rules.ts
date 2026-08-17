@@ -16,12 +16,15 @@ import {
   revenantTimedBuff,
 } from "../../core/rules.js";
 import { revenantCombatActive } from "../../core/legend.js";
-import { emitLegendInvocationSkill } from "../../core/legend-traits.js";
+import {
+  emitLegendInvocationProfile,
+  emitLegendInvocationSkill,
+} from "../../core/legend-traits.js";
 import { hasRevenantTrait } from "../../core/state.js";
 import { grantKallasFervor } from "./renegade.js";
 import {
-  RENEGADE_PROFILE_SKILL_IDS,
-  RENEGADE_SPIRIT_BOON_SKILL_ID,
+  RENEGADE_PROFILE_IDS,
+  RENEGADE_SPIRIT_BOON_PROFILE_ID,
 } from "./skills.js";
 import {
   handleRenegadeCriticalTraitsTask,
@@ -180,7 +183,7 @@ function advanceRenegadeUpkeep(
   }
   const skill = context.catalog.skillsById.get(ID.SOULCLEAVES_SUMMIT);
   const proc = context.catalog.skillsById.get(
-    RENEGADE_PROFILE_SKILL_IDS.soulcleavesSummitProc,
+    RENEGADE_PROFILE_IDS.soulcleavesSummitProc,
   );
   const allies = gw2AlliedPlayerAssumptions(context.config);
   if (!skill || !proc || !allies.count || !allies.strikesPerSecond) return;
@@ -239,9 +242,9 @@ function observeRenegadeEvent(
     return;
   }
   if (hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
-    emitLegendInvocationSkill(
+    emitLegendInvocationProfile(
       context,
-      RENEGADE_SPIRIT_BOON_SKILL_ID,
+      RENEGADE_SPIRIT_BOON_PROFILE_ID,
       event.at,
       TRAIT.SPIRIT_BOON,
     );

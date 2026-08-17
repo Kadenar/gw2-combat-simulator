@@ -1,6 +1,7 @@
 import { createCanonicalCatalog } from "../engine/catalog.js";
 import type {
   CanonicalCatalog,
+  BalanceProfile,
   CatalogEntity,
   ProfessionModuleCatalogFragment,
   Skill,
@@ -24,6 +25,7 @@ interface NativeModuleDataSelection<TContext extends object> {
   readonly skillMechanics?: Readonly<Record<string, SkillFragment>>;
   readonly skillOverrides?: Readonly<Record<string, SkillFragment>>;
   readonly extraSkills?: readonly Skill[];
+  readonly balanceProfiles?: readonly BalanceProfile[];
   readonly handlers?: NativeSkillHandlerRegistry<TContext>;
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
@@ -63,6 +65,7 @@ export function createNativeModuleData<TContext extends object>({
   skillMechanics = {},
   skillOverrides = {},
   extraSkills = [],
+  balanceProfiles = [],
   handlers,
   traits = [],
   specializations = [],
@@ -99,6 +102,7 @@ export function createNativeModuleData<TContext extends object>({
     skillMechanics: Object.freeze({ ...skillMechanics }),
     skillOverrides: Object.freeze(localOverrides),
     extraSkills: Object.freeze([...sharedExtra, ...extraSkills]),
+    balanceProfiles: Object.freeze([...balanceProfiles]),
     sharedExtraSkillOrder: new Map(
       sharedExtra.map((skill) => [skill.id, sharedExtraSkills.indexOf(skill)]),
     ),
@@ -241,6 +245,11 @@ function composeNativeCatalog(
     (module) => module.data.extraSkills || [],
     "extra skill id",
   );
+  const balanceProfiles = mergeEntityArrays(
+    modules,
+    (module) => module.data.balanceProfiles || [],
+    "balance profile id",
+  );
   restoreSharedSourceOrder(
     generated.values,
     modules,
@@ -346,6 +355,7 @@ function composeNativeCatalog(
     mechanics,
     overrides,
     extraSkills: extras.values as Skill[],
+    balanceProfiles: balanceProfiles.values,
     skillHandlers: handlers,
     traits: traits.values,
     specializations: specializations.values,
@@ -486,6 +496,11 @@ function composeNativeCatalog(
         skills: Object.freeze(
           catalog.skills.filter(
             (skill) => skillOwners.get(skill.id) === module.id,
+          ),
+        ),
+        balanceProfiles: Object.freeze(
+          catalog.balanceProfiles.filter(
+            (profile) => balanceProfiles.owners.get(profile.id) === module.id,
           ),
         ),
         skillHandlers: moduleHandlers,

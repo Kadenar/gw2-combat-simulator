@@ -8,8 +8,9 @@ import {
 } from "../../data/ids.js";
 import { hasRevenantTrait } from "../../core/state.js";
 import { activeKallasFervorStacks } from "./renegade.js";
-import { RENEGADE_PROFILE_SKILL_IDS } from "./skills.js";
+import { RENEGADE_PROFILE_IDS } from "./skills.js";
 import type {
+  BalanceProfile,
   SchedulerRecord,
   SkillId,
 } from "../../../../platform/engine/types.js";
@@ -32,17 +33,24 @@ function skillById(
   return context.helpers.skillsById?.get(id) as RevenantSkill | undefined;
 }
 
+function balanceProfileById(
+  context: RevenantResolverContext,
+  id: SkillId,
+): BalanceProfile | undefined {
+  return context.helpers.balanceProfilesById?.get(id);
+}
+
 function kallasFervorLifeSiphonMultiplier(
   context: RevenantResolverContext,
   at: number,
 ): number {
   const stacks = activeKallasFervorStacks(renegadeState.from(context), at);
   if (!stacks) return 1;
-  const profile = skillById(
+  const profile = balanceProfileById(
     context,
     hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
-      ? RENEGADE_PROFILE_SKILL_IDS.kallasFervorLastingLegacy
-      : RENEGADE_PROFILE_SKILL_IDS.kallasFervor,
+      ? RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy
+      : RENEGADE_PROFILE_IDS.kallasFervor,
   );
   const perStack = Number(profile?.lifeSiphonDamagePerStack || 0);
   return 1 + stacks * perStack;
@@ -56,10 +64,7 @@ function reactToDamage(
   if (event.actorType !== "player" || !(Number(event.coefficient) > 0)) return;
   const active = activeSkillIds(context);
   const soulcleave = skillById(context, ID.SOULCLEAVES_SUMMIT);
-  const proc = skillById(
-    context,
-    RENEGADE_PROFILE_SKILL_IDS.soulcleavesSummitProc,
-  );
+  const proc = skillById(context, RENEGADE_PROFILE_IDS.soulcleavesSummitProc);
   if (
     soulcleave &&
     proc &&

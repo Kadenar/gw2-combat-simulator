@@ -23,6 +23,18 @@ function selectRow(label: string, id: string, optionsHtml: string): string {
             <select class="gear-select" id="${id}">${optionsHtml}</select></div>`;
 }
 
+function currentRotationDps(app: ProfessionAppState): string {
+  if (!app.build.rotation.length || !app.results) return "—";
+  return Math.round(Number(app.results.dps || 0)).toLocaleString();
+}
+
+export function updateGearRotationDps(app: ProfessionAppState): void {
+  const value = document.querySelector<HTMLElement>(
+    '[data-role="current-rotation-dps"]',
+  );
+  if (value) value.textContent = currentRotationDps(app);
+}
+
 /**
  * @param {ProfessionAppState} app
  * @returns {void}
@@ -88,7 +100,14 @@ export function renderGear(app: ProfessionAppState): void {
               true,
             )
           : ""
-      }`;
+      }
+      <div class="gear-rotation-result">
+        <div class="weapon-set-heading">Current rotation</div>
+        <div class="gear-row">
+          <span class="gear-label">DPS</span>
+          <strong class="gear-rotation-dps" data-role="current-rotation-dps" aria-live="polite">${currentRotationDps(app)}</strong>
+        </div>
+      </div>`;
   document.querySelectorAll(".gear-prefix").forEach((select) => {
     if (!(select instanceof HTMLSelectElement)) return;
     select.addEventListener("change", () => {

@@ -4,6 +4,7 @@
  * run different professions without special cases.
  */
 import type {
+  BalanceProfile,
   CatalogEntity,
   CanonicalCatalog,
   AvailabilityResult,
@@ -723,6 +724,12 @@ function composeModuleCatalog(
     (skill) => skill.id,
     "skill id",
   ) as Skill[];
+  const balanceProfiles = mergeUniqueEntries(
+    modules,
+    (entry) => entry.catalog?.balanceProfiles || [],
+    (profile) => profile.id,
+    "balance profile id",
+  ) as BalanceProfile[];
   const traits = mergeUniqueEntries(
     modules,
     (entry) => entry.catalog?.traits || [],
@@ -786,6 +793,7 @@ function composeModuleCatalog(
 
   const catalog = createCanonicalCatalog({
     generated: skills,
+    balanceProfiles,
     skillHandlers: handlers,
     traits,
     specializations,

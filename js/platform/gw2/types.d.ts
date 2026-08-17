@@ -691,6 +691,10 @@ export interface Gw2ResolverHelpers extends SchedulerRecord {
     Skill
   >;
   readonly skillsByName?: ReadonlyMap<string, Skill>;
+  readonly balanceProfilesById?: ReadonlyMap<
+    import("../engine/types.js").SkillId,
+    import("../engine/types.js").BalanceProfile
+  >;
 }
 
 export type Gw2EventQueue =

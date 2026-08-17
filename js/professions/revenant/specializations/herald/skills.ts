@@ -3,11 +3,11 @@
  */
 import { REVENANT_SKILL_IDS as ID } from "../../data/ids.js";
 import type {
-  Skill,
+  BalanceProfile,
   SkillFragment,
 } from "../../../../platform/engine/types.js";
 
-export const HERALD_SPIRIT_BOON_SKILL_ID = "revenant.herald.spirit-boon-dragon";
+export const HERALD_SPIRIT_BOON_PROFILE_ID = "revenant.spirit-boon.dragon";
 
 export const HERALD_BASE_SKILL_MECHANICS: Readonly<
   Record<number, SkillFragment>
@@ -350,29 +350,24 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<
   },
 });
 
-export const HERALD_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
-  {
-    id: HERALD_SPIRIT_BOON_SKILL_ID,
-    name: "Spirit Boon (Dragon)",
-    description:
-      "Invoking Legendary Dragon grants protection to nearby allies.",
-    icon: "https://render.guildwars2.com/file/62279406A52F47A00CE7BFFB43D405907A67A60F/1012681.png",
-    type: "Action",
-    slot: "Action",
-    categories: ["Trait"],
-    slotSelectable: false,
-    skillFamily: "Trait",
-    specialization: "Herald",
-    implemented: true,
-    simulatorExcluded: true,
-    effects: [
-      {
-        type: "boon",
-        boon: "protection",
-        duration: 3,
-        stacks: 1,
-        actorType: "player",
-      },
-    ],
-  },
-]);
+export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
+  [
+    {
+      id: HERALD_SPIRIT_BOON_PROFILE_ID,
+      name: "Spirit Boon (Dragon)",
+      profileKind: "trait",
+      description:
+        "Invoking Legendary Dragon grants protection to nearby allies.",
+      icon: "https://render.guildwars2.com/file/62279406A52F47A00CE7BFFB43D405907A67A60F/1012681.png",
+      effects: [
+        {
+          type: "boon",
+          boon: "protection",
+          duration: 3,
+          stacks: 1,
+          actorType: "player",
+        },
+      ],
+    },
+  ],
+);

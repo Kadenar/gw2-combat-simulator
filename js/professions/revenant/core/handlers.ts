@@ -2,6 +2,7 @@ import {
   augmentSkill,
   replaceSkill,
 } from "../../../platform/gw2/native-profession.js";
+import { SKILL_HANDLER_MODES } from "../../../platform/engine/skill-handlers.js";
 import type { SkillHandlerPhase } from "../../../platform/engine/types.js";
 import type {
   RevenantCastContext,
@@ -32,11 +33,13 @@ const handlers = Object.freeze({
       "revenant.dodge"
     ] as SkillHandlerPhase<RevenantCastContext>,
   }),
-  "revenant.enchanted-daggers": replaceSkill<RevenantCastContext>({
+  "revenant.enchanted-daggers": augmentSkill<RevenantCastContext>({
+    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
     afterEffects:
       activateEnchantedDaggers as SkillHandlerPhase<RevenantCastContext>,
   }),
-  "revenant.upkeep": replaceSkill<RevenantCastContext>({
+  "revenant.upkeep": augmentSkill<RevenantCastContext>({
+    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
     afterEffects: revenantUpkeepSkillHandlers[
       "revenant.upkeep"
     ] as SkillHandlerPhase<RevenantCastContext>,
@@ -44,11 +47,6 @@ const handlers = Object.freeze({
   "revenant.upkeep-release": replaceSkill<RevenantCastContext>({
     afterEffects: revenantUpkeepSkillHandlers[
       "revenant.upkeep-release"
-    ] as SkillHandlerPhase<RevenantCastContext>,
-  }),
-  "revenant.inspiring-reinforcement": replaceSkill<RevenantCastContext>({
-    beforeEffects: revenantUpkeepSkillHandlers[
-      "revenant.inspiring-reinforcement"
     ] as SkillHandlerPhase<RevenantCastContext>,
   }),
   "revenant.spear-recharge": augmentSkill<RevenantCastContext>({
@@ -59,7 +57,8 @@ const handlers = Object.freeze({
         event as RevenantSimulationEvent,
       ),
   }),
-  "revenant.abyssal-raze": replaceSkill<RevenantCastContext>({
+  "revenant.abyssal-raze": augmentSkill<RevenantCastContext>({
+    resolveMode: () => SKILL_HANDLER_MODES.REPLACE,
     beforeEffects: revenantSpearSkillHandlers[
       "revenant.abyssal-raze"
     ] as SkillHandlerPhase<RevenantCastContext>,

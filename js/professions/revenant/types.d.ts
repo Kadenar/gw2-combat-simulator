@@ -173,6 +173,7 @@ export interface VindicatorState {
 
 export interface ConduitState {
   affinity: number;
+  affinityMaximum: number;
   cosmicWisdomUntil: number;
   conduitForm: string;
   beguilingHazeCharges: number;
@@ -235,6 +236,7 @@ export type RevenantRechargeContext = RevenantSchedulerContext &
   };
 
 export interface RevenantEnergyContext {
+  readonly catalog?: CanonicalCatalog<RevenantSkill>;
   readonly config?: RevenantConfig;
   readonly state?:
     | SchedulerState<RevenantRuntimeState>

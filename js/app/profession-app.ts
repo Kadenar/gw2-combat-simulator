@@ -5,7 +5,7 @@ import {
 } from "./build/persistence.js";
 import { renderAssumptions } from "./build/assumptions-panel.js";
 import { renderAttributes } from "./build/attributes-panel.js";
-import { renderGear } from "./build/gear-panel.js";
+import { renderGear, updateGearRotationDps } from "./build/gear-panel.js";
 import { bindPageControls } from "./build/page-controls.js";
 import {
   initBuildTemplates,
@@ -121,6 +121,7 @@ export class ProfessionApp implements ProfessionAppState {
   changed(rebuildStatic = true, rebuildGear = rebuildStatic): void {
     this.initialRenderGeneration += 1;
     this.updateSimulationState();
+    updateGearRotationDps(this);
     if (rebuildStatic) {
       if (rebuildGear) renderGear(this);
       renderTraits(this);

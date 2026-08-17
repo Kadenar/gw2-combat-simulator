@@ -10,7 +10,7 @@ import {
   grantKallasFervor,
   isBandTogetherReady,
 } from "./renegade.js";
-import { RENEGADE_PROFILE_SKILL_IDS } from "./skills.js";
+import { RENEGADE_PROFILE_IDS } from "./skills.js";
 import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import type {
   RevenantPrecastContext,
@@ -98,8 +98,8 @@ function applyCriticalTraits(
   ) {
     return;
   }
-  const profile = context.catalog.skillsById.get(
-    RENEGADE_PROFILE_SKILL_IDS.endlessEnmity,
+  const profile = context.catalog.balanceProfilesById.get(
+    RENEGADE_PROFILE_IDS.endlessEnmity,
   );
   const effect = profile?.effects?.find(
     (candidate) => candidate.type === "boon",
@@ -139,8 +139,8 @@ function applyVindication(
   ) {
     return;
   }
-  const profile = context.catalog.skillsById.get(
-    RENEGADE_PROFILE_SKILL_IDS.vindication,
+  const profile = context.catalog.balanceProfilesById.get(
+    RENEGADE_PROFILE_IDS.vindication,
   );
   const effect = profile?.effects?.find(
     (candidate) => candidate.type === "control",
@@ -181,10 +181,10 @@ function applyKallasFervorLifeSiphon(
     event.at,
   );
   if (!stacks) return;
-  const profile = context.catalog.skillsById.get(
+  const profile = context.catalog.balanceProfilesById.get(
     hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
-      ? RENEGADE_PROFILE_SKILL_IDS.kallasFervorLastingLegacy
-      : RENEGADE_PROFILE_SKILL_IDS.kallasFervor,
+      ? RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy
+      : RENEGADE_PROFILE_IDS.kallasFervor,
   );
   const perStack = Number(profile?.lifeSiphonDamagePerStack || 0);
   context.replaceEvent(event, {
@@ -196,10 +196,10 @@ function applyKallasFervorLifeSiphon(
 export function initializeRenegadeTraits(
   context: RevenantSchedulerContext,
 ): void {
-  const fervorProfile = context.catalog.skillsById.get(
+  const fervorProfile = context.catalog.balanceProfilesById.get(
     hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
-      ? RENEGADE_PROFILE_SKILL_IDS.kallasFervorLastingLegacy
-      : RENEGADE_PROFILE_SKILL_IDS.kallasFervor,
+      ? RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy
+      : RENEGADE_PROFILE_IDS.kallasFervor,
   );
   renegadeState.from(context).kallasFervorMaximumStacks = Math.max(
     1,
@@ -244,8 +244,8 @@ export function modifyRenegadeRechargeDuration(
   duration: number,
 ): number {
   // All for One halves Band Together's recharge only when the empowered version was just used; checking the state here (before the window clears) is safe because the window was consumed in beforeEffects, which runs before the recharge hook fires
-  const allForOne = context.catalog.skillsById.get(
-    RENEGADE_PROFILE_SKILL_IDS.allForOne,
+  const allForOne = context.catalog.balanceProfilesById.get(
+    RENEGADE_PROFILE_IDS.allForOne,
   );
   return context.skill?.handlerId === "revenant.band-together" &&
     isBandTogetherReady(
@@ -271,8 +271,8 @@ export function observeRenegadeTraits(
     event.at + context.epsilon >=
       Number(coreState.traitProcReadyAt.bloodFury || 0)
   ) {
-    const profile = context.catalog.skillsById.get(
-      RENEGADE_PROFILE_SKILL_IDS.bloodFury,
+    const profile = context.catalog.balanceProfilesById.get(
+      RENEGADE_PROFILE_IDS.bloodFury,
     );
     coreState.traitProcReadyAt.bloodFury =
       event.at + Math.max(0, Number(profile?.cooldown || 0));
@@ -322,7 +322,7 @@ export function observeRenegadeTraits(
     return;
   }
   const profile = context.catalog.skillsById.get(
-    RENEGADE_PROFILE_SKILL_IDS.razorclawsRageProc,
+    RENEGADE_PROFILE_IDS.razorclawsRageProc,
   );
   const effect = profile?.effects?.find(
     (candidate) => candidate.type === "condition",

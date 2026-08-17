@@ -547,6 +547,14 @@ frame.addEventListener("load", async () => {
 
     const originalPower = app.attributeData.attributes.Power.final;
     const helm = document.querySelector('[data-slot="Helm"]');
+    const gearRotationDps = document.querySelector(
+      '[data-role="current-rotation-dps"]',
+    );
+    assert(
+      gearRotationDps?.textContent ===
+        Math.round(app.results.dps).toLocaleString(),
+      "gear panel does not show the current rotation DPS",
+    );
     helm.focus();
     helm.value = "Viper's";
     helm.dispatchEvent(new Event("change", { bubbles: true }));
@@ -557,6 +565,13 @@ frame.addEventListener("load", async () => {
     assert(
       document.querySelector('[data-slot="Helm"]') === helm && helm.isConnected,
       "gear prefix change replaced the select and broke Tab navigation",
+    );
+    assert(
+      document.querySelector('[data-role="current-rotation-dps"]') ===
+        gearRotationDps &&
+        gearRotationDps.textContent ===
+          Math.round(app.results.dps).toLocaleString(),
+      "gear prefix change did not update the current rotation DPS in place",
     );
     assert(
       icon(document, "Dodge / Mirage Cloak").querySelector("img").src ===

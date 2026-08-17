@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { createCanonicalCatalog } from "../../../js/platform/engine/catalog.js";
 import {
+  applyBalanceProfilePatch,
   applyModifierRulePatch,
   applyNumEdit,
   applySkillPatch,
@@ -81,6 +82,22 @@ function fixtureCatalog() {
         implemented: true,
         castTimeMs: 0,
         effects: [],
+      },
+    ],
+    balanceProfiles: [
+      {
+        id: "fixture.profile",
+        name: "Fixture Profile",
+        profileKind: "mechanic",
+        maximumStacks: 5,
+        effects: [
+          {
+            type: "condition",
+            condition: "Burning",
+            stacks: 2,
+            duration: 4,
+          },
+        ],
       },
     ],
   });
@@ -271,6 +288,55 @@ test("skill patches target fields, effects, and individual timeline ticks", () =
   );
   assert.equal(preview.skillsById.get(3), live.skillsById.get(3));
   assert.equal(Object.isFrozen(preview.skillsById.get(1)), true);
+});
+
+test("balance profile patches preserve non-skill catalog ownership", () => {
+  const live = fixtureCatalog();
+  const preview = applyBalanceProfilePatch(live, {
+    balanceProfiles: {
+      "fixture.profile": {
+        fields: { maximumStacks: { from: 5, to: 7 } },
+        effects: [
+          {
+            effectIndex: 0,
+            stacks: { from: 2, to: 3 },
+            duration: { from: 4, to: 6 },
+          },
+        ],
+      },
+    },
+  });
+
+  assert.equal(
+    live.balanceProfilesById.get("fixture.profile").maximumStacks,
+    5,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get("fixture.profile").maximumStacks,
+    7,
+  );
+  assert.deepEqual(
+    preview.balanceProfilesById
+      .get("fixture.profile")
+      .effects.map((effect) => [effect.stacks, effect.duration]),
+    [[3, 6]],
+  );
+  assert.equal(preview.skillsById.get("fixture.profile"), undefined);
+  assert.throws(
+    () =>
+      applyBalanceProfilePatch(live, {
+        balanceProfiles: { missing: { fields: {} } },
+      }),
+    /unknown balance profile missing/,
+  );
+  assert.equal(
+    applyBalanceProfilePatch(
+      live,
+      { balanceProfiles: { missing: { fields: {} } } },
+      { unknownProfiles: "ignore" },
+    ),
+    live,
+  );
 });
 
 test("skill patches add and remove complete condition effects", () => {
@@ -514,6 +580,15 @@ test("specialization skill previews stay inert in other runtime catalogs", () =>
           effects: [{ type: "strike", coefficient: 1, hits: 1 }],
         },
       ],
+      balanceProfiles: [
+        {
+          id: "elite.profile",
+          name: "Elite Profile",
+          profileKind: "trait",
+          maximumStacks: 5,
+          effects: [],
+        },
+      ],
     },
     state: { scheduler: () => ({}) },
   });
@@ -527,6 +602,11 @@ test("specialization skill previews stay inert in other runtime catalogs", () =>
       professions: {
         fixture: {
           skills: { 2: { coefficient: { from: 1, to: 2 } } },
+          balanceProfiles: {
+            "elite.profile": {
+              fields: { maximumStacks: { from: 5, to: 7 } },
+            },
+          },
         },
       },
     },
@@ -543,6 +623,10 @@ test("specialization skill previews stay inert in other runtime catalogs", () =>
 
   assert.equal(corePreview.catalog.skillsById.has(2), false);
   assert.equal(
+    corePreview.catalog.balanceProfilesById.has("elite.profile"),
+    false,
+  );
+  assert.equal(
     elitePreview.catalog.skillsById.get(2).effects[0].coefficient,
     2,
   );
@@ -550,6 +634,16 @@ test("specialization skill previews stay inert in other runtime catalogs", () =>
     family.catalogFor("fixture-preview").skillsById.get(2).effects[0]
       .coefficient,
     2,
+  );
+  assert.equal(
+    elitePreview.catalog.balanceProfilesById.get("elite.profile").maximumStacks,
+    7,
+  );
+  assert.equal(
+    family
+      .catalogFor("fixture-preview")
+      .balanceProfilesById.get("elite.profile").maximumStacks,
+    7,
   );
 });
 

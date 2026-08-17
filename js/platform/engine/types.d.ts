@@ -40,9 +40,7 @@ export type CommonSimulationEventType =
 export type CustomSimulationEventType = `${string}.${string}`;
 
 export type LegacySimulationEventType =
-  | "boon"
-  | "cooldown_snapshot"
-  | "self_condition";
+  "boon" | "cooldown_snapshot" | "self_condition";
 
 export interface SimulationEventBase<TType extends string = string> {
   readonly schemaVersion?: 1;
@@ -247,11 +245,7 @@ export interface CustomEffect extends SkillEffectBase {
 }
 
 export type SkillEffect =
-  | StrikeEffect
-  | ConditionEffect
-  | ControlEffect
-  | StatusEffect
-  | CustomEffect;
+  StrikeEffect | ConditionEffect | ControlEffect | StatusEffect | CustomEffect;
 
 export interface Skill extends CatalogSkill {
   readonly description?: string;
@@ -335,6 +329,17 @@ export interface Skill extends CatalogSkill {
   readonly implemented?: boolean;
 }
 
+/**
+ * Patchable balance data that is not itself a castable skill. Profiles keep
+ * trait effects, mechanic limits, and skill-state variants out of the skill
+ * catalog while retaining the same declarative effect vocabulary.
+ */
+export interface BalanceProfile extends CatalogSkill {
+  readonly profileKind: "trait" | "mechanic" | "skill-variant";
+  readonly effects?: readonly SkillEffect[];
+  readonly [field: string]: unknown;
+}
+
 export type SkillFragment = Partial<Skill> & SchedulerRecord;
 
 export interface SkillLockout {
@@ -399,6 +404,9 @@ export interface CanonicalCatalog<
   readonly skills: readonly TSkill[];
   readonly skillsById: ReadonlyMap<SkillId, TSkill>;
   readonly skillsByName: ReadonlyMap<string, TSkill>;
+  readonly balanceProfiles: readonly BalanceProfile[];
+  readonly balanceProfilesById: ReadonlyMap<SkillId, BalanceProfile>;
+  readonly balanceProfilesByName: ReadonlyMap<string, BalanceProfile>;
   readonly skillHandlers: ReadonlyMap<string, SkillHandlerStrategy<TContext>>;
   readonly autoattackChains: readonly (readonly number[])[];
   readonly autoattackChainPositions: ReadonlyMap<
@@ -1038,15 +1046,14 @@ export interface ProfessionDefinition<
 
 export interface ProfessionModuleCatalogFragment {
   readonly skills?: readonly Skill[];
+  readonly balanceProfiles?: readonly BalanceProfile[];
   readonly skillHandlers?:
-    | ReadonlyMap<string, unknown>
-    | Readonly<Record<string, unknown>>;
+    ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>>;
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
   readonly weapons?: readonly string[];
   readonly weaponHands?:
-    | ReadonlyMap<string, string>
-    | Readonly<Record<string, string>>;
+    ReadonlyMap<string, string> | Readonly<Record<string, string>>;
   readonly autoattackChains?: {
     readonly additional?: readonly (readonly SkillId[])[];
     readonly excludeSkillIds?: readonly SkillId[];
@@ -1116,8 +1123,7 @@ export interface NormalizedProfessionContract<
     config: Readonly<SchedulerConfig>,
   ) => TProfessionState;
   readonly createResolverState:
-    | ((config: Readonly<SchedulerConfig>) => object)
-    | null;
+    ((config: Readonly<SchedulerConfig>) => object) | null;
   readonly taskHandlers: Readonly<
     Record<
       string,
@@ -1275,10 +1281,7 @@ export interface CooldownResetCommand {
 }
 
 export type RotationCommand =
-  | CastCommand
-  | WaitCommand
-  | CombatStartCommand
-  | CooldownResetCommand;
+  CastCommand | WaitCommand | CombatStartCommand | CooldownResetCommand;
 
 export interface LegacyRotationEntry {
   name: SkillId;
