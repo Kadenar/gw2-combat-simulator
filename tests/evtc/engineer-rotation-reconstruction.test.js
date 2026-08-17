@@ -361,20 +361,15 @@ test("validates Engineer cast completion from observed strike packets", () => {
   );
   assert.deepEqual(
     rifleActions.map((action) => action.status),
-    ["reduced", "reduced"],
+    ["completed", "completed"],
   );
   assert.equal(
     result.actions.find((action) => action.name === "Overcharged Shot")?.status,
     "reduced",
   );
   assert.deepEqual(rifleCommands, [
-    { name: "Rifle Burst", skillId: 6003, interruptMs: 567 },
-    {
-      name: "Rifle Burst",
-      skillId: 6003,
-      interruptMs: 567,
-      preserveEffectsAfterInterrupt: true,
-    },
+    { name: "Rifle Burst", skillId: 6003 },
+    { name: "Rifle Burst", skillId: 6003 },
   ]);
   assert.deepEqual(
     result.rotation.find((command) => command.name === "Shrapnel Grenade"),

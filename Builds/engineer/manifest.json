@@ -7,14 +7,14 @@
         "build": "Builds/engineer/b-power-amalgam-hammer-symbiotic.json",
         "rotation": "Rotations/engineer/r-power-amalgam-hammer-symbiotic-bench.json",
         "dpsReportUrl": "https://dps.report/sVjd-poweramalgamsymbiotic_golem",
-        "benchmarkDps": 42201,
+        "benchmarkDps": 41451,
         "upToDate": true
       },
       {
         "label": "Power (Rifle - Double Helix)",
         "build": "Builds/engineer/b-power-amalgam-rifle-double-helix.json",
         "rotation": "Rotations/engineer/r-power-amalgam-rifle-double-helix-bench.json",
-          "benchmarkDps": 44979,
+        "benchmarkDps": 43124,
         "upToDate": true
       },
       {
@@ -28,7 +28,7 @@
         "label": "Condition (3 Kit)",
         "build": "Builds/engineer/b-condi-amalgam-3kit.json",
         "rotation": "Rotations/engineer/r-condi-amalgam-3kit-bench.json",
-        "benchmarkDps": 43687,
+        "benchmarkDps": 42871,
         "upToDate": true
       }
     ]
@@ -66,7 +66,7 @@
         "label": "Power (Rifle)",
         "build": "Builds/engineer/b-power-mechanist-rifle.json",
         "rotation": "Rotations/engineer/r-power-mechanist-rifle-bench.json",
-        "benchmarkDps": 38513,
+        "benchmarkDps": 38993,
         "upToDate": true
       }
     ]

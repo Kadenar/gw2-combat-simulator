@@ -8,13 +8,11 @@ import {
   preferOffhand,
 } from "../../../app/profession/define-app.js";
 import { applyEngineerBuildAttributeRules } from "../build-attributes.js";
-import {
-  createDefaultTargetConditions,
-  toApplicationBuild,
-} from "../build.js";
+import { createDefaultTargetConditions, toApplicationBuild } from "../build.js";
 import { engineerProfession } from "../definition.js";
 import type {
   EngineerApplicationBuild,
+  EngineerEvolveAttributePool,
 } from "../types.js";
 
 export const engineerApp = defineProfessionApp({
@@ -24,16 +22,31 @@ export const engineerApp = defineProfessionApp({
   toApplicationBuild,
   specializationFallback: "Explosives",
   runtime: {
-    buildConfigInputs: app => ({
-      initialResource:
-        (app.build as EngineerApplicationBuild).initialHeat,
+    buildConfigInputs: (app) => ({
+      initialResource: (app.build as EngineerApplicationBuild).initialHeat,
     }),
-    buildConfigExtras: app => ({
-      initialHeat: (app.build as EngineerApplicationBuild).initialHeat,
-      selectedMorphSkillIds: [
-        ...(app.build as EngineerApplicationBuild).selectedMorphSkillIds,
-      ],
-    }),
+    buildConfigExtras: (app) => {
+      const build = app.build as EngineerApplicationBuild;
+      const evolveAttributePool = (
+        app.attributeData as {
+          amalgamEvolveAttributePool?: EngineerEvolveAttributePool;
+        }
+      ).amalgamEvolveAttributePool;
+      const amalgam = build.specializations?.some(
+        (specialization) => specialization.name === "Amalgam",
+      );
+      return {
+        ...(amalgam
+          ? {
+              amalgamEvolveAttributePool: {
+                ...evolveAttributePool,
+              },
+            }
+          : {}),
+        initialHeat: build.initialHeat,
+        selectedMorphSkillIds: [...build.selectedMorphSkillIds],
+      };
+    },
   },
   isSkillAvailable(skill, context) {
     if (skill.id === -3) return true;
