@@ -9,7 +9,10 @@ import { isGw2PlayerActorEvent } from "../../../platform/gw2/event-ownership.js"
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from "../data/ids.js";
 import { emitGuardianEvent } from "./events.js";
-import { GUARDIAN_CORE_MECHANICS } from "./mechanics.js";
+import {
+  GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  guardianBalanceProfile,
+} from "./profiles.js";
 import type { SkillId } from "../../../platform/engine/types.js";
 import type { Gw2ConditionResolution } from "../../../platform/gw2/types.js";
 import type {
@@ -181,7 +184,12 @@ function applyJusticeBurn(
     readonly skillName?: string;
   },
 ): void {
-  const burn = GUARDIAN_CORE_MECHANICS.justiceBurn;
+  const justice = guardianBalanceProfile(context, PROFILE.justice);
+  const burn = justice?.effects?.find(
+    (effect) =>
+      effect.type === "condition" &&
+      effect.packetLabel === (active ? "active" : "passive"),
+  );
   const sourceId = active
     ? "guardian.justice-active"
     : "guardian.justice-passive";
@@ -194,9 +202,9 @@ function applyJusticeBurn(
     skillId,
     skillName,
     name: `${skillName} — ${active ? "Active" : "Passive"} Burning`,
-    condition: burn.condition,
-    stacks: burn.stacks,
-    duration: active ? burn.activeDuration : burn.passiveDuration,
+    condition: String(burn?.condition || "Burning"),
+    stacks: Number(burn?.stacks || 1),
+    duration: Number(burn?.duration || (active ? 2 : 1.2)),
   });
   professionCoreState(context).justiceBurns += 1;
   if (active) professionCoreState(context).justiceActiveBurns += 1;
@@ -268,9 +276,11 @@ export function reactToJusticeHitWithOptions(
     return;
 
   state.justiceHitCount += 1;
-  const triggerHits = hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
-    ? 3
-    : 5;
+  const triggerHits = Number(
+    hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
+      ? guardianBalanceProfile(context, PROFILE.permeatingWrath)?.threshold || 3
+      : guardianBalanceProfile(context, PROFILE.justice)?.threshold || 5,
+  );
   if (state.justiceHitCount < triggerHits) return;
   state.justiceHitCount = 0;
   applyJusticeBurn(context, event, applyCondition, {

@@ -1,4 +1,5 @@
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import {
   WARRIOR_SKILL_IDS as ID,
@@ -19,7 +20,13 @@ import {
   maximumDragonCharges,
   requestedDragonCharges,
 } from "./dragon-trigger.js";
-import type { WarriorCastContext, WarriorSkill } from "../../types.js";
+import type {
+  WarriorCastContext,
+  WarriorSchedulerContext,
+  WarriorSkill,
+} from "../../types.js";
+import { warriorBalanceProfile } from "../../core/profiles.js";
+import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 import {
   advanceBladesworn,
   completeBladeswornSkill,
@@ -33,6 +40,14 @@ export const ENTER_DRAGON_TRIGGER_REASON =
   "Enter Dragon Trigger before using this skill.";
 
 export const bladeswornSchedulerHooks = Object.freeze({
+  initialize: (context: WarriorSchedulerContext) => {
+    const state = bladeswornState.from(context);
+    state.maximumFlow = Number(
+      warriorBalanceProfile(context, PROFILE.resources)?.maximumStacks ?? 100,
+    );
+    state.flow = Math.min(state.maximumFlow, state.flow);
+    professionCoreState(context).maximumAdrenaline = 0;
+  },
   advance: { id: "warrior.flow", order: 20, handler: advanceBladesworn },
   afterCast: {
     id: "warrior.bladesworn-ammo-cast",
@@ -60,7 +75,10 @@ function modifyAttributes(
     hasTrait(context, TRAIT.GUNS_AND_GLORY) &&
     runtimeBuffActive(context, "guns-and-glory")
   ) {
-    result.ferocity += 250;
+    result.ferocity += Number(
+      warriorBalanceProfile(context, PROFILE.gunsAndGlory)?.attributeBonus ??
+        250,
+    );
   }
   return result;
 }
@@ -104,15 +122,22 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "warrior.fierce-as-fire",
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: "damage-additive",
-    amount: (context) =>
-      runtimeBuffStacks(context, "fierce-as-fire", 10) * 0.01,
+    parameters: {
+      maximumStacks: 10,
+      damagePerStack: 0.01,
+    } as Readonly<Record<string, number>>,
+    amount: (context, _target, parameters) =>
+      runtimeBuffStacks(context, "fierce-as-fire", parameters.maximumStacks) *
+      parameters.damagePerStack,
     when: (context) => hasTrait(context, TRAIT.FIERCE_AS_FIRE),
   },
   {
     id: "warrior.overcharged-cartridges",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
-    factor: (context) => 1 + cartridgeDamageBonus(context),
+    parameters: { baseFactor: 1 } as Readonly<Record<string, number>>,
+    factor: (context, _target, parameters) =>
+      parameters.baseFactor + cartridgeDamageBonus(context),
     when: (context) =>
       context.event?.damageKind === "explosion" &&
       cartridgeDamageBonus(context) > 0,
@@ -179,7 +204,11 @@ function availability(
       const nextChargeAt =
         state.nextDragonChargeAt > context.start + context.epsilon
           ? state.nextDragonChargeAt
-          : context.start + DRAGON_CHARGE_INTERVAL_SECONDS;
+          : context.start +
+            Number(
+              warriorBalanceProfile(context, PROFILE.dragonTrigger)
+                ?.pulseInterval ?? DRAGON_CHARGE_INTERVAL_SECONDS,
+            );
       // Even the next possible tick would land after the deadline — stop waiting.
       if (nextChargeAt > state.dragonTriggerChargeDeadline + context.epsilon) {
         return {
@@ -235,13 +264,21 @@ function availability(
   }
   if (
     skill.id === ID.DRAGON_TRIGGER &&
-    state.flow + context.epsilon < DRAGON_TRIGGER_FLOW_COST
+    state.flow + context.epsilon <
+      Number(
+        warriorBalanceProfile(context, PROFILE.dragonTrigger)?.threshold ??
+          DRAGON_TRIGGER_FLOW_COST,
+      )
   ) {
+    const flowCost = Number(
+      warriorBalanceProfile(context, PROFILE.dragonTrigger)?.threshold ??
+        DRAGON_TRIGGER_FLOW_COST,
+    );
     return {
       ready: false,
       retryAt: null,
       code: "warrior.flow",
-      reason: `Dragon Trigger requires at least ${DRAGON_TRIGGER_FLOW_COST} flow.`,
+      reason: `Dragon Trigger requires at least ${flowCost} flow.`,
     };
   }
   return { ready: true };

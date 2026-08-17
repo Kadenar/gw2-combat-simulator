@@ -7,6 +7,10 @@ import {
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { activeBoonStacks, playerStrike } from "../../core/rule-helpers.js";
+import {
+  engineerBalanceEffectValue,
+  engineerBalanceValue,
+} from "../../core/profiles.js";
 import { hasEngineerTrait } from "../../core/state.js";
 import type {
   Gw2ModifierContext,
@@ -20,7 +24,7 @@ import type {
   EngineerMaximumAmmoContext,
   EngineerSchedulerContext,
 } from "../../types.js";
-import { SCRAPPER_KINETIC_ACCELERATORS } from "./mechanics.js";
+import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 import { scrapperState } from "./state.js";
 import { applyScrapperCastTraits } from "./traits.js";
 
@@ -42,7 +46,13 @@ function kineticAcceleratorsTriggerAllowed(
     return false;
   }
   state.kineticAcceleratorsWhirlReadyAt =
-    event.at + SCRAPPER_KINETIC_ACCELERATORS.whirlInternalCooldown;
+    event.at +
+    engineerBalanceValue(
+      context,
+      PROFILE.kineticAccelerators,
+      "internalCooldown",
+      3,
+    );
   return true;
 }
 
@@ -76,11 +86,35 @@ function observeScrapperScheduledEvent(
       recipients: "party",
     });
   };
-  emitBoon("quickness", SCRAPPER_KINETIC_ACCELERATORS.quicknessDuration, 1);
+  emitBoon(
+    "quickness",
+    engineerBalanceEffectValue(
+      context,
+      PROFILE.kineticAccelerators,
+      "boon",
+      "duration",
+      3,
+    ),
+    1,
+  );
   emitBoon(
     "might",
-    SCRAPPER_KINETIC_ACCELERATORS.mightDuration,
-    SCRAPPER_KINETIC_ACCELERATORS.mightStacks,
+    engineerBalanceEffectValue(
+      context,
+      PROFILE.kineticAccelerators,
+      "boon",
+      "duration",
+      10,
+      1,
+    ),
+    engineerBalanceEffectValue(
+      context,
+      PROFILE.kineticAccelerators,
+      "boon",
+      "stacks",
+      3,
+      1,
+    ),
   );
 }
 
@@ -105,11 +139,14 @@ export const scrapperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "engineer.object-in-motion",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
-    factor: (context) => {
+    parameters: {
+      damageFactorPerBoon: 1.05,
+    } as Readonly<Record<string, number>>,
+    factor: (context, _target, parameters) => {
       const count = ["stability", "swiftness", "superspeed"].filter(
         (kind) => activeBoonStacks(context, kind, 1) > 0,
       ).length;
-      return 1.05 ** count;
+      return parameters.damageFactorPerBoon ** count;
     },
     when: (context) =>
       playerStrike(context) && hasTrait(context, TRAIT.OBJECT_IN_MOTION),
@@ -126,7 +163,22 @@ function modifyScrapperAttributes(
     ...attributes,
     power:
       Number(attributes.power || 0) +
-      activeBoonStacks(context, "might", 25) * 30,
+      activeBoonStacks(
+        context,
+        "might",
+        engineerBalanceValue(
+          context,
+          PROFILE.appliedForce,
+          "maximumStacks",
+          25,
+        ),
+      ) *
+        engineerBalanceValue(
+          context,
+          PROFILE.appliedForce,
+          "attributePerStack",
+          30,
+        ),
   };
 }
 

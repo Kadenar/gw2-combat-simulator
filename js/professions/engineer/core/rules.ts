@@ -30,6 +30,10 @@ import {
   vulnerability,
 } from "./rule-helpers.js";
 import { hasEngineerTrait } from "./state.js";
+import {
+  ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  engineerBalanceValue,
+} from "./profiles.js";
 import type { SchedulerRecord } from "../../../platform/engine/types.js";
 import type {
   Gw2ModifierContext,
@@ -99,7 +103,14 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       id: "engineer.shaped-charge",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
-      factor: (context) => 1 + Math.min(25, vulnerability(context)) * 0.005,
+      parameters: {
+        maximumStacks: 25,
+        damagePerStack: 0.005,
+      } as Readonly<Record<string, number>>,
+      factor: (context, _target, parameters) =>
+        1 +
+        Math.min(parameters.maximumStacks, vulnerability(context)) *
+          parameters.damagePerStack,
       when: (context) =>
         playerStrike(context) && hasTrait(context, TRAIT.SHAPED_CHARGE),
     },
@@ -107,7 +118,11 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       id: "engineer.modified-ammunition",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
-      factor: (context) => 1 + targetConditionCount(context) * 0.01,
+      parameters: {
+        damagePerCondition: 0.01,
+      } as Readonly<Record<string, number>>,
+      factor: (context, _target, parameters) =>
+        1 + targetConditionCount(context) * parameters.damagePerCondition,
       when: (context) =>
         playerStrike(context) && hasTrait(context, TRAIT.MODIFIED_AMMUNITION),
     },
@@ -188,7 +203,16 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       id: "engineer.heavy-metal-critical-chance",
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: "add",
-      amount: heavyMetalBonus,
+      parameters: {
+        lowerThreshold: 0.25,
+        middleThreshold: 0.5,
+        upperThreshold: 0.75,
+        lowerBonus: 0.15,
+        middleBonus: 0.1,
+        upperBonus: 0.05,
+      } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) =>
+        heavyMetalBonus(context, parameters),
       when: (context) =>
         playerStrike(context) && hasTrait(context, TRAIT.HEAVY_METAL),
     },
@@ -196,7 +220,16 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       id: "engineer.heavy-metal-critical-damage",
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
       operation: "multiply",
-      factor: (context) => 1 + heavyMetalBonus(context),
+      parameters: {
+        lowerThreshold: 0.25,
+        middleThreshold: 0.5,
+        upperThreshold: 0.75,
+        lowerBonus: 0.15,
+        middleBonus: 0.1,
+        upperBonus: 0.05,
+      } as Readonly<Record<string, number>>,
+      factor: (context, _target, parameters) =>
+        1 + heavyMetalBonus(context, parameters),
       when: (context) =>
         playerStrike(context) && hasTrait(context, TRAIT.HEAVY_METAL),
     },
@@ -225,7 +258,16 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       id: "engineer.serrated-steel-duration",
       target: MODIFIER_TARGET.CONDITION_DURATION,
       operation: "add",
-      amount: 0.33,
+      parameters: {
+        durationMultiplier: 0.33,
+      } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) =>
+        engineerBalanceValue(
+          context,
+          PROFILE.serratedSteel,
+          "durationMultiplier",
+          parameters.durationMultiplier,
+        ),
       when: (context) =>
         context.condition === "Bleeding" &&
         hasTrait(context, TRAIT.SERRATED_STEEL),
@@ -234,7 +276,16 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       id: "engineer.incendiary-powder-duration",
       target: MODIFIER_TARGET.CONDITION_DURATION,
       operation: "add",
-      amount: 0.33,
+      parameters: {
+        durationMultiplier: 0.33,
+      } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) =>
+        engineerBalanceValue(
+          context,
+          PROFILE.incendiaryPowder,
+          "durationMultiplier",
+          parameters.durationMultiplier,
+        ),
       when: (context) =>
         context.condition === "Burning" &&
         hasTrait(context, TRAIT.INCENDIARY_POWDER),
@@ -265,10 +316,24 @@ function modifyEngineerCoreAttributes(
   // buildAttributesApplied guard: prevents double-counting when the build calculator already applied these bonuses
   const buildAttributesApplied = professionStaticRulesApplied(context.config);
   if (hasTrait(context, TRAIT.CHEMICAL_ROUNDS) && !buildAttributesApplied) {
-    modified.conditionDamage = Number(modified.conditionDamage || 0) + 120;
+    modified.conditionDamage =
+      Number(modified.conditionDamage || 0) +
+      engineerBalanceValue(
+        context,
+        PROFILE.chemicalRounds,
+        "attributeBonus",
+        120,
+      );
   }
   if (hasTrait(context, TRAIT.THERMAL_VISION) && !buildAttributesApplied) {
-    modified.expertise = Number(modified.expertise || 0) + 150;
+    modified.expertise =
+      Number(modified.expertise || 0) +
+      engineerBalanceValue(
+        context,
+        PROFILE.thermalVision,
+        "attributeBonus",
+        150,
+      );
   }
   if (
     hasTrait(context, TRAIT.ENERGY_AMPLIFIER) &&
@@ -276,20 +341,43 @@ function modifyEngineerCoreAttributes(
     // only skip if regen is a permanent assumption AND build attributes already account for it
     !(buildAttributesApplied && Boolean(context.config?.boons?.regeneration))
   ) {
-    modified.power = Number(modified.power || 0) + 250;
-    modified.healingPower = Number(modified.healingPower || 0) + 250;
+    const attributeBonus = engineerBalanceValue(
+      context,
+      PROFILE.energyAmplifier,
+      "attributeBonus",
+      250,
+    );
+    modified.power = Number(modified.power || 0) + attributeBonus;
+    modified.healingPower = Number(modified.healingPower || 0) + attributeBonus;
   }
   if (
     hasTrait(context, TRAIT.NO_SCOPE) &&
     activeBoonStacks(context, "fury", 1) > 0 &&
     !(buildAttributesApplied && Boolean(context.config?.boons?.fury))
   ) {
-    modified.ferocity = Number(modified.ferocity || 0) + 150;
+    modified.ferocity =
+      Number(modified.ferocity || 0) +
+      engineerBalanceValue(context, PROFILE.noScope, "attributeBonus", 150);
   }
   if (hasTrait(context, TRAIT.EXPLOSIVE_TEMPER)) {
     modified.ferocity =
       Number(modified.ferocity || 0) +
-      activeBoonStacks(context, "explosive-temper", 10) * 20;
+      activeBoonStacks(
+        context,
+        "explosive-temper",
+        engineerBalanceValue(
+          context,
+          PROFILE.explosiveTemper,
+          "maximumStacks",
+          10,
+        ),
+      ) *
+        engineerBalanceValue(
+          context,
+          PROFILE.explosiveTemper,
+          "attributePerStack",
+          20,
+        );
   }
   if (
     hasTrait(context, TRAIT.SHARPSHOOTER) &&
@@ -297,7 +385,14 @@ function modifyEngineerCoreAttributes(
     context.event?.actorType !== "summon"
   ) {
     // Sharpshooter: bleeding condition damage becomes power * 2/3 (replaces, not adds to, conditionDamage)
-    modified.conditionDamage = Number(modified.power || 0) * (2 / 3);
+    modified.conditionDamage =
+      Number(modified.power || 0) *
+      engineerBalanceValue(
+        context,
+        PROFILE.sharpshooter,
+        "coefficientMultiplier",
+        2 / 3,
+      );
   }
   return modified;
 }

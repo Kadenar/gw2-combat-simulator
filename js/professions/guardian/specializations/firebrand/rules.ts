@@ -1,5 +1,6 @@
 import { attributeProvenance } from "../../../../platform/gw2/attribute-provenance.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
+import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { GUARDIAN_TRAIT_IDS } from "../../data/ids.js";
 import { guardianBoonActive } from "../../core/rules.js";
 import {
@@ -17,37 +18,40 @@ import {
   firebrandMantraAvailability,
   initializeFirebrandMantras,
 } from "./mantras.js";
-import type {
-  Gw2ModifierContext,
-  Gw2ResolvedStats,
-} from "../../../../platform/gw2/types.js";
+import { initializeFirebrandBalanceState } from "./state.js";
+import type { Gw2ModifierRule } from "../../../../platform/gw2/types.js";
 
-function modifyFirebrandAttributes(
-  context: Gw2ModifierContext,
-  attributes: Gw2ResolvedStats,
-): Gw2ResolvedStats {
-  if (!hasTrait(context, GUARDIAN_TRAIT_IDS.IMBUED_HASTE)) {
-    return attributes;
-  }
-  const result = { ...attributes };
-  const staticApplied = attributeProvenance(
-    context.config,
-  ).professionStaticRulesApplied;
-  const runtimeActive = guardianBoonActive(context, "quickness");
-  // When the platform has already baked config.boons.quickness into the
-  // base attributes, subtracting staticallyActive prevents double-counting the
-  // +250 from Imbued Haste for the portion that was statically applied.
-  const staticallyActive =
-    staticApplied && Boolean(context.config?.boons?.quickness);
-  const delta = (Number(runtimeActive) - Number(staticallyActive)) * 250;
-  result.conditionDamage += delta;
-  result.healingPower += delta;
-  result.vitality += delta;
-  return result;
-}
+export const firebrandModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
+  [
+    {
+      id: "guardian.firebrand.imbued-haste-attributes",
+      label: "Imbued Haste",
+      target: [
+        MODIFIER_TARGET.ATTRIBUTE_CONDITION_DAMAGE,
+        MODIFIER_TARGET.ATTRIBUTE_HEALING_POWER,
+        MODIFIER_TARGET.ATTRIBUTE_VITALITY,
+      ],
+      operation: "add",
+      parameters: { attributeBonus: 250 } as Readonly<Record<string, number>>,
+      amount: (context, _target, parameters) => {
+        const staticApplied = attributeProvenance(
+          context.config,
+        ).professionStaticRulesApplied;
+        const runtimeActive = guardianBoonActive(context, "quickness");
+        const staticallyActive =
+          staticApplied && Boolean(context.config?.boons?.quickness);
+        return (
+          (Number(runtimeActive) - Number(staticallyActive)) *
+          parameters.attributeBonus
+        );
+      },
+      when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.IMBUED_HASTE),
+    },
+  ],
+);
 
 export const firebrandAttributeRules = Object.freeze({
-  modifyAttributes: modifyFirebrandAttributes,
+  modifierRules: firebrandModifierRules,
 });
 
 export const firebrandCastRules = Object.freeze({
@@ -74,6 +78,11 @@ export const firebrandCastRules = Object.freeze({
 
 export const firebrandSchedulerHooks = Object.freeze({
   initialize: Object.freeze([
+    {
+      id: "guardian.firebrand.balance-state",
+      order: 5,
+      handler: initializeFirebrandBalanceState,
+    },
     {
       id: "guardian.firebrand.mantras",
       order: 10,

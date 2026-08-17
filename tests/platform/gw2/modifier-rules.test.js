@@ -54,6 +54,55 @@ test("modifier rules apply scalar operations in stable order", () => {
   assert.equal(hooks.modifyCriticalDamage(context(), 1), 10);
 });
 
+test("modifier rules compose declarative attribute targets", () => {
+  const hooks = createModifierHooks({
+    rules: [
+      {
+        id: "test.power-add",
+        target: MODIFIER_TARGET.ATTRIBUTE_POWER,
+        operation: "add",
+        amount: 100,
+      },
+      {
+        id: "test.power-multiply",
+        target: MODIFIER_TARGET.ATTRIBUTE_POWER,
+        operation: "multiply",
+        factor: 1.1,
+      },
+      {
+        id: "test.other-attributes",
+        target: [
+          MODIFIER_TARGET.ATTRIBUTE_PRECISION,
+          MODIFIER_TARGET.ATTRIBUTE_FEROCITY,
+          MODIFIER_TARGET.ATTRIBUTE_CONDITION_DAMAGE,
+          MODIFIER_TARGET.ATTRIBUTE_HEALING_POWER,
+          MODIFIER_TARGET.ATTRIBUTE_VITALITY,
+        ],
+        operation: "add",
+        amount: 25,
+      },
+    ],
+  });
+  const initial = {
+    power: 1000,
+    precision: 900,
+    ferocity: 500,
+    conditionDamage: 700,
+    healingPower: 300,
+    vitality: 1000,
+  };
+
+  assert.deepEqual(hooks.modifyAttributes(context(), initial), {
+    power: 1210,
+    precision: 925,
+    ferocity: 525,
+    conditionDamage: 725,
+    healingPower: 325,
+    vitality: 1025,
+  });
+  assert.equal(initial.power, 1000);
+});
+
 test("critical chance rules expose their active contributions", () => {
   const hooks = createModifierHooks({
     rules: [
@@ -246,6 +295,9 @@ test("empty modifier sets preserve scalar and coherent damage inputs", () => {
   assert.equal(hooks.modifyConditionDuration(context(), 1.25), 1.25);
   assert.equal(hooks.modifyStrikeDamage(context(), 1.08), 1.08);
   assert.equal(hooks.modifyConditionDamage(context(), 1.05), 1.05);
+  assert.deepEqual(hooks.modifyAttributes(context(), { power: 1000 }), {
+    power: 1000,
+  });
   assert.equal(Object.isFrozen(hooks), true);
   assert.equal(Object.isFrozen(hooks.modifyStrikeDamage), true);
 });

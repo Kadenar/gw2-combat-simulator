@@ -663,6 +663,37 @@ pre {
   background: var(--panel-soft);
 }
 
+.patch-skill-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.patch-skill-group + .patch-skill-group {
+  margin-top: 6px;
+}
+
+.patch-skill-group-heading {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  display: flex;
+  margin: 0;
+  padding: 7px 6px 5px;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-soft);
+  color: var(--accent-warm);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.patch-skill-group-heading small {
+  color: var(--text-dim);
+  font-size: inherit;
+}
+
 .patch-skill-option {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);
@@ -673,6 +704,10 @@ pre {
   border-color: transparent;
   background: transparent;
   text-align: left;
+}
+
+.patch-skill-option > span:only-child {
+  grid-column: 1 / -1;
 }
 
 .patch-skill-option:hover,

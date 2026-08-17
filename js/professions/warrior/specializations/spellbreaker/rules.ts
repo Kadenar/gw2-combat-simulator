@@ -1,4 +1,5 @@
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { WARRIOR_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import type { SchedulerRecord } from "../../../../platform/engine/types.js";
@@ -6,9 +7,19 @@ import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
+import { warriorBalanceProfile } from "../../core/profiles.js";
+import { syncWarriorAdrenaline } from "../../core/resources.js";
+import type { WarriorSchedulerContext } from "../../types.js";
 import { observeSpellbreakerEvent } from "./traits.js";
+import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 export const spellbreakerSchedulerHooks = Object.freeze({
+  initialize: (context: WarriorSchedulerContext) => {
+    professionCoreState(context).maximumAdrenaline = Number(
+      warriorBalanceProfile(context, PROFILE.resources)?.maximumStacks ?? 20,
+    );
+    syncWarriorAdrenaline(context);
+  },
   onEventScheduled: {
     id: "warrior.attacker-insight",
     order: 20,
@@ -71,7 +82,12 @@ function modifyAttributes(
     precision: number;
     ferocity: number;
   };
-  const bonus = insightStacks(context) * 50;
+  const bonus =
+    insightStacks(context) *
+    Number(
+      warriorBalanceProfile(context, PROFILE.attackersInsight)
+        ?.attributePerStack ?? 50,
+    );
   result.power += bonus;
   result.precision += bonus;
   result.ferocity += bonus;
@@ -83,7 +99,14 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "warrior.pure-strike",
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: "multiply",
-    factor: (context) => (context.config?.target?.boonless ? 1.1 : 1.05),
+    parameters: {
+      boonedFactor: 1.05,
+      boonlessFactor: 1.1,
+    } as Readonly<Record<string, number>>,
+    factor: (context, _target, parameters) =>
+      context.config?.target?.boonless
+        ? parameters.boonlessFactor
+        : parameters.boonedFactor,
     when: (context) => hasTrait(context, TRAIT.PURE_STRIKE),
   },
   {

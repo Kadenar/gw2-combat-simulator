@@ -529,9 +529,10 @@ function normalizeEffect(effect: unknown): SkillEffect {
     }
     if (hasAtMs) {
       const atMs = Number(normalizedEffect.atMs);
-      if (!(atMs >= 0) || !Number.isFinite(atMs)) {
+      const castEndOffset = normalizedEffect.timingAnchor === "castEnd";
+      if (!Number.isFinite(atMs) || (atMs < 0 && !castEndOffset)) {
         throw new TypeError(
-          "Effect atMs must be a non-negative finite number.",
+          "Effect atMs must be finite and may only be negative when anchored to castEnd.",
         );
       }
     }

@@ -6,10 +6,160 @@ import {
   compactPatchPreview,
   createEffectTemplate,
   generatePatchOverview,
+  groupPatchAuthoringSkills,
   numericEditForValue,
   numericEditValue,
   patchSearchText,
 } from "../../js/app/patch-preview/model.js";
+import { engineerProfession } from "../../js/professions/engineer/definition.js";
+import { guardianProfession } from "../../js/professions/guardian/definition.js";
+import { necromancerProfession } from "../../js/professions/necromancer/definition.js";
+import { rangerProfession } from "../../js/professions/ranger/definition.js";
+import { revenantProfession } from "../../js/professions/revenant/definition.js";
+import { thiefProfession } from "../../js/professions/thief/definition.js";
+import { warriorProfession } from "../../js/professions/warrior/definition.js";
+
+test("patch authoring omits unused skills but retains indirect runtime skills", () => {
+  const engineerSkills = engineerProfession.patchAuthoring.modules.flatMap(
+    (module) => module.skills,
+  );
+  const engineerSkillIds = new Set(engineerSkills.map((entry) => entry.id));
+  const engineerSkillNames = new Set(engineerSkills.map((entry) => entry.name));
+
+  for (const unusedName of [
+    "Elixir B",
+    "Elixir C",
+    "Detonate Elixir H",
+    "Blessing of Dwayna",
+    "Blessing of Kormir",
+    "Blessing of Lyssa",
+    "Eat Wurm Egg",
+    "Eat Owl Egg",
+  ]) {
+    assert.equal(engineerSkillNames.has(unusedName), false, unusedName);
+  }
+
+  assert.equal(engineerSkillIds.has("engineer.turret.rifle.attack"), true);
+
+  const lesserGrenadeBarrage = engineerSkills.find(
+    (entry) => entry.name === "Lesser Grenade Barrage",
+  );
+  assert.match(
+    lesserGrenadeBarrage.skill.icon,
+    /^https:\/\/render\.guildwars2\.com\//,
+  );
+
+  const bandTogetherVariants = revenantProfession.patchAuthoring.modules
+    .flatMap((module) => module.skills)
+    .filter((entry) => entry.skill.variantBadge === "Band Together");
+  assert.equal(bandTogetherVariants.length, 4);
+});
+
+test("patch authoring omits unreachable Thief skills but keeps live stolen and artifact skills", () => {
+  const skills = thiefProfession.patchAuthoring.modules.flatMap(
+    (module) => module.skills,
+  );
+  const ids = new Set(skills.map((entry) => entry.id));
+  const names = new Set(skills.map((entry) => entry.name));
+
+  for (const unusedName of [
+    "Branch Leap",
+    "Eat Egg",
+    "Bone Crack",
+    "Lesser Caltrops",
+    "Antivenom Draught: Backfired",
+  ]) {
+    assert.equal(names.has(unusedName), false, unusedName);
+  }
+  for (const usedId of [1110, 1123, 1162, 76702]) {
+    assert.equal(ids.has(usedId), true, String(usedId));
+  }
+});
+
+test("patch authoring omits unreachable skills for the remaining professions", () => {
+  const skillsFor = (profession) =>
+    profession.patchAuthoring.modules.flatMap((module) => module.skills);
+  const idsFor = (profession) =>
+    new Set(skillsFor(profession).map((entry) => entry.id));
+  const namesFor = (profession) =>
+    new Set(skillsFor(profession).map((entry) => entry.name));
+
+  const necromancerNames = namesFor(necromancerProfession);
+  for (const unusedName of [
+    "Consume Conditions",
+    "Spectral Walk",
+    "Weapon of Warding",
+  ]) {
+    assert.equal(necromancerNames.has(unusedName), false, unusedName);
+  }
+
+  const guardianNames = namesFor(guardianProfession);
+  for (const unusedName of [
+    '"Advance!"',
+    "Mantra of Lore",
+    "Opening Passage",
+    "Clarified Conclusion",
+    "Valorous Stance",
+  ]) {
+    assert.equal(guardianNames.has(unusedName), false, unusedName);
+  }
+  assert.equal(guardianNames.has("Chapter 1: Searing Spell"), true);
+
+  const warriorIds = idsFor(warriorProfession);
+  for (const unusedId of [14372, 14422, 14443, 30989, 39972, 62804]) {
+    assert.equal(warriorIds.has(unusedId), false, String(unusedId));
+  }
+  assert.equal(warriorIds.has(14353), true, "canonical Eviscerate");
+
+  const rangerIds = idsFor(rangerProfession);
+  for (const unusedId of [42809, 59554, 64882, 67382]) {
+    assert.equal(rangerIds.has(unusedId), false, String(unusedId));
+  }
+  for (const usedId of [40729, 63094, 63258]) {
+    assert.equal(rangerIds.has(usedId), true, String(usedId));
+  }
+
+  const revenantIds = idsFor(revenantProfession);
+  for (const unusedId of [27198, 34198, 48170, 71827, 73149]) {
+    assert.equal(revenantIds.has(unusedId), false, String(unusedId));
+  }
+  for (const usedId of [62689, 77920]) {
+    assert.equal(revenantIds.has(usedId), true, String(usedId));
+  }
+  assert.equal(revenantIds.has("revenant.renegade.razorclaws-rage-proc"), true);
+});
+
+test("patch authoring groups skills by weapon and slot type", () => {
+  const entry = (id, name, skill) => ({
+    id,
+    name,
+    moduleId: "Core",
+    skill: { id, name, ...skill },
+    patchableFields: {},
+  });
+  const groups = groupPatchAuthoringSkills([
+    entry(1, "Rifle Burst", { type: "Weapon", weapon: "Rifle" }),
+    entry(2, "Dagger Slash", { type: "Weapon", weapon: "Dagger" }),
+    entry(3, "Healing Skill", { type: "Heal" }),
+    entry(4, "Utility Skill", { type: "Utility" }),
+    entry(5, "Elite Skill", { type: "Elite" }),
+    entry(6, "Profession Skill", { type: "Profession" }),
+    entry(7, "Triggered Skill", { type: "Action" }),
+  ]);
+
+  assert.deepEqual(
+    groups.map((group) => group.label),
+    [
+      "Dagger weapon",
+      "Rifle weapon",
+      "Heal skills",
+      "Utility skills",
+      "Elite skills",
+      "Profession skills",
+      "Actions and triggered skills",
+    ],
+  );
+});
 
 test("patch authoring numeric controls preserve stale live-value checks", () => {
   assert.equal(numericEditValue(10, undefined), 10);
@@ -183,6 +333,7 @@ test("patch authoring UI uses an official source and read-only overview", async 
   assert.match(source, /data-select-section="overview"/);
   assert.match(source, /Official patch notes URL/);
   assert.match(source, /Generated from diff/);
+  assert.match(source, /renderSelectedSkill\(\);\s*return;/);
   assert.doesNotMatch(source, /data-add-note/);
   assert.doesNotMatch(source, /data-note-field/);
   assert.match(simulatorSource, /Official patch notes/);

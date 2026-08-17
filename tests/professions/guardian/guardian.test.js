@@ -6,6 +6,10 @@ import { loadProfession } from "../../../js/app/profession/registry.js";
 import { timelineWeaponRows } from "../../../js/app/rotation/timeline-model.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import {
+  applyBalanceProfilePatch,
+  applySkillPatch,
+} from "../../../js/platform/gw2/skill-patch.js";
+import {
   createGuardianBuildDefaults,
   migrateGuardianBuild,
   validateGuardianBuild,
@@ -23,6 +27,11 @@ import {
   GUARDIAN_SKILL_IDS,
   GUARDIAN_TRAIT_IDS,
 } from "../../../js/professions/guardian/data/ids.js";
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS } from "../../../js/professions/guardian/core/profiles.js";
+import { DRAGONHUNTER_BALANCE_PROFILE_IDS } from "../../../js/professions/guardian/specializations/dragonhunter/profiles.js";
+import { FIREBRAND_BALANCE_PROFILE_IDS } from "../../../js/professions/guardian/specializations/firebrand/profiles.js";
+import { WILLBENDER_BALANCE_PROFILE_IDS } from "../../../js/professions/guardian/specializations/willbender/profiles.js";
+import { LUMINARY_BALANCE_PROFILE_IDS } from "../../../js/professions/guardian/specializations/luminary/profiles.js";
 
 const config = {
   stats: {
@@ -34,6 +43,9 @@ const config = {
   },
   target: { armor: 2597 },
 };
+
+const applyGuardianPatch = (patch) =>
+  applyBalanceProfilePatch(applySkillPatch(guardianCatalog, patch), patch);
 
 test("Guardian uses a current API catalog with real skills and trait lines", () => {
   assert.match(DATA_SNAPSHOT, /^2026-/);
@@ -48,6 +60,157 @@ test("Guardian uses a current API catalog with real skills and trait lines", () 
   assert.equal(
     guardianCatalog.specializations.some((spec) => spec.name === "Luminary"),
     true,
+  );
+});
+
+test("Guardian modules expose isolated balance-profile authoring", () => {
+  const modules = new Map(
+    guardianProfession.patchAuthoring.modules.map((module) => [
+      module.id,
+      module,
+    ]),
+  );
+  assert.deepEqual(
+    [...modules.keys()],
+    ["Core", "Dragonhunter", "Firebrand", "Willbender", "Luminary"],
+  );
+  assert.equal(
+    [...modules.values()].every((module) => module.balanceProfiles.length > 0),
+    true,
+  );
+
+  const profile = (moduleId, profileId) =>
+    modules
+      .get(moduleId)
+      .balanceProfiles.find((entry) => entry.id === profileId);
+  assert.equal(
+    profile("Core", GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice).profile
+      .threshold,
+    5,
+  );
+  assert.equal(
+    profile("Dragonhunter", DRAGONHUNTER_BALANCE_PROFILE_IDS.tether).profile
+      .effects[0].duration,
+    2,
+  );
+  assert.equal(
+    profile("Firebrand", FIREBRAND_BALANCE_PROFILE_IDS.resources)
+      .patchableFields.maximumStacks,
+    5,
+  );
+  assert.equal(
+    profile("Willbender", WILLBENDER_BALANCE_PROFILE_IDS.flames).profile
+      .effects[0].coefficient,
+    0.22,
+  );
+  assert.equal(
+    profile("Luminary", LUMINARY_BALANCE_PROFILE_IDS.forge).patchableFields
+      .maximumStacks,
+    4,
+  );
+  assert.deepEqual(
+    modules
+      .get("Core")
+      .modifierRules.find((rule) => rule.id === "guardian.inspired-virtue")
+      .parameters,
+    { damagePerBoon: 0.005 },
+  );
+  assert.deepEqual(
+    modules
+      .get("Firebrand")
+      .modifierRules.find(
+        (rule) => rule.id === "guardian.firebrand.imbued-haste-attributes",
+      ).parameters,
+    { attributeBonus: 250 },
+  );
+
+  const preview = applyGuardianPatch({
+    skills: {
+      [GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE]: {
+        effects: [
+          {
+            effectIndex: 0,
+            coefficient: { from: 0.8, to: 0.9 },
+          },
+        ],
+      },
+    },
+    balanceProfiles: {
+      [GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice]: {
+        fields: { threshold: { from: 5, to: 4 } },
+      },
+      [DRAGONHUNTER_BALANCE_PROFILE_IDS.tether]: {
+        effects: [
+          {
+            effectIndex: 0,
+            duration: { from: 2, to: 3 },
+          },
+        ],
+      },
+      [FIREBRAND_BALANCE_PROFILE_IDS.resources]: {
+        fields: { maximumStacks: { from: 5, to: 6 } },
+      },
+      [WILLBENDER_BALANCE_PROFILE_IDS.flames]: {
+        effects: [
+          {
+            effectIndex: 0,
+            coefficient: { from: 0.22, to: 0.3 },
+          },
+        ],
+      },
+      [LUMINARY_BALANCE_PROFILE_IDS.forge]: {
+        fields: { maximumStacks: { from: 4, to: 5 } },
+      },
+    },
+  });
+
+  assert.equal(
+    preview.skillsById.get(GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE).effects[0]
+      .coefficient,
+    0.9,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice)
+      .threshold,
+    4,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(DRAGONHUNTER_BALANCE_PROFILE_IDS.tether)
+      .effects[0].duration,
+    3,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(FIREBRAND_BALANCE_PROFILE_IDS.resources)
+      .maximumStacks,
+    6,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(WILLBENDER_BALANCE_PROFILE_IDS.flames)
+      .effects[0].coefficient,
+    0.3,
+  );
+  assert.equal(
+    preview.balanceProfilesById.get(LUMINARY_BALANCE_PROFILE_IDS.forge)
+      .maximumStacks,
+    5,
+  );
+
+  assert.equal(
+    guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE)
+      .effects[0].coefficient,
+    0.8,
+  );
+  assert.equal(
+    guardianCatalog.balanceProfilesById.get(
+      GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice,
+    ).threshold,
+    5,
+  );
+  assert.equal(
+    guardianCatalog.balanceProfilesById.get(
+      FIREBRAND_BALANCE_PROFILE_IDS.resources,
+    ).maximumStacks,
+    5,
   );
 });
 

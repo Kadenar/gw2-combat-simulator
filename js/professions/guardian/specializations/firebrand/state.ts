@@ -1,7 +1,15 @@
 import { GUARDIAN_TRAIT_IDS } from "../../data/ids.js";
 import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
-import { FIREBRAND_MECHANICS } from "./mechanics.js";
-import type { GuardianConfig, GuardianFirebrandState } from "../../types.js";
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
+import type {
+  GuardianConfig,
+  GuardianFirebrandState,
+  GuardianSchedulerContext,
+} from "../../types.js";
 
 export function createFirebrandState(
   config: GuardianConfig = {},
@@ -45,7 +53,7 @@ export function createFirebrandState(
         ? tomePageInterval
         : Number.POSITIVE_INFINITY,
     ashesCharges: 0,
-    ashesBurnDuration: FIREBRAND_MECHANICS.ashesBurn.duration,
+    ashesBurnDuration: 2,
     ashesNextTriggerAt: 0,
     ashesExpiresAt: 0,
     nextCourageAegisAt: 0,
@@ -57,6 +65,53 @@ export function createFirebrandState(
     quickfireReadyAt: 0,
     mantraRechargeReadyAt: {},
   };
+}
+
+export function initializeFirebrandBalanceState(
+  context: GuardianSchedulerContext,
+): void {
+  const state = firebrandState.from(context);
+  const selectedTraits = new Set(
+    (context.config.selectedTraitIds || []).map(Number),
+  );
+  const resources = guardianBalanceProfile(context, PROFILE.resources);
+  const defaultMaximum = Number(resources?.maximumStacks || 5);
+  const traitMaximum = selectedTraits.has(
+    GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS,
+  )
+    ? Number(
+        guardianBalanceProfile(context, PROFILE.archivistOfWhispers)
+          ?.maximumStacks || 8,
+      )
+    : defaultMaximum;
+  state.maximumTomePages = Math.max(
+    traitMaximum,
+    Number(context.config.maximumTomePages || traitMaximum),
+  );
+  state.tomePageInterval = selectedTraits.has(GUARDIAN_TRAIT_IDS.LOREMASTER)
+    ? Number(
+        guardianBalanceProfile(context, PROFILE.loremaster)?.pulseInterval || 5,
+      )
+    : Number(resources?.pulseInterval || 8);
+  const configuredInitialPages = Number(
+    context.config.initialTomePages ?? traitMaximum,
+  );
+  const initialPages =
+    selectedTraits.has(GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS) &&
+    configuredInitialPages === defaultMaximum
+      ? traitMaximum
+      : configuredInitialPages;
+  state.tomePages = Math.max(0, Math.min(state.maximumTomePages, initialPages));
+  state.nextTomePageAt =
+    state.tomePages < state.maximumTomePages
+      ? state.tomePageInterval
+      : Number.POSITIVE_INFINITY;
+  state.ashesBurnDuration = Number(
+    guardianBalanceProfileEffect(
+      guardianBalanceProfile(context, PROFILE.ashes),
+      "condition",
+    )?.duration || 2,
+  );
 }
 
 export const firebrandState = defineProfessionSpecializationState(

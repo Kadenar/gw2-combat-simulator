@@ -16,11 +16,13 @@ import {
 import { DRAGONHUNTER_SKILL_MECHANICS } from "./skills.js";
 import { dragonhunterState } from "./state.js";
 import { dragonhunterUi } from "./ui.js";
+import { DRAGONHUNTER_BALANCE_PROFILES } from "./profiles.js";
 
 export const dragonhunterModule = defineNativeModule({
   id: "Dragonhunter",
   data: createGuardianModuleData("Dragonhunter", {
     skillMechanics: DRAGONHUNTER_SKILL_MECHANICS,
+    balanceProfiles: DRAGONHUNTER_BALANCE_PROFILES,
     handlers: dragonhunterSkillHandlers,
   }),
   state: {

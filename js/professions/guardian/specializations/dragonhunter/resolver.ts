@@ -13,6 +13,11 @@ import type {
   GuardianResolverEvent,
 } from "../../types.js";
 import { dragonhunterState } from "./state.js";
+import {
+  guardianBalanceProfile,
+  guardianBalanceProfileEffect,
+} from "../../core/profiles.js";
+import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 
 interface ConditionDependencies {
   readonly applyCondition?: Gw2ConditionResolution["applyCondition"];
@@ -42,6 +47,10 @@ function handleJusticePulse(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
+  const burning = guardianBalanceProfileEffect(
+    guardianBalanceProfile(context, PROFILE.tether),
+    "condition",
+  );
   // Justice pulses are pre-emitted for the full tether window at cast time, so
   // each must be re-validated at resolve time in case Hunter's Verdict broke the
   // tether early. Epsilon tolerance avoids rejecting a pulse on the exact break timestamp.
@@ -60,9 +69,9 @@ function handleJusticePulse(
     skillId: ID.SPEAR_OF_JUSTICE,
     skillName: "Spear of Justice",
     name: "Spear of Justice — Active Burning",
-    condition: "Burning",
-    stacks: 1,
-    duration: 2,
+    condition: String(burning?.condition || "Burning"),
+    stacks: Number(burning?.stacks || 1),
+    duration: Number(burning?.duration || 2),
     applicationIndex: event.applicationIndex,
     totalApplications: event.totalApplications,
   });
@@ -87,6 +96,11 @@ export function reactToDragonhunterJusticeHit(
     Number(core.justicePassiveBurns || 0) > passiveBefore &&
     typeof dependencies.applyCondition === "function"
   ) {
+    const crippled = guardianBalanceProfileEffect(
+      guardianBalanceProfile(context, PROFILE.tether),
+      "condition",
+      1,
+    );
     dependencies.applyCondition(context, {
       type: "condition",
       at: event.at,
@@ -96,9 +110,9 @@ export function reactToDragonhunterJusticeHit(
       skillId: ID.SPEAR_OF_JUSTICE,
       skillName: "Spear of Justice",
       name: "Spear of Justice — Passive Crippled",
-      condition: "Crippled",
-      stacks: 1,
-      duration: 1.5,
+      condition: String(crippled?.condition || "Crippled"),
+      stacks: Number(crippled?.stacks || 1),
+      duration: Number(crippled?.duration || 1.5),
     });
   }
 
@@ -112,6 +126,10 @@ export function reactToDragonhunterJusticeHit(
   }
   // priority: 5 ensures this vulnerability buff sorts after zero-priority damage
   // events at the same timestamp so modifiers can pick it up on the next resolve tick.
+  const vulnerability = guardianBalanceProfileEffect(
+    guardianBalanceProfile(context, PROFILE.bigGameHunter),
+    "buff",
+  );
   enqueueOrdered(context.queue, {
     type: "buff",
     at: event.at,
@@ -122,8 +140,8 @@ export function reactToDragonhunterJusticeHit(
     skillId: GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER,
     skillName: "Big Game Hunter",
     kind: "target-vulnerability",
-    stacks: 1,
-    duration: 10,
+    stacks: Number(vulnerability?.stacks || 1),
+    duration: Number(vulnerability?.duration || 10),
     triggeredBy: event.skillName,
   });
 }
@@ -138,6 +156,10 @@ export function reactToDragonhunterControl(
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.DULLED_SENSES) &&
     typeof applyCondition === "function"
   ) {
+    const crippled = guardianBalanceProfileEffect(
+      guardianBalanceProfile(context, PROFILE.dulledSenses),
+      "condition",
+    );
     applyCondition(context, {
       type: "condition",
       at: event.at,
@@ -147,9 +169,9 @@ export function reactToDragonhunterControl(
       skillId: GUARDIAN_TRAIT_IDS.DULLED_SENSES,
       skillName: "Dulled Senses",
       name: "Dulled Senses — Crippled",
-      condition: "Crippled",
-      stacks: 1,
-      duration: 4,
+      condition: String(crippled?.condition || "Crippled"),
+      stacks: Number(crippled?.stacks || 1),
+      duration: Number(crippled?.duration || 4),
     });
   }
   if (
@@ -159,7 +181,10 @@ export function reactToDragonhunterControl(
     return;
   }
   // 1-second internal cooldown on Heavy Light stability; not exposed by the trait's game tooltip.
-  state.heavyLightReadyAt = event.at + 1;
+  const heavyLight = guardianBalanceProfile(context, PROFILE.heavyLight);
+  const stability = guardianBalanceProfileEffect(heavyLight, "boon");
+  state.heavyLightReadyAt =
+    event.at + Number(heavyLight?.internalCooldown || 1);
   enqueueOrdered(context.queue, {
     type: "buff",
     at: event.at,
@@ -170,8 +195,8 @@ export function reactToDragonhunterControl(
     skillId: GUARDIAN_TRAIT_IDS.HEAVY_LIGHT,
     skillName: "Heavy Light",
     kind: "stability",
-    stacks: 1,
-    duration: 6,
+    stacks: Number(stability?.stacks || 1),
+    duration: Number(stability?.duration || 6),
   });
   context.recordProc(
     "trait",

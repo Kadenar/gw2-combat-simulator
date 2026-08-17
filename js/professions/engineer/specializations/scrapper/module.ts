@@ -17,12 +17,14 @@ import {
 } from "./rules.js";
 import { SCRAPPER_SKILL_MECHANICS } from "./skills.js";
 import { scrapperState } from "./state.js";
+import { SCRAPPER_BALANCE_PROFILES } from "./profiles.js";
 import { scrapperUi } from "./ui.js";
 
 export const scrapperModule = defineNativeModule({
   id: "Scrapper",
   data: createEngineerModuleData("Scrapper", {
     skillMechanics: SCRAPPER_SKILL_MECHANICS,
+    balanceProfiles: SCRAPPER_BALANCE_PROFILES,
   }),
   // Same factory for both phases; scrapper has no phase-divergent state.
   state: { scheduler: scrapperState.create, resolver: scrapperState.create },

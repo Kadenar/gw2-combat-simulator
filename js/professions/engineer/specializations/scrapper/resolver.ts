@@ -8,9 +8,10 @@ import {
   recordTrait,
 } from "../../core/shared.js";
 import {
-  SCRAPPER_KINETIC_ACCELERATORS,
-  SCRAPPER_MASS_MOMENTUM,
-} from "./mechanics.js";
+  engineerBalanceEffectValue,
+  engineerBalanceValue,
+} from "../../core/profiles.js";
+import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
 import { scrapperState } from "./state.js";
 import type {
   EngineerResolverContext,
@@ -48,12 +49,20 @@ function triggerMassMomentum(
     return;
   const state = procState(context);
   if (Number(state.massMomentum || 0) <= event.at) {
-    state.massMomentum = event.at + SCRAPPER_MASS_MOMENTUM.pulseInterval;
+    state.massMomentum =
+      event.at +
+      engineerBalanceValue(context, PROFILE.massMomentum, "pulseInterval", 1);
     queueBuff(context, event, {
       name: "Mass Momentum",
       kind: "might",
       stacks: 1,
-      duration: SCRAPPER_MASS_MOMENTUM.boonDuration,
+      duration: engineerBalanceEffectValue(
+        context,
+        PROFILE.massMomentum,
+        "boon",
+        "duration",
+        5,
+      ),
       sourceId: TRAIT.MASS_MOMENTUM,
       actorType: "effect",
     });
@@ -62,7 +71,8 @@ function triggerMassMomentum(
   scheduleMassMomentumPulse(
     context,
     Math.max(
-      event.at + SCRAPPER_MASS_MOMENTUM.pulseInterval,
+      event.at +
+        engineerBalanceValue(context, PROFILE.massMomentum, "pulseInterval", 1),
       Number(state.massMomentum || 0),
     ),
   );
@@ -97,16 +107,34 @@ function reactToScrapperBuff(
   if (
     kind === "might" &&
     hasTrait(context, TRAIT.APPLIED_FORCE) &&
-    activeBoonStacks(context, "might", 25, event.at) >= 10
+    activeBoonStacks(
+      context,
+      "might",
+      engineerBalanceValue(context, PROFILE.appliedForce, "maximumStacks", 25),
+      event.at,
+    ) >= engineerBalanceValue(context, PROFILE.appliedForce, "threshold", 10)
   ) {
     const state = procState(context);
     if (Number(state.appliedForce || 0) <= event.at) {
-      state.appliedForce = event.at + 10;
+      state.appliedForce =
+        event.at +
+        engineerBalanceValue(
+          context,
+          PROFILE.appliedForce,
+          "internalCooldown",
+          10,
+        );
       queueBuff(context, event, {
         name: "Applied Force",
         kind: "stability",
         stacks: 1,
-        duration: 3,
+        duration: engineerBalanceEffectValue(
+          context,
+          PROFILE.appliedForce,
+          "boon",
+          "duration",
+          3,
+        ),
         sourceId: TRAIT.APPLIED_FORCE,
         actorType: "effect",
       });
@@ -131,7 +159,13 @@ function reactToScrapperCombo(
   if (event.finisherType === "Whirl") {
     if (state.kineticAcceleratorsWhirlReadyAt > event.at + 1e-9) return;
     state.kineticAcceleratorsWhirlReadyAt =
-      event.at + SCRAPPER_KINETIC_ACCELERATORS.whirlInternalCooldown;
+      event.at +
+      engineerBalanceValue(
+        context,
+        PROFILE.kineticAccelerators,
+        "internalCooldown",
+        3,
+      );
   }
   // Boons are emitted by the scheduler's resolved-combo prediction so they
   // remain visible in the canonical result timeline. Resolver confirmation
