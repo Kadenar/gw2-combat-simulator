@@ -1,3 +1,17 @@
+/**
+ * Inspects a dps.report Elite Insights page and prints one player's rotation and
+ * damage distribution as JSON.
+ *
+ * Accepts either a saved report HTML file or a `https://dps.report/...` URL,
+ * extracts the embedded `_logData` assignment, inflates it when it is a
+ * base64/deflate blob, then selects a phase and player and emits their cast list
+ * and per-skill damage breakdown.
+ *
+ * Usage: node scripts/analysis/analyze-dps-report.mjs <report.html|URL>
+ *   [--summary]                 Collapse casts into per-skill/status counts.
+ *   [--player=<index|name|account>]  Defaults to the first player.
+ *   [--phase=<index|name>]      Defaults to the first phase.
+ */
 import fs from 'node:fs';
 import { inflateSync } from 'node:zlib';
 

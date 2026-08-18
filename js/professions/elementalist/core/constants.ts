@@ -1,3 +1,4 @@
+import { ELEMENTALIST_SKILL_IDS as ID } from '../data/ids.js';
 import type { ElementalistAttunement } from './state.js';
 
 export const ATTUNEMENT_RECHARGE_SECONDS = 10;
@@ -5,7 +6,13 @@ export const OFF_ATTUNEMENT_RECHARGE_SECONDS = 1.5;
 export const DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
 export const DODGE_ENDURANCE_COST = 50;
 export const ENDURANCE_PER_SECOND = 5;
-export const AUTOATTACK_CHAIN_PRESERVING_SKILLS = new Set(['Ride the Lightning', 'Relentless Fire', 'Weave Self']);
+// Skills that keep the active weapon-1 autoattack chain progressing instead of
+// resetting it (e.g. movement/utility casts the game treats as chain-neutral).
+export const AUTOATTACK_CHAIN_PRESERVING_SKILL_IDS = new Set<number>([
+  ID.RIDE_THE_LIGHTNING,
+  ID.RELENTLESS_FIRE,
+  ID.WEAVE_SELF
+]);
 
 export const HAMMER_ORB_SKILLS: Readonly<Record<string, ElementalistAttunement>> = Object.freeze({
   'Flame Wheel': 'Fire',

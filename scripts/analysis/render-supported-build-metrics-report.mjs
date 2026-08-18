@@ -1,3 +1,17 @@
+/**
+ * Diffs a saved metrics baseline against a fresh capture and prints a Markdown report.
+ *
+ * Loads a baseline JSON produced by capture-supported-build-metrics.mjs, re-captures
+ * the current metrics, matches rows by id, and renders a Markdown document: a change
+ * summary (unchanged/changed builds, non-Reaper regressions, Reaper exceptions), the
+ * added-warning list, and a per-profession `baseline → current (delta)` table. Throws
+ * if the metric set drifts (missing id or changed row count) so regressions surface.
+ *
+ * Output goes to stdout; redirect it to a `.md` file to save the report.
+ *
+ * Usage: node scripts/analysis/render-supported-build-metrics-report.mjs
+ *   <baseline-json> [baseline-commit]
+ */
 import { readFile } from 'node:fs/promises';
 
 import { captureSupportedBuildMetrics } from './capture-supported-build-metrics.mjs';
