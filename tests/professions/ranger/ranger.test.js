@@ -1266,10 +1266,24 @@ test('Ranger skill-bar selections drive pet and Hammer selection', () => {
     mergedPetGroups.map((group) => group.skillIds),
     [[], []]
   );
-  assert.deepEqual(mergedPetGroups[0].selections[0].leadingSkillIds, smokescale.beastmodeSkillIds);
-  assert.deepEqual(mergedPetGroups[1].selections[0].leadingSkillIds, fangedIboga.beastmodeSkillIds);
+  // Merged Beast skills moved off the pet portrait cards into dedicated Beastmode-section
+  // rows; the cards now only caption the portrait with the picked pet's name.
+  assert.equal(mergedPetGroups[0].selections[0].leadingSkillIds, undefined);
+  assert.equal(mergedPetGroups[1].selections[0].leadingSkillIds, undefined);
+  assert.equal(mergedPetGroups[0].selections[0].typeLabel, 'Smokescale');
+  assert.equal(mergedPetGroups[1].selections[0].typeLabel, 'Fanged Iboga');
   assert.deepEqual(mergedPetGroups[0].selections[0].skillIds, [ID.SMOKE_CLOUD]);
   assert.deepEqual(mergedPetGroups[1].selections[0].skillIds, [ID.NARCOTIC_SPORES_PET]);
+  const soulbeastGroups = rangerProfession.ui.skillBarGroups(soulbeastContext);
+  // Both pets' merged Beast skills now live inside the Beastmode section beside the
+  // toggle rather than in their own labeled rows.
+  const beastmodeGroupSkillIds = soulbeastGroups.find((group) => group.id === 'ranger-soulbeast-f5').skillIds;
+  assert.ok(smokescale.beastmodeSkillIds.every((id) => beastmodeGroupSkillIds.includes(id)));
+  assert.ok(fangedIboga.beastmodeSkillIds.every((id) => beastmodeGroupSkillIds.includes(id)));
+  assert.equal(
+    soulbeastGroups.some((group) => String(group.id).startsWith('ranger-soulbeast-merged')),
+    false
+  );
   assert.equal(
     rangerProfession.ui.skillBarGroups(soulbeastContext).some((group) => group.id === 'ranger-beast-skills'),
     false
