@@ -1,5 +1,6 @@
 import { flattenProfessionState } from "../../../../platform/engine/profession.js";
 import { timedBuffAt } from "../../../../app/rotation/state-snapshot-view.js";
+import { GUARDIAN_SKILL_IDS as ID } from "../../data/ids.js";
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
@@ -26,15 +27,18 @@ function luminaryEventLogRow(
 ): ProfessionEventLogDescriptor | null | undefined {
   // null = suppress this event from the log entirely (internal bookkeeping
   // events that have no meaningful display for the user).
-  if ([
-    "guardian.effulgent-activated",
-    "guardian.effulgent-detonate",
-  ].includes(event.type)) return null;
+  if (
+    ["guardian.effulgent-activated", "guardian.effulgent-detonate"].includes(
+      event.type,
+    )
+  )
+    return null;
   // undefined = not handled here; let the default renderer decide.
   if (
-    event.type !== "guardian.radiant-forge-entered"
-    && event.type !== "guardian.radiant-forge-exited"
-  ) return undefined;
+    event.type !== "guardian.radiant-forge-entered" &&
+    event.type !== "guardian.radiant-forge-exited"
+  )
+    return undefined;
   const entered = event.type.endsWith("-entered");
   return {
     type: event.type,
@@ -54,9 +58,16 @@ const VIRTUE_NAMES = Object.freeze([
   "Enter Radiant Forge",
 ]);
 
-function professionState(
-  context: GuardianUiContext,
-): Partial<GuardianState> {
+// Radiant Forge flip skills occupy their primary skill's slot, so the compact
+// preview renders each replacement beneath its primary instead of as a sixth row item.
+const RADIANT_FORGE_INSPECTION_CHAIN_ROOTS = Object.freeze({
+  [ID.SHINING_SPIN]: ID.DAZZLING_HAMMER,
+  [ID.RESTORATIVE_GLOW]: ID.LUMINOUS_STAFF,
+  [ID.LUCENT_THRUST]: ID.GLEAMING_BLADE,
+  [ID.BRILLIANT_SLAM]: ID.RADIANT_BULWARK,
+});
+
+function professionState(context: GuardianUiContext): Partial<GuardianState> {
   // flattenProfessionState merges core and specialization sub-objects so
   // callers can read luminary fields without knowing the nested shape.
   return flattenProfessionState(
@@ -118,6 +129,7 @@ export const luminaryUi = Object.freeze({
       label: "Radiant Forge",
       skillIds: guardianUiSkillsByMode("radiantForgeSkill"),
       color: "#d6b85c",
+      inspectionChainRoots: RADIANT_FORGE_INSPECTION_CHAIN_ROOTS,
     },
   ],
   paletteGroups: (context: GuardianUiContext) => [

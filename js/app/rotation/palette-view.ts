@@ -254,7 +254,8 @@ export function paletteSkillView(
     maximumAmmo,
   );
   const unavailable = cd.remaining > 0 || !contextAvailable;
-  const highlighted = (Boolean(skill.ambush) || Boolean(skill.stealthAttack)) && !unavailable;
+  const highlighted =
+    (Boolean(skill.ambush) || Boolean(skill.stealthAttack)) && !unavailable;
   const castTimeSeconds = Number(skill.castTimeMs || 0) / 1000;
   const hasEnergyCost = skill.energyCost != null;
   const energyCost = Number(skill.energyCost || 0);
@@ -325,6 +326,14 @@ export function renderPalette(app: ProfessionAppState): void {
       endState?.activeWeaponSet || app.build.startingWeaponSet || 1,
     time: Number(endState?.time || 0) / 1000,
     build: app.build,
+    // Expose resolved traits to profession palette contracts so replacement
+    // skills appear only when the build actually selects their trait.
+    traits: new Set(
+      (app.attributeData?.activeTraits || []).flatMap((trait) => [
+        trait.id,
+        trait.name,
+      ]),
+    ),
   };
   const professionGroups = rotationPaletteGroups(app, paletteContext);
   const loadoutGroups = rotationLoadoutPaletteGroups(app, paletteContext);

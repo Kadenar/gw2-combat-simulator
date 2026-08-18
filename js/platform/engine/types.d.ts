@@ -821,6 +821,8 @@ export interface ProfessionPaletteActionIdentity {
 export interface ProfessionSkillBarGroup extends SchedulerRecord {
   readonly label: string;
   readonly skillIds: readonly SkillId[];
+  /** Presentation-only child-to-root links rendered like autoattack chains. */
+  readonly inspectionChainRoots?: Readonly<Record<string, SkillId>>;
   /** Places a read-only mechanic group with the weapon previews. */
   readonly placement?: "skill-bar" | "weapon-bar";
   readonly selections?: readonly ProfessionSkillBarSelection[];

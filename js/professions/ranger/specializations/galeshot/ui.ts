@@ -24,6 +24,14 @@ const BOW_SKILLS = Object.freeze([
 ]);
 const GALESHOT_PALETTE_STACK = "ranger-galeshot";
 
+/** Replaces Quarry's Peril with Pelt only while Perilous Skies is selected. */
+function visibleBowSkills(context: RangerUiContext) {
+  const perilousSkies = hasTrait(context, TRAIT.PERILOUS_SKIES);
+  return BOW_SKILLS.filter(
+    (skillId) => skillId !== (perilousSkies ? ID.QUARRYS_PERIL : ID.PELT),
+  );
+}
+
 function availability(
   context: RangerUiContext,
   skill: RangerSkill,
@@ -91,11 +99,15 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord =
       {
         id: "ranger-cyclone-bow",
         label: "Bow",
-        skillIds: BOW_SKILLS,
+        skillIds: visibleBowSkills(context),
         color: "#67b4c4",
+        className: "ranger-cyclone-bow-skills",
+        // Hawkeye replaces Keen Shot at full Wind Force, so preview the pair
+        // as one slot using the same follow-up treatment as autoattack chains.
+        inspectionChainRoots: { [ID.HAWKEYE]: ID.KEEN_SHOT },
       },
     ],
-    paletteGroups: (): ProfessionPaletteGroup[] => [
+    paletteGroups: (context: RangerUiContext): ProfessionPaletteGroup[] => [
       {
         id: "ranger-galeshot-profession",
         label: "F5",
@@ -111,7 +123,7 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord =
       {
         id: "ranger-cyclone-bow",
         label: "CB",
-        skillIds: BOW_SKILLS,
+        skillIds: visibleBowSkills(context),
         color: "#67b4c4",
         className: "ranger-cyclone-bow-skills",
         resourceIds: ["wind-force"],
