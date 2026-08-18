@@ -212,7 +212,8 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
             selectionValue: pet?.name || '',
             selectionKey: 'selectedPet',
             selectionIndex: 0,
-            leadingSkillIds: specialization === 'Soulbeast' ? [...(pet?.beastmodeSkillIds || [])] : [],
+            // Caption the enlarged portrait with the picked pet's name across every specialization.
+            typeLabel: pet?.name,
             skillIds: commandableSkillIds(pet?.skillIds || [])
           }
         ],
@@ -231,7 +232,8 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
             selectionValue: pet2?.name || '',
             selectionKey: 'selectedPet2',
             selectionIndex: 1,
-            leadingSkillIds: specialization === 'Soulbeast' ? [...(pet2?.beastmodeSkillIds || [])] : [],
+            // Caption the enlarged portrait with the picked pet's name across every specialization.
+            typeLabel: pet2?.name,
             skillIds: commandableSkillIds(pet2?.skillIds || [])
           }
         ],

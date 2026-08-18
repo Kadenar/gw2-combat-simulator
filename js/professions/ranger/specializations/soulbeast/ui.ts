@@ -66,7 +66,13 @@ const soulbeastUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.free
     {
       id: 'ranger-soulbeast-f5',
       label: 'Beastmode',
-      skillIds: [beastmodeActive(context) ? ID.LEAVE_BEASTMODE : ID.BEASTMODE],
+      // The Beastmode section holds the merge toggle plus both pets' merged Beast skills,
+      // which used to render on the pet portrait cards.
+      skillIds: [
+        beastmodeActive(context) ? ID.LEAVE_BEASTMODE : ID.BEASTMODE,
+        ...(selectedRangerUiPet(context, 1)?.beastmodeSkillIds || []),
+        ...(selectedRangerUiPet(context, 2)?.beastmodeSkillIds || [])
+      ],
       color: '#b78b42',
       className: 'ranger-soulbeast-beastmode'
     }

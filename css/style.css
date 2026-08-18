@@ -2333,6 +2333,24 @@ header .community-actions {
   height: 40px;
 }
 
+/* Every specialization's pet card gets an enlarged portrait (the icon keeps the
+   shared zoom so it fills the selector), its individual pet skills sized to match,
+   and the picked pet's name captioned beneath the portrait. */
+.ranger-mechanics .ranger-pet .skill-bar-inspection-slot .sbar-icon {
+  width: 64px;
+  height: 64px;
+}
+
+.ranger-mechanics .ranger-pet .skill-bar-type {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.15;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+
 .necromancer-shroud .necromancer-shroud-f-keys,
 .necromancer-shroud .necromancer-shroud-skills {
   justify-self: center;
@@ -7287,15 +7305,29 @@ body[data-rotation-focus] #perma-boons {
   justify-self: stretch;
 }
 
+/* Flow each pet card's icons and give the enlarged portrait and its equally sized
+   pet skills room to wrap, with the picked pet's name beneath the portrait. */
 .combat-loadout .ranger-mechanics .ranger-pet .skill-bar-inspection-selection {
-  display: grid;
-  grid-template-columns: repeat(3, 40px);
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  align-items: flex-start;
+  gap: 6px;
 }
 
 .combat-loadout .ranger-mechanics .ranger-pet .skill-bar-inspection-slot .sbar-icon {
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: 60px;
+}
+
+.combat-loadout .ranger-mechanics .ranger-pet .skill-bar-type {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.15;
+  color: var(--text-dim);
+  margin-top: 3px;
 }
 
 .profession-loadout-theme .combat-loadout .engineer-amalgam-protocols .labeled-skill-bar-slot .sbar-icon {
