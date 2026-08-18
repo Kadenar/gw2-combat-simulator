@@ -1,5 +1,5 @@
-import { materializeSkillEffectApplications } from "../../../platform/engine/effect-materializer.js";
-import { professionCoreState } from "../../../platform/engine/profession.js";
+import { materializeSkillEffectApplications } from '../../../platform/engine/effect-materializer.js';
+import { professionCoreState } from '../../../platform/engine/profession.js';
 /**
  * Trait effects triggered by invoking a legend.
  *
@@ -7,49 +7,29 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  * Inferno for Core legends at legend-swap completion. Legend selection
  * accounts for Conduit's Entity bar by resolving the paired Core legend.
  */
-import {
-  REVENANT_LEGEND_IDS as LEGEND,
-  REVENANT_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
-import { hasRevenantTrait } from "./state.js";
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from "./skills.js";
-import type {
-  BalanceProfile,
-  Skill,
-  SkillEffect,
-  SkillId,
-} from "../../../platform/engine/types.js";
-import type {
-  RevenantCastContext,
-  RevenantCoreState,
-  RevenantSchedulerContext,
-  RevenantSkill,
-} from "../types.js";
+import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { hasRevenantTrait } from './state.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from './skills.js';
+import type { BalanceProfile, Skill, SkillEffect, SkillId } from '../../../platform/engine/types.js';
+import type { RevenantCastContext, RevenantCoreState, RevenantSchedulerContext, RevenantSkill } from '../types.js';
 
 function invokedLegend(state: RevenantCoreState): string {
   if (state.activeLegendId !== LEGEND.ENTITY) return state.activeLegendId;
-  return (
-    state.selectedLegendIds.find((id) => id !== LEGEND.ENTITY) || LEGEND.ENTITY
-  );
+  return state.selectedLegendIds.find((id) => id !== LEGEND.ENTITY) || LEGEND.ENTITY;
 }
 
-const CORE_LEGENDS = new Set<string>([
-  LEGEND.ASSASSIN,
-  LEGEND.DEMON,
-  LEGEND.DWARF,
-  LEGEND.CENTAUR,
-]);
+const CORE_LEGENDS = new Set<string>([LEGEND.ASSASSIN, LEGEND.DEMON, LEGEND.DWARF, LEGEND.CENTAUR]);
 
 /** Emits a declarative proc skill while preserving the triggering trait as its source. */
 export function emitLegendInvocationSkill(
   context: RevenantSchedulerContext,
   skillId: SkillId,
   at: number,
-  sourceId: SkillId,
+  sourceId: SkillId
 ): void {
   const skill = context.catalog.skillsById.get(skillId);
   if (!skill) return;
-  const activationId = context.createActivationId("legend-invocation");
+  const activationId = context.createActivationId('legend-invocation');
   for (const effect of skill.effects || []) {
     const applications = materializeSkillEffectApplications({
       skill,
@@ -58,13 +38,13 @@ export function emitLegendInvocationSkill(
       fullEnd: at,
       baseEvent: {
         activationId,
-        source: "revenant",
+        source: 'revenant',
         sourceId,
-        actorType: effect.actorType || "player",
+        actorType: effect.actorType || 'player',
         skillId: skill.id,
-        skillName: skill.name,
+        skillName: skill.name
       },
-      skillWeaponFallback: "Unequipped",
+      skillWeaponFallback: 'Unequipped'
     });
     for (const application of applications) {
       context.emit(application.event);
@@ -78,11 +58,11 @@ export function emitLegendInvocationProfile(
   profileId: SkillId,
   at: number,
   sourceId: SkillId,
-  effectPredicate: (effect: SkillEffect) => boolean = () => true,
+  effectPredicate: (effect: SkillEffect) => boolean = () => true
 ): void {
   const profile = context.catalog.balanceProfilesById.get(profileId);
   if (!profile) return;
-  const activationId = context.createActivationId("legend-invocation");
+  const activationId = context.createActivationId('legend-invocation');
   const materializerProfile = profile as BalanceProfile & Skill;
   for (const effect of profile.effects || []) {
     if (!effectPredicate(effect)) continue;
@@ -93,13 +73,13 @@ export function emitLegendInvocationProfile(
       fullEnd: at,
       baseEvent: {
         activationId,
-        source: "revenant",
+        source: 'revenant',
         sourceId,
-        actorType: effect.actorType || "player",
+        actorType: effect.actorType || 'player',
         skillId: profile.id,
-        skillName: profile.name,
+        skillName: profile.name
       },
-      skillWeaponFallback: "Unequipped",
+      skillWeaponFallback: 'Unequipped'
     });
     for (const application of applications) {
       context.emit(application.event);
@@ -107,18 +87,13 @@ export function emitLegendInvocationProfile(
   }
 }
 
-function emitSpiritBoon(
-  context: RevenantCastContext,
-  _swapSkill: RevenantSkill,
-  legendId: string,
-  at: number,
-): void {
+function emitSpiritBoon(context: RevenantCastContext, _swapSkill: RevenantSkill, legendId: string, at: number): void {
   emitLegendInvocationProfile(
     context,
     REVENANT_CORE_BALANCE_PROFILE_IDS.spiritBoon,
     at,
     TRAIT.SPIRIT_BOON,
-    (effect) => effect.metadata?.legendId === legendId,
+    (effect) => effect.metadata?.legendId === legendId
   );
 }
 
@@ -126,49 +101,36 @@ function emitSongOfTheMists(
   context: RevenantCastContext,
   _swapSkill: RevenantSkill,
   legendId: string,
-  at: number,
+  at: number
 ): void {
   emitLegendInvocationProfile(
     context,
     REVENANT_CORE_BALANCE_PROFILE_IDS.songOfTheMists,
     at,
     TRAIT.SONG_OF_THE_MISTS,
-    (effect) => effect.metadata?.legendId === legendId,
+    (effect) => effect.metadata?.legendId === legendId
   );
 }
 
 function emitInvokingTorment(context: RevenantCastContext, at: number): void {
-  const diabolicInferno = hasRevenantTrait(
-    context.config,
-    TRAIT.DIABOLIC_INFERNO,
-  );
+  const diabolicInferno = hasRevenantTrait(context.config, TRAIT.DIABOLIC_INFERNO);
   emitLegendInvocationProfile(
     context,
     REVENANT_CORE_BALANCE_PROFILE_IDS.invokingTorment,
     at,
     TRAIT.INVOKING_TORMENT,
-    (effect) =>
-      effect.metadata?.trigger !== "diabolic-inferno" || diabolicInferno,
+    (effect) => effect.metadata?.trigger !== 'diabolic-inferno' || diabolicInferno
   );
 }
 
 /** Applies every selected trait that triggers from the newly invoked legend. */
-export function applyLegendInvocationTraits(
-  context: RevenantCastContext,
-  swapSkill: RevenantSkill,
-): void {
+export function applyLegendInvocationTraits(context: RevenantCastContext, swapSkill: RevenantSkill): void {
   const at = context.effectiveEnd;
   const legendId = invokedLegend(professionCoreState(context));
-  if (
-    CORE_LEGENDS.has(legendId) &&
-    hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)
-  ) {
+  if (CORE_LEGENDS.has(legendId) && hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
     emitSpiritBoon(context, swapSkill, legendId, at);
   }
-  if (
-    CORE_LEGENDS.has(legendId) &&
-    hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)
-  ) {
+  if (CORE_LEGENDS.has(legendId) && hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) {
     emitSongOfTheMists(context, swapSkill, legendId, at);
   }
   if (hasRevenantTrait(context.config, TRAIT.INVOKING_TORMENT)) {

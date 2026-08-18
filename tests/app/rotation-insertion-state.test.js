@@ -1,20 +1,11 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { createDefaultBuild } from "../../js/app/build/persistence.js";
-import {
-  loadProfessionAppAdapter,
-  professionRegistry,
-} from "../../js/app/profession/registry.js";
-import {
-  paletteEndState,
-  paletteProfessionState,
-} from "../../js/app/rotation/context.js";
-import { paletteSkillView } from "../../js/app/rotation/palette-view.js";
-import {
-  criticalChanceAt,
-  criticalChanceTooltip,
-} from "../../js/app/rotation/state-snapshot-view.js";
+import { createDefaultBuild } from '../../js/app/build/persistence.js';
+import { loadProfessionAppAdapter, professionRegistry } from '../../js/app/profession/registry.js';
+import { paletteEndState, paletteProfessionState } from '../../js/app/rotation/context.js';
+import { paletteSkillView } from '../../js/app/rotation/palette-view.js';
+import { criticalChanceAt, criticalChanceTooltip } from '../../js/app/rotation/state-snapshot-view.js';
 
 function endState(overrides = {}) {
   return {
@@ -23,64 +14,64 @@ function endState(overrides = {}) {
     ammo: {},
     activeWeaponSet: 1,
     profession: {},
-    ...overrides,
+    ...overrides
   };
 }
 
-test("active-state critical chance hover lists contributors and the cap", () => {
+test('active-state critical chance hover lists contributors and the cap', () => {
   const event = {
-    type: "damage",
+    type: 'damage',
     at: 1,
-    actorType: "player",
+    actorType: 'player',
     criticalChance: 1,
     criticalChanceBeforeCap: 1.0371,
     criticalChanceContributors: [
-      { id: "precision", label: "Precision", amount: 0.4371 },
-      { id: "fury", label: "Fury", amount: 0.25 },
+      { id: 'precision', label: 'Precision', amount: 0.4371 },
+      { id: 'fury', label: 'Fury', amount: 0.25 },
       {
-        id: "necromancer.death-perception-critical-chance",
-        label: "Death Perception",
-        amount: 0.15,
+        id: 'necromancer.death-perception-critical-chance',
+        label: 'Death Perception',
+        amount: 0.15
       },
       {
-        id: "necromancer.target-the-weak-critical-chance",
-        label: "Target the Weak",
-        amount: 0.2,
-      },
-    ],
+        id: 'necromancer.target-the-weak-critical-chance',
+        label: 'Target the Weak',
+        amount: 0.2
+      }
+    ]
   };
 
   assert.equal(criticalChanceAt({ resolvedEvents: [event] }, 1000), 1);
   assert.equal(
-    criticalChanceTooltip(event, "Critical strike chance"),
+    criticalChanceTooltip(event, 'Critical strike chance'),
     [
-      "Critical strike chance",
-      "Precision: 43.71%",
-      "Fury: +25%",
-      "Death Perception: +15%",
-      "Target the Weak: +20%",
-      "Before cap: 103.71%",
-      "Final: 100%",
-    ].join("\n"),
+      'Critical strike chance',
+      'Precision: 43.71%',
+      'Fury: +25%',
+      'Death Perception: +15%',
+      'Target the Weak: +20%',
+      'Before cap: 103.71%',
+      'Final: 100%'
+    ].join('\n')
   );
 });
 
-test("palette state uses and caches the selected insertion checkpoint", () => {
+test('palette state uses and caches the selected insertion checkpoint', () => {
   const finalState = endState({
     time: 9000,
     activeWeaponSet: 2,
-    profession: { resource: 5 },
+    profession: { resource: 5 }
   });
   const checkpoint = endState({
     time: 1200,
     cooldowns: {
-      Test: { remaining: 3800, readyAt: 5000 },
+      Test: { remaining: 3800, readyAt: 5000 }
     },
-    profession: { resource: 2 },
+    profession: { resource: 2 }
   });
   let previewCount = 0;
   const app = {
-    build: { rotation: ["First", "Second"] },
+    build: { rotation: ['First', 'Second'] },
     rotationInsertionIndex: 1,
     results: { endState: finalState },
     adapter: {
@@ -88,8 +79,8 @@ test("palette state uses and caches the selected insertion checkpoint", () => {
         previewCount += 1;
         assert.equal(index, 1);
         return checkpoint;
-      },
-    },
+      }
+    }
   };
 
   assert.equal(paletteEndState(app), checkpoint);
@@ -97,11 +88,11 @@ test("palette state uses and caches the selected insertion checkpoint", () => {
   assert.equal(
     paletteSkillView(app, {
       id: 1,
-      name: "Test",
-      icon: "test.png",
-      cooldown: 5,
+      name: 'Test',
+      icon: 'test.png',
+      cooldown: 5
     }).cooldownLabel,
-    "3.8s",
+    '3.8s'
   );
   assert.equal(previewCount, 1);
 
@@ -112,26 +103,26 @@ test("palette state uses and caches the selected insertion checkpoint", () => {
   assert.equal(previewCount, 1);
 });
 
-test("every profession adapter exposes insertion-state previews", async () => {
+test('every profession adapter exposes insertion-state previews', async () => {
   for (const entry of professionRegistry) {
     const adapter = await loadProfessionAppAdapter(entry.id);
-    assert.equal(typeof adapter.rotationEndStateAt, "function", entry.id);
+    assert.equal(typeof adapter.rotationEndStateAt, 'function', entry.id);
   }
 });
 
-test("native insertion previews project weapon set and cooldown state", async () => {
-  const adapter = await loadProfessionAppAdapter("mesmer");
+test('native insertion previews project weapon set and cooldown state', async () => {
+  const adapter = await loadProfessionAppAdapter('mesmer');
   const build = createDefaultBuild(adapter);
-  build.weapons = ["Greatsword", ""];
-  build.alternateWeapons = ["Sword", "Sword"];
+  build.weapons = ['Greatsword', ''];
+  build.alternateWeapons = ['Sword', 'Sword'];
   build.startingWeaponSet = 1;
-  build.rotation = ["Phantasmal Berserker", "Swap Weapons", "Blurred Frenzy"];
+  build.rotation = ['Phantasmal Berserker', 'Swap Weapons', 'Blurred Frenzy'];
   const app = {
     adapter,
     build,
     skillByName: adapter.profession.catalog.skillsByName,
     attributeWeaponSet: 1,
-    results: null,
+    results: null
   };
 
   adapter.recalculate(app);
@@ -141,8 +132,8 @@ test("native insertion previews project weapon set and cooldown state", async ()
   const afterFirstSwap = adapter.rotationEndStateAt(app, 2);
 
   assert.equal(initial.activeWeaponSet, 1);
-  assert.ok(afterFirstSkill.cooldowns["Phantasmal Berserker"].remaining > 0);
+  assert.ok(afterFirstSkill.cooldowns['Phantasmal Berserker'].remaining > 0);
   assert.equal(afterFirstSwap.activeWeaponSet, 2);
-  assert.ok(afterFirstSwap.cooldowns["Phantasmal Berserker"].remaining > 0);
+  assert.ok(afterFirstSwap.cooldowns['Phantasmal Berserker'].remaining > 0);
   assert.equal(adapter.rotationEndStateAt(app, 3), result.endState);
 });

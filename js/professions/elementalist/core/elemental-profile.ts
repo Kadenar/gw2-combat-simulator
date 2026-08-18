@@ -1,4 +1,4 @@
-import { ELEMENTALIST_SKILL_IDS as ID } from "../data/ids.js";
+import { ELEMENTALIST_SKILL_IDS as ID } from '../data/ids.js';
 
 /** Fire Elemental timings and packets measured from a 2026-07-16 ArcDPS log. */
 export const FIRE_ELEMENTAL_EVTC_PROFILE = Object.freeze({
@@ -15,7 +15,7 @@ export const FIRE_ELEMENTAL_EVTC_PROFILE = Object.freeze({
     baseDamage: 995,
     impact: 1.2,
     animationEnd: 2,
-    recovery: 3.2,
+    recovery: 3.2
   }),
   flameBurst: Object.freeze({
     skillId: ID.FIRE_ELEMENTAL_FLAME_BURST,
@@ -27,7 +27,7 @@ export const FIRE_ELEMENTAL_EVTC_PROFILE = Object.freeze({
     burningStacks: 1,
     burningDuration: 3,
     mightStacks: 3,
-    mightDuration: 10,
+    mightDuration: 10
   }),
   flameBarrage: Object.freeze({
     skillId: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
@@ -38,8 +38,8 @@ export const FIRE_ELEMENTAL_EVTC_PROFILE = Object.freeze({
     animationEnd: 3.04,
     cooldown: 15,
     burningStacks: 1,
-    burningDuration: 3,
-  }),
+    burningDuration: 3
+  })
 });
 
 /** Earth Elemental timings and packets measured from the supplied 2026-07-18 ArcDPS log. */
@@ -57,7 +57,7 @@ export const EARTH_ELEMENTAL_EVTC_PROFILE = Object.freeze({
     baseDamage: 600,
     impact: 0.36,
     animationEnd: 1,
-    recovery: 2.3,
+    recovery: 2.3
   }),
   enervatingPunch: Object.freeze({
     skillId: ID.EARTH_ELEMENTAL_ENERVATING_PUNCH,
@@ -66,7 +66,7 @@ export const EARTH_ELEMENTAL_EVTC_PROFILE = Object.freeze({
     animationEnd: 1.52,
     recovery: 2.6,
     cooldown: 8,
-    weaknessDuration: 3,
+    weaknessDuration: 3
   }),
   stomp: Object.freeze({
     skillId: ID.STOMP_ELEMENTAL_COMMAND,
@@ -76,6 +76,6 @@ export const EARTH_ELEMENTAL_EVTC_PROFILE = Object.freeze({
     cooldown: 18,
     protectionDuration: 3,
     crippleDuration: 5,
-    immobilizeDuration: 1,
-  }),
+    immobilizeDuration: 1
+  })
 });

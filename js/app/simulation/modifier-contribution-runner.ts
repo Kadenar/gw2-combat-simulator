@@ -1,12 +1,9 @@
 import {
   mergeModifierContributions,
   modifierContributionWorkerCount,
-  partitionModifierComparisons,
-} from "./modifier-contributions.js";
-import type {
-  ModifierContribution,
-  ProfessionAppState,
-} from "../profession/types.js";
+  partitionModifierComparisons
+} from './modifier-contributions.js';
+import type { ModifierContribution, ProfessionAppState } from '../profession/types.js';
 
 const MODIFIER_CONTRIBUTION_DEBOUNCE_MS = 750;
 
@@ -46,9 +43,7 @@ export class ModifierContributionRunner {
 
     app.results.modifierContributionsStale = true;
     const request = app.adapter.modifierContributionRequest(app);
-    const applyContributions = (
-      contributions: ModifierContribution[],
-    ): void => {
+    const applyContributions = (contributions: ModifierContribution[]): void => {
       if (requestId !== this.requestId || !app.results) return;
       app.results.contributions = contributions;
       app.results.modifierContributionsStale = false;
@@ -74,15 +69,12 @@ export class ModifierContributionRunner {
         return;
       }
 
-      if (typeof Worker === "function") {
+      if (typeof Worker === 'function') {
         const workerCount = modifierContributionWorkerCount(
           request.comparisons.length,
-          globalThis.navigator?.hardwareConcurrency,
+          globalThis.navigator?.hardwareConcurrency
         );
-        const batches = partitionModifierComparisons(
-          request.comparisons,
-          workerCount,
-        );
+        const batches = partitionModifierComparisons(request.comparisons, workerCount);
         if (!batches.length) {
           applyContributions([]);
           return;
@@ -90,51 +82,41 @@ export class ModifierContributionRunner {
         const completed: ModifierContribution[][] = [];
         let failed = false;
         for (const comparisons of batches) {
-          const worker = new Worker(
-            new URL("./modifier-contribution-worker.js", import.meta.url),
-            { type: "module" },
-          );
+          const worker = new Worker(new URL('./modifier-contribution-worker.js', import.meta.url), { type: 'module' });
           this.workers.add(worker);
           const finishWorker = (): void => {
             worker.terminate();
             this.workers.delete(worker);
           };
+          worker.addEventListener('message', (event: MessageEvent<ModifierContributionWorkerMessage>) => {
+            const { data } = event;
+            if (failed || data.requestId !== requestId || requestId !== this.requestId) {
+              return;
+            }
+            finishWorker();
+            if (data.error) {
+              failed = true;
+              failContributions();
+              return;
+            }
+            completed.push(data.contributions || []);
+            if (completed.length === batches.length) {
+              applyContributions(mergeModifierContributions(completed));
+            }
+          });
           worker.addEventListener(
-            "message",
-            (event: MessageEvent<ModifierContributionWorkerMessage>) => {
-              const { data } = event;
-              if (
-                failed ||
-                data.requestId !== requestId ||
-                requestId !== this.requestId
-              ) {
-                return;
-              }
-              finishWorker();
-              if (data.error) {
-                failed = true;
-                failContributions();
-                return;
-              }
-              completed.push(data.contributions || []);
-              if (completed.length === batches.length) {
-                applyContributions(mergeModifierContributions(completed));
-              }
-            },
-          );
-          worker.addEventListener(
-            "error",
+            'error',
             () => {
               if (failed) return;
               failed = true;
               finishWorker();
               failContributions();
             },
-            { once: true },
+            { once: true }
           );
           worker.postMessage({
             requestId,
-            request: { ...request, comparisons },
+            request: { ...request, comparisons }
           });
         }
         return;
@@ -146,9 +128,6 @@ export class ModifierContributionRunner {
         failContributions();
       }
     };
-    this.timer = setTimeout(
-      calculateContributions,
-      MODIFIER_CONTRIBUTION_DEBOUNCE_MS,
-    );
+    this.timer = setTimeout(calculateContributions, MODIFIER_CONTRIBUTION_DEBOUNCE_MS);
   }
 }

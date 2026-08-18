@@ -1,12 +1,12 @@
-import { THIEF_CORE_SKILL_MECHANICS } from "../core/skills.js";
-import { DAREDEVIL_SKILL_MECHANICS } from "../specializations/daredevil/skills.js";
-import { DEADEYE_SKILL_MECHANICS } from "../specializations/deadeye/skills.js";
-import { SPECTER_SKILL_MECHANICS } from "../specializations/specter/skills.js";
-import { ANTIQUARY_SKILL_MECHANICS } from "../specializations/antiquary/skills.js";
-import type { SkillFragment } from "../../../platform/engine/types.js";
+import { THIEF_CORE_SKILL_MECHANICS } from '../core/skills.js';
+import { DAREDEVIL_SKILL_MECHANICS } from '../specializations/daredevil/skills.js';
+import { DEADEYE_SKILL_MECHANICS } from '../specializations/deadeye/skills.js';
+import { SPECTER_SKILL_MECHANICS } from '../specializations/specter/skills.js';
+import { ANTIQUARY_SKILL_MECHANICS } from '../specializations/antiquary/skills.js';
+import type { SkillFragment } from '../../../platform/engine/types.js';
 
 function mergeMechanics(
-  fragments: readonly Readonly<Record<number, SkillFragment>>[],
+  fragments: readonly Readonly<Record<number, SkillFragment>>[]
 ): Readonly<Record<number, SkillFragment>> {
   const result: Record<string, SkillFragment> = {};
   for (const fragment of fragments) {
@@ -25,5 +25,5 @@ export const THIEF_SKILL_MECHANICS = mergeMechanics([
   DAREDEVIL_SKILL_MECHANICS,
   DEADEYE_SKILL_MECHANICS,
   SPECTER_SKILL_MECHANICS,
-  ANTIQUARY_SKILL_MECHANICS,
+  ANTIQUARY_SKILL_MECHANICS
 ]);

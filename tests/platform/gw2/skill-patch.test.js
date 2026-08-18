@@ -1,150 +1,140 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { createCanonicalCatalog } from "../../../js/platform/engine/catalog.js";
+import { createCanonicalCatalog } from '../../../js/platform/engine/catalog.js';
 import {
   applyBalanceProfilePatch,
   applyModifierRulePatch,
   applyNumEdit,
   applySkillPatch,
   patchRuntimeValue,
-  validatePatchPreview,
-} from "../../../js/platform/gw2/skill-patch.js";
-import {
-  createModifierHooks,
-  MODIFIER_TARGET,
-} from "../../../js/platform/gw2/modifier-rules.js";
-import {
-  defineNativeModule,
-  defineNativeProfession,
-} from "../../../js/platform/gw2/native-profession.js";
-import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
+  validatePatchPreview
+} from '../../../js/platform/gw2/skill-patch.js';
+import { createModifierHooks, MODIFIER_TARGET } from '../../../js/platform/gw2/modifier-rules.js';
+import { defineNativeModule, defineNativeProfession } from '../../../js/platform/gw2/native-profession.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
 
 function fixtureCatalog() {
   return createCanonicalCatalog({
     generated: [
       {
         id: 1,
-        name: "Aggregate Skill",
+        name: 'Aggregate Skill',
         implemented: true,
         castTimeMs: 1000,
         cooldown: 10,
         resourceGain: 50,
         effects: [
-          { type: "strike", coefficient: 2, hits: 2, name: "Initial" },
+          { type: 'strike', coefficient: 2, hits: 2, name: 'Initial' },
           {
-            type: "condition",
-            condition: "Burning",
+            type: 'condition',
+            condition: 'Burning',
             stacks: 2,
-            duration: 5,
+            duration: 5
           },
-          { type: "boon", boon: "quickness", stacks: 1, duration: 2 },
-        ],
+          { type: 'boon', boon: 'quickness', stacks: 1, duration: 2 }
+        ]
       },
       {
         id: 2,
-        name: "Timeline Skill",
+        name: 'Timeline Skill',
         implemented: true,
         castTimeMs: 1000,
         effects: [
           {
-            type: "strike",
+            type: 'strike',
             ticks: [
               { atMs: 100, coefficient: 0.5 },
-              { atMs: 200, coefficient: 1 },
+              { atMs: 200, coefficient: 1 }
             ],
-            timingAnchor: "castStart",
-            timingScale: "fixed",
+            timingAnchor: 'castStart',
+            timingScale: 'fixed'
           },
           {
-            type: "condition",
+            type: 'condition',
             ticks: [
               {
                 atMs: 100,
-                condition: "Burning",
+                condition: 'Burning',
                 stacks: 1,
-                duration: 3,
+                duration: 3
               },
               {
                 atMs: 200,
-                condition: "Burning",
+                condition: 'Burning',
                 stacks: 2,
-                duration: 4,
-              },
+                duration: 4
+              }
             ],
-            timingAnchor: "castStart",
-            timingScale: "fixed",
-          },
-        ],
+            timingAnchor: 'castStart',
+            timingScale: 'fixed'
+          }
+        ]
       },
       {
         id: 3,
-        name: "Untouched Skill",
+        name: 'Untouched Skill',
         implemented: true,
         castTimeMs: 0,
-        effects: [],
-      },
+        effects: []
+      }
     ],
     balanceProfiles: [
       {
-        id: "fixture.profile",
-        name: "Fixture Profile",
-        profileKind: "mechanic",
+        id: 'fixture.profile',
+        name: 'Fixture Profile',
+        profileKind: 'mechanic',
         maximumStacks: 5,
         effects: [
           {
-            type: "condition",
-            condition: "Burning",
+            type: 'condition',
+            condition: 'Burning',
             stacks: 2,
-            duration: 4,
-          },
-        ],
-      },
-    ],
+            duration: 4
+          }
+        ]
+      }
+    ]
   });
 }
 
-test("numeric patch edits support absolute, from/to, multiply, and add", () => {
+test('numeric patch edits support absolute, from/to, multiply, and add', () => {
   assert.equal(applyNumEdit(2, 4), 4);
   assert.equal(applyNumEdit(2, { from: 2, to: 3 }), 3);
   assert.equal(applyNumEdit(2, { multiply: 1.5 }), 3);
   assert.equal(applyNumEdit(2, { add: 0.25 }), 2.25);
-  assert.throws(
-    () => applyNumEdit(2, { from: 3, to: 4 }, "fixture"),
-    /expected live value 3, received 2/,
-  );
+  assert.throws(() => applyNumEdit(2, { from: 3, to: 4 }, 'fixture'), /expected live value 3, received 2/);
 });
 
-test("modifier rule patches edit static values and named resolver parameters", () => {
+test('modifier rule patches edit static values and named resolver parameters', () => {
   const rules = Object.freeze([
     {
-      id: "fixture.static-critical-chance",
+      id: 'fixture.static-critical-chance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
-      operation: "add",
-      amount: 0.1,
+      operation: 'add',
+      amount: 0.1
     },
     {
-      id: "fixture.dynamic-critical-chance",
+      id: 'fixture.dynamic-critical-chance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
-      operation: "add",
+      operation: 'add',
       parameters: { perStack: 0.01 },
-      amount: (context, _target, parameters) =>
-        Number(context.config?.stacks || 0) * parameters.perStack,
+      amount: (context, _target, parameters) => Number(context.config?.stacks || 0) * parameters.perStack
     },
     {
-      id: "fixture.untouched",
+      id: 'fixture.untouched',
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
-      operation: "multiply",
-      factor: 1.1,
-    },
+      operation: 'multiply',
+      factor: 1.1
+    }
   ]);
   const preview = applyModifierRulePatch(rules, {
-    "fixture.static-critical-chance": {
-      amount: { from: 0.1, to: 0.2 },
+    'fixture.static-critical-chance': {
+      amount: { from: 0.1, to: 0.2 }
     },
-    "fixture.dynamic-critical-chance": {
-      parameters: { perStack: { from: 0.01, to: 0.02 } },
-    },
+    'fixture.dynamic-critical-chance': {
+      parameters: { perStack: { from: 0.01, to: 0.02 } }
+    }
   });
 
   assert.notEqual(preview, rules);
@@ -166,114 +156,108 @@ test("modifier rule patches edit static values and named resolver parameters", (
   assert.equal(previewHooks.modifyCriticalChance(context, 0), 0.26);
 });
 
-test("modifier rule patches reject stale, ambiguous, and unknown authoring", () => {
+test('modifier rule patches reject stale, ambiguous, and unknown authoring', () => {
   const rules = [
     {
-      id: "fixture.static",
+      id: 'fixture.static',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "multiply",
-      factor: 1.1,
+      operation: 'multiply',
+      factor: 1.1
     },
     {
-      id: "fixture.dynamic",
+      id: 'fixture.dynamic',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "damage-additive",
+      operation: 'damage-additive',
       parameters: { perStack: 0.01 },
-      amount: (_context, _target, parameters) => parameters.perStack,
-    },
+      amount: (_context, _target, parameters) => parameters.perStack
+    }
   ];
 
+  assert.throws(() => applyModifierRulePatch(rules, { missing: { factor: 1.2 } }), /unknown modifier rule missing/);
   assert.throws(
-    () => applyModifierRulePatch(rules, { missing: { factor: 1.2 } }),
-    /unknown modifier rule missing/,
+    () =>
+      applyModifierRulePatch(rules, {
+        'fixture.static': { factor: { from: 1.2, to: 1.3 } }
+      }),
+    /expected live value 1.2, received 1.1/
   );
   assert.throws(
     () =>
       applyModifierRulePatch(rules, {
-        "fixture.static": { factor: { from: 1.2, to: 1.3 } },
+        'fixture.static': { amount: 0.1 }
       }),
-    /expected live value 1.2, received 1.1/,
+    /does not expose numeric amount/
   );
   assert.throws(
     () =>
       applyModifierRulePatch(rules, {
-        "fixture.static": { amount: 0.1 },
+        'fixture.dynamic': { amount: 0.02 }
       }),
-    /does not expose numeric amount/,
+    /resolver-backed; patch a named parameter/
   );
   assert.throws(
     () =>
       applyModifierRulePatch(rules, {
-        "fixture.dynamic": { amount: 0.02 },
+        'fixture.dynamic': { parameters: { missing: 0.02 } }
       }),
-    /resolver-backed; patch a named parameter/,
+    /does not expose parameter missing/
   );
   assert.throws(
     () =>
       applyModifierRulePatch(rules, {
-        "fixture.dynamic": { parameters: { missing: 0.02 } },
+        'fixture.static': { operation: 'add' }
       }),
-    /does not expose parameter missing/,
+    /unsupported field operation/
   );
-  assert.throws(
-    () =>
-      applyModifierRulePatch(rules, {
-        "fixture.static": { operation: "add" },
-      }),
-    /unsupported field operation/,
-  );
-  assert.throws(
-    () => applyModifierRulePatch([rules[0], { ...rules[0] }], {}),
-    /fixture.static is duplicated/,
-  );
+  assert.throws(() => applyModifierRulePatch([rules[0], { ...rules[0] }], {}), /fixture.static is duplicated/);
 });
 
-test("skill patches target fields, effects, and individual timeline ticks", () => {
+test('skill patches target fields, effects, and individual timeline ticks', () => {
   const live = fixtureCatalog();
   const preview = applySkillPatch(live, {
     skills: {
       1: {
         fields: {
           cooldown: { from: 10, to: 8 },
-          resourceGain: { from: 50, to: 40 },
+          resourceGain: { from: 50, to: 40 }
         },
         effects: [
           {
             effectIndex: 0,
-            type: "strike",
-            name: "Initial",
-            coefficient: { multiply: 0.5 },
+            type: 'strike',
+            name: 'Initial',
+            coefficient: { multiply: 0.5 }
           },
           {
-            type: "condition",
-            condition: "Burning",
-            duration: { add: 1 },
+            type: 'condition',
+            condition: 'Burning',
+            duration: { add: 1 }
           },
           {
-            type: "boon",
-            boon: "quickness",
-            duration: 3,
-          },
-        ],
+            type: 'boon',
+            boon: 'quickness',
+            duration: 3
+          }
+        ]
       },
-      "Timeline Skill": {
+      'Timeline Skill': {
         effects: [
           {
             effectIndex: 0,
-            type: "strike",
-            tickIndex: "all",
-            coefficient: { add: 0.1 },
+            type: 'strike',
+            tickIndex: 'all',
+            coefficient: { add: 0.1 }
           },
           {
             effectIndex: 1,
-            type: "condition",
-            condition: "Burning",
+            type: 'condition',
+            condition: 'Burning',
             tickIndex: 1,
-            duration: { from: 4, to: 7 },
-          },
-        ],
-      },
-    },
+            duration: { from: 4, to: 7 }
+          }
+        ]
+      }
+    }
   });
 
   assert.notEqual(preview, live);
@@ -286,66 +270,54 @@ test("skill patches target fields, effects, and individual timeline ticks", () =
   assert.equal(preview.skillsById.get(1).effects[2].duration, 3);
   assert.deepEqual(
     preview.skillsById.get(2).effects[0].ticks.map((tick) => tick.coefficient),
-    [0.6, 1.1],
+    [0.6, 1.1]
   );
   assert.deepEqual(
     preview.skillsById.get(2).effects[1].ticks.map((tick) => tick.duration),
-    [3, 7],
+    [3, 7]
   );
   assert.equal(preview.skillsById.get(3), live.skillsById.get(3));
   assert.equal(Object.isFrozen(preview.skillsById.get(1)), true);
 });
 
-test("balance profile patches preserve non-skill catalog ownership", () => {
+test('balance profile patches preserve non-skill catalog ownership', () => {
   const live = fixtureCatalog();
   const preview = applyBalanceProfilePatch(live, {
     balanceProfiles: {
-      "fixture.profile": {
+      'fixture.profile': {
         fields: { maximumStacks: { from: 5, to: 7 } },
         effects: [
           {
             effectIndex: 0,
             stacks: { from: 2, to: 3 },
-            duration: { from: 4, to: 6 },
-          },
-        ],
-      },
-    },
+            duration: { from: 4, to: 6 }
+          }
+        ]
+      }
+    }
   });
 
-  assert.equal(
-    live.balanceProfilesById.get("fixture.profile").maximumStacks,
-    5,
-  );
-  assert.equal(
-    preview.balanceProfilesById.get("fixture.profile").maximumStacks,
-    7,
-  );
+  assert.equal(live.balanceProfilesById.get('fixture.profile').maximumStacks, 5);
+  assert.equal(preview.balanceProfilesById.get('fixture.profile').maximumStacks, 7);
   assert.deepEqual(
-    preview.balanceProfilesById
-      .get("fixture.profile")
-      .effects.map((effect) => [effect.stacks, effect.duration]),
-    [[3, 6]],
+    preview.balanceProfilesById.get('fixture.profile').effects.map((effect) => [effect.stacks, effect.duration]),
+    [[3, 6]]
   );
-  assert.equal(preview.skillsById.get("fixture.profile"), undefined);
+  assert.equal(preview.skillsById.get('fixture.profile'), undefined);
   assert.throws(
     () =>
       applyBalanceProfilePatch(live, {
-        balanceProfiles: { missing: { fields: {} } },
+        balanceProfiles: { missing: { fields: {} } }
       }),
-    /unknown balance profile missing/,
+    /unknown balance profile missing/
   );
   assert.equal(
-    applyBalanceProfilePatch(
-      live,
-      { balanceProfiles: { missing: { fields: {} } } },
-      { unknownProfiles: "ignore" },
-    ),
-    live,
+    applyBalanceProfilePatch(live, { balanceProfiles: { missing: { fields: {} } } }, { unknownProfiles: 'ignore' }),
+    live
   );
 });
 
-test("skill patches add and remove complete condition effects", () => {
+test('skill patches add and remove complete condition effects', () => {
   const live = fixtureCatalog();
   const preview = applySkillPatch(live, {
     skills: {
@@ -353,399 +325,370 @@ test("skill patches add and remove complete condition effects", () => {
         removeEffects: [
           {
             effectIndex: 1,
-            type: "condition",
-            condition: "Burning",
-          },
+            type: 'condition',
+            condition: 'Burning'
+          }
         ],
         addEffects: [
           {
-            type: "condition",
-            condition: "Bleeding",
+            type: 'condition',
+            condition: 'Bleeding',
             stacks: 3,
-            duration: 6,
-          },
-        ],
-      },
-    },
+            duration: 6
+          }
+        ]
+      }
+    }
   });
 
-  assert.equal(live.skillsById.get(1).effects[1].condition, "Burning");
+  assert.equal(live.skillsById.get(1).effects[1].condition, 'Burning');
   assert.equal(
-    preview.skillsById
-      .get(1)
-      .effects.some((effect) => effect.condition === "Burning"),
-    false,
+    preview.skillsById.get(1).effects.some((effect) => effect.condition === 'Burning'),
+    false
   );
   assert.deepEqual(preview.skillsById.get(1).effects.at(-1), {
-    type: "condition",
-    condition: "Bleeding",
+    type: 'condition',
+    condition: 'Bleeding',
     stacks: 3,
-    duration: 6,
+    duration: 6
   });
 });
 
-test("patch authoring rejects unknown, ambiguous, and stale targets", () => {
+test('patch authoring rejects unknown, ambiguous, and stale targets', () => {
   const live = fixtureCatalog();
-  assert.throws(
-    () => applySkillPatch(live, { skills: { Missing: { cooldown: 2 } } }),
-    /unknown skill Missing/,
-  );
+  assert.throws(() => applySkillPatch(live, { skills: { Missing: { cooldown: 2 } } }), /unknown skill Missing/);
   assert.throws(
     () =>
       applySkillPatch(live, {
         skills: {
-          1: { coefficient: { from: 99, to: 1 } },
-        },
+          1: { coefficient: { from: 99, to: 1 } }
+        }
       }),
-    /expected live value 99/,
+    /expected live value 99/
   );
   assert.throws(
     () =>
       applySkillPatch(live, {
         skills: {
           1: {
-            effects: [{ duration: 1 }],
-          },
-        },
+            effects: [{ duration: 1 }]
+          }
+        }
       }),
-    /matched 3 effects/,
+    /matched 3 effects/
   );
 });
 
-test("patch preview accepts generated overviews and rejects manual notes", () => {
+test('patch preview accepts generated overviews and rejects manual notes', () => {
   const preview = validatePatchPreview({
-    id: "fixture-preview",
-    label: "Fixture Preview",
+    id: 'fixture-preview',
+    label: 'Fixture Preview',
     professions: {
       fixture: {
         overview: [
           {
-            subject: "Fixture skill",
-            text: "Coefficient increased.",
-            source: "skill-diff",
-          },
-        ],
-      },
-    },
+            subject: 'Fixture skill',
+            text: 'Coefficient increased.',
+            source: 'skill-diff'
+          }
+        ]
+      }
+    }
   });
 
   assert.equal(Object.isFrozen(preview.professions.fixture.overview[0]), true);
   assert.throws(
     () =>
       validatePatchPreview({
-        id: "fixture-preview",
-        label: "Fixture Preview",
+        id: 'fixture-preview',
+        label: 'Fixture Preview',
         notes: [
           {
-            subject: "Manual note",
-            text: "No longer supported.",
-            status: "tracked",
-          },
-        ],
+            subject: 'Manual note',
+            text: 'No longer supported.',
+            status: 'tracked'
+          }
+        ]
       }),
-    /unsupported field notes/,
+    /unsupported field notes/
   );
   assert.throws(
     () =>
       validatePatchPreview({
-        id: "fixture-preview",
-        label: "Fixture Preview",
+        id: 'fixture-preview',
+        label: 'Fixture Preview',
         professions: {
           fixture: {
             overview: [
               {
-                subject: "Missing source",
-                text: "Not generated from a diff.",
-              },
-            ],
-          },
-        },
+                subject: 'Missing source',
+                text: 'Not generated from a diff.'
+              }
+            ]
+          }
+        }
       }),
-    /source is invalid/,
+    /source is invalid/
   );
   assert.throws(
     () =>
       validatePatchPreview({
-        id: "fixture-preview",
-        label: "Fixture Preview",
-        sourceUrl: "javascript:alert(1)",
+        id: 'fixture-preview',
+        label: 'Fixture Preview',
+        sourceUrl: 'javascript:alert(1)'
       }),
-    /must use HTTP or HTTPS/,
+    /must use HTTP or HTTPS/
   );
 });
 
-test("native professions keep live and lazy preview catalogs side by side", () => {
+test('native professions keep live and lazy preview catalogs side by side', () => {
   const core = defineNativeModule({
-    id: "Core",
+    id: 'Core',
     data: {
       generatedSkills: [
         {
           id: 1,
-          name: "Previewed Skill",
+          name: 'Previewed Skill',
           implemented: true,
           castTimeMs: 0,
-          effects: [{ type: "strike", coefficient: 1, hits: 1 }],
-        },
-      ],
+          effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
+        }
+      ]
     },
-    state: { scheduler: () => ({}) },
+    state: { scheduler: () => ({}) }
   });
   const family = defineNativeProfession({
-    id: "fixture",
-    name: "Fixture",
+    id: 'fixture',
+    name: 'Fixture',
     modules: [core],
     patchPreview: {
-      id: "fixture-preview",
-      label: "Fixture Preview",
-      constants: { "shared.factor": { from: 2, to: 3 } },
+      id: 'fixture-preview',
+      label: 'Fixture Preview',
+      constants: { 'shared.factor': { from: 2, to: 3 } },
       professions: {
         fixture: {
           skills: {
-            1: { coefficient: { from: 1, to: 2 } },
+            1: { coefficient: { from: 1, to: 2 } }
           },
-          constants: { "fixture.factor": { add: 1 } },
-        },
-      },
-    },
+          constants: { 'fixture.factor': { add: 1 } }
+        }
+      }
+    }
   });
 
   const live = family.catalogFor();
-  const preview = family.catalogFor("fixture-preview");
+  const preview = family.catalogFor('fixture-preview');
   assert.equal(family.catalog, live);
   assert.equal(live.skillsById.get(1).effects[0].coefficient, 1);
   assert.equal(preview.skillsById.get(1).effects[0].coefficient, 2);
-  assert.equal(family.catalogFor("fixture-preview"), preview);
-  assert.equal(
-    family.resolveRuntime({ specialization: "Core" }).catalog.skillsById.get(1)
-      .effects[0].coefficient,
-    1,
-  );
+  assert.equal(family.catalogFor('fixture-preview'), preview);
+  assert.equal(family.resolveRuntime({ specialization: 'Core' }).catalog.skillsById.get(1).effects[0].coefficient, 1);
   assert.equal(
     family
       .resolveRuntime({
-        specialization: "Core",
-        patchId: "fixture-preview",
+        specialization: 'Core',
+        patchId: 'fixture-preview'
       })
       .catalog.skillsById.get(1).effects[0].coefficient,
-    2,
+    2
   );
-  const values = family.patchValuesFor("fixture-preview");
-  assert.equal(patchRuntimeValue(values, "shared.factor", 2), 3);
-  assert.equal(patchRuntimeValue(values, "fixture.factor", 4), 5);
-  assert.equal(patchRuntimeValue(values, "missing", 4), 4);
-  assert.throws(() => family.catalogFor("missing"), /Unknown Fixture patch/);
+  const values = family.patchValuesFor('fixture-preview');
+  assert.equal(patchRuntimeValue(values, 'shared.factor', 2), 3);
+  assert.equal(patchRuntimeValue(values, 'fixture.factor', 4), 5);
+  assert.equal(patchRuntimeValue(values, 'missing', 4), 4);
+  assert.throws(() => family.catalogFor('missing'), /Unknown Fixture patch/);
 
   const config = {
-    specialization: "Core",
+    specialization: 'Core',
     stats: {
       power: 1000,
       precision: 0,
       ferocity: 0,
       conditionDamage: 0,
       expertise: 0,
-      concentration: 0,
+      concentration: 0
     },
-    target: { armor: 1000 },
+    target: { armor: 1000 }
   };
   const currentResult = simulateGw2({
     profession: family,
     rotation: [1],
-    config: { ...config, patchId: "current" },
+    config: { ...config, patchId: 'current' }
   });
   const previewResult = simulateGw2({
     profession: family,
     rotation: [1],
-    config: { ...config, patchId: "fixture-preview" },
+    config: { ...config, patchId: 'fixture-preview' }
   });
   assert.equal(previewResult.totalDamage, currentResult.totalDamage * 2);
 });
 
-test("specialization skill previews stay inert in other runtime catalogs", () => {
+test('specialization skill previews stay inert in other runtime catalogs', () => {
   const core = defineNativeModule({
-    id: "Core",
+    id: 'Core',
     data: {
       generatedSkills: [
         {
           id: 1,
-          name: "Core Skill",
+          name: 'Core Skill',
           implemented: true,
-          effects: [{ type: "strike", coefficient: 1, hits: 1 }],
-        },
-      ],
+          effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
+        }
+      ]
     },
-    state: { scheduler: () => ({}) },
+    state: { scheduler: () => ({}) }
   });
   const elite = defineNativeModule({
-    id: "Elite",
+    id: 'Elite',
     data: {
       generatedSkills: [
         {
           id: 2,
-          name: "Elite Skill",
+          name: 'Elite Skill',
           implemented: true,
-          effects: [{ type: "strike", coefficient: 1, hits: 1 }],
-        },
+          effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
+        }
       ],
       balanceProfiles: [
         {
-          id: "elite.profile",
-          name: "Elite Profile",
-          profileKind: "trait",
+          id: 'elite.profile',
+          name: 'Elite Profile',
+          profileKind: 'trait',
           maximumStacks: 5,
-          effects: [],
-        },
-      ],
+          effects: []
+        }
+      ]
     },
-    state: { scheduler: () => ({}) },
+    state: { scheduler: () => ({}) }
   });
   const family = defineNativeProfession({
-    id: "fixture",
-    name: "Fixture",
+    id: 'fixture',
+    name: 'Fixture',
     modules: [core, elite],
     patchPreview: {
-      id: "fixture-preview",
-      label: "Fixture Preview",
+      id: 'fixture-preview',
+      label: 'Fixture Preview',
       professions: {
         fixture: {
           skills: { 2: { coefficient: { from: 1, to: 2 } } },
           balanceProfiles: {
-            "elite.profile": {
-              fields: { maximumStacks: { from: 5, to: 7 } },
-            },
-          },
-        },
-      },
-    },
+            'elite.profile': {
+              fields: { maximumStacks: { from: 5, to: 7 } }
+            }
+          }
+        }
+      }
+    }
   });
 
   const corePreview = family.resolveRuntime({
-    specialization: "Core",
-    patchId: "fixture-preview",
+    specialization: 'Core',
+    patchId: 'fixture-preview'
   });
   const elitePreview = family.resolveRuntime({
-    specialization: "Elite",
-    patchId: "fixture-preview",
+    specialization: 'Elite',
+    patchId: 'fixture-preview'
   });
 
   assert.equal(corePreview.catalog.skillsById.has(2), false);
-  assert.equal(
-    corePreview.catalog.balanceProfilesById.has("elite.profile"),
-    false,
-  );
-  assert.equal(
-    elitePreview.catalog.skillsById.get(2).effects[0].coefficient,
-    2,
-  );
-  assert.equal(
-    family.catalogFor("fixture-preview").skillsById.get(2).effects[0]
-      .coefficient,
-    2,
-  );
-  assert.equal(
-    elitePreview.catalog.balanceProfilesById.get("elite.profile").maximumStacks,
-    7,
-  );
-  assert.equal(
-    family
-      .catalogFor("fixture-preview")
-      .balanceProfilesById.get("elite.profile").maximumStacks,
-    7,
-  );
+  assert.equal(corePreview.catalog.balanceProfilesById.has('elite.profile'), false);
+  assert.equal(elitePreview.catalog.skillsById.get(2).effects[0].coefficient, 2);
+  assert.equal(family.catalogFor('fixture-preview').skillsById.get(2).effects[0].coefficient, 2);
+  assert.equal(elitePreview.catalog.balanceProfilesById.get('elite.profile').maximumStacks, 7);
+  assert.equal(family.catalogFor('fixture-preview').balanceProfilesById.get('elite.profile').maximumStacks, 7);
 });
 
-test("native professions compile preview modifier rules in isolated runtimes", () => {
-  const traitSelected = (context, id) =>
-    context.traits?.has(id) || context.config?.selectedTraitIds?.includes(id);
+test('native professions compile preview modifier rules in isolated runtimes', () => {
+  const traitSelected = (context, id) => context.traits?.has(id) || context.config?.selectedTraitIds?.includes(id);
   const core = defineNativeModule({
-    id: "Core",
+    id: 'Core',
     data: {
       generatedSkills: [
         {
           id: 10,
-          name: "Modifier Strike",
+          name: 'Modifier Strike',
           implemented: true,
           castTimeMs: 0,
-          effects: [{ type: "strike", coefficient: 1, hits: 1 }],
-        },
-      ],
+          effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
+        }
+      ]
     },
     state: { scheduler: () => ({}) },
     mechanics: {
       modifiers: {
         modifierRules: [
           {
-            id: "fixture.trait-critical-chance",
+            id: 'fixture.trait-critical-chance',
             target: MODIFIER_TARGET.CRITICAL_CHANCE,
-            operation: "add",
+            operation: 'add',
             amount: 0.1,
-            when: (context) => traitSelected(context, 10),
-          },
+            when: (context) => traitSelected(context, 10)
+          }
         ],
-        compileModifierRules: (rules) => createModifierHooks({ rules }),
-      },
-    },
+        compileModifierRules: (rules) => createModifierHooks({ rules })
+      }
+    }
   });
   const elite = defineNativeModule({
-    id: "Elite",
+    id: 'Elite',
     data: {},
     state: { scheduler: () => ({}) },
     mechanics: {
       modifiers: [
         {
-          id: "fixture.elite-stacking-critical-chance",
+          id: 'fixture.elite-stacking-critical-chance',
           target: MODIFIER_TARGET.CRITICAL_CHANCE,
-          operation: "add",
+          operation: 'add',
           parameters: { perStack: 0.01 },
-          amount: (context, _target, parameters) =>
-            Number(context.config?.traitStacks || 0) * parameters.perStack,
-          when: (context) => traitSelected(context, 20),
-        },
-      ],
-    },
+          amount: (context, _target, parameters) => Number(context.config?.traitStacks || 0) * parameters.perStack,
+          when: (context) => traitSelected(context, 20)
+        }
+      ]
+    }
   });
   const family = defineNativeProfession({
-    id: "fixture",
-    name: "Fixture",
+    id: 'fixture',
+    name: 'Fixture',
     modules: [core, elite],
     patchPreview: {
-      id: "fixture-preview",
-      label: "Fixture Preview",
+      id: 'fixture-preview',
+      label: 'Fixture Preview',
       professions: {
         fixture: {
           modifierRules: {
-            "fixture.trait-critical-chance": {
-              amount: { from: 0.1, to: 0.2 },
+            'fixture.trait-critical-chance': {
+              amount: { from: 0.1, to: 0.2 }
             },
-            "fixture.elite-stacking-critical-chance": {
-              parameters: { perStack: { from: 0.01, to: 0.02 } },
-            },
-          },
-        },
-      },
-    },
+            'fixture.elite-stacking-critical-chance': {
+              parameters: { perStack: { from: 0.01, to: 0.02 } }
+            }
+          }
+        }
+      }
+    }
   });
 
   const previewCore = family.resolveRuntime({
-    specialization: "Core",
-    patchId: "fixture-preview",
+    specialization: 'Core',
+    patchId: 'fixture-preview'
   });
   const liveCore = family.resolveRuntime({
-    specialization: "Core",
-    patchId: "current",
+    specialization: 'Core',
+    patchId: 'current'
   });
   const previewElite = family.resolveRuntime({
-    specialization: "Elite",
-    patchId: "fixture-preview",
+    specialization: 'Elite',
+    patchId: 'fixture-preview'
   });
   const liveElite = family.resolveRuntime({
-    specialization: "Elite",
-    patchId: "current",
+    specialization: 'Elite',
+    patchId: 'current'
   });
   const coreContext = { time: 0, traits: new Set([10]), config: {} };
   const eliteContext = {
     time: 0,
     traits: new Set([10, 20]),
-    config: { traitStacks: 3 },
+    config: { traitStacks: 3 }
   };
 
   assert.notEqual(previewCore, liveCore);
@@ -753,31 +696,25 @@ test("native professions compile preview modifier rules in isolated runtimes", (
   assert.equal(previewCore.modifyCriticalChance(coreContext, 0), 0.2);
   assert.equal(liveElite.modifyCriticalChance(eliteContext, 0), 0.13);
   assert.equal(previewElite.modifyCriticalChance(eliteContext, 0), 0.26);
-  assert.equal(
-    previewElite.modifyCriticalChance(
-      { ...eliteContext, traits: new Set() },
-      0,
-    ),
-    0,
-  );
+  assert.equal(previewElite.modifyCriticalChance({ ...eliteContext, traits: new Set() }, 0), 0);
   assert.equal(
     family.resolveRuntime({
-      specialization: "Elite",
-      patchId: "fixture-preview",
+      specialization: 'Elite',
+      patchId: 'fixture-preview'
     }),
-    previewElite,
+    previewElite
   );
   assert.deepEqual(family.previewModifierRuleTargets, [
     {
-      id: "fixture.trait-critical-chance",
-      moduleId: "Core",
-      fields: ["amount"],
+      id: 'fixture.trait-critical-chance',
+      moduleId: 'Core',
+      fields: ['amount']
     },
     {
-      id: "fixture.elite-stacking-critical-chance",
-      moduleId: "Elite",
-      fields: ["parameters.perStack"],
-    },
+      id: 'fixture.elite-stacking-critical-chance',
+      moduleId: 'Elite',
+      fields: ['parameters.perStack']
+    }
   ]);
   assert.deepEqual(
     family.patchAuthoring.modules.map((module) => ({
@@ -786,52 +723,49 @@ test("native professions compile preview modifier rules in isolated runtimes", (
       rules: module.modifierRules.map((rule) => ({
         id: rule.id,
         amount: rule.amount,
-        parameters: rule.parameters,
-      })),
+        parameters: rule.parameters
+      }))
     })),
     [
       {
-        id: "Core",
-        skills: ["Modifier Strike"],
+        id: 'Core',
+        skills: ['Modifier Strike'],
         rules: [
           {
-            id: "fixture.trait-critical-chance",
-            amount: { kind: "static", value: 0.1 },
-            parameters: {},
-          },
-        ],
+            id: 'fixture.trait-critical-chance',
+            amount: { kind: 'static', value: 0.1 },
+            parameters: {}
+          }
+        ]
       },
       {
-        id: "Elite",
+        id: 'Elite',
         skills: [],
         rules: [
           {
-            id: "fixture.elite-stacking-critical-chance",
-            amount: { kind: "resolver" },
-            parameters: { perStack: 0.01 },
-          },
-        ],
-      },
-    ],
+            id: 'fixture.elite-stacking-critical-chance',
+            amount: { kind: 'resolver' },
+            parameters: { perStack: 0.01 }
+          }
+        ]
+      }
+    ]
   );
   assert.equal(
     family.validatePatch({
       skills: { 10: { fields: { castTimeMs: { from: 0, to: 250 } } } },
       modifierRules: {
-        "fixture.trait-critical-chance": {
-          amount: { from: 0.1, to: 0.15 },
-        },
-      },
+        'fixture.trait-critical-chance': {
+          amount: { from: 0.1, to: 0.15 }
+        }
+      }
     }),
-    true,
+    true
   );
-  assert.throws(
-    () => family.validatePatch({ skills: { missing: { cooldown: 10 } } }),
-    /unknown skill missing/,
-  );
+  assert.throws(() => family.validatePatch({ skills: { missing: { cooldown: 10 } } }), /unknown skill missing/);
 
   const config = {
-    specialization: "Core",
+    specialization: 'Core',
     selectedTraitIds: [10],
     stats: {
       power: 1000,
@@ -839,19 +773,19 @@ test("native professions compile preview modifier rules in isolated runtimes", (
       ferocity: 0,
       conditionDamage: 0,
       expertise: 0,
-      concentration: 0,
+      concentration: 0
     },
-    target: { armor: 1000 },
+    target: { armor: 1000 }
   };
   const currentResult = simulateGw2({
     profession: family,
     rotation: [10],
-    config: { ...config, patchId: "current" },
+    config: { ...config, patchId: 'current' }
   });
   const previewResult = simulateGw2({
     profession: family,
     rotation: [10],
-    config: { ...config, patchId: "fixture-preview" },
+    config: { ...config, patchId: 'fixture-preview' }
   });
   const unselectedPreviewResult = simulateGw2({
     profession: family,
@@ -859,17 +793,14 @@ test("native professions compile preview modifier rules in isolated runtimes", (
     config: {
       ...config,
       selectedTraitIds: [],
-      patchId: "fixture-preview",
-    },
+      patchId: 'fixture-preview'
+    }
   });
   const unselectedCurrentResult = simulateGw2({
     profession: family,
     rotation: [10],
-    config: { ...config, selectedTraitIds: [], patchId: "current" },
+    config: { ...config, selectedTraitIds: [], patchId: 'current' }
   });
   assert.ok(previewResult.totalDamage > currentResult.totalDamage);
-  assert.equal(
-    unselectedPreviewResult.totalDamage,
-    unselectedCurrentResult.totalDamage,
-  );
+  assert.equal(unselectedPreviewResult.totalDamage, unselectedCurrentResult.totalDamage);
 });

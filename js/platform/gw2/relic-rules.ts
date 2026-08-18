@@ -432,10 +432,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       // either an equipped weapon profile or the dedicated profession-mechanic
       // profile. Bundle strength and unequipped utility strength do not count.
       const profileId = String(event.weaponStrengthProfileId || '');
-      const strikesAtWeaponStrength =
-        profileId.startsWith('weapon.') || profileId === 'nonweapon.profession-mechanic';
-      const isWeaponStrengthProfessionMechanic =
-        event.skillWeapon === 'Profession mechanic' || strikesAtWeaponStrength;
+      const strikesAtWeaponStrength = profileId.startsWith('weapon.') || profileId === 'nonweapon.profession-mechanic';
+      const isWeaponStrengthProfessionMechanic = event.skillWeapon === 'Profession mechanic' || strikesAtWeaponStrength;
       if (
         !isGw2PlayerActorEvent(event) ||
         (!isWeaponSkill && !skill?.shroud && !isWeaponStrengthProfessionMechanic) ||
@@ -557,7 +555,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       const combatStart = nourysCombatStart(ctx, state);
       state.combatStartTime = combatStart;
       let stacks = 0;
-      for (let at = combatStart + NOURYS_STACK_INTERVAL; at <= rotationEndTime + EPSILON; ) {
+      for (let at = combatStart + NOURYS_STACK_INTERVAL; at <= rotationEndTime + EPSILON;) {
         stacks += 1;
         ctx.recordProc('skill', 'Nourys', at, 'Combat duration', `${stacks}/${NOURYS_STACKS_NEEDED} stacks`);
         if (stacks >= NOURYS_STACKS_NEEDED) {

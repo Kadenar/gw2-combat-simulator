@@ -1,17 +1,17 @@
-import { guardianRadiantForgeEventHandlers } from "./radiant-forge.js";
+import { guardianRadiantForgeEventHandlers } from './radiant-forge.js';
 import {
   handleEffulgentActivated,
   handleEffulgentDetonate,
   reactToEffulgentStrike,
-  reactToLuminaryJusticeHit,
-} from "./traits.js";
+  reactToLuminaryJusticeHit
+} from './traits.js';
 
 export const luminaryEventHandlers = Object.freeze({
   ...guardianRadiantForgeEventHandlers,
   // These two handlers run inside the resolver (not the scheduler) because
   // effulgent stack counting happens on already-resolved damage packets.
-  "guardian.effulgent-activated": handleEffulgentActivated,
-  "guardian.effulgent-detonate": handleEffulgentDetonate,
+  'guardian.effulgent-activated': handleEffulgentActivated,
+  'guardian.effulgent-detonate': handleEffulgentDetonate
 });
 
 export const luminaryEventReactions = Object.freeze({
@@ -19,14 +19,14 @@ export const luminaryEventReactions = Object.freeze({
     {
       // order 16 intentionally runs before justice (20) so stack count is
       // up-to-date if a justice proc fires on the same damage packet.
-      id: "guardian.luminary.effulgent",
+      id: 'guardian.luminary.effulgent',
       order: 16,
-      handler: reactToEffulgentStrike,
+      handler: reactToEffulgentStrike
     },
     {
-      id: "guardian.luminary.justice",
+      id: 'guardian.luminary.justice',
       order: 20,
-      handler: reactToLuminaryJusticeHit,
-    },
-  ]),
+      handler: reactToLuminaryJusticeHit
+    }
+  ])
 });

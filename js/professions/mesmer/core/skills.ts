@@ -2,33 +2,24 @@
  * Raw Core skill mechanics. Generated once from the characterized
  * pre-migration table; this file is now the runtime source owner.
  */
-import {
-  MESMER_SKILL_IDS as ID,
-  MESMER_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
-import type {
-  Skill,
-  SkillFragment,
-  SkillId,
-} from "../../../platform/engine/types.js";
-import type { MesmerSkill } from "../types.js";
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import type { Skill, SkillFragment, SkillId } from '../../../platform/engine/types.js';
+import type { MesmerSkill } from '../types.js';
 
-export const MESMER_CORE_SKILL_MECHANICS: Readonly<
-  Record<SkillId, SkillFragment>
-> = Object.freeze({
+export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.CONFUSING_IMAGES]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Scepter",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Scepter',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 9,
     phantasm: false,
     resource: null,
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         ticks: [
           { atMs: 921, coefficient: 0.76 },
           { atMs: 1081, coefficient: 0.76 },
@@ -36,73 +27,73 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
           { atMs: 1441, coefficient: 0.76 },
           { atMs: 1560, coefficient: 0.76 },
           { atMs: 1679, coefficient: 0.76 },
-          { atMs: 1841, coefficient: 0.76 },
+          { atMs: 1841, coefficient: 0.76 }
         ],
-        name: "Damage",
-        actorType: "player",
-        weapon: "scepter",
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'scepter',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "confusion",
+        type: 'condition',
+        condition: 'confusion',
         duration: 7,
-        stacks: 7,
-      },
+        stacks: 7
+      }
     ],
     quicknessCastTimeMs: 1920,
-    pulseCount: 7,
+    pulseCount: 7
   },
   [ID.CHAOS_STORM]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Staff",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Staff',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 20,
     phantasm: false,
     resource: null,
     blade: false,
     comboFields: [
       {
-        ownerId: "mesmer",
-        fieldType: "Ethereal",
+        ownerId: 'mesmer',
+        fieldType: 'Ethereal',
         duration: 5,
-        startAnchor: "castEnd",
-      },
+        startAnchor: 'castEnd'
+      }
     ],
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         ticks: [
           { atMs: 281, coefficient: 0.33 },
           { atMs: 1279, coefficient: 0.33 },
           { atMs: 2280, coefficient: 0.33 },
           { atMs: 3282, coefficient: 0.33 },
           { atMs: 4279, coefficient: 0.33 },
-          { atMs: 5280, coefficient: 0.33 },
+          { atMs: 5280, coefficient: 0.33 }
         ],
-        name: "Six pulses",
-        actorType: "player",
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        name: 'Six pulses',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         duration: 4,
-        stacks: 2,
-      },
+        stacks: 2
+      }
     ],
-    quicknessCastTimeMs: 480,
+    quicknessCastTimeMs: 480
   },
   [ID.MIND_SLASH]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Sword",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Sword',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 0,
     phantasm: false,
     resource: null,
@@ -110,22 +101,22 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     nextChainId: ID.MIND_GASH,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "sword",
-      },
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'sword'
+      }
     ],
-    castTimeMs: 540,
+    castTimeMs: 540
   },
   [ID.MIND_GASH]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Sword",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Sword',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 780,
     cooldown: 0,
     phantasm: false,
@@ -134,21 +125,21 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     nextChainId: ID.MIND_SPIKE,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "sword",
-      },
-    ],
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'sword'
+      }
+    ]
   },
   [ID.MIND_SPIKE]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Sword",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Sword',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 1260,
     cooldown: 0,
     phantasm: false,
@@ -158,461 +149,461 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     nextChainId: null,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "sword",
-      },
-    ],
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'sword'
+      }
+    ]
   },
   [ID.ILLUSIONARY_LEAP]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Sword",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Sword',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 600,
     cooldown: 12,
     phantasm: false,
     resource: {
-      mode: "add",
-      count: 1,
+      mode: 'add',
+      count: 1
     },
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.003,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "sword",
-      },
-    ],
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'sword'
+      }
+    ]
   },
   [ID.PHANTASMAL_SWORDSMAN]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Sword",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Sword',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 15,
     phantasm: true,
     resource: {
-      mode: "phantasm",
-      count: 1,
+      mode: 'phantasm',
+      count: 1
     },
     phantasmSummonProgress: 0.8181818181818182,
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Mesmer strike",
-        actorType: "player",
-        weapon: "sword",
-        castProgress: 0.8625,
+        name: 'Mesmer strike',
+        actorType: 'player',
+        weapon: 'sword',
+        castProgress: 0.8625
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Phantasm leap",
-        actorType: "phantasm",
-        weapon: "phantasm medium",
+        name: 'Phantasm leap',
+        actorType: 'phantasm',
+        weapon: 'phantasm medium'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.6,
         hits: 8,
-        name: "Phantasm Blurred Frenzy",
-        actorType: "phantasm",
-        weapon: "phantasm medium",
-      },
+        name: 'Phantasm Blurred Frenzy',
+        actorType: 'phantasm',
+        weapon: 'phantasm medium'
+      }
     ],
-    castTimeMs: 1320,
+    castTimeMs: 1320
   },
   [ID.PHANTASMAL_DUELIST]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Pistol",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Pistol',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 16,
     phantasm: true,
     resource: {
-      mode: "phantasm",
-      count: 1,
+      mode: 'phantasm',
+      count: 1
     },
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         ticks: [
           {
             atMs: 350,
-            coefficient: 0.33,
+            coefficient: 0.33
           },
           {
             atMs: 350,
-            coefficient: 0.33,
+            coefficient: 0.33
           },
           {
             atMs: 400,
-            coefficient: 0.33,
-          },
+            coefficient: 0.33
+          }
         ],
-        name: "Damage",
-        actorType: "player",
-        weapon: "pistol",
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'pistol',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.92,
         hits: 8,
-        name: "Illusion Damage",
-        actorType: "phantasm",
-        weapon: "phantasm medium",
+        name: 'Illusion Damage',
+        actorType: 'phantasm',
+        weapon: 'phantasm medium'
       },
       {
-        type: "condition",
-        condition: "bleeding",
+        type: 'condition',
+        condition: 'bleeding',
         duration: 4,
         stacks: 8,
-        packetLabel: "Illusion Damage",
-      },
+        packetLabel: 'Illusion Damage'
+      }
     ],
-    castTimeMs: 840,
+    castTimeMs: 840
   },
   [ID.ETHER_FEAST]: {
     implemented: true,
-    type: "Heal",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Heal',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 666.666666667,
     cooldown: 20,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.MIRROR]: {
     implemented: true,
-    type: "Heal",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Heal',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 833.333333333,
     cooldown: 12,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.TEMPORAL_CURTAIN]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Focus",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Focus',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 740,
     cooldown: 25,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.PHANTASMAL_MAGE]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Torch",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Torch',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 20,
     phantasm: true,
     resource: {
-      mode: "phantasm",
-      count: 1,
+      mode: 'phantasm',
+      count: 1
     },
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.19,
         hits: 1,
-        name: "Mesmer attack",
-        actorType: "player",
-        weapon: "torch",
+        name: 'Mesmer attack',
+        actorType: 'player',
+        weapon: 'torch'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Phantasm attack",
-        actorType: "phantasm",
-        weapon: "torch",
+        name: 'Phantasm attack',
+        actorType: 'phantasm',
+        weapon: 'torch'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         duration: 6,
         stacks: 1,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         duration: 3,
         stacks: 2,
-        actorType: "player",
-        requiredTrait: TRAIT.THE_PLEDGE,
+        actorType: 'player',
+        requiredTrait: TRAIT.THE_PLEDGE
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         duration: 9,
         stacks: 1,
-        actorType: "phantasm",
+        actorType: 'phantasm'
       },
       {
-        type: "condition",
-        condition: "confusion",
+        type: 'condition',
+        condition: 'confusion',
         duration: 3,
-        stacks: 3,
-      },
+        stacks: 3
+      }
     ],
-    quicknessCastTimeMs: 760,
+    quicknessCastTimeMs: 760
   },
   [ID.CRY_OF_FRUSTRATION]: {
     implemented: true,
-    type: "Profession",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Profession',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 0,
     lockouts: [
       {
-        group: "mesmer.shatter",
-        durationMs: 50,
-      },
+        group: 'mesmer.shatter',
+        durationMs: 50
+      }
     ],
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 25,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.MIND_WRACK]: {
     implemented: true,
-    type: "Profession",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Profession',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 0,
     lockouts: [
       {
-        group: "mesmer.shatter",
-        durationMs: 50,
-      },
+        group: 'mesmer.shatter',
+        durationMs: 50
+      }
     ],
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 12,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.DISTORTION]: {
     implemented: true,
-    type: "Profession",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Profession',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 0,
     lockouts: [
       {
-        group: "mesmer.shatter",
-        durationMs: 50,
-      },
+        group: 'mesmer.shatter',
+        durationMs: 50
+      }
     ],
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 50,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.PORTAL_ENTRE]: {
     implemented: true,
-    type: "Utility",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Utility',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 0,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 72,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.BLINK]: {
     implemented: true,
-    type: "Utility",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Utility',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 0,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 20,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.DECOY]: {
     implemented: true,
-    type: "Utility",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Utility',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 0,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 20,
     phantasm: false,
     resource: {
-      mode: "add",
-      count: 1,
+      mode: 'add',
+      count: 1
     },
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.MIRROR_IMAGES]: {
     implemented: true,
-    type: "Utility",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Utility',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 0,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 25,
     phantasm: false,
     resource: {
-      mode: "add",
-      count: 2,
+      mode: 'add',
+      count: 2
     },
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.NULL_FIELD]: {
     implemented: true,
-    type: "Utility",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Utility',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 166.666666667,
     cooldown: 25,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.MANTRA_OF_PAIN]: {
     implemented: true,
-    type: "Utility",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Utility',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 1500,
     cooldown: 1,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.MANTRA_OF_RECOVERY]: {
     implemented: true,
-    type: "Heal",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Heal',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 1500,
     cooldown: 10,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.PHANTASMAL_WARLOCK]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Staff",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Staff',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 12,
     phantasm: true,
     resource: {
-      mode: "phantasm",
-      count: 2,
+      mode: 'phantasm',
+      count: 2
     },
     phantasmSummonProgress: 0.7619047619047619,
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.45,
         hits: 3,
-        name: "One warlock",
-        actorType: "phantasm",
-        weapon: "Phantasm high",
+        name: 'One warlock',
+        actorType: 'phantasm',
+        weapon: 'Phantasm high'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         duration: 4,
-        stacks: 6,
-      },
+        stacks: 6
+      }
     ],
-    quicknessCastTimeMs: 840,
+    quicknessCastTimeMs: 840
   },
   [ID.MIND_STAB]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Greatsword",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 10,
     phantasm: false,
     resource: null,
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.8,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "greatsword",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'greatsword',
         atMs: 200,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
     ],
-    castTimeMs: 480,
+    castTimeMs: 480
   },
   [ID.SPATIAL_SURGE]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Greatsword",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 750,
     cooldown: 0,
     phantasm: false,
@@ -620,26 +611,26 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         ticks: [
           { atMs: 366, coefficient: 0.2666666666666667 },
           { atMs: 518, coefficient: 0.2666666666666667 },
-          { atMs: 684, coefficient: 0.2666666666666667 },
+          { atMs: 684, coefficient: 0.2666666666666667 }
         ],
-        name: "Minimum-range damage",
-        actorType: "player",
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
+        name: 'Minimum-range damage',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
     ],
-    pulseCount: 3,
+    pulseCount: 3
   },
   [ID.ILLUSIONARY_WAVE]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Greatsword",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 960,
     cooldown: 20,
     phantasm: false,
@@ -647,344 +638,344 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.3,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "greatsword",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'greatsword',
         atMs: 401,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.PHANTASMAL_BERSERKER]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Greatsword",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 12,
     phantasm: true,
     resource: {
-      mode: "phantasm",
-      count: 1,
+      mode: 'phantasm',
+      count: 1
     },
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 4,
-        name: "One berserker",
-        actorType: "phantasm",
-        weapon: "phantasm high",
+        name: 'One berserker',
+        actorType: 'phantasm',
+        weapon: 'phantasm high'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 1,
-        name: "Greatsword damage",
-        actorType: "player",
-        weapon: "greatsword",
-      },
+        name: 'Greatsword damage',
+        actorType: 'player',
+        weapon: 'greatsword'
+      }
     ],
-    castTimeMs: 840,
+    castTimeMs: 840
   },
   [ID.MAGIC_BULLET]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Pistol",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Pistol',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 20,
     phantasm: false,
     resource: null,
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.2,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "pistol",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'pistol',
         atMs: 362,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "confusion",
+        type: 'condition',
+        condition: 'confusion',
         duration: 5,
-        stacks: 3,
-      },
+        stacks: 3
+      }
     ],
-    castTimeMs: 660,
+    castTimeMs: 660
   },
   [ID.SIGNET_OF_DOMINATION]: {
     implemented: true,
-    type: "Utility",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Utility',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 166.666666667,
     cooldown: 25,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.SIGNET_OF_MIDNIGHT]: {
     implemented: true,
-    type: "Utility",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Utility',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 0,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 20,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.SIGNET_OF_INSPIRATION]: {
     implemented: true,
-    type: "Utility",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Utility',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 500,
     cooldown: 20,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.MASS_INVISIBILITY]: {
     implemented: true,
-    type: "Elite",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Elite',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 833.333333333,
     cooldown: 35,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.SIGNET_OF_ILLUSIONS]: {
     implemented: true,
-    type: "Utility",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Utility',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 1680,
     cooldown: 60,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.PHANTASMAL_DISENCHANTER]: {
     implemented: true,
-    type: "Utility",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Utility',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 20,
     phantasm: true,
     resource: {
-      mode: "phantasm",
-      count: 1,
+      mode: 'phantasm',
+      count: 1
     },
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Target without boons",
-        actorType: "phantasm",
-        weapon: "phantasm medium",
-      },
+        name: 'Target without boons',
+        actorType: 'phantasm',
+        weapon: 'phantasm medium'
+      }
     ],
-    castTimeMs: 1140,
+    castTimeMs: 1140
   },
   [ID.WINDS_OF_CHAOS]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Staff",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Staff',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 0,
     phantasm: false,
     resource: null,
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         ticks: [
           { atMs: 533, coefficient: 0.3 },
-          { atMs: 623, coefficient: 0.3 },
+          { atMs: 623, coefficient: 0.3 }
         ],
-        name: "Damage",
-        actorType: "player",
-        weapon: "staff",
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'staff',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "torment",
+        type: 'condition',
+        condition: 'torment',
         duration: 5,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "condition",
-        condition: "confusion",
+        type: 'condition',
+        condition: 'confusion',
         duration: 5,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    quicknessCastTimeMs: 760,
+    quicknessCastTimeMs: 760
   },
   [ID.ILLUSIONARY_COUNTER]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Scepter",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Scepter',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 1333.333333333,
     cooldown: 6,
     phantasm: false,
     blade: false,
     effects: [],
     resource: null,
-    defaultInterruptMs: 120,
+    defaultInterruptMs: 120
   },
   [ID.ILLUSIONARY_RIPOSTE]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Sword",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Sword',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 1500,
     cooldown: 12,
     phantasm: false,
     resource: {
-      mode: "add",
-      count: 1,
+      mode: 'add',
+      count: 1
     },
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "sword",
-      },
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'sword'
+      }
     ],
-    defaultInterruptMs: 120,
+    defaultInterruptMs: 120
   },
   [ID.PHANTASMAL_WARDEN]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Focus",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Focus',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 20,
     phantasm: true,
     resource: {
-      mode: "phantasm",
-      count: 1,
+      mode: 'phantasm',
+      count: 1
     },
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.656,
         hits: 12,
-        name: "Damage",
-        actorType: "phantasm",
-        weapon: "phantasm medium",
-      },
+        name: 'Damage',
+        actorType: 'phantasm',
+        weapon: 'phantasm medium'
+      }
     ],
-    quicknessCastTimeMs: 460,
+    quicknessCastTimeMs: 460
   },
   [ID.THE_PRESTIGE]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Torch",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Torch',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 40,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 20,
     phantasm: false,
     resource: null,
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
         atMs: 3000,
-        timingAnchor: "castStart",
-        name: "Damage",
-        actorType: "player",
-        weapon: "torch",
+        timingAnchor: 'castStart',
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'torch'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         duration: 9,
         stacks: 1,
         atMs: 3000,
-        timingAnchor: "castStart",
+        timingAnchor: 'castStart'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         duration: 3,
         stacks: 2,
         atMs: 3000,
-        timingAnchor: "castStart",
-        requiredTrait: TRAIT.THE_PLEDGE,
-      },
-    ],
+        timingAnchor: 'castStart',
+        requiredTrait: TRAIT.THE_PLEDGE
+      }
+    ]
   },
   [ID.DIVERSION]: {
     implemented: true,
-    type: "Profession",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Profession',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 0,
     lockouts: [
       {
-        group: "mesmer.shatter",
-        durationMs: 50,
-      },
+        group: 'mesmer.shatter',
+        durationMs: 50
+      }
     ],
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 38,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.ETHER_BOLT]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Scepter",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Scepter',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 0,
     phantasm: false,
     resource: null,
@@ -992,31 +983,31 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     nextChainId: ID.ETHER_BLAST,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "scepter",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'scepter',
         atMs: 400,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "torment",
+        type: 'condition',
+        condition: 'torment',
         duration: 4,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    castTimeMs: 660,
+    castTimeMs: 660
   },
   [ID.ETHER_BLAST]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Scepter",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Scepter',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 780,
     cooldown: 0,
     phantasm: false,
@@ -1025,194 +1016,194 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     nextChainId: ID.ETHER_CLONE,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "scepter",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'scepter',
         atMs: 481,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         duration: 6,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.ETHER_CLONE]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Scepter",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Scepter',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 1260,
     cooldown: 0,
     phantasm: false,
     resource: {
-      mode: "add",
-      count: 1,
+      mode: 'add',
+      count: 1
     },
     maxCloneEffects: [
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         duration: 9,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
     blade: false,
     nextChainId: null,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.75,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "scepter",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'scepter',
         atMs: 442,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.FEEDBACK]: {
     implemented: true,
-    type: "Utility",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Utility',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 0,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 32,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.PHASE_RETREAT]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Staff",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Staff',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 0,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 8,
     phantasm: false,
     resource: {
-      mode: "add",
-      count: 1,
+      mode: 'add',
+      count: 1
     },
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.TIME_WARP]: {
     implemented: true,
-    type: "Elite",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Elite',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 960,
     cooldown: 120,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.CHAOS_ARMOR]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Staff",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Staff',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 0,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 16,
     phantasm: false,
     resource: null,
     blade: false,
     effects: [
       {
-        type: "condition",
-        condition: "confusion",
+        type: 'condition',
+        condition: 'confusion',
         duration: 5,
-        stacks: 3,
-      },
-    ],
+        stacks: 3
+      }
+    ]
   },
   [ID.MIRROR_BLADE]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Greatsword",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 900,
     cooldown: 5,
     phantasm: false,
     resource: {
-      mode: "add",
-      count: 1,
+      mode: 'add',
+      count: 1
     },
     blade: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.5,
         hits: 1,
-        name: "Initial target hit",
-        actorType: "player",
-        weapon: "greatsword",
+        name: 'Initial target hit',
+        actorType: 'player',
+        weapon: 'greatsword',
         atMs: 602,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.1,
         hits: 1,
-        name: "Second target hit after one ally bounce",
-        actorType: "player",
-        weapon: "greatsword",
+        name: 'Second target hit after one ally bounce',
+        actorType: 'player',
+        weapon: 'greatsword',
         atMs: 767,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.004,
         hits: 1,
-        name: "Third target hit after two ally bounces",
-        actorType: "player",
-        weapon: "greatsword",
+        name: 'Third target hit after two ally bounces',
+        actorType: 'player',
+        weapon: 'greatsword',
         atMs: 918,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.00016,
         hits: 1,
-        name: "Fourth target hit after three ally bounces",
+        name: 'Fourth target hit after three ally bounces',
         requiredTrait: 686,
-        actorType: "player",
-        weapon: "greatsword",
+        actorType: 'player',
+        weapon: 'greatsword',
         atMs: 1084,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.BLURRED_FRENZY]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Sword",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Sword',
+    specialization: '',
+    environment: 'Terrestrial',
     castTimeMs: 1440,
     cooldown: 10,
     phantasm: false,
@@ -1220,85 +1211,85 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3.6,
         hits: 8,
-        name: "Damage",
-        actorType: "player",
-        weapon: "sword",
-      },
-    ],
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'sword'
+      }
+    ]
   },
   [ID.PHANTASMAL_DEFENDER]: {
     implemented: true,
-    type: "Utility",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Utility',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 40,
     phantasm: true,
     resource: {
-      mode: "phantasm",
-      count: 1,
+      mode: 'phantasm',
+      count: 1
     },
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.4,
         hits: 1,
-        name: "Damage",
-        actorType: "phantasm",
-        weapon: "phantasm defender",
-      },
+        name: 'Damage',
+        actorType: 'phantasm',
+        weapon: 'phantasm defender'
+      }
     ],
-    quicknessCastTimeMs: 770,
+    quicknessCastTimeMs: 770
   },
   [ID.SIGNET_OF_THE_ETHER]: {
     implemented: true,
-    type: "Heal",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Heal',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 30,
     phantasm: false,
     blade: false,
     effects: [],
     resource: null,
-    quicknessCastTimeMs: 919,
+    quicknessCastTimeMs: 919
   },
   [ID.SIGNET_OF_HUMILITY]: {
     implemented: true,
-    type: "Elite",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Elite',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 666.666666667,
     cooldown: 45,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.MIMIC]: {
     implemented: true,
-    type: "Utility",
-    weapon: "",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Utility',
+    weapon: '',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 640,
     cooldown: 20,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.TIDES_OF_TIME]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Shield",
-    specialization: "Chronomancer",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Shield',
+    specialization: 'Chronomancer',
+    environment: 'Terrestrial',
     castTimeMs: 1020,
     cooldown: 35,
     phantasm: false,
@@ -1306,46 +1297,46 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "shield",
-      },
-    ],
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'shield'
+      }
+    ]
   },
   [ID.ECHO_OF_MEMORY]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Shield",
-    specialization: "Chronomancer",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Shield',
+    specialization: 'Chronomancer',
+    environment: 'Terrestrial',
     cooldown: 30,
     phantasm: true,
     resource: {
-      mode: "phantasm",
-      count: 1,
+      mode: 'phantasm',
+      count: 1
     },
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.9,
         hits: 1,
-        name: "Damage",
-        actorType: "phantasm",
-        weapon: "phantasm medium",
-      },
+        name: 'Damage',
+        actorType: 'phantasm',
+        weapon: 'phantasm medium'
+      }
     ],
-    castTimeMs: 2460,
+    castTimeMs: 2460
   },
   [ID.MIRROR_STRIKES]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Axe",
-    specialization: "Mirage",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Axe',
+    specialization: 'Mirage',
+    environment: 'Terrestrial',
     castTimeMs: 1080,
     cooldown: 0,
     phantasm: false,
@@ -1354,63 +1345,63 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     nextChainId: null,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.1,
         hits: 2,
-        name: "Damage",
-        actorType: "player",
-        weapon: "axe",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'axe'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         duration: 6,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         duration: 6,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.AXES_OF_SYMMETRY]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Axe",
-    specialization: "Mirage",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Axe',
+    specialization: 'Mirage',
+    environment: 'Terrestrial',
     cooldown: 8,
     phantasm: false,
     resource: null,
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.75,
         hits: 1,
         castProgress: 0.92,
-        name: "Damage",
-        actorType: "player",
-        weapon: "axe",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'axe'
       },
       {
-        type: "condition",
-        condition: "confusion",
+        type: 'condition',
+        condition: 'confusion',
         duration: 6,
         stacks: 5,
-        atMs: -80,
-      },
+        atMs: -80
+      }
     ],
-    quicknessCastTimeMs: 1000,
+    quicknessCastTimeMs: 1000
   },
   [ID.LACERATING_CHOP]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Axe",
-    specialization: "Mirage",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Axe',
+    specialization: 'Mirage',
+    environment: 'Terrestrial',
     cooldown: 0,
     phantasm: false,
     resource: null,
@@ -1418,28 +1409,28 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     nextChainId: ID.ETHEREAL_CHOP,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.55,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "axe",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'axe'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         duration: 2,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    quicknessCastTimeMs: 430,
+    quicknessCastTimeMs: 430
   },
   [ID.ETHEREAL_CHOP]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Axe",
-    specialization: "Mirage",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Axe',
+    specialization: 'Mirage',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 530,
     cooldown: 0,
     phantasm: false,
@@ -1448,76 +1439,76 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     nextChainId: ID.MIRROR_STRIKES,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.55,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "axe",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'axe'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         duration: 2,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.LINGERING_THOUGHTS]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Axe",
-    specialization: "Mirage",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Axe',
+    specialization: 'Mirage',
+    environment: 'Terrestrial',
     cooldown: 0.25,
     ammo: 2,
     ammoRecharge: 6,
     comboFinishers: [
       {
-        ownerId: "mesmer",
-        finisherType: "Whirl",
+        ownerId: 'mesmer',
+        finisherType: 'Whirl',
         applications: 2,
-        ambiguousFieldSelection: "oldest",
-      },
+        ambiguousFieldSelection: 'oldest'
+      }
     ],
     phantasm: false,
     resource: {
-      mode: "add",
+      mode: 'add',
       count: 1,
-      timingAnchor: "castEnd",
-      atMs: 160,
+      timingAnchor: 'castEnd',
+      atMs: 160
     },
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 3,
-        name: "Damage",
-        actorType: "player",
-        weapon: "axe",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'axe'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         duration: 4,
-        stacks: 3,
+        stacks: 3
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         duration: 1,
-        stacks: 3,
-      },
+        stacks: 3
+      }
     ],
-    quicknessCastTimeMs: 920,
+    quicknessCastTimeMs: 920
   },
   [ID.FLYING_CUTTER]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Dagger",
-    specialization: "Virtuoso",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Dagger',
+    specialization: 'Virtuoso',
+    environment: 'Terrestrial',
     castTimeMs: 660,
     cooldown: 0,
     phantasm: false,
@@ -1525,67 +1516,67 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     blade: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Projectile",
-        actorType: "player",
-        castProgress: 0.72,
-      },
+        name: 'Projectile',
+        actorType: 'player',
+        castProgress: 0.72
+      }
     ],
     trackedHitDamage: {
       hitsRequired: 3,
       duration: 5,
       skillId: ID.CUTTER_BURST,
-      name: "Cutter Burst",
-      actorType: "player",
+      name: 'Cutter Burst',
+      actorType: 'player',
       ticks: [
         {
           atMs: 217,
-          coefficient: 0.2,
+          coefficient: 0.2
         },
         {
           atMs: 250,
-          coefficient: 0.2,
+          coefficient: 0.2
         },
         {
           atMs: 384,
-          coefficient: 0.2,
-        },
-      ],
-    },
+          coefficient: 0.2
+        }
+      ]
+    }
   },
   [ID.BLADE_LEAP]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Sword",
-    specialization: "Troubadour",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Sword',
+    specialization: 'Troubadour',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 500,
     cooldown: 12,
     phantasm: false,
     resource: {
-      mode: "add",
-      count: 1,
+      mode: 'add',
+      count: 1
     },
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "sword",
-      },
-    ],
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'sword'
+      }
+    ]
   },
   [ID.UNSTABLE_BLADESTORM]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Dagger",
-    specialization: "Virtuoso",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Dagger',
+    specialization: 'Virtuoso',
+    environment: 'Terrestrial',
     castTimeMs: 660,
     cooldown: 12,
     phantasm: false,
@@ -1593,163 +1584,163 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     blade: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 4,
-        name: "Storm pulses",
-        actorType: "player",
+        name: 'Storm pulses',
+        actorType: 'player',
         atMs: 1156,
         intervalMs: 1000,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 4,
-        name: "Launched blades",
-        actorType: "player",
+        name: 'Launched blades',
+        actorType: 'player',
         atMs: 1198,
         intervalMs: 1000,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.BLADECALL]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Dagger",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Dagger',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 5,
     phantasm: false,
     resource: {
-      mode: "add",
+      mode: 'add',
       count: 1,
-      timingAnchor: "castStart",
-      atMs: 199,
+      timingAnchor: 'castStart',
+      atMs: 199
     },
     blade: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         ticks: [
           {
             atMs: 199,
-            coefficient: 0.25,
+            coefficient: 0.25
           },
           {
             atMs: 199,
-            coefficient: 0.25,
+            coefficient: 0.25
           },
           {
             atMs: 199,
-            coefficient: 0.25,
-          },
+            coefficient: 0.25
+          }
         ],
-        name: "Outgoing damage",
-        actorType: "player",
-        weapon: "dagger",
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        name: 'Outgoing damage',
+        actorType: 'player',
+        weapon: 'dagger',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         ticks: [
           {
             atMs: 2716,
-            coefficient: 0.25,
+            coefficient: 0.25
           },
           {
             atMs: 2716,
-            coefficient: 0.25,
+            coefficient: 0.25
           },
           {
             atMs: 2766,
-            coefficient: 0.25,
-          },
+            coefficient: 0.25
+          }
         ],
-        name: "Returning damage",
-        actorType: "player",
-        weapon: "dagger",
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
+        name: 'Returning damage',
+        actorType: 'player',
+        weapon: 'dagger',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
     ],
-    castTimeMs: 660,
+    castTimeMs: 660
   },
   [ID.TROUBADOUR_LINGERING_THOUGHTS]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Axe",
-    specialization: "Troubadour",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Axe',
+    specialization: 'Troubadour',
+    environment: 'Terrestrial',
     cooldown: 0.25,
     phantasm: false,
     resource: {
-      mode: "add",
-      count: 1,
+      mode: 'add',
+      count: 1
     },
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 3,
-        name: "Damage",
-        actorType: "player",
-        weapon: "axe",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'axe'
       },
       {
-        type: "condition",
-        condition: "torment",
+        type: 'condition',
+        condition: 'torment',
         duration: 4,
-        stacks: 3,
-      },
+        stacks: 3
+      }
     ],
-    quicknessCastTimeMs: 930,
+    quicknessCastTimeMs: 930
   },
   [ID.TROUBADOUR_AXES_OF_SYMMETRY]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Axe",
-    specialization: "Troubadour",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Axe',
+    specialization: 'Troubadour',
+    environment: 'Terrestrial',
     cooldown: 8,
     phantasm: false,
     resource: null,
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.75,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "axe",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'axe'
       },
       {
-        type: "condition",
-        condition: "confusion",
+        type: 'condition',
+        condition: 'confusion',
         duration: 6,
-        stacks: 5,
+        stacks: 5
       },
       {
-        type: "condition",
-        condition: "confusion",
+        type: 'condition',
+        condition: 'confusion',
         duration: 6,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    quicknessCastTimeMs: 1020,
+    quicknessCastTimeMs: 1020
   },
   [ID.FRIENDLY_FIRE]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Rifle",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Rifle',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 500,
     cooldown: 0,
     phantasm: false,
@@ -1757,144 +1748,144 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "rifle",
-      },
-    ],
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'rifle'
+      }
+    ]
   },
   [ID.JOURNEY]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Rifle",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Rifle',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 333.333333333,
     cooldown: 5,
     phantasm: false,
     resource: {
-      mode: "add",
-      count: 1,
+      mode: 'add',
+      count: 1
     },
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "rifle",
-      },
-    ],
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'rifle'
+      }
+    ]
   },
   [ID.INSPIRING_IMAGERY]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Rifle",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Rifle',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 500,
     cooldown: 12,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.PHANTASMAL_SHARPSHOOTER]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Rifle",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Rifle',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 500,
     cooldown: 20,
     phantasm: true,
     resource: {
-      mode: "phantasm",
-      count: 1,
+      mode: 'phantasm',
+      count: 1
     },
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.28,
         hits: 1,
-        name: "Phantasm shot",
-        actorType: "phantasm",
-        weapon: "rifle",
-      },
-    ],
+        name: 'Phantasm shot',
+        actorType: 'phantasm',
+        weapon: 'rifle'
+      }
+    ]
   },
   [ID.SINGULARITY_SHOT]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Rifle",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Rifle',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 333.333333333,
     cooldown: 20,
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [],
+    effects: []
   },
   [ID.PHANTASMAL_LANCER]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Spear",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Spear',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 520,
     cooldown: 12,
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Mesmer attack",
-        actorType: "player",
-        weapon: "spear",
+        name: 'Mesmer attack',
+        actorType: 'player',
+        weapon: 'spear'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.23,
         hits: 1,
-        name: "One lancer",
-        actorType: "phantasm",
-        weapon: "spear",
+        name: 'One lancer',
+        actorType: 'phantasm',
+        weapon: 'spear'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         duration: 3,
-        actorType: "phantasm",
-        phantasmEntityIndex: 0,
+        actorType: 'phantasm',
+        phantasmEntityIndex: 0
       },
       {
-        type: "condition",
-        condition: "Immobilized",
+        type: 'condition',
+        condition: 'Immobilized',
         duration: 2,
-        actorType: "phantasm",
-        phantasmEntityIndex: 1,
-      },
+        actorType: 'phantasm',
+        phantasmEntityIndex: 1
+      }
     ],
     phantasm: true,
     resource: {
-      mode: "phantasm",
-      count: 1,
-    },
+      mode: 'phantasm',
+      count: 1
+    }
   },
   [ID.MENTAL_COLLAPSE]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Spear",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Spear',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 640,
     cooldown: 20,
     phantasm: false,
@@ -1902,21 +1893,21 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3,
         hits: 3,
-        name: "Damage",
-        actorType: "player",
-        weapon: "spear",
-      },
-    ],
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'spear'
+      }
+    ]
   },
   [ID.PSYSTRIKE]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Spear",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Spear',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 520,
     cooldown: 0,
     phantasm: false,
@@ -1925,46 +1916,46 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     nextChainId: ID.MIND_PIERCE,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "spear",
-      },
-    ],
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'spear'
+      }
+    ]
   },
   [ID.MIND_THE_GAP]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Spear",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Spear',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 600,
     cooldown: 5,
     phantasm: false,
     resource: {
-      mode: "add",
-      count: 1,
+      mode: 'add',
+      count: 1
     },
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.92,
         hits: 1,
-        name: "Outer-edge damage",
-        actorType: "player",
-        weapon: "spear",
-      },
-    ],
+        name: 'Outer-edge damage',
+        actorType: 'player',
+        weapon: 'spear'
+      }
+    ]
   },
   [ID.MIND_PIERCE]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Spear",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Spear',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 560,
     cooldown: 0,
     phantasm: false,
@@ -1973,21 +1964,21 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     nextChainId: null,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "spear",
-      },
-    ],
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'spear'
+      }
+    ]
   },
   [ID.IMAGINARY_INVERSION]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Spear",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Spear',
+    specialization: '',
+    environment: 'Terrestrial',
     quicknessCastTimeMs: 680,
     cooldown: 10,
     phantasm: false,
@@ -1995,21 +1986,21 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     blade: false,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.4,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "spear",
-      },
-    ],
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'spear'
+      }
+    ]
   },
   [ID.PSYCUT]: {
     implemented: true,
-    type: "Weapon",
-    weapon: "Spear",
-    specialization: "",
-    environment: "Terrestrial",
+    type: 'Weapon',
+    weapon: 'Spear',
+    specialization: '',
+    environment: 'Terrestrial',
     cooldown: 0,
     phantasm: false,
     resource: null,
@@ -2017,24 +2008,22 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     nextChainId: ID.PSYSTRIKE,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "spear",
-      },
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'spear'
+      }
     ],
-    quicknessCastTimeMs: 400,
-  },
+    quicknessCastTimeMs: 400
+  }
 });
 
-export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<
-  Record<SkillId, SkillFragment>
-> = Object.freeze({
+export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.POWER_SPIKE]: {
     castTimeMs: 0,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 10,
     resource: null,
     blade: false,
@@ -2043,47 +2032,47 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<
     implemented: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.33,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-      },
-    ],
+        name: 'Damage',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.COUNTERSPELL]: {
     castTimeMs: 900,
     cooldown: 0,
     resource: {
-      mode: "add",
-      count: 1,
+      mode: 'add',
+      count: 1
     },
     blade: false,
     flipDuration: 2,
     implemented: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.1,
         hits: 1,
-        name: "Projectile",
-        actorType: "player",
-        weapon: "scepter",
+        name: 'Projectile',
+        actorType: 'player',
+        weapon: 'scepter',
         atMs: 322,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Confusion",
+        type: 'condition',
+        condition: 'Confusion',
         duration: 7,
-        stacks: 5,
-      },
-    ],
+        stacks: 5
+      }
+    ]
   },
   [ID.SWAP]: {
     castTimeMs: 0,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 0,
     phantasm: false,
     resource: null,
@@ -2091,7 +2080,7 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<
     flipDuration: 5,
     flipDelay: 0,
     implemented: true,
-    effects: [],
+    effects: []
   },
   [ID.COUNTER_BLADE]: {
     castTimeMs: 1020,
@@ -2104,21 +2093,21 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<
     implemented: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.1,
         hits: 1,
-        name: "Damage",
-        actorType: "player",
-        weapon: "sword",
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'sword',
         atMs: 484,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.INTO_THE_VOID]: {
     castTimeMs: 0,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 0,
     phantasm: false,
     resource: null,
@@ -2126,11 +2115,11 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<
     flipDuration: 5,
     flipDelay: 1,
     implemented: true,
-    effects: [],
+    effects: []
   },
   [ID.DIMENSIONAL_APERTURE]: {
     castTimeMs: 0,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 0,
     phantasm: false,
     resource: null,
@@ -2139,11 +2128,11 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<
     flipDelay: 0,
     parentCooldownIncrease: 0.5,
     implemented: true,
-    effects: [],
+    effects: []
   },
   [ID.ABSTRACTION]: {
     castTimeMs: 0,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 0,
     phantasm: false,
     resource: null,
@@ -2153,29 +2142,29 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<
     implemented: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.5,
         hits: 1,
-        name: "Detonation",
-        actorType: "player",
-        weapon: "rifle",
-      },
-    ],
-  },
+        name: 'Detonation',
+        actorType: 'player',
+        weapon: 'rifle'
+      }
+    ]
+  }
 });
 
 export const MESMER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   {
     id: ID.SWAP_WEAPONS,
-    name: "Swap Weapons",
-    description: "Swap between weapon sets. The swap has a 10-second recharge.",
-    icon: "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
-    type: "Action",
-    slot: "Action",
+    name: 'Swap Weapons',
+    description: 'Swap between weapon sets. The swap has a 10-second recharge.',
+    icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
+    type: 'Action',
+    slot: 'Action',
     castTimeMs: 0,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 10,
     implemented: true,
-    effects: [],
-  },
+    effects: []
+  }
 ] satisfies readonly MesmerSkill[]);

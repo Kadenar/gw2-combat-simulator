@@ -1,14 +1,11 @@
-import { EVTC_STATE_CHANGE } from "../../../types.js";
-import { findRotationSkill } from "../../catalog.js";
-import type {
-  EvtcProfessionReconstructionContext,
-  EvtcRecordedRotationAction,
-} from "../types.js";
+import { EVTC_STATE_CHANGE } from '../../../types.js';
+import { findRotationSkill } from '../../catalog.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 
 export const SIGNAL_WINDOW_MS = 150;
 export const ASSASSINS_SIGNET = Object.freeze({
   name: "Assassin's Signet",
-  skillId: 13046,
+  skillId: 13046
 });
 export const ASSASSINS_SIGNET_ACTIVE_BUFF = 44597;
 
@@ -19,40 +16,22 @@ export interface ThiefActionIdentity {
 
 export function playerEvent(
   context: EvtcProfessionReconstructionContext,
-  event: EvtcProfessionReconstructionContext["log"]["events"][number],
+  event: EvtcProfessionReconstructionContext['log']['events'][number]
 ): boolean {
-  return (
-    event.source === context.playerAddress ||
-    event.target === context.playerAddress
-  );
+  return event.source === context.playerAddress || event.target === context.playerAddress;
 }
 
-export function combatStart(
-  context: EvtcProfessionReconstructionContext,
-): number | null {
+export function combatStart(context: EvtcProfessionReconstructionContext): number | null {
   return (
     context.log.events.find(
-      (event) =>
-        event.source === context.playerAddress &&
-        event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT,
+      (event) => event.source === context.playerAddress && event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT
     )?.time ?? null
   );
 }
 
-export function skillDuration(
-  context: EvtcProfessionReconstructionContext,
-  identity: ThiefActionIdentity,
-): number {
-  const skill = findRotationSkill(
-    identity.skillId,
-    identity.name,
-    context.catalog,
-    context.profile,
-  );
-  return Math.max(
-    0,
-    Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0),
-  );
+export function skillDuration(context: EvtcProfessionReconstructionContext, identity: ThiefActionIdentity): number {
+  const skill = findRotationSkill(identity.skillId, identity.name, context.catalog, context.profile);
+  return Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
 }
 
 export function canonicalAction(
@@ -60,7 +39,7 @@ export function canonicalAction(
   start: number,
   identity: ThiefActionIdentity,
   rawSkillId: number,
-  evidence: EvtcRecordedRotationAction["evidence"] = "buff-transition",
+  evidence: EvtcRecordedRotationAction['evidence'] = 'buff-transition'
 ): EvtcRecordedRotationAction {
   return {
     start,
@@ -71,8 +50,8 @@ export function canonicalAction(
     canonicalSkillId: identity.skillId,
     canonicalName: identity.name,
     evidence,
-    status: "instant",
-    eventIndex,
+    status: 'instant',
+    eventIndex
   };
 }
 
@@ -80,7 +59,7 @@ export function hasRecordedAction(
   actions: readonly EvtcRecordedRotationAction[],
   identity: ThiefActionIdentity,
   time: number,
-  windowMs = SIGNAL_WINDOW_MS,
+  windowMs = SIGNAL_WINDOW_MS
 ): boolean {
   const normalizedName = identity.name.toLowerCase();
   return actions.some(
@@ -89,18 +68,13 @@ export function hasRecordedAction(
         action.canonicalSkillId === identity.skillId ||
         action.rawName.trim().toLowerCase() === normalizedName ||
         action.canonicalName?.trim().toLowerCase() === normalizedName) &&
-      Math.abs(action.start - time) <= windowMs,
+      Math.abs(action.start - time) <= windowMs
   );
 }
 
-export function hasSelectedSkill(
-  context: EvtcProfessionReconstructionContext,
-  identity: ThiefActionIdentity,
-): boolean {
+export function hasSelectedSkill(context: EvtcProfessionReconstructionContext, identity: ThiefActionIdentity): boolean {
   return (
     context.selectedSkillNames == null ||
-    context.selectedSkillNames.some(
-      (name) => name.trim().toLowerCase() === identity.name.toLowerCase(),
-    )
+    context.selectedSkillNames.some((name) => name.trim().toLowerCase() === identity.name.toLowerCase())
   );
 }

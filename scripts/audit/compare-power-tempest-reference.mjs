@@ -1,132 +1,117 @@
-import { readFile } from "node:fs/promises";
+import { readFile } from 'node:fs/promises';
 
 import {
   loadSkillHits as loadReferenceSkillHits,
-  loadSkills as loadReferenceSkills,
-} from "../../reference-repos/Elementalist-Simulator/js/data/csv-loader.js";
+  loadSkills as loadReferenceSkills
+} from '../../reference-repos/Elementalist-Simulator/js/data/csv-loader.js';
 import {
   calcBuildAttributes as calculateReferenceAttributes,
-  createSimulationEngine as createReferenceEngine,
-} from "../../reference-repos/Elementalist-Simulator/js/sim/run/sim-runner.js";
+  createSimulationEngine as createReferenceEngine
+} from '../../reference-repos/Elementalist-Simulator/js/sim/run/sim-runner.js';
 import {
   elementalistAppAdapter,
   recalculate,
-  runSimulation,
-} from "../../js/professions/elementalist/app/app-definition.js";
+  runSimulation
+} from '../../js/professions/elementalist/app/app-definition.js';
 
-const repositoryRoot = new URL("../../", import.meta.url);
-const referenceRoot = new URL(
-  "reference-repos/Elementalist-Simulator/",
-  repositoryRoot,
-);
+const repositoryRoot = new URL('../../', import.meta.url);
+const referenceRoot = new URL('reference-repos/Elementalist-Simulator/', repositoryRoot);
 const auditSuites = Object.freeze({
   catalyst: Object.freeze([
-    "condi-catalyst-pistol",
-    "condi-quick-catalyst-pistol-dagger",
-    "condi-quick-catalyst-pistol-warhorn",
-    "inferno-catalyst",
-    "inferno-quick-catalyst",
-    "power-catalyst-scepter-btth",
-    "power-catalyst-spear",
-    "power-catalyst-sword-btth",
-    "power-catalyst-sword-fa",
-    "power-quick-catalyst-scepter-btth",
-    "power-quick-catalyst-sword-fa",
+    'condi-catalyst-pistol',
+    'condi-quick-catalyst-pistol-dagger',
+    'condi-quick-catalyst-pistol-warhorn',
+    'inferno-catalyst',
+    'inferno-quick-catalyst',
+    'power-catalyst-scepter-btth',
+    'power-catalyst-spear',
+    'power-catalyst-sword-btth',
+    'power-catalyst-sword-fa',
+    'power-quick-catalyst-scepter-btth',
+    'power-quick-catalyst-sword-fa'
   ]),
   evoker: Object.freeze([
-    "condi-air-se-evoker",
-    "condi-alac-evoker-pistol-warhorn",
-    "condi-evoker-pistol-dagger",
-    "condi-evoker-pistol-warhorn",
-    "condi-quick-air-se-evoker",
-    "inferno-evoker-se",
-    "inferno-quick-evoker-se",
-    "power-alac-evoker-toad",
-    "power-evoker-hare",
-    "power-quick-evoker-hare",
+    'condi-air-se-evoker',
+    'condi-alac-evoker-pistol-warhorn',
+    'condi-evoker-pistol-dagger',
+    'condi-evoker-pistol-warhorn',
+    'condi-quick-air-se-evoker',
+    'inferno-evoker-se',
+    'inferno-quick-evoker-se',
+    'power-alac-evoker-toad',
+    'power-evoker-hare',
+    'power-quick-evoker-hare'
   ]),
   tempest: Object.freeze([
-    "cele-alac-tempest",
-    "condi-alac-tempest-pistol",
-    "condi-alac-tempest-scepter",
-    "condi-tempest-pistol-warhorn",
-    "condi-tempest-scepter",
-    "inferno-alac-tempest",
-    "inferno-tempest",
-    "power-alac-tempest-hammer",
-    "power-alac-tempest-sword",
-    "power-tempest-hammer",
-    "power-tempest-scepter",
-    "power-tempest-spear",
-    "power-tempest-sword",
+    'cele-alac-tempest',
+    'condi-alac-tempest-pistol',
+    'condi-alac-tempest-scepter',
+    'condi-tempest-pistol-warhorn',
+    'condi-tempest-scepter',
+    'inferno-alac-tempest',
+    'inferno-tempest',
+    'power-alac-tempest-hammer',
+    'power-alac-tempest-sword',
+    'power-tempest-hammer',
+    'power-tempest-scepter',
+    'power-tempest-spear',
+    'power-tempest-sword'
   ]),
   weaver: Object.freeze([
-    "condi-weaver-pistol",
-    "condi-weaver-pistol-dagger",
-    "condi-weaver-scepter",
-    "power-weaver-spear",
-    "power-weaver-sword",
-  ]),
+    'condi-weaver-pistol',
+    'condi-weaver-pistol-dagger',
+    'condi-weaver-scepter',
+    'power-weaver-spear',
+    'power-weaver-sword'
+  ])
 });
 const requestedSuite =
-  process.argv
-    .find((argument) => argument.startsWith("--suite="))
-    ?.slice("--suite=".length) || "tempest";
+  process.argv.find((argument) => argument.startsWith('--suite='))?.slice('--suite='.length) || 'tempest';
 if (!(requestedSuite in auditSuites)) {
   throw new Error(`Unknown Elementalist audit suite: ${requestedSuite}`);
 }
 const availableVariants = auditSuites[requestedSuite];
-const requestedVariant = process.argv
-  .find((argument) => argument.startsWith("--variant="))
-  ?.slice("--variant=".length);
+const requestedVariant = process.argv.find((argument) => argument.startsWith('--variant='))?.slice('--variant='.length);
 if (requestedVariant && !availableVariants.includes(requestedVariant)) {
   throw new Error(`Unknown ${requestedSuite} variant: ${requestedVariant}`);
 }
 const variants = requestedVariant ? [requestedVariant] : availableVariants;
 const rotationVariantAliases = Object.freeze({});
-const requestedSkill = process.argv
-  .find((argument) => argument.startsWith("--skill="))
-  ?.slice("--skill=".length);
-const summaryOnly = process.argv.includes("--summary");
-const check = process.argv.includes("--check");
-const actionableCheck = process.argv.includes("--check-actionable");
+const requestedSkill = process.argv.find((argument) => argument.startsWith('--skill='))?.slice('--skill='.length);
+const summaryOnly = process.argv.includes('--summary');
+const check = process.argv.includes('--check');
+const actionableCheck = process.argv.includes('--check-actionable');
 const evokerActionableTolerances = Object.freeze({
-  "condi-air-se-evoker": Object.freeze({
+  'condi-air-se-evoker': Object.freeze({
     durationDeltaPercent: 0.15,
-    timelineChanges: 8,
+    timelineChanges: 8
   }),
-  "condi-evoker-pistol-dagger": Object.freeze({
+  'condi-evoker-pistol-dagger': Object.freeze({
     durationDeltaPercent: 0.21,
-    timelineChanges: 4,
+    timelineChanges: 4
   }),
-  "condi-evoker-pistol-warhorn": Object.freeze({
+  'condi-evoker-pistol-warhorn': Object.freeze({
     durationDeltaPercent: 0.21,
-    timelineChanges: 11,
+    timelineChanges: 11
   }),
-  "condi-quick-air-se-evoker": Object.freeze({
+  'condi-quick-air-se-evoker': Object.freeze({
     durationDeltaPercent: 0.15,
-    timelineChanges: 4,
+    timelineChanges: 4
   }),
-  "power-evoker-hare": Object.freeze({
+  'power-evoker-hare': Object.freeze({
     durationDeltaPercent: 0.15,
-    timelineChanges: 12,
+    timelineChanges: 12
   }),
-  "power-quick-evoker-hare": Object.freeze({
+  'power-quick-evoker-hare': Object.freeze({
     durationDeltaPercent: 1.19,
-    timelineChanges: 13,
-  }),
+    timelineChanges: 13
+  })
 });
-const damagingConditions = new Set([
-  "Bleeding",
-  "Burning",
-  "Confusion",
-  "Poisoned",
-  "Torment",
-]);
+const damagingConditions = new Set(['Bleeding', 'Burning', 'Confusion', 'Poisoned', 'Torment']);
 
 function matchesRequestedSkill(event) {
   if (!requestedSkill) return false;
-  if (requestedSkill === "*") return true;
+  if (requestedSkill === '*') return true;
   const requested = requestedSkill.toLowerCase();
   return [
     event.skill,
@@ -139,12 +124,12 @@ function matchesRequestedSkill(event) {
     event.trait,
     event.relic,
     event.name,
-    event.kind,
-  ].some((value) => String(value || "").toLowerCase() === requested);
+    event.kind
+  ].some((value) => String(value || '').toLowerCase() === requested);
 }
 
 async function readText(root, path) {
-  return readFile(new URL(path, root), "utf8");
+  return readFile(new URL(path, root), 'utf8');
 }
 
 async function readJson(root, path) {
@@ -154,11 +139,11 @@ async function readJson(root, path) {
 async function loadData(root, directory, loadSkills, loadSkillHits) {
   const [skillsText, hitsText] = await Promise.all([
     readText(root, `${directory}/Tool_Elementalist - Skills_data.csv`),
-    readText(root, `${directory}/Tool_Elementalist - Skill_hits_data.csv`),
+    readText(root, `${directory}/Tool_Elementalist - Skill_hits_data.csv`)
   ]);
   return {
     skills: loadSkills(skillsText),
-    skillHits: loadSkillHits(hitsText),
+    skillHits: loadSkillHits(hitsText)
   };
 }
 
@@ -166,25 +151,16 @@ function selectedSkills(snapshot, skills) {
   return Object.fromEntries(
     Object.entries(snapshot.selectedSkills || {}).map(([slot, name]) => [
       slot,
-      skills.find((skill) => skill.name === name),
-    ]),
+      skills.find((skill) => skill.name === name)
+    ])
   );
 }
 
-function runStandalone(
-  snapshot,
-  rotation,
-  data,
-  calculateAttributes,
-  createEngine,
-) {
-  const attributes = calculateAttributes(
-    snapshot.build,
-    selectedSkills(snapshot, data.skills),
-  );
+function runStandalone(snapshot, rotation, data, calculateAttributes, createEngine) {
+  const attributes = calculateAttributes(snapshot.build, selectedSkills(snapshot, data.skills));
   const engine = createEngine(data, attributes, {
     hitboxSize: snapshot.hitboxSize,
-    thornsBossAuraOnly: snapshot.thornsBossAuraOnly,
+    thornsBossAuraOnly: snapshot.thornsBossAuraOnly
   });
   engine.rotation = rotation;
   const result = engine.run(
@@ -197,7 +173,7 @@ function runStandalone(
     null,
     null,
     snapshot.evokerStartCharges ?? 6,
-    snapshot.evokerStartEmpowered ?? 0,
+    snapshot.evokerStartEmpowered ?? 0
   );
   result.auditAttributes = attributes;
   return result;
@@ -207,12 +183,12 @@ function runNative(snapshot, rotation) {
   const build = {
     ...elementalistAppAdapter.toApplicationBuild({
       ...snapshot,
-      rotation,
+      rotation
     }),
     // The reference uses an effectively unkillable target but stops scoring at
     // rotation end. A positive sentinel selects that existing native mode.
     targetHealth: Number.MAX_SAFE_INTEGER,
-    rotation,
+    rotation
   };
   const app = {
     build,
@@ -220,7 +196,7 @@ function runNative(snapshot, rotation) {
     profession: elementalistAppAdapter.profession,
     skillByName: elementalistAppAdapter.profession.catalog.skillsByName,
     skillById: elementalistAppAdapter.profession.catalog.skillsById,
-    attributeWeaponSet: 1,
+    attributeWeaponSet: 1
   };
   recalculate(app);
   const result = runSimulation(app);
@@ -235,14 +211,12 @@ function round(value, digits = 3) {
 
 function attributeFinals(result) {
   return Object.fromEntries(
-    Object.entries(result.auditAttributes?.attributes || {}).map(
-      ([name, attribute]) => [name, round(attribute.final)],
-    ),
+    Object.entries(result.auditAttributes?.attributes || {}).map(([name, attribute]) => [name, round(attribute.final)])
   );
 }
 
 function canonicalSkillName(name) {
-  return name === "Relic of the Fractal" ? "Relic of Fractal" : name;
+  return name === 'Relic of the Fractal' ? 'Relic of Fractal' : name;
 }
 
 function addSkillDamage(damage, name, amount) {
@@ -253,15 +227,9 @@ function addSkillDamage(damage, name, amount) {
 function standaloneSkillDamage(result) {
   const damage = new Map();
   for (const [name, entry] of Object.entries(result.perSkill || {})) {
-    addSkillDamage(
-      damage,
-      name,
-      Number(entry.strike || 0) + Number(entry.condition || 0),
-    );
+    addSkillDamage(damage, name, Number(entry.strike || 0) + Number(entry.condition || 0));
   }
-  return Object.fromEntries(
-    [...damage].map(([name, total]) => [name, round(total)]),
-  );
+  return Object.fromEntries([...damage].map(([name, total]) => [name, round(total)]));
 }
 
 function nativeSkillDamage(result) {
@@ -270,9 +238,7 @@ function nativeSkillDamage(result) {
     const name = entry.parentSkill || entry.sourceSkill || entry.name;
     addSkillDamage(damage, name, entry.damage || 0);
   }
-  return Object.fromEntries(
-    [...damage].map(([name, total]) => [name, round(total)]),
-  );
+  return Object.fromEntries([...damage].map(([name, total]) => [name, round(total)]));
 }
 
 function standaloneSkillMetrics(result) {
@@ -285,7 +251,7 @@ function standaloneSkillMetrics(result) {
       casts: 0,
       hits: 0,
       conditionApplications: 0,
-      appliedConditionStackSeconds: 0,
+      appliedConditionStackSeconds: 0
     };
     current.strike += Number(entry.strike || 0);
     current.condition += Number(entry.condition || 0);
@@ -294,7 +260,7 @@ function standaloneSkillMetrics(result) {
     metrics.set(canonicalName, current);
   }
   for (const event of result.log || []) {
-    if (event.type !== "cond_apply" || !event.skill) continue;
+    if (event.type !== 'cond_apply' || !event.skill) continue;
     const name = canonicalSkillName(event.skill);
     const current = metrics.get(name) || {
       strike: 0,
@@ -302,11 +268,10 @@ function standaloneSkillMetrics(result) {
       casts: 0,
       hits: 0,
       conditionApplications: 0,
-      appliedConditionStackSeconds: 0,
+      appliedConditionStackSeconds: 0
     };
     current.conditionApplications += 1;
-    current.appliedConditionStackSeconds +=
-      Number(event.stacks || 0) * (Number(event.durMs || 0) / 1000);
+    current.appliedConditionStackSeconds += Number(event.stacks || 0) * (Number(event.durMs || 0) / 1000);
     metrics.set(name, current);
   }
   return Object.fromEntries(metrics);
@@ -315,16 +280,14 @@ function standaloneSkillMetrics(result) {
 function nativeSkillMetrics(result) {
   const metrics = new Map();
   for (const entry of result.breakdown || []) {
-    const name = canonicalSkillName(
-      entry.parentSkill || entry.sourceSkill || entry.name,
-    );
+    const name = canonicalSkillName(entry.parentSkill || entry.sourceSkill || entry.name);
     const current = metrics.get(name) || {
       strike: 0,
       condition: 0,
       casts: 0,
       hits: 0,
       conditionApplications: 0,
-      appliedConditionStackSeconds: 0,
+      appliedConditionStackSeconds: 0
     };
     current.strike += Number(entry.strikeDamage || 0);
     current.condition += Number(entry.conditionDamage || 0);
@@ -333,27 +296,20 @@ function nativeSkillMetrics(result) {
     metrics.set(name, current);
   }
   for (const event of result.resolvedEvents || []) {
-    if (
-      event.type !== "condition" ||
-      event.effectiveDuration == null ||
-      !damagingConditions.has(event.condition)
-    ) {
+    if (event.type !== 'condition' || event.effectiveDuration == null || !damagingConditions.has(event.condition)) {
       continue;
     }
-    const name = canonicalSkillName(
-      event.parentSkillName || event.skillName || event.name,
-    );
+    const name = canonicalSkillName(event.parentSkillName || event.skillName || event.name);
     const current = metrics.get(name) || {
       strike: 0,
       condition: 0,
       casts: 0,
       hits: 0,
       conditionApplications: 0,
-      appliedConditionStackSeconds: 0,
+      appliedConditionStackSeconds: 0
     };
     current.conditionApplications += 1;
-    current.appliedConditionStackSeconds +=
-      Number(event.stacks || 0) * Number(event.effectiveDuration || 0);
+    current.appliedConditionStackSeconds += Number(event.stacks || 0) * Number(event.effectiveDuration || 0);
     metrics.set(name, current);
   }
   return Object.fromEntries(metrics);
@@ -367,16 +323,12 @@ function topSkills(skillDamage, limit = 15) {
 }
 
 function rotationSteps(result) {
-  return (result.steps || []).filter(
-    (step) => Number.isInteger(step.ri) && step.ri >= 0,
-  );
+  return (result.steps || []).filter((step) => Number.isInteger(step.ri) && step.ri >= 0);
 }
 
 function compareTimelines(candidateResult, baselineResult) {
   const baselineSteps = rotationSteps(baselineResult);
-  const candidateByIndex = new Map(
-    rotationSteps(candidateResult).map((step) => [step.ri, step]),
-  );
+  const candidateByIndex = new Map(rotationSteps(candidateResult).map((step) => [step.ri, step]));
   let previousStartDelta = 0;
   const changes = [];
   for (const baseline of baselineSteps) {
@@ -385,14 +337,12 @@ function compareTimelines(candidateResult, baselineResult) {
       changes.push({
         rotationIndex: baseline.ri,
         skill: baseline.skill,
-        missingFromCandidate: true,
+        missingFromCandidate: true
       });
       continue;
     }
     const startDeltaMs = round(candidate.start - baseline.start);
-    const durationDeltaMs = round(
-      candidate.end - candidate.start - (baseline.end - baseline.start),
-    );
+    const durationDeltaMs = round(candidate.end - candidate.start - (baseline.end - baseline.start));
     const driftChangeMs = round(startDeltaMs - previousStartDelta);
     previousStartDelta = startDeltaMs;
     if (Math.abs(durationDeltaMs) >= 1 || Math.abs(driftChangeMs) >= 1) {
@@ -404,14 +354,14 @@ function compareTimelines(candidateResult, baselineResult) {
         candidateStartMs: round(candidate.start),
         startDeltaMs,
         driftChangeMs,
-        durationDeltaMs,
+        durationDeltaMs
       });
     }
   }
   return {
     baselineRotationSteps: baselineSteps.length,
     candidateRotationSteps: candidateByIndex.size,
-    changes,
+    changes
   };
 }
 
@@ -422,14 +372,9 @@ function largestSkillDeltas(candidate, baseline, limit = 15) {
       baselineDamage: round(baseline[name]),
       candidateDamage: round(candidate[name]),
       damageDelta: round((candidate[name] || 0) - (baseline[name] || 0)),
-      damageDeltaPercent: percentageDelta(
-        candidate[name] || 0,
-        baseline[name] || 0,
-      ),
+      damageDeltaPercent: percentageDelta(candidate[name] || 0, baseline[name] || 0)
     }))
-    .sort(
-      (left, right) => Math.abs(right.damageDelta) - Math.abs(left.damageDelta),
-    )
+    .sort((left, right) => Math.abs(right.damageDelta) - Math.abs(left.damageDelta))
     .slice(0, limit);
 }
 
@@ -439,12 +384,8 @@ function compareSkillMetrics(candidate, baseline, baselineTotalDamage) {
     .map((name) => {
       const baselineMetric = baseline[name] || {};
       const candidateMetric = candidate[name] || {};
-      const baselineDamage =
-        Number(baselineMetric.strike || 0) +
-        Number(baselineMetric.condition || 0);
-      const candidateDamage =
-        Number(candidateMetric.strike || 0) +
-        Number(candidateMetric.condition || 0);
+      const baselineDamage = Number(baselineMetric.strike || 0) + Number(baselineMetric.condition || 0);
+      const candidateDamage = Number(candidateMetric.strike || 0) + Number(candidateMetric.condition || 0);
       return {
         name,
         baselineStrike: round(baselineMetric.strike),
@@ -455,44 +396,22 @@ function compareSkillMetrics(candidate, baseline, baselineTotalDamage) {
         candidateDamage: round(candidateDamage),
         damageDelta: round(candidateDamage - baselineDamage),
         damageDeltaPercent: percentageDelta(candidateDamage, baselineDamage),
-        strikeDelta: round(
-          Number(candidateMetric.strike || 0) -
-            Number(baselineMetric.strike || 0),
-        ),
-        strikeDeltaPercent: percentageDelta(
-          candidateMetric.strike || 0,
-          baselineMetric.strike || 0,
-        ),
-        conditionDelta: round(
-          Number(candidateMetric.condition || 0) -
-            Number(baselineMetric.condition || 0),
-        ),
-        conditionDeltaPercent: percentageDelta(
-          candidateMetric.condition || 0,
-          baselineMetric.condition || 0,
-        ),
+        strikeDelta: round(Number(candidateMetric.strike || 0) - Number(baselineMetric.strike || 0)),
+        strikeDeltaPercent: percentageDelta(candidateMetric.strike || 0, baselineMetric.strike || 0),
+        conditionDelta: round(Number(candidateMetric.condition || 0) - Number(baselineMetric.condition || 0)),
+        conditionDeltaPercent: percentageDelta(candidateMetric.condition || 0, baselineMetric.condition || 0),
         baselineCasts: round(baselineMetric.casts),
         candidateCasts: round(candidateMetric.casts),
         baselineHits: round(baselineMetric.hits),
         candidateHits: round(candidateMetric.hits),
-        baselineConditionApplications: round(
-          baselineMetric.conditionApplications,
-        ),
-        candidateConditionApplications: round(
-          candidateMetric.conditionApplications,
-        ),
-        baselineAppliedConditionStackSeconds: round(
-          baselineMetric.appliedConditionStackSeconds,
-        ),
-        candidateAppliedConditionStackSeconds: round(
-          candidateMetric.appliedConditionStackSeconds,
-        ),
-        material: Math.max(baselineDamage, candidateDamage) >= materialDamage,
+        baselineConditionApplications: round(baselineMetric.conditionApplications),
+        candidateConditionApplications: round(candidateMetric.conditionApplications),
+        baselineAppliedConditionStackSeconds: round(baselineMetric.appliedConditionStackSeconds),
+        candidateAppliedConditionStackSeconds: round(candidateMetric.appliedConditionStackSeconds),
+        material: Math.max(baselineDamage, candidateDamage) >= materialDamage
       };
     })
-    .sort(
-      (left, right) => Math.abs(right.damageDelta) - Math.abs(left.damageDelta),
-    );
+    .sort((left, right) => Math.abs(right.damageDelta) - Math.abs(left.damageDelta));
 }
 
 function abilityDivergences(comparisons, baselineTotalDamage) {
@@ -501,26 +420,25 @@ function abilityDivergences(comparisons, baselineTotalDamage) {
     .map((comparison) => {
       const components = [
         {
-          name: "total",
+          name: 'total',
           baseline: comparison.baselineDamage,
-          candidate: comparison.candidateDamage,
+          candidate: comparison.candidateDamage
         },
         {
-          name: "strike",
+          name: 'strike',
           baseline: comparison.baselineStrike,
-          candidate: comparison.candidateStrike,
+          candidate: comparison.candidateStrike
         },
         {
-          name: "condition",
+          name: 'condition',
           baseline: comparison.baselineCondition,
-          candidate: comparison.candidateCondition,
-        },
+          candidate: comparison.candidateCondition
+        }
       ];
       const divergentComponents = components
         .filter(
           ({ baseline, candidate }) =>
-            Math.abs(candidate - baseline) > absoluteTolerance &&
-            Math.abs(percentageDelta(candidate, baseline)) > 2,
+            Math.abs(candidate - baseline) > absoluteTolerance && Math.abs(percentageDelta(candidate, baseline)) > 2
         )
         .map(({ name }) => name);
       return { ...comparison, divergentComponents };
@@ -534,138 +452,114 @@ function abilityMechanicDivergences(comparisons) {
       name: comparison.name,
       baselineConditionApplications: comparison.baselineConditionApplications,
       candidateConditionApplications: comparison.candidateConditionApplications,
-      conditionApplicationDelta:
-        comparison.candidateConditionApplications -
-        comparison.baselineConditionApplications,
-      baselineAppliedConditionStackSeconds:
-        comparison.baselineAppliedConditionStackSeconds,
-      candidateAppliedConditionStackSeconds:
-        comparison.candidateAppliedConditionStackSeconds,
+      conditionApplicationDelta: comparison.candidateConditionApplications - comparison.baselineConditionApplications,
+      baselineAppliedConditionStackSeconds: comparison.baselineAppliedConditionStackSeconds,
+      candidateAppliedConditionStackSeconds: comparison.candidateAppliedConditionStackSeconds,
       appliedConditionStackSecondsDelta: round(
-        comparison.candidateAppliedConditionStackSeconds -
-          comparison.baselineAppliedConditionStackSeconds,
-      ),
+        comparison.candidateAppliedConditionStackSeconds - comparison.baselineAppliedConditionStackSeconds
+      )
     }))
     .filter(
       (comparison) =>
         comparison.conditionApplicationDelta !== 0 ||
         Math.abs(comparison.appliedConditionStackSecondsDelta) >
-          Math.max(
-            0.05,
-            Math.abs(comparison.baselineAppliedConditionStackSeconds) * 0.001,
-          ),
+          Math.max(0.05, Math.abs(comparison.baselineAppliedConditionStackSeconds) * 0.001)
     );
 }
 
 const abilityDivergenceCauses = Object.freeze([
-  "condition-tick-cadence",
-  "concurrent-readiness-timeline",
-  "critical-food-policy",
-  "critical-sigil-causality",
-  "resolved-proc-causality",
-  "fresh-air-intent-tie",
-  "reference-reporting",
-  "unclassified",
+  'condition-tick-cadence',
+  'concurrent-readiness-timeline',
+  'critical-food-policy',
+  'critical-sigil-causality',
+  'resolved-proc-causality',
+  'fresh-air-intent-tie',
+  'reference-reporting',
+  'unclassified'
 ]);
 
 const weaverConcurrentTimelineAbilities = Object.freeze({
-  "condi-weaver-pistol": new Set(["Purblinding Plasma"]),
-  "condi-weaver-scepter": new Set([
-    "Signet of Fire",
-    "Stone Tide",
-    "Shatterstone",
-  ]),
-  "power-weaver-spear": new Set([
-    "Galvanize",
-    "Jökulhlaup",
-    "Earthen Spear",
-    "Meteor",
-    "Ice Beam",
-    "Elutriate",
-    "Restorative Spear",
-    "Frostfire Ward",
-    "Primordial Stance (Fire)",
-    "Sunspot",
-    "Fulgor",
-    "Primordial Stance (Air)",
-    "Fissure",
-    "Undertow",
-  ]),
+  'condi-weaver-pistol': new Set(['Purblinding Plasma']),
+  'condi-weaver-scepter': new Set(['Signet of Fire', 'Stone Tide', 'Shatterstone']),
+  'power-weaver-spear': new Set([
+    'Galvanize',
+    'Jökulhlaup',
+    'Earthen Spear',
+    'Meteor',
+    'Ice Beam',
+    'Elutriate',
+    'Restorative Spear',
+    'Frostfire Ward',
+    'Primordial Stance (Fire)',
+    'Sunspot',
+    'Fulgor',
+    'Primordial Stance (Air)',
+    'Fissure',
+    'Undertow'
+  ])
 });
 
 function classifyAbilityDivergences(divergences, variant) {
   return divergences.map((entry) => {
-    let cause = "unclassified";
-    if (entry.name === "Nourishment") {
-      cause = "critical-food-policy";
-    } else if (["Sigil of Air", "Sigil of Earth"].includes(entry.name)) {
-      cause = "critical-sigil-causality";
-    } else if (requestedSuite === "catalyst" && variant.endsWith("-fa")) {
-      cause = "fresh-air-intent-tie";
+    let cause = 'unclassified';
+    if (entry.name === 'Nourishment') {
+      cause = 'critical-food-policy';
+    } else if (['Sigil of Air', 'Sigil of Earth'].includes(entry.name)) {
+      cause = 'critical-sigil-causality';
+    } else if (requestedSuite === 'catalyst' && variant.endsWith('-fa')) {
+      cause = 'fresh-air-intent-tie';
+    } else if (requestedSuite === 'weaver' && weaverConcurrentTimelineAbilities[variant]?.has(entry.name)) {
+      cause = 'concurrent-readiness-timeline';
+    } else if (entry.name === 'Bloodstone Explosion') {
+      cause = 'reference-reporting';
+    } else if (entry.divergentComponents.every((component) => ['total', 'condition'].includes(component))) {
+      cause = 'condition-tick-cadence';
     } else if (
-      requestedSuite === "weaver" &&
-      weaverConcurrentTimelineAbilities[variant]?.has(entry.name)
+      requestedSuite === 'evoker' &&
+      ['Conflagration', 'Lightning Blitz', 'Seismic Impact', 'Electric Enchantment'].includes(entry.name)
     ) {
-      cause = "concurrent-readiness-timeline";
-    } else if (entry.name === "Bloodstone Explosion") {
-      cause = "reference-reporting";
-    } else if (
-      entry.divergentComponents.every((component) =>
-        ["total", "condition"].includes(component),
-      )
-    ) {
-      cause = "condition-tick-cadence";
-    } else if (
-      requestedSuite === "evoker" &&
-      [
-        "Conflagration",
-        "Lightning Blitz",
-        "Seismic Impact",
-        "Electric Enchantment",
-      ].includes(entry.name)
-    ) {
-      cause = "resolved-proc-causality";
-    } else if (requestedSuite === "evoker") {
-      cause = "concurrent-readiness-timeline";
-    } else if (requestedSuite === "catalyst") {
-      cause = "resolved-proc-causality";
+      cause = 'resolved-proc-causality';
+    } else if (requestedSuite === 'evoker') {
+      cause = 'concurrent-readiness-timeline';
+    } else if (requestedSuite === 'catalyst') {
+      cause = 'resolved-proc-causality';
     }
     return {
       name: entry.name,
       cause,
-      divergentComponents: entry.divergentComponents,
+      divergentComponents: entry.divergentComponents
     };
   });
 }
 
 const abilityMechanicDivergenceCauses = Object.freeze([
-  "attunement-timeline-causality",
-  "condition-duration-rounding",
-  "critical-sigil-causality",
-  "fresh-air-intent-tie",
-  "reference-reporting",
-  "unclassified",
+  'attunement-timeline-causality',
+  'condition-duration-rounding',
+  'critical-sigil-causality',
+  'fresh-air-intent-tie',
+  'reference-reporting',
+  'unclassified'
 ]);
 
 function classifyAbilityMechanicDivergences(divergences, variant) {
   return divergences.map((entry) => {
-    let cause = "unclassified";
-    if (entry.name === "Bloodstone Explosion") {
-      cause = "reference-reporting";
-    } else if (requestedSuite === "catalyst" && variant.endsWith("-fa")) {
-      cause = "fresh-air-intent-tie";
+    let cause = 'unclassified';
+    if (entry.name === 'Bloodstone Explosion') {
+      cause = 'reference-reporting';
+    } else if (requestedSuite === 'catalyst' && variant.endsWith('-fa')) {
+      cause = 'fresh-air-intent-tie';
     } else if (
-      requestedSuite === "weaver" &&
-      variant === "power-weaver-spear" &&
-      ["Primordial Stance", "Burning Precision"].includes(entry.name)
+      requestedSuite === 'weaver' &&
+      variant === 'power-weaver-spear' &&
+      ['Primordial Stance', 'Burning Precision'].includes(entry.name)
     ) {
-      cause = "attunement-timeline-causality";
-    } else if (["Sigil of Air", "Sigil of Earth"].includes(entry.name)) {
-      cause = "critical-sigil-causality";
+      cause = 'attunement-timeline-causality';
+    } else if (['Sigil of Air', 'Sigil of Earth'].includes(entry.name)) {
+      cause = 'critical-sigil-causality';
     } else if (entry.conditionApplicationDelta === 0) {
-      cause = "condition-duration-rounding";
-    } else if (requestedSuite === "evoker") {
-      cause = "attunement-timeline-causality";
+      cause = 'condition-duration-rounding';
+    } else if (requestedSuite === 'evoker') {
+      cause = 'attunement-timeline-causality';
     }
     return { ...entry, cause };
   });
@@ -675,25 +569,22 @@ function countAbilityMechanicDivergenceCauses(classifications) {
   return Object.fromEntries(
     abilityMechanicDivergenceCauses.map((cause) => [
       cause,
-      classifications.filter((entry) => entry.cause === cause).length,
-    ]),
+      classifications.filter((entry) => entry.cause === cause).length
+    ])
   );
 }
 
 function countAbilityDivergenceCauses(classifications) {
   return Object.fromEntries(
-    abilityDivergenceCauses.map((cause) => [
-      cause,
-      classifications.filter((entry) => entry.cause === cause).length,
-    ]),
+    abilityDivergenceCauses.map((cause) => [cause, classifications.filter((entry) => entry.cause === cause).length])
   );
 }
 
 function summarizeStandalone(result) {
   const skillDamage = standaloneSkillDamage(result);
   const errors = (result.log || [])
-    .filter((event) => event.type === "err")
-    .map((event) => String(event.msg || "Unknown reference error"));
+    .filter((event) => event.type === 'err')
+    .map((event) => String(event.msg || 'Unknown reference error'));
   return {
     dps: round(result.dps),
     totalDamage: round(result.totalDamage),
@@ -710,29 +601,23 @@ function summarizeStandalone(result) {
         condition,
         {
           damage: round(result.condDamage[condition]),
-          stackSeconds: round(result.condStackSeconds?.[condition]),
-        },
-      ]),
+          stackSeconds: round(result.condStackSeconds?.[condition])
+        }
+      ])
     ),
     skillMetrics: standaloneSkillMetrics(result),
     skillDamage,
     skillDetails: result.perSkill || {},
-    topSkills: topSkills(skillDamage),
+    topSkills: topSkills(skillDamage)
   };
 }
 
 function summarizeNative(result) {
   const skillDamage = nativeSkillDamage(result);
   const postRotationDamage = (result.resolvedEvents || [])
-    .filter(
-      (event) =>
-        Number(event.at) > Number(result.duration) && Number(event.damage) > 0,
-    )
+    .filter((event) => Number(event.at) > Number(result.duration) && Number(event.damage) > 0)
     .reduce((total, event) => total + Number(event.damage || 0), 0);
-  const rotationWindowSeconds = Math.max(
-    0,
-    Number(result.duration) - Number(result.dpsStartTime || 0),
-  );
+  const rotationWindowSeconds = Math.max(0, Number(result.duration) - Number(result.dpsStartTime || 0));
   const rotationWindowDamage = Number(result.totalDamage);
   return {
     dps: round(result.dps),
@@ -746,9 +631,7 @@ function summarizeNative(result) {
     lastHitSeconds: round(result.lastHitTime, 6),
     postRotationDamage: round(postRotationDamage),
     rotationWindowDamage: round(rotationWindowDamage),
-    rotationWindowDps: round(
-      rotationWindowDamage / Math.max(rotationWindowSeconds, 1),
-    ),
+    rotationWindowDps: round(rotationWindowDamage / Math.max(rotationWindowSeconds, 1)),
     stepCount: rotationSteps(result).length,
     warningCount: result.warnings?.length || 0,
     warnings: result.warnings || [],
@@ -757,14 +640,14 @@ function summarizeNative(result) {
         entry.name,
         {
           damage: round(entry.damage),
-          stackSeconds: round(entry.averageStacks * result.dpsWindow),
-        },
-      ]),
+          stackSeconds: round(entry.averageStacks * result.dpsWindow)
+        }
+      ])
     ),
     skillMetrics: nativeSkillMetrics(result),
     skillDamage,
     skillDetails: result.breakdown || [],
-    topSkills: topSkills(skillDamage),
+    topSkills: topSkills(skillDamage)
   };
 }
 
@@ -775,122 +658,78 @@ function percentageDelta(actual, baseline) {
 function compare(candidate, baseline) {
   return {
     dpsPercent: percentageDelta(candidate.dps, baseline.dps),
-    totalDamagePercent: percentageDelta(
-      candidate.totalDamage,
-      baseline.totalDamage,
-    ),
-    strikeDamagePercent: percentageDelta(
-      candidate.strikeDamage,
-      baseline.strikeDamage,
-    ),
-    conditionDamagePercent: percentageDelta(
-      candidate.conditionDamage,
-      baseline.conditionDamage,
-    ),
-    durationPercent: percentageDelta(
-      candidate.durationSeconds,
-      baseline.durationSeconds,
-    ),
+    totalDamagePercent: percentageDelta(candidate.totalDamage, baseline.totalDamage),
+    strikeDamagePercent: percentageDelta(candidate.strikeDamage, baseline.strikeDamage),
+    conditionDamagePercent: percentageDelta(candidate.conditionDamage, baseline.conditionDamage),
+    durationPercent: percentageDelta(candidate.durationSeconds, baseline.durationSeconds)
   };
 }
 
-const referenceData = await loadData(
-  referenceRoot,
-  "csv input",
-  loadReferenceSkills,
-  loadReferenceSkillHits,
-);
+const referenceData = await loadData(referenceRoot, 'csv input', loadReferenceSkills, loadReferenceSkillHits);
 
 const results = {};
 for (const variant of variants) {
   const rotationVariant = rotationVariantAliases[variant] || variant;
-  const [snapshot, savedRotation, localSnapshot, localSavedRotation] =
-    await Promise.all([
-      readJson(referenceRoot, `Builds/b-${variant}.json`),
-      readJson(referenceRoot, `Rotations/r-${rotationVariant}.json`),
-      readJson(repositoryRoot, `Builds/elementalist/b-${variant}.json`),
-      readJson(
-        repositoryRoot,
-        `Rotations/elementalist/r-${rotationVariant}.json`,
-      ),
-    ]);
+  const [snapshot, savedRotation, localSnapshot, localSavedRotation] = await Promise.all([
+    readJson(referenceRoot, `Builds/b-${variant}.json`),
+    readJson(referenceRoot, `Rotations/r-${rotationVariant}.json`),
+    readJson(repositoryRoot, `Builds/elementalist/b-${variant}.json`),
+    readJson(repositoryRoot, `Rotations/elementalist/r-${rotationVariant}.json`)
+  ]);
   const rotation = savedRotation.rotation;
   const referenceResult = runStandalone(
     snapshot,
     rotation,
     referenceData,
     calculateReferenceAttributes,
-    createReferenceEngine,
+    createReferenceEngine
   );
   const nativeResult = runNative(snapshot, rotation);
   const reference = summarizeStandalone(referenceResult);
   const native = summarizeNative(nativeResult);
   const referenceSkillMetrics = standaloneSkillMetrics(referenceResult);
   const nativeSkillMetricsResult = nativeSkillMetrics(nativeResult);
-  const nativeSkillParity = compareSkillMetrics(
-    nativeSkillMetricsResult,
-    referenceSkillMetrics,
-    reference.totalDamage,
+  const nativeSkillParity = compareSkillMetrics(nativeSkillMetricsResult, referenceSkillMetrics, reference.totalDamage);
+  const nativeAbilityDivergences = abilityDivergences(nativeSkillParity, reference.totalDamage);
+  const nativeAbilityDivergenceClassifications = classifyAbilityDivergences(nativeAbilityDivergences, variant);
+  const nativeAbilityMechanicDivergences = abilityMechanicDivergences(nativeSkillParity);
+  const nativeAbilityMechanicDivergenceClassifications = classifyAbilityMechanicDivergences(
+    nativeAbilityMechanicDivergences,
+    variant
   );
-  const nativeAbilityDivergences = abilityDivergences(
-    nativeSkillParity,
-    reference.totalDamage,
-  );
-  const nativeAbilityDivergenceClassifications = classifyAbilityDivergences(
-    nativeAbilityDivergences,
-    variant,
-  );
-  const nativeAbilityMechanicDivergences =
-    abilityMechanicDivergences(nativeSkillParity);
-  const nativeAbilityMechanicDivergenceClassifications =
-    classifyAbilityMechanicDivergences(
-      nativeAbilityMechanicDivergences,
-      variant,
-    );
   results[variant] = {
     localFixtureDrift: {
       buildDiffers: JSON.stringify(localSnapshot) !== JSON.stringify(snapshot),
-      rotationDiffers:
-        JSON.stringify(localSavedRotation.rotation) !==
-        JSON.stringify(rotation),
+      rotationDiffers: JSON.stringify(localSavedRotation.rotation) !== JSON.stringify(rotation)
     },
     reference,
     native,
     attributeFinals: {
       reference: attributeFinals(referenceResult),
-      native: attributeFinals(nativeResult),
+      native: attributeFinals(nativeResult)
     },
     deltaFromReference: compare(native, reference),
-    largestDamageDeltasFromReference: largestSkillDeltas(
-      native.skillDamage,
-      reference.skillDamage,
-    ),
+    largestDamageDeltasFromReference: largestSkillDeltas(native.skillDamage, reference.skillDamage),
     skillParityFromReference: nativeSkillParity,
     abilityDivergencesFromReference: nativeAbilityDivergences,
     abilityDivergenceClassifications: nativeAbilityDivergenceClassifications,
-    abilityDivergenceCauseCounts: countAbilityDivergenceCauses(
-      nativeAbilityDivergenceClassifications,
-    ),
+    abilityDivergenceCauseCounts: countAbilityDivergenceCauses(nativeAbilityDivergenceClassifications),
     abilityMechanicDivergencesFromReference: nativeAbilityMechanicDivergences,
-    abilityMechanicDivergenceClassifications:
-      nativeAbilityMechanicDivergenceClassifications,
+    abilityMechanicDivergenceClassifications: nativeAbilityMechanicDivergenceClassifications,
     abilityMechanicDivergenceCauseCounts: countAbilityMechanicDivergenceCauses(
-      nativeAbilityMechanicDivergenceClassifications,
+      nativeAbilityMechanicDivergenceClassifications
     ),
     timelineDeltaFromReference: compareTimelines(nativeResult, referenceResult),
     ...(requestedSkill
       ? {
           skillEventDiagnostics: {
-            reference: (referenceResult.log || []).filter((event) =>
-              matchesRequestedSkill(event),
-            ),
-            native: [
-              ...(nativeResult.events || []),
-              ...(nativeResult.resolvedEvents || []),
-            ].filter((event) => matchesRequestedSkill(event)),
-          },
+            reference: (referenceResult.log || []).filter((event) => matchesRequestedSkill(event)),
+            native: [...(nativeResult.events || []), ...(nativeResult.resolvedEvents || [])].filter((event) =>
+              matchesRequestedSkill(event)
+            )
+          }
         }
-      : {}),
+      : {})
   };
 }
 
@@ -906,106 +745,71 @@ const summary = Object.fromEntries(
         nativeDurationDeltaPercent: result.deltaFromReference.durationPercent,
         nativeTimelineChanges: result.timelineDeltaFromReference.changes.length,
         nativeAbilityDivergences: result.abilityDivergencesFromReference.length,
-        nativeAbilityMechanicDivergences:
-          result.abilityMechanicDivergencesFromReference.length,
+        nativeAbilityMechanicDivergences: result.abilityMechanicDivergencesFromReference.length,
         nativeAbilityDivergenceCauses: result.abilityDivergenceCauseCounts,
-        nativeAbilityMechanicDivergenceCauses:
-          result.abilityMechanicDivergenceCauseCounts,
+        nativeAbilityMechanicDivergenceCauses: result.abilityMechanicDivergenceCauseCounts,
         nativeWarnings: result.native.warningCount,
-        nativeUnexpectedWarnings: unexpectedNativeWarnings(
-          variant,
-          result.native.warnings,
-          result.reference.errors,
-        ).length,
-      },
+        nativeUnexpectedWarnings: unexpectedNativeWarnings(variant, result.native.warnings, result.reference.errors)
+          .length
+      }
     ];
-  }),
+  })
 );
 
 function summarizeAbilityDivergence(entry) {
   const details = entry.divergentComponents
     .map((component) => {
-      const percent =
-        component === "total"
-          ? entry.damageDeltaPercent
-          : entry[`${component}DeltaPercent`];
-      return `${component} ${percent > 0 ? "+" : ""}${percent}%`;
+      const percent = component === 'total' ? entry.damageDeltaPercent : entry[`${component}DeltaPercent`];
+      return `${component} ${percent > 0 ? '+' : ''}${percent}%`;
     })
-    .join("/");
+    .join('/');
   return `${entry.name} ${details}`;
 }
 
 function referenceErrorMatchesNativeWarning(error, warning) {
   const sameAttunement = error.match(/^Already in ([A-Za-z]+)\/\1$/);
-  if (
-    sameAttunement &&
-    warning.includes(`already attuned to ${sameAttunement[1]}`)
-  ) {
+  if (sameAttunement && warning.includes(`already attuned to ${sameAttunement[1]}`)) {
     return true;
   }
   const chain = error.match(/^Chain: need (.+), got (.+)$/);
   return Boolean(
-    chain &&
-    warning.startsWith(`${chain[2]} is unavailable`) &&
-    warning.includes(`cast ${chain[1]} first`),
+    chain && warning.startsWith(`${chain[2]} is unavailable`) && warning.includes(`cast ${chain[1]} first`)
   );
 }
 
 function unexpectedNativeWarnings(variant, warnings, referenceErrors = []) {
   let candidates = warnings;
-  if (
-    requestedSuite === "catalyst" &&
-    variant === "power-catalyst-scepter-btth"
-  ) {
+  if (requestedSuite === 'catalyst' && variant === 'power-catalyst-scepter-btth') {
     candidates = warnings.filter(
-      (warning) =>
-        warning !==
-        "Deploy Jade Sphere (Air) is unavailable — requires 10 energy.",
+      (warning) => warning !== 'Deploy Jade Sphere (Air) is unavailable — requires 10 energy.'
     );
   }
-  if (
-    requestedSuite === "evoker" &&
-    ["inferno-evoker-se", "inferno-quick-evoker-se"].includes(variant)
-  ) {
+  if (requestedSuite === 'evoker' && ['inferno-evoker-se', 'inferno-quick-evoker-se'].includes(variant)) {
     candidates = candidates.filter(
       (warning) =>
-        !warning.startsWith("Transmute Fire is unavailable") ||
-        !warning.includes("requires an active Fire Aura."),
+        !warning.startsWith('Transmute Fire is unavailable') || !warning.includes('requires an active Fire Aura.')
     );
   }
   return candidates.filter(
-    (warning) =>
-      !referenceErrors.some((error) =>
-        referenceErrorMatchesNativeWarning(error, warning),
-      ),
+    (warning) => !referenceErrors.some((error) => referenceErrorMatchesNativeWarning(error, warning))
   );
 }
 
 if (check || actionableCheck) {
   const failures = Object.entries(summary).flatMap(([variant, result]) => {
     const reasons = [];
-    const evokerActionableAudit =
-      actionableCheck && requestedSuite === "evoker";
-    const evokerTolerance = evokerActionableAudit
-      ? evokerActionableTolerances[variant]
-      : null;
-    const durationDeltaTolerance =
-      evokerTolerance?.durationDeltaPercent ?? 0.15;
+    const evokerActionableAudit = actionableCheck && requestedSuite === 'evoker';
+    const evokerTolerance = evokerActionableAudit ? evokerActionableTolerances[variant] : null;
+    const durationDeltaTolerance = evokerTolerance?.durationDeltaPercent ?? 0.15;
     const timelineChangeTolerance = evokerTolerance?.timelineChanges ?? 3;
     if (Math.abs(result.nativeDpsDeltaPercent) > 1.2) {
-      reasons.push(
-        `reference DPS delta ${result.nativeDpsDeltaPercent}% exceeds 1.2%`,
-      );
+      reasons.push(`reference DPS delta ${result.nativeDpsDeltaPercent}% exceeds 1.2%`);
     }
     if (Math.abs(result.nativeDurationDeltaPercent) > durationDeltaTolerance) {
-      reasons.push(
-        `reference duration delta ${result.nativeDurationDeltaPercent}% exceeds ${durationDeltaTolerance}%`,
-      );
+      reasons.push(`reference duration delta ${result.nativeDurationDeltaPercent}% exceeds ${durationDeltaTolerance}%`);
     }
     if (result.nativeTimelineChanges > timelineChangeTolerance) {
-      reasons.push(
-        `${result.nativeTimelineChanges} timeline changes exceeds ${timelineChangeTolerance}`,
-      );
+      reasons.push(`${result.nativeTimelineChanges} timeline changes exceeds ${timelineChangeTolerance}`);
     }
     const abilityDivergences = results[variant].abilityDivergencesFromReference;
     if (check && abilityDivergences.length) {
@@ -1013,70 +817,62 @@ if (check || actionableCheck) {
         `${abilityDivergences.length} ability damage component deltas exceed 2% (${abilityDivergences
           .slice(0, 5)
           .map(summarizeAbilityDivergence)
-          .join(", ")})`,
+          .join(', ')})`
       );
     }
     const actionableAbilityCauses = evokerActionableAudit
-      ? ["fresh-air-intent-tie", "unclassified"]
-      : ["critical-sigil-causality", "fresh-air-intent-tie", "unclassified"];
-    const actionableAbilityDivergences = results[
-      variant
-    ].abilityDivergenceClassifications.filter((entry) =>
-      actionableAbilityCauses.includes(entry.cause),
+      ? ['fresh-air-intent-tie', 'unclassified']
+      : ['critical-sigil-causality', 'fresh-air-intent-tie', 'unclassified'];
+    const actionableAbilityDivergences = results[variant].abilityDivergenceClassifications.filter((entry) =>
+      actionableAbilityCauses.includes(entry.cause)
     );
     if (actionableAbilityDivergences.length) {
       reasons.push(
         `${actionableAbilityDivergences.length} actionable ability deltas (${actionableAbilityDivergences
           .map((entry) => `${entry.name}: ${entry.cause}`)
-          .join(", ")})`,
+          .join(', ')})`
       );
     }
     const actionableMechanicCauses = evokerActionableAudit
-      ? ["unclassified"]
-      : ["critical-sigil-causality", "unclassified"];
+      ? ['unclassified']
+      : ['critical-sigil-causality', 'unclassified'];
     const reportedReferenceAbilityMechanicDivergences = check
       ? results[variant].abilityMechanicDivergenceClassifications
-      : results[variant].abilityMechanicDivergenceClassifications.filter(
-          (entry) => actionableMechanicCauses.includes(entry.cause),
+      : results[variant].abilityMechanicDivergenceClassifications.filter((entry) =>
+          actionableMechanicCauses.includes(entry.cause)
         );
     if (reportedReferenceAbilityMechanicDivergences.length) {
       reasons.push(
-        `${reportedReferenceAbilityMechanicDivergences.length}${actionableCheck ? " actionable" : ""} ability condition application/stack-duration deltas (${reportedReferenceAbilityMechanicDivergences
+        `${reportedReferenceAbilityMechanicDivergences.length}${actionableCheck ? ' actionable' : ''} ability condition application/stack-duration deltas (${reportedReferenceAbilityMechanicDivergences
           .slice(0, 5)
           .map((entry) => `${entry.name}: ${entry.cause}`)
-          .join(", ")})`,
+          .join(', ')})`
       );
     }
     const reportedWarnings = check
       ? results[variant].native.warnings
-      : unexpectedNativeWarnings(
-          variant,
-          results[variant].native.warnings,
-          results[variant].reference.errors,
-        );
+      : unexpectedNativeWarnings(variant, results[variant].native.warnings, results[variant].reference.errors);
     if (reportedWarnings.length > 0) {
       reasons.push(
-        `${reportedWarnings.length}${actionableCheck ? " unexpected" : ""} native warnings (${reportedWarnings.join(", ")})`,
+        `${reportedWarnings.length}${actionableCheck ? ' unexpected' : ''} native warnings (${reportedWarnings.join(', ')})`
       );
     }
     if (
       actionableCheck &&
-      requestedSuite === "tempest" &&
-      variant === "condi-alac-tempest-pistol" &&
+      requestedSuite === 'tempest' &&
+      variant === 'condi-alac-tempest-pistol' &&
       result.nativeTimelineChanges > 0
     ) {
       reasons.push(
-        `${result.nativeTimelineChanges} Condi Alac Pistol reference timeline changes; expected exact ELM-704 parity`,
+        `${result.nativeTimelineChanges} Condi Alac Pistol reference timeline changes; expected exact ELM-704 parity`
       );
     }
     return reasons.map((reason) => `${variant}: ${reason}`);
   });
   if (failures.length) {
-    process.stderr.write(`${failures.join("\n")}\n`);
+    process.stderr.write(`${failures.join('\n')}\n`);
     process.exitCode = 1;
   }
 }
 
-process.stdout.write(
-  `${JSON.stringify(summaryOnly || check || actionableCheck ? summary : results, null, 2)}\n`,
-);
+process.stdout.write(`${JSON.stringify(summaryOnly || check || actionableCheck ? summary : results, null, 2)}\n`);

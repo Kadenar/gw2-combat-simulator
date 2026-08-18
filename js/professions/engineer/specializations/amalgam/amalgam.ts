@@ -1,25 +1,19 @@
-import { amalgamState } from "./state.js";
-import { professionCoreState } from "../../../../platform/engine/profession.js";
-import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
-import { hasEngineerTrait } from "../../core/state.js";
-import { emitEngineerState } from "../../core/events.js";
-import {
-  engineerBalanceEffectValue,
-  engineerBalanceValue,
-} from "../../core/profiles.js";
-import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
-import { AMALGAM_NEW_GENES_BOONS } from "./mechanics.js";
-import type {
-  SchedulerRecord,
-  SkillId,
-} from "../../../../platform/engine/types.js";
+import { amalgamState } from './state.js';
+import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { hasEngineerTrait } from '../../core/state.js';
+import { emitEngineerState } from '../../core/events.js';
+import { engineerBalanceEffectValue, engineerBalanceValue } from '../../core/profiles.js';
+import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { AMALGAM_NEW_GENES_BOONS } from './mechanics.js';
+import type { SchedulerRecord, SkillId } from '../../../../platform/engine/types.js';
 import type {
   EngineerCastContext,
   EngineerScheduledTask,
   EngineerSchedulerContext,
   EngineerSimulationEvent,
-  EngineerSkill,
-} from "../../types.js";
+  EngineerSkill
+} from '../../types.js';
 
 interface AmalgamBuff {
   readonly kind: string;
@@ -43,37 +37,37 @@ interface MercurialTendenciesPayload extends SchedulerRecord {
 function emitBuff(
   context: EngineerSchedulerContext,
   at: number,
-  { kind, duration, stacks = 1, sourceId, name }: AmalgamBuff,
+  { kind, duration, stacks = 1, sourceId, name }: AmalgamBuff
 ): void {
   context.emit({
-    type: "buff",
+    type: 'buff',
     at,
-    source: "engineer",
+    source: 'engineer',
     sourceId,
-    actorType: "player",
+    actorType: 'player',
     skillName: name,
     name,
     kind,
     duration,
-    stacks,
+    stacks
   });
 }
 
 function emitControl(
   context: EngineerSchedulerContext,
   at: number,
-  { name, controlKind, duration, sourceId }: AmalgamControl,
+  { name, controlKind, duration, sourceId }: AmalgamControl
 ): void {
   context.emit({
-    type: "control",
+    type: 'control',
     at,
-    source: "engineer",
+    source: 'engineer',
     sourceId,
-    actorType: "player",
+    actorType: 'player',
     skillName: name,
     name,
     controlKind,
-    duration,
+    duration
   });
 }
 
@@ -81,10 +75,8 @@ function selectedMorphNames(context: EngineerSchedulerContext): Set<string> {
   return new Set(
     amalgamState
       .from(context)
-      .selectedMorphSkillIds.map(
-        (id) => context.catalog.skillsById.get(Number(id))?.name,
-      )
-      .filter((name): name is string => Boolean(name)),
+      .selectedMorphSkillIds.map((id) => context.catalog.skillsById.get(Number(id))?.name)
+      .filter((name): name is string => Boolean(name))
   );
 }
 
@@ -92,89 +84,63 @@ function selectedMorphNames(context: EngineerSchedulerContext): Set<string> {
 // (or, for Evolve without Silver Lining, applied for each selected morph).
 // Thorns only sets a timestamp-until timer; its damage is handled via the
 // resolver (Rapacious Strain ICD check) rather than emitting here.
-function applyAmalgamStrain(
-  context: EngineerSchedulerContext,
-  morphName: string,
-  at: number,
-): void {
+function applyAmalgamStrain(context: EngineerSchedulerContext, morphName: string, at: number): void {
   const state = amalgamState.from(context);
-  const strainDuration = engineerBalanceValue(
-    context,
-    PROFILE.strains,
-    "durationMultiplier",
-    8,
-  );
-  if (morphName === "Defensive Protocol: Protect") {
+  const strainDuration = engineerBalanceValue(context, PROFILE.strains, 'durationMultiplier', 8);
+  if (morphName === 'Defensive Protocol: Protect') {
     emitBuff(context, at, {
-      kind: "resistance",
+      kind: 'resistance',
       duration: strainDuration,
-      sourceId: "engineer.resiliant-strain",
-      name: "Resiliant Strain",
+      sourceId: 'engineer.resiliant-strain',
+      name: 'Resiliant Strain'
     });
-  } else if (morphName === "Defensive Protocol: Cleanse") {
+  } else if (morphName === 'Defensive Protocol: Cleanse') {
     emitBuff(context, at, {
-      kind: "alacrity",
+      kind: 'alacrity',
       duration: strainDuration,
-      sourceId: "engineer.replicating-strain",
-      name: "Replicating Strain",
+      sourceId: 'engineer.replicating-strain',
+      name: 'Replicating Strain'
     });
-  } else if (morphName === "Defensive Protocol: Thorns") {
-    state.rapaciousUntil = Math.max(
-      Number(state.rapaciousUntil || 0),
-      at + strainDuration,
-    );
-  } else if (morphName === "Offensive Protocol: Pierce") {
+  } else if (morphName === 'Defensive Protocol: Thorns') {
+    state.rapaciousUntil = Math.max(Number(state.rapaciousUntil || 0), at + strainDuration);
+  } else if (morphName === 'Offensive Protocol: Pierce') {
     emitControl(context, at, {
-      name: "Volatile Strain",
-      controlKind: "stun",
+      name: 'Volatile Strain',
+      controlKind: 'stun',
       duration: 2,
-      sourceId: "engineer.volatile-strain",
+      sourceId: 'engineer.volatile-strain'
     });
-  } else if (morphName === "Offensive Protocol: Obliterate") {
-    state.titanicUntil = Math.max(
-      Number(state.titanicUntil || 0),
-      at + strainDuration,
-    );
+  } else if (morphName === 'Offensive Protocol: Obliterate') {
+    state.titanicUntil = Math.max(Number(state.titanicUntil || 0), at + strainDuration);
     emitBuff(context, at, {
-      kind: "might",
+      kind: 'might',
       duration: strainDuration,
-      stacks: engineerBalanceValue(
-        context,
-        PROFILE.strains,
-        "maximumStacks",
-        10,
-      ),
-      sourceId: "engineer.titanic-strain",
-      name: "Titanic Strain",
+      stacks: engineerBalanceValue(context, PROFILE.strains, 'maximumStacks', 10),
+      sourceId: 'engineer.titanic-strain',
+      name: 'Titanic Strain'
     });
-  } else if (morphName === "Offensive Protocol: Shred") {
-    state.predatorUntil = Math.max(
-      Number(state.predatorUntil || 0),
-      at + strainDuration,
-    );
+  } else if (morphName === 'Offensive Protocol: Shred') {
+    state.predatorUntil = Math.max(Number(state.predatorUntil || 0), at + strainDuration);
     emitBuff(context, at, {
-      kind: "quickness",
+      kind: 'quickness',
       duration: strainDuration,
-      sourceId: "engineer.predator-strain",
-      name: "Predator Strain",
+      sourceId: 'engineer.predator-strain',
+      name: 'Predator Strain'
     });
     emitBuff(context, at, {
-      kind: "superspeed",
+      kind: 'superspeed',
       duration: strainDuration,
-      sourceId: "engineer.predator-strain",
-      name: "Predator Strain",
+      sourceId: 'engineer.predator-strain',
+      name: 'Predator Strain'
     });
-  } else if (morphName === "Offensive Protocol: Demolish") {
-    state.berserkerUntil = Math.max(
-      Number(state.berserkerUntil || 0),
-      at + strainDuration,
-    );
+  } else if (morphName === 'Offensive Protocol: Demolish') {
+    state.berserkerUntil = Math.max(Number(state.berserkerUntil || 0), at + strainDuration);
     emitBuff(context, at, {
-      kind: "stability",
+      kind: 'stability',
       duration: strainDuration,
       stacks: 5,
-      sourceId: "engineer.berserker-strain",
-      name: "Berserker Strain",
+      sourceId: 'engineer.berserker-strain',
+      name: 'Berserker Strain'
     });
   }
 }
@@ -184,93 +150,58 @@ function assumesDamagingField(context: EngineerSchedulerContext): boolean {
     context.config.professionAssumptions?.inDamagingField ??
     context.config.assumptions?.inDamagingField ??
     context.config.inDamagingField ??
-    false,
+    false
   );
 }
 
 // Thorns Retaliation fires once per second for 6 s while inside a damaging
 // field. Only emitted when the "inDamagingField" assumption is enabled because
 // the field source and uptime cannot be inferred from the rotation alone.
-function scheduleThornsRetaliation(
-  context: EngineerCastContext,
-  skill: EngineerSkill,
-  at: number,
-): void {
+function scheduleThornsRetaliation(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   if (!assumesDamagingField(context)) return;
-  const hits = engineerBalanceValue(
-    context,
-    PROFILE.morphs,
-    "maximumStacks",
-    6,
-  );
-  const interval = engineerBalanceValue(
-    context,
-    PROFILE.morphs,
-    "pulseInterval",
-    1,
-  );
+  const hits = engineerBalanceValue(context, PROFILE.morphs, 'maximumStacks', 6);
+  const interval = engineerBalanceValue(context, PROFILE.morphs, 'pulseInterval', 1);
   for (let index = 0; index < hits; index += 1) {
     context.emit({
-      type: "damage",
+      type: 'damage',
       at: at + index * interval,
-      source: "engineer",
+      source: 'engineer',
       sourceId: skill.id,
-      actorType: "player",
+      actorType: 'player',
       skillId: skill.id,
       skillName: skill.name,
-      name: "Thorns Retaliation",
-      coefficient: engineerBalanceEffectValue(
-        context,
-        PROFILE.morphs,
-        "strike",
-        "coefficient",
-        0.5,
-      ),
+      name: 'Thorns Retaliation',
+      coefficient: engineerBalanceEffectValue(context, PROFILE.morphs, 'strike', 'coefficient', 0.5),
       hits: 1,
       hitIndex: index + 1,
       totalHits: hits,
-      skillWeapon: "Unequipped",
+      skillWeapon: 'Unequipped'
     });
   }
 }
 
-export function activateAmalgamMorph(
-  context: EngineerCastContext,
-  skill: EngineerSkill,
-): void {
+export function activateAmalgamMorph(context: EngineerCastContext, skill: EngineerSkill): void {
   const at = context.effectiveEnd;
   const state = amalgamState.from(context);
-  if (skill.name === "Defensive Protocol: Thorns") {
+  if (skill.name === 'Defensive Protocol: Thorns') {
     state.thornsUntil = Math.max(
       state.thornsUntil,
-      at +
-        engineerBalanceValue(context, PROFILE.morphs, "durationMultiplier", 6),
+      at + engineerBalanceValue(context, PROFILE.morphs, 'durationMultiplier', 6)
     );
     scheduleThornsRetaliation(context, skill, at);
   }
   if (hasEngineerTrait(context.config, TRAIT.WILLING_HOST)) {
     state.willingHostUntil = Math.max(
       state.willingHostUntil,
-      at +
-        engineerBalanceValue(
-          context,
-          PROFILE.willingHost,
-          "durationMultiplier",
-          10,
-        ),
+      at + engineerBalanceValue(context, PROFILE.willingHost, 'durationMultiplier', 10)
     );
   }
   if (hasEngineerTrait(context.config, TRAIT.HARDENED_CHROME)) {
     emitBuff(context, at, {
-      kind: "protection",
-      duration: engineerBalanceValue(
-        context,
-        PROFILE.hardenedChrome,
-        "minimumStacks",
-        2.5,
-      ),
+      kind: 'protection',
+      duration: engineerBalanceValue(context, PROFILE.hardenedChrome, 'minimumStacks', 2.5),
       sourceId: TRAIT.HARDENED_CHROME,
-      name: "Hardened Chrome",
+      name: 'Hardened Chrome'
     });
   }
   if (hasEngineerTrait(context.config, TRAIT.SILVER_LINING)) {
@@ -278,69 +209,40 @@ export function activateAmalgamMorph(
   }
   if (hasEngineerTrait(context.config, TRAIT.NEW_GENES)) {
     emitBuff(context, at, {
-      kind: "alacrity",
-      duration: engineerBalanceEffectValue(
-        context,
-        PROFILE.newGenes,
-        "boon",
-        "duration",
-        5,
-      ),
+      kind: 'alacrity',
+      duration: engineerBalanceEffectValue(context, PROFILE.newGenes, 'boon', 'duration', 5),
       sourceId: TRAIT.NEW_GENES,
-      name: "New Genes",
+      name: 'New Genes'
     });
     emitBuff(context, at, {
-      kind: "might",
-      duration: engineerBalanceEffectValue(
-        context,
-        PROFILE.newGenes,
-        "boon",
-        "duration",
-        12,
-        1,
-      ),
-      stacks: engineerBalanceEffectValue(
-        context,
-        PROFILE.newGenes,
-        "boon",
-        "stacks",
-        4,
-        1,
-      ),
+      kind: 'might',
+      duration: engineerBalanceEffectValue(context, PROFILE.newGenes, 'boon', 'duration', 12, 1),
+      stacks: engineerBalanceEffectValue(context, PROFILE.newGenes, 'boon', 'stacks', 4, 1),
       sourceId: TRAIT.NEW_GENES,
-      name: "New Genes",
+      name: 'New Genes'
     });
     const extra = AMALGAM_NEW_GENES_BOONS[skill.name];
     if (extra) {
       emitBuff(context, at, {
         ...extra,
         sourceId: TRAIT.NEW_GENES,
-        name: "New Genes",
+        name: 'New Genes'
       });
     }
   }
-  emitEngineerState(context, at, "amalgam-morph");
+  emitEngineerState(context, at, 'amalgam-morph');
 }
 
-export function activatePlasmaticState(
-  context: EngineerCastContext,
-  _skill: EngineerSkill,
-): void {
+export function activatePlasmaticState(context: EngineerCastContext, _skill: EngineerSkill): void {
   const castDuration = Math.max(0, context.fullEnd - context.start);
   // Plasmatic State is a two-phase cast. Its buff and first damage packet land
   // 640 ms into the 1,440 ms base timeline.
   const at = context.start + castDuration * (640 / 1440);
   amalgamState.from(context).plasmaticStateUntil = Math.max(
     amalgamState.from(context).plasmaticStateUntil,
-    at +
-      engineerBalanceValue(
-        context,
-        PROFILE.plasmaticState,
-        "durationMultiplier",
-        6,
-      ),
+    at + engineerBalanceValue(context, PROFILE.plasmaticState, 'durationMultiplier', 6)
   );
-  emitEngineerState(context, at, "plasmatic-state");
+  emitEngineerState(context, at, 'plasmatic-state');
 }
 
 export function evolveAmalgam(context: EngineerCastContext): void {
@@ -350,8 +252,7 @@ export function evolveAmalgam(context: EngineerCastContext): void {
   const at = context.start + castDuration * (520 / 640);
   const state = amalgamState.from(context);
   const selected = selectedMorphNames(context);
-  state.evolvedUntil =
-    at + engineerBalanceValue(context, PROFILE.evolve, "durationMultiplier", 8);
+  state.evolvedUntil = at + engineerBalanceValue(context, PROFILE.evolve, 'durationMultiplier', 8);
 
   if (!hasEngineerTrait(context.config, TRAIT.SILVER_LINING)) {
     for (const morphName of selected) {
@@ -369,41 +270,33 @@ export function evolveAmalgam(context: EngineerCastContext): void {
   }
   if (hasEngineerTrait(context.config, TRAIT.HARDENED_CHROME)) {
     emitBuff(context, at, {
-      kind: "protection",
-      duration: engineerBalanceValue(
-        context,
-        PROFILE.hardenedChrome,
-        "maximumStacks",
-        4,
-      ),
+      kind: 'protection',
+      duration: engineerBalanceValue(context, PROFILE.hardenedChrome, 'maximumStacks', 4),
       sourceId: TRAIT.HARDENED_CHROME,
-      name: "Hardened Chrome",
+      name: 'Hardened Chrome'
     });
   }
-  emitEngineerState(context, at, "evolve");
+  emitEngineerState(context, at, 'evolve');
 }
 
 // Watches the scheduler event stream and queues a Mercurial Tendencies task for
 // every control event. Summon-sourced controls (Jade Mech CC) are excluded
 // because Mercurial Tendencies only procs on the player's own control effects.
-export function observeAmalgamScheduledEvent(
-  context: EngineerSchedulerContext,
-  event: EngineerSimulationEvent,
-): void {
+export function observeAmalgamScheduledEvent(context: EngineerSchedulerContext, event: EngineerSimulationEvent): void {
   if (
-    context.config.specialization !== "Amalgam" ||
+    context.config.specialization !== 'Amalgam' ||
     !hasEngineerTrait(context.config, TRAIT.MERCURIAL_TENDENCIES) ||
-    event.type !== "control" ||
-    event.actorType === "summon"
+    event.type !== 'control' ||
+    event.actorType === 'summon'
   )
     return;
   context.tasks.schedule({
-    type: "engineer.mercurial-tendencies",
+    type: 'engineer.mercurial-tendencies',
     at: event.at,
-    ownerId: "engineer.mercurial-tendencies",
+    ownerId: 'engineer.mercurial-tendencies',
     payload: {
-      sourceSkill: event.skillName || event.name || "",
-    },
+      sourceSkill: event.skillName || event.name || ''
+    }
   });
 }
 
@@ -411,7 +304,7 @@ export function observeAmalgamScheduledEvent(
 // procs). Works with both standard cooldown and ammo-based recharge tracking.
 export function handleMercurialTendencies(
   context: EngineerSchedulerContext,
-  task: EngineerScheduledTask<MercurialTendenciesPayload>,
+  task: EngineerScheduledTask<MercurialTendenciesPayload>
 ): void {
   const at = task.at;
   const coreState = professionCoreState(context);
@@ -419,25 +312,13 @@ export function handleMercurialTendencies(
   if (readyAt > at + context.epsilon) return;
 
   let reducedBy = 0;
-  const rechargeReduction = engineerBalanceValue(
-    context,
-    PROFILE.mercurialTendencies,
-    "rechargeReduction",
-    2.5,
-  );
-  const trackedIds = new Set([
-    ...context.state.cooldowns.keys(),
-    ...context.state.ammo.keys(),
-  ]);
+  const rechargeReduction = engineerBalanceValue(context, PROFILE.mercurialTendencies, 'rechargeReduction', 2.5);
+  const trackedIds = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
   for (const skillId of trackedIds) {
     const skill = context.catalog.skillsById.get(skillId);
-    if (skill?.name !== "Evolve") continue;
+    if (skill?.name !== 'Evolve') continue;
     if (context.state.ammo.has(skillId)) {
-      reducedBy += context.cooldownController.reduceAmmoRecharge(
-        skill,
-        rechargeReduction,
-        at,
-      ).reducedBy;
+      reducedBy += context.cooldownController.reduceAmmoRecharge(skill, rechargeReduction, at).reducedBy;
       continue;
     }
     const cooldown = Number(context.state.cooldowns.get(skillId) || 0);
@@ -449,22 +330,16 @@ export function handleMercurialTendencies(
   if (!(reducedBy > 0)) return;
 
   coreState.traitProcReadyAt.mercurialTendencies =
-    at +
-    engineerBalanceValue(
-      context,
-      PROFILE.mercurialTendencies,
-      "internalCooldown",
-      0.25,
-    );
+    at + engineerBalanceValue(context, PROFILE.mercurialTendencies, 'internalCooldown', 0.25);
   context.emit({
-    type: "proc",
+    type: 'proc',
     at,
-    source: "Trait",
+    source: 'Trait',
     sourceId: TRAIT.MERCURIAL_TENDENCIES,
-    actorType: "effect",
-    name: "Mercurial Tendencies",
-    procType: "trait",
-    sourceSkill: task.payload?.sourceSkill || "",
-    cooldownReduction: reducedBy,
+    actorType: 'effect',
+    name: 'Mercurial Tendencies',
+    procType: 'trait',
+    sourceSkill: task.payload?.sourceSkill || '',
+    cooldownReduction: reducedBy
   });
 }

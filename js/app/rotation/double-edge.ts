@@ -1,6 +1,6 @@
-import type { CastCommand, Skill } from "../../platform/engine/types.js";
+import type { CastCommand, Skill } from '../../platform/engine/types.js';
 
-export type DoubleEdgeOutcome = NonNullable<CastCommand["doubleEdgeOutcome"]>;
+export type DoubleEdgeOutcome = NonNullable<CastCommand['doubleEdgeOutcome']>;
 
 export interface DoubleEdgeEditorOptions {
   readonly anchor: HTMLElement;
@@ -16,15 +16,15 @@ export interface DoubleEdgeEditorHandle {
 }
 
 export type ConfigurableDoubleEdgeSkill = Skill & {
-  readonly handlerId: "thief.double-edge";
+  readonly handlerId: 'thief.double-edge';
 };
 
 let activeEditor: DoubleEdgeEditorHandle | null = null;
 
 export function hasConfigurableDoubleEdgeOutcome(
-  skill: Skill | null | undefined,
+  skill: Skill | null | undefined
 ): skill is ConfigurableDoubleEdgeSkill {
-  return skill?.handlerId === "thief.double-edge";
+  return skill?.handlerId === 'thief.double-edge';
 }
 
 export function closeDoubleEdgeEditor(): void {
@@ -32,18 +32,16 @@ export function closeDoubleEdgeEditor(): void {
 }
 
 export function doubleEdgeOutcomeLabel(outcome: unknown): string {
-  return outcome === "backfire" ? "Backfired" : "Succeeded";
+  return outcome === 'backfire' ? 'Backfired' : 'Succeeded';
 }
 
-export function openDoubleEdgeEditor(
-  options: DoubleEdgeEditorOptions,
-): DoubleEdgeEditorHandle {
+export function openDoubleEdgeEditor(options: DoubleEdgeEditorOptions): DoubleEdgeEditorHandle {
   closeDoubleEdgeEditor();
 
-  const editor = document.createElement("div");
-  editor.className = "rotation-activation-editor rotation-double-edge-editor";
-  editor.setAttribute("role", "dialog");
-  editor.setAttribute("aria-label", `Edit ${options.skillName} outcome`);
+  const editor = document.createElement('div');
+  editor.className = 'rotation-activation-editor rotation-double-edge-editor';
+  editor.setAttribute('role', 'dialog');
+  editor.setAttribute('aria-label', `Edit ${options.skillName} outcome`);
   editor.tabIndex = -1;
   editor.innerHTML = `
     <div class="activation-editor-heading">Resolve Double Edge</div>
@@ -66,30 +64,20 @@ export function openDoubleEdgeEditor(
     </div>
   `;
 
-  const icon = editor.querySelector<HTMLImageElement>(
-    ".activation-editor-icon",
-  );
-  const name = editor.querySelector<HTMLElement>(".activation-editor-name");
-  const cancel = editor.querySelector<HTMLButtonElement>(
-    ".activation-editor-cancel",
-  );
-  const apply = editor.querySelector<HTMLButtonElement>(
-    ".activation-editor-apply",
-  );
-  const success = editor.querySelector<HTMLInputElement>(
-    'input[value="success"]',
-  );
-  const backfire = editor.querySelector<HTMLInputElement>(
-    'input[value="backfire"]',
-  );
+  const icon = editor.querySelector<HTMLImageElement>('.activation-editor-icon');
+  const name = editor.querySelector<HTMLElement>('.activation-editor-name');
+  const cancel = editor.querySelector<HTMLButtonElement>('.activation-editor-cancel');
+  const apply = editor.querySelector<HTMLButtonElement>('.activation-editor-apply');
+  const success = editor.querySelector<HTMLInputElement>('input[value="success"]');
+  const backfire = editor.querySelector<HTMLInputElement>('input[value="backfire"]');
   if (!icon || !name || !cancel || !apply || !success || !backfire) {
-    throw new TypeError("Double Edge editor markup is incomplete.");
+    throw new TypeError('Double Edge editor markup is incomplete.');
   }
 
-  icon.src = options.icon || "";
+  icon.src = options.icon || '';
   icon.hidden = !options.icon;
   name.textContent = options.skillName;
-  backfire.checked = options.outcome === "backfire";
+  backfire.checked = options.outcome === 'backfire';
   success.checked = !backfire.checked;
 
   let closed = false;
@@ -108,40 +96,28 @@ export function openDoubleEdgeEditor(
       opensLeft = true;
       left = anchorRect.left - editorRect.width - gap;
     }
-    left = Math.max(
-      viewportPadding,
-      Math.min(left, window.innerWidth - editorRect.width - viewportPadding),
-    );
+    left = Math.max(viewportPadding, Math.min(left, window.innerWidth - editorRect.width - viewportPadding));
     const anchorCenter = anchorRect.top + anchorRect.height / 2;
     const top = Math.max(
       viewportPadding,
-      Math.min(
-        anchorCenter - 76,
-        window.innerHeight - editorRect.height - viewportPadding,
-      ),
+      Math.min(anchorCenter - 76, window.innerHeight - editorRect.height - viewportPadding)
     );
-    editor.classList.toggle("opens-left", opensLeft);
+    editor.classList.toggle('opens-left', opensLeft);
     editor.style.left = `${Math.round(left)}px`;
     editor.style.top = `${Math.round(top)}px`;
     editor.style.setProperty(
-      "--activation-editor-arrow-y",
-      `${Math.round(
-        Math.max(18, Math.min(anchorCenter - top, editorRect.height - 18)),
-      )}px`,
+      '--activation-editor-arrow-y',
+      `${Math.round(Math.max(18, Math.min(anchorCenter - top, editorRect.height - 18)))}px`
     );
   };
   const onOutsidePointerDown = (event: PointerEvent): void => {
     const target = event.target;
-    if (
-      target instanceof Node &&
-      !editor.contains(target) &&
-      !options.anchor.contains(target)
-    ) {
+    if (target instanceof Node && !editor.contains(target) && !options.anchor.contains(target)) {
       handle.close();
     }
   };
   const onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === "Escape") {
+    if (event.key === 'Escape') {
       event.preventDefault();
       handle.close();
     }
@@ -152,28 +128,28 @@ export function openDoubleEdgeEditor(
     close(): void {
       if (closed) return;
       closed = true;
-      document.removeEventListener("pointerdown", onOutsidePointerDown, true);
-      document.removeEventListener("keydown", onKeyDown, true);
-      document.removeEventListener("scroll", onViewportChange, true);
-      window.removeEventListener("resize", onViewportChange);
+      document.removeEventListener('pointerdown', onOutsidePointerDown, true);
+      document.removeEventListener('keydown', onKeyDown, true);
+      document.removeEventListener('scroll', onViewportChange, true);
+      window.removeEventListener('resize', onViewportChange);
       editor.remove();
       if (activeEditor === handle) activeEditor = null;
-    },
+    }
   };
 
-  cancel.addEventListener("click", () => handle.close());
-  apply.addEventListener("click", () => {
+  cancel.addEventListener('click', () => handle.close());
+  apply.addEventListener('click', () => {
     handle.close();
-    options.onApply(backfire.checked ? "backfire" : "success");
+    options.onApply(backfire.checked ? 'backfire' : 'success');
   });
 
   document.body.append(editor);
   activeEditor = handle;
   position();
-  document.addEventListener("pointerdown", onOutsidePointerDown, true);
-  document.addEventListener("keydown", onKeyDown, true);
-  document.addEventListener("scroll", onViewportChange, true);
-  window.addEventListener("resize", onViewportChange);
+  document.addEventListener('pointerdown', onOutsidePointerDown, true);
+  document.addEventListener('keydown', onKeyDown, true);
+  document.addEventListener('scroll', onViewportChange, true);
+  window.addEventListener('resize', onViewportChange);
   (backfire.checked ? backfire : success).focus();
   return handle;
 }

@@ -1,5 +1,5 @@
-import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
-import type { GuardianWillbenderState } from "../../types.js";
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import type { GuardianWillbenderState } from '../../types.js';
 
 export function createWillbenderState(): GuardianWillbenderState {
   return {
@@ -12,15 +12,12 @@ export function createWillbenderState(): GuardianWillbenderState {
     virtueHitCounts: {
       justice: 0,
       resolve: 0,
-      courage: 0,
+      courage: 0
     },
     lethalTempoStacks: 0,
     lethalTempoUntil: 0,
-    triggeredVirtueEffects: 0,
+    triggeredVirtueEffects: 0
   };
 }
 
-export const willbenderState = defineProfessionSpecializationState(
-  "Willbender",
-  createWillbenderState,
-);
+export const willbenderState = defineProfessionSpecializationState('Willbender', createWillbenderState);

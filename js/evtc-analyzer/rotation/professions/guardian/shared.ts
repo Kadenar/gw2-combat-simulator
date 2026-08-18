@@ -1,9 +1,6 @@
-import { EVTC_STATE_CHANGE } from "../../../types.js";
-import { findRotationSkill } from "../../catalog.js";
-import type {
-  EvtcProfessionReconstructionContext,
-  EvtcRecordedRotationAction,
-} from "../types.js";
+import { EVTC_STATE_CHANGE } from '../../../types.js';
+import { findRotationSkill } from '../../catalog.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 
 export interface GuardianActionIdentity {
   readonly name: string;
@@ -11,8 +8,8 @@ export interface GuardianActionIdentity {
 }
 
 export const SWAP_WEAPONS = Object.freeze({
-  name: "Swap Weapons",
-  skillId: -3,
+  name: 'Swap Weapons',
+  skillId: -3
 });
 export const SIGNAL_WINDOW_MS = 150;
 
@@ -23,7 +20,7 @@ export function canonicalAction(
   start: number,
   identity: GuardianActionIdentity,
   rawSkillId: number,
-  evidence: EvtcRecordedRotationAction["evidence"] = "buff-transition",
+  evidence: EvtcRecordedRotationAction['evidence'] = 'buff-transition'
 ): EvtcRecordedRotationAction {
   return {
     start,
@@ -34,30 +31,22 @@ export function canonicalAction(
     canonicalSkillId: identity.skillId,
     canonicalName: identity.name,
     evidence,
-    status: "instant",
-    eventIndex,
+    status: 'instant',
+    eventIndex
   };
 }
 
-export function skillFor(
-  context: EvtcProfessionReconstructionContext,
-  identity: GuardianActionIdentity,
-) {
-  return findRotationSkill(
-    identity.skillId,
-    identity.name,
-    context.catalog,
-    context.profile,
-  );
+export function skillFor(context: EvtcProfessionReconstructionContext, identity: GuardianActionIdentity) {
+  return findRotationSkill(identity.skillId, identity.name, context.catalog, context.profile);
 }
 
 export function recordedDuration(
   context: EvtcProfessionReconstructionContext,
-  identity: GuardianActionIdentity,
+  identity: GuardianActionIdentity
 ): number {
   const normalizedName = identity.name.toLowerCase();
   const completed = context.recordedActions.filter(
-    (action) => action.status === "completed" && action.end > action.start,
+    (action) => action.status === 'completed' && action.end > action.start
   );
   const exactDurations = completed
     .filter((action) => action.rawSkillId === identity.skillId)
@@ -72,41 +61,30 @@ export function recordedDuration(
   }
   if (durations.length) return durations[Math.floor(durations.length / 2)];
   const skill = skillFor(context, identity);
-  return Math.max(
-    0,
-    Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0),
-  );
+  return Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
 }
 
-export function firstPlayerEventTime(
-  context: EvtcProfessionReconstructionContext,
-): number {
+export function firstPlayerEventTime(context: EvtcProfessionReconstructionContext): number {
   return Math.min(
     ...context.log.events
       .filter(
-        (event) =>
-          event.time > 0 &&
-          (event.source === context.playerAddress ||
-            event.target === context.playerAddress),
+        (event) => event.time > 0 && (event.source === context.playerAddress || event.target === context.playerAddress)
       )
-      .map((event) => event.time),
+      .map((event) => event.time)
   );
 }
 
-export function encounterEndTime(
-  context: EvtcProfessionReconstructionContext,
-): number | null {
+export function encounterEndTime(context: EvtcProfessionReconstructionContext): number | null {
   const targets = new Set(
     context.log.agents
       .filter((agent) => agent.profession === context.log.header.encounterId)
-      .map((agent) => agent.address),
+      .map((agent) => agent.address)
   );
   const times = context.log.events
     .filter(
       (event) =>
         targets.has(event.source) &&
-        (event.stateChange === EVTC_STATE_CHANGE.EXIT_COMBAT ||
-          event.stateChange === EVTC_STATE_CHANGE.CHANGE_DEAD),
+        (event.stateChange === EVTC_STATE_CHANGE.EXIT_COMBAT || event.stateChange === EVTC_STATE_CHANGE.CHANGE_DEAD)
     )
     .map((event) => event.time);
   return times.length ? Math.min(...times) : null;
@@ -114,23 +92,19 @@ export function encounterEndTime(
 
 export function isPhysicalWeaponSwap(
   context: EvtcProfessionReconstructionContext,
-  action: EvtcRecordedRotationAction,
+  action: EvtcRecordedRotationAction
 ): boolean {
   const event = context.log.events[action.eventIndex];
   return (
-    event != null &&
-    PHYSICAL_WEAPON_SETS.has(Number(event.target)) &&
-    PHYSICAL_WEAPON_SETS.has(Number(event.value))
+    event != null && PHYSICAL_WEAPON_SETS.has(Number(event.target)) && PHYSICAL_WEAPON_SETS.has(Number(event.value))
   );
 }
 
 export function normalizeDefaultGuardianWeaponTransitions(
   context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[],
+  actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   return actions.filter(
-    (action) =>
-      action.rawName !== SWAP_WEAPONS.name ||
-      context.log.events[action.eventIndex] != null,
+    (action) => action.rawName !== SWAP_WEAPONS.name || context.log.events[action.eventIndex] != null
   );
 }

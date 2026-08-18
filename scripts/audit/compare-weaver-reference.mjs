@@ -1,5 +1,5 @@
-if (!process.argv.some((argument) => argument.startsWith("--suite="))) {
-  process.argv.push("--suite=weaver");
+if (!process.argv.some((argument) => argument.startsWith('--suite='))) {
+  process.argv.push('--suite=weaver');
 }
 
-await import("./compare-power-tempest-reference.mjs");
+await import('./compare-power-tempest-reference.mjs');

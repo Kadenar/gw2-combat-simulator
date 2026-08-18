@@ -12,7 +12,7 @@ export const EVTC_STATE_CHANGE = Object.freeze({
   BUFF_CHANGE: 70,
   BUFF_REMOVE_SINGLE: 71,
   BUFF_REMOVE_ALL: 72,
-  TRANSFORMATION: 73,
+  TRANSFORMATION: 73
 } as const);
 
 // arcdps cbtactivation: how a skill activation (cast) event was produced.
@@ -22,11 +22,11 @@ export const EVTC_ACTIVATION = Object.freeze({
   QUICKNESS: 2, // legacy, unused by current arcdps
   CANCEL_FIRE: 3, // stopped after reaching tooltip time (cast fired)
   CANCEL_CANCEL: 4, // stopped before firing (cast aborted)
-  RESET: 5, // animation completed fully
+  RESET: 5 // animation completed fully
 } as const);
 
 export interface ParsedEvtcHeader {
-  readonly magic: "EVTC";
+  readonly magic: 'EVTC';
   readonly arcdpsBuild: string;
   readonly revision: 0 | 1;
   readonly encounterId: number;
@@ -112,7 +112,7 @@ export interface DetectedPlayer {
 }
 
 export interface PlayerSelectionResult {
-  readonly kind: "selected" | "selection-required";
+  readonly kind: 'selected' | 'selection-required';
   readonly players: readonly DetectedPlayer[];
   readonly selected: DetectedPlayer | null;
 }
@@ -162,7 +162,7 @@ export interface ActionsPerMinuteSummary {
 export interface BuffApplicationSummary {
   readonly skillId: number;
   readonly skillName: string;
-  readonly kind: "condition" | "buff" | "unknown";
+  readonly kind: 'condition' | 'buff' | 'unknown';
   readonly source: string;
   readonly target: string;
   readonly applications: number;
@@ -185,18 +185,18 @@ export interface GenericEvtcStatistics {
   readonly actionsPerMinute: ActionsPerMinuteSummary;
   readonly weaponSwaps: readonly WeaponSwapSummary[];
   readonly weaponSets: {
-    readonly status: "unavailable";
+    readonly status: 'unavailable';
     readonly reason: string;
   };
   readonly outgoingApplications: readonly BuffApplicationSummary[];
   readonly weaponStrength: {
-    readonly status: "unavailable";
+    readonly status: 'unavailable';
     readonly missingInputs: readonly string[];
     readonly note: string;
   };
 }
 
-export type AttributionStatus = "exact" | "inferred" | "ambiguous";
+export type AttributionStatus = 'exact' | 'inferred' | 'ambiguous';
 
 export interface ProfessionAnalysisSection {
   readonly id: string;
@@ -230,31 +230,18 @@ export interface EvtcAnalysisResult {
 }
 
 export type EvtcRotationActionKind =
-  | "weapon-skill"
-  | "profession-skill"
-  | "utility"
-  | "heal"
-  | "elite"
-  | "dodge"
-  | "weapon-swap"
-  | "action"
-  | "unknown";
+  'weapon-skill' | 'profession-skill' | 'utility' | 'heal' | 'elite' | 'dodge' | 'weapon-swap' | 'action' | 'unknown';
 
 export type EvtcRotationEvidence =
-  | "animation"
-  | "legacy-activation"
-  | "effect"
-  | "resource-inference"
-  | "state-change"
-  | "buff-transition"
-  | "initial-state";
+  | 'animation'
+  | 'legacy-activation'
+  | 'effect'
+  | 'resource-inference'
+  | 'state-change'
+  | 'buff-transition'
+  | 'initial-state';
 
-export type EvtcRotationActionStatus =
-  | "completed"
-  | "reduced"
-  | "interrupted"
-  | "unknown"
-  | "instant";
+export type EvtcRotationActionStatus = 'completed' | 'reduced' | 'interrupted' | 'unknown' | 'instant';
 
 export interface EvtcRotationCommand {
   readonly name: string;
@@ -262,23 +249,20 @@ export interface EvtcRotationCommand {
   readonly offset?: number;
   readonly interruptMs?: number;
   readonly preserveEffectsAfterInterrupt?: boolean;
-  readonly doubleEdgeOutcome?: "success" | "backfire";
+  readonly doubleEdgeOutcome?: 'success' | 'backfire';
 }
 
 export interface EvtcRotationMarkerCommand {
-  readonly name: "__combat_start";
+  readonly name: '__combat_start';
   readonly offset?: number;
 }
 
 export interface EvtcRotationWaitCommand {
-  readonly name: "__wait";
+  readonly name: '__wait';
   readonly waitMs: number;
 }
 
-export type EvtcReconstructedCommand =
-  | EvtcRotationCommand
-  | EvtcRotationMarkerCommand
-  | EvtcRotationWaitCommand;
+export type EvtcReconstructedCommand = EvtcRotationCommand | EvtcRotationMarkerCommand | EvtcRotationWaitCommand;
 
 export interface EvtcRotationAction {
   readonly timestampMs: number;
@@ -292,7 +276,7 @@ export interface EvtcRotationAction {
   readonly evidence: EvtcRotationEvidence;
   readonly status: EvtcRotationActionStatus;
   readonly weaponSet?: number | null;
-  readonly doubleEdgeOutcome?: "success" | "backfire";
+  readonly doubleEdgeOutcome?: 'success' | 'backfire';
   readonly supportedByCatalog: boolean;
 }
 

@@ -1,49 +1,39 @@
-import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
-import test from "node:test";
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
 
-import {
-  loadProfession,
-  loadProfessionAppAdapter,
-  professionOptions,
-} from "../../../js/app/profession/registry.js";
-import { professionRoute } from "../../../js/app/profession/selector.js";
-import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
-import {
-  applyBalanceProfilePatch,
-  applySkillPatch,
-} from "../../../js/platform/gw2/skill-patch.js";
-import { skillBreakdownRows } from "../../../js/platform/ui/result-tables.js";
-import { buildChartSeries } from "../../../js/app/rotation/result-model.js";
-import { formatResourceValue } from "../../../js/app/rotation/resource-view.js";
-import { simulationEventLogRows } from "../../../js/app/rotation/event-log.js";
-import { weaponSkills } from "../../../js/app/rotation/palette-model.js";
-import { renderPalette } from "../../../js/app/rotation/palette-view.js";
+import { loadProfession, loadProfessionAppAdapter, professionOptions } from '../../../js/app/profession/registry.js';
+import { professionRoute } from '../../../js/app/profession/selector.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/skill-patch.js';
+import { skillBreakdownRows } from '../../../js/platform/ui/result-tables.js';
+import { buildChartSeries } from '../../../js/app/rotation/result-model.js';
+import { formatResourceValue } from '../../../js/app/rotation/resource-view.js';
+import { simulationEventLogRows } from '../../../js/app/rotation/event-log.js';
+import { weaponSkills } from '../../../js/app/rotation/palette-model.js';
+import { renderPalette } from '../../../js/app/rotation/palette-view.js';
 import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
-  validateNecromancerBuild,
-} from "../../../js/professions/necromancer/build.js";
-import {
-  necromancerCatalog,
-  NECROMANCER_NON_DPS_SKILL_NAMES,
-} from "../../../js/professions/necromancer/catalog.js";
-import { DATA_SNAPSHOT } from "../../../js/professions/necromancer/data/necromancer-api-metadata.js";
-import { necromancerProfession } from "../../../js/professions/necromancer/definition.js";
-import { NECROMANCER_QUICKNESS_CAST_TIMES_MS } from "../../../js/professions/necromancer/mechanics/skill-mechanics.js";
+  validateNecromancerBuild
+} from '../../../js/professions/necromancer/build.js';
+import { necromancerCatalog, NECROMANCER_NON_DPS_SKILL_NAMES } from '../../../js/professions/necromancer/catalog.js';
+import { DATA_SNAPSHOT } from '../../../js/professions/necromancer/data/necromancer-api-metadata.js';
+import { necromancerProfession } from '../../../js/professions/necromancer/definition.js';
+import { NECROMANCER_QUICKNESS_CAST_TIMES_MS } from '../../../js/professions/necromancer/mechanics/skill-mechanics.js';
 import {
   NECROMANCER_SKILL_IDS as ID,
-  NECROMANCER_TRAIT_IDS as TRAIT,
-} from "../../../js/professions/necromancer/data/ids.js";
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '../../../js/professions/necromancer/data/ids.js';
 import {
   actualNecromancerLifeForceCost,
-  normalizedNecromancerLifeForceCost,
-} from "../../../js/professions/necromancer/core/state.js";
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from "../../../js/professions/necromancer/core/profiles.js";
-import { REAPER_BALANCE_PROFILE_IDS } from "../../../js/professions/necromancer/specializations/reaper/profiles.js";
-import { SCOURGE_BALANCE_PROFILE_IDS } from "../../../js/professions/necromancer/specializations/scourge/profiles.js";
-import { HARBINGER_BALANCE_PROFILE_IDS } from "../../../js/professions/necromancer/specializations/harbinger/profiles.js";
-import { RITUALIST_BALANCE_PROFILE_IDS } from "../../../js/professions/necromancer/specializations/ritualist/profiles.js";
+  normalizedNecromancerLifeForceCost
+} from '../../../js/professions/necromancer/core/state.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '../../../js/professions/necromancer/core/profiles.js';
+import { REAPER_BALANCE_PROFILE_IDS } from '../../../js/professions/necromancer/specializations/reaper/profiles.js';
+import { SCOURGE_BALANCE_PROFILE_IDS } from '../../../js/professions/necromancer/specializations/scourge/profiles.js';
+import { HARBINGER_BALANCE_PROFILE_IDS } from '../../../js/professions/necromancer/specializations/harbinger/profiles.js';
+import { RITUALIST_BALANCE_PROFILE_IDS } from '../../../js/professions/necromancer/specializations/ritualist/profiles.js';
 import {
   calculateModifierContributions,
   modifierCandidates,
@@ -51,8 +41,8 @@ import {
   necromancerAppAdapter,
   recalculate,
   runSimulation,
-  simulationConfig,
-} from "../../../js/professions/necromancer/app/app-definition.js";
+  simulationConfig
+} from '../../../js/professions/necromancer/app/app-definition.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -61,23 +51,18 @@ const baseConfig = Object.freeze({
     ferocity: 500,
     conditionDamage: 1200,
     expertise: 0,
-    vitality: 1000,
+    vitality: 1000
   },
   target: {
     armor: 2597,
     conditions: {
       Chilled: true,
-      Vulnerability: 25,
-    },
-  },
+      Vulnerability: 25
+    }
+  }
 });
 
-function simulate(
-  specialization,
-  rotation,
-  config = {},
-  observationPolicy = undefined,
-) {
+function simulate(specialization, rotation, config = {}, observationPolicy = undefined) {
   return simulateGw2({
     profession: necromancerProfession,
     rotation,
@@ -86,94 +71,65 @@ function simulate(
       ...config,
       specialization,
       stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) },
+      target: { ...baseConfig.target, ...(config.target || {}) }
     },
-    mode: "sequence",
-    observationPolicy,
+    mode: 'sequence',
+    observationPolicy
   });
 }
 
-const observationTail = (durationMs) => ({ kind: "tail", durationMs });
+const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
-const applyNecromancerPatch = (patch) =>
-  applyBalanceProfilePatch(applySkillPatch(necromancerCatalog, patch), patch);
+const applyNecromancerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(necromancerCatalog, patch), patch);
 
-test("Necromancer uses the current API catalog and all nine trait lines", () => {
-  assert.equal(DATA_SNAPSHOT, "2026-07-25");
+test('Necromancer uses the current API catalog and all nine trait lines', () => {
+  assert.equal(DATA_SNAPSHOT, '2026-07-25');
   assert.equal(necromancerCatalog.specializations.length, 9);
   assert.equal(necromancerCatalog.traits.length, 108);
   assert.ok(necromancerCatalog.skills.length >= 160);
-  assert.equal(
-    necromancerCatalog.skillsById.get(ID.LIFE_BLAST).name,
-    "Life Blast",
-  );
-  for (const name of [
-    "Corrupt Boon",
-    "Spectral Ring",
-    "Epidemic",
-    "Summon Flesh Wurm",
-    "Necrotic Traversal",
-  ]) {
+  assert.equal(necromancerCatalog.skillsById.get(ID.LIFE_BLAST).name, 'Life Blast');
+  for (const name of ['Corrupt Boon', 'Spectral Ring', 'Epidemic', 'Summon Flesh Wurm', 'Necrotic Traversal']) {
     assert.equal(necromancerCatalog.skillsByName.has(name), false, name);
   }
   assert.deepEqual(
     necromancerCatalog.specializations
       .filter((specialization) => specialization.elite)
       .map((specialization) => specialization.name),
-    ["Reaper", "Scourge", "Harbinger", "Ritualist"],
+    ['Reaper', 'Scourge', 'Harbinger', 'Ritualist']
   );
 });
 
-test("Necromancer modules expose isolated balance-profile authoring", () => {
-  const modules = new Map(
-    necromancerProfession.patchAuthoring.modules.map((module) => [
-      module.id,
-      module,
-    ]),
-  );
-  assert.deepEqual(
-    [...modules.keys()],
-    ["Core", "Reaper", "Scourge", "Harbinger", "Ritualist"],
-  );
+test('Necromancer modules expose isolated balance-profile authoring', () => {
+  const modules = new Map(necromancerProfession.patchAuthoring.modules.map((module) => [module.id, module]));
+  assert.deepEqual([...modules.keys()], ['Core', 'Reaper', 'Scourge', 'Harbinger', 'Ritualist']);
   assert.equal(
     [...modules.values()].every((module) => module.balanceProfiles.length > 0),
-    true,
+    true
   );
 
   const profile = (moduleId, profileId) =>
-    modules
-      .get(moduleId)
-      .balanceProfiles.find((entry) => entry.id === profileId);
-  const bloodFiend = profile(
-    "Core",
-    NECROMANCER_CORE_BALANCE_PROFILE_IDS.bloodFiendAttack,
-  );
-  const shade = profile("Scourge", SCOURGE_BALANCE_PROFILE_IDS.shade);
-  const blight = profile("Harbinger", HARBINGER_BALANCE_PROFILE_IDS.resources);
-  const spirit = profile("Ritualist", RITUALIST_BALANCE_PROFILE_IDS.anguish);
-  const reaper = profile("Reaper", REAPER_BALANCE_PROFILE_IDS.resources);
+    modules.get(moduleId).balanceProfiles.find((entry) => entry.id === profileId);
+  const bloodFiend = profile('Core', NECROMANCER_CORE_BALANCE_PROFILE_IDS.bloodFiendAttack);
+  const shade = profile('Scourge', SCOURGE_BALANCE_PROFILE_IDS.shade);
+  const blight = profile('Harbinger', HARBINGER_BALANCE_PROFILE_IDS.resources);
+  const spirit = profile('Ritualist', RITUALIST_BALANCE_PROFILE_IDS.anguish);
+  const reaper = profile('Reaper', REAPER_BALANCE_PROFILE_IDS.resources);
 
-  assert.equal(bloodFiend.profile.profileKind, "skill-variant");
+  assert.equal(bloodFiend.profile.profileKind, 'skill-variant');
   assert.equal(bloodFiend.patchableFields.damagePerCoefficient, 4338);
   assert.equal(shade.profile.effects[0].coefficient, 0.666);
   assert.equal(blight.patchableFields.maximumStacks, 25);
   assert.equal(spirit.profile.effects[1].ticks.length, 7);
   assert.equal(reaper.patchableFields.lifeForceDrain, 4);
   assert.deepEqual(
-    modules
-      .get("Core")
-      .modifierRules.find(
-        (rule) => rule.id === "necromancer.target-the-weak-critical-chance",
-      ).parameters,
-    { criticalChancePerCondition: 0.02 },
+    modules.get('Core').modifierRules.find((rule) => rule.id === 'necromancer.target-the-weak-critical-chance')
+      .parameters,
+    { criticalChancePerCondition: 0.02 }
   );
   assert.deepEqual(
-    modules
-      .get("Ritualist")
-      .modifierRules.find(
-        (rule) => rule.id === "necromancer.anguish-conditional-damage",
-      ).parameters,
-    { damagePerCondition: 0.02, controlledBonus: 0.2 },
+    modules.get('Ritualist').modifierRules.find((rule) => rule.id === 'necromancer.anguish-conditional-damage')
+      .parameters,
+    { damagePerCondition: 0.02, controlledBonus: 0.2 }
   );
 
   const preview = applyNecromancerPatch({
@@ -183,86 +139,54 @@ test("Necromancer modules expose isolated balance-profile authoring", () => {
           {
             effectIndex: 0,
             allyStacks: { from: 3, to: 4 },
-            maximumRecipients: { from: 5, to: 6 },
-          },
-        ],
+            maximumRecipients: { from: 5, to: 6 }
+          }
+        ]
       },
       [ID.RIGOR_MORTIS]: {
         effects: [
           {
             effectIndex: 0,
             tickIndex: 0,
-            coefficient: { from: 0.25, to: 0.3 },
-          },
-        ],
-      },
+            coefficient: { from: 0.25, to: 0.3 }
+          }
+        ]
+      }
     },
     balanceProfiles: {
       [SCOURGE_BALANCE_PROFILE_IDS.shade]: {
         effects: [
           {
             effectIndex: 0,
-            coefficient: { from: 0.666, to: 0.7 },
-          },
-        ],
+            coefficient: { from: 0.666, to: 0.7 }
+          }
+        ]
       },
       [HARBINGER_BALANCE_PROFILE_IDS.resources]: {
-        fields: { maximumStacks: { from: 25, to: 30 } },
+        fields: { maximumStacks: { from: 25, to: 30 } }
       },
       [RITUALIST_BALANCE_PROFILE_IDS.resources]: {
-        fields: { pulseInterval: { from: 4, to: 3 } },
-      },
-    },
+        fields: { pulseInterval: { from: 4, to: 3 } }
+      }
+    }
   });
 
-  assert.equal(
-    preview.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0].allyStacks,
-    4,
-  );
-  assert.equal(
-    preview.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0].maximumRecipients,
-    6,
-  );
-  assert.equal(
-    preview.skillsById.get(ID.RIGOR_MORTIS).effects[0].ticks[0].coefficient,
-    0.3,
-  );
-  assert.equal(
-    preview.balanceProfilesById.get(SCOURGE_BALANCE_PROFILE_IDS.shade)
-      .effects[0].coefficient,
-    0.7,
-  );
-  assert.equal(
-    preview.balanceProfilesById.get(HARBINGER_BALANCE_PROFILE_IDS.resources)
-      .maximumStacks,
-    30,
-  );
-  assert.equal(
-    preview.balanceProfilesById.get(RITUALIST_BALANCE_PROFILE_IDS.resources)
-      .pulseInterval,
-    3,
-  );
+  assert.equal(preview.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0].allyStacks, 4);
+  assert.equal(preview.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0].maximumRecipients, 6);
+  assert.equal(preview.skillsById.get(ID.RIGOR_MORTIS).effects[0].ticks[0].coefficient, 0.3);
+  assert.equal(preview.balanceProfilesById.get(SCOURGE_BALANCE_PROFILE_IDS.shade).effects[0].coefficient, 0.7);
+  assert.equal(preview.balanceProfilesById.get(HARBINGER_BALANCE_PROFILE_IDS.resources).maximumStacks, 30);
+  assert.equal(preview.balanceProfilesById.get(RITUALIST_BALANCE_PROFILE_IDS.resources).pulseInterval, 3);
 
+  assert.equal(necromancerCatalog.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0].allyStacks, 3);
   assert.equal(
-    necromancerCatalog.skillsById.get(ID.NIGHTMARE_WEAPON).effects[0]
-      .allyStacks,
-    3,
+    necromancerCatalog.balanceProfilesById.get(SCOURGE_BALANCE_PROFILE_IDS.shade).effects[0].coefficient,
+    0.666
   );
-  assert.equal(
-    necromancerCatalog.balanceProfilesById.get(
-      SCOURGE_BALANCE_PROFILE_IDS.shade,
-    ).effects[0].coefficient,
-    0.666,
-  );
-  assert.equal(
-    necromancerCatalog.balanceProfilesById.get(
-      HARBINGER_BALANCE_PROFILE_IDS.resources,
-    ).maximumStacks,
-    25,
-  );
+  assert.equal(necromancerCatalog.balanceProfilesById.get(HARBINGER_BALANCE_PROFILE_IDS.resources).maximumStacks, 25);
 });
 
-test("measured Quickness cast times remain exact", () => {
+test('measured Quickness cast times remain exact', () => {
   const expected = new Map([
     [ID.LIFE_SIPHON, 560],
     [ID.DARK_PACT, 680],
@@ -346,16 +270,14 @@ test("measured Quickness cast times remain exact", () => {
     [ID.ANGUISH, 560],
     [ID.WANDERLUST, 760],
     [ID.SPLINTER_WEAPON, 240],
-    [ID.ESSENCE_BLAST, 600],
+    [ID.ESSENCE_BLAST, 600]
   ]);
 
   assert.deepEqual(
     new Map(
-      Object.entries(NECROMANCER_QUICKNESS_CAST_TIMES_MS).map(
-        ([skillId, duration]) => [Number(skillId), duration],
-      ),
+      Object.entries(NECROMANCER_QUICKNESS_CAST_TIMES_MS).map(([skillId, duration]) => [Number(skillId), duration])
     ),
-    expected,
+    expected
   );
   for (const [skillId, quicknessCastTimeMs] of expected) {
     const skill = necromancerCatalog.skillsById.get(skillId);
@@ -363,66 +285,53 @@ test("measured Quickness cast times remain exact", () => {
     assert.equal(skill.castTimeMs, quicknessCastTimeMs * 1.5, skill.name);
   }
   assert.equal(necromancerCatalog.skillsById.get(ID.SUFFER).castTimeMs, 0);
-  assert.equal(
-    necromancerCatalog.skillsById.get(ID.SUFFER).quicknessCastTimeMs,
-    undefined,
-  );
+  assert.equal(necromancerCatalog.skillsById.get(ID.SUFFER).quicknessCastTimeMs, undefined);
 });
 
-test("Necromancer multi-hit skills use their configured packet timings", () => {
+test('Necromancer multi-hit skills use their configured packet timings', () => {
   const packetTail = observationTail(6000);
   const weepingShots = simulate(
-    "Harbinger",
-    ["Weeping Shots"],
+    'Harbinger',
+    ['Weeping Shots'],
     {
       boons: { quickness: true },
-      primaryWeapon: "Pistol",
+      primaryWeapon: 'Pistol'
     },
-    packetTail,
+    packetTail
   );
   const vitalDraw = simulate(
-    "Harbinger",
-    ["Harbinger Shroud", "Vital Draw"],
+    'Harbinger',
+    ['Harbinger Shroud', 'Vital Draw'],
     { boons: { quickness: true } },
-    packetTail,
+    packetTail
   );
   const taintedBolts = simulate(
-    "Harbinger",
-    ["Harbinger Shroud", "Tainted Bolts"],
+    'Harbinger',
+    ['Harbinger Shroud', 'Tainted Bolts'],
     { boons: { quickness: true } },
-    packetTail,
+    packetTail
   );
   const darkBarrage = simulate(
-    "Harbinger",
-    ["Harbinger Shroud", "Dark Barrage"],
+    'Harbinger',
+    ['Harbinger Shroud', 'Dark Barrage'],
     { boons: { quickness: true } },
-    packetTail,
+    packetTail
   );
   const deathsCharge = simulate(
-    "Reaper",
+    'Reaper',
     ["Reaper's Shroud", "Death's Charge"],
     { boons: { quickness: true } },
-    packetTail,
+    packetTail
   );
-  const soulSpiral = simulate(
-    "Reaper",
-    ["Reaper's Shroud", "Soul Spiral"],
-    { boons: { quickness: true } },
-    packetTail,
-  );
-  const anguish = simulate(
-    "Ritualist",
-    ["Ritualist's Shroud", "Anguish"],
-    { boons: { quickness: true } },
-    packetTail,
-  );
+  const soulSpiral = simulate('Reaper', ["Reaper's Shroud", 'Soul Spiral'], { boons: { quickness: true } }, packetTail);
+  const anguish = simulate('Ritualist', ["Ritualist's Shroud", 'Anguish'], { boons: { quickness: true } }, packetTail);
   const wanderlust = simulate(
-    "Ritualist",
-    ["Ritualist's Shroud", "Wanderlust"],
+    'Ritualist',
+    ["Ritualist's Shroud", 'Wanderlust'],
     { boons: { quickness: true } },
-    packetTail,
+    packetTail
   );
-  const offsets = (result, skillName, skillId, type = "damage") => {
+  const offsets = (result, skillName, skillId, type = 'damage') => {
     const start = result.steps.find((step) => step.skill === skillName)?.start;
     assert.notEqual(start, undefined, skillName);
     return result.events
@@ -430,80 +339,51 @@ test("Necromancer multi-hit skills use their configured packet timings", () => {
       .map((event) => Math.round(event.at * 1000 - start));
   };
 
+  assert.deepEqual(offsets(weepingShots, 'Weeping Shots', ID.WEEPING_SHOTS), [240, 360, 520, 640, 760, 880]);
   assert.deepEqual(
-    offsets(weepingShots, "Weeping Shots", ID.WEEPING_SHOTS),
-    [240, 360, 520, 640, 760, 880],
+    offsets(weepingShots, 'Weeping Shots', ID.WEEPING_SHOTS, 'condition'),
+    [240, 360, 520, 640, 760, 880]
   );
-  assert.deepEqual(
-    offsets(weepingShots, "Weeping Shots", ID.WEEPING_SHOTS, "condition"),
-    [240, 360, 520, 640, 760, 880],
-  );
-  assert.deepEqual(
-    offsets(vitalDraw, "Vital Draw", ID.VITAL_DRAW),
-    [760, 1760, 2760],
-  );
-  assert.deepEqual(
-    offsets(taintedBolts, "Tainted Bolts", ID.TAINTED_BOLTS),
-    [320, 600],
-  );
-  assert.deepEqual(
-    offsets(taintedBolts, "Tainted Bolts", ID.TAINTED_BOLTS, "condition"),
-    [320, 600],
-  );
-  assert.deepEqual(
-    offsets(darkBarrage, "Dark Barrage", ID.DARK_BARRAGE),
-    [600, 680, 680, 800, 800, 800],
-  );
-  assert.deepEqual(
-    offsets(darkBarrage, "Dark Barrage", ID.DARK_BARRAGE, "condition"),
-    [600, 680, 680, 800, 800, 800],
-  );
+  assert.deepEqual(offsets(vitalDraw, 'Vital Draw', ID.VITAL_DRAW), [760, 1760, 2760]);
+  assert.deepEqual(offsets(taintedBolts, 'Tainted Bolts', ID.TAINTED_BOLTS), [320, 600]);
+  assert.deepEqual(offsets(taintedBolts, 'Tainted Bolts', ID.TAINTED_BOLTS, 'condition'), [320, 600]);
+  assert.deepEqual(offsets(darkBarrage, 'Dark Barrage', ID.DARK_BARRAGE), [600, 680, 680, 800, 800, 800]);
+  assert.deepEqual(offsets(darkBarrage, 'Dark Barrage', ID.DARK_BARRAGE, 'condition'), [600, 680, 680, 800, 800, 800]);
   assert.deepEqual(
     offsets(deathsCharge, "Death's Charge", ID.DEATHS_CHARGE),
-    [40, 160, 280, 400, 520, 640, 760, 880, 960, 1160],
+    [40, 160, 280, 400, 520, 640, 760, 880, 960, 1160]
   );
   assert.deepEqual(
-    offsets(soulSpiral, "Soul Spiral", ID.SOUL_SPIRAL),
-    [240, 440, 560, 760, 880, 1080, 1200, 1400, 1520, 1720, 1840, 2040],
+    offsets(soulSpiral, 'Soul Spiral', ID.SOUL_SPIRAL),
+    [240, 440, 560, 760, 880, 1080, 1200, 1400, 1520, 1720, 1840, 2040]
   );
   assert.deepEqual(
-    offsets(soulSpiral, "Soul Spiral", ID.SOUL_SPIRAL, "condition"),
-    [240, 440, 560, 760, 880, 1080, 1200, 1400, 1520, 1720, 1840, 2040],
+    offsets(soulSpiral, 'Soul Spiral', ID.SOUL_SPIRAL, 'condition'),
+    [240, 440, 560, 760, 880, 1080, 1200, 1400, 1520, 1720, 1840, 2040]
   );
-  assert.deepEqual(
-    offsets(anguish, "Anguish", ID.ANGUISH),
-    [1360, 1520, 1560, 1640, 1680, 1720, 1760],
-  );
-  assert.deepEqual(
-    offsets(wanderlust, "Wanderlust", ID.WANDERLUST),
-    [720, 2760, 3760, 4760, 5760],
-  );
+  assert.deepEqual(offsets(anguish, 'Anguish', ID.ANGUISH), [1360, 1520, 1560, 1640, 1680, 1720, 1760]);
+  assert.deepEqual(offsets(wanderlust, 'Wanderlust', ID.WANDERLUST), [720, 2760, 3760, 4760, 5760]);
 });
 
-test("Relic of Fireworks refreshes from qualifying Reaper Shroud skills", () => {
-  const result = simulate("Reaper", ["Reaper's Shroud", "Soul Spiral"], {
+test('Relic of Fireworks refreshes from qualifying Reaper Shroud skills', () => {
+  const result = simulate('Reaper', ["Reaper's Shroud", 'Soul Spiral'], {
     initialResource: 100,
-    relic: "Fireworks",
+    relic: 'Fireworks'
   });
-  const procs = result.procSteps.filter(
-    (step) => step.skill === "Relic of Fireworks",
-  );
+  const procs = result.procSteps.filter((step) => step.skill === 'Relic of Fireworks');
   const hits = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "damage" &&
-      event.skillId === ID.SOUL_SPIRAL &&
-      event.name === "Soul Spiral",
+    (event) => event.type === 'damage' && event.skillId === ID.SOUL_SPIRAL && event.name === 'Soul Spiral'
   );
 
   assert.equal(procs.length, 12);
-  assert.ok(procs.every((proc) => proc.sourceSkill === "Soul Spiral"));
-  assert.equal(procs[0].detail, "activated");
-  assert.ok(procs.slice(1).every((proc) => proc.detail === "refreshed"));
+  assert.ok(procs.every((proc) => proc.sourceSkill === 'Soul Spiral'));
+  assert.equal(procs[0].detail, 'activated');
+  assert.ok(procs.slice(1).every((proc) => proc.detail === 'refreshed'));
   assert.equal(hits.length, 12);
   assert.ok(Math.abs(hits[1].damage / hits[0].damage - 1.07) < 1e-12);
 });
 
-test("Necromancer single-hit skills use their configured offsets", () => {
+test('Necromancer single-hit skills use their configured offsets', () => {
   const declarativeOffsets = new Map([
     [ID.DARK_PACT, 640],
     [ID.GRASPING_DEAD, 560],
@@ -527,270 +407,165 @@ test("Necromancer single-hit skills use their configured offsets", () => {
     [ID.DEADLY_SLICE, 400],
     [ID.SINISTER_STAB, 520],
     [ID.ISOLATE, 440],
-    [ID.LIFE_SLASH, 400],
+    [ID.LIFE_SLASH, 400]
   ]);
 
   for (const [skillId, expectedOffset] of declarativeOffsets) {
     const skill = necromancerCatalog.skillsById.get(skillId);
-    const strike = skill.effects.find((effect) => effect.type === "strike");
-    assert.equal(strike?.timingAnchor, "castStart", skill.name);
-    assert.equal(strike?.timingScale, "cast", skill.name);
-    assert.equal(
-      Math.round((strike.atMs * skill.quicknessCastTimeMs) / skill.castTimeMs),
-      expectedOffset,
-      skill.name,
-    );
+    const strike = skill.effects.find((effect) => effect.type === 'strike');
+    assert.equal(strike?.timingAnchor, 'castStart', skill.name);
+    assert.equal(strike?.timingScale, 'cast', skill.name);
+    assert.equal(Math.round((strike.atMs * skill.quicknessCastTimeMs) / skill.castTimeMs), expectedOffset, skill.name);
   }
 
-  const devouringDarkness = simulate("Core", ["Devouring Darkness"], {
+  const devouringDarkness = simulate('Core', ['Devouring Darkness'], {
     boons: { quickness: true },
-    primaryWeapon: "Scepter",
-    selectedTraitIds: [TRAIT.LINGERING_CURSE],
+    primaryWeapon: 'Scepter',
+    selectedTraitIds: [TRAIT.LINGERING_CURSE]
   });
-  const essenceBlast = simulate(
-    "Ritualist",
-    ["Ritualist's Shroud", "Essence Blast"],
-    { boons: { quickness: true } },
-  );
-  const elixirs = simulate(
-    "Harbinger",
-    ["Elixir of Promise", "Elixir of Risk", "Elixir of Ambition"],
-    {
-      boons: { quickness: true },
-      initialBlight: 25,
-      selectedSkills: [
-        "Elixir of Promise",
-        "Elixir of Risk",
-        "Elixir of Ambition",
-      ],
-    },
-  );
-  const blightSkills = simulate(
-    "Harbinger",
-    ["Harbinger Shroud", "Devouring Cut", "Voracious Arc"],
-    {
-      boons: { quickness: true },
-      initialBlight: 25,
-    },
-  );
-  const manifestShade = simulate("Scourge", ["Manifest Sand Shade"], {
+  const essenceBlast = simulate('Ritualist', ["Ritualist's Shroud", 'Essence Blast'], { boons: { quickness: true } });
+  const elixirs = simulate('Harbinger', ['Elixir of Promise', 'Elixir of Risk', 'Elixir of Ambition'], {
     boons: { quickness: true },
+    initialBlight: 25,
+    selectedSkills: ['Elixir of Promise', 'Elixir of Risk', 'Elixir of Ambition']
+  });
+  const blightSkills = simulate('Harbinger', ['Harbinger Shroud', 'Devouring Cut', 'Voracious Arc'], {
+    boons: { quickness: true },
+    initialBlight: 25
+  });
+  const manifestShade = simulate('Scourge', ['Manifest Sand Shade'], {
+    boons: { quickness: true }
   });
   const customOffset = (result, skillName, skillId) => {
     const start = result.steps.find((step) => step.skill === skillName)?.start;
-    const hit = result.events.find(
-      (event) => event.type === "damage" && event.skillId === skillId,
-    );
+    const hit = result.events.find((event) => event.type === 'damage' && event.skillId === skillId);
     assert.notEqual(start, undefined, skillName);
     assert.ok(hit, skillName);
     return Math.round(hit.at * 1000 - start);
   };
 
-  assert.equal(
-    customOffset(
-      devouringDarkness,
-      "Devouring Darkness",
-      ID.DEVOURING_DARKNESS,
-    ),
-    480,
-  );
-  assert.equal(
-    customOffset(essenceBlast, "Essence Blast", ID.ESSENCE_BLAST),
-    560,
-  );
-  assert.equal(
-    customOffset(elixirs, "Elixir of Promise", ID.ELIXIR_OF_PROMISE),
-    400,
-  );
-  assert.equal(customOffset(elixirs, "Elixir of Risk", ID.ELIXIR_OF_RISK), 400);
-  assert.equal(
-    customOffset(elixirs, "Elixir of Ambition", ID.ELIXIR_OF_AMBITION),
-    400,
-  );
-  assert.equal(
-    customOffset(blightSkills, "Devouring Cut", ID.DEVOURING_CUT),
-    360,
-  );
-  assert.equal(
-    customOffset(blightSkills, "Voracious Arc", ID.VORACIOUS_ARC),
-    800,
-  );
-  assert.equal(
-    customOffset(manifestShade, "Manifest Sand Shade", ID.MANIFEST_SAND_SHADE),
-    440,
-  );
+  assert.equal(customOffset(devouringDarkness, 'Devouring Darkness', ID.DEVOURING_DARKNESS), 480);
+  assert.equal(customOffset(essenceBlast, 'Essence Blast', ID.ESSENCE_BLAST), 560);
+  assert.equal(customOffset(elixirs, 'Elixir of Promise', ID.ELIXIR_OF_PROMISE), 400);
+  assert.equal(customOffset(elixirs, 'Elixir of Risk', ID.ELIXIR_OF_RISK), 400);
+  assert.equal(customOffset(elixirs, 'Elixir of Ambition', ID.ELIXIR_OF_AMBITION), 400);
+  assert.equal(customOffset(blightSkills, 'Devouring Cut', ID.DEVOURING_CUT), 360);
+  assert.equal(customOffset(blightSkills, 'Voracious Arc', ID.VORACIOUS_ARC), 800);
+  assert.equal(customOffset(manifestShade, 'Manifest Sand Shade', ID.MANIFEST_SAND_SHADE), 440);
 });
 
-test("Signet of Spite follows its live passive and active profile", () => {
-  const withSignet = simulate(
-    "Core",
-    ["Rending Claws", "Death Shroud", "Life Blast"],
-    {
-      initialResource: 100,
-      primaryWeapon: "Axe",
-      selectedSkills: ["Signet of Spite"],
-    },
-  );
-  const withoutSignet = simulate(
-    "Core",
-    ["Rending Claws", "Death Shroud", "Life Blast"],
-    {
-      initialResource: 100,
-      primaryWeapon: "Axe",
-      selectedSkills: ["Blood Is Power"],
-    },
-  );
-  const active = simulate("Core", ["Signet of Spite", "Rending Claws"], {
+test('Signet of Spite follows its live passive and active profile', () => {
+  const withSignet = simulate('Core', ['Rending Claws', 'Death Shroud', 'Life Blast'], {
+    initialResource: 100,
+    primaryWeapon: 'Axe',
+    selectedSkills: ['Signet of Spite']
+  });
+  const withoutSignet = simulate('Core', ['Rending Claws', 'Death Shroud', 'Life Blast'], {
+    initialResource: 100,
+    primaryWeapon: 'Axe',
+    selectedSkills: ['Blood Is Power']
+  });
+  const active = simulate('Core', ['Signet of Spite', 'Rending Claws'], {
     boons: { quickness: true },
-    primaryWeapon: "Axe",
-    selectedSkills: ["Signet of Spite"],
+    primaryWeapon: 'Axe',
+    selectedSkills: ['Signet of Spite']
   });
   const damage = (result, name) =>
-    result.resolvedEvents.find(
-      (event) => event.type === "damage" && event.name === name,
-    )?.damage;
-  const signetEvents = active.events.filter(
-    (event) => event.skillId === ID.SIGNET_OF_SPITE,
-  );
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.name === name)?.damage;
+  const signetEvents = active.events.filter((event) => event.skillId === ID.SIGNET_OF_SPITE);
   const conditions = signetEvents
-    .filter((event) => event.type === "condition")
+    .filter((event) => event.type === 'condition')
     .map((event) => [event.condition, event.stacks, event.duration]);
 
-  assert.ok(
-    damage(withSignet, "Rending Claws") >
-      damage(withoutSignet, "Rending Claws"),
-  );
-  assert.equal(
-    damage(withSignet, "Life Blast"),
-    damage(withoutSignet, "Life Blast"),
-  );
-  assert.equal(
-    damage(active, "Rending Claws"),
-    damage(withoutSignet, "Rending Claws"),
-  );
+  assert.ok(damage(withSignet, 'Rending Claws') > damage(withoutSignet, 'Rending Claws'));
+  assert.equal(damage(withSignet, 'Life Blast'), damage(withoutSignet, 'Life Blast'));
+  assert.equal(damage(active, 'Rending Claws'), damage(withoutSignet, 'Rending Claws'));
   assert.equal(active.steps[0].fullCastMs, 880);
-  assert.equal(
-    necromancerCatalog.skillsById.get(ID.SIGNET_OF_SPITE).cooldown,
-    40,
-  );
-  assert.equal(
-    signetEvents.find((event) => event.type === "damage")?.coefficient,
-    1,
-  );
+  assert.equal(necromancerCatalog.skillsById.get(ID.SIGNET_OF_SPITE).cooldown, 40);
+  assert.equal(signetEvents.find((event) => event.type === 'damage')?.coefficient, 1);
   assert.deepEqual(conditions, [
-    ["Bleeding", 2, 10],
-    ["Poisoned", 2, 10],
-    ["Torment", 2, 6],
-    ["Crippled", 1, 10],
-    ["Weakness", 1, 10],
+    ['Bleeding', 2, 10],
+    ['Poisoned', 2, 10],
+    ['Torment', 2, 6],
+    ['Crippled', 1, 10],
+    ['Weakness', 1, 10]
   ]);
-  assert.equal(
-    signetEvents.find((event) => event.type === "blind")?.duration,
-    5,
-  );
+  assert.equal(signetEvents.find((event) => event.type === 'blind')?.duration, 5);
   assert.deepEqual(
     signetEvents
-      .filter((event) => event.kind === "target-vulnerability")
+      .filter((event) => event.kind === 'target-vulnerability')
       .map((event) => [event.stacks, event.duration]),
-    [[5, 10]],
+    [[5, 10]]
   );
 });
 
-test("interrupt-safe Necromancer attacks retain their committed packets", () => {
+test('interrupt-safe Necromancer attacks retain their committed packets', () => {
   const soulSpiral = simulate(
-    "Reaper",
-    [
-      "Reaper's Shroud",
-      { name: "Soul Spiral", interruptAfterMs: 120 },
-      { type: "wait", durationMs: 2100 },
-    ],
+    'Reaper',
+    ["Reaper's Shroud", { name: 'Soul Spiral', interruptAfterMs: 120 }, { type: 'wait', durationMs: 2100 }],
     {
-      boons: { quickness: true },
-    },
+      boons: { quickness: true }
+    }
   );
   const graspingDarkness = simulate(
-    "Reaper",
+    'Reaper',
     [
-      { name: "Grasping Darkness", interruptAfterMs: 120 },
-      { type: "wait", durationMs: 2000 },
+      { name: 'Grasping Darkness', interruptAfterMs: 120 },
+      { type: 'wait', durationMs: 2000 }
     ],
     {
       boons: { quickness: true },
-      primaryWeapon: "Greatsword",
-    },
+      primaryWeapon: 'Greatsword'
+    }
   );
-  const fullDarkBarrage = simulate(
-    "Harbinger",
-    ["Harbinger Shroud", "Dark Barrage"],
-    {
-      boons: { quickness: true },
-    },
-  );
+  const fullDarkBarrage = simulate('Harbinger', ['Harbinger Shroud', 'Dark Barrage'], {
+    boons: { quickness: true }
+  });
   const interruptedDarkBarrage = simulate(
-    "Harbinger",
-    ["Harbinger Shroud", { name: "Dark Barrage", interruptAfterMs: 800 }],
+    'Harbinger',
+    ['Harbinger Shroud', { name: 'Dark Barrage', interruptAfterMs: 800 }],
     {
-      boons: { quickness: true },
-    },
+      boons: { quickness: true }
+    }
   );
-  const ghastlyClaws = simulate("Core", ["Ghastly Claws"], {
+  const ghastlyClaws = simulate('Core', ['Ghastly Claws'], {
     boons: { quickness: true },
-    primaryWeapon: "Axe",
+    primaryWeapon: 'Axe'
   });
   const executionersScythe = simulate(
-    "Reaper",
-    [
-      "Reaper's Shroud",
-      { name: "Executioner's Scythe", interruptAfterMs: 920 },
-    ],
+    'Reaper',
+    ["Reaper's Shroud", { name: "Executioner's Scythe", interruptAfterMs: 920 }],
     {
-      boons: { quickness: true },
-    },
+      boons: { quickness: true }
+    }
   );
   const lifeReap = simulate(
-    "Reaper",
-    [
-      "Reaper's Shroud",
-      "Life Rend",
-      "Life Slash",
-      { name: "Life Reap", interruptAfterMs: 360 },
-    ],
+    'Reaper',
+    ["Reaper's Shroud", 'Life Rend', 'Life Slash', { name: 'Life Reap', interruptAfterMs: 360 }],
     {
-      boons: { quickness: true },
-    },
+      boons: { quickness: true }
+    }
   );
 
   assert.equal(soulSpiral.steps[1].fullCastMs, 2160);
   assert.equal(
-    soulSpiral.events.filter(
-      (event) => event.type === "damage" && event.skillId === ID.SOUL_SPIRAL,
-    ).length,
-    12,
+    soulSpiral.events.filter((event) => event.type === 'damage' && event.skillId === ID.SOUL_SPIRAL).length,
+    12
   );
   assert.equal(
     soulSpiral.resolvedEvents.filter(
-      (event) =>
-        event.type === "condition" &&
-        event.skillId === ID.SOUL_SPIRAL &&
-        event.condition === "Poisoned",
+      (event) => event.type === 'condition' && event.skillId === ID.SOUL_SPIRAL && event.condition === 'Poisoned'
     ).length,
-    12,
+    12
   );
   assert.equal(graspingDarkness.steps[0].fullCastMs, 520);
   const graspingDarknessHit = graspingDarkness.events.find(
-    (event) =>
-      event.type === "damage" && event.skillId === ID.GRASPING_DARKNESS,
+    (event) => event.type === 'damage' && event.skillId === ID.GRASPING_DARKNESS
   );
+  assert.equal(Math.round(graspingDarknessHit.at * 1000 - graspingDarkness.steps[0].start), 1440);
   assert.equal(
-    Math.round(graspingDarknessHit.at * 1000 - graspingDarkness.steps[0].start),
-    1440,
-  );
-  assert.equal(
-    graspingDarkness.events.filter(
-      (event) =>
-        event.type === "damage" && event.skillId === ID.GRASPING_DARKNESS,
-    ).length,
-    1,
+    graspingDarkness.events.filter((event) => event.type === 'damage' && event.skillId === ID.GRASPING_DARKNESS).length,
+    1
   );
   assert.equal(fullDarkBarrage.steps[1].end, 920);
   assert.equal(fullDarkBarrage.steps[1].interrupted, false);
@@ -798,96 +573,81 @@ test("interrupt-safe Necromancer attacks retain their committed packets", () => 
   assert.equal(interruptedDarkBarrage.steps[1].fullCastMs, 920);
   assert.equal(interruptedDarkBarrage.steps[1].interrupted, true);
   assert.equal(
-    interruptedDarkBarrage.events.filter(
-      (event) => event.type === "damage" && event.skillId === ID.DARK_BARRAGE,
-    ).length,
-    6,
+    interruptedDarkBarrage.events.filter((event) => event.type === 'damage' && event.skillId === ID.DARK_BARRAGE)
+      .length,
+    6
   );
   assert.equal(
-    interruptedDarkBarrage.breakdown.find(
-      (entry) => entry.name === "Dark Barrage",
-    )?.total,
-    fullDarkBarrage.breakdown.find((entry) => entry.name === "Dark Barrage")
-      ?.total,
+    interruptedDarkBarrage.breakdown.find((entry) => entry.name === 'Dark Barrage')?.total,
+    fullDarkBarrage.breakdown.find((entry) => entry.name === 'Dark Barrage')?.total
   );
   const ghastlyPackets = ghastlyClaws.events.filter(
-    (event) => event.type === "damage" && event.skillId === ID.GHASTLY_CLAWS,
+    (event) => event.type === 'damage' && event.skillId === ID.GHASTLY_CLAWS
   );
   assert.equal(ghastlyClaws.steps[0].fullCastMs, 1440);
   assert.equal(ghastlyPackets.length, 8);
   assert.equal(new Set(ghastlyPackets.map((event) => event.at)).size, 8);
   assert.equal(
-    executionersScythe.events.filter(
-      (event) =>
-        event.type === "damage" && event.skillId === ID.EXECUTIONERS_SCYTHE,
-    ).length,
-    1,
+    executionersScythe.events.filter((event) => event.type === 'damage' && event.skillId === ID.EXECUTIONERS_SCYTHE)
+      .length,
+    1
   );
-  assert.equal(
-    lifeReap.events.filter(
-      (event) => event.type === "damage" && event.skillId === ID.LIFE_REAP,
-    ).length,
-    1,
-  );
+  assert.equal(lifeReap.events.filter((event) => event.type === 'damage' && event.skillId === ID.LIFE_REAP).length, 1);
 });
 
-test("Grasping Darkness commits at 120 ms and lands after combat starts", () => {
+test('Grasping Darkness commits at 120 ms and lands after combat starts', () => {
   const beforeCommit = simulate(
-    "Reaper",
+    'Reaper',
     [
-      { name: "Grasping Darkness", interruptAfterMs: 119 },
-      { type: "wait", durationMs: 2000 },
+      { name: 'Grasping Darkness', interruptAfterMs: 119 },
+      { type: 'wait', durationMs: 2000 }
     ],
     {
       boons: { quickness: true },
       initialResource: 0,
-      primaryWeapon: "Greatsword",
-    },
+      primaryWeapon: 'Greatsword'
+    }
   );
   const committed = simulate(
-    "Reaper",
+    'Reaper',
     [
-      { name: "Grasping Darkness", interruptAfterMs: 120 },
-      { type: "wait", durationMs: 2000 },
+      { name: 'Grasping Darkness', interruptAfterMs: 120 },
+      { type: 'wait', durationMs: 2000 }
     ],
     {
       boons: { quickness: true },
       initialResource: 0,
-      primaryWeapon: "Greatsword",
-    },
+      primaryWeapon: 'Greatsword'
+    }
   );
   const opener = simulate(
-    "Reaper",
+    'Reaper',
     [
-      { name: "Grasping Darkness", interruptAfterMs: 120 },
-      "Nightfall",
-      { name: "__combat_start", offset: 400 },
-      { type: "wait", durationMs: 2000 },
+      { name: 'Grasping Darkness', interruptAfterMs: 120 },
+      'Nightfall',
+      { name: '__combat_start', offset: 400 },
+      { type: 'wait', durationMs: 2000 }
     ],
     {
       boons: { quickness: true },
       initialResource: 0,
-      primaryWeapon: "Greatsword",
-    },
+      primaryWeapon: 'Greatsword'
+    }
   );
   const graspingEvents = (result) =>
     result.events.filter(
       (event) =>
-        event.skillId === ID.GRASPING_DARKNESS &&
-        ["damage", "necromancer.chill", "control"].includes(event.type),
+        event.skillId === ID.GRASPING_DARKNESS && ['damage', 'necromancer.chill', 'control'].includes(event.type)
     );
   const openerHit = opener.resolvedEvents.find(
-    (event) =>
-      event.type === "damage" && event.skillId === ID.GRASPING_DARKNESS,
+    (event) => event.type === 'damage' && event.skillId === ID.GRASPING_DARKNESS
   );
-  const combatStart = opener.events.find(
-    (event) => event.type === "combat_start",
-  );
+  const combatStart = opener.events.find((event) => event.type === 'combat_start');
 
   assert.deepEqual(graspingEvents(beforeCommit), []);
   assert.deepEqual(
     graspingEvents(committed).map((event) => Math.round(event.at * 1000)),
-    [1440, 1440, 1440],
+    [1440, 1440, 1440]
   );
   assert.equal(committed.endState.profession.lifeForce, 10);
   assert.equal(Math.round(combatStart.at * 1000), 520);
@@ -895,23 +655,19 @@ test("Grasping Darkness commits at 120 ms and lands after combat starts", () => 
   assert.ok(openerHit.at > combatStart.at);
 });
 
-test("every catalog skill has mechanics and API aliases are excluded", () => {
+test('every catalog skill has mechanics and API aliases are excluded', () => {
   assert.equal(
     necromancerCatalog.skills.every((skill) => skill.implemented),
-    true,
+    true
   );
   assert.equal(
     necromancerCatalog.skills
       .filter((skill) => skill.simulatorAliasOfId != null)
       .every((skill) => skill.simulatorExcluded),
-    true,
+    true
   );
   for (const name of NECROMANCER_NON_DPS_SKILL_NAMES) {
-    assert.equal(
-      necromancerCatalog.skillsByName.get(name)?.simulatorExcluded,
-      true,
-      name,
-    );
+    assert.equal(necromancerCatalog.skillsByName.get(name)?.simulatorExcluded, true, name);
   }
   for (const skill of necromancerCatalog.skills) {
     if (skill.simulatorExcluded) continue;
@@ -921,96 +677,77 @@ test("every catalog skill has mechanics and API aliases are excluded", () => {
         skill.effects.length ||
         skill.lifeForceGain ||
         skill.flipParentId != null ||
-        skill.type === "Action",
+        skill.type === 'Action'
       ),
       true,
-      `${skill.id} ${skill.name}`,
+      `${skill.id} ${skill.name}`
     );
   }
 });
 
-test("Core Death Shroud drains life force and gates transformed skills", () => {
+test('Core Death Shroud drains life force and gates transformed skills', () => {
   const result = simulate(
-    "Core",
-    [
-      "Death Shroud",
-      "Life Blast",
-      { type: "wait", durationMs: 1000 },
-      "End Death Shroud",
-    ],
-    { initialResource: 100 },
+    'Core',
+    ['Death Shroud', 'Life Blast', { type: 'wait', durationMs: 1000 }, 'End Death Shroud'],
+    { initialResource: 100 }
   );
-  const invalid = simulate(
-    "Core",
-    ["Life Blast", "Death Shroud", "Rending Claws"],
-    {
-      initialResource: 100,
-      primaryWeapon: "Axe",
-    },
-  );
+  const invalid = simulate('Core', ['Life Blast', 'Death Shroud', 'Rending Claws'], {
+    initialResource: 100,
+    primaryWeapon: 'Axe'
+  });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.activeShroud, "");
+  assert.equal(result.endState.profession.activeShroud, '');
   assert.ok(result.endState.profession.lifeForce < 97);
   assert.ok(result.strikeDamage > 0);
   assert.equal(invalid.warnings.length, 2);
-  assert.match(invalid.warnings.join(" "), /Life Blast is unavailable/);
-  assert.match(invalid.warnings.join(" "), /Rending Claws is unavailable/);
+  assert.match(invalid.warnings.join(' '), /Life Blast is unavailable/);
+  assert.match(invalid.warnings.join(' '), /Rending Claws is unavailable/);
 });
 
-test("Reaper Shroud enforces its chain and four-percent drain", () => {
+test('Reaper Shroud enforces its chain and four-percent drain', () => {
   const result = simulate(
-    "Reaper",
+    'Reaper',
     [
       "Reaper's Shroud",
-      "Life Rend",
-      "Life Slash",
-      "Life Reap",
-      { type: "wait", durationMs: 1000 },
-      "Exit Reaper's Shroud",
+      'Life Rend',
+      'Life Slash',
+      'Life Reap',
+      { type: 'wait', durationMs: 1000 },
+      "Exit Reaper's Shroud"
     ],
-    { initialResource: 100 },
+    { initialResource: 100 }
   );
-  const skipped = simulate("Reaper", ["Reaper's Shroud", "Life Reap"], {
-    initialResource: 100,
+  const skipped = simulate('Reaper', ["Reaper's Shroud", 'Life Reap'], {
+    initialResource: 100
   });
 
   assert.deepEqual(result.warnings, []);
   assert.ok(result.endState.profession.lifeForce < 93);
-  assert.ok(result.breakdown.some((entry) => entry.name === "Life Reap"));
-  assert.match(skipped.warnings.join(" "), /Life Reap is unavailable/);
+  assert.ok(result.breakdown.some((entry) => entry.name === 'Life Reap'));
+  assert.match(skipped.warnings.join(' '), /Life Reap is unavailable/);
 });
 
-test("Death and Reaper shrouds drain a percentage of the maximum life-force pool", () => {
+test('Death and Reaper shrouds drain a percentage of the maximum life-force pool', () => {
   const drainAfterOneSecond = (specialization, enter, exit) =>
-    simulate(
-      specialization,
-      [enter, { type: "wait", durationMs: 1000 }, exit],
-      {
-        initialResource: 100,
-        selectedTraitIds: [TRAIT.SOUL_BATTERY],
-      },
-    ).endState.profession.lifeForce;
+    simulate(specialization, [enter, { type: 'wait', durationMs: 1000 }, exit], {
+      initialResource: 100,
+      selectedTraitIds: [TRAIT.SOUL_BATTERY]
+    }).endState.profession.lifeForce;
 
-  assert.equal(
-    drainAfterOneSecond("Core", "Death Shroud", "End Death Shroud"),
-    116.4,
-  );
-  assert.equal(
-    drainAfterOneSecond("Reaper", "Reaper's Shroud", "Exit Reaper's Shroud"),
-    115.2,
-  );
+  assert.equal(drainAfterOneSecond('Core', 'Death Shroud', 'End Death Shroud'), 116.4);
+  assert.equal(drainAfterOneSecond('Reaper', "Reaper's Shroud", "Exit Reaper's Shroud"), 115.2);
 });
 
-test("life-force capacity is 69% of health and Soul Battery increases it by 20%", () => {
-  const base = simulate("Core", [], {
+test('life-force capacity is 69% of health and Soul Battery increases it by 20%', () => {
+  const base = simulate('Core', [], {
     initialResource: 100,
-    stats: { vitality: 1000 },
+    stats: { vitality: 1000 }
   }).endState.profession;
-  const battery = simulate("Core", [], {
+  const battery = simulate('Core', [], {
     initialResource: 100,
     stats: { vitality: 1000 },
-    selectedTraitIds: [TRAIT.SOUL_BATTERY],
+    selectedTraitIds: [TRAIT.SOUL_BATTERY]
   }).endState.profession;
 
   assert.equal(base.maximumHealth, 19212);
@@ -1018,199 +755,147 @@ test("life-force capacity is 69% of health and Soul Battery increases it by 20%"
   assert.equal(battery.lifeForcePoolCapacity, base.lifeForcePoolCapacity * 1.2);
 });
 
-test("Reaper greatsword chain is ordered and Chilling Scythe recharges Gravedigger", async () => {
-  const adapter = await loadProfessionAppAdapter("necromancer");
+test('Reaper greatsword chain is ordered and Chilling Scythe recharges Gravedigger', async () => {
+  const adapter = await loadProfessionAppAdapter('necromancer');
   const skills = weaponSkills({
     adapter,
     skills: necromancerCatalog.skills,
     build: {
-      specialization: "Reaper",
-      weapons: ["Greatsword", ""],
-      alternateWeapons: ["Axe", "Focus"],
-      specializations: [{ name: "Reaper", traits: "1-1-1" }],
+      specialization: 'Reaper',
+      weapons: ['Greatsword', ''],
+      alternateWeapons: ['Axe', 'Focus'],
+      specializations: [{ name: 'Reaper', traits: '1-1-1' }]
     },
     weaponData: {
-      Greatsword: { wielding: "2h" },
-      Axe: { wielding: "1h" },
-      Focus: { wielding: "1h" },
-    },
+      Greatsword: { wielding: '2h' },
+      Axe: { wielding: '1h' },
+      Focus: { wielding: '1h' }
+    }
   });
   const result = simulate(
-    "Reaper",
-    [
-      "Gravedigger",
-      "Dusk Strike",
-      "Fading Twilight",
-      "Chilling Scythe",
-      "Gravedigger",
-    ],
+    'Reaper',
+    ['Gravedigger', 'Dusk Strike', 'Fading Twilight', 'Chilling Scythe', 'Gravedigger'],
     {
-      primaryWeapon: "Greatsword",
-      target: { conditions: {} },
-    },
+      primaryWeapon: 'Greatsword',
+      target: { conditions: {} }
+    }
   );
 
   assert.deepEqual(
-    skills
-      .filter((skill) => skill.chainRoot === ID.DUSK_STRIKE)
-      .map((skill) => skill.name),
-    ["Dusk Strike", "Fading Twilight", "Chilling Scythe"],
+    skills.filter((skill) => skill.chainRoot === ID.DUSK_STRIKE).map((skill) => skill.name),
+    ['Dusk Strike', 'Fading Twilight', 'Chilling Scythe']
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(
-    result.steps.filter((step) => step.skill === "Gravedigger").length,
-    2,
-  );
+  assert.equal(result.steps.filter((step) => step.skill === 'Gravedigger').length, 2);
   assert.equal(
     result.events.some(
-      (event) =>
-        event.type === "necromancer.chill" &&
-        event.skillName === "Chilling Scythe" &&
-        event.duration === 2,
+      (event) => event.type === 'necromancer.chill' && event.skillName === 'Chilling Scythe' && event.duration === 2
     ),
-    true,
+    true
   );
 });
 
 test("interrupted weapon skills and shroud entry reset Reaper's greatsword chain", () => {
   const config = {
     initialResource: 100,
-    primaryWeapon: "Greatsword",
-    target: { conditions: {} },
+    primaryWeapon: 'Greatsword',
+    target: { conditions: {} }
   };
   const interrupted = simulate(
-    "Reaper",
-    [
-      "Dusk Strike",
-      { name: "Grasping Darkness", interruptMs: 120 },
-      "Dusk Strike",
-    ],
-    config,
+    'Reaper',
+    ['Dusk Strike', { name: 'Grasping Darkness', interruptMs: 120 }, 'Dusk Strike'],
+    config
   );
-  const enteredShroud = simulate(
-    "Reaper",
-    ["Dusk Strike", "Reaper's Shroud"],
-    config,
-  );
+  const enteredShroud = simulate('Reaper', ['Dusk Strike', "Reaper's Shroud"], config);
   const shrouded = simulate(
-    "Reaper",
-    ["Dusk Strike", "Reaper's Shroud", "Exit Reaper's Shroud", "Dusk Strike"],
-    config,
+    'Reaper',
+    ['Dusk Strike', "Reaper's Shroud", "Exit Reaper's Shroud", 'Dusk Strike'],
+    config
   );
 
   assert.deepEqual(interrupted.warnings, []);
   assert.deepEqual(
     interrupted.steps.map((step) => step.skill),
-    ["Dusk Strike", "Grasping Darkness", "Dusk Strike"],
+    ['Dusk Strike', 'Grasping Darkness', 'Dusk Strike']
   );
   assert.equal(interrupted.steps[1].interrupted, true);
-  assert.equal(
-    enteredShroud.endState.profession.autoattackChains[ID.DUSK_STRIKE],
-    undefined,
-  );
+  assert.equal(enteredShroud.endState.profession.autoattackChains[ID.DUSK_STRIKE], undefined);
   assert.deepEqual(shrouded.warnings, []);
   assert.deepEqual(
     shrouded.steps.map((step) => step.skill),
-    ["Dusk Strike", "Reaper's Shroud", "Exit Reaper's Shroud", "Dusk Strike"],
+    ['Dusk Strike', "Reaper's Shroud", "Exit Reaper's Shroud", 'Dusk Strike']
   );
 });
 
-test("non-chain skills reset greatsword and spear autoattacks", () => {
-  const greatsword = simulate(
-    "Reaper",
-    ["Dusk Strike", "Well of Suffering", "Dusk Strike"],
-    {
-      primaryWeapon: "Greatsword",
-      target: { conditions: {} },
-    },
-  );
-  const spear = simulate(
-    "Harbinger",
-    ["Dark Slash", "Well of Suffering", "Dark Slash"],
-    {
-      primaryWeapon: "Spear",
-      target: { conditions: {} },
-    },
-  );
+test('non-chain skills reset greatsword and spear autoattacks', () => {
+  const greatsword = simulate('Reaper', ['Dusk Strike', 'Well of Suffering', 'Dusk Strike'], {
+    primaryWeapon: 'Greatsword',
+    target: { conditions: {} }
+  });
+  const spear = simulate('Harbinger', ['Dark Slash', 'Well of Suffering', 'Dark Slash'], {
+    primaryWeapon: 'Spear',
+    target: { conditions: {} }
+  });
 
   assert.deepEqual(greatsword.warnings, []);
   assert.deepEqual(
     greatsword.steps.map((step) => step.skill),
-    ["Dusk Strike", "Well of Suffering", "Dusk Strike"],
+    ['Dusk Strike', 'Well of Suffering', 'Dusk Strike']
   );
   assert.deepEqual(spear.warnings, []);
   assert.deepEqual(
     spear.steps.map((step) => step.skill),
-    ["Dark Slash", "Well of Suffering", "Dark Slash"],
+    ['Dark Slash', 'Well of Suffering', 'Dark Slash']
   );
 });
 
-test("Gravedigger fully recharges when it hits below 50% target health", () => {
-  const setup = simulate("Reaper", ["Dusk Strike"], {
-    primaryWeapon: "Greatsword",
-    target: { health: 0, conditions: {} },
+test('Gravedigger fully recharges when it hits below 50% target health', () => {
+  const setup = simulate('Reaper', ['Dusk Strike'], {
+    primaryWeapon: 'Greatsword',
+    target: { health: 0, conditions: {} }
   });
-  const result = simulate(
-    "Reaper",
-    ["Dusk Strike", "Gravedigger", "Gravedigger"],
-    {
-      primaryWeapon: "Greatsword",
-      target: {
-        health: setup.totalDamage * 1.5,
-        conditions: {},
-      },
-    },
-  );
-  const gravediggers = result.steps.filter(
-    (step) => step.skill === "Gravedigger",
-  );
+  const result = simulate('Reaper', ['Dusk Strike', 'Gravedigger', 'Gravedigger'], {
+    primaryWeapon: 'Greatsword',
+    target: {
+      health: setup.totalDamage * 1.5,
+      conditions: {}
+    }
+  });
+  const gravediggers = result.steps.filter((step) => step.skill === 'Gravedigger');
 
   assert.deepEqual(result.warnings, []);
   assert.equal(gravediggers.length, 2);
   assert.equal(gravediggers[1].start, gravediggers[0].end);
 });
 
-test("Reaper and Harbinger shroud transitions emit the current weapon set", () => {
+test('Reaper and Harbinger shroud transitions emit the current weapon set', () => {
   for (const [specialization, enter, exit] of [
-    ["Reaper", "Reaper's Shroud", "Exit Reaper's Shroud"],
-    ["Harbinger", "Harbinger Shroud", "Exit Harbinger Shroud"],
+    ['Reaper', "Reaper's Shroud", "Exit Reaper's Shroud"],
+    ['Harbinger', 'Harbinger Shroud', 'Exit Harbinger Shroud']
   ]) {
     const result = simulate(specialization, [enter, exit], {
       initialResource: 100,
-      weaponSet2Primary: "Scepter",
-      startingWeaponSet: 2,
+      weaponSet2Primary: 'Scepter',
+      startingWeaponSet: 2
     });
 
     assert.deepEqual(
-      result.events
-        .filter((event) => event.type === "weapon_set")
-        .map((event) => event.weaponSet),
+      result.events.filter((event) => event.type === 'weapon_set').map((event) => event.weaponSet),
       [2, 2],
-      specialization,
+      specialization
     );
   }
 });
 
-test("Scourge shades use ammo and shade skills spend life force", () => {
+test('Scourge shades use ammo and shade skills spend life force', () => {
   const ammo = simulate(
-    "Scourge",
-    [
-      "Manifest Sand Shade",
-      "Manifest Sand Shade",
-      "Manifest Sand Shade",
-      "Manifest Sand Shade",
-    ],
-    { initialResource: 100 },
+    'Scourge',
+    ['Manifest Sand Shade', 'Manifest Sand Shade', 'Manifest Sand Shade', 'Manifest Sand Shade'],
+    { initialResource: 100 }
   );
-  const cost = simulate(
-    "Scourge",
-    [
-      "Manifest Sand Shade",
-      "Nefarious Favor",
-      { type: "wait", durationMs: 1000 },
-    ],
-    { initialResource: 30 },
-  );
+  const cost = simulate('Scourge', ['Manifest Sand Shade', 'Nefarious Favor', { type: 'wait', durationMs: 1000 }], {
+    initialResource: 30
+  });
 
   assert.equal(ammo.endState.profession.shades.length, 2);
   assert.equal(ammo.endState.profession.lifeForce, 100);
@@ -1218,145 +903,91 @@ test("Scourge shades use ammo and shade skills spend life force", () => {
   assert.deepEqual(ammo.warnings, []);
   assert.ok(
     Math.abs(
-      cost.endState.profession.lifeForce -
-        (30 - normalizedNecromancerLifeForceCost(cost.endState.profession, 21)),
-    ) < 1e-12,
+      cost.endState.profession.lifeForce - (30 - normalizedNecromancerLifeForceCost(cost.endState.profession, 21))
+    ) < 1e-12
   );
   assert.ok(cost.conditionDamage > 0);
 });
 
-test("Scourge shade costs and packets use their fixed PvE values", () => {
-  const shade = simulate(
-    "Scourge",
-    [
-      "Manifest Sand Shade",
-      "Desert Shroud",
-      { type: "wait", durationMs: 6100 },
-    ],
-    { initialResource: 100 },
-  );
+test('Scourge shade costs and packets use their fixed PvE values', () => {
+  const shade = simulate('Scourge', ['Manifest Sand Shade', 'Desert Shroud', { type: 'wait', durationMs: 6100 }], {
+    initialResource: 100
+  });
   const manifest = necromancerCatalog.skillsById.get(ID.MANIFEST_SAND_SHADE);
   const strikes = shade.resolvedEvents.filter(
-    (event) =>
-      event.type === "damage" &&
-      event.skillId === ID.DESERT_SHROUD &&
-      event.name === "Desert Shroud",
+    (event) => event.type === 'damage' && event.skillId === ID.DESERT_SHROUD && event.name === 'Desert Shroud'
   );
   const torment = shade.resolvedEvents.filter(
-    (event) =>
-      event.type === "condition" &&
-      event.skillId === ID.DESERT_SHROUD &&
-      event.duration === 5,
+    (event) => event.type === 'condition' && event.skillId === ID.DESERT_SHROUD && event.duration === 5
   );
 
   assert.deepEqual(
-    [
-      ID.NEFARIOUS_FAVOR,
-      ID.SAND_CASCADE,
-      ID.GARISH_PILLAR,
-      ID.DESERT_SHROUD,
-      ID.SANDSTORM_SHROUD,
-    ].map((skillId) =>
-      Math.round(
-        actualNecromancerLifeForceCost(
-          necromancerCatalog.skillsById.get(skillId).lifeForceCost,
-        ),
-      ),
+    [ID.NEFARIOUS_FAVOR, ID.SAND_CASCADE, ID.GARISH_PILLAR, ID.DESERT_SHROUD, ID.SANDSTORM_SHROUD].map((skillId) =>
+      Math.round(actualNecromancerLifeForceCost(necromancerCatalog.skillsById.get(skillId).lifeForceCost))
     ),
-    [1935, 2487, 3685, 4606, 3224],
+    [1935, 2487, 3685, 4606, 3224]
   );
   assert.equal(manifest.ammo, 3);
   assert.equal(manifest.ammoRecharge, 15);
-  assert.ok(
-    Math.abs(
-      strikes.reduce((sum, event) => sum + event.coefficient, 0) - 3.15,
-    ) < 1e-12,
-  );
+  assert.ok(Math.abs(strikes.reduce((sum, event) => sum + event.coefficient, 0) - 3.15) < 1e-12);
   assert.equal(strikes.length, 7);
   assert.equal(torment.length, 7);
   assert.equal(
     torment.every((event) => event.stacks === 1 && event.duration === 5),
-    true,
+    true
   );
-  const shadeProfile = necromancerCatalog.balanceProfilesById.get(
-    SCOURGE_BALANCE_PROFILE_IDS.shade,
-  );
+  const shadeProfile = necromancerCatalog.balanceProfilesById.get(SCOURGE_BALANCE_PROFILE_IDS.shade);
   assert.equal(shadeProfile.effects[0].coefficient, 0.666);
   assert.deepEqual(
-    [
-      shadeProfile.effects[1].condition,
-      shadeProfile.effects[1].stacks,
-      shadeProfile.effects[1].duration,
-    ],
-    ["Torment", 1, 2],
+    [shadeProfile.effects[1].condition, shadeProfile.effects[1].stacks, shadeProfile.effects[1].duration],
+    ['Torment', 1, 2]
   );
 });
 
-test("Scourge barrier, shroud, and greater-shade traits trigger precisely", () => {
-  const barrier = simulate(
-    "Scourge",
-    ["Manifest Sand Shade", "Sand Cascade", "Sand Flare"],
-    {
-      initialResource: 100,
-      selectedSkills: ["Sand Flare"],
-      selectedTraitIds: [TRAIT.ABRASIVE_GRIT, TRAIT.DESERT_EMPOWERMENT],
-      allies: { count: 4, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: true,
-    },
-  );
+test('Scourge barrier, shroud, and greater-shade traits trigger precisely', () => {
+  const barrier = simulate('Scourge', ['Manifest Sand Shade', 'Sand Cascade', 'Sand Flare'], {
+    initialResource: 100,
+    selectedSkills: ['Sand Flare'],
+    selectedTraitIds: [TRAIT.ABRASIVE_GRIT, TRAIT.DESERT_EMPOWERMENT],
+    allies: { count: 4, strikesPerSecond: 1 },
+    sharePlayerBoonsWithSummons: true
+  });
   const greaterShade = simulate(
-    "Scourge",
-    [
-      "Manifest Sand Shade",
-      "Manifest Sand Shade",
-      { type: "wait", durationMs: 8100 },
-    ],
+    'Scourge',
+    ['Manifest Sand Shade', 'Manifest Sand Shade', { type: 'wait', durationMs: 8100 }],
     {
-      selectedTraitIds: [TRAIT.SAND_SAVANT],
-    },
+      selectedTraitIds: [TRAIT.SAND_SAVANT]
+    }
   );
-  const sandstorm = simulate(
-    "Scourge",
-    ["Sandstorm Shroud", { type: "wait", durationMs: 4100 }],
-    {
-      initialResource: 100,
-      selectedTraitIds: [TRAIT.HERALD_OF_SORROW, TRAIT.SOUL_BARBS],
-      allies: { count: 4, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: true,
-    },
-  );
-  const buffs = (result, kind) =>
-    result.events.filter(
-      (event) => event.type === "buff" && event.kind === kind,
-    );
+  const sandstorm = simulate('Scourge', ['Sandstorm Shroud', { type: 'wait', durationMs: 4100 }], {
+    initialResource: 100,
+    selectedTraitIds: [TRAIT.HERALD_OF_SORROW, TRAIT.SOUL_BARBS],
+    allies: { count: 4, strikesPerSecond: 1 },
+    sharePlayerBoonsWithSummons: true
+  });
+  const buffs = (result, kind) => result.events.filter((event) => event.type === 'buff' && event.kind === kind);
   const sandstormTorment = sandstorm.resolvedEvents.find(
     (event) =>
-      event.type === "condition" &&
+      event.type === 'condition' &&
       event.skillId === ID.SANDSTORM_SHROUD &&
-      event.condition === "Torment" &&
-      event.stacks === 6,
+      event.condition === 'Torment' &&
+      event.stacks === 6
   );
 
-  assert.equal(buffs(barrier, "might").length, 3);
+  assert.equal(buffs(barrier, 'might').length, 3);
   assert.equal(
-    buffs(barrier, "might").every(
+    buffs(barrier, 'might').every(
       (event) =>
-        event.stacks === 2 &&
-        event.duration === 6 &&
-        event.recipients === "party" &&
-        event.affectsSummons === false,
+        event.stacks === 2 && event.duration === 6 && event.recipients === 'party' && event.affectsSummons === false
     ),
-    true,
+    true
   );
-  assert.equal(buffs(barrier, "alacrity").length, 3);
+  assert.equal(buffs(barrier, 'alacrity').length, 3);
   assert.equal(
-    buffs(barrier, "alacrity").every(
-      (event) =>
-        event.duration === 1.5 &&
-        event.recipients === "party" &&
-        event.affectsSummons === false,
+    buffs(barrier, 'alacrity').every(
+      (event) => event.duration === 1.5 && event.recipients === 'party' && event.affectsSummons === false
     ),
-    true,
+    true
   );
   assert.equal(greaterShade.endState.profession.shades.length, 0);
   assert.equal(greaterShade.steps[1].start, 19_470);
@@ -1364,187 +995,139 @@ test("Scourge barrier, shroud, and greater-shade traits trigger precisely", () =
   assert.equal(sandstormTorment?.at, 3.5);
   assert.equal(
     sandstorm.resolvedEvents.find(
-      (event) =>
-        event.type === "damage" &&
-        event.skillId === ID.SANDSTORM_SHROUD &&
-        event.name === "Sandstorm Shroud",
+      (event) => event.type === 'damage' && event.skillId === ID.SANDSTORM_SHROUD && event.name === 'Sandstorm Shroud'
     )?.coefficient,
-    3,
+    3
   );
   assert.deepEqual(
-    buffs(sandstorm, "protection").map((event) => [event.at, event.duration]),
+    buffs(sandstorm, 'protection').map((event) => [event.at, event.duration]),
     [
       [0, 1.5],
       [1, 1.5],
       [2, 1.5],
-      [3.5, 3],
-    ],
+      [3.5, 3]
+    ]
   );
-  assert.ok(
-    buffs(sandstorm, "protection").every(
-      (event) => event.recipients === "party" && !event.affectsSummons,
-    ),
-  );
+  assert.ok(buffs(sandstorm, 'protection').every((event) => event.recipients === 'party' && !event.affectsSummons));
   assert.deepEqual(
-    buffs(sandstorm, "necromancer-soul-barbs").map((event) => event.duration),
-    [15],
+    buffs(sandstorm, 'necromancer-soul-barbs').map((event) => event.duration),
+    [15]
   );
 });
 
-test("Lingering Curse increases scepter base duration beyond the stat cap", () => {
+test('Lingering Curse increases scepter base duration beyond the stat cap', () => {
   const config = {
-    primaryWeapon: "Scepter",
-    stats: { expertise: 1500 },
+    primaryWeapon: 'Scepter',
+    stats: { expertise: 1500 }
   };
-  const base = simulate("Core", ["Blood Curse"], config);
-  const lingering = simulate("Core", ["Blood Curse"], {
+  const base = simulate('Core', ['Blood Curse'], config);
+  const lingering = simulate('Core', ['Blood Curse'], {
     ...config,
-    selectedTraitIds: [TRAIT.LINGERING_CURSE],
+    selectedTraitIds: [TRAIT.LINGERING_CURSE]
   });
   const bleedingDuration = (result) =>
     result.resolvedEvents.find(
-      (event) =>
-        event.type === "condition" &&
-        event.skillId === ID.BLOOD_CURSE &&
-        event.condition === "Bleeding",
+      (event) => event.type === 'condition' && event.skillId === ID.BLOOD_CURSE && event.condition === 'Bleeding'
     )?.effectiveDuration;
 
   assert.equal(bleedingDuration(base), 9);
   assert.equal(bleedingDuration(lingering), 13.5);
 });
 
-test("Harbinger Shroud generates and consumes expiring blight", () => {
+test('Harbinger Shroud generates and consumes expiring blight', () => {
   const generated = simulate(
-    "Harbinger",
-    [
-      "Harbinger Shroud",
-      { type: "wait", durationMs: 3100 },
-      "Exit Harbinger Shroud",
-    ],
-    { initialResource: 100 },
+    'Harbinger',
+    ['Harbinger Shroud', { type: 'wait', durationMs: 3100 }, 'Exit Harbinger Shroud'],
+    { initialResource: 100 }
   );
   const consumed = simulate(
-    "Harbinger",
-    [
-      "Harbinger Shroud",
-      "Devouring Cut",
-      "Exit Harbinger Shroud",
-      { type: "wait", durationMs: 1000 },
-    ],
+    'Harbinger',
+    ['Harbinger Shroud', 'Devouring Cut', 'Exit Harbinger Shroud', { type: 'wait', durationMs: 1000 }],
     {
       initialResource: 100,
-      initialBlight: 5,
-    },
+      initialBlight: 5
+    }
   );
-  const expired = simulate(
-    "Harbinger",
-    [{ type: "wait", durationMs: 25_100 }],
-    { initialBlight: 10 },
-  );
+  const expired = simulate('Harbinger', [{ type: 'wait', durationMs: 25_100 }], { initialBlight: 10 });
   const lateExit = simulate(
-    "Harbinger",
-    [
-      "Harbinger Shroud",
-      { type: "wait", durationMs: 11_000 },
-      "Exit Harbinger Shroud",
-    ],
-    { initialResource: 100 },
+    'Harbinger',
+    ['Harbinger Shroud', { type: 'wait', durationMs: 11_000 }, 'Exit Harbinger Shroud'],
+    { initialResource: 100 }
   );
 
   assert.equal(generated.endState.profession.blight, 6);
   assert.equal(consumed.endState.profession.blight, 0);
-  assert.ok(
-    consumed.resolvedEvents.some(
-      (event) => event.condition === "Torment" && event.stacks === 5,
-    ),
-  );
+  assert.ok(consumed.resolvedEvents.some((event) => event.condition === 'Torment' && event.stacks === 5));
   assert.equal(expired.endState.profession.blight, 0);
   assert.deepEqual(lateExit.warnings, []);
-  assert.equal(lateExit.endState.profession.activeShroud, "");
+  assert.equal(lateExit.endState.profession.activeShroud, '');
 });
 
-test("shroud strikes use their fixed or equipped weapon strengths", () => {
-  const core = simulate("Core", ["Death Shroud", "Life Blast"], {
+test('shroud strikes use their fixed or equipped weapon strengths', () => {
+  const core = simulate('Core', ['Death Shroud', 'Life Blast'], {
     initialResource: 100,
-    primaryWeapon: "Pistol",
+    primaryWeapon: 'Pistol'
   });
-  const reaper = simulate("Reaper", ["Reaper's Shroud", "Life Rend"], {
+  const reaper = simulate('Reaper', ["Reaper's Shroud", 'Life Rend'], {
     initialResource: 100,
-    primaryWeapon: "Pistol",
+    primaryWeapon: 'Pistol'
   });
-  const harbinger = simulate(
-    "Harbinger",
-    ["Harbinger Shroud", "Devouring Cut"],
-    {
-      initialResource: 100,
-      primaryWeapon: "Pistol",
-    },
-  );
-  const scourge = simulate("Scourge", ["Manifest Sand Shade"], {
+  const harbinger = simulate('Harbinger', ['Harbinger Shroud', 'Devouring Cut'], {
     initialResource: 100,
-    primaryWeapon: "Pistol",
+    primaryWeapon: 'Pistol'
+  });
+  const scourge = simulate('Scourge', ['Manifest Sand Shade'], {
+    initialResource: 100,
+    primaryWeapon: 'Pistol'
   });
   const ritualist = simulate(
-    "Ritualist",
+    'Ritualist',
     [
       "Ritualist's Shroud",
-      "Essence Blast",
-      "Anguish",
-      { type: "wait", durationMs: 1200 },
-      "Summon Spirits",
-      { type: "wait", durationMs: 2000 },
+      'Essence Blast',
+      'Anguish',
+      { type: 'wait', durationMs: 1200 },
+      'Summon Spirits',
+      { type: 'wait', durationMs: 2000 }
     ],
     {
       initialResource: 100,
-      primaryWeapon: "Pistol",
-      weaponSet2Primary: "Scepter",
-      startingWeaponSet: 2,
-    },
+      primaryWeapon: 'Pistol',
+      weaponSet2Primary: 'Scepter',
+      startingWeaponSet: 2
+    }
   );
   const damage = (result, name) =>
-    result.resolvedEvents.find(
-      (event) => event.type === "damage" && event.name === name,
-    );
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.name === name);
 
-  assert.equal(damage(core, "Life Blast").skillWeapon, "Hammer");
-  assert.equal(damage(reaper, "Life Rend").skillWeapon, "Hammer");
-  assert.equal(damage(harbinger, "Devouring Cut").skillWeapon, "Hammer");
+  assert.equal(damage(core, 'Life Blast').skillWeapon, 'Hammer');
+  assert.equal(damage(reaper, 'Life Rend').skillWeapon, 'Hammer');
+  assert.equal(damage(harbinger, 'Devouring Cut').skillWeapon, 'Hammer');
   assert.equal(
-    scourge.resolvedEvents.find(
-      (event) =>
-        event.type === "damage" && event.skillId === ID.MANIFEST_SAND_SHADE,
-    )?.skillWeapon,
-    "Unequipped",
+    scourge.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.MANIFEST_SAND_SHADE)
+      ?.skillWeapon,
+    'Unequipped'
   );
-  assert.equal(damage(ritualist, "Essence Blast").skillWeapon, "Scepter");
-  assert.equal(damage(ritualist, "Anguish").skillWeapon, "Unequipped");
-  assert.equal(damage(ritualist, "Summon Spirits").skillWeapon, "Unequipped");
+  assert.equal(damage(ritualist, 'Essence Blast').skillWeapon, 'Scepter');
+  assert.equal(damage(ritualist, 'Anguish').skillWeapon, 'Unequipped');
+  assert.equal(damage(ritualist, 'Summon Spirits').skillWeapon, 'Unequipped');
 });
 
-test("Harbinger shroud attacks use their Blight thresholds and coefficients", () => {
+test('Harbinger shroud attacks use their Blight thresholds and coefficients', () => {
   const run = (skill, initialBlight) =>
-    simulate(
-      "Harbinger",
-      [
-        "Harbinger Shroud",
-        skill,
-        "Exit Harbinger Shroud",
-        { type: "wait", durationMs: 7100 },
-      ],
-      {
-        initialResource: 100,
-        initialBlight,
-      },
-    );
-  const baseCut = run("Devouring Cut", 0);
-  const empoweredCut = run("Devouring Cut", 5);
-  const baseArc = run("Voracious Arc", 0);
-  const empoweredArc = run("Voracious Arc", 5);
-  const vitalDraw = run("Vital Draw", 0);
-  const darkBarrage = run("Dark Barrage", 0);
+    simulate('Harbinger', ['Harbinger Shroud', skill, 'Exit Harbinger Shroud', { type: 'wait', durationMs: 7100 }], {
+      initialResource: 100,
+      initialBlight
+    });
+  const baseCut = run('Devouring Cut', 0);
+  const empoweredCut = run('Devouring Cut', 5);
+  const baseArc = run('Voracious Arc', 0);
+  const empoweredArc = run('Voracious Arc', 5);
+  const vitalDraw = run('Vital Draw', 0);
+  const darkBarrage = run('Dark Barrage', 0);
   const strikeCoefficients = (result, skillId) =>
     result.resolvedEvents
-      .filter((event) => event.type === "damage" && event.skillId === skillId)
+      .filter((event) => event.type === 'damage' && event.skillId === skillId)
       .map((event) => event.coefficient);
 
   assert.deepEqual(strikeCoefficients(baseCut, ID.DEVOURING_CUT), [1]);
@@ -1552,177 +1135,125 @@ test("Harbinger shroud attacks use their Blight thresholds and coefficients", ()
   assert.deepEqual(strikeCoefficients(baseArc, ID.VORACIOUS_ARC), [1.4]);
   assert.deepEqual(strikeCoefficients(empoweredArc, ID.VORACIOUS_ARC), [2.8]);
   const vitalDrawCoefficients = strikeCoefficients(vitalDraw, ID.VITAL_DRAW);
-  const darkBarrageCoefficients = strikeCoefficients(
-    darkBarrage,
-    ID.DARK_BARRAGE,
-  );
+  const darkBarrageCoefficients = strikeCoefficients(darkBarrage, ID.DARK_BARRAGE);
   assert.equal(vitalDrawCoefficients.length, 3);
-  assert.ok(
-    Math.abs(
-      vitalDrawCoefficients.reduce((sum, value) => sum + value, 0) - 1.2,
-    ) < 1e-12,
-  );
+  assert.ok(Math.abs(vitalDrawCoefficients.reduce((sum, value) => sum + value, 0) - 1.2) < 1e-12);
   assert.equal(darkBarrageCoefficients.length, 6);
-  assert.ok(
-    Math.abs(
-      darkBarrageCoefficients.reduce((sum, value) => sum + value, 0) - 3.6,
-    ) < 1e-12,
-  );
+  assert.ok(Math.abs(darkBarrageCoefficients.reduce((sum, value) => sum + value, 0) - 3.6) < 1e-12);
   assert.equal(empoweredCut.endState.profession.blight, 0);
   assert.equal(
     empoweredArc.events.some(
-      (event) =>
-        event.type === "necromancer.state" &&
-        event.reason === "blight-skill" &&
-        event.state.blight === 0,
+      (event) => event.type === 'necromancer.state' && event.reason === 'blight-skill' && event.state.blight === 0
     ),
-    true,
+    true
   );
   // The 1.26-second Arc cast generates two new Blight before shroud exit.
   assert.equal(empoweredArc.endState.profession.blight, 2);
   assert.equal(
     empoweredCut.resolvedEvents.some(
-      (event) =>
-        event.condition === "Torment" &&
-        event.stacks === 5 &&
-        event.duration === 5,
+      (event) => event.condition === 'Torment' && event.stacks === 5 && event.duration === 5
     ),
-    true,
+    true
   );
   assert.equal(
     empoweredArc.resolvedEvents.some(
-      (event) =>
-        event.condition === "Torment" &&
-        event.stacks === 5 &&
-        event.duration === 7,
+      (event) => event.condition === 'Torment' && event.stacks === 5 && event.duration === 7
     ),
-    true,
+    true
   );
   assert.equal(
     empoweredArc.events.some(
-      (event) =>
-        event.type === "control" &&
-        event.controlKind === "daze" &&
-        event.duration === 0.5,
+      (event) => event.type === 'control' && event.controlKind === 'daze' && event.duration === 0.5
     ),
-    true,
+    true
   );
 });
 
-test("Blight skills pay their cost before Wicked Corruption and elixirs", () => {
+test('Blight skills pay their cost before Wicked Corruption and elixirs', () => {
   const run = (skill, selectedTraitIds = []) =>
-    simulate(
-      "Harbinger",
-      ["Harbinger Shroud", skill, "Exit Harbinger Shroud", "Elixir of Risk"],
-      {
-        initialBlight: 25,
-        selectedSkills: ["Elixir of Risk"],
-        selectedTraitIds,
-        stats: { precision: 4000 },
-        target: {
-          ...baseConfig.target,
-          health: 1_000_000_000,
-          conditions: { Vulnerability: 25 },
-        },
-      },
-    );
+    simulate('Harbinger', ['Harbinger Shroud', skill, 'Exit Harbinger Shroud', 'Elixir of Risk'], {
+      initialBlight: 25,
+      selectedSkills: ['Elixir of Risk'],
+      selectedTraitIds,
+      stats: { precision: 4000 },
+      target: {
+        ...baseConfig.target,
+        health: 1_000_000_000,
+        conditions: { Vulnerability: 25 }
+      }
+    });
   for (const [skill, skillId, elixirConsumption] of [
-    ["Devouring Cut", ID.DEVOURING_CUT, 15],
-    ["Voracious Arc", ID.VORACIOUS_ARC, 17],
+    ['Devouring Cut', ID.DEVOURING_CUT, 15],
+    ['Voracious Arc', ID.VORACIOUS_ARC, 17]
   ]) {
     const baseline = run(skill);
     const wicked = run(skill, [TRAIT.WICKED_CORRUPTION]);
     const skillDamage = (result) =>
-      result.resolvedEvents.find(
-        (event) => event.type === "damage" && event.skillId === skillId,
-      );
+      result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === skillId);
     const wickedStrike = skillDamage(wicked);
 
     assert.equal(wickedStrike.necromancerBlight, 20, skill);
-    assert.ok(
-      Math.abs(wickedStrike.damage / skillDamage(baseline).damage - 1.2) <
-        1e-12,
-      skill,
-    );
+    assert.ok(Math.abs(wickedStrike.damage / skillDamage(baseline).damage - 1.2) < 1e-12, skill);
     assert.equal(
-      wicked.events.find(
-        (event) =>
-          event.type === "necromancer.state" && event.reason === "blight-skill",
-      )?.state.blight,
+      wicked.events.find((event) => event.type === 'necromancer.state' && event.reason === 'blight-skill')?.state
+        .blight,
       20,
-      skill,
+      skill
     );
     assert.equal(
-      wicked.events.find(
-        (event) =>
-          event.type === "necromancer.state" &&
-          event.reason === "blight-consumed",
-      )?.state.blight,
+      wicked.events.find((event) => event.type === 'necromancer.state' && event.reason === 'blight-consumed')?.state
+        .blight,
       elixirConsumption,
-      skill,
+      skill
     );
     assert.equal(wicked.endState.profession.blight, 25, skill);
   }
 });
 
-test("Spear skills generate, refresh, consume, and damage with Soul Shards", () => {
-  const chain = simulate(
-    "Harbinger",
-    ["Dark Slash", "Deadly Slice", "Sinister Stab"],
-    {
-      initialResource: 0,
-      primaryWeapon: "Spear",
-    },
-  );
-  const utility = simulate("Harbinger", ["Extirpate", "Addle", "Perforate"], {
+test('Spear skills generate, refresh, consume, and damage with Soul Shards', () => {
+  const chain = simulate('Harbinger', ['Dark Slash', 'Deadly Slice', 'Sinister Stab'], {
     initialResource: 0,
-    primaryWeapon: "Spear",
+    primaryWeapon: 'Spear'
+  });
+  const utility = simulate('Harbinger', ['Extirpate', 'Addle', 'Perforate'], {
+    initialResource: 0,
+    primaryWeapon: 'Spear',
     target: {
       ...baseConfig.target,
-      health: 1_000_000_000,
-    },
+      health: 1_000_000_000
+    }
   });
-  const belowHalf = simulate("Harbinger", ["Extirpate", "Addle", "Perforate"], {
+  const belowHalf = simulate('Harbinger', ['Extirpate', 'Addle', 'Perforate'], {
     initialResource: 0,
-    primaryWeapon: "Spear",
+    primaryWeapon: 'Spear',
     target: {
       ...baseConfig.target,
-      health: 20_000,
-    },
+      health: 20_000
+    }
   });
-  const expired = simulate(
-    "Harbinger",
-    ["Dark Slash", "Deadly Slice", { type: "wait", durationMs: 10_100 }],
-    {
-      primaryWeapon: "Spear",
-    },
-  );
+  const expired = simulate('Harbinger', ['Dark Slash', 'Deadly Slice', { type: 'wait', durationMs: 10_100 }], {
+    primaryWeapon: 'Spear'
+  });
   const damageEvents = (result, skillId) =>
-    result.events.filter(
-      (event) => event.type === "damage" && event.skillId === skillId,
-    );
+    result.events.filter((event) => event.type === 'damage' && event.skillId === skillId);
 
   assert.deepEqual(
     damageEvents(chain, ID.DARK_SLASH).map((event) => event.coefficient),
-    [1.2],
+    [1.2]
   );
   assert.deepEqual(
     damageEvents(chain, ID.DEADLY_SLICE).map((event) => event.coefficient),
-    [1.4],
+    [1.4]
   );
   assert.deepEqual(
     damageEvents(chain, ID.SINISTER_STAB).map((event) => event.coefficient),
-    [1.8],
+    [1.8]
   );
   assert.equal(chain.endState.profession.soulShards, 2);
   assert.equal(chain.endState.profession.lifeForce, 5);
   assert.equal(
-    chain.events.some(
-      (event) =>
-        event.type === "necromancer.chill" &&
-        event.skillId === ID.SINISTER_STAB,
-    ),
-    true,
+    chain.events.some((event) => event.type === 'necromancer.chill' && event.skillId === ID.SINISTER_STAB),
+    true
   );
   assert.equal(expired.endState.profession.soulShards, 0);
 
@@ -1730,55 +1261,36 @@ test("Spear skills generate, refresh, consume, and damage with Soul Shards", () 
   assert.equal(utility.endState.profession.soulShards, 0);
   assert.equal(
     utility.events.some(
-      (event) =>
-        event.type === "buff" &&
-        event.skillId === ID.EXTIRPATE &&
-        event.kind === "might" &&
-        event.stacks === 5,
+      (event) => event.type === 'buff' && event.skillId === ID.EXTIRPATE && event.kind === 'might' && event.stacks === 5
     ),
-    true,
+    true
   );
   assert.equal(
     utility.events.some(
-      (event) =>
-        event.type === "condition" &&
-        event.skillId === ID.EXTIRPATE &&
-        event.condition === "Weakness",
+      (event) => event.type === 'condition' && event.skillId === ID.EXTIRPATE && event.condition === 'Weakness'
     ),
-    true,
+    true
   );
   assert.equal(
     utility.events.some(
-      (event) =>
-        event.type === "control" &&
-        event.skillId === ID.ADDLE &&
-        event.controlKind === "daze",
+      (event) => event.type === 'control' && event.skillId === ID.ADDLE && event.controlKind === 'daze'
     ),
-    true,
+    true
   );
   assert.equal(
     utility.events.some(
-      (event) =>
-        event.type === "condition" &&
-        event.skillId === ID.ADDLE &&
-        event.condition === "Immobilized",
+      (event) => event.type === 'condition' && event.skillId === ID.ADDLE && event.condition === 'Immobilized'
     ),
-    false,
+    false
   );
 
-  const perforate = damageEvents(utility, ID.PERFORATE).filter(
-    (event) => event.name === "Perforate",
-  );
-  const shards = damageEvents(utility, ID.SOUL_SHARDS).filter(
-    (event) => event.name === "Soul Shards",
-  );
-  const lowShards = damageEvents(belowHalf, ID.SOUL_SHARDS).filter(
-    (event) => event.name === "Soul Shards",
-  );
+  const perforate = damageEvents(utility, ID.PERFORATE).filter((event) => event.name === 'Perforate');
+  const shards = damageEvents(utility, ID.SOUL_SHARDS).filter((event) => event.name === 'Soul Shards');
+  const lowShards = damageEvents(belowHalf, ID.SOUL_SHARDS).filter((event) => event.name === 'Soul Shards');
   assert.equal(perforate.length, 7);
   assert.deepEqual(
     perforate.map((event) => event.coefficient),
-    Array(7).fill(0.5),
+    Array(7).fill(0.5)
   );
   assert.deepEqual(
     perforate.map((event) => event.coefficientModifiers),
@@ -1786,440 +1298,354 @@ test("Spear skills generate, refresh, consume, and damage with Soul Shards", () 
       .fill(null)
       .map(() => [
         {
-          kind: "target-health-below",
+          kind: 'target-health-below',
           threshold: 0.5,
-          multiplier: 1.2,
-        },
-      ]),
+          multiplier: 1.2
+        }
+      ])
   );
   assert.equal(shards.length, 4);
   assert.equal(
-    shards.every((event) => event.parentSkillName === "Perforate"),
-    true,
+    shards.every((event) => event.parentSkillName === 'Perforate'),
+    true
   );
   assert.equal(
     shards.every((event) => event.flatStrikePowerCoeff === 0.1),
-    true,
+    true
   );
   const normalShardDamage = utility.resolvedEvents.find(
-    (event) => event.type === "damage" && event.name === "Soul Shards",
+    (event) => event.type === 'damage' && event.name === 'Soul Shards'
   )?.damage;
   const lowShardDamage = Math.max(
     ...belowHalf.resolvedEvents
-      .filter(
-        (event) => event.type === "damage" && event.name === "Soul Shards",
-      )
-      .map((event) => event.damage),
+      .filter((event) => event.type === 'damage' && event.name === 'Soul Shards')
+      .map((event) => event.damage)
   );
   assert.ok(Math.abs(lowShardDamage / normalShardDamage - 1.5) < 1e-12);
   const normalPerforateDamage = utility.resolvedEvents.find(
-    (event) => event.type === "damage" && event.name === "Perforate",
+    (event) => event.type === 'damage' && event.name === 'Perforate'
   )?.damage;
   const lowPerforateDamage = Math.max(
     ...belowHalf.resolvedEvents
-      .filter((event) => event.type === "damage" && event.name === "Perforate")
-      .map((event) => event.damage),
+      .filter((event) => event.type === 'damage' && event.name === 'Perforate')
+      .map((event) => event.damage)
   );
   assert.ok(Math.abs(lowPerforateDamage / normalPerforateDamage - 1.2) < 1e-12);
 });
 
-test("Isolate and Distress expose the follow-up and reset Perforate", () => {
-  const result = simulate(
-    "Harbinger",
-    ["Perforate", "Isolate", "Distress", "Perforate"],
-    {
-      initialResource: 0,
-      primaryWeapon: "Spear",
-    },
-  );
-  const expiredFollowUp = simulate(
-    "Harbinger",
-    ["Isolate", { type: "wait", durationMs: 3100 }, "Distress"],
-    {
-      primaryWeapon: "Spear",
-    },
-  );
-  const delayedHitWindow = simulate(
-    "Harbinger",
-    ["Isolate", { type: "wait", durationMs: 2800 }, "Distress"],
-    {
-      boons: { quickness: true },
-      primaryWeapon: "Spear",
-    },
-  );
+test('Isolate and Distress expose the follow-up and reset Perforate', () => {
+  const result = simulate('Harbinger', ['Perforate', 'Isolate', 'Distress', 'Perforate'], {
+    initialResource: 0,
+    primaryWeapon: 'Spear'
+  });
+  const expiredFollowUp = simulate('Harbinger', ['Isolate', { type: 'wait', durationMs: 3100 }, 'Distress'], {
+    primaryWeapon: 'Spear'
+  });
+  const delayedHitWindow = simulate('Harbinger', ['Isolate', { type: 'wait', durationMs: 2800 }, 'Distress'], {
+    boons: { quickness: true },
+    primaryWeapon: 'Spear'
+  });
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(delayedHitWindow.warnings, []);
   assert.equal(
     Math.round(
-      delayedHitWindow.events.find(
-        (event) => event.type === "damage" && event.skillId === ID.ISOLATE,
-      ).at * 1000,
+      delayedHitWindow.events.find((event) => event.type === 'damage' && event.skillId === ID.ISOLATE).at * 1000
     ),
-    440,
+    440
   );
   assert.equal(
-    delayedHitWindow.events.find(
-      (event) => event.type === "action" && event.skillId === ID.ISOLATE,
-    ).rechargeReadyAt,
-    18.44,
+    delayedHitWindow.events.find((event) => event.type === 'action' && event.skillId === ID.ISOLATE).rechargeReadyAt,
+    18.44
   );
   assert.equal(result.steps[3].start < 8000, true);
   assert.equal(
     result.events.filter(
-      (event) =>
-        event.type === "damage" &&
-        event.skillId === ID.PERFORATE &&
-        event.name === "Perforate",
+      (event) => event.type === 'damage' && event.skillId === ID.PERFORATE && event.name === 'Perforate'
     ).length,
-    14,
+    14
   );
-  assert.equal(
-    result.events.filter(
-      (event) => event.type === "damage" && event.name === "Soul Shards",
-    ).length,
-    6,
-  );
+  assert.equal(result.events.filter((event) => event.type === 'damage' && event.name === 'Soul Shards').length, 6);
   assert.equal(
     result.events.some(
-      (event) =>
-        event.type === "necromancer.state" &&
-        event.reason === "distress" &&
-        event.state.soulShards === 6,
+      (event) => event.type === 'necromancer.state' && event.reason === 'distress' && event.state.soulShards === 6
     ),
-    true,
+    true
   );
   const rows = skillBreakdownRows(result);
-  assert.equal(rows.find((row) => row.name === "Perforate")?.hits, 14);
-  assert.equal(rows.find((row) => row.name === "Soul Shards")?.hits, 6);
+  assert.equal(rows.find((row) => row.name === 'Perforate')?.hits, 14);
+  assert.equal(rows.find((row) => row.name === 'Soul Shards')?.hits, 6);
   assert.equal(
-    rows.find((row) => row.name === "Soul Shards")?.icon,
-    "https://wiki.guildwars2.com/wiki/Special:FilePath/Soul_Shards.png",
+    rows.find((row) => row.name === 'Soul Shards')?.icon,
+    'https://wiki.guildwars2.com/wiki/Special:FilePath/Soul_Shards.png'
+  );
+  assert.equal(
+    result.events.some((event) => event.type === 'necromancer.chill' && event.skillId === ID.ISOLATE),
+    true
   );
   assert.equal(
     result.events.some(
       (event) =>
-        event.type === "necromancer.chill" && event.skillId === ID.ISOLATE,
-    ),
-    true,
-  );
-  assert.equal(
-    result.events.some(
-      (event) =>
-        event.type === "buff" &&
+        event.type === 'buff' &&
         event.skillId === ID.ISOLATE &&
-        event.kind === "target-vulnerability" &&
-        event.stacks === 8,
+        event.kind === 'target-vulnerability' &&
+        event.stacks === 8
     ),
-    true,
+    true
   );
-  assert.match(expiredFollowUp.warnings.join(" "), /Distress is unavailable/);
+  assert.match(expiredFollowUp.warnings.join(' '), /Distress is unavailable/);
 });
 
-test("Addle grants four shards to defiant foes and checks activation shards", () => {
-  const normal = simulate("Harbinger", ["Addle"], {
+test('Addle grants four shards to defiant foes and checks activation shards', () => {
+  const normal = simulate('Harbinger', ['Addle'], {
     initialResource: 0,
-    primaryWeapon: "Spear",
+    primaryWeapon: 'Spear'
   });
-  const defiant = simulate("Harbinger", ["Addle"], {
+  const defiant = simulate('Harbinger', ['Addle'], {
     initialResource: 0,
-    primaryWeapon: "Spear",
+    primaryWeapon: 'Spear',
     target: {
       ...baseConfig.target,
       defiant: true,
-      activatingSkills: false,
-    },
+      activatingSkills: false
+    }
   });
-  const threshold = simulate(
-    "Harbinger",
-    ["Dark Slash", "Deadly Slice", "Extirpate", "Addle"],
-    {
-      initialResource: 0,
-      primaryWeapon: "Spear",
-    },
-  );
+  const threshold = simulate('Harbinger', ['Dark Slash', 'Deadly Slice', 'Extirpate', 'Addle'], {
+    initialResource: 0,
+    primaryWeapon: 'Spear'
+  });
   const immobilizes = (result) =>
     result.events.filter(
-      (event) =>
-        event.type === "condition" &&
-        event.skillId === ID.ADDLE &&
-        event.condition === "Immobilized",
+      (event) => event.type === 'condition' && event.skillId === ID.ADDLE && event.condition === 'Immobilized'
     );
 
   assert.equal(normal.endState.profession.soulShards, 2);
   assert.equal(normal.endState.profession.lifeForce, 10);
   assert.equal(immobilizes(normal).length, 0);
-  assert.equal(
-    normal.events.find(
-      (event) => event.type === "control" && event.skillId === ID.ADDLE,
-    )?.duration,
-    0.25,
-  );
+  assert.equal(normal.events.find((event) => event.type === 'control' && event.skillId === ID.ADDLE)?.duration, 0.25);
   assert.equal(defiant.endState.profession.soulShards, 4);
   assert.equal(defiant.endState.profession.lifeForce, 20);
   assert.equal(immobilizes(defiant).length, 0);
-  assert.equal(
-    defiant.events.find(
-      (event) => event.type === "control" && event.skillId === ID.ADDLE,
-    )?.duration,
-    1.5,
-  );
+  assert.equal(defiant.events.find((event) => event.type === 'control' && event.skillId === ID.ADDLE)?.duration, 1.5);
   assert.equal(threshold.endState.profession.soulShards, 5);
   assert.equal(immobilizes(threshold).length, 1);
 });
 
-test("necromancer wells finish their pulses after the final rotation action", () => {
-  for (const skill of ["Well of Darkness", "Well of Suffering"]) {
+test('necromancer wells finish their pulses after the final rotation action', () => {
+  for (const skill of ['Well of Darkness', 'Well of Suffering']) {
     const result = simulate(
-      "Harbinger",
+      'Harbinger',
       [skill],
       {
         target: {
           ...baseConfig.target,
-          health: 1_000_000_000,
-        },
+          health: 1_000_000_000
+        }
       },
-      observationTail(6000),
+      observationTail(6000)
     );
     assert.equal(
-      result.resolvedEvents.filter(
-        (event) => event.type === "damage" && event.name === skill,
-      ).length,
+      result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === skill).length,
       6,
-      skill,
+      skill
     );
   }
 });
 
-test("dagger skills use their current PvE strike and bleeding mechanics", () => {
-  const darkPact = simulate("Core", ["Dark Pact"], {
+test('dagger skills use their current PvE strike and bleeding mechanics', () => {
+  const darkPact = simulate('Core', ['Dark Pact'], {
     initialResource: 0,
-    primaryWeapon: "Dagger",
+    primaryWeapon: 'Dagger'
   });
   const lifeSiphon = (targetBleeding) =>
     simulate(
-      "Core",
-      ["Life Siphon"],
+      'Core',
+      ['Life Siphon'],
       {
-        primaryWeapon: "Dagger",
+        primaryWeapon: 'Dagger',
         target: {
           ...baseConfig.target,
           conditions: {
             ...baseConfig.target.conditions,
-            Bleeding: targetBleeding,
-          },
-        },
+            Bleeding: targetBleeding
+          }
+        }
       },
-      observationTail(5000),
+      observationTail(5000)
     );
   const plain = lifeSiphon(false);
   const bleeding = lifeSiphon(true);
   const siphonDamage = (result) =>
     result.resolvedEvents
-      .filter(
-        (event) => event.type === "damage" && event.skillId === ID.LIFE_SIPHON,
-      )
+      .filter((event) => event.type === 'damage' && event.skillId === ID.LIFE_SIPHON)
       .reduce((sum, event) => sum + event.damage, 0);
 
   assert.equal(
-    darkPact.events.find(
-      (event) => event.type === "damage" && event.skillId === ID.DARK_PACT,
-    )?.coefficient,
-    2.4,
+    darkPact.events.find((event) => event.type === 'damage' && event.skillId === ID.DARK_PACT)?.coefficient,
+    2.4
   );
   assert.equal(
     darkPact.events.find(
-      (event) =>
-        event.type === "condition" &&
-        event.skillId === ID.DARK_PACT &&
-        event.condition === "Bleeding",
+      (event) => event.type === 'condition' && event.skillId === ID.DARK_PACT && event.condition === 'Bleeding'
     )?.stacks,
-    2,
+    2
   );
   assert.equal(
     darkPact.events.find(
-      (event) =>
-        event.type === "condition" &&
-        event.skillId === ID.DARK_PACT &&
-        event.condition === "Immobilized",
+      (event) => event.type === 'condition' && event.skillId === ID.DARK_PACT && event.condition === 'Immobilized'
     )?.duration,
-    6,
+    6
   );
   assert.deepEqual(
     darkPact.events
-      .filter((event) => event.type === "self_condition")
+      .filter((event) => event.type === 'self_condition')
       .map((event) => [event.condition, event.stacks, event.duration]),
-    [["Bleeding", 2, 10]],
+    [['Bleeding', 2, 10]]
   );
-  assert.equal(
-    plain.events.filter(
-      (event) => event.type === "damage" && event.skillId === ID.LIFE_SIPHON,
-    ).length,
-    9,
-  );
-  assert.ok(
-    Math.abs(siphonDamage(bleeding) / siphonDamage(plain) - 1.5) < 1e-12,
-  );
+  assert.equal(plain.events.filter((event) => event.type === 'damage' && event.skillId === ID.LIFE_SIPHON).length, 9);
+  assert.ok(Math.abs(siphonDamage(bleeding) / siphonDamage(plain) - 1.5) < 1e-12);
 });
 
-test("off-hand sword follow-ups use their complete PvE effects", () => {
+test('off-hand sword follow-ups use their complete PvE effects', () => {
   const result = simulate(
-    "Core",
-    ["Hungering Maelstrom", "Devouring Visage", "Gormandize", "Consume"],
+    'Core',
+    ['Hungering Maelstrom', 'Devouring Visage', 'Gormandize', 'Consume'],
     {
       boons: { quickness: true },
-      primaryWeapon: "Dagger",
-      secondaryWeapon: "Sword",
+      primaryWeapon: 'Dagger',
+      secondaryWeapon: 'Sword',
       target: {
         ...baseConfig.target,
-        health: 1_000_000_000,
-      },
+        health: 1_000_000_000
+      }
     },
-    observationTail(3000),
+    observationTail(3000)
   );
-  const damage = (skillId) =>
-    result.events.filter(
-      (event) => event.type === "damage" && event.skillId === skillId,
-    );
+  const damage = (skillId) => result.events.filter((event) => event.type === 'damage' && event.skillId === skillId);
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     damage(ID.HUNGERING_MAELSTROM).map((event) => event.coefficient),
-    [2.75],
+    [2.75]
   );
   assert.deepEqual(
     damage(ID.DEVOURING_VISAGE).map((event) => event.coefficient),
-    [1.5],
+    [1.5]
   );
   assert.deepEqual(
     damage(ID.GORMANDIZE).map((event) => event.coefficient),
-    [2.5],
+    [2.5]
   );
   assert.deepEqual(
     damage(ID.CONSUME).map((event) => event.coefficient),
-    Array(5).fill(0.5),
+    Array(5).fill(0.5)
   );
   assert.equal(
     result.events.some(
       (event) =>
-        event.type === "control" &&
+        event.type === 'control' &&
         event.skillId === ID.DEVOURING_VISAGE &&
-        event.controlKind === "fear" &&
-        event.duration === 1.5,
+        event.controlKind === 'fear' &&
+        event.duration === 1.5
     ),
-    true,
+    true
   );
   assert.equal(
     result.events.some(
       (event) =>
-        event.type === "condition" &&
+        event.type === 'condition' &&
         event.skillId === ID.CONSUME &&
-        event.condition === "Weakness" &&
-        event.duration === 4,
+        event.condition === 'Weakness' &&
+        event.duration === 4
     ),
-    true,
+    true
   );
   assert.equal(
     result.events.some(
       (event) =>
-        event.type === "buff" &&
+        event.type === 'buff' &&
         event.skillId === ID.CONSUME &&
-        event.kind === "might" &&
+        event.kind === 'might' &&
         event.stacks === 5 &&
-        event.duration === 8,
+        event.duration === 8
     ),
-    true,
+    true
   );
 });
 
-test("Plaguelands, chill fields, and cooldown reset retain live behavior", () => {
+test('Plaguelands, chill fields, and cooldown reset retain live behavior', () => {
   const plague = simulate(
-    "Reaper",
-    ["Plaguelands", "__cooldown_reset", "Plaguelands"],
+    'Reaper',
+    ['Plaguelands', '__cooldown_reset', 'Plaguelands'],
     {
       stats: { expertise: 1500 },
-      selectedSkills: ["Plaguelands"],
+      selectedSkills: ['Plaguelands'],
       selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION],
       target: {
         ...baseConfig.target,
-        health: 1_000_000_000,
-      },
+        health: 1_000_000_000
+      }
     },
-    observationTail(20_000),
+    observationTail(20_000)
   );
   const field = simulate(
-    "Reaper",
-    ["Reaper's Shroud", "Executioner's Scythe", "Soul Spiral"],
+    'Reaper',
+    ["Reaper's Shroud", "Executioner's Scythe", 'Soul Spiral'],
     {
       initialResource: 100,
       selectedTraitIds: [TRAIT.DEATHLY_CHILL],
       target: {
         ...baseConfig.target,
-        health: 1_000_000_000,
-      },
+        health: 1_000_000_000
+      }
     },
-    observationTail(1000),
+    observationTail(1000)
   );
   const plagueEvents = (type, condition) =>
     plague.events.filter(
       (event) =>
-        event.type === type &&
-        event.skillId === ID.PLAGUELANDS &&
-        (condition == null || event.condition === condition),
+        event.type === type && event.skillId === ID.PLAGUELANDS && (condition == null || event.condition === condition)
     );
 
   assert.deepEqual(plague.warnings, []);
-  assert.equal(
-    plague.steps.filter((step) => step.skill === "Plaguelands").length,
-    2,
-  );
-  assert.equal(plagueEvents("damage").length, 18);
-  assert.equal(plagueEvents("condition", "Bleeding").length, 18);
-  assert.equal(plagueEvents("condition", "Poisoned").length, 16);
-  assert.equal(plagueEvents("condition", "Torment").length, 14);
+  assert.equal(plague.steps.filter((step) => step.skill === 'Plaguelands').length, 2);
+  assert.equal(plagueEvents('damage').length, 18);
+  assert.equal(plagueEvents('condition', 'Bleeding').length, 18);
+  assert.equal(plagueEvents('condition', 'Poisoned').length, 16);
+  assert.equal(plagueEvents('condition', 'Torment').length, 14);
   assert.deepEqual(
     plague.events
-      .filter((event) => event.type === "self_condition")
+      .filter((event) => event.type === 'self_condition')
       .slice(0, 2)
       .map((event) => [event.condition, event.duration]),
     [
-      ["Bleeding", 10],
-      ["Poisoned", 4],
-    ],
+      ['Bleeding', 10],
+      ['Poisoned', 4]
+    ]
   );
   assert.equal(
-    plague.events.some(
-      (event) => event.type === "marker" && event.action === "cooldown-reset",
-    ),
-    true,
+    plague.events.some((event) => event.type === 'marker' && event.action === 'cooldown-reset'),
+    true
   );
   assert.equal(
-    field.resolvedEvents.filter(
-      (event) =>
-        event.type === "condition" && event.sourceId === TRAIT.DEATHLY_CHILL,
-    ).length,
-    9,
+    field.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === TRAIT.DEATHLY_CHILL).length,
+    9
   );
 });
 
-test("Death Spiral includes its life-siphon damage packet", () => {
-  const result = simulate("Reaper", ["Death Spiral"], {
-    primaryWeapon: "Greatsword",
+test('Death Spiral includes its life-siphon damage packet', () => {
+  const result = simulate('Reaper', ['Death Spiral'], {
+    primaryWeapon: 'Greatsword'
   });
-  const packets = result.events.filter(
-    (event) => event.type === "damage" && event.skillId === ID.DEATH_SPIRAL,
-  );
-  const siphon = packets.find((event) => event.damageKind === "life-steal");
+  const packets = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.DEATH_SPIRAL);
+  const siphon = packets.find((event) => event.damageKind === 'life-steal');
   const resolvedSiphon = result.resolvedEvents.find(
-    (event) =>
-      event.type === "damage" &&
-      event.skillId === ID.DEATH_SPIRAL &&
-      event.damageKind === "life-steal",
+    (event) => event.type === 'damage' && event.skillId === ID.DEATH_SPIRAL && event.damageKind === 'life-steal'
   );
 
   assert.deepEqual(
     packets.map((event) => event.name),
-    ["Death Spiral", "Death Spiral — Life Siphon"],
+    ['Death Spiral', 'Death Spiral — Life Siphon']
   );
   assert.equal(siphon?.flatStrikeBase, 3517);
   assert.equal(siphon?.flatStrikePowerCoeff, 0.01);
@@ -2227,294 +1653,225 @@ test("Death Spiral includes its life-siphon damage packet", () => {
   assert.equal(resolvedSiphon?.criticalChance, 0);
   assert.equal(resolvedSiphon?.damage, 3537);
 
-  const rows = new Map(
-    skillBreakdownRows(result).map((row) => [row.name, row]),
-  );
-  assert.equal(rows.get("Death Spiral").hits, 1);
-  assert.equal(rows.get("Death Spiral — Life Siphon").hits, 1);
-  assert.equal(
-    rows.get("Death Spiral — Life Siphon").parentSkill,
-    "Death Spiral",
-  );
+  const rows = new Map(skillBreakdownRows(result).map((row) => [row.name, row]));
+  assert.equal(rows.get('Death Spiral').hits, 1);
+  assert.equal(rows.get('Death Spiral — Life Siphon').hits, 1);
+  assert.equal(rows.get('Death Spiral — Life Siphon').parentSkill, 'Death Spiral');
 });
 
-test("Necromancer dark-field life steals inherit finisher attribution", () => {
+test('Necromancer dark-field life steals inherit finisher attribution', () => {
   const scenarios = [
     {
-      rotation: ["Nightfall", "Death Spiral"],
-      config: { primaryWeapon: "Greatsword" },
-      parentSkill: "Death Spiral",
-      hits: 2,
+      rotation: ['Nightfall', 'Death Spiral'],
+      config: { primaryWeapon: 'Greatsword' },
+      parentSkill: 'Death Spiral',
+      hits: 2
     },
     {
-      rotation: ["Nightfall", "Gravedigger"],
-      config: { primaryWeapon: "Greatsword" },
-      parentSkill: "Gravedigger",
-      hits: 3,
+      rotation: ['Nightfall', 'Gravedigger'],
+      config: { primaryWeapon: 'Greatsword' },
+      parentSkill: 'Gravedigger',
+      hits: 3
     },
     {
-      rotation: ["Well of Darkness", "Extirpate"],
+      rotation: ['Well of Darkness', 'Extirpate'],
       config: {
-        primaryWeapon: "Spear",
-        selectedSkills: ["Well of Darkness"],
+        primaryWeapon: 'Spear',
+        selectedSkills: ['Well of Darkness']
       },
-      parentSkill: "Extirpate",
-      hits: 3,
-    },
+      parentSkill: 'Extirpate',
+      hits: 3
+    }
   ];
 
   for (const scenario of scenarios) {
-    const result = simulate("Ritualist", scenario.rotation, scenario.config);
+    const result = simulate('Ritualist', scenario.rotation, scenario.config);
     const combo = result.resolvedEvents.find(
       (event) =>
-        event.type === "combo" &&
-        event.fieldType === "Dark" &&
-        event.finisherType === "Whirl" &&
-        event.skillName === scenario.parentSkill,
+        event.type === 'combo' &&
+        event.fieldType === 'Dark' &&
+        event.finisherType === 'Whirl' &&
+        event.skillName === scenario.parentSkill
     );
     const bolts = result.resolvedEvents.filter(
       (event) =>
-        event.type === "damage" &&
-        event.name === "Leeching Bolts" &&
-        event.skillName === "Leeching Bolts" &&
-        event.parentSkillName === scenario.parentSkill,
+        event.type === 'damage' &&
+        event.name === 'Leeching Bolts' &&
+        event.skillName === 'Leeching Bolts' &&
+        event.parentSkillName === scenario.parentSkill
     );
     assert.equal(combo.applicationCount, scenario.hits);
     assert.equal(bolts.length, scenario.hits);
     assert.ok(
       bolts.every(
-        (event) =>
-          event.flatStrikeBase === 170 &&
-          event.flatStrikePowerCoeff === 0.03 &&
-          event.noCrit === true,
-      ),
+        (event) => event.flatStrikeBase === 170 && event.flatStrikePowerCoeff === 0.03 && event.noCrit === true
+      )
     );
     const rows = skillBreakdownRows(result);
-    assert.equal(
-      rows.find((row) => row.name === scenario.parentSkill)?.hits,
-      1,
-    );
-    const boltRow = rows.find((row) => row.name === "Leeching Bolts");
+    assert.equal(rows.find((row) => row.name === scenario.parentSkill)?.hits, 1);
+    const boltRow = rows.find((row) => row.name === 'Leeching Bolts');
     assert.equal(boltRow?.hits, scenario.hits);
     assert.equal(boltRow?.casts, 0);
   }
 
-  const withoutField = simulate("Ritualist", ["Death Spiral"], {
-    primaryWeapon: "Greatsword",
+  const withoutField = simulate('Ritualist', ['Death Spiral'], {
+    primaryWeapon: 'Greatsword'
   });
   assert.equal(
-    withoutField.resolvedEvents.some(
-      (event) => event.type === "combo" && event.fieldType === "Dark",
-    ),
-    false,
+    withoutField.resolvedEvents.some((event) => event.type === 'combo' && event.fieldType === 'Dark'),
+    false
   );
 });
 
-test("Reaper prioritizes assumed Ice and otherwise uses standard field resolution", () => {
-  const rotation = [
-    "Nightfall",
-    "Reaper's Shroud",
-    "Executioner's Scythe",
-    "Exit Reaper's Shroud",
-    "Gravedigger",
-  ];
-  const standard = simulate("Reaper", rotation, {
+test('Reaper prioritizes assumed Ice and otherwise uses standard field resolution', () => {
+  const rotation = ['Nightfall', "Reaper's Shroud", "Executioner's Scythe", "Exit Reaper's Shroud", 'Gravedigger'];
+  const standard = simulate('Reaper', rotation, {
     initialResource: 100,
-    primaryWeapon: "Greatsword",
-    boons: { quickness: true },
+    primaryWeapon: 'Greatsword',
+    boons: { quickness: true }
   });
-  const assumed = simulate("Reaper", rotation, {
+  const assumed = simulate('Reaper', rotation, {
     initialResource: 100,
-    primaryWeapon: "Greatsword",
+    primaryWeapon: 'Greatsword',
     boons: { quickness: true },
-    professionAssumptions: { permanentIceField: true },
+    professionAssumptions: { permanentIceField: true }
   });
   const standardExtirpate = simulate(
-    "Reaper",
-    [
-      "Reaper's Shroud",
-      "Executioner's Scythe",
-      "Exit Reaper's Shroud",
-      "Well of Darkness",
-      "Extirpate",
-    ],
+    'Reaper',
+    ["Reaper's Shroud", "Executioner's Scythe", "Exit Reaper's Shroud", 'Well of Darkness', 'Extirpate'],
     {
       initialResource: 100,
-      primaryWeapon: "Spear",
-      selectedSkills: ["Well of Darkness"],
-      boons: { quickness: true },
-    },
+      primaryWeapon: 'Spear',
+      selectedSkills: ['Well of Darkness'],
+      boons: { quickness: true }
+    }
   );
-  const extirpate = simulate("Reaper", ["Well of Darkness", "Extirpate"], {
-    primaryWeapon: "Spear",
-    selectedSkills: ["Well of Darkness"],
-    professionAssumptions: { permanentIceField: true },
+  const extirpate = simulate('Reaper', ['Well of Darkness', 'Extirpate'], {
+    primaryWeapon: 'Spear',
+    selectedSkills: ['Well of Darkness'],
+    professionAssumptions: { permanentIceField: true }
   });
   const gravediggerCombo = (result) =>
-    result.resolvedEvents.find(
-      (event) => event.type === "combo" && event.skillName === "Gravedigger",
-    );
+    result.resolvedEvents.find((event) => event.type === 'combo' && event.skillName === 'Gravedigger');
   const extirpateCombo = extirpate.resolvedEvents.find(
-    (event) => event.type === "combo" && event.skillName === "Extirpate",
+    (event) => event.type === 'combo' && event.skillName === 'Extirpate'
   );
   const standardExtirpateCombo = standardExtirpate.resolvedEvents.find(
-    (event) => event.type === "combo" && event.skillName === "Extirpate",
+    (event) => event.type === 'combo' && event.skillName === 'Extirpate'
   );
 
-  assert.equal(gravediggerCombo(standard).fieldType, "Dark");
-  assert.equal(
-    gravediggerCombo(assumed).fieldId,
-    "necromancer:assumption:permanent-ice-field",
-  );
-  assert.equal(
-    extirpateCombo.fieldId,
-    "necromancer:assumption:permanent-ice-field",
-  );
-  assert.equal(standardExtirpateCombo.fieldType, "Ice");
+  assert.equal(gravediggerCombo(standard).fieldType, 'Dark');
+  assert.equal(gravediggerCombo(assumed).fieldId, 'necromancer:assumption:permanent-ice-field');
+  assert.equal(extirpateCombo.fieldId, 'necromancer:assumption:permanent-ice-field');
+  assert.equal(standardExtirpateCombo.fieldType, 'Ice');
   assert.deepEqual(standard.warnings, []);
   assert.deepEqual(assumed.warnings, []);
   assert.deepEqual(standardExtirpate.warnings, []);
   assert.deepEqual(extirpate.warnings, []);
 });
 
-test("Greatsword control and Nightfall pulses use their live mechanics", () => {
+test('Greatsword control and Nightfall pulses use their live mechanics', () => {
   const nightfallSkill = necromancerCatalog.skillsById.get(ID.NIGHTFALL);
-  const grasp = simulate(
-    "Harbinger",
-    ["Grasping Darkness", { type: "wait", durationMs: 2000 }],
-    {
-      initialResource: 0,
-      primaryWeapon: "Greatsword",
-      relic: "Claw",
-    },
-  );
-  const nightfall = simulate(
-    "Harbinger",
-    ["Nightfall", { type: "wait", durationMs: 4000 }],
-    {
-      initialResource: 0,
-      primaryWeapon: "Greatsword",
-    },
-  );
-  const nightfallHits = nightfall.events.filter(
-    (event) => event.type === "damage" && event.skillId === ID.NIGHTFALL,
-  );
+  const grasp = simulate('Harbinger', ['Grasping Darkness', { type: 'wait', durationMs: 2000 }], {
+    initialResource: 0,
+    primaryWeapon: 'Greatsword',
+    relic: 'Claw'
+  });
+  const nightfall = simulate('Harbinger', ['Nightfall', { type: 'wait', durationMs: 4000 }], {
+    initialResource: 0,
+    primaryWeapon: 'Greatsword'
+  });
+  const nightfallHits = nightfall.events.filter((event) => event.type === 'damage' && event.skillId === ID.NIGHTFALL);
 
   assert.deepEqual(
     nightfallSkill.effects.map((effect) => effect.type),
-    ["strike", "blind", "condition"],
+    ['strike', 'blind', 'condition']
   );
   assert.deepEqual(
     nightfallSkill.effects.map((effect) => effect.applications ?? effect.hits),
-    [4, 4, 4],
+    [4, 4, 4]
   );
   assert.deepEqual(
     grasp.events
-      .filter(
-        (event) =>
-          event.type === "damage" && event.skillId === ID.GRASPING_DARKNESS,
-      )
+      .filter((event) => event.type === 'damage' && event.skillId === ID.GRASPING_DARKNESS)
       .map((event) => event.coefficient),
-    [1.3],
+    [1.3]
   );
   assert.equal(grasp.endState.profession.lifeForce, 10);
   assert.equal(
-    grasp.events.some(
-      (event) =>
-        event.type === "necromancer.chill" &&
-        event.skillId === ID.GRASPING_DARKNESS,
-    ),
-    true,
+    grasp.events.some((event) => event.type === 'necromancer.chill' && event.skillId === ID.GRASPING_DARKNESS),
+    true
   );
   assert.equal(
-    grasp.events.some(
-      (event) => event.type === "control" && event.controlKind === "pull",
-    ),
-    true,
+    grasp.events.some((event) => event.type === 'control' && event.controlKind === 'pull'),
+    true
   );
   assert.equal(
-    grasp.procSteps.some((step) => step.skill === "Relic of the Claw"),
-    true,
+    grasp.procSteps.some((step) => step.skill === 'Relic of the Claw'),
+    true
   );
 
   assert.equal(nightfallHits.length, 4);
   assert.deepEqual(
     nightfallHits.map((event) => event.coefficient),
-    [1.15, 1.15, 1.15, 1.15],
+    [1.15, 1.15, 1.15, 1.15]
   );
   assert.deepEqual(
-    nightfallHits.map(
-      (event, index) =>
-        Math.round((event.at - nightfallHits[0].at) * 1000) - index * 1000,
-    ),
-    [0, 0, 0, 0],
+    nightfallHits.map((event, index) => Math.round((event.at - nightfallHits[0].at) * 1000) - index * 1000),
+    [0, 0, 0, 0]
   );
+  assert.equal(nightfall.events.filter((event) => event.type === 'blind' && event.skillId === ID.NIGHTFALL).length, 4);
   assert.equal(
     nightfall.events.filter(
-      (event) => event.type === "blind" && event.skillId === ID.NIGHTFALL,
+      (event) => event.type === 'condition' && event.skillId === ID.NIGHTFALL && event.condition === 'Crippled'
     ).length,
-    4,
-  );
-  assert.equal(
-    nightfall.events.filter(
-      (event) =>
-        event.type === "condition" &&
-        event.skillId === ID.NIGHTFALL &&
-        event.condition === "Crippled",
-    ).length,
-    4,
+    4
   );
   assert.equal(nightfall.endState.profession.lifeForce, 28);
 });
 
-test("Nightfall commits its declarative field at the first pulse", () => {
+test('Nightfall commits its declarative field at the first pulse', () => {
   const beforeCommit = simulate(
-    "Harbinger",
+    'Harbinger',
     [
       {
-        name: "Nightfall",
-        interruptAfterMs: 560,
+        name: 'Nightfall',
+        interruptAfterMs: 560
       },
       {
-        type: "wait",
-        durationMs: 4000,
-      },
+        type: 'wait',
+        durationMs: 4000
+      }
     ],
     {
       initialResource: 0,
-      primaryWeapon: "Greatsword",
-    },
+      primaryWeapon: 'Greatsword'
+    }
   );
   const afterCommit = simulate(
-    "Harbinger",
+    'Harbinger',
     [
       {
-        name: "Nightfall",
-        interruptAfterMs: 640,
+        name: 'Nightfall',
+        interruptAfterMs: 640
       },
       {
-        type: "wait",
-        durationMs: 4000,
-      },
+        type: 'wait',
+        durationMs: 4000
+      }
     ],
     {
       initialResource: 0,
-      primaryWeapon: "Greatsword",
-    },
+      primaryWeapon: 'Greatsword'
+    }
   );
-  const quickness = simulate(
-    "Harbinger",
-    ["Nightfall", { type: "wait", durationMs: 4000 }],
-    {
-      boons: { quickness: true },
-      initialResource: 0,
-      primaryWeapon: "Greatsword",
-    },
-  );
+  const quickness = simulate('Harbinger', ['Nightfall', { type: 'wait', durationMs: 4000 }], {
+    boons: { quickness: true },
+    initialResource: 0,
+    primaryWeapon: 'Greatsword'
+  });
   const nightfallHits = (result) =>
-    result.events.filter(
-      (event) => event.type === "damage" && event.skillId === ID.NIGHTFALL,
-    );
+    result.events.filter((event) => event.type === 'damage' && event.skillId === ID.NIGHTFALL);
 
   assert.equal(nightfallHits(beforeCommit).length, 0);
   assert.equal(beforeCommit.endState.profession.lifeForce, 0);
@@ -2523,92 +1880,75 @@ test("Nightfall commits its declarative field at the first pulse", () => {
   assert.equal(quickness.steps[0].fullCastMs, 480);
   assert.deepEqual(
     nightfallHits(quickness).map(
-      (event, index) =>
-        Math.round(event.at * 1000 - quickness.steps[0].start) - index * 1000,
+      (event, index) => Math.round(event.at * 1000 - quickness.steps[0].start) - index * 1000
     ),
-    [400, 400, 400, 400],
+    [400, 400, 400, 400]
   );
 });
 
-test("Lich Form swaps its bar and grants life force on exit", () => {
-  const result = simulate(
-    "Core",
-    ["Lich Form", "Deathly Claws", "Exit Lich Form"],
-    { initialResource: 0 },
-  );
-  const invalid = simulate("Core", ["Lich Form", "Rending Claws"], {
+test('Lich Form swaps its bar and grants life force on exit', () => {
+  const result = simulate('Core', ['Lich Form', 'Deathly Claws', 'Exit Lich Form'], { initialResource: 0 });
+  const invalid = simulate('Core', ['Lich Form', 'Rending Claws'], {
     initialResource: 0,
-    primaryWeapon: "Axe",
+    primaryWeapon: 'Axe'
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.activeShroud, "");
+  assert.equal(result.endState.profession.activeShroud, '');
   assert.ok(result.endState.profession.lifeForce >= 15);
-  assert.ok(result.breakdown.some((entry) => entry.name === "Deathly Claws"));
-  assert.match(invalid.warnings.join(" "), /Rending Claws is unavailable/);
+  assert.ok(result.breakdown.some((entry) => entry.name === 'Deathly Claws'));
+  assert.match(invalid.warnings.join(' '), /Rending Claws is unavailable/);
 });
 
-test("minion summons persist, attack, and unlock their command", () => {
-  const result = simulate("Core", [
-    "Summon Bone Fiend",
-    { type: "wait", durationMs: 4000 },
-    "Rigor Mortis",
-    { type: "wait", durationMs: 1000 },
+test('minion summons persist, attack, and unlock their command', () => {
+  const result = simulate('Core', [
+    'Summon Bone Fiend',
+    { type: 'wait', durationMs: 4000 },
+    'Rigor Mortis',
+    { type: 'wait', durationMs: 1000 }
   ]);
-  const invalid = simulate("Core", ["Rigor Mortis"]);
+  const invalid = simulate('Core', ['Rigor Mortis']);
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.activeMinions["bone-fiend"], 1);
-  assert.ok(result.breakdown.some((entry) => entry.name === "Bone Shard"));
-  assert.ok(
-    result.breakdown.some(
-      (entry) => entry.name === "Rigor Mortis - Bone Shard",
-    ),
-  );
-  assert.match(invalid.warnings.join(" "), /Rigor Mortis is unavailable/);
+  assert.equal(result.endState.profession.activeMinions['bone-fiend'], 1);
+  assert.ok(result.breakdown.some((entry) => entry.name === 'Bone Shard'));
+  assert.ok(result.breakdown.some((entry) => entry.name === 'Rigor Mortis - Bone Shard'));
+  assert.match(invalid.warnings.join(' '), /Rigor Mortis is unavailable/);
 });
 
-test("Bone Fiend uses paired Bone Shards and its fourth crippling volley", () => {
-  const result = simulate(
-    "Core",
-    ["Summon Bone Fiend", { type: "wait", durationMs: 14_000 }],
-    { selectedSkills: ["Summon Bone Fiend"] },
-  );
+test('Bone Fiend uses paired Bone Shards and its fourth crippling volley', () => {
+  const result = simulate('Core', ['Summon Bone Fiend', { type: 'wait', durationMs: 14_000 }], {
+    selectedSkills: ['Summon Bone Fiend']
+  });
   const attacks = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "damage" &&
-      event.source === "Minion" &&
-      [3633, 3644].includes(event.skillId),
+    (event) => event.type === 'damage' && event.source === 'Minion' && [3633, 3644].includes(event.skillId)
   );
   const ordinary = attacks.filter((event) => event.skillId === 3633);
   const crippling = attacks.filter((event) => event.skillId === 3644);
   const cripples = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "condition" &&
-      event.skillId === 3644 &&
-      event.condition === "Crippled",
+    (event) => event.type === 'condition' && event.skillId === 3644 && event.condition === 'Crippled'
   );
 
   assert.deepEqual(
     attacks.map((event) => event.skillId),
-    [3633, 3633, 3633, 3633, 3633, 3633, 3644, 3644],
+    [3633, 3633, 3633, 3633, 3633, 3633, 3644, 3644]
   );
   assert.equal(
     ordinary.every((event) => event.coefficient === 0.1),
-    true,
+    true
   );
   assert.equal(
     crippling.every((event) => event.coefficient === 0.2),
-    true,
+    true
   );
   assert.equal(
     attacks.every(
       (event) =>
-        event.comboFinishers[0].ownerId === "necromancer" &&
-        event.comboFinishers[0].finisherType === "Projectile" &&
-        event.comboFinishers[0].chance === 1,
+        event.comboFinishers[0].ownerId === 'necromancer' &&
+        event.comboFinishers[0].finisherType === 'Projectile' &&
+        event.comboFinishers[0].chance === 1
     ),
-    true,
+    true
   );
   assert.ok(Math.abs(ordinary[1].at - ordinary[0].at - 0.04) < 1e-12);
   assert.ok(Math.abs(ordinary[2].at - ordinary[0].at - 3.08) < 1e-12);
@@ -2619,197 +1959,152 @@ test("Bone Fiend uses paired Bone Shards and its fourth crippling volley", () =>
     cripples.map((event) => [event.stacks, event.duration]),
     [
       [1, 2],
-      [1, 2],
-    ],
+      [1, 2]
+    ]
   );
 });
 
-test("Rigor Mortis is instant and fires two immobilizing projectile finishers", () => {
-  const result = simulate(
-    "Core",
-    ["Summon Bone Fiend", "Rigor Mortis", { type: "wait", durationMs: 4000 }],
-    {
-      selectedSkills: ["Summon Bone Fiend"],
-      selectedTraitIds: [TRAIT.INSIDIOUS_DISRUPTION],
-    },
-  );
+test('Rigor Mortis is instant and fires two immobilizing projectile finishers', () => {
+  const result = simulate('Core', ['Summon Bone Fiend', 'Rigor Mortis', { type: 'wait', durationMs: 4000 }], {
+    selectedSkills: ['Summon Bone Fiend'],
+    selectedTraitIds: [TRAIT.INSIDIOUS_DISRUPTION]
+  });
   const preservedChain = simulate(
-    "Core",
-    [
-      "Summon Bone Fiend",
-      { type: "wait", durationMs: 9500 },
-      "Rigor Mortis",
-      { type: "wait", durationMs: 3000 },
-    ],
-    { selectedSkills: ["Summon Bone Fiend"] },
+    'Core',
+    ['Summon Bone Fiend', { type: 'wait', durationMs: 9500 }, 'Rigor Mortis', { type: 'wait', durationMs: 3000 }],
+    { selectedSkills: ['Summon Bone Fiend'] }
   );
-  const rigorStep = result.steps.find((step) => step.skill === "Rigor Mortis");
-  const attacks = result.resolvedEvents.filter(
-    (event) => event.type === "damage" && event.skillId === 3634,
-  );
+  const rigorStep = result.steps.find((step) => step.skill === 'Rigor Mortis');
+  const attacks = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === 3634);
   const controls = result.events.filter(
     (event) =>
-      event.type === "necromancer.summon-attack" &&
-      event.skillId === 3634 &&
-      event.controlKind === "immobilize",
+      event.type === 'necromancer.summon-attack' && event.skillId === 3634 && event.controlKind === 'immobilize'
   );
   const controlledFollowup = result.events.filter(
     (event) =>
-      event.type === "necromancer.summon-attack" &&
-      event.skillId === 3633 &&
-      event.controlKind === "immobilize",
+      event.type === 'necromancer.summon-attack' && event.skillId === 3633 && event.controlKind === 'immobilize'
   );
   const disruptionTorment = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "condition" &&
-      event.sourceId === TRAIT.INSIDIOUS_DISRUPTION,
+    (event) => event.type === 'condition' && event.sourceId === TRAIT.INSIDIOUS_DISRUPTION
   );
-  const preservedRigorStep = preservedChain.steps.find(
-    (step) => step.skill === "Rigor Mortis",
-  );
+  const preservedRigorStep = preservedChain.steps.find((step) => step.skill === 'Rigor Mortis');
   const firstFollowup = preservedChain.resolvedEvents.find(
     (event) =>
-      event.type === "damage" &&
-      [3633, 3644].includes(event.skillId) &&
-      event.at * 1000 > preservedRigorStep.start,
+      event.type === 'damage' && [3633, 3644].includes(event.skillId) && event.at * 1000 > preservedRigorStep.start
   );
 
-  assert.equal(
-    necromancerCatalog.skillsByName.get("Rigor Mortis").recharge,
-    50,
-  );
+  assert.equal(necromancerCatalog.skillsByName.get('Rigor Mortis').recharge, 50);
   assert.equal(rigorStep.fullCastMs, 0);
   assert.deepEqual(
     attacks.map((event) => [event.coefficient, event.comboFinishers[0].chance]),
     [
       [0.25, 1],
-      [0.25, 1],
-    ],
+      [0.25, 1]
+    ]
   );
   assert.equal(
     attacks.every(
       (event) =>
-        event.comboFinishers[0].finisherType === "Projectile" &&
-        event.comboFinishers[0].ownerId === "necromancer",
+        event.comboFinishers[0].finisherType === 'Projectile' && event.comboFinishers[0].ownerId === 'necromancer'
     ),
-    true,
+    true
   );
   assert.deepEqual(
     controls.map((event) => [event.controlKind, event.controlDuration]),
     [
-      ["immobilize", 2],
-      ["immobilize", 2],
-    ],
+      ['immobilize', 2],
+      ['immobilize', 2]
+    ]
   );
   assert.equal(controlledFollowup.length, 2);
   assert.equal(disruptionTorment.length, 4);
   assert.equal(firstFollowup.skillId, 3644);
 });
 
-test("Bone Fiend projectile finishers create Chilling Bolts, not Frost Aura", () => {
+test('Bone Fiend projectile finishers create Chilling Bolts, not Frost Aura', () => {
   const executionerField = simulate(
-    "Reaper",
+    'Reaper',
     [
-      "Summon Bone Fiend",
+      'Summon Bone Fiend',
       "Reaper's Shroud",
       "Executioner's Scythe",
       "Exit Reaper's Shroud",
-      { type: "wait", durationMs: 4000 },
+      { type: 'wait', durationMs: 4000 }
     ],
     {
       initialResource: 100,
-      selectedSkills: ["Summon Bone Fiend"],
-      selectedTraitIds: [TRAIT.DEATHLY_CHILL],
-    },
+      selectedSkills: ['Summon Bone Fiend'],
+      selectedTraitIds: [TRAIT.DEATHLY_CHILL]
+    }
   );
   const result = simulate(
-    "Reaper",
-    [
-      "Summon Bone Fiend",
-      "Nightfall",
-      "Rigor Mortis",
-      { type: "wait", durationMs: 14_000 },
-    ],
+    'Reaper',
+    ['Summon Bone Fiend', 'Nightfall', 'Rigor Mortis', { type: 'wait', durationMs: 14_000 }],
     {
-      primaryWeapon: "Greatsword",
-      selectedSkills: ["Summon Bone Fiend"],
+      primaryWeapon: 'Greatsword',
+      selectedSkills: ['Summon Bone Fiend'],
       selectedTraitIds: [TRAIT.DEATHLY_CHILL],
-      professionAssumptions: { permanentIceField: true },
-    },
+      professionAssumptions: { permanentIceField: true }
+    }
   );
   const boneShards = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "damage" && [3633, 3634, 3644].includes(event.skillId),
+    (event) => event.type === 'damage' && [3633, 3634, 3644].includes(event.skillId)
   );
   const chillingCombos = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "combo" &&
-      event.fieldType === "Ice" &&
-      event.finisherType === "Projectile",
+    (event) => event.type === 'combo' && event.fieldType === 'Ice' && event.finisherType === 'Projectile'
   );
   const deathlyChill = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "condition" && event.sourceId === TRAIT.DEATHLY_CHILL,
+    (event) => event.type === 'condition' && event.sourceId === TRAIT.DEATHLY_CHILL
   );
   const executionerCombos = executionerField.resolvedEvents.filter(
     (event) =>
-      event.type === "combo" &&
-      event.fieldType === "Ice" &&
-      event.finisherType === "Projectile" &&
-      event.actorType === "summon",
+      event.type === 'combo' &&
+      event.fieldType === 'Ice' &&
+      event.finisherType === 'Projectile' &&
+      event.actorType === 'summon'
   );
 
   assert.equal(executionerCombos.length, 2);
   assert.equal(chillingCombos.length, boneShards.length);
   assert.equal(
     result.procSteps.filter(
-      (step) =>
-        step.skill === "Deathly Chill" &&
-        String(step.sourceSkill).startsWith("Rigor Mortis"),
+      (step) => step.skill === 'Deathly Chill' && String(step.sourceSkill).startsWith('Rigor Mortis')
     ).length,
-    2,
+    2
   );
   assert.equal(deathlyChill.length, boneShards.length);
   assert.equal(
     result.resolvedEvents.some(
       (event) =>
-        String(event.kind).toLowerCase().includes("frost") ||
-        String(event.name).toLowerCase().includes("frost aura"),
+        String(event.kind).toLowerCase().includes('frost') || String(event.name).toLowerCase().includes('frost aura')
     ),
-    false,
+    false
   );
 });
 
-test("player boon sharing can be disabled for Necromancer minions", () => {
-  const rotation = [
-    "Summon Bone Fiend",
-    "Blood Is Power",
-    { type: "wait", durationMs: 4000 },
-  ];
+test('player boon sharing can be disabled for Necromancer minions', () => {
+  const rotation = ['Summon Bone Fiend', 'Blood Is Power', { type: 'wait', durationMs: 4000 }];
   const config = {
-    selectedSkills: ["Summon Bone Fiend", "Blood Is Power"],
-    boons: { might: 0, fury: false },
+    selectedSkills: ['Summon Bone Fiend', 'Blood Is Power'],
+    boons: { might: 0, fury: false }
   };
-  const shared = simulate("Core", rotation, {
+  const shared = simulate('Core', rotation, {
     ...config,
-    sharePlayerBoonsWithSummons: true,
+    sharePlayerBoonsWithSummons: true
   });
-  const isolated = simulate("Core", rotation, {
+  const isolated = simulate('Core', rotation, {
     ...config,
-    sharePlayerBoonsWithSummons: false,
+    sharePlayerBoonsWithSummons: false
   });
-  const capped = simulate("Core", rotation, {
+  const capped = simulate('Core', rotation, {
     ...config,
     allies: { count: 4, strikesPerSecond: 1 },
-    sharePlayerBoonsWithSummons: true,
+    sharePlayerBoonsWithSummons: true
   });
   const minionDamage = (result) =>
     result.resolvedEvents
       .filter(
-        (event) =>
-          event.type === "damage" &&
-          event.source === "Minion" &&
-          event.parentSkillName === "Summon Bone Fiend",
+        (event) => event.type === 'damage' && event.source === 'Minion' && event.parentSkillName === 'Summon Bone Fiend'
       )
       .reduce((sum, event) => sum + event.damage, 0);
 
@@ -2818,182 +2113,120 @@ test("player boon sharing can be disabled for Necromancer minions", () => {
   assert.ok(minionDamage(isolated) > 0);
 
   const sharedMight = shared.events.find(
-    (event) =>
-      event.type === "buff" &&
-      event.skillId === ID.BLOOD_IS_POWER &&
-      event.kind === "might",
+    (event) => event.type === 'buff' && event.skillId === ID.BLOOD_IS_POWER && event.kind === 'might'
   );
   const cappedMight = capped.events.find(
-    (event) =>
-      event.type === "buff" &&
-      event.skillId === ID.BLOOD_IS_POWER &&
-      event.kind === "might",
+    (event) => event.type === 'buff' && event.skillId === ID.BLOOD_IS_POWER && event.kind === 'might'
   );
-  assert.equal(sharedMight.recipients, "party");
-  assert.deepEqual(sharedMight.companionIds, ["minion:bone-fiend:0"]);
+  assert.equal(sharedMight.recipients, 'party');
+  assert.deepEqual(sharedMight.companionIds, ['minion:bone-fiend:0']);
   assert.equal(sharedMight.affectsSummons, true);
   assert.equal(cappedMight.affectsSummons, false);
 
   const partiallyCapped = simulate(
-    "Core",
-    [
-      "Summon Bone Minions",
-      "Blood Is Power",
-      { type: "wait", durationMs: 4000 },
-    ],
+    'Core',
+    ['Summon Bone Minions', 'Blood Is Power', { type: 'wait', durationMs: 4000 }],
     {
-      selectedSkills: ["Summon Bone Minions", "Blood Is Power"],
+      selectedSkills: ['Summon Bone Minions', 'Blood Is Power'],
       boons: { might: 0, fury: false },
       allies: { count: 3, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: true,
-    },
+      sharePlayerBoonsWithSummons: true
+    }
   );
   const damageByOwner = new Map();
   for (const event of partiallyCapped.resolvedEvents) {
     if (
-      event.type === "damage" &&
-      event.source === "Minion" &&
-      String(event.summonOwner).startsWith("minion:bone-minion:")
+      event.type === 'damage' &&
+      event.source === 'Minion' &&
+      String(event.summonOwner).startsWith('minion:bone-minion:')
     ) {
-      damageByOwner.set(
-        event.summonOwner,
-        (damageByOwner.get(event.summonOwner) || 0) + event.damage,
-      );
+      damageByOwner.set(event.summonOwner, (damageByOwner.get(event.summonOwner) || 0) + event.damage);
     }
   }
-  assert.ok(
-    damageByOwner.get("minion:bone-minion:0") >
-      damageByOwner.get("minion:bone-minion:1"),
-  );
+  assert.ok(damageByOwner.get('minion:bone-minion:0') > damageByOwner.get('minion:bone-minion:1'));
 });
 
-test("unequipped Necromancer slot skills cannot execute", () => {
-  const denied = simulate("Core", ["Summon Bone Minions"], {
-    selectedSkills: ["Signet of Spite"],
+test('unequipped Necromancer slot skills cannot execute', () => {
+  const denied = simulate('Core', ['Summon Bone Minions'], {
+    selectedSkills: ['Signet of Spite']
   });
-  const equipped = simulate("Core", ["Summon Bone Minions"], {
-    selectedSkills: ["Summon Bone Minions"],
+  const equipped = simulate('Core', ['Summon Bone Minions'], {
+    selectedSkills: ['Summon Bone Minions']
   });
 
-  assert.match(denied.warnings.join(" "), /skill is not equipped/);
+  assert.match(denied.warnings.join(' '), /skill is not equipped/);
   assert.equal(
-    denied.resolvedEvents.some(
-      (event) => event.skillName === "Summon Bone Minions - Minion Attack",
-    ),
-    false,
+    denied.resolvedEvents.some((event) => event.skillName === 'Summon Bone Minions - Minion Attack'),
+    false
   );
   assert.equal(equipped.warnings.length, 0);
-  assert.equal(equipped.endState.profession.activeMinions["bone-minion"], 2);
+  assert.equal(equipped.endState.profession.activeMinions['bone-minion'], 2);
 });
 
-test("persistent minion summons cannot recharge until their minions die", () => {
-  for (const summon of [
-    "Summon Bone Fiend",
-    "Summon Shadow Fiend",
-    "Summon Flesh Golem",
-  ]) {
-    const result = simulate(
-      "Core",
-      [summon, { type: "wait", durationMs: 60_000 }, summon],
-      {
-        selectedSkills: [summon],
-      },
-    );
+test('persistent minion summons cannot recharge until their minions die', () => {
+  for (const summon of ['Summon Bone Fiend', 'Summon Shadow Fiend', 'Summon Flesh Golem']) {
+    const result = simulate('Core', [summon, { type: 'wait', durationMs: 60_000 }, summon], {
+      selectedSkills: [summon]
+    });
 
-    assert.equal(
-      result.steps.filter((step) => step.skill === summon && !step.invalid)
-        .length,
-      1,
-      summon,
-    );
-    assert.match(
-      result.warnings.join(" "),
-      /summoned minion is still alive/,
-      summon,
-    );
+    assert.equal(result.steps.filter((step) => step.skill === summon && !step.invalid).length, 1, summon);
+    assert.match(result.warnings.join(' '), /summoned minion is still alive/, summon);
     assert.equal(result.endState.cooldowns[summon], undefined, summon);
     assert.equal(
       necromancerProfession.ui.isPaletteSkillAvailable(
         { professionState: result.endState.profession },
-        necromancerCatalog.skillsByName.get(summon),
+        necromancerCatalog.skillsByName.get(summon)
       ),
       false,
-      summon,
+      summon
     );
   }
 });
 
-test("bone minion recharge starts after both minions are destroyed", () => {
+test('bone minion recharge starts after both minions are destroyed', () => {
   const result = simulate(
-    "Core",
-    [
-      "Summon Bone Minions",
-      "Putrid Explosion",
-      "Putrid Explosion",
-      "Summon Bone Minions",
-    ],
+    'Core',
+    ['Summon Bone Minions', 'Putrid Explosion', 'Putrid Explosion', 'Summon Bone Minions'],
     {
-      selectedSkills: ["Summon Bone Minions"],
-    },
+      selectedSkills: ['Summon Bone Minions']
+    }
   );
-  const summons = result.steps.filter(
-    (step) => step.skill === "Summon Bone Minions" && !step.invalid,
-  );
-  const explosions = result.steps.filter(
-    (step) => step.skill === "Putrid Explosion" && !step.invalid,
-  );
+  const summons = result.steps.filter((step) => step.skill === 'Summon Bone Minions' && !step.invalid);
+  const explosions = result.steps.filter((step) => step.skill === 'Putrid Explosion' && !step.invalid);
 
   assert.deepEqual(result.warnings, []);
   assert.equal(explosions.length, 2);
   assert.equal(summons.length, 2);
   assert.equal(explosions[1].start, 2000);
   assert.equal(summons[1].start, 18_500);
-  assert.equal(result.endState.profession.activeMinions["bone-minion"], 2);
+  assert.equal(result.endState.profession.activeMinions['bone-minion'], 2);
 });
 
-test("minion attacks use their canonical cadence, coefficients, and icons", () => {
-  const bloodFiend = simulate(
-    "Core",
-    ["Summon Blood Fiend", { type: "wait", durationMs: 6500 }],
-    {
-      selectedSkills: ["Summon Blood Fiend"],
-    },
-  );
-  const boneMinions = simulate(
-    "Core",
-    ["Summon Bone Minions", { type: "wait", durationMs: 4000 }],
-    {
-      selectedSkills: ["Summon Bone Minions"],
-    },
-  );
-  const fleshGolem = simulate(
-    "Core",
-    ["Summon Flesh Golem", { type: "wait", durationMs: 6500 }],
-    {
-      selectedSkills: ["Summon Flesh Golem"],
-    },
-  );
+test('minion attacks use their canonical cadence, coefficients, and icons', () => {
+  const bloodFiend = simulate('Core', ['Summon Blood Fiend', { type: 'wait', durationMs: 6500 }], {
+    selectedSkills: ['Summon Blood Fiend']
+  });
+  const boneMinions = simulate('Core', ['Summon Bone Minions', { type: 'wait', durationMs: 4000 }], {
+    selectedSkills: ['Summon Bone Minions']
+  });
+  const fleshGolem = simulate('Core', ['Summon Flesh Golem', { type: 'wait', durationMs: 6500 }], {
+    selectedSkills: ['Summon Flesh Golem']
+  });
   const bloodAttacks = bloodFiend.resolvedEvents.filter(
-    (event) =>
-      event.type === "damage" &&
-      event.skillName === "Summon Blood Fiend - Minion Attack",
+    (event) => event.type === 'damage' && event.skillName === 'Summon Blood Fiend - Minion Attack'
   );
   const boneAttacks = boneMinions.resolvedEvents.filter(
-    (event) =>
-      event.type === "damage" &&
-      event.skillName === "Summon Bone Minions - Minion Attack",
+    (event) => event.type === 'damage' && event.skillName === 'Summon Bone Minions - Minion Attack'
   );
   const golemAttacks = fleshGolem.resolvedEvents.filter(
-    (event) =>
-      event.type === "damage" && event.parentSkillName === "Summon Flesh Golem",
+    (event) => event.type === 'damage' && event.parentSkillName === 'Summon Flesh Golem'
   );
-  const golemIcon =
-    "https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png";
+  const golemIcon = 'https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png';
 
   assert.ok(bloodAttacks.length >= 2);
   assert.equal(
     bloodAttacks.every((event) => event.coefficient === 0.065),
-    true,
+    true
   );
   assert.ok(Math.abs(bloodAttacks[1].at - bloodAttacks[0].at - 3.1) < 1e-12);
   assert.equal(bloodAttacks[0].summonBasePower, 2400);
@@ -3013,165 +2246,128 @@ test("minion attacks use their canonical cadence, coefficients, and icons", () =
         event.summonBasePower,
         event.summonDamagePerCoefficient,
         event.weaponStrength,
-        event.icon,
+        event.icon
       ]),
     [
-      [3653, "Slash", 0.18, 2500, 3744, undefined, golemIcon],
-      [3654, "Slash", 0.18, 2500, 3744, undefined, golemIcon],
-      [3655, "Fist", 0.29, 2500, 3952, undefined, golemIcon],
-    ],
+      [3653, 'Slash', 0.18, 2500, 3744, undefined, golemIcon],
+      [3654, 'Slash', 0.18, 2500, 3744, undefined, golemIcon],
+      [3655, 'Fist', 0.29, 2500, 3952, undefined, golemIcon]
+    ]
   );
 });
 
-test("calibrated minion strikes ignore player Power and Signet of Spite", () => {
-  for (const summon of [
-    "Summon Blood Fiend",
-    "Summon Bone Fiend",
-    "Summon Bone Minions",
-    "Summon Flesh Golem",
-  ]) {
-    const rotation = [summon, { type: "wait", durationMs: 6500 }];
+test('calibrated minion strikes ignore player Power and Signet of Spite', () => {
+  for (const summon of ['Summon Blood Fiend', 'Summon Bone Fiend', 'Summon Bone Minions', 'Summon Flesh Golem']) {
+    const rotation = [summon, { type: 'wait', durationMs: 6500 }];
     const minionDamage = (result) =>
       result.resolvedEvents
-        .filter((event) => event.type === "damage" && event.source === "Minion")
+        .filter((event) => event.type === 'damage' && event.source === 'Minion')
         .map((event) => event.damage);
-    const lowPower = simulate("Core", rotation, {
+    const lowPower = simulate('Core', rotation, {
       selectedSkills: [summon],
-      stats: { power: 1000 },
+      stats: { power: 1000 }
     });
-    const highPower = simulate("Core", rotation, {
+    const highPower = simulate('Core', rotation, {
       selectedSkills: [summon],
-      stats: { power: 3000 },
+      stats: { power: 3000 }
     });
-    const signet = simulate("Core", rotation, {
-      selectedSkills: [summon, "Signet of Spite"],
-      stats: { power: 1000 },
+    const signet = simulate('Core', rotation, {
+      selectedSkills: [summon, 'Signet of Spite'],
+      stats: { power: 1000 }
     });
 
     assert.deepEqual(minionDamage(highPower), minionDamage(lowPower), summon);
     assert.deepEqual(minionDamage(signet), minionDamage(lowPower), summon);
   }
 
-  const rotation = ["Summon Blood Fiend", { type: "wait", durationMs: 6500 }];
+  const rotation = ['Summon Blood Fiend', { type: 'wait', durationMs: 6500 }];
   const totalMinionDamage = (result) =>
     result.resolvedEvents
-      .filter((event) => event.type === "damage" && event.source === "Minion")
+      .filter((event) => event.type === 'damage' && event.source === 'Minion')
       .reduce((sum, event) => sum + event.damage, 0);
-  const base = simulate("Core", rotation, {
-    selectedSkills: ["Summon Blood Fiend"],
+  const base = simulate('Core', rotation, {
+    selectedSkills: ['Summon Blood Fiend']
   });
-  const corruption = simulate("Core", rotation, {
-    selectedSkills: ["Summon Blood Fiend"],
-    selectedTraitIds: [TRAIT.NECROMANTIC_CORRUPTION],
+  const corruption = simulate('Core', rotation, {
+    selectedSkills: ['Summon Blood Fiend'],
+    selectedTraitIds: [TRAIT.NECROMANTIC_CORRUPTION]
   });
-  const strength = simulate("Ritualist", rotation, {
-    selectedSkills: ["Summon Blood Fiend"],
-    selectedTraitIds: [TRAIT.SPIRITS_STRENGTH],
+  const strength = simulate('Ritualist', rotation, {
+    selectedSkills: ['Summon Blood Fiend'],
+    selectedTraitIds: [TRAIT.SPIRITS_STRENGTH]
   });
 
-  assert.ok(
-    Math.abs(totalMinionDamage(corruption) / totalMinionDamage(base) - 1.25) <
-      1e-12,
-  );
-  assert.ok(
-    Math.abs(totalMinionDamage(strength) / totalMinionDamage(base) - 1.5) <
-      1e-12,
-  );
+  assert.ok(Math.abs(totalMinionDamage(corruption) / totalMinionDamage(base) - 1.25) < 1e-12);
+  assert.ok(Math.abs(totalMinionDamage(strength) / totalMinionDamage(base) - 1.5) < 1e-12);
 });
 
-test("independent minions inherit dynamically shared Fury", () => {
+test('independent minions inherit dynamically shared Fury', () => {
   const rotation = [
-    "Summon Blood Fiend",
+    'Summon Blood Fiend',
     "Ritualist's Shroud",
-    "Wanderlust",
+    'Wanderlust',
     "Exit Ritualist's Shroud",
-    { type: "wait", durationMs: 6500 },
+    { type: 'wait', durationMs: 6500 }
   ];
   const firstBloodFiendAttack = (result) =>
     result.resolvedEvents.find(
-      (event) =>
-        event.type === "damage" &&
-        event.source === "Minion" &&
-        event.skillId === ID.SUMMON_BLOOD_FIEND,
+      (event) => event.type === 'damage' && event.source === 'Minion' && event.skillId === ID.SUMMON_BLOOD_FIEND
     );
-  const base = simulate("Ritualist", rotation, {
+  const base = simulate('Ritualist', rotation, {
     initialResource: 100,
-    selectedSkills: ["Summon Blood Fiend"],
+    selectedSkills: ['Summon Blood Fiend']
   });
-  const empowered = simulate("Ritualist", rotation, {
+  const empowered = simulate('Ritualist', rotation, {
     initialResource: 100,
-    selectedSkills: ["Summon Blood Fiend"],
-    selectedTraitIds: [TRAIT.EMPOWERING_SPIRITS],
+    selectedSkills: ['Summon Blood Fiend'],
+    selectedTraitIds: [TRAIT.EMPOWERING_SPIRITS]
   });
-  const capped = simulate("Ritualist", rotation, {
+  const capped = simulate('Ritualist', rotation, {
     initialResource: 100,
-    selectedSkills: ["Summon Blood Fiend"],
+    selectedSkills: ['Summon Blood Fiend'],
     selectedTraitIds: [TRAIT.EMPOWERING_SPIRITS],
     allies: { count: 4, strikesPerSecond: 1 },
-    sharePlayerBoonsWithSummons: true,
+    sharePlayerBoonsWithSummons: true
   });
-  const spiritRotation = [
-    "Ritualist's Shroud",
-    "Wanderlust",
-    { type: "wait", durationMs: 6500 },
-  ];
-  const spiritBase = simulate("Ritualist", spiritRotation, {
-    initialResource: 100,
+  const spiritRotation = ["Ritualist's Shroud", 'Wanderlust', { type: 'wait', durationMs: 6500 }];
+  const spiritBase = simulate('Ritualist', spiritRotation, {
+    initialResource: 100
   });
-  const spiritEmpowered = simulate("Ritualist", spiritRotation, {
+  const spiritEmpowered = simulate('Ritualist', spiritRotation, {
     initialResource: 100,
     selectedTraitIds: [TRAIT.EMPOWERING_SPIRITS],
-    sharePlayerBoonsWithSummons: true,
+    sharePlayerBoonsWithSummons: true
   });
   assert.equal(firstBloodFiendAttack(base).criticalChance, 0.05);
   assert.equal(firstBloodFiendAttack(empowered).criticalChance, 0.3);
   assert.equal(firstBloodFiendAttack(capped).criticalChance, 0.05);
   assert.ok(spiritBase.resolvedEvents.length > 0);
   const spiritBoons = spiritEmpowered.events.filter(
-    (event) =>
-      event.type === "buff" &&
-      event.skillId === ID.WANDERLUST &&
-      ["quickness", "fury"].includes(event.kind),
+    (event) => event.type === 'buff' && event.skillId === ID.WANDERLUST && ['quickness', 'fury'].includes(event.kind)
   );
   assert.equal(spiritBoons.length, 2);
   assert.ok(
     spiritBoons.every(
-      (event) =>
-        event.recipients === "party" &&
-        event.affectsSummons === false &&
-        event.companionIds.length === 0,
-    ),
+      (event) => event.recipients === 'party' && event.affectsSummons === false && event.companionIds.length === 0
+    )
   );
 });
 
 test("Shadow Fiend reports Slash and Haunt's full command effects", () => {
-  const summonOnly = simulate("Core", ["Summon Shadow Fiend"], {
+  const summonOnly = simulate('Core', ['Summon Shadow Fiend'], {
     initialResource: 0,
-    selectedSkills: ["Summon Shadow Fiend"],
+    selectedSkills: ['Summon Shadow Fiend']
   });
-  const result = simulate(
-    "Core",
-    ["Summon Shadow Fiend", "Haunt", { type: "wait", durationMs: 4500 }],
-    {
-      initialResource: 0,
-      selectedSkills: ["Summon Shadow Fiend"],
-    },
-  );
-  const haunt = result.resolvedEvents.find(
-    (event) => event.type === "damage" && event.skillId === ID.HAUNT,
-  );
-  const slash = result.resolvedEvents.find(
-    (event) => event.type === "damage" && event.skillId === 3642,
-  );
-  const blind = result.events.find(
-    (event) => event.type === "blind" && event.skillId === ID.HAUNT,
-  );
+  const result = simulate('Core', ['Summon Shadow Fiend', 'Haunt', { type: 'wait', durationMs: 4500 }], {
+    initialResource: 0,
+    selectedSkills: ['Summon Shadow Fiend']
+  });
+  const haunt = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.HAUNT);
+  const slash = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === 3642);
+  const blind = result.events.find((event) => event.type === 'blind' && event.skillId === ID.HAUNT);
   const conditionDuration = (condition) =>
     result.resolvedEvents.find(
-      (event) =>
-        event.type === "condition" &&
-        event.skillId === ID.HAUNT &&
-        event.condition === condition,
+      (event) => event.type === 'condition' && event.skillId === ID.HAUNT && event.condition === condition
     )?.duration;
 
   assert.deepEqual(result.warnings, []);
@@ -3180,342 +2376,237 @@ test("Shadow Fiend reports Slash and Haunt's full command effects", () => {
   assert.equal(haunt.summonBasePower, 1700);
   assert.equal(haunt.summonCriticalChance, 0.05);
   assert.equal(haunt.summonCriticalDamage, 1.5);
-  assert.equal(slash.skillName, "Slash");
-  assert.equal(slash.parentSkillName, "Summon Shadow Fiend");
+  assert.equal(slash.skillName, 'Slash');
+  assert.equal(slash.parentSkillName, 'Summon Shadow Fiend');
   assert.equal(slash.coefficient, 0.3);
   assert.equal(slash.summonDamagePerCoefficient, 1750);
   assert.equal(slash.summonBasePower, 1700);
   assert.equal(slash.weaponStrength, undefined);
-  assert.equal(
-    haunt.at -
-      result.events.find(
-        (event) => event.type === "action" && event.skillId === ID.HAUNT,
-      )?.at,
-    2,
-  );
+  assert.equal(haunt.at - result.events.find((event) => event.type === 'action' && event.skillId === ID.HAUNT)?.at, 2);
   assert.equal(blind.duration, 5);
-  assert.equal(conditionDuration("Chilled"), 3);
-  assert.equal(conditionDuration("Weakness"), 5);
-  assert.equal(
-    result.endState.profession.lifeForce -
-      summonOnly.endState.profession.lifeForce,
-    10,
-  );
+  assert.equal(conditionDuration('Chilled'), 3);
+  assert.equal(conditionDuration('Weakness'), 5);
+  assert.equal(result.endState.profession.lifeForce - summonOnly.endState.profession.lifeForce, 10);
 });
 
-test("Sinister Shroud reduces shroud-skill recharge by fifteen percent", () => {
-  const rotation = ["Ritualist's Shroud", "Anguish", "Anguish"];
-  const base = simulate("Ritualist", rotation);
-  const sinister = simulate("Ritualist", rotation, {
-    selectedTraitIds: [TRAIT.SINISTER_SHROUD],
+test('Sinister Shroud reduces shroud-skill recharge by fifteen percent', () => {
+  const rotation = ["Ritualist's Shroud", 'Anguish', 'Anguish'];
+  const base = simulate('Ritualist', rotation);
+  const sinister = simulate('Ritualist', rotation, {
+    selectedTraitIds: [TRAIT.SINISTER_SHROUD]
   });
   const anguishActions = (result) =>
-    result.events.filter(
-      (event) => event.type === "action" && event.skillName === "Anguish",
-    );
+    result.events.filter((event) => event.type === 'action' && event.skillName === 'Anguish');
 
   assert.deepEqual(
     anguishActions(base).map((event) => event.rechargeReadyAt),
-    [7.84, 15.68],
+    [7.84, 15.68]
   );
   assert.deepEqual(
     anguishActions(sinister).map((event) => event.rechargeReadyAt),
-    [6.79, 13.58],
+    [6.79, 13.58]
   );
   assert.equal(
-    base.steps.filter((step) => step.skill === "Anguish")[1].start -
-      sinister.steps.filter((step) => step.skill === "Anguish")[1].start,
-    1050,
+    base.steps.filter((step) => step.skill === 'Anguish')[1].start -
+      sinister.steps.filter((step) => step.skill === 'Anguish')[1].start,
+    1050
   );
 });
 
-test("Reaper traits reduce shroud cooldowns and ignore minion critical hits", () => {
-  const rotation = [
-    "Reaper's Shroud",
-    "Death's Charge",
-    "Life Rend",
-    "Life Slash",
-    "Life Reap",
-    "Death's Charge",
-  ];
-  const base = simulate("Reaper", rotation, {
-    boons: { quickness: true, alacrity: true },
+test('Reaper traits reduce shroud cooldowns and ignore minion critical hits', () => {
+  const rotation = ["Reaper's Shroud", "Death's Charge", 'Life Rend', 'Life Slash', 'Life Reap', "Death's Charge"];
+  const base = simulate('Reaper', rotation, {
+    boons: { quickness: true, alacrity: true }
   });
-  const onslaught = simulate("Reaper", rotation, {
+  const onslaught = simulate('Reaper', rotation, {
     boons: { quickness: true, alacrity: true },
-    selectedTraitIds: [TRAIT.REAPERS_ONSLAUGHT],
+    selectedTraitIds: [TRAIT.REAPERS_ONSLAUGHT]
   });
-  const shroudDamageTraits = simulate("Reaper", rotation, {
+  const shroudDamageTraits = simulate('Reaper', rotation, {
     boons: { quickness: true, alacrity: true },
-    selectedTraitIds: [TRAIT.REAPERS_ONSLAUGHT, TRAIT.DEATH_PERCEPTION],
+    selectedTraitIds: [TRAIT.REAPERS_ONSLAUGHT, TRAIT.DEATH_PERCEPTION]
   });
-  const secondChargeStart = (result) =>
-    result.steps.filter((step) => step.skill === "Death's Charge")[1].start;
+  const secondChargeStart = (result) => result.steps.filter((step) => step.skill === "Death's Charge")[1].start;
   const firstLifeRendDamage = (result) =>
-    result.resolvedEvents.find(
-      (event) => event.type === "damage" && event.skillName === "Life Rend",
-    )?.damage || 0;
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Life Rend')?.damage || 0;
 
   assert.equal(secondChargeStart(base) - secondChargeStart(onslaught), 1000);
   assert.ok(firstLifeRendDamage(onslaught) > firstLifeRendDamage(base));
-  assert.ok(
-    firstLifeRendDamage(shroudDamageTraits) > firstLifeRendDamage(base) * 1.15,
-  );
+  assert.ok(firstLifeRendDamage(shroudDamageTraits) > firstLifeRendDamage(base) * 1.15);
 
   const nova = simulate(
-    "Reaper",
-    [
-      "Summon Flesh Golem",
-      "Reaper's Shroud",
-      "Soul Spiral",
-      { type: "wait", durationMs: 20_000 },
-    ],
+    'Reaper',
+    ['Summon Flesh Golem', "Reaper's Shroud", 'Soul Spiral', { type: 'wait', durationMs: 20_000 }],
     {
       boons: { quickness: true },
-      selectedSkills: ["Summon Flesh Golem"],
-      selectedTraitIds: [TRAIT.CHILLING_NOVA],
-    },
+      selectedSkills: ['Summon Flesh Golem'],
+      selectedTraitIds: [TRAIT.CHILLING_NOVA]
+    }
   );
-  const novaProcs = nova.procSteps.filter(
-    (step) => step.skill === "Chilling Nova",
-  );
+  const novaProcs = nova.procSteps.filter((step) => step.skill === 'Chilling Nova');
 
   assert.ok(novaProcs.length > 0);
   assert.equal(
-    novaProcs.some(
-      (step) => step.sourceSkill === "Summon Flesh Golem - Minion Attack",
-    ),
-    false,
+    novaProcs.some((step) => step.sourceSkill === 'Summon Flesh Golem - Minion Attack'),
+    false
   );
 });
 
-test("Reaper shouts apply their PvE melee damage bonus", () => {
-  const melee = simulate("Reaper", ['"You Are All Weaklings!"'], {
-    selectedSkills: ['"You Are All Weaklings!"'],
+test('Reaper shouts apply their PvE melee damage bonus', () => {
+  const melee = simulate('Reaper', ['"You Are All Weaklings!"'], {
+    selectedSkills: ['"You Are All Weaklings!"']
   });
-  const ranged = simulate("Reaper", ['"You Are All Weaklings!"'], {
+  const ranged = simulate('Reaper', ['"You Are All Weaklings!"'], {
     selectedSkills: ['"You Are All Weaklings!"'],
     target: {
       ...baseConfig.target,
-      nearby: false,
-    },
+      nearby: false
+    }
   });
 
   assert.ok(Math.abs(melee.strikeDamage - ranged.strikeDamage * 2) < 1e-9);
 });
 
-test("Ritualist spirits attack, empower Essence Blast, and innervate", () => {
+test('Ritualist spirits attack, empower Essence Blast, and innervate', () => {
   const result = simulate(
-    "Ritualist",
-    [
-      "Ritualist's Shroud",
-      "Anguish",
-      "Essence Blast",
-      "Innervate Anguish",
-      "Exit Ritualist's Shroud",
-    ],
-    { initialResource: 50 },
+    'Ritualist',
+    ["Ritualist's Shroud", 'Anguish', 'Essence Blast', 'Innervate Anguish', "Exit Ritualist's Shroud"],
+    { initialResource: 50 }
   );
   const lingering = simulate(
-    "Ritualist",
-    [
-      "Ritualist's Shroud",
-      "Anguish",
-      "Exit Ritualist's Shroud",
-      { type: "wait", durationMs: 8000 },
-    ],
+    'Ritualist',
+    ["Ritualist's Shroud", 'Anguish', "Exit Ritualist's Shroud", { type: 'wait', durationMs: 8000 }],
     {
       initialResource: 100,
-      selectedTraitIds: [TRAIT.LINGERING_SPIRITS],
-    },
+      selectedTraitIds: [TRAIT.LINGERING_SPIRITS]
+    }
   );
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(result.endState.profession.activeSpirits, {});
   assert.ok(result.endState.profession.lifeForce > 50);
-  assert.ok(result.breakdown.some((entry) => entry.name === "Essence Blast"));
+  assert.ok(result.breakdown.some((entry) => entry.name === 'Essence Blast'));
   assert.equal(lingering.endState.profession.activeSpirits.anguish, true);
   assert.ok(lingering.endState.profession.lifeForce < 90);
-  assert.ok(
-    lingering.breakdown.some((entry) => entry.name === "Anguish Autoattack"),
-  );
+  assert.ok(lingering.breakdown.some((entry) => entry.name === 'Anguish Autoattack'));
 });
 
-test("Ritualist autoattacks and Painful Bond carry their source icons", () => {
-  const anguish = simulate(
-    "Ritualist",
-    ["Ritualist's Shroud", "Anguish", { type: "wait", durationMs: 8000 }],
-    {
-      initialResource: 100,
-    },
-  );
-  const wanderlust = simulate(
-    "Ritualist",
-    ["Ritualist's Shroud", "Wanderlust", { type: "wait", durationMs: 8000 }],
-    {
-      initialResource: 100,
-    },
-  );
+test('Ritualist autoattacks and Painful Bond carry their source icons', () => {
+  const anguish = simulate('Ritualist', ["Ritualist's Shroud", 'Anguish', { type: 'wait', durationMs: 8000 }], {
+    initialResource: 100
+  });
+  const wanderlust = simulate('Ritualist', ["Ritualist's Shroud", 'Wanderlust', { type: 'wait', durationMs: 8000 }], {
+    initialResource: 100
+  });
   const anguishIcon = necromancerCatalog.skillsById.get(ID.ANGUISH).icon;
   const wanderlustIcon = necromancerCatalog.skillsById.get(ID.WANDERLUST).icon;
   const anguishRows = skillBreakdownRows(anguish);
   const wanderlustRows = skillBreakdownRows(wanderlust);
 
-  assert.equal(
-    anguishRows.find((row) => row.name === "Anguish Autoattack")?.icon,
-    anguishIcon,
-  );
-  assert.equal(
-    anguishRows.find((row) => row.name === "Painful Bond")?.icon,
-    anguishIcon,
-  );
-  assert.equal(
-    wanderlustRows.find((row) => row.name === "Wanderlust Autoattack")?.icon,
-    wanderlustIcon,
-  );
+  assert.equal(anguishRows.find((row) => row.name === 'Anguish Autoattack')?.icon, anguishIcon);
+  assert.equal(anguishRows.find((row) => row.name === 'Painful Bond')?.icon, anguishIcon);
+  assert.equal(wanderlustRows.find((row) => row.name === 'Wanderlust Autoattack')?.icon, wanderlustIcon);
 });
 
-test("Ritualist live spirit packets retain independent ownership and cadence", () => {
+test('Ritualist live spirit packets retain independent ownership and cadence', () => {
   const packets = simulate(
-    "Ritualist",
+    'Ritualist',
     [
       "Ritualist's Shroud",
-      "Anguish",
-      "Wanderlust",
-      "Preservation",
-      "Essence Blast",
-      { type: "wait", durationMs: 6000 },
+      'Anguish',
+      'Wanderlust',
+      'Preservation',
+      'Essence Blast',
+      { type: 'wait', durationMs: 6000 }
     ],
     {
       initialResource: 100,
-      selectedTraitIds: [TRAIT.EXPLOSIVE_GROWTH, TRAIT.SPIRITS_STRENGTH],
-    },
+      selectedTraitIds: [TRAIT.EXPLOSIVE_GROWTH, TRAIT.SPIRITS_STRENGTH]
+    }
   );
   const detachedBond = simulate(
-    "Ritualist",
-    [
-      "Ritualist's Shroud",
-      "Anguish",
-      "Exit Ritualist's Shroud",
-      { type: "wait", durationMs: 8000 },
-    ],
+    'Ritualist',
+    ["Ritualist's Shroud", 'Anguish', "Exit Ritualist's Shroud", { type: 'wait', durationMs: 8000 }],
     {
-      initialResource: 100,
-    },
+      initialResource: 100
+    }
   );
-  const damageEvents = packets.resolvedEvents.filter(
-    (event) => event.type === "damage",
-  );
-  const anguish = damageEvents.filter((event) => event.skillName === "Anguish");
-  const wanderlust = damageEvents.filter(
-    (event) => event.skillName === "Wanderlust",
-  );
-  const preservationAutos = damageEvents.filter(
-    (event) => event.skillName === "Preservation Autoattack",
-  );
-  const wanderlustAutos = damageEvents.filter(
-    (event) => event.skillName === "Wanderlust Autoattack",
-  );
-  const anguishAutos = damageEvents.filter(
-    (event) => event.skillName === "Anguish Autoattack",
-  );
-  const lingering = wanderlust.filter(
-    (event) => event.actorType === "player" && event.source === "Spirit",
-  );
-  const essence = damageEvents.find(
-    (event) => event.skillName === "Essence Blast",
-  );
-  const growth = damageEvents.filter(
-    (event) => event.skillName === "Explosive Growth",
-  );
-  const growthRow = skillBreakdownRows(packets).find(
-    (row) => row.name === "Explosive Growth",
-  );
+  const damageEvents = packets.resolvedEvents.filter((event) => event.type === 'damage');
+  const anguish = damageEvents.filter((event) => event.skillName === 'Anguish');
+  const wanderlust = damageEvents.filter((event) => event.skillName === 'Wanderlust');
+  const preservationAutos = damageEvents.filter((event) => event.skillName === 'Preservation Autoattack');
+  const wanderlustAutos = damageEvents.filter((event) => event.skillName === 'Wanderlust Autoattack');
+  const anguishAutos = damageEvents.filter((event) => event.skillName === 'Anguish Autoattack');
+  const lingering = wanderlust.filter((event) => event.actorType === 'player' && event.source === 'Spirit');
+  const essence = damageEvents.find((event) => event.skillName === 'Essence Blast');
+  const growth = damageEvents.filter((event) => event.skillName === 'Explosive Growth');
+  const growthRow = skillBreakdownRows(packets).find((row) => row.name === 'Explosive Growth');
   const bond = detachedBond.resolvedEvents.filter(
-    (event) => event.type === "damage" && event.skillName === "Painful Bond",
+    (event) => event.type === 'damage' && event.skillName === 'Painful Bond'
   );
   const detachedAutos = detachedBond.resolvedEvents.filter(
-    (event) =>
-      event.type === "damage" && event.skillName === "Anguish Autoattack",
+    (event) => event.type === 'damage' && event.skillName === 'Anguish Autoattack'
   );
 
   assert.equal(anguish.length, 7);
   assert.equal(
-    anguish.every(
-      (event) =>
-        event.actorType === "player" &&
-        event.coefficient === 0.5 &&
-        event.weaponStrength === 805,
-    ),
-    true,
+    anguish.every((event) => event.actorType === 'player' && event.coefficient === 0.5 && event.weaponStrength === 805),
+    true
   );
   assert.equal(lingering.length, 4);
   assert.equal(
     lingering.every((event) => event.coefficient === 0.45),
-    true,
+    true
   );
   assert.ok(preservationAutos.length > 0);
   assert.equal(
     preservationAutos.every(
       (event) =>
-        event.actorType === "summon" &&
+        event.actorType === 'summon' &&
         event.coefficient === 0.3 &&
         event.weaponStrength === 1565 &&
-        event.summonInheritsCriticalAttributes === true,
+        event.summonInheritsCriticalAttributes === true
     ),
-    true,
+    true
   );
   assert.equal(
     wanderlustAutos.every(
       (event) =>
-        event.coefficient === 0.4 &&
-        event.weaponStrength === 1565 &&
-        event.summonInheritsCriticalAttributes === true,
+        event.coefficient === 0.4 && event.weaponStrength === 1565 && event.summonInheritsCriticalAttributes === true
     ),
-    true,
+    true
   );
   assert.equal(
     anguishAutos.every(
       (event) =>
-        event.coefficient === 0.4 &&
-        event.weaponStrength === 1685 &&
-        event.summonInheritsCriticalAttributes === true,
+        event.coefficient === 0.4 && event.weaponStrength === 1685 && event.summonInheritsCriticalAttributes === true
     ),
-    true,
+    true
   );
   assert.equal(essence.coefficient, 0.75);
   assert.equal(essence.activeSpirits, 3);
   assert.equal(essence.essenceBlastDamagePerSpirit, 0.15);
   assert.equal(growth.length, 3);
   assert.equal(growthRow.hits, 3);
-  assert.equal(growthRow.parentSkill, "Anguish");
+  assert.equal(growthRow.parentSkill, 'Anguish');
   assert.equal(detachedAutos.length, 0);
   assert.ok(bond.length >= 8);
   assert.equal(
-    bond
-      .slice(1)
-      .every((event, index) => Math.abs(event.at - bond[index].at - 1) < 1e-9),
-    true,
+    bond.slice(1).every((event, index) => Math.abs(event.at - bond[index].at - 1) < 1e-9),
+    true
   );
 });
 
-test("Ritualist spirit autos inherit owner Fury without inheriting owner Might", () => {
-  const rotation = [
-    "Ritualist's Shroud",
-    "Anguish",
-    { type: "wait", durationMs: 8000 },
-  ];
+test('Ritualist spirit autos inherit owner Fury without inheriting owner Might', () => {
+  const rotation = ["Ritualist's Shroud", 'Anguish', { type: 'wait', durationMs: 8000 }];
   const run = (boons) =>
-    simulate("Ritualist", rotation, {
+    simulate('Ritualist', rotation, {
       initialResource: 100,
       boons,
-      sharePlayerBoonsWithSummons: false,
+      sharePlayerBoonsWithSummons: false
     });
   const spiritAuto = (result) =>
-    result.resolvedEvents.find(
-      (event) =>
-        event.type === "damage" && event.skillName === "Anguish Autoattack",
-    );
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Anguish Autoattack');
   const baseline = spiritAuto(run({ might: 0, fury: false }));
   const might = spiritAuto(run({ might: 25, fury: false }));
   const fury = spiritAuto(run({ might: 0, fury: true }));
@@ -3525,500 +2616,356 @@ test("Ritualist spirit autos inherit owner Fury without inheriting owner Might",
   assert.ok(fury);
   assert.equal(might.damage, baseline.damage);
   assert.equal(might.criticalChance, baseline.criticalChance);
-  assert.equal(
-    fury.criticalChance,
-    Math.min(1, baseline.criticalChance + 0.25),
-  );
+  assert.equal(fury.criticalChance, Math.min(1, baseline.criticalChance + 0.25));
   assert.ok(fury.damage > baseline.damage);
 });
 
 test("Innervate Anguish uses profession-mechanic strength without Spirit's Strength", () => {
-  const rotation = ["Ritualist's Shroud", "Anguish", "Innervate Anguish"];
-  const baseline = simulate("Ritualist", rotation, {
-    initialResource: 100,
+  const rotation = ["Ritualist's Shroud", 'Anguish', 'Innervate Anguish'];
+  const baseline = simulate('Ritualist', rotation, {
+    initialResource: 100
   });
-  const strengthened = simulate("Ritualist", rotation, {
+  const strengthened = simulate('Ritualist', rotation, {
     initialResource: 100,
-    selectedTraitIds: [TRAIT.SPIRITS_STRENGTH],
+    selectedTraitIds: [TRAIT.SPIRITS_STRENGTH]
   });
   const innervate = (result) =>
-    result.resolvedEvents.find(
-      (event) =>
-        event.type === "damage" && event.skillName === "Innervate Anguish",
-    );
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Innervate Anguish');
   const baselineHit = innervate(baseline);
   const strengthenedHit = innervate(strengthened);
 
   assert.ok(baselineHit);
   assert.ok(strengthenedHit);
   assert.equal(baselineHit.coefficient, 1.3);
-  assert.equal(
-    baselineHit.weaponStrengthProfileId,
-    "nonweapon.profession-mechanic",
-  );
+  assert.equal(baselineHit.weaponStrengthProfileId, 'nonweapon.profession-mechanic');
   assert.equal(baselineHit.resolvedWeaponStrength, 1100);
   assert.equal(strengthenedHit.damage, baselineHit.damage);
 });
 
-test("Ritualist weapon spells consume stacks and Resilient Weapon is usable", () => {
+test('Ritualist weapon spells consume stacks and Resilient Weapon is usable', () => {
   const weaponSpells = simulate(
-    "Ritualist",
+    'Ritualist',
     [
-      "Nightmare Weapon",
-      "Splinter Weapon",
+      'Nightmare Weapon',
+      'Splinter Weapon',
       "Ritualist's Shroud",
-      "Essence Blast",
-      "Essence Blast",
-      "Essence Blast",
-      "Essence Blast",
-      "Essence Blast",
+      'Essence Blast',
+      'Essence Blast',
+      'Essence Blast',
+      'Essence Blast',
+      'Essence Blast'
     ],
     {
       initialResource: 100,
-      selectedSkills: ["Nightmare Weapon", "Splinter Weapon"],
-    },
+      selectedSkills: ['Nightmare Weapon', 'Splinter Weapon']
+    }
   );
-  const resilient = simulate("Ritualist", ["Resilient Weapon"], {
-    selectedSkills: ["Resilient Weapon"],
+  const resilient = simulate('Ritualist', ['Resilient Weapon'], {
+    selectedSkills: ['Resilient Weapon']
   });
   const nightmare = weaponSpells.resolvedEvents.filter(
-    (event) => event.type === "damage" && event.name === "Nightmare Weapon",
+    (event) => event.type === 'damage' && event.name === 'Nightmare Weapon'
   );
   const splinter = weaponSpells.resolvedEvents.filter(
-    (event) => event.type === "damage" && event.name === "Splinter Weapon",
+    (event) => event.type === 'damage' && event.name === 'Splinter Weapon'
   );
-  const nightmareIcon = necromancerCatalog.skillsById.get(
-    ID.NIGHTMARE_WEAPON,
-  ).icon;
-  const splinterIcon = necromancerCatalog.skillsById.get(
-    ID.SPLINTER_WEAPON,
-  ).icon;
-  const nightmareProcs = weaponSpells.procSteps.filter(
-    (step) => step.skill === "Nightmare Weapon",
-  );
-  const splinterProcs = weaponSpells.procSteps.filter(
-    (step) => step.skill === "Splinter Weapon",
-  );
+  const nightmareIcon = necromancerCatalog.skillsById.get(ID.NIGHTMARE_WEAPON).icon;
+  const splinterIcon = necromancerCatalog.skillsById.get(ID.SPLINTER_WEAPON).icon;
+  const nightmareProcs = weaponSpells.procSteps.filter((step) => step.skill === 'Nightmare Weapon');
+  const splinterProcs = weaponSpells.procSteps.filter((step) => step.skill === 'Splinter Weapon');
   assert.deepEqual(weaponSpells.warnings, []);
   assert.equal(nightmare.length, 5);
   assert.equal(splinter.length, 5);
   assert.equal(
     splinter.every((event) => event.coefficient === 0.4),
-    true,
+    true
   );
   assert.equal(
     nightmareProcs.every((step) => step.icon === nightmareIcon),
-    true,
+    true
   );
   assert.equal(
     splinterProcs.every((step) => step.icon === splinterIcon),
-    true,
+    true
   );
-  const nightmareProc = necromancerCatalog.balanceProfilesById.get(
-    RITUALIST_BALANCE_PROFILE_IDS.nightmareWeaponProc,
-  );
+  const nightmareProc = necromancerCatalog.balanceProfilesById.get(RITUALIST_BALANCE_PROFILE_IDS.nightmareWeaponProc);
   assert.equal(nightmareProc.effects[1].stacks, 2);
   assert.equal(nightmareProc.effects[1].duration, 8);
   assert.deepEqual(resilient.warnings, []);
   assert.equal(
     resilient.events.some(
-      (event) =>
-        event.type === "necromancer.weapon-spell" &&
-        event.spell === "resilient" &&
-        event.playerStacks === 5,
+      (event) => event.type === 'necromancer.weapon-spell' && event.spell === 'resilient' && event.playerStacks === 5
     ),
-    true,
+    true
   );
-  assert.equal(NECROMANCER_NON_DPS_SKILL_NAMES.has("Resilient Weapon"), false);
+  assert.equal(NECROMANCER_NON_DPS_SKILL_NAMES.has('Resilient Weapon'), false);
 });
 
-test("Ritualist weapon spells scale with allied players", () => {
-  const rotation = ["Nightmare Weapon", "Splinter Weapon"];
+test('Ritualist weapon spells scale with allied players', () => {
+  const rotation = ['Nightmare Weapon', 'Splinter Weapon'];
   const solo = simulate(
-    "Ritualist",
+    'Ritualist',
     rotation,
     {
       selectedSkills: rotation,
-      allies: { count: 0, strikesPerSecond: 1 },
+      allies: { count: 0, strikesPerSecond: 1 }
     },
-    observationTail(5000),
+    observationTail(5000)
   );
   const party = simulate(
-    "Ritualist",
+    'Ritualist',
     rotation,
     {
       selectedSkills: rotation,
-      allies: { count: 4, strikesPerSecond: 1 },
+      allies: { count: 4, strikesPerSecond: 1 }
     },
-    observationTail(5000),
+    observationTail(5000)
   );
-  const allyProcs = party.resolvedEvents.filter(
-    (event) => event.triggeredByAlly,
-  );
-  const applicationEvents = party.events.filter(
-    (event) => event.type === "necromancer.weapon-spell",
-  );
+  const allyProcs = party.resolvedEvents.filter((event) => event.triggeredByAlly);
+  const applicationEvents = party.events.filter((event) => event.type === 'necromancer.weapon-spell');
 
   assert.equal(solo.totalDamage, 0);
   assert.ok(party.totalDamage > solo.totalDamage);
-  assert.equal(
-    allyProcs.filter((event) => event.name === "Nightmare Weapon").length,
-    12,
-  );
-  assert.equal(
-    allyProcs.filter((event) => event.name === "Splinter Weapon").length,
-    12,
-  );
-  assert.deepEqual(
-    [...new Set(allyProcs.map((event) => event.triggeredByAlly))],
-    [1, 2, 3, 4],
-  );
+  assert.equal(allyProcs.filter((event) => event.name === 'Nightmare Weapon').length, 12);
+  assert.equal(allyProcs.filter((event) => event.name === 'Splinter Weapon').length, 12);
+  assert.deepEqual([...new Set(allyProcs.map((event) => event.triggeredByAlly))], [1, 2, 3, 4]);
   assert.equal(
     applicationEvents.every(
-      (event) =>
-        event.alliedPlayerCount === 4 &&
-        event.recipientCount === 5 &&
-        event.recipients.length === 0,
+      (event) => event.alliedPlayerCount === 4 && event.recipientCount === 5 && event.recipients.length === 0
     ),
-    true,
+    true
   );
 
   const wieldersBoon = simulate(
-    "Ritualist",
-    ["Nightmare Weapon"],
+    'Ritualist',
+    ['Nightmare Weapon'],
     {
-      selectedSkills: ["Nightmare Weapon"],
+      selectedSkills: ['Nightmare Weapon'],
       selectedTraitIds: [TRAIT.WIELDERS_BOON],
-      allies: { count: 1, strikesPerSecond: 10 },
+      allies: { count: 1, strikesPerSecond: 10 }
     },
-    observationTail(2000),
+    observationTail(2000)
   );
   assert.equal(
-    wieldersBoon.resolvedEvents.filter(
-      (event) =>
-        event.name === "Nightmare Weapon" && event.triggeredByAlly === 1,
-    ).length,
-    5,
+    wieldersBoon.resolvedEvents.filter((event) => event.name === 'Nightmare Weapon' && event.triggeredByAlly === 1)
+      .length,
+    5
   );
 });
 
-test("Ritualist weapon spells prioritize players, include minions, and exclude spirits", () => {
+test('Ritualist weapon spells prioritize players, include minions, and exclude spirits', () => {
   const result = simulate(
-    "Ritualist",
-    [
-      "Summon Bone Minions",
-      "Ritualist's Shroud",
-      "Anguish",
-      "Exit Ritualist's Shroud",
-      "Nightmare Weapon",
-    ],
+    'Ritualist',
+    ['Summon Bone Minions', "Ritualist's Shroud", 'Anguish', "Exit Ritualist's Shroud", 'Nightmare Weapon'],
     {
       initialResource: 100,
-      selectedSkills: ["Summon Bone Minions", "Nightmare Weapon"],
+      selectedSkills: ['Summon Bone Minions', 'Nightmare Weapon'],
       selectedTraitIds: [TRAIT.LINGERING_SPIRITS],
-      allies: { count: 2, strikesPerSecond: 1 },
+      allies: { count: 2, strikesPerSecond: 1 }
     },
-    observationTail(5000),
+    observationTail(5000)
   );
   const application = result.events.find(
-    (event) =>
-      event.type === "necromancer.weapon-spell" && event.spell === "nightmare",
+    (event) => event.type === 'necromancer.weapon-spell' && event.spell === 'nightmare'
   );
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.profession.activeSpirits.anguish, true);
   assert.equal(application.alliedPlayerCount, 2);
   assert.equal(application.recipientCount, 5);
-  assert.deepEqual(application.recipients, [
-    "minion:bone-minion:0",
-    "minion:bone-minion:1",
-  ]);
+  assert.deepEqual(application.recipients, ['minion:bone-minion:0', 'minion:bone-minion:1']);
   assert.equal(
-    application.recipients.some((recipient) => recipient.startsWith("spirit:")),
-    false,
+    application.recipients.some((recipient) => recipient.startsWith('spirit:')),
+    false
   );
   assert.equal(
-    result.resolvedEvents.filter(
-      (event) => event.name === "Nightmare Weapon" && event.triggeredByAlly,
-    ).length,
-    6,
+    result.resolvedEvents.filter((event) => event.name === 'Nightmare Weapon' && event.triggeredByAlly).length,
+    6
   );
 });
 
-test("Necromancer trait procs resolve from real event state", () => {
+test('Necromancer trait procs resolve from real event state', () => {
   const dhuumfire = simulate(
-    "Core",
-    [
-      "Death Shroud",
-      "Life Blast",
-      "End Death Shroud",
-      { type: "wait", durationMs: 3100 },
-    ],
-    { selectedTraitIds: [TRAIT.DHUUMFIRE] },
+    'Core',
+    ['Death Shroud', 'Life Blast', 'End Death Shroud', { type: 'wait', durationMs: 3100 }],
+    { selectedTraitIds: [TRAIT.DHUUMFIRE] }
   );
-  const demonicLore = simulate(
-    "Scourge",
-    ["Manifest Sand Shade", { type: "wait", durationMs: 3100 }],
-    { selectedTraitIds: [TRAIT.DEMONIC_LORE] },
-  );
+  const demonicLore = simulate('Scourge', ['Manifest Sand Shade', { type: 'wait', durationMs: 3100 }], {
+    selectedTraitIds: [TRAIT.DEMONIC_LORE]
+  });
   const deathlyChill = simulate(
-    "Reaper",
-    [
-      "Reaper's Shroud",
-      "Executioner's Scythe",
-      "Exit Reaper's Shroud",
-      { type: "wait", durationMs: 3100 },
-    ],
-    { selectedTraitIds: [TRAIT.DEATHLY_CHILL] },
+    'Reaper',
+    ["Reaper's Shroud", "Executioner's Scythe", "Exit Reaper's Shroud", { type: 'wait', durationMs: 3100 }],
+    { selectedTraitIds: [TRAIT.DEATHLY_CHILL] }
   );
 
-  assert.ok(
-    dhuumfire.resolvedEvents.some(
-      (event) => event.name === "Dhuumfire - Burning",
-    ),
-  );
-  assert.ok(
-    demonicLore.resolvedEvents.some(
-      (event) => event.name === "Demonic Lore - Burning",
-    ),
-  );
-  assert.ok(
-    deathlyChill.resolvedEvents.some(
-      (event) => event.name === "Deathly Chill - Bleeding",
-    ),
-  );
+  assert.ok(dhuumfire.resolvedEvents.some((event) => event.name === 'Dhuumfire - Burning'));
+  assert.ok(demonicLore.resolvedEvents.some((event) => event.name === 'Demonic Lore - Burning'));
+  assert.ok(deathlyChill.resolvedEvents.some((event) => event.name === 'Deathly Chill - Bleeding'));
 });
 
-test("Blood Is Power and Plague Signet preserve transferred conditions", () => {
-  const result = simulate(
-    "Harbinger",
-    ["Blood Is Power", "Plague Signet", { type: "wait", durationMs: 10_100 }],
-    {
-      selectedSkills: ["Blood Is Power", "Plague Signet"],
-      selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION],
-    },
-  );
-  const transferred = result.resolvedEvents.filter(
-    (event) => event.transferredCondition,
-  );
+test('Blood Is Power and Plague Signet preserve transferred conditions', () => {
+  const result = simulate('Harbinger', ['Blood Is Power', 'Plague Signet', { type: 'wait', durationMs: 10_100 }], {
+    selectedSkills: ['Blood Is Power', 'Plague Signet'],
+    selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION]
+  });
+  const transferred = result.resolvedEvents.filter((event) => event.transferredCondition);
 
   assert.deepEqual(result.warnings, []);
   assert.equal(
-    transferred.some(
-      (event) => event.condition === "Bleeding" && event.stacks === 2,
-    ),
-    true,
+    transferred.some((event) => event.condition === 'Bleeding' && event.stacks === 2),
+    true
   );
   assert.equal(
-    transferred.some(
-      (event) => event.condition === "Torment" && event.stacks === 2,
-    ),
-    true,
+    transferred.some((event) => event.condition === 'Torment' && event.stacks === 2),
+    true
   );
   assert.deepEqual(result.endState.profession.selfConditions, []);
   assert.equal(
-    transferred.every(
-      (event) => Math.abs(event.effectiveDuration - 10) < 0.0001,
-    ),
-    true,
+    transferred.every((event) => Math.abs(event.effectiveDuration - 10) < 0.0001),
+    true
   );
 });
 
-test("Plague Sending treats Scourge F5 as entering shroud", () => {
-  const result = simulate(
-    "Scourge",
-    ["Desert Shroud", "Blood Is Power", { type: "wait", durationMs: 10_100 }],
-    {
-      initialResource: 100,
-      selectedSkills: ["Blood Is Power"],
-      selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION, TRAIT.PLAGUE_SENDING],
-    },
-  );
-  const transferred = result.resolvedEvents.filter(
-    (event) => event.transferredCondition,
-  );
+test('Plague Sending treats Scourge F5 as entering shroud', () => {
+  const result = simulate('Scourge', ['Desert Shroud', 'Blood Is Power', { type: 'wait', durationMs: 10_100 }], {
+    initialResource: 100,
+    selectedSkills: ['Blood Is Power'],
+    selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION, TRAIT.PLAGUE_SENDING]
+  });
+  const transferred = result.resolvedEvents.filter((event) => event.transferredCondition);
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     transferred.map((event) => [event.condition, event.stacks]),
     [
-      ["Bleeding", 2],
-      ["Torment", 2],
-    ],
+      ['Bleeding', 2],
+      ['Torment', 2]
+    ]
   );
   assert.deepEqual(result.endState.profession.selfConditions, []);
 });
 
-test("Dhuumfire uses the specialization duration split and Scourge ICD", () => {
-  const core = simulate(
-    "Core",
-    ["Death Shroud", "Life Blast", "End Death Shroud"],
-    { selectedTraitIds: [TRAIT.DHUUMFIRE] },
-  );
-  const harbinger = simulate(
-    "Harbinger",
-    ["Harbinger Shroud", "Tainted Bolts", "Exit Harbinger Shroud"],
-    { selectedTraitIds: [TRAIT.DHUUMFIRE] },
-  );
+test('Dhuumfire uses the specialization duration split and Scourge ICD', () => {
+  const core = simulate('Core', ['Death Shroud', 'Life Blast', 'End Death Shroud'], {
+    selectedTraitIds: [TRAIT.DHUUMFIRE]
+  });
+  const harbinger = simulate('Harbinger', ['Harbinger Shroud', 'Tainted Bolts', 'Exit Harbinger Shroud'], {
+    selectedTraitIds: [TRAIT.DHUUMFIRE]
+  });
   const scourge = simulate(
-    "Scourge",
-    [
-      "Manifest Sand Shade",
-      "Garish Pillar",
-      { type: "wait", durationMs: 1100 },
-      "Sand Cascade",
-    ],
+    'Scourge',
+    ['Manifest Sand Shade', 'Garish Pillar', { type: 'wait', durationMs: 1100 }, 'Sand Cascade'],
     {
       initialResource: 100,
-      selectedTraitIds: [TRAIT.DHUUMFIRE],
-    },
+      selectedTraitIds: [TRAIT.DHUUMFIRE]
+    }
   );
   const applications = (result) =>
-    result.resolvedEvents.filter(
-      (event) =>
-        event.sourceId === TRAIT.DHUUMFIRE && event.condition === "Burning",
-    );
+    result.resolvedEvents.filter((event) => event.sourceId === TRAIT.DHUUMFIRE && event.condition === 'Burning');
 
   assert.deepEqual(
     applications(core).map((event) => event.duration),
-    [3],
+    [3]
   );
   assert.deepEqual(
     applications(harbinger).map((event) => event.duration),
-    [1, 1],
+    [1, 1]
   );
   assert.deepEqual(
     applications(scourge).map((event) => event.duration),
-    [2, 2],
+    [2, 2]
   );
   assert.ok(applications(scourge)[1].at - applications(scourge)[0].at >= 1);
 });
 
-test("Desert Shroud pulses do not retrigger shroud skill-one traits", () => {
-  const result = simulate(
-    "Scourge",
-    ["Desert Shroud", { type: "wait", durationMs: 6100 }],
-    {
-      initialResource: 100,
-      selectedTraitIds: [TRAIT.DHUUMFIRE],
-    },
-  );
+test('Desert Shroud pulses do not retrigger shroud skill-one traits', () => {
+  const result = simulate('Scourge', ['Desert Shroud', { type: 'wait', durationMs: 6100 }], {
+    initialResource: 100,
+    selectedTraitIds: [TRAIT.DHUUMFIRE]
+  });
   const applications = result.resolvedEvents.filter(
-    (event) =>
-      event.sourceId === TRAIT.DHUUMFIRE && event.condition === "Burning",
+    (event) => event.sourceId === TRAIT.DHUUMFIRE && event.condition === 'Burning'
   );
 
   assert.equal(applications.length, 1);
 });
 
-test("requested Harbinger damage traits apply at their per-hit triggers", () => {
+test('requested Harbinger damage traits apply at their per-hit triggers', () => {
   const result = simulate(
-    "Harbinger",
+    'Harbinger',
     [
-      "Harbinger Shroud",
-      "Tainted Bolts",
-      "Dark Barrage",
-      "Vital Draw",
-      "Exit Harbinger Shroud",
-      { type: "wait", durationMs: 3100 },
+      'Harbinger Shroud',
+      'Tainted Bolts',
+      'Dark Barrage',
+      'Vital Draw',
+      'Exit Harbinger Shroud',
+      { type: 'wait', durationMs: 3100 }
     ],
     {
       initialResource: 100,
       initialBlight: 10,
-      selectedTraitIds: [
-        TRAIT.DHUUMFIRE,
-        TRAIT.UNYIELDING_BLAST,
-        TRAIT.SEPTIC_CORRUPTION,
-        TRAIT.INSIDIOUS_DISRUPTION,
-      ],
-    },
+      selectedTraitIds: [TRAIT.DHUUMFIRE, TRAIT.UNYIELDING_BLAST, TRAIT.SEPTIC_CORRUPTION, TRAIT.INSIDIOUS_DISRUPTION]
+    }
   );
 
   assert.deepEqual(result.warnings, []);
   assert.equal(
-    result.resolvedEvents.filter(
-      (event) =>
-        event.sourceId === TRAIT.DHUUMFIRE && event.condition === "Burning",
-    ).length,
-    2,
+    result.resolvedEvents.filter((event) => event.sourceId === TRAIT.DHUUMFIRE && event.condition === 'Burning').length,
+    2
   );
   assert.equal(
-    result.resolvedEvents.filter(
-      (event) =>
-        event.skillId === ID.TAINTED_BOLTS && event.condition === "Torment",
-    ).length,
-    2,
+    result.resolvedEvents.filter((event) => event.skillId === ID.TAINTED_BOLTS && event.condition === 'Torment').length,
+    2
   );
-  assert.equal(
-    result.procSteps.filter((step) => step.skill === "Unyielding Blast").length,
-    1,
-  );
+  assert.equal(result.procSteps.filter((step) => step.skill === 'Unyielding Blast').length, 1);
   assert.equal(
     result.resolvedEvents.filter(
-      (event) =>
-        event.sourceId === TRAIT.SEPTIC_CORRUPTION &&
-        event.condition === "Poisoned",
+      (event) => event.sourceId === TRAIT.SEPTIC_CORRUPTION && event.condition === 'Poisoned'
     ).length,
-    6,
+    6
   );
   const insidiousDisruption = result.resolvedEvents.filter(
-    (event) =>
-      event.sourceId === TRAIT.INSIDIOUS_DISRUPTION &&
-      event.condition === "Torment",
+    (event) => event.sourceId === TRAIT.INSIDIOUS_DISRUPTION && event.condition === 'Torment'
   );
   assert.equal(insidiousDisruption.length, 3);
   assert.ok(insidiousDisruption.every((event) => event.duration === 5));
 });
 
-test("Barbed Precision uses centered deterministic expected procs", () => {
-  const result = simulate(
-    "Harbinger",
-    ["Weeping Shots", { type: "wait", durationMs: 4100 }],
-    {
-      primaryWeapon: "Pistol",
-      stats: { precision: 4000 },
-      selectedTraitIds: [TRAIT.BARBED_PRECISION],
-    },
-  );
+test('Barbed Precision uses centered deterministic expected procs', () => {
+  const result = simulate('Harbinger', ['Weeping Shots', { type: 'wait', durationMs: 4100 }], {
+    primaryWeapon: 'Pistol',
+    stats: { precision: 4000 },
+    selectedTraitIds: [TRAIT.BARBED_PRECISION]
+  });
   const applications = result.resolvedEvents.filter(
-    (event) =>
-      event.sourceId === TRAIT.BARBED_PRECISION &&
-      event.condition === "Bleeding",
+    (event) => event.sourceId === TRAIT.BARBED_PRECISION && event.condition === 'Bleeding'
   );
 
   // Six guaranteed critical hits have 1.98 expected procs. Centered cumulative
   // rounding materializes two whole applications instead of flooring to one.
   assert.equal(applications.length, 2);
   assert.ok(applications.every((application) => application.duration === 3));
-  assert.ok(
-    applications.every(
-      (application) => Math.abs(application.effectiveDuration - 3.6) < 1e-12,
-    ),
-  );
+  assert.ok(applications.every((application) => Math.abs(application.effectiveDuration - 3.6) < 1e-12));
 });
 
-test("Devouring Darkness scales torment with distinct target conditions", () => {
-  const result = simulate(
-    "Core",
-    ["Devouring Darkness", { type: "wait", durationMs: 4100 }],
-    {
-      primaryWeapon: "Scepter",
-      selectedTraitIds: [TRAIT.LINGERING_CURSE],
-      target: {
-        conditions: {
-          Bleeding: true,
-          Burning: true,
-          Chilled: true,
-          Poisoned: true,
-          Torment: true,
-          Vulnerability: 25,
-        },
-      },
-    },
-  );
+test('Devouring Darkness scales torment with distinct target conditions', () => {
+  const result = simulate('Core', ['Devouring Darkness', { type: 'wait', durationMs: 4100 }], {
+    primaryWeapon: 'Scepter',
+    selectedTraitIds: [TRAIT.LINGERING_CURSE],
+    target: {
+      conditions: {
+        Bleeding: true,
+        Burning: true,
+        Chilled: true,
+        Poisoned: true,
+        Torment: true,
+        Vulnerability: 25
+      }
+    }
+  });
   const application = result.resolvedEvents.find(
-    (event) =>
-      event.skillId === ID.DEVOURING_DARKNESS && event.condition === "Torment",
+    (event) => event.skillId === ID.DEVOURING_DARKNESS && event.condition === 'Torment'
   );
 
   assert.deepEqual(result.warnings, []);
@@ -4026,130 +2973,94 @@ test("Devouring Darkness scales torment with distinct target conditions", () => 
   assert.equal(application?.effectiveDuration, 4);
 });
 
-test("current Harbinger grandmaster traits use their live PvE mechanics", () => {
-  const cascadingFromStartingStacks = simulate(
-    "Harbinger",
-    ["Elixir of Promise"],
-    {
-      initialBlight: 5,
-      initialCascadingCorruptionStacks: 15,
-      selectedSkills: ["Elixir of Promise"],
-      selectedTraitIds: [TRAIT.CASCADING_CORRUPTION],
-    },
-  );
+test('current Harbinger grandmaster traits use their live PvE mechanics', () => {
+  const cascadingFromStartingStacks = simulate('Harbinger', ['Elixir of Promise'], {
+    initialBlight: 5,
+    initialCascadingCorruptionStacks: 15,
+    selectedSkills: ['Elixir of Promise'],
+    selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
+  });
   const cascading = simulate(
-    "Harbinger",
-    [
-      "Elixir of Promise",
-      "Elixir of Risk",
-      "Elixir of Ambition",
-      { type: "wait", durationMs: 6100 },
-    ],
+    'Harbinger',
+    ['Elixir of Promise', 'Elixir of Risk', 'Elixir of Ambition', { type: 'wait', durationMs: 6100 }],
     {
       initialBlight: 25,
-      selectedSkills: [
-        "Elixir of Promise",
-        "Elixir of Risk",
-        "Elixir of Ambition",
-      ],
-      selectedTraitIds: [TRAIT.CASCADING_CORRUPTION],
-    },
+      selectedSkills: ['Elixir of Promise', 'Elixir of Risk', 'Elixir of Ambition'],
+      selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
+    }
   );
   const precombat = simulate(
-    "Harbinger",
+    'Harbinger',
     [
-      "Elixir of Promise",
-      { name: "__combat_start" },
-      "Elixir of Risk",
-      "Elixir of Ambition",
-      { type: "wait", durationMs: 6100 },
+      'Elixir of Promise',
+      { name: '__combat_start' },
+      'Elixir of Risk',
+      'Elixir of Ambition',
+      { type: 'wait', durationMs: 6100 }
     ],
     {
       initialBlight: 25,
-      selectedSkills: [
-        "Elixir of Promise",
-        "Elixir of Risk",
-        "Elixir of Ambition",
-      ],
-      selectedTraitIds: [TRAIT.CASCADING_CORRUPTION],
-    },
+      selectedSkills: ['Elixir of Promise', 'Elixir of Risk', 'Elixir of Ambition'],
+      selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
+    }
   );
-  const deathlyHaste = simulate(
-    "Harbinger",
-    ["Harbinger Shroud", "Dark Barrage", "Exit Harbinger Shroud"],
-    {
-      selectedTraitIds: [TRAIT.DEATHLY_HASTE],
-      allies: { count: 4, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: true,
-    },
-  );
-  const twistedMedicine = simulate("Harbinger", ["Elixir of Risk"], {
-    selectedSkills: ["Elixir of Risk"],
+  const deathlyHaste = simulate('Harbinger', ['Harbinger Shroud', 'Dark Barrage', 'Exit Harbinger Shroud'], {
+    selectedTraitIds: [TRAIT.DEATHLY_HASTE],
+    allies: { count: 4, strikesPerSecond: 1 },
+    sharePlayerBoonsWithSummons: true
+  });
+  const twistedMedicine = simulate('Harbinger', ['Elixir of Risk'], {
+    selectedSkills: ['Elixir of Risk'],
     selectedTraitIds: [TRAIT.TWISTED_MEDICINE],
     allies: { count: 4, strikesPerSecond: 1 },
-    sharePlayerBoonsWithSummons: true,
+    sharePlayerBoonsWithSummons: true
   });
   const doom = simulate(
-    "Harbinger",
-    [
-      "Harbinger Shroud",
-      "Tainted Bolts",
-      "Dark Barrage",
-      "Exit Harbinger Shroud",
-      { type: "wait", durationMs: 3100 },
-    ],
+    'Harbinger',
+    ['Harbinger Shroud', 'Tainted Bolts', 'Dark Barrage', 'Exit Harbinger Shroud', { type: 'wait', durationMs: 3100 }],
     {
-      selectedTraitIds: [TRAIT.DOOM_APPROACHES],
-    },
+      selectedTraitIds: [TRAIT.DOOM_APPROACHES]
+    }
   );
 
   assert.deepEqual(cascading.warnings, []);
   assert.equal(
-    cascadingFromStartingStacks.breakdown.some(
-      (entry) => entry.name === "Cascading Corruption",
-    ),
-    true,
+    cascadingFromStartingStacks.breakdown.some((entry) => entry.name === 'Cascading Corruption'),
+    true
   );
-  assert.equal(
-    cascadingFromStartingStacks.endState.profession.cascadingCorruptionStacks,
-    0,
-  );
+  assert.equal(cascadingFromStartingStacks.endState.profession.cascadingCorruptionStacks, 0);
   const riskWeakness = cascading.resolvedEvents.find(
-    (event) =>
-      event.skillId === ID.ELIXIR_OF_RISK && event.condition === "Weakness",
+    (event) => event.skillId === ID.ELIXIR_OF_RISK && event.condition === 'Weakness'
   );
   assert.deepEqual(
     {
       stacks: riskWeakness?.stacks,
       duration: riskWeakness?.duration,
-      effectiveDuration: riskWeakness?.effectiveDuration,
+      effectiveDuration: riskWeakness?.effectiveDuration
     },
     {
       stacks: 1,
       duration: 10,
-      effectiveDuration: 10,
-    },
+      effectiveDuration: 10
+    }
   );
   const cascadingStrike = cascading.resolvedEvents.find(
-    (event) =>
-      event.type === "damage" && event.sourceId === TRAIT.CASCADING_CORRUPTION,
+    (event) => event.type === 'damage' && event.sourceId === TRAIT.CASCADING_CORRUPTION
   );
   const cascadingTorment = cascading.resolvedEvents.find(
-    (event) =>
-      event.type === "condition" &&
-      event.sourceId === TRAIT.CASCADING_CORRUPTION,
+    (event) => event.type === 'condition' && event.sourceId === TRAIT.CASCADING_CORRUPTION
   );
   assert.deepEqual(
     {
       skillId: cascadingStrike?.skillId,
       skillName: cascadingStrike?.skillName,
-      parentSkillName: cascadingStrike?.parentSkillName,
+      parentSkillName: cascadingStrike?.parentSkillName
     },
     {
       skillId: ID.CASCADING_CORRUPTION,
-      skillName: "Cascading Corruption",
-      parentSkillName: "Elixir of Ambition",
-    },
+      skillName: 'Cascading Corruption',
+      parentSkillName: 'Elixir of Ambition'
+    }
   );
   assert.deepEqual(
     {
@@ -4159,369 +3070,276 @@ test("current Harbinger grandmaster traits use their live PvE mechanics", () => 
       parentSkillName: cascadingTorment?.parentSkillName,
       condition: cascadingTorment?.condition,
       stacks: cascadingTorment?.stacks,
-      effectiveDuration: cascadingTorment?.effectiveDuration,
+      effectiveDuration: cascadingTorment?.effectiveDuration
     },
     {
-      name: "Cascading Corruption — Torment",
+      name: 'Cascading Corruption — Torment',
       skillId: ID.CASCADING_CORRUPTION,
-      skillName: "Cascading Corruption",
-      parentSkillName: "Elixir of Ambition",
-      condition: "Torment",
+      skillName: 'Cascading Corruption',
+      parentSkillName: 'Elixir of Ambition',
+      condition: 'Torment',
       stacks: 6,
-      effectiveDuration: 6,
-    },
+      effectiveDuration: 6
+    }
   );
-  const cascadingRow = skillBreakdownRows(cascading).find(
-    (row) => row.name === "Cascading Corruption",
-  );
+  const cascadingRow = skillBreakdownRows(cascading).find((row) => row.name === 'Cascading Corruption');
   assert.ok(cascadingRow?.strike > 0);
   assert.ok(cascadingRow?.condition > 0);
   assert.equal(cascadingRow?.hits, 1);
   assert.equal(cascadingRow?.casts, 0);
-  assert.equal(cascadingRow?.parentSkill, "Elixir of Ambition");
-  const meltdown = cascading.procSteps.find(
-    (step) => step.skill === "Meltdown",
+  assert.equal(cascadingRow?.parentSkill, 'Elixir of Ambition');
+  const meltdown = cascading.procSteps.find((step) => step.skill === 'Meltdown');
+  assert.equal(meltdown?.icon, 'https://wiki.guildwars2.com/wiki/Special:FilePath/Meltdown.png');
+  assert.equal(
+    precombat.breakdown.some((entry) => entry.name === 'Cascading Corruption'),
+    false
   );
   assert.equal(
-    meltdown?.icon,
-    "https://wiki.guildwars2.com/wiki/Special:FilePath/Meltdown.png",
-  );
-  assert.equal(
-    precombat.breakdown.some((entry) => entry.name === "Cascading Corruption"),
-    false,
-  );
-  assert.equal(
-    deathlyHaste.events.filter(
-      (event) =>
-        event.kind === "quickness" && event.sourceId !== TRAIT.SOUL_BARBS,
-    ).length,
-    2,
+    deathlyHaste.events.filter((event) => event.kind === 'quickness' && event.sourceId !== TRAIT.SOUL_BARBS).length,
+    2
   );
   assert.ok(
     deathlyHaste.events
       .filter(
         (event) =>
-          event.type === "buff" &&
-          ["quickness", "fury"].includes(event.kind) &&
-          event.sourceId !== TRAIT.SOUL_BARBS,
+          event.type === 'buff' && ['quickness', 'fury'].includes(event.kind) && event.sourceId !== TRAIT.SOUL_BARBS
       )
-      .every(
-        (event) =>
-          event.recipients === "party" && event.affectsSummons === false,
-      ),
+      .every((event) => event.recipients === 'party' && event.affectsSummons === false)
   );
   const twistedMedicineBoons = twistedMedicine.events.filter(
-    (event) => event.type === "buff" && ["might", "fury"].includes(event.kind),
+    (event) => event.type === 'buff' && ['might', 'fury'].includes(event.kind)
   );
   assert.equal(twistedMedicineBoons.length, 2);
-  assert.ok(
-    twistedMedicineBoons.every(
-      (event) => event.recipients === "party" && event.affectsSummons === false,
-    ),
-  );
+  assert.ok(twistedMedicineBoons.every((event) => event.recipients === 'party' && event.affectsSummons === false));
+  assert.equal(doom.events.filter((event) => event.type === 'damage' && event.skillId === ID.DARK_BARRAGE).length, 8);
   assert.equal(
-    doom.events.filter(
-      (event) => event.type === "damage" && event.skillId === ID.DARK_BARRAGE,
-    ).length,
-    8,
-  );
-  assert.equal(
-    doom.procSteps.some((step) => step.skill === "Doom Approaches"),
-    true,
+    doom.procSteps.some((step) => step.skill === 'Doom Approaches'),
+    true
   );
 });
 
-test("Soul Barbs and Dark Gunslinger change their documented outputs", () => {
-  const soulBarbs = simulate(
-    "Harbinger",
-    ["Harbinger Shroud", "Tainted Bolts", "Exit Harbinger Shroud"],
-    {
-      selectedTraitIds: [TRAIT.SOUL_BARBS],
-    },
-  );
-  const basePistol = simulate("Harbinger", ["Vile Blast", "Vile Blast"], {
-    primaryWeapon: "Pistol",
+test('Soul Barbs and Dark Gunslinger change their documented outputs', () => {
+  const soulBarbs = simulate('Harbinger', ['Harbinger Shroud', 'Tainted Bolts', 'Exit Harbinger Shroud'], {
+    selectedTraitIds: [TRAIT.SOUL_BARBS]
   });
-  const gunslinger = simulate("Harbinger", ["Vile Blast", "Vile Blast"], {
-    primaryWeapon: "Pistol",
-    selectedTraitIds: [TRAIT.DARK_GUNSLINGER],
+  const basePistol = simulate('Harbinger', ['Vile Blast', 'Vile Blast'], {
+    primaryWeapon: 'Pistol'
+  });
+  const gunslinger = simulate('Harbinger', ['Vile Blast', 'Vile Blast'], {
+    primaryWeapon: 'Pistol',
+    selectedTraitIds: [TRAIT.DARK_GUNSLINGER]
   });
 
-  assert.equal(
-    soulBarbs.events.filter((event) => event.kind === "necromancer-soul-barbs")
-      .length,
-    2,
-  );
+  assert.equal(soulBarbs.events.filter((event) => event.kind === 'necromancer-soul-barbs').length, 2);
   assert.deepEqual(
-    soulBarbs.events
-      .filter((event) => event.kind === "necromancer-soul-barbs")
-      .map((event) => event.duration),
-    [15, 15],
+    soulBarbs.events.filter((event) => event.kind === 'necromancer-soul-barbs').map((event) => event.duration),
+    [15, 15]
   );
-  const soulBarbsSeries = buildChartSeries(soulBarbs, 100).effects[
-    "Soul Barbs"
-  ];
+  const soulBarbsSeries = buildChartSeries(soulBarbs, 100).effects['Soul Barbs'];
   assert.ok(soulBarbsSeries.some((point) => point.v === 1));
   assert.ok(soulBarbsSeries.every((point) => point.v === 0 || point.v === 1));
   assert.ok(gunslinger.steps[1].start < basePistol.steps[1].start);
   const gunslingerPoison = gunslinger.resolvedEvents.find(
-    (event) =>
-      event.skillId === ID.VILE_BLAST && event.condition === "Poisoned",
+    (event) => event.skillId === ID.VILE_BLAST && event.condition === 'Poisoned'
   );
   assert.ok(Math.abs(gunslingerPoison.effectiveDuration - 6.496) < 1e-12);
 });
 
-test("cross-specialization Necromancer trait triggers remain executable", () => {
-  const spite = simulate(
-    "Core",
-    ["Death Shroud", "Life Blast", "End Death Shroud"],
-    {
-      selectedTraitIds: [TRAIT.REAPERS_MIGHT, TRAIT.WEAKENING_SHROUD],
-    },
-  );
-  const reaper = simulate(
-    "Reaper",
-    [
-      "Reaper's Shroud",
-      "Soul Spiral",
-      "Exit Reaper's Shroud",
-      { type: "wait", durationMs: 8100 },
-    ],
-    {
-      selectedTraitIds: [TRAIT.TRANSFUSION],
-    },
-  );
-  const fear = simulate(
-    "Reaper",
-    ["Reaper's Mark", { type: "wait", durationMs: 2100 }],
-    {
-      primaryWeapon: "Staff",
-      selectedTraitIds: [
-        TRAIT.SHIVERS_OF_DREAD,
-        TRAIT.BITTER_CHILL,
-        TRAIT.TERROR,
-      ],
-    },
-  );
-  const malicious = simulate("Core", ["Summon Blood Fiend"], {
-    selectedSkills: ["Summon Blood Fiend"],
-    selectedTraitIds: [TRAIT.MALICIOUS_SWARM],
+test('cross-specialization Necromancer trait triggers remain executable', () => {
+  const spite = simulate('Core', ['Death Shroud', 'Life Blast', 'End Death Shroud'], {
+    selectedTraitIds: [TRAIT.REAPERS_MIGHT, TRAIT.WEAKENING_SHROUD]
   });
-  const ashes = simulate("Harbinger", ["Harrowing Wave"], {
+  const reaper = simulate(
+    'Reaper',
+    ["Reaper's Shroud", 'Soul Spiral', "Exit Reaper's Shroud", { type: 'wait', durationMs: 8100 }],
+    {
+      selectedTraitIds: [TRAIT.TRANSFUSION]
+    }
+  );
+  const fear = simulate('Reaper', ["Reaper's Mark", { type: 'wait', durationMs: 2100 }], {
+    primaryWeapon: 'Staff',
+    selectedTraitIds: [TRAIT.SHIVERS_OF_DREAD, TRAIT.BITTER_CHILL, TRAIT.TERROR]
+  });
+  const malicious = simulate('Core', ['Summon Blood Fiend'], {
+    selectedSkills: ['Summon Blood Fiend'],
+    selectedTraitIds: [TRAIT.MALICIOUS_SWARM]
+  });
+  const ashes = simulate('Harbinger', ['Harrowing Wave'], {
     initialResource: 0,
-    primaryWeapon: "Pistol",
-    secondaryWeapon: "Torch",
-    selectedTraitIds: [TRAIT.NOURISHING_ASHES],
+    primaryWeapon: 'Pistol',
+    secondaryWeapon: 'Torch',
+    selectedTraitIds: [TRAIT.NOURISHING_ASHES]
   });
 
   assert.equal(
     spite.procSteps.some((step) => step.skill === "Reaper's Might"),
-    true,
+    true
   );
   assert.equal(
-    spite.breakdown.some((entry) => entry.name === "Weakening Shroud"),
-    true,
+    spite.breakdown.some((entry) => entry.name === 'Weakening Shroud'),
+    true
   );
   assert.equal(
-    reaper.breakdown.some((entry) => entry.name === "Lesser Chilblains"),
-    true,
+    reaper.breakdown.some((entry) => entry.name === 'Lesser Chilblains'),
+    true
   );
   assert.equal(
-    fear.procSteps.some((step) => step.skill === "Bitter Chill"),
-    true,
+    fear.procSteps.some((step) => step.skill === 'Bitter Chill'),
+    true
   );
   assert.equal(
-    fear.resolvedEvents.some(
-      (event) => event.sourceId === TRAIT.TERROR && event.condition === "Fear",
-    ),
-    true,
+    fear.resolvedEvents.some((event) => event.sourceId === TRAIT.TERROR && event.condition === 'Fear'),
+    true
   );
   assert.ok(fear.conditionDamage > 0);
   assert.equal(
-    malicious.breakdown.some(
-      (entry) => entry.name === "Lesser Signet of the Locust",
-    ),
-    true,
+    malicious.breakdown.some((entry) => entry.name === 'Lesser Signet of the Locust'),
+    true
   );
   assert.equal(ashes.endState.profession.lifeForce, 10);
 });
 
-test("remaining outgoing Necromancer trait families affect combat state", () => {
-  const carapaceBase = simulate("Core", ["Blood Curse", "Rending Curse"], {
-    primaryWeapon: "Scepter",
+test('remaining outgoing Necromancer trait families affect combat state', () => {
+  const carapaceBase = simulate('Core', ['Blood Curse', 'Rending Curse'], {
+    primaryWeapon: 'Scepter'
   });
-  const carapace = simulate("Core", ["Blood Curse", "Rending Curse"], {
-    primaryWeapon: "Scepter",
-    selectedTraitIds: [TRAIT.CORRUPTERS_FERVOR, TRAIT.DEADLY_STRENGTH],
+  const carapace = simulate('Core', ['Blood Curse', 'Rending Curse'], {
+    primaryWeapon: 'Scepter',
+    selectedTraitIds: [TRAIT.CORRUPTERS_FERVOR, TRAIT.DEADLY_STRENGTH]
   });
-  const armored = simulate("Core", ["Death Shroud", "Life Blast"], {
-    selectedTraitIds: [TRAIT.ARMORED_SHROUD, TRAIT.DEADLY_STRENGTH],
+  const armored = simulate('Core', ['Death Shroud', 'Life Blast'], {
+    selectedTraitIds: [TRAIT.ARMORED_SHROUD, TRAIT.DEADLY_STRENGTH]
   });
-  const augury = simulate("Reaper", ['"Suffer!"'], {
+  const augury = simulate('Reaper', ['"Suffer!"'], {
     selectedSkills: ['"Suffer!"'],
-    selectedTraitIds: [TRAIT.AUGURY_OF_DEATH],
+    selectedTraitIds: [TRAIT.AUGURY_OF_DEATH]
   });
-  const signet = simulate("Core", ["Signet of Spite"], {
-    selectedSkills: ["Signet of Spite"],
-    selectedTraitIds: [TRAIT.SIGNETS_OF_SUFFERING],
+  const signet = simulate('Core', ['Signet of Spite'], {
+    selectedSkills: ['Signet of Spite'],
+    selectedTraitIds: [TRAIT.SIGNETS_OF_SUFFERING]
   });
-  const thirst = simulate("Core", ["Necrotic Slash", "Necrotic Stab"], {
-    primaryWeapon: "Dagger",
-    selectedTraitIds: [TRAIT.OVERFLOWING_THIRST],
+  const thirst = simulate('Core', ['Necrotic Slash', 'Necrotic Stab'], {
+    primaryWeapon: 'Dagger',
+    selectedTraitIds: [TRAIT.OVERFLOWING_THIRST]
   });
-  const brew = simulate("Harbinger", ["Elixir of Risk"], {
-    selectedSkills: ["Elixir of Risk"],
-    selectedTraitIds: [TRAIT.BOLSTERING_BREW],
+  const brew = simulate('Harbinger', ['Elixir of Risk'], {
+    selectedSkills: ['Elixir of Risk'],
+    selectedTraitIds: [TRAIT.BOLSTERING_BREW]
   });
-  const empowerment = simulate("Scourge", ["Manifest Sand Shade"], {
-    selectedTraitIds: [TRAIT.DESERT_EMPOWERMENT],
+  const empowerment = simulate('Scourge', ['Manifest Sand Shade'], {
+    selectedTraitIds: [TRAIT.DESERT_EMPOWERMENT]
   });
 
   assert.ok(carapace.strikeDamage > carapaceBase.strikeDamage);
   assert.ok(armored.endState.profession.carapaceExpiries.length >= 5);
   assert.equal(
-    augury.breakdown.some((entry) => entry.name === "Augury of Death"),
-    true,
+    augury.breakdown.some((entry) => entry.name === 'Augury of Death'),
+    true
   );
   assert.equal(
-    signet.breakdown.some((entry) => entry.name === "Signets of Suffering"),
-    true,
+    signet.breakdown.some((entry) => entry.name === 'Signets of Suffering'),
+    true
   );
   assert.equal(
-    thirst.breakdown.some((entry) => entry.name === "Taste for Blood"),
-    true,
+    thirst.breakdown.some((entry) => entry.name === 'Taste for Blood'),
+    true
   );
   assert.equal(
-    brew.events.some(
-      (event) =>
-        event.kind === "protection" && event.skillId === ID.ELIXIR_OF_RISK,
-    ),
-    true,
+    brew.events.some((event) => event.kind === 'protection' && event.skillId === ID.ELIXIR_OF_RISK),
+    true
   );
   assert.equal(
-    empowerment.events.some(
-      (event) =>
-        event.kind === "alacrity" && event.skillId === ID.MANIFEST_SAND_SHADE,
-    ),
-    true,
+    empowerment.events.some((event) => event.kind === 'alacrity' && event.skillId === ID.MANIFEST_SAND_SHADE),
+    true
   );
 });
 
-test("trait skill replacements expose only their active variant", () => {
-  const scepterBase = simulate("Core", ["Feast of Corruption"], {
-    primaryWeapon: "Scepter",
+test('trait skill replacements expose only their active variant', () => {
+  const scepterBase = simulate('Core', ['Feast of Corruption'], {
+    primaryWeapon: 'Scepter'
   });
-  const scepterTrait = simulate(
-    "Core",
-    ["Feast of Corruption", "Devouring Darkness"],
-    {
-      primaryWeapon: "Scepter",
-      selectedTraitIds: [TRAIT.LINGERING_CURSE],
-    },
-  );
-  const scourgeTrait = simulate(
-    "Scourge",
-    ["Desert Shroud", "Sandstorm Shroud", { type: "wait", durationMs: 4100 }],
-    {
-      initialResource: 100,
-      selectedTraitIds: [TRAIT.HERALD_OF_SORROW],
-    },
-  );
+  const scepterTrait = simulate('Core', ['Feast of Corruption', 'Devouring Darkness'], {
+    primaryWeapon: 'Scepter',
+    selectedTraitIds: [TRAIT.LINGERING_CURSE]
+  });
+  const scourgeTrait = simulate('Scourge', ['Desert Shroud', 'Sandstorm Shroud', { type: 'wait', durationMs: 4100 }], {
+    initialResource: 100,
+    selectedTraitIds: [TRAIT.HERALD_OF_SORROW]
+  });
 
   assert.deepEqual(scepterBase.warnings, []);
-  assert.match(
-    scepterTrait.warnings.join(" "),
-    /Feast of Corruption is unavailable/,
-  );
-  assert.ok(
-    scepterTrait.breakdown.some((entry) => entry.name === "Devouring Darkness"),
-  );
-  assert.match(scourgeTrait.warnings.join(" "), /Desert Shroud is unavailable/);
-  assert.ok(
-    scourgeTrait.resolvedEvents.some(
-      (event) => event.name === "Sandstorm Shroud",
-    ),
-  );
+  assert.match(scepterTrait.warnings.join(' '), /Feast of Corruption is unavailable/);
+  assert.ok(scepterTrait.breakdown.some((entry) => entry.name === 'Devouring Darkness'));
+  assert.match(scourgeTrait.warnings.join(' '), /Desert Shroud is unavailable/);
+  assert.ok(scourgeTrait.resolvedEvents.some((event) => event.name === 'Sandstorm Shroud'));
 });
 
-test("Corrupted Talent owns the Harbinger shroud-entry life-force gain", () => {
-  const withoutTrait = simulate("Harbinger", ["Harbinger Shroud"], {
-    initialResource: 0,
+test('Corrupted Talent owns the Harbinger shroud-entry life-force gain', () => {
+  const withoutTrait = simulate('Harbinger', ['Harbinger Shroud'], {
+    initialResource: 0
   });
-  const withTrait = simulate("Harbinger", ["Harbinger Shroud"], {
+  const withTrait = simulate('Harbinger', ['Harbinger Shroud'], {
     initialResource: 0,
-    selectedTraitIds: [TRAIT.CORRUPTED_TALENT],
+    selectedTraitIds: [TRAIT.CORRUPTED_TALENT]
   });
 
   assert.equal(withoutTrait.endState.profession.lifeForce, 0);
   assert.equal(withTrait.endState.profession.lifeForce, 15);
 });
 
-test("modifier candidates exclude structural traits", () => {
+test('modifier candidates exclude structural traits', () => {
   const build = createNecromancerBuildDefaults();
   const app = {
     build,
     skillByName: necromancerCatalog.skillsByName,
-    attributeWeaponSet: 1,
+    attributeWeaponSet: 1
   };
   recalculate(app);
 
-  const activeTraitNames = new Set(
-    app.attributeData.activeTraits.map((trait) => trait.name),
-  );
-  const candidateNames = new Set(
-    modifierCandidates(app).map((candidate) => candidate.name),
-  );
+  const activeTraitNames = new Set(app.attributeData.activeTraits.map((trait) => trait.name));
+  const candidateNames = new Set(modifierCandidates(app).map((candidate) => candidate.name));
 
-  assert.equal(activeTraitNames.has("Dark Disciple"), true);
-  assert.equal(activeTraitNames.has("Corrupted Talent"), true);
-  assert.equal(candidateNames.has("Dark Disciple"), false);
-  assert.equal(candidateNames.has("Corrupted Talent"), true);
-  assert.equal(candidateNames.has("Gluttony"), true);
+  assert.equal(activeTraitNames.has('Dark Disciple'), true);
+  assert.equal(activeTraitNames.has('Corrupted Talent'), true);
+  assert.equal(candidateNames.has('Dark Disciple'), false);
+  assert.equal(candidateNames.has('Corrupted Talent'), true);
+  assert.equal(candidateNames.has('Gluttony'), true);
 });
 
-test("signet passives and Soul Battery are profession-owned resources", () => {
-  const signets = simulate("Core", [{ type: "wait", durationMs: 3100 }], {
+test('signet passives and Soul Battery are profession-owned resources', () => {
+  const signets = simulate('Core', [{ type: 'wait', durationMs: 3100 }], {
     initialResource: 0,
-    selectedSkills: ["Signet of Undeath", "Signet of Vampirism"],
+    selectedSkills: ['Signet of Undeath', 'Signet of Vampirism']
   });
-  const battery = simulate("Core", [], {
+  const battery = simulate('Core', [], {
     initialResource: 100,
-    selectedTraitIds: [TRAIT.SOUL_BATTERY],
+    selectedTraitIds: [TRAIT.SOUL_BATTERY]
   });
-  const eternal = simulate("Core", [{ type: "wait", durationMs: 4100 }], {
+  const eternal = simulate('Core', [{ type: 'wait', durationMs: 4100 }], {
     initialResource: 0,
-    selectedTraitIds: [TRAIT.ETERNAL_LIFE],
+    selectedTraitIds: [TRAIT.ETERNAL_LIFE]
   });
-  const eternalCap = simulate("Core", [{ type: "wait", durationMs: 70_100 }], {
+  const eternalCap = simulate('Core', [{ type: 'wait', durationMs: 70_100 }], {
     initialResource: 0,
-    selectedTraitIds: [TRAIT.ETERNAL_LIFE],
+    selectedTraitIds: [TRAIT.ETERNAL_LIFE]
   });
-  const perception = simulate(
-    "Core",
-    ["Death Shroud", "Life Blast", "End Death Shroud", "Blood Curse"],
-    {
-      initialResource: 100,
-      primaryWeapon: "Scepter",
-      selectedTraitIds: [TRAIT.DEATH_PERCEPTION],
-    },
-  );
+  const perception = simulate('Core', ['Death Shroud', 'Life Blast', 'End Death Shroud', 'Blood Curse'], {
+    initialResource: 100,
+    primaryWeapon: 'Scepter',
+    selectedTraitIds: [TRAIT.DEATH_PERCEPTION]
+  });
 
   assert.equal(signets.endState.profession.lifeForce, 4);
-  assert.ok(
-    signets.breakdown.some(
-      (entry) => entry.name === "Signet of Vampirism - Passive Life Siphon",
-    ),
-  );
+  assert.ok(signets.breakdown.some((entry) => entry.name === 'Signet of Vampirism - Passive Life Siphon'));
   assert.equal(battery.endState.profession.maximumLifeForce, 120);
   assert.equal(battery.endState.profession.lifeForce, 120);
   assert.equal(eternal.endState.profession.lifeForce, 12);
   assert.equal(eternalCap.endState.profession.lifeForce, 66);
   const lifeBlast = perception.resolvedEvents.find(
-    (event) => event.type === "damage" && event.skillId === ID.LIFE_BLAST,
+    (event) => event.type === 'damage' && event.skillId === ID.LIFE_BLAST
   );
   const bloodCurse = perception.resolvedEvents.find(
-    (event) => event.type === "damage" && event.skillId === ID.BLOOD_CURSE,
+    (event) => event.type === 'damage' && event.skillId === ID.BLOOD_CURSE
   );
   assert.ok(Math.abs(lifeBlast.criticalChance - 0.6761904761904762) < 1e-12);
   assert.ok(Math.abs(lifeBlast.criticalDamage - 1.8333333333333333) < 1e-12);
@@ -4529,9 +3347,9 @@ test("signet passives and Soul Battery are profession-owned resources", () => {
   assert.ok(Math.abs(bloodCurse.criticalDamage - 1.8333333333333333) < 1e-12);
 });
 
-test("the Power Harbinger trait set uses current critical and resource rules", () => {
+test('the Power Harbinger trait set uses current critical and resource rules', () => {
   const runShroudStrike = (selectedTraitIds) =>
-    simulate("Harbinger", ["Harbinger Shroud", "Tainted Bolts"], {
+    simulate('Harbinger', ['Harbinger Shroud', 'Tainted Bolts'], {
       stats: { precision: 4000 },
       selectedTraitIds,
       target: {
@@ -4539,282 +3357,246 @@ test("the Power Harbinger trait set uses current critical and resource rules", (
         health: 1_000_000_000,
         conditions: {
           ...baseConfig.target.conditions,
-          Torment: true,
-        },
-      },
+          Torment: true
+        }
+      }
     });
   const base = runShroudStrike([]);
   const deathPerception = runShroudStrike([TRAIT.DEATH_PERCEPTION]);
   const wickedCorruption = runShroudStrike([TRAIT.WICKED_CORRUPTION]);
-  const both = runShroudStrike([
-    TRAIT.DEATH_PERCEPTION,
-    TRAIT.WICKED_CORRUPTION,
-  ]);
+  const both = runShroudStrike([TRAIT.DEATH_PERCEPTION, TRAIT.WICKED_CORRUPTION]);
   const strikeDamage = (result) =>
     result.resolvedEvents
-      .filter(
-        (event) =>
-          event.type === "damage" && event.skillId === ID.TAINTED_BOLTS,
-      )
+      .filter((event) => event.type === 'damage' && event.skillId === ID.TAINTED_BOLTS)
       .reduce((sum, event) => sum + event.damage, 0);
-  assert.ok(
-    Math.abs(strikeDamage(deathPerception) / strikeDamage(base) - 1.1) < 1e-12,
-  );
-  assert.ok(
-    Math.abs(strikeDamage(wickedCorruption) / strikeDamage(base) - 1.1) < 1e-12,
-  );
+  assert.ok(Math.abs(strikeDamage(deathPerception) / strikeDamage(base) - 1.1) < 1e-12);
+  assert.ok(Math.abs(strikeDamage(wickedCorruption) / strikeDamage(base) - 1.1) < 1e-12);
   assert.ok(Math.abs(strikeDamage(both) / strikeDamage(base) - 1.21) < 1e-12);
 
-  const implacable = simulate("Harbinger", ["Harbinger Shroud"], {
-    selectedTraitIds: [TRAIT.IMPLACABLE_FOE],
+  const implacable = simulate('Harbinger', ['Harbinger Shroud'], {
+    selectedTraitIds: [TRAIT.IMPLACABLE_FOE]
   });
   assert.equal(
     implacable.events.some(
-      (event) =>
-        event.type === "buff" &&
-        event.kind === "stability" &&
-        event.stacks === 3 &&
-        event.duration === 5,
+      (event) => event.type === 'buff' && event.kind === 'stability' && event.stacks === 3 && event.duration === 5
     ),
-    true,
+    true
   );
 
-  const fortitude = simulate("Harbinger", ["Perforate"], {
+  const fortitude = simulate('Harbinger', ['Perforate'], {
     initialResource: 0,
-    primaryWeapon: "Spear",
+    primaryWeapon: 'Spear',
     selectedTraitIds: [TRAIT.SPITEFUL_FORTITUDE, TRAIT.GLUTTONY],
     target: {
       ...baseConfig.target,
-      health: 8000,
-    },
+      health: 8000
+    }
   });
   assert.equal(fortitude.endState.profession.lifeForce, 2.2);
 });
 
-test("critical sigils follow the active weapon set", () => {
+test('critical sigils follow the active weapon set', () => {
   const result = simulate(
-    "Harbinger",
-    [
-      "Vile Blast",
-      "Swap Weapons",
-      "Grasping Dead",
-      { type: "wait", durationMs: 2100 },
-    ],
+    'Harbinger',
+    ['Vile Blast', 'Swap Weapons', 'Grasping Dead', { type: 'wait', durationMs: 2100 }],
     {
-      primaryWeapon: "Pistol",
-      secondaryWeapon: "Torch",
-      weaponSet2Primary: "Scepter",
-      weaponSet2Secondary: "Dagger",
+      primaryWeapon: 'Pistol',
+      secondaryWeapon: 'Torch',
+      weaponSet2Primary: 'Scepter',
+      weaponSet2Secondary: 'Dagger',
       stats: { precision: 4000 },
       sigilSets: [
-        { names: ["Torment"], strike: 1, condition: 1 },
-        { names: ["Earth"], strike: 1, condition: 1 },
-      ],
-    },
+        { names: ['Torment'], strike: 1, condition: 1 },
+        { names: ['Earth'], strike: 1, condition: 1 }
+      ]
+    }
   );
 
   assert.equal(
-    result.procSteps.some((step) => step.skill === "Sigil of Torment"),
-    true,
+    result.procSteps.some((step) => step.skill === 'Sigil of Torment'),
+    true
   );
   assert.equal(
-    result.procSteps.some((step) => step.skill === "Sigil of Earth"),
-    true,
+    result.procSteps.some((step) => step.skill === 'Sigil of Earth'),
+    true
   );
 });
 
-test("Necromancer resources and palette change with specialization state", () => {
+test('Necromancer resources and palette change with specialization state', () => {
   const harbingerResources = necromancerProfession.ui.resourceViews({
-    specialization: "Harbinger",
+    specialization: 'Harbinger',
     professionState: {
       lifeForce: 80,
       maximumLifeForce: 100,
       lifeForcePoolCapacity: 13256.28,
       blight: 12,
-      cascadingCorruptionStacks: 7,
-    },
+      cascadingCorruptionStacks: 7
+    }
   });
   const scourgeResources = necromancerProfession.ui.resourceViews({
-    specialization: "Scourge",
+    specialization: 'Scourge',
     build: {
-      weapons: ["Spear", ""],
+      weapons: ['Spear', '']
     },
     professionState: {
       lifeForce: 80,
       maximumLifeForce: 100,
       soulShards: 4,
-      shades: [10, 20],
-    },
+      shades: [10, 20]
+    }
   });
   const reaperEntry = necromancerProfession.ui.paletteGroups({
-    specialization: "Reaper",
-    professionState: {},
+    specialization: 'Reaper',
+    professionState: {}
   })[0].skillIds;
   const reaperBar = necromancerProfession.ui.paletteGroups({
-    specialization: "Reaper",
+    specialization: 'Reaper',
     professionState: {
-      activeShroud: "reaper",
-      availableFlips: { [ID.EXIT_REAPERS_SHROUD]: Infinity },
-    },
+      activeShroud: 'reaper',
+      availableFlips: { [ID.EXIT_REAPERS_SHROUD]: Infinity }
+    }
   });
   const ritualistPalette = necromancerProfession.ui.paletteGroups({
-    specialization: "Ritualist",
+    specialization: 'Ritualist',
     professionState: {
-      activeShroud: "",
-      activeSpirits: {},
-    },
+      activeShroud: '',
+      activeSpirits: {}
+    }
   });
 
   assert.deepEqual(
     harbingerResources.map((resource) => resource.id),
-    ["life-force", "blight", "cascading-corruption"],
+    ['life-force', 'blight', 'cascading-corruption']
   );
-  assert.equal(
-    harbingerResources[0].pipStyle,
-    "compact-profession-resource-necromancer-life-force",
-  );
-  assert.equal(
-    reaperBar[0].className,
-    "compact-resource-palette necromancer-f-skills",
-  );
+  assert.equal(harbingerResources[0].pipStyle, 'compact-profession-resource-necromancer-life-force');
+  assert.equal(reaperBar[0].className, 'compact-resource-palette necromancer-f-skills');
   assert.equal(harbingerResources[0].maximum, 13256);
   assert.equal(harbingerResources[0].value, 13256 * 0.8);
   assert.equal(harbingerResources[0].startMaximum, 100);
   assert.equal(harbingerResources[2].value, 7);
-  assert.equal(
-    harbingerResources[2].buildKey,
-    "initialCascadingCorruptionStacks",
-  );
+  assert.equal(harbingerResources[2].buildKey, 'initialCascadingCorruptionStacks');
   assert.equal(harbingerResources[1].showInPalette, false);
   assert.equal(harbingerResources[2].showInPalette, false);
   assert.deepEqual(
     scourgeResources.map((resource) => resource.id),
-    ["life-force", "soul-shards", "active-shades"],
+    ['life-force', 'soul-shards', 'active-shades']
   );
   assert.deepEqual(
     scourgeResources.slice(1).map((resource) => ({
       displayMode: resource.displayMode,
       pipStyle: resource.pipStyle,
       showValue: resource.showValue,
-      value: resource.value,
+      value: resource.value
     })),
     [
       {
-        displayMode: "counter",
-        pipStyle: "necromancer-soul-shards",
+        displayMode: 'counter',
+        pipStyle: 'necromancer-soul-shards',
         showValue: false,
-        value: 4,
+        value: 4
       },
       {
-        displayMode: "counter",
-        pipStyle: "necromancer-scourge-shades",
+        displayMode: 'counter',
+        pipStyle: 'necromancer-scourge-shades',
         showValue: false,
-        value: 2,
-      },
-    ],
+        value: 2
+      }
+    ]
   );
   assert.deepEqual(
     necromancerProfession.ui.rotationStateSnapshot({
-      specialization: "Harbinger",
+      specialization: 'Harbinger',
       build: {
-        specializations: [{ name: "Harbinger", traits: "3-3-1" }],
+        specializations: [{ name: 'Harbinger', traits: '3-3-1' }]
       },
-      professionState: { blight: 12, cascadingCorruptionStacks: 7 },
+      professionState: { blight: 12, cascadingCorruptionStacks: 7 }
     }),
     [
       {
-        id: "harbinger-blight",
-        label: "Blight",
-        value: "12/25",
-        title: "Current Harbinger Blight stacks",
+        id: 'harbinger-blight',
+        label: 'Blight',
+        value: '12/25',
+        title: 'Current Harbinger Blight stacks'
       },
       {
-        id: "cascading-corruption-stacks",
-        label: "Cascading Corruption",
-        value: "7/20",
-        title: "Cascading Corruption stacks toward the next Meltdown",
-      },
-    ],
+        id: 'cascading-corruption-stacks',
+        label: 'Cascading Corruption',
+        value: '7/20',
+        title: 'Cascading Corruption stacks toward the next Meltdown'
+      }
+    ]
   );
   assert.deepEqual(
     necromancerProfession.ui
       .resourceViews({
-        specialization: "Harbinger",
+        specialization: 'Harbinger',
         build: {
-          weapons: ["Greatsword", ""],
-          alternateWeapons: ["Spear", ""],
+          weapons: ['Greatsword', ''],
+          alternateWeapons: ['Spear', '']
         },
         professionState: {
           lifeForce: 80,
           maximumLifeForce: 100,
           blight: 12,
-          soulShards: 4,
-        },
+          soulShards: 4
+        }
       })
       .map((resource) => resource.id),
-    ["life-force", "blight", "cascading-corruption", "soul-shards"],
+    ['life-force', 'blight', 'cascading-corruption', 'soul-shards']
   );
   assert.deepEqual(reaperEntry, [ID.REAPERS_SHROUD, ID.EXIT_REAPERS_SHROUD]);
   assert.equal(reaperBar[0].skillIds.includes(ID.EXIT_REAPERS_SHROUD), true);
   assert.equal(reaperBar[1].skillIds.includes(ID.LIFE_REND), true);
   assert.deepEqual(
-    reaperBar[1].skillIds.filter((id) =>
-      [ID.INFUSING_TERROR, ID.TERRIFY].includes(id),
-    ),
-    [ID.INFUSING_TERROR, ID.TERRIFY],
+    reaperBar[1].skillIds.filter((id) => [ID.INFUSING_TERROR, ID.TERRIFY].includes(id)),
+    [ID.INFUSING_TERROR, ID.TERRIFY]
   );
-  assert.equal(reaperBar[0].stackId, "reaper-profession");
-  assert.equal(reaperBar[1].stackId, "reaper-profession");
-  assert.equal(ritualistPalette[0].stackId, "ritualist-profession");
+  assert.equal(reaperBar[0].stackId, 'reaper-profession');
+  assert.equal(reaperBar[1].stackId, 'reaper-profession');
+  assert.equal(ritualistPalette[0].stackId, 'ritualist-profession');
   assert.deepEqual(ritualistPalette[0].skillIds, [
     ID.RITUALISTS_SHROUD,
     ID.EXIT_RITUALISTS_SHROUD,
     ID.INNERVATE_ANGUISH,
     ID.INNERVATE_WANDERLUST,
-    ID.INNERVATE_PRESERVATION,
+    ID.INNERVATE_PRESERVATION
   ]);
-  assert.equal(ritualistPalette[1].stackId, "ritualist-profession");
+  assert.equal(ritualistPalette[1].stackId, 'ritualist-profession');
   assert.equal(ritualistPalette[1].skillIds.includes(ID.SUMMON_SPIRITS), true);
-  assert.equal(
-    ritualistPalette[1].skillIds.includes(ID.INNERVATE_ANGUISH),
-    false,
-  );
+  assert.equal(ritualistPalette[1].skillIds.includes(ID.INNERVATE_ANGUISH), false);
   assert.deepEqual(
     necromancerProfession.ui.paletteSkillAvailability(
       {
-        specialization: "Reaper",
-        professionState: {},
+        specialization: 'Reaper',
+        professionState: {}
       },
-      necromancerCatalog.skillsById.get(ID.LIFE_REND),
+      necromancerCatalog.skillsById.get(ID.LIFE_REND)
     ),
     {
       available: false,
-      message: "Enter Reaper Shroud first",
-    },
+      message: 'Enter Reaper Shroud first'
+    }
   );
-  assert.equal(
-    Object.hasOwn(necromancerProfession.ui, "rotationSkillAvailability"),
-    false,
-  );
-  assert.equal(formatResourceValue(113.89999999999999), "113.9");
+  assert.equal(Object.hasOwn(necromancerProfession.ui, 'rotationSkillAvailability'), false);
+  assert.equal(formatResourceValue(113.89999999999999), '113.9');
   assert.deepEqual(
     necromancerProfession.ui.targetHealthThresholds({
-      specialization: "Core",
-      build: { weapons: ["Axe", "Focus"], specializations: [] },
+      specialization: 'Core',
+      build: { weapons: ['Axe', 'Focus'], specializations: [] }
     }),
-    [],
+    []
   );
   assert.deepEqual(
     necromancerProfession.ui.targetHealthThresholds({
-      specialization: "Reaper",
-      build: { weapons: ["Greatsword", ""], specializations: [] },
+      specialization: 'Reaper',
+      build: { weapons: ['Greatsword', ''], specializations: [] }
     }),
-    [0.5],
+    [0.5]
   );
 });
 
-test("Necromancer renders life force above its F-skills", async () => {
-  const adapter = await loadProfessionAppAdapter("necromancer");
+test('Necromancer renders life force above its F-skills', async () => {
+  const adapter = await loadProfessionAppAdapter('necromancer');
   const build = adapter.toApplicationBuild(createNecromancerBuildDefaults());
   const app = {
     build,
@@ -4824,12 +3606,12 @@ test("Necromancer renders life force above its F-skills", async () => {
     skillById: necromancerCatalog.skillsById,
     skillByName: necromancerCatalog.skillsByName,
     weaponData: adapter.weaponData,
-    results: null,
+    results: null
   };
-  const palette = { innerHTML: "", querySelectorAll: () => [] };
+  const palette = { innerHTML: '', querySelectorAll: () => [] };
   const previousDocument = globalThis.document;
   globalThis.document = {
-    getElementById: (id) => (id === "rotation-palette" ? palette : null),
+    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {
     renderPalette(app);
@@ -4838,9 +3620,7 @@ test("Necromancer renders life force above its F-skills", async () => {
   }
 
   const html = palette.innerHTML;
-  const mechanic = html.indexOf(
-    "compact-resource-palette necromancer-f-skills",
-  );
+  const mechanic = html.indexOf('compact-resource-palette necromancer-f-skills');
   const resource = html.indexOf('data-resource-id="life-force"');
   assert.ok(mechanic >= 0);
   assert.ok(resource > mechanic);
@@ -4850,10 +3630,10 @@ test("Necromancer renders life force above its F-skills", async () => {
   assert.doesNotMatch(html, /data-resource-id="blight"/);
   assert.doesNotMatch(html, /data-resource-id="cascading-corruption"/);
 
-  app.build.weapons = ["Spear", ""];
+  app.build.weapons = ['Spear', ''];
   app.build.specializations[2] = {
-    name: "Scourge",
-    traits: "1-1-2",
+    name: 'Scourge',
+    traits: '1-1-2'
   };
   app.results = {
     endState: {
@@ -4861,12 +3641,12 @@ test("Necromancer renders life force above its F-skills", async () => {
         lifeForce: 80,
         maximumLifeForce: 100,
         soulShards: 0,
-        shades: [10, 20],
-      },
-    },
+        shades: [10, 20]
+      }
+    }
   };
   globalThis.document = {
-    getElementById: (id) => (id === "rotation-palette" ? palette : null),
+    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {
     renderPalette(app);
@@ -4876,11 +3656,11 @@ test("Necromancer renders life force above its F-skills", async () => {
 
   assert.match(
     palette.innerHTML,
-    /data-resource-id="soul-shards"[\s\S]*data-resource-count="0"[\s\S]*necromancer-soul-shards/,
+    /data-resource-id="soul-shards"[\s\S]*data-resource-count="0"[\s\S]*necromancer-soul-shards/
   );
   app.results.endState.profession.soulShards = 4;
   globalThis.document = {
-    getElementById: (id) => (id === "rotation-palette" ? palette : null),
+    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {
     renderPalette(app);
@@ -4890,67 +3670,55 @@ test("Necromancer renders life force above its F-skills", async () => {
 
   assert.match(
     palette.innerHTML,
-    /data-resource-id="soul-shards"[\s\S]*data-resource-count="4"[\s\S]*necromancer-soul-shards/,
+    /data-resource-id="soul-shards"[\s\S]*data-resource-count="4"[\s\S]*necromancer-soul-shards/
   );
   assert.match(
     palette.innerHTML,
-    /data-resource-id="active-shades"[\s\S]*data-resource-count="2"[\s\S]*necromancer-scourge-shades/,
+    /data-resource-id="active-shades"[\s\S]*data-resource-count="2"[\s\S]*necromancer-scourge-shades/
   );
 });
 
-test("Necromancer shroud transitions stay adjacent and toggle availability", () => {
+test('Necromancer shroud transitions stay adjacent and toggle availability', () => {
   for (const [specialization, shroud, entryId, exitId] of [
-    ["Core", "death", ID.DEATH_SHROUD, ID.END_DEATH_SHROUD],
-    ["Reaper", "reaper", ID.REAPERS_SHROUD, ID.EXIT_REAPERS_SHROUD],
-    ["Harbinger", "harbinger", ID.HARBINGER_SHROUD, ID.EXIT_HARBINGER_SHROUD],
-    ["Ritualist", "ritualist", ID.RITUALISTS_SHROUD, ID.EXIT_RITUALISTS_SHROUD],
+    ['Core', 'death', ID.DEATH_SHROUD, ID.END_DEATH_SHROUD],
+    ['Reaper', 'reaper', ID.REAPERS_SHROUD, ID.EXIT_REAPERS_SHROUD],
+    ['Harbinger', 'harbinger', ID.HARBINGER_SHROUD, ID.EXIT_HARBINGER_SHROUD],
+    ['Ritualist', 'ritualist', ID.RITUALISTS_SHROUD, ID.EXIT_RITUALISTS_SHROUD]
   ]) {
     const inactiveContext = {
       specialization,
-      professionState: { activeShroud: "" },
+      professionState: { activeShroud: '' }
     };
     const activeContext = {
       specialization,
-      professionState: { activeShroud: shroud },
+      professionState: { activeShroud: shroud }
     };
     for (const context of [inactiveContext, activeContext]) {
       assert.deepEqual(
         necromancerProfession.ui.paletteGroups(context)[0].skillIds.slice(0, 2),
         [entryId, exitId],
-        specialization,
+        specialization
       );
     }
     assert.equal(
-      necromancerProfession.ui.isPaletteSkillAvailable(
-        inactiveContext,
-        necromancerCatalog.skillsById.get(entryId),
-      ),
+      necromancerProfession.ui.isPaletteSkillAvailable(inactiveContext, necromancerCatalog.skillsById.get(entryId)),
       true,
-      specialization,
+      specialization
     );
     assert.equal(
-      necromancerProfession.ui.isPaletteSkillAvailable(
-        inactiveContext,
-        necromancerCatalog.skillsById.get(exitId),
-      ),
+      necromancerProfession.ui.isPaletteSkillAvailable(inactiveContext, necromancerCatalog.skillsById.get(exitId)),
       false,
-      specialization,
+      specialization
     );
     assert.equal(
-      necromancerProfession.ui.isPaletteSkillAvailable(
-        activeContext,
-        necromancerCatalog.skillsById.get(entryId),
-      ),
+      necromancerProfession.ui.isPaletteSkillAvailable(activeContext, necromancerCatalog.skillsById.get(entryId)),
       false,
-      specialization,
+      specialization
     );
     assert.equal(
-      necromancerProfession.ui.isPaletteSkillAvailable(
-        activeContext,
-        necromancerCatalog.skillsById.get(exitId),
-      ),
+      necromancerProfession.ui.isPaletteSkillAvailable(activeContext, necromancerCatalog.skillsById.get(exitId)),
       true,
-      specialization,
+      specialization
     );
   }
 });
@@ -4959,326 +3727,265 @@ test("Necromancer skill bar exposes each specialization's shroud abilities", () 
   const groups = (specialization) =>
     necromancerProfession.ui.skillBarGroups({
       specialization,
-      professionState: {},
+      professionState: {}
     });
 
   assert.deepEqual(
-    groups("Core").map((group) => [group.label, group.skillIds]),
+    groups('Core').map((group) => [group.label, group.skillIds]),
     [
-      ["F Keys", [ID.DEATH_SHROUD, ID.END_DEATH_SHROUD]],
-      [
-        "Death Shroud",
-        [
-          ID.LIFE_BLAST,
-          ID.DARK_PATH,
-          ID.DOOM,
-          ID.LIFE_TRANSFER,
-          ID.TAINTED_SHACKLES,
-        ],
-      ],
-    ],
+      ['F Keys', [ID.DEATH_SHROUD, ID.END_DEATH_SHROUD]],
+      ['Death Shroud', [ID.LIFE_BLAST, ID.DARK_PATH, ID.DOOM, ID.LIFE_TRANSFER, ID.TAINTED_SHACKLES]]
+    ]
   );
   assert.deepEqual(
-    groups("Reaper").map((group) => [group.label, group.skillIds]),
+    groups('Reaper').map((group) => [group.label, group.skillIds]),
     [
-      ["F Keys", [ID.REAPERS_SHROUD, ID.EXIT_REAPERS_SHROUD]],
-      [
-        "Reaper's Shroud",
-        [
-          ID.LIFE_REND,
-          ID.DEATHS_CHARGE,
-          ID.INFUSING_TERROR,
-          ID.SOUL_SPIRAL,
-          ID.EXECUTIONERS_SCYTHE,
-        ],
-      ],
-    ],
+      ['F Keys', [ID.REAPERS_SHROUD, ID.EXIT_REAPERS_SHROUD]],
+      ["Reaper's Shroud", [ID.LIFE_REND, ID.DEATHS_CHARGE, ID.INFUSING_TERROR, ID.SOUL_SPIRAL, ID.EXECUTIONERS_SCYTHE]]
+    ]
   );
   assert.deepEqual(
-    groups("Harbinger").map((group) => [group.label, group.skillIds]),
+    groups('Harbinger').map((group) => [group.label, group.skillIds]),
     [
-      ["F Keys", [ID.HARBINGER_SHROUD, ID.EXIT_HARBINGER_SHROUD]],
-      [
-        "Harbinger Shroud",
-        [
-          ID.TAINTED_BOLTS,
-          ID.DARK_BARRAGE,
-          ID.DEVOURING_CUT,
-          ID.VORACIOUS_ARC,
-          ID.VITAL_DRAW,
-        ],
-      ],
-    ],
+      ['F Keys', [ID.HARBINGER_SHROUD, ID.EXIT_HARBINGER_SHROUD]],
+      ['Harbinger Shroud', [ID.TAINTED_BOLTS, ID.DARK_BARRAGE, ID.DEVOURING_CUT, ID.VORACIOUS_ARC, ID.VITAL_DRAW]]
+    ]
   );
   assert.deepEqual(
-    groups("Ritualist").map((group) => [group.label, group.skillIds]),
+    groups('Ritualist').map((group) => [group.label, group.skillIds]),
     [
       [
-        "F Keys",
+        'F Keys',
         [
           ID.RITUALISTS_SHROUD,
           ID.EXIT_RITUALISTS_SHROUD,
           ID.INNERVATE_ANGUISH,
           ID.INNERVATE_WANDERLUST,
-          ID.INNERVATE_PRESERVATION,
-        ],
+          ID.INNERVATE_PRESERVATION
+        ]
       ],
-      [
-        "Ritualist's Shroud",
-        [
-          ID.ESSENCE_BLAST,
-          ID.ANGUISH,
-          ID.WANDERLUST,
-          ID.PRESERVATION,
-          ID.SUMMON_SPIRITS,
-        ],
-      ],
-    ],
+      ["Ritualist's Shroud", [ID.ESSENCE_BLAST, ID.ANGUISH, ID.WANDERLUST, ID.PRESERVATION, ID.SUMMON_SPIRITS]]
+    ]
   );
 
   const scourge = necromancerProfession.ui.skillBarGroups({
-    specialization: "Scourge",
+    specialization: 'Scourge',
     build: {
-      specializations: [{ name: "Scourge", traits: "1-3-3" }],
+      specializations: [{ name: 'Scourge', traits: '1-3-3' }]
     },
-    professionState: {},
+    professionState: {}
   });
   assert.deepEqual(
     scourge.map((group) => group.label),
-    ["F Keys"],
+    ['F Keys']
   );
   assert.deepEqual(scourge[0].skillIds, [
     ID.MANIFEST_SAND_SHADE,
     ID.NEFARIOUS_FAVOR,
     ID.SAND_CASCADE,
     ID.GARISH_PILLAR,
-    ID.SANDSTORM_SHROUD,
+    ID.SANDSTORM_SHROUD
   ]);
 });
 
-test("Necromancer state events have a real event-log presentation", () => {
+test('Necromancer state events have a real event-log presentation', () => {
   const rows = simulationEventLogRows(
     {
       events: [
         {
-          type: "necromancer.state",
+          type: 'necromancer.state',
           at: 1,
-          reason: "shroud-enter",
+          reason: 'shroud-enter',
           state: {
             lifeForce: 82.5,
-            activeShroud: "reaper",
+            activeShroud: 'reaper',
             blight: 3,
-            soulShards: 2,
-          },
-        },
+            soulShards: 2
+          }
+        }
       ],
       resolvedEvents: [],
-      endState: { profession: {} },
+      endState: { profession: {} }
     },
     null,
-    necromancerProfession,
+    necromancerProfession
   );
 
   assert.equal(rows.length, 1);
-  assert.equal(rows[0].type, "necromancer.state");
-  assert.match(
-    rows[0].description,
-    /shroud-enter.*Life force 82\.5.*Shroud reaper.*Blight 3.*Soul shards 2/,
-  );
+  assert.equal(rows[0].type, 'necromancer.state');
+  assert.match(rows[0].description, /shroud-enter.*Life force 82\.5.*Shroud reaper.*Blight 3.*Soul shards 2/);
   assert.doesNotMatch(rows[0].description, /UNPRESENTED CUSTOM EVENT/);
 });
 
-test("slot skills are inaccessible in transformed shrouds", () => {
+test('slot skills are inaccessible in transformed shrouds', () => {
   const slotSkill = necromancerCatalog.skillsById.get(ID.BLOOD_IS_POWER);
   for (const [specialization, shroud, entry] of [
-    ["Core", "death", "Death Shroud"],
-    ["Reaper", "reaper", "Reaper's Shroud"],
-    ["Harbinger", "harbinger", "Harbinger Shroud"],
-    ["Ritualist", "ritualist", "Ritualist's Shroud"],
+    ['Core', 'death', 'Death Shroud'],
+    ['Reaper', 'reaper', "Reaper's Shroud"],
+    ['Harbinger', 'harbinger', 'Harbinger Shroud'],
+    ['Ritualist', 'ritualist', "Ritualist's Shroud"]
   ]) {
     assert.equal(
       necromancerProfession.ui.isPaletteSkillAvailable(
         {
           specialization,
-          professionState: { activeShroud: shroud },
+          professionState: { activeShroud: shroud }
         },
-        slotSkill,
+        slotSkill
       ),
       false,
-      specialization,
+      specialization
     );
-    const result = simulate(specialization, [entry, "Blood Is Power"], {
+    const result = simulate(specialization, [entry, 'Blood Is Power'], {
       initialResource: 100,
-      selectedSkills: ["Blood Is Power"],
+      selectedSkills: ['Blood Is Power']
     });
-    assert.match(
-      result.warnings.join(" "),
-      /Blood Is Power is unavailable/,
-      specialization,
-    );
+    assert.match(result.warnings.join(' '), /Blood Is Power is unavailable/, specialization);
   }
   assert.equal(
     necromancerProfession.ui.isPaletteSkillAvailable(
       {
-        specialization: "Scourge",
-        professionState: { activeShroud: "" },
+        specialization: 'Scourge',
+        professionState: { activeShroud: '' }
       },
-      slotSkill,
+      slotSkill
     ),
-    true,
+    true
   );
 });
 
-test("Harbinger can equip torch skills through Weaponmaster Training", async () => {
-  const adapter = await loadProfessionAppAdapter("necromancer");
+test('Harbinger can equip torch skills through Weaponmaster Training', async () => {
+  const adapter = await loadProfessionAppAdapter('necromancer');
   const skills = weaponSkills({
     adapter,
     skills: necromancerCatalog.skills,
     build: {
-      specialization: "Harbinger",
-      weapons: ["Pistol", "Torch"],
-      alternateWeapons: ["Scepter", "Dagger"],
+      specialization: 'Harbinger',
+      weapons: ['Pistol', 'Torch'],
+      alternateWeapons: ['Scepter', 'Dagger'],
       specializations: [
-        { name: "Curses", traits: "1-1-3" },
-        { name: "Harbinger", traits: "3-3-1" },
-      ],
+        { name: 'Curses', traits: '1-1-3' },
+        { name: 'Harbinger', traits: '3-3-1' }
+      ]
     },
     weaponData: {
-      Pistol: { wielding: "1h" },
-      Torch: { wielding: "1h" },
-      Scepter: { wielding: "1h" },
-      Dagger: { wielding: "1h" },
-    },
+      Pistol: { wielding: '1h' },
+      Torch: { wielding: '1h' },
+      Scepter: { wielding: '1h' },
+      Dagger: { wielding: '1h' }
+    }
   });
 
   assert.equal(
-    skills.some((skill) => skill.name === "Harrowing Wave"),
-    true,
+    skills.some((skill) => skill.name === 'Harrowing Wave'),
+    true
   );
   assert.equal(
-    skills.some((skill) => skill.name === "Oppressive Collapse"),
-    true,
+    skills.some((skill) => skill.name === 'Oppressive Collapse'),
+    true
   );
   const scepterSkills = weaponSkills(
     {
       adapter,
       skills: necromancerCatalog.skills,
       build: {
-        specialization: "Harbinger",
-        weapons: ["Pistol", "Torch"],
-        alternateWeapons: ["Scepter", "Dagger"],
-        specializations: [{ name: "Curses", traits: "1-1-3" }],
+        specialization: 'Harbinger',
+        weapons: ['Pistol', 'Torch'],
+        alternateWeapons: ['Scepter', 'Dagger'],
+        specializations: [{ name: 'Curses', traits: '1-1-3' }]
       },
       weaponData: {
-        Pistol: { wielding: "1h" },
-        Torch: { wielding: "1h" },
-        Scepter: { wielding: "1h" },
-        Dagger: { wielding: "1h" },
-      },
+        Pistol: { wielding: '1h' },
+        Torch: { wielding: '1h' },
+        Scepter: { wielding: '1h' },
+        Dagger: { wielding: '1h' }
+      }
     },
-    2,
+    2
   );
   assert.equal(
-    scepterSkills.some((skill) => skill.name === "Devouring Darkness"),
-    true,
+    scepterSkills.some((skill) => skill.name === 'Devouring Darkness'),
+    true
   );
   assert.equal(
-    scepterSkills.some((skill) => skill.name === "Feast of Corruption"),
-    false,
+    scepterSkills.some((skill) => skill.name === 'Feast of Corruption'),
+    false
   );
   assert.equal(
-    adapter.isSkillAvailable(
-      necromancerCatalog.skillsById.get(ID.FEAST_OF_CORRUPTION),
-      { specialization: "Harbinger", build: { specializations: [] } },
-    ),
-    true,
+    adapter.isSkillAvailable(necromancerCatalog.skillsById.get(ID.FEAST_OF_CORRUPTION), {
+      specialization: 'Harbinger',
+      build: { specializations: [] }
+    }),
+    true
   );
   assert.equal(
-    adapter.isSkillAvailable(
-      necromancerCatalog.skillsById.get(ID.DEVOURING_DARKNESS),
-      { specialization: "Harbinger", build: { specializations: [] } },
-    ),
-    false,
+    adapter.isSkillAvailable(necromancerCatalog.skillsById.get(ID.DEVOURING_DARKNESS), {
+      specialization: 'Harbinger',
+      build: { specializations: [] }
+    }),
+    false
   );
   const torchRotation = simulate(
-    "Harbinger",
-    [
-      "Harrowing Wave",
-      "Oppressive Collapse",
-      { type: "wait", durationMs: 4100 },
-    ],
+    'Harbinger',
+    ['Harrowing Wave', 'Oppressive Collapse', { type: 'wait', durationMs: 4100 }],
     {
-      primaryWeapon: "Pistol",
-      secondaryWeapon: "Torch",
+      primaryWeapon: 'Pistol',
+      secondaryWeapon: 'Torch',
       allies: { count: 4, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: true,
-    },
+      sharePlayerBoonsWithSummons: true
+    }
   );
   assert.deepEqual(torchRotation.warnings, []);
   assert.equal(
-    torchRotation.breakdown.some((entry) => entry.name === "Harrowing Wave"),
-    true,
+    torchRotation.breakdown.some((entry) => entry.name === 'Harrowing Wave'),
+    true
   );
   assert.equal(
-    torchRotation.breakdown.some(
-      (entry) => entry.name === "Oppressive Collapse",
-    ),
-    true,
+    torchRotation.breakdown.some((entry) => entry.name === 'Oppressive Collapse'),
+    true
   );
   const oppressiveMight = torchRotation.events.find(
-    (event) =>
-      event.type === "buff" &&
-      event.skillId === ID.OPPRESSIVE_COLLAPSE &&
-      event.kind === "might",
+    (event) => event.type === 'buff' && event.skillId === ID.OPPRESSIVE_COLLAPSE && event.kind === 'might'
   );
-  assert.equal(oppressiveMight.recipients, "party");
+  assert.equal(oppressiveMight.recipients, 'party');
   assert.equal(oppressiveMight.affectsSummons, false);
 });
 
-test("Necromancer builds migrate and validate against canonical metadata", () => {
+test('Necromancer builds migrate and validate against canonical metadata', () => {
   const defaults = createNecromancerBuildDefaults();
   assert.deepEqual(validateNecromancerBuild(defaults), {
     valid: true,
-    errors: [],
+    errors: []
   });
   const migrated = migrateNecromancerBuild({
-    weapons: ["Greatsword", "Focus"],
+    weapons: ['Greatsword', 'Focus'],
     initialResource: 500,
     initialBlight: -4,
     initialCascadingCorruptionStacks: 30,
-    selectedSkillIds: [ID.SUMMON_BLOOD_FIEND, ID.BLOOD_IS_POWER, ID.LICH_FORM],
+    selectedSkillIds: [ID.SUMMON_BLOOD_FIEND, ID.BLOOD_IS_POWER, ID.LICH_FORM]
   });
-  assert.deepEqual(migrated.weapons, ["Greatsword", ""]);
+  assert.deepEqual(migrated.weapons, ['Greatsword', '']);
   assert.equal(migrated.initialResource, 100);
   assert.equal(migrated.initialBlight, 0);
   assert.equal(migrated.initialCascadingCorruptionStacks, 19);
-  assert.equal(migrated.selectedSkills.Heal, "Summon Blood Fiend");
-  assert.equal(migrated.selectedSkills.Elite, "Lich Form");
+  assert.equal(migrated.selectedSkills.Heal, 'Summon Blood Fiend');
+  assert.equal(migrated.selectedSkills.Elite, 'Lich Form');
   assert.deepEqual(validateNecromancerBuild(migrated), {
     valid: true,
-    errors: [],
+    errors: []
   });
-  assert.throws(
-    () => migrateNecromancerBuild({ profession: "guardian" }),
-    /Cannot load guardian build as Necromancer/,
-  );
+  assert.throws(() => migrateNecromancerBuild({ profession: 'guardian' }), /Cannot load guardian build as Necromancer/);
 });
 
-test("Necromancer is wired through the selector and application adapter", async () => {
-  const page = await readFile(
-    new URL("../../../necromancer.html", import.meta.url),
-    "utf8",
-  );
+test('Necromancer is wired through the selector and application adapter', async () => {
+  const page = await readFile(new URL('../../../necromancer.html', import.meta.url), 'utf8');
   assert.equal(
-    professionOptions.some((option) => option.id === "necromancer"),
-    true,
+    professionOptions.some((option) => option.id === 'necromancer'),
+    true
   );
-  assert.equal(professionRoute("necromancer"), "necromancer.html");
-  assert.equal((await loadProfession("necromancer"))?.id, "necromancer");
-  assert.equal(
-    (await loadProfessionAppAdapter("necromancer"))?.id,
-    "necromancer",
-  );
+  assert.equal(professionRoute('necromancer'), 'necromancer.html');
+  assert.equal((await loadProfession('necromancer'))?.id, 'necromancer');
+  assert.equal((await loadProfessionAppAdapter('necromancer'))?.id, 'necromancer');
   assert.match(page, /data-profession="necromancer"/);
   assert.match(page, /data-active-profession="necromancer"/);
 });

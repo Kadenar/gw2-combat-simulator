@@ -102,9 +102,9 @@
  * @returns {Definition & {implemented: true}}
  */
 export const implemented = <Definition extends SkillFragment>(
-  definition: Definition,
+  definition: Definition
 ): Definition & { implemented: true } => ({
   ...definition,
-  implemented: true,
+  implemented: true
 });
-import type { SkillFragment } from "./types.js";
+import type { SkillFragment } from './types.js';

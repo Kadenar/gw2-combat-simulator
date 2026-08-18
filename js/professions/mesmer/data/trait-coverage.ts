@@ -1,10 +1,7 @@
-import {
-  TRAIT_COVERAGE_STATUSES,
-  validateTraitCoverageManifest,
-} from "../../../platform/gw2/trait-coverage.js";
-import { mesmerCatalog } from "../catalog.js";
-import { MESMER_TRAIT_IDS as TRAIT } from "./ids.js";
-import type { CatalogEntity } from "../../../platform/engine/types.js";
+import { TRAIT_COVERAGE_STATUSES, validateTraitCoverageManifest } from '../../../platform/gw2/trait-coverage.js';
+import { mesmerCatalog } from '../catalog.js';
+import { MESMER_TRAIT_IDS as TRAIT } from './ids.js';
+import type { CatalogEntity } from '../../../platform/engine/types.js';
 
 const IMPLEMENTED: ReadonlySet<number> = new Set([
   TRAIT.ALTERED_CHORD,
@@ -65,35 +62,27 @@ const IMPLEMENTED: ReadonlySet<number> = new Set([
   TRAIT.LIFE_OF_THE_PARTY,
   TRAIT.HARMONIZE,
   TRAIT.TIME_BOMB,
-  TRAIT.VICIOUS_EXPRESSION,
+  TRAIT.VICIOUS_EXPRESSION
 ]);
 
 const OUT_OF_MODEL_REASON =
-  "This defensive, healing, ally-only, movement, incoming-hit, boon-support, or competitive-only effect does not change the deterministic single-target damage model.";
+  'This defensive, healing, ally-only, movement, incoming-hit, boon-support, or competitive-only effect does not change the deterministic single-target damage model.';
 
 const manifest = mesmerCatalog.traits.map((trait) => {
   const implemented = IMPLEMENTED.has(Number(trait.id));
-  const status = implemented
-    ? TRAIT_COVERAGE_STATUSES.IMPLEMENTED
-    : TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL;
+  const status = implemented ? TRAIT_COVERAGE_STATUSES.IMPLEMENTED : TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL;
   return {
     traitId: trait.id,
     status,
     effects: [
       {
-        description:
-          String(trait.description || "").trim() ||
-          `Reviewed combat behavior for ${trait.name}.`,
+        description: String(trait.description || '').trim() || `Reviewed combat behavior for ${trait.name}.`,
         status,
-        ...(implemented ? {} : { reason: OUT_OF_MODEL_REASON }),
-      },
+        ...(implemented ? {} : { reason: OUT_OF_MODEL_REASON })
+      }
     ],
-    ...(implemented ? {} : { reason: OUT_OF_MODEL_REASON }),
+    ...(implemented ? {} : { reason: OUT_OF_MODEL_REASON })
   };
 });
 
-export const MESMER_TRAIT_COVERAGE = validateTraitCoverageManifest(
-  mesmerCatalog,
-  manifest,
-  { professionId: "mesmer" },
-);
+export const MESMER_TRAIT_COVERAGE = validateTraitCoverageManifest(mesmerCatalog, manifest, { professionId: 'mesmer' });

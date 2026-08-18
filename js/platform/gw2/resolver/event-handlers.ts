@@ -5,45 +5,41 @@ import type {
   Gw2ResolverEventHandlers,
   Gw2ResolverReaction,
   Gw2ResolverReactionRegistry,
-  Gw2ResolverRuntime,
-} from "../types.js";
-import { gw2BoonApplicationRecipients } from "../allied-players.js";
+  Gw2ResolverRuntime
+} from '../types.js';
+import { gw2BoonApplicationRecipients } from '../allied-players.js';
 import {
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
-  remainingDurationStackSeconds,
-} from "../boon-state.js";
-import { createGw2ComboResolution } from "./combo-resolution.js";
+  remainingDurationStackSeconds
+} from '../boon-state.js';
+import { createGw2ComboResolution } from './combo-resolution.js';
 
 interface CreateGw2ResolverEventHandlersOptions {
   readonly hitResolution: {
-    readonly buildContext: Gw2HitResolution["buildHitResolutionContext"];
-    readonly apply: Gw2HitResolution["applyResolvedHit"];
+    readonly buildContext: Gw2HitResolution['buildHitResolutionContext'];
+    readonly apply: Gw2HitResolution['applyResolvedHit'];
   };
   readonly conditions: {
-    readonly activeStackCount: Gw2ConditionResolution["activeConditionStackCount"];
-    readonly apply: Gw2ConditionResolution["applyCondition"];
-    readonly tick: Gw2ConditionResolution["handleConditionTick"];
+    readonly activeStackCount: Gw2ConditionResolution['activeConditionStackCount'];
+    readonly apply: Gw2ConditionResolution['applyCondition'];
+    readonly tick: Gw2ConditionResolution['handleConditionTick'];
   };
   readonly reactions: Gw2ResolverReactionRegistry;
 }
 
 const noop: Gw2ResolverReaction = () => {};
 
-function handleBuff(
-  ctx: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-  reactions: Gw2ResolverReactionRegistry,
-): void {
+function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions: Gw2ResolverReactionRegistry): void {
   const recipients = gw2BoonApplicationRecipients(ctx.config, event);
   Object.assign(event, {
     affectsSelf: recipients.affectsSelf,
     affectsSummons: recipients.affectsSummons,
     alliedPlayerCount: recipients.alliedPlayerCount,
     companionIds: recipients.companionIds,
-    recipientCount: recipients.recipientCount,
+    recipientCount: recipients.recipientCount
   });
-  const kind = String(event.kind || "").toLowerCase();
+  const kind = String(event.kind || '').toLowerCase();
   const applications = ctx.boons.get(kind) || [];
   applications.push({
     at: event.at,
@@ -54,7 +50,7 @@ function handleBuff(
     affectsSummons: recipients.affectsSummons,
     alliedPlayerCount: recipients.alliedPlayerCount,
     companionIds: recipients.companionIds,
-    recipientCount: recipients.recipientCount,
+    recipientCount: recipients.recipientCount
   });
   ctx.boons.set(kind, applications);
   // Keep expired applications for historical timestamp queries, but report
@@ -63,19 +59,15 @@ function handleBuff(
     ? Number(
         remainingDurationStackSeconds(applications, event.at, {
           includes: (application) => application.affectsSelf !== false,
-          maximum: durationStackingBoonCapSeconds(kind),
-        }) > 0,
+          maximum: durationStackingBoonCapSeconds(kind)
+        }) > 0
       )
     : applications
-        .filter(
-          (application) =>
-            application.affectsSelf !== false &&
-            application.expiresAt > event.at,
-        )
+        .filter((application) => application.affectsSelf !== false && application.expiresAt > event.at)
         .reduce((sum, application) => sum + application.stacks, 0);
-  reactions.dispatch("buff.applied", ctx, event, {
+  reactions.dispatch('buff.applied', ctx, event, {
     activeStacks,
-    applications,
+    applications
   });
 }
 
@@ -89,15 +81,10 @@ function handleBuff(
 export function createGw2ResolverEventHandlers({
   hitResolution,
   conditions,
-  reactions,
+  reactions
 }: CreateGw2ResolverEventHandlersOptions): Gw2ResolverEventHandlers {
-  const { buildContext: buildHitResolutionContext, apply: applyResolvedHit } =
-    hitResolution;
-  const {
-    activeStackCount: activeConditionStackCount,
-    apply: applyCondition,
-    tick: handleConditionTick,
-  } = conditions;
+  const { buildContext: buildHitResolutionContext, apply: applyResolvedHit } = hitResolution;
+  const { activeStackCount: activeConditionStackCount, apply: applyCondition, tick: handleConditionTick } = conditions;
   const handlers: Gw2ResolverEventHandlers = {
     ...createGw2ComboResolution({ reactions }),
     // These event types are canonical timeline/reporting records with no shared
@@ -112,7 +99,7 @@ export function createGw2ResolverEventHandlers({
       handleBuff(ctx, event, reactions);
     },
     weakness_vulnerability(ctx, event) {
-      reactions.dispatch("weakness-vulnerability.resolved", ctx, event);
+      reactions.dispatch('weakness-vulnerability.resolved', ctx, event);
     },
 
     damage(ctx, event) {
@@ -120,9 +107,9 @@ export function createGw2ResolverEventHandlers({
       // Ordering matters: apply the base hit first, then profession reactions,
       // expected food procs, and finally relic after-hit rules.
       applyResolvedHit(ctx, event, hitContext);
-      reactions.dispatch("damage.resolved", ctx, event, {
+      reactions.dispatch('damage.resolved', ctx, event, {
         hitContext,
-        applyCondition,
+        applyCondition
       });
     },
 
@@ -134,24 +121,24 @@ export function createGw2ResolverEventHandlers({
 
     condition_tick(ctx, event) {
       const resolved = handleConditionTick(ctx, event);
-      reactions.dispatch("condition-tick.resolved", ctx, event, { resolved });
+      reactions.dispatch('condition-tick.resolved', ctx, event, { resolved });
     },
 
     control(ctx, event) {
-      reactions.dispatch("control.resolved", ctx, event, {
+      reactions.dispatch('control.resolved', ctx, event, {
         activeConditionStackCount,
-        applyCondition,
+        applyCondition
       });
     },
 
     blind(ctx, event) {
-      reactions.dispatch("blind.resolved", ctx, event, { applyCondition });
+      reactions.dispatch('blind.resolved', ctx, event, { applyCondition });
     },
 
     peitha(ctx, event) {
-      reactions.dispatch("peitha.resolved", ctx, event, {
+      reactions.dispatch('peitha.resolved', ctx, event, {
         activeConditionStackCount,
-        applyCondition,
+        applyCondition
       });
     },
 
@@ -159,10 +146,10 @@ export function createGw2ResolverEventHandlers({
       // Invalid/missing values normalize to set one so later sigil and weapon
       // queries always have a valid one-based set number.
       ctx.activeWeaponSet = Number(event.weaponSet) === 2 ? 2 : 1;
-      reactions.dispatch("weapon-set.changed", ctx, event, { applyCondition });
+      reactions.dispatch('weapon-set.changed', ctx, event, { applyCondition });
     },
 
-    sigil_swap: noop,
+    sigil_swap: noop
   };
   return Object.freeze(handlers);
 }

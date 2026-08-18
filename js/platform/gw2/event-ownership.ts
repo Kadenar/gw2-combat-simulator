@@ -1,32 +1,20 @@
-import type { SimulationEventInput } from "../engine/types.js";
+import type { SimulationEventInput } from '../engine/types.js';
 
-export type Gw2EventActorType = "player" | "summon" | "effect" | "unknown";
+export type Gw2EventActorType = 'player' | 'summon' | 'effect' | 'unknown';
 
 // Ownership controls which effects may trigger player-only procs. It is
 // intentionally independent from display-oriented source labels.
 export const GW2_EVENT_ACTOR_TYPES = Object.freeze({
-  PLAYER: "player",
-  SUMMON: "summon",
-  EFFECT: "effect",
-  UNKNOWN: "unknown",
+  PLAYER: 'player',
+  SUMMON: 'summon',
+  EFFECT: 'effect',
+  UNKNOWN: 'unknown'
 });
 
-const SUMMON_SOURCES = new Set([
-  "Clone",
-  "Phantasm",
-  "Pet",
-  "Minion",
-  "Turret",
-]);
+const SUMMON_SOURCES = new Set(['Clone', 'Phantasm', 'Pet', 'Minion', 'Turret']);
 
-const EFFECT_SOURCES = new Set(["Food", "Relic", "Sigil", "Trait"]);
-const NON_WEAPON_EFFECT_SOURCES = new Set([
-  "equipment",
-  "food",
-  "relic",
-  "sigil",
-  "trait",
-]);
+const EFFECT_SOURCES = new Set(['Food', 'Relic', 'Sigil', 'Trait']);
+const NON_WEAPON_EFFECT_SOURCES = new Set(['equipment', 'food', 'relic', 'sigil', 'trait']);
 
 /**
  * Classifies legacy source labels while new events migrate to actorType.
@@ -35,11 +23,11 @@ const NON_WEAPON_EFFECT_SOURCES = new Set([
  * @returns {Gw2EventActorType}
  */
 export function gw2ActorTypeForSource(source: unknown): Gw2EventActorType {
-  if (source === "Player") return GW2_EVENT_ACTOR_TYPES.PLAYER;
-  if (typeof source === "string" && SUMMON_SOURCES.has(source)) {
+  if (source === 'Player') return GW2_EVENT_ACTOR_TYPES.PLAYER;
+  if (typeof source === 'string' && SUMMON_SOURCES.has(source)) {
     return GW2_EVENT_ACTOR_TYPES.SUMMON;
   }
-  if (typeof source === "string" && EFFECT_SOURCES.has(source)) {
+  if (typeof source === 'string' && EFFECT_SOURCES.has(source)) {
     return GW2_EVENT_ACTOR_TYPES.EFFECT;
   }
   return GW2_EVENT_ACTOR_TYPES.UNKNOWN;
@@ -49,24 +37,18 @@ export function gw2ActorTypeForSource(source: unknown): Gw2EventActorType {
  * @param {Partial<SimulationEventInput> | null | undefined} event
  * @returns {Gw2EventActorType}
  */
-export function gw2EventActorType(
-  event: Partial<SimulationEventInput> | null | undefined,
-): Gw2EventActorType {
-  const explicit = String(event?.actorType || "");
+export function gw2EventActorType(event: Partial<SimulationEventInput> | null | undefined): Gw2EventActorType {
+  const explicit = String(event?.actorType || '');
   // Explicit canonical ownership is authoritative. Source inference is only a
   // compatibility fallback for events created before actorType was required.
-  if (
-    Object.values(GW2_EVENT_ACTOR_TYPES).includes(explicit as Gw2EventActorType)
-  ) {
+  if (Object.values(GW2_EVENT_ACTOR_TYPES).includes(explicit as Gw2EventActorType)) {
     return explicit as Gw2EventActorType;
   }
   return gw2ActorTypeForSource(event?.source);
 }
 
 /** @param {Partial<SimulationEventInput> | null | undefined} event */
-export function isGw2PlayerActorEvent(
-  event: Partial<SimulationEventInput> | null | undefined,
-): boolean {
+export function isGw2PlayerActorEvent(event: Partial<SimulationEventInput> | null | undefined): boolean {
   // UNKNOWN is conservative: unclassified effects must not trigger player-only
   // sigils, food, or profession hit rules.
   return gw2EventActorType(event) === GW2_EVENT_ACTOR_TYPES.PLAYER;
@@ -77,23 +59,17 @@ export function isGw2PlayerActorEvent(
  * explicit owner retain their actor ownership. The legacy phantasm actor is
  * canonicalized to summon ownership for compatibility.
  */
-export function gw2EventOwnerActorType(
-  event: Partial<SimulationEventInput> | null | undefined,
-): Gw2EventActorType {
-  const explicit = String(event?.ownerActorType || "");
-  if (
-    Object.values(GW2_EVENT_ACTOR_TYPES).includes(explicit as Gw2EventActorType)
-  ) {
+export function gw2EventOwnerActorType(event: Partial<SimulationEventInput> | null | undefined): Gw2EventActorType {
+  const explicit = String(event?.ownerActorType || '');
+  if (Object.values(GW2_EVENT_ACTOR_TYPES).includes(explicit as Gw2EventActorType)) {
     return explicit as Gw2EventActorType;
   }
-  if (explicit === "phantasm") return GW2_EVENT_ACTOR_TYPES.SUMMON;
+  if (explicit === 'phantasm') return GW2_EVENT_ACTOR_TYPES.SUMMON;
   return gw2EventActorType(event);
 }
 
 /** True when an event inherits the player's outgoing damage modifiers. */
-export function isGw2PlayerModifierOwnedEvent(
-  event: Partial<SimulationEventInput> | null | undefined,
-): boolean {
+export function isGw2PlayerModifierOwnedEvent(event: Partial<SimulationEventInput> | null | undefined): boolean {
   return gw2EventOwnerActorType(event) === GW2_EVENT_ACTOR_TYPES.PLAYER;
 }
 
@@ -102,11 +78,9 @@ export function isGw2PlayerModifierOwnedEvent(
  * the cast which triggered it. Source matching preserves compatibility for
  * older events without canonical actor ownership.
  */
-export function isGw2NonWeaponEffectEvent(
-  event: Partial<SimulationEventInput> | null | undefined,
-): boolean {
+export function isGw2NonWeaponEffectEvent(event: Partial<SimulationEventInput> | null | undefined): boolean {
   return (
     event?.actorType === GW2_EVENT_ACTOR_TYPES.EFFECT ||
-    NON_WEAPON_EFFECT_SOURCES.has(String(event?.source || "").toLowerCase())
+    NON_WEAPON_EFFECT_SOURCES.has(String(event?.source || '').toLowerCase())
   );
 }

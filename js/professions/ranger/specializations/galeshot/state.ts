@@ -1,5 +1,5 @@
-import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
-import type { GaleshotState, RangerConfig } from "../../types.js";
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import type { GaleshotState, RangerConfig } from '../../types.js';
 
 export function createGaleshotState(config: RangerConfig = {}): GaleshotState {
   return {
@@ -17,11 +17,8 @@ export function createGaleshotState(config: RangerConfig = {}): GaleshotState {
     wutheringWindActivationIds: {},
     thrillOfTheCatchReadyAt: 0,
     flockTogetherReadyAt: 0,
-    missileHits: 0,
+    missileHits: 0
   };
 }
 
-export const galeshotState = defineProfessionSpecializationState(
-  "Galeshot",
-  createGaleshotState,
-);
+export const galeshotState = defineProfessionSpecializationState('Galeshot', createGaleshotState);

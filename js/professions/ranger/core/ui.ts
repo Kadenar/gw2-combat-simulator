@@ -1,9 +1,9 @@
-import { flattenProfessionState } from "../../../platform/engine/profession.js";
-import { defaultWeaponSkillMatchesSet } from "../../../platform/gw2/weapon-skill-matcher.js";
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from "../../../app/simulation/randomness.js";
-import { RANGER_ASSUMPTION_CONTROLS } from "../assumptions.js";
-import { RANGER_SKILL_IDS as ID } from "../data/ids.js";
-import { RANGER_PETS } from "../data/ranger-pet-data.js";
+import { flattenProfessionState } from '../../../platform/engine/profession.js';
+import { defaultWeaponSkillMatchesSet } from '../../../platform/gw2/weapon-skill-matcher.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
+import { RANGER_ASSUMPTION_CONTROLS } from '../assumptions.js';
+import { RANGER_SKILL_IDS as ID } from '../data/ids.js';
+import { RANGER_PETS } from '../data/ranger-pet-data.js';
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
@@ -13,39 +13,29 @@ import type {
   ProfessionUiContract,
   SchedulerRecord,
   Skill,
-  SkillId,
-} from "../../../platform/engine/types.js";
-import type {
-  RangerSkill,
-  RangerUiContext,
-  RangerUiSelection,
-} from "../types.js";
-import {
-  isRangerHammerVariant,
-  normalizeRangerHammerSkillIds,
-  RANGER_HAMMER_VARIANT_PAIRS,
-} from "./hammer.js";
+  SkillId
+} from '../../../platform/engine/types.js';
+import type { RangerSkill, RangerUiContext, RangerUiSelection } from '../types.js';
+import { isRangerHammerVariant, normalizeRangerHammerSkillIds, RANGER_HAMMER_VARIANT_PAIRS } from './hammer.js';
 
 let rangerCatalog: Readonly<CanonicalCatalog>;
 
 const RANGER_HIDDEN_EVENT_TYPES = new Set([
-  "ranger.beast-skill-used",
-  "ranger.blood-thirst",
-  "ranger.pet-swapped",
-  "ranger.poisonous-strikes",
-  "ranger.sharpening-stone",
-  "ranger.untamed-state",
-  "ranger.winter-bite-ready",
+  'ranger.beast-skill-used',
+  'ranger.blood-thirst',
+  'ranger.pet-swapped',
+  'ranger.poisonous-strikes',
+  'ranger.sharpening-stone',
+  'ranger.untamed-state',
+  'ranger.winter-bite-ready'
 ]);
 
 export function rangerUiState(context: RangerUiContext): SchedulerRecord {
-  return flattenProfessionState(
-    context.state?.profession || context.professionState || {},
-  );
+  return flattenProfessionState(context.state?.profession || context.professionState || {});
 }
 
 export function rangerUiSpecialization(context: RangerUiContext): string {
-  return context.specialization || context.config?.specialization || "Core";
+  return context.specialization || context.config?.specialization || 'Core';
 }
 
 export function rangerNamedSkillIds(names: readonly string[]): SkillId[] {
@@ -65,9 +55,7 @@ function activePetSkillIds(context: RangerUiContext): SkillId[] {
 
 function commandableSkillIds(skillIds: readonly SkillId[]): SkillId[] {
   return skillIds.filter(
-    (skillId) =>
-      !(rangerCatalog.skillsById.get(skillId) as RangerSkill | undefined)
-        ?.petAutonomousSkill,
+    (skillId) => !(rangerCatalog.skillsById.get(skillId) as RangerSkill | undefined)?.petAutonomousSkill
   );
 }
 
@@ -75,28 +63,23 @@ function commandablePetSkillIds(context: RangerUiContext): SkillId[] {
   return commandableSkillIds(activePetSkillIds(context));
 }
 
-const RANGER_GALESHOT_PALETTE_STACK = "ranger-galeshot";
+const RANGER_GALESHOT_PALETTE_STACK = 'ranger-galeshot';
 
-export function rangerPetPaletteGroup(
-  context: RangerUiContext,
-): ProfessionPaletteGroup {
+export function rangerPetPaletteGroup(context: RangerUiContext): ProfessionPaletteGroup {
   const activePet = activeRangerUiPet(context);
   return {
-    id: "ranger-pet",
-    label: "Pet",
+    id: 'ranger-pet',
+    label: 'Pet',
     skillIds: [...commandablePetSkillIds(context), ID.PET_SWAP],
-    color: "#7ca64a",
-    resourceAnchor: rangerUiSpecialization(context) === "Core",
-    stackId:
-      rangerUiSpecialization(context) === "Galeshot"
-        ? RANGER_GALESHOT_PALETTE_STACK
-        : undefined,
+    color: '#7ca64a',
+    resourceAnchor: rangerUiSpecialization(context) === 'Core',
+    stackId: rangerUiSpecialization(context) === 'Galeshot' ? RANGER_GALESHOT_PALETTE_STACK : undefined,
     includeActionSkills: true,
     statusIcon: {
       icon: activePet.icon,
       label: activePet.name,
-      title: `Active pet: ${activePet.name}`,
-    },
+      title: `Active pet: ${activePet.name}`
+    }
   };
 }
 
@@ -107,47 +90,31 @@ export function selectedRangerUiPet(context: RangerUiContext, slot: 1 | 2 = 1) {
       ? context.build?.selectedPet2 ||
           context.config?.selectedPet2 ||
           (state.petNames as string[] | undefined)?.[1] ||
-          "Lynx"
+          'Lynx'
       : context.build?.selectedPet ||
           context.config?.selectedPet ||
           (state.petNames as string[] | undefined)?.[0] ||
-          state.activePet,
+          state.activePet
   );
   return RANGER_PETS.find((pet) => pet.name === selected) || RANGER_PETS[0];
 }
 
 export function activeRangerUiPet(context: RangerUiContext) {
-  const activePet = String(
-    rangerUiState(context).activePet ||
-      selectedRangerUiPet(context)?.name ||
-      "",
-  );
+  const activePet = String(rangerUiState(context).activePet || selectedRangerUiPet(context)?.name || '');
   return RANGER_PETS.find((pet) => pet.name === activePet) || RANGER_PETS[0];
 }
 
-function updatePetSelection(
-  context: RangerUiContext,
-  selection: RangerUiSelection,
-): boolean {
-  if (
-    !["selectedPet", "selectedPet2"].includes(String(selection.key)) ||
-    !context.build
-  )
-    return false;
-  const pet = RANGER_PETS.find(
-    (candidate) => candidate.name === selection.value,
-  );
+function updatePetSelection(context: RangerUiContext, selection: RangerUiSelection): boolean {
+  if (!['selectedPet', 'selectedPet2'].includes(String(selection.key)) || !context.build) return false;
+  const pet = RANGER_PETS.find((candidate) => candidate.name === selection.value);
   if (!pet) return false;
-  if (selection.key === "selectedPet2") context.build.selectedPet2 = pet.name;
+  if (selection.key === 'selectedPet2') context.build.selectedPet2 = pet.name;
   else context.build.selectedPet = pet.name;
   return true;
 }
 
 function selectedHammerSkillIds(context: RangerUiContext): number[] {
-  return normalizeRangerHammerSkillIds(
-    context.build?.selectedHammerSkillIds ||
-      context.config?.selectedHammerSkillIds,
-  );
+  return normalizeRangerHammerSkillIds(context.build?.selectedHammerSkillIds || context.config?.selectedHammerSkillIds);
 }
 
 function hasHammerEquipped(context: RangerUiContext): boolean {
@@ -157,15 +124,12 @@ function hasHammerEquipped(context: RangerUiContext): boolean {
     context.config?.primaryWeapon,
     context.config?.secondaryWeapon,
     context.config?.weaponSet2Primary,
-    context.config?.weaponSet2Secondary,
-  ].includes("Hammer");
+    context.config?.weaponSet2Secondary
+  ].includes('Hammer');
 }
 
-function updateHammerSelection(
-  context: RangerUiContext,
-  selection: RangerUiSelection,
-): boolean {
-  if (selection.key !== "selectedHammerSkillIds" || !context.build) {
+function updateHammerSelection(context: RangerUiContext, selection: RangerUiSelection): boolean {
+  if (selection.key !== 'selectedHammerSkillIds' || !context.build) {
     return false;
   }
   const index = Number(selection.index);
@@ -184,175 +148,146 @@ function updateHammerSelection(
   return true;
 }
 
-function updateRangerCoreSelection(
-  context: RangerUiContext,
-  selection: RangerUiSelection,
-): boolean {
-  return (
-    updatePetSelection(context, selection) ||
-    updateHammerSelection(context, selection)
-  );
+function updateRangerCoreSelection(context: RangerUiContext, selection: RangerUiSelection): boolean {
+  return updatePetSelection(context, selection) || updateHammerSelection(context, selection);
 }
 
-function rangerWeaponSkillMatchesSet(
-  skill: Skill,
-  weapons: string[],
-  context: SchedulerRecord,
-): boolean {
+function rangerWeaponSkillMatchesSet(skill: Skill, weapons: string[], context: SchedulerRecord): boolean {
   if (
     isRangerHammerVariant(skill.id) &&
-    !selectedHammerSkillIds(context as RangerUiContext).includes(
-      Number(skill.id),
-    )
+    !selectedHammerSkillIds(context as RangerUiContext).includes(Number(skill.id))
   ) {
     return false;
   }
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }
 
-function rangerCorePaletteAvailability(
-  context: RangerUiContext,
-  skill: RangerSkill,
-): PaletteSkillAvailability {
-  if (
-    isRangerHammerVariant(skill.id) &&
-    !selectedHammerSkillIds(context).includes(Number(skill.id))
-  ) {
-    return { available: false, message: "Select this Hammer variant first" };
+function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
+  if (isRangerHammerVariant(skill.id) && !selectedHammerSkillIds(context).includes(Number(skill.id))) {
+    return { available: false, message: 'Select this Hammer variant first' };
   }
-  if (!skill.petSkill) return { available: true, message: "" };
+  if (!skill.petSkill) return { available: true, message: '' };
   const state = rangerUiState(context);
   if (state.beastmodeActive) {
-    return { available: false, message: "Leave Beastmode first" };
+    return { available: false, message: 'Leave Beastmode first' };
   }
-  const available =
-    !skill.petAutonomousSkill && activePetSkillIds(context).includes(skill.id);
+  const available = !skill.petAutonomousSkill && activePetSkillIds(context).includes(skill.id);
   return {
     available,
     message: available
-      ? ""
+      ? ''
       : skill.petAutonomousSkill
-        ? "The active pet uses this skill automatically"
-        : `Select the pet that owns this ${skill.petFamilySkill ? "family attack" : "Beast skill"}`,
+        ? 'The active pet uses this skill automatically'
+        : `Select the pet that owns this ${skill.petFamilySkill ? 'family attack' : 'Beast skill'}`
   };
 }
 
-export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
-  Object.freeze({
-    assumptionControls: [
-      ...RANGER_ASSUMPTION_CONTROLS,
-      ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-    ],
-    skillBarGroups: (context: RangerUiContext) => {
-      const pet = selectedRangerUiPet(context);
-      const pet2 = selectedRangerUiPet(context, 2);
-      const specialization = rangerUiSpecialization(context);
-      const petOptions = RANGER_PETS.map((option) => ({
-        value: option.name,
-        label: option.name,
-        icon: option.icon,
-        description: option.description,
-      }));
-      const layout =
-        specialization === "Untamed"
-          ? "ranger-mechanics ranger-untamed-mechanics"
-          : specialization === "Soulbeast"
-            ? "ranger-mechanics ranger-soulbeast-mechanics"
-            : "ranger-mechanics";
-      const groups: ProfessionSkillBarGroup[] = [
-        {
-          id: "ranger-pet-1-selection",
-          label: "Pet 1",
-          skillIds: [],
-          selections: [
-            {
-              optionEntries: petOptions,
-              filterPlaceholder: "Filter pets...",
-              selectionValue: pet?.name || "",
-              selectionKey: "selectedPet",
-              selectionIndex: 0,
-              leadingSkillIds:
-                specialization === "Soulbeast"
-                  ? [...(pet?.beastmodeSkillIds || [])]
-                  : [],
-              skillIds: commandableSkillIds(pet?.skillIds || []),
-            },
-          ],
-          color: "#7ca64a",
-          className: "ranger-pet ranger-pet-1",
-          layout,
-        },
-        {
-          id: "ranger-pet-2-selection",
-          label: "Pet 2",
-          skillIds: [],
-          selections: [
-            {
-              optionEntries: petOptions,
-              filterPlaceholder: "Filter pets...",
-              selectionValue: pet2?.name || "",
-              selectionKey: "selectedPet2",
-              selectionIndex: 1,
-              leadingSkillIds:
-                specialization === "Soulbeast"
-                  ? [...(pet2?.beastmodeSkillIds || [])]
-                  : [],
-              skillIds: commandableSkillIds(pet2?.skillIds || []),
-            },
-          ],
-          color: "#7ca64a",
-          className: "ranger-pet ranger-pet-2",
-          layout,
-        },
-      ];
-      if (hasHammerEquipped(context)) {
-        const selected = selectedHammerSkillIds(context);
-        groups.push({
-          id: "ranger-hammer-selection",
-          label: "Hammer",
-          skillIds: [],
-          selections: RANGER_HAMMER_VARIANT_PAIRS.map((pair, index) => ({
-            skillId: selected[index],
-            optionSkillIds: pair,
-            selectionKey: "selectedHammerSkillIds",
-            selectionIndex: index,
-          })),
-          color: "#7ca64a",
-          className: "ranger-hammer",
-        });
+export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+  assumptionControls: [...RANGER_ASSUMPTION_CONTROLS, ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS],
+  skillBarGroups: (context: RangerUiContext) => {
+    const pet = selectedRangerUiPet(context);
+    const pet2 = selectedRangerUiPet(context, 2);
+    const specialization = rangerUiSpecialization(context);
+    const petOptions = RANGER_PETS.map((option) => ({
+      value: option.name,
+      label: option.name,
+      icon: option.icon,
+      description: option.description
+    }));
+    const layout =
+      specialization === 'Untamed'
+        ? 'ranger-mechanics ranger-untamed-mechanics'
+        : specialization === 'Soulbeast'
+          ? 'ranger-mechanics ranger-soulbeast-mechanics'
+          : 'ranger-mechanics';
+    const groups: ProfessionSkillBarGroup[] = [
+      {
+        id: 'ranger-pet-1-selection',
+        label: 'Pet 1',
+        skillIds: [],
+        selections: [
+          {
+            optionEntries: petOptions,
+            filterPlaceholder: 'Filter pets...',
+            selectionValue: pet?.name || '',
+            selectionKey: 'selectedPet',
+            selectionIndex: 0,
+            leadingSkillIds: specialization === 'Soulbeast' ? [...(pet?.beastmodeSkillIds || [])] : [],
+            skillIds: commandableSkillIds(pet?.skillIds || [])
+          }
+        ],
+        color: '#7ca64a',
+        className: 'ranger-pet ranger-pet-1',
+        layout
+      },
+      {
+        id: 'ranger-pet-2-selection',
+        label: 'Pet 2',
+        skillIds: [],
+        selections: [
+          {
+            optionEntries: petOptions,
+            filterPlaceholder: 'Filter pets...',
+            selectionValue: pet2?.name || '',
+            selectionKey: 'selectedPet2',
+            selectionIndex: 1,
+            leadingSkillIds: specialization === 'Soulbeast' ? [...(pet2?.beastmodeSkillIds || [])] : [],
+            skillIds: commandableSkillIds(pet2?.skillIds || [])
+          }
+        ],
+        color: '#7ca64a',
+        className: 'ranger-pet ranger-pet-2',
+        layout
       }
-      return groups;
-    },
-    updateSkillBarSelection: updateRangerCoreSelection,
-    paletteGroups: (context: RangerUiContext) => {
-      if (rangerUiSpecialization(context) === "Soulbeast") return [];
-      return [rangerPetPaletteGroup(context)];
-    },
-    resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
-      const state = rangerUiState(context);
-      return [
-        {
-          id: "endurance",
-          singular: "endurance",
-          plural: "endurance",
-          maximum: Number(state.maximumEndurance || 100),
-          value: Number(state.endurance ?? 100),
-          startMaximum: 100,
-          startValue: 100,
-          canStart: false,
-          step: 1,
-          displayMode: "bar",
-          shortLabel: "End",
-          statusLabel: "Current",
-          paletteSkillId: ID.DODGE,
-        },
-      ];
-    },
-    paletteSkillAvailability: rangerCorePaletteAvailability,
-    weaponSkillMatchesSet: rangerWeaponSkillMatchesSet,
-    eventLogRow: (_context: RangerUiContext, event: SchedulerRecord) =>
-      RANGER_HIDDEN_EVENT_TYPES.has(String(event.type)) ? null : undefined,
-  });
+    ];
+    if (hasHammerEquipped(context)) {
+      const selected = selectedHammerSkillIds(context);
+      groups.push({
+        id: 'ranger-hammer-selection',
+        label: 'Hammer',
+        skillIds: [],
+        selections: RANGER_HAMMER_VARIANT_PAIRS.map((pair, index) => ({
+          skillId: selected[index],
+          optionSkillIds: pair,
+          selectionKey: 'selectedHammerSkillIds',
+          selectionIndex: index
+        })),
+        color: '#7ca64a',
+        className: 'ranger-hammer'
+      });
+    }
+    return groups;
+  },
+  updateSkillBarSelection: updateRangerCoreSelection,
+  paletteGroups: (context: RangerUiContext) => {
+    if (rangerUiSpecialization(context) === 'Soulbeast') return [];
+    return [rangerPetPaletteGroup(context)];
+  },
+  resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
+    const state = rangerUiState(context);
+    return [
+      {
+        id: 'endurance',
+        singular: 'endurance',
+        plural: 'endurance',
+        maximum: Number(state.maximumEndurance || 100),
+        value: Number(state.endurance ?? 100),
+        startMaximum: 100,
+        startValue: 100,
+        canStart: false,
+        step: 1,
+        displayMode: 'bar',
+        shortLabel: 'End',
+        statusLabel: 'Current',
+        paletteSkillId: ID.DODGE
+      }
+    ];
+  },
+  paletteSkillAvailability: rangerCorePaletteAvailability,
+  weaponSkillMatchesSet: rangerWeaponSkillMatchesSet,
+  eventLogRow: (_context: RangerUiContext, event: SchedulerRecord) =>
+    RANGER_HIDDEN_EVENT_TYPES.has(String(event.type)) ? null : undefined
+});
 
 export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog>) {
   rangerCatalog = catalog;

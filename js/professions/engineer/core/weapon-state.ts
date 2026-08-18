@@ -1,22 +1,14 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
-import type {
-  EngineerCastContext,
-  EngineerSkill,
-} from "../types.js";
+import { professionCoreState } from '../../../platform/engine/profession.js';
+import type { EngineerCastContext, EngineerSkill } from '../types.js';
 
-export function updateEngineerWeaponState(
-  context: EngineerCastContext,
-  skill: EngineerSkill,
-): void {
+export function updateEngineerWeaponState(context: EngineerCastContext, skill: EngineerSkill): void {
   const state = professionCoreState(context);
-  const chain = typeof skill.id === "number"
-    ? context.catalog.autoattackChainPositions.get(skill.id)
-    : undefined;
+  const chain = typeof skill.id === 'number' ? context.catalog.autoattackChainPositions.get(skill.id) : undefined;
   if (chain) {
     // chain.next == null means this was the last hit — delete the key so the next cast starts at root
     if (chain.next == null) delete state.autoattackChains[chain.root];
     else state.autoattackChains[chain.root] = chain.next;
-  } else if (skill.type === "Weapon") {
+  } else if (skill.type === 'Weapon') {
     // any non-chain weapon skill (e.g. a cooldown skill) resets all chains to the beginning
     state.autoattackChains = {};
   }

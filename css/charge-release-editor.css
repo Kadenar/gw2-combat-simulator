@@ -15,7 +15,7 @@
 }
 
 .rotation-charge-release-editor::before {
-  content: "";
+  content: '';
   position: absolute;
   top: calc(var(--charge-release-editor-arrow-y) - 6px);
   left: -7px;

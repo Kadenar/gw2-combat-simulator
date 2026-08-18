@@ -1,46 +1,39 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from "../../../types.js";
-import type { EvtcRotationBuffTransition } from "../../profiles.js";
-import type {
-  EvtcProfessionReconstructionContext,
-  EvtcRecordedRotationAction,
-} from "../types.js";
-import { directAction, firstPlayerEventTime, rawSkillName } from "./shared.js";
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
+import type { EvtcRotationBuffTransition } from '../../profiles.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import { directAction, firstPlayerEventTime, rawSkillName } from './shared.js';
 
 const BEASTMODE_BUFF = 42014;
-const BEASTMODE = Object.freeze({ name: "Beastmode", skillId: 42944 });
+const BEASTMODE = Object.freeze({ name: 'Beastmode', skillId: 42944 });
 const LEAVE_BEASTMODE = Object.freeze({
-  name: "Leave Beastmode",
-  skillId: 43014,
+  name: 'Leave Beastmode',
+  skillId: 43014
 });
-const FROST_TRAP = Object.freeze({ name: "Frost Trap", skillId: 12492 });
+const FROST_TRAP = Object.freeze({ name: 'Frost Trap', skillId: 12492 });
 const ONE_WOLF_PACK = Object.freeze({
-  name: "One Wolf Pack",
-  skillId: 45717,
+  name: 'One Wolf Pack',
+  skillId: 45717
 });
 const ONE_WOLF_PACK_BUFF = 44139;
 
 const INITIAL_EFFECT_WINDOW_MS = 1000;
 
-export const SOULBEAST_BUFF_TRANSITIONS: readonly EvtcRotationBuffTransition[] =
-  [
-    {
-      buffSkillId: BEASTMODE_BUFF,
-      gain: BEASTMODE,
-      loss: LEAVE_BEASTMODE,
-      suppressWeaponSwap: false,
-    },
-  ];
+export const SOULBEAST_BUFF_TRANSITIONS: readonly EvtcRotationBuffTransition[] = [
+  {
+    buffSkillId: BEASTMODE_BUFF,
+    gain: BEASTMODE,
+    loss: LEAVE_BEASTMODE,
+    suppressWeaponSwap: false
+  }
+];
 
-function isAction(
-  action: EvtcRecordedRotationAction,
-  skillId: number,
-): boolean {
+function isAction(action: EvtcRecordedRotationAction, skillId: number): boolean {
   return action.rawSkillId === skillId || action.canonicalSkillId === skillId;
 }
 
 function initialPrecastActions(
   context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[],
+  actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const firstEventTime = firstPlayerEventTime(context);
   if (firstEventTime == null) return [];
@@ -51,7 +44,7 @@ function initialPrecastActions(
         event.target === context.playerAddress &&
         event.skillId === ONE_WOLF_PACK_BUFF &&
         event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL &&
-        event.buff !== 0,
+        event.buff !== 0
     );
   const initialFrostTrap = context.log.events
     .map((event, eventIndex) => ({ event, eventIndex }))
@@ -64,51 +57,38 @@ function initialPrecastActions(
         event.buff === 0 &&
         event.value > 0 &&
         event.time >= firstEventTime &&
-        event.time - firstEventTime <= INITIAL_EFFECT_WINDOW_MS,
+        event.time - firstEventTime <= INITIAL_EFFECT_WINDOW_MS
     );
   const identities = [
     ...(initialOneWolfPack &&
-    !actions.some(
-      (action) =>
-        isAction(action, ONE_WOLF_PACK.skillId) &&
-        action.start <= initialOneWolfPack.event.time,
-    )
+    !actions.some((action) => isAction(action, ONE_WOLF_PACK.skillId) && action.start <= initialOneWolfPack.event.time)
       ? [initialOneWolfPack]
       : []),
     ...(initialFrostTrap &&
-    !actions.some(
-      (action) =>
-        isAction(action, FROST_TRAP.skillId) &&
-        action.start <= initialFrostTrap.event.time,
-    )
+    !actions.some((action) => isAction(action, FROST_TRAP.skillId) && action.start <= initialFrostTrap.event.time)
       ? [initialFrostTrap]
-      : []),
+      : [])
   ];
   if (!identities.length) return [];
-  const anchor = actions.length
-    ? Math.min(...actions.map((action) => action.start))
-    : firstEventTime;
+  const anchor = actions.length ? Math.min(...actions.map((action) => action.start)) : firstEventTime;
   return identities.map(({ event, eventIndex }, index) => {
-    const identity =
-      event.skillId === ONE_WOLF_PACK_BUFF ? ONE_WOLF_PACK : FROST_TRAP;
+    const identity = event.skillId === ONE_WOLF_PACK_BUFF ? ONE_WOLF_PACK : FROST_TRAP;
     return directAction(
       eventIndex,
       anchor - identities.length + index,
       event.skillId,
       rawSkillName(context, event.skillId),
       identity,
-      "initial-state",
-      { precast: true },
+      'initial-state',
+      { precast: true }
     );
   });
 }
 
 export function reconstructSoulbeastActions(
   context: EvtcProfessionReconstructionContext,
-  recordedActions: readonly EvtcRecordedRotationAction[],
+  recordedActions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  const actions = recordedActions.filter(
-    (action) => !(isAction(action, BEASTMODE.skillId) && action.initialState),
-  );
+  const actions = recordedActions.filter((action) => !(isAction(action, BEASTMODE.skillId) && action.initialState));
   return [...actions, ...initialPrecastActions(context, actions)];
 }

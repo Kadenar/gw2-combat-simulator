@@ -1,29 +1,22 @@
-import type {
-  SchedulerRecord,
-  SimulationEvent,
-} from "../../platform/engine/types.js";
-import type { Gw2SimulationResult } from "../../platform/gw2/types.js";
+import type { SchedulerRecord, SimulationEvent } from '../../platform/engine/types.js';
+import type { Gw2SimulationResult } from '../../platform/gw2/types.js';
 import {
   EVENT_LOG_ORDER,
   eventLogCsv,
   mountEventLog,
-  normalizeEventLogDescriptor,
-} from "../../platform/ui/event-log.js";
-import type { EventLogRow } from "../../platform/ui/types.js";
-import type {
-  ProfessionAppContract,
-  ProfessionApplicationBuild,
-  ProfessionAppState,
-} from "../profession/types.js";
-import { professionEndState } from "./context.js";
-import { effectName, resultCombatReferenceMs } from "./result-model.js";
+  normalizeEventLogDescriptor
+} from '../../platform/ui/event-log.js';
+import type { EventLogRow } from '../../platform/ui/types.js';
+import type { ProfessionAppContract, ProfessionApplicationBuild, ProfessionAppState } from '../profession/types.js';
+import { professionEndState } from './context.js';
+import { effectName, resultCombatReferenceMs } from './result-model.js';
 
 type OrderedEventLogRow = EventLogRow & { readonly order: number };
 
 export function simulationEventLogRows(
   result: Gw2SimulationResult | null | undefined,
   build: ProfessionApplicationBuild | null = null,
-  profession: ProfessionAppContract | null = null,
+  profession: ProfessionAppContract | null = null
 ): EventLogRow[] {
   const rows: OrderedEventLogRow[] = [];
   const professionUi = profession?.ui;
@@ -32,26 +25,18 @@ export function simulationEventLogRows(
   const eliteNames = new Set(
     (profession?.catalog?.specializations || [])
       .filter((specialization) => specialization.elite)
-      .map((specialization) => specialization.name),
+      .map((specialization) => specialization.name)
   );
   const specialization =
-    String(build?.specialization || "").trim() ||
-    build?.specializations?.find((selection) => eliteNames.has(selection.name))
-      ?.name ||
-    "Core";
+    String(build?.specialization || '').trim() ||
+    build?.specializations?.find((selection) => eliteNames.has(selection.name))?.name ||
+    'Core';
   const resourceDefinition =
-    endState.resourceDefinition &&
-    typeof endState.resourceDefinition === "object"
+    endState.resourceDefinition && typeof endState.resourceDefinition === 'object'
       ? (endState.resourceDefinition as SchedulerRecord)
       : {};
   const maximumResource = Number(resourceDefinition.maximum || 0);
-  const push = (
-    at: unknown,
-    type: string,
-    description: string,
-    className = "",
-    phantasmClone = false,
-  ): void => {
+  const push = (at: unknown, type: string, description: string, className = '', phantasmClone = false): void => {
     const displayAt = Number(at || 0) - displayReferenceSeconds;
     rows.push({
       at: Math.abs(displayAt) < 1e-12 ? 0 : displayAt,
@@ -59,7 +44,7 @@ export function simulationEventLogRows(
       description,
       className,
       phantasmClone,
-      order: EVENT_LOG_ORDER[type] ?? 80,
+      order: EVENT_LOG_ORDER[type] ?? 80
     });
   };
   const pushProfessionRow = (event: SimulationEvent): void => {
@@ -71,10 +56,10 @@ export function simulationEventLogRows(
           profession,
           specialization,
           displayReferenceSeconds,
-          maximumResource,
+          maximumResource
         },
-        event,
-      ),
+        event
+      )
     );
     if (normalized === null) return;
     if (normalized) {
@@ -83,120 +68,93 @@ export function simulationEventLogRows(
       rows.push({
         at: Math.abs(displayAt) < 1e-12 ? 0 : displayAt,
         ...descriptor,
-        phantasmClone: flags.includes("phantasm-clone"),
+        phantasmClone: flags.includes('phantasm-clone')
       });
       return;
     }
     const message = `UNPRESENTED CUSTOM EVENT ${event.type}`;
     globalThis.console?.warn?.(message, event);
-    push(event.at, "diagnostic", message, "diagnostic");
+    push(event.at, 'diagnostic', message, 'diagnostic');
   };
 
   for (const event of result?.events || []) {
-    if (event.type === "damage" || event.type === "condition") continue;
+    if (event.type === 'damage' || event.type === 'condition') continue;
     switch (event.type) {
-      case "combat_start":
-        push(event.at, event.type, "COMBAT START", "trigger");
+      case 'combat_start':
+        push(event.at, event.type, 'COMBAT START', 'trigger');
         break;
-      case "action": {
-        const durationMs = Math.max(
-          0,
-          Math.round(
-            (Number(event.endsAt || event.at) - Number(event.at || 0)) * 1000,
-          ),
-        );
-        push(event.at, "cast", `CAST ${event.name} (${durationMs}ms)`);
-        push(event.endsAt, "cast_end", `END ${event.name}`);
+      case 'action': {
+        const durationMs = Math.max(0, Math.round((Number(event.endsAt || event.at) - Number(event.at || 0)) * 1000));
+        push(event.at, 'cast', `CAST ${event.name} (${durationMs}ms)`);
+        push(event.endsAt, 'cast_end', `END ${event.name}`);
         break;
       }
-      case "resource": {
+      case 'resource': {
         const amount = Number(event.amount || 0);
-        const resource = String(event.resource || "resource");
-        const singular = resource.endsWith("s")
-          ? resource.slice(0, -1)
-          : resource;
-        const reason = event.reason ? ` [${event.reason}]` : "";
+        const resource = String(event.resource || 'resource');
+        const singular = resource.endsWith('s') ? resource.slice(0, -1) : resource;
+        const reason = event.reason ? ` [${event.reason}]` : '';
         const created = (Array.isArray(event.created) ? event.created : [])
           .map((rawClone: unknown) => {
-            const clone =
-              rawClone && typeof rawClone === "object"
-                ? (rawClone as SchedulerRecord)
-                : {};
-            return `Clone #${String(clone.id ?? "")}${
-              clone.weapon ? ` [${String(clone.weapon)}]` : ""
-            }`;
+            const clone = rawClone && typeof rawClone === 'object' ? (rawClone as SchedulerRecord) : {};
+            return `Clone #${String(clone.id ?? '')}${clone.weapon ? ` [${String(clone.weapon)}]` : ''}`;
           })
-          .join(", ");
-        const isCloneResource = resource === "clones";
+          .join(', ');
+        const isCloneResource = resource === 'clones';
         if (amount > 0) {
           push(
             event.at,
             event.type,
-            `${singular.toUpperCase()} SPAWNED x${amount} -> ${event.value}/${maximumResource}${reason}${created ? ` (${created})` : ""}`,
-            "resource",
-            isCloneResource,
+            `${singular.toUpperCase()} SPAWNED x${amount} -> ${event.value}/${maximumResource}${reason}${created ? ` (${created})` : ''}`,
+            'resource',
+            isCloneResource
           );
         } else {
           push(
             event.at,
             event.type,
             `${resource.toUpperCase()} SPENT x${Math.abs(amount)} -> ${event.value}/${maximumResource}${reason}`,
-            "resource",
-            isCloneResource,
+            'resource',
+            isCloneResource
           );
         }
         break;
       }
-      case "marker":
+      case 'marker':
+        push(event.at, event.type, `EVENT ${event.name}${event.detail ? ` - ${event.detail}` : ''}`, 'trigger');
+        break;
+      case 'proc':
         push(
           event.at,
           event.type,
-          `EVENT ${event.name}${event.detail ? ` - ${event.detail}` : ""}`,
-          "trigger",
+          `${String(event.procType || 'effect').toUpperCase()} ${event.name}${event.sourceSkill ? ` [${event.sourceSkill}]` : ''}${event.detail ? ` - ${event.detail}` : ''}`,
+          event.procType || 'trigger'
         );
         break;
-      case "proc":
-        push(
-          event.at,
-          event.type,
-          `${String(event.procType || "effect").toUpperCase()} ${event.name}${event.sourceSkill ? ` [${event.sourceSkill}]` : ""}${event.detail ? ` - ${event.detail}` : ""}`,
-          event.procType || "trigger",
-        );
+      case 'weapon_set':
+        push(event.at, 'trigger', `WEAPON SET ${event.weaponSet}`, 'trigger');
         break;
-      case "weapon_set":
-        push(event.at, "trigger", `WEAPON SET ${event.weaponSet}`, "trigger");
+      case 'control':
+        push(event.at, 'trigger', `CONTROL ${event.skillName}`, 'trigger');
         break;
-      case "control":
-        push(event.at, "trigger", `CONTROL ${event.skillName}`, "trigger");
+      case 'weakness_vulnerability':
+        push(event.at, 'trigger', `WEAKNESS/VULNERABILITY TRIGGER ${event.skillName}`, 'trigger');
         break;
-      case "weakness_vulnerability":
-        push(
-          event.at,
-          "trigger",
-          `WEAKNESS/VULNERABILITY TRIGGER ${event.skillName}`,
-          "trigger",
-        );
-        break;
-      case "peitha":
-        if (!build || build.relic === "Peitha") {
-          push(
-            event.at,
-            "trigger",
-            `PEITHA TRIGGER ${event.skillName}`,
-            "trigger",
-          );
+      case 'peitha':
+        if (!build || build.relic === 'Peitha') {
+          push(event.at, 'trigger', `PEITHA TRIGGER ${event.skillName}`, 'trigger');
         }
         break;
-      case "buff":
+      case 'buff':
         push(
           event.at,
-          "trigger",
-          `BUFF ${effectName(event.kind)} x${event.stacks || 1}${event.duration ? ` (${event.duration}s)` : ""}`,
-          "trigger",
+          'trigger',
+          `BUFF ${effectName(event.kind)} x${event.stacks || 1}${event.duration ? ` (${event.duration}s)` : ''}`,
+          'trigger'
         );
         break;
       default:
-        if (String(event.type || "").includes(".")) {
+        if (String(event.type || '').includes('.')) {
           pushProfessionRow(event);
         }
         break;
@@ -204,22 +162,22 @@ export function simulationEventLogRows(
   }
 
   for (const event of result?.resolvedEvents || []) {
-    if (event.type === "damage") {
-      const isCloneHit = event.source === "Clone";
-      const source = isCloneHit ? "CLONE HIT" : "HIT";
+    if (event.type === 'damage') {
+      const isCloneHit = event.source === 'Clone';
+      const source = isCloneHit ? 'CLONE HIT' : 'HIT';
       push(
         event.at,
-        "damage",
+        'damage',
         `${source} ${event.name} x${event.hits || 1} -> ${Math.round(Number(event.damage || 0)).toLocaleString()} damage`,
-        isCloneHit ? "resource" : "",
-        isCloneHit,
+        isCloneHit ? 'resource' : '',
+        isCloneHit
       );
-    } else if (event.type === "condition") {
+    } else if (event.type === 'condition') {
       push(
         event.at,
-        "condition",
+        'condition',
         `CONDITION ${event.condition} x${event.stacks || 1} (${Number(event.duration || 0).toFixed(2)}s) [${event.skillName}]`,
-        "condition",
+        'condition'
       );
     }
   }
@@ -227,9 +185,7 @@ export function simulationEventLogRows(
   return rows
     .sort(
       (left, right) =>
-        left.at - right.at ||
-        left.order - right.order ||
-        left.description.localeCompare(right.description),
+        left.at - right.at || left.order - right.order || left.description.localeCompare(right.description)
     )
     .map(({ order: _order, ...row }) => row);
 }
@@ -239,10 +195,10 @@ export function simulationEventLogCsv(rows: readonly EventLogRow[]): string {
 }
 
 export function renderEventLog(app: ProfessionAppState): void {
-  const element = document.getElementById("rotation-event-log");
+  const element = document.getElementById('rotation-event-log');
   const result = app.results;
   if (!element || !app.build.rotation.length || !result) {
-    if (element) element.innerHTML = "";
+    if (element) element.innerHTML = '';
     return;
   }
   const eventLog = simulationEventLogRows(result, app.build, app.profession);
@@ -251,20 +207,20 @@ export function renderEventLog(app: ProfessionAppState): void {
     element,
     eventLog.map((event) => ({
       ...event,
-      rowClassName: event.phantasmClone ? "log-phantasm" : "",
+      rowClassName: event.phantasmClone ? 'log-phantasm' : ''
     })),
     {
-      title: "Event Log",
-      filename: app.adapter?.filenames?.eventLog || "event-log.csv",
+      title: 'Event Log',
+      filename: app.adapter?.filenames?.eventLog || 'event-log.csv',
       filters: hasPhantasmClone
         ? [
             {
-              id: "phantasm",
-              label: "Phantasm & Clone only",
-              predicate: (event) => Boolean(event.phantasmClone),
-            },
+              id: 'phantasm',
+              label: 'Phantasm & Clone only',
+              predicate: (event) => Boolean(event.phantasmClone)
+            }
           ]
-        : [],
-    },
+        : []
+    }
   );
 }

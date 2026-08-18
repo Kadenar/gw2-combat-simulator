@@ -1,11 +1,8 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { reconstructEvtcRotation } from "../../js/evtc-analyzer/rotation/index.js";
-import {
-  EVTC_ACTIVATION,
-  EVTC_STATE_CHANGE,
-} from "../../js/evtc-analyzer/types.js";
+import { reconstructEvtcRotation } from '../../js/evtc-analyzer/rotation/index.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../js/evtc-analyzer/types.js';
 
 const PLAYER = 0x1000n;
 const TARGET = 0x2000n;
@@ -36,7 +33,7 @@ function event(overrides = {}) {
     shields: 0,
     offcycle: 0,
     pad: 0,
-    ...overrides,
+    ...overrides
   };
 }
 
@@ -44,26 +41,26 @@ function skill(id, name, overrides = {}) {
   return {
     id,
     name,
-    type: "Weapon",
-    slot: "Weapon_2",
+    type: 'Weapon',
+    slot: 'Weapon_2',
     castTimeMs: 0,
     quicknessCastTimeMs: 0,
     effects: [],
     implemented: true,
-    ...overrides,
+    ...overrides
   };
 }
 
 function engineerLog(skills, events, { elite = 75, agents = [] } = {}) {
   return {
     header: {
-      magic: "EVTC",
-      arcdpsBuild: "20260815",
+      magic: 'EVTC',
+      arcdpsBuild: '20260815',
       revision: 1,
       encounterId: 16199,
       agentCount: 2 + agents.length,
       skillCount: skills.length,
-      eventCount: events.length,
+      eventCount: events.length
     },
     agents: [
       {
@@ -74,9 +71,9 @@ function engineerLog(skills, events, { elite = 75, agents = [] } = {}) {
         concentration: 0,
         healing: 0,
         condition: 0,
-        character: "Fixture Amalgam",
-        account: ":Fixture.1234",
-        subgroup: "1",
+        character: 'Fixture Amalgam',
+        account: ':Fixture.1234',
+        subgroup: '1'
       },
       {
         address: TARGET,
@@ -86,44 +83,44 @@ function engineerLog(skills, events, { elite = 75, agents = [] } = {}) {
         concentration: 0,
         healing: 0,
         condition: 0,
-        character: "Standard Kitty Golem",
-        account: "",
-        subgroup: "",
+        character: 'Standard Kitty Golem',
+        account: '',
+        subgroup: ''
       },
-      ...agents,
+      ...agents
     ],
     skills: skills.map(({ id, name }) => ({ id, name })),
-    events,
+    events
   };
 }
 
-test("reconstructs Mechanist commands, Overclock, and opening weapon precasts", () => {
+test('reconstructs Mechanist commands, Overclock, and opening weapon precasts', () => {
   const mech = 0x3000n;
   const skills = [
-    skill(63345, "Core Reactor Shot", {
-      type: "Profession",
-      slot: "Profession_1",
+    skill(63345, 'Core Reactor Shot', {
+      type: 'Profession',
+      slot: 'Profession_1'
     }),
-    skill(63121, "Jade Mortar", {
-      type: "Profession",
-      slot: "Profession_2",
+    skill(63121, 'Jade Mortar', {
+      type: 'Profession',
+      slot: 'Profession_2'
     }),
-    skill(63188, "Spark Revolver", {
-      type: "Profession",
-      slot: "Profession_3",
+    skill(63188, 'Spark Revolver', {
+      type: 'Profession',
+      slot: 'Profession_3'
     }),
-    skill(63095, "Overclock Signet", {
-      type: "Elite",
-      slot: "Elite",
+    skill(63095, 'Overclock Signet', {
+      type: 'Elite',
+      slot: 'Elite'
     }),
-    skill(6004, "Net Shot", {
-      slot: "Weapon_2",
-      quicknessCastTimeMs: 200,
+    skill(6004, 'Net Shot', {
+      slot: 'Weapon_2',
+      quicknessCastTimeMs: 200
     }),
-    skill(6153, "Blunderbuss", {
-      slot: "Weapon_3",
-      quicknessCastTimeMs: 400,
-    }),
+    skill(6153, 'Blunderbuss', {
+      slot: 'Weapon_3',
+      quicknessCastTimeMs: 400
+    })
   ];
   const fixture = engineerLog(
     skills,
@@ -131,7 +128,7 @@ test("reconstructs Mechanist commands, Overclock, and opening weapon precasts", 
       event({
         time: 10_000,
         sourceInstance: 7,
-        stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT,
+        stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT
       }),
       event({
         time: 10_050,
@@ -139,7 +136,7 @@ test("reconstructs Mechanist commands, Overclock, and opening weapon precasts", 
         skillId: 6004,
         sourceInstance: 7,
         activation: EVTC_ACTIVATION.RESET,
-        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
       }),
       event({
         time: 10_050,
@@ -148,7 +145,7 @@ test("reconstructs Mechanist commands, Overclock, and opening weapon precasts", 
         skillId: 63345,
         sourceInstance: 8,
         sourceMasterInstance: 7,
-        activation: EVTC_ACTIVATION.RESET,
+        activation: EVTC_ACTIVATION.RESET
       }),
       ...animation(6153, 10_100, 400, { sourceInstance: 7 }),
       event({
@@ -157,7 +154,7 @@ test("reconstructs Mechanist commands, Overclock, and opening weapon precasts", 
         skillId: 63121,
         sourceInstance: 8,
         sourceMasterInstance: 7,
-        activation: EVTC_ACTIVATION.START,
+        activation: EVTC_ACTIVATION.START
       }),
       event({
         time: 10_800,
@@ -165,7 +162,7 @@ test("reconstructs Mechanist commands, Overclock, and opening weapon precasts", 
         skillId: 63188,
         sourceInstance: 8,
         sourceMasterInstance: 7,
-        activation: EVTC_ACTIVATION.START,
+        activation: EVTC_ACTIVATION.START
       }),
       event({
         time: 11_000,
@@ -173,7 +170,7 @@ test("reconstructs Mechanist commands, Overclock, and opening weapon precasts", 
         skillId: 63059,
         sourceInstance: 7,
         buff: 1,
-        buffRemove: 3,
+        buffRemove: 3
       }),
       event({
         time: 11_000,
@@ -181,8 +178,8 @@ test("reconstructs Mechanist commands, Overclock, and opening weapon precasts", 
         skillId: 63059,
         sourceInstance: 7,
         buff: 1,
-        buffRemove: 1,
-      }),
+        buffRemove: 1
+      })
     ],
     {
       elite: 70,
@@ -195,103 +192,92 @@ test("reconstructs Mechanist commands, Overclock, and opening weapon precasts", 
           concentration: 0,
           healing: 0,
           condition: 0,
-          character: "Jade Mech",
-          account: "",
-          subgroup: "",
-        },
-      ],
-    },
+          character: 'Jade Mech',
+          account: '',
+          subgroup: ''
+        }
+      ]
+    }
   );
 
   const result = reconstructEvtcRotation(fixture, { skills });
 
-  assert.equal(result.parserId, "engineer:mechanist");
+  assert.equal(result.parserId, 'engineer:mechanist');
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.actions.map((action) => action.name),
-    [
-      "Core Reactor Shot",
-      "Net Shot",
-      "Blunderbuss",
-      "Jade Mortar",
-      "Spark Revolver",
-      "Overclock Signet",
-    ],
+    ['Core Reactor Shot', 'Net Shot', 'Blunderbuss', 'Jade Mortar', 'Spark Revolver', 'Overclock Signet']
   );
-  assert.equal(
-    result.actions.filter((action) => action.name === "Overclock Signet")
-      .length,
-    1,
-  );
+  assert.equal(result.actions.filter((action) => action.name === 'Overclock Signet').length, 1);
 });
 
-test("validates Engineer cast completion from observed strike packets", () => {
+test('validates Engineer cast completion from observed strike packets', () => {
   const skills = [
-    skill(6005, "Jump Shot", {
-      slot: "Weapon_5",
+    skill(6005, 'Jump Shot', {
+      slot: 'Weapon_5',
       castTimeMs: 1_000,
       unaffectedByQuickness: true,
       effects: [
         {
-          type: "strike",
-          name: "Leap Damage",
+          type: 'strike',
+          name: 'Leap Damage',
           atMs: 117,
-          timingAnchor: "castStart",
-          timingScale: "fixed",
+          timingAnchor: 'castStart',
+          timingScale: 'fixed'
         },
         {
-          type: "strike",
-          name: "Landing Damage",
+          type: 'strike',
+          name: 'Landing Damage',
           atMs: 1_000,
-          timingAnchor: "castStart",
-          timingScale: "fixed",
-        },
-      ],
+          timingAnchor: 'castStart',
+          timingScale: 'fixed'
+        }
+      ]
     }),
-    skill(5807, "Shrapnel Grenade", {
+    skill(5807, 'Shrapnel Grenade', {
       quicknessCastTimeMs: 680,
       effects: [
         {
-          type: "strike",
+          type: 'strike',
           ticks: [{ atMs: 400 }, { atMs: 440 }, { atMs: 440 }],
-          timingAnchor: "castStart",
-          timingScale: "fixed",
-        },
-      ],
+          timingAnchor: 'castStart',
+          timingScale: 'fixed'
+        }
+      ]
     }),
-    skill(6003, "Rifle Burst", {
-      slot: "Weapon_1",
+    skill(6003, 'Rifle Burst', {
+      slot: 'Weapon_1',
       quicknessCastTimeMs: 640,
       effects: [
         {
-          type: "strike",
-          name: "Rifle Burst",
+          type: 'strike',
+          name: 'Rifle Burst',
           atMs: 318,
-          timingAnchor: "castStart",
-          timingScale: "fixed",
+          timingAnchor: 'castStart',
+          timingScale: 'fixed'
         },
         {
-          type: "strike",
-          name: "Rifle Burst Grenade",
+          type: 'strike',
+          name: 'Rifle Burst Grenade',
           atMs: 602,
-          timingAnchor: "castStart",
-          timingScale: "fixed",
-        },
-      ],
+          timingAnchor: 'castStart',
+          timingScale: 'fixed'
+        }
+      ]
     }),
-    skill(6154, "Overcharged Shot", {
-      slot: "Weapon_4",
+    skill(6154, 'Overcharged Shot', {
+      slot: 'Weapon_4',
       quicknessCastTimeMs: 400,
       effects: [
         {
-          type: "strike",
+          type: 'strike',
           atMs: 451,
-          timingAnchor: "castStart",
-          timingScale: "fixed",
-          persistsAfterInterrupt: true,
-        },
-      ],
-    }),
+          timingAnchor: 'castStart',
+          timingScale: 'fixed',
+          persistsAfterInterrupt: true
+        }
+      ]
+    })
   ];
   const fixture = engineerLog(
     skills,
@@ -313,110 +299,94 @@ test("validates Engineer cast completion from observed strike packets", () => {
         time: 8_000,
         skillId: 6154,
         activation: EVTC_ACTIVATION.START,
-        stateChange: EVTC_STATE_CHANGE.ANIMATION_START,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_START
       }),
       event({
         time: 8_000,
         skillId: 6154,
         activation: EVTC_ACTIVATION.CANCEL_CANCEL,
-        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
       }),
       event({ time: 8_451, target: TARGET, value: 100, skillId: 6154 }),
       event({
         time: 9_000,
         skillId: 6003,
         activation: EVTC_ACTIVATION.START,
-        stateChange: EVTC_STATE_CHANGE.ANIMATION_START,
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_START
       }),
       event({
         time: 9_000,
         skillId: 6003,
         activation: EVTC_ACTIVATION.CANCEL_CANCEL,
-        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
-      }),
+        stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+      })
     ],
-    { elite: 70 },
+    { elite: 70 }
   );
-  fixture.skills.push(
-    { id: 68079, name: "Rifle Burst Grenade" },
-    { id: 68091, name: "Jump Shot" },
-  );
+  fixture.skills.push({ id: 68079, name: 'Rifle Burst Grenade' }, { id: 68091, name: 'Jump Shot' });
 
   const result = reconstructEvtcRotation(fixture, { skills });
-  const rifleActions = result.actions.filter(
-    (action) => action.name === "Rifle Burst",
-  );
-  const rifleCommands = result.rotation.filter(
-    (command) => command.name === "Rifle Burst",
-  );
+  const rifleActions = result.actions.filter((action) => action.name === 'Rifle Burst');
+  const rifleCommands = result.rotation.filter((command) => command.name === 'Rifle Burst');
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(
-    result.actions.find((action) => action.name === "Jump Shot")?.status,
-    "completed",
-  );
-  assert.equal(
-    result.actions.find((action) => action.name === "Shrapnel Grenade")?.status,
-    "reduced",
-  );
+  assert.equal(result.actions.find((action) => action.name === 'Jump Shot')?.status, 'completed');
+  assert.equal(result.actions.find((action) => action.name === 'Shrapnel Grenade')?.status, 'reduced');
   assert.deepEqual(
     rifleActions.map((action) => action.status),
-    ["completed", "completed"],
+    ['completed', 'completed']
   );
-  assert.equal(
-    result.actions.find((action) => action.name === "Overcharged Shot")?.status,
-    "reduced",
-  );
+  assert.equal(result.actions.find((action) => action.name === 'Overcharged Shot')?.status, 'reduced');
   assert.deepEqual(rifleCommands, [
-    { name: "Rifle Burst", skillId: 6003 },
-    { name: "Rifle Burst", skillId: 6003 },
+    { name: 'Rifle Burst', skillId: 6003 },
+    { name: 'Rifle Burst', skillId: 6003 }
   ]);
   assert.deepEqual(
-    result.rotation.find((command) => command.name === "Shrapnel Grenade"),
+    result.rotation.find((command) => command.name === 'Shrapnel Grenade'),
     {
-      name: "Shrapnel Grenade",
+      name: 'Shrapnel Grenade',
       skillId: 5807,
       interruptMs: 435,
-      preserveEffectsAfterInterrupt: true,
-    },
+      preserveEffectsAfterInterrupt: true
+    }
   );
 });
 
-test("maps Holosmith Forge transitions and preserves automatic overheat boundaries", () => {
+test('maps Holosmith Forge transitions and preserves automatic overheat boundaries', () => {
   const skills = [
-    skill(42938, "Engage Photon Forge", {
-      type: "Profession",
-      slot: "Profession_5",
+    skill(42938, 'Engage Photon Forge', {
+      type: 'Profession',
+      slot: 'Profession_5'
     }),
-    skill(41123, "Deactivate Photon Forge", {
-      type: "Profession",
-      slot: "Profession_5",
+    skill(41123, 'Deactivate Photon Forge', {
+      type: 'Profession',
+      slot: 'Profession_5'
     }),
-    skill(44530, "Corona Burst", {
-      slot: "Weapon_3",
-      quicknessCastTimeMs: 480,
+    skill(44530, 'Corona Burst', {
+      slot: 'Weapon_3',
+      quicknessCastTimeMs: 480
     }),
-    skill(45783, "Photon Blitz", {
-      slot: "Weapon_2",
-      quicknessCastTimeMs: 1_320,
+    skill(45783, 'Photon Blitz', {
+      slot: 'Weapon_2',
+      quicknessCastTimeMs: 1_320
     }),
-    skill(5810, "Grenade Barrage", {
-      type: "Profession",
-      slot: "Profession_1",
-      quicknessCastTimeMs: 680,
+    skill(5810, 'Grenade Barrage', {
+      type: 'Profession',
+      slot: 'Profession_1',
+      quicknessCastTimeMs: 680
     }),
-    skill(5830, "Glue Shot", {
-      slot: "Weapon_5",
-      quicknessCastTimeMs: 560,
+    skill(5830, 'Glue Shot', {
+      slot: 'Weapon_5',
+      quicknessCastTimeMs: 560
     }),
-    skill(42163, "Blade Burst", {
-      type: "Utility",
-      slot: "Utility_1",
+    skill(42163, 'Blade Burst', {
+      type: 'Utility',
+      slot: 'Utility_1'
     }),
-    skill(43937, "Overheat", {
-      type: "Profession",
-      slot: "Profession_5",
-    }),
+    skill(43937, 'Overheat', {
+      type: 'Profession',
+      slot: 'Profession_5'
+    })
   ];
   const fixture = engineerLog(
     skills,
@@ -425,7 +395,7 @@ test("maps Holosmith Forge transitions and preserves automatic overheat boundari
       event({
         time: 1_100,
         target: 3n,
-        stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP,
+        stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP
       }),
       event({ time: 1_150, target: TARGET, value: 1_000, skillId: 42163 }),
       ...animation(44530, 1_200, 480),
@@ -434,12 +404,12 @@ test("maps Holosmith Forge transitions and preserves automatic overheat boundari
         time: 3_000,
         target: PLAYER,
         skillId: 41037,
-        buff: 1,
+        buff: 1
       }),
       event({
         time: 3_000,
         target: 4n,
-        stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP,
+        stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP
       }),
       ...animation(5810, 3_200, 560),
       event({ time: 3_300, target: TARGET, value: 1_000, skillId: 43937 }),
@@ -447,50 +417,45 @@ test("maps Holosmith Forge transitions and preserves automatic overheat boundari
       event({
         time: 5_000,
         target: 3n,
-        stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP,
+        stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP
       }),
       event({
         time: 6_000,
         target: 4n,
-        stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP,
-      }),
+        stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP
+      })
     ],
-    { elite: 57 },
+    { elite: 57 }
   );
 
   const result = reconstructEvtcRotation(fixture, { skills });
 
-  assert.equal(result.parserId, "engineer:holosmith");
+  assert.equal(result.parserId, 'engineer:holosmith');
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.actions.map((action) => action.name),
     [
-      "Engage Photon Forge",
-      "Blade Burst",
-      "Corona Burst",
-      "Photon Blitz",
-      "Grenade Barrage",
-      "Glue Shot",
-      "Engage Photon Forge",
-      "Deactivate Photon Forge",
-    ],
+      'Engage Photon Forge',
+      'Blade Burst',
+      'Corona Burst',
+      'Photon Blitz',
+      'Grenade Barrage',
+      'Glue Shot',
+      'Engage Photon Forge',
+      'Deactivate Photon Forge'
+    ]
   );
-  assert.equal(
-    result.rotation.filter(
-      (command) => command.name === "Deactivate Photon Forge",
-    ).length,
-    1,
-  );
+  assert.equal(result.rotation.filter((command) => command.name === 'Deactivate Photon Forge').length, 1);
   assert.equal(
     Object.hasOwn(
-      result.rotation.find((command) => command.name === "Grenade Barrage"),
-      "interruptMs",
+      result.rotation.find((command) => command.name === 'Grenade Barrage'),
+      'interruptMs'
     ),
-    false,
+    false
   );
   assert.equal(
-    result.actions.some((action) => action.name === "Overheat"),
-    false,
+    result.actions.some((action) => action.name === 'Overheat'),
+    false
   );
 });
 
@@ -500,7 +465,7 @@ function animation(skillId, start, duration, overrides = {}) {
       time: start,
       skillId,
       stateChange: EVTC_STATE_CHANGE.ANIMATION_START,
-      ...overrides,
+      ...overrides
     }),
     event({
       time: start + duration,
@@ -508,61 +473,61 @@ function animation(skillId, start, duration, overrides = {}) {
       skillId,
       activation: EVTC_ACTIVATION.CANCEL_FIRE,
       stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
-      ...overrides,
-    }),
+      ...overrides
+    })
   ];
 }
 
-test("recovers Bomb Kit, Throw Mine, and Hammer 5 precasts from opening evidence", () => {
+test('recovers Bomb Kit, Throw Mine, and Hammer 5 precasts from opening evidence', () => {
   const skills = [
-    skill(6161, "Throw Mine", {
-      type: "Utility",
-      slot: "Utility_1",
+    skill(6161, 'Throw Mine', {
+      type: 'Utility',
+      slot: 'Utility_1',
       castTimeMs: 400,
-      quicknessCastTimeMs: 400,
+      quicknessCastTimeMs: 400
     }),
-    skill(6162, "Detonate", {
-      type: "Utility",
-      slot: "Utility_1",
-      independentCast: true,
+    skill(6162, 'Detonate', {
+      type: 'Utility',
+      slot: 'Utility_1',
+      independentCast: true
     }),
-    skill(5812, "Bomb Kit", {
-      type: "Utility",
-      slot: "Utility_2",
-      kitName: "Bomb Kit",
-      handlerId: "engineer.kit-equip",
+    skill(5812, 'Bomb Kit', {
+      type: 'Utility',
+      slot: 'Utility_2',
+      kitName: 'Bomb Kit',
+      handlerId: 'engineer.kit-equip'
     }),
-    skill(6111, "Stow Bomb Kit", {
-      type: "Bundle",
-      slot: "Bundle",
-      kit: "Bomb Kit",
-      handlerId: "engineer.kit-stow",
+    skill(6111, 'Stow Bomb Kit', {
+      type: 'Bundle',
+      slot: 'Bundle',
+      kit: 'Bomb Kit',
+      handlerId: 'engineer.kit-stow'
     }),
     skill(5813, "Big Ol' Bomb", {
-      kit: "Bomb Kit",
-      quicknessCastTimeMs: 600,
+      kit: 'Bomb Kit',
+      quicknessCastTimeMs: 600
     }),
-    skill(76530, "Magnetic Bomb", {
-      kit: "Bomb Kit",
-      quicknessCastTimeMs: 600,
+    skill(76530, 'Magnetic Bomb', {
+      kit: 'Bomb Kit',
+      quicknessCastTimeMs: 600
     }),
-    skill(5823, "Fire Bomb", {
-      kit: "Bomb Kit",
-      quicknessCastTimeMs: 600,
+    skill(5823, 'Fire Bomb', {
+      kit: 'Bomb Kit',
+      quicknessCastTimeMs: 600
     }),
-    skill(5822, "Galvanic Bomb", {
-      kit: "Bomb Kit",
-      quicknessCastTimeMs: 600,
+    skill(5822, 'Galvanic Bomb', {
+      kit: 'Bomb Kit',
+      quicknessCastTimeMs: 600
     }),
-    skill(30713, "Thunderclap", {
-      slot: "Weapon_5",
+    skill(30713, 'Thunderclap', {
+      slot: 'Weapon_5',
       castTimeMs: 840,
-      quicknessCastTimeMs: 560,
+      quicknessCastTimeMs: 560
     }),
-    skill(30088, "Electro-whirl", {
+    skill(30088, 'Electro-whirl', {
       castTimeMs: 1_020,
-      quicknessCastTimeMs: 680,
-    }),
+      quicknessCastTimeMs: 680
+    })
   ];
   const fixture = engineerLog(skills, [
     event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
@@ -577,12 +542,12 @@ test("recovers Bomb Kit, Throw Mine, and Hammer 5 precasts from opening evidence
       buffDamage: 839,
       skillId: 30713,
       activation: EVTC_ACTIVATION.CANCEL_FIRE,
-      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
     }),
     event({
       time: 10_392,
       skillId: 30088,
-      stateChange: EVTC_STATE_CHANGE.ANIMATION_START,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_START
     }),
     event({
       time: 11_075,
@@ -590,17 +555,17 @@ test("recovers Bomb Kit, Throw Mine, and Hammer 5 precasts from opening evidence
       buffDamage: 1_020,
       skillId: 30088,
       activation: EVTC_ACTIVATION.CANCEL_FIRE,
-      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
-    }),
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+    })
   ]);
 
   const result = reconstructEvtcRotation(
     fixture,
     { skills },
     {
-      selectedSkillNames: ["Bomb Kit", "Throw Mine"],
-      selectedSkillIds: [5812, 6161],
-    },
+      selectedSkillNames: ['Bomb Kit', 'Throw Mine'],
+      selectedSkillIds: [5812, 6161]
+    }
   );
 
   assert.deepEqual(result.warnings, []);
@@ -608,93 +573,93 @@ test("recovers Bomb Kit, Throw Mine, and Hammer 5 precasts from opening evidence
   assert.deepEqual(
     result.actions.map((action) => action.name),
     [
-      "Throw Mine",
-      "Bomb Kit",
+      'Throw Mine',
+      'Bomb Kit',
       "Big Ol' Bomb",
-      "Magnetic Bomb",
-      "Fire Bomb",
-      "Galvanic Bomb",
-      "Stow Bomb Kit",
-      "Thunderclap",
-      "Electro-whirl",
-      "Detonate",
-    ],
+      'Magnetic Bomb',
+      'Fire Bomb',
+      'Galvanic Bomb',
+      'Stow Bomb Kit',
+      'Thunderclap',
+      'Electro-whirl',
+      'Detonate'
+    ]
   );
   assert.deepEqual(result.rotation, [
-    { name: "Throw Mine", skillId: 6161 },
-    { name: "__wait", waitMs: 5000 },
-    { name: "Bomb Kit", skillId: 5812 },
+    { name: 'Throw Mine', skillId: 6161 },
+    { name: '__wait', waitMs: 5000 },
+    { name: 'Bomb Kit', skillId: 5812 },
     { name: "Big Ol' Bomb", skillId: 5813 },
-    { name: "Magnetic Bomb", skillId: 76530 },
-    { name: "Fire Bomb", skillId: 5823 },
-    { name: "Galvanic Bomb", skillId: 5822 },
-    { name: "Stow Bomb Kit", skillId: 6111 },
-    { name: "Thunderclap", skillId: 30713 },
-    { name: "__combat_start", offset: 167 },
-    { name: "Electro-whirl", skillId: 30088 },
-    { name: "Detonate", skillId: 6162, offset: 325 },
+    { name: 'Magnetic Bomb', skillId: 76530 },
+    { name: 'Fire Bomb', skillId: 5823 },
+    { name: 'Galvanic Bomb', skillId: 5822 },
+    { name: 'Stow Bomb Kit', skillId: 6111 },
+    { name: 'Thunderclap', skillId: 30713 },
+    { name: '__combat_start', offset: 167 },
+    { name: 'Electro-whirl', skillId: 30088 },
+    { name: 'Detonate', skillId: 6162, offset: 325 }
   ]);
 });
 
-test("recovers a rifle Amalgam opening from a truncated Galvanic Bomb", () => {
+test('recovers a rifle Amalgam opening from a truncated Galvanic Bomb', () => {
   const skills = [
-    skill(6161, "Throw Mine", {
-      type: "Utility",
-      slot: "Utility_1",
-      quicknessCastTimeMs: 400,
+    skill(6161, 'Throw Mine', {
+      type: 'Utility',
+      slot: 'Utility_1',
+      quicknessCastTimeMs: 400
     }),
-    skill(6162, "Detonate", {
-      type: "Utility",
-      slot: "Utility_1",
-      independentCast: true,
+    skill(6162, 'Detonate', {
+      type: 'Utility',
+      slot: 'Utility_1',
+      independentCast: true
     }),
-    skill(5812, "Bomb Kit", {
-      type: "Utility",
-      slot: "Utility_2",
-      kitName: "Bomb Kit",
-      handlerId: "engineer.kit-equip",
+    skill(5812, 'Bomb Kit', {
+      type: 'Utility',
+      slot: 'Utility_2',
+      kitName: 'Bomb Kit',
+      handlerId: 'engineer.kit-equip'
     }),
-    skill(6111, "Stow Bomb Kit", {
-      type: "Bundle",
-      slot: "Bundle",
-      kit: "Bomb Kit",
-      handlerId: "engineer.kit-stow",
+    skill(6111, 'Stow Bomb Kit', {
+      type: 'Bundle',
+      slot: 'Bundle',
+      kit: 'Bomb Kit',
+      handlerId: 'engineer.kit-stow'
     }),
     skill(5813, "Big Ol' Bomb", {
-      kit: "Bomb Kit",
-      quicknessCastTimeMs: 600,
+      kit: 'Bomb Kit',
+      quicknessCastTimeMs: 600
     }),
-    skill(76530, "Magnetic Bomb", {
-      kit: "Bomb Kit",
-      quicknessCastTimeMs: 600,
+    skill(76530, 'Magnetic Bomb', {
+      kit: 'Bomb Kit',
+      quicknessCastTimeMs: 600
     }),
-    skill(5823, "Fire Bomb", {
-      kit: "Bomb Kit",
-      quicknessCastTimeMs: 600,
+    skill(5823, 'Fire Bomb', {
+      kit: 'Bomb Kit',
+      quicknessCastTimeMs: 600
     }),
-    skill(5822, "Galvanic Bomb", {
-      kit: "Bomb Kit",
-      quicknessCastTimeMs: 600,
+    skill(5822, 'Galvanic Bomb', {
+      kit: 'Bomb Kit',
+      quicknessCastTimeMs: 600
     }),
-    skill(76642, "Evolve", {
-      type: "Profession",
-      slot: "Profession_5",
-      quicknessCastTimeMs: 640,
+    skill(76642, 'Evolve', {
+      type: 'Profession',
+      slot: 'Profession_5',
+      quicknessCastTimeMs: 640
     }),
-    skill(6153, "Blunderbuss", {
-      slot: "Weapon_3",
-      quicknessCastTimeMs: 400,
+    skill(6153, 'Blunderbuss', {
+      slot: 'Weapon_3',
+      quicknessCastTimeMs: 400
     }),
-    skill(5805, "Grenade Kit", {
-      type: "Utility",
-      slot: "Utility_1",
-      kitName: "Grenade Kit",
-      handlerId: "engineer.kit-equip",
+    skill(5805, 'Grenade Kit', {
+      type: 'Utility',
+      slot: 'Utility_1',
+      kitName: 'Grenade Kit',
+      handlerId: 'engineer.kit-equip'
     }),
-    skill(5807, "Shrapnel Grenade", {
-      kit: "Grenade Kit",
-      quicknessCastTimeMs: 680,
-    }),
+    skill(5807, 'Shrapnel Grenade', {
+      kit: 'Grenade Kit',
+      quicknessCastTimeMs: 680
+    })
   ];
   const fixture = engineerLog(skills, [
     event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
@@ -708,7 +673,7 @@ test("recovers a rifle Amalgam opening from a truncated Galvanic Bomb", () => {
       skillId: 77008,
       value: 6_760,
       buffDamage: 8_000,
-      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
     }),
     event({
       time: 10_080,
@@ -716,175 +681,172 @@ test("recovers a rifle Amalgam opening from a truncated Galvanic Bomb", () => {
       buffDamage: 914,
       skillId: 5822,
       activation: EVTC_ACTIVATION.CANCEL_FIRE,
-      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
     }),
     ...animation(6153, 11_522, 397),
     event({
       time: 11_681,
       target: 2n,
-      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP,
+      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP
     }),
-    ...animation(5807, 11_919, 680),
+    ...animation(5807, 11_919, 680)
   ]);
 
   const result = reconstructEvtcRotation(
     fixture,
     { skills },
     {
-      selectedSkillNames: ["Bomb Kit", "Grenade Kit", "Throw Mine"],
-      selectedSkillIds: [76642],
-    },
+      selectedSkillNames: ['Bomb Kit', 'Grenade Kit', 'Throw Mine'],
+      selectedSkillIds: [76642]
+    }
   );
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.combatStartTimestampMs, 8_361);
   assert.deepEqual(result.rotation.slice(0, 10), [
-    { name: "Throw Mine", skillId: 6161 },
-    { name: "__wait", waitMs: 5000 },
-    { name: "Bomb Kit", skillId: 5812 },
+    { name: 'Throw Mine', skillId: 6161 },
+    { name: '__wait', waitMs: 5000 },
+    { name: 'Bomb Kit', skillId: 5812 },
     { name: "Big Ol' Bomb", skillId: 5813 },
-    { name: "Magnetic Bomb", skillId: 76530 },
-    { name: "Evolve", skillId: 76642 },
-    { name: "Fire Bomb", skillId: 5823 },
-    { name: "Galvanic Bomb", skillId: 5822 },
-    { name: "__combat_start", offset: 521 },
-    { name: "Stow Bomb Kit", skillId: 6111 },
+    { name: 'Magnetic Bomb', skillId: 76530 },
+    { name: 'Evolve', skillId: 76642 },
+    { name: 'Fire Bomb', skillId: 5823 },
+    { name: 'Galvanic Bomb', skillId: 5822 },
+    { name: '__combat_start', offset: 521 },
+    { name: 'Stow Bomb Kit', skillId: 6111 }
   ]);
   assert.ok(
-    result.rotation.findIndex((command) => command.name === "Blunderbuss") <
-      result.rotation.findIndex((command) => command.name === "Grenade Kit"),
+    result.rotation.findIndex((command) => command.name === 'Blunderbuss') <
+      result.rotation.findIndex((command) => command.name === 'Grenade Kit')
   );
   assert.deepEqual(
-    result.rotation.find((command) => command.name === "Grenade Kit"),
-    { name: "Grenade Kit", skillId: 5805, offset: 159 },
+    result.rotation.find((command) => command.name === 'Grenade Kit'),
+    { name: 'Grenade Kit', skillId: 5805, offset: 159 }
   );
 });
 
-test("maps Engineer kit swaps, Amalgam morphs, and passive packets", () => {
+test('maps Engineer kit swaps, Amalgam morphs, and passive packets', () => {
   const skills = [
-    skill(5800, "Grenade Kit", {
-      type: "Utility",
-      slot: "Utility_1",
-      kitName: "Grenade Kit",
-      handlerId: "engineer.kit-equip",
+    skill(5800, 'Grenade Kit', {
+      type: 'Utility',
+      slot: 'Utility_1',
+      kitName: 'Grenade Kit',
+      handlerId: 'engineer.kit-equip'
     }),
-    skill(6110, "Stow Grenade Kit", {
-      type: "Bundle",
-      slot: "Bundle",
-      kit: "Grenade Kit",
-      handlerId: "engineer.kit-stow",
+    skill(6110, 'Stow Grenade Kit', {
+      type: 'Bundle',
+      slot: 'Bundle',
+      kit: 'Grenade Kit',
+      handlerId: 'engineer.kit-stow'
     }),
-    skill(5801, "Shrapnel Grenade", {
-      kit: "Grenade Kit",
-      quicknessCastTimeMs: 400,
+    skill(5801, 'Shrapnel Grenade', {
+      kit: 'Grenade Kit',
+      quicknessCastTimeMs: 400
     }),
-    skill(5812, "Bomb Kit", {
-      type: "Utility",
-      slot: "Utility_2",
-      kitName: "Bomb Kit",
-      handlerId: "engineer.kit-equip",
+    skill(5812, 'Bomb Kit', {
+      type: 'Utility',
+      slot: 'Utility_2',
+      kitName: 'Bomb Kit',
+      handlerId: 'engineer.kit-equip'
     }),
-    skill(6111, "Stow Bomb Kit", {
-      type: "Bundle",
-      slot: "Bundle",
-      kit: "Bomb Kit",
-      handlerId: "engineer.kit-stow",
+    skill(6111, 'Stow Bomb Kit', {
+      type: 'Bundle',
+      slot: 'Bundle',
+      kit: 'Bomb Kit',
+      handlerId: 'engineer.kit-stow'
     }),
     skill(5813, "Big Ol' Bomb", {
-      kit: "Bomb Kit",
-      quicknessCastTimeMs: 400,
+      kit: 'Bomb Kit',
+      quicknessCastTimeMs: 400
     }),
-    skill(76927, "Offensive Protocol: Demolish", {
-      type: "Profession",
-      slot: "Profession_2",
-      quicknessCastTimeMs: 700,
+    skill(76927, 'Offensive Protocol: Demolish', {
+      type: 'Profession',
+      slot: 'Profession_2',
+      quicknessCastTimeMs: 700
     }),
-    skill(77104, "Defensive Protocol: Thorns", {
-      type: "Profession",
-      slot: "Profession_3",
+    skill(77104, 'Defensive Protocol: Thorns', {
+      type: 'Profession',
+      slot: 'Profession_3'
     }),
-    skill(76642, "Evolve", {
-      type: "Profession",
-      slot: "Profession_5",
-      quicknessCastTimeMs: 400,
+    skill(76642, 'Evolve', {
+      type: 'Profession',
+      slot: 'Profession_5',
+      quicknessCastTimeMs: 400
     }),
-    skill(29889, "Aim-Assisted Rocket", {
-      type: "Profession",
-      slot: "Profession_4",
-    }),
+    skill(29889, 'Aim-Assisted Rocket', {
+      type: 'Profession',
+      slot: 'Profession_4'
+    })
   ];
   const fixture = engineerLog(skills, [
     event({ time: 1_000, stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
     event({
       time: 2_000,
       target: 2n,
-      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP,
+      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP
     }),
     ...animation(5801, 2_050, 400),
     event({
       time: 3_000,
       target: 4n,
-      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP,
+      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP
     }),
     event({
       time: 4_000,
       target: 2n,
-      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP,
+      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP
     }),
     event({
       time: 4_100,
       target: 5n,
-      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP,
+      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP
     }),
     ...animation(5813, 4_200, 400),
     event({
       time: 5_000,
       target: 4n,
-      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP,
+      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP
     }),
     ...animation(76693, 6_000, 300),
     ...animation(77013, 6_350, 400),
     event({ time: 7_000, target: TARGET, value: 1_000, skillId: 76640 }),
     event({ time: 7_100, target: TARGET, value: 1_000, skillId: 29889 }),
-    ...animation(76651, 8_000, 400),
+    ...animation(76651, 8_000, 400)
   ]);
   fixture.skills.push(
-    { id: 76693, name: "Offensive Protocol: Demolish" },
-    { id: 77013, name: "Offensive Protocol: Demolish" },
-    { id: 76640, name: "Defensive Protocol: Thorns" },
-    { id: 76651, name: "Evolve" },
+    { id: 76693, name: 'Offensive Protocol: Demolish' },
+    { id: 77013, name: 'Offensive Protocol: Demolish' },
+    { id: 76640, name: 'Defensive Protocol: Thorns' },
+    { id: 76651, name: 'Evolve' }
   );
 
   const result = reconstructEvtcRotation(
     fixture,
     { skills },
     {
-      selectedSkillNames: ["Grenade Kit", "Bomb Kit"],
-      selectedSkillIds: [76927, 77104, 76642],
-    },
+      selectedSkillNames: ['Grenade Kit', 'Bomb Kit'],
+      selectedSkillIds: [76927, 77104, 76642]
+    }
   );
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.actions.map(({ name, skillId }) => ({ name, skillId })),
     [
-      { name: "Grenade Kit", skillId: 5800 },
-      { name: "Shrapnel Grenade", skillId: 5801 },
-      { name: "Stow Grenade Kit", skillId: 6110 },
-      { name: "Bomb Kit", skillId: 5812 },
+      { name: 'Grenade Kit', skillId: 5800 },
+      { name: 'Shrapnel Grenade', skillId: 5801 },
+      { name: 'Stow Grenade Kit', skillId: 6110 },
+      { name: 'Bomb Kit', skillId: 5812 },
       { name: "Big Ol' Bomb", skillId: 5813 },
-      { name: "Stow Bomb Kit", skillId: 6111 },
-      { name: "Offensive Protocol: Demolish", skillId: 76927 },
-      { name: "Defensive Protocol: Thorns", skillId: 77104 },
-      { name: "Evolve", skillId: 76642 },
-    ],
+      { name: 'Stow Bomb Kit', skillId: 6111 },
+      { name: 'Offensive Protocol: Demolish', skillId: 76927 },
+      { name: 'Defensive Protocol: Thorns', skillId: 77104 },
+      { name: 'Evolve', skillId: 76642 }
+    ]
   );
+  assert.equal(result.actions.find((action) => action.name.includes('Thorns'))?.evidence, 'resource-inference');
   assert.equal(
-    result.actions.find((action) => action.name.includes("Thorns"))?.evidence,
-    "resource-inference",
-  );
-  assert.equal(
-    result.actions.some((action) => action.name === "Aim-Assisted Rocket"),
-    false,
+    result.actions.some((action) => action.name === 'Aim-Assisted Rocket'),
+    false
   );
 });

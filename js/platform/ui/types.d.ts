@@ -1,9 +1,4 @@
-import type {
-  ProfessionPaletteGroup,
-  LegacyRotationItem,
-  SchedulerRecord,
-  SkillId,
-} from "../engine/types.js";
+import type { ProfessionPaletteGroup, LegacyRotationItem, SchedulerRecord, SkillId } from '../engine/types.js';
 
 export interface AmmoView {
   readonly current?: number;
@@ -66,20 +61,17 @@ export interface PaletteGroupView {
   readonly statusIcon?: PaletteStatusIconView;
 }
 
-export interface NormalizedPaletteGroup extends Omit<
-  ProfessionPaletteGroup,
-  "skillEntries"
-> {
+export interface NormalizedPaletteGroup extends Omit<ProfessionPaletteGroup, 'skillEntries'> {
   readonly skillEntries: SchedulerRecord[];
   readonly reservedSkillIds: readonly number[];
   readonly color: string;
   readonly className: string;
   readonly stackId: string;
-  readonly placement: "profession" | "weapon-set-1" | "active-weapon";
+  readonly placement: 'profession' | 'weapon-set-1' | 'active-weapon';
   readonly weaponRowLabel: string;
   readonly resourceAnchor: boolean;
   readonly resourceIds: readonly string[];
-  readonly resourcePlacement: "above" | "beside" | "below";
+  readonly resourcePlacement: 'above' | 'beside' | 'below';
 }
 
 export type PaletteMouseEvent = MouseEvent & {
@@ -92,10 +84,7 @@ export type PaletteDragEvent = DragEvent & {
 
 export interface PaletteInteractionHandlers {
   readonly onActivate?: (name: string, event: PaletteMouseEvent) => unknown;
-  readonly onControlActivate?: (
-    id: string,
-    event: PaletteMouseEvent,
-  ) => unknown;
+  readonly onControlActivate?: (id: string, event: PaletteMouseEvent) => unknown;
   readonly onDragStart?: (name: string, event: PaletteDragEvent) => unknown;
   readonly onDragEnd?: (name: string, event: PaletteDragEvent) => unknown;
 }
@@ -147,13 +136,8 @@ export interface TimelineInteractionOptions {
   readonly resolvePaletteEntry?: (
     name: string,
     drag: RotationDragState | null | undefined,
-    insertAt: number,
-  ) =>
-    | LegacyRotationItem
-    | SchedulerRecord
-    | Array<LegacyRotationItem | SchedulerRecord>
-    | null
-    | undefined;
+    insertAt: number
+  ) => LegacyRotationItem | SchedulerRecord | Array<LegacyRotationItem | SchedulerRecord> | null | undefined;
   readonly onChanged?: () => void;
   readonly onRemove?: (index: number, event?: Event) => unknown;
   readonly onTruncate?: (index: number, event?: Event) => unknown;

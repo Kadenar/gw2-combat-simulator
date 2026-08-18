@@ -8,12 +8,6 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext"
   },
-  "include": [
-    "js/**/*.ts",
-    "tests/typecheck/**/*.ts"
-  ],
-  "exclude": [
-    "dist",
-    "node_modules"
-  ]
+  "include": ["js/**/*.ts", "tests/typecheck/**/*.ts"],
+  "exclude": ["dist", "node_modules"]
 }

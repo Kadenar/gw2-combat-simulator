@@ -6,8 +6,8 @@ import type {
   SkillEffect,
   StatusEffect,
   StrikeEffect,
-  StrikeTick,
-} from "./types.js";
+  StrikeTick
+} from './types.js';
 
 type ConditionOptions = Readonly<SchedulerRecord> & {
   readonly atMs?: number;
@@ -34,37 +34,19 @@ type RepeatedConditionOptions = Readonly<SchedulerRecord> & {
  * @param {ReadonlySet<string>} reserved
  * @returns {SchedulerRecord}
  */
-function withoutReservedOptions(
-  options: Readonly<SchedulerRecord>,
-  reserved: ReadonlySet<string>,
-): SchedulerRecord {
+function withoutReservedOptions(options: Readonly<SchedulerRecord>, reserved: ReadonlySet<string>): SchedulerRecord {
   return Object.fromEntries(
-    Object.entries(options || {}).filter(
-      ([key, value]) => !reserved.has(key) && value != null,
-    ),
+    Object.entries(options || {}).filter(([key, value]) => !reserved.has(key) && value != null)
   );
 }
 
-const STRIKE_RESERVED_OPTIONS = new Set(["type", "coefficient", "hits"]);
-const TIMELINE_RESERVED_OPTIONS = new Set(["type", "ticks"]);
-const CONDITION_RESERVED_OPTIONS = new Set([
-  "type",
-  "condition",
-  "stacks",
-  "duration",
-  "atMs",
-  "metadata",
-]);
-const CONTROL_RESERVED_OPTIONS = new Set(["type", "atMs", "metadata"]);
-const TIMED_RESERVED_OPTIONS = new Set(["type", "atMs"]);
-const STATUS_RESERVED_OPTIONS = new Set([
-  "type",
-  "boon",
-  "kind",
-  "duration",
-  "stacks",
-]);
-const CUSTOM_RESERVED_OPTIONS = new Set(["type", "eventType", "atMs", "event"]);
+const STRIKE_RESERVED_OPTIONS = new Set(['type', 'coefficient', 'hits']);
+const TIMELINE_RESERVED_OPTIONS = new Set(['type', 'ticks']);
+const CONDITION_RESERVED_OPTIONS = new Set(['type', 'condition', 'stacks', 'duration', 'atMs', 'metadata']);
+const CONTROL_RESERVED_OPTIONS = new Set(['type', 'atMs', 'metadata']);
+const TIMED_RESERVED_OPTIONS = new Set(['type', 'atMs']);
+const STATUS_RESERVED_OPTIONS = new Set(['type', 'boon', 'kind', 'duration', 'stacks']);
+const CUSTOM_RESERVED_OPTIONS = new Set(['type', 'eventType', 'atMs', 'event']);
 
 /**
  * Describes one or more strike hits that share a total coefficient.
@@ -75,13 +57,13 @@ const CUSTOM_RESERVED_OPTIONS = new Set(["type", "eventType", "atMs", "event"]);
  */
 export const strike = (
   coefficient: number,
-  options: Readonly<SchedulerRecord> & { readonly hits?: number } = {},
+  options: Readonly<SchedulerRecord> & { readonly hits?: number } = {}
 ): StrikeEffect =>
   ({
-    type: "strike",
+    type: 'strike',
     coefficient,
     hits: options.hits ?? 1,
-    ...withoutReservedOptions(options, STRIKE_RESERVED_OPTIONS),
+    ...withoutReservedOptions(options, STRIKE_RESERVED_OPTIONS)
   }) as StrikeEffect;
 
 /**
@@ -92,14 +74,11 @@ export const strike = (
  * @param {Readonly<SchedulerRecord>} [options]
  * @returns {StrikeEffect}
  */
-export const strikeTimeline = (
-  ticks: readonly StrikeTick[],
-  options: Readonly<SchedulerRecord> = {},
-): StrikeEffect =>
+export const strikeTimeline = (ticks: readonly StrikeTick[], options: Readonly<SchedulerRecord> = {}): StrikeEffect =>
   ({
-    type: "strike",
+    type: 'strike',
     ticks,
-    ...withoutReservedOptions(options, TIMELINE_RESERVED_OPTIONS),
+    ...withoutReservedOptions(options, TIMELINE_RESERVED_OPTIONS)
   }) as StrikeEffect;
 
 /**
@@ -117,16 +96,16 @@ export const strikeTimeline = (
 export const strikePackets = (
   coefficient: number,
   offsetsMs: readonly number[],
-  options: Readonly<SchedulerRecord> = {},
+  options: Readonly<SchedulerRecord> = {}
 ): StrikeEffect => {
   const count = Array.isArray(offsetsMs) ? offsetsMs.length : 0;
   if (count === 0) {
-    throw new TypeError("Strike packet timelines require at least one offset.");
+    throw new TypeError('Strike packet timelines require at least one offset.');
   }
   const perPacket = Number(coefficient) / count;
   return strikeTimeline(
     offsetsMs.map((atMs) => ({ atMs, coefficient: perPacket })),
-    options,
+    options
   );
 };
 
@@ -145,30 +124,26 @@ export const condition = (
   stacks: number,
   duration: number,
   atMsOrOptions?: number | ConditionOptions | null,
-  metadata?: Readonly<SchedulerRecord>,
+  metadata?: Readonly<SchedulerRecord>
 ): ConditionEffect => {
   let options: ConditionOptions;
-  if (
-    atMsOrOptions &&
-    typeof atMsOrOptions === "object" &&
-    !Array.isArray(atMsOrOptions)
-  ) {
+  if (atMsOrOptions && typeof atMsOrOptions === 'object' && !Array.isArray(atMsOrOptions)) {
     options = atMsOrOptions as ConditionOptions;
   } else {
     const atMs = atMsOrOptions as number | null | undefined;
     options = {
       ...(atMs == null ? {} : { atMs }),
-      ...(metadata ? { metadata } : {}),
+      ...(metadata ? { metadata } : {})
     };
   }
   return {
-    type: "condition",
+    type: 'condition',
     condition: conditionName,
     stacks,
     duration,
     ...withoutReservedOptions(options, CONDITION_RESERVED_OPTIONS),
     ...(options.atMs == null ? {} : { atMs: options.atMs }),
-    ...(options.metadata ? { metadata: options.metadata } : {}),
+    ...(options.metadata ? { metadata: options.metadata } : {})
   } as ConditionEffect;
 };
 
@@ -181,12 +156,12 @@ export const condition = (
  */
 export const conditionTimeline = (
   ticks: readonly ConditionTick[],
-  options: Readonly<SchedulerRecord> = {},
+  options: Readonly<SchedulerRecord> = {}
 ): ConditionEffect =>
   ({
-    type: "condition",
+    type: 'condition',
     ticks,
-    ...withoutReservedOptions(options, TIMELINE_RESERVED_OPTIONS),
+    ...withoutReservedOptions(options, TIMELINE_RESERVED_OPTIONS)
   }) as ConditionEffect;
 
 /**
@@ -204,20 +179,13 @@ export const conditionTimeline = (
  */
 export const repeatedCondition = (
   conditionName: string,
-  {
-    count,
-    duration,
-    firstAtMs = 0,
-    intervalMs = 1000,
-    stacks = 1,
-    ...options
-  }: RepeatedConditionOptions,
+  { count, duration, firstAtMs = 0, intervalMs = 1000, stacks = 1, ...options }: RepeatedConditionOptions
 ): ConditionEffect[] =>
   Array.from({ length: count }, (_, index) =>
     condition(conditionName, stacks, duration, {
       ...options,
-      atMs: firstAtMs + index * intervalMs,
-    }),
+      atMs: firstAtMs + index * intervalMs
+    })
   );
 
 /**
@@ -229,20 +197,20 @@ export const repeatedCondition = (
  * @returns {SkillEffect}
  */
 export const control = (
-  kind = "control",
+  kind = 'control',
   atMs?: number,
   options: Readonly<SchedulerRecord> & {
     readonly metadata?: Readonly<SchedulerRecord>;
-  } = {},
+  } = {}
 ): SkillEffect =>
   ({
-    type: "control",
+    type: 'control',
     ...(atMs == null ? {} : { atMs }),
     ...withoutReservedOptions(options, CONTROL_RESERVED_OPTIONS),
     metadata: {
       controlKind: kind,
-      ...(options.metadata || {}),
-    },
+      ...(options.metadata || {})
+    }
   }) as SkillEffect;
 
 /**
@@ -252,14 +220,11 @@ export const control = (
  * @param {Readonly<SchedulerRecord>} [options]
  * @returns {SkillEffect}
  */
-export const blind = (
-  atMs?: number,
-  options: Readonly<SchedulerRecord> = {},
-): SkillEffect =>
+export const blind = (atMs?: number, options: Readonly<SchedulerRecord> = {}): SkillEffect =>
   ({
-    type: "blind",
+    type: 'blind',
     ...(atMs == null ? {} : { atMs }),
-    ...withoutReservedOptions(options, TIMED_RESERVED_OPTIONS),
+    ...withoutReservedOptions(options, TIMED_RESERVED_OPTIONS)
   }) as SkillEffect;
 
 /**
@@ -275,14 +240,14 @@ export const boon = (
   duration: number,
   options: Readonly<SchedulerRecord> & {
     readonly stacks?: number;
-  } = {},
+  } = {}
 ): StatusEffect =>
   ({
-    type: "boon",
+    type: 'boon',
     boon: boonName,
     duration,
     stacks: options.stacks ?? 1,
-    ...withoutReservedOptions(options, STATUS_RESERVED_OPTIONS),
+    ...withoutReservedOptions(options, STATUS_RESERVED_OPTIONS)
   }) as StatusEffect;
 
 /**
@@ -298,14 +263,14 @@ export const buff = (
   duration: number,
   options: Readonly<SchedulerRecord> & {
     readonly stacks?: number;
-  } = {},
+  } = {}
 ): StatusEffect =>
   ({
-    type: "buff",
+    type: 'buff',
     kind,
     duration,
     stacks: options.stacks ?? 1,
-    ...withoutReservedOptions(options, STATUS_RESERVED_OPTIONS),
+    ...withoutReservedOptions(options, STATUS_RESERVED_OPTIONS)
   }) as StatusEffect;
 
 /**
@@ -321,12 +286,12 @@ export const custom = (
   eventType: string,
   atMs?: number,
   event: Readonly<SchedulerRecord> = {},
-  options: Readonly<SchedulerRecord> = {},
+  options: Readonly<SchedulerRecord> = {}
 ): CustomEffect =>
   ({
-    type: "custom",
+    type: 'custom',
     eventType,
     ...(atMs == null ? {} : { atMs }),
     event,
-    ...withoutReservedOptions(options, CUSTOM_RESERVED_OPTIONS),
+    ...withoutReservedOptions(options, CUSTOM_RESERVED_OPTIONS)
   }) as CustomEffect;

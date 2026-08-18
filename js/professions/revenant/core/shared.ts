@@ -1,4 +1,4 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
+import { professionCoreState } from '../../../platform/engine/profession.js';
 /**
  * Shared Revenant mechanic primitives.
  *
@@ -6,46 +6,35 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  * resolver state handoff. State events always contain a detached snapshot so
  * later scheduler mutations cannot rewrite earlier timeline state.
  */
-import { snapshotRevenantState } from "./state.js";
-import type {
-  RevenantCastContext,
-  RevenantSchedulerContext,
-  RevenantSkill,
-} from "../types.js";
+import { snapshotRevenantState } from './state.js';
+import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '../types.js';
 
 /** Switches equipped weapon sets and emits the shared weapon-set event. */
-export function swapRevenantWeapons(
-  context: RevenantCastContext,
-  skill: RevenantSkill,
-): void {
+export function swapRevenantWeapons(context: RevenantCastContext, skill: RevenantSkill): void {
   const weaponSet = context.state.activeWeaponSet === 1 ? 2 : 1;
   context.state.activeWeaponSet = weaponSet;
   professionCoreState(context).autoattackChains = {};
   context.emit({
-    type: "weapon_set",
+    type: 'weapon_set',
     at: context.effectiveEnd,
-    source: "revenant",
+    source: 'revenant',
     sourceId: skill.id,
-    actorType: "player",
+    actorType: 'player',
     skillId: skill.id,
     skillName: skill.name,
-    weaponSet,
+    weaponSet
   });
 }
 
 /** Emits a point-in-time profession snapshot for resolver synchronization. */
-export function emitRevenantState(
-  context: RevenantSchedulerContext,
-  at: number,
-  reason: string,
-): void {
+export function emitRevenantState(context: RevenantSchedulerContext, at: number, reason: string): void {
   context.emit({
-    type: "revenant.state",
+    type: 'revenant.state',
     at,
-    source: "revenant",
+    source: 'revenant',
     sourceId: `revenant.state.${reason}`,
-    actorType: "player",
+    actorType: 'player',
     reason,
-    state: snapshotRevenantState(context.state.profession),
+    state: snapshotRevenantState(context.state.profession)
   });
 }

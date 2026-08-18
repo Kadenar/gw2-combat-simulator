@@ -3,28 +3,21 @@ import {
   defineNativeModule,
   onBuffApplied,
   onComboResolved,
-  onResolvedDamage,
-} from "../../../../platform/gw2/native-profession.js";
-import { createEngineerModuleData } from "../../catalog-data.js";
-import {
-  scrapperResolverEventHandlers,
-  scrapperResolverEventReactions,
-} from "./resolver.js";
-import {
-  scrapperAttributeRules,
-  scrapperCastRules,
-  scrapperSchedulerHooks,
-} from "./rules.js";
-import { SCRAPPER_SKILL_MECHANICS } from "./skills.js";
-import { scrapperState } from "./state.js";
-import { SCRAPPER_BALANCE_PROFILES } from "./profiles.js";
-import { scrapperUi } from "./ui.js";
+  onResolvedDamage
+} from '../../../../platform/gw2/native-profession.js';
+import { createEngineerModuleData } from '../../catalog-data.js';
+import { scrapperResolverEventHandlers, scrapperResolverEventReactions } from './resolver.js';
+import { scrapperAttributeRules, scrapperCastRules, scrapperSchedulerHooks } from './rules.js';
+import { SCRAPPER_SKILL_MECHANICS } from './skills.js';
+import { scrapperState } from './state.js';
+import { SCRAPPER_BALANCE_PROFILES } from './profiles.js';
+import { scrapperUi } from './ui.js';
 
 export const scrapperModule = defineNativeModule({
-  id: "Scrapper",
-  data: createEngineerModuleData("Scrapper", {
+  id: 'Scrapper',
+  data: createEngineerModuleData('Scrapper', {
     skillMechanics: SCRAPPER_SKILL_MECHANICS,
-    balanceProfiles: SCRAPPER_BALANCE_PROFILES,
+    balanceProfiles: SCRAPPER_BALANCE_PROFILES
   }),
   // Same factory for both phases; scrapper has no phase-divergent state.
   state: { scheduler: scrapperState.create, resolver: scrapperState.create },
@@ -35,26 +28,26 @@ export const scrapperModule = defineNativeModule({
     // to observe the completed cast (e.g. superspeed emitted at effectiveEnd).
     castLifecycle: [afterSkillEffects(scrapperSchedulerHooks.afterCast)],
     schedulerHooks: {
-      onEventScheduled: scrapperSchedulerHooks.onEventScheduled,
+      onEventScheduled: scrapperSchedulerHooks.onEventScheduled
     },
     reactions: [
       onResolvedDamage({
-        id: "engineer.scrapper.damage",
-        handler: scrapperResolverEventReactions.damage,
+        id: 'engineer.scrapper.damage',
+        handler: scrapperResolverEventReactions.damage
       }),
       onBuffApplied({
-        id: "engineer.scrapper.buff",
-        handler: scrapperResolverEventReactions.buff,
+        id: 'engineer.scrapper.buff',
+        handler: scrapperResolverEventReactions.buff
       }),
       onComboResolved({
-        id: "engineer.scrapper.kinetic-accelerators",
-        handler: scrapperResolverEventReactions.combo,
-      }),
+        id: 'engineer.scrapper.kinetic-accelerators',
+        handler: scrapperResolverEventReactions.combo
+      })
     ],
     resolverHooks: {
       // Handles the self-scheduled pulse event that keeps Mass Momentum ticking.
-      eventHandlers: scrapperResolverEventHandlers,
-    },
+      eventHandlers: scrapperResolverEventHandlers
+    }
   },
-  presentation: scrapperUi,
+  presentation: scrapperUi
 });

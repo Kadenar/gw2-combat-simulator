@@ -1,27 +1,20 @@
-import { hasTrait } from "../../../../platform/gw2/trait-state.js";
-import type { ScheduledTask } from "../../../../platform/engine/types.js";
-import {
-  WARRIOR_SKILL_IDS as ID,
-  WARRIOR_TRAIT_IDS as TRAIT,
-} from "../../data/ids.js";
+import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import type { ScheduledTask } from '../../../../platform/engine/types.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type {
   WarriorCastContext,
   WarriorResolverContext,
   WarriorResolverEvent,
   WarriorSchedulerContext,
   WarriorSimulationEvent,
-  WarriorSkill,
-} from "../../types.js";
-import {
-  warriorBalanceProfile,
-  warriorBalanceProfileEffect,
-} from "../../core/profiles.js";
-import { emitBerserkMarker } from "./mechanics.js";
-import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
-import { berserkerState } from "./state.js";
+  WarriorSkill
+} from '../../types.js';
+import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../core/profiles.js';
+import { emitBerserkMarker } from './mechanics.js';
+import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { berserkerState } from './state.js';
 
-const FIRE_AURA_ICON =
-  "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Aura.png";
+const FIRE_AURA_ICON = 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Aura.png';
 
 function emitBoon(
   context: WarriorCastContext,
@@ -30,19 +23,19 @@ function emitBoon(
   boon: string,
   duration: number,
   stacks = 1,
-  recipients?: string,
+  recipients?: string
 ): void {
   context.emit({
-    type: "buff",
+    type: 'buff',
     at: context.effectiveEnd,
-    source: "Trait",
+    source: 'Trait',
     sourceId:
-      name === "Burst of Aggression"
+      name === 'Burst of Aggression'
         ? TRAIT.BURST_OF_AGGRESSION
-        : name === "Bloody Roar"
+        : name === 'Bloody Roar'
           ? TRAIT.BLOODY_ROAR
           : TRAIT.HEAT_THE_SOUL,
-    actorType: "effect",
+    actorType: 'effect',
     skillId: skill.id,
     skillName: skill.name,
     name,
@@ -50,49 +43,37 @@ function emitBoon(
     boon,
     duration,
     stacks,
-    ...(recipients ? { recipients } : {}),
+    ...(recipients ? { recipients } : {})
   });
 }
 
 export function berserkEntryDuration(context: WarriorCastContext): number {
-  const effect = warriorBalanceProfileEffect(
-    warriorBalanceProfile(context, PROFILE.resources),
-    "buff",
-  );
+  const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.resources), 'buff');
   return Number(effect?.duration ?? 20);
 }
 
-export function applyBerserkEntryTraits(
-  context: WarriorCastContext,
-  skill: WarriorSkill,
-): void {
-  const burstOfAggression = warriorBalanceProfile(
-    context,
-    PROFILE.burstOfAggression,
-  );
+export function applyBerserkEntryTraits(context: WarriorCastContext, skill: WarriorSkill): void {
+  const burstOfAggression = warriorBalanceProfile(context, PROFILE.burstOfAggression);
   for (const effect of burstOfAggression?.effects || []) {
-    if (effect.type !== "boon") continue;
+    if (effect.type !== 'boon') continue;
     emitBoon(
       context,
       skill,
-      "Burst of Aggression",
-      String(effect.boon || effect.kind || ""),
+      'Burst of Aggression',
+      String(effect.boon || effect.kind || ''),
       Number(effect.duration || 0),
-      Number(effect.stacks || 1),
+      Number(effect.stacks || 1)
     );
   }
   if (hasTrait(context, TRAIT.BLOODY_ROAR)) {
-    const resistance = warriorBalanceProfileEffect(
-      warriorBalanceProfile(context, PROFILE.bloodyRoar),
-      "boon",
-    );
+    const resistance = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.bloodyRoar), 'boon');
     emitBoon(
       context,
       skill,
-      "Bloody Roar",
-      String(resistance?.boon || resistance?.kind || "resistance"),
+      'Bloody Roar',
+      String(resistance?.boon || resistance?.kind || 'resistance'),
       Number(resistance?.duration ?? 3.5),
-      Number(resistance?.stacks ?? 1),
+      Number(resistance?.stacks ?? 1)
     );
   }
 }
@@ -106,10 +87,7 @@ function isComplete(context: WarriorCastContext): boolean {
  * before the Last Blaze bonus. Entering berserk (Berserk itself) grants none;
  * unlisted rage skills use the shared default.
  */
-function rageBerserkExtension(
-  context: WarriorCastContext,
-  skill: WarriorSkill,
-): number {
+function rageBerserkExtension(context: WarriorCastContext, skill: WarriorSkill): number {
   const profile = warriorBalanceProfile(context, PROFILE.rageExtensions);
   switch (skill.id) {
     case ID.BERSERK:
@@ -136,255 +114,193 @@ function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
   if (skill.primalBurst && hasTrait(context, TRAIT.SMASH_BRAWLER)) {
     const profile = warriorBalanceProfile(context, PROFILE.smashBrawler);
     state.berserkUntil +=
-      skill.id === ID.DECAPITATE
-        ? Number(profile?.minimumStacks ?? 1)
-        : Number(profile?.resourceGain ?? 2);
+      skill.id === ID.DECAPITATE ? Number(profile?.minimumStacks ?? 1) : Number(profile?.resourceGain ?? 2);
   }
-  if (
-    skill.categories?.includes("Rage") &&
-    skill.id !== ID.BERSERK &&
-    skill.id !== ID.BERSERK_ID_30435
-  ) {
+  if (skill.categories?.includes('Rage') && skill.id !== ID.BERSERK && skill.id !== ID.BERSERK_ID_30435) {
     state.berserkUntil +=
       rageBerserkExtension(context, skill) +
       (skill.id !== ID.OUTRAGE && hasTrait(context, TRAIT.LAST_BLAZE)
-        ? Number(
-            warriorBalanceProfile(context, PROFILE.lastBlaze)
-              ?.durationMultiplier ?? 1,
-          )
+        ? Number(warriorBalanceProfile(context, PROFILE.lastBlaze)?.durationMultiplier ?? 1)
         : 0);
   }
   if (state.berserkUntil > previousUntil) emitBerserkMarker(context, skill);
 }
 
-function applyBerserkerTraits(
-  context: WarriorCastContext,
-  skill: WarriorSkill,
-): void {
+function applyBerserkerTraits(context: WarriorCastContext, skill: WarriorSkill): void {
   if (!isComplete(context)) return;
-  if (
-    skill.categories?.includes("Rage") &&
-    hasTrait(context, TRAIT.LAST_BLAZE)
-  ) {
-    const burning = warriorBalanceProfileEffect(
-      warriorBalanceProfile(context, PROFILE.lastBlaze),
-      "condition",
-    );
+  if (skill.categories?.includes('Rage') && hasTrait(context, TRAIT.LAST_BLAZE)) {
+    const burning = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.lastBlaze), 'condition');
     context.emit({
-      type: "condition",
+      type: 'condition',
       at: context.effectiveEnd,
-      source: "Trait",
+      source: 'Trait',
       sourceId: TRAIT.LAST_BLAZE,
-      actorType: "effect",
+      actorType: 'effect',
       skillId: skill.id,
       skillName: skill.name,
-      name: "Last Blaze — Burning",
-      condition: "Burning",
+      name: 'Last Blaze — Burning',
+      condition: 'Burning',
       stacks: Number(burning?.stacks ?? 1),
-      duration: Number(burning?.duration ?? 4),
+      duration: Number(burning?.duration ?? 4)
     });
   }
   if (skill.primalBurst && hasTrait(context, TRAIT.HEAT_THE_SOUL)) {
     const profile = warriorBalanceProfile(context, PROFILE.heatTheSoul);
-    const quickness = warriorBalanceProfileEffect(profile, "boon", 0);
-    const fury = warriorBalanceProfileEffect(profile, "boon", 1);
-    const might = warriorBalanceProfileEffect(profile, "boon", 2);
+    const quickness = warriorBalanceProfileEffect(profile, 'boon', 0);
+    const fury = warriorBalanceProfileEffect(profile, 'boon', 1);
+    const might = warriorBalanceProfileEffect(profile, 'boon', 2);
     emitBoon(
       context,
       skill,
-      "Heat the Soul — Quickness",
-      "quickness",
+      'Heat the Soul — Quickness',
+      'quickness',
       skill.id === ID.DECAPITATE
-        ? Number(
-            warriorBalanceProfile(context, PROFILE.smashBrawler)
-              ?.resourceGain ?? 2,
-          )
+        ? Number(warriorBalanceProfile(context, PROFILE.smashBrawler)?.resourceGain ?? 2)
         : Number(quickness?.duration ?? 5),
       Number(quickness?.stacks ?? 1),
-      "party",
+      'party'
     );
     emitBoon(
       context,
       skill,
-      "Heat the Soul — Fury",
-      "fury",
+      'Heat the Soul — Fury',
+      'fury',
       Number(fury?.duration ?? 5),
       Number(fury?.stacks ?? 1),
-      "party",
+      'party'
     );
     emitBoon(
       context,
       skill,
-      "Heat the Soul — Might",
-      "might",
+      'Heat the Soul — Might',
+      'might',
       Number(might?.duration ?? 5),
       Number(might?.stacks ?? 3),
-      "party",
+      'party'
     );
   }
 }
 
 function isBerserkerSkill(skill: WarriorSkill): boolean {
-  return Boolean(
-    skill.primalBurst ||
-    skill.categories?.includes("Rage") ||
-    skill.specialization === "Berserker",
-  );
+  return Boolean(skill.primalBurst || skill.categories?.includes('Rage') || skill.specialization === 'Berserker');
 }
 
 function emitFireAura(
   context: WarriorSchedulerContext,
   event: WarriorSimulationEvent,
-  source: "Combo" | "Trait",
+  source: 'Combo' | 'Trait'
 ): void {
-  const fromTrait = source === "Trait";
-  const effect = warriorBalanceProfileEffect(
-    warriorBalanceProfile(context, PROFILE.kingOfFires),
-    "buff",
-  );
+  const fromTrait = source === 'Trait';
+  const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.kingOfFires), 'buff');
   const duration = Number(effect?.duration ?? 5);
   berserkerState.from(context).fireAuraUntil = event.at + duration;
   const common = {
     at: event.at,
     source,
-    sourceId: fromTrait ? TRAIT.KING_OF_FIRES : "warrior.combo.fire-leap",
-    actorType: "effect",
+    sourceId: fromTrait ? TRAIT.KING_OF_FIRES : 'warrior.combo.fire-leap',
+    actorType: 'effect',
     skillId: event.skillId,
-    skillName: event.skillName,
+    skillName: event.skillName
   } as const;
   context.emitDerived(event, {
     ...common,
-    type: "buff",
-    name: fromTrait ? "King of Fires — Fire Aura" : "Fire Aura — Leap Combo",
-    kind: "fire-aura",
+    type: 'buff',
+    name: fromTrait ? 'King of Fires — Fire Aura' : 'Fire Aura — Leap Combo',
+    kind: 'fire-aura',
     stacks: Number(effect?.stacks ?? 1),
-    duration,
+    duration
   });
   context.emitDerived(event, {
     ...common,
-    type: "proc",
-    procType: fromTrait ? "trait" : "skill",
-    name: "Fire Aura",
-    sourceSkill: String(event.skillName || event.name || ""),
-    detail: fromTrait ? "Granted by King of Fires" : "Granted by leap combo",
-    icon: FIRE_AURA_ICON,
+    type: 'proc',
+    procType: fromTrait ? 'trait' : 'skill',
+    name: 'Fire Aura',
+    sourceSkill: String(event.skillName || event.name || ''),
+    detail: fromTrait ? 'Granted by King of Fires' : 'Granted by leap combo',
+    icon: FIRE_AURA_ICON
   });
 }
 
-function criticalCount(
-  context: WarriorSchedulerContext,
-  event: WarriorSimulationEvent,
-): number {
-  if (context.config.randomness?.mode === "stochastic") {
+function criticalCount(context: WarriorSchedulerContext, event: WarriorSimulationEvent): number {
+  if (context.config.randomness?.mode === 'stochastic') {
     return event.didCrit === true ? 1 : 0;
   }
   const criticalPolicy = context.schedulerPolicy as unknown as {
     critical?: (
       schedulerContext: WarriorSchedulerContext,
-      simulationEvent: WarriorSimulationEvent,
+      simulationEvent: WarriorSimulationEvent
     ) => { chance?: number };
   };
   const state = berserkerState.from(context);
   // Accumulate fractional crit probability so expected crits fire at the
   // statistically correct rate in deterministic mode.
-  state.kingOfFiresCriticalProgress += Number(
-    criticalPolicy.critical?.(context, event)?.chance || 0,
-  );
+  state.kingOfFiresCriticalProgress += Number(criticalPolicy.critical?.(context, event)?.chance || 0);
   const count = Math.floor(state.kingOfFiresCriticalProgress + 1e-9);
   state.kingOfFiresCriticalProgress -= count;
   return count;
 }
 
-export function observeBerserkerEvent(
-  context: WarriorSchedulerContext,
-  event: WarriorSimulationEvent,
-): void {
-  if (event.type === "aura" && event.aura === "Fire Aura") {
+export function observeBerserkerEvent(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
+  if (event.type === 'aura' && event.aura === 'Fire Aura') {
     berserkerState.from(context).fireAuraUntil = Math.max(
       berserkerState.from(context).fireAuraUntil,
-      event.at + Number(event.duration || 0),
+      event.at + Number(event.duration || 0)
     );
     return;
   }
-  if (
-    event.type !== "damage" ||
-    event.actorType !== "player" ||
-    !(Number(event.coefficient) > 0)
-  ) {
+  if (event.type !== 'damage' || event.actorType !== 'player' || !(Number(event.coefficient) > 0)) {
     return;
   }
   if (!hasTrait(context, TRAIT.KING_OF_FIRES)) return;
   context.tasks.schedule({
-    type: "warrior.king-of-fires-hit",
+    type: 'warrior.king-of-fires-hit',
     at: Math.max(context.state.time, event.at),
     priority: -30,
     payload: { eventOrder: Number(event.__order) },
-    required: true,
+    required: true
   });
 }
 
-export function reactToBerserkerAura(
-  context: WarriorResolverContext,
-  event: WarriorResolverEvent,
-): void {
-  if (event.aura !== "Fire Aura") return;
+export function reactToBerserkerAura(context: WarriorResolverContext, event: WarriorResolverEvent): void {
+  if (event.aura !== 'Fire Aura') return;
   berserkerState.from(context).fireAuraUntil = Math.max(
     berserkerState.from(context).fireAuraUntil,
-    event.at + Number(event.duration || 0),
+    event.at + Number(event.duration || 0)
   );
 }
 
-export function handleKingOfFiresHitTask(
-  context: WarriorSchedulerContext,
-  task: ScheduledTask,
-): void {
+export function handleKingOfFiresHitTask(context: WarriorSchedulerContext, task: ScheduledTask): void {
   const payload = task.payload as { readonly eventOrder?: number } | null;
-  const event = context.events.find(
-    (candidate) => candidate.__order === Number(payload?.eventOrder),
-  ) as WarriorSimulationEvent | undefined;
+  const event = context.events.find((candidate) => candidate.__order === Number(payload?.eventOrder)) as
+    WarriorSimulationEvent | undefined;
   if (!event) return;
 
   const state = berserkerState.from(context);
-  if (
-    event.at + context.epsilon < state.kingOfFiresReadyAt ||
-    criticalCount(context, event) === 0
-  ) {
+  if (event.at + context.epsilon < state.kingOfFiresReadyAt || criticalCount(context, event) === 0) {
     return;
   }
   const profile = warriorBalanceProfile(context, PROFILE.kingOfFires);
   state.kingOfFiresReadyAt = event.at + Number(profile?.internalCooldown ?? 15);
-  emitFireAura(context, event, "Trait");
-  const skill =
-    event.skillId == null
-      ? null
-      : context.catalog.skillsById.get(event.skillId);
+  emitFireAura(context, event, 'Trait');
+  const skill = event.skillId == null ? null : context.catalog.skillsById.get(event.skillId);
   const action = context.events.find(
-    (candidate) =>
-      candidate.type === "action" &&
-      candidate.activationId === event.activationId,
+    (candidate) => candidate.type === 'action' && candidate.activationId === event.activationId
   );
-  if (
-    skill &&
-    isBerserkerSkill(skill) &&
-    Number(action?.endsAt) < event.at - context.epsilon
-  ) {
+  if (skill && isBerserkerSkill(skill) && Number(action?.endsAt) < event.at - context.epsilon) {
     context.tasks.schedule({
-      type: "warrior.king-of-fires-detonation",
+      type: 'warrior.king-of-fires-detonation',
       at: event.at,
       priority: -20,
       payload: {
         activationId: event.activationId,
-        skillId: skill.id,
+        skillId: skill.id
       },
-      required: true,
+      required: true
     });
   }
 }
 
-export function handleKingOfFiresDetonationTask(
-  context: WarriorSchedulerContext,
-  task: ScheduledTask,
-): void {
+export function handleKingOfFiresDetonationTask(context: WarriorSchedulerContext, task: ScheduledTask): void {
   const payload = task.payload as {
     readonly activationId?: string;
     readonly skillId?: number;
@@ -394,64 +310,57 @@ export function handleKingOfFiresDetonationTask(
   const state = berserkerState.from(context);
   if (state.fireAuraUntil <= task.at + context.epsilon) return;
   const profile = warriorBalanceProfile(context, PROFILE.kingOfFires);
-  const strike = warriorBalanceProfileEffect(profile, "strike");
-  const burning = warriorBalanceProfileEffect(profile, "condition");
+  const strike = warriorBalanceProfileEffect(profile, 'strike');
+  const burning = warriorBalanceProfileEffect(profile, 'condition');
 
   state.fireAuraUntil = 0;
   const common = {
     activationId: payload?.activationId,
     at: task.at,
-    source: "Trait",
+    source: 'Trait',
     sourceId: TRAIT.KING_OF_FIRES,
-    actorType: "effect",
+    actorType: 'effect',
     skillId: skill.id,
-    skillName: skill.name,
+    skillName: skill.name
   } as const;
   context.emit({
     ...common,
-    type: "proc",
-    procType: "trait",
-    name: "King of Fires",
+    type: 'proc',
+    procType: 'trait',
+    name: 'King of Fires',
     sourceSkill: skill.name,
-    detail: "Fire Aura detonated",
+    detail: 'Fire Aura detonated'
   });
   context.emit({
     ...common,
-    type: "damage",
-    name: "King of Fires — Fire Aura Detonation",
+    type: 'damage',
+    name: 'King of Fires — Fire Aura Detonation',
     coefficient: Number(strike?.coefficient ?? 0.7),
-    canTriggerCriticalTraits: true,
+    canTriggerCriticalTraits: true
   });
   context.emit({
     ...common,
-    type: "condition",
-    name: "King of Fires — Burning",
-    condition: "Burning",
+    type: 'condition',
+    name: 'King of Fires — Burning',
+    condition: 'Burning',
     stacks: Number(burning?.stacks ?? 3),
-    duration: Number(burning?.duration ?? 3),
+    duration: Number(burning?.duration ?? 3)
   });
 }
 
-export function finishBerserkerCast(
-  context: WarriorCastContext,
-  skill: WarriorSkill,
-): void {
+export function finishBerserkerCast(context: WarriorCastContext, skill: WarriorSkill): void {
   extendBerserk(context, skill);
   applyBerserkerTraits(context, skill);
-  if (
-    isComplete(context) &&
-    isBerserkerSkill(skill) &&
-    hasTrait(context, TRAIT.KING_OF_FIRES)
-  ) {
+  if (isComplete(context) && isBerserkerSkill(skill) && hasTrait(context, TRAIT.KING_OF_FIRES)) {
     context.tasks.schedule({
-      type: "warrior.king-of-fires-detonation",
+      type: 'warrior.king-of-fires-detonation',
       at: context.effectiveEnd,
       priority: -20,
       payload: {
         activationId: context.reservationId,
-        skillId: skill.id,
+        skillId: skill.id
       },
-      required: true,
+      required: true
     });
   }
 }

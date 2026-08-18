@@ -8,7 +8,7 @@ test('ammo display exposes filled and spent charge pips', () => {
     maximum: 2,
     available: true,
     label: '1/2 ammo',
-    pips: [true, false],
+    pips: [true, false]
   });
 });
 
@@ -18,7 +18,7 @@ test('ammo display clamps invalid counts and ignores non-ammo skills', () => {
     maximum: 3,
     available: false,
     label: '0/3 ammo',
-    pips: [false, false, false],
+    pips: [false, false, false]
   });
   assert.equal(ammoDisplayView(1, 0), null);
 });

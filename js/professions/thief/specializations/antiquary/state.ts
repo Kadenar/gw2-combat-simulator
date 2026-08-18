@@ -1,5 +1,5 @@
-import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
-import type { AntiquaryState, ThiefConfig } from "../../types.js";
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import type { AntiquaryState, ThiefConfig } from '../../types.js';
 
 export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
   return {
@@ -30,16 +30,10 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
     // clamped 1–5 at init so handleForgedSurfer never needs to bounds-check the assumption at runtime
     forgedSurferMaximumBombHits: Math.max(
       1,
-      Math.min(
-        5,
-        Number(config.deterministicChoices?.forgedSurferBombsHit || 5),
-      ),
+      Math.min(5, Number(config.deterministicChoices?.forgedSurferBombsHit || 5))
     ),
-    canachCoinIndex: 0,
+    canachCoinIndex: 0
   };
 }
 
-export const antiquaryState = defineProfessionSpecializationState(
-  "Antiquary",
-  createAntiquaryState,
-);
+export const antiquaryState = defineProfessionSpecializationState('Antiquary', createAntiquaryState);

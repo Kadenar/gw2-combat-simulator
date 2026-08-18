@@ -1,4 +1,4 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
+import { professionCoreState } from '../../../platform/engine/profession.js';
 /**
  * Handlers for necromancer events pulled off the scheduler/resolver queue.
  *
@@ -11,13 +11,10 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  *   - `handleNecromancerSummonAttack` materializes a queued minion/spirit
  *     autoattack into a damage event, dropping it if the summon has expired.
  */
-import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
-import { NECROMANCER_TRAIT_IDS as TRAIT } from "../data/ids.js";
-import { hasTrait } from "./shared.js";
-import type {
-  NecromancerResolverContext,
-  NecromancerResolverEvent,
-} from "../types.js";
+import { enqueueOrdered } from '../../../platform/engine/event-queue.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { hasTrait } from './shared.js';
+import type { NecromancerResolverContext, NecromancerResolverEvent } from '../types.js';
 
 /**
  * Declares revive-only skills as supported without changing combat state,
@@ -25,10 +22,7 @@ import type {
  */
 export function handleNecromancerReviveEvent(): void {}
 
-function mergeExpiryStacks(
-  left: readonly number[] = [],
-  right: readonly number[] = [],
-): number[] {
+function mergeExpiryStacks(left: readonly number[] = [], right: readonly number[] = []): number[] {
   const counts = new Map<number, number>();
   for (const values of [left, right]) {
     const local = new Map<number, number>();
@@ -47,7 +41,7 @@ function mergeExpiryStacks(
 
 export function handleNecromancerStateEvent(
   context: NecromancerResolverContext,
-  event: NecromancerResolverEvent,
+  event: NecromancerResolverEvent
 ): void {
   const core = professionCoreState(context);
   const mutableCore = core as unknown as Record<string, unknown>;
@@ -66,14 +60,14 @@ export function handleNecromancerStateEvent(
     chillingNovaProgress: core.chillingNovaProgress,
     demonicLoreReadyAt: core.demonicLoreReadyAt,
     spitefulFortitudeLifeForce: core.spitefulFortitudeLifeForce,
-    traitProcReadyAt: core.traitProcReadyAt,
+    traitProcReadyAt: core.traitProcReadyAt
   };
   const ritualistOnly =
-    active.kind === "Ritualist"
+    active.kind === 'Ritualist'
       ? {
           painfulBondUntil: active.state.painfulBondUntil,
           painfulBondPulseAnchorAt: active.state.painfulBondPulseAnchorAt,
-          weaponSpells: active.state.weaponSpells,
+          weaponSpells: active.state.weaponSpells
         }
       : null;
   for (const key of coreKeys) delete mutableCore[key];
@@ -84,10 +78,7 @@ export function handleNecromancerStateEvent(
       specializationState[key] = structuredClone(value);
     }
   }
-  core.carapaceExpiries = mergeExpiryStacks(
-    core.carapaceExpiries,
-    resolverCarapace,
-  );
+  core.carapaceExpiries = mergeExpiryStacks(core.carapaceExpiries, resolverCarapace);
   for (const [key, value] of Object.entries(resolverOnly)) {
     if (value !== undefined) mutableCore[key] = value;
   }
@@ -98,68 +89,61 @@ export function handleNecromancerStateEvent(
 
 export function handleNecromancerChillEvent(
   context: NecromancerResolverContext,
-  event: NecromancerResolverEvent,
+  event: NecromancerResolverEvent
 ): void {
   professionCoreState(context).targetChilledUntil = Math.max(
     Number(professionCoreState(context).targetChilledUntil || 0),
-    event.at + Number(event.duration || 0),
+    event.at + Number(event.duration || 0)
   );
   if (hasTrait(context, TRAIT.BITTER_CHILL)) {
     enqueueOrdered(context.queue, {
-      type: "buff",
+      type: 'buff',
       at: event.at,
-      name: "Bitter Chill",
-      skillName: "Bitter Chill",
-      kind: "target-vulnerability",
+      name: 'Bitter Chill',
+      skillName: 'Bitter Chill',
+      kind: 'target-vulnerability',
       stacks: 3,
       duration: 8,
-      source: "Trait",
+      source: 'Trait',
       sourceId: TRAIT.BITTER_CHILL,
-      actorType: "effect",
-      triggeredBy: event.skillName,
+      actorType: 'effect',
+      triggeredBy: event.skillName
     });
-    context.recordProc?.("trait", "Bitter Chill", event.at, event.skillName);
+    context.recordProc?.('trait', 'Bitter Chill', event.at, event.skillName);
   }
   if (hasTrait(context, TRAIT.DEATHLY_CHILL)) {
     enqueueOrdered(context.queue, {
-      type: "condition",
+      type: 'condition',
       at: event.at,
-      name: "Deathly Chill — Bleeding",
-      skillName: "Deathly Chill",
-      condition: "Bleeding",
+      name: 'Deathly Chill — Bleeding',
+      skillName: 'Deathly Chill',
+      condition: 'Bleeding',
       stacks: 4,
       duration: 4,
-      source: "Trait",
+      source: 'Trait',
       sourceId: TRAIT.DEATHLY_CHILL,
-      actorType: "effect",
-      triggeredBy: event.skillName,
+      actorType: 'effect',
+      triggeredBy: event.skillName
     });
-    context.recordProc?.("trait", "Deathly Chill", event.at, event.skillName);
+    context.recordProc?.('trait', 'Deathly Chill', event.at, event.skillName);
   }
 }
 
 export function handleNecromancerSummonAttack(
   context: NecromancerResolverContext,
-  event: NecromancerResolverEvent,
+  event: NecromancerResolverEvent
 ): void {
   if (
     event.requiresMinion &&
     !(
-      Number(
-        professionCoreState(context).activeMinions?.[event.requiresMinion],
-      ) > Number(event.requiresMinionIndex || 0) &&
+      Number(professionCoreState(context).activeMinions?.[event.requiresMinion]) >
+        Number(event.requiresMinionIndex || 0) &&
       (event.requiresMinionGeneration == null ||
-        Number(
-          professionCoreState(context).minionGenerations?.[
-            event.requiresMinion
-          ] || 0,
-        ) === Number(event.requiresMinionGeneration)) &&
+        Number(professionCoreState(context).minionGenerations?.[event.requiresMinion] || 0) ===
+          Number(event.requiresMinionGeneration)) &&
       (event.requiresMinionAttackGeneration == null ||
-        Number(
-          professionCoreState(context).minionAttackGenerations?.[
-            event.requiresMinion
-          ] || 0,
-        ) === Number(event.requiresMinionAttackGeneration))
+        Number(professionCoreState(context).minionAttackGenerations?.[event.requiresMinion] || 0) ===
+          Number(event.requiresMinionAttackGeneration))
     )
   )
     return;
@@ -167,24 +151,23 @@ export function handleNecromancerSummonAttack(
     event.requiresSpirit &&
     !(() => {
       const active = context.profession.specialization;
-      if (active.kind !== "Ritualist") return false;
+      if (active.kind !== 'Ritualist') return false;
       return (
         active.state.activeSpirits[event.requiresSpirit] &&
         (event.requiresSpiritGeneration == null ||
           Number(active.state.spiritGenerations[event.requiresSpirit] || 0) ===
             Number(event.requiresSpiritGeneration)) &&
-        Number(active.state.spiritBusyUntil[event.requiresSpirit] || 0) <=
-          event.at
+        Number(active.state.spiritBusyUntil[event.requiresSpirit] || 0) <= event.at
       );
     })()
   )
     return;
   enqueueOrdered(context.queue, {
-    type: "damage",
+    type: 'damage',
     at: event.at,
     source: event.source,
     sourceId: event.sourceId,
-    actorType: "summon",
+    actorType: 'summon',
     skillId: event.skillId,
     skillName: event.skillName,
     parentSkillName: event.parentSkillName,
@@ -195,7 +178,7 @@ export function handleNecromancerSummonAttack(
     hits: 1,
     hitIndex: 1,
     totalHits: 1,
-    skillWeapon: "Unequipped",
+    skillWeapon: 'Unequipped',
     weaponStrength: event.weaponStrength,
     canCrit: true,
     summonKind: event.summonKind,
@@ -211,38 +194,38 @@ export function handleNecromancerSummonAttack(
     independentSummonStrike: event.independentSummonStrike,
     spirit: event.spirit,
     spiritAttackType: event.spiritAttackType,
-    anguishConditionalDamage: event.anguishConditionalDamage,
+    anguishConditionalDamage: event.anguishConditionalDamage
   });
   if (Array.isArray(event.onHitCondition)) {
     const [condition, stacks, duration] = event.onHitCondition;
     enqueueOrdered(context.queue, {
-      type: "condition",
+      type: 'condition',
       at: event.at,
       source: event.source,
       sourceId: event.sourceId,
-      actorType: "summon",
+      actorType: 'summon',
       skillId: event.skillId,
       skillName: event.skillName,
       parentSkillName: event.parentSkillName,
-      name: `${event.skillName || event.name || "Minion Attack"} — ${String(condition)}`,
+      name: `${event.skillName || event.name || 'Minion Attack'} — ${String(condition)}`,
       condition: String(condition),
       stacks: Number(stacks || 0),
-      duration: Number(duration || 0),
+      duration: Number(duration || 0)
     });
   }
   if (event.controlKind) {
     enqueueOrdered(context.queue, {
-      type: "control",
+      type: 'control',
       at: event.at,
       source: event.source,
       sourceId: event.sourceId,
-      actorType: "summon",
+      actorType: 'summon',
       skillId: event.skillId,
       skillName: event.skillName,
       parentSkillName: event.parentSkillName,
       name: event.skillName || event.name,
       controlKind: event.controlKind,
-      duration: Number(event.controlDuration || 0),
+      duration: Number(event.controlDuration || 0)
     });
   }
 }

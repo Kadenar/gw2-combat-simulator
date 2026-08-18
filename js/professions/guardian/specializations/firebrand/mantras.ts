@@ -1,13 +1,13 @@
-import { professionCoreState } from "../../../../platform/engine/profession.js";
-import { GUARDIAN_SKILL_IDS as ID } from "../../data/ids.js";
-import { firebrandState } from "./state.js";
-import type { AvailabilityResult } from "../../../../platform/engine/types.js";
+import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { GUARDIAN_SKILL_IDS as ID } from '../../data/ids.js';
+import { firebrandState } from './state.js';
+import type { AvailabilityResult } from '../../../../platform/engine/types.js';
 import type {
   GuardianCastContext,
   GuardianPrecastContext,
   GuardianSchedulerContext,
-  GuardianSkill,
-} from "../../types.js";
+  GuardianSkill
+} from '../../types.js';
 
 interface MantraDefinition {
   readonly rootId: number;
@@ -19,69 +19,55 @@ interface MantraDefinition {
 const MANTRAS: readonly MantraDefinition[] = Object.freeze([
   {
     rootId: ID.MANTRA_OF_SOLACE,
-    rootName: "Mantra of Solace",
+    rootName: 'Mantra of Solace',
     normalId: ID.RESTORING_REPRIEVE,
-    finalId: ID.REJUVENATING_RESPITE,
+    finalId: ID.REJUVENATING_RESPITE
   },
   {
     rootId: ID.MANTRA_OF_FLAME,
-    rootName: "Mantra of Flame",
+    rootName: 'Mantra of Flame',
     normalId: ID.FLAME_RUSH,
-    finalId: ID.FLAME_SURGE,
+    finalId: ID.FLAME_SURGE
   },
   {
     rootId: ID.MANTRA_OF_POTENCE,
-    rootName: "Mantra of Potence",
+    rootName: 'Mantra of Potence',
     normalId: ID.POTENT_HASTE,
-    finalId: ID.OVERWHELMING_CELERITY,
+    finalId: ID.OVERWHELMING_CELERITY
   },
   {
     rootId: ID.MANTRA_OF_LIBERATION,
-    rootName: "Mantra of Liberation",
+    rootName: 'Mantra of Liberation',
     normalId: ID.PORTENT_OF_FREEDOM,
-    finalId: ID.UNHINDERED_DELIVERY,
-  },
+    finalId: ID.UNHINDERED_DELIVERY
+  }
 ]);
 
-const MANTRA_BY_ROOT_ID = new Map(
-  MANTRAS.map((definition) => [definition.rootId, definition]),
-);
-const MANTRA_BY_NORMAL_ID = new Map(
-  MANTRAS.map((definition) => [definition.normalId, definition]),
-);
-const MANTRA_BY_FINAL_ID = new Map(
-  MANTRAS.map((definition) => [definition.finalId, definition]),
-);
+const MANTRA_BY_ROOT_ID = new Map(MANTRAS.map((definition) => [definition.rootId, definition]));
+const MANTRA_BY_NORMAL_ID = new Map(MANTRAS.map((definition) => [definition.normalId, definition]));
+const MANTRA_BY_FINAL_ID = new Map(MANTRAS.map((definition) => [definition.finalId, definition]));
 
-function selectedMantras(
-  context: GuardianSchedulerContext,
-): readonly MantraDefinition[] {
+function selectedMantras(context: GuardianSchedulerContext): readonly MantraDefinition[] {
   const configured = context.config.selectedSkills;
   // No configured list means "all mantras are equipped"; default to the full set.
   if (!Array.isArray(configured) || configured.length === 0) return MANTRAS;
   const names = new Set(
     configured.map((skill) =>
-      typeof skill === "string"
-        ? skill
-        : String((skill as { readonly name?: string })?.name || ""),
-    ),
+      typeof skill === 'string' ? skill : String((skill as { readonly name?: string })?.name || '')
+    )
   );
   return MANTRAS.filter((definition) => names.has(definition.rootName));
 }
 
 function mantraFlipActive(
   context: GuardianPrecastContext | GuardianSchedulerContext,
-  definition: MantraDefinition,
+  definition: MantraDefinition
 ): boolean {
   const flips = professionCoreState(context).availableFlips;
   return Boolean(flips[definition.normalId] || flips[definition.finalId]);
 }
 
-function armMantra(
-  context: GuardianSchedulerContext,
-  definition: MantraDefinition,
-  at: number,
-): void {
+function armMantra(context: GuardianSchedulerContext, definition: MantraDefinition, at: number): void {
   const normal = context.catalog.skillsById.get(definition.normalId);
   if (!normal) return;
   const core = professionCoreState(context);
@@ -101,11 +87,7 @@ function armMantra(
   firebrandState.from(context).mantraRechargeReadyAt[definition.rootId] = at;
 }
 
-function syncMantraFlip(
-  context: GuardianSchedulerContext,
-  definition: MantraDefinition,
-  at: number,
-): void {
+function syncMantraFlip(context: GuardianSchedulerContext, definition: MantraDefinition, at: number): void {
   const normal = context.catalog.skillsById.get(definition.normalId);
   // Guard: if ammo was never set this mantra is in full-recharge mode;
   // skip so we don't accidentally surface the final-charge flip early.
@@ -124,11 +106,7 @@ function syncMantraFlip(
   }
 }
 
-function startFullRecharge(
-  context: GuardianSchedulerContext,
-  definition: MantraDefinition,
-  at: number,
-): void {
+function startFullRecharge(context: GuardianSchedulerContext, definition: MantraDefinition, at: number): void {
   const root = context.catalog.skillsById.get(definition.rootId);
   const normal = context.catalog.skillsById.get(definition.normalId);
   if (!root || !normal) return;
@@ -145,31 +123,20 @@ function startFullRecharge(
 }
 
 /** Starts selected PvE Firebrand mantras in their automatically prepared form. */
-export function initializeFirebrandMantras(
-  context: GuardianSchedulerContext,
-): void {
+export function initializeFirebrandMantras(context: GuardianSchedulerContext): void {
   for (const definition of selectedMantras(context)) {
     armMantra(context, definition, context.state.time);
   }
 }
 
 /** Refreshes individual charges and automatically prepares a fully recharged mantra. */
-export function advanceFirebrandMantras(
-  context: GuardianSchedulerContext,
-  target: number,
-): void {
+export function advanceFirebrandMantras(context: GuardianSchedulerContext, target: number): void {
   for (const definition of MANTRAS) {
-    const readyAt = Number(
-      firebrandState.from(context).mantraRechargeReadyAt[definition.rootId],
-    );
+    const readyAt = Number(firebrandState.from(context).mantraRechargeReadyAt[definition.rootId]);
     // readyAt === 0 means "already armed at sim start", not "due now"; skip it.
     // The cooldowns guard prevents double-arming if advance is called twice for
     // the same tick.
-    if (
-      readyAt > 0 &&
-      readyAt <= target + context.epsilon &&
-      context.state.cooldowns.has(definition.rootId)
-    ) {
+    if (readyAt > 0 && readyAt <= target + context.epsilon && context.state.cooldowns.has(definition.rootId)) {
       armMantra(context, definition, readyAt);
     }
     syncMantraFlip(context, definition, target);
@@ -179,7 +146,7 @@ export function advanceFirebrandMantras(
 /** Gates preparation, normal charges, and the distinct final-charge flip. */
 export function firebrandMantraAvailability(
   context: GuardianPrecastContext,
-  skill: GuardianSkill,
+  skill: GuardianSkill
 ): boolean | AvailabilityResult {
   const root = MANTRA_BY_ROOT_ID.get(Number(skill.id));
   if (root) {
@@ -187,8 +154,8 @@ export function firebrandMantraAvailability(
       ? {
           ready: false,
           retryAt: null,
-          code: "guardian.mantra-prepared",
-          reason: `${skill.name} is already prepared.`,
+          code: 'guardian.mantra-prepared',
+          reason: `${skill.name} is already prepared.`
         }
       : true;
   }
@@ -198,9 +165,7 @@ export function firebrandMantraAvailability(
   const definition = normal || final;
   if (!definition) return true;
   const expectedId = normal ? definition.normalId : definition.finalId;
-  const preparedAt = Number(
-    firebrandState.from(context).mantraRechargeReadyAt[definition.rootId],
-  );
+  const preparedAt = Number(firebrandState.from(context).mantraRechargeReadyAt[definition.rootId]);
   // preparedAt > start means the mantra is currently in full-recharge (not yet
   // armed), so give the scheduler a concrete retry time rather than blocking
   // forever with retryAt: null.
@@ -208,8 +173,8 @@ export function firebrandMantraAvailability(
     return {
       ready: false,
       retryAt: preparedAt,
-      code: "guardian.mantra-charge",
-      reason: `${skill.name} is unavailable until ${definition.rootName} is prepared.`,
+      code: 'guardian.mantra-charge',
+      reason: `${skill.name} is unavailable until ${definition.rootName} is prepared.`
     };
   }
   // The flip being absent means this specific charge variant (normal vs. final)
@@ -219,16 +184,13 @@ export function firebrandMantraAvailability(
   return {
     ready: false,
     retryAt: null,
-    code: "guardian.mantra-charge",
-    reason: `${skill.name} is unavailable until ${definition.rootName} is prepared.`,
+    code: 'guardian.mantra-charge',
+    reason: `${skill.name} is unavailable until ${definition.rootName} is prepared.`
   };
 }
 
 /** Commits mantra preparation, charge flipping, and final-charge recharge. */
-export function completeFirebrandMantra(
-  context: GuardianCastContext,
-  skill: GuardianSkill,
-): void {
+export function completeFirebrandMantra(context: GuardianCastContext, skill: GuardianSkill): void {
   // Interrupted casts must not consume a charge or start a recharge; early-out
   // when the cast was cut short before its natural end.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;

@@ -1,39 +1,36 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { loadProfessionAppAdapter } from "../../js/app/profession/registry.js";
+import { loadProfessionAppAdapter } from '../../js/app/profession/registry.js';
 
 const DEFAULT_PROFESSIONS = [
-  "elementalist",
-  "engineer",
-  "guardian",
-  "mesmer",
-  "necromancer",
-  "ranger",
-  "revenant",
-  "thief",
-  "warrior",
+  'elementalist',
+  'engineer',
+  'guardian',
+  'mesmer',
+  'necromancer',
+  'ranger',
+  'revenant',
+  'thief',
+  'warrior'
 ];
 
-const repoRoot = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../..",
-);
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 async function readJson(relativePath) {
-  return JSON.parse(await readFile(path.join(repoRoot, relativePath), "utf8"));
+  return JSON.parse(await readFile(path.join(repoRoot, relativePath), 'utf8'));
 }
 
 function finalDamagingPacket(result) {
   const packets = result.resolvedEvents.flatMap((event) => {
-    if (event.type === "damage" && Number(event.damage) > 0) {
-      return [{ at: event.at, name: event.name, type: "strike" }];
+    if (event.type === 'damage' && Number(event.damage) > 0) {
+      return [{ at: event.at, name: event.name, type: 'strike' }];
     }
     return (event.damageTicks || []).map((tick) => ({
       at: tick.at,
       name: event.name,
-      type: "condition",
+      type: 'condition'
     }));
   });
   return packets.sort((left, right) => left.at - right.at).at(-1) || null;
@@ -47,7 +44,7 @@ function runSupportedBenchmark(adapter, app) {
 async function captureProfession(professionId) {
   const [manifest, adapter] = await Promise.all([
     readJson(`Builds/${professionId}/manifest.json`),
-    loadProfessionAppAdapter(professionId),
+    loadProfessionAppAdapter(professionId)
   ]);
   if (!adapter) throw new Error(`${professionId} has no native app adapter.`);
 
@@ -55,13 +52,10 @@ async function captureProfession(professionId) {
   for (const section of manifest) {
     for (const preset of section.presets) {
       if (!preset.rotation) continue;
-      const [savedBuild, savedRotation] = await Promise.all([
-        readJson(preset.build),
-        readJson(preset.rotation),
-      ]);
+      const [savedBuild, savedRotation] = await Promise.all([readJson(preset.build), readJson(preset.rotation)]);
       const build = adapter.toApplicationBuild({
         ...savedBuild,
-        rotation: savedRotation.rotation ?? savedRotation,
+        rotation: savedRotation.rotation ?? savedRotation
       });
       const app = {
         build,
@@ -69,16 +63,16 @@ async function captureProfession(professionId) {
         profession: adapter.profession,
         skillByName: adapter.profession.catalog.skillsByName,
         skillById: adapter.profession.catalog.skillsById,
-        attributeWeaponSet: 1,
+        attributeWeaponSet: 1
       };
 
       adapter.recalculate(app);
       const result = runSupportedBenchmark(adapter, app);
       const finalPacket = finalDamagingPacket(result);
       metrics.push({
-        id: `${professionId}|${section.section || ""}|${preset.label}`,
+        id: `${professionId}|${section.section || ''}|${preset.label}`,
         profession: professionId,
-        section: section.section || "",
+        section: section.section || '',
         label: preset.label,
         build: preset.build,
         rotation: preset.rotation,
@@ -93,21 +87,17 @@ async function captureProfession(professionId) {
         strikeDamage: result.strikeDamage,
         conditionDamage: result.conditionDamage,
         finalDamagingPacket: finalPacket,
-        warnings: [...result.warnings],
+        warnings: [...result.warnings]
       });
     }
   }
   return metrics;
 }
 
-export async function captureSupportedBuildMetrics(
-  professions = DEFAULT_PROFESSIONS,
-) {
-  const unknown = professions.filter(
-    (profession) => !DEFAULT_PROFESSIONS.includes(profession),
-  );
+export async function captureSupportedBuildMetrics(professions = DEFAULT_PROFESSIONS) {
+  const unknown = professions.filter((profession) => !DEFAULT_PROFESSIONS.includes(profession));
   if (unknown.length) {
-    throw new TypeError(`Unknown professions: ${unknown.join(", ")}.`);
+    throw new TypeError(`Unknown professions: ${unknown.join(', ')}.`);
   }
 
   const metrics = [];
@@ -117,13 +107,9 @@ export async function captureSupportedBuildMetrics(
   return metrics;
 }
 
-const isMain =
-  process.argv[1] != null &&
-  pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
+const isMain = process.argv[1] != null && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
 if (isMain) {
   const requested = process.argv.slice(2);
-  const metrics = await captureSupportedBuildMetrics(
-    requested.length ? requested : DEFAULT_PROFESSIONS,
-  );
+  const metrics = await captureSupportedBuildMetrics(requested.length ? requested : DEFAULT_PROFESSIONS);
   process.stdout.write(`${JSON.stringify(metrics, null, 2)}\n`);
 }

@@ -1,4 +1,4 @@
-import { applyAdditiveDamageBucket } from "./damage-modifier-buckets.js";
+import { applyAdditiveDamageBucket } from './damage-modifier-buckets.js';
 
 import type {
   Gw2AttributeModifierHook,
@@ -13,8 +13,8 @@ import type {
   Gw2ModifierRule,
   Gw2ModifierTarget,
   Gw2NormalizedModifierRule,
-  Gw2ResolvedStats,
-} from "./types.js";
+  Gw2ResolvedStats
+} from './types.js';
 
 interface NormalizeResolverOptions {
   readonly positive?: boolean;
@@ -59,58 +59,46 @@ interface CreateModifierHooksOptions {
  * - `attribute*` → the corresponding resolved-stat field through `modifyAttributes`
  */
 export const MODIFIER_TARGET = Object.freeze({
-  CRITICAL_CHANCE: "criticalChance",
-  CRITICAL_DAMAGE: "criticalDamage",
-  STRIKE_DAMAGE: "strikeDamage",
-  CONDITION_DAMAGE: "conditionDamage",
-  CONDITION_DURATION: "conditionDuration",
-  ATTRIBUTE_POWER: "attributePower",
-  ATTRIBUTE_PRECISION: "attributePrecision",
-  ATTRIBUTE_FEROCITY: "attributeFerocity",
-  ATTRIBUTE_CONDITION_DAMAGE: "attributeConditionDamage",
-  ATTRIBUTE_HEALING_POWER: "attributeHealingPower",
-  ATTRIBUTE_VITALITY: "attributeVitality",
+  CRITICAL_CHANCE: 'criticalChance',
+  CRITICAL_DAMAGE: 'criticalDamage',
+  STRIKE_DAMAGE: 'strikeDamage',
+  CONDITION_DAMAGE: 'conditionDamage',
+  CONDITION_DURATION: 'conditionDuration',
+  ATTRIBUTE_POWER: 'attributePower',
+  ATTRIBUTE_PRECISION: 'attributePrecision',
+  ATTRIBUTE_FEROCITY: 'attributeFerocity',
+  ATTRIBUTE_CONDITION_DAMAGE: 'attributeConditionDamage',
+  ATTRIBUTE_HEALING_POWER: 'attributeHealingPower',
+  ATTRIBUTE_VITALITY: 'attributeVitality'
 });
 
-const TARGETS: ReadonlySet<Gw2ModifierTarget> = new Set(
-  Object.values(MODIFIER_TARGET),
-);
+const TARGETS: ReadonlySet<Gw2ModifierTarget> = new Set(Object.values(MODIFIER_TARGET));
 const DAMAGE_TARGETS: ReadonlySet<Gw2DamageModifierTarget> = new Set([
   MODIFIER_TARGET.STRIKE_DAMAGE,
-  MODIFIER_TARGET.CONDITION_DAMAGE,
+  MODIFIER_TARGET.CONDITION_DAMAGE
 ]);
 const ATTRIBUTE_KEY_BY_TARGET = Object.freeze({
-  [MODIFIER_TARGET.ATTRIBUTE_POWER]: "power",
-  [MODIFIER_TARGET.ATTRIBUTE_PRECISION]: "precision",
-  [MODIFIER_TARGET.ATTRIBUTE_FEROCITY]: "ferocity",
-  [MODIFIER_TARGET.ATTRIBUTE_CONDITION_DAMAGE]: "conditionDamage",
-  [MODIFIER_TARGET.ATTRIBUTE_HEALING_POWER]: "healingPower",
-  [MODIFIER_TARGET.ATTRIBUTE_VITALITY]: "vitality",
+  [MODIFIER_TARGET.ATTRIBUTE_POWER]: 'power',
+  [MODIFIER_TARGET.ATTRIBUTE_PRECISION]: 'precision',
+  [MODIFIER_TARGET.ATTRIBUTE_FEROCITY]: 'ferocity',
+  [MODIFIER_TARGET.ATTRIBUTE_CONDITION_DAMAGE]: 'conditionDamage',
+  [MODIFIER_TARGET.ATTRIBUTE_HEALING_POWER]: 'healingPower',
+  [MODIFIER_TARGET.ATTRIBUTE_VITALITY]: 'vitality'
 } as const);
 const ATTRIBUTE_TARGETS: ReadonlySet<Gw2ModifierTarget> = new Set(
-  Object.keys(ATTRIBUTE_KEY_BY_TARGET) as Gw2ModifierTarget[],
+  Object.keys(ATTRIBUTE_KEY_BY_TARGET) as Gw2ModifierTarget[]
 );
-const OPERATIONS: ReadonlySet<Gw2ModifierOperation> = new Set([
-  "add",
-  "damage-additive",
-  "multiply",
-]);
+const OPERATIONS: ReadonlySet<Gw2ModifierOperation> = new Set(['add', 'damage-additive', 'multiply']);
 const HOOK_BY_TARGET: Readonly<
-  Partial<
-    Record<
-      Gw2ModifierTarget,
-      Exclude<keyof Gw2ModifierHooks, "modifyAttributes">
-    >
-  >
+  Partial<Record<Gw2ModifierTarget, Exclude<keyof Gw2ModifierHooks, 'modifyAttributes'>>>
 > = Object.freeze({
-  [MODIFIER_TARGET.CRITICAL_CHANCE]: "modifyCriticalChance",
-  [MODIFIER_TARGET.CRITICAL_DAMAGE]: "modifyCriticalDamage",
-  [MODIFIER_TARGET.STRIKE_DAMAGE]: "modifyStrikeDamage",
-  [MODIFIER_TARGET.CONDITION_DAMAGE]: "modifyConditionDamage",
-  [MODIFIER_TARGET.CONDITION_DURATION]: "modifyConditionDuration",
+  [MODIFIER_TARGET.CRITICAL_CHANCE]: 'modifyCriticalChance',
+  [MODIFIER_TARGET.CRITICAL_DAMAGE]: 'modifyCriticalDamage',
+  [MODIFIER_TARGET.STRIKE_DAMAGE]: 'modifyStrikeDamage',
+  [MODIFIER_TARGET.CONDITION_DAMAGE]: 'modifyConditionDamage',
+  [MODIFIER_TARGET.CONDITION_DURATION]: 'modifyConditionDuration'
 });
-const EMPTY_MODIFIER_PARAMETERS: Readonly<Record<string, number>> =
-  Object.freeze({});
+const EMPTY_MODIFIER_PARAMETERS: Readonly<Record<string, number>> = Object.freeze({});
 
 /**
  * Creates an error tied to a declaration's stable id so invalid profession
@@ -135,8 +123,8 @@ function ruleError(id: string, message: string): TypeError {
  */
 function normalizeResolver(
   rule: Gw2ModifierRule,
-  field: "amount" | "factor",
-  { positive = false }: NormalizeResolverOptions = {},
+  field: 'amount' | 'factor',
+  { positive = false }: NormalizeResolverOptions = {}
 ): number | Gw2ModifierNumericResolver {
   if (!(field in rule)) {
     throw ruleError(rule.id, `${field} is required.`);
@@ -144,37 +132,24 @@ function normalizeResolver(
   const resolver = rule[field];
   // Numeric callbacks are retained and validated again when invoked because
   // their result can depend on timestamp-specific combat context.
-  if (typeof resolver === "function") return resolver;
-  if (
-    typeof resolver !== "number" ||
-    !Number.isFinite(resolver) ||
-    (positive && !(resolver > 0))
-  ) {
-    throw ruleError(
-      rule.id,
-      `${field} must be ${positive ? "a positive " : "a "}finite number or function.`,
-    );
+  if (typeof resolver === 'function') return resolver;
+  if (typeof resolver !== 'number' || !Number.isFinite(resolver) || (positive && !(resolver > 0))) {
+    throw ruleError(rule.id, `${field} must be ${positive ? 'a positive ' : 'a '}finite number or function.`);
   }
   return resolver;
 }
 
-function normalizeParameters(
-  rule: Gw2ModifierRule,
-): Readonly<Record<string, number>> {
-  if (!Object.hasOwn(rule, "parameters")) return EMPTY_MODIFIER_PARAMETERS;
-  if (
-    !rule.parameters ||
-    typeof rule.parameters !== "object" ||
-    Array.isArray(rule.parameters)
-  ) {
-    throw ruleError(rule.id, "parameters must be an object.");
+function normalizeParameters(rule: Gw2ModifierRule): Readonly<Record<string, number>> {
+  if (!Object.hasOwn(rule, 'parameters')) return EMPTY_MODIFIER_PARAMETERS;
+  if (!rule.parameters || typeof rule.parameters !== 'object' || Array.isArray(rule.parameters)) {
+    throw ruleError(rule.id, 'parameters must be an object.');
   }
   const parameters: Record<string, number> = {};
   for (const [name, value] of Object.entries(rule.parameters)) {
     if (!name.trim()) {
-      throw ruleError(rule.id, "parameter names must not be empty.");
+      throw ruleError(rule.id, 'parameter names must not be empty.');
     }
-    if (typeof value !== "number" || !Number.isFinite(value)) {
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
       throw ruleError(rule.id, `parameter ${name} must be a finite number.`);
     }
     parameters[name] = value;
@@ -192,7 +167,7 @@ function normalizeParameters(
 function normalizeTargets(rule: Gw2ModifierRule): readonly Gw2ModifierTarget[] {
   const declared = Array.isArray(rule.target) ? rule.target : [rule.target];
   if (!declared.length) {
-    throw ruleError(rule.id, "target must not be an empty array.");
+    throw ruleError(rule.id, 'target must not be an empty array.');
   }
   const targets: Gw2ModifierTarget[] = [];
   for (const target of declared) {
@@ -215,49 +190,38 @@ function normalizeTargets(rule: Gw2ModifierRule): readonly Gw2ModifierTarget[] {
  * @param {number} declarationIndex Original position used as the final sort tie-breaker.
  * @returns {Readonly<Gw2NormalizedModifierRule>}
  */
-function normalizeRule(
-  rule: Gw2ModifierRule,
-  declarationIndex: number,
-): Readonly<Gw2NormalizedModifierRule> {
-  if (!rule || typeof rule !== "object" || Array.isArray(rule)) {
-    throw ruleError(
-      `<missing at index ${declarationIndex}>`,
-      "must be an object.",
-    );
+function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonly<Gw2NormalizedModifierRule> {
+  if (!rule || typeof rule !== 'object' || Array.isArray(rule)) {
+    throw ruleError(`<missing at index ${declarationIndex}>`, 'must be an object.');
   }
-  const id = typeof rule.id === "string" ? rule.id.trim() : "";
+  const id = typeof rule.id === 'string' ? rule.id.trim() : '';
   if (!id) {
-    throw ruleError(
-      `<missing at index ${declarationIndex}>`,
-      "id is required.",
-    );
+    throw ruleError(`<missing at index ${declarationIndex}>`, 'id is required.');
   }
-  const label = typeof rule.label === "string" ? rule.label.trim() : "";
-  if (Object.hasOwn(rule, "label") && !label) {
-    throw ruleError(id, "label must be a non-empty string.");
+  const label = typeof rule.label === 'string' ? rule.label.trim() : '';
+  if (Object.hasOwn(rule, 'label') && !label) {
+    throw ruleError(id, 'label must be a non-empty string.');
   }
   const operation = rule.operation;
-  if (typeof operation !== "string" || !OPERATIONS.has(operation)) {
-    throw ruleError(id, `unknown operation "${String(operation || "")}".`);
+  if (typeof operation !== 'string' || !OPERATIONS.has(operation)) {
+    throw ruleError(id, `unknown operation "${String(operation || '')}".`);
   }
   const targets = normalizeTargets({ ...rule, id });
-  if (Object.hasOwn(rule, "when") && typeof rule.when !== "function") {
-    throw ruleError(id, "when must be a function.");
+  if (Object.hasOwn(rule, 'when') && typeof rule.when !== 'function') {
+    throw ruleError(id, 'when must be a function.');
   }
-  const order = Object.hasOwn(rule, "order") ? rule.order : 0;
-  if (typeof order !== "number" || !Number.isFinite(order)) {
-    throw ruleError(id, "order must be a finite number.");
+  const order = Object.hasOwn(rule, 'order') ? rule.order : 0;
+  if (typeof order !== 'number' || !Number.isFinite(order)) {
+    throw ruleError(id, 'order must be a finite number.');
   }
   for (const target of targets) {
-    const damageTarget =
-      target === MODIFIER_TARGET.STRIKE_DAMAGE ||
-      target === MODIFIER_TARGET.CONDITION_DAMAGE;
+    const damageTarget = target === MODIFIER_TARGET.STRIKE_DAMAGE || target === MODIFIER_TARGET.CONDITION_DAMAGE;
     // Damage additions use GW2's shared additive bucket. Plain scalar addition
     // is reserved for chance, multiplier, and duration values.
-    if (operation === "add" && damageTarget) {
+    if (operation === 'add' && damageTarget) {
       throw ruleError(id, `add is not supported for ${target}.`);
     }
-    if (operation === "damage-additive" && !damageTarget) {
+    if (operation === 'damage-additive' && !damageTarget) {
       throw ruleError(id, `damage-additive is not supported for ${target}.`);
     }
   }
@@ -270,23 +234,16 @@ function normalizeRule(
     parameters: normalizeParameters({ ...rule, id }),
     when: rule.when || null,
     order,
-    declarationIndex,
+    declarationIndex
   };
-  const field = operation === "multiply" ? "factor" : "amount";
-  const resolver = normalizeResolver(
-    { ...rule, id },
-    field,
-    field === "factor" ? { positive: true } : undefined,
-  );
-  if (
-    Object.keys(normalized.parameters).length &&
-    typeof resolver !== "function"
-  ) {
-    throw ruleError(id, "parameters require a resolver-backed numeric value.");
+  const field = operation === 'multiply' ? 'factor' : 'amount';
+  const resolver = normalizeResolver({ ...rule, id }, field, field === 'factor' ? { positive: true } : undefined);
+  if (Object.keys(normalized.parameters).length && typeof resolver !== 'function') {
+    throw ruleError(id, 'parameters require a resolver-backed numeric value.');
   }
   return Object.freeze({
     ...normalized,
-    [field]: resolver,
+    [field]: resolver
   }) as Readonly<Gw2NormalizedModifierRule>;
 }
 
@@ -296,17 +253,15 @@ function normalizeRule(
  * @param {readonly Gw2ModifierRule[]} rules Raw rule declarations.
  * @returns {readonly Readonly<Gw2NormalizedModifierRule>[]}
  */
-function normalizeRules(
-  rules: readonly Gw2ModifierRule[],
-): readonly Readonly<Gw2NormalizedModifierRule>[] {
+function normalizeRules(rules: readonly Gw2ModifierRule[]): readonly Readonly<Gw2NormalizedModifierRule>[] {
   if (!Array.isArray(rules)) {
-    throw new TypeError("Modifier rules must be an array.");
+    throw new TypeError('Modifier rules must be an array.');
   }
   const ids = new Set<string>();
   const normalized = rules.map((rule, index) => {
     const result = normalizeRule(rule, index);
     if (ids.has(result.id)) {
-      throw ruleError(result.id, "id must be unique.");
+      throw ruleError(result.id, 'id must be unique.');
     }
     ids.add(result.id);
     return result;
@@ -325,18 +280,12 @@ function normalizeRules(
  * @returns {Readonly<Record<Gw2DamageModifierTarget, Gw2DamageBucketPolicy>>}
  */
 function normalizeBucketPolicies(
-  damageBuckets: Gw2DamageBucketPolicies,
+  damageBuckets: Gw2DamageBucketPolicies
 ): Readonly<Record<Gw2DamageModifierTarget, Gw2DamageBucketPolicy>> {
-  if (
-    damageBuckets == null ||
-    typeof damageBuckets !== "object" ||
-    Array.isArray(damageBuckets)
-  ) {
-    throw new TypeError("Modifier damageBuckets must be an object.");
+  if (damageBuckets == null || typeof damageBuckets !== 'object' || Array.isArray(damageBuckets)) {
+    throw new TypeError('Modifier damageBuckets must be an object.');
   }
-  const policies: Partial<
-    Record<Gw2DamageModifierTarget, Gw2DamageBucketPolicy>
-  > = {};
+  const policies: Partial<Record<Gw2DamageModifierTarget, Gw2DamageBucketPolicy>> = {};
   for (const target of DAMAGE_TARGETS) {
     if (!Object.hasOwn(damageBuckets, target)) {
       // Sigil bonuses participate in the common bucket unless a profession
@@ -345,38 +294,21 @@ function normalizeBucketPolicies(
       continue;
     }
     const declared = damageBuckets[target];
-    if (
-      declared == null ||
-      typeof declared !== "object" ||
-      Array.isArray(declared)
-    ) {
-      throw new TypeError(
-        `Modifier bucket policy "${target}" must be an object.`,
-      );
+    if (declared == null || typeof declared !== 'object' || Array.isArray(declared)) {
+      throw new TypeError(`Modifier bucket policy "${target}" must be an object.`);
     }
-    const includeSigil = Object.hasOwn(declared, "includeSigil")
-      ? declared.includeSigil
-      : true;
-    if (
-      typeof includeSigil !== "boolean" &&
-      typeof includeSigil !== "function"
-    ) {
-      throw new TypeError(
-        `Modifier bucket policy "${target}" has an unsupported includeSigil value.`,
-      );
+    const includeSigil = Object.hasOwn(declared, 'includeSigil') ? declared.includeSigil : true;
+    if (typeof includeSigil !== 'boolean' && typeof includeSigil !== 'function') {
+      throw new TypeError(`Modifier bucket policy "${target}" has an unsupported includeSigil value.`);
     }
     policies[target] = Object.freeze({ includeSigil });
   }
   for (const target of Object.keys(damageBuckets)) {
     if (!DAMAGE_TARGETS.has(target as Gw2DamageModifierTarget)) {
-      throw new TypeError(
-        `Modifier bucket policy has an unsupported target "${target}".`,
-      );
+      throw new TypeError(`Modifier bucket policy has an unsupported target "${target}".`);
     }
   }
-  return Object.freeze(policies) as Readonly<
-    Record<Gw2DamageModifierTarget, Gw2DamageBucketPolicy>
-  >;
+  return Object.freeze(policies) as Readonly<Record<Gw2DamageModifierTarget, Gw2DamageBucketPolicy>>;
 }
 
 /**
@@ -391,24 +323,14 @@ function normalizeBucketPolicies(
  */
 function resolveNumeric(
   rule: Readonly<Gw2NormalizedModifierRule>,
-  field: "amount" | "factor",
+  field: 'amount' | 'factor',
   context: Gw2ModifierContext,
-  target: Gw2ModifierTarget,
+  target: Gw2ModifierTarget
 ): number {
   const declared = rule[field];
-  const value =
-    typeof declared === "function"
-      ? declared(context, target, rule.parameters)
-      : declared;
-  if (
-    typeof value !== "number" ||
-    !Number.isFinite(value) ||
-    (field === "factor" && !(value > 0))
-  ) {
-    throw ruleError(
-      rule.id,
-      `${field} must resolve to ${field === "factor" ? "a positive " : "a "}finite number.`,
-    );
+  const value = typeof declared === 'function' ? declared(context, target, rule.parameters) : declared;
+  if (typeof value !== 'number' || !Number.isFinite(value) || (field === 'factor' && !(value > 0))) {
+    throw ruleError(rule.id, `${field} must resolve to ${field === 'factor' ? 'a positive ' : 'a '}finite number.`);
   }
   return value;
 }
@@ -424,80 +346,69 @@ function resolveNumeric(
  */
 function createScalarHook(
   rules: readonly Readonly<Gw2NormalizedModifierRule>[],
-  target: Gw2ModifierTarget,
+  target: Gw2ModifierTarget
 ): Gw2ModifierHook {
-  return Object.freeze(
-    (context: Gw2ModifierContext, initialValue: number): number => {
-      let result = initialValue;
-      // Scalar operations are sequential, so explicit rule order can make
-      // add-then-multiply differ from multiply-then-add.
-      for (const rule of rules) {
-        if (rule.when && !rule.when(context)) continue;
-        const previous = result;
-        if (rule.operation === "add") {
-          result += resolveNumeric(rule, "amount", context, target);
-        } else {
-          result *= resolveNumeric(rule, "factor", context, target);
-        }
-        const contribution = result - previous;
-        if (
-          target === MODIFIER_TARGET.CRITICAL_CHANCE &&
-          context.criticalChanceContributors &&
-          Math.abs(contribution) > Number.EPSILON
-        ) {
-          const fallbackLabel = rule.id
-            .split(".")
-            .at(-1)!
-            .replace(/-critical-chance$/, "")
-            .split("-")
-            .filter(Boolean)
-            .map((part) => part[0].toUpperCase() + part.slice(1))
-            .join(" ");
-          context.criticalChanceContributors.push({
-            id: rule.id,
-            label: rule.label || fallbackLabel,
-            amount: contribution,
-          });
-        }
+  return Object.freeze((context: Gw2ModifierContext, initialValue: number): number => {
+    let result = initialValue;
+    // Scalar operations are sequential, so explicit rule order can make
+    // add-then-multiply differ from multiply-then-add.
+    for (const rule of rules) {
+      if (rule.when && !rule.when(context)) continue;
+      const previous = result;
+      if (rule.operation === 'add') {
+        result += resolveNumeric(rule, 'amount', context, target);
+      } else {
+        result *= resolveNumeric(rule, 'factor', context, target);
       }
-      return result;
-    },
-  );
+      const contribution = result - previous;
+      if (
+        target === MODIFIER_TARGET.CRITICAL_CHANCE &&
+        context.criticalChanceContributors &&
+        Math.abs(contribution) > Number.EPSILON
+      ) {
+        const fallbackLabel = rule.id
+          .split('.')
+          .at(-1)!
+          .replace(/-critical-chance$/, '')
+          .split('-')
+          .filter(Boolean)
+          .map((part) => part[0].toUpperCase() + part.slice(1))
+          .join(' ');
+        context.criticalChanceContributors.push({
+          id: rule.id,
+          label: rule.label || fallbackLabel,
+          amount: contribution
+        });
+      }
+    }
+    return result;
+  });
 }
 
 function createAttributeHook(
-  rulesByTarget: Readonly<
-    Record<Gw2ModifierTarget, readonly Readonly<Gw2NormalizedModifierRule>[]>
-  >,
+  rulesByTarget: Readonly<Record<Gw2ModifierTarget, readonly Readonly<Gw2NormalizedModifierRule>[]>>
 ): Gw2AttributeModifierHook {
-  return Object.freeze(
-    (
-      context: Gw2ModifierContext,
-      initialValue: Gw2ResolvedStats,
-    ): Gw2ResolvedStats => {
-      const result = { ...initialValue };
-      for (const target of ATTRIBUTE_TARGETS) {
-        const key = ATTRIBUTE_KEY_BY_TARGET[
-          target as keyof typeof ATTRIBUTE_KEY_BY_TARGET
-        ] as keyof Gw2ResolvedStats;
-        const hadKey = Object.hasOwn(result, key);
-        let applied = false;
-        let value = Number(result[key] || 0);
-        for (const rule of rulesByTarget[target]) {
-          if (rule.when && !rule.when(context)) continue;
-          applied = true;
-          value =
-            rule.operation === "add"
-              ? value + resolveNumeric(rule, "amount", context, target)
-              : value * resolveNumeric(rule, "factor", context, target);
-        }
-        if (hadKey || applied) {
-          (result as Record<string, unknown>)[key] = value;
-        }
+  return Object.freeze((context: Gw2ModifierContext, initialValue: Gw2ResolvedStats): Gw2ResolvedStats => {
+    const result = { ...initialValue };
+    for (const target of ATTRIBUTE_TARGETS) {
+      const key = ATTRIBUTE_KEY_BY_TARGET[target as keyof typeof ATTRIBUTE_KEY_BY_TARGET] as keyof Gw2ResolvedStats;
+      const hadKey = Object.hasOwn(result, key);
+      let applied = false;
+      let value = Number(result[key] || 0);
+      for (const rule of rulesByTarget[target]) {
+        if (rule.when && !rule.when(context)) continue;
+        applied = true;
+        value =
+          rule.operation === 'add'
+            ? value + resolveNumeric(rule, 'amount', context, target)
+            : value * resolveNumeric(rule, 'factor', context, target);
       }
-      return result;
-    },
-  );
+      if (hadKey || applied) {
+        (result as Record<string, unknown>)[key] = value;
+      }
+    }
+    return result;
+  });
 }
 
 /**
@@ -515,48 +426,35 @@ function createAttributeHook(
 function createDamageHook(
   rules: readonly Readonly<Gw2NormalizedModifierRule>[],
   target: Gw2DamageModifierTarget,
-  policy: Gw2DamageBucketPolicy,
+  policy: Gw2DamageBucketPolicy
 ): Gw2ModifierHook {
-  const damageType =
-    target === MODIFIER_TARGET.CONDITION_DAMAGE ? "condition" : "strike";
-  return Object.freeze(
-    (context: Gw2ModifierContext, initialValue: number): number => {
-      let additiveBonus = 0;
-      let multiplicativeFactor = 1;
-      // All damage-additive rules share one GW2 bucket; true multipliers are
-      // combined separately and applied after that bucket.
-      for (const rule of rules) {
-        if (rule.when && !rule.when(context)) continue;
-        if (rule.operation === "damage-additive") {
-          additiveBonus += resolveNumeric(rule, "amount", context, target);
-        } else {
-          multiplicativeFactor *= resolveNumeric(
-            rule,
-            "factor",
-            context,
-            target,
-          );
-        }
+  const damageType = target === MODIFIER_TARGET.CONDITION_DAMAGE ? 'condition' : 'strike';
+  return Object.freeze((context: Gw2ModifierContext, initialValue: number): number => {
+    let additiveBonus = 0;
+    let multiplicativeFactor = 1;
+    // All damage-additive rules share one GW2 bucket; true multipliers are
+    // combined separately and applied after that bucket.
+    for (const rule of rules) {
+      if (rule.when && !rule.when(context)) continue;
+      if (rule.operation === 'damage-additive') {
+        additiveBonus += resolveNumeric(rule, 'amount', context, target);
+      } else {
+        multiplicativeFactor *= resolveNumeric(rule, 'factor', context, target);
       }
-      const includeSigil =
-        typeof policy.includeSigil === "function"
-          ? policy.includeSigil(context)
-          : policy.includeSigil;
-      // Dynamic policies support weapon-set or event-specific sigil inclusion.
-      if (typeof includeSigil !== "boolean") {
-        throw new TypeError(
-          `Modifier bucket policy "${target}" includeSigil must resolve to a boolean.`,
-        );
-      }
-      return (
-        applyAdditiveDamageBucket(context, initialValue, {
-          damageType,
-          bonus: additiveBonus,
-          includeSigil,
-        }) * multiplicativeFactor
-      );
-    },
-  );
+    }
+    const includeSigil = typeof policy.includeSigil === 'function' ? policy.includeSigil(context) : policy.includeSigil;
+    // Dynamic policies support weapon-set or event-specific sigil inclusion.
+    if (typeof includeSigil !== 'boolean') {
+      throw new TypeError(`Modifier bucket policy "${target}" includeSigil must resolve to a boolean.`);
+    }
+    return (
+      applyAdditiveDamageBucket(context, initialValue, {
+        damageType,
+        bonus: additiveBonus,
+        includeSigil
+      }) * multiplicativeFactor
+    );
+  });
 }
 
 /**
@@ -592,22 +490,21 @@ function createDamageHook(
  */
 export function createModifierHooks({
   rules = [],
-  damageBuckets = {},
+  damageBuckets = {}
 }: CreateModifierHooksOptions = {}): Readonly<Gw2ModifierHooks> {
   const normalizedRules = normalizeRules(rules);
   const policies = normalizeBucketPolicies(damageBuckets);
-  const rulesByTarget = Object.fromEntries(
-    [...TARGETS].map((target) => [target, []]),
-  ) as unknown as Record<Gw2ModifierTarget, Gw2NormalizedModifierRule[]>;
+  const rulesByTarget = Object.fromEntries([...TARGETS].map((target) => [target, []])) as unknown as Record<
+    Gw2ModifierTarget,
+    Gw2NormalizedModifierRule[]
+  >;
   for (const rule of normalizedRules) {
     for (const target of rule.targets) rulesByTarget[target].push(rule);
   }
   for (const target of TARGETS) {
     // Stable declaration order is the final tie-breaker for equal rule order.
     rulesByTarget[target].sort(
-      (left, right) =>
-        left.order - right.order ||
-        left.declarationIndex - right.declarationIndex,
+      (left, right) => left.order - right.order || left.declarationIndex - right.declarationIndex
     );
     Object.freeze(rulesByTarget[target]);
   }
@@ -620,15 +517,8 @@ export function createModifierHooks({
     if (ATTRIBUTE_TARGETS.has(target)) continue;
     const hook = HOOK_BY_TARGET[target];
     if (!hook) continue;
-    if (
-      target === MODIFIER_TARGET.STRIKE_DAMAGE ||
-      target === MODIFIER_TARGET.CONDITION_DAMAGE
-    ) {
-      hooks[hook] = createDamageHook(
-        rulesByTarget[target],
-        target,
-        policies[target],
-      );
+    if (target === MODIFIER_TARGET.STRIKE_DAMAGE || target === MODIFIER_TARGET.CONDITION_DAMAGE) {
+      hooks[hook] = createDamageHook(rulesByTarget[target], target, policies[target]);
     } else {
       hooks[hook] = createScalarHook(rulesByTarget[target], target);
     }

@@ -1,20 +1,8 @@
-import type {
-  EngineerCastContext,
-  EngineerSkill,
-} from "../types.js";
+import type { EngineerCastContext, EngineerSkill } from '../types.js';
 
-function reduceCooldown(
-  context: EngineerCastContext,
-  skill: EngineerSkill,
-  seconds: number,
-  at: number,
-): number {
+function reduceCooldown(context: EngineerCastContext, skill: EngineerSkill, seconds: number, at: number): number {
   if (context.state.ammo.get(skill.id)) {
-    return context.cooldownController.reduceAmmoRecharge(
-      skill,
-      seconds,
-      at,
-    ).reducedBy;
+    return context.cooldownController.reduceAmmoRecharge(skill, seconds, at).reducedBy;
   }
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
   if (readyAt <= at + context.epsilon) return 0;
@@ -23,38 +11,28 @@ function reduceCooldown(
   return reducedBy;
 }
 
-export function rechargeOtherSwordSkills(
-  context: EngineerCastContext,
-  gleamSaber: EngineerSkill,
-): void {
+export function rechargeOtherSwordSkills(context: EngineerCastContext, gleamSaber: EngineerSkill): void {
   const at = context.effectiveEnd;
   // scan both maps — a skill lives in exactly one (ammo OR cooldowns, never both)
-  const activeIds = new Set([
-    ...context.state.cooldowns.keys(),
-    ...context.state.ammo.keys(),
-  ]);
+  const activeIds = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
   let reducedBy = 0;
   for (const skillId of activeIds) {
     const skill = context.catalog.skillsById.get(skillId);
-    if (
-      skill?.type === "Weapon"
-      && skill.weapon === "Sword"
-      && skill.id !== gleamSaber.id
-    ) {
+    if (skill?.type === 'Weapon' && skill.weapon === 'Sword' && skill.id !== gleamSaber.id) {
       reducedBy += reduceCooldown(context, skill, 1, at);
     }
   }
   // only emit proc when something actually changed — no-op if no sword skill was on cooldown
   if (reducedBy <= 0) return;
   context.emit({
-    type: "proc",
+    type: 'proc',
     at,
-    source: "engineer",
+    source: 'engineer',
     sourceId: gleamSaber.id,
-    actorType: "player",
-    name: "Gleam Saber — Sword Recharge",
-    procType: "skill",
+    actorType: 'player',
+    name: 'Gleam Saber — Sword Recharge',
+    procType: 'skill',
     sourceSkill: gleamSaber.name,
-    cooldownReduction: reducedBy,
+    cooldownReduction: reducedBy
   });
 }

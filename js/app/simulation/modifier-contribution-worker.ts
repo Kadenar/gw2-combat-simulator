@@ -1,5 +1,5 @@
-import { loadProfessionAppAdapter } from "../profession/registry.js";
-import type { ModifierContributionRequest } from "../profession/types.js";
+import { loadProfessionAppAdapter } from '../profession/registry.js';
+import type { ModifierContributionRequest } from '../profession/types.js';
 
 /**
  * The single request message this worker accepts. The application shell owns
@@ -15,10 +15,7 @@ interface ModifierContributionsWorkerMessage {
  * `Window`, whose `postMessage` requires a target origin; a worker's does not.
  */
 interface DedicatedWorkerScope {
-  addEventListener(
-    type: "message",
-    listener: (event: MessageEvent<ModifierContributionsWorkerMessage>) => void,
-  ): void;
+  addEventListener(type: 'message', listener: (event: MessageEvent<ModifierContributionsWorkerMessage>) => void): void;
   postMessage(message: unknown): void;
 }
 
@@ -30,7 +27,7 @@ const workerScope = self as unknown as DedicatedWorkerScope;
  * The worker posts one terminal response with the same request ID and either
  * `contributions` or a string `error`.
  */
-workerScope.addEventListener("message", async ({ data }) => {
+workerScope.addEventListener('message', async ({ data }) => {
   const { requestId, request } = data;
   try {
     const adapter = await loadProfessionAppAdapter(request.professionId);
@@ -39,12 +36,12 @@ workerScope.addEventListener("message", async ({ data }) => {
     }
     workerScope.postMessage({
       requestId,
-      contributions: adapter.calculateModifierContributions(request),
+      contributions: adapter.calculateModifierContributions(request)
     });
   } catch (error) {
     workerScope.postMessage({
       requestId,
-      error: error instanceof Error ? error.message : String(error),
+      error: error instanceof Error ? error.message : String(error)
     });
   }
 });

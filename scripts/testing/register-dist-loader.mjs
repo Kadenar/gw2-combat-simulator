@@ -1,3 +1,3 @@
-import { register } from "node:module";
+import { register } from 'node:module';
 
-register("./dist-loader.mjs", import.meta.url);
+register('./dist-loader.mjs', import.meta.url);

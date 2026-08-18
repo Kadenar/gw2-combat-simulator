@@ -1,319 +1,317 @@
 /** Explicit PvE skill mechanics owned by the Spellbreaker Warrior module. */
-import { WARRIOR_SKILL_IDS as ID } from "../../data/ids.js";
-import type { SkillFragment } from "../../../../platform/engine/types.js";
-export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
-  Record<number, SkillFragment>
-> = Object.freeze({
+import { WARRIOR_SKILL_IDS as ID } from '../../data/ids.js';
+import type { SkillFragment } from '../../../../platform/engine/types.js';
+export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SILENCER]: {
     implemented: true,
     castTimeMs: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.7,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "control",
+        type: 'control',
         metadata: {
-          controlKind: "stun",
-          duration: 1,
-        },
-      },
+          controlKind: 'stun',
+          duration: 1
+        }
+      }
     ],
     adrenalineCost: 10,
     burstTier: 1,
     adrenalineGain: 10,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.EARTHSHAKER_ID_40601]: {
     implemented: true,
-    skillWeapon: "Hammer",
+    skillWeapon: 'Hammer',
     cooldown: 8,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.75,
         hits: 1,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         comboFinishers: [
           {
-            ownerId: "warrior",
-            finisherType: "Blast",
-            ambiguousFieldSelection: "oldest",
-          },
+            ownerId: 'warrior',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
+          }
         ],
-        metadata: {},
+        metadata: {}
       },
       {
-        type: "control",
+        type: 'control',
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         metadata: {
-          controlKind: "stun",
-          duration: 1,
-        },
-      },
+          controlKind: 'stun',
+          duration: 1
+        }
+      }
     ],
     quicknessCastTimeMs: 1000,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.NATURAL_HEALING]: {
     implemented: true,
     effects: [],
-    quicknessCastTimeMs: 667,
+    quicknessCastTimeMs: 667
   },
   [ID.SKULL_CRACK_ID_41110]: {
     implemented: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "control",
+        type: 'control',
         metadata: {
-          controlKind: "stun",
-          duration: 1,
-        },
-      },
+          controlKind: 'stun',
+          duration: 1
+        }
+      }
     ],
     quicknessCastTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.BOON_CRUSHER]: {
     implemented: true,
     castTimeMs: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
-        hits: 2,
-      },
+        hits: 2
+      }
     ],
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.FORCEFUL_SHOT_ID_41330]: {
     implemented: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.25,
-        hits: 1,
-      },
+        hits: 1
+      }
     ],
     quicknessCastTimeMs: 1167,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.WOUNDING_STRIKE]: {
     implemented: true,
     castTimeMs: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 2,
-        duration: 8,
+        duration: 8
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 5,
-        duration: 8,
-      },
+        duration: 8
+      }
     ],
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.WHIRLING_STRIKE_ID_41746]: {
     implemented: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "control",
+        type: 'control',
         metadata: {
-          controlKind: "stun",
-          duration: 1,
-        },
-      },
+          controlKind: 'stun',
+          duration: 1
+        }
+      }
     ],
     quicknessCastTimeMs: 500,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.IMMINENT_THREAT]: {
     implemented: true,
     effects: [
       {
-        type: "boon",
-        boon: "resolution",
+        type: 'boon',
+        boon: 'resolution',
         duration: 5,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
     quicknessCastTimeMs: 167,
     adrenalineGain: 3,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.KILL_SHOT_ID_42041]: {
     implemented: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.25,
-        hits: 1,
-      },
+        hits: 1
+      }
     ],
     quicknessCastTimeMs: 833,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.ARCING_SLICE_ID_42707]: {
     implemented: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 1,
         coefficientModifiers: [
           {
-            kind: "target-health-below",
+            kind: 'target-health-below',
             threshold: 0.5,
-            multiplier: 1.5,
-          },
-        ],
+            multiplier: 1.5
+          }
+        ]
       },
       {
-        type: "boon",
-        boon: "fury",
+        type: 'boon',
+        boon: 'fury',
         duration: 8,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
     quicknessCastTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.COMBUSTIVE_SHOT_ID_42803]: {
     implemented: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
-        hits: 2,
+        hits: 2
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 2,
-        duration: 5,
-      },
+        duration: 5
+      }
     ],
     quicknessCastTimeMs: 500,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.BREAK_ENCHANTMENTS]: {
     implemented: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "custom",
-        eventType: "warrior.boon-removal",
+        type: 'custom',
+        eventType: 'warrior.boon-removal',
         event: {
-          attemptedBoonRemovals: 4,
-        },
-      },
+          attemptedBoonRemovals: 4
+        }
+      }
     ],
-    quicknessCastTimeMs: 167,
+    quicknessCastTimeMs: 167
   },
   [ID.FLEETING_STABILITY]: {
     implemented: true,
     castTimeMs: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "control",
+        type: 'control',
         metadata: {
-          controlKind: "stun",
-          duration: 2,
-        },
-      },
+          controlKind: 'stun',
+          duration: 2
+        }
+      }
     ],
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.EVISCERATE_ID_43566]: {
     implemented: true,
     castTimeMs: 0,
     effects: [
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 5,
-        stacks: 5,
+        stacks: 5
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
-        hits: 1,
-      },
+        hits: 1
+      }
     ],
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.SIGHT_BEYOND_SIGHT]: {
     implemented: true,
     effects: [],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 333
   },
   [ID.FULL_COUNTER]: {
     implemented: true,
@@ -324,208 +322,208 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.full-counter",
+    handlerId: 'warrior.full-counter'
   },
   [ID.DISSONANCE]: {
     implemented: true,
     castTimeMs: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "control",
+        type: 'control',
         metadata: {
-          controlKind: "stun",
-          duration: 1,
-        },
-      },
+          controlKind: 'stun',
+          duration: 1
+        }
+      }
     ],
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.WINDS_OF_DISENCHANTMENT]: {
     interruptCommitMs: 0,
     implemented: true,
     comboFields: [
       {
-        ownerId: "warrior",
-        fieldType: "Lightning",
+        ownerId: 'warrior',
+        fieldType: 'Lightning',
         duration: 5,
-        startAnchor: "castEnd",
-      },
+        startAnchor: 'castEnd'
+      }
     ],
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.25,
         hits: 5,
         atMs: 800,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "custom",
-        eventType: "warrior.boon-removal",
+        type: 'custom',
+        eventType: 'warrior.boon-removal',
         atMs: 800,
         intervalMs: 1000,
         applications: 5,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
         event: {
-          attemptedBoonRemovals: 1,
-        },
-      },
+          attemptedBoonRemovals: 1
+        }
+      }
     ],
-    quicknessCastTimeMs: 1000,
+    quicknessCastTimeMs: 1000
   },
   [ID.FEATHERFOOT_GRACE]: {
     implemented: true,
     effects: [
       {
-        type: "boon",
-        boon: "resistance",
+        type: 'boon',
+        boon: 'resistance',
         duration: 5,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "protection",
+        type: 'boon',
+        boon: 'protection',
         duration: 5,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 333
   },
   [ID.MAGEHUNTER_STRIKE]: {
     implemented: true,
     castTimeMs: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
-        hits: 1,
-      },
+        hits: 1
+      }
     ],
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.BREACHING_STRIKE_ID_69297]: {
     implemented: true,
-    skillWeapon: "Dagger",
+    skillWeapon: 'Dagger',
     comboFinishers: [
       {
-        ownerId: "warrior",
-        finisherType: "Leap",
-        ambiguousFieldSelection: "oldest",
-      },
+        ownerId: 'warrior',
+        finisherType: 'Leap',
+        ambiguousFieldSelection: 'oldest'
+      }
     ],
     cooldown: 8,
     castTimeMs: 840,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.5,
         hits: 1,
         atMs: 760,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "custom",
-        eventType: "warrior.boon-removal",
+        type: 'custom',
+        eventType: 'warrior.boon-removal',
         atMs: 760,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         event: {
-          attemptedBoonRemovals: 2,
-        },
-      },
+          attemptedBoonRemovals: 2
+        }
+      }
     ],
     unaffectedByQuickness: true,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.PATH_TO_VICTORY_ID_72089]: {
     implemented: true,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "boon",
-        boon: "regeneration",
+        type: 'boon',
+        boon: 'regeneration',
         duration: 5,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
     quicknessCastTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.HARRIERS_TOSS_ID_73014]: {
     implemented: true,
     effects: [
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 5,
-        duration: 6,
+        duration: 6
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.5,
-        hits: 1,
-      },
+        hits: 1
+      }
     ],
     quicknessCastTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
+    handlerId: 'warrior.resource'
   },
   [ID.BLOODTHIRSTER_ID_80252]: {
     implemented: true,
-    skillWeapon: "Sword",
+    skillWeapon: 'Sword',
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 1,
         atMs: 600,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 3,
         duration: 6,
         atMs: 600,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
     quicknessCastTimeMs: 500,
     dualWieldCastTimeMs: 400,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    handlerId: "warrior.resource",
-  },
+    handlerId: 'warrior.resource'
+  }
 });

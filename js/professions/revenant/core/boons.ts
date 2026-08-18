@@ -1,8 +1,5 @@
-import type {
-  SchedulerRecord,
-  SkillId,
-} from "../../../platform/engine/types.js";
-import type { RevenantSchedulerContext, RevenantSkill } from "../types.js";
+import type { SchedulerRecord, SkillId } from '../../../platform/engine/types.js';
+import type { RevenantSchedulerContext, RevenantSkill } from '../types.js';
 
 type RevenantBoonContext = RevenantSchedulerContext & {
   readonly effectiveEnd?: number;
@@ -22,20 +19,20 @@ export function emitRevenantBoon(
   boon: string,
   duration: number,
   stacks = 1,
-  options: RevenantBoonOptions = {},
+  options: RevenantBoonOptions = {}
 ): void {
   context.emit({
-    type: "buff",
+    type: 'buff',
     at: options.at ?? context.effectiveEnd ?? context.state.time,
-    source: "revenant",
+    source: 'revenant',
     sourceId: options.sourceId ?? skill.id,
-    actorType: "player",
+    actorType: 'player',
     skillId: skill.id,
     skillName: skill.name,
     name: options.name ?? `${skill.name} — ${boon}`,
     kind: boon,
     duration,
     stacks,
-    ...(options.recipients ? { recipients: options.recipients } : {}),
+    ...(options.recipients ? { recipients: options.recipients } : {})
   });
 }

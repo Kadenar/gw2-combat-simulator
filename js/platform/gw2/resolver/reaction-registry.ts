@@ -1,4 +1,4 @@
-import { createEventReactions } from "../../engine/profession.js";
+import { createEventReactions } from '../../engine/profession.js';
 
 import type {
   Gw2ResolverReaction,
@@ -7,8 +7,8 @@ import type {
   Gw2ResolverReactions,
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
-  Gw2ResolverStage,
-} from "../types.js";
+  Gw2ResolverStage
+} from '../types.js';
 
 type AuthoringHandler = (...args: never[]) => unknown;
 
@@ -18,24 +18,21 @@ interface AuthoringHook {
   readonly handler: AuthoringHandler;
 }
 
-type AuthoringSource =
-  | AuthoringHandler
-  | AuthoringHook
-  | readonly (AuthoringHandler | AuthoringHook)[];
+type AuthoringSource = AuthoringHandler | AuthoringHook | readonly (AuthoringHandler | AuthoringHook)[];
 
 export const GW2_RESOLVER_STAGES: readonly Gw2ResolverStage[] = Object.freeze([
-  "aura.applied",
-  "combo.resolved",
-  "buff.applied",
-  "damage.resolved",
-  "condition.applied",
-  "condition-tick.resolved",
-  "control.resolved",
-  "blind.resolved",
-  "peitha.resolved",
-  "weakness-vulnerability.resolved",
-  "weapon-set.changed",
-  "food-proc.created",
+  'aura.applied',
+  'combo.resolved',
+  'buff.applied',
+  'damage.resolved',
+  'condition.applied',
+  'condition-tick.resolved',
+  'control.resolved',
+  'blind.resolved',
+  'peitha.resolved',
+  'weakness-vulnerability.resolved',
+  'weapon-set.changed',
+  'food-proc.created'
 ]);
 
 const STAGES = new Set<string>(GW2_RESOLVER_STAGES);
@@ -47,12 +44,12 @@ function assertStage(value: string): asserts value is Gw2ResolverStage {
 }
 
 function assertAuthoringHook(value: unknown, label: string): void {
-  if (typeof value === "function") return;
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
+  if (typeof value === 'function') return;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError(`${label} must be a function or ordered hook.`);
   }
   const hook = value as Partial<AuthoringHook>;
-  if (!String(hook.id || "").trim() || typeof hook.handler !== "function") {
+  if (!String(hook.id || '').trim() || typeof hook.handler !== 'function') {
     throw new TypeError(`${label} must have an id and handler.`);
   }
   if (hook.order != null && !Number.isFinite(Number(hook.order))) {
@@ -65,20 +62,16 @@ function assertAuthoringHook(value: unknown, label: string): void {
  * handler signatures. Ordered hook collections remain supported because the
  * engine profession composer normalizes them before resolver construction.
  */
-export function defineGw2ResolverReactions<
-  const T extends Readonly<Record<string, AuthoringSource>>,
->(
-  reactions: T & Record<Exclude<keyof T, Gw2ResolverStage>, never>,
+export function defineGw2ResolverReactions<const T extends Readonly<Record<string, AuthoringSource>>>(
+  reactions: T & Record<Exclude<keyof T, Gw2ResolverStage>, never>
 ): Readonly<T> {
-  if (!reactions || typeof reactions !== "object" || Array.isArray(reactions)) {
-    throw new TypeError("GW2 resolver reactions must be an object.");
+  if (!reactions || typeof reactions !== 'object' || Array.isArray(reactions)) {
+    throw new TypeError('GW2 resolver reactions must be an object.');
   }
   for (const [stage, source] of Object.entries(reactions)) {
     assertStage(stage);
     const hooks = Array.isArray(source) ? source : [source];
-    hooks.forEach((hook, index) =>
-      assertAuthoringHook(hook, `GW2 resolver reaction ${stage}[${index}]`),
-    );
+    hooks.forEach((hook, index) => assertAuthoringHook(hook, `GW2 resolver reaction ${stage}[${index}]`));
   }
   return Object.freeze({ ...reactions });
 }
@@ -96,13 +89,13 @@ function assertKnownStages(value: object, label: string): void {
 /** Composes profession and common GW2 hooks into one immutable dispatcher. */
 export function createGw2ResolverReactionRegistry({
   professionReactions = {},
-  contributions = {},
+  contributions = {}
 }: {
   readonly professionReactions?: Gw2ResolverReactions;
   readonly contributions?: Gw2ResolverReactionContributions;
 } = {}): Readonly<Gw2ResolverReactionRegistry> {
-  assertKnownStages(professionReactions, "GW2 profession reactions");
-  assertKnownStages(contributions, "GW2 reaction contributions");
+  assertKnownStages(professionReactions, 'GW2 profession reactions');
+  assertKnownStages(contributions, 'GW2 reaction contributions');
 
   const sources = Object.fromEntries(
     GW2_RESOLVER_STAGES.flatMap((stage) => {
@@ -112,24 +105,19 @@ export function createGw2ResolverReactionRegistry({
         hooks.push({
           id: `profession.${stage}`,
           order: 0,
-          handler: profession,
+          handler: profession
         });
       }
       return hooks.length ? [[stage, hooks]] : [];
-    }),
+    })
   );
   const dispatchers = createEventReactions(sources);
 
   return Object.freeze({
-    dispatch(
-      stage: Gw2ResolverStage,
-      context: Gw2ResolverRuntime,
-      event: Gw2ResolverEvent,
-      details = {},
-    ) {
+    dispatch(stage: Gw2ResolverStage, context: Gw2ResolverRuntime, event: Gw2ResolverEvent, details = {}) {
       assertStage(stage);
       const dispatcher = dispatchers[stage] as Gw2ResolverReaction | undefined;
       return dispatcher?.(context, event, details);
-    },
+    }
   });
 }

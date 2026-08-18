@@ -1,5 +1,5 @@
-import type { RitualistState } from "../../types.js";
-import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
+import type { RitualistState } from '../../types.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
 
 export function createRitualistState(): RitualistState {
   return {
@@ -16,11 +16,8 @@ export function createRitualistState(): RitualistState {
     pendingSoulTwistSkill: null,
     painfulBondUntil: 0,
     // NaN signals "no pulse scheduled yet"; first apply event sets the anchor
-    painfulBondPulseAnchorAt: Number.NaN,
+    painfulBondPulseAnchorAt: Number.NaN
   };
 }
 
-export const ritualistState = defineProfessionSpecializationState(
-  "Ritualist",
-  createRitualistState,
-);
+export const ritualistState = defineProfessionSpecializationState('Ritualist', createRitualistState);

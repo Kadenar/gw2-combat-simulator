@@ -1,19 +1,16 @@
-import assert from "node:assert/strict";
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import path from "node:path";
-import test from "node:test";
-import { fileURLToPath } from "node:url";
+import assert from 'node:assert/strict';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import path from 'node:path';
+import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
-import { createCanonicalCatalog } from "../../../js/platform/engine/catalog.js";
-import { defineProfession } from "../../../js/platform/engine/profession.js";
-import { createScheduler } from "../../../js/platform/engine/scheduler.js";
-import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
+import { createCanonicalCatalog } from '../../../js/platform/engine/catalog.js';
+import { defineProfession } from '../../../js/platform/engine/profession.js';
+import { createScheduler } from '../../../js/platform/engine/scheduler.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
 
-const forbiddenHorizonField = ["extends", "Resolution", "Horizon"].join("");
-const repoRoot = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../../..",
-);
+const forbiddenHorizonField = ['extends', 'Resolution', 'Horizon'].join('');
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
 function fixtureConfig(overrides = {}) {
   return {
@@ -22,11 +19,11 @@ function fixtureConfig(overrides = {}) {
       precision: 1000,
       ferocity: 0,
       conditionDamage: 1000,
-      expertise: 0,
+      expertise: 0
     },
     target: { armor: 2597, ...(overrides.target || {}) },
     weaponStrength: 1000,
-    ...overrides,
+    ...overrides
   };
 }
 
@@ -35,216 +32,207 @@ function contractProfession() {
     generated: [
       {
         id: 990001,
-        name: "Delayed Packet",
+        name: 'Delayed Packet',
         castTimeMs: 200,
         effects: [
           {
-            type: "strike",
+            type: 'strike',
             coefficient: 0,
             atMs: 100,
-            timingAnchor: "castStart",
-            timingScale: "fixed",
-            metadata: { flatDamage: 1 },
+            timingAnchor: 'castStart',
+            timingScale: 'fixed',
+            metadata: { flatDamage: 1 }
           },
           {
-            type: "strike",
+            type: 'strike',
             coefficient: 0,
             atMs: 800,
-            timingAnchor: "castStart",
-            timingScale: "fixed",
-            metadata: { flatDamage: 100 },
-          },
-        ],
+            timingAnchor: 'castStart',
+            timingScale: 'fixed',
+            metadata: { flatDamage: 100 }
+          }
+        ]
       },
       {
         id: 990002,
-        name: "Long Follow-up",
+        name: 'Long Follow-up',
         castTimeMs: 2000,
-        effects: [],
+        effects: []
       },
       {
         id: 990003,
-        name: "Committed Channel",
+        name: 'Committed Channel',
         castTimeMs: 1000,
         interruptCommitMs: 300,
         effects: [
           {
-            type: "strike",
+            type: 'strike',
             ticks: [
               { atMs: 200, coefficient: 1 },
               { atMs: 600, coefficient: 1 },
-              { atMs: 900, coefficient: 1 },
+              { atMs: 900, coefficient: 1 }
             ],
-            timingAnchor: "castStart",
-            timingScale: "fixed",
-            persistsAfterInterrupt: true,
-          },
-        ],
+            timingAnchor: 'castStart',
+            timingScale: 'fixed',
+            persistsAfterInterrupt: true
+          }
+        ]
       },
       {
         id: 990004,
-        name: "Long Condition",
+        name: 'Long Condition',
         castTimeMs: 100,
         effects: [
           {
-            type: "condition",
-            condition: "Bleeding",
+            type: 'condition',
+            condition: 'Bleeding',
             stacks: 1,
             duration: 5,
             atMs: 0,
-            timingAnchor: "castStart",
-            timingScale: "fixed",
-          },
-        ],
+            timingAnchor: 'castStart',
+            timingScale: 'fixed'
+          }
+        ]
       },
       {
         id: 990005,
-        name: "Metadata Bait",
+        name: 'Metadata Bait',
         castTimeMs: 100,
         effects: [
           {
-            type: "strike",
+            type: 'strike',
             coefficient: 1,
             atMs: 2000,
-            timingAnchor: "castStart",
-            timingScale: "fixed",
-          },
-        ],
+            timingAnchor: 'castStart',
+            timingScale: 'fixed'
+          }
+        ]
       },
       {
         id: 990006,
-        name: "Persistent Actor",
+        name: 'Persistent Actor',
         castTimeMs: 100,
-        effects: [],
+        effects: []
       },
       {
         id: 990007,
-        name: "Clean Metadata Bait",
+        name: 'Clean Metadata Bait',
         castTimeMs: 100,
         effects: [
           {
-            type: "strike",
+            type: 'strike',
             coefficient: 1,
             atMs: 2000,
-            timingAnchor: "castStart",
-            timingScale: "fixed",
-          },
-        ],
-      },
-    ],
+            timingAnchor: 'castStart',
+            timingScale: 'fixed'
+          }
+        ]
+      }
+    ]
   });
 
   return defineProfession({
-    id: "resolution-contract",
-    name: "Resolution Contract",
+    id: 'resolution-contract',
+    name: 'Resolution Contract',
     catalog,
     resources: {
-      createProfessionState: () => ({ actorActiveUntil: 0 }),
+      createProfessionState: () => ({ actorActiveUntil: 0 })
     },
     schedulerHooks: {
       onCastStart(context, skill) {
         if (skill.id !== 990005) return;
         context.emit({
-          type: "damage",
+          type: 'damage',
           at: context.start + 2,
-          source: "Metadata Bait",
+          source: 'Metadata Bait',
           sourceId: skill.id,
           flatDamage: 100,
-          [forbiddenHorizonField]: true,
+          [forbiddenHorizonField]: true
         });
       },
       onCastComplete(context, skill) {
         if (skill.id !== 990006) return;
         context.state.profession.actorActiveUntil = context.effectiveEnd + 4;
         context.tasks.schedule({
-          type: "fixture.persistent-actor",
+          type: 'fixture.persistent-actor',
           at: context.effectiveEnd + 1,
           ownerId: context.reservationId,
-          payload: {},
+          payload: {}
         });
       },
       taskHandlers: {
-        "fixture.persistent-actor": (context, task) => {
-          if (
-            task.at >
-            context.state.profession.actorActiveUntil + context.epsilon
-          ) {
+        'fixture.persistent-actor': (context, task) => {
+          if (task.at > context.state.profession.actorActiveUntil + context.epsilon) {
             return;
           }
           context.emit({
-            type: "damage",
+            type: 'damage',
             at: task.at,
-            source: "Persistent Actor",
-            sourceId: "fixture.actor",
-            actorType: "summon",
-            flatDamage: 10,
+            source: 'Persistent Actor',
+            sourceId: 'fixture.actor',
+            actorType: 'summon',
+            flatDamage: 10
           });
           context.tasks.schedule({
-            type: "fixture.persistent-actor",
+            type: 'fixture.persistent-actor',
             at: task.at + 1,
             ownerId: task.ownerId,
-            payload: {},
+            payload: {}
           });
-        },
-      },
-    },
+        }
+      }
+    }
   });
 }
 
 const profession = contractProfession();
 
-test("delayed packets resolve during later casts and lethal packets clip them", () => {
+test('delayed packets resolve during later casts and lethal packets clip them', () => {
   const nonlethal = simulateGw2({
     profession,
-    rotation: ["Delayed Packet", "Long Follow-up"],
-    config: fixtureConfig(),
+    rotation: ['Delayed Packet', 'Long Follow-up'],
+    config: fixtureConfig()
   });
-  const delayed = nonlethal.resolvedEvents.find(
-    (event) => event.type === "damage" && event.at === 0.8,
-  );
+  const delayed = nonlethal.resolvedEvents.find((event) => event.type === 'damage' && event.at === 0.8);
   assert.ok(delayed);
   assert.equal(nonlethal.duration, 2.2);
 
   const lethal = simulateGw2({
     profession,
-    rotation: ["Delayed Packet", "Long Follow-up"],
-    config: fixtureConfig({ target: { health: 50 } }),
+    rotation: ['Delayed Packet', 'Long Follow-up'],
+    config: fixtureConfig({ target: { health: 50 } })
   });
   assert.equal(lethal.deathTime, 0.8);
   assert.equal(lethal.duration, 2.2);
   assert.ok(Math.abs(lethal.dpsWindow - 0.7) < 1e-12);
   assert.equal(
     lethal.resolvedEvents.some((event) => event.at > 0.8),
-    false,
+    false
   );
 });
 
-test("terminal packets require an explicit observation tail or wait", () => {
-  const scheduled = createScheduler({ profession }).run(["Delayed Packet"]);
+test('terminal packets require an explicit observation tail or wait', () => {
+  const scheduled = createScheduler({ profession }).run(['Delayed Packet']);
   assert.equal(scheduled.stream.rotationEndTime, 0.2);
   assert.equal(scheduled.stream.resolutionEndTime, 0.2);
-  assert.ok(
-    scheduled.events.some(
-      (event) => event.type === "damage" && event.at === 0.8,
-    ),
-  );
+  assert.ok(scheduled.events.some((event) => event.type === 'damage' && event.at === 0.8));
 
   const defaultResult = simulateGw2({
     profession,
-    rotation: ["Delayed Packet"],
-    config: fixtureConfig(),
+    rotation: ['Delayed Packet'],
+    config: fixtureConfig()
   });
   assert.equal(defaultResult.duration, 0.2);
   assert.equal(
     defaultResult.resolvedEvents.some((event) => event.at === 0.8),
-    false,
+    false
   );
 
   const tailed = simulateGw2({
     profession,
-    rotation: ["Delayed Packet"],
+    rotation: ['Delayed Packet'],
     config: fixtureConfig(),
-    observationPolicy: { kind: "tail", durationMs: 1000 },
+    observationPolicy: { kind: 'tail', durationMs: 1000 }
   });
   assert.equal(tailed.duration, 0.2);
   assert.ok(tailed.resolvedEvents.some((event) => event.at === 0.8));
@@ -252,225 +240,213 @@ test("terminal packets require an explicit observation tail or wait", () => {
 
   const waited = simulateGw2({
     profession,
-    rotation: ["Delayed Packet", { type: "wait", durationMs: 1000 }],
-    config: fixtureConfig(),
+    rotation: ['Delayed Packet', { type: 'wait', durationMs: 1000 }],
+    config: fixtureConfig()
   });
   assert.equal(waited.duration, 1.2);
   assert.ok(waited.resolvedEvents.some((event) => event.at === 0.8));
 });
 
-test("absolute observation is finite and target death clips it", () => {
+test('absolute observation is finite and target death clips it', () => {
   const absolute = simulateGw2({
     profession,
-    rotation: ["Delayed Packet"],
+    rotation: ['Delayed Packet'],
     config: fixtureConfig(),
-    observationPolicy: { kind: "absolute", endTimeMs: 900 },
+    observationPolicy: { kind: 'absolute', endTimeMs: 900 }
   });
   assert.equal(absolute.duration, 0.2);
   assert.equal(
     absolute.events.every((event) => event.at <= 0.9),
-    true,
+    true
   );
   assert.ok(absolute.resolvedEvents.some((event) => event.at === 0.8));
 
   const deathClipped = simulateGw2({
     profession,
-    rotation: ["Delayed Packet"],
+    rotation: ['Delayed Packet'],
     config: fixtureConfig({ target: { health: 50 } }),
-    observationPolicy: { kind: "tail", durationMs: 5000 },
+    observationPolicy: { kind: 'tail', durationMs: 5000 }
   });
   assert.equal(deathClipped.deathTime, 0.8);
   assert.equal(
     deathClipped.events.every((event) => event.at <= 0.8),
-    true,
+    true
   );
   assert.equal(
     deathClipped.resolvedEvents.every((event) => event.at <= 0.8),
-    true,
+    true
   );
 });
 
-test("invalid and contradictory observation boundaries are rejected", () => {
+test('invalid and contradictory observation boundaries are rejected', () => {
   for (const observationPolicy of [
-    { kind: "tail", durationMs: -1 },
-    { kind: "tail", durationMs: Number.POSITIVE_INFINITY },
-    { kind: "absolute", endTimeMs: Number.NaN },
-    { kind: "unknown" },
+    { kind: 'tail', durationMs: -1 },
+    { kind: 'tail', durationMs: Number.POSITIVE_INFINITY },
+    { kind: 'absolute', endTimeMs: Number.NaN },
+    { kind: 'unknown' }
   ]) {
-    assert.throws(
-      () => createScheduler({ profession, observationPolicy }),
-      /Observation|observation/,
-    );
+    assert.throws(() => createScheduler({ profession, observationPolicy }), /Observation|observation/);
   }
   assert.throws(
     () =>
       createScheduler({
         profession,
-        observationPolicy: { kind: "absolute", endTimeMs: 100 },
-      }).run(["Delayed Packet"]),
-    /cannot precede rotation end/,
+        observationPolicy: { kind: 'absolute', endTimeMs: 100 }
+      }).run(['Delayed Packet']),
+    /cannot precede rotation end/
   );
 });
 
-test("interrupt persistence requires the declared commit point", () => {
+test('interrupt persistence requires the declared commit point', () => {
   assert.throws(
     () =>
       createCanonicalCatalog({
         generated: [
           {
             id: 990099,
-            name: "Implicit Commit",
+            name: 'Implicit Commit',
             effects: [
               {
-                type: "strike",
+                type: 'strike',
                 coefficient: 0,
-                persistsAfterInterrupt: true,
-              },
-            ],
-          },
-        ],
+                persistsAfterInterrupt: true
+              }
+            ]
+          }
+        ]
       }),
-    /interruptCommitMs/,
+    /interruptCommitMs/
   );
 
   const beforeCommit = createScheduler({ profession }).run([
-    { name: "Committed Channel", interruptMs: 200 },
-    "Long Follow-up",
+    { name: 'Committed Channel', interruptMs: 200 },
+    'Long Follow-up'
   ]);
   assert.deepEqual(
     beforeCommit.events
-      .filter((event) => event.skillName === "Committed Channel")
-      .filter((event) => event.type === "damage")
+      .filter((event) => event.skillName === 'Committed Channel')
+      .filter((event) => event.type === 'damage')
       .map((event) => event.at),
-    [0.2],
+    [0.2]
   );
 
   const afterCommit = createScheduler({ profession }).run([
-    { name: "Committed Channel", interruptMs: 400 },
-    "Long Follow-up",
+    { name: 'Committed Channel', interruptMs: 400 },
+    'Long Follow-up'
   ]);
   assert.deepEqual(
     afterCommit.events
-      .filter((event) => event.skillName === "Committed Channel")
-      .filter((event) => event.type === "damage")
+      .filter((event) => event.skillName === 'Committed Channel')
+      .filter((event) => event.type === 'damage')
       .map((event) => event.at),
-    [0.2, 0.6, 0.9],
+    [0.2, 0.6, 0.9]
   );
   const resolved = simulateGw2({
     profession,
-    rotation: [
-      { name: "Committed Channel", interruptMs: 400 },
-      "Long Follow-up",
-    ],
-    config: fixtureConfig(),
+    rotation: [{ name: 'Committed Channel', interruptMs: 400 }, 'Long Follow-up'],
+    config: fixtureConfig()
   });
   assert.ok(resolved.resolvedEvents.some((event) => event.at === 0.9));
 });
 
-test("observed-packet replay preserves delayed effects without extending cast lockout", () => {
+test('observed-packet replay preserves delayed effects without extending cast lockout', () => {
   const ordinaryInterrupt = createScheduler({ profession }).run([
     {
-      name: "Delayed Packet",
-      interruptMs: 150,
+      name: 'Delayed Packet',
+      interruptMs: 150
     },
-    "Long Follow-up",
+    'Long Follow-up'
   ]);
   assert.deepEqual(
     ordinaryInterrupt.events
-      .filter((event) => event.skillName === "Delayed Packet")
-      .filter((event) => event.type === "damage")
+      .filter((event) => event.skillName === 'Delayed Packet')
+      .filter((event) => event.type === 'damage')
       .map((event) => event.at),
-    [0.1],
+    [0.1]
   );
 
   const observedPacketReplay = createScheduler({ profession }).run([
     {
-      name: "Delayed Packet",
+      name: 'Delayed Packet',
       interruptMs: 150,
-      preserveEffectsAfterInterrupt: true,
+      preserveEffectsAfterInterrupt: true
     },
-    "Long Follow-up",
+    'Long Follow-up'
   ]);
   assert.deepEqual(
     observedPacketReplay.events
-      .filter((event) => event.skillName === "Delayed Packet")
-      .filter((event) => event.type === "damage")
+      .filter((event) => event.skillName === 'Delayed Packet')
+      .filter((event) => event.type === 'damage')
       .map((event) => event.at),
-    [0.1, 0.8],
+    [0.1, 0.8]
   );
   assert.equal(observedPacketReplay.stream.rotationEndTime, 2.15);
 });
 
-test("event metadata cannot extend an unrelated condition", () => {
+test('event metadata cannot extend an unrelated condition', () => {
   const clean = simulateGw2({
     profession,
-    rotation: ["Long Condition", "Clean Metadata Bait"],
-    config: fixtureConfig(),
+    rotation: ['Long Condition', 'Clean Metadata Bait'],
+    config: fixtureConfig()
   });
   const withMetadataBait = simulateGw2({
     profession,
-    rotation: ["Long Condition", "Metadata Bait"],
-    config: fixtureConfig(),
+    rotation: ['Long Condition', 'Metadata Bait'],
+    config: fixtureConfig()
   });
   assert.equal(withMetadataBait.conditionDamage, clean.conditionDamage);
   assert.equal(withMetadataBait.duration, 0.2);
   assert.equal(
     withMetadataBait.resolvedEvents.some((event) => event.at === 2.1),
-    false,
+    false
   );
 });
 
-test("persistent actors respect lifetime, observation end, and target death", () => {
+test('persistent actors respect lifetime, observation end, and target death', () => {
   const defaultResult = simulateGw2({
     profession,
-    rotation: ["Persistent Actor"],
-    config: fixtureConfig(),
+    rotation: ['Persistent Actor'],
+    config: fixtureConfig()
   });
   assert.equal(defaultResult.totalDamage, 0);
 
   const tailed = simulateGw2({
     profession,
-    rotation: ["Persistent Actor"],
+    rotation: ['Persistent Actor'],
     config: fixtureConfig(),
-    observationPolicy: { kind: "tail", durationMs: 2500 },
+    observationPolicy: { kind: 'tail', durationMs: 2500 }
   });
   assert.deepEqual(
-    tailed.resolvedEvents
-      .filter((event) => event.source === "Persistent Actor")
-      .map((event) => event.at),
-    [1.1, 2.1],
+    tailed.resolvedEvents.filter((event) => event.source === 'Persistent Actor').map((event) => event.at),
+    [1.1, 2.1]
   );
 
   const longerThanLifetime = simulateGw2({
     profession,
-    rotation: ["Persistent Actor"],
+    rotation: ['Persistent Actor'],
     config: fixtureConfig(),
-    observationPolicy: { kind: "tail", durationMs: 10_000 },
+    observationPolicy: { kind: 'tail', durationMs: 10_000 }
   });
   assert.deepEqual(
-    longerThanLifetime.resolvedEvents
-      .filter((event) => event.source === "Persistent Actor")
-      .map((event) => event.at),
-    [1.1, 2.1, 3.1, 4.1],
+    longerThanLifetime.resolvedEvents.filter((event) => event.source === 'Persistent Actor').map((event) => event.at),
+    [1.1, 2.1, 3.1, 4.1]
   );
 
   const deathClipped = simulateGw2({
     profession,
-    rotation: ["Persistent Actor"],
+    rotation: ['Persistent Actor'],
     config: fixtureConfig({ target: { health: 5 } }),
-    observationPolicy: { kind: "tail", durationMs: 10_000 },
+    observationPolicy: { kind: 'tail', durationMs: 10_000 }
   });
   assert.equal(deathClipped.deathTime, 1.1);
   assert.deepEqual(
-    deathClipped.events
-      .filter((event) => event.source === "Persistent Actor")
-      .map((event) => event.at),
-    [1.1],
+    deathClipped.events.filter((event) => event.source === 'Persistent Actor').map((event) => event.at),
+    [1.1]
   );
 });
 
-test("production source and catalog data cannot declare event-owned horizons", () => {
-  const roots = [path.join(repoRoot, "js"), path.join(repoRoot, "Builds")];
+test('production source and catalog data cannot declare event-owned horizons', () => {
+  const roots = [path.join(repoRoot, 'js'), path.join(repoRoot, 'Builds')];
   const violations = [];
   const visit = (entry) => {
     if (statSync(entry).isDirectory()) {
@@ -478,7 +454,7 @@ test("production source and catalog data cannot declare event-owned horizons", (
       return;
     }
     if (!/\.(?:js|ts|json)$/.test(entry)) return;
-    if (readFileSync(entry, "utf8").includes(forbiddenHorizonField)) {
+    if (readFileSync(entry, 'utf8').includes(forbiddenHorizonField)) {
       violations.push(path.relative(repoRoot, entry));
     }
   };
@@ -486,26 +462,26 @@ test("production source and catalog data cannot declare event-owned horizons", (
   assert.deepEqual(violations, []);
 });
 
-test("saved rotations and regression tooling cannot select observation policy", () => {
-  const observationPolicyField = ["observation", "Policy"].join("");
+test('saved rotations and regression tooling cannot select observation policy', () => {
+  const observationPolicyField = ['observation', 'Policy'].join('');
   const violations = [];
   const visit = (entry) => {
     if (statSync(entry).isDirectory()) {
       for (const child of readdirSync(entry)) visit(path.join(entry, child));
       return;
     }
-    if (!entry.endsWith(".json")) return;
-    if (readFileSync(entry, "utf8").includes(observationPolicyField)) {
+    if (!entry.endsWith('.json')) return;
+    if (readFileSync(entry, 'utf8').includes(observationPolicyField)) {
       violations.push(path.relative(repoRoot, entry));
     }
   };
 
-  visit(path.join(repoRoot, "Rotations"));
+  visit(path.join(repoRoot, 'Rotations'));
   for (const relativePath of [
-    "tests/app/benchmarks/preset-benchmark.js",
-    "scripts/analysis/capture-supported-build-metrics.mjs",
+    'tests/app/benchmarks/preset-benchmark.js',
+    'scripts/analysis/capture-supported-build-metrics.mjs'
   ]) {
-    const source = readFileSync(path.join(repoRoot, relativePath), "utf8");
+    const source = readFileSync(path.join(repoRoot, relativePath), 'utf8');
     if (source.includes(observationPolicyField)) violations.push(relativePath);
   }
 

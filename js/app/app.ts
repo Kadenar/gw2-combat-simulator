@@ -1,5 +1,5 @@
-import { bootstrapProfessionApp } from "./bootstrap.js";
+import { bootstrapProfessionApp } from './bootstrap.js';
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener('DOMContentLoaded', () => {
   bootstrapProfessionApp();
 });

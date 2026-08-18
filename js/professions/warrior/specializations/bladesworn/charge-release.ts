@@ -1,16 +1,12 @@
-import type {
-  SchedulerRecord,
-  SimulationEvent,
-  Skill,
-} from "../../../../platform/engine/types.js";
+import type { SchedulerRecord, SimulationEvent, Skill } from '../../../../platform/engine/types.js';
 import {
   DRAGON_CHARGE_INTERVAL_SECONDS,
   DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
   dragonSlashCoefficient,
   projectDragonCharges,
-  type DragonFlowRateSegment,
-} from "./dragon-trigger.js";
-import { ENTER_DRAGON_TRIGGER_REASON } from "./rules.js";
+  type DragonFlowRateSegment
+} from './dragon-trigger.js';
+import { ENTER_DRAGON_TRIGGER_REASON } from './rules.js';
 
 function eventRotationIndex(event: SimulationEvent): number | null {
   const rotationIndex = Number(event.rotationIndex);
@@ -20,33 +16,27 @@ function eventRotationIndex(event: SimulationEvent): number | null {
 // Finds the most recent Dragon Trigger entry that has not yet been released.
 // An entry is considered released when a "profession mechanic" dragon-charges
 // resource event with a later rotationIndex exists in the event list.
-function activeDragonTriggerEntry(
-  events: readonly SimulationEvent[],
-  insertionIndex: number,
-): SimulationEvent | null {
+function activeDragonTriggerEntry(events: readonly SimulationEvent[], insertionIndex: number): SimulationEvent | null {
   const entries = events
     .filter((event) => {
       const rotationIndex = eventRotationIndex(event);
       return (
-        event.type === "resource" &&
+        event.type === 'resource' &&
         event.reason === DRAGON_TRIGGER_ENTRY_RESOURCE_REASON &&
         rotationIndex != null &&
         rotationIndex < insertionIndex
       );
     })
-    .sort(
-      (left, right) =>
-        Number(eventRotationIndex(left)) - Number(eventRotationIndex(right)),
-    );
+    .sort((left, right) => Number(eventRotationIndex(left)) - Number(eventRotationIndex(right)));
   const entry = entries.at(-1) || null;
   if (!entry) return null;
   const entryIndex = Number(eventRotationIndex(entry));
   const released = events.some((event) => {
     const rotationIndex = eventRotationIndex(event);
     return (
-      event.type === "resource" &&
-      event.reason === "profession mechanic" &&
-      event.resource === "dragon charges" &&
+      event.type === 'resource' &&
+      event.reason === 'profession mechanic' &&
+      event.resource === 'dragon charges' &&
       rotationIndex != null &&
       rotationIndex > entryIndex &&
       rotationIndex < insertionIndex
@@ -58,15 +48,12 @@ function activeDragonTriggerEntry(
 function flowRateSegments(value: unknown): readonly DragonFlowRateSegment[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((candidate) => {
-    if (!candidate || typeof candidate !== "object") return [];
+    if (!candidate || typeof candidate !== 'object') return [];
     const segment = candidate as SchedulerRecord;
     const start = Number(segment.start);
     const end = Number(segment.end);
     const flowPerSecond = Number(segment.flowPerSecond);
-    return Number.isFinite(start) &&
-      Number.isFinite(end) &&
-      Number.isFinite(flowPerSecond) &&
-      end > start
+    return Number.isFinite(start) && Number.isFinite(end) && Number.isFinite(flowPerSecond) && end > start
       ? [{ start, end, flowPerSecond }]
       : [];
   });
@@ -99,16 +86,12 @@ export function dragonChargeReleaseProjection(context: {
     chargesPerInterval,
     flowPerInterval: Number(entry.flowPerInterval),
     flowRateSegments: flowRateSegments(entry.flowRateSegments),
-    deadline,
+    deadline
   });
   const minimum = Number(skill.dragonSlashMinimumCoefficient || 0);
   const maximum = Number(skill.dragonSlashMaximumCoefficient || minimum);
   const chargeLevels: number[] = [];
-  for (
-    let charges = chargesPerInterval;
-    charges < maximumCharges;
-    charges += chargesPerInterval
-  ) {
+  for (let charges = chargesPerInterval; charges < maximumCharges; charges += chargesPerInterval) {
     chargeLevels.push(charges);
   }
   chargeLevels.push(maximumCharges);
@@ -116,9 +99,7 @@ export function dragonChargeReleaseProjection(context: {
   const stalled = projection.some((tick) => !tick.granted);
   return {
     rows: chargeLevels.map((charges, index) => {
-      const tick = projection.find(
-        (candidate) => candidate.granted && candidate.charges === charges,
-      );
+      const tick = projection.find((candidate) => candidate.granted && candidate.charges === charges);
       const earliestAt = firstTickAt + index * DRAGON_CHARGE_INTERVAL_SECONDS;
       const pastDeadline = earliestAt > deadline + 1e-9;
       return {
@@ -126,21 +107,16 @@ export function dragonChargeReleaseProjection(context: {
         at: tick?.at ?? earliestAt,
         delta: (tick?.at ?? earliestAt) - startTime,
         flowAfter: tick?.flowAfter ?? null,
-        coefficient: dragonSlashCoefficient(
-          minimum,
-          maximum,
-          charges,
-          maximumCharges,
-        ),
+        coefficient: dragonSlashCoefficient(minimum, maximum, charges, maximumCharges),
         disabled: !tick,
         reason: tick
-          ? ""
+          ? ''
           : pastDeadline
-            ? "Past the Dragon Trigger deadline."
+            ? 'Past the Dragon Trigger deadline.'
             : stalled
-              ? "Insufficient Flow before Dragon Trigger ended."
-              : "Unreachable in this charge window.",
+              ? 'Insufficient Flow before Dragon Trigger ended.'
+              : 'Unreachable in this charge window.'
       };
-    }),
+    })
   };
 }

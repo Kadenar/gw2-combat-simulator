@@ -8,36 +8,24 @@ export interface RotationInsertionCursorOptions {
 
 const cursorCleanupByRoot = new WeakMap<HTMLElement, () => void>();
 
-export function normalizeRotationInsertionIndex(
-  value: unknown,
-  rotationLength: number,
-): number | null {
+export function normalizeRotationInsertionIndex(value: unknown, rotationLength: number): number | null {
   const length = Math.max(0, Math.floor(Number(rotationLength) || 0));
-  if (value === null || value === undefined || value === "") return null;
+  if (value === null || value === undefined || value === '') return null;
   const index = Number(value);
-  return Number.isInteger(index) && index >= 0 && index <= length
-    ? index
-    : null;
+  return Number.isInteger(index) && index >= 0 && index <= length ? index : null;
 }
 
-export function rotationInsertionGapHtml(
-  index: number,
-  activeIndex: unknown,
-): string {
+export function rotationInsertionGapHtml(index: number, activeIndex: unknown): string {
   const active = index === activeIndex;
-  return `<button type="button" class="rot-insertion-gap${active ? " active" : ""}" data-insertion-index="${index}"
-    title="${active ? "Clear insertion point" : `Insert at position ${index + 1}`}"
+  return `<button type="button" class="rot-insertion-gap${active ? ' active' : ''}" data-insertion-index="${index}"
+    title="${active ? 'Clear insertion point' : `Insert at position ${index + 1}`}"
     aria-label="${active ? `Insertion point at position ${index + 1}; click to clear` : `Set insertion point at position ${index + 1}`}">
       <span class="rot-insertion-arrow" aria-hidden="true">→</span>
       <span class="rot-insertion-marker" aria-hidden="true"></span>
   </button>`;
 }
 
-export function rotationTimelineEntryHtml(
-  index: number,
-  activeIndex: unknown,
-  skillHtml: string,
-): string {
+export function rotationTimelineEntryHtml(index: number, activeIndex: unknown, skillHtml: string): string {
   return `<div class="rot-entry">
     ${rotationInsertionGapHtml(index, activeIndex)}
     ${skillHtml}
@@ -49,55 +37,46 @@ export function mountRotationInsertionCursor({
   insertionIndex,
   rotationLength,
   onSelect,
-  onClear,
+  onClear
 }: RotationInsertionCursorOptions): number | null {
   cursorCleanupByRoot.get(root)?.();
 
-  const activeIndex = normalizeRotationInsertionIndex(
-    insertionIndex,
-    rotationLength,
-  );
+  const activeIndex = normalizeRotationInsertionIndex(insertionIndex, rotationLength);
   const document = root.ownerDocument;
   let status = root.previousElementSibling as HTMLElement | null;
-  if (!status?.classList.contains("rotation-insertion-status")) {
-    status = document.createElement("div");
-    status.className = "rotation-insertion-status";
+  if (!status?.classList.contains('rotation-insertion-status')) {
+    status = document.createElement('div');
+    status.className = 'rotation-insertion-status';
     root.before(status);
   }
 
   if (activeIndex === null) {
     status.hidden = true;
-    status.innerHTML = "";
+    status.innerHTML = '';
   } else {
     status.hidden = false;
     status.innerHTML = `<span><strong>Insertion point:</strong> position ${activeIndex + 1}. Palette clicks insert here.</span>
       <button type="button" data-clear-insertion>Clear <span aria-hidden="true">×</span></button>`;
-    status
-      .querySelector<HTMLButtonElement>("[data-clear-insertion]")
-      ?.addEventListener("click", onClear);
+    status.querySelector<HTMLButtonElement>('[data-clear-insertion]')?.addEventListener('click', onClear);
   }
 
-  root
-    .querySelectorAll<HTMLButtonElement>(".rot-insertion-gap")
-    .forEach((gap) => {
-      gap.addEventListener("mousedown", (event) => event.stopPropagation());
-      gap.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const index = Number(gap.dataset.insertionIndex);
-        if (!Number.isInteger(index)) return;
-        if (index === activeIndex) onClear();
-        else onSelect(index);
-      });
+  root.querySelectorAll<HTMLButtonElement>('.rot-insertion-gap').forEach((gap) => {
+    gap.addEventListener('mousedown', (event) => event.stopPropagation());
+    gap.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const index = Number(gap.dataset.insertionIndex);
+      if (!Number.isInteger(index)) return;
+      if (index === activeIndex) onClear();
+      else onSelect(index);
     });
+  });
 
   const handleEscape = (event: KeyboardEvent): void => {
-    if (event.key !== "Escape" || activeIndex === null) return;
+    if (event.key !== 'Escape' || activeIndex === null) return;
     onClear();
   };
-  document.addEventListener("keydown", handleEscape);
-  cursorCleanupByRoot.set(root, () =>
-    document.removeEventListener("keydown", handleEscape),
-  );
+  document.addEventListener('keydown', handleEscape);
+  cursorCleanupByRoot.set(root, () => document.removeEventListener('keydown', handleEscape));
   return activeIndex;
 }

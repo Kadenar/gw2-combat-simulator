@@ -8,8 +8,8 @@ import type {
   ScheduledTask,
   SimulationEvent,
   Skill,
-  SkillId,
-} from "../../platform/engine/types.js";
+  SkillId
+} from '../../platform/engine/types.js';
 import type {
   Gw2Build,
   Gw2CanonicalBuild,
@@ -19,12 +19,9 @@ import type {
   Gw2NumericAttributes,
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
-  Gw2Stats,
-} from "../../platform/gw2/types.js";
-import type {
-  ProfessionApplicationBuild,
-  ProfessionBuildAssumptions,
-} from "../../app/profession/types.js";
+  Gw2Stats
+} from '../../platform/gw2/types.js';
+import type { ProfessionApplicationBuild, ProfessionBuildAssumptions } from '../../app/profession/types.js';
 
 export interface EngineerSpecializationSelection {
   readonly name?: string;
@@ -58,8 +55,7 @@ export interface EngineerConfig extends Gw2Config {
   readonly initialHeat?: number;
   readonly professionAssumptions?: ProfessionBuildAssumptions;
   readonly selectedMorphSkillIds?: readonly number[];
-  readonly selectedSkills?:
-    readonly string[] | Readonly<Record<string, string>>;
+  readonly selectedSkills?: readonly string[] | Readonly<Record<string, string>>;
 }
 
 export type EngineerEvolveAttributePool = Readonly<Gw2NumericAttributes>;
@@ -137,22 +133,16 @@ export interface AmalgamState {
   activeStances: Record<string, number | boolean>;
 }
 
-export interface EngineerState
-  extends
-    EngineerCoreState,
-    ScrapperState,
-    HolosmithState,
-    MechanistState,
-    AmalgamState {}
+export interface EngineerState extends EngineerCoreState, ScrapperState, HolosmithState, MechanistState, AmalgamState {}
 
 export interface EngineerRuntimeState {
   core: EngineerCoreState;
   specialization:
-    | { kind: "Core"; state: Record<string, never> }
-    | { kind: "Scrapper"; state: ScrapperState }
-    | { kind: "Holosmith"; state: HolosmithState }
-    | { kind: "Mechanist"; state: MechanistState }
-    | { kind: "Amalgam"; state: AmalgamState };
+    | { kind: 'Core'; state: Record<string, never> }
+    | { kind: 'Scrapper'; state: ScrapperState }
+    | { kind: 'Holosmith'; state: HolosmithState }
+    | { kind: 'Mechanist'; state: MechanistState }
+    | { kind: 'Amalgam'; state: AmalgamState };
 }
 
 export interface EngineerSkill extends Skill {
@@ -168,11 +158,10 @@ export interface EngineerSkill extends Skill {
   readonly toolbeltParentName?: string;
 }
 
-export type EngineerSchedulerContext =
-  SchedulerContext<EngineerRuntimeState> & {
-    readonly catalog: CanonicalCatalog<EngineerSkill>;
-    readonly config: EngineerConfig;
-  };
+export type EngineerSchedulerContext = SchedulerContext<EngineerRuntimeState> & {
+  readonly catalog: CanonicalCatalog<EngineerSkill>;
+  readonly config: EngineerConfig;
+};
 
 export type EngineerCastContext = CastLifecycleContext<EngineerRuntimeState> & {
   readonly catalog: CanonicalCatalog<EngineerSkill>;
@@ -216,8 +205,7 @@ export interface EngineerEndStateProjectionOptions {
 
 export type EngineerPlayerStats = Partial<Gw2Stats>;
 
-export type EngineerScheduledTask<TPayload extends SchedulerRecord> =
-  ScheduledTask<TPayload>;
+export type EngineerScheduledTask<TPayload extends SchedulerRecord> = ScheduledTask<TPayload>;
 
 export type EngineerResolverEvent = Gw2ResolverEvent & {
   readonly application?: Gw2ResolverEvent & {
@@ -246,10 +234,7 @@ export type EngineerResolverContext = Gw2ResolverRuntime & {
 export interface EngineerResolverReactionDetails extends SchedulerRecord {
   readonly hitContext?: Gw2HitResolutionContext;
   readonly criticalChance?: number;
-  readonly applyCondition?: (
-    context: Gw2ResolverRuntime,
-    event: Gw2EventDraft,
-  ) => unknown;
+  readonly applyCondition?: (context: Gw2ResolverRuntime, event: Gw2EventDraft) => unknown;
 }
 
 export interface EngineerUiContext extends SchedulerRecord {

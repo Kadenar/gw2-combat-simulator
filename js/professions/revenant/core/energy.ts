@@ -1,4 +1,4 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
+import { professionCoreState } from '../../../platform/engine/profession.js';
 /**
  * Revenant Energy and endurance lifecycle.
  *
@@ -7,31 +7,26 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  * aggregate upkeep drain, exact starvation timing, out-of-combat Energy
  * capping and endurance regeneration.
  */
-import { REVENANT_SKILL_IDS as ID } from "../data/ids.js";
-import { hasRevenantTrait } from "./state.js";
-import { emitRevenantState } from "./shared.js";
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from "./skills.js";
+import { REVENANT_SKILL_IDS as ID } from '../data/ids.js';
+import { hasRevenantTrait } from './state.js';
+import { emitRevenantState } from './shared.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from './skills.js';
 import type {
   RevenantCoreState,
   RevenantEnergyContext,
   RevenantPrecastContext,
   RevenantSchedulerContext,
   RevenantSkill,
-  RevenantRuntimeState,
-} from "../types.js";
+  RevenantRuntimeState
+} from '../types.js';
 
 function resourceProfile(context: RevenantEnergyContext) {
-  const profile = context.catalog?.balanceProfilesById.get(
-    REVENANT_CORE_BALANCE_PROFILE_IDS.resources,
-  );
-  if (!profile) throw new Error("Missing Revenant resource balance profile.");
+  const profile = context.catalog?.balanceProfilesById.get(REVENANT_CORE_BALANCE_PROFILE_IDS.resources);
+  if (!profile) throw new Error('Missing Revenant resource balance profile.');
   return profile;
 }
 
-function syncRevenantCombatState(
-  context: RevenantSchedulerContext,
-  state: RevenantCoreState,
-): void {
+function syncRevenantCombatState(context: RevenantSchedulerContext, state: RevenantCoreState): void {
   const sharedAt = context.schedulerPolicy.combatBeganAt?.();
   if (sharedAt == null) return;
   const at = Number(sharedAt);
@@ -43,13 +38,10 @@ function regenerateRevenantEnergy(
   state: RevenantCoreState,
   from: number,
   target: number,
-  rate: number,
+  rate: number
 ): number {
-  const combatActive =
-    context.schedulerPolicy.isCombatActive?.() ?? state.combatBeganAt != null;
-  const maximum = combatActive
-    ? state.maximumEnergy
-    : Math.max(50, state.energy);
+  const combatActive = context.schedulerPolicy.isCombatActive?.() ?? state.combatBeganAt != null;
+  const maximum = combatActive ? state.maximumEnergy : Math.max(50, state.energy);
   // Out-of-combat regeneration stops at 50 without removing energy that was
   // already above 50.
   return Math.min(maximum, state.energy + (target - from) * rate);
@@ -57,23 +49,18 @@ function regenerateRevenantEnergy(
 
 export function revenantEnduranceRegenerationRate(
   context: RevenantEnergyContext,
-  at = Number(context.start ?? context.time ?? context.state?.time ?? 0),
+  at = Number(context.start ?? context.time ?? context.state?.time ?? 0)
 ): number {
   const profile = resourceProfile(context);
-  const vigorActive = Boolean(
-    context.config?.boons?.vigor || context.hasBuff?.("vigor", at),
-  );
+  const vigorActive = Boolean(context.config?.boons?.vigor || context.hasBuff?.('vigor', at));
   return Math.min(
     10,
     Number(profile.enduranceRegenerationPerSecond || 0) *
-      (vigorActive ? Number(profile.vigorRegenerationMultiplier || 1) : 1),
+      (vigorActive ? Number(profile.vigorRegenerationMultiplier || 1) : 1)
   );
 }
 
-export function revenantEnduranceReadyAt(
-  context: RevenantPrecastContext,
-  cost: number,
-): number | null {
+export function revenantEnduranceReadyAt(context: RevenantPrecastContext, cost: number): number | null {
   const current = Number(professionCoreState(context).endurance || 0);
   const required = Math.max(0, Number(cost || 0));
   const missing = required - current;
@@ -85,10 +72,7 @@ export function revenantEnduranceReadyAt(
 /**
  * Advances Energy, endurance, upkeep drain, and starvation.
  */
-export function advanceRevenantEnergy(
-  context: RevenantSchedulerContext,
-  target: number,
-): void {
+export function advanceRevenantEnergy(context: RevenantSchedulerContext, target: number): void {
   const resource = resourceProfile(context);
   const regeneration = Number(resource.energyRegenerationPerSecond || 0);
   const state = professionCoreState(context);
@@ -96,21 +80,12 @@ export function advanceRevenantEnergy(
   const from = Number(state.energyUpdatedAt || 0);
   const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
   if (target > enduranceFrom) {
-    const enduranceRate = revenantEnduranceRegenerationRate(
-      context,
-      (enduranceFrom + target) / 2,
-    );
-    state.endurance = Math.min(
-      state.maximumEndurance,
-      state.endurance + (target - enduranceFrom) * enduranceRate,
-    );
+    const enduranceRate = revenantEnduranceRegenerationRate(context, (enduranceFrom + target) / 2);
+    state.endurance = Math.min(state.maximumEndurance, state.endurance + (target - enduranceFrom) * enduranceRate);
     state.enduranceUpdatedAt = target;
   }
   if (target <= from) return;
-  const upkeep = state.activeUpkeeps.reduce(
-    (sum, active) => sum + Number(active.upkeepCost || 0),
-    0,
-  );
+  const upkeep = state.activeUpkeeps.reduce((sum, active) => sum + Number(active.upkeepCost || 0), 0);
   const rate = regeneration - upkeep;
   const elapsed = target - from;
   if (rate < 0 && state.energy + rate * elapsed < 0) {
@@ -127,32 +102,23 @@ export function advanceRevenantEnergy(
     state.activeUpkeeps = [];
     state.availableFlips = {};
     state.energyUpdatedAt = starvedAt;
-    emitRevenantState(context, starvedAt, "upkeep-starved");
-    state.energy = regenerateRevenantEnergy(
-      context,
-      state,
-      starvedAt,
-      target,
-      regeneration,
-    );
+    emitRevenantState(context, starvedAt, 'upkeep-starved');
+    state.energy = regenerateRevenantEnergy(context, state, starvedAt, target, regeneration);
     state.energyUpdatedAt = target;
-    emitRevenantState(context, target, "energy");
+    emitRevenantState(context, target, 'energy');
     return;
   }
   state.energy =
     rate > 0
       ? regenerateRevenantEnergy(context, state, from, target, rate)
-      : Math.max(
-          0,
-          Math.min(state.maximumEnergy, state.energy + elapsed * rate),
-        );
+      : Math.max(0, Math.min(state.maximumEnergy, state.energy + elapsed * rate));
   state.energyUpdatedAt = target;
-  emitRevenantState(context, target, "energy");
+  emitRevenantState(context, target, 'energy');
 }
 
 /** Resolves state-dependent Energy overrides shared by UI and scheduling. */
 interface RevenantEnergyCostState {
-  readonly activeUpkeeps?: RevenantCoreState["activeUpkeeps"];
+  readonly activeUpkeeps?: RevenantCoreState['activeUpkeeps'];
   readonly beguilingHazeCharges?: number;
   readonly energyCostOverrides?: Readonly<Record<string, number>>;
 }
@@ -161,24 +127,13 @@ function energyCostStateSlices(context: RevenantEnergyContext): {
   readonly core: RevenantEnergyCostState;
   readonly specialization: RevenantEnergyCostState;
 } {
-  const schedulerState =
-    context.state && "profession" in context.state ? context.state : undefined;
-  const candidate =
-    schedulerState?.profession ??
-    context.professionState ??
-    context.state ??
-    {};
-  if (
-    candidate &&
-    typeof candidate === "object" &&
-    "core" in candidate &&
-    "specialization" in candidate
-  ) {
+  const schedulerState = context.state && 'profession' in context.state ? context.state : undefined;
+  const candidate = schedulerState?.profession ?? context.professionState ?? context.state ?? {};
+  if (candidate && typeof candidate === 'object' && 'core' in candidate && 'specialization' in candidate) {
     const runtime = candidate as RevenantRuntimeState;
     return {
       core: runtime.core,
-      specialization: runtime.specialization
-        .state as unknown as RevenantEnergyCostState,
+      specialization: runtime.specialization.state as unknown as RevenantEnergyCostState
     };
   }
   // Application UI callers may supply the stable flat public projection.
@@ -187,28 +142,16 @@ function energyCostStateSlices(context: RevenantEnergyContext): {
   return { core: applicationState, specialization: applicationState };
 }
 
-export function effectiveRevenantEnergyCost(
-  context: RevenantEnergyContext,
-  skill: RevenantSkill,
-): number {
+export function effectiveRevenantEnergyCost(context: RevenantEnergyContext, skill: RevenantSkill): number {
   const state = energyCostStateSlices(context);
-  const active = (state.core.activeUpkeeps || []).some(
-    (upkeep) => upkeep.skillId === skill.id,
-  );
+  const active = (state.core.activeUpkeeps || []).some((upkeep) => upkeep.skillId === skill.id);
   if (active) return 0;
-  if (
-    skill.freeWithTraitId != null &&
-    hasRevenantTrait(context.config, skill.freeWithTraitId)
-  ) {
+  if (skill.freeWithTraitId != null && hasRevenantTrait(context.config, skill.freeWithTraitId)) {
     return 0;
   }
   if (
     skill.freeWhenStatePositive &&
-    Number(
-      (state.specialization as unknown as Record<string, unknown>)[
-        skill.freeWhenStatePositive
-      ] || 0,
-    ) > 0
+    Number((state.specialization as unknown as Record<string, unknown>)[skill.freeWhenStatePositive] || 0) > 0
   ) {
     return 0;
   }
@@ -218,20 +161,12 @@ export function effectiveRevenantEnergyCost(
 }
 
 /** Pays a cast's Energy cost. */
-export function spendRevenantEnergy(
-  context: RevenantPrecastContext,
-  skill: RevenantSkill,
-): void {
-  if (
-    ([ID.SWAP_LEGENDS, ID.DODGE] as readonly number[]).includes(
-      Number(skill.id),
-    )
-  )
-    return;
+export function spendRevenantEnergy(context: RevenantPrecastContext, skill: RevenantSkill): void {
+  if (([ID.SWAP_LEGENDS, ID.DODGE] as readonly number[]).includes(Number(skill.id))) return;
   const state = professionCoreState(context);
   const cost = effectiveRevenantEnergyCost(context, skill);
   state.energy = Math.max(0, state.energy - cost);
   if (cost > 0) {
-    emitRevenantState(context, context.start, "energy-spent");
+    emitRevenantState(context, context.start, 'energy-spent');
   }
 }

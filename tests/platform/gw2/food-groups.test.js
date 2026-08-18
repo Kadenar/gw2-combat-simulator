@@ -1,5 +1,5 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import assert from 'node:assert/strict';
+import test from 'node:test';
 import {
   FOOD_DATA,
   FOOD_GROUPS,
@@ -7,17 +7,16 @@ import {
   UTILITY_DATA,
   UTILITY_GROUPS,
   UTILITY_NAMES,
-  UTILITY_STAT_DATA,
-} from "../../../js/platform/gw2/gear-data.js";
+  UTILITY_STAT_DATA
+} from '../../../js/platform/gw2/gear-data.js';
 
-test("food exports retain a complete flat lookup and grouped display list", () => {
+test('food exports retain a complete flat lookup and grouped display list', () => {
   const groupedNames = FOOD_GROUPS.flatMap((group) => group.items);
-  const sortNames = (names) =>
-    [...names].sort((left, right) => left.localeCompare(right));
+  const sortNames = (names) => [...names].sort((left, right) => left.localeCompare(right));
 
   assert.deepEqual(
     FOOD_GROUPS.map((group) => group.label),
-    ["Power", "Condition", "Hybrid", "Concentration", "All Stats"],
+    ['Power', 'Condition', 'Hybrid', 'Concentration', 'All Stats']
   );
   assert.deepEqual(FOOD_NAMES, sortNames(Object.keys(FOOD_DATA)));
   assert.equal(groupedNames.length, FOOD_NAMES.length);
@@ -27,15 +26,14 @@ test("food exports retain a complete flat lookup and grouped display list", () =
   assert.ok(FOOD_NAMES.every((name) => FOOD_DATA[name]));
 });
 
-test("utility exports retain a complete flat lookup and grouped display list", () => {
+test('utility exports retain a complete flat lookup and grouped display list', () => {
   const groupedNames = UTILITY_GROUPS.flatMap((group) => group.items);
   const utilityData = { ...UTILITY_DATA, ...UTILITY_STAT_DATA };
-  const sortNames = (names) =>
-    [...names].sort((left, right) => left.localeCompare(right));
+  const sortNames = (names) => [...names].sort((left, right) => left.localeCompare(right));
 
   assert.deepEqual(
     UTILITY_GROUPS.map((group) => group.label),
-    ["Power", "Condition", "Boon"],
+    ['Power', 'Condition', 'Boon']
   );
   assert.deepEqual(UTILITY_NAMES, sortNames(Object.keys(utilityData)));
   assert.equal(groupedNames.length, UTILITY_NAMES.length);

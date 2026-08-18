@@ -2,33 +2,33 @@
  * Complete application-facing Mesmer mechanics facade.
  * Runtime modules import their local skill fragments instead.
  */
-import { MESMER_SKILL_IDS as ID } from "../data/ids.js";
-import { MESMER_SUPPLEMENTAL_SKILLS } from "../data/mesmer-supplemental-skills.js";
+import { MESMER_SKILL_IDS as ID } from '../data/ids.js';
+import { MESMER_SUPPLEMENTAL_SKILLS } from '../data/mesmer-supplemental-skills.js';
 import {
   MESMER_CORE_EXTRA_SKILLS,
   MESMER_CORE_SKILL_MECHANICS,
-  MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS,
-} from "../core/skills.js";
+  MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS
+} from '../core/skills.js';
 import {
   MESMER_CHRONOMANCER_EXTRA_SKILLS,
   MESMER_CHRONOMANCER_SKILL_MECHANICS,
-  MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
-} from "../specializations/chronomancer/skills.js";
+  MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS
+} from '../specializations/chronomancer/skills.js';
 import {
   MESMER_MIRAGE_EXTRA_SKILLS,
   MESMER_MIRAGE_SKILL_MECHANICS,
-  MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS,
-} from "../specializations/mirage/skills.js";
+  MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS
+} from '../specializations/mirage/skills.js';
 import {
   MESMER_VIRTUOSO_EXTRA_SKILLS,
   MESMER_VIRTUOSO_SKILL_MECHANICS,
-  MESMER_VIRTUOSO_SUPPLEMENTAL_SKILL_MECHANICS,
-} from "../specializations/virtuoso/skills.js";
+  MESMER_VIRTUOSO_SUPPLEMENTAL_SKILL_MECHANICS
+} from '../specializations/virtuoso/skills.js';
 import {
   MESMER_TROUBADOUR_EXTRA_SKILLS,
   MESMER_TROUBADOUR_SKILL_MECHANICS,
-  MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS,
-} from "../specializations/troubadour/skills.js";
+  MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
+} from '../specializations/troubadour/skills.js';
 import {
   MESMER_CORE_ARISTOCRACY_SKILLS,
   MESMER_CORE_BLIND_SKILLS,
@@ -38,8 +38,8 @@ import {
   MESMER_CORE_PHANTASM_ATTACK_TIMINGS,
   MESMER_CORE_SHATTERS,
   MESMER_CORE_TRAIT_DAMAGE,
-  MESMER_CORE_WEAPON_STRENGTH,
-} from "../core/mechanics.js";
+  MESMER_CORE_WEAPON_STRENGTH
+} from '../core/mechanics.js';
 import {
   MESMER_CHRONOMANCER_ARISTOCRACY_SKILLS,
   MESMER_CHRONOMANCER_BLIND_SKILLS,
@@ -47,8 +47,8 @@ import {
   MESMER_CHRONOMANCER_PEITHA_SKILLS,
   MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
   MESMER_CHRONOMANCER_SHATTERS,
-  MESMER_CHRONOMANCER_TRAIT_DAMAGE,
-} from "../specializations/chronomancer/mechanics.js";
+  MESMER_CHRONOMANCER_TRAIT_DAMAGE
+} from '../specializations/chronomancer/mechanics.js';
 import {
   MESMER_MIRAGE_AMBUSH_ATTACKS,
   MESMER_MIRAGE_ARISTOCRACY_SKILLS,
@@ -56,8 +56,8 @@ import {
   MESMER_MIRAGE_CONTROL_SKILLS,
   MESMER_MIRAGE_PEITHA_SKILLS,
   MESMER_MIRAGE_SHATTERS,
-  MESMER_MIRAGE_TRAIT_DAMAGE,
-} from "../specializations/mirage/mechanics.js";
+  MESMER_MIRAGE_TRAIT_DAMAGE
+} from '../specializations/mirage/mechanics.js';
 import {
   MESMER_VIRTUOSO_ARISTOCRACY_SKILLS,
   MESMER_VIRTUOSO_BLIND_SKILLS,
@@ -65,8 +65,8 @@ import {
   MESMER_VIRTUOSO_PEITHA_SKILLS,
   MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS,
   MESMER_VIRTUOSO_SHATTERS,
-  MESMER_VIRTUOSO_TRAIT_DAMAGE,
-} from "../specializations/virtuoso/mechanics.js";
+  MESMER_VIRTUOSO_TRAIT_DAMAGE
+} from '../specializations/virtuoso/mechanics.js';
 import {
   MESMER_TROUBADOUR_ARISTOCRACY_SKILLS,
   MESMER_TROUBADOUR_BLIND_SKILLS,
@@ -74,32 +74,25 @@ import {
   MESMER_TROUBADOUR_INSTRUMENTS,
   MESMER_TROUBADOUR_PEITHA_SKILLS,
   MESMER_TROUBADOUR_SHATTERS,
-  MESMER_TROUBADOUR_TRAIT_DAMAGE,
-} from "../specializations/troubadour/mechanics.js";
-import type {
-  Skill,
-  SkillFragment,
-  SkillId,
-} from "../../../platform/engine/types.js";
-import type { MesmerPhantasmAttackTiming } from "../types.js";
+  MESMER_TROUBADOUR_TRAIT_DAMAGE
+} from '../specializations/troubadour/mechanics.js';
+import type { Skill, SkillFragment, SkillId } from '../../../platform/engine/types.js';
+import type { MesmerPhantasmAttackTiming } from '../types.js';
 
-export const MESMER_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> =
-  Object.freeze({
-    ...MESMER_CORE_SKILL_MECHANICS,
-    ...MESMER_CHRONOMANCER_SKILL_MECHANICS,
-    ...MESMER_MIRAGE_SKILL_MECHANICS,
-    ...MESMER_VIRTUOSO_SKILL_MECHANICS,
-    ...MESMER_TROUBADOUR_SKILL_MECHANICS,
-  });
+export const MESMER_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
+  ...MESMER_CORE_SKILL_MECHANICS,
+  ...MESMER_CHRONOMANCER_SKILL_MECHANICS,
+  ...MESMER_MIRAGE_SKILL_MECHANICS,
+  ...MESMER_VIRTUOSO_SKILL_MECHANICS,
+  ...MESMER_TROUBADOUR_SKILL_MECHANICS
+});
 
-export const MESMER_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<
-  Record<SkillId, SkillFragment>
-> = Object.freeze({
+export const MESMER_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   ...MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS,
   ...MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
   ...MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS,
   ...MESMER_VIRTUOSO_SUPPLEMENTAL_SKILL_MECHANICS,
-  ...MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS,
+  ...MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
 });
 
 export const MESMER_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
@@ -107,119 +100,96 @@ export const MESMER_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   ...MESMER_CHRONOMANCER_EXTRA_SKILLS,
   ...MESMER_MIRAGE_EXTRA_SKILLS,
   ...MESMER_VIRTUOSO_EXTRA_SKILLS,
-  ...MESMER_TROUBADOUR_EXTRA_SKILLS,
+  ...MESMER_TROUBADOUR_EXTRA_SKILLS
 ]);
 
-export const MESMER_IMPLEMENTED_SKILL_IDS = Object.freeze(
-  Object.keys(MESMER_SKILL_MECHANICS).map(Number),
-);
-export const AMBUSH_SKILLS = Object.freeze(
-  MESMER_SUPPLEMENTAL_SKILLS.filter((skill) => skill.ambush),
-);
+export const MESMER_IMPLEMENTED_SKILL_IDS = Object.freeze(Object.keys(MESMER_SKILL_MECHANICS).map(Number));
+export const AMBUSH_SKILLS = Object.freeze(MESMER_SUPPLEMENTAL_SKILLS.filter((skill) => skill.ambush));
 export {
   MESMER_CORE_CLONE_ATTACKS,
   MESMER_CORE_WEAPON_STRENGTH,
   MESMER_MIRAGE_AMBUSH_ATTACKS,
-  MESMER_TROUBADOUR_INSTRUMENTS,
+  MESMER_TROUBADOUR_INSTRUMENTS
 };
 
 const phantasmTimingIds = new Set([
   ...Object.keys(MESMER_CORE_PHANTASM_ATTACK_TIMINGS),
   ...Object.keys(MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS),
-  ...Object.keys(MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS),
+  ...Object.keys(MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS)
 ]);
-export const PHANTASM_ATTACK_TIMINGS: Readonly<
-  Record<number, MesmerPhantasmAttackTiming>
-> = Object.freeze(
+export const PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, MesmerPhantasmAttackTiming>> = Object.freeze(
   Object.fromEntries(
     [...phantasmTimingIds].map((id) => [
       Number(id),
       {
         ...MESMER_CORE_PHANTASM_ATTACK_TIMINGS[Number(id)],
         ...MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS[Number(id)],
-        ...MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS[Number(id)],
-      },
-    ]),
-  ) as Record<number, MesmerPhantasmAttackTiming>,
+        ...MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS[Number(id)]
+      }
+    ])
+  ) as Record<number, MesmerPhantasmAttackTiming>
 );
 
-export { CONDITION_FORMULAS } from "../../../platform/gw2/condition-formulas.js";
+export { CONDITION_FORMULAS } from '../../../platform/gw2/condition-formulas.js';
 
 export const TRAIT_DAMAGE = Object.freeze({
   ...MESMER_CORE_TRAIT_DAMAGE,
   ...MESMER_CHRONOMANCER_TRAIT_DAMAGE,
   ...MESMER_MIRAGE_TRAIT_DAMAGE,
   ...MESMER_VIRTUOSO_TRAIT_DAMAGE,
-  ...MESMER_TROUBADOUR_TRAIT_DAMAGE,
+  ...MESMER_TROUBADOUR_TRAIT_DAMAGE
 });
 export const SHATTERS = Object.freeze({
   ...MESMER_CORE_SHATTERS,
   ...MESMER_CHRONOMANCER_SHATTERS,
   ...MESMER_MIRAGE_SHATTERS,
   ...MESMER_VIRTUOSO_SHATTERS,
-  ...MESMER_TROUBADOUR_SHATTERS,
+  ...MESMER_TROUBADOUR_SHATTERS
 });
 export const CONTROL_SKILLS = new Set([
   ...MESMER_CORE_CONTROL_SKILLS,
   ...MESMER_CHRONOMANCER_CONTROL_SKILLS,
   ...MESMER_MIRAGE_CONTROL_SKILLS,
   ...MESMER_VIRTUOSO_CONTROL_SKILLS,
-  ...MESMER_TROUBADOUR_CONTROL_SKILLS,
+  ...MESMER_TROUBADOUR_CONTROL_SKILLS
 ]);
 export const BLIND_SKILLS = new Set([
   ...MESMER_CORE_BLIND_SKILLS,
   ...MESMER_CHRONOMANCER_BLIND_SKILLS,
   ...MESMER_MIRAGE_BLIND_SKILLS,
   ...MESMER_VIRTUOSO_BLIND_SKILLS,
-  ...MESMER_TROUBADOUR_BLIND_SKILLS,
+  ...MESMER_TROUBADOUR_BLIND_SKILLS
 ]);
 export const ARISTOCRACY_SKILLS = new Set([
   ...MESMER_CORE_ARISTOCRACY_SKILLS,
   ...MESMER_CHRONOMANCER_ARISTOCRACY_SKILLS,
   ...MESMER_MIRAGE_ARISTOCRACY_SKILLS,
   ...MESMER_VIRTUOSO_ARISTOCRACY_SKILLS,
-  ...MESMER_TROUBADOUR_ARISTOCRACY_SKILLS,
+  ...MESMER_TROUBADOUR_ARISTOCRACY_SKILLS
 ]);
 export const PEITHA_SKILLS = new Set([
   ...MESMER_CORE_PEITHA_SKILLS,
   ...MESMER_CHRONOMANCER_PEITHA_SKILLS,
   ...MESMER_MIRAGE_PEITHA_SKILLS,
   ...MESMER_VIRTUOSO_PEITHA_SKILLS,
-  ...MESMER_TROUBADOUR_PEITHA_SKILLS,
+  ...MESMER_TROUBADOUR_PEITHA_SKILLS
 ]);
-export const MECHANIC_SKILLS: Readonly<Record<string, readonly number[]>> =
-  Object.freeze({
-    Core: Object.freeze([
-      ID.MIND_WRACK,
-      ID.CRY_OF_FRUSTRATION,
-      ID.DIVERSION,
-      ID.DISTORTION,
-    ]),
-    Chronomancer: Object.freeze([
-      ID.SPLIT_SECOND,
-      ID.REWINDER,
-      ID.TIME_SINK,
-      ID.DISTORTION,
-      ID.CONTINUUM_SPLIT,
-    ]),
-    Mirage: Object.freeze([
-      ID.MIND_WRACK,
-      ID.CRY_OF_FRUSTRATION,
-      ID.DIVERSION,
-      ID.DISTORTION,
-    ]),
-    Virtuoso: Object.freeze([
-      ID.BLADESONG_HARMONY,
-      ID.BLADESONG_SORROW,
-      ID.BLADESONG_DISSONANCE,
-      ID.BLADESONG_DISTORTION,
-      ID.BLADETURN_REQUIEM,
-    ]),
-    Troubadour: Object.freeze([
-      ID.LIVELY_LUTE,
-      ID.FLUSTERING_FLUTE,
-      ID.DEAFENING_DRUM,
-      ID.HARMONIOUS_HARP_ALTERNATE,
-      ID.CRESCENDO,
-    ]),
-  });
+export const MECHANIC_SKILLS: Readonly<Record<string, readonly number[]>> = Object.freeze({
+  Core: Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]),
+  Chronomancer: Object.freeze([ID.SPLIT_SECOND, ID.REWINDER, ID.TIME_SINK, ID.DISTORTION, ID.CONTINUUM_SPLIT]),
+  Mirage: Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]),
+  Virtuoso: Object.freeze([
+    ID.BLADESONG_HARMONY,
+    ID.BLADESONG_SORROW,
+    ID.BLADESONG_DISSONANCE,
+    ID.BLADESONG_DISTORTION,
+    ID.BLADETURN_REQUIEM
+  ]),
+  Troubadour: Object.freeze([
+    ID.LIVELY_LUTE,
+    ID.FLUSTERING_FLUTE,
+    ID.DEAFENING_DRUM,
+    ID.HARMONIOUS_HARP_ALTERNATE,
+    ID.CRESCENDO
+  ])
+});

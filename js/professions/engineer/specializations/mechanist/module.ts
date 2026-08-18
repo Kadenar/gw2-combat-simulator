@@ -1,28 +1,24 @@
-import {
-  afterSkillEffects,
-  defineNativeModule,
-  onResolvedDamage,
-} from "../../../../platform/gw2/native-profession.js";
-import { createEngineerModuleData } from "../../catalog-data.js";
-import { mechanistSkillHandlers } from "./handlers.js";
-import { mechanistResolverEventReactions } from "./resolver.js";
+import { afterSkillEffects, defineNativeModule, onResolvedDamage } from '../../../../platform/gw2/native-profession.js';
+import { createEngineerModuleData } from '../../catalog-data.js';
+import { mechanistSkillHandlers } from './handlers.js';
+import { mechanistResolverEventReactions } from './resolver.js';
 import {
   mechanistAdvancedSchedulerHooks,
   mechanistAfterCast,
   mechanistAttributeRules,
-  mechanistCastRules,
-} from "./rules.js";
-import { MECHANIST_SKILL_MECHANICS } from "./skills.js";
-import { mechanistState } from "./state.js";
-import { MECHANIST_BALANCE_PROFILES } from "./profiles.js";
-import { mechanistUi } from "./ui.js";
+  mechanistCastRules
+} from './rules.js';
+import { MECHANIST_SKILL_MECHANICS } from './skills.js';
+import { mechanistState } from './state.js';
+import { MECHANIST_BALANCE_PROFILES } from './profiles.js';
+import { mechanistUi } from './ui.js';
 
 export const mechanistModule = defineNativeModule({
-  id: "Mechanist",
-  data: createEngineerModuleData("Mechanist", {
+  id: 'Mechanist',
+  data: createEngineerModuleData('Mechanist', {
     skillMechanics: MECHANIST_SKILL_MECHANICS,
     balanceProfiles: MECHANIST_BALANCE_PROFILES,
-    handlers: mechanistSkillHandlers,
+    handlers: mechanistSkillHandlers
   }),
   state: { scheduler: mechanistState.create, resolver: mechanistState.create },
   mechanics: {
@@ -32,10 +28,10 @@ export const mechanistModule = defineNativeModule({
     schedulerHooks: mechanistAdvancedSchedulerHooks,
     reactions: [
       onResolvedDamage({
-        id: "engineer.mechanist.damage",
-        handler: mechanistResolverEventReactions.damage,
-      }),
-    ],
+        id: 'engineer.mechanist.damage',
+        handler: mechanistResolverEventReactions.damage
+      })
+    ]
   },
-  presentation: mechanistUi,
+  presentation: mechanistUi
 });

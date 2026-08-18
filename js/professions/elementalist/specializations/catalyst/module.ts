@@ -5,32 +5,28 @@ import {
   onBuffApplied,
   onConditionApplied,
   onResolvedControl,
-  onResolvedDamage,
-} from "../../../../platform/gw2/native-profession.js";
-import { createElementalistModuleData } from "../../catalog-data.js";
+  onResolvedDamage
+} from '../../../../platform/gw2/native-profession.js';
+import { createElementalistModuleData } from '../../catalog-data.js';
 import {
   applyCatalystEmpowerment,
   applyCatalystComboTraits,
   applyCatalystResolverAura,
   applyCatalystResolvedDamage,
   applySteamshrieker,
-  applyViciousEmpowerment,
-} from "./resolver.js";
-import {
-  catalystAttributeRules,
-  catalystCastRules,
-  catalystSchedulerHooks,
-} from "./rules.js";
-import { createCatalystState } from "./state.js";
-import { catalystUi } from "./ui.js";
-import { CATALYST_SKILL_MECHANICS } from "./skills.js";
-import { CATALYST_BALANCE_PROFILES } from "./profiles.js";
+  applyViciousEmpowerment
+} from './resolver.js';
+import { catalystAttributeRules, catalystCastRules, catalystSchedulerHooks } from './rules.js';
+import { createCatalystState } from './state.js';
+import { catalystUi } from './ui.js';
+import { CATALYST_SKILL_MECHANICS } from './skills.js';
+import { CATALYST_BALANCE_PROFILES } from './profiles.js';
 
 export const catalystModule = defineNativeModule({
-  id: "Catalyst",
-  data: createElementalistModuleData("Catalyst", {
+  id: 'Catalyst',
+  data: createElementalistModuleData('Catalyst', {
     skillMechanics: CATALYST_SKILL_MECHANICS,
-    balanceProfiles: CATALYST_BALANCE_PROFILES,
+    balanceProfiles: CATALYST_BALANCE_PROFILES
   }),
   state: { scheduler: createCatalystState, resolver: createCatalystState },
   mechanics: {
@@ -39,34 +35,34 @@ export const catalystModule = defineNativeModule({
     schedulerHooks: catalystSchedulerHooks,
     reactions: [
       onAuraApplied({
-        id: "elementalist.catalyst-aura",
-        handler: applyCatalystResolverAura,
+        id: 'elementalist.catalyst-aura',
+        handler: applyCatalystResolverAura
       }),
       onResolvedDamage({
-        id: "elementalist.catalyst-shattering-ice",
-        handler: applyCatalystResolvedDamage,
+        id: 'elementalist.catalyst-shattering-ice',
+        handler: applyCatalystResolvedDamage
       }),
       onBuffApplied({
-        id: "elementalist.catalyst-empowerment",
-        handler: applyCatalystEmpowerment,
+        id: 'elementalist.catalyst-empowerment',
+        handler: applyCatalystEmpowerment
       }),
       onResolvedControl({
-        id: "elementalist.catalyst-vicious-empowerment-control",
-        handler: applyViciousEmpowerment,
+        id: 'elementalist.catalyst-vicious-empowerment-control',
+        handler: applyViciousEmpowerment
       }),
       onConditionApplied({
-        id: "elementalist.catalyst-vicious-empowerment-immobilize",
-        handler: applyViciousEmpowerment,
+        id: 'elementalist.catalyst-vicious-empowerment-immobilize',
+        handler: applyViciousEmpowerment
       }),
       onComboResolved({
-        id: "elementalist.catalyst-combo-traits",
-        handler: applyCatalystComboTraits,
+        id: 'elementalist.catalyst-combo-traits',
+        handler: applyCatalystComboTraits
       }),
       onComboResolved({
-        id: "elementalist.catalyst-steamshrieker",
-        handler: applySteamshrieker,
-      }),
-    ],
+        id: 'elementalist.catalyst-steamshrieker',
+        handler: applySteamshrieker
+      })
+    ]
   },
-  presentation: catalystUi,
+  presentation: catalystUi
 });

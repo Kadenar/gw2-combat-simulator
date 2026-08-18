@@ -1,5 +1,5 @@
-import type { CatalogEntity } from "../../../platform/engine/types.js";
-import type { GuardianSkill } from "../types.js";
+import type { CatalogEntity } from '../../../platform/engine/types.js';
+import type { GuardianSkill } from '../types.js';
 
 export interface GuardianApiTrait extends CatalogEntity {
   readonly description: string;

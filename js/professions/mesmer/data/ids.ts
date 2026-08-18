@@ -143,7 +143,7 @@ export const MESMER_SKILL_IDS = Object.freeze({
   TALE_OF_THE_SECOND_SCION: 76695, // Tale of the Second Scion
   TALE_OF_THE_SOULKEEPER: 76850, // Tale of the Soulkeeper
   TALE_OF_THE_AUGUST_QUEEN: 76971, // Tale of the August Queen
-  TALE_OF_THE_VALIANT_MARSHAL: 77178, // Tale of the Valiant Marshal
+  TALE_OF_THE_VALIANT_MARSHAL: 77178 // Tale of the Valiant Marshal
 });
 
 export const MESMER_TRAIT_IDS = Object.freeze({
@@ -207,5 +207,5 @@ export const MESMER_TRAIT_IDS = Object.freeze({
   CALL_AND_RESPONSE: 2414,
   HARMONIZE: 2374,
   TIME_BOMB: 1978,
-  VICIOUS_EXPRESSION: 681,
+  VICIOUS_EXPRESSION: 681
 });

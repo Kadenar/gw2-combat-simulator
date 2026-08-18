@@ -6,16 +6,16 @@ import type {
   SchedulerState,
   SimulationEvent,
   Skill,
-  SkillId,
-} from "../../platform/engine/types.js";
+  SkillId
+} from '../../platform/engine/types.js';
 import type {
   Gw2Build,
   Gw2BuildSpecialization,
   Gw2CanonicalBuild,
   Gw2Config,
   Gw2ResolverEvent,
-  Gw2ResolverRuntime,
-} from "../../platform/gw2/types.js";
+  Gw2ResolverRuntime
+} from '../../platform/gw2/types.js';
 
 export interface WarriorBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
@@ -32,8 +32,7 @@ export interface WarriorCanonicalBuild extends Gw2CanonicalBuild {
 export interface WarriorConfig extends Gw2Config {
   readonly specialization?: string;
   readonly initialResource?: number;
-  readonly selectedSkills?:
-    readonly string[] | Readonly<Record<string, string>>;
+  readonly selectedSkills?: readonly string[] | Readonly<Record<string, string>>;
 }
 
 export interface WarriorCoreState {
@@ -128,21 +127,16 @@ export interface ParagonState {
 }
 
 export interface WarriorState
-  extends
-    WarriorCoreState,
-    BerserkerState,
-    SpellbreakerState,
-    BladeswornState,
-    ParagonState {}
+  extends WarriorCoreState, BerserkerState, SpellbreakerState, BladeswornState, ParagonState {}
 
 export interface WarriorRuntimeState {
   core: WarriorCoreState;
   specialization:
-    | { kind: "Core"; state: Record<string, never> }
-    | { kind: "Berserker"; state: BerserkerState }
-    | { kind: "Spellbreaker"; state: SpellbreakerState }
-    | { kind: "Bladesworn"; state: BladeswornState }
-    | { kind: "Paragon"; state: ParagonState };
+    | { kind: 'Core'; state: Record<string, never> }
+    | { kind: 'Berserker'; state: BerserkerState }
+    | { kind: 'Spellbreaker'; state: SpellbreakerState }
+    | { kind: 'Bladesworn'; state: BladeswornState }
+    | { kind: 'Paragon'; state: ParagonState };
 }
 
 export interface WarriorSkill extends Skill {

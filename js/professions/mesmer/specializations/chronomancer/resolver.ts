@@ -1,3 +1,3 @@
 export const chronomancerEventHandlers = Object.freeze({
-  "mesmer.phantasm-resummoned": (): void => {},
+  'mesmer.phantasm-resummoned': (): void => {}
 });

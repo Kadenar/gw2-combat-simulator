@@ -1,32 +1,22 @@
-import { antiquaryState } from "./state.js";
-import { THIEF_TRAIT_IDS as TRAIT } from "../../data/ids.js";
-import { hasThiefTrait } from "../../core/state.js";
-import { emitThiefState, gainThiefInitiative } from "../../core/shared.js";
-import { pilferArtifacts } from "./artifacts.js";
-import type {
-  ThiefCastContext,
-  ThiefSchedulerContext,
-  ThiefSkill,
-} from "../../types.js";
-import { thiefBalanceProfile } from "../../core/profiles.js";
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
+import { antiquaryState } from './state.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { hasThiefTrait } from '../../core/state.js';
+import { emitThiefState, gainThiefInitiative } from '../../core/shared.js';
+import { pilferArtifacts } from './artifacts.js';
+import type { ThiefCastContext, ThiefSchedulerContext, ThiefSkill } from '../../types.js';
+import { thiefBalanceProfile } from '../../core/profiles.js';
+import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
-export function advanceAntiquaryResources(
-  context: ThiefSchedulerContext,
-  target: number,
-): void {
+export function advanceAntiquaryResources(context: ThiefSchedulerContext, target: number): void {
   const state = antiquaryState.from(context);
   state.activeAntiquarySummons = state.activeAntiquarySummons.filter(
-    (summon) => Number(summon.expiresAt || 0) > target,
+    (summon) => Number(summon.expiresAt || 0) > target
   );
-  const combatHighRemaining = Math.max(
-    0,
-    Number(state.combatHighExpiresAt || 0) - target,
-  );
+  const combatHighRemaining = Math.max(0, Number(state.combatHighExpiresAt || 0) - target);
   const combatHigh = thiefBalanceProfile(context, PROFILE.combatHigh);
   state.combatHighStacks = Math.min(
     Number(combatHigh?.maximumStacks || 10),
-    Math.ceil(combatHighRemaining / Number(combatHigh?.pulseInterval || 2)),
+    Math.ceil(combatHighRemaining / Number(combatHigh?.pulseInterval || 2))
   );
   if (Number(state.stealthAttackExpiresAt || 0) <= target) {
     state.stealthAttackCharges = 0;
@@ -44,35 +34,27 @@ export function advanceAntiquaryResources(
       delete state.backfireState[skillId];
     }
   }
-  emitThiefState(context, target, "resources");
+  emitThiefState(context, target, 'resources');
 }
 
-export function spendAntiquaryResources(
-  context: ThiefCastContext,
-  skill: ThiefSkill,
-): void {
+export function spendAntiquaryResources(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = antiquaryState.from(context);
   const cost = Number(skill.initiativeCost || 0);
   if (!(cost > 0)) return;
   state.initiativeSpentSincePilfer += cost;
   if (Number(state.chakInitiativeRefundUntil || 0) > context.start) {
-    gainThiefInitiative(context, cost, context.start, "chak-shield-refund");
+    gainThiefInitiative(context, cost, context.start, 'chak-shield-refund');
   }
   // Prodigious Pincher should not fire during pre-cast; initiative spent before combat begins must not count toward the threshold
   const inCombat =
     !context.hasExplicitCombatStart ||
     (context.combatStartTime != null &&
-      context.start + Number(context.epsilon || 0.0001) >=
-        Number(context.combatStartTime));
+      context.start + Number(context.epsilon || 0.0001) >= Number(context.combatStartTime));
   if (
     inCombat &&
     hasThiefTrait(context.config, TRAIT.PRODIGIOUS_PINCHER) &&
-    state.initiativeSpentSincePilfer >=
-      Number(
-        thiefBalanceProfile(context, PROFILE.prodigiousPincher)?.threshold ||
-          15,
-      )
+    state.initiativeSpentSincePilfer >= Number(thiefBalanceProfile(context, PROFILE.prodigiousPincher)?.threshold || 15)
   ) {
-    pilferArtifacts(context, context.start, "prodigious-pincher", "initiative");
+    pilferArtifacts(context, context.start, 'prodigious-pincher', 'initiative');
   }
 }

@@ -7,8 +7,8 @@ import type {
   SchedulerState,
   SimulationEvent,
   Skill,
-  SkillId,
-} from "../../platform/engine/types.js";
+  SkillId
+} from '../../platform/engine/types.js';
 import type {
   Gw2Build,
   Gw2BuildSpecialization,
@@ -18,8 +18,8 @@ import type {
   Gw2HitResolutionContext,
   Gw2QueryRuntime,
   Gw2ResolverEvent,
-  Gw2ResolverRuntime,
-} from "../../platform/gw2/types.js";
+  Gw2ResolverRuntime
+} from '../../platform/gw2/types.js';
 
 export interface NecromancerBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
@@ -43,8 +43,7 @@ export interface NecromancerConfig extends Gw2Config {
   readonly initialBlight?: number;
   readonly initialCascadingCorruptionStacks?: number;
   readonly duration?: number;
-  readonly selectedSkills?:
-    readonly string[] | Readonly<Record<string, string>>;
+  readonly selectedSkills?: readonly string[] | Readonly<Record<string, string>>;
   readonly professionAssumptions?: Readonly<Record<string, unknown>>;
 }
 
@@ -138,21 +137,16 @@ export interface RitualistState {
 }
 
 export interface NecromancerState
-  extends
-    NecromancerCoreState,
-    ReaperState,
-    ScourgeState,
-    HarbingerState,
-    RitualistState {}
+  extends NecromancerCoreState, ReaperState, ScourgeState, HarbingerState, RitualistState {}
 
 export interface NecromancerRuntimeState {
   core: NecromancerCoreState;
   specialization:
-    | { kind: "Core"; state: Record<string, never> }
-    | { kind: "Reaper"; state: ReaperState }
-    | { kind: "Scourge"; state: ScourgeState }
-    | { kind: "Harbinger"; state: HarbingerState }
-    | { kind: "Ritualist"; state: RitualistState };
+    | { kind: 'Core'; state: Record<string, never> }
+    | { kind: 'Reaper'; state: ReaperState }
+    | { kind: 'Scourge'; state: ScourgeState }
+    | { kind: 'Harbinger'; state: HarbingerState }
+    | { kind: 'Ritualist'; state: RitualistState };
 }
 
 export interface NecromancerSkill extends Skill {
@@ -167,17 +161,15 @@ export interface NecromancerSkill extends Skill {
   readonly slotSelectable?: boolean;
 }
 
-export type NecromancerSchedulerContext =
-  SchedulerContext<NecromancerRuntimeState> & {
-    readonly catalog: CanonicalCatalog<NecromancerSkill>;
-    readonly config: NecromancerConfig;
-  };
+export type NecromancerSchedulerContext = SchedulerContext<NecromancerRuntimeState> & {
+  readonly catalog: CanonicalCatalog<NecromancerSkill>;
+  readonly config: NecromancerConfig;
+};
 
-export type NecromancerCastContext =
-  CastLifecycleContext<NecromancerRuntimeState> & {
-    readonly catalog: CanonicalCatalog<NecromancerSkill>;
-    readonly config: NecromancerConfig;
-  };
+export type NecromancerCastContext = CastLifecycleContext<NecromancerRuntimeState> & {
+  readonly catalog: CanonicalCatalog<NecromancerSkill>;
+  readonly config: NecromancerConfig;
+};
 
 export type NecromancerEmissionContext = NecromancerSchedulerContext & {
   readonly effectiveEnd?: number;
@@ -190,7 +182,7 @@ export type NecromancerPrecastContext = CastContext<NecromancerRuntimeState> & {
 
 export type NecromancerCastModifierContext = Omit<
   CastContext<NecromancerRuntimeState>,
-  "config" | "skill" | "state"
+  'config' | 'skill' | 'state'
 > & {
   readonly config: NecromancerConfig;
   readonly skill?: NecromancerSkill;
@@ -199,19 +191,15 @@ export type NecromancerCastModifierContext = Omit<
   readonly hasBuff?: (name: string, at: number) => boolean;
 };
 
-export type NecromancerRechargeModifierContext = Omit<
-  SchedulerContext<NecromancerRuntimeState>,
-  "config"
-> & {
+export type NecromancerRechargeModifierContext = Omit<SchedulerContext<NecromancerRuntimeState>, 'config'> & {
   readonly config: NecromancerConfig;
   readonly skill?: NecromancerSkill;
   readonly minionDeathRecharge?: boolean;
 };
 
-export type NecromancerAmmoModifierContext =
-  NecromancerRechargeModifierContext & {
-    readonly skill?: NecromancerSkill;
-  };
+export type NecromancerAmmoModifierContext = NecromancerRechargeModifierContext & {
+  readonly skill?: NecromancerSkill;
+};
 
 export type NecromancerSimulationEvent = SimulationEvent & {
   readonly activeSpirits?: number;
@@ -283,15 +271,11 @@ export type NecromancerResolverContext = Gw2ResolverRuntime & {
 
 export interface NecromancerResolverReactionDetails extends SchedulerRecord {
   readonly hitContext?: Gw2HitResolutionContext;
-  readonly applyCondition?: (
-    context: Gw2ResolverRuntime,
-    event: Gw2EventDraft,
-  ) => unknown;
+  readonly applyCondition?: (context: Gw2ResolverRuntime, event: Gw2EventDraft) => unknown;
 }
 
 export type NecromancerQueryRuntime = Gw2QueryRuntime & {
-  readonly profession?:
-    NecromancerRuntimeState | Partial<NecromancerState> | null;
+  readonly profession?: NecromancerRuntimeState | Partial<NecromancerState> | null;
   readonly totals?: {
     readonly strike?: number;
     readonly condition?: number;

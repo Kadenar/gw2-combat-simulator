@@ -1,22 +1,16 @@
-import { hasTrait } from "../../../../platform/gw2/trait-state.js";
-import { gw2RechargeRate } from "../../../../platform/gw2/runtime-rules.js";
-import {
-  WARRIOR_SKILL_IDS as ID,
-  WARRIOR_TRAIT_IDS as TRAIT,
-} from "../../data/ids.js";
-import { warriorBoonRemovalCounts } from "../../core/resolver.js";
-import {
-  warriorBalanceProfile,
-  warriorBalanceProfileEffect,
-} from "../../core/profiles.js";
-import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
-import { spellbreakerState } from "./state.js";
+import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { gw2RechargeRate } from '../../../../platform/gw2/runtime-rules.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { warriorBoonRemovalCounts } from '../../core/resolver.js';
+import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../core/profiles.js';
+import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { spellbreakerState } from './state.js';
 import type {
   WarriorResolverContext,
   WarriorResolverEvent,
   WarriorSchedulerContext,
-  WarriorSimulationEvent,
-} from "../../types.js";
+  WarriorSimulationEvent
+} from '../../types.js';
 
 // Kick grants 2 Attacker's Insight stacks instead of 1 against defiant targets.
 const DOUBLE_DEFIANT_CONTROL_INSIGHT_SKILLS = new Set<number>([ID.KICK]);
@@ -25,13 +19,13 @@ function gainAttackersInsight(
   context: WarriorSchedulerContext | WarriorResolverContext,
   state: { attackerInsightExpiries: number[] },
   at: number,
-  applications = 1,
+  applications = 1
 ): void {
   const profile = warriorBalanceProfile(context, PROFILE.attackersInsight);
-  const effect = warriorBalanceProfileEffect(profile, "buff");
+  const effect = warriorBalanceProfileEffect(profile, 'buff');
   const expiries = Array.from(
     { length: Math.max(1, Math.trunc(applications)) },
-    () => at + Number(effect?.duration ?? 15),
+    () => at + Number(effect?.duration ?? 15)
   );
   // slice(-max) drops the oldest stacks when at cap, matching game behavior.
   state.attackerInsightExpiries = state.attackerInsightExpiries
@@ -42,17 +36,16 @@ function gainAttackersInsight(
 
 function attackerInsightApplications(
   context: WarriorSchedulerContext | WarriorResolverContext,
-  event: WarriorSimulationEvent | WarriorResolverEvent,
+  event: WarriorSimulationEvent | WarriorResolverEvent
 ): number {
-  return DOUBLE_DEFIANT_CONTROL_INSIGHT_SKILLS.has(Number(event.skillId)) &&
-    context.config.target?.defiant === true
+  return DOUBLE_DEFIANT_CONTROL_INSIGHT_SKILLS.has(Number(event.skillId)) && context.config.target?.defiant === true
     ? 2
     : 1;
 }
 
 function attackerInsightFromBoonRemoval(
   context: WarriorSchedulerContext | WarriorResolverContext,
-  event: WarriorSimulationEvent | WarriorResolverEvent,
+  event: WarriorSimulationEvent | WarriorResolverEvent
 ): { attempted: number; removed: number; applications: number } {
   const { attempted, removed } = warriorBoonRemovalCounts(context, event);
   return { attempted, removed, applications: removed };
@@ -64,123 +57,83 @@ function triggerMagebaneTether(
     magebaneTetherUntil: number;
     magebaneTetherReadyAt: number;
   },
-  at: number,
+  at: number
 ): boolean {
   if (at < state.magebaneTetherReadyAt) return false;
   const profile = warriorBalanceProfile(context, PROFILE.magebaneTether);
-  const effect = warriorBalanceProfileEffect(profile, "buff");
+  const effect = warriorBalanceProfileEffect(profile, 'buff');
   state.magebaneTetherUntil = at + Number(effect?.duration ?? 8);
   // Divide by recharge rate so alacrity reduces the internal cooldown.
-  state.magebaneTetherReadyAt =
-    at + Number(profile?.cooldown ?? 12) / gw2RechargeRate(context.config);
+  state.magebaneTetherReadyAt = at + Number(profile?.cooldown ?? 12) / gw2RechargeRate(context.config);
   return true;
 }
 
-export function observeSpellbreakerEvent(
-  context: WarriorSchedulerContext,
-  event: WarriorSimulationEvent,
-): void {
-  if (event.actorType !== "player") return;
-  if (event.type === "warrior.boon-removal") {
+export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
+  if (event.actorType !== 'player') return;
+  if (event.type === 'warrior.boon-removal') {
     const { applications } = attackerInsightFromBoonRemoval(context, event);
     if (applications > 0 && hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
-      gainAttackersInsight(
-        context,
-        spellbreakerState.from(context),
-        event.at,
-        applications,
-      );
+      gainAttackersInsight(context, spellbreakerState.from(context), event.at, applications);
     }
     return;
   }
-  if (event.type === "control") {
+  if (event.type === 'control') {
     if (hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
       gainAttackersInsight(
         context,
         spellbreakerState.from(context),
         event.at,
-        attackerInsightApplications(context, event),
+        attackerInsightApplications(context, event)
       );
     }
     if (
       hasTrait(context, TRAIT.NO_ESCAPE) &&
-      ["daze", "stun"].includes(String(event.controlKind || "").toLowerCase())
+      ['daze', 'stun'].includes(String(event.controlKind || '').toLowerCase())
     ) {
-      const effect = warriorBalanceProfileEffect(
-        warriorBalanceProfile(context, PROFILE.noEscape),
-        "condition",
-      );
+      const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.noEscape), 'condition');
       context.emitDerived(event, {
-        type: "condition",
+        type: 'condition',
         at: event.at,
-        source: "Trait",
+        source: 'Trait',
         sourceId: TRAIT.NO_ESCAPE,
-        actorType: "effect",
+        actorType: 'effect',
         skillId: event.skillId,
         skillName: event.skillName,
-        name: "No Escape - Immobilized",
-        condition: "Immobilized",
+        name: 'No Escape - Immobilized',
+        condition: 'Immobilized',
         stacks: Number(effect?.stacks ?? 1),
-        duration: Number(effect?.duration ?? 1),
+        duration: Number(effect?.duration ?? 1)
       });
     }
     return;
   }
-  if (event.type !== "damage" || !(Number(event.coefficient) > 0)) {
+  if (event.type !== 'damage' || !(Number(event.coefficient) > 0)) {
     return;
   }
   if (!hasTrait(context, TRAIT.MAGEBANE_TETHER)) return;
-  const skill =
-    event.skillId == null
-      ? undefined
-      : context.catalog.skillsById.get(event.skillId);
+  const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
   if (skill?.burst) {
     triggerMagebaneTether(context, spellbreakerState.from(context), event.at);
   }
 }
 
-export function reactToSpellbreakerControl(
-  context: WarriorResolverContext,
-  event: WarriorResolverEvent,
-): void {
-  if (
-    event.actorType === "player" &&
-    hasTrait(context, TRAIT.ATTACKERS_INSIGHT)
-  ) {
+export function reactToSpellbreakerControl(context: WarriorResolverContext, event: WarriorResolverEvent): void {
+  if (event.actorType === 'player' && hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
     gainAttackersInsight(
       context,
       spellbreakerState.from(context),
       event.at,
-      attackerInsightApplications(context, event),
+      attackerInsightApplications(context, event)
     );
   }
 }
 
-export function reactToSpellbreakerDamage(
-  context: WarriorResolverContext,
-  event: WarriorResolverEvent,
-): void {
-  if (
-    event.actorType !== "player" ||
-    !(Number(event.coefficient) > 0) ||
-    !hasTrait(context, TRAIT.MAGEBANE_TETHER)
-  ) {
+export function reactToSpellbreakerDamage(context: WarriorResolverContext, event: WarriorResolverEvent): void {
+  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || !hasTrait(context, TRAIT.MAGEBANE_TETHER)) {
     return;
   }
-  const skill =
-    event.skillId == null
-      ? undefined
-      : context.helpers.skillsById?.get(event.skillId);
-  if (
-    skill?.burst &&
-    triggerMagebaneTether(context, spellbreakerState.from(context), event.at)
-  ) {
-    context.recordProc(
-      "trait",
-      "Magebane Tether",
-      event.at,
-      event.skillName,
-      "15% strike damage for 8 seconds",
-    );
+  const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
+  if (skill?.burst && triggerMagebaneTether(context, spellbreakerState.from(context), event.at)) {
+    context.recordProc('trait', 'Magebane Tether', event.at, event.skillName, '15% strike damage for 8 seconds');
   }
 }

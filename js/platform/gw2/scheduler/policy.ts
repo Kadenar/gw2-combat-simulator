@@ -23,22 +23,16 @@
  * a cast-scaled effect follows the same scale unless it explicitly declares
  * `intervalTimingScale: "fixed"`.
  */
-import {
-  createGw2TriggerMaterializer,
-  GW2_MATERIALIZE_EVENT_TASK,
-} from "./proc-materializer.js";
-import {
-  createGw2ComboMaterializer,
-  GW2_COMBO_MATERIALIZE_EVENT_TASK,
-} from "./combo-materializer.js";
-import { createGw2EventPreparer } from "./event-preparer.js";
+import { createGw2TriggerMaterializer, GW2_MATERIALIZE_EVENT_TASK } from './proc-materializer.js';
+import { createGw2ComboMaterializer, GW2_COMBO_MATERIALIZE_EVENT_TASK } from './combo-materializer.js';
+import { createGw2EventPreparer } from './event-preparer.js';
 import {
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
-  remainingDurationStackSeconds,
-} from "../boon-state.js";
-import { clamp } from "../numeric.js";
-import { gw2StatsForWeaponSet } from "../runtime-rules.js";
+  remainingDurationStackSeconds
+} from '../boon-state.js';
+import { clamp } from '../numeric.js';
+import { gw2StatsForWeaponSet } from '../runtime-rules.js';
 import type {
   CanonicalCatalog,
   CastContext,
@@ -46,19 +40,10 @@ import type {
   SchedulerRecord,
   SimulationEvent,
   Skill,
-  SkillEffect,
-} from "../../engine/types.js";
-import {
-  defaultWeaponSkillMatchesSet,
-  weaponSkillMatchesSet,
-} from "../weapon-skill-matcher.js";
-import type {
-  Gw2CombatQuery,
-  Gw2Config,
-  Gw2SchedulerPolicy,
-  Gw2Stats,
-  Gw2WeaponSkillMatcher,
-} from "../types.js";
+  SkillEffect
+} from '../../engine/types.js';
+import { defaultWeaponSkillMatchesSet, weaponSkillMatchesSet } from '../weapon-skill-matcher.js';
+import type { Gw2CombatQuery, Gw2Config, Gw2SchedulerPolicy, Gw2Stats, Gw2WeaponSkillMatcher } from '../types.js';
 
 interface CreateGw2SchedulerPolicyOptions {
   readonly traits?: ReadonlySet<string | number> | null;
@@ -79,7 +64,7 @@ const QUICKNESS_ACTION_RATE = 1.5;
 const ACTION_TICK_MS = 40;
 /** Alacrity increases recharge rate by 25%, so duration is divided by 1.25. */
 export const GW2_ALACRITY_RECHARGE_RATE = 1.25;
-const OUT_OF_COMBAT_SWAP_SKILLS = new Set(["Swap Weapons", "Swap Legends"]);
+const OUT_OF_COMBAT_SWAP_SKILLS = new Set(['Swap Weapons', 'Swap Legends']);
 
 /** Rounds a positive duration up to the next server/action interval. */
 function quantizeUp(value: number, interval: number): number {
@@ -102,16 +87,11 @@ function baseCastDurationMs(skill: Skill): number {
  * `timingAnchor` remains independent: the scaled offset is still measured from
  * whichever anchor the effect declares (`castStart` or `castEnd`).
  */
-function scaleCastBoundTiming(
-  context: CastBoundTimingContext,
-  skill: Skill,
-  effect: SkillEffect,
-): SkillEffect {
-  if (effect.timingScale !== "cast") return effect;
+function scaleCastBoundTiming(context: CastBoundTimingContext, skill: Skill, effect: SkillEffect): SkillEffect {
+  if (effect.timingScale !== 'cast') return effect;
   const baseCastMs = baseCastDurationMs(skill);
   if (!(baseCastMs > 0)) return effect;
-  const adjustedCastMs =
-    Math.max(0, Number(context.fullEnd - context.start)) * 1000;
+  const adjustedCastMs = Math.max(0, Number(context.fullEnd - context.start)) * 1000;
   const scale = adjustedCastMs / baseCastMs;
   // Return a copy because skill metadata is shared by every simulation run.
   return {
@@ -120,19 +100,19 @@ function scaleCastBoundTiming(
       ? {
           ticks: effect.ticks.map((tick) => ({
             ...tick,
-            atMs: Number(tick.atMs) * scale,
-          })),
+            atMs: Number(tick.atMs) * scale
+          }))
         }
       : {}),
     ...(effect.atMs == null ? {} : { atMs: Number(effect.atMs) * scale }),
-    ...(effect.intervalMs == null || effect.intervalTimingScale === "fixed"
+    ...(effect.intervalMs == null || effect.intervalTimingScale === 'fixed'
       ? {}
-      : { intervalMs: Number(effect.intervalMs) * scale }),
+      : { intervalMs: Number(effect.intervalMs) * scale })
   };
 }
 
 function titleCase(value: unknown): string {
-  const normalized = String(value || "").toLowerCase();
+  const normalized = String(value || '').toLowerCase();
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
@@ -140,38 +120,34 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
   kind: string,
   at: number,
-  audience: "self" | "summon" = "self",
+  audience: 'self' | 'summon' = 'self'
 ): boolean {
-  if (audience === "self") return context.hasBuff(kind, at);
-  const normalized = String(kind || "").toLowerCase();
+  if (audience === 'self') return context.hasBuff(kind, at);
+  const normalized = String(kind || '').toLowerCase();
   if (isDurationStackingBoon(normalized)) {
     return (
       remainingDurationStackSeconds(context.events, at + context.epsilon, {
         includes: (event) =>
-          event.type === "buff" &&
-          String(event.kind || "").toLowerCase() === normalized &&
+          event.type === 'buff' &&
+          String(event.kind || '').toLowerCase() === normalized &&
           event.affectsSummons === true &&
           Number(event.stacks || 1) > 0,
-        maximum: durationStackingBoonCapSeconds(normalized),
+        maximum: durationStackingBoonCapSeconds(normalized)
       }) > context.epsilon
     );
   }
   return context.events.some(
     (event) =>
-      event.type === "buff" &&
-      String(event.kind || "").toLowerCase() === normalized &&
+      event.type === 'buff' &&
+      String(event.kind || '').toLowerCase() === normalized &&
       event.affectsSummons === true &&
       Number(event.stacks || 1) > 0 &&
       event.at <= at + context.epsilon &&
-      event.at + Math.max(0, Number(event.duration || 0)) >
-        at + context.epsilon,
+      event.at + Math.max(0, Number(event.duration || 0)) > at + context.epsilon
   );
 }
 
-function configuredWeaponSet(
-  config: Gw2Config,
-  weaponSet: number,
-): [string | undefined, string | undefined] {
+function configuredWeaponSet(config: Gw2Config, weaponSet: number): [string | undefined, string | undefined] {
   if (weaponSet === 2) {
     return [config.weaponSet2Primary, config.weaponSet2Secondary];
   }
@@ -182,27 +158,24 @@ export function isGw2WeaponSkillEquipped(
   context: SchedulerContext,
   skill: Skill,
   matcher: Gw2WeaponSkillMatcher = defaultWeaponSkillMatchesSet,
-  catalog: CanonicalCatalog | null = null,
+  catalog: CanonicalCatalog | null = null
 ): boolean {
   const hasExplicitRequirement =
     skill.requiredMainHand != null ||
     skill.requiredOffHand != null ||
     skill.weaponSet?.mainHand != null ||
     skill.weaponSet?.offHand != null;
-  if (!hasExplicitRequirement && (skill.type !== "Weapon" || !skill.weapon)) {
+  if (!hasExplicitRequirement && (skill.type !== 'Weapon' || !skill.weapon)) {
     return true;
   }
-  const configured = configuredWeaponSet(
-    context.config as Gw2Config,
-    context.state?.activeWeaponSet === 2 ? 2 : 1,
-  );
+  const configured = configuredWeaponSet(context.config as Gw2Config, context.state?.activeWeaponSet === 2 ? 2 : 1);
   // Empty weapon configuration is treated as an unrestricted sandbox build.
   return (
     configured.every((value) => !value) ||
     weaponSkillMatchesSet(matcher, skill, configured, {
       catalog,
       config: context.config,
-      state: context.state,
+      state: context.state
     })
   );
 }
@@ -218,18 +191,16 @@ export function createGw2SchedulerPolicy(
   {
     traits = null,
     catalog = null,
-    weaponSkillMatchesSet: matcher = defaultWeaponSkillMatchesSet,
-  }: CreateGw2SchedulerPolicyOptions = {},
+    weaponSkillMatchesSet: matcher = defaultWeaponSkillMatchesSet
+  }: CreateGw2SchedulerPolicyOptions = {}
 ): Readonly<Gw2SchedulerPolicy> {
   const materializer = createGw2TriggerMaterializer(config, { traits });
   const comboMaterializer = createGw2ComboMaterializer(config);
   const eventPreparer = createGw2EventPreparer();
   const policy: Gw2SchedulerPolicy = {
     taskHandlers: Object.freeze({
-      [GW2_MATERIALIZE_EVENT_TASK]: (context, task) =>
-        materializer.handleTask(context, task),
-      [GW2_COMBO_MATERIALIZE_EVENT_TASK]: (context, task) =>
-        comboMaterializer.handleTask(context, task),
+      [GW2_MATERIALIZE_EVENT_TASK]: (context, task) => materializer.handleTask(context, task),
+      [GW2_COMBO_MATERIALIZE_EVENT_TASK]: (context, task) => comboMaterializer.handleTask(context, task)
     }),
 
     initialize(context) {
@@ -274,10 +245,7 @@ export function createGw2SchedulerPolicy(
     },
 
     effectDuration(_context, _skill, effect, baseDuration) {
-      if (
-        (effect.type !== "boon" && effect.type !== "buff") ||
-        effect.durationScale === "fixed"
-      ) {
+      if ((effect.type !== 'boon' && effect.type !== 'buff') || effect.durationScale === 'fixed') {
         return baseDuration;
       }
       const name = titleCase(effect.boon || effect.kind || effect.name);
@@ -288,10 +256,9 @@ export function createGw2SchedulerPolicy(
         ...materializer.state,
         activeWeaponSet: weaponSet,
         combatStartTime: _context.combatStartTime,
-        profession: _context.state.profession,
+        profession: _context.state.profession
       };
-      const query = materializer.state.query as
-        Readonly<Gw2CombatQuery> | null | undefined;
+      const query = materializer.state.query as Readonly<Gw2CombatQuery> | null | undefined;
       const stats = _context.profession.modifyAttributes(
         {
           profession: _context.profession,
@@ -299,15 +266,15 @@ export function createGw2SchedulerPolicy(
           time: _context.state.time,
           skillId: _skill.id,
           sourceId: _skill.id,
-          actorType: "player",
+          actorType: 'player',
           traits,
           query,
           timeline: query?.timeline,
           events: _context.events,
           runtime,
-          state: _context.state,
+          state: _context.state
         },
-        staticStats,
+        staticStats
       ) as Gw2Stats;
       const bonus =
         Number(stats.concentration || 0) / 1500 +
@@ -318,18 +285,11 @@ export function createGw2SchedulerPolicy(
       return baseDuration * clamp(1 + bonus, 1, 2);
     },
 
-    buffStacks(
-      context,
-      kind,
-      at,
-      configuredStacks,
-      applications,
-      defaultStacks,
-    ) {
+    buffStacks(context, kind, at, configuredStacks, applications, defaultStacks) {
       if (!isDurationStackingBoon(kind)) return defaultStacks;
       if (configuredStacks > 0) return 1;
       return remainingDurationStackSeconds(applications, at + context.epsilon, {
-        maximum: durationStackingBoonCapSeconds(kind),
+        maximum: durationStackingBoonCapSeconds(kind)
       }) > context.epsilon
         ? 1
         : 0;
@@ -339,7 +299,7 @@ export function createGw2SchedulerPolicy(
       if (skill.unaffectedByQuickness) return baseDuration;
       // Quickness is snapshotted at cast start for both the action and any
       // cast-scaled effect offsets belonging to that action.
-      if (!context.hasBuff("quickness", context.start)) return baseDuration;
+      if (!context.hasBuff('quickness', context.start)) return baseDuration;
       // Measured metadata wins and is not quantized again. The fallback models
       // the standard action-rate conversion and action-tick boundary.
       if (skill.quicknessCastTimeMs != null) {
@@ -351,31 +311,19 @@ export function createGw2SchedulerPolicy(
 
     effectTiming(context, skill, effect) {
       if (skill.unaffectedByQuickness) return effect;
-      if (!context.hasBuff("quickness", context.start)) return effect;
+      if (!context.hasBuff('quickness', context.start)) return effect;
       // The helper leaves fixed effects untouched and scales opted-in offsets,
       // tick arrays, and non-fixed intervals without mutating catalog metadata.
       return scaleCastBoundTiming(context, skill, effect);
     },
 
     rechargeDuration(context, skill, baseDuration) {
-      const at = Number(
-        context.at ?? context.effectiveEnd ?? context.start ?? 0,
-      );
-      if (
-        OUT_OF_COMBAT_SWAP_SKILLS.has(skill.name) &&
-        !materializer.isCombatActive()
-      ) {
+      const at = Number(context.at ?? context.effectiveEnd ?? context.start ?? 0);
+      if (OUT_OF_COMBAT_SWAP_SKILLS.has(skill.name) && !materializer.isCombatActive()) {
         return 0;
       }
-      const hasAlacrity = gw2BuffActiveForAudience(
-        context,
-        "alacrity",
-        at,
-        skill.rechargeBuffAudience || "self",
-      );
-      const rate = hasAlacrity
-        ? Number(config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE)
-        : 1;
+      const hasAlacrity = gw2BuffActiveForAudience(context, 'alacrity', at, skill.rechargeBuffAudience || 'self');
+      const rate = hasAlacrity ? Number(config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE) : 1;
       // Alacrity is evaluated when recharge begins, which can differ from cast
       // start for skills whose recharge anchor is cast end or an effect event.
       // Recharge speed is a rate, so elapsed duration is divided by it.
@@ -384,7 +332,7 @@ export function createGw2SchedulerPolicy(
 
     maximumAmmo(_context, skill, baseMaximum) {
       return baseMaximum ?? Number(skill.ammo || 0);
-    },
+    }
   };
   return Object.freeze(policy);
 }

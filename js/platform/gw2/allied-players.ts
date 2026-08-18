@@ -1,4 +1,4 @@
-import { clamp } from "./numeric.js";
+import { clamp } from './numeric.js';
 
 /**
  * Normalized allied party assumptions. Allied strikes only exist as proc
@@ -77,13 +77,11 @@ export interface Gw2BoonApplicationRecipients extends Gw2AlliedEffectRecipients 
  * allied player strikes. The simulator owns the build user's damage; allied
  * strikes exist only as proc triggers and never contribute their own damage.
  */
-export function gw2AlliedPlayerAssumptions(
-  config: Gw2AlliedPlayerConfig = {},
-): Gw2AlliedPlayerAssumptions {
+export function gw2AlliedPlayerAssumptions(config: Gw2AlliedPlayerConfig = {}): Gw2AlliedPlayerAssumptions {
   const allies = config.allies || {};
   return Object.freeze({
     count: clamp(Math.trunc(Number(allies.count || 0)), 0, 4),
-    strikesPerSecond: clamp(Number(allies.strikesPerSecond || 0), 0, 10),
+    strikesPerSecond: clamp(Number(allies.strikesPerSecond || 0), 0, 10)
   });
 }
 
@@ -98,25 +96,20 @@ export function gw2AlliedEffectRecipients(
     maximumRecipients = 5,
     includeSelf = true,
     includeAlliedPlayers = true,
-    companionIds = [],
-  }: Gw2AlliedEffectRecipientOptions = {},
+    companionIds = []
+  }: Gw2AlliedEffectRecipientOptions = {}
 ): Gw2AlliedEffectRecipients {
   const party = gw2AlliedPlayerAssumptions(config);
   const limit = Math.max(0, Math.trunc(Number(maximumRecipients || 0)));
   const includesSelf = includeSelf && limit > 0;
-  const alliedPlayerCount = includeAlliedPlayers
-    ? clamp(limit - Number(includesSelf), 0, party.count)
-    : 0;
+  const alliedPlayerCount = includeAlliedPlayers ? clamp(limit - Number(includesSelf), 0, party.count) : 0;
   const remaining = limit - Number(includesSelf) - alliedPlayerCount;
-  const selectedCompanions = [
-    ...new Set(companionIds.map(String).filter(Boolean)),
-  ].slice(0, remaining);
+  const selectedCompanions = [...new Set(companionIds.map(String).filter(Boolean))].slice(0, remaining);
   return Object.freeze({
     includesSelf,
     alliedPlayerCount,
     companionIds: Object.freeze(selectedCompanions),
-    recipientCount:
-      Number(includesSelf) + alliedPlayerCount + selectedCompanions.length,
+    recipientCount: Number(includesSelf) + alliedPlayerCount + selectedCompanions.length
   });
 }
 
@@ -128,7 +121,7 @@ export function gw2AlliedEffectRecipients(
  */
 export function gw2BoonApplicationRecipients(
   config: Gw2AlliedPlayerConfig,
-  event: Gw2BoonRecipientEvent = {},
+  event: Gw2BoonRecipientEvent = {}
 ): Gw2BoonApplicationRecipients {
   if (event.boonAudienceResolved === true) {
     const companionIds = Array.isArray(event.companionIds)
@@ -137,40 +130,25 @@ export function gw2BoonApplicationRecipients(
     return Object.freeze({
       includesSelf: event.affectsSelf === true,
       affectsSelf: event.affectsSelf === true,
-      alliedPlayerCount: Math.max(
-        0,
-        Math.trunc(Number(event.alliedPlayerCount || 0)),
-      ),
+      alliedPlayerCount: Math.max(0, Math.trunc(Number(event.alliedPlayerCount || 0))),
       companionIds: Object.freeze(companionIds),
       affectsSummons: event.affectsSummons === true,
-      recipientCount: Math.max(
-        0,
-        Math.trunc(Number(event.recipientCount || 0)),
-      ),
+      recipientCount: Math.max(0, Math.trunc(Number(event.recipientCount || 0)))
     });
   }
-  const scope = String(event.recipients || "").toLowerCase();
-  const summonOnly = [
-    "summon",
-    "summons",
-    "pet",
-    "pets",
-    "companions",
-  ].includes(scope);
+  const scope = String(event.recipients || '').toLowerCase();
+  const summonOnly = ['summon', 'summons', 'pet', 'pets', 'companions'].includes(scope);
   const hasCompanionIds = Array.isArray(event.companionIds);
-  const explicitCompanionIds = hasCompanionIds
-    ? [...new Set(event.companionIds.map(String).filter(Boolean))]
-    : [];
+  const explicitCompanionIds = hasCompanionIds ? [...new Set(event.companionIds.map(String).filter(Boolean))] : [];
   const shared =
-    scope === "party" ||
-    scope === "allies" ||
+    scope === 'party' ||
+    scope === 'allies' ||
     summonOnly ||
     event.affectsSummons === true ||
     explicitCompanionIds.length > 0;
-  const includesSelf =
-    !summonOnly && event.affectsSelf !== false && scope !== "allies";
+  const includesSelf = !summonOnly && event.affectsSelf !== false && scope !== 'allies';
 
-  if (!shared || scope === "self") {
+  if (!shared || scope === 'self') {
     const selectedSelf = includesSelf;
     return Object.freeze({
       includesSelf: selectedSelf,
@@ -178,31 +156,26 @@ export function gw2BoonApplicationRecipients(
       alliedPlayerCount: 0,
       companionIds: Object.freeze([]),
       affectsSummons: false,
-      recipientCount: Number(selectedSelf),
+      recipientCount: Number(selectedSelf)
     });
   }
 
-  const cappedAllyEffect = scope === "party" || scope === "allies";
+  const cappedAllyEffect = scope === 'party' || scope === 'allies';
   const summonsEligible = summonOnly
     ? true
     : cappedAllyEffect
-      ? event.affectsSummons !== false &&
-        config.sharePlayerBoonsWithSummons !== false
+      ? event.affectsSummons !== false && config.sharePlayerBoonsWithSummons !== false
       : event.affectsSummons === true || explicitCompanionIds.length > 0;
   // The sentinel reserves one logical summon slot when the event exposes only
   // boolean summon eligibility. It is never exposed as a concrete recipient.
-  const genericSummonId = "__generic-summon__";
-  const candidates = summonsEligible
-    ? hasCompanionIds
-      ? explicitCompanionIds
-      : [genericSummonId]
-    : [];
+  const genericSummonId = '__generic-summon__';
+  const candidates = summonsEligible ? (hasCompanionIds ? explicitCompanionIds : [genericSummonId]) : [];
   const maximumRecipients = event.maximumRecipients ?? event.targetCap ?? 5;
   const selected = gw2AlliedEffectRecipients(config, {
     maximumRecipients: Number(maximumRecipients),
     includeSelf: includesSelf,
     includeAlliedPlayers: cappedAllyEffect,
-    companionIds: candidates,
+    companionIds: candidates
   });
   const genericSummonSelected = selected.companionIds.includes(genericSummonId);
   const companionIds = genericSummonSelected ? [] : [...selected.companionIds];
@@ -215,10 +188,7 @@ export function gw2BoonApplicationRecipients(
     // Unknown summon identities cannot be counted accurately. Concrete ids
     // are counted; generic eligibility reserves one logical summon slot.
     recipientCount:
-      Number(selected.includesSelf) +
-      selected.alliedPlayerCount +
-      companionIds.length +
-      Number(genericSummonSelected),
+      Number(selected.includesSelf) + selected.alliedPlayerCount + companionIds.length + Number(genericSummonSelected)
   });
 }
 
@@ -233,20 +203,13 @@ export function gw2AlliedPlayerProcTimeline(
     duration,
     maximumAllies = Number.POSITIVE_INFINITY,
     maximumPerAlly = Number.POSITIVE_INFINITY,
-    internalCooldown = 0,
-  }: Gw2AlliedPlayerProcOptions,
+    internalCooldown = 0
+  }: Gw2AlliedPlayerProcOptions
 ): Gw2AlliedPlayerProc[] {
   const assumptions = gw2AlliedPlayerAssumptions(config);
-  const allyCount = clamp(
-    Math.trunc(Number(maximumAllies)),
-    0,
-    assumptions.count,
-  );
+  const allyCount = clamp(Math.trunc(Number(maximumAllies)), 0, assumptions.count);
   if (!allyCount || !assumptions.strikesPerSecond) return [];
-  const interval = Math.max(
-    Number(internalCooldown || 0),
-    1 / assumptions.strikesPerSecond,
-  );
+  const interval = Math.max(Number(internalCooldown || 0), 1 / assumptions.strikesPerSecond);
   const end = Number(start) + Math.max(0, Number(duration || 0));
   const limit = Math.max(0, Math.trunc(Number(maximumPerAlly)));
   const events: Gw2AlliedPlayerProc[] = [];
@@ -259,7 +222,5 @@ export function gw2AlliedPlayerProcTimeline(
       events.push({ allyIndex, procIndex, at });
     }
   }
-  return events.sort(
-    (left, right) => left.at - right.at || left.allyIndex - right.allyIndex,
-  );
+  return events.sort((left, right) => left.at - right.at || left.allyIndex - right.allyIndex);
 }

@@ -1,9 +1,6 @@
-import { EPSILON } from "../../../../platform/engine/clock.js";
-import {
-  applyMesmerRuntimeManifest,
-  mesmerRuntimeFor,
-} from "../../core/runtime.js";
-import { createMirageActionController } from "./mirage.js";
+import { EPSILON } from '../../../../platform/engine/clock.js';
+import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '../../core/runtime.js';
+import { createMirageActionController } from './mirage.js';
 import {
   MESMER_MIRAGE_AMBUSH_ATTACKS,
   MESMER_MIRAGE_ARISTOCRACY_SKILLS,
@@ -12,11 +9,11 @@ import {
   MESMER_MIRAGE_INSTRUMENTS,
   MESMER_MIRAGE_PEITHA_SKILLS,
   MESMER_MIRAGE_SHATTERS,
-  MESMER_MIRAGE_TRAIT_DAMAGE,
-} from "./mechanics.js";
-import type { MesmerSchedulerContext } from "../../types.js";
-import { MIRAGE_AMBUSH_PROFILE_IDS } from "./profiles.js";
-import { mesmerProfiledAmbush } from "../../core/profiles.js";
+  MESMER_MIRAGE_TRAIT_DAMAGE
+} from './mechanics.js';
+import type { MesmerSchedulerContext } from '../../types.js';
+import { MIRAGE_AMBUSH_PROFILE_IDS } from './profiles.js';
+import { mesmerProfiledAmbush } from '../../core/profiles.js';
 
 export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
   const runtime = mesmerRuntimeFor(context);
@@ -24,12 +21,8 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
     ambushAttacks: Object.fromEntries(
       Object.entries(MESMER_MIRAGE_AMBUSH_ATTACKS).map(([weapon, attack]) => [
         weapon,
-        mesmerProfiledAmbush(
-          context,
-          attack,
-          MIRAGE_AMBUSH_PROFILE_IDS[weapon],
-        ),
-      ]),
+        mesmerProfiledAmbush(context, attack, MIRAGE_AMBUSH_PROFILE_IDS[weapon])
+      ])
     ),
     shatters: MESMER_MIRAGE_SHATTERS,
     instruments: MESMER_MIRAGE_INSTRUMENTS,
@@ -37,7 +30,7 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
     controlSkills: MESMER_MIRAGE_CONTROL_SKILLS,
     blindSkills: MESMER_MIRAGE_BLIND_SKILLS,
     aristocracySkills: MESMER_MIRAGE_ARISTOCRACY_SKILLS,
-    peithaSkills: MESMER_MIRAGE_PEITHA_SKILLS,
+    peithaSkills: MESMER_MIRAGE_PEITHA_SKILLS
   });
   runtime.mirage = createMirageActionController({
     state: context.state,
@@ -54,7 +47,7 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
     activePrimaryWeapon: runtime.activePrimaryWeapon,
     queueResources: runtime.resources.queueResources,
     currentResource: runtime.actions.currentResource,
-    balanceProfile: runtime.balanceProfile,
+    balanceProfile: runtime.balanceProfile
   });
   runtime.resources.setAmbushCreatedClones(runtime.mirage.executeCloneAmbushes);
 }

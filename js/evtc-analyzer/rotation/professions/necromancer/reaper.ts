@@ -1,24 +1,17 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from "../../../types.js";
-import { findRotationSkill } from "../../catalog.js";
-import type { EvtcRotationBuffTransition } from "../../profiles.js";
-import type {
-  EvtcProfessionReconstructionContext,
-  EvtcRecordedRotationAction,
-} from "../types.js";
-import {
-  effectAction,
-  hasRecordedAction,
-  INSTANT_SIGNAL_WINDOW_MS,
-} from "./shared.js";
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
+import { findRotationSkill } from '../../catalog.js';
+import type { EvtcRotationBuffTransition } from '../../profiles.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import { effectAction, hasRecordedAction, INSTANT_SIGNAL_WINDOW_MS } from './shared.js';
 
 const GRASPING_DARKNESS = Object.freeze({
-  name: "Grasping Darkness",
-  skillId: 29740,
+  name: 'Grasping Darkness',
+  skillId: 29740
 });
-const NIGHTFALL = Object.freeze({ name: "Nightfall", skillId: 29855 });
+const NIGHTFALL = Object.freeze({ name: 'Nightfall', skillId: 29855 });
 const EXIT_REAPERS_SHROUD = Object.freeze({
   name: "Exit Reaper's Shroud",
-  skillId: 30961,
+  skillId: 30961
 });
 const GRASPING_DARKNESS_PRECAST_COMMIT_MS = 120;
 
@@ -27,22 +20,17 @@ export const REAPER_BUFF_TRANSITIONS: readonly EvtcRotationBuffTransition[] = [
     buffSkillId: 29446,
     gain: { name: "Reaper's Shroud", skillId: 30792 },
     loss: EXIT_REAPERS_SHROUD,
-    suppressWeaponSwap: true,
-  },
+    suppressWeaponSwap: true
+  }
 ];
 
-function truncatedReaperPrecastActions(
-  context: EvtcProfessionReconstructionContext,
-): EvtcRecordedRotationAction[] {
+function truncatedReaperPrecastActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const firstPlayerEventTime = Math.min(
     ...context.log.events
       .filter(
-        (event) =>
-          event.time > 0 &&
-          (event.source === context.playerAddress ||
-            event.target === context.playerAddress),
+        (event) => event.time > 0 && (event.source === context.playerAddress || event.target === context.playerAddress)
       )
-      .map((event) => event.time),
+      .map((event) => event.time)
   );
   if (!Number.isFinite(firstPlayerEventTime)) return [];
 
@@ -53,9 +41,8 @@ function truncatedReaperPrecastActions(
         event.source === context.playerAddress &&
         event.skillId === NIGHTFALL.skillId &&
         event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP &&
-        (event.activation === EVTC_ACTIVATION.CANCEL_FIRE ||
-          event.activation === EVTC_ACTIVATION.RESET) &&
-        event.value > 0,
+        (event.activation === EVTC_ACTIVATION.CANCEL_FIRE || event.activation === EVTC_ACTIVATION.RESET) &&
+        event.value > 0
     )
     .sort((left, right) => left.event.time - right.event.time)[0];
   if (!nightfallStop) return [];
@@ -63,8 +50,7 @@ function truncatedReaperPrecastActions(
   const nightfallRecorded = context.recordedActions.some(
     (action) =>
       action.rawSkillId === NIGHTFALL.skillId &&
-      Math.abs(action.end - nightfallStop.event.time) <=
-        INSTANT_SIGNAL_WINDOW_MS,
+      Math.abs(action.end - nightfallStop.event.time) <= INSTANT_SIGNAL_WINDOW_MS
   );
   if (nightfallRecorded || nightfallStart > firstPlayerEventTime) return [];
 
@@ -76,16 +62,13 @@ function truncatedReaperPrecastActions(
         nightfallStop.event.skillId,
         NIGHTFALL.name,
         NIGHTFALL,
-        "animation",
+        'animation'
       ),
       end: nightfallStop.event.time,
-      expectedDuration: Math.max(
-        nightfallStop.event.value,
-        nightfallStop.event.buffDamage,
-      ),
-      status: "completed",
-      precast: true,
-    },
+      expectedDuration: Math.max(nightfallStop.event.value, nightfallStop.event.buffDamage),
+      status: 'completed',
+      precast: true
+    }
   ];
 
   const graspingSignal = context.log.events
@@ -96,7 +79,7 @@ function truncatedReaperPrecastActions(
         event.skillId === GRASPING_DARKNESS.skillId &&
         event.time <= nightfallStop.event.time &&
         event.stateChange !== EVTC_STATE_CHANGE.ANIMATION_START &&
-        event.stateChange !== EVTC_STATE_CHANGE.ANIMATION_STOP,
+        event.stateChange !== EVTC_STATE_CHANGE.ANIMATION_STOP
     )
     .sort((left, right) => left.event.time - right.event.time)[0];
   if (!graspingSignal) return actions;
@@ -107,7 +90,7 @@ function truncatedReaperPrecastActions(
       GRASPING_DARKNESS.skillId,
       GRASPING_DARKNESS.name,
       graspingStart,
-      INSTANT_SIGNAL_WINDOW_MS,
+      INSTANT_SIGNAL_WINDOW_MS
     )
   ) {
     return actions;
@@ -116,7 +99,7 @@ function truncatedReaperPrecastActions(
     GRASPING_DARKNESS.skillId,
     GRASPING_DARKNESS.name,
     context.catalog,
-    context.profile,
+    context.profile
   );
   actions.push({
     ...effectAction(
@@ -124,35 +107,30 @@ function truncatedReaperPrecastActions(
       graspingStart,
       graspingSignal.event.skillId,
       GRASPING_DARKNESS.name,
-      GRASPING_DARKNESS,
+      GRASPING_DARKNESS
     ),
     end: nightfallStart,
     expectedDuration: Math.max(
       GRASPING_DARKNESS_PRECAST_COMMIT_MS,
-      Number(
-        graspingSkill?.quicknessCastTimeMs || graspingSkill?.castTimeMs || 0,
-      ),
+      Number(graspingSkill?.quicknessCastTimeMs || graspingSkill?.castTimeMs || 0)
     ),
-    status: "interrupted",
-    precast: true,
+    status: 'interrupted',
+    precast: true
   });
   return actions;
 }
 
-function encounterEndTime(
-  context: EvtcProfessionReconstructionContext,
-): number | null {
+function encounterEndTime(context: EvtcProfessionReconstructionContext): number | null {
   const targets = new Set(
     context.log.agents
       .filter((agent) => agent.profession === context.log.header.encounterId)
-      .map((agent) => agent.address),
+      .map((agent) => agent.address)
   );
   const times = context.log.events
     .filter(
       (event) =>
         targets.has(event.source) &&
-        (event.stateChange === EVTC_STATE_CHANGE.EXIT_COMBAT ||
-          event.stateChange === EVTC_STATE_CHANGE.CHANGE_DEAD),
+        (event.stateChange === EVTC_STATE_CHANGE.EXIT_COMBAT || event.stateChange === EVTC_STATE_CHANGE.CHANGE_DEAD)
     )
     .map((event) => event.time);
   return times.length ? Math.min(...times) : null;
@@ -160,25 +138,24 @@ function encounterEndTime(
 
 function removePostEncounterReaperExit(
   context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[],
+  actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const encounterEnd = encounterEndTime(context);
   if (encounterEnd == null) return [...actions];
   return actions.filter(
     (action) =>
       !(
-        (action.rawSkillId === EXIT_REAPERS_SHROUD.skillId ||
-          action.rawName === EXIT_REAPERS_SHROUD.name) &&
+        (action.rawSkillId === EXIT_REAPERS_SHROUD.skillId || action.rawName === EXIT_REAPERS_SHROUD.name) &&
         action.start > encounterEnd
-      ),
+      )
   );
 }
 
 export function reconstructReaperActions(
-  context: EvtcProfessionReconstructionContext,
+  context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {
   return removePostEncounterReaperExit(context, [
     ...context.recordedActions,
-    ...truncatedReaperPrecastActions(context),
+    ...truncatedReaperPrecastActions(context)
   ]);
 }

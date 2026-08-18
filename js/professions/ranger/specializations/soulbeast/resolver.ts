@@ -1,75 +1,50 @@
-import { professionCoreState } from "../../../../platform/engine/profession.js";
+import { professionCoreState } from '../../../../platform/engine/profession.js';
 /** Soulbeast resolver-phase reactions and event handlers. */
-import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
-import { hasTrait } from "../../../../platform/gw2/trait-state.js";
-import type { Gw2TimedBuffApplication } from "../../../../platform/gw2/types.js";
-import {
-  RANGER_SKILL_IDS as ID,
-  RANGER_TRAIT_IDS as TRAIT,
-} from "../../data/ids.js";
-import type {
-  RangerResolverContext,
-  RangerResolverEvent,
-} from "../../types.js";
-import { rangerPetByName } from "../../core/state.js";
-import { soulbeastState } from "./state.js";
+import { enqueueOrdered } from '../../../../platform/engine/event-queue.js';
+import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import type { Gw2TimedBuffApplication } from '../../../../platform/gw2/types.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import type { RangerResolverContext, RangerResolverEvent } from '../../types.js';
+import { rangerPetByName } from '../../core/state.js';
+import { soulbeastState } from './state.js';
 import {
   rangerBalanceProfile,
   rangerBalanceProfileEffect,
-  RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
-} from "../../core/profiles.js";
-import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
+  RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE
+} from '../../core/profiles.js';
+import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
-function profileEffect(
-  context: unknown,
-  id: number | string,
-  type: string,
-  index = 0,
-) {
-  return rangerBalanceProfileEffect(
-    rangerBalanceProfile(context, id),
-    type,
-    index,
-  );
+function profileEffect(context: unknown, id: number | string, type: string, index = 0) {
+  return rangerBalanceProfileEffect(rangerBalanceProfile(context, id), type, index);
 }
 
-export function handleSoulbeastModeEvent(
-  context: RangerResolverContext,
-  event: RangerResolverEvent,
-): void {
+export function handleSoulbeastModeEvent(context: RangerResolverContext, event: RangerResolverEvent): void {
   soulbeastState.from(context).beastmodeActive = event.active === true;
 }
 
 // Extends active boon applications in the live boon map; only applications already running at event.at are stretched.
-export function handleRangerBoonExtension(
-  context: RangerResolverContext,
-  event: RangerResolverEvent,
-): void {
+export function handleRangerBoonExtension(context: RangerResolverContext, event: RangerResolverEvent): void {
   const boons = new Set([
-    "aegis",
-    "alacrity",
-    "fury",
-    "might",
-    "protection",
-    "quickness",
-    "regeneration",
-    "resistance",
-    "resolution",
-    "stability",
-    "swiftness",
-    "vigor",
+    'aegis',
+    'alacrity',
+    'fury',
+    'might',
+    'protection',
+    'quickness',
+    'regeneration',
+    'resistance',
+    'resolution',
+    'stability',
+    'swiftness',
+    'vigor'
   ]);
   const extension = Math.max(0, Number(event.duration || 0));
-  const excluded = String(event.excludedKind || "");
+  const excluded = String(event.excludedKind || '');
   if (!(extension > 0)) return;
   for (const [kind, applications] of context.boons) {
     if (!boons.has(kind) || kind === excluded) continue;
     for (const application of applications) {
-      if (
-        application.affectsSelf !== false &&
-        application.at <= event.at &&
-        application.expiresAt > event.at
-      ) {
+      if (application.affectsSelf !== false && application.at <= event.at && application.expiresAt > event.at) {
         // Cast needed because the runtime type treats expiresAt as readonly after resolution.
         (application as { expiresAt: number }).expiresAt += extension;
       }
@@ -78,20 +53,14 @@ export function handleRangerBoonExtension(
 }
 
 export const soulbeastEventHandlers = Object.freeze({
-  "ranger.beastmode": handleSoulbeastModeEvent,
-  "ranger.boon-extension": handleRangerBoonExtension,
+  'ranger.beastmode': handleSoulbeastModeEvent,
+  'ranger.boon-extension': handleRangerBoonExtension
 });
 
-export function activeSoulbeastBuff(
-  context: RangerResolverContext,
-  kind: string,
-  at: number,
-): boolean {
+export function activeSoulbeastBuff(context: RangerResolverContext, kind: string, at: number): boolean {
   return (context.boons.get(kind) || []).some(
     (application: Gw2TimedBuffApplication) =>
-      application.at <= at &&
-      application.expiresAt > at &&
-      application.stacks > 0,
+      application.at <= at && application.expiresAt > at && application.stacks > 0
   );
 }
 
@@ -102,30 +71,27 @@ export function queueSoulbeastBuff(
   duration: number,
   stacks: number,
   name: string,
-  sourceId: number,
+  sourceId: number
 ): void {
   enqueueOrdered(context.queue, {
-    type: "buff",
+    type: 'buff',
     at: event.at,
-    source: "Trait",
+    source: 'Trait',
     sourceId,
-    actorType: "effect",
+    actorType: 'effect',
     skillId: sourceId,
     skillName: name,
     name,
     kind,
     duration,
     stacks,
-    triggeredBy: event.skillName,
+    triggeredBy: event.skillName
   });
 }
 
 // Beast Ability is always the last skill in beastmodeSkillIds; traits like Live Fast and Go for the Eyes
 // should fire only on the first hit of a multi-hit Beast Ability, not once per packet.
-function firstBeastAbilityHit(
-  context: RangerResolverContext,
-  event: RangerResolverEvent,
-): boolean {
+function firstBeastAbilityHit(context: RangerResolverContext, event: RangerResolverEvent): boolean {
   const activePet = rangerPetByName(professionCoreState(context).activePet);
   const beastSkillId = activePet.beastmodeSkillIds.at(-1);
   if (event.skillId !== beastSkillId || !event.activationId) return false;
@@ -141,243 +107,215 @@ function queueCondition(
   condition: string,
   duration: number,
   sourceId: number,
-  name: string,
+  name: string
 ): void {
   enqueueOrdered(context.queue, {
-    type: "condition",
+    type: 'condition',
     at: event.at,
-    source: "Trait",
+    source: 'Trait',
     sourceId,
-    actorType: "effect",
+    actorType: 'effect',
     skillId: sourceId,
     skillName: name,
     name: `${name} — ${condition}`,
     condition,
     duration,
     stacks: 1,
-    triggeredBy: event.skillName,
+    triggeredBy: event.skillName
   });
 }
 
-export function reactToSoulbeastDamage(
-  context: RangerResolverContext,
-  event: RangerResolverEvent,
-): void {
+export function reactToSoulbeastDamage(context: RangerResolverContext, event: RangerResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
   const state = soulbeastState.from(context);
 
   // One Wolf Pack must not trigger from its own echo or from effect-sourced hits to avoid infinite recursion.
   if (
-    event.actorType !== "effect" &&
+    event.actorType !== 'effect' &&
     event.sourceId !== ID.ONE_WOLF_PACK_STRIKE &&
-    activeSoulbeastBuff(context, "one-wolf-pack", event.at) &&
+    activeSoulbeastBuff(context, 'one-wolf-pack', event.at) &&
     event.at >= state.oneWolfPackReadyAt
   ) {
     const profile = rangerBalanceProfile(context, PROFILE.oneWolfPack);
-    const strike = rangerBalanceProfileEffect(profile, "strike");
+    const strike = rangerBalanceProfileEffect(profile, 'strike');
     // 1-second ICD between echoes even within a single multi-hit skill.
-    state.oneWolfPackReadyAt =
-      event.at + Number(profile?.internalCooldown ?? 1);
+    state.oneWolfPackReadyAt = event.at + Number(profile?.internalCooldown ?? 1);
     enqueueOrdered(context.queue, {
-      type: "damage",
+      type: 'damage',
       at: event.at + Number(profile?.initialDelay ?? 0.28),
-      source: "ranger",
+      source: 'ranger',
       sourceId: ID.ONE_WOLF_PACK_STRIKE,
-      actorType: "effect",
+      actorType: 'effect',
       skillId: ID.ONE_WOLF_PACK,
-      skillName: "One Wolf Pack",
-      name: "One Wolf Pack",
+      skillName: 'One Wolf Pack',
+      name: 'One Wolf Pack',
       coefficient: Number(strike?.coefficient ?? 0.95),
       hits: Number(strike?.hits ?? 1),
       hitIndex: 1,
       totalHits: Number(strike?.hits ?? 1),
-      skillWeapon: event.skillWeapon || "Unequipped",
+      skillWeapon: event.skillWeapon || 'Unequipped',
       weaponStrengthProfileId: event.weaponStrengthProfileId,
       canCrit: true,
-      triggeredBy: event.skillName,
+      triggeredBy: event.skillName
     });
   }
 
   // Vulture Stance procs per player hit with a 0.25 s ICD; effect-sourced hits (e.g. OWP echoes) are excluded.
   if (
-    activeSoulbeastBuff(context, "vulture-stance", event.at) &&
+    activeSoulbeastBuff(context, 'vulture-stance', event.at) &&
     event.at >= state.vultureStanceReadyAt &&
-    event.actorType !== "effect"
+    event.actorType !== 'effect'
   ) {
     const profile = rangerBalanceProfile(context, PROFILE.vultureStance);
-    const poison = rangerBalanceProfileEffect(profile, "condition");
-    const might = rangerBalanceProfileEffect(profile, "boon");
-    state.vultureStanceReadyAt =
-      event.at + Number(profile?.internalCooldown ?? 0.25);
+    const poison = rangerBalanceProfileEffect(profile, 'condition');
+    const might = rangerBalanceProfileEffect(profile, 'boon');
+    state.vultureStanceReadyAt = event.at + Number(profile?.internalCooldown ?? 0.25);
     queueCondition(
       context,
       event,
-      String(poison?.condition || "Poisoned"),
+      String(poison?.condition || 'Poisoned'),
       Number(poison?.duration ?? 4),
       ID.VULTURE_STANCE,
-      "Vulture Stance",
+      'Vulture Stance'
     );
     queueSoulbeastBuff(
       context,
       event,
-      String(might?.boon || "might"),
+      String(might?.boon || 'might'),
       Number(might?.duration ?? 4),
       Number(might?.stacks ?? 1),
-      "Vulture Stance",
-      ID.VULTURE_STANCE,
+      'Vulture Stance',
+      ID.VULTURE_STANCE
     );
   }
 
   if (!firstBeastAbilityHit(context, event)) return;
   if (hasTrait(context, TRAIT.LIVE_FAST)) {
-    const fury = profileEffect(context, PROFILE.liveFast, "boon", 0);
-    const quickness = profileEffect(context, PROFILE.liveFast, "boon", 1);
+    const fury = profileEffect(context, PROFILE.liveFast, 'boon', 0);
+    const quickness = profileEffect(context, PROFILE.liveFast, 'boon', 1);
     queueSoulbeastBuff(
       context,
       event,
-      String(fury?.boon || "fury"),
+      String(fury?.boon || 'fury'),
       Number(fury?.duration ?? 6),
       Number(fury?.stacks ?? 1),
-      "Live Fast",
-      TRAIT.LIVE_FAST,
+      'Live Fast',
+      TRAIT.LIVE_FAST
     );
     queueSoulbeastBuff(
       context,
       event,
-      String(quickness?.boon || "quickness"),
+      String(quickness?.boon || 'quickness'),
       Number(quickness?.duration ?? 3),
       Number(quickness?.stacks ?? 1),
-      "Live Fast",
-      TRAIT.LIVE_FAST,
+      'Live Fast',
+      TRAIT.LIVE_FAST
     );
   }
   if (hasTrait(context, TRAIT.WILTING_STRIKE)) {
-    const weakness = profileEffect(context, PROFILE.wiltingStrike, "condition");
+    const weakness = profileEffect(context, PROFILE.wiltingStrike, 'condition');
     queueCondition(
       context,
       event,
-      String(weakness?.condition || "Weakness"),
+      String(weakness?.condition || 'Weakness'),
       Number(weakness?.duration ?? 4),
       TRAIT.WILTING_STRIKE,
-      "Wilting Strike",
+      'Wilting Strike'
     );
   }
-  if (
-    hasTrait(context, TRAIT.GO_FOR_THE_EYES) &&
-    event.at >= state.goForTheEyesReadyAt
-  ) {
+  if (hasTrait(context, TRAIT.GO_FOR_THE_EYES) && event.at >= state.goForTheEyesReadyAt) {
     const profile = rangerBalanceProfile(context, PROFILE.goForTheEyes);
-    const blind = rangerBalanceProfileEffect(profile, "blind");
-    state.goForTheEyesReadyAt =
-      event.at + Number(profile?.internalCooldown ?? 12);
+    const blind = rangerBalanceProfileEffect(profile, 'blind');
+    state.goForTheEyesReadyAt = event.at + Number(profile?.internalCooldown ?? 12);
     enqueueOrdered(context.queue, {
-      type: "blind",
+      type: 'blind',
       at: event.at,
-      source: "Trait",
+      source: 'Trait',
       sourceId: TRAIT.GO_FOR_THE_EYES,
-      actorType: "effect",
+      actorType: 'effect',
       skillId: TRAIT.GO_FOR_THE_EYES,
-      skillName: "Go for the Eyes",
+      skillName: 'Go for the Eyes',
       duration: Number(blind?.duration ?? 5),
-      triggeredBy: event.skillName,
+      triggeredBy: event.skillName
     });
   }
-  if (
-    hasTrait(context, TRAIT.GO_FOR_THE_THROAT) &&
-    event.at >= state.goForTheThroatReadyAt
-  ) {
+  if (hasTrait(context, TRAIT.GO_FOR_THE_THROAT) && event.at >= state.goForTheThroatReadyAt) {
     const profile = rangerBalanceProfile(context, CORE_PROFILE.goForTheThroat);
-    const lesserSicEm = rangerBalanceProfileEffect(profile, "buff", 1);
-    state.goForTheThroatReadyAt =
-      event.at + Number(profile?.internalCooldown ?? 10);
+    const lesserSicEm = rangerBalanceProfileEffect(profile, 'buff', 1);
+    state.goForTheThroatReadyAt = event.at + Number(profile?.internalCooldown ?? 10);
     const duration = Number(lesserSicEm?.duration ?? 5);
     context.recordProc(
-      "trait",
+      'trait',
       'Lesser "Sic \'Em!"',
       event.at,
       event.skillName,
       `${duration}s, +15% strike damage`,
-      context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon ||
-        context.helpers.skillsById?.get(ID.SIC_EM)?.icon ||
-        "",
+      context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon || context.helpers.skillsById?.get(ID.SIC_EM)?.icon || ''
     );
     queueSoulbeastBuff(
       context,
       event,
-      String(lesserSicEm?.kind || "lesser-sic-em"),
+      String(lesserSicEm?.kind || 'lesser-sic-em'),
       duration,
       Number(lesserSicEm?.stacks ?? 1),
       'Lesser "Sic \'Em!"',
-      ID.LESSER_SIC_EM,
+      ID.LESSER_SIC_EM
     );
   }
 }
 
-export function reactToSoulbeastControl(
-  context: RangerResolverContext,
-  event: RangerResolverEvent,
-): void {
+export function reactToSoulbeastControl(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = soulbeastState.from(context);
   if (hasTrait(context, TRAIT.TWICE_AS_VICIOUS)) {
-    const buff = profileEffect(context, PROFILE.twiceAsVicious, "buff");
+    const buff = profileEffect(context, PROFILE.twiceAsVicious, 'buff');
     queueSoulbeastBuff(
       context,
       event,
-      String(buff?.kind || "twice-as-vicious"),
+      String(buff?.kind || 'twice-as-vicious'),
       Number(buff?.duration ?? 10),
       Number(buff?.stacks ?? 1),
-      "Twice as Vicious",
-      TRAIT.TWICE_AS_VICIOUS,
+      'Twice as Vicious',
+      TRAIT.TWICE_AS_VICIOUS
     );
   }
-  if (
-    hasTrait(context, TRAIT.BESTIAL_RAGE) &&
-    event.at >= state.bestialRageReadyAt
-  ) {
+  if (hasTrait(context, TRAIT.BESTIAL_RAGE) && event.at >= state.bestialRageReadyAt) {
     const profile = rangerBalanceProfile(context, PROFILE.bestialRage);
-    const might = rangerBalanceProfileEffect(profile, "boon", 0);
-    const fury = rangerBalanceProfileEffect(profile, "boon", 1);
-    state.bestialRageReadyAt =
-      event.at + Number(profile?.internalCooldown ?? 0.25);
+    const might = rangerBalanceProfileEffect(profile, 'boon', 0);
+    const fury = rangerBalanceProfileEffect(profile, 'boon', 1);
+    state.bestialRageReadyAt = event.at + Number(profile?.internalCooldown ?? 0.25);
     queueSoulbeastBuff(
       context,
       event,
-      String(might?.boon || "might"),
+      String(might?.boon || 'might'),
       Number(might?.duration ?? 8),
       Number(might?.stacks ?? 5),
-      "Bestial Rage",
-      TRAIT.BESTIAL_RAGE,
+      'Bestial Rage',
+      TRAIT.BESTIAL_RAGE
     );
     queueSoulbeastBuff(
       context,
       event,
-      String(fury?.boon || "fury"),
+      String(fury?.boon || 'fury'),
       Number(fury?.duration ?? 3),
       Number(fury?.stacks ?? 1),
-      "Bestial Rage",
-      TRAIT.BESTIAL_RAGE,
+      'Bestial Rage',
+      TRAIT.BESTIAL_RAGE
     );
   }
 }
 
 // Predator's Cunning triggers a flat-coefficient strike on every Poisoned application, not once per tick.
-export function reactToSoulbeastCondition(
-  context: RangerResolverContext,
-  event: RangerResolverEvent,
-): void {
-  if (
-    event.condition !== "Poisoned" ||
-    !hasTrait(context, TRAIT.PREDATORS_CUNNING)
-  ) {
+export function reactToSoulbeastCondition(context: RangerResolverContext, event: RangerResolverEvent): void {
+  if (event.condition !== 'Poisoned' || !hasTrait(context, TRAIT.PREDATORS_CUNNING)) {
     return;
   }
-  const strike = profileEffect(context, PROFILE.predatorsCunning, "strike");
+  const strike = profileEffect(context, PROFILE.predatorsCunning, 'strike');
   enqueueOrdered(context.queue, {
-    type: "damage",
+    type: 'damage',
     at: event.at,
-    source: "Trait",
+    source: 'Trait',
     sourceId: TRAIT.PREDATORS_CUNNING,
-    actorType: "effect",
+    actorType: 'effect',
     skillId: TRAIT.PREDATORS_CUNNING,
     skillName: "Predator's Cunning",
     name: "Predator's Cunning",
@@ -385,65 +323,58 @@ export function reactToSoulbeastCondition(
     hits: Number(strike?.hits ?? 1),
     hitIndex: 1,
     totalHits: Number(strike?.hits ?? 1),
-    skillWeapon: "Unequipped",
+    skillWeapon: 'Unequipped',
     canCrit: false,
-    triggeredBy: event.skillName,
+    triggeredBy: event.skillName
   });
 }
 
 // Essence of Speed reacts to each quickness application and extends all other boons by 2 s, with a 5 s ICD.
 // Quickness itself is excluded from the extension to prevent runaway stacking.
-export function reactToSoulbeastBuff(
-  context: RangerResolverContext,
-  event: RangerResolverEvent,
-): void {
+export function reactToSoulbeastBuff(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = soulbeastState.from(context);
   if (
-    event.kind !== "quickness" ||
+    event.kind !== 'quickness' ||
     !hasTrait(context, TRAIT.ESSENCE_OF_SPEED) ||
     event.at < state.essenceOfSpeedReadyAt
   ) {
     return;
   }
   const profile = rangerBalanceProfile(context, PROFILE.essenceOfSpeed);
-  state.essenceOfSpeedReadyAt =
-    event.at + Number(profile?.internalCooldown ?? 5);
+  state.essenceOfSpeedReadyAt = event.at + Number(profile?.internalCooldown ?? 5);
   enqueueOrdered(context.queue, {
-    type: "ranger.boon-extension",
+    type: 'ranger.boon-extension',
     at: event.at,
-    source: "Trait",
+    source: 'Trait',
     sourceId: TRAIT.ESSENCE_OF_SPEED,
-    actorType: "effect",
+    actorType: 'effect',
     skillId: TRAIT.ESSENCE_OF_SPEED,
-    skillName: "Essence of Speed",
+    skillName: 'Essence of Speed',
     duration: Number(profile?.durationMultiplier ?? 2),
-    excludedKind: "quickness",
+    excludedKind: 'quickness'
   });
 }
 
 // Winter's Bite fires once per weapon skill hit via the ranger core flag; the flag is cleared here
 // and is reset by the ranger core when a new weapon cycle begins, not on cooldown expiry.
-export function reactToRangerWinterBite(
-  context: RangerResolverContext,
-  event: RangerResolverEvent,
-): void {
+export function reactToRangerWinterBite(context: RangerResolverContext, event: RangerResolverEvent): void {
   const core = professionCoreState(context);
   if (
     !core.winterBiteReady ||
     // Guard against the Winter's Bite proc re-triggering itself.
     event.sourceId === ID.WINTERS_BITE ||
-    event.actorType === "effect"
+    event.actorType === 'effect'
   ) {
     return;
   }
   core.winterBiteReady = false;
-  const weakness = profileEffect(context, PROFILE.wintersBite, "condition");
+  const weakness = profileEffect(context, PROFILE.wintersBite, 'condition');
   queueCondition(
     context,
     event,
-    String(weakness?.condition || "Weakness"),
+    String(weakness?.condition || 'Weakness'),
     Number(weakness?.duration ?? 10),
     ID.WINTERS_BITE,
-    "Winter's Bite",
+    "Winter's Bite"
   );
 }

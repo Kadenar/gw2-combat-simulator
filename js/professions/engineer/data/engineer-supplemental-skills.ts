@@ -19,3112 +19,2734 @@ export interface EngineerSupplementalSkill {
 
 const records: EngineerSupplementalSkill[] = [
   {
-    "id": 5806,
-    "name": "Poison Grenade",
-    "description": "Throw several grenades that explode in poisonous blasts.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Poison_Grenade.png",
-    "type": "Weapon",
-    "slot": "Weapon_5",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5807,
-    "name": "Shrapnel Grenade",
-    "description": "Throw grenades that explode in a hail of shrapnel, causing bleeding.",
-    "icon": "https://render.guildwars2.com/file/467E6BF83D152F95BC5D0B3573F4D2D71F5A4BFA/102830.png",
-    "type": "Weapon",
-    "slot": "Weapon_2",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5808,
-    "name": "Flash Grenade",
-    "description": "Throw grenades that explode in blinding flashes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Flash_Grenade.png",
-    "type": "Weapon",
-    "slot": "Weapon_3",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5809,
-    "name": "Freeze Grenade",
-    "description": "Throw grenades that chill foes with frigid blasts.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Freeze_Grenade.png",
-    "type": "Weapon",
-    "slot": "Weapon_4",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5810,
-    "name": "Grenade Barrage",
-    "description": "Throw several grenades at once.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Grenade_Barrage.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5813,
-    "name": "Big Ol' Bomb",
-    "description": "Set a timed charge with a big blast that knocks down nearby foes. This skill blast finishes twice.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Big_Ol'_Bomb.png",
-    "type": "Weapon",
-    "slot": "Weapon_5",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5817,
-    "name": "Jump Shot",
-    "description": "Blast the ground, damaging nearby foes and leaping to your target.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Jump_Shot.png",
-    "type": "Weapon",
-    "slot": "Weapon_5",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5822,
-    "name": "Galvanic Bomb",
-    "description": "Set an explosive that electrocutes nearby foes, dazing them.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Galvanic_Bomb.png",
-    "type": "Weapon",
-    "slot": "Weapon_3",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5823,
-    "name": "Fire Bomb",
-    "description": "Set an explosive that burns nearby foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Bomb.png",
-    "type": "Weapon",
-    "slot": "Weapon_2",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5824,
-    "name": "Smoke Bomb (engineer skill)",
-    "description": "Set a timed charge that creates a cloud of smoke, blinding nearby foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Smoke_Bomb_(engineer_skill).png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5842,
-    "name": "Bomb",
-    "description": "Set an explosive that damages nearby foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bomb.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5867,
-    "name": "Toss Elixir R",
-    "description": "Toss Elixir R to revive allies at a location.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_R.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt",
-      "Elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5874,
-    "name": "Automatic Fire",
-    "description": "Overcharge your rifle turret to fire piercing shots that inflict vulnerability.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Automatic_Fire.png",
-    "type": "Utility",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5882,
-    "name": "Grenade",
-    "description": "Throw several grenades that explode.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Grenade.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5889,
-    "name": "Thump",
-    "description": "Overcharge your thumper turret to launch nearby foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Thump.png",
-    "type": "Utility",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5905,
-    "name": "Pry Bar",
-    "description": "Confuse your foe by smacking them with a pry bar.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Pry_Bar.png",
-    "type": "Weapon",
-    "slot": "Weapon_3",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5928,
-    "name": "Flame Jet",
-    "description": "Spray fire in a cone pattern while moving, burning foes on the final attack. Deals 10% bonus damage to burning targets.",
-    "icon": "https://render.guildwars2.com/file/2CDBD11894D945140B3480BFEC960800086352E5/103269.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5929,
-    "name": "Napalm",
-    "description": "Immolate enemies in front of you with a cone of intense fire.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Napalm.png",
-    "type": "Weapon",
-    "slot": "Weapon_5",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5930,
-    "name": "Air Blast",
-    "description": "Push back foes and projectiles with a hot-air blast, burning foes that are already on fire.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Air_Blast.png",
-    "type": "Weapon",
-    "slot": "Weapon_3",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5931,
-    "name": "Flame Blast",
-    "description": "Fire a napalm ball that explodes on impact.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Flame_Blast.png",
-    "type": "Weapon",
-    "slot": "Weapon_2",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5934,
-    "name": "Tranquilizer Dart",
-    "description": "Fire a dart that bleeds and weakens foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Tranquilizer_Dart.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5935,
-    "name": "Glob Shot",
-    "description": "Fire a bouncing glob that cripples foes and grants swiftness to you and your allies. The first enemy struck is immobilized.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Glob_Shot.png",
-    "type": "Weapon",
-    "slot": "Weapon_2",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5936,
-    "name": "Acid Bomb",
-    "description": "Leap backward, spraying an acidic elixir on the ground that damages nearby foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Acid_Bomb.png",
-    "type": "Weapon",
-    "slot": "Weapon_4",
-    "specialization": "",
-    "categories": [
-      "Elixir",
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5937,
-    "name": "Super Elixir",
-    "description": "Shoot an elixir orb, healing allies when it bursts and creating an area of continual healing.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Super_Elixir.png",
-    "type": "Weapon",
-    "slot": "Weapon_5",
-    "specialization": "",
-    "categories": [
-      "Elixir",
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5957,
-    "name": "Detonate Rifle Turret",
-    "description": "Detonate your rifle turret.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Rifle_Turret.png",
-    "type": "Utility",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5965,
-    "name": "Fumigate",
-    "description": "Spray a cone of elixir fumes, inflicting poison and vulnerability to foes and curing conditions on allies with every strike.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fumigate.png",
-    "type": "Weapon",
-    "slot": "Weapon_3",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5966,
-    "name": "Healing Mist",
-    "description": "Vent a healing mist, granting regeneration to yourself and allies.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Healing_Mist.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Elixir",
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5967,
-    "name": "Toss Elixir B",
-    "description": "Toss Elixir B at a location, granting stability and one of the following boons to allies: fury, might, or resolution.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_B.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt",
-      "Elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5969,
-    "name": "Toss Elixir C",
-    "description": "Toss Elixir C, converting conditions into boons for allies.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_C.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt",
-      "Elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5970,
-    "name": "Toss Elixir U",
-    "description": "Toss Elixir U, breaking stuns on allies and granting them superspeed.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_U.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt",
-      "Elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5972,
-    "name": "Toss Elixir S",
-    "description": "Toss Elixir S, granting stealth to allies in the target area.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_S.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt",
-      "Elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5973,
-    "name": "Superspeed (skill)",
-    "description": "Activate your slick shoes, enabling you to move at superior speeds.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Superspeed_(skill).png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5978,
-    "name": "Toss Elixir H",
-    "description": "Toss Elixir H to grant protection, regeneration, and vigor to allies.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_H.png",
-    "type": "Profession",
-    "slot": "Profession_1",
-    "specialization": "",
-    "categories": [
-      "Tool belt",
-      "Elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5980,
-    "name": "Cleansing Burst",
-    "description": "Overcharge your healing turret to cure conditions and grant a burst of healing.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Cleansing_Burst.png",
-    "type": "Heal",
-    "slot": "Heal",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5982,
-    "name": "Launch Personal Battering Ram",
-    "description": "Shoot a ram's head in front of you, impairing any struck foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Launch_Personal_Battering_Ram.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5983,
-    "name": "Rocket Kick",
-    "description": "Use your rocket boots to do an explosive kick that burns foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rocket_Kick.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5984,
-    "name": "Detonate Net Turret",
-    "description": "Detonate your net turret.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Net_Turret.png",
-    "type": "Utility",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5985,
-    "name": "Detonate Flame Turret",
-    "description": "Detonate your flame turret.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Flame_Turret.png",
-    "type": "Utility",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5992,
-    "name": "Smack",
-    "description": "Smack your foe. Repair turrets.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Smack.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5993,
-    "name": "Whack",
-    "description": "Whack your foe. Repairs turrets.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Whack.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5994,
-    "name": "Thwack",
-    "description": "Thwack your foe. Repairs turrets.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Thwack.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5995,
-    "name": "Box of Nails",
-    "description": "Scatter nails that bleed and cripple foes. The first pulse of this skill will immobilize foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Box_of_Nails.png",
-    "type": "Weapon",
-    "slot": "Weapon_2",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5996,
-    "name": "Magnet",
-    "description": "Pull your target to you.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Magnet.png",
-    "type": "Weapon",
-    "slot": "Weapon_5",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5998,
-    "name": "Gear Shield",
-    "description": "Block attacks.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Gear_Shield.png",
-    "type": "Weapon",
-    "slot": "Weapon_4",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 5999,
-    "name": "Throw Wrench",
-    "description": "Throw a wrench that returns to you, striking foes each way.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Throw_Wrench.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6050,
-    "name": "Lesser Grenade Barrage",
-    "description": "Throw several grenades at once.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Lesser_Grenade_Barrage.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6077,
-    "name": "Toss Elixir C",
-    "description": "Toss Elixir C, converting conditions into boons for allies.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_C.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt",
-      "Elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6078,
-    "name": "Detonate Elixir C",
-    "description": "Burst the bottle, converting conditions into boons for allies in your area.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Elixir_C.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "tool belt",
-      "elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6082,
-    "name": "Detonate Elixir B",
-    "description": "Burst the bottle to grant stability and one of the following boons to allies: fury, might, resolution, or swiftness.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Elixir_B.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "tool belt",
-      "elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6084,
-    "name": "Detonate Elixir S",
-    "description": "Burst the bottle, granting allies stealth.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Elixir_S.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "tool belt",
-      "elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6086,
-    "name": "Detonate Elixir R",
-    "description": "Burst the bottle, reviving allies.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Elixir_R.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "tool belt",
-      "elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6088,
-    "name": "Detonate Elixir U",
-    "description": "Detonate Elixir U, causing it to grant allies superspeed and break them out of stun.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Elixir_U.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "tool belt",
-      "elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6089,
-    "name": "Toss Elixir U",
-    "description": "Toss Elixir U, breaking stuns on allies and granting them superspeed.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_U.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt",
-      "Elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6090,
-    "name": "Toss Elixir S",
-    "description": "Toss Elixir S, granting stealth to allies in the target area.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_S.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt",
-      "Elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6091,
-    "name": "Toss Elixir R",
-    "description": "Toss Elixir R to revive allies at a location.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_R.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt",
-      "Elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6092,
-    "name": "Toss Elixir B",
-    "description": "Toss Elixir B at a location, granting stability and one of the following boons to allies: fury, might, or resolution.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_B.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt",
-      "Elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6093,
-    "name": "Harpoon Turret",
-    "description": "Build a harpoon turret that shoots at foes. Turrets automatically overcharge when they are first placed, and they can be overcharged manually as long as they stay active.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Harpoon_Turret.png",
-    "type": "Utility",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [
-      "turret"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6097,
-    "name": "Detonate Harpoon Turret",
-    "description": "Detonate your harpoon turret.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Harpoon_Turret.png",
-    "type": "Utility",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6098,
-    "name": "Automatic Fire (Harpoon Turret)",
-    "description": "Overcharge your harpoon turret to fire a burst of automated shots.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Automatic_Fire_(Harpoon_Turret).png",
-    "type": "Utility",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6104,
-    "name": "Super Elixir (chain skill)",
-    "description": "Burst the orb, instantly healing your allies and creating an area of continual healing.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Super_Elixir.png",
-    "type": "Weapon",
-    "slot": "Weapon_5",
-    "specialization": "",
-    "categories": [
-      "Elixir",
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6114,
-    "name": "Stow Flamethrower",
-    "description": "Stow your flamethrower.",
-    "icon": "https://render.guildwars2.com/file/7342BF326738A4C5132F42CE0915D3A2184E52FB/60975.png",
-    "type": "Utility",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6119,
-    "name": "Detonate Elixir H",
-    "description": "Burst a bottle of Elixir H, granting protection, regeneration, and swiftness to allies.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Elixir_H.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "tool belt",
-      "elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6134,
-    "name": "Detonate Rocket Turret",
-    "description": "Detonate your rocket turret.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Rocket_Turret.png",
-    "type": "Utility",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6159,
-    "name": "Smoke Vent",
-    "description": "Vent smoke from your flamethrower, blinding nearby foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Smoke_Vent.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6163,
-    "name": "Deploy Mine",
-    "description": "Deploy a remote-controlled mine that damages nearby foes and removes a boon.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Deploy_Mine.png",
-    "type": "Utility",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [
-      "Gadget"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6164,
-    "name": "Mine Field",
-    "description": "Plant five mines around yourself.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Mine_Field.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6166,
-    "name": "Detonate Mine Field",
-    "description": "Detonate your mine{{sic|mines}}, damaging nearby foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Mine_Field.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6176,
-    "name": "Regenerating Mist",
-    "description": "Release a mist of healing liquid to regenerate nearby allies.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Cleansing_Burst.png",
-    "type": "Profession",
-    "slot": "Profession_1",
-    "specialization": "",
-    "categories": [
-      "tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6177,
-    "name": "Rocket",
-    "description": "Fire a rocket out of your belt that explodes on impact.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rocket.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6178,
-    "name": "Surprise Shot (engineer skill)",
-    "description": "Fire a bullet out of your belt.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fierce_Shot.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6179,
-    "name": "Net Attack",
-    "description": "Fire a net from your belt to immobilize your foe.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Net_Attack.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6180,
-    "name": "Rumble",
-    "description": "Release a shock wave of inertial force to damage nearby foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rumble.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6181,
-    "name": "Throw Napalm",
-    "description": "Throw a ball of napalm that explodes on impact, burning foes around target location.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Throw_Napalm.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 6182,
-    "name": "Harpoon (engineer skill)",
-    "description": "Launch a harpoon from your belt.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Harpoon_(engineer_skill).png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 10661,
-    "name": "Withering Plague",
-    "description": "Add bleeding to your plague.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Withering_Plague.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 10662,
-    "name": "Plague of Darkness",
-    "description": "Add blindness to your plague.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Plague_of_Darkness.png",
-    "type": "Weapon",
-    "slot": "Weapon_2",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 10663,
-    "name": "Plague of Pestilence",
-    "description": "Add cripple and weakness to your plague and increase its damage dealt.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Plague_of_Pestilence.png",
-    "type": "Weapon",
-    "slot": "Weapon_3",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 12334,
-    "name": "Confusing Speech",
-    "description": "Confuse nearby foes with complex calculations.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Confusing_Speech.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 12335,
-    "name": "Pain Transference",
-    "description": "Send out a bolt that steals a boon from your foe and gives them one condition from you.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Pain_Transference.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 12336,
-    "name": "Vent Radiation",
-    "description": "Vent radioactive gas to poison nearby foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vent_Radiation.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 12354,
-    "name": "Invigorating Roar",
-    "description": "Let out an inspiring roar, removing weakness and vulnerability from allies and granting vigor.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Invigorating_Roar.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 12355,
-    "name": "Booby Trap (charr skill)",
-    "description": "Place an explosive charge on yourself that is triggered by a melee attack.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Booby_Trap_(charr_skill).png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 12357,
-    "name": "Hidden Pistols",
-    "description": "Draw both hidden pistols and unload a volley of bullets on your foe.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Hidden_Pistols.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 12377,
-    "name": "Blessing of Dwayna",
-    "description": "Beseech Dwayna to restore health and grant regeneration to allies at target location.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Blessing_of_Dwayna.png",
-    "type": "Profession",
-    "slot": "Profession_1",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 12378,
-    "name": "Blessing of Kormir",
-    "description": "Beseech Kormir to remove one condition from your allies at the target location.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Blessing_of_Kormir.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 12379,
-    "name": "Blessing of Lyssa",
-    "description": "Pray to Lyssa, granting a random boon to allies and a random condition to foes at target location.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Blessing_of_Lyssa.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 12438,
-    "name": "Eat Wurm Egg",
-    "description": "Eat a wurm's egg to gain vigor and regeneration.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Eat_Wurm_Egg.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 12439,
-    "name": "Eat Owl Egg",
-    "description": "Eat an owl's egg to gain swiftnesss{{sic|swiftness}} and regeneration.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Eat_Owl_Egg.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 12462,
-    "name": "Throw Vine",
-    "description": "Throw a vine and trip your foe.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Throw_Vine.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 12463,
-    "name": "Vine Shield",
-    "description": "Block incoming attacks.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vine_Shield.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 12465,
-    "name": "Leafy Bandage",
-    "description": "Use natural bandages to heal yourself and remove bleeding, burning, and poison.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Leafy_Bandage.png",
-    "type": "Profession",
-    "slot": "Profession_1",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 13465,
-    "name": "Lesser Elixir B",
-    "description": "Quaff an elixir, gaining boons.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Lesser_Elixir_B.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 13516,
-    "name": "Ally Ward",
-    "description": "Grant protection to nearby allies.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Ally_Ward.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 13552,
-    "name": "Static Discharge (trait skill)",
-    "description": "Hit multiple foes with arcs of chain lightning. Critical hits with this ability deal increased damage.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Static_Discharge_(trait_skill).png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 15796,
-    "name": "Plague",
-    "description": "Become a virulent cloud and inflict multiple conditions on foes you touch. Entering this form destroys all minions and removes spectral effects.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Plague.png",
-    "type": "Elite",
-    "slot": "Elite",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 16739,
-    "name": "Snowman Turret (skill)",
-    "description": "Build a snowman turret that throws snowballs at foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Snowman_Turret_(skill).png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 16744,
-    "name": "Detonate Snowman Turret",
-    "description": "Detonate your snowman turret.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Snowman_Turret.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 17810,
-    "name": "Drop Mine",
-    "description": "Drop a mine that deals damage to enemies that trigger it.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Drop_Mine.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 17811,
-    "name": "Magnetic Bomb (trait skill)",
-    "description": "Set a timed charge that pulls nearby foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Magnetic_Bomb_(trait_skill).png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 17812,
-    "name": "Superspeed (trait skill)",
-    "description": "Run at double speed.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Superspeed_(trait_skill).png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 17813,
-    "name": "Fire Shield (trait skill)",
-    "description": "Activate a fire shield that burns enemies who strike you, granting might for each burn applied.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Shield_(trait_skill).png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 17814,
-    "name": "Magnetic Aura (trait skill)",
-    "description": "Become surrounded in a magnetic shield that reflects projectiles.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Magnetic_Aura_(trait_skill).png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 17815,
-    "name": "Glue Trail",
-    "description": "Leave a trail of glue behind you that hampers enemy movement.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Glue_Trail.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 21661,
-    "name": "Static Shock",
-    "description": "Use your A.E.D. to stun an enemy.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Static_Shock.png",
-    "type": "Profession",
-    "slot": "Profession_1",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 24329,
-    "name": "Bunker Down (trait skill)",
-    "description": "Detonates when enemies draw near.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bunker_Down_(trait_skill).png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 26027,
-    "name": "Overfueled Flame Jet",
-    "description": "Spray out a cone of fire with freedom to move.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Overfueled_Flame_Jet.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 29505,
-    "name": "Reconstruction Field",
-    "description": "Establish a defensive field, granting protection to allies in its area.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Reconstruction_Field.png",
-    "type": "Profession",
-    "slot": "Profession_1",
-    "specialization": "Scrapper",
-    "categories": [
-      "tool belt",
-      "Scrapper"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 29518,
-    "name": "Detonate Supply Crate Turrets",
-    "description": "Detonate your supply crate turrets.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Supply_Crate_Turrets.png",
-    "type": "Elite",
-    "slot": "Elite",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 29522,
-    "name": "Rocket Boots",
-    "description": "Fly forward, removing movement-impairing conditions and damaging foes with your rocket exhaust.<br>{{gray|Movement-impairing conditions include cripple, chill, and immobilize.}}",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rocket_Boots.png",
-    "type": "Utility",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [
-      "gadget"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 29547,
-    "name": "Bandage Blast",
-    "description": "Fire several bandages ahead of you to heal allies.",
-    "icon": "https://render.guildwars2.com/file/F473E7A5D7D301A3B813443812C73338C073ABB2/102898.png",
-    "type": "Weapon",
-    "slot": "Weapon_2",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 29606,
-    "name": "Invisible Analysis",
-    "description": "Analyze a stealthed foe, applying vulnerability.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Invisible_Analysis.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 29665,
-    "name": "Bypass Coating",
-    "description": "Splash a hypercoating on nearby allies, granting superspeed.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bypass_Coating.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "Scrapper",
-    "categories": [
-      "tool belt",
-      "Scrapper"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 29712,
-    "name": "Cleansing Pulse",
-    "description": "Cleanse a condition from nearby allies.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Cleansing_Pulse.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 29716,
-    "name": "Med Pack Drop",
-    "description": "Call down a supply drop of med packs into a target area.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Med_Pack_Drop.png",
-    "type": "Profession",
-    "slot": "Profession_5",
-    "specialization": "",
-    "categories": [
-      "tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 29722,
-    "name": "Detonate Elixir X",
-    "description": "Burst the bottle, transforming enemies.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Elixir_X.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "tool belt",
-      "elixir",
-      "transform"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 29772,
-    "name": "Bandage Self",
-    "description": "Bandage your wounds and heal yourself.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bandage_Self.png",
-    "type": "Profession",
-    "slot": "Profession_1",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 29812,
-    "name": "Lesser Utility Goggles",
-    "description": "Gain resistance, clear blindness, and remove damaging conditions.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Lesser_Utility_Goggles.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "gadget"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 29889,
-    "name": "Aim-Assisted Rocket (trait skill)",
-    "description": "Fire a seeking rocket at your foe.",
-    "icon": "https://render.guildwars2.com/file/C61F211044C97242B6324B6F092802706A5FC101/103936.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 29902,
-    "name": "Drop Gunk",
-    "description": "Drop gunk at your location to inflict a random condition.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Drop_Gunk.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30027,
-    "name": "Defense Field",
-    "description": "Project a defensive dome around yourself and grant stability to nearby allies.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defense_Field.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "Scrapper",
-    "categories": [
-      "tool belt",
-      "Scrapper"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30032,
-    "name": "Elixir Shell",
-    "description": "Launch a mortar round that heals allies in the target area.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Elixir_Shell.png",
-    "type": "Weapon",
-    "slot": "Weapon_5",
-    "specialization": "",
-    "categories": [
-      "elixir",
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30121,
-    "name": "Flash Shell",
-    "description": "Launch a phosphorous mortar round that burns brightly at impact point.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Flash_Shell.png",
-    "type": "Weapon",
-    "slot": "Weapon_4",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30142,
-    "name": "Bandage (trait skill)",
-    "description": "Drop a pack of bandages that provides a little healing.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bandage_(trait_skill).png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30262,
-    "name": "Flashbang",
-    "description": "Throw an explosive at the target area, dazing and blinding enemies on impact. Remove stealth and reveal enemies in a larger area around the impact.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Flashbang.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30264,
-    "name": "Overcharge Supply Crate",
-    "description": "Overcharge supply crate's turrets.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Overcharge_Supply_Crate.png",
-    "type": "Elite",
-    "slot": "Elite",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30279,
-    "name": "Chemical Field",
-    "description": "Generate a poison cloud.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Chemical_Field.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "Scrapper",
-    "categories": [
-      "tool belt",
-      "Scrapper"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30307,
-    "name": "Endothermic Shell",
-    "description": "Launch a mortar round that chills foes in the target area.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Endothermic_Shell.png",
-    "type": "Weapon",
-    "slot": "Weapon_3",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30337,
-    "name": "Throw Mine",
-    "description": "Throw out a remote-controlled land mine that damages, knocks back {{sic|it doesn't knock back, it stuns}}, and removes a boon from nearby foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Throw_Mine.png",
-    "type": "Utility",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [
-      "gadget"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30371,
-    "name": "Mortar Shot",
-    "description": "Launch an explosive round from your mortar, damaging foes in the target area.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Mortar_Shot.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30521,
-    "name": "Med Blaster",
-    "description": "Restore health to allies with several pulses of healing energy. Heals more for each boon on the ally.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Med_Blaster.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30599,
-    "name": "Orbital Strike",
-    "description": "Call down energy from the sky to blast an area.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Orbital_Strike.png",
-    "type": "Profession",
-    "slot": "Profession_5",
-    "specialization": "",
-    "categories": [
-      "tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30686,
-    "name": "Long-Fused Powder Pack",
-    "description": "Drop a delayed explosive pack at your foe's location.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Long-Fused_Powder_Pack.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30725,
-    "name": "Toss Elixir X",
-    "description": "Toss your Elixir X, transforming enemies at the location into moas.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_X.png",
-    "type": "Profession",
-    "slot": "Profession_5",
-    "specialization": "",
-    "categories": [
-      "tool belt",
-      "Elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30828,
-    "name": "Slick Shoes",
-    "description": "Spray oil behind you, knocking down foes. If underwater, foes entering the field are blinded and slowed.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Slick_Shoes.png",
-    "type": "Utility",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [
-      "gadget"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30885,
-    "name": "Poison Gas Shell",
-    "description": "Launch a mortar round that spreads poisonous gas in an area.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Poison_Gas_Shell.png",
-    "type": "Weapon",
-    "slot": "Weapon_2",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 30893,
-    "name": "Deploy Mine",
-    "description": "Deploy a remote-controlled mine that damages nearby foes and removes a boon.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Deploy_Mine.png",
-    "type": "Utility",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [
-      "Gadget"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 31167,
-    "name": "Spare Capacitor",
-    "description": "Set down a lightning capacitor to daze and damage foes near it.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Spare_Capacitor.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "Scrapper",
-    "categories": [
-      "tool belt",
-      "Scrapper"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 40168,
-    "name": "Throw Junk (Doppelganger)",
-    "description": "Throw a bit of junk and inflict a random condition on your foe.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Throw_Junk_(Doppelganger).png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 41612,
-    "name": "Orbital Command Strike",
-    "description": "Call down energy from the sky to blast an area.",
-    "icon": "https://render.guildwars2.com/file/99CFD7B1B200DCC508172BC8A3C2EE970C06493E/1012854.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 41684,
-    "name": "Flash Cutter—Storm",
-    "description": "Fire two light blades in quick succession.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Flash_Cutter.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "Holosmith",
-    "categories": [
-      "Holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 41843,
-    "name": "Prismatic Singularity",
-    "description": "Collapse a ring of holograms to pull foes into a single point. The ring explodes when it fully collapses. Radius and pull distance increased while above the heat threshold.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Prismatic_Singularity.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "holosmith",
-    "categories": [
-      "tool belt",
-      "holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 42163,
-    "name": "Blade Burst",
-    "description": "Fire holographic blades at foes within range. Damage increased while over the heat threshold.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Blade_Burst.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "holosmith",
-    "categories": [
-      "tool belt",
-      "holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 42475,
-    "name": "Bright Slash—Storm",
-    "description": "Launch another arc of light at your target.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bright_Slash.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "Holosmith",
-    "categories": [
-      "Holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 42521,
-    "name": "Holographic Shockwave",
-    "description": "Create a deadly holographic shockwave that launches foes upward. This attack always deals a critical hit.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Holographic_Shockwave.png",
-    "type": "Weapon",
-    "slot": "Weapon_5",
-    "specialization": "Holosmith",
-    "categories": [
-      "Holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 42965,
-    "name": "Holo Leap",
-    "description": "Create a holographic launch pad and leap to your foe. The pad remains behind for a short duration, granting increased movement speed to allies who touch it.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Holo_Leap.png",
-    "type": "Weapon",
-    "slot": "Weapon_2",
-    "specialization": "Holosmith",
-    "categories": [
-      "Holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 43176,
-    "name": "Flash Spark",
-    "description": "Release a blinding burst of light from your holographic emitter. While above the heat threshold, gain light aura.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Flash_Spark.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "holosmith",
-    "categories": [
-      "tool belt",
-      "holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 43630,
-    "name": "Vent Exhaust",
-    "description": "Damage nearby foes and apply conditions to them. Lose heat. This attack activates Heat Therapy if you have not overheated.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vent_Exhaust.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "holosmith",
-    "categories": [
-      "holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 43845,
-    "name": "Cauterize",
-    "description": "Use a laser to burn off conditions and set yourself on fire for each condition removed. Removes additional conditions if above the heat threshold.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Cauterize.png",
-    "type": "Profession",
-    "slot": "Profession_1",
-    "specialization": "holosmith",
-    "categories": [
-      "tool belt",
-      "holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 43937,
-    "name": "Overheat",
-    "description": "Reaching the heat maximum results in a self-damaging explosion. Photon Forge is disabled until all heat is lost. Other tool belt skill cooldowns are increased.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Overheat.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "Holosmith",
-    "categories": [
-      "Holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 44260,
-    "name": "Light Strike—Storm",
-    "description": "Launch an arc of light at your foe.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Light_Strike.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "Holosmith",
-    "categories": [
-      "Holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 44386,
-    "name": "Holoforge Overheated",
-    "description": "Unable to reactivate until cooled.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Holoforge_Overheated.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "Holosmith",
-    "categories": [
-      "Holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 44530,
-    "name": "Corona Burst",
-    "description": "Strike nearby foes and begin to store up energy, gaining boons and heat each pulse. After charging, the energy explodes, inflicting conditions on nearby foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Corona_Burst.png",
-    "type": "Weapon",
-    "slot": "Weapon_3",
-    "specialization": "Holosmith",
-    "categories": [
-      "Holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 44588,
-    "name": "Light Strike",
-    "description": "Swing a holographic blade.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Light_Strike.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "Holosmith",
-    "categories": [
-      "Holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 45119,
-    "name": "Refraction Cutter Blade",
-    "description": "Launch a blade of light that bleeds your target.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Refraction_Cutter_Blade.png",
-    "type": "Weapon",
-    "slot": "Action",
-    "specialization": "Holosmith",
-    "categories": [
-      "Holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 45219,
-    "name": "Deactivate Photon Forge (hot)",
-    "description": "Cancel Photon Forge and begin cooling after a delay. Cooling effectiveness increases over time.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Deactivate_Photon_Forge_(hot).png",
-    "type": "Profession",
-    "slot": "Profession_5",
-    "specialization": "Holosmith",
-    "categories": [
-      "Holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 45709,
-    "name": "Controlled Analysis",
-    "description": "Analyze a disabled foe, applying vulnerability.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Controlled_Analysis.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "Tool belt"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 45732,
-    "name": "Particle Accelerator",
-    "description": "Fire a crippling bolt of light at your target. Allies the bolt passes through are granted swiftness. Projectile velocity and damage increased while above the heat threshold.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Particle_Accelerator.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "holosmith",
-    "categories": [
-      "tool belt",
-      "holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 45756,
-    "name": "Bright Slash",
-    "description": "Slash with a blade of light energy.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bright_Slash.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "Holosmith",
-    "categories": [
-      "Holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 45783,
-    "name": "Photon Blitz",
-    "description": "Fire multiple piercing blasts at your target.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Photon_Blitz.png",
-    "type": "Weapon",
-    "slot": "Weapon_4",
-    "specialization": "Holosmith",
-    "categories": [
-      "Holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 45890,
-    "name": "Flash Cutter",
-    "description": "Cleave through all foes in front of you twice.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Flash_Cutter.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "specialization": "Holosmith",
-    "categories": [
-      "Holosmith"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 49045,
-    "name": "Cleansing Field",
-    "description": "Release purifying vapors to cleanse conditions from allies near you at each interval.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Cleansing_Field.png",
-    "type": "Weapon",
-    "slot": "Weapon_3",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 49082,
-    "name": "Vital Burst",
-    "description": "Unleash a cascade of concentrated healing vapors around you.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vital_Burst.png",
-    "type": "Weapon",
-    "slot": "Weapon_4",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 49097,
-    "name": "Lesser Elixir C",
-    "description": "Quaff an elixir, converting conditions into boons.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Lesser_Elixir_C.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [
-      "elixir"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 50444,
-    "name": "Infusion Bomb",
-    "description": "Throw a bomb that grants boons to nearby allies when it explodes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Infusion_Bomb.png",
-    "type": "Weapon",
-    "slot": "Weapon_5",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 56921,
-    "name": "Function Gyro (tool belt skill)",
-    "description": "Create a lightning field at the specified point. Then summon gyros to finish foes and revive allies within the field. The recharge of this skill is increased for each gyro created beyond the first.<br>{{gray|Interrupted gyros are destroyed.}}",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Function_Gyro_(tool_belt_skill).png",
-    "type": "Profession",
-    "slot": "Profession_5",
-    "specialization": "Scrapper",
-    "categories": [
-      "tool belt",
-      "Scrapper"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 59562,
-    "name": "Explosive Entrance (trait skill)",
-    "description": "Your first attack explodes, dealing extra damage to nearby enemies.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Explosive_Entrance_(trait_skill).png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "",
-    "categories": [],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63121,
-    "name": "Jade Mortar",
-    "description": "Launch a powerful mortar attack at the target.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Jade_Mortar.png",
-    "type": "Profession",
-    "slot": "Profession_3",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mech Command",
-      "tool belt",
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63141,
-    "name": "Barrier Burst",
-    "description": "Pulse a barrier and boons to all nearby allies.<br>{{gray|The mech does not count against the target count for this skill.}}",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Barrier_Burst.png",
-    "type": "Profession",
-    "slot": "Profession_3",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mech Command",
-      "tool belt",
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63172,
-    "name": "Aerial Support",
-    "description": "...",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Aerial_Support.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63185,
-    "name": "Rocket Punch (Mech)",
-    "description": "Your mech launches an explosive fist that detonates on hit, dealing defiance damage to enemies with active defiance bars. This skill is only used when you activate Skill 3 on your weapon.",
-    "icon": "https://render.guildwars2.com/file/02DA2C9899B63DE522020824C67D05951F40CA4A/2503679.png",
-    "type": "Action",
-    "slot": "Action",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63188,
-    "name": "Spark Revolver",
-    "description": "Fire a rapid volley of jade energy bolts from both arms, piercing through all enemies.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Spark_Revolver.png",
-    "type": "Profession",
-    "slot": "Profession_1",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mech Command",
-      "tool belt",
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63236,
-    "name": "Sky Circus",
-    "description": "Your mech jets into the air and fires a missile at each nearby foe before crashing down and dealing additional damage to anything caught underfoot.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Sky_Circus.png",
-    "type": "Profession",
-    "slot": "Profession_3",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mech Command",
-      "tool belt",
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63263,
-    "name": "Heavy Smash (Mech)",
-    "description": "Perform a second, powerful strike.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Heavy_Smash_(Mech).png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63264,
-    "name": "Jade Energy Shot",
-    "description": "...",
-    "icon": "https://render.guildwars2.com/file/73600241FA662501C5D617719A7B4792F30B2846/2503622.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63288,
-    "name": "Twin Strike (Mech)",
-    "description": "Strikes foes in front of you.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Twin_Strike_(Mech).png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63293,
-    "name": "Crisis Zone",
-    "description": "Your mech removes conditions, breaks stuns, and grants boons to itself and nearby allies.<br>{{gray|The mech does not count against the target count for this skill.}}",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Crisis_Zone.png",
-    "type": "Profession",
-    "slot": "Profession_2",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mech Command",
-      "tool belt",
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63298,
-    "name": "Hard Strike",
-    "description": "Strikes foes in front of you.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Hard_Strike.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63300,
-    "name": "Recall Mech",
-    "description": "Recall your mech for repairs. The cooldown of Crash Down is determined by the amount of damage your mech has taken.<br>{{gray|Right-click to rename your mech.}}",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Recall_Mech.png",
-    "type": "Profession",
-    "slot": "Profession_4",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63334,
-    "name": "Rolling Smash",
-    "description": "Slam at the target with both cutters, inflicting severe bleeding to enemies in the area.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rolling_Smash.png",
-    "type": "Profession",
-    "slot": "Profession_1",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mech Command",
-      "tool belt",
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63345,
-    "name": "Core Reactor Shot",
-    "description": "Charge up and then release a powerful ball of jade energy at your target that explodes on contact.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Core_Reactor_Shot.png",
-    "type": "Profession",
-    "slot": "Profession_2",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mech Command",
-      "tool belt",
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63348,
-    "name": "Jade Energy Shot",
-    "description": "...",
-    "icon": "https://render.guildwars2.com/file/73600241FA662501C5D617719A7B4792F30B2846/2503622.png",
-    "type": "Profession",
-    "slot": "Action",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63365,
-    "name": "Explosive Knuckle",
-    "description": "Order your mech to dash at a target, punching with an explosive strike that weakens enemies near the point of impact.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Explosive_Knuckle.png",
-    "type": "Profession",
-    "slot": "Profession_1",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mech Command",
-      "tool belt",
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 63367,
-    "name": "Discharge Array",
-    "description": "Cycle energy into your mech's armor to turn it into a lightning rod. Jade energy strikes nearby foes and inflicts conditions on them.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Discharge_Array.png",
-    "type": "Profession",
-    "slot": "Profession_2",
-    "specialization": "Mechanist",
-    "categories": [
-      "Mech Command",
-      "tool belt",
-      "Mechanist"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76493,
-    "name": "Stoke the Flames",
-    "description": "Overcharge your flamethrower with a fuel injection, releasing a burst of flames around you as you grant yourself boons.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Stoke_the_Flames.png",
-    "type": "Weapon",
-    "slot": "Weapon_4",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76530,
-    "name": "Magnetic Bomb",
-    "description": "Set a timed charge that pulls nearby foes.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Magnetic_Bomb.png",
-    "type": "Weapon",
-    "slot": "Weapon_4",
-    "specialization": "",
-    "categories": [
-      "EngineeringKit"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76568,
-    "name": "Offensive Protocol: Shred",
-    "description": "Launch cutting disks at your enemies, piercing enemies in their path. Enemies struck are crippled; if an enemy is struck by all three disks, they are immobilized instead.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Shred.png",
-    "type": "Profession",
-    "slot": "Profession_4",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76613,
-    "name": "Symbiotic Shielding",
-    "description": "Gain barrier and magnetic aura.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Symbiotic_Shielding.png",
-    "type": "Profession",
-    "slot": "Profession_1",
-    "specialization": "Amalgam",
-    "categories": [
-      "Tool belt",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76640,
-    "name": "Defensive Protocol: Thorns",
-    "description": "Grow protective spikes, damaging nearby enemies. For a short duration, the spikes react when you are struck, damaging nearby enemies again.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Thorns.png",
-    "type": "Profession",
-    "slot": "Profession_4",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76693,
-    "name": "Offensive Protocol: Demolish",
-    "description": "Spin around a hunk of metal, then finish with a forward smash.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Demolish.png",
-    "type": "Profession",
-    "slot": "Profession_3",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76705,
-    "name": "Offensive Protocol: Obliterate",
-    "description": "Create a giant blade to maim your enemy. The attack destroys the barrier of enemies hit.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Obliterate.png",
-    "type": "Profession",
-    "slot": "Profession_4",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76713,
-    "name": "Defensive Protocol: Cleanse",
-    "description": "Convert damaging conditions to barrier and nondamaging conditions to protection.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Cleanse.png",
-    "type": "Profession",
-    "slot": "Profession_4",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76798,
-    "name": "Defensive Protocol: Cleanse",
-    "description": "Convert damaging conditions to barrier and nondamaging conditions to protection.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Cleanse.png",
-    "type": "Profession",
-    "slot": "Profession_2",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76806,
-    "name": "Offensive Protocol: Obliterate",
-    "description": "Create a giant blade to maim your enemy. The attack destroys the barrier of enemies hit.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Obliterate.png",
-    "type": "Profession",
-    "slot": "Profession_2",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76815,
-    "name": "Offensive Protocol: Pierce",
-    "description": "Thrust forward with a spike, piercing the defense of your foe.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Pierce.png",
-    "type": "Profession",
-    "slot": "Profession_2",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76866,
-    "name": "Offensive Protocol: Shred",
-    "description": "Launch cutting disks at your enemies, piercing enemies in their path. Enemies struck are crippled; if an enemy is struck by all three disks, they are immobilized instead.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Shred.png",
-    "type": "Profession",
-    "slot": "Profession_3",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76901,
-    "name": "Offensive Protocol: Obliterate",
-    "description": "Create a giant blade to maim your enemy. The attack destroys the barrier of enemies hit.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Obliterate.png",
-    "type": "Profession",
-    "slot": "Profession_3",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76927,
-    "name": "Offensive Protocol: Demolish",
-    "description": "Spin around a hunk of metal, then finish with a forward smash.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Demolish.png",
-    "type": "Profession",
-    "slot": "Profession_2",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76954,
-    "name": "Offensive Protocol: Demolish",
-    "description": "Spin around a hunk of metal, then finish with a forward smash.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Demolish.png",
-    "type": "Profession",
-    "slot": "Profession_4",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 76959,
-    "name": "Defensive Protocol: Protect",
-    "description": "Briefly block incoming attacks.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Protect.png",
-    "type": "Profession",
-    "slot": "Profession_2",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 77005,
-    "name": "Offensive Protocol: Pierce",
-    "description": "Thrust forward with a spike, piercing the defense of your foe.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Pierce.png",
-    "type": "Profession",
-    "slot": "Profession_3",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 77015,
-    "name": "Offensive Protocol: Pierce",
-    "description": "Thrust forward with a spike, piercing the defense of your foe.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Pierce.png",
-    "type": "Profession",
-    "slot": "Profession_4",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 77103,
-    "name": "Offensive Protocol: Shred",
-    "description": "Launch cutting disks at your enemies, piercing enemies in their path. Enemies struck are crippled; if an enemy is struck by all three disks, they are immobilized instead.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Shred.png",
-    "type": "Profession",
-    "slot": "Profession_2",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 77104,
-    "name": "Defensive Protocol: Thorns",
-    "description": "Grow protective spikes, damaging nearby enemies. For a short duration, the spikes react when you are struck, damaging nearby enemies again.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Thorns.png",
-    "type": "Profession",
-    "slot": "Profession_3",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 77163,
-    "name": "Defensive Protocol: Thorns",
-    "description": "Grow protective spikes, damaging nearby enemies. For a short duration, the spikes react when you are struck, damaging nearby enemies again.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Thorns.png",
-    "type": "Profession",
-    "slot": "Profession_2",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 77203,
-    "name": "Defensive Protocol: Protect",
-    "description": "Briefly block incoming attacks.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Protect.png",
-    "type": "Profession",
-    "slot": "Profession_3",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 77285,
-    "name": "Defensive Protocol: Cleanse",
-    "description": "Convert damaging conditions to barrier and nondamaging conditions to protection.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Cleanse.png",
-    "type": "Profession",
-    "slot": "Profession_3",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 77358,
-    "name": "Defensive Protocol: Protect",
-    "description": "Briefly block incoming attacks.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Protect.png",
-    "type": "Profession",
-    "slot": "Profession_4",
-    "specialization": "Amalgam",
-    "categories": [
-      "Morph",
-      "Amalgam"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
+    id: 5806,
+    name: 'Poison Grenade',
+    description: 'Throw several grenades that explode in poisonous blasts.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Poison_Grenade.png',
+    type: 'Weapon',
+    slot: 'Weapon_5',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5807,
+    name: 'Shrapnel Grenade',
+    description: 'Throw grenades that explode in a hail of shrapnel, causing bleeding.',
+    icon: 'https://render.guildwars2.com/file/467E6BF83D152F95BC5D0B3573F4D2D71F5A4BFA/102830.png',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5808,
+    name: 'Flash Grenade',
+    description: 'Throw grenades that explode in blinding flashes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Flash_Grenade.png',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5809,
+    name: 'Freeze Grenade',
+    description: 'Throw grenades that chill foes with frigid blasts.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Freeze_Grenade.png',
+    type: 'Weapon',
+    slot: 'Weapon_4',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5810,
+    name: 'Grenade Barrage',
+    description: 'Throw several grenades at once.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Grenade_Barrage.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5813,
+    name: "Big Ol' Bomb",
+    description: 'Set a timed charge with a big blast that knocks down nearby foes. This skill blast finishes twice.',
+    icon: "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Big_Ol'_Bomb.png",
+    type: 'Weapon',
+    slot: 'Weapon_5',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5817,
+    name: 'Jump Shot',
+    description: 'Blast the ground, damaging nearby foes and leaping to your target.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Jump_Shot.png',
+    type: 'Weapon',
+    slot: 'Weapon_5',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5822,
+    name: 'Galvanic Bomb',
+    description: 'Set an explosive that electrocutes nearby foes, dazing them.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Galvanic_Bomb.png',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5823,
+    name: 'Fire Bomb',
+    description: 'Set an explosive that burns nearby foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Bomb.png',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5824,
+    name: 'Smoke Bomb (engineer skill)',
+    description: 'Set a timed charge that creates a cloud of smoke, blinding nearby foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Smoke_Bomb_(engineer_skill).png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5842,
+    name: 'Bomb',
+    description: 'Set an explosive that damages nearby foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bomb.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5867,
+    name: 'Toss Elixir R',
+    description: 'Toss Elixir R to revive allies at a location.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_R.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt', 'Elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5874,
+    name: 'Automatic Fire',
+    description: 'Overcharge your rifle turret to fire piercing shots that inflict vulnerability.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Automatic_Fire.png',
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5882,
+    name: 'Grenade',
+    description: 'Throw several grenades that explode.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Grenade.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5889,
+    name: 'Thump',
+    description: 'Overcharge your thumper turret to launch nearby foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Thump.png',
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5905,
+    name: 'Pry Bar',
+    description: 'Confuse your foe by smacking them with a pry bar.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Pry_Bar.png',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5928,
+    name: 'Flame Jet',
+    description:
+      'Spray fire in a cone pattern while moving, burning foes on the final attack. Deals 10% bonus damage to burning targets.',
+    icon: 'https://render.guildwars2.com/file/2CDBD11894D945140B3480BFEC960800086352E5/103269.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5929,
+    name: 'Napalm',
+    description: 'Immolate enemies in front of you with a cone of intense fire.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Napalm.png',
+    type: 'Weapon',
+    slot: 'Weapon_5',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5930,
+    name: 'Air Blast',
+    description: 'Push back foes and projectiles with a hot-air blast, burning foes that are already on fire.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Air_Blast.png',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5931,
+    name: 'Flame Blast',
+    description: 'Fire a napalm ball that explodes on impact.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Flame_Blast.png',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5934,
+    name: 'Tranquilizer Dart',
+    description: 'Fire a dart that bleeds and weakens foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Tranquilizer_Dart.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5935,
+    name: 'Glob Shot',
+    description:
+      'Fire a bouncing glob that cripples foes and grants swiftness to you and your allies. The first enemy struck is immobilized.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Glob_Shot.png',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5936,
+    name: 'Acid Bomb',
+    description: 'Leap backward, spraying an acidic elixir on the ground that damages nearby foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Acid_Bomb.png',
+    type: 'Weapon',
+    slot: 'Weapon_4',
+    specialization: '',
+    categories: ['Elixir', 'EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5937,
+    name: 'Super Elixir',
+    description: 'Shoot an elixir orb, healing allies when it bursts and creating an area of continual healing.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Super_Elixir.png',
+    type: 'Weapon',
+    slot: 'Weapon_5',
+    specialization: '',
+    categories: ['Elixir', 'EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5957,
+    name: 'Detonate Rifle Turret',
+    description: 'Detonate your rifle turret.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Rifle_Turret.png',
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5965,
+    name: 'Fumigate',
+    description:
+      'Spray a cone of elixir fumes, inflicting poison and vulnerability to foes and curing conditions on allies with every strike.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fumigate.png',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5966,
+    name: 'Healing Mist',
+    description: 'Vent a healing mist, granting regeneration to yourself and allies.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Healing_Mist.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Elixir', 'Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5967,
+    name: 'Toss Elixir B',
+    description:
+      'Toss Elixir B at a location, granting stability and one of the following boons to allies: fury, might, or resolution.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_B.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt', 'Elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5969,
+    name: 'Toss Elixir C',
+    description: 'Toss Elixir C, converting conditions into boons for allies.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_C.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt', 'Elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5970,
+    name: 'Toss Elixir U',
+    description: 'Toss Elixir U, breaking stuns on allies and granting them superspeed.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_U.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt', 'Elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5972,
+    name: 'Toss Elixir S',
+    description: 'Toss Elixir S, granting stealth to allies in the target area.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_S.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt', 'Elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5973,
+    name: 'Superspeed (skill)',
+    description: 'Activate your slick shoes, enabling you to move at superior speeds.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Superspeed_(skill).png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5978,
+    name: 'Toss Elixir H',
+    description: 'Toss Elixir H to grant protection, regeneration, and vigor to allies.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_H.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    specialization: '',
+    categories: ['Tool belt', 'Elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5980,
+    name: 'Cleansing Burst',
+    description: 'Overcharge your healing turret to cure conditions and grant a burst of healing.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Cleansing_Burst.png',
+    type: 'Heal',
+    slot: 'Heal',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5982,
+    name: 'Launch Personal Battering Ram',
+    description: "Shoot a ram's head in front of you, impairing any struck foes.",
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Launch_Personal_Battering_Ram.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5983,
+    name: 'Rocket Kick',
+    description: 'Use your rocket boots to do an explosive kick that burns foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rocket_Kick.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5984,
+    name: 'Detonate Net Turret',
+    description: 'Detonate your net turret.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Net_Turret.png',
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5985,
+    name: 'Detonate Flame Turret',
+    description: 'Detonate your flame turret.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Flame_Turret.png',
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5992,
+    name: 'Smack',
+    description: 'Smack your foe. Repair turrets.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Smack.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5993,
+    name: 'Whack',
+    description: 'Whack your foe. Repairs turrets.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Whack.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5994,
+    name: 'Thwack',
+    description: 'Thwack your foe. Repairs turrets.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Thwack.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5995,
+    name: 'Box of Nails',
+    description: 'Scatter nails that bleed and cripple foes. The first pulse of this skill will immobilize foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Box_of_Nails.png',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5996,
+    name: 'Magnet',
+    description: 'Pull your target to you.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Magnet.png',
+    type: 'Weapon',
+    slot: 'Weapon_5',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5998,
+    name: 'Gear Shield',
+    description: 'Block attacks.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Gear_Shield.png',
+    type: 'Weapon',
+    slot: 'Weapon_4',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 5999,
+    name: 'Throw Wrench',
+    description: 'Throw a wrench that returns to you, striking foes each way.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Throw_Wrench.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6050,
+    name: 'Lesser Grenade Barrage',
+    description: 'Throw several grenades at once.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Lesser_Grenade_Barrage.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6077,
+    name: 'Toss Elixir C',
+    description: 'Toss Elixir C, converting conditions into boons for allies.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_C.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt', 'Elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6078,
+    name: 'Detonate Elixir C',
+    description: 'Burst the bottle, converting conditions into boons for allies in your area.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Elixir_C.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['tool belt', 'elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6082,
+    name: 'Detonate Elixir B',
+    description:
+      'Burst the bottle to grant stability and one of the following boons to allies: fury, might, resolution, or swiftness.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Elixir_B.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['tool belt', 'elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6084,
+    name: 'Detonate Elixir S',
+    description: 'Burst the bottle, granting allies stealth.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Elixir_S.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['tool belt', 'elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6086,
+    name: 'Detonate Elixir R',
+    description: 'Burst the bottle, reviving allies.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Elixir_R.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['tool belt', 'elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6088,
+    name: 'Detonate Elixir U',
+    description: 'Detonate Elixir U, causing it to grant allies superspeed and break them out of stun.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Elixir_U.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['tool belt', 'elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6089,
+    name: 'Toss Elixir U',
+    description: 'Toss Elixir U, breaking stuns on allies and granting them superspeed.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_U.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt', 'Elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6090,
+    name: 'Toss Elixir S',
+    description: 'Toss Elixir S, granting stealth to allies in the target area.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_S.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt', 'Elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6091,
+    name: 'Toss Elixir R',
+    description: 'Toss Elixir R to revive allies at a location.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_R.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt', 'Elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6092,
+    name: 'Toss Elixir B',
+    description:
+      'Toss Elixir B at a location, granting stability and one of the following boons to allies: fury, might, or resolution.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_B.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt', 'Elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6093,
+    name: 'Harpoon Turret',
+    description:
+      'Build a harpoon turret that shoots at foes. Turrets automatically overcharge when they are first placed, and they can be overcharged manually as long as they stay active.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Harpoon_Turret.png',
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: '',
+    categories: ['turret'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6097,
+    name: 'Detonate Harpoon Turret',
+    description: 'Detonate your harpoon turret.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Harpoon_Turret.png',
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6098,
+    name: 'Automatic Fire (Harpoon Turret)',
+    description: 'Overcharge your harpoon turret to fire a burst of automated shots.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Automatic_Fire_(Harpoon_Turret).png',
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6104,
+    name: 'Super Elixir (chain skill)',
+    description: 'Burst the orb, instantly healing your allies and creating an area of continual healing.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Super_Elixir.png',
+    type: 'Weapon',
+    slot: 'Weapon_5',
+    specialization: '',
+    categories: ['Elixir', 'EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6114,
+    name: 'Stow Flamethrower',
+    description: 'Stow your flamethrower.',
+    icon: 'https://render.guildwars2.com/file/7342BF326738A4C5132F42CE0915D3A2184E52FB/60975.png',
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6119,
+    name: 'Detonate Elixir H',
+    description: 'Burst a bottle of Elixir H, granting protection, regeneration, and swiftness to allies.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Elixir_H.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['tool belt', 'elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6134,
+    name: 'Detonate Rocket Turret',
+    description: 'Detonate your rocket turret.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Rocket_Turret.png',
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6159,
+    name: 'Smoke Vent',
+    description: 'Vent smoke from your flamethrower, blinding nearby foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Smoke_Vent.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6163,
+    name: 'Deploy Mine',
+    description: 'Deploy a remote-controlled mine that damages nearby foes and removes a boon.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Deploy_Mine.png',
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: '',
+    categories: ['Gadget'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6164,
+    name: 'Mine Field',
+    description: 'Plant five mines around yourself.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Mine_Field.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6166,
+    name: 'Detonate Mine Field',
+    description: 'Detonate your mine{{sic|mines}}, damaging nearby foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Mine_Field.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6176,
+    name: 'Regenerating Mist',
+    description: 'Release a mist of healing liquid to regenerate nearby allies.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Cleansing_Burst.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    specialization: '',
+    categories: ['tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6177,
+    name: 'Rocket',
+    description: 'Fire a rocket out of your belt that explodes on impact.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rocket.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6178,
+    name: 'Surprise Shot (engineer skill)',
+    description: 'Fire a bullet out of your belt.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fierce_Shot.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6179,
+    name: 'Net Attack',
+    description: 'Fire a net from your belt to immobilize your foe.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Net_Attack.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6180,
+    name: 'Rumble',
+    description: 'Release a shock wave of inertial force to damage nearby foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rumble.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6181,
+    name: 'Throw Napalm',
+    description: 'Throw a ball of napalm that explodes on impact, burning foes around target location.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Throw_Napalm.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 6182,
+    name: 'Harpoon (engineer skill)',
+    description: 'Launch a harpoon from your belt.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Harpoon_(engineer_skill).png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 10661,
+    name: 'Withering Plague',
+    description: 'Add bleeding to your plague.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Withering_Plague.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 10662,
+    name: 'Plague of Darkness',
+    description: 'Add blindness to your plague.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Plague_of_Darkness.png',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 10663,
+    name: 'Plague of Pestilence',
+    description: 'Add cripple and weakness to your plague and increase its damage dealt.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Plague_of_Pestilence.png',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 12334,
+    name: 'Confusing Speech',
+    description: 'Confuse nearby foes with complex calculations.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Confusing_Speech.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 12335,
+    name: 'Pain Transference',
+    description: 'Send out a bolt that steals a boon from your foe and gives them one condition from you.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Pain_Transference.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 12336,
+    name: 'Vent Radiation',
+    description: 'Vent radioactive gas to poison nearby foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vent_Radiation.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 12354,
+    name: 'Invigorating Roar',
+    description: 'Let out an inspiring roar, removing weakness and vulnerability from allies and granting vigor.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Invigorating_Roar.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 12355,
+    name: 'Booby Trap (charr skill)',
+    description: 'Place an explosive charge on yourself that is triggered by a melee attack.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Booby_Trap_(charr_skill).png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 12357,
+    name: 'Hidden Pistols',
+    description: 'Draw both hidden pistols and unload a volley of bullets on your foe.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Hidden_Pistols.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 12377,
+    name: 'Blessing of Dwayna',
+    description: 'Beseech Dwayna to restore health and grant regeneration to allies at target location.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Blessing_of_Dwayna.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 12378,
+    name: 'Blessing of Kormir',
+    description: 'Beseech Kormir to remove one condition from your allies at the target location.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Blessing_of_Kormir.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 12379,
+    name: 'Blessing of Lyssa',
+    description: 'Pray to Lyssa, granting a random boon to allies and a random condition to foes at target location.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Blessing_of_Lyssa.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 12438,
+    name: 'Eat Wurm Egg',
+    description: "Eat a wurm's egg to gain vigor and regeneration.",
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Eat_Wurm_Egg.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 12439,
+    name: 'Eat Owl Egg',
+    description: "Eat an owl's egg to gain swiftnesss{{sic|swiftness}} and regeneration.",
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Eat_Owl_Egg.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 12462,
+    name: 'Throw Vine',
+    description: 'Throw a vine and trip your foe.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Throw_Vine.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 12463,
+    name: 'Vine Shield',
+    description: 'Block incoming attacks.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vine_Shield.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 12465,
+    name: 'Leafy Bandage',
+    description: 'Use natural bandages to heal yourself and remove bleeding, burning, and poison.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Leafy_Bandage.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 13465,
+    name: 'Lesser Elixir B',
+    description: 'Quaff an elixir, gaining boons.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Lesser_Elixir_B.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: ['elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 13516,
+    name: 'Ally Ward',
+    description: 'Grant protection to nearby allies.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Ally_Ward.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 13552,
+    name: 'Static Discharge (trait skill)',
+    description:
+      'Hit multiple foes with arcs of chain lightning. Critical hits with this ability deal increased damage.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Static_Discharge_(trait_skill).png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 15796,
+    name: 'Plague',
+    description:
+      'Become a virulent cloud and inflict multiple conditions on foes you touch. Entering this form destroys all minions and removes spectral effects.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Plague.png',
+    type: 'Elite',
+    slot: 'Elite',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 16739,
+    name: 'Snowman Turret (skill)',
+    description: 'Build a snowman turret that throws snowballs at foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Snowman_Turret_(skill).png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 16744,
+    name: 'Detonate Snowman Turret',
+    description: 'Detonate your snowman turret.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Snowman_Turret.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 17810,
+    name: 'Drop Mine',
+    description: 'Drop a mine that deals damage to enemies that trigger it.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Drop_Mine.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 17811,
+    name: 'Magnetic Bomb (trait skill)',
+    description: 'Set a timed charge that pulls nearby foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Magnetic_Bomb_(trait_skill).png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 17812,
+    name: 'Superspeed (trait skill)',
+    description: 'Run at double speed.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Superspeed_(trait_skill).png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 17813,
+    name: 'Fire Shield (trait skill)',
+    description: 'Activate a fire shield that burns enemies who strike you, granting might for each burn applied.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Shield_(trait_skill).png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 17814,
+    name: 'Magnetic Aura (trait skill)',
+    description: 'Become surrounded in a magnetic shield that reflects projectiles.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Magnetic_Aura_(trait_skill).png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 17815,
+    name: 'Glue Trail',
+    description: 'Leave a trail of glue behind you that hampers enemy movement.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Glue_Trail.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 21661,
+    name: 'Static Shock',
+    description: 'Use your A.E.D. to stun an enemy.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Static_Shock.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 24329,
+    name: 'Bunker Down (trait skill)',
+    description: 'Detonates when enemies draw near.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bunker_Down_(trait_skill).png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 26027,
+    name: 'Overfueled Flame Jet',
+    description: 'Spray out a cone of fire with freedom to move.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Overfueled_Flame_Jet.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 29505,
+    name: 'Reconstruction Field',
+    description: 'Establish a defensive field, granting protection to allies in its area.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Reconstruction_Field.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    specialization: 'Scrapper',
+    categories: ['tool belt', 'Scrapper'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 29518,
+    name: 'Detonate Supply Crate Turrets',
+    description: 'Detonate your supply crate turrets.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Supply_Crate_Turrets.png',
+    type: 'Elite',
+    slot: 'Elite',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 29522,
+    name: 'Rocket Boots',
+    description:
+      'Fly forward, removing movement-impairing conditions and damaging foes with your rocket exhaust.<br>{{gray|Movement-impairing conditions include cripple, chill, and immobilize.}}',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rocket_Boots.png',
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: '',
+    categories: ['gadget'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 29547,
+    name: 'Bandage Blast',
+    description: 'Fire several bandages ahead of you to heal allies.',
+    icon: 'https://render.guildwars2.com/file/F473E7A5D7D301A3B813443812C73338C073ABB2/102898.png',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 29606,
+    name: 'Invisible Analysis',
+    description: 'Analyze a stealthed foe, applying vulnerability.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Invisible_Analysis.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 29665,
+    name: 'Bypass Coating',
+    description: 'Splash a hypercoating on nearby allies, granting superspeed.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bypass_Coating.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: 'Scrapper',
+    categories: ['tool belt', 'Scrapper'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 29712,
+    name: 'Cleansing Pulse',
+    description: 'Cleanse a condition from nearby allies.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Cleansing_Pulse.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 29716,
+    name: 'Med Pack Drop',
+    description: 'Call down a supply drop of med packs into a target area.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Med_Pack_Drop.png',
+    type: 'Profession',
+    slot: 'Profession_5',
+    specialization: '',
+    categories: ['tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 29722,
+    name: 'Detonate Elixir X',
+    description: 'Burst the bottle, transforming enemies.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Detonate_Elixir_X.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['tool belt', 'elixir', 'transform'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 29772,
+    name: 'Bandage Self',
+    description: 'Bandage your wounds and heal yourself.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bandage_Self.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 29812,
+    name: 'Lesser Utility Goggles',
+    description: 'Gain resistance, clear blindness, and remove damaging conditions.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Lesser_Utility_Goggles.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: ['gadget'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 29889,
+    name: 'Aim-Assisted Rocket (trait skill)',
+    description: 'Fire a seeking rocket at your foe.',
+    icon: 'https://render.guildwars2.com/file/C61F211044C97242B6324B6F092802706A5FC101/103936.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 29902,
+    name: 'Drop Gunk',
+    description: 'Drop gunk at your location to inflict a random condition.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Drop_Gunk.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30027,
+    name: 'Defense Field',
+    description: 'Project a defensive dome around yourself and grant stability to nearby allies.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defense_Field.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: 'Scrapper',
+    categories: ['tool belt', 'Scrapper'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30032,
+    name: 'Elixir Shell',
+    description: 'Launch a mortar round that heals allies in the target area.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Elixir_Shell.png',
+    type: 'Weapon',
+    slot: 'Weapon_5',
+    specialization: '',
+    categories: ['elixir', 'EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30121,
+    name: 'Flash Shell',
+    description: 'Launch a phosphorous mortar round that burns brightly at impact point.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Flash_Shell.png',
+    type: 'Weapon',
+    slot: 'Weapon_4',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30142,
+    name: 'Bandage (trait skill)',
+    description: 'Drop a pack of bandages that provides a little healing.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bandage_(trait_skill).png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30262,
+    name: 'Flashbang',
+    description:
+      'Throw an explosive at the target area, dazing and blinding enemies on impact. Remove stealth and reveal enemies in a larger area around the impact.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Flashbang.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: '',
+    categories: ['tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30264,
+    name: 'Overcharge Supply Crate',
+    description: "Overcharge supply crate's turrets.",
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Overcharge_Supply_Crate.png',
+    type: 'Elite',
+    slot: 'Elite',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30279,
+    name: 'Chemical Field',
+    description: 'Generate a poison cloud.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Chemical_Field.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: 'Scrapper',
+    categories: ['tool belt', 'Scrapper'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30307,
+    name: 'Endothermic Shell',
+    description: 'Launch a mortar round that chills foes in the target area.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Endothermic_Shell.png',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30337,
+    name: 'Throw Mine',
+    description:
+      "Throw out a remote-controlled land mine that damages, knocks back {{sic|it doesn't knock back, it stuns}}, and removes a boon from nearby foes.",
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Throw_Mine.png',
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: '',
+    categories: ['gadget'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30371,
+    name: 'Mortar Shot',
+    description: 'Launch an explosive round from your mortar, damaging foes in the target area.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Mortar_Shot.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30521,
+    name: 'Med Blaster',
+    description:
+      'Restore health to allies with several pulses of healing energy. Heals more for each boon on the ally.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Med_Blaster.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30599,
+    name: 'Orbital Strike',
+    description: 'Call down energy from the sky to blast an area.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Orbital_Strike.png',
+    type: 'Profession',
+    slot: 'Profession_5',
+    specialization: '',
+    categories: ['tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30686,
+    name: 'Long-Fused Powder Pack',
+    description: "Drop a delayed explosive pack at your foe's location.",
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Long-Fused_Powder_Pack.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30725,
+    name: 'Toss Elixir X',
+    description: 'Toss your Elixir X, transforming enemies at the location into moas.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Toss_Elixir_X.png',
+    type: 'Profession',
+    slot: 'Profession_5',
+    specialization: '',
+    categories: ['tool belt', 'Elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30828,
+    name: 'Slick Shoes',
+    description:
+      'Spray oil behind you, knocking down foes. If underwater, foes entering the field are blinded and slowed.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Slick_Shoes.png',
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: '',
+    categories: ['gadget'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30885,
+    name: 'Poison Gas Shell',
+    description: 'Launch a mortar round that spreads poisonous gas in an area.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Poison_Gas_Shell.png',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 30893,
+    name: 'Deploy Mine',
+    description: 'Deploy a remote-controlled mine that damages nearby foes and removes a boon.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Deploy_Mine.png',
+    type: 'Utility',
+    slot: 'Utility',
+    specialization: '',
+    categories: ['Gadget'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 31167,
+    name: 'Spare Capacitor',
+    description: 'Set down a lightning capacitor to daze and damage foes near it.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Spare_Capacitor.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: 'Scrapper',
+    categories: ['tool belt', 'Scrapper'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 40168,
+    name: 'Throw Junk (Doppelganger)',
+    description: 'Throw a bit of junk and inflict a random condition on your foe.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Throw_Junk_(Doppelganger).png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 41612,
+    name: 'Orbital Command Strike',
+    description: 'Call down energy from the sky to blast an area.',
+    icon: 'https://render.guildwars2.com/file/99CFD7B1B200DCC508172BC8A3C2EE970C06493E/1012854.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 41684,
+    name: 'Flash Cutter—Storm',
+    description: 'Fire two light blades in quick succession.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Flash_Cutter.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: 'Holosmith',
+    categories: ['Holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 41843,
+    name: 'Prismatic Singularity',
+    description:
+      'Collapse a ring of holograms to pull foes into a single point. The ring explodes when it fully collapses. Radius and pull distance increased while above the heat threshold.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Prismatic_Singularity.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: 'holosmith',
+    categories: ['tool belt', 'holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 42163,
+    name: 'Blade Burst',
+    description: 'Fire holographic blades at foes within range. Damage increased while over the heat threshold.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Blade_Burst.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: 'holosmith',
+    categories: ['tool belt', 'holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 42475,
+    name: 'Bright Slash—Storm',
+    description: 'Launch another arc of light at your target.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bright_Slash.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: 'Holosmith',
+    categories: ['Holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 42521,
+    name: 'Holographic Shockwave',
+    description:
+      'Create a deadly holographic shockwave that launches foes upward. This attack always deals a critical hit.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Holographic_Shockwave.png',
+    type: 'Weapon',
+    slot: 'Weapon_5',
+    specialization: 'Holosmith',
+    categories: ['Holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 42965,
+    name: 'Holo Leap',
+    description:
+      'Create a holographic launch pad and leap to your foe. The pad remains behind for a short duration, granting increased movement speed to allies who touch it.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Holo_Leap.png',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    specialization: 'Holosmith',
+    categories: ['Holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 43176,
+    name: 'Flash Spark',
+    description:
+      'Release a blinding burst of light from your holographic emitter. While above the heat threshold, gain light aura.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Flash_Spark.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: 'holosmith',
+    categories: ['tool belt', 'holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 43630,
+    name: 'Vent Exhaust',
+    description:
+      'Damage nearby foes and apply conditions to them. Lose heat. This attack activates Heat Therapy if you have not overheated.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vent_Exhaust.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: 'holosmith',
+    categories: ['holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 43845,
+    name: 'Cauterize',
+    description:
+      'Use a laser to burn off conditions and set yourself on fire for each condition removed. Removes additional conditions if above the heat threshold.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Cauterize.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    specialization: 'holosmith',
+    categories: ['tool belt', 'holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 43937,
+    name: 'Overheat',
+    description:
+      'Reaching the heat maximum results in a self-damaging explosion. Photon Forge is disabled until all heat is lost. Other tool belt skill cooldowns are increased.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Overheat.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: 'Holosmith',
+    categories: ['Holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 44260,
+    name: 'Light Strike—Storm',
+    description: 'Launch an arc of light at your foe.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Light_Strike.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: 'Holosmith',
+    categories: ['Holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 44386,
+    name: 'Holoforge Overheated',
+    description: 'Unable to reactivate until cooled.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Holoforge_Overheated.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: 'Holosmith',
+    categories: ['Holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 44530,
+    name: 'Corona Burst',
+    description:
+      'Strike nearby foes and begin to store up energy, gaining boons and heat each pulse. After charging, the energy explodes, inflicting conditions on nearby foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Corona_Burst.png',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    specialization: 'Holosmith',
+    categories: ['Holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 44588,
+    name: 'Light Strike',
+    description: 'Swing a holographic blade.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Light_Strike.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: 'Holosmith',
+    categories: ['Holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 45119,
+    name: 'Refraction Cutter Blade',
+    description: 'Launch a blade of light that bleeds your target.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Refraction_Cutter_Blade.png',
+    type: 'Weapon',
+    slot: 'Action',
+    specialization: 'Holosmith',
+    categories: ['Holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 45219,
+    name: 'Deactivate Photon Forge (hot)',
+    description: 'Cancel Photon Forge and begin cooling after a delay. Cooling effectiveness increases over time.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Deactivate_Photon_Forge_(hot).png',
+    type: 'Profession',
+    slot: 'Profession_5',
+    specialization: 'Holosmith',
+    categories: ['Holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 45709,
+    name: 'Controlled Analysis',
+    description: 'Analyze a disabled foe, applying vulnerability.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Controlled_Analysis.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: ['Tool belt'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 45732,
+    name: 'Particle Accelerator',
+    description:
+      'Fire a crippling bolt of light at your target. Allies the bolt passes through are granted swiftness. Projectile velocity and damage increased while above the heat threshold.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Particle_Accelerator.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: 'holosmith',
+    categories: ['tool belt', 'holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 45756,
+    name: 'Bright Slash',
+    description: 'Slash with a blade of light energy.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bright_Slash.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: 'Holosmith',
+    categories: ['Holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 45783,
+    name: 'Photon Blitz',
+    description: 'Fire multiple piercing blasts at your target.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Photon_Blitz.png',
+    type: 'Weapon',
+    slot: 'Weapon_4',
+    specialization: 'Holosmith',
+    categories: ['Holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 45890,
+    name: 'Flash Cutter',
+    description: 'Cleave through all foes in front of you twice.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Flash_Cutter.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: 'Holosmith',
+    categories: ['Holosmith'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 49045,
+    name: 'Cleansing Field',
+    description: 'Release purifying vapors to cleanse conditions from allies near you at each interval.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Cleansing_Field.png',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 49082,
+    name: 'Vital Burst',
+    description: 'Unleash a cascade of concentrated healing vapors around you.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vital_Burst.png',
+    type: 'Weapon',
+    slot: 'Weapon_4',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 49097,
+    name: 'Lesser Elixir C',
+    description: 'Quaff an elixir, converting conditions into boons.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Lesser_Elixir_C.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: ['elixir'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 50444,
+    name: 'Infusion Bomb',
+    description: 'Throw a bomb that grants boons to nearby allies when it explodes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Infusion_Bomb.png',
+    type: 'Weapon',
+    slot: 'Weapon_5',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 56921,
+    name: 'Function Gyro (tool belt skill)',
+    description:
+      'Create a lightning field at the specified point. Then summon gyros to finish foes and revive allies within the field. The recharge of this skill is increased for each gyro created beyond the first.<br>{{gray|Interrupted gyros are destroyed.}}',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Function_Gyro_(tool_belt_skill).png',
+    type: 'Profession',
+    slot: 'Profession_5',
+    specialization: 'Scrapper',
+    categories: ['tool belt', 'Scrapper'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 59562,
+    name: 'Explosive Entrance (trait skill)',
+    description: 'Your first attack explodes, dealing extra damage to nearby enemies.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Explosive_Entrance_(trait_skill).png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: '',
+    categories: [],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63121,
+    name: 'Jade Mortar',
+    description: 'Launch a powerful mortar attack at the target.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Jade_Mortar.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    specialization: 'Mechanist',
+    categories: ['Mech Command', 'tool belt', 'Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63141,
+    name: 'Barrier Burst',
+    description:
+      'Pulse a barrier and boons to all nearby allies.<br>{{gray|The mech does not count against the target count for this skill.}}',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Barrier_Burst.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    specialization: 'Mechanist',
+    categories: ['Mech Command', 'tool belt', 'Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63172,
+    name: 'Aerial Support',
+    description: '...',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Aerial_Support.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: 'Mechanist',
+    categories: ['Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63185,
+    name: 'Rocket Punch (Mech)',
+    description:
+      'Your mech launches an explosive fist that detonates on hit, dealing defiance damage to enemies with active defiance bars. This skill is only used when you activate Skill 3 on your weapon.',
+    icon: 'https://render.guildwars2.com/file/02DA2C9899B63DE522020824C67D05951F40CA4A/2503679.png',
+    type: 'Action',
+    slot: 'Action',
+    specialization: 'Mechanist',
+    categories: ['Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63188,
+    name: 'Spark Revolver',
+    description: 'Fire a rapid volley of jade energy bolts from both arms, piercing through all enemies.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Spark_Revolver.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    specialization: 'Mechanist',
+    categories: ['Mech Command', 'tool belt', 'Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63236,
+    name: 'Sky Circus',
+    description:
+      'Your mech jets into the air and fires a missile at each nearby foe before crashing down and dealing additional damage to anything caught underfoot.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Sky_Circus.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    specialization: 'Mechanist',
+    categories: ['Mech Command', 'tool belt', 'Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63263,
+    name: 'Heavy Smash (Mech)',
+    description: 'Perform a second, powerful strike.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Heavy_Smash_(Mech).png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: 'Mechanist',
+    categories: ['Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63264,
+    name: 'Jade Energy Shot',
+    description: '...',
+    icon: 'https://render.guildwars2.com/file/73600241FA662501C5D617719A7B4792F30B2846/2503622.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: 'Mechanist',
+    categories: ['Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63288,
+    name: 'Twin Strike (Mech)',
+    description: 'Strikes foes in front of you.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Twin_Strike_(Mech).png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: 'Mechanist',
+    categories: ['Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63293,
+    name: 'Crisis Zone',
+    description:
+      'Your mech removes conditions, breaks stuns, and grants boons to itself and nearby allies.<br>{{gray|The mech does not count against the target count for this skill.}}',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Crisis_Zone.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    specialization: 'Mechanist',
+    categories: ['Mech Command', 'tool belt', 'Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63298,
+    name: 'Hard Strike',
+    description: 'Strikes foes in front of you.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Hard_Strike.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: 'Mechanist',
+    categories: ['Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63300,
+    name: 'Recall Mech',
+    description:
+      'Recall your mech for repairs. The cooldown of Crash Down is determined by the amount of damage your mech has taken.<br>{{gray|Right-click to rename your mech.}}',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Recall_Mech.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    specialization: 'Mechanist',
+    categories: ['Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63334,
+    name: 'Rolling Smash',
+    description: 'Slam at the target with both cutters, inflicting severe bleeding to enemies in the area.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Rolling_Smash.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    specialization: 'Mechanist',
+    categories: ['Mech Command', 'tool belt', 'Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63345,
+    name: 'Core Reactor Shot',
+    description: 'Charge up and then release a powerful ball of jade energy at your target that explodes on contact.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Core_Reactor_Shot.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    specialization: 'Mechanist',
+    categories: ['Mech Command', 'tool belt', 'Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63348,
+    name: 'Jade Energy Shot',
+    description: '...',
+    icon: 'https://render.guildwars2.com/file/73600241FA662501C5D617719A7B4792F30B2846/2503622.png',
+    type: 'Profession',
+    slot: 'Action',
+    specialization: 'Mechanist',
+    categories: ['Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63365,
+    name: 'Explosive Knuckle',
+    description:
+      'Order your mech to dash at a target, punching with an explosive strike that weakens enemies near the point of impact.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Explosive_Knuckle.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    specialization: 'Mechanist',
+    categories: ['Mech Command', 'tool belt', 'Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 63367,
+    name: 'Discharge Array',
+    description:
+      "Cycle energy into your mech's armor to turn it into a lightning rod. Jade energy strikes nearby foes and inflicts conditions on them.",
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Discharge_Array.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    specialization: 'Mechanist',
+    categories: ['Mech Command', 'tool belt', 'Mechanist'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76493,
+    name: 'Stoke the Flames',
+    description:
+      'Overcharge your flamethrower with a fuel injection, releasing a burst of flames around you as you grant yourself boons.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Stoke_the_Flames.png',
+    type: 'Weapon',
+    slot: 'Weapon_4',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76530,
+    name: 'Magnetic Bomb',
+    description: 'Set a timed charge that pulls nearby foes.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Magnetic_Bomb.png',
+    type: 'Weapon',
+    slot: 'Weapon_4',
+    specialization: '',
+    categories: ['EngineeringKit'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76568,
+    name: 'Offensive Protocol: Shred',
+    description:
+      'Launch cutting disks at your enemies, piercing enemies in their path. Enemies struck are crippled; if an enemy is struck by all three disks, they are immobilized instead.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Shred.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76613,
+    name: 'Symbiotic Shielding',
+    description: 'Gain barrier and magnetic aura.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Symbiotic_Shielding.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    specialization: 'Amalgam',
+    categories: ['Tool belt', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76640,
+    name: 'Defensive Protocol: Thorns',
+    description:
+      'Grow protective spikes, damaging nearby enemies. For a short duration, the spikes react when you are struck, damaging nearby enemies again.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Thorns.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76693,
+    name: 'Offensive Protocol: Demolish',
+    description: 'Spin around a hunk of metal, then finish with a forward smash.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Demolish.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76705,
+    name: 'Offensive Protocol: Obliterate',
+    description: 'Create a giant blade to maim your enemy. The attack destroys the barrier of enemies hit.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Obliterate.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76713,
+    name: 'Defensive Protocol: Cleanse',
+    description: 'Convert damaging conditions to barrier and nondamaging conditions to protection.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Cleanse.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76798,
+    name: 'Defensive Protocol: Cleanse',
+    description: 'Convert damaging conditions to barrier and nondamaging conditions to protection.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Cleanse.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76806,
+    name: 'Offensive Protocol: Obliterate',
+    description: 'Create a giant blade to maim your enemy. The attack destroys the barrier of enemies hit.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Obliterate.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76815,
+    name: 'Offensive Protocol: Pierce',
+    description: 'Thrust forward with a spike, piercing the defense of your foe.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Pierce.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76866,
+    name: 'Offensive Protocol: Shred',
+    description:
+      'Launch cutting disks at your enemies, piercing enemies in their path. Enemies struck are crippled; if an enemy is struck by all three disks, they are immobilized instead.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Shred.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76901,
+    name: 'Offensive Protocol: Obliterate',
+    description: 'Create a giant blade to maim your enemy. The attack destroys the barrier of enemies hit.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Obliterate.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76927,
+    name: 'Offensive Protocol: Demolish',
+    description: 'Spin around a hunk of metal, then finish with a forward smash.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Demolish.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76954,
+    name: 'Offensive Protocol: Demolish',
+    description: 'Spin around a hunk of metal, then finish with a forward smash.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Demolish.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 76959,
+    name: 'Defensive Protocol: Protect',
+    description: 'Briefly block incoming attacks.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Protect.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 77005,
+    name: 'Offensive Protocol: Pierce',
+    description: 'Thrust forward with a spike, piercing the defense of your foe.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Pierce.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 77015,
+    name: 'Offensive Protocol: Pierce',
+    description: 'Thrust forward with a spike, piercing the defense of your foe.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Pierce.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 77103,
+    name: 'Offensive Protocol: Shred',
+    description:
+      'Launch cutting disks at your enemies, piercing enemies in their path. Enemies struck are crippled; if an enemy is struck by all three disks, they are immobilized instead.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Offensive_Protocol%3A_Shred.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 77104,
+    name: 'Defensive Protocol: Thorns',
+    description:
+      'Grow protective spikes, damaging nearby enemies. For a short duration, the spikes react when you are struck, damaging nearby enemies again.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Thorns.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 77163,
+    name: 'Defensive Protocol: Thorns',
+    description:
+      'Grow protective spikes, damaging nearby enemies. For a short duration, the spikes react when you are struck, damaging nearby enemies again.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Thorns.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 77203,
+    name: 'Defensive Protocol: Protect',
+    description: 'Briefly block incoming attacks.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Protect.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 77285,
+    name: 'Defensive Protocol: Cleanse',
+    description: 'Convert damaging conditions to barrier and nondamaging conditions to protection.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Cleanse.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
+  },
+  {
+    id: 77358,
+    name: 'Defensive Protocol: Protect',
+    description: 'Briefly block incoming attacks.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Defensive_Protocol%3A_Protect.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    specialization: 'Amalgam',
+    categories: ['Morph', 'Amalgam'],
+    nextChainId: null,
+    flipSkillId: null,
+    simulatorExcluded: false
   }
 ];
 
-export const ENGINEER_SUPPLEMENTAL_SKILLS = Object.freeze(
-  records.map(record => Object.freeze(record)),
-);
+export const ENGINEER_SUPPLEMENTAL_SKILLS = Object.freeze(records.map((record) => Object.freeze(record)));

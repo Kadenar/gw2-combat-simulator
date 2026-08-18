@@ -1,12 +1,7 @@
-import type { SimulationEventInput, Skill } from "../engine/types.js";
-import { clamp } from "./numeric.js";
-import { conditionDurationFractionFromExpertise } from "./stat-scaling.js";
-import type {
-  Gw2Config,
-  Gw2ResolvedStats,
-  Gw2SigilSet,
-  Gw2Stats,
-} from "./types.js";
+import type { SimulationEventInput, Skill } from '../engine/types.js';
+import { clamp } from './numeric.js';
+import { conditionDurationFractionFromExpertise } from './stat-scaling.js';
+import type { Gw2Config, Gw2ResolvedStats, Gw2SigilSet, Gw2Stats } from './types.js';
 
 interface RechargeRateOptions {
   readonly alacrityRate?: number;
@@ -28,23 +23,18 @@ interface WeaponStrengthAliasMatcher {
   readonly weapon: string;
 }
 
-const EMPTY_WEAPON_STRENGTH_ALIASES: Readonly<Record<string, string>> =
-  Object.freeze({});
+const EMPTY_WEAPON_STRENGTH_ALIASES: Readonly<Record<string, string>> = Object.freeze({});
 const WEAPON_STRENGTH_ALIAS_MATCHERS = new WeakMap<
   Readonly<Record<string, string>>,
   readonly WeaponStrengthAliasMatcher[]
 >();
 
-function weaponStrengthAliasMatchers(
-  aliases: Readonly<Record<string, string>>,
-): readonly WeaponStrengthAliasMatcher[] {
+function weaponStrengthAliasMatchers(aliases: Readonly<Record<string, string>>): readonly WeaponStrengthAliasMatcher[] {
   const cached = WEAPON_STRENGTH_ALIAS_MATCHERS.get(aliases);
   if (cached) return cached;
 
   const matchers = Object.freeze(
-    Object.entries(aliases).map(([pattern, weapon]) =>
-      Object.freeze({ pattern: new RegExp(pattern, "i"), weapon }),
-    ),
+    Object.entries(aliases).map(([pattern, weapon]) => Object.freeze({ pattern: new RegExp(pattern, 'i'), weapon }))
   );
   WEAPON_STRENGTH_ALIAS_MATCHERS.set(aliases, matchers);
   return matchers;
@@ -67,15 +57,12 @@ export function gw2SigilSet(config: Gw2Config, weaponSet = 1): Gw2SigilSet {
 }
 
 /** Returns the configured attributes for a one-based weapon set. */
-export function gw2StatsForWeaponSet(
-  config: Gw2Config,
-  weaponSet = config.startingWeaponSet,
-): Gw2Stats {
+export function gw2StatsForWeaponSet(config: Gw2Config, weaponSet = config.startingWeaponSet): Gw2Stats {
   const index = Number(weaponSet) === 2 ? 1 : 0;
   return {
     ...(config.attributes || {}),
     ...(config.stats || {}),
-    ...(config.weaponSetStats?.[index] || {}),
+    ...(config.weaponSetStats?.[index] || {})
   };
 }
 
@@ -87,7 +74,7 @@ export function gw2StatsForWeaponSet(
 export function gw2StaticAttributes(
   config: Gw2Config,
   mightStacks: number | boolean | undefined = config.boons?.might,
-  weaponSet = config.startingWeaponSet,
+  weaponSet = config.startingWeaponSet
 ): Gw2ResolvedStats {
   const mightBonus = MIGHT_ATTRIBUTE_BONUS_PER_STACK * Number(mightStacks || 0);
   const stats = gw2StatsForWeaponSet(config, weaponSet);
@@ -103,8 +90,8 @@ export function gw2StaticAttributes(
     healingPower: Number(stats.healingPower || 0),
     conditionDurationBonus: Number(stats.conditionDurationBonus || 0),
     conditionDurationBonuses: {
-      ...(stats.conditionDurationBonuses || {}),
-    },
+      ...(stats.conditionDurationBonuses || {})
+    }
   };
 }
 
@@ -112,10 +99,7 @@ export function gw2StaticAttributes(
  * @param {Gw2Config} config
  * @param {{alacrityRate?: number}} [options]
  */
-export function gw2RechargeRate(
-  config: Gw2Config,
-  { alacrityRate = 1.25 }: RechargeRateOptions = {},
-): number {
+export function gw2RechargeRate(config: Gw2Config, { alacrityRate = 1.25 }: RechargeRateOptions = {}): number {
   // The returned value is a speed, not a duration multiplier.
   return config.boons?.alacrity ? alacrityRate : 1;
 }
@@ -123,18 +107,13 @@ export function gw2RechargeRate(
 export function gw2EffectiveCooldown(
   skill: Skill,
   config: Gw2Config,
-  {
-    cooldownMultiplier = 1,
-    rechargeRate = gw2RechargeRate(config),
-  }: EffectiveCooldownOptions = {},
+  { cooldownMultiplier = 1, rechargeRate = gw2RechargeRate(config) }: EffectiveCooldownOptions = {}
 ): number {
   const ammoRecharge = Number(skill.ammoRecharge || 0);
   // Ammo skills report time per restored charge; non-ammo skills use their
   // cooldown/recharge field. Cast lockouts are handled by the scheduler.
   const baseRecharge =
-    Number(skill.ammo || 0) > 0 && ammoRecharge > 0
-      ? ammoRecharge
-      : Number(skill.cooldown ?? skill.recharge ?? 0);
+    Number(skill.ammo || 0) > 0 && ammoRecharge > 0 ? ammoRecharge : Number(skill.cooldown ?? skill.recharge ?? 0);
   return (
     (Math.max(0, baseRecharge) * Math.max(0, Number(cooldownMultiplier || 0))) /
     Math.max(Number.EPSILON, Number(rechargeRate || 1))
@@ -144,27 +123,20 @@ export function gw2EffectiveCooldown(
 export function gw2WeaponStrength(
   event: SimulationEventInput,
   config: Gw2Config,
-  {
-    strengths = {},
-    fallback = 1000,
-    aliases = EMPTY_WEAPON_STRENGTH_ALIASES,
-  }: WeaponStrengthOptions = {},
+  { strengths = {}, fallback = 1000, aliases = EMPTY_WEAPON_STRENGTH_ALIASES }: WeaponStrengthOptions = {}
 ): number {
   // Explicit event data is authoritative for bundle and proc attacks.
   if (event.weaponStrength != null) return Number(event.weaponStrength);
-  const explicit = String(event.weapon || "");
+  const explicit = String(event.weapon || '');
   // Alias keys are regular-expression patterns, allowing variant weapon labels
   // to share a strength entry.
   const alias =
     aliases === EMPTY_WEAPON_STRENGTH_ALIASES
       ? undefined
-      : weaponStrengthAliasMatchers(aliases).find(({ pattern }) =>
-          pattern.test(explicit),
-        )?.weapon;
-  const normalized =
-    explicit.charAt(0).toUpperCase() + explicit.slice(1).toLowerCase();
-  const skillWeapon = String(event.skillWeapon || "");
-  const primaryWeapon = String(config.primaryWeapon || "");
+      : weaponStrengthAliasMatchers(aliases).find(({ pattern }) => pattern.test(explicit))?.weapon;
+  const normalized = explicit.charAt(0).toUpperCase() + explicit.slice(1).toLowerCase();
+  const skillWeapon = String(event.skillWeapon || '');
+  const primaryWeapon = String(config.primaryWeapon || '');
   // Precedence moves from event-specific metadata to build defaults, then the
   // generic Utility entry and caller fallback.
   return Number(
@@ -173,14 +145,14 @@ export function gw2WeaponStrength(
       strengths[skillWeapon] ??
       strengths[primaryWeapon] ??
       strengths.Utility ??
-      fallback,
+      fallback
   );
 }
 
 export function gw2ConditionDurationMultiplier(
   condition: string,
   stats: Gw2ResolvedStats | Gw2Stats,
-  extraBonus = 0,
+  extraBonus = 0
 ): number {
   const bonus =
     conditionDurationFractionFromExpertise(Number(stats.expertise || 0)) +
@@ -191,22 +163,12 @@ export function gw2ConditionDurationMultiplier(
   return clamp(1 + bonus, 1, 2);
 }
 
-export function gw2BoonDurationMultiplier(
-  boon: string,
-  stats: Gw2Stats,
-  sigils: Gw2SigilSet = {},
-): number {
-  const canonicalBoon =
-    boon.charAt(0).toUpperCase() + boon.slice(1).toLowerCase();
+export function gw2BoonDurationMultiplier(boon: string, stats: Gw2Stats, sigils: Gw2SigilSet = {}): number {
+  const canonicalBoon = boon.charAt(0).toUpperCase() + boon.slice(1).toLowerCase();
   const bonus =
     Number(stats.concentration || 0) / 1500 +
     Number(stats.boonDurationBonus || 0) / 100 +
-    Number(
-      stats.boonDurationBonuses?.[boon] ||
-        stats.boonDurationBonuses?.[canonicalBoon] ||
-        0,
-    ) /
-      100 +
+    Number(stats.boonDurationBonuses?.[boon] || stats.boonDurationBonuses?.[canonicalBoon] || 0) / 100 +
     Number(sigils.boonDurationBonus || 0) / 100;
   return clamp(1 + bonus, 1, 2);
 }

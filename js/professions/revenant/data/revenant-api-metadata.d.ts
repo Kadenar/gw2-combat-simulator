@@ -1,7 +1,4 @@
-import type {
-  CatalogEntity,
-  Skill,
-} from "../../../platform/engine/types.js";
+import type { CatalogEntity, Skill } from '../../../platform/engine/types.js';
 
 // Typed boundary for the generated Revenant API metadata snapshot.
 export interface RevenantApiTrait extends CatalogEntity {

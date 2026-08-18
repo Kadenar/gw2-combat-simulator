@@ -1,22 +1,18 @@
-import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
-import { professionCoreState } from "../../../platform/engine/profession.js";
-import { clamp } from "../../../platform/gw2/numeric.js";
+import { enqueueOrdered } from '../../../platform/engine/event-queue.js';
+import { professionCoreState } from '../../../platform/engine/profession.js';
+import { clamp } from '../../../platform/gw2/numeric.js';
 import {
   enqueueGw2OwnedComboFinisher,
-  type EnqueueGw2OwnedComboFinisherOptions,
-} from "../../../platform/gw2/resolver/combo-resolution.js";
-import type {
-  SchedulerRecord,
-  SimulationActorType,
-  SkillId,
-} from "../../../platform/engine/types.js";
-import type { Gw2EventDraft } from "../../../platform/gw2/types.js";
+  type EnqueueGw2OwnedComboFinisherOptions
+} from '../../../platform/gw2/resolver/combo-resolution.js';
+import type { SchedulerRecord, SimulationActorType, SkillId } from '../../../platform/engine/types.js';
+import type { Gw2EventDraft } from '../../../platform/gw2/types.js';
 import type {
   EngineerResolverContext,
   EngineerResolverEvent,
   EngineerResolverReactionDetails,
-  EngineerSkill,
-} from "../types.js";
+  EngineerSkill
+} from '../types.js';
 
 interface QueueDamageOptions {
   readonly name: string;
@@ -27,10 +23,7 @@ interface QueueDamageOptions {
   readonly at?: number;
   readonly noCrit?: boolean;
   readonly explosion?: boolean;
-  readonly comboFinisher?: Omit<
-    EnqueueGw2OwnedComboFinisherOptions,
-    "at" | "effectAt"
-  >;
+  readonly comboFinisher?: Omit<EnqueueGw2OwnedComboFinisherOptions, 'at' | 'effectAt'>;
   readonly weaponStrength?: number;
   readonly weaponStrengthProfileId?: string;
 }
@@ -56,7 +49,7 @@ interface ApplyConditionOptions {
 
 export function resolverSkill(
   context: EngineerResolverContext,
-  skillId: SkillId | null | undefined,
+  skillId: SkillId | null | undefined
 ): EngineerSkill | undefined {
   if (skillId == null) return;
   return context.helpers.skillsById?.get(skillId) as EngineerSkill | undefined;
@@ -69,18 +62,18 @@ export function queueDamage(
     name,
     coefficient,
     sourceId = event.skillId,
-    actorType = "player",
+    actorType = 'player',
     ownerActorType,
     at = event.at,
     noCrit = false,
     explosion = false,
     comboFinisher,
     weaponStrength,
-    weaponStrengthProfileId,
-  }: QueueDamageOptions,
+    weaponStrengthProfileId
+  }: QueueDamageOptions
 ): void {
   const damage = enqueueOrdered(context.queue, {
-    type: "damage",
+    type: 'damage',
     at,
     name,
     skillName: name,
@@ -88,15 +81,15 @@ export function queueDamage(
     hits: 1,
     hitIndex: 1,
     totalHits: 1,
-    source: actorType === "effect" ? "Trait" : "engineer",
+    source: actorType === 'effect' ? 'Trait' : 'engineer',
     sourceId: sourceId ?? event.skillId ?? event.sourceId,
     actorType,
     // Effect-owned strikes can inherit player modifiers without becoming player actors for proc eligibility.
     ...(ownerActorType == null ? {} : { ownerActorType }),
     // skillId only on player events — summon/effect damage should not carry the parent skill ID
-    skillId: actorType === "player" ? event.skillId : undefined,
+    skillId: actorType === 'player' ? event.skillId : undefined,
     // "Spear" default for player spear skills; non-player damage uses "Unequipped" for weapon lookups
-    skillWeapon: actorType === "player" ? "Spear" : "Unequipped",
+    skillWeapon: actorType === 'player' ? 'Spear' : 'Unequipped',
     noCrit,
     explosion,
     ...(comboFinisher
@@ -109,21 +102,20 @@ export function queueDamage(
               applications: comboFinisher.applications ?? 1,
               successfulCombos: comboFinisher.successfulCombos ?? 1,
               preferredFieldTypes: comboFinisher.preferredFieldTypes,
-              ambiguousFieldSelection:
-                comboFinisher.ambiguousFieldSelection ?? "none",
-            },
-          ],
+              ambiguousFieldSelection: comboFinisher.ambiguousFieldSelection ?? 'none'
+            }
+          ]
         }
       : {}),
     ...(weaponStrength == null ? {} : { weaponStrength }),
     ...(weaponStrengthProfileId == null ? {} : { weaponStrengthProfileId }),
-    triggeredBy: event.skillName,
+    triggeredBy: event.skillName
   });
   if (comboFinisher) {
     enqueueGw2OwnedComboFinisher(context, damage, {
       ...comboFinisher,
       at,
-      effectAt: at,
+      effectAt: at
     });
   }
 }
@@ -131,27 +123,20 @@ export function queueDamage(
 export function queueBuff(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
-  {
-    name,
-    kind,
-    stacks,
-    duration,
-    sourceId = event.skillId,
-    actorType = "player",
-  }: QueueBuffOptions,
+  { name, kind, stacks, duration, sourceId = event.skillId, actorType = 'player' }: QueueBuffOptions
 ): void {
   enqueueOrdered(context.queue, {
-    type: "buff",
+    type: 'buff',
     at: event.at,
     name,
     skillName: name,
     kind,
     stacks,
     duration,
-    source: actorType === "effect" ? "Trait" : "engineer",
+    source: actorType === 'effect' ? 'Trait' : 'engineer',
     sourceId: sourceId ?? event.skillId ?? event.sourceId,
     actorType,
-    triggeredBy: event.skillName,
+    triggeredBy: event.skillName
   });
 }
 
@@ -165,23 +150,23 @@ export function applyCondition(
     stacks,
     duration,
     sourceId = event.skillId,
-    actorType = "player",
-    metadata = {},
-  }: ApplyConditionOptions,
+    actorType = 'player',
+    metadata = {}
+  }: ApplyConditionOptions
 ): void {
   const application: Gw2EventDraft = {
-    type: "condition",
+    type: 'condition',
     at: event.at,
     name: `${name} — ${condition}`,
     skillName: name,
     condition,
     stacks,
     duration,
-    source: actorType === "effect" ? "Trait" : "engineer",
+    source: actorType === 'effect' ? 'Trait' : 'engineer',
     sourceId: sourceId ?? event.skillId ?? event.sourceId,
     actorType,
     triggeredBy: event.skillName,
-    ...metadata,
+    ...metadata
   };
   // details.applyCondition lets the reaction context intercept and modify the condition before enqueueing
   if (details.applyCondition) {
@@ -192,9 +177,7 @@ export function applyCondition(
 }
 
 // lazy-initializes traitProcReadyAt — the field starts undefined and is created on first access
-export function procState(
-  context: EngineerResolverContext,
-): Record<string, number | boolean> {
+export function procState(context: EngineerResolverContext): Record<string, number | boolean> {
   const state = professionCoreState(context);
   state.traitProcReadyAt ||= {};
   return state.traitProcReadyAt;
@@ -204,18 +187,13 @@ export function recordTrait(
   context: EngineerResolverContext,
   name: string,
   event: EngineerResolverEvent,
-  icon = "",
+  icon = ''
 ): void {
-  context.recordProc?.("trait", name, event.at, event.skillName, "", icon);
+  context.recordProc?.('trait', name, event.at, event.skillName, '', icon);
 }
 
-export function activeBoonStacks(
-  context: EngineerResolverContext,
-  kind: string,
-  maximum = 25,
-  at = 0,
-): number {
-  const normalized = String(kind || "").toLowerCase();
+export function activeBoonStacks(context: EngineerResolverContext, kind: string, maximum = 25, at = 0): number {
+  const normalized = String(kind || '').toLowerCase();
   const permanent = context.config?.boons?.[normalized];
   // config true = permanently 1 stack; numeric value = assumed stack count
   const base = permanent === true ? 1 : Number(permanent || 0);

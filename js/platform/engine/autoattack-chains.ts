@@ -1,8 +1,4 @@
-import type {
-  AutoattackChainPosition,
-  Skill,
-  SkillId,
-} from "./types.js";
+import type { AutoattackChainPosition, Skill, SkillId } from './types.js';
 
 // Shared autoattack-chain helpers. Professions can either derive chains from
 // catalog metadata or provide explicit sequences and index them with the same
@@ -25,21 +21,12 @@ function freezeChain(chain: readonly SkillId[]): readonly number[] {
  * @param {readonly Skill[]} skills
  * @returns {readonly (readonly number[])[]}
  */
-export function deriveAutoattackChains(
-  skills: readonly Skill[],
-): readonly (readonly number[])[] {
+export function deriveAutoattackChains(skills: readonly Skill[]): readonly (readonly number[])[] {
   const byId = new Map(skills.map((skill) => [skill.id, skill]));
-  const chainedIds = new Set(
-    skills.map((skill) => skill.nextChainId).filter((id) => id != null),
-  );
+  const chainedIds = new Set(skills.map((skill) => skill.nextChainId).filter((id) => id != null));
   const chains: (readonly number[])[] = [];
   for (const root of skills) {
-    if (
-      root.type !== "Weapon" ||
-      root.slot !== "Weapon_1" ||
-      root.nextChainId == null ||
-      chainedIds.has(root.id)
-    )
+    if (root.type !== 'Weapon' || root.slot !== 'Weapon_1' || root.nextChainId == null || chainedIds.has(root.id))
       continue;
     const chain: SkillId[] = [];
     const visited = new Set<SkillId>();
@@ -61,20 +48,16 @@ export function deriveAutoattackChains(
  * @param {readonly (readonly SkillId[])[]} chains
  * @returns {Map<number, AutoattackChainPosition>}
  */
-export function indexAutoattackChains(
-  chains: readonly (readonly SkillId[])[],
-): Map<number, AutoattackChainPosition> {
+export function indexAutoattackChains(chains: readonly (readonly SkillId[])[]): Map<number, AutoattackChainPosition> {
   const positions = new Map<number, AutoattackChainPosition>();
   for (const source of chains) {
     const chain = freezeChain(source);
     if (chain.length < 2) {
-      throw new TypeError("Autoattack chains require at least two skills.");
+      throw new TypeError('Autoattack chains require at least two skills.');
     }
     chain.forEach((skillId, index) => {
       if (positions.has(skillId)) {
-        throw new TypeError(
-          `Skill ${skillId} belongs to multiple autoattack chains.`,
-        );
+        throw new TypeError(`Skill ${skillId} belongs to multiple autoattack chains.`);
       }
       positions.set(
         skillId,
@@ -82,8 +65,8 @@ export function indexAutoattackChains(
           root: chain[0],
           index,
           step: index + 1,
-          next: chain[index + 1] ?? null,
-        }),
+          next: chain[index + 1] ?? null
+        })
       );
     });
   }

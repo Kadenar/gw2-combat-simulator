@@ -1,34 +1,30 @@
-import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
-import test from "node:test";
-import { defaultSimulationConfig } from "../../helpers/fixture-harness-core.js";
-import { simulateMesmer } from "../../helpers/mesmer-simulation.js";
-import { resolveTestGw2Stream } from "../../helpers/gw2-resolver.js";
-import {
-  createEventQueue,
-  enqueueOrdered,
-  takeNextEvent,
-} from "../../../js/platform/engine/event-queue.js";
-import { buildScheduledEventStream } from "../../../js/platform/engine/scheduled-event-stream.js";
-import { createSimulationRandom } from "../../../js/platform/engine/simulation-random.js";
-import { createCloneAttackScheduler } from "../../../js/professions/mesmer/core/clone-attacks.js";
-import { createGw2ResolverEventHandlers } from "../../../js/platform/gw2/resolver/event-handlers.js";
+import assert from 'node:assert/strict';
+import { existsSync, readFileSync } from 'node:fs';
+import test from 'node:test';
+import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
+import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
+import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
+import { createEventQueue, enqueueOrdered, takeNextEvent } from '../../../js/platform/engine/event-queue.js';
+import { buildScheduledEventStream } from '../../../js/platform/engine/scheduled-event-stream.js';
+import { createSimulationRandom } from '../../../js/platform/engine/simulation-random.js';
+import { createCloneAttackScheduler } from '../../../js/professions/mesmer/core/clone-attacks.js';
+import { createGw2ResolverEventHandlers } from '../../../js/platform/gw2/resolver/event-handlers.js';
 
-test("Mesmer skill damage scheduling is split into focused modules", () => {
-  const core = new URL("../../../js/professions/mesmer/core/", import.meta.url);
+test('Mesmer skill damage scheduling is split into focused modules', () => {
+  const core = new URL('../../../js/professions/mesmer/core/', import.meta.url);
   for (const filename of [
-    "clone-attacks.ts",
-    "phantasms.ts",
-    "skill-damage.ts",
-    "illusion-resources.ts",
-    "skill-special-effects.ts",
-    "skill-effects.ts",
+    'clone-attacks.ts',
+    'phantasms.ts',
+    'skill-damage.ts',
+    'illusion-resources.ts',
+    'skill-special-effects.ts',
+    'skill-effects.ts'
   ]) {
     assert.equal(existsSync(new URL(filename, core)), true, filename);
   }
-  assert.equal(existsSync(new URL("illusions.ts", core)), false);
+  assert.equal(existsSync(new URL('illusions.ts', core)), false);
 
-  const pipeline = readFileSync(new URL("skill-effects.ts", core), "utf8");
+  const pipeline = readFileSync(new URL('skill-effects.ts', core), 'utf8');
   assert.match(pipeline, /createPhantasmEffectController/);
   assert.match(pipeline, /createSkillDamageController/);
   assert.match(pipeline, /createIllusionResourceController/);
@@ -36,14 +32,14 @@ test("Mesmer skill damage scheduling is split into focused modules", () => {
   assert.doesNotMatch(pipeline, /\baddDamage\s*\(/);
   assert.doesNotMatch(pipeline, /mesmer\.phantasm-(?:summoned|attack)/);
 
-  const phantasms = readFileSync(new URL("phantasms.ts", core), "utf8");
-  const clones = readFileSync(new URL("clone-attacks.ts", core), "utf8");
+  const phantasms = readFileSync(new URL('phantasms.ts', core), 'utf8');
+  const clones = readFileSync(new URL('clone-attacks.ts', core), 'utf8');
   assert.match(phantasms, /mesmer\.phantasm-summoned/);
   assert.match(phantasms, /\baddDamage\s*\(/);
   assert.match(clones, /\baddDamage\s*\(/);
 });
 
-test("clone attacks are scheduled lazily as the timeline advances", () => {
+test('clone attacks are scheduled lazily as the timeline advances', () => {
   const state = { clones: [] };
   const damage = [];
   const conditions = [];
@@ -55,19 +51,19 @@ test("clone attacks are scheduled lazily as the timeline advances", () => {
         hits: 1,
         interval: 2,
         weaponStrength: 20,
-        conditions: [{ name: "Bleeding", duration: 1, stacks: 1 }],
-      },
+        conditions: [{ name: 'Bleeding', duration: 1, stacks: 1 }]
+      }
     },
     epsilon: 0.0001,
     addDamage: (...args) => damage.push(args),
-    addCondition: (...args) => conditions.push(args),
+    addCondition: (...args) => conditions.push(args)
   });
   state.clones.push(
     scheduler.initializeClone({
       id: 1,
       createdAt: 1,
-      weapon: "Sword",
-    }),
+      weapon: 'Sword'
+    })
   );
 
   assert.equal(scheduler.nextAttackAt(), 3);
@@ -83,65 +79,63 @@ test("clone attacks are scheduled lazily as the timeline advances", () => {
 function tormentDamageAtMight(might) {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    ["Ether Bolt", { name: "__wait", waitMs: 1000 }],
+    ['Ether Bolt', { name: '__wait', waitMs: 1000 }],
     defaultSimulationConfig({
-      specialization: "Core",
-      primaryWeapon: "Scepter",
-      secondaryWeapon: "Pistol",
+      specialization: 'Core',
+      primaryWeapon: 'Scepter',
+      secondaryWeapon: 'Pistol',
       initialResource: 0,
       stats: {
         ...defaults.stats,
         conditionDamage: 1000,
-        expertise: 0,
+        expertise: 0
       },
       boons: {
         ...defaults.boons,
-        might,
+        might
       },
       target: {
         ...defaults.target,
         vulnerability: 0,
         moving: false,
         activatingSkills: false,
-        confusionActivationsPerSecond: 0,
-      },
-    }),
+        confusionActivationsPerSecond: 0
+      }
+    })
   );
-  return result.resolvedEvents.find(
-    (event) => event.type === "condition" && event.condition === "Torment",
-  ).damage;
+  return result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Torment').damage;
 }
 
-test("Might increases condition damage as well as strike power", () => {
+test('Might increases condition damage as well as strike power', () => {
   assert.equal(tormentDamageAtMight(0), 121.8);
   assert.equal(tormentDamageAtMight(25), 189.3);
 });
 
-test("condition applications shorter than one second deal fractional damage", () => {
+test('condition applications shorter than one second deal fractional damage', () => {
   const stream = buildScheduledEventStream({
     events: [
       {
-        type: "condition",
+        type: 'condition',
         at: 0,
-        name: "Short Bleed",
-        skillName: "Short Bleed",
-        condition: "Bleeding",
+        name: 'Short Bleed',
+        skillName: 'Short Bleed',
+        condition: 'Bleeding',
         duration: 0.5,
         stacks: 1,
-        source: "Player",
-        sourceId: "short-bleed",
-      },
+        source: 'Player',
+        sourceId: 'short-bleed'
+      }
     ],
     rotationEndTime: 2,
     resolverHandoff: {
-      warnings: ["resolver handoff warning"],
-    },
+      warnings: ['resolver handoff warning']
+    }
   });
   const result = resolveTestGw2Stream({
     stream,
     config: {
       target: {},
-      sigilSets: [{ names: [] }],
+      sigilSets: [{ names: [] }]
     },
     traits: new Set(),
     query: {
@@ -150,61 +144,61 @@ test("condition applications shorter than one second deal fractional damage", ()
         precision: 1000,
         ferocity: 0,
         conditionDamage: 1000,
-        expertise: 0,
+        expertise: 0
       }),
       critical: () => ({ chance: 0.05, damage: 1.5 }),
       strikeMultiplier: () => 1,
       conditionMultiplier: () => 1,
       conditionDurationMultiplier: () => 1,
-      activeWeaponSetAt: () => 1,
+      activeWeaponSetAt: () => 1
     },
     helpers: {
       conditionName: (name) => name,
       skillsByName: new Map(),
-      weaponStrength: () => 1000,
-    },
+      weaponStrength: () => 1000
+    }
   });
 
   assert.ok(result.conditionDamage > 0);
   assert.equal(result.firstHitTime, 0.5);
   assert.equal(result.resolvedEvents[0].damageTicks.length, 1);
   assert.equal(result.resolvedEvents[0].damageTicks[0].fraction, 0.5);
-  assert.deepEqual(result.warnings, ["resolver handoff warning"]);
+  assert.deepEqual(result.warnings, ['resolver handoff warning']);
 });
 
-test("staggered condition applications preserve fractional stack-seconds", () => {
+test('staggered condition applications preserve fractional stack-seconds', () => {
   const stream = buildScheduledEventStream({
     events: [
       {
-        type: "condition",
+        type: 'condition',
         at: 0,
-        name: "Long Bleed",
-        skillName: "Long Bleed",
-        condition: "Bleeding",
+        name: 'Long Bleed',
+        skillName: 'Long Bleed',
+        condition: 'Bleeding',
         duration: 1.25,
         stacks: 1,
-        source: "Player",
-        sourceId: "long-bleed",
+        source: 'Player',
+        sourceId: 'long-bleed'
       },
       {
-        type: "condition",
+        type: 'condition',
         at: 0.75,
-        name: "Short Bleed",
-        skillName: "Short Bleed",
-        condition: "Bleeding",
+        name: 'Short Bleed',
+        skillName: 'Short Bleed',
+        condition: 'Bleeding',
         duration: 0.5,
         stacks: 1,
-        source: "Player",
-        sourceId: "short-bleed",
-      },
+        source: 'Player',
+        sourceId: 'short-bleed'
+      }
     ],
-    rotationEndTime: 2,
+    rotationEndTime: 2
   });
   const result = resolveTestGw2Stream({
     stream,
     config: {
       target: {},
-      sigilSets: [{ names: [] }],
+      sigilSets: [{ names: [] }]
     },
     traits: new Set(),
     query: {
@@ -213,69 +207,64 @@ test("staggered condition applications preserve fractional stack-seconds", () =>
         precision: 1000,
         ferocity: 0,
         conditionDamage: 1000,
-        expertise: 0,
+        expertise: 0
       }),
       critical: () => ({ chance: 0.05, damage: 1.5 }),
       strikeMultiplier: () => 1,
       conditionMultiplier: () => 1,
       conditionDurationMultiplier: () => 1,
-      activeWeaponSetAt: () => 1,
+      activeWeaponSetAt: () => 1
     },
     helpers: {
       conditionName: (name) => name,
       skillsByName: new Map(),
-      weaponStrength: () => 1000,
-    },
+      weaponStrength: () => 1000
+    }
   });
 
-  const applications = result.resolvedEvents.filter(
-    (event) => event.type === "condition",
-  );
+  const applications = result.resolvedEvents.filter((event) => event.type === 'condition');
   // Independent fractional durations integrate to 1.75 stack-seconds instead
   // of being rounded onto a shared one-second condition-tick cadence.
   assert.equal(
-    applications.reduce(
-      (total, application) => total + application.damagingStackSeconds,
-      0,
-    ),
-    1.75,
+    applications.reduce((total, application) => total + application.damagingStackSeconds, 0),
+    1.75
   );
   assert.equal(result.conditionDamage, 143.5);
 });
 
-test("precombat conditions carry across an explicit combat start", () => {
+test('precombat conditions carry across an explicit combat start', () => {
   const stream = buildScheduledEventStream({
     events: [
       {
-        type: "condition",
+        type: 'condition',
         at: 0,
-        name: "Precombat Bleed",
-        skillName: "Precombat Bleed",
-        condition: "Bleeding",
+        name: 'Precombat Bleed',
+        skillName: 'Precombat Bleed',
+        condition: 'Bleeding',
         duration: 3,
         stacks: 1,
-        source: "Player",
-        sourceId: "precombat-bleed",
+        source: 'Player',
+        sourceId: 'precombat-bleed'
       },
       {
-        type: "combat_start",
+        type: 'combat_start',
         at: 1,
-        source: "rotation",
-        sourceId: "combat-start",
-      },
+        source: 'rotation',
+        sourceId: 'combat-start'
+      }
     ],
     rotationEndTime: 3,
     resolverHandoff: {
       hasExplicitCombatStart: true,
       combatStartTime: 1,
-      warnings: [],
-    },
+      warnings: []
+    }
   });
   const result = resolveTestGw2Stream({
     stream,
     config: {
       target: {},
-      sigilSets: [{ names: [] }],
+      sigilSets: [{ names: [] }]
     },
     traits: new Set(),
     query: {
@@ -284,65 +273,65 @@ test("precombat conditions carry across an explicit combat start", () => {
         precision: 1000,
         ferocity: 0,
         conditionDamage: 1000,
-        expertise: 0,
+        expertise: 0
       }),
       critical: () => ({ chance: 0.05, damage: 1.5 }),
       strikeMultiplier: () => 1,
       conditionMultiplier: () => 1,
       conditionDurationMultiplier: () => 1,
-      activeWeaponSetAt: () => 1,
+      activeWeaponSetAt: () => 1
     },
     helpers: {
       conditionName: (name) => name,
       skillsByName: new Map(),
-      weaponStrength: () => 1000,
-    },
+      weaponStrength: () => 1000
+    }
   });
 
   const application = result.resolvedEvents.find(
-    (event) => event.type === "condition" && event.name === "Precombat Bleed",
+    (event) => event.type === 'condition' && event.name === 'Precombat Bleed'
   );
   assert.equal(result.firstHitTime, 1);
   assert.equal(application.at, 0);
   assert.deepEqual(
     application.damageTicks.map((tick) => tick.at),
-    [1, 2, 3],
+    [1, 2, 3]
   );
   assert.equal(result.conditionDamage, 246);
 });
 
-test("shared buff handling prioritizes allied players over summon recipients", () => {
+test('shared buff handling prioritizes allied players over summon recipients', () => {
   const handlers = createGw2ResolverEventHandlers({
     hitResolution: {
       buildContext: () => ({}),
-      apply: () => {},
+      apply: () => {}
     },
     conditions: {
       activeStackCount: () => 0,
       apply: () => {},
-      tick: () => ({}),
+      tick: () => ({})
     },
-    reactions: { dispatch: () => {} },
+    reactions: { dispatch: () => {} }
   });
   const context = {
     config: {
       allies: { count: 4, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: true,
+      sharePlayerBoonsWithSummons: true
     },
-    boons: new Map(),
+    boons: new Map()
   };
   const application = {
-    type: "buff",
+    type: 'buff',
     at: 0,
-    source: "Player",
-    sourceId: "party-might",
-    actorType: "player",
-    kind: "might",
+    source: 'Player',
+    sourceId: 'party-might',
+    actorType: 'player',
+    kind: 'might',
     duration: 10,
     stacks: 1,
-    recipients: "party",
+    recipients: 'party',
     maximumRecipients: 5,
-    companionIds: ["clone:one", "clone:two"],
+    companionIds: ['clone:one', 'clone:two']
   };
   handlers.buff(context, application);
 
@@ -353,38 +342,34 @@ test("shared buff handling prioritizes allied players over summon recipients", (
   assert.equal(application.recipientCount, 5);
 });
 
-test("permanent damaging target conditions are assumptions, not player damage", () => {
+test('permanent damaging target conditions are assumptions, not player damage', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    [{ name: "__wait", waitMs: 2000 }],
+    [{ name: '__wait', waitMs: 2000 }],
     defaultSimulationConfig({
       target: {
         ...defaults.target,
         conditions: {
           Bleeding: 25,
-          Burning: true,
-        },
-      },
-    }),
+          Burning: true
+        }
+      }
+    })
   );
 
   assert.equal(result.totalDamage, 0);
   assert.deepEqual(result.conditionBreakdown, []);
 });
 
-test("DPS excludes elapsed time before the first hit", () => {
+test('DPS excludes elapsed time before the first hit', () => {
   const result = simulateMesmer(
-    [
-      { name: "__wait", waitMs: 1000 },
-      "Mind Slash",
-      { name: "__wait", waitMs: 1000 },
-    ],
+    [{ name: '__wait', waitMs: 1000 }, 'Mind Slash', { name: '__wait', waitMs: 1000 }],
     defaultSimulationConfig({
-      specialization: "Core",
-      primaryWeapon: "Sword",
-      secondaryWeapon: "",
-      initialResource: 0,
-    }),
+      specialization: 'Core',
+      primaryWeapon: 'Sword',
+      secondaryWeapon: '',
+      initialResource: 0
+    })
   );
 
   assert.ok(Math.abs(result.firstHitTime - 1.36) < 1e-12);
@@ -393,17 +378,17 @@ test("DPS excludes elapsed time before the first hit", () => {
   assert.equal(result.dps, result.totalDamage / result.dpsWindow);
 });
 
-test("an explicit empty target condition map does not restore default conditions", () => {
+test('an explicit empty target condition map does not restore default conditions', () => {
   const defaults = defaultSimulationConfig();
   const run = (conditions) =>
     simulateMesmer(
-      ["Bladecall"],
+      ['Bladecall'],
       defaultSimulationConfig({
         target: {
           ...defaults.target,
-          conditions,
-        },
-      }),
+          conditions
+        }
+      })
     ).strikeDamage;
 
   const unconditioned = run({});
@@ -411,100 +396,94 @@ test("an explicit empty target condition map does not restore default conditions
   assert.ok(Math.abs(vulnerable / unconditioned - 1.25) < 1e-12);
 });
 
-test("same-time queued events retain stable insertion order", () => {
+test('same-time queued events retain stable insertion order', () => {
   const queue = [];
-  enqueueOrdered(queue, { type: "damage", at: 1, name: "first" });
-  enqueueOrdered(queue, { type: "damage", at: 1, name: "second" });
+  enqueueOrdered(queue, { type: 'damage', at: 1, name: 'first' });
+  enqueueOrdered(queue, { type: 'damage', at: 1, name: 'second' });
   enqueueOrdered(queue, {
-    type: "damage",
+    type: 'damage',
     at: 1,
     priority: -1,
-    name: "priority",
+    name: 'priority'
   });
 
   assert.deepEqual(
     queue.map((event) => event.name),
-    ["priority", "first", "second"],
+    ['priority', 'first', 'second']
   );
 });
 
-test("heap event queues preserve priority and stable insertion order", () => {
+test('heap event queues preserve priority and stable insertion order', () => {
   const queue = createEventQueue([
-    { type: "damage", at: 2, name: "later" },
-    { type: "damage", at: 1, name: "first" },
-    { type: "damage", at: 1, name: "second" },
+    { type: 'damage', at: 2, name: 'later' },
+    { type: 'damage', at: 1, name: 'first' },
+    { type: 'damage', at: 1, name: 'second' }
   ]);
   enqueueOrdered(queue, {
-    type: "damage",
+    type: 'damage',
     at: 1,
     priority: -1,
-    name: "priority",
+    name: 'priority'
   });
-  enqueueOrdered(queue, { type: "damage", at: 1, name: "third" });
+  enqueueOrdered(queue, { type: 'damage', at: 1, name: 'third' });
 
   const names = [];
   while (queue.length) names.push(takeNextEvent(queue).name);
-  assert.deepEqual(names, ["priority", "first", "second", "third", "later"]);
+  assert.deepEqual(names, ['priority', 'first', 'second', 'third', 'later']);
 });
 
-test("heap event queues keep derived causal order local to each queue", () => {
+test('heap event queues keep derived causal order local to each queue', () => {
   // Consume enough fallback insertions to expose implementations that share
   // an ordering counter across otherwise independent simulations.
-  const warmup = createEventQueue([
-    { type: "damage", at: 0, name: "warmup", __order: 0 },
-  ]);
+  const warmup = createEventQueue([{ type: 'damage', at: 0, name: 'warmup', __order: 0 }]);
   takeNextEvent(warmup);
   for (let index = 0; index < 20; index += 1) {
     enqueueOrdered(warmup, {
-      type: "damage",
+      type: 'damage',
       at: 0,
-      name: `warmup-derived-${index}`,
+      name: `warmup-derived-${index}`
     });
   }
 
   const queue = createEventQueue([
-    { type: "damage", at: 1, name: "cause", __order: 10 },
-    { type: "damage", at: 1, name: "unrelated", __order: 11 },
+    { type: 'damage', at: 1, name: 'cause', __order: 10 },
+    { type: 'damage', at: 1, name: 'unrelated', __order: 11 }
   ]);
-  assert.equal(takeNextEvent(queue).name, "cause");
+  assert.equal(takeNextEvent(queue).name, 'cause');
 
   enqueueOrdered(queue, {
-    type: "damage",
+    type: 'damage',
     at: 1,
-    name: "derived",
+    name: 'derived'
   });
-  assert.equal(takeNextEvent(queue).name, "derived");
+  assert.equal(takeNextEvent(queue).name, 'derived');
 
   enqueueOrdered(queue, {
-    type: "damage",
+    type: 'damage',
     at: 1,
-    name: "nested-derived",
+    name: 'nested-derived'
   });
-  assert.deepEqual(
-    [takeNextEvent(queue).name, takeNextEvent(queue).name],
-    ["nested-derived", "unrelated"],
-  );
+  assert.deepEqual([takeNextEvent(queue).name, takeNextEvent(queue).name], ['nested-derived', 'unrelated']);
 });
 
-test("Thief relic progresses on individual hits instead of an aggregate hit", () => {
+test('Thief relic progresses on individual hits instead of an aggregate hit', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    ["Unstable Bladestorm", { name: "__wait", waitMs: 4000 }],
+    ['Unstable Bladestorm', { name: '__wait', waitMs: 4000 }],
     defaultSimulationConfig({
-      relic: "Thief",
+      relic: 'Thief',
       stats: {
         ...defaults.stats,
-        precision: 3100,
+        precision: 3100
       },
       boons: {
         ...defaults.boons,
-        fury: true,
-      },
-    }),
+        fury: true
+      }
+    })
   );
   const hits = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "damage" && event.skillName === "Unstable Bladestorm",
+    (event) => event.type === 'damage' && event.skillName === 'Unstable Bladestorm'
   );
   const stormPulses = hits.filter((event) => event.coefficient === 0.25);
 
@@ -515,20 +494,20 @@ test("Thief relic progresses on individual hits instead of an aggregate hit", ()
   assert.ok(stormPulses[3].damage > stormPulses[2].damage);
 });
 
-test("Bloodsong needs real bleeding and does not treat blade hits as bleeding", () => {
+test('Bloodsong needs real bleeding and does not treat blade hits as bleeding', () => {
   const withoutJaggedMind = simulateMesmer(
-    ["Unstable Bladestorm", { name: "__wait", waitMs: 8000 }],
+    ['Unstable Bladestorm', { name: '__wait', waitMs: 8000 }],
     defaultSimulationConfig({
       initialResource: 0,
-      selectedTraits: ["Bloodsong"],
-    }),
+      selectedTraits: ['Bloodsong']
+    })
   );
   const withJaggedMind = simulateMesmer(
-    ["Unstable Bladestorm", { name: "__wait", waitMs: 8000 }],
+    ['Unstable Bladestorm', { name: '__wait', waitMs: 8000 }],
     defaultSimulationConfig({
       initialResource: 0,
-      selectedTraits: ["Bloodsong", "Jagged Mind"],
-    }),
+      selectedTraits: ['Bloodsong', 'Jagged Mind']
+    })
   );
 
   assert.equal(withoutJaggedMind.endState.profession.resource, 0);
@@ -542,233 +521,196 @@ function assertEventTimes(actual, expected, message) {
   for (let index = 0; index < expected.length; index += 1) {
     assert.ok(
       Math.abs(actual[index] - expected[index]) < 1e-12,
-      `${message} event ${index + 1}: ${actual[index]} !== ${expected[index]}`,
+      `${message} event ${index + 1}: ${actual[index]} !== ${expected[index]}`
     );
   }
 }
 
-test("Phantasmal Swordsman follows its packet, bleed, and blade timeline", () => {
+test('Phantasmal Swordsman follows its packet, bleed, and blade timeline', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    ["Phantasmal Swordsman", { name: "__wait", waitMs: 7000 }],
+    ['Phantasmal Swordsman', { name: '__wait', waitMs: 7000 }],
     defaultSimulationConfig({
       initialResource: 0,
-      selectedTraits: [
-        "Bloodsong",
-        "Jagged Mind",
-        "Sharper Images",
-        "Phantasmal Blades",
-      ],
+      selectedTraits: ['Bloodsong', 'Jagged Mind', 'Sharper Images', 'Phantasmal Blades'],
       stats: {
         ...defaults.stats,
-        precision: 4000,
-      },
-    }),
+        precision: 4000
+      }
+    })
   );
   const swordsmanDamage = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "damage" && event.skillName === "Phantasmal Swordsman",
+    (event) => event.type === 'damage' && event.skillName === 'Phantasmal Swordsman'
   );
-  const phantasmDamage = swordsmanDamage
-    .filter((event) => event.source === "Phantasm")
-    .map((event) => event.at);
+  const phantasmDamage = swordsmanDamage.filter((event) => event.source === 'Phantasm').map((event) => event.at);
   const bleeding = result.resolvedEvents
-    .filter(
-      (event) => event.type === "condition" && event.condition === "Bleeding",
-    )
+    .filter((event) => event.type === 'condition' && event.condition === 'Bleeding')
     .map((event) => event.at);
   const phantasmalBlade = result.resolvedEvents.find(
-    (event) =>
-      event.type === "damage" && event.skillName === "Phantasmal Blade",
+    (event) => event.type === 'damage' && event.skillName === 'Phantasmal Blade'
   );
-  const bladeGains = result.events.filter(
-    (event) => event.type === "resource" && event.amount > 0,
-  );
+  const bladeGains = result.events.filter((event) => event.type === 'resource' && event.amount > 0);
 
   assert.equal(result.steps[0].fullCastMs, 880);
   assert.ok(Math.abs(swordsmanDamage[0].at - 0.759) < 1e-12);
   assertEventTimes(
     phantasmDamage,
     [1.725, 2.201, 2.242, 2.525, 2.559, 2.8, 2.842, 3.126, 3.159],
-    "Phantasmal Swordsman damage",
+    'Phantasmal Swordsman damage'
   );
   assert.ok(Math.abs(phantasmalBlade.at - 4.563) < 1e-12);
   assertEventTimes(
     bleeding,
     [1.725, 2.201, 2.242, 2.525, 2.559, 2.8, 2.842, 3.126, 3.159, 4.563],
-    "Phantasmal Swordsman bleeding",
+    'Phantasmal Swordsman bleeding'
   );
   assertEventTimes(
     bladeGains.map((event) => event.at),
     [2.5591, 4.4801, 4.5631],
-    "Phantasmal Swordsman blade gain",
+    'Phantasmal Swordsman blade gain'
   );
   assert.deepEqual(
     bladeGains.map((event) => event.reason),
-    ["Bloodsong", "Phantasmal Swordsman phantasm conversion", "Bloodsong"],
+    ['Bloodsong', 'Phantasmal Swordsman phantasm conversion', 'Bloodsong']
   );
 });
 
-test("Thousand Cuts spreads ten packets and triggers Bloodsong", () => {
+test('Thousand Cuts spreads ten packets and triggers Bloodsong', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    ["Thousand Cuts", { name: "__wait", waitMs: 6000 }],
+    ['Thousand Cuts', { name: '__wait', waitMs: 6000 }],
     defaultSimulationConfig({
       initialResource: 0,
-      selectedTraits: ["Bloodsong", "Jagged Mind"],
+      selectedTraits: ['Bloodsong', 'Jagged Mind'],
       stats: {
         ...defaults.stats,
-        precision: 4000,
-      },
-    }),
+        precision: 4000
+      }
+    })
   );
   const damageTimes = result.resolvedEvents
-    .filter(
-      (event) => event.type === "damage" && event.skillName === "Thousand Cuts",
-    )
+    .filter((event) => event.type === 'damage' && event.skillName === 'Thousand Cuts')
     .map((event) => event.at);
   const bleedTimes = result.resolvedEvents
     .filter(
-      (event) =>
-        event.type === "condition" &&
-        event.condition === "Bleeding" &&
-        event.skillName === "Thousand Cuts",
+      (event) => event.type === 'condition' && event.condition === 'Bleeding' && event.skillName === 'Thousand Cuts'
     )
     .map((event) => event.at);
-  const expected = [
-    0, 0.517, 1.033, 1.55, 2.067, 2.6, 3.117, 3.633, 4.15, 4.667,
-  ];
+  const expected = [0, 0.517, 1.033, 1.55, 2.067, 2.6, 3.117, 3.633, 4.15, 4.667];
   const bloodsongTimes = result.events
-    .filter(
-      (event) => event.type === "resource" && event.reason === "Bloodsong",
-    )
+    .filter((event) => event.type === 'resource' && event.reason === 'Bloodsong')
     .map((event) => event.at);
 
-  assertEventTimes(damageTimes, expected, "Thousand Cuts damage");
-  assertEventTimes(bleedTimes, expected, "Thousand Cuts bleeding");
-  assertEventTimes(
-    bloodsongTimes,
-    [expected[4] + 0.0001, expected[9] + 0.0001],
-    "Thousand Cuts Bloodsong",
-  );
+  assertEventTimes(damageTimes, expected, 'Thousand Cuts damage');
+  assertEventTimes(bleedTimes, expected, 'Thousand Cuts bleeding');
+  assertEventTimes(bloodsongTimes, [expected[4] + 0.0001, expected[9] + 0.0001], 'Thousand Cuts Bloodsong');
   assert.equal(result.endState.profession.resource, 2);
 });
 
-test("Unstable Bladestorm anchors paired packets to cast start", () => {
+test('Unstable Bladestorm anchors paired packets to cast start', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    ["Unstable Bladestorm", { name: "__wait", waitMs: 6000 }],
+    ['Unstable Bladestorm', { name: '__wait', waitMs: 6000 }],
     defaultSimulationConfig({
       initialResource: 0,
-      selectedTraits: ["Bloodsong", "Jagged Mind"],
+      selectedTraits: ['Bloodsong', 'Jagged Mind'],
       stats: {
         ...defaults.stats,
-        precision: 4000,
-      },
-    }),
+        precision: 4000
+      }
+    })
   );
   const expected = [1.156, 1.198, 2.156, 2.198, 3.156, 3.198, 4.156, 4.198];
   const damageTimes = result.resolvedEvents
-    .filter(
-      (event) =>
-        event.type === "damage" && event.skillName === "Unstable Bladestorm",
-    )
+    .filter((event) => event.type === 'damage' && event.skillName === 'Unstable Bladestorm')
     .map((event) => event.at);
   const bleedTimes = result.resolvedEvents
     .filter(
       (event) =>
-        event.type === "condition" &&
-        event.condition === "Bleeding" &&
-        event.skillName === "Unstable Bladestorm",
+        event.type === 'condition' && event.condition === 'Bleeding' && event.skillName === 'Unstable Bladestorm'
     )
     .map((event) => event.at);
-  const bloodsong = result.events.find(
-    (event) => event.type === "resource" && event.reason === "Bloodsong",
-  );
+  const bloodsong = result.events.find((event) => event.type === 'resource' && event.reason === 'Bloodsong');
 
   assert.equal(result.steps[0].fullCastMs, 440);
-  assertEventTimes(damageTimes, expected, "Unstable Bladestorm damage");
-  assertEventTimes(bleedTimes, expected, "Unstable Bladestorm bleeding");
+  assertEventTimes(damageTimes, expected, 'Unstable Bladestorm damage');
+  assertEventTimes(bleedTimes, expected, 'Unstable Bladestorm bleeding');
   assert.ok(Math.abs(bloodsong.at - 3.1561) < 1e-12);
   assert.equal(result.endState.profession.resource, 1);
 });
 
-test("target death finishes the lethal activation and stops future events", () => {
+test('target death finishes the lethal activation and stops future events', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    ["Bladecall", { name: "__wait", waitMs: 5000 }, "Unstable Bladestorm"],
+    ['Bladecall', { name: '__wait', waitMs: 5000 }, 'Unstable Bladestorm'],
     defaultSimulationConfig({
       target: {
         ...defaults.target,
-        health: 1,
-      },
-    }),
+        health: 1
+      }
+    })
   );
-  const damageEvents = result.resolvedEvents.filter(
-    (event) => event.type === "damage",
-  );
+  const damageEvents = result.resolvedEvents.filter((event) => event.type === 'damage');
 
   assert.equal(result.deathTime, damageEvents[0].at);
   assert.equal(damageEvents.length, 3);
   assert.ok(damageEvents.every((event) => event.at === result.deathTime));
-  assert.ok(damageEvents.every((event) => event.skillName === "Bladecall"));
+  assert.ok(damageEvents.every((event) => event.skillName === 'Bladecall'));
   assert.equal(
-    damageEvents.some((event) => event.skillName === "Unstable Bladestorm"),
-    false,
+    damageEvents.some((event) => event.skillName === 'Unstable Bladestorm'),
+    false
   );
-  assert.ok(
-    result.events.every((event) => event.at <= result.deathTime + 0.0001),
-  );
+  assert.ok(result.events.every((event) => event.at <= result.deathTime + 0.0001));
 });
 
-test("target death finishes untagged multi-hit siblings", () => {
+test('target death finishes untagged multi-hit siblings', () => {
   const stream = buildScheduledEventStream({
     events: [
       {
-        type: "damage",
+        type: 'damage',
         at: 1,
-        name: "First sibling",
-        skillName: "Untagged multi-hit",
+        name: 'First sibling',
+        skillName: 'Untagged multi-hit',
         flatDamage: 1,
         hits: 1,
         hitIndex: 1,
         totalHits: 2,
-        source: "Player",
-        sourceId: "untagged-multi-hit",
-        actorType: "player",
+        source: 'Player',
+        sourceId: 'untagged-multi-hit',
+        actorType: 'player'
       },
       {
-        type: "damage",
+        type: 'damage',
         at: 1,
-        name: "Second sibling",
-        skillName: "Untagged multi-hit",
+        name: 'Second sibling',
+        skillName: 'Untagged multi-hit',
         flatDamage: 1,
         hits: 1,
         hitIndex: 2,
         totalHits: 2,
-        source: "Player",
-        sourceId: "untagged-multi-hit",
-        actorType: "player",
+        source: 'Player',
+        sourceId: 'untagged-multi-hit',
+        actorType: 'player'
       },
       {
-        type: "damage",
+        type: 'damage',
         at: 1,
-        name: "Distinct attack",
-        skillName: "Distinct attack",
+        name: 'Distinct attack',
+        skillName: 'Distinct attack',
         flatDamage: 1,
-        source: "Player",
-        sourceId: "distinct-attack",
-        actorType: "player",
-        activationId: "distinct-activation",
-      },
+        source: 'Player',
+        sourceId: 'distinct-attack',
+        actorType: 'player',
+        activationId: 'distinct-activation'
+      }
     ],
-    rotationEndTime: 1,
+    rotationEndTime: 1
   });
   const result = resolveTestGw2Stream({
     stream,
     config: {
       target: { health: 1 },
-      sigilSets: [{ names: [] }],
+      sigilSets: [{ names: [] }]
     },
     traits: new Set(),
     query: {
@@ -777,70 +719,68 @@ test("target death finishes untagged multi-hit siblings", () => {
         precision: 1_000,
         ferocity: 0,
         conditionDamage: 0,
-        expertise: 0,
+        expertise: 0
       }),
       critical: () => ({ chance: 0, damage: 1.5 }),
       strikeMultiplier: () => 1,
       conditionMultiplier: () => 1,
       conditionDurationMultiplier: () => 1,
-      activeWeaponSetAt: () => 1,
+      activeWeaponSetAt: () => 1
     },
     helpers: {
       conditionName: (name) => name,
       skillsByName: new Map(),
-      weaponStrength: () => 1_000,
-    },
+      weaponStrength: () => 1_000
+    }
   });
 
   assert.deepEqual(
-    result.resolvedEvents
-      .filter((event) => event.type === "damage")
-      .map((event) => event.name),
-    ["First sibling", "Second sibling"],
+    result.resolvedEvents.filter((event) => event.type === 'damage').map((event) => event.name),
+    ['First sibling', 'Second sibling']
   );
 });
 
-test("pending damage can kill mid-cast and suppress the current skill packet", () => {
+test('pending damage can kill mid-cast and suppress the current skill packet', () => {
   const stream = buildScheduledEventStream({
     events: [
       {
-        type: "damage",
+        type: 'damage',
         at: 89.44,
-        name: "Pending Tick",
-        skillName: "Previous Skill",
+        name: 'Pending Tick',
+        skillName: 'Previous Skill',
         flatDamage: 1,
-        source: "Player",
-        sourceId: "previous-skill",
-        activationId: "previous-activation",
+        source: 'Player',
+        sourceId: 'previous-skill',
+        activationId: 'previous-activation'
       },
       {
-        type: "damage",
+        type: 'damage',
         at: 89.44,
-        name: "Same-Time Follow-up",
-        skillName: "Different Skill",
+        name: 'Same-Time Follow-up',
+        skillName: 'Different Skill',
         flatDamage: 10,
-        source: "Player",
-        sourceId: "different-skill",
-        activationId: "different-activation",
+        source: 'Player',
+        sourceId: 'different-skill',
+        activationId: 'different-activation'
       },
       {
-        type: "damage",
+        type: 'damage',
         at: 89.6,
-        name: "Current Skill Hit",
-        skillName: "Current Skill",
+        name: 'Current Skill Hit',
+        skillName: 'Current Skill',
         flatDamage: 10,
-        source: "Player",
-        sourceId: "current-skill",
-        activationId: "current-activation",
-      },
+        source: 'Player',
+        sourceId: 'current-skill',
+        activationId: 'current-activation'
+      }
     ],
-    rotationEndTime: 89.6,
+    rotationEndTime: 89.6
   });
   const result = resolveTestGw2Stream({
     stream,
     config: {
       target: { health: 1 },
-      sigilSets: [{ names: [] }],
+      sigilSets: [{ names: [] }]
     },
     traits: new Set(),
     query: {
@@ -849,58 +789,56 @@ test("pending damage can kill mid-cast and suppress the current skill packet", (
         precision: 1_000,
         ferocity: 0,
         conditionDamage: 0,
-        expertise: 0,
+        expertise: 0
       }),
       critical: () => ({ chance: 0, damage: 1.5 }),
       strikeMultiplier: () => 1,
       conditionMultiplier: () => 1,
       conditionDurationMultiplier: () => 1,
-      activeWeaponSetAt: () => 1,
+      activeWeaponSetAt: () => 1
     },
     helpers: {
       conditionName: (name) => name,
       skillsByName: new Map(),
-      weaponStrength: () => 1_000,
-    },
+      weaponStrength: () => 1_000
+    }
   });
 
   assert.equal(result.deathTime, 89.44);
   assert.equal(result.lastHitTime, 89.44);
   assert.deepEqual(
-    result.resolvedEvents
-      .filter((event) => event.type === "damage")
-      .map((event) => event.name),
-    ["Pending Tick"],
+    result.resolvedEvents.filter((event) => event.type === 'damage').map((event) => event.name),
+    ['Pending Tick']
   );
 });
 
-test("flat and no-crit strikes skip critical queries", () => {
+test('flat and no-crit strikes skip critical queries', () => {
   const stream = buildScheduledEventStream({
     events: [
       {
-        type: "damage",
+        type: 'damage',
         at: 1,
-        name: "Flat strike",
-        skillName: "Flat strike",
+        name: 'Flat strike',
+        skillName: 'Flat strike',
         flatDamage: 10,
-        source: "Player",
-        sourceId: "flat-strike",
-        actorType: "player",
+        source: 'Player',
+        sourceId: 'flat-strike',
+        actorType: 'player'
       },
       {
-        type: "damage",
+        type: 'damage',
         at: 1.1,
-        name: "No-crit strike",
-        skillName: "No-crit strike",
+        name: 'No-crit strike',
+        skillName: 'No-crit strike',
         coefficient: 1,
         noCrit: true,
         weaponStrength: 1_000,
-        source: "Player",
-        sourceId: "no-crit-strike",
-        actorType: "player",
-      },
+        source: 'Player',
+        sourceId: 'no-crit-strike',
+        actorType: 'player'
+      }
     ],
-    rotationEndTime: 1.1,
+    rotationEndTime: 1.1
   });
   let criticalQueries = 0;
   const result = resolveTestGw2Stream({
@@ -913,7 +851,7 @@ test("flat and no-crit strikes skip critical queries", () => {
         precision: 1_000,
         ferocity: 0,
         conditionDamage: 0,
-        expertise: 0,
+        expertise: 0
       }),
       critical: () => {
         criticalQueries += 1;
@@ -922,17 +860,15 @@ test("flat and no-crit strikes skip critical queries", () => {
       strikeMultiplier: () => 1,
       conditionMultiplier: () => 1,
       conditionDurationMultiplier: () => 1,
-      activeWeaponSetAt: () => 1,
+      activeWeaponSetAt: () => 1
     },
     helpers: {
       conditionName: (name) => name,
       skillsByName: new Map(),
-      weaponStrength: () => 1_000,
-    },
+      weaponStrength: () => 1_000
+    }
   });
-  const strikes = result.resolvedEvents.filter(
-    (event) => event.type === "damage",
-  );
+  const strikes = result.resolvedEvents.filter((event) => event.type === 'damage');
 
   assert.equal(criticalQueries, 0);
   assert.equal(strikes.length, 2);
@@ -945,27 +881,27 @@ test("flat and no-crit strikes skip critical queries", () => {
   }
 });
 
-test("a damage packet removed before resolution cannot trigger critical sigils", () => {
+test('a damage packet removed before resolution cannot trigger critical sigils', () => {
   const stream = buildScheduledEventStream({
     events: [
       {
-        type: "marker",
+        type: 'marker',
         at: 1,
-        name: "Cancelled strike",
-        skillName: "Cancelled strike",
-        source: "Player",
-        sourceId: "cancelled-strike",
-        actorType: "player",
+        name: 'Cancelled strike',
+        skillName: 'Cancelled strike',
+        source: 'Player',
+        sourceId: 'cancelled-strike',
+        actorType: 'player',
         cancelled: true,
-        detail: "cancelled before resolver handoff",
-      },
+        detail: 'cancelled before resolver handoff'
+      }
     ],
-    rotationEndTime: 2,
+    rotationEndTime: 2
   });
   const result = resolveTestGw2Stream({
     stream,
     config: {
-      sigilSets: [{ names: ["Air", "Earth", "Torment"] }],
+      sigilSets: [{ names: ['Air', 'Earth', 'Torment'] }]
     },
     traits: new Set(),
     query: {
@@ -974,24 +910,24 @@ test("a damage packet removed before resolution cannot trigger critical sigils",
         precision: 4_000,
         ferocity: 0,
         conditionDamage: 0,
-        expertise: 0,
+        expertise: 0
       }),
       critical: () => ({ chance: 1, damage: 1.5 }),
       strikeMultiplier: () => 1,
       conditionMultiplier: () => 1,
       conditionDurationMultiplier: () => 1,
-      activeWeaponSetAt: () => 1,
+      activeWeaponSetAt: () => 1
     },
     helpers: {
       conditionName: (name) => name,
       skillsByName: new Map(),
-      weaponStrength: () => 1_000,
-    },
+      weaponStrength: () => 1_000
+    }
   });
 
   assert.equal(
-    result.resolvedEvents.some((event) => event.source === "Sigil"),
-    false,
+    result.resolvedEvents.some((event) => event.source === 'Sigil'),
+    false
   );
   assert.deepEqual(result.procSteps, []);
 });
@@ -999,76 +935,64 @@ test("a damage packet removed before resolution cannot trigger critical sigils",
 test("Egotism starts after the target falls below the Mesmer's health percentage", () => {
   const defaults = defaultSimulationConfig();
   const config = defaultSimulationConfig({
-    specialization: "Core",
-    primaryWeapon: "Sword",
-    secondaryWeapon: "",
+    specialization: 'Core',
+    primaryWeapon: 'Sword',
+    secondaryWeapon: '',
     initialResource: 0,
     boons: {
       ...defaults.boons,
-      might: 0,
+      might: 0
     },
     target: {
       ...defaults.target,
       vulnerability: 0,
-      health: 3970000,
-    },
+      health: 3970000
+    }
   });
-  const rotation = ["Mind Slash", "Mind Gash"];
+  const rotation = ['Mind Slash', 'Mind Gash'];
   const base = simulateMesmer(rotation, config);
   const egotism = simulateMesmer(rotation, {
     ...config,
-    selectedTraits: ["Egotism"],
+    selectedTraits: ['Egotism']
   });
   const strike = (result, name) =>
-    result.resolvedEvents.find(
-      (event) => event.type === "damage" && event.skillName === name,
-    ).damage;
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === name).damage;
 
-  assert.equal(strike(egotism, "Mind Slash"), strike(base, "Mind Slash"));
-  assert.ok(
-    Math.abs(strike(egotism, "Mind Gash") / strike(base, "Mind Gash") - 1.1) <
-      1e-12,
-  );
+  assert.equal(strike(egotism, 'Mind Slash'), strike(base, 'Mind Slash'));
+  assert.ok(Math.abs(strike(egotism, 'Mind Gash') / strike(base, 'Mind Gash') - 1.1) < 1e-12);
 });
 
-test("explicit combat start keeps precombat projectiles that land afterward", () => {
+test('explicit combat start keeps precombat projectiles that land afterward', () => {
   const result = simulateMesmer(
     [
-      "Bladecall",
-      { name: "__wait", waitMs: 1000 },
-      { name: "__combat_start" },
-      "Unstable Bladestorm",
-      { name: "__wait", waitMs: 4000 },
+      'Bladecall',
+      { name: '__wait', waitMs: 1000 },
+      { name: '__combat_start' },
+      'Unstable Bladestorm',
+      { name: '__wait', waitMs: 4000 }
     ],
-    defaultSimulationConfig(),
+    defaultSimulationConfig()
   );
   const bladecallHits = result.resolvedEvents.filter(
-    (event) => event.type === "damage" && event.skillName === "Bladecall",
+    (event) => event.type === 'damage' && event.skillName === 'Bladecall'
   );
 
   assert.equal(bladecallHits.length, 3);
   assert.ok(
-    result.resolvedEvents.some(
-      (event) =>
-        event.type === "damage" && event.skillName === "Unstable Bladestorm",
-    ),
+    result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Unstable Bladestorm')
   );
   assert.ok(result.dpsWindow < result.duration);
 });
 
-test("delayed combat start uses its offset instead of the preceding cast end", () => {
+test('delayed combat start uses its offset instead of the preceding cast end', () => {
   const result = simulateMesmer(
-    [
-      "Mind Slash",
-      { name: "__combat_start", offset: 100 },
-      { name: "__wait", waitMs: 1000 },
-    ],
+    ['Mind Slash', { name: '__combat_start', offset: 100 }, { name: '__wait', waitMs: 1000 }],
     defaultSimulationConfig({
-      specialization: "Core",
-      primaryWeapon: "Sword",
-      secondaryWeapon: "",
-      initialResource: 0,
-    }),
+      specialization: 'Core',
+      primaryWeapon: 'Sword',
+      secondaryWeapon: '',
+      initialResource: 0
+    })
   );
 
   assert.equal(result.steps[1].start, 100);
@@ -1081,14 +1005,10 @@ test("delayed combat start uses its offset instead of the preceding cast end", (
   assert.ok(result.dps < 100_000);
 });
 
-test("DPS duration starts at the first hit in the supplied delayed-start rotation", () => {
+test('DPS duration starts at the first hit in the supplied delayed-start rotation', () => {
   const result = simulateMesmer(
-    [
-      "Phantasmal Swordsman",
-      { name: "__combat_start", offset: 700 },
-      "Bladecall",
-    ],
-    defaultSimulationConfig(),
+    ['Phantasmal Swordsman', { name: '__combat_start', offset: 700 }, 'Bladecall'],
+    defaultSimulationConfig()
   );
 
   assert.equal(result.steps[1].start, 700);
@@ -1098,11 +1018,8 @@ test("DPS duration starts at the first hit in the supplied delayed-start rotatio
   assert.equal(result.dps, result.totalDamage / result.dpsWindow);
 });
 
-test("standalone Combat Start uses the first subsequent hit like Elementalist", () => {
-  const result = simulateMesmer(
-    ["__combat_start", "Phantasmal Swordsman", "Bladecall"],
-    defaultSimulationConfig(),
-  );
+test('standalone Combat Start uses the first subsequent hit like Elementalist', () => {
+  const result = simulateMesmer(['__combat_start', 'Phantasmal Swordsman', 'Bladecall'], defaultSimulationConfig());
 
   assert.equal(result.steps[0].start, 0);
   assert.ok(Math.abs(result.firstHitTime - 0.759) < 1e-12);
@@ -1112,15 +1029,15 @@ test("standalone Combat Start uses the first subsequent hit like Elementalist", 
   assert.equal(result.dps, result.totalDamage / result.dpsWindow);
 });
 
-test("zero-length combat windows report zero DPS instead of epsilon DPS", () => {
+test('zero-length combat windows report zero DPS instead of epsilon DPS', () => {
   const result = simulateMesmer(
-    ["Mind Slash", "__combat_start"],
+    ['Mind Slash', '__combat_start'],
     defaultSimulationConfig({
-      specialization: "Core",
-      primaryWeapon: "Sword",
-      secondaryWeapon: "",
-      initialResource: 0,
-    }),
+      specialization: 'Core',
+      primaryWeapon: 'Sword',
+      secondaryWeapon: '',
+      initialResource: 0
+    })
   );
 
   assert.equal(result.dpsStartTime, result.duration);
@@ -1128,148 +1045,131 @@ test("zero-length combat windows report zero DPS instead of epsilon DPS", () => 
   assert.equal(result.dps, 0);
 });
 
-test("critical sigils enqueue and resolve their own proc event", () => {
+test('critical sigils enqueue and resolve their own proc event', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    ["Bladecall"],
+    ['Bladecall'],
     defaultSimulationConfig({
       stats: {
         ...defaults.stats,
-        precision: 3100,
+        precision: 3100
       },
       boons: {
         ...defaults.boons,
-        fury: true,
+        fury: true
       },
       sigilSets: [
-        { names: ["Air"], strike: 1, condition: 1 },
-        { names: [], strike: 1, condition: 1 },
-      ],
-    }),
+        { names: ['Air'], strike: 1, condition: 1 },
+        { names: [], strike: 1, condition: 1 }
+      ]
+    })
   );
 
-  assert.ok(result.procSteps.some((proc) => proc.skill === "Sigil of Air"));
-  assert.ok(
-    result.breakdown.some(
-      (entry) => entry.name === "Sigil of Air" && entry.strikeDamage > 0,
-    ),
-  );
+  assert.ok(result.procSteps.some((proc) => proc.skill === 'Sigil of Air'));
+  assert.ok(result.breakdown.some((entry) => entry.name === 'Sigil of Air' && entry.strikeDamage > 0));
 });
 
 test("seeded critical sigils consume the hit's single sampled crit outcome", () => {
   const defaults = defaultSimulationConfig();
   const rotation = [];
   for (let index = 0; index < 6; index += 1) {
-    rotation.push("Flying Cutter");
-    if (index < 5) rotation.push({ name: "__wait", waitMs: 5100 });
+    rotation.push('Flying Cutter');
+    if (index < 5) rotation.push({ name: '__wait', waitMs: 5100 });
   }
   const config = defaultSimulationConfig({
     stats: {
       ...defaults.stats,
-      precision: 1945,
+      precision: 1945
     },
     boons: {
       ...defaults.boons,
-      fury: false,
+      fury: false
     },
     sigilSets: [
-      { names: ["Earth", "Torment"], strike: 1, condition: 1 },
-      { names: [], strike: 1, condition: 1 },
-    ],
+      { names: ['Earth', 'Torment'], strike: 1, condition: 1 },
+      { names: [], strike: 1, condition: 1 }
+    ]
   });
   const run = (mode, seed = 37) =>
     simulateMesmer(rotation, {
       ...config,
-      randomness: { mode, seed },
+      randomness: { mode, seed }
     });
 
-  const stochastic = run("stochastic");
-  const random = createSimulationRandom({ mode: "stochastic", seed: 37 });
-  const expectedOutcomes = Array.from({ length: 6 }, () =>
-    random.roll(0.5, "critical:player"),
-  );
+  const stochastic = run('stochastic');
+  const random = createSimulationRandom({ mode: 'stochastic', seed: 37 });
+  const expectedOutcomes = Array.from({ length: 6 }, () => random.roll(0.5, 'critical:player'));
   const sourceHits = stochastic.events.filter(
-    (event) => event.type === "damage" && event.skillName === "Flying Cutter",
+    (event) => event.type === 'damage' && event.skillName === 'Flying Cutter'
   );
   assert.deepEqual(
     sourceHits.map((event) => event.didCrit),
-    expectedOutcomes,
+    expectedOutcomes
   );
   assert.deepEqual(
     stochastic.resolvedEvents
-      .filter(
-        (event) =>
-          event.type === "damage" && event.skillName === "Flying Cutter",
-      )
+      .filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter')
       .map((event) => event.didCrit),
-    expectedOutcomes,
+    expectedOutcomes
   );
 
   const expectedProcs = expectedOutcomes.filter(Boolean).length;
-  for (const sigil of ["Earth", "Torment"]) {
+  for (const sigil of ['Earth', 'Torment']) {
     assert.equal(
-      stochastic.resolvedEvents.filter(
-        (event) =>
-          event.type === "condition" && event.skillName === `Sigil of ${sigil}`,
-      ).length,
-      expectedProcs,
+      stochastic.resolvedEvents.filter((event) => event.type === 'condition' && event.skillName === `Sigil of ${sigil}`)
+        .length,
+      expectedProcs
     );
   }
 
-  const deterministic = run("deterministic");
-  for (const sigil of ["Earth", "Torment"]) {
+  const deterministic = run('deterministic');
+  for (const sigil of ['Earth', 'Torment']) {
     assert.equal(
       deterministic.resolvedEvents.filter(
-        (event) =>
-          event.type === "condition" && event.skillName === `Sigil of ${sigil}`,
+        (event) => event.type === 'condition' && event.skillName === `Sigil of ${sigil}`
       ).length,
-      3,
+      3
     );
   }
 });
 
-test("Mesmer critical traits consume seeded hit outcomes in stochastic mode", () => {
+test('Mesmer critical traits consume seeded hit outcomes in stochastic mode', () => {
   const defaults = defaultSimulationConfig();
   const rotation = [];
   for (let index = 0; index < 6; index += 1) {
-    rotation.push("Flying Cutter");
-    if (index < 5) rotation.push({ name: "__wait", waitMs: 5100 });
+    rotation.push('Flying Cutter');
+    if (index < 5) rotation.push({ name: '__wait', waitMs: 5100 });
   }
   const config = defaultSimulationConfig({
-    specialization: "Virtuoso",
-    selectedTraits: ["Jagged Mind", "Deadly Blades"],
+    specialization: 'Virtuoso',
+    selectedTraits: ['Jagged Mind', 'Deadly Blades'],
     stats: {
       ...defaults.stats,
-      precision: 1945,
+      precision: 1945
     },
     boons: {
       ...defaults.boons,
-      fury: false,
+      fury: false
     },
     sigilSets: [
       { names: [], strike: 1, condition: 1 },
-      { names: [], strike: 1, condition: 1 },
-    ],
+      { names: [], strike: 1, condition: 1 }
+    ]
   });
   const run = (mode, seed = 37) =>
     simulateMesmer(rotation, {
       ...config,
-      randomness: { mode, seed },
+      randomness: { mode, seed }
     });
 
-  const stochastic = run("stochastic");
-  const hits = stochastic.events.filter(
-    (event) => event.type === "damage" && event.skillName === "Flying Cutter",
-  );
+  const stochastic = run('stochastic');
+  const hits = stochastic.events.filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter');
   const criticals = hits.filter((event) => event.didCrit).length;
   const jaggedMind = stochastic.events.filter(
-    (event) => event.type === "condition" && event.name.includes("Jagged Mind"),
+    (event) => event.type === 'condition' && event.name.includes('Jagged Mind')
   );
   const deadlyBlades = stochastic.events.filter(
-    (event) =>
-      event.type === "buff" &&
-      event.kind === "target-vulnerability" &&
-      event.sourceSkill === "Flying Cutter",
+    (event) => event.type === 'buff' && event.kind === 'target-vulnerability' && event.sourceSkill === 'Flying Cutter'
   );
   assert.ok(criticals > 0 && criticals < hits.length);
   assert.equal(jaggedMind.length, criticals);
@@ -1277,57 +1177,48 @@ test("Mesmer critical traits consume seeded hit outcomes in stochastic mode", ()
   assert.equal(deadlyBlades.length, criticals);
   assert.ok(deadlyBlades.every((event) => event.stacks === 1));
   assert.deepEqual(
-    run("stochastic").events.filter(
-      (event) =>
-        event.type === "condition" && event.name.includes("Jagged Mind"),
-    ),
-    jaggedMind,
+    run('stochastic').events.filter((event) => event.type === 'condition' && event.name.includes('Jagged Mind')),
+    jaggedMind
   );
 
-  const deterministic = run("deterministic");
+  const deterministic = run('deterministic');
   const expectedJaggedMind = deterministic.events.filter(
-    (event) => event.type === "condition" && event.name.includes("Jagged Mind"),
+    (event) => event.type === 'condition' && event.name.includes('Jagged Mind')
   );
   assert.equal(expectedJaggedMind.length, hits.length);
   assert.ok(expectedJaggedMind.every((event) => event.stacks === 0.5));
 });
 
-test("Master Fencer grants self and allied fury on critical hits with an eight-second ICD", () => {
+test('Master Fencer grants self and allied fury on critical hits with an eight-second ICD', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
     [
-      "Flying Cutter",
-      { name: "__wait", waitMs: 1000 },
-      "Flying Cutter",
-      { name: "__wait", waitMs: 9000 },
-      "Flying Cutter",
+      'Flying Cutter',
+      { name: '__wait', waitMs: 1000 },
+      'Flying Cutter',
+      { name: '__wait', waitMs: 9000 },
+      'Flying Cutter'
     ],
     defaultSimulationConfig({
-      selectedTraits: ["Master Fencer"],
+      selectedTraits: ['Master Fencer'],
       stats: {
         ...defaults.stats,
-        precision: 2995,
+        precision: 2995
       },
       boons: {
         ...defaults.boons,
         fury: false,
         quickness: false,
-        alacrity: false,
+        alacrity: false
       },
       allies: { count: 4, strikesPerSecond: 1 },
       sharePlayerBoonsWithSummons: true,
-      randomness: { mode: "stochastic", seed: 1 },
-    }),
+      randomness: { mode: 'stochastic', seed: 1 }
+    })
   );
-  const hits = result.events.filter(
-    (event) => event.type === "damage" && event.skillName === "Flying Cutter",
-  );
-  const procs = result.events.filter(
-    (event) => event.type === "proc" && event.name === "Master Fencer",
-  );
-  const fury = result.events.filter(
-    (event) => event.type === "buff" && event.skillName === "Master Fencer",
-  );
+  const hits = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter');
+  const procs = result.events.filter((event) => event.type === 'proc' && event.name === 'Master Fencer');
+  const fury = result.events.filter((event) => event.type === 'buff' && event.skillName === 'Master Fencer');
 
   assert.equal(hits.length, 3);
   assert.ok(hits.every((event) => event.didCrit === true));
@@ -1338,122 +1229,98 @@ test("Master Fencer grants self and allied fury on critical hits with an eight-s
   assert.ok(hits[2].at > hits[0].at + 8);
   assert.deepEqual(
     fury
-      .filter((event) => event.recipients === "self")
-      .map((event) => [
-        event.duration,
-        event.affectsSelf,
-        event.affectsSummons,
-      ]),
+      .filter((event) => event.recipients === 'self')
+      .map((event) => [event.duration, event.affectsSelf, event.affectsSummons]),
     [
       [8, true, false],
-      [8, true, false],
-    ],
+      [8, true, false]
+    ]
   );
   assert.deepEqual(
     fury
-      .filter((event) => event.recipients === "allies")
-      .map((event) => [
-        event.duration,
-        event.affectsSelf,
-        event.affectsSummons,
-      ]),
+      .filter((event) => event.recipients === 'allies')
+      .map((event) => [event.duration, event.affectsSelf, event.affectsSummons]),
     [
       [4, false, false],
-      [4, false, false],
-    ],
+      [4, false, false]
+    ]
   );
 
   const openParty = simulateMesmer(
-    ["Flying Cutter"],
+    ['Flying Cutter'],
     defaultSimulationConfig({
-      specialization: "Core",
-      selectedTraits: ["Master Fencer"],
+      specialization: 'Core',
+      selectedTraits: ['Master Fencer'],
       initialResource: 2,
       stats: {
         ...defaults.stats,
-        precision: 2995,
+        precision: 2995
       },
       boons: {
         ...defaults.boons,
-        fury: false,
+        fury: false
       },
       allies: { count: 2, strikesPerSecond: 1 },
       sharePlayerBoonsWithSummons: true,
-      randomness: { mode: "stochastic", seed: 1 },
-    }),
+      randomness: { mode: 'stochastic', seed: 1 }
+    })
   );
   const openPartyFury = openParty.events.find(
-    (event) =>
-      event.type === "buff" &&
-      event.skillName === "Master Fencer" &&
-      event.recipients === "allies",
+    (event) => event.type === 'buff' && event.skillName === 'Master Fencer' && event.recipients === 'allies'
   );
   assert.equal(openPartyFury.affectsSummons, true);
   assert.equal(openPartyFury.alliedPlayerCount, 2);
   assert.equal(openPartyFury.recipientCount, 4);
   assert.equal(openPartyFury.companionIds.length, 2);
-  assert.ok(
-    openPartyFury.companionIds.every((id) => id.startsWith("mesmer.clone:")),
-  );
+  assert.ok(openPartyFury.companionIds.every((id) => id.startsWith('mesmer.clone:')));
 
   const isolated = simulateMesmer(
-    ["Flying Cutter"],
+    ['Flying Cutter'],
     defaultSimulationConfig({
-      selectedTraits: ["Master Fencer"],
+      selectedTraits: ['Master Fencer'],
       stats: {
         ...defaults.stats,
-        precision: 2995,
+        precision: 2995
       },
       boons: {
         ...defaults.boons,
-        fury: false,
+        fury: false
       },
       sharePlayerBoonsWithSummons: false,
-      randomness: { mode: "stochastic", seed: 1 },
-    }),
+      randomness: { mode: 'stochastic', seed: 1 }
+    })
   );
-  const isolatedFury = isolated.events.filter(
-    (event) => event.type === "buff" && event.skillName === "Master Fencer",
-  );
+  const isolatedFury = isolated.events.filter((event) => event.type === 'buff' && event.skillName === 'Master Fencer');
   assert.equal(isolatedFury.length, 2);
-  assert.equal(
-    isolatedFury.find((event) => event.recipients === "self")?.affectsSummons,
-    false,
-  );
-  assert.equal(
-    isolatedFury.find((event) => event.recipients === "allies")?.affectsSummons,
-    false,
-  );
+  assert.equal(isolatedFury.find((event) => event.recipients === 'self')?.affectsSummons, false);
+  assert.equal(isolatedFury.find((event) => event.recipients === 'allies')?.affectsSummons, false);
 });
 
-test("Sharper Images samples illusion criticals instead of accumulating expected procs", () => {
+test('Sharper Images samples illusion criticals instead of accumulating expected procs', () => {
   const defaults = defaultSimulationConfig();
   const config = defaultSimulationConfig({
-    specialization: "Core",
-    selectedTraits: ["Sharper Images"],
+    specialization: 'Core',
+    selectedTraits: ['Sharper Images'],
     initialResource: 0,
-    primaryWeapon: "Sword",
-    secondaryWeapon: "Pistol",
+    primaryWeapon: 'Sword',
+    secondaryWeapon: 'Pistol',
     stats: {
       ...defaults.stats,
-      precision: 1945,
+      precision: 1945
     },
     boons: {
       ...defaults.boons,
-      fury: false,
-    },
+      fury: false
+    }
   });
-  const result = simulateMesmer(
-    ["Phantasmal Duelist", { name: "__wait", waitMs: 4000 }],
-    { ...config, randomness: { mode: "stochastic", seed: 91 } },
-  );
-  const illusionHits = result.events.filter(
-    (event) => event.type === "damage" && event.source === "Phantasm",
-  );
+  const result = simulateMesmer(['Phantasmal Duelist', { name: '__wait', waitMs: 4000 }], {
+    ...config,
+    randomness: { mode: 'stochastic', seed: 91 }
+  });
+  const illusionHits = result.events.filter((event) => event.type === 'damage' && event.source === 'Phantasm');
   const criticals = illusionHits.filter((event) => event.didCrit).length;
   const sharperImages = result.events.filter(
-    (event) =>
-      event.type === "condition" && event.name.includes("Sharper Images"),
+    (event) => event.type === 'condition' && event.name.includes('Sharper Images')
   );
 
   assert.ok(illusionHits.length > 1);
@@ -1462,84 +1329,77 @@ test("Sharper Images samples illusion criticals instead of accumulating expected
   assert.ok(sharperImages.every((event) => event.stacks === 1));
 });
 
-test("critical-strike food consumes seeded crit and proc outcomes in stochastic mode", () => {
+test('critical-strike food consumes seeded crit and proc outcomes in stochastic mode', () => {
   const defaults = defaultSimulationConfig();
   const rotation = [];
   for (let index = 0; index < 6; index += 1) {
-    rotation.push("Flying Cutter");
-    if (index < 5) rotation.push({ name: "__wait", waitMs: 2100 });
+    rotation.push('Flying Cutter');
+    if (index < 5) rotation.push({ name: '__wait', waitMs: 2100 });
   }
   const seed = 117;
   const result = simulateMesmer(
     rotation,
     defaultSimulationConfig({
-      food: "Cilantro Lime Sous-Vide Steak",
+      food: 'Cilantro Lime Sous-Vide Steak',
       stats: {
         ...defaults.stats,
-        precision: 1945,
+        precision: 1945
       },
       boons: {
         ...defaults.boons,
-        fury: false,
+        fury: false
       },
-      randomness: { mode: "stochastic", seed },
-    }),
+      randomness: { mode: 'stochastic', seed }
+    })
   );
-  const sourceHits = result.events.filter(
-    (event) => event.type === "damage" && event.skillName === "Flying Cutter",
-  );
-  const procRandom = createSimulationRandom({ mode: "stochastic", seed });
+  const sourceHits = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter');
+  const procRandom = createSimulationRandom({ mode: 'stochastic', seed });
   let expectedProcs = 0;
   let foodReadyAt = -Infinity;
   for (const event of sourceHits) {
     if (event.didCrit !== true || event.at < foodReadyAt) continue;
-    if (!procRandom.roll(0.66, "food.critical-strike")) continue;
+    if (!procRandom.roll(0.66, 'food.critical-strike')) continue;
     expectedProcs += 1;
     foodReadyAt = event.at + 2;
   }
   const nourishment = result.resolvedEvents.filter(
-    (event) => event.type === "damage" && event.skillName === "Nourishment",
+    (event) => event.type === 'damage' && event.skillName === 'Nourishment'
   );
 
   assert.equal(nourishment.length, expectedProcs);
 });
 
-test("Earth bleeding grants a scheduler-visible Bloodsong blade", () => {
+test('Earth bleeding grants a scheduler-visible Bloodsong blade', () => {
   const defaults = defaultSimulationConfig();
   const flyingCutters = [];
   for (let index = 0; index < 5; index += 1) {
-    flyingCutters.push("Flying Cutter");
+    flyingCutters.push('Flying Cutter');
     if (index < 4) {
-      flyingCutters.push({ name: "__wait", waitMs: 2100 });
+      flyingCutters.push({ name: '__wait', waitMs: 2100 });
     }
   }
   const run = (selectedTraits) =>
     simulateMesmer(
-      [...flyingCutters, "Bladesong Harmony"],
+      [...flyingCutters, 'Bladesong Harmony'],
       defaultSimulationConfig({
         initialResource: 0,
         selectedTraits,
         stats: {
           ...defaults.stats,
-          precision: 4000,
+          precision: 4000
         },
         sigilSets: [
-          { names: ["Earth"], strike: 1, condition: 1 },
-          { names: [], strike: 1, condition: 1 },
-        ],
-      }),
+          { names: ['Earth'], strike: 1, condition: 1 },
+          { names: [], strike: 1, condition: 1 }
+        ]
+      })
     );
-  const result = run(["Bloodsong"]);
+  const result = run(['Bloodsong']);
   const earth = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "condition" && event.skillName === "Sigil of Earth",
+    (event) => event.type === 'condition' && event.skillName === 'Sigil of Earth'
   );
-  const bloodsong = result.events.find(
-    (event) => event.type === "resource" && event.reason === "Bloodsong",
-  );
-  const harmony = result.steps.find(
-    (step) => step.skill === "Bladesong Harmony",
-  );
+  const bloodsong = result.events.find((event) => event.type === 'resource' && event.reason === 'Bloodsong');
+  const harmony = result.steps.find((step) => step.skill === 'Bladesong Harmony');
 
   assert.equal(earth.length, 5);
   assert.ok(bloodsong);
@@ -1548,51 +1408,38 @@ test("Earth bleeding grants a scheduler-visible Bloodsong blade", () => {
 
   const withoutBloodsong = run([]);
   assert.equal(
-    withoutBloodsong.events.some(
-      (event) => event.type === "resource" && event.reason === "Bloodsong",
-    ),
-    false,
+    withoutBloodsong.events.some((event) => event.type === 'resource' && event.reason === 'Bloodsong'),
+    false
   );
-  assert.equal(
-    withoutBloodsong.steps.find((step) => step.skill === "Bladesong Harmony")
-      ?.invalid,
-    true,
-  );
+  assert.equal(withoutBloodsong.steps.find((step) => step.skill === 'Bladesong Harmony')?.invalid, true);
 });
 
-test("Geomancy crosses Bloodsong after four canonical trait bleeds", () => {
+test('Geomancy crosses Bloodsong after four canonical trait bleeds', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
     [
-      "Twin Blade Restoration",
-      { name: "__wait", waitMs: 21000 },
-      "Twin Blade Restoration",
-      "Swap Weapons",
-      "Bladesong Harmony",
+      'Twin Blade Restoration',
+      { name: '__wait', waitMs: 21000 },
+      'Twin Blade Restoration',
+      'Swap Weapons',
+      'Bladesong Harmony'
     ],
     defaultSimulationConfig({
       initialResource: 0,
-      selectedTraits: ["Bloodsong", "Jagged Mind"],
+      selectedTraits: ['Bloodsong', 'Jagged Mind'],
       stats: {
         ...defaults.stats,
-        precision: 4000,
+        precision: 4000
       },
       sigilSets: [
         { names: [], strike: 1, condition: 1 },
-        { names: ["Geomancy"], strike: 1, condition: 1 },
-      ],
-    }),
+        { names: ['Geomancy'], strike: 1, condition: 1 }
+      ]
+    })
   );
-  const geomancy = result.events.find(
-    (event) =>
-      event.type === "condition" && event.skillName === "Sigil of Geomancy",
-  );
-  const bloodsong = result.events.find(
-    (event) => event.type === "resource" && event.reason === "Bloodsong",
-  );
-  const harmony = result.steps.find(
-    (step) => step.skill === "Bladesong Harmony",
-  );
+  const geomancy = result.events.find((event) => event.type === 'condition' && event.skillName === 'Sigil of Geomancy');
+  const bloodsong = result.events.find((event) => event.type === 'resource' && event.reason === 'Bloodsong');
+  const harmony = result.steps.find((step) => step.skill === 'Bladesong Harmony');
 
   assert.ok(geomancy);
   assert.ok(bloodsong);
@@ -1600,197 +1447,171 @@ test("Geomancy crosses Bloodsong after four canonical trait bleeds", () => {
   assert.equal(harmony.invalid, undefined);
 });
 
-test("critical-strike food procs remain unmodified without profession effects", () => {
+test('critical-strike food procs remain unmodified without profession effects', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    ["Flying Cutter", { name: "__wait", waitMs: 2000 }, "Flying Cutter"],
+    ['Flying Cutter', { name: '__wait', waitMs: 2000 }, 'Flying Cutter'],
     defaultSimulationConfig({
-      food: "Cilantro Lime Sous-Vide Steak",
+      food: 'Cilantro Lime Sous-Vide Steak',
       stats: {
         ...defaults.stats,
-        precision: 3100,
-      },
-    }),
+        precision: 3100
+      }
+    })
   );
   const nourishment = result.resolvedEvents.filter(
-    (event) => event.type === "damage" && event.skillName === "Nourishment",
+    (event) => event.type === 'damage' && event.skillName === 'Nourishment'
   );
 
   assert.equal(nourishment.length, 1);
   assert.equal(nourishment[0].damage, 325);
-  assert.equal(nourishment[0].damageKind, "condition");
-  const nourishmentBreakdown = result.breakdown.find(
-    (entry) => entry.name === "Nourishment",
-  );
+  assert.equal(nourishment[0].damageKind, 'condition');
+  const nourishmentBreakdown = result.breakdown.find((entry) => entry.name === 'Nourishment');
   assert.equal(nourishmentBreakdown.strikeDamage, 0);
   assert.equal(nourishmentBreakdown.conditionDamage, 325);
   const withoutVulnerability = simulateMesmer(
-    ["Flying Cutter", { name: "__wait", waitMs: 2000 }, "Flying Cutter"],
+    ['Flying Cutter', { name: '__wait', waitMs: 2000 }, 'Flying Cutter'],
     defaultSimulationConfig({
-      food: "Cilantro Lime Sous-Vide Steak",
+      food: 'Cilantro Lime Sous-Vide Steak',
       stats: {
         ...defaults.stats,
-        precision: 3100,
+        precision: 3100
       },
       target: {
         ...defaults.target,
         conditions: {
           ...defaults.target.conditions,
-          Vulnerability: 0,
-        },
-      },
-    }),
-  ).resolvedEvents.filter(
-    (event) => event.type === "damage" && event.skillName === "Nourishment",
-  );
+          Vulnerability: 0
+        }
+      }
+    })
+  ).resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Nourishment');
   assert.equal(withoutVulnerability.length, 1);
   assert.equal(withoutVulnerability[0].damage, 325);
-  const nourishmentProc = result.procSteps.find(
-    (proc) => proc.type === "food_proc" && proc.skill === "Nourishment",
-  );
-  assert.equal(
-    nourishmentProc.icon,
-    "https://wiki.guildwars2.com/images/c/ca/Nourishment_food.png",
-  );
+  const nourishmentProc = result.procSteps.find((proc) => proc.type === 'food_proc' && proc.skill === 'Nourishment');
+  assert.equal(nourishmentProc.icon, 'https://wiki.guildwars2.com/images/c/ca/Nourishment_food.png');
 });
 
-test("slot-skill strikes select utility weapon strength generically", () => {
-  const result = simulateMesmer(
-    ["Power Spike"],
-    defaultSimulationConfig({ specialization: "Core" }),
-  );
+test('slot-skill strikes select utility weapon strength generically', () => {
+  const result = simulateMesmer(['Power Spike'], defaultSimulationConfig({ specialization: 'Core' }));
   const powerSpike = result.resolvedEvents.find(
-    (event) => event.type === "damage" && event.skillName === "Power Spike",
+    (event) => event.type === 'damage' && event.skillName === 'Power Spike'
   );
 
-  assert.equal(powerSpike.skillWeapon, "Utility");
+  assert.equal(powerSpike.skillWeapon, 'Utility');
 });
 
-test("Egotism does not increase condition damage", () => {
+test('Egotism does not increase condition damage', () => {
   const defaults = defaultSimulationConfig();
   const run = (selectedTraits) =>
     simulateMesmer(
-      ["Phantasmal Swordsman", { name: "__wait", waitMs: 6000 }],
+      ['Phantasmal Swordsman', { name: '__wait', waitMs: 6000 }],
       defaultSimulationConfig({
-        specialization: "Core",
-        primaryWeapon: "Sword",
-        secondaryWeapon: "",
+        specialization: 'Core',
+        primaryWeapon: 'Sword',
+        secondaryWeapon: '',
         initialResource: 0,
-        selectedTraits: ["Sharper Images", ...selectedTraits],
+        selectedTraits: ['Sharper Images', ...selectedTraits],
         target: {
           ...defaults.target,
-          health: 3970000,
-        },
-      }),
+          health: 3970000
+        }
+      })
     );
-  const bleeding = (result) =>
-    result.conditionBreakdown.find((entry) => entry.name === "Bleeding")
-      ?.damage || 0;
+  const bleeding = (result) => result.conditionBreakdown.find((entry) => entry.name === 'Bleeding')?.damage || 0;
 
-  assert.equal(bleeding(run(["Egotism"])), bleeding(run([])));
+  assert.equal(bleeding(run(['Egotism'])), bleeding(run([])));
 });
 
-test("weapon-swap sigils resolve locally on the destination weapon set", () => {
+test('weapon-swap sigils resolve locally on the destination weapon set', () => {
   const result = simulateMesmer(
-    ["Bladecall", "Swap Weapons", "Psycut", { name: "__wait", waitMs: 2000 }],
+    ['Bladecall', 'Swap Weapons', 'Psycut', { name: '__wait', waitMs: 2000 }],
     defaultSimulationConfig({
-      primaryWeapon: "Dagger",
-      secondaryWeapon: "Sword",
-      weaponSet2Primary: "Spear",
-      weaponSet2Secondary: "",
+      primaryWeapon: 'Dagger',
+      secondaryWeapon: 'Sword',
+      weaponSet2Primary: 'Spear',
+      weaponSet2Secondary: '',
       sigilSets: [
         { names: [], strike: 1, condition: 1 },
-        { names: ["Doom", "Geomancy"], strike: 1, condition: 1 },
-      ],
-    }),
+        { names: ['Doom', 'Geomancy'], strike: 1, condition: 1 }
+      ]
+    })
   );
 
   assert.ok(
     result.resolvedEvents.some(
-      (event) =>
-        event.skillName === "Sigil of Geomancy" &&
-        event.condition === "Bleeding" &&
-        event.damage > 0,
-    ),
+      (event) => event.skillName === 'Sigil of Geomancy' && event.condition === 'Bleeding' && event.damage > 0
+    )
   );
   assert.ok(
     result.resolvedEvents.some(
-      (event) =>
-        event.skillName === "Sigil of Doom" &&
-        event.condition === "Poisoned" &&
-        event.damage > 0,
-    ),
+      (event) => event.skillName === 'Sigil of Doom' && event.condition === 'Poisoned' && event.damage > 0
+    )
   );
 });
 
-test("critical weapon-swap sigil strikes can trigger critical-hit sigils", () => {
+test('critical weapon-swap sigil strikes can trigger critical-hit sigils', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    ["__combat_start", "Swap Weapons"],
+    ['__combat_start', 'Swap Weapons'],
     defaultSimulationConfig({
-      primaryWeapon: "Dagger",
-      secondaryWeapon: "Sword",
-      weaponSet2Primary: "Spear",
-      weaponSet2Secondary: "",
+      primaryWeapon: 'Dagger',
+      secondaryWeapon: 'Sword',
+      weaponSet2Primary: 'Spear',
+      weaponSet2Secondary: '',
       stats: { ...defaults.stats, precision: 4000 },
       sigilSets: [
         { names: [], strike: 1, condition: 1 },
-        { names: ["Geomancy", "Torment"], strike: 1, condition: 1 },
-      ],
-    }),
+        { names: ['Geomancy', 'Torment'], strike: 1, condition: 1 }
+      ]
+    })
   );
 
   assert.deepEqual(
     result.procSteps.map((proc) => proc.skill),
-    ["Sigil of Geomancy", "Sigil of Torment"],
+    ['Sigil of Geomancy', 'Sigil of Torment']
   );
   const torment = result.resolvedEvents.find(
-    (event) =>
-      event.skillName === "Sigil of Torment" && event.condition === "Torment",
+    (event) => event.skillName === 'Sigil of Torment' && event.condition === 'Torment'
   );
   assert.equal(torment?.stacks, 2);
   assert.equal(torment?.duration, 5);
 });
 
-test("Severance affects strikes after its control trigger", () => {
+test('Severance affects strikes after its control trigger', () => {
   const defaults = defaultSimulationConfig();
   const config = defaultSimulationConfig({
-    specialization: "Core",
-    primaryWeapon: "Sword",
-    secondaryWeapon: "Pistol",
+    specialization: 'Core',
+    primaryWeapon: 'Sword',
+    secondaryWeapon: 'Pistol',
     initialResource: 0,
     stats: {
       ...defaults.stats,
-      precision: 1000,
+      precision: 1000
     },
     boons: {
       ...defaults.boons,
-      fury: false,
+      fury: false
     },
     target: {
       ...defaults.target,
-      vulnerability: 0,
-    },
+      vulnerability: 0
+    }
   });
   const run = (names) =>
-    simulateMesmer(["Magic Bullet", "Mind Slash"], {
+    simulateMesmer(['Magic Bullet', 'Mind Slash'], {
       ...config,
       sigilSets: [
         { names, strike: 1, condition: 1 },
-        { names: [], strike: 1, condition: 1 },
-      ],
+        { names: [], strike: 1, condition: 1 }
+      ]
     });
   const base = run([]);
-  const severance = run(["Severance"]);
-  const mindSlashDamage = (result) =>
-    result.breakdown.find((entry) => entry.name === "Mind Slash").strikeDamage;
+  const severance = run(['Severance']);
+  const mindSlashDamage = (result) => result.breakdown.find((entry) => entry.name === 'Mind Slash').strikeDamage;
 
   assert.ok(mindSlashDamage(severance) > mindSlashDamage(base));
   assert.ok(
-    severance.procSteps.some(
-      (proc) =>
-        proc.skill === "Sigil of Severance" &&
-        proc.sourceSkill === "Magic Bullet",
-    ),
+    severance.procSteps.some((proc) => proc.skill === 'Sigil of Severance' && proc.sourceSkill === 'Magic Bullet')
   );
 });

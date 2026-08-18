@@ -2,14 +2,14 @@ import {
   partitionRandomDistributionTrials,
   randomDistributionWorkerCount,
   summarizeRandomDistribution,
-  summarizeRandomDistributionOutcomes,
-} from "./random-distribution.js";
+  summarizeRandomDistributionOutcomes
+} from './random-distribution.js';
 import type {
   ProfessionAppState,
   RandomDistributionOutcome,
   RandomDistributionProgress,
-  RandomDistributionSummary,
-} from "../profession/types.js";
+  RandomDistributionSummary
+} from '../profession/types.js';
 
 interface RandomDistributionWorkerMessage {
   readonly requestId: number;
@@ -66,64 +66,50 @@ export class RandomDistributionRunner {
     results.randomDistributionRequested = true;
     results.randomDistributionStale = run;
     results.randomDistributionTrials = request.trials;
-    results.randomDistributionError = "";
+    results.randomDistributionError = '';
     results.randomDistributionProgress = {
       completed: 0,
       total: request.trials,
-      percent: 0,
+      percent: 0
     };
     if (!run) return;
 
     const applyProgress = (progress: RandomDistributionProgress): void => {
       if (requestId !== this.requestId || !app.results) return;
       const total = Math.max(1, Number(progress?.total || request.trials));
-      const completed = Math.max(
-        0,
-        Math.min(total, Number(progress?.completed || 0)),
-      );
-      const percent = Math.max(
-        0,
-        Math.min(100, Number(progress?.percent ?? (completed / total) * 100)),
-      );
+      const completed = Math.max(0, Math.min(total, Number(progress?.completed || 0)));
+      const percent = Math.max(0, Math.min(100, Number(progress?.percent ?? (completed / total) * 100)));
       app.results.randomDistributionProgress = {
         completed,
         total,
-        percent,
+        percent
       };
 
       // Progress updates only touch the indicator. Remounting the full
       // result view would repeatedly rebuild tables and charts.
-      const indicator = document.querySelector(
-        '#rotation-results [data-role="rng-progress"]',
-      );
+      const indicator = document.querySelector('#rotation-results [data-role="rng-progress"]');
       if (!indicator) return;
-      indicator.setAttribute("aria-valuenow", String(Math.round(percent)));
-      const bar = indicator.querySelector<HTMLElement>(
-        '[data-role="rng-progress-bar"]',
-      );
+      indicator.setAttribute('aria-valuenow', String(Math.round(percent)));
+      const bar = indicator.querySelector<HTMLElement>('[data-role="rng-progress-bar"]');
       if (bar) bar.style.width = `${percent}%`;
       const label = indicator.querySelector('[data-role="rng-progress-label"]');
       if (label) {
         label.textContent = `${Math.round(
-          completed,
-        ).toLocaleString()} / ${Math.round(total).toLocaleString()} outcomes (${Math.round(
-          percent,
-        )}%)`;
+          completed
+        ).toLocaleString()} / ${Math.round(total).toLocaleString()} outcomes (${Math.round(percent)}%)`;
       }
     };
 
-    const applyDistribution = (
-      distribution: RandomDistributionSummary,
-    ): void => {
+    const applyDistribution = (distribution: RandomDistributionSummary): void => {
       if (requestId !== this.requestId || !app.results) return;
       app.results.randomDistribution = distribution;
       app.results.randomDistributionStale = false;
       app.results.randomDistributionProgress = {
         completed: distribution.trials,
         total: distribution.trials,
-        percent: 100,
+        percent: 100
       };
-      app.results.randomDistributionError = "";
+      app.results.randomDistributionError = '';
       app.adapter.renderResults(app);
     };
     const failDistribution = (error: unknown): void => {
@@ -134,9 +120,7 @@ export class RandomDistributionRunner {
       this.workers.clear();
       app.results.randomDistributionStale = false;
       app.results.randomDistributionError =
-        error instanceof Error
-          ? error.message
-          : String(error || "RNG distribution failed.");
+        error instanceof Error ? error.message : String(error || 'RNG distribution failed.');
       app.adapter.renderResults(app);
     };
 
@@ -144,103 +128,73 @@ export class RandomDistributionRunner {
       this.timer = null;
       if (requestId !== this.requestId) return;
 
-      if (typeof Worker === "function") {
-        const workerCount = randomDistributionWorkerCount(
-          request.trials,
-          globalThis.navigator?.hardwareConcurrency,
-        );
-        const batches = partitionRandomDistributionTrials(
-          request.trials,
-          workerCount,
-        );
+      if (typeof Worker === 'function') {
+        const workerCount = randomDistributionWorkerCount(request.trials, globalThis.navigator?.hardwareConcurrency);
+        const batches = partitionRandomDistributionTrials(request.trials, workerCount);
         if (!batches.length) {
           applyDistribution(summarizeRandomDistribution([]));
           return;
         }
         const batchProgress: number[] = batches.map(() => 0);
-        const completedSamples: Array<readonly number[] | null> = batches.map(
-          () => null,
-        );
-        const completedOutcomes: Array<
-          readonly RandomDistributionOutcome[] | null
-        > = batches.map(() => null);
+        const completedSamples: Array<readonly number[] | null> = batches.map(() => null);
+        const completedOutcomes: Array<readonly RandomDistributionOutcome[] | null> = batches.map(() => null);
         let completedWorkers = 0;
         let failed = false;
 
         batches.forEach((batch, batchIndex) => {
-          const worker = new Worker(
-            new URL("./random-distribution-worker.js", import.meta.url),
-            { type: "module" },
-          );
+          const worker = new Worker(new URL('./random-distribution-worker.js', import.meta.url), { type: 'module' });
           this.workers.add(worker);
           const finishWorker = (): void => {
             worker.terminate();
             this.workers.delete(worker);
           };
+          worker.addEventListener('message', (event: MessageEvent<RandomDistributionWorkerMessage>) => {
+            const { data } = event;
+            if (failed || data.requestId !== requestId || requestId !== this.requestId) {
+              return;
+            }
+            if (data.progress) {
+              batchProgress[batchIndex] = Math.max(0, Math.min(batch.trials, Number(data.progress.completed || 0)));
+              const completed = batchProgress.reduce((sum, value) => sum + value, 0);
+              applyProgress({
+                completed,
+                total: request.trials,
+                percent: (completed / request.trials) * 100
+              });
+              return;
+            }
+            finishWorker();
+            if (data.error) {
+              failed = true;
+              failDistribution(data.error);
+              return;
+            }
+            completedSamples[batchIndex] = data.distribution?.samples || [];
+            completedOutcomes[batchIndex] = data.distribution?.outcomes || [];
+            completedWorkers += 1;
+            if (completedWorkers === batches.length) {
+              const outcomes = completedOutcomes.flatMap((batchOutcomes) => batchOutcomes || []);
+              applyDistribution(
+                outcomes.length
+                  ? summarizeRandomDistributionOutcomes(outcomes)
+                  : summarizeRandomDistribution(completedSamples.flatMap((samples) => samples || []))
+              );
+            }
+          });
           worker.addEventListener(
-            "message",
-            (event: MessageEvent<RandomDistributionWorkerMessage>) => {
-              const { data } = event;
-              if (
-                failed ||
-                data.requestId !== requestId ||
-                requestId !== this.requestId
-              ) {
-                return;
-              }
-              if (data.progress) {
-                batchProgress[batchIndex] = Math.max(
-                  0,
-                  Math.min(batch.trials, Number(data.progress.completed || 0)),
-                );
-                const completed = batchProgress.reduce(
-                  (sum, value) => sum + value,
-                  0,
-                );
-                applyProgress({
-                  completed,
-                  total: request.trials,
-                  percent: (completed / request.trials) * 100,
-                });
-                return;
-              }
-              finishWorker();
-              if (data.error) {
-                failed = true;
-                failDistribution(data.error);
-                return;
-              }
-              completedSamples[batchIndex] = data.distribution?.samples || [];
-              completedOutcomes[batchIndex] = data.distribution?.outcomes || [];
-              completedWorkers += 1;
-              if (completedWorkers === batches.length) {
-                const outcomes = completedOutcomes.flatMap(
-                  (batchOutcomes) => batchOutcomes || [],
-                );
-                applyDistribution(
-                  outcomes.length
-                    ? summarizeRandomDistributionOutcomes(outcomes)
-                    : summarizeRandomDistribution(
-                        completedSamples.flatMap((samples) => samples || []),
-                      ),
-                );
-              }
-            },
-          );
-          worker.addEventListener(
-            "error",
+            'error',
             (event) => {
               if (failed) return;
               failed = true;
               finishWorker();
               failDistribution(event.error ?? event.message);
             },
-            { once: true },
+            { once: true }
           );
           worker.postMessage({
             requestId,
             request: { ...request, ...batch },
-            includeSamples: true,
+            includeSamples: true
           });
         });
         return;
@@ -249,8 +203,8 @@ export class RandomDistributionRunner {
       try {
         applyDistribution(
           app.adapter.calculateRandomDistribution(request, {
-            onProgress: applyProgress,
-          }),
+            onProgress: applyProgress
+          })
         );
       } catch (error) {
         failDistribution(error);

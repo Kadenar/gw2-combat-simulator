@@ -1,5 +1,5 @@
-import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
-import type { SpellbreakerState } from "../../types.js";
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import type { SpellbreakerState } from '../../types.js';
 
 export function createSpellbreakerState(): SpellbreakerState {
   return {
@@ -8,11 +8,8 @@ export function createSpellbreakerState(): SpellbreakerState {
     attackerInsightExpiries: [],
     fullCounterActiveUntil: 0,
     magebaneTetherUntil: 0,
-    magebaneTetherReadyAt: 0,
+    magebaneTetherReadyAt: 0
   };
 }
 
-export const spellbreakerState = defineProfessionSpecializationState(
-  "Spellbreaker",
-  createSpellbreakerState,
-);
+export const spellbreakerState = defineProfessionSpecializationState('Spellbreaker', createSpellbreakerState);

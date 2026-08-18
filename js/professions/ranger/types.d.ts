@@ -5,23 +5,23 @@ import type {
   SchedulerRecord,
   SchedulerState,
   Skill,
-  SkillId,
-} from "../../platform/engine/types.js";
+  SkillId
+} from '../../platform/engine/types.js';
 import type {
   Gw2Build,
   Gw2CanonicalBuild,
   Gw2Config,
   Gw2ResolverEvent,
-  Gw2ResolverRuntime,
-} from "../../platform/gw2/types.js";
-import type { ProfessionApplicationBuild } from "../../app/profession/types.js";
+  Gw2ResolverRuntime
+} from '../../platform/gw2/types.js';
+import type { ProfessionApplicationBuild } from '../../app/profession/types.js';
 
 export interface RangerSpecializationSelection {
   readonly name?: string;
   readonly traits?: string;
 }
 
-export type RangerInitialUntamedState = "Pet" | "Ranger";
+export type RangerInitialUntamedState = 'Pet' | 'Ranger';
 
 export interface RangerBuild extends Gw2Build {
   specializations?: RangerSpecializationSelection[];
@@ -208,11 +208,11 @@ export interface RangerState extends RangerCoreState {
 export interface RangerRuntimeState {
   core: RangerCoreState;
   specialization:
-    | { kind: "Core"; state: Record<string, never> }
-    | { kind: "Druid"; state: DruidState }
-    | { kind: "Soulbeast"; state: SoulbeastState }
-    | { kind: "Untamed"; state: UntamedState }
-    | { kind: "Galeshot"; state: GaleshotState };
+    | { kind: 'Core'; state: Record<string, never> }
+    | { kind: 'Druid'; state: DruidState }
+    | { kind: 'Soulbeast'; state: SoulbeastState }
+    | { kind: 'Untamed'; state: UntamedState }
+    | { kind: 'Galeshot'; state: GaleshotState };
 }
 
 export type RangerSchedulerContext = SchedulerContext<RangerRuntimeState> & {

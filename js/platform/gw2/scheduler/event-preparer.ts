@@ -1,24 +1,18 @@
-import { isGw2NonWeaponEffectEvent } from "../event-ownership.js";
-import { gw2BoonApplicationRecipients } from "../allied-players.js";
-import { prepareGw2ComboEvent } from "../combo-events.js";
-import { weaponStrengthProfileIdForEvent } from "../weapon-strength.js";
+import { isGw2NonWeaponEffectEvent } from '../event-ownership.js';
+import { gw2BoonApplicationRecipients } from '../allied-players.js';
+import { prepareGw2ComboEvent } from '../combo-events.js';
+import { weaponStrengthProfileIdForEvent } from '../weapon-strength.js';
 
-import type {
-  SchedulerContext,
-  SimulationEventInput,
-} from "../../engine/types.js";
-import type { Gw2Config } from "../types.js";
+import type { SchedulerContext, SimulationEventInput } from '../../engine/types.js';
+import type { Gw2Config } from '../types.js';
 
 export interface Gw2EventPreparer {
-  prepare(
-    context: SchedulerContext,
-    event: SimulationEventInput,
-  ): SimulationEventInput;
+  prepare(context: SchedulerContext, event: SimulationEventInput): SimulationEventInput;
 }
 
 function isCoefficientBasedDamage(event: SimulationEventInput): boolean {
   return (
-    event.type === "damage" &&
+    event.type === 'damage' &&
     Number(event.coefficient) > 0 &&
     !Number.isFinite(event.flatDamage) &&
     !Number.isFinite(event.flatStrikeBase) &&
@@ -34,16 +28,10 @@ function isCoefficientBasedDamage(event: SimulationEventInput): boolean {
 export function createGw2EventPreparer(): Readonly<Gw2EventPreparer> {
   const triggeredActivationIds = new Map<string, string>();
 
-  const prepare = (
-    context: SchedulerContext,
-    event: SimulationEventInput,
-  ): SimulationEventInput => {
+  const prepare = (context: SchedulerContext, event: SimulationEventInput): SimulationEventInput => {
     event = prepareGw2ComboEvent(event);
-    if (event.type === "buff") {
-      const recipients = gw2BoonApplicationRecipients(
-        context.config as Gw2Config,
-        event,
-      );
+    if (event.type === 'buff') {
+      const recipients = gw2BoonApplicationRecipients(context.config as Gw2Config, event);
       return {
         ...event,
         affectsSelf: recipients.affectsSelf,
@@ -51,51 +39,44 @@ export function createGw2EventPreparer(): Readonly<Gw2EventPreparer> {
         alliedPlayerCount: recipients.alliedPlayerCount,
         companionIds: recipients.companionIds,
         recipientCount: recipients.recipientCount,
-        boonAudienceResolved: true,
+        boonAudienceResolved: true
       };
     }
     const coefficientBasedDamage = isCoefficientBasedDamage(event);
-    if (!coefficientBasedDamage && event.type !== "action") return event;
+    if (!coefficientBasedDamage && event.type !== 'action') return event;
 
     const skill =
       context.catalog?.skillsById?.get(event.skillId ?? event.sourceId) ||
-      context.catalog?.skillsByName?.get(event.skillName || "") ||
+      context.catalog?.skillsByName?.get(event.skillName || '') ||
       null;
     const profileId = Number.isFinite(event.weaponStrength)
       ? null
       : weaponStrengthProfileIdForEvent(event, {
           skill,
           state: context.state as unknown as Record<string, unknown>,
-          config: context.config as Gw2Config,
+          config: context.config as Gw2Config
         });
     const triggeredEffect =
       coefficientBasedDamage &&
-      String(event.activationId || "").startsWith("cast:") &&
+      String(event.activationId || '').startsWith('cast:') &&
       isGw2NonWeaponEffectEvent(event);
 
     let activationId = event.activationId;
     if (triggeredEffect) {
-      const key = [
-        activationId,
-        event.sourceId,
-        event.skillName || event.name,
-        event.triggeredBy,
-      ].join("|");
+      const key = [activationId, event.sourceId, event.skillName || event.name, event.triggeredBy].join('|');
       activationId = triggeredActivationIds.get(key);
       if (!activationId) {
-        activationId = context.createActivationId("effect");
+        activationId = context.createActivationId('effect');
         triggeredActivationIds.set(key, activationId);
       }
     } else if (coefficientBasedDamage && !activationId) {
-      activationId = context.createActivationId(
-        event.actorType === "summon" ? "summon-attack" : "effect",
-      );
+      activationId = context.createActivationId(event.actorType === 'summon' ? 'summon-attack' : 'effect');
     }
 
     return {
       ...event,
       ...(activationId ? { activationId } : {}),
-      ...(profileId ? { weaponStrengthProfileId: profileId } : {}),
+      ...(profileId ? { weaponStrengthProfileId: profileId } : {})
     };
   };
 

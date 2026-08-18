@@ -1,4 +1,4 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
+import { professionCoreState } from '../../../platform/engine/profession.js';
 /**
  * Weapon-specific necromancer skill and scheduled-task handlers.
  *
@@ -9,15 +9,12 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  * Exports `necromancerWeaponSkillHandlers` and
  * `necromancerWeaponTaskHandlers`.
  */
-import {
-  NECROMANCER_SKILL_IDS as ID,
-  NECROMANCER_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   balanceProfileEffect,
-  necromancerBalanceProfile,
-} from "./profiles.js";
+  necromancerBalanceProfile
+} from './profiles.js';
 import {
   addSoulShards,
   consumeSoulShards,
@@ -28,18 +25,15 @@ import {
   gainNecromancerLifeForce,
   hasTrait,
   necromancerBoonDuration,
-  necromancerPartyBoonRecipients,
-} from "./shared.js";
-import type {
-  ScheduledTask,
-  SchedulerRecord,
-} from "../../../platform/engine/types.js";
+  necromancerPartyBoonRecipients
+} from './shared.js';
+import type { ScheduledTask, SchedulerRecord } from '../../../platform/engine/types.js';
 import type {
   NecromancerCastContext,
   NecromancerSchedulerContext,
   NecromancerSimulationEvent,
-  NecromancerSkill,
-} from "../types.js";
+  NecromancerSkill
+} from '../types.js';
 
 interface PerforateState {
   readonly at: number;
@@ -47,77 +41,55 @@ interface PerforateState {
   readonly interrupted?: boolean;
 }
 
-const GRASPING_DARKNESS_LIFE_FORCE_TASK =
-  "necromancer.grasping-darkness-life-force";
-const NIGHTFALL_LIFE_FORCE_TASK = "necromancer.nightfall-life-force";
-const SOUL_SHARDS_ICON =
-  "https://wiki.guildwars2.com/wiki/Special:FilePath/Soul_Shards.png";
+const GRASPING_DARKNESS_LIFE_FORCE_TASK = 'necromancer.grasping-darkness-life-force';
+const NIGHTFALL_LIFE_FORCE_TASK = 'necromancer.nightfall-life-force';
+const SOUL_SHARDS_ICON = 'https://wiki.guildwars2.com/wiki/Special:FilePath/Soul_Shards.png';
 
 function addShards(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
   stacks: number,
   reason: string,
-  at = context.effectiveEnd,
+  at = context.effectiveEnd
 ): void {
   addSoulShards(professionCoreState(context), stacks, at);
   emitState(context, at, reason || `${skill.name}-soul-shards`);
 }
 
-function deadlySlice(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-): void {
-  addShards(context, skill, 1, "deadly-slice");
+function deadlySlice(context: NecromancerCastContext, skill: NecromancerSkill): void {
+  addShards(context, skill, 1, 'deadly-slice');
 }
 
-function sinisterStab(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-): void {
-  addShards(context, skill, 1, "sinister-stab");
+function sinisterStab(context: NecromancerCastContext, skill: NecromancerSkill): void {
+  addShards(context, skill, 1, 'sinister-stab');
 }
 
 function chillingScythe(
   context: NecromancerCastContext,
   _skill: NecromancerSkill,
-  event: NecromancerSimulationEvent,
+  event: NecromancerSimulationEvent
 ): void {
-  if (event?.type !== "damage") return;
+  if (event?.type !== 'damage') return;
   context.state.cooldowns.delete(ID.GRAVEDIGGER);
 }
 
 function addle(context: NecromancerCastContext, skill: NecromancerSkill): void {
   // Immobilize checks the resource at activation, before Addle grants shards.
-  const soulShardsAtActivation = Number(
-    professionCoreState(context).soulShards || 0,
-  );
-  const bonusEffects = Boolean(
-    context.config.target?.defiant || context.config.target?.activatingSkills,
-  );
-  emitControl(
-    context,
-    skill,
-    "daze",
-    context.effectiveEnd,
-    bonusEffects ? 1.5 : 0.25,
-  );
+  const soulShardsAtActivation = Number(professionCoreState(context).soulShards || 0);
+  const bonusEffects = Boolean(context.config.target?.defiant || context.config.target?.activatingSkills);
+  emitControl(context, skill, 'daze', context.effectiveEnd, bonusEffects ? 1.5 : 0.25);
   if (soulShardsAtActivation >= 3) {
-    emitCondition(context, skill, "Immobilized", 1, 1.5);
+    emitCondition(context, skill, 'Immobilized', 1, 1.5);
   }
   if (bonusEffects) {
-    gainNecromancerLifeForce(context, 10, context.effectiveEnd, "addle-bonus");
+    gainNecromancerLifeForce(context, 10, context.effectiveEnd, 'addle-bonus');
   }
-  addShards(context, skill, bonusEffects ? 4 : 2, "addle");
+  addShards(context, skill, bonusEffects ? 4 : 2, 'addle');
 }
 
-function extirpate(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-  event: NecromancerSimulationEvent,
-): void {
-  if (event?.type !== "damage" || Number(event.hitIndex || 1) !== 1) return;
-  addShards(context, skill, 2, "extirpate", event.at);
+function extirpate(context: NecromancerCastContext, skill: NecromancerSkill, event: NecromancerSimulationEvent): void {
+  if (event?.type !== 'damage' || Number(event.hitIndex || 1) !== 1) return;
+  addShards(context, skill, 2, 'extirpate', event.at);
 }
 
 function soulShardDamage(
@@ -125,38 +97,35 @@ function soulShardDamage(
   skill: NecromancerSkill,
   at: number,
   index: number,
-  total: number,
+  total: number
 ): void {
   const profile = necromancerBalanceProfile(context, PROFILE.soulShards);
-  const strike = balanceProfileEffect(profile, "strike");
+  const strike = balanceProfileEffect(profile, 'strike');
   const metadata = strike?.metadata || {};
   context.emit({
-    type: "damage",
+    type: 'damage',
     at,
-    source: "necromancer",
+    source: 'necromancer',
     sourceId: ID.SOUL_SHARDS,
-    actorType: "effect",
+    actorType: 'effect',
     skillId: ID.SOUL_SHARDS,
-    skillName: "Soul Shards",
+    skillName: 'Soul Shards',
     parentSkillName: skill.name,
-    name: "Soul Shards",
+    name: 'Soul Shards',
     icon: SOUL_SHARDS_ICON,
     coefficient: 0,
     hits: 1,
     hitIndex: index,
     totalHits: total,
-    skillWeapon: "Unequipped",
+    skillWeapon: 'Unequipped',
     flatStrikeBase: Number(strike?.flatStrikeBase || 0),
     flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff || 0),
     flatStrikeMultiplier:
-      hasTrait(context, TRAIT.SOUL_BARBS) &&
-      context.hasBuff("necromancer-soul-barbs", at)
-        ? 1.1
-        : 1,
+      hasTrait(context, TRAIT.SOUL_BARBS) && context.hasBuff('necromancer-soul-barbs', at) ? 1.1 : 1,
     flatStrikeHealthThreshold: Number(profile?.threshold || 0),
     flatStrikeThresholdMultiplier: Number(profile?.damageMultiplier || 1),
     noCrit: metadata.noCrit === true,
-    damageKind: String(metadata.damageKind || ""),
+    damageKind: String(metadata.damageKind || '')
   });
 }
 
@@ -173,177 +142,125 @@ function afterPerforateEffect(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
   event: NecromancerSimulationEvent,
-  state: unknown,
+  state: unknown
 ): void {
   const perforateState = state as Partial<PerforateState> | null;
-  if (
-    event?.type === "damage" &&
-    Number(event.hitIndex || 1) <= Number(perforateState?.shardCount || 0)
-  ) {
-    soulShardDamage(
-      context,
-      skill,
-      event.at,
-      Number(event.hitIndex || 1),
-      Number(perforateState?.shardCount || 0),
-    );
+  if (event?.type === 'damage' && Number(event.hitIndex || 1) <= Number(perforateState?.shardCount || 0)) {
+    soulShardDamage(context, skill, event.at, Number(event.hitIndex || 1), Number(perforateState?.shardCount || 0));
   }
 }
 
-function completePerforate(
-  context: NecromancerCastContext,
-  _skill: NecromancerSkill,
-  state: unknown,
-): void {
+function completePerforate(context: NecromancerCastContext, _skill: NecromancerSkill, state: unknown): void {
   const perforateState = state as Partial<PerforateState> | null;
   if (perforateState?.interrupted) return;
-  emitState(context, perforateState?.at ?? context.effectiveEnd, "perforate");
+  emitState(context, perforateState?.at ?? context.effectiveEnd, 'perforate');
 }
 
-function distress(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-): boolean {
+function distress(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   delete professionCoreState(context).availableFlips[skill.id];
   context.state.cooldowns.delete(ID.PERFORATE);
   // The simulator models one target, so Distress always receives its
   // three additional shards for having no other enemies nearby.
-  addShards(context, skill, 6, "distress");
+  addShards(context, skill, 6, 'distress');
   return true;
 }
 
 function committedAtBaseOffset(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
-  baseOffsetMs: number,
+  baseOffsetMs: number
 ): boolean {
   const baseCastMs = Number(skill.castTimeMs || 0);
   const commitProgress = baseCastMs > 0 ? Number(baseOffsetMs) / baseCastMs : 1;
-  const commitAt =
-    context.start + (context.fullEnd - context.start) * commitProgress;
+  const commitAt = context.start + (context.fullEnd - context.start) * commitProgress;
   return context.effectiveEnd + context.epsilon >= commitAt;
 }
 
-function oppressiveCollapse(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-): void {
+function oppressiveCollapse(context: NecromancerCastContext, skill: NecromancerSkill): void {
   const conditionCount = Math.min(
     7,
-    Object.values(context.config.target?.conditions || {}).filter(
-      (value) => value === true || Number(value) > 0,
-    ).length,
+    Object.values(context.config.target?.conditions || {}).filter((value) => value === true || Number(value) > 0).length
   );
   if (!conditionCount) return;
-  emitBuff(
-    context,
-    skill,
-    "might",
-    necromancerBoonDuration(context, "Might", 8),
-    conditionCount * 2,
-    { metadata: necromancerPartyBoonRecipients(context) },
-  );
+  emitBuff(context, skill, 'might', necromancerBoonDuration(context, 'Might', 8), conditionCount * 2, {
+    metadata: necromancerPartyBoonRecipients(context)
+  });
 }
 
-function graspingDarknessCommitted(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-): boolean {
+function graspingDarknessCommitted(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   return committedAtBaseOffset(context, skill, Number(skill.commitAtMs || 0));
 }
 
-function nightfallCommitted(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-): boolean {
-  const firstPacket = skill.effects?.find((effect) => effect.type === "strike");
-  return committedAtBaseOffset(
-    context,
-    skill,
-    Number(firstPacket?.atMs || skill.castTimeMs || 0),
-  );
+function nightfallCommitted(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
+  const firstPacket = skill.effects?.find((effect) => effect.type === 'strike');
+  return committedAtBaseOffset(context, skill, Number(firstPacket?.atMs || skill.castTimeMs || 0));
 }
 
 function afterGraspingDarknessEffect(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
-  event: NecromancerSimulationEvent,
+  event: NecromancerSimulationEvent
 ): void {
-  if (event?.type !== "damage") return;
+  if (event?.type !== 'damage') return;
   context.tasks.schedule({
     id: `${context.reservationId}:grasping-darkness-life-force`,
     type: GRASPING_DARKNESS_LIFE_FORCE_TASK,
     at: event.at,
     ownerId: context.reservationId,
-    payload: { lifeForceGain: Number(skill.lifeForceOnHit || 0) },
+    payload: { lifeForceGain: Number(skill.lifeForceOnHit || 0) }
   });
 }
 
 function handleGraspingDarknessLifeForce(
   context: NecromancerSchedulerContext,
-  task: ScheduledTask<SchedulerRecord>,
+  task: ScheduledTask<SchedulerRecord>
 ): void {
-  gainNecromancerLifeForce(
-    context,
-    Number(task.payload?.lifeForceGain || 0),
-    task.at,
-    "grasping-darkness-hit",
-  );
+  gainNecromancerLifeForce(context, Number(task.payload?.lifeForceGain || 0), task.at, 'grasping-darkness-hit');
 }
 
 function afterNightfallEffect(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
-  event: NecromancerSimulationEvent,
+  event: NecromancerSimulationEvent
 ): void {
-  if (event?.type !== "damage") return;
+  if (event?.type !== 'damage') return;
   context.tasks.schedule({
-    id:
-      `${context.reservationId}:nightfall-life-force:` +
-      `${Number(event.hitIndex || 1)}`,
+    id: `${context.reservationId}:nightfall-life-force:` + `${Number(event.hitIndex || 1)}`,
     type: NIGHTFALL_LIFE_FORCE_TASK,
     at: event.at,
     ownerId: context.reservationId,
-    payload: { lifeForceGain: Number(skill.lifeForcePerPulse || 0) },
+    payload: { lifeForceGain: Number(skill.lifeForcePerPulse || 0) }
   });
 }
 
-function handleNightfallLifeForce(
-  context: NecromancerSchedulerContext,
-  task: ScheduledTask<SchedulerRecord>,
-): void {
-  gainNecromancerLifeForce(
-    context,
-    Number(task.payload?.lifeForceGain || 0),
-    task.at,
-    "nightfall-pulse",
-  );
+function handleNightfallLifeForce(context: NecromancerSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
+  gainNecromancerLifeForce(context, Number(task.payload?.lifeForceGain || 0), task.at, 'nightfall-pulse');
 }
 
 export const necromancerWeaponSkillHandlers = Object.freeze({
-  "necromancer.deadly-slice": deadlySlice,
-  "necromancer.sinister-stab": sinisterStab,
-  "necromancer.chilling-scythe": chillingScythe,
-  "necromancer.addle": addle,
-  "necromancer.extirpate": extirpate,
-  "necromancer.oppressive-collapse": oppressiveCollapse,
-  "necromancer.perforate": Object.freeze({
+  'necromancer.deadly-slice': deadlySlice,
+  'necromancer.sinister-stab': sinisterStab,
+  'necromancer.chilling-scythe': chillingScythe,
+  'necromancer.addle': addle,
+  'necromancer.extirpate': extirpate,
+  'necromancer.oppressive-collapse': oppressiveCollapse,
+  'necromancer.perforate': Object.freeze({
     prepare: preparePerforate,
     afterEffect: afterPerforateEffect,
-    complete: completePerforate,
+    complete: completePerforate
   }),
-  "necromancer.distress": distress,
-  "necromancer.grasping-darkness": Object.freeze({
+  'necromancer.distress': distress,
+  'necromancer.grasping-darkness': Object.freeze({
     committed: graspingDarknessCommitted,
-    afterEffect: afterGraspingDarknessEffect,
+    afterEffect: afterGraspingDarknessEffect
   }),
-  "necromancer.nightfall": Object.freeze({
+  'necromancer.nightfall': Object.freeze({
     committed: nightfallCommitted,
-    afterEffect: afterNightfallEffect,
-  }),
+    afterEffect: afterNightfallEffect
+  })
 });
 
 export const necromancerWeaponTaskHandlers = Object.freeze({
   [GRASPING_DARKNESS_LIFE_FORCE_TASK]: handleGraspingDarknessLifeForce,
-  [NIGHTFALL_LIFE_FORCE_TASK]: handleNightfallLifeForce,
+  [NIGHTFALL_LIFE_FORCE_TASK]: handleNightfallLifeForce
 });

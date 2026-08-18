@@ -1,52 +1,52 @@
-import { cp } from "node:fs/promises";
-import path from "node:path";
-import { defineConfig } from "vite";
+import { cp } from 'node:fs/promises';
+import path from 'node:path';
+import { defineConfig } from 'vite';
 
 const pageEntries = [
-  "index.html",
-  "patch-preview.html",
-  "elementalist.html",
-  "engineer.html",
-  "guardian.html",
-  "mesmer.html",
-  "necromancer.html",
-  "ranger.html",
-  "revenant.html",
-  "thief.html",
-  "warrior.html",
+  'index.html',
+  'patch-preview.html',
+  'elementalist.html',
+  'engineer.html',
+  'guardian.html',
+  'mesmer.html',
+  'necromancer.html',
+  'ranger.html',
+  'revenant.html',
+  'thief.html',
+  'warrior.html'
 ];
 
-const runtimeDirectories = ["Builds", "Rotations"];
+const runtimeDirectories = ['Builds', 'Rotations'];
 
 function copyRuntimeData() {
   return {
-    name: "copy-runtime-data",
+    name: 'copy-runtime-data',
     async writeBundle() {
       await Promise.all(
         runtimeDirectories.map((directory) =>
-          cp(path.resolve(directory), path.resolve("dist", "site", directory), {
-            recursive: true,
-          }),
-        ),
+          cp(path.resolve(directory), path.resolve('dist', 'site', directory), {
+            recursive: true
+          })
+        )
       );
-    },
+    }
   };
 }
 
 export default defineConfig(({ mode }) => ({
-  base: "./",
+  base: './',
   publicDir: false,
   plugins: [copyRuntimeData()],
   worker: {
-    format: "es",
+    format: 'es'
   },
   build: {
-    outDir: "dist/site",
+    outDir: 'dist/site',
     emptyOutDir: true,
-    minify: mode !== "development",
-    sourcemap: mode === "development",
+    minify: mode !== 'development',
+    sourcemap: mode === 'development',
     rolldownOptions: {
-      input: pageEntries.map((page) => path.resolve(page)),
-    },
-  },
+      input: pageEntries.map((page) => path.resolve(page))
+    }
+  }
 }));

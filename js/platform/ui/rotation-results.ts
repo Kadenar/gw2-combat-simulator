@@ -1,7 +1,7 @@
-import type { ChartOptions, ChartSeries } from "./charts.js";
-import { mountHitTimeline, mountTimeSeriesCharts } from "./charts.js";
-import { escapeHtml } from "./html.js";
-export { mountRotationWarnings } from "./rotation-warnings.js";
+import type { ChartOptions, ChartSeries } from './charts.js';
+import { mountHitTimeline, mountTimeSeriesCharts } from './charts.js';
+import { escapeHtml } from './html.js';
+export { mountRotationWarnings } from './rotation-warnings.js';
 
 // Trusted static section-header glyphs (Lucide swords / flame).
 const DAMAGE_SECTION_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/></svg>`;
@@ -25,7 +25,7 @@ export interface ResultColumn {
   readonly title?: (value: unknown, row: ResultRow) => string;
 }
 
-export type ResultSortDirection = "asc" | "desc" | null;
+export type ResultSortDirection = 'asc' | 'desc' | null;
 
 export interface ResultSortState {
   readonly column: string | null;
@@ -81,7 +81,7 @@ export interface ResultRandomDistribution {
       readonly id: string;
       readonly label: string;
       readonly category: string;
-      readonly unit: "count" | "stacks" | "value";
+      readonly unit: 'count' | 'stacks' | 'value';
       readonly lowAverage: number;
       readonly overallAverage: number;
       readonly highAverage: number;
@@ -128,53 +128,46 @@ export interface RotationResultsOptions {
 
 // Default column schema shared by the renderer and profession adapters.
 export const SKILL_COLS: readonly ResultColumn[] = [
-  { key: "name", label: "Skill", numeric: false },
-  { key: "strike", label: "Strike", numeric: true },
-  { key: "condition", label: "Condition", numeric: true, className: "condi" },
-  { key: "total", label: "Total", numeric: true, className: "total" },
-  { key: "dps", label: "DPS", numeric: true, className: "dps" },
-  { key: "average", label: "Avg/Cast", numeric: true },
-  { key: "dct", label: "DCT", numeric: true },
-  { key: "casts", label: "Casts", numeric: true },
-  { key: "hits", label: "Hits", numeric: true },
+  { key: 'name', label: 'Skill', numeric: false },
+  { key: 'strike', label: 'Strike', numeric: true },
+  { key: 'condition', label: 'Condition', numeric: true, className: 'condi' },
+  { key: 'total', label: 'Total', numeric: true, className: 'total' },
+  { key: 'dps', label: 'DPS', numeric: true, className: 'dps' },
+  { key: 'average', label: 'Avg/Cast', numeric: true },
+  { key: 'dct', label: 'DCT', numeric: true },
+  { key: 'casts', label: 'Casts', numeric: true },
+  { key: 'hits', label: 'Hits', numeric: true },
   {
-    key: "critChance",
-    label: "Exp. Crit %",
+    key: 'critChance',
+    label: 'Exp. Crit %',
     numeric: true,
-    format: (value) =>
-      value == null ? "—" : `${(Number(value) * 100).toFixed(1)}%`,
+    format: (value) => (value == null ? '—' : `${(Number(value) * 100).toFixed(1)}%`),
     title: (_value, row) => {
       const eligible = Number(row.critEligibleHits || 0);
-      if (eligible <= 0) return "";
+      if (eligible <= 0) return '';
       const critHits = Number(row.critHits || 0);
       // Deterministic runs yield fractional expected crits; flag those with ~.
       const fractional = Math.abs(critHits - Math.round(critHits)) > 1e-6;
-      const critLabel = fractional
-        ? `~${critHits.toFixed(1)}`
-        : String(Math.round(critHits));
+      const critLabel = fractional ? `~${critHits.toFixed(1)}` : String(Math.round(critHits));
       return `${critLabel} of ${eligible} strike hits critical`;
-    },
-  },
+    }
+  }
 ];
 
 export function nextResultSortState(
   currentColumn: string | null,
   currentDirection: ResultSortDirection,
-  column: string,
+  column: string
 ): ResultSortState {
   // Repeated clicks cycle descending -> ascending -> default total ordering.
   if (currentColumn !== column) {
-    return { column, direction: "desc" };
+    return { column, direction: 'desc' };
   }
   const direction: ResultSortDirection =
-    currentDirection === "desc"
-      ? "asc"
-      : currentDirection === "asc"
-        ? null
-        : "desc";
+    currentDirection === 'desc' ? 'asc' : currentDirection === 'asc' ? null : 'desc';
   return {
     column: direction ? column : null,
-    direction,
+    direction
   };
 }
 
@@ -182,15 +175,13 @@ export function sortResultRows(
   rows: readonly ResultRow[],
   columns: readonly ResultColumn[],
   column: string | null,
-  direction: ResultSortDirection,
+  direction: ResultSortDirection
 ): ResultRow[] {
   // Never mutate the model supplied by the simulation/result transformer.
   const sorted = [...rows];
   if (!column || !direction) {
     // "Unsorted" means the useful default of highest total damage first.
-    return sorted.sort(
-      (left, right) => Number(right.total || 0) - Number(left.total || 0),
-    );
+    return sorted.sort((left, right) => Number(right.total || 0) - Number(left.total || 0));
   }
 
   const definition = columns.find((candidate) => candidate.key === column);
@@ -198,56 +189,45 @@ export function sortResultRows(
     return sorted.sort((left, right) => {
       const leftValue = left[column] ?? -Infinity;
       const rightValue = right[column] ?? -Infinity;
-      return direction === "asc"
-        ? Number(leftValue) - Number(rightValue)
-        : Number(rightValue) - Number(leftValue);
+      return direction === 'asc' ? Number(leftValue) - Number(rightValue) : Number(rightValue) - Number(leftValue);
     });
   }
   return sorted.sort((left, right) =>
-    direction === "asc"
-      ? String(left[column] ?? "").localeCompare(String(right[column] ?? ""))
-      : String(right[column] ?? "").localeCompare(String(left[column] ?? "")),
+    direction === 'asc'
+      ? String(left[column] ?? '').localeCompare(String(right[column] ?? ''))
+      : String(right[column] ?? '').localeCompare(String(left[column] ?? ''))
   );
 }
 
-const number = (value: unknown): string =>
-  Math.round(Number(value || 0)).toLocaleString();
+const number = (value: unknown): string => Math.round(Number(value || 0)).toLocaleString();
 
 function signedInteger(value: unknown): string {
   const rounded = Math.round(Number(value || 0));
   const normalized = Object.is(rounded, -0) ? 0 : rounded;
-  return `${normalized > 0 ? "+" : ""}${normalized.toLocaleString()}`;
+  return `${normalized > 0 ? '+' : ''}${normalized.toLocaleString()}`;
 }
 
 function signedFixed(value: unknown, digits = 2): string {
   const numeric = Number(value || 0);
   const threshold = 0.5 / 10 ** digits;
   const normalized = Math.abs(numeric) < threshold ? 0 : numeric;
-  return `${normalized > 0 ? "+" : ""}${normalized.toFixed(digits)}`;
+  return `${normalized > 0 ? '+' : ''}${normalized.toFixed(digits)}`;
 }
 
-function randomDriverNumber(
-  value: unknown,
-  unit: "count" | "stacks" | "value",
-): string {
+function randomDriverNumber(value: unknown, unit: 'count' | 'stacks' | 'value'): string {
   const numeric = Number(value || 0);
-  if (unit === "value") return number(numeric);
+  if (unit === 'value') return number(numeric);
   return numeric.toLocaleString(undefined, {
     minimumFractionDigits: Math.abs(numeric) < 10 ? 1 : 0,
-    maximumFractionDigits: 1,
+    maximumFractionDigits: 1
   });
 }
 
-function randomDistributionExplanationHtml(
-  distribution: ResultRandomDistribution,
-): string {
+function randomDistributionExplanationHtml(distribution: ResultRandomDistribution): string {
   const explanation = distribution.explanation;
-  if (!explanation?.drivers?.length) return "";
+  if (!explanation?.drivers?.length) return '';
   const cohort = Math.max(1, Math.round(explanation.cohortPercent || 10));
-  const cohortSize = Math.max(
-    1,
-    Math.ceil(Number(distribution.trials || 0) * (cohort / 100)),
-  );
+  const cohortSize = Math.max(1, Math.ceil(Number(distribution.trials || 0) * (cohort / 100)));
   return `<div class="rng-explanation">
     <div class="rng-explanation-heading">
       <strong>What was different in the highest-DPS simulations?</strong>
@@ -265,7 +245,7 @@ function randomDistributionExplanationHtml(
             <small>Lowest-DPS group: ${randomDriverNumber(driver.lowAverage, driver.unit)} average per simulation</small>
           </span>
           <span class="rng-driver-delta">
-            <strong>${positive ? "+" : "&minus;"}${randomDriverNumber(Math.abs(driver.delta), driver.unit)}</strong>
+            <strong>${positive ? '+' : '&minus;'}${randomDriverNumber(Math.abs(driver.delta), driver.unit)}</strong>
             <small>difference</small>
           </span>
           <span class="rng-driver-impact">
@@ -274,137 +254,103 @@ function randomDistributionExplanationHtml(
           </span>
         </div>`;
         })
-        .join("")}
+        .join('')}
     </div>
     <p class="rng-explanation-note">These are averages across each group, not counts from one simulation. DPS differences are single-variable trend estimates across all outcomes. Related rows can come from the same proc chain, so do not add them together.</p>
   </div>`;
 }
 
-function skillCellHtml(
-  row: ResultRow,
-  column: ResultColumn,
-  options: RotationResultsOptions,
-): string {
+function skillCellHtml(row: ResultRow, column: ResultColumn, options: RotationResultsOptions): string {
   const value = row[column.key];
-  if (column.key === "name") {
-    const icon =
-      options.resolveSkillIcon?.(row) || options.placeholderIcon || "";
+  if (column.key === 'name') {
+    const icon = options.resolveSkillIcon?.(row) || options.placeholderIcon || '';
     return `<span class="res-skill"><img src="${escapeHtml(icon)}" alt="" />${escapeHtml(value)}</span>`;
   }
   const formatted = column.format
     ? column.format(value, row)
     : value == null
-      ? "&mdash;"
+      ? '&mdash;'
       : column.numeric
         ? number(value)
         : escapeHtml(value);
-  const classAttr = column.className
-    ? ` class="${escapeHtml(column.className)}"`
-    : "";
-  const titleText = column.title ? column.title(value, row) : "";
-  const titleAttr = titleText ? ` title="${escapeHtml(titleText)}"` : "";
+  const classAttr = column.className ? ` class="${escapeHtml(column.className)}"` : '';
+  const titleText = column.title ? column.title(value, row) : '';
+  const titleAttr = titleText ? ` title="${escapeHtml(titleText)}"` : '';
   // Custom formatters return display text, not trusted HTML.
   return `<span${classAttr}${titleAttr}>${column.format ? escapeHtml(formatted) : formatted}</span>`;
 }
 
-function skillRowHtml(
-  row: ResultRow,
-  columns: readonly ResultColumn[],
-  options: RotationResultsOptions,
-): string {
-  const skillKey = typeof row.key === "string" ? row.key : "";
-  const keyAttr = skillKey
-    ? ` data-skill-key="${escapeHtml(skillKey)}" role="button" tabindex="0"`
-    : "";
-  const selectable = skillKey ? " res-row-selectable" : "";
+function skillRowHtml(row: ResultRow, columns: readonly ResultColumn[], options: RotationResultsOptions): string {
+  const skillKey = typeof row.key === 'string' ? row.key : '';
+  const keyAttr = skillKey ? ` data-skill-key="${escapeHtml(skillKey)}" role="button" tabindex="0"` : '';
+  const selectable = skillKey ? ' res-row-selectable' : '';
   return `<div class="res-row${selectable}"${keyAttr}>${columns
     .map((column) => skillCellHtml(row, column, options))
-    .join("")}</div>`;
+    .join('')}</div>`;
 }
 
 function skillRowsHtml(
   rows: readonly ResultRow[],
   columns: readonly ResultColumn[],
-  options: RotationResultsOptions,
+  options: RotationResultsOptions
 ): string {
-  const hasGroups = rows.some(
-    (row) => typeof row.group === "string" && row.group.trim(),
-  );
+  const hasGroups = rows.some((row) => typeof row.group === 'string' && row.group.trim());
   if (!hasGroups) {
-    return rows.map((row) => skillRowHtml(row, columns, options)).join("");
+    return rows.map((row) => skillRowHtml(row, columns, options)).join('');
   }
 
   const grouped = new Map<string, ResultRow[]>();
   for (const row of rows) {
-    const group =
-      typeof row.group === "string" && row.group.trim()
-        ? row.group.trim()
-        : "Other";
+    const group = typeof row.group === 'string' && row.group.trim() ? row.group.trim() : 'Other';
     const groupRows = grouped.get(group) || [];
     groupRows.push(row);
     grouped.set(group, groupRows);
   }
   const preferredOrder = new Map([
-    ["Player", 0],
-    ["Entities", 1],
-    ["Other", 2],
+    ['Player', 0],
+    ['Entities', 1],
+    ['Other', 2]
   ]);
   const groupNames = [...grouped.keys()].sort(
-    (left, right) =>
-      (preferredOrder.get(left) ?? 3) - (preferredOrder.get(right) ?? 3),
+    (left, right) => (preferredOrder.get(left) ?? 3) - (preferredOrder.get(right) ?? 3)
   );
-  const summaryColumns = new Set(["strike", "condition", "total", "dps"]);
+  const summaryColumns = new Set(['strike', 'condition', 'total', 'dps']);
   return groupNames
     .map((group) => {
       const groupRows = grouped.get(group) || [];
       return `<div class="res-skill-group-heading" data-skill-group="${escapeHtml(group)}">
       ${columns
         .map((column) => {
-          if (column.key === "name") {
+          if (column.key === 'name') {
             return `<span class="res-skill-group-name">${escapeHtml(group)}</span>`;
           }
           if (!summaryColumns.has(column.key)) {
             return '<span aria-hidden="true"></span>';
           }
-          const total = groupRows.reduce(
-            (sum, row) => sum + Number(row[column.key] || 0),
-            0,
-          );
+          const total = groupRows.reduce((sum, row) => sum + Number(row[column.key] || 0), 0);
           const label = column.label || column.key;
-          const classAttr = column.className
-            ? ` ${escapeHtml(column.className)}`
-            : "";
+          const classAttr = column.className ? ` ${escapeHtml(column.className)}` : '';
           return `<span class="res-skill-group-total${classAttr}" aria-label="${escapeHtml(`${group} ${label}: ${number(total)}`)}">${number(total)}</span>`;
         })
-        .join("")}
-    </div>${groupRows
-      .map((row) => skillRowHtml(row, columns, options))
-      .join("")}`;
+        .join('')}
+    </div>${groupRows.map((row) => skillRowHtml(row, columns, options)).join('')}`;
     })
-    .join("");
+    .join('');
 }
 
-function skillHeaderHtml(
-  columns: readonly ResultColumn[],
-  sortState: ResultSortState,
-): string {
+function skillHeaderHtml(columns: readonly ResultColumn[], sortState: ResultSortState): string {
   return columns
     .map((column) => {
-      const indicator =
-        sortState.column === column.key
-          ? sortState.direction === "asc"
-            ? " ▲"
-            : " ▼"
-          : "";
+      const indicator = sortState.column === column.key ? (sortState.direction === 'asc' ? ' ▲' : ' ▼') : '';
       return `<span data-sort-col="${escapeHtml(column.key)}">${escapeHtml(column.label || column.key)}${indicator}</span>`;
     })
-    .join("");
+    .join('');
 }
 
 export function mountRotationResults(
   container: HTMLElement | null | undefined,
   model: RotationResultsModel = {},
-  options: RotationResultsOptions = {},
+  options: RotationResultsOptions = {}
 ): {
   readonly getSortState: () => ResultSortState;
   readonly renderSortedRows: () => void;
@@ -418,19 +364,13 @@ export function mountRotationResults(
   const contributions = model.contributions || [];
   const contributionsStale = model.contributionsStale === true;
   const randomDistribution = model.randomDistribution || null;
-  const randomDistributionRequested =
-    model.randomDistributionRequested === true;
+  const randomDistributionRequested = model.randomDistributionRequested === true;
   const randomDistributionStale = model.randomDistributionStale === true;
-  const randomDistributionTrials = Number(
-    randomDistribution?.trials || model.randomDistributionTrials || 0,
-  );
+  const randomDistributionTrials = Number(randomDistribution?.trials || model.randomDistributionTrials || 0);
   const randomDistributionProgress = model.randomDistributionProgress || {};
   const randomDistributionCompleted = Math.max(
     0,
-    Math.min(
-      randomDistributionTrials,
-      Number(randomDistributionProgress.completed || 0),
-    ),
+    Math.min(randomDistributionTrials, Number(randomDistributionProgress.completed || 0))
   );
   const randomDistributionPercent = Math.max(
     0,
@@ -438,32 +378,24 @@ export function mountRotationResults(
       100,
       Number(
         randomDistributionProgress.percent ??
-          (randomDistributionTrials > 0
-            ? (randomDistributionCompleted / randomDistributionTrials) * 100
-            : 0),
-      ),
-    ),
+          (randomDistributionTrials > 0 ? (randomDistributionCompleted / randomDistributionTrials) * 100 : 0)
+      )
+    )
   );
-  const randomDistributionError = String(model.randomDistributionError || "");
+  const randomDistributionError = String(model.randomDistributionError || '');
   const randomDistributionAction =
     !randomDistributionStale && (randomDistribution || randomDistributionError)
       ? `<button type="button" class="rng-run-button" data-role="rng-run">
-          ${randomDistributionError ? "Retry" : "Run again"}
+          ${randomDistributionError ? 'Retry' : 'Run again'}
         </button>`
-      : "";
+      : '';
   const chartSeries = model.chartSeries || null;
   let sortState: ResultSortState = {
     column: options.sortState?.column || null,
-    direction: options.sortState?.direction || null,
+    direction: options.sortState?.direction || null
   };
-  const breakdownClassName =
-    options.skillBreakdownClassName || "skill-breakdown";
-  const initialSkillRows = sortResultRows(
-    skillRows,
-    skillColumns,
-    sortState.column,
-    sortState.direction,
-  );
+  const breakdownClassName = options.skillBreakdownClassName || 'skill-breakdown';
+  const initialSkillRows = sortResultRows(skillRows, skillColumns, sortState.column, sortState.direction);
 
   // Replacing the subtree gives every mount a clean DOM/event-handler slate.
   container.innerHTML = `<div class="res-summary">
@@ -471,10 +403,10 @@ export function mountRotationResults(
       .map(
         (metric) => `<div class="res-stat">
       <span class="res-label">${escapeHtml(metric.label)}</span>
-      <span class="res-val${metric.className ? ` ${escapeHtml(metric.className)}` : ""}">${escapeHtml(metric.value)}</span>
-    </div>`,
+      <span class="res-val${metric.className ? ` ${escapeHtml(metric.className)}` : ''}">${escapeHtml(metric.value)}</span>
+    </div>`
       )
-      .join("")}
+      .join('')}
   </div>
   ${
     breakpoints.length
@@ -497,12 +429,12 @@ export function mountRotationResults(
           <strong>${number(breakpoint.dps)}</strong>
           <span>DPS</span>
         </div>
-      </div>`,
+      </div>`
         )
-        .join("")}
+        .join('')}
     </div>
   </details>`
-      : ""
+      : ''
   }
   ${
     randomDistributionRequested
@@ -513,11 +445,7 @@ export function mountRotationResults(
         <p>Always available for the current rotation. Expected is the planning baseline; the low and high estimates show rare outcomes at either end.</p>
       </div>
       <div class="rng-distribution-heading-actions">
-        ${
-          randomDistributionTrials
-            ? `<span>${number(randomDistributionTrials)} outcomes per run</span>`
-            : ""
-        }
+        ${randomDistributionTrials ? `<span>${number(randomDistributionTrials)} outcomes per run</span>` : ''}
         ${randomDistributionAction}
       </div>
     </div>
@@ -534,10 +462,8 @@ export function mountRotationResults(
             <span data-role="rng-progress-bar" style="width: ${randomDistributionPercent}%"></span>
           </div>
           <span data-role="rng-progress-label">${number(
-            randomDistributionCompleted,
-          )} / ${number(randomDistributionTrials)} outcomes (${Math.round(
-            randomDistributionPercent,
-          )}%)</span>
+            randomDistributionCompleted
+          )} / ${number(randomDistributionTrials)} outcomes (${Math.round(randomDistributionPercent)}%)</span>
         </div>`
         : randomDistributionError
           ? `<div class="rng-distribution-status rng-distribution-error">${escapeHtml(randomDistributionError)}</div>`
@@ -578,7 +504,7 @@ export function mountRotationResults(
             </div>`
     }
   </section>`
-      : ""
+      : ''
   }
   ${
     conditions.length
@@ -595,22 +521,22 @@ export function mountRotationResults(
         <span class="condi">${number(condition.damage)}</span>
         <span class="dps">${number(condition.dps)}</span>
         <span>${Number(condition.averageStacks || 0).toFixed(2)}</span>
-      </div>`,
+      </div>`
         )
-        .join("")}
+        .join('')}
       ${
         model.conditionTotal
           ? `<div class="res-row res-total">
-        <span class="res-skill"><b>${escapeHtml(model.conditionTotal.label || "Total Conditions")}</b></span>
+        <span class="res-skill"><b>${escapeHtml(model.conditionTotal.label || 'Total Conditions')}</b></span>
         <span class="condi"><b>${number(model.conditionTotal.damage)}</b></span>
         <span class="dps"><b>${number(model.conditionTotal.dps)}</b></span>
         <span></span>
       </div>`
-          : ""
+          : ''
       }
     </div>
   </section>`
-      : ""
+      : ''
   }
   ${
     skillColumns.length
@@ -620,26 +546,18 @@ export function mountRotationResults(
       <div class="res-hdr res-hdr-sortable" data-role="skill-header">
         ${skillHeaderHtml(skillColumns, sortState)}
       </div>
-      <div class="res-skill-rows" data-role="skill-rows">${skillRowsHtml(
-        initialSkillRows,
-        skillColumns,
-        options,
-      )}</div>
+      <div class="res-skill-rows" data-role="skill-rows">${skillRowsHtml(initialSkillRows, skillColumns, options)}</div>
     </div>
   </section>`
-      : ""
+      : ''
   }
-  ${chartSeries ? '<div data-role="result-charts"></div>' : ""}
+  ${chartSeries ? '<div data-role="result-charts"></div>' : ''}
   ${
     contributions.length || contributionsStale
       ? `<div class="res-contributions">
     <h4>
       <span>Modifier Contributions</span>
-      ${
-        contributionsStale
-          ? '<span class="contrib-status">Recalculating</span>'
-          : ""
-      }
+      ${contributionsStale ? '<span class="contrib-status">Recalculating</span>' : ''}
     </h4>
     ${
       contributions.length
@@ -651,40 +569,29 @@ export function mountRotationResults(
         .map((contribution) => {
           return `<div class="contrib-row">
           <span class="contrib-name">${
-            contribution.icon
-              ? `<img src="${escapeHtml(contribution.icon)}" alt="" />`
-              : ""
+            contribution.icon ? `<img src="${escapeHtml(contribution.icon)}" alt="" />` : ''
           }${escapeHtml(contribution.name)}</span>
           <span class="contrib-val">${signedInteger(contribution.dpsIncrease)}</span>
           <span class="contrib-pct">${signedFixed(contribution.pctIncrease)}%</span>
         </div>`;
         })
-        .join("")}
+        .join('')}
     </div>`
         : '<div class="contrib-pending">Calculating modifier contributions…</div>'
     }
   </div>`
-      : ""
+      : ''
   }`;
 
   const renderSortedRows = (): void => {
-    const sorted = sortResultRows(
-      skillRows,
-      skillColumns,
-      sortState.column,
-      sortState.direction,
-    );
-    const rowsElement = container.querySelector<HTMLElement>(
-      '[data-role="skill-rows"]',
-    );
+    const sorted = sortResultRows(skillRows, skillColumns, sortState.column, sortState.direction);
+    const rowsElement = container.querySelector<HTMLElement>('[data-role="skill-rows"]');
     if (rowsElement) {
       rowsElement.innerHTML = skillRowsHtml(sorted, skillColumns, options);
       // Re-rendering discards row handlers; rebind selection and reapply it.
       bindSkillSelection();
     }
-    const header = container.querySelector<HTMLElement>(
-      '[data-role="skill-header"]',
-    );
+    const header = container.querySelector<HTMLElement>('[data-role="skill-header"]');
     if (header) {
       header.innerHTML = skillHeaderHtml(skillColumns, sortState);
       // Replacing header markup discards its handlers, so bind the new cells.
@@ -692,18 +599,10 @@ export function mountRotationResults(
     }
   };
   const bindSort = (): void => {
-    const header = container.querySelector<HTMLElement>(
-      '[data-role="skill-header"]',
-    );
-    for (const cell of header?.querySelectorAll<HTMLElement>(
-      "[data-sort-col]",
-    ) || []) {
+    const header = container.querySelector<HTMLElement>('[data-role="skill-header"]');
+    for (const cell of header?.querySelectorAll<HTMLElement>('[data-sort-col]') || []) {
       cell.onclick = () => {
-        sortState = nextResultSortState(
-          sortState.column,
-          sortState.direction,
-          cell.dataset.sortCol || "",
-        );
+        sortState = nextResultSortState(sortState.column, sortState.direction, cell.dataset.sortCol || '');
         options.onSortStateChange?.({ ...sortState });
         renderSortedRows();
       };
@@ -715,44 +614,38 @@ export function mountRotationResults(
     readonly setSelectedSkill: (key: string | null) => void;
   } | null = null;
   const applySkillRowSelection = (): void => {
-    for (const rowElement of container.querySelectorAll<HTMLElement>(
-      '[data-role="skill-rows"] .res-row-selectable',
-    )) {
+    for (const rowElement of container.querySelectorAll<HTMLElement>('[data-role="skill-rows"] .res-row-selectable')) {
       const active = rowElement.dataset.skillKey === selectedSkillKey;
-      rowElement.classList.toggle("res-row-selected", active);
-      rowElement.setAttribute("aria-pressed", String(active));
+      rowElement.classList.toggle('res-row-selected', active);
+      rowElement.setAttribute('aria-pressed', String(active));
     }
   };
   // Inline "Damage Events" timeline inserted beneath the selected row, showing
   // one marker per hit. Removed and re-inserted so it survives row re-sorts.
   const renderSkillTimeline = (): void => {
-    const rowsRoot = container.querySelector<HTMLElement>(
-      '[data-role="skill-rows"]',
-    );
+    const rowsRoot = container.querySelector<HTMLElement>('[data-role="skill-rows"]');
     if (!rowsRoot) return;
     rowsRoot.querySelector('[data-role="skill-timeline"]')?.remove();
     if (!selectedSkillKey || !chartSeries) return;
     const hits = chartSeries.skillDamage?.[selectedSkillKey];
     if (!hits || !hits.length) return;
     let target: HTMLElement | null = null;
-    for (const rowElement of rowsRoot.querySelectorAll<HTMLElement>(
-      ".res-row-selectable",
-    )) {
+    for (const rowElement of rowsRoot.querySelectorAll<HTMLElement>('.res-row-selectable')) {
       if (rowElement.dataset.skillKey === selectedSkillKey) {
         target = rowElement;
         break;
       }
     }
     const doc = container.ownerDocument;
-    if (!target || !doc || typeof target.after !== "function") return;
-    const timeline = doc.createElement("div");
-    timeline.className = "res-skill-timeline";
-    timeline.setAttribute("data-role", "skill-timeline");
+    if (!target || !doc || typeof target.after !== 'function') return;
+    const timeline = doc.createElement('div');
+    timeline.className = 'res-skill-timeline';
+    timeline.setAttribute('data-role', 'skill-timeline');
     target.after(timeline);
     mountHitTimeline(timeline, hits, {
       durationMs: chartSeries.durationMs,
       color: options.chartOptions?.skillDamageColor,
-      label: "Damage Events",
+      label: 'Damage Events'
     });
   };
   const selectSkill = (key: string | null): void => {
@@ -763,13 +656,10 @@ export function mountRotationResults(
     renderSkillTimeline();
   };
   const bindSkillSelection = (): void => {
-    for (const rowElement of container.querySelectorAll<HTMLElement>(
-      '[data-role="skill-rows"] .res-row-selectable',
-    )) {
-      rowElement.onclick = () =>
-        selectSkill(rowElement.dataset.skillKey || null);
+    for (const rowElement of container.querySelectorAll<HTMLElement>('[data-role="skill-rows"] .res-row-selectable')) {
+      rowElement.onclick = () => selectSkill(rowElement.dataset.skillKey || null);
       rowElement.onkeydown = (event) => {
-        if (event.key === "Enter" || event.key === " ") {
+        if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
           selectSkill(rowElement.dataset.skillKey || null);
         }
@@ -780,25 +670,18 @@ export function mountRotationResults(
   };
 
   bindSort();
-  const chartContainer = container.querySelector<HTMLElement>(
-    '[data-role="result-charts"]',
-  );
+  const chartContainer = container.querySelector<HTMLElement>('[data-role="result-charts"]');
   if (chartContainer && chartSeries) {
     // Charts mount only when the transformed model supplies sampled series.
     chartHandle =
       mountTimeSeriesCharts(chartContainer, chartSeries, {
         ...(options.chartOptions || {}),
-        healthBreakpoints: breakpoints,
+        healthBreakpoints: breakpoints
       }) || null;
   }
   bindSkillSelection();
-  const runRandomDistribution = container.querySelector<HTMLElement>(
-    '[data-role="rng-run"]',
-  );
-  if (
-    runRandomDistribution &&
-    typeof options.onRunRandomDistribution === "function"
-  ) {
+  const runRandomDistribution = container.querySelector<HTMLElement>('[data-role="rng-run"]');
+  if (runRandomDistribution && typeof options.onRunRandomDistribution === 'function') {
     runRandomDistribution.onclick = () => {
       options.onRunRandomDistribution?.();
     };

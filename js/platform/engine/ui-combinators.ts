@@ -10,16 +10,10 @@ export type UiSliceLike = Readonly<Record<string, unknown>>;
 type UiCallback = (...args: unknown[]) => unknown;
 
 /** Concatenates every slice's list result for `name`, skipping non-owners. */
-export function mergeUiList(
-  slices: readonly UiSliceLike[],
-  name: string,
-  args: readonly unknown[],
-): unknown[] {
+export function mergeUiList(slices: readonly UiSliceLike[], name: string, args: readonly unknown[]): unknown[] {
   return slices.flatMap((slice) => {
     const callback = slice[name];
-    return typeof callback === "function"
-      ? ((callback as UiCallback)(...args) as unknown[]) || []
-      : [];
+    return typeof callback === 'function' ? ((callback as UiCallback)(...args) as unknown[]) || [] : [];
   });
 }
 
@@ -32,11 +26,11 @@ export function firstUiMatch(
   name: string,
   args: readonly unknown[],
   isMatch: (result: unknown) => boolean,
-  fallback: unknown,
+  fallback: unknown
 ): unknown {
   for (const slice of slices) {
     const callback = slice[name];
-    if (typeof callback !== "function") continue;
+    if (typeof callback !== 'function') continue;
     const result = (callback as UiCallback)(...args);
     if (isMatch(result)) return result;
   }
@@ -48,12 +42,11 @@ export function someUiSlice(
   slices: readonly UiSliceLike[],
   name: string,
   args: readonly unknown[],
-  isTrue: (result: unknown) => boolean,
+  isTrue: (result: unknown) => boolean
 ): boolean {
   return slices.some((slice) => {
     const callback = slice[name];
-    return typeof callback === "function"
-      && isTrue((callback as UiCallback)(...args));
+    return typeof callback === 'function' && isTrue((callback as UiCallback)(...args));
   });
 }
 
@@ -62,11 +55,10 @@ export function everyUiSlice(
   slices: readonly UiSliceLike[],
   name: string,
   args: readonly unknown[],
-  isAllowed: (result: unknown) => boolean,
+  isAllowed: (result: unknown) => boolean
 ): boolean {
   return slices.every((slice) => {
     const callback = slice[name];
-    return typeof callback !== "function"
-      || isAllowed((callback as UiCallback)(...args));
+    return typeof callback !== 'function' || isAllowed((callback as UiCallback)(...args));
   });
 }

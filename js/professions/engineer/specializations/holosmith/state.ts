@@ -1,26 +1,12 @@
-import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
-import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
-import {
-  hasEngineerTrait,
-  selectedEngineerTraits,
-} from "../../core/state.js";
-import type {
-  EngineerConfig,
-  HolosmithState,
-} from "../../types.js";
+import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { hasEngineerTrait, selectedEngineerTraits } from '../../core/state.js';
+import type { EngineerConfig, HolosmithState } from '../../types.js';
 
-export function createHolosmithState(
-  config: EngineerConfig = {},
-): HolosmithState {
+export function createHolosmithState(config: EngineerConfig = {}): HolosmithState {
   const traits = selectedEngineerTraits(config);
-  const maximumHeat = hasEngineerTrait(
-    traits,
-    TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
-  ) ? 150 : 100;
-  const initialHeat = Math.min(
-    maximumHeat,
-    Math.max(0, Number(config.initialHeat || 0)),
-  );
+  const maximumHeat = hasEngineerTrait(traits, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) ? 150 : 100;
+  const initialHeat = Math.min(maximumHeat, Math.max(0, Number(config.initialHeat || 0)));
   return {
     heat: initialHeat,
     maximumHeat,
@@ -34,11 +20,8 @@ export function createHolosmithState(
     solarFocusingLensReadyAt: 0,
     solarFocusingLensUntil: 0,
     enhancedCapacityMightReadyAt: null,
-    kitLockoutUntil: 0,
+    kitLockoutUntil: 0
   };
 }
 
-export const holosmithState = defineProfessionSpecializationState(
-  "Holosmith",
-  createHolosmithState,
-);
+export const holosmithState = defineProfessionSpecializationState('Holosmith', createHolosmithState);

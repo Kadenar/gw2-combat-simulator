@@ -3,38 +3,33 @@ import {
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   remainingDurationStackSeconds,
-  sumActiveStacks,
-} from "./boon-state.js";
-import { criticalChance, criticalDamageMultiplier } from "./damage.js";
-import { gw2EventActorType } from "./event-ownership.js";
-import { clamp } from "./numeric.js";
+  sumActiveStacks
+} from './boon-state.js';
+import { criticalChance, criticalDamageMultiplier } from './damage.js';
+import { gw2EventActorType } from './event-ownership.js';
+import { clamp } from './numeric.js';
 import {
   createRelicTimelineRuntime,
   relicConditionDurationBonus,
   relicCriticalChanceBonus,
-  relicOutgoingDamageBonus,
-} from "./relic-rules.js";
+  relicOutgoingDamageBonus
+} from './relic-rules.js';
 import {
   gw2ConditionDurationMultiplier,
   gw2SigilSet,
   gw2StatsForWeaponSet,
   gw2StaticAttributes,
-  MIGHT_ATTRIBUTE_BONUS_PER_STACK,
-} from "./runtime-rules.js";
-import { sigilCriticalContribution } from "./sigil-rules.js";
+  MIGHT_ATTRIBUTE_BONUS_PER_STACK
+} from './runtime-rules.js';
+import { sigilCriticalContribution } from './sigil-rules.js';
 import {
   canonicalTargetConditionName,
   createPermanentTargetConditionStacks,
-  runtimeTargetConditionStacks,
-} from "./target-state.js";
-import { createGw2TimelineIndex } from "./timeline-index.js";
+  runtimeTargetConditionStacks
+} from './target-state.js';
+import { createGw2TimelineIndex } from './timeline-index.js';
 
-import type {
-  CatalogEntity,
-  NormalizedProfessionContract,
-  SchedulerRecord,
-  SimulationEvent,
-} from "../engine/types.js";
+import type { CatalogEntity, NormalizedProfessionContract, SchedulerRecord, SimulationEvent } from '../engine/types.js';
 import type {
   Gw2BuffAudience,
   Gw2CombatQuery,
@@ -42,8 +37,8 @@ import type {
   Gw2CriticalChanceContributor,
   Gw2QueryRuntime,
   Gw2ResolverExtensions,
-  Gw2ResolvedStats,
-} from "./types.js";
+  Gw2ResolvedStats
+} from './types.js';
 
 interface TraitCatalog {
   readonly traits?: readonly CatalogEntity[];
@@ -54,7 +49,7 @@ interface CreateGw2CombatQueryOptions<TProfessionState extends object> {
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
   readonly traits?: ReadonlySet<string | number>;
-  readonly conditionDurationBonus?: Gw2ResolverExtensions["conditionDurationBonus"];
+  readonly conditionDurationBonus?: Gw2ResolverExtensions['conditionDurationBonus'];
 }
 
 interface HookContextOptions {
@@ -75,14 +70,11 @@ interface HookContextOptions {
 // Merges three legacy config fields into one set and ensures every recognized
 // trait is present under both its numeric ID and its string name. This lets
 // trait membership checks throughout the codebase use either form.
-export function selectedGw2TraitValues(
-  config: Gw2Config = {},
-  catalog: TraitCatalog = {},
-): Set<string | number> {
+export function selectedGw2TraitValues(config: Gw2Config = {}, catalog: TraitCatalog = {}): Set<string | number> {
   const values = new Set<string | number>([
     ...(Array.isArray(config.traitIds) ? config.traitIds : []),
     ...(Array.isArray(config.selectedTraitIds) ? config.selectedTraitIds : []),
-    ...(Array.isArray(config.selectedTraits) ? config.selectedTraits : []),
+    ...(Array.isArray(config.selectedTraits) ? config.selectedTraits : [])
   ]);
   const byId = new Map<number, CatalogEntity>();
   const byName = new Map<string, CatalogEntity>();
@@ -91,9 +83,7 @@ export function selectedGw2TraitValues(
     byName.set(trait.name, trait);
   }
   for (const value of [...values]) {
-    const trait =
-      (typeof value === "string" ? byName.get(value) : undefined) ||
-      byId.get(Number(value));
+    const trait = (typeof value === 'string' ? byName.get(value) : undefined) || byId.get(Number(value));
     if (trait) {
       values.add(Number(trait.id));
       values.add(trait.name);
@@ -117,24 +107,21 @@ export function selectedGw2TraitValues(
  * }} [options]
  * @returns {Readonly<Gw2CombatQuery>}
  */
-export function createGw2CombatQuery<
-  TProfessionState extends object = SchedulerRecord,
->({
+export function createGw2CombatQuery<TProfessionState extends object = SchedulerRecord>({
   profession,
   config = {},
   events = [],
   traits = selectedGw2TraitValues(config, profession?.catalog),
-  conditionDurationBonus,
+  conditionDurationBonus
 }: CreateGw2CombatQueryOptions<TProfessionState> = {}): Readonly<Gw2CombatQuery> {
   if (!profession?.id) {
-    throw new TypeError("GW2 combat query requires a profession.");
+    throw new TypeError('GW2 combat query requires a profession.');
   }
   const activeProfession = profession;
-  const configuredTargetConditionStacks =
-    createPermanentTargetConditionStacks(config);
+  const configuredTargetConditionStacks = createPermanentTargetConditionStacks(config);
   const timeline = createGw2TimelineIndex({ config, events });
   const historicalRelicContext = Object.freeze({
-    relic: createRelicTimelineRuntime(config.relic, events),
+    relic: createRelicTimelineRuntime(config.relic, events)
   });
   // `query` is assigned after `completedQuery` is constructed. Hook handlers
   // that reference `query` are only called during scheduling/resolution (after
@@ -144,10 +131,7 @@ export function createGw2CombatQuery<
   const equipmentConditionDurationBonus =
     conditionDurationBonus ||
     ((runtime: Gw2QueryRuntime | null | undefined, at: number): number =>
-      relicConditionDurationBonus(
-        runtime?.relic ? runtime : historicalRelicContext,
-        at,
-      ));
+      relicConditionDurationBonus(runtime?.relic ? runtime : historicalRelicContext, at));
   const configWithBaselineStats = (weaponSet: number): Gw2Config => {
     const stats = gw2StatsForWeaponSet(config, weaponSet);
     return {
@@ -162,8 +146,8 @@ export function createGw2CombatQuery<
         conditionDamage: stats.conditionDamage ?? 0,
         expertise: stats.expertise ?? 0,
         concentration: stats.concentration ?? 0,
-        healingPower: stats.healingPower ?? 0,
-      },
+        healingPower: stats.healingPower ?? 0
+      }
     };
   };
   const startingWeaponSet = Number(config.startingWeaponSet) === 2 ? 2 : 1;
@@ -184,16 +168,15 @@ export function createGw2CombatQuery<
     kind: string,
     time: number,
     maximum: number,
-    audience: Gw2BuffAudience = "all",
-    companionId: string | null = null,
+    audience: Gw2BuffAudience = 'all',
+    companionId: string | null = null
   ): number | null => {
     if (!runtime) return null;
     const applications = runtime.boons?.get(kind) || [];
     if (isDurationStackingBoon(kind)) {
       const remaining = remainingDurationStackSeconds(applications, time, {
-        includes: (application) =>
-          buffMatchesAudience(application, audience, companionId),
-        maximum: durationStackingBoonCapSeconds(kind),
+        includes: (application) => buffMatchesAudience(application, audience, companionId),
+        maximum: durationStackingBoonCapSeconds(kind)
       });
       return remaining > 0 ? Math.min(1, Math.max(0, maximum)) : 0;
     }
@@ -208,7 +191,7 @@ export function createGw2CombatQuery<
         application.expiresAt > time,
       (application) => Number(application.stacks || 1),
       maximum,
-      (application) => application.at > time,
+      (application) => application.at > time
     );
   };
 
@@ -218,35 +201,22 @@ export function createGw2CombatQuery<
     time: number,
     maximum: number,
     runtime: Gw2QueryRuntime | null | undefined,
-    audience: Gw2BuffAudience = "all",
+    audience: Gw2BuffAudience = 'all',
     fallbackDuration = 0,
-    companionId: string | null = null,
+    companionId: string | null = null
   ): number =>
     runtimeBuffStacks(runtime, kind, time, maximum, audience, companionId) ??
-    timeline.buffStacksAt(
-      kind,
-      time,
-      fallbackDuration,
-      maximum,
-      audience,
-      companionId,
-    );
+    timeline.buffStacksAt(kind, time, fallbackDuration, maximum, audience, companionId);
   /**
    * Player-configured permanent boons do not apply to ordinary summons.
    * Explicitly inherited companion profiles retain their existing behavior.
    *
    * @param {SimulationEvent | null | undefined} event
    */
-  const isBoonIsolatedSummonEvent = (
-    event: SimulationEvent | null | undefined,
-  ): boolean =>
-    gw2EventActorType(event) === "summon" &&
-    event?.summonInheritsAttributes !== true &&
-    event?.source !== "Phantasm";
-  const summonCompanionId = (
-    event: SimulationEvent | null | undefined,
-  ): string | null => {
-    if (!event || gw2EventActorType(event) !== "summon") return null;
+  const isBoonIsolatedSummonEvent = (event: SimulationEvent | null | undefined): boolean =>
+    gw2EventActorType(event) === 'summon' && event?.summonInheritsAttributes !== true && event?.source !== 'Phantasm';
+  const summonCompanionId = (event: SimulationEvent | null | undefined): string | null => {
+    if (!event || gw2EventActorType(event) !== 'summon') return null;
     if (event.summonOwner) return String(event.summonOwner);
     return null;
   };
@@ -262,24 +232,16 @@ export function createGw2CombatQuery<
     time: number,
     maximum: number,
     runtime: Gw2QueryRuntime | null | undefined,
-    event: SimulationEvent | null | undefined,
+    event: SimulationEvent | null | undefined
   ): number => {
     const isolatedSummon = isBoonIsolatedSummonEvent(event);
     // Isolated summons don't inherit the player's configured permanent boons —
     // they only receive boons explicitly targeted at summons via the runtime.
     const configured = isolatedSummon ? 0 : Number(config.boons?.[kind] || 0);
     if (isolatedSummon) {
-      return dynamicBoonStacksAt(
-        kind,
-        time,
-        maximum,
-        runtime,
-        "summon",
-        0,
-        summonCompanionId(event),
-      );
+      return dynamicBoonStacksAt(kind, time, maximum, runtime, 'summon', 0, summonCompanionId(event));
     }
-    const dynamic = dynamicBoonStacksAt(kind, time, maximum, runtime, "all", 1);
+    const dynamic = dynamicBoonStacksAt(kind, time, maximum, runtime, 'all', 1);
     return clamp(configured + dynamic, 0, maximum);
   };
   /**
@@ -290,8 +252,8 @@ export function createGw2CombatQuery<
   const mightStacksAt = (
     time: number,
     runtime: Gw2QueryRuntime | null | undefined,
-    event: SimulationEvent | null | undefined,
-  ): number => boonStacksAt("might", time, 25, runtime, event);
+    event: SimulationEvent | null | undefined
+  ): number => boonStacksAt('might', time, 25, runtime, event);
   /**
    * @param {number} time
    * @param {Gw2QueryRuntime | null | undefined} runtime
@@ -300,39 +262,23 @@ export function createGw2CombatQuery<
   const furyActiveAt = (
     time: number,
     runtime: Gw2QueryRuntime | null | undefined,
-    event: SimulationEvent | null | undefined,
+    event: SimulationEvent | null | undefined
   ): boolean => {
     if (event?.summonIgnoresBoons === true) return false;
     const isolatedSummon = isBoonIsolatedSummonEvent(event);
     const inheritsOwnerCriticalState =
-      event?.summonInheritsAttributes === true ||
-      event?.summonInheritsCriticalAttributes === true;
+      event?.summonInheritsAttributes === true || event?.summonInheritsCriticalAttributes === true;
     // Illusions inherit the summoner's base crit chance but never the
     // player-configured permanent Fury. They gain Fury only when a skill
     // applies it dynamically (handled by the runtime/timeline branch below).
-    const illusionEvent =
-      event?.source === "Clone" || event?.source === "Phantasm";
-    if (
-      (!isolatedSummon || inheritsOwnerCriticalState) &&
-      !illusionEvent &&
-      config.boons?.fury
-    ) {
+    const illusionEvent = event?.source === 'Clone' || event?.source === 'Phantasm';
+    if ((!isolatedSummon || inheritsOwnerCriticalState) && !illusionEvent && config.boons?.fury) {
       return true;
     }
     if (illusionEvent || (isolatedSummon && !inheritsOwnerCriticalState)) {
-      return (
-        dynamicBoonStacksAt(
-          "fury",
-          time,
-          1,
-          runtime,
-          "summon",
-          0,
-          summonCompanionId(event),
-        ) > 0
-      );
+      return dynamicBoonStacksAt('fury', time, 1, runtime, 'summon', 0, summonCompanionId(event)) > 0;
     }
-    return dynamicBoonStacksAt("fury", time, 1, runtime) > 0;
+    return dynamicBoonStacksAt('fury', time, 1, runtime) > 0;
   };
   /**
    * Independent summons consume only explicitly summon-targeted applications.
@@ -340,97 +286,61 @@ export function createGw2CombatQuery<
   const summonMightStacksAt = (
     time: number,
     runtime: Gw2QueryRuntime | null | undefined,
-    event: SimulationEvent | null | undefined,
+    event: SimulationEvent | null | undefined
   ): number => {
     if (event?.summonIgnoresBoons === true) return 0;
-    return dynamicBoonStacksAt(
-      "might",
-      time,
-      25,
-      runtime,
-      "summon",
-      0,
-      summonCompanionId(event),
-    );
+    return dynamicBoonStacksAt('might', time, 25, runtime, 'summon', 0, summonCompanionId(event));
   };
   /**
    * @param {number} time
    * @param {Gw2QueryRuntime | null | undefined} runtime
    */
-  const vulnerabilityStacksAt = (
-    time: number,
-    runtime: Gw2QueryRuntime | null | undefined,
-  ): number =>
+  const vulnerabilityStacksAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): number =>
     clamp(
-      configuredTargetConditionStacks("Vulnerability") +
-        runtimeTargetConditionStacks(runtime, "Vulnerability", time) +
-        dynamicBoonStacksAt(
-          "target-vulnerability",
-          time,
-          25,
-          runtime,
-          "all",
-          1,
-        ),
+      configuredTargetConditionStacks('Vulnerability') +
+        runtimeTargetConditionStacks(runtime, 'Vulnerability', time) +
+        dynamicBoonStacksAt('target-vulnerability', time, 25, runtime, 'all', 1),
       0,
-      25,
+      25
     );
   /**
    * @param {string} condition
    * @param {number} time
    * @param {Gw2QueryRuntime | null} [runtime]
    */
-  const targetConditionStacksAt = (
-    condition: string,
-    time: number,
-    runtime: Gw2QueryRuntime | null = null,
-  ): number => {
+  const targetConditionStacksAt = (condition: string, time: number, runtime: Gw2QueryRuntime | null = null): number => {
     const name = canonicalTargetConditionName(condition);
-    if (name === "Vulnerability") {
+    if (name === 'Vulnerability') {
       return vulnerabilityStacksAt(time, runtime);
     }
-    return (
-      configuredTargetConditionStacks(name) +
-      runtimeTargetConditionStacks(runtime, name, time)
-    );
+    return configuredTargetConditionStacks(name) + runtimeTargetConditionStacks(runtime, name, time);
   };
   /**
    * @param {number} time
    * @param {Gw2QueryRuntime | null | undefined} runtime
    */
-  const activeWeaponSetAt = (
-    time: number,
-    runtime: Gw2QueryRuntime | null | undefined,
-  ): number => {
+  const activeWeaponSetAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): number => {
     const runtimeSet = Number(runtime?.activeWeaponSet);
-    return runtimeSet === 1 || runtimeSet === 2
-      ? runtimeSet
-      : timeline.activeWeaponSetAt(time);
+    return runtimeSet === 1 || runtimeSet === 2 ? runtimeSet : timeline.activeWeaponSetAt(time);
   };
   /**
    * @param {number} time
    * @param {Gw2QueryRuntime | null | undefined} runtime
    */
-  const activeSigilSetAt = (
-    time: number,
-    runtime: Gw2QueryRuntime | null | undefined,
-  ) => gw2SigilSet(config, activeWeaponSetAt(time, runtime));
-  const activeConfigAt = (
-    time: number,
-    runtime: Gw2QueryRuntime | null | undefined,
-  ): Gw2Config => {
+  const activeSigilSetAt = (time: number, runtime: Gw2QueryRuntime | null | undefined) =>
+    gw2SigilSet(config, activeWeaponSetAt(time, runtime));
+  const activeConfigAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): Gw2Config => {
     if (!config.weaponSetStats?.length) return staticConfig;
     const weaponSet = activeWeaponSetAt(time, runtime);
     const activeConfig = configWithBaselineStats(weaponSet);
-    const calculatedPrimaryWeapon =
-      (weaponSet === 2 ? config.weaponSet2Primary : config.primaryWeapon) || "";
+    const calculatedPrimaryWeapon = (weaponSet === 2 ? config.weaponSet2Primary : config.primaryWeapon) || '';
     return {
       ...activeConfig,
       attributeProvenance: {
         ...(config.attributeProvenance || {}),
         calculatedWeaponSet: weaponSet,
-        calculatedPrimaryWeapon,
-      },
+        calculatedPrimaryWeapon
+      }
     };
   };
   const hookContext = (
@@ -440,8 +350,8 @@ export function createGw2CombatQuery<
       condition = null,
       runtime = null,
       damageAdditiveBonus = 0,
-      criticalChanceContributors,
-    }: HookContextOptions = {},
+      criticalChanceContributors
+    }: HookContextOptions = {}
   ): SchedulerRecord => ({
     profession: activeProfession,
     config: activeConfigAt(time, runtime),
@@ -457,7 +367,7 @@ export function createGw2CombatQuery<
     events,
     runtime,
     damageAdditiveBonus,
-    criticalChanceContributors,
+    criticalChanceContributors
   });
   /**
    * @param {number} time
@@ -468,16 +378,12 @@ export function createGw2CombatQuery<
   const statsAt = (
     time: number,
     event: SimulationEvent | null = null,
-    runtime: Gw2QueryRuntime | null = null,
+    runtime: Gw2QueryRuntime | null = null
   ): Gw2ResolvedStats => {
     const activeConfig = activeConfigAt(time, runtime);
     const stats = activeProfession.modifyAttributes(
       hookContext(time, { event, runtime }),
-      gw2StaticAttributes(
-        activeConfig,
-        mightStacksAt(time, runtime, event),
-        activeWeaponSetAt(time, runtime),
-      ),
+      gw2StaticAttributes(activeConfig, mightStacksAt(time, runtime, event), activeWeaponSetAt(time, runtime))
     ) as unknown as Gw2ResolvedStats;
     // Independent summons use their own base stats instead of the player's.
     // summonInheritsCriticalAttributes=true lets them share precision/ferocity
@@ -487,24 +393,17 @@ export function createGw2CombatQuery<
       event?.summonInheritsAttributes !== true &&
       Number.isFinite(Number(event.summonBasePower))
     ) {
-      const inheritCriticalAttributes =
-        event.summonInheritsCriticalAttributes === true;
+      const inheritCriticalAttributes = event.summonInheritsCriticalAttributes === true;
       const summonMightStacks = summonMightStacksAt(time, runtime, event);
       return {
         ...stats,
-        power:
-          Number(event.summonBasePower) +
-          summonMightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
-        precision: inheritCriticalAttributes
-          ? stats.precision
-          : Number(event.summonBasePrecision ?? 1000),
-        ferocity: inheritCriticalAttributes
-          ? stats.ferocity
-          : Number(event.summonBaseFerocity ?? 0),
+        power: Number(event.summonBasePower) + summonMightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
+        precision: inheritCriticalAttributes ? stats.precision : Number(event.summonBasePrecision ?? 1000),
+        ferocity: inheritCriticalAttributes ? stats.ferocity : Number(event.summonBaseFerocity ?? 0),
         conditionDamage:
           Number(event.summonBaseConditionDamage ?? stats.conditionDamage) +
           summonMightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
-        expertise: Number(event.summonBaseExpertise ?? stats.expertise),
+        expertise: Number(event.summonBaseExpertise ?? stats.expertise)
       };
     }
     return stats;
@@ -515,30 +414,21 @@ export function createGw2CombatQuery<
     mightStacksAt,
     furyActiveAt,
     vulnerabilityStacksAt,
-    critical(
-      event: SimulationEvent,
-      time: number,
-      runtime: Gw2QueryRuntime | null = null,
-    ) {
+    critical(event: SimulationEvent, time: number, runtime: Gw2QueryRuntime | null = null) {
       if (
         event?.independentSummonStrike === true &&
         event?.summonInheritsAttributes !== true &&
         event?.summonInheritsCriticalAttributes !== true
       ) {
         const summonFuryBonus = furyActiveAt(time, runtime, event) ? 0.25 : 0;
-        const baseChance =
-          Number(event.summonCriticalChance ?? 0.05) + summonFuryBonus;
+        const baseChance = Number(event.summonCriticalChance ?? 0.05) + summonFuryBonus;
         const chance =
           event.summonUsesProfessionModifiers === true
-            ? activeProfession.modifyCriticalChance(
-                hookContext(time, { event, runtime }),
-                baseChance,
-              )
+            ? activeProfession.modifyCriticalChance(hookContext(time, { event, runtime }), baseChance)
             : baseChance;
         return {
-          chance:
-            event.canCrit === false || event.noCrit ? 0 : clamp(chance, 0, 1),
-          damage: Math.max(1, Number(event.summonCriticalDamage ?? 1.5)),
+          chance: event.canCrit === false || event.noCrit ? 0 : clamp(chance, 0, 1),
+          damage: Math.max(1, Number(event.summonCriticalDamage ?? 1.5))
         };
       }
       const stats = statsAt(time, event, runtime);
@@ -548,28 +438,22 @@ export function createGw2CombatQuery<
         contributors.push({ id, label, amount });
       };
       let chance = criticalChance(stats.precision);
-      addContributor("precision", "Precision", chance);
+      addContributor('precision', 'Precision', chance);
       // Illusions inherit only the summoner's base (precision-derived) crit
       // chance. Player-only gear bonuses — configured crit-chance and weapon
       // sigils — do not carry over to them.
-      const illusionEvent =
-        event?.source === "Clone" || event?.source === "Phantasm";
+      const illusionEvent = event?.source === 'Clone' || event?.source === 'Phantasm';
       if (!illusionEvent) {
-        const configuredBonus =
-          Number(
-            activeConfigAt(time, runtime).stats?.criticalChanceBonus || 0,
-          ) / 100;
+        const configuredBonus = Number(activeConfigAt(time, runtime).stats?.criticalChanceBonus || 0) / 100;
         chance += configuredBonus;
-        addContributor("configured-bonus", "Configured bonus", configuredBonus);
-        const sigilBonus =
-          Number(activeSigilSetAt(time, runtime).criticalChanceBonus || 0) /
-          100;
+        addContributor('configured-bonus', 'Configured bonus', configuredBonus);
+        const sigilBonus = Number(activeSigilSetAt(time, runtime).criticalChanceBonus || 0) / 100;
         chance += sigilBonus;
-        addContributor("active-sigils", "Active weapon sigils", sigilBonus);
+        addContributor('active-sigils', 'Active weapon sigils', sigilBonus);
       }
       if (furyActiveAt(time, runtime, event)) {
         chance += 0.25;
-        addContributor("fury", "Fury", 0.25);
+        addContributor('fury', 'Fury', 0.25);
       }
       const professionContributors: Gw2CriticalChanceContributor[] = [];
       const beforeProfession = chance;
@@ -577,32 +461,26 @@ export function createGw2CombatQuery<
         hookContext(time, {
           event,
           runtime,
-          criticalChanceContributors: professionContributors,
+          criticalChanceContributors: professionContributors
         }),
-        chance,
+        chance
       );
-      const tracedProfessionAmount = professionContributors.reduce(
-        (sum, contributor) => sum + contributor.amount,
-        0,
-      );
+      const tracedProfessionAmount = professionContributors.reduce((sum, contributor) => sum + contributor.amount, 0);
       contributors.push(...professionContributors);
       addContributor(
-        "profession-effects",
-        "Other profession effects",
-        chance - beforeProfession - tracedProfessionAmount,
+        'profession-effects',
+        'Other profession effects',
+        chance - beforeProfession - tracedProfessionAmount
       );
       const relicBonus = relicCriticalChanceBonus(
         runtime?.relic ? runtime : historicalRelicContext,
         event,
-        mightStacksAt(time, runtime, event),
+        mightStacksAt(time, runtime, event)
       );
       chance += relicBonus;
-      addContributor("relic", "Relic", relicBonus);
+      addContributor('relic', 'Relic', relicBonus);
       let damage = criticalDamageMultiplier(stats.ferocity);
-      damage = activeProfession.modifyCriticalDamage(
-        hookContext(time, { event, runtime }),
-        damage,
-      );
+      damage = activeProfession.modifyCriticalDamage(hookContext(time, { event, runtime }), damage);
       const sigilCritical = sigilCriticalContribution(runtime, time);
       chance += sigilCritical.chance;
       contributors.push(...sigilCritical.chanceContributors);
@@ -615,46 +493,36 @@ export function createGw2CombatQuery<
         chanceBeforeCap = 1;
         contributors = [
           {
-            id: "forced-critical-hit",
-            label: "Forced critical hit",
-            amount: 1,
-          },
+            id: 'forced-critical-hit',
+            label: 'Forced critical hit',
+            amount: 1
+          }
         ];
       }
       return {
         chance: clamp(chance, 0, 1),
         chanceBeforeCap,
         contributors,
-        damage: Math.max(1, Number(damage || 1)),
+        damage: Math.max(1, Number(damage || 1))
       };
     },
-    strikeMultiplier(
-      event: SimulationEvent,
-      time: number,
-      runtime: Gw2QueryRuntime | null = null,
-    ) {
+    strikeMultiplier(event: SimulationEvent, time: number, runtime: Gw2QueryRuntime | null = null) {
       const relicContext = runtime?.relic ? runtime : historicalRelicContext;
       const relicBonus =
         event?.summonUsesEquipmentModifiers === false
           ? 0
-          : relicOutgoingDamageBonus(relicContext, "strike", time, event);
+          : relicOutgoingDamageBonus(relicContext, 'strike', time, event);
       if (event?.independentSummonStrike === true) {
         const base =
           (1 + vulnerabilityStacksAt(time, runtime) / 100) *
           Number(event.summonStrikeMultiplier ?? 1) *
           (1 + relicBonus);
         return event?.summonUsesProfessionModifiers === true
-          ? activeProfession.modifyStrikeDamage(
-              hookContext(time, { event, runtime }),
-              base,
-            )
+          ? activeProfession.modifyStrikeDamage(hookContext(time, { event, runtime }), base)
           : base;
       }
       const sigils = activeSigilSetAt(time, runtime);
-      const timeOfDayMultiplier =
-        config.timeOfDay === "night"
-          ? Number(sigils.nightStrikeMultiplier || 1)
-          : 1;
+      const timeOfDayMultiplier = config.timeOfDay === 'night' ? Number(sigils.nightStrikeMultiplier || 1) : 1;
       const base =
         (1 + vulnerabilityStacksAt(time, runtime) / 100) *
         (Number(sigils.strike || 1) + relicBonus) *
@@ -664,38 +532,33 @@ export function createGw2CombatQuery<
         hookContext(time, {
           event,
           runtime,
-          damageAdditiveBonus: relicBonus,
+          damageAdditiveBonus: relicBonus
         }),
-        base,
+        base
       );
     },
     conditionMultiplier(
       name: string,
       time: number,
       event: SimulationEvent | null = null,
-      runtime: Gw2QueryRuntime | null = null,
+      runtime: Gw2QueryRuntime | null = null
     ) {
       const relicContext = runtime?.relic ? runtime : historicalRelicContext;
-      const usesEquipmentModifiers =
-        event?.summonUsesEquipmentModifiers !== false;
-      const relicBonus = usesEquipmentModifiers
-        ? relicOutgoingDamageBonus(relicContext, "condition", time, event)
-        : 0;
+      const usesEquipmentModifiers = event?.summonUsesEquipmentModifiers !== false;
+      const relicBonus = usesEquipmentModifiers ? relicOutgoingDamageBonus(relicContext, 'condition', time, event) : 0;
       const sigils = activeSigilSetAt(time, runtime);
       const base =
         (1 + vulnerabilityStacksAt(time, runtime) / 100) *
-        (usesEquipmentModifiers
-          ? Number(sigils.condition || 1) + relicBonus
-          : 1) *
+        (usesEquipmentModifiers ? Number(sigils.condition || 1) + relicBonus : 1) *
         Number(config.modifiers?.condition || 1);
       return activeProfession.modifyConditionDamage(
         hookContext(time, {
           event,
           condition: name,
           runtime,
-          damageAdditiveBonus: relicBonus,
+          damageAdditiveBonus: relicBonus
         }),
-        base,
+        base
       );
     },
     conditionDurationMultiplier(
@@ -703,31 +566,22 @@ export function createGw2CombatQuery<
       time: number,
       stats: Gw2ResolvedStats = statsAt(time),
       event: SimulationEvent | null = null,
-      runtime: Gw2QueryRuntime | null = null,
+      runtime: Gw2QueryRuntime | null = null
     ) {
       const sigils = activeSigilSetAt(time, runtime);
-      const usesEquipmentModifiers =
-        event?.summonUsesEquipmentModifiers !== false;
+      const usesEquipmentModifiers = event?.summonUsesEquipmentModifiers !== false;
       const sigilBonus = usesEquipmentModifiers
-        ? (Number(sigils.conditionDurationBonus || 0) +
-            Number(sigils.conditionDurationBonuses?.[name] || 0)) /
-          100
+        ? (Number(sigils.conditionDurationBonus || 0) + Number(sigils.conditionDurationBonuses?.[name] || 0)) / 100
         : 0;
-      const relicBonus = usesEquipmentModifiers
-        ? equipmentConditionDurationBonus(runtime, time)
-        : 0;
-      const base = gw2ConditionDurationMultiplier(
-        name,
-        stats,
-        sigilBonus + relicBonus,
-      );
+      const relicBonus = usesEquipmentModifiers ? equipmentConditionDurationBonus(runtime, time) : 0;
+      const base = gw2ConditionDurationMultiplier(name, stats, sigilBonus + relicBonus);
       const modified = activeProfession.modifyConditionDuration(
         hookContext(time, {
           event,
           condition: name,
-          runtime,
+          runtime
         }),
-        base,
+        base
       );
       // Clamped to [1, 2]: condition duration never drops below baseline and
       // cannot exceed +100% regardless of how many sources stack.
@@ -737,7 +591,7 @@ export function createGw2CombatQuery<
       name: string,
       time: number,
       event: SimulationEvent | null = null,
-      runtime: Gw2QueryRuntime | null = null,
+      runtime: Gw2QueryRuntime | null = null
     ) {
       return Math.max(
         0,
@@ -746,25 +600,21 @@ export function createGw2CombatQuery<
             hookContext(time, {
               event,
               condition: name,
-              runtime,
+              runtime
             }),
-            1,
-          ) || 0,
-        ),
+            1
+          ) || 0
+        )
       );
     },
     targetConditionStacks: targetConditionStacksAt,
-    targetHasCondition(
-      condition: string,
-      time: number,
-      runtime: Gw2QueryRuntime | null = null,
-    ) {
+    targetHasCondition(condition: string, time: number, runtime: Gw2QueryRuntime | null = null) {
       return targetConditionStacksAt(condition, time, runtime) > 0;
     },
     activeWeaponSetAt: timeline.activeWeaponSetAt,
     activeSigilSetAt: timeline.activeSigilSetAt,
     timedStacks: timeline.timedStacks,
-    timeline,
+    timeline
   });
   query = completedQuery;
   return completedQuery;

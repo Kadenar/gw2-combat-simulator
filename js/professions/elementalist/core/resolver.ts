@@ -1,51 +1,47 @@
-import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
-import { EPSILON } from "../../../platform/engine/clock.js";
-import type { SchedulerRecord } from "../../../platform/engine/types.js";
-import type { NativeResolvedDamageDetails } from "../../../platform/gw2/native-module-types.js";
-import { gw2StatsForWeaponSet } from "../../../platform/gw2/runtime-rules.js";
-import { hasTrait } from "../../../platform/gw2/trait-state.js";
+import { enqueueOrdered } from '../../../platform/engine/event-queue.js';
+import { EPSILON } from '../../../platform/engine/clock.js';
+import type { SchedulerRecord } from '../../../platform/engine/types.js';
+import type { NativeResolvedDamageDetails } from '../../../platform/gw2/native-module-types.js';
+import { gw2StatsForWeaponSet } from '../../../platform/gw2/runtime-rules.js';
+import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import type {
   Gw2ApplyCondition,
   Gw2EventDraft,
   Gw2ResolverEvent,
-  Gw2ResolverRuntime,
-} from "../../../platform/gw2/types.js";
-import {
-  isElementalistAttunement,
-  type ElementalistAuraState,
-  type ElementalistCoreState,
-} from "./state.js";
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from "../data/ids.js";
+  Gw2ResolverRuntime
+} from '../../../platform/gw2/types.js';
+import { isElementalistAttunement, type ElementalistAuraState, type ElementalistCoreState } from './state.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
   elementalistBalanceEffect,
-  elementalistBalanceValue,
-} from "./profiles.js";
+  elementalistBalanceValue
+} from './profiles.js';
 
 const PERSISTING_FLAMES_FIELD_SKILLS = new Set([
-  "Flamewall",
-  "Pyroclastic Blast",
-  "Burning Retreat",
-  "Burning Speed",
-  "Flame Uprising",
-  "Ring of Fire",
-  "Lava Font",
-  "Wildfire",
+  'Flamewall',
+  'Pyroclastic Blast',
+  'Burning Retreat',
+  'Burning Speed',
+  'Flame Uprising',
+  'Ring of Fire',
+  'Lava Font',
+  'Wildfire'
 ]);
 const BOON_KINDS = new Set([
-  "aegis",
-  "alacrity",
-  "fury",
-  "might",
-  "protection",
-  "quickness",
-  "regeneration",
-  "resistance",
-  "resolution",
-  "stability",
-  "superspeed",
-  "swiftness",
-  "vigor",
+  'aegis',
+  'alacrity',
+  'fury',
+  'might',
+  'protection',
+  'quickness',
+  'regeneration',
+  'resistance',
+  'resolution',
+  'stability',
+  'superspeed',
+  'swiftness',
+  'vigor'
 ]);
 
 interface ElementalistConditionReactionDetails extends SchedulerRecord {
@@ -60,7 +56,7 @@ function coreState(context: Gw2ResolverRuntime): ElementalistCoreState {
 }
 
 export function elementalistSourceSkill(event: Gw2ResolverEvent): string {
-  return String(event.skillName || event.name || event.source || "");
+  return String(event.skillName || event.name || event.source || '');
 }
 
 function titleCase(value: string): string {
@@ -68,12 +64,7 @@ function titleCase(value: string): string {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-function buffDuration(
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-  kind: string,
-  duration: number,
-): number {
+function buffDuration(context: Gw2ResolverRuntime, event: Gw2ResolverEvent, kind: string, duration: number): number {
   const normalized = kind.toLowerCase();
   if (!BOON_KINDS.has(normalized)) return duration;
   const weaponSet = context.activeWeaponSet === 2 ? 2 : 1;
@@ -81,19 +72,18 @@ function buffDuration(
     event.at,
     {
       ...event,
-      type: "buff",
-      actorType: "player",
-      kind: normalized,
+      type: 'buff',
+      actorType: 'player',
+      kind: normalized
     },
-    context,
+    context
   );
   const staticStats = gw2StatsForWeaponSet(context.config, weaponSet);
   const sigils = context.config.sigilSets?.[weaponSet - 1] || {};
   const bonus =
     Number(stats.concentration || 0) / 1500 +
     Number(staticStats.boonDurationBonus || 0) / 100 +
-    Number(staticStats.boonDurationBonuses?.[titleCase(normalized)] || 0) /
-      100 +
+    Number(staticStats.boonDurationBonuses?.[titleCase(normalized)] || 0) / 100 +
     Number(sigils.boonDurationBonus || 0) / 100;
   return duration * Math.min(2, Math.max(1, 1 + bonus));
 }
@@ -107,27 +97,27 @@ function applyCondition(
     sourceId = event.skillId ?? event.sourceId,
     condition,
     stacks,
-    duration,
+    duration
   }: {
     readonly source: string;
-    readonly sourceId?: Gw2EventDraft["sourceId"];
+    readonly sourceId?: Gw2EventDraft['sourceId'];
     readonly condition: string;
     readonly stacks: number;
     readonly duration: number;
-  },
+  }
 ): void {
   const application: Gw2EventDraft = {
-    type: "condition",
+    type: 'condition',
     at: event.at,
     source,
     sourceId,
-    actorType: "player",
+    actorType: 'player',
     skillName: source,
     name: `${source} — ${condition}`,
     condition,
     stacks,
     duration,
-    triggeredBy: elementalistSourceSkill(event),
+    triggeredBy: elementalistSourceSkill(event)
   };
   if (details.applyCondition) {
     details.applyCondition(context, application);
@@ -142,35 +132,28 @@ export function queueElementalistBuff(
   kind: string,
   stacks: number,
   duration: number,
-  source: string,
+  source: string
 ): void {
   const adjustedDuration = buffDuration(context, event, kind, duration);
   enqueueOrdered(context.queue, {
-    type: "buff",
+    type: 'buff',
     at: event.at,
     source,
     sourceId: event.skillId ?? event.sourceId ?? source,
-    actorType: "player",
+    actorType: 'player',
     skillName: source,
     name: source,
     kind: kind.toLowerCase(),
     stacks,
     duration: adjustedDuration,
     triggeredBy: elementalistSourceSkill(event),
-    ...(Number(event.priority || 0)
-      ? { priority: Number(event.priority) }
-      : {}),
+    ...(Number(event.priority || 0) ? { priority: Number(event.priority) } : {})
   });
 }
 
-export function activeElementalistBuffs(
-  context: Gw2ResolverRuntime,
-  kind: string,
-  at: number,
-) {
+export function activeElementalistBuffs(context: Gw2ResolverRuntime, kind: string, at: number) {
   return (context.boons.get(kind.toLowerCase()) || []).filter(
-    (application) =>
-      application.at <= at + EPSILON && application.expiresAt > at + EPSILON,
+    (application) => application.at <= at + EPSILON && application.expiresAt > at + EPSILON
   );
 }
 
@@ -178,7 +161,7 @@ export function refreshElementalistBuffs(
   context: Gw2ResolverRuntime,
   kind: string,
   at: number,
-  expiresAt: (currentExpiresAt: number) => number,
+  expiresAt: (currentExpiresAt: number) => number
 ) {
   const normalized = kind.toLowerCase();
   const applications = context.boons.get(normalized) || [];
@@ -189,10 +172,10 @@ export function refreshElementalistBuffs(
       active.has(application)
         ? {
             ...application,
-            expiresAt: expiresAt(application.expiresAt),
+            expiresAt: expiresAt(application.expiresAt)
           }
-        : application,
-    ),
+        : application
+    )
   );
   return [...active];
 }
@@ -202,207 +185,134 @@ export function queueElementalistAura(
   event: Gw2ResolverEvent,
   aura: string,
   duration: number,
-  skillName: string,
+  skillName: string
 ): void {
-  const adjustedDuration = hasTrait(context, "Smothering Auras")
-    ? duration *
-      elementalistBalanceValue(
-        context,
-        PROFILE.smotheringAuras,
-        "durationMultiplier",
-        1.33,
-      )
+  const adjustedDuration = hasTrait(context, 'Smothering Auras')
+    ? duration * elementalistBalanceValue(context, PROFILE.smotheringAuras, 'durationMultiplier', 1.33)
     : duration;
   enqueueOrdered(context.queue, {
-    type: "elementalist.aura",
+    type: 'elementalist.aura',
     at: event.at,
     source: skillName,
     sourceId: event.skillId ?? event.sourceId ?? skillName,
-    actorType: "effect",
+    actorType: 'effect',
     skillName,
     aura,
     duration: adjustedDuration,
-    elementalistResolverGeneratedAura: true,
+    elementalistResolverGeneratedAura: true
   });
 }
 
-export function applyElementalistResolverAura(
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-): void {
+export function applyElementalistResolverAura(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   if (event.elementalistAuraReactionDispatched === true) return;
   const skillName = elementalistSourceSkill(event);
   const duration = Math.max(0, Number(event.duration || 0));
   const auraState: ElementalistAuraState = {
-    type: String(event.aura || ""),
+    type: String(event.aura || ''),
     appliedAt: event.at,
     expiresAt: event.at + duration,
-    skillName,
+    skillName
   };
   coreState(context).activeAuras.push(auraState);
   if (event.elementalistResolverGeneratedAura === true) {
     context.resolved.push(event);
   }
-  if (hasTrait(context, "Empowering Auras")) {
-    const maximumStacks = elementalistBalanceValue(
-      context,
-      TRAIT.EMPOWERING_AURAS,
-      "maximumStacks",
-      5,
-    );
-    const duration = elementalistBalanceValue(
-      context,
-      TRAIT.EMPOWERING_AURAS,
-      "durationMultiplier",
-      10,
-    );
-    const current = activeElementalistBuffs(
-      context,
-      "Empowering Auras",
-      event.at,
-    );
-    refreshElementalistBuffs(
-      context,
-      "Empowering Auras",
-      event.at,
-      () => event.at + duration,
-    );
-    const activeStacks = current.reduce(
-      (total, application) => total + Number(application.stacks || 1),
-      0,
-    );
+  if (hasTrait(context, 'Empowering Auras')) {
+    const maximumStacks = elementalistBalanceValue(context, TRAIT.EMPOWERING_AURAS, 'maximumStacks', 5);
+    const duration = elementalistBalanceValue(context, TRAIT.EMPOWERING_AURAS, 'durationMultiplier', 10);
+    const current = activeElementalistBuffs(context, 'Empowering Auras', event.at);
+    refreshElementalistBuffs(context, 'Empowering Auras', event.at, () => event.at + duration);
+    const activeStacks = current.reduce((total, application) => total + Number(application.stacks || 1), 0);
     if (activeStacks < maximumStacks) {
-      queueElementalistBuff(
-        context,
-        event,
-        "Empowering Auras",
-        1,
-        duration,
-        skillName,
-      );
+      queueElementalistBuff(context, event, 'Empowering Auras', 1, duration, skillName);
     }
-    recordElementalistTraitProc(context, event, "Empowering Auras");
+    recordElementalistTraitProc(context, event, 'Empowering Auras');
   }
   if (context.combatStartTime != null && event.at < context.combatStartTime) {
     return;
   }
-  if (
-    event.elementalistResolverGeneratedAura === true ||
-    event.type === "aura"
-  ) {
+  if (event.elementalistResolverGeneratedAura === true || event.type === 'aura') {
     if (hasTrait(context, "Zephyr's Boon")) {
-      const fury = elementalistBalanceEffect(
-        context,
-        PROFILE.zephyrsBoon,
-        "boon",
-        "Fury",
-      );
-      const swiftness = elementalistBalanceEffect(
-        context,
-        PROFILE.zephyrsBoon,
-        "boon",
-        "Swiftness",
-      );
+      const fury = elementalistBalanceEffect(context, PROFILE.zephyrsBoon, 'boon', 'Fury');
+      const swiftness = elementalistBalanceEffect(context, PROFILE.zephyrsBoon, 'boon', 'Swiftness');
       queueElementalistBuff(
         context,
         event,
-        String(fury?.boon || "Fury"),
+        String(fury?.boon || 'Fury'),
         Number(fury?.stacks ?? 1),
         Number(fury?.duration ?? 5),
-        skillName,
+        skillName
       );
       queueElementalistBuff(
         context,
         event,
-        String(swiftness?.boon || "Swiftness"),
+        String(swiftness?.boon || 'Swiftness'),
         Number(swiftness?.stacks ?? 1),
         Number(swiftness?.duration ?? 5),
-        skillName,
+        skillName
       );
     }
-    if (hasTrait(context, "Elemental Shielding")) {
-      const protection = elementalistBalanceEffect(
-        context,
-        PROFILE.elementalShielding,
-        "boon",
-        "Protection",
-      );
+    if (hasTrait(context, 'Elemental Shielding')) {
+      const protection = elementalistBalanceEffect(context, PROFILE.elementalShielding, 'boon', 'Protection');
       queueElementalistBuff(
         context,
         event,
-        String(protection?.boon || "Protection"),
+        String(protection?.boon || 'Protection'),
         Number(protection?.stacks ?? 1),
         Number(protection?.duration ?? 3),
-        skillName,
+        skillName
       );
     }
-    if (hasTrait(context, "Invigorating Torrents")) {
+    if (hasTrait(context, 'Invigorating Torrents')) {
       for (const [name, kind] of [
-        ["Vigor", "Vigor"],
-        ["Regeneration", "Regeneration"],
+        ['Vigor', 'Vigor'],
+        ['Regeneration', 'Regeneration']
       ] as const) {
-        const effect = elementalistBalanceEffect(
-          context,
-          TRAIT.INVIGORATING_TORRENTS,
-          "boon",
-          name,
-        );
+        const effect = elementalistBalanceEffect(context, TRAIT.INVIGORATING_TORRENTS, 'boon', name);
         queueElementalistBuff(
           context,
           event,
           String(effect?.boon || kind),
           Number(effect?.stacks ?? 1),
           Number(effect?.duration ?? 5),
-          skillName,
+          skillName
         );
       }
     }
-    if (hasTrait(context, "Elemental Bastion")) {
-      const alacrity = elementalistBalanceEffect(
-        context,
-        TRAIT.ELEMENTAL_BASTION,
-        "boon",
-        "Alacrity",
-      );
+    if (hasTrait(context, 'Elemental Bastion')) {
+      const alacrity = elementalistBalanceEffect(context, TRAIT.ELEMENTAL_BASTION, 'boon', 'Alacrity');
       queueElementalistBuff(
         context,
         event,
-        String(alacrity?.boon || "Alacrity"),
+        String(alacrity?.boon || 'Alacrity'),
         Number(alacrity?.stacks ?? 1),
         Number(alacrity?.duration ?? 4),
-        skillName,
+        skillName
       );
     }
   }
-  if (event.type === "elementalist.aura") {
+  if (event.type === 'elementalist.aura') {
     Object.assign(event, { elementalistAuraReactionDispatched: true });
-    context.dispatchReaction("aura.applied", event);
+    context.dispatchReaction('aura.applied', event);
   }
 }
 
-export function recordElementalistResolvedEvent(
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-): void {
+export function recordElementalistResolvedEvent(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   context.resolved.push(event);
 }
 
-export function recordElementalistTraitProc(
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-  name: string,
-): void {
-  context.recordProc("trait", name, event.at, elementalistSourceSkill(event));
+export function recordElementalistTraitProc(context: Gw2ResolverRuntime, event: Gw2ResolverEvent, name: string): void {
+  context.recordProc('trait', name, event.at, elementalistSourceSkill(event));
 }
 
 function applyBurningPrecision(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
-  details: NativeResolvedDamageDetails,
+  details: NativeResolvedDamageDetails
 ): void {
   if (
-    !hasTrait(context, "Burning Precision") ||
-    event.actorType !== "player" ||
+    !hasTrait(context, 'Burning Precision') ||
+    event.actorType !== 'player' ||
     details.hitContext?.critEligible !== true
   ) {
     return;
@@ -410,74 +320,43 @@ function applyBurningPrecision(
   const state = coreState(context);
   const chance = Number(details.hitContext.critical.chance || 0);
   state.burningPrecisionProgress +=
-    chance *
-    elementalistBalanceValue(
-      context,
-      PROFILE.burningPrecision,
-      "procChance",
-      0.33,
-    );
-  if (
-    state.burningPrecisionProgress < 1 ||
-    Number(state.procReadyAt.burningPrecision || 0) >= event.at - EPSILON
-  ) {
+    chance * elementalistBalanceValue(context, PROFILE.burningPrecision, 'procChance', 0.33);
+  if (state.burningPrecisionProgress < 1 || Number(state.procReadyAt.burningPrecision || 0) >= event.at - EPSILON) {
     return;
   }
   state.burningPrecisionProgress -= 1;
   state.procReadyAt.burningPrecision =
-    event.at +
-    elementalistBalanceValue(
-      context,
-      PROFILE.burningPrecision,
-      "internalCooldown",
-      5,
-    );
-  const burning = elementalistBalanceEffect(
-    context,
-    PROFILE.burningPrecision,
-    "condition",
-    "Burning Precision",
-  );
+    event.at + elementalistBalanceValue(context, PROFILE.burningPrecision, 'internalCooldown', 5);
+  const burning = elementalistBalanceEffect(context, PROFILE.burningPrecision, 'condition', 'Burning Precision');
   applyCondition(context, details, event, {
-    source: "Burning Precision",
-    sourceId: "Burning Precision",
-    condition: String(burning?.condition || "Burning"),
+    source: 'Burning Precision',
+    sourceId: 'Burning Precision',
+    condition: String(burning?.condition || 'Burning'),
     stacks: Number(burning?.stacks ?? 1),
-    duration: Number(burning?.duration ?? 3),
+    duration: Number(burning?.duration ?? 3)
   });
-  recordElementalistTraitProc(context, event, "Burning Precision");
+  recordElementalistTraitProc(context, event, 'Burning Precision');
 }
 
-function grantPersistingFlames(
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-): void {
-  if (!hasTrait(context, "Persisting Flames")) return;
+function grantPersistingFlames(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+  if (!hasTrait(context, 'Persisting Flames')) return;
   queueElementalistBuff(
     context,
     event,
-    "Persisting Flames",
+    'Persisting Flames',
     1,
-    elementalistBalanceValue(
-      context,
-      PROFILE.persistingFlames,
-      "durationMultiplier",
-      15,
-    ),
-    elementalistSourceSkill(event),
+    elementalistBalanceValue(context, PROFILE.persistingFlames, 'durationMultiplier', 15),
+    elementalistSourceSkill(event)
   );
 }
 
 export function applyElementalistResolvedDamage(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
-  details: NativeResolvedDamageDetails = {},
+  details: NativeResolvedDamageDetails = {}
 ): void {
   applyBurningPrecision(context, event, details);
-  if (
-    event.damageKind === "field-tick" &&
-    PERSISTING_FLAMES_FIELD_SKILLS.has(elementalistSourceSkill(event))
-  ) {
+  if (event.damageKind === 'field-tick' && PERSISTING_FLAMES_FIELD_SKILLS.has(elementalistSourceSkill(event))) {
     grantPersistingFlames(context, event);
   }
 }
@@ -485,60 +364,41 @@ export function applyElementalistResolvedDamage(
 export function applyElementalistResolvedCondition(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
-  details: ElementalistConditionReactionDetails = {},
+  details: ElementalistConditionReactionDetails = {}
 ): void {
   if (
-    ["Immobilize", "Immobilized"].includes(String(event.condition)) &&
-    hasTrait(context, "Strength of Stone") &&
+    ['Immobilize', 'Immobilized'].includes(String(event.condition)) &&
+    hasTrait(context, 'Strength of Stone') &&
     (context.combatStartTime == null || event.at >= context.combatStartTime)
   ) {
     const state = coreState(context);
     if (Number(state.procReadyAt.strengthOfStone || 0) < event.at - EPSILON) {
       state.procReadyAt.strengthOfStone =
-        event.at +
-        elementalistBalanceValue(
-          context,
-          PROFILE.strengthOfStone,
-          "internalCooldown",
-          3,
-        );
-      const bleeding = elementalistBalanceEffect(
-        context,
-        PROFILE.strengthOfStone,
-        "condition",
-        "Strength of Stone",
-      );
+        event.at + elementalistBalanceValue(context, PROFILE.strengthOfStone, 'internalCooldown', 3);
+      const bleeding = elementalistBalanceEffect(context, PROFILE.strengthOfStone, 'condition', 'Strength of Stone');
       applyCondition(context, details, event, {
-        source: "Strength of Stone",
-        sourceId: "Strength of Stone",
-        condition: String(bleeding?.condition || "Bleeding"),
+        source: 'Strength of Stone',
+        sourceId: 'Strength of Stone',
+        condition: String(bleeding?.condition || 'Bleeding'),
         stacks: Number(bleeding?.stacks ?? 3),
-        duration: Number(bleeding?.duration ?? 10),
+        duration: Number(bleeding?.duration ?? 10)
       });
-      recordElementalistTraitProc(context, event, "Strength of Stone");
+      recordElementalistTraitProc(context, event, 'Strength of Stone');
     }
   }
-  if (event.condition === "Burning") grantPersistingFlames(context, event);
+  if (event.condition === 'Burning') grantPersistingFlames(context, event);
 }
 
-export function applyElementalistResolverAttunement(
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-): void {
+export function applyElementalistResolverAttunement(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   const core = coreState(context);
   if (isElementalistAttunement(event.to)) {
     core.primaryAttunement = event.to;
   }
-  core.secondaryAttunement = isElementalistAttunement(event.secondaryAttunement)
-    ? event.secondaryAttunement
-    : null;
+  core.secondaryAttunement = isElementalistAttunement(event.secondaryAttunement) ? event.secondaryAttunement : null;
   core.attunementEnteredAt = event.at;
 }
 
-export function applyElementalistResolverSignetFire(
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-): void {
+export function applyElementalistResolverSignetFire(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   const core = coreState(context);
   core.signetOfFireDisabledUntil = Number(event.disabledUntil || event.at);
 }

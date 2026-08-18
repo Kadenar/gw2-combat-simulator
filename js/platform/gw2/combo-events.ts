@@ -1,12 +1,8 @@
-import { EPSILON } from "../engine/clock.js";
-import { clamp } from "./numeric.js";
-import { comboDefinition } from "./combo-definitions.js";
+import { EPSILON } from '../engine/clock.js';
+import { clamp } from './numeric.js';
+import { comboDefinition } from './combo-definitions.js';
 
-import type {
-  SchedulerRecord,
-  SimulationActorType,
-  SimulationEventInput,
-} from "../engine/types.js";
+import type { SchedulerRecord, SimulationActorType, SimulationEventInput } from '../engine/types.js';
 import type {
   ComboEvent,
   ComboFieldBinding,
@@ -14,41 +10,34 @@ import type {
   ComboFieldType,
   ComboFinisherEvent,
   ComboFinisherType,
-  Gw2ComboRuntimeState,
-} from "./types.js";
+  Gw2ComboRuntimeState
+} from './types.js';
 
 export const COMBO_FIELD_TYPES: readonly ComboFieldType[] = Object.freeze([
-  "Dark",
-  "Ethereal",
-  "Fire",
-  "Ice",
-  "Light",
-  "Lightning",
-  "Poison",
-  "Smoke",
-  "Water",
+  'Dark',
+  'Ethereal',
+  'Fire',
+  'Ice',
+  'Light',
+  'Lightning',
+  'Poison',
+  'Smoke',
+  'Water'
 ]);
 
-export const COMBO_FINISHER_TYPES: readonly ComboFinisherType[] = Object.freeze(
-  ["Blast", "Leap", "Projectile", "Whirl"],
-);
-
-const ACTOR_TYPES = new Set<SimulationActorType>([
-  "player",
-  "summon",
-  "effect",
-  "unknown",
-  "phantasm",
+export const COMBO_FINISHER_TYPES: readonly ComboFinisherType[] = Object.freeze([
+  'Blast',
+  'Leap',
+  'Projectile',
+  'Whirl'
 ]);
-const FIELD_TYPES_BY_LOWERCASE = new Map(
-  COMBO_FIELD_TYPES.map((type) => [type.toLowerCase(), type]),
-);
-const FINISHER_TYPES_BY_LOWERCASE = new Map(
-  COMBO_FINISHER_TYPES.map((type) => [type.toLowerCase(), type]),
-);
+
+const ACTOR_TYPES = new Set<SimulationActorType>(['player', 'summon', 'effect', 'unknown', 'phantasm']);
+const FIELD_TYPES_BY_LOWERCASE = new Map(COMBO_FIELD_TYPES.map((type) => [type.toLowerCase(), type]));
+const FINISHER_TYPES_BY_LOWERCASE = new Map(COMBO_FINISHER_TYPES.map((type) => [type.toLowerCase(), type]));
 
 function requiredString(value: unknown, label: string): string {
-  const normalized = String(value ?? "").trim();
+  const normalized = String(value ?? '').trim();
   if (!normalized) throw new TypeError(`${label} is required.`);
   return normalized;
 }
@@ -62,18 +51,13 @@ function positiveInteger(value: unknown, label: string): number {
 }
 
 export function normalizeComboFieldType(value: unknown): ComboFieldType {
-  const normalized = FIELD_TYPES_BY_LOWERCASE.get(
-    String(value ?? "").toLowerCase(),
-  );
-  if (!normalized)
-    throw new TypeError(`Invalid combo field type: ${String(value)}.`);
+  const normalized = FIELD_TYPES_BY_LOWERCASE.get(String(value ?? '').toLowerCase());
+  if (!normalized) throw new TypeError(`Invalid combo field type: ${String(value)}.`);
   return normalized;
 }
 
 export function normalizeComboFinisherType(value: unknown): ComboFinisherType {
-  const normalized = FINISHER_TYPES_BY_LOWERCASE.get(
-    String(value ?? "").toLowerCase(),
-  );
+  const normalized = FINISHER_TYPES_BY_LOWERCASE.get(String(value ?? '').toLowerCase());
   if (!normalized) {
     throw new TypeError(`Invalid combo finisher type: ${String(value)}.`);
   }
@@ -82,191 +66,152 @@ export function normalizeComboFinisherType(value: unknown): ComboFinisherType {
 
 export interface SelectComboFieldOptions {
   readonly preferredFieldTypes?: readonly ComboFieldType[];
-  readonly ambiguousFieldSelection?: "none" | "oldest";
+  readonly ambiguousFieldSelection?: 'none' | 'oldest';
 }
 
 /** Selects one owned field, honoring an authoritative field before preferences. */
 export function selectComboFieldForFinisher(
   fields: readonly ComboFieldEvent[],
-  options: SelectComboFieldOptions = {},
+  options: SelectComboFieldOptions = {}
 ): { readonly field?: ComboFieldEvent; readonly ambiguous: boolean } {
   const ordered = [...fields].sort(
-    (left, right) =>
-      left.at - right.at ||
-      Number(left.__order || 0) - Number(right.__order || 0),
+    (left, right) => left.at - right.at || Number(left.__order || 0) - Number(right.__order || 0)
   );
   // comboBindingPriority > 0 marks an authoritative field (e.g., the specific
   // field placed by a skill that also carries a finisher). When present, only
   // those high-priority fields are candidates — ambient fields are ignored.
   const highestBindingPriority = ordered.reduce(
-    (highest, field) =>
-      Math.max(highest, Number(field.comboBindingPriority || 0)),
-    0,
+    (highest, field) => Math.max(highest, Number(field.comboBindingPriority || 0)),
+    0
   );
   const candidates =
     highestBindingPriority > 0
-      ? ordered.filter(
-          (field) =>
-            Number(field.comboBindingPriority || 0) === highestBindingPriority,
-        )
+      ? ordered.filter((field) => Number(field.comboBindingPriority || 0) === highestBindingPriority)
       : ordered;
-  const preferredTypes = (options.preferredFieldTypes || []).map(
-    normalizeComboFieldType,
-  );
+  const preferredTypes = (options.preferredFieldTypes || []).map(normalizeComboFieldType);
   const preferred = preferredTypes
-    .map((fieldType) =>
-      candidates.find((field) => field.fieldType === fieldType),
-    )
+    .map((fieldType) => candidates.find((field) => field.fieldType === fieldType))
     .find(Boolean);
   // Ambiguous means multiple different field types are present; same type repeated is not ambiguous.
-  const ambiguous =
-    new Set(candidates.map((field) => field.fieldType)).size > 1;
+  const ambiguous = new Set(candidates.map((field) => field.fieldType)).size > 1;
   // Priority: preferred type → oldest unambiguous → undefined when ambiguous with no match/override.
   return {
-    field:
-      preferred ||
-      (!ambiguous || options.ambiguousFieldSelection === "oldest"
-        ? candidates[0]
-        : undefined),
-    ambiguous,
+    field: preferred || (!ambiguous || options.ambiguousFieldSelection === 'oldest' ? candidates[0] : undefined),
+    ambiguous
   };
 }
 
 export function normalizeComboFieldBinding(value: unknown): ComboFieldBinding {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new TypeError("Combo finisher fieldBinding is required.");
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError('Combo finisher fieldBinding is required.');
   }
   const binding = value as SchedulerRecord;
-  if (binding.kind === "none") return Object.freeze({ kind: "none" });
-  if (binding.kind === "field-id") {
+  if (binding.kind === 'none') return Object.freeze({ kind: 'none' });
+  if (binding.kind === 'field-id') {
     return Object.freeze({
-      kind: "field-id",
-      fieldId: requiredString(binding.fieldId, "Combo field binding fieldId"),
+      kind: 'field-id',
+      fieldId: requiredString(binding.fieldId, 'Combo field binding fieldId')
     });
   }
-  if (binding.kind === "field-type") {
+  if (binding.kind === 'field-type') {
     return Object.freeze({
-      kind: "field-type",
-      fieldType: normalizeComboFieldType(binding.fieldType),
+      kind: 'field-type',
+      fieldType: normalizeComboFieldType(binding.fieldType)
     });
   }
-  throw new TypeError(
-    `Invalid combo field binding kind: ${String(binding.kind)}.`,
-  );
+  throw new TypeError(`Invalid combo field binding kind: ${String(binding.kind)}.`);
 }
 
 /** Normalizes and validates GW2-owned semantic events before engine freezing. */
-export function prepareGw2ComboEvent(
-  event: SimulationEventInput,
-): SimulationEventInput {
-  if (event.type === "combo_field") {
+export function prepareGw2ComboEvent(event: SimulationEventInput): SimulationEventInput {
+  if (event.type === 'combo_field') {
     const at = Number(event.at);
     const expiresAt = Number(event.expiresAt);
-    const comboBindingPriority =
-      event.comboBindingPriority == null
-        ? null
-        : Number(event.comboBindingPriority);
+    const comboBindingPriority = event.comboBindingPriority == null ? null : Number(event.comboBindingPriority);
     if (!Number.isFinite(expiresAt) || !(expiresAt > at)) {
-      throw new TypeError("Combo field expiresAt must be later than at.");
+      throw new TypeError('Combo field expiresAt must be later than at.');
     }
-    if (
-      comboBindingPriority != null &&
-      (!Number.isFinite(comboBindingPriority) || comboBindingPriority < 0)
-    ) {
-      throw new TypeError(
-        "Combo field comboBindingPriority must be a non-negative finite number.",
-      );
+    if (comboBindingPriority != null && (!Number.isFinite(comboBindingPriority) || comboBindingPriority < 0)) {
+      throw new TypeError('Combo field comboBindingPriority must be a non-negative finite number.');
     }
     if (!ACTOR_TYPES.has(event.ownerActorType as SimulationActorType)) {
-      throw new TypeError("Combo field ownerActorType is invalid.");
+      throw new TypeError('Combo field ownerActorType is invalid.');
     }
     return {
       ...event,
       // Fields default to priority -1 so they sort before finishers (default 0)
       // and are visible in state before the finisher that reacts to them.
       priority: event.priority ?? -1,
-      fieldId: requiredString(event.fieldId, "Combo field fieldId"),
+      fieldId: requiredString(event.fieldId, 'Combo field fieldId'),
       fieldType: normalizeComboFieldType(event.fieldType),
       expiresAt,
-      ownerId: requiredString(event.ownerId, "Combo field ownerId"),
-      ...(comboBindingPriority == null ? {} : { comboBindingPriority }),
+      ownerId: requiredString(event.ownerId, 'Combo field ownerId'),
+      ...(comboBindingPriority == null ? {} : { comboBindingPriority })
     };
   }
-  if (event.type === "combo_finisher") {
+  if (event.type === 'combo_finisher') {
     const at = Number(event.at);
     const effectAt = Number(event.effectAt);
     if (!Number.isFinite(effectAt) || effectAt < at) {
-      throw new TypeError("Combo finisher effectAt must not precede at.");
+      throw new TypeError('Combo finisher effectAt must not precede at.');
     }
     const chance = Number(event.chance);
     if (!Number.isFinite(chance)) {
-      throw new TypeError("Combo finisher chance must be finite.");
+      throw new TypeError('Combo finisher chance must be finite.');
     }
-    const parentEventOrder =
-      event.parentEventOrder == null ? null : Number(event.parentEventOrder);
+    const parentEventOrder = event.parentEventOrder == null ? null : Number(event.parentEventOrder);
     if (parentEventOrder != null && !Number.isFinite(parentEventOrder)) {
-      throw new TypeError("Combo finisher parentEventOrder must be finite.");
+      throw new TypeError('Combo finisher parentEventOrder must be finite.');
     }
     return {
       ...event,
       priority: event.priority ?? 0,
-      attemptId: requiredString(event.attemptId, "Combo finisher attemptId"),
+      attemptId: requiredString(event.attemptId, 'Combo finisher attemptId'),
       finisherType: normalizeComboFinisherType(event.finisherType),
       fieldBinding: normalizeComboFieldBinding(event.fieldBinding),
       effectAt,
       chance: clamp(chance, 0, 1),
-      applications: positiveInteger(
-        event.applications,
-        "Combo finisher applications",
-      ),
-      successfulCombos: positiveInteger(
-        event.successfulCombos,
-        "Combo finisher successfulCombos",
-      ),
-      ...(parentEventOrder == null ? {} : { parentEventOrder }),
+      applications: positiveInteger(event.applications, 'Combo finisher applications'),
+      successfulCombos: positiveInteger(event.successfulCombos, 'Combo finisher successfulCombos'),
+      ...(parentEventOrder == null ? {} : { parentEventOrder })
     };
   }
-  if (event.type === "combo") {
+  if (event.type === 'combo') {
     const outcome = event.outcome;
-    if (!outcome || typeof outcome !== "object" || Array.isArray(outcome)) {
-      throw new TypeError("Combo outcome is required.");
+    if (!outcome || typeof outcome !== 'object' || Array.isArray(outcome)) {
+      throw new TypeError('Combo outcome is required.');
     }
     return {
       ...event,
-      comboId: requiredString(event.comboId, "Combo comboId"),
-      attemptId: requiredString(event.attemptId, "Combo attemptId"),
-      fieldId: requiredString(event.fieldId, "Combo fieldId"),
+      comboId: requiredString(event.comboId, 'Combo comboId'),
+      attemptId: requiredString(event.attemptId, 'Combo attemptId'),
+      fieldId: requiredString(event.fieldId, 'Combo fieldId'),
       fieldType: normalizeComboFieldType(event.fieldType),
       finisherType: normalizeComboFinisherType(event.finisherType),
       // Reconstruct a full binding object just to validate and then discard
       // everything except .kind — combo events only record how the field was bound.
       bindingKind: normalizeComboFieldBinding(
-        event.bindingKind === "field-id"
-          ? { kind: "field-id", fieldId: event.fieldId }
-          : event.bindingKind === "field-type"
-            ? { kind: "field-type", fieldType: event.fieldType }
-            : { kind: event.bindingKind },
+        event.bindingKind === 'field-id'
+          ? { kind: 'field-id', fieldId: event.fieldId }
+          : event.bindingKind === 'field-type'
+            ? { kind: 'field-type', fieldType: event.fieldType }
+            : { kind: event.bindingKind }
       ).kind,
-      applicationCount: positiveInteger(
-        event.applicationCount,
-        "Combo applicationCount",
-      ),
+      applicationCount: positiveInteger(event.applicationCount, 'Combo applicationCount')
     };
   }
-  if (event.type === "aura") {
+  if (event.type === 'aura') {
     const duration = Number(event.duration);
-    if (!requiredString(event.aura, "Aura name") || !(duration > 0)) {
-      throw new TypeError("Aura events require a positive duration.");
+    if (!requiredString(event.aura, 'Aura name') || !(duration > 0)) {
+      throw new TypeError('Aura events require a positive duration.');
     }
     return { ...event, duration };
   }
   return event;
 }
 
-export function isSchedulerComboPrediction(
-  event: Readonly<Record<string, unknown>>,
-): boolean {
-  return event.schedulerPrediction === "combo-result";
+export function isSchedulerComboPrediction(event: Readonly<Record<string, unknown>>): boolean {
+  return event.schedulerPrediction === 'combo-result';
 }
 
 export function createGw2ComboRuntimeState(): Gw2ComboRuntimeState {
@@ -274,14 +219,11 @@ export function createGw2ComboRuntimeState(): Gw2ComboRuntimeState {
     fields: new Map(),
     handledAttemptIds: new Set(),
     deterministicProgress: new Map(),
-    warningKeys: new Set(),
+    warningKeys: new Set()
   };
 }
 
-export function registerComboField(
-  state: Gw2ComboRuntimeState,
-  event: ComboFieldEvent,
-): void {
+export function registerComboField(state: Gw2ComboRuntimeState, event: ComboFieldEvent): void {
   state.fields.set(event.fieldId, event);
 }
 
@@ -298,17 +240,10 @@ function discardExpiredFields(state: Gw2ComboRuntimeState, at: number): void {
 }
 
 function warningLabel(event: ComboFinisherEvent): string {
-  return String(
-    event.skillName || event.name || event.source || event.sourceId,
-  );
+  return String(event.skillName || event.name || event.source || event.sourceId);
 }
 
-function warnOnce(
-  state: Gw2ComboRuntimeState,
-  key: string,
-  message: string,
-  warn: (message: string) => void,
-): void {
+function warnOnce(state: Gw2ComboRuntimeState, key: string, message: string, warn: (message: string) => void): void {
   if (state.warningKeys.has(key)) return;
   state.warningKeys.add(key);
   warn(message);
@@ -317,12 +252,12 @@ function warnOnce(
 function boundField(
   state: Gw2ComboRuntimeState,
   event: ComboFinisherEvent,
-  warn: (message: string) => void,
+  warn: (message: string) => void
 ): ComboFieldEvent | null {
   discardExpiredFields(state, event.at);
   const label = warningLabel(event);
   const time = event.at.toFixed(3);
-  if (event.fieldBinding.kind === "none") {
+  if (event.fieldBinding.kind === 'none') {
     // warnOnUnbound=false suppresses the warning for finishers that are
     // intentionally unbound (e.g. a Whirl that self-manages its field choice).
     if (event.warnOnUnbound === false) return null;
@@ -330,35 +265,32 @@ function boundField(
       state,
       `none|${label}`,
       `Combo field binding is unspecified for ${label} at ${time}s; no combo resolved.`,
-      warn,
+      warn
     );
     return null;
   }
-  if (event.fieldBinding.kind === "field-id") {
+  if (event.fieldBinding.kind === 'field-id') {
     const field = state.fields.get(event.fieldBinding.fieldId);
     if (field && activeAt(field, event.at)) return field;
     warnOnce(
       state,
       `inactive-id|${event.fieldBinding.fieldId}|${label}`,
       `Combo field ${event.fieldBinding.fieldId} is not active for ${label} at ${time}s; no combo resolved.`,
-      warn,
+      warn
     );
     return null;
   }
   const binding = event.fieldBinding;
-  if (binding.kind !== "field-type") return null;
+  if (binding.kind !== 'field-type') return null;
   const candidates = [...state.fields.values()]
-    .filter(
-      (field) =>
-        field.fieldType === binding.fieldType && activeAt(field, event.at),
-    )
+    .filter((field) => field.fieldType === binding.fieldType && activeAt(field, event.at))
     .sort((left, right) => left.at - right.at);
   if (candidates[0]) return candidates[0];
   warnOnce(
     state,
     `inactive-type|${binding.fieldType}|${label}`,
     `${binding.fieldType} combo field is not active for ${label} at ${time}s; no combo resolved.`,
-    warn,
+    warn
   );
   return null;
 }
@@ -366,20 +298,11 @@ function boundField(
 // Accumulates fractional expected procs per unique {field+finisher+outcome} key.
 // Progress fires and resets by 1.0 each time it crosses the threshold — this
 // spreads proc events evenly across the rotation rather than rounding up or down.
-function deterministicSuccess(
-  state: Gw2ComboRuntimeState,
-  event: ComboFinisherEvent,
-  field: ComboFieldEvent,
-): boolean {
+function deterministicSuccess(state: Gw2ComboRuntimeState, event: ComboFinisherEvent, field: ComboFieldEvent): boolean {
   if (event.chance >= 1) return true;
   if (event.chance <= 0) return false;
   const outcome = comboDefinition(field.fieldType, event.finisherType).outcome;
-  const key = [
-    field.fieldType,
-    event.finisherType,
-    outcome.kind,
-    outcome.name,
-  ].join("|");
+  const key = [field.fieldType, event.finisherType, outcome.kind, outcome.name].join('|');
   const progress = (state.deterministicProgress.get(key) || 0) + event.chance;
   if (progress + EPSILON < 1) {
     state.deterministicProgress.set(key, progress);
@@ -399,7 +322,7 @@ export interface ResolveComboAttemptOptions {
 export function resolveComboAttempt(
   state: Gw2ComboRuntimeState,
   event: ComboFinisherEvent,
-  { stochastic, roll, warn }: ResolveComboAttemptOptions,
+  { stochastic, roll, warn }: ResolveComboAttemptOptions
 ): readonly ComboEvent[] {
   // Guard against the same attempt being processed twice if the finisher event
   // appears more than once in the event queue.
@@ -415,7 +338,7 @@ export function resolveComboAttempt(
   const definition = comboDefinition(field.fieldType, event.finisherType);
   return Object.freeze(
     Array.from({ length: event.successfulCombos }, (_, index) => ({
-      type: "combo" as const,
+      type: 'combo' as const,
       at: event.effectAt,
       source: event.source,
       sourceId: event.sourceId,
@@ -437,7 +360,7 @@ export function resolveComboAttempt(
       bindingKind: event.fieldBinding.kind,
       applicationCount: event.applications,
       outcome: definition.outcome,
-      parentEventOrder: event.parentEventOrder,
-    })),
+      parentEventOrder: event.parentEventOrder
+    }))
   );
 }

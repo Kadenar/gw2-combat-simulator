@@ -1,146 +1,127 @@
-import { getActiveTraits } from "./data/traits-data.js";
-import {
-  addAttribute,
-  finalizeBuildAttributes,
-  resolveAttributeEffects,
-} from "../../platform/gw2/attributes.js";
+import { getActiveTraits } from './data/traits-data.js';
+import { addAttribute, finalizeBuildAttributes, resolveAttributeEffects } from '../../platform/gw2/attributes.js';
 import type {
   Gw2AttributeEffect,
   Gw2CommonAttributeResult,
   Gw2BuildAttributeRuleContext,
   Gw2FinalizedAttributeResult,
-  Gw2NumericAttributes,
-} from "../../platform/gw2/types.js";
-import type { MesmerBuild } from "./types.js";
+  Gw2NumericAttributes
+} from '../../platform/gw2/types.js';
+import type { MesmerBuild } from './types.js';
 
 export function applyMesmerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  {
-    build,
-    selectedSkills = [],
-    disabledTrait = null,
-  }: Gw2BuildAttributeRuleContext,
+  { build, selectedSkills = [], disabledTrait = null }: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
   const mesmerBuild = build as MesmerBuild;
   const traitDurations: Gw2NumericAttributes = {};
-  const activeTraits = getActiveTraits(
-    mesmerBuild.specializations || [],
-  ).filter((trait) => trait.name !== disabledTrait);
-  const hasTrait = (name: string): boolean =>
-    activeTraits.some((trait) => trait.name === name);
+  const activeTraits = getActiveTraits(mesmerBuild.specializations || []).filter(
+    (trait) => trait.name !== disabledTrait
+  );
+  const hasTrait = (name: string): boolean => activeTraits.some((trait) => trait.name === name);
   const assumptions = mesmerBuild.assumptions || {};
   const conversionPool = common.commonContext.conversionPool;
   const attributeEffects: Gw2AttributeEffect[] = [
     {
-      kind: "conversion",
-      source: "Quiet Intensity",
-      from: "Vitality",
-      to: "Ferocity",
+      kind: 'conversion',
+      source: 'Quiet Intensity',
+      from: 'Vitality',
+      to: 'Ferocity',
       multiplier: 0.1,
-      rounding: "round",
-      input: "common",
-      enabled: hasTrait("Quiet Intensity"),
+      rounding: 'round',
+      input: 'common',
+      enabled: hasTrait('Quiet Intensity')
     },
     {
-      kind: "flat",
-      source: "Chaotic Persistence",
-      to: "Expertise",
+      kind: 'flat',
+      source: 'Chaotic Persistence',
+      to: 'Expertise',
       amount: 100,
       feedsConversions: false,
-      enabled:
-        hasTrait("Chaotic Persistence") && assumptions.regeneration !== false,
+      enabled: hasTrait('Chaotic Persistence') && assumptions.regeneration !== false
     },
     {
-      kind: "flat",
-      source: "Chaotic Persistence",
-      to: "Concentration",
+      kind: 'flat',
+      source: 'Chaotic Persistence',
+      to: 'Concentration',
       amount: 250,
       feedsConversions: false,
-      enabled:
-        hasTrait("Chaotic Persistence") && assumptions.regeneration !== false,
+      enabled: hasTrait('Chaotic Persistence') && assumptions.regeneration !== false
     },
     {
-      kind: "flat",
-      source: "Sharpening Sorrow",
-      to: "Expertise",
+      kind: 'flat',
+      source: 'Sharpening Sorrow',
+      to: 'Expertise',
       amount: 150,
       feedsConversions: false,
-      enabled: hasTrait("Sharpening Sorrow") && assumptions.fury !== false,
+      enabled: hasTrait('Sharpening Sorrow') && assumptions.fury !== false
     },
     {
-      kind: "flat",
-      source: "Signet of Domination",
-      to: "Condition Damage",
+      kind: 'flat',
+      source: 'Signet of Domination',
+      to: 'Condition Damage',
       amount: 180,
       feedsConversions: false,
-      enabled: selectedSkills.some(
-        (skill) => skill.id === 10232 || skill.name === "Signet of Domination",
-      ),
+      enabled: selectedSkills.some((skill) => skill.id === 10232 || skill.name === 'Signet of Domination')
     },
     {
-      kind: "flat",
-      source: "Signet of Midnight",
-      to: "Expertise",
+      kind: 'flat',
+      source: 'Signet of Midnight',
+      to: 'Expertise',
       amount: 180,
       feedsConversions: false,
-      enabled: selectedSkills.some(
-        (skill) => skill.id === 10234 || skill.name === "Signet of Midnight",
-      ),
-    },
+      enabled: selectedSkills.some((skill) => skill.id === 10234 || skill.name === 'Signet of Midnight')
+    }
   ];
 
   let traitCriticalChance = 0;
   for (const trait of activeTraits) {
     if (trait.conditionDamage) {
       attributeEffects.push({
-        kind: "flat",
+        kind: 'flat',
         source: trait.name,
-        to: "Condition Damage",
+        to: 'Condition Damage',
         amount: Number(trait.conditionDamage),
-        feedsConversions: false,
+        feedsConversions: false
       });
     }
     if (trait.ferocity) {
       attributeEffects.push({
-        kind: "flat",
+        kind: 'flat',
         source: trait.name,
-        to: "Ferocity",
+        to: 'Ferocity',
         amount: Number(trait.ferocity),
-        feedsConversions: false,
+        feedsConversions: false
       });
     }
     if (trait.concentration) {
       attributeEffects.push({
-        kind: "flat",
+        kind: 'flat',
         source: trait.name,
-        to: "Concentration",
+        to: 'Concentration',
         amount: Number(trait.concentration),
-        feedsConversions: false,
+        feedsConversions: false
       });
     }
     if (trait.vitality) {
       attributeEffects.push({
-        kind: "flat",
+        kind: 'flat',
         source: trait.name,
-        to: "Vitality",
+        to: 'Vitality',
         amount: Number(trait.vitality),
-        feedsConversions: false,
+        feedsConversions: false
       });
     }
     if (trait.confusionDuration) {
-      addAttribute(
-        traitDurations,
-        "Confusion Duration",
-        Number(trait.confusionDuration),
-      );
+      addAttribute(traitDurations, 'Confusion Duration', Number(trait.confusionDuration));
     }
     traitCriticalChance += Number(trait.criticalChance || 0);
   }
   const traitStats = resolveAttributeEffects(conversionPool, attributeEffects);
-  if (hasTrait("Quiet Intensity") && assumptions.fury !== false) {
+  if (hasTrait('Quiet Intensity') && assumptions.fury !== false) {
     traitCriticalChance += 15;
   }
-  if (hasTrait("Flow of Time") && assumptions.alacrity !== false) {
+  if (hasTrait('Flow of Time') && assumptions.alacrity !== false) {
     traitCriticalChance += 15;
   }
 
@@ -148,6 +129,6 @@ export function applyMesmerBuildAttributeRules(
     activeTraits,
     traitStats,
     traitDurations,
-    traitCriticalChance,
+    traitCriticalChance
   });
 }

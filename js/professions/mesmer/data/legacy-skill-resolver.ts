@@ -1,4 +1,4 @@
-import { MESMER_SKILL_IDS as ID } from "./ids.js";
+import { MESMER_SKILL_IDS as ID } from './ids.js';
 
 interface DuplicateFamily {
   readonly defaultId: number;
@@ -6,46 +6,45 @@ interface DuplicateFamily {
   readonly requiresSpecialization?: boolean;
 }
 
-const DUPLICATE_FAMILIES: Readonly<Record<string, DuplicateFamily>> =
-  Object.freeze({
-    "Axes of Symmetry": Object.freeze({
-      defaultId: ID.TROUBADOUR_AXES_OF_SYMMETRY,
-      bySpecialization: Object.freeze({
-        Mirage: ID.AXES_OF_SYMMETRY,
-        Troubadour: ID.TROUBADOUR_AXES_OF_SYMMETRY,
-      }),
-      requiresSpecialization: true,
+const DUPLICATE_FAMILIES: Readonly<Record<string, DuplicateFamily>> = Object.freeze({
+  'Axes of Symmetry': Object.freeze({
+    defaultId: ID.TROUBADOUR_AXES_OF_SYMMETRY,
+    bySpecialization: Object.freeze({
+      Mirage: ID.AXES_OF_SYMMETRY,
+      Troubadour: ID.TROUBADOUR_AXES_OF_SYMMETRY
     }),
-    "Lingering Thoughts": Object.freeze({
-      defaultId: ID.TROUBADOUR_LINGERING_THOUGHTS,
-      bySpecialization: Object.freeze({
-        Mirage: ID.LINGERING_THOUGHTS,
-        Troubadour: ID.TROUBADOUR_LINGERING_THOUGHTS,
-      }),
-      requiresSpecialization: true,
+    requiresSpecialization: true
+  }),
+  'Lingering Thoughts': Object.freeze({
+    defaultId: ID.TROUBADOUR_LINGERING_THOUGHTS,
+    bySpecialization: Object.freeze({
+      Mirage: ID.LINGERING_THOUGHTS,
+      Troubadour: ID.TROUBADOUR_LINGERING_THOUGHTS
     }),
-    Bladecall: Object.freeze({
-      defaultId: ID.BLADECALL,
-      bySpecialization: Object.freeze({
-        Troubadour: ID.TROUBADOUR_BLADECALL,
-        Virtuoso: ID.BLADECALL,
-      }),
+    requiresSpecialization: true
+  }),
+  Bladecall: Object.freeze({
+    defaultId: ID.BLADECALL,
+    bySpecialization: Object.freeze({
+      Troubadour: ID.TROUBADOUR_BLADECALL,
+      Virtuoso: ID.BLADECALL
+    })
+  }),
+  'Lively Lute': Object.freeze({
+    defaultId: ID.LIVELY_LUTE,
+    bySpecialization: Object.freeze({
+      Troubadour: ID.LIVELY_LUTE
     }),
-    "Lively Lute": Object.freeze({
-      defaultId: ID.LIVELY_LUTE,
-      bySpecialization: Object.freeze({
-        Troubadour: ID.LIVELY_LUTE,
-      }),
-      requiresSpecialization: true,
+    requiresSpecialization: true
+  }),
+  'Harmonious Harp': Object.freeze({
+    defaultId: ID.HARMONIOUS_HARP_ALTERNATE,
+    bySpecialization: Object.freeze({
+      Troubadour: ID.HARMONIOUS_HARP_ALTERNATE
     }),
-    "Harmonious Harp": Object.freeze({
-      defaultId: ID.HARMONIOUS_HARP_ALTERNATE,
-      bySpecialization: Object.freeze({
-        Troubadour: ID.HARMONIOUS_HARP_ALTERNATE,
-      }),
-      requiresSpecialization: true,
-    }),
-  });
+    requiresSpecialization: true
+  })
+});
 
 /**
  * Resolves only Mesmer's duplicate legacy display-name families.
@@ -55,9 +54,9 @@ const DUPLICATE_FAMILIES: Readonly<Record<string, DuplicateFamily>> =
  */
 export function resolveMesmerLegacySkillId(
   name: string,
-  { specialization = "" }: { specialization?: string } = {},
+  { specialization = '' }: { specialization?: string } = {}
 ): number | null | undefined {
-  const family = DUPLICATE_FAMILIES[String(name || "")];
+  const family = DUPLICATE_FAMILIES[String(name || '')];
   if (!family) return undefined;
   const specialized = family.bySpecialization[specialization];
   if (specialized != null) return specialized;
@@ -65,9 +64,7 @@ export function resolveMesmerLegacySkillId(
 }
 
 export function defaultMesmerLegacySkillId(name: string): number | undefined {
-  return DUPLICATE_FAMILIES[String(name || "")]?.defaultId;
+  return DUPLICATE_FAMILIES[String(name || '')]?.defaultId;
 }
 
-export const MESMER_DUPLICATE_SKILL_NAMES: readonly string[] = Object.freeze(
-  Object.keys(DUPLICATE_FAMILIES),
-);
+export const MESMER_DUPLICATE_SKILL_NAMES: readonly string[] = Object.freeze(Object.keys(DUPLICATE_FAMILIES));

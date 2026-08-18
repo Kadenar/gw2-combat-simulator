@@ -1,15 +1,12 @@
-import type { SchedulerContext, SimulationEvent } from "../../engine/types.js";
-import { FOOD_DATA } from "../gear-data.js";
-import { isGw2PlayerActorEvent } from "../event-ownership.js";
-import { consumeExpectedCriticalProgress } from "../numeric.js";
-import type { Gw2Config } from "../types.js";
-import type { MaterializerState } from "./materializer-state.js";
+import type { SchedulerContext, SimulationEvent } from '../../engine/types.js';
+import { FOOD_DATA } from '../gear-data.js';
+import { isGw2PlayerActorEvent } from '../event-ownership.js';
+import { consumeExpectedCriticalProgress } from '../numeric.js';
+import type { Gw2Config } from '../types.js';
+import type { MaterializerState } from './materializer-state.js';
 
 export function hasStochasticCriticalFood(config: Gw2Config): boolean {
-  return (
-    config.randomness?.mode === "stochastic" &&
-    FOOD_DATA[String(config.food || "")]?.proc?.type === "critStrike"
-  );
+  return config.randomness?.mode === 'stochastic' && FOOD_DATA[String(config.food || '')]?.proc?.type === 'critStrike';
 }
 
 /**
@@ -42,7 +39,7 @@ export function hasStochasticCriticalFood(config: Gw2Config): boolean {
 export function resolveCriticalTrigger(
   context: SchedulerContext,
   event: SimulationEvent,
-  state: MaterializerState,
+  state: MaterializerState
 ): SimulationEvent | null {
   // Ignore non-strikes and skip critical work when no consumer requested it.
   if (!(Number(event.coefficient) > 0) || !state.criticalFactsRequired) {
@@ -50,23 +47,17 @@ export function resolveCriticalTrigger(
   }
 
   // Player strikes qualify by default; derived effects must explicitly opt in.
-  const canTriggerSigils =
-    isGw2PlayerActorEvent(event) || event.canTriggerCriticalSigils === true;
+  const canTriggerSigils = isGw2PlayerActorEvent(event) || event.canTriggerCriticalSigils === true;
 
   // Evaluate critical chance against combat state at the hit's timestamp.
   const critical = state.query!.critical(event, event.at, state);
 
   // Stochastic mode creates one binary outcome shared by every consumer.
   if (state.random.stochastic) {
-    const didCrit = state.random.roll(
-      critical.chance,
-      `critical:${String(event.actorType || "player")}`,
-    );
+    const didCrit = state.random.roll(critical.chance, `critical:${String(event.actorType || 'player')}`);
 
     // Persist the result on the canonical event for resolver reactions.
-    const canonicalEvent =
-      context.events.find((candidate) => candidate.__order === event.__order) ||
-      event;
+    const canonicalEvent = context.events.find((candidate) => candidate.__order === event.__order) || event;
     const cause = context.replaceEvent(canonicalEvent, { didCrit });
 
     // Only an eligible actual crit can trigger critical sigils.
@@ -76,7 +67,5 @@ export function resolveCriticalTrigger(
   // Deterministic progress requires an eligible hit with a possible crit.
   if (!canTriggerSigils || !(critical.chance > 0)) return null;
 
-  return consumeExpectedCriticalProgress(state.sigil, critical.chance)
-    ? event
-    : null;
+  return consumeExpectedCriticalProgress(state.sigil, critical.chance) ? event : null;
 }

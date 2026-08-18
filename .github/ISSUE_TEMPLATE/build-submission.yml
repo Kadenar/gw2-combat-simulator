@@ -1,6 +1,6 @@
 name: Submit a build
 description: Submit exported build and rotation JSON files for maintainer review.
-title: "[Build submission]: "
+title: '[Build submission]: '
 body:
   - type: markdown
     attributes:
@@ -74,7 +74,7 @@ body:
     attributes:
       label: Expected simulator DPS
       description: Optional rounded DPS produced by the uploaded pair.
-      placeholder: "42000"
+      placeholder: '42000'
 
   - type: textarea
     id: notes

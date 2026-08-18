@@ -1,29 +1,27 @@
-import { THIEF_SKILL_IDS as ID } from "../data/ids.js";
-import type { SkillFragment } from "../../../platform/engine/types.js";
-import type { ThiefSkill } from "../types.js";
+import { THIEF_SKILL_IDS as ID } from '../data/ids.js';
+import type { SkillFragment } from '../../../platform/engine/types.js';
+import type { ThiefSkill } from '../types.js';
 
-export const THIEF_CORE_SKILL_MECHANICS: Readonly<
-  Record<number, SkillFragment>
-> = Object.freeze({
+export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.THROW_GUNK]: {
     implemented: true,
-    handlerId: "thief.stolen-skill",
+    handlerId: 'thief.stolen-skill',
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 10.8,
         hits: 6,
-        name: "Throw Gunk",
-        actorType: "player",
+        name: 'Throw Gunk',
+        actorType: 'player',
         atMs: 83,
         intervalMs: 83,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.BONE_CRACK]: {
     implemented: true,
@@ -32,21 +30,21 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Bone Crack",
-        actorType: "player",
+        name: 'Bone Crack',
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "stun",
-          duration: 2,
-        },
-      },
-    ],
+          controlKind: 'stun',
+          duration: 2
+        }
+      }
+    ]
   },
   [ID.BRANCH_BASH]: {
     implemented: true,
@@ -55,13 +53,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Branch Bash",
-        actorType: "player",
-      },
-    ],
+        name: 'Branch Bash',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.BRANCH_LEAP]: {
     implemented: true,
@@ -70,20 +68,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.5,
         hits: 1,
-        name: "Branch Leap (stolen skill)",
-        actorType: "player",
-      },
-    ],
+        name: 'Branch Leap (stolen skill)',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.DRINK_STOLEN_SKILL]: {
     implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.THROW_CHAIN]: {
     implemented: true,
@@ -92,20 +90,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.75,
         hits: 1,
-        name: "Throw Chain (stolen skill)",
-        actorType: "player",
+        name: 'Throw Chain (stolen skill)',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 6,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.CLUB_SHOCK_WAVE]: {
     implemented: true,
@@ -114,21 +112,21 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.75,
         hits: 1,
-        name: "Club Shock Wave",
-        actorType: "player",
+        name: 'Club Shock Wave',
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "knockdown",
-          duration: 2,
-        },
-      },
-    ],
+          controlKind: 'knockdown',
+          duration: 2
+        }
+      }
+    ]
   },
   [ID.THROW_CORAL_SHARD]: {
     implemented: true,
@@ -137,27 +135,27 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.25,
         hits: 1,
-        name: "Throw Coral Shard",
-        actorType: "player",
+        name: 'Throw Coral Shard',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 6,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 5,
         duration: 15,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.THROW_CRYSTAL_SHARD_STOLEN_SKILL]: {
     implemented: true,
@@ -166,115 +164,115 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.25,
         hits: 1,
-        name: "Throw Crystal Shard (stolen skill)",
-        actorType: "player",
+        name: 'Throw Crystal Shard (stolen skill)',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 6,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 5,
         duration: 15,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.CONSUME_PLASMA]: {
     implemented: true,
-    handlerId: "thief.stolen-skill",
+    handlerId: 'thief.stolen-skill',
     castTimeMs: 1000,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "boon",
-        boon: "aegis",
+        type: 'boon',
+        boon: 'aegis',
         duration: 10,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "alacrity",
+        type: 'boon',
+        boon: 'alacrity',
         duration: 3,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "fury",
+        type: 'boon',
+        boon: 'fury',
         duration: 10,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 10,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "protection",
+        type: 'boon',
+        boon: 'protection',
         duration: 10,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "quickness",
+        type: 'boon',
+        boon: 'quickness',
         duration: 2.5,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "regeneration",
+        type: 'boon',
+        boon: 'regeneration',
         duration: 10,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "resistance",
+        type: 'boon',
+        boon: 'resistance',
         duration: 2.5,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "resolution",
+        type: 'boon',
+        boon: 'resolution',
         duration: 5,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "stability",
+        type: 'boon',
+        boon: 'stability',
         duration: 5,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "swiftness",
+        type: 'boon',
+        boon: 'swiftness',
         duration: 10,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "vigor",
+        type: 'boon',
+        boon: 'vigor',
         duration: 10,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.EAT_EGG]: {
     implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.THROW_FEATHERS]: {
     implemented: true,
@@ -283,16 +281,16 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "blind",
-        actorType: "player",
+        type: 'blind',
+        actorType: 'player'
       },
       {
-        type: "buff",
-        kind: "stealth",
+        type: 'buff',
+        kind: 'stealth',
         duration: 3,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.THROW_GEAR_STOLEN_SKILL]: {
     implemented: true,
@@ -301,21 +299,21 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Throw Gear (stolen skill)",
-        actorType: "player",
+        name: 'Throw Gear (stolen skill)',
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "stun",
-          duration: 2,
-        },
-      },
-    ],
+          controlKind: 'stun',
+          duration: 2
+        }
+      }
+    ]
   },
   [ID.ICE_SHARD_STAB]: {
     implemented: true,
@@ -324,20 +322,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 1,
-        name: "Ice Shard Stab",
-        actorType: "player",
+        name: 'Ice Shard Stab',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 6,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.THROW_LAVA_ROCK]: {
     implemented: true,
@@ -346,20 +344,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Throw Lava Rock",
-        actorType: "player",
+        name: 'Throw Lava Rock',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 3,
         duration: 6,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.MACE_HEAD_CRACK]: {
     implemented: true,
@@ -368,13 +366,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Mace Head Crack",
-        actorType: "player",
-      },
-    ],
+        name: 'Mace Head Crack',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.SHOOT_RIFLE]: {
     implemented: true,
@@ -383,28 +381,28 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.05,
         hits: 1,
-        name: "Shoot Rifle",
-        actorType: "player",
+        name: 'Shoot Rifle',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 10,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "launch",
-          duration: 400,
-        },
-      },
-    ],
+          controlKind: 'launch',
+          duration: 400
+        }
+      }
+    ]
   },
   [ID.THROW_ROCK_STOLEN_SKILL_KNOCKDOWN]: {
     implemented: true,
@@ -413,21 +411,21 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.573,
         hits: 1,
-        name: "Throw Rock (stolen skill knockdown)",
-        actorType: "player",
+        name: 'Throw Rock (stolen skill knockdown)',
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "knockdown",
-          duration: 2,
-        },
-      },
-    ],
+          controlKind: 'knockdown',
+          duration: 2
+        }
+      }
+    ]
   },
   [ID.RUSTY_SCRAP_STRIKE]: {
     implemented: true,
@@ -436,34 +434,34 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.573,
         hits: 1,
-        name: "Rusty Scrap Strike",
-        actorType: "player",
+        name: 'Rusty Scrap Strike',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 6,
         duration: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 3,
         duration: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 6,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.THROW_SCALE]: {
     implemented: true,
@@ -472,34 +470,34 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Throw Scale",
-        actorType: "player",
+        name: 'Throw Scale',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 3,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 3,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 10,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.USE_SCEPTER]: {
     implemented: true,
@@ -508,35 +506,35 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Lightning Whip Damage",
-        actorType: "player",
+        name: 'Lightning Whip Damage',
+        actorType: 'player'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.25,
         hits: 1,
-        name: "Flame Burst Damage",
-        actorType: "player",
+        name: 'Flame Burst Damage',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "stun",
-          duration: 2,
-        },
-      },
-    ],
+          controlKind: 'stun',
+          duration: 2
+        }
+      }
+    ]
   },
   [ID.HEALING_SEED]: {
     implemented: true,
@@ -545,19 +543,19 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "boon",
-        boon: "regeneration",
+        type: 'boon',
+        boon: 'regeneration',
         duration: 3,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.SKULL_FEAR]: {
     implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.USE_STAFF]: {
     implemented: true,
@@ -566,35 +564,35 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.203,
         hits: 1,
-        name: "Chain Lightning Damage",
-        actorType: "player",
+        name: 'Chain Lightning Damage',
+        actorType: 'player'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 1,
-        name: "Fireball Damage",
-        actorType: "player",
+        name: 'Fireball Damage',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "stun",
-          duration: 1,
-        },
-      },
-    ],
+          controlKind: 'stun',
+          duration: 1
+        }
+      }
+    ]
   },
   [ID.TOOTH_STAB]: {
     implemented: true,
@@ -603,20 +601,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 1,
-        name: "Tooth Stab",
-        actorType: "player",
+        name: 'Tooth Stab',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 6,
         duration: 10,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.BLINDING_TUFT]: {
     implemented: true,
@@ -625,16 +623,16 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "blind",
-        actorType: "player",
+        type: 'blind',
+        actorType: 'player'
       },
       {
-        type: "buff",
-        kind: "stealth",
+        type: 'buff',
+        kind: 'stealth',
         duration: 3,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.EXPLODING_VENOM_SACK]: {
     implemented: true,
@@ -643,13 +641,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 10,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.THROW_VINE_STOLEN_SKILL]: {
     implemented: true,
@@ -658,20 +656,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.1,
         hits: 1,
-        name: "Throw Vine (stolen skill)",
-        actorType: "player",
+        name: 'Throw Vine (stolen skill)',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Immobilized",
+        type: 'condition',
+        condition: 'Immobilized',
         stacks: 1,
         duration: 5,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.THROW_ROCK_STOLEN_SKILL_DAZE]: {
     implemented: true,
@@ -680,37 +678,37 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.05,
         hits: 1,
-        name: "Throw Rock (stolen skill daze)",
-        actorType: "player",
+        name: 'Throw Rock (stolen skill daze)',
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "daze",
-          duration: 2,
-        },
-      },
-    ],
+          controlKind: 'daze',
+          duration: 2
+        }
+      }
+    ]
   },
   [ID.WHIRLING_AXE]: {
     implemented: true,
-    handlerId: "thief.stolen-skill",
+    handlerId: 'thief.stolen-skill',
     castTimeMs: 3250,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.3,
         hits: 1,
-        name: "Whirling Axe (stolen skill)",
-        actorType: "player",
-      },
-    ],
+        name: 'Whirling Axe (stolen skill)',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.WHIRLING_STRIKE]: {
     implemented: true,
@@ -719,13 +717,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Whirling Strike (stolen skill)",
-        actorType: "player",
-      },
-    ],
+        name: 'Whirling Strike (stolen skill)',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.THROW_NET]: {
     implemented: true,
@@ -734,13 +732,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "condition",
-        condition: "Immobilized",
+        type: 'condition',
+        condition: 'Immobilized',
         stacks: 1,
         duration: 3,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.DOUBLE_STRIKE]: {
     implemented: true,
@@ -749,38 +747,38 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         ticks: [
           { atMs: 240, coefficient: 0.4 },
-          { atMs: 420, coefficient: 0.4 },
+          { atMs: 420, coefficient: 0.4 }
         ],
-        name: "Double Strike",
-        actorType: "player",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        name: 'Double Strike',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.BACKSTAB]: {
     implemented: true,
-    handlerId: "thief.stealth-attack",
+    handlerId: 'thief.stealth-attack',
     quicknessCastTimeMs: 320,
     cooldown: 1,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Front damage",
-        actorType: "player",
+        name: 'Front damage',
+        actorType: 'player',
         atMs: 200,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
     ],
-    requiredMainHand: "Dagger",
-    stealthAttack: true,
+    requiredMainHand: 'Dagger',
+    stealthAttack: true
   },
   [ID.DEATH_BLOSSOM]: {
     implemented: true,
@@ -790,38 +788,38 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         ticks: [
           { atMs: 840, coefficient: 0.21 },
           { atMs: 960, coefficient: 0.21 },
-          { atMs: 1200, coefficient: 0.21 },
+          { atMs: 1200, coefficient: 0.21 }
         ],
-        name: "Death Blossom",
-        actorType: "player",
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        name: 'Death Blossom',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
+        type: 'condition',
         ticks: [
-          { atMs: 840, condition: "Bleeding", stacks: 2, duration: 6 },
-          { atMs: 960, condition: "Bleeding", stacks: 2, duration: 6 },
-          { atMs: 1200, condition: "Bleeding", stacks: 2, duration: 6 },
+          { atMs: 840, condition: 'Bleeding', stacks: 2, duration: 6 },
+          { atMs: 960, condition: 'Bleeding', stacks: 2, duration: 6 },
+          { atMs: 1200, condition: 'Bleeding', stacks: 2, duration: 6 }
         ],
-        actorType: "player",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
     comboFinishers: [
       {
-        ownerId: "thief",
-        finisherType: "Whirl",
-        ambiguousFieldSelection: "oldest",
-      },
+        ownerId: 'thief',
+        finisherType: 'Whirl',
+        ambiguousFieldSelection: 'oldest'
+      }
     ],
-    requiredMainHand: "Dagger",
-    requiredOffHand: "Dagger",
+    requiredMainHand: 'Dagger',
+    requiredOffHand: 'Dagger'
   },
   [ID.LARCENOUS_STRIKE]: {
     implemented: true,
@@ -830,15 +828,15 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 1,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.17,
         hits: 1,
-        name: "Larcenous Strike",
-        actorType: "player",
-      },
+        name: 'Larcenous Strike',
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Sword",
-    requiredOffHand: "Dagger",
+    requiredMainHand: 'Sword',
+    requiredOffHand: 'Dagger'
   },
   [ID.BOLA_SHOT]: {
     implemented: true,
@@ -847,27 +845,27 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.25,
         hits: 1,
-        name: "Bola Shot",
-        actorType: "player",
+        name: 'Bola Shot',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 5,
         duration: 3,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Immobilized",
+        type: 'condition',
+        condition: 'Immobilized',
         stacks: 1,
         duration: 1.5,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.SLICE]: {
     implemented: true,
@@ -876,13 +874,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.85,
         hits: 1,
-        name: "Slice (thief skill)",
-        actorType: "player",
-      },
-    ],
+        name: 'Slice (thief skill)',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.SHADOW_STRIKE]: {
     implemented: true,
@@ -891,29 +889,29 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.315,
         hits: 1,
-        name: "Shadow Strike — Packet 1",
-        actorType: "player",
+        name: 'Shadow Strike — Packet 1',
+        actorType: 'player'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.3125,
         hits: 1,
-        name: "Shot Damage",
-        actorType: "player",
+        name: 'Shot Damage',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 4,
         duration: 6,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Pistol",
-    requiredOffHand: "Dagger",
+    requiredMainHand: 'Pistol',
+    requiredOffHand: 'Dagger'
   },
   [ID.UNLOAD]: {
     implemented: true,
@@ -922,25 +920,25 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3.36,
         hits: 8,
-        name: "Unload",
-        actorType: "player",
+        name: 'Unload',
+        actorType: 'player',
         atMs: 145,
         intervalMs: 145,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 8,
-        stacks: 8,
-      },
+        stacks: 8
+      }
     ],
-    requiredMainHand: "Pistol",
-    requiredOffHand: "Pistol",
+    requiredMainHand: 'Pistol',
+    requiredOffHand: 'Pistol'
   },
   [ID.HEAD_SHOT]: {
     implemented: true,
@@ -949,22 +947,22 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Head Shot",
-        actorType: "player",
-      },
-    ],
+        name: 'Head Shot',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.STEAL]: {
     implemented: true,
     movementSkill: true,
-    handlerId: "thief.steal",
+    handlerId: 'thief.steal',
     castTimeMs: 0,
     cooldown: 25,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.INFILTRATORS_STRIKE]: {
     implemented: true,
@@ -974,26 +972,26 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.8,
         hits: 1,
         name: "Infiltrator's Strike",
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Immobilized",
+        type: 'condition',
+        condition: 'Immobilized',
         stacks: 1,
         duration: 2,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "swiftness",
+        type: 'boon',
+        boon: 'swiftness',
         duration: 3,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.FLANKING_STRIKE]: {
     implemented: true,
@@ -1002,15 +1000,15 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Flanking Strike",
-        actorType: "player",
-      },
+        name: 'Flanking Strike',
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Sword",
-    requiredOffHand: "Dagger",
+    requiredMainHand: 'Sword',
+    requiredOffHand: 'Dagger'
   },
   [ID.DANCING_DAGGER]: {
     implemented: true,
@@ -1019,27 +1017,27 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.9,
         hits: 1,
-        name: "Dancing Dagger",
-        actorType: "player",
+        name: 'Dancing Dagger',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 6,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.SCORPION_WIRE]: {
     implemented: true,
@@ -1049,20 +1047,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Scorpion Wire",
-        actorType: "player",
-      },
-    ],
+        name: 'Scorpion Wire',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.WITHDRAW]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 18,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.TRICK_SHOT]: {
     implemented: true,
@@ -1071,20 +1069,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.55,
         hits: 1,
-        name: "Trick Shot",
-        actorType: "player",
+        name: 'Trick Shot',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 4,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.CHOKING_GAS]: {
     implemented: true,
@@ -1093,32 +1091,32 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.4,
         hits: 4,
-        name: "Choking Gas",
-        actorType: "player",
+        name: 'Choking Gas',
+        actorType: 'player',
         atMs: 125,
         intervalMs: 125,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "daze",
-          duration: 1,
-        },
-      },
-    ],
+          controlKind: 'daze',
+          duration: 1
+        }
+      }
+    ]
   },
   [ID.INFILTRATORS_ARROW]: {
     implemented: true,
@@ -1127,19 +1125,19 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 6,
     effects: [
       {
-        type: "blind",
-        actorType: "player",
-      },
-    ],
+        type: 'blind',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.PREPARE_THOUSAND_NEEDLES]: {
     implemented: true,
-    handlerId: "thief.prepare-thousand-needles",
+    handlerId: 'thief.prepare-thousand-needles',
     castTimeMs: 750,
     cooldown: 30,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.HIDE_IN_SHADOWS]: {
     implemented: true,
@@ -1148,18 +1146,18 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "buff",
-        kind: "stealth",
+        type: 'buff',
+        kind: 'stealth',
         duration: 3,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "regeneration",
+        type: 'boon',
+        boon: 'regeneration',
         duration: 6,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.CALTROPS]: {
     implemented: true,
@@ -1169,49 +1167,49 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     durationMultiplier: 3,
     effects: [
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 10,
         applications: 10,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 2,
         applications: 5,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.ROLL_FOR_INITIATIVE]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 25,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.SPIDER_VENOM]: {
     implemented: true,
-    handlerId: "thief.spider-venom",
+    handlerId: 'thief.spider-venom',
     castTimeMs: 0,
     cooldown: 30,
     initiativeCost: 0,
     effects: [
       {
-        type: "buff",
-        kind: "spider-venom",
+        type: 'buff',
+        kind: 'spider-venom',
         duration: 24,
         stacks: 6,
-        recipients: "party",
-      },
-    ],
+        recipients: 'party'
+      }
+    ]
   },
   [ID.SHADOW_SHOT]: {
     implemented: true,
@@ -1222,22 +1220,22 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.8,
         hits: 1,
-        name: "Shadow Shot",
-        actorType: "player",
+        name: 'Shadow Shot',
+        actorType: 'player'
       },
       {
-        type: "blind",
-        actorType: "player",
+        type: 'blind',
+        actorType: 'player',
         metadata: {
-          duration: 5,
-        },
-      },
+          duration: 5
+        }
+      }
     ],
-    requiredMainHand: "Dagger",
-    requiredOffHand: "Pistol",
+    requiredMainHand: 'Dagger',
+    requiredOffHand: 'Pistol'
   },
   [ID.CLUSTER_BOMB]: {
     implemented: true,
@@ -1246,20 +1244,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.25,
         hits: 1,
-        name: "Large Explosion",
-        actorType: "player",
+        name: 'Large Explosion',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 4,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.DETONATE_CLUSTER]: {
     implemented: true,
@@ -1268,24 +1266,24 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 4,
-        name: "Small Explosion",
-        actorType: "player",
+        name: 'Small Explosion',
+        actorType: 'player',
         atMs: 250,
         intervalMs: 250,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 4,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.BLINDING_POWDER]: {
     implemented: true,
@@ -1294,31 +1292,31 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "buff",
-        kind: "stealth",
+        type: 'buff',
+        kind: 'stealth',
         duration: 3,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "blind",
-        actorType: "player",
-      },
-    ],
+        type: 'blind',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.ASSASSINS_SIGNET]: {
     implemented: true,
-    handlerId: "thief.assassins-signet",
+    handlerId: 'thief.assassins-signet',
     castTimeMs: 0,
     cooldown: 20,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.SIGNET_OF_MALICE]: {
     implemented: true,
     castTimeMs: 250,
     cooldown: 12,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.SKALE_VENOM]: {
     implemented: true,
@@ -1327,27 +1325,27 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 3,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.PREPARE_PITFALL]: {
     implemented: true,
     castTimeMs: 500,
     cooldown: 25,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.SIGNET_OF_SHADOWS]: {
     implemented: true,
@@ -1356,32 +1354,32 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "buff",
-        kind: "stealth",
+        type: 'buff',
+        kind: 'stealth',
         duration: 3,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "swiftness",
+        type: 'boon',
+        boon: 'swiftness',
         duration: 10,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.SIGNET_OF_AGILITY]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 30,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.INFILTRATORS_SIGNET]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 20,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.HASTE]: {
     implemented: true,
@@ -1390,24 +1388,24 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "boon",
-        boon: "quickness",
+        type: 'boon',
+        boon: 'quickness',
         duration: 6,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "fury",
+        type: 'boon',
+        boon: 'fury',
         duration: 6,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "swiftness",
+        type: 'boon',
+        boon: 'swiftness',
         duration: 6,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.SHADOW_ASSAULT]: {
     implemented: true,
@@ -1416,17 +1414,17 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 7.199999999999999,
         hits: 3,
-        name: "Shadow Assault",
-        actorType: "player",
+        name: 'Shadow Assault',
+        actorType: 'player',
         atMs: 167,
         intervalMs: 167,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.FLANKING_DIVE]: {
     implemented: true,
@@ -1435,20 +1433,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.75,
         hits: 1,
-        name: "Flanking Dive — Packet 1",
-        actorType: "player",
+        name: 'Flanking Dive — Packet 1',
+        actorType: 'player'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.625,
         hits: 1,
-        name: "Damage When Flanking",
-        actorType: "player",
-      },
-    ],
+        name: 'Damage When Flanking',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.TOW_LINE]: {
     implemented: true,
@@ -1457,34 +1455,34 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Tow Line",
-        actorType: "player",
+        name: 'Tow Line',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 5,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "buff",
-        kind: "stealth",
+        type: 'buff',
+        kind: 'stealth',
         duration: 3,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "pull",
-          duration: 600,
-        },
-      },
-    ],
+          controlKind: 'pull',
+          duration: 600
+        }
+      }
+    ]
   },
   [ID.PIERCING_SHOT]: {
     implemented: true,
@@ -1493,20 +1491,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.55,
         hits: 1,
-        name: "Piercing Shot",
-        actorType: "player",
+        name: 'Piercing Shot',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 4,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.DELUGE]: {
     implemented: true,
@@ -1515,13 +1513,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.7,
         hits: 1,
-        name: "Deluge",
-        actorType: "player",
-      },
-    ],
+        name: 'Deluge',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.ESCAPE]: {
     implemented: true,
@@ -1530,27 +1528,27 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.33,
         hits: 1,
-        name: "Missile Damage",
-        actorType: "player",
+        name: 'Missile Damage',
+        actorType: 'player'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.33,
         hits: 1,
-        name: "Escape — Packet 2",
-        actorType: "player",
+        name: 'Escape — Packet 2',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 4,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.CRIPPLING_SHOT_THIEF_HARPOON_GUN_SKILL]: {
     implemented: true,
@@ -1559,20 +1557,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.75,
         hits: 1,
-        name: "Crippling Shot (thief harpoon gun skill)",
-        actorType: "player",
+        name: 'Crippling Shot (thief harpoon gun skill)',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 5,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.INK_SHOT]: {
     implemented: true,
@@ -1581,17 +1579,17 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.75,
         hits: 1,
-        name: "Ink Shot",
-        actorType: "player",
+        name: 'Ink Shot',
+        actorType: 'player'
       },
       {
-        type: "blind",
-        actorType: "player",
-      },
-    ],
+        type: 'blind',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.SMOKE_TRAIL]: {
     implemented: true,
@@ -1600,16 +1598,16 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "buff",
-        kind: "stealth",
+        type: 'buff',
+        kind: 'stealth',
         duration: 3,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.THIEVES_GUILD]: {
     implemented: true,
-    handlerId: "thief.thieves-guild",
+    handlerId: 'thief.thieves-guild',
     castTimeMs: 1500,
     cooldown: 120,
     initiativeCost: 0,
@@ -1621,167 +1619,167 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
       duration: 24,
       fallbackAttacks: [
         {
-          name: "Basic Attack",
+          name: 'Basic Attack',
           coefficientPerHit: 1.2,
           hits: 1,
           initialDelay: 1,
-          interval: 1,
-        },
+          interval: 1
+        }
       ],
       summons: [
         {
-          name: "Male Dual-Pistol Thief",
-          displayName: "Thief",
-          weapon: "Pistol",
-          weaponStrengthProfileId: "weapon.pistol",
+          name: 'Male Dual-Pistol Thief',
+          displayName: 'Thief',
+          weapon: 'Pistol',
+          weaponStrengthProfileId: 'weapon.pistol',
           attacks: [
             {
-              name: "Black Powder",
+              name: 'Black Powder',
               skillId: 3669,
               coefficientPerHit: 0.8,
               hits: 1,
-              initialDelay: 1.44,
+              initialDelay: 1.44
             },
             {
-              name: "Unload",
+              name: 'Unload',
               skillId: 3666,
               coefficientPerHit: 0.175,
               hits: 12,
               initialDelay: 3.56,
-              interval: 5.8,
-            },
-          ],
+              interval: 5.8
+            }
+          ]
         },
         {
-          name: "Female Dual-Dagger Thief",
-          displayName: "Thief",
-          weapon: "Dagger",
-          weaponStrengthProfileId: "weapon.dagger",
+          name: 'Female Dual-Dagger Thief',
+          displayName: 'Thief',
+          weapon: 'Dagger',
+          weaponStrengthProfileId: 'weapon.dagger',
           attacks: [
             {
-              name: "Scorpion Wire",
+              name: 'Scorpion Wire',
               skillId: 3665,
               coefficientPerHit: 1.5,
               hits: 1,
               initialDelay: 1.72,
               conditions: [
                 {
-                  condition: "Poisoned",
+                  condition: 'Poisoned',
                   stacks: 2,
-                  duration: 10,
+                  duration: 10
                 },
                 {
-                  condition: "Weakness",
+                  condition: 'Weakness',
                   stacks: 1,
-                  duration: 4,
-                },
-              ],
+                  duration: 4
+                }
+              ]
             },
             {
-              name: "Twisting Fang I",
+              name: 'Twisting Fang I',
               skillId: 3661,
               coefficientPerHit: 0.6,
               hits: 2,
               initialDelay: 2.52,
-              interval: 2.68,
+              interval: 2.68
             },
             {
-              name: "Twisting Fang II",
+              name: 'Twisting Fang II',
               skillId: 3662,
               coefficientPerHit: 1.6,
               hits: 1,
               initialDelay: 3.08,
-              interval: 2.68,
+              interval: 2.68
             },
             {
-              name: "Twisting Fang III",
+              name: 'Twisting Fang III',
               skillId: 3663,
               coefficientPerHit: 2.5,
               hits: 1,
               initialDelay: 3.72,
-              interval: 2.68,
-            },
-          ],
+              interval: 2.68
+            }
+          ]
         },
         {
-          name: "Staff Daredevil",
-          displayName: "Daredevil",
-          variant: "Daredevil",
-          weapon: "Staff",
-          weaponStrengthProfileId: "weapon.staff",
+          name: 'Staff Daredevil',
+          displayName: 'Daredevil',
+          variant: 'Daredevil',
+          weapon: 'Staff',
+          weaponStrengthProfileId: 'weapon.staff',
           attacks: [
             {
-              name: "Vault",
+              name: 'Vault',
               skillId: 41056,
               coefficientPerHit: 2.4,
               hits: 1,
               initialDelay: 1.72,
-              interval: 11.36,
+              interval: 11.36
             },
             {
-              name: "Impairing Daggers",
+              name: 'Impairing Daggers',
               skillId: 40482,
               coefficientPerHit: 0.25,
               hits: 3,
               initialDelay: 2.72,
               conditions: [
                 {
-                  condition: "Poisoned",
+                  condition: 'Poisoned',
                   stacks: 3,
-                  duration: 8,
+                  duration: 8
                 },
                 {
-                  condition: "Slow",
+                  condition: 'Slow',
                   stacks: 1,
-                  duration: 4,
+                  duration: 4
                 },
                 {
-                  condition: "Immobilized",
+                  condition: 'Immobilized',
                   stacks: 1,
-                  duration: 2,
-                },
-              ],
+                  duration: 2
+                }
+              ]
             },
             {
-              name: "Weakening Charge",
+              name: 'Weakening Charge',
               skillId: 40005,
               coefficientPerHit: 0.45,
               hits: 2,
               initialDelay: 4.04,
-              interval: 3.36,
-            },
-          ],
+              interval: 3.36
+            }
+          ]
         },
         {
-          name: "Rifle Deadeye",
-          displayName: "Deadeye",
-          variant: "Deadeye",
-          weapon: "Rifle",
-          weaponStrengthProfileId: "weapon.rifle",
+          name: 'Rifle Deadeye',
+          displayName: 'Deadeye',
+          variant: 'Deadeye',
+          weapon: 'Rifle',
+          weaponStrengthProfileId: 'weapon.rifle'
         },
         {
-          name: "Scepter Specter",
-          displayName: "Specter",
-          variant: "Specter",
-          weapon: "Scepter",
-          weaponStrengthProfileId: "weapon.scepter",
+          name: 'Scepter Specter',
+          displayName: 'Specter',
+          variant: 'Specter',
+          weapon: 'Scepter',
+          weaponStrengthProfileId: 'weapon.scepter'
         },
         {
-          name: "Sword/Dagger Skritt",
-          displayName: "Skritt",
-          variant: "Skritt",
-          weapon: "Sword",
-          weaponStrengthProfileId: "weapon.sword",
+          name: 'Sword/Dagger Skritt',
+          displayName: 'Skritt',
+          variant: 'Skritt',
+          weapon: 'Sword',
+          weaponStrengthProfileId: 'weapon.sword'
         },
         {
-          name: "Sword Thief",
-          displayName: "Thief",
-          variant: "Core Thief",
-          weapon: "Sword",
-          weaponStrengthProfileId: "weapon.sword",
-        },
-      ],
-    },
+          name: 'Sword Thief',
+          displayName: 'Thief',
+          variant: 'Core Thief',
+          weapon: 'Sword',
+          weaponStrengthProfileId: 'weapon.sword'
+        }
+      ]
+    }
   },
   [ID.DISABLING_SHOT]: {
     implemented: true,
@@ -1790,20 +1788,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Disabling Shot (thief short bow skill)",
-        actorType: "player",
+        name: 'Disabling Shot (thief short bow skill)',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 2,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.VITAL_SHOT]: {
     implemented: true,
@@ -1812,20 +1810,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.575,
         hits: 1,
-        name: "Vital Shot",
-        actorType: "player",
+        name: 'Vital Shot',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 6,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.DAGGER_STORM]: {
     implemented: true,
@@ -1834,27 +1832,27 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.33,
         hits: 1,
-        name: "Dagger Storm",
-        actorType: "player",
+        name: 'Dagger Storm',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 2,
         duration: 7,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 2,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.WILD_STRIKE]: {
     implemented: true,
@@ -1864,26 +1862,26 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     resourceGain: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        name: "Wild Strike",
-        actorType: "player",
+        name: 'Wild Strike',
+        actorType: 'player',
         atMs: 240,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 2,
         duration: 3,
-        actorType: "player",
+        actorType: 'player',
         atMs: 240,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.SLASH]: {
     implemented: true,
@@ -1892,13 +1890,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.85,
         hits: 1,
-        name: "Slash (thief skill)",
-        actorType: "player",
-      },
-    ],
+        name: 'Slash (thief skill)',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.DEVOURER_VENOM]: {
     implemented: true,
@@ -1907,13 +1905,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "condition",
-        condition: "Immobilized",
+        type: 'condition',
+        condition: 'Immobilized',
         stacks: 1,
         duration: 1,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.ICE_DRAKE_VENOM]: {
     implemented: true,
@@ -1922,13 +1920,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 1,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.HEARTSEEKER]: {
     implemented: true,
@@ -1938,25 +1936,25 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Heartseeker",
-        actorType: "player",
+        name: 'Heartseeker',
+        actorType: 'player',
         coefficientModifiers: [
           {
-            kind: "target-health-below",
+            kind: 'target-health-below',
             threshold: 0.25,
-            multiplier: 2.22,
+            multiplier: 2.22
           },
           {
-            kind: "target-health-below",
+            kind: 'target-health-below',
             threshold: 0.5,
-            multiplier: 1.6,
-          },
-        ],
-      },
-    ],
+            multiplier: 1.6
+          }
+        ]
+      }
+    ]
   },
   [ID.LOTUS_STRIKE]: {
     implemented: true,
@@ -1965,26 +1963,26 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 1,
-        name: "Lotus Strike",
-        actorType: "player",
+        name: 'Lotus Strike',
+        actorType: 'player',
         atMs: 420,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 2,
         duration: 5,
-        actorType: "player",
+        actorType: 'player',
         atMs: 420,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.STEAL_ID_13109]: {
     implemented: true,
@@ -1992,7 +1990,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     castTimeMs: 0,
     cooldown: 25,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.TWISTING_FANGS]: {
     implemented: true,
@@ -2001,26 +1999,26 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.63,
         hits: 2,
-        name: "Twisting Fangs",
-        actorType: "player",
+        name: 'Twisting Fangs',
+        actorType: 'player',
         atMs: 250,
         intervalMs: 250,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 2,
         duration: 10,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Dagger",
-    requiredOffHand: false,
+    requiredMainHand: 'Dagger',
+    requiredOffHand: false
   },
   [ID.REPEATER]: {
     implemented: true,
@@ -2029,26 +2027,26 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 5,
-        name: "Repeater (offhand empty)",
-        actorType: "player",
+        name: 'Repeater (offhand empty)',
+        actorType: 'player',
         atMs: 250,
         intervalMs: 250,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 5,
         duration: 3,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Pistol",
-    requiredOffHand: false,
+    requiredMainHand: 'Pistol',
+    requiredOffHand: false
   },
   [ID.STAB]: {
     implemented: true,
@@ -2057,15 +2055,15 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.05,
         hits: 1,
-        name: "Stab (thief sword skill)",
-        actorType: "player",
-      },
+        name: 'Stab (thief sword skill)',
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Sword",
-    requiredOffHand: false,
+    requiredMainHand: 'Sword',
+    requiredOffHand: false
   },
   [ID.BLACK_POWDER]: {
     implemented: true,
@@ -2074,88 +2072,88 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 6,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.75,
         hits: 3,
-        name: "Black Powder",
-        actorType: "player",
+        name: 'Black Powder',
+        actorType: 'player',
         atMs: 167,
         intervalMs: 167,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "blind",
-        actorType: "player",
+        type: 'blind',
+        actorType: 'player',
         applications: 3,
         atMs: 0,
         intervalMs: 2000,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.TACTICAL_STRIKE]: {
     implemented: true,
-    handlerId: "thief.stealth-attack",
+    handlerId: 'thief.stealth-attack',
     castTimeMs: 525,
     cooldown: 1,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 1,
-        name: "Tactical Strike",
-        actorType: "player",
+        name: 'Tactical Strike',
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "daze",
-          duration: 2,
-        },
+          controlKind: 'daze',
+          duration: 2
+        }
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 10,
         duration: 5,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Sword",
-    stealthAttack: true,
+    requiredMainHand: 'Sword',
+    stealthAttack: true
   },
   [ID.SNEAK_ATTACK]: {
     implemented: true,
-    handlerId: "thief.stealth-attack",
+    handlerId: 'thief.stealth-attack',
     castTimeMs: 1000,
     cooldown: 1,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.8,
         hits: 5,
-        name: "Sneak Attack",
-        actorType: "player",
+        name: 'Sneak Attack',
+        actorType: 'player',
         atMs: 200,
         intervalMs: 200,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 5,
         duration: 5,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Pistol",
-    stealthAttack: true,
+    requiredMainHand: 'Pistol',
+    stealthAttack: true
   },
   [ID.CRIPPLING_STRIKE]: {
     implemented: true,
@@ -2164,27 +2162,27 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.55,
         hits: 1,
-        name: "Crippling Strike",
-        actorType: "player",
+        name: 'Crippling Strike',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 2,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 2,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.STAB_THIEF_SPEAR_SKILL]: {
     implemented: true,
@@ -2193,13 +2191,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.05,
         hits: 1,
-        name: "Stab (thief spear skill)",
-        actorType: "player",
-      },
-    ],
+        name: 'Stab (thief spear skill)',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.JAB_THIEF_SKILL]: {
     implemented: true,
@@ -2208,13 +2206,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.15,
         hits: 1,
-        name: "Jab (thief skill)",
-        actorType: "player",
-      },
-    ],
+        name: 'Jab (thief skill)',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.POISON_TIP_STRIKE]: {
     implemented: true,
@@ -2223,20 +2221,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.33,
         hits: 1,
-        name: "Poison Tip Strike",
-        actorType: "player",
+        name: 'Poison Tip Strike',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 6,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.NINE_TAILED_STRIKE]: {
     implemented: true,
@@ -2245,84 +2243,84 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 16,
         hits: 8,
-        name: "Nine-Tailed Strike — Packet 1",
-        actorType: "player",
+        name: 'Nine-Tailed Strike — Packet 1',
+        actorType: 'player',
         atMs: 188,
         intervalMs: 188,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Final Strike Damage",
-        actorType: "player",
+        name: 'Final Strike Damage',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 9,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.INFILTRATORS_RETURN]: {
     implemented: true,
     castTimeMs: 250,
     cooldown: 0,
     initiativeCost: 2,
-    effects: [],
+    effects: []
   },
   [ID.SURPRISE_SHOT]: {
     implemented: true,
-    handlerId: "thief.stealth-attack",
+    handlerId: 'thief.stealth-attack',
     castTimeMs: 250,
     cooldown: 1,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.6,
         hits: 1,
-        name: "Surprise Shot",
-        actorType: "player",
+        name: 'Surprise Shot',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 3,
         duration: 5,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Immobilized",
+        type: 'condition',
+        condition: 'Immobilized',
         stacks: 1,
         duration: 2,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Shortbow",
-    stealthAttack: true,
+    requiredMainHand: 'Shortbow',
+    stealthAttack: true
   },
   [ID.BREAK_STANCE]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 2,
-    effects: [],
+    effects: []
   },
   [ID.BASILISK_VENOM]: {
     implemented: true,
     castTimeMs: 1000,
     cooldown: 40,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.LESSER_CALTROPS]: {
     implemented: true,
@@ -2331,20 +2329,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 5,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 1,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.CLOAK_AND_DAGGER]: {
     implemented: true,
@@ -2353,26 +2351,26 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.6,
         hits: 1,
-        name: "Cloak and Dagger",
-        actorType: "player",
+        name: 'Cloak and Dagger',
+        actorType: 'player'
       },
       {
-        type: "buff",
-        kind: "stealth",
+        type: 'buff',
+        kind: 'stealth',
         duration: 3,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 5,
         duration: 5,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.THROW_GUNK_ID_16460]: {
     implemented: true,
@@ -2381,31 +2379,31 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 10.8,
         hits: 6,
-        name: "Throw Gunk",
-        actorType: "player",
+        name: 'Throw Gunk',
+        actorType: 'player',
         atMs: 83,
         intervalMs: 83,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.ICE_WURM_VENOM_TRAP]: {
     implemented: true,
     castTimeMs: 500,
     cooldown: 45,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.SKELK_VENOM]: {
     implemented: true,
     castTimeMs: 1000,
     cooldown: 25,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.WEAKENING_WHIRL]: {
     implemented: true,
@@ -2414,31 +2412,31 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.22,
         hits: 3,
-        name: "Weakening Whirl",
-        actorType: "player",
+        name: 'Weakening Whirl',
+        actorType: 'player',
         atMs: 167,
         intervalMs: 167,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 2,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
     comboFinishers: [
       {
-        ownerId: "thief",
-        finisherType: "Whirl",
-        ambiguousFieldSelection: "oldest",
-      },
-    ],
+        ownerId: 'thief',
+        finisherType: 'Whirl',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ]
   },
   [ID.STAFF_BASH]: {
     implemented: true,
@@ -2447,39 +2445,39 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.9,
         hits: 1,
-        name: "Staff Bash",
-        actorType: "player",
-      },
-    ],
+        name: 'Staff Bash',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.HOOK_STRIKE]: {
     implemented: true,
-    handlerId: "thief.stealth-attack",
+    handlerId: 'thief.stealth-attack',
     quicknessCastTimeMs: 640,
     cooldown: 1,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.65,
         hits: 1,
-        name: "Hook Strike",
-        actorType: "player",
+        name: 'Hook Strike',
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "knockdown",
-          duration: 4,
-        },
-      },
+          controlKind: 'knockdown',
+          duration: 4
+        }
+      }
     ],
-    requiredMainHand: "Staff",
-    stealthAttack: true,
+    requiredMainHand: 'Staff',
+    stealthAttack: true
   },
   [ID.LESSER_HASTE]: {
     implemented: true,
@@ -2488,24 +2486,24 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "boon",
-        boon: "quickness",
+        type: 'boon',
+        boon: 'quickness',
         duration: 6,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "fury",
+        type: 'boon',
+        boon: 'fury',
         duration: 6,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "swiftness",
+        type: 'boon',
+        boon: 'swiftness',
         duration: 6,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.PUNISHING_STRIKES]: {
     implemented: true,
@@ -2514,31 +2512,31 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.1,
         hits: 4,
-        name: "Punishing Strikes",
-        actorType: "player",
+        name: 'Punishing Strikes',
+        actorType: 'player',
         atMs: 250,
         intervalMs: 250,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 4,
         duration: 8,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
     comboFinishers: [
       {
-        ownerId: "thief",
-        finisherType: "Whirl",
-        ambiguousFieldSelection: "oldest",
-      },
-    ],
+        ownerId: 'thief',
+        finisherType: 'Whirl',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ]
   },
   [ID.DEBILITATING_ARC]: {
     implemented: true,
@@ -2547,20 +2545,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Debilitating Arc",
-        actorType: "player",
+        name: 'Debilitating Arc',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 6,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.VAULT]: {
     implemented: true,
@@ -2569,13 +2567,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.25,
         hits: 1,
-        name: "Vault",
-        actorType: "player",
-      },
-    ],
+        name: 'Vault',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.STAFF_STRIKE]: {
     implemented: true,
@@ -2584,13 +2582,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.85,
         hits: 1,
-        name: "Staff Strike",
-        actorType: "player",
-      },
-    ],
+        name: 'Staff Strike',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.DUST_STRIKE]: {
     implemented: true,
@@ -2599,24 +2597,24 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.8,
         hits: 3,
-        name: "Dust Strike",
-        actorType: "player",
+        name: 'Dust Strike',
+        actorType: 'player',
         atMs: 250,
         intervalMs: 250,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "blind",
-        actorType: "player",
+        type: 'blind',
+        actorType: 'player',
         metadata: {
-          duration: 1,
-        },
-      },
-    ],
+          duration: 1
+        }
+      }
+    ]
   },
   [ID.ESSENCE_SAP]: {
     implemented: true,
@@ -2625,20 +2623,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Essence Sap (stolen skill)",
-        actorType: "player",
+        name: 'Essence Sap (stolen skill)',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Slow",
+        type: 'condition',
+        condition: 'Slow',
         stacks: 1,
         duration: 1,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.DEATHS_ADVANCE]: {
     implemented: true,
@@ -2647,21 +2645,21 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 2,
     effects: [
       {
-        type: "buff",
-        kind: "stealth",
+        type: 'buff',
+        kind: 'stealth',
         duration: 3,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    kneelSkill: true,
+    kneelSkill: true
   },
   [ID.KNEEL]: {
     implemented: true,
-    handlerId: "thief.kneel",
+    handlerId: 'thief.kneel',
     castTimeMs: 500,
     cooldown: 0.5,
     initiativeCost: 1,
-    effects: [],
+    effects: []
   },
   [ID.DEADLY_AIM]: {
     implemented: true,
@@ -2670,44 +2668,44 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.1,
         hits: 1,
-        name: "Deadly Aim",
-        actorType: "player",
+        name: 'Deadly Aim',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 2,
         duration: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 6,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    kneelSkill: true,
+    kneelSkill: true
   },
   [ID.FREE_ACTION]: {
     implemented: true,
-    handlerId: "thief.free-action",
+    handlerId: 'thief.free-action',
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "boon",
-        boon: "swiftness",
+        type: 'boon',
+        boon: 'swiftness',
         duration: 6,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    kneelSkill: true,
+    kneelSkill: true
   },
   [ID.BRUTAL_AIM]: {
     implemented: true,
@@ -2716,27 +2714,27 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.75,
         hits: 1,
-        name: "Brutal Aim",
-        actorType: "player",
+        name: 'Brutal Aim',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 6,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.SKIRMISHERS_SHOT]: {
     implemented: true,
@@ -2745,26 +2743,26 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
         name: "Skirmisher's Shot",
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 4,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "swiftness",
+        type: 'boon',
+        boon: 'swiftness',
         duration: 6,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.DEATHS_RETREAT]: {
     implemented: true,
@@ -2773,20 +2771,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.3,
         hits: 1,
         name: "Death's Retreat",
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 8,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.TRAIL_OF_KNIVES_DOPPELGANGER]: {
     implemented: true,
@@ -2795,27 +2793,27 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.4,
         hits: 1,
-        name: "Trail of Knives (Doppelganger)",
-        actorType: "player",
+        name: 'Trail of Knives (Doppelganger)',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 1,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.SOHOTHIN_BLOSSOM]: {
     implemented: true,
     castTimeMs: 500,
     cooldown: 5,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.DOUBLE_TAP]: {
     implemented: true,
@@ -2824,23 +2822,23 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.8,
         hits: 2,
-        name: "Double Tap",
-        actorType: "player",
+        name: 'Double Tap',
+        actorType: 'player',
         atMs: 375,
         intervalMs: 375,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 6,
-        stacks: 3,
-      },
-    ],
+        stacks: 3
+      }
+    ]
   },
   [ID.SPOTTERS_SHOT]: {
     implemented: true,
@@ -2849,33 +2847,33 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.3,
         hits: 1,
         name: "Spotter's Shot",
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 4,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "fury",
+        type: 'boon',
+        boon: 'fury',
         duration: 3,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "vigor",
+        type: 'boon',
+        boon: 'vigor',
         duration: 3,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    kneelSkill: true,
+    kneelSkill: true
   },
   [ID.THREE_ROUND_BURST]: {
     implemented: true,
@@ -2884,24 +2882,24 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.25,
         hits: 3,
-        name: "Three Round Burst",
-        actorType: "player",
+        name: 'Three Round Burst',
+        actorType: 'player',
         atMs: 333,
         intervalMs: 333,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 6,
-        stacks: 3,
-      },
+        stacks: 3
+      }
     ],
-    kneelSkill: true,
+    kneelSkill: true
   },
   [ID.THROW_GUNK_ID_45094]: {
     implemented: true,
@@ -2910,24 +2908,24 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 10.8,
         hits: 6,
-        name: "Throw Gunk",
-        actorType: "player",
+        name: 'Throw Gunk',
+        actorType: 'player',
         atMs: 83,
         intervalMs: 83,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.LIFT_PIN]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.SOUL_STONE_VENOM]: {
     implemented: true,
@@ -2936,13 +2934,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.1,
         hits: 1,
-        name: "Damage per Strike",
-        actorType: "player",
-      },
-    ],
+        name: 'Damage per Strike',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.DETONATE_PLASMA]: {
     implemented: true,
@@ -2951,73 +2949,73 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.2,
         hits: 1,
-        name: "Detonate Plasma",
-        actorType: "player",
+        name: 'Detonate Plasma',
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "protection",
+        type: 'boon',
+        boon: 'protection',
         duration: 10,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "Regeneration",
+        type: 'boon',
+        boon: 'Regeneration',
         duration: 10,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "Vigor",
+        type: 'boon',
+        boon: 'Vigor',
         duration: 10,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "Might",
+        type: 'boon',
+        boon: 'Might',
         duration: 10,
-        stacks: 10,
+        stacks: 10
       },
       {
-        type: "boon",
-        boon: "Fury",
+        type: 'boon',
+        boon: 'Fury',
         duration: 10,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "Swiftness",
+        type: 'boon',
+        boon: 'Swiftness',
         duration: 10,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "resolution",
+        type: 'boon',
+        boon: 'resolution',
         duration: 5,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "Aegis",
+        type: 'boon',
+        boon: 'Aegis',
         duration: 10,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "Stability",
+        type: 'boon',
+        boon: 'Stability',
         duration: 8,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "Resistance",
+        type: 'boon',
+        boon: 'Resistance',
         duration: 3,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.THROW_MAGNETIC_BOMB]: {
     implemented: true,
@@ -3026,25 +3024,25 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 6.300000000000001,
         hits: 3,
-        name: "Throw Magnetic Bomb",
-        actorType: "player",
+        name: 'Throw Magnetic Bomb',
+        actorType: 'player',
         atMs: 250,
         intervalMs: 250,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "pull",
-          duration: 360,
-        },
-      },
-    ],
+          controlKind: 'pull',
+          duration: 360
+        }
+      }
+    ]
   },
   [ID.UNSTABLE_ARTIFACT]: {
     implemented: true,
@@ -3053,20 +3051,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 1,
-        name: "Unstable Artifact",
-        actorType: "player",
+        name: 'Unstable Artifact',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Immobilized",
+        type: 'condition',
+        condition: 'Immobilized',
         stacks: 1,
         duration: 4,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.HOOKED_SPEAR]: {
     implemented: true,
@@ -3075,20 +3073,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.25,
         hits: 1,
-        name: "Hooked Spear",
-        actorType: "player",
+        name: 'Hooked Spear',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 10,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.BURST_OF_SHADOWS]: {
     implemented: true,
@@ -3097,17 +3095,17 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.5,
         hits: 1,
-        name: "Burst of Shadows",
-        actorType: "player",
+        name: 'Burst of Shadows',
+        actorType: 'player'
       },
       {
-        type: "blind",
-        actorType: "player",
-      },
-    ],
+        type: 'blind',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.PITFALL]: {
     implemented: true,
@@ -3116,107 +3114,107 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.25,
         hits: 1,
-        name: "Initial Impact Damage",
-        actorType: "player",
+        name: 'Initial Impact Damage',
+        actorType: 'player'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Pulse Damage",
-        actorType: "player",
+        name: 'Pulse Damage',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 2,
         duration: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "knockdown",
-          duration: 3,
-        },
-      },
-    ],
+          controlKind: 'knockdown',
+          duration: 3
+        }
+      }
+    ]
   },
   [ID.THOUSAND_NEEDLES]: {
     implemented: true,
-    handlerId: "thief.thousand-needles",
+    handlerId: 'thief.thousand-needles',
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
         atMs: 0,
-        name: "Thousand Needles — Initial Strike",
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        name: 'Thousand Needles — Initial Strike',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         ticks: [
           { atMs: 1000, coefficient: 0.2 },
           { atMs: 2000, coefficient: 0.2 },
           { atMs: 3000, coefficient: 0.2 },
-          { atMs: 4000, coefficient: 0.2 },
+          { atMs: 4000, coefficient: 0.2 }
         ],
-        name: "Thousand Needles — Pulse",
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        name: 'Thousand Needles — Pulse',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Immobilized",
+        type: 'condition',
+        condition: 'Immobilized',
         stacks: 1,
         duration: 3,
         atMs: 0,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 8,
         atMs: 0,
         applications: 5,
         intervalMs: 1000,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 2,
         duration: 5,
         atMs: 0,
         applications: 5,
         intervalMs: 1000,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 2,
         atMs: 0,
         applications: 5,
         intervalMs: 1000,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.THROW_ENCHANTED_ICE]: {
     implemented: true,
@@ -3225,27 +3223,27 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 1,
-        name: "Throw Enchanted Ice",
-        actorType: "player",
+        name: 'Throw Enchanted Ice',
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "stability",
+        type: 'boon',
+        boon: 'stability',
         duration: 8,
-        stacks: 2,
+        stacks: 2
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "launch",
-          duration: 360,
-        },
-      },
-    ],
+          controlKind: 'launch',
+          duration: 360
+        }
+      }
+    ]
   },
   [ID.THROW_UNSTABLE_REAGENT]: {
     implemented: true,
@@ -3254,35 +3252,35 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 1,
-        name: "Throw Unstable Reagent",
-        actorType: "player",
+        name: 'Throw Unstable Reagent',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 10,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "pull",
-          duration: 360,
-        },
-      },
-    ],
+          controlKind: 'pull',
+          duration: 360
+        }
+      }
+    ]
   },
   [ID.BLESSING_SEED]: {
     implemented: true,
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.DRINK_AMBROSIA]: {
     implemented: true,
@@ -3291,24 +3289,24 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 10,
-        stacks: 25,
+        stacks: 25
       },
       {
-        type: "boon",
-        boon: "fury",
+        type: 'boon',
+        boon: 'fury',
         duration: 10,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "quickness",
+        type: 'boon',
+        boon: 'quickness',
         duration: 5,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.TIME_IN_A_BOTTLE]: {
     implemented: true,
@@ -3317,18 +3315,18 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "boon",
-        boon: "alacrity",
+        type: 'boon',
+        boon: 'alacrity',
         duration: 3,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "quickness",
+        type: 'boon',
+        boon: 'quickness',
         duration: 3,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.THROW_CURSED_ARTIFACT]: {
     implemented: true,
@@ -3337,59 +3335,59 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 10,
         hits: 5,
-        name: "Throw Cursed Artifact",
-        actorType: "player",
+        name: 'Throw Cursed Artifact',
+        actorType: 'player',
         atMs: 100,
         intervalMs: 100,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 2,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 3,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 3,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 3,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Confusion",
+        type: 'condition',
+        condition: 'Confusion',
         stacks: 3,
         duration: 5,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 3,
         duration: 3,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.REPEATER_ID_59526]: {
     implemented: true,
@@ -3398,26 +3396,26 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 2,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 7.5,
         hits: 5,
-        name: "Repeater",
-        actorType: "player",
+        name: 'Repeater',
+        actorType: 'player',
         atMs: 250,
         intervalMs: 250,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 5,
         duration: 3,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Pistol",
-    requiredOffHand: "Dagger",
+    requiredMainHand: 'Pistol',
+    requiredOffHand: 'Dagger'
   },
   [ID.SHADOW_BOLT]: {
     implemented: true,
@@ -3426,20 +3424,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.33,
         hits: 1,
-        name: "Shadow Bolt",
-        actorType: "player",
+        name: 'Shadow Bolt',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 4,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.ENDLESS_NIGHT]: {
     implemented: true,
@@ -3448,74 +3446,74 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.31,
         hits: 7,
-        name: "Endless Night",
-        actorType: "player",
+        name: 'Endless Night',
+        actorType: 'player',
         atMs: 411.428571428571,
         intervalMs: 411.428571428571,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Slow",
+        type: 'condition',
+        condition: 'Slow',
         stacks: 1,
         duration: 1.5,
-        actorType: "player",
+        actorType: 'player',
         atMs: 411.428571428571,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
+        type: 'condition',
         ticks: [
           {
             atMs: 411.428571428571,
-            condition: "Torment",
+            condition: 'Torment',
             stacks: 1,
-            duration: 6,
+            duration: 6
           },
           {
             atMs: 822.857142857143,
-            condition: "Torment",
+            condition: 'Torment',
             stacks: 1,
-            duration: 6,
+            duration: 6
           },
           {
             atMs: 1234.285714285714,
-            condition: "Torment",
+            condition: 'Torment',
             stacks: 1,
-            duration: 6,
+            duration: 6
           },
           {
             atMs: 1645.714285714286,
-            condition: "Torment",
+            condition: 'Torment',
             stacks: 1,
-            duration: 6,
+            duration: 6
           },
           {
             atMs: 2057.142857142857,
-            condition: "Torment",
+            condition: 'Torment',
             stacks: 1,
-            duration: 6,
+            duration: 6
           },
           {
             atMs: 2468.571428571428,
-            condition: "Torment",
+            condition: 'Torment',
             stacks: 1,
-            duration: 6,
+            duration: 6
           },
-          { atMs: 2880, condition: "Torment", stacks: 1, duration: 6 },
+          { atMs: 2880, condition: 'Torment', stacks: 1, duration: 6 }
         ],
-        actorType: "player",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
-    requiredMainHand: "Scepter",
-    requiredOffHand: "Pistol",
+    requiredMainHand: 'Scepter',
+    requiredOffHand: 'Pistol'
   },
   [ID.TRIPLE_BOLT]: {
     implemented: true,
@@ -3524,47 +3522,47 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.45,
         hits: 1,
-        name: "Triple Bolt",
-        actorType: "player",
+        name: 'Triple Bolt',
+        actorType: 'player',
         atMs: 480,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.45,
         hits: 1,
-        name: "Triple Bolt",
-        actorType: "player",
+        name: 'Triple Bolt',
+        actorType: 'player',
         atMs: 960,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.45,
         hits: 1,
-        name: "Triple Bolt",
-        actorType: "player",
+        name: 'Triple Bolt',
+        actorType: 'player',
         atMs: 1560,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
+        type: 'condition',
         ticks: [
-          { atMs: 480, condition: "Torment", stacks: 1, duration: 5 },
-          { atMs: 960, condition: "Torment", stacks: 1, duration: 5 },
-          { atMs: 1560, condition: "Torment", stacks: 1, duration: 5 },
+          { atMs: 480, condition: 'Torment', stacks: 1, duration: 5 },
+          { atMs: 960, condition: 'Torment', stacks: 1, duration: 5 },
+          { atMs: 1560, condition: 'Torment', stacks: 1, duration: 5 }
         ],
-        actorType: "player",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.TRIPLE_THREAT]: {
     implemented: true,
@@ -3573,30 +3571,30 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.35,
         hits: 3,
-        name: "Triple Threat",
-        actorType: "player",
+        name: 'Triple Threat',
+        actorType: 'player',
         atMs: 500,
         intervalMs: 500,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
+        type: 'condition',
         ticks: [
-          { atMs: 500, condition: "Torment", stacks: 1, duration: 4 },
-          { atMs: 1000, condition: "Torment", stacks: 1, duration: 4 },
-          { atMs: 1500, condition: "Torment", stacks: 1, duration: 4 },
+          { atMs: 500, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 1000, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 1500, condition: 'Torment', stacks: 1, duration: 4 }
         ],
-        actorType: "player",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
-    requiredMainHand: "Scepter",
-    requiredOffHand: false,
+    requiredMainHand: 'Scepter',
+    requiredOffHand: false
   },
   [ID.DOUBLE_BOLT]: {
     implemented: true,
@@ -3605,36 +3603,36 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.375,
         hits: 1,
-        name: "Double Bolt",
-        actorType: "player",
+        name: 'Double Bolt',
+        actorType: 'player',
         atMs: 480,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.375,
         hits: 1,
-        name: "Double Bolt",
-        actorType: "player",
+        name: 'Double Bolt',
+        actorType: 'player',
         atMs: 900,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
+        type: 'condition',
         ticks: [
-          { atMs: 480, condition: "Torment", stacks: 1, duration: 4 },
-          { atMs: 900, condition: "Torment", stacks: 1, duration: 4 },
+          { atMs: 480, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 900, condition: 'Torment', stacks: 1, duration: 4 }
         ],
-        actorType: "player",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.TWILIGHT_COMBO]: {
     implemented: true,
@@ -3643,58 +3641,58 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Initial Attack",
-        actorType: "player",
+        name: 'Initial Attack',
+        actorType: 'player',
         atMs: 960,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Secondary Attack",
-        actorType: "player",
+        name: 'Secondary Attack',
+        actorType: 'player',
         atMs: 1200,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player',
         atMs: 960,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 5,
-        actorType: "player",
+        actorType: 'player',
         atMs: 960,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 3,
         duration: 5,
-        actorType: "player",
+        actorType: 'player',
         atMs: 1200,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
-    requiredMainHand: "Scepter",
-    requiredOffHand: "Dagger",
+    requiredMainHand: 'Scepter',
+    requiredOffHand: 'Dagger'
   },
   [ID.MEASURED_SHOT]: {
     implemented: true,
@@ -3703,62 +3701,62 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.33,
         hits: 1,
-        name: "Measured Shot",
-        actorType: "player",
+        name: 'Measured Shot',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Immobilized",
+        type: 'condition',
+        condition: 'Immobilized',
         stacks: 1,
         duration: 1,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
     movementSkill: true,
     shadowstepSkill: true,
-    requiredMainHand: "Scepter",
-    requiredOffHand: "Pistol",
+    requiredMainHand: 'Scepter',
+    requiredOffHand: 'Pistol'
   },
   [ID.SHADOWSQUALL]: {
     implemented: true,
-    handlerId: "thief.stealth-attack",
+    handlerId: 'thief.stealth-attack',
     quicknessCastTimeMs: 1960,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.6,
         hits: 8,
-        name: "Shadowsquall",
-        actorType: "player",
+        name: 'Shadowsquall',
+        actorType: 'player',
         atMs: 367.5,
         intervalMs: 367.5,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
+        type: 'condition',
         ticks: [
-          { atMs: 367.5, condition: "Poisoned", stacks: 1, duration: 3 },
-          { atMs: 735, condition: "Poisoned", stacks: 1, duration: 3 },
-          { atMs: 1102.5, condition: "Poisoned", stacks: 1, duration: 3 },
-          { atMs: 1470, condition: "Poisoned", stacks: 1, duration: 3 },
-          { atMs: 1837.5, condition: "Poisoned", stacks: 1, duration: 3 },
-          { atMs: 2205, condition: "Poisoned", stacks: 1, duration: 3 },
-          { atMs: 2572.5, condition: "Poisoned", stacks: 1, duration: 3 },
-          { atMs: 2940, condition: "Poisoned", stacks: 1, duration: 3 },
+          { atMs: 367.5, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 735, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 1102.5, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 1470, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 1837.5, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 2205, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 2572.5, condition: 'Poisoned', stacks: 1, duration: 3 },
+          { atMs: 2940, condition: 'Poisoned', stacks: 1, duration: 3 }
         ],
-        actorType: "player",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
-    requiredMainHand: "Scepter",
-    stealthAttack: true,
+    requiredMainHand: 'Scepter',
+    stealthAttack: true
   },
   [ID.SHADOW_SAP]: {
     implemented: true,
@@ -3767,32 +3765,32 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.77,
         hits: 1,
-        name: "Shadow Sap",
-        actorType: "player",
+        name: 'Shadow Sap',
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 10,
-        stacks: 5,
+        stacks: 5
       },
       {
-        type: "boon",
-        boon: "protection",
+        type: 'boon',
+        boon: 'protection',
         duration: 4,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
     comboFinishers: [
       {
-        ownerId: "thief",
-        finisherType: "Blast",
-        ambiguousFieldSelection: "oldest",
-      },
-    ],
+        ownerId: 'thief',
+        finisherType: 'Blast',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ]
   },
   [ID.SNIPERS_COVER]: {
     implemented: true,
@@ -3800,32 +3798,32 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     cooldown: 0,
     initiativeCost: 4,
     effects: [],
-    kneelSkill: true,
+    kneelSkill: true
   },
   [ID.DEATHS_JUDGMENT]: {
     implemented: true,
-    handlerId: "thief.stealth-attack",
+    handlerId: 'thief.stealth-attack',
     castTimeMs: 500,
     cooldown: 1,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.67,
         hits: 1,
         name: "Death's Judgment — Packet 1",
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.32,
         hits: 1,
-        name: "Damage on Unmarked Foes",
-        actorType: "player",
-      },
+        name: 'Damage on Unmarked Foes',
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Rifle",
-    stealthAttack: true,
+    requiredMainHand: 'Rifle',
+    stealthAttack: true
   },
   [ID.HELMET_BREAKER]: {
     implemented: true,
@@ -3834,21 +3832,21 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 1,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.25,
         hits: 1,
-        name: "Helmet Breaker",
-        actorType: "player",
+        name: 'Helmet Breaker',
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "daze",
-          duration: 2,
-        },
-      },
-    ],
+          controlKind: 'daze',
+          duration: 2
+        }
+      }
+    ]
   },
   [ID.VENOMOUS_VOLLEY]: {
     implemented: true,
@@ -3857,24 +3855,24 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3.5999999999999996,
         hits: 3,
-        name: "Venomous Volley",
-        actorType: "player",
+        name: 'Venomous Volley',
+        actorType: 'player',
         atMs: 250,
         intervalMs: 250,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 2,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.SPINNING_AXE]: {
     implemented: true,
@@ -3883,20 +3881,20 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        name: "Spinning Axe",
-        actorType: "player",
+        name: 'Spinning Axe',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 3,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.HARROWING_STORM]: {
     implemented: true,
@@ -3905,15 +3903,15 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 2,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Axe",
-    requiredOffHand: "Dagger",
+    requiredMainHand: 'Axe',
+    requiredOffHand: 'Dagger'
   },
   [ID.RECALL_AXES]: {
     implemented: true,
@@ -3922,15 +3920,15 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 1,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Axe",
-    requiredOffHand: false,
+    requiredMainHand: 'Axe',
+    requiredOffHand: false
   },
   [ID.ORCHESTRATED_ASSAULT]: {
     implemented: true,
@@ -3939,15 +3937,15 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 1,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Axe",
-    requiredOffHand: "Pistol",
+    requiredMainHand: 'Axe',
+    requiredOffHand: 'Pistol'
   },
   [ID.SPINNING_AXE_ID_71967]: {
     implemented: true,
@@ -3956,359 +3954,359 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        name: "Spinning Axe",
-        actorType: "player",
+        name: 'Spinning Axe',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 3,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.CUNNING_SALVO]: {
     implemented: true,
-    handlerId: "thief.stealth-attack",
+    handlerId: 'thief.stealth-attack',
     castTimeMs: 500,
     cooldown: 1,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Cunning Salvo",
-        actorType: "player",
+        name: 'Cunning Salvo',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 2,
         duration: 8,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 4,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Axe",
-    stealthAttack: true,
+    requiredMainHand: 'Axe',
+    stealthAttack: true
   },
   [ID.ENTANGLING_ASP]: {
     implemented: true,
-    handlerId: "thief.spear-chain",
+    handlerId: 'thief.spear-chain',
     castTimeMs: 650,
     cooldown: 0,
     initiativeCost: 2,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 1,
-        name: "Entangling Asp",
-        actorType: "player",
+        name: 'Entangling Asp',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 2,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Immobilized",
+        type: 'condition',
+        condition: 'Immobilized',
         stacks: 1,
         duration: 2,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.SHATTERING_ASSAULT]: {
     implemented: true,
-    handlerId: "thief.spear-chain",
+    handlerId: 'thief.spear-chain',
     castTimeMs: 800,
     cooldown: 0,
     initiativeCost: 1,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.8,
         hits: 1,
-        name: "Shattering Assault",
-        actorType: "player",
+        name: 'Shattering Assault',
+        actorType: 'player'
       },
       {
-        type: "buff",
-        kind: "stealth",
+        type: 'buff',
+        kind: 'stealth',
         duration: 3,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.DISTRACTING_THROW]: {
     implemented: true,
-    handlerId: "thief.spear-chain",
+    handlerId: 'thief.spear-chain',
     castTimeMs: 450,
     cooldown: 0,
     initiativeCost: 2,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Distracting Throw",
-        actorType: "player",
+        name: 'Distracting Throw',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 3,
         duration: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "daze",
-          duration: 1.5,
-        },
-      },
-    ],
+          controlKind: 'daze',
+          duration: 1.5
+        }
+      }
+    ]
   },
   [ID.UNSUSPECTING_STRIKE]: {
     implemented: true,
-    handlerId: "thief.spear-chain",
+    handlerId: 'thief.spear-chain',
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        name: "Unsuspecting Strike",
-        actorType: "player",
+        name: 'Unsuspecting Strike',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 6,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.SHADOW_VEIL]: {
     implemented: true,
     castTimeMs: 2000,
     cooldown: 0,
     initiativeCost: 3,
-    effects: [],
+    effects: []
   },
   [ID.ASHEN_ASSAULT]: {
     implemented: true,
     preservesStealth: true,
     spearStealthAttack: true,
-    handlerId: "thief.spear-stealth-attack",
+    handlerId: 'thief.spear-stealth-attack',
     castTimeMs: 575,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 5,
-        name: "Ashen Assault",
-        actorType: "player",
+        name: 'Ashen Assault',
+        actorType: 'player',
         atMs: 250,
         intervalMs: 250,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.3,
         hits: 1,
-        name: "Ashen Assault — Final Strike",
-        actorType: "player",
+        name: 'Ashen Assault — Final Strike',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 5,
         duration: 8,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 3,
         duration: 4,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 3,
         duration: 4,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    requiredMainHand: "Spear",
-    stealthAttack: true,
+    requiredMainHand: 'Spear',
+    stealthAttack: true
   },
   [ID.MANTIS_STING]: {
     implemented: true,
-    handlerId: "thief.spear-chain",
+    handlerId: 'thief.spear-chain',
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Mantis Sting",
-        actorType: "player",
+        name: 'Mantis Sting',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 4,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.VAMPIRIC_SLASH]: {
     implemented: true,
-    handlerId: "thief.spear-chain",
+    handlerId: 'thief.spear-chain',
     castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 1,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Vampiric Slash — Packet 1",
-        actorType: "player",
+        name: 'Vampiric Slash — Packet 1',
+        actorType: 'player'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.2,
         hits: 1,
-        name: "Vampiric Slash — Life Siphon",
-        actorType: "player",
-        canCrit: false,
+        name: 'Vampiric Slash — Life Siphon',
+        actorType: 'player',
+        canCrit: false
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 3,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.FALLING_SPIDER]: {
     implemented: true,
-    handlerId: "thief.spear-chain",
+    handlerId: 'thief.spear-chain',
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 1,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.8,
         hits: 1,
-        name: "Falling Spider",
-        actorType: "player",
+        name: 'Falling Spider',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 3.5,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 3.5,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 4,
         duration: 8,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.BARBED_SPEAR]: {
     implemented: true,
-    handlerId: "thief.spear-chain",
+    handlerId: 'thief.spear-chain',
     castTimeMs: 750,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.375,
         hits: 1,
-        name: "Barbed Spear",
-        actorType: "player",
+        name: 'Barbed Spear',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 2.25,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.LIFT_PIN_HERO_CHALLENGE]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.FLAWLESS_EXECUTION]: {
     implemented: true,
@@ -4317,45 +4315,45 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         ticks: [
           { atMs: 600.45, coefficient: 0.53 },
           { atMs: 839.55, coefficient: 0.53 },
-          { atMs: 1078.35, coefficient: 0.53 },
+          { atMs: 1078.35, coefficient: 0.53 }
         ],
-        name: "Flawless Execution — Packet 1",
-        actorType: "player",
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        name: 'Flawless Execution — Packet 1',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.6,
         hits: 1,
-        name: "Final Slash Damage",
-        actorType: "player",
+        name: 'Final Slash Damage',
+        actorType: 'player',
         atMs: 1860.6,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "strike",
+        type: 'strike',
         ticks: [
           { atMs: 480.6, coefficient: 0.25 },
           { atMs: 659.55, coefficient: 0.25 },
           { atMs: 778.8, coefficient: 0.25 },
           { atMs: 960.3, coefficient: 0.25 },
           { atMs: 1140.15, coefficient: 0.25 },
-          { atMs: 1260.75, coefficient: 0.25 },
+          { atMs: 1260.75, coefficient: 0.25 }
         ],
-        name: "Projectile Damage",
-        actorType: "player",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        name: 'Projectile Damage',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
-    requiredMainHand: "Sword",
-    requiredOffHand: "Pistol",
+    requiredMainHand: 'Sword',
+    requiredOffHand: 'Pistol'
   },
   [ID.DEATHS_ADVANCE_ID_80278]: {
     implemented: true,
@@ -4364,43 +4362,43 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     initiativeCost: 2,
     effects: [
       {
-        type: "buff",
-        kind: "stealth",
+        type: 'buff',
+        kind: 'stealth',
         duration: 3,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    kneelSkill: true,
-  },
+    kneelSkill: true
+  }
 });
 
 export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
   Object.freeze({
     id: ID.SWAP_WEAPONS,
-    handlerId: "thief.weapon-swap",
-    name: "Swap Weapons",
-    description: "Swap equipped weapon sets.",
-    icon: "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
-    type: "Action",
-    slot: "Action",
+    handlerId: 'thief.weapon-swap',
+    name: 'Swap Weapons',
+    description: 'Swap equipped weapon sets.',
+    icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
+    type: 'Action',
+    slot: 'Action',
     castTimeMs: 0,
     cooldown: 10,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     implemented: true,
-    effects: [],
+    effects: []
   }),
   Object.freeze({
     id: ID.DODGE,
-    handlerId: "thief.dodge",
-    name: "Dodge",
-    description: "Perform the selected thief dodge.",
-    icon: "https://wiki.guildwars2.com/images/b/b2/Dodge.png",
-    type: "Action",
-    slot: "Action",
+    handlerId: 'thief.dodge',
+    name: 'Dodge',
+    description: 'Perform the selected thief dodge.',
+    icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
+    type: 'Action',
+    slot: 'Action',
     castTimeMs: 800,
     unaffectedByQuickness: true,
     cooldown: 0,
     implemented: true,
-    effects: [],
-  }),
+    effects: []
+  })
 ]);

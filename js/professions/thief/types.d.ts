@@ -8,8 +8,8 @@ import type {
   SchedulerState,
   SimulationEvent,
   Skill,
-  SkillId,
-} from "../../platform/engine/types.js";
+  SkillId
+} from '../../platform/engine/types.js';
 import type {
   Gw2Build,
   Gw2BuildSpecialization,
@@ -20,15 +20,11 @@ import type {
   Gw2QueryRuntime,
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
-  Gw2WeaponMatcherContext,
-} from "../../platform/gw2/types.js";
-import type {
-  ProfessionApplicationBuild,
-  ProfessionBuildAssumptions,
-} from "../../app/profession/types.js";
+  Gw2WeaponMatcherContext
+} from '../../platform/gw2/types.js';
+import type { ProfessionApplicationBuild, ProfessionBuildAssumptions } from '../../app/profession/types.js';
 
-export type ThiefDodge =
-  "Dodge" | "Lotus Training" | "Bounding Dodger" | "Unhindered Combatant";
+export type ThiefDodge = 'Dodge' | 'Lotus Training' | 'Bounding Dodger' | 'Unhindered Combatant';
 
 export interface ThiefSpecializationSelection extends Gw2BuildSpecialization {}
 
@@ -64,8 +60,7 @@ export interface ThiefConfig extends Gw2Config {
   readonly specialization?: string;
   readonly assumptions?: ProfessionBuildAssumptions;
   readonly professionAssumptions?: ProfessionBuildAssumptions;
-  readonly selectedSkills?:
-    readonly (string | Skill)[] | Readonly<Record<string, string | Skill>>;
+  readonly selectedSkills?: readonly (string | Skill)[] | Readonly<Record<string, string | Skill>>;
   readonly selectedDodge?: ThiefDodge;
   readonly initialInitiative?: number;
   readonly initialShadowForce?: number;
@@ -149,8 +144,8 @@ export interface SpecterState {
   darkSentryReadyAtByAlly: Record<string, number>;
 }
 
-export type ThiefArtifactKind = "offensive" | "defensive";
-export type ThiefDoubleEdgeOutcome = "success" | "backfire";
+export type ThiefArtifactKind = 'offensive' | 'defensive';
+export type ThiefDoubleEdgeOutcome = 'success' | 'backfire';
 
 export interface ThiefArtifactSlot extends SchedulerRecord {
   readonly kind: ThiefArtifactKind;
@@ -199,22 +194,16 @@ export interface AntiquaryState {
   canachCoinIndex: number;
 }
 
-export interface ThiefState
-  extends
-    ThiefCoreState,
-    DaredevilState,
-    DeadeyeState,
-    SpecterState,
-    AntiquaryState {}
+export interface ThiefState extends ThiefCoreState, DaredevilState, DeadeyeState, SpecterState, AntiquaryState {}
 
 export interface ThiefRuntimeState {
   core: ThiefCoreState;
   specialization:
-    | { kind: "Core"; state: Record<string, never> }
-    | { kind: "Daredevil"; state: DaredevilState }
-    | { kind: "Deadeye"; state: DeadeyeState }
-    | { kind: "Specter"; state: SpecterState }
-    | { kind: "Antiquary"; state: AntiquaryState };
+    | { kind: 'Core'; state: Record<string, never> }
+    | { kind: 'Daredevil'; state: DaredevilState }
+    | { kind: 'Deadeye'; state: DeadeyeState }
+    | { kind: 'Specter'; state: SpecterState }
+    | { kind: 'Antiquary'; state: AntiquaryState };
 }
 
 export interface ThiefSummonCondition extends SchedulerRecord {
@@ -295,10 +284,9 @@ export type ThiefEmissionContext = ThiefSchedulerContext & {
   readonly skill?: ThiefSkill;
 };
 
-export type ThiefScheduledTask<TPayload = SchedulerRecord> = Omit<
-  ScheduledTask<TPayload>,
-  "payload"
-> & { readonly payload: TPayload };
+export type ThiefScheduledTask<TPayload = SchedulerRecord> = Omit<ScheduledTask<TPayload>, 'payload'> & {
+  readonly payload: TPayload;
+};
 
 export type ThiefSimulationEvent = SimulationEvent & {
   readonly application?: ThiefSimulationEvent;
@@ -329,10 +317,7 @@ export type ThiefResolverContext = Gw2ResolverRuntime & {
 
 export interface ThiefResolverReactionDetails extends SchedulerRecord {
   readonly hitContext?: Gw2HitResolutionContext;
-  readonly applyCondition?: (
-    context: Gw2ResolverRuntime,
-    event: Gw2EventDraft,
-  ) => unknown;
+  readonly applyCondition?: (context: Gw2ResolverRuntime, event: Gw2EventDraft) => unknown;
 }
 
 export type ThiefQueryRuntime = Gw2QueryRuntime & {

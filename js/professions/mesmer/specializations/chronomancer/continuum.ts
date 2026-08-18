@@ -1,18 +1,10 @@
-import { chronomancerState } from "./state.js";
-import { professionCoreState } from "../../../../platform/engine/profession.js";
+import { chronomancerState } from './state.js';
+import { professionCoreState } from '../../../../platform/engine/profession.js';
 /**
  * Chronomancer-owned Continuum Split checkpoints and restoration.
  */
-import type {
-  SchedulerState,
-  SkillId,
-} from "../../../../platform/engine/types.js";
-import type {
-  MesmerAddEvent,
-  MesmerRuntimeState,
-  MesmerRefreshAmmo,
-  MesmerSkill,
-} from "../../types.js";
+import type { SchedulerState, SkillId } from '../../../../platform/engine/types.js';
+import type { MesmerAddEvent, MesmerRuntimeState, MesmerRefreshAmmo, MesmerSkill } from '../../types.js';
 
 interface ContinuumControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
@@ -21,12 +13,7 @@ interface ContinuumControllerOptions {
   readonly skillsById: ReadonlyMap<SkillId, MesmerSkill>;
   readonly refreshAmmo: MesmerRefreshAmmo;
   readonly consumeResources: (at: number) => number;
-  readonly triggerShatterTraits: (
-    skill: MesmerSkill,
-    at: number,
-    spent: number,
-    bladeSong?: boolean,
-  ) => void;
+  readonly triggerShatterTraits: (skill: MesmerSkill, at: number, spent: number, bladeSong?: boolean) => void;
   readonly addEvent: MesmerAddEvent;
   readonly durationPerSource: number;
   readonly scheduleExpiry?: ((at: number) => unknown) | null;
@@ -47,7 +34,7 @@ export function createContinuumController({
   triggerShatterTraits,
   addEvent,
   durationPerSource,
-  scheduleExpiry = null,
+  scheduleExpiry = null
 }: ContinuumControllerOptions): ContinuumController {
   const restoreContinuum = (at: number, reason: string) => {
     const chronomancer = chronomancerState.from(state);
@@ -55,46 +42,40 @@ export function createContinuumController({
     if (!continuum) return;
     const splitReady = continuum.splitReady;
     const openAt = continuum.openAt;
-    const unaffectedCooldowns = [...state.cooldowns].filter(([id]) =>
-      unaffectedCooldownIds.has(id),
-    );
+    const unaffectedCooldowns = [...state.cooldowns].filter(([id]) => unaffectedCooldownIds.has(id));
     state.cooldowns = new Map([
       ...unaffectedCooldowns,
       ...[...continuum.remainingCooldowns]
         .filter(([, remaining]) => remaining > epsilon)
-        .map(([id, remaining]): [SkillId, number] => [id, at + remaining]),
+        .map(([id, remaining]): [SkillId, number] => [id, at + remaining])
     ]);
-    if (splitReady)
-      state.cooldowns.set(continuum.splitId, at + splitReady - openAt);
+    if (splitReady) state.cooldowns.set(continuum.splitId, at + splitReady - openAt);
     state.ammo = new Map(
       [...continuum.ammo].map(([id, ammo]) => [
         id,
         {
           ...ammo,
-          nextRechargeAt:
-            ammo.nextRechargeRemaining == null
-              ? null
-              : at + ammo.nextRechargeRemaining,
-        },
-      ]),
+          nextRechargeAt: ammo.nextRechargeRemaining == null ? null : at + ammo.nextRechargeRemaining
+        }
+      ])
     );
     professionCoreState(state).autoattackChains = {
-      ...(continuum.autoattackChains || {}),
+      ...(continuum.autoattackChains || {})
     };
     for (const [id] of state.ammo) {
       const ammoSkill = skillsById.get(id);
       if (ammoSkill) refreshAmmo(ammoSkill, at);
     }
     addEvent({
-      type: "marker",
+      type: 'marker',
       at,
-      name: "Continuum Shift",
-      detail: reason,
+      name: 'Continuum Shift',
+      detail: reason
     });
     addEvent({
-      type: "cooldown_snapshot",
+      type: 'cooldown_snapshot',
       at,
-      cooldowns: Object.fromEntries(state.cooldowns),
+      cooldowns: Object.fromEntries(state.cooldowns)
     });
     chronomancer.continuum = null;
   };
@@ -104,7 +85,7 @@ export function createContinuumController({
     const remainingCooldowns = new Map(
       [...state.cooldowns]
         .filter(([id]) => id !== skill.id && !unaffectedCooldownIds.has(id))
-        .map(([id, ready]) => [id, ready - at]),
+        .map(([id, ready]) => [id, ready - at])
     );
     const ammo = new Map(
       [...state.ammo].map(([id, value]) => [
@@ -113,12 +94,9 @@ export function createContinuumController({
           charges: value.charges,
           maximum: value.maximum,
           rechargeDuration: value.rechargeDuration,
-          nextRechargeRemaining:
-            value.nextRechargeAt == null
-              ? null
-              : Math.max(0, value.nextRechargeAt - at),
-        },
-      ]),
+          nextRechargeRemaining: value.nextRechargeAt == null ? null : Math.max(0, value.nextRechargeAt - at)
+        }
+      ])
     );
     const chronomancer = chronomancerState.from(state);
     chronomancer.continuum = {
@@ -128,20 +106,20 @@ export function createContinuumController({
       remainingCooldowns,
       ammo,
       autoattackChains: { ...professionCoreState(state).autoattackChains },
-      expiresAt: at + durationPerSource * (spent + 1),
+      expiresAt: at + durationPerSource * (spent + 1)
     };
     scheduleExpiry?.(chronomancer.continuum.expiresAt);
     triggerShatterTraits(skill, at, spent, false);
     addEvent({
-      type: "marker",
+      type: 'marker',
       at,
-      name: "Continuum Split",
-      detail: `${(durationPerSource * (spent + 1)).toFixed(1)}s window`,
+      name: 'Continuum Split',
+      detail: `${(durationPerSource * (spent + 1)).toFixed(1)}s window`
     });
   };
 
   return {
     beginContinuumSplit,
-    restoreContinuum,
+    restoreContinuum
   };
 }

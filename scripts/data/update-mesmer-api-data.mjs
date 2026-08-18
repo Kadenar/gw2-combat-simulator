@@ -1,3 +1,3 @@
-import { updateProfessionApiData } from "./update-profession-api-data.mjs";
+import { updateProfessionApiData } from './update-profession-api-data.mjs';
 
-await updateProfessionApiData("Mesmer");
+await updateProfessionApiData('Mesmer');

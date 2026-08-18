@@ -1,84 +1,59 @@
-import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
-import { professionCoreState } from "../../../../platform/engine/profession.js";
-import { hasTrait } from "../../../../platform/gw2/trait-state.js";
-import {
-  WARRIOR_SKILL_IDS as ID,
-  WARRIOR_TRAIT_IDS as TRAIT,
-} from "../../data/ids.js";
-import { bladeswornState } from "./state.js";
-import type {
-  AvailabilityResult,
-  SchedulerRecord,
-} from "../../../../platform/engine/types.js";
-import type {
-  Gw2ModifierContext,
-  Gw2ModifierRule,
-} from "../../../../platform/gw2/types.js";
+import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
+import { professionCoreState } from '../../../../platform/engine/profession.js';
+import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { bladeswornState } from './state.js';
+import type { AvailabilityResult, SchedulerRecord } from '../../../../platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
 import {
   DRAGON_CHARGE_INTERVAL_SECONDS,
   DRAGON_TRIGGER_FLOW_COST,
   maximumDragonCharges,
-  requestedDragonCharges,
-} from "./dragon-trigger.js";
-import type {
-  WarriorCastContext,
-  WarriorSchedulerContext,
-  WarriorSkill,
-} from "../../types.js";
-import { warriorBalanceProfile } from "../../core/profiles.js";
-import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
+  requestedDragonCharges
+} from './dragon-trigger.js';
+import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '../../types.js';
+import { warriorBalanceProfile } from '../../core/profiles.js';
+import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import {
   advanceBladesworn,
   completeBladeswornSkill,
   observeBladeswornEvent,
-  trackBladeswornAmmoCast,
-} from "./traits.js";
+  trackBladeswornAmmoCast
+} from './traits.js';
 
 // Shared reason string so both the availability check and the charge-release
 // projection surface the same message in the UI.
-export const ENTER_DRAGON_TRIGGER_REASON =
-  "Enter Dragon Trigger before using this skill.";
+export const ENTER_DRAGON_TRIGGER_REASON = 'Enter Dragon Trigger before using this skill.';
 
 export const bladeswornSchedulerHooks = Object.freeze({
   initialize: (context: WarriorSchedulerContext) => {
     const state = bladeswornState.from(context);
-    state.maximumFlow = Number(
-      warriorBalanceProfile(context, PROFILE.resources)?.maximumStacks ?? 100,
-    );
+    state.maximumFlow = Number(warriorBalanceProfile(context, PROFILE.resources)?.maximumStacks ?? 100);
     state.flow = Math.min(state.maximumFlow, state.flow);
     professionCoreState(context).maximumAdrenaline = 0;
   },
-  advance: { id: "warrior.flow", order: 20, handler: advanceBladesworn },
+  advance: { id: 'warrior.flow', order: 20, handler: advanceBladesworn },
   afterCast: {
-    id: "warrior.bladesworn-ammo-cast",
+    id: 'warrior.bladesworn-ammo-cast',
     order: 20,
-    handler: trackBladeswornAmmoCast,
+    handler: trackBladeswornAmmoCast
   },
   onCastComplete: {
-    id: "warrior.bladesworn-state",
+    id: 'warrior.bladesworn-state',
     order: 20,
-    handler: completeBladeswornSkill,
+    handler: completeBladeswornSkill
   },
   onEventScheduled: {
-    id: "warrior.bladesworn-explosions",
+    id: 'warrior.bladesworn-explosions',
     order: 20,
-    handler: observeBladeswornEvent,
-  },
+    handler: observeBladeswornEvent
+  }
 });
 
-function modifyAttributes(
-  context: Gw2ModifierContext,
-  attributes: SchedulerRecord,
-): SchedulerRecord {
+function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const result = { ...attributes } as SchedulerRecord & { ferocity: number };
-  if (
-    hasTrait(context, TRAIT.GUNS_AND_GLORY) &&
-    runtimeBuffActive(context, "guns-and-glory")
-  ) {
-    result.ferocity += Number(
-      warriorBalanceProfile(context, PROFILE.gunsAndGlory)?.attributeBonus ??
-        250,
-    );
+  if (hasTrait(context, TRAIT.GUNS_AND_GLORY) && runtimeBuffActive(context, 'guns-and-glory')) {
+    result.ferocity += Number(warriorBalanceProfile(context, PROFILE.gunsAndGlory)?.attributeBonus ?? 250);
   }
   return result;
 }
@@ -87,113 +62,91 @@ function runtimeBuffActive(context: Gw2ModifierContext, kind: string): boolean {
   const applications = context.runtime?.boons?.get(kind) || [];
   return applications.some(
     (application) =>
-      application.affectsSelf !== false &&
-      application.at <= context.time &&
-      application.expiresAt > context.time,
+      application.affectsSelf !== false && application.at <= context.time && application.expiresAt > context.time
   );
 }
 
-function runtimeBuffStacks(
-  context: Gw2ModifierContext,
-  kind: string,
-  maximum: number,
-): number {
+function runtimeBuffStacks(context: Gw2ModifierContext, kind: string, maximum: number): number {
   return Math.min(
     maximum,
     (context.runtime?.boons?.get(kind) || [])
       .filter(
         (application) =>
-          application.affectsSelf !== false &&
-          application.at <= context.time &&
-          application.expiresAt > context.time,
+          application.affectsSelf !== false && application.at <= context.time && application.expiresAt > context.time
       )
-      .reduce((total, application) => total + application.stacks, 0),
+      .reduce((total, application) => total + application.stacks, 0)
   );
 }
 
 function cartridgeDamageBonus(context: Gw2ModifierContext): number {
-  if (runtimeBuffActive(context, "supercharged-cartridges")) return 0.2;
-  if (runtimeBuffActive(context, "overcharged-cartridges")) return 0.15;
+  if (runtimeBuffActive(context, 'supercharged-cartridges')) return 0.2;
+  if (runtimeBuffActive(context, 'overcharged-cartridges')) return 0.15;
   return 0;
 }
 
 const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
-    id: "warrior.fierce-as-fire",
+    id: 'warrior.fierce-as-fire',
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
-    operation: "damage-additive",
+    operation: 'damage-additive',
     parameters: {
       maximumStacks: 10,
-      damagePerStack: 0.01,
+      damagePerStack: 0.01
     } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
-      runtimeBuffStacks(context, "fierce-as-fire", parameters.maximumStacks) *
-      parameters.damagePerStack,
-    when: (context) => hasTrait(context, TRAIT.FIERCE_AS_FIRE),
+      runtimeBuffStacks(context, 'fierce-as-fire', parameters.maximumStacks) * parameters.damagePerStack,
+    when: (context) => hasTrait(context, TRAIT.FIERCE_AS_FIRE)
   },
   {
-    id: "warrior.overcharged-cartridges",
+    id: 'warrior.overcharged-cartridges',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
+    operation: 'multiply',
     parameters: { baseFactor: 1 } as Readonly<Record<string, number>>,
-    factor: (context, _target, parameters) =>
-      parameters.baseFactor + cartridgeDamageBonus(context),
-    when: (context) =>
-      context.event?.damageKind === "explosion" &&
-      cartridgeDamageBonus(context) > 0,
-  },
+    factor: (context, _target, parameters) => parameters.baseFactor + cartridgeDamageBonus(context),
+    when: (context) => context.event?.damageKind === 'explosion' && cartridgeDamageBonus(context) > 0
+  }
 ]);
 
-function availability(
-  context: WarriorCastContext,
-  skill: WarriorSkill,
-): AvailabilityResult {
+function availability(context: WarriorCastContext, skill: WarriorSkill): AvailabilityResult {
   const state = bladeswornState.from(context);
   if (skill.id === ID.SWAP_WEAPONS) {
     return {
       ready: false,
       retryAt: null,
-      code: "warrior.gunsaber",
-      reason: "Bladesworn cannot swap normal weapon sets in combat.",
+      code: 'warrior.gunsaber',
+      reason: 'Bladesworn cannot swap normal weapon sets in combat.'
     };
   }
   if (skill.id === ID.UNSHEATHE_GUNSABER && state.gunsaberActive) {
     return {
       ready: false,
       retryAt: null,
-      code: "warrior.gunsaber",
-      reason: "Gunsaber is already active.",
+      code: 'warrior.gunsaber',
+      reason: 'Gunsaber is already active.'
     };
   }
   if (skill.id === ID.SHEATHE_GUNSABER && !state.gunsaberActive) {
     return {
       ready: false,
       retryAt: null,
-      code: "warrior.gunsaber",
-      reason: "Gunsaber is not active.",
+      code: 'warrior.gunsaber',
+      reason: 'Gunsaber is not active.'
     };
   }
-  if (
-    (state.gunsaberActive || state.dragonTriggerActive) &&
-    skill.type === "Weapon" &&
-    Boolean(skill.weapon)
-  ) {
+  if ((state.gunsaberActive || state.dragonTriggerActive) && skill.type === 'Weapon' && Boolean(skill.weapon)) {
     return {
       ready: false,
       retryAt: null,
-      code: "warrior.gunsaber",
-      reason: "Sheathe the gunsaber before using standard weapon skills.",
+      code: 'warrior.gunsaber',
+      reason: 'Sheathe the gunsaber before using standard weapon skills.'
     };
   }
-  if (
-    (skill.dragonSlash || skill.dragonTriggerSkill) &&
-    !state.dragonTriggerActive
-  ) {
+  if ((skill.dragonSlash || skill.dragonTriggerSkill) && !state.dragonTriggerActive) {
     return {
       ready: false,
       retryAt: null,
-      code: "warrior.dragon-trigger",
-      reason: ENTER_DRAGON_TRIGGER_REASON,
+      code: 'warrior.dragon-trigger',
+      reason: ENTER_DRAGON_TRIGGER_REASON
     };
   }
   if (skill.dragonSlash) {
@@ -206,79 +159,64 @@ function availability(
           ? state.nextDragonChargeAt
           : context.start +
             Number(
-              warriorBalanceProfile(context, PROFILE.dragonTrigger)
-                ?.pulseInterval ?? DRAGON_CHARGE_INTERVAL_SECONDS,
+              warriorBalanceProfile(context, PROFILE.dragonTrigger)?.pulseInterval ?? DRAGON_CHARGE_INTERVAL_SECONDS
             );
       // Even the next possible tick would land after the deadline — stop waiting.
       if (nextChargeAt > state.dragonTriggerChargeDeadline + context.epsilon) {
         return {
           ready: false,
           retryAt: null,
-          code: "warrior.flow",
+          code: 'warrior.flow',
           reason:
             `Dragon Slash could not reach ${releaseAtCharges} charges ` +
-            `before Dragon Trigger ended; it reached ${state.dragonCharges}.`,
+            `before Dragon Trigger ended; it reached ${state.dragonCharges}.`
         };
       }
       return {
         ready: false,
         retryAt: nextChargeAt,
-        code: "warrior.dragon-trigger-charging",
-        reason: `Dragon Trigger is charging to ${releaseAtCharges} charges.`,
+        code: 'warrior.dragon-trigger-charging',
+        reason: `Dragon Trigger is charging to ${releaseAtCharges} charges.`
       };
     }
   }
-  if (
-    state.dragonTriggerActive &&
-    skill.gunsaberSkill &&
-    !skill.dragonSlash &&
-    !skill.dragonTriggerSkill
-  ) {
+  if (state.dragonTriggerActive && skill.gunsaberSkill && !skill.dragonSlash && !skill.dragonTriggerSkill) {
     return {
       ready: false,
       retryAt: null,
-      code: "warrior.dragon-trigger",
-      reason: "Finish Dragon Trigger before using gunsaber attacks.",
+      code: 'warrior.dragon-trigger',
+      reason: 'Finish Dragon Trigger before using gunsaber attacks.'
     };
   }
-  if (
-    skill.gunsaberSkill &&
-    !skill.dragonSlash &&
-    !skill.dragonTriggerSkill &&
-    !state.gunsaberActive
-  ) {
+  if (skill.gunsaberSkill && !skill.dragonSlash && !skill.dragonTriggerSkill && !state.gunsaberActive) {
     return {
       ready: false,
       retryAt: null,
-      code: "warrior.gunsaber",
-      reason: "Unsheathe the gunsaber first.",
+      code: 'warrior.gunsaber',
+      reason: 'Unsheathe the gunsaber first.'
     };
   }
   if (skill.id === ID.DRAGON_TRIGGER && state.dragonTriggerActive) {
     return {
       ready: false,
       retryAt: null,
-      code: "warrior.dragon-trigger",
-      reason: "Dragon Trigger is already active.",
+      code: 'warrior.dragon-trigger',
+      reason: 'Dragon Trigger is already active.'
     };
   }
   if (
     skill.id === ID.DRAGON_TRIGGER &&
     state.flow + context.epsilon <
-      Number(
-        warriorBalanceProfile(context, PROFILE.dragonTrigger)?.threshold ??
-          DRAGON_TRIGGER_FLOW_COST,
-      )
+      Number(warriorBalanceProfile(context, PROFILE.dragonTrigger)?.threshold ?? DRAGON_TRIGGER_FLOW_COST)
   ) {
     const flowCost = Number(
-      warriorBalanceProfile(context, PROFILE.dragonTrigger)?.threshold ??
-        DRAGON_TRIGGER_FLOW_COST,
+      warriorBalanceProfile(context, PROFILE.dragonTrigger)?.threshold ?? DRAGON_TRIGGER_FLOW_COST
     );
     return {
       ready: false,
       retryAt: null,
-      code: "warrior.flow",
-      reason: `Dragon Trigger requires at least ${flowCost} flow.`,
+      code: 'warrior.flow',
+      reason: `Dragon Trigger requires at least ${flowCost} flow.`
     };
   }
   return { ready: true };
@@ -286,8 +224,8 @@ function availability(
 
 export const bladeswornAttributeRules = Object.freeze({
   modifyAttributes,
-  modifierRules,
+  modifierRules
 });
 export const bladeswornCastRules = Object.freeze({
-  availability: { id: "warrior.bladesworn", order: 20, handler: availability },
+  availability: { id: 'warrior.bladesworn', order: 20, handler: availability }
 });

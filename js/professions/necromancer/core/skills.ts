@@ -5,149 +5,147 @@
  * fragments. Weapon skills remain Core-owned because Weaponmaster Training
  * makes elite weapon families profession-wide.
  */
-import { NECROMANCER_SKILL_IDS as ID } from "../data/ids.js";
-import type { Skill, SkillFragment } from "../../../platform/engine/types.js";
+import { NECROMANCER_SKILL_IDS as ID } from '../data/ids.js';
+import type { Skill, SkillFragment } from '../../../platform/engine/types.js';
 
-export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
-  Record<number, SkillFragment>
-> = Object.freeze({
+export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WELL_OF_BLOOD]: {
     implemented: true,
     castTimeMs: 1000,
-    effects: [],
+    effects: []
   },
   [ID.GHASTLY_CLAWS]: {
     implemented: true,
     quicknessCastTimeMs: 1440,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 4.6,
         hits: 8,
         atMs: 270,
         intervalMs: 270,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
-    lifeForceGain: 12,
+    lifeForceGain: 12
   },
   [ID.DARK_PACT]: {
     implemented: true,
     quicknessCastTimeMs: 680,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.4,
         hits: 1,
         atMs: 960,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 2,
         duration: 10,
         atMs: 960,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
-    handlerId: "necromancer.dark-pact",
+    handlerId: 'necromancer.dark-pact'
   },
   [ID.GRASPING_DEAD]: {
     implemented: true,
     quicknessCastTimeMs: 880,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.8,
         hits: 1,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 3,
         duration: 10,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.SUMMON_BONE_FIEND]: {
     implemented: true,
     castTimeMs: 500,
     effects: [],
     rechargeOnMinionDeath: true,
-    handlerId: "necromancer.minion",
+    handlerId: 'necromancer.minion'
   },
   [ID.PUTRID_EXPLOSION]: {
     implemented: true,
     castTimeMs: 500,
-    minionKey: "bone-minion",
+    minionKey: 'bone-minion',
     consumes: 1,
     effects: [
-      { type: "strike", coefficient: 1, hits: 1, actorType: "summon" },
+      { type: 'strike', coefficient: 1, hits: 1, actorType: 'summon' },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 5,
-        actorType: "summon",
-      },
+        actorType: 'summon'
+      }
     ],
-    handlerId: "necromancer.minion-command",
+    handlerId: 'necromancer.minion-command'
   },
   [ID.SUMMON_BONE_MINIONS]: {
     implemented: true,
     castTimeMs: 500,
     effects: [],
     rechargeOnMinionDeath: true,
-    handlerId: "necromancer.minion",
+    handlerId: 'necromancer.minion'
   },
   [ID.BLOOD_IS_POWER]: {
     implemented: true,
     quicknessCastTimeMs: 880,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 4,
         duration: 15,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
-    handlerId: "necromancer.corruption",
+    handlerId: 'necromancer.corruption'
   },
   [ID.WELL_OF_CORRUPTION]: {
     implemented: true,
     castTimeMs: 500,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3,
         hits: 6,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-      },
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
     ],
-    lifeForceGain: 1,
+    lifeForceGain: 1
   },
   [ID.WELL_OF_SUFFERING]: {
     interruptCommitMs: 0,
@@ -155,35 +153,35 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 480,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 6,
         hits: 6,
         atMs: 420,
         intervalMs: 1000,
-        intervalTimingScale: "fixed",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        persistsAfterInterrupt: true,
+        intervalTimingScale: 'fixed',
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
-        type: "buff",
-        kind: "target-vulnerability",
+        type: 'buff',
+        kind: 'target-vulnerability',
         duration: 5,
-        stacks: 2,
-      },
-    ],
+        stacks: 2
+      }
+    ]
   },
   [ID.SUMMON_BLOOD_FIEND]: {
     implemented: true,
     castTimeMs: 1000,
     effects: [],
-    handlerId: "necromancer.minion",
+    handlerId: 'necromancer.minion'
   },
   [ID.CONSUME_CONDITIONS]: {
     implemented: true,
     castTimeMs: 1000,
     effects: [],
-    handlerId: "necromancer.corruption",
+    handlerId: 'necromancer.corruption'
   },
   [ID.PLAGUELANDS]: {
     interruptCommitMs: 0,
@@ -191,171 +189,171 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 920,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3.51,
         hits: 9,
         atMs: 1000,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 8,
         applications: 9,
         atMs: 1000,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 5,
         applications: 8,
         atMs: 2000,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 5,
         applications: 7,
         atMs: 3000,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "buff",
-        kind: "target-vulnerability",
+        type: 'buff',
+        kind: 'target-vulnerability',
         duration: 8,
         stacks: 1,
         atMs: 4000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "buff",
-        kind: "target-vulnerability",
+        type: 'buff',
+        kind: 'target-vulnerability',
         duration: 8,
         stacks: 1,
         atMs: 5000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "buff",
-        kind: "target-vulnerability",
+        type: 'buff',
+        kind: 'target-vulnerability',
         duration: 8,
         stacks: 1,
         atMs: 6000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "buff",
-        kind: "target-vulnerability",
+        type: 'buff',
+        kind: 'target-vulnerability',
         duration: 8,
         stacks: 1,
         atMs: 7000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "buff",
-        kind: "target-vulnerability",
+        type: 'buff',
+        kind: 'target-vulnerability',
         duration: 8,
         stacks: 1,
         atMs: 8000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "buff",
-        kind: "target-vulnerability",
+        type: 'buff',
+        kind: 'target-vulnerability',
         duration: 8,
         stacks: 1,
         atMs: 9000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 2,
         applications: 5,
         atMs: 5000,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 3,
         applications: 4,
         atMs: 6000,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "blind",
+        type: 'blind',
         applications: 3,
         atMs: 7000,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
         metadata: {
-          duration: 3,
-        },
+          duration: 3
+        }
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 2,
         applications: 2,
         atMs: 8000,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 10,
         atMs: 9000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
-      },
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
+      }
     ],
-    handlerId: "necromancer.corruption",
+    handlerId: 'necromancer.corruption'
   },
   [ID.LICH_FORM]: {
     implemented: true,
@@ -363,592 +361,592 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     effects: [],
     lifeForceGain: 15,
     cooldown: 120,
-    handlerId: "necromancer.lich",
+    handlerId: 'necromancer.lich'
   },
   [ID.PUTRID_CURSE]: {
     implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
         atMs: 540,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 4.5,
         atMs: 540,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 6,
         atMs: 540,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.LIFE_BLAST]: {
     implemented: true,
     quicknessCastTimeMs: 920,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.4,
-        hits: 1,
-      },
+        hits: 1
+      }
     ],
-    type: "Profession",
-    slot: "Weapon_1",
-    shroud: "death",
+    type: 'Profession',
+    slot: 'Weapon_1',
+    shroud: 'death',
     shroudSlot: 1,
-    specialization: "",
-    flipSkillId: null,
+    specialization: '',
+    flipSkillId: null
   },
   [ID.SPINAL_SHIVERS]: {
     implemented: true,
     quicknessCastTimeMs: 800,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 4,
         hits: 1,
-        name: "Spinal Shivers — Damage—Three Boons",
+        name: 'Spinal Shivers — Damage—Three Boons'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3.5,
         hits: 1,
-        name: "Spinal Shivers — Damage—Two Boons",
+        name: 'Spinal Shivers — Damage—Two Boons'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3,
         hits: 1,
-        name: "Spinal Shivers — Damage—One Boon",
+        name: 'Spinal Shivers — Damage—One Boon'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.5,
         hits: 1,
-        name: "Spinal Shivers — Damage—No Boons",
+        name: 'Spinal Shivers — Damage—No Boons'
       },
       {
-        type: "custom",
-        eventType: "necromancer.chill",
+        type: 'custom',
+        eventType: 'necromancer.chill',
         event: {
-          duration: 5,
-        },
-      },
-    ],
+          duration: 5
+        }
+      }
+    ]
   },
   [ID.WAIL_OF_DOOM]: {
     implemented: true,
     quicknessCastTimeMs: 1000,
     effects: [
       {
-        type: "control",
+        type: 'control',
         metadata: {
-          controlKind: "fear",
-        },
-      },
-    ],
+          controlKind: 'fear'
+        }
+      }
+    ]
   },
   [ID.LOCUST_SWARM]: {
     implemented: true,
     quicknessCastTimeMs: 440,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 0,
-        name: "Locust Swarm — Life Siphon",
+        name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
           flatStrikePowerCoeff: 0.012,
           noCrit: true,
-          damageKind: "life-steal",
+          damageKind: 'life-steal'
         },
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 500,
-        name: "Locust Swarm — Life Siphon",
+        name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
           flatStrikePowerCoeff: 0.012,
           noCrit: true,
-          damageKind: "life-steal",
+          damageKind: 'life-steal'
         },
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 1000,
-        name: "Locust Swarm — Life Siphon",
+        name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
           flatStrikePowerCoeff: 0.012,
           noCrit: true,
-          damageKind: "life-steal",
+          damageKind: 'life-steal'
         },
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 1500,
-        name: "Locust Swarm — Life Siphon",
+        name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
           flatStrikePowerCoeff: 0.012,
           noCrit: true,
-          damageKind: "life-steal",
+          damageKind: 'life-steal'
         },
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 2000,
-        name: "Locust Swarm — Life Siphon",
+        name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
           flatStrikePowerCoeff: 0.012,
           noCrit: true,
-          damageKind: "life-steal",
+          damageKind: 'life-steal'
         },
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 2500,
-        name: "Locust Swarm — Life Siphon",
+        name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
           flatStrikePowerCoeff: 0.012,
           noCrit: true,
-          damageKind: "life-steal",
+          damageKind: 'life-steal'
         },
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 3000,
-        name: "Locust Swarm — Life Siphon",
+        name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
           flatStrikePowerCoeff: 0.012,
           noCrit: true,
-          damageKind: "life-steal",
+          damageKind: 'life-steal'
         },
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 3500,
-        name: "Locust Swarm — Life Siphon",
+        name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
           flatStrikePowerCoeff: 0.012,
           noCrit: true,
-          damageKind: "life-steal",
+          damageKind: 'life-steal'
         },
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 4000,
-        name: "Locust Swarm — Life Siphon",
+        name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
           flatStrikePowerCoeff: 0.012,
           noCrit: true,
-          damageKind: "life-steal",
+          damageKind: 'life-steal'
         },
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 4500,
-        name: "Locust Swarm — Life Siphon",
+        name: 'Locust Swarm — Life Siphon',
         metadata: {
           flatStrikeBase: 37,
           flatStrikePowerCoeff: 0.012,
           noCrit: true,
-          damageKind: "life-steal",
+          damageKind: 'life-steal'
         },
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
     ],
-    lifeForceGain: 1.5,
+    lifeForceGain: 1.5
   },
   [ID.RENDING_CLAWS]: {
     implemented: true,
     quicknessCastTimeMs: 620,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.4,
-        hits: 2,
+        hits: 2
       },
       {
-        type: "buff",
-        kind: "target-vulnerability",
+        type: 'buff',
+        kind: 'target-vulnerability',
         duration: 7,
-        stacks: 2,
-      },
-    ],
+        stacks: 2
+      }
+    ]
   },
   [ID.PLAGUE_SIGNET]: {
     implemented: true,
     castTimeMs: 0,
     effects: [],
-    handlerId: "necromancer.condition-transfer",
+    handlerId: 'necromancer.condition-transfer'
   },
   [ID.RIGOR_MORTIS]: {
     implemented: true,
     castTimeMs: 0,
-    minionKey: "bone-fiend",
+    minionKey: 'bone-fiend',
     controlWindow: 4,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         ticks: [
           {
             atMs: 720,
             coefficient: 0.25,
             sourceId: 3634,
-            name: "Rigor Mortis - Bone Shard",
-            controlKind: "immobilize",
+            name: 'Rigor Mortis - Bone Shard',
+            controlKind: 'immobilize',
             controlDuration: 2,
             comboFinishers: [
               {
-                ownerId: "necromancer",
-                finisherType: "Projectile",
+                ownerId: 'necromancer',
+                finisherType: 'Projectile',
                 chance: 1,
-                ambiguousFieldSelection: "oldest",
-              },
-            ],
+                ambiguousFieldSelection: 'oldest'
+              }
+            ]
           },
           {
             atMs: 760,
             coefficient: 0.25,
             sourceId: 3634,
-            name: "Rigor Mortis - Bone Shard",
-            controlKind: "immobilize",
+            name: 'Rigor Mortis - Bone Shard',
+            controlKind: 'immobilize',
             controlDuration: 2,
             comboFinishers: [
               {
-                ownerId: "necromancer",
-                finisherType: "Projectile",
+                ownerId: 'necromancer',
+                finisherType: 'Projectile',
                 chance: 1,
-                ambiguousFieldSelection: "oldest",
-              },
-            ],
-          },
+                ambiguousFieldSelection: 'oldest'
+              }
+            ]
+          }
         ],
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        actorType: "summon",
-      },
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        actorType: 'summon'
+      }
     ],
-    handlerId: "necromancer.minion-command",
+    handlerId: 'necromancer.minion-command'
   },
   [ID.DEATH_SHROUD]: {
     implemented: true,
     castTimeMs: 0,
     effects: [],
     cooldown: 10,
-    handlerId: "necromancer.shroud",
+    handlerId: 'necromancer.shroud'
   },
   [ID.TASTE_OF_DEATH]: {
     implemented: true,
     castTimeMs: 1000,
-    minionKey: "blood-fiend",
+    minionKey: 'blood-fiend',
     consumes: 1,
     effects: [],
-    handlerId: "necromancer.minion-command",
+    handlerId: 'necromancer.minion-command'
   },
   [ID.SPECTRAL_ARMOR]: {
     implemented: true,
     castTimeMs: 500,
     effects: [
       {
-        type: "control",
+        type: 'control',
         metadata: {
-          controlKind: "control",
-        },
-      },
-    ],
+          controlKind: 'control'
+        }
+      }
+    ]
   },
   [ID.END_DEATH_SHROUD]: {
     implemented: true,
     castTimeMs: 0,
     effects: [],
     cooldown: 0,
-    handlerId: "necromancer.shroud",
+    handlerId: 'necromancer.shroud'
   },
   [ID.DOOM]: {
     implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.1,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "control",
+        type: 'control',
         metadata: {
-          controlKind: "fear",
-        },
-      },
+          controlKind: 'fear'
+        }
+      }
     ],
-    type: "Profession",
-    slot: "Weapon_3",
-    shroud: "death",
+    type: 'Profession',
+    slot: 'Weapon_3',
+    shroud: 'death',
     shroudSlot: 3,
-    specialization: "",
+    specialization: ''
   },
   [ID.SUMMON_SHADOW_FIEND]: {
     implemented: true,
     castTimeMs: 500,
     effects: [],
     rechargeOnMinionDeath: true,
-    handlerId: "necromancer.minion",
+    handlerId: 'necromancer.minion'
   },
   [ID.HAUNT]: {
     implemented: true,
     castTimeMs: 0,
-    minionKey: "shadow-fiend",
+    minionKey: 'shadow-fiend',
     impactDelay: 2,
     lifeForceOnHit: 10,
     effects: [
-      { type: "strike", coefficient: 0.4, hits: 1, actorType: "summon" },
-      { type: "blind", actorType: "summon", metadata: { duration: 5 } },
+      { type: 'strike', coefficient: 0.4, hits: 1, actorType: 'summon' },
+      { type: 'blind', actorType: 'summon', metadata: { duration: 5 } },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 3,
-        actorType: "summon",
+        actorType: 'summon'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 5,
-        actorType: "summon",
-      },
+        actorType: 'summon'
+      }
     ],
-    handlerId: "necromancer.minion-command",
+    handlerId: 'necromancer.minion-command'
   },
   [ID.LIFE_TRANSFER]: {
     implemented: true,
     quicknessCastTimeMs: 2920,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3.825,
         hits: 9,
         atMs: 222,
         intervalMs: 222,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 3,
         atMs: 222,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 3,
         atMs: 444,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 3,
         atMs: 666,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 3,
         atMs: 888,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 3,
         atMs: 1110,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 3,
         atMs: 1332,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 3,
         atMs: 1554,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 3,
         atMs: 1776,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 3,
         atMs: 1998,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
     ],
-    type: "Profession",
-    slot: "Weapon_4",
-    shroud: "death",
+    type: 'Profession',
+    slot: 'Weapon_4',
+    shroud: 'death',
     shroudSlot: 4,
-    specialization: "",
-    lifeForceGain: 9,
+    specialization: '',
+    lifeForceGain: 9
   },
   [ID.NECROTIC_GRASP]: {
     implemented: true,
     quicknessCastTimeMs: 880,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
-        hits: 1,
-      },
+        hits: 1
+      }
     ],
     lifeForceGain: 4,
-    handlerId: "necromancer.corruption",
+    handlerId: 'necromancer.corruption'
   },
   [ID.DARK_PATH]: {
     implemented: true,
     quicknessCastTimeMs: 880,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.25,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 2,
-        duration: 8,
+        duration: 8
       },
       {
-        type: "custom",
-        eventType: "necromancer.chill",
+        type: 'custom',
+        eventType: 'necromancer.chill',
         event: {
-          duration: 3,
-        },
-      },
+          duration: 3
+        }
+      }
     ],
-    type: "Profession",
-    slot: "Weapon_2",
-    shroud: "death",
+    type: 'Profession',
+    slot: 'Weapon_2',
+    shroud: 'death',
     shroudSlot: 2,
-    specialization: "",
-    handlerId: "necromancer.flip",
+    specialization: '',
+    handlerId: 'necromancer.flip'
   },
   [ID.CHILLBLAINS]: {
     implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.8,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 2,
-        duration: 8,
+        duration: 8
       },
       {
-        type: "custom",
-        eventType: "necromancer.chill",
+        type: 'custom',
+        eventType: 'necromancer.chill',
         event: {
-          duration: 4,
-        },
-      },
-    ],
+          duration: 4
+        }
+      }
+    ]
   },
   [ID.WELL_OF_DARKNESS]: {
     interruptCommitMs: 0,
@@ -956,307 +954,305 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 480,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 4.800000000000001,
         hits: 6,
-        comboFields: [
-          { ownerId: "necromancer", fieldType: "Dark", duration: 5 },
-        ],
+        comboFields: [{ ownerId: 'necromancer', fieldType: 'Dark', duration: 5 }],
         atMs: 420,
         intervalMs: 1000,
-        intervalTimingScale: "fixed",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        persistsAfterInterrupt: true,
+        intervalTimingScale: 'fixed',
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
-        type: "blind",
+        type: 'blind',
         applications: 6,
         atMs: 420,
         intervalMs: 1000,
-        intervalTimingScale: "fixed",
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        intervalTimingScale: 'fixed',
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         persistsAfterInterrupt: true,
         metadata: {
-          duration: 3,
-        },
+          duration: 3
+        }
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 2,
         applications: 6,
         atMs: 420,
         intervalMs: 1000,
-        intervalTimingScale: "fixed",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        persistsAfterInterrupt: true,
-      },
-    ],
+        intervalTimingScale: 'fixed',
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
+      }
+    ]
   },
   [ID.WELL_OF_POWER]: {
     implemented: true,
     castTimeMs: 500,
     effects: [
       {
-        type: "control",
+        type: 'control',
         metadata: {
-          controlKind: "control",
-        },
-      },
-    ],
+          controlKind: 'control'
+        }
+      }
+    ]
   },
   [ID.SIGNET_OF_UNDEATH]: {
     implemented: true,
     castTimeMs: 500,
     effects: [
       {
-        type: "custom",
-        eventType: "necromancer.revive",
-        event: {},
-      },
+        type: 'custom',
+        eventType: 'necromancer.revive',
+        event: {}
+      }
     ],
-    lifeForceGain: 0,
+    lifeForceGain: 0
   },
   [ID.SIGNET_OF_THE_LOCUST]: {
     implemented: true,
     castTimeMs: 500,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
-        hits: 1,
-      },
-    ],
+        hits: 1
+      }
+    ]
   },
   [ID.SPECTRAL_GRASP]: {
     implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
-        type: "custom",
-        eventType: "necromancer.chill",
+        type: 'custom',
+        eventType: 'necromancer.chill',
         event: {
-          duration: 4,
-        },
-      },
+          duration: 4
+        }
+      }
     ],
-    lifeForceGain: 15,
+    lifeForceGain: 15
   },
   [ID.SIGNET_OF_SPITE]: {
     implemented: true,
     quicknessCastTimeMs: 880,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 2,
         duration: 10,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 2,
         duration: 10,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 2,
         duration: 6,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "blind",
+        type: 'blind',
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         metadata: {
-          duration: 5,
-        },
+          duration: 5
+        }
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 10,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "buff",
-        kind: "target-vulnerability",
+        type: 'buff',
+        kind: 'target-vulnerability',
         duration: 10,
         stacks: 5,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 10,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.GRIM_SPECTER]: {
     implemented: true,
     castTimeMs: 750,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 750,
-        name: "Grim Specter — Life Steal",
+        name: 'Grim Specter — Life Steal',
         metadata: {
           flatStrikeBase: 778,
           flatStrikePowerCoeff: 0.2,
           noCrit: true,
-          damageKind: "life-steal",
+          damageKind: 'life-steal'
         },
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 1750,
-        name: "Grim Specter — Life Steal",
+        name: 'Grim Specter — Life Steal',
         metadata: {
           flatStrikeBase: 778,
           flatStrikePowerCoeff: 0.2,
           noCrit: true,
-          damageKind: "life-steal",
+          damageKind: 'life-steal'
         },
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 2750,
-        name: "Grim Specter — Life Steal",
+        name: 'Grim Specter — Life Steal',
         metadata: {
           flatStrikeBase: 778,
           flatStrikePowerCoeff: 0.2,
           noCrit: true,
-          damageKind: "life-steal",
+          damageKind: 'life-steal'
         },
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 3750,
-        name: "Grim Specter — Life Steal",
+        name: 'Grim Specter — Life Steal',
         metadata: {
           flatStrikeBase: 778,
           flatStrikePowerCoeff: 0.2,
           noCrit: true,
-          damageKind: "life-steal",
+          damageKind: 'life-steal'
         },
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 4750,
-        name: "Grim Specter — Life Steal",
+        name: 'Grim Specter — Life Steal',
         metadata: {
           flatStrikeBase: 778,
           flatStrikePowerCoeff: 0.2,
           noCrit: true,
-          damageKind: "life-steal",
+          damageKind: 'life-steal'
         },
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.RIPPLE_OF_HORROR]: {
     implemented: true,
     castTimeMs: 500,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "control",
+        type: 'control',
         metadata: {
-          controlKind: "fear",
-        },
-      },
+          controlKind: 'fear'
+        }
+      }
     ],
-    handlerId: "necromancer.flip",
+    handlerId: 'necromancer.flip'
   },
   [ID.DEATHLY_CLAWS]: {
     implemented: true,
     castTimeMs: 1100,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.34,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 3,
-        duration: 3,
-      },
-    ],
+        duration: 3
+      }
+    ]
   },
   [ID.LICHS_GAZE]: {
     implemented: true,
     castTimeMs: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "custom",
-        eventType: "necromancer.chill",
+        type: 'custom',
+        eventType: 'necromancer.chill',
         event: {
-          duration: 4,
-        },
-      },
+          duration: 4
+        }
+      }
     ],
-    cooldown: 8,
+    cooldown: 8
   },
   [ID.SUMMON_MADNESS]: {
     implemented: true,
@@ -1265,402 +1261,402 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     summonInterval: 1,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.33,
         hits: 1,
         atMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        actorType: "summon",
-        packetLabel: "attack",
-        name: "Unstable Horror - Attack",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        actorType: 'summon',
+        packetLabel: 'attack',
+        name: 'Unstable Horror - Attack'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.25,
         hits: 1,
         atMs: 6000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        actorType: "summon",
-        packetLabel: "explosion",
-        name: "Unstable Horror - Explosion",
-      },
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        actorType: 'summon',
+        packetLabel: 'explosion',
+        name: 'Unstable Horror - Explosion'
+      }
     ],
-    handlerId: "necromancer.summon-madness",
+    handlerId: 'necromancer.summon-madness'
   },
   [ID.SUMMON_FLESH_GOLEM]: {
     implemented: true,
     castTimeMs: 1000,
     effects: [],
     rechargeOnMinionDeath: true,
-    handlerId: "necromancer.minion",
+    handlerId: 'necromancer.minion'
   },
   [ID.CHARGE]: {
     implemented: true,
     castTimeMs: 1000,
-    minionKey: "flesh-golem",
+    minionKey: 'flesh-golem',
     effects: [
-      { type: "strike", coefficient: 1.5, hits: 1, actorType: "summon" },
+      { type: 'strike', coefficient: 1.5, hits: 1, actorType: 'summon' },
       {
-        type: "control",
-        actorType: "summon",
-        metadata: { controlKind: "knockdown" },
-      },
+        type: 'control',
+        actorType: 'summon',
+        metadata: { controlKind: 'knockdown' }
+      }
     ],
-    handlerId: "necromancer.minion-command",
+    handlerId: 'necromancer.minion-command'
   },
   [ID.SPECTRAL_WALK]: {
     implemented: true,
     castTimeMs: 500,
     effects: [
       {
-        type: "control",
+        type: 'control',
         metadata: {
-          controlKind: "control",
-        },
-      },
+          controlKind: 'control'
+        }
+      }
     ],
-    lifeForceGain: 4,
+    lifeForceGain: 4
   },
   [ID.SPECTRAL_RECALL]: {
     implemented: true,
     castTimeMs: 500,
-    effects: [],
+    effects: []
   },
   [ID.CORROSIVE_POISON_CLOUD]: {
     implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 4,
-        duration: 2,
-      },
+        duration: 2
+      }
     ],
-    handlerId: "necromancer.corruption",
+    handlerId: 'necromancer.corruption'
   },
   [ID.BLOOD_CURSE]: {
     implemented: true,
     quicknessCastTimeMs: 440,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.35,
         hits: 1,
         atMs: 540,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 4.5,
         atMs: 540,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.RENDING_CURSE]: {
     implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.35,
         hits: 1,
         atMs: 660,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 4.5,
         atMs: 660,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.UNHOLY_FEAST]: {
     implemented: true,
     castTimeMs: 750,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.5,
-        hits: 1,
-      },
-    ],
+        hits: 1
+      }
+    ]
   },
   [ID.NECROTIC_SLASH]: {
     implemented: true,
     quicknessCastTimeMs: 360,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.9,
-        hits: 2,
-      },
-    ],
+        hits: 2
+      }
+    ]
   },
   [ID.NECROTIC_STAB]: {
     implemented: true,
     quicknessCastTimeMs: 400,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.9,
         hits: 1,
         atMs: 240,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
-    lifeForceGain: 4,
+    lifeForceGain: 4
   },
   [ID.NECROTIC_BITE]: {
     implemented: true,
     quicknessCastTimeMs: 640,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.3,
-        hits: 1,
-      },
+        hits: 1
+      }
     ],
-    lifeForceGain: 8,
+    lifeForceGain: 8
   },
   [ID.DEATHLY_SWARM]: {
     implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "blind",
+        type: 'blind',
         metadata: {
-          duration: 6,
-        },
-      },
+          duration: 6
+        }
+      }
     ],
-    handlerId: "necromancer.condition-transfer",
+    handlerId: 'necromancer.condition-transfer'
   },
   [ID.ENFEEBLING_BLOOD]: {
     implemented: true,
     quicknessCastTimeMs: 840,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
         atMs: 1800,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 3,
         duration: 10,
         atMs: 1800,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 6,
         atMs: 1800,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.FEAST_OF_CORRUPTION]: {
     implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.8,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
-        duration: 4,
-      },
+        duration: 4
+      }
     ],
     lifeForceGain: 8,
-    flipSkillId: null,
+    flipSkillId: null
   },
   [ID.DHUUMFIRE_BLAST]: {
     implemented: true,
     quicknessCastTimeMs: 920,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.4,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
-        duration: 3,
-      },
+        duration: 3
+      }
     ],
-    type: "Profession",
-    slot: "Weapon_1",
-    shroud: "death",
+    type: 'Profession',
+    slot: 'Weapon_1',
+    shroud: 'death',
     shroudSlot: 1,
-    specialization: "",
+    specialization: '',
     flipParentId: null,
-    simulatorExcluded: true,
+    simulatorExcluded: true
   },
   [ID.REAPERS_MARK]: {
     implemented: true,
     quicknessCastTimeMs: 520,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "control",
+        type: 'control',
         metadata: {
-          controlKind: "fear",
-        },
-      },
-    ],
+          controlKind: 'fear'
+        }
+      }
+    ]
   },
   [ID.PUTRID_MARK]: {
     implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.32,
-        hits: 1,
-      },
+        hits: 1
+      }
     ],
-    handlerId: "necromancer.condition-transfer",
+    handlerId: 'necromancer.condition-transfer'
   },
   [ID.MARK_OF_BLOOD]: {
     implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 2,
-        duration: 8,
-      },
-    ],
+        duration: 8
+      }
+    ]
   },
   [ID.TAINTED_SHACKLES]: {
     implemented: true,
     castTimeMs: 250,
     effects: [
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 2,
         duration: 12,
         atMs: 250,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 2,
         duration: 12,
         atMs: 1250,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 2,
         duration: 12,
         atMs: 2250,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 2,
         duration: 12,
         atMs: 3250,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.25,
         hits: 1,
         atMs: 4250,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
     ],
-    type: "Profession",
-    slot: "Weapon_5",
-    shroud: "death",
+    type: 'Profession',
+    slot: 'Weapon_5',
+    shroud: 'death',
     shroudSlot: 5,
-    specialization: "",
+    specialization: ''
   },
   [ID.SIGNET_OF_VAMPIRISM]: {
     implemented: true,
     quicknessCastTimeMs: 880,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 6,
         atMs: 1000,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
         flatStrikeBase: 163,
         flatStrikePowerCoeff: 0.05,
-        actorType: "effect",
-        name: "Signet of Vampirism - Vampiric Mark",
-        metadata: { noCrit: true, damageKind: "life-steal" },
-      },
-    ],
+        actorType: 'effect',
+        name: 'Signet of Vampirism - Vampiric Mark',
+        metadata: { noCrit: true, damageKind: 'life-steal' }
+      }
+    ]
   },
   [ID.DUSK_STRIKE]: {
     implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
-        hits: 1,
-      },
+        hits: 1
+      }
     ],
-    lifeForceGain: 2,
+    lifeForceGain: 2
   },
   [ID.GRASPING_DARKNESS]: {
     interruptCommitMs: 0,
@@ -1670,37 +1666,37 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     lifeForceOnHit: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.3,
         hits: 1,
         atMs: 1440,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "custom",
-        eventType: "necromancer.chill",
+        type: 'custom',
+        eventType: 'necromancer.chill',
         event: {
-          duration: 4,
+          duration: 4
         },
         atMs: 1440,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "control",
+        type: 'control',
         atMs: 1440,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
         metadata: {
-          controlKind: "pull",
-        },
-      },
+          controlKind: 'pull'
+        }
+      }
     ],
-    handlerId: "necromancer.grasping-darkness",
+    handlerId: 'necromancer.grasping-darkness'
   },
   [ID.NIGHTFALL]: {
     interruptCommitMs: 0,
@@ -1709,420 +1705,418 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     lifeForcePerPulse: 7,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 4.6,
         hits: 4,
-        comboFields: [
-          { ownerId: "necromancer", fieldType: "Dark", duration: 3 },
-        ],
+        comboFields: [{ ownerId: 'necromancer', fieldType: 'Dark', duration: 3 }],
         atMs: 600,
         intervalMs: 1000,
-        intervalTimingScale: "fixed",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        persistsAfterInterrupt: true,
+        intervalTimingScale: 'fixed',
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
-        type: "blind",
+        type: 'blind',
         applications: 4,
         atMs: 600,
         intervalMs: 1000,
-        intervalTimingScale: "fixed",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        persistsAfterInterrupt: true,
+        intervalTimingScale: 'fixed',
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 2,
         applications: 4,
         atMs: 600,
         intervalMs: 1000,
-        intervalTimingScale: "fixed",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        persistsAfterInterrupt: true,
-      },
+        intervalTimingScale: 'fixed',
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
+      }
     ],
-    handlerId: "necromancer.nightfall",
+    handlerId: 'necromancer.nightfall'
   },
   [ID.CHILLING_SCYTHE]: {
     implemented: true,
     quicknessCastTimeMs: 920,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.8,
         hits: 1,
         atMs: 1080,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "custom",
-        eventType: "necromancer.chill",
+        type: 'custom',
+        eventType: 'necromancer.chill',
         event: {
-          duration: 2,
+          duration: 2
         },
         atMs: 1080,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
     lifeForceGain: 5,
-    handlerId: "necromancer.chilling-scythe",
+    handlerId: 'necromancer.chilling-scythe'
   },
   [ID.GRAVEDIGGER]: {
     implemented: true,
     quicknessCastTimeMs: 1080,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3.6,
         hits: 1,
         comboFinishers: [
           {
-            ownerId: "necromancer",
-            finisherType: "Whirl",
+            ownerId: 'necromancer',
+            finisherType: 'Whirl',
             applications: 3,
-            ambiguousFieldSelection: "oldest",
-          },
+            ambiguousFieldSelection: 'oldest'
+          }
         ],
         atMs: 1260,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.FADING_TWILIGHT]: {
     implemented: true,
     quicknessCastTimeMs: 640,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.4,
         hits: 1,
         atMs: 780,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
-    lifeForceGain: 2,
+    lifeForceGain: 2
   },
   [ID.DEATH_SPIRAL]: {
     implemented: true,
     quicknessCastTimeMs: 720,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3,
         hits: 1,
         comboFinishers: [
           {
-            ownerId: "necromancer",
-            finisherType: "Whirl",
+            ownerId: 'necromancer',
+            finisherType: 'Whirl',
             applications: 2,
-            ambiguousFieldSelection: "oldest",
-          },
-        ],
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
-        name: "Death Spiral — Life Siphon",
+        name: 'Death Spiral — Life Siphon',
         metadata: {
-          skillName: "Death Spiral — Life Siphon",
-          parentSkillName: "Death Spiral",
+          skillName: 'Death Spiral — Life Siphon',
+          parentSkillName: 'Death Spiral',
           flatStrikeBase: 3517,
           flatStrikePowerCoeff: 0.01,
           noCrit: true,
-          damageKind: "life-steal",
-        },
+          damageKind: 'life-steal'
+        }
       },
       {
-        type: "buff",
-        kind: "target-vulnerability",
+        type: 'buff',
+        kind: 'target-vulnerability',
         duration: 10,
-        stacks: 12,
-      },
-    ],
+        stacks: 12
+      }
+    ]
   },
   [ID.MANIFEST_SAND_SHADE_ID_42297]: {
     implemented: true,
     castTimeMs: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.666,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
-        duration: 2,
-      },
+        duration: 2
+      }
     ],
     simulatorAliasOfId: 44946,
     simulatorExcluded: true,
-    flipSkillId: null,
+    flipSkillId: null
   },
   [ID.OPPRESSIVE_COLLAPSE]: {
     implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 1,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 2,
         duration: 9,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "control",
+        type: 'control',
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         metadata: {
-          controlKind: "control",
-        },
-      },
+          controlKind: 'control'
+        }
+      }
     ],
-    handlerId: "necromancer.oppressive-collapse",
+    handlerId: 'necromancer.oppressive-collapse'
   },
   [ID.MARCH_OF_UNDEATH]: {
     implemented: true,
     castTimeMs: 0,
-    effects: [],
+    effects: []
   },
   [ID.HARROWING_WAVE]: {
     implemented: true,
     quicknessCastTimeMs: 440,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.8,
         hits: 1,
         atMs: 480,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 8,
         atMs: 480,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 2,
         duration: 6,
         atMs: 480,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
-    lifeForceGain: 5,
+    lifeForceGain: 5
   },
   [ID.MANIFEST_SAND_SHADE_ID_46473]: {
     implemented: true,
     castTimeMs: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.666,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
-        duration: 2,
-      },
+        duration: 2
+      }
     ],
     simulatorAliasOfId: 44946,
     simulatorExcluded: true,
-    flipSkillId: null,
+    flipSkillId: null
   },
   [ID.MANIFEST_SAND_SHADE_ID_46474]: {
     implemented: true,
     castTimeMs: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.666,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
-        duration: 2,
-      },
+        duration: 2
+      }
     ],
     simulatorAliasOfId: 44946,
     simulatorExcluded: true,
-    flipSkillId: null,
+    flipSkillId: null
   },
   [ID.DEVOURING_DARKNESS]: {
     implemented: true,
     quicknessCastTimeMs: 600,
     effects: [],
     lifeForceGain: 8,
-    handlerId: "necromancer.devouring-darkness",
-    flipParentId: null,
+    handlerId: 'necromancer.devouring-darkness',
+    flipParentId: null
   },
   [ID.SOUL_GRASP]: {
     implemented: true,
     quicknessCastTimeMs: 520,
     effects: [
       {
-        type: "buff",
-        kind: "target-vulnerability",
+        type: 'buff',
+        kind: 'target-vulnerability',
         duration: 6,
-        stacks: 5,
-      },
+        stacks: 5
+      }
     ],
-    lifeForceGain: 11,
+    lifeForceGain: 11
   },
   [ID.DARK_PURSUIT]: {
     implemented: true,
     castTimeMs: 0,
     effects: [],
-    type: "Profession",
-    slot: "Weapon_2",
-    shroud: "death",
+    type: 'Profession',
+    slot: 'Weapon_2',
+    shroud: 'death',
     shroudSlot: 2,
-    specialization: "",
-    cooldown: 0,
+    specialization: '',
+    cooldown: 0
   },
   [ID.VILE_BLAST]: {
     implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 5,
         duration: 6,
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "control",
+        type: 'control',
         atMs: 840,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         metadata: {
-          controlKind: "control",
-        },
-      },
+          controlKind: 'control'
+        }
+      }
     ],
-    lifeForceGain: 4,
+    lifeForceGain: 4
   },
   [ID.WEEPING_SHOTS]: {
     implemented: true,
     quicknessCastTimeMs: 840,
     comboFinishers: [
       {
-        ownerId: "necromancer",
-        finisherType: "Projectile",
+        ownerId: 'necromancer',
+        finisherType: 'Projectile',
         chance: 0.2,
-        ambiguousFieldSelection: "oldest",
-      },
+        ambiguousFieldSelection: 'oldest'
+      }
     ],
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         ticks: [
           { atMs: 240, coefficient: 0.4 },
           { atMs: 360, coefficient: 0.4 },
           { atMs: 520, coefficient: 0.4 },
           { atMs: 640, coefficient: 0.4 },
           { atMs: 760, coefficient: 0.4 },
-          { atMs: 880, coefficient: 0.4 },
+          { atMs: 880, coefficient: 0.4 }
         ],
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
+        type: 'condition',
         ticks: [
-          { atMs: 240, condition: "Torment", stacks: 1, duration: 4 },
-          { atMs: 360, condition: "Torment", stacks: 1, duration: 4 },
-          { atMs: 520, condition: "Torment", stacks: 1, duration: 4 },
-          { atMs: 640, condition: "Torment", stacks: 1, duration: 4 },
-          { atMs: 760, condition: "Torment", stacks: 1, duration: 4 },
-          { atMs: 880, condition: "Torment", stacks: 1, duration: 4 },
+          { atMs: 240, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 360, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 520, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 640, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 760, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 880, condition: 'Torment', stacks: 1, duration: 4 }
         ],
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "buff",
-        kind: "target-vulnerability",
+        type: 'buff',
+        kind: 'target-vulnerability',
         duration: 6,
-        stacks: 6,
-      },
+        stacks: 6
+      }
     ],
-    lifeForceGain: 9,
+    lifeForceGain: 9
   },
   [ID.VICIOUS_SHOT]: {
     implemented: true,
     quicknessCastTimeMs: 600,
     comboFinishers: [
       {
-        ownerId: "necromancer",
-        finisherType: "Projectile",
+        ownerId: 'necromancer',
+        finisherType: 'Projectile',
         chance: 0.2,
-        ambiguousFieldSelection: "oldest",
-      },
+        ambiguousFieldSelection: 'oldest'
+      }
     ],
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.65,
         hits: 1,
         atMs: 540,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 3.5,
         atMs: 540,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.LIFE_SIPHON]: {
     interruptCommitMs: 0,
@@ -2130,29 +2124,29 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 560,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.6999999999999997,
         hits: 9,
         atMs: 720,
         intervalMs: 160,
-        intervalTimingScale: "fixed",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        persistsAfterInterrupt: true,
-      },
+        intervalTimingScale: 'fixed',
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
+      }
     ],
-    handlerId: "necromancer.life-siphon",
+    handlerId: 'necromancer.life-siphon'
   },
   [ID.PATH_OF_GLUTTONY]: {
     implemented: true,
     castTimeMs: 750,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
-        hits: 1,
-      },
-    ],
+        hits: 1
+      }
+    ]
   },
   [ID.HUNGERING_MAELSTROM]: {
     interruptCommitMs: 0,
@@ -2160,70 +2154,70 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 640,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.75,
         hits: 1,
         atMs: 1080,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
-        type: "buff",
-        kind: "target-vulnerability",
+        type: 'buff',
+        kind: 'target-vulnerability',
         duration: 8,
         stacks: 5,
         atMs: 1080,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        persistsAfterInterrupt: true,
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
+      }
+    ]
   },
   [ID.ENERVATION_ECHO]: {
     implemented: true,
     castTimeMs: 500,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.1,
-        hits: 1,
-      },
-    ],
+        hits: 1
+      }
+    ]
   },
   [ID.GORGE]: {
     implemented: true,
     castTimeMs: 750,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
-        hits: 1,
-      },
-    ],
+        hits: 1
+      }
+    ]
   },
   [ID.RAVENOUS_WAVE]: {
     implemented: true,
     castTimeMs: 750,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
-        hits: 1,
-      },
+        hits: 1
+      }
     ],
-    lifeForceGain: 12,
+    lifeForceGain: 12
   },
   [ID.SATIATE]: {
     implemented: true,
     castTimeMs: 750,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
-        hits: 1,
-      },
-    ],
+        hits: 1
+      }
+    ]
   },
   [ID.CONSUME]: {
     interruptCommitMs: 0,
@@ -2231,349 +2225,349 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 520,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.5,
         hits: 5,
         atMs: 720,
         intervalMs: 280,
-        intervalTimingScale: "fixed",
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        persistsAfterInterrupt: true,
+        intervalTimingScale: 'fixed',
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 4,
         atMs: 720,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
-        type: "boon",
-        boon: "Might",
+        type: 'boon',
+        boon: 'Might',
         duration: 8,
         stacks: 5,
         atMs: 720,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-        persistsAfterInterrupt: true,
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
+      }
+    ]
   },
   [ID.ENERVATION_BLADE]: {
     implemented: true,
     castTimeMs: 500,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.1,
-        hits: 1,
-      },
-    ],
+        hits: 1
+      }
+    ]
   },
   [ID.DEVOURING_VISAGE]: {
     implemented: true,
     quicknessCastTimeMs: 680,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
         atMs: 720,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "control",
+        type: 'control',
         atMs: 720,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         metadata: {
-          controlKind: "fear",
-          duration: 1.5,
-        },
-      },
+          controlKind: 'fear',
+          duration: 1.5
+        }
+      }
     ],
-    lifeForceGain: 10,
+    lifeForceGain: 10
   },
   [ID.GORMANDIZE]: {
     implemented: true,
     quicknessCastTimeMs: 440,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.5,
         hits: 1,
         atMs: 540,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "custom",
-        eventType: "necromancer.chill",
+        type: 'custom',
+        eventType: 'necromancer.chill',
         event: {
-          duration: 5,
+          duration: 5
         },
         atMs: 540,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "buff",
-        kind: "target-vulnerability",
+        type: 'buff',
+        kind: 'target-vulnerability',
         duration: 8,
         stacks: 5,
         atMs: 540,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.EXTIRPATE]: {
     implemented: true,
     quicknessCastTimeMs: 840,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3.8,
         hits: 1,
         comboFinishers: [
           {
-            ownerId: "necromancer",
-            finisherType: "Whirl",
+            ownerId: 'necromancer',
+            finisherType: 'Whirl',
             applications: 3,
-            ambiguousFieldSelection: "oldest",
-          },
+            ambiguousFieldSelection: 'oldest'
+          }
         ],
         atMs: 1140,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "boon",
-        boon: "Might",
+        type: 'boon',
+        boon: 'Might',
         duration: 8,
         stacks: 5,
         atMs: 1140,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 3,
         atMs: 1140,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "buff",
-        kind: "extirpation",
+        type: 'buff',
+        kind: 'extirpation',
         duration: 4,
         stacks: 3,
         atMs: 1140,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
     lifeForceGain: 12,
-    handlerId: "necromancer.extirpate",
+    handlerId: 'necromancer.extirpate'
   },
   [ID.DARK_SLASH]: {
     implemented: true,
     quicknessCastTimeMs: 600,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 1,
         atMs: 720,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.ADDLE]: {
     implemented: true,
     quicknessCastTimeMs: 360,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.9,
         hits: 1,
         atMs: 360,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
     lifeForceGain: 10,
-    handlerId: "necromancer.addle",
+    handlerId: 'necromancer.addle'
   },
   [ID.DEADLY_SLICE]: {
     implemented: true,
     quicknessCastTimeMs: 520,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.4,
         hits: 1,
         atMs: 600,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
-    handlerId: "necromancer.deadly-slice",
+    handlerId: 'necromancer.deadly-slice'
   },
   [ID.SINISTER_STAB]: {
     implemented: true,
     quicknessCastTimeMs: 560,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.8,
         hits: 1,
         atMs: 780,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "custom",
-        eventType: "necromancer.chill",
+        type: 'custom',
+        eventType: 'necromancer.chill',
         event: {
-          duration: 2,
+          duration: 2
         },
         atMs: 780,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
     lifeForceGain: 5,
-    handlerId: "necromancer.sinister-stab",
+    handlerId: 'necromancer.sinister-stab'
   },
   [ID.PERFORATE]: {
     implemented: true,
     quicknessCastTimeMs: 840,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         ticks: [
           {
             atMs: 600,
-            coefficient: 0.5,
+            coefficient: 0.5
           },
           {
             atMs: 720,
-            coefficient: 0.5,
+            coefficient: 0.5
           },
           {
             atMs: 780,
-            coefficient: 0.5,
+            coefficient: 0.5
           },
           {
             atMs: 840,
-            coefficient: 0.5,
+            coefficient: 0.5
           },
           {
             atMs: 960,
-            coefficient: 0.5,
+            coefficient: 0.5
           },
           {
             atMs: 1080,
-            coefficient: 0.5,
+            coefficient: 0.5
           },
           {
             atMs: 1140,
-            coefficient: 0.5,
-          },
+            coefficient: 0.5
+          }
         ],
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         coefficientModifiers: [
           {
-            kind: "target-health-below",
+            kind: 'target-health-below',
             threshold: 0.5,
-            multiplier: 1.2,
-          },
-        ],
-      },
+            multiplier: 1.2
+          }
+        ]
+      }
     ],
-    handlerId: "necromancer.perforate",
+    handlerId: 'necromancer.perforate'
   },
   [ID.ISOLATE]: {
     implemented: true,
     quicknessCastTimeMs: 480,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.4,
         hits: 1,
         atMs: 660,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "custom",
-        eventType: "necromancer.chill",
+        type: 'custom',
+        eventType: 'necromancer.chill',
         atMs: 660,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         event: {
-          duration: 3,
-        },
+          duration: 3
+        }
       },
       {
-        type: "buff",
-        kind: "target-vulnerability",
+        type: 'buff',
+        kind: 'target-vulnerability',
         duration: 8,
         stacks: 8,
         atMs: 660,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
     flipDuration: 3,
-    flipActivationAtMs: 660,
+    flipActivationAtMs: 660
   },
   [ID.DISTRESS]: {
     implemented: true,
     castTimeMs: 0,
     effects: [],
-    handlerId: "necromancer.distress",
-  },
+    handlerId: 'necromancer.distress'
+  }
 });
 
 export const NECROMANCER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   Object.freeze({
     id: ID.SWAP_WEAPONS,
-    name: "Swap Weapons",
-    description: "Swap between weapon sets. The swap has a 10-second recharge.",
-    icon: "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
-    type: "Action",
-    slot: "Action",
+    name: 'Swap Weapons',
+    description: 'Swap between weapon sets. The swap has a 10-second recharge.',
+    icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
+    type: 'Action',
+    slot: 'Action',
     castTimeMs: 0,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     cooldown: 10,
     implemented: true,
-    handlerId: "necromancer.weapon-swap",
-    effects: [],
+    handlerId: 'necromancer.weapon-swap',
+    effects: []
   }),
   Object.freeze({
     id: ID.EXIT_LICH_FORM,
-    name: "Exit Lich Form",
-    description: "Leave Lich Form and return to your normal skill bar.",
-    icon: "https://render.guildwars2.com/file/A6CAF2146D9DF2EBEFD9285CB0E9E3617A659071/1770528.png",
-    type: "Profession",
-    slot: "Profession_1",
+    name: 'Exit Lich Form',
+    description: 'Leave Lich Form and return to your normal skill bar.',
+    icon: 'https://render.guildwars2.com/file/A6CAF2146D9DF2EBEFD9285CB0E9E3617A659071/1770528.png',
+    type: 'Profession',
+    slot: 'Profession_1',
     castTimeMs: 0,
     cooldown: 0,
     implemented: true,
-    handlerId: "necromancer.lich",
+    handlerId: 'necromancer.lich',
     flipParentId: ID.LICH_FORM,
-    flipParent: "Lich Form",
-    effects: [],
-  }),
+    flipParent: 'Lich Form',
+    effects: []
+  })
 ]);

@@ -1,28 +1,28 @@
-import assert from "node:assert/strict";
-import { readdir, readFile, stat } from "node:fs/promises";
-import path from "node:path";
-import test from "node:test";
-import ts from "typescript";
+import assert from 'node:assert/strict';
+import { readdir, readFile, stat } from 'node:fs/promises';
+import path from 'node:path';
+import test from 'node:test';
+import ts from 'typescript';
 
 const ENFORCE_SLICE_ALIGNMENT = true;
-const REPOSITORY_ROOT = path.resolve(import.meta.dirname, "../..");
-const PROFESSIONS_ROOT = path.join(REPOSITORY_ROOT, "js/professions");
+const REPOSITORY_ROOT = path.resolve(import.meta.dirname, '../..');
+const PROFESSIONS_ROOT = path.join(REPOSITORY_ROOT, 'js/professions');
 
 const SLOT_FILES = [
-  ["data.handlers", "handlers.js"],
-  ["data.skillMechanics", "skills.js"],
-  ["data.extraSkills", "skills.js"],
-  ["data.supplementalSkillMechanics", "skills.js"],
-  ["state.scheduler", "state.js"],
-  ["state.resolver", "state.js"],
-  ["state.project", "state.js"],
-  ["mechanics.modifiers", "rules.js"],
-  ["mechanics.availability", "rules.js"],
-  ["mechanics.castRules", "rules.js"],
-  ["mechanics.schedulerHooks", "rules.js"],
-  ["mechanics.reactions", "resolver.js"],
-  ["mechanics.resolverHooks.eventHandlers", "resolver.js"],
-  ["presentation", "ui.js"],
+  ['data.handlers', 'handlers.js'],
+  ['data.skillMechanics', 'skills.js'],
+  ['data.extraSkills', 'skills.js'],
+  ['data.supplementalSkillMechanics', 'skills.js'],
+  ['state.scheduler', 'state.js'],
+  ['state.resolver', 'state.js'],
+  ['state.project', 'state.js'],
+  ['mechanics.modifiers', 'rules.js'],
+  ['mechanics.availability', 'rules.js'],
+  ['mechanics.castRules', 'rules.js'],
+  ['mechanics.schedulerHooks', 'rules.js'],
+  ['mechanics.reactions', 'resolver.js'],
+  ['mechanics.resolverHooks.eventHandlers', 'resolver.js'],
+  ['presentation', 'ui.js']
 ];
 
 async function isFile(filePath) {
@@ -41,22 +41,22 @@ async function collectSlices() {
     if (!profession.isDirectory()) continue;
 
     const professionRoot = path.join(PROFESSIONS_ROOT, profession.name);
-    if (!(await isFile(path.join(professionRoot, "modules.ts")))) continue;
+    if (!(await isFile(path.join(professionRoot, 'modules.ts')))) continue;
 
-    const coreModule = path.join(professionRoot, "core/module.ts");
+    const coreModule = path.join(professionRoot, 'core/module.ts');
     if (await isFile(coreModule)) {
       slices.push({
         name: `${profession.name}/core`,
         modulePath: coreModule,
-        professionRoot,
+        professionRoot
       });
     }
 
-    const specializationsRoot = path.join(professionRoot, "specializations");
+    const specializationsRoot = path.join(professionRoot, 'specializations');
     let specializations = [];
     try {
       specializations = await readdir(specializationsRoot, {
-        withFileTypes: true,
+        withFileTypes: true
       });
     } catch {
       // A native profession may have no specialization slices yet.
@@ -64,16 +64,12 @@ async function collectSlices() {
 
     for (const specialization of specializations) {
       if (!specialization.isDirectory()) continue;
-      const modulePath = path.join(
-        specializationsRoot,
-        specialization.name,
-        "module.ts",
-      );
+      const modulePath = path.join(specializationsRoot, specialization.name, 'module.ts');
       if (await isFile(modulePath)) {
         slices.push({
           name: `${profession.name}/${specialization.name}`,
           modulePath,
-          professionRoot,
+          professionRoot
         });
       }
     }
@@ -89,10 +85,8 @@ function propertyName(node) {
 
 function findProperty(object, name) {
   if (!object || !ts.isObjectLiteralExpression(object)) return undefined;
-  return object.properties.find(
-    (property) =>
-      ts.isPropertyAssignment(property) && propertyName(property.name) === name,
-  )?.initializer;
+  return object.properties.find((property) => ts.isPropertyAssignment(property) && propertyName(property.name) === name)
+    ?.initializer;
 }
 
 function findNestedProperty(root, names) {
@@ -111,7 +105,7 @@ function findModuleDefinition(sourceFile) {
     if (
       ts.isCallExpression(node) &&
       ts.isIdentifier(node.expression) &&
-      node.expression.text === "defineNativeModule" &&
+      node.expression.text === 'defineNativeModule' &&
       node.arguments.length > 0 &&
       ts.isObjectLiteralExpression(node.arguments[0])
     ) {
@@ -126,22 +120,17 @@ function findModuleDefinition(sourceFile) {
 }
 
 function findDataDefinition(moduleDefinition) {
-  const data = findProperty(moduleDefinition, "data");
+  const data = findProperty(moduleDefinition, 'data');
   if (ts.isObjectLiteralExpression(data)) return data;
   if (!ts.isCallExpression(data)) return undefined;
-  return [...data.arguments]
-    .reverse()
-    .find((argument) => ts.isObjectLiteralExpression(argument));
+  return [...data.arguments].reverse().find((argument) => ts.isObjectLiteralExpression(argument));
 }
 
 function collectImports(sourceFile) {
   const imports = new Map();
 
   for (const statement of sourceFile.statements) {
-    if (
-      !ts.isImportDeclaration(statement) ||
-      !ts.isStringLiteral(statement.moduleSpecifier)
-    ) {
+    if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) {
       continue;
     }
 
@@ -201,7 +190,7 @@ function professionImports(expression, imports, sliceRoot) {
 
   for (const identifier of collectReferencedIdentifiers(expression)) {
     const moduleSpecifier = imports.get(identifier);
-    if (!moduleSpecifier?.startsWith(".")) continue;
+    if (!moduleSpecifier?.startsWith('.')) continue;
 
     const resolvedImport = path.resolve(sliceRoot, moduleSpecifier);
     if (!resolvedImport.startsWith(PROFESSIONS_ROOT + path.sep)) continue;
@@ -213,32 +202,20 @@ function professionImports(expression, imports, sliceRoot) {
 }
 
 function slotExpression(moduleDefinition, slot) {
-  const names = slot.split(".");
-  if (names[0] === "presentation") {
-    return findProperty(moduleDefinition, "presentation");
+  const names = slot.split('.');
+  if (names[0] === 'presentation') {
+    return findProperty(moduleDefinition, 'presentation');
   }
 
-  const section =
-    names[0] === "data"
-      ? findDataDefinition(moduleDefinition)
-      : findProperty(moduleDefinition, names[0]);
+  const section = names[0] === 'data' ? findDataDefinition(moduleDefinition) : findProperty(moduleDefinition, names[0]);
   return findNestedProperty(section, names.slice(1));
 }
 
 async function auditSlice(slice) {
-  const source = await readFile(slice.modulePath, "utf8");
-  const sourceFile = ts.createSourceFile(
-    slice.modulePath,
-    source,
-    ts.ScriptTarget.Latest,
-    true,
-    ts.ScriptKind.TS,
-  );
+  const source = await readFile(slice.modulePath, 'utf8');
+  const sourceFile = ts.createSourceFile(slice.modulePath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const moduleDefinition = findModuleDefinition(sourceFile);
-  assert.ok(
-    moduleDefinition,
-    `${slice.name}: defineNativeModule({...}) was not found`,
-  );
+  assert.ok(moduleDefinition, `${slice.name}: defineNativeModule({...}) was not found`);
 
   const imports = collectImports(sourceFile);
   const sliceRoot = path.dirname(slice.modulePath);
@@ -250,17 +227,13 @@ async function auditSlice(slice) {
 
     const origins = professionImports(expression, imports, sliceRoot);
     if (origins.size === 0) {
-      violations.push(
-        `${slice.name}: ${slot} is inline, expected ${expectedFile}`,
-      );
+      violations.push(`${slice.name}: ${slot} is inline, expected ${expectedFile}`);
       continue;
     }
 
     for (const origin of origins) {
       if (origin !== expectedFile) {
-        violations.push(
-          `${slice.name}: ${slot} imported from ${origin}, expected ${expectedFile}`,
-        );
+        violations.push(`${slice.name}: ${slot} imported from ${origin}, expected ${expectedFile}`);
       }
     }
   }
@@ -270,35 +243,29 @@ async function auditSlice(slice) {
 
 async function auditHandlerBoundary(slice) {
   const sliceRoot = path.dirname(slice.modulePath);
-  const handlersPath = path.join(sliceRoot, "handlers.ts");
-  const rulesPath = path.join(sliceRoot, "rules.ts");
+  const handlersPath = path.join(sliceRoot, 'handlers.ts');
+  const rulesPath = path.join(sliceRoot, 'rules.ts');
   const violations = [];
-  const moduleSource = await readFile(slice.modulePath, "utf8");
+  const moduleSource = await readFile(slice.modulePath, 'utf8');
   const moduleFile = ts.createSourceFile(
     slice.modulePath,
     moduleSource,
     ts.ScriptTarget.Latest,
     true,
-    ts.ScriptKind.TS,
+    ts.ScriptKind.TS
   );
   const moduleDefinition = findModuleDefinition(moduleFile);
-  const handlersSlot = moduleDefinition
-    ? slotExpression(moduleDefinition, "data.handlers")
-    : undefined;
+  const handlersSlot = moduleDefinition ? slotExpression(moduleDefinition, 'data.handlers') : undefined;
   const handlersExist = await isFile(handlersPath);
 
   if (handlersExist && !handlersSlot) {
-    violations.push(
-      `${slice.name}: handlers.ts exists without a data.handlers slot`,
-    );
+    violations.push(`${slice.name}: handlers.ts exists without a data.handlers slot`);
   }
 
   if (handlersExist) {
-    const source = await readFile(handlersPath, "utf8");
+    const source = await readFile(handlersPath, 'utf8');
     if (!/export\s+const\s+\w*SkillHandlers\b/.test(source)) {
-      violations.push(
-        `${slice.name}: handlers.ts does not export a skill-handler registry`,
-      );
+      violations.push(`${slice.name}: handlers.ts does not export a skill-handler registry`);
     }
     if (/\b(?:hasTrait|has[A-Z][A-Za-z]*Trait)\s*\(/.test(source)) {
       violations.push(`${slice.name}: handlers.ts performs a trait lookup`);
@@ -315,7 +282,7 @@ async function auditHandlerBoundary(slice) {
   }
 
   if (await isFile(rulesPath)) {
-    const source = await readFile(rulesPath, "utf8");
+    const source = await readFile(rulesPath, 'utf8');
     if (/from\s+["']\.\/handlers\.js["']/.test(source)) {
       violations.push(`${slice.name}: rules.ts imports handlers.ts`);
     }
@@ -332,7 +299,7 @@ async function findForbiddenFiles(directory) {
     const entryPath = path.join(directory, entry.name);
     if (entry.isDirectory()) {
       violations.push(...(await findForbiddenFiles(entryPath)));
-    } else if (["attribute-rules.ts", "trait-rules.ts"].includes(entry.name)) {
+    } else if (['attribute-rules.ts', 'trait-rules.ts'].includes(entry.name)) {
       violations.push(entryPath);
     }
   }
@@ -340,27 +307,18 @@ async function findForbiddenFiles(directory) {
   return violations;
 }
 
-test("native profession slices follow the canonical file contract", async () => {
+test('native profession slices follow the canonical file contract', async () => {
   const slices = await collectSlices();
-  const professionRoots = [
-    ...new Set(slices.map((slice) => slice.professionRoot)),
-  ];
-  const forbiddenFiles = (
-    await Promise.all(professionRoots.map(findForbiddenFiles))
-  ).flat();
+  const professionRoots = [...new Set(slices.map((slice) => slice.professionRoot))];
+  const forbiddenFiles = (await Promise.all(professionRoots.map(findForbiddenFiles))).flat();
   const violations = [
     ...(await Promise.all(slices.map(auditSlice))).flat(),
     ...(await Promise.all(slices.map(auditHandlerBoundary))).flat(),
-    ...forbiddenFiles.map(
-      (filePath) =>
-        `${path.relative(PROFESSIONS_ROOT, filePath)}: forbidden file exists`,
-    ),
+    ...forbiddenFiles.map((filePath) => `${path.relative(PROFESSIONS_ROOT, filePath)}: forbidden file exists`)
   ];
 
   if (violations.length > 0) {
-    const report = `Slice alignment violations:\n${violations
-      .map((violation) => `- ${violation}`)
-      .join("\n")}`;
+    const report = `Slice alignment violations:\n${violations.map((violation) => `- ${violation}`).join('\n')}`;
 
     if (ENFORCE_SLICE_ALIGNMENT) assert.fail(report);
     console.warn(report);

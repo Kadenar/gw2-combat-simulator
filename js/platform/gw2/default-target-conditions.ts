@@ -1,6 +1,4 @@
-export const DEFAULT_TARGET_CONDITIONS: Readonly<
-  Record<string, number | boolean>
-> = Object.freeze({
+export const DEFAULT_TARGET_CONDITIONS: Readonly<Record<string, number | boolean>> = Object.freeze({
   Bleeding: 1,
   Burning: true,
   Torment: 1,
@@ -10,12 +8,9 @@ export const DEFAULT_TARGET_CONDITIONS: Readonly<
   Cripple: true,
   Slow: true,
   Weakness: true,
-  Vulnerability: 25,
+  Vulnerability: 25
 });
 
-export function createDefaultTargetConditions(): Record<
-  string,
-  number | boolean
-> {
+export function createDefaultTargetConditions(): Record<string, number | boolean> {
   return { ...DEFAULT_TARGET_CONDITIONS };
 }

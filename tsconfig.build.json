@@ -12,11 +12,6 @@
     "sourceMap": false,
     "removeComments": false
   },
-  "include": [
-    "js/**/*.ts"
-  ],
-  "exclude": [
-    "dist",
-    "node_modules"
-  ]
+  "include": ["js/**/*.ts"],
+  "exclude": ["dist", "node_modules"]
 }

@@ -1,13 +1,13 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { implemented } from "../../../js/platform/engine/skill-factories.js";
+import { implemented } from '../../../js/platform/engine/skill-factories.js';
 
-test("implemented returns a new fragment with its fields and a true marker", () => {
+test('implemented returns a new fragment with its fields and a true marker', () => {
   const definition = {
     castTimeMs: 750,
     cooldown: 8,
-    effects: [],
+    effects: []
   };
 
   const result = implemented(definition);
@@ -15,11 +15,11 @@ test("implemented returns a new fragment with its fields and a true marker", () 
   assert.notStrictEqual(result, definition);
   assert.deepEqual(result, {
     ...definition,
-    implemented: true,
+    implemented: true
   });
-  assert.equal(Object.hasOwn(definition, "implemented"), false);
+  assert.equal(Object.hasOwn(definition, 'implemented'), false);
 });
 
-test("implemented cannot be disabled by a spread definition", () => {
+test('implemented cannot be disabled by a spread definition', () => {
   assert.equal(implemented({ implemented: false }).implemented, true);
 });

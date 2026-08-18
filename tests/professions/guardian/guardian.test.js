@@ -1,41 +1,32 @@
-import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
-import test from "node:test";
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
 
-import { loadProfession } from "../../../js/app/profession/registry.js";
-import { skillBarInspectionStacks } from "../../../js/app/build/skills-panel.js";
-import {
-  automaticTomeStowTimelineMarkers,
-  timelineWeaponRows,
-} from "../../../js/app/rotation/timeline-model.js";
-import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
-import {
-  applyBalanceProfilePatch,
-  applySkillPatch,
-} from "../../../js/platform/gw2/skill-patch.js";
+import { loadProfession } from '../../../js/app/profession/registry.js';
+import { skillBarInspectionStacks } from '../../../js/app/build/skills-panel.js';
+import { automaticTomeStowTimelineMarkers, timelineWeaponRows } from '../../../js/app/rotation/timeline-model.js';
+import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/skill-patch.js';
 import {
   createGuardianBuildDefaults,
   migrateGuardianBuild,
-  validateGuardianBuild,
-} from "../../../js/professions/guardian/build.js";
-import { guardianCatalog } from "../../../js/professions/guardian/catalog.js";
-import { DATA_SNAPSHOT } from "../../../js/professions/guardian/data/guardian-api-metadata.js";
-import { guardianProfession } from "../../../js/professions/guardian/definition.js";
+  validateGuardianBuild
+} from '../../../js/professions/guardian/build.js';
+import { guardianCatalog } from '../../../js/professions/guardian/catalog.js';
+import { DATA_SNAPSHOT } from '../../../js/professions/guardian/data/guardian-api-metadata.js';
+import { guardianProfession } from '../../../js/professions/guardian/definition.js';
 import {
   calculateAttributes as calculateGuardianAttributes,
   recalculate as recalculateGuardian,
   runSimulation as runGuardianSimulation,
-  simulationConfig as guardianSimulationConfig,
-} from "../../../js/professions/guardian/app/app-definition.js";
-import {
-  GUARDIAN_SKILL_IDS,
-  GUARDIAN_TRAIT_IDS,
-} from "../../../js/professions/guardian/data/ids.js";
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS } from "../../../js/professions/guardian/core/profiles.js";
-import { DRAGONHUNTER_BALANCE_PROFILE_IDS } from "../../../js/professions/guardian/specializations/dragonhunter/profiles.js";
-import { FIREBRAND_BALANCE_PROFILE_IDS } from "../../../js/professions/guardian/specializations/firebrand/profiles.js";
-import { WILLBENDER_BALANCE_PROFILE_IDS } from "../../../js/professions/guardian/specializations/willbender/profiles.js";
-import { LUMINARY_BALANCE_PROFILE_IDS } from "../../../js/professions/guardian/specializations/luminary/profiles.js";
+  simulationConfig as guardianSimulationConfig
+} from '../../../js/professions/guardian/app/app-definition.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../../../js/professions/guardian/data/ids.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS } from '../../../js/professions/guardian/core/profiles.js';
+import { DRAGONHUNTER_BALANCE_PROFILE_IDS } from '../../../js/professions/guardian/specializations/dragonhunter/profiles.js';
+import { FIREBRAND_BALANCE_PROFILE_IDS } from '../../../js/professions/guardian/specializations/firebrand/profiles.js';
+import { WILLBENDER_BALANCE_PROFILE_IDS } from '../../../js/professions/guardian/specializations/willbender/profiles.js';
+import { LUMINARY_BALANCE_PROFILE_IDS } from '../../../js/professions/guardian/specializations/luminary/profiles.js';
 
 const config = {
   stats: {
@@ -43,89 +34,49 @@ const config = {
     precision: 1000,
     ferocity: 0,
     conditionDamage: 1000,
-    vitality: 1000,
+    vitality: 1000
   },
-  target: { armor: 2597 },
+  target: { armor: 2597 }
 };
 
-const applyGuardianPatch = (patch) =>
-  applyBalanceProfilePatch(applySkillPatch(guardianCatalog, patch), patch);
+const applyGuardianPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(guardianCatalog, patch), patch);
 
-test("Guardian uses a current API catalog with real skills and trait lines", () => {
+test('Guardian uses a current API catalog with real skills and trait lines', () => {
   assert.match(DATA_SNAPSHOT, /^2026-/);
   assert.equal(guardianCatalog.specializations.length, 9);
   assert.equal(guardianCatalog.traits.length, 108);
   assert.ok(guardianCatalog.skills.length >= 190);
+  assert.equal(guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.TRUE_STRIKE).name, 'True Strike');
+  assert.equal(guardianCatalog.skillsByName.get('Virtue of Justice').id, 9115);
   assert.equal(
-    guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.TRUE_STRIKE).name,
-    "True Strike",
-  );
-  assert.equal(guardianCatalog.skillsByName.get("Virtue of Justice").id, 9115);
-  assert.equal(
-    guardianCatalog.specializations.some((spec) => spec.name === "Luminary"),
-    true,
+    guardianCatalog.specializations.some((spec) => spec.name === 'Luminary'),
+    true
   );
 });
 
-test("Guardian modules expose isolated balance-profile authoring", () => {
-  const modules = new Map(
-    guardianProfession.patchAuthoring.modules.map((module) => [
-      module.id,
-      module,
-    ]),
-  );
-  assert.deepEqual(
-    [...modules.keys()],
-    ["Core", "Dragonhunter", "Firebrand", "Willbender", "Luminary"],
-  );
+test('Guardian modules expose isolated balance-profile authoring', () => {
+  const modules = new Map(guardianProfession.patchAuthoring.modules.map((module) => [module.id, module]));
+  assert.deepEqual([...modules.keys()], ['Core', 'Dragonhunter', 'Firebrand', 'Willbender', 'Luminary']);
   assert.equal(
     [...modules.values()].every((module) => module.balanceProfiles.length > 0),
-    true,
+    true
   );
 
   const profile = (moduleId, profileId) =>
-    modules
-      .get(moduleId)
-      .balanceProfiles.find((entry) => entry.id === profileId);
-  assert.equal(
-    profile("Core", GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice).profile
-      .threshold,
-    5,
-  );
-  assert.equal(
-    profile("Dragonhunter", DRAGONHUNTER_BALANCE_PROFILE_IDS.tether).profile
-      .effects[0].duration,
-    2,
-  );
-  assert.equal(
-    profile("Firebrand", FIREBRAND_BALANCE_PROFILE_IDS.resources)
-      .patchableFields.maximumStacks,
-    5,
-  );
-  assert.equal(
-    profile("Willbender", WILLBENDER_BALANCE_PROFILE_IDS.flames).profile
-      .effects[0].coefficient,
-    0.22,
-  );
-  assert.equal(
-    profile("Luminary", LUMINARY_BALANCE_PROFILE_IDS.forge).patchableFields
-      .maximumStacks,
-    4,
+    modules.get(moduleId).balanceProfiles.find((entry) => entry.id === profileId);
+  assert.equal(profile('Core', GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice).profile.threshold, 5);
+  assert.equal(profile('Dragonhunter', DRAGONHUNTER_BALANCE_PROFILE_IDS.tether).profile.effects[0].duration, 2);
+  assert.equal(profile('Firebrand', FIREBRAND_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 5);
+  assert.equal(profile('Willbender', WILLBENDER_BALANCE_PROFILE_IDS.flames).profile.effects[0].coefficient, 0.22);
+  assert.equal(profile('Luminary', LUMINARY_BALANCE_PROFILE_IDS.forge).patchableFields.maximumStacks, 4);
+  assert.deepEqual(
+    modules.get('Core').modifierRules.find((rule) => rule.id === 'guardian.inspired-virtue').parameters,
+    { damagePerBoon: 0.005 }
   );
   assert.deepEqual(
-    modules
-      .get("Core")
-      .modifierRules.find((rule) => rule.id === "guardian.inspired-virtue")
+    modules.get('Firebrand').modifierRules.find((rule) => rule.id === 'guardian.firebrand.imbued-haste-attributes')
       .parameters,
-    { damagePerBoon: 0.005 },
-  );
-  assert.deepEqual(
-    modules
-      .get("Firebrand")
-      .modifierRules.find(
-        (rule) => rule.id === "guardian.firebrand.imbued-haste-attributes",
-      ).parameters,
-    { attributeBonus: 250 },
+    { attributeBonus: 250 }
   );
 
   const preview = applyGuardianPatch({
@@ -134,135 +85,80 @@ test("Guardian modules expose isolated balance-profile authoring", () => {
         effects: [
           {
             effectIndex: 0,
-            coefficient: { from: 0.8, to: 0.9 },
-          },
-        ],
-      },
+            coefficient: { from: 0.8, to: 0.9 }
+          }
+        ]
+      }
     },
     balanceProfiles: {
       [GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice]: {
-        fields: { threshold: { from: 5, to: 4 } },
+        fields: { threshold: { from: 5, to: 4 } }
       },
       [DRAGONHUNTER_BALANCE_PROFILE_IDS.tether]: {
         effects: [
           {
             effectIndex: 0,
-            duration: { from: 2, to: 3 },
-          },
-        ],
+            duration: { from: 2, to: 3 }
+          }
+        ]
       },
       [FIREBRAND_BALANCE_PROFILE_IDS.resources]: {
-        fields: { maximumStacks: { from: 5, to: 6 } },
+        fields: { maximumStacks: { from: 5, to: 6 } }
       },
       [WILLBENDER_BALANCE_PROFILE_IDS.flames]: {
         effects: [
           {
             effectIndex: 0,
-            coefficient: { from: 0.22, to: 0.3 },
-          },
-        ],
+            coefficient: { from: 0.22, to: 0.3 }
+          }
+        ]
       },
       [LUMINARY_BALANCE_PROFILE_IDS.forge]: {
-        fields: { maximumStacks: { from: 4, to: 5 } },
-      },
-    },
+        fields: { maximumStacks: { from: 4, to: 5 } }
+      }
+    }
   });
 
-  assert.equal(
-    preview.skillsById.get(GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE).effects[0]
-      .coefficient,
-    0.9,
-  );
-  assert.equal(
-    preview.balanceProfilesById.get(GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice)
-      .threshold,
-    4,
-  );
-  assert.equal(
-    preview.balanceProfilesById.get(DRAGONHUNTER_BALANCE_PROFILE_IDS.tether)
-      .effects[0].duration,
-    3,
-  );
-  assert.equal(
-    preview.balanceProfilesById.get(FIREBRAND_BALANCE_PROFILE_IDS.resources)
-      .maximumStacks,
-    6,
-  );
-  assert.equal(
-    preview.balanceProfilesById.get(WILLBENDER_BALANCE_PROFILE_IDS.flames)
-      .effects[0].coefficient,
-    0.3,
-  );
-  assert.equal(
-    preview.balanceProfilesById.get(LUMINARY_BALANCE_PROFILE_IDS.forge)
-      .maximumStacks,
-    5,
-  );
+  assert.equal(preview.skillsById.get(GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE).effects[0].coefficient, 0.9);
+  assert.equal(preview.balanceProfilesById.get(GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice).threshold, 4);
+  assert.equal(preview.balanceProfilesById.get(DRAGONHUNTER_BALANCE_PROFILE_IDS.tether).effects[0].duration, 3);
+  assert.equal(preview.balanceProfilesById.get(FIREBRAND_BALANCE_PROFILE_IDS.resources).maximumStacks, 6);
+  assert.equal(preview.balanceProfilesById.get(WILLBENDER_BALANCE_PROFILE_IDS.flames).effects[0].coefficient, 0.3);
+  assert.equal(preview.balanceProfilesById.get(LUMINARY_BALANCE_PROFILE_IDS.forge).maximumStacks, 5);
 
-  assert.equal(
-    guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE)
-      .effects[0].coefficient,
-    0.8,
-  );
-  assert.equal(
-    guardianCatalog.balanceProfilesById.get(
-      GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice,
-    ).threshold,
-    5,
-  );
-  assert.equal(
-    guardianCatalog.balanceProfilesById.get(
-      FIREBRAND_BALANCE_PROFILE_IDS.resources,
-    ).maximumStacks,
-    5,
-  );
+  assert.equal(guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE).effects[0].coefficient, 0.8);
+  assert.equal(guardianCatalog.balanceProfilesById.get(GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice).threshold, 5);
+  assert.equal(guardianCatalog.balanceProfilesById.get(FIREBRAND_BALANCE_PROFILE_IDS.resources).maximumStacks, 5);
 });
 
-test("Masterful Writ utilities grant their flat attributes", () => {
+test('Masterful Writ utilities grant their flat attributes', () => {
   const baseline = createGuardianBuildDefaults();
-  baseline.utility = "";
+  baseline.utility = '';
   const strength = structuredClone(baseline);
-  strength.utility = "Writ of Masterful Strength";
+  strength.utility = 'Writ of Masterful Strength';
   const malice = structuredClone(baseline);
-  malice.utility = "Writ of Masterful Malice";
+  malice.utility = 'Writ of Masterful Malice';
 
-  const baselineAttributes = calculateGuardianAttributes(
-    baseline,
-    [],
-  ).attributes;
-  const strengthAttributes = calculateGuardianAttributes(
-    strength,
-    [],
-  ).attributes;
+  const baselineAttributes = calculateGuardianAttributes(baseline, []).attributes;
+  const strengthAttributes = calculateGuardianAttributes(strength, []).attributes;
   const maliceAttributes = calculateGuardianAttributes(malice, []).attributes;
 
   assert.equal(strengthAttributes.Power.utility, 200);
-  assert.equal(
-    strengthAttributes.Power.final - baselineAttributes.Power.final,
-    200,
-  );
-  assert.equal(maliceAttributes["Condition Damage"].utility, 200);
-  assert.equal(
-    maliceAttributes["Condition Damage"].final -
-      baselineAttributes["Condition Damage"].final,
-    200,
-  );
+  assert.equal(strengthAttributes.Power.final - baselineAttributes.Power.final, 200);
+  assert.equal(maliceAttributes['Condition Damage'].utility, 200);
+  assert.equal(maliceAttributes['Condition Damage'].final - baselineAttributes['Condition Damage'].final, 200);
 });
 
-test("Justice active burning resolves through simulateGw2", () => {
+test('Justice active burning resolves through simulateGw2', () => {
   const withoutJustice = simulateGw2({
     profession: guardianProfession,
-    rotation: ["True Strike"],
-    config,
+    rotation: ['True Strike'],
+    config
   });
   const withJustice = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Virtue of Justice",
-      "True Strike",
-      { type: "wait", durationMs: 2000 },
-    ],
-    config,
+    rotation: ['Virtue of Justice', 'True Strike', { type: 'wait', durationMs: 2000 }],
+    config
   });
 
   assert.equal(withoutJustice.conditionDamage, 0);
@@ -272,53 +168,53 @@ test("Justice active burning resolves through simulateGw2", () => {
   assert.equal(withJustice.endState.profession.justiceArmed, false);
 });
 
-test("Justice passive counts individual hits and respects its active cooldown", () => {
+test('Justice passive counts individual hits and respects its active cooldown', () => {
   const passive = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Whirling Wrath"],
-    config: { ...config, primaryWeapon: "Greatsword" },
+    rotation: ['Whirling Wrath'],
+    config: { ...config, primaryWeapon: 'Greatsword' }
   });
   const activated = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Virtue of Justice", "Whirling Wrath"],
-    config: { ...config, primaryWeapon: "Greatsword" },
+    rotation: ['Virtue of Justice', 'Whirling Wrath'],
+    config: { ...config, primaryWeapon: 'Greatsword' }
   });
   const permeating = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Whirling Wrath"],
+    rotation: ['Whirling Wrath'],
     config: {
       ...config,
-      primaryWeapon: "Greatsword",
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH],
-    },
+      primaryWeapon: 'Greatsword',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH]
+    }
   });
   const radiantPassive = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Whirling Wrath"],
+    rotation: ['Whirling Wrath'],
     config: {
       ...config,
-      specialization: "Luminary",
-      primaryWeapon: "Greatsword",
-    },
+      specialization: 'Luminary',
+      primaryWeapon: 'Greatsword'
+    }
   });
   const radiantPermeating = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Whirling Wrath"],
+    rotation: ['Whirling Wrath'],
     config: {
       ...config,
-      specialization: "Luminary",
-      primaryWeapon: "Greatsword",
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH],
-    },
+      specialization: 'Luminary',
+      primaryWeapon: 'Greatsword',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH]
+    }
   });
   const radiantActivated = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Radiant Justice", "Whirling Wrath"],
+    rotation: ['Radiant Justice', 'Whirling Wrath'],
     config: {
       ...config,
-      specialization: "Luminary",
-      primaryWeapon: "Greatsword",
-    },
+      specialization: 'Luminary',
+      primaryWeapon: 'Greatsword'
+    }
   });
 
   assert.equal(passive.endState.profession.justicePassiveBurns, 2);
@@ -335,703 +231,579 @@ test("Justice passive counts individual hits and respects its active cooldown", 
   assert.equal(radiantActivated.endState.profession.justicePassiveBurns, 0);
 });
 
-test("Guardian greatsword uses the reference cast and strike profiles", () => {
+test('Guardian greatsword uses the reference cast and strike profiles', () => {
   const simulate = (quickness) =>
     simulateGw2({
       profession: guardianProfession,
       rotation: [
-        "Strike",
-        "Vengeful Strike",
-        "Wrathful Strike",
-        "Whirling Wrath",
-        "Leap of Faith",
-        "Symbol of Resolution",
-        "Binding Blade",
-        { type: "wait", durationMs: 15000 },
+        'Strike',
+        'Vengeful Strike',
+        'Wrathful Strike',
+        'Whirling Wrath',
+        'Leap of Faith',
+        'Symbol of Resolution',
+        'Binding Blade',
+        { type: 'wait', durationMs: 15000 }
       ],
       config: {
         ...config,
         boons: { quickness },
-        primaryWeapon: "Greatsword",
-      },
+        primaryWeapon: 'Greatsword'
+      }
     });
   const profile = (result, skillName) => {
-    const action = result.events.find(
-      (event) => event.type === "action" && event.skillName === skillName,
-    );
+    const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
     return {
       cast: Math.round((action.endsAt - action.at) * 1000),
       ticks: result.resolvedEvents
-        .filter(
-          (event) => event.type === "damage" && event.skillName === skillName,
-        )
+        .filter((event) => event.type === 'damage' && event.skillName === skillName)
         .map((event) => Math.round((event.at - action.at) * 1000)),
       coefficient: Number(
         result.resolvedEvents
-          .filter(
-            (event) => event.type === "damage" && event.skillName === skillName,
-          )
+          .filter((event) => event.type === 'damage' && event.skillName === skillName)
           .reduce((sum, event) => sum + event.coefficient, 0)
-          .toFixed(4),
-      ),
+          .toFixed(4)
+      )
     };
   };
   const normal = simulate(false);
   const quick = simulate(true);
 
   assert.deepEqual(
-    ["Strike", "Vengeful Strike", "Wrathful Strike"].map(
-      (name) => profile(normal, name).cast,
-    ),
-    [600, 900, 1000],
+    ['Strike', 'Vengeful Strike', 'Wrathful Strike'].map((name) => profile(normal, name).cast),
+    [600, 900, 1000]
   );
   assert.deepEqual(
-    ["Strike", "Vengeful Strike", "Wrathful Strike"].map(
-      (name) => profile(quick, name).cast,
-    ),
-    [400, 600, 680],
+    ['Strike', 'Vengeful Strike', 'Wrathful Strike'].map((name) => profile(quick, name).cast),
+    [400, 600, 680]
   );
-  assert.deepEqual(profile(normal, "Whirling Wrath"), {
+  assert.deepEqual(profile(normal, 'Whirling Wrath'), {
     cast: 2200,
-    ticks: [
-      157, 314, 471, 628, 785, 942, 1099, 1257, 1414, 1571, 1728, 1885, 2042,
-      2200,
-    ],
-    coefficient: 4.375,
+    ticks: [157, 314, 471, 628, 785, 942, 1099, 1257, 1414, 1571, 1728, 1885, 2042, 2200],
+    coefficient: 4.375
   });
-  assert.deepEqual(profile(quick, "Whirling Wrath"), {
+  assert.deepEqual(profile(quick, 'Whirling Wrath'), {
     cast: 1480,
-    ticks: [
-      106, 211, 317, 422, 528, 634, 739, 846, 951, 1057, 1162, 1268, 1374, 1480,
-    ],
-    coefficient: 4.375,
+    ticks: [106, 211, 317, 422, 528, 634, 739, 846, 951, 1057, 1162, 1268, 1374, 1480],
+    coefficient: 4.375
   });
-  assert.deepEqual(profile(quick, "Leap of Faith"), {
+  assert.deepEqual(profile(quick, 'Leap of Faith'), {
     cast: 720,
     ticks: [720],
-    coefficient: 2,
+    coefficient: 2
   });
-  assert.deepEqual(profile(quick, "Symbol of Resolution"), {
+  assert.deepEqual(profile(quick, 'Symbol of Resolution'), {
     cast: 280,
     ticks: [280, 1280, 2280, 3280, 4280],
-    coefficient: 3.4,
+    coefficient: 3.4
   });
-  assert.deepEqual(profile(quick, "Binding Blade"), {
+  assert.deepEqual(profile(quick, 'Binding Blade'), {
     cast: 480,
     ticks: [480, 1480, 2480, 3480, 4480, 5480, 6480, 7480, 8480, 9480, 10480],
-    coefficient: 2.5,
+    coefficient: 2.5
   });
-  const tether = quick.resolvedEvents.filter(
-    (event) => event.sourceId === GUARDIAN_SKILL_IDS.BINDING_BLADE_TETHER,
-  );
+  const tether = quick.resolvedEvents.filter((event) => event.sourceId === GUARDIAN_SKILL_IDS.BINDING_BLADE_TETHER);
   assert.equal(tether.length, 10);
   assert.equal(
     tether.every((event) => event.canCrit === false),
-    true,
+    true
   );
   assert.equal(
     tether.every(
-      (event) =>
-        event.flatStrikeBase === 160 &&
-        event.flatStrikePowerCoeff === 0.3 &&
-        event.damageKind === "condition",
+      (event) => event.flatStrikeBase === 160 && event.flatStrikePowerCoeff === 0.3 && event.damageKind === 'condition'
     ),
-    true,
+    true
   );
   assert.equal(quick.conditionDamage > 0, true);
 });
 
-test("Guardian utilities and traps use the reference damage timelines", () => {
+test('Guardian utilities and traps use the reference damage timelines', () => {
   const skillNames = [
-    "Sword of Justice",
-    "Procession of Blades",
-    "Bane Signet",
+    'Sword of Justice',
+    'Procession of Blades',
+    'Bane Signet',
     "Dragon's Maw",
-    "Purification",
-    "Test of Faith",
+    'Purification',
+    'Test of Faith'
   ];
   const simulate = (quickness) =>
     simulateGw2({
       profession: guardianProfession,
-      rotation: [...skillNames, { type: "wait", durationMs: 5000 }],
+      rotation: [...skillNames, { type: 'wait', durationMs: 5000 }],
       config: {
         ...config,
         boons: { quickness },
-        specialization: "Dragonhunter",
-      },
+        specialization: 'Dragonhunter'
+      }
     });
   const profiles = (result) =>
     Object.fromEntries(
       skillNames.map((skillName) => {
-        const action = result.events.find(
-          (event) => event.type === "action" && event.skillName === skillName,
-        );
+        const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
         const damage = result.resolvedEvents.filter(
-          (event) => event.type === "damage" && event.skillName === skillName,
+          (event) => event.type === 'damage' && event.skillName === skillName
         );
         return [
           skillName,
           {
             cast: Math.round((action.endsAt - action.at) * 1000),
-            ticks: damage.map((event) =>
-              Math.round((event.at - action.at) * 1000),
-            ),
-            coefficient: Number(
-              damage
-                .reduce((sum, event) => sum + event.coefficient, 0)
-                .toFixed(4),
-            ),
-          },
+            ticks: damage.map((event) => Math.round((event.at - action.at) * 1000)),
+            coefficient: Number(damage.reduce((sum, event) => sum + event.coefficient, 0).toFixed(4))
+          }
         ];
-      }),
+      })
     );
   const normal = profiles(simulate(false));
   const quick = profiles(simulate(true));
 
   assert.deepEqual(
     skillNames.map((name) => normal[name].cast),
-    [900, 660, 750, 660, 900, 0],
+    [900, 660, 750, 660, 900, 0]
   );
   assert.deepEqual(
     skillNames.map((name) => quick[name].cast),
-    [600, 440, 500, 440, 600, 0],
+    [600, 440, 500, 440, 600, 0]
   );
-  assert.deepEqual(quick["Sword of Justice"], {
+  assert.deepEqual(quick['Sword of Justice'], {
     cast: 600,
     ticks: [650, 1050, 1450, 1850],
-    coefficient: 3.2,
+    coefficient: 3.2
   });
-  assert.deepEqual(quick["Procession of Blades"], {
+  assert.deepEqual(quick['Procession of Blades'], {
     cast: 440,
     ticks: [1280, 1560, 1840, 2120, 2400, 2680, 2960, 3240, 3520, 3800],
-    coefficient: 4.4,
+    coefficient: 4.4
   });
-  assert.deepEqual(quick["Bane Signet"], {
+  assert.deepEqual(quick['Bane Signet'], {
     cast: 500,
     ticks: [500],
-    coefficient: 1,
+    coefficient: 1
   });
   assert.deepEqual(quick["Dragon's Maw"], {
     cast: 440,
     ticks: [500],
-    coefficient: 3.6,
+    coefficient: 3.6
   });
   assert.deepEqual(quick.Purification, {
     cast: 600,
     ticks: [500],
-    coefficient: 0.1875,
+    coefficient: 0.1875
   });
-  assert.deepEqual(quick["Test of Faith"], {
+  assert.deepEqual(quick['Test of Faith'], {
     cast: 0,
     ticks: [500],
-    coefficient: 1.4,
+    coefficient: 1.4
   });
 });
 
-test("Spear Helio Rush arms Illuminated and enhances the next spear skill", () => {
-  const spearConfig = { ...config, primaryWeapon: "Spear" };
+test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () => {
+  const spearConfig = { ...config, primaryWeapon: 'Spear' };
 
   const helioAlone = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Helio Rush"],
-    config: spearConfig,
+    rotation: ['Helio Rush'],
+    config: spearConfig
   });
   const gleamingAlone = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Gleaming Disc", { type: "wait", durationMs: 1000 }],
-    config: spearConfig,
+    rotation: ['Gleaming Disc', { type: 'wait', durationMs: 1000 }],
+    config: spearConfig
   });
   const combo = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Helio Rush",
-      "Gleaming Disc",
-      { type: "wait", durationMs: 1000 },
-    ],
-    config: spearConfig,
+    rotation: ['Helio Rush', 'Gleaming Disc', { type: 'wait', durationMs: 1000 }],
+    config: spearConfig
   });
 
   // Helio Rush is not illuminated itself but arms the buff for the next attack.
   assert.equal(helioAlone.endState.profession.spearIlluminatedArmed, true);
   assert.equal(
-    helioAlone.procSteps.some((step) => step.skill === "Illuminated"),
-    false,
+    helioAlone.procSteps.some((step) => step.skill === 'Illuminated'),
+    false
   );
   assert.equal(
-    helioAlone.events.some(
-      (event) =>
-        event.type === "buff" &&
-        event.kind === "resolution" &&
-        event.duration === 4,
-    ),
-    true,
+    helioAlone.events.some((event) => event.type === 'buff' && event.kind === 'resolution' && event.duration === 4),
+    true
   );
   assert.equal(
-    gleamingAlone.procSteps.some((step) => step.skill === "Illuminated"),
-    false,
+    gleamingAlone.procSteps.some((step) => step.skill === 'Illuminated'),
+    false
   );
 
   // The armed buff makes Gleaming Disc illuminated: an "Illuminated" proc fires
   // and the combo out-damages the two skills cast in isolation.
-  const illuminated = combo.procSteps.filter(
-    (step) => step.skill === "Illuminated",
-  );
+  const illuminated = combo.procSteps.filter((step) => step.skill === 'Illuminated');
   assert.equal(illuminated.length, 1);
-  assert.equal(illuminated[0].sourceSkill, "Gleaming Disc");
-  assert.ok(
-    combo.strikeDamage >
-      helioAlone.strikeDamage + gleamingAlone.strikeDamage + 1,
-  );
+  assert.equal(illuminated[0].sourceSkill, 'Gleaming Disc');
+  assert.ok(combo.strikeDamage > helioAlone.strikeDamage + gleamingAlone.strikeDamage + 1);
 
   const expired = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Helio Rush",
-      { type: "wait", durationMs: 5001 },
-      "Gleaming Disc",
-      { type: "wait", durationMs: 1000 },
-    ],
-    config: spearConfig,
+    rotation: ['Helio Rush', { type: 'wait', durationMs: 5001 }, 'Gleaming Disc', { type: 'wait', durationMs: 1000 }],
+    config: spearConfig
   });
   assert.deepEqual(
     expired.resolvedEvents
       .filter((event) => event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC)
       .map((event) => event.coefficient),
-    [1.5, 1.5],
+    [1.5, 1.5]
   );
 
   const preservedThroughFiller = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Helio Rush",
-      "Daybreaking Slash",
-      "Gleaming Disc",
-      { type: "wait", durationMs: 1000 },
-    ],
-    config: spearConfig,
+    rotation: ['Helio Rush', 'Daybreaking Slash', 'Gleaming Disc', { type: 'wait', durationMs: 1000 }],
+    config: spearConfig
   });
   assert.deepEqual(
     preservedThroughFiller.resolvedEvents
       .filter((event) => event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC)
       .map((event) => event.coefficient),
-    [1.5, 2.25],
+    [1.5, 2.25]
   );
 });
 
-test("Spear Symbol of Luminance keeps all spear skills illuminated while active", () => {
-  const spearConfig = { ...config, primaryWeapon: "Spear" };
+test('Spear Symbol of Luminance keeps all spear skills illuminated while active', () => {
+  const spearConfig = { ...config, primaryWeapon: 'Spear' };
 
   const symbolThenHelio = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Symbol of Luminance", "Helio Rush"],
+    rotation: ['Symbol of Luminance', 'Helio Rush'],
     config: {
       ...spearConfig,
-      boons: { quickness: true },
-    },
+      boons: { quickness: true }
+    }
   });
 
   assert.equal(symbolThenHelio.steps[0].end, 440);
   // The window empowers Helio Rush even though nothing armed it beforehand.
   assert.ok(symbolThenHelio.endState.profession.spearLuminanceUntil > 0);
   assert.equal(
-    symbolThenHelio.procSteps.some(
-      (step) =>
-        step.skill === "Illuminated" && step.sourceSkill === "Helio Rush",
-    ),
-    true,
+    symbolThenHelio.procSteps.some((step) => step.skill === 'Illuminated' && step.sourceSkill === 'Helio Rush'),
+    true
   );
   assert.deepEqual(
     symbolThenHelio.resolvedEvents
-      .filter(
-        (event) =>
-          event.type === "damage" &&
-          event.skillId === GUARDIAN_SKILL_IDS.HELIO_RUSH,
-      )
+      .filter((event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.HELIO_RUSH)
       .map((event) => event.coefficient),
-    [2.25],
+    [2.25]
   );
 });
 
-test("Guardian spear coefficients and repeated pulses stay per-hit", () => {
+test('Guardian spear coefficients and repeated pulses stay per-hit', () => {
   const spearConfig = {
     ...config,
     boons: { quickness: true },
-    primaryWeapon: "Spear",
+    primaryWeapon: 'Spear'
   };
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Helio Rush",
-      "Gleaming Disc",
-      "Symbol of Luminance",
-      "Solar Storm",
-      { type: "wait", durationMs: 5000 },
-    ],
-    config: spearConfig,
+    rotation: ['Helio Rush', 'Gleaming Disc', 'Symbol of Luminance', 'Solar Storm', { type: 'wait', durationMs: 5000 }],
+    config: spearConfig
   });
   const coefficients = (name) =>
-    result.resolvedEvents
-      .filter((event) => event.name === name)
-      .map((event) => event.coefficient);
+    result.resolvedEvents.filter((event) => event.name === name).map((event) => event.coefficient);
 
-  assert.deepEqual(coefficients("Helio Rush"), [1.5]);
-  assert.deepEqual(coefficients("Gleaming Disc"), [1.5, 2.25]);
-  assert.deepEqual(coefficients("Gleaming Disc (Illuminated)"), []);
+  assert.deepEqual(coefficients('Helio Rush'), [1.5]);
+  assert.deepEqual(coefficients('Gleaming Disc'), [1.5, 2.25]);
+  assert.deepEqual(coefficients('Gleaming Disc (Illuminated)'), []);
   assert.equal(
     result.resolvedEvents.filter(
-      (event) =>
-        event.type === "damage" &&
-        event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC,
+      (event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC
     ).length,
-    2,
+    2
   );
   const gleamingAction = result.events.find(
-    (event) =>
-      event.type === "action" &&
-      event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC,
+    (event) => event.type === 'action' && event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC
   );
   assert.deepEqual(
     result.resolvedEvents
       .filter((event) => event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC)
       .map((event) => Math.round((event.at - gleamingAction.at) * 1000)),
-    [0, 680],
+    [0, 680]
   );
-  assert.deepEqual(coefficients("Symbol of Luminance — Initial"), [1.5]);
-  assert.deepEqual(
-    coefficients("Symbol of Luminance"),
-    [0.5, 0.5, 0.5, 0.5, 0.5],
-  );
-  assert.deepEqual(coefficients("Solar Storm — 1st Strike"), [1.5]);
-  assert.deepEqual(coefficients("Solar Storm — 2nd Strike"), [1.2]);
-  assert.deepEqual(coefficients("Solar Storm — 3rd Strike"), [0.9]);
-  assert.deepEqual(coefficients("Solar Storm — 4th Strike"), [0.6]);
-  assert.deepEqual(coefficients("Solar Storm — 5th Strike"), [0.3]);
-  assert.deepEqual(coefficients("Solar Storm (Illuminated)"), []);
+  assert.deepEqual(coefficients('Symbol of Luminance — Initial'), [1.5]);
+  assert.deepEqual(coefficients('Symbol of Luminance'), [0.5, 0.5, 0.5, 0.5, 0.5]);
+  assert.deepEqual(coefficients('Solar Storm — 1st Strike'), [1.5]);
+  assert.deepEqual(coefficients('Solar Storm — 2nd Strike'), [1.2]);
+  assert.deepEqual(coefficients('Solar Storm — 3rd Strike'), [0.9]);
+  assert.deepEqual(coefficients('Solar Storm — 4th Strike'), [0.6]);
+  assert.deepEqual(coefficients('Solar Storm — 5th Strike'), [0.3]);
+  assert.deepEqual(coefficients('Solar Storm (Illuminated)'), []);
   assert.equal(
-    result.resolvedEvents.filter(
-      (event) =>
-        event.type === "damage" &&
-        event.skillId === GUARDIAN_SKILL_IDS.SOLAR_STORM,
-    ).length,
-    5,
+    result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.SOLAR_STORM)
+      .length,
+    5
   );
 });
 
-test("Guardian swaps weapons and exposes profession palette groups", () => {
+test('Guardian swaps weapons and exposes profession palette groups', () => {
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Swap Weapons"],
-    config,
+    rotation: ['Swap Weapons'],
+    config
   });
   assert.equal(result.endState.activeWeaponSet, 2);
   assert.deepEqual(guardianProfession.ui.resourceViews({}), []);
   assert.deepEqual(guardianProfession.ui.paletteGroups({})[0].skillIds, [
     GUARDIAN_SKILL_IDS.JUSTICE,
     GUARDIAN_SKILL_IDS.RESOLVE,
-    GUARDIAN_SKILL_IDS.COURAGE,
+    GUARDIAN_SKILL_IDS.COURAGE
   ]);
 });
 
-test("Guardian skill bar exposes F keys and Luminary Radiant Forge skills", () => {
+test('Guardian skill bar exposes F keys and Luminary Radiant Forge skills', () => {
   const coreGroups = guardianProfession.ui.skillBarGroups({
-    specialization: "Core",
+    specialization: 'Core'
   });
   assert.deepEqual(
     coreGroups.map((group) => group.label),
-    ["F Keys"],
+    ['F Keys']
   );
   assert.deepEqual(coreGroups[0].skillIds, [
     GUARDIAN_SKILL_IDS.JUSTICE,
     GUARDIAN_SKILL_IDS.RESOLVE,
-    GUARDIAN_SKILL_IDS.COURAGE,
+    GUARDIAN_SKILL_IDS.COURAGE
   ]);
 
   const luminaryGroups = guardianProfession.ui.skillBarGroups({
-    specialization: "Luminary",
-    professionState: { radiantForge: false },
+    specialization: 'Luminary',
+    professionState: { radiantForge: false }
   });
   assert.deepEqual(
     luminaryGroups.map((group) => group.label),
-    ["F Keys", "Radiant Forge"],
+    ['F Keys', 'Radiant Forge']
   );
-  assert.equal(
-    luminaryGroups[0].skillIds.includes(GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE),
-    true,
-  );
-  assert.equal(
-    luminaryGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.GLARING_BURST),
-    true,
-  );
-  assert.equal(
-    luminaryGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER),
-    true,
-  );
-  assert.equal(
-    luminaryGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.BRILLIANT_SLAM),
-    true,
-  );
+  assert.equal(luminaryGroups[0].skillIds.includes(GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE), true);
+  assert.equal(luminaryGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.GLARING_BURST), true);
+  assert.equal(luminaryGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER), true);
+  assert.equal(luminaryGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.BRILLIANT_SLAM), true);
   assert.deepEqual(
     skillBarInspectionStacks(
-      luminaryGroups[1].skillIds.map((skillId) =>
-        guardianCatalog.skillsById.get(skillId),
-      ),
-      luminaryGroups[1].inspectionChainRoots,
+      luminaryGroups[1].skillIds.map((skillId) => guardianCatalog.skillsById.get(skillId)),
+      luminaryGroups[1].inspectionChainRoots
     ).map(({ root, children }) => [root.id, children.map((skill) => skill.id)]),
     [
       [GUARDIAN_SKILL_IDS.GLARING_BURST, []],
       [GUARDIAN_SKILL_IDS.DAZZLING_HAMMER, [GUARDIAN_SKILL_IDS.SHINING_SPIN]],
-      [
-        GUARDIAN_SKILL_IDS.LUMINOUS_STAFF,
-        [GUARDIAN_SKILL_IDS.RESTORATIVE_GLOW],
-      ],
+      [GUARDIAN_SKILL_IDS.LUMINOUS_STAFF, [GUARDIAN_SKILL_IDS.RESTORATIVE_GLOW]],
       [GUARDIAN_SKILL_IDS.GLEAMING_BLADE, [GUARDIAN_SKILL_IDS.LUCENT_THRUST]],
-      [GUARDIAN_SKILL_IDS.RADIANT_BULWARK, [GUARDIAN_SKILL_IDS.BRILLIANT_SLAM]],
-    ],
+      [GUARDIAN_SKILL_IDS.RADIANT_BULWARK, [GUARDIAN_SKILL_IDS.BRILLIANT_SLAM]]
+    ]
   );
 
   const firebrandGroups = guardianProfession.ui.skillBarGroups({
-    specialization: "Firebrand",
-    professionState: { activeTome: "", tomePages: 5 },
+    specialization: 'Firebrand',
+    professionState: { activeTome: '', tomePages: 5 }
   });
   assert.deepEqual(
     firebrandGroups.map((group) => group.label),
-    ["F Keys", "Tome of Justice", "Tome of Resolve", "Tome of Courage"],
+    ['F Keys', 'Tome of Justice', 'Tome of Resolve', 'Tome of Courage']
   );
   assert.deepEqual(
     firebrandGroups.slice(1).map((group) => group.skillIds.length),
-    [5, 5, 5],
+    [5, 5, 5]
   );
   assert.deepEqual(firebrandGroups[0].skillIds, [
     GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE,
     GUARDIAN_SKILL_IDS.TOME_OF_RESOLVE,
-    GUARDIAN_SKILL_IDS.TOME_OF_COURAGE,
+    GUARDIAN_SKILL_IDS.TOME_OF_COURAGE
   ]);
   assert.deepEqual(
     firebrandGroups.map((group) => group.layout),
-    ["guardian-tomes", "guardian-tomes", "guardian-tomes", "guardian-tomes"],
+    ['guardian-tomes', 'guardian-tomes', 'guardian-tomes', 'guardian-tomes']
   );
-  assert.equal(
-    firebrandGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.SEARING_SPELL),
-    true,
-  );
-  assert.equal(
-    firebrandGroups[2].skillIds.includes(GUARDIAN_SKILL_IDS.AZURE_SUN),
-    true,
-  );
-  assert.equal(
-    firebrandGroups[3].skillIds.includes(GUARDIAN_SKILL_IDS.UNBROKEN_LINES),
-    true,
-  );
+  assert.equal(firebrandGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.SEARING_SPELL), true);
+  assert.equal(firebrandGroups[2].skillIds.includes(GUARDIAN_SKILL_IDS.AZURE_SUN), true);
+  assert.equal(firebrandGroups[3].skillIds.includes(GUARDIAN_SKILL_IDS.UNBROKEN_LINES), true);
 });
 
-test("Guardian palettes keep inactive tome and forge skills visible", () => {
+test('Guardian palettes keep inactive tome and forge skills visible', () => {
   const inactiveFirebrand = {
-    specialization: "Firebrand",
+    specialization: 'Firebrand',
     professionState: {
-      activeTome: "",
+      activeTome: '',
       tomePages: 5,
-      radiantForge: false,
-    },
+      radiantForge: false
+    }
   };
   const activeFirebrand = {
     ...inactiveFirebrand,
     professionState: {
       ...inactiveFirebrand.professionState,
-      activeTome: "justice",
-    },
+      activeTome: 'justice'
+    }
   };
-  const inactiveFirebrandGroups =
-    guardianProfession.ui.paletteGroups(inactiveFirebrand);
-  const activeFirebrandGroups =
-    guardianProfession.ui.paletteGroups(activeFirebrand);
+  const inactiveFirebrandGroups = guardianProfession.ui.paletteGroups(inactiveFirebrand);
+  const activeFirebrandGroups = guardianProfession.ui.paletteGroups(activeFirebrand);
   const groupIds = (groups) => groups.map((group) => group.id);
 
-  assert.deepEqual(groupIds(inactiveFirebrandGroups), [
-    "profession",
-    "tome-justice",
-    "tome-resolve",
-    "tome-courage",
-  ]);
+  assert.deepEqual(groupIds(inactiveFirebrandGroups), ['profession', 'tome-justice', 'tome-resolve', 'tome-courage']);
   assert.deepEqual(
     activeFirebrandGroups.map((group) => group.skillIds),
-    inactiveFirebrandGroups.map((group) => group.skillIds),
+    inactiveFirebrandGroups.map((group) => group.skillIds)
   );
   assert.equal(
     inactiveFirebrandGroups
-      .find((group) => group.id === "tome-justice")
+      .find((group) => group.id === 'tome-justice')
       .skillIds.includes(GUARDIAN_SKILL_IDS.SEARING_SPELL),
-    true,
+    true
   );
   assert.equal(
     inactiveFirebrandGroups
-      .find((group) => group.id === "tome-resolve")
+      .find((group) => group.id === 'tome-resolve')
       .skillIds.includes(GUARDIAN_SKILL_IDS.DESERT_BLOOM),
-    true,
+    true
   );
   assert.equal(
     inactiveFirebrandGroups
-      .find((group) => group.id === "tome-courage")
+      .find((group) => group.id === 'tome-courage')
       .skillIds.includes(GUARDIAN_SKILL_IDS.UNFLINCHING_CHARGE),
-    true,
+    true
   );
 
   const inactiveForgeGroups = guardianProfession.ui.paletteGroups({
-    specialization: "Luminary",
-    professionState: { radiantForge: false },
+    specialization: 'Luminary',
+    professionState: { radiantForge: false }
   });
   const activeForgeGroups = guardianProfession.ui.paletteGroups({
-    specialization: "Luminary",
-    professionState: { radiantForge: true },
+    specialization: 'Luminary',
+    professionState: { radiantForge: true }
   });
   assert.deepEqual(
     inactiveForgeGroups.map((group) => group.stackId),
-    ["luminary-profession", "luminary-profession"],
+    ['luminary-profession', 'luminary-profession']
   );
   assert.deepEqual(
     activeForgeGroups.map((group) => group.skillIds),
-    inactiveForgeGroups.map((group) => group.skillIds),
+    inactiveForgeGroups.map((group) => group.skillIds)
   );
   assert.equal(
     inactiveForgeGroups
-      .find((group) => group.id === "radiant-forge")
+      .find((group) => group.id === 'radiant-forge')
       .skillIds.includes(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER),
-    true,
+    true
   );
 });
 
-test("Guardian palette availability follows the active tome or forge", () => {
+test('Guardian palette availability follows the active tome or forge', () => {
   const isAvailable = guardianProfession.ui.isPaletteSkillAvailable;
-  const trueStrike = guardianCatalog.skillsByName.get("True Strike");
-  const searingSpell = guardianCatalog.skillsById.get(
-    GUARDIAN_SKILL_IDS.SEARING_SPELL,
-  );
-  const desertBloom = guardianCatalog.skillsById.get(
-    GUARDIAN_SKILL_IDS.DESERT_BLOOM,
-  );
-  const dazzlingHammer = guardianCatalog.skillsById.get(
-    GUARDIAN_SKILL_IDS.DAZZLING_HAMMER,
-  );
+  const trueStrike = guardianCatalog.skillsByName.get('True Strike');
+  const searingSpell = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SEARING_SPELL);
+  const desertBloom = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.DESERT_BLOOM);
+  const dazzlingHammer = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER);
 
   assert.equal(
     isAvailable(
       {
-        professionState: { activeTome: "", tomePages: 5 },
+        professionState: { activeTome: '', tomePages: 5 }
       },
-      trueStrike,
+      trueStrike
     ),
-    true,
+    true
   );
   assert.equal(
     isAvailable(
       {
-        professionState: { activeTome: "", tomePages: 5 },
+        professionState: { activeTome: '', tomePages: 5 }
       },
-      searingSpell,
+      searingSpell
     ),
-    false,
+    false
   );
   assert.equal(
     isAvailable(
       {
-        professionState: { activeTome: "justice", tomePages: 5 },
+        professionState: { activeTome: 'justice', tomePages: 5 }
       },
-      trueStrike,
+      trueStrike
     ),
-    false,
+    false
   );
   assert.equal(
     isAvailable(
       {
-        professionState: { activeTome: "justice", tomePages: 5 },
+        professionState: { activeTome: 'justice', tomePages: 5 }
       },
-      searingSpell,
+      searingSpell
     ),
-    true,
+    true
   );
   assert.equal(
     isAvailable(
       {
-        professionState: { activeTome: "justice", tomePages: 5 },
+        professionState: { activeTome: 'justice', tomePages: 5 }
       },
-      desertBloom,
+      desertBloom
     ),
-    false,
+    false
   );
   assert.equal(
     isAvailable(
       {
-        professionState: { radiantForge: false },
+        professionState: { radiantForge: false }
       },
-      dazzlingHammer,
+      dazzlingHammer
     ),
-    false,
+    false
   );
   assert.equal(
     isAvailable(
       {
-        professionState: { radiantForge: true },
+        professionState: { radiantForge: true }
       },
-      trueStrike,
+      trueStrike
     ),
-    false,
+    false
   );
   assert.equal(
     isAvailable(
       {
-        professionState: { radiantForge: true },
+        professionState: { radiantForge: true }
       },
-      dazzlingHammer,
+      dazzlingHammer
     ),
-    true,
+    true
   );
 });
 
-test("Guardian only casts weapon skills equipped on the active set", () => {
+test('Guardian only casts weapon skills equipped on the active set', () => {
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Through the Heart", "Swap Weapons", "Through the Heart"],
+    rotation: ['Through the Heart', 'Swap Weapons', 'Through the Heart'],
     config: {
       ...config,
-      primaryWeapon: "Sword",
-      secondaryWeapon: "Focus",
-      weaponSet2Primary: "Pistol",
-      weaponSet2Secondary: "Torch",
-    },
+      primaryWeapon: 'Sword',
+      secondaryWeapon: 'Focus',
+      weaponSet2Primary: 'Pistol',
+      weaponSet2Secondary: 'Torch'
+    }
   });
 
   assert.equal(
-    result.resolvedEvents.filter(
-      (event) =>
-        event.skillName === "Through the Heart" && event.type === "damage",
-    ).length,
-    1,
+    result.resolvedEvents.filter((event) => event.skillName === 'Through the Heart' && event.type === 'damage').length,
+    1
   );
-  assert.match(result.warnings.join(" "), /Through the Heart is unavailable/);
+  assert.match(result.warnings.join(' '), /Through the Heart is unavailable/);
 });
 
-test("Guardian cannot cast weapon skills while a tome or forge is active", () => {
+test('Guardian cannot cast weapon skills while a tome or forge is active', () => {
   const firebrand = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Tome of Justice", "True Strike", "Stow Tome", "True Strike"],
+    rotation: ['Tome of Justice', 'True Strike', 'Stow Tome', 'True Strike'],
     config: {
       ...config,
-      specialization: "Firebrand",
-      primaryWeapon: "Mace",
-    },
+      specialization: 'Firebrand',
+      primaryWeapon: 'Mace'
+    }
   });
   const luminary = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Enter Radiant Forge",
-      "True Strike",
-      "Exit Radiant Forge",
-      "True Strike",
-    ],
+    rotation: ['Enter Radiant Forge', 'True Strike', 'Exit Radiant Forge', 'True Strike'],
     config: {
       ...config,
-      specialization: "Luminary",
-      primaryWeapon: "Mace",
-    },
+      specialization: 'Luminary',
+      primaryWeapon: 'Mace'
+    }
   });
 
   assert.equal(firebrand.steps[1].invalid, true);
@@ -1040,753 +812,569 @@ test("Guardian cannot cast weapon skills while a tome or forge is active", () =>
   assert.equal(Boolean(luminary.steps[3].invalid), false);
 });
 
-test("Guardian player strikes trigger shared player-owned sigils", () => {
+test('Guardian player strikes trigger shared player-owned sigils', () => {
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: ["True Strike"],
+    rotation: ['True Strike'],
     config: {
       ...config,
       stats: {
         ...config.stats,
-        precision: 3100,
+        precision: 3100
       },
       boons: { fury: true },
       sigilSets: [
-        { names: ["Air"], strike: 1, condition: 1 },
-        { names: [], strike: 1, condition: 1 },
-      ],
-    },
+        { names: ['Air'], strike: 1, condition: 1 },
+        { names: [], strike: 1, condition: 1 }
+      ]
+    }
   });
 
+  assert.equal(result.resolvedEvents.find((event) => event.skillName === 'True Strike').actorType, 'player');
   assert.equal(
-    result.resolvedEvents.find((event) => event.skillName === "True Strike")
-      .actorType,
-    "player",
-  );
-  assert.equal(
-    result.procSteps.some((step) => step.skill === "Sigil of Air"),
-    true,
+    result.procSteps.some((step) => step.skill === 'Sigil of Air'),
+    true
   );
 });
 
-test("Guardian timing applies Quickness, Alacrity, ammo, and trait recharge", () => {
+test('Guardian timing applies Quickness, Alacrity, ammo, and trait recharge', () => {
   const quick = simulateGw2({
     profession: guardianProfession,
-    rotation: ["True Strike"],
-    config: { ...config, boons: { quickness: true } },
+    rotation: ['True Strike'],
+    config: { ...config, boons: { quickness: true } }
   });
   const alacrity = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Virtue of Justice"],
-    config: { ...config, boons: { alacrity: true } },
+    rotation: ['Virtue of Justice'],
+    config: { ...config, boons: { alacrity: true } }
   });
   const virtuous = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Virtue of Justice"],
+    rotation: ['Virtue of Justice'],
     config: {
       ...config,
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS],
-    },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS]
+    }
   });
   const ammo = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Hail of Justice", "Hail of Justice", "Hail of Justice"],
+    rotation: ['Hail of Justice', 'Hail of Justice', 'Hail of Justice'],
     config: {
       ...config,
-      primaryWeapon: "Sword",
-      secondaryWeapon: "Pistol",
-    },
+      primaryWeapon: 'Sword',
+      secondaryWeapon: 'Pistol'
+    }
   });
 
   assert.equal(quick.endState.time, 360);
-  assert.equal(alacrity.endState.cooldowns["Virtue of Justice"].readyAt, 16000);
-  assert.equal(virtuous.endState.cooldowns["Virtue of Justice"].readyAt, 17000);
-  assert.equal(ammo.endState.ammo["Hail of Justice"].charges, 0);
+  assert.equal(alacrity.endState.cooldowns['Virtue of Justice'].readyAt, 16000);
+  assert.equal(virtuous.endState.cooldowns['Virtue of Justice'].readyAt, 17000);
+  assert.equal(ammo.endState.ammo['Hail of Justice'].charges, 0);
   assert.equal(ammo.steps[2].start, 11680);
   assert.deepEqual(ammo.warnings, []);
 });
 
-test("Guardian measured Quickness cast times remain exact", () => {
+test('Guardian measured Quickness cast times remain exact', () => {
   const quicknessConfig = {
     ...config,
     boons: { quickness: true },
-    specialization: "Luminary",
-    primaryWeapon: "Spear",
+    specialization: 'Luminary',
+    primaryWeapon: 'Spear'
   };
   const castDuration = (rotation, skillName) => {
     const result = simulateGw2({
       profession: guardianProfession,
       rotation,
-      config: quicknessConfig,
+      config: quicknessConfig
     });
-    const action = result.events.find(
-      (event) => event.type === "action" && event.skillName === skillName,
-    );
+    const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
     return Math.round((action.endsAt - action.at) * 1000);
   };
 
-  assert.equal(castDuration(["Helio Rush"], "Helio Rush"), 320);
-  assert.equal(castDuration(["Gleaming Disc"], "Gleaming Disc"), 560);
-  assert.equal(castDuration(["Solar Storm"], "Solar Storm"), 560);
-  assert.equal(
-    castDuration(["Enter Radiant Forge", "Dazzling Hammer"], "Dazzling Hammer"),
-    480,
-  );
+  assert.equal(castDuration(['Helio Rush'], 'Helio Rush'), 320);
+  assert.equal(castDuration(['Gleaming Disc'], 'Gleaming Disc'), 560);
+  assert.equal(castDuration(['Solar Storm'], 'Solar Storm'), 560);
+  assert.equal(castDuration(['Enter Radiant Forge', 'Dazzling Hammer'], 'Dazzling Hammer'), 480);
 
   const chain = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Daybreaking Slash",
-      "Daybreaking Slash",
-      "Helio Rush",
-      "Daybreaking Slash",
-    ],
-    config: quicknessConfig,
+    rotation: ['Daybreaking Slash', 'Daybreaking Slash', 'Helio Rush', 'Daybreaking Slash'],
+    config: quicknessConfig
   });
   assert.deepEqual(
     chain.events
-      .filter(
-        (event) =>
-          event.type === "action" && event.skillName === "Daybreaking Slash",
-      )
+      .filter((event) => event.type === 'action' && event.skillName === 'Daybreaking Slash')
       .map((event) => Math.round((event.endsAt - event.at) * 1000)),
-    [520, 440, 520],
+    [520, 440, 520]
   );
 });
 
-test("Willbender utilities use the supplied physical skill profiles", () => {
+test('Willbender utilities use the supplied physical skill profiles', () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Flash Combo",
+      'Flash Combo',
       "Heaven's Palm",
-      "Whirling Light",
-      "Crashing Courage",
-      { type: "wait", durationMs: 6000 },
+      'Whirling Light',
+      'Crashing Courage',
+      { type: 'wait', durationMs: 6000 }
     ],
     config: {
       ...config,
-      specialization: "Willbender",
-      boons: { quickness: true },
-    },
+      specialization: 'Willbender',
+      boons: { quickness: true }
+    }
   });
   const actions = new Map(
-    result.events
-      .filter((event) => event.type === "action")
-      .map((event) => [event.skillName, event]),
+    result.events.filter((event) => event.type === 'action').map((event) => [event.skillName, event])
   );
   const strikes = (name) =>
-    result.resolvedEvents.filter(
-      (event) => event.type === "damage" && event.skillName === name,
-    );
+    result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === name);
   const conditions = (name) =>
-    result.resolvedEvents.filter(
-      (event) => event.type === "condition" && event.skillName === name,
-    );
+    result.resolvedEvents.filter((event) => event.type === 'condition' && event.skillName === name);
 
   assert.deepEqual(result.warnings, []);
+  assert.equal(Math.round((actions.get('Flash Combo').endsAt - actions.get('Flash Combo').at) * 1000), 680);
+  assert.equal(Math.round((actions.get("Heaven's Palm").endsAt - actions.get("Heaven's Palm").at) * 1000), 960);
+  assert.equal(strikes('Flash Combo').length, 5);
   assert.equal(
-    Math.round(
-      (actions.get("Flash Combo").endsAt - actions.get("Flash Combo").at) *
-        1000,
-    ),
-    680,
-  );
-  assert.equal(
-    Math.round(
-      (actions.get("Heaven's Palm").endsAt - actions.get("Heaven's Palm").at) *
-        1000,
-    ),
-    960,
-  );
-  assert.equal(strikes("Flash Combo").length, 5);
-  assert.equal(
-    strikes("Flash Combo").reduce((sum, event) => sum + event.coefficient, 0),
-    4.5,
+    strikes('Flash Combo').reduce((sum, event) => sum + event.coefficient, 0),
+    4.5
   );
   assert.deepEqual(
     strikes("Heaven's Palm").map((event) => event.coefficient),
-    [3],
+    [3]
   );
   assert.equal(
     result.events.some(
-      (event) =>
-        event.type === "control" &&
-        event.skillName === "Heaven's Palm" &&
-        event.controlKind === "knockback",
+      (event) => event.type === 'control' && event.skillName === "Heaven's Palm" && event.controlKind === 'knockback'
     ),
-    true,
+    true
   );
-  assert.equal(strikes("Whirling Light").length, 4);
+  assert.equal(strikes('Whirling Light').length, 4);
   assert.equal(
-    strikes("Whirling Light").every(
+    strikes('Whirling Light').every(
       (event) =>
         event.finisherValue == null &&
-        event.comboFinishers?.[0]?.finisherType === "Whirl" &&
-        event.comboFinishers[0].ownerId === "guardian",
+        event.comboFinishers?.[0]?.finisherType === 'Whirl' &&
+        event.comboFinishers[0].ownerId === 'guardian'
     ),
-    true,
+    true
   );
   assert.equal(
-    conditions("Whirling Light").filter(
-      (event) => event.condition === "Burning" && event.duration === 3,
-    ).length,
-    4,
+    conditions('Whirling Light').filter((event) => event.condition === 'Burning' && event.duration === 3).length,
+    4
   );
   assert.equal(
-    conditions("Whirling Light").filter(
-      (event) => event.condition === "Weakness" && event.duration === 3,
-    ).length,
-    4,
+    conditions('Whirling Light').filter((event) => event.condition === 'Weakness' && event.duration === 3).length,
+    4
   );
   assert.equal(
     result.events.some(
       (event) =>
-        event.type === "buff" &&
-        event.skillName === "Crashing Courage" &&
-        event.kind === "aegis" &&
-        event.duration === 4,
+        event.type === 'buff' &&
+        event.skillName === 'Crashing Courage' &&
+        event.kind === 'aegis' &&
+        event.duration === 4
     ),
-    true,
+    true
   );
   assert.equal(
     result.events.some(
       (event) =>
-        event.type === "buff" &&
-        event.skillName === "Crashing Courage" &&
-        event.kind === "stability" &&
-        event.duration === 4,
+        event.type === 'buff' &&
+        event.skillName === 'Crashing Courage' &&
+        event.kind === 'stability' &&
+        event.duration === 4
     ),
-    true,
+    true
   );
   assert.equal(
-    strikes("Crashing Courage").find(
-      (event) => event.name === "Crashing Courage — Initial Damage",
-    ).coefficient,
-    1,
+    strikes('Crashing Courage').find((event) => event.name === 'Crashing Courage — Initial Damage').coefficient,
+    1
   );
   assert.equal(
-    strikes("Willbender Flames").filter(
-      (event) => event.skillId === GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES_COURAGE,
-    ).length,
-    5,
+    strikes('Willbender Flames').filter((event) => event.skillId === GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES_COURAGE)
+      .length,
+    5
   );
-  assert.equal(
-    result.endState.profession.availableFlips[GUARDIAN_SKILL_IDS.REPOSE],
-    6.68,
-  );
+  assert.equal(result.endState.profession.availableFlips[GUARDIAN_SKILL_IDS.REPOSE], 6.68);
 });
 
-test("Whirling Light creates four Burning Bolts inside Purging Flames", () => {
+test('Whirling Light creates four Burning Bolts inside Purging Flames', () => {
   const inFireField = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Purging Flames", "Whirling Light"],
+    rotation: ['Purging Flames', 'Whirling Light'],
     config: {
       ...config,
-      specialization: "Willbender",
-    },
+      specialization: 'Willbender'
+    }
   });
   const withoutFireField = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Whirling Light"],
+    rotation: ['Whirling Light'],
     config: {
       ...config,
-      specialization: "Willbender",
-    },
+      specialization: 'Willbender'
+    }
   });
   const burningCombos = (result) =>
     result.resolvedEvents.filter(
       (event) =>
-        event.type === "combo" &&
-        event.skillName === "Whirling Light" &&
-        event.fieldType === "Fire" &&
-        event.finisherType === "Whirl",
+        event.type === 'combo' &&
+        event.skillName === 'Whirling Light' &&
+        event.fieldType === 'Fire' &&
+        event.finisherType === 'Whirl'
     );
 
   assert.deepEqual(inFireField.warnings, []);
   assert.equal(burningCombos(inFireField).length, 1);
   assert.equal(
     burningCombos(inFireField).every(
-      (event) =>
-        event.applicationCount === 4 &&
-        event.outcome.condition === "Burning" &&
-        event.outcome.duration === 1,
+      (event) => event.applicationCount === 4 && event.outcome.condition === 'Burning' && event.outcome.duration === 1
     ),
-    true,
+    true
   );
   assert.equal(burningCombos(withoutFireField).length, 0);
 });
 
-test("Guardian Blasts use centralized field binding and require an active field", () => {
+test('Guardian Blasts use centralized field binding and require an active field', () => {
   const inFireField = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Purging Flames", "Mighty Blow"],
-    config: { ...config, primaryWeapon: "Hammer" },
+    rotation: ['Purging Flames', 'Mighty Blow'],
+    config: { ...config, primaryWeapon: 'Hammer' }
   });
   const withoutField = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Mighty Blow"],
-    config: { ...config, primaryWeapon: "Hammer" },
+    rotation: ['Mighty Blow'],
+    config: { ...config, primaryWeapon: 'Hammer' }
   });
   const finisher = inFireField.events.find(
-    (event) =>
-      event.type === "combo_finisher" && event.skillName === "Mighty Blow",
+    (event) => event.type === 'combo_finisher' && event.skillName === 'Mighty Blow'
   );
-  const combo = inFireField.resolvedEvents.find(
-    (event) => event.type === "combo" && event.skillName === "Mighty Blow",
-  );
+  const combo = inFireField.resolvedEvents.find((event) => event.type === 'combo' && event.skillName === 'Mighty Blow');
 
-  assert.equal(finisher.finisherType, "Blast");
-  assert.equal(finisher.fieldBinding.kind, "field-id");
-  assert.equal(combo.fieldType, "Fire");
-  assert.equal(combo.finisherType, "Blast");
+  assert.equal(finisher.finisherType, 'Blast');
+  assert.equal(finisher.fieldBinding.kind, 'field-id');
+  assert.equal(combo.fieldType, 'Fire');
+  assert.equal(combo.finisherType, 'Blast');
   assert.equal(
-    inFireField.events.some((event) => event.type === "blast_combo"),
-    false,
+    inFireField.events.some((event) => event.type === 'blast_combo'),
+    false
   );
   assert.equal(
-    withoutField.resolvedEvents.some(
-      (event) => event.type === "combo" && event.skillName === "Mighty Blow",
-    ),
-    false,
+    withoutField.resolvedEvents.some((event) => event.type === 'combo' && event.skillName === 'Mighty Blow'),
+    false
   );
 });
 
-test("Willbender virtues, flames, and trait triggers use their full mechanics", () => {
+test('Willbender virtues, flames, and trait triggers use their full mechanics', () => {
   const willbenderConfig = {
     ...config,
-    specialization: "Willbender",
-    primaryWeapon: "Greatsword",
-    boons: { quickness: true },
+    specialization: 'Willbender',
+    primaryWeapon: 'Greatsword',
+    boons: { quickness: true }
   };
   const full = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Rushing Justice",
-      "Whirling Wrath",
-      { type: "wait", durationMs: 6000 },
-    ],
+    rotation: ['Rushing Justice', 'Whirling Wrath', { type: 'wait', durationMs: 6000 }],
     config: {
       ...willbenderConfig,
       selectedTraitIds: [
         GUARDIAN_TRAIT_IDS.POWER_FOR_POWER,
         GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES,
-        GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM,
-      ],
-    },
+        GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM
+      ]
+    }
   });
   const powerFlames = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Rushing Justice", { type: "wait", durationMs: 6000 }],
+    rotation: ['Rushing Justice', { type: 'wait', durationMs: 6000 }],
     config: {
       ...willbenderConfig,
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.POWER_FOR_POWER],
-    },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.POWER_FOR_POWER]
+    }
   });
   const plainFlames = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Rushing Justice", { type: "wait", durationMs: 6000 }],
-    config: willbenderConfig,
+    rotation: ['Rushing Justice', { type: 'wait', durationMs: 6000 }],
+    config: willbenderConfig
   });
   const searingFlames = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Rushing Justice", { type: "wait", durationMs: 6000 }],
+    rotation: ['Rushing Justice', { type: 'wait', durationMs: 6000 }],
     config: {
       ...willbenderConfig,
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SEARING_PACT],
-    },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SEARING_PACT]
+    }
   });
   const amplifiedWrath = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Rushing Justice", "Whirling Wrath"],
+    rotation: ['Rushing Justice', 'Whirling Wrath'],
     config: {
       ...willbenderConfig,
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH],
-    },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH]
+    }
   });
   const permeatingWrath = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Rushing Justice", "Whirling Wrath"],
+    rotation: ['Rushing Justice', 'Whirling Wrath'],
     config: {
       ...willbenderConfig,
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH],
-    },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH]
+    }
   });
   const flameStrikes = full.resolvedEvents.filter(
-    (event) =>
-      event.type === "damage" && event.skillName === "Willbender Flames",
+    (event) => event.type === 'damage' && event.skillName === 'Willbender Flames'
   );
-  const whirlingAction = full.events.find(
-    (event) => event.type === "action" && event.skillName === "Whirling Wrath",
-  );
+  const whirlingAction = full.events.find((event) => event.type === 'action' && event.skillName === 'Whirling Wrath');
   const firstFlameDamage = (result) =>
-    result.resolvedEvents.find(
-      (event) =>
-        event.type === "damage" && event.skillName === "Willbender Flames",
-    ).damage;
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Willbender Flames').damage;
 
   assert.deepEqual(full.warnings, []);
   assert.equal(
     Math.round(
-      (full.events.find(
-        (event) =>
-          event.type === "action" && event.skillName === "Rushing Justice",
-      ).endsAt -
-        full.events.find(
-          (event) =>
-            event.type === "action" && event.skillName === "Rushing Justice",
-        ).at) *
-        1000,
+      (full.events.find((event) => event.type === 'action' && event.skillName === 'Rushing Justice').endsAt -
+        full.events.find((event) => event.type === 'action' && event.skillName === 'Rushing Justice').at) *
+        1000
     ),
-    480,
+    480
   );
-  assert.equal(
-    full.resolvedEvents.find(
-      (event) => event.name === "Rushing Justice — Impact Damage",
-    ).coefficient,
-    1.5,
-  );
-  assert.equal(
-    full.resolvedEvents.find(
-      (event) => event.name === "Rushing Justice — Initial Burning",
-    ).duration,
-    4,
-  );
+  assert.equal(full.resolvedEvents.find((event) => event.name === 'Rushing Justice — Impact Damage').coefficient, 1.5);
+  assert.equal(full.resolvedEvents.find((event) => event.name === 'Rushing Justice — Initial Burning').duration, 4);
   assert.equal(flameStrikes.length, 5);
   assert.equal(
     flameStrikes.every((event) => event.coefficient === 0.22),
-    true,
+    true
   );
-  assert.ok(
-    Math.abs(
-      firstFlameDamage(powerFlames) / firstFlameDamage(plainFlames) - 3,
-    ) < 1e-9,
-  );
+  assert.ok(Math.abs(firstFlameDamage(powerFlames) / firstFlameDamage(plainFlames) - 3) < 1e-9);
   assert.equal(
     searingFlames.resolvedEvents.filter(
       (event) =>
-        event.type === "condition" &&
-        event.skillName === "Searing Pact" &&
-        event.condition === "Burning" &&
-        event.duration === 1,
+        event.type === 'condition' &&
+        event.skillName === 'Searing Pact' &&
+        event.condition === 'Burning' &&
+        event.duration === 1
     ).length,
-    5,
+    5
   );
   assert.equal(
-    powerFlames.resolvedEvents.some(
-      (event) =>
-        event.type === "condition" && event.skillName === "Willbender Flames",
-    ),
-    false,
+    powerFlames.resolvedEvents.some((event) => event.type === 'condition' && event.skillName === 'Willbender Flames'),
+    false
   );
   assert.equal(
     full.resolvedEvents.some(
-      (event) =>
-        event.name === "Justice — Active Burning" &&
-        event.duration === 2 &&
-        event.icon,
+      (event) => event.name === 'Justice — Active Burning' && event.duration === 2 && event.icon
     ),
-    true,
+    true
   );
   assert.equal(
-    amplifiedWrath.resolvedEvents.find(
-      (event) => event.name === "Rushing Justice — Initial Burning",
-    ).effectiveDuration,
-    4,
+    amplifiedWrath.resolvedEvents.find((event) => event.name === 'Rushing Justice — Initial Burning').effectiveDuration,
+    4
   );
   assert.equal(
-    amplifiedWrath.resolvedEvents.find(
-      (event) => event.name === "Justice — Active Burning",
-    ).effectiveDuration,
-    2.4,
+    amplifiedWrath.resolvedEvents.find((event) => event.name === 'Justice — Active Burning').effectiveDuration,
+    2.4
   );
-  assert.equal(
-    amplifiedWrath.resolvedEvents.filter(
-      (event) => event.name === "Justice — Active Burning",
-    ).length,
-    3,
-  );
-  assert.equal(
-    permeatingWrath.resolvedEvents.filter(
-      (event) => event.name === "Justice — Active Burning",
-    ).length,
-    5,
-  );
+  assert.equal(amplifiedWrath.resolvedEvents.filter((event) => event.name === 'Justice — Active Burning').length, 3);
+  assert.equal(permeatingWrath.resolvedEvents.filter((event) => event.name === 'Justice — Active Burning').length, 5);
   assert.equal(full.endState.profession.justiceUntil, 10.04);
   assert.equal(full.endState.profession.lethalTempoStacks, 5);
   assert.equal(
     full.events.filter(
       (event) =>
-        event.type === "proc" &&
-        event.name === "Restorative Virtues" &&
+        event.type === 'proc' &&
+        event.name === 'Restorative Virtues' &&
         event.at >= whirlingAction.at &&
-        event.at <= whirlingAction.endsAt,
+        event.at <= whirlingAction.endsAt
     ).length,
-    3,
+    3
   );
   assert.equal(
     full.events.some(
       (event) =>
-        event.type === "proc" &&
-        event.name === "Restorative Virtues" &&
-        event.detail === "0.25s weapon recharge",
+        event.type === 'proc' && event.name === 'Restorative Virtues' && event.detail === '0.25s weapon recharge'
     ),
-    true,
+    true
   );
-  assert.equal(
-    full.events.find(
-      (event) => event.type === "buff" && event.name === "Lethal Tempo",
-    ).duration,
-    4,
-  );
+  assert.equal(full.events.find((event) => event.type === 'buff' && event.name === 'Lethal Tempo').duration, 4);
   const rushingJusticeAction = full.events.find(
-    (event) => event.type === "action" && event.skillName === "Rushing Justice",
+    (event) => event.type === 'action' && event.skillName === 'Rushing Justice'
   );
-  assert.equal(
-    rushingJusticeAction.rechargeReadyAt - rushingJusticeAction.at,
-    12,
-  );
+  assert.equal(rushingJusticeAction.rechargeReadyAt - rushingJusticeAction.at, 12);
 });
 
-test("Willbender flame replacement and Phoenix Protocol follow virtue triggers", () => {
+test('Willbender flame replacement and Phoenix Protocol follow virtue triggers', () => {
   const willbenderConfig = {
     ...config,
-    specialization: "Willbender",
-    primaryWeapon: "Greatsword",
-    boons: { quickness: true },
+    specialization: 'Willbender',
+    primaryWeapon: 'Greatsword',
+    boons: { quickness: true }
   };
   const overlapping = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Flowing Resolve",
-      "Flowing Resolve",
-      { type: "wait", durationMs: 6000 },
-    ],
-    config: willbenderConfig,
+    rotation: ['Flowing Resolve', 'Flowing Resolve', { type: 'wait', durationMs: 6000 }],
+    config: willbenderConfig
   });
   const replaced = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Flowing Resolve",
-      { type: "wait", durationMs: 700 },
-      "Rushing Justice",
-      { type: "wait", durationMs: 6000 },
+      'Flowing Resolve',
+      { type: 'wait', durationMs: 700 },
+      'Rushing Justice',
+      { type: 'wait', durationMs: 6000 }
     ],
-    config: willbenderConfig,
+    config: willbenderConfig
   });
   const phoenix = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Flowing Resolve",
-      "Whirling Wrath",
-      { type: "wait", durationMs: 6000 },
-    ],
+    rotation: ['Flowing Resolve', 'Whirling Wrath', { type: 'wait', durationMs: 6000 }],
     config: {
       ...willbenderConfig,
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL],
-    },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL]
+    }
   });
   const stackedVirtues = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Flowing Resolve",
-      { type: "wait", durationMs: 1000 },
-      "Rushing Justice",
-      "Whirling Wrath",
-    ],
-    config: willbenderConfig,
+    rotation: ['Flowing Resolve', { type: 'wait', durationMs: 1000 }, 'Rushing Justice', 'Whirling Wrath'],
+    config: willbenderConfig
   });
   const allVirtues = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Flowing Resolve",
-      "Crashing Courage",
-      "Rushing Justice",
-      "Whirling Wrath",
-    ],
+    rotation: ['Flowing Resolve', 'Crashing Courage', 'Rushing Justice', 'Whirling Wrath'],
     config: {
       ...willbenderConfig,
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES],
-    },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES]
+    }
   });
   const flameCount = (result, skillId) =>
     result.resolvedEvents.filter(
-      (event) =>
-        event.type === "damage" &&
-        event.skillName === "Willbender Flames" &&
-        event.skillId === skillId,
+      (event) => event.type === 'damage' && event.skillName === 'Willbender Flames' && event.skillId === skillId
     ).length;
 
-  assert.equal(
-    flameCount(overlapping, GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES),
-    10,
-  );
+  assert.equal(flameCount(overlapping, GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES), 10);
   assert.equal(overlapping.steps[1].start - overlapping.steps[0].start, 1020);
   assert.equal(flameCount(replaced, GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES), 1);
-  assert.equal(
-    flameCount(replaced, GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES_ID_62618),
-    5,
-  );
+  assert.equal(flameCount(replaced, GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES_ID_62618), 5);
   assert.deepEqual(
     new Set(
       stackedVirtues.events
-        .filter(
-          (event) => event.type === "guardian.willbender-virtue-triggered",
-        )
-        .map((event) => event.virtue),
+        .filter((event) => event.type === 'guardian.willbender-virtue-triggered')
+        .map((event) => event.virtue)
     ),
-    new Set(["justice", "resolve"]),
+    new Set(['justice', 'resolve'])
   );
-  const allVirtueTriggers = allVirtues.events.filter(
-    (event) => event.type === "guardian.willbender-virtue-triggered",
-  );
-  assert.deepEqual(
-    new Set(allVirtueTriggers.map((event) => event.virtue)),
-    new Set(["justice", "resolve", "courage"]),
-  );
-  for (const virtue of ["justice", "resolve", "courage"]) {
+  const allVirtueTriggers = allVirtues.events.filter((event) => event.type === 'guardian.willbender-virtue-triggered');
+  assert.deepEqual(new Set(allVirtueTriggers.map((event) => event.virtue)), new Set(['justice', 'resolve', 'courage']));
+  for (const virtue of ['justice', 'resolve', 'courage']) {
     assert.equal(
-      allVirtueTriggers.some(
-        (event) => event.virtue === virtue && event.cooldownReduction > 0,
-      ),
-      true,
+      allVirtueTriggers.some((event) => event.virtue === virtue && event.cooldownReduction > 0),
+      true
     );
   }
-  const courageTriggers = allVirtueTriggers.filter(
-    (event) => event.virtue === "courage",
-  );
-  for (const kind of ["aegis", "stability"]) {
+  const courageTriggers = allVirtueTriggers.filter((event) => event.virtue === 'courage');
+  for (const kind of ['aegis', 'stability']) {
     assert.equal(
       allVirtues.events.filter(
         (event) =>
-          event.type === "buff" &&
-          event.skillName === "Crashing Courage" &&
+          event.type === 'buff' &&
+          event.skillName === 'Crashing Courage' &&
           event.kind === kind &&
-          String(event.name || "").startsWith("Crashing Courage — Triggered"),
+          String(event.name || '').startsWith('Crashing Courage — Triggered')
       ).length,
-      courageTriggers.length,
+      courageTriggers.length
     );
   }
   const phoenixResolveTriggers = phoenix.events.filter(
-    (event) =>
-      event.type === "guardian.willbender-virtue-triggered" &&
-      event.virtue === "resolve",
+    (event) => event.type === 'guardian.willbender-virtue-triggered' && event.virtue === 'resolve'
   );
   const phoenixActivationAlacrity = phoenix.events.filter(
-    (event) =>
-      event.type === "buff" &&
-      event.name === "Phoenix Protocol — Activation Alacrity",
+    (event) => event.type === 'buff' && event.name === 'Phoenix Protocol — Activation Alacrity'
   );
   const phoenixTriggeredAlacrity = phoenix.events.filter(
-    (event) =>
-      event.type === "buff" && event.name === "Phoenix Protocol — Alacrity",
+    (event) => event.type === 'buff' && event.name === 'Phoenix Protocol — Alacrity'
   );
   assert.deepEqual(
     phoenixActivationAlacrity.map((event) => [
       event.duration,
       event.recipients,
       event.affectsSelf,
-      event.alliedPlayerCount,
+      event.alliedPlayerCount
     ]),
-    [[5, "self", true, 0]],
+    [[5, 'self', true, 0]]
   );
   assert.equal(phoenixResolveTriggers.length > 0, true);
   assert.equal(phoenixTriggeredAlacrity.length, phoenixResolveTriggers.length);
   assert.deepEqual(
-    phoenixTriggeredAlacrity.map((event) => [
-      event.at,
-      event.duration,
-      event.affectsSelf,
-      event.alliedPlayerCount,
-    ]),
-    phoenixResolveTriggers.map((event) => [event.at, 1, true, 0]),
+    phoenixTriggeredAlacrity.map((event) => [event.at, event.duration, event.affectsSelf, event.alliedPlayerCount]),
+    phoenixResolveTriggers.map((event) => [event.at, 1, true, 0])
   );
   assert.equal(
-    phoenixTriggeredAlacrity.every(
-      (event) =>
-        event.triggeredBy != null && String(event.triggeredBy).length > 0,
-    ),
-    true,
+    phoenixTriggeredAlacrity.every((event) => event.triggeredBy != null && String(event.triggeredBy).length > 0),
+    true
   );
 });
 
-test("Guardian symbols and persistent attacks resolve after their casts", () => {
+test('Guardian symbols and persistent attacks resolve after their casts', () => {
   const symbol = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Symbol of Resolution", { type: "wait", durationMs: 4000 }],
-    config: { ...config, primaryWeapon: "Greatsword" },
+    rotation: ['Symbol of Resolution', { type: 'wait', durationMs: 4000 }],
+    config: { ...config, primaryWeapon: 'Greatsword' }
   });
   const procession = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Procession of Blades", { type: "wait", durationMs: 5000 }],
+    rotation: ['Procession of Blades', { type: 'wait', durationMs: 5000 }],
     config: {
       ...config,
-      specialization: "Dragonhunter",
-    },
+      specialization: 'Dragonhunter'
+    }
   });
 
   assert.equal(
-    symbol.resolvedEvents.filter(
-      (event) =>
-        event.type === "damage" && event.skillName === "Symbol of Resolution",
-    ).length,
-    5,
+    symbol.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Symbol of Resolution')
+      .length,
+    5
   );
   assert.equal(
-    procession.resolvedEvents.filter(
-      (event) =>
-        event.type === "damage" && event.skillName === "Procession of Blades",
-    ).length,
-    10,
+    procession.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Procession of Blades')
+      .length,
+    10
   );
 });
 
-test("Guardian autoattack chains and torch flips enforce sequence state", () => {
+test('Guardian autoattack chains and torch flips enforce sequence state', () => {
   const invalidChain = simulateGw2({
     profession: guardianProfession,
-    rotation: ["True Strike", "Faithful Strike"],
-    config: { ...config, primaryWeapon: "Mace" },
+    rotation: ['True Strike', 'Faithful Strike'],
+    config: { ...config, primaryWeapon: 'Mace' }
   });
   const chain = simulateGw2({
     profession: guardianProfession,
-    rotation: ["True Strike", "Pure Strike", "Faithful Strike"],
-    config: { ...config, primaryWeapon: "Mace" },
+    rotation: ['True Strike', 'Pure Strike', 'Faithful Strike'],
+    config: { ...config, primaryWeapon: 'Mace' }
   });
   const invalidFlip = simulateGw2({
     profession: guardianProfession,
     rotation: ["Zealot's Fire"],
     config: {
       ...config,
-      primaryWeapon: "Sword",
-      secondaryWeapon: "Torch",
-    },
+      primaryWeapon: 'Sword',
+      secondaryWeapon: 'Torch'
+    }
   });
   const flip = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Zealot's Flame",
-      "Zealot's Fire",
-      { type: "wait", durationMs: 3000 },
-    ],
+    rotation: ["Zealot's Flame", "Zealot's Fire", { type: 'wait', durationMs: 3000 }],
     config: {
       ...config,
-      primaryWeapon: "Sword",
-      secondaryWeapon: "Torch",
-    },
+      primaryWeapon: 'Sword',
+      secondaryWeapon: 'Torch'
+    }
   });
 
-  assert.match(
-    invalidChain.warnings.join(" "),
-    /Faithful Strike is unavailable — cast Pure Strike first\./,
-  );
-  assert.equal(
-    chain.resolvedEvents.filter((event) => event.type === "damage").length,
-    3,
-  );
-  assert.match(
-    invalidFlip.warnings.join(" "),
-    /Zealot's Fire is unavailable — not currently armed\./,
-  );
+  assert.match(invalidChain.warnings.join(' '), /Faithful Strike is unavailable — cast Pure Strike first\./);
+  assert.equal(chain.resolvedEvents.filter((event) => event.type === 'damage').length, 3);
+  assert.match(invalidFlip.warnings.join(' '), /Zealot's Fire is unavailable — not currently armed\./);
   assert.ok(flip.strikeDamage > 0);
   assert.ok(flip.conditionDamage > 0);
 });
@@ -1801,205 +1389,161 @@ test("Radiant Fire upgrades Zealot's Flame duration, recharge, and ammo", () => 
       "Zealot's Fire",
       "Zealot's Flame",
       "Zealot's Fire",
-      { type: "wait", durationMs: 4000 },
+      { type: 'wait', durationMs: 4000 }
     ],
     config: {
       ...config,
-      primaryWeapon: "Axe",
-      secondaryWeapon: "Torch",
+      primaryWeapon: 'Axe',
+      secondaryWeapon: 'Torch',
       boons: { quickness: true },
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.RADIANT_FIRE],
-    },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.RADIANT_FIRE]
+    }
   });
-  const flameActions = result.events.filter(
-    (event) => event.type === "action" && event.skillName === "Zealot's Flame",
-  );
+  const flameActions = result.events.filter((event) => event.type === 'action' && event.skillName === "Zealot's Flame");
   const flameBurns = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "condition" &&
-      event.skillName === "Zealot's Flame" &&
-      event.condition === "Burning",
+    (event) => event.type === 'condition' && event.skillName === "Zealot's Flame" && event.condition === 'Burning'
   );
   const fireBurns = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "condition" &&
-      event.skillName === "Zealot's Fire" &&
-      event.condition === "Burning",
+    (event) => event.type === 'condition' && event.skillName === "Zealot's Fire" && event.condition === 'Burning'
   );
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     flameActions.map((event) => event.at),
-    [0, 0.68, 12],
+    [0, 0.68, 12]
   );
   assert.equal(result.endState.ammo["Zealot's Flame"].maximum, 2);
   assert.equal(flameBurns.length, 12);
   assert.deepEqual(
-    flameBurns
-      .filter((event) => event.activationId === flameActions[0].activationId)
-      .map((event) => event.at),
-    [0, 1, 2, 3],
+    flameBurns.filter((event) => event.activationId === flameActions[0].activationId).map((event) => event.at),
+    [0, 1, 2, 3]
   );
   assert.equal(
     flameBurns.every((event) => Math.abs(event.effectiveDuration - 5.4) < 1e-9),
-    true,
+    true
   );
   assert.equal(
-    fireBurns.every(
-      (event) =>
-        event.stacks === 3 && Math.abs(event.effectiveDuration - 3.6) < 1e-9,
-    ),
-    true,
+    fireBurns.every((event) => event.stacks === 3 && Math.abs(event.effectiveDuration - 3.6) < 1e-9),
+    true
   );
 });
 
-test("Guardian damage traits use resolver-time target state", () => {
+test('Guardian damage traits use resolver-time target state', () => {
   const baseline = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Zealot's Flame",
-      "True Strike",
-      { type: "wait", durationMs: 3000 },
-    ],
+    rotation: ["Zealot's Flame", 'True Strike', { type: 'wait', durationMs: 3000 }],
     config: {
       ...config,
-      primaryWeapon: "Mace",
-      secondaryWeapon: "Torch",
-    },
+      primaryWeapon: 'Mace',
+      secondaryWeapon: 'Torch'
+    }
   });
   const traited = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Zealot's Flame",
-      "True Strike",
-      { type: "wait", durationMs: 3000 },
-    ],
+    rotation: ["Zealot's Flame", 'True Strike', { type: 'wait', durationMs: 3000 }],
     config: {
       ...config,
-      primaryWeapon: "Mace",
-      secondaryWeapon: "Torch",
+      primaryWeapon: 'Mace',
+      secondaryWeapon: 'Torch',
       selectedTraitIds: [
         GUARDIAN_TRAIT_IDS.FIERY_WRATH,
         GUARDIAN_TRAIT_IDS.RADIANT_POWER,
         GUARDIAN_TRAIT_IDS.RADIANT_FIRE,
-        GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH,
-      ],
-    },
+        GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH
+      ]
+    }
   });
 
   assert.ok(traited.strikeDamage > baseline.strikeDamage);
   assert.ok(traited.conditionDamage > baseline.conditionDamage);
 });
 
-test("Renewed Focus recharges all three core virtues", () => {
+test('Renewed Focus recharges all three core virtues', () => {
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Virtue of Justice",
-      "Virtue of Resolve",
-      "Virtue of Courage",
-      "Renewed Focus",
-    ],
-    config,
+    rotation: ['Virtue of Justice', 'Virtue of Resolve', 'Virtue of Courage', 'Renewed Focus'],
+    config
   });
 
-  assert.equal(
-    Object.hasOwn(result.endState.cooldowns, "Virtue of Justice"),
-    false,
-  );
-  assert.equal(
-    Object.hasOwn(result.endState.cooldowns, "Virtue of Resolve"),
-    false,
-  );
-  assert.equal(
-    Object.hasOwn(result.endState.cooldowns, "Virtue of Courage"),
-    false,
-  );
+  assert.equal(Object.hasOwn(result.endState.cooldowns, 'Virtue of Justice'), false);
+  assert.equal(Object.hasOwn(result.endState.cooldowns, 'Virtue of Resolve'), false);
+  assert.equal(Object.hasOwn(result.endState.cooldowns, 'Virtue of Courage'), false);
   assert.deepEqual(result.endState.profession.virtueReadyAt, {
     justice: 2,
     resolve: 2,
-    courage: 2,
+    courage: 2
   });
 });
 
-test("every catalog skill has executable mechanics", () => {
+test('every catalog skill has executable mechanics', () => {
   assert.equal(
     guardianCatalog.skills.every((skill) => skill.implemented === true),
-    true,
+    true
   );
-  assert.equal(
-    guardianCatalog.skillsByName.has("Chapter 1: Searing Spell"),
-    true,
-  );
-  assert.equal(guardianCatalog.skillsByName.has("Dazzling Hammer"), true);
+  assert.equal(guardianCatalog.skillsByName.has('Chapter 1: Searing Spell'), true);
+  assert.equal(guardianCatalog.skillsByName.has('Dazzling Hammer'), true);
 
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Hammer Swing"],
-    config: { ...config, primaryWeapon: "Hammer" },
+    rotation: ['Hammer Swing'],
+    config: { ...config, primaryWeapon: 'Hammer' }
   });
   assert.ok(result.totalDamage > 0);
   assert.deepEqual(result.warnings, []);
 });
 
-test("API mode aliases are not exposed as parent-child skill flips", () => {
-  for (const name of ["Sword of Justice", '"Feel My Wrath!"']) {
-    const variants = guardianCatalog.skills.filter(
-      (skill) => skill.name === name,
-    );
+test('API mode aliases are not exposed as parent-child skill flips', () => {
+  for (const name of ['Sword of Justice', '"Feel My Wrath!"']) {
+    const variants = guardianCatalog.skills.filter((skill) => skill.name === name);
     assert.equal(variants.length, 2);
     assert.equal(
       variants.every((skill) => skill.flipParentId == null),
-      true,
+      true
     );
   }
 });
 
-test("non-DPS Guardian slot skills are excluded from the simulator surface", () => {
+test('non-DPS Guardian slot skills are excluded from the simulator surface', () => {
   const excludedNames = [
     '"Advance!"',
     '"Save Yourselves!"',
     '"Hold the Line!"',
-    "Signet of Mercy",
-    "Merciful Intervention",
-    "Wall of Reflection",
-    "Contemplation of Purity",
+    'Signet of Mercy',
+    'Merciful Intervention',
+    'Wall of Reflection',
+    'Contemplation of Purity',
     '"Stand Your Ground!"',
-    "Valorous Stance",
-    "Stalwart Stance",
-    "Mantra of Lore",
-    "Hallowed Ground",
-    "Bow of Truth",
+    'Valorous Stance',
+    'Stalwart Stance',
+    'Mantra of Lore',
+    'Hallowed Ground',
+    'Bow of Truth'
   ];
   for (const name of excludedNames) {
-    assert.equal(
-      guardianCatalog.skillsByName.get(name)?.simulatorExcluded,
-      true,
-      name,
-    );
+    assert.equal(guardianCatalog.skillsByName.get(name)?.simulatorExcluded, true, name);
   }
 
   const migrated = migrateGuardianBuild({
     ...createGuardianBuildDefaults(),
     selectedSkills: {
       ...createGuardianBuildDefaults().selectedSkills,
-      Utility1: "Contemplation of Purity",
-    },
+      Utility1: 'Contemplation of Purity'
+    }
   });
-  assert.notEqual(migrated.selectedSkills.Utility1, "Contemplation of Purity");
+  assert.notEqual(migrated.selectedSkills.Utility1, 'Contemplation of Purity');
 });
 
-test("Guardian results advance to cooldown expiry before recasting", () => {
+test('Guardian results advance to cooldown expiry before recasting', () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "True Strike",
-      { type: "wait", durationMs: 1000 },
-      "Pure Strike",
-      "Virtue of Justice",
-      "Virtue of Justice",
+      'True Strike',
+      { type: 'wait', durationMs: 1000 },
+      'Pure Strike',
+      'Virtue of Justice',
+      'Virtue of Justice'
     ],
-    config: { ...config, primaryWeapon: "Mace" },
+    config: { ...config, primaryWeapon: 'Mace' }
   });
 
   assert.deepEqual(
@@ -2008,1039 +1552,830 @@ test("Guardian results advance to cooldown expiry before recasting", () => {
       skill: step.skill,
       start: step.start,
       end: step.end,
-      invalid: Boolean(step.invalid),
+      invalid: Boolean(step.invalid)
     })),
     [
-      { ri: 0, skill: "True Strike", start: 0, end: 500, invalid: false },
-      { ri: 1, skill: "Wait", start: 500, end: 1500, invalid: false },
-      { ri: 2, skill: "Pure Strike", start: 1500, end: 2000, invalid: false },
+      { ri: 0, skill: 'True Strike', start: 0, end: 500, invalid: false },
+      { ri: 1, skill: 'Wait', start: 500, end: 1500, invalid: false },
+      { ri: 2, skill: 'Pure Strike', start: 1500, end: 2000, invalid: false },
       {
         ri: 3,
-        skill: "Virtue of Justice",
+        skill: 'Virtue of Justice',
         start: 2000,
         end: 2000,
-        invalid: false,
+        invalid: false
       },
       {
         ri: 4,
-        skill: "Virtue of Justice",
+        skill: 'Virtue of Justice',
         start: 22000,
         end: 22000,
-        invalid: false,
-      },
-    ],
+        invalid: false
+      }
+    ]
   );
-  assert.equal(result.endState.cooldowns["Virtue of Justice"].readyAt, 42000);
+  assert.equal(result.endState.cooldowns['Virtue of Justice'].readyAt, 42000);
   assert.deepEqual(result.warnings, []);
 });
 
-test("Firebrand tomes consume shared pages and execute tome damage", () => {
+test('Firebrand tomes consume shared pages and execute tome damage', () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Tome of Justice",
-      "Chapter 1: Searing Spell",
-      "Chapter 4: Scorched Aftermath",
-      "Epilogue: Ashes of the Just",
-      "Stow Tome",
-      "True Strike",
-      { type: "wait", durationMs: 6000 },
+      'Tome of Justice',
+      'Chapter 1: Searing Spell',
+      'Chapter 4: Scorched Aftermath',
+      'Epilogue: Ashes of the Just',
+      'Stow Tome',
+      'True Strike',
+      { type: 'wait', durationMs: 6000 }
     ],
     config: {
       ...config,
-      specialization: "Firebrand",
-      primaryWeapon: "Mace",
-      initialTomePages: 5,
-    },
+      specialization: 'Firebrand',
+      primaryWeapon: 'Mace',
+      initialTomePages: 5
+    }
   });
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.tomePages, 4);
   assert.equal(result.endState.profession.ashesCharges, 0);
-  assert.ok(result.conditionBreakdown.some((row) => row.name === "Burning"));
-  assert.ok(result.conditionBreakdown.some((row) => row.name === "Bleeding"));
+  assert.ok(result.conditionBreakdown.some((row) => row.name === 'Burning'));
+  assert.ok(result.conditionBreakdown.some((row) => row.name === 'Bleeding'));
   assert.equal(
-    result.procSteps.some((step) => step.skill === "Ashes of the Just"),
-    true,
+    result.procSteps.some((step) => step.skill === 'Ashes of the Just'),
+    true
   );
 });
 
-test("Firebrand tome chapters use their reference packets and cooldowns", () => {
+test('Firebrand tome chapters use their reference packets and cooldowns', () => {
   const firebrandConfig = {
     ...config,
-    specialization: "Firebrand",
+    specialization: 'Firebrand',
     maximumTomePages: 8,
-    initialTomePages: 8,
+    initialTomePages: 8
   };
   const justice = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Tome of Justice",
-      "Chapter 1: Searing Spell",
-      "Chapter 2: Igniting Burst",
-      "Chapter 3: Heated Rebuke",
-      "Chapter 4: Scorched Aftermath",
-      { type: "wait", durationMs: 5000 },
+      'Tome of Justice',
+      'Chapter 1: Searing Spell',
+      'Chapter 2: Igniting Burst',
+      'Chapter 3: Heated Rebuke',
+      'Chapter 4: Scorched Aftermath',
+      { type: 'wait', durationMs: 5000 }
     ],
-    config: firebrandConfig,
+    config: firebrandConfig
   });
   const coefficients = (skillId) =>
     justice.resolvedEvents
-      .filter((event) => event.type === "damage" && event.skillId === skillId)
+      .filter((event) => event.type === 'damage' && event.skillId === skillId)
       .reduce((sum, event) => sum + event.coefficient, 0);
   const condition = (skillId, name) =>
     justice.resolvedEvents.find(
-      (event) =>
-        event.type === "condition" &&
-        event.skillId === skillId &&
-        event.condition === name,
+      (event) => event.type === 'condition' && event.skillId === skillId && event.condition === name
     );
 
   assert.equal(coefficients(GUARDIAN_SKILL_IDS.SEARING_SPELL), 0.95);
   assert.equal(coefficients(GUARDIAN_SKILL_IDS.IGNITING_BURST), 0.55);
   assert.equal(coefficients(GUARDIAN_SKILL_IDS.HEATED_REBUKE), 0.45);
-  assert.equal(
-    Number(coefficients(GUARDIAN_SKILL_IDS.SCORCHED_AFTERMATH).toFixed(6)),
-    3.2,
-  );
+  assert.equal(Number(coefficients(GUARDIAN_SKILL_IDS.SCORCHED_AFTERMATH).toFixed(6)), 3.2);
   assert.deepEqual(
     justice.resolvedEvents
-      .filter(
-        (event) =>
-          event.type === "damage" &&
-          event.skillId === GUARDIAN_SKILL_IDS.SCORCHED_AFTERMATH,
-      )
+      .filter((event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.SCORCHED_AFTERMATH)
       .map((event) => event.coefficient),
-    [0.64, 0.64, 0.64, 0.64, 0.64],
+    [0.64, 0.64, 0.64, 0.64, 0.64]
   );
   assert.deepEqual(
     {
-      stacks: condition(GUARDIAN_SKILL_IDS.SEARING_SPELL, "Vulnerability")
-        .stacks,
-      duration: condition(GUARDIAN_SKILL_IDS.SEARING_SPELL, "Vulnerability")
-        .duration,
+      stacks: condition(GUARDIAN_SKILL_IDS.SEARING_SPELL, 'Vulnerability').stacks,
+      duration: condition(GUARDIAN_SKILL_IDS.SEARING_SPELL, 'Vulnerability').duration
     },
-    { stacks: 2, duration: 10 },
+    { stacks: 2, duration: 10 }
   );
+  assert.equal(condition(GUARDIAN_SKILL_IDS.IGNITING_BURST, 'Weakness').duration, 4);
   assert.equal(
-    condition(GUARDIAN_SKILL_IDS.IGNITING_BURST, "Weakness").duration,
-    4,
-  );
-  assert.equal(
-    justice.events.find(
-      (event) =>
-        event.type === "control" &&
-        event.skillId === GUARDIAN_SKILL_IDS.HEATED_REBUKE,
-    ).controlKind,
-    "pull",
+    justice.events.find((event) => event.type === 'control' && event.skillId === GUARDIAN_SKILL_IDS.HEATED_REBUKE)
+      .controlKind,
+    'pull'
   );
   assert.equal(
     justice.resolvedEvents.filter(
       (event) =>
-        event.type === "condition" &&
+        event.type === 'condition' &&
         event.skillId === GUARDIAN_SKILL_IDS.SCORCHED_AFTERMATH &&
-        event.condition === "Burning",
+        event.condition === 'Burning'
     ).length,
-    5,
+    5
   );
-  assert.equal(
-    guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SCORCHED_AFTERMATH)
-      .comboFields[0].fieldType,
-    "Fire",
-  );
+  assert.equal(guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SCORCHED_AFTERMATH).comboFields[0].fieldType, 'Fire');
 
   const resolve = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Tome of Resolve",
-      "Chapter 1: Desert Bloom",
-      "Chapter 2: Radiant Recovery",
-      "Chapter 3: Azure Sun",
-      "Chapter 4: Shining River",
-      "Epilogue: Eternal Oasis",
-      { type: "wait", durationMs: 5000 },
+      'Tome of Resolve',
+      'Chapter 1: Desert Bloom',
+      'Chapter 2: Radiant Recovery',
+      'Chapter 3: Azure Sun',
+      'Chapter 4: Shining River',
+      'Epilogue: Eternal Oasis',
+      { type: 'wait', durationMs: 5000 }
     ],
-    config: firebrandConfig,
+    config: firebrandConfig
   });
   const resolveBuffs = (skillId, kind) =>
-    resolve.events.filter(
-      (event) =>
-        event.type === "buff" &&
-        event.skillId === skillId &&
-        event.kind === kind,
-    );
-  assert.equal(
-    resolveBuffs(GUARDIAN_SKILL_IDS.AZURE_SUN, "vigor")[0].duration,
-    5,
-  );
-  assert.equal(
-    resolveBuffs(GUARDIAN_SKILL_IDS.AZURE_SUN, "regeneration")[0].duration,
-    6,
-  );
-  assert.equal(
-    resolveBuffs(GUARDIAN_SKILL_IDS.AZURE_SUN, "swiftness")[0].duration,
-    5,
-  );
-  assert.equal(
-    resolveBuffs(GUARDIAN_SKILL_IDS.SHINING_RIVER, "swiftness").length,
-    5,
-  );
+    resolve.events.filter((event) => event.type === 'buff' && event.skillId === skillId && event.kind === kind);
+  assert.equal(resolveBuffs(GUARDIAN_SKILL_IDS.AZURE_SUN, 'vigor')[0].duration, 5);
+  assert.equal(resolveBuffs(GUARDIAN_SKILL_IDS.AZURE_SUN, 'regeneration')[0].duration, 6);
+  assert.equal(resolveBuffs(GUARDIAN_SKILL_IDS.AZURE_SUN, 'swiftness')[0].duration, 5);
+  assert.equal(resolveBuffs(GUARDIAN_SKILL_IDS.SHINING_RIVER, 'swiftness').length, 5);
 
   const courage = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Tome of Courage",
-      "Chapter 1: Unflinching Charge",
-      "Chapter 2: Daring Challenge",
-      "Chapter 3: Valiant Bulwark",
-      "Chapter 4: Stalwart Stand",
-      "Epilogue: Unbroken Lines",
-      { type: "wait", durationMs: 4000 },
+      'Tome of Courage',
+      'Chapter 1: Unflinching Charge',
+      'Chapter 2: Daring Challenge',
+      'Chapter 3: Valiant Bulwark',
+      'Chapter 4: Stalwart Stand',
+      'Epilogue: Unbroken Lines',
+      { type: 'wait', durationMs: 4000 }
     ],
-    config: firebrandConfig,
+    config: firebrandConfig
   });
   const courageBuffs = (skillId, kind) =>
-    courage.events.filter(
-      (event) =>
-        event.type === "buff" &&
-        event.skillId === skillId &&
-        event.kind === kind,
-    );
+    courage.events.filter((event) => event.type === 'buff' && event.skillId === skillId && event.kind === kind);
   assert.equal(
     courage.events
-      .filter(
-        (event) =>
-          event.type === "damage" &&
-          event.skillId === GUARDIAN_SKILL_IDS.DARING_CHALLENGE,
-      )
+      .filter((event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.DARING_CHALLENGE)
       .reduce((sum, event) => sum + event.coefficient, 0),
-    1.4,
+    1.4
   );
   assert.deepEqual(
     courage.events
-      .filter(
-        (event) =>
-          event.type === "control" &&
-          event.skillId === GUARDIAN_SKILL_IDS.DARING_CHALLENGE,
-      )
+      .filter((event) => event.type === 'control' && event.skillId === GUARDIAN_SKILL_IDS.DARING_CHALLENGE)
       .map((event) => [event.controlKind, event.duration]),
-    [["taunt", 2]],
+    [['taunt', 2]]
   );
-  assert.equal(
-    courageBuffs(GUARDIAN_SKILL_IDS.STALWART_STAND, "resistance").length,
-    4,
-  );
+  assert.equal(courageBuffs(GUARDIAN_SKILL_IDS.STALWART_STAND, 'resistance').length, 4);
   assert.deepEqual(
-    ["protection", "stability", "aegis", "toughness"].map((kind) => [
+    ['protection', 'stability', 'aegis', 'toughness'].map((kind) => [
       kind,
-      courageBuffs(GUARDIAN_SKILL_IDS.UNBROKEN_LINES, kind)[0].duration,
+      courageBuffs(GUARDIAN_SKILL_IDS.UNBROKEN_LINES, kind)[0].duration
     ]),
     [
-      ["protection", 5],
-      ["stability", 5],
-      ["aegis", 4],
-      ["toughness", 5],
-    ],
+      ['protection', 5],
+      ['stability', 5],
+      ['aegis', 4],
+      ['toughness', 5]
+    ]
   );
-  assert.equal(
-    courageBuffs(GUARDIAN_SKILL_IDS.UNBROKEN_LINES, "toughness")[0].stacks,
-    300,
-  );
-  assert.equal(
-    guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.VALIANT_BULWARK).cooldown,
-    15,
-  );
-  assert.equal(
-    guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.STALWART_STAND).cooldown,
-    20,
-  );
-  assert.equal(
-    guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.UNBROKEN_LINES).cooldown,
-    25,
-  );
+  assert.equal(courageBuffs(GUARDIAN_SKILL_IDS.UNBROKEN_LINES, 'toughness')[0].stacks, 300);
+  assert.equal(guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.VALIANT_BULWARK).cooldown, 15);
+  assert.equal(guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.STALWART_STAND).cooldown, 20);
+  assert.equal(guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.UNBROKEN_LINES).cooldown, 25);
 });
 
-test("Ashes of the Just grants party charges using Firebrand condition stats", () => {
+test('Ashes of the Just grants party charges using Firebrand condition stats', () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Tome of Justice",
-      "Epilogue: Ashes of the Just",
-      "Stow Tome",
-      "True Strike",
-      { type: "wait", durationMs: 3000 },
+      'Tome of Justice',
+      'Epilogue: Ashes of the Just',
+      'Stow Tome',
+      'True Strike',
+      { type: 'wait', durationMs: 3000 }
     ],
     config: {
       ...config,
-      specialization: "Firebrand",
-      primaryWeapon: "Mace",
+      specialization: 'Firebrand',
+      primaryWeapon: 'Mace',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.RADIANT_FIRE],
-      allies: { count: 4, strikesPerSecond: 1 },
-    },
+      allies: { count: 4, strikesPerSecond: 1 }
+    }
   });
-  const ashesBuff = result.events.find(
-    (event) => event.type === "buff" && event.kind === "ashes-of-the-just",
-  );
+  const ashesBuff = result.events.find((event) => event.type === 'buff' && event.kind === 'ashes-of-the-just');
   const might = result.events.find(
-    (event) =>
-      event.type === "buff" &&
-      event.skillId === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST &&
-      event.kind === "might",
+    (event) => event.type === 'buff' && event.skillId === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST && event.kind === 'might'
   );
   const allyBurns = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "condition" &&
-      event.sourceId === "guardian.ashes-of-the-just" &&
-      event.triggeredByAlly,
+    (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just' && event.triggeredByAlly
   );
   const personalBurns = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "condition" &&
-      event.sourceId === "guardian.ashes-of-the-just" &&
-      !event.triggeredByAlly,
+    (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just' && !event.triggeredByAlly
   );
 
   assert.deepEqual(
     {
       stacks: ashesBuff.stacks,
       duration: ashesBuff.duration,
-      recipients: ashesBuff.recipientCount,
+      recipients: ashesBuff.recipientCount
     },
-    { stacks: 2, duration: 10, recipients: 5 },
+    { stacks: 2, duration: 10, recipients: 5 }
   );
   assert.deepEqual(
     {
       stacks: might.stacks,
       duration: might.duration,
-      recipients: might.recipientCount,
+      recipients: might.recipientCount
     },
-    { stacks: 8, duration: 10, recipients: 5 },
+    { stacks: 8, duration: 10, recipients: 5 }
   );
   assert.equal(allyBurns.length, 8);
   assert.equal(personalBurns.length, 1);
-  assert.ok(
-    allyBurns.every(
-      (event) => event.duration === 2 && event.effectiveDuration === 2.4,
-    ),
-  );
-  assert.ok(
-    personalBurns.every(
-      (event) => event.duration === 2 && event.effectiveDuration === 2.4,
-    ),
-  );
+  assert.ok(allyBurns.every((event) => event.duration === 2 && event.effectiveDuration === 2.4));
+  assert.ok(personalBurns.every((event) => event.duration === 2 && event.effectiveDuration === 2.4));
   assert.ok(result.conditionDamage > 0);
 });
 
-test("Ashes of the Just cannot trigger before its application event", () => {
+test('Ashes of the Just cannot trigger before its application event', () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "True Strike",
-      "Tome of Justice",
-      "Epilogue: Ashes of the Just",
-      "Stow Tome",
-      "Symbol of Faith",
-      { type: "wait", durationMs: 2000 },
+      'True Strike',
+      'Tome of Justice',
+      'Epilogue: Ashes of the Just',
+      'Stow Tome',
+      'Symbol of Faith',
+      { type: 'wait', durationMs: 2000 }
     ],
     config: {
       ...config,
-      specialization: "Firebrand",
-      primaryWeapon: "Mace",
-      initialTomePages: 5,
-    },
+      specialization: 'Firebrand',
+      primaryWeapon: 'Mace',
+      initialTomePages: 5
+    }
   });
   const ashesAppliedAt = result.events.find(
-    (event) =>
-      event.type === "guardian.tome-page-used" &&
-      event.skillId === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST,
+    (event) => event.type === 'guardian.tome-page-used' && event.skillId === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST
   ).at;
   const ashes = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "condition" &&
-      event.sourceId === "guardian.ashes-of-the-just",
+    (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just'
   );
   assert.ok(ashes.length > 0);
   assert.ok(ashes.every((event) => event.at >= ashesAppliedAt));
 });
 
-test("later tome pages do not restore consumed Ashes charges", () => {
+test('later tome pages do not restore consumed Ashes charges', () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Tome of Justice",
-      "Epilogue: Ashes of the Just",
-      "Chapter 2: Igniting Burst",
-      "Stow Tome",
-      "True Strike",
-      "Pure Strike",
-      "Faithful Strike",
-      { type: "wait", durationMs: 2000 },
+      'Tome of Justice',
+      'Epilogue: Ashes of the Just',
+      'Chapter 2: Igniting Burst',
+      'Stow Tome',
+      'True Strike',
+      'Pure Strike',
+      'Faithful Strike',
+      { type: 'wait', durationMs: 2000 }
     ],
     config: {
       ...config,
-      specialization: "Firebrand",
-      primaryWeapon: "Mace",
-      allies: { count: 0, strikesPerSecond: 1 },
-    },
+      specialization: 'Firebrand',
+      primaryWeapon: 'Mace',
+      allies: { count: 0, strikesPerSecond: 1 }
+    }
   });
   const personalBurns = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "condition" &&
-      event.sourceId === "guardian.ashes-of-the-just" &&
-      !event.triggeredByAlly,
+    (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just' && !event.triggeredByAlly
   );
 
   assert.equal(personalBurns.length, 2);
   assert.equal(result.endState.profession.ashesCharges, 0);
 });
 
-test("Firebrand page exhaustion stows the tome and pages regenerate", () => {
+test('Firebrand page exhaustion stows the tome and pages regenerate', () => {
   const exhausted = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Tome of Resolve",
-      "Epilogue: Eternal Oasis",
-      "Chapter 1: Desert Bloom",
-      { type: "wait", durationMs: 8000 },
+      'Tome of Resolve',
+      'Epilogue: Eternal Oasis',
+      'Chapter 1: Desert Bloom',
+      { type: 'wait', durationMs: 8000 }
     ],
     config: {
       ...config,
-      specialization: "Firebrand",
-      initialTomePages: 2,
-    },
+      specialization: 'Firebrand',
+      initialTomePages: 2
+    }
   });
   const traited = simulateGw2({
     profession: guardianProfession,
     rotation: [],
     config: {
       ...config,
-      specialization: "Firebrand",
-      selectedTraitIds: [
-        GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS,
-        GUARDIAN_TRAIT_IDS.LOREMASTER,
-      ],
-    },
+      specialization: 'Firebrand',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS, GUARDIAN_TRAIT_IDS.LOREMASTER]
+    }
   });
 
-  assert.match(
-    exhausted.warnings.join(" "),
-    /Chapter 1: Desert Bloom is unavailable/,
-  );
-  assert.equal(exhausted.endState.profession.activeTome, "");
+  assert.match(exhausted.warnings.join(' '), /Chapter 1: Desert Bloom is unavailable/);
+  assert.equal(exhausted.endState.profession.activeTome, '');
   assert.equal(exhausted.endState.profession.tomePages, 1);
   assert.equal(traited.endState.profession.maximumTomePages, 8);
   assert.equal(traited.endState.profession.tomePages, 8);
   assert.equal(traited.endState.profession.tomePageInterval, 5);
 });
 
-test("Firebrand page exhaustion injects a timeline stow and closes its lane", () => {
-  const rotation = [
-    "Tome of Resolve",
-    "Epilogue: Eternal Oasis",
-    "True Strike",
-  ];
+test('Firebrand page exhaustion injects a timeline stow and closes its lane', () => {
+  const rotation = ['Tome of Resolve', 'Epilogue: Eternal Oasis', 'True Strike'];
   const firebrandConfig = {
     ...config,
-    specialization: "Firebrand",
-    primaryWeapon: "Mace",
-    initialTomePages: 2,
+    specialization: 'Firebrand',
+    primaryWeapon: 'Mace',
+    initialTomePages: 2
   };
   const result = simulateGw2({
     profession: guardianProfession,
     rotation,
-    config: firebrandConfig,
+    config: firebrandConfig
   });
 
   assert.deepEqual(automaticTomeStowTimelineMarkers(result, rotation.length), [
     {
       insertionIndex: 2,
-      skill: "Stow Tome",
+      skill: 'Stow Tome',
       start: 200,
-      detail: "page exhaustion",
-    },
+      detail: 'page exhaustion'
+    }
   ]);
   const transition = guardianProfession.ui.timelineWeaponLineTransition;
   const rows = timelineWeaponRows(rotation, {
     weaponLineEndIndexes: new Set(
-      automaticTomeStowTimelineMarkers(result, rotation.length).map(
-        (marker) => marker.insertionIndex,
-      ),
+      automaticTomeStowTimelineMarkers(result, rotation.length).map((marker) => marker.insertionIndex)
     ),
     weaponLineTransition(entry, current) {
-      const name = typeof entry === "string" ? entry : entry.name;
+      const name = typeof entry === 'string' ? entry : entry.name;
       return transition({
         entry: { name },
         skill: guardianCatalog.skillsByName.get(name),
-        specialization: "Firebrand",
-        ...current,
+        specialization: 'Firebrand',
+        ...current
       });
-    },
+    }
   });
   assert.deepEqual(
     rows.map((row) => row.weaponLine),
-    [null, "Tome of Resolve", null],
+    [null, 'Tome of Resolve', null]
   );
 });
 
-test("Firebrand tome page cost waits for a regenerating page", () => {
+test('Firebrand tome page cost waits for a regenerating page', () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Tome of Resolve",
+      'Tome of Resolve',
       // Epilogue: Eternal Oasis costs two pages; starting at one page it must
       // wait for the next scheduled page rather than being discarded.
-      "Epilogue: Eternal Oasis",
+      'Epilogue: Eternal Oasis'
     ],
     config: {
       ...config,
-      specialization: "Firebrand",
-      initialTomePages: 1,
-    },
+      specialization: 'Firebrand',
+      initialTomePages: 1
+    }
   });
 
-  const epilogue = result.steps.find(
-    (step) => step.skill === "Epilogue: Eternal Oasis",
-  );
+  const epilogue = result.steps.find((step) => step.skill === 'Epilogue: Eternal Oasis');
   assert.deepEqual(result.warnings, []);
   assert.ok(epilogue && !epilogue.invalid);
   // The first page lands at the 8s interval, so the cast is delayed to it.
   assert.ok(epilogue.start >= 8000);
-  assert.equal(result.endState.profession.activeTome, "");
+  assert.equal(result.endState.profession.activeTome, '');
 });
 
-test("Firebrand axe skills and Unrelenting Criticism use reference packets", () => {
+test('Firebrand axe skills and Unrelenting Criticism use reference packets', () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Core Cleave",
-      "Bleeding Edge",
-      "Searing Slash",
-      "Symbol of Vengeance",
-      "Blazing Edge",
-      { type: "wait", durationMs: 5000 },
+      'Core Cleave',
+      'Bleeding Edge',
+      'Searing Slash',
+      'Symbol of Vengeance',
+      'Blazing Edge',
+      { type: 'wait', durationMs: 5000 }
     ],
     config: {
       ...config,
-      specialization: "Firebrand",
-      primaryWeapon: "Axe",
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.UNRELENTING_CRITICISM],
-    },
+      specialization: 'Firebrand',
+      primaryWeapon: 'Axe',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.UNRELENTING_CRITICISM]
+    }
   });
   const packet = (skillId) =>
-    result.resolvedEvents.filter(
-      (event) => event.type === "damage" && event.skillId === skillId,
-    );
-  const coefficient = (skillId) =>
-    packet(skillId).reduce((sum, event) => sum + event.coefficient, 0);
+    result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === skillId);
+  const coefficient = (skillId) => packet(skillId).reduce((sum, event) => sum + event.coefficient, 0);
 
   assert.deepEqual(
     [
-      [
-        packet(GUARDIAN_SKILL_IDS.CORE_CLEAVE).length,
-        coefficient(GUARDIAN_SKILL_IDS.CORE_CLEAVE),
-      ],
-      [
-        packet(GUARDIAN_SKILL_IDS.BLEEDING_EDGE).length,
-        coefficient(GUARDIAN_SKILL_IDS.BLEEDING_EDGE),
-      ],
-      [
-        packet(GUARDIAN_SKILL_IDS.SEARING_SLASH).length,
-        coefficient(GUARDIAN_SKILL_IDS.SEARING_SLASH),
-      ],
-      [
-        packet(GUARDIAN_SKILL_IDS.SYMBOL_OF_VENGEANCE).length,
-        coefficient(GUARDIAN_SKILL_IDS.SYMBOL_OF_VENGEANCE),
-      ],
-      [
-        packet(GUARDIAN_SKILL_IDS.BLAZING_EDGE).length,
-        coefficient(GUARDIAN_SKILL_IDS.BLAZING_EDGE),
-      ],
+      [packet(GUARDIAN_SKILL_IDS.CORE_CLEAVE).length, coefficient(GUARDIAN_SKILL_IDS.CORE_CLEAVE)],
+      [packet(GUARDIAN_SKILL_IDS.BLEEDING_EDGE).length, coefficient(GUARDIAN_SKILL_IDS.BLEEDING_EDGE)],
+      [packet(GUARDIAN_SKILL_IDS.SEARING_SLASH).length, coefficient(GUARDIAN_SKILL_IDS.SEARING_SLASH)],
+      [packet(GUARDIAN_SKILL_IDS.SYMBOL_OF_VENGEANCE).length, coefficient(GUARDIAN_SKILL_IDS.SYMBOL_OF_VENGEANCE)],
+      [packet(GUARDIAN_SKILL_IDS.BLAZING_EDGE).length, coefficient(GUARDIAN_SKILL_IDS.BLAZING_EDGE)]
     ],
     [
       [2, 0.72],
       [2, 0.72],
       [2, 2.4],
       [5, 3],
-      [1, 0.8],
-    ],
+      [1, 0.8]
+    ]
   );
   const criticism = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "condition" &&
-      event.name === "Unrelenting Criticism — Bleeding",
+    (event) => event.type === 'condition' && event.name === 'Unrelenting Criticism — Bleeding'
   );
   assert.equal(criticism.length, 12);
   assert.ok(criticism.every((event) => event.duration === 4.5));
   assert.equal(
     result.events.filter(
       (event) =>
-        event.type === "buff" &&
-        event.skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_VENGEANCE &&
-        event.kind === "fury",
+        event.type === 'buff' && event.skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_VENGEANCE && event.kind === 'fury'
     ).length,
-    5,
+    5
   );
   assert.equal(
     result.events.some(
       (event) =>
-        event.type === "control" &&
+        event.type === 'control' &&
         event.skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_VENGEANCE &&
-        event.controlKind === "daze",
+        event.controlKind === 'daze'
     ),
-    true,
+    true
   );
   assert.equal(
     result.events.some(
       (event) =>
-        event.type === "control" &&
-        event.skillId === GUARDIAN_SKILL_IDS.BLAZING_EDGE &&
-        event.controlKind === "pull",
+        event.type === 'control' && event.skillId === GUARDIAN_SKILL_IDS.BLAZING_EDGE && event.controlKind === 'pull'
     ),
-    true,
+    true
   );
 });
 
-test("Condition Firebrand uses configured cast and strike packet timings", () => {
+test('Condition Firebrand uses configured cast and strike packet timings', () => {
   const profile = (result, skillName) => {
-    const action = result.events.find(
-      (event) => event.type === "action" && event.skillName === skillName,
-    );
+    const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
     return {
       cast: Math.round((action.endsAt - action.at) * 1000),
       packets: result.resolvedEvents
-        .filter(
-          (event) => event.type === "damage" && event.skillName === skillName,
-        )
-        .map((event) => Math.round((event.at - action.at) * 1000)),
+        .filter((event) => event.type === 'damage' && event.skillName === skillName)
+        .map((event) => Math.round((event.at - action.at) * 1000))
     };
   };
   const firebrandConfig = {
     ...config,
-    specialization: "Firebrand",
-    boons: { quickness: true },
+    specialization: 'Firebrand',
+    boons: { quickness: true }
   };
   const axe = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Core Cleave", "Bleeding Edge", "Searing Slash"],
-    config: { ...firebrandConfig, primaryWeapon: "Axe" },
+    rotation: ['Core Cleave', 'Bleeding Edge', 'Searing Slash'],
+    config: { ...firebrandConfig, primaryWeapon: 'Axe' }
   });
   const pistol = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Hail of Justice",
-      "Peacekeeper",
-      "Symbol of Ignition",
-      "Through the Heart",
-      { type: "wait", durationMs: 3000 },
+      'Hail of Justice',
+      'Peacekeeper',
+      'Symbol of Ignition',
+      'Through the Heart',
+      { type: 'wait', durationMs: 3000 }
     ],
     config: {
       ...firebrandConfig,
-      primaryWeapon: "Pistol",
-      secondaryWeapon: "Pistol",
-    },
+      primaryWeapon: 'Pistol',
+      secondaryWeapon: 'Pistol'
+    }
   });
   const tome = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Purging Flames",
-      "Tome of Justice",
-      "Chapter 4: Scorched Aftermath",
-      { type: "wait", durationMs: 5000 },
+      'Purging Flames',
+      'Tome of Justice',
+      'Chapter 4: Scorched Aftermath',
+      { type: 'wait', durationMs: 5000 }
     ],
-    config: firebrandConfig,
+    config: firebrandConfig
   });
   const cleansing = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Cleansing Flame"],
+    rotation: ['Cleansing Flame'],
     config: {
       ...firebrandConfig,
-      primaryWeapon: "Axe",
-      secondaryWeapon: "Torch",
-    },
+      primaryWeapon: 'Axe',
+      secondaryWeapon: 'Torch'
+    }
   });
 
-  assert.deepEqual(profile(axe, "Core Cleave"), {
+  assert.deepEqual(profile(axe, 'Core Cleave'), {
     cast: 640,
-    packets: [360, 600],
+    packets: [360, 600]
   });
-  assert.deepEqual(profile(axe, "Bleeding Edge"), {
+  assert.deepEqual(profile(axe, 'Bleeding Edge'), {
     cast: 680,
-    packets: [480, 640],
+    packets: [480, 640]
   });
-  assert.deepEqual(profile(axe, "Searing Slash"), {
+  assert.deepEqual(profile(axe, 'Searing Slash'), {
     cast: 640,
-    packets: [480, 640],
+    packets: [480, 640]
   });
-  assert.deepEqual(profile(pistol, "Hail of Justice"), {
+  assert.deepEqual(profile(pistol, 'Hail of Justice'), {
     cast: 1120,
-    packets: [280, 440, 640, 800, 960],
+    packets: [280, 440, 640, 800, 960]
   });
-  assert.deepEqual(profile(pistol, "Peacekeeper"), {
+  assert.deepEqual(profile(pistol, 'Peacekeeper'), {
     cast: 1040,
-    packets: [280, 480, 640, 800, 960],
+    packets: [280, 480, 640, 800, 960]
   });
-  assert.deepEqual(profile(pistol, "Symbol of Ignition"), {
+  assert.deepEqual(profile(pistol, 'Symbol of Ignition'), {
     cast: 360,
-    packets: [280, 960, 1640, 2320, 3000],
+    packets: [280, 960, 1640, 2320, 3000]
   });
-  assert.deepEqual(profile(pistol, "Through the Heart"), {
+  assert.deepEqual(profile(pistol, 'Through the Heart'), {
     cast: 600,
-    packets: [360],
+    packets: [360]
   });
-  assert.deepEqual(profile(tome, "Purging Flames"), {
+  assert.deepEqual(profile(tome, 'Purging Flames'), {
     cast: 320,
-    packets: [320, 1320, 2320, 3320, 4320, 5320],
+    packets: [320, 1320, 2320, 3320, 4320, 5320]
   });
-  assert.deepEqual(profile(tome, "Chapter 4: Scorched Aftermath"), {
+  assert.deepEqual(profile(tome, 'Chapter 4: Scorched Aftermath'), {
     cast: 920,
-    packets: [440, 1440, 2440, 3440, 4440],
+    packets: [440, 1440, 2440, 3440, 4440]
   });
   assert.equal(
-    cleansing.resolvedEvents.filter(
-      (event) =>
-        event.type === "damage" && event.skillName === "Cleansing Flame",
-    ).length,
-    10,
+    cleansing.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Cleansing Flame').length,
+    10
   );
   assert.ok(
     Math.abs(
       cleansing.resolvedEvents
-        .filter(
-          (event) =>
-            event.type === "damage" && event.skillName === "Cleansing Flame",
-        )
-        .reduce((sum, event) => sum + event.coefficient, 0) - 4,
-    ) < 1e-9,
+        .filter((event) => event.type === 'damage' && event.skillName === 'Cleansing Flame')
+        .reduce((sum, event) => sum + event.coefficient, 0) - 4
+    ) < 1e-9
   );
   assert.equal(
     cleansing.resolvedEvents.some(
       (event) =>
-        event.type === "condition" &&
-        event.skillName === "Cleansing Flame" &&
-        event.condition === "Burning" &&
+        event.type === 'condition' &&
+        event.skillName === 'Cleansing Flame' &&
+        event.condition === 'Burning' &&
         event.stacks === 2 &&
         event.duration === 4 &&
         Math.abs(
           event.at -
             cleansing.events.find(
-              (candidate) =>
-                candidate.type === "action" &&
-                candidate.skillName === "Cleansing Flame",
-            ).endsAt,
-        ) < 1e-9,
+              (candidate) => candidate.type === 'action' && candidate.skillName === 'Cleansing Flame'
+            ).endsAt
+        ) < 1e-9
     ),
-    true,
+    true
   );
 });
 
-test("Guardian pistol conditions and Symbol of Ignition use full packets", () => {
+test('Guardian pistol conditions and Symbol of Ignition use full packets', () => {
   const pistolConfig = {
     ...config,
-    primaryWeapon: "Pistol",
-    secondaryWeapon: "Pistol",
-    boons: { quickness: true },
+    primaryWeapon: 'Pistol',
+    secondaryWeapon: 'Pistol',
+    boons: { quickness: true }
   };
   const packets = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Hail of Justice",
-      "Hail of Justice",
-      "Peacekeeper",
-      "Through the Heart",
-      "Jurisdiction",
-      { type: "wait", durationMs: 8000 },
+      'Hail of Justice',
+      'Hail of Justice',
+      'Peacekeeper',
+      'Through the Heart',
+      'Jurisdiction',
+      { type: 'wait', durationMs: 8000 }
     ],
-    config: pistolConfig,
+    config: pistolConfig
   });
   const ignition = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Symbol of Ignition",
-      "Peacekeeper",
-      { type: "wait", durationMs: 5000 },
-    ],
-    config: pistolConfig,
+    rotation: ['Symbol of Ignition', 'Peacekeeper', { type: 'wait', durationMs: 5000 }],
+    config: pistolConfig
   });
   const conditions = (result, skillName, condition) =>
     result.resolvedEvents.filter(
-      (event) =>
-        event.type === "condition" &&
-        event.skillName === skillName &&
-        event.condition === condition,
+      (event) => event.type === 'condition' && event.skillName === skillName && event.condition === condition
     );
 
   assert.deepEqual(packets.warnings, []);
   assert.deepEqual(
     packets.events
-      .filter(
-        (event) =>
-          event.type === "action" && event.skillName === "Hail of Justice",
-      )
+      .filter((event) => event.type === 'action' && event.skillName === 'Hail of Justice')
       .map((event) => event.at),
-    [0, 2.12],
+    [0, 2.12]
   );
-  assert.equal(conditions(packets, "Hail of Justice", "Bleeding").length, 10);
-  assert.equal(conditions(packets, "Hail of Justice", "Crippled").length, 10);
+  assert.equal(conditions(packets, 'Hail of Justice', 'Bleeding').length, 10);
+  assert.equal(conditions(packets, 'Hail of Justice', 'Crippled').length, 10);
   assert.equal(
-    conditions(packets, "Hail of Justice", "Crippled").every(
-      (event) => event.duration === 1 && event.projectile === true,
+    conditions(packets, 'Hail of Justice', 'Crippled').every(
+      (event) => event.duration === 1 && event.projectile === true
     ),
-    true,
+    true
   );
-  assert.equal(conditions(packets, "Peacekeeper", "Burning").length, 5);
+  assert.equal(conditions(packets, 'Peacekeeper', 'Burning').length, 5);
   assert.equal(
-    conditions(packets, "Peacekeeper", "Burning").every(
-      (event) => event.duration === 1.5,
-    ),
-    true,
+    conditions(packets, 'Peacekeeper', 'Burning').every((event) => event.duration === 1.5),
+    true
   );
-  assert.equal(conditions(packets, "Through the Heart", "Bleeding").length, 1);
+  assert.equal(conditions(packets, 'Through the Heart', 'Bleeding').length, 1);
+  assert.equal(conditions(packets, 'Through the Heart', 'Bleeding')[0].duration, 8);
   assert.equal(
-    conditions(packets, "Through the Heart", "Bleeding")[0].duration,
-    8,
-  );
-  assert.equal(
-    conditions(packets, "Jurisdiction", "Burning").some(
-      (event) => event.stacks === 5 && event.duration === 6,
-    ),
-    true,
+    conditions(packets, 'Jurisdiction', 'Burning').some((event) => event.stacks === 5 && event.duration === 6),
+    true
   );
   assert.equal(
     packets.events.some(
-      (event) =>
-        event.type === "control" &&
-        event.skillName === "Jurisdiction" &&
-        event.controlKind === "stun",
+      (event) => event.type === 'control' && event.skillName === 'Jurisdiction' && event.controlKind === 'stun'
     ),
-    true,
+    true
   );
 
   const symbolDamage = ignition.resolvedEvents.filter(
-    (event) =>
-      event.type === "damage" && event.skillName === "Symbol of Ignition",
+    (event) => event.type === 'damage' && event.skillName === 'Symbol of Ignition'
   );
   const symbolMight = ignition.events.filter(
-    (event) =>
-      event.type === "buff" &&
-      event.skillName === "Symbol of Ignition" &&
-      event.kind === "might",
+    (event) => event.type === 'buff' && event.skillName === 'Symbol of Ignition' && event.kind === 'might'
   );
-  const ignitions = conditions(ignition, "Symbol of Ignition", "Burning");
+  const ignitions = conditions(ignition, 'Symbol of Ignition', 'Burning');
   const symbolAction = ignition.events.find(
-    (event) =>
-      event.type === "action" && event.skillName === "Symbol of Ignition",
+    (event) => event.type === 'action' && event.skillName === 'Symbol of Ignition'
   );
 
   assert.equal(symbolDamage.length, 5);
   assert.equal(
     symbolDamage.reduce((sum, event) => sum + event.coefficient, 0),
-    2,
+    2
   );
   assert.equal(symbolMight.length, 5);
   assert.equal(
     symbolMight.every((event) => event.duration === 5),
-    true,
+    true
   );
   assert.equal(ignitions.length, 3);
   assert.equal(
     ignitions.every((event) => event.duration === 1),
-    true,
+    true
   );
-  assert.equal(symbolAction.comboFields[0].fieldType, "Light");
+  assert.equal(symbolAction.comboFields[0].fieldType, 'Light');
   assert.equal(symbolAction.comboFields[0].duration, 4);
 });
 
-test("Peacekeeper begins its six-second recharge when its cast starts", () => {
+test('Peacekeeper begins its six-second recharge when its cast starts', () => {
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Peacekeeper", "Peacekeeper"],
+    rotation: ['Peacekeeper', 'Peacekeeper'],
     config: {
       ...config,
-      primaryWeapon: "Pistol",
-      secondaryWeapon: "Pistol",
-      boons: { quickness: true, alacrity: true },
-    },
+      primaryWeapon: 'Pistol',
+      secondaryWeapon: 'Pistol',
+      boons: { quickness: true, alacrity: true }
+    }
   });
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.events
-      .filter(
-        (event) => event.type === "action" && event.skillName === "Peacekeeper",
-      )
+      .filter((event) => event.type === 'action' && event.skillName === 'Peacekeeper')
       .map((event) => event.at),
-    [0, 4.8],
+    [0, 4.8]
   );
 });
 
-test("Signet of Wrath loses its passive condition damage while recharging", () => {
+test('Signet of Wrath loses its passive condition damage while recharging', () => {
   const throughDamage = (result) =>
-    result.breakdown.find(
-      (entry) =>
-        entry.name.startsWith("Through the Heart") && entry.conditionDamage > 0,
-    ).conditionDamage;
+    result.breakdown.find((entry) => entry.name.startsWith('Through the Heart') && entry.conditionDamage > 0)
+      .conditionDamage;
   const baseConfig = {
     ...config,
-    primaryWeapon: "Pistol",
-    secondaryWeapon: "Pistol",
+    primaryWeapon: 'Pistol',
+    secondaryWeapon: 'Pistol'
   };
   const withoutSignet = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Through the Heart", { type: "wait", durationMs: 9000 }],
-    config: baseConfig,
+    rotation: ['Through the Heart', { type: 'wait', durationMs: 9000 }],
+    config: baseConfig
   });
   const passive = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Through the Heart", { type: "wait", durationMs: 9000 }],
-    config: { ...baseConfig, selectedSkills: ["Signet of Wrath"] },
+    rotation: ['Through the Heart', { type: 'wait', durationMs: 9000 }],
+    config: { ...baseConfig, selectedSkills: ['Signet of Wrath'] }
   });
   const recharging = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Signet of Wrath",
-      "Through the Heart",
-      "Signet of Wrath",
-      { type: "wait", durationMs: 9000 },
-    ],
-    config: { ...baseConfig, selectedSkills: ["Signet of Wrath"] },
+    rotation: ['Signet of Wrath', 'Through the Heart', 'Signet of Wrath', { type: 'wait', durationMs: 9000 }],
+    config: { ...baseConfig, selectedSkills: ['Signet of Wrath'] }
   });
   const signetConditions = recharging.resolvedEvents.filter(
-    (event) =>
-      event.type === "condition" && event.skillName === "Signet of Wrath",
+    (event) => event.type === 'condition' && event.skillName === 'Signet of Wrath'
   );
 
   assert.ok(throughDamage(passive) > throughDamage(withoutSignet));
-  assert.ok(
-    Math.abs(throughDamage(recharging) - throughDamage(withoutSignet)) < 1e-9,
-  );
+  assert.ok(Math.abs(throughDamage(recharging) - throughDamage(withoutSignet)) < 1e-9);
   assert.deepEqual(
     recharging.events
-      .filter(
-        (event) =>
-          event.type === "action" && event.skillName === "Signet of Wrath",
-      )
+      .filter((event) => event.type === 'action' && event.skillName === 'Signet of Wrath')
       .map((event) => event.at),
-    [0, 19],
+    [0, 19]
   );
   assert.equal(
-    signetConditions.some(
-      (event) =>
-        event.condition === "Burning" &&
-        event.stacks === 3 &&
-        event.duration === 5,
-    ),
-    true,
+    signetConditions.some((event) => event.condition === 'Burning' && event.stacks === 3 && event.duration === 5),
+    true
   );
   assert.equal(
-    signetConditions.some(
-      (event) => event.condition === "Immobilized" && event.duration === 6,
-    ),
-    true,
+    signetConditions.some((event) => event.condition === 'Immobilized' && event.duration === 6),
+    true
   );
 });
 
-test("Firebrand mantras resolve normal and final charges with full recharge", () => {
+test('Firebrand mantras resolve normal and final charges with full recharge', () => {
   const flame = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Flame Rush",
-      "Flame Rush",
-      "Flame Surge",
-      { type: "wait", durationMs: 15800 },
-      "Flame Rush",
-    ],
+    rotation: ['Flame Rush', 'Flame Rush', 'Flame Surge', { type: 'wait', durationMs: 15800 }, 'Flame Rush'],
     config: {
       ...config,
-      specialization: "Firebrand",
-      selectedSkills: ["Mantra of Flame"],
+      specialization: 'Firebrand',
+      selectedSkills: ['Mantra of Flame'],
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS],
-      boons: { alacrity: true },
-    },
+      boons: { alacrity: true }
+    }
   });
   const flameConditions = flame.resolvedEvents.filter(
     (event) =>
-      event.type === "condition" &&
-      event.condition === "Burning" &&
-      ["Flame Rush", "Flame Surge"].includes(event.skillName),
+      event.type === 'condition' &&
+      event.condition === 'Burning' &&
+      ['Flame Rush', 'Flame Surge'].includes(event.skillName)
   );
 
   assert.deepEqual(
-    flame.steps
-      .filter((step) => ["Flame Rush", "Flame Surge"].includes(step.skill))
-      .map((step) => step.start),
-    [0, 1000, 2000, 18000],
+    flame.steps.filter((step) => ['Flame Rush', 'Flame Surge'].includes(step.skill)).map((step) => step.start),
+    [0, 1000, 2000, 18000]
   );
   assert.deepEqual(
-    flameConditions.map((event) => [
-      event.skillName,
-      event.stacks,
-      event.duration,
-    ]),
+    flameConditions.map((event) => [event.skillName, event.stacks, event.duration]),
     [
-      ["Flame Rush", 1, 12],
-      ["Flame Rush", 1, 12],
-      ["Flame Surge", 3, 12],
-      ["Flame Rush", 1, 12],
-    ],
+      ['Flame Rush', 1, 12],
+      ['Flame Rush', 1, 12],
+      ['Flame Surge', 3, 12],
+      ['Flame Rush', 1, 12]
+    ]
   );
-  assert.equal(
-    flame.procSteps.filter((step) => step.skill === "Weighty Terms").length,
-    1,
-  );
+  assert.equal(flame.procSteps.filter((step) => step.skill === 'Weighty Terms').length, 1);
 
   const support = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Restoring Reprieve",
-      "Restoring Reprieve",
-      "Rejuvenating Respite",
-      "Potent Haste",
-      "Potent Haste",
-      "Overwhelming Celerity",
-      "Portent of Freedom",
-      "Portent of Freedom",
-      "Unhindered Delivery",
+      'Restoring Reprieve',
+      'Restoring Reprieve',
+      'Rejuvenating Respite',
+      'Potent Haste',
+      'Potent Haste',
+      'Overwhelming Celerity',
+      'Portent of Freedom',
+      'Portent of Freedom',
+      'Unhindered Delivery'
     ],
     config: {
       ...config,
-      specialization: "Firebrand",
-      selectedSkills: [
-        "Mantra of Solace",
-        "Mantra of Potence",
-        "Mantra of Liberation",
-      ],
-      allies: { count: 4, strikesPerSecond: 1 },
-    },
+      specialization: 'Firebrand',
+      selectedSkills: ['Mantra of Solace', 'Mantra of Potence', 'Mantra of Liberation'],
+      allies: { count: 4, strikesPerSecond: 1 }
+    }
   });
   const boonsFor = (skillName) =>
     support.events
-      .filter((event) => event.type === "buff" && event.skillName === skillName)
+      .filter((event) => event.type === 'buff' && event.skillName === skillName)
       .map((event) => [event.kind, event.stacks, event.duration]);
 
-  assert.deepEqual(boonsFor("Rejuvenating Respite"), [
-    ["aegis", 1, 2],
-    ["protection", 1, 3],
-    ["resolution", 1, 3],
+  assert.deepEqual(boonsFor('Rejuvenating Respite'), [
+    ['aegis', 1, 2],
+    ['protection', 1, 3],
+    ['resolution', 1, 3]
   ]);
-  assert.deepEqual(boonsFor("Overwhelming Celerity"), [
-    ["quickness", 1, 5],
-    ["might", 8, 10],
+  assert.deepEqual(boonsFor('Overwhelming Celerity'), [
+    ['quickness', 1, 5],
+    ['might', 8, 10]
   ]);
-  assert.deepEqual(boonsFor("Unhindered Delivery"), [
-    ["resolution", 1, 8],
-    ["stability", 5, 8],
-    ["swiftness", 1, 5],
+  assert.deepEqual(boonsFor('Unhindered Delivery'), [
+    ['resolution', 1, 8],
+    ['stability', 5, 8],
+    ['swiftness', 1, 5]
   ]);
   assert.deepEqual(support.warnings, []);
 });
 
-test("Firebrand mantra parents and charged skills use distinct cast states", () => {
-  const solace = guardianCatalog.skillsByName.get("Mantra of Solace");
-  const reprieve = guardianCatalog.skillsByName.get("Restoring Reprieve");
-  const respite = guardianCatalog.skillsByName.get("Rejuvenating Respite");
-  const flame = guardianCatalog.skillsByName.get("Mantra of Flame");
-  const rush = guardianCatalog.skillsByName.get("Flame Rush");
-  const surge = guardianCatalog.skillsByName.get("Flame Surge");
+test('Firebrand mantra parents and charged skills use distinct cast states', () => {
+  const solace = guardianCatalog.skillsByName.get('Mantra of Solace');
+  const reprieve = guardianCatalog.skillsByName.get('Restoring Reprieve');
+  const respite = guardianCatalog.skillsByName.get('Rejuvenating Respite');
+  const flame = guardianCatalog.skillsByName.get('Mantra of Flame');
+  const rush = guardianCatalog.skillsByName.get('Flame Rush');
+  const surge = guardianCatalog.skillsByName.get('Flame Surge');
 
   assert.equal(solace.castTimeMs, 2240);
   assert.equal(flame.castTimeMs, 2240);
@@ -3055,1015 +2390,811 @@ test("Firebrand mantra parents and charged skills use distinct cast states", () 
 
   const normal = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Flame Rush"],
+    rotation: ['Flame Rush'],
     config: {
       ...config,
-      specialization: "Firebrand",
-      selectedSkills: ["Mantra of Flame"],
-    },
+      specialization: 'Firebrand',
+      selectedSkills: ['Mantra of Flame']
+    }
   });
   assert.ok(normal.endState.profession.availableFlips[rush.id]);
   assert.equal(normal.endState.profession.availableFlips[surge.id], undefined);
-  assert.equal(normal.endState.ammo["Flame Rush"].charges, 2);
+  assert.equal(normal.endState.ammo['Flame Rush'].charges, 2);
 
   const final = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Flame Rush", "Flame Rush"],
+    rotation: ['Flame Rush', 'Flame Rush'],
     config: {
       ...config,
-      specialization: "Firebrand",
-      selectedSkills: ["Mantra of Flame"],
-    },
+      specialization: 'Firebrand',
+      selectedSkills: ['Mantra of Flame']
+    }
   });
   assert.equal(final.endState.profession.availableFlips[rush.id], undefined);
   assert.ok(final.endState.profession.availableFlips[surge.id]);
 
   const depleted = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Flame Rush", "Flame Rush", "Flame Surge"],
+    rotation: ['Flame Rush', 'Flame Rush', 'Flame Surge'],
     config: {
       ...config,
-      specialization: "Firebrand",
-      selectedSkills: ["Mantra of Flame"],
-    },
+      specialization: 'Firebrand',
+      selectedSkills: ['Mantra of Flame']
+    }
   });
   assert.equal(depleted.endState.profession.availableFlips[rush.id], undefined);
-  assert.equal(
-    depleted.endState.profession.availableFlips[surge.id],
-    undefined,
-  );
-  assert.equal(depleted.endState.ammo["Flame Rush"], undefined);
-  assert.ok(depleted.endState.cooldowns["Mantra of Flame"].remaining > 0);
+  assert.equal(depleted.endState.profession.availableFlips[surge.id], undefined);
+  assert.equal(depleted.endState.ammo['Flame Rush'], undefined);
+  assert.ok(depleted.endState.cooldowns['Mantra of Flame'].remaining > 0);
 });
 
-test("Firebrand tome transitions are weapon swaps and timeline row changes", () => {
+test('Firebrand tome transitions are weapon swaps and timeline row changes', () => {
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Tome of Justice", "Stow Tome", "Tome of Resolve", "Stow Tome"],
-    config: { ...config, specialization: "Firebrand" },
+    rotation: ['Tome of Justice', 'Stow Tome', 'Tome of Resolve', 'Stow Tome'],
+    config: { ...config, specialization: 'Firebrand' }
   });
   assert.deepEqual(
-    result.events
-      .filter((event) => event.type === "weapon_set")
-      .map((event) => [event.skillName, event.mechanicSwap]),
+    result.events.filter((event) => event.type === 'weapon_set').map((event) => [event.skillName, event.mechanicSwap]),
     [
-      ["Tome of Justice", true],
-      ["Stow Tome", true],
-      ["Tome of Resolve", true],
-      ["Stow Tome", true],
-    ],
+      ['Tome of Justice', true],
+      ['Stow Tome', true],
+      ['Tome of Resolve', true],
+      ['Stow Tome', true]
+    ]
   );
 
   const transition = guardianProfession.ui.timelineWeaponLineTransition;
   const rotation = [
-    "Tome of Justice",
-    "Chapter 1: Searing Spell",
-    "Stow Tome",
-    "True Strike",
-    "Tome of Resolve",
-    "Stow Tome",
+    'Tome of Justice',
+    'Chapter 1: Searing Spell',
+    'Stow Tome',
+    'True Strike',
+    'Tome of Resolve',
+    'Stow Tome'
   ];
   const rows = timelineWeaponRows(rotation, {
     startingWeaponSet: 1,
     weaponLineTransition(entry, current) {
-      const name = typeof entry === "string" ? entry : entry.name;
+      const name = typeof entry === 'string' ? entry : entry.name;
       return transition({
         entry: { name },
         skill: guardianCatalog.skillsByName.get(name),
-        specialization: "Firebrand",
-        ...current,
+        specialization: 'Firebrand',
+        ...current
       });
-    },
+    }
   });
   assert.deepEqual(
     rows.map((row) => row.weaponLine),
-    [null, "Tome of Justice", null, "Tome of Resolve"],
+    [null, 'Tome of Justice', null, 'Tome of Resolve']
   );
   assert.deepEqual(
     rows.map((row) => row.skills.map((skill) => skill.index)),
-    [[0], [1, 2], [3, 4], [5]],
+    [[0], [1, 2], [3, 4], [5]]
   );
 });
 
-test("Feel My Wrath applies split quickness durations and triggers Quickfire", () => {
+test('Feel My Wrath applies split quickness durations and triggers Quickfire', () => {
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      '"Feel My Wrath!"',
-      '"Feel My Wrath!"',
-      { type: "wait", durationMs: 2000 },
-    ],
+    rotation: ['"Feel My Wrath!"', '"Feel My Wrath!"', { type: 'wait', durationMs: 2000 }],
     config: {
       ...config,
-      specialization: "Firebrand",
+      specialization: 'Firebrand',
       selectedSkills: ['"Feel My Wrath!"'],
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.QUICKFIRE],
       boons: { quickness: true },
-      allies: { count: 1, strikesPerSecond: 1 },
-    },
+      allies: { count: 1, strikesPerSecond: 1 }
+    }
   });
   const quickness = result.events.filter(
-    (event) =>
-      event.type === "buff" &&
-      event.skillName === '"Feel My Wrath!"' &&
-      event.kind === "quickness",
+    (event) => event.type === 'buff' && event.skillName === '"Feel My Wrath!"' && event.kind === 'quickness'
   );
 
   assert.deepEqual(
-    result.steps
-      .filter((step) => step.skill === '"Feel My Wrath!"')
-      .map((step) => [step.start, step.end]),
+    result.steps.filter((step) => step.skill === '"Feel My Wrath!"').map((step) => [step.start, step.end]),
     [
       [0, 400],
-      [30400, 30800],
-    ],
+      [30400, 30800]
+    ]
   );
   assert.deepEqual(
-    quickness.map((event) => [
-      event.affectsSelf,
-      event.alliedPlayerCount,
-      event.duration,
-    ]),
+    quickness.map((event) => [event.affectsSelf, event.alliedPlayerCount, event.duration]),
     [
       [false, 1, 3],
       [true, 0, 6],
       [false, 1, 3],
-      [true, 0, 6],
-    ],
+      [true, 0, 6]
+    ]
   );
   assert.equal(
-    result.resolvedEvents.filter(
-      (event) => event.skillName === "Quickfire" && event.triggeredByAlly === 1,
-    ).length,
-    2,
+    result.resolvedEvents.filter((event) => event.skillName === 'Quickfire' && event.triggeredByAlly === 1).length,
+    2
   );
   assert.ok(
-    result.resolvedEvents
-      .filter((event) => event.skillName === "Quickfire")
-      .every((event) => event.duration === 2),
+    result.resolvedEvents.filter((event) => event.skillName === 'Quickfire').every((event) => event.duration === 2)
   );
 });
 
-test("Quickfire grants one Ashes charge to a self-only quickness recipient", () => {
+test('Quickfire grants one Ashes charge to a self-only quickness recipient', () => {
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Tome of Justice",
-      "Chapter 2: Igniting Burst",
-      { type: "wait", durationMs: 3000 },
-    ],
+    rotation: ['Tome of Justice', 'Chapter 2: Igniting Burst', { type: 'wait', durationMs: 3000 }],
     config: {
       ...config,
-      specialization: "Firebrand",
+      specialization: 'Firebrand',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.QUICKFIRE],
-      allies: { count: 0, strikesPerSecond: 0 },
-    },
+      allies: { count: 0, strikesPerSecond: 0 }
+    }
   });
   const quickfireBurns = result.resolvedEvents.filter(
-    (event) =>
-      event.type === "condition" &&
-      event.sourceId === "guardian.ashes-of-the-just" &&
-      event.duration === 2,
+    (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just' && event.duration === 2
   );
 
-  assert.equal(
-    result.procSteps.filter((step) => step.skill === "Quickfire").length,
-    1,
-  );
+  assert.equal(result.procSteps.filter((step) => step.skill === 'Quickfire').length, 1);
   assert.equal(quickfireBurns.length, 1);
   assert.equal(quickfireBurns[0].triggeredByAlly, undefined);
 });
 
-test("equipping a dormant tome does not restart its Swift Scholar lockout", () => {
+test('equipping a dormant tome does not restart its Swift Scholar lockout', () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Tome of Justice",
-      "Stow Tome",
-      { type: "wait", durationMs: 1000 },
-      "Tome of Justice",
-      "Stow Tome",
-      { type: "wait", durationMs: 19000 },
-      "Tome of Justice",
+      'Tome of Justice',
+      'Stow Tome',
+      { type: 'wait', durationMs: 1000 },
+      'Tome of Justice',
+      'Stow Tome',
+      { type: 'wait', durationMs: 19000 },
+      'Tome of Justice'
     ],
     config: {
       ...config,
-      specialization: "Firebrand",
-    },
+      specialization: 'Firebrand'
+    }
   });
 
   assert.equal(
     result.events.filter(
-      (event) =>
-        event.type === "buff" &&
-        event.skillName === "Tome of Justice" &&
-        event.kind === "quickness",
+      (event) => event.type === 'buff' && event.skillName === 'Tome of Justice' && event.kind === 'quickness'
     ).length,
-    2,
+    2
   );
   assert.equal(result.endState.profession.virtueReadyAt.justice, 40);
   assert.deepEqual(result.warnings, []);
 });
 
-test("Firebrand specialization traits drive pages, quickness, and tome bonuses", () => {
+test('Firebrand specialization traits drive pages, quickness, and tome bonuses', () => {
   const lore = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Tome of Justice",
-      "Chapter 1: Searing Spell",
-      "Chapter 2: Igniting Burst",
-      "Chapter 3: Heated Rebuke",
-      "Stow Tome",
-      "Tome of Justice",
+      'Tome of Justice',
+      'Chapter 1: Searing Spell',
+      'Chapter 2: Igniting Burst',
+      'Chapter 3: Heated Rebuke',
+      'Stow Tome',
+      'Tome of Justice'
     ],
     config: {
       ...config,
-      specialization: "Firebrand",
+      specialization: 'Firebrand',
       initialTomePages: 5,
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.LEGENDARY_LORE],
-    },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.LEGENDARY_LORE]
+    }
   });
   assert.equal(lore.endState.profession.tomePages, 3);
   assert.equal(
     lore.events.filter(
-      (event) =>
-        event.type === "buff" &&
-        event.skillName === "Tome of Justice" &&
-        event.kind === "quickness",
+      (event) => event.type === 'buff' && event.skillName === 'Tome of Justice' && event.kind === 'quickness'
     ).length,
-    1,
+    1
   );
   assert.equal(
     lore.events.filter(
-      (event) =>
-        event.type === "buff" &&
-        event.sourceId === GUARDIAN_TRAIT_IDS.LEGENDARY_LORE &&
-        event.kind === "might",
+      (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.LEGENDARY_LORE && event.kind === 'might'
     ).length,
-    3,
+    3
   );
   assert.ok(
     lore.events
-      .filter(
-        (event) =>
-          event.type === "buff" &&
-          event.sourceId === GUARDIAN_TRAIT_IDS.LEGENDARY_LORE,
-      )
-      .every((event) => event.stacks === 2 && event.duration === 10),
+      .filter((event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.LEGENDARY_LORE)
+      .every((event) => event.stacks === 2 && event.duration === 10)
   );
 
   const weighted = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Potent Haste", "Potent Haste", "Overwhelming Celerity"],
+    rotation: ['Potent Haste', 'Potent Haste', 'Overwhelming Celerity'],
     config: {
       ...config,
-      specialization: "Firebrand",
-      selectedSkills: ["Mantra of Potence"],
+      specialization: 'Firebrand',
+      selectedSkills: ['Mantra of Potence'],
       initialTomePages: 1,
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS],
-    },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS]
+    }
   });
   assert.deepEqual(weighted.warnings, []);
   assert.equal(weighted.endState.profession.tomePages, 3);
   assert.deepEqual(
     weighted.resolvedEvents
-      .filter(
-        (event) =>
-          event.type === "condition" &&
-          event.sourceId === GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS,
-      )
+      .filter((event) => event.type === 'condition' && event.sourceId === GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS)
       .map((event) => [event.condition, event.duration]),
-    [["Slow", 1.5]],
+    [['Slow', 1.5]]
   );
 
   const liberated = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Shelter"],
+    rotation: ['Shelter'],
     config: {
       ...config,
-      specialization: "Firebrand",
-      selectedSkills: ["Shelter"],
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.LIBERATORS_VOW],
-    },
+      specialization: 'Firebrand',
+      selectedSkills: ['Shelter'],
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.LIBERATORS_VOW]
+    }
   });
   assert.equal(
     liberated.events.some(
       (event) =>
-        event.type === "buff" &&
-        event.kind === "quickness" &&
+        event.type === 'buff' &&
+        event.kind === 'quickness' &&
         event.sourceId === GUARDIAN_SKILL_IDS.SHELTER &&
-        event.duration === 2,
+        event.duration === 2
     ),
-    true,
+    true
   );
 });
 
-test("Firebrand grandmaster support traits react to boons and control", () => {
+test('Firebrand grandmaster support traits react to boons and control', () => {
   const quickfire = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Tome of Courage",
-      "Epilogue: Unbroken Lines",
-      { type: "wait", durationMs: 2000 },
-    ],
+    rotation: ['Tome of Courage', 'Epilogue: Unbroken Lines', { type: 'wait', durationMs: 2000 }],
     config: {
       ...config,
-      specialization: "Firebrand",
+      specialization: 'Firebrand',
       maximumTomePages: 8,
       initialTomePages: 8,
       allies: { count: 1, strikesPerSecond: 1 },
-      selectedTraitIds: [
-        GUARDIAN_TRAIT_IDS.STALWART_SPEED,
-        GUARDIAN_TRAIT_IDS.QUICKFIRE,
-      ],
-    },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.STALWART_SPEED, GUARDIAN_TRAIT_IDS.QUICKFIRE]
+    }
   });
   assert.equal(
-    quickfire.procSteps.some((step) => step.skill === "Stalwart Speed"),
-    true,
+    quickfire.procSteps.some((step) => step.skill === 'Stalwart Speed'),
+    true
   );
   assert.equal(
-    quickfire.procSteps.some((step) => step.skill === "Quickfire"),
-    true,
+    quickfire.procSteps.some((step) => step.skill === 'Quickfire'),
+    true
   );
   const stoic = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Tome of Courage", "Chapter 2: Daring Challenge"],
+    rotation: ['Tome of Courage', 'Chapter 2: Daring Challenge'],
     config: {
       ...config,
-      specialization: "Firebrand",
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR],
-    },
+      specialization: 'Firebrand',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR]
+    }
   });
   const stoicBuffs = stoic.events.filter(
-    (event) =>
-      event.type === "buff" &&
-      event.sourceId === GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR,
+    (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR
   );
   assert.deepEqual(
     stoicBuffs.map((event) => [event.kind, event.stacks, event.duration]),
     [
-      ["resistance", 1, 2],
-      ["might", 3, 10],
-    ],
+      ['resistance', 1, 2],
+      ['might', 3, 10]
+    ]
   );
 });
 
-test("Firebrand dormant passives and Imbued Haste use timeline state", () => {
+test('Firebrand dormant passives and Imbued Haste use timeline state', () => {
   const passive = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Whirling Wrath", { type: "wait", durationMs: 80000 }],
+    rotation: ['Whirling Wrath', { type: 'wait', durationMs: 80000 }],
     config: {
       ...config,
-      specialization: "Firebrand",
-      primaryWeapon: "Greatsword",
-    },
+      specialization: 'Firebrand',
+      primaryWeapon: 'Greatsword'
+    }
   });
   assert.equal(passive.endState.profession.justicePassiveBurns, 2);
   assert.equal(
     passive.resolvedEvents
-      .filter((event) => event.sourceId === "guardian.justice-passive")
-      .every(
-        (event) =>
-          event.skillId === GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE &&
-          event.skillName === "Tome of Justice",
-      ),
-    true,
+      .filter((event) => event.sourceId === 'guardian.justice-passive')
+      .every((event) => event.skillId === GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE && event.skillName === 'Tome of Justice'),
+    true
   );
   assert.deepEqual(
     passive.events
       .filter(
         (event) =>
-          event.type === "buff" &&
-          event.skillId === GUARDIAN_SKILL_IDS.TOME_OF_COURAGE &&
-          event.kind === "aegis",
+          event.type === 'buff' && event.skillId === GUARDIAN_SKILL_IDS.TOME_OF_COURAGE && event.kind === 'aegis'
       )
       .map((event) => event.at),
-    [0, 40, 80],
+    [0, 40, 80]
   );
 
   const tome = (traitIds) =>
     simulateGw2({
       profession: guardianProfession,
-      rotation: [
-        "Tome of Justice",
-        "Chapter 1: Searing Spell",
-        { type: "wait", durationMs: 3000 },
-      ],
+      rotation: ['Tome of Justice', 'Chapter 1: Searing Spell', { type: 'wait', durationMs: 3000 }],
       config: {
         ...config,
-        specialization: "Firebrand",
-        selectedTraitIds: traitIds,
-      },
+        specialization: 'Firebrand',
+        selectedTraitIds: traitIds
+      }
     });
   const normal = tome([]);
   const imbued = tome([GUARDIAN_TRAIT_IDS.IMBUED_HASTE]);
   assert.ok(imbued.conditionDamage > normal.conditionDamage);
 });
 
-test("Luminary Radiant Forge enforces entry and radiant weapon flips", () => {
+test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
   const unavailable = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Dazzling Hammer"],
-    config: { ...config, specialization: "Luminary" },
+    rotation: ['Dazzling Hammer'],
+    config: { ...config, specialization: 'Luminary' }
   });
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Enter Radiant Forge",
-      "Dazzling Hammer",
-      "Shining Spin",
-      "Glaring Burst",
-    ],
-    config: { ...config, specialization: "Luminary" },
+    rotation: ['Enter Radiant Forge', 'Dazzling Hammer', 'Shining Spin', 'Glaring Burst'],
+    config: { ...config, specialization: 'Luminary' }
   });
 
-  assert.match(
-    unavailable.warnings.join(" "),
-    /Dazzling Hammer is unavailable/,
-  );
+  assert.match(unavailable.warnings.join(' '), /Dazzling Hammer is unavailable/);
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.radiantForge, true);
-  assert.equal(result.endState.profession.radiantWeapon, "hammer");
-  const glaring = result.resolvedEvents.find(
-    (event) => event.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST,
-  );
+  assert.equal(result.endState.profession.radiantWeapon, 'hammer');
+  const glaring = result.resolvedEvents.find((event) => event.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST);
   assert.equal(glaring.coefficient, 1);
-  assert.equal(glaring.radiantWeapon, "hammer");
-  assert.equal(
-    Object.hasOwn(result.endState.cooldowns, "Enter Radiant Forge"),
-    false,
-  );
+  assert.equal(glaring.radiantWeapon, 'hammer');
+  assert.equal(Object.hasOwn(result.endState.cooldowns, 'Enter Radiant Forge'), false);
   assert.ok(result.totalDamage > 0);
 });
 
-test("Shining Spin strikes 400 ms into its quickened cast", () => {
+test('Shining Spin strikes 400 ms into its quickened cast', () => {
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Enter Radiant Forge", "Dazzling Hammer", "Shining Spin"],
+    rotation: ['Enter Radiant Forge', 'Dazzling Hammer', 'Shining Spin'],
     config: {
       ...config,
-      specialization: "Luminary",
-      boons: { quickness: true },
-    },
+      specialization: 'Luminary',
+      boons: { quickness: true }
+    }
   });
-  const action = result.events.find(
-    (event) => event.type === "action" && event.skillName === "Shining Spin",
-  );
-  const strike = result.resolvedEvents.find(
-    (event) => event.type === "damage" && event.name === "Shining Spin",
-  );
+  const action = result.events.find((event) => event.type === 'action' && event.skillName === 'Shining Spin');
+  const strike = result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Shining Spin');
 
   assert.equal(Math.round((strike.at - action.at) * 1000), 400);
 });
 
-test("Luminary Radiant Forge transitions reset weapon autoattack chains", () => {
+test('Luminary Radiant Forge transitions reset weapon autoattack chains', () => {
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Strike", "Enter Radiant Forge", "Exit Radiant Forge", "Strike"],
+    rotation: ['Strike', 'Enter Radiant Forge', 'Exit Radiant Forge', 'Strike'],
     config: {
       ...config,
-      specialization: "Luminary",
-      primaryWeapon: "Greatsword",
-    },
+      specialization: 'Luminary',
+      primaryWeapon: 'Greatsword'
+    }
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(
-    result.events.filter(
-      (event) => event.type === "action" && event.skillName === "Strike",
-    ).length,
-    2,
-  );
+  assert.equal(result.events.filter((event) => event.type === 'action' && event.skillName === 'Strike').length, 2);
 });
 
-test("Radiant Forge strikes use its normalized transform weapon strength", () => {
+test('Radiant Forge strikes use its normalized transform weapon strength', () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Enter Radiant Forge",
-      "Dazzling Hammer",
-      "Shining Spin",
-      "Glaring Burst",
-      "Luminous Staff",
-      "Glaring Burst",
-      "Gleaming Blade",
-      "Glaring Burst",
-      "Lucent Thrust",
-      "Radiant Bulwark",
-      "Brilliant Slam",
+      'Enter Radiant Forge',
+      'Dazzling Hammer',
+      'Shining Spin',
+      'Glaring Burst',
+      'Luminous Staff',
+      'Glaring Burst',
+      'Gleaming Blade',
+      'Glaring Burst',
+      'Lucent Thrust',
+      'Radiant Bulwark',
+      'Brilliant Slam'
     ],
-    config: { ...config, specialization: "Luminary" },
+    config: { ...config, specialization: 'Luminary' }
   });
   const hitsFor = (skillName) =>
-    result.resolvedEvents.filter(
-      (event) => event.type === "damage" && event.skillName === skillName,
-    );
+    result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === skillName);
   const assertProfile = (skillName, profileId, strength) => {
     const hits = hitsFor(skillName);
     assert.ok(hits.length > 0, skillName);
     assert.ok(
-      hits.every(
-        (event) =>
-          event.weaponStrengthProfileId === profileId &&
-          event.resolvedWeaponStrength === strength,
-      ),
-      skillName,
+      hits.every((event) => event.weaponStrengthProfileId === profileId && event.resolvedWeaponStrength === strength),
+      skillName
     );
   };
 
   for (const skillName of [
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Luminous Staff",
-    "Gleaming Blade",
-    "Lucent Thrust",
-    "Brilliant Slam",
+    'Dazzling Hammer',
+    'Shining Spin',
+    'Luminous Staff',
+    'Gleaming Blade',
+    'Lucent Thrust',
+    'Brilliant Slam'
   ]) {
-    assertProfile(skillName, "transform.radiant-forge", 1015);
+    assertProfile(skillName, 'transform.radiant-forge', 1015);
   }
 
   assert.deepEqual(
-    hitsFor("Glaring Burst").map((event) => [
+    hitsFor('Glaring Burst').map((event) => [
       event.radiantWeapon,
       event.weaponStrengthProfileId,
-      event.resolvedWeaponStrength,
+      event.resolvedWeaponStrength
     ]),
     [
-      ["hammer", "transform.radiant-forge", 1015],
-      ["blade", "transform.radiant-forge", 1015],
-    ],
+      ['hammer', 'transform.radiant-forge', 1015],
+      ['blade', 'transform.radiant-forge', 1015]
+    ]
   );
   assert.deepEqual(result.warnings, []);
 });
 
-test("Radiant Forge recharge starts on exit and uses equipped weapons", () => {
+test('Radiant Forge recharge starts on exit and uses equipped weapons', () => {
   const hammerOnly = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Enter Radiant Forge",
-      "Dazzling Hammer",
-      "Shining Spin",
-      "Exit Radiant Forge",
-      "Enter Radiant Forge",
-    ],
-    config: { ...config, specialization: "Luminary" },
+    rotation: ['Enter Radiant Forge', 'Dazzling Hammer', 'Shining Spin', 'Exit Radiant Forge', 'Enter Radiant Forge'],
+    config: { ...config, specialization: 'Luminary' }
   });
   const allWeapons = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Enter Radiant Forge",
-      "Dazzling Hammer",
-      "Luminous Staff",
-      "Gleaming Blade",
-      "Radiant Bulwark",
-      "Exit Radiant Forge",
-      "Enter Radiant Forge",
+      'Enter Radiant Forge',
+      'Dazzling Hammer',
+      'Luminous Staff',
+      'Gleaming Blade',
+      'Radiant Bulwark',
+      'Exit Radiant Forge',
+      'Enter Radiant Forge'
     ],
-    config: { ...config, specialization: "Luminary" },
+    config: { ...config, specialization: 'Luminary' }
   });
 
-  assert.equal(
-    hammerOnly.steps.filter((step) => step.skill === "Enter Radiant Forge")[1]
-      .start,
-    6440,
-  );
-  assert.equal(
-    allWeapons.steps.filter((step) => step.skill === "Enter Radiant Forge")[1]
-      .start,
-    14820,
-  );
+  assert.equal(hammerOnly.steps.filter((step) => step.skill === 'Enter Radiant Forge')[1].start, 6440);
+  assert.equal(allWeapons.steps.filter((step) => step.skill === 'Enter Radiant Forge')[1].start, 14820);
   assert.equal(allWeapons.endState.profession.radiantForgeEndsAt, 34.82);
 });
 
-test("Radiant Forge recharge starts when its automatic exit occurs", () => {
+test('Radiant Forge recharge starts when its automatic exit occurs', () => {
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Enter Radiant Forge",
-      { type: "wait", durationMs: 21000 },
-      "Enter Radiant Forge",
-    ],
-    config: { ...config, specialization: "Luminary" },
+    rotation: ['Enter Radiant Forge', { type: 'wait', durationMs: 21000 }, 'Enter Radiant Forge'],
+    config: { ...config, specialization: 'Luminary' }
   });
 
-  assert.equal(
-    result.steps.filter((step) => step.skill === "Enter Radiant Forge")[1]
-      .start,
-    25000,
-  );
+  assert.equal(result.steps.filter((step) => step.skill === 'Enter Radiant Forge')[1].start, 25000);
 });
 
-test("Radiant Forge transitions emit the current set and trigger swap sigils", () => {
+test('Radiant Forge transitions emit the current set and trigger swap sigils', () => {
   const outOfCombat = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Enter Radiant Forge", { type: "wait", durationMs: 1000 }],
+    rotation: ['Enter Radiant Forge', { type: 'wait', durationMs: 1000 }],
     config: {
       ...config,
-      specialization: "Luminary",
+      specialization: 'Luminary',
       sigilSets: [
         {
-          names: ["Hydromancy", "Geomancy"],
+          names: ['Hydromancy', 'Geomancy'],
           strike: 1,
-          condition: 1,
+          condition: 1
         },
-        { names: [], strike: 1, condition: 1 },
-      ],
-    },
+        { names: [], strike: 1, condition: 1 }
+      ]
+    }
   });
   assert.equal(
-    outOfCombat.procSteps.some((step) => step.type === "sigil_proc"),
-    false,
+    outOfCombat.procSteps.some((step) => step.type === 'sigil_proc'),
+    false
   );
 
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Daring Advance",
-      "Piercing Stance",
-      "Enter Radiant Forge",
-      "Exit Radiant Forge",
-      "Enter Radiant Forge",
-      "Exit Radiant Forge",
-      "Enter Radiant Forge",
-      { type: "wait", durationMs: 9000 },
+      'Daring Advance',
+      'Piercing Stance',
+      'Enter Radiant Forge',
+      'Exit Radiant Forge',
+      'Enter Radiant Forge',
+      'Exit Radiant Forge',
+      'Enter Radiant Forge',
+      { type: 'wait', durationMs: 9000 }
     ],
     config: {
       ...config,
-      specialization: "Luminary",
+      specialization: 'Luminary',
       sigilSets: [
         {
-          names: ["Hydromancy", "Geomancy"],
+          names: ['Hydromancy', 'Geomancy'],
           strike: 1,
-          condition: 1,
+          condition: 1
         },
-        { names: [], strike: 1, condition: 1 },
-      ],
-    },
+        { names: [], strike: 1, condition: 1 }
+      ]
+    }
   });
   const procTimes = (name) =>
-    result.procSteps
-      .filter((step) => step.skill === `Sigil of ${name}`)
-      .map((step) => step.start);
+    result.procSteps.filter((step) => step.skill === `Sigil of ${name}`).map((step) => step.start);
   const applications = (condition) =>
     result.resolvedEvents.filter(
       (event) =>
-        event.skillName ===
-          `Sigil of ${condition === "Chilled" ? "Hydromancy" : "Geomancy"}` &&
-        event.condition === condition,
+        event.skillName === `Sigil of ${condition === 'Chilled' ? 'Hydromancy' : 'Geomancy'}` &&
+        event.condition === condition
     );
 
-  assert.deepEqual(procTimes("Hydromancy"), [1300, 11300]);
-  assert.deepEqual(procTimes("Geomancy"), [1300, 11300]);
+  assert.deepEqual(procTimes('Hydromancy'), [1300, 11300]);
+  assert.deepEqual(procTimes('Geomancy'), [1300, 11300]);
   assert.deepEqual(
-    result.events
-      .filter((event) => event.type === "weapon_set")
-      .map((event) => [event.skillName, event.weaponSet]),
+    result.events.filter((event) => event.type === 'weapon_set').map((event) => [event.skillName, event.weaponSet]),
     [
-      ["Enter Radiant Forge", 1],
-      ["Exit Radiant Forge", 1],
-      ["Enter Radiant Forge", 1],
-      ["Exit Radiant Forge", 1],
-      ["Enter Radiant Forge", 1],
-    ],
+      ['Enter Radiant Forge', 1],
+      ['Exit Radiant Forge', 1],
+      ['Enter Radiant Forge', 1],
+      ['Exit Radiant Forge', 1],
+      ['Enter Radiant Forge', 1]
+    ]
   );
   assert.ok(
     result.procSteps
-      .filter((step) =>
-        ["Sigil of Hydromancy", "Sigil of Geomancy"].includes(step.skill),
-      )
+      .filter((step) => ['Sigil of Hydromancy', 'Sigil of Geomancy'].includes(step.skill))
       .every(
         (step) =>
-          step.sourceSkill === "Enter Radiant Forge" &&
-          step.icon.startsWith("https://render.guildwars2.com/file/"),
-      ),
+          step.sourceSkill === 'Enter Radiant Forge' && step.icon.startsWith('https://render.guildwars2.com/file/')
+      )
   );
   assert.equal(
-    result.resolvedEvents.filter(
-      (event) =>
-        event.skillName === "Sigil of Hydromancy" && event.type === "damage",
-    ).length,
-    2,
+    result.resolvedEvents.filter((event) => event.skillName === 'Sigil of Hydromancy' && event.type === 'damage')
+      .length,
+    2
   );
-  assert.equal(applications("Chilled").length, 2);
-  assert.equal(applications("Bleeding").length, 2);
-  assert.ok(
-    applications("Bleeding").every((application) => application.damage > 0),
-  );
+  assert.equal(applications('Chilled').length, 2);
+  assert.equal(applications('Bleeding').length, 2);
+  assert.ok(applications('Bleeding').every((application) => application.damage > 0));
 
   const manualExit = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Daring Advance",
-      "Piercing Stance",
-      "Enter Radiant Forge",
-      { type: "wait", durationMs: 10000 },
-      "Exit Radiant Forge",
-      { type: "wait", durationMs: 1000 },
+      'Daring Advance',
+      'Piercing Stance',
+      'Enter Radiant Forge',
+      { type: 'wait', durationMs: 10000 },
+      'Exit Radiant Forge',
+      { type: 'wait', durationMs: 1000 }
     ],
     config: {
       ...config,
-      specialization: "Luminary",
+      specialization: 'Luminary',
       sigilSets: [
         {
-          names: ["Hydromancy", "Geomancy"],
+          names: ['Hydromancy', 'Geomancy'],
           strike: 1,
-          condition: 1,
+          condition: 1
         },
-        { names: [], strike: 1, condition: 1 },
-      ],
-    },
+        { names: [], strike: 1, condition: 1 }
+      ]
+    }
   });
   assert.deepEqual(
     manualExit.procSteps
-      .filter((step) => step.skill === "Sigil of Hydromancy")
+      .filter((step) => step.skill === 'Sigil of Hydromancy')
       .map((step) => [step.start, step.sourceSkill]),
     [
-      [1300, "Enter Radiant Forge"],
-      [11300, "Exit Radiant Forge"],
-    ],
+      [1300, 'Enter Radiant Forge'],
+      [11300, 'Exit Radiant Forge']
+    ]
   );
 
   const automaticExit = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Daring Advance",
-      "Piercing Stance",
-      "Enter Radiant Forge",
-      { type: "wait", durationMs: 21000 },
-    ],
+    rotation: ['Daring Advance', 'Piercing Stance', 'Enter Radiant Forge', { type: 'wait', durationMs: 21000 }],
     config: {
       ...config,
-      specialization: "Luminary",
+      specialization: 'Luminary',
       sigilSets: [
         {
-          names: ["Hydromancy", "Geomancy"],
+          names: ['Hydromancy', 'Geomancy'],
           strike: 1,
-          condition: 1,
+          condition: 1
         },
-        { names: [], strike: 1, condition: 1 },
-      ],
-    },
+        { names: [], strike: 1, condition: 1 }
+      ]
+    }
   });
   assert.deepEqual(
     automaticExit.procSteps
-      .filter((step) => step.skill === "Sigil of Geomancy")
+      .filter((step) => step.skill === 'Sigil of Geomancy')
       .map((step) => [step.start, step.sourceSkill]),
     [
-      [1300, "Enter Radiant Forge"],
-      [21300, "Exit Radiant Forge"],
-    ],
+      [1300, 'Enter Radiant Forge'],
+      [21300, 'Exit Radiant Forge']
+    ]
   );
   assert.deepEqual(
     automaticExit.events
-      .filter((event) => event.type === "weapon_set")
-      .map((event) => [
-        event.skillName,
-        event.weaponSet,
-        Boolean(event.automatic),
-      ]),
+      .filter((event) => event.type === 'weapon_set')
+      .map((event) => [event.skillName, event.weaponSet, Boolean(event.automatic)]),
     [
-      ["Enter Radiant Forge", 1, false],
-      ["Exit Radiant Forge", 1, true],
-    ],
+      ['Enter Radiant Forge', 1, false],
+      ['Exit Radiant Forge', 1, true]
+    ]
   );
 
   const radiantWeapon = simulateGw2({
     profession: guardianProfession,
     rotation: [
-      "Daring Advance",
-      "Piercing Stance",
-      "Enter Radiant Forge",
-      { type: "wait", durationMs: 10000 },
-      "Dazzling Hammer",
-      "Shining Spin",
-      { type: "wait", durationMs: 1000 },
+      'Daring Advance',
+      'Piercing Stance',
+      'Enter Radiant Forge',
+      { type: 'wait', durationMs: 10000 },
+      'Dazzling Hammer',
+      'Shining Spin',
+      { type: 'wait', durationMs: 1000 }
     ],
     config: {
       ...config,
-      specialization: "Luminary",
+      specialization: 'Luminary',
       sigilSets: [
         {
-          names: ["Hydromancy", "Geomancy"],
+          names: ['Hydromancy', 'Geomancy'],
           strike: 1,
-          condition: 1,
+          condition: 1
         },
-        { names: [], strike: 1, condition: 1 },
-      ],
-    },
+        { names: [], strike: 1, condition: 1 }
+      ]
+    }
   });
   assert.deepEqual(
     radiantWeapon.procSteps
-      .filter((step) => step.skill === "Sigil of Hydromancy")
+      .filter((step) => step.skill === 'Sigil of Hydromancy')
       .map((step) => [step.start, step.sourceSkill]),
     [
-      [1300, "Enter Radiant Forge"],
-      [12020, "Dazzling Hammer"],
-    ],
+      [1300, 'Enter Radiant Forge'],
+      [12020, 'Dazzling Hammer']
+    ]
   );
   assert.equal(
-    radiantWeapon.procSteps.some(
-      (step) =>
-        step.skill === "Sigil of Hydromancy" &&
-        step.sourceSkill === "Shining Spin",
-    ),
-    false,
+    radiantWeapon.procSteps.some((step) => step.skill === 'Sigil of Hydromancy' && step.sourceSkill === 'Shining Spin'),
+    false
   );
 });
 
-test("Luminary weapon coefficients, disables, and armament buffs resolve", () => {
+test('Luminary weapon coefficients, disables, and armament buffs resolve', () => {
   const rotation = [
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
-    "Shining Spin",
-    "Luminous Staff",
-    { type: "wait", durationMs: 3500 },
+    'Enter Radiant Forge',
+    'Dazzling Hammer',
+    'Shining Spin',
+    'Luminous Staff',
+    { type: 'wait', durationMs: 3500 }
   ];
   const empowered = simulateGw2({
     profession: guardianProfession,
     rotation,
     config: {
       ...config,
-      specialization: "Luminary",
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS],
-    },
+      specialization: 'Luminary',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS]
+    }
   });
   const armaments = simulateGw2({
     profession: guardianProfession,
     rotation,
     config: {
       ...config,
-      specialization: "Luminary",
-      selectedTraitIds: [
-        GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS,
-        GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS,
-      ],
-    },
+      specialization: 'Luminary',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS]
+    }
   });
-  const damage = (result, name) =>
-    result.resolvedEvents.find((event) => event.name === name);
-  const dazzling = damage(armaments, "Dazzling Hammer");
-  const shining = damage(armaments, "Shining Spin");
+  const damage = (result, name) => result.resolvedEvents.find((event) => event.name === name);
+  const dazzling = damage(armaments, 'Dazzling Hammer');
+  const shining = damage(armaments, 'Shining Spin');
   const defiantAfterDaze = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Enter Radiant Forge", "Dazzling Hammer", "Shining Spin"],
+    rotation: ['Enter Radiant Forge', 'Dazzling Hammer', 'Shining Spin'],
     config: {
       ...config,
-      specialization: "Luminary",
-      target: { ...config.target, defiant: true },
-    },
+      specialization: 'Luminary',
+      target: { ...config.target, defiant: true }
+    }
   });
   const ordinaryAfterDaze = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Enter Radiant Forge", "Dazzling Hammer", "Shining Spin"],
+    rotation: ['Enter Radiant Forge', 'Dazzling Hammer', 'Shining Spin'],
     config: {
       ...config,
-      specialization: "Luminary",
-    },
+      specialization: 'Luminary'
+    }
   });
 
   assert.equal(dazzling.coefficient, 1.2);
   assert.equal(shining.coefficient, 1.25);
   assert.ok(shining.damage > dazzling.damage);
   assert.ok(
-    Math.abs(
-      damage(defiantAfterDaze, "Shining Spin").damage /
-        damage(ordinaryAfterDaze, "Shining Spin").damage -
-        1,
-    ) < 1e-9,
+    Math.abs(damage(defiantAfterDaze, 'Shining Spin').damage / damage(ordinaryAfterDaze, 'Shining Spin').damage - 1) <
+      1e-9
   );
-  assert.ok(
-    Math.abs(
-      dazzling.damage / damage(empowered, "Dazzling Hammer").damage - 1,
-    ) < 1e-9,
-  );
-  assert.ok(
-    Math.abs(
-      shining.damage / damage(empowered, "Shining Spin").damage - 1.17 / 1.1,
-    ) < 1e-9,
-  );
-  const armamentStaff = armaments.resolvedEvents.filter(
-    (event) => event.name === "Luminous Staff — Symbol Damage",
-  );
-  const empoweredStaff = empowered.resolvedEvents.filter(
-    (event) => event.name === "Luminous Staff — Symbol Damage",
-  );
-  assert.ok(
-    Math.abs(armamentStaff[0].damage / empoweredStaff[0].damage - 1.17 / 1.1) <
-      1e-9,
-  );
+  assert.ok(Math.abs(dazzling.damage / damage(empowered, 'Dazzling Hammer').damage - 1) < 1e-9);
+  assert.ok(Math.abs(shining.damage / damage(empowered, 'Shining Spin').damage - 1.17 / 1.1) < 1e-9);
+  const armamentStaff = armaments.resolvedEvents.filter((event) => event.name === 'Luminous Staff — Symbol Damage');
+  const empoweredStaff = empowered.resolvedEvents.filter((event) => event.name === 'Luminous Staff — Symbol Damage');
+  assert.ok(Math.abs(armamentStaff[0].damage / empoweredStaff[0].damage - 1.17 / 1.1) < 1e-9);
   assert.equal(
     armamentStaff
       .slice(1)
-      .every(
-        (event, index) =>
-          Math.abs(event.damage / empoweredStaff[index + 1].damage - 1) < 1e-9,
-      ),
-    true,
+      .every((event, index) => Math.abs(event.damage / empoweredStaff[index + 1].damage - 1) < 1e-9),
+    true
   );
-  assert.equal(
-    armaments.resolvedEvents.filter(
-      (event) => event.name === "Luminous Staff — Symbol Damage",
-    ).length,
-    4,
-  );
+  assert.equal(armaments.resolvedEvents.filter((event) => event.name === 'Luminous Staff — Symbol Damage').length, 4);
   assert.deepEqual(
-    armaments.procSteps
-      .filter((step) => step.skill === "Empowered Armaments")
-      .map((step) => step.detail),
-    ["triggered", "refreshed"],
+    armaments.procSteps.filter((step) => step.skill === 'Empowered Armaments').map((step) => step.detail),
+    ['triggered', 'refreshed']
   );
   assert.equal(
-    armaments.procSteps.filter((step) => step.skill === "Radiant Armaments")[1]
-      .detail,
-    "staff: hammer bonus removed",
+    armaments.procSteps.filter((step) => step.skill === 'Radiant Armaments')[1].detail,
+    'staff: hammer bonus removed'
   );
 
   const justice = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Radiant Justice",
-      "Enter Radiant Forge",
-      "Dazzling Hammer",
-      { type: "wait", durationMs: 1000 },
-    ],
-    config: { ...config, specialization: "Luminary" },
+    rotation: ['Radiant Justice', 'Enter Radiant Forge', 'Dazzling Hammer', { type: 'wait', durationMs: 1000 }],
+    config: { ...config, specialization: 'Luminary' }
   });
-  const hammerPackets = justice.resolvedEvents.filter(
-    (event) => event.skillId === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER,
-  );
+  const hammerPackets = justice.resolvedEvents.filter((event) => event.skillId === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER);
   assert.deepEqual(
     hammerPackets.map((event) => event.coefficient),
-    [1.2, 1.5],
+    [1.2, 1.5]
   );
   assert.ok(Math.abs(hammerPackets[1].at - hammerPackets[0].at - 0.75) < 1e-9);
 
   const gleaming = (selectedTraitIds) =>
     simulateGw2({
       profession: guardianProfession,
-      rotation: [
-        ...(selectedTraitIds ? ["Radiant Courage"] : []),
-        "Enter Radiant Forge",
-        "Gleaming Blade",
-      ],
-      config: { ...config, specialization: "Luminary" },
+      rotation: [...(selectedTraitIds ? ['Radiant Courage'] : []), 'Enter Radiant Forge', 'Gleaming Blade'],
+      config: { ...config, specialization: 'Luminary' }
     });
-  const normalBlade = damage(gleaming(false), "Gleaming Blade");
-  const empoweredBlade = damage(gleaming(true), "Gleaming Blade");
+  const normalBlade = damage(gleaming(false), 'Gleaming Blade');
+  const empoweredBlade = damage(gleaming(true), 'Gleaming Blade');
   assert.ok(Math.abs(empoweredBlade.damage / normalBlade.damage - 1.5) < 1e-9);
 });
 
-test("Guardian armaments share the additive sigil bucket", () => {
-  const rotation = ["Enter Radiant Forge", "Dazzling Hammer", "Shining Spin"];
-  const run = ({
-    selectedTraitIds = [],
-    sigilSets = undefined,
-    burning = false,
-  } = {}) =>
+test('Guardian armaments share the additive sigil bucket', () => {
+  const rotation = ['Enter Radiant Forge', 'Dazzling Hammer', 'Shining Spin'];
+  const run = ({ selectedTraitIds = [], sigilSets = undefined, burning = false } = {}) =>
     simulateGw2({
       profession: guardianProfession,
       rotation,
       config: {
         ...config,
-        specialization: "Luminary",
+        specialization: 'Luminary',
         selectedTraitIds,
         sigilSets,
         target: {
           ...config.target,
-          conditions: burning ? { Burning: true } : {},
-        },
-      },
+          conditions: burning ? { Burning: true } : {}
+        }
+      }
     });
-  const shining = (result) =>
-    result.resolvedEvents.find((event) => event.name === "Shining Spin").damage;
+  const shining = (result) => result.resolvedEvents.find((event) => event.name === 'Shining Spin').damage;
   const baseline = run();
   const sigils = run({
-    sigilSets: [
-      { names: ["Force", "Impact"], strikeAdd: 0.08, strike: 1.08 },
-      {},
-    ],
+    sigilSets: [{ names: ['Force', 'Impact'], strikeAdd: 0.08, strike: 1.08 }, {}]
   });
   const armaments = run({
-    selectedTraitIds: [
-      GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS,
-      GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS,
-    ],
-    sigilSets: [
-      { names: ["Force", "Impact"], strikeAdd: 0.08, strike: 1.08 },
-      {},
-    ],
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS],
+    sigilSets: [{ names: ['Force', 'Impact'], strikeAdd: 0.08, strike: 1.08 }, {}]
   });
   const conditional = run({
     selectedTraitIds: [
       GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS,
       GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS,
-      GUARDIAN_TRAIT_IDS.FIERY_WRATH,
+      GUARDIAN_TRAIT_IDS.FIERY_WRATH
     ],
-    sigilSets: [
-      { names: ["Force", "Impact"], strikeAdd: 0.08, strike: 1.08 },
-      {},
-    ],
-    burning: true,
+    sigilSets: [{ names: ['Force', 'Impact'], strikeAdd: 0.08, strike: 1.08 }, {}],
+    burning: true
   });
 
   assert.ok(Math.abs(shining(sigils) / shining(baseline) - 1.08) < 1e-9);
@@ -4071,56 +3202,40 @@ test("Guardian armaments share the additive sigil bucket", () => {
   assert.ok(Math.abs(shining(conditional) / shining(armaments) - 1.05) < 1e-9);
 });
 
-test("Radiant virtues grant one-use hammer and sword empowerments", () => {
+test('Radiant virtues grant one-use hammer and sword empowerments', () => {
   const armedHammer = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Radiant Justice"],
-    config: { ...config, specialization: "Luminary" },
+    rotation: ['Radiant Justice'],
+    config: { ...config, specialization: 'Luminary' }
   });
   const hammer = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Radiant Justice",
-      "Enter Radiant Forge",
-      "Dazzling Hammer",
-      "Dazzling Hammer",
-    ],
-    config: { ...config, specialization: "Luminary" },
+    rotation: ['Radiant Justice', 'Enter Radiant Forge', 'Dazzling Hammer', 'Dazzling Hammer'],
+    config: { ...config, specialization: 'Luminary' }
   });
   const armedSword = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Radiant Courage"],
-    config: { ...config, specialization: "Luminary" },
+    rotation: ['Radiant Courage'],
+    config: { ...config, specialization: 'Luminary' }
   });
   const sword = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Radiant Courage",
-      "Enter Radiant Forge",
-      "Gleaming Blade",
-      "Gleaming Blade",
-    ],
-    config: { ...config, specialization: "Luminary" },
+    rotation: ['Radiant Courage', 'Enter Radiant Forge', 'Gleaming Blade', 'Gleaming Blade'],
+    config: { ...config, specialization: 'Luminary' }
   });
-  const bladeHits = sword.resolvedEvents.filter(
-    (event) => event.name === "Gleaming Blade",
-  );
+  const bladeHits = sword.resolvedEvents.filter((event) => event.name === 'Gleaming Blade');
 
   assert.equal(armedHammer.endState.profession.radiantJusticeArmed, true);
   assert.equal(
-    hammer.resolvedEvents.filter(
-      (event) => event.name === "Dazzling Hammer — Radiant Justice Impact",
-    ).length,
-    1,
+    hammer.resolvedEvents.filter((event) => event.name === 'Dazzling Hammer — Radiant Justice Impact').length,
+    1
   );
   assert.equal(hammer.endState.profession.radiantJusticeArmed, false);
   assert.ok(
     hammer.procSteps.some(
       (step) =>
-        step.type === "skill_proc" &&
-        step.skill === "Empowered Hammer" &&
-        step.sourceSkill === "Radiant Justice",
-    ),
+        step.type === 'skill_proc' && step.skill === 'Empowered Hammer' && step.sourceSkill === 'Radiant Justice'
+    )
   );
 
   assert.equal(armedSword.endState.profession.radiantCourageSwordArmed, true);
@@ -4129,995 +3244,725 @@ test("Radiant virtues grant one-use hammer and sword empowerments", () => {
   assert.equal(sword.endState.profession.radiantCourageSwordArmed, false);
   assert.ok(
     sword.procSteps.some(
-      (step) =>
-        step.type === "skill_proc" &&
-        step.skill === "Empowered Sword" &&
-        step.sourceSkill === "Radiant Courage",
-    ),
+      (step) => step.type === 'skill_proc' && step.skill === 'Empowered Sword' && step.sourceSkill === 'Radiant Courage'
+    )
   );
 });
 
-test("Guardian strike modifiers use their tested additive and mult buckets", () => {
+test('Guardian strike modifiers use their tested additive and mult buckets', () => {
   const run = (selectedTraitIds) =>
     simulateGw2({
       profession: guardianProfession,
-      rotation: ["Symbol of Resolution", { type: "wait", durationMs: 1500 }],
+      rotation: ['Symbol of Resolution', { type: 'wait', durationMs: 1500 }],
       config: {
         ...config,
         boons: { fury: true },
-        primaryWeapon: "Greatsword",
+        primaryWeapon: 'Greatsword',
         selectedTraitIds,
-        sigilSets: [{ names: ["Force"], strikeAdd: 0.05, strike: 1.05 }, {}],
+        sigilSets: [{ names: ['Force'], strikeAdd: 0.05, strike: 1.05 }, {}],
         target: {
           ...config.target,
           conditions: {
             Burning: true,
-            Vulnerability: 25,
-          },
-        },
-      },
+            Vulnerability: 25
+          }
+        }
+      }
     });
-  const pulse = (result) =>
-    result.resolvedEvents.filter(
-      (event) => event.name === "Symbol of Resolution",
-    )[0].damage;
+  const pulse = (result) => result.resolvedEvents.filter((event) => event.name === 'Symbol of Resolution')[0].damage;
   const baseline = run([]);
   const conditional = run([
     GUARDIAN_TRAIT_IDS.FIERY_WRATH,
     GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS,
     GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
-    GUARDIAN_TRAIT_IDS.RETRIBUTION,
+    GUARDIAN_TRAIT_IDS.RETRIBUTION
   ]);
 
-  assert.ok(
-    Math.abs(
-      pulse(conditional) / pulse(baseline) - (1.25 / 1.05) * 1.05 * 1.05,
-    ) < 1e-9,
-  );
+  assert.ok(Math.abs(pulse(conditional) / pulse(baseline) - (1.25 / 1.05) * 1.05 * 1.05) < 1e-9);
 });
 
-test("Luminary stances apply modifiers, combos, delayed damage, and control", () => {
+test('Luminary stances apply modifiers, combos, delayed damage, and control', () => {
   const piercing = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Piercing Stance",
-      "Piercing Stance",
-      { type: "wait", durationMs: 1000 },
-    ],
+    rotation: ['Piercing Stance', 'Piercing Stance', { type: 'wait', durationMs: 1000 }],
     config: {
       ...config,
-      specialization: "Luminary",
-      relic: "Claw",
-    },
+      specialization: 'Luminary',
+      relic: 'Claw'
+    }
   });
   const daring = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Daring Advance", { type: "wait", durationMs: 1000 }],
-    config: { ...config, specialization: "Luminary" },
+    rotation: ['Daring Advance', { type: 'wait', durationMs: 1000 }],
+    config: { ...config, specialization: 'Luminary' }
   });
   const daringThenPiercing = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Daring Advance",
-      "Piercing Stance",
-      { type: "wait", durationMs: 1000 },
-    ],
-    config: { ...config, specialization: "Luminary" },
+    rotation: ['Daring Advance', 'Piercing Stance', { type: 'wait', durationMs: 1000 }],
+    config: { ...config, specialization: 'Luminary' }
   });
   const quickPiercing = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Piercing Stance"],
+    rotation: ['Piercing Stance'],
     config: {
       ...config,
-      specialization: "Luminary",
-      boons: { quickness: true },
-    },
+      specialization: 'Luminary',
+      boons: { quickness: true }
+    }
   });
   const effulgent = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Effulgent Stance",
-      "Whirling Wrath",
-      { type: "wait", durationMs: 4000 },
-    ],
+    rotation: ['Effulgent Stance', 'Whirling Wrath', { type: 'wait', durationMs: 4000 }],
     config: {
       ...config,
-      specialization: "Luminary",
-      primaryWeapon: "Greatsword",
-      relic: "Claw",
-    },
+      specialization: 'Luminary',
+      primaryWeapon: 'Greatsword',
+      relic: 'Claw'
+    }
   });
   const effulgentWithGuardianProcs = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Effulgent Stance",
-      "Enter Radiant Forge",
-      "Dazzling Hammer",
-      { type: "wait", durationMs: 4000 },
-    ],
+    rotation: ['Effulgent Stance', 'Enter Radiant Forge', 'Dazzling Hammer', { type: 'wait', durationMs: 4000 }],
     config: {
       ...config,
-      specialization: "Luminary",
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT],
-    },
+      specialization: 'Luminary',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
+    }
   });
-  const effulgentDamage = effulgent.resolvedEvents.find(
-    (event) => event.name === "Effulgent Stance",
-  );
+  const effulgentDamage = effulgent.resolvedEvents.find((event) => event.name === 'Effulgent Stance');
   const procChargedEffulgent = effulgentWithGuardianProcs.resolvedEvents.find(
-    (event) => event.name === "Effulgent Stance",
+    (event) => event.name === 'Effulgent Stance'
   );
-  const piercingBuffs = piercing.events.filter(
-    (event) => event.kind === "guardian-piercing-stance",
-  );
+  const piercingBuffs = piercing.events.filter((event) => event.kind === 'guardian-piercing-stance');
   const quickPiercingAction = quickPiercing.events.find(
-    (event) => event.type === "action" && event.skillName === "Piercing Stance",
+    (event) => event.type === 'action' && event.skillName === 'Piercing Stance'
   );
-  const quickPiercingBuff = quickPiercing.events.find(
-    (event) => event.kind === "guardian-piercing-stance",
-  );
+  const quickPiercingBuff = quickPiercing.events.find((event) => event.kind === 'guardian-piercing-stance');
   const quickPiercingPackets = quickPiercing.events.filter(
-    (event) =>
-      ["damage", "control"].includes(event.type) &&
-      event.skillName === "Piercing Stance",
+    (event) => ['damage', 'control'].includes(event.type) && event.skillName === 'Piercing Stance'
   );
 
   assert.equal(
-    piercing.events.find(
-      (event) =>
-        event.type === "control" && event.skillName === "Piercing Stance",
-    ).controlKind,
-    "daze",
+    piercing.events.find((event) => event.type === 'control' && event.skillName === 'Piercing Stance').controlKind,
+    'daze'
   );
   assert.equal(piercingBuffs[0].duration, 8);
-  assert.ok(
-    Math.abs(piercingBuffs[1].at + piercingBuffs[1].duration - 16.24) < 1e-9,
-  );
+  assert.ok(Math.abs(piercingBuffs[1].at + piercingBuffs[1].duration - 16.24) < 1e-9);
   assert.equal(quickPiercingAction.endsAt - quickPiercingAction.at, 0.2);
-  assert.ok(
-    Math.abs(quickPiercingBuff.at - quickPiercingAction.at - 0.16) < 1e-9,
-  );
-  assert.ok(
-    quickPiercingPackets.every(
-      (event) => Math.abs(event.at - quickPiercingBuff.at) < 1e-9,
-    ),
-  );
+  assert.ok(Math.abs(quickPiercingBuff.at - quickPiercingAction.at - 0.16) < 1e-9);
+  assert.ok(quickPiercingPackets.every((event) => Math.abs(event.at - quickPiercingBuff.at) < 1e-9));
   assert.equal(
-    daringThenPiercing.resolvedEvents.find(
-      (event) => event.skillName === "Daring Advance",
-    ).damage,
-    daring.resolvedEvents.find((event) => event.skillName === "Daring Advance")
-      .damage,
+    daringThenPiercing.resolvedEvents.find((event) => event.skillName === 'Daring Advance').damage,
+    daring.resolvedEvents.find((event) => event.skillName === 'Daring Advance').damage
   );
-  assert.ok(
-    piercing.procSteps.some((step) => step.skill === "Relic of the Claw"),
-  );
+  assert.ok(piercing.procSteps.some((step) => step.skill === 'Relic of the Claw'));
   assert.equal(
-    daring.events.some(
-      (event) =>
-        event.type === "control" && event.skillName === "Daring Advance",
-    ),
-    false,
+    daring.events.some((event) => event.type === 'control' && event.skillName === 'Daring Advance'),
+    false
   );
-  assert.equal(
-    daring.events.find((event) => event.kind === "guardian-daring-advance")
-      .duration,
-    8,
-  );
+  assert.equal(daring.events.find((event) => event.kind === 'guardian-daring-advance').duration, 8);
   assert.equal(effulgentDamage.at, 4);
   assert.equal(effulgentDamage.stackCount, 10);
   assert.equal(effulgentDamage.coefficient, 4);
-  assert.equal(effulgentDamage.weaponStrengthProfileId, "nonweapon.unequipped");
+  assert.equal(effulgentDamage.weaponStrengthProfileId, 'nonweapon.unequipped');
   assert.equal(effulgentDamage.resolvedWeaponStrength, 690.5);
   assert.equal(effulgentDamage.weaponStrengthSampled, false);
   assert.equal(procChargedEffulgent.stackCount, 2);
   assert.ok(Math.abs(procChargedEffulgent.coefficient - 1.2) < 1e-9);
   assert.deepEqual(
     effulgent.procSteps
-      .filter(
-        (step) =>
-          step.type === "skill_proc" && step.skill === "Effulgent Stance",
-      )
+      .filter((step) => step.type === 'skill_proc' && step.skill === 'Effulgent Stance')
       .map((step) => [step.start, step.sourceSkill, step.detail]),
-    [[4000, "Effulgent Stance", "10/10 stacks"]],
+    [[4000, 'Effulgent Stance', '10/10 stacks']]
   );
-  assert.ok(
-    effulgent.procSteps.some(
-      (step) => step.skill === "Relic of the Claw" && step.start === 4000,
-    ),
-  );
+  assert.ok(effulgent.procSteps.some((step) => step.skill === 'Relic of the Claw' && step.start === 4000));
 });
 
-test("Sovereign of Light consumes combo and trait-granted light auras", () => {
+test('Sovereign of Light consumes combo and trait-granted light auras', () => {
   const combo = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Symbol of Resolution",
-      "Leap of Faith",
-      "Enter Radiant Forge",
-      "Dazzling Hammer",
-    ],
+    rotation: ['Symbol of Resolution', 'Leap of Faith', 'Enter Radiant Forge', 'Dazzling Hammer'],
     config: {
       ...config,
-      specialization: "Luminary",
-      primaryWeapon: "Greatsword",
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT],
-    },
+      specialization: 'Luminary',
+      primaryWeapon: 'Greatsword',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
+    }
   });
   const justice = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Piercing Stance", "Radiant Justice", "Piercing Stance"],
+    rotation: ['Piercing Stance', 'Radiant Justice', 'Piercing Stance'],
     config: {
       ...config,
-      specialization: "Luminary",
-      selectedTraitIds: [
-        GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND,
-        GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT,
-      ],
-    },
+      specialization: 'Luminary',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
+    }
   });
   const justiceWithClaw = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Piercing Stance", "Radiant Justice", "Piercing Stance"],
+    rotation: ['Piercing Stance', 'Radiant Justice', 'Piercing Stance'],
     config: {
       ...config,
-      specialization: "Luminary",
-      relic: "Claw",
-      selectedTraitIds: [
-        GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND,
-        GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT,
-      ],
-    },
+      specialization: 'Luminary',
+      relic: 'Claw',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
+    }
   });
-  const sovereignHits = combo.resolvedEvents.filter(
-    (event) => event.name === "Sovereign of Light",
-  );
-  const sovereignProcs = combo.procSteps.filter(
-    (step) => step.skill === "Sovereign of Light",
-  );
+  const sovereignHits = combo.resolvedEvents.filter((event) => event.name === 'Sovereign of Light');
+  const sovereignProcs = combo.procSteps.filter((step) => step.skill === 'Sovereign of Light');
 
   assert.equal(sovereignHits.length, 1);
   assert.deepEqual(
     sovereignHits.map((event) => event.triggeredBy),
-    ["Dazzling Hammer"],
+    ['Dazzling Hammer']
   );
   assert.equal(
     sovereignHits.every((event) => event.coefficient === 1.5),
-    true,
+    true
   );
   assert.equal(
-    sovereignHits.every((event) => event.skillWeapon === "Unequipped"),
-    true,
+    sovereignHits.every((event) => event.skillWeapon === 'Unequipped'),
+    true
   );
   assert.equal(sovereignProcs.length, 1);
   assert.equal(
     sovereignProcs.every((step) => Boolean(step.icon)),
-    true,
+    true
   );
-  assert.ok(
-    justice.events.some(
-      (event) =>
-        event.type === "blind" && event.skillName === "Justice is Blind",
-    ),
-  );
-  assert.equal(
-    justice.resolvedEvents.filter(
-      (event) => event.name === "Sovereign of Light",
-    ).length,
-    1,
-  );
-  const justiceSovereign = justice.resolvedEvents.find(
-    (event) => event.name === "Sovereign of Light",
-  );
-  const clawSovereign = justiceWithClaw.resolvedEvents.find(
-    (event) => event.name === "Sovereign of Light",
-  );
+  assert.ok(justice.events.some((event) => event.type === 'blind' && event.skillName === 'Justice is Blind'));
+  assert.equal(justice.resolvedEvents.filter((event) => event.name === 'Sovereign of Light').length, 1);
+  const justiceSovereign = justice.resolvedEvents.find((event) => event.name === 'Sovereign of Light');
+  const clawSovereign = justiceWithClaw.resolvedEvents.find((event) => event.name === 'Sovereign of Light');
   assert.deepEqual(
     {
       actorType: clawSovereign.actorType,
-      ownerActorType: clawSovereign.ownerActorType,
+      ownerActorType: clawSovereign.ownerActorType
     },
-    { actorType: "effect", ownerActorType: "player" },
+    { actorType: 'effect', ownerActorType: 'player' }
   );
-  assert.ok(
-    Math.abs(clawSovereign.damage / justiceSovereign.damage - 1.07) < 1e-12,
-  );
+  assert.ok(Math.abs(clawSovereign.damage / justiceSovereign.damage - 1.07) < 1e-12);
 });
 
-test("Luminary recharge traits alter the intended cooldown families", () => {
+test('Luminary recharge traits alter the intended cooldown families', () => {
   const masterRotation = [
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
-    "Exit Radiant Forge",
-    "Radiant Justice",
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
+    'Enter Radiant Forge',
+    'Dazzling Hammer',
+    'Exit Radiant Forge',
+    'Radiant Justice',
+    'Enter Radiant Forge',
+    'Dazzling Hammer'
   ];
   const withMaster = simulateGw2({
     profession: guardianProfession,
     rotation: masterRotation,
     config: {
       ...config,
-      specialization: "Luminary",
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.MASTER_AT_ARMS],
-    },
+      specialization: 'Luminary',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.MASTER_AT_ARMS]
+    }
   });
   const withoutMaster = simulateGw2({
     profession: guardianProfession,
     rotation: masterRotation,
-    config: { ...config, specialization: "Luminary" },
+    config: { ...config, specialization: 'Luminary' }
   });
   const inspirationRotation = [
-    "Radiant Justice",
-    "Enter Radiant Forge",
-    "Dazzling Hammer",
-    "Exit Radiant Forge",
-    "Radiant Justice",
+    'Radiant Justice',
+    'Enter Radiant Forge',
+    'Dazzling Hammer',
+    'Exit Radiant Forge',
+    'Radiant Justice'
   ];
   const withInspiration = simulateGw2({
     profession: guardianProfession,
     rotation: inspirationRotation,
     config: {
       ...config,
-      specialization: "Luminary",
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ILLUMINATING_INSPIRATION],
-    },
+      specialization: 'Luminary',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ILLUMINATING_INSPIRATION]
+    }
   });
   const withoutInspiration = simulateGw2({
     profession: guardianProfession,
     rotation: inspirationRotation,
-    config: { ...config, specialization: "Luminary" },
+    config: { ...config, specialization: 'Luminary' }
   });
 
-  assert.equal(
-    withMaster.steps.filter((step) => step.skill === "Dazzling Hammer")[1]
-      .start,
-    5720,
-  );
-  assert.equal(
-    withoutMaster.steps.filter((step) => step.skill === "Dazzling Hammer")[1]
-      .start,
-    7720,
-  );
-  assert.equal(
-    withInspiration.steps.filter((step) => step.skill === "Radiant Justice")[1]
-      .start,
-    16000,
-  );
-  assert.equal(
-    withoutInspiration.steps.filter(
-      (step) => step.skill === "Radiant Justice",
-    )[1].start,
-    20000,
-  );
+  assert.equal(withMaster.steps.filter((step) => step.skill === 'Dazzling Hammer')[1].start, 5720);
+  assert.equal(withoutMaster.steps.filter((step) => step.skill === 'Dazzling Hammer')[1].start, 7720);
+  assert.equal(withInspiration.steps.filter((step) => step.skill === 'Radiant Justice')[1].start, 16000);
+  assert.equal(withoutInspiration.steps.filter((step) => step.skill === 'Radiant Justice')[1].start, 20000);
 });
 
-test("Zeal symbol traits emit their full profiles and stack damage", () => {
+test('Zeal symbol traits emit their full profiles and stack damage', () => {
   const symbols = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Virtue of Justice", { type: "wait", durationMs: 5000 }],
+    rotation: ['Virtue of Justice', { type: 'wait', durationMs: 5000 }],
     config: {
       ...config,
       boons: { fury: true },
       selectedTraitIds: [
         GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS,
         GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER,
-        GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
-      ],
-    },
+        GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE
+      ]
+    }
   });
   const zealotsResolution = simulateGw2({
     profession: guardianProfession,
-    rotation: ["True Strike", { type: "wait", durationMs: 5000 }],
+    rotation: ['True Strike', { type: 'wait', durationMs: 5000 }],
     config: {
       ...config,
       target: { ...config.target, health: 2500 },
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION],
-    },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION]
+    }
   });
-  const blades = symbols.resolvedEvents.filter(
-    (event) => event.name === "Lesser Symbol of Blades",
-  );
-  const resolution = zealotsResolution.resolvedEvents.filter(
-    (event) => event.name === "Lesser Symbol of Resolution",
-  );
+  const blades = symbols.resolvedEvents.filter((event) => event.name === 'Lesser Symbol of Blades');
+  const resolution = zealotsResolution.resolvedEvents.filter((event) => event.name === 'Lesser Symbol of Resolution');
 
   assert.equal(blades.length, 5);
   assert.equal(
     blades.every((event) => event.coefficient === 0.65),
-    true,
+    true
   );
   assert.equal(
-    blades.every((event) => event.skillWeapon === "Unequipped"),
-    true,
+    blades.every((event) => event.skillWeapon === 'Unequipped'),
+    true
   );
   assert.equal(symbols.endState.profession.symbolicAvengerStacks, 5);
   assert.ok(blades.at(-1).damage > blades[0].damage);
   assert.equal(
-    symbols.events.filter(
-      (event) =>
-        event.kind === "target-vulnerability" &&
-        event.skillName === "Symbolic Exposure",
-    ).length,
-    5,
+    symbols.events.filter((event) => event.kind === 'target-vulnerability' && event.skillName === 'Symbolic Exposure')
+      .length,
+    5
   );
   assert.equal(resolution.length, 5);
   assert.equal(
     resolution.every((event) => event.coefficient === 0.5),
-    true,
+    true
   );
   assert.equal(
-    resolution.every((event) => event.skillWeapon === "Unequipped"),
-    true,
+    resolution.every((event) => event.skillWeapon === 'Unequipped'),
+    true
   );
-  assert.equal(
-    zealotsResolution.endState.profession.zealotsResolutionReadyAt,
-    resolution[0].at + 30,
-  );
+  assert.equal(zealotsResolution.endState.profession.zealotsResolutionReadyAt, resolution[0].at + 30);
 });
 
-test("resolution traits affect strike damage, critical chance, and might", () => {
+test('resolution traits affect strike damage, critical chance, and might', () => {
   const run = (selectedTraitIds) =>
     simulateGw2({
       profession: guardianProfession,
-      rotation: ["Symbol of Resolution", { type: "wait", durationMs: 6000 }],
+      rotation: ['Symbol of Resolution', { type: 'wait', durationMs: 6000 }],
       config: {
         ...config,
-        primaryWeapon: "Greatsword",
-        selectedTraitIds,
-      },
+        primaryWeapon: 'Greatsword',
+        selectedTraitIds
+      }
     });
   const righteous = run([GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS]);
-  const retribution = run([
-    GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS,
-    GUARDIAN_TRAIT_IDS.RETRIBUTION,
-  ]);
-  const first = (result) =>
-    result.resolvedEvents.find(
-      (event) => event.name === "Symbol of Resolution — Initial",
-    );
-  const pulses = retribution.resolvedEvents.filter(
-    (event) => event.name === "Symbol of Resolution",
-  );
+  const retribution = run([GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS, GUARDIAN_TRAIT_IDS.RETRIBUTION]);
+  const first = (result) => result.resolvedEvents.find((event) => event.name === 'Symbol of Resolution — Initial');
+  const pulses = retribution.resolvedEvents.filter((event) => event.name === 'Symbol of Resolution');
 
-  assert.ok(
-    Math.abs(first(retribution).damage / first(righteous).damage - 1.1) < 1e-9,
-  );
+  assert.ok(Math.abs(first(retribution).damage / first(righteous).damage - 1.1) < 1e-9);
   assert.ok(
     Math.abs(
       first(retribution).criticalChance -
         0.25 -
-        (config.stats.precision > 895
-          ? (config.stats.precision - 895) / 2100
-          : 0),
-    ) < 1e-9,
+        (config.stats.precision > 895 ? (config.stats.precision - 895) / 2100 : 0)
+    ) < 1e-9
   );
   assert.equal(
-    pulses.every(
-      (event, index) => index === 0 || event.damage > pulses[index - 1].damage,
-    ),
-    true,
+    pulses.every((event, index) => index === 0 || event.damage > pulses[index - 1].damage),
+    true
   );
   assert.deepEqual(
-    retribution.procSteps
-      .filter((step) => step.skill === "Righteous Instincts")
-      .map((step) => step.start),
-    [280, 1280, 2280, 3280, 4280, 5280],
+    retribution.procSteps.filter((step) => step.skill === 'Righteous Instincts').map((step) => step.start),
+    [280, 1280, 2280, 3280, 4280, 5280]
   );
 });
 
-test("Guardian build attributes expose static Zeal and Radiance bonuses", () => {
+test('Guardian build attributes expose static Zeal and Radiance bonuses', () => {
   const build = createGuardianBuildDefaults();
-  build.weapons = ["Greatsword", ""];
+  build.weapons = ['Greatsword', ''];
   build.specializations = [
-    { name: "Zeal", traits: "2-2-3" },
-    { name: "Radiance", traits: "2-3-3" },
-    { name: "Luminary", traits: "3-3-2" },
+    { name: 'Zeal', traits: '2-2-3' },
+    { name: 'Radiance', traits: '2-3-3' },
+    { name: 'Luminary', traits: '3-3-2' }
   ];
   const all = calculateGuardianAttributes(build, []).attributes;
-  const withoutBlade = calculateGuardianAttributes(
-    build,
-    [],
-    1,
-    "Zealous Blade",
-  ).attributes;
-  const withoutPower = calculateGuardianAttributes(
-    build,
-    [],
-    1,
-    "Radiant Power",
-  ).attributes;
-  const withoutRightHand = calculateGuardianAttributes(
-    build,
-    [],
-    1,
-    "Right-Hand Strength",
-  ).attributes;
+  const withoutBlade = calculateGuardianAttributes(build, [], 1, 'Zealous Blade').attributes;
+  const withoutPower = calculateGuardianAttributes(build, [], 1, 'Radiant Power').attributes;
+  const withoutRightHand = calculateGuardianAttributes(build, [], 1, 'Right-Hand Strength').attributes;
 
   assert.equal(all.Power.final - withoutBlade.Power.final, 240);
   assert.equal(all.Ferocity.final - withoutPower.Ferocity.final, 150);
   assert.equal(all.Precision.final - withoutRightHand.Precision.final, 80);
   assert.equal(all.Power.final - withoutRightHand.Power.final, 0);
 
-  build.weapons = ["Sword", "Focus"];
+  build.weapons = ['Sword', 'Focus'];
   const oneHanded = calculateGuardianAttributes(build, []).attributes;
-  const oneHandedWithout = calculateGuardianAttributes(
-    build,
-    [],
-    1,
-    "Right-Hand Strength",
-  ).attributes;
+  const oneHandedWithout = calculateGuardianAttributes(build, [], 1, 'Right-Hand Strength').attributes;
   assert.equal(oneHanded.Power.final - oneHandedWithout.Power.final, 80);
 
-  build.specializations[1] = { name: "Radiance", traits: "2-2-3" };
+  build.specializations[1] = { name: 'Radiance', traits: '2-2-3' };
   const radiantFire = calculateGuardianAttributes(build, []).attributes;
-  const withoutRadiantFire = calculateGuardianAttributes(
-    build,
-    [],
-    1,
-    "Radiant Fire",
-  ).attributes;
-  assert.equal(radiantFire["Burning Duration"].traits, 20);
-  assert.equal(radiantFire["Burning Duration"].final, 20);
-  assert.equal(withoutRadiantFire["Burning Duration"], undefined);
+  const withoutRadiantFire = calculateGuardianAttributes(build, [], 1, 'Radiant Fire').attributes;
+  assert.equal(radiantFire['Burning Duration'].traits, 20);
+  assert.equal(radiantFire['Burning Duration'].final, 20);
+  assert.equal(withoutRadiantFire['Burning Duration'], undefined);
 
   const app = {
     build,
     skillByName: guardianCatalog.skillsByName,
-    attributeWeaponSet: 1,
+    attributeWeaponSet: 1
   };
   recalculateGuardian(app);
-  assert.equal(
-    guardianSimulationConfig(app).stats.conditionDurationBonuses.Burning,
-    undefined,
-  );
+  assert.equal(guardianSimulationConfig(app).stats.conditionDurationBonuses.Burning, undefined);
 });
 
-test("Dragonhunter virtues apply tether, passive aegis, and virtue traits", () => {
+test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () => {
   const selectedTraitIds = [
     GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
     GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION,
     GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER,
     GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE,
-    GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER,
+    GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER
   ];
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Spear of Justice",
-      "Helio Rush",
-      { type: "wait", durationMs: 13000 },
-    ],
+    rotation: ['Spear of Justice', 'Helio Rush', { type: 'wait', durationMs: 13000 }],
     config: {
       ...config,
-      specialization: "Dragonhunter",
-      primaryWeapon: "Spear",
+      specialization: 'Dragonhunter',
+      primaryWeapon: 'Spear',
       boons: { quickness: true },
-      selectedTraitIds,
-    },
+      selectedTraitIds
+    }
   });
-  const activeBurning = result.resolvedEvents.filter(
-    (event) => event.name === "Spear of Justice — Active Burning",
-  );
+  const activeBurning = result.resolvedEvents.filter((event) => event.name === 'Spear of Justice — Active Burning');
   const spearStrike = result.resolvedEvents.find(
-    (event) =>
-      event.type === "damage" && event.skillName === "Spear of Justice",
+    (event) => event.type === 'damage' && event.skillName === 'Spear of Justice'
   );
-  const buffs = result.events.filter((event) => event.type === "buff");
+  const buffs = result.events.filter((event) => event.type === 'buff');
 
   assert.deepEqual(result.warnings, []);
   assert.equal(spearStrike.coefficient, 0.8);
   assert.equal(activeBurning.length, 12);
   assert.equal(
     activeBurning.every((event) => event.duration === 2),
-    true,
+    true
   );
   assert.equal(result.endState.profession.tetherUntil, 12.56);
+  assert.equal(result.endState.profession.availableFlips[GUARDIAN_SKILL_IDS.HUNTERS_VERDICT], 12.56);
   assert.equal(
-    result.endState.profession.availableFlips[
-      GUARDIAN_SKILL_IDS.HUNTERS_VERDICT
-    ],
-    12.56,
+    buffs.some((event) => event.kind === 'aegis' && event.skillName === 'Shield of Courage' && event.duration === 20),
+    true
   );
   assert.equal(
-    buffs.some(
-      (event) =>
-        event.kind === "aegis" &&
-        event.skillName === "Shield of Courage" &&
-        event.duration === 20,
-    ),
-    true,
+    buffs.some((event) => event.kind === 'might' && event.stacks === 3 && event.duration === 5),
+    true
   );
   assert.equal(
-    buffs.some(
-      (event) =>
-        event.kind === "might" && event.stacks === 3 && event.duration === 5,
-    ),
-    true,
+    buffs.some((event) => event.kind === 'resolution' && event.duration === 3.75),
+    true
   );
   assert.equal(
-    buffs.some(
-      (event) => event.kind === "resolution" && event.duration === 3.75,
-    ),
-    true,
+    buffs.some((event) => event.kind === 'resolution' && event.skillName === 'Helio Rush' && event.duration === 5),
+    true
   );
   assert.equal(
-    buffs.some(
-      (event) =>
-        event.kind === "resolution" &&
-        event.skillName === "Helio Rush" &&
-        event.duration === 5,
-    ),
-    true,
-  );
-  assert.equal(
-    buffs.some(
-      (event) =>
-        event.kind === "guardian-inspiring-virtue" && event.duration === 6,
-    ),
-    true,
+    buffs.some((event) => event.kind === 'guardian-inspiring-virtue' && event.duration === 6),
+    true
   );
 
   const verdict = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      "Spear of Justice",
-      "Hunter's Verdict",
-      { type: "wait", durationMs: 3000 },
-    ],
+    rotation: ['Spear of Justice', "Hunter's Verdict", { type: 'wait', durationMs: 3000 }],
     config: {
       ...config,
-      specialization: "Dragonhunter",
-      primaryWeapon: "Spear",
+      specialization: 'Dragonhunter',
+      primaryWeapon: 'Spear',
       boons: { quickness: true },
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER],
-    },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER]
+    }
   });
   assert.deepEqual(verdict.warnings, []);
-  assert.equal(
-    verdict.resolvedEvents.filter(
-      (event) => event.name === "Spear of Justice — Active Burning",
-    ).length,
-    1,
-  );
+  assert.equal(verdict.resolvedEvents.filter((event) => event.name === 'Spear of Justice — Active Burning').length, 1);
   assert.equal(
     verdict.events.some(
-      (event) =>
-        event.type === "control" &&
-        event.skillName === "Hunter's Verdict" &&
-        event.controlKind === "pull",
+      (event) => event.type === 'control' && event.skillName === "Hunter's Verdict" && event.controlKind === 'pull'
     ),
-    true,
+    true
   );
 
   const courage = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Shield of Courage"],
+    rotation: ['Shield of Courage'],
     config: {
       ...config,
-      specialization: "Dragonhunter",
+      specialization: 'Dragonhunter',
       selectedTraitIds: [
         GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
         GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION,
-        GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE,
-      ],
-    },
+        GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE
+      ]
+    }
   });
   assert.equal(
-    courage.events.some(
-      (event) => event.type === "buff" && event.kind === "protection",
-    ),
-    true,
+    courage.events.some((event) => event.type === 'buff' && event.kind === 'protection'),
+    true
   );
   assert.equal(
     courage.events.some(
-      (event) =>
-        event.type === "buff" &&
-        event.kind === "stability" &&
-        event.stacks === 3 &&
-        event.duration === 4,
+      (event) => event.type === 'buff' && event.kind === 'stability' && event.stacks === 3 && event.duration === 4
     ),
-    true,
+    true
   );
 
   const soaring = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Wings of Resolve"],
+    rotation: ['Wings of Resolve'],
     config: {
       ...config,
-      specialization: "Dragonhunter",
-      primaryWeapon: "Spear",
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOARING_DEVASTATION],
-    },
+      specialization: 'Dragonhunter',
+      primaryWeapon: 'Spear',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOARING_DEVASTATION]
+    }
   });
   assert.equal(
     soaring.resolvedEvents.some(
-      (event) =>
-        event.type === "damage" &&
-        event.skillName === "Wings of Resolve" &&
-        event.coefficient === 1.5,
+      (event) => event.type === 'damage' && event.skillName === 'Wings of Resolve' && event.coefficient === 1.5
     ),
-    true,
+    true
   );
   assert.equal(
-    soaring.resolvedEvents.some(
-      (event) => event.condition === "Immobilized" && event.duration === 3,
-    ),
-    true,
+    soaring.resolvedEvents.some((event) => event.condition === 'Immobilized' && event.duration === 3),
+    true
   );
 });
 
-test("Relic of Fireworks triggers on Dragonhunter virtues", () => {
+test('Relic of Fireworks triggers on Dragonhunter virtues', () => {
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Spear of Justice", { type: "wait", durationMs: 3000 }],
+    rotation: ['Spear of Justice', { type: 'wait', durationMs: 3000 }],
     config: {
       ...config,
-      specialization: "Dragonhunter",
-      primaryWeapon: "Spear",
-      relic: "Fireworks",
-    },
+      specialization: 'Dragonhunter',
+      primaryWeapon: 'Spear',
+      relic: 'Fireworks'
+    }
   });
-  const procs = result.procSteps.filter(
-    (step) => step.skill === "Relic of Fireworks",
-  );
+  const procs = result.procSteps.filter((step) => step.skill === 'Relic of Fireworks');
   assert.ok(procs.length > 0);
-  assert.ok(procs.every((step) => step.sourceSkill === "Spear of Justice"));
+  assert.ok(procs.every((step) => step.sourceSkill === 'Spear of Justice'));
 });
 
-test("Dragonhunter traps and control traits apply their complete effects", () => {
+test('Dragonhunter traps and control traits apply their complete effects', () => {
   const trap = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Procession of Blades", { type: "wait", durationMs: 5000 }],
+    rotation: ['Procession of Blades', { type: 'wait', durationMs: 5000 }],
     config: {
       ...config,
-      specialization: "Dragonhunter",
-      relic: "Dragonhunter",
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.HUNTERS_PREMONITION],
-    },
+      specialization: 'Dragonhunter',
+      relic: 'Dragonhunter',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.HUNTERS_PREMONITION]
+    }
   });
-  assert.equal(
-    trap.procSteps.filter((step) => step.skill === "Relic of the Dragonhunter")
-      .length,
-    10,
-  );
+  assert.equal(trap.procSteps.filter((step) => step.skill === 'Relic of the Dragonhunter').length, 10);
   assert.equal(
     trap.events.some(
       (event) =>
-        event.type === "buff" &&
-        event.kind === "aegis" &&
-        event.skillName === "Procession of Blades" &&
-        event.duration === 3,
+        event.type === 'buff' &&
+        event.kind === 'aegis' &&
+        event.skillName === 'Procession of Blades' &&
+        event.duration === 3
     ),
-    true,
+    true
   );
 
   const maw = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Dragon's Maw", { type: "wait", durationMs: 1500 }],
+    rotation: ["Dragon's Maw", { type: 'wait', durationMs: 1500 }],
     config: {
       ...config,
       target: { ...config.target, defiant: true },
-      specialization: "Dragonhunter",
+      specialization: 'Dragonhunter',
       initialEndurance: 0,
       selectedTraitIds: [
         GUARDIAN_TRAIT_IDS.DULLED_SENSES,
         GUARDIAN_TRAIT_IDS.HEAVY_LIGHT,
-        GUARDIAN_TRAIT_IDS.HUNTERS_DETERMINATION,
-      ],
-    },
+        GUARDIAN_TRAIT_IDS.HUNTERS_DETERMINATION
+      ]
+    }
   });
-  const mawStrike = maw.resolvedEvents.find(
-    (event) => event.type === "damage" && event.skillName === "Dragon's Maw",
-  );
+  const mawStrike = maw.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === "Dragon's Maw");
 
   assert.deepEqual(maw.warnings, []);
   assert.equal(mawStrike.coefficient, 3.6);
   assert.equal(
-    maw.resolvedEvents.some(
-      (event) => event.condition === "Slow" && event.duration === 4,
-    ),
-    true,
+    maw.resolvedEvents.some((event) => event.condition === 'Slow' && event.duration === 4),
+    true
   );
   assert.equal(
-    maw.resolvedEvents.some(
-      (event) => event.condition === "Crippled" && event.duration === 4,
-    ),
-    true,
+    maw.resolvedEvents.some((event) => event.condition === 'Crippled' && event.duration === 4),
+    true
   );
   assert.equal(
     maw.events.some(
-      (event) =>
-        event.type === "buff" &&
-        event.kind === "might" &&
-        event.stacks === 10 &&
-        event.duration === 8,
+      (event) => event.type === 'buff' && event.kind === 'might' && event.stacks === 10 && event.duration === 8
     ),
-    true,
+    true
   );
   assert.equal(
-    maw.procSteps.some((step) => step.skill === "Heavy Light"),
-    true,
+    maw.procSteps.some((step) => step.skill === 'Heavy Light'),
+    true
   );
   assert.equal(
     maw.procSteps.some((step) => step.skill === "Hunter's Determination"),
-    true,
+    true
   );
   assert.equal(maw.endState.profession.endurance, 100);
 });
 
-test("Glacial Heart and Master of Consecrations replace their numeric effects", () => {
+test('Glacial Heart and Master of Consecrations replace their numeric effects', () => {
   const glacial = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Glacial Blow"],
+    rotation: ['Glacial Blow'],
     config: {
       ...config,
-      primaryWeapon: "Hammer",
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.GLACIAL_HEART],
-    },
+      primaryWeapon: 'Hammer',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.GLACIAL_HEART]
+    }
   });
   const purging = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Purging Flames", { type: "wait", durationMs: 9000 }],
+    rotation: ['Purging Flames', { type: 'wait', durationMs: 9000 }],
     config: {
       ...config,
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS],
-    },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS]
+    }
   });
 
   assert.deepEqual(glacial.warnings, []);
   assert.equal(
     glacial.resolvedEvents.some(
-      (event) =>
-        event.type === "damage" &&
-        event.skillName === "Glacial Blow" &&
-        event.coefficient === 2.5,
+      (event) => event.type === 'damage' && event.skillName === 'Glacial Blow' && event.coefficient === 2.5
     ),
-    true,
+    true
   );
   assert.equal(
-    glacial.resolvedEvents.some(
-      (event) => event.type === "combo" && event.skillName === "Glacial Blow",
-    ),
-    false,
+    glacial.resolvedEvents.some((event) => event.type === 'combo' && event.skillName === 'Glacial Blow'),
+    false
   );
   assert.equal(
-    glacial.resolvedEvents.some(
-      (event) => event.condition === "Chilled" && event.duration === 2.5,
-    ),
-    true,
+    glacial.resolvedEvents.some((event) => event.condition === 'Chilled' && event.duration === 2.5),
+    true
   );
   assert.equal(
-    purging.resolvedEvents.filter(
-      (event) =>
-        event.type === "damage" && event.skillName === "Purging Flames",
-    ).length,
-    8,
+    purging.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Purging Flames').length,
+    8
   );
   assert.deepEqual(
     purging.resolvedEvents
-      .filter(
-        (event) =>
-          event.type === "damage" && event.skillName === "Purging Flames",
-      )
+      .filter((event) => event.type === 'damage' && event.skillName === 'Purging Flames')
       .map((event) => Math.round(event.at * 1000)),
-    [320, 1320, 2320, 3320, 4320, 5320, 6320, 7320],
+    [320, 1320, 2320, 3320, 4320, 5320, 6320, 7320]
   );
-  const purgingAction = purging.events.find(
-    (event) => event.type === "action" && event.skillName === "Purging Flames",
-  );
-  assert.equal(purgingAction.comboFields[0].fieldType, "Fire");
+  const purgingAction = purging.events.find((event) => event.type === 'action' && event.skillName === 'Purging Flames');
+  assert.equal(purgingAction.comboFields[0].fieldType, 'Fire');
   assert.equal(purgingAction.comboFields[0].duration, 7);
 });
 
-test("Luminary UI excludes virtue aliases and lists the forge exit once", () => {
+test('Luminary UI excludes virtue aliases and lists the forge exit once', () => {
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Radiant Justice", "Enter Radiant Forge"],
-    config: { ...config, specialization: "Luminary" },
+    rotation: ['Radiant Justice', 'Enter Radiant Forge'],
+    config: { ...config, specialization: 'Luminary' }
   });
   const professionSkillIds = guardianProfession.ui.paletteGroups({
-    specialization: "Luminary",
-    professionState: result.endState.profession,
+    specialization: 'Luminary',
+    professionState: result.endState.profession
   })[0].skillIds;
-  const professionSkillNames = professionSkillIds.map(
-    (id) => guardianCatalog.skillsById.get(id)?.name,
-  );
+  const professionSkillNames = professionSkillIds.map((id) => guardianCatalog.skillsById.get(id)?.name);
 
-  assert.equal(
-    result.endState.profession.availableFlips[
-      GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE
-    ],
-    undefined,
-  );
-  assert.equal(professionSkillNames.includes("Spear of Justice"), false);
-  assert.equal(
-    professionSkillNames.filter((name) => name === "Exit Radiant Forge").length,
-    1,
-  );
+  assert.equal(result.endState.profession.availableFlips[GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE], undefined);
+  assert.equal(professionSkillNames.includes('Spear of Justice'), false);
+  assert.equal(professionSkillNames.filter((name) => name === 'Exit Radiant Forge').length, 1);
 });
 
-test("elite specializations expose their profession mechanics", () => {
-  const spear = guardianCatalog.skillsByName.get("Spear of Justice");
+test('elite specializations expose their profession mechanics', () => {
+  const spear = guardianCatalog.skillsByName.get('Spear of Justice');
   const verdict = guardianCatalog.skillsByName.get("Hunter's Verdict");
   const dragonhunter = guardianProfession.ui.paletteGroups({
-    specialization: "Dragonhunter",
+    specialization: 'Dragonhunter'
   })[0].skillIds;
   const firebrand = guardianProfession.ui
     .paletteGroups({
-      specialization: "Firebrand",
+      specialization: 'Firebrand',
       professionState: {
-        activeTome: "justice",
+        activeTome: 'justice',
         tomePages: 5,
-        maximumTomePages: 5,
-      },
+        maximumTomePages: 5
+      }
     })
     .flatMap((group) => group.skillIds);
   const firebrandResources = guardianProfession.ui.resourceViews({
-    specialization: "Firebrand",
+    specialization: 'Firebrand',
     professionState: {
       tomePages: 3,
-      maximumTomePages: 5,
-    },
+      maximumTomePages: 5
+    }
   });
 
-  assert.equal(
-    dragonhunter.includes(GUARDIAN_SKILL_IDS.WINGS_OF_RESOLVE),
-    true,
-  );
-  assert.equal(
-    dragonhunter.includes(GUARDIAN_SKILL_IDS.SHIELD_OF_COURAGE),
-    true,
-  );
+  assert.equal(dragonhunter.includes(GUARDIAN_SKILL_IDS.WINGS_OF_RESOLVE), true);
+  assert.equal(dragonhunter.includes(GUARDIAN_SKILL_IDS.SHIELD_OF_COURAGE), true);
   assert.equal(spear.flipParentId, null);
   assert.equal(verdict.flipParentId, spear.id);
   assert.equal(firebrand.includes(GUARDIAN_SKILL_IDS.SEARING_SPELL), true);
   assert.equal(firebrandResources[0].value, 3);
 });
 
-test("Guardian declarative scheduling respects the configured starting set", () => {
+test('Guardian declarative scheduling respects the configured starting set', () => {
   const initial = simulateGw2({
     profession: guardianProfession,
     rotation: [],
-    config: { ...config, startingWeaponSet: 2 },
+    config: { ...config, startingWeaponSet: 2 }
   });
   const swapped = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Swap Weapons"],
-    config: { ...config, startingWeaponSet: 2 },
+    rotation: ['Swap Weapons'],
+    config: { ...config, startingWeaponSet: 2 }
   });
 
   assert.equal(initial.endState.activeWeaponSet, 2);
   assert.equal(swapped.endState.activeWeaponSet, 1);
-  assert.equal(
-    swapped.events.find((event) => event.type === "weapon_set").weaponSet,
-    1,
-  );
+  assert.equal(swapped.events.find((event) => event.type === 'weapon_set').weaponSet, 1);
 });
 
-test("Guardian builds migrate and validate against real catalog metadata", () => {
+test('Guardian builds migrate and validate against real catalog metadata', () => {
   const defaults = createGuardianBuildDefaults();
   const migrated = migrateGuardianBuild({
     ...defaults,
-    rotation: ["Virtue of Justice", "True Strike"],
+    rotation: ['Virtue of Justice', 'True Strike']
   });
   assert.equal(validateGuardianBuild(migrated).valid, true);
   assert.deepEqual(
     migrated.rotation.map((command) => command.skillId),
     [
-      guardianProfession.catalog.skillsByName.get("Virtue of Justice").id,
-      guardianProfession.catalog.skillsByName.get("True Strike").id,
-    ],
+      guardianProfession.catalog.skillsByName.get('Virtue of Justice').id,
+      guardianProfession.catalog.skillsByName.get('True Strike').id
+    ]
   );
   assert.equal(
     validateGuardianBuild({
       ...migrated,
-      weapons: ["Greatsword", "Torch"],
+      weapons: ['Greatsword', 'Torch']
     }).valid,
-    false,
+    false
   );
 });
 
-test("Guardian is registered at the profession composition boundary", async () => {
-  assert.equal(await loadProfession("guardian"), guardianProfession);
+test('Guardian is registered at the profession composition boundary', async () => {
+  assert.equal(await loadProfession('guardian'), guardianProfession);
 });

@@ -1,22 +1,16 @@
 // Rotation normalization utilities. They keep the scheduler focused on one
 // canonical command format while the app layer and importers continue to feed
 // legacy names and convenience shorthands.
-import type {
-  CatalogLookup,
-  LegacyRotationEntry,
-  RotationCommand,
-} from "./types.js";
+import type { CatalogLookup, LegacyRotationEntry, RotationCommand } from './types.js';
 
 function finiteMilliseconds(
   value: unknown,
   field: string,
-  { allowNegative = false }: { readonly allowNegative?: boolean } = {},
+  { allowNegative = false }: { readonly allowNegative?: boolean } = {}
 ): number {
   const number = Number(value);
   if (!Number.isFinite(number) || (!allowNegative && number < 0)) {
-    throw new TypeError(
-      `${field} must be ${allowNegative ? "a finite" : "a non-negative"} number.`,
-    );
+    throw new TypeError(`${field} must be ${allowNegative ? 'a finite' : 'a non-negative'} number.`);
   }
   return number;
 }
@@ -36,115 +30,77 @@ function positiveInteger(value: unknown, field: string): number {
  * @param {CatalogLookup|null} [catalog]
  * @returns {RotationCommand}
  */
-export function normalizeRotationCommand(
-  entry: unknown,
-  catalog: CatalogLookup | null = null,
-): RotationCommand {
-  if (typeof entry === "number") return { type: "cast", skillId: entry };
-  if (typeof entry === "string") {
-    if (entry === "__combat_start") return { type: "combat-start" };
-    if (entry === "__cooldown_reset") return { type: "cooldown-reset" };
-    if (entry === "__wait") return { type: "wait", durationMs: 0 };
+export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup | null = null): RotationCommand {
+  if (typeof entry === 'number') return { type: 'cast', skillId: entry };
+  if (typeof entry === 'string') {
+    if (entry === '__combat_start') return { type: 'combat-start' };
+    if (entry === '__cooldown_reset') return { type: 'cooldown-reset' };
+    if (entry === '__wait') return { type: 'wait', durationMs: 0 };
     const skill = catalog?.skillsByName?.get(entry);
-    return skill
-      ? { type: "cast", skillId: skill.id }
-      : { type: "cast", skillId: entry };
+    return skill ? { type: 'cast', skillId: skill.id } : { type: 'cast', skillId: entry };
   }
-  if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
-    throw new TypeError(
-      "Rotation command must be a skill, wait, cooldown-reset, " +
-        "or combat-start entry.",
-    );
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+    throw new TypeError('Rotation command must be a skill, wait, cooldown-reset, ' + 'or combat-start entry.');
   }
   const candidate = entry as Record<string, unknown>;
 
-  if (
-    candidate.type === "cooldown-reset" ||
-    candidate.name === "__cooldown_reset"
-  ) {
-    return { type: "cooldown-reset" };
+  if (candidate.type === 'cooldown-reset' || candidate.name === '__cooldown_reset') {
+    return { type: 'cooldown-reset' };
   }
-  if (
-    candidate.type === "combat-start" ||
-    candidate.name === "__combat_start"
-  ) {
+  if (candidate.type === 'combat-start' || candidate.name === '__combat_start') {
     const concurrent = candidate.concurrentOffsetMs ?? candidate.offset;
     return concurrent == null
-      ? { type: "combat-start" }
+      ? { type: 'combat-start' }
       : {
-          type: "combat-start",
-          concurrentOffsetMs: finiteMilliseconds(
-            concurrent,
-            "Concurrent offset",
-            { allowNegative: true },
-          ),
+          type: 'combat-start',
+          concurrentOffsetMs: finiteMilliseconds(concurrent, 'Concurrent offset', { allowNegative: true })
         };
   }
-  if (candidate.type === "wait" || candidate.name === "__wait") {
+  if (candidate.type === 'wait' || candidate.name === '__wait') {
     return {
-      type: "wait",
-      durationMs: finiteMilliseconds(
-        candidate.durationMs ?? candidate.waitMs ?? 0,
-        "Wait duration",
-      ),
+      type: 'wait',
+      durationMs: finiteMilliseconds(candidate.durationMs ?? candidate.waitMs ?? 0, 'Wait duration')
     };
   }
   const skillId =
     candidate.skillId ??
     candidate.id ??
-    (typeof candidate.name === "string"
-      ? catalog?.skillsByName?.get(candidate.name)?.id
-      : undefined) ??
+    (typeof candidate.name === 'string' ? catalog?.skillsByName?.get(candidate.name)?.id : undefined) ??
     candidate.name;
-  if (skillId === undefined || skillId === null || skillId === "") {
-    throw new TypeError("Cast command requires skillId.");
+  if (skillId === undefined || skillId === null || skillId === '') {
+    throw new TypeError('Cast command requires skillId.');
   }
-  if (typeof skillId !== "number" && typeof skillId !== "string") {
-    throw new TypeError("Cast command skillId must be a string or number.");
+  if (typeof skillId !== 'number' && typeof skillId !== 'string') {
+    throw new TypeError('Cast command skillId must be a string or number.');
   }
   const concurrent = candidate.concurrentOffsetMs ?? candidate.offset;
   const interrupt = candidate.interruptAfterMs ?? candidate.interruptMs;
-  const preserveEffectsAfterInterrupt =
-    candidate.preserveEffectsAfterInterrupt === true;
+  const preserveEffectsAfterInterrupt = candidate.preserveEffectsAfterInterrupt === true;
   const releaseAtCharges = candidate.releaseAtCharges;
   const doubleEdgeOutcome = candidate.doubleEdgeOutcome;
-  if (
-    doubleEdgeOutcome != null &&
-    doubleEdgeOutcome !== "success" &&
-    doubleEdgeOutcome !== "backfire"
-  ) {
-    throw new TypeError(
-      "Double Edge outcome must be either success or backfire.",
-    );
+  if (doubleEdgeOutcome != null && doubleEdgeOutcome !== 'success' && doubleEdgeOutcome !== 'backfire') {
+    throw new TypeError('Double Edge outcome must be either success or backfire.');
   }
   return {
-    type: "cast",
+    type: 'cast',
     skillId,
     ...(concurrent == null
       ? {}
       : {
-          concurrentOffsetMs: finiteMilliseconds(
-            concurrent,
-            "Concurrent offset",
-          ),
+          concurrentOffsetMs: finiteMilliseconds(concurrent, 'Concurrent offset')
         }),
     ...(interrupt == null
       ? {}
       : {
-          interruptAfterMs: finiteMilliseconds(interrupt, "Interrupt duration"),
+          interruptAfterMs: finiteMilliseconds(interrupt, 'Interrupt duration')
         }),
-    ...(preserveEffectsAfterInterrupt
-      ? { preserveEffectsAfterInterrupt: true }
-      : {}),
+    ...(preserveEffectsAfterInterrupt ? { preserveEffectsAfterInterrupt: true } : {}),
     ...(releaseAtCharges == null
       ? {}
       : {
-          releaseAtCharges: positiveInteger(
-            releaseAtCharges,
-            "Release-at charge count",
-          ),
+          releaseAtCharges: positiveInteger(releaseAtCharges, 'Release-at charge count')
         }),
-    ...(doubleEdgeOutcome == null ? {} : { doubleEdgeOutcome }),
+    ...(doubleEdgeOutcome == null ? {} : { doubleEdgeOutcome })
   };
 }
 
@@ -160,10 +116,10 @@ export function normalizeRotationCommand(
 export function normalizeRotation(
   rotation: unknown,
   catalog: CatalogLookup | null = null,
-  { strict = false }: { readonly strict?: boolean } = {},
+  { strict = false }: { readonly strict?: boolean } = {}
 ): RotationCommand[] {
   if (!Array.isArray(rotation)) {
-    if (strict) throw new TypeError("Rotation must be an array.");
+    if (strict) throw new TypeError('Rotation must be an array.');
     return [];
   }
   const commands: RotationCommand[] = [];
@@ -184,44 +140,31 @@ export function normalizeRotation(
  * @param {CatalogLookup|null} catalog
  * @returns {LegacyRotationEntry}
  */
-export function toLegacyRotationEntry(
-  command: RotationCommand,
-  catalog: CatalogLookup | null,
-): LegacyRotationEntry {
-  if (command.type === "cooldown-reset") {
-    return { name: "__cooldown_reset" };
+export function toLegacyRotationEntry(command: RotationCommand, catalog: CatalogLookup | null): LegacyRotationEntry {
+  if (command.type === 'cooldown-reset') {
+    return { name: '__cooldown_reset' };
   }
-  if (command.type === "combat-start") {
-    const entry: LegacyRotationEntry = { name: "__combat_start" };
+  if (command.type === 'combat-start') {
+    const entry: LegacyRotationEntry = { name: '__combat_start' };
     if (command.concurrentOffsetMs != null) {
       entry.offset = command.concurrentOffsetMs;
     }
     return entry;
   }
-  if (command.type === "wait") {
-    return { name: "__wait", waitMs: command.durationMs };
+  if (command.type === 'wait') {
+    return { name: '__wait', waitMs: command.durationMs };
   }
   const skill = catalog?.skillsById?.get(command.skillId);
   const entry: LegacyRotationEntry = {
-    name: skill?.name ?? command.skillId,
+    name: skill?.name ?? command.skillId
   };
-  if (
-    skill &&
-    catalog?.skills?.some(
-      (candidate) => candidate.id !== skill.id && candidate.name === skill.name,
-    )
-  ) {
+  if (skill && catalog?.skills?.some((candidate) => candidate.id !== skill.id && candidate.name === skill.name)) {
     entry.skillId = command.skillId;
   }
-  if (command.concurrentOffsetMs != null)
-    entry.offset = command.concurrentOffsetMs;
-  if (command.interruptAfterMs != null)
-    entry.interruptMs = command.interruptAfterMs;
-  if (command.preserveEffectsAfterInterrupt === true)
-    entry.preserveEffectsAfterInterrupt = true;
-  if (command.releaseAtCharges != null)
-    entry.releaseAtCharges = command.releaseAtCharges;
-  if (command.doubleEdgeOutcome != null)
-    entry.doubleEdgeOutcome = command.doubleEdgeOutcome;
+  if (command.concurrentOffsetMs != null) entry.offset = command.concurrentOffsetMs;
+  if (command.interruptAfterMs != null) entry.interruptMs = command.interruptAfterMs;
+  if (command.preserveEffectsAfterInterrupt === true) entry.preserveEffectsAfterInterrupt = true;
+  if (command.releaseAtCharges != null) entry.releaseAtCharges = command.releaseAtCharges;
+  if (command.doubleEdgeOutcome != null) entry.doubleEdgeOutcome = command.doubleEdgeOutcome;
   return entry;
 }

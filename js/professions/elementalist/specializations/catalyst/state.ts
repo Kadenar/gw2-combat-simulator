@@ -1,5 +1,5 @@
-import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
-import type { ElementalistConfig } from "../../types.js";
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import type { ElementalistConfig } from '../../types.js';
 
 export const CATALYST_MAXIMUM_ENERGY = 30;
 export const CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS = 10;
@@ -19,14 +19,11 @@ export interface CatalystState {
 }
 
 export const catalystState = defineProfessionSpecializationState(
-  "Catalyst",
+  'Catalyst',
   (config: ElementalistConfig = {}): CatalystState => ({
     energy: Math.max(
       0,
-      Math.min(
-        CATALYST_MAXIMUM_ENERGY,
-        Number(config.initialCatalystEnergy ?? CATALYST_MAXIMUM_ENERGY),
-      ),
+      Math.min(CATALYST_MAXIMUM_ENERGY, Number(config.initialCatalystEnergy ?? CATALYST_MAXIMUM_ENERGY))
     ),
     elementalEmpowermentExpiries: [],
     elementalEmpowermentRefreshStarted: false,
@@ -37,8 +34,8 @@ export const catalystState = defineProfessionSpecializationState(
     shatteringIceReadyAt: 0,
     viciousEmpowermentReadyAt: 0,
     elementalEpitomeReadyAt: {},
-    elementalSynergyReadyAt: {},
-  }),
+    elementalSynergyReadyAt: {}
+  })
 );
 
 export const createCatalystState = catalystState.create;
@@ -49,7 +46,7 @@ export function grantCatalystElementalEmpowerment(
   duration: number,
   stacks = 1,
   epsilon = Number.EPSILON,
-  maximumStacks = CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS,
+  maximumStacks = CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS
 ): void {
   const expiresAt = at + Math.max(0, duration);
   const active = state.elementalEmpowermentExpiries

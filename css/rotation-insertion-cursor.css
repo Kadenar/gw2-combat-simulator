@@ -64,7 +64,7 @@
   transition: opacity 0.12s;
 }
 
-.rot-insertion-gap[data-insertion-index="0"] .rot-insertion-arrow {
+.rot-insertion-gap[data-insertion-index='0'] .rot-insertion-arrow {
   visibility: hidden;
 }
 
@@ -89,7 +89,7 @@
   border-radius: 50%;
   background: var(--accent);
   color: var(--bg-dark);
-  content: "+";
+  content: '+';
   font-size: 12px;
   font-weight: 800;
   line-height: 1;

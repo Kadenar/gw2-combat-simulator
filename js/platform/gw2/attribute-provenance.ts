@@ -1,4 +1,4 @@
-import type { Gw2AttributeProvenance, Gw2Config } from "./types.js";
+import type { Gw2AttributeProvenance, Gw2Config } from './types.js';
 
 /**
  * Describes which static profession rules are already included in a
@@ -7,19 +7,17 @@ import type { Gw2AttributeProvenance, Gw2Config } from "./types.js";
 export function createAttributeProvenance({
   professionStaticRulesApplied = false,
   calculatedWeaponSet = 1,
-  calculatedPrimaryWeapon = "",
+  calculatedPrimaryWeapon = ''
 }: Partial<Gw2AttributeProvenance> = {}): Readonly<Gw2AttributeProvenance> {
   const weaponSet = Number(calculatedWeaponSet) === 2 ? 2 : 1;
   return Object.freeze({
     professionStaticRulesApplied: professionStaticRulesApplied === true,
     calculatedWeaponSet: weaponSet,
-    calculatedPrimaryWeapon: String(calculatedPrimaryWeapon || ""),
+    calculatedPrimaryWeapon: String(calculatedPrimaryWeapon || '')
   });
 }
 
-export function attributeProvenance(
-  config: Gw2Config = {},
-): Readonly<Gw2AttributeProvenance> {
+export function attributeProvenance(config: Gw2Config = {}): Readonly<Gw2AttributeProvenance> {
   return createAttributeProvenance(config.attributeProvenance || {});
 }
 

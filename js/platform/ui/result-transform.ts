@@ -1,4 +1,4 @@
-import type { Gw2ResolverResult, Gw2SimulationResult } from "../gw2/types.js";
+import type { Gw2ResolverResult, Gw2SimulationResult } from '../gw2/types.js';
 
 export interface ResultSummaryMetric {
   readonly label: string;
@@ -21,37 +21,36 @@ export interface TargetHealthBreakpointSnapshot {
  */
 export function resultSummaryMetrics(
   result: Gw2ResolverResult,
-  locale: string | string[] | undefined = undefined,
+  locale: string | string[] | undefined = undefined
 ): ResultSummaryMetric[] {
-  const format = (value: unknown): string =>
-    Math.round(Number(value || 0)).toLocaleString(locale);
+  const format = (value: unknown): string => Math.round(Number(value || 0)).toLocaleString(locale);
   const duration = Number(result.duration);
   const deathTime = result.deathTime == null ? null : Number(result.deathTime);
   const metrics: ResultSummaryMetric[] =
     deathTime == null
       ? [
           {
-            label: "Duration",
+            label: 'Duration',
             value: `${duration.toFixed(2)}s`,
-            className: "",
-          },
+            className: ''
+          }
         ]
       : [
           {
-            label: "Kill Time",
+            label: 'Kill Time',
             value: `${deathTime.toFixed(2)}s`,
-            className: "kill-time",
-          },
+            className: 'kill-time'
+          }
         ];
   metrics.push(
-    { label: "Total Damage", value: format(result.totalDamage), className: "" },
-    { label: "DPS", value: format(result.dps), className: "dps" },
-    { label: "Strike", value: format(result.strikeDamage), className: "" },
+    { label: 'Total Damage', value: format(result.totalDamage), className: '' },
+    { label: 'DPS', value: format(result.dps), className: 'dps' },
+    { label: 'Strike', value: format(result.strikeDamage), className: '' },
     {
-      label: "Condition",
+      label: 'Condition',
       value: format(result.conditionDamage),
-      className: "condi",
-    },
+      className: 'condi'
+    }
   );
   return metrics;
 }
@@ -64,7 +63,7 @@ export function resultSummaryMetrics(
 export function targetHealthBreakpointSnapshots(
   result: Gw2SimulationResult | null | undefined,
   targetHealth: unknown,
-  remainingHealthPercents: readonly number[] = [80, 60, 40, 20],
+  remainingHealthPercents: readonly number[] = [80, 60, 40, 20]
 ): TargetHealthBreakpointSnapshot[] {
   const health = Number(targetHealth || 0);
   if (!(health > 0)) return [];
@@ -78,13 +77,13 @@ export function targetHealthBreakpointSnapshots(
   };
 
   for (const event of result?.resolvedEvents || []) {
-    if (event.type === "condition" && Array.isArray(event.damageTicks)) {
+    if (event.type === 'condition' && Array.isArray(event.damageTicks)) {
       const ticks = event.damageTicks as Array<{
         readonly at?: unknown;
         readonly damage?: unknown;
       }>;
       for (const tick of ticks) addDamage(tick.at, tick.damage);
-    } else if (event.type === "damage") {
+    } else if (event.type === 'damage') {
       addDamage(event.at, event.damage);
     }
   }
@@ -95,24 +94,16 @@ export function targetHealthBreakpointSnapshots(
     .sort((left, right) => right - left)
     .map((healthPercent) => ({
       healthPercent,
-      damageThreshold: health * (1 - healthPercent / 100),
+      damageThreshold: health * (1 - healthPercent / 100)
     }));
   const snapshots: TargetHealthBreakpointSnapshot[] = [];
-  const dpsStartTime = Math.max(
-    0,
-    Number(result?.dpsStartTime ?? result?.firstHitTime ?? 0),
-  );
+  const dpsStartTime = Math.max(0, Number(result?.dpsStartTime ?? result?.firstHitTime ?? 0));
   let cumulativeDamage = 0;
   let milestoneIndex = 0;
 
-  for (const [at, damage] of [...damageByTime.entries()].sort(
-    (left, right) => left[0] - right[0],
-  )) {
+  for (const [at, damage] of [...damageByTime.entries()].sort((left, right) => left[0] - right[0])) {
     cumulativeDamage += damage;
-    while (
-      milestoneIndex < milestones.length &&
-      cumulativeDamage >= milestones[milestoneIndex]!.damageThreshold
-    ) {
+    while (milestoneIndex < milestones.length && cumulativeDamage >= milestones[milestoneIndex]!.damageThreshold) {
       const milestone = milestones[milestoneIndex]!;
       const elapsed = Math.max(0, at - dpsStartTime);
       snapshots.push({
@@ -120,7 +111,7 @@ export function targetHealthBreakpointSnapshots(
         at,
         elapsed,
         damage: cumulativeDamage,
-        dps: elapsed > 0 ? cumulativeDamage / elapsed : 0,
+        dps: elapsed > 0 ? cumulativeDamage / elapsed : 0
       });
       milestoneIndex += 1;
     }

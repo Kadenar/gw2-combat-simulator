@@ -1,92 +1,72 @@
-import type { SimulationRandomnessConfig } from "../../platform/engine/types.js";
+import type { SimulationRandomnessConfig } from '../../platform/engine/types.js';
 import {
   DEFAULT_SIMULATION_RANDOMNESS,
   SIMULATION_RANDOMNESS_MODES,
-  normalizeSimulationRandomness,
-} from "../../platform/engine/simulation-random.js";
+  normalizeSimulationRandomness
+} from '../../platform/engine/simulation-random.js';
 import {
   createProfessionAssumptionControls,
   normalizeProfessionAssumptions,
-  validateProfessionAssumptions,
-} from "../profession/assumptions.js";
-import type { ProfessionAssumptionControl } from "../profession/types.js";
+  validateProfessionAssumptions
+} from '../profession/assumptions.js';
+import type { ProfessionAssumptionControl } from '../profession/types.js';
 
 export type SimulationRandomnessAssumptions = Record<string, unknown>;
 
 export const SIMULATION_RANDOMNESS_ASSUMPTION_KEYS = Object.freeze({
-  MODE: "simulationMode",
+  MODE: 'simulationMode'
 });
 
 export const SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS: ReadonlyArray<ProfessionAssumptionControl> =
   createProfessionAssumptionControls([
     {
       key: SIMULATION_RANDOMNESS_ASSUMPTION_KEYS.MODE,
-      label: "Simulation randomness",
-      type: "select",
+      label: 'Simulation randomness',
+      type: 'select',
       defaultValue: DEFAULT_SIMULATION_RANDOMNESS.mode,
-      section: "simulation",
+      section: 'simulation',
       options: [
         {
           value: SIMULATION_RANDOMNESS_MODES.DETERMINISTIC,
-          label: "Deterministic expected",
+          label: 'Deterministic expected'
         },
         {
           value: SIMULATION_RANDOMNESS_MODES.STOCHASTIC,
-          label: "RNG distribution",
-        },
-      ],
-    },
+          label: 'RNG distribution'
+        }
+      ]
+    }
   ]);
 
-export const DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS: Readonly<SimulationRandomnessAssumptions> =
-  Object.freeze(
-    Object.fromEntries(
-      SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS.map((control) => [
-        control.key,
-        control.defaultValue,
-      ]),
-    ),
-  );
+export const DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS: Readonly<SimulationRandomnessAssumptions> = Object.freeze(
+  Object.fromEntries(SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS.map((control) => [control.key, control.defaultValue]))
+);
 
 export function normalizeSimulationRandomnessAssumptions(
-  assumptions: SimulationRandomnessAssumptions = {},
+  assumptions: SimulationRandomnessAssumptions = {}
 ): SimulationRandomnessAssumptions {
   // Seeds are an internal reproducibility mechanism, not a user-facing build
   // choice. Drop values persisted by the short-lived seeded-run UI.
   const { simulationSeed: _legacySeed, ...currentAssumptions } = assumptions;
-  return normalizeProfessionAssumptions(
-    currentAssumptions,
-    SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-  );
+  return normalizeProfessionAssumptions(currentAssumptions, SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS);
 }
 
-export function validateSimulationRandomnessAssumptions(
-  assumptions: SimulationRandomnessAssumptions = {},
-): string[] {
-  return validateProfessionAssumptions(
-    assumptions,
-    SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-  );
+export function validateSimulationRandomnessAssumptions(assumptions: SimulationRandomnessAssumptions = {}): string[] {
+  return validateProfessionAssumptions(assumptions, SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS);
 }
 
 export function simulationRandomnessFromAssumptions(
-  assumptions: SimulationRandomnessAssumptions = {},
+  assumptions: SimulationRandomnessAssumptions = {}
 ): Readonly<SimulationRandomnessConfig> {
   return normalizeSimulationRandomness({
     mode:
-      assumptions[SIMULATION_RANDOMNESS_ASSUMPTION_KEYS.MODE] ===
-      SIMULATION_RANDOMNESS_MODES.STOCHASTIC
+      assumptions[SIMULATION_RANDOMNESS_ASSUMPTION_KEYS.MODE] === SIMULATION_RANDOMNESS_MODES.STOCHASTIC
         ? SIMULATION_RANDOMNESS_MODES.STOCHASTIC
-        : SIMULATION_RANDOMNESS_MODES.DETERMINISTIC,
+        : SIMULATION_RANDOMNESS_MODES.DETERMINISTIC
   });
 }
 
-export function isSimulationRandomnessControl(
-  control: { readonly key?: unknown } | null | undefined,
-): boolean {
+export function isSimulationRandomnessControl(control: { readonly key?: unknown } | null | undefined): boolean {
   const key = control?.key;
-  return (
-    typeof key === "string" &&
-    key === SIMULATION_RANDOMNESS_ASSUMPTION_KEYS.MODE
-  );
+  return typeof key === 'string' && key === SIMULATION_RANDOMNESS_ASSUMPTION_KEYS.MODE;
 }

@@ -2,44 +2,39 @@
 // runtime config mapping, persistence metadata, and shared-shell adapter
 // behavior to the engine contract exported by ../definition.js.
 
-import {
-  defaultIsSkillAvailable,
-  defineProfessionApp,
-  preferOffhand,
-} from "../../../app/profession/define-app.js";
-import { applyNecromancerBuildAttributeRules } from "../build-attributes.js";
-import { createDefaultTargetConditions, toApplicationBuild } from "../build.js";
-import { NECROMANCER_SKILL_IDS as ID } from "../data/ids.js";
-import { getActiveTraits } from "../data/traits-data.js";
-import { necromancerProfession } from "../definition.js";
+import { defaultIsSkillAvailable, defineProfessionApp, preferOffhand } from '../../../app/profession/define-app.js';
+import { applyNecromancerBuildAttributeRules } from '../build-attributes.js';
+import { createDefaultTargetConditions, toApplicationBuild } from '../build.js';
+import { NECROMANCER_SKILL_IDS as ID } from '../data/ids.js';
+import { getActiveTraits } from '../data/traits-data.js';
+import { necromancerProfession } from '../definition.js';
 
 export const necromancerApp = defineProfessionApp({
   profession: necromancerProfession,
   applyBuildAttributeRules: applyNecromancerBuildAttributeRules,
   createDefaultTargetConditions,
   toApplicationBuild,
-  specializationFallback: "Spite",
+  specializationFallback: 'Spite',
   runtime: {
     buildConfigInputs: (app) => ({
-      initialResource: app.build.initialResource,
+      initialResource: app.build.initialResource
     }),
     buildConfigExtras: (app) => ({
       initialBlight: app.build.initialBlight,
-      initialCascadingCorruptionStacks:
-        app.build.initialCascadingCorruptionStacks,
+      initialCascadingCorruptionStacks: app.build.initialCascadingCorruptionStacks
     }),
-    isContributionTrait: (trait) => trait.name !== "Dark Disciple",
+    isContributionTrait: (trait) => trait.name !== 'Dark Disciple'
   },
   isSkillAvailable(skill, context = {}) {
     if (skill.implemented === false || skill.simulatorExcluded) return false;
-    const lingeringCurse = getActiveTraits(
-      context.build?.specializations || [],
-    ).some((trait) => trait.name === "Lingering Curse");
+    const lingeringCurse = getActiveTraits(context.build?.specializations || []).some(
+      (trait) => trait.name === 'Lingering Curse'
+    );
     if (skill.id === ID.FEAST_OF_CORRUPTION) return !lingeringCurse;
     if (skill.id === ID.DEVOURING_DARKNESS) return lingeringCurse;
     return defaultIsSkillAvailable(skill, context);
   },
-  defaultOffhand: preferOffhand("Dagger"),
+  defaultOffhand: preferOffhand('Dagger')
 });
 
 export const {
@@ -52,5 +47,5 @@ export const {
   modifierContributionRequest,
   calculateModifierContributions,
   computeModifierContributions,
-  runSimulation,
+  runSimulation
 } = necromancerApp;

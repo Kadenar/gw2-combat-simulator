@@ -1,45 +1,38 @@
-import {
-  mountRotationResults,
-  SKILL_COLS,
-} from "../../platform/ui/rotation-results.js";
-import { syncRotationFocusResults } from "../../platform/ui/rotation-workspace.js";
-import { targetHealthBreakpointSnapshots } from "../../platform/ui/result-transform.js";
-import type { ProfessionAppState } from "../profession/types.js";
-import { PLACEHOLDER_ICON, resultSkillIcon } from "./icons.js";
-import { renderPatchComparison } from "../simulation/patch-preview-view.js";
-import type { ResultIconRow } from "./icons.js";
-import {
-  buildChartSeries,
-  resultSummaryMetrics,
-  skillBreakdownRows,
-} from "./result-model.js";
+import { mountRotationResults, SKILL_COLS } from '../../platform/ui/rotation-results.js';
+import { syncRotationFocusResults } from '../../platform/ui/rotation-workspace.js';
+import { targetHealthBreakpointSnapshots } from '../../platform/ui/result-transform.js';
+import type { ProfessionAppState } from '../profession/types.js';
+import { PLACEHOLDER_ICON, resultSkillIcon } from './icons.js';
+import { renderPatchComparison } from '../simulation/patch-preview-view.js';
+import type { ResultIconRow } from './icons.js';
+import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from './result-model.js';
 
 const EFFECT_COLORS: Readonly<Record<string, string>> = {
-  Bleeding: "#d84b4b",
-  Burning: "#f28b3c",
-  Confusion: "#b874e8",
-  Poisoned: "#62b565",
-  Torment: "#a96bd3",
-  "Compounding Power": "#cfb5ff",
-  "Phantom Pain": "#df79bd",
-  "Illusionary Membrane": "#6ec9d8",
-  "Deadly Blades": "#e38a8a",
-  "Altered Chord": "#80bce8",
-  "Fencer's Finesse": "#e1c070",
-  "Mirage Cloak": "#d6b46b",
-  Alacrity: "#9069d8",
-  Protection: "#4f9ec2",
-  Resolution: "#d48f45",
-  Vigor: "#78bd45",
-  Might: "#d9a441",
-  Fury: "#d65e5e",
-  Regeneration: "#5ebc72",
-  Swiftness: "#62a7cb",
-  Aegis: "#d9b85f",
+  Bleeding: '#d84b4b',
+  Burning: '#f28b3c',
+  Confusion: '#b874e8',
+  Poisoned: '#62b565',
+  Torment: '#a96bd3',
+  'Compounding Power': '#cfb5ff',
+  'Phantom Pain': '#df79bd',
+  'Illusionary Membrane': '#6ec9d8',
+  'Deadly Blades': '#e38a8a',
+  'Altered Chord': '#80bce8',
+  "Fencer's Finesse": '#e1c070',
+  'Mirage Cloak': '#d6b46b',
+  Alacrity: '#9069d8',
+  Protection: '#4f9ec2',
+  Resolution: '#d48f45',
+  Vigor: '#78bd45',
+  Might: '#d9a441',
+  Fury: '#d65e5e',
+  Regeneration: '#5ebc72',
+  Swiftness: '#62a7cb',
+  Aegis: '#d9b85f'
 };
 
 export function renderResults(app: ProfessionAppState): void {
-  const element = document.getElementById("rotation-results");
+  const element = document.getElementById('rotation-results');
   if (!element) return;
   const result = app.results;
   if (!app.build.rotation.length || !result) {
@@ -47,26 +40,21 @@ export function renderResults(app: ProfessionAppState): void {
       <strong>No analysis yet</strong>
       <span>Add skills to the rotation in the <a href="#workspace">Workspace</a> to generate results.</span>
     </div>`;
-    const mirror = document.getElementById("analysis-dps-summary");
-    if (mirror) mirror.innerHTML = "";
+    const mirror = document.getElementById('analysis-dps-summary');
+    if (mirror) mirror.innerHTML = '';
     return;
   }
   const metrics = resultSummaryMetrics(result).map((metric) =>
-    result.randomDistributionRequested && metric.label === "DPS"
-      ? { ...metric, label: "Baseline DPS" }
-      : metric,
+    result.randomDistributionRequested && metric.label === 'DPS' ? { ...metric, label: 'Baseline DPS' } : metric
   );
   const skillRows = skillBreakdownRows(result);
   const conditions = result.conditionBreakdown || [];
   const series = buildChartSeries(result);
   const contributions = (result.contributions || []).map((contribution) => ({
     ...contribution,
-    icon: resultSkillIcon(app, contribution),
+    icon: resultSkillIcon(app, contribution)
   }));
-  const breakpoints = targetHealthBreakpointSnapshots(
-    result,
-    app.build.targetHealth,
-  );
+  const breakpoints = targetHealthBreakpointSnapshots(result, app.build.targetHealth);
   app._skillBreakdownState = { skillRows };
   mountRotationResults(
     element,
@@ -78,11 +66,9 @@ export function renderResults(app: ProfessionAppState): void {
       conditions,
       conditionTotal: conditions.length
         ? {
-            label: "Total Conditions",
+            label: 'Total Conditions',
             damage: result.conditionDamage,
-            dps:
-              result.conditionDamage /
-              Math.max(0.001, Number(result.dpsWindow ?? result.duration ?? 0)),
+            dps: result.conditionDamage / Math.max(0.001, Number(result.dpsWindow ?? result.duration ?? 0))
           }
         : null,
       contributions,
@@ -92,24 +78,24 @@ export function renderResults(app: ProfessionAppState): void {
       randomDistributionStale: result.randomDistributionStale === true,
       randomDistributionTrials: Number(result.randomDistributionTrials || 0),
       randomDistributionProgress: result.randomDistributionProgress || null,
-      randomDistributionError: result.randomDistributionError || "",
-      chartSeries: series,
+      randomDistributionError: result.randomDistributionError || '',
+      chartSeries: series
     },
     {
       resolveSkillIcon: (row) => resultSkillIcon(app, row as ResultIconRow),
       placeholderIcon: PLACEHOLDER_ICON,
       skillBreakdownClassName: `${app.adapter.id}-skill-breakdown`,
       chartOptions: {
-        title: "DPS & Effects Over Time",
-        dpsLabel: "Average DPS",
-        dpsColor: "#54c96b",
+        title: 'DPS & Effects Over Time',
+        dpsLabel: 'Average DPS',
+        dpsColor: '#54c96b',
         colors: EFFECT_COLORS,
         defaultVisibleEffectLimit: 8,
-        emptyEffectsText: "No timed effects in this rotation",
+        emptyEffectsText: 'No timed effects in this rotation'
       },
       sortState: {
         column: app._skillSortCol,
-        direction: app._skillSortDir,
+        direction: app._skillSortDir
       },
       onSortStateChange(nextState) {
         app._skillSortCol = nextState.column;
@@ -117,14 +103,14 @@ export function renderResults(app: ProfessionAppState): void {
       },
       onRunRandomDistribution() {
         app.runRandomDistribution();
-      },
-    },
+      }
+    }
   );
-  const mirror = document.getElementById("analysis-dps-summary");
+  const mirror = document.getElementById('analysis-dps-summary');
   if (mirror) {
-    mirror.innerHTML = "";
-    const summary = element.querySelector(".res-summary");
-    const bpDetails = element.querySelector(".res-breakpoints");
+    mirror.innerHTML = '';
+    const summary = element.querySelector('.res-summary');
+    const bpDetails = element.querySelector('.res-breakpoints');
     if (summary) mirror.appendChild(summary.cloneNode(true));
     if (bpDetails) mirror.appendChild(bpDetails.cloneNode(true));
   }

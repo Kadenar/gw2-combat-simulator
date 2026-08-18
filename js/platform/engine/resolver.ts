@@ -1,13 +1,6 @@
-import { assertScheduledEventStream } from "./scheduled-event-stream.js";
-import {
-  createEventQueue,
-  StableEventQueue,
-  takeNextEvent,
-} from "./event-queue.js";
-import {
-  cloneProfessionState,
-  resolveProfessionRuntime,
-} from "./profession.js";
+import { assertScheduledEventStream } from './scheduled-event-stream.js';
+import { createEventQueue, StableEventQueue, takeNextEvent } from './event-queue.js';
+import { cloneProfessionState, resolveProfessionRuntime } from './profession.js';
 
 import type {
   NormalizedProfessionContract,
@@ -15,8 +8,8 @@ import type {
   ScheduledEventStream,
   SchedulerConfig,
   SimulationEvent,
-  SkillId,
-} from "./types.js";
+  SkillId
+} from './types.js';
 
 // Minimal resolver implementation for event streams whose behavior is fully
 // provided by registered handlers. Shared GW2 resolution layers build on this
@@ -37,7 +30,7 @@ export interface DirectResolverBreakdownEntry {
 /**
  * The two per-source fields the direct resolver accumulates alongside `damage`.
  */
-export type DirectResolverDamageField = "strikeDamage" | "conditionDamage";
+export type DirectResolverDamageField = 'strikeDamage' | 'conditionDamage';
 
 /**
  * One boon application retained by the direct resolver as history.
@@ -69,27 +62,18 @@ export interface DirectResolverState<TProfessionState = unknown> {
  * common numeric work before deferring to profession reactions.
  */
 export interface DirectResolverContext<TProfessionState = unknown> {
-  readonly profession: NormalizedProfessionContract<
-    TProfessionState & object
-  >;
+  readonly profession: NormalizedProfessionContract<TProfessionState & object>;
   readonly config: SchedulerConfig;
   readonly state: DirectResolverState<TProfessionState>;
   readonly queue: StableEventQueue<SimulationEvent>;
   readonly stream: ScheduledEventStream;
-  addBreakdown(
-    id: SkillId,
-    name: string,
-    type: DirectResolverDamageField,
-    damage: number,
-    hits?: number,
-  ): void;
+  addBreakdown(id: SkillId, name: string, type: DirectResolverDamageField, damage: number, hits?: number): void;
 }
 
 /**
  * A profession contract able to seed direct-resolver profession state.
  */
-export type DirectResolverProfession<TProfessionState extends object = object> =
-  ProfessionSource<TProfessionState>;
+export type DirectResolverProfession<TProfessionState extends object = object> = ProfessionSource<TProfessionState>;
 
 interface CreateResolverStateOptions<TProfessionState extends object> {
   readonly profession: DirectResolverProfession<TProfessionState>;
@@ -102,18 +86,16 @@ interface CreateResolverStateOptions<TProfessionState extends object> {
  */
 export function createResolverState<TProfessionState extends object>({
   profession,
-  config = {} as SchedulerConfig,
-}: CreateResolverStateOptions<TProfessionState>): DirectResolverState<
-  TProfessionState
-> {
+  config = {} as SchedulerConfig
+}: CreateResolverStateOptions<TProfessionState>): DirectResolverState<TProfessionState> {
   const activeProfession = resolveProfessionRuntime(profession, config);
   return {
     time: 0,
     config,
     profession: cloneProfessionState(
-      typeof activeProfession.createResolverState === "function"
+      typeof activeProfession.createResolverState === 'function'
         ? activeProfession.createResolverState(config)
-        : activeProfession.createProfessionState(config),
+        : activeProfession.createProfessionState(config)
     ) as TProfessionState,
     totals: { strike: 0, condition: 0 },
     breakdown: new Map(),
@@ -121,7 +103,7 @@ export function createResolverState<TProfessionState extends object>({
     boons: new Map(),
     resolvedEvents: [],
     procs: [],
-    warnings: [],
+    warnings: []
   };
 }
 
@@ -134,7 +116,7 @@ export function addBreakdown(
   name: string,
   type: DirectResolverDamageField,
   damage: number,
-  hits = 0,
+  hits = 0
 ): void {
   const current = state.breakdown.get(id) || {
     id,
@@ -142,7 +124,7 @@ export function addBreakdown(
     damage: 0,
     strikeDamage: 0,
     conditionDamage: 0,
-    hits: 0,
+    hits: 0
   };
   current.damage += damage;
   current[type] += damage;
@@ -181,30 +163,25 @@ export function resolveScheduledStream<TProfessionState extends object>({
   stream,
   profession,
   handlerRegistry,
-  config = {} as SchedulerConfig,
-}: ResolveScheduledStreamOptions<TProfessionState>): ResolveScheduledStreamResult<
-  TProfessionState
-> {
+  config = {} as SchedulerConfig
+}: ResolveScheduledStreamOptions<TProfessionState>): ResolveScheduledStreamResult<TProfessionState> {
   const scheduled = assertScheduledEventStream(stream);
   const activeProfession = resolveProfessionRuntime(profession, config);
-  if (!handlerRegistry)
-    throw new TypeError("Resolver requires a handler registry.");
+  if (!handlerRegistry) throw new TypeError('Resolver requires a handler registry.');
   handlerRegistry.require(scheduled.events.map((event) => event.type));
   const state = createResolverState({
     profession: activeProfession,
     config,
-    stream: scheduled,
+    stream: scheduled
   });
-  const queue = createEventQueue<SimulationEvent>(
-    scheduled.events.map((event) => ({ ...event }) as SimulationEvent),
-  );
+  const queue = createEventQueue<SimulationEvent>(scheduled.events.map((event) => ({ ...event }) as SimulationEvent));
   const context: DirectResolverContext<TProfessionState> = {
     profession: activeProfession,
     config,
     state,
     queue,
     stream: scheduled,
-    addBreakdown: (...args) => addBreakdown(state, ...args),
+    addBreakdown: (...args) => addBreakdown(state, ...args)
   };
   while (queue.length > 0) {
     const event = takeNextEvent(queue);
@@ -221,12 +198,10 @@ export function resolveScheduledStream<TProfessionState extends object>({
     dps: totalDamage / duration,
     strikeDamage: state.totals.strike,
     conditionDamage: state.totals.condition,
-    breakdown: [...state.breakdown.values()].sort(
-      (left, right) => right.damage - left.damage,
-    ),
+    breakdown: [...state.breakdown.values()].sort((left, right) => right.damage - left.damage),
     events: scheduled.events,
     resolvedEvents: state.resolvedEvents,
     profession: state.profession,
-    warnings: state.warnings,
+    warnings: state.warnings
   };
 }

@@ -1,25 +1,18 @@
-import {
-  createDefaultBuild,
-  loadBuild,
-  saveBuild,
-} from "./build/persistence.js";
-import { renderAssumptions } from "./build/assumptions-panel.js";
-import { renderAttributes } from "./build/attributes-panel.js";
-import { renderGear, updateGearRotationDps } from "./build/gear-panel.js";
-import { bindPageControls } from "./build/page-controls.js";
-import {
-  initBuildTemplates,
-  updateTemplateSelection,
-} from "./build/presets.js";
-import { normalizeSelectedSkills } from "./build/selection.js";
-import { renderSkills } from "./build/skills-panel.js";
-import { renderTraits } from "./build/traits-panel.js";
-import { addRotation } from "./rotation/actions.js";
-import { recordRotationHistory } from "./rotation/history.js";
-import { ModifierContributionRunner } from "./simulation/modifier-contribution-runner.js";
-import { RandomDistributionRunner } from "./simulation/random-distribution-runner.js";
-import { RELIC_NAMES as SHARED_RELIC_NAMES } from "../platform/gw2/gear-data.js";
-import { mountPatchPreviewControls } from "./simulation/patch-preview-view.js";
+import { createDefaultBuild, loadBuild, saveBuild } from './build/persistence.js';
+import { renderAssumptions } from './build/assumptions-panel.js';
+import { renderAttributes } from './build/attributes-panel.js';
+import { renderGear, updateGearRotationDps } from './build/gear-panel.js';
+import { bindPageControls } from './build/page-controls.js';
+import { initBuildTemplates, updateTemplateSelection } from './build/presets.js';
+import { normalizeSelectedSkills } from './build/selection.js';
+import { renderSkills } from './build/skills-panel.js';
+import { renderTraits } from './build/traits-panel.js';
+import { addRotation } from './rotation/actions.js';
+import { recordRotationHistory } from './rotation/history.js';
+import { ModifierContributionRunner } from './simulation/modifier-contribution-runner.js';
+import { RandomDistributionRunner } from './simulation/random-distribution-runner.js';
+import { RELIC_NAMES as SHARED_RELIC_NAMES } from '../platform/gw2/gear-data.js';
+import { mountPatchPreviewControls } from './simulation/patch-preview-view.js';
 
 import type {
   BuildTemplatePreset,
@@ -30,24 +23,24 @@ import type {
   ProfessionAttributeData,
   ProfessionApplicationBuild,
   ProfessionRotationDragState,
-  RotationActionOptions,
-} from "./profession/types.js";
+  RotationActionOptions
+} from './profession/types.js';
 
 export class ProfessionApp implements ProfessionAppState {
   readonly adapter: Gw2AppAdapter;
-  readonly profession: ProfessionAppState["profession"];
-  activeCatalog: ProfessionAppState["activeCatalog"];
+  readonly profession: ProfessionAppState['profession'];
+  activeCatalog: ProfessionAppState['activeCatalog'];
   patchId: string;
-  patchComparison: ProfessionAppState["patchComparison"];
+  patchComparison: ProfessionAppState['patchComparison'];
   build: ProfessionApplicationBuild;
-  skills: ProfessionAppState["skills"];
-  skillByName: ProfessionAppState["skillByName"];
-  skillById: ProfessionAppState["skillById"];
-  readonly weaponData: ProfessionAppState["weaponData"];
-  readonly relicNames: ProfessionAppState["relicNames"];
-  readonly specializations: ProfessionAppState["specializations"];
-  readonly resourceDefinitions: ProfessionAppState["resourceDefinitions"];
-  readonly resourceDefinition: ProfessionAppState["resourceDefinition"];
+  skills: ProfessionAppState['skills'];
+  skillByName: ProfessionAppState['skillByName'];
+  skillById: ProfessionAppState['skillById'];
+  readonly weaponData: ProfessionAppState['weaponData'];
+  readonly relicNames: ProfessionAppState['relicNames'];
+  readonly specializations: ProfessionAppState['specializations'];
+  readonly resourceDefinitions: ProfessionAppState['resourceDefinitions'];
+  readonly resourceDefinition: ProfessionAppState['resourceDefinition'];
   attributeWeaponSet: number;
   attributeData: ProfessionAttributeData | null;
   results: ProfessionAppResult | null;
@@ -65,12 +58,12 @@ export class ProfessionApp implements ProfessionAppState {
 
   constructor(adapter: Gw2AppAdapter) {
     if (!adapter?.profession) {
-      throw new TypeError("ProfessionApp requires an app adapter.");
+      throw new TypeError('ProfessionApp requires an app adapter.');
     }
     this.adapter = adapter;
     this.profession = adapter.profession;
     this.activeCatalog = this.profession.catalog;
-    this.patchId = "current";
+    this.patchId = 'current';
     this.patchComparison = null;
     this.build = loadBuild(adapter);
     this.skills = [...this.activeCatalog.skills];
@@ -79,10 +72,8 @@ export class ProfessionApp implements ProfessionAppState {
     this.weaponData = adapter.weaponData;
     this.relicNames = adapter.relicNames || SHARED_RELIC_NAMES;
     this.specializations = adapter.specializations;
-    this.resourceDefinitions = (specialization: string) =>
-      this.profession.ui.resourceViews({ specialization });
-    this.resourceDefinition = (specialization: string) =>
-      this.resourceDefinitions(specialization)[0] || null;
+    this.resourceDefinitions = (specialization: string) => this.profession.ui.resourceViews({ specialization });
+    this.resourceDefinition = (specialization: string) => this.resourceDefinitions(specialization)[0] || null;
     this.attributeWeaponSet = 1;
     this.attributeData = null;
     this.results = null;
@@ -114,7 +105,7 @@ export class ProfessionApp implements ProfessionAppState {
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
     });
-    document.getElementById("loading-overlay")?.classList.add("hidden");
+    document.getElementById('loading-overlay')?.classList.add('hidden');
     this.scheduleInitialDeferredRender();
   }
 
@@ -188,7 +179,7 @@ export class ProfessionApp implements ProfessionAppState {
   selectPatch(patchId: string): void {
     const catalog = this.profession.catalogFor
       ? this.profession.catalogFor(patchId)
-      : patchId === "current"
+      : patchId === 'current'
         ? this.profession.catalog
         : null;
     if (!catalog) throw new TypeError(`Unknown patch ${patchId}.`);

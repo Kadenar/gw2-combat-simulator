@@ -19,17 +19,12 @@ import type {
   SchedulerRecord,
   SchedulerConfig,
   Skill,
-  SkillId,
-} from "./types.js";
-import { createCanonicalCatalog } from "./catalog.js";
-import { toEntries } from "./collections.js";
-import { foldAvailability } from "./availability.js";
-import {
-  everyUiSlice,
-  firstUiMatch,
-  mergeUiList,
-  someUiSlice,
-} from "./ui-combinators.js";
+  SkillId
+} from './types.js';
+import { createCanonicalCatalog } from './catalog.js';
+import { toEntries } from './collections.js';
+import { foldAvailability } from './availability.js';
+import { everyUiSlice, firstUiMatch, mergeUiList, someUiSlice } from './ui-combinators.js';
 
 type ComposableHook = (...args: any[]) => unknown;
 
@@ -40,59 +35,48 @@ interface OrderedHook {
   readonly index: number;
 }
 
-type EventReaction = (
-  context: SchedulerRecord,
-  event: SchedulerRecord,
-  details?: SchedulerRecord,
-) => unknown;
-type HookCategory = "scheduler" | "cast" | "attribute";
+type EventReaction = (context: SchedulerRecord, event: SchedulerRecord, details?: SchedulerRecord) => unknown;
+type HookCategory = 'scheduler' | 'cast' | 'attribute';
 
 /**
  * Single source of truth for hook names and the composition families each one
  * belongs to. Array order defines PROFESSION_HOOK_ORDER; the family arrays below
  * are derived, so adding a hook can no longer silently miss a subset list.
  */
-const HOOK_DEFINITIONS: readonly (readonly [
-  string,
-  readonly HookCategory[],
-])[] = Object.freeze([
-  ["prepareEvent", ["scheduler"]],
-  ["initialize", ["scheduler"]],
-  ["availability", ["scheduler", "cast"]],
-  ["validateCast", ["scheduler", "cast"]],
-  ["scheduleSkill", ["scheduler", "cast"]],
-  ["afterCast", ["scheduler"]],
-  ["advance", ["scheduler"]],
-  ["snapshot", ["scheduler"]],
-  ["projectEndState", ["scheduler"]],
-  ["onCastStart", ["scheduler"]],
-  ["onCastComplete", ["scheduler"]],
-  ["onCooldownReset", ["scheduler"]],
-  ["onEventScheduled", ["scheduler"]],
-  ["modifyCastDuration", ["scheduler", "cast"]],
-  ["modifyRechargeDuration", ["scheduler", "cast"]],
-  ["modifyRechargeStart", ["scheduler", "cast"]],
-  ["modifyMaximumAmmo", ["scheduler", "cast"]],
-  ["modifyAttributes", ["attribute"]],
-  ["modifyCriticalChance", ["attribute"]],
-  ["modifyCriticalDamage", ["attribute"]],
-  ["modifyStrikeDamage", ["attribute"]],
-  ["modifyConditionDamage", ["attribute"]],
-  ["modifyConditionBaseDuration", ["attribute"]],
-  ["modifyConditionDuration", ["attribute"]],
+const HOOK_DEFINITIONS: readonly (readonly [string, readonly HookCategory[]])[] = Object.freeze([
+  ['prepareEvent', ['scheduler']],
+  ['initialize', ['scheduler']],
+  ['availability', ['scheduler', 'cast']],
+  ['validateCast', ['scheduler', 'cast']],
+  ['scheduleSkill', ['scheduler', 'cast']],
+  ['afterCast', ['scheduler']],
+  ['advance', ['scheduler']],
+  ['snapshot', ['scheduler']],
+  ['projectEndState', ['scheduler']],
+  ['onCastStart', ['scheduler']],
+  ['onCastComplete', ['scheduler']],
+  ['onCooldownReset', ['scheduler']],
+  ['onEventScheduled', ['scheduler']],
+  ['modifyCastDuration', ['scheduler', 'cast']],
+  ['modifyRechargeDuration', ['scheduler', 'cast']],
+  ['modifyRechargeStart', ['scheduler', 'cast']],
+  ['modifyMaximumAmmo', ['scheduler', 'cast']],
+  ['modifyAttributes', ['attribute']],
+  ['modifyCriticalChance', ['attribute']],
+  ['modifyCriticalDamage', ['attribute']],
+  ['modifyStrikeDamage', ['attribute']],
+  ['modifyConditionDamage', ['attribute']],
+  ['modifyConditionBaseDuration', ['attribute']],
+  ['modifyConditionDuration', ['attribute']]
 ]);
 
 const hookNamesWith = (category: HookCategory): readonly string[] =>
-  Object.freeze(
-    HOOK_DEFINITIONS.filter(([, categories]) =>
-      categories.includes(category),
-    ).map(([name]) => name),
-  );
+  Object.freeze(HOOK_DEFINITIONS.filter(([, categories]) => categories.includes(category)).map(([name]) => name));
 
 const HOOK_NAMES = Object.freeze(HOOK_DEFINITIONS.map(([name]) => name));
-const SCHEDULER_HOOK_NAMES = hookNamesWith("scheduler");
-const CAST_HOOK_NAMES = hookNamesWith("cast");
-const ATTRIBUTE_HOOK_NAMES = hookNamesWith("attribute");
+const SCHEDULER_HOOK_NAMES = hookNamesWith('scheduler');
+const CAST_HOOK_NAMES = hookNamesWith('cast');
+const ATTRIBUTE_HOOK_NAMES = hookNamesWith('attribute');
 
 const NOOP: ComposableHook = (..._args) => undefined;
 const IDENTITY_SECOND_ARGUMENT: ComposableHook = (...args) => args[1];
@@ -100,29 +84,29 @@ const VALID_CAST: ComposableHook = (..._args) => true;
 const READY_CAST: ComposableHook = (..._args) => ({ ready: true });
 
 const UI_CALLBACK_NAMES = Object.freeze([
-  "chargeReleaseProjection",
-  "eventLogRow",
-  "isPaletteSkillInstant",
-  "paletteSkillAvailability",
-  "isPaletteSkillAvailable",
-  "isSlotSkillSelectable",
-  "paletteSkillUnavailableMessage",
-  "paletteGroups",
-  "paletteActionSkills",
-  "paletteWeaponSkills",
-  "renderWeaponPalette",
-  "resolvePaletteAction",
-  "resourceView",
-  "resourceViews",
-  "skillBarGroups",
-  "startControls",
-  "targetHealthThresholds",
-  "rotationStateSnapshot",
-  "timelineWeaponLineTransition",
-  "timelineSkillIcon",
-  "updatePaletteControl",
-  "updateSkillBarSelection",
-  "weaponSkillMatchesSet",
+  'chargeReleaseProjection',
+  'eventLogRow',
+  'isPaletteSkillInstant',
+  'paletteSkillAvailability',
+  'isPaletteSkillAvailable',
+  'isSlotSkillSelectable',
+  'paletteSkillUnavailableMessage',
+  'paletteGroups',
+  'paletteActionSkills',
+  'paletteWeaponSkills',
+  'renderWeaponPalette',
+  'resolvePaletteAction',
+  'resourceView',
+  'resourceViews',
+  'skillBarGroups',
+  'startControls',
+  'targetHealthThresholds',
+  'rotationStateSnapshot',
+  'timelineWeaponLineTransition',
+  'timelineSkillIcon',
+  'updatePaletteControl',
+  'updateSkillBarSelection',
+  'weaponSkillMatchesSet'
 ]);
 
 /**
@@ -132,34 +116,29 @@ function orderedHooks(value: unknown, hookName: string): OrderedHook[] {
   const entries = value == null ? [] : Array.isArray(value) ? value : [value];
   const hooks = entries
     .map((entry, index) => {
-      if (typeof entry === "function") {
+      if (typeof entry === 'function') {
         return {
           id: `${hookName}:${index}`,
           order: 0,
           handler: entry as ComposableHook,
-          index,
+          index
         };
       }
-      if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
         throw new TypeError(`Invalid ${hookName} hook at index ${index}.`);
       }
       const candidate = entry as SchedulerRecord;
-      if (typeof candidate.handler !== "function") {
+      if (typeof candidate.handler !== 'function') {
         throw new TypeError(`Invalid ${hookName} hook at index ${index}.`);
       }
       return {
         id: String(candidate.id || `${hookName}:${index}`),
         order: Number(candidate.order || 0),
         handler: candidate.handler as ComposableHook,
-        index,
+        index
       };
     })
-    .sort(
-      (left, right) =>
-        left.order - right.order ||
-        left.index - right.index ||
-        left.id.localeCompare(right.id),
-    );
+    .sort((left, right) => left.order - right.order || left.index - right.index || left.id.localeCompare(right.id));
   const ids = new Set<string>();
   for (const hook of hooks) {
     if (ids.has(hook.id)) {
@@ -175,14 +154,10 @@ function orderedHooks(value: unknown, hookName: string): OrderedHook[] {
  * to the hook family: validators must all pass, modifiers chain their return
  * values, and ordinary hooks simply run in order.
  */
-function composeHooks(
-  value: unknown,
-  hookName: string,
-  fallback: ComposableHook,
-): ComposableHook {
+function composeHooks(value: unknown, hookName: string, fallback: ComposableHook): ComposableHook {
   const hooks = orderedHooks(value, hookName);
   if (!hooks.length) return fallback;
-  if (hookName === "availability") {
+  if (hookName === 'availability') {
     return (context: SchedulerRecord, skill: Skill) =>
       foldAvailability(
         (function* () {
@@ -195,7 +170,7 @@ function composeHooks(
                     ready: false,
                     retryAt: null,
                     code: `${hook.id}.unavailable`,
-                    reason: `${skill.name} is unavailable.`,
+                    reason: `${skill.name} is unavailable.`
                   }
                 : (next as AvailabilityResult);
             if (availability.ready !== false) continue;
@@ -204,36 +179,28 @@ function composeHooks(
                 ready: false,
                 retryAt: null,
                 code: String(availability.code || `${hook.id}.unavailable`),
-                reason: String(
-                  availability.reason || `${skill.name} is unavailable.`,
-                ),
+                reason: String(availability.reason || `${skill.name} is unavailable.`)
               };
               continue;
             }
             const retryAt = Number(availability.retryAt);
             if (!Number.isFinite(retryAt)) {
-              throw new TypeError(
-                `${hook.id} returned a non-finite cast retry time.`,
-              );
+              throw new TypeError(`${hook.id} returned a non-finite cast retry time.`);
             }
             yield {
               ready: false,
               retryAt,
               code: String(availability.code || `${hook.id}.not-ready`),
-              reason: String(
-                availability.reason ||
-                  `${skill.name} is not ready until ${retryAt.toFixed(3)}.`,
-              ),
+              reason: String(availability.reason || `${skill.name} is not ready until ${retryAt.toFixed(3)}.`)
             };
           }
-        })(),
+        })()
       );
   }
-  if (hookName === "validateCast") {
-    return (context: SchedulerRecord, skill: Skill) =>
-      hooks.every((hook) => hook.handler(context, skill) !== false);
+  if (hookName === 'validateCast') {
+    return (context: SchedulerRecord, skill: Skill) => hooks.every((hook) => hook.handler(context, skill) !== false);
   }
-  if (hookName === "scheduleSkill") {
+  if (hookName === 'scheduleSkill') {
     return (context: SchedulerRecord, skill: Skill) => {
       let handled = false;
       for (const hook of hooks) {
@@ -242,14 +209,14 @@ function composeHooks(
       return handled;
     };
   }
-  if (hookName === "prepareEvent") {
+  if (hookName === 'prepareEvent') {
     return (context: SchedulerRecord, initialValue: unknown) =>
       hooks.reduce((chainedValue: unknown, hook) => {
         const next = hook.handler(context, chainedValue);
         return next === undefined ? chainedValue : next;
       }, initialValue);
   }
-  if (hookName.startsWith("modify")) {
+  if (hookName.startsWith('modify')) {
     return (context: SchedulerRecord, initialValue: unknown) =>
       hooks.reduce((chainedValue: unknown, hook) => {
         const next = hook.handler(context, chainedValue);
@@ -270,16 +237,12 @@ function composeHooks(
  * Normalizes resolver event reactions into deterministic per-event dispatchers.
  */
 export function createEventReactions(
-  value: Readonly<Record<string, unknown>> | null | undefined,
+  value: Readonly<Record<string, unknown>> | null | undefined
 ): Readonly<Record<string, EventReaction>> {
   const reactions: Record<string, EventReaction> = {};
   for (const [eventType, handlers] of Object.entries(value || {})) {
     const hooks = orderedHooks(handlers, `eventReactions.${eventType}`);
-    reactions[eventType] = (
-      context: SchedulerRecord,
-      event: SchedulerRecord,
-      details: SchedulerRecord = {},
-    ) => {
+    reactions[eventType] = (context: SchedulerRecord, event: SchedulerRecord, details: SchedulerRecord = {}) => {
       let result: unknown;
       for (const hook of hooks) {
         const next = hook.handler(context, event, details);
@@ -295,63 +258,49 @@ export function createEventReactions(
  * Rejects malformed profession definitions before hook composition begins.
  */
 function assertDefinition(definition: unknown): void {
-  if (!definition || typeof definition !== "object") {
-    throw new TypeError("A profession definition must be an object.");
+  if (!definition || typeof definition !== 'object') {
+    throw new TypeError('A profession definition must be an object.');
   }
   const candidate = definition as SchedulerRecord;
-  if (!/^[a-z][a-z0-9-]*$/.test(String(candidate.id || ""))) {
-    throw new TypeError("Profession id must be a stable lowercase identifier.");
+  if (!/^[a-z][a-z0-9-]*$/.test(String(candidate.id || ''))) {
+    throw new TypeError('Profession id must be a stable lowercase identifier.');
   }
-  if (!String(candidate.name || "").trim()) {
-    throw new TypeError("Profession name is required.");
+  if (!String(candidate.name || '').trim()) {
+    throw new TypeError('Profession name is required.');
   }
 }
 
-function assertOptionalCallback(
-  container: object,
-  name: string,
-  scope: string,
-): void {
+function assertOptionalCallback(container: object, name: string, scope: string): void {
   const candidate = container as SchedulerRecord;
-  if (candidate[name] != null && typeof candidate[name] !== "function") {
+  if (candidate[name] != null && typeof candidate[name] !== 'function') {
     throw new TypeError(`${scope}.${name} must be a function.`);
   }
 }
 
-function assertCallbackContainer(
-  container: object,
-  names: readonly string[],
-  scope: string,
-): void {
+function assertCallbackContainer(container: object, names: readonly string[], scope: string): void {
   for (const name of names) assertOptionalCallback(container, name, scope);
 }
 
 function assertUiDefinition(ui: SchedulerRecord): void {
-  assertCallbackContainer(ui, [...UI_CALLBACK_NAMES], "ui");
+  assertCallbackContainer(ui, [...UI_CALLBACK_NAMES], 'ui');
   if (ui.assumptionControls != null && !Array.isArray(ui.assumptionControls)) {
-    throw new TypeError("ui.assumptionControls must be an array.");
+    throw new TypeError('ui.assumptionControls must be an array.');
   }
-  if (
-    ui.slotLoadout != null &&
-    (typeof ui.slotLoadout !== "object" || Array.isArray(ui.slotLoadout))
-  ) {
-    throw new TypeError("ui.slotLoadout must be an object.");
+  if (ui.slotLoadout != null && (typeof ui.slotLoadout !== 'object' || Array.isArray(ui.slotLoadout))) {
+    throw new TypeError('ui.slotLoadout must be an object.');
   }
-  if (
-    ui.weaponSwapChangesSet != null &&
-    typeof ui.weaponSwapChangesSet !== "boolean"
-  ) {
-    throw new TypeError("ui.weaponSwapChangesSet must be a boolean.");
+  if (ui.weaponSwapChangesSet != null && typeof ui.weaponSwapChangesSet !== 'boolean') {
+    throw new TypeError('ui.weaponSwapChangesSet must be a boolean.');
   }
 }
 
 function assertHandlerMap(value: unknown, scope: string): void {
   if (value == null) return;
-  if (typeof value !== "object" || Array.isArray(value)) {
+  if (typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError(`${scope} must be an object.`);
   }
   for (const [name, handler] of Object.entries(value)) {
-    if (typeof handler !== "function") {
+    if (typeof handler !== 'function') {
       throw new TypeError(`${scope}.${name} must be a function.`);
     }
   }
@@ -362,32 +311,21 @@ function assertHandlerMap(value: unknown, scope: string): void {
  * @param {string} professionId
  * @returns {PaletteSkillAvailability}
  */
-function normalizePaletteAvailability(
-  value: unknown,
-  professionId: string,
-): PaletteSkillAvailability {
-  if (!value || typeof value !== "object") {
-    throw new TypeError(
-      `${professionId} paletteSkillAvailability must return an object.`,
-    );
+function normalizePaletteAvailability(value: unknown, professionId: string): PaletteSkillAvailability {
+  if (!value || typeof value !== 'object') {
+    throw new TypeError(`${professionId} paletteSkillAvailability must return an object.`);
   }
   const result = value as SchedulerRecord;
-  if (typeof result.available !== "boolean") {
-    throw new TypeError(
-      `${professionId} paletteSkillAvailability.available must be boolean.`,
-    );
+  if (typeof result.available !== 'boolean') {
+    throw new TypeError(`${professionId} paletteSkillAvailability.available must be boolean.`);
   }
   return {
     available: result.available,
-    message: String(result.message || ""),
+    message: String(result.message || '')
   };
 }
 
-function assertShallowUnchanged(
-  value: SchedulerRecord,
-  snapshot: SchedulerRecord,
-  label: string,
-): void {
+function assertShallowUnchanged(value: SchedulerRecord, snapshot: SchedulerRecord, label: string): void {
   const keys = Object.keys(value);
   const priorKeys = Object.keys(snapshot);
   if (
@@ -395,59 +333,41 @@ function assertShallowUnchanged(
     keys.some((key) => !Object.hasOwn(snapshot, key)) ||
     priorKeys.some((key) => value[key] !== snapshot[key])
   ) {
-    throw new TypeError(
-      `simulation.refineSchedulerConfig must not mutate prior ${label}.`,
-    );
+    throw new TypeError(`simulation.refineSchedulerConfig must not mutate prior ${label}.`);
   }
 }
 
-function normalizeSimulation(
-  simulation: SchedulerRecord | null | undefined,
-): SchedulerRecord | null {
+function normalizeSimulation(simulation: SchedulerRecord | null | undefined): SchedulerRecord | null {
   if (simulation == null) return null;
-  if (typeof simulation !== "object" || Array.isArray(simulation)) {
-    throw new TypeError("simulation must be an object.");
+  if (typeof simulation !== 'object' || Array.isArray(simulation)) {
+    throw new TypeError('simulation must be an object.');
   }
-  assertOptionalCallback(simulation, "refineSchedulerConfig", "simulation");
-  assertOptionalCallback(simulation, "projectEndState", "simulation");
+  assertOptionalCallback(simulation, 'refineSchedulerConfig', 'simulation');
+  assertOptionalCallback(simulation, 'projectEndState', 'simulation');
   if (!simulation.refineSchedulerConfig) {
     return Object.freeze({ ...simulation });
   }
-  const refine = simulation.refineSchedulerConfig as (
-    config: SchedulerRecord,
-    result: SchedulerRecord,
-  ) => unknown;
+  const refine = simulation.refineSchedulerConfig as (config: SchedulerRecord, result: SchedulerRecord) => unknown;
   return Object.freeze({
     ...simulation,
     refineSchedulerConfig(config: SchedulerRecord, result: SchedulerRecord) {
-      if (
-        !config ||
-        typeof config !== "object" ||
-        !result ||
-        typeof result !== "object"
-      ) {
-        throw new TypeError(
-          "simulation.refineSchedulerConfig requires config and result objects.",
-        );
+      if (!config || typeof config !== 'object' || !result || typeof result !== 'object') {
+        throw new TypeError('simulation.refineSchedulerConfig requires config and result objects.');
       }
       const configSnapshot = { ...config };
       const resultSnapshot = { ...result };
       const refined = refine(config, result);
-      assertShallowUnchanged(config, configSnapshot, "config");
-      assertShallowUnchanged(result, resultSnapshot, "result");
+      assertShallowUnchanged(config, configSnapshot, 'config');
+      assertShallowUnchanged(result, resultSnapshot, 'result');
       if (refined == null) return null;
-      if (typeof refined !== "object" || Array.isArray(refined)) {
-        throw new TypeError(
-          "simulation.refineSchedulerConfig must return an object or null.",
-        );
+      if (typeof refined !== 'object' || Array.isArray(refined)) {
+        throw new TypeError('simulation.refineSchedulerConfig must return an object or null.');
       }
       if (refined === config) {
-        throw new TypeError(
-          "simulation.refineSchedulerConfig must return a new config object.",
-        );
+        throw new TypeError('simulation.refineSchedulerConfig must return a new config object.');
       }
       return refined as SchedulerRecord;
-    },
+    }
   });
 }
 
@@ -462,7 +382,7 @@ function normalizeSimulation(
  * @returns {Readonly<NormalizedProfessionContract<TProfessionState>>}
  */
 export function defineProfession<TProfessionState extends object>(
-  definition: ProfessionDefinition<TProfessionState>,
+  definition: ProfessionDefinition<TProfessionState>
 ): Readonly<NormalizedProfessionContract<TProfessionState>> {
   assertDefinition(definition);
   const build = definition.build || {};
@@ -472,36 +392,15 @@ export function defineProfession<TProfessionState extends object>(
   const schedulerHooks = definition.schedulerHooks || {};
   const resolverHooks = definition.resolverHooks || {};
   const ui = definition.ui || {};
-  assertCallbackContainer(
-    build,
-    ["createBuildDefaults", "migrateBuild", "validateBuild"],
-    "build",
-  );
-  assertCallbackContainer(
-    resources,
-    ["createProfessionState", "createResolverState", "projectEndState"],
-    "resources",
-  );
-  assertOptionalCallback(
-    definition as unknown as SchedulerRecord,
-    "createProfessionState",
-    "definition",
-  );
-  assertOptionalCallback(
-    definition as unknown as SchedulerRecord,
-    "createResolverState",
-    "definition",
-  );
+  assertCallbackContainer(build, ['createBuildDefaults', 'migrateBuild', 'validateBuild'], 'build');
+  assertCallbackContainer(resources, ['createProfessionState', 'createResolverState', 'projectEndState'], 'resources');
+  assertOptionalCallback(definition as unknown as SchedulerRecord, 'createProfessionState', 'definition');
+  assertOptionalCallback(definition as unknown as SchedulerRecord, 'createResolverState', 'definition');
   assertUiDefinition(ui);
-  assertHandlerMap(schedulerHooks.taskHandlers, "schedulerHooks.taskHandlers");
-  assertHandlerMap(
-    resolverHooks.eventHandlers || definition.eventHandlers,
-    "resolverHooks.eventHandlers",
-  );
+  assertHandlerMap(schedulerHooks.taskHandlers, 'schedulerHooks.taskHandlers');
+  assertHandlerMap(resolverHooks.eventHandlers || definition.eventHandlers, 'resolverHooks.eventHandlers');
   const catalogSkillHandlers =
-    definition.catalog?.skillHandlers instanceof Map
-      ? definition.catalog.skillHandlers
-      : new Map();
+    definition.catalog?.skillHandlers instanceof Map ? definition.catalog.skillHandlers : new Map();
   const legacyResourceView = ui.resourceView || (() => null);
   const resourceViews =
     ui.resourceViews ||
@@ -512,29 +411,21 @@ export function defineProfession<TProfessionState extends object>(
   const structuredPaletteAvailability = ui.paletteSkillAvailability;
   const paletteSkillAvailability = structuredPaletteAvailability
     ? (context: SchedulerRecord, skill: Skill) =>
-        normalizePaletteAvailability(
-          structuredPaletteAvailability(context, skill),
-          definition.id,
-        )
+        normalizePaletteAvailability(structuredPaletteAvailability(context, skill), definition.id)
     : (context: SchedulerRecord, skill: Skill) => ({
         available: ui.isPaletteSkillAvailable?.(context, skill) !== false,
-        message: String(
-          ui.paletteSkillUnavailableMessage?.(context, skill) || "",
-        ),
+        message: String(ui.paletteSkillUnavailableMessage?.(context, skill) || '')
       });
   const normalizedUi: ProfessionUiContract = {
     ...ui,
     assumptionControls: Object.freeze([...(ui.assumptionControls || [])]),
     chargeReleaseProjection: ui.chargeReleaseProjection || (() => null),
     paletteGroups: ui.paletteGroups || (() => []),
-    paletteActionSkills:
-      ui.paletteActionSkills || ((_context, skills) => [...skills]),
-    paletteWeaponSkills:
-      ui.paletteWeaponSkills || ((_context, skills) => [...skills]),
+    paletteActionSkills: ui.paletteActionSkills || ((_context, skills) => [...skills]),
+    paletteWeaponSkills: ui.paletteWeaponSkills || ((_context, skills) => [...skills]),
     renderWeaponPalette: ui.renderWeaponPalette || (() => null),
     resolvePaletteAction: ui.resolvePaletteAction || (() => undefined),
-    resourceView: (context: SchedulerRecord) =>
-      resourceViews(context)[0] || null,
+    resourceView: (context: SchedulerRecord) => resourceViews(context)[0] || null,
     resourceViews,
     isPaletteSkillInstant: ui.isPaletteSkillInstant || (() => false),
     paletteSkillAvailability,
@@ -548,12 +439,11 @@ export function defineProfession<TProfessionState extends object>(
     slotLoadout: ui.slotLoadout || null,
     targetHealthThresholds: ui.targetHealthThresholds || (() => []),
     rotationStateSnapshot: ui.rotationStateSnapshot || (() => []),
-    timelineWeaponLineTransition:
-      ui.timelineWeaponLineTransition || (() => undefined),
-    timelineSkillIcon: ui.timelineSkillIcon || (() => ""),
+    timelineWeaponLineTransition: ui.timelineWeaponLineTransition || (() => undefined),
+    timelineSkillIcon: ui.timelineSkillIcon || (() => ''),
     updatePaletteControl: ui.updatePaletteControl || (() => false),
     updateSkillBarSelection: ui.updateSkillBarSelection || (() => false),
-    weaponSwapChangesSet: ui.weaponSwapChangesSet !== false,
+    weaponSwapChangesSet: ui.weaponSwapChangesSet !== false
   };
   const sources: SchedulerRecord = {
     prepareEvent: schedulerHooks.prepareEvent,
@@ -564,36 +454,31 @@ export function defineProfession<TProfessionState extends object>(
     afterCast: schedulerHooks.afterCast,
     advance: schedulerHooks.advance,
     snapshot: schedulerHooks.snapshot,
-    projectEndState:
-      resources.projectEndState ?? schedulerHooks.projectEndState,
+    projectEndState: resources.projectEndState ?? schedulerHooks.projectEndState,
     onCastStart: schedulerHooks.onCastStart,
     onCastComplete: schedulerHooks.onCastComplete,
     onCooldownReset: schedulerHooks.onCooldownReset,
     onEventScheduled: schedulerHooks.onEventScheduled,
-    modifyCastDuration:
-      castRules.modifyCastDuration ?? schedulerHooks.modifyCastDuration,
-    modifyRechargeDuration:
-      castRules.modifyRechargeDuration ?? schedulerHooks.modifyRechargeDuration,
-    modifyRechargeStart:
-      castRules.modifyRechargeStart ?? schedulerHooks.modifyRechargeStart,
-    modifyMaximumAmmo:
-      castRules.modifyMaximumAmmo ?? schedulerHooks.modifyMaximumAmmo,
+    modifyCastDuration: castRules.modifyCastDuration ?? schedulerHooks.modifyCastDuration,
+    modifyRechargeDuration: castRules.modifyRechargeDuration ?? schedulerHooks.modifyRechargeDuration,
+    modifyRechargeStart: castRules.modifyRechargeStart ?? schedulerHooks.modifyRechargeStart,
+    modifyMaximumAmmo: castRules.modifyMaximumAmmo ?? schedulerHooks.modifyMaximumAmmo,
     modifyAttributes: attributeRules.modifyAttributes,
     modifyCriticalChance: attributeRules.modifyCriticalChance,
     modifyCriticalDamage: attributeRules.modifyCriticalDamage,
     modifyStrikeDamage: attributeRules.modifyStrikeDamage,
     modifyConditionDamage: attributeRules.modifyConditionDamage,
     modifyConditionBaseDuration: attributeRules.modifyConditionBaseDuration,
-    modifyConditionDuration: attributeRules.modifyConditionDuration,
+    modifyConditionDuration: attributeRules.modifyConditionDuration
   };
   const hooks: SchedulerRecord = {};
   for (const name of HOOK_NAMES) {
     const fallback =
-      name === "availability"
+      name === 'availability'
         ? READY_CAST
-        : name === "validateCast"
+        : name === 'validateCast'
           ? VALID_CAST
-          : name === "prepareEvent" || name.startsWith("modify")
+          : name === 'prepareEvent' || name.startsWith('modify')
             ? IDENTITY_SECOND_ARGUMENT
             : NOOP;
     hooks[name] = composeHooks(sources[name], name, fallback);
@@ -605,55 +490,45 @@ export function defineProfession<TProfessionState extends object>(
     catalog: definition.catalog || {
       skills: [],
       traits: [],
-      specializations: [],
+      specializations: []
     },
-    skillHandlerFor: (skill: Skill) =>
-      catalogSkillHandlers.get(String(skill?.handlerId || "")) || null,
+    skillHandlerFor: (skill: Skill) => catalogSkillHandlers.get(String(skill?.handlerId || '')) || null,
     createBuildDefaults:
       build.createBuildDefaults ||
       (() => ({
         schemaVersion: 3,
-        profession: definition.id,
+        profession: definition.id
       })),
     migrateBuild: build.migrateBuild || ((saved: SchedulerRecord) => saved),
     validateBuild: build.validateBuild || (() => ({ valid: true, errors: [] })),
-    createProfessionState:
-      resources.createProfessionState ||
-      definition.createProfessionState ||
-      (() => ({})),
-    createResolverState:
-      resources.createResolverState || definition.createResolverState || null,
+    createProfessionState: resources.createProfessionState || definition.createProfessionState || (() => ({})),
+    createResolverState: resources.createResolverState || definition.createResolverState || null,
     taskHandlers: Object.freeze({
-      ...(schedulerHooks.taskHandlers || {}),
+      ...(schedulerHooks.taskHandlers || {})
     }),
     ...hooks,
     eventHandlers: Object.freeze({
-      ...(resolverHooks.eventHandlers || definition.eventHandlers || {}),
+      ...(resolverHooks.eventHandlers || definition.eventHandlers || {})
     }),
-    eventReactions: createEventReactions(
-      resolverHooks.eventReactions || definition.eventReactions,
-    ),
+    eventReactions: createEventReactions(resolverHooks.eventReactions || definition.eventReactions),
     paletteGroups: normalizedUi.paletteGroups,
-    resourceView: (context: SchedulerRecord) =>
-      resourceViews(context)[0] || null,
+    resourceView: (context: SchedulerRecord) => resourceViews(context)[0] || null,
     resourceViews,
     ui: Object.freeze(normalizedUi),
-    simulation: normalizeSimulation(definition.simulation),
+    simulation: normalizeSimulation(definition.simulation)
   };
-  return Object.freeze(profession) as unknown as Readonly<
-    NormalizedProfessionContract<TProfessionState>
-  >;
+  return Object.freeze(profession) as unknown as Readonly<NormalizedProfessionContract<TProfessionState>>;
 }
 
 const UI_LIST_CALLBACK_NAMES = Object.freeze([
-  "paletteGroups",
-  "resourceViews",
-  "skillBarGroups",
-  "startControls",
-  "targetHealthThresholds",
-  "rotationStateSnapshot",
+  'paletteGroups',
+  'resourceViews',
+  'skillBarGroups',
+  'startControls',
+  'targetHealthThresholds',
+  'rotationStateSnapshot'
 ]);
-const UI_SINGLE_CALLBACK_NAMES = Object.freeze(["weaponSkillMatchesSet"]);
+const UI_SINGLE_CALLBACK_NAMES = Object.freeze(['weaponSkillMatchesSet']);
 
 interface NamedModule<TModuleState extends object = SchedulerRecord> {
   readonly name: string;
@@ -661,33 +536,25 @@ interface NamedModule<TModuleState extends object = SchedulerRecord> {
 }
 
 function assertModuleDefinition(definition: unknown): void {
-  if (
-    !definition ||
-    typeof definition !== "object" ||
-    Array.isArray(definition)
-  ) {
-    throw new TypeError("A profession module must be an object.");
+  if (!definition || typeof definition !== 'object' || Array.isArray(definition)) {
+    throw new TypeError('A profession module must be an object.');
   }
   const candidate = definition as SchedulerRecord;
-  if (!String(candidate.id || "").trim()) {
-    throw new TypeError("Profession module id is required.");
+  if (!String(candidate.id || '').trim()) {
+    throw new TypeError('Profession module id is required.');
   }
 }
 
 /**
  * Declares one independently composable profession mechanics fragment.
  */
-export function defineProfessionModule<
-  TProfessionState extends object = SchedulerRecord,
->(
-  definition: ProfessionModuleDefinition<TProfessionState>,
+export function defineProfessionModule<TProfessionState extends object = SchedulerRecord>(
+  definition: ProfessionModuleDefinition<TProfessionState>
 ): Readonly<ProfessionModuleDefinition<TProfessionState>> {
   assertModuleDefinition(definition);
   return Object.freeze({
     ...definition,
-    catalog: definition.catalog
-      ? Object.freeze({ ...definition.catalog })
-      : undefined,
+    catalog: definition.catalog ? Object.freeze({ ...definition.catalog }) : undefined
   });
 }
 
@@ -695,7 +562,7 @@ function mergeUniqueEntries<T>(
   modules: readonly NamedModule<object>[],
   values: (module: ProfessionModuleDefinition<any>) => readonly T[],
   keyFor: (value: T) => string | number,
-  label: string,
+  label: string
 ): T[] {
   const result: T[] = [];
   const owners = new Map<string | number, string>();
@@ -704,9 +571,7 @@ function mergeUniqueEntries<T>(
       const key = keyFor(value);
       const previous = owners.get(key);
       if (previous) {
-        throw new TypeError(
-          `Duplicate ${label} ${String(key)} in ${previous} and ${entry.name}.`,
-        );
+        throw new TypeError(`Duplicate ${label} ${String(key)} in ${previous} and ${entry.name}.`);
       }
       owners.set(key, entry.name);
       result.push(value);
@@ -715,32 +580,30 @@ function mergeUniqueEntries<T>(
   return result;
 }
 
-function composeModuleCatalog(
-  modules: readonly NamedModule<object>[],
-): Readonly<CanonicalCatalog> {
+function composeModuleCatalog(modules: readonly NamedModule<object>[]): Readonly<CanonicalCatalog> {
   const skills = mergeUniqueEntries(
     modules,
     (entry) => entry.catalog?.skills || [],
     (skill) => skill.id,
-    "skill id",
+    'skill id'
   ) as Skill[];
   const balanceProfiles = mergeUniqueEntries(
     modules,
     (entry) => entry.catalog?.balanceProfiles || [],
     (profile) => profile.id,
-    "balance profile id",
+    'balance profile id'
   ) as BalanceProfile[];
   const traits = mergeUniqueEntries(
     modules,
     (entry) => entry.catalog?.traits || [],
     (trait) => trait.id,
-    "trait id",
+    'trait id'
   ) as CatalogEntity[];
   const specializations = mergeUniqueEntries(
     modules,
     (entry) => entry.catalog?.specializations || [],
     (specialization) => specialization.id,
-    "specialization id",
+    'specialization id'
   ) as CatalogEntity[];
   const handlers = new Map<string, unknown>();
   const handlerOwners = new Map<string, string>();
@@ -748,7 +611,7 @@ function composeModuleCatalog(
   const weaponHands = new Map<string, string>();
   const additionalChains: SkillId[][] = [];
   const excludedSkillIds = new Set<SkillId>();
-  let skillNameCollision: "first" | "last" = "first";
+  let skillNameCollision: 'first' | 'last' = 'first';
   const skillNameOverrides = new Map<string, SkillId>();
 
   for (const entry of modules) {
@@ -756,9 +619,7 @@ function composeModuleCatalog(
     for (const [id, handler] of toEntries(fragment.skillHandlers)) {
       const previous = handlerOwners.get(id);
       if (previous) {
-        throw new TypeError(
-          `Duplicate skill handler ${id} in ${previous} and ${entry.name}.`,
-        );
+        throw new TypeError(`Duplicate skill handler ${id} in ${previous} and ${entry.name}.`);
       }
       handlerOwners.set(id, entry.name);
       handlers.set(id, handler);
@@ -766,9 +627,7 @@ function composeModuleCatalog(
     for (const weapon of fragment.weapons || []) weapons.add(weapon);
     for (const [weapon, hand] of toEntries(fragment.weaponHands)) {
       if (weaponHands.has(weapon)) {
-        throw new TypeError(
-          `Duplicate weapon-hand entry ${weapon} in ${entry.name}.`,
-        );
+        throw new TypeError(`Duplicate weapon-hand entry ${weapon} in ${entry.name}.`);
       }
       weaponHands.set(weapon, String(hand));
     }
@@ -781,9 +640,7 @@ function composeModuleCatalog(
     if (fragment.skillNameCollision != null) {
       skillNameCollision = fragment.skillNameCollision;
     }
-    for (const [name, skillId] of Object.entries(
-      fragment.skillNameOverrides || {},
-    )) {
+    for (const [name, skillId] of Object.entries(fragment.skillNameOverrides || {})) {
       if (skillNameOverrides.has(name)) {
         throw new TypeError(`Duplicate skill-name override ${name}.`);
       }
@@ -801,17 +658,15 @@ function composeModuleCatalog(
     weaponHands,
     autoattackChains: {
       additional: additionalChains,
-      excludeSkillIds: [...excludedSkillIds],
+      excludeSkillIds: [...excludedSkillIds]
     },
-    skillNameCollision,
+    skillNameCollision
   });
   for (const [name, skillId] of skillNameOverrides) {
     const skill = catalog.skillsById.get(skillId);
     if (!skill) continue;
     if (skill.name !== name) {
-      throw new TypeError(
-        `Skill-name override ${name} points to ${skill.name} (${String(skillId)}).`,
-      );
+      throw new TypeError(`Skill-name override ${name} points to ${skill.name} (${String(skillId)}).`);
     }
     (catalog.skillsByName as Map<string, Skill>).set(name, skill);
   }
@@ -821,7 +676,7 @@ function composeModuleCatalog(
 function hookValues(
   modules: readonly NamedModule<object>[],
   container: keyof ProfessionModuleDefinition<any>,
-  name: string,
+  name: string
 ): unknown[] {
   return modules.flatMap((entry) => {
     const source = entry.module[container] as SchedulerRecord | undefined;
@@ -833,23 +688,22 @@ function hookValues(
 function composeHookContainer(
   modules: readonly NamedModule<object>[],
   container: keyof ProfessionModuleDefinition<any>,
-  names: readonly string[],
+  names: readonly string[]
 ): SchedulerRecord {
   return Object.fromEntries(
     names.flatMap((name) => {
       const values = hookValues(modules, container, name);
       return values.length ? [[name, values]] : [];
-    }),
+    })
   );
 }
 
 function mergeHandlerRegistries(
   modules: readonly NamedModule<object>[],
   select: (
-    module: ProfessionModuleDefinition<any>,
-  ) =>
-    Readonly<Record<string, (...args: never[]) => unknown>> | null | undefined,
-  label: string,
+    module: ProfessionModuleDefinition<any>
+  ) => Readonly<Record<string, (...args: never[]) => unknown>> | null | undefined,
+  label: string
 ): Readonly<Record<string, (...args: never[]) => unknown>> {
   const result: Record<string, (...args: never[]) => unknown> = {};
   const owners = new Map<string, string>();
@@ -857,9 +711,7 @@ function mergeHandlerRegistries(
     for (const [id, handler] of Object.entries(select(entry.module) || {})) {
       const previous = owners.get(id);
       if (previous) {
-        throw new TypeError(
-          `Duplicate ${label} ${id} in ${previous} and ${entry.name}.`,
-        );
+        throw new TypeError(`Duplicate ${label} ${id} in ${previous} and ${entry.name}.`);
       }
       owners.set(id, entry.name);
       result[id] = handler;
@@ -868,14 +720,10 @@ function mergeHandlerRegistries(
   return Object.freeze(result);
 }
 
-function composeEventReactions(
-  modules: readonly NamedModule<object>[],
-): Readonly<Record<string, unknown>> {
+function composeEventReactions(modules: readonly NamedModule<object>[]): Readonly<Record<string, unknown>> {
   const eventTypes = new Set<string>();
   for (const entry of modules) {
-    for (const eventType of Object.keys(
-      entry.module.resolverHooks?.eventReactions || {},
-    )) {
+    for (const eventType of Object.keys(entry.module.resolverHooks?.eventReactions || {})) {
       eventTypes.add(eventType);
     }
   }
@@ -886,23 +734,23 @@ function composeEventReactions(
         modules.flatMap((entry) => {
           const value = entry.module.resolverHooks?.eventReactions?.[eventType];
           return value == null ? [] : Array.isArray(value) ? value : [value];
-        }),
-      ]),
-    ),
+        })
+      ])
+    )
   );
 }
 
 function createStateFragment(
   entry: NamedModule<object>,
   config: Readonly<SchedulerConfig>,
-  resolver: boolean,
+  resolver: boolean
 ): SchedulerRecord {
   const resources = entry.module.resources;
   const factory = resolver
     ? resources?.createResolverState || resources?.createProfessionState
     : resources?.createProfessionState;
   const fragment = factory?.(config) || {};
-  if (!fragment || typeof fragment !== "object" || Array.isArray(fragment)) {
+  if (!fragment || typeof fragment !== 'object' || Array.isArray(fragment)) {
     throw new TypeError(`${entry.name} state factory must return an object.`);
   }
   return fragment as SchedulerRecord;
@@ -911,47 +759,41 @@ function createStateFragment(
 function createComposedState(
   core: SchedulerRecord,
   specializationKind: string,
-  specializationState: SchedulerRecord,
+  specializationState: SchedulerRecord
 ): object {
   for (const property of Reflect.ownKeys(core)) {
-    if (property === "core" || property === "specialization") {
-      throw new TypeError(
-        `Core state fragment uses reserved key ${String(property)}.`,
-      );
+    if (property === 'core' || property === 'specialization') {
+      throw new TypeError(`Core state fragment uses reserved key ${String(property)}.`);
     }
   }
   for (const property of Reflect.ownKeys(specializationState)) {
-    if (property === "core" || property === "specialization") {
-      throw new TypeError(
-        `${specializationKind} state fragment uses reserved key ${String(property)}.`,
-      );
+    if (property === 'core' || property === 'specialization') {
+      throw new TypeError(`${specializationKind} state fragment uses reserved key ${String(property)}.`);
     }
     if (Reflect.has(core, property)) {
-      throw new TypeError(
-        `Duplicate state field ${String(property)} in Core and ${specializationKind}.`,
-      );
+      throw new TypeError(`Duplicate state field ${String(property)} in Core and ${specializationKind}.`);
     }
   }
   return {
     core,
     specialization: {
       kind: specializationKind,
-      state: specializationState,
-    },
+      state: specializationState
+    }
   };
 }
 
 function composeStateFragments(
   modules: readonly NamedModule<object>[],
   config: Readonly<SchedulerConfig>,
-  resolver: boolean,
+  resolver: boolean
 ): object {
   const core = createStateFragment(modules[0], config, resolver);
   const specialization = modules[1];
   return createComposedState(
     core,
-    specialization?.name || "Core",
-    specialization ? createStateFragment(specialization, config, resolver) : {},
+    specialization?.name || 'Core',
+    specialization ? createStateFragment(specialization, config, resolver) : {}
   );
 }
 
@@ -959,22 +801,19 @@ function composeStateFragments(
  * Flattens Core plus the active specialization solely for stable public
  * projections and event snapshots. Runtime mechanics use the nested state.
  */
-export function flattenProfessionState(
-  professionState: unknown,
-): SchedulerRecord {
-  if (!professionState || typeof professionState !== "object") return {};
+export function flattenProfessionState(professionState: unknown): SchedulerRecord {
+  if (!professionState || typeof professionState !== 'object') return {};
   const runtime = professionState as SchedulerRecord;
-  const specialization = runtime.specialization as
-    { readonly state?: unknown } | undefined;
+  const specialization = runtime.specialization as { readonly state?: unknown } | undefined;
   if (
     runtime.core &&
-    typeof runtime.core === "object" &&
+    typeof runtime.core === 'object' &&
     specialization?.state &&
-    typeof specialization.state === "object"
+    typeof specialization.state === 'object'
   ) {
     return {
       ...(runtime.core as SchedulerRecord),
-      ...(specialization.state as SchedulerRecord),
+      ...(specialization.state as SchedulerRecord)
     };
   }
   return { ...runtime };
@@ -1010,15 +849,10 @@ type RuntimeSpecialization<TRuntimeState> = TRuntimeState extends {
   : never;
 
 type RuntimeSpecializationKind<TRuntimeState> =
-  RuntimeSpecialization<TRuntimeState> extends { readonly kind: infer TKind }
-    ? TKind & string
-    : never;
+  RuntimeSpecialization<TRuntimeState> extends { readonly kind: infer TKind } ? TKind & string : never;
 
 type RuntimeSpecializationState<TRuntimeState, TKind extends string> =
-  Extract<
-    RuntimeSpecialization<TRuntimeState>,
-    { readonly kind: TKind }
-  > extends { readonly state: infer TState }
+  Extract<RuntimeSpecialization<TRuntimeState>, { readonly kind: TKind }> extends { readonly state: infer TState }
     ? TState
     : never;
 
@@ -1026,19 +860,17 @@ type RuntimeSpecializationState<TRuntimeState, TKind extends string> =
  * Returns the explicitly owned Core state slice for a family runtime.
  */
 export function professionCoreState<TContext>(
-  context: TContext,
+  context: TContext
 ): RuntimeCoreState<ProfessionRuntimeFromContext<TContext>> {
   const candidate = context as {
     readonly state?: { readonly profession?: unknown };
     readonly runtime?: { readonly profession?: unknown };
     readonly profession?: unknown;
   };
-  const runtime = (candidate.state?.profession ??
-    candidate.runtime?.profession ??
-    candidate.profession) as { readonly core: unknown };
-  return runtime.core as RuntimeCoreState<
-    ProfessionRuntimeFromContext<TContext>
-  >;
+  const runtime = (candidate.state?.profession ?? candidate.runtime?.profession ?? candidate.profession) as {
+    readonly core: unknown;
+  };
+  return runtime.core as RuntimeCoreState<ProfessionRuntimeFromContext<TContext>>;
 }
 
 /**
@@ -1048,20 +880,14 @@ export function professionCoreState<TContext>(
 function specializationStateForKind<
   TContext,
   TRuntimeState = ProfessionRuntimeFromContext<TContext>,
-  TKind extends RuntimeSpecializationKind<TRuntimeState> =
-    RuntimeSpecializationKind<TRuntimeState>,
->(
-  context: TContext,
-  expectedKind: TKind,
-): RuntimeSpecializationState<TRuntimeState, TKind> {
+  TKind extends RuntimeSpecializationKind<TRuntimeState> = RuntimeSpecializationKind<TRuntimeState>
+>(context: TContext, expectedKind: TKind): RuntimeSpecializationState<TRuntimeState, TKind> {
   const candidate = context as {
     readonly state?: { readonly profession?: unknown };
     readonly runtime?: { readonly profession?: unknown };
     readonly profession?: unknown;
   };
-  const runtime = (candidate.state?.profession ??
-    candidate.runtime?.profession ??
-    candidate.profession) as {
+  const runtime = (candidate.state?.profession ?? candidate.runtime?.profession ?? candidate.profession) as {
     readonly specialization: {
       readonly kind: string;
       readonly state: object;
@@ -1069,9 +895,7 @@ function specializationStateForKind<
   };
   const active = runtime.specialization;
   if (active.kind !== expectedKind) {
-    throw new TypeError(
-      `Expected active specialization ${expectedKind}, received ${active.kind}.`,
-    );
+    throw new TypeError(`Expected active specialization ${expectedKind}, received ${active.kind}.`);
   }
   return active.state as RuntimeSpecializationState<TRuntimeState, TKind>;
 }
@@ -1079,7 +903,7 @@ function specializationStateForKind<
 export interface ProfessionSpecializationStateDefinition<
   TKind extends string,
   TState extends object,
-  TArguments extends readonly unknown[],
+  TArguments extends readonly unknown[]
 > {
   readonly kind: TKind;
   readonly create: (...args: TArguments) => TState;
@@ -1094,11 +918,10 @@ export interface ProfessionSpecializationStateDefinition<
 export function defineProfessionSpecializationState<
   const TKind extends string,
   TArguments extends readonly unknown[],
-  TState extends object,
+  TState extends object
 >(
   kind: TKind,
-  create: ((...args: TArguments) => TState) &
-    (TState extends readonly unknown[] ? never : unknown),
+  create: ((...args: TArguments) => TState) & (TState extends readonly unknown[] ? never : unknown)
 ): ProfessionSpecializationStateDefinition<TKind, TState, TArguments> {
   return Object.freeze({
     kind,
@@ -1106,11 +929,9 @@ export function defineProfessionSpecializationState<
     from<TContext>(context: TContext): TState {
       return specializationStateForKind(
         context,
-        kind as unknown as RuntimeSpecializationKind<
-          ProfessionRuntimeFromContext<TContext>
-        >,
+        kind as unknown as RuntimeSpecializationKind<ProfessionRuntimeFromContext<TContext>>
       ) as TState;
-    },
+    }
   });
 }
 
@@ -1121,144 +942,99 @@ export function cloneProfessionState(value: unknown): unknown {
 function singleOwnerValue(
   modules: readonly NamedModule<object>[],
   select: (module: ProfessionModuleDefinition<any>) => unknown,
-  label: string,
+  label: string
 ): unknown {
   const owners = modules.filter((entry) => select(entry.module) != null);
   if (owners.length > 1) {
-    throw new TypeError(
-      `${label} has multiple owners: ${owners.map((entry) => entry.name).join(", ")}.`,
-    );
+    throw new TypeError(`${label} has multiple owners: ${owners.map((entry) => entry.name).join(', ')}.`);
   }
   return owners.length ? select(owners[0].module) : undefined;
 }
 
 function composeModuleUi(
   modules: readonly NamedModule<object>[],
-  familyUi: Partial<ProfessionUiContract> | undefined = undefined,
+  familyUi: Partial<ProfessionUiContract> | undefined = undefined
 ): Partial<ProfessionUiContract> & SchedulerRecord {
   const ui: SchedulerRecord = {};
-  const slices = modules
-    .map((entry) => entry.module.ui)
-    .filter((slice) => slice != null) as UiSlice[];
+  const slices = modules.map((entry) => entry.module.ui).filter((slice) => slice != null) as UiSlice[];
   // Only callbacks whose policy gives the active elite precedence use this.
   const reversed = slices.slice().reverse();
-  const owns = (name: string): boolean =>
-    slices.some((slice) => typeof slice[name] === "function");
+  const owns = (name: string): boolean => slices.some((slice) => typeof slice[name] === 'function');
 
-  ui.assumptionControls = Object.freeze(
-    slices.flatMap((slice) => slice.assumptionControls || []),
-  );
+  ui.assumptionControls = Object.freeze(slices.flatMap((slice) => slice.assumptionControls || []));
   for (const name of UI_LIST_CALLBACK_NAMES) {
     if (owns(name)) {
       ui[name] = (...args: unknown[]) => mergeUiList(slices, name, args);
     }
   }
-  if (owns("paletteSkillAvailability")) {
+  if (owns('paletteSkillAvailability')) {
     ui.paletteSkillAvailability = (...args: unknown[]) =>
       firstUiMatch(
         slices,
-        "paletteSkillAvailability",
+        'paletteSkillAvailability',
         args,
         (result) => (result as PaletteSkillAvailability)?.available === false,
-        { available: true, message: "" },
+        { available: true, message: '' }
       );
   }
-  if (owns("eventLogRow")) {
+  if (owns('eventLogRow')) {
     ui.eventLogRow = (...args: unknown[]) =>
-      firstUiMatch(
-        slices,
-        "eventLogRow",
-        args,
-        (result) => result !== undefined,
-        undefined,
-      );
+      firstUiMatch(slices, 'eventLogRow', args, (result) => result !== undefined, undefined);
   }
-  if (owns("isPaletteSkillInstant")) {
+  if (owns('isPaletteSkillInstant')) {
     ui.isPaletteSkillInstant = (...args: unknown[]) =>
-      someUiSlice(slices, "isPaletteSkillInstant", args, (result) =>
-        Boolean(result),
-      );
+      someUiSlice(slices, 'isPaletteSkillInstant', args, (result) => Boolean(result));
   }
-  if (owns("isSlotSkillSelectable")) {
+  if (owns('isSlotSkillSelectable')) {
     ui.isSlotSkillSelectable = (...args: unknown[]) =>
-      everyUiSlice(slices, "isSlotSkillSelectable", args, (result) =>
-        Boolean(result),
-      );
+      everyUiSlice(slices, 'isSlotSkillSelectable', args, (result) => Boolean(result));
   }
-  for (const name of ["paletteActionSkills", "paletteWeaponSkills"] as const) {
+  for (const name of ['paletteActionSkills', 'paletteWeaponSkills'] as const) {
     if (!owns(name)) continue;
     ui[name] = (context: SchedulerRecord, skills: readonly Skill[]) =>
       slices.reduce(
-        (current, slice) =>
-          typeof slice[name] === "function"
-            ? slice[name](context, current)
-            : current,
-        [...skills],
+        (current, slice) => (typeof slice[name] === 'function' ? slice[name](context, current) : current),
+        [...skills]
       );
   }
-  if (owns("renderWeaponPalette")) {
+  if (owns('renderWeaponPalette')) {
     ui.renderWeaponPalette = (...args: unknown[]) =>
-      firstUiMatch(
-        reversed,
-        "renderWeaponPalette",
-        args,
-        (result) => result != null,
-        null,
-      );
+      firstUiMatch(reversed, 'renderWeaponPalette', args, (result) => result != null, null);
   }
-  if (owns("resolvePaletteAction")) {
+  if (owns('resolvePaletteAction')) {
     ui.resolvePaletteAction = (...args: unknown[]) =>
-      firstUiMatch(
-        reversed,
-        "resolvePaletteAction",
-        args,
-        (result) => result !== undefined,
-        undefined,
-      );
+      firstUiMatch(reversed, 'resolvePaletteAction', args, (result) => result !== undefined, undefined);
   }
-  if (owns("updatePaletteControl")) {
+  if (owns('updatePaletteControl')) {
     ui.updatePaletteControl = (...args: unknown[]) =>
-      someUiSlice(reversed, "updatePaletteControl", args, (result) =>
-        Boolean(result),
-      );
+      someUiSlice(reversed, 'updatePaletteControl', args, (result) => Boolean(result));
   }
-  if (owns("updateSkillBarSelection")) {
+  if (owns('updateSkillBarSelection')) {
     ui.updateSkillBarSelection = (...args: unknown[]) =>
-      someUiSlice(reversed, "updateSkillBarSelection", args, (result) =>
-        Boolean(result),
-      );
+      someUiSlice(reversed, 'updateSkillBarSelection', args, (result) => Boolean(result));
   }
-  for (const name of [
-    "timelineWeaponLineTransition",
-    "timelineSkillIcon",
-  ] as const) {
+  for (const name of ['timelineWeaponLineTransition', 'timelineSkillIcon'] as const) {
     if (!owns(name)) continue;
     ui[name] = (...args: unknown[]) =>
       firstUiMatch(
         reversed,
         name,
         args,
-        (result) => result !== undefined && result !== "",
-        name === "timelineSkillIcon" ? "" : undefined,
+        (result) => result !== undefined && result !== '',
+        name === 'timelineSkillIcon' ? '' : undefined
       );
   }
   for (const name of UI_SINGLE_CALLBACK_NAMES) {
     const familyCallback = (familyUi as SchedulerRecord | undefined)?.[name];
-    const callback =
-      familyCallback ??
-      singleOwnerValue(modules, (module) => module.ui?.[name], `ui.${name}`);
+    const callback = familyCallback ?? singleOwnerValue(modules, (module) => module.ui?.[name], `ui.${name}`);
     if (callback != null) ui[name] = callback;
   }
-  const slotLoadout = singleOwnerValue(
-    modules,
-    (module) => module.ui?.slotLoadout,
-    "ui.slotLoadout",
-  );
+  const slotLoadout = singleOwnerValue(modules, (module) => module.ui?.slotLoadout, 'ui.slotLoadout');
   if (slotLoadout != null) ui.slotLoadout = slotLoadout;
   const weaponSwapChangesSet = singleOwnerValue(
     modules,
     (module) => module.ui?.weaponSwapChangesSet,
-    "ui.weaponSwapChangesSet",
+    'ui.weaponSwapChangesSet'
   );
   if (weaponSwapChangesSet != null) {
     ui.weaponSwapChangesSet = weaponSwapChangesSet;
@@ -1276,80 +1052,60 @@ export interface ProfessionFamilyUiDefinition {
 }
 
 function uiSpecialization(context: unknown): string {
-  if (!context || typeof context !== "object") return "Core";
+  if (!context || typeof context !== 'object') return 'Core';
   const candidate = context as SchedulerRecord;
   const config = candidate.config as SchedulerRecord | undefined;
   const build = candidate.build as SchedulerRecord | undefined;
-  return (
-    String(
-      candidate.specialization ||
-        config?.specialization ||
-        build?.specialization ||
-        "Core",
-    ).trim() || "Core"
-  );
+  return String(candidate.specialization || config?.specialization || build?.specialization || 'Core').trim() || 'Core';
 }
 
 function explicitUiSpecialization(context: unknown): string | null {
-  if (!context || typeof context !== "object") return null;
+  if (!context || typeof context !== 'object') return null;
   const candidate = context as SchedulerRecord;
   const config = candidate.config as SchedulerRecord | undefined;
   const build = candidate.build as SchedulerRecord | undefined;
-  const value =
-    candidate.specialization ?? config?.specialization ?? build?.specialization;
+  const value = candidate.specialization ?? config?.specialization ?? build?.specialization;
   if (value == null || !String(value).trim()) return null;
   return String(value).trim();
 }
 
 function normalizedCoreUiContext(context: unknown): SchedulerRecord {
-  if (!context || typeof context !== "object") {
-    return { specialization: "Core", config: { specialization: "Core" } };
+  if (!context || typeof context !== 'object') {
+    return { specialization: 'Core', config: { specialization: 'Core' } };
   }
   const candidate = context as SchedulerRecord;
   return {
     ...candidate,
-    specialization: "Core",
+    specialization: 'Core',
     config: {
       ...((candidate.config as SchedulerRecord | undefined) || {}),
-      specialization: "Core",
-    },
+      specialization: 'Core'
+    }
   };
 }
 
-function deduplicateUiEntries(
-  values: readonly unknown[],
-  callbackName: string,
-): unknown[] {
+function deduplicateUiEntries(values: readonly unknown[], callbackName: string): unknown[] {
   const keys = new Set<string>();
   return values.filter((value, index) => {
-    if (!value || typeof value !== "object") return true;
+    if (!value || typeof value !== 'object') return true;
     const candidate = value as SchedulerRecord;
-    const key = candidate.id == null ? "" : String(candidate.id);
+    const key = candidate.id == null ? '' : String(candidate.id);
     if (!key) return true;
     if (keys.has(key)) {
-      throw new TypeError(
-        `ui.${callbackName} returned duplicate id ${key} at index ${index}.`,
-      );
+      throw new TypeError(`ui.${callbackName} returned duplicate id ${key} at index ${index}.`);
     }
     keys.add(key);
     return true;
   });
 }
 
-function normalizeApplicationUiList(
-  values: readonly unknown[],
-  callbackName: string,
-): unknown[] {
-  if (callbackName !== "paletteGroups") {
+function normalizeApplicationUiList(values: readonly unknown[], callbackName: string): unknown[] {
+  if (callbackName !== 'paletteGroups') {
     return deduplicateUiEntries(values, callbackName);
   }
   const groups = [...values];
   const anchorIndexes = groups.flatMap((value, index) =>
-    value &&
-    typeof value === "object" &&
-    (value as SchedulerRecord).resourceAnchor
-      ? [index]
-      : [],
+    value && typeof value === 'object' && (value as SchedulerRecord).resourceAnchor ? [index] : []
   );
   if (anchorIndexes.length > 1) {
     const firstIndex = anchorIndexes[0];
@@ -1361,12 +1117,8 @@ function normalizeApplicationUiList(
       skillIds: last.skillIds,
       // The specialization replaces the anchored profession skills, so its
       // targeted resource layout must follow those skills into the retained group.
-      ...(Object.hasOwn(last, "resourceIds")
-        ? { resourceIds: last.resourceIds }
-        : {}),
-      ...(Object.hasOwn(last, "resourcePlacement")
-        ? { resourcePlacement: last.resourcePlacement }
-        : {}),
+      ...(Object.hasOwn(last, 'resourceIds') ? { resourceIds: last.resourceIds } : {}),
+      ...(Object.hasOwn(last, 'resourcePlacement') ? { resourcePlacement: last.resourcePlacement } : {})
     };
     for (const index of anchorIndexes.slice(1).reverse()) {
       groups.splice(index, 1);
@@ -1381,80 +1133,65 @@ function normalizeApplicationUiList(
  * trait-line names intentionally fall back to Core for application rendering;
  * runtime resolution remains strict.
  */
-export function createProfessionFamilyUi(
-  definition: ProfessionFamilyUiDefinition,
-): UiSlice {
+export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinition): UiSlice {
   const family = definition.family || {};
   const eliteNames = new Set(
     definition.catalog.specializations
       .filter((specialization) => specialization.elite)
-      .map((specialization) => specialization.name),
+      .map((specialization) => specialization.name)
   );
-  const active = (
-    context: unknown,
-  ): { readonly context: SchedulerRecord; readonly slices: UiSlice[] } => {
+  const active = (context: unknown): { readonly context: SchedulerRecord; readonly slices: UiSlice[] } => {
     const requested = uiSpecialization(context);
     const specialization = definition.specializations[requested];
     if (specialization && eliteNames.has(requested)) {
       return {
         context: context as SchedulerRecord,
-        slices: [definition.core, specialization],
+        slices: [definition.core, specialization]
       };
     }
     return {
-      context:
-        requested === "Core"
-          ? (context as SchedulerRecord)
-          : normalizedCoreUiContext(context),
-      slices: [definition.core],
+      context: requested === 'Core' ? (context as SchedulerRecord) : normalizedCoreUiContext(context),
+      slices: [definition.core]
     };
   };
-  const allSlices = [
-    definition.core,
-    ...Object.values(definition.specializations),
-  ];
+  const allSlices = [definition.core, ...Object.values(definition.specializations)];
   const scalarSlices = (
     context: unknown,
-    skill?: Skill,
+    skill?: Skill
   ): { readonly context: SchedulerRecord; readonly slices: UiSlice[] } => {
     if (explicitUiSpecialization(context)) {
       const selected = active(context);
       return {
         context: selected.context,
-        slices: [...selected.slices, family],
+        slices: [...selected.slices, family]
       };
     }
-    const skillSpecialization = String(skill?.specialization || "").trim();
+    const skillSpecialization = String(skill?.specialization || '').trim();
     const specialization = definition.specializations[skillSpecialization];
     if (specialization && eliteNames.has(skillSpecialization)) {
       return {
         context: context as SchedulerRecord,
-        slices: [definition.core, specialization, family],
+        slices: [definition.core, specialization, family]
       };
     }
     return {
       context: context as SchedulerRecord,
-      slices: [...allSlices, family],
+      slices: [...allSlices, family]
     };
   };
   const ui: SchedulerRecord = {
     assumptionControls: Object.freeze(
       deduplicateUiEntries(
-        [
-          ...(family.assumptionControls || []),
-          ...allSlices.flatMap((slice) => slice.assumptionControls || []),
-        ],
-        "assumptionControls",
-      ) as SchedulerRecord[],
-    ),
+        [...(family.assumptionControls || []), ...allSlices.flatMap((slice) => slice.assumptionControls || [])],
+        'assumptionControls'
+      ) as SchedulerRecord[]
+    )
   };
 
   for (const name of UI_LIST_CALLBACK_NAMES) {
     ui[name] = (context: unknown) => {
       const selected = active(context);
-      const values = mergeUiList([...selected.slices, family], name, [
-        selected.context,
-      ]);
+      const values = mergeUiList([...selected.slices, family], name, [selected.context]);
       return normalizeApplicationUiList(values, name);
     };
   }
@@ -1463,62 +1200,59 @@ export function createProfessionFamilyUi(
     const selected = scalarSlices(context, skill);
     return firstUiMatch(
       selected.slices,
-      "paletteSkillAvailability",
+      'paletteSkillAvailability',
       [selected.context, skill],
       (result) => (result as PaletteSkillAvailability)?.available === false,
-      { available: true, message: "" },
+      { available: true, message: '' }
     );
   };
   ui.eventLogRow = (
     context: SchedulerRecord,
-    event: Parameters<NonNullable<ProfessionUiContract["eventLogRow"]>>[1],
+    event: Parameters<NonNullable<ProfessionUiContract['eventLogRow']>>[1]
   ) => {
     const selected = active(context);
     return firstUiMatch(
       [...selected.slices, family],
-      "eventLogRow",
+      'eventLogRow',
       [selected.context, event],
       (result) => result !== undefined,
-      undefined,
+      undefined
     );
   };
   ui.chargeReleaseProjection = (context: SchedulerRecord) => {
     const selected = scalarSlices(context, context.skill as Skill);
     return firstUiMatch(
       selected.slices,
-      "chargeReleaseProjection",
+      'chargeReleaseProjection',
       [selected.context],
       (result) => result !== undefined && result !== null,
-      null,
+      null
     );
   };
   ui.isPaletteSkillInstant = (context: SchedulerRecord, skill: Skill) => {
     const selected = scalarSlices(context, skill);
     return someUiSlice(
       selected.slices,
-      "isPaletteSkillInstant",
+      'isPaletteSkillInstant',
       [selected.context, skill],
-      (result) => result === true,
+      (result) => result === true
     );
   };
   ui.isSlotSkillSelectable = (context: SchedulerRecord, skill: Skill) => {
     const selected = scalarSlices(context, skill);
     return everyUiSlice(
       selected.slices,
-      "isSlotSkillSelectable",
+      'isSlotSkillSelectable',
       [selected.context, skill],
-      (result) => result !== false,
+      (result) => result !== false
     );
   };
-  for (const name of ["paletteActionSkills", "paletteWeaponSkills"] as const) {
+  for (const name of ['paletteActionSkills', 'paletteWeaponSkills'] as const) {
     ui[name] = (context: SchedulerRecord, skills: readonly Skill[]) => {
       const selected = active(context);
       return [...selected.slices, family].reduce(
-        (current, slice) =>
-          typeof slice[name] === "function"
-            ? slice[name](selected.context, current)
-            : current,
-        [...skills],
+        (current, slice) => (typeof slice[name] === 'function' ? slice[name](selected.context, current) : current),
+        [...skills]
       );
     };
   }
@@ -1526,66 +1260,58 @@ export function createProfessionFamilyUi(
     const selected = active(context);
     return firstUiMatch(
       [...selected.slices.slice().reverse(), family],
-      "renderWeaponPalette",
+      'renderWeaponPalette',
       [selected.context],
       (result) => result != null,
-      null,
+      null
     );
   };
   ui.resolvePaletteAction = (
     context: SchedulerRecord,
-    action: Parameters<ProfessionUiContract["resolvePaletteAction"]>[1],
+    action: Parameters<ProfessionUiContract['resolvePaletteAction']>[1]
   ) => {
     const selected = active(context);
     return firstUiMatch(
       [...selected.slices.slice().reverse(), family],
-      "resolvePaletteAction",
+      'resolvePaletteAction',
       [selected.context, action],
       (result) => result !== undefined,
-      undefined,
-    ) as ReturnType<ProfessionUiContract["resolvePaletteAction"]>;
+      undefined
+    ) as ReturnType<ProfessionUiContract['resolvePaletteAction']>;
   };
   ui.updatePaletteControl = (context: SchedulerRecord, controlId: string) => {
     const selected = active(context);
     return someUiSlice(
       [...selected.slices.slice().reverse(), family],
-      "updatePaletteControl",
+      'updatePaletteControl',
       [selected.context, controlId],
-      (result) => Boolean(result),
+      (result) => Boolean(result)
     );
   };
-  ui.updateSkillBarSelection = (
-    context: SchedulerRecord,
-    selection: SchedulerRecord,
-  ) => {
+  ui.updateSkillBarSelection = (context: SchedulerRecord, selection: SchedulerRecord) => {
     const selected = active(context);
     return someUiSlice(
       [...selected.slices.slice().reverse(), family],
-      "updateSkillBarSelection",
+      'updateSkillBarSelection',
       [selected.context, selection],
-      (result) => Boolean(result),
+      (result) => Boolean(result)
     );
   };
-  for (const name of [
-    "timelineWeaponLineTransition",
-    "timelineSkillIcon",
-  ] as const) {
+  for (const name of ['timelineWeaponLineTransition', 'timelineSkillIcon'] as const) {
     ui[name] = (context: SchedulerRecord) => {
       const selected = active(context);
       return firstUiMatch(
         [...selected.slices.slice().reverse(), family],
         name,
         [selected.context],
-        (result) => result !== undefined && result !== "",
-        name === "timelineSkillIcon" ? "" : undefined,
+        (result) => result !== undefined && result !== '',
+        name === 'timelineSkillIcon' ? '' : undefined
       );
     };
   }
 
-  for (const name of ["slotLoadout", "weaponSwapChangesSet"] as const) {
-    const owners = [family, ...allSlices].filter(
-      (slice) => slice[name] != null,
-    );
+  for (const name of ['slotLoadout', 'weaponSwapChangesSet'] as const) {
+    const owners = [family, ...allSlices].filter((slice) => slice[name] != null);
     if (owners.length > 1) {
       throw new TypeError(`ui.${name} has multiple application owners.`);
     }
@@ -1595,11 +1321,11 @@ export function createProfessionFamilyUi(
     family.weaponSkillMatchesSet ||
     singleOwnerValue(
       allSlices.map((slice, index) => ({
-        name: index === 0 ? "Core" : `Specialization ${index}`,
-        module: { id: `ui-${index}`, ui: slice },
+        name: index === 0 ? 'Core' : `Specialization ${index}`,
+        module: { id: `ui-${index}`, ui: slice }
       })),
       (module) => module.ui?.weaponSkillMatchesSet,
-      "ui.weaponSkillMatchesSet",
+      'ui.weaponSkillMatchesSet'
     );
   if (weaponMatcher != null) ui.weaponSkillMatchesSet = weaponMatcher;
   return Object.freeze(ui) as UiSlice;
@@ -1610,40 +1336,28 @@ export function createProfessionFamilyUi(
  * The compiler is single-owner (normally Core) so GW2 damage buckets are
  * compiled once after Core and active-specialization declarations are merged.
  */
-function composeModuleAttributeRules(
-  modules: readonly NamedModule<object>[],
-): SchedulerRecord {
-  const result = composeHookContainer(
-    modules,
-    "attributeRules",
-    ATTRIBUTE_HOOK_NAMES,
-  );
+function composeModuleAttributeRules(modules: readonly NamedModule<object>[]): SchedulerRecord {
+  const result = composeHookContainer(modules, 'attributeRules', ATTRIBUTE_HOOK_NAMES);
   const declarations = modules.flatMap((entry) => {
     const value = entry.module.attributeRules?.modifierRules;
     if (value == null) return [];
     if (!Array.isArray(value)) {
-      throw new TypeError(
-        `${entry.name} attributeRules.modifierRules must be an array.`,
-      );
+      throw new TypeError(`${entry.name} attributeRules.modifierRules must be an array.`);
     }
     return value;
   });
   const compiler = singleOwnerValue(
     modules,
     (module) => module.attributeRules?.compileModifierRules,
-    "attributeRules.compileModifierRules",
+    'attributeRules.compileModifierRules'
   );
   if (!declarations.length) return result;
-  if (typeof compiler !== "function") {
-    throw new TypeError(
-      "Attribute modifier-rule fragments require one compiler.",
-    );
+  if (typeof compiler !== 'function') {
+    throw new TypeError('Attribute modifier-rule fragments require one compiler.');
   }
   const compiled = compiler(declarations);
-  if (!compiled || typeof compiled !== "object" || Array.isArray(compiled)) {
-    throw new TypeError(
-      "attributeRules.compileModifierRules must return a hook object.",
-    );
+  if (!compiled || typeof compiled !== 'object' || Array.isArray(compiled)) {
+    throw new TypeError('attributeRules.compileModifierRules must return a hook object.');
   }
   for (const name of ATTRIBUTE_HOOK_NAMES) {
     const hook = (compiled as SchedulerRecord)[name];
@@ -1655,28 +1369,24 @@ function composeModuleAttributeRules(
 
 function composeRuntimeDefinition<TProfessionState extends object>(
   definition: ProfessionFamilyDefinition<TProfessionState>,
-  modules: readonly NamedModule[],
+  modules: readonly NamedModule[]
 ): ProfessionDefinition<TProfessionState> {
   const genericModules = modules as readonly NamedModule<object>[];
-  const schedulerHooks = composeHookContainer(
-    genericModules,
-    "schedulerHooks",
-    SCHEDULER_HOOK_NAMES,
-  );
+  const schedulerHooks = composeHookContainer(genericModules, 'schedulerHooks', SCHEDULER_HOOK_NAMES);
   schedulerHooks.taskHandlers = mergeHandlerRegistries(
     genericModules,
     (module) => module.schedulerHooks?.taskHandlers,
-    "task handler",
+    'task handler'
   );
   const eventHandlers = mergeHandlerRegistries(
     genericModules,
     (module) => module.resolverHooks?.eventHandlers,
-    "event handler",
+    'event handler'
   );
   const projectEndState = singleOwnerValue(
     genericModules,
     (module) => module.resources?.projectEndState,
-    "resources.projectEndState",
+    'resources.projectEndState'
   );
   return {
     id: definition.id,
@@ -1684,29 +1394,19 @@ function composeRuntimeDefinition<TProfessionState extends object>(
     catalog: composeModuleCatalog(genericModules),
     build: definition.build,
     resources: {
-      createProfessionState: (config) =>
-        composeStateFragments(
-          genericModules,
-          config,
-          false,
-        ) as TProfessionState,
-      createResolverState: (config) =>
-        composeStateFragments(genericModules, config, true),
-      ...(projectEndState == null ? {} : { projectEndState }),
+      createProfessionState: (config) => composeStateFragments(genericModules, config, false) as TProfessionState,
+      createResolverState: (config) => composeStateFragments(genericModules, config, true),
+      ...(projectEndState == null ? {} : { projectEndState })
     },
     attributeRules: composeModuleAttributeRules(genericModules),
-    castRules: composeHookContainer(
-      genericModules,
-      "castRules",
-      CAST_HOOK_NAMES,
-    ),
+    castRules: composeHookContainer(genericModules, 'castRules', CAST_HOOK_NAMES),
     schedulerHooks,
     resolverHooks: {
       eventHandlers,
-      eventReactions: composeEventReactions(genericModules),
+      eventReactions: composeEventReactions(genericModules)
     },
     ui: composeModuleUi(genericModules, definition.ui),
-    simulation: definition.simulation,
+    simulation: definition.simulation
   };
 }
 
@@ -1714,33 +1414,26 @@ function composeRuntimeDefinition<TProfessionState extends object>(
  * Creates a full application-facing profession catalog with a cached
  * core-plus-one-specialization simulation resolver.
  */
-export function defineProfessionFamily<
-  TProfessionState extends object = SchedulerRecord,
->(
-  definition: ProfessionFamilyDefinition<TProfessionState>,
+export function defineProfessionFamily<TProfessionState extends object = SchedulerRecord>(
+  definition: ProfessionFamilyDefinition<TProfessionState>
 ): Readonly<ProfessionFamilyContract<TProfessionState>> {
   assertDefinition(definition);
   assertModuleDefinition(definition.core);
-  if (definition.core.id !== "Core") {
+  if (definition.core.id !== 'Core') {
     throw new TypeError('The core profession module id must be "Core".');
   }
   if (
     !definition.specializations ||
-    typeof definition.specializations !== "object" ||
+    typeof definition.specializations !== 'object' ||
     Array.isArray(definition.specializations)
   ) {
-    throw new TypeError("Profession family specializations must be an object.");
+    throw new TypeError('Profession family specializations must be an object.');
   }
-  const specializationModules = new Map<
-    string,
-    Readonly<ProfessionModuleDefinition>
-  >();
+  const specializationModules = new Map<string, Readonly<ProfessionModuleDefinition>>();
   for (const [name, module] of Object.entries(definition.specializations)) {
     assertModuleDefinition(module);
     if (name !== module.id) {
-      throw new TypeError(
-        `Specialization key ${name} does not match module id ${module.id}.`,
-      );
+      throw new TypeError(`Specialization key ${name} does not match module id ${module.id}.`);
     }
     specializationModules.set(name, defineProfessionModule(module));
   }
@@ -1748,13 +1441,8 @@ export function defineProfessionFamily<
   const applicationUi = createProfessionFamilyUi({
     catalog: definition.catalog,
     core: core.ui || {},
-    specializations: Object.fromEntries(
-      [...specializationModules].map(([name, module]) => [
-        name,
-        module.ui || {},
-      ]),
-    ),
-    family: definition.ui,
+    specializations: Object.fromEntries([...specializationModules].map(([name, module]) => [name, module.ui || {}])),
+    family: definition.ui
   });
   // Reuse the ordinary application normalizers without constructing a
   // profession-wide executable registry. Only the application properties
@@ -1765,36 +1453,27 @@ export function defineProfessionFamily<
     catalog: definition.catalog,
     build: definition.build,
     ui: applicationUi,
-    simulation: definition.simulation,
+    simulation: definition.simulation
   });
-  const cache = new Map<
-    string,
-    Readonly<NormalizedProfessionContract<TProfessionState>>
-  >();
+  const cache = new Map<string, Readonly<NormalizedProfessionContract<TProfessionState>>>();
   const resolveRuntime = (
-    config: Readonly<SchedulerConfig> = {},
+    config: Readonly<SchedulerConfig> = {}
   ): Readonly<NormalizedProfessionContract<TProfessionState>> => {
-    const specialization =
-      String(config.specialization || "Core").trim() || "Core";
-    if (
-      specialization !== "Core" &&
-      !specializationModules.has(specialization)
-    ) {
+    const specialization = String(config.specialization || 'Core').trim() || 'Core';
+    if (specialization !== 'Core' && !specializationModules.has(specialization)) {
       throw new Error(
         `Unknown ${definition.name} elite specialization "${specialization}". ` +
-          `Expected Core or one of: ${[...specializationModules.keys()].join(", ")}.`,
+          `Expected Core or one of: ${[...specializationModules.keys()].join(', ')}.`
       );
     }
     const cached = cache.get(specialization);
     if (cached) return cached;
-    const modules: NamedModule[] = [{ name: "Core", module: core }];
+    const modules: NamedModule[] = [{ name: 'Core', module: core }];
     const specializationModule = specializationModules.get(specialization);
     if (specializationModule) {
       modules.push({ name: specialization, module: specializationModule });
     }
-    const runtime = defineProfession(
-      composeRuntimeDefinition(definition, modules),
-    );
+    const runtime = defineProfession(composeRuntimeDefinition(definition, modules));
     cache.set(specialization, runtime);
     return runtime;
   };
@@ -1807,7 +1486,7 @@ export function defineProfessionFamily<
     createBuildDefaults: applicationSurface.createBuildDefaults,
     migrateBuild: applicationSurface.migrateBuild,
     validateBuild: applicationSurface.validateBuild,
-    resolveRuntime,
+    resolveRuntime
   }) as Readonly<ProfessionFamilyContract<TProfessionState>>;
 }
 
@@ -1815,20 +1494,15 @@ export function defineProfessionFamily<
  * Legacy contracts pass through unchanged. Family contracts resolve once for
  * the supplied configuration.
  */
-export function resolveProfessionRuntime<
-  TProfessionState extends object = SchedulerRecord,
->(
+export function resolveProfessionRuntime<TProfessionState extends object = SchedulerRecord>(
   profession: ProfessionSource<TProfessionState>,
-  config: Readonly<SchedulerConfig> = {},
+  config: Readonly<SchedulerConfig> = {}
 ): Readonly<NormalizedProfessionContract<TProfessionState>> {
-  if (!profession || typeof profession !== "object") {
-    throw new TypeError("A profession contract is required.");
+  if (!profession || typeof profession !== 'object') {
+    throw new TypeError('A profession contract is required.');
   }
-  return typeof (profession as ProfessionFamilyContract<TProfessionState>)
-    .resolveRuntime === "function"
-    ? (profession as ProfessionFamilyContract<TProfessionState>).resolveRuntime(
-        config,
-      )
+  return typeof (profession as ProfessionFamilyContract<TProfessionState>).resolveRuntime === 'function'
+    ? (profession as ProfessionFamilyContract<TProfessionState>).resolveRuntime(config)
     : (profession as Readonly<NormalizedProfessionContract<TProfessionState>>);
 }
 
