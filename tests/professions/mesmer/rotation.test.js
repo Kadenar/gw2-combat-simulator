@@ -2369,6 +2369,20 @@ test('Relic of Fireworks triggers on Virtuoso bladesongs', () => {
   assert.ok(procs.every((proc) => proc.sourceSkill === 'Bladesong Sorrow'));
 });
 
+test("Relic of Fireworks triggers on Distortion's 0-damage shatter", () => {
+  const fireworks = simulateMesmer(
+    ['Distortion', { name: '__wait', waitMs: 12000 }],
+    defaultSimulationConfig({
+      specialization: 'Core',
+      relic: 'Fireworks',
+      initialResource: 3
+    })
+  );
+  const procs = fireworks.procSteps.filter((proc) => proc.skill === 'Relic of Fireworks');
+  assert.ok(procs.length > 0);
+  assert.ok(procs.every((proc) => proc.sourceSkill === 'Distortion'));
+});
+
 test('Relic of Akeem triggers on control against five confusion stacks', () => {
   const result = simulateMesmer(
     ['Bladesong Sorrow', 'Bladecall', 'Bladesong Dissonance', { name: '__wait', waitMs: 12000 }],
