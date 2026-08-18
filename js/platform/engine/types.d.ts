@@ -736,7 +736,7 @@ export interface ProfessionResourceView {
   readonly statusItems?: readonly ProfessionResourceStatusItem[];
   /** Whether to render this resource in the rotation palette. Defaults to true. */
   readonly showInPalette?: boolean;
-  /** Whether the hover tooltip includes the numeric count. Defaults to true. */
+  /** Whether to show the numeric count and include it in the tooltip. Defaults to true. */
   readonly showValue?: boolean;
   /** Render this resource beneath the matching rotation-palette skill. */
   readonly paletteSkillId?: SkillId;

@@ -5312,6 +5312,33 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   overflow-x: auto;
 }
 
+/* Conditions and Damage Breakdown stack full width, each under its own titled
+   section. */
+.res-breakdown-section {
+  margin-bottom: 10px;
+}
+
+.res-breakdown-section .res-breakdown {
+  margin-bottom: 0;
+}
+
+.res-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-bright);
+}
+
+.res-section-title svg {
+  flex: none;
+  opacity: 0.8;
+}
+
 .res-hdr {
   display: grid;
   grid-template-columns: 1fr 72px 72px 72px 72px 72px 72px 72px 48px 56px;
@@ -5351,6 +5378,19 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
 
 .res-row:hover {
   background: var(--bg-panel-alt);
+}
+
+.res-row-selectable {
+  cursor: pointer;
+}
+
+.res-row-selected {
+  background: rgba(181, 124, 224, 0.16);
+  box-shadow: inset 2px 0 0 #b57ce0;
+}
+
+.res-row-selected:hover {
+  background: rgba(181, 124, 224, 0.22);
 }
 
 .res-skill-group-heading {
@@ -5745,6 +5785,25 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   width: 100%;
   border-radius: 4px;
   display: block;
+}
+
+[data-role="dps-hit-canvas"],
+[data-role="hit-timeline-canvas"] {
+  width: 100%;
+  border-radius: 4px;
+  display: block;
+}
+
+.chart-hit-strip {
+  margin-top: 4px;
+}
+
+.res-skill-timeline {
+  margin: 2px 0 6px;
+  padding: 6px 4px 2px;
+  border-left: 2px solid var(--accent, #b57ce0);
+  background: rgba(181, 124, 224, 0.08);
+  border-radius: 0 4px 4px 0;
 }
 
 .chart-tooltip {

@@ -7,6 +7,15 @@ export interface ChartPoint {
   readonly v: number;
 }
 
+// One resolved hit/tick: time (ms, relative to the DPS window), damage, and
+// whether it critically struck (null when the run is deterministic and crits
+// are expected values rather than a per-hit yes/no).
+export interface SkillHit {
+  readonly t: number;
+  readonly v: number;
+  readonly crit?: boolean | null;
+}
+
 export type ChartEffectType = "boon" | "condition" | "buff";
 
 export interface ChartSeries {
@@ -16,6 +25,12 @@ export interface ChartSeries {
   readonly effectTypes?: Readonly<Record<string, ChartEffectType>>;
   readonly effectUnits?: Readonly<Record<string, string>>;
   readonly cumulativeDamage?: readonly ChartPoint[];
+  // Individual hits/ticks per skill breakdown row key (`group|name`), each
+  // timestamped relative to the DPS window. Backs the per-skill damage-events
+  // timeline (in the table) and the hit-marker strip on the DPS chart.
+  readonly skillDamage?: Readonly<Record<string, readonly SkillHit[]>>;
+  // Display name per skill key, for timeline labels and tooltips.
+  readonly skillNames?: Readonly<Record<string, string>>;
 }
 
 export interface ChartHealthBreakpoint {
@@ -33,6 +48,8 @@ export interface ChartOptions {
   readonly emptyEffectsText: string;
   readonly healthBreakpoints: readonly ChartHealthBreakpoint[];
   readonly healthBreakpointColor: string;
+  // Colour of the per-skill hit markers on the DPS strip and table timeline.
+  readonly skillDamageColor: string;
 }
 
 export interface BuildChartSeriesOptions {
@@ -47,6 +64,11 @@ export interface BuildChartSeriesOptions {
   ) => string;
   readonly stackCaps?: Readonly<Record<string, number>>;
   readonly durationStackCaps?: Readonly<Record<string, number>>;
+  // Attributes a resolved damage/condition event to a skill breakdown row key
+  // (`group|name`), or null to omit it from the per-skill damage series.
+  readonly skillKey?: (event: Gw2ResolverEvent) => string | null;
+  // Human-readable label for a skill key, used by the skill-damage panel.
+  readonly skillName?: (key: string, event: Gw2ResolverEvent) => string;
 }
 
 interface ChartEffectApplication {
@@ -139,6 +161,8 @@ export function buildChartSeries(
     replacementGroup = () => "",
     stackCaps = {},
     durationStackCaps = {},
+    skillKey,
+    skillName,
   }: BuildChartSeriesOptions = {},
 ): ChartSeries {
   // Chart time is relative to the DPS window, while simulation events use
@@ -286,6 +310,41 @@ export function buildChartSeries(
     t: point.t,
     v: point.v * (point.t / 1000),
   }));
+  const skillDamage: Record<string, SkillHit[]> = {};
+  const skillNames: Record<string, string> = {};
+  if (skillKey) {
+    // Each strike is one hit at its time; conditions expand to a hit per
+    // damaging tick. Times are relative to the DPS window, matching `dps`.
+    for (const event of damageEvents) {
+      const key = skillKey(event);
+      if (!key) continue;
+      const hits = skillDamage[key] || (skillDamage[key] = []);
+      if (skillName && skillNames[key] == null) {
+        skillNames[key] = skillName(key, event);
+      }
+      const crit = event.didCrit ?? null;
+      const damageTicks = eventDamageTicks(event);
+      if (damageTicks.length) {
+        // Condition ticks are neither critical nor non-critical strikes.
+        for (const tick of damageTicks) {
+          const value = Number(tick.damage || 0);
+          const time = Number(tick.at || 0) * 1000 - dpsStartMs;
+          if (value > 0 && time >= 0 && time <= durationMs) {
+            hits.push({ t: time, v: value, crit: null });
+          }
+        }
+      } else {
+        const value = Number(event.damage || 0);
+        const time = Number(event.at || 0) * 1000 - dpsStartMs;
+        if (value > 0 && time >= 0 && time <= durationMs) {
+          hits.push({ t: time, v: value, crit });
+        }
+      }
+    }
+    for (const key of Object.keys(skillDamage)) {
+      skillDamage[key]!.sort((left, right) => left.t - right.t);
+    }
+  }
   return {
     durationMs,
     dps,
@@ -295,6 +354,8 @@ export function buildChartSeries(
       Object.keys(durationStackCaps).map((name) => [name, "s"]),
     ),
     cumulativeDamage,
+    skillDamage,
+    skillNames,
   };
 }
 
@@ -307,6 +368,7 @@ const DEFAULT_OPTIONS: ChartOptions = {
   emptyEffectsText: "No timed effects in this rotation",
   healthBreakpoints: [],
   healthBreakpointColor: "#e1c070",
+  skillDamageColor: "#b57ce0",
 };
 interface ActiveChartMount {
   readonly token: object;
@@ -686,6 +748,198 @@ function drawLineChart(
   };
 }
 
+// Shared horizontal padding so a standalone hit strip lines up with the DPS
+// line chart drawn above it (same left axis gutter, same right margin).
+const HIT_TIMELINE_PAD = { right: 16, left: 54 } as const;
+
+interface HitTimelineOptions {
+  readonly height?: number;
+  readonly color?: string;
+  readonly label?: string;
+  readonly emptyText?: string;
+  // When true, draws a time axis (0s…end) beneath the markers.
+  readonly showAxis?: boolean;
+}
+
+// Draws hit markers along a single time lane. Marker height encodes relative
+// damage so heavier hits read as taller ticks; returns a layout for hover
+// hit-testing (with the marker time baked into each point).
+function drawHitTimeline(
+  canvas: HTMLCanvasElement | null | undefined,
+  hits: readonly SkillHit[],
+  durationMs: number,
+  {
+    height = 64,
+    color = "#b57ce0",
+    label = "",
+    emptyText = "",
+    showAxis = true,
+  }: HitTimelineOptions = {},
+): ChartLayout | null {
+  if (!canvas?.getContext) return null;
+  const cssWidth = Math.max(
+    1,
+    Math.floor(
+      canvas.parentElement?.clientWidth ||
+        canvas.closest?.(".chart-wrap")?.clientWidth ||
+        canvas.closest?.(".res-skill-timeline")?.clientWidth ||
+        760,
+    ),
+  );
+  const dpr = Math.max(1, Number(globalThis.window?.devicePixelRatio) || 1);
+  canvas.width = Math.round(cssWidth * dpr);
+  canvas.height = Math.round(height * dpr);
+  canvas.style.width = `${cssWidth}px`;
+  canvas.style.height = `${height}px`;
+  const context = canvas.getContext("2d");
+  if (!context) return null;
+  context.setTransform(dpr, 0, 0, dpr, 0, 0);
+  context.clearRect(0, 0, cssWidth, height);
+
+  const pad = {
+    top: label ? 18 : 10,
+    right: HIT_TIMELINE_PAD.right,
+    bottom: showAxis ? 18 : 8,
+    left: HIT_TIMELINE_PAD.left,
+  };
+  const plotWidth = cssWidth - pad.left - pad.right;
+  const plotHeight = height - pad.top - pad.bottom;
+  context.font = "10px sans-serif";
+  context.textBaseline = "middle";
+
+  if (label) {
+    context.fillStyle = "#8d8d9f";
+    context.textAlign = "left";
+    context.textBaseline = "top";
+    context.fillText(label.toUpperCase(), pad.left, 3);
+    context.textBaseline = "middle";
+  }
+
+  // Baseline the markers sit on.
+  const baseY = pad.top + plotHeight;
+  context.strokeStyle = "rgba(255,255,255,.14)";
+  context.lineWidth = 1;
+  context.beginPath();
+  context.moveTo(pad.left, baseY);
+  context.lineTo(cssWidth - pad.right, baseY);
+  context.stroke();
+
+  if (showAxis) {
+    context.fillStyle = "#8d8d9f";
+    context.textBaseline = "top";
+    for (let index = 0; index <= 5; index += 1) {
+      const ratio = index / 5;
+      const x = pad.left + plotWidth * ratio;
+      context.textAlign =
+        index === 0 ? "left" : index === 5 ? "right" : "center";
+      context.fillText(
+        `${((durationMs * ratio) / 1000).toFixed(durationMs < 10_000 ? 1 : 0)}s`,
+        x,
+        baseY + 5,
+      );
+    }
+    context.textBaseline = "middle";
+  }
+
+  const maxValue = Math.max(
+    1,
+    ...hits.map((hit) => Number(hit.v || 0)),
+  );
+  const minMarker = Math.min(plotHeight, 8);
+  context.strokeStyle = color;
+  context.lineWidth = 2;
+  for (const hit of hits) {
+    const value = Number(hit.v || 0);
+    if (!(value > 0)) continue;
+    const x = pad.left + (Number(hit.t || 0) / durationMs) * plotWidth;
+    // Scale each marker between a floor and the lane height by relative damage.
+    const markerHeight =
+      minMarker + (plotHeight - minMarker) * (value / maxValue);
+    context.beginPath();
+    context.moveTo(x, baseY);
+    context.lineTo(x, baseY - markerHeight);
+    context.stroke();
+  }
+
+  if (!hits.length && emptyText) {
+    context.fillStyle = "#8d8d9f";
+    context.textAlign = "center";
+    context.fillText(emptyText, pad.left + plotWidth / 2, pad.top + plotHeight / 2);
+  }
+
+  return { cssWidth, height, pad, plotWidth, plotHeight };
+}
+
+// Discrete hits windowed to a fight phase (no interpolation): keep those inside
+// [startMs, endMs) and re-base their timestamps to the phase.
+function filterHitsToPhase(
+  hits: readonly SkillHit[],
+  startMs: number,
+  endMs: number,
+): SkillHit[] {
+  if (!hits.length || !(endMs > startMs)) return [];
+  return hits
+    .filter((hit) => hit.t >= startMs && hit.t < endMs)
+    .map((hit) => ({ t: hit.t - startMs, v: hit.v, crit: hit.crit }));
+}
+
+// Shared hover for a hit lane: snaps to the nearest marker within a few pixels
+// and reports its time, damage, and crit state.
+function bindHitTimelineHover(
+  canvas: HTMLCanvasElement | null | undefined,
+  tooltip: HTMLElement | null | undefined,
+  state: {
+    readonly layout: () => ChartLayout | null;
+    readonly hits: () => readonly SkillHit[];
+    readonly durationMs: () => number;
+    readonly label: () => string;
+  },
+): void {
+  if (!canvas || !tooltip) return;
+  canvas.onmouseleave = () => {
+    tooltip.style.display = "none";
+  };
+  canvas.onmousemove = (event) => {
+    const layout = state.layout();
+    if (!layout) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = layout.cssWidth / Math.max(1, rect.width);
+    const pointerX = event.clientX - rect.left;
+    const pointerY = event.clientY - rect.top;
+    const chartX = pointerX * scaleX;
+    const durationMs = state.durationMs();
+    const time =
+      ((chartX - layout.pad.left) / Math.max(1, layout.plotWidth)) * durationMs;
+    const toleranceMs = (7 * durationMs) / Math.max(1, layout.plotWidth);
+    let nearest: SkillHit | null = null;
+    let nearestDistance = Infinity;
+    for (const hit of state.hits()) {
+      const distance = Math.abs(Number(hit.t || 0) - time);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearest = hit;
+      }
+    }
+    if (!nearest || nearestDistance > toleranceMs) {
+      tooltip.style.display = "none";
+      return;
+    }
+    const critLine =
+      nearest.crit == null
+        ? ""
+        : `<div>Critical: ${nearest.crit ? "Yes" : "No"}</div>`;
+    const label = state.label();
+    tooltip.innerHTML =
+      `<div><b>${(Number(nearest.t || 0) / 1000).toFixed(2)}s</b></div>` +
+      (label ? `<div>${escapeHtml(label)}</div>` : "") +
+      `<div>Damage: ${Math.round(Number(nearest.v || 0)).toLocaleString()}</div>` +
+      critLine;
+    tooltip.style.left = `${pointerX + 12}px`;
+    tooltip.style.top = `${pointerY + 12}px`;
+    tooltip.style.display = "block";
+  };
+}
+
 function chartHtml(
   series: ChartSeries,
   options: ChartOptions,
@@ -705,11 +959,9 @@ function chartHtml(
     { type: "condition", label: "Conditions" },
     { type: "buff", label: "Buffs" },
   ];
-  return `<div class="chart-wrap">
-    <div class="chart-title">${escapeHtml(options.title)}</div>
-    <div class="chart-toggles" data-role="chart-toggles">
-      <div class="chart-toggle-dps"><label><input type="checkbox" data-series="dps" checked />
-        <span class="swatch" style="background:${escapeHtml(options.dpsColor)}"></span>${escapeHtml(options.dpsLabel)}</label></div>
+  // Effect visibility checkboxes live with the Effects Over Time panel they
+  // control (below the DPS graph).
+  const effectTogglesMarkup = `<div class="chart-toggles" data-role="chart-toggles">
       ${effectGroups
         .map(({ type, label }) => {
           const groupEffects = effects
@@ -738,7 +990,9 @@ function chartHtml(
       </div>`;
         })
         .join("")}
-    </div>
+    </div>`;
+  return `<div class="chart-wrap">
+    <div class="chart-title">${escapeHtml(options.title)}</div>
     ${
       healthMarkers.length
         ? `<div class="chart-phase-toggles" data-role="chart-phase-toggles">
@@ -763,9 +1017,16 @@ function chartHtml(
           <canvas class="chart-canvas" data-role="dps-canvas"></canvas>
           <div class="chart-tooltip" data-role="dps-tooltip"></div>
         </div>
+        <div class="chart-hit-strip" data-role="dps-hit-strip" hidden>
+          <div class="chart-canvas-wrap">
+            <canvas class="chart-canvas" data-role="dps-hit-canvas"></canvas>
+            <div class="chart-tooltip" data-role="dps-hit-tooltip"></div>
+          </div>
+        </div>
       </div>
       <div class="chart-panel">
         <div class="chart-panel-title" data-role="effects-panel-title">Effects Over Time</div>
+        ${effectTogglesMarkup}
         <div class="chart-canvas-wrap">
           <canvas class="chart-canvas" data-role="effects-canvas"></canvas>
           <div class="chart-tooltip" data-role="effects-tooltip"></div>
@@ -784,7 +1045,10 @@ export function mountTimeSeriesCharts(
   container: HTMLElement | null | undefined,
   series: ChartSeries,
   options: Partial<ChartOptions> = {},
-): { redraw: () => void } | null {
+): {
+  redraw: () => void;
+  setSelectedSkill: (key: string | null) => void;
+} | null {
   if (!container) return null;
   // A token makes a queued animation-frame redraw from an older mount harmless.
   ACTIVE_MOUNTS.get(container)?.resizeObserver?.disconnect();
@@ -804,6 +1068,8 @@ export function mountTimeSeriesCharts(
         t: point.t,
         v: Number(point.v) * (Number(point.t) / 1000),
       })),
+    skillDamage: series?.skillDamage || {},
+    skillNames: series?.skillNames || {},
   };
   const resolvedOptions: ChartOptions = {
     ...DEFAULT_OPTIONS,
@@ -818,11 +1084,22 @@ export function mountTimeSeriesCharts(
   );
   const phases = fightPhases(resolvedSeries, healthMarkers);
   let activePhaseId = "full";
+  // Which breakdown row's hits the DPS strip highlights (null until a row is
+  // clicked).
+  let selectedSkillKey: string | null = null;
   container.innerHTML = chartHtml(
     resolvedSeries,
     resolvedOptions,
     healthMarkers,
     phases,
+  );
+
+  // Cached control roots for toggle/phase state queries during redraw.
+  const chartTogglesEl = container.querySelector<HTMLElement>(
+    '[data-role="chart-toggles"]',
+  );
+  const chartPhaseTogglesEl = container.querySelector<HTMLElement>(
+    '[data-role="chart-phase-toggles"]',
   );
 
   const chartState: {
@@ -831,21 +1108,29 @@ export function mountTimeSeriesCharts(
     effectsLayout: ChartLayout | null;
     effectsView: ChartEffectsView;
     effectLines: ChartLine[];
+    hitStripLayout: ChartLayout | null;
+    hitStripDurationMs: number;
+    hitStripHits: SkillHit[];
+    hitStripLabel: string;
   } = {
     dpsLayout: null,
     dpsView: dpsViewForPhase(resolvedSeries, healthMarkers, phases[0]!),
     effectsLayout: null,
     effectsView: effectsViewForPhase(resolvedSeries, phases[0]!),
     effectLines: [],
+    hitStripLayout: null,
+    hitStripDurationMs: resolvedSeries.durationMs,
+    hitStripHits: [],
+    hitStripLabel: "",
   };
 
   const redraw = (): void => {
     if (ACTIVE_MOUNTS.get(container)?.token !== mountToken) return;
     const selected = new Set(
       [
-        ...container.querySelectorAll<HTMLInputElement>(
-          '[data-role="chart-toggles"] input:checked',
-        ),
+        ...(chartTogglesEl?.querySelectorAll<HTMLInputElement>(
+          "input:checked",
+        ) || []),
       ].map((input) => input.dataset.series),
     );
     const activePhase =
@@ -873,17 +1158,16 @@ export function mountTimeSeriesCharts(
         "Effects Over Time" +
         (activePhase.id === "full" ? "" : ` — ${activePhase.label}`);
     }
+    // DPS is always shown; only effect series are toggleable.
     chartState.dpsLayout = drawLineChart(
       container.querySelector<HTMLCanvasElement>('[data-role="dps-canvas"]'),
-      selected.has("dps")
-        ? [
-            {
-              name: resolvedOptions.dpsLabel,
-              color: resolvedOptions.dpsColor,
-              points: chartState.dpsView.dps,
-            },
-          ]
-        : [],
+      [
+        {
+          name: resolvedOptions.dpsLabel,
+          color: resolvedOptions.dpsColor,
+          points: chartState.dpsView.dps,
+        },
+      ],
       chartState.dpsView.durationMs,
       {
         height: 280,
@@ -908,6 +1192,42 @@ export function mountTimeSeriesCharts(
       chartState.effectsView.durationMs,
       { height: 260, emptyText: resolvedOptions.emptyEffectsText },
     );
+
+    // Marker strip beneath the DPS line showing the selected skill's hits,
+    // aligned to the same time axis as the DPS view above it.
+    const hitStrip = container.querySelector<HTMLElement>(
+      '[data-role="dps-hit-strip"]',
+    );
+    const hitCanvas = container.querySelector<HTMLCanvasElement>(
+      '[data-role="dps-hit-canvas"]',
+    );
+    const allHits =
+      (selectedSkillKey && resolvedSeries.skillDamage?.[selectedSkillKey]) || [];
+    chartState.hitStripDurationMs = chartState.dpsView.durationMs;
+    chartState.hitStripHits = !selectedSkillKey
+      ? []
+      : activePhase.id === "full"
+        ? [...allHits]
+        : filterHitsToPhase(allHits, activePhase.startMs, activePhase.endMs);
+    chartState.hitStripLabel = selectedSkillKey
+      ? `${resolvedSeries.skillNames?.[selectedSkillKey] || selectedSkillKey} hits`
+      : "";
+    if (hitStrip) hitStrip.hidden = !selectedSkillKey;
+    if (hitCanvas && selectedSkillKey) {
+      chartState.hitStripLayout = drawHitTimeline(
+        hitCanvas,
+        chartState.hitStripHits,
+        chartState.hitStripDurationMs,
+        {
+          height: 48,
+          color: resolvedOptions.skillDamageColor,
+          label: chartState.hitStripLabel,
+          showAxis: false,
+        },
+      );
+    } else {
+      chartState.hitStripLayout = null;
+    }
   };
 
   const bindHover = (
@@ -949,16 +1269,15 @@ export function mountTimeSeriesCharts(
         return;
       }
 
+      const durationMs =
+        kind === "dps"
+          ? chartState.dpsView.durationMs
+          : chartState.effectsView.durationMs;
       const time = Math.max(
         0,
         Math.min(
-          kind === "dps"
-            ? chartState.dpsView.durationMs
-            : chartState.effectsView.durationMs,
-          ((chartX - minX) / layout.plotWidth) *
-            (kind === "dps"
-              ? chartState.dpsView.durationMs
-              : chartState.effectsView.durationMs),
+          durationMs,
+          ((chartX - minX) / layout.plotWidth) * durationMs,
         ),
       );
       const timeLabel = `${(time / 1000).toFixed(2)}s`;
@@ -999,14 +1318,14 @@ export function mountTimeSeriesCharts(
     };
   };
 
-  for (const input of container.querySelectorAll<HTMLInputElement>(
-    '[data-role="chart-toggles"] input',
-  )) {
+  for (const input of chartTogglesEl?.querySelectorAll<HTMLInputElement>(
+    "input",
+  ) || []) {
     input.onchange = redraw;
   }
-  for (const button of container.querySelectorAll<HTMLButtonElement>(
+  for (const button of chartTogglesEl?.querySelectorAll<HTMLButtonElement>(
     '[data-role="chart-toggle-group"] [data-toggle-action]',
-  )) {
+  ) || []) {
     button.onclick = () => {
       const group = button.closest('[data-role="chart-toggle-group"]');
       if (!group) return;
@@ -1019,15 +1338,15 @@ export function mountTimeSeriesCharts(
       redraw();
     };
   }
-  for (const button of container.querySelectorAll<HTMLButtonElement>(
-    '[data-role="chart-phase-toggles"] button',
-  )) {
+  for (const button of chartPhaseTogglesEl?.querySelectorAll<HTMLButtonElement>(
+    "button",
+  ) || []) {
     button.onclick = () => {
       if (button.disabled) return;
       activePhaseId = button.dataset.chartPhase || "full";
-      for (const phaseButton of container.querySelectorAll<HTMLButtonElement>(
-        '[data-role="chart-phase-toggles"] button',
-      )) {
+      for (const phaseButton of chartPhaseTogglesEl?.querySelectorAll<HTMLButtonElement>(
+        "button",
+      ) || []) {
         phaseButton.setAttribute(
           "aria-pressed",
           String(phaseButton.dataset.chartPhase === activePhaseId),
@@ -1038,6 +1357,18 @@ export function mountTimeSeriesCharts(
   }
   bindHover("dps-canvas", "dps-tooltip", "dps");
   bindHover("effects-canvas", "effects-tooltip", "effects");
+  bindHitTimelineHover(
+    container.querySelector<HTMLCanvasElement>(
+      '[data-role="dps-hit-canvas"]',
+    ),
+    container.querySelector<HTMLElement>('[data-role="dps-hit-tooltip"]'),
+    {
+      layout: () => chartState.hitStripLayout,
+      hits: () => chartState.hitStripHits,
+      durationMs: () => chartState.hitStripDurationMs,
+      label: () => chartState.hitStripLabel,
+    },
+  );
   redraw();
 
   let redrawFrame: number | null = null;
@@ -1079,5 +1410,80 @@ export function mountTimeSeriesCharts(
     activeMount.resizeObserver.observe(observedContainer);
   }
   requestRedraw();
+  const setSelectedSkill = (key: string | null): void => {
+    const next =
+      key && resolvedSeries.skillDamage?.[key]?.length ? key : null;
+    if (next === selectedSkillKey) return;
+    selectedSkillKey = next;
+    redraw();
+  };
+  return { redraw, setSelectedSkill };
+}
+
+export interface HitTimelineMountOptions {
+  readonly durationMs: number;
+  readonly color?: string;
+  readonly label?: string;
+  readonly height?: number;
+  readonly emptyText?: string;
+}
+
+/**
+ * Mounts a standalone damage-events timeline (used inline in the skill table
+ * when a row is selected). Renders one marker per hit along a time axis with a
+ * hover tooltip; redraws itself on container resize.
+ */
+export function mountHitTimeline(
+  container: HTMLElement | null | undefined,
+  hits: readonly SkillHit[],
+  { durationMs, color, label, height = 72, emptyText }: HitTimelineMountOptions,
+): { redraw: () => void } | null {
+  if (!container) return null;
+  ACTIVE_MOUNTS.get(container)?.resizeObserver?.disconnect();
+  const mountToken = {};
+  const activeMount: ActiveChartMount = { token: mountToken };
+  ACTIVE_MOUNTS.set(container, activeMount);
+  container.innerHTML = `<div class="chart-canvas-wrap">
+      <canvas class="chart-canvas" data-role="hit-timeline-canvas"></canvas>
+      <div class="chart-tooltip" data-role="hit-timeline-tooltip"></div>
+    </div>`;
+  const canvas = container.querySelector<HTMLCanvasElement>(
+    '[data-role="hit-timeline-canvas"]',
+  );
+  const tooltip = container.querySelector<HTMLElement>(
+    '[data-role="hit-timeline-tooltip"]',
+  );
+  const resolvedDuration = Math.max(1, Number(durationMs) || 0);
+  let layout: ChartLayout | null = null;
+  const redraw = (): void => {
+    if (ACTIVE_MOUNTS.get(container)?.token !== mountToken) return;
+    layout = drawHitTimeline(canvas, hits, resolvedDuration, {
+      height,
+      color,
+      label,
+      emptyText,
+      showAxis: true,
+    });
+  };
+  bindHitTimelineHover(canvas, tooltip, {
+    layout: () => layout,
+    hits: () => hits,
+    durationMs: () => resolvedDuration,
+    // The owning table row already names the skill, so the tooltip stays terse.
+    label: () => "",
+  });
+  redraw();
+
+  const wrap = canvas?.parentElement;
+  const ResizeObserverConstructor =
+    container.ownerDocument?.defaultView?.ResizeObserver ||
+    globalThis.ResizeObserver;
+  if (ResizeObserverConstructor && wrap) {
+    activeMount.resizeObserver = new ResizeObserverConstructor(() => {
+      const visibleWidth = Math.floor(wrap.clientWidth);
+      if (visibleWidth > 0 && visibleWidth !== layout?.cssWidth) redraw();
+    });
+    activeMount.resizeObserver.observe(wrap);
+  }
   return { redraw };
 }

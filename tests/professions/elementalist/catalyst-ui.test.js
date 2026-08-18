@@ -108,6 +108,7 @@ test("Elementalist utilities render beside profession controls before weapons", 
   const catalyst = palette.innerHTML.indexOf("elementalist-catalyst-spheres");
   const utilities = palette.innerHTML.indexOf("utility-palette-group");
   const weapons = palette.innerHTML.indexOf("weapon-palette-section");
+  assert.match(palette.innerHTML, /<strong>30\/30<\/strong>/);
   assert.ok(attunements >= 0);
   assert.ok(catalyst > attunements);
   assert.ok(utilities > catalyst);

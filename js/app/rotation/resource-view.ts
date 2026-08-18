@@ -234,9 +234,6 @@ export function activeResourceGroup(
         Math.min(definition.maximum, Number(definition.value ?? buildValue)),
       );
       const displayValue = formatResourceValue(value);
-      // The pips/bars/counter presentation is the display; the numeric count is
-      // never printed beside it (it only takes up space). The count still lives
-      // in the aria-label, and in the hover tooltip unless showValue is false.
       const valueLabel = `${definition.statusLabel} ${definition.plural}: ${displayValue}/${definition.maximum}`;
       const title =
         definition.showValue === false
@@ -248,12 +245,19 @@ export function activeResourceGroup(
           : definition.displayMode === "counter"
             ? resourceCounterHtml(definition, value)
             : resourcePipsHtml(definition, value);
+      // Bars and pips need their numeric value for precise resource tracking;
+      // counters already render the value inside their own indicator.
+      const visibleValue =
+        definition.displayMode === "counter" || definition.showValue === false
+          ? ""
+          : `<strong>${displayValue}/${definition.maximum}</strong>`;
       return `<div class="pal-group active-resource-group">
             <div class="pal-label" style="color:#c49cff">${esc(definition.shortLabel)}</div>
             <div class="active-resource" data-resource-id="${esc(definition.id)}"
                 data-resource-count="${value}" title="${esc(title)}"
                 aria-label="${esc(valueLabel)}">
                 ${indicator}
+                ${visibleValue}
             </div>
             ${resourceStatusItemsHtml(definition)}
         </div>`;

@@ -4845,6 +4845,7 @@ test("Necromancer renders life force above its F-skills", async () => {
   assert.ok(mechanic >= 0);
   assert.ok(resource > mechanic);
   assert.match(html, /compact-profession-resource-necromancer-life-force/);
+  assert.match(html, /<strong>100\/100<\/strong>/);
   assert.equal(html.match(/data-resource-id="life-force"/g)?.length, 1);
   assert.doesNotMatch(html, /data-resource-id="blight"/);
   assert.doesNotMatch(html, /data-resource-id="cascading-corruption"/);

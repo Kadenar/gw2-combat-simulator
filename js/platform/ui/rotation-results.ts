@@ -1,7 +1,11 @@
 import type { ChartOptions, ChartSeries } from "./charts.js";
-import { mountTimeSeriesCharts } from "./charts.js";
+import { mountHitTimeline, mountTimeSeriesCharts } from "./charts.js";
 import { escapeHtml } from "./html.js";
 export { mountRotationWarnings } from "./rotation-warnings.js";
+
+// Trusted static section-header glyphs (Lucide swords / flame).
+const DAMAGE_SECTION_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/></svg>`;
+const CONDITIONS_SECTION_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
 
 export interface ResultRow {
   readonly name: string;
@@ -308,7 +312,12 @@ function skillRowHtml(
   columns: readonly ResultColumn[],
   options: RotationResultsOptions,
 ): string {
-  return `<div class="res-row">${columns
+  const skillKey = typeof row.key === "string" ? row.key : "";
+  const keyAttr = skillKey
+    ? ` data-skill-key="${escapeHtml(skillKey)}" role="button" tabindex="0"`
+    : "";
+  const selectable = skillKey ? " res-row-selectable" : "";
+  return `<div class="res-row${selectable}"${keyAttr}>${columns
     .map((column) => skillCellHtml(row, column, options))
     .join("")}</div>`;
 }
@@ -572,46 +581,52 @@ export function mountRotationResults(
       : ""
   }
   ${
-    skillColumns.length
-      ? `<div class="res-breakdown ${escapeHtml(breakdownClassName)}" data-role="skill-breakdown">
-    <div class="res-hdr res-hdr-sortable" data-role="skill-header">
-      ${skillHeaderHtml(skillColumns, sortState)}
+    conditions.length
+      ? `<section class="res-breakdown-section">
+    <div class="res-section-title">${CONDITIONS_SECTION_ICON}<span>Conditions</span></div>
+    <div class="res-breakdown cond-breakdown">
+      <div class="res-hdr cond-hdr">
+        <span>Condition</span><span>Damage</span><span>DPS</span><span>Avg Stacks</span>
+      </div>
+      ${conditions
+        .map(
+          (condition) => `<div class="res-row">
+        <span class="res-skill condi">${escapeHtml(condition.name)}</span>
+        <span class="condi">${number(condition.damage)}</span>
+        <span class="dps">${number(condition.dps)}</span>
+        <span>${Number(condition.averageStacks || 0).toFixed(2)}</span>
+      </div>`,
+        )
+        .join("")}
+      ${
+        model.conditionTotal
+          ? `<div class="res-row res-total">
+        <span class="res-skill"><b>${escapeHtml(model.conditionTotal.label || "Total Conditions")}</b></span>
+        <span class="condi"><b>${number(model.conditionTotal.damage)}</b></span>
+        <span class="dps"><b>${number(model.conditionTotal.dps)}</b></span>
+        <span></span>
+      </div>`
+          : ""
+      }
     </div>
-    <div class="res-skill-rows" data-role="skill-rows">${skillRowsHtml(
-      initialSkillRows,
-      skillColumns,
-      options,
-    )}</div>
-  </div>`
+  </section>`
       : ""
   }
   ${
-    conditions.length
-      ? `<div class="res-breakdown cond-breakdown">
-    <div class="res-hdr cond-hdr">
-      <span>Condition</span><span>Damage</span><span>DPS</span><span>Avg Stacks</span>
+    skillColumns.length
+      ? `<section class="res-breakdown-section">
+    <div class="res-section-title">${DAMAGE_SECTION_ICON}<span>Damage Breakdown</span></div>
+    <div class="res-breakdown ${escapeHtml(breakdownClassName)}" data-role="skill-breakdown">
+      <div class="res-hdr res-hdr-sortable" data-role="skill-header">
+        ${skillHeaderHtml(skillColumns, sortState)}
+      </div>
+      <div class="res-skill-rows" data-role="skill-rows">${skillRowsHtml(
+        initialSkillRows,
+        skillColumns,
+        options,
+      )}</div>
     </div>
-    ${conditions
-      .map(
-        (condition) => `<div class="res-row">
-      <span class="res-skill condi">${escapeHtml(condition.name)}</span>
-      <span class="condi">${number(condition.damage)}</span>
-      <span class="dps">${number(condition.dps)}</span>
-      <span>${Number(condition.averageStacks || 0).toFixed(2)}</span>
-    </div>`,
-      )
-      .join("")}
-    ${
-      model.conditionTotal
-        ? `<div class="res-row res-total">
-      <span class="res-skill"><b>${escapeHtml(model.conditionTotal.label || "Total Conditions")}</b></span>
-      <span class="condi"><b>${number(model.conditionTotal.damage)}</b></span>
-      <span class="dps"><b>${number(model.conditionTotal.dps)}</b></span>
-      <span></span>
-    </div>`
-        : ""
-    }
-  </div>`
+  </section>`
       : ""
   }
   ${chartSeries ? '<div data-role="result-charts"></div>' : ""}
@@ -664,6 +679,8 @@ export function mountRotationResults(
     );
     if (rowsElement) {
       rowsElement.innerHTML = skillRowsHtml(sorted, skillColumns, options);
+      // Re-rendering discards row handlers; rebind selection and reapply it.
+      bindSkillSelection();
     }
     const header = container.querySelector<HTMLElement>(
       '[data-role="skill-header"]',
@@ -693,17 +710,88 @@ export function mountRotationResults(
     }
   };
 
+  let selectedSkillKey: string | null = null;
+  let chartHandle: {
+    readonly setSelectedSkill: (key: string | null) => void;
+  } | null = null;
+  const applySkillRowSelection = (): void => {
+    for (const rowElement of container.querySelectorAll<HTMLElement>(
+      '[data-role="skill-rows"] .res-row-selectable',
+    )) {
+      const active = rowElement.dataset.skillKey === selectedSkillKey;
+      rowElement.classList.toggle("res-row-selected", active);
+      rowElement.setAttribute("aria-pressed", String(active));
+    }
+  };
+  // Inline "Damage Events" timeline inserted beneath the selected row, showing
+  // one marker per hit. Removed and re-inserted so it survives row re-sorts.
+  const renderSkillTimeline = (): void => {
+    const rowsRoot = container.querySelector<HTMLElement>(
+      '[data-role="skill-rows"]',
+    );
+    if (!rowsRoot) return;
+    rowsRoot.querySelector('[data-role="skill-timeline"]')?.remove();
+    if (!selectedSkillKey || !chartSeries) return;
+    const hits = chartSeries.skillDamage?.[selectedSkillKey];
+    if (!hits || !hits.length) return;
+    let target: HTMLElement | null = null;
+    for (const rowElement of rowsRoot.querySelectorAll<HTMLElement>(
+      ".res-row-selectable",
+    )) {
+      if (rowElement.dataset.skillKey === selectedSkillKey) {
+        target = rowElement;
+        break;
+      }
+    }
+    const doc = container.ownerDocument;
+    if (!target || !doc || typeof target.after !== "function") return;
+    const timeline = doc.createElement("div");
+    timeline.className = "res-skill-timeline";
+    timeline.setAttribute("data-role", "skill-timeline");
+    target.after(timeline);
+    mountHitTimeline(timeline, hits, {
+      durationMs: chartSeries.durationMs,
+      color: options.chartOptions?.skillDamageColor,
+      label: "Damage Events",
+    });
+  };
+  const selectSkill = (key: string | null): void => {
+    // Clicking the active row again clears the selection.
+    selectedSkillKey = key && key === selectedSkillKey ? null : key;
+    applySkillRowSelection();
+    chartHandle?.setSelectedSkill(selectedSkillKey);
+    renderSkillTimeline();
+  };
+  const bindSkillSelection = (): void => {
+    for (const rowElement of container.querySelectorAll<HTMLElement>(
+      '[data-role="skill-rows"] .res-row-selectable',
+    )) {
+      rowElement.onclick = () =>
+        selectSkill(rowElement.dataset.skillKey || null);
+      rowElement.onkeydown = (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          selectSkill(rowElement.dataset.skillKey || null);
+        }
+      };
+    }
+    applySkillRowSelection();
+    renderSkillTimeline();
+  };
+
   bindSort();
   const chartContainer = container.querySelector<HTMLElement>(
     '[data-role="result-charts"]',
   );
   if (chartContainer && chartSeries) {
     // Charts mount only when the transformed model supplies sampled series.
-    mountTimeSeriesCharts(chartContainer, chartSeries, {
-      ...(options.chartOptions || {}),
-      healthBreakpoints: breakpoints,
-    });
+    chartHandle =
+      mountTimeSeriesCharts(chartContainer, chartSeries, {
+        ...(options.chartOptions || {}),
+        healthBreakpoints: breakpoints,
+      }) || null;
   }
+  bindSkillSelection();
   const runRandomDistribution = container.querySelector<HTMLElement>(
     '[data-role="rng-run"]',
   );
