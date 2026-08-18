@@ -29,6 +29,54 @@ frame.addEventListener("load", async () => {
     app.build = createNecromancerBuildDefaults();
     app.changed();
 
+    // Verify the prototype keeps both bars in one card and presents mechanics
+    // before the selectable heal, utility, and elite skills.
+    const combatLoadout = document.querySelector(".combat-loadout");
+    const skillBarSections = [
+      ...document.querySelectorAll(
+        "#skill-bar > .combat-loadout-skill-section",
+      ),
+    ];
+    assert(
+      combatLoadout?.contains(document.getElementById("weapon-bar")) &&
+        combatLoadout.contains(document.getElementById("skill-bar")),
+      "combat loadout does not contain both weapon and selectable skill bars",
+    );
+    assert(
+      skillBarSections[0]?.classList.contains("combat-loadout-mechanics") &&
+        skillBarSections[1]?.classList.contains(
+          "combat-loadout-selected-skills",
+        ),
+      "profession mechanics are not displayed before selectable skills",
+    );
+    const weaponSetToggleButtons = [
+      ...document.querySelectorAll("[data-weapon-set-toggle]"),
+    ];
+    const weaponSetPreviews = [
+      ...document.querySelectorAll("[data-weapon-set-preview]"),
+    ];
+    assert(
+      weaponSetToggleButtons.length === 2 &&
+        weaponSetPreviews.length === 2 &&
+        !weaponSetPreviews[0].hidden &&
+        weaponSetPreviews[1].hidden,
+      "weapon-set toggle does not initially show only set 1",
+    );
+    weaponSetToggleButtons[1].click();
+    assert(
+      weaponSetPreviews[0].hidden &&
+        !weaponSetPreviews[1].hidden &&
+        weaponSetToggleButtons[1].getAttribute("aria-pressed") === "true",
+      "weapon-set toggle did not switch the preview to set 2",
+    );
+    app.changed();
+    assert(
+      document.querySelector('[data-weapon-set-preview="1"]')?.hidden &&
+        !document.querySelector('[data-weapon-set-preview="2"]')?.hidden,
+      "selected weapon-set preview was not preserved after rerendering",
+    );
+    document.querySelector('[data-weapon-set-toggle="1"]').click();
+
     assert(
       document.getElementById("loading-overlay").classList.contains("hidden"),
       "loading overlay did not clear",

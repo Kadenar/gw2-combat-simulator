@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { loadProfession } from "../../../js/app/profession/registry.js";
+import { skillBarInspectionStacks } from "../../../js/app/build/skills-panel.js";
 import {
   automaticTomeStowTimelineMarkers,
   timelineWeaponRows,
@@ -769,6 +770,24 @@ test("Guardian skill bar exposes F keys and Luminary Radiant Forge skills", () =
     luminaryGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.BRILLIANT_SLAM),
     true,
   );
+  assert.deepEqual(
+    skillBarInspectionStacks(
+      luminaryGroups[1].skillIds.map((skillId) =>
+        guardianCatalog.skillsById.get(skillId),
+      ),
+      luminaryGroups[1].inspectionChainRoots,
+    ).map(({ root, children }) => [root.id, children.map((skill) => skill.id)]),
+    [
+      [GUARDIAN_SKILL_IDS.GLARING_BURST, []],
+      [GUARDIAN_SKILL_IDS.DAZZLING_HAMMER, [GUARDIAN_SKILL_IDS.SHINING_SPIN]],
+      [
+        GUARDIAN_SKILL_IDS.LUMINOUS_STAFF,
+        [GUARDIAN_SKILL_IDS.RESTORATIVE_GLOW],
+      ],
+      [GUARDIAN_SKILL_IDS.GLEAMING_BLADE, [GUARDIAN_SKILL_IDS.LUCENT_THRUST]],
+      [GUARDIAN_SKILL_IDS.RADIANT_BULWARK, [GUARDIAN_SKILL_IDS.BRILLIANT_SLAM]],
+    ],
+  );
 
   const firebrandGroups = guardianProfession.ui.skillBarGroups({
     specialization: "Firebrand",
@@ -782,6 +801,11 @@ test("Guardian skill bar exposes F keys and Luminary Radiant Forge skills", () =
     firebrandGroups.slice(1).map((group) => group.skillIds.length),
     [5, 5, 5],
   );
+  assert.deepEqual(firebrandGroups[0].skillIds, [
+    GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE,
+    GUARDIAN_SKILL_IDS.TOME_OF_RESOLVE,
+    GUARDIAN_SKILL_IDS.TOME_OF_COURAGE,
+  ]);
   assert.deepEqual(
     firebrandGroups.map((group) => group.layout),
     ["guardian-tomes", "guardian-tomes", "guardian-tomes", "guardian-tomes"],

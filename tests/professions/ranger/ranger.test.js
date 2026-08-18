@@ -7,6 +7,7 @@ import {
   paletteActionSkills,
   weaponSkills,
 } from "../../../js/app/rotation/palette-model.js";
+import { skillBarInspectionStacks } from "../../../js/app/build/skills-panel.js";
 import { timelineWeaponRows } from "../../../js/app/rotation/timeline-model.js";
 import {
   activeResourceGroup,
@@ -1848,6 +1849,37 @@ test("Galeshot tracks Cyclone Bow arrows and Wind Force", () => {
       .resolveRuntime({ specialization: "Galeshot" })
       .createProfessionState({ specialization: "Galeshot" }),
   };
+  const untraitedBowGroup = rangerProfession.ui
+    .skillBarGroups(inactiveContext)
+    .find((group) => group.id === "ranger-cyclone-bow");
+  const traitedBowGroup = rangerProfession.ui
+    .skillBarGroups({
+      ...inactiveContext,
+      traits: new Set([TRAIT.PERILOUS_SKIES]),
+    })
+    .find((group) => group.id === "ranger-cyclone-bow");
+  // Perilous Skies owns the preview replacement just as it owns the runtime
+  // replacement, so Pelt is never displayed beside Quarry's Peril.
+  assert.equal(untraitedBowGroup.className, "ranger-cyclone-bow-skills");
+  assert.equal(untraitedBowGroup.skillIds.includes(ID.QUARRYS_PERIL), true);
+  assert.equal(untraitedBowGroup.skillIds.includes(ID.PELT), false);
+  assert.equal(traitedBowGroup.skillIds.includes(ID.QUARRYS_PERIL), false);
+  assert.equal(traitedBowGroup.skillIds.includes(ID.PELT), true);
+  assert.deepEqual(
+    skillBarInspectionStacks(
+      untraitedBowGroup.skillIds.map((skillId) =>
+        rangerCatalog.skillsById.get(skillId),
+      ),
+      untraitedBowGroup.inspectionChainRoots,
+    ).map(({ root, children }) => [root.id, children.map((skill) => skill.id)]),
+    [
+      [ID.KEEN_SHOT, [ID.HAWKEYE]],
+      [ID.BLUSTER, []],
+      [ID.FLEETING_ZEPHYR, []],
+      [ID.QUARRYS_PERIL, []],
+      [ID.SUPERSONIC_ARROW, []],
+    ],
+  );
   const galeshotPaletteGroups =
     rangerProfession.ui.paletteGroups(inactiveContext);
   assert.deepEqual(

@@ -5,6 +5,7 @@ import type {
   ProfessionSkillBarGroup,
   SchedulerRecord,
   Skill,
+  SkillId,
 } from "../../platform/engine/types.js";
 import type {
   ProfessionAppState,
@@ -82,13 +83,16 @@ export interface SkillBarInspectionStack {
 /** Groups inspection skills into a root skill followed by its chain children. */
 export function skillBarInspectionStacks(
   skills: readonly Skill[],
+  inspectionChainRoots: Readonly<Record<string, SkillId>> = {},
 ): SkillBarInspectionStack[] {
   const visibleSkillIds = new Set(skills.map((skill) => Number(skill.id)));
   const childrenByRoot = new Map<number, Skill[]>();
   const childSkillIds = new Set<number>();
 
   for (const skill of skills) {
-    const rootId = Number(skill.chainRoot);
+    const rootId = Number(
+      inspectionChainRoots[String(skill.id)] ?? skill.chainRoot,
+    );
     if (
       !Number.isFinite(rootId) ||
       rootId === Number(skill.id) ||
@@ -123,8 +127,11 @@ function inspectionSkillSlotHtml(skill: Skill, child = false): string {
 }
 
 /** Renders root skills with any chained follow-up skills nested beneath them. */
-function inspectionSkillStacksHtml(skills: readonly Skill[]): string {
-  return skillBarInspectionStacks(skills)
+function inspectionSkillStacksHtml(
+  skills: readonly Skill[],
+  inspectionChainRoots?: Readonly<Record<string, SkillId>>,
+): string {
+  return skillBarInspectionStacks(skills, inspectionChainRoots)
     .map(
       ({ root, children }) =>
         `<div class="skill-bar-inspection-skill-stack">
@@ -227,7 +234,7 @@ function multiSelectionInspectionGroupHtml(
     group.className ? ` ${esc(group.className)}` : ""
   }" style="--inspection-color:${esc(group.color || "var(--accent)")}">
       <span class="skill-bar-inspection-label">${esc(group.label)}</span>
-      <div class="skill-bar-inspection-skills">${selectionSlots}${inspectionSkillStacksHtml(skillSlots)}</div>
+      <div class="skill-bar-inspection-skills">${selectionSlots}${inspectionSkillStacksHtml(skillSlots, group.inspectionChainRoots)}</div>
   </div>`;
 }
 
@@ -274,7 +281,7 @@ function singleSelectionInspectionGroupHtml(
       <span class="skill-bar-inspection-label">${esc(group.label)}</span>
       <div class="skill-bar-inspection-skills">${
         !selectable && !selectedEntry
-          ? inspectionSkillStacksHtml(displaySkills)
+          ? inspectionSkillStacksHtml(displaySkills, group.inspectionChainRoots)
           : displayEntries
               .map(
                 (skill) => `<div class="skill-bar-inspection-slot${
@@ -363,6 +370,14 @@ export function renderSkills(app: ProfessionAppState): void {
       specialization: spec,
       catalog: app.activeCatalog,
       professionState: app.results?.endState?.profession,
+      // Presentation groups receive the resolved trait IDs so trait-replaced
+      // mechanics can display only the version enabled by the current build.
+      traits: new Set(
+        (app.attributeData?.activeTraits || []).flatMap((trait) => [
+          trait.id,
+          trait.name,
+        ]),
+      ),
     }) || [];
   const weaponBarGroups = skillBarGroups.filter(
     (group) => group.placement === "weapon-bar",
@@ -467,9 +482,9 @@ export function renderSkills(app: ProfessionAppState): void {
       const label = showSetLabel
         ? `<span class="weapon-set-preview-label">${setLabel}</span>`
         : "";
-      return `<div class="weapon-set-preview">${label}${weaponSlots(skills, false, separateWeaponChains)}</div>`;
+      return `<div class="weapon-set-preview" data-weapon-set-preview="${setNumber}">${label}${weaponSlots(skills, false, separateWeaponChains)}</div>`;
     }
-    return `<div class="weapon-set-preview-group" data-weapon-set="${setNumber}">
+    return `<div class="weapon-set-preview-group" data-weapon-set="${setNumber}" data-weapon-set-preview="${setNumber}">
         ${showSetLabel ? `<span class="weapon-set-preview-group-label">${setLabel}</span>` : ""}
         ${groups
           .map(({ attunement, skills: attunementSkills }) => {
@@ -494,9 +509,10 @@ export function renderSkills(app: ProfessionAppState): void {
       .map((id) => app.skillById.get(Number(id)))
       .filter((skill): skill is Skill => skill != null);
     if (!skills.length) return "";
-    const stacks = skillBarInspectionStacks(skills).map(
-      ({ root, children }) => [root, ...children],
-    );
+    const stacks = skillBarInspectionStacks(
+      skills,
+      group.inspectionChainRoots,
+    ).map(({ root, children }) => [root, ...children]);
     return `<div class="weapon-set-preview profession-weapon-set-preview${
       group.className ? ` ${esc(group.className)}` : ""
     }" data-weapon-bar-group="${esc(group.id)}">
@@ -506,14 +522,118 @@ export function renderSkills(app: ProfessionAppState): void {
   };
 
   // Assemble the primary, alternate, and profession-specific weapon previews.
-  requiredElement("weapon-bar").innerHTML = `
+  const weaponBar = requiredElement("weapon-bar");
+  const hasAlternateWeaponPreview =
+    hasSecondWeaponSet && Boolean(app.build.alternateWeapons[0]);
+  const useWeaponSetToggle =
+    app.profession.id !== "elementalist" && hasAlternateWeaponPreview;
+  const attunementNames = groupWeaponSkillsByAttunement(set1Skills, spec)
+    .map((group) => group.attunement)
+    .filter((attunement): attunement is string => attunement != null);
+  const useAttunementToggle =
+    app.profession.id === "elementalist" && attunementNames.length > 1;
+  const rememberedWeaponSet = Number(weaponBar.dataset.visibleWeaponSet);
+  const visibleWeaponSet =
+    useWeaponSetToggle && rememberedWeaponSet === 2 ? 2 : 1;
+  const rememberedAttunement = String(
+    weaponBar.dataset.visibleAttunement || "",
+  );
+  const visibleAttunement = attunementNames.includes(rememberedAttunement)
+    ? rememberedAttunement
+    : String(attunementNames[0] || "");
+  weaponBar.dataset.visibleWeaponSet = String(visibleWeaponSet);
+  if (visibleAttunement) {
+    weaponBar.dataset.visibleAttunement = visibleAttunement;
+  }
+  weaponBar.innerHTML = `
+            ${
+              useWeaponSetToggle
+                ? `<div class="weapon-set-preview-toggle" role="group" aria-label="Visible weapon set">
+                    ${[1, 2]
+                      .map(
+                        (setNumber) =>
+                          `<button type="button" class="weapon-set-preview-toggle-button" data-weapon-set-toggle="${setNumber}" aria-pressed="${setNumber === visibleWeaponSet}">Weapon Set ${setNumber}</button>`,
+                      )
+                      .join("")}
+                  </div>`
+                : ""
+            }
+            ${
+              useAttunementToggle
+                ? `<label class="attunement-preview-toggle">
+                    <span>Attunement</span>
+                    <select class="attunement-preview-toggle-select" aria-label="Visible weapon-skill attunement">
+                      ${attunementNames
+                        .map((attunement) => {
+                          const label =
+                            attunement === "Dual"
+                              ? "Dual Attacks"
+                              : attunement === "Special"
+                                ? "Special Skills"
+                                : `${attunement} Attunement`;
+                          return `<option value="${esc(attunement)}"${attunement === visibleAttunement ? " selected" : ""}>${esc(label)}</option>`;
+                        })
+                        .join("")}
+                    </select>
+                  </label>`
+                : ""
+            }
             ${weaponSetPreview(1, set1Skills, app.build.weapons)}
             ${
-              hasSecondWeaponSet && app.build.alternateWeapons[0]
+              hasAlternateWeaponPreview
                 ? weaponSetPreview(2, set2Skills, app.build.alternateWeapons)
                 : ""
             }
             ${weaponBarGroups.map(mechanicWeaponPreview).join("")}`;
+
+  // The preview toggle changes only what is displayed; simulation weapon state
+  // remains controlled by rotation actions and the configured starting set.
+  const showWeaponSetPreview = (setNumber: number): void => {
+    weaponBar.dataset.visibleWeaponSet = String(setNumber);
+    weaponBar
+      .querySelectorAll<HTMLElement>("[data-weapon-set-preview]")
+      .forEach((preview) => {
+        preview.hidden = Number(preview.dataset.weaponSetPreview) !== setNumber;
+      });
+    weaponBar
+      .querySelectorAll<HTMLButtonElement>("[data-weapon-set-toggle]")
+      .forEach((button) => {
+        const active = Number(button.dataset.weaponSetToggle) === setNumber;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+  };
+  if (useWeaponSetToggle) {
+    showWeaponSetPreview(visibleWeaponSet);
+    weaponBar
+      .querySelectorAll<HTMLButtonElement>("[data-weapon-set-toggle]")
+      .forEach((button) => {
+        button.addEventListener("click", () => {
+          showWeaponSetPreview(Number(button.dataset.weaponSetToggle));
+        });
+      });
+  }
+
+  // Elementalist uses the same preview-only behavior, but switches among the
+  // rendered attunement rows rather than between equipped weapon sets.
+  const showAttunementPreview = (attunement: string): void => {
+    weaponBar.dataset.visibleAttunement = attunement;
+    weaponBar
+      .querySelectorAll<HTMLElement>(".weapon-attunement-preview")
+      .forEach((preview) => {
+        preview.hidden = preview.dataset.attunement !== attunement;
+      });
+  };
+  if (useAttunementToggle) {
+    showAttunementPreview(visibleAttunement);
+    weaponBar
+      .querySelectorAll<HTMLSelectElement>(".attunement-preview-toggle-select")
+      .forEach((select) => {
+        select.addEventListener("change", () => {
+          showAttunementPreview(select.value);
+        });
+      });
+  }
 
   // Professions with fixed slot loadouts provide their own complete lower bar.
   if (app.adapter.slotLoadout) {
@@ -552,23 +672,33 @@ export function renderSkills(app: ProfessionAppState): void {
     inspectionGroups.find((group) => group.layout)?.layout || "";
   skillBar.classList.toggle("has-inspection", inspectionGroups.length > 0);
 
-  // Place profession inspection groups beside the standard selected-skill bar.
-  skillBar.innerHTML = inspectionGroups.length
-    ? `<div class="skill-bar-selected">${selectedSkillBarHtml}</div>
-                <div class="skill-bar-inspection${
-                  inspectionLayout ? ` ${esc(inspectionLayout)}` : ""
-                }"${
-                  inspectionLayout
-                    ? ` data-layout="${esc(inspectionLayout)}"`
-                    : ""
-                }>${inspectionGroups
-                  .map((group) =>
-                    group.selections?.length
-                      ? multiSelectionInspectionGroupHtml(app, group)
-                      : singleSelectionInspectionGroupHtml(app, group),
-                  )
-                  .join("")}</div>`
-    : selectedSkillBarHtml;
+  const selectedSkillsHtml = `<div class="skill-bar-selected">${selectedSkillBarHtml}</div>`;
+  const professionMechanicsHtml = `<div class="skill-bar-inspection${
+    inspectionLayout ? ` ${esc(inspectionLayout)}` : ""
+  }"${
+    inspectionLayout ? ` data-layout="${esc(inspectionLayout)}"` : ""
+  }>${inspectionGroups
+    .map((group) =>
+      group.selections?.length
+        ? multiSelectionInspectionGroupHtml(app, group)
+        : singleSelectionInspectionGroupHtml(app, group),
+    )
+    .join("")}</div>`;
+
+  // Every combined loadout presents profession mechanics before the standard
+  // selectable bar, omitting the mechanics section when none are available.
+  skillBar.innerHTML = `${
+    inspectionGroups.length
+      ? `<section class="combat-loadout-skill-section combat-loadout-mechanics">
+          <div class="combat-loadout-column-label">Profession Mechanics</div>
+          ${professionMechanicsHtml}
+        </section>`
+      : ""
+  }
+    <section class="combat-loadout-skill-section combat-loadout-selected-skills">
+      <div class="combat-loadout-column-label">Selectable Skills</div>
+      ${selectedSkillsHtml}
+    </section>`;
 
   // Wire dropdown selection for the standard heal, utility, and elite slots.
   skillBar.querySelectorAll(".skill-bar-slot").forEach((slot) => {
@@ -812,7 +942,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
     view.selectors.length === view.bars.length;
 
   // Pair icon selectors with their bars when the profession exposes parallel sets.
-  skillBar.innerHTML = pairedIconLoadout
+  const fixedLoadoutHtml = pairedIconLoadout
     ? `<div class="fixed-loadout-pairs">${view.selectors
         .map(
           (selector, index) =>
@@ -825,6 +955,12 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
     : `<div class="fixed-loadout-selectors">
           ${view.selectors.map(selectorHtml).join("")}
       </div>${view.bars.map(barHtml).join("")}`;
+  // Fixed profession loadouts occupy the same selectable-skills section as
+  // standard heal, utility, and elite choices in the combined presentation.
+  skillBar.innerHTML = `<section class="combat-loadout-skill-section combat-loadout-selected-skills">
+      <div class="combat-loadout-column-label">Selectable Skills</div>
+      ${fixedLoadoutHtml}
+    </section>`;
 
   // Wire icon-selector dropdown toggles and keyboard dismissal.
   skillBar.querySelectorAll("button[data-loadout-toggle]").forEach((button) => {

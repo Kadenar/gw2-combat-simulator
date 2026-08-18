@@ -50,12 +50,12 @@ function firebrandEventLogRow(
   return undefined;
 }
 
-const VIRTUE_NAMES = Object.freeze([
+const TOME_F_KEY_NAMES = Object.freeze([
   "Tome of Justice",
   "Tome of Resolve",
   "Tome of Courage",
-  "Stow Tome",
 ]);
+const TOME_PALETTE_NAMES = Object.freeze([...TOME_F_KEY_NAMES, "Stow Tome"]);
 
 function professionState(context: GuardianUiContext): Partial<GuardianState> {
   return flattenProfessionState(
@@ -68,7 +68,9 @@ function tomeGroups(context: GuardianUiContext): ProfessionSkillBarGroup[] {
     {
       id: "guardian-f-keys",
       label: "F Keys",
-      skillIds: guardianUiSkillIdsByName(VIRTUE_NAMES, context),
+      // Stow Tome remains a rotation action but is not a separate F-key slot
+      // in the read-only skill-bar preview.
+      skillIds: guardianUiSkillIdsByName(TOME_F_KEY_NAMES, context),
       color: "#2f7eb8",
       className: "guardian-tome-f-keys",
       layout: "guardian-tomes",
@@ -111,7 +113,7 @@ export const firebrandUi = Object.freeze({
     {
       id: "profession",
       label: "F",
-      skillIds: guardianUiSkillIdsByName(VIRTUE_NAMES, context),
+      skillIds: guardianUiSkillIdsByName(TOME_PALETTE_NAMES, context),
       color: "#2f7eb8",
       // resourceAnchor attaches the tome-pages resource view to this group's
       // position in the palette UI rather than floating it independently.

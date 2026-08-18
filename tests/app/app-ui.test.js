@@ -688,9 +688,15 @@ test("the generic landing page and profession simulators have separate entries",
     assert.match(source, new RegExp(`data-profession="${entry.id}"`));
     assert.match(source, /js\/app\/app\.js/);
     assert.match(source, /id="rotation-warnings"/);
-    assert.match(source, /skills-primary-column/);
-    assert.match(source, /panel skills-panel-left weapon-sets-panel/);
-    assert.match(source, /panel skills-panel-left equipped-skills-panel/);
+    // Every profession uses the shared combat-loadout card so its weapons,
+    // mechanics, and selectable skills stay together beside traits.
+    assert.match(source, /skills-section combat-loadout-section/);
+    assert.match(source, /combat-loadout-panel/);
+    assert.match(source, /combat-loadout-weapons/);
+    assert.match(source, /combat-loadout-skills/);
+    assert.doesNotMatch(source, /skills-primary-column/);
+    assert.doesNotMatch(source, /equipped-skills-panel/);
+    assert.doesNotMatch(source, /weapon-sets-panel/);
     assert.match(source, /skill-bar-column weapon-bar-column/);
     assert.match(source, /skill-bar-column equipped-skill-bar-column/);
     if (entry.id === "elementalist") {

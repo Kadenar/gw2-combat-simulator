@@ -1976,7 +1976,7 @@ header .community-actions {
   grid-template-columns: 647px minmax(410px, 1fr);
   gap: 12px;
   margin-bottom: 12px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .skills-primary-column {
@@ -1996,12 +1996,21 @@ header .community-actions {
   width: 100%;
 }
 
+/* Let the skill bar grow to match the taller traits/weapon column. */
+.equipped-skills-panel {
+  display: flex;
+  flex-direction: column;
+}
+
 .skill-bar-column {
   min-width: 0;
 }
 
 .equipped-skill-bar-column {
   container: skill-bar-column / inline-size;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .weapon-bar-column .weapon-bar {
@@ -2011,7 +2020,8 @@ header .community-actions {
 }
 
 .equipped-skill-bar-column .skill-bar {
-  align-content: flex-start;
+  flex: 1;
+  align-content: center;
 }
 
 .skills-panel-right {
@@ -7022,7 +7032,8 @@ body[data-rotation-focus] #perma-boons {
   display: none;
 }
 
-.profession-loadout-theme .skill-bar-inspection.necromancer-shroud {
+.profession-loadout-theme .skill-bar-inspection.necromancer-shroud,
+.profession-loadout-theme .skill-bar-inspection.thief-shadow-shroud {
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -7252,6 +7263,292 @@ body[data-rotation-focus] #perma-boons {
 .skills-section .equipped-skills-panel .equipped-skill-bar-column {
   padding: 0;
   border: 0;
+}
+
+/* The shared combat loadout keeps weapon previews left and stacks profession
+   mechanics before selectable skills on the right, directly beside traits. */
+.combat-loadout-section {
+  grid-template-columns: 647px minmax(625px, 1fr);
+}
+
+.combat-loadout-panel {
+  container: combat-loadout / inline-size;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+}
+
+.combat-loadout-title {
+  padding: 12px 16px 9px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+
+.combat-loadout {
+  display: grid;
+  grid-template-columns: minmax(285px, 0.9fr) minmax(340px, 1.1fr);
+  flex: 1;
+  min-width: 0;
+}
+
+.combat-loadout-weapons,
+.combat-loadout-skills {
+  min-width: 0;
+  padding: 14px 16px 16px;
+}
+
+.combat-loadout-weapons {
+  border-right: 1px solid var(--border);
+}
+
+.combat-loadout-column-label {
+  margin-bottom: 9px;
+  padding-bottom: 6px;
+  color: var(--text-dim);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  line-height: 1;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+
+.combat-loadout .combat-loadout-weapons .weapon-bar {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.weapon-set-preview-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-deep);
+}
+
+.weapon-set-preview-toggle-button {
+  min-width: 0;
+  padding: 6px 8px;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 9px;
+  letter-spacing: 0.4px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.weapon-set-preview-toggle-button:hover,
+.weapon-set-preview-toggle-button:focus-visible {
+  color: var(--text-bright);
+  border-color: var(--border-light);
+  outline: none;
+}
+
+.weapon-set-preview-toggle-button.active {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-panel-alt));
+}
+
+.attunement-preview-toggle {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  color: var(--text-dim);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.attunement-preview-toggle-select {
+  width: 100%;
+  min-width: 0;
+  padding: 5px 24px 5px 8px;
+  color: var(--text);
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 0;
+  text-transform: none;
+  border: 1px solid var(--border-light);
+  border-radius: 3px;
+  background: var(--bg-deep);
+  cursor: pointer;
+  outline: none;
+}
+
+.attunement-preview-toggle-select:hover,
+.attunement-preview-toggle-select:focus {
+  border-color: var(--accent);
+}
+
+[data-weapon-set-preview][hidden],
+.weapon-attunement-preview[hidden] {
+  display: none;
+}
+
+.combat-loadout .weapon-set-preview {
+  grid-template-columns: repeat(5, max-content);
+  justify-content: space-between;
+  flex: none;
+  width: 100%;
+  box-sizing: border-box;
+  gap: 4px;
+}
+
+.combat-loadout .weapon-set-preview .wskill {
+  width: 42px;
+  height: 42px;
+}
+
+.combat-loadout .weapon-set-preview .chain-skill-frame .wskill {
+  width: 27px;
+  height: 27px;
+}
+
+.elementalist-theme .combat-loadout .weapon-set-preview-group {
+  display: block;
+  width: 100%;
+}
+
+.combat-loadout .skill-bar {
+  align-content: start;
+  align-items: stretch;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 16px;
+}
+
+.combat-loadout .equipped-skill-bar-column {
+  padding: 0;
+  border: 0;
+}
+
+.combat-loadout-skill-section {
+  display: grid;
+  min-width: 0;
+}
+
+.combat-loadout-skill-section .skill-bar-inspection {
+  min-width: 0;
+}
+
+.combat-loadout .skill-bar-selected {
+  gap: 8px;
+}
+
+.combat-loadout .skill-bar-selected .sbar-icon {
+  width: 52px;
+  height: 52px;
+}
+
+.combat-loadout .skill-bar-inspection-slot .sbar-icon {
+  width: 50px;
+  height: 50px;
+}
+
+/* Ranger pet cards share one row in the compact loadout; their mechanics wrap
+   within each half while every specialization-specific group spans below. */
+.combat-loadout .skill-bar-inspection.ranger-mechanics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 12px 8px;
+}
+
+.combat-loadout .skill-bar-inspection-group,
+.combat-loadout .skill-bar-inspection-skills {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.combat-loadout .skill-bar-inspection-skills {
+  width: 100%;
+}
+
+.combat-loadout .ranger-mechanics .ranger-pet {
+  grid-row: 1;
+  justify-self: stretch;
+  min-width: 0;
+}
+
+.combat-loadout .ranger-mechanics .ranger-pet-1 {
+  grid-column: 1;
+}
+
+.combat-loadout .ranger-mechanics .ranger-pet-2 {
+  grid-column: 2;
+}
+
+.combat-loadout .ranger-mechanics > :not(.ranger-pet) {
+  grid-column: 1 / -1;
+  grid-row: auto;
+  justify-self: stretch;
+}
+
+.combat-loadout .ranger-mechanics .ranger-pet .skill-bar-inspection-selection {
+  display: grid;
+  grid-template-columns: repeat(3, 40px);
+  justify-content: center;
+}
+
+.combat-loadout
+  .ranger-mechanics
+  .ranger-pet
+  .skill-bar-inspection-slot
+  .sbar-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.profession-loadout-theme
+  .combat-loadout
+  .engineer-amalgam-protocols
+  .labeled-skill-bar-slot
+  .sbar-icon {
+  width: 50px;
+  height: 50px;
+}
+
+.combat-loadout .fixed-loadout-pairs {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@container profession-main (max-width: 1270px) {
+  .combat-loadout-section {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container combat-loadout (max-width: 624px) {
+  .combat-loadout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .combat-loadout-weapons {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+@container combat-loadout (max-width: 420px) {
+  .combat-loadout .skill-bar-selected .sbar-icon {
+    width: min(50px, 14vw);
+    height: min(50px, 14vw);
+  }
 }
 
 .revenant-theme {
