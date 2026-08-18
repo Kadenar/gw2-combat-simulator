@@ -1,69 +1,52 @@
-import {
-  defineNativeModule,
-  onResolvedBlind,
-  onResolvedControl,
-} from "../../../platform/gw2/native-profession.js";
-import { createMesmerModuleData } from "../catalog-data.js";
-import {
-  mesmerCoreAttributeRules,
-  mesmerCastRules,
-  mesmerCoreSchedulerHooks,
-  snapshotMesmerState,
-} from "./rules.js";
-import {
-  mesmerCoreEventHandlers,
-  mesmerCoreEventReactions,
-} from "./resolver.js";
-import {
-  createMesmerCoreResolverState,
-  createMesmerCoreState,
-  projectMesmerEndState,
-} from "./state.js";
-import { mesmerCoreUi } from "./ui.js";
+import { defineNativeModule, onResolvedBlind, onResolvedControl } from '../../../platform/gw2/native-profession.js';
+import { createMesmerModuleData } from '../catalog-data.js';
+import { mesmerCoreAttributeRules, mesmerCastRules, mesmerCoreSchedulerHooks, snapshotMesmerState } from './rules.js';
+import { mesmerCoreEventHandlers, mesmerCoreEventReactions } from './resolver.js';
+import { createMesmerCoreResolverState, createMesmerCoreState, projectMesmerEndState } from './state.js';
+import { mesmerCoreUi } from './ui.js';
 import {
   MESMER_CORE_EXTRA_SKILLS,
   MESMER_CORE_SKILL_MECHANICS,
-  MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS,
-} from "./skills.js";
-import { mesmerCoreSkillHandlers } from "./handlers.js";
-import { MESMER_CORE_BALANCE_PROFILES } from "./profiles.js";
-import type { MesmerSchedulerContext } from "../types.js";
+  MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS
+} from './skills.js';
+import { mesmerCoreSkillHandlers } from './handlers.js';
+import { MESMER_CORE_BALANCE_PROFILES } from './profiles.js';
+import type { MesmerSchedulerContext } from '../types.js';
 
 export const mesmerCoreModule = defineNativeModule({
-  id: "Core",
-  data: createMesmerModuleData("Core", {
+  id: 'Core',
+  data: createMesmerModuleData('Core', {
     skillMechanics: MESMER_CORE_SKILL_MECHANICS,
     supplementalSkillMechanics: MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS,
     extraSkills: MESMER_CORE_EXTRA_SKILLS,
     balanceProfiles: MESMER_CORE_BALANCE_PROFILES,
-    handlers: mesmerCoreSkillHandlers,
+    handlers: mesmerCoreSkillHandlers
   }),
   state: {
     scheduler: createMesmerCoreState,
     resolver: createMesmerCoreResolverState,
-    project: projectMesmerEndState,
+    project: projectMesmerEndState
   },
   mechanics: {
     modifiers: mesmerCoreAttributeRules,
     castRules: mesmerCastRules,
     schedulerHooks: {
       ...mesmerCoreSchedulerHooks,
-      snapshot: (context: MesmerSchedulerContext) =>
-        snapshotMesmerState(context.state.profession),
+      snapshot: (context: MesmerSchedulerContext) => snapshotMesmerState(context.state.profession)
     },
     reactions: [
       onResolvedControl({
-        id: "mesmer.core.control",
-        handler: mesmerCoreEventReactions.control,
+        id: 'mesmer.core.control',
+        handler: mesmerCoreEventReactions.control
       }),
       onResolvedBlind({
-        id: "mesmer.core.blind",
-        handler: mesmerCoreEventReactions.blind,
-      }),
+        id: 'mesmer.core.blind',
+        handler: mesmerCoreEventReactions.blind
+      })
     ],
     resolverHooks: {
-      eventHandlers: mesmerCoreEventHandlers,
-    },
+      eventHandlers: mesmerCoreEventHandlers
+    }
   },
-  presentation: mesmerCoreUi,
+  presentation: mesmerCoreUi
 });

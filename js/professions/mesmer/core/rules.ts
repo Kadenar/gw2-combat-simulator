@@ -1,4 +1,4 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
+import { professionCoreState } from '../../../platform/engine/profession.js';
 /**
  * @fileoverview Owns the Core Mesmer scheduler integration boundary. It assembles
  * specialization controllers, normalizes build/runtime data, coordinates cast
@@ -6,16 +6,10 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  * the shared profession engine.
  */
 
-import {
-  EPSILON,
-  isInternalCooldownReady,
-} from "../../../platform/engine/clock.js";
-import {
-  gw2EffectiveCooldown,
-  gw2RechargeRate,
-} from "../../../platform/gw2/runtime-rules.js";
-import { isGw2PlayerActorEvent } from "../../../platform/gw2/event-ownership.js";
-import { clamp } from "../../../platform/gw2/numeric.js";
+import { EPSILON, isInternalCooldownReady } from '../../../platform/engine/clock.js';
+import { gw2EffectiveCooldown, gw2RechargeRate } from '../../../platform/gw2/runtime-rules.js';
+import { isGw2PlayerActorEvent } from '../../../platform/gw2/event-ownership.js';
+import { clamp } from '../../../platform/gw2/numeric.js';
 import {
   MESMER_CORE_AMBUSH_ATTACKS,
   MESMER_CORE_ARISTOCRACY_SKILLS,
@@ -27,19 +21,16 @@ import {
   MESMER_CORE_PHANTASM_ATTACK_TIMINGS,
   MESMER_CORE_SHATTERS,
   MESMER_CORE_TRAIT_DAMAGE,
-  MESMER_CORE_WEAPON_STRENGTH,
-} from "./mechanics.js";
-import {
-  MESMER_SKILL_IDS as ID,
-  MESMER_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
-import { createCloneAttackScheduler } from "./clone-attacks.js";
-import { createProfessionActionController } from "./profession-actions.js";
-import { createExpectedProcTracker } from "./expected-procs.js";
-import { createMesmerEventMaterializer } from "./event-materializer.js";
-import { createResourceController } from "./resources.js";
-import { createSkillEffectController } from "./skill-effects.js";
-import { mesmerResourceDefinition } from "./state.js";
+  MESMER_CORE_WEAPON_STRENGTH
+} from './mechanics.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { createCloneAttackScheduler } from './clone-attacks.js';
+import { createProfessionActionController } from './profession-actions.js';
+import { createExpectedProcTracker } from './expected-procs.js';
+import { createMesmerEventMaterializer } from './event-materializer.js';
+import { createResourceController } from './resources.js';
+import { createSkillEffectController } from './skill-effects.js';
+import { mesmerResourceDefinition } from './state.js';
 import {
   MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   MESMER_CORE_SHATTER_PROFILE_IDS,
@@ -48,16 +39,11 @@ import {
   mesmerBalanceProfileEffect,
   mesmerBalanceValue,
   mesmerProfiledShatters,
-  mesmerProfiledTraitDamage,
-} from "./profiles.js";
-import { MESMER_FLIP_CHILD_BY_PARENT_ID, mesmerRuntimeFor } from "./runtime.js";
-import { mesmerAvailability } from "./availability.js";
-import type {
-  CatalogEntity,
-  SimulationEvent,
-  SimulationEventInput,
-  SkillId,
-} from "../../../platform/engine/types.js";
+  mesmerProfiledTraitDamage
+} from './profiles.js';
+import { MESMER_FLIP_CHILD_BY_PARENT_ID, mesmerRuntimeFor } from './runtime.js';
+import { mesmerAvailability } from './availability.js';
+import type { CatalogEntity, SimulationEvent, SimulationEventInput, SkillId } from '../../../platform/engine/types.js';
 import type {
   MesmerActiveEmission,
   MesmerCastContext,
@@ -72,44 +58,43 @@ import type {
   MesmerSchedulerContext,
   MesmerSchedulerTask,
   MesmerSelectedSkill,
-  MesmerSkill,
-} from "../types.js";
+  MesmerSkill
+} from '../types.js';
 
 /**
  * Namespaced task types scheduled by Mesmer runtime controllers.
  */
 const TASK = Object.freeze({
-  cloneAttack: "mesmer.clone-attack",
-  resourceGain: "mesmer.resource-gain",
-  expectedProc: "mesmer.expected-proc",
-  bladeSpend: "mesmer.blade-spend",
-  continuumExpire: "mesmer.continuum-expire",
-  infiniteForge: "mesmer.infinite-forge",
-  signetEtherRelock: "mesmer.signet-ether-relock",
-  signetIllusionsPassive: "mesmer.signet-illusions-passive",
+  cloneAttack: 'mesmer.clone-attack',
+  resourceGain: 'mesmer.resource-gain',
+  expectedProc: 'mesmer.expected-proc',
+  bladeSpend: 'mesmer.blade-spend',
+  continuumExpire: 'mesmer.continuum-expire',
+  infiniteForge: 'mesmer.infinite-forge',
+  signetEtherRelock: 'mesmer.signet-ether-relock',
+  signetIllusionsPassive: 'mesmer.signet-illusions-passive'
 });
 
 // Peitha checks its ICD when the movement/deception activates, while the
 // projectile impact varies with the ending distance from the target. These
 // benchmark delays are characterized from the supplied EVTC.
-const PEITHA_PROJECTILE_DELAYS: Readonly<Record<number, number>> =
-  Object.freeze({
-    [ID.CRYSTAL_SANDS]: 0.241,
-    [ID.JAUNT]: 0.241,
-    [ID.AXES_OF_SYMMETRY]: 0.519,
-    [ID.PHASE_RETREAT]: 0.856,
-  });
+const PEITHA_PROJECTILE_DELAYS: Readonly<Record<number, number>> = Object.freeze({
+  [ID.CRYSTAL_SANDS]: 0.241,
+  [ID.JAUNT]: 0.241,
+  [ID.AXES_OF_SYMMETRY]: 0.519,
+  [ID.PHASE_RETREAT]: 0.856
+});
 const PRESERVED_WEAPON_CHAIN_ROOT_IDS = new Set<number>([ID.ETHER_BOLT]);
 // Delay before Signet of the Ether's in-game bug re-applies its own cooldown
 // after the cast finishes.
-const SIGNET_ILLUSIONS_OWNER = "mesmer.signet-illusions-passive";
+const SIGNET_ILLUSIONS_OWNER = 'mesmer.signet-illusions-passive';
 const TROUBADOUR_TALE_IDS = new Set<number>([
   ID.TALE_OF_THE_HONORABLE_ROGUE,
   ID.TALE_OF_THE_SECOND_SCION,
   ID.TALE_OF_THE_SOULKEEPER,
   ID.TALE_OF_THE_AUGUST_QUEEN,
   ID.TALE_OF_THE_TORTURED_MASTERMIND,
-  ID.TALE_OF_THE_VALIANT_MARSHAL,
+  ID.TALE_OF_THE_VALIANT_MARSHAL
 ]);
 /**
  * Builds a mixed trait set containing both numeric IDs and names so
@@ -119,14 +104,11 @@ const TROUBADOUR_TALE_IDS = new Set<number>([
  * @param {object} catalog Mesmer catalog containing normalized traits.
  * @returns {Set<number|string>} Selected traits indexed by both identity forms.
  */
-function traitSet(
-  config: MesmerSchedulerContext["config"],
-  catalog: MesmerCatalog,
-): Set<number> {
+function traitSet(config: MesmerSchedulerContext['config'], catalog: MesmerCatalog): Set<number> {
   const configured = new Set<MesmerSelectedSkill>([
     ...(config.selectedTraits || []),
     ...(config.selectedTraitIds || []).map(Number),
-    ...(config.traitIds || []).map(Number),
+    ...(config.traitIds || []).map(Number)
   ]);
   const byId = new Map<number, CatalogEntity>();
   const byName = new Map<string, CatalogEntity>();
@@ -136,9 +118,7 @@ function traitSet(
   }
   const values = new Set<number>();
   for (const value of configured) {
-    const trait =
-      (typeof value === "string" ? byName.get(value) : undefined) ||
-      byId.get(Number(value));
+    const trait = (typeof value === 'string' ? byName.get(value) : undefined) || byId.get(Number(value));
     if (trait) values.add(Number(trait.id));
   }
   return values;
@@ -150,9 +130,7 @@ function traitSet(
  * @param {object} config Mesmer build configuration.
  * @returns {Array<unknown>} Selected skill values.
  */
-function selectedSkillValues(
-  config: MesmerSchedulerContext["config"],
-): MesmerSelectedSkill[] {
+function selectedSkillValues(config: MesmerSchedulerContext['config']): MesmerSelectedSkill[] {
   const selected = config.selectedSkills || [];
   return Array.isArray(selected) ? selected : Object.values(selected);
 }
@@ -164,18 +142,16 @@ function selectedSkillValues(
  * @param {object} context Scheduler context.
  * @returns {object|null} Catalog skill when equipped, otherwise null.
  */
-function equippedSignetOfIllusions(
-  context: MesmerSchedulerContext,
-): MesmerSkill | null {
+function equippedSignetOfIllusions(context: MesmerSchedulerContext): MesmerSkill | null {
   const skill = context.catalog.skillsById.get(ID.SIGNET_OF_ILLUSIONS);
   if (!skill) return null;
   const equipped = selectedSkillValues(context.config).some(
     (candidate) =>
       candidate === skill.name ||
       Number(candidate) === skill.id ||
-      (typeof candidate === "object" &&
+      (typeof candidate === 'object' &&
         candidate !== null &&
-        (candidate.name === skill.name || Number(candidate.id) === skill.id)),
+        (candidate.name === skill.name || Number(candidate.id) === skill.id))
   );
   return equipped ? skill : null;
 }
@@ -188,10 +164,7 @@ function equippedSignetOfIllusions(
  * @param {number} at Requested task timestamp.
  * @returns {void}
  */
-function scheduleSignetIllusionsPassive(
-  context: MesmerSchedulerContext,
-  at: number,
-): void {
+function scheduleSignetIllusionsPassive(context: MesmerSchedulerContext, at: number): void {
   if (!equippedSignetOfIllusions(context)) return;
   context.tasks.cancelOwner(SIGNET_ILLUSIONS_OWNER);
   context.tasks.schedule({
@@ -199,7 +172,7 @@ function scheduleSignetIllusionsPassive(
     at: Math.max(context.state.time, Number(at)),
     priority: -20,
     ownerId: SIGNET_ILLUSIONS_OWNER,
-    payload: {},
+    payload: {}
   });
 }
 
@@ -211,22 +184,13 @@ function scheduleSignetIllusionsPassive(
  * @param {number} activeAt Earliest time the passive may resume.
  * @returns {void}
  */
-function restartSignetIllusionsPassive(
-  context: MesmerSchedulerContext,
-  activeAt: number,
-): void {
+function restartSignetIllusionsPassive(context: MesmerSchedulerContext, activeAt: number): void {
   const skill = equippedSignetOfIllusions(context);
   if (!skill) return;
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
   scheduleSignetIllusionsPassive(
     context,
-    Math.max(Number(activeAt), readyAt) +
-      mesmerBalanceValue(
-        context,
-        PROFILE.signetOfIllusions,
-        "pulseInterval",
-        10,
-      ),
+    Math.max(Number(activeAt), readyAt) + mesmerBalanceValue(context, PROFILE.signetOfIllusions, 'pulseInterval', 10)
   );
 }
 
@@ -243,29 +207,24 @@ function restartSignetIllusionsPassive(
 function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
   const { state, config, catalog } = context;
   const traits = traitSet(config, catalog);
-  const baseResourceDefinition = mesmerResourceDefinition(
-    config.specialization,
-  );
+  const baseResourceDefinition = mesmerResourceDefinition(config.specialization);
   const resourceDefinition = {
     ...baseResourceDefinition,
     maximum: mesmerBalanceValue(
       context,
-      MESMER_RESOURCE_PROFILE_IDS[
-        config.specialization as keyof typeof MESMER_RESOURCE_PROFILE_IDS
-      ] || PROFILE.resources,
-      "maximumStacks",
-      baseResourceDefinition.maximum,
-    ),
+      MESMER_RESOURCE_PROFILE_IDS[config.specialization as keyof typeof MESMER_RESOURCE_PROFILE_IDS] ||
+        PROFILE.resources,
+      'maximumStacks',
+      baseResourceDefinition.maximum
+    )
   };
   const skillsById = catalog.skillsById;
   const allSkills = catalog.skills;
   const flipSkillsByParent = new Map<SkillId, MesmerSkill>(
-    Object.entries(MESMER_FLIP_CHILD_BY_PARENT_ID).flatMap(
-      ([parentId, childId]) => {
-        const child = skillsById.get(childId);
-        return child ? [[Number(parentId), child] as const] : [];
-      },
-    ),
+    Object.entries(MESMER_FLIP_CHILD_BY_PARENT_ID).flatMap(([parentId, childId]) => {
+      const child = skillsById.get(childId);
+      return child ? [[Number(parentId), child] as const] : [];
+    })
   );
   const runtime = {
     context,
@@ -278,64 +237,52 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
     weaponStrength: MESMER_CORE_WEAPON_STRENGTH,
     cloneAttacks: MESMER_CORE_CLONE_ATTACKS,
     ambushAttacks: {
-      ...MESMER_CORE_AMBUSH_ATTACKS,
+      ...MESMER_CORE_AMBUSH_ATTACKS
     },
     phantasmAttackTimings: Object.fromEntries(
-      Object.entries(MESMER_CORE_PHANTASM_ATTACK_TIMINGS).map(
-        ([id, timing]) => [Number(id), { ...timing }],
-      ),
-    ) as Record<number, import("../types.js").MesmerPhantasmAttackTiming>,
+      Object.entries(MESMER_CORE_PHANTASM_ATTACK_TIMINGS).map(([id, timing]) => [Number(id), { ...timing }])
+    ) as Record<number, import('../types.js').MesmerPhantasmAttackTiming>,
     traitDamage: {
       ...MESMER_CORE_TRAIT_DAMAGE,
-      "Lesser Chaos Storm": mesmerProfiledTraitDamage(
+      'Lesser Chaos Storm': mesmerProfiledTraitDamage(
         context,
-        MESMER_CORE_TRAIT_DAMAGE["Lesser Chaos Storm"],
-        PROFILE.methodOfMadness,
-      ),
+        MESMER_CORE_TRAIT_DAMAGE['Lesser Chaos Storm'],
+        PROFILE.methodOfMadness
+      )
     },
-    shatters: mesmerProfiledShatters(
-      context,
-      MESMER_CORE_SHATTERS,
-      MESMER_CORE_SHATTER_PROFILE_IDS,
-    ),
+    shatters: mesmerProfiledShatters(context, MESMER_CORE_SHATTERS, MESMER_CORE_SHATTER_PROFILE_IDS),
     instruments: { ...MESMER_CORE_INSTRUMENTS },
     balanceProfile: (id: SkillId) => mesmerBalanceProfile(context, id),
     controlSkills: new Set(MESMER_CORE_CONTROL_SKILLS),
     blindSkills: new Set(MESMER_CORE_BLIND_SKILLS),
     aristocracySkills: new Set(MESMER_CORE_ARISTOCRACY_SKILLS),
-    peithaSkills: new Set(MESMER_CORE_PEITHA_SKILLS),
+    peithaSkills: new Set(MESMER_CORE_PEITHA_SKILLS)
   };
   const activePrimaryWeapon = () =>
-    state.activeWeaponSet === 1
-      ? config.primaryWeapon
-      : config.weaponSet2Primary || config.primaryWeapon;
+    state.activeWeaponSet === 1 ? config.primaryWeapon : config.weaponSet2Primary || config.primaryWeapon;
 
   const emit = (event: SimulationEventInput): SimulationEvent | null => {
     const active = runtime.activeEmission;
     if (active && Number(event.at) > active.effectiveEnd + EPSILON) {
-      if (
-        event.type !== "condition" ||
-        !active.skill.applyConditionsOnInterrupt
-      ) {
+      if (event.type !== 'condition' || !active.skill.applyConditionsOnInterrupt) {
         return null;
       }
       return context.emit({
         activationId: active.activationId,
         ...event,
-        at: active.effectiveEnd,
+        at: active.effectiveEnd
       });
     }
     return context.emit({
       ...(active ? { activationId: active.activationId } : {}),
-      ...event,
+      ...event
     });
   };
-  const { addEvent, addTraitProc, addCondition, addDamage } =
-    createMesmerEventMaterializer({
-      emit,
-      activePrimaryWeapon,
-      weaponStrength: runtime.weaponStrength,
-    });
+  const { addEvent, addTraitProc, addCondition, addDamage } = createMesmerEventMaterializer({
+    emit,
+    activePrimaryWeapon,
+    weaponStrength: runtime.weaponStrength
+  });
 
   const scheduleCloneTask = (clone: MesmerClone, at: number) =>
     context.tasks.schedule({
@@ -345,7 +292,7 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
       // replacement, shatter, and other profession work at the same timestamp.
       priority: -50,
       ownerId: clone.ownerId,
-      payload: { cloneId: clone.id },
+      payload: { cloneId: clone.id }
     });
   const cloneAttackScheduler = createCloneAttackScheduler({
     state,
@@ -353,21 +300,17 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
     epsilon: EPSILON,
     addDamage,
     addCondition,
-    scheduleTask: scheduleCloneTask,
+    scheduleTask: scheduleCloneTask
   });
   const destroyClone = (clone: MesmerClone, _at: number) => {
     context.tasks.cancelOwner(clone.ownerId || `mesmer.clone:${clone.id}`);
   };
   const scheduleResourceTask = (candidate: MesmerPendingResource) => {
-    if (
-      runtime.activeEmission &&
-      candidate.at > runtime.activeEmission.effectiveEnd + EPSILON
-    )
-      return;
+    if (runtime.activeEmission && candidate.at > runtime.activeEmission.effectiveEnd + EPSILON) return;
     context.tasks.schedule({
       type: TASK.resourceGain,
       at: Math.max(state.time, candidate.at),
-      payload: candidate,
+      payload: candidate
     });
   };
   const resources = createResourceController({
@@ -382,27 +325,26 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
     addTraitProc,
     destroyClone,
     scheduleResourceTask,
-    balanceProfile: runtime.balanceProfile,
+    balanceProfile: runtime.balanceProfile
   });
   const expected = createExpectedProcTracker({
     state,
     config,
     traits,
     epsilon: EPSILON,
-    criticalChance: (event) =>
-      context.schedulerPolicy.critical?.(context, event)?.chance || 0,
+    criticalChance: (event) => context.schedulerPolicy.critical?.(context, event)?.chance || 0,
     activePrimaryWeapon,
     queueResources: resources.queueResources,
     emitEvent: (cause, event) => context.emitDerived(cause, event),
     boonDuration: (boon, duration) =>
       context.schedulerPolicy.effectDuration?.(
         context,
-        { id: TRAIT.MASTER_FENCER, name: "Master Fencer" },
-        { type: "boon", boon, duration },
-        duration,
+        { id: TRAIT.MASTER_FENCER, name: 'Master Fencer' },
+        { type: 'boon', boon, duration },
+        duration
       ) ?? duration,
     addTraitProc,
-    balanceProfile: runtime.balanceProfile,
+    balanceProfile: runtime.balanceProfile
   });
   const actions = createProfessionActionController({
     state,
@@ -423,16 +365,12 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
     traitDamage: runtime.traitDamage,
     balanceProfile: runtime.balanceProfile,
     boonDuration: (sourceId, sourceName, effect, duration) =>
-      context.schedulerPolicy.effectDuration?.(
-        context,
-        { id: sourceId, name: sourceName },
-        effect,
-        duration,
-      ) ?? duration,
+      context.schedulerPolicy.effectDuration?.(context, { id: sourceId, name: sourceName }, effect, duration) ??
+      duration
   });
   const continuum = {
     beginContinuumSplit: () => undefined,
-    restoreContinuum: () => undefined,
+    restoreContinuum: () => undefined
   };
   const mirage = {
     createMirrors: () => undefined,
@@ -441,7 +379,7 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
     grantMirageCloak: () => undefined,
     handleMirageShatter: () => undefined,
     handlePostSkill: () => undefined,
-    pickUpMirror: () => false,
+    pickUpMirror: () => false
   };
   const skillEffects = createSkillEffectController({
     state,
@@ -462,7 +400,7 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
     traitDamage: runtime.traitDamage,
     shatters: runtime.shatters,
     instruments: runtime.instruments,
-    balanceProfile: runtime.balanceProfile,
+    balanceProfile: runtime.balanceProfile
   });
   const connectedRuntime: MesmerRuntime = Object.assign(runtime, {
     activePrimaryWeapon,
@@ -477,7 +415,7 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
     actions,
     continuum,
     mirage,
-    skillEffects,
+    skillEffects
   });
   return connectedRuntime;
 }
@@ -492,7 +430,7 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
  */
 function preservesAutoattackChain(rootId: number, skill: MesmerSkill): boolean {
   return (
-    (PRESERVED_WEAPON_CHAIN_ROOT_IDS.has(rootId) && skill.type === "Weapon") ||
+    (PRESERVED_WEAPON_CHAIN_ROOT_IDS.has(rootId) && skill.type === 'Weapon') ||
     (rootId === ID.LACERATING_CHOP && skill.id === ID.IMAGINARY_AXES)
   );
 }
@@ -505,10 +443,7 @@ function preservesAutoattackChain(rootId: number, skill: MesmerSkill): boolean {
  * @param {object} skill Completed skill.
  * @returns {void}
  */
-function updateAutoattackChains(
-  runtime: MesmerRuntime,
-  skill: MesmerSkill,
-): void {
+function updateAutoattackChains(runtime: MesmerRuntime, skill: MesmerSkill): void {
   const { state, catalog } = runtime.context;
   const chains = professionCoreState(state).autoattackChains;
   const position = catalog.autoattackChainPositions.get(skill.id);
@@ -529,10 +464,7 @@ function updateAutoattackChains(
     professionCoreState(state).autoattackChains = {};
     return;
   }
-  if (
-    Number(skill.castTimeMs || 0) > 0 &&
-    skill.rechargeAnchor !== "castStart"
-  ) {
+  if (Number(skill.castTimeMs || 0) > 0 && skill.rechargeAnchor !== 'castStart') {
     for (const root of Object.keys(chains).map(Number)) {
       const preserve = preservesAutoattackChain(root, skill);
       if (!preserve) delete chains[root];
@@ -551,52 +483,38 @@ function updateAutoattackChains(
  * @param {object} skill Completed or interrupted skill.
  * @returns {void}
  */
-function completeMesmerSkill(
-  context: MesmerCastContext,
-  skill: MesmerSkill,
-): void {
+function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
   const details = runtime.castDetails.get(context.reservationId) || {};
   const { state } = context;
   const at = context.fullEnd;
   const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
   const phantasmSummonProgress = Number(skill.phantasmSummonProgress);
-  const phantasmSummonThreshold =
-    context.start + (context.fullEnd - context.start) * phantasmSummonProgress;
+  const phantasmSummonThreshold = context.start + (context.fullEnd - context.start) * phantasmSummonProgress;
   const completedInterruptedPhantasm =
-    interrupted &&
-    Number.isFinite(phantasmSummonProgress) &&
-    context.effectiveEnd >= phantasmSummonThreshold - EPSILON;
+    interrupted && Number.isFinite(phantasmSummonProgress) && context.effectiveEnd >= phantasmSummonThreshold - EPSILON;
   runtime.activeEmission = {
     skill,
-    effectiveEnd:
-      interrupted && !completedInterruptedPhantasm
-        ? context.effectiveEnd
-        : Infinity,
-    activationId: context.reservationId,
+    effectiveEnd: interrupted && !completedInterruptedPhantasm ? context.effectiveEnd : Infinity,
+    activationId: context.reservationId
   };
   try {
-    if (
-      details.reservedShatterResources &&
-      context.effectiveEnd < context.fullEnd - EPSILON
-    ) {
-      runtime.actions.restoreReservedResources(
-        Number(details.shatterSpent || 0),
-      );
+    if (details.reservedShatterResources && context.effectiveEnd < context.fullEnd - EPSILON) {
+      runtime.actions.restoreReservedResources(Number(details.shatterSpent || 0));
       return;
     }
     updateAutoattackChains(runtime, skill);
     if (skill.id === -3) {
       state.activeWeaponSet = state.activeWeaponSet === 1 ? 2 : 1;
       runtime.addEvent({
-        type: "weapon_set",
+        type: 'weapon_set',
         at: context.effectiveEnd,
-        weaponSet: state.activeWeaponSet,
+        weaponSet: state.activeWeaponSet
       });
       return;
     }
     if (skill.id === -4) {
-      runtime.continuum.restoreContinuum(context.effectiveEnd, "manual shift");
+      runtime.continuum.restoreContinuum(context.effectiveEnd, 'manual shift');
       return;
     }
     if (skill.id === -1) {
@@ -606,11 +524,11 @@ function completeMesmerSkill(
           context.effectiveEnd + EPSILON,
           1,
           runtime.activePrimaryWeapon(),
-          "Deceptive Evasion",
+          'Deceptive Evasion',
           {
             traitId: TRAIT.DECEPTIVE_EVASION,
-            traitName: "Deceptive Evasion",
-          },
+            traitName: 'Deceptive Evasion'
+          }
         );
       }
       return;
@@ -624,16 +542,10 @@ function completeMesmerSkill(
             flute.id,
             Math.max(
               context.effectiveEnd,
-              readyAt -
-                mesmerBalanceValue(
-                  context,
-                  TRAIT.MAYHEM,
-                  "rechargeReduction",
-                  1.5,
-                ),
-            ),
+              readyAt - mesmerBalanceValue(context, TRAIT.MAYHEM, 'rechargeReduction', 1.5)
+            )
           );
-          runtime.addTraitProc("Mayhem", context.effectiveEnd, skill.name);
+          runtime.addTraitProc('Mayhem', context.effectiveEnd, skill.name);
         }
       }
       return;
@@ -649,32 +561,16 @@ function completeMesmerSkill(
     } else if (skill.id === ID.CONTINUUM_SPLIT) {
       runtime.continuum.beginContinuumSplit(skill, at);
     } else if (runtime.shatters[skill.id]) {
-      runtime.actions.handleShatter(
-        skill,
-        at,
-        details.shatterSpent ?? null,
-        context.start,
-      );
-      runtime.mirage.handleMirageShatter(
-        skill,
-        at,
-        Number(details.shatterSpent || 0),
-      );
+      runtime.actions.handleShatter(skill, at, details.shatterSpent ?? null, context.start);
+      runtime.mirage.handleMirageShatter(skill, at, Number(details.shatterSpent || 0));
     } else if (runtime.instruments[skill.id]) {
       // Harp commits at the chosen interrupt point so cancelling its long channel still plays it.
       const instrumentCommitAt =
-        interrupted && runtime.instruments[skill.id]?.instrument === "Harp"
-          ? context.effectiveEnd
-          : at;
-      runtime.actions.handleInstrument(
-        skill,
-        instrumentCommitAt,
-        context.start,
-        {
-          sourceSkill: skill.name,
-          rotationIndex: context.commandIndex,
-        },
-      );
+        interrupted && runtime.instruments[skill.id]?.instrument === 'Harp' ? context.effectiveEnd : at;
+      runtime.actions.handleInstrument(skill, instrumentCommitAt, context.start, {
+        sourceSkill: skill.name,
+        rotationIndex: context.commandIndex
+      });
     } else if (skill.id === ID.CRESCENDO) {
       runtime.actions.handleCrescendo(skill, at, context.start);
     } else {
@@ -686,9 +582,9 @@ function completeMesmerSkill(
           completedInterruptedPhantasm
             ? {
                 phantasmSummonAt: context.effectiveEnd,
-                playerEffectEnd: context.effectiveEnd,
+                playerEffectEnd: context.effectiveEnd
               }
-            : undefined,
+            : undefined
         );
       }
       runtime.mirage.handlePostSkill(skill, at);
@@ -696,7 +592,7 @@ function completeMesmerSkill(
       if (armedFlip && context.maximumAmmoFor(armedFlip)) {
         professionCoreState(state).availableFlips[armedFlip.id] = {
           availableAt: at,
-          expiresAt: Infinity,
+          expiresAt: Infinity
         };
         state.ammo.delete(armedFlip.id);
         state.cooldowns.delete(armedFlip.id);
@@ -704,7 +600,7 @@ function completeMesmerSkill(
       } else if (armedFlip) {
         const flip = {
           availableAt: context.start + Number(armedFlip.flipDelay || 0),
-          expiresAt: context.start + Number(armedFlip.flipDuration || 0),
+          expiresAt: context.start + Number(armedFlip.flipDuration || 0)
         };
         if (flip.expiresAt >= at - EPSILON) {
           professionCoreState(state).availableFlips[armedFlip.id] = flip;
@@ -734,24 +630,17 @@ function completeMesmerSkill(
           if (parent && parentReadyAt != null) {
             state.cooldowns.set(
               parent.id,
-              parentReadyAt +
-                context.rechargeDurationFor(parent, at) *
-                  Number(skill.parentCooldownIncrease),
+              parentReadyAt + context.rechargeDurationFor(parent, at) * Number(skill.parentCooldownIncrease)
             );
           }
         }
       }
     }
-    if (
-      context.config.specialization === "Troubadour" &&
-      TROUBADOUR_TALE_IDS.has(skill.id)
-    ) {
+    if (context.config.specialization === 'Troubadour' && TROUBADOUR_TALE_IDS.has(skill.id)) {
       runtime.actions.handleTale(skill, at, context.start);
       if (skill.id === ID.TALE_OF_THE_HONORABLE_ROGUE) {
         const dodge = runtime.skillsById.get(ID.DODGE_TROUBADOUR);
-        const ammo = dodge
-          ? context.cooldownController.refreshAmmo(dodge, at)
-          : null;
+        const ammo = dodge ? context.cooldownController.refreshAmmo(dodge, at) : null;
         if (dodge && ammo && ammo.charges < ammo.maximum) {
           ammo.charges += 1;
           if (ammo.charges >= ammo.maximum) ammo.nextRechargeAt = null;
@@ -760,26 +649,24 @@ function completeMesmerSkill(
       }
     }
     if (
-      context.config.specialization === "Troubadour" &&
-      skill.resource?.mode === "phantasm" &&
+      context.config.specialization === 'Troubadour' &&
+      skill.resource?.mode === 'phantasm' &&
       (!interrupted || completedInterruptedPhantasm)
     ) {
       runtime.resources.queueResources(
         at + EPSILON,
-        mesmerBalanceValue(context, TRAIT.HARMONIZE, "resourceGain", 1),
+        mesmerBalanceValue(context, TRAIT.HARMONIZE, 'resourceGain', 1),
         runtime.activePrimaryWeapon(),
-        "Harmonize",
-        { traitId: TRAIT.HARMONIZE, traitName: "Harmonize" },
+        'Harmonize',
+        { traitId: TRAIT.HARMONIZE, traitName: 'Harmonize' }
       );
     }
     const core = professionCoreState(state);
     const mimicUntil = Number(core.traitReadyAt.mimicUntil || 0);
     if (skill.id === ID.MIMIC) {
-      core.traitReadyAt.mimicUntil =
-        at +
-        mesmerBalanceValue(context, PROFILE.mimic, "durationMultiplier", 10);
+      core.traitReadyAt.mimicUntil = at + mesmerBalanceValue(context, PROFILE.mimic, 'durationMultiplier', 10);
     } else if (
-      skill.type === "Utility" &&
+      skill.type === 'Utility' &&
       !skill.mesmerMechanic?.flipParentId &&
       mimicUntil > 0 &&
       mimicUntil >= context.start - EPSILON
@@ -787,16 +674,16 @@ function completeMesmerSkill(
       state.cooldowns.delete(skill.id);
       core.traitReadyAt.mimicUntil = 0;
       runtime.addEvent({
-        type: "proc",
+        type: 'proc',
         at,
-        source: "Mimic",
+        source: 'Mimic',
         sourceId: ID.MIMIC,
         skillId: ID.MIMIC,
-        skillName: "Mimic",
-        name: "Mimic",
+        skillName: 'Mimic',
+        name: 'Mimic',
         targetSkillId: skill.id,
         targetSkillName: skill.name,
-        reduction: context.rechargeDuration,
+        reduction: context.rechargeDuration
       });
     }
     if (skill.id === ID.SIGNET_OF_THE_ETHER) {
@@ -804,52 +691,43 @@ function completeMesmerSkill(
       // cast completes.
       context.tasks.schedule({
         type: TASK.signetEtherRelock,
-        at:
-          context.fullEnd +
-          mesmerBalanceValue(
-            context,
-            PROFILE.signetOfTheEther,
-            "initialDelay",
-            0.3,
-          ),
-        payload: { skillId: skill.id },
+        at: context.fullEnd + mesmerBalanceValue(context, PROFILE.signetOfTheEther, 'initialDelay', 0.3),
+        payload: { skillId: skill.id }
       });
     }
     if (skill.id === ID.SIGNET_OF_ILLUSIONS) {
       restartSignetIllusionsPassive(context, context.fullEnd);
     }
-    const disabled =
-      runtime.controlSkills.has(skill.id) ||
-      (skill.id === ID.MENTAL_COLLAPSE && clarityConsumed);
+    const disabled = runtime.controlSkills.has(skill.id) || (skill.id === ID.MENTAL_COLLAPSE && clarityConsumed);
     if (disabled && !runtime.instruments[skill.id]) {
       runtime.addEvent({
-        type: "control",
+        type: 'control',
         at,
-        source: "Player",
+        source: 'Player',
         sourceId: skill.id,
-        actorType: "player",
+        actorType: 'player',
         skillId: skill.id,
-        skillName: skill.name,
+        skillName: skill.name
       });
     }
     if (runtime.blindSkills.has(skill.id)) {
-      runtime.addEvent({ type: "blind", at, skillName: skill.name });
+      runtime.addEvent({ type: 'blind', at, skillName: skill.name });
     }
     if (runtime.aristocracySkills.has(skill.id)) {
       runtime.addEvent({
-        type: "weakness_vulnerability",
+        type: 'weakness_vulnerability',
         at,
-        skillName: skill.name,
+        skillName: skill.name
       });
     }
     if (runtime.peithaSkills.has(skill.id)) {
       // Shadowsteps and deception skills trigger Peitha on activation, not at
       // cast end or when a Mirage Mirror is collected.
       runtime.addEvent({
-        type: "peitha",
+        type: 'peitha',
         at: context.start,
         projectileDelay: PEITHA_PROJECTILE_DELAYS[skill.id] ?? 0,
-        skillName: skill.name,
+        skillName: skill.name
       });
     }
   } finally {
@@ -865,14 +743,8 @@ function completeMesmerSkill(
  * @param {object} context Scheduler initialization context.
  * @returns {void}
  */
-export function initializeMesmerScheduler(
-  context: MesmerSchedulerContext,
-): void {
-  if (
-    context.state.activeWeaponSet === 2 &&
-    !context.config.weaponSet2Primary &&
-    !context.config.weaponSet2Secondary
-  ) {
+export function initializeMesmerScheduler(context: MesmerSchedulerContext): void {
+  if (context.state.activeWeaponSet === 2 && !context.config.weaponSet2Primary && !context.config.weaponSet2Secondary) {
     context.state.activeWeaponSet = 1;
   }
   const runtime = createMesmerRuntime(context);
@@ -886,23 +758,15 @@ export function initializeMesmerScheduler(
   ) {
     context.schedulerPolicy.requireCriticalFacts?.();
   }
-  if (state.profession.specialization.kind === "Mirage") {
-    state.profession.specialization.state.riddleOfSandReady =
-      runtime.traits.has(TRAIT.RIDDLE_OF_SAND);
+  if (state.profession.specialization.kind === 'Mirage') {
+    state.profession.specialization.state.riddleOfSandReady = runtime.traits.has(TRAIT.RIDDLE_OF_SAND);
   }
-  const initial = clamp(
-    Number(config.initialResource || 0),
-    0,
-    runtime.resourceDefinition.maximum,
-  );
-  runtime.resources.gainResources(0, initial, config.primaryWeapon, "initial", {
-    kind: "initial",
+  const initial = clamp(Number(config.initialResource || 0), 0, runtime.resourceDefinition.maximum);
+  runtime.resources.gainResources(0, initial, config.primaryWeapon, 'initial', {
+    kind: 'initial'
   });
   for (const skill of context.catalog.skills) {
-    if (
-      skill.id === ID.DODGE_TROUBADOUR &&
-      config.specialization !== "Troubadour"
-    ) {
+    if (skill.id === ID.DODGE_TROUBADOUR && config.specialization !== 'Troubadour') {
       continue;
     }
     if (context.maximumAmmoFor(skill) > 0) {
@@ -910,14 +774,10 @@ export function initializeMesmerScheduler(
     }
   }
   for (const skill of context.catalog.skills) {
-    if (
-      skill.armedAtStart &&
-      skill.mesmerMechanic?.flipParentId &&
-      context.maximumAmmoFor(skill)
-    ) {
+    if (skill.armedAtStart && skill.mesmerMechanic?.flipParentId && context.maximumAmmoFor(skill)) {
       professionCoreState(state).availableFlips[skill.id] = {
         availableAt: 0,
-        expiresAt: Infinity,
+        expiresAt: Infinity
       };
       context.cooldownController.ensureAmmo(skill, 0);
     }
@@ -925,10 +785,10 @@ export function initializeMesmerScheduler(
   if (runtime.traits.has(TRAIT.INFINITE_FORGE)) {
     context.tasks.schedule({
       type: TASK.infiniteForge,
-      at: mesmerBalanceValue(context, TRAIT.INFINITE_FORGE, "pulseInterval", 3),
+      at: mesmerBalanceValue(context, TRAIT.INFINITE_FORGE, 'pulseInterval', 3),
       priority: -20,
-      ownerId: "mesmer.infinite-forge",
-      payload: {},
+      ownerId: 'mesmer.infinite-forge',
+      payload: {}
     });
   }
   restartSignetIllusionsPassive(context, 0);
@@ -942,38 +802,30 @@ export function initializeMesmerScheduler(
  * @param {object} skill Skill beginning its cast.
  * @returns {void}
  */
-export function startMesmerCast(
-  context: MesmerCastContext,
-  skill: MesmerSkill,
-): void {
+export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
   const shatter = runtime.shatters[skill.id];
   let shatterSpent = null;
   const spendProgress = Number(shatter?.resourceSpendProgress);
   const delayedBladeSpend =
-    shatter?.kind.startsWith("blade") &&
-    Number.isFinite(spendProgress) &&
-    context.fullEnd > context.start + EPSILON;
+    shatter?.kind.startsWith('blade') && Number.isFinite(spendProgress) && context.fullEnd > context.start + EPSILON;
   if (delayedBladeSpend) {
     shatterSpent = runtime.actions.reserveResources();
-  } else if (shatter && shatter.kind !== "continuum") {
+  } else if (shatter && shatter.kind !== 'continuum') {
     shatterSpent = runtime.actions.consumeResources(context.start, {
       sourceSkill: skill.name,
-      rotationIndex: context.commandIndex,
+      rotationIndex: context.commandIndex
     });
   }
   runtime.castDetails.set(context.reservationId, {
     reservedShatterResources: delayedBladeSpend,
     shatterSpendCommitted: !delayedBladeSpend,
-    shatterSpent,
+    shatterSpent
   });
   if (delayedBladeSpend) {
     context.tasks.schedule({
       type: TASK.bladeSpend,
-      at:
-        spendProgress === 1
-          ? context.fullEnd
-          : context.start + (context.fullEnd - context.start) * spendProgress,
+      at: spendProgress === 1 ? context.fullEnd : context.start + (context.fullEnd - context.start) * spendProgress,
       // Run before the core cast-completion task (-100) when the spend is
       // scheduled exactly at fullEnd, so completion receives the spent count.
       priority: -110,
@@ -981,8 +833,8 @@ export function startMesmerCast(
       payload: {
         reservationId: context.reservationId,
         sourceSkill: skill.name,
-        rotationIndex: context.commandIndex,
-      },
+        rotationIndex: context.commandIndex
+      }
     });
   }
 }
@@ -994,10 +846,7 @@ export function startMesmerCast(
  * @param {object} skill Completed or interrupted skill.
  * @returns {void}
  */
-export function completeMesmerCast(
-  context: MesmerCastContext,
-  skill: MesmerSkill,
-): void {
+export function completeMesmerCast(context: MesmerCastContext, skill: MesmerSkill): void {
   completeMesmerSkill(context, skill);
 }
 
@@ -1009,25 +858,18 @@ export function completeMesmerCast(
  * @param {number} target Target simulation time.
  * @returns {void}
  */
-export function advanceMesmerScheduler(
-  context: MesmerSchedulerContext,
-  target: number,
-): void {
+export function advanceMesmerScheduler(context: MesmerSchedulerContext, target: number): void {
   const profession = professionCoreState(context);
   const active = context.state.profession.specialization;
-  if (active.kind === "Troubadour") {
-    for (const [instrument, expiresAt] of Object.entries(
-      active.state.instruments,
-    )) {
+  if (active.kind === 'Troubadour') {
+    for (const [instrument, expiresAt] of Object.entries(active.state.instruments)) {
       if (expiresAt <= target + EPSILON) {
         delete active.state.instruments[instrument];
       }
     }
   }
-  if (active.kind === "Mirage") {
-    active.state.mirrors = active.state.mirrors.filter(
-      (mirror) => mirror.expiresAt > target + EPSILON,
-    );
+  if (active.kind === 'Mirage') {
+    active.state.mirrors = active.state.mirrors.filter((mirror) => mirror.expiresAt > target + EPSILON);
   }
   for (const [skillId, flip] of Object.entries(profession.availableFlips)) {
     if (flip.expiresAt < target - EPSILON) {
@@ -1040,6 +882,39 @@ export function advanceMesmerScheduler(
 }
 
 /**
+ * Syncopate deals a burst of utility-weapon damage when you interrupt a foe.
+ */
+function triggerSyncopate(context: MesmerSchedulerContext, event: SimulationEvent, skillName: string): void {
+  const runtime = context.mesmerRuntime;
+  if (!runtime?.traits.has(TRAIT.SYNCOPATE)) return;
+  const damage = runtime.traitDamage.Syncopate;
+  if (!damage) return;
+  runtime.addDamage(
+    {
+      id: 'Syncopate',
+      name: 'Syncopate',
+      weapon: 'Utility',
+      blade: false
+    },
+    event.at,
+    {
+      coefficient: damage.coefficient,
+      hits: damage.hits,
+      source: 'Trait',
+      actorType: 'player',
+      weapon: 'utility',
+      weaponStrengthProfileId: 'nonweapon.unequipped'
+    },
+    {
+      source: 'Trait',
+      sourceId: TRAIT.SYNCOPATE,
+      actorType: 'player'
+    }
+  );
+  runtime.addTraitProc('Syncopate', event.at, skillName);
+}
+
+/**
  * Chaotic Interruption recharges a random equipped-weapon skill when you
  * interrupt a foe. The random pick is resolved deterministically to the active
  * weapon set's phantasm — Staff → Warlock, offhand Pistol → Duelist, offhand
@@ -1048,75 +923,53 @@ export function advanceMesmerScheduler(
  * scheduler-side because the recharge mutates scheduler-owned cooldown state
  * the resolver-only trait module cannot reach.
  */
-function triggerChaoticInterruption(
-  context: MesmerSchedulerContext,
-  event: SimulationEvent,
-  skillName: string,
-): void {
+function triggerChaoticInterruption(context: MesmerSchedulerContext, event: SimulationEvent, skillName: string): void {
   const runtime = context.mesmerRuntime;
-  if (
-    !runtime?.traits.has(TRAIT.CHAOTIC_INTERRUPTION) ||
-    !context.config.target?.activatingSkills
-  ) {
+  if (!runtime?.traits.has(TRAIT.CHAOTIC_INTERRUPTION) || !context.config.target?.activatingSkills) {
     return;
   }
+
   const defiant = Boolean(context.config.target?.defiant);
   const core = professionCoreState(context);
-  if (
-    defiant &&
-    !isInternalCooldownReady(
-      event.at,
-      Number(core.traitReadyAt[TRAIT.CHAOTIC_INTERRUPTION] || 0),
-    )
-  ) {
+  if (defiant && !isInternalCooldownReady(event.at, Number(core.traitReadyAt[TRAIT.CHAOTIC_INTERRUPTION] || 0))) {
     return;
   }
+
   const set = context.state.activeWeaponSet;
   const mainhand =
-    set === 1
-      ? context.config.primaryWeapon
-      : context.config.weaponSet2Primary || context.config.primaryWeapon;
+    set === 1 ? context.config.primaryWeapon : context.config.weaponSet2Primary || context.config.primaryWeapon;
   const offhand =
-    set === 1
-      ? context.config.secondaryWeapon
-      : context.config.weaponSet2Secondary || context.config.secondaryWeapon;
+    set === 1 ? context.config.secondaryWeapon : context.config.weaponSet2Secondary || context.config.secondaryWeapon;
+
   let targetId: number | null = null;
-  if (mainhand === "Staff") targetId = ID.PHANTASMAL_WARLOCK;
-  else if (offhand === "Pistol") targetId = ID.PHANTASMAL_DUELIST;
-  else if (offhand === "Torch") targetId = ID.PHANTASMAL_MAGE;
+  if (mainhand === 'Staff') targetId = ID.PHANTASMAL_WARLOCK;
+  else if (offhand === 'Pistol') targetId = ID.PHANTASMAL_DUELIST;
+  else if (offhand === 'Torch') targetId = ID.PHANTASMAL_MAGE;
+
   if (targetId == null) return;
+
   // Only affects weapon skills that are recharging.
   const readyAt = Number(context.state.cooldowns.get(targetId) || 0);
   if (!(readyAt > event.at + EPSILON)) return;
-  const reduction = mesmerBalanceValue(
-    context,
-    TRAIT.CHAOTIC_INTERRUPTION,
-    "recharge",
-    5,
-  );
+  const reduction = mesmerBalanceValue(context, TRAIT.CHAOTIC_INTERRUPTION, 'recharge', 5);
+
   const reduced = Math.max(event.at, readyAt - reduction);
   if (reduced > event.at + EPSILON) {
     context.state.cooldowns.set(targetId, reduced);
   } else {
     context.state.cooldowns.delete(targetId);
   }
+
   if (defiant) {
     core.traitReadyAt[TRAIT.CHAOTIC_INTERRUPTION] =
-      event.at +
-      mesmerBalanceValue(
-        context,
-        TRAIT.CHAOTIC_INTERRUPTION,
-        "internalCooldown",
-        1,
-      );
+      event.at + mesmerBalanceValue(context, TRAIT.CHAOTIC_INTERRUPTION, 'internalCooldown', 1);
   }
+
   runtime.addTraitProc(
-    "Chaotic Interruption",
+    'Chaotic Interruption',
     event.at,
     skillName,
-    `${
-      runtime.skillsById.get(targetId)?.name || "weapon skill"
-    } recharge -${reduction}s`,
+    `${runtime.skillsById.get(targetId)?.name || 'weapon skill'} recharge -${reduction}s`
   );
 }
 
@@ -1128,104 +981,66 @@ function triggerChaoticInterruption(
  * @param {object} event Newly scheduled event.
  * @returns {void}
  */
-export function observeMesmerEvent(
-  context: MesmerSchedulerContext,
-  event: SimulationEvent,
-): void {
+export function observeMesmerEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
   const runtime = context.mesmerRuntime;
   if (!runtime) return;
-  const triggerSyncopate = (skillName: string): void => {
-    if (!runtime.traits.has(TRAIT.SYNCOPATE)) return;
-    const damage = runtime.traitDamage.Syncopate;
-    if (!damage) return;
-    runtime.addDamage(
-      {
-        id: "Syncopate",
-        name: "Syncopate",
-        weapon: "Utility",
-        blade: false,
-      },
-      event.at,
-      {
-        coefficient: damage.coefficient,
-        hits: damage.hits,
-        source: "Trait",
-        actorType: "player",
-        weapon: "utility",
-        weaponStrengthProfileId: "nonweapon.unequipped",
-      },
-      {
-        source: "Trait",
-        sourceId: TRAIT.SYNCOPATE,
-        actorType: "player",
-      },
-    );
-    runtime.addTraitProc("Syncopate", event.at, skillName);
-  };
-  if (event.type === "control") {
+  if (event.type === 'control') {
     const skillId = Number(event.skillId);
-    const skillName = String(event.skillName || event.name || "Control effect");
+    const skillName = String(event.skillName || event.name || 'Control effect');
     if (
       runtime.traits.has(TRAIT.DANGER_TIME) &&
       (skillId === ID.TIME_SINK || runtime.traits.has(TRAIT.DELAYED_REACTIONS))
     ) {
       runtime.addEvent({
-        type: "buff",
+        type: 'buff',
         at: event.at,
-        kind: "danger-time",
+        kind: 'danger-time',
         stacks: 1,
-        duration: mesmerBalanceValue(
-          context,
-          TRAIT.DANGER_TIME,
-          "durationMultiplier",
-          10,
-        ),
-        sourceSkill: skillName,
+        duration: mesmerBalanceValue(context, TRAIT.DANGER_TIME, 'durationMultiplier', 10),
+        sourceSkill: skillName
       });
-      runtime.addTraitProc("Danger Time", event.at, skillName);
+      runtime.addTraitProc('Danger Time', event.at, skillName);
     }
-    triggerSyncopate(skillName);
+
+    triggerSyncopate(context, event, skillName);
+
     if (runtime.traits.has(TRAIT.DAZZLING)) {
       runtime.addEvent({
-        type: "weakness_vulnerability",
+        type: 'weakness_vulnerability',
         at: event.at,
         skillId: Number.isFinite(skillId) ? skillId : undefined,
-        skillName,
+        skillName
       });
     }
+
     triggerChaoticInterruption(context, event, skillName);
   }
-  if (
-    event.type === "proc" &&
-    event.sourceId === "sigil.energy" &&
-    context.config.specialization === "Mirage"
-  ) {
+  if (event.type === 'proc' && event.sourceId === 'sigil.energy' && context.config.specialization === 'Mirage') {
     const dodge = runtime.skillsById.get(ID.DODGE_MIRAGE_CLOAK);
-    const ammo = dodge
-      ? context.cooldownController.refreshAmmo(dodge, event.at)
-      : null;
+    const ammo = dodge ? context.cooldownController.refreshAmmo(dodge, event.at) : null;
     if (dodge && ammo && ammo.charges < ammo.maximum) {
       ammo.charges += 1;
       if (ammo.charges >= ammo.maximum) ammo.nextRechargeAt = null;
       context.state.cooldowns.delete(dodge.id);
     }
   }
-  if (event.type === "combat_start") {
+  if (event.type === 'combat_start') {
     professionCoreState(context).hasExplicitCombatStart = true;
     professionCoreState(context).combatStartTime = event.at;
     restartSignetIllusionsPassive(context, event.at);
   }
+
   let candidate: MesmerExpectedProcCandidate | null = null;
-  if (event.type === "condition" && event.condition === "Bleeding") {
+  if (event.type === 'condition' && event.condition === 'Bleeding') {
     candidate = {
-      type: "bleeding",
+      type: 'bleeding',
       at: event.at,
       stacks: event.stacks,
       source: event.source,
       cloneId: event.cloneId,
-      sourceSkill: event.skillName,
+      sourceSkill: event.skillName
     };
-  } else if (event.type === "damage") {
+  } else if (event.type === 'damage') {
     const skill = runtime.skillsById.get(Number(event.skillId));
     const isBlade = Boolean(event.blade || skill?.blade);
     const tracksCriticalTrait =
@@ -1234,26 +1049,25 @@ export function observeMesmerEvent(
         Number(event.coefficient) > 0 &&
         event.noCrit !== true &&
         event.canCrit !== false) ||
-      (isBlade &&
-        (runtime.traits.has(TRAIT.JAGGED_MIND) ||
-          runtime.traits.has(TRAIT.DEADLY_BLADES))) ||
-      (runtime.traits.has(TRAIT.SHARPER_IMAGES) &&
-        (event.source === "Clone" || event.source === "Phantasm"));
+      (isBlade && (runtime.traits.has(TRAIT.JAGGED_MIND) || runtime.traits.has(TRAIT.DEADLY_BLADES))) ||
+      (runtime.traits.has(TRAIT.SHARPER_IMAGES) && (event.source === 'Clone' || event.source === 'Phantasm'));
+
     if (!tracksCriticalTrait) return;
     candidate = {
-      type: "hit",
+      type: 'hit',
       at: event.at,
       event: isBlade && !event.blade ? { ...event, blade: true } : event,
-      cloneId: event.cloneId,
+      cloneId: event.cloneId
     };
   }
+
   if (!candidate) return;
   context.tasks.schedule({
     type: TASK.expectedProc,
     at: Math.max(context.state.time, event.at),
     priority: -40,
     ownerId: event.cloneId == null ? null : `mesmer.clone:${event.cloneId}`,
-    payload: candidate,
+    payload: candidate
   });
 }
 
@@ -1264,14 +1078,8 @@ export function observeMesmerEvent(
  * @param {object} task Clone-attack task.
  * @returns {void}
  */
-export function handleCloneAttackTask(
-  context: MesmerSchedulerContext,
-  task: MesmerSchedulerTask<"cloneAttack">,
-): void {
-  mesmerRuntimeFor(context).cloneAttackScheduler.handleTask(
-    task.payload.cloneId,
-    task.at,
-  );
+export function handleCloneAttackTask(context: MesmerSchedulerContext, task: MesmerSchedulerTask<'cloneAttack'>): void {
+  mesmerRuntimeFor(context).cloneAttackScheduler.handleTask(task.payload.cloneId, task.at);
 }
 
 /**
@@ -1283,7 +1091,7 @@ export function handleCloneAttackTask(
  */
 export function handleResourceGainTask(
   context: MesmerSchedulerContext,
-  task: MesmerSchedulerTask<"resourceGain">,
+  task: MesmerSchedulerTask<'resourceGain'>
 ): void {
   const runtime = mesmerRuntimeFor(context);
   const { count, weapon, reason, cause } = task.payload;
@@ -1300,62 +1108,46 @@ export function handleResourceGainTask(
  */
 export function handleExpectedProcTask(
   context: MesmerSchedulerContext,
-  task: MesmerSchedulerTask<"expectedProc">,
+  task: MesmerSchedulerTask<'expectedProc'>
 ): void {
   const runtime = mesmerRuntimeFor(context);
-  const payloadEvent = task.payload.type === "hit" ? task.payload.event : null;
+  const payloadEvent = task.payload.type === 'hit' ? task.payload.event : null;
   const canonicalEvent = payloadEvent
-    ? context.events.find(
-        (candidate) => candidate.__order === payloadEvent.__order,
-      )
+    ? context.events.find((candidate) => candidate.__order === payloadEvent.__order)
     : null;
   // The trigger materializer runs first and replaces the canonical event with
   // its sampled `didCrit` fact. Preserve Mesmer-only annotations from the
   // original candidate (such as a skill-derived `blade` flag).
-  const event = payloadEvent
-    ? { ...payloadEvent, ...(canonicalEvent || {}) }
-    : null;
-  if (
-    event?.blade &&
-    !event.noCrit &&
-    event.canCrit !== false &&
-    runtime.traits.has(TRAIT.DEADLY_BLADES)
-  ) {
-    const deadlyBlades = mesmerBalanceProfileEffect(
-      mesmerBalanceProfile(context, TRAIT.DEADLY_BLADES),
-      "buff",
-    );
+  const event = payloadEvent ? { ...payloadEvent, ...(canonicalEvent || {}) } : null;
+  if (event?.blade && !event.noCrit && event.canCrit !== false && runtime.traits.has(TRAIT.DEADLY_BLADES)) {
+    const deadlyBlades = mesmerBalanceProfileEffect(mesmerBalanceProfile(context, TRAIT.DEADLY_BLADES), 'buff');
     const vulnerabilityStacks =
-      context.config.randomness?.mode === "stochastic"
+      context.config.randomness?.mode === 'stochastic'
         ? event.didCrit
           ? 1
           : 0
         : context.schedulerPolicy.critical?.(context, event)?.chance || 0;
     if (vulnerabilityStacks > EPSILON) {
       context.emitDerived(event, {
-        type: "buff",
+        type: 'buff',
         at: event.at,
-        kind: "target-vulnerability",
+        kind: 'target-vulnerability',
         stacks: vulnerabilityStacks * Number(deadlyBlades?.stacks || 1),
         duration: Number(deadlyBlades?.duration || 5),
-        source: "Trait",
+        source: 'Trait',
         sourceId: TRAIT.DEADLY_BLADES,
-        sourceSkill: event.skillName,
+        sourceSkill: event.skillName
       });
       context.emitDerived(event, {
-        type: "weakness_vulnerability",
+        type: 'weakness_vulnerability',
         at: event.at,
-        source: "Trait",
+        source: 'Trait',
         sourceId: TRAIT.DEADLY_BLADES,
-        skillName: event.skillName,
+        skillName: event.skillName
       });
     }
   }
-  runtime.expected.process(
-    task.payload.type === "hit" && event
-      ? { ...task.payload, event }
-      : task.payload,
-  );
+  runtime.expected.process(task.payload.type === 'hit' && event ? { ...task.payload, event } : task.payload);
 }
 
 /**
@@ -1368,17 +1160,14 @@ export function handleExpectedProcTask(
  */
 export function handleSignetEtherRelockTask(
   context: MesmerSchedulerContext,
-  task: MesmerSchedulerTask<"signetEtherRelock">,
+  task: MesmerSchedulerTask<'signetEtherRelock'>
 ): void {
   const skill = context.catalog.skillsById.get(task.payload.skillId);
   if (!skill) return;
   // Restart the full recharge from the re-lock moment, mirroring the in-game
   // bug. Guard against ever shortening a longer cooldown already in place.
   const readyAt = task.at + context.rechargeDurationFor(skill, task.at);
-  context.state.cooldowns.set(
-    skill.id,
-    Math.max(Number(context.state.cooldowns.get(skill.id) || 0), readyAt),
-  );
+  context.state.cooldowns.set(skill.id, Math.max(Number(context.state.cooldowns.get(skill.id) || 0), readyAt));
 }
 
 /**
@@ -1391,7 +1180,7 @@ export function handleSignetEtherRelockTask(
  */
 export function handleSignetIllusionsPassiveTask(
   context: MesmerSchedulerContext,
-  task: MesmerSchedulerTask<"signetIllusionsPassive">,
+  task: MesmerSchedulerTask<'signetIllusionsPassive'>
 ): void {
   const runtime = mesmerRuntimeFor(context);
   const skill = equippedSignetOfIllusions(context);
@@ -1404,20 +1193,14 @@ export function handleSignetIllusionsPassiveTask(
   }
   runtime.resources.gainResources(
     task.at,
-    mesmerBalanceValue(context, PROFILE.signetOfIllusions, "resourceGain", 1),
+    mesmerBalanceValue(context, PROFILE.signetOfIllusions, 'resourceGain', 1),
     runtime.activePrimaryWeapon(),
     skill.name,
-    { sourceSkillId: skill.id },
+    { sourceSkillId: skill.id }
   );
   scheduleSignetIllusionsPassive(
     context,
-    task.at +
-      mesmerBalanceValue(
-        context,
-        PROFILE.signetOfIllusions,
-        "pulseInterval",
-        10,
-      ),
+    task.at + mesmerBalanceValue(context, PROFILE.signetOfIllusions, 'pulseInterval', 10)
   );
 }
 
@@ -1429,10 +1212,7 @@ export function handleSignetIllusionsPassiveTask(
  * @param {number} sharedDuration Shared-engine recharge duration in seconds.
  * @returns {number} Mesmer-adjusted recharge duration.
  */
-export function modifyMesmerRecharge(
-  context: MesmerRechargeContext,
-  sharedDuration: number,
-): number {
+export function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDuration: number): number {
   const { skill, config } = context;
   if (context.ammoCastLockout) return sharedDuration;
   if (skill.id === ID.SWAP_WEAPONS) {
@@ -1442,37 +1222,24 @@ export function modifyMesmerRecharge(
     return Number(skill.cooldown || 0) / (config.boons?.vigor ? 1.5 : 1);
   }
   if (skill.id === ID.DODGE_TROUBADOUR) {
-    const active =
-      mesmerRuntimeFor(context).context.state.profession.specialization;
+    const active = mesmerRuntimeFor(context).context.state.profession.specialization;
     const flutePlaying =
-      active.kind === "Troubadour" &&
-      Number(active.state.instruments.Flute || 0) >
-        mesmerRuntimeFor(context).context.state.time;
+      active.kind === 'Troubadour' &&
+      Number(active.state.instruments.Flute || 0) > mesmerRuntimeFor(context).context.state.time;
     return Number(skill.cooldown || 0) / (flutePlaying ? 1.25 : 1);
   }
   const traits = mesmerRuntimeFor(context).traits;
   let multiplier = 1;
   if (
-    (mesmerRuntimeFor(context).shatters[skill.id] ||
-      mesmerRuntimeFor(context).instruments[skill.id]) &&
+    (mesmerRuntimeFor(context).shatters[skill.id] || mesmerRuntimeFor(context).instruments[skill.id]) &&
     traits.has(TRAIT.MASTER_OF_MISDIRECTION)
   )
-    multiplier *= mesmerBalanceValue(
-      context,
-      PROFILE.masterOfMisdirection,
-      "rechargeMultiplier",
-      0.85,
-    );
-  if (skill.weapon === "Sword" && traits.has(TRAIT.FENCERS_FINESSE)) {
-    multiplier *= mesmerBalanceValue(
-      context,
-      PROFILE.fencersFinesse,
-      "rechargeMultiplier",
-      0.8,
-    );
+    multiplier *= mesmerBalanceValue(context, PROFILE.masterOfMisdirection, 'rechargeMultiplier', 0.85);
+  if (skill.weapon === 'Sword' && traits.has(TRAIT.FENCERS_FINESSE)) {
+    multiplier *= mesmerBalanceValue(context, PROFILE.fencersFinesse, 'rechargeMultiplier', 0.8);
   }
   const rechargeRate = gw2RechargeRate(config, {
-    alacrityRate: config.specialization === "Chronomancer" ? 1.5 : 1.25,
+    alacrityRate: config.specialization === 'Chronomancer' ? 1.5 : 1.25
   });
   const shatter = mesmerRuntimeFor(context).shatters[skill.id];
   if (shatter?.rechargeReductionPerSource) {
@@ -1483,7 +1250,7 @@ export function modifyMesmerRecharge(
   }
   return gw2EffectiveCooldown(skill, config, {
     cooldownMultiplier: multiplier,
-    rechargeRate,
+    rechargeRate
   });
 }
 
@@ -1494,16 +1261,12 @@ export function modifyMesmerRecharge(
  * @param {number} maximum Shared-engine maximum charge count.
  * @returns {number} Mesmer-adjusted maximum charge count.
  */
-export function modifyMesmerMaximumAmmo(
-  context: MesmerMaximumAmmoContext,
-  maximum: number,
-): number {
+export function modifyMesmerMaximumAmmo(context: MesmerMaximumAmmoContext, maximum: number): number {
   const id = context.skill.id;
   const runtime = mesmerRuntimeFor(context);
-  const isSlot1 =
-    runtime.shatters[id]?.slot === 1 || runtime.instruments[id]?.slot === 1;
+  const isSlot1 = runtime.shatters[id]?.slot === 1 || runtime.instruments[id]?.slot === 1;
   return isSlot1 && mesmerRuntimeFor(context).traits.has(TRAIT.SHATTER_STORM)
-    ? mesmerBalanceValue(context, PROFILE.shatterStorm, "maximumStacks", 2)
+    ? mesmerBalanceValue(context, PROFILE.shatterStorm, 'maximumStacks', 2)
     : maximum;
 }
 
@@ -1512,12 +1275,12 @@ export function modifyMesmerMaximumAmmo(
  */
 export const mesmerCastRules = Object.freeze({
   availability: {
-    id: "mesmer.availability",
+    id: 'mesmer.availability',
     order: 10,
-    handler: mesmerAvailability,
+    handler: mesmerAvailability
   },
   modifyRechargeDuration: modifyMesmerRecharge,
-  modifyMaximumAmmo: modifyMesmerMaximumAmmo,
+  modifyMaximumAmmo: modifyMesmerMaximumAmmo
 });
 
 export const mesmerCoreSchedulerHooks = Object.freeze({
@@ -1531,47 +1294,32 @@ export const mesmerCoreSchedulerHooks = Object.freeze({
     [TASK.resourceGain]: handleResourceGainTask,
     [TASK.expectedProc]: handleExpectedProcTask,
     [TASK.signetEtherRelock]: handleSignetEtherRelockTask,
-    [TASK.signetIllusionsPassive]: handleSignetIllusionsPassiveTask,
-  }),
+    [TASK.signetIllusionsPassive]: handleSignetIllusionsPassiveTask
+  })
 });
 
-import {
-  createModifierHooks,
-  MODIFIER_TARGET,
-} from "../../../platform/gw2/modifier-rules.js";
-import { hasTrait } from "../../../platform/gw2/trait-state.js";
+import { createModifierHooks, MODIFIER_TARGET } from '../../../platform/gw2/modifier-rules.js';
+import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
   Gw2QueryRuntime,
-  Gw2ResolvedStats,
-} from "../../../platform/gw2/types.js";
+  Gw2ResolvedStats
+} from '../../../platform/gw2/types.js';
 
-export { snapshotMesmerState } from "./state.js";
+export { snapshotMesmerState } from './state.js';
 
 const MODIFIER_EPSILON = 0.0001;
 
 export function illusionSource(context: Gw2ModifierContext): boolean {
-  return (
-    context.event?.source === "Clone" || context.event?.source === "Phantasm"
-  );
+  return context.event?.source === 'Clone' || context.event?.source === 'Phantasm';
 }
 
-export function timedStacks(
-  context: Gw2ModifierContext,
-  kind: string,
-  duration: number,
-  maximum: number,
-): number {
-  return (
-    context.timeline?.timedStacks(kind, context.time, duration, maximum) || 0
-  );
+export function timedStacks(context: Gw2ModifierContext, kind: string, duration: number, maximum: number): number {
+  return context.timeline?.timedStacks(kind, context.time, duration, maximum) || 0;
 }
 
-export function timedActive(
-  context: Gw2ModifierContext,
-  kind: string,
-): boolean {
+export function timedActive(context: Gw2ModifierContext, kind: string): boolean {
   return Boolean(context.timeline?.timedActive(kind, context.time));
 }
 
@@ -1580,58 +1328,25 @@ function thornsStacksAt(time: number): number {
   return Math.min(10, Math.floor((time - 3 + MODIFIER_EPSILON) / 5) + 1);
 }
 
-export function applyMesmerCoreAttributes(
-  context: Gw2ModifierContext,
-  attributes: Gw2ResolvedStats,
-): Gw2ResolvedStats {
-  const selectedSkills = Array.isArray(context.config?.selectedSkills)
-    ? context.config.selectedSkills
-    : [];
-  const thorns =
-    context.config?.relic === "Thorns" ? thornsStacksAt(context.time) * 30 : 0;
-  const midnightSelected = selectedSkills.includes("Signet of Midnight");
-  const midnightBonus = mesmerBalanceValue(
-    context,
-    PROFILE.signetOfMidnight,
-    "expertiseBonus",
-    180,
-  );
-  const midnight =
-    midnightSelected && context.timeline?.skillOnCooldownAt(10234, context.time)
-      ? midnightBonus
-      : 0;
-  const dominationSelected = selectedSkills.includes("Signet of Domination");
-  const dominationBonus = mesmerBalanceValue(
-    context,
-    PROFILE.signetOfDomination,
-    "conditionDamageBonus",
-    180,
-  );
+export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
+  const selectedSkills = Array.isArray(context.config?.selectedSkills) ? context.config.selectedSkills : [];
+  const thorns = context.config?.relic === 'Thorns' ? thornsStacksAt(context.time) * 30 : 0;
+  const midnightSelected = selectedSkills.includes('Signet of Midnight');
+  const midnightBonus = mesmerBalanceValue(context, PROFILE.signetOfMidnight, 'expertiseBonus', 180);
+  const midnight = midnightSelected && context.timeline?.skillOnCooldownAt(10234, context.time) ? midnightBonus : 0;
+  const dominationSelected = selectedSkills.includes('Signet of Domination');
+  const dominationBonus = mesmerBalanceValue(context, PROFILE.signetOfDomination, 'conditionDamageBonus', 180);
   const domination =
-    dominationSelected &&
-    context.timeline?.skillOnCooldownAt(10232, context.time)
-      ? dominationBonus
-      : 0;
+    dominationSelected && context.timeline?.skillOnCooldownAt(10232, context.time) ? dominationBonus : 0;
   const chaoticExpertiseDelta = hasTrait(context, PROFILE.chaoticPersistence)
-    ? mesmerBalanceValue(
-        context,
-        PROFILE.chaoticPersistence,
-        "expertiseBonus",
-        100,
-      ) - 100
+    ? mesmerBalanceValue(context, PROFILE.chaoticPersistence, 'expertiseBonus', 100) - 100
     : 0;
   const quietIntensityDelta = hasTrait(context, TRAIT.QUIET_INTENSITY)
     ? Number(attributes.vitality || 0) *
-      (mesmerBalanceValue(
-        context,
-        TRAIT.QUIET_INTENSITY,
-        "vitalityConversion",
-        0.1,
-      ) -
-        0.1)
+      (mesmerBalanceValue(context, TRAIT.QUIET_INTENSITY, 'vitalityConversion', 0.1) - 0.1)
     : 0;
   const sharpeningSorrowDelta = hasTrait(context, 2207)
-    ? mesmerBalanceValue(context, 2207, "expertiseBonus", 150) - 150
+    ? mesmerBalanceValue(context, 2207, 'expertiseBonus', 150) - 150
     : 0;
   return {
     ...attributes,
@@ -1641,32 +1356,14 @@ export function applyMesmerCoreAttributes(
       Number(attributes.ferocity || 0) +
       timedStacks(
         context,
-        "fencer",
-        mesmerBalanceValue(
-          context,
-          PROFILE.fencersFinesse,
-          "durationMultiplier",
-          6,
-        ),
-        mesmerBalanceValue(
-          context,
-          PROFILE.fencersFinesse,
-          "maximumStacks",
-          10,
-        ),
+        'fencer',
+        mesmerBalanceValue(context, PROFILE.fencersFinesse, 'durationMultiplier', 6),
+        mesmerBalanceValue(context, PROFILE.fencersFinesse, 'maximumStacks', 10)
       ) *
-        mesmerBalanceValue(
-          context,
-          PROFILE.fencersFinesse,
-          "attributePerStack",
-          15,
-        ) +
+        mesmerBalanceValue(context, PROFILE.fencersFinesse, 'attributePerStack', 15) +
       quietIntensityDelta,
     conditionDamage:
-      Number(attributes.conditionDamage || 0) +
-      thorns +
-      (dominationSelected ? dominationBonus - 180 : 0) -
-      domination,
+      Number(attributes.conditionDamage || 0) + thorns + (dominationSelected ? dominationBonus - 180 : 0) - domination,
     expertise:
       Number(attributes.expertise || 0) +
       chaoticExpertiseDelta +
@@ -1676,29 +1373,21 @@ export function applyMesmerCoreAttributes(
     concentration:
       Number(attributes.concentration || 0) +
       (hasTrait(context, PROFILE.chaoticPersistence)
-        ? mesmerBalanceValue(
-            context,
-            PROFILE.chaoticPersistence,
-            "concentrationBonus",
-            250,
-          ) - 250
-        : 0),
+        ? mesmerBalanceValue(context, PROFILE.chaoticPersistence, 'concentrationBonus', 250) - 250
+        : 0)
   };
 }
 
-const modifierParameters = (
-  values: Record<string, number>,
-): Readonly<Record<string, number>> => Object.freeze(values);
+const modifierParameters = (values: Record<string, number>): Readonly<Record<string, number>> => Object.freeze(values);
 
 function superiorityComplexFactor(
   context: Gw2ModifierContext,
   _target: string,
-  parameters: Readonly<Record<string, number>>,
+  parameters: Readonly<Record<string, number>>
 ): number {
   const targetHealth = Number(context.config?.target?.health || 0);
   const totalDamage = resolvedTotalDamage(context);
-  return context.config?.target?.disabled ||
-    (targetHealth > 0 && totalDamage >= targetHealth * parameters.threshold)
+  return context.config?.target?.disabled || (targetHealth > 0 && totalDamage >= targetHealth * parameters.threshold)
     ? parameters.lowHealthOrDisabledFactor
     : parameters.highHealthFactor;
 }
@@ -1713,210 +1402,165 @@ function resolvedTotalDamage(context: Gw2ModifierContext): number {
       })
     | null
     | undefined;
-  return (
-    Number(runtime?.totals?.strike || 0) +
-    Number(runtime?.totals?.condition || 0)
-  );
+  return Number(runtime?.totals?.strike || 0) + Number(runtime?.totals?.condition || 0);
 }
 
-export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] =
-  Object.freeze([
-    {
-      id: "mesmer.phantasmal-fury-critical-chance",
-      target: MODIFIER_TARGET.CRITICAL_CHANCE,
-      operation: "add",
-      parameters: modifierParameters({
-        coreCriticalChance: 0.25,
-        virtuosoCriticalChance: 0.4,
-      }),
-      amount: (context, _target, parameters) =>
-        context.config?.specialization === "Virtuoso"
-          ? parameters.virtuosoCriticalChance
-          : parameters.coreCriticalChance,
-      when: (context) =>
-        context.event?.source === "Phantasm" &&
-        hasTrait(context, TRAIT.PHANTASMAL_FURY),
-    },
-    {
-      id: "mesmer.superiority-complex",
-      target: MODIFIER_TARGET.CRITICAL_DAMAGE,
-      operation: "multiply",
-      parameters: modifierParameters({
-        highHealthFactor: 1.15,
-        lowHealthOrDisabledFactor: 1.25,
-        threshold: 0.5,
-      }),
-      factor: superiorityComplexFactor,
-      when: (context) =>
-        hasTrait(context, TRAIT.SUPERIORITY_COMPLEX) &&
-        !illusionSource(context),
-    },
-    {
-      id: "mesmer.compounding-power",
-      target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
-      operation: "damage-additive",
-      parameters: modifierParameters({
-        duration: 8,
-        maximumStacks: 5,
-        strikePerStack: 0.02,
-        conditionPerStack: 0.01,
-      }),
-      amount: (context, target, parameters) =>
-        timedStacks(
-          context,
-          "compounding",
-          parameters.duration,
-          parameters.maximumStacks,
-        ) *
-        (target === MODIFIER_TARGET.STRIKE_DAMAGE
-          ? parameters.strikePerStack
-          : parameters.conditionPerStack),
-      when: (context) => !illusionSource(context),
-    },
-    {
-      id: "mesmer.illusionary-membrane",
-      target: MODIFIER_TARGET.CONDITION_DAMAGE,
-      operation: "damage-additive",
-      amount: 0.07,
-      when: (context) => timedActive(context, "illusionary-membrane"),
-    },
-    {
-      id: "mesmer.mind-stab-vulnerability",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "multiply",
-      parameters: modifierParameters({ baseFactor: 1, damagePerStack: 0.01 }),
-      factor: (context, _target, parameters) =>
-        parameters.baseFactor +
-        Number(
-          context.query?.vulnerabilityStacksAt(context.time, context.runtime) ||
-            0,
-        ) *
-          parameters.damagePerStack,
-      order: 100,
-      when: (context) => context.event?.skillName === "Mind Stab",
-    },
-    {
-      id: "mesmer.fragility",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "multiply",
-      parameters: modifierParameters({ baseFactor: 1, damagePerStack: 0.005 }),
-      factor: (context, _target, parameters) =>
-        parameters.baseFactor +
-        Number(
-          context.query?.vulnerabilityStacksAt(context.time, context.runtime) ||
-            0,
-        ) *
-          parameters.damagePerStack,
-      order: 100,
-      when: (context) =>
-        hasTrait(context, TRAIT.FRAGILITY) && !illusionSource(context),
-    },
-    {
-      id: "mesmer.vicious-expression",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "multiply",
-      parameters: modifierParameters({
-        boonlessFactor: 1.15,
-        normalFactor: 1.1,
-      }),
-      factor: (context, _target, parameters) =>
-        context.config?.target?.boonless
-          ? parameters.boonlessFactor
-          : parameters.normalFactor,
-      order: 100,
-      when: (context) => hasTrait(context, TRAIT.VICIOUS_EXPRESSION),
-    },
-    {
-      id: "mesmer.empowered-illusions",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "multiply",
-      factor: 1.15,
-      order: 100,
-      when: (context) =>
-        illusionSource(context) && hasTrait(context, TRAIT.EMPOWERED_ILLUSIONS),
-    },
-    {
-      id: "mesmer.phantasmal-force",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "multiply",
-      parameters: modifierParameters({ baseFactor: 1, damagePerMight: 0.01 }),
-      factor: (context, _target, parameters) =>
-        parameters.baseFactor +
-        context.query!.mightStacksAt(
-          context.time,
-          context.runtime,
-          context.event,
-        ) *
-          parameters.damagePerMight,
-      order: 100,
-      when: (context) =>
-        context.event?.source === "Phantasm" &&
-        hasTrait(context, TRAIT.PHANTASMAL_FORCE),
-    },
-    {
-      id: "mesmer.mental-anguish",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "multiply",
-      parameters: modifierParameters({
-        activatingFactor: 1.25,
-        idleFactor: 1.5,
-      }),
-      factor: (context, _target, parameters) =>
-        context.config?.target?.activatingSkills
-          ? parameters.activatingFactor
-          : parameters.idleFactor,
-      order: 100,
-      when: (context) =>
-        Boolean(context.event?.shatter) &&
-        hasTrait(context, TRAIT.MENTAL_ANGUISH),
-    },
-    {
-      id: "mesmer.egotism",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "multiply",
-      factor: 1.1,
-      order: 100,
-      when: (context) =>
-        hasTrait(context, TRAIT.EGOTISM) &&
-        !illusionSource(context) &&
-        Number(context.config?.target?.health || 0) > 0 &&
-        resolvedTotalDamage(context) > 0,
-    },
-    {
-      id: "mesmer.event-final-multiplier",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "multiply",
-      parameters: modifierParameters({ fallbackFactor: 1 }),
-      factor: (context, _target, parameters) =>
-        Number(context.event?.multiplier || parameters.fallbackFactor),
-      order: 1000,
-    },
-    {
-      id: "mesmer.malicious-sorcery",
-      target: MODIFIER_TARGET.CONDITION_DURATION,
-      operation: "add",
-      amount: 0.25,
-      when: (context) =>
-        context.condition === "Confusion" &&
-        hasTrait(context, TRAIT.MALICIOUS_SORCERY),
-    },
-  ]);
+export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'mesmer.phantasmal-fury-critical-chance',
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: 'add',
+    parameters: modifierParameters({
+      coreCriticalChance: 0.25,
+      virtuosoCriticalChance: 0.4
+    }),
+    amount: (context, _target, parameters) =>
+      context.config?.specialization === 'Virtuoso' ? parameters.virtuosoCriticalChance : parameters.coreCriticalChance,
+    when: (context) => context.event?.source === 'Phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FURY)
+  },
+  {
+    id: 'mesmer.superiority-complex',
+    target: MODIFIER_TARGET.CRITICAL_DAMAGE,
+    operation: 'multiply',
+    parameters: modifierParameters({
+      highHealthFactor: 1.15,
+      lowHealthOrDisabledFactor: 1.25,
+      threshold: 0.5
+    }),
+    factor: superiorityComplexFactor,
+    when: (context) => hasTrait(context, TRAIT.SUPERIORITY_COMPLEX) && !illusionSource(context)
+  },
+  {
+    id: 'mesmer.compounding-power',
+    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+    operation: 'damage-additive',
+    parameters: modifierParameters({
+      duration: 8,
+      maximumStacks: 5,
+      strikePerStack: 0.02,
+      conditionPerStack: 0.01
+    }),
+    amount: (context, target, parameters) =>
+      timedStacks(context, 'compounding', parameters.duration, parameters.maximumStacks) *
+      (target === MODIFIER_TARGET.STRIKE_DAMAGE ? parameters.strikePerStack : parameters.conditionPerStack),
+    when: (context) => !illusionSource(context)
+  },
+  {
+    id: 'mesmer.illusionary-membrane',
+    target: MODIFIER_TARGET.CONDITION_DAMAGE,
+    operation: 'damage-additive',
+    amount: 0.07,
+    when: (context) => timedActive(context, 'illusionary-membrane')
+  },
+  {
+    id: 'mesmer.mind-stab-vulnerability',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: modifierParameters({ baseFactor: 1, damagePerStack: 0.01 }),
+    factor: (context, _target, parameters) =>
+      parameters.baseFactor +
+      Number(context.query?.vulnerabilityStacksAt(context.time, context.runtime) || 0) * parameters.damagePerStack,
+    order: 100,
+    when: (context) => context.event?.skillName === 'Mind Stab'
+  },
+  {
+    id: 'mesmer.fragility',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: modifierParameters({ baseFactor: 1, damagePerStack: 0.005 }),
+    factor: (context, _target, parameters) =>
+      parameters.baseFactor +
+      Number(context.query?.vulnerabilityStacksAt(context.time, context.runtime) || 0) * parameters.damagePerStack,
+    order: 100,
+    when: (context) => hasTrait(context, TRAIT.FRAGILITY) && !illusionSource(context)
+  },
+  {
+    id: 'mesmer.vicious-expression',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: modifierParameters({
+      boonlessFactor: 1.15,
+      normalFactor: 1.1
+    }),
+    factor: (context, _target, parameters) =>
+      context.config?.target?.boonless ? parameters.boonlessFactor : parameters.normalFactor,
+    order: 100,
+    when: (context) => hasTrait(context, TRAIT.VICIOUS_EXPRESSION)
+  },
+  {
+    id: 'mesmer.empowered-illusions',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.15,
+    order: 100,
+    when: (context) => illusionSource(context) && hasTrait(context, TRAIT.EMPOWERED_ILLUSIONS)
+  },
+  {
+    id: 'mesmer.phantasmal-force',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: modifierParameters({ baseFactor: 1, damagePerMight: 0.01 }),
+    factor: (context, _target, parameters) =>
+      parameters.baseFactor +
+      context.query!.mightStacksAt(context.time, context.runtime, context.event) * parameters.damagePerMight,
+    order: 100,
+    when: (context) => context.event?.source === 'Phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FORCE)
+  },
+  {
+    id: 'mesmer.mental-anguish',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: modifierParameters({
+      activatingFactor: 1.25,
+      idleFactor: 1.5
+    }),
+    factor: (context, _target, parameters) =>
+      context.config?.target?.activatingSkills ? parameters.activatingFactor : parameters.idleFactor,
+    order: 100,
+    when: (context) => Boolean(context.event?.shatter) && hasTrait(context, TRAIT.MENTAL_ANGUISH)
+  },
+  {
+    id: 'mesmer.egotism',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.1,
+    order: 100,
+    when: (context) =>
+      hasTrait(context, TRAIT.EGOTISM) &&
+      !illusionSource(context) &&
+      Number(context.config?.target?.health || 0) > 0 &&
+      resolvedTotalDamage(context) > 0
+  },
+  {
+    id: 'mesmer.event-final-multiplier',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: modifierParameters({ fallbackFactor: 1 }),
+    factor: (context, _target, parameters) => Number(context.event?.multiplier || parameters.fallbackFactor),
+    order: 1000
+  },
+  {
+    id: 'mesmer.malicious-sorcery',
+    target: MODIFIER_TARGET.CONDITION_DURATION,
+    operation: 'add',
+    amount: 0.25,
+    when: (context) => context.condition === 'Confusion' && hasTrait(context, TRAIT.MALICIOUS_SORCERY)
+  }
+]);
 
-export function compileMesmerModifierRules(
-  rules: readonly Gw2ModifierRule[],
-): ReturnType<typeof createModifierHooks> {
+export function compileMesmerModifierRules(rules: readonly Gw2ModifierRule[]): ReturnType<typeof createModifierHooks> {
   return createModifierHooks({
     rules,
     damageBuckets: {
       strikeDamage: {
-        includeSigil: (context) => !illusionSource(context),
-      },
-    },
+        includeSigil: (context) => !illusionSource(context)
+      }
+    }
   });
 }
 
 export const mesmerCoreAttributeRules = Object.freeze({
   modifyAttributes: applyMesmerCoreAttributes,
   modifierRules: mesmerCoreModifierRules,
-  compileModifierRules: compileMesmerModifierRules,
+  compileModifierRules: compileMesmerModifierRules
 });

@@ -16,6 +16,7 @@ import {
 } from "../../app/profession/assumptions.js";
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from "./assumptions.js";
 import { elementalistCatalog } from "./catalog.js";
+import { LEGACY_ELEMENTALIST_SKILL_ID_MIGRATIONS } from "./data/legacy-skill-ids.js";
 import type { Gw2ApplicationBuild } from "../../platform/gw2/types.js";
 import type { SchedulerRecord } from "../../platform/engine/types.js";
 import type {
@@ -23,7 +24,7 @@ import type {
   ElementalistCanonicalBuild,
 } from "./types.js";
 
-export const ELEMENTALIST_BUILD_SCHEMA_VERSION = 3;
+export const ELEMENTALIST_BUILD_SCHEMA_VERSION = 4;
 export const ELEMENTALIST_PROFESSION_ID = "elementalist";
 
 const ATTUNEMENTS = new Set(["Fire", "Water", "Air", "Earth"]);
@@ -133,11 +134,64 @@ function pistolBullets(
   };
 }
 
+/**
+ * Rewrites every legacy synthetic identity before the shared codec resolves
+ * rotation commands against the stable-ID catalog.
+ */
+function migrateLegacyElementalistSkillId(value: unknown): unknown {
+  const numeric =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && /^1100\d{3}$/.test(value)
+        ? Number(value)
+        : null;
+  return numeric == null
+    ? value
+    : (LEGACY_ELEMENTALIST_SKILL_ID_MIGRATIONS.get(numeric) ?? value);
+}
+
+function migrateElementalistV3ToV4(saved: SchedulerRecord): SchedulerRecord {
+  const rotation = Array.isArray(saved.rotation)
+    ? saved.rotation.map((entry) => {
+        if (typeof entry === "number" || typeof entry === "string") {
+          return migrateLegacyElementalistSkillId(entry);
+        }
+        if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+          return entry;
+        }
+        const command = entry as SchedulerRecord;
+        return {
+          ...command,
+          ...(Object.hasOwn(command, "skillId")
+            ? {
+                skillId: migrateLegacyElementalistSkillId(command.skillId),
+              }
+            : {}),
+          ...(Object.hasOwn(command, "id")
+            ? { id: migrateLegacyElementalistSkillId(command.id) }
+            : {}),
+        };
+      })
+    : saved.rotation;
+  const selectedSkillIds = Array.isArray(saved.selectedSkillIds)
+    ? saved.selectedSkillIds.map(migrateLegacyElementalistSkillId)
+    : saved.selectedSkillIds;
+  return {
+    ...saved,
+    schemaVersion: 4,
+    ...(rotation == null ? {} : { rotation }),
+    ...(selectedSkillIds == null ? {} : { selectedSkillIds }),
+  };
+}
+
 const elementalistBuildCodec = createGw2BuildCodec<ElementalistCanonicalBuild>({
   professionId: ELEMENTALIST_PROFESSION_ID,
   schemaVersion: ELEMENTALIST_BUILD_SCHEMA_VERSION,
   catalog: elementalistCatalog,
   createDefaults: createElementalistBuildDefaults,
+  migrations: {
+    3: migrateElementalistV3ToV4,
+  },
   normalizeExtra(build, { saved }) {
     const assumptions = normalizeProfessionAssumptions(
       normalizeSimulationRandomnessAssumptions(build.assumptions),

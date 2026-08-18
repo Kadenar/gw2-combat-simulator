@@ -1,16 +1,17 @@
 import { EVTC_STATE_CHANGE } from "../../../types.js";
+import { ELEMENTALIST_SKILL_IDS as ID } from "../../../../professions/elementalist/data/ids.js";
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction,
 } from "../types.js";
 
 const EVOKER_SKILL_ALIASES = new Map([
-  [76925, { name: "Calcify", skillId: 1100185 }],
-  [76707, { name: "Seismic Impact", skillId: 1100186 }],
-  [77247, { name: "Toad's Fortitude", skillId: 1100189 }],
+  [76925, { name: "Calcify", skillId: ID.CALCIFY }],
+  [76707, { name: "Seismic Impact", skillId: ID.SEISMIC_IMPACT }],
+  [77247, { name: "Toad's Fortitude", skillId: ID.TOADS_FORTITUDE }],
 ]);
 const CALCIFY_RAW_SKILL_ID = 76925;
-const CALCIFY = Object.freeze({ name: "Calcify", skillId: 1100185 });
+const CALCIFY = Object.freeze({ name: "Calcify", skillId: ID.CALCIFY });
 
 function playerInstance(
   context: EvtcProfessionReconstructionContext,

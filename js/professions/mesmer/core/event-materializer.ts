@@ -1,21 +1,14 @@
-import { materializeSkillEffectApplications } from
-  "../../../platform/engine/effect-materializer.js";
-import { gw2ActorTypeForSource } from
-  "../../../platform/gw2/event-ownership.js";
+import { materializeSkillEffectApplications } from '../../../platform/engine/effect-materializer.js';
+import { gw2ActorTypeForSource } from '../../../platform/gw2/event-ownership.js';
 
 import type {
   ConditionEffect,
   SimulationEvent,
   SimulationEventInput,
   Skill,
-  StrikeEffect,
-} from "../../../platform/engine/types.js";
-import type {
-  MesmerAddCondition,
-  MesmerAddDamage,
-  MesmerAddEvent,
-  MesmerAddTraitProc,
-} from "../types.js";
+  StrikeEffect
+} from '../../../platform/engine/types.js';
+import type { MesmerAddCondition, MesmerAddDamage, MesmerAddEvent, MesmerAddTraitProc } from '../types.js';
 
 interface MesmerEventMaterializerOptions {
   readonly emit: (event: SimulationEventInput) => SimulationEvent | null;
@@ -24,8 +17,8 @@ interface MesmerEventMaterializerOptions {
 }
 
 function conditionName(value: unknown): string {
-  const normalized = String(value || "").toLowerCase();
-  if (normalized === "poison" || normalized === "poisoned") return "Poisoned";
+  const normalized = String(value || '').toLowerCase();
+  if (normalized === 'poison' || normalized === 'poisoned') return 'Poisoned';
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
@@ -36,7 +29,7 @@ function conditionName(value: unknown): string {
 export function createMesmerEventMaterializer({
   emit,
   activePrimaryWeapon,
-  weaponStrength,
+  weaponStrength
 }: MesmerEventMaterializerOptions): Readonly<{
   addEvent: MesmerAddEvent;
   addTraitProc: MesmerAddTraitProc;
@@ -46,40 +39,23 @@ export function createMesmerEventMaterializer({
   const addEvent: MesmerAddEvent = (event) =>
     emit({
       ...event,
-      source: String(event.source || "Mesmer"),
-      sourceId:
-        event.sourceId ??
-        event.skillId ??
-        event.skillName ??
-        event.name ??
-        event.type,
+      source: String(event.source || 'Mesmer'),
+      sourceId: event.sourceId ?? event.skillId ?? event.skillName ?? event.name ?? event.type
     } as SimulationEventInput);
 
-  const addTraitProc: MesmerAddTraitProc = (
-    name,
-    at,
-    sourceSkill = "",
-    detail = "",
-  ) =>
+  const addTraitProc: MesmerAddTraitProc = (name, at, sourceSkill = '', detail = '') =>
     addEvent({
-      type: "proc",
-      procType: "trait",
+      type: 'proc',
+      procType: 'trait',
       at,
       name,
       sourceSkill,
-      source: "Trait",
+      source: 'Trait',
       sourceId: name,
-      detail,
+      detail
     });
 
-  const addCondition: MesmerAddCondition = (
-    skillName,
-    at,
-    condition,
-    source = "Player",
-    label = "",
-    extra = {},
-  ) => {
+  const addCondition: MesmerAddCondition = (skillName, at, condition, source = 'Player', label = '', extra = {}) => {
     const name = conditionName(condition.name);
     if (!condition.duration) return [];
     const eventSource = String(extra.source || source);
@@ -87,24 +63,24 @@ export function createMesmerEventMaterializer({
     const actorType = extra.actorType || gw2ActorTypeForSource(eventSource);
     const pseudoSkill: Skill = {
       id: extra.skillId ?? skillName,
-      name: skillName,
+      name: skillName
     };
     const ticks = Array.isArray(condition.ticks)
       ? condition.ticks.map((tick) => ({
           ...tick,
-          condition: conditionName(tick.condition),
+          condition: conditionName(tick.condition)
         }))
       : undefined;
     const effect: ConditionEffect = ticks?.length
       ? {
-          type: "condition",
+          type: 'condition',
           name: label || `${skillName} — ${name}`,
           ticks,
-          timingAnchor: condition.timingAnchor || "castStart",
-          timingScale: condition.timingScale || "fixed",
+          timingAnchor: condition.timingAnchor || 'castStart',
+          timingScale: condition.timingScale || 'fixed'
         }
       : {
-          type: "condition",
+          type: 'condition',
           name: label || `${skillName} — ${name}`,
           condition: name,
           duration: Number(condition.duration),
@@ -113,7 +89,7 @@ export function createMesmerEventMaterializer({
           atMs: condition.atMs,
           intervalMs: condition.intervalMs,
           timingAnchor: condition.timingAnchor,
-          timingScale: condition.timingScale,
+          timingScale: condition.timingScale
         };
     const applications = materializeSkillEffectApplications({
       skill: pseudoSkill,
@@ -125,8 +101,8 @@ export function createMesmerEventMaterializer({
         sourceId,
         actorType,
         skillId: extra.skillId ?? null,
-        skillName,
-      },
+        skillName
+      }
     });
     return applications.flatMap((application) => {
       const emitted = emit({
@@ -137,43 +113,29 @@ export function createMesmerEventMaterializer({
         totalApplications: undefined,
         ...extra,
         source: eventSource,
-        sourceId,
+        sourceId
       });
       return emitted ? [emitted] : [];
     });
   };
 
-  const addDamage: MesmerAddDamage = (
-    skill,
-    at,
-    group,
-    extra = {},
-  ) => {
-    const source = String(group.source || extra.source || "Player");
+  const addDamage: MesmerAddDamage = (skill, at, group, extra = {}) => {
+    const source = String(group.source || extra.source || 'Player');
     const sourceId = extra.sourceId ?? skill.id ?? skill.name;
-    const actorType =
-      group.actorType || extra.actorType || gw2ActorTypeForSource(source);
+    const actorType = group.actorType || extra.actorType || gw2ActorTypeForSource(source);
     const hasExplicitTiming =
-      group.atMs != null ||
-      group.intervalMs != null ||
-      (Array.isArray(group.ticks) && group.ticks.length > 0);
+      group.atMs != null || group.intervalMs != null || (Array.isArray(group.ticks) && group.ticks.length > 0);
     const effect: StrikeEffect = {
       ...group,
-      type: "strike",
+      type: 'strike',
       name: String(extra.name || skill.name),
       // Mesmer's historical `weapon` value selects an illusion strength
       // profile; the cast skill still owns the canonical skillWeapon field.
       weapon: undefined,
-      ...(hasExplicitTiming && group.timingAnchor == null
-        ? { timingAnchor: "castStart" as const }
-        : {}),
-      ...(hasExplicitTiming && group.timingScale == null
-        ? { timingScale: "fixed" as const }
-        : {}),
+      ...(hasExplicitTiming && group.timingAnchor == null ? { timingAnchor: 'castStart' as const } : {}),
+      ...(hasExplicitTiming && group.timingScale == null ? { timingScale: 'fixed' as const } : {})
     };
-    const slotSkill = ["Heal", "Utility", "Elite"].includes(
-      String(skill.type || ""),
-    );
+    const slotSkill = ['Heal', 'Utility', 'Elite'].includes(String(skill.type || ''));
     const applications = materializeSkillEffectApplications({
       skill,
       effect,
@@ -184,34 +146,29 @@ export function createMesmerEventMaterializer({
         sourceId,
         actorType,
         skillId: extra.skillId ?? skill.id ?? null,
-        skillName: skill.name,
+        skillName: skill.name
       },
-      skillWeaponFallback: slotSkill ? "Utility" : activePrimaryWeapon(),
+      skillWeaponFallback: slotSkill ? 'Utility' : activePrimaryWeapon()
     });
-    const individuallyTimed =
-      Array.isArray(group.ticks) || Number(group.intervalMs || 0) > 0;
+    const individuallyTimed = Array.isArray(group.ticks) || Number(group.intervalMs || 0) > 0;
     return applications.flatMap((application) => {
-      const explicit = String(group.weapon || "");
-      const normalized =
-        explicit.charAt(0).toUpperCase() + explicit.slice(1).toLowerCase();
+      const explicit = String(group.weapon || '');
+      const normalized = explicit.charAt(0).toUpperCase() + explicit.slice(1).toLowerCase();
       const independentStrength =
-        actorType === "phantasm" || actorType === "summon"
-          ? weaponStrength[normalized]
-          : undefined;
+        actorType === 'phantasm' || actorType === 'summon' ? weaponStrength[normalized] : undefined;
       const emitted = emit({
         ...application.event,
         // Timed Mesmer packets were individually materialized before this
         // consolidation. Keep their stable public identity fields.
         hitIndex: individuallyTimed ? 1 : application.event.hitIndex,
         totalHits: individuallyTimed ? 1 : application.event.totalHits,
-        weapon: group.weapon || "",
+        weapon: group.weapon || '',
         canCrit: group.canCrit,
         ...extra,
         source,
         sourceId,
         blade: Boolean(extra.blade ?? skill.blade),
-        weaponStrength:
-          application.event.weaponStrength ?? independentStrength,
+        weaponStrength: application.event.weaponStrength ?? independentStrength
       });
       return emitted ? [emitted] : [];
     });

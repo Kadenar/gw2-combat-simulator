@@ -1,4 +1,4 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
+import { professionCoreState } from '../../../platform/engine/profession.js';
 import type {
   MesmerAddCondition,
   MesmerAddDamage,
@@ -6,8 +6,8 @@ import type {
   MesmerCloneAttack,
   MesmerCloneAttackScheduler,
   MesmerCloneAttackStep,
-  MesmerState,
-} from "../types.js";
+  MesmerState
+} from '../types.js';
 
 interface CloneAttackSchedulerOptions {
   readonly state: MesmerState;
@@ -25,19 +25,14 @@ export function createCloneAttackScheduler({
   epsilon,
   addDamage,
   addCondition,
-  scheduleTask = null,
+  scheduleTask = null
 }: CloneAttackSchedulerOptions): MesmerCloneAttackScheduler {
-  const profession = "profession" in state ? professionCoreState(state) : state;
-  const attackFor = (clone: MesmerClone) =>
-    cloneAttacks[clone.weapon] || cloneAttacks.Sword;
+  const profession = 'profession' in state ? professionCoreState(state) : state;
+  const attackFor = (clone: MesmerClone) => cloneAttacks[clone.weapon] || cloneAttacks.Sword;
 
-  const sequenceStep = (
-    clone: MesmerClone,
-    attack: MesmerCloneAttack,
-  ): MesmerCloneAttackStep => {
+  const sequenceStep = (clone: MesmerClone, attack: MesmerCloneAttack): MesmerCloneAttackStep => {
     if (!attack.sequence) return attack;
-    const index =
-      Number(clone.attackSequenceIndex || 0) % attack.sequence.length;
+    const index = Number(clone.attackSequenceIndex || 0) % attack.sequence.length;
     return attack.sequence[index];
   };
 
@@ -46,8 +41,7 @@ export function createCloneAttackScheduler({
     clone.ownerId ||= `mesmer.clone:${clone.id}`;
     clone.attackSequenceIndex = 0;
     const step = sequenceStep(clone, attack);
-    clone.nextAttackAt =
-      clone.createdAt + Number(attack.firstAttackDelay ?? step.interval);
+    clone.nextAttackAt = clone.createdAt + Number(attack.firstAttackDelay ?? step.interval);
     if (scheduleTask) scheduleTask(clone, clone.nextAttackAt);
     return clone;
   };
@@ -68,7 +62,7 @@ export function createCloneAttackScheduler({
       id: step.id ?? skillName,
       name: skillName,
       weapon: clone.weapon,
-      blade: false,
+      blade: false
     };
     const impactAt = at + Number(step.damageAtMs || 0) / 1000;
     addDamage(
@@ -78,32 +72,31 @@ export function createCloneAttackScheduler({
         ...(step.ticks?.length
           ? {
               ticks: step.ticks,
-              timingAnchor: "castStart" as const,
-              timingScale: "fixed" as const,
+              timingAnchor: 'castStart' as const,
+              timingScale: 'fixed' as const
             }
           : {
               coefficient: step.coefficient,
-              hits: step.hits,
+              hits: step.hits
             }),
-        source: "Clone",
-        weaponStrength: attack.weaponStrength,
+        source: 'Clone',
+        weaponStrength: attack.weaponStrength
       },
       {
         cloneId: clone.id,
-        source: "Clone",
-        summonOwner: clone.ownerId,
-      },
+        source: 'Clone',
+        summonOwner: clone.ownerId
+      }
     );
     for (const condition of step.conditions || []) {
-      addCondition(skillName, impactAt, condition, "Clone", "", {
+      addCondition(skillName, impactAt, condition, 'Clone', '', {
         cloneId: clone.id,
         skillId: step.id,
-        summonOwner: clone.ownerId,
+        summonOwner: clone.ownerId
       });
     }
     if (Array.isArray(attack.sequence) && attack.sequence.length > 0) {
-      clone.attackSequenceIndex =
-        (Number(clone.attackSequenceIndex || 0) + 1) % attack.sequence.length;
+      clone.attackSequenceIndex = (Number(clone.attackSequenceIndex || 0) + 1) % attack.sequence.length;
     }
   };
 
@@ -112,16 +105,12 @@ export function createCloneAttackScheduler({
       if ((clone.nextAttackAt ?? Infinity) > at + epsilon) continue;
       scheduleAttack(clone, at);
       const attack = attackFor(clone);
-      clone.nextAttackAt =
-        Number(clone.nextAttackAt) +
-        Number(sequenceStep(clone, attack).interval);
+      clone.nextAttackAt = Number(clone.nextAttackAt) + Number(sequenceStep(clone, attack).interval);
     }
   };
 
   const handleTask = (cloneId: number, at: number): void => {
-    const clone = profession.clones.find(
-      (candidate) => candidate.id === Number(cloneId),
-    );
+    const clone = profession.clones.find((candidate) => candidate.id === Number(cloneId));
     if (!clone) return;
     scheduleAttack(clone, at);
     const attack = attackFor(clone);
@@ -133,6 +122,6 @@ export function createCloneAttackScheduler({
     handleTask,
     initializeClone,
     nextAttackAt,
-    scheduleAt,
+    scheduleAt
   };
 }

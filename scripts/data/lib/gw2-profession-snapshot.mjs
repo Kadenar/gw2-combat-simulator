@@ -107,6 +107,7 @@ export function skillSnapshot(
     type: skill.type,
     weapon,
     slot: skill.slot,
+    attunement: skill.attunement || "",
     specialization,
     categories: skill.categories || [],
     recharge: Number(recharge?.value || recharge?.duration || 0),

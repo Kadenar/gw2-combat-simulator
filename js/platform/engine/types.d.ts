@@ -251,6 +251,10 @@ export interface Skill extends CatalogSkill {
   readonly description?: string;
   readonly icon?: string;
   readonly variantBadge?: string;
+  /** Stable API skill used to enrich an internal simulator-only projection. */
+  readonly apiSkillId?: SkillId;
+  /** Stable selectable skill resolved from a build-template palette ID. */
+  readonly loadoutSkillId?: SkillId;
   /**
    * Retain the catalog record but omit it from patch authoring because no
    * simulator path consumes it. This is independent of simulatorExcluded,
