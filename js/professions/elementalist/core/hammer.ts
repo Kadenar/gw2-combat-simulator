@@ -82,8 +82,8 @@ export function applyHammerState(context: ElementalistLifecycleContext, skill: S
   if (skillWeapon(skill) !== 'Hammer') return;
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = context.effectiveEnd;
-  const single = HAMMER_ORB_SKILLS[skill.name];
-  const dual = HAMMER_DUAL_ORB_SKILLS[skill.name];
+  const single = HAMMER_ORB_SKILLS[Number(skill.id)];
+  const dual = HAMMER_DUAL_ORB_SKILLS[Number(skill.id)];
   if (single || dual) {
     const orbDuration = elementalistBalanceValue(context, PROFILE.hammerOrbs, 'durationMultiplier', 15);
     const previouslyActive = new Set(activeHammerOrbElements(state, at));

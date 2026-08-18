@@ -1,6 +1,7 @@
 import { defaultWeaponSkillMatchesSet } from '../../../platform/gw2/weapon-skill-matcher.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '../assumptions.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
+import { HAMMER_DUAL_ORB_SKILLS, HAMMER_ORB_SKILLS } from './constants.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement, type ElementalistCoreState } from './state.js';
 import type { ElementalistState } from '../types.js';
 import type {
@@ -22,6 +23,7 @@ const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> = Obje
   Air: '#9b65c7',
   Earth: '#a7783f'
 });
+const ATTUNEMENT_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS));
 
 const PISTOL_BULLET_CONTROL_PREFIX = 'elementalist-pistol-bullet:';
 const PISTOL_BULLETS = Object.freeze([
@@ -285,6 +287,34 @@ function attunementStartControl(
 
 function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
   const state = uiState(context);
+  const now = Number(context.time || 0);
+  const hasActiveHammerOrb = Object.values(state.hammerOrbs || {}).some(
+    (expiresAt) => expiresAt != null && Number(expiresAt) >= now
+  );
+  const hammerElements = HAMMER_ORB_SKILLS[Number(skill.id)]
+    ? [HAMMER_ORB_SKILLS[Number(skill.id)]]
+    : HAMMER_DUAL_ORB_SKILLS[Number(skill.id)];
+  // Active orb elements share one refreshed 15-second lifetime, while element
+  // membership determines which visible generator is locked during that window.
+  if (
+    hammerElements?.some((element) => {
+      const expiresAt = state.hammerOrbs?.[element];
+      return expiresAt != null && Number(expiresAt) >= now;
+    })
+  ) {
+    return {
+      available: false,
+      message: 'Grand Finale must consume the active orb before it can be created again.'
+    };
+  }
+  // Grand Finale stays in the palette as the shared orb consumer, but cannot
+  // be queued after the common orb lifetime has ended.
+  if (skill.name === 'Grand Finale' && !hasActiveHammerOrb) {
+    return {
+      available: false,
+      message: 'Requires at least one active hammer orb.'
+    };
+  }
   if (skill.name === 'Elemental Explosion') {
     const bullets = displayedPistolBullets(context);
     const available = ELEMENTALIST_ATTUNEMENTS.every((element) => bullets[element]);
@@ -321,7 +351,9 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
     }
   }
   const attunement = String(skill.attunement || '');
-  if (skill.skillFamily === 'Attunement') {
+  // Only the four attunement-swap actions use this branch; Tempest overloads
+  // share the Attunement family tag but have their own availability rules.
+  if (ATTUNEMENT_SKILL_IDS.has(Number(skill.id))) {
     const target = skill.name.replace(/ Attunement$/, '');
     if (!ELEMENTALIST_ATTUNEMENTS.includes(target as ElementalistAttunement)) {
       return { available: false, message: 'Unknown attunement.' };

@@ -19,17 +19,9 @@
       "offset": 40
     },
     "Etching: Volcano",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 38
-    },
     "Meteor",
     "Blazing Barrage",
     "Seethe",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 39
-    },
     "Volcano",
     {
       "name": "Air Attunement",
@@ -45,10 +37,6 @@
     "Derecho",
     "Fulgor",
     "Lightning Javelin",
-    {
-      "name": "Lightning Javelin",
-      "interruptMs": 81
-    },
     "Overload Air",
     {
       "name": "Earth Attunement",
@@ -78,10 +66,6 @@
     "Meteor",
     "Blazing Barrage",
     "Seethe",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 86
-    },
     "Volcano",
     {
       "name": "Air Attunement",
@@ -100,10 +84,6 @@
     "Lightning Javelin",
     "Derecho",
     "Fulgor",
-    {
-      "name": "Lightning Javelin",
-      "interruptMs": 200
-    },
     "Overload Air",
     {
       "name": "Flame Barrage",
@@ -131,10 +111,6 @@
       "offset": 126
     },
     "Etching: Volcano",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 43
-    },
     "Meteor",
     "Blazing Barrage",
     {
@@ -142,20 +118,12 @@
       "offset": 379
     },
     "Seethe",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 76
-    },
     "Volcano",
     {
       "name": "Air Attunement",
       "offset": 203
     },
     "Etching: Derecho",
-    {
-      "name": "Lightning Javelin",
-      "interruptMs": 81
-    },
     "Twister",
     {
       "name": "Energize",
@@ -186,7 +154,7 @@
     "Lightning Javelin",
     {
       "name": "Lightning Javelin",
-      "interruptMs": 358
+      "skillId": 73124
     },
     {
       "name": "Flame Barrage",
@@ -199,17 +167,9 @@
       "offset": 127
     },
     "Etching: Volcano",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 41
-    },
     "Meteor",
     "Blazing Barrage",
     "Seethe",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 37
-    },
     "Volcano",
     {
       "name": "Air Attunement",
@@ -245,10 +205,6 @@
       "offset": 403
     },
     "Fulgor",
-    {
-      "name": "Lightning Javelin",
-      "interruptMs": 83
-    },
     "Glyph of Storms (Air)",
     "Lightning Javelin",
     "Lightning Javelin",
@@ -259,17 +215,9 @@
       "offset": 163
     },
     "Etching: Volcano",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 39
-    },
     "Meteor",
     "Blazing Barrage",
     "Seethe",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 38
-    },
     "Volcano",
     {
       "name": "Air Attunement",
@@ -288,7 +236,6 @@
     "Lightning Javelin",
     "Derecho",
     "Fulgor",
-    "Lightning Javelin",
     "Overload Air",
     {
       "name": "Earth Attunement",
@@ -316,18 +263,10 @@
       "name": "Fire Attunement",
       "offset": 159
     },
-    {
-      "name": "Flame Spear",
-      "interruptMs": 37
-    },
     "Etching: Volcano",
     "Meteor",
     "Blazing Barrage",
     "Seethe",
-    {
-      "name": "Flame Spear",
-      "interruptMs": 80
-    },
     "Volcano",
     {
       "name": "Air Attunement",
@@ -349,14 +288,6 @@
       "offset": 3118
     },
     "Fissure",
-    "Earthen Spear",
-    {
-      "name": "Flame Barrage",
-      "offset": 68
-    },
-    {
-      "name": "Air Attunement",
-      "offset": 216
-    }
+    "Earthen Spear"
   ]
 }

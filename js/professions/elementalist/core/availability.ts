@@ -115,7 +115,7 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
     }
   }
 
-  const aura = AURA_TRANSMUTE_SKILLS[skill.name];
+  const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
   if (aura && !activeAura(state, aura, context.start)) {
     return unavailable(skill, 'elementalist.aura-transmute', `requires an active ${aura}.`);
   }
@@ -147,9 +147,8 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
     }
   }
 
-  const hammerElements = HAMMER_ORB_SKILLS[skill.name]
-    ? [HAMMER_ORB_SKILLS[skill.name]]
-    : HAMMER_DUAL_ORB_SKILLS[skill.name];
+  const skillId = Number(skill.id);
+  const hammerElements = HAMMER_ORB_SKILLS[skillId] ? [HAMMER_ORB_SKILLS[skillId]] : HAMMER_DUAL_ORB_SKILLS[skillId];
   if (hammerElements) {
     const retryAt =
       state.hammerOrbLastCastAt + elementalistBalanceValue(context, PROFILE.hammerOrbs, 'initialDelay', 0.48);

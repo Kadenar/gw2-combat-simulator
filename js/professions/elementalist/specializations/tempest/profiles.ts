@@ -49,7 +49,8 @@ export const TEMPEST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     parentId: ID.OVERLOAD_AIR,
     name: 'Overload Air - Lightning Jolt',
     profileKind: 'skill-variant',
-    effects: [{ type: 'strike', coefficient: 2.64, hits: 1 }]
+    // Each affected ally receives one non-critical, unequipped-weapon strike for its next attack.
+    effects: [{ type: 'strike', coefficient: 1.32, hits: 1 }]
   },
   trait(TEMPEST_BALANCE_PROFILE_IDS.galeSong, 'Gale Song', {
     effects: [boon('Protection', 'protection', 1, 3)]

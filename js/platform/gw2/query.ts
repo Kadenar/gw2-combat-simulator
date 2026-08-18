@@ -394,7 +394,8 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       Number.isFinite(Number(event.summonBasePower))
     ) {
       const inheritCriticalAttributes = event.summonInheritsCriticalAttributes === true;
-      const summonMightStacks = summonMightStacksAt(time, runtime, event);
+      // Fixed-damage summon skills can still receive Fury while opting out of Might's attribute scaling.
+      const summonMightStacks = event.summonUsesMight === false ? 0 : summonMightStacksAt(time, runtime, event);
       return {
         ...stats,
         power: Number(event.summonBasePower) + summonMightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK,

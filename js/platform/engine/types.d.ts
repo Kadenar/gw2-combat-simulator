@@ -822,6 +822,8 @@ export interface ProfessionStartControl {
 export interface PaletteSkillAvailability {
   readonly available: boolean;
   readonly message: string;
+  /** Absolute simulator time in seconds when a temporary context lockout ends. */
+  readonly retryAt?: number | null;
 }
 
 /**

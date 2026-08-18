@@ -315,6 +315,8 @@ function warningList(
         .filter(
           (action) =>
             action.inference != null &&
+            action.inference !== 'elementalist-aura' &&
+            action.inference !== 'elementalist-blinding-flash' &&
             action.control == null &&
             !(action.inference === 'initial-kit' && action.skill?.handlerId === 'engineer.kit-stow')
         )
@@ -327,6 +329,20 @@ function warningList(
         ? recoveredSetup[0]
         : `${recoveredSetup.slice(0, -1).join(', ')} and ${recoveredSetup.at(-1)}`;
     warnings.push(`Recovered setup: added the missing ${setup} from dependent casts.`);
+  }
+  const recoveredReportEvidence = [
+    ...new Set(
+      resolved
+        .filter(
+          (action) => action.inference === 'elementalist-aura' || action.inference === 'elementalist-blinding-flash'
+        )
+        .map((action) => action.name)
+    )
+  ];
+  if (recoveredReportEvidence.length) {
+    warnings.push(
+      `Recovered report evidence: added missing ${recoveredReportEvidence.join(', ')} casts from buff and condition transitions.`
+    );
   }
   if (unsupported.length) {
     warnings.push(
@@ -391,6 +407,8 @@ export function reconstructDpsReportWithProfile(
   const recorded = recordedActions(report, player, phase);
   const professionActions = reconstructDpsReportProfessionActions({
     report,
+    player,
+    phase,
     profile,
     catalog,
     recordedActions: recorded.actions,

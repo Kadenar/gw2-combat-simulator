@@ -1,3 +1,24 @@
+/**
+ * Summoned-elemental subsystem for Glyph of Elementals (Fire / Earth).
+ *
+ * An elemental is a scheduler-driven autonomous companion. Once summoned it runs
+ * its own attack loop off three scheduler tasks:
+ *   - AI task     — decides and starts the next attack, then reschedules itself.
+ *   - IMPACT task — lands the damage/conditions/boons for a started attack.
+ *   - EXPIRE task — tears the elemental down at end of lifetime.
+ *
+ * Generation counters guard against stale scheduled tasks:
+ *   - summonGeneration bumps every time a new elemental is summoned; tasks from a
+ *     previous summon are ignored (and the previous owner's tasks are cancelled).
+ *   - actionGeneration bumps every time a new action starts; impacts/AI ticks from
+ *     an interrupted or superseded action are ignored.
+ *
+ * Fire loop:  Fireball (auto) / Flame Burst (secondary, off cooldown) / Flame Barrage (player command).
+ * Earth loop: Punch (auto) / Enervating Punch (secondary, off cooldown) / Stomp (player command).
+ *
+ * Auto-summon: when enabled and a glyph is slotted, the elemental is re-summoned on
+ * combat start (or first offensive event) without an explicit cast in the rotation.
+ */
 import { GW2_ALACRITY_RECHARGE_RATE, gw2BuffActiveForAudience } from '../../../platform/gw2/scheduler/policy.js';
 import type {
   AvailabilityResult,
@@ -13,7 +34,11 @@ import type {
   ElementalistSchedulerContext
 } from '../types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '../data/ids.js';
-import { EARTH_ELEMENTAL_EVTC_PROFILE, FIRE_ELEMENTAL_EVTC_PROFILE } from './elemental-profile.js';
+import {
+  EARTH_ELEMENTAL_EVTC_PROFILE,
+  ELEMENTAL_LIGHTNING_JOLT_PROFILE,
+  FIRE_ELEMENTAL_EVTC_PROFILE
+} from './elemental-profile.js';
 import { elementalistCoreState } from './state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceValue } from './profiles.js';
 
@@ -37,11 +62,14 @@ interface ElementalTaskPayload extends SchedulerRecord {
   readonly hitIndex?: number;
 }
 
+// Scheduler task types plus the shared owner id used so a re-summon can cancel all
+// outstanding tasks from the previous elemental in one call (tasks.cancelOwner).
 const ELEMENTAL_AI_TASK = 'elementalist.elemental-ai';
 const ELEMENTAL_IMPACT_TASK = 'elementalist.elemental-impact';
 const ELEMENTAL_EXPIRE_TASK = 'elementalist.elemental-expire';
 const ELEMENTAL_TASK_OWNER = 'elementalist.summoned-elemental';
 
+// Player-commanded flip skills gated on an active elemental of the matching element.
 export const FLAME_BARRAGE_ID = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage.skillId;
 export const STOMP_ID = EARTH_ELEMENTAL_EVTC_PROFILE.stomp.skillId;
 
@@ -58,6 +86,7 @@ function unavailable(reason: string, retryAt?: number): AvailabilityResult {
   };
 }
 
+// Normalizes the loadout's selectedSkills (array or keyed object) into a name set.
 function selectedSkillNames(context: ElementalistSchedulerContext): ReadonlySet<string> {
   const selected = context.config.selectedSkills;
   const values = Array.isArray(selected)
@@ -68,6 +97,8 @@ function selectedSkillNames(context: ElementalistSchedulerContext): ReadonlySet<
   return new Set(values.map(String));
 }
 
+// Which elemental the loadout has slotted (drives auto-summon). Bare "Glyph of
+// Elementals" is treated as the Fire variant.
 function selectedElemental(context: ElementalistSchedulerContext): ElementalKind | null {
   const selected = selectedSkillNames(context);
   if (selected.has('Glyph of Elementals (Earth)')) return 'Earth';
@@ -77,10 +108,12 @@ function selectedElemental(context: ElementalistSchedulerContext): ElementalKind
   return null;
 }
 
+// Auto-summon is opt-out: on unless either config flag is explicitly false.
 function automaticSummoningEnabled(context: ElementalistSchedulerContext): boolean {
   return context.config.autoSummonElemental !== false && context.config.autoSummonFireElemental !== false;
 }
 
+// Maps a cast skill to the elemental it summons (by id or name); null if not a glyph.
 function elementalForGlyph(skill: Skill): ElementalKind | null {
   if (skill.id === ID.GLYPH_OF_ELEMENTALS_EARTH || skill.name === 'Glyph of Elementals (Earth)') {
     return 'Earth';
@@ -98,14 +131,19 @@ function glyphSkillForElement(context: ElementalistSchedulerContext, element: El
   );
 }
 
+// The player-commanded flip skill name for an element (used to tag events as
+// player-commanded vs autonomous and to key availableFlips).
 function commandName(element: ElementalKind): 'Flame Barrage' | 'Stomp' {
   return element === 'Earth' ? 'Stomp' : 'Flame Barrage';
 }
 
+// Stable per-summon actor id so damage/strikes attribute to the right companion.
 function companionId(summonGeneration: number): string {
   return `elementalist-elemental:${summonGeneration}`;
 }
 
+// True if the given summon generation is still the live elemental at time `at`.
+// Guards scheduled tasks against firing for an expired or replaced summon.
 function activeElemental(context: ElementalistSchedulerContext, summonGeneration: number, at: number): boolean {
   const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
   return (
@@ -115,10 +153,12 @@ function activeElemental(context: ElementalistSchedulerContext, summonGeneration
   );
 }
 
+// Quickness speeds up the elemental's animations 50% (divides all timing offsets).
 function actionRate(context: ElementalistSchedulerContext, at: number): number {
   return gw2BuffActiveForAudience(context, 'quickness', at, 'summon') ? 1.5 : 1;
 }
 
+// Alacrity speeds up the secondary-attack cooldown recharge (Flame Burst / Enervating Punch).
 function summonRechargeRate(context: ElementalistSchedulerContext, at: number): number {
   return gw2BuffActiveForAudience(context, 'alacrity', at, 'summon')
     ? Number(context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE)
@@ -141,6 +181,8 @@ function scheduleTask(
   });
 }
 
+// Truncates the elemental's in-flight action event when it is pre-empted (a player
+// command or expiry mid-swing) so the timeline shows the interruption at `at`.
 function interruptCurrentAction(context: ElementalistSchedulerContext, at: number): void {
   const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
   if (!elemental.currentActivationId) return;
@@ -156,6 +198,9 @@ function interruptCurrentAction(context: ElementalistSchedulerContext, at: numbe
   }
 }
 
+// Starts one attack: interrupts any prior action, bumps actionGeneration, emits the
+// 'action' event, and returns the generation + activation id the impact tasks carry
+// so a superseded action's impacts can be discarded.
 function beginSummonAction(
   context: ElementalistSchedulerContext,
   at: number,
@@ -192,6 +237,8 @@ function beginSummonAction(
   };
 }
 
+// Queues an IMPACT task (a single hit landing) stamped with the summon/action
+// generation so it self-cancels if the elemental or action is gone by then.
 function scheduleImpact(
   context: ElementalistSchedulerContext,
   at: number,
@@ -216,6 +263,7 @@ function scheduleImpact(
   );
 }
 
+// Queues the next AI decision tick after the current action's recovery window.
 function scheduleNextAi(context: ElementalistSchedulerContext, at: number, actionGeneration: number): void {
   const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
   elemental.nextActionAt = at;
@@ -225,6 +273,12 @@ function scheduleNextAi(context: ElementalistSchedulerContext, at: number, actio
   });
 }
 
+// --- Attack starters -------------------------------------------------------
+// Each starter follows the same shape: read the EVTC-derived timing profile, scale
+// offsets by the quickness action rate, emit the action, queue its impact(s), mark
+// the elemental busy until recovery ends, then queue the next AI tick.
+
+// Fire auto-attack: single projectile hit.
 function startFireball(context: ElementalistSchedulerContext, at: number): void {
   const profile = FIRE_ELEMENTAL_EVTC_PROFILE.fireball;
   const rate = actionRate(context, at);
@@ -235,6 +289,8 @@ function startFireball(context: ElementalistSchedulerContext, at: number): void 
   scheduleNextAi(context, nextAt, action.actionGeneration);
 }
 
+// Fire secondary: hit + party Might; sets its own cooldown (alacrity-scaled) before
+// it can be chosen again over the Fireball auto.
 function startFlameBurst(context: ElementalistSchedulerContext, at: number): void {
   const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst;
   const rate = actionRate(context, at);
@@ -248,6 +304,8 @@ function startFlameBurst(context: ElementalistSchedulerContext, at: number): voi
   scheduleNextAi(context, nextAt, action.actionGeneration);
 }
 
+// Fire player command (flip skill): three projectiles + a final explosion hit.
+// Recovery is longer on the first-ever command vs subsequent ones (EVTC-observed).
 function startFlameBarrage(context: ElementalistSchedulerContext, at: number): void {
   const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage;
   const rate = actionRate(context, at);
@@ -266,6 +324,7 @@ function startFlameBarrage(context: ElementalistSchedulerContext, at: number): v
   scheduleNextAi(context, nextAt, action.actionGeneration);
 }
 
+// Earth auto-attack: single melee hit.
 function startPunch(context: ElementalistSchedulerContext, at: number): void {
   const profile = EARTH_ELEMENTAL_EVTC_PROFILE.punch;
   const rate = actionRate(context, at);
@@ -276,6 +335,7 @@ function startPunch(context: ElementalistSchedulerContext, at: number): void {
   scheduleNextAi(context, nextAt, action.actionGeneration);
 }
 
+// Earth secondary: hit + Weakness; cooldown-gated (alacrity-scaled) like Flame Burst.
 function startEnervatingPunch(context: ElementalistSchedulerContext, at: number): void {
   const profile = EARTH_ELEMENTAL_EVTC_PROFILE.enervatingPunch;
   const rate = actionRate(context, at);
@@ -289,6 +349,8 @@ function startEnervatingPunch(context: ElementalistSchedulerContext, at: number)
   scheduleNextAi(context, nextAt, action.actionGeneration);
 }
 
+// Earth player command (flip skill): hit + Crippled/Immobilized + party Protection.
+// Same first-vs-subsequent recovery split as Flame Barrage.
 function startStomp(context: ElementalistSchedulerContext, at: number): void {
   const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
   const rate = actionRate(context, at);
@@ -304,6 +366,9 @@ function startStomp(context: ElementalistSchedulerContext, at: number): void {
   scheduleNextAi(context, nextAt, action.actionGeneration);
 }
 
+// Damage metadata marking an elemental strike as independent: it uses the profile's
+// own base attributes (not inherited player stats or profession modifiers) and a
+// fixed 5% crit / 150% crit damage, so its numbers are self-contained.
 function summonStrikeMetadata(element: ElementalKind, summonGeneration: number, baseDamage: number): SchedulerRecord {
   const profile = element === 'Earth' ? EARTH_ELEMENTAL_EVTC_PROFILE : FIRE_ELEMENTAL_EVTC_PROFILE;
   return {
@@ -321,6 +386,9 @@ function summonStrikeMetadata(element: ElementalKind, summonGeneration: number, 
   };
 }
 
+// Emits one damage event for a strike. If a Lightning Jolt copy is armed (see
+// armElementalistElementalLightningJolt), it fires first as a one-shot bonus hit and
+// is consumed. The main strike is tagged autonomous vs player-commanded by name.
 function emitStrike(
   context: ElementalistSchedulerContext,
   task: ScheduledTask<ElementalTaskPayload>,
@@ -328,10 +396,42 @@ function emitStrike(
   skillName: string,
   baseDamage: number,
   hitIndex: number,
-  totalHits: number
+  totalHits: number,
+  coefficient = 1,
+  metadata: SchedulerRecord = {}
 ): void {
   const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
   const element = elemental.element as ElementalKind;
+  const pendingLightningJolt = elemental.pendingLightningJolt;
+  if (pendingLightningJolt) {
+    // Lightning Jolt is an allied one-shot charge, so the elemental consumes its copy on its next strike.
+    elemental.pendingLightningJolt = null;
+    context.emit({
+      type: 'damage',
+      activationId: context.createActivationId('effect'),
+      at: task.at,
+      source: `${element} Elemental`,
+      sourceId: pendingLightningJolt.skillId,
+      actorType: 'summon',
+      skillId: pendingLightningJolt.skillId,
+      skillName: 'Lightning Jolt',
+      name: 'Lightning Jolt',
+      coefficient: pendingLightningJolt.coefficient,
+      hits: 1,
+      noCrit: true,
+      skillWeapon: 'Unequipped',
+      weaponStrengthProfileId: ELEMENTAL_LIGHTNING_JOLT_PROFILE.weaponStrengthProfileId,
+      independentSummonStrike: true,
+      summonInheritsAttributes: false,
+      summonBasePower: ELEMENTAL_LIGHTNING_JOLT_PROFILE.basePower,
+      summonBasePrecision: 1000,
+      summonBaseFerocity: 0,
+      summonUsesMight: false,
+      summonUsesEquipmentModifiers: false,
+      summonUsesProfessionModifiers: false,
+      summonOwner: companionId(Number(task.payload?.summonGeneration || 0))
+    });
+  }
   context.emit({
     type: 'damage',
     activationId: task.payload?.activationId,
@@ -342,23 +442,27 @@ function emitStrike(
     skillId,
     skillName,
     name: skillName,
-    coefficient: 1,
+    coefficient,
     hits: 1,
     hitIndex,
     totalHits,
     autonomousElementalSkill: skillName !== commandName(element),
     playerCommandedElementalSkill: skillName === commandName(element),
-    ...summonStrikeMetadata(element, Number(task.payload?.summonGeneration || 0), baseDamage)
+    ...summonStrikeMetadata(element, Number(task.payload?.summonGeneration || 0), baseDamage),
+    ...metadata
   });
 }
 
+// Elemental-applied conditions are credited to the player (actorType 'player',
+// flagged elementalOwnedCondition) so they benefit from player condition attributes.
 function emitPlayerOwnedCondition(
   context: ElementalistSchedulerContext,
   task: ScheduledTask<ElementalTaskPayload>,
   skillId: number,
   skillName: string,
   condition: string,
-  duration: number
+  duration: number,
+  stacks = 1
 ): void {
   const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
   context.emit({
@@ -372,12 +476,14 @@ function emitPlayerOwnedCondition(
     skillName,
     name: `${skillName} — ${condition}`,
     condition,
-    stacks: 1,
+    stacks,
     duration,
     elementalOwnedCondition: true
   });
 }
 
+// Runs a boon's base duration through the summoning glyph's effect-duration policy
+// (concentration / boon-duration modifiers) so Might/Protection scale with the build.
 function boonDuration(context: ElementalistSchedulerContext, boon: string, duration: number): number {
   const element = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental.element;
   const sourceSkill =
@@ -393,6 +499,7 @@ function boonDuration(context: ElementalistSchedulerContext, boon: string, durat
   return context.schedulerPolicy.effectDuration?.(context, sourceSkill, effect, duration) ?? duration;
 }
 
+// Flame Burst shares Might to the 5-player party.
 function emitFlameBurstMight(context: ElementalistSchedulerContext, task: ScheduledTask<ElementalTaskPayload>): void {
   const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst;
   context.emit({
@@ -413,6 +520,7 @@ function emitFlameBurstMight(context: ElementalistSchedulerContext, task: Schedu
   });
 }
 
+// Stomp shares Protection to the 5-player party.
 function emitStompProtection(context: ElementalistSchedulerContext, task: ScheduledTask<ElementalTaskPayload>): void {
   const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
   context.emit({
@@ -433,6 +541,8 @@ function emitStompProtection(context: ElementalistSchedulerContext, task: Schedu
   });
 }
 
+// IMPACT task handler: lands one hit. Bails if the summon expired/was replaced or the
+// action was superseded, then dispatches per impact kind to emit strike + effects.
 function handleElementalImpactTask(
   context: ElementalistSchedulerContext,
   task: ScheduledTask<ElementalTaskPayload>
@@ -460,22 +570,54 @@ function handleElementalImpactTask(
     return;
   }
   if (payload.impact === 'flame-barrage-projectile') {
+    // 3 projectile hits (hitIndex 1..3 of 4); the first also applies stacked Burning.
+    const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage;
+    const fixedStrikeMetadata = {
+      // Barrage keeps the elemental's fixed damage profile while Fury remains eligible to affect critical hits.
+      summonUsesMight: false,
+      summonUsesEquipmentModifiers: false
+    };
+    emitStrike(
+      context,
+      task,
+      profile.skillId,
+      'Flame Barrage',
+      profile.damagePerCoefficient,
+      Number(payload.hitIndex || 1),
+      4,
+      profile.projectileCoefficient,
+      fixedStrikeMetadata
+    );
+    if (Number(payload.hitIndex || 1) === 1) {
+      emitPlayerOwnedCondition(
+        context,
+        task,
+        profile.skillId,
+        'Flame Barrage',
+        'Burning',
+        profile.burningDuration,
+        profile.burningStacks
+      );
+    }
+    return;
+  }
+  if (payload.impact === 'flame-barrage-explosion') {
+    // Final 4th hit of Flame Barrage with its own explosion coefficient.
     const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage;
     emitStrike(
       context,
       task,
       profile.skillId,
       'Flame Barrage',
-      profile.projectileBaseDamage,
-      Number(payload.hitIndex || 1),
-      4
+      profile.damagePerCoefficient,
+      4,
+      4,
+      profile.explosionCoefficient,
+      {
+        summonUsesMight: false,
+        summonUsesEquipmentModifiers: false
+      }
     );
-    emitPlayerOwnedCondition(context, task, profile.skillId, 'Flame Barrage', 'Burning', profile.burningDuration);
-    return;
-  }
-  if (payload.impact === 'flame-barrage-explosion') {
-    const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage;
-    emitStrike(context, task, profile.skillId, 'Flame Barrage', profile.explosionBaseDamage, 4, 4);
     return;
   }
   if (payload.impact === 'punch') {
@@ -498,6 +640,9 @@ function handleElementalImpactTask(
   }
 }
 
+// AI task handler: picks the next autonomous attack. Prefers the secondary attack
+// (Flame Burst / Enervating Punch) whenever its cooldown is ready, else the auto.
+// Player commands (Flame Barrage / Stomp) are driven by the rotation, not here.
 function handleElementalAiTask(context: ElementalistSchedulerContext, task: ScheduledTask<ElementalTaskPayload>): void {
   const payload = task.payload;
   if (!payload) return;
@@ -522,6 +667,9 @@ function handleElementalAiTask(context: ElementalistSchedulerContext, task: Sche
   }
 }
 
+// EXPIRE task handler: end of lifetime. Interrupts the in-flight action, clears all
+// elemental state, removes the command flip, and puts the glyph on its post-expiry
+// recharge so it can be re-summoned. Ignored if a newer summon already superseded it.
 function handleElementalExpireTask(
   context: ElementalistSchedulerContext,
   task: ScheduledTask<ElementalTaskPayload>
@@ -541,6 +689,7 @@ function handleElementalExpireTask(
   elemental.nextActionAt = 0;
   elemental.secondaryAttackReadyAt = 0;
   elemental.currentActivationId = null;
+  elemental.pendingLightningJolt = null;
   elemental.started = false;
   delete state.availableFlips[commandName(element)];
   const glyph = glyphSkillForElement(context, element);
@@ -560,6 +709,8 @@ function handleElementalExpireTask(
   }
 }
 
+// Kicks off the attack loop after the initial target-acquisition delay. Idempotent
+// via the `started` flag so combat-start and cast paths don't double-start it.
 function startElemental(context: ElementalistSchedulerContext, at: number): void {
   const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
   if (
@@ -584,12 +735,16 @@ function startElemental(context: ElementalistSchedulerContext, at: number): void
   scheduleNextAi(context, at + delay, elemental.actionGeneration);
 }
 
+// Cast-start hook: tags the glyph's action event with which element it summons.
 export function beginElementalistGlyphCast(context: ElementalistLifecycleContext, skill: Skill): void {
   const element = elementalForGlyph(skill);
   if (!element) return;
   context.replaceEvent(context.action, { summonedElement: element });
 }
 
+// Core spawn: cancels the previous elemental's tasks, resets summonedElemental state
+// with a fresh summonGeneration, emits the expiry marker, schedules EXPIRE, and enables
+// the command flip. Optionally starts the attack loop immediately.
 function summonElemental(
   context: ElementalistSchedulerContext,
   skill: Skill,
@@ -611,6 +766,7 @@ function summonElemental(
     nextActionAt: 0,
     secondaryAttackReadyAt: at,
     currentActivationId: null,
+    pendingLightningJolt: null,
     started: false
   };
   const expiresAt = state.summonedElemental.activeUntil;
@@ -628,6 +784,8 @@ function summonElemental(
   if (startImmediately) startElemental(context, at);
 }
 
+// Cast-complete hook: summons the elemental at cast end. Starts immediately unless we
+// are pre-combat waiting on an explicit combat-start event.
 export function completeElementalistGlyphCast(context: ElementalistLifecycleContext, skill: Skill): void {
   const element = elementalForGlyph(skill);
   if (!element) return;
@@ -640,6 +798,7 @@ export function completeElementalistGlyphCast(context: ElementalistLifecycleCont
   );
 }
 
+// Cast-complete hook for the player-commanded flip skills; routes to the right starter.
 export function completeElementalistElementalCommand(context: ElementalistLifecycleContext, skill: Skill): void {
   if (skill.id === FLAME_BARRAGE_ID || skill.name === 'Flame Barrage') {
     startFlameBarrage(context, context.effectiveEnd);
@@ -648,6 +807,28 @@ export function completeElementalistElementalCommand(context: ElementalistLifecy
   }
 }
 
+// Arms a single Lightning Jolt copy (from an allied trait proc) on the active
+// elemental; it rides the elemental's next strike, then is consumed. See emitStrike.
+export function armElementalistElementalLightningJolt(
+  context: ElementalistLifecycleContext,
+  skillId: number,
+  coefficient: number
+): void {
+  const elemental = elementalistCoreState(context as unknown as SchedulerRecord).summonedElemental;
+  if (
+    (elemental.element === 'Fire' || elemental.element === 'Earth') &&
+    elemental.activeUntil > context.effectiveEnd + context.epsilon
+  ) {
+    // Only represented allied actors are armed; unmodeled party members cannot contribute synthetic damage.
+    elemental.pendingLightningJolt = { coefficient, skillId };
+  }
+}
+
+// Event observer driving auto-summon and delayed start. Two triggers:
+//   1) any player action while no elemental is active (and one is slotted) → summon
+//      (without starting), so the companion exists alongside the player's opener;
+//   2) combat start (explicit event, or first offensive event when none is expected)
+//      → summon-and-start if none active, otherwise start the pending elemental.
 export function observeElementalistElementalEvent(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const selected = selectedElemental(context);
@@ -679,6 +860,9 @@ export function observeElementalistElementalEvent(context: ElementalistScheduler
   startElemental(context, event.at);
 }
 
+// Availability gate. Command flips (Flame Barrage / Stomp) are usable when the matching
+// elemental is active — or would be auto-summoned. The glyphs themselves are blocked
+// (returning retryAt) while their elemental is still alive; null for unrelated skills.
 export function elementalistElementalAvailability(
   context: ElementalistCastContext,
   skill: Skill
@@ -708,6 +892,7 @@ export function elementalistElementalAvailability(
     : ready();
 }
 
+// Task-type → handler map consumed by the elementalist scheduler registration.
 export const elementalistElementalTaskHandlers = Object.freeze({
   [ELEMENTAL_AI_TASK]: handleElementalAiTask,
   [ELEMENTAL_IMPACT_TASK]: handleElementalImpactTask,

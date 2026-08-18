@@ -1,4 +1,5 @@
 import { reconstructEngineerDpsReportActions } from './engineer.js';
+import { reconstructElementalistDpsReportActions } from './elementalist.js';
 import { reconstructGuardianDpsReportActions } from './guardian.js';
 import { reconstructRevenantDpsReportActions } from './revenant.js';
 import type {
@@ -8,6 +9,7 @@ import type {
 } from '../types.js';
 
 const reconstructors: ReadonlyMap<string, DpsReportProfessionActionReconstructor> = new Map([
+  ['elementalist', reconstructElementalistDpsReportActions],
   ['engineer', reconstructEngineerDpsReportActions],
   ['guardian', reconstructGuardianDpsReportActions],
   ['revenant', reconstructRevenantDpsReportActions]

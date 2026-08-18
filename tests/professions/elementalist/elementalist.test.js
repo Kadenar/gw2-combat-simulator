@@ -106,7 +106,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
     profile('Core', ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental).patchableFields.durationMultiplier,
     120
   );
-  assert.equal(profile('Tempest', TEMPEST_BALANCE_PROFILE_IDS.lightningJolt).profile.effects[0].coefficient, 2.64);
+  assert.equal(profile('Tempest', TEMPEST_BALANCE_PROFILE_IDS.lightningJolt).profile.effects[0].coefficient, 1.32);
   assert.equal(profile('Weaver', WEAVER_BALANCE_PROFILE_IDS.primordialStance).profile.effects[0].coefficient, 0.33);
   assert.equal(profile('Catalyst', CATALYST_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 30);
   assert.equal(profile('Evoker', EVOKER_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 6);
@@ -137,7 +137,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
         fields: { rechargeMultiplier: { from: 0.85, to: 0.8 } }
       },
       [TEMPEST_BALANCE_PROFILE_IDS.lightningJolt]: {
-        effects: [{ effectIndex: 0, coefficient: { from: 2.64, to: 2.8 } }]
+        effects: [{ effectIndex: 0, coefficient: { from: 1.32, to: 1.4 } }]
       },
       [WEAVER_BALANCE_PROFILE_IDS.primordialStance]: {
         effects: [{ effectIndex: 0, coefficient: { from: 0.33, to: 0.4 } }]
@@ -153,7 +153,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
 
   assert.equal(preview.skillsById.get(ID.OVERLOAD_AIR).cooldown, 18);
   assert.equal(preview.balanceProfilesById.get(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources).recharge, 9);
-  assert.equal(preview.balanceProfilesById.get(TEMPEST_BALANCE_PROFILE_IDS.lightningJolt).effects[0].coefficient, 2.8);
+  assert.equal(preview.balanceProfilesById.get(TEMPEST_BALANCE_PROFILE_IDS.lightningJolt).effects[0].coefficient, 1.4);
   assert.equal(
     preview.balanceProfilesById.get(WEAVER_BALANCE_PROFILE_IDS.primordialStance).effects[0].coefficient,
     0.4
@@ -188,7 +188,8 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
     elementalistCatalog.balanceProfilesById.get(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources).recharge,
     10
   );
-  assert.equal(FIRE_ELEMENTAL_EVTC_PROFILE.fireball.baseDamage, 995);
+  assert.equal(FIRE_ELEMENTAL_EVTC_PROFILE.fireball.baseDamage, 830);
+  assert.equal(FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst.baseDamage, 1150);
   assert.equal(
     [...elementalistCatalog.balanceProfilesById.values()].some(
       (entry) => entry.parentId === ID.FIRE_ELEMENTAL_FIREBALL

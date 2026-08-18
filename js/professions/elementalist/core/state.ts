@@ -13,6 +13,10 @@ export const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', '
 
 export type ElementalistAttunement = (typeof ELEMENTALIST_ATTUNEMENTS)[number];
 
+// A negative entry time makes the configured starting attunement pre-dwelled
+// while preserving time zero as a real attunement-entry timestamp.
+export const PRE_DWELLED_ATTUNEMENT_ENTERED_AT = -999999;
+
 export interface ElementalistAuraState {
   type: string;
   appliedAt: number;
@@ -29,6 +33,7 @@ export interface ElementalistSummonedElementalState {
   nextActionAt: number;
   secondaryAttackReadyAt: number;
   currentActivationId: string | null;
+  pendingLightningJolt: { coefficient: number; skillId: number } | null;
   started: boolean;
 }
 
@@ -99,7 +104,7 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
   return {
     primaryAttunement: primary,
     secondaryAttunement: null,
-    attunementEnteredAt: 0,
+    attunementEnteredAt: PRE_DWELLED_ATTUNEMENT_ENTERED_AT,
     attunementReadyAt: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
     autoattackChains: {},
     autoattackCarryover: null,
@@ -152,6 +157,7 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
       nextActionAt: 0,
       secondaryAttackReadyAt: 0,
       currentActivationId: null,
+      pendingLightningJolt: null,
       started: false
     },
     procReadyAt: {},
@@ -200,6 +206,7 @@ export function resetElementalistAttunementCooldowns(context: ElementalistSchedu
 export const ELEMENTALIST_PUBLIC_END_STATE_KEYS = Object.freeze([
   'primaryAttunement',
   'secondaryAttunement',
+  'attunementEnteredAt',
   'attunementReadyAt',
   'autoattackChains',
   'autoattackCarryover',
@@ -246,6 +253,7 @@ export const ELEMENTALIST_PUBLIC_END_STATE_KEYS = Object.freeze([
 const ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<SchedulerRecord> = Object.freeze({
   primaryAttunement: 'Fire',
   secondaryAttunement: null,
+  attunementEnteredAt: PRE_DWELLED_ATTUNEMENT_ENTERED_AT,
   attunementReadyAt: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
   autoattackChains: {},
   autoattackCarryover: null,
@@ -279,6 +287,7 @@ const ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<SchedulerRecord> = O
     nextActionAt: 0,
     secondaryAttackReadyAt: 0,
     currentActivationId: null,
+    pendingLightningJolt: null,
     started: false
   },
   unravelUntil: 0,
