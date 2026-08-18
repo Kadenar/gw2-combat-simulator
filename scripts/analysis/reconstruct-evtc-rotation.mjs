@@ -1,3 +1,18 @@
+/**
+ * Reconstructs a simulator-format rotation from a raw EVTC combat log.
+ *
+ * Parses the log, detects the recorded players, and picks the acting player (or the
+ * one named by `--player=`). It then maps that player's animation activations, state
+ * changes, and instant-skill effects onto the profession catalog to produce a
+ * rotation the simulator can replay, printed as JSON with metadata and warnings.
+ *
+ * Requires a prior `npm run build:modules` for the compiled `dist/js` modules.
+ *
+ * Usage: node scripts/analysis/reconstruct-evtc-rotation.mjs <fight.evtc|.evtc.zip|.zevtc>
+ *   [--player=<hex-address>]   Disambiguate when several players are recorded.
+ *   [--timeline]               Include the intermediate reconstructed actions.
+ *   [--no-instant-inference]   Skip inference of instant (untimed) casts.
+ */
 import { readFile } from 'node:fs/promises';
 
 import '../testing/register-dist-loader.mjs';

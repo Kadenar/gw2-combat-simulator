@@ -13,6 +13,10 @@ Combat log analyzers:
 
 - `node scripts/analysis/analyze-evtc.mjs <fight.evtc|fight.zevtc>` reads a
   local ArcDPS log.
+- `npm run build:modules && node scripts/analysis/reconstruct-dps-report-rotation.mjs
+  <dps.report URL>` reconstructs simulator commands from the public Elite
+  Insights JSON. Add `--build=<build.json>` when polymorphic skill choices must
+  match a saved build.
 - `node scripts/analysis/analyze-dps-report.mjs <report.html|dps.report URL>`
   reads the Elite Insights data embedded in a saved or remote report. Add
   `--summary`, `--player=<index|name|account>`, or `--phase=<index|name>` to

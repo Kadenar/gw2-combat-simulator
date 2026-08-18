@@ -3,7 +3,7 @@ import type {
   ElementalistCastContext as ElementalistLifecycleContext,
   ElementalistPrecastContext as ElementalistCastContext
 } from '../types.js';
-import { AUTOATTACK_CHAIN_PRESERVING_SKILLS } from './constants.js';
+import { AUTOATTACK_CHAIN_PRESERVING_SKILL_IDS } from './constants.js';
 import type { ElementalistAttunement, ElementalistCoreState } from './state.js';
 
 function ready(): AvailabilityResult {
@@ -149,7 +149,7 @@ export function updateAutoattackChainState(
     }
     return;
   }
-  if (Number(skill.castTimeMs || 0) > 0 && !AUTOATTACK_CHAIN_PRESERVING_SKILLS.has(skill.name)) {
+  if (Number(skill.castTimeMs || 0) > 0 && !AUTOATTACK_CHAIN_PRESERVING_SKILL_IDS.has(Number(skill.id))) {
     state.autoattackChains = {};
     state.autoattackCarryover = null;
     state.pendingAutoattackCarryover = null;

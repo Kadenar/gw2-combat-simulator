@@ -1,3 +1,19 @@
+/**
+ * Parses a raw arcdps EVTC combat log and prints its contents as JSON.
+ *
+ * Decompresses the input (plain `.evtc`, `.zevtc`, or zipped), parses it with the
+ * project's EVTC parser, and emits the log header, the player agents, and — unless
+ * `--summary` is given — every agent and skill. Optional `--debug-*` filters pull
+ * matching combat events into a `debugEvents` array for troubleshooting.
+ *
+ * Requires a prior `npm run build` so the compiled `dist/js/evtc-analyzer` exists.
+ *
+ * Usage: node scripts/analysis/analyze-evtc.mjs <fight.evtc|.evtc.zip|.zevtc>
+ *   [--summary]                Emit only header + players.
+ *   [--debug-skill=<ids>]      Comma-separated skill ids to include as events.
+ *   [--debug-name=<fragment>]  Skill-name substring to include as events.
+ *   [--debug-state=<ids>]      Comma-separated state-change ids to include.
+ */
 import { readFile } from 'node:fs/promises';
 
 import { decompressEvtcInput } from '../../dist/js/evtc-analyzer/decompression.js';

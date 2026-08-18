@@ -1,3 +1,19 @@
+/**
+ * Runs the deterministic simulator over every rotation-backed manifest preset and
+ * prints the resulting benchmark metrics as JSON.
+ *
+ * For each requested profession it loads the build manifest, simulates each preset
+ * that has a rotation through the profession's app adapter, and records duration,
+ * DPS, total/strike/condition damage, the final damaging packet, and any warnings.
+ * The output is a stable baseline that other tooling diffs against (see
+ * render-supported-build-metrics-report.mjs).
+ *
+ * Also exported as `captureSupportedBuildMetrics(professions?)` for reuse without
+ * spawning the CLI. When run directly, positional args pick professions; with none
+ * it captures all of DEFAULT_PROFESSIONS.
+ *
+ * Usage: node scripts/analysis/capture-supported-build-metrics.mjs [profession...]
+ */
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
