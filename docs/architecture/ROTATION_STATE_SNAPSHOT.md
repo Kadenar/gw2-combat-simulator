@@ -14,7 +14,7 @@ profession/spec timers (Berserk, Overcharged Cartridges), and target debuffs
 There are two kinds of items:
 
 - **Generic** (profession-neutral) — computed in the app layer. Today: critical
-  strike chance. See [state-snapshot-view.ts](../js/app/rotation/state-snapshot-view.ts).
+  strike chance. See [state-snapshot-view.ts](../../js/app/rotation/state-snapshot-view.ts).
 - **Profession-specific** — contributed by the active specialization through the
   `ui.rotationStateSnapshot` hook.
 
@@ -27,7 +27,7 @@ no extra simulation is run.
 ## The hook
 
 ```ts
-// platform/engine/types.d.ts
+// js/platform/engine/types.d.ts
 interface RotationStateSnapshotItem {
   readonly id: string;      // unique across the merged set for the active spec
   readonly label: string;   // e.g. "Berserk"
@@ -44,7 +44,7 @@ interface ProfessionUiContract {
 ```
 
 The app calls the hook with this context (see `snapshotItems` in
-[state-snapshot-view.ts](../js/app/rotation/state-snapshot-view.ts)):
+[state-snapshot-view.ts](../../js/app/rotation/state-snapshot-view.ts)):
 
 | field            | meaning                                                        |
 | ---------------- | ------------------------------------------------------------- |
@@ -56,7 +56,7 @@ The app calls the hook with this context (see `snapshotItems` in
 
 Composition is automatic. `rotationStateSnapshot` is registered in both
 `UI_CALLBACK_NAMES` and `UI_LIST_CALLBACK_NAMES` in
-[profession.ts](../js/platform/engine/profession.ts), so for a given build the
+[profession.ts](../../js/platform/engine/profession.ts), so for a given build the
 engine **concatenates** the items from `[core, activeSpecialization, family]`
 and de-duplicates by `id`. A profession that never implements the hook simply
 shows the generic items.
@@ -70,14 +70,14 @@ Example: add a spec timer to a warrior specialization.
 1. **Make sure the value is exposed in `endState.profession`.**
    The projected end state is a **whitelist**, not the whole state object. For
    warrior that is `WARRIOR_PUBLIC_END_STATE_KEYS` in
-   [core/state.ts](../js/professions/warrior/core/state.ts) — add the field name
+   [core/state.ts](../../js/professions/warrior/core/state.ts) — add the field name
    (and a sane entry in `INACTIVE_DEFAULTS`). Other professions have the same
    pattern (e.g. `REVENANT_PUBLIC_END_STATE_KEYS`). Skip this step only if the
    value is already listed.
 
 2. **Emit the item from the spec's UI slice.** Add/extend `rotationStateSnapshot`
    in the spec `ui.ts` (e.g.
-   [berserker/ui.ts](../js/professions/warrior/specializations/berserker/ui.ts)):
+   [berserker/ui.ts](../../js/professions/warrior/specializations/berserker/ui.ts)):
 
    ```ts
    rotationStateSnapshot: (context: WarriorUiContext) => {
@@ -106,8 +106,8 @@ That's it — no HTML/CSS changes, no wiring. The bar picks it up.
 - **Unique `id`.** Duplicate ids across the merged set throw at compose time.
 - **Stacks/windows** — count array entries with `expiry > atSeconds` (Attacker's
   Insight), or find the window containing `atSeconds` (Overcharged Cartridges).
-  See [spellbreaker/ui.ts](../js/professions/warrior/specializations/spellbreaker/ui.ts)
-  and [bladesworn/ui.ts](../js/professions/warrior/specializations/bladesworn/ui.ts).
+  See [spellbreaker/ui.ts](../../js/professions/warrior/specializations/spellbreaker/ui.ts)
+  and [bladesworn/ui.ts](../../js/professions/warrior/specializations/bladesworn/ui.ts).
 
 ---
 
@@ -136,5 +136,5 @@ Pick the tier that matches the value you want:
 | Timed self-buffs / boon stacks   | `result.events` (type `buff`) intervals — not yet surfaced             |
 
 The last two rows are the natural next extensions: add a generic helper in
-[state-snapshot-view.ts](../js/app/rotation/state-snapshot-view.ts) that reads
+[state-snapshot-view.ts](../../js/app/rotation/state-snapshot-view.ts) that reads
 `result` at `timeMs`, mirroring `criticalChanceAt`.

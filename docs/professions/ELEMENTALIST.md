@@ -1,106 +1,48 @@
 # Elementalist
 
-Elementalist is a native shared-engine profession. The retired standalone
-implementation has been removed; reproducible parity audits use the ignored
-upstream clone in `reference-repos/Elementalist-Simulator/`.
+Native shared-engine profession. Entry point `elementalist.html`.
+`definition.ts` exports the profession contract; `family.ts` composes Core with
+one of Tempest, Weaver, Catalyst, or Evoker. Core owns skills, attunements,
+rules, state, and UI; each specialization owns its behavior under
+`specializations/<name>/`. The shared engine owns scheduling, event processing,
+GW2 formulas, equipment, conditions, and generic UI composition.
 
-## Entry points
+## Data
 
-- `elementalist.html` boots the shared application shell.
-- `js/professions/elementalist/definition.ts` exports the profession contract.
-- `js/professions/elementalist/app/app-definition.ts` supplies the browser
-  adapter, assumptions, result views, and persistence boundary.
-- `js/professions/elementalist/catalog.ts` builds the canonical skill catalog.
-- `js/professions/elementalist/build.ts` owns canonical build defaults and
-  migration.
+- API identity snapshot: 2026-08-12 (official GW2 API).
+- Refresh: `npm run update:elementalist-data`.
+- Generated API/trait/coverage metadata lives in `data/`; simulation-affecting
+  fields live in owner-local modules. Runtime simulation is network-free.
 
-## Profession layout
+## Implemented systems
 
-```text
-js/professions/elementalist/
-  app/                    shared-shell adapter
-  core/                   core skills, attunements, rules, state, and UI
-  data/                   generated API, trait, coverage, and ID metadata
-  mechanics/              catalog mechanics metadata
-  specializations/
-    tempest/              overload and Tempest behavior
-    weaver/               dual attunement and Weaver behavior
-    catalyst/             energy, spheres, empowerment, and Catalyst behavior
-    evoker/               familiars, charges, and Evoker behavior
-  assumptions.ts          Elementalist-only simulation assumptions
-  build.ts                canonical build codec
-  build-attributes.ts     profession attribute contributions
-  catalog-data.ts         inert generated metadata and module catalog options
-  definition.ts           profession contract
-  family.ts               shared-engine family definition
-  modules.ts              core/specialization module composition
-  types.d.ts              Elementalist state and configuration contracts
-```
+- **Core** — attunements, weapon skills, shared rules/state, and profession
+  attribute contributions.
+- **Tempest** — overload behavior.
+- **Weaver** — dual attunement behavior.
+- **Catalyst** — energy, spheres, and empowerment.
+- **Evoker** — familiars, charges, and Calcify commands.
+- **Summoned elemental** — the elite selector exposes Fire and Earth variants of
+  Glyph of Elementals; the chosen actor is created automatically on first
+  action, uses its autonomous attacks, exposes a rotation command (Flame Barrage
+  / Stomp), inherits party boons, expires after 120s, and recharges its glyph.
 
-The shared engine owns scheduling, generic event processing, common Guild Wars
-2 formulas, equipment, conditions, and generic UI composition. Elementalist
-owns only profession-specific state, rules, resolver extensions, and views.
-
-## Presets and rotations
-
-`Builds/elementalist/manifest.json` is the supported preset inventory. Each
-entry points to a build in `Builds/elementalist/` and a rotation in
-`Rotations/elementalist/`. Tests reject missing or orphaned supported assets and
-load every retained preset through the native build codec. Presets are stored
-directly in the canonical versioned build schema used by the shared shell.
+`Builds/elementalist/manifest.json` is the supported preset inventory; tests
+reject missing/orphaned assets and load every preset through the native codec.
 
 ## Reference audit
 
 The audit baseline is the upstream repository at
-`reference-repos/Elementalist-Simulator/`. It is intentionally retained and
-ignored by Git for future audits. The reference is never imported by the
-production application.
+`reference-repos/Elementalist-Simulator/` (retained, Git-ignored, never
+imported by the app). After `npm run build:modules`, the
+`scripts/audit/compare-*-reference.mjs` scripts check 39 upstream fixtures
+(13 Tempest, 11 Catalyst, 5 Weaver, 10 Evoker) against a 1.2% DPS actionable
+threshold, plus warnings, timelines, mechanics, and per-ability components.
+Diagnosed limitations are documented in the `ELEMENTALIST-*` and `*-AUDIT` /
+`*-HANDOFF` markdown files at the repo root.
 
-After building modules, run:
+## Modeling boundaries
 
-```powershell
-npm run build:modules
-node --import ./scripts/testing/register-dist-loader.mjs scripts/audit/compare-power-tempest-reference.mjs --check-actionable --summary
-node --import ./scripts/testing/register-dist-loader.mjs scripts/audit/compare-catalyst-reference.mjs --check-actionable --summary
-node --import ./scripts/testing/register-dist-loader.mjs scripts/audit/compare-weaver-reference.mjs --check-actionable --summary
-node --import ./scripts/testing/register-dist-loader.mjs scripts/audit/compare-evoker-reference.mjs --check-actionable --summary
-```
-
-The suite covers 39 upstream fixtures: 13 Tempest, 11 Catalyst, five Weaver,
-and 10 Evoker. The actionable aggregate threshold is 1.2% DPS. It also checks
-warnings, timelines, mechanics, per-ability strike and condition components,
-casts, hits, condition applications, effective stack-seconds, and rejects
-unclassified differences.
-
-Current results and diagnosed shared-engine limitations are documented in:
-
-- `ELEMENTALIST-NATIVE-MIGRATION-AUDIT.md`
-- `ELEMENTALIST-NATIVE-ELEMENTAL-AUDIT.md`
-- `POWER-TEMPEST-REFERENCE-AUDIT.md`
-- `ELEMENTALIST-CATALYST-PARITY-HANDOFF.md`
-- `ELEMENTALIST-WEAVER-PARITY-HANDOFF.md`
-- `ELEMENTALIST-EVOKER-PARITY-HANDOFF.md`
-
-## Summoned elemental
-
-The elite skill selector exposes separate Fire and Earth variants of Glyph of
-Elementals. The simulation reads that selection and automatically creates the
-chosen actor on the first player action or explicit combat marker; rotations
-do not cast the summon themselves.
-
-Fire Elemental autonomously uses Fireball and Flame Burst and exposes Flame
-Barrage as its rotation command. Earth Elemental autonomously uses Punch and
-Enervating Punch, which applies three seconds of Weakness on an eight-second
-recharge, and exposes Stomp as its rotation command. Stomp deals summon strike
-damage, grants three seconds of Protection to allies, applies five seconds of
-Crippled, and applies one second of Immobilized. Both actors use the shared
-summon scheduler, inherit eligible party boons, interrupt
-their current action when commanded, expire after 120 seconds, and put their
-selected glyph on the post-expiry recharge.
-
-The EVTC importer reconstructs Elementalist attunement changes, maps the raw
-Firestorm and Lightning Storm IDs to their attunement-specific Glyph of Storms
-skills, recovers Fire Elemental Flame Barrage and Earth Elemental Stomp
-commands from their owned actors, and recovers Evoker Calcify commands from
-the familiar actor. Air and Ice Elemental AI remain unsupported pending
-combat-log evidence.
+Single-target, outgoing-damage focused. Air and Ice Elemental AI remain
+unsupported pending combat-log evidence. Ally support, incoming attacks,
+pathing, secondary targets, and competitive (PvP/WvW) splits are out of model.
