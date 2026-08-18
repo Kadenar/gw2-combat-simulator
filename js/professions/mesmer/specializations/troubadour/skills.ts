@@ -161,7 +161,9 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     weapon: "",
     specialization: "Troubadour",
     environment: "Terrestrial",
-    quicknessCastTimeMs: 480,
+    // Harp's measured two-second Quickness channel derives its three-second base cast.
+    quicknessCastTimeMs: 2000,
+    paletteInterruptMs: 480,
     cooldown: 25,
     phantasm: false,
     resource: null,
@@ -250,7 +252,9 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     weapon: "",
     specialization: "Troubadour",
     environment: "Terrestrial",
-    quicknessCastTimeMs: 480,
+    // Keep the duplicate Harp profile aligned with the same interruptible channel contract.
+    quicknessCastTimeMs: 2000,
+    paletteInterruptMs: 480,
     cooldown: 25,
     phantasm: false,
     resource: null,

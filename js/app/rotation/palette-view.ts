@@ -173,10 +173,15 @@ function currentCooldown(
 
 function currentAmmo(
   app: ProfessionAppState,
-  name: string,
+  skill: Skill,
 ): SchedulerRecord | null {
   const endState = paletteEndState(app);
-  const rawAmmo = endState?.ammo?.[name];
+  const ammoBySkillId = endState?.ammoBySkillId;
+  // Prefer exact IDs so duplicate API names cannot leak another variant's ammo into this skill.
+  const rawAmmo =
+    ammoBySkillId && typeof ammoBySkillId === "object"
+      ? ammoBySkillId[String(skill.id)]
+      : endState?.ammo?.[skill.name];
   if (!rawAmmo || typeof rawAmmo !== "object") return null;
   const ammo = rawAmmo as SchedulerRecord;
   if (ammo.remaining != null) return ammo;
@@ -243,7 +248,7 @@ export function paletteSkillView(
 ): PaletteSkillView {
   const displayName = skill.displayName || skill.name;
   const cd = currentCooldown(app, skill.name);
-  const ammo = currentAmmo(app, skill.name);
+  const ammo = currentAmmo(app, skill);
   const maximumAmmo = ammo?.maximum ?? Number(skill.ammo || 0);
   const recharge =
     maximumAmmo && Number(skill.ammoRecharge || 0) > 0

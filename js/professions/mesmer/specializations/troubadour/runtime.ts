@@ -28,7 +28,8 @@ export function initializeTroubadourRuntime(
 ): void {
   const syncopateProfile = mesmerBalanceProfile(context, PROFILE.syncopate);
   const delayedWave = mesmerBalanceProfileEffect(syncopateProfile, "strike", 1);
-  applyMesmerRuntimeManifest(mesmerRuntimeFor(context), {
+  const runtime = mesmerRuntimeFor(context);
+  applyMesmerRuntimeManifest(runtime, {
     shatters: MESMER_TROUBADOUR_SHATTERS,
     instruments: Object.fromEntries(
       Object.entries(MESMER_TROUBADOUR_INSTRUMENTS).map(
@@ -67,4 +68,10 @@ export function initializeTroubadourRuntime(
     aristocracySkills: MESMER_TROUBADOUR_ARISTOCRACY_SKILLS,
     peithaSkills: MESMER_TROUBADOUR_PEITHA_SKILLS,
   });
+  // Initialize trait-added instrument ammo after the Troubadour manifest makes slot identities available.
+  for (const skill of context.catalog.skills) {
+    if (context.maximumAmmoFor(skill) > 0) {
+      context.cooldownController.ensureAmmo(skill, 0);
+    }
+  }
 }

@@ -1656,7 +1656,14 @@ test("Mesmer production simulation is reached through simulateGw2", () => {
   assert.ok(canonical.totalDamage > 0);
   assert.deepEqual(
     Object.keys(canonical.endState).sort(),
-    ["activeWeaponSet", "ammo", "cooldowns", "profession", "time"].sort(),
+    [
+      "activeWeaponSet",
+      "ammo",
+      "ammoBySkillId",
+      "cooldowns",
+      "profession",
+      "time",
+    ].sort(),
   );
   assert.equal(canonical.endState.profession.resource, 5);
 });
