@@ -83,8 +83,8 @@
         "label": "Power (Hammer)",
         "build": "Builds/elementalist/b-power-tempest-hammer.json",
         "rotation": "Rotations/elementalist/r-power-tempest-hammer.json",
-        "dpsReportUrl": "https://dps.report/HMiL-20260414-202734_golem",
-        "benchmarkDps": 39949,
+        "dpsReportUrl": "https://dps.report/Etlc-20260716-205102_golem",
+        "benchmarkDps": 42225,
         "upToDate": true
       },
       {
