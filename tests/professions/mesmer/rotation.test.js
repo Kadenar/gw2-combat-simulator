@@ -27,6 +27,7 @@ import {
   skillBreakdownRows,
 } from "../../../js/app/rotation/result-model.js";
 import { activeResourceGroup } from "../../../js/app/rotation/resource-view.js";
+import { paletteSkillView } from "../../../js/app/rotation/palette-view.js";
 import {
   continuumEndTimelineMarkers,
   shatterResourceSpends,
@@ -5396,11 +5397,36 @@ test("Troubadour skills use measured Quickness cast times", () => {
 
   assert.deepEqual(
     result.steps.map((step) => step.end - step.start),
-    [560, 560, 1000, 480, 640, 400, 680],
+    [560, 560, 1000, 2000, 640, 400, 680],
   );
 });
 
-test("ordinary Lively Lute has one charge unless Shatter Storm is selected", () => {
+test("Harmonious Harp has a two-second Quickness channel that commits when interrupted", () => {
+  const config = defaultSimulationConfig({
+    specialization: "Troubadour",
+    initialResource: 3,
+    boons: { quickness: false },
+  });
+  const full = simulateMesmer(["Harmonious Harp"], config);
+  const interrupted = simulateMesmer(
+    [{ name: "Harmonious Harp", interruptMs: 480 }],
+    config,
+  );
+
+  assert.equal(full.steps[0].end - full.steps[0].start, 3000);
+  assert.equal(interrupted.steps[0].fullCastMs, 3000);
+  assert.equal(interrupted.steps[0].end - interrupted.steps[0].start, 480);
+  assert.equal(interrupted.steps[0].interrupted, true);
+  assert.equal(interrupted.endState.profession.resource, 0);
+  assert.ok(
+    interrupted.events.some(
+      (event) =>
+        event.type === "mesmer.instrument" && event.instrument === "Harp",
+    ),
+  );
+});
+
+test("Shatter Storm gives Lively Lute a second charge without a full cooldown", () => {
   const config = (selectedTraits) =>
     defaultSimulationConfig({
       specialization: "Troubadour",
@@ -5412,9 +5438,40 @@ test("ordinary Lively Lute has one charge unless Shatter Storm is selected", () 
     ["Lively Lute", "Lively Lute"],
     config(["Shatter Storm"]),
   );
+  const shatterStormAfterOne = simulateMesmer(
+    ["Lively Lute"],
+    config(["Shatter Storm"]),
+  );
+  const shatterStormBeforeUse = simulateMesmer([], config(["Shatter Storm"]));
+  const livelyLute = mesmerCatalog.skillsById.get(ID.LIVELY_LUTE);
+  const paletteApp = (results) => ({
+    build: { rotation: [] },
+    results,
+  });
 
-  assert.ok(ordinary.steps[1].start > 9000);
-  assert.equal(shatterStorm.steps[1].start, 560);
+  assert.equal(ordinary.steps[1].start, 10160);
+  assert.equal(shatterStorm.steps[1].start, shatterStorm.steps[0].end);
+  assert.equal(paletteSkillView(paletteApp(ordinary), livelyLute).ammo, null);
+  assert.deepEqual(
+    paletteSkillView(paletteApp(shatterStormBeforeUse), livelyLute).ammo,
+    {
+      current: 2,
+      maximum: 2,
+      available: true,
+      label: "2/2 ammo",
+      pips: [true, true],
+    },
+  );
+  assert.deepEqual(
+    paletteSkillView(paletteApp(shatterStormAfterOne), livelyLute).ammo,
+    {
+      current: 1,
+      maximum: 2,
+      available: true,
+      label: "1/2 ammo",
+      pips: [true, false],
+    },
+  );
 });
 
 test("Tortured Mastermind follows its four-hit condition timeline", () => {

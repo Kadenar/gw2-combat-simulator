@@ -997,6 +997,8 @@ export interface Gw2SimulationEndState {
     Record<string, { readyAt: number; remaining: number }>
   >;
   readonly ammo: Readonly<Record<string, unknown>>;
+  /** ID-keyed ammo avoids collisions between distinct skills sharing a display name. */
+  readonly ammoBySkillId: Readonly<Record<string, unknown>>;
   readonly activeWeaponSet: number;
   readonly profession: unknown;
 }

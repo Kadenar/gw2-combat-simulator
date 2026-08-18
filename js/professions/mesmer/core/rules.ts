@@ -658,10 +658,20 @@ function completeMesmerSkill(
         Number(details.shatterSpent || 0),
       );
     } else if (runtime.instruments[skill.id]) {
-      runtime.actions.handleInstrument(skill, at, context.start, {
-        sourceSkill: skill.name,
-        rotationIndex: context.commandIndex,
-      });
+      // Harp commits at the chosen interrupt point so cancelling its long channel still plays it.
+      const instrumentCommitAt =
+        interrupted && runtime.instruments[skill.id]?.instrument === "Harp"
+          ? context.effectiveEnd
+          : at;
+      runtime.actions.handleInstrument(
+        skill,
+        instrumentCommitAt,
+        context.start,
+        {
+          sourceSkill: skill.name,
+          rotationIndex: context.commandIndex,
+        },
+      );
     } else if (skill.id === ID.CRESCENDO) {
       runtime.actions.handleCrescendo(skill, at, context.start);
     } else {

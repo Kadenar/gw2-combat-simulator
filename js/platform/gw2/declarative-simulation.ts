@@ -75,6 +75,13 @@ function endState(
       structuredClone(value),
     ]),
   );
+  // Preserve exact skill identities for UI consumers because API variants can share names.
+  const ammoBySkillId = Object.fromEntries(
+    [...scheduled.state.ammo].map(([id, value]) => [
+      String(id),
+      structuredClone(value),
+    ]),
+  );
   const projected = profession.projectEndState({
     config,
     schedulerContext: scheduled.context,
@@ -95,6 +102,7 @@ function endState(
     time: Math.round(endTime * 1000),
     cooldowns: simulationProjection.cooldowns || cooldowns,
     ammo: simulationProjection.ammo || ammo,
+    ammoBySkillId,
     activeWeaponSet: scheduled.state.activeWeaponSet,
     // Projection lets a profession hide resolver-only bookkeeping.
     profession: cloneProfessionState(
