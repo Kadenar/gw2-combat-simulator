@@ -8,6 +8,14 @@ import { ENGINEER_SKILL_IDS as ID } from "../../data/ids.js";
 import type { SkillFragment } from "../../../../platform/engine/types.js";
 const DEMOLISH_QUICKNESS_CAST_TIME_MS = 1000 + 560;
 const DEMOLISH_RECHARGE_OFFSET_MS = 1000;
+// EVTC splits Demolish into a one-second spin and a 560 ms smash; fixed packet
+// timestamps preserve the observed animation hits under Quickness.
+const DEMOLISH_SPIN_TICKS = Object.freeze([
+  { atMs: 360, coefficient: 0.9 },
+  { atMs: 640, coefficient: 0.9 },
+  { atMs: 920, coefficient: 0.9 },
+]);
+const DEMOLISH_SMASH_AT_MS = 1440;
 const PLASMATIC_STATE_QUICKNESS_CAST_TIME_MS = 480 + 480;
 const PLASMATIC_STATE_RECHARGE_OFFSET_MS = 480;
 export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
@@ -97,12 +105,9 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
       effects: [
         {
           type: "strike",
-          coefficient: 2.7,
-          hits: 3,
-          atMs: 500.4,
-          intervalMs: 500.4,
+          ticks: DEMOLISH_SPIN_TICKS,
           timingAnchor: "castStart",
-          timingScale: "cast",
+          timingScale: "fixed",
           name: "Offensive Protocol: Demolish — Packet 1",
           actorType: "player",
           comboFinishers: [
@@ -117,6 +122,9 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           type: "strike",
           coefficient: 2.25,
           hits: 1,
+          atMs: DEMOLISH_SMASH_AT_MS,
+          timingAnchor: "castStart",
+          timingScale: "fixed",
           name: "Smash Damage",
           actorType: "player",
           comboFinishers: [
@@ -360,12 +368,9 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
       effects: [
         {
           type: "strike",
-          coefficient: 2.7,
-          hits: 3,
-          atMs: 500.4,
-          intervalMs: 500.4,
+          ticks: DEMOLISH_SPIN_TICKS,
           timingAnchor: "castStart",
-          timingScale: "cast",
+          timingScale: "fixed",
           name: "Offensive Protocol: Demolish — Packet 1",
           actorType: "player",
           comboFinishers: [
@@ -380,6 +385,9 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           type: "strike",
           coefficient: 2.25,
           hits: 1,
+          atMs: DEMOLISH_SMASH_AT_MS,
+          timingAnchor: "castStart",
+          timingScale: "fixed",
           name: "Smash Damage",
           actorType: "player",
           comboFinishers: [
@@ -402,12 +410,9 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
       effects: [
         {
           type: "strike",
-          coefficient: 2.7,
-          hits: 3,
-          atMs: 500.4,
-          intervalMs: 500.4,
+          ticks: DEMOLISH_SPIN_TICKS,
           timingAnchor: "castStart",
-          timingScale: "cast",
+          timingScale: "fixed",
           name: "Offensive Protocol: Demolish — Packet 1",
           actorType: "player",
           comboFinishers: [
@@ -422,6 +427,9 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           type: "strike",
           coefficient: 2.25,
           hits: 1,
+          atMs: DEMOLISH_SMASH_AT_MS,
+          timingAnchor: "castStart",
+          timingScale: "fixed",
           name: "Smash Damage",
           actorType: "player",
           comboFinishers: [
@@ -458,8 +466,10 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           type: "strike",
           coefficient: 9,
           hits: 12,
-          atMs: 500,
-          intervalMs: 500,
+          // EVTC field packets land on a measured ~520 ms cadence; preserving
+          // it also prevents exact-boundary distortion for 0.5-second ICDs.
+          atMs: 520,
+          intervalMs: 520,
           intervalTimingScale: "fixed",
           timingAnchor: "castEnd",
           timingScale: "fixed",
@@ -469,18 +479,18 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
         {
           type: "condition",
           ticks: [
-            { atMs: 500, condition: "Bleeding", stacks: 1, duration: 5 },
-            { atMs: 1000, condition: "Bleeding", stacks: 1, duration: 5 },
-            { atMs: 1500, condition: "Bleeding", stacks: 1, duration: 5 },
-            { atMs: 2000, condition: "Bleeding", stacks: 1, duration: 5 },
-            { atMs: 2500, condition: "Bleeding", stacks: 1, duration: 5 },
-            { atMs: 3000, condition: "Bleeding", stacks: 1, duration: 5 },
-            { atMs: 3500, condition: "Bleeding", stacks: 1, duration: 5 },
-            { atMs: 4000, condition: "Bleeding", stacks: 1, duration: 5 },
-            { atMs: 4500, condition: "Bleeding", stacks: 1, duration: 5 },
-            { atMs: 5000, condition: "Bleeding", stacks: 1, duration: 5 },
-            { atMs: 5500, condition: "Bleeding", stacks: 1, duration: 5 },
-            { atMs: 6000, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 520, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 1040, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 1560, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 2080, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 2600, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 3120, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 3640, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 4160, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 4680, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 5200, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 5720, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 6240, condition: "Bleeding", stacks: 1, duration: 5 },
           ],
           timingAnchor: "castEnd",
           timingScale: "fixed",

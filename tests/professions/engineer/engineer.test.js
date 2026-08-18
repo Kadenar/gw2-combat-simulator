@@ -1822,9 +1822,19 @@ test("Engineer packets use total coefficients and configured cadence", () => {
   assert.equal(demolish.quicknessCastTimeMs, 1000 + 560);
   assert.equal(demolish.rechargeAnchor, "castStart");
   assert.equal(demolish.rechargeOffsetMs, 1000);
-  assert.ok(Math.abs(demolish.effects[0].coefficient - 2.7) < 1e-12);
-  assert.equal(demolish.effects[0].hits, 3);
+  assert.deepEqual(
+    demolish.effects[0].ticks.map((packet) => [
+      packet.atMs,
+      packet.coefficient,
+    ]),
+    [
+      [360, 0.9],
+      [640, 0.9],
+      [920, 0.9],
+    ],
+  );
   assert.equal(demolish.effects[1].coefficient, 2.25);
+  assert.equal(demolish.effects[1].atMs, 1440);
   assert.equal(
     demolish.effects.some((effect) => effect.boon === "stability"),
     false,
@@ -1843,8 +1853,8 @@ test("Engineer packets use total coefficients and configured cadence", () => {
   assert.equal(flux.quicknessCastTimeMs, 640);
   assert.equal(flux.effects[1].coefficient, 9);
   assert.equal(flux.effects[1].hits, 12);
-  assert.equal(flux.effects[1].atMs, 500);
-  assert.equal(flux.effects[1].intervalMs, 500);
+  assert.equal(flux.effects[1].atMs, 520);
+  assert.equal(flux.effects[1].intervalMs, 520);
   assert.equal(flux.effects[2].ticks.length, 12);
 
   const plasmatic = mechanic("Plasmatic State");
@@ -2618,7 +2628,7 @@ test("measured Quickness animations and Flame Blast cancellation drive steps", (
   const smash = demolish.resolvedEvents.find(
     (event) => event.type === "damage" && event.name === "Smash Damage",
   );
-  assert.equal(Math.round((smash.at - demolishStep.start / 1000) * 1000), 1560);
+  assert.equal(Math.round((smash.at - demolishStep.start / 1000) * 1000), 1440);
 });
 
 test("Flame Jet gains ten percent strike damage against burning targets", () => {
@@ -3011,6 +3021,44 @@ test("Evolve raises attributes by ten percent for eight seconds", () => {
   assert.equal(evolved.endState.profession.evolvedUntil, 8.78);
 });
 
+test("Sharpshooter derives bleeding damage from Evolve's Power bonus", () => {
+  const config = {
+    selectedMorphSkillIds: [76815, 77285, 77358],
+    selectedTraitIds: [TRAIT.SHARPSHOOTER, TRAIT.DOUBLE_HELIX],
+    stats: {
+      power: 2000,
+      conditionDamage: 1000,
+      expertise: 0,
+    },
+    amalgamEvolveAttributePool: {
+      Power: 2000,
+      "Condition Damage": 1000,
+    },
+    target: { conditions: {} },
+  };
+  const result = simulate(
+    "Amalgam",
+    [
+      "Evolve",
+      "Grenade Kit",
+      "Shrapnel Grenade",
+      { type: "wait", durationMs: 1000 },
+    ],
+    config,
+  );
+  const bleed = result.resolvedEvents.find(
+    (event) =>
+      event.type === "condition" &&
+      event.skillName === "Shrapnel Grenade" &&
+      event.condition === "Bleeding",
+  );
+
+  // Double Helix raises eligible Power from 2000 to 2400; Sharpshooter then
+  // replaces bleeding's condition damage with two-thirds of that final Power.
+  assert.ok(bleed);
+  assert.ok(Math.abs(bleed.damage / bleed.damagingStackSeconds - 118) < 1e-12);
+});
+
 test("Evolve cannot raise condition duration above the global cap", () => {
   const result = simulate(
     "Amalgam",
@@ -3178,6 +3226,13 @@ test("Carbolic Composition poisons only Amalgam skill hits", () => {
     (event) => event.type === "damage" && event.name === "Rapacious Strain",
   );
   assert.equal(rapacious.criticalChance, 1);
+  assert.deepEqual(
+    {
+      actorType: rapacious.actorType,
+      ownerActorType: rapacious.ownerActorType,
+    },
+    { actorType: "effect", ownerActorType: "player" },
+  );
   assert.ok(
     strain.resolvedEvents.some(
       (event) =>
@@ -3491,6 +3546,39 @@ test("Thorns damaging-field assumption creates six one-second retaliations", () 
       .end /
       1000 +
       6,
+  );
+});
+
+test("Rapacious Strain follows Flux State packets beyond its half-second ICD", () => {
+  const result = simulate(
+    "Amalgam",
+    ["Evolve", "Flux State", { type: "wait", durationMs: 7000 }],
+    {
+      selectedSkills: [
+        "Healing Turret",
+        "Grenade Kit",
+        "Flamethrower",
+        "Bomb Kit",
+        "Flux State",
+      ],
+      selectedMorphSkillIds: [77103, 77104, 76705],
+      target: { conditions: {} },
+    },
+  );
+  const rapacious = result.resolvedEvents.filter(
+    (event) => event.type === "damage" && event.name === "Rapacious Strain",
+  );
+
+  // Flux State's initial packet plus twelve 520 ms field packets each clear
+  // Rapacious Strain's strict 500 ms ICD while both strain states are active.
+  assert.equal(rapacious.length, 13);
+  assert.deepEqual(
+    rapacious
+      .slice(1)
+      .map((event, index) =>
+        Number((event.at - rapacious[index].at).toFixed(3)),
+      ),
+    Array(12).fill(0.52),
   );
 });
 

@@ -7,6 +7,7 @@ import {
   cloneEngineerAttributes,
   eventSkill,
 } from "../../core/rule-helpers.js";
+import { applyEngineerSharpshooterConditionDamage } from "../../core/rules.js";
 import { hasEngineerTrait } from "../../core/state.js";
 import { engineerBalanceValue } from "../../core/profiles.js";
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
@@ -137,6 +138,9 @@ function modifyAmalgamAttributes(
     modified.power += improvedMight;
     modified.conditionDamage += improvedMight;
   }
+  // Amalgam modifies Power after Core runs, so finalize Sharpshooter here to
+  // keep its replacement attribute based on Evolve and Titanic Power bonuses.
+  applyEngineerSharpshooterConditionDamage(context, modified);
   return modified;
 }
 

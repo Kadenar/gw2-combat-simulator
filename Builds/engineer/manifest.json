@@ -14,7 +14,7 @@
         "label": "Power (Rifle - Double Helix)",
         "build": "Builds/engineer/b-power-amalgam-rifle-double-helix.json",
         "rotation": "Rotations/engineer/r-power-amalgam-rifle-double-helix-bench.json",
-        "benchmarkDps": 43124,
+        "benchmarkDps": 43677,
         "upToDate": true
       },
       {

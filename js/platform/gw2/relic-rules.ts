@@ -32,7 +32,11 @@ interface TimedBuffProcOptions {
 }
 
 function isBloodstoneOwnerStrike(event: SimulationEvent): boolean {
-  return isGw2PlayerActorEvent(event) || event.sourceId === "relic.bloodstone";
+  // Fervor follows modifier ownership, while its delayed relic explosion remains eligible explicitly.
+  return (
+    isGw2PlayerModifierOwnedEvent(event) ||
+    event.sourceId === "relic.bloodstone"
+  );
 }
 
 const STATELESS_RELIC: Readonly<Gw2RelicRule> = Object.freeze({});
