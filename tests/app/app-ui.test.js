@@ -479,7 +479,10 @@ test('mobile rotation workspace keeps controls, timeline, and focus metrics usab
   const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
 
   assert.match(css, /body:not\(\[data-rotation-focus\]\) \.rotation-panel\s*\{\s*max-height: none;/);
-  assert.match(css, /grid-template-areas:\s*"label label"\s*"size dead-time"\s*"start start"\s*"buttons buttons";/);
+  assert.match(
+    css,
+    /grid-template-areas:\s*['"]label label['"]\s*['"]size dead-time['"]\s*['"]start start['"]\s*['"]buttons buttons['"];/
+  );
   assert.match(
     css,
     /body\[data-rotation-focus\] \.rotation-section\s*\{\s*display: block;\s*padding: 6px;\s*overflow-x: hidden;\s*overflow-y: auto;/

@@ -400,6 +400,21 @@ export function createProfessionActionController({
         });
         addTraitProc('Blinding Dissipation', at, skill.name);
       }
+    } else if (shatter.kind === 'defense') {
+      // Distortion deals no damage, but its clones still land a 0-coefficient
+      // strike that registers a hit for on-hit effects such as Relic of
+      // Fireworks.
+      addDamage(
+        skill,
+        at,
+        {
+          coefficient: shatter.coefficients[spent],
+          hits: sources,
+          source: 'Player',
+          weaponStrengthProfileId: 'nonweapon.profession-mechanic'
+        },
+        { shatter: true }
+      );
     } else if (shatter.kind === 'chrono-power') {
       // Chrono shatters hit twice per source (once from player/clone, once from phantasm echo).
       addDamage(
