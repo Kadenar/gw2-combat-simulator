@@ -1,11 +1,11 @@
 import { EVTC_STATE_CHANGE } from "../../types.js";
+import { ELEMENTALIST_SKILL_IDS as ID } from "../../../professions/elementalist/data/ids.js";
 import { reconstructEvokerActions } from "./elementalist/evoker.js";
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction,
 } from "./types.js";
 
-const FIRE_ATTUNEMENT_ID = 1100001;
 const ELEMENTAL_COMMANDS = Object.freeze([
   {
     speciesId: 6524,
@@ -109,8 +109,8 @@ export function reconstructElementalistProfessionActions(
     (action) =>
       !(
         action.initialState === true &&
-        (action.rawSkillId === FIRE_ATTUNEMENT_ID ||
-          action.canonicalSkillId === FIRE_ATTUNEMENT_ID)
+        (action.rawSkillId === ID.FIRE_ATTUNEMENT ||
+          action.canonicalSkillId === ID.FIRE_ATTUNEMENT)
       ),
   );
   actions =

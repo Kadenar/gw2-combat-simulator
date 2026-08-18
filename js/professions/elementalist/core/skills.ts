@@ -4893,7 +4893,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
       [1500, 0.24],
     ]),
   },
-  [ID.STATIC_FIELD_ID_1100117]: {
+  [ID.STATIC_FIELD_LIGHTNING_HAMMER]: {
     name: "Static Field",
     type: "Weapon",
     slot: "Weapon_5",

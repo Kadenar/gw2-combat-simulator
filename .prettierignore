@@ -1,0 +1,6 @@
+/Builds/
+/Rotations/
+/docs/
+*.md
+/node_modules/
+/reference-repos/

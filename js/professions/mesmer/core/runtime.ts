@@ -1,39 +1,38 @@
-import { MESMER_SKILL_IDS as ID } from "../data/ids.js";
+import { MESMER_SKILL_IDS as ID } from '../data/ids.js';
 import type {
   MesmerAmbushAttack,
   MesmerInstrument,
   MesmerPhantasmAttackTiming,
   MesmerRuntime,
   MesmerShatter,
-  MesmerTraitDamage,
-} from "../types.js";
+  MesmerTraitDamage
+} from '../types.js';
 
-export const MESMER_FLIP_PARENT_BY_CHILD_ID: Readonly<Record<number, number>> =
-  Object.freeze({
-    [ID.COUNTERSPELL]: ID.ILLUSIONARY_COUNTER,
-    [ID.POWER_SPIKE]: ID.MANTRA_OF_PAIN,
-    [ID.DIMENSIONAL_APERTURE]: ID.SINGULARITY_SHOT,
-    [ID.ABSTRACTION]: ID.INSPIRING_IMAGERY,
-    [ID.INTO_THE_VOID]: ID.TEMPORAL_CURTAIN,
-    [ID.COUNTER_BLADE]: ID.ILLUSIONARY_RIPOSTE,
-    [ID.SWAP]: ID.ILLUSIONARY_LEAP,
-  });
+export const MESMER_FLIP_PARENT_BY_CHILD_ID: Readonly<Record<number, number>> = Object.freeze({
+  [ID.COUNTERSPELL]: ID.ILLUSIONARY_COUNTER,
+  [ID.POWER_SPIKE]: ID.MANTRA_OF_PAIN,
+  [ID.DIMENSIONAL_APERTURE]: ID.SINGULARITY_SHOT,
+  [ID.ABSTRACTION]: ID.INSPIRING_IMAGERY,
+  [ID.INTO_THE_VOID]: ID.TEMPORAL_CURTAIN,
+  [ID.COUNTER_BLADE]: ID.ILLUSIONARY_RIPOSTE,
+  [ID.SWAP]: ID.ILLUSIONARY_LEAP
+});
 
-export const MESMER_FLIP_CHILD_BY_PARENT_ID: Readonly<Record<number, number>> =
-  Object.freeze(
-    Object.fromEntries(
-      Object.entries(MESMER_FLIP_PARENT_BY_CHILD_ID).map(
-        ([childId, parentId]): [number, number] => [parentId, Number(childId)],
-      ),
-    ),
-  );
+export const MESMER_FLIP_CHILD_BY_PARENT_ID: Readonly<Record<number, number>> = Object.freeze(
+  Object.fromEntries(
+    Object.entries(MESMER_FLIP_PARENT_BY_CHILD_ID).map(([childId, parentId]): [number, number] => [
+      parentId,
+      Number(childId)
+    ])
+  )
+);
 
 export function mesmerRuntimeFor(
-  context: { readonly mesmerRuntime?: MesmerRuntime } | null | undefined,
+  context: { readonly mesmerRuntime?: MesmerRuntime } | null | undefined
 ): MesmerRuntime {
   const runtime = context?.mesmerRuntime;
   if (!runtime) {
-    throw new Error("Mesmer scheduler runtime is not initialized.");
+    throw new Error('Mesmer scheduler runtime is not initialized.');
   }
   return runtime;
 }
@@ -48,9 +47,7 @@ export interface MesmerRuntimeManifest {
   readonly instruments?: Readonly<Record<number, MesmerInstrument>>;
   readonly traitDamage?: Readonly<Record<string, MesmerTraitDamage>>;
   readonly ambushAttacks?: Readonly<Record<string, MesmerAmbushAttack>>;
-  readonly phantasmAttackTimings?: Readonly<
-    Record<number, Partial<MesmerPhantasmAttackTiming>>
-  >;
+  readonly phantasmAttackTimings?: Readonly<Record<number, Partial<MesmerPhantasmAttackTiming>>>;
   readonly controlSkills?: Iterable<number>;
   readonly blindSkills?: Iterable<number>;
   readonly aristocracySkills?: Iterable<number>;
@@ -58,10 +55,7 @@ export interface MesmerRuntimeManifest {
 }
 
 /** Folds a specialization's mechanics manifest into the shared runtime. */
-export function applyMesmerRuntimeManifest(
-  runtime: MesmerRuntime,
-  manifest: MesmerRuntimeManifest,
-): void {
+export function applyMesmerRuntimeManifest(runtime: MesmerRuntime, manifest: MesmerRuntimeManifest): void {
   if (manifest.ambushAttacks) {
     Object.assign(runtime.ambushAttacks, manifest.ambushAttacks);
   }
@@ -76,7 +70,7 @@ export function applyMesmerRuntimeManifest(
     for (const [id, timing] of Object.entries(manifest.phantasmAttackTimings)) {
       runtime.phantasmAttackTimings[Number(id)] = {
         ...runtime.phantasmAttackTimings[Number(id)],
-        ...timing,
+        ...timing
       };
     }
   }

@@ -1,15 +1,12 @@
-import { MESMER_SKILL_IDS as ID } from "../data/ids.js";
+import { MESMER_SKILL_IDS as ID } from '../data/ids.js';
 import type {
   MesmerActivePrimaryWeapon,
   MesmerCurrentResource,
   MesmerQueueResources,
   MesmerResourceDefinition,
-  MesmerSkill,
-} from "../types.js";
-import type {
-  MesmerPhantasmEffectController,
-  MesmerPhantasmExecution,
-} from "./phantasms.js";
+  MesmerSkill
+} from '../types.js';
+import type { MesmerPhantasmEffectController, MesmerPhantasmExecution } from './phantasms.js';
 
 export interface MesmerIllusionResourceController {
   cloneAtMaximum(skill: MesmerSkill): boolean;
@@ -18,7 +15,7 @@ export interface MesmerIllusionResourceController {
     at: number,
     castStart: number,
     cloneAtMaximum: boolean,
-    phantasms: readonly MesmerPhantasmExecution[],
+    phantasms: readonly MesmerPhantasmExecution[]
   ): void;
 }
 
@@ -37,40 +34,38 @@ export function createIllusionResourceController({
   activePrimaryWeapon,
   currentResource,
   queueResources,
-  phantasms,
+  phantasms
 }: IllusionResourceControllerOptions): MesmerIllusionResourceController {
   const cloneAtMaximum = (skill: MesmerSkill): boolean =>
-    skill.id === ID.ETHER_CLONE
-    && resourceDefinition.singular === "clone"
-    && currentResource() >= resourceDefinition.maximum;
+    skill.id === ID.ETHER_CLONE &&
+    resourceDefinition.singular === 'clone' &&
+    currentResource() >= resourceDefinition.maximum;
 
   const schedule = (
     skill: MesmerSkill,
     at: number,
     castStart: number,
     atMaximum: boolean,
-    phantasmExecutions: readonly MesmerPhantasmExecution[],
+    phantasmExecutions: readonly MesmerPhantasmExecution[]
   ): void => {
-    if (skill.resource?.mode === "fill") {
-      queueResources(
-        at + epsilon,
-        resourceDefinition.maximum,
-        skill.weapon || activePrimaryWeapon(),
-        skill.name,
-        { kind: "skill", sourceSkillId: skill.id },
-      );
+    if (skill.resource?.mode === 'fill') {
+      queueResources(at + epsilon, resourceDefinition.maximum, skill.weapon || activePrimaryWeapon(), skill.name, {
+        kind: 'skill',
+        sourceSkillId: skill.id
+      });
       return;
     }
-    if (skill.resource?.mode === "add" && !atMaximum) {
-      const resourceAt = skill.resource.timingAnchor === "castStart"
-        ? castStart + Number(skill.resource.atMs || 0) / 1000
-        : at + Number(skill.resource.atMs || 0) / 1000;
+    if (skill.resource?.mode === 'add' && !atMaximum) {
+      const resourceAt =
+        skill.resource.timingAnchor === 'castStart'
+          ? castStart + Number(skill.resource.atMs || 0) / 1000
+          : at + Number(skill.resource.atMs || 0) / 1000;
       queueResources(
         resourceAt + epsilon,
         Number(skill.resource.count || 0),
         skill.weapon || activePrimaryWeapon(),
         skill.name,
-        { kind: "skill", sourceSkillId: skill.id },
+        { kind: 'skill', sourceSkillId: skill.id }
       );
       return;
     }

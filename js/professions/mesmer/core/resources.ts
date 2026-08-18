@@ -1,9 +1,6 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
-import {
-  MESMER_SKILL_IDS as ID,
-  MESMER_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
-import type { SchedulerState } from "../../../platform/engine/types.js";
+import { professionCoreState } from '../../../platform/engine/profession.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import type { SchedulerState } from '../../../platform/engine/types.js';
 import type {
   MesmerActivePrimaryWeapon,
   MesmerAddEvent,
@@ -16,8 +13,8 @@ import type {
   MesmerResourceCause,
   MesmerResourceController,
   MesmerResourceDefinition,
-  MesmerRuntime,
-} from "../types.js";
+  MesmerRuntime
+} from '../types.js';
 
 // Names (not ids) — matched against proc `reason` strings via startsWith below.
 const RESOURCE_TRAIT_IDS = new Set<number>([
@@ -27,7 +24,7 @@ const RESOURCE_TRAIT_IDS = new Set<number>([
   TRAIT.HARMONIZE,
   TRAIT.ILLUSIONARY_REVERSION,
   TRAIT.INFINITE_FORGE,
-  TRAIT.SELF_DECEPTION,
+  TRAIT.SELF_DECEPTION
 ]);
 
 interface ResourceControllerOptions {
@@ -41,9 +38,8 @@ interface ResourceControllerOptions {
   readonly addEvent: MesmerAddEvent;
   readonly addTraitProc: MesmerAddTraitProc;
   readonly destroyClone: MesmerDestroyClone;
-  readonly scheduleResourceTask?:
-    ((candidate: MesmerPendingResource) => unknown) | null;
-  readonly balanceProfile: MesmerRuntime["balanceProfile"];
+  readonly scheduleResourceTask?: ((candidate: MesmerPendingResource) => unknown) | null;
+  readonly balanceProfile: MesmerRuntime['balanceProfile'];
 }
 
 /**
@@ -61,34 +57,27 @@ export function createResourceController({
   addTraitProc,
   destroyClone,
   scheduleResourceTask = null,
-  balanceProfile,
+  balanceProfile
 }: ResourceControllerOptions): MesmerResourceController {
   let cloneSequence = 0;
   const numericResourceState = () => {
     const active = state.profession.specialization;
-    if (active.kind !== "Virtuoso" && active.kind !== "Troubadour") {
-      throw new TypeError(
-        `${active.kind} does not own a numeric Mesmer resource.`,
-      );
+    if (active.kind !== 'Virtuoso' && active.kind !== 'Troubadour') {
+      throw new TypeError(`${active.kind} does not own a numeric Mesmer resource.`);
     }
     return active.state;
   };
-  let onAmbushCreatedClones = (
-    _at: number,
-    _clones: readonly MesmerClone[],
-  ): void => {};
+  let onAmbushCreatedClones = (_at: number, _clones: readonly MesmerClone[]): void => {};
 
   const markCompounding = (at: number, count: number) => {
-    const duration = Number(
-      balanceProfile(TRAIT.COMPOUNDING_POWER)?.durationMultiplier || 8,
-    );
+    const duration = Number(balanceProfile(TRAIT.COMPOUNDING_POWER)?.durationMultiplier || 8);
     for (let index = 0; index < count; index += 1) {
       addEvent({
-        type: "buff",
+        type: 'buff',
         at: at + index * epsilon,
-        kind: "compounding",
+        kind: 'compounding',
         stacks: 1,
-        duration,
+        duration
       });
     }
   };
@@ -97,8 +86,8 @@ export function createResourceController({
     at: number,
     count: number,
     weapon: string | null | undefined,
-    reason = "",
-    cause: MesmerResourceCause = {},
+    reason = '',
+    cause: MesmerResourceCause = {}
   ): void => {
     const amount = Math.max(0, Number(count || 0));
     if (!amount) return;
@@ -106,18 +95,16 @@ export function createResourceController({
     const created: Array<{ id: number; weapon: string }> = [];
     const createdClones: MesmerClone[] = [];
 
-    if (resourceDefinition.singular === "clone") {
+    if (resourceDefinition.singular === 'clone') {
       for (let index = 0; index < amount; index += 1) {
-        if (
-          professionCoreState(state).clones.length >= resourceDefinition.maximum
-        ) {
+        if (professionCoreState(state).clones.length >= resourceDefinition.maximum) {
           const replaced = professionCoreState(state).clones.shift();
           if (replaced) destroyClone(replaced, at);
         }
         const clone = {
           id: ++cloneSequence,
           createdAt: at + index * epsilon,
-          weapon: weapon || activePrimaryWeapon(),
+          weapon: weapon || activePrimaryWeapon()
         };
         const initialized = cloneAttackScheduler.initializeClone(clone);
         professionCoreState(state).clones.push(initialized);
@@ -128,54 +115,36 @@ export function createResourceController({
     } else {
       const resourceState = numericResourceState();
       const before = resourceState.numericResource;
-      resourceState.numericResource = clamp(
-        before + amount,
-        0,
-        resourceDefinition.maximum,
-      );
+      resourceState.numericResource = clamp(before + amount, 0, resourceDefinition.maximum);
       gained = resourceState.numericResource - before;
     }
 
     if (gained <= 0) return;
     addEvent({
-      type: "resource",
+      type: 'resource',
       at,
       amount: gained,
       value:
-        resourceDefinition.singular === "clone"
+        resourceDefinition.singular === 'clone'
           ? professionCoreState(state).clones.length
           : numericResourceState().numericResource,
       resource: resourceDefinition.plural,
       reason,
-      created,
+      created
     });
-    if (traits.has(TRAIT.COMPOUNDING_POWER) && cause.kind !== "initial") {
+    if (traits.has(TRAIT.COMPOUNDING_POWER) && cause.kind !== 'initial') {
       markCompounding(at, gained);
-      addTraitProc(
-        "Compounding Power",
-        at,
-        reason,
-        `${gained} stack${gained === 1 ? "" : "s"}`,
-      );
+      addTraitProc('Compounding Power', at, reason, `${gained} stack${gained === 1 ? '' : 's'}`);
     }
     const resourceTraitId = Number(cause.traitId);
-    if (
-      RESOURCE_TRAIT_IDS.has(resourceTraitId) &&
-      traits.has(resourceTraitId)
-    ) {
-      addTraitProc(
-        cause.traitName || reason,
-        at,
-        reason,
-        `+${gained} ${resourceDefinition.singular}`,
-      );
+    if (RESOURCE_TRAIT_IDS.has(resourceTraitId) && traits.has(resourceTraitId)) {
+      addTraitProc(cause.traitName || reason, at, reason, `+${gained} ${resourceDefinition.singular}`);
     }
     if (
       (resourceTraitId === TRAIT.DECEPTIVE_EVASION ||
-        (resourceTraitId === TRAIT.SELF_DECEPTION &&
-          cause.sourceSkillId === ID.ILLUSIONARY_AMBUSH)) &&
+        (resourceTraitId === TRAIT.SELF_DECEPTION && cause.sourceSkillId === ID.ILLUSIONARY_AMBUSH)) &&
       traits.has(TRAIT.INFINITE_HORIZON) &&
-      state.profession.specialization.kind === "Mirage" &&
+      state.profession.specialization.kind === 'Mirage' &&
       state.profession.specialization.state.cloneAmbushUntil >= at - epsilon
     ) {
       onAmbushCreatedClones(at, createdClones);
@@ -187,7 +156,7 @@ export function createResourceController({
     count: number,
     weapon: string | null | undefined,
     reason: string,
-    cause: MesmerResourceCause = {},
+    cause: MesmerResourceCause = {}
   ) => {
     if (scheduleResourceTask) {
       scheduleResourceTask({ at, count, weapon, reason, cause });
@@ -198,7 +167,7 @@ export function createResourceController({
       count,
       weapon,
       reason,
-      cause,
+      cause
     });
     professionCoreState(state).pendingResources.sort((a, b) => a.at - b.at);
   };
@@ -207,10 +176,8 @@ export function createResourceController({
     gainResources,
     markCompounding,
     queueResources,
-    setAmbushCreatedClones(
-      handler: (at: number, clones: readonly MesmerClone[]) => void,
-    ) {
+    setAmbushCreatedClones(handler: (at: number, clones: readonly MesmerClone[]) => void) {
       onAmbushCreatedClones = handler;
-    },
+    }
   };
 }

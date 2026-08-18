@@ -1,6 +1,7 @@
 export * from "./attributes.js";
 export * from "./attribute-provenance.js";
 export * from "./build-codec.js";
+export * from "./build-template-codec.js";
 export * from "./combo-definitions.js";
 export * from "./combo-catalog.js";
 export * from "./combo-events.js";

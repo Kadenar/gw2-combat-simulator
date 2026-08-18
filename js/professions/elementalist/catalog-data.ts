@@ -4,6 +4,10 @@ import {
   SPECIALIZATIONS as ELEMENTALIST_API_SPECIALIZATIONS,
 } from "./data/elementalist-api-metadata.js";
 import { ELEMENTALIST_SKILL_IDS as ID } from "./data/ids.js";
+import {
+  ELEMENTALIST_API_SKILL_ID_OVERRIDES,
+  ELEMENTALIST_LOADOUT_SKILL_IDS,
+} from "./data/skill-identities.js";
 import { TRAITS } from "./data/traits-data.js";
 import type {
   BalanceProfile,
@@ -63,6 +67,9 @@ const SKILL_NAME_ALIASES = new Map<string, string>([
 ]);
 const API_SKILLS_BY_NAME = new Map(
   ELEMENTALIST_API_SKILLS.map((skill) => [skill.name, skill]),
+);
+const API_SKILLS_BY_ID = new Map(
+  ELEMENTALIST_API_SKILLS.map((skill) => [Number(skill.id), skill]),
 );
 const SLOT_SKILL_TYPES = new Set(["Heal", "Utility", "Elite"]);
 const ATTUNEMENT_VARIANT_PATTERN = /\s*\((?:Fire|Water|Air|Earth)\)$/;
@@ -286,7 +293,18 @@ const generated: readonly Skill[] = Object.freeze(
   ELEMENTALIST_DECLARED_SKILLS.map(withElementalistHitboxBehavior)
     .map(withElementalRuntimeProfiles)
     .map((skill) => {
-      const metadata = apiSkill(skill.name);
+      // Stable IDs are the authoritative metadata join. Explicit roots retain
+      // metadata for simulator-only or attunement-specific projections.
+      const skillId = Number(skill.id);
+      const apiSkillId =
+        ELEMENTALIST_API_SKILL_ID_OVERRIDES.get(skillId) ?? skillId;
+      const loadoutSkillId = ELEMENTALIST_LOADOUT_SKILL_IDS.get(skillId);
+      const metadata =
+        API_SKILLS_BY_ID.get(apiSkillId) ||
+        (loadoutSkillId == null
+          ? undefined
+          : API_SKILLS_BY_ID.get(loadoutSkillId)) ||
+        apiSkill(skill.name);
       const selectionName = skill.name.replace(ATTUNEMENT_VARIANT_PATTERN, "");
       const isAttunementSlotVariant =
         SLOT_SKILL_TYPES.has(String(skill.type)) &&
@@ -294,6 +312,8 @@ const generated: readonly Skill[] = Object.freeze(
         selectionName !== skill.name;
       return {
         ...skill,
+        ...(apiSkillId === skillId ? {} : { apiSkillId }),
+        ...(loadoutSkillId == null ? {} : { loadoutSkillId }),
         ...(skill.type === "Weapon" &&
         String(skill.attunement || "").includes("+")
           ? { specialization: "Weaver" }

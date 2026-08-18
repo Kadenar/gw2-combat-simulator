@@ -1,12 +1,5 @@
-import {
-  triggerIneptitudeFromBlind,
-  triggerIneptitudeFromInterrupt,
-} from "./traits.js";
-import type {
-  MesmerApplyCondition,
-  MesmerResolverContext,
-  MesmerResolverEvent,
-} from "../types.js";
+import { triggerIneptitudeFromBlind, triggerIneptitudeFromInterrupt } from './traits.js';
+import type { MesmerApplyCondition, MesmerResolverContext, MesmerResolverEvent } from '../types.js';
 
 const noop = (): void => {};
 
@@ -17,12 +10,9 @@ interface MesmerResolverReactionDetails {
 export function handleMesmerControlEvent(
   ctx: MesmerResolverContext,
   event: MesmerResolverEvent,
-  { applyCondition }: MesmerResolverReactionDetails = {},
+  { applyCondition }: MesmerResolverReactionDetails = {}
 ): void {
-  if (
-    !ctx.config.target?.activatingSkills ||
-    typeof applyCondition !== "function"
-  ) {
+  if (!ctx.config.target?.activatingSkills || typeof applyCondition !== 'function') {
     return;
   }
   triggerIneptitudeFromInterrupt(ctx, event, applyCondition);
@@ -31,18 +21,18 @@ export function handleMesmerControlEvent(
 export function handleMesmerBlindEvent(
   ctx: MesmerResolverContext,
   event: MesmerResolverEvent,
-  { applyCondition }: MesmerResolverReactionDetails = {},
+  { applyCondition }: MesmerResolverReactionDetails = {}
 ): void {
-  if (typeof applyCondition !== "function") return;
+  if (typeof applyCondition !== 'function') return;
   triggerIneptitudeFromBlind(ctx, event, applyCondition);
 }
 
 export const mesmerCoreEventReactions = Object.freeze({
   control: handleMesmerControlEvent,
-  blind: handleMesmerBlindEvent,
+  blind: handleMesmerBlindEvent
 });
 
 export const mesmerCoreEventHandlers = Object.freeze({
-  "mesmer.phantasm-summoned": noop,
-  "mesmer.phantasm-attack": noop,
+  'mesmer.phantasm-summoned': noop,
+  'mesmer.phantasm-attack': noop
 });

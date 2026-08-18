@@ -6,6 +6,7 @@ import {
   EVTC_ACTIVATION,
   EVTC_STATE_CHANGE,
 } from "../../js/evtc-analyzer/types.js";
+import { ELEMENTALIST_SKILL_IDS as ID } from "../../js/professions/elementalist/data/ids.js";
 
 const PLAYER = 0x1000n;
 const TARGET = 0x2000n;
@@ -180,11 +181,11 @@ test("reconstructs Catalyst attunements, Glyph of Storms aliases, and Earth Stom
     events,
   };
   const skills = [
-    catalogSkill(1100001, "Fire Attunement"),
-    catalogSkill(1100003, "Air Attunement"),
-    catalogSkill(1100004, "Earth Attunement"),
-    catalogSkill(1100122, "Glyph of Storms (Fire)", "Utility"),
-    catalogSkill(1100124, "Glyph of Storms (Air)", "Utility"),
+    catalogSkill(ID.FIRE_ATTUNEMENT, "Fire Attunement"),
+    catalogSkill(ID.AIR_ATTUNEMENT, "Air Attunement"),
+    catalogSkill(ID.EARTH_ATTUNEMENT, "Earth Attunement"),
+    catalogSkill(ID.GLYPH_OF_STORMS_FIRE, "Glyph of Storms (Fire)", "Utility"),
+    catalogSkill(ID.GLYPH_OF_STORMS_AIR, "Glyph of Storms (Air)", "Utility"),
     catalogSkill(2666, "Stomp", "Elite"),
   ];
 
@@ -359,11 +360,11 @@ test("uses the Evoker parser to normalize familiar skills", () => {
     events,
   };
   const skills = [
-    catalogSkill(1100001, "Fire Attunement"),
-    catalogSkill(1100189, "Toad's Fortitude", "Utility"),
-    catalogSkill(1100186, "Seismic Impact"),
+    catalogSkill(ID.FIRE_ATTUNEMENT, "Fire Attunement"),
+    catalogSkill(ID.TOADS_FORTITUDE, "Toad's Fortitude", "Utility"),
+    catalogSkill(ID.SEISMIC_IMPACT, "Seismic Impact"),
     catalogSkill(2662, "Flame Barrage", "Elite"),
-    catalogSkill(1100185, "Calcify"),
+    catalogSkill(ID.CALCIFY, "Calcify"),
   ];
 
   const result = reconstructEvtcRotation(fixture, { skills });
@@ -385,22 +386,22 @@ test("uses the Evoker parser to normalize familiar skills", () => {
       },
       {
         rawSkillId: 76925,
-        skillId: 1100185,
+        skillId: ID.CALCIFY,
         name: "Calcify",
       },
       {
         rawSkillId: 77247,
-        skillId: 1100189,
+        skillId: ID.TOADS_FORTITUDE,
         name: "Toad's Fortitude",
       },
       {
         rawSkillId: 76925,
-        skillId: 1100185,
+        skillId: ID.CALCIFY,
         name: "Calcify",
       },
       {
         rawSkillId: 76707,
-        skillId: 1100186,
+        skillId: ID.SEISMIC_IMPACT,
         name: "Seismic Impact",
       },
     ],

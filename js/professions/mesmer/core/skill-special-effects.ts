@@ -1,11 +1,8 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
-import { isInternalCooldownReady } from "../../../platform/engine/clock.js";
-import {
-  MESMER_SKILL_IDS as ID,
-  MESMER_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
-import { MESMER_CORE_CLONE_ATTACKS } from "./mechanics.js";
-import type { SchedulerState } from "../../../platform/engine/types.js";
+import { professionCoreState } from '../../../platform/engine/profession.js';
+import { isInternalCooldownReady } from '../../../platform/engine/clock.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { MESMER_CORE_CLONE_ATTACKS } from './mechanics.js';
+import type { SchedulerState } from '../../../platform/engine/types.js';
 import type {
   MesmerAddCondition,
   MesmerAddDamage,
@@ -16,21 +13,13 @@ import type {
   MesmerRuntimeState,
   MesmerShatter,
   MesmerSkill,
-  MesmerTraitDamage,
-} from "../types.js";
+  MesmerTraitDamage
+} from '../types.js';
 
 const CLARITY_DURATION = 15;
-const CLARITY_ICON =
-  "https://wiki.guildwars2.com/wiki/Special:FilePath/Clarity.png";
-const CLARITY_CONSUMERS = new Set<number>([
-  ID.IMAGINARY_INVERSION,
-  ID.PHANTASMAL_LANCER,
-  ID.MENTAL_COLLAPSE,
-]);
-const SIGNET_ILLUSIONS_RESET_EXCLUSIONS = new Set<number>([
-  ID.CONTINUUM_SPLIT,
-  ID.CRESCENDO,
-]);
+const CLARITY_ICON = 'https://wiki.guildwars2.com/wiki/Special:FilePath/Clarity.png';
+const CLARITY_CONSUMERS = new Set<number>([ID.IMAGINARY_INVERSION, ID.PHANTASMAL_LANCER, ID.MENTAL_COLLAPSE]);
+const SIGNET_ILLUSIONS_RESET_EXCLUSIONS = new Set<number>([ID.CONTINUUM_SPLIT, ID.CRESCENDO]);
 
 export interface MesmerSkillSpecialEffectController {
   consumeClarity(skill: MesmerSkill, castStart: number): boolean;
@@ -48,7 +37,7 @@ interface SkillSpecialEffectControllerOptions {
   readonly traitDamage: Readonly<Record<string, MesmerTraitDamage>>;
   readonly shatters: Readonly<Record<number, MesmerShatter>>;
   readonly instruments: Readonly<Record<number, MesmerInstrument>>;
-  readonly balanceProfile: MesmerRuntime["balanceProfile"];
+  readonly balanceProfile: MesmerRuntime['balanceProfile'];
 }
 
 export function createSkillSpecialEffectController({
@@ -62,12 +51,10 @@ export function createSkillSpecialEffectController({
   traitDamage,
   shatters,
   instruments,
-  balanceProfile,
+  balanceProfile
 }: SkillSpecialEffectControllerOptions): MesmerSkillSpecialEffectController {
   const consumeClarity = (skill: MesmerSkill, castStart: number): boolean => {
-    const consumed =
-      CLARITY_CONSUMERS.has(skill.id) &&
-      professionCoreState(state).clarityUntil > castStart;
+    const consumed = CLARITY_CONSUMERS.has(skill.id) && professionCoreState(state).clarityUntil > castStart;
     if (CLARITY_CONSUMERS.has(skill.id)) {
       professionCoreState(state).clarityUntil = 0;
     }
@@ -77,8 +64,7 @@ export function createSkillSpecialEffectController({
   const apply = (skill: MesmerSkill, at: number, castStart = at): void => {
     if (skill.id === ID.AXES_OF_SYMMETRY) {
       const axeClones = professionCoreState(state).clones.filter(
-        (clone) =>
-          clone.weapon === "Axe" && clone.createdAt <= castStart + 0.0001,
+        (clone) => clone.weapon === 'Axe' && clone.createdAt <= castStart + 0.0001
       );
       for (const clone of axeClones) {
         const impactAt = at - 0.04;
@@ -86,67 +72,60 @@ export function createSkillSpecialEffectController({
           {
             id: ID.AXES_OF_SYMMETRY,
             name: `${skill.name} — Clone`,
-            weapon: "Axe",
-            blade: false,
+            weapon: 'Axe',
+            blade: false
           },
           impactAt,
           {
             coefficient: 1.75,
             hits: 1,
-            source: "Clone",
-            weaponStrength: MESMER_CORE_CLONE_ATTACKS.Axe.weaponStrength,
+            source: 'Clone',
+            weaponStrength: MESMER_CORE_CLONE_ATTACKS.Axe.weaponStrength
           },
           {
             cloneId: clone.id,
-            source: "Clone",
-            name: `${skill.name} — Clone`,
-          },
+            source: 'Clone',
+            name: `${skill.name} — Clone`
+          }
         );
         addCondition(
           skill.name,
           impactAt,
-          { name: "Confusion", duration: 6, stacks: 1 },
-          "Clone",
+          { name: 'Confusion', duration: 6, stacks: 1 },
+          'Clone',
           `${skill.name} — Clone`,
-          { cloneId: clone.id, skillId: skill.id },
+          { cloneId: clone.id, skillId: skill.id }
         );
       }
     }
     if (skill.id === ID.MIND_THE_GAP) {
       professionCoreState(state).clarityUntil =
-        at +
-        Number(
-          balanceProfile("mesmer.core.clarity")?.durationMultiplier ||
-            CLARITY_DURATION,
-        );
+        at + Number(balanceProfile('mesmer.core.clarity')?.durationMultiplier || CLARITY_DURATION);
       addEvent({
-        type: "proc",
-        procType: "skill",
+        type: 'proc',
+        procType: 'skill',
         at,
-        name: "Clarity",
+        name: 'Clarity',
         sourceSkill: skill.name,
-        detail: "Spear skills 3-5 empowered for 15s",
-        icon: CLARITY_ICON,
+        detail: 'Spear skills 3-5 empowered for 15s',
+        icon: CLARITY_ICON
       });
     }
     if (skill.id === ID.SIGNET_OF_THE_ETHER) {
-      for (const phantasmSkill of allSkills.filter(
-        (candidate) => candidate.phantasm,
-      )) {
+      for (const phantasmSkill of allSkills.filter((candidate) => candidate.phantasm)) {
         state.cooldowns.delete(phantasmSkill.id);
       }
       addEvent({
-        type: "marker",
+        type: 'marker',
         at,
-        name: "Signet of the Ether",
-        detail: "Phantasm skill cooldowns reset",
+        name: 'Signet of the Ether',
+        detail: 'Phantasm skill cooldowns reset'
       });
     }
     if (skill.id === ID.SIGNET_OF_ILLUSIONS) {
       for (const target of allSkills.filter(
         (candidate) =>
-          (shatters[candidate.id] || instruments[candidate.id]) &&
-          !SIGNET_ILLUSIONS_RESET_EXCLUSIONS.has(candidate.id),
+          (shatters[candidate.id] || instruments[candidate.id]) && !SIGNET_ILLUSIONS_RESET_EXCLUSIONS.has(candidate.id)
       )) {
         const ammo = state.ammo.get(target.id);
         if (ammo) {
@@ -158,72 +137,67 @@ export function createSkillSpecialEffectController({
         }
       }
       addEvent({
-        type: "marker",
+        type: 'marker',
         at,
-        name: "Signet of Illusions",
-        detail:
-          "Shatter/instrument cooldowns reset (excluding Continuum Split and Crescendo)",
+        name: 'Signet of Illusions',
+        detail: 'Shatter/instrument cooldowns reset (excluding Continuum Split and Crescendo)'
       });
     }
     if (skill.id === ID.MENTAL_COLLAPSE) {
-      const mindTheGap = allSkills.find(
-        (candidate) => candidate.id === ID.MIND_THE_GAP,
-      );
+      const mindTheGap = allSkills.find((candidate) => candidate.id === ID.MIND_THE_GAP);
       if (mindTheGap) {
         state.cooldowns.delete(mindTheGap.id);
         addEvent({
-          type: "marker",
+          type: 'marker',
           at,
-          name: "Mental Collapse",
-          detail: "Mind the Gap cooldown reset",
+          name: 'Mental Collapse',
+          detail: 'Mind the Gap cooldown reset'
         });
       }
     }
-    if (skill.type !== "Heal" || !traits.has(TRAIT.METHOD_OF_MADNESS)) return;
-    const storm = traitDamage["Lesser Chaos Storm"];
-    const readyAt =
-      professionCoreState(state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] || 0;
+    if (skill.type !== 'Heal' || !traits.has(TRAIT.METHOD_OF_MADNESS)) return;
+    const storm = traitDamage['Lesser Chaos Storm'];
+    const readyAt = professionCoreState(state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] || 0;
     if (!isInternalCooldownReady(at, readyAt)) return;
     const hits = Math.max(1, Math.trunc(Number(storm.hits || 1)));
     addDamage(
       {
-        id: "Lesser Chaos Storm",
-        name: "Lesser Chaos Storm",
-        weapon: "Utility",
-        blade: false,
+        id: 'Lesser Chaos Storm',
+        name: 'Lesser Chaos Storm',
+        weapon: 'Utility',
+        blade: false
       },
       at,
       {
         coefficient: Number(storm.coefficient || 0),
         hits,
         intervalMs: Math.max(0, Number(storm.intervalMs || 0)),
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        source: "Player",
-        weapon: "utility",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        source: 'Player',
+        weapon: 'utility'
+      }
     );
-    addTraitProc("Method of Madness", at, skill.name);
-    professionCoreState(state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] =
-      at + Number(storm.cooldown || 0);
+    addTraitProc('Method of Madness', at, skill.name);
+    professionCoreState(state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] = at + Number(storm.cooldown || 0);
     if (!traits.has(TRAIT.SYNCOPATE)) return;
     const syncopate = traitDamage.Syncopate;
     addDamage(
       {
-        id: "Syncopate",
-        name: "Syncopate",
-        weapon: "Utility",
-        blade: false,
+        id: 'Syncopate',
+        name: 'Syncopate',
+        weapon: 'Utility',
+        blade: false
       },
       at,
       {
         coefficient: syncopate.coefficient,
         hits: syncopate.hits,
-        source: "Player",
-        weapon: "utility",
-      },
+        source: 'Player',
+        weapon: 'utility'
+      }
     );
-    addTraitProc("Syncopate", at, "Lesser Chaos Storm");
+    addTraitProc('Syncopate', at, 'Lesser Chaos Storm');
   };
 
   return { consumeClarity, apply };
