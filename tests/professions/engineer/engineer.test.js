@@ -1536,6 +1536,28 @@ test("Relic of Fireworks accepts weapon-strength profession mechanics", () => {
   );
 });
 
+test("Relic of Fireworks ignores Grenade Kit bundle skills", () => {
+  const result = simulate(
+    "Holosmith",
+    [
+      "Grenade Kit",
+      "Poison Grenade",
+      "Freeze Grenade",
+      { type: "wait", durationMs: 2000 },
+    ],
+    {
+      selectedSkills: ["Grenade Kit"],
+      relic: "Fireworks",
+    },
+  );
+  // Poison Grenade and Freeze Grenade both recharge in 20s but strike at bundle
+  // strength, so the kit must not trigger Fireworks.
+  assert.equal(
+    result.procSteps.some((step) => step.skill === "Relic of Fireworks"),
+    false,
+  );
+});
+
 test("Mechanist commands are selected by traits and mech attacks persist", () => {
   const result = simulate(
     "Mechanist",

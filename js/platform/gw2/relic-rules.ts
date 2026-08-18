@@ -4,16 +4,16 @@
  * only the mutable state required by that relic.
  */
 
-import { EPSILON, isInternalCooldownReady } from "../engine/clock.js";
-import { enqueueOrdered } from "../engine/event-queue.js";
+import { EPSILON, isInternalCooldownReady } from '../engine/clock.js';
+import { enqueueOrdered } from '../engine/event-queue.js';
 import {
   GW2_EVENT_ACTOR_TYPES,
   gw2EventActorType,
   isGw2PlayerActorEvent,
-  isGw2PlayerModifierOwnedEvent,
-} from "./event-ownership.js";
+  isGw2PlayerModifierOwnedEvent
+} from './event-ownership.js';
 
-import type { SimulationEvent, Skill } from "../engine/types.js";
+import type { SimulationEvent, Skill } from '../engine/types.js';
 import type {
   Gw2ApplyCondition,
   Gw2ConditionHelpers,
@@ -22,8 +22,8 @@ import type {
   Gw2RelicRule,
   Gw2RelicRuntime,
   Gw2RelicRuntimeContext,
-  Gw2RelicState,
-} from "./types.js";
+  Gw2RelicState
+} from './types.js';
 
 interface TimedBuffProcOptions {
   readonly duration: number;
@@ -33,10 +33,7 @@ interface TimedBuffProcOptions {
 
 function isBloodstoneOwnerStrike(event: SimulationEvent): boolean {
   // Fervor follows modifier ownership, while its delayed relic explosion remains eligible explicitly.
-  return (
-    isGw2PlayerModifierOwnedEvent(event) ||
-    event.sourceId === "relic.bloodstone"
-  );
+  return isGw2PlayerModifierOwnedEvent(event) || event.sourceId === 'relic.bloodstone';
 }
 
 const STATELESS_RELIC: Readonly<Gw2RelicRule> = Object.freeze({});
@@ -49,8 +46,7 @@ const NOURYS_STACK_INTERVAL = 3;
 const NOURYS_STACKS_NEEDED = 10;
 const NOURYS_BUFF_DURATION = 5;
 const NOURYS_DAMAGE_BONUS = 0.25;
-const NOURYS_CYCLE_DURATION =
-  NOURYS_STACK_INTERVAL * NOURYS_STACKS_NEEDED + NOURYS_BUFF_DURATION;
+const NOURYS_CYCLE_DURATION = NOURYS_STACK_INTERVAL * NOURYS_STACKS_NEEDED + NOURYS_BUFF_DURATION;
 
 interface AristocracyActivation {
   readonly at: number;
@@ -73,29 +69,19 @@ function createAristocracyState(): AristocracyState {
     readyAt: 0,
     stacks: 0,
     expiresAt: 0,
-    activations: [],
+    activations: []
   };
 }
 
-function compareTimelineEvents(
-  left: SimulationEvent,
-  right: SimulationEvent,
-): number {
+function compareTimelineEvents(left: SimulationEvent, right: SimulationEvent): number {
   return (
     left.at - right.at ||
-    Number(left.causalOrder ?? left.__order ?? 0) -
-      Number(right.causalOrder ?? right.__order ?? 0)
+    Number(left.causalOrder ?? left.__order ?? 0) - Number(right.causalOrder ?? right.__order ?? 0)
   );
 }
 
-function applyAristocracyTrigger(
-  state: AristocracyState,
-  event: SimulationEvent,
-): AristocracyActivation | null {
-  if (
-    event.type !== "weakness_vulnerability" ||
-    !isInternalCooldownReady(event.at, state.readyAt)
-  ) {
+function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent): AristocracyActivation | null {
+  if (event.type !== 'weakness_vulnerability' || !isInternalCooldownReady(event.at, state.readyAt)) {
     return null;
   }
   if (event.at >= state.expiresAt - EPSILON) state.stacks = 0;
@@ -106,23 +92,16 @@ function applyAristocracyTrigger(
     at: event.at,
     expiresAt: state.expiresAt,
     stacks: state.stacks,
-    event,
+    event
   };
   state.activations.push(activation);
   return activation;
 }
 
-function replayAristocracyTimeline(
-  events: readonly SimulationEvent[],
-  combatStartTime: number,
-): AristocracyState {
+function replayAristocracyTimeline(events: readonly SimulationEvent[], combatStartTime: number): AristocracyState {
   const state = createAristocracyState();
   const ordered = [...events]
-    .filter(
-      (event) =>
-        event.type === "weakness_vulnerability" &&
-        event.at >= combatStartTime - EPSILON,
-    )
+    .filter((event) => event.type === 'weakness_vulnerability' && event.at >= combatStartTime - EPSILON)
     .sort(compareTimelineEvents);
   for (const event of ordered) applyAristocracyTrigger(state, event);
   return state;
@@ -131,35 +110,24 @@ function replayAristocracyTimeline(
 function explicitCombatStartTime(events: readonly SimulationEvent[]): number {
   let combatStartTime = Infinity;
   for (const event of events) {
-    if (event.type === "combat_start") {
+    if (event.type === 'combat_start') {
       combatStartTime = Math.min(combatStartTime, event.at);
     }
   }
   return combatStartTime === Infinity ? -Infinity : combatStartTime;
 }
 
-function nourysCombatStart(
-  context: Gw2RelicRuntimeContext,
-  state: Gw2RelicState,
-): number {
+function nourysCombatStart(context: Gw2RelicRuntimeContext, state: Gw2RelicState): number {
   const runtimeStart = Number(context.combatStartTime);
   if (Number.isFinite(runtimeStart)) return runtimeStart;
   const stateStart = Number(state.combatStartTime);
   if (Number.isFinite(stateStart)) return stateStart;
-  const timelineStart = explicitCombatStartTime(
-    (state.timelineEvents as readonly SimulationEvent[] | undefined) || [],
-  );
+  const timelineStart = explicitCombatStartTime((state.timelineEvents as readonly SimulationEvent[] | undefined) || []);
   return Number.isFinite(timelineStart) ? timelineStart : 0;
 }
 
-function nourysActiveAt(
-  context: Gw2RelicRuntimeContext,
-  state: Gw2RelicState,
-  at: number,
-): boolean {
-  const firstActivation =
-    nourysCombatStart(context, state) +
-    NOURYS_STACK_INTERVAL * NOURYS_STACKS_NEEDED;
+function nourysActiveAt(context: Gw2RelicRuntimeContext, state: Gw2RelicState, at: number): boolean {
+  const firstActivation = nourysCombatStart(context, state) + NOURYS_STACK_INTERVAL * NOURYS_STACKS_NEEDED;
   if (at < firstActivation - EPSILON) return false;
   const phase = (at - firstActivation) % NOURYS_CYCLE_DURATION;
   return phase >= -EPSILON && phase < NOURYS_BUFF_DURATION - EPSILON;
@@ -168,10 +136,7 @@ function nourysActiveAt(
 function syncAristocracyTimeline(state: AristocracyState): void {
   const events = state.timelineEvents;
   if (!events || state.timelineLength === events.length) return;
-  const replay = replayAristocracyTimeline(
-    events,
-    explicitCombatStartTime(events),
-  );
+  const replay = replayAristocracyTimeline(events, explicitCombatStartTime(events));
   state.readyAt = replay.readyAt;
   state.stacks = replay.stacks;
   state.expiresAt = replay.expiresAt;
@@ -181,10 +146,7 @@ function syncAristocracyTimeline(state: AristocracyState): void {
 
 // syncAristocracyTimeline replays only when the event array has grown since the
 // last call — this lazily keeps historical query state in sync with new events.
-function aristocracyActivationAt(
-  state: AristocracyState,
-  at: number,
-): AristocracyActivation | null {
+function aristocracyActivationAt(state: AristocracyState, at: number): AristocracyActivation | null {
   syncAristocracyTimeline(state);
   for (let index = state.activations.length - 1; index >= 0; index -= 1) {
     const activation = state.activations[index];
@@ -207,17 +169,11 @@ function recordTimedBuffProc(
   ctx: Gw2RelicContext,
   state: Gw2RelicState,
   event: SimulationEvent,
-  { duration, name, detail = null }: TimedBuffProcOptions,
+  { duration, name, detail = null }: TimedBuffProcOptions
 ): void {
   const wasActive = Number(state.buffUntil || 0) > event.at;
   state.buffUntil = Math.max(Number(state.buffUntil || 0), event.at + duration);
-  ctx.recordProc(
-    "relic",
-    name,
-    event.at,
-    event.skillName,
-    detail ?? (wasActive ? "refreshed" : "activated"),
-  );
+  ctx.recordProc('relic', name, event.at, event.skillName, detail ?? (wasActive ? 'refreshed' : 'activated'));
 }
 
 /**
@@ -227,8 +183,8 @@ function recordTimedBuffProc(
  */
 function timedStrikeBuff(
   multiplier: number,
-  predicate?: (event: SimulationEvent) => boolean,
-): NonNullable<Gw2RelicRule["strikeMultiplier"]> {
+  predicate?: (event: SimulationEvent) => boolean
+): NonNullable<Gw2RelicRule['strikeMultiplier']> {
   return (_ctx, state, event) =>
     Number(state.buffFrom ?? -Infinity) <= event.at &&
     Number(state.buffUntil || 0) > event.at &&
@@ -237,623 +193,513 @@ function timedStrikeBuff(
       : 1;
 }
 
-const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> =
-  Object.freeze({
-    Akeem: defineRelic({
-      createState: () => ({ readyAt: 0 }),
-      control(
-        ctx,
-        state,
-        event,
-        { activeConditionStackCount, applyCondition },
+const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.freeze({
+  Akeem: defineRelic({
+    createState: () => ({ readyAt: 0 }),
+    control(ctx, state, event, { activeConditionStackCount, applyCondition }) {
+      if (!isInternalCooldownReady(event.at, state.readyAt)) return;
+      if (
+        activeConditionStackCount(ctx, 'Confusion', event.at) < 5 &&
+        activeConditionStackCount(ctx, 'Torment', event.at) < 5
       ) {
-        if (!isInternalCooldownReady(event.at, state.readyAt)) return;
-        if (
-          activeConditionStackCount(ctx, "Confusion", event.at) < 5 &&
-          activeConditionStackCount(ctx, "Torment", event.at) < 5
-        ) {
-          return;
-        }
+        return;
+      }
 
-        state.readyAt = event.at + 10;
-        ctx.recordProc("relic", "Relic of Akeem", event.at, event.skillName);
+      state.readyAt = event.at + 10;
+      ctx.recordProc('relic', 'Relic of Akeem', event.at, event.skillName);
+      applyCondition(ctx, {
+        type: 'condition',
+        at: event.at,
+        name: 'Relic of Akeem — Confusion',
+        skillName: 'Relic of Akeem',
+        condition: 'Confusion',
+        duration: 10,
+        stacks: 2,
+        source: 'Relic'
+      });
+      applyCondition(ctx, {
+        type: 'condition',
+        at: event.at,
+        name: 'Relic of Akeem — Torment',
+        skillName: 'Relic of Akeem',
+        condition: 'Torment',
+        duration: 10,
+        stacks: 2,
+        source: 'Relic'
+      });
+    }
+  }),
+
+  Aristocracy: defineRelic({
+    createState: createAristocracyState,
+    weaknessVulnerability(ctx, state, event) {
+      if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON) {
+        return;
+      }
+      applyAristocracyTrigger(state as AristocracyState, event);
+    },
+    timeline(ctx, _state, events) {
+      const replay = replayAristocracyTimeline(events, ctx.combatStartTime ?? -Infinity);
+      for (const activation of replay.activations) {
+        ctx.recordProc(
+          'relic',
+          'Relic of Aristocracy',
+          activation.at,
+          activation.event.skillName,
+          `${activation.stacks}/${ARISTOCRACY_MAX_STACKS} stacks`
+        );
+      }
+    },
+    conditionDurationBonus(_ctx, state, at) {
+      const activation = aristocracyActivationAt(state as AristocracyState, at);
+      return activation ? activation.stacks * ARISTOCRACY_BONUS_PER_STACK : 0;
+    }
+  }),
+
+  Blightbringer: defineRelic({
+    createState: () => ({
+      readyAt: 0,
+      count: 0,
+      trackedActivations: new Set<string>()
+    }),
+    condition(ctx, state, application, { applyCondition }) {
+      if (application?.condition !== 'Poisoned' || !isGw2PlayerActorEvent(application)) {
+        return;
+      }
+      // Deduplicate by activationId (or a synthesized key) so a single skill
+      // application that produces multiple poison stacks only increments the
+      // Blightbringer counter once.
+      const tracked = state.trackedActivations as Set<string> | undefined;
+      const key = String(
+        application.activationId || `${application.skillId || application.skillName}:${application.at}`
+      );
+      if (tracked?.has(key)) return;
+      tracked?.add(key);
+      state.count = Math.min(6, Number(state.count || 0) + 1);
+      if (Number(state.count) < 6 || !isInternalCooldownReady(application.at, state.readyAt)) {
+        return;
+      }
+
+      state.count = 0;
+      state.readyAt = application.at + 8;
+      ctx.recordProc('relic', 'Relic of Blightbringer', application.at, application.skillName);
+      for (const [condition, stacks, duration] of [
+        ['Poisoned', 3, 10],
+        ['Crippled', 1, 5],
+        ['Weakness', 1, 5]
+      ] as const) {
         applyCondition(ctx, {
-          type: "condition",
-          at: event.at,
-          name: "Relic of Akeem — Confusion",
-          skillName: "Relic of Akeem",
-          condition: "Confusion",
-          duration: 10,
-          stacks: 2,
-          source: "Relic",
+          type: 'condition',
+          at: application.at,
+          name: `Relic of Blightbringer - ${condition}`,
+          skillName: 'Relic of Blightbringer',
+          condition,
+          duration,
+          stacks,
+          source: 'Relic',
+          sourceId: 'relic.blightbringer',
+          actorType: 'effect'
         });
-        applyCondition(ctx, {
-          type: "condition",
-          at: event.at,
-          name: "Relic of Akeem — Torment",
-          skillName: "Relic of Akeem",
-          condition: "Torment",
-          duration: 10,
-          stacks: 2,
-          source: "Relic",
-        });
-      },
+      }
+    }
+  }),
+
+  Bloodstone: defineRelic({
+    createState: () => ({
+      stacks: 0,
+      expiresAt: 0,
+      buffUntil: 0
     }),
+    blastCombo(ctx, state, event) {
+      // Volatility cannot accumulate while Fervor is active.
+      if (Number(state.buffUntil || 0) > event.at) return;
+      if (Number(state.expiresAt || 0) <= event.at) state.stacks = 0;
 
-    Aristocracy: defineRelic({
-      createState: createAristocracyState,
-      weaknessVulnerability(ctx, state, event) {
-        if (
-          ctx.combatStartTime != null &&
-          event.at < ctx.combatStartTime - EPSILON
-        ) {
-          return;
-        }
-        applyAristocracyTrigger(state as AristocracyState, event);
-      },
-      timeline(ctx, _state, events) {
-        const replay = replayAristocracyTimeline(
-          events,
-          ctx.combatStartTime ?? -Infinity,
-        );
-        for (const activation of replay.activations) {
-          ctx.recordProc(
-            "relic",
-            "Relic of Aristocracy",
-            activation.at,
-            activation.event.skillName,
-            `${activation.stacks}/${ARISTOCRACY_MAX_STACKS} stacks`,
-          );
-        }
-      },
-      conditionDurationBonus(_ctx, state, at) {
-        const activation = aristocracyActivationAt(
-          state as AristocracyState,
-          at,
-        );
-        return activation ? activation.stacks * ARISTOCRACY_BONUS_PER_STACK : 0;
-      },
-    }),
+      const currentStacks = Number(state.stacks || 0);
+      if (currentStacks < 2) {
+        state.stacks = currentStacks + 1;
+        state.expiresAt = event.at + 10;
+        ctx.recordProc('relic', 'Bloodstone Volatility', event.at, event.skillName, `${state.stacks}/3 stacks`);
+        return;
+      }
 
-    Blightbringer: defineRelic({
-      createState: () => ({
-        readyAt: 0,
-        count: 0,
-        trackedActivations: new Set<string>(),
-      }),
-      condition(ctx, state, application, { applyCondition }) {
-        if (
-          application?.condition !== "Poisoned" ||
-          !isGw2PlayerActorEvent(application)
-        ) {
-          return;
-        }
-        // Deduplicate by activationId (or a synthesized key) so a single skill
-        // application that produces multiple poison stacks only increments the
-        // Blightbringer counter once.
-        const tracked = state.trackedActivations as Set<string> | undefined;
-        const key = String(
-          application.activationId ||
-            `${application.skillId || application.skillName}:${application.at}`,
-        );
-        if (tracked?.has(key)) return;
-        tracked?.add(key);
-        state.count = Math.min(6, Number(state.count || 0) + 1);
-        if (
-          Number(state.count) < 6 ||
-          !isInternalCooldownReady(application.at, state.readyAt)
-        ) {
-          return;
-        }
+      // The third qualifying blast consumes Volatility and activates Fervor.
+      state.stacks = 0;
+      state.expiresAt = 0;
+      state.buffUntil = event.at + 8;
+      ctx.recordProc('relic', 'Relic of Bloodstone', event.at, event.skillName, 'Bloodstone Fervor');
+      const explosionAt = event.at + 0.68;
+      enqueueOrdered(ctx.queue, {
+        type: 'damage',
+        at: explosionAt,
+        name: 'Bloodstone Explosion',
+        skillName: 'Bloodstone Explosion',
+        coefficient: 3,
+        hits: 1,
+        hitIndex: 1,
+        totalHits: 1,
+        source: 'Relic',
+        sourceId: 'relic.bloodstone',
+        actorType: 'effect',
+        skillWeapon: 'Unequipped',
+        canCrit: true,
+        triggeredBy: event.skillName
+      });
+      enqueueOrdered(ctx.queue, {
+        type: 'condition',
+        at: explosionAt,
+        name: 'Bloodstone Explosion — Bleeding',
+        skillName: 'Bloodstone Explosion',
+        condition: 'Bleeding',
+        duration: 6,
+        stacks: 6,
+        source: 'Relic',
+        sourceId: 'relic.bloodstone',
+        actorType: 'effect',
+        triggeredBy: event.skillName
+      });
+    },
+    // Fervor also affects the delayed explosion that activated it.
+    strikeMultiplier: timedStrikeBuff(1.07, isBloodstoneOwnerStrike)
+  }),
 
-        state.count = 0;
-        state.readyAt = application.at + 8;
-        ctx.recordProc(
-          "relic",
-          "Relic of Blightbringer",
-          application.at,
-          application.skillName,
-        );
-        for (const [condition, stacks, duration] of [
-          ["Poisoned", 3, 10],
-          ["Crippled", 1, 5],
-          ["Weakness", 1, 5],
-        ] as const) {
-          applyCondition(ctx, {
-            type: "condition",
-            at: application.at,
-            name: `Relic of Blightbringer - ${condition}`,
-            skillName: "Relic of Blightbringer",
-            condition,
-            duration,
-            stacks,
-            source: "Relic",
-            sourceId: "relic.blightbringer",
-            actorType: "effect",
-          });
-        }
-      },
-    }),
-
-    Bloodstone: defineRelic({
-      createState: () => ({
-        stacks: 0,
-        expiresAt: 0,
-        buffUntil: 0,
-      }),
-      blastCombo(ctx, state, event) {
-        // Volatility cannot accumulate while Fervor is active.
-        if (Number(state.buffUntil || 0) > event.at) return;
-        if (Number(state.expiresAt || 0) <= event.at) state.stacks = 0;
-
-        const currentStacks = Number(state.stacks || 0);
-        if (currentStacks < 2) {
-          state.stacks = currentStacks + 1;
-          state.expiresAt = event.at + 10;
-          ctx.recordProc(
-            "relic",
-            "Bloodstone Volatility",
-            event.at,
-            event.skillName,
-            `${state.stacks}/3 stacks`,
-          );
-          return;
-        }
-
-        // The third qualifying blast consumes Volatility and activates Fervor.
-        state.stacks = 0;
-        state.expiresAt = 0;
-        state.buffUntil = event.at + 8;
-        ctx.recordProc(
-          "relic",
-          "Relic of Bloodstone",
-          event.at,
-          event.skillName,
-          "Bloodstone Fervor",
-        );
-        const explosionAt = event.at + 0.68;
-        enqueueOrdered(ctx.queue, {
-          type: "damage",
-          at: explosionAt,
-          name: "Bloodstone Explosion",
-          skillName: "Bloodstone Explosion",
-          coefficient: 3,
-          hits: 1,
-          hitIndex: 1,
-          totalHits: 1,
-          source: "Relic",
-          sourceId: "relic.bloodstone",
-          actorType: "effect",
-          skillWeapon: "Unequipped",
-          canCrit: true,
-          triggeredBy: event.skillName,
-        });
-        enqueueOrdered(ctx.queue, {
-          type: "condition",
-          at: explosionAt,
-          name: "Bloodstone Explosion — Bleeding",
-          skillName: "Bloodstone Explosion",
-          condition: "Bleeding",
-          duration: 6,
-          stacks: 6,
-          source: "Relic",
-          sourceId: "relic.bloodstone",
-          actorType: "effect",
-          triggeredBy: event.skillName,
-        });
-      },
-      // Fervor also affects the delayed explosion that activated it.
-      strikeMultiplier: timedStrikeBuff(1.07, isBloodstoneOwnerStrike),
-    }),
-
-    Brawler: defineRelic({
-      createState: () => ({ readyAt: 0, buffUntil: 0 }),
-      boon(ctx, state, event) {
-        const kind = String(event?.kind || "").toLowerCase();
-        if (
-          (kind !== "protection" && kind !== "resolution") ||
-          !isGw2PlayerActorEvent(event) ||
-          !(Number(event.duration) > 0) ||
-          !(Number(event.stacks ?? 1) > 0) ||
-          !isInternalCooldownReady(event.at, state.readyAt)
-        ) {
-          return;
-        }
-
-        state.readyAt = event.at + 8;
-        state.buffUntil = event.at + 4;
-        ctx.recordProc(
-          "relic",
-          "Relic of the Brawler",
-          event.at,
-          event.skillName,
-          "activated",
-        );
-      },
-      strikeMultiplier: timedStrikeBuff(1.1),
-    }),
-
-    Claw: defineRelic({
-      createState: () => ({ buffUntil: 0 }),
-      control(ctx, state, event) {
-        if (!isGw2PlayerActorEvent(event)) return;
-        recordTimedBuffProc(ctx, state, event, {
-          duration: 8,
-          name: "Relic of the Claw",
-        });
-      },
-      strikeMultiplier: timedStrikeBuff(1.07, isGw2PlayerModifierOwnedEvent),
-    }),
-
-    Dragonhunter: defineRelic({
-      createState: () => ({ buffUntil: 0 }),
-      afterHit(ctx, state, event, skill) {
-        if (
-          !isGw2PlayerActorEvent(event) ||
-          !skill?.categories?.includes("Trap")
-        ) {
-          return;
-        }
-        recordTimedBuffProc(ctx, state, event, {
-          duration: 5,
-          name: "Relic of the Dragonhunter",
-        });
-      },
-      conditionDurationBonus(_ctx, state, at) {
-        return Number(state.buffUntil || 0) > at ? 0.1 : 0;
-      },
-      strikeMultiplier: timedStrikeBuff(1.1),
-    }),
-
-    Eagle: defineRelic({
-      strikeMultiplier(ctx) {
-        // Activates when cumulative damage dealt (strike + condition) reaches
-        // 50% of target health — not remaining health; it's a threshold on total output.
-        const targetHealth = Number(ctx.config.target?.health || 0);
-        return targetHealth > 0 &&
-          ctx.totals.strike + ctx.totals.condition >= targetHealth * 0.5
-          ? 1.1
-          : 1;
-      },
-    }),
-
-    Fireworks: defineRelic({
-      createState: () => ({ buffUntil: 0 }),
-      afterHit(ctx, state, event, skill) {
-        if (
-          !isGw2PlayerActorEvent(event) ||
-          (skill?.type !== "Weapon" &&
-            !skill?.shroud &&
-            event.skillWeapon !== "Profession mechanic") ||
-          Number(skill?.cooldown || 0) < 20
-        ) {
-          return;
-        }
-        recordTimedBuffProc(ctx, state, event, {
-          duration: 6,
-          name: "Relic of Fireworks",
-        });
-      },
-      strikeMultiplier: timedStrikeBuff(1.07),
-    }),
-
-    Fractal: defineRelic({
-      createState: () => ({ readyAt: 0 }),
-      condition(
-        ctx,
-        state,
-        application,
-        { activeConditionStackCount, applyCondition },
+  Brawler: defineRelic({
+    createState: () => ({ readyAt: 0, buffUntil: 0 }),
+    boon(ctx, state, event) {
+      const kind = String(event?.kind || '').toLowerCase();
+      if (
+        (kind !== 'protection' && kind !== 'resolution') ||
+        !isGw2PlayerActorEvent(event) ||
+        !(Number(event.duration) > 0) ||
+        !(Number(event.stacks ?? 1) > 0) ||
+        !isInternalCooldownReady(event.at, state.readyAt)
       ) {
-        if (
-          application?.condition !== "Bleeding" ||
-          !isInternalCooldownReady(application.at, state.readyAt) ||
-          activeConditionStackCount(ctx, "Bleeding", application.at) -
-            Number(application.stacks || 0) <
-            6
-        ) {
-          return;
+        return;
+      }
+
+      state.readyAt = event.at + 8;
+      state.buffUntil = event.at + 4;
+      ctx.recordProc('relic', 'Relic of the Brawler', event.at, event.skillName, 'activated');
+    },
+    strikeMultiplier: timedStrikeBuff(1.1)
+  }),
+
+  Claw: defineRelic({
+    createState: () => ({ buffUntil: 0 }),
+    control(ctx, state, event) {
+      if (!isGw2PlayerActorEvent(event)) return;
+      recordTimedBuffProc(ctx, state, event, {
+        duration: 8,
+        name: 'Relic of the Claw'
+      });
+    },
+    strikeMultiplier: timedStrikeBuff(1.07, isGw2PlayerModifierOwnedEvent)
+  }),
+
+  Dragonhunter: defineRelic({
+    createState: () => ({ buffUntil: 0 }),
+    afterHit(ctx, state, event, skill) {
+      if (!isGw2PlayerActorEvent(event) || !skill?.categories?.includes('Trap')) {
+        return;
+      }
+      recordTimedBuffProc(ctx, state, event, {
+        duration: 5,
+        name: 'Relic of the Dragonhunter'
+      });
+    },
+    conditionDurationBonus(_ctx, state, at) {
+      return Number(state.buffUntil || 0) > at ? 0.1 : 0;
+    },
+    strikeMultiplier: timedStrikeBuff(1.1)
+  }),
+
+  Eagle: defineRelic({
+    strikeMultiplier(ctx) {
+      // Activates when cumulative damage dealt (strike + condition) reaches
+      // 50% of target health — not remaining health; it's a threshold on total output.
+      const targetHealth = Number(ctx.config.target?.health || 0);
+      return targetHealth > 0 && ctx.totals.strike + ctx.totals.condition >= targetHealth * 0.5 ? 1.1 : 1;
+    }
+  }),
+
+  Fireworks: defineRelic({
+    createState: () => ({ buffUntil: 0 }),
+    afterHit(ctx, state, event, skill) {
+      // Kit/bundle skills strike at bundle strength rather than weapon
+      // strength, so they never qualify.
+      const isWeaponSkill = skill?.type === 'Weapon' && !skill?.kit;
+      // Profession-mechanic skills qualify when they strike at weapon strength:
+      // either an equipped weapon profile or the dedicated profession-mechanic
+      // profile. Bundle strength and unequipped utility strength do not count.
+      const profileId = String(event.weaponStrengthProfileId || '');
+      const strikesAtWeaponStrength =
+        profileId.startsWith('weapon.') || profileId === 'nonweapon.profession-mechanic';
+      const isWeaponStrengthProfessionMechanic =
+        event.skillWeapon === 'Profession mechanic' || strikesAtWeaponStrength;
+      if (
+        !isGw2PlayerActorEvent(event) ||
+        (!isWeaponSkill && !skill?.shroud && !isWeaponStrengthProfessionMechanic) ||
+        Number(skill?.cooldown || 0) < 20
+      ) {
+        return;
+      }
+      recordTimedBuffProc(ctx, state, event, {
+        duration: 6,
+        name: 'Relic of Fireworks'
+      });
+    },
+    strikeMultiplier: timedStrikeBuff(1.07)
+  }),
+
+  Fractal: defineRelic({
+    createState: () => ({ readyAt: 0 }),
+    condition(ctx, state, application, { activeConditionStackCount, applyCondition }) {
+      if (
+        application?.condition !== 'Bleeding' ||
+        !isInternalCooldownReady(application.at, state.readyAt) ||
+        activeConditionStackCount(ctx, 'Bleeding', application.at) - Number(application.stacks || 0) < 6
+      ) {
+        return;
+      }
+
+      // The condition hook fires with the new stacks already counted, so subtract
+      // application.stacks to check for the required six pre-existing stacks.
+      state.readyAt = application.at + 20;
+      ctx.recordProc('relic', 'Relic of the Fractal', application.at, application.skillName);
+      applyCondition(ctx, {
+        type: 'condition',
+        at: application.at,
+        name: 'Relic of the Fractal — Burning',
+        skillName: 'Relic of the Fractal',
+        condition: 'Burning',
+        duration: 8,
+        stacks: 2,
+        source: 'Relic',
+        sourceId: 'relic.fractal'
+      });
+      applyCondition(ctx, {
+        type: 'condition',
+        at: application.at,
+        name: 'Relic of the Fractal — Torment',
+        skillName: 'Relic of the Fractal',
+        condition: 'Torment',
+        duration: 8,
+        stacks: 3,
+        source: 'Relic',
+        sourceId: 'relic.fractal'
+      });
+    }
+  }),
+
+  Mistburn: defineRelic({
+    createState: () => ({ readyAt: 0 }),
+    materializeBoon(ctx, state, event) {
+      const kind = String(event.kind || '').toLowerCase();
+      if (
+        kind !== 'might' ||
+        !isGw2PlayerActorEvent(event) ||
+        event.recipients === 'allies' ||
+        !(Number(event.duration) > 0) ||
+        !(Number(event.stacks ?? 1) > 0) ||
+        !isInternalCooldownReady(event.at, state.readyAt)
+      ) {
+        return;
+      }
+
+      state.readyAt = event.at + 1;
+      ctx.emitDerived(event, {
+        type: 'buff',
+        at: event.at,
+        name: 'Relic of Mistburn - Might',
+        skillName: 'Relic of Mistburn',
+        kind: 'might',
+        duration: 8,
+        stacks: 1,
+        source: 'Relic',
+        sourceId: 'relic.mistburn',
+        actorType: 'effect'
+      });
+    },
+    boon(ctx, _state, event) {
+      if (event.type !== 'buff' || event.sourceId !== 'relic.mistburn') {
+        return;
+      }
+      ctx.recordProc('relic', 'Relic of Mistburn', event.at, event.triggeredBy || event.skillName);
+    },
+    criticalChanceBonus(_ctx, _state, event, mightStacks) {
+      return isGw2PlayerActorEvent(event) && mightStacks >= 10 ? 0.1 : 0;
+    }
+  }),
+
+  'Mist Stranger': defineRelic({
+    damageResolved(ctx, _state, event) {
+      if (!isGw2PlayerActorEvent(event)) return;
+      const siphon = 105 * Number(event.hits || 1);
+      ctx.totals.strike += siphon;
+      ctx.addBreakdown('Relic of the Mist Stranger', siphon, 'strikeDamage', event.hits);
+      ctx.resolved.push({
+        type: 'damage',
+        at: event.at,
+        name: 'Relic of the Mist Stranger',
+        skillName: 'Relic of the Mist Stranger',
+        triggeredBy: event.skillName,
+        coefficient: 0,
+        hits: event.hits,
+        source: 'Relic',
+        damage: siphon
+      });
+      ctx.recordProc('relic', 'Relic of the Mist Stranger', event.at, event.skillName);
+    }
+  }),
+
+  Nourys: defineRelic({
+    timeline(ctx, state, _events, rotationEndTime) {
+      const combatStart = nourysCombatStart(ctx, state);
+      state.combatStartTime = combatStart;
+      let stacks = 0;
+      for (let at = combatStart + NOURYS_STACK_INTERVAL; at <= rotationEndTime + EPSILON; ) {
+        stacks += 1;
+        ctx.recordProc('skill', 'Nourys', at, 'Combat duration', `${stacks}/${NOURYS_STACKS_NEEDED} stacks`);
+        if (stacks >= NOURYS_STACKS_NEEDED) {
+          stacks = 0;
+          ctx.recordProc('relic', 'Relic of Nourys', at, 'Nourys', 'activated');
+          at += NOURYS_BUFF_DURATION + NOURYS_STACK_INTERVAL;
+        } else {
+          at += NOURYS_STACK_INTERVAL;
         }
+      }
+    },
+    outgoingDamageBonus(ctx, state, _damageType, at) {
+      // nourysActiveAt uses modulo arithmetic on elapsed time from combat start
+      // to determine the current phase — no event tracking needed.
+      return nourysActiveAt(ctx, state, at) ? NOURYS_DAMAGE_BONUS : 0;
+    }
+  }),
 
-        // The condition hook fires with the new stacks already counted, so subtract
-        // application.stacks to check for the required six pre-existing stacks.
-        state.readyAt = application.at + 20;
-        ctx.recordProc(
-          "relic",
-          "Relic of the Fractal",
-          application.at,
-          application.skillName,
-        );
-        applyCondition(ctx, {
-          type: "condition",
-          at: application.at,
-          name: "Relic of the Fractal — Burning",
-          skillName: "Relic of the Fractal",
-          condition: "Burning",
-          duration: 8,
-          stacks: 2,
-          source: "Relic",
-          sourceId: "relic.fractal",
-        });
-        applyCondition(ctx, {
-          type: "condition",
-          at: application.at,
-          name: "Relic of the Fractal — Torment",
-          skillName: "Relic of the Fractal",
-          condition: "Torment",
-          duration: 8,
-          stacks: 3,
-          source: "Relic",
-          sourceId: "relic.fractal",
-        });
-      },
-    }),
+  Peitha: defineRelic({
+    createState: () => ({ readyAt: 0, buffFrom: 0, buffUntil: 0 }),
+    peitha(ctx, state, event, applyCondition) {
+      const triggerAt = event.at;
+      if (!isInternalCooldownReady(triggerAt, state.readyAt)) return;
+      state.readyAt = triggerAt + 4;
+      const combatStart = Number(ctx.combatStartTime ?? -Infinity);
+      // If the trigger fires before combat starts (pre-cast), clamp the impact
+      // to combatStartTime so the damage and condition don't preload before combat.
+      const impactAt =
+        triggerAt < combatStart ? combatStart : triggerAt + Math.max(0, Number(event.projectileDelay || 0));
+      state.buffFrom = impactAt;
+      state.buffUntil = impactAt + 4;
+      ctx.recordProc('relic', 'Relic of Peitha', impactAt, event.skillName);
+      applyCondition(ctx, {
+        type: 'condition',
+        at: impactAt,
+        name: 'Relic of Peitha — Torment',
+        skillName: 'Relic of Peitha',
+        condition: 'Torment',
+        duration: 7,
+        stacks: 2,
+        source: 'Relic'
+      });
+    },
+    strikeMultiplier: timedStrikeBuff(1.1)
+  }),
 
-    Mistburn: defineRelic({
-      createState: () => ({ readyAt: 0 }),
-      materializeBoon(ctx, state, event) {
-        const kind = String(event.kind || "").toLowerCase();
-        if (
-          kind !== "might" ||
-          !isGw2PlayerActorEvent(event) ||
-          event.recipients === "allies" ||
-          !(Number(event.duration) > 0) ||
-          !(Number(event.stacks ?? 1) > 0) ||
-          !isInternalCooldownReady(event.at, state.readyAt)
-        ) {
-          return;
-        }
+  Shackles: defineRelic({
+    createState: () => ({ readyAt: 0 }),
+    materializeCondition(ctx, state, application) {
+      const actorType = gw2EventActorType(application);
+      if (
+        application?.condition !== 'Immobilized' ||
+        (actorType !== GW2_EVENT_ACTOR_TYPES.PLAYER && actorType !== GW2_EVENT_ACTOR_TYPES.SUMMON) ||
+        !isInternalCooldownReady(application.at, state.readyAt)
+      ) {
+        return;
+      }
 
-        state.readyAt = event.at + 1;
-        ctx.emitDerived(event, {
-          type: "buff",
-          at: event.at,
-          name: "Relic of Mistburn - Might",
-          skillName: "Relic of Mistburn",
-          kind: "might",
-          duration: 8,
-          stacks: 1,
-          source: "Relic",
-          sourceId: "relic.mistburn",
-          actorType: "effect",
-        });
-      },
-      boon(ctx, _state, event) {
-        if (event.type !== "buff" || event.sourceId !== "relic.mistburn") {
-          return;
-        }
-        ctx.recordProc(
-          "relic",
-          "Relic of Mistburn",
-          event.at,
-          event.triggeredBy || event.skillName,
-        );
-      },
-      criticalChanceBonus(_ctx, _state, event, mightStacks) {
-        return isGw2PlayerActorEvent(event) && mightStacks >= 10 ? 0.1 : 0;
-      },
-    }),
+      state.readyAt = application.at + 10;
+      ctx.emitDerived(application, {
+        type: 'proc',
+        procType: 'relic',
+        at: application.at,
+        name: 'Relic of the Shackles',
+        sourceSkill: application.skillName,
+        detail: 'tethered',
+        source: 'Relic',
+        sourceId: 'relic.shackles',
+        actorType: 'effect'
+      });
+      ctx.emitDerived(application, {
+        type: 'damage',
+        at: application.at + 5,
+        name: 'Relic of the Shackles',
+        skillName: 'Relic of the Shackles',
+        coefficient: 3,
+        hits: 1,
+        hitIndex: 1,
+        totalHits: 1,
+        source: 'Relic',
+        sourceId: 'relic.shackles',
+        actorType: 'effect',
+        skillWeapon: 'Unequipped',
+        canCrit: true,
+        triggeredBy: application.skillName
+      });
+      ctx.emitDerived(application, {
+        type: 'control',
+        at: application.at + 5,
+        name: 'Relic of the Shackles',
+        skillName: 'Relic of the Shackles',
+        controlKind: 'stun',
+        duration: 1,
+        source: 'Relic',
+        sourceId: 'relic.shackles',
+        actorType: 'effect',
+        triggeredBy: application.skillName
+      });
+    },
+    damageResolved(ctx, _state, event) {
+      if (
+        event?.type !== 'damage' ||
+        event.sourceId !== 'relic.shackles' ||
+        event.skillName !== 'Relic of the Shackles'
+      ) {
+        return;
+      }
+      ctx.recordProc('relic', 'Relic of the Shackles', event.at, event.triggeredBy, 'damage');
+    }
+  }),
 
-    "Mist Stranger": defineRelic({
-      damageResolved(ctx, _state, event) {
-        if (!isGw2PlayerActorEvent(event)) return;
-        const siphon = 105 * Number(event.hits || 1);
-        ctx.totals.strike += siphon;
-        ctx.addBreakdown(
-          "Relic of the Mist Stranger",
-          siphon,
-          "strikeDamage",
-          event.hits,
-        );
-        ctx.resolved.push({
-          type: "damage",
-          at: event.at,
-          name: "Relic of the Mist Stranger",
-          skillName: "Relic of the Mist Stranger",
-          triggeredBy: event.skillName,
-          coefficient: 0,
-          hits: event.hits,
-          source: "Relic",
-          damage: siphon,
-        });
-        ctx.recordProc(
-          "relic",
-          "Relic of the Mist Stranger",
-          event.at,
-          event.skillName,
-        );
-      },
-    }),
+  Thief: defineRelic({
+    createState: () => ({ stacks: 0, expiresAt: 0 }),
+    afterHit(ctx, state, event, skill) {
+      if (
+        !isGw2PlayerActorEvent(event) ||
+        skill?.type !== 'Weapon' ||
+        !(Number(skill.cooldown || 0) > 0 || skill.resource)
+      ) {
+        return;
+      }
+      if (Number(state.expiresAt || 0) <= event.at) state.stacks = 0;
+      state.stacks = Math.min(5, Number(state.stacks || 0) + 1);
+      state.expiresAt = event.at + 6;
+      ctx.recordProc('relic', 'Relic of the Thief', event.at, event.skillName, `${state.stacks}/5 stacks`);
+    },
+    // Returns 1 (not 0) when no stacks are active — it's a multiplier, not additive.
+    strikeMultiplier(_ctx, state, event) {
+      return Number(state.stacks || 0) > 0 && Number(state.expiresAt || 0) > event.at
+        ? 1 + Number(state.stacks || 0) * 0.01
+        : 1;
+    }
+  }),
 
-    Nourys: defineRelic({
-      timeline(ctx, state, _events, rotationEndTime) {
-        const combatStart = nourysCombatStart(ctx, state);
-        state.combatStartTime = combatStart;
-        let stacks = 0;
-        for (
-          let at = combatStart + NOURYS_STACK_INTERVAL;
-          at <= rotationEndTime + EPSILON;
-        ) {
-          stacks += 1;
-          ctx.recordProc(
-            "skill",
-            "Nourys",
-            at,
-            "Combat duration",
-            `${stacks}/${NOURYS_STACKS_NEEDED} stacks`,
-          );
-          if (stacks >= NOURYS_STACKS_NEEDED) {
-            stacks = 0;
-            ctx.recordProc(
-              "relic",
-              "Relic of Nourys",
-              at,
-              "Nourys",
-              "activated",
-            );
-            at += NOURYS_BUFF_DURATION + NOURYS_STACK_INTERVAL;
-          } else {
-            at += NOURYS_STACK_INTERVAL;
-          }
-        }
-      },
-      outgoingDamageBonus(ctx, state, _damageType, at) {
-        // nourysActiveAt uses modulo arithmetic on elapsed time from combat start
-        // to determine the current phase — no event tracking needed.
-        return nourysActiveAt(ctx, state, at) ? NOURYS_DAMAGE_BONUS : 0;
-      },
-    }),
-
-    Peitha: defineRelic({
-      createState: () => ({ readyAt: 0, buffFrom: 0, buffUntil: 0 }),
-      peitha(ctx, state, event, applyCondition) {
-        const triggerAt = event.at;
-        if (!isInternalCooldownReady(triggerAt, state.readyAt)) return;
-        state.readyAt = triggerAt + 4;
-        const combatStart = Number(ctx.combatStartTime ?? -Infinity);
-        // If the trigger fires before combat starts (pre-cast), clamp the impact
-        // to combatStartTime so the damage and condition don't preload before combat.
-        const impactAt =
-          triggerAt < combatStart
-            ? combatStart
-            : triggerAt + Math.max(0, Number(event.projectileDelay || 0));
-        state.buffFrom = impactAt;
-        state.buffUntil = impactAt + 4;
-        ctx.recordProc("relic", "Relic of Peitha", impactAt, event.skillName);
-        applyCondition(ctx, {
-          type: "condition",
-          at: impactAt,
-          name: "Relic of Peitha — Torment",
-          skillName: "Relic of Peitha",
-          condition: "Torment",
-          duration: 7,
-          stacks: 2,
-          source: "Relic",
-        });
-      },
-      strikeMultiplier: timedStrikeBuff(1.1),
-    }),
-
-    Shackles: defineRelic({
-      createState: () => ({ readyAt: 0 }),
-      materializeCondition(ctx, state, application) {
-        const actorType = gw2EventActorType(application);
-        if (
-          application?.condition !== "Immobilized" ||
-          (actorType !== GW2_EVENT_ACTOR_TYPES.PLAYER &&
-            actorType !== GW2_EVENT_ACTOR_TYPES.SUMMON) ||
-          !isInternalCooldownReady(application.at, state.readyAt)
-        ) {
-          return;
-        }
-
-        state.readyAt = application.at + 10;
-        ctx.emitDerived(application, {
-          type: "proc",
-          procType: "relic",
-          at: application.at,
-          name: "Relic of the Shackles",
-          sourceSkill: application.skillName,
-          detail: "tethered",
-          source: "Relic",
-          sourceId: "relic.shackles",
-          actorType: "effect",
-        });
-        ctx.emitDerived(application, {
-          type: "damage",
-          at: application.at + 5,
-          name: "Relic of the Shackles",
-          skillName: "Relic of the Shackles",
-          coefficient: 3,
-          hits: 1,
-          hitIndex: 1,
-          totalHits: 1,
-          source: "Relic",
-          sourceId: "relic.shackles",
-          actorType: "effect",
-          skillWeapon: "Unequipped",
-          canCrit: true,
-          triggeredBy: application.skillName,
-        });
-        ctx.emitDerived(application, {
-          type: "control",
-          at: application.at + 5,
-          name: "Relic of the Shackles",
-          skillName: "Relic of the Shackles",
-          controlKind: "stun",
-          duration: 1,
-          source: "Relic",
-          sourceId: "relic.shackles",
-          actorType: "effect",
-          triggeredBy: application.skillName,
-        });
-      },
-      damageResolved(ctx, _state, event) {
-        if (
-          event?.type !== "damage" ||
-          event.sourceId !== "relic.shackles" ||
-          event.skillName !== "Relic of the Shackles"
-        ) {
-          return;
-        }
-        ctx.recordProc(
-          "relic",
-          "Relic of the Shackles",
-          event.at,
-          event.triggeredBy,
-          "damage",
-        );
-      },
-    }),
-
-    Thief: defineRelic({
-      createState: () => ({ stacks: 0, expiresAt: 0 }),
-      afterHit(ctx, state, event, skill) {
-        if (
-          !isGw2PlayerActorEvent(event) ||
-          skill?.type !== "Weapon" ||
-          !(Number(skill.cooldown || 0) > 0 || skill.resource)
-        ) {
-          return;
-        }
-        if (Number(state.expiresAt || 0) <= event.at) state.stacks = 0;
-        state.stacks = Math.min(5, Number(state.stacks || 0) + 1);
-        state.expiresAt = event.at + 6;
-        ctx.recordProc(
-          "relic",
-          "Relic of the Thief",
-          event.at,
-          event.skillName,
-          `${state.stacks}/5 stacks`,
-        );
-      },
-      // Returns 1 (not 0) when no stacks are active — it's a multiplier, not additive.
-      strikeMultiplier(_ctx, state, event) {
-        return Number(state.stacks || 0) > 0 &&
-          Number(state.expiresAt || 0) > event.at
-          ? 1 + Number(state.stacks || 0) * 0.01
-          : 1;
-      },
-    }),
-
-    Thorns: defineRelic({
-      timeline(ctx, _state, _events, rotationEndTime) {
-        for (
-          let at = 3, stacks = 1;
-          at <= rotationEndTime + EPSILON && stacks <= 10;
-          at += 5, stacks += 1
-        ) {
-          ctx.recordProc(
-            "relic",
-            "Relic of Thorns",
-            at,
-            "Incoming enemy hit",
-            `${stacks}/10 stacks`,
-          );
-        }
-      },
-    }),
-  });
+  Thorns: defineRelic({
+    timeline(ctx, _state, _events, rotationEndTime) {
+      for (let at = 3, stacks = 1; at <= rotationEndTime + EPSILON && stacks <= 10; at += 5, stacks += 1) {
+        ctx.recordProc('relic', 'Relic of Thorns', at, 'Incoming enemy hit', `${stacks}/10 stacks`);
+      }
+    }
+  })
+});
 
 /**
  * Creates the selected relic runtime. Rules are immutable and shared; mutable
@@ -863,13 +709,13 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> =
  * @returns {Readonly<Gw2RelicRuntime>}
  */
 export function createRelicRuntime(name: unknown): Readonly<Gw2RelicRuntime> {
-  const selectedName = String(name || "");
+  const selectedName = String(name || '');
   const rules = RELIC_RULES[selectedName] || STATELESS_RELIC;
   const state = rules.createState?.() || {};
   return Object.freeze({
     name: selectedName,
     rules,
-    state,
+    state
   });
 }
 
@@ -878,7 +724,7 @@ export function createRelicRuntime(name: unknown): Readonly<Gw2RelicRuntime> {
 // events array is empty.
 export function createRelicTimelineRuntime(
   name: unknown,
-  events: readonly SimulationEvent[],
+  events: readonly SimulationEvent[]
 ): Readonly<Gw2RelicRuntime> {
   const runtime = createRelicRuntime(name);
   runtime.state.timelineEvents = events;
@@ -899,7 +745,7 @@ function invokeRelicHook(
   const relic = ctx?.relic;
   if (!ctx || !relic) return undefined;
   const handler = relic.rules[hook];
-  if (typeof handler !== "function") return undefined;
+  if (typeof handler !== 'function') return undefined;
   const dynamicHandler = handler as unknown as (
     context: unknown,
     state: Gw2RelicState,
@@ -911,33 +757,28 @@ function invokeRelicHook(
 /**
  * Calculates the strike multiplier supplied by the selected relic.
  */
-export function relicStrikeMultiplier(
-  ctx: Gw2RelicContext,
-  event: SimulationEvent,
-): number {
-  return Number(invokeRelicHook(ctx, "strikeMultiplier", event) ?? 1);
+export function relicStrikeMultiplier(ctx: Gw2RelicContext, event: SimulationEvent): number {
+  return Number(invokeRelicHook(ctx, 'strikeMultiplier', event) ?? 1);
 }
 
 /** Returns the selected relic's contribution to the additive damage bucket. */
 export function relicOutgoingDamageBonus(
   ctx: Gw2RelicRuntimeContext | null | undefined,
-  damageType: "strike" | "condition",
+  damageType: 'strike' | 'condition',
   at: number,
-  event: SimulationEvent | null = null,
+  event: SimulationEvent | null = null
 ): number {
-  return Number(
-    invokeRelicHook(ctx, "outgoingDamageBonus", damageType, at, event) ?? 0,
-  );
+  return Number(invokeRelicHook(ctx, 'outgoingDamageBonus', damageType, at, event) ?? 0);
 }
 
 /** Materializes boon applications created by the selected relic. */
 export function materializeBoonRelics(
   ctx: Gw2RelicMaterializerContext,
   relic: Gw2RelicRuntime,
-  event: SimulationEvent,
+  event: SimulationEvent
 ): void {
   const handler = relic.rules.materializeBoon;
-  if (typeof handler !== "function") return;
+  if (typeof handler !== 'function') return;
   handler(ctx, relic.state, event);
 }
 
@@ -945,10 +786,10 @@ export function materializeBoonRelics(
 export function materializeConditionRelics(
   ctx: Gw2RelicMaterializerContext,
   relic: Gw2RelicRuntime,
-  event: SimulationEvent,
+  event: SimulationEvent
 ): void {
   const handler = relic.rules.materializeCondition;
-  if (typeof handler !== "function") return;
+  if (typeof handler !== 'function') return;
   handler(ctx, relic.state, event);
 }
 
@@ -956,41 +797,30 @@ export function materializeConditionRelics(
 export function relicCriticalChanceBonus(
   ctx: Gw2RelicRuntimeContext | null | undefined,
   event: SimulationEvent,
-  mightStacks: number,
+  mightStacks: number
 ): number {
-  return Number(
-    invokeRelicHook(ctx, "criticalChanceBonus", event, mightStacks) ?? 0,
-  );
+  return Number(invokeRelicHook(ctx, 'criticalChanceBonus', event, mightStacks) ?? 0);
 }
 
 /**
  * Applies the selected relic's boon trigger, if any.
  */
-export function handleBoonRelics(
-  ctx: Gw2RelicContext,
-  event: SimulationEvent,
-): void {
-  invokeRelicHook(ctx, "boon", event);
+export function handleBoonRelics(ctx: Gw2RelicContext, event: SimulationEvent): void {
+  invokeRelicHook(ctx, 'boon', event);
 }
 
 /**
  * Applies selected relic triggers after a successful blast combo.
  */
-export function handleBlastComboRelic(
-  ctx: Gw2RelicContext,
-  event: SimulationEvent,
-): void {
-  invokeRelicHook(ctx, "blastCombo", event);
+export function handleBlastComboRelic(ctx: Gw2RelicContext, event: SimulationEvent): void {
+  invokeRelicHook(ctx, 'blastCombo', event);
 }
 
 /**
  * Applies effects that occur after a damage event resolves.
  */
-export function handleRelicDamageResolved(
-  ctx: Gw2RelicContext,
-  event: SimulationEvent,
-): void {
-  invokeRelicHook(ctx, "damageResolved", event);
+export function handleRelicDamageResolved(ctx: Gw2RelicContext, event: SimulationEvent): void {
+  invokeRelicHook(ctx, 'damageResolved', event);
 }
 
 /**
@@ -999,9 +829,9 @@ export function handleRelicDamageResolved(
 export function handleRelicsAfterHit(
   ctx: Gw2RelicContext,
   event: SimulationEvent,
-  skill: Skill | null | undefined,
+  skill: Skill | null | undefined
 ): void {
-  invokeRelicHook(ctx, "afterHit", event, skill);
+  invokeRelicHook(ctx, 'afterHit', event, skill);
 }
 
 /**
@@ -1010,27 +840,21 @@ export function handleRelicsAfterHit(
 export function handleConditionRelics(
   ctx: Gw2RelicContext,
   application: SimulationEvent,
-  conditionHelpers: Gw2ConditionHelpers,
+  conditionHelpers: Gw2ConditionHelpers
 ): void {
-  invokeRelicHook(ctx, "condition", application, conditionHelpers);
+  invokeRelicHook(ctx, 'condition', application, conditionHelpers);
 }
 
 /**
  * Returns the selected relic's additive condition-duration bonus.
  */
-export function relicConditionDurationBonus(
-  ctx: Gw2RelicRuntimeContext | null | undefined,
-  at: number,
-): number {
-  return Number(invokeRelicHook(ctx, "conditionDurationBonus", at) ?? 0);
+export function relicConditionDurationBonus(ctx: Gw2RelicRuntimeContext | null | undefined, at: number): number {
+  return Number(invokeRelicHook(ctx, 'conditionDurationBonus', at) ?? 0);
 }
 
 /** Applies the selected relic's weakness/vulnerability trigger, if any. */
-export function handleWeaknessVulnerabilityRelic(
-  ctx: Gw2RelicRuntimeContext,
-  event: SimulationEvent,
-): void {
-  invokeRelicHook(ctx, "weaknessVulnerability", event);
+export function handleWeaknessVulnerabilityRelic(ctx: Gw2RelicRuntimeContext, event: SimulationEvent): void {
+  invokeRelicHook(ctx, 'weaknessVulnerability', event);
 }
 
 /**
@@ -1039,9 +863,9 @@ export function handleWeaknessVulnerabilityRelic(
 export function handleControlRelics(
   ctx: Gw2RelicContext,
   event: SimulationEvent,
-  conditionHelpers: Gw2ConditionHelpers,
+  conditionHelpers: Gw2ConditionHelpers
 ): void {
-  invokeRelicHook(ctx, "control", event, conditionHelpers);
+  invokeRelicHook(ctx, 'control', event, conditionHelpers);
 }
 
 /**
@@ -1050,9 +874,9 @@ export function handleControlRelics(
 export function handlePeithaRelic(
   ctx: Gw2RelicContext,
   event: SimulationEvent,
-  applyCondition: Gw2ApplyCondition,
+  applyCondition: Gw2ApplyCondition
 ): void {
-  invokeRelicHook(ctx, "peitha", event, applyCondition);
+  invokeRelicHook(ctx, 'peitha', event, applyCondition);
 }
 
 /**
@@ -1061,7 +885,7 @@ export function handlePeithaRelic(
 export function recordPassiveRelicTimeline(
   ctx: Gw2RelicContext,
   events: readonly SimulationEvent[],
-  rotationEndTime: number,
+  rotationEndTime: number
 ): void {
-  invokeRelicHook(ctx, "timeline", events, rotationEndTime);
+  invokeRelicHook(ctx, 'timeline', events, rotationEndTime);
 }

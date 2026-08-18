@@ -510,6 +510,18 @@ test("Go for the Throat follows Soulbeast F3 and unmerged pet F2", () => {
   );
 });
 
+test("Relic of Fireworks triggers on Soulbeast beast skills", () => {
+  const result = simulate("Soulbeast", ["Worldly Impact"], {
+    selectedPet: "Smokescale",
+    relic: "Fireworks",
+  });
+  const procs = result.procSteps.filter(
+    (step) => step.skill === "Relic of Fireworks",
+  );
+  assert.ok(procs.length > 0);
+  assert.ok(procs.every((step) => step.sourceSkill === "Worldly Impact"));
+});
+
 test("precombat pet F2 starts combat before Go for the Throat applies", () => {
   const rotation = [
     "Furious Pounce",
