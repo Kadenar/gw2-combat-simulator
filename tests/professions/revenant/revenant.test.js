@@ -1060,6 +1060,7 @@ test("Revenant utilities and Conduit resources render by their related skills", 
   assert.equal(html.match(/data-resource-id="affinity"/g)?.length, 1);
   assert.match(html, /compact-resource-palette revenant-legend-skills/);
   assert.match(html, /compact-profession-resource-revenant-energy/);
+  assert.match(html, /<strong>50\/100<\/strong>/);
   const weaponSwap = html.indexOf('data-skill="Swap Weapons"');
   const weaponSwapGroup = html.lastIndexOf('<div class="pal-group', weaponSwap);
   assert.ok(weaponSwap >= 0);

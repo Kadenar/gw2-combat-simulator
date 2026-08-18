@@ -24,6 +24,9 @@ export interface SkillBreakdownRow {
   readonly dps: number;
   readonly average: number | null;
   readonly dct: number | null;
+  // Stable identity shared with the chart's per-hit series (`group|name`), so a
+  // clicked breakdown row can highlight its own damage over time.
+  readonly key: string;
   // Average crit chance across this skill's strike hits (0-1), or null when the
   // row has no crit-eligible strike hits (pure-condition rows). critHits and
   // critEligibleHits back the hover tooltip.
@@ -95,6 +98,126 @@ function breakdownDisplayName(
 const eventIdentity = (id: SkillId | null | undefined, name: string): string =>
   id == null ? "" : `${String(id)}|${name}`;
 
+export const skillBreakdownKey = (
+  group: "Player" | "Entities",
+  name: string,
+): string => `${group}|${name}`;
+
+interface ResolvedLookup {
+  readonly resolvedByName: Map<string, Gw2ResolverEvent>;
+  readonly resolvedByIdentity: Map<string, Gw2ResolverEvent>;
+}
+
+// One representative resolved event per name/identity is enough to recover
+// source/parent attribution for a breakdown entry.
+function buildResolvedLookup(result: Gw2ResolverResult): ResolvedLookup {
+  const resolvedByName = new Map<string, Gw2ResolverEvent>();
+  const resolvedByIdentity = new Map<string, Gw2ResolverEvent>();
+  for (const event of result.resolvedEvents || []) {
+    if (event.name && !resolvedByName.has(event.name)) {
+      resolvedByName.set(event.name, event);
+    }
+    if (!event.name) continue;
+    for (const id of [event.skillId, event.sourceId]) {
+      const identity = eventIdentity(id, event.name);
+      if (identity && !resolvedByIdentity.has(identity)) {
+        resolvedByIdentity.set(identity, event);
+      }
+    }
+  }
+  return { resolvedByName, resolvedByIdentity };
+}
+
+interface BreakdownAttribution {
+  readonly group: "Player" | "Entities";
+  readonly name: string;
+  readonly sourceSkill: string;
+  readonly parentSkill: string;
+  readonly icon: string;
+  readonly skillId: SkillId | null;
+  readonly sourceId: SkillId | null;
+  readonly actorType: SimulationActorType;
+}
+
+function attributeBreakdownEntry(
+  entry: Gw2DamageBreakdownEntry,
+  lookup: ResolvedLookup,
+): BreakdownAttribution {
+  const sourceEvent =
+    lookup.resolvedByIdentity.get(eventIdentity(entry.skillId, entry.name)) ||
+    lookup.resolvedByIdentity.get(eventIdentity(entry.sourceId, entry.name)) ||
+    lookup.resolvedByName.get(entry.name);
+  const sourceSkill =
+    entry.sourceSkill || sourceEvent?.skillName || baseName(entry.name);
+  const parentSkill = entry.parentSkill || sourceEvent?.parentSkillName || "";
+  const icon = entry.icon || sourceEvent?.icon || "";
+  const skillId = entry.skillId ?? sourceEvent?.skillId ?? null;
+  const sourceId = entry.sourceId ?? sourceEvent?.sourceId ?? null;
+  const actorType = breakdownActorType(entry, sourceEvent);
+  const group = breakdownGroup(actorType);
+  const name = breakdownDisplayName(
+    entry,
+    sourceSkill,
+    parentSkill,
+    group,
+    String(entry.damageBreakdownName || sourceEvent?.damageBreakdownName || ""),
+  );
+  return {
+    group,
+    name,
+    sourceSkill,
+    parentSkill,
+    icon,
+    skillId,
+    sourceId,
+    actorType,
+  };
+}
+
+// Identity shared between a breakdown entry and the resolved damage/condition
+// events it aggregates, mirroring the resolver's own breakdown key
+// (`identityId|actor|parentSkill|name`). Using the full identity — not just the
+// name — keeps sibling rows of one skill (e.g. a cast strike vs its field
+// pulses) from collapsing into one chart bucket.
+export function skillDamageIdentityKey(fields: {
+  readonly skillId?: SkillId | null;
+  readonly sourceId?: SkillId | null;
+  readonly actorType?: SimulationActorType | null;
+  readonly source?: string | null;
+  readonly parentSkill?: string | null;
+  readonly name?: string | null;
+}): string {
+  const identityId = fields.skillId ?? fields.sourceId ?? "";
+  const actorIdentity = fields.actorType ?? fields.source ?? "";
+  return `${String(identityId)}|${String(actorIdentity)}|${
+    fields.parentSkill || ""
+  }|${fields.name || ""}`;
+}
+
+// Maps each resolved event identity to the grouped skill row key it belongs to,
+// so per-hit chart series can be attributed to the exact rows the breakdown
+// table renders.
+export function skillDamageKeyByIdentity(
+  result: Gw2ResolverResult,
+): Map<string, string> {
+  const lookup = buildResolvedLookup(result);
+  const keyByIdentity = new Map<string, string>();
+  for (const entry of result.breakdown || []) {
+    const identity = skillDamageIdentityKey({
+      skillId: entry.skillId,
+      sourceId: entry.sourceId,
+      actorType: entry.actorType,
+      source: entry.source,
+      parentSkill: entry.parentSkill,
+      name: entry.name,
+    });
+    if (keyByIdentity.has(identity)) continue;
+    const { group, name } = attributeBreakdownEntry(entry, lookup);
+    keyByIdentity.set(identity, skillBreakdownKey(group, name));
+  }
+  return keyByIdentity;
+}
+
 export function skillBreakdownRows(
   result: Gw2ResolverResult,
 ): SkillBreakdownRow[] {
@@ -111,45 +234,20 @@ export function skillBreakdownRows(
     );
     actionCounts.set(name, (actionCounts.get(name) || 0) + 1);
   }
-  const resolvedByName = new Map<string, Gw2ResolverEvent>();
-  const resolvedByIdentity = new Map<string, Gw2ResolverEvent>();
-  for (const event of result.resolvedEvents || []) {
-    // One representative event is enough to recover source/parent attribution.
-    if (event.name && !resolvedByName.has(event.name)) {
-      resolvedByName.set(event.name, event);
-    }
-    if (!event.name) continue;
-    for (const id of [event.skillId, event.sourceId]) {
-      const identity = eventIdentity(id, event.name);
-      if (identity && !resolvedByIdentity.has(identity)) {
-        resolvedByIdentity.set(identity, event);
-      }
-    }
-  }
+  const lookup = buildResolvedLookup(result);
   const grouped = new Map<string, GroupedSkillBreakdown>();
   for (const entry of result.breakdown || []) {
-    const sourceEvent =
-      resolvedByIdentity.get(eventIdentity(entry.skillId, entry.name)) ||
-      resolvedByIdentity.get(eventIdentity(entry.sourceId, entry.name)) ||
-      resolvedByName.get(entry.name);
-    const sourceSkill =
-      entry.sourceSkill || sourceEvent?.skillName || baseName(entry.name);
-    const parentSkill = entry.parentSkill || sourceEvent?.parentSkillName || "";
-    const icon = entry.icon || sourceEvent?.icon || "";
-    const skillId = entry.skillId ?? sourceEvent?.skillId ?? null;
-    const sourceId = entry.sourceId ?? sourceEvent?.sourceId ?? null;
-    const actorType = breakdownActorType(entry, sourceEvent);
-    const group = breakdownGroup(actorType);
-    const name = breakdownDisplayName(
-      entry,
+    const {
+      group,
+      name,
       sourceSkill,
       parentSkill,
-      group,
-      String(
-        entry.damageBreakdownName || sourceEvent?.damageBreakdownName || "",
-      ),
-    );
-    const groupKey = `${group}|${name}`;
+      icon,
+      skillId,
+      sourceId,
+      actorType,
+    } = attributeBreakdownEntry(entry, lookup);
+    const groupKey = skillBreakdownKey(group, name);
     const current = grouped.get(groupKey) || {
       name,
       sourceSkill,
@@ -196,6 +294,7 @@ export function skillBreakdownRows(
       const castTime = Number(actionDurations.get(entry.sourceSkill) || 0);
       return {
         name: entry.name,
+        key: skillBreakdownKey(entry.group, entry.name),
         sourceSkill: entry.sourceSkill,
         parentSkill: entry.parentSkill,
         icon: entry.icon,

@@ -4,7 +4,11 @@ import {
   buildChartSeries as buildSharedChartSeries,
   chartValueAt,
 } from "../../platform/ui/charts.js";
-import { skillBreakdownRows as transformSkillBreakdownRows } from "../../platform/ui/result-tables.js";
+import {
+  skillBreakdownRows as transformSkillBreakdownRows,
+  skillDamageIdentityKey,
+  skillDamageKeyByIdentity,
+} from "../../platform/ui/result-tables.js";
 import { resultSummaryMetrics as transformResultSummaryMetrics } from "../../platform/ui/result-transform.js";
 
 const EFFECT_NAMES: Readonly<Record<string, string>> = {
@@ -158,6 +162,9 @@ export function buildChartSeries(
   result: Gw2SimulationResult,
   sampleStepMs = 250,
 ) {
+  // Attribute each per-hit event to the same breakdown row key the skill table
+  // uses, so clicking a row highlights exactly its hits on the chart.
+  const skillKeyByIdentity = skillDamageKeyByIdentity(result);
   return buildSharedChartSeries(result, sampleStepMs, {
     effectName,
     effectType: (kind, event) =>
@@ -170,6 +177,19 @@ export function buildChartSeries(
       kind === "guardian-radiant-armaments" ? String(kind) : "",
     stackCaps: EFFECT_STACK_CAPS,
     durationStackCaps: DURATION_STACK_CAPS,
+    skillKey: (event) =>
+      skillKeyByIdentity.get(
+        skillDamageIdentityKey({
+          skillId: event.skillId,
+          sourceId: event.sourceId,
+          actorType: event.actorType,
+          source: event.source,
+          parentSkill: event.parentSkillName,
+          name: event.name,
+        }),
+      ) ?? null,
+    // Row keys are `group|name`; the display name is everything after the group.
+    skillName: (key) => key.slice(key.indexOf("|") + 1),
   });
 }
 
