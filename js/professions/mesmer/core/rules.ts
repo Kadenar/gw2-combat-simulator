@@ -6,7 +6,10 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  * the shared profession engine.
  */
 
-import { EPSILON } from "../../../platform/engine/clock.js";
+import {
+  EPSILON,
+  isInternalCooldownReady,
+} from "../../../platform/engine/clock.js";
 import {
   gw2EffectiveCooldown,
   gw2RechargeRate,
@@ -1037,6 +1040,87 @@ export function advanceMesmerScheduler(
 }
 
 /**
+ * Chaotic Interruption recharges a random equipped-weapon skill when you
+ * interrupt a foe. The random pick is resolved deterministically to the active
+ * weapon set's phantasm — Staff → Warlock, offhand Pistol → Duelist, offhand
+ * Torch → Mage. Modeled on {@link triggerIneptitudeFromInterrupt} (same
+ * activating-target gate and defiant internal-cooldown pattern) but lives
+ * scheduler-side because the recharge mutates scheduler-owned cooldown state
+ * the resolver-only trait module cannot reach.
+ */
+function triggerChaoticInterruption(
+  context: MesmerSchedulerContext,
+  event: SimulationEvent,
+  skillName: string,
+): void {
+  const runtime = context.mesmerRuntime;
+  if (
+    !runtime?.traits.has(TRAIT.CHAOTIC_INTERRUPTION) ||
+    !context.config.target?.activatingSkills
+  ) {
+    return;
+  }
+  const defiant = Boolean(context.config.target?.defiant);
+  const core = professionCoreState(context);
+  if (
+    defiant &&
+    !isInternalCooldownReady(
+      event.at,
+      Number(core.traitReadyAt[TRAIT.CHAOTIC_INTERRUPTION] || 0),
+    )
+  ) {
+    return;
+  }
+  const set = context.state.activeWeaponSet;
+  const mainhand =
+    set === 1
+      ? context.config.primaryWeapon
+      : context.config.weaponSet2Primary || context.config.primaryWeapon;
+  const offhand =
+    set === 1
+      ? context.config.secondaryWeapon
+      : context.config.weaponSet2Secondary || context.config.secondaryWeapon;
+  let targetId: number | null = null;
+  if (mainhand === "Staff") targetId = ID.PHANTASMAL_WARLOCK;
+  else if (offhand === "Pistol") targetId = ID.PHANTASMAL_DUELIST;
+  else if (offhand === "Torch") targetId = ID.PHANTASMAL_MAGE;
+  if (targetId == null) return;
+  // Only affects weapon skills that are recharging.
+  const readyAt = Number(context.state.cooldowns.get(targetId) || 0);
+  if (!(readyAt > event.at + EPSILON)) return;
+  const reduction = mesmerBalanceValue(
+    context,
+    TRAIT.CHAOTIC_INTERRUPTION,
+    "recharge",
+    5,
+  );
+  const reduced = Math.max(event.at, readyAt - reduction);
+  if (reduced > event.at + EPSILON) {
+    context.state.cooldowns.set(targetId, reduced);
+  } else {
+    context.state.cooldowns.delete(targetId);
+  }
+  if (defiant) {
+    core.traitReadyAt[TRAIT.CHAOTIC_INTERRUPTION] =
+      event.at +
+      mesmerBalanceValue(
+        context,
+        TRAIT.CHAOTIC_INTERRUPTION,
+        "internalCooldown",
+        1,
+      );
+  }
+  runtime.addTraitProc(
+    "Chaotic Interruption",
+    event.at,
+    skillName,
+    `${
+      runtime.skillsById.get(targetId)?.name || "weapon skill"
+    } recharge -${reduction}s`,
+  );
+}
+
+/**
  * Observes combat-start, bleeding, and critical-hit candidates and schedules
  * chronological critical-proc processing where required.
  *
@@ -1109,6 +1193,7 @@ export function observeMesmerEvent(
         skillName,
       });
     }
+    triggerChaoticInterruption(context, event, skillName);
   }
   if (
     event.type === "proc" &&
