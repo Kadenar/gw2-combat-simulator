@@ -1,4 +1,4 @@
-import type { CatalogEntity, Skill } from "../../../platform/engine/types.js";
+import type { CatalogEntity, Skill } from '../../../platform/engine/types.js';
 
 export const DATA_SNAPSHOT: string;
 export const SPECIALIZATIONS: readonly (CatalogEntity & {

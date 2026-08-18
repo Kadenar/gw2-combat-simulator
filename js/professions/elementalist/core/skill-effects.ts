@@ -1,4 +1,4 @@
-import type { SkillEffect } from "../../../platform/engine/types.js";
+import type { SkillEffect } from '../../../platform/engine/types.js';
 
 type TimedStrikePacket = readonly [atMs: number, coefficient: number];
 
@@ -21,29 +21,25 @@ interface PacketEffectOptions {
  */
 export function elementalistPacketEffects(
   packets: readonly TimedStrikePacket[],
-  {
-    condition,
-    conditionStartIndex = 0,
-    strikeTick = {},
-  }: PacketEffectOptions = {},
+  { condition, conditionStartIndex = 0, strikeTick = {} }: PacketEffectOptions = {}
 ): readonly SkillEffect[] {
   return packets.flatMap(([atMs, coefficient], index) => [
     {
-      type: "strike",
+      type: 'strike',
       ticks: [{ atMs, coefficient, ...strikeTick }],
-      timingAnchor: "castStart",
-      timingScale: "cast",
+      timingAnchor: 'castStart',
+      timingScale: 'cast'
     },
     ...(condition && index >= conditionStartIndex
       ? [
           {
-            type: "condition" as const,
+            type: 'condition' as const,
             ticks: [{ atMs, ...condition }],
-            timingAnchor: "castStart" as const,
-            timingScale: "cast" as const,
-            metadata: {},
-          },
+            timingAnchor: 'castStart' as const,
+            timingScale: 'cast' as const,
+            metadata: {}
+          }
         ]
-      : []),
+      : [])
   ]);
 }

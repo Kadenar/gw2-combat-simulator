@@ -1,11 +1,11 @@
-import type { SkillEffect } from "../../platform/engine/types.js";
+import type { SkillEffect } from '../../platform/engine/types.js';
 import type {
   NativePatchAuthoringMetadata,
   NativePatchAuthoringBalanceProfile,
   NativePatchAuthoringModifierRule,
   NativePatchAuthoringModule,
-  NativePatchAuthoringSkill,
-} from "../../platform/gw2/native-module-types.js";
+  NativePatchAuthoringSkill
+} from '../../platform/gw2/native-module-types.js';
 import {
   PATCHABLE_EFFECT_NUMERIC_FIELDS,
   type EffectPatch,
@@ -14,8 +14,8 @@ import {
   type NumEdit,
   type PatchOverviewEntry,
   type PatchPreview,
-  type SkillPatchEdit,
-} from "../../platform/gw2/skill-patch.js";
+  type SkillPatchEdit
+} from '../../platform/gw2/skill-patch.js';
 import {
   compactPatchPreview,
   createEffectTemplate,
@@ -24,8 +24,8 @@ import {
   groupPatchAuthoringSkills,
   numericEditForValue,
   numericEditValue,
-  patchSearchText,
-} from "./model.js";
+  patchSearchText
+} from './model.js';
 
 interface AuthoringPayload {
   readonly preview: PatchPreview | null;
@@ -35,35 +35,33 @@ interface AuthoringPayload {
 
 type DraftRecord = Record<string, unknown>;
 
-const appRoot = document.querySelector<HTMLElement>(
-  "[data-patch-authoring-app]",
-);
+const appRoot = document.querySelector<HTMLElement>('[data-patch-authoring-app]');
 
-if (!appRoot) throw new Error("Patch preview authoring root is missing.");
+if (!appRoot) throw new Error('Patch preview authoring root is missing.');
 const app = appRoot;
 
 let payload: AuthoringPayload | null = null;
 let draft = createPatchPreviewDraft();
-let selectedProfessionId = "";
-let selectedModuleId = "Core";
-type AuthoringSection = "traits" | "skills" | "profiles" | "overview";
+let selectedProfessionId = '';
+let selectedModuleId = 'Core';
+type AuthoringSection = 'traits' | 'skills' | 'profiles' | 'overview';
 
-let selectedSection: AuthoringSection = "traits";
-let selectedSkillId = "";
-let selectedProfileId = "";
-let search = "";
+let selectedSection: AuthoringSection = 'traits';
+let selectedSkillId = '';
+let selectedProfileId = '';
+let search = '';
 let changedOnly = false;
 let dirty = false;
-let status = "Loading live authoring metadata…";
-let statusKind: "neutral" | "success" | "error" = "neutral";
+let status = 'Loading live authoring metadata…';
+let statusKind: 'neutral' | 'success' | 'error' = 'neutral';
 
 function escapeHtml(value: unknown): string {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 }
 
 function jsonHtml(value: unknown): string {
@@ -74,18 +72,14 @@ function officialSourceUrl(): string | null {
   if (!draft.sourceUrl) return null;
   try {
     const url = new URL(draft.sourceUrl);
-    return url.protocol === "https:" || url.protocol === "http:"
-      ? url.href
-      : null;
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : null;
   } catch {
     return null;
   }
 }
 
 function asRecord(value: unknown): DraftRecord | null {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as DraftRecord)
-    : null;
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as DraftRecord) : null;
 }
 
 function ensureRecord(parent: DraftRecord, key: string): DraftRecord {
@@ -100,14 +94,9 @@ function draftRecord(): DraftRecord {
   return draft as unknown as DraftRecord;
 }
 
-function professionPatch(
-  professionId: string,
-  create = false,
-): DraftRecord | null {
+function professionPatch(professionId: string, create = false): DraftRecord | null {
   const root = draftRecord();
-  const professions = create
-    ? ensureRecord(root, "professions")
-    : asRecord(root.professions);
+  const professions = create ? ensureRecord(root, 'professions') : asRecord(root.professions);
   if (!professions) return null;
   if (create) return ensureRecord(professions, professionId);
   return asRecord(professions[professionId]);
@@ -116,23 +105,16 @@ function professionPatch(
 function skillEdit(skillId: string, create = false): DraftRecord | null {
   const patch = professionPatch(selectedProfessionId, create);
   if (!patch) return null;
-  const skills = create
-    ? ensureRecord(patch, "skills")
-    : asRecord(patch.skills);
+  const skills = create ? ensureRecord(patch, 'skills') : asRecord(patch.skills);
   if (!skills) return null;
   if (create) return ensureRecord(skills, skillId);
   return asRecord(skills[skillId]);
 }
 
-function balanceProfileEdit(
-  profileId: string,
-  create = false,
-): DraftRecord | null {
+function balanceProfileEdit(profileId: string, create = false): DraftRecord | null {
   const patch = professionPatch(selectedProfessionId, create);
   if (!patch) return null;
-  const profiles = create
-    ? ensureRecord(patch, "balanceProfiles")
-    : asRecord(patch.balanceProfiles);
+  const profiles = create ? ensureRecord(patch, 'balanceProfiles') : asRecord(patch.balanceProfiles);
   if (!profiles) return null;
   if (create) return ensureRecord(profiles, profileId);
   return asRecord(profiles[profileId]);
@@ -141,9 +123,7 @@ function balanceProfileEdit(
 function modifierEdit(ruleId: string, create = false): DraftRecord | null {
   const patch = professionPatch(selectedProfessionId, create);
   if (!patch) return null;
-  const rules = create
-    ? ensureRecord(patch, "modifierRules")
-    : asRecord(patch.modifierRules);
+  const rules = create ? ensureRecord(patch, 'modifierRules') : asRecord(patch.modifierRules);
   if (!rules) return null;
   if (create) return ensureRecord(rules, ruleId);
   return asRecord(rules[ruleId]);
@@ -159,12 +139,7 @@ function cleanupProfessionPatch(): void {
   const professions = asRecord(root.professions);
   const patch = professions && asRecord(professions[selectedProfessionId]);
   if (!patch || !professions) return;
-  for (const key of [
-    "skills",
-    "balanceProfiles",
-    "modifierRules",
-    "constants",
-  ]) {
+  for (const key of ['skills', 'balanceProfiles', 'modifierRules', 'constants']) {
     removeEmptyRecord(patch, key);
   }
   if (!Object.keys(patch).length) delete professions[selectedProfessionId];
@@ -172,25 +147,17 @@ function cleanupProfessionPatch(): void {
 }
 
 function selectedProfession(): NativePatchAuthoringMetadata | null {
-  return (
-    payload?.professions.find(
-      (profession) => profession.professionId === selectedProfessionId,
-    ) || null
-  );
+  return payload?.professions.find((profession) => profession.professionId === selectedProfessionId) || null;
 }
 
 function selectedModule(): NativePatchAuthoringModule | null {
-  return (
-    selectedProfession()?.modules.find(
-      (module) => module.id === selectedModuleId,
-    ) || null
-  );
+  return selectedProfession()?.modules.find((module) => module.id === selectedModuleId) || null;
 }
 
-function markDirty(message = "Unsaved changes"): void {
+function markDirty(message = 'Unsaved changes'): void {
   dirty = true;
   status = message;
-  statusKind = "neutral";
+  statusKind = 'neutral';
 }
 
 function editCount(professionId: string): number {
@@ -205,9 +172,7 @@ function editCount(professionId: string): number {
 
 function overviewForProfession(): readonly PatchOverviewEntry[] {
   const patch = professionPatch(selectedProfessionId);
-  return patch && Array.isArray(patch.overview)
-    ? (patch.overview as PatchOverviewEntry[])
-    : [];
+  return patch && Array.isArray(patch.overview) ? (patch.overview as PatchOverviewEntry[]) : [];
 }
 
 function hasSkillEdit(skillId: string): boolean {
@@ -233,7 +198,7 @@ function numberInput(options: {
 }): string {
   const preview = numericEditValue(options.current, options.edit);
   const changed = options.edit != null;
-  return `<label class="patch-number-row${changed ? " is-changed" : ""}">
+  return `<label class="patch-number-row${changed ? ' is-changed' : ''}">
     <span>${escapeHtml(options.field)}</span>
     <code>${escapeHtml(options.current)}</code>
     <span aria-hidden="true">→</span>
@@ -242,49 +207,49 @@ function numberInput(options: {
       data-numeric-id="${escapeHtml(options.id)}"
       data-numeric-field="${escapeHtml(options.field)}"
       data-live-value="${escapeHtml(options.current)}"
-      ${options.effect == null ? "" : `data-effect-index="${options.effect}"`}
-      ${options.tick == null ? "" : `data-tick-index="${options.tick}"`} />
+      ${options.effect == null ? '' : `data-effect-index="${options.effect}"`}
+      ${options.tick == null ? '' : `data-tick-index="${options.tick}"`} />
   </label>`;
 }
 
 function modifierValueRows(rule: NativePatchAuthoringModifierRule): string {
   const edit = modifierEdit(rule.id) as ModifierRulePatchEdit | null;
   const rows: string[] = [];
-  for (const field of ["amount", "factor"] as const) {
+  for (const field of ['amount', 'factor'] as const) {
     const value = rule[field];
-    if (value.kind === "static" && value.value != null) {
+    if (value.kind === 'static' && value.value != null) {
       rows.push(
         numberInput({
-          entity: "modifier",
+          entity: 'modifier',
           id: rule.id,
           field,
           current: value.value,
-          edit: edit?.[field],
-        }),
+          edit: edit?.[field]
+        })
       );
-    } else if (value.kind === "resolver") {
+    } else if (value.kind === 'resolver') {
       rows.push(
         `<p class="patch-resolver-note"><strong>${field}</strong> is resolver-backed${
           Object.keys(rule.parameters).length
-            ? "; edit its named parameters below."
-            : " and has no patchable parameters."
-        }</p>`,
+            ? '; edit its named parameters below.'
+            : ' and has no patchable parameters.'
+        }</p>`
       );
     }
   }
   for (const [name, current] of Object.entries(rule.parameters)) {
     rows.push(
       numberInput({
-        entity: "modifier-parameter",
+        entity: 'modifier-parameter',
         id: rule.id,
         field: name,
         current,
-        edit: edit?.parameters?.[name],
-      }),
+        edit: edit?.parameters?.[name]
+      })
     );
   }
   return rows.length
-    ? rows.join("")
+    ? rows.join('')
     : '<p class="patch-empty-inline">This declaration has no patchable numeric value.</p>';
 }
 
@@ -297,12 +262,12 @@ function traitReference(module: NativePatchAuthoringModule): string {
     <div class="patch-trait-grid">${module.traits
       .map(
         (trait) => `<article class="patch-trait-card">
-          ${trait.icon ? `<img src="${escapeHtml(trait.icon)}" alt="" />` : ""}
+          ${trait.icon ? `<img src="${escapeHtml(trait.icon)}" alt="" />` : ''}
           <div><strong>${escapeHtml(trait.name)}</strong><code>${escapeHtml(trait.id)}</code></div>
           <details><summary>Metadata</summary><pre>${jsonHtml(trait)}</pre></details>
-        </article>`,
+        </article>`
       )
-      .join("")}</div>
+      .join('')}</div>
   </details>`;
 }
 
@@ -310,15 +275,7 @@ function modifierSection(module: NativePatchAuthoringModule): string {
   const query = search.trim().toLocaleLowerCase();
   const rules = module.modifierRules.filter((rule) => {
     if (changedOnly && !hasModifierEdit(rule.id)) return false;
-    return (
-      !query ||
-      patchSearchText(
-        rule.id,
-        rule.label,
-        rule.targets,
-        rule.operation,
-      ).includes(query)
-    );
+    return !query || patchSearchText(rule.id, rule.label, rule.targets, rule.operation).includes(query);
   });
   return `<section class="patch-work-section" aria-labelledby="modifier-heading">
     <div class="patch-section-heading">
@@ -331,25 +288,25 @@ function modifierSection(module: NativePatchAuthoringModule): string {
         ? rules
             .map((rule) => {
               const changed = hasModifierEdit(rule.id);
-              return `<article class="patch-card${changed ? " is-changed" : ""}">
+              return `<article class="patch-card${changed ? ' is-changed' : ''}">
                 <header>
                   <div><h3>${escapeHtml(rule.label || rule.id)}</h3><code>${escapeHtml(rule.id)}</code></div>
                   <div class="patch-badges">
-                    ${changed ? '<span class="patch-badge changed">Changed</span>' : ""}
-                    ${rule.conditional ? '<span class="patch-badge">Conditional</span>' : ""}
+                    ${changed ? '<span class="patch-badge changed">Changed</span>' : ''}
+                    ${rule.conditional ? '<span class="patch-badge">Conditional</span>' : ''}
                     <span class="patch-badge">${escapeHtml(rule.operation)}</span>
                   </div>
                 </header>
-                <p class="patch-targets">${rule.targets.map(escapeHtml).join(" · ")}</p>
+                <p class="patch-targets">${rule.targets.map(escapeHtml).join(' · ')}</p>
                 <div class="patch-number-grid">${modifierValueRows(rule)}</div>
                 ${
                   changed
                     ? `<button type="button" class="patch-link-button" data-clear-modifier="${escapeHtml(rule.id)}">Remove authored change</button>`
-                    : ""
+                    : ''
                 }
               </article>`;
             })
-            .join("")
+            .join('')
         : '<p class="patch-empty">No modifier rules match these filters.</p>'
     }</div>
   </section>`;
@@ -362,50 +319,36 @@ function skillSearchText(skill: NativePatchAuthoringSkill): string {
     skill.skill.type,
     skill.skill.slot,
     skill.skill.weapon,
-    skill.skill.skillWeapon,
+    skill.skill.skillWeapon
   );
 }
 
-function effectPatchFor(
-  edit: SkillPatchEdit | null,
-  effectIndex: number,
-  tickIndex?: number,
-): EffectPatch | undefined {
-  return edit?.effects?.find(
-    (effect) =>
-      effect.effectIndex === effectIndex && effect.tickIndex === tickIndex,
-  );
+function effectPatchFor(edit: SkillPatchEdit | null, effectIndex: number, tickIndex?: number): EffectPatch | undefined {
+  return edit?.effects?.find((effect) => effect.effectIndex === effectIndex && effect.tickIndex === tickIndex);
 }
 
-function effectRemoved(
-  edit: SkillPatchEdit | null,
-  effectIndex: number,
-): boolean {
-  return Boolean(
-    edit?.removeEffects?.some(
-      (selector) => selector.effectIndex === effectIndex,
-    ),
-  );
+function effectRemoved(edit: SkillPatchEdit | null, effectIndex: number): boolean {
+  return Boolean(edit?.removeEffects?.some((selector) => selector.effectIndex === effectIndex));
 }
 
 function effectNumericRows(
   skillId: string,
   effectIndex: number,
   effect: Readonly<SkillEffect>,
-  edit: SkillPatchEdit | null,
+  edit: SkillPatchEdit | null
 ): string {
   const topPatch = effectPatchFor(edit, effectIndex);
   const rows = PATCHABLE_EFFECT_NUMERIC_FIELDS.flatMap((field) => {
     const current = effect[field];
-    return typeof current === "number"
+    return typeof current === 'number'
       ? [
           numberInput({
-            entity: "effect",
+            entity: 'effect',
             id: skillId,
             field,
             current,
-            edit: topPatch?.[field],
-          }),
+            edit: topPatch?.[field]
+          })
         ]
       : [];
   });
@@ -414,24 +357,22 @@ function effectNumericRows(
     const tickPatch = effectPatchFor(edit, effectIndex, tickIndex);
     const tickRows = PATCHABLE_EFFECT_NUMERIC_FIELDS.flatMap((field) => {
       const current = tick[field];
-      return typeof current === "number"
+      return typeof current === 'number'
         ? [
             numberInput({
-              entity: "effect",
+              entity: 'effect',
               id: skillId,
               field,
               current,
               edit: tickPatch?.[field],
-              tick: tickIndex,
-            }),
+              tick: tickIndex
+            })
           ]
         : [];
     });
-    rows.push(
-      `<div class="patch-tick"><strong>Tick ${tickIndex}</strong>${tickRows.join("")}</div>`,
-    );
+    rows.push(`<div class="patch-tick"><strong>Tick ${tickIndex}</strong>${tickRows.join('')}</div>`);
   }
-  return rows.join("");
+  return rows.join('');
 }
 
 function effectCards(skill: NativePatchAuthoringSkill): string {
@@ -440,20 +381,19 @@ function effectCards(skill: NativePatchAuthoringSkill): string {
   return effects
     .map((effect, effectIndex) => {
       const removed = effectRemoved(edit, effectIndex);
-      const detail =
-        effect.name || effect.condition || effect.boon || effect.kind || "";
-      return `<article class="patch-effect${removed ? " is-removed" : ""}">
+      const detail = effect.name || effect.condition || effect.boon || effect.kind || '';
+      return `<article class="patch-effect${removed ? ' is-removed' : ''}">
         <header>
           <div><span class="patch-effect-index">${effectIndex}</span><strong>${escapeHtml(effect.type)}</strong> ${escapeHtml(detail)}</div>
           <button type="button" class="patch-effect-action" data-toggle-effect="${effectIndex}" data-skill-id="${escapeHtml(skill.id)}">
-            ${removed ? "Restore effect" : "Delete in preview"}
+            ${removed ? 'Restore effect' : 'Delete in preview'}
           </button>
         </header>
         <div class="patch-number-grid">${effectNumericRows(skill.id.toString(), effectIndex, effect, edit)}</div>
         <details><summary>Complete live effect metadata</summary><pre>${jsonHtml(effect)}</pre></details>
       </article>`;
     })
-    .join("");
+    .join('');
 }
 
 function addedEffectEditors(skill: NativePatchAuthoringSkill): string {
@@ -463,9 +403,9 @@ function addedEffectEditors(skill: NativePatchAuthoringSkill): string {
       (effect, index) => `<article class="patch-added-effect">
         <header><strong>New effect ${index + 1}</strong><button type="button" data-remove-added-effect="${index}" data-skill-id="${escapeHtml(skill.id)}">Remove</button></header>
         <textarea rows="10" spellcheck="false" data-added-effect="${index}" data-skill-id="${escapeHtml(skill.id)}">${jsonHtml(effect)}</textarea>
-      </article>`,
+      </article>`
     )
-    .join("");
+    .join('');
 }
 
 function skillDetail(skill: NativePatchAuthoringSkill | null): string {
@@ -473,17 +413,15 @@ function skillDetail(skill: NativePatchAuthoringSkill | null): string {
     return '<div class="patch-empty patch-empty-detail">Select a skill to inspect its metadata and author changes.</div>';
   }
   const edit = skillEdit(skill.id.toString()) as SkillPatchEdit | null;
-  const rawMetadata = Object.fromEntries(
-    Object.entries(skill.skill).filter(([key]) => key !== "effects"),
-  );
+  const rawMetadata = Object.fromEntries(Object.entries(skill.skill).filter(([key]) => key !== 'effects'));
   return `<article class="patch-skill-detail">
     <header class="patch-skill-heading">
-      ${skill.skill.icon ? `<img src="${escapeHtml(skill.skill.icon)}" alt="" />` : ""}
+      ${skill.skill.icon ? `<img src="${escapeHtml(skill.skill.icon)}" alt="" />` : ''}
       <div><p class="patch-eyebrow">${escapeHtml(skill.moduleId)} skill</p><h2>${escapeHtml(skill.name)}</h2><code>${escapeHtml(skill.id)}</code></div>
       ${
         edit
           ? `<button type="button" class="patch-link-button" data-clear-skill="${escapeHtml(skill.id)}">Remove all skill changes</button>`
-          : ""
+          : ''
       }
     </header>
     <section class="patch-detail-section">
@@ -493,17 +431,17 @@ function skillDetail(skill: NativePatchAuthoringSkill | null): string {
           ? Object.entries(skill.patchableFields)
               .map(([field, current]) =>
                 numberInput({
-                  entity: "skill",
+                  entity: 'skill',
                   id: skill.id.toString(),
                   field,
                   current,
                   edit:
                     edit?.fields?.[field] ||
-                    (field === "cooldown" ? edit?.cooldown : undefined) ||
-                    (field === "castTimeMs" ? edit?.castTimeMs : undefined),
-                }),
+                    (field === 'cooldown' ? edit?.cooldown : undefined) ||
+                    (field === 'castTimeMs' ? edit?.castTimeMs : undefined)
+                })
               )
-              .join("")
+              .join('')
           : '<p class="patch-empty-inline">No patchable numeric skill fields.</p>'
       }</div>
     </section>
@@ -512,14 +450,14 @@ function skillDetail(skill: NativePatchAuthoringSkill | null): string {
       <div class="patch-effect-list">${effectCards(skill) || '<p class="patch-empty-inline">No live effects.</p>'}</div>
       <div class="patch-add-effect-controls">
         <select data-new-effect-type aria-label="New effect type">
-          ${["strike", "condition", "boon", "buff", "control", "blind", "custom"].map((type) => `<option value="${type}">${type}</option>`).join("")}
+          ${['strike', 'condition', 'boon', 'buff', 'control', 'blind', 'custom'].map((type) => `<option value="${type}">${type}</option>`).join('')}
         </select>
         <button type="button" data-add-effect="${escapeHtml(skill.id)}">Add effect</button>
       </div>
       <div class="patch-added-effect-list">${addedEffectEditors(skill)}</div>
     </section>
     <details class="patch-reference" open><summary>Complete skill metadata</summary><pre>${jsonHtml(rawMetadata)}</pre></details>
-    ${edit ? `<details class="patch-reference"><summary>Authored skill patch</summary><pre>${jsonHtml(edit)}</pre></details>` : ""}
+    ${edit ? `<details class="patch-reference"><summary>Authored skill patch</summary><pre>${jsonHtml(edit)}</pre></details>` : ''}
   </article>`;
 }
 
@@ -532,8 +470,7 @@ function skillSection(module: NativePatchAuthoringModule): string {
     })
     .sort((left, right) => left.name.localeCompare(right.name));
   const groups = groupPatchAuthoringSkills(skills);
-  const selected =
-    module.skills.find((skill) => String(skill.id) === selectedSkillId) || null;
+  const selected = module.skills.find((skill) => String(skill.id) === selectedSkillId) || null;
   return `<section class="patch-work-section patch-skills" aria-labelledby="skill-heading">
     <div class="patch-section-heading">
       <div><p class="patch-eyebrow">Skill authoring</p><h2 id="skill-heading">Skills</h2></div>
@@ -544,23 +481,21 @@ function skillSection(module: NativePatchAuthoringModule): string {
         skills.length
           ? groups
               .map(
-                (
-                  group,
-                ) => `<section class="patch-skill-group" data-skill-group="${escapeHtml(group.key)}">
+                (group) => `<section class="patch-skill-group" data-skill-group="${escapeHtml(group.key)}">
                   <h3 class="patch-skill-group-heading"><span>${escapeHtml(group.label)}</span><small>${group.skills.length}</small></h3>
                   ${group.skills
                     .map(
                       (
-                        skill,
-                      ) => `<button type="button" class="patch-skill-option${String(skill.id) === selectedSkillId ? " is-selected" : ""}${hasSkillEdit(skill.id.toString()) ? " is-changed" : ""}" data-select-skill="${escapeHtml(skill.id)}">
-                        ${skill.skill.icon ? `<img src="${escapeHtml(skill.skill.icon)}" alt="" />` : ""}
-                        <span><strong>${escapeHtml(skill.name)}</strong><small>${escapeHtml(skill.skill.type || "Skill")} · ${escapeHtml(skill.id)}</small></span>
-                      </button>`,
+                        skill
+                      ) => `<button type="button" class="patch-skill-option${String(skill.id) === selectedSkillId ? ' is-selected' : ''}${hasSkillEdit(skill.id.toString()) ? ' is-changed' : ''}" data-select-skill="${escapeHtml(skill.id)}">
+                        ${skill.skill.icon ? `<img src="${escapeHtml(skill.skill.icon)}" alt="" />` : ''}
+                        <span><strong>${escapeHtml(skill.name)}</strong><small>${escapeHtml(skill.skill.type || 'Skill')} · ${escapeHtml(skill.id)}</small></span>
+                      </button>`
                     )
-                    .join("")}
-                </section>`,
+                    .join('')}
+                </section>`
               )
-              .join("")
+              .join('')
           : '<p class="patch-empty-inline">No skills match these filters.</p>'
       }</nav>
       <div class="patch-skill-editor">${skillDetail(selected)}</div>
@@ -570,18 +505,11 @@ function skillSection(module: NativePatchAuthoringModule): string {
 
 function renderSelectedSkill(): void {
   const module = selectedModule();
-  const selected =
-    module?.skills.find((skill) => String(skill.id) === selectedSkillId) ||
-    null;
-  for (const option of app.querySelectorAll<HTMLButtonElement>(
-    "[data-select-skill]",
-  )) {
-    option.classList.toggle(
-      "is-selected",
-      option.dataset.selectSkill === selectedSkillId,
-    );
+  const selected = module?.skills.find((skill) => String(skill.id) === selectedSkillId) || null;
+  for (const option of app.querySelectorAll<HTMLButtonElement>('[data-select-skill]')) {
+    option.classList.toggle('is-selected', option.dataset.selectSkill === selectedSkillId);
   }
-  const editor = app.querySelector<HTMLElement>(".patch-skill-editor");
+  const editor = app.querySelector<HTMLElement>('.patch-skill-editor');
   if (editor) editor.innerHTML = skillDetail(selected);
 }
 
@@ -589,21 +517,21 @@ function balanceProfileEffectRows(
   profileId: string,
   effectIndex: number,
   effect: Readonly<SkillEffect>,
-  edit: SkillPatchEdit | null,
+  edit: SkillPatchEdit | null
 ): string {
   const topPatch = effectPatchFor(edit, effectIndex);
   const rows = PATCHABLE_EFFECT_NUMERIC_FIELDS.flatMap((field) => {
     const current = effect[field];
-    return typeof current === "number"
+    return typeof current === 'number'
       ? [
           numberInput({
-            entity: "balance-profile-effect",
+            entity: 'balance-profile-effect',
             id: profileId,
             field,
             current,
             edit: topPatch?.[field],
-            effect: effectIndex,
-          }),
+            effect: effectIndex
+          })
         ]
       : [];
   });
@@ -612,43 +540,37 @@ function balanceProfileEffectRows(
     const tickPatch = effectPatchFor(edit, effectIndex, tickIndex);
     const tickRows = PATCHABLE_EFFECT_NUMERIC_FIELDS.flatMap((field) => {
       const current = tick[field];
-      return typeof current === "number"
+      return typeof current === 'number'
         ? [
             numberInput({
-              entity: "balance-profile-effect",
+              entity: 'balance-profile-effect',
               id: profileId,
               field,
               current,
               edit: tickPatch?.[field],
               effect: effectIndex,
-              tick: tickIndex,
-            }),
+              tick: tickIndex
+            })
           ]
         : [];
     });
-    rows.push(
-      `<div class="patch-tick"><strong>Tick ${tickIndex}</strong>${tickRows.join("")}</div>`,
-    );
+    rows.push(`<div class="patch-tick"><strong>Tick ${tickIndex}</strong>${tickRows.join('')}</div>`);
   }
-  return rows.join("");
+  return rows.join('');
 }
 
-function balanceProfileDetail(
-  entry: NativePatchAuthoringBalanceProfile | null,
-): string {
+function balanceProfileDetail(entry: NativePatchAuthoringBalanceProfile | null): string {
   if (!entry) {
     return '<div class="patch-empty patch-empty-detail">Select a balance profile to inspect and author.</div>';
   }
   const id = String(entry.id);
   const edit = balanceProfileEdit(id) as SkillPatchEdit | null;
   const effects = (entry.profile.effects || []) as readonly SkillEffect[];
-  const rawMetadata = Object.fromEntries(
-    Object.entries(entry.profile).filter(([key]) => key !== "effects"),
-  );
+  const rawMetadata = Object.fromEntries(Object.entries(entry.profile).filter(([key]) => key !== 'effects'));
   return `<article class="patch-skill-detail">
     <header class="patch-skill-heading">
       <div><p class="patch-eyebrow">${escapeHtml(entry.profile.profileKind)} balance profile</p><h2>${escapeHtml(entry.name)}</h2><code>${escapeHtml(id)}</code></div>
-      ${edit ? `<button type="button" class="patch-link-button" data-clear-profile="${escapeHtml(id)}">Remove all profile changes</button>` : ""}
+      ${edit ? `<button type="button" class="patch-link-button" data-clear-profile="${escapeHtml(id)}">Remove all profile changes</button>` : ''}
     </header>
     <section class="patch-detail-section">
       <h3>Numeric fields</h3>
@@ -657,14 +579,14 @@ function balanceProfileDetail(
           ? Object.entries(entry.patchableFields)
               .map(([field, current]) =>
                 numberInput({
-                  entity: "balance-profile",
+                  entity: 'balance-profile',
                   id,
                   field,
                   current,
-                  edit: edit?.fields?.[field],
-                }),
+                  edit: edit?.fields?.[field]
+                })
               )
-              .join("")
+              .join('')
           : '<p class="patch-empty-inline">No patchable numeric profile fields.</p>'
       }</div>
     </section>
@@ -674,24 +596,19 @@ function balanceProfileDetail(
         effects.length
           ? effects
               .map((effect, effectIndex) => {
-                const detail =
-                  effect.name ||
-                  effect.condition ||
-                  effect.boon ||
-                  effect.kind ||
-                  "";
+                const detail = effect.name || effect.condition || effect.boon || effect.kind || '';
                 return `<article class="patch-effect">
                   <header><div><span class="patch-effect-index">${effectIndex}</span><strong>${escapeHtml(effect.type)}</strong> ${escapeHtml(detail)}</div></header>
                   <div class="patch-number-grid">${balanceProfileEffectRows(id, effectIndex, effect, edit)}</div>
                   <details><summary>Complete live effect metadata</summary><pre>${jsonHtml(effect)}</pre></details>
                 </article>`;
               })
-              .join("")
+              .join('')
           : '<p class="patch-empty-inline">No live effects.</p>'
       }</div>
     </section>
     <details class="patch-reference" open><summary>Complete balance profile metadata</summary><pre>${jsonHtml(rawMetadata)}</pre></details>
-    ${edit ? `<details class="patch-reference"><summary>Authored balance profile patch</summary><pre>${jsonHtml(edit)}</pre></details>` : ""}
+    ${edit ? `<details class="patch-reference"><summary>Authored balance profile patch</summary><pre>${jsonHtml(edit)}</pre></details>` : ''}
   </article>`;
 }
 
@@ -700,20 +617,10 @@ function balanceProfileSection(module: NativePatchAuthoringModule): string {
   const profiles = [...module.balanceProfiles]
     .filter((entry) => {
       if (changedOnly && !hasBalanceProfileEdit(String(entry.id))) return false;
-      return (
-        !query ||
-        patchSearchText(
-          entry.id,
-          entry.name,
-          entry.profile.profileKind,
-        ).includes(query)
-      );
+      return !query || patchSearchText(entry.id, entry.name, entry.profile.profileKind).includes(query);
     })
     .sort((left, right) => left.name.localeCompare(right.name));
-  const selected =
-    module.balanceProfiles.find(
-      (entry) => String(entry.id) === selectedProfileId,
-    ) || null;
+  const selected = module.balanceProfiles.find((entry) => String(entry.id) === selectedProfileId) || null;
   return `<section class="patch-work-section patch-skills" aria-labelledby="profile-heading">
     <div class="patch-section-heading">
       <div><p class="patch-eyebrow">Non-skill balance authoring</p><h2 id="profile-heading">Balance profiles</h2></div>
@@ -726,12 +633,12 @@ function balanceProfileSection(module: NativePatchAuthoringModule): string {
           ? profiles
               .map(
                 (
-                  entry,
-                ) => `<button type="button" class="patch-skill-option${String(entry.id) === selectedProfileId ? " is-selected" : ""}${hasBalanceProfileEdit(String(entry.id)) ? " is-changed" : ""}" data-select-profile="${escapeHtml(entry.id)}">
+                  entry
+                ) => `<button type="button" class="patch-skill-option${String(entry.id) === selectedProfileId ? ' is-selected' : ''}${hasBalanceProfileEdit(String(entry.id)) ? ' is-changed' : ''}" data-select-profile="${escapeHtml(entry.id)}">
                   <span><strong>${escapeHtml(entry.name)}</strong><small>${escapeHtml(entry.profile.profileKind)} · ${escapeHtml(entry.id)}</small></span>
-                </button>`,
+                </button>`
               )
-              .join("")
+              .join('')
           : '<p class="patch-empty-inline">No balance profiles match these filters.</p>'
       }</nav>
       <div class="patch-skill-editor">${balanceProfileDetail(selected)}</div>
@@ -752,9 +659,7 @@ function overviewCard(entry: PatchOverviewEntry): string {
 function overviewEntries(profession: NativePatchAuthoringMetadata): string {
   const query = search.trim().toLocaleLowerCase();
   const entries = overviewForProfession().filter(
-    (entry) =>
-      !query ||
-      patchSearchText(entry.subject, entry.text, entry.source).includes(query),
+    (entry) => !query || patchSearchText(entry.subject, entry.text, entry.source).includes(query)
   );
   return `<section class="patch-note-scope">
     <div class="patch-section-heading compact">
@@ -762,7 +667,7 @@ function overviewEntries(profession: NativePatchAuthoringMetadata): string {
     </div>
     <div class="patch-note-editor-list">${
       entries.length
-        ? entries.map(overviewCard).join("")
+        ? entries.map(overviewCard).join('')
         : '<p class="patch-empty-inline">No changes for this profession.</p>'
     }</div>
   </section>`;
@@ -777,8 +682,8 @@ function overviewSection(profession: NativePatchAuthoringMetadata): string {
     </div>
     <p class="patch-section-description">The official patch notes are the canonical explanation. This overview is generated from the skill and trait modifier edits authored in this preview.</p>
     <div class="patch-official-source">
-      <div><strong>Official patch notes</strong><p>${sourceUrl ? "Open ArenaNet's published notes for the full context." : "Add a valid HTTP or HTTPS URL in the preview metadata above."}</p></div>
-      ${sourceUrl ? `<a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">View official patch notes <span aria-hidden="true">↗</span></a>` : ""}
+      <div><strong>Official patch notes</strong><p>${sourceUrl ? "Open ArenaNet's published notes for the full context." : 'Add a valid HTTP or HTTPS URL in the preview metadata above.'}</p></div>
+      ${sourceUrl ? `<a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">View official patch notes <span aria-hidden="true">↗</span></a>` : ''}
     </div>
     ${overviewEntries(profession)}
   </section>`;
@@ -796,23 +701,20 @@ function render(): void {
   }
   const module = selectedModule() || profession?.modules[0] || null;
   if (module && module.id !== selectedModuleId) selectedModuleId = module.id;
-  const changed = payload.professions.reduce(
-    (total, entry) => total + editCount(entry.professionId),
-    0,
-  );
+  const changed = payload.professions.reduce((total, entry) => total + editCount(entry.professionId), 0);
   app.innerHTML = `<header class="patch-authoring-header">
     <div><p class="patch-eyebrow">Local developer tool</p><h1>Patch Preview Authoring</h1><p>Edit canonical live metadata and save a validated <code>activePatchPreview</code>.</p></div>
     <div class="patch-save-block">
       <span class="patch-status ${statusKind}" role="status">${escapeHtml(status)}</span>
-      <button type="button" class="patch-secondary-button" data-reset-preview ${dirty ? "" : "disabled"}>Reset</button>
+      <button type="button" class="patch-secondary-button" data-reset-preview ${dirty ? '' : 'disabled'}>Reset</button>
       <button type="button" class="patch-primary-button" data-save-preview>Save to disk</button>
     </div>
   </header>
   <section class="patch-preview-meta" aria-label="Preview metadata">
     <label><span>ID</span><input data-preview-field="id" value="${escapeHtml(draft.id)}" required pattern="[a-z0-9][a-z0-9-]*" /></label>
     <label><span>Label</span><input data-preview-field="label" value="${escapeHtml(draft.label)}" required /></label>
-    <label><span>Publish date</span><input type="date" data-preview-field="publishedAt" value="${escapeHtml(draft.publishedAt || "")}" /></label>
-    <label class="wide"><span>Official patch notes URL</span><input type="url" data-preview-field="sourceUrl" value="${escapeHtml(draft.sourceUrl || "")}" placeholder="https://en-forum.guildwars2.com/topic/..." /></label>
+    <label><span>Publish date</span><input type="date" data-preview-field="publishedAt" value="${escapeHtml(draft.publishedAt || '')}" /></label>
+    <label class="wide"><span>Official patch notes URL</span><input type="url" data-preview-field="sourceUrl" value="${escapeHtml(draft.sourceUrl || '')}" placeholder="https://en-forum.guildwars2.com/topic/..." /></label>
   </section>
   <div class="patch-authoring-layout">
     <aside class="patch-profession-nav">
@@ -820,11 +722,11 @@ function render(): void {
       ${payload.professions
         .map((entry) => {
           const count = editCount(entry.professionId);
-          return `<button type="button" data-select-profession="${escapeHtml(entry.professionId)}" class="${entry.professionId === selectedProfessionId ? "is-selected" : ""}">
-            <span>${escapeHtml(entry.professionName)}</span>${count ? `<strong>${count}</strong>` : ""}
+          return `<button type="button" data-select-profession="${escapeHtml(entry.professionId)}" class="${entry.professionId === selectedProfessionId ? 'is-selected' : ''}">
+            <span>${escapeHtml(entry.professionName)}</span>${count ? `<strong>${count}</strong>` : ''}
           </button>`;
         })
-        .join("")}
+        .join('')}
     </aside>
     <main class="patch-authoring-main">
       <div class="patch-toolbar">
@@ -832,28 +734,28 @@ function render(): void {
           ${(profession?.modules || [])
             .map(
               (entry) =>
-                `<button type="button" role="tab" aria-selected="${entry.id === selectedModuleId}" class="${entry.id === selectedModuleId ? "is-selected" : ""}" data-select-module="${escapeHtml(entry.id)}">${escapeHtml(entry.id)}</button>`,
+                `<button type="button" role="tab" aria-selected="${entry.id === selectedModuleId}" class="${entry.id === selectedModuleId ? 'is-selected' : ''}" data-select-module="${escapeHtml(entry.id)}">${escapeHtml(entry.id)}</button>`
             )
-            .join("")}
+            .join('')}
         </div>
         <div class="patch-filters">
           <input type="search" data-patch-search value="${escapeHtml(search)}" placeholder="Search names, IDs, targets…" />
-          <label><input type="checkbox" data-changed-only ${changedOnly ? "checked" : ""} /> Edited only</label>
+          <label><input type="checkbox" data-changed-only ${changedOnly ? 'checked' : ''} /> Edited only</label>
         </div>
         <div class="patch-section-tabs" role="tablist" aria-label="Authoring section">
-          <button type="button" data-select-section="traits" class="${selectedSection === "traits" ? "is-selected" : ""}">Traits &amp; modifiers</button>
-          <button type="button" data-select-section="skills" class="${selectedSection === "skills" ? "is-selected" : ""}">Skills</button>
-          <button type="button" data-select-section="profiles" class="${selectedSection === "profiles" ? "is-selected" : ""}">Balance profiles</button>
-          <button type="button" data-select-section="overview" class="${selectedSection === "overview" ? "is-selected" : ""}">Overview &amp; source</button>
+          <button type="button" data-select-section="traits" class="${selectedSection === 'traits' ? 'is-selected' : ''}">Traits &amp; modifiers</button>
+          <button type="button" data-select-section="skills" class="${selectedSection === 'skills' ? 'is-selected' : ''}">Skills</button>
+          <button type="button" data-select-section="profiles" class="${selectedSection === 'profiles' ? 'is-selected' : ''}">Balance profiles</button>
+          <button type="button" data-select-section="overview" class="${selectedSection === 'overview' ? 'is-selected' : ''}">Overview &amp; source</button>
         </div>
       </div>
       ${
         module
-          ? selectedSection === "traits"
+          ? selectedSection === 'traits'
             ? modifierSection(module)
-            : selectedSection === "skills"
+            : selectedSection === 'skills'
               ? skillSection(module)
-              : selectedSection === "profiles"
+              : selectedSection === 'profiles'
                 ? balanceProfileSection(module)
                 : overviewSection(profession)
           : '<p class="patch-empty">No authoring metadata is available.</p>'
@@ -888,110 +790,93 @@ function setNumericEdit(input: HTMLInputElement): void {
   const current = Number(input.dataset.liveValue);
   const next = Number(input.value);
   if (!Number.isFinite(current) || !Number.isFinite(next)) {
-    throw new TypeError("Preview values must be finite numbers.");
+    throw new TypeError('Preview values must be finite numbers.');
   }
   const entity = input.dataset.numericEntity;
-  const id = input.dataset.numericId || "";
-  const field = input.dataset.numericField || "";
+  const id = input.dataset.numericId || '';
+  const field = input.dataset.numericField || '';
   const numericEdit = numericEditForValue(current, next);
-  if (entity === "modifier" || entity === "modifier-parameter") {
+  if (entity === 'modifier' || entity === 'modifier-parameter') {
     const edit = modifierEdit(id, Boolean(numericEdit));
     if (!edit) return;
-    const target =
-      entity === "modifier-parameter" ? ensureRecord(edit, "parameters") : edit;
+    const target = entity === 'modifier-parameter' ? ensureRecord(edit, 'parameters') : edit;
     if (numericEdit) target[field] = numericEdit;
     else delete target[field];
-    removeEmptyRecord(edit, "parameters");
+    removeEmptyRecord(edit, 'parameters');
     if (!Object.keys(edit).length) deleteModifierEdit(id);
     return;
   }
-  if (entity === "skill") {
+  if (entity === 'skill') {
     const edit = skillEdit(id, Boolean(numericEdit));
     if (!edit) return;
-    const fields = numericEdit
-      ? ensureRecord(edit, "fields")
-      : asRecord(edit.fields);
+    const fields = numericEdit ? ensureRecord(edit, 'fields') : asRecord(edit.fields);
     if (numericEdit) fields![field] = numericEdit;
     else if (fields) delete fields[field];
-    removeEmptyRecord(edit, "fields");
+    removeEmptyRecord(edit, 'fields');
     if (!Object.keys(edit).length) deleteSkillEdit(id);
     return;
   }
-  if (entity === "balance-profile") {
+  if (entity === 'balance-profile') {
     const edit = balanceProfileEdit(id, Boolean(numericEdit));
     if (!edit) return;
-    const fields = numericEdit
-      ? ensureRecord(edit, "fields")
-      : asRecord(edit.fields);
+    const fields = numericEdit ? ensureRecord(edit, 'fields') : asRecord(edit.fields);
     if (numericEdit) fields![field] = numericEdit;
     else if (fields) delete fields[field];
-    removeEmptyRecord(edit, "fields");
+    removeEmptyRecord(edit, 'fields');
     if (!Object.keys(edit).length) deleteBalanceProfileEdit(id);
     return;
   }
-  if (entity === "effect") {
+  if (entity === 'effect') {
     const effectIndex = Number(
-      input
-        .closest<HTMLElement>(".patch-effect")
-        ?.querySelector<HTMLElement>("[data-toggle-effect]")?.dataset
-        .toggleEffect,
+      input.closest<HTMLElement>('.patch-effect')?.querySelector<HTMLElement>('[data-toggle-effect]')?.dataset
+        .toggleEffect
     );
     const tickIndex = input.dataset.tickIndex;
     const edit = skillEdit(id, Boolean(numericEdit));
     if (!edit || !Number.isInteger(effectIndex)) return;
-    const effects = Array.isArray(edit.effects)
-      ? (edit.effects as DraftRecord[])
-      : [];
+    const effects = Array.isArray(edit.effects) ? (edit.effects as DraftRecord[]) : [];
     let effect = effects.find(
       (entry) =>
-        entry.effectIndex === effectIndex &&
-        entry.tickIndex === (tickIndex == null ? undefined : Number(tickIndex)),
+        entry.effectIndex === effectIndex && entry.tickIndex === (tickIndex == null ? undefined : Number(tickIndex))
     );
     if (!effect && numericEdit) {
       effect = {
         effectIndex,
-        ...(tickIndex == null ? {} : { tickIndex: Number(tickIndex) }),
+        ...(tickIndex == null ? {} : { tickIndex: Number(tickIndex) })
       };
       effects.push(effect);
     }
     if (effect && numericEdit) effect[field] = numericEdit;
     else if (effect) delete effect[field];
     const retained = effects.filter((entry) =>
-      Object.keys(entry).some(
-        (key) => !["effectIndex", "tickIndex"].includes(key),
-      ),
+      Object.keys(entry).some((key) => !['effectIndex', 'tickIndex'].includes(key))
     );
     if (retained.length) edit.effects = retained;
     else delete edit.effects;
     if (!Object.keys(edit).length) deleteSkillEdit(id);
     return;
   }
-  if (entity === "balance-profile-effect") {
+  if (entity === 'balance-profile-effect') {
     const effectIndex = Number(input.dataset.effectIndex);
     const tickIndex = input.dataset.tickIndex;
     const edit = balanceProfileEdit(id, Boolean(numericEdit));
     if (!edit || !Number.isInteger(effectIndex)) return;
-    const effects = Array.isArray(edit.effects)
-      ? (edit.effects as DraftRecord[])
-      : [];
+    const effects = Array.isArray(edit.effects) ? (edit.effects as DraftRecord[]) : [];
     let effect = effects.find(
       (entry) =>
-        entry.effectIndex === effectIndex &&
-        entry.tickIndex === (tickIndex == null ? undefined : Number(tickIndex)),
+        entry.effectIndex === effectIndex && entry.tickIndex === (tickIndex == null ? undefined : Number(tickIndex))
     );
     if (!effect && numericEdit) {
       effect = {
         effectIndex,
-        ...(tickIndex == null ? {} : { tickIndex: Number(tickIndex) }),
+        ...(tickIndex == null ? {} : { tickIndex: Number(tickIndex) })
       };
       effects.push(effect);
     }
     if (effect && numericEdit) effect[field] = numericEdit;
     else if (effect) delete effect[field];
     const retained = effects.filter((entry) =>
-      Object.keys(entry).some(
-        (key) => !["effectIndex", "tickIndex"].includes(key),
-      ),
+      Object.keys(entry).some((key) => !['effectIndex', 'tickIndex'].includes(key))
     );
     if (retained.length) edit.effects = retained;
     else delete edit.effects;
@@ -1001,12 +886,8 @@ function setNumericEdit(input: HTMLInputElement): void {
 
 function toggleEffect(skillId: string, effectIndex: number): void {
   const edit = skillEdit(skillId, true)!;
-  const removals = Array.isArray(edit.removeEffects)
-    ? (edit.removeEffects as EffectSelector[])
-    : [];
-  const removed = removals.some(
-    (selector) => selector.effectIndex === effectIndex,
-  );
+  const removals = Array.isArray(edit.removeEffects) ? (edit.removeEffects as EffectSelector[]) : [];
+  const removed = removals.some((selector) => selector.effectIndex === effectIndex);
   const next = removed
     ? removals.filter((selector) => selector.effectIndex !== effectIndex)
     : [...removals, { effectIndex }];
@@ -1016,79 +897,62 @@ function toggleEffect(skillId: string, effectIndex: number): void {
 }
 
 function addEffect(skillId: string): void {
-  const select = app.querySelector<HTMLSelectElement>("[data-new-effect-type]");
+  const select = app.querySelector<HTMLSelectElement>('[data-new-effect-type]');
   const edit = skillEdit(skillId, true)!;
-  const effects = Array.isArray(edit.addEffects)
-    ? (edit.addEffects as SkillEffect[])
-    : [];
-  edit.addEffects = [
-    ...effects,
-    createEffectTemplate(select?.value || "strike"),
-  ];
+  const effects = Array.isArray(edit.addEffects) ? (edit.addEffects as SkillEffect[]) : [];
+  edit.addEffects = [...effects, createEffectTemplate(select?.value || 'strike')];
 }
 
 function removeAddedEffect(skillId: string, index: number): void {
   const edit = skillEdit(skillId);
   if (!edit || !Array.isArray(edit.addEffects)) return;
-  const effects = (edit.addEffects as SkillEffect[]).filter(
-    (_, effectIndex) => effectIndex !== index,
-  );
+  const effects = (edit.addEffects as SkillEffect[]).filter((_, effectIndex) => effectIndex !== index);
   if (effects.length) edit.addEffects = effects;
   else delete edit.addEffects;
   if (!Object.keys(edit).length) deleteSkillEdit(skillId);
 }
 
 async function loadAuthoring(): Promise<void> {
-  status = "Loading live authoring metadata…";
-  statusKind = "neutral";
+  status = 'Loading live authoring metadata…';
+  statusKind = 'neutral';
   render();
   try {
-    const response = await fetch("api/patch-preview", {
-      headers: { Accept: "application/json" },
+    const response = await fetch('api/patch-preview', {
+      headers: { Accept: 'application/json' }
     });
     const result = (await response.json()) as AuthoringPayload & {
       error?: string;
     };
-    if (!response.ok) throw new Error(result.error || "Authoring API failed.");
+    if (!response.ok) throw new Error(result.error || 'Authoring API failed.');
     payload = result;
     draft = structuredClone(result.preview || createPatchPreviewDraft());
-    selectedProfessionId =
-      Object.keys(draft.professions || {})[0] ||
-      result.professions[0]?.professionId ||
-      "";
-    selectedModuleId = "Core";
-    selectedSkillId = "";
-    selectedProfileId = "";
+    selectedProfessionId = Object.keys(draft.professions || {})[0] || result.professions[0]?.professionId || '';
+    selectedModuleId = 'Core';
+    selectedSkillId = '';
+    selectedProfileId = '';
     dirty = false;
-    status = result.preview
-      ? `Loaded ${result.sourceFile}`
-      : "No active preview exists; a new draft is ready.";
-    statusKind = "success";
+    status = result.preview ? `Loaded ${result.sourceFile}` : 'No active preview exists; a new draft is ready.';
+    statusKind = 'success';
   } catch (error) {
-    status =
-      error instanceof Error
-        ? error.message
-        : "Unable to load patch authoring metadata.";
-    statusKind = "error";
+    status = error instanceof Error ? error.message : 'Unable to load patch authoring metadata.';
+    statusKind = 'error';
   }
   render();
 }
 
 async function saveAuthoring(): Promise<void> {
-  const candidate = compactPatchPreview(
-    generatePatchOverview(draft, payload?.professions || []),
-  );
-  status = "Validating and writing active-preview.ts…";
-  statusKind = "neutral";
+  const candidate = compactPatchPreview(generatePatchOverview(draft, payload?.professions || []));
+  status = 'Validating and writing active-preview.ts…';
+  statusKind = 'neutral';
   render();
   try {
-    const response = await fetch("api/patch-preview", {
-      method: "PUT",
+    const response = await fetch('api/patch-preview', {
+      method: 'PUT',
       headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
       },
-      body: JSON.stringify({ preview: candidate }),
+      body: JSON.stringify({ preview: candidate })
     });
     const result = (await response.json()) as {
       preview?: PatchPreview;
@@ -1097,32 +961,31 @@ async function saveAuthoring(): Promise<void> {
       error?: string;
     };
     if (!response.ok || !result.preview) {
-      throw new Error(result.error || "Patch preview save failed.");
+      throw new Error(result.error || 'Patch preview save failed.');
     }
     draft = structuredClone(result.preview);
     dirty = false;
     status = `Saved ${result.sourceFile}. Rebuild or restart the simulator to load it.`;
-    statusKind = "success";
+    statusKind = 'success';
   } catch (error) {
-    status =
-      error instanceof Error ? error.message : "Patch preview save failed.";
-    statusKind = "error";
+    status = error instanceof Error ? error.message : 'Patch preview save failed.';
+    statusKind = 'error';
   }
   render();
 }
 
-app.addEventListener("click", (event) => {
-  const button = (event.target as Element).closest<HTMLButtonElement>("button");
+app.addEventListener('click', (event) => {
+  const button = (event.target as Element).closest<HTMLButtonElement>('button');
   if (!button) return;
   if (button.dataset.selectProfession) {
     selectedProfessionId = button.dataset.selectProfession;
-    selectedModuleId = "Core";
-    selectedSkillId = "";
-    selectedProfileId = "";
+    selectedModuleId = 'Core';
+    selectedSkillId = '';
+    selectedProfileId = '';
   } else if (button.dataset.selectModule) {
     selectedModuleId = button.dataset.selectModule;
-    selectedSkillId = "";
-    selectedProfileId = "";
+    selectedSkillId = '';
+    selectedProfileId = '';
   } else if (button.dataset.selectSection) {
     selectedSection = button.dataset.selectSection as AuthoringSection;
   } else if (button.dataset.selectSkill) {
@@ -1141,36 +1004,27 @@ app.addEventListener("click", (event) => {
     deleteBalanceProfileEdit(button.dataset.clearProfile);
     markDirty();
   } else if (button.dataset.toggleEffect != null) {
-    toggleEffect(
-      button.dataset.skillId || "",
-      Number(button.dataset.toggleEffect),
-    );
+    toggleEffect(button.dataset.skillId || '', Number(button.dataset.toggleEffect));
     markDirty();
   } else if (button.dataset.addEffect) {
     addEffect(button.dataset.addEffect);
     markDirty();
   } else if (button.dataset.removeAddedEffect != null) {
-    removeAddedEffect(
-      button.dataset.skillId || "",
-      Number(button.dataset.removeAddedEffect),
-    );
+    removeAddedEffect(button.dataset.skillId || '', Number(button.dataset.removeAddedEffect));
     markDirty();
-  } else if (button.hasAttribute("data-save-preview")) {
+  } else if (button.hasAttribute('data-save-preview')) {
     void saveAuthoring();
     return;
-  } else if (button.hasAttribute("data-reset-preview")) {
+  } else if (button.hasAttribute('data-reset-preview')) {
     void loadAuthoring();
     return;
   }
   render();
 });
 
-app.addEventListener("change", (event) => {
+app.addEventListener('change', (event) => {
   const target = event.target;
-  if (
-    target instanceof HTMLSelectElement &&
-    target.hasAttribute("data-new-effect-type")
-  ) {
+  if (target instanceof HTMLSelectElement && target.hasAttribute('data-new-effect-type')) {
     return;
   }
   try {
@@ -1180,47 +1034,32 @@ app.addEventListener("change", (event) => {
       if (target.value) record[field] = target.value;
       else delete record[field];
       markDirty();
-    } else if (
-      target instanceof HTMLInputElement &&
-      target.dataset.numericEntity
-    ) {
+    } else if (target instanceof HTMLInputElement && target.dataset.numericEntity) {
       setNumericEdit(target);
       markDirty();
-    } else if (
-      target instanceof HTMLInputElement &&
-      target.hasAttribute("data-changed-only")
-    ) {
+    } else if (target instanceof HTMLInputElement && target.hasAttribute('data-changed-only')) {
       changedOnly = target.checked;
-    } else if (
-      target instanceof HTMLInputElement &&
-      target.hasAttribute("data-patch-search")
-    ) {
+    } else if (target instanceof HTMLInputElement && target.hasAttribute('data-patch-search')) {
       search = target.value;
-    } else if (
-      target instanceof HTMLTextAreaElement &&
-      target.dataset.addedEffect != null
-    ) {
+    } else if (target instanceof HTMLTextAreaElement && target.dataset.addedEffect != null) {
       const parsed = JSON.parse(target.value) as SkillEffect;
-      if (!parsed || typeof parsed !== "object" || !parsed.type) {
-        throw new TypeError(
-          "An added effect must be a JSON object with a type.",
-        );
+      if (!parsed || typeof parsed !== 'object' || !parsed.type) {
+        throw new TypeError('An added effect must be a JSON object with a type.');
       }
-      const edit = skillEdit(target.dataset.skillId || "", true)!;
+      const edit = skillEdit(target.dataset.skillId || '', true)!;
       const effects = [...((edit.addEffects || []) as SkillEffect[])];
       effects[Number(target.dataset.addedEffect)] = parsed;
       edit.addEffects = effects;
       markDirty();
     }
   } catch (error) {
-    status =
-      error instanceof Error ? error.message : "Invalid authoring value.";
-    statusKind = "error";
+    status = error instanceof Error ? error.message : 'Invalid authoring value.';
+    statusKind = 'error';
   }
   render();
 });
 
-window.addEventListener("beforeunload", (event) => {
+window.addEventListener('beforeunload', (event) => {
   if (!dirty) return;
   event.preventDefault();
 });

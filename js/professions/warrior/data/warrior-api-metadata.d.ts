@@ -1,4 +1,4 @@
-import type { CatalogEntity, Skill } from "../../../platform/engine/types.js";
+import type { CatalogEntity, Skill } from '../../../platform/engine/types.js';
 
 export interface WarriorApiTrait extends CatalogEntity {
   readonly description: string;

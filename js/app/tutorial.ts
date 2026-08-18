@@ -1,44 +1,36 @@
-const TUTORIAL_DIALOG_ID = "simulator-tutorial-dialog";
-const DEFAULT_TUTORIAL_ID = "quick-start";
+const TUTORIAL_DIALOG_ID = 'simulator-tutorial-dialog';
+const DEFAULT_TUTORIAL_ID = 'quick-start';
 
-export const TUTORIAL_GIF_URL = new URL(
-  "../../docs/assets/gw2-combat-simulator-usage.gif",
-  import.meta.url,
-).href;
+export const TUTORIAL_GIF_URL = new URL('../../docs/assets/gw2-combat-simulator-usage.gif', import.meta.url).href;
 
 export const ROTATION_TUTORIAL_GIF_URL = new URL(
-  "../../docs/assets/gw2-combat-simulator-rotation-builder.gif",
-  import.meta.url,
+  '../../docs/assets/gw2-combat-simulator-rotation-builder.gif',
+  import.meta.url
 ).href;
 
-export const ANALYSIS_TUTORIAL_GIF_URL = new URL(
-  "../../docs/assets/gw2-combat-simulator-analysis.gif",
-  import.meta.url,
-).href;
+export const ANALYSIS_TUTORIAL_GIF_URL = new URL('../../docs/assets/gw2-combat-simulator-analysis.gif', import.meta.url)
+  .href;
 
 /** Keeps the looping GIF unloaded while the tutorial is closed or motion is reduced. */
-export function setTutorialAnimationState(
-  image: HTMLImageElement,
-  shouldPlay: boolean,
-): void {
+export function setTutorialAnimationState(image: HTMLImageElement, shouldPlay: boolean): void {
   const source = image.dataset.tutorialSrc;
   if (shouldPlay && source) {
-    if (!image.getAttribute("src")) image.setAttribute("src", source);
+    if (!image.getAttribute('src')) image.setAttribute('src', source);
     return;
   }
-  image.removeAttribute("src");
+  image.removeAttribute('src');
 }
 
 /** Restarts the cached GIF without downloading a second copy. */
 export function restartTutorialAnimation(
   image: HTMLImageElement,
-  view: Window | null = image.ownerDocument.defaultView,
+  view: Window | null = image.ownerDocument.defaultView
 ): void {
   const source = image.dataset.tutorialSrc;
   setTutorialAnimationState(image, false);
   if (!source) return;
 
-  const restore = (): void => image.setAttribute("src", source);
+  const restore = (): void => image.setAttribute('src', source);
   if (view?.requestAnimationFrame) {
     view.requestAnimationFrame(() => view.requestAnimationFrame(restore));
   } else {
@@ -46,67 +38,53 @@ export function restartTutorialAnimation(
   }
 }
 
-export function tutorialPrefersReducedMotion(
-  view: Pick<Window, "matchMedia"> | null | undefined,
-): boolean {
-  return Boolean(
-    view?.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
-  );
+export function tutorialPrefersReducedMotion(view: Pick<Window, 'matchMedia'> | null | undefined): boolean {
+  return Boolean(view?.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
 }
 
 /** Switches the visible walkthrough and keeps every inactive GIF unloaded. */
 export function activateTutorialPanel(
   root: ParentNode,
   tutorialId: string,
-  shouldPlay: boolean,
+  shouldPlay: boolean
 ): HTMLImageElement | null {
-  root
-    .querySelectorAll<HTMLElement>("[data-tutorial-choice]")
-    .forEach((choice) => {
-      const isActive = choice.dataset.tutorialChoice === tutorialId;
-      choice.setAttribute("aria-pressed", String(isActive));
-    });
+  root.querySelectorAll<HTMLElement>('[data-tutorial-choice]').forEach((choice) => {
+    const isActive = choice.dataset.tutorialChoice === tutorialId;
+    choice.setAttribute('aria-pressed', String(isActive));
+  });
 
   let activeImage: HTMLImageElement | null = null;
-  root
-    .querySelectorAll<HTMLElement>("[data-tutorial-panel]")
-    .forEach((panel) => {
-      const isActive = panel.dataset.tutorialPanel === tutorialId;
-      panel.hidden = !isActive;
-      const image = panel.querySelector<HTMLImageElement>(
-        ".tutorial-animation",
-      );
-      if (!image) return;
+  root.querySelectorAll<HTMLElement>('[data-tutorial-panel]').forEach((panel) => {
+    const isActive = panel.dataset.tutorialPanel === tutorialId;
+    panel.hidden = !isActive;
+    const image = panel.querySelector<HTMLImageElement>('.tutorial-animation');
+    if (!image) return;
 
-      setTutorialAnimationState(image, isActive && shouldPlay);
-      if (isActive) activeImage = image;
-    });
+    setTutorialAnimationState(image, isActive && shouldPlay);
+    if (isActive) activeImage = image;
+  });
 
   return activeImage;
 }
 
-function tutorialTrigger(
-  root: Document,
-  prominent: boolean,
-): HTMLButtonElement {
-  const trigger = root.createElement("button");
-  trigger.type = "button";
+function tutorialTrigger(root: Document, prominent: boolean): HTMLButtonElement {
+  const trigger = root.createElement('button');
+  trigger.type = 'button';
   trigger.className = prominent
-    ? "tutorial-trigger tutorial-trigger-primary"
-    : "community-link tutorial-trigger tutorial-trigger-compact";
-  trigger.setAttribute("aria-haspopup", "dialog");
-  trigger.setAttribute("aria-controls", TUTORIAL_DIALOG_ID);
-  trigger.innerHTML =
-    '<span class="tutorial-trigger-icon" aria-hidden="true">&#9654;</span><span>How to use</span>';
+    ? 'tutorial-trigger tutorial-trigger-primary'
+    : 'community-link tutorial-trigger tutorial-trigger-compact';
+  trigger.setAttribute('aria-haspopup', 'dialog');
+  trigger.setAttribute('aria-controls', TUTORIAL_DIALOG_ID);
+  trigger.innerHTML = '<span class="tutorial-trigger-icon" aria-hidden="true">&#9654;</span><span>How to use</span>';
   return trigger;
 }
 
 function tutorialDialog(root: Document): HTMLDialogElement {
-  const dialog = root.createElement("dialog");
+  const dialog = root.createElement('dialog');
   dialog.id = TUTORIAL_DIALOG_ID;
-  dialog.className = "tutorial-dialog";
-  dialog.setAttribute("aria-labelledby", "simulator-tutorial-title");
-  dialog.setAttribute("aria-describedby", "simulator-tutorial-description");
+  dialog.className = 'tutorial-dialog';
+  dialog.setAttribute('aria-labelledby', 'simulator-tutorial-title');
+  dialog.setAttribute('aria-describedby', 'simulator-tutorial-description');
   dialog.innerHTML = `
     <div class="tutorial-dialog-shell">
       <div class="tutorial-dialog-header">
@@ -197,8 +175,8 @@ function tutorialDialog(root: Document): HTMLDialogElement {
 export function mountSimulatorTutorial(root: Document = document): void {
   if (root.getElementById(TUTORIAL_DIALOG_ID) || !root.body) return;
 
-  const landingHeader = root.querySelector(".landing-header");
-  const compactHost = root.querySelector(".community-actions");
+  const landingHeader = root.querySelector('.landing-header');
+  const compactHost = root.querySelector('.community-actions');
   const host = landingHeader || compactHost;
   if (!host) return;
 
@@ -210,49 +188,42 @@ export function mountSimulatorTutorial(root: Document = document): void {
   else host.prepend(trigger);
   root.body.append(dialog);
 
-  const motionPreference = root.defaultView?.matchMedia?.(
-    "(prefers-reduced-motion: reduce)",
-  );
+  const motionPreference = root.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)');
   const shouldPlay = (): boolean => !motionPreference?.matches;
   const closeDialog = (): void => {
     activateTutorialPanel(dialog, activeTutorialId, false);
-    if (typeof dialog.close === "function") dialog.close();
-    else dialog.removeAttribute("open");
+    if (typeof dialog.close === 'function') dialog.close();
+    else dialog.removeAttribute('open');
   };
 
-  trigger.addEventListener("click", () => {
+  trigger.addEventListener('click', () => {
     if (!dialog.open) {
-      if (typeof dialog.showModal === "function") dialog.showModal();
-      else dialog.setAttribute("open", "");
+      if (typeof dialog.showModal === 'function') dialog.showModal();
+      else dialog.setAttribute('open', '');
     }
     activateTutorialPanel(dialog, activeTutorialId, shouldPlay());
   });
-  dialog.addEventListener("click", (event) => {
+  dialog.addEventListener('click', (event) => {
     if (event.target === dialog) {
       closeDialog();
       return;
     }
     const target = event.target as { closest?: (selector: string) => Element };
-    const choice = target.closest?.("[data-tutorial-choice]") as
-      | HTMLElement
-      | undefined;
+    const choice = target.closest?.('[data-tutorial-choice]') as HTMLElement | undefined;
     if (choice?.dataset.tutorialChoice) {
       activeTutorialId = choice.dataset.tutorialChoice;
       activateTutorialPanel(dialog, activeTutorialId, shouldPlay());
-    } else if (target.closest?.("[data-tutorial-close]")) {
+    } else if (target.closest?.('[data-tutorial-close]')) {
       closeDialog();
-    } else if (target.closest?.("[data-tutorial-replay]")) {
+    } else if (target.closest?.('[data-tutorial-replay]')) {
       const image = dialog.querySelector<HTMLImageElement>(
-        `[data-tutorial-panel="${activeTutorialId}"] .tutorial-animation`,
+        `[data-tutorial-panel="${activeTutorialId}"] .tutorial-animation`
       );
       if (image) restartTutorialAnimation(image, root.defaultView);
     }
   });
-  dialog.addEventListener("close", () =>
-    activateTutorialPanel(dialog, activeTutorialId, false),
-  );
-  motionPreference?.addEventListener("change", () => {
-    if (dialog.open)
-      activateTutorialPanel(dialog, activeTutorialId, shouldPlay());
+  dialog.addEventListener('close', () => activateTutorialPanel(dialog, activeTutorialId, false));
+  motionPreference?.addEventListener('change', () => {
+    if (dialog.open) activateTutorialPanel(dialog, activeTutorialId, shouldPlay());
   });
 }

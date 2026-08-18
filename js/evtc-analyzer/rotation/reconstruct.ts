@@ -1,8 +1,5 @@
-import { EvtcError } from "../errors.js";
-import {
-  evtcProfessionMetadata,
-  evtcSpecializationMetadata,
-} from "../profession-metadata.js";
+import { EvtcError } from '../errors.js';
+import { evtcProfessionMetadata, evtcSpecializationMetadata } from '../profession-metadata.js';
 import {
   EVTC_ACTIVATION,
   EVTC_STATE_CHANGE,
@@ -14,8 +11,8 @@ import {
   type EvtcRotationReconstruction,
   type ParsedEvtc,
   type ParsedEvtcAgent,
-  type ParsedEvtcEvent,
-} from "../types.js";
+  type ParsedEvtcEvent
+} from '../types.js';
 import {
   actionKind,
   effectWindowMs,
@@ -23,41 +20,31 @@ import {
   findRotationSkill,
   isDirectPlayerSkill,
   skillIdentity,
-  type EvtcRotationCatalog,
-} from "./catalog.js";
-import { reconcileCastEffectPackets } from "./effect-packets.js";
-import {
-  EVTC_ROTATION_PROFILES,
-  type EvtcRotationProfessionProfile,
-} from "./profiles.js";
-import {
-  reconstructProfessionActions,
-  type EvtcRecordedRotationAction,
-} from "./professions/index.js";
+  type EvtcRotationCatalog
+} from './catalog.js';
+import { reconcileCastEffectPackets } from './effect-packets.js';
+import { EVTC_ROTATION_PROFILES, type EvtcRotationProfessionProfile } from './profiles.js';
+import { reconstructProfessionActions, type EvtcRecordedRotationAction } from './professions/index.js';
 
 const TIMING_TOLERANCE_MS = 50;
 const TRANSITION_WINDOW_MS = 150;
 const WEAPON_STOW_ANIMATION_ID = 23285;
 const TRANSITION_GAIN_BUFF_IDS = new Set(
   EVTC_ROTATION_PROFILES.flatMap((profile) =>
-    profile.buffTransitions.flatMap((transition) =>
-      transition.gain ? [transition.buffSkillId] : [],
-    ),
-  ),
+    profile.buffTransitions.flatMap((transition) => (transition.gain ? [transition.buffSkillId] : []))
+  )
 );
 const TRANSITION_LOSS_BUFF_IDS = new Set(
   EVTC_ROTATION_PROFILES.flatMap((profile) =>
-    profile.buffTransitions.flatMap((transition) =>
-      transition.loss ? [transition.buffSkillId] : [],
-    ),
-  ),
+    profile.buffTransitions.flatMap((transition) => (transition.loss ? [transition.buffSkillId] : []))
+  )
 );
 const TRANSITION_LOSS_DURATION_BUFF_IDS = new Set(
   EVTC_ROTATION_PROFILES.flatMap((profile) =>
     profile.buffTransitions.flatMap((transition) =>
-      transition.lossRequiresRemainingDuration ? [transition.buffSkillId] : [],
-    ),
-  ),
+      transition.lossRequiresRemainingDuration ? [transition.buffSkillId] : []
+    )
+  )
 );
 
 export interface EvtcRotationOptions {
@@ -82,9 +69,7 @@ function addressHex(address: bigint): string {
 }
 
 function isPlayer(agent: ParsedEvtcAgent): boolean {
-  return (
-    agent.elite !== 0xffffffff && agent.profession >= 1 && agent.profession <= 9
-  );
+  return agent.elite !== 0xffffffff && agent.profession >= 1 && agent.profession <= 9;
 }
 
 function selectedPlayerEvent(event: ParsedEvtcEvent, address: bigint): boolean {
@@ -101,14 +86,10 @@ function rawActionCount(log: ParsedEvtc, address: bigint): number {
       const configured = gain
         ? TRANSITION_GAIN_BUFF_IDS.has(event.skillId)
         : TRANSITION_LOSS_BUFF_IDS.has(event.skillId) &&
-          (!TRANSITION_LOSS_DURATION_BUFF_IDS.has(event.skillId) ||
-            Math.max(event.value, event.buffDamage) > 0);
-      const key = `${event.skillId}:${gain ? "gain" : "loss"}`;
+          (!TRANSITION_LOSS_DURATION_BUFF_IDS.has(event.skillId) || Math.max(event.value, event.buffDamage) > 0);
+      const key = `${event.skillId}:${gain ? 'gain' : 'loss'}`;
       const previous = lastTransitionSignal.get(key);
-      if (
-        configured &&
-        (previous == null || event.time - previous >= TRANSITION_WINDOW_MS)
-      ) {
+      if (configured && (previous == null || event.time - previous >= TRANSITION_WINDOW_MS)) {
         count += 1;
         lastTransitionSignal.set(key, event.time);
       }
@@ -126,18 +107,15 @@ function rawActionCount(log: ParsedEvtc, address: bigint): number {
     (event) =>
       selectedPlayerEvent(event, address) &&
       event.stateChange === EVTC_STATE_CHANGE.NONE &&
-      (event.activation === EVTC_ACTIVATION.START ||
-        event.activation === EVTC_ACTIVATION.QUICKNESS),
+      (event.activation === EVTC_ACTIVATION.START || event.activation === EVTC_ACTIVATION.QUICKNESS)
   );
   for (const event of log.events) {
     if (
       selectedPlayerEvent(event, address) &&
       event.stateChange === EVTC_STATE_CHANGE.NONE &&
       (hasLegacyStarts
-        ? event.activation === EVTC_ACTIVATION.START ||
-          event.activation === EVTC_ACTIVATION.QUICKNESS
-        : event.activation === EVTC_ACTIVATION.CANCEL_FIRE ||
-          event.activation === EVTC_ACTIVATION.RESET)
+        ? event.activation === EVTC_ACTIVATION.START || event.activation === EVTC_ACTIVATION.QUICKNESS
+        : event.activation === EVTC_ACTIVATION.CANCEL_FIRE || event.activation === EVTC_ACTIVATION.RESET)
     ) {
       count += 1;
     }
@@ -145,29 +123,24 @@ function rawActionCount(log: ParsedEvtc, address: bigint): number {
   return count;
 }
 
-function playerDescription(
-  log: ParsedEvtc,
-  agent: ParsedEvtcAgent,
-): EvtcRotationPlayer | null {
+function playerDescription(log: ParsedEvtc, agent: ParsedEvtcAgent): EvtcRotationPlayer | null {
   const profession = evtcProfessionMetadata(agent.profession);
   if (!profession) return null;
   const specialization = evtcSpecializationMetadata(agent.elite, profession.id);
   if (!specialization) return null;
   return {
     address: addressHex(agent.address),
-    character: agent.character || "Unnamed player",
+    character: agent.character || 'Unnamed player',
     account: agent.account,
     professionId: profession.id,
     professionName: profession.name,
     specializationId: specialization.id,
     specializationName: specialization.name,
-    recordedActionCount: rawActionCount(log, agent.address),
+    recordedActionCount: rawActionCount(log, agent.address)
   };
 }
 
-export function detectEvtcRotationPlayers(
-  log: ParsedEvtc,
-): readonly EvtcRotationPlayer[] {
+export function detectEvtcRotationPlayers(log: ParsedEvtc): readonly EvtcRotationPlayer[] {
   return log.agents
     .filter(isPlayer)
     .flatMap((agent) => {
@@ -176,13 +149,12 @@ export function detectEvtcRotationPlayers(
     })
     .sort(
       (left, right) =>
-        right.recordedActionCount - left.recordedActionCount ||
-        left.character.localeCompare(right.character),
+        right.recordedActionCount - left.recordedActionCount || left.character.localeCompare(right.character)
     );
 }
 
 function parseRequestedAddress(address: bigint | string): bigint | null {
-  if (typeof address === "bigint") return address;
+  if (typeof address === 'bigint') return address;
   try {
     return BigInt(address);
   } catch {
@@ -192,23 +164,18 @@ function parseRequestedAddress(address: bigint | string): bigint | null {
 
 function selectPlayerAgent(
   log: ParsedEvtc,
-  requestedAddress?: bigint | string,
+  requestedAddress?: bigint | string
 ): { readonly agent: ParsedEvtcAgent; readonly player: EvtcRotationPlayer } {
   const players = detectEvtcRotationPlayers(log);
   if (!players.length) {
-    throw new EvtcError("NO_PLAYER", "The EVTC log contains no known player.");
+    throw new EvtcError('NO_PLAYER', 'The EVTC log contains no known player.');
   }
   let selected: EvtcRotationPlayer | undefined;
   if (requestedAddress != null) {
     const parsed = parseRequestedAddress(requestedAddress);
-    selected = players.find(
-      (player) => parsed != null && BigInt(player.address) === parsed,
-    );
+    selected = players.find((player) => parsed != null && BigInt(player.address) === parsed);
     if (!selected) {
-      throw new EvtcError(
-        "PLAYER_NOT_FOUND",
-        "The requested player is not present in the EVTC log.",
-      );
+      throw new EvtcError('PLAYER_NOT_FOUND', 'The requested player is not present in the EVTC log.');
     }
   } else if (players.length === 1) {
     selected = players[0];
@@ -216,26 +183,20 @@ function selectPlayerAgent(
     selected = players[0];
   } else {
     throw new EvtcError(
-      "PLAYER_SELECTION_REQUIRED",
-      "Multiple players have the same recorded action count; select one by address.",
-      { playerCount: players.length },
+      'PLAYER_SELECTION_REQUIRED',
+      'Multiple players have the same recorded action count; select one by address.',
+      { playerCount: players.length }
     );
   }
   const address = BigInt(selected.address);
   const agent = log.agents.find((candidate) => candidate.address === address);
   if (!agent) {
-    throw new EvtcError(
-      "PLAYER_NOT_FOUND",
-      "The selected player agent is missing from the EVTC log.",
-    );
+    throw new EvtcError('PLAYER_NOT_FOUND', 'The selected player agent is missing from the EVTC log.');
   }
   return { agent, player: selected };
 }
 
-function skillName(
-  names: ReadonlyMap<number, string>,
-  skillId: number,
-): string {
+function skillName(names: ReadonlyMap<number, string>, skillId: number): string {
   return names.get(skillId)?.trim() || `Unknown ${skillId}`;
 }
 
@@ -245,10 +206,10 @@ function expectedDuration(event: ParsedEvtcEvent): number | null {
 }
 
 function activationStatus(activation: number): EvtcRotationActionStatus {
-  if (activation === EVTC_ACTIVATION.CANCEL_CANCEL) return "interrupted";
-  if (activation === EVTC_ACTIVATION.CANCEL_FIRE) return "completed";
-  if (activation === EVTC_ACTIVATION.RESET) return "completed";
-  return "unknown";
+  if (activation === EVTC_ACTIVATION.CANCEL_CANCEL) return 'interrupted';
+  if (activation === EVTC_ACTIVATION.CANCEL_FIRE) return 'completed';
+  if (activation === EVTC_ACTIVATION.RESET) return 'completed';
+  return 'unknown';
 }
 
 function pairAnimationEvents(
@@ -258,12 +219,10 @@ function pairAnimationEvents(
   startStateChange: number,
   endStateChange: number,
   evidence: EvtcRotationEvidence,
-  inferTruncatedPrecast = false,
+  inferTruncatedPrecast = false
 ): RecordedAction[] {
   const firstPlayerEventTime = Math.min(
-    ...log.events
-      .filter((event) => selectedPlayerEvent(event, address) && event.time > 0)
-      .map((event) => event.time),
+    ...log.events.filter((event) => selectedPlayerEvent(event, address) && event.time > 0).map((event) => event.time)
   );
   const starts: Array<{
     readonly event: ParsedEvtcEvent;
@@ -294,24 +253,16 @@ function pairAnimationEvents(
       (start) =>
         !start.matched &&
         (start.event.time < end.event.time ||
-          (start.event.time === end.event.time &&
-            start.eventIndex < end.eventIndex)),
+          (start.event.time === end.event.time && start.eventIndex < end.eventIndex))
     );
-    const exact = eligible.filter(
-      (start) => start.event.skillId === end.event.skillId,
-    );
+    const exact = eligible.filter((start) => start.event.skillId === end.event.skillId);
     const start = (exact.length ? exact : eligible).at(-1);
     if (!start) {
       const rawName = skillName(names, end.event.skillId);
       const inferredStart = end.event.time - end.event.value;
       const truncatedAtLogStart =
-        inferTruncatedPrecast &&
-        Number.isFinite(firstPlayerEventTime) &&
-        inferredStart < firstPlayerEventTime;
-      if (
-        end.event.value <= 0 ||
-        (!rawName.toLowerCase().includes("dodge") && !truncatedAtLogStart)
-      ) {
+        inferTruncatedPrecast && Number.isFinite(firstPlayerEventTime) && inferredStart < firstPlayerEventTime;
+      if (end.event.value <= 0 || (!rawName.toLowerCase().includes('dodge') && !truncatedAtLogStart)) {
         continue;
       }
       actions.push({
@@ -323,15 +274,14 @@ function pairAnimationEvents(
         evidence,
         status: activationStatus(end.event.activation),
         eventIndex: end.eventIndex,
-        precast: truncatedAtLogStart,
+        precast: truncatedAtLogStart
       });
       continue;
     }
     start.matched = true;
     const elapsed = Math.max(0, end.event.time - start.event.time);
     const reported = Math.max(0, end.event.value);
-    const duration =
-      reported > 0 && Math.abs(reported - elapsed) <= 150 ? reported : elapsed;
+    const duration = reported > 0 && Math.abs(reported - elapsed) <= 150 ? reported : elapsed;
     actions.push({
       start: start.event.time,
       end: start.event.time + duration,
@@ -340,14 +290,14 @@ function pairAnimationEvents(
       rawName: skillName(names, start.event.skillId),
       evidence,
       status: activationStatus(end.event.activation),
-      eventIndex: start.eventIndex,
+      eventIndex: start.eventIndex
     });
   }
   for (const start of starts) {
     if (start.matched) continue;
     const duration = Math.max(0, expectedDuration(start.event) || 0);
     const rawName = skillName(names, start.event.skillId);
-    if (duration === 0 && rawName.startsWith("Unknown ")) continue;
+    if (duration === 0 && rawName.startsWith('Unknown ')) continue;
     actions.push({
       start: start.event.time,
       end: start.event.time + duration,
@@ -355,8 +305,8 @@ function pairAnimationEvents(
       rawSkillId: start.event.skillId,
       rawName,
       evidence,
-      status: "unknown",
-      eventIndex: start.eventIndex,
+      status: 'unknown',
+      eventIndex: start.eventIndex
     });
   }
   return actions;
@@ -366,16 +316,13 @@ function modernAnimationActions(
   log: ParsedEvtc,
   address: bigint,
   names: ReadonlyMap<number, string>,
-  profile: EvtcRotationProfessionProfile,
+  profile: EvtcRotationProfessionProfile
 ): RecordedAction[] {
   const startsInConfiguredTransformation = log.events.some(
     (event) =>
       event.target === address &&
       event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL &&
-      profile.buffTransitions.some(
-        (transition) =>
-          transition.gain != null && transition.buffSkillId === event.skillId,
-      ),
+      profile.buffTransitions.some((transition) => transition.gain != null && transition.buffSkillId === event.skillId)
   );
   return pairAnimationEvents(
     log,
@@ -383,32 +330,28 @@ function modernAnimationActions(
     names,
     EVTC_STATE_CHANGE.ANIMATION_START,
     EVTC_STATE_CHANGE.ANIMATION_STOP,
-    "animation",
-    startsInConfiguredTransformation,
+    'animation',
+    startsInConfiguredTransformation
   );
 }
 
 function legacyActivationActions(
   log: ParsedEvtc,
   address: bigint,
-  names: ReadonlyMap<number, string>,
+  names: ReadonlyMap<number, string>
 ): RecordedAction[] {
   const starts = log.events.some(
     (event) =>
       selectedPlayerEvent(event, address) &&
       event.stateChange === EVTC_STATE_CHANGE.NONE &&
-      (event.activation === EVTC_ACTIVATION.START ||
-        event.activation === EVTC_ACTIVATION.QUICKNESS),
+      (event.activation === EVTC_ACTIVATION.START || event.activation === EVTC_ACTIVATION.QUICKNESS)
   );
   if (starts) {
     const synthetic: ParsedEvtc = {
       ...log,
       events: log.events.map((event) => {
         if (event.stateChange !== EVTC_STATE_CHANGE.NONE) return event;
-        if (
-          event.activation === EVTC_ACTIVATION.START ||
-          event.activation === EVTC_ACTIVATION.QUICKNESS
-        ) {
+        if (event.activation === EVTC_ACTIVATION.START || event.activation === EVTC_ACTIVATION.QUICKNESS) {
           return { ...event, stateChange: -1 };
         }
         if (
@@ -419,24 +362,16 @@ function legacyActivationActions(
           return { ...event, stateChange: -2 };
         }
         return event;
-      }),
+      })
     };
-    return pairAnimationEvents(
-      synthetic,
-      address,
-      names,
-      -1,
-      -2,
-      "legacy-activation",
-    );
+    return pairAnimationEvents(synthetic, address, names, -1, -2, 'legacy-activation');
   }
   return log.events.flatMap((event, eventIndex) => {
     if (
       !selectedPlayerEvent(event, address) ||
       event.stateChange !== EVTC_STATE_CHANGE.NONE ||
       event.value <= 0 ||
-      (event.activation !== EVTC_ACTIVATION.CANCEL_FIRE &&
-        event.activation !== EVTC_ACTIVATION.RESET)
+      (event.activation !== EVTC_ACTIVATION.CANCEL_FIRE && event.activation !== EVTC_ACTIVATION.RESET)
     ) {
       return [];
     }
@@ -447,10 +382,10 @@ function legacyActivationActions(
         expectedDuration: event.value,
         rawSkillId: event.skillId,
         rawName: skillName(names, event.skillId),
-        evidence: "legacy-activation" as const,
+        evidence: 'legacy-activation' as const,
         status: activationStatus(event.activation),
-        eventIndex,
-      },
+        eventIndex
+      }
     ];
   });
 }
@@ -458,15 +393,10 @@ function legacyActivationActions(
 function buffTransitionActions(
   log: ParsedEvtc,
   address: bigint,
-  profile: EvtcRotationProfessionProfile,
+  profile: EvtcRotationProfessionProfile
 ): RecordedAction[] {
   if (!profile.buffTransitions.length) return [];
-  const transitionsByBuff = new Map(
-    profile.buffTransitions.map((transition) => [
-      transition.buffSkillId,
-      transition,
-    ]),
-  );
+  const transitionsByBuff = new Map(profile.buffTransitions.map((transition) => [transition.buffSkillId, transition]));
   const lastBySkillId = new Map<string, number>();
   return log.events.flatMap((event, eventIndex) => {
     const buffGain = event.buffRemove === 0;
@@ -504,29 +434,27 @@ function buffTransitionActions(
         expectedDuration: 0,
         rawSkillId: Number(identity.skillId),
         rawName: identity.name,
-        evidence: "buff-transition" as const,
-        status: "instant" as const,
+        evidence: 'buff-transition' as const,
+        status: 'instant' as const,
         eventIndex,
         suppressesWeaponSwap: transition.suppressWeaponSwap,
-        initialState: event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL,
-      },
+        initialState: event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
+      }
     ];
   });
 }
 
 function alignInitialStateTransitions(
   transitions: readonly RecordedAction[],
-  casts: readonly RecordedAction[],
+  casts: readonly RecordedAction[]
 ): RecordedAction[] {
-  const precastStarts = casts
-    .filter((cast) => cast.precast === true)
-    .map((cast) => cast.start);
+  const precastStarts = casts.filter((cast) => cast.precast === true).map((cast) => cast.start);
   if (!precastStarts.length) return [...transitions];
   const firstPrecastStart = Math.min(...precastStarts);
   return transitions.map((transition) =>
     transition.initialState === true && transition.start > firstPrecastStart
       ? { ...transition, start: firstPrecastStart, end: firstPrecastStart }
-      : transition,
+      : transition
   );
 }
 
@@ -535,11 +463,11 @@ function initialSummonActions(
   address: bigint,
   profile: EvtcRotationProfessionProfile,
   catalog: EvtcRotationCatalog | null,
-  anchor: number,
+  anchor: number
 ): RecordedAction[] {
   if (!profile.initialSummons.length || !Number.isFinite(anchor)) return [];
   const playerInstance = log.events.find(
-    (event) => selectedPlayerEvent(event, address) && event.sourceInstance > 0,
+    (event) => selectedPlayerEvent(event, address) && event.sourceInstance > 0
   )?.sourceInstance;
   if (playerInstance == null) return [];
   const initialAgentAddresses = new Set(
@@ -548,27 +476,18 @@ function initialSummonActions(
         (event) =>
           event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL &&
           event.sourceMasterInstance === playerInstance &&
-          event.source !== address,
+          event.source !== address
       )
-      .map((event) => event.source),
+      .map((event) => event.source)
   );
   const detected = profile.initialSummons.filter((summon) =>
-    log.agents.some(
-      (agent) =>
-        agent.profession === summon.agentSpeciesId &&
-        initialAgentAddresses.has(agent.address),
-    ),
+    log.agents.some((agent) => agent.profession === summon.agentSpeciesId && initialAgentAddresses.has(agent.address))
   );
   let cursor = anchor;
   const reversed: RecordedAction[] = [];
   for (let index = detected.length - 1; index >= 0; index -= 1) {
     const summon = detected[index];
-    const skill = findRotationSkill(
-      Number(summon.action.skillId),
-      summon.action.name,
-      catalog,
-      profile,
-    );
+    const skill = findRotationSkill(Number(summon.action.skillId), summon.action.name, catalog, profile);
     const duration = Math.max(0, Number(skill?.castTimeMs || 0));
     cursor -= duration;
     reversed.push({
@@ -577,32 +496,24 @@ function initialSummonActions(
       expectedDuration: duration,
       rawSkillId: Number(summon.action.skillId),
       rawName: summon.action.name,
-      evidence: "initial-state",
-      status: "completed",
+      evidence: 'initial-state',
+      status: 'completed',
       eventIndex: -1000 + index,
-      precast: true,
+      precast: true
     });
   }
   return reversed.reverse();
 }
 
-function weaponSwapActions(
-  log: ParsedEvtc,
-  address: bigint,
-  transitions: readonly RecordedAction[],
-): RecordedAction[] {
+function weaponSwapActions(log: ParsedEvtc, address: bigint, transitions: readonly RecordedAction[]): RecordedAction[] {
   return log.events.flatMap((event, eventIndex) => {
-    if (
-      !selectedPlayerEvent(event, address) ||
-      event.stateChange !== EVTC_STATE_CHANGE.WEAPON_SWAP
-    ) {
+    if (!selectedPlayerEvent(event, address) || event.stateChange !== EVTC_STATE_CHANGE.WEAPON_SWAP) {
       return [];
     }
     if (
       transitions.some(
         (transition) =>
-          transition.suppressesWeaponSwap === true &&
-          Math.abs(transition.start - event.time) <= TRANSITION_WINDOW_MS,
+          transition.suppressesWeaponSwap === true && Math.abs(transition.start - event.time) <= TRANSITION_WINDOW_MS
       )
     ) {
       return [];
@@ -614,12 +525,12 @@ function weaponSwapActions(
         end: event.time,
         expectedDuration: 0,
         rawSkillId: 0,
-        rawName: "Swap Weapons",
-        evidence: "state-change" as const,
-        status: "instant" as const,
+        rawName: 'Swap Weapons',
+        evidence: 'state-change' as const,
+        status: 'instant' as const,
         eventIndex,
-        weaponSet: Number.isSafeInteger(rawSet) && rawSet > 0 ? rawSet : null,
-      },
+        weaponSet: Number.isSafeInteger(rawSet) && rawSet > 0 ? rawSet : null
+      }
     ];
   });
 }
@@ -627,8 +538,7 @@ function weaponSwapActions(
 function isEffectSignal(event: ParsedEvtcEvent): boolean {
   if (
     event.activation !== EVTC_ACTIVATION.NONE ||
-    (event.stateChange !== EVTC_STATE_CHANGE.NONE &&
-      event.stateChange !== EVTC_STATE_CHANGE.BUFF_APPLY)
+    (event.stateChange !== EVTC_STATE_CHANGE.NONE && event.stateChange !== EVTC_STATE_CHANGE.BUFF_APPLY)
   ) {
     return false;
   }
@@ -641,18 +551,18 @@ function inferInstantActions(
   address: bigint,
   catalog: EvtcRotationCatalog | null,
   profile: EvtcRotationProfessionProfile,
-  animated: readonly ResolvedAction[],
+  animated: readonly ResolvedAction[]
 ): ResolvedAction[] {
   if (!catalog) return [];
   const instantSkills = catalog.skills.filter(
     (skill) =>
-      typeof skill.id === "number" &&
+      typeof skill.id === 'number' &&
       Number(skill.id) > 0 &&
       !profile.ignoredInstantSkillIds.has(Number(skill.id)) &&
       Number(skill.castTimeMs || 0) === 0 &&
       isDirectPlayerSkill(skill) &&
-      actionKind(skill, skill.name) !== "dodge" &&
-      actionKind(skill, skill.name) !== "weapon-swap",
+      actionKind(skill, skill.name) !== 'dodge' &&
+      actionKind(skill, skill.name) !== 'weapon-swap'
   );
   const byId = new Map<number, (typeof instantSkills)[number][]>();
   for (const skill of instantSkills) {
@@ -666,12 +576,7 @@ function inferInstantActions(
     if (!selectedPlayerEvent(event, address) || !isEffectSignal(event)) return;
     const candidates = byId.get(event.skillId);
     if (!candidates?.length) return;
-    const resolved = findRotationSkill(
-      event.skillId,
-      candidates[0].name,
-      catalog,
-      profile,
-    );
+    const resolved = findRotationSkill(event.skillId, candidates[0].name, catalog, profile);
     if (!resolved || animatedIds.has(String(resolved.id))) return;
     const key = String(resolved.id);
     const previous = lastSignal.get(key);
@@ -688,9 +593,9 @@ function inferInstantActions(
       skill: resolved,
       name: resolved.name,
       skillId: resolved.id,
-      evidence: "effect",
-      status: "instant",
-      eventIndex,
+      evidence: 'effect',
+      status: 'instant',
+      eventIndex
     });
   });
   return inferred;
@@ -698,26 +603,20 @@ function inferInstantActions(
 
 function isDodgeName(name: string): boolean {
   const value = name.trim().toLowerCase();
-  return (
-    value === "dodge" || value === "dodge roll" || value === "mirage cloak"
-  );
+  return value === 'dodge' || value === 'dodge roll' || value === 'mirage cloak';
 }
 
 function resolveAction(
   action: RecordedAction,
   catalog: EvtcRotationCatalog | null,
-  profile: EvtcRotationProfessionProfile,
+  profile: EvtcRotationProfessionProfile
 ): ResolvedAction {
-  if (action.rawName === "Swap Weapons") {
-    const skill = findNamedRotationSkill(
-      profile.weaponSwap.name,
-      catalog,
-      profile,
-    );
+  if (action.rawName === 'Swap Weapons') {
+    const skill = findNamedRotationSkill(profile.weaponSwap.name, catalog, profile);
     return {
       ...action,
       skill,
-      ...skillIdentity(skill, profile.weaponSwap),
+      ...skillIdentity(skill, profile.weaponSwap)
     };
   }
   if (isDodgeName(action.rawName)) {
@@ -725,20 +624,20 @@ function resolveAction(
     return {
       ...action,
       skill,
-      ...skillIdentity(skill, profile.dodge),
+      ...skillIdentity(skill, profile.dodge)
     };
   }
   const skill = findRotationSkill(
     action.canonicalSkillId ?? action.rawSkillId,
     action.canonicalName ?? action.rawName,
     catalog,
-    profile,
+    profile
   );
   return {
     ...action,
     skill,
     name: skill?.name || action.canonicalName || action.rawName,
-    skillId: skill?.id ?? action.canonicalSkillId ?? action.rawSkillId,
+    skillId: skill?.id ?? action.canonicalSkillId ?? action.rawSkillId
   };
 }
 
@@ -749,23 +648,18 @@ function actionCommand(action: ResolvedAction): EvtcReconstructedCommand {
     offset?: number;
     interruptMs?: number;
     preserveEffectsAfterInterrupt?: boolean;
-    doubleEdgeOutcome?: "success" | "backfire";
+    doubleEdgeOutcome?: 'success' | 'backfire';
   } = {
     name: action.name,
-    skillId: action.skillId,
+    skillId: action.skillId
   };
   const actualDuration = action.end - action.start;
-  const runtimeDuration = Math.max(
-    0,
-    Number(action.skill?.quicknessCastTimeMs || action.skill?.castTimeMs || 0),
-  );
+  const runtimeDuration = Math.max(0, Number(action.skill?.quicknessCastTimeMs || action.skill?.castTimeMs || 0));
   if (action.replayInterruptMs != null) {
     command.interruptMs = Math.max(0, action.replayInterruptMs);
   } else if (
-    action.status === "interrupted" ||
-    (action.status === "reduced" &&
-      actualDuration > 0 &&
-      actualDuration + 10 < runtimeDuration)
+    action.status === 'interrupted' ||
+    (action.status === 'reduced' && actualDuration > 0 && actualDuration + 10 < runtimeDuration)
   ) {
     command.interruptMs = actualDuration;
   }
@@ -781,26 +675,24 @@ function actionCommand(action: ResolvedAction): EvtcReconstructedCommand {
 function buildRotation(
   actions: readonly ResolvedAction[],
   origin: number,
-  combatStart: number | null,
+  combatStart: number | null
 ): EvtcReconstructedCommand[] {
   const entries: Array<
-    | { readonly type: "action"; readonly action: ResolvedAction }
+    | { readonly type: 'action'; readonly action: ResolvedAction }
     | {
-        readonly type: "combat-start";
+        readonly type: 'combat-start';
         readonly at: number;
         readonly index: number;
       }
-  > = actions.map((action) => ({ type: "action", action }));
+  > = actions.map((action) => ({ type: 'action', action }));
   if (combatStart != null) {
-    entries.push({ type: "combat-start", at: combatStart, index: -1 });
+    entries.push({ type: 'combat-start', at: combatStart, index: -1 });
   }
   entries.sort((left, right) => {
-    const leftTime = left.type === "action" ? left.action.start : left.at;
-    const rightTime = right.type === "action" ? right.action.start : right.at;
-    const leftIndex =
-      left.type === "action" ? left.action.eventIndex : left.index;
-    const rightIndex =
-      right.type === "action" ? right.action.eventIndex : right.index;
+    const leftTime = left.type === 'action' ? left.action.start : left.at;
+    const rightTime = right.type === 'action' ? right.action.start : right.at;
+    const leftIndex = left.type === 'action' ? left.action.eventIndex : left.index;
+    const rightIndex = right.type === 'action' ? right.action.eventIndex : right.index;
     return leftTime - rightTime || leftIndex - rightIndex;
   });
 
@@ -809,21 +701,21 @@ function buildRotation(
   let previousCastStart: number | null = null;
   let suppressGap = false;
   for (const entry of entries) {
-    const at = entry.type === "action" ? entry.action.start : entry.at;
+    const at = entry.type === 'action' ? entry.action.start : entry.at;
     const overlapping = at < activeCastEnd - TIMING_TOLERANCE_MS;
-    if (entry.type === "combat-start") {
+    if (entry.type === 'combat-start') {
       if (previousCastStart != null && overlapping) {
         rotation.push({
-          name: "__combat_start",
-          offset: Math.max(0, at - previousCastStart),
+          name: '__combat_start',
+          offset: Math.max(0, at - previousCastStart)
         });
       } else {
         const gap = Math.max(0, at - activeCastEnd);
         if (gap > TIMING_TOLERANCE_MS) {
-          rotation.push({ name: "__wait", waitMs: gap });
+          rotation.push({ name: '__wait', waitMs: gap });
           activeCastEnd = at;
         }
-        rotation.push({ name: "__combat_start" });
+        rotation.push({ name: '__combat_start' });
       }
       continue;
     }
@@ -834,11 +726,9 @@ function buildRotation(
       offset?: number;
       interruptMs?: number;
       preserveEffectsAfterInterrupt?: boolean;
-      doubleEdgeOutcome?: "success" | "backfire";
+      doubleEdgeOutcome?: 'success' | 'backfire';
     };
-    const instant =
-      entry.action.end <= entry.action.start &&
-      entry.action.replayCastEnd == null;
+    const instant = entry.action.end <= entry.action.start && entry.action.replayCastEnd == null;
     const independent = entry.action.skill?.independentCast === true;
     if (independent && previousCastStart != null && at >= previousCastStart) {
       command.offset = at - previousCastStart;
@@ -847,7 +737,7 @@ function buildRotation(
     } else {
       const gap = Math.max(0, at - activeCastEnd);
       if (gap > TIMING_TOLERANCE_MS && !suppressGap) {
-        rotation.push({ name: "__wait", waitMs: gap });
+        rotation.push({ name: '__wait', waitMs: gap });
       }
       activeCastEnd = at;
     }
@@ -857,10 +747,7 @@ function buildRotation(
     } else {
       previousCastStart = at;
       if (!instant) {
-        activeCastEnd = Math.max(
-          activeCastEnd,
-          entry.action.replayCastEnd ?? entry.action.end,
-        );
+        activeCastEnd = Math.max(activeCastEnd, entry.action.replayCastEnd ?? entry.action.end);
       }
       suppressGap = entry.action.suppressFollowingWait === true;
     }
@@ -869,46 +756,39 @@ function buildRotation(
 }
 
 function warningList(actions: readonly EvtcRotationAction[]): string[] {
-  const inferred = actions.filter((action) => action.evidence === "effect");
+  const inferred = actions.filter((action) => action.evidence === 'effect');
   const unsupported = actions.filter((action) => !action.supportedByCatalog);
-  const unfinished = actions.filter((action) => action.status === "unknown");
-  const interrupted = actions.filter(
-    (action) => action.status === "interrupted",
-  );
+  const unfinished = actions.filter((action) => action.status === 'unknown');
+  const interrupted = actions.filter((action) => action.status === 'interrupted');
   const warnings: string[] = [];
   if (inferred.length) {
     warnings.push(
-      `${inferred.length} instant cast${inferred.length === 1 ? " was" : "s were"} inferred from direct skill effects.`,
+      `${inferred.length} instant cast${inferred.length === 1 ? ' was' : 's were'} inferred from direct skill effects.`
     );
   }
   if (unsupported.length) {
     warnings.push(
-      `${unsupported.length} recorded action${unsupported.length === 1 ? " is" : "s are"} not present in the supplied simulator catalog.`,
+      `${unsupported.length} recorded action${unsupported.length === 1 ? ' is' : 's are'} not present in the supplied simulator catalog.`
     );
   }
   if (unfinished.length) {
     warnings.push(
-      `${unfinished.length} animation${unfinished.length === 1 ? " has" : "s have"} no matching stop event.`,
+      `${unfinished.length} animation${unfinished.length === 1 ? ' has' : 's have'} no matching stop event.`
     );
   }
   if (interrupted.length) {
     warnings.push(
-      `${interrupted.length} interrupted cast${interrupted.length === 1 ? " is" : "s are"} preserved with ${interrupted.length === 1 ? "its" : "their"} recorded duration.`,
+      `${interrupted.length} interrupted cast${interrupted.length === 1 ? ' is' : 's are'} preserved with ${interrupted.length === 1 ? 'its' : 'their'} recorded duration.`
     );
   }
   return warnings;
 }
 
-function rightAlignInferredAmmoFlips(
-  actions: readonly ResolvedAction[],
-): ResolvedAction[] {
-  const sorted = [...actions].sort(
-    (left, right) =>
-      left.start - right.start || left.eventIndex - right.eventIndex,
-  );
+function rightAlignInferredAmmoFlips(actions: readonly ResolvedAction[]): ResolvedAction[] {
+  const sorted = [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   return actions.map((action) => {
     if (
-      action.evidence !== "effect" ||
+      action.evidence !== 'effect' ||
       action.end !== action.start ||
       Number(action.skill?.ammo || 0) < 2 ||
       action.skill?.flipParentId == null
@@ -920,7 +800,7 @@ function rightAlignInferredAmmoFlips(
         (candidate) =>
           candidate !== action &&
           candidate.start < action.start &&
-          (candidate.replayCastEnd ?? candidate.end) > action.start,
+          (candidate.replayCastEnd ?? candidate.end) > action.start
       )
       .sort((left, right) => right.start - left.start)[0];
     if (!containingCast) return action;
@@ -929,16 +809,11 @@ function rightAlignInferredAmmoFlips(
       (candidate) =>
         candidate.start > containingEnd &&
         candidate.skill?.independentCast !== true &&
-        candidate.skill?.canCastConcurrently !== true,
+        candidate.skill?.canCastConcurrently !== true
     );
-    const idleAfterCast = Math.max(
-      0,
-      Number(nextSerialAction?.start ?? containingEnd) - containingEnd,
-    );
+    const idleAfterCast = Math.max(0, Number(nextSerialAction?.start ?? containingEnd) - containingEnd);
     const shift = Math.min(idleAfterCast, containingEnd - action.start);
-    return shift > TIMING_TOLERANCE_MS
-      ? { ...action, start: action.start + shift, end: action.end + shift }
-      : action;
+    return shift > TIMING_TOLERANCE_MS ? { ...action, start: action.start + shift, end: action.end + shift } : action;
   });
 }
 
@@ -946,73 +821,55 @@ export function reconstructWithProfile(
   log: ParsedEvtc,
   profile: EvtcRotationProfessionProfile,
   catalog: EvtcRotationCatalog | null = null,
-  options: EvtcRotationOptions = {},
+  options: EvtcRotationOptions = {}
 ): EvtcRotationReconstruction {
   const { agent, player } = selectPlayerAgent(log, options.playerAddress);
-  if (
-    player.professionId !== profile.professionId ||
-    player.specializationId !== profile.specializationId
-  ) {
+  if (player.professionId !== profile.professionId || player.specializationId !== profile.specializationId) {
     throw new EvtcError(
-      "UNSUPPORTED_PROFESSION",
-      `The ${profile.professionName} ${profile.specializationName} parser cannot parse ${player.professionName} ${player.specializationName}.`,
+      'UNSUPPORTED_PROFESSION',
+      `The ${profile.professionName} ${profile.specializationName} parser cannot parse ${player.professionName} ${player.specializationName}.`
     );
   }
   const names = new Map(log.skills.map((skill) => [skill.id, skill.name]));
   const hasModernAnimations = log.events.some(
-    (event) =>
-      selectedPlayerEvent(event, agent.address) &&
-      event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START,
+    (event) => selectedPlayerEvent(event, agent.address) && event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START
   );
   const castActions = hasModernAnimations
     ? modernAnimationActions(log, agent.address, names, profile)
     : legacyActivationActions(log, agent.address, names);
   const transitionActions = alignInitialStateTransitions(
     buffTransitionActions(log, agent.address, profile),
-    castActions,
+    castActions
   ).filter(
     (transition) =>
       !castActions.some(
         (action) =>
           action.rawSkillId === transition.rawSkillId &&
-          Math.abs(action.start - transition.start) <= TRANSITION_WINDOW_MS,
-      ),
+          Math.abs(action.start - transition.start) <= TRANSITION_WINDOW_MS
+      )
   );
   const combatStartEvent = log.events.find(
-    (event) =>
-      selectedPlayerEvent(event, agent.address) &&
-      event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT,
+    (event) => selectedPlayerEvent(event, agent.address) && event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT
   );
   const initialStateTime = profile.inferCombatStartFromFirstCast
     ? log.events
-        .filter(
-          (event) =>
-            event.target === agent.address &&
-            event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL,
-        )
+        .filter((event) => event.target === agent.address && event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL)
         .sort((left, right) => left.time - right.time)[0]?.time
     : null;
   const inferredCombatStart = profile.inferCombatStartFromFirstCast
     ? (initialStateTime ??
       castActions
-        .filter((action) => action.status === "completed")
-        .sort(
-          (left, right) =>
-            left.start - right.start || left.eventIndex - right.eventIndex,
-        )[0]?.start)
+        .filter((action) => action.status === 'completed')
+        .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex)[0]?.start)
     : null;
   const combatStart =
-    options.includeCombatStart === false
-      ? null
-      : (combatStartEvent?.time ?? inferredCombatStart ?? null);
+    options.includeCombatStart === false ? null : (combatStartEvent?.time ?? inferredCombatStart ?? null);
   const genericActions = [
     ...castActions,
     ...transitionActions,
-    ...weaponSwapActions(log, agent.address, transitionActions),
+    ...weaponSwapActions(log, agent.address, transitionActions)
   ].filter(
-    (action) =>
-      action.rawSkillId !== WEAPON_STOW_ANIMATION_ID &&
-      action.rawName.trim().toLowerCase() !== "weapon stow",
+    (action) => action.rawSkillId !== WEAPON_STOW_ANIMATION_ID && action.rawName.trim().toLowerCase() !== 'weapon stow'
   );
   const professionContext = {
     log,
@@ -1025,12 +882,12 @@ export function reconstructWithProfile(
     professionConfig: options.professionConfig,
     timelineOriginMs: Math.min(
       ...genericActions.map((action) => action.start),
-      combatStart == null ? Number.POSITIVE_INFINITY : combatStart,
-    ),
+      combatStart == null ? Number.POSITIVE_INFINITY : combatStart
+    )
   };
   const professionActions = reconcileCastEffectPackets(
     professionContext,
-    reconstructProfessionActions(professionContext),
+    reconstructProfessionActions(professionContext)
   );
   const initialSummons = initialSummonActions(
     log,
@@ -1039,33 +896,20 @@ export function reconstructWithProfile(
     catalog,
     Math.min(
       ...professionActions.map((action) => action.start),
-      combatStart == null ? Number.POSITIVE_INFINITY : combatStart,
-    ),
+      combatStart == null ? Number.POSITIVE_INFINITY : combatStart
+    )
   );
   const recorded = [...initialSummons, ...professionActions];
-  let resolved = recorded.map((action) =>
-    resolveAction(action, catalog, profile),
-  );
+  let resolved = recorded.map((action) => resolveAction(action, catalog, profile));
   if (options.inferInstantCasts !== false) {
-    resolved.push(
-      ...inferInstantActions(log, agent.address, catalog, profile, resolved),
-    );
+    resolved.push(...inferInstantActions(log, agent.address, catalog, profile, resolved));
   }
   resolved = rightAlignInferredAmmoFlips(resolved);
-  resolved.sort(
-    (left, right) =>
-      left.start - right.start || left.eventIndex - right.eventIndex,
-  );
+  resolved.sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   if (!resolved.length) {
-    throw new EvtcError(
-      "NO_ROTATION_ACTIONS",
-      "The selected player has no reconstructable EVTC actions.",
-    );
+    throw new EvtcError('NO_ROTATION_ACTIONS', 'The selected player has no reconstructable EVTC actions.');
   }
-  const origin = Math.min(
-    resolved[0].start,
-    combatStart == null ? Number.POSITIVE_INFINITY : combatStart,
-  );
+  const origin = Math.min(resolved[0].start, combatStart == null ? Number.POSITIVE_INFINITY : combatStart);
   const actions: EvtcRotationAction[] = resolved.map((action) => ({
     timestampMs: action.start - origin,
     endTimestampMs: action.end - origin,
@@ -1078,19 +922,16 @@ export function reconstructWithProfile(
     evidence: action.evidence,
     status: action.status,
     ...(action.weaponSet === undefined ? {} : { weaponSet: action.weaponSet }),
-    ...(action.doubleEdgeOutcome == null
-      ? {}
-      : { doubleEdgeOutcome: action.doubleEdgeOutcome }),
-    supportedByCatalog: action.skill != null,
+    ...(action.doubleEdgeOutcome == null ? {} : { doubleEdgeOutcome: action.doubleEdgeOutcome }),
+    supportedByCatalog: action.skill != null
   }));
   return {
     parserId: `${profile.professionId}:${profile.specializationId}`,
     player,
     logStartTime: origin,
-    combatStartTimestampMs:
-      combatStart == null ? null : Math.max(0, combatStart - origin),
+    combatStartTimestampMs: combatStart == null ? null : Math.max(0, combatStart - origin),
     actions,
     rotation: buildRotation(resolved, origin, combatStart),
-    warnings: warningList(actions),
+    warnings: warningList(actions)
   };
 }

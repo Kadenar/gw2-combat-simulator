@@ -15,24 +15,22 @@
  * it outside a browser has no side effect.
  */
 
-const EMBED_PARAM = "embed";
+const EMBED_PARAM = 'embed';
 
 /** Message type emitted to the host frame for auto-resize. */
-export const EMBED_HEIGHT_MESSAGE = "gw2sim:height";
+export const EMBED_HEIGHT_MESSAGE = 'gw2sim:height';
 
 /**
  * Target origin for `postMessage`. `*` works for any host; tighten to the
  * embedding site's origin (e.g. `https://snowcrows.com`) to harden against
  * other frames reading the height signal.
  */
-const HOST_ORIGIN = "*";
+const HOST_ORIGIN = '*';
 
 /** True when the current page was opened in embed mode (`?embed` / `?embed=1`). */
 export function isEmbedded(): boolean {
   try {
-    return new URLSearchParams(globalThis.location?.search || "").has(
-      EMBED_PARAM,
-    );
+    return new URLSearchParams(globalThis.location?.search || '').has(EMBED_PARAM);
   } catch {
     return false;
   }
@@ -54,10 +52,10 @@ function isFramed(): boolean {
  */
 export function embedRoute(route: string): string {
   if (/[?&]embed(=|&|$)/.test(route)) return route;
-  const hashAt = route.indexOf("#");
+  const hashAt = route.indexOf('#');
   const path = hashAt === -1 ? route : route.slice(0, hashAt);
-  const hash = hashAt === -1 ? "" : route.slice(hashAt);
-  const sep = path.includes("?") ? "&" : "?";
+  const hash = hashAt === -1 ? '' : route.slice(hashAt);
+  const sep = path.includes('?') ? '&' : '?';
   return `${path}${sep}${EMBED_PARAM}=1${hash}`;
 }
 
@@ -65,10 +63,10 @@ export function embedRoute(route: string): string {
 function decorateStaticLinks(root: Document): void {
   const links = root.querySelectorAll<HTMLAnchorElement>('a[href$=".html"]');
   for (const link of links) {
-    const href = link.getAttribute("href");
+    const href = link.getAttribute('href');
     // Skip absolute/protocol-relative URLs; only decorate in-app pages.
     if (!href || /^([a-z]+:)?\/\//i.test(href)) continue;
-    link.setAttribute("href", embedRoute(href));
+    link.setAttribute('href', embedRoute(href));
   }
 }
 
@@ -76,15 +74,12 @@ function decorateStaticLinks(root: Document): void {
 function setupResizeReporter(root: Document): void {
   const post = (): void => {
     const height = root.documentElement.scrollHeight;
-    globalThis.parent?.postMessage(
-      { type: EMBED_HEIGHT_MESSAGE, height, url: globalThis.location?.href },
-      HOST_ORIGIN,
-    );
+    globalThis.parent?.postMessage({ type: EMBED_HEIGHT_MESSAGE, height, url: globalThis.location?.href }, HOST_ORIGIN);
   };
-  if (typeof ResizeObserver !== "undefined") {
+  if (typeof ResizeObserver !== 'undefined') {
     new ResizeObserver(post).observe(root.documentElement);
   }
-  globalThis.addEventListener?.("load", post);
+  globalThis.addEventListener?.('load', post);
   post();
 }
 
@@ -98,10 +93,10 @@ function setupResizeReporter(root: Document): void {
 export function initEmbed(root: Document = document): void {
   if (isFramed()) setupResizeReporter(root);
   if (!isEmbedded()) return;
-  root.documentElement.classList.add("embed");
+  root.documentElement.classList.add('embed');
   decorateStaticLinks(root);
 }
 
-if (typeof document !== "undefined") {
+if (typeof document !== 'undefined') {
   initEmbed(document);
 }

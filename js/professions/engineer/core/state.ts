@@ -1,106 +1,85 @@
-import type {
-  SchedulerRecord,
-  SkillId,
-} from "../../../platform/engine/types.js";
-import type {
-  EngineerConfig,
-  EngineerCoreState,
-  EngineerEndStateProjectionOptions,
-  EngineerState,
-} from "../types.js";
-import { flattenProfessionState } from "../../../platform/engine/profession.js";
+import type { SchedulerRecord, SkillId } from '../../../platform/engine/types.js';
+import type { EngineerConfig, EngineerCoreState, EngineerEndStateProjectionOptions, EngineerState } from '../types.js';
+import { flattenProfessionState } from '../../../platform/engine/profession.js';
 
 // merges three config paths for backward compatibility — callers use whichever field their API returns
-export function selectedEngineerTraits(
-  config: EngineerConfig = {},
-): Set<SkillId> {
+export function selectedEngineerTraits(config: EngineerConfig = {}): Set<SkillId> {
   return new Set(
-    [
-      ...(config.traitIds || []),
-      ...(config.selectedTraitIds || []),
-      ...(config.selectedTraits || []),
-    ].map((value) => (Number.isFinite(Number(value)) ? Number(value) : value)),
+    [...(config.traitIds || []), ...(config.selectedTraitIds || []), ...(config.selectedTraits || [])].map((value) =>
+      Number.isFinite(Number(value)) ? Number(value) : value
+    )
   );
 }
 
 // accepts either a pre-built Set (for callers that cache it) or a config object (builds it on demand)
-export function hasEngineerTrait(
-  configOrTraits: EngineerConfig | ReadonlySet<SkillId>,
-  traitId: SkillId,
-): boolean {
+export function hasEngineerTrait(configOrTraits: EngineerConfig | ReadonlySet<SkillId>, traitId: SkillId): boolean {
   const traits =
-    typeof (configOrTraits as ReadonlySet<SkillId>).has === "function"
+    typeof (configOrTraits as ReadonlySet<SkillId>).has === 'function'
       ? (configOrTraits as ReadonlySet<SkillId>)
       : selectedEngineerTraits(configOrTraits as EngineerConfig);
   // check both numeric and string representations — the GW2 API can return IDs as either type
   return traits.has(traitId) || traits.has(String(traitId));
 }
 
-export function createEngineerCoreState(
-  _config: EngineerConfig = {},
-): EngineerCoreState {
+export function createEngineerCoreState(_config: EngineerConfig = {}): EngineerCoreState {
   return {
     endurance: 100,
     maximumEndurance: 100,
     enduranceUpdatedAt: 0,
-    activeKit: "",
+    activeKit: '',
     availableFlips: {},
     autoattackChains: {},
-    lightningRodActivationId: "",
+    lightningRodActivationId: '',
     lightningRodChargeExpiries: [],
     electricArtilleryAvailable: false,
     electricArtilleryReadyAt: 0,
     electricArtilleryExpiresAt: 0,
     focusedUntil: 0,
     kineticCharges: 0,
-    traitProcReadyAt: {},
+    traitProcReadyAt: {}
   };
 }
 
 export function snapshotEngineerState(state: unknown): EngineerState {
-  return structuredClone(
-    flattenProfessionState(state),
-  ) as unknown as EngineerState;
+  return structuredClone(flattenProfessionState(state)) as unknown as EngineerState;
 }
 
 // contract between scheduler end-state and the presentation layer — new persistent fields must be added here
 export const ENGINEER_PUBLIC_END_STATE_KEYS = Object.freeze([
-  "endurance",
-  "maximumEndurance",
-  "heat",
-  "maximumHeat",
-  "photonForgeActive",
-  "forgeExitedAt",
-  "overheated",
-  "solarFocusingLensStacks",
-  "solarFocusingLensReadyAt",
-  "solarFocusingLensUntil",
-  "activeKit",
-  "availableFlips",
-  "autoattackChains",
-  "mech",
-  "selectedMorphSkillIds",
-  "evolvedUntil",
-  "focusedUntil",
-  "lightningRodChargeExpiries",
-  "electricArtilleryAvailable",
-  "electricArtilleryReadyAt",
-  "electricArtilleryExpiresAt",
-  "willingHostUntil",
-  "plasmaticStateUntil",
-  "thornsUntil",
-  "rapaciousUntil",
-  "predatorUntil",
-  "titanicUntil",
-  "berserkerUntil",
-  "activeStances",
-  "kineticCharges",
+  'endurance',
+  'maximumEndurance',
+  'heat',
+  'maximumHeat',
+  'photonForgeActive',
+  'forgeExitedAt',
+  'overheated',
+  'solarFocusingLensStacks',
+  'solarFocusingLensReadyAt',
+  'solarFocusingLensUntil',
+  'activeKit',
+  'availableFlips',
+  'autoattackChains',
+  'mech',
+  'selectedMorphSkillIds',
+  'evolvedUntil',
+  'focusedUntil',
+  'lightningRodChargeExpiries',
+  'electricArtilleryAvailable',
+  'electricArtilleryReadyAt',
+  'electricArtilleryExpiresAt',
+  'willingHostUntil',
+  'plasmaticStateUntil',
+  'thornsUntil',
+  'rapaciousUntil',
+  'predatorUntil',
+  'titanicUntil',
+  'berserkerUntil',
+  'activeStances',
+  'kineticCharges'
 ] as const satisfies readonly (keyof EngineerState)[]);
 
 // safe defaults for spec-specific fields absent when running a different spec (e.g. holosmith fields on Core)
-const ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<
-  Partial<EngineerState>
-> = Object.freeze({
+const ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<EngineerState>> = Object.freeze({
   heat: 0,
   maximumHeat: 100,
   photonForgeActive: false,
@@ -115,7 +94,7 @@ const ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<
     commandSkillIds: [],
     nextAttackAt: null,
     busyUntil: 0,
-    attributes: null,
+    attributes: null
   },
   selectedMorphSkillIds: [],
   evolvedUntil: 0,
@@ -126,19 +105,15 @@ const ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<
   predatorUntil: 0,
   titanicUntil: 0,
   berserkerUntil: 0,
-  activeStances: {},
+  activeStances: {}
 });
 
-export function projectEngineerEndState({
-  schedulerState,
-}: EngineerEndStateProjectionOptions): SchedulerRecord {
+export function projectEngineerEndState({ schedulerState }: EngineerEndStateProjectionOptions): SchedulerRecord {
   const state = snapshotEngineerState(schedulerState.profession);
   return Object.fromEntries(
     ENGINEER_PUBLIC_END_STATE_KEYS.map((key) => [
       key,
-      structuredClone(
-        state[key] ?? ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS[key],
-      ),
-    ]),
+      structuredClone(state[key] ?? ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS[key])
+    ])
   );
 }

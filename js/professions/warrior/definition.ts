@@ -1,1 +1,1 @@
-export { warriorProfession, warriorProfession as default } from "./family.js";
+export { warriorProfession, warriorProfession as default } from './family.js';

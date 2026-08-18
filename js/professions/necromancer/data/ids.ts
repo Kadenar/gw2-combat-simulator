@@ -179,7 +179,7 @@ export const NECROMANCER_SKILL_IDS = Object.freeze({
   XINRAES_WEAPON: 76941, // Xinrae's Weapon
   SPLINTER_WEAPON: 76975, // Splinter Weapon
   WEAPON_OF_REMEDY: 77022, // Weapon of Remedy
-  RESILIENT_WEAPON: 77259, // Resilient Weapon
+  RESILIENT_WEAPON: 77259 // Resilient Weapon
 });
 
 export const NECROMANCER_TRAIT_IDS = Object.freeze({
@@ -280,5 +280,5 @@ export const NECROMANCER_TRAIT_IDS = Object.freeze({
   SPIRITS_STRENGTH: 2421,
   WIELDERS_BOON: 2376,
   LINGERING_SPIRITS: 2333,
-  SOUL_TWISTING: 2392,
+  SOUL_TWISTING: 2392
 });

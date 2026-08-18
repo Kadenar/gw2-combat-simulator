@@ -1,58 +1,33 @@
-import { hasTrait as hasGw2Trait } from "../../../platform/gw2/trait-state.js";
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from "../data/ids.js";
-import type {
-  SchedulerRecord,
-  SimulationEvent,
-  Skill,
-} from "../../../platform/engine/types.js";
-import type { ElementalistSchedulerContext } from "../types.js";
-import {
-  elementalistCoreState,
-  type ElementalistAuraState,
-  type ElementalistCoreState,
-} from "./state.js";
-import { BOON_KINDS, ETCHING_CHAINS } from "./constants.js";
+import { hasTrait as hasGw2Trait } from '../../../platform/gw2/trait-state.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import type { SchedulerRecord, SimulationEvent, Skill } from '../../../platform/engine/types.js';
+import type { ElementalistSchedulerContext } from '../types.js';
+import { elementalistCoreState, type ElementalistAuraState, type ElementalistCoreState } from './state.js';
+import { BOON_KINDS, ETCHING_CHAINS } from './constants.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
   elementalistBalanceEffect,
-  elementalistBalanceValue,
-} from "./profiles.js";
+  elementalistBalanceValue
+} from './profiles.js';
 
 function hasTrait(context: unknown, trait: string): boolean {
   return hasGw2Trait(context as never, trait);
 }
 
 export function skillWeapon(skill: Skill): string {
-  return String(skill.weapon || skill.skillWeapon || "");
+  return String(skill.weapon || skill.skillWeapon || '');
 }
 
 export function etchingChain(name: string) {
-  return ETCHING_CHAINS.find(
-    (chain) =>
-      name === chain.etching || name === chain.lesser || name === chain.full,
-  );
+  return ETCHING_CHAINS.find((chain) => name === chain.etching || name === chain.lesser || name === chain.full);
 }
 
-export function activeAura(
-  state: ElementalistCoreState,
-  aura: string,
-  at: number,
-): ElementalistAuraState | null {
-  return (
-    state.activeAuras.find(
-      (candidate) => candidate.type === aura && candidate.expiresAt > at,
-    ) || null
-  );
+export function activeAura(state: ElementalistCoreState, aura: string, at: number): ElementalistAuraState | null {
+  return state.activeAuras.find((candidate) => candidate.type === aura && candidate.expiresAt > at) || null;
 }
 
-export function combatStarted(
-  context: ElementalistSchedulerContext,
-  at: number,
-): boolean {
-  return (
-    !context.hasExplicitCombatStart ||
-    (context.combatStartTime != null && at >= context.combatStartTime)
-  );
+export function combatStarted(context: ElementalistSchedulerContext, at: number): boolean {
+  return !context.hasExplicitCombatStart || (context.combatStartTime != null && at >= context.combatStartTime);
 }
 
 export function emitElementalistBuff(
@@ -62,32 +37,24 @@ export function emitElementalistBuff(
   stacks: number,
   duration: number,
   source: string,
-  sourceId: Skill["id"],
+  sourceId: Skill['id'],
   priority = 0,
-  recipients: "self" | "party" = "self",
+  recipients: 'self' | 'party' = 'self'
 ): void {
   const normalizedKind = kind.toLowerCase();
-  const adjustedDuration = elementalistBuffDuration(
-    context,
-    normalizedKind,
-    duration,
-    source,
-    sourceId,
-  );
+  const adjustedDuration = elementalistBuffDuration(context, normalizedKind, duration, source, sourceId);
   context.emit({
-    type: "buff",
+    type: 'buff',
     at,
     source,
     sourceId,
-    actorType: "player",
+    actorType: 'player',
     kind: normalizedKind,
     stacks,
     duration: adjustedDuration,
     skillName: source,
     priority,
-    ...(recipients === "party"
-      ? { recipients: "party", maximumRecipients: 5 }
-      : {}),
+    ...(recipients === 'party' ? { recipients: 'party', maximumRecipients: 5 } : {})
   });
 }
 
@@ -96,7 +63,7 @@ export function elementalistBuffDuration(
   kind: string,
   duration: number,
   source: string,
-  sourceId: Skill["id"],
+  sourceId: Skill['id']
 ): number {
   const normalizedKind = kind.toLowerCase();
   if (!BOON_KINDS.has(normalizedKind)) return duration;
@@ -109,26 +76,22 @@ export function elementalistBuffDuration(
     context.schedulerPolicy.effectDuration?.(
       context,
       sourceSkill,
-      { type: "boon", boon: normalizedKind, duration },
-      duration,
+      { type: 'boon', boon: normalizedKind, duration },
+      duration
     ) ?? duration
   );
 }
 
 export const emitBuff = emitElementalistBuff;
 
-export function activeBuffEvents(
-  context: ElementalistSchedulerContext,
-  kind: string,
-  at: number,
-): SimulationEvent[] {
+export function activeBuffEvents(context: ElementalistSchedulerContext, kind: string, at: number): SimulationEvent[] {
   const normalized = kind.toLowerCase();
   return context.events.filter(
     (event) =>
-      event.type === "buff" &&
-      String(event.kind || "").toLowerCase() === normalized &&
+      event.type === 'buff' &&
+      String(event.kind || '').toLowerCase() === normalized &&
       event.at <= at &&
-      event.at + Number(event.duration || 0) > at,
+      event.at + Number(event.duration || 0) > at
   );
 }
 
@@ -139,44 +102,39 @@ export function emitCondition(
   stacks: number,
   duration: number,
   source: string,
-  sourceId: Skill["id"],
+  sourceId: Skill['id']
 ): void {
   context.emit({
-    type: "condition",
+    type: 'condition',
     at,
     source,
     sourceId,
-    actorType: "player",
+    actorType: 'player',
     condition,
     stacks,
     duration,
-    skillName: source,
+    skillName: source
   });
 }
 
-export function profiledEffect(
-  context: unknown,
-  profileId: Skill["id"],
-  type: string,
-  name?: string,
-) {
+export function profiledEffect(context: unknown, profileId: Skill['id'], type: string, name?: string) {
   return elementalistBalanceEffect(context, profileId, type, name);
 }
 
 export function emitProfiledBuff(
   context: ElementalistSchedulerContext,
   at: number,
-  profileId: Skill["id"],
+  profileId: Skill['id'],
   effectName: string,
   fallbackKind: string,
   fallbackStacks: number,
   fallbackDuration: number,
   source: string,
-  sourceId: Skill["id"],
+  sourceId: Skill['id'],
   priority = 0,
-  recipients: "self" | "party" = "self",
+  recipients: 'self' | 'party' = 'self'
 ): void {
-  const effect = profiledEffect(context, profileId, "boon", effectName);
+  const effect = profiledEffect(context, profileId, 'boon', effectName);
   emitBuff(
     context,
     at,
@@ -186,22 +144,22 @@ export function emitProfiledBuff(
     source,
     sourceId,
     priority,
-    recipients,
+    recipients
   );
 }
 
 export function emitProfiledCondition(
   context: ElementalistSchedulerContext,
   at: number,
-  profileId: Skill["id"],
+  profileId: Skill['id'],
   effectName: string,
   fallbackCondition: string,
   fallbackStacks: number,
   fallbackDuration: number,
   source: string,
-  sourceId: Skill["id"],
+  sourceId: Skill['id']
 ): void {
-  const effect = profiledEffect(context, profileId, "condition", effectName);
+  const effect = profiledEffect(context, profileId, 'condition', effectName);
   emitCondition(
     context,
     at,
@@ -209,7 +167,7 @@ export function emitProfiledCondition(
     Number(effect?.stacks ?? fallbackStacks),
     Number(effect?.duration ?? fallbackDuration),
     source,
-    sourceId,
+    sourceId
   );
 }
 
@@ -220,31 +178,31 @@ export function emitElementalistProc(
     name,
     procType,
     sourceId,
-    sourceSkill = "",
-    detail = "",
-    icon = "",
+    sourceSkill = '',
+    detail = '',
+    icon = ''
   }: {
     at: number;
     name: string;
-    procType: "trait" | "skill";
-    sourceId: Skill["id"];
+    procType: 'trait' | 'skill';
+    sourceId: Skill['id'];
     sourceSkill?: string;
     detail?: string;
     icon?: string;
-  },
+  }
 ): void {
   context.emit({
-    type: "proc",
+    type: 'proc',
     at,
     source: name,
     sourceId,
-    actorType: "effect",
+    actorType: 'effect',
     name,
     skillName: name,
     procType,
     sourceSkill,
     detail,
-    icon,
+    icon
   });
 }
 
@@ -256,117 +214,61 @@ export function applyElementalistAura(
     duration,
     skillName,
     sourceId,
-    priority = 0,
+    priority = 0
   }: {
     at: number;
     aura: string;
     duration: number;
     skillName: string;
-    sourceId: Skill["id"];
+    sourceId: Skill['id'];
     priority?: number;
-  },
+  }
 ): void {
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
-  const adjustedDuration = hasTrait(context, "Smothering Auras")
-    ? duration *
-      elementalistBalanceValue(
-        context,
-        PROFILE.smotheringAuras,
-        "durationMultiplier",
-        1.33,
-      )
+  const adjustedDuration = hasTrait(context, 'Smothering Auras')
+    ? duration * elementalistBalanceValue(context, PROFILE.smotheringAuras, 'durationMultiplier', 1.33)
     : duration;
   const auraState: ElementalistAuraState = {
     type: aura,
     appliedAt: at,
     expiresAt: at + adjustedDuration,
-    skillName,
+    skillName
   };
   state.activeAuras.push(auraState);
   context.emit({
-    type: "elementalist.aura",
+    type: 'elementalist.aura',
     at,
     source: skillName,
     sourceId,
-    actorType: "effect",
+    actorType: 'effect',
     skillName,
     aura,
     duration: adjustedDuration,
-    ...(priority ? { priority } : {}),
+    ...(priority ? { priority } : {})
   });
   if (!combatStarted(context, at)) return;
   if (hasTrait(context, "Zephyr's Boon")) {
-    emitProfiledBuff(
-      context,
-      at,
-      PROFILE.zephyrsBoon,
-      "Fury",
-      "Fury",
-      1,
-      5,
-      skillName,
-      sourceId,
-    );
-    emitProfiledBuff(
-      context,
-      at,
-      PROFILE.zephyrsBoon,
-      "Swiftness",
-      "Swiftness",
-      1,
-      5,
-      skillName,
-      sourceId,
-    );
+    emitProfiledBuff(context, at, PROFILE.zephyrsBoon, 'Fury', 'Fury', 1, 5, skillName, sourceId);
+    emitProfiledBuff(context, at, PROFILE.zephyrsBoon, 'Swiftness', 'Swiftness', 1, 5, skillName, sourceId);
   }
-  if (hasTrait(context, "Elemental Shielding")) {
-    emitProfiledBuff(
-      context,
-      at,
-      PROFILE.elementalShielding,
-      "Protection",
-      "Protection",
-      1,
-      3,
-      skillName,
-      sourceId,
-    );
+  if (hasTrait(context, 'Elemental Shielding')) {
+    emitProfiledBuff(context, at, PROFILE.elementalShielding, 'Protection', 'Protection', 1, 3, skillName, sourceId);
   }
-  if (hasTrait(context, "Invigorating Torrents")) {
+  if (hasTrait(context, 'Invigorating Torrents')) {
+    emitProfiledBuff(context, at, TRAIT.INVIGORATING_TORRENTS, 'Vigor', 'Vigor', 1, 5, skillName, sourceId);
     emitProfiledBuff(
       context,
       at,
       TRAIT.INVIGORATING_TORRENTS,
-      "Vigor",
-      "Vigor",
+      'Regeneration',
+      'Regeneration',
       1,
       5,
       skillName,
-      sourceId,
-    );
-    emitProfiledBuff(
-      context,
-      at,
-      TRAIT.INVIGORATING_TORRENTS,
-      "Regeneration",
-      "Regeneration",
-      1,
-      5,
-      skillName,
-      sourceId,
+      sourceId
     );
   }
-  if (hasTrait(context, "Elemental Bastion")) {
-    emitProfiledBuff(
-      context,
-      at,
-      TRAIT.ELEMENTAL_BASTION,
-      "Alacrity",
-      "Alacrity",
-      1,
-      4,
-      skillName,
-      sourceId,
-    );
+  if (hasTrait(context, 'Elemental Bastion')) {
+    emitProfiledBuff(context, at, TRAIT.ELEMENTAL_BASTION, 'Alacrity', 'Alacrity', 1, 4, skillName, sourceId);
   }
 }

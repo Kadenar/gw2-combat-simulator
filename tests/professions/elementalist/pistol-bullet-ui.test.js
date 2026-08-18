@@ -1,26 +1,26 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { renderPalette } from "../../../js/app/rotation/palette-view.js";
-import { elementalistAppAdapter } from "../../../js/professions/elementalist/app/app-definition.js";
-import { elementalistCatalog } from "../../../js/professions/elementalist/catalog.js";
-import { elementalistProfession } from "../../../js/professions/elementalist/definition.js";
+import { renderPalette } from '../../../js/app/rotation/palette-view.js';
+import { elementalistAppAdapter } from '../../../js/professions/elementalist/app/app-definition.js';
+import { elementalistCatalog } from '../../../js/professions/elementalist/catalog.js';
+import { elementalistProfession } from '../../../js/professions/elementalist/definition.js';
 
 function createPistolApp() {
   const build = elementalistAppAdapter.toApplicationBuild({
     ...elementalistProfession.createBuildDefaults(),
-    weapons: ["Pistol", "Warhorn"],
+    weapons: ['Pistol', 'Warhorn'],
     pistolBullets: {
       Fire: true,
       Water: false,
       Air: false,
-      Earth: false,
+      Earth: false
     },
     specializations: [
-      { name: "Fire", traits: "1-1-1" },
-      { name: "Air", traits: "1-1-1" },
-      { name: "Tempest", traits: "1-1-1" },
-    ],
+      { name: 'Fire', traits: '1-1-1' },
+      { name: 'Air', traits: '1-1-1' },
+      { name: 'Tempest', traits: '1-1-1' }
+    ]
   });
   let changeCount = 0;
   const app = {
@@ -37,30 +37,30 @@ function createPistolApp() {
         time: 0,
         cooldowns: {},
         profession: {
-          primaryAttunement: "Air",
+          primaryAttunement: 'Air',
           secondaryAttunement: null,
           autoattackChains: {},
           pistolBullets: {
             Fire: false,
             Water: true,
             Air: true,
-            Earth: false,
-          },
-        },
-      },
+            Earth: false
+          }
+        }
+      }
     },
     changed() {
       changeCount += 1;
-    },
+    }
   };
   return { app, changeCount: () => changeCount };
 }
 
 function renderPaletteMarkup(app) {
-  const palette = { innerHTML: "", querySelectorAll: () => [] };
+  const palette = { innerHTML: '', querySelectorAll: () => [] };
   const previousDocument = globalThis.document;
   globalThis.document = {
-    getElementById: (id) => (id === "rotation-palette" ? palette : null),
+    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {
     renderPalette(app);
@@ -70,53 +70,45 @@ function renderPaletteMarkup(app) {
   return palette.innerHTML;
 }
 
-test("Elementalist pistol palette distinguishes starting and current bullets", () => {
+test('Elementalist pistol palette distinguishes starting and current bullets', () => {
   const { app } = createPistolApp();
   const html = renderPaletteMarkup(app);
 
   assert.match(html, /data-palette-group="elementalist-pistol-bullets"/);
-  assert.equal(
-    (html.match(/class="pal-control pistol-bullet/g) || []).length,
-    4,
+  assert.equal((html.match(/class="pal-control pistol-bullet/g) || []).length, 4);
+  assert.match(
+    html,
+    /class="pal-control pistol-bullet pal-control-pressed pal-control-muted"[\s\S]*?data-palette-control-id="elementalist-pistol-bullet:Fire"[\s\S]*?aria-pressed="true"/
   );
   assert.match(
     html,
-    /class="pal-control pistol-bullet pal-control-pressed pal-control-muted"[\s\S]*?data-palette-control-id="elementalist-pistol-bullet:Fire"[\s\S]*?aria-pressed="true"/,
+    /class="pal-control pistol-bullet pal-control-active pal-control-muted"[\s\S]*?data-palette-control-id="elementalist-pistol-bullet:Water"[\s\S]*?aria-pressed="false"/
   );
   assert.match(
     html,
-    /class="pal-control pistol-bullet pal-control-active pal-control-muted"[\s\S]*?data-palette-control-id="elementalist-pistol-bullet:Water"[\s\S]*?aria-pressed="false"/,
-  );
-  assert.match(
-    html,
-    /class="pal-control pistol-bullet pal-control-active"[\s\S]*?data-palette-control-id="elementalist-pistol-bullet:Air"/,
+    /class="pal-control pistol-bullet pal-control-active"[\s\S]*?data-palette-control-id="elementalist-pistol-bullet:Air"/
   );
   assert.match(html, /currently stocked; starts not stocked/);
   assert.match(html, /not currently stocked; starts stocked/);
   assert.match(html, /class="pal-control-badge"[^>]*>S<\/span>/);
-  assert.match(
-    html,
-    new RegExp(elementalistCatalog.skillsByName.get("Scorching Shot").icon),
-  );
+  assert.match(html, new RegExp(elementalistCatalog.skillsByName.get('Scorching Shot').icon));
 });
 
-test("Elementalist pistol palette toggles the selected starting bullet", () => {
+test('Elementalist pistol palette toggles the selected starting bullet', () => {
   const { app, changeCount } = createPistolApp();
-  const bulletButtons = ["Fire", "Water", "Air", "Earth"].map((element) => ({
+  const bulletButtons = ['Fire', 'Water', 'Air', 'Earth'].map((element) => ({
     dataset: { paletteControlId: `elementalist-pistol-bullet:${element}` },
-    onclick: null,
+    onclick: null
   }));
   const palette = {
-    innerHTML: "",
+    innerHTML: '',
     querySelectorAll(selector) {
-      return selector === ".pal-control[data-palette-control-id]"
-        ? bulletButtons
-        : [];
-    },
+      return selector === '.pal-control[data-palette-control-id]' ? bulletButtons : [];
+    }
   };
   const previousDocument = globalThis.document;
   globalThis.document = {
-    getElementById: (id) => (id === "rotation-palette" ? palette : null),
+    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {
     renderPalette(app);
@@ -129,7 +121,7 @@ test("Elementalist pistol palette toggles the selected starting bullet", () => {
   assert.equal(changeCount(), 1);
 });
 
-test("Elemental Explosion replaces the active pistol autoattack at full stock", () => {
+test('Elemental Explosion replaces the active pistol autoattack at full stock', () => {
   const { app } = createPistolApp();
 
   const partialStock = renderPaletteMarkup(app);
@@ -141,7 +133,7 @@ test("Elemental Explosion replaces the active pistol autoattack at full stock", 
     Fire: true,
     Water: true,
     Air: true,
-    Earth: true,
+    Earth: true
   };
   const fullStock = renderPaletteMarkup(app);
   assert.match(fullStock, /data-skill="Elemental Explosion"/);
@@ -150,20 +142,15 @@ test("Elemental Explosion replaces the active pistol autoattack at full stock", 
   assert.doesNotMatch(fullStock, />Special<\/div>/);
 
   const explosion = fullStock.indexOf('data-skill="Elemental Explosion"');
-  const bullets = fullStock.indexOf(
-    'data-palette-group="elementalist-pistol-bullets"',
-  );
+  const bullets = fullStock.indexOf('data-palette-group="elementalist-pistol-bullets"');
   const earthAutoattack = fullStock.indexOf('data-skill="Piercing Pebble"');
   assert.ok(explosion < bullets);
   assert.ok(bullets < earthAutoattack);
 });
 
-test("Elementalist bullet controls stay hidden without a pistol", () => {
+test('Elementalist bullet controls stay hidden without a pistol', () => {
   const { app } = createPistolApp();
-  app.build.weapons = ["Sword", "Warhorn"];
+  app.build.weapons = ['Sword', 'Warhorn'];
 
-  assert.doesNotMatch(
-    renderPaletteMarkup(app),
-    /data-palette-group="elementalist-pistol-bullets"/,
-  );
+  assert.doesNotMatch(renderPaletteMarkup(app), /data-palette-group="elementalist-pistol-bullets"/);
 });

@@ -1,14 +1,8 @@
-import type {
-  SchedulerRecord,
-  SchedulerState,
-  SimulationEvent,
-} from "./types.js";
+import type { SchedulerRecord, SchedulerState, SimulationEvent } from './types.js';
 
 interface SchedulerStateOptions<TProfessionState extends object> {
   readonly profession?: {
-    createProfessionState(
-      config: Readonly<SchedulerRecord>,
-    ): TProfessionState;
+    createProfessionState(config: Readonly<SchedulerRecord>): TProfessionState;
   };
   readonly config?: Readonly<SchedulerRecord>;
   readonly startingTime?: number;
@@ -20,16 +14,14 @@ interface SchedulerStateOptions<TProfessionState extends object> {
  * Profession-specific resources are nested under `state.profession`.
  *
  */
-export function createSchedulerState<
-  TProfessionState extends object = SchedulerRecord,
->({
+export function createSchedulerState<TProfessionState extends object = SchedulerRecord>({
   profession,
   config = {},
   startingTime = 0,
-  activeWeaponSet = 1,
+  activeWeaponSet = 1
 }: SchedulerStateOptions<TProfessionState> = {}): SchedulerState<TProfessionState> {
-  if (!profession || typeof profession.createProfessionState !== "function") {
-    throw new TypeError("Scheduler state requires a profession contract.");
+  if (!profession || typeof profession.createProfessionState !== 'function') {
+    throw new TypeError('Scheduler state requires a profession contract.');
   }
   return {
     time: Number(startingTime || 0),
@@ -39,6 +31,6 @@ export function createSchedulerState<
     activeWeaponSet: Math.max(1, Number(activeWeaponSet || 1)),
     skillUses: new Map(),
     pendingEvents: [] as SimulationEvent[],
-    profession: profession.createProfessionState(config),
+    profession: profession.createProfessionState(config)
   };
 }

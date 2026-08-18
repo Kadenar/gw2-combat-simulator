@@ -2,48 +2,42 @@
  * Maps legacy target-condition fields to their modern counterparts.
  * Used for backward compatibility with older config formats.
  */
-import type {
-  Gw2Config,
-  Gw2RuntimeConditionStack,
-  Gw2RuntimeStateLike,
-} from "./types.js";
+import type { Gw2Config, Gw2RuntimeConditionStack, Gw2RuntimeStateLike } from './types.js';
 
 const LEGACY_TARGET_FIELDS: Readonly<Record<string, string>> = {
-  Vulnerability: "vulnerability",
-  Slow: "slowed",
+  Vulnerability: 'vulnerability',
+  Slow: 'slowed'
 };
 
 const CONDITION_ALIASES = Object.freeze({
-  bleed: "Bleeding",
-  bleeding: "Bleeding",
-  blind: "Blinded",
-  blinded: "Blinded",
-  burn: "Burning",
-  burning: "Burning",
-  chill: "Chilled",
-  chilled: "Chilled",
-  confusion: "Confusion",
-  cripple: "Crippled",
-  crippled: "Crippled",
-  fear: "Fear",
-  feared: "Fear",
-  immobilize: "Immobilized",
-  immobilized: "Immobilized",
-  poison: "Poisoned",
-  poisoned: "Poisoned",
-  slow: "Slow",
-  slowed: "Slow",
-  taunt: "Taunt",
-  taunted: "Taunt",
-  torment: "Torment",
-  vulnerability: "Vulnerability",
-  weakness: "Weakness",
-  weakened: "Weakness",
+  bleed: 'Bleeding',
+  bleeding: 'Bleeding',
+  blind: 'Blinded',
+  blinded: 'Blinded',
+  burn: 'Burning',
+  burning: 'Burning',
+  chill: 'Chilled',
+  chilled: 'Chilled',
+  confusion: 'Confusion',
+  cripple: 'Crippled',
+  crippled: 'Crippled',
+  fear: 'Fear',
+  feared: 'Fear',
+  immobilize: 'Immobilized',
+  immobilized: 'Immobilized',
+  poison: 'Poisoned',
+  poisoned: 'Poisoned',
+  slow: 'Slow',
+  slowed: 'Slow',
+  taunt: 'Taunt',
+  taunted: 'Taunt',
+  torment: 'Torment',
+  vulnerability: 'Vulnerability',
+  weakness: 'Weakness',
+  weakened: 'Weakness'
 });
 
-export const CANONICAL_TARGET_CONDITIONS = Object.freeze(
-  [...new Set(Object.values(CONDITION_ALIASES))].sort(),
-);
+export const CANONICAL_TARGET_CONDITIONS = Object.freeze([...new Set(Object.values(CONDITION_ALIASES))].sort());
 
 /**
  * Normalizes simulator and wiki condition spellings to the canonical runtime
@@ -51,8 +45,8 @@ export const CANONICAL_TARGET_CONDITIONS = Object.freeze(
  * profession data remains queryable without inventing per-condition flags.
  */
 export function canonicalTargetConditionName(value: unknown): string {
-  const text = String(value || "").trim();
-  if (!text) return "";
+  const text = String(value || '').trim();
+  if (!text) return '';
   const normalized = text.toLowerCase();
   return (
     (CONDITION_ALIASES as Readonly<Record<string, string>>)[normalized] ||
@@ -61,7 +55,7 @@ export function canonicalTargetConditionName(value: unknown): string {
 }
 
 function normalizeTargetConditions(
-  conditions: Readonly<Record<string, number | boolean>>,
+  conditions: Readonly<Record<string, number | boolean>>
 ): ReadonlyMap<string, number | boolean> {
   const normalized = new Map<string, number | boolean>();
   for (const [condition, value] of Object.entries(conditions)) {
@@ -82,7 +76,7 @@ function normalizeTargetConditions(
 function configuredConditionValue(
   config: Gw2Config,
   name: string,
-  normalizedConditions: ReadonlyMap<string, number | boolean> | null = null,
+  normalizedConditions: ReadonlyMap<string, number | boolean> | null = null
 ): number | boolean {
   const canonicalName = canonicalTargetConditionName(name);
   const legacyField = LEGACY_TARGET_FIELDS[canonicalName];
@@ -98,19 +92,15 @@ function configuredConditionValue(
     return normalizedConditions.get(canonicalName) ?? 0;
   }
   const entry = Object.entries(conditions).find(
-    ([condition]) => canonicalTargetConditionName(condition) === canonicalName,
+    ([condition]) => canonicalTargetConditionName(condition) === canonicalName
   );
   if (entry) return entry[1];
 
   return 0;
 }
 
-export function createPermanentTargetConditionStacks(
-  config: Gw2Config,
-): (name: string) => number {
-  const normalizedConditions = normalizeTargetConditions(
-    config.target?.conditions || {},
-  );
+export function createPermanentTargetConditionStacks(config: Gw2Config): (name: string) => number {
+  const normalizedConditions = normalizeTargetConditions(config.target?.conditions || {});
   return (name: string): number => {
     const value = configuredConditionValue(config, name, normalizedConditions);
     if (value === true) return 1;
@@ -127,10 +117,7 @@ export function createPermanentTargetConditionStacks(
  * @example
  * permanentTargetConditionStacks(config, "Vulnerability") // → 2
  */
-export function permanentTargetConditionStacks(
-  config: Gw2Config,
-  name: string,
-): number {
+export function permanentTargetConditionStacks(config: Gw2Config, name: string): number {
   const value = configuredConditionValue(config, name);
   if (value === true) return 1;
   return Math.max(0, Number(value) || 0);
@@ -144,10 +131,7 @@ export function permanentTargetConditionStacks(
  * @example
  * targetHasPermanentCondition(config, "Vulnerability") // → true
  */
-export function targetHasPermanentCondition(
-  config: Gw2Config,
-  name: string,
-): boolean {
+export function targetHasPermanentCondition(config: Gw2Config, name: string): boolean {
   return permanentTargetConditionStacks(config, name) > 0;
 }
 
@@ -155,10 +139,7 @@ export function targetHasPermanentCondition(
  * @param {Gw2RuntimeConditionStack} stack
  * @param {number} at
  */
-function activeRuntimeStackWeight(
-  stack: Gw2RuntimeConditionStack,
-  at: number,
-): number {
+function activeRuntimeStackWeight(stack: Gw2RuntimeConditionStack, at: number): number {
   const appliedAt = Number(stack?.appliedAt ?? -Infinity);
   const expiresAt = Number(stack?.expiresAt ?? Infinity);
   const removedAt = Number(stack?.removedAt ?? Infinity);
@@ -176,17 +157,14 @@ function activeRuntimeStackWeight(
 export function runtimeTargetConditionStacks(
   runtime: Gw2RuntimeStateLike | null | undefined,
   name: string,
-  at: number,
+  at: number
 ): number {
   if (!(runtime?.conditionState instanceof Map)) return 0;
   const canonicalName = canonicalTargetConditionName(name);
   let total = 0;
   for (const [condition, entry] of runtime.conditionState) {
     if (canonicalTargetConditionName(condition) !== canonicalName) continue;
-    total += (entry?.stacks || []).reduce(
-      (sum, stack) => sum + activeRuntimeStackWeight(stack, at),
-      0,
-    );
+    total += (entry?.stacks || []).reduce((sum, stack) => sum + activeRuntimeStackWeight(stack, at), 0);
   }
   return total;
 }
@@ -199,19 +177,16 @@ export function targetConditionStacks(
   config: Gw2Config,
   name: string,
   at: number,
-  runtime: Gw2RuntimeStateLike | null = null,
+  runtime: Gw2RuntimeStateLike | null = null
 ): number {
-  return (
-    permanentTargetConditionStacks(config, name) +
-    runtimeTargetConditionStacks(runtime, name, Number(at || 0))
-  );
+  return permanentTargetConditionStacks(config, name) + runtimeTargetConditionStacks(runtime, name, Number(at || 0));
 }
 
 export function targetHasCondition(
   config: Gw2Config,
   name: string,
   at: number,
-  runtime: Gw2RuntimeStateLike | null = null,
+  runtime: Gw2RuntimeStateLike | null = null
 ): boolean {
   return targetConditionStacks(config, name, at, runtime) > 0;
 }

@@ -4,8 +4,8 @@ import type {
   SimulationEventInput,
   Skill,
   SkillEffect,
-  SkillId,
-} from "./types.js";
+  SkillId
+} from './types.js';
 
 export interface EffectEventBase extends SchedulerRecord {
   readonly source: string;
@@ -33,12 +33,8 @@ export interface MaterializeSkillEffectOptions {
 }
 
 /** Resolves the first timestamp at which an effect should fire. */
-export function effectFirstAt(
-  start: number,
-  fullEnd: number,
-  effect: SkillEffect,
-): number {
-  const origin = effect.timingAnchor === "castEnd" ? fullEnd : start;
+export function effectFirstAt(start: number, fullEnd: number, effect: SkillEffect): number {
+  const origin = effect.timingAnchor === 'castEnd' ? fullEnd : start;
   if (Array.isArray(effect.ticks) && effect.ticks.length) {
     return origin + Number(effect.ticks[0].atMs) / 1000;
   }
@@ -56,84 +52,59 @@ export function materializeSkillEffectApplications({
   start,
   fullEnd,
   baseEvent,
-  skillWeaponFallback = "",
-  statusDuration,
+  skillWeaponFallback = '',
+  statusDuration
 }: MaterializeSkillEffectOptions): readonly MaterializedEffectApplication[] {
   const firstAt = effectFirstAt(start, fullEnd, effect);
   const applications: MaterializedEffectApplication[] = [];
-  const comboMetadata = effect.comboFinishers
-    ? { comboFinishers: effect.comboFinishers }
-    : {};
-  const comboFieldMetadata = effect.comboFields
-    ? { comboFields: effect.comboFields }
-    : {};
+  const comboMetadata = effect.comboFinishers ? { comboFinishers: effect.comboFinishers } : {};
+  const comboFieldMetadata = effect.comboFields ? { comboFields: effect.comboFields } : {};
   const flatStrikeMetadata = {
-    ...(effect.flatDamage != null
-      ? { flatDamage: Number(effect.flatDamage) }
-      : {}),
-    ...(effect.flatStrikeBase != null
-      ? { flatStrikeBase: Number(effect.flatStrikeBase) }
-      : {}),
-    ...(effect.flatStrikePowerCoeff != null
-      ? { flatStrikePowerCoeff: Number(effect.flatStrikePowerCoeff) }
-      : {}),
+    ...(effect.flatDamage != null ? { flatDamage: Number(effect.flatDamage) } : {}),
+    ...(effect.flatStrikeBase != null ? { flatStrikeBase: Number(effect.flatStrikeBase) } : {}),
+    ...(effect.flatStrikePowerCoeff != null ? { flatStrikePowerCoeff: Number(effect.flatStrikePowerCoeff) } : {})
   };
 
-  if (effect.type === "strike") {
+  if (effect.type === 'strike') {
     const ticks = Array.isArray(effect.ticks) ? effect.ticks : null;
-    const hits =
-      ticks?.length || Math.max(1, Math.trunc(Number(effect.hits || 1)));
+    const hits = ticks?.length || Math.max(1, Math.trunc(Number(effect.hits || 1)));
     const equalCoefficient = Number(effect.coefficient || 0) / hits;
     const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
-    const origin = effect.timingAnchor === "castEnd" ? fullEnd : start;
+    const origin = effect.timingAnchor === 'castEnd' ? fullEnd : start;
     for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
       const tick = ticks?.[hitIndex - 1];
-      const at = tick
-        ? origin + Number(tick.atMs) / 1000
-        : firstAt + (hitIndex - 1) * interval;
+      const at = tick ? origin + Number(tick.atMs) / 1000 : firstAt + (hitIndex - 1) * interval;
       applications.push({
         at,
         event: {
           ...baseEvent,
-          type: "damage",
+          type: 'damage',
           at,
           name: effect.name || skill.name,
           coefficient: tick ? Number(tick.coefficient) : equalCoefficient,
           hits: 1,
           hitIndex,
           totalHits: hits,
-          skillWeapon:
-            effect.weapon ||
-            skill.weapon ||
-            skill.skillWeapon ||
-            skillWeaponFallback,
+          skillWeapon: effect.weapon || skill.weapon || skill.skillWeapon || skillWeaponFallback,
           weaponStrength: effect.weaponStrength,
           weaponStrengthProfileId: effect.weaponStrengthProfileId,
           weaponStrengthSource: effect.weaponStrengthSource,
           canCrit: effect.canCrit !== false,
-          ...(effect.coefficientModifiers
-            ? { coefficientModifiers: effect.coefficientModifiers }
-            : {}),
+          ...(effect.coefficientModifiers ? { coefficientModifiers: effect.coefficientModifiers } : {}),
           ...(effect.metadata || {}),
           ...(tick?.metadata || {}),
           ...flatStrikeMetadata,
           ...comboMetadata,
           ...comboFieldMetadata,
-          ...(tick?.comboFinishers
-            ? { comboFinishers: tick.comboFinishers }
-            : {}),
-        },
+          ...(tick?.comboFinishers ? { comboFinishers: tick.comboFinishers } : {})
+        }
       });
     }
-  } else if (effect.type === "condition") {
+  } else if (effect.type === 'condition') {
     if (Array.isArray(effect.ticks)) {
-      const origin = effect.timingAnchor === "castEnd" ? fullEnd : start;
+      const origin = effect.timingAnchor === 'castEnd' ? fullEnd : start;
       const ticks = effect.ticks;
-      for (
-        let applicationIndex = 1;
-        applicationIndex <= ticks.length;
-        applicationIndex += 1
-      ) {
+      for (let applicationIndex = 1; applicationIndex <= ticks.length; applicationIndex += 1) {
         const tick = ticks[applicationIndex - 1];
         const at = origin + Number(tick.atMs) / 1000;
         applications.push({
@@ -141,7 +112,7 @@ export function materializeSkillEffectApplications({
           event: {
             ...baseEvent,
             at,
-            type: "condition",
+            type: 'condition',
             name: effect.name || `${skill.name} — ${tick.condition}`,
             condition: tick.condition,
             stacks: Number(tick.stacks),
@@ -152,27 +123,21 @@ export function materializeSkillEffectApplications({
             ...(tick.metadata || {}),
             ...comboMetadata,
             ...comboFieldMetadata,
-            ...(tick.comboFinishers
-              ? { comboFinishers: tick.comboFinishers }
-              : {}),
-          },
+            ...(tick.comboFinishers ? { comboFinishers: tick.comboFinishers } : {})
+          }
         });
       }
     } else {
       const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
       const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
-      for (
-        let applicationIndex = 1;
-        applicationIndex <= count;
-        applicationIndex += 1
-      ) {
+      for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
         const at = firstAt + (applicationIndex - 1) * interval;
         applications.push({
           at,
           event: {
             ...baseEvent,
             at,
-            type: "condition",
+            type: 'condition',
             name: effect.name || `${skill.name} — ${effect.condition}`,
             condition: effect.condition,
             stacks: Number(effect.stacks),
@@ -181,19 +146,15 @@ export function materializeSkillEffectApplications({
             totalApplications: count,
             ...(effect.metadata || {}),
             ...comboMetadata,
-            ...comboFieldMetadata,
-          },
+            ...comboFieldMetadata
+          }
         });
       }
     }
-  } else if (effect.type === "control" || effect.type === "blind") {
+  } else if (effect.type === 'control' || effect.type === 'blind') {
     const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
     const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
-    for (
-      let applicationIndex = 1;
-      applicationIndex <= count;
-      applicationIndex += 1
-    ) {
+    for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
       const at = firstAt + (applicationIndex - 1) * interval;
       applications.push({
         at,
@@ -201,69 +162,49 @@ export function materializeSkillEffectApplications({
           ...baseEvent,
           at,
           type: effect.type,
-          ...(effect.duration != null
-            ? { duration: Number(effect.duration) }
-            : {}),
+          ...(effect.duration != null ? { duration: Number(effect.duration) } : {}),
           applicationIndex,
           totalApplications: count,
           ...(effect.metadata || {}),
           ...comboMetadata,
-          ...comboFieldMetadata,
-        },
+          ...comboFieldMetadata
+        }
       });
     }
-  } else if (effect.type === "boon" || effect.type === "buff") {
+  } else if (effect.type === 'boon' || effect.type === 'buff') {
     const recipientMetadata = {
       ...(effect.recipients != null ? { recipients: effect.recipients } : {}),
-      ...(effect.affectsSelf != null
-        ? { affectsSelf: effect.affectsSelf }
-        : {}),
-      ...(effect.affectsSummons != null
-        ? { affectsSummons: effect.affectsSummons }
-        : {}),
-      ...(effect.maximumRecipients != null
-        ? { maximumRecipients: effect.maximumRecipients }
-        : {}),
+      ...(effect.affectsSelf != null ? { affectsSelf: effect.affectsSelf } : {}),
+      ...(effect.affectsSummons != null ? { affectsSummons: effect.affectsSummons } : {}),
+      ...(effect.maximumRecipients != null ? { maximumRecipients: effect.maximumRecipients } : {}),
       ...(effect.targetCap != null ? { targetCap: effect.targetCap } : {}),
-      ...(effect.companionIds != null
-        ? { companionIds: effect.companionIds }
-        : {}),
+      ...(effect.companionIds != null ? { companionIds: effect.companionIds } : {})
     };
     const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
     const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
-    for (
-      let applicationIndex = 1;
-      applicationIndex <= count;
-      applicationIndex += 1
-    ) {
+    for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
       const at = firstAt + (applicationIndex - 1) * interval;
       applications.push({
         at,
         event: {
           ...baseEvent,
           at,
-          type: "buff",
-          kind: String(
-            effect.boon || effect.kind || effect.name || "",
-          ).toLowerCase(),
+          type: 'buff',
+          kind: String(effect.boon || effect.kind || effect.name || '').toLowerCase(),
           stacks: Math.max(1, Number(effect.stacks || 1)),
           duration: Math.max(0, Number(statusDuration ?? effect.duration ?? 0)),
           ...(count > 1 ? { applicationIndex, totalApplications: count } : {}),
           ...recipientMetadata,
           ...(effect.metadata || {}),
           ...comboMetadata,
-          ...comboFieldMetadata,
-        },
+          ...comboFieldMetadata
+        }
       });
     }
-  } else if (effect.type === "custom") {
+  } else if (effect.type === 'custom') {
     const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
     const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
-    for (
-      let applicationIndex = 1;
-      applicationIndex <= count;
-      applicationIndex += 1
-    ) {
+    for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
       const at = firstAt + (applicationIndex - 1) * interval;
       applications.push({
         at,
@@ -275,8 +216,8 @@ export function materializeSkillEffectApplications({
           applicationIndex,
           totalApplications: count,
           ...comboMetadata,
-          ...comboFieldMetadata,
-        },
+          ...comboFieldMetadata
+        }
       });
     }
   }

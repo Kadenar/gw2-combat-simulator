@@ -4,48 +4,48 @@ import {
   handleRangerPetSwapped,
   handleRangerPoisonousStrikes,
   handleRangerSharpeningStone,
-  handleRangerWinterBiteReady,
-} from "./events.js";
+  handleRangerWinterBiteReady
+} from './events.js';
 import {
   rangerCoreCriticalReactions,
   rangerCoreProfiledCriticalReaction,
   reactToRangerCoreBuff,
   reactToRangerCoreControl,
-  reactToRangerCoreDamage,
-} from "./traits.js";
+  reactToRangerCoreDamage
+} from './traits.js';
 
-export { rangerCoreCriticalReactions } from "./traits.js";
+export { rangerCoreCriticalReactions } from './traits.js';
 
 export const rangerCoreEventHandlers = Object.freeze({
-  "ranger.blood-thirst": handleRangerBloodThirst,
-  "ranger.winter-bite-ready": handleRangerWinterBiteReady,
-  "ranger.beast-skill-used": handleRangerBeastSkillUsed,
-  "ranger.poisonous-strikes": handleRangerPoisonousStrikes,
-  "ranger.sharpening-stone": handleRangerSharpeningStone,
-  "ranger.pet-swapped": handleRangerPetSwapped,
+  'ranger.blood-thirst': handleRangerBloodThirst,
+  'ranger.winter-bite-ready': handleRangerWinterBiteReady,
+  'ranger.beast-skill-used': handleRangerBeastSkillUsed,
+  'ranger.poisonous-strikes': handleRangerPoisonousStrikes,
+  'ranger.sharpening-stone': handleRangerSharpeningStone,
+  'ranger.pet-swapped': handleRangerPetSwapped
 });
 
 export const rangerCoreEventReactions = Object.freeze({
   critical: Object.freeze([rangerCoreProfiledCriticalReaction]),
   damage: Object.freeze([
     {
-      id: "ranger.core-damage",
+      id: 'ranger.core-damage',
       order: 10,
-      handler: reactToRangerCoreDamage,
-    },
+      handler: reactToRangerCoreDamage
+    }
   ]),
   control: Object.freeze([
     {
-      id: "ranger.core-control",
+      id: 'ranger.core-control',
       order: 10,
-      handler: reactToRangerCoreControl,
-    },
+      handler: reactToRangerCoreControl
+    }
   ]),
   buff: Object.freeze([
     {
-      id: "ranger.core-buff",
+      id: 'ranger.core-buff',
       order: 10,
-      handler: reactToRangerCoreBuff,
-    },
-  ]),
+      handler: reactToRangerCoreBuff
+    }
+  ])
 });

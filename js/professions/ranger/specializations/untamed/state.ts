@@ -1,10 +1,10 @@
-import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
-import type { RangerConfig, UntamedState } from "../../types.js";
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import type { RangerConfig, UntamedState } from '../../types.js';
 
 export function createUntamedState(config: RangerConfig = {}): UntamedState {
   return {
     // Default is Pet unleashed; "Ranger" must be explicitly requested.
-    rangerUnleashed: config.initialUntamedState === "Ranger",
+    rangerUnleashed: config.initialUntamedState === 'Ranger',
     // Zero means no ambush window is open (ambush is only available while < current time).
     ambushReadyUntil: 0,
     // Tracks the 9-second cooldown before Unleashed Power can grant another ambush window.
@@ -22,11 +22,8 @@ export function createUntamedState(config: RangerConfig = {}): UntamedState {
     ferociousSymbiosisPetUntil: 0,
     ferociousSymbiosisPetReadyAt: 0,
     // Keyed by activationId so multi-hit ambush skills only grant Let Loose buffs once per cast.
-    letLooseActivations: {},
+    letLooseActivations: {}
   };
 }
 
-export const untamedState = defineProfessionSpecializationState(
-  "Untamed",
-  createUntamedState,
-);
+export const untamedState = defineProfessionSpecializationState('Untamed', createUntamedState);

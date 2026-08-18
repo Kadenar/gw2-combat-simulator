@@ -1,10 +1,6 @@
-import type {
-  EvtcRotationActionStatus,
-  EvtcRotationEvidence,
-  ParsedEvtc,
-} from "../../types.js";
-import type { EvtcRotationCatalog } from "../catalog.js";
-import type { EvtcRotationProfessionProfile } from "../profiles.js";
+import type { EvtcRotationActionStatus, EvtcRotationEvidence, ParsedEvtc } from '../../types.js';
+import type { EvtcRotationCatalog } from '../catalog.js';
+import type { EvtcRotationProfessionProfile } from '../profiles.js';
 
 export interface EvtcRecordedRotationAction {
   readonly start: number;
@@ -21,7 +17,7 @@ export interface EvtcRecordedRotationAction {
   readonly precast?: boolean;
   readonly canonicalSkillId?: number;
   readonly canonicalName?: string;
-  readonly doubleEdgeOutcome?: "success" | "backfire";
+  readonly doubleEdgeOutcome?: 'success' | 'backfire';
   readonly replayCastEnd?: number;
   readonly replayInterruptMs?: number;
   readonly replayPreserveEffectsAfterInterrupt?: boolean;
@@ -42,5 +38,5 @@ export interface EvtcProfessionReconstructionContext {
 }
 
 export type EvtcProfessionActionReconstructor = (
-  context: EvtcProfessionReconstructionContext,
+  context: EvtcProfessionReconstructionContext
 ) => readonly EvtcRecordedRotationAction[];

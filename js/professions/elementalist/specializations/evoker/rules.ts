@@ -1,51 +1,51 @@
-import { availability } from "./availability.js";
-import { afterCast, onCastComplete, onCastStart } from "./familiars.js";
-import { initialize } from "./resources.js";
-import { onEventScheduled } from "./events.js";
-import { modifyRechargeDuration } from "./recharge.js";
-import { evokerModifierRules, modifyEvokerAttributes } from "./modifiers.js";
+import { availability } from './availability.js';
+import { afterCast, onCastComplete, onCastStart } from './familiars.js';
+import { initialize } from './resources.js';
+import { onEventScheduled } from './events.js';
+import { modifyRechargeDuration } from './recharge.js';
+import { evokerModifierRules, modifyEvokerAttributes } from './modifiers.js';
 
-export { FAMILIAR_ELEMENTS } from "./constants.js";
-export { applyAltruisticAspect } from "./traits.js";
+export { FAMILIAR_ELEMENTS } from './constants.js';
+export { applyAltruisticAspect } from './traits.js';
 
 export const evokerCastRules = Object.freeze({
   availability: {
-    id: "elementalist.evoker-availability",
+    id: 'elementalist.evoker-availability',
     order: 30,
-    handler: availability,
+    handler: availability
   },
-  modifyRechargeDuration,
+  modifyRechargeDuration
 });
 
 export const evokerAttributeRules = Object.freeze({
   modifyAttributes: modifyEvokerAttributes,
-  modifierRules: evokerModifierRules,
+  modifierRules: evokerModifierRules
 });
 
 export const evokerSchedulerHooks = Object.freeze({
   initialize: {
-    id: "elementalist.evoker-initialize",
+    id: 'elementalist.evoker-initialize',
     order: 30,
-    handler: initialize,
+    handler: initialize
   },
   onCastStart: {
-    id: "elementalist.evoker-start",
+    id: 'elementalist.evoker-start',
     order: 30,
-    handler: onCastStart,
+    handler: onCastStart
   },
   afterCast: {
-    id: "elementalist.evoker-after-cast",
+    id: 'elementalist.evoker-after-cast',
     order: 30,
-    handler: afterCast,
+    handler: afterCast
   },
   onCastComplete: {
-    id: "elementalist.evoker-complete",
+    id: 'elementalist.evoker-complete',
     order: 30,
-    handler: onCastComplete,
+    handler: onCastComplete
   },
   onEventScheduled: {
-    id: "elementalist.evoker-charges",
+    id: 'elementalist.evoker-charges',
     order: 30,
-    handler: onEventScheduled,
-  },
+    handler: onEventScheduled
+  }
 });

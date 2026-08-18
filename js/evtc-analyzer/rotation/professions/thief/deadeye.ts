@@ -1,8 +1,5 @@
-import { EVTC_STATE_CHANGE } from "../../../types.js";
-import type {
-  EvtcProfessionReconstructionContext,
-  EvtcRecordedRotationAction,
-} from "../types.js";
+import { EVTC_STATE_CHANGE } from '../../../types.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 import {
   ASSASSINS_SIGNET,
   ASSASSINS_SIGNET_ACTIVE_BUFF,
@@ -10,19 +7,19 @@ import {
   combatStart,
   hasRecordedAction,
   hasSelectedSkill,
-  SIGNAL_WINDOW_MS,
-} from "./shared.js";
+  SIGNAL_WINDOW_MS
+} from './shared.js';
 
-const STEAL_TIME = Object.freeze({ name: "Steal Time", skillId: 42863 });
+const STEAL_TIME = Object.freeze({ name: 'Steal Time', skillId: 42863 });
 const DEADEYES_MARK = Object.freeze({
   name: "Deadeye's Mark",
-  skillId: 43390,
+  skillId: 43390
 });
-const KNEEL = Object.freeze({ name: "Kneel", skillId: 40600 });
-const MERCY = Object.freeze({ name: "Mercy", skillId: 41372 });
-const SHADOW_SWAP = Object.freeze({ name: "Shadow Swap", skillId: 45672 });
-const SHADOW_FLARE = Object.freeze({ name: "Shadow Flare", skillId: 41158 });
-const SHADOW_MELD = Object.freeze({ name: "Shadow Meld", skillId: 45508 });
+const KNEEL = Object.freeze({ name: 'Kneel', skillId: 40600 });
+const MERCY = Object.freeze({ name: 'Mercy', skillId: 41372 });
+const SHADOW_SWAP = Object.freeze({ name: 'Shadow Swap', skillId: 45672 });
+const SHADOW_FLARE = Object.freeze({ name: 'Shadow Flare', skillId: 41158 });
+const SHADOW_MELD = Object.freeze({ name: 'Shadow Meld', skillId: 45508 });
 
 const DEADEYES_GAZE_BUFF = 46333;
 const KNEELING_BUFF = 42869;
@@ -33,7 +30,7 @@ const MERCY_SIGNAL_LOOKBACK_MS = 2_500;
 
 function deadeyeMechanicActions(
   context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[],
+  actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const atCombat = combatStart(context);
   const inferred: EvtcRecordedRotationAction[] = [];
@@ -46,23 +43,20 @@ function deadeyeMechanicActions(
         event.skillId === DEADEYES_GAZE_BUFF &&
         event.buff !== 0 &&
         event.buffRemove === 0 &&
-        (event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL ||
-          event.stateChange === EVTC_STATE_CHANGE.BUFF_APPLY),
+        (event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL || event.stateChange === EVTC_STATE_CHANGE.BUFF_APPLY)
     );
   for (const { event, eventIndex } of gazeEvents) {
     const initial = event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL;
-    const start = initial
-      ? Math.min(event.time, atCombat ?? event.time) - 2
-      : event.time;
+    const start = initial ? Math.min(event.time, atCombat ?? event.time) - 2 : event.time;
     inferred.push({
       ...canonicalAction(
         initial ? -3 : eventIndex,
         start,
         DEADEYES_MARK,
         event.skillId,
-        initial ? "initial-state" : "buff-transition",
+        initial ? 'initial-state' : 'buff-transition'
       ),
-      ...(initial ? { precast: true } : {}),
+      ...(initial ? { precast: true } : {})
     });
 
     if (initial) continue;
@@ -73,14 +67,13 @@ function deadeyeMechanicActions(
         candidate.buff !== 0 &&
         candidate.buffRemove === 2 &&
         candidate.stateChange === EVTC_STATE_CHANGE.BUFF_REMOVE_SINGLE &&
-        Math.max(candidate.value, candidate.buffDamage) >=
-          MARK_REFRESH_MERCY_THRESHOLD_MS,
+        Math.max(candidate.value, candidate.buffDamage) >= MARK_REFRESH_MERCY_THRESHOLD_MS
     );
     if (!refresh) continue;
     const relic = context.log.events
       .map((candidate, candidateIndex) => ({
         event: candidate,
-        eventIndex: candidateIndex,
+        eventIndex: candidateIndex
       }))
       .filter(
         ({ event: candidate }) =>
@@ -90,17 +83,16 @@ function deadeyeMechanicActions(
           candidate.buffRemove === 2 &&
           candidate.stateChange === EVTC_STATE_CHANGE.BUFF_REMOVE_SINGLE &&
           candidate.time <= event.time &&
-          event.time - candidate.time <= MERCY_SIGNAL_LOOKBACK_MS,
+          event.time - candidate.time <= MERCY_SIGNAL_LOOKBACK_MS
       )
       .at(-1);
     if (relic) consumedRelicEventIndexes.add(relic.eventIndex);
     let mercyTime = relic?.event.time ?? event.time - 1;
     const nearbySignet = actions.find(
       (action) =>
-        (action.rawSkillId === ASSASSINS_SIGNET_ACTIVE_BUFF ||
-          action.canonicalSkillId === ASSASSINS_SIGNET.skillId) &&
+        (action.rawSkillId === ASSASSINS_SIGNET_ACTIVE_BUFF || action.canonicalSkillId === ASSASSINS_SIGNET.skillId) &&
         action.start <= mercyTime &&
-        mercyTime - action.start <= SIGNAL_WINDOW_MS,
+        mercyTime - action.start <= SIGNAL_WINDOW_MS
     );
     if (nearbySignet) {
       mercyTime = nearbySignet.start - 1;
@@ -112,19 +104,14 @@ function deadeyeMechanicActions(
               action.canonicalName === STEAL_TIME.name ||
               action.rawName === STEAL_TIME.name) &&
             action.start < mercyTime &&
-            mercyTime - action.start <= 700,
+            mercyTime - action.start <= 700
         )
         .at(-1);
       if (precedingSteal) mercyTime = precedingSteal.start - 1;
     }
     if (!hasRecordedAction([...actions, ...inferred], MERCY, mercyTime)) {
       inferred.push(
-        canonicalAction(
-          relic?.eventIndex ?? eventIndex - 0.1,
-          mercyTime,
-          MERCY,
-          RELIC_OF_THE_DEADEYE_BUFF,
-        ),
+        canonicalAction(relic?.eventIndex ?? eventIndex - 0.1, mercyTime, MERCY, RELIC_OF_THE_DEADEYE_BUFF)
       );
     }
   }
@@ -145,16 +132,13 @@ function deadeyeMechanicActions(
       const knownCantrip = [SHADOW_FLARE, SHADOW_MELD].some((identity) =>
         actions.some(
           (action) =>
-            (action.rawSkillId === identity.skillId ||
-              action.canonicalSkillId === identity.skillId) &&
+            (action.rawSkillId === identity.skillId || action.canonicalSkillId === identity.skillId) &&
             (Math.abs(action.start - event.time) <= SIGNAL_WINDOW_MS ||
-              Math.abs(action.end - event.time) <= SIGNAL_WINDOW_MS),
-        ),
+              Math.abs(action.end - event.time) <= SIGNAL_WINDOW_MS)
+        )
       );
       if (!knownCantrip) {
-        inferred.push(
-          canonicalAction(eventIndex, event.time, MERCY, event.skillId),
-        );
+        inferred.push(canonicalAction(eventIndex, event.time, MERCY, event.skillId));
       }
     });
   }
@@ -167,22 +151,13 @@ function deadeyeMechanicActions(
         event.skillId === KNEELING_BUFF &&
         event.buff !== 0 &&
         event.buffRemove === 0 &&
-        event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL,
+        event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
     );
   if (kneeling && !hasRecordedAction(actions, KNEEL, kneeling.event.time)) {
-    const start = Math.min(
-      kneeling.event.time,
-      atCombat ?? kneeling.event.time,
-    );
+    const start = Math.min(kneeling.event.time, atCombat ?? kneeling.event.time);
     inferred.push({
-      ...canonicalAction(
-        -2,
-        start - 1,
-        KNEEL,
-        kneeling.event.skillId,
-        "initial-state",
-      ),
-      precast: true,
+      ...canonicalAction(-2, start - 1, KNEEL, kneeling.event.skillId, 'initial-state'),
+      precast: true
     });
   }
 
@@ -197,16 +172,14 @@ function deadeyeMechanicActions(
     ) {
       return;
     }
-    inferred.push(
-      canonicalAction(eventIndex, event.time, SHADOW_SWAP, event.skillId),
-    );
+    inferred.push(canonicalAction(eventIndex, event.time, SHADOW_SWAP, event.skillId));
   });
   return inferred;
 }
 
 export function reconstructDeadeyeActions(
   context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[],
+  actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   return [...actions, ...deadeyeMechanicActions(context, actions)];
 }

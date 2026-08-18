@@ -1,72 +1,49 @@
-import { conduitState } from "./state.js";
-import { professionCoreState } from "../../../../platform/engine/profession.js";
+import { conduitState } from './state.js';
+import { professionCoreState } from '../../../../platform/engine/profession.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
-  REVENANT_TRAIT_IDS as TRAIT,
-} from "../../data/ids.js";
-import { emitRevenantBoon } from "../../core/boons.js";
-import { revenantCombatActive } from "../../core/legend.js";
-import {
-  hasRevenantTrait,
-  revenantConduitFormIsActive,
-} from "../../core/state.js";
-import { applyCosmicWisdomAfterCast } from "./conduit.js";
-import { CONDUIT_BALANCE_PROFILE_IDS } from "./skills.js";
-import type { SkillId } from "../../../../platform/engine/types.js";
+  REVENANT_TRAIT_IDS as TRAIT
+} from '../../data/ids.js';
+import { emitRevenantBoon } from '../../core/boons.js';
+import { revenantCombatActive } from '../../core/legend.js';
+import { hasRevenantTrait, revenantConduitFormIsActive } from '../../core/state.js';
+import { applyCosmicWisdomAfterCast } from './conduit.js';
+import { CONDUIT_BALANCE_PROFILE_IDS } from './skills.js';
+import type { SkillId } from '../../../../platform/engine/types.js';
 import type {
   RevenantCastContext,
   RevenantPrecastContext,
   RevenantRechargeContext,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
-  RevenantSkill,
-} from "../../types.js";
+  RevenantSkill
+} from '../../types.js';
 
 // Twin Moon Sweep exists under two different skill IDs in the catalog; both must be excluded from Mistfire.
-const TWIN_MOON_SKILL_IDS = new Set<SkillId>([
-  ID.TWIN_MOON_SWEEP,
-  ID.TWIN_MOON_SWEEP_ID_77001,
-]);
+const TWIN_MOON_SKILL_IDS = new Set<SkillId>([ID.TWIN_MOON_SWEEP, ID.TWIN_MOON_SWEEP_ID_77001]);
 
-export function modifyConduitCastDuration(
-  context: RevenantPrecastContext,
-  duration: number,
-): number {
-  if (context.skill?.handlerId !== "revenant.beguiling-haze") return duration;
-  const quickness = context.hasBuff?.("quickness", context.start);
-  const followUpProfile = context.catalog.balanceProfilesById.get(
-    CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp,
-  );
+export function modifyConduitCastDuration(context: RevenantPrecastContext, duration: number): number {
+  if (context.skill?.handlerId !== 'revenant.beguiling-haze') return duration;
+  const quickness = context.hasBuff?.('quickness', context.start);
+  const followUpProfile = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
   const mainExtensionProfile = context.catalog.balanceProfilesById.get(
-    CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension,
+    CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension
   );
   if (!followUpProfile || !mainExtensionProfile) {
-    throw new Error("Missing Beguiling Haze cast-duration profiles.");
+    throw new Error('Missing Beguiling Haze cast-duration profiles.');
   }
   // Follow-up charges use a near-instant fixed cast time (0.25 s / 0.24 s with quickness).
   // The main cast appends an extra 0.4 s wind-up on top of the base skill duration.
   if (Number(conduitState.from(context).beguilingHazeCharges || 0) > 0) {
     const followUpDuration = Number(followUpProfile.castTimeMs || 0) / 1000;
-    return (
-      followUpDuration *
-      (quickness ? Number(followUpProfile.quicknessCastMultiplier || 1) : 1)
-    );
+    return followUpDuration * (quickness ? Number(followUpProfile.quicknessCastMultiplier || 1) : 1);
   }
   const mainExtension = Number(mainExtensionProfile.castTimeMs || 0) / 1000;
-  return (
-    duration +
-    mainExtension *
-      (quickness
-        ? Number(mainExtensionProfile.quicknessCastMultiplier || 1)
-        : 1)
-  );
+  return duration + mainExtension * (quickness ? Number(mainExtensionProfile.quicknessCastMultiplier || 1) : 1);
 }
 
-export function modifyConduitRechargeDuration(
-  context: RevenantRechargeContext,
-  duration: number,
-): number {
+export function modifyConduitRechargeDuration(context: RevenantRechargeContext, duration: number): number {
   const skill = context.skill;
   // Skip recharge modification for an already-zero cooldown to avoid turning a free swap into a 0 * 0.6 no-op.
   if (duration === 0 && skill?.id === ID.SWAP_LEGENDS) return 0;
@@ -75,9 +52,7 @@ export function modifyConduitRechargeDuration(
     revenantCombatActive(context, context.at) &&
     hasRevenantTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)
   ) {
-    const profile = context.catalog.balanceProfilesById.get(
-      CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment,
-    );
+    const profile = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment);
     // Enhanced Embodiment reduces the legend swap cooldown to 60%; read from skill data, not the incoming duration,
     // because the duration may already have been modified by alacrity at this point.
     return (
@@ -86,100 +61,68 @@ export function modifyConduitRechargeDuration(
     );
   }
   if (
-    (
-      [
-        ID.BANISH_ENCHANTMENT,
-        ID.BANISH_ENCHANTMENT_ID_78587,
-      ] as readonly number[]
-    ).includes(Number(skill?.id)) &&
+    ([ID.BANISH_ENCHANTMENT, ID.BANISH_ENCHANTMENT_ID_78587] as readonly number[]).includes(Number(skill?.id)) &&
     revenantConduitFormIsActive(
       conduitState.from(context),
-      "Mesmer",
+      'Mesmer',
       // Use start (cast time) when available; fall back to at (recharge resolution time).
-      context.start ?? context.at,
+      context.start ?? context.at
     )
   ) {
     // Mesmer form overrides Banish Enchantment's cooldown entirely; alacrity still applies to the new 5 s base.
-    const profile = context.catalog.balanceProfilesById.get(
-      CONDUIT_BALANCE_PROFILE_IDS.mesmerBanishEnchantment,
-    );
+    const profile = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.mesmerBanishEnchantment);
     const base = Math.max(0, Number(profile?.cooldown || 0));
-    const rate = context.hasBuff?.("alacrity", context.at)
-      ? Number(context.config.alacrityRechargeRate || 1.25)
-      : 1;
+    const rate = context.hasBuff?.('alacrity', context.at) ? Number(context.config.alacrityRechargeRate || 1.25) : 1;
     return base / rate;
   }
   // Kinetic Insight reduces Release Potential recharge by 20%, applied after all other recharge modifiers.
-  return skill?.handlerId === "revenant.release-potential" &&
-    hasRevenantTrait(context.config, TRAIT.KINETIC_INSIGHT)
+  return skill?.handlerId === 'revenant.release-potential' && hasRevenantTrait(context.config, TRAIT.KINETIC_INSIGHT)
     ? duration * 0.8
     : duration;
 }
 
-export function afterConduitTraitCast(
-  context: RevenantCastContext,
-  skill: RevenantSkill,
-): void {
+export function afterConduitTraitCast(context: RevenantCastContext, skill: RevenantSkill): void {
   // Cosmic Wisdom form procs (Lesser Enchanted Daggers, Dervish Attack) fire after cast completes.
   applyCosmicWisdomAfterCast(context, skill);
   // Shared Wisdom swiftness is only granted for Entity legend skills, not for all Conduit skills.
-  if (
-    skill.legendId === LEGEND.ENTITY &&
-    hasRevenantTrait(context.config, TRAIT.SHARED_WISDOM)
-  ) {
+  if (skill.legendId === LEGEND.ENTITY && hasRevenantTrait(context.config, TRAIT.SHARED_WISDOM)) {
     const shared = context.catalog.balanceProfilesById
       .get(CONDUIT_BALANCE_PROFILE_IDS.sharedWisdom)
-      ?.effects?.find((effect) => effect.metadata?.trigger === "entity-skill");
-    if (shared?.type === "boon" && shared.boon) {
-      emitRevenantBoon(
-        context,
-        skill,
-        shared.boon,
-        Number(shared.duration || 0),
-        Number(shared.stacks || 1),
-      );
+      ?.effects?.find((effect) => effect.metadata?.trigger === 'entity-skill');
+    if (shared?.type === 'boon' && shared.boon) {
+      emitRevenantBoon(context, skill, shared.boon, Number(shared.duration || 0), Number(shared.stacks || 1));
     }
   }
 }
 
-export function observeConduitTraits(
-  context: RevenantSchedulerContext,
-  event: RevenantSimulationEvent,
-): void {
-  if (event.type === "damage" && event.affinityOnHit === true) {
-    const skill =
-      event.skillId == null
-        ? undefined
-        : context.catalog.skillsById.get(event.skillId);
+export function observeConduitTraits(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+  if (event.type === 'damage' && event.affinityOnHit === true) {
+    const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
     const cost = Number(skill?.energyCost || 0);
     // Affinity gain is deferred to a task so it resolves at the hit timestamp, not at cast start.
     // Skills costing ≥ 25 energy grant 2 affinity; cheaper skills grant 1.
     context.tasks.schedule({
       id: `revenant.affinity-hit:${event.__order}`,
-      type: "revenant.affinity-hit",
+      type: 'revenant.affinity-hit',
       at: event.at,
-      payload: { amount: cost >= 25 ? 2 : 1 },
+      payload: { amount: cost >= 25 ? 2 : 1 }
     });
   }
-  if (
-    context.config.relic === "Peitha" &&
-    event.type === "damage" &&
-    event.skillName === "Beguiling Haze"
-  ) {
+  if (context.config.relic === 'Peitha' && event.type === 'damage' && event.skillName === 'Beguiling Haze') {
     // 0.32 s matches the observed Relic of Peitha proc delay after Beguiling Haze lands.
     context.emitDerived(event, {
-      type: "peitha",
+      type: 'peitha',
       at: event.at + 0.32,
-      source: "revenant",
+      source: 'revenant',
       sourceId: event.skillId ?? event.sourceId,
-      actorType: "player",
+      actorType: 'player',
       skillId: event.skillId,
       skillName: event.skillName,
-      name: "Relic of Peitha",
+      name: 'Relic of Peitha'
     });
   }
   if (
-    event.type !== "control" ||
+    event.type !== 'control' ||
     // Twin Moon Sweep emits control events as part of its own chain; Mistfire must not double-proc off them.
     (event.skillId != null && TWIN_MOON_SKILL_IDS.has(event.skillId)) ||
     !hasRevenantTrait(context.config, TRAIT.MISTFIRE)
@@ -187,28 +130,23 @@ export function observeConduitTraits(
     return;
   }
   const state = professionCoreState(context);
-  const profile = context.catalog.balanceProfilesById.get(
-    CONDUIT_BALANCE_PROFILE_IDS.mistfire,
-  );
-  const burning = profile?.effects?.find(
-    (effect) => effect.type === "condition",
-  );
+  const profile = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.mistfire);
+  const burning = profile?.effects?.find((effect) => effect.type === 'condition');
   const readyAt = Number(state.traitProcReadyAt.mistfire || 0);
   // epsilon tolerance prevents floating-point near-miss from silently dropping a proc at the interval boundary.
   if (event.at + context.epsilon < readyAt) return;
-  state.traitProcReadyAt.mistfire =
-    event.at + Math.max(0, Number(profile?.cooldown || 0));
+  state.traitProcReadyAt.mistfire = event.at + Math.max(0, Number(profile?.cooldown || 0));
   context.emitDerived(event, {
-    type: "condition",
+    type: 'condition',
     at: event.at,
-    source: "revenant",
+    source: 'revenant',
     sourceId: TRAIT.MISTFIRE,
-    actorType: "effect",
+    actorType: 'effect',
     skillId: TRAIT.MISTFIRE,
-    skillName: "Mistfire",
-    name: "Mistfire — Burning",
-    condition: String(burning?.condition || "Burning"),
+    skillName: 'Mistfire',
+    name: 'Mistfire — Burning',
+    condition: String(burning?.condition || 'Burning'),
     stacks: Number(burning?.stacks || 1),
-    duration: Number(burning?.duration || 0),
+    duration: Number(burning?.duration || 0)
   });
 }

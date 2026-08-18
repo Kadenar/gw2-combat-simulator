@@ -20,11 +20,7 @@ export const ACTION_SAFETY_LIMIT = 100_000;
  * @param {number} [epsilon]
  * @returns {boolean}
  */
-export function nearlyEqual(
-  left: number,
-  right: number,
-  epsilon = EPSILON,
-): boolean {
+export function nearlyEqual(left: number, right: number, epsilon = EPSILON): boolean {
   return Math.abs(Number(left) - Number(right)) <= epsilon;
 }
 

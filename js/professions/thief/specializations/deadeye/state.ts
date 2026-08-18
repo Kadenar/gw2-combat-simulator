@@ -1,7 +1,7 @@
-import { THIEF_TRAIT_IDS as TRAIT } from "../../data/ids.js";
-import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
-import { hasThiefTrait, selectedThiefTraits } from "../../core/state.js";
-import type { DeadeyeState, ThiefConfig } from "../../types.js";
+import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
+import { hasThiefTrait, selectedThiefTraits } from '../../core/state.js';
+import type { DeadeyeState, ThiefConfig } from '../../types.js';
 
 export function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
   const traits = selectedThiefTraits(config);
@@ -23,11 +23,8 @@ export function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
     deadeyeRelicUntil: 0,
     // Silent Scope charge path: these mirror AntiquaryState fields so beginStealthAttack can consume them generically
     stealthAttackCharges: 0,
-    stealthAttackExpiresAt: 0,
+    stealthAttackExpiresAt: 0
   };
 }
 
-export const deadeyeState = defineProfessionSpecializationState(
-  "Deadeye",
-  createDeadeyeState,
-);
+export const deadeyeState = defineProfessionSpecializationState('Deadeye', createDeadeyeState);

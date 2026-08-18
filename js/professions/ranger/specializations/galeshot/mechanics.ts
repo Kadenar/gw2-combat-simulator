@@ -1,29 +1,12 @@
-import { hasTrait } from "../../../../platform/gw2/trait-state.js";
-import {
-  GW2_ALACRITY_RECHARGE_RATE,
-  gw2BuffActiveForAudience,
-} from "../../../../platform/gw2/scheduler/policy.js";
-import type {
-  ScheduledTask,
-  SimulationEvent,
-} from "../../../../platform/engine/types.js";
-import {
-  RANGER_SKILL_IDS as ID,
-  RANGER_TRAIT_IDS as TRAIT,
-} from "../../data/ids.js";
-import type {
-  RangerCastContext,
-  RangerSchedulerContext,
-  RangerSkill,
-} from "../../types.js";
-import { RANGER_PET_STRIKE_SCALING } from "../../core/pets.js";
-import { galeshotState } from "./state.js";
-import {
-  rangerBalanceProfile,
-  rangerBalanceProfileEffect,
-  rangerBalanceValue,
-} from "../../core/profiles.js";
-import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
+import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { GW2_ALACRITY_RECHARGE_RATE, gw2BuffActiveForAudience } from '../../../../platform/gw2/scheduler/policy.js';
+import type { ScheduledTask, SimulationEvent } from '../../../../platform/engine/types.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '../../types.js';
+import { RANGER_PET_STRIKE_SCALING } from '../../core/pets.js';
+import { galeshotState } from './state.js';
+import { rangerBalanceProfile, rangerBalanceProfileEffect, rangerBalanceValue } from '../../core/profiles.js';
+import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 const MISSILE_SKILL_IDS = new Set<number>([
   ID.RICOCHET,
@@ -42,33 +25,19 @@ const MISSILE_SKILL_IDS = new Set<number>([
   ID.QUARRYS_PERIL,
   ID.PELT,
   ID.SUPERSONIC_ARROW,
-  ID.PIERCING_GALES,
+  ID.PIERCING_GALES
 ]);
 
-export function advanceGaleshotArrows(
-  context: RangerSchedulerContext,
-  target: number,
-): void {
+export function advanceGaleshotArrows(context: RangerSchedulerContext, target: number): void {
   const state = galeshotState.from(context);
   if (target <= state.arrowsUpdatedAt) return;
-  state.maximumArrows = rangerBalanceValue(
-    context,
-    PROFILE.resources,
-    "maximumStacks",
-    8,
-  );
+  state.maximumArrows = rangerBalanceValue(context, PROFILE.resources, 'maximumStacks', 8);
   state.arrows = Math.min(state.maximumArrows, state.arrows);
-  const rechargeRate = gw2BuffActiveForAudience(
-    context,
-    "alacrity",
-    target,
-    "self",
-  )
+  const rechargeRate = gw2BuffActiveForAudience(context, 'alacrity', target, 'self')
     ? Number(context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE)
     : 1;
   const interval =
-    rangerBalanceValue(context, PROFILE.resources, "pulseInterval", 5) /
-    Math.max(Number.EPSILON, rechargeRate);
+    rangerBalanceValue(context, PROFILE.resources, 'pulseInterval', 5) / Math.max(Number.EPSILON, rechargeRate);
   const generated = Math.floor((target - state.arrowsUpdatedAt) / interval);
   if (generated <= 0) return;
   state.arrows = Math.min(state.maximumArrows, state.arrows + generated);
@@ -79,73 +48,59 @@ export function advanceGaleshotArrows(
 
 function restoreArrow(context: RangerSchedulerContext, amount = 1): void {
   const state = galeshotState.from(context);
-  state.maximumArrows = rangerBalanceValue(
-    context,
-    PROFILE.resources,
-    "maximumStacks",
-    8,
-  );
+  state.maximumArrows = rangerBalanceValue(context, PROFILE.resources, 'maximumStacks', 8);
   state.arrows = Math.min(state.maximumArrows, state.arrows + amount);
 }
 
-export function observeGaleshotEvent(
-  context: RangerSchedulerContext,
-  event: SimulationEvent,
-): void {
-  if (event.type === "ranger.pet-swapped") {
+export function observeGaleshotEvent(context: RangerSchedulerContext, event: SimulationEvent): void {
+  if (event.type === 'ranger.pet-swapped') {
     // Wuthering Wind targets the active pet; an unconsumed charge is lost on
     // swap rather than transferring to the incoming pet.
     galeshotState.from(context).wutheringWindReady = false;
   }
   if (
-    event.type === "damage" &&
-    event.actorType === "player" &&
+    event.type === 'damage' &&
+    event.actorType === 'player' &&
     Number(event.coefficient) > 0 &&
     MISSILE_SKILL_IDS.has(Number(event.skillId ?? event.sourceId))
   ) {
     context.tasks.schedule({
-      type: "ranger.galeshot-missile-hit",
+      type: 'ranger.galeshot-missile-hit',
       at: event.at,
       priority: -40,
       payload: {
         skillName: event.skillName,
-        activationId: event.activationId,
-      },
+        activationId: event.activationId
+      }
     });
   }
   if (
-    event.type === "damage" &&
-    event.actorType === "summon" &&
-    event.source === "ranger-pet" &&
+    event.type === 'damage' &&
+    event.actorType === 'summon' &&
+    event.source === 'ranger-pet' &&
     Number(event.coefficient) > 0
   ) {
     context.tasks.schedule({
-      type: "ranger.galeshot-pet-hit",
+      type: 'ranger.galeshot-pet-hit',
       at: event.at,
       priority: -40,
       payload: {
         skillName: event.skillName,
-        activationId: event.activationId,
-      },
+        activationId: event.activationId
+      }
     });
   }
-  if (
-    event.type === "control" &&
-    (event.actorType === "player" || event.actorType === "summon")
-  ) {
+  if (event.type === 'control' && (event.actorType === 'player' || event.actorType === 'summon')) {
     context.tasks.schedule({
-      type: "ranger.galeshot-disable",
+      type: 'ranger.galeshot-disable',
       at: event.at,
       priority: -40,
-      payload: { skillName: event.skillName },
+      payload: { skillName: event.skillName }
     });
   }
 }
 
-export function handleGaleshotMissileHitTask(
-  context: RangerSchedulerContext,
-  task: ScheduledTask,
-): void {
+export function handleGaleshotMissileHitTask(context: RangerSchedulerContext, task: ScheduledTask): void {
   const state = galeshotState.from(context);
   const payload = task.payload as {
     readonly skillName?: string;
@@ -153,44 +108,44 @@ export function handleGaleshotMissileHitTask(
   } | null;
   if (task.at <= state.mistralUntil + context.epsilon) {
     const profile = rangerBalanceProfile(context, PROFILE.mistral);
-    const strike = rangerBalanceProfileEffect(profile, "strike");
-    const chilled = rangerBalanceProfileEffect(profile, "condition");
+    const strike = rangerBalanceProfileEffect(profile, 'strike');
+    const chilled = rangerBalanceProfileEffect(profile, 'condition');
     context.emit({
-      type: "damage",
+      type: 'damage',
       at: task.at,
-      source: "ranger",
+      source: 'ranger',
       sourceId: ID.MISTRAL,
-      actorType: "player",
+      actorType: 'player',
       skillId: ID.MISTRAL,
-      skillName: "Mistral",
-      name: "Mistral",
+      skillName: 'Mistral',
+      name: 'Mistral',
       coefficient: Number(strike?.coefficient ?? 0.3),
       hits: Number(strike?.hits ?? 1),
       canCrit: true,
-      damageKind: "galeshot-mistral",
+      damageKind: 'galeshot-mistral',
       triggeredBy: payload?.skillName,
-      activationId: payload?.activationId,
+      activationId: payload?.activationId
     });
     context.emit({
-      type: "condition",
+      type: 'condition',
       at: task.at,
-      source: "ranger",
+      source: 'ranger',
       sourceId: ID.MISTRAL,
-      actorType: "player",
+      actorType: 'player',
       skillId: ID.MISTRAL,
-      skillName: "Mistral",
-      name: "Mistral - Chilled",
-      condition: String(chilled?.condition || "Chilled"),
+      skillName: 'Mistral',
+      name: 'Mistral - Chilled',
+      condition: String(chilled?.condition || 'Chilled'),
       duration: Number(chilled?.duration ?? 1),
       stacks: Number(chilled?.stacks ?? 1),
       triggeredBy: payload?.skillName,
-      activationId: payload?.activationId,
+      activationId: payload?.activationId
     });
   }
   if (!hasTrait({ config: context.config }, TRAIT.SHRIKE)) return;
   const profile = rangerBalanceProfile(context, PROFILE.shrike);
   const threshold = Number(profile?.threshold ?? 12);
-  const strike = rangerBalanceProfileEffect(profile, "strike");
+  const strike = rangerBalanceProfileEffect(profile, 'strike');
   state.missileHits += 1;
   if (state.missileHits < threshold) return;
   // Subtract rather than reset so any overshoot from burst windows is preserved.
@@ -199,35 +154,32 @@ export function handleGaleshotMissileHitTask(
   const hits = Number(strike?.hits ?? 3);
   for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
     context.emit({
-      type: "damage",
+      type: 'damage',
       at: task.at,
-      source: "Trait",
+      source: 'Trait',
       sourceId: TRAIT.SHRIKE,
-      actorType: "effect",
+      actorType: 'effect',
       skillId: TRAIT.SHRIKE,
-      skillName: "Shrike",
-      name: "Shrike",
+      skillName: 'Shrike',
+      name: 'Shrike',
       coefficient: Number(strike?.coefficient ?? 0.8),
       hits: 1,
       hitIndex,
       totalHits: hits,
       canCrit: true,
-      damageKind: "galeshot-shrike",
-      triggeredBy: payload?.skillName,
+      damageKind: 'galeshot-shrike',
+      triggeredBy: payload?.skillName
     });
   }
 }
 
-export function handleGaleshotPetHitTask(
-  context: RangerSchedulerContext,
-  task: ScheduledTask,
-): void {
+export function handleGaleshotPetHitTask(context: RangerSchedulerContext, task: ScheduledTask): void {
   const state = galeshotState.from(context);
   const payload = task.payload as {
     readonly skillName?: string;
     readonly activationId?: string;
   } | null;
-  const activationId = String(payload?.activationId || "");
+  const activationId = String(payload?.activationId || '');
   if (
     !hasTrait({ config: context.config }, TRAIT.WUTHERING_WIND) ||
     !state.wutheringWindReady ||
@@ -238,36 +190,33 @@ export function handleGaleshotPetHitTask(
   }
   state.wutheringWindReady = false;
   if (activationId) state.wutheringWindActivationIds[activationId] = true;
-  const strike = rangerBalanceProfileEffect(
-    rangerBalanceProfile(context, PROFILE.wutheringWind),
-    "strike",
-  );
+  const strike = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.wutheringWind), 'strike');
   context.emit({
-    type: "proc",
+    type: 'proc',
     at: task.at,
-    source: "Trait",
+    source: 'Trait',
     sourceId: TRAIT.WUTHERING_WIND,
-    actorType: "effect",
+    actorType: 'effect',
     skillId: ID.WUTHERING_WIND,
-    skillName: "Wuthering Wind",
-    name: "Wuthering Wind",
-    procType: "trait",
+    skillName: 'Wuthering Wind',
+    name: 'Wuthering Wind',
+    procType: 'trait',
     sourceSkill: payload?.skillName,
-    detail: "activated",
+    detail: 'activated'
   });
   context.emit({
-    type: "damage",
+    type: 'damage',
     at: task.at,
-    source: "Trait",
+    source: 'Trait',
     sourceId: TRAIT.WUTHERING_WIND,
-    actorType: "effect",
+    actorType: 'effect',
     skillId: ID.WUTHERING_WIND,
-    skillName: "Wuthering Wind",
-    name: "Wuthering Wind",
+    skillName: 'Wuthering Wind',
+    name: 'Wuthering Wind',
     coefficient: Number(strike?.coefficient ?? 2),
     hits: Number(strike?.hits ?? 1),
     canCrit: true,
-    damageKind: "galeshot-wuthering-wind",
+    damageKind: 'galeshot-wuthering-wind',
     triggeredBy: payload?.skillName,
     // Trait proc uses pet power scaling, not the player's weapon strength;
     // profession modifiers (e.g. Flock Together) still apply via the flags below.
@@ -275,14 +224,11 @@ export function handleGaleshotPetHitTask(
     summonUsesProfessionModifiers: true,
     summonBasePower: RANGER_PET_STRIKE_SCALING.basePower,
     summonBaseConditionDamage: RANGER_PET_STRIKE_SCALING.baseConditionDamage,
-    summonInheritsCriticalAttributes: true,
+    summonInheritsCriticalAttributes: true
   });
 }
 
-export function handleGaleshotDisableTask(
-  context: RangerSchedulerContext,
-  _task: ScheduledTask,
-): void {
+export function handleGaleshotDisableTask(context: RangerSchedulerContext, _task: ScheduledTask): void {
   const state = galeshotState.from(context);
   if (
     !hasTrait({ config: context.config }, TRAIT.THRILL_OF_THE_CATCH) ||
@@ -292,8 +238,7 @@ export function handleGaleshotDisableTask(
   }
   // 0.25 s ICD prevents one multi-hit ability from restoring more than one arrow.
   const profile = rangerBalanceProfile(context, PROFILE.thrillOfTheCatch);
-  state.thrillOfTheCatchReadyAt =
-    context.state.time + Number(profile?.internalCooldown ?? 0.25);
+  state.thrillOfTheCatchReadyAt = context.state.time + Number(profile?.internalCooldown ?? 0.25);
   restoreArrow(context, Number(profile?.resourceGain ?? 1));
 }
 
@@ -303,16 +248,11 @@ function isBeastSkill(skill: RangerSkill): boolean {
     // count. BEASTMODE / LEAVE_BEASTMODE are the mode-switch commands, not
     // actual pet abilities, so they're excluded as well.
     (skill.petSkill && !skill.petFamilySkill) ||
-    (skill.beastmodeSkill &&
-      skill.id !== ID.BEASTMODE &&
-      skill.id !== ID.LEAVE_BEASTMODE),
+    (skill.beastmodeSkill && skill.id !== ID.BEASTMODE && skill.id !== ID.LEAVE_BEASTMODE)
   );
 }
 
-export function completeGaleshotSkill(
-  context: RangerCastContext,
-  skill: RangerSkill,
-): void {
+export function completeGaleshotSkill(context: RangerCastContext, skill: RangerSkill): void {
   const state = galeshotState.from(context);
   if (
     !hasTrait(context, TRAIT.FLOCK_TOGETHER) ||
@@ -322,24 +262,23 @@ export function completeGaleshotSkill(
     return;
   }
   const profile = rangerBalanceProfile(context, PROFILE.flockTogether);
-  const quickness = rangerBalanceProfileEffect(profile, "boon");
-  state.flockTogetherReadyAt =
-    context.effectiveEnd + Number(profile?.internalCooldown ?? 20);
+  const quickness = rangerBalanceProfileEffect(profile, 'boon');
+  state.flockTogetherReadyAt = context.effectiveEnd + Number(profile?.internalCooldown ?? 20);
   context.emit({
-    type: "buff",
+    type: 'buff',
     at: context.effectiveEnd,
-    source: "Trait",
+    source: 'Trait',
     sourceId: TRAIT.FLOCK_TOGETHER,
-    actorType: "effect",
+    actorType: 'effect',
     skillId: TRAIT.FLOCK_TOGETHER,
-    skillName: "Flock Together",
-    kind: String(quickness?.boon || "quickness"),
-    boon: String(quickness?.boon || "quickness"),
+    skillName: 'Flock Together',
+    kind: String(quickness?.boon || 'quickness'),
+    boon: String(quickness?.boon || 'quickness'),
     duration: Number(quickness?.duration ?? 5),
     stacks: Number(quickness?.stacks ?? 1),
-    recipients: "party",
+    recipients: 'party',
     affectsSummons: true,
     maximumRecipients: 5,
-    triggeredBy: skill.name,
+    triggeredBy: skill.name
   });
 }

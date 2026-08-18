@@ -1,174 +1,144 @@
-import { flattenProfessionState } from "../../../platform/engine/profession.js";
-import {
-  SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-} from "../../../app/simulation/randomness.js";
-import {
-  THIEF_CORE_ASSUMPTION_CONTROLS,
-} from "./assumptions.js";
-import { THIEF_SKILL_IDS as ID } from "../data/ids.js";
-import { spearChainStageForSkill } from "./conditions.js";
-import { thiefWeaponSkillMatchesSet } from "./weapons.js";
-import type {
-  ThiefSimulationEvent,
-  ThiefSkill,
-  ThiefState,
-  ThiefUiContext,
-} from "../types.js";
+import { flattenProfessionState } from '../../../platform/engine/profession.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
+import { THIEF_CORE_ASSUMPTION_CONTROLS } from './assumptions.js';
+import { THIEF_SKILL_IDS as ID } from '../data/ids.js';
+import { spearChainStageForSkill } from './conditions.js';
+import { thiefWeaponSkillMatchesSet } from './weapons.js';
+import type { ThiefSimulationEvent, ThiefSkill, ThiefState, ThiefUiContext } from '../types.js';
 
 function stateFrom(context: ThiefUiContext = {}): Partial<ThiefState> {
-  return flattenProfessionState(
-    context.state?.profession || context.professionState,
-  ) as unknown as Partial<ThiefState>;
+  return flattenProfessionState(context.state?.profession || context.professionState) as unknown as Partial<ThiefState>;
 }
 
 function professionIds(context: ThiefUiContext): number[] {
   const state = stateFrom(context);
-  return [
-    state.professionSkillId || ID.STEAL,
-    state.storedStolenSkillId,
-  ].filter(value => value != null).map(Number).filter(Number.isFinite);
+  return [state.professionSkillId || ID.STEAL, state.storedStolenSkillId]
+    .filter((value) => value != null)
+    .map(Number)
+    .filter(Number.isFinite);
 }
 
 function corePaletteSkillAvailability(
   context: ThiefUiContext = {},
-  skill: ThiefSkill,
+  skill: ThiefSkill
 ): { available: boolean; message: string } {
   const state = stateFrom(context);
   const stealthed =
-    Number(state.stealthUntil || 0) > Number(context.time || 0)
-    && Number(state.revealedUntil || 0) <= Number(context.time || 0);
+    Number(state.stealthUntil || 0) > Number(context.time || 0) &&
+    Number(state.revealedUntil || 0) <= Number(context.time || 0);
   const bonusStealthAttack =
-    Number(state.stealthAttackCharges || 0) > 0
-    && Number(state.stealthAttackExpiresAt || 0)
-      > Number(context.time || 0);
+    Number(state.stealthAttackCharges || 0) > 0 &&
+    Number(state.stealthAttackExpiresAt || 0) > Number(context.time || 0);
   const spearChainStage = spearChainStageForSkill(skill.id);
-  if (
-    spearChainStage != null
-    && Number(state.spearChainStage || 0) !== spearChainStage
-  ) {
+  if (spearChainStage != null && Number(state.spearChainStage || 0) !== spearChainStage) {
     return {
       available: false,
-      message: `Advance the spear chain to stage ${spearChainStage + 1}`,
+      message: `Advance the spear chain to stage ${spearChainStage + 1}`
     };
   }
   if (skill.dualWieldFollowup && !state.availableFlips?.[String(skill.id)]) {
     return {
       available: false,
-      message: "Use its opening dual-wield skill first",
+      message: 'Use its opening dual-wield skill first'
     };
   }
   if (skill.stealthAttack) {
     const available = stealthed || bonusStealthAttack;
     return {
       available,
-      message: available ? "" : "Gain stealth first",
+      message: available ? '' : 'Gain stealth first'
     };
   }
-  if (
-    (stealthed || bonusStealthAttack)
-    && skill.type === "Weapon"
-    && skill.slot === "Weapon_1"
-  ) {
+  if ((stealthed || bonusStealthAttack) && skill.type === 'Weapon' && skill.slot === 'Weapon_1') {
     return {
       available: false,
-      message: "The active weapon's stealth attack replaces skill 1",
+      message: "The active weapon's stealth attack replaces skill 1"
     };
   }
-  return { available: true, message: "" };
+  return { available: true, message: '' };
 }
 
-function thiefCoreEventLogRow(
-  _context: ThiefUiContext,
-  event: ThiefSimulationEvent,
-) {
-  if (event?.type !== "thief.state") return undefined;
+function thiefCoreEventLogRow(_context: ThiefUiContext, event: ThiefSimulationEvent) {
+  if (event?.type !== 'thief.state') return undefined;
   const state = event.state || {};
   return {
     type: event.type,
-    description: [
-      event.reason || "State",
-      `Initiative ${Number(state.initiative || 0).toFixed(1)}`,
-    ].join(" · "),
-    className: "resource",
+    description: [event.reason || 'State', `Initiative ${Number(state.initiative || 0).toFixed(1)}`].join(' · '),
+    className: 'resource',
     order: 30,
-    flags: [],
+    flags: []
   };
 }
 
 export const thiefCoreUi = Object.freeze({
-  assumptionControls: Object.freeze([
-    ...THIEF_CORE_ASSUMPTION_CONTROLS,
-    ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-  ]),
+  assumptionControls: Object.freeze([...THIEF_CORE_ASSUMPTION_CONTROLS, ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS]),
   weaponSkillMatchesSet: thiefWeaponSkillMatchesSet,
   paletteGroups: (context: ThiefUiContext) =>
-    ["Core", "Daredevil"].includes(
-      context.specialization || context.config?.specialization || "Core",
-    )
-      ? [{
-          id: "thief-profession",
-          label: "F",
-          skillIds: professionIds(context),
-          color: "#9a535c",
-          resourceAnchor: true,
-        }]
+    ['Core', 'Daredevil'].includes(context.specialization || context.config?.specialization || 'Core')
+      ? [
+          {
+            id: 'thief-profession',
+            label: 'F',
+            skillIds: professionIds(context),
+            color: '#9a535c',
+            resourceAnchor: true
+          }
+        ]
       : [],
   skillBarGroups: (context: ThiefUiContext) =>
-    ["Core", "Daredevil"].includes(
-      context.specialization || context.config?.specialization || "Core",
-    )
-      ? [{
-          id: "thief-stolen-skills",
-          label: "Stolen Skills",
-          skillIds: THIEF_CORE_ASSUMPTION_CONTROLS
-            .filter(control => control.type === "select")
-            .flatMap(control => control.options)
-            .map(option => Number(option.skillId))
-            .filter(Number.isFinite) || [],
-          color: "#9a535c",
-        }]
+    ['Core', 'Daredevil'].includes(context.specialization || context.config?.specialization || 'Core')
+      ? [
+          {
+            id: 'thief-stolen-skills',
+            label: 'Stolen Skills',
+            skillIds:
+              THIEF_CORE_ASSUMPTION_CONTROLS.filter((control) => control.type === 'select')
+                .flatMap((control) => control.options)
+                .map((option) => Number(option.skillId))
+                .filter(Number.isFinite) || [],
+            color: '#9a535c'
+          }
+        ]
       : [],
   resourceViews: (context: ThiefUiContext) => {
     const state = stateFrom(context);
-    const specialization =
-      context.specialization || context.config?.specialization || "Core";
-    return [{
-      id: "initiative",
-      singular: "initiative",
-      plural: "initiative",
-      maximum: Number(state.maximumInitiative || 12),
-      value: Number(state.initiative ?? context.initialInitiative ?? 12),
-      startMaximum: 15,
-      startValue: Number(context.initialInitiative ?? 12),
-      canStart: true,
-      buildKey: "initialInitiative",
-      step: 1,
-      displayMode: "pips",
-      pipStyle: "thief-initiative",
-      pipRows: Number(
-        state.initiativePipRows || (specialization === "Antiquary" ? 3 : 2),
-      ),
-      shortLabel: "Init",
-      statusLabel: "Current",
-    }, {
-      id: "endurance",
-      singular: "endurance",
-      plural: "endurance",
-      maximum: Number(
-        state.maximumEndurance || (specialization === "Daredevil" ? 150 : 100),
-      ),
-      value: Number(state.endurance ?? 100),
-      canStart: false,
-      step: 1,
-      displayMode: "bar",
-      pipStyle: "endurance",
-      shortLabel: "End",
-      statusLabel: "Current",
-      // Render the endurance meter beneath the Dodge button rather than as a
-      // standalone bar, so the resource sits with the action that spends it.
-      paletteSkillId: ID.DODGE,
-    }];
+    const specialization = context.specialization || context.config?.specialization || 'Core';
+    return [
+      {
+        id: 'initiative',
+        singular: 'initiative',
+        plural: 'initiative',
+        maximum: Number(state.maximumInitiative || 12),
+        value: Number(state.initiative ?? context.initialInitiative ?? 12),
+        startMaximum: 15,
+        startValue: Number(context.initialInitiative ?? 12),
+        canStart: true,
+        buildKey: 'initialInitiative',
+        step: 1,
+        displayMode: 'pips',
+        pipStyle: 'thief-initiative',
+        pipRows: Number(state.initiativePipRows || (specialization === 'Antiquary' ? 3 : 2)),
+        shortLabel: 'Init',
+        statusLabel: 'Current'
+      },
+      {
+        id: 'endurance',
+        singular: 'endurance',
+        plural: 'endurance',
+        maximum: Number(state.maximumEndurance || (specialization === 'Daredevil' ? 150 : 100)),
+        value: Number(state.endurance ?? 100),
+        canStart: false,
+        step: 1,
+        displayMode: 'bar',
+        pipStyle: 'endurance',
+        shortLabel: 'End',
+        statusLabel: 'Current',
+        // Render the endurance meter beneath the Dodge button rather than as a
+        // standalone bar, so the resource sits with the action that spends it.
+        paletteSkillId: ID.DODGE
+      }
+    ];
   },
   paletteSkillAvailability: corePaletteSkillAvailability,
-  eventLogRow: thiefCoreEventLogRow,
+  eventLogRow: thiefCoreEventLogRow
 });

@@ -1,7 +1,4 @@
-import type {
-  EvtcProfessionReconstructionContext,
-  EvtcRecordedRotationAction,
-} from "../types.js";
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 import {
   MESMER_EFFECT_GUIDS,
   buffGainSignals,
@@ -11,18 +8,18 @@ import {
   effectSignals,
   hasNearbyAction,
   type MesmerActionIdentity,
-  type MesmerSignal,
-} from "./shared.js";
+  type MesmerSignal
+} from './shared.js';
 
 const BLADETURN_REQUIEM = Object.freeze({
-  name: "Bladeturn Requiem",
-  skillId: 62597,
+  name: 'Bladeturn Requiem',
+  skillId: 62597
 });
 const THOUSAND_CUTS = Object.freeze({
-  name: "Thousand Cuts",
-  skillId: 24755,
+  name: 'Thousand Cuts',
+  skillId: 24755
 });
-const DISTORTION = Object.freeze({ name: "Distortion", skillId: 68273 });
+const DISTORTION = Object.freeze({ name: 'Distortion', skillId: 68273 });
 
 const DISTORTION_BUFF = 10243;
 
@@ -32,19 +29,12 @@ function effectBackedActions(
   identity: MesmerActionIdentity,
   effectGuid: string,
   directSkillId: number,
-  directGapMs: number,
+  directGapMs: number
 ): EvtcRecordedRotationAction[] {
   const effects = effectSignals(context, effectGuid);
   const signals: MesmerSignal[] = [...effects];
-  for (const signal of clusterSignals(
-    directSkillSignals(context, new Set([directSkillId])),
-    directGapMs,
-  )) {
-    if (
-      !effects.some(
-        (effect) => Math.abs(effect.event.time - signal.event.time) <= 2000,
-      )
-    ) {
+  for (const signal of clusterSignals(directSkillSignals(context, new Set([directSkillId])), directGapMs)) {
+    if (!effects.some((effect) => Math.abs(effect.event.time - signal.event.time) <= 2000)) {
       signals.push(signal);
     }
   }
@@ -52,41 +42,24 @@ function effectBackedActions(
   return signals.flatMap((signal) =>
     hasNearbyAction(actions, identity, signal.event.time, 100)
       ? []
-      : [
-          canonicalAction(
-            signal.eventIndex,
-            signal.event.time,
-            identity,
-            signal.event.skillId,
-            "effect",
-          ),
-        ],
+      : [canonicalAction(signal.eventIndex, signal.event.time, identity, signal.event.skillId, 'effect')]
   );
 }
 
 function distortionActions(
   context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[],
+  actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
-  return clusterSignals(buffGainSignals(context, DISTORTION_BUFF), 500).flatMap(
-    (signal) =>
-      hasNearbyAction(actions, DISTORTION, signal.event.time, 100)
-        ? []
-        : [
-            canonicalAction(
-              signal.eventIndex,
-              signal.event.time,
-              DISTORTION,
-              signal.event.skillId,
-              "buff-transition",
-            ),
-          ],
+  return clusterSignals(buffGainSignals(context, DISTORTION_BUFF), 500).flatMap((signal) =>
+    hasNearbyAction(actions, DISTORTION, signal.event.time, 100)
+      ? []
+      : [canonicalAction(signal.eventIndex, signal.event.time, DISTORTION, signal.event.skillId, 'buff-transition')]
   );
 }
 
 export function reconstructVirtuosoActions(
   context: EvtcProfessionReconstructionContext,
-  recordedActions: readonly EvtcRecordedRotationAction[],
+  recordedActions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const actions = [...recordedActions];
   actions.push(
@@ -96,8 +69,8 @@ export function reconstructVirtuosoActions(
       BLADETURN_REQUIEM,
       MESMER_EFFECT_GUIDS.virtuosoBladeturnRequiem,
       BLADETURN_REQUIEM.skillId,
-      1250,
-    ),
+      1250
+    )
   );
   actions.push(
     ...effectBackedActions(
@@ -106,8 +79,8 @@ export function reconstructVirtuosoActions(
       THOUSAND_CUTS,
       MESMER_EFFECT_GUIDS.virtuosoThousandCuts,
       THOUSAND_CUTS.skillId,
-      750,
-    ),
+      750
+    )
   );
   actions.push(...distortionActions(context, actions));
   return actions;

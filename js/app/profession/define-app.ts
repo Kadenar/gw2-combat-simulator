@@ -1,14 +1,14 @@
-import { createCalculateAttributes } from "../../platform/gw2/attributes.js";
-import { createGw2AppAdapter } from "./create-adapter.js";
-import { createProfessionRuntime } from "./create-runtime.js";
-import type { Skill } from "../../platform/engine/types.js";
+import { createCalculateAttributes } from '../../platform/gw2/attributes.js';
+import { createGw2AppAdapter } from './create-adapter.js';
+import { createProfessionRuntime } from './create-runtime.js';
+import type { Skill } from '../../platform/engine/types.js';
 import type {
   DefineProfessionAppOptions,
   ProfessionAppDefinition,
   ProfessionDefaultOffhand,
   ProfessionOffhandContext,
-  ProfessionSkillAvailabilityContext,
-} from "./types.js";
+  ProfessionSkillAvailabilityContext
+} from './types.js';
 
 /**
  * Default availability rule for shared-shell profession skill selectors.
@@ -18,10 +18,10 @@ import type {
  */
 export function defaultIsSkillAvailable(
   skill: Skill,
-  { specialization }: ProfessionSkillAvailabilityContext = {},
+  { specialization }: ProfessionSkillAvailabilityContext = {}
 ): boolean {
   if (skill.implemented === false || skill.simulatorExcluded) return false;
-  if (skill.type === "Weapon") return true;
+  if (skill.type === 'Weapon') return true;
   return !skill.specialization || skill.specialization === specialization;
 }
 
@@ -32,10 +32,8 @@ export function defaultIsSkillAvailable(
  * @returns {ProfessionDefaultOffhand}
  */
 export function preferOffhand(preferred: string): ProfessionDefaultOffhand {
-  return function defaultOffhand({
-    offHands = [],
-  }: ProfessionOffhandContext = {}): string {
-    return offHands.includes(preferred) ? preferred : offHands[0] || "";
+  return function defaultOffhand({ offHands = [] }: ProfessionOffhandContext = {}): string {
+    return offHands.includes(preferred) ? preferred : offHands[0] || '';
   };
 }
 
@@ -58,20 +56,18 @@ export function defineProfessionApp({
   filenames = {
     build: `${profession.id}-build.json`,
     rotation: `${profession.id}-rotation.json`,
-    eventLog: `${profession.id}-event-log.csv`,
+    eventLog: `${profession.id}-event-log.csv`
   },
   resetPrompt = `Reset the ${profession.name} build, skills, and rotation?`,
   runtime = {},
   isSkillAvailable = defaultIsSkillAvailable,
-  defaultOffhand = ({ offHands = [] } = {}) => offHands[0] || "",
+  defaultOffhand = ({ offHands = [] } = {}) => offHands[0] || ''
 }: DefineProfessionAppOptions): Readonly<ProfessionAppDefinition> {
-  const calculateAttributes = createCalculateAttributes(
-    applyBuildAttributeRules,
-  );
+  const calculateAttributes = createCalculateAttributes(applyBuildAttributeRules);
   const runtimeApi = createProfessionRuntime({
     profession,
     calculateAttributes,
-    ...runtime,
+    ...runtime
   });
   const appAdapter = createGw2AppAdapter({
     profession,
@@ -93,13 +89,13 @@ export function defineProfessionApp({
     randomDistributionRequest: runtimeApi.randomDistributionRequest,
     calculateRandomDistribution: runtimeApi.calculateRandomDistribution,
     isSkillAvailable,
-    defaultOffhand,
+    defaultOffhand
   });
 
   const definition: ProfessionAppDefinition = {
     appAdapter,
     calculateAttributes,
-    ...runtimeApi,
+    ...runtimeApi
   };
   return Object.freeze(definition);
 }

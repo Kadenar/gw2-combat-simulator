@@ -3,17 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta
-      http-equiv="Cache-Control"
-      content="no-cache, no-store, must-revalidate"
-    />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <title>GW2 Combat Simulator — Engineer</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
-  <body
-    data-profession="engineer"
-    class="engineer-theme profession-loadout-theme"
-  >
+  <body data-profession="engineer" class="engineer-theme profession-loadout-theme">
     <div id="loading-overlay">
       <div class="loader-content">
         <div class="spinner"></div>
@@ -27,10 +21,7 @@
         <h1>GW2 <span class="accent">Engineer</span> Rotation Simulator</h1>
         <label class="profession-picker" for="profession-select">
           <span>Profession</span>
-          <select
-            id="profession-select"
-            data-active-profession="engineer"
-          ></select>
+          <select id="profession-select" data-active-profession="engineer"></select>
         </label>
       </header>
       <div class="update-info">
@@ -43,21 +34,10 @@
             <div class="panel-hdr">
               <h3>Gear</h3>
               <div class="build-io-btns">
-                <button id="btn-export-build" class="btn btn-io">
-                  ⬆ Export
-                </button>
-                <button id="btn-import-build" class="btn btn-io">
-                  ⬇ Import
-                </button>
-                <button id="btn-reset-build" class="btn btn-clear">
-                  Reset
-                </button>
-                <input
-                  type="file"
-                  id="import-file-input"
-                  accept=".json"
-                  hidden
-                />
+                <button id="btn-export-build" class="btn btn-io">⬆ Export</button>
+                <button id="btn-import-build" class="btn btn-io">⬇ Import</button>
+                <button id="btn-reset-build" class="btn btn-clear">Reset</button>
+                <input type="file" id="import-file-input" accept=".json" hidden />
               </div>
             </div>
             <div class="gear-columns">
@@ -82,8 +62,7 @@
           </div>
           <div id="attributes-list"></div>
           <p class="attribute-note">
-            Values are calculated for the selected weapon set. Dynamic Engineer
-            modifiers resolve during simulation.
+            Values are calculated for the selected weapon set. Dynamic Engineer modifiers resolve during simulation.
           </p>
         </div>
       </section>
@@ -122,39 +101,22 @@
             <h3>Rotation Builder</h3>
             <div id="rotation-palette" class="rotation-palette"></div>
             <p class="palette-hint">
-              Click to queue · <b>Shift+click</b> an instant-cast skill to fire
-              it during the previous cast · <b>Ctrl+click</b> a non-instant
-              skill to interrupt it
+              Click to queue · <b>Shift+click</b> an instant-cast skill to fire it during the previous cast ·
+              <b>Ctrl+click</b> a non-instant skill to interrupt it
             </p>
             <div class="rotation-mid">
               <div class="rotation-tl-label">Rotation</div>
               <div id="start-att-selector" class="start-att-selector"></div>
               <div class="rotation-btns">
-                <button
-                  id="btn-sim-undo"
-                  class="btn btn-undo"
-                  title="Undo rotation change (Ctrl+Z)"
-                  disabled
-                >
+                <button id="btn-sim-undo" class="btn btn-undo" title="Undo rotation change (Ctrl+Z)" disabled>
                   ↶ Undo
                 </button>
-                <button
-                  id="btn-sim-redo"
-                  class="btn btn-undo"
-                  title="Redo rotation change (Ctrl+Y)"
-                  disabled
-                >
+                <button id="btn-sim-redo" class="btn btn-undo" title="Redo rotation change (Ctrl+Y)" disabled>
                   ↷ Redo
                 </button>
-                <button id="btn-sim-clear" class="btn btn-clear">
-                  ✕ Clear
-                </button>
-                <button id="btn-export-rotation" class="btn btn-io">
-                  ↓ Save Rotation
-                </button>
-                <button id="btn-import-rotation" class="btn btn-io">
-                  ↑ Load Rotation
-                </button>
+                <button id="btn-sim-clear" class="btn btn-clear">✕ Clear</button>
+                <button id="btn-export-rotation" class="btn btn-io">↓ Save Rotation</button>
+                <button id="btn-import-rotation" class="btn btn-io">↑ Load Rotation</button>
                 <input
                   type="file"
                   id="rotation-file-input"
@@ -163,11 +125,7 @@
                 />
               </div>
             </div>
-            <div
-              id="rotation-active-buffs"
-              class="rotation-active-buffs"
-              hidden
-            ></div>
+            <div id="rotation-active-buffs" class="rotation-active-buffs" hidden></div>
             <div id="rotation-timeline" class="rotation-timeline"></div>
             <div id="rotation-warnings" class="rotation-warnings"></div>
             <div id="rotation-procs" class="rotation-procs"></div>

@@ -7,10 +7,10 @@
 // and rotation through the shared app shell, and verifies a stable DPS result
 // without pinning rotation composition or EVTC details.
 
-import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 
-import { loadProfessionAppAdapter } from "../../../js/app/profession/registry.js";
+import { loadProfessionAppAdapter } from '../../../js/app/profession/registry.js';
 
 const repoUrl = (path) => new URL(`../../../${path}`, import.meta.url);
 
@@ -19,9 +19,7 @@ export function relativeError(actual, expected) {
 }
 
 export async function assertManifestRegressions(professionId) {
-  const manifest = JSON.parse(
-    await readFile(repoUrl(`Builds/${professionId}/manifest.json`), "utf8"),
-  );
+  const manifest = JSON.parse(await readFile(repoUrl(`Builds/${professionId}/manifest.json`), 'utf8'));
   const adapter = await loadProfessionAppAdapter(professionId);
   assert.ok(adapter, `${professionId} has no native app adapter`);
   const mismatches = [];
@@ -29,19 +27,16 @@ export async function assertManifestRegressions(professionId) {
   for (const section of manifest) {
     for (const preset of section.presets) {
       const label = `${professionId}: ${section.section} ${preset.label}`;
-      assert.ok(
-        Number.isFinite(preset.benchmarkDps) && preset.benchmarkDps > 0,
-        label,
-      );
+      assert.ok(Number.isFinite(preset.benchmarkDps) && preset.benchmarkDps > 0, label);
       if (!preset.rotation) continue;
 
       const [savedBuild, savedRotation] = await Promise.all([
-        readFile(repoUrl(preset.build), "utf8").then(JSON.parse),
-        readFile(repoUrl(preset.rotation), "utf8").then(JSON.parse),
+        readFile(repoUrl(preset.build), 'utf8').then(JSON.parse),
+        readFile(repoUrl(preset.rotation), 'utf8').then(JSON.parse)
       ]);
       const build = adapter.toApplicationBuild({
         ...savedBuild,
-        rotation: savedRotation.rotation ?? savedRotation,
+        rotation: savedRotation.rotation ?? savedRotation
       });
       // The app object mirrors the real shell: `adapter` exposes the assumption
       // controls (e.g. reaper `permanentIceField`) and `profession` backs the
@@ -52,7 +47,7 @@ export async function assertManifestRegressions(professionId) {
         profession: adapter.profession,
         skillByName: adapter.profession.catalog.skillsByName,
         skillById: adapter.profession.catalog.skillsById,
-        attributeWeaponSet: 1,
+        attributeWeaponSet: 1
       };
 
       adapter.recalculate(app);
@@ -64,7 +59,7 @@ export async function assertManifestRegressions(professionId) {
           label,
           expectedDps: preset.benchmarkDps,
           actualDps: result.dps,
-          relativeError: dpsError,
+          relativeError: dpsError
         });
       }
     }

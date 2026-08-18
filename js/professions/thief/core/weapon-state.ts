@@ -1,66 +1,53 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
-import { THIEF_TRAIT_IDS as TRAIT } from "../data/ids.js";
-import { hasThiefTrait } from "./state.js";
-import {
-  emitThiefState,
-  gainThiefEndurance,
-  gainThiefInitiative,
-} from "./shared.js";
-import { updateSpearChainState } from "./conditions.js";
-import type { ThiefCastContext, ThiefSkill } from "../types.js";
+import { professionCoreState } from '../../../platform/engine/profession.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { hasThiefTrait } from './state.js';
+import { emitThiefState, gainThiefEndurance, gainThiefInitiative } from './shared.js';
+import { updateSpearChainState } from './conditions.js';
+import type { ThiefCastContext, ThiefSkill } from '../types.js';
 
 export function grantThiefStealth(
   context: ThiefCastContext,
   skill: ThiefSkill,
   at: number,
-  explicitDuration?: number,
+  explicitDuration?: number
 ): void {
   const duration =
     explicitDuration ??
     (skill.effects || [])
-      .filter((effect) => effect.type === "buff" && effect.kind === "stealth")
+      .filter((effect) => effect.type === 'buff' && effect.kind === 'stealth')
       .reduce((sum, effect) => sum + Number(effect.duration || 0), 0);
   if (!(duration > 0)) return;
   const state = professionCoreState(context);
   if (state.revealedUntil > at) return;
   const entering = state.stealthUntil <= at;
-  state.stealthUntil = Math.min(
-    at + 15,
-    Math.max(at, state.stealthUntil) + duration,
-  );
+  state.stealthUntil = Math.min(at + 15, Math.max(at, state.stealthUntil) + duration);
   if (entering && hasThiefTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
-    gainThiefInitiative(context, 2, at, "enter-stealth");
+    gainThiefInitiative(context, 2, at, 'enter-stealth');
   }
   if (entering && hasThiefTrait(context.config, TRAIT.LEECHING_VENOMS)) {
-    state.spiderVenomCharges = Math.min(
-      6,
-      Number(state.spiderVenomCharges || 0) + 3,
-    );
+    state.spiderVenomCharges = Math.min(6, Number(state.spiderVenomCharges || 0) + 3);
     state.spiderVenomExpiresAt = at + 24;
     state.spiderVenomGeneration += 1;
   }
   if (entering && hasThiefTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)) {
     context.emit({
-      type: "condition",
+      type: 'condition',
       at,
-      source: "Trait",
+      source: 'Trait',
       sourceId: TRAIT.CLOAKED_IN_SHADOW,
-      actorType: "player",
+      actorType: 'player',
       skillId: skill.id,
       skillName: skill.name,
-      name: "Cloaked in Shadow — Blindness",
-      condition: "Blindness",
+      name: 'Cloaked in Shadow — Blindness',
+      condition: 'Blindness',
       stacks: 1,
-      duration: 5,
+      duration: 5
     });
   }
-  emitThiefState(context, at, "stealth");
+  emitThiefState(context, at, 'stealth');
 }
 
-export function updateThiefWeaponState(
-  context: ThiefCastContext,
-  skill: ThiefSkill,
-): void {
+export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const completed = context.effectiveEnd >= context.fullEnd - context.epsilon;
@@ -68,34 +55,34 @@ export function updateThiefWeaponState(
   if (chain) {
     if (chain.next == null) delete state.autoattackChains[chain.root];
     else state.autoattackChains[chain.root] = chain.next;
-  } else if (skill.type === "Weapon") {
+  } else if (skill.type === 'Weapon') {
     state.autoattackChains = {};
   }
-  if (completed && !(skill.categories || []).includes("stolen skill")) {
+  if (completed && !(skill.categories || []).includes('stolen skill')) {
     grantThiefStealth(context, skill, at);
   }
   if (completed && Number(skill.resourceGain || 0) > 0) {
     gainThiefEndurance(context, Number(skill.resourceGain), at, skill.name);
   }
-  if (skill.shadowstepSkill && context.config.relic === "Peitha" && completed) {
+  if (skill.shadowstepSkill && context.config.relic === 'Peitha' && completed) {
     context.emit({
-      type: "peitha",
+      type: 'peitha',
       at,
-      source: "thief",
+      source: 'thief',
       sourceId: skill.id,
-      actorType: "player",
+      actorType: 'player',
       skillId: skill.id,
       skillName: skill.name,
-      name: "Relic of Peitha",
+      name: 'Relic of Peitha'
     });
   }
   updateSpearChainState(context, skill, at);
   if (skill.dualWieldOpener && skill.flipSkillId != null) {
     state.availableFlips[skill.flipSkillId] = at + 4;
-    emitThiefState(context, at, "dual-wield-follow-up");
+    emitThiefState(context, at, 'dual-wield-follow-up');
   }
   if (skill.dualWieldFollowup) {
     delete state.availableFlips[skill.id];
-    emitThiefState(context, at, "dual-wield-follow-up-used");
+    emitThiefState(context, at, 'dual-wield-follow-up-used');
   }
 }

@@ -1,4 +1,4 @@
-import type { AvailabilityResult } from "./types.js";
+import type { AvailabilityResult } from './types.js';
 
 /**
  * Folds a sequence of normalized availability outcomes into one result. A
@@ -7,16 +7,14 @@ import type { AvailabilityResult } from "./types.js";
  * outcomes are ignored. Callers normalize their own inputs (boolean shorthands,
  * per-owner codes/reasons) before folding.
  */
-export function foldAvailability(
-  results: Iterable<AvailabilityResult>,
-): AvailabilityResult {
+export function foldAvailability(results: Iterable<AvailabilityResult>): AvailabilityResult {
   let combined: AvailabilityResult = { ready: true };
   for (const result of results) {
     if (result.ready !== false) continue;
     if (result.retryAt == null) return result;
     const retryAt = Number(result.retryAt);
     if (!Number.isFinite(retryAt)) {
-      throw new TypeError("Cast availability retryAt must be finite or null.");
+      throw new TypeError('Cast availability retryAt must be finite or null.');
     }
     if (combined.ready || retryAt > Number(combined.retryAt ?? -Infinity)) {
       combined = { ...result, retryAt };

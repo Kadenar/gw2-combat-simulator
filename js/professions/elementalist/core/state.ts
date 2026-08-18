@@ -1,20 +1,15 @@
-import { flattenProfessionState } from "../../../platform/engine/profession.js";
-import { professionCoreState } from "../../../platform/engine/profession.js";
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from "../data/ids.js";
-import type { SchedulerRecord } from "../../../platform/engine/types.js";
+import { flattenProfessionState } from '../../../platform/engine/profession.js';
+import { professionCoreState } from '../../../platform/engine/profession.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
+import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type {
   ElementalistConfig,
   ElementalistEndStateProjectionOptions,
   ElementalistRuntimeState,
-  ElementalistSchedulerContext,
-} from "../types.js";
+  ElementalistSchedulerContext
+} from '../types.js';
 
-export const ELEMENTALIST_ATTUNEMENTS = Object.freeze([
-  "Fire",
-  "Water",
-  "Air",
-  "Earth",
-] as const);
+export const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', 'Earth'] as const);
 
 export type ElementalistAttunement = (typeof ELEMENTALIST_ATTUNEMENTS)[number];
 
@@ -74,19 +69,13 @@ export interface ElementalistCoreState {
   hammerOrbActivationIds: Record<ElementalistAttunement, string | null>;
   hammerOrbBuffUntil: Record<ElementalistAttunement, number>;
   hammerOrbLastCastAt: number;
-  etchings: Record<
-    string,
-    { stage: "lesser" | "full"; otherCasts: number } | null
-  >;
+  etchings: Record<string, { stage: 'lesser' | 'full'; otherCasts: number } | null>;
   rockBarrierExpiresAt: number;
   spearNextDamageBonus: boolean;
   spearNextRechargeReduction: boolean;
   spearNextGuaranteedCritical: boolean;
   spearNextControlHit: boolean;
-  spearFollowups: Record<
-    string,
-    { damage: boolean; critical: boolean; control: boolean }
-  >;
+  spearFollowups: Record<string, { damage: boolean; critical: boolean; control: boolean }>;
   conjureEquipped: string | null;
   conjurePickups: Record<string, number>;
   signetOfFireDisabledUntil: number;
@@ -97,23 +86,15 @@ export interface ElementalistCoreState {
   arcaneEchoUntil: number;
 }
 
-export function isElementalistAttunement(
-  value: unknown,
-): value is ElementalistAttunement {
+export function isElementalistAttunement(value: unknown): value is ElementalistAttunement {
   return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement);
 }
 
-export function createElementalistCoreState(
-  config: ElementalistConfig = {},
-): ElementalistCoreState {
-  const primary = isElementalistAttunement(config.startAttunement)
-    ? config.startAttunement
-    : "Fire";
+export function createElementalistCoreState(config: ElementalistConfig = {}): ElementalistCoreState {
+  const primary = isElementalistAttunement(config.startAttunement) ? config.startAttunement : 'Fire';
   const configuredBullets =
-    config.pistolBullets && typeof config.pistolBullets === "object"
-      ? (config.pistolBullets as Partial<
-          Record<ElementalistAttunement, boolean>
-        >)
+    config.pistolBullets && typeof config.pistolBullets === 'object'
+      ? (config.pistolBullets as Partial<Record<ElementalistAttunement, boolean>>)
       : {};
   return {
     primaryAttunement: primary,
@@ -136,7 +117,7 @@ export function createElementalistCoreState(
       Fire: Boolean(configuredBullets.Fire),
       Water: Boolean(configuredBullets.Water),
       Air: Boolean(configuredBullets.Air),
-      Earth: Boolean(configuredBullets.Earth),
+      Earth: Boolean(configuredBullets.Earth)
     },
     dazingDischargeUntil: 0,
     shatteringStoneHitsRemaining: 0,
@@ -147,7 +128,7 @@ export function createElementalistCoreState(
       Fire: null,
       Water: null,
       Air: null,
-      Earth: null,
+      Earth: null
     },
     hammerOrbBuffUntil: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
     hammerOrbLastCastAt: Number.NEGATIVE_INFINITY,
@@ -171,11 +152,11 @@ export function createElementalistCoreState(
       nextActionAt: 0,
       secondaryAttackReadyAt: 0,
       currentActivationId: null,
-      started: false,
+      started: false
     },
     procReadyAt: {},
     attunementTraitProcCooldownSeconds: 0,
-    arcaneEchoUntil: 0,
+    arcaneEchoUntil: 0
   };
 }
 
@@ -187,19 +168,18 @@ export function elementalistCoreState(context: unknown): ElementalistCoreState {
   return professionCoreState(
     context as {
       readonly state: { readonly profession: ElementalistRuntimeState };
-    },
+    }
   );
 }
 
 export function setElementalistAttunementReadyAt(
   context: ElementalistSchedulerContext,
   attunement: ElementalistAttunement,
-  readyAt: number,
+  readyAt: number
 ): void {
   const state = professionCoreState(context);
   state.attunementReadyAt[attunement] = readyAt;
-  const schedulerState = context.state as
-    { time?: number; cooldowns?: Map<number, number> } | undefined;
+  const schedulerState = context.state as { time?: number; cooldowns?: Map<number, number> } | undefined;
   const cooldowns = schedulerState?.cooldowns;
   if (!cooldowns) return;
   const skillId = ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement];
@@ -210,132 +190,123 @@ export function setElementalistAttunementReadyAt(
   }
 }
 
-export function resetElementalistAttunementCooldowns(
-  context: ElementalistSchedulerContext,
-): void {
-  const at = Number(
-    (context.state as { time?: number } | undefined)?.time || context.time || 0,
-  );
+export function resetElementalistAttunementCooldowns(context: ElementalistSchedulerContext): void {
+  const at = Number((context.state as { time?: number } | undefined)?.time || context.time || 0);
   for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
     setElementalistAttunementReadyAt(context, attunement, at);
   }
 }
 
 export const ELEMENTALIST_PUBLIC_END_STATE_KEYS = Object.freeze([
-  "primaryAttunement",
-  "secondaryAttunement",
-  "attunementReadyAt",
-  "autoattackChains",
-  "autoattackCarryover",
-  "endurance",
-  "activeAuras",
-  "pistolBullets",
-  "dazingDischargeUntil",
-  "shatteringStoneHitsRemaining",
-  "shatteringStoneUntil",
-  "hammerOrbs",
-  "hammerOrbGrantedBy",
-  "hammerOrbBuffUntil",
-  "hammerOrbLastCastAt",
-  "etchings",
-  "rockBarrierExpiresAt",
-  "spearNextDamageBonus",
-  "spearNextRechargeReduction",
-  "spearNextGuaranteedCritical",
-  "spearNextControlHit",
-  "conjureEquipped",
-  "conjurePickups",
-  "signetOfFireDisabledUntil",
-  "catalystBaseEmpowermentActive",
-  "availableFlips",
-  "summonedElemental",
-  "unravelUntil",
-  "weaveSelfUntil",
-  "weaveSelfVisited",
-  "perfectWeaveUntil",
-  "ferventStanceUntil",
-  "energy",
-  "maximumEnergy",
-  "sphereActiveUntil",
-  "sphereExpiry",
-  "element",
-  "charges",
-  "maximumCharges",
-  "empowered",
-  "electricEnchantmentStacks",
-  "elementalBalanceProgress",
-  "elementalBalanceUntil",
+  'primaryAttunement',
+  'secondaryAttunement',
+  'attunementReadyAt',
+  'autoattackChains',
+  'autoattackCarryover',
+  'endurance',
+  'activeAuras',
+  'pistolBullets',
+  'dazingDischargeUntil',
+  'shatteringStoneHitsRemaining',
+  'shatteringStoneUntil',
+  'hammerOrbs',
+  'hammerOrbGrantedBy',
+  'hammerOrbBuffUntil',
+  'hammerOrbLastCastAt',
+  'etchings',
+  'rockBarrierExpiresAt',
+  'spearNextDamageBonus',
+  'spearNextRechargeReduction',
+  'spearNextGuaranteedCritical',
+  'spearNextControlHit',
+  'conjureEquipped',
+  'conjurePickups',
+  'signetOfFireDisabledUntil',
+  'catalystBaseEmpowermentActive',
+  'availableFlips',
+  'summonedElemental',
+  'unravelUntil',
+  'weaveSelfUntil',
+  'weaveSelfVisited',
+  'perfectWeaveUntil',
+  'ferventStanceUntil',
+  'energy',
+  'maximumEnergy',
+  'sphereActiveUntil',
+  'sphereExpiry',
+  'element',
+  'charges',
+  'maximumCharges',
+  'empowered',
+  'electricEnchantmentStacks',
+  'elementalBalanceProgress',
+  'elementalBalanceUntil'
 ] as const);
 
-const ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<SchedulerRecord> =
-  Object.freeze({
-    primaryAttunement: "Fire",
-    secondaryAttunement: null,
-    attunementReadyAt: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
-    autoattackChains: {},
-    autoattackCarryover: null,
-    endurance: 100,
-    activeAuras: [],
-    pistolBullets: { Fire: false, Water: false, Air: false, Earth: false },
-    dazingDischargeUntil: 0,
-    shatteringStoneHitsRemaining: 0,
-    shatteringStoneUntil: 0,
-    hammerOrbs: { Fire: null, Water: null, Air: null, Earth: null },
-    hammerOrbGrantedBy: { Fire: null, Water: null, Air: null, Earth: null },
-    hammerOrbBuffUntil: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
-    hammerOrbLastCastAt: null,
-    etchings: {},
-    rockBarrierExpiresAt: 0,
-    spearNextDamageBonus: false,
-    spearNextRechargeReduction: false,
-    spearNextGuaranteedCritical: false,
-    spearNextControlHit: false,
-    conjureEquipped: null,
-    conjurePickups: {},
-    signetOfFireDisabledUntil: 0,
-    catalystBaseEmpowermentActive: false,
-    availableFlips: {},
-    summonedElemental: {
-      element: null,
-      summonGeneration: 0,
-      actionGeneration: 0,
-      activeUntil: 0,
-      busyUntil: 0,
-      nextActionAt: 0,
-      secondaryAttackReadyAt: 0,
-      currentActivationId: null,
-      started: false,
-    },
-    unravelUntil: 0,
-    weaveSelfUntil: 0,
-    weaveSelfVisited: [],
-    perfectWeaveUntil: 0,
-    ferventStanceUntil: 0,
-    energy: 0,
-    maximumEnergy: 30,
-    sphereActiveUntil: 0,
-    sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
-    element: "Fire",
-    charges: 0,
-    maximumCharges: 6,
-    empowered: 0,
-    electricEnchantmentStacks: 0,
-    elementalBalanceProgress: 0,
-    elementalBalanceUntil: 0,
-  });
+const ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<SchedulerRecord> = Object.freeze({
+  primaryAttunement: 'Fire',
+  secondaryAttunement: null,
+  attunementReadyAt: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
+  autoattackChains: {},
+  autoattackCarryover: null,
+  endurance: 100,
+  activeAuras: [],
+  pistolBullets: { Fire: false, Water: false, Air: false, Earth: false },
+  dazingDischargeUntil: 0,
+  shatteringStoneHitsRemaining: 0,
+  shatteringStoneUntil: 0,
+  hammerOrbs: { Fire: null, Water: null, Air: null, Earth: null },
+  hammerOrbGrantedBy: { Fire: null, Water: null, Air: null, Earth: null },
+  hammerOrbBuffUntil: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
+  hammerOrbLastCastAt: null,
+  etchings: {},
+  rockBarrierExpiresAt: 0,
+  spearNextDamageBonus: false,
+  spearNextRechargeReduction: false,
+  spearNextGuaranteedCritical: false,
+  spearNextControlHit: false,
+  conjureEquipped: null,
+  conjurePickups: {},
+  signetOfFireDisabledUntil: 0,
+  catalystBaseEmpowermentActive: false,
+  availableFlips: {},
+  summonedElemental: {
+    element: null,
+    summonGeneration: 0,
+    actionGeneration: 0,
+    activeUntil: 0,
+    busyUntil: 0,
+    nextActionAt: 0,
+    secondaryAttackReadyAt: 0,
+    currentActivationId: null,
+    started: false
+  },
+  unravelUntil: 0,
+  weaveSelfUntil: 0,
+  weaveSelfVisited: [],
+  perfectWeaveUntil: 0,
+  ferventStanceUntil: 0,
+  energy: 0,
+  maximumEnergy: 30,
+  sphereActiveUntil: 0,
+  sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
+  element: 'Fire',
+  charges: 0,
+  maximumCharges: 6,
+  empowered: 0,
+  electricEnchantmentStacks: 0,
+  elementalBalanceProgress: 0,
+  elementalBalanceUntil: 0
+});
 
 export function projectElementalistEndState({
-  schedulerState,
+  schedulerState
 }: ElementalistEndStateProjectionOptions): SchedulerRecord {
-  const state = flattenProfessionState(
-    schedulerState.profession,
-  ) as SchedulerRecord & ElementalistRuntimeState["core"];
+  const state = flattenProfessionState(schedulerState.profession) as SchedulerRecord & ElementalistRuntimeState['core'];
   return Object.fromEntries(
     ELEMENTALIST_PUBLIC_END_STATE_KEYS.map((key) => [
       key,
-      structuredClone(
-        state[key] ?? ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS[key],
-      ),
-    ]),
+      structuredClone(state[key] ?? ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS[key])
+    ])
   );
 }

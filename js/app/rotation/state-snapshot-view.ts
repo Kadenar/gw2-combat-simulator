@@ -13,18 +13,12 @@
  *   through `ui.rotationStateSnapshot` (e.g. Berserk, Magebane Tether,
  *   Overcharged Cartridges).
  */
-import { activeSpecialization, paletteEndState } from "./context.js";
-import { formatResultTimelineTime } from "./result-model.js";
-import { escapeHtml as esc } from "../../platform/ui/html.js";
-import type {
-  Gw2ResolverEvent,
-  Gw2SimulationResult,
-} from "../../platform/gw2/types.js";
-import type {
-  RotationStateSnapshotItem,
-  SimulationEvent,
-} from "../../platform/engine/types.js";
-import type { ProfessionAppState } from "../profession/types.js";
+import { activeSpecialization, paletteEndState } from './context.js';
+import { formatResultTimelineTime } from './result-model.js';
+import { escapeHtml as esc } from '../../platform/ui/html.js';
+import type { Gw2ResolverEvent, Gw2SimulationResult } from '../../platform/gw2/types.js';
+import type { RotationStateSnapshotItem, SimulationEvent } from '../../platform/engine/types.js';
+import type { ProfessionAppState } from '../profession/types.js';
 
 /**
  * Player critical-strike chance (0..1) at a point in the rotation, taken from
@@ -35,7 +29,7 @@ import type { ProfessionAppState } from "../profession/types.js";
  */
 function criticalChanceEventAt(
   result: Gw2SimulationResult | null | undefined,
-  timeMs: number,
+  timeMs: number
 ): Gw2ResolverEvent | null {
   const seconds = Number(timeMs || 0) / 1000;
   let after: Gw2ResolverEvent | null = null;
@@ -44,7 +38,7 @@ function criticalChanceEventAt(
   let beforeAt = -Infinity;
   for (const event of result?.resolvedEvents || []) {
     if (event.independentSummonStrike === true) continue;
-    if (event.source === "Clone" || event.source === "Phantasm") continue;
+    if (event.source === 'Clone' || event.source === 'Phantasm') continue;
     // Skip strikes that cannot crit (food/sigil flat ticks, tethers, other
     // noCrit/canCrit:false hits). Their crit chance is forced to 0, so counting
     // them would misreport the player's crit chance as 0% whenever such a tick
@@ -66,10 +60,7 @@ function criticalChanceEventAt(
   return after ?? before;
 }
 
-export function criticalChanceAt(
-  result: Gw2SimulationResult | null | undefined,
-  timeMs: number,
-): number | null {
+export function criticalChanceAt(result: Gw2SimulationResult | null | undefined, timeMs: number): number | null {
   const event = criticalChanceEventAt(result, timeMs);
   return event ? Number(event.criticalChance) : null;
 }
@@ -78,22 +69,15 @@ function percent(value: number, signed = false): string {
   const numeric = Number(value || 0) * 100;
   const rounded = numeric
     .toFixed(2)
-    .replace(/\.00$/, "")
-    .replace(/(\.\d)0$/, "$1");
-  return `${signed && numeric > 0 ? "+" : ""}${rounded}%`;
+    .replace(/\.00$/, '')
+    .replace(/(\.\d)0$/, '$1');
+  return `${signed && numeric > 0 ? '+' : ''}${rounded}%`;
 }
 
-export function criticalChanceTooltip(
-  event: Gw2ResolverEvent,
-  heading: string,
-): string {
+export function criticalChanceTooltip(event: Gw2ResolverEvent, heading: string): string {
   const lines = [heading];
-  for (const [index, contributor] of (
-    event.criticalChanceContributors || []
-  ).entries()) {
-    lines.push(
-      `${contributor.label}: ${percent(contributor.amount, index > 0)}`,
-    );
+  for (const [index, contributor] of (event.criticalChanceContributors || []).entries()) {
+    lines.push(`${contributor.label}: ${percent(contributor.amount, index > 0)}`);
   }
   const finalChance = Number(event.criticalChance || 0);
   const beforeCap = Number(event.criticalChanceBeforeCap ?? finalChance);
@@ -101,7 +85,7 @@ export function criticalChanceTooltip(
     lines.push(`Before cap: ${percent(beforeCap)}`);
   }
   lines.push(`Final: ${percent(finalChance)}`);
-  return lines.join("\n");
+  return lines.join('\n');
 }
 
 /**
@@ -120,7 +104,7 @@ export function criticalChanceTooltip(
 export function timedBuffAt(
   result: Gw2SimulationResult | null | undefined,
   kind: string,
-  atSeconds: number,
+  atSeconds: number
 ): { readonly remaining: number; readonly event: SimulationEvent } | null {
   const at = Math.max(0, Number(atSeconds || 0));
   // result.events is ordered by `at`; the last buff of this kind at/before the
@@ -128,7 +112,7 @@ export function timedBuffAt(
   let latest: SimulationEvent | null = null;
   for (const event of result?.events || []) {
     if (Number(event.at || 0) > at) break;
-    if (event.type === "buff" && event.kind === kind) latest = event;
+    if (event.type === 'buff' && event.kind === kind) latest = event;
   }
   if (!latest) return null;
   const remaining = Number(latest.at || 0) + Number(latest.duration || 0) - at;
@@ -146,7 +130,7 @@ export function timedBuffAt(
 export function timedBuffStacksAt(
   result: Gw2SimulationResult | null | undefined,
   kind: string,
-  atSeconds: number,
+  atSeconds: number
 ): number {
   const at = Math.max(0, Number(atSeconds || 0));
   let stacks = 0;
@@ -154,7 +138,7 @@ export function timedBuffStacksAt(
   // point, then keep any whose interval still covers it.
   for (const event of result?.events || []) {
     if (Number(event.at || 0) > at) break;
-    if (event.type !== "buff" || event.kind !== kind) continue;
+    if (event.type !== 'buff' || event.kind !== kind) continue;
     const expiresAt = Number(event.at || 0) + Number(event.duration || 0);
     if (expiresAt > at) stacks += Math.max(1, Number(event.stacks || 1));
   }
@@ -170,22 +154,20 @@ function snapshotItems(app: ProfessionAppState): {
   const state = paletteEndState(app);
   const timeMs = Number(state?.time || 0);
   const rotationLength = app.build.rotation.length;
-  const atInsertion =
-    app.rotationInsertionIndex != null &&
-    app.rotationInsertionIndex !== rotationLength;
+  const atInsertion = app.rotationInsertionIndex != null && app.rotationInsertionIndex !== rotationLength;
 
   const items: RotationStateSnapshotItem[] = [];
   const criticalEvent = criticalChanceEventAt(result, timeMs);
   if (criticalEvent) {
     const critical = Number(criticalEvent.criticalChance);
     const heading = atInsertion
-      ? "Critical strike chance of the next strike at the insertion point"
-      : "Critical strike chance of the last strike in the rotation";
+      ? 'Critical strike chance of the next strike at the insertion point'
+      : 'Critical strike chance of the last strike in the rotation';
     items.push({
-      id: "critical-chance",
-      label: "Crit chance",
+      id: 'critical-chance',
+      label: 'Crit chance',
       value: `${Math.round(critical * 100)}%`,
-      title: criticalChanceTooltip(criticalEvent, heading),
+      title: criticalChanceTooltip(criticalEvent, heading)
     });
   }
   items.push(
@@ -194,8 +176,8 @@ function snapshotItems(app: ProfessionAppState): {
       professionState: state?.profession,
       atSeconds: timeMs / 1000,
       build: app.build,
-      result,
-    }),
+      result
+    })
   );
   return { items, atInsertion, timeMs };
 }
@@ -206,17 +188,17 @@ function snapshotItems(app: ProfessionAppState): {
  * values).
  */
 export function renderRotationStateSnapshot(app: ProfessionAppState): void {
-  const element = document.getElementById("rotation-active-buffs");
+  const element = document.getElementById('rotation-active-buffs');
   if (!element) return;
   if (!app.results || !app.build.rotation.length) {
-    element.innerHTML = "";
+    element.innerHTML = '';
     element.hidden = true;
     return;
   }
   const { items, atInsertion, timeMs } = snapshotItems(app);
   const visible = items.filter((item) => item.active !== false);
   if (!visible.length) {
-    element.innerHTML = "";
+    element.innerHTML = '';
     element.hidden = true;
     return;
   }
@@ -225,17 +207,15 @@ export function renderRotationStateSnapshot(app: ProfessionAppState): void {
   // is set, otherwise the current end of the rotation. Label it by that time so
   // it reads as "state at this moment", matching the timeline's own timestamps.
   const time = formatResultTimelineTime(timeMs, app.results);
-  const label = atInsertion
-    ? `Active state @ ${time} (insertion point)`
-    : `Active state @ ${time}`;
+  const label = atInsertion ? `Active state @ ${time} (insertion point)` : `Active state @ ${time}`;
   element.innerHTML =
     `<span class="rot-state-label">${esc(label)}:</span>` +
     visible
       .map(
         (item) =>
           `<span class="rot-state-item"${
-            item.title ? ` title="${esc(item.title)}"` : ""
-          }>${esc(item.label)} <strong>${esc(item.value)}</strong></span>`,
+            item.title ? ` title="${esc(item.title)}"` : ''
+          }>${esc(item.label)} <strong>${esc(item.value)}</strong></span>`
       )
-      .join("");
+      .join('');
 }

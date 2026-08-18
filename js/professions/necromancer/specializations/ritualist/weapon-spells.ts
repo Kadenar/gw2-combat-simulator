@@ -1,4 +1,4 @@
-import { professionCoreState } from "../../../../platform/engine/profession.js";
+import { professionCoreState } from '../../../../platform/engine/profession.js';
 /**
  * Ritualist weapon-spell applications.
  *
@@ -7,29 +7,18 @@ import { professionCoreState } from "../../../../platform/engine/profession.js";
  * a real heal-slot application even though healing and incoming-damage
  * reduction are outside the damage simulator.
  */
-import {
-  NECROMANCER_SKILL_IDS as ID,
-  NECROMANCER_TRAIT_IDS as TRAIT,
-} from "../../data/ids.js";
-import {
-  gw2AlliedEffectRecipients,
-  gw2AlliedPlayerProcTimeline,
-} from "../../../../platform/gw2/allied-players.js";
-import { hasTrait } from "../../core/shared.js";
-import { necromancerBalanceProfile } from "../../core/profiles.js";
-import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
-import type {
-  NecromancerCastContext,
-  NecromancerCoreState,
-  NecromancerSkill,
-} from "../../types.js";
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { gw2AlliedEffectRecipients, gw2AlliedPlayerProcTimeline } from '../../../../platform/gw2/allied-players.js';
+import { hasTrait } from '../../core/shared.js';
+import { necromancerBalanceProfile } from '../../core/profiles.js';
+import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import type { NecromancerCastContext, NecromancerCoreState, NecromancerSkill } from '../../types.js';
 
-const SPELL_BY_SKILL_ID: Readonly<Record<string | number, string>> =
-  Object.freeze({
-    [ID.NIGHTMARE_WEAPON]: "nightmare",
-    [ID.SPLINTER_WEAPON]: "splinter",
-    [ID.RESILIENT_WEAPON]: "resilient",
-  });
+const SPELL_BY_SKILL_ID: Readonly<Record<string | number, string>> = Object.freeze({
+  [ID.NIGHTMARE_WEAPON]: 'nightmare',
+  [ID.SPLINTER_WEAPON]: 'splinter',
+  [ID.RESILIENT_WEAPON]: 'resilient'
+});
 
 function activeMinionRecipients(state: NecromancerCoreState): string[] {
   const recipients: string[] = [];
@@ -41,32 +30,26 @@ function activeMinionRecipients(state: NecromancerCoreState): string[] {
   return recipients;
 }
 
-function applyWeaponSpell(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-): boolean {
+function applyWeaponSpell(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const spell = SPELL_BY_SKILL_ID[skill.id];
-  const definition = skill.effects?.find((effect) => effect.type === "buff");
+  const definition = skill.effects?.find((effect) => effect.type === 'buff');
   if (!definition) return false;
   const playerStacks = Number(definition.stacks || 0);
   const defaultAllyStacks = Number(definition.allyStacks || 0);
-  const maximumAllies = Math.max(
-    Number(definition.maximumRecipients || 1) - 1,
-    0,
-  );
+  const maximumAllies = Math.max(Number(definition.maximumRecipients || 1) - 1, 0);
   // Wielder's Boon grants allies the same stack count as the player instead of the reduced ally default
   const fullAlliedBenefit = hasTrait(context, TRAIT.WIELDERS_BOON);
   const allyStacks = fullAlliedBenefit ? playerStacks : defaultAllyStacks;
   const party = gw2AlliedEffectRecipients(context.config, {
     maximumRecipients: maximumAllies + 1,
-    companionIds: activeMinionRecipients(professionCoreState(context)),
+    companionIds: activeMinionRecipients(professionCoreState(context))
   });
   context.emit({
-    type: "necromancer.weapon-spell",
+    type: 'necromancer.weapon-spell',
     at: context.effectiveEnd,
-    source: "necromancer",
+    source: 'necromancer',
     sourceId: skill.id,
-    actorType: "player",
+    actorType: 'player',
     skillId: skill.id,
     skillName: skill.name,
     name: skill.name,
@@ -78,14 +61,12 @@ function applyWeaponSpell(
     recipients: party.companionIds,
     alliedPlayerCount: party.alliedPlayerCount,
     recipientCount: party.recipientCount,
-    alliesReceiveFullBenefit: fullAlliedBenefit,
+    alliesReceiveFullBenefit: fullAlliedBenefit
   });
-  if (spell === "nightmare" || spell === "splinter") {
+  if (spell === 'nightmare' || spell === 'splinter') {
     const proc = necromancerBalanceProfile(
       context,
-      spell === "nightmare"
-        ? PROFILE.nightmareWeaponProc
-        : PROFILE.splinterWeaponProc,
+      spell === 'nightmare' ? PROFILE.nightmareWeaponProc : PROFILE.splinterWeaponProc
     );
     // Resilient Weapon has no damage component, so ally proc timeline is only needed for damaging spells
     const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {
@@ -93,22 +74,22 @@ function applyWeaponSpell(
       duration: Number(definition.duration || 0),
       maximumAllies: party.alliedPlayerCount,
       maximumPerAlly: allyStacks,
-      internalCooldown: Number(proc?.internalCooldown || 0),
+      internalCooldown: Number(proc?.internalCooldown || 0)
     });
     for (let index = 0; index < alliedProcs.length; index += 1) {
       const proc = alliedProcs[index];
       context.emit({
-        type: "necromancer.weapon-spell-ally-trigger",
+        type: 'necromancer.weapon-spell-ally-trigger',
         at: proc.at,
-        source: "necromancer",
+        source: 'necromancer',
         sourceId: skill.id,
-        actorType: "effect",
+        actorType: 'effect',
         skillId: skill.id,
         skillName: skill.name,
         name: `${skill.name} - Ally ${proc.allyIndex} Trigger`,
         spell,
         triggeredByAlly: proc.allyIndex,
-        procIndex: proc.procIndex,
+        procIndex: proc.procIndex
       });
     }
   }
@@ -116,5 +97,5 @@ function applyWeaponSpell(
 }
 
 export const necromancerWeaponSpellSkillHandlers = Object.freeze({
-  "necromancer.weapon-spell": applyWeaponSpell,
+  'necromancer.weapon-spell': applyWeaponSpell
 });

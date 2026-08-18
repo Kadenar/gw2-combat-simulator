@@ -1,10 +1,5 @@
-import { ACTION_SAFETY_LIMIT, EPSILON } from "./clock.js";
-import type {
-  ScheduledTask,
-  ScheduledTaskHandler,
-  ScheduledTaskInput,
-  TaskQueue,
-} from "./types.js";
+import { ACTION_SAFETY_LIMIT, EPSILON } from './clock.js';
+import type { ScheduledTask, ScheduledTaskHandler, ScheduledTaskInput, TaskQueue } from './types.js';
 
 function cloneSerializable<T>(value: T, label: string): T {
   try {
@@ -30,29 +25,20 @@ function cloneSerializable<T>(value: T, label: string): T {
 export function createTaskQueue<TContext, TPayload>({
   handlers = {},
   epsilon = EPSILON,
-  safetyLimit = ACTION_SAFETY_LIMIT,
+  safetyLimit = ACTION_SAFETY_LIMIT
 }: {
-  readonly handlers?: Readonly<
-    Record<string, ScheduledTaskHandler<TContext, TPayload>>
-  >;
+  readonly handlers?: Readonly<Record<string, ScheduledTaskHandler<TContext, TPayload>>>;
   readonly epsilon?: number;
   readonly safetyLimit?: number;
 } = {}): Readonly<TaskQueue<TContext, TPayload>> {
-  const registered = new Map<string, ScheduledTaskHandler<TContext, TPayload>>(
-    Object.entries(handlers),
-  );
+  const registered = new Map<string, ScheduledTaskHandler<TContext, TPayload>>(Object.entries(handlers));
   const queue: ScheduledTask<TPayload>[] = [];
   const cancelledIds = new Set<string>();
   let sequence = 0;
   let processed = 0;
 
-  const compareTasks = (
-    left: ScheduledTask<TPayload>,
-    right: ScheduledTask<TPayload>,
-  ): number =>
-    left.at - right.at ||
-    left.priority - right.priority ||
-    left.order - right.order;
+  const compareTasks = (left: ScheduledTask<TPayload>, right: ScheduledTask<TPayload>): number =>
+    left.at - right.at || left.priority - right.priority || left.order - right.order;
   const insertTask = (task: ScheduledTask<TPayload>): void => {
     let low = 0;
     let high = queue.length;
@@ -68,30 +54,17 @@ export function createTaskQueue<TContext, TPayload>({
   };
 
   const schedule = (input: ScheduledTaskInput<TPayload>): string => {
-    const {
-      id,
-      type,
-      at,
-      priority = 0,
-      ownerId = null,
-      payload = null,
-      required = true,
-    } = input;
+    const { id, type, at, priority = 0, ownerId = null, payload = null, required = true } = input;
     const normalizedAt = Number(at);
     if (!Number.isFinite(normalizedAt)) {
-      throw new TypeError("Scheduled task timestamps must be finite.");
+      throw new TypeError('Scheduled task timestamps must be finite.');
     }
-    const normalizedType = String(type || "");
-    if (!normalizedType) throw new TypeError("Scheduled tasks require a type.");
+    const normalizedType = String(type || '');
+    if (!normalizedType) throw new TypeError('Scheduled tasks require a type.');
     if (required && !registered.has(normalizedType)) {
-      throw new TypeError(
-        `No scheduled task handler is registered for "${normalizedType}".`,
-      );
+      throw new TypeError(`No scheduled task handler is registered for "${normalizedType}".`);
     }
-    const clonedPayload = cloneSerializable(
-      payload,
-      `Scheduled task "${normalizedType}" payload`,
-    );
+    const clonedPayload = cloneSerializable(payload, `Scheduled task "${normalizedType}" payload`);
     const task: ScheduledTask<TPayload> = Object.freeze({
       id: String(id || `task:${sequence + 1}`),
       type: normalizedType,
@@ -99,7 +72,7 @@ export function createTaskQueue<TContext, TPayload>({
       priority: Number(priority || 0),
       ownerId: ownerId == null ? null : String(ownerId),
       payload: clonedPayload,
-      order: sequence++,
+      order: sequence++
     });
     insertTask(task);
     return task.id;
@@ -116,8 +89,7 @@ export function createTaskQueue<TContext, TPayload>({
     }
   };
 
-  const isCancelled = (task: ScheduledTask<TPayload>): boolean =>
-    cancelledIds.has(task.id);
+  const isCancelled = (task: ScheduledTask<TPayload>): boolean => cancelledIds.has(task.id);
 
   const discardCancelledHead = (): void => {
     while (queue.length && isCancelled(queue[0])) queue.shift();
@@ -131,7 +103,7 @@ export function createTaskQueue<TContext, TPayload>({
   const drainThrough = (target: number, context: TContext): void => {
     const normalizedTarget = Number(target);
     if (!Number.isFinite(normalizedTarget)) {
-      throw new TypeError("Task drain target must be finite.");
+      throw new TypeError('Task drain target must be finite.');
     }
     let lastAt: number | null = null;
     let sameTimeCount = 0;
@@ -146,17 +118,13 @@ export function createTaskQueue<TContext, TPayload>({
         sameTimeCount = 1;
       }
       if (sameTimeCount > safetyLimit) {
-        throw new Error(
-          `Zero-time scheduled task loop detected at ${task.at.toFixed(3)}.`,
-        );
+        throw new Error(`Zero-time scheduled task loop detected at ${task.at.toFixed(3)}.`);
       }
       if (++processed > safetyLimit) {
-        throw new Error(
-          `Scheduled task safety limit (${safetyLimit}) exceeded.`,
-        );
+        throw new Error(`Scheduled task safety limit (${safetyLimit}) exceeded.`);
       }
       const handler = registered.get(task.type);
-      if (typeof handler === "function") handler(context, task);
+      if (typeof handler === 'function') handler(context, task);
     }
   };
 
@@ -166,7 +134,6 @@ export function createTaskQueue<TContext, TPayload>({
     cancelOwner,
     nextAt,
     drainThrough,
-    has: (id: string | number) =>
-      queue.some((task) => task.id === String(id) && !isCancelled(task)),
+    has: (id: string | number) => queue.some((task) => task.id === String(id) && !isCancelled(task))
   });
 }

@@ -1,4 +1,4 @@
-import { ELEMENTALIST_SKILL_IDS } from "./ids.js";
+import { ELEMENTALIST_SKILL_IDS } from './ids.js';
 
 /**
  * Preserves the pre-stable-ID Elementalist identity contract so persisted
@@ -288,14 +288,11 @@ export const LEGACY_ELEMENTALIST_SKILL_IDS_BY_NAME = Object.freeze({
   SHOCK_WAVE_TRAIT: 1100281,
   CLEANSING_FIRE: 1100283,
   FERVENT_STANCE: 1100284,
-  GLYPH_OF_ELEMENTALS_EARTH: 1100285,
+  GLYPH_OF_ELEMENTALS_EARTH: 1100285
 });
 
-export const LEGACY_ELEMENTALIST_SKILL_ID_MIGRATIONS: ReadonlyMap<
-  number,
-  number
-> = new Map<number, number>(
+export const LEGACY_ELEMENTALIST_SKILL_ID_MIGRATIONS: ReadonlyMap<number, number> = new Map<number, number>(
   Object.entries(LEGACY_ELEMENTALIST_SKILL_IDS_BY_NAME).map(
-    ([name, legacyId]) => [legacyId, ELEMENTALIST_SKILL_IDS[name]] as const,
-  ),
+    ([name, legacyId]) => [legacyId, ELEMENTALIST_SKILL_IDS[name]] as const
+  )
 );

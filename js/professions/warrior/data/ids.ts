@@ -211,7 +211,7 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   DRAGON_SLASH_BOOST: 62980, // Dragon Slash—Boost
   DRAGON_SLASH_REACH: 62951, // Dragon Slash—Reach
   FLICKER_STEP: 62926, // Flicker Step
-  TRIGGERGUARD: 62893, // Triggerguard
+  TRIGGERGUARD: 62893 // Triggerguard
 });
 
 export const WARRIOR_TRAIT_IDS = Object.freeze({
@@ -322,7 +322,7 @@ export const WARRIOR_TRAIT_IDS = Object.freeze({
   REVERBERATION: 2399, // Reverberation
   FEVERISH_PULSE: 2369, // Feverish Pulse
   BRISK_PACING: 2375, // Brisk Pacing
-  ENDURING_REFRAIN: 2428, // Enduring Refrain
+  ENDURING_REFRAIN: 2428 // Enduring Refrain
 });
 
 export const WARRIOR_SPECIALIZATION_IDS = Object.freeze({
@@ -334,5 +334,5 @@ export const WARRIOR_SPECIALIZATION_IDS = Object.freeze({
   DISCIPLINE: 51, // Discipline
   SPELLBREAKER: 61, // Spellbreaker
   BLADESWORN: 68, // Bladesworn
-  PARAGON: 74, // Paragon
+  PARAGON: 74 // Paragon
 });

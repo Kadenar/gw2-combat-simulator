@@ -1,32 +1,22 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
-import { hasTrait } from "../../../platform/gw2/trait-state.js";
-import {
-  ENGINEER_SKILL_IDS as ID,
-  ENGINEER_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
-import { hasEngineerTrait } from "./state.js";
-import { emitEngineerState } from "./events.js";
+import { professionCoreState } from '../../../platform/engine/profession.js';
+import { hasTrait } from '../../../platform/gw2/trait-state.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { hasEngineerTrait } from './state.js';
+import { emitEngineerState } from './events.js';
 import {
   ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   engineerBalanceEffectValue,
-  engineerBalanceValue,
-} from "./profiles.js";
-import {
-  applyCondition,
-  procState,
-  queueBuff,
-  queueDamage,
-  recordTrait,
-  resolverSkill,
-} from "./shared.js";
-import type { SkillId } from "../../../platform/engine/types.js";
+  engineerBalanceValue
+} from './profiles.js';
+import { applyCondition, procState, queueBuff, queueDamage, recordTrait, resolverSkill } from './shared.js';
+import type { SkillId } from '../../../platform/engine/types.js';
 import type {
   EngineerCastContext,
   EngineerResolverContext,
   EngineerResolverEvent,
   EngineerResolverReactionDetails,
-  EngineerSkill,
-} from "../types.js";
+  EngineerSkill
+} from '../types.js';
 
 interface EmitBuffOptions {
   readonly at?: number;
@@ -52,29 +42,21 @@ function emitBuff(
   skill: EngineerSkill,
   kind: string,
   duration: number,
-  {
-    at = context.effectiveEnd,
-    stacks = 1,
-    sourceId = skill.id,
-    name = skill.name,
-  }: EmitBuffOptions = {},
+  { at = context.effectiveEnd, stacks = 1, sourceId = skill.id, name = skill.name }: EmitBuffOptions = {}
 ): void {
   context.emit({
-    type: "buff",
+    type: 'buff',
     at,
-    source: sourceId === skill.id ? "engineer" : "Trait",
+    source: sourceId === skill.id ? 'engineer' : 'Trait',
     sourceId,
-    actorType: "player",
+    actorType: 'player',
     skillId: skill.id,
     skillName: skill.name,
     name,
     kind,
     // GW2 hard cap on superspeed duration is 10s
-    duration:
-      String(kind).toLowerCase() === "superspeed"
-        ? Math.min(10, Number(duration || 0))
-        : Number(duration || 0),
-    stacks,
+    duration: String(kind).toLowerCase() === 'superspeed' ? Math.min(10, Number(duration || 0)) : Number(duration || 0),
+    stacks
   });
 }
 
@@ -90,15 +72,15 @@ function emitTraitDamage(
     totalHits = 1,
     explosion = false,
     weaponStrength,
-    staticDischarge = false,
-  }: EmitTraitDamageOptions,
+    staticDischarge = false
+  }: EmitTraitDamageOptions
 ): void {
   context.emit({
-    type: "damage",
+    type: 'damage',
     at,
-    source: "Trait",
+    source: 'Trait',
     sourceId,
-    actorType: "effect",
+    actorType: 'effect',
     skillId: skill.id,
     skillName: name,
     parentSkillName: skill.name,
@@ -107,135 +89,86 @@ function emitTraitDamage(
     hits: 1,
     hitIndex,
     totalHits,
-    skillWeapon: "Unequipped",
+    skillWeapon: 'Unequipped',
     explosion,
     ...(weaponStrength == null ? {} : { weaponStrength }),
     ...(staticDischarge ? { staticDischarge: true } : {}),
-    triggeredBy: skill.name,
+    triggeredBy: skill.name
   });
 }
 
 function isFunctionGyro(skill: EngineerSkill | undefined): boolean {
-  return skill?.name === "Function Gyro";
+  return skill?.name === 'Function Gyro';
 }
 
 // Function Gyro (scrapper) acts as a toolbelt skill for trait interactions despite no toolbeltParentName;
 // "Engage Photon Forge" occupies the toolbelt slot but is a profession mechanic, not a toolbelt skill
-export function isEngineerToolbeltSkill(
-  skill: EngineerSkill | undefined,
-): boolean {
-  return (
-    Boolean(skill?.toolbeltParentName || isFunctionGyro(skill)) &&
-    skill?.name !== "Engage Photon Forge"
-  );
+export function isEngineerToolbeltSkill(skill: EngineerSkill | undefined): boolean {
+  return Boolean(skill?.toolbeltParentName || isFunctionGyro(skill)) && skill?.name !== 'Engage Photon Forge';
 }
 
 function isHealingSkill(skill: EngineerSkill | undefined): boolean {
-  return skill?.type === "Heal" || skill?.slot === "Heal";
+  return skill?.type === 'Heal' || skill?.slot === 'Heal';
 }
 
 // Grenadier procs on healing skill casts (Healing Turret Overcharge in-game); 20s ICD
-function applyGrenadier(
-  context: EngineerCastContext,
-  skill: EngineerSkill,
-  at: number,
-): void {
+function applyGrenadier(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   const state = professionCoreState(context);
   if (
     !hasEngineerTrait(context.config, TRAIT.GRENADIER) ||
     at + context.epsilon < Number(state.traitProcReadyAt.grenadier || 0)
   )
     return;
-  state.traitProcReadyAt.grenadier =
-    at +
-    engineerBalanceValue(context, PROFILE.grenadier, "internalCooldown", 20);
-  const hits = engineerBalanceEffectValue(
-    context,
-    PROFILE.grenadier,
-    "strike",
-    "hits",
-    6,
-  );
-  const coefficient = engineerBalanceEffectValue(
-    context,
-    PROFILE.grenadier,
-    "strike",
-    "coefficient",
-    0.5,
-  );
+  state.traitProcReadyAt.grenadier = at + engineerBalanceValue(context, PROFILE.grenadier, 'internalCooldown', 20);
+  const hits = engineerBalanceEffectValue(context, PROFILE.grenadier, 'strike', 'hits', 6);
+  const coefficient = engineerBalanceEffectValue(context, PROFILE.grenadier, 'strike', 'coefficient', 0.5);
   for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
     emitTraitDamage(context, skill, {
-      name: "Lesser Grenade Barrage",
+      name: 'Lesser Grenade Barrage',
       coefficient,
       sourceId: TRAIT.GRENADIER,
       at,
       hitIndex,
       totalHits: hits,
-      explosion: true,
+      explosion: true
     });
   }
 }
 
 // Streamlined Kits fires on kit-equip only; 20s ICD prevents rapid kit-swapping from stacking procs
-function applyStreamlinedKits(
-  context: EngineerCastContext,
-  skill: EngineerSkill,
-  at: number,
-): void {
+function applyStreamlinedKits(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   const state = professionCoreState(context);
   if (
-    skill.handlerId !== "engineer.kit-equip" ||
+    skill.handlerId !== 'engineer.kit-equip' ||
     !hasEngineerTrait(context.config, TRAIT.STREAMLINED_KITS) ||
     at + context.epsilon < Number(state.traitProcReadyAt.streamlinedKits || 0)
   )
     return;
   state.traitProcReadyAt.streamlinedKits =
-    at +
-    engineerBalanceValue(
-      context,
-      PROFILE.streamlinedKits,
-      "internalCooldown",
-      20,
-    );
+    at + engineerBalanceValue(context, PROFILE.streamlinedKits, 'internalCooldown', 20);
   emitBuff(
     context,
     skill,
-    "swiftness",
-    engineerBalanceEffectValue(
-      context,
-      PROFILE.streamlinedKits,
-      "boon",
-      "duration",
-      20,
-    ),
+    'swiftness',
+    engineerBalanceEffectValue(context, PROFILE.streamlinedKits, 'boon', 'duration', 20),
     {
       at,
       sourceId: TRAIT.STREAMLINED_KITS,
-      name: "Streamlined Kits — swiftness",
-    },
+      name: 'Streamlined Kits — swiftness'
+    }
   );
-  if ((skill.kitName || skill.name) === "Grenade Kit") {
+  if ((skill.kitName || skill.name) === 'Grenade Kit') {
     emitTraitDamage(context, skill, {
-      name: "Drop Mine",
-      coefficient: engineerBalanceEffectValue(
-        context,
-        PROFILE.streamlinedKits,
-        "strike",
-        "coefficient",
-        1.75,
-      ),
+      name: 'Drop Mine',
+      coefficient: engineerBalanceEffectValue(context, PROFILE.streamlinedKits, 'strike', 'coefficient', 1.75),
       sourceId: TRAIT.STREAMLINED_KITS,
       at,
-      explosion: true,
+      explosion: true
     });
   }
 }
 
-function applyToolbeltTraits(
-  context: EngineerCastContext,
-  skill: EngineerSkill,
-  at: number,
-): void {
+function applyToolbeltTraits(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   if (!isEngineerToolbeltSkill(skill)) return;
   const state = professionCoreState(context);
 
@@ -243,90 +176,55 @@ function applyToolbeltTraits(
     emitBuff(
       context,
       skill,
-      "vigor",
-      engineerBalanceEffectValue(
-        context,
-        PROFILE.optimizedActivation,
-        "boon",
-        "duration",
-        4,
-      ),
+      'vigor',
+      engineerBalanceEffectValue(context, PROFILE.optimizedActivation, 'boon', 'duration', 4),
       {
         at,
         sourceId: TRAIT.OPTIMIZED_ACTIVATION,
-        name: "Optimized Activation — vigor",
-      },
+        name: 'Optimized Activation — vigor'
+      }
     );
   }
 
   if (hasEngineerTrait(context.config, TRAIT.STATIC_DISCHARGE)) {
     emitTraitDamage(context, skill, {
-      name: "Static Discharge",
-      coefficient: engineerBalanceEffectValue(
-        context,
-        PROFILE.staticDischarge,
-        "strike",
-        "coefficient",
-        0.33,
-      ),
+      name: 'Static Discharge',
+      coefficient: engineerBalanceEffectValue(context, PROFILE.staticDischarge, 'strike', 'coefficient', 0.33),
       sourceId: TRAIT.STATIC_DISCHARGE,
       at,
-      staticDischarge: true,
+      staticDischarge: true
     });
   }
 
   if (hasEngineerTrait(context.config, TRAIT.KINETIC_BATTERY)) {
-    const maximumCharges = engineerBalanceValue(
-      context,
-      PROFILE.kineticBattery,
-      "maximumStacks",
-      5,
-    );
-    state.kineticCharges = Math.min(
-      maximumCharges,
-      Number(state.kineticCharges || 0) + 1,
-    );
+    const maximumCharges = engineerBalanceValue(context, PROFILE.kineticBattery, 'maximumStacks', 5);
+    state.kineticCharges = Math.min(maximumCharges, Number(state.kineticCharges || 0) + 1);
     // proc quickness and reset charges every 5th toolbelt cast
     if (state.kineticCharges >= maximumCharges) {
       state.kineticCharges = 0;
-      const buffDuration = engineerBalanceEffectValue(
-        context,
-        PROFILE.kineticBattery,
-        "buff",
-        "duration",
-        5,
-      );
-      emitBuff(context, skill, "kinetic-battery", buffDuration, {
+      const buffDuration = engineerBalanceEffectValue(context, PROFILE.kineticBattery, 'buff', 'duration', 5);
+      emitBuff(context, skill, 'kinetic-battery', buffDuration, {
         at,
         sourceId: TRAIT.KINETIC_BATTERY,
-        name: "Kinetic Battery",
+        name: 'Kinetic Battery'
       });
       emitBuff(
         context,
         skill,
-        "quickness",
-        engineerBalanceEffectValue(
-          context,
-          PROFILE.kineticBattery,
-          "boon",
-          "duration",
-          5,
-        ),
+        'quickness',
+        engineerBalanceEffectValue(context, PROFILE.kineticBattery, 'boon', 'duration', 5),
         {
           at,
           sourceId: TRAIT.KINETIC_BATTERY,
-          name: "Kinetic Battery — quickness",
-        },
+          name: 'Kinetic Battery — quickness'
+        }
       );
     }
-    emitEngineerState(context, at, "kinetic-battery");
+    emitEngineerState(context, at, 'kinetic-battery');
   }
 }
 
-export function applyEngineerCastTraits(
-  context: EngineerCastContext,
-  skill: EngineerSkill,
-): void {
+export function applyEngineerCastTraits(context: EngineerCastContext, skill: EngineerSkill): void {
   const at = context.effectiveEnd;
   if (isHealingSkill(skill)) applyGrenadier(context, skill, at);
   applyStreamlinedKits(context, skill, at);
@@ -334,34 +232,24 @@ export function applyEngineerCastTraits(
 }
 
 // checks both the event flag and skill category — some skills lack the explosion category in the API
-function isExplosion(
-  context: EngineerResolverContext,
-  event: EngineerResolverEvent,
-): boolean {
-  if (event.explosion || event.damageKind === "explosion") return true;
+function isExplosion(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
+  if (event.explosion || event.damageKind === 'explosion') return true;
   const skill = resolverSkill(context, event.skillId ?? event.sourceId);
   return Boolean(
-    skill?.categories?.some(
-      (category) => String(category).toLowerCase() === "explosion",
-    ) ||
-    skill?.kit === "Grenade Kit" ||
-    skill?.name === "Devastator",
+    skill?.categories?.some((category) => String(category).toLowerCase() === 'explosion') ||
+    skill?.kit === 'Grenade Kit' ||
+    skill?.name === 'Devastator'
   );
 }
 
 // mech attacks (summon actorType) don't trigger Aim-Assisted Rocket
-function isAimAssistedProjectile(
-  context: EngineerResolverContext,
-  event: EngineerResolverEvent,
-): boolean {
-  if (event.actorType !== "player") return false;
+function isAimAssistedProjectile(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
+  if (event.actorType !== 'player') return false;
   if (event.projectile === true) return true;
   const skill = resolverSkill(context, event.skillId);
   return Boolean(
-    skill?.kit === "Grenade Kit" ||
-    skill?.categories?.some(
-      (category) => String(category).toLowerCase() === "projectile",
-    ),
+    skill?.kit === 'Grenade Kit' ||
+    skill?.categories?.some((category) => String(category).toLowerCase() === 'projectile')
   );
 }
 
@@ -381,138 +269,88 @@ export function handleEngineerDodge(context: EngineerResolverContext): void {
 export function reactToEngineerDamage(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
-  details: EngineerResolverReactionDetails = {},
+  details: EngineerResolverReactionDetails = {}
 ): void {
   if (!(Number(event.coefficient) > 0)) return;
   const state = procState(context);
-  const criticalChance = Number(
-    details.hitContext?.critical?.chance ?? details.criticalChance ?? 0,
-  );
-  if (
-    event.actorType === "player" &&
-    hasTrait(context, TRAIT.EXPLOSIVE_ENTRANCE) &&
-    !state.explosiveEntranceFired
-  ) {
+  const criticalChance = Number(details.hitContext?.critical?.chance ?? details.criticalChance ?? 0);
+  if (event.actorType === 'player' && hasTrait(context, TRAIT.EXPLOSIVE_ENTRANCE) && !state.explosiveEntranceFired) {
     // fires once per attack sequence; dodge resets the flag for the next sequence
     state.explosiveEntranceFired = true;
     queueDamage(context, event, {
-      name: "Explosive Entrance",
-      coefficient: engineerBalanceEffectValue(
-        context,
-        PROFILE.explosiveEntrance,
-        "strike",
-        "coefficient",
-        1.25,
-      ),
+      name: 'Explosive Entrance',
+      coefficient: engineerBalanceEffectValue(context, PROFILE.explosiveEntrance, 'strike', 'coefficient', 1.25),
       sourceId: TRAIT.EXPLOSIVE_ENTRANCE,
-      actorType: "effect",
-      explosion: true,
+      actorType: 'effect',
+      explosion: true
     });
-    recordTrait(context, "Explosive Entrance", event);
+    recordTrait(context, 'Explosive Entrance', event);
   }
 
   const explosion = isExplosion(context, event);
   if (explosion && hasTrait(context, TRAIT.STEEL_PACKED_POWDER)) {
     queueBuff(context, event, {
-      name: "Steel-Packed Powder",
-      kind: "target-vulnerability",
-      stacks: engineerBalanceEffectValue(
-        context,
-        PROFILE.steelPackedPowder,
-        "condition",
-        "stacks",
-        1,
-      ),
-      duration: engineerBalanceEffectValue(
-        context,
-        PROFILE.steelPackedPowder,
-        "condition",
-        "duration",
-        5,
-      ),
+      name: 'Steel-Packed Powder',
+      kind: 'target-vulnerability',
+      stacks: engineerBalanceEffectValue(context, PROFILE.steelPackedPowder, 'condition', 'stacks', 1),
+      duration: engineerBalanceEffectValue(context, PROFILE.steelPackedPowder, 'condition', 'duration', 5),
       sourceId: TRAIT.STEEL_PACKED_POWDER,
-      actorType: "effect",
+      actorType: 'effect'
     });
   }
-  if (
-    explosion &&
-    hasTrait(context, TRAIT.SHORT_FUSE) &&
-    Number(state.shortFuse || 0) <= event.at
-  ) {
-    state.shortFuse =
-      event.at +
-      engineerBalanceValue(context, PROFILE.shortFuse, "internalCooldown", 3);
+  if (explosion && hasTrait(context, TRAIT.SHORT_FUSE) && Number(state.shortFuse || 0) <= event.at) {
+    state.shortFuse = event.at + engineerBalanceValue(context, PROFILE.shortFuse, 'internalCooldown', 3);
     queueBuff(context, event, {
-      name: "Short Fuse",
-      kind: "fury",
+      name: 'Short Fuse',
+      kind: 'fury',
       stacks: 1,
-      duration: engineerBalanceEffectValue(
-        context,
-        PROFILE.shortFuse,
-        "boon",
-        "duration",
-        4,
-      ),
+      duration: engineerBalanceEffectValue(context, PROFILE.shortFuse, 'boon', 'duration', 4),
       sourceId: TRAIT.SHORT_FUSE,
-      actorType: "effect",
+      actorType: 'effect'
     });
-    recordTrait(context, "Short Fuse", event);
+    recordTrait(context, 'Short Fuse', event);
   }
   if (explosion && hasTrait(context, TRAIT.EXPLOSIVE_TEMPER)) {
     queueBuff(context, event, {
-      name: "Explosive Temper",
-      kind: "explosive-temper",
+      name: 'Explosive Temper',
+      kind: 'explosive-temper',
       stacks: 1,
-      duration: engineerBalanceEffectValue(
-        context,
-        PROFILE.explosiveTemper,
-        "buff",
-        "duration",
-        10,
-      ),
+      duration: engineerBalanceEffectValue(context, PROFILE.explosiveTemper, 'buff', 'duration', 10),
       sourceId: TRAIT.EXPLOSIVE_TEMPER,
-      actorType: "effect",
+      actorType: 'effect'
     });
-    recordTrait(context, "Explosive Temper", event);
+    recordTrait(context, 'Explosive Temper', event);
   }
-  if (
-    event.name === "Explosive Entrance" &&
-    hasTrait(context, TRAIT.GRAND_ENTRANCE)
-  ) {
+  if (event.name === 'Explosive Entrance' && hasTrait(context, TRAIT.GRAND_ENTRANCE)) {
     queueBuff(context, event, {
-      name: "Grand Entrance — resistance",
-      kind: "resistance",
+      name: 'Grand Entrance — resistance',
+      kind: 'resistance',
       stacks: 1,
       duration: 3,
       sourceId: TRAIT.GRAND_ENTRANCE,
-      actorType: "effect",
+      actorType: 'effect'
     });
     queueBuff(context, event, {
-      name: "Grand Entrance",
-      kind: "grand-entrance",
+      name: 'Grand Entrance',
+      kind: 'grand-entrance',
       stacks: 1,
       duration: 3,
       sourceId: TRAIT.GRAND_ENTRANCE,
-      actorType: "effect",
+      actorType: 'effect'
     });
-    recordTrait(context, "Grand Entrance", event);
+    recordTrait(context, 'Grand Entrance', event);
   }
-  if (
-    explosion &&
-    event.name !== "Aim-Assisted Rocket" &&
-    hasTrait(context, TRAIT.SHRAPNEL)
-  ) {
+  if (explosion && event.name !== 'Aim-Assisted Rocket' && hasTrait(context, TRAIT.SHRAPNEL)) {
     let triggered = false;
     if (usesRandomTraitProcs(context)) {
       triggered = context.random.roll(
-        engineerBalanceValue(context, PROFILE.shrapnel, "procChance", 0.33),
-        "engineer.shrapnel",
+        engineerBalanceValue(context, PROFILE.shrapnel, 'procChance', 0.33),
+        'engineer.shrapnel'
       );
     } else {
       // deterministic: accumulate 0.33 per explosion; trigger and subtract 1 when threshold reached
       state.shrapnelProgress =
-        Number(state.shrapnelProgress || 0) +
-        engineerBalanceValue(context, PROFILE.shrapnel, "procChance", 0.33);
+        Number(state.shrapnelProgress || 0) + engineerBalanceValue(context, PROFILE.shrapnel, 'procChance', 0.33);
       triggered = state.shrapnelProgress >= 1;
     }
     if (triggered) {
@@ -520,113 +358,59 @@ export function reactToEngineerDamage(
         state.shrapnelProgress = Number(state.shrapnelProgress || 0) - 1;
       }
       applyCondition(details, context, event, {
-        name: "Shrapnel",
-        condition: "Bleeding",
-        stacks: engineerBalanceEffectValue(
-          context,
-          PROFILE.shrapnel,
-          "condition",
-          "stacks",
-          1,
-        ),
-        duration: engineerBalanceEffectValue(
-          context,
-          PROFILE.shrapnel,
-          "condition",
-          "duration",
-          6,
-        ),
+        name: 'Shrapnel',
+        condition: 'Bleeding',
+        stacks: engineerBalanceEffectValue(context, PROFILE.shrapnel, 'condition', 'stacks', 1),
+        duration: engineerBalanceEffectValue(context, PROFILE.shrapnel, 'condition', 'duration', 6),
         sourceId: TRAIT.SHRAPNEL,
-        actorType: "effect",
+        actorType: 'effect'
       });
       queueBuff(context, event, {
-        name: "Shrapnel",
-        kind: "target-crippled",
-        stacks: engineerBalanceEffectValue(
-          context,
-          PROFILE.shrapnel,
-          "condition",
-          "stacks",
-          1,
-          1,
-        ),
-        duration: engineerBalanceEffectValue(
-          context,
-          PROFILE.shrapnel,
-          "condition",
-          "duration",
-          1,
-          1,
-        ),
+        name: 'Shrapnel',
+        kind: 'target-crippled',
+        stacks: engineerBalanceEffectValue(context, PROFILE.shrapnel, 'condition', 'stacks', 1, 1),
+        duration: engineerBalanceEffectValue(context, PROFILE.shrapnel, 'condition', 'duration', 1, 1),
         sourceId: TRAIT.SHRAPNEL,
-        actorType: "effect",
+        actorType: 'effect'
       });
-      recordTrait(context, "Shrapnel", event);
+      recordTrait(context, 'Shrapnel', event);
     }
   }
 
-  if (
-    event.actorType !== "summon" &&
-    hasTrait(context, TRAIT.SERRATED_STEEL) &&
-    criticalChance > 0
-  ) {
+  if (event.actorType !== 'summon' && hasTrait(context, TRAIT.SERRATED_STEEL) && criticalChance > 0) {
     let triggered = false;
     if (usesRandomTraitProcs(context)) {
       triggered =
         rolledCritical(details) &&
         context.random.roll(
-          engineerBalanceValue(
-            context,
-            PROFILE.serratedSteel,
-            "procChance",
-            0.33,
-          ),
-          "engineer.serrated-steel",
+          engineerBalanceValue(context, PROFILE.serratedSteel, 'procChance', 0.33),
+          'engineer.serrated-steel'
         );
     } else {
       // deterministic: accumulate critChance * 0.33 (combines expected crit rate with proc chance)
       state.serratedSteelProgress =
         Number(state.serratedSteelProgress || 0) +
-        criticalChance *
-          engineerBalanceValue(
-            context,
-            PROFILE.serratedSteel,
-            "procChance",
-            0.33,
-          );
+        criticalChance * engineerBalanceValue(context, PROFILE.serratedSteel, 'procChance', 0.33);
       triggered = state.serratedSteelProgress >= 1;
     }
     if (triggered) {
       if (!usesRandomTraitProcs(context)) {
-        state.serratedSteelProgress =
-          Number(state.serratedSteelProgress || 0) - 1;
+        state.serratedSteelProgress = Number(state.serratedSteelProgress || 0) - 1;
       }
       applyCondition(details, context, event, {
-        name: "Serrated Steel",
-        condition: "Bleeding",
-        stacks: engineerBalanceEffectValue(
-          context,
-          PROFILE.serratedSteel,
-          "condition",
-          "stacks",
-          1,
-        ),
-        duration: engineerBalanceEffectValue(
-          context,
-          PROFILE.serratedSteel,
-          "condition",
-          "duration",
-          3,
-        ),
+        name: 'Serrated Steel',
+        condition: 'Bleeding',
+        stacks: engineerBalanceEffectValue(context, PROFILE.serratedSteel, 'condition', 'stacks', 1),
+        duration: engineerBalanceEffectValue(context, PROFILE.serratedSteel, 'condition', 'duration', 3),
         sourceId: TRAIT.SERRATED_STEEL,
-        actorType: "effect",
+        actorType: 'effect'
       });
-      recordTrait(context, "Serrated Steel", event);
+      recordTrait(context, 'Serrated Steel', event);
     }
   }
 
   if (
-    event.actorType === "player" &&
+    event.actorType === 'player' &&
     hasTrait(context, TRAIT.NO_SCOPE) &&
     criticalChance > 0 &&
     // 8s cooldown between fury procs
@@ -636,88 +420,58 @@ export function reactToEngineerDamage(
     if (usesRandomTraitProcs(context)) {
       triggered = rolledCritical(details);
     } else {
-      state.noScopeProgress =
-        Number(state.noScopeProgress || 0) + criticalChance;
+      state.noScopeProgress = Number(state.noScopeProgress || 0) + criticalChance;
       triggered = state.noScopeProgress >= 1;
     }
     if (triggered) {
       if (!usesRandomTraitProcs(context)) {
         state.noScopeProgress = Number(state.noScopeProgress || 0) - 1;
       }
-      state.noScope =
-        event.at +
-        engineerBalanceValue(context, PROFILE.noScope, "internalCooldown", 8);
+      state.noScope = event.at + engineerBalanceValue(context, PROFILE.noScope, 'internalCooldown', 8);
       queueBuff(context, event, {
-        name: "No Scope",
-        kind: "fury",
+        name: 'No Scope',
+        kind: 'fury',
         stacks: 1,
-        duration: engineerBalanceEffectValue(
-          context,
-          PROFILE.noScope,
-          "boon",
-          "duration",
-          4,
-        ),
+        duration: engineerBalanceEffectValue(context, PROFILE.noScope, 'boon', 'duration', 4),
         sourceId: TRAIT.NO_SCOPE,
-        actorType: "effect",
+        actorType: 'effect'
       });
-      recordTrait(context, "No Scope", event);
+      recordTrait(context, 'No Scope', event);
     }
   }
 
   if (
     event.actorType != null &&
-    ["player", "summon"].includes(event.actorType) &&
+    ['player', 'summon'].includes(event.actorType) &&
     hasTrait(context, TRAIT.INCENDIARY_POWDER) &&
     criticalChance > 0
   ) {
     // player and mech have independent proc progress and cooldowns under the same trait
-    const owner = event.actorType === "summon" ? "mech" : "player";
+    const owner = event.actorType === 'summon' ? 'mech' : 'player';
     const readyKey = `incendiaryPowder.${owner}`;
     const progressKey = `incendiaryProgress.${owner}`;
     let triggered = false;
     if (usesRandomTraitProcs(context)) {
-      triggered =
-        rolledCritical(details) && Number(state[readyKey] || 0) <= event.at;
+      triggered = rolledCritical(details) && Number(state[readyKey] || 0) <= event.at;
     } else {
       state[progressKey] = Number(state[progressKey] || 0) + criticalChance;
-      triggered =
-        state[progressKey] >= 1 && Number(state[readyKey] || 0) <= event.at;
+      triggered = state[progressKey] >= 1 && Number(state[readyKey] || 0) <= event.at;
     }
     if (triggered) {
       if (!usesRandomTraitProcs(context)) {
         state[progressKey] = Number(state[progressKey] || 0) - 1;
       }
-      state[readyKey] =
-        event.at +
-        engineerBalanceValue(
-          context,
-          PROFILE.incendiaryPowder,
-          "internalCooldown",
-          10,
-        );
+      state[readyKey] = event.at + engineerBalanceValue(context, PROFILE.incendiaryPowder, 'internalCooldown', 10);
       applyCondition(details, context, event, {
-        name: "Incendiary Powder",
-        condition: "Burning",
-        stacks: engineerBalanceEffectValue(
-          context,
-          PROFILE.incendiaryPowder,
-          "condition",
-          "stacks",
-          1,
-        ),
-        duration: engineerBalanceEffectValue(
-          context,
-          PROFILE.incendiaryPowder,
-          "condition",
-          "duration",
-          8,
-        ),
+        name: 'Incendiary Powder',
+        condition: 'Burning',
+        stacks: engineerBalanceEffectValue(context, PROFILE.incendiaryPowder, 'condition', 'stacks', 1),
+        duration: engineerBalanceEffectValue(context, PROFILE.incendiaryPowder, 'condition', 'duration', 8),
         sourceId: TRAIT.INCENDIARY_POWDER,
-        actorType: event.actorType === "summon" ? "summon" : "effect",
-        metadata: event.actorType === "summon" ? { engineerMech: true } : {},
+        actorType: event.actorType === 'summon' ? 'summon' : 'effect',
+        metadata: event.actorType === 'summon' ? { engineerMech: true } : {}
       });
-      recordTrait(context, "Incendiary Powder", event);
+      recordTrait(context, 'Incendiary Powder', event);
     }
   }
 
@@ -727,143 +481,84 @@ export function reactToEngineerDamage(
     Number(state.aimAssistedRocket || 0) <= event.at
   ) {
     state.aimAssistedRocket =
-      event.at +
-      engineerBalanceValue(
-        context,
-        PROFILE.aimAssistedRocket,
-        "internalCooldown",
-        3,
-      );
-    state.aimAssistedRocketCount =
-      Number(state.aimAssistedRocketCount || 0) + 1;
+      event.at + engineerBalanceValue(context, PROFILE.aimAssistedRocket, 'internalCooldown', 3);
+    state.aimAssistedRocketCount = Number(state.aimAssistedRocketCount || 0) + 1;
     // every 5th projectile upgrades to Orbital Command Strike (2s delay for call-down)
-    const alternateEvery = engineerBalanceValue(
-      context,
-      PROFILE.aimAssistedRocket,
-      "maximumStacks",
-      5,
-    );
+    const alternateEvery = engineerBalanceValue(context, PROFILE.aimAssistedRocket, 'maximumStacks', 5);
     const orbital = state.aimAssistedRocketCount % alternateEvery === 0;
     queueDamage(context, event, {
-      name: orbital ? "Orbital Command Strike" : "Aim-Assisted Rocket",
+      name: orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket',
       coefficient: engineerBalanceEffectValue(
         context,
         PROFILE.aimAssistedRocket,
-        "strike",
-        "coefficient",
+        'strike',
+        'coefficient',
         orbital ? 1.92 : 1,
-        orbital ? 1 : 0,
+        orbital ? 1 : 0
       ),
-      sourceId: orbital
-        ? ID.ORBITAL_COMMAND_STRIKE
-        : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
-      actorType: "effect",
+      sourceId: orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
+      actorType: 'effect',
       at:
         event.at +
         engineerBalanceEffectValue(
           context,
           PROFILE.aimAssistedRocket,
-          "strike",
-          "atMs",
+          'strike',
+          'atMs',
           orbital ? 2000 : 40,
-          orbital ? 1 : 0,
+          orbital ? 1 : 0
         ) /
           1000,
       explosion: !orbital,
       ...(orbital
         ? {
             comboFinisher: {
-              ownerId: "engineer",
+              ownerId: 'engineer',
               attemptId: `${event.activationId || event.sourceId}:orbital-command-strike:blast`,
-              finisherType: "Blast",
-              ambiguousFieldSelection: "oldest",
-            },
+              finisherType: 'Blast',
+              ambiguousFieldSelection: 'oldest'
+            }
           }
         : {}),
-      weaponStrengthProfileId: "nonweapon.unequipped",
+      weaponStrengthProfileId: 'nonweapon.unequipped'
     });
-    recordTrait(
-      context,
-      orbital ? "Orbital Command Strike" : "Aim-Assisted Rocket",
-      event,
-    );
+    recordTrait(context, orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket', event);
   }
 }
 
-export function reactToEngineerCondition(
-  context: EngineerResolverContext,
-  event: EngineerResolverEvent,
-): void {
-  if (
-    event.condition === "Burning" &&
-    event.actorType !== "summon" &&
-    hasTrait(context, TRAIT.THERMAL_VISION)
-  ) {
+export function reactToEngineerCondition(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+  if (event.condition === 'Burning' && event.actorType !== 'summon' && hasTrait(context, TRAIT.THERMAL_VISION)) {
     const state = professionCoreState(context);
     // Math.max extends the window — multiple Burning applications stack the active duration
     state.traitProcReadyAt.thermalVisionUntil = Math.max(
       Number(state.traitProcReadyAt.thermalVisionUntil || 0),
-      event.at +
-        engineerBalanceEffectValue(
-          context,
-          PROFILE.thermalVision,
-          "buff",
-          "duration",
-          4,
-        ),
+      event.at + engineerBalanceEffectValue(context, PROFILE.thermalVision, 'buff', 'duration', 4)
     );
   }
-  if (
-    event.condition === "Bleeding" &&
-    event.actorType !== "summon" &&
-    hasTrait(context, TRAIT.SANGUINE_ARRAY)
-  ) {
+  if (event.condition === 'Bleeding' && event.actorType !== 'summon' && hasTrait(context, TRAIT.SANGUINE_ARRAY)) {
     queueBuff(context, event, {
-      name: "Sanguine Array",
-      kind: "might",
+      name: 'Sanguine Array',
+      kind: 'might',
       stacks: Math.max(1, Number(event.stacks || 1)),
-      duration: engineerBalanceEffectValue(
-        context,
-        PROFILE.sanguineArray,
-        "boon",
-        "duration",
-        4,
-      ),
+      duration: engineerBalanceEffectValue(context, PROFILE.sanguineArray, 'boon', 'duration', 4),
       sourceId: TRAIT.SANGUINE_ARRAY,
-      actorType: "effect",
+      actorType: 'effect'
     });
-    recordTrait(context, "Sanguine Array", event);
+    recordTrait(context, 'Sanguine Array', event);
   }
-  if (
-    event.condition === "Bleeding" &&
-    event.actorType !== "summon" &&
-    hasTrait(context, TRAIT.HEMATIC_FOCUS)
-  ) {
+  if (event.condition === 'Bleeding' && event.actorType !== 'summon' && hasTrait(context, TRAIT.HEMATIC_FOCUS)) {
     const state = procState(context);
     if (Number(state.hematicFocus || 0) <= event.at) {
-      state.hematicFocus =
-        event.at +
-        engineerBalanceValue(
-          context,
-          PROFILE.hematicFocus,
-          "internalCooldown",
-          8,
-        );
+      state.hematicFocus = event.at + engineerBalanceValue(context, PROFILE.hematicFocus, 'internalCooldown', 8);
       queueBuff(context, event, {
-        name: "Hematic Focus",
-        kind: "fury",
+        name: 'Hematic Focus',
+        kind: 'fury',
         stacks: 1,
-        duration: engineerBalanceEffectValue(
-          context,
-          PROFILE.hematicFocus,
-          "boon",
-          "duration",
-          8,
-        ),
+        duration: engineerBalanceEffectValue(context, PROFILE.hematicFocus, 'boon', 'duration', 8),
         sourceId: TRAIT.HEMATIC_FOCUS,
-        actorType: "effect",
+        actorType: 'effect'
       });
-      recordTrait(context, "Hematic Focus", event);
+      recordTrait(context, 'Hematic Focus', event);
     }
   }
 }

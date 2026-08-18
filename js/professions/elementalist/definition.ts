@@ -1,4 +1,1 @@
-export {
-  elementalistProfession,
-  elementalistProfession as default,
-} from "./family.js";
+export { elementalistProfession, elementalistProfession as default } from './family.js';

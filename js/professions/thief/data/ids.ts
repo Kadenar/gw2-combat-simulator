@@ -273,7 +273,7 @@ export const THIEF_SKILL_IDS = Object.freeze({
   METAL_LEGION_GUITAR: 76582, // Metal Legion Guitar
   METAL_LEGION_GUITAR_ID_76591: 76591, // Metal Legion Guitar
   ZEPHYRITE_SUN_CRYSTAL_ID_76733: 76733, // Zephyrite Sun Crystal
-  LIFT_PIN_HERO_CHALLENGE: 77935, // Lift Pin (hero challenge)
+  LIFT_PIN_HERO_CHALLENGE: 77935 // Lift Pin (hero challenge)
 });
 
 export const THIEF_TRAIT_IDS = Object.freeze({
@@ -384,7 +384,7 @@ export const THIEF_TRAIT_IDS = Object.freeze({
   EXHILARATING_EPHEMERA: 2350, // Exhilarating Ephemera
   PRODIGIOUS_PINCHER: 2409, // Prodigious Pincher
   POSSESSIVE_HOARDER: 2393, // Possessive Hoarder
-  COMBAT_HIGH: 2348, // Combat High
+  COMBAT_HIGH: 2348 // Combat High
 });
 
 export const THIEF_SPECIALIZATION_IDS = Object.freeze({
@@ -396,7 +396,7 @@ export const THIEF_SPECIALIZATION_IDS = Object.freeze({
   ACROBATICS: 54, // Acrobatics
   DEADEYE: 58, // Deadeye
   SPECTER: 71, // Specter
-  ANTIQUARY: 77, // Antiquary
+  ANTIQUARY: 77 // Antiquary
 });
 
 // Keep canonical PvE artifact identities explicit for the artifact picker.
@@ -406,12 +406,12 @@ export const THIEF_ARTIFACT_IDS = Object.freeze({
     76633, // Forged Surfer Dash
     76582, // Metal Legion Guitar
     77277, // Mistburn Mortar
-    77192, // Summon Kryptis Turret
+    77192 // Summon Kryptis Turret
   ]),
   DEFENSIVE: Object.freeze([
     76816, // Chak Shield
     76702, // Exalted Hammer
     76674, // Holo-Dancer Decoy
-    76895, // Zephyrite Sun Crystal
-  ]),
+    76895 // Zephyrite Sun Crystal
+  ])
 });

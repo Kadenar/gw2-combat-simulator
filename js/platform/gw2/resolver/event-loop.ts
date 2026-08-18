@@ -1,13 +1,13 @@
-import { EPSILON } from "../../engine/clock.js";
-import { sortQueuedEvents, takeNextEvent } from "../../engine/event-queue.js";
-import { HandlerRegistry } from "../../engine/handler-registry.js";
+import { EPSILON } from '../../engine/clock.js';
+import { sortQueuedEvents, takeNextEvent } from '../../engine/event-queue.js';
+import { HandlerRegistry } from '../../engine/handler-registry.js';
 
 import type {
   Gw2ResolverEvent,
   Gw2ResolverEventHandlers,
   Gw2ResolverHandlerRegistry,
-  Gw2ResolverRuntime,
-} from "../types.js";
+  Gw2ResolverRuntime
+} from '../types.js';
 
 interface CreateGw2ResolverHandlerRegistryOptions {
   readonly commonHandlers?: Gw2ResolverEventHandlers;
@@ -15,10 +15,7 @@ interface CreateGw2ResolverHandlerRegistryOptions {
 }
 
 interface RunGw2ResolverEventLoopOptions {
-  readonly shouldSkipEvent?: (
-    context: Gw2ResolverRuntime,
-    event: Gw2ResolverEvent,
-  ) => boolean;
+  readonly shouldSkipEvent?: (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => boolean;
 }
 
 /**
@@ -30,7 +27,7 @@ interface RunGw2ResolverEventLoopOptions {
  */
 export function createGw2ResolverHandlerRegistry({
   commonHandlers = {},
-  professionHandlers = {},
+  professionHandlers = {}
 }: CreateGw2ResolverHandlerRegistryOptions = {}): Gw2ResolverHandlerRegistry {
   const registry = new HandlerRegistry<Gw2ResolverRuntime, Gw2ResolverEvent>();
   return registry.registerAll(commonHandlers).registerAll(professionHandlers);
@@ -49,11 +46,11 @@ function targetHealth(ctx: Gw2ResolverRuntime): number {
  */
 function isCombatGatedEvent(event: Gw2ResolverEvent): boolean {
   return (
-    event.type === "damage" ||
-    event.type === "condition_tick" ||
-    event.type === "combo_finisher" ||
+    event.type === 'damage' ||
+    event.type === 'condition_tick' ||
+    event.type === 'combo_finisher' ||
     event.comboId != null ||
-    (event.type === "buff" && event.kind === "target-vulnerability")
+    (event.type === 'buff' && event.kind === 'target-vulnerability')
   );
 }
 
@@ -62,21 +59,21 @@ function isCombatGatedEvent(event: Gw2ResolverEvent): boolean {
  * multi-hit packets can still prove sibling ownership from their hit metadata.
  */
 function combatActivationKey(event: Gw2ResolverEvent): string | null {
-  if (typeof event.activationId === "string" && event.activationId) {
+  if (typeof event.activationId === 'string' && event.activationId) {
     return `id:${event.activationId}`;
   }
   const hitIndex = Math.trunc(Number(event.hitIndex));
   const totalHits = Math.trunc(Number(event.totalHits));
   if (totalHits <= 1 || hitIndex < 1 || hitIndex > totalHits) return null;
   return [
-    "multi-hit",
+    'multi-hit',
     event.at,
-    event.actorType || "unknown",
+    event.actorType || 'unknown',
     event.sourceId,
     event.skillId,
-    event.skillName || "",
-    totalHits,
-  ].join("|");
+    event.skillName || '',
+    totalHits
+  ].join('|');
 }
 
 /**
@@ -87,10 +84,10 @@ function combatActivationKey(event: Gw2ResolverEvent): string | null {
 export function runGw2ResolverEventLoop(
   ctx: Gw2ResolverRuntime,
   handlerRegistry: Gw2ResolverHandlerRegistry,
-  { shouldSkipEvent = () => false }: RunGw2ResolverEventLoopOptions = {},
+  { shouldSkipEvent = () => false }: RunGw2ResolverEventLoopOptions = {}
 ): void {
   if (!handlerRegistry) {
-    throw new TypeError("GW2 resolver event loop requires a handler registry.");
+    throw new TypeError('GW2 resolver event loop requires a handler registry.');
   }
   const queue = ctx.queue;
   const hp = targetHealth(ctx);
@@ -107,32 +104,21 @@ export function runGw2ResolverEventLoop(
       // but reject a distinct attack ordered after the target already died.
       if (
         isCombatGatedEvent(event) &&
-        event.type !== "condition_tick" &&
-        (lethalActivationKey == null ||
-          combatActivationKey(event) !== lethalActivationKey)
+        event.type !== 'condition_tick' &&
+        (lethalActivationKey == null || combatActivationKey(event) !== lethalActivationKey)
       )
         continue;
     }
     if (shouldSkipEvent(ctx, event)) continue;
-    if (
-      ctx.combatStartTime != null &&
-      event.at < ctx.combatStartTime - EPSILON &&
-      isCombatGatedEvent(event)
-    )
-      continue;
+    if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON && isCombatGatedEvent(event)) continue;
 
     if (handlerRegistry.has(event.type)) {
       handlerRegistry.dispatch(event, ctx);
-    } else if (String(event.type).includes(".")) {
-      throw new Error(
-        `No event handler registered for required type: ${event.type}`,
-      );
+    } else if (String(event.type).includes('.')) {
+      throw new Error(`No event handler registered for required type: ${event.type}`);
     }
 
-    if (
-      ctx.deathTime == null &&
-      ctx.totals.strike + ctx.totals.condition >= hp
-    ) {
+    if (ctx.deathTime == null && ctx.totals.strike + ctx.totals.condition >= hp) {
       ctx.deathTime = event.at;
       lethalActivationKey = combatActivationKey(event);
     }

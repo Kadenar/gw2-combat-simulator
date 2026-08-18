@@ -3,66 +3,54 @@ import {
   onConditionApplied,
   onResolvedBlind,
   onResolvedControl,
-  onResolvedDamage,
-} from "../../../platform/gw2/native-profession.js";
-import { createNecromancerModuleData } from "../catalog-data.js";
+  onResolvedDamage
+} from '../../../platform/gw2/native-profession.js';
+import { createNecromancerModuleData } from '../catalog-data.js';
 import {
   necromancerCoreAttributeRules,
   necromancerCoreCastRules,
   necromancerSchedulerHooks,
-  snapshotNecromancerState,
-} from "./rules.js";
-import {
-  necromancerCoreResolverEventHandlers,
-  necromancerCoreResolverEventReactions,
-} from "./resolver.js";
-import {
-  createNecromancerCoreState,
-  projectNecromancerEndState,
-} from "./state.js";
-import { bindNecromancerCoreUi } from "./ui.js";
-import {
-  NECROMANCER_CORE_BASE_SKILL_MECHANICS,
-  NECROMANCER_CORE_EXTRA_SKILLS,
-} from "./skills.js";
-import { necromancerCoreSkillHandlers } from "./handlers.js";
-import { NECROMANCER_SKILL_IDS as ID } from "../data/ids.js";
-import { NECROMANCER_CORE_BALANCE_PROFILES } from "./profiles.js";
-import type { NecromancerSchedulerContext } from "../types.js";
+  snapshotNecromancerState
+} from './rules.js';
+import { necromancerCoreResolverEventHandlers, necromancerCoreResolverEventReactions } from './resolver.js';
+import { createNecromancerCoreState, projectNecromancerEndState } from './state.js';
+import { bindNecromancerCoreUi } from './ui.js';
+import { NECROMANCER_CORE_BASE_SKILL_MECHANICS, NECROMANCER_CORE_EXTRA_SKILLS } from './skills.js';
+import { necromancerCoreSkillHandlers } from './handlers.js';
+import { NECROMANCER_SKILL_IDS as ID } from '../data/ids.js';
+import { NECROMANCER_CORE_BALANCE_PROFILES } from './profiles.js';
+import type { NecromancerSchedulerContext } from '../types.js';
 
 export const necromancerCoreModule = defineNativeModule({
-  id: "Core",
-  data: createNecromancerModuleData("Core", {
+  id: 'Core',
+  data: createNecromancerModuleData('Core', {
     skillMechanics: NECROMANCER_CORE_BASE_SKILL_MECHANICS,
     extraSkills: NECROMANCER_CORE_EXTRA_SKILLS,
     balanceProfiles: NECROMANCER_CORE_BALANCE_PROFILES,
     handlers: necromancerCoreSkillHandlers,
     autoattackChains: {
-      additional: [[ID.ENERVATION_BLADE, ID.ENERVATION_ECHO]],
-    },
+      additional: [[ID.ENERVATION_BLADE, ID.ENERVATION_ECHO]]
+    }
   }),
   state: {
     scheduler: createNecromancerCoreState,
     resolver: createNecromancerCoreState,
-    project: projectNecromancerEndState,
+    project: projectNecromancerEndState
   },
   mechanics: {
     modifiers: necromancerCoreAttributeRules,
     castRules: necromancerCoreCastRules,
     schedulerHooks: {
       ...necromancerSchedulerHooks,
-      snapshot: (context: NecromancerSchedulerContext) =>
-        snapshotNecromancerState(context.state.profession),
+      snapshot: (context: NecromancerSchedulerContext) => snapshotNecromancerState(context.state.profession)
     },
     resolverHooks: { eventHandlers: necromancerCoreResolverEventHandlers },
     reactions: [
       ...necromancerCoreResolverEventReactions.damage.map(onResolvedDamage),
       ...necromancerCoreResolverEventReactions.blind.map(onResolvedBlind),
       ...necromancerCoreResolverEventReactions.control.map(onResolvedControl),
-      ...necromancerCoreResolverEventReactions.condition.map(
-        onConditionApplied,
-      ),
-    ],
+      ...necromancerCoreResolverEventReactions.condition.map(onConditionApplied)
+    ]
   },
-  presentation: bindNecromancerCoreUi,
+  presentation: bindNecromancerCoreUi
 });

@@ -11,35 +11,26 @@
  * counter. This is the supported hook for profession-specific visuals such as
  * Mesmer notes and Revenant affinity emblems.
  */
-import type {
-  ProfessionResourceView,
-  SkillId,
-} from "../../platform/engine/types.js";
-import type { ProfessionAppState } from "../profession/types.js";
-import type { PaletteResourceView } from "../../platform/ui/types.js";
-import { resourceDisplayViews } from "../../platform/ui/resource-display.js";
-import { escapeHtml as esc } from "../../platform/ui/html.js";
-import {
-  activeSpecialization,
-  paletteProfessionState,
-  professionEndState,
-} from "./context.js";
+import type { ProfessionResourceView, SkillId } from '../../platform/engine/types.js';
+import type { ProfessionAppState } from '../profession/types.js';
+import type { PaletteResourceView } from '../../platform/ui/types.js';
+import { resourceDisplayViews } from '../../platform/ui/resource-display.js';
+import { escapeHtml as esc } from '../../platform/ui/html.js';
+import { activeSpecialization, paletteProfessionState, professionEndState } from './context.js';
 
 /** Formats a finite resource value with at most three decimal places. */
 export function formatResourceValue(value: unknown): string {
   const numeric = Number(value || 0);
-  if (!Number.isFinite(numeric)) return "0";
+  if (!Number.isFinite(numeric)) return '0';
   return String(Math.round((numeric + Number.EPSILON) * 1000) / 1000);
 }
 
-function activeResourceDefinitions(
-  app: ProfessionAppState,
-): ProfessionResourceView[] {
+function activeResourceDefinitions(app: ProfessionAppState): ProfessionResourceView[] {
   const professionState = paletteProfessionState(app);
   const specialization =
-    typeof app.adapter?.eliteSpecialization === "function"
+    typeof app.adapter?.eliteSpecialization === 'function'
       ? activeSpecialization(app)
-      : String(app.build?.specialization || "Core");
+      : String(app.build?.specialization || 'Core');
   return resourceDisplayViews(app.profession, {
     specialization,
     build: app.build,
@@ -47,29 +38,23 @@ function activeResourceDefinitions(
     professionState,
     initialResource: app.build?.initialResource,
     initialBlight: app.build?.initialBlight,
-    initialCascadingCorruptionStacks:
-      app.build?.initialCascadingCorruptionStacks,
+    initialCascadingCorruptionStacks: app.build?.initialCascadingCorruptionStacks
   }).filter((definition) => definition.showInPalette !== false);
 }
 
 /** Returns the live resource meter attached to a rotation-palette skill. */
-export function paletteSkillResourceView(
-  app: ProfessionAppState,
-  skillId: SkillId,
-): PaletteResourceView | null {
+export function paletteSkillResourceView(app: ProfessionAppState, skillId: SkillId): PaletteResourceView | null {
   // Some isolated palette consumers project skills without a profession.
   if (!app.profession?.ui) return null;
   const definition = activeResourceDefinitions(app).find(
-    (candidate) =>
-      candidate.paletteSkillId != null &&
-      String(candidate.paletteSkillId) === String(skillId),
+    (candidate) => candidate.paletteSkillId != null && String(candidate.paletteSkillId) === String(skillId)
   );
   if (!definition) return null;
   return {
     id: definition.id,
     label: `${definition.statusLabel} ${definition.plural}: ${formatResourceValue(definition.value)}/${definition.maximum}`,
     value: definition.value,
-    maximum: definition.maximum,
+    maximum: definition.maximum
   };
 }
 
@@ -122,9 +107,9 @@ function pipFillRanks(rows: readonly number[]): number[][] {
 function resourcePipsHtml(
   definition: ProfessionResourceView,
   value: number,
-  { interactive = false }: { readonly interactive?: boolean } = {},
+  { interactive = false }: { readonly interactive?: boolean } = {}
 ): string {
-  const pipClass = definition.pipStyle ? ` ${esc(definition.pipStyle)}` : "";
+  const pipClass = definition.pipStyle ? ` ${esc(definition.pipStyle)}` : '';
   const pipRows = Number(definition.pipRows || 1);
   const rows = resourcePipRows(definition.maximum, pipRows);
   const fillRank = pipFillRanks(rows);
@@ -132,7 +117,7 @@ function resourcePipsHtml(
     .map((count, row) => {
       const pips = Array.from({ length: count }, (_, col) => {
         const rank = fillRank[row][col];
-        const stateClass = rank < value ? " active" : "";
+        const stateClass = rank < value ? ' active' : '';
         const label = rank + 1;
         if (!interactive) {
           return `<span class="active-resource-pip${stateClass}"></span>`;
@@ -140,44 +125,31 @@ function resourcePipsHtml(
         return `<button class="resource-pip${stateClass}"
                 data-count="${label}" data-resource-key="${esc(definition.buildKey)}"
                 title="${label} ${esc(definition.plural)}"></button>`;
-      }).join("");
-      return pipRows > 1
-        ? `<span class="resource-pip-row">${pips}</span>`
-        : pips;
+      }).join('');
+      return pipRows > 1 ? `<span class="resource-pip-row">${pips}</span>` : pips;
     })
-    .join("");
+    .join('');
   return `<div class="${
-    interactive ? "resource-pips" : "active-resource-pips"
+    interactive ? 'resource-pips' : 'active-resource-pips'
   }${pipClass} pip-rows-${pipRows}">${content}</div>`;
 }
 
-function resourceBarsHtml(
-  definition: ProfessionResourceView,
-  value: number,
-): string {
+function resourceBarsHtml(definition: ProfessionResourceView, value: number): string {
   const segmentCount = Math.max(1, Number(definition.barSegments || 1));
   const segmentMaximum = definition.maximum / segmentCount;
-  const barClass = definition.pipStyle ? ` ${esc(definition.pipStyle)}` : "";
+  const barClass = definition.pipStyle ? ` ${esc(definition.pipStyle)}` : '';
   const bars = Array.from({ length: segmentCount }, (_, index) => {
-    const segmentValue = Math.max(
-      0,
-      Math.min(segmentMaximum, value - index * segmentMaximum),
-    );
+    const segmentValue = Math.max(0, Math.min(segmentMaximum, value - index * segmentMaximum));
     const width = segmentMaximum ? (segmentValue / segmentMaximum) * 100 : 0;
     return `<div class="active-resource-bar${barClass}"><span style="width:${width}%"></span></div>`;
-  }).join("");
+  }).join('');
   return segmentCount > 1
     ? `<div class="active-resource-bars" style="--resource-bar-segments:${segmentCount}">${bars}</div>`
     : bars;
 }
 
-function resourceCounterHtml(
-  definition: ProfessionResourceView,
-  value: number,
-): string {
-  const counterClass = definition.pipStyle
-    ? ` ${esc(definition.pipStyle)}`
-    : "";
+function resourceCounterHtml(definition: ProfessionResourceView, value: number): string {
+  const counterClass = definition.pipStyle ? ` ${esc(definition.pipStyle)}` : '';
   return `<div class="active-resource-counter${counterClass}" aria-hidden="true">
       <span>${esc(formatResourceValue(value))}</span>
     </div>`;
@@ -185,20 +157,20 @@ function resourceCounterHtml(
 
 function resourceStatusItemsHtml(definition: ProfessionResourceView): string {
   const items = definition.statusItems || [];
-  if (!items.length) return "";
-  const label = definition.statusItemsLabel || "Active";
+  if (!items.length) return '';
+  const label = definition.statusItemsLabel || 'Active';
   return `<div class="active-resource-statuses"
       aria-label="${esc(label)}">
       <span class="active-resource-statuses-label">${esc(label)}</span>
       ${items
         .map((item) => {
-          const title = item.title || `${item.label} ${item.valueLabel || ""}`;
+          const title = item.title || `${item.label} ${item.valueLabel || ''}`;
           return `<span class="active-resource-status" title="${esc(title.trim())}">
           <span>${esc(item.label)}</span>
-          ${item.valueLabel ? `<strong>${esc(item.valueLabel)}</strong>` : ""}
+          ${item.valueLabel ? `<strong>${esc(item.valueLabel)}</strong>` : ''}
         </span>`;
         })
-        .join("")}
+        .join('')}
     </div>`;
 }
 
@@ -210,46 +182,36 @@ export function activeResourceGroup(
   app: ProfessionAppState,
   {
     includeIds,
-    excludeIds,
+    excludeIds
   }: {
     readonly includeIds?: readonly string[];
     readonly excludeIds?: readonly string[];
-  } = {},
+  } = {}
 ): string {
   const included = includeIds ? new Set(includeIds.map(String)) : null;
   const excluded = new Set((excludeIds || []).map(String));
   const definitions = activeResourceDefinitions(app).filter(
     (definition) =>
-      definition.paletteSkillId == null &&
-      (!included || included.has(definition.id)) &&
-      !excluded.has(definition.id),
+      definition.paletteSkillId == null && (!included || included.has(definition.id)) && !excluded.has(definition.id)
   );
   const groups = definitions
     .map((definition) => {
-      const buildValue = definition.buildKey
-        ? app.build[definition.buildKey]
-        : 0;
-      const value = Math.max(
-        0,
-        Math.min(definition.maximum, Number(definition.value ?? buildValue)),
-      );
+      const buildValue = definition.buildKey ? app.build[definition.buildKey] : 0;
+      const value = Math.max(0, Math.min(definition.maximum, Number(definition.value ?? buildValue)));
       const displayValue = formatResourceValue(value);
       const valueLabel = `${definition.statusLabel} ${definition.plural}: ${displayValue}/${definition.maximum}`;
-      const title =
-        definition.showValue === false
-          ? `${definition.statusLabel} ${definition.plural}`
-          : valueLabel;
+      const title = definition.showValue === false ? `${definition.statusLabel} ${definition.plural}` : valueLabel;
       const indicator =
-        definition.displayMode === "bar"
+        definition.displayMode === 'bar'
           ? resourceBarsHtml(definition, value)
-          : definition.displayMode === "counter"
+          : definition.displayMode === 'counter'
             ? resourceCounterHtml(definition, value)
             : resourcePipsHtml(definition, value);
       // Bars and pips need their numeric value for precise resource tracking;
       // counters already render the value inside their own indicator.
       const visibleValue =
-        definition.displayMode === "counter" || definition.showValue === false
-          ? ""
+        definition.displayMode === 'counter' || definition.showValue === false
+          ? ''
           : `<strong>${displayValue}/${definition.maximum}</strong>`;
       return `<div class="pal-group active-resource-group">
             <div class="pal-label" style="color:#c49cff">${esc(definition.shortLabel)}</div>
@@ -262,10 +224,8 @@ export function activeResourceGroup(
             ${resourceStatusItemsHtml(definition)}
         </div>`;
     })
-    .join("");
-  return definitions.length > 1
-    ? `<div class="active-resource-stack">${groups}</div>`
-    : groups;
+    .join('');
+  return definitions.length > 1 ? `<div class="active-resource-stack">${groups}</div>` : groups;
 }
 
 /**
@@ -278,7 +238,7 @@ export function activeResourceGroup(
  * simulation and both resource displays refresh together.
  */
 export function renderStartResource(app: ProfessionAppState): void {
-  const element = document.getElementById("start-att-selector");
+  const element = document.getElementById('start-att-selector');
   if (!element) return;
   const professionState = professionEndState(app.results);
   const definitions = resourceDisplayViews(app.profession, {
@@ -288,14 +248,13 @@ export function renderStartResource(app: ProfessionAppState): void {
     value: professionState.resource ?? app.build.initialResource,
     initialResource: app.build.initialResource,
     initialBlight: app.build.initialBlight,
-    initialCascadingCorruptionStacks:
-      app.build.initialCascadingCorruptionStacks,
+    initialCascadingCorruptionStacks: app.build.initialCascadingCorruptionStacks
   });
   const startControls = app.profession.ui.startControls({
     build: app.build,
     specialization: activeSpecialization(app),
     professionState,
-    catalog: app.activeCatalog,
+    catalog: app.activeCatalog
   });
   const startControlsHtml = startControls
     .map(
@@ -304,18 +263,18 @@ export function renderStartResource(app: ProfessionAppState): void {
           <div class="start-state-toggle">${control.options
             .map(
               (option) => `<button class="start-att-btn start-state-btn${
-                option.value === control.value ? " active" : ""
+                option.value === control.value ? ' active' : ''
               }" data-start-control-key="${esc(control.buildKey)}"
                   data-start-control-value="${esc(option.value)}"
-                  style="--att-c:${esc(control.color || "var(--accent)")}"
+                  style="--att-c:${esc(control.color || 'var(--accent)')}"
                   title="${esc(option.description || option.label)}">
-                  <img src="${esc(option.icon || "")}" alt="">
-              </button>`,
+                  <img src="${esc(option.icon || '')}" alt="">
+              </button>`
             )
-            .join("")}</div>
-      </div>`,
+            .join('')}</div>
+      </div>`
     )
-    .join("");
+    .join('');
   const hasSecondSet = Boolean(app.build.alternateWeapons?.[0]);
   const startSet = app.build.startingWeaponSet === 2 && hasSecondSet ? 2 : 1;
   const weaponControl = hasSecondSet
@@ -323,99 +282,77 @@ export function renderStartResource(app: ProfessionAppState): void {
         <div class="weapon-set-toggle">${[1, 2]
           .map(
             (set) =>
-              `<button class="weapon-set-btn${set === startSet ? " active" : ""}"
-                data-set="${set}" title="Start on weapon set ${set}">W${set}</button>`,
+              `<button class="weapon-set-btn${set === startSet ? ' active' : ''}"
+                data-set="${set}" title="Start on weapon set ${set}">W${set}</button>`
           )
-          .join("")}</div>`
-    : "";
+          .join('')}</div>`
+    : '';
   const slotLoadout = app.adapter.slotLoadout;
   const loadoutView = slotLoadout?.view({
     build: app.build,
     specialization: activeSpecialization(app),
     professionState,
-    catalog: app.activeCatalog,
+    catalog: app.activeCatalog
   });
-  const startingLoadoutId =
-    loadoutView && slotLoadout ? app.build[slotLoadout.startingKey] : "";
+  const startingLoadoutId = loadoutView && slotLoadout ? app.build[slotLoadout.startingKey] : '';
   const loadoutControl = loadoutView?.bars?.length
-    ? `<span class="start-att-label">Start ${esc(
-        loadoutView.label.replace(/s$/, "").toLowerCase(),
-      )}:</span>
+    ? `<span class="start-att-label">Start ${esc(loadoutView.label.replace(/s$/, '').toLowerCase())}:</span>
         <div class="start-loadout-toggle">${loadoutView.bars
           .map(
             (bar) =>
               `<button class="start-att-btn start-loadout-btn${
-                bar.id === startingLoadoutId ? " active" : ""
+                bar.id === startingLoadoutId ? ' active' : ''
               }" data-loadout-id="${esc(bar.id)}" style="--att-c:var(--accent)"
                 title="Start with ${esc(bar.compactLabel || bar.label)}">
-                <img src="${esc(bar.icon || "")}" alt="">
-            </button>`,
+                <img src="${esc(bar.icon || '')}" alt="">
+            </button>`
           )
-          .join("")}</div>`
-    : "";
+          .join('')}</div>`
+    : '';
   const bindStartingLoadout = (): void => {
-    element
-      .querySelectorAll<HTMLElement>(".start-loadout-btn")
-      .forEach((button) => {
-        button.addEventListener("click", () => {
-          if (!slotLoadout) return;
-          slotLoadout.updateBuild(
-            app.build,
-            slotLoadout.startingKey,
-            button.dataset.loadoutId || "",
-            {
-              build: app.build,
-              specialization: activeSpecialization(app),
-              professionState,
-              catalog: app.activeCatalog,
-            },
-          );
-          app.changed();
+    element.querySelectorAll<HTMLElement>('.start-loadout-btn').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (!slotLoadout) return;
+        slotLoadout.updateBuild(app.build, slotLoadout.startingKey, button.dataset.loadoutId || '', {
+          build: app.build,
+          specialization: activeSpecialization(app),
+          professionState,
+          catalog: app.activeCatalog
         });
+        app.changed();
       });
+    });
   };
   const bindStartControls = (): void => {
-    element
-      .querySelectorAll<HTMLElement>(".start-state-btn")
-      .forEach((button) => {
-        button.addEventListener("click", () => {
-          const key = button.dataset.startControlKey;
-          const value = button.dataset.startControlValue;
-          if (!key || value == null) return;
-          app.build[key] = value;
-          app.changed();
-        });
+    element.querySelectorAll<HTMLElement>('.start-state-btn').forEach((button) => {
+      button.addEventListener('click', () => {
+        const key = button.dataset.startControlKey;
+        const value = button.dataset.startControlValue;
+        if (!key || value == null) return;
+        app.build[key] = value;
+        app.changed();
       });
+    });
   };
   if (!definitions.length) {
     element.innerHTML = `${weaponControl}${loadoutControl}${startControlsHtml}`;
-    element
-      .querySelectorAll<HTMLElement>(".weapon-set-btn")
-      .forEach((button) => {
-        button.addEventListener("click", () => {
-          app.build.startingWeaponSet = Number(button.dataset.set);
-          app.changed();
-        });
+    element.querySelectorAll<HTMLElement>('.weapon-set-btn').forEach((button) => {
+      button.addEventListener('click', () => {
+        app.build.startingWeaponSet = Number(button.dataset.set);
+        app.changed();
       });
+    });
     bindStartingLoadout();
     bindStartControls();
     return;
   }
   const resourceControls = definitions
     .map((definition) => {
-      if (definition.canStart === false) return "";
-      const key = definition.buildKey || "initialResource";
-      const startMaximum = Number(
-        definition.startMaximum ?? definition.maximum,
-      );
-      const value = Math.max(
-        0,
-        Math.min(startMaximum, Number(app.build[key] || 0)),
-      );
-      if (
-        definition.displayMode === "bar" ||
-        definition.displayMode === "counter"
-      ) {
+      if (definition.canStart === false) return '';
+      const key = definition.buildKey || 'initialResource';
+      const startMaximum = Number(definition.startMaximum ?? definition.maximum);
+      const value = Math.max(0, Math.min(startMaximum, Number(app.build[key] || 0)));
+      if (definition.displayMode === 'bar' || definition.displayMode === 'counter') {
         return `<div class="start-resource-control start-resource-number">
                 <label class="start-att-label">
                     Start ${esc(definition.plural)}:
@@ -430,30 +367,25 @@ export function renderStartResource(app: ProfessionAppState): void {
             ${resourcePipsHtml(definition, value, { interactive: true })}
         </div>`;
     })
-    .join("");
+    .join('');
   element.innerHTML = `${weaponControl}${loadoutControl}${startControlsHtml}${resourceControls}`;
-  element.querySelectorAll<HTMLElement>(".resource-pip").forEach((button) => {
-    button.addEventListener("click", () => {
+  element.querySelectorAll<HTMLElement>('.resource-pip').forEach((button) => {
+    button.addEventListener('click', () => {
       const count = Number(button.dataset.count);
-      const key = button.dataset.resourceKey || "initialResource";
+      const key = button.dataset.resourceKey || 'initialResource';
       app.build[key] = count === app.build[key] ? count - 1 : count;
       app.changed();
     });
   });
-  element
-    .querySelectorAll<HTMLInputElement>("input[data-resource-key]")
-    .forEach((input) => {
-      input.addEventListener("change", () => {
-        const key = input.dataset.resourceKey || "initialResource";
-        app.build[key] = Math.max(
-          Number(input.min || 0),
-          Math.min(Number(input.max), Number(input.value) || 0),
-        );
-        app.changed();
-      });
+  element.querySelectorAll<HTMLInputElement>('input[data-resource-key]').forEach((input) => {
+    input.addEventListener('change', () => {
+      const key = input.dataset.resourceKey || 'initialResource';
+      app.build[key] = Math.max(Number(input.min || 0), Math.min(Number(input.max), Number(input.value) || 0));
+      app.changed();
     });
-  element.querySelectorAll<HTMLElement>(".weapon-set-btn").forEach((button) => {
-    button.addEventListener("click", () => {
+  });
+  element.querySelectorAll<HTMLElement>('.weapon-set-btn').forEach((button) => {
+    button.addEventListener('click', () => {
       app.build.startingWeaponSet = Number(button.dataset.set);
       app.changed();
     });

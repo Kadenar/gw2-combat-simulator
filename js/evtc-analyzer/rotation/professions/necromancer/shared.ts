@@ -1,7 +1,4 @@
-import type {
-  EvtcProfessionReconstructionContext,
-  EvtcRecordedRotationAction,
-} from "../types.js";
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 
 export const INSTANT_SIGNAL_WINDOW_MS = 150;
 
@@ -11,7 +8,7 @@ export function effectAction(
   rawSkillId: number,
   rawName: string,
   canonical?: { readonly name: string; readonly skillId: number },
-  evidence: EvtcRecordedRotationAction["evidence"] = "effect",
+  evidence: EvtcRecordedRotationAction['evidence'] = 'effect'
 ): EvtcRecordedRotationAction {
   return {
     start: time,
@@ -20,14 +17,14 @@ export function effectAction(
     rawSkillId,
     rawName,
     evidence,
-    status: "instant",
+    status: 'instant',
     eventIndex,
     ...(canonical
       ? {
           canonicalSkillId: canonical.skillId,
-          canonicalName: canonical.name,
+          canonicalName: canonical.name
         }
-      : {}),
+      : {})
   };
 }
 
@@ -36,13 +33,12 @@ export function hasRecordedAction(
   skillId: number,
   name: string,
   time: number,
-  windowMs: number,
+  windowMs: number
 ): boolean {
   const normalizedName = name.toLowerCase();
   return context.recordedActions.some(
     (action) =>
-      (action.rawSkillId === skillId ||
-        action.rawName.trim().toLowerCase() === normalizedName) &&
-      Math.abs(action.start - time) <= windowMs,
+      (action.rawSkillId === skillId || action.rawName.trim().toLowerCase() === normalizedName) &&
+      Math.abs(action.start - time) <= windowMs
   );
 }

@@ -2,9 +2,9 @@
  * Stable event queue helpers used by both scheduling and resolution. Events are
  * ordered by timestamp, then explicit priority, then insertion order.
  */
-import type { QueuedEvent } from "./types.js";
+import type { QueuedEvent } from './types.js';
 
-export { EPSILON } from "./clock.js";
+export { EPSILON } from './clock.js';
 
 interface HeapEntry<T extends QueuedEvent> {
   readonly event: T;
@@ -27,17 +27,10 @@ function explicitCausalOrder(event: QueuedEvent): number | null {
  * @param {HeapEntry<T>} right
  * @returns {number}
  */
-function compareHeapEntries<T extends QueuedEvent>(
-  left: HeapEntry<T>,
-  right: HeapEntry<T>,
-): number {
+function compareHeapEntries<T extends QueuedEvent>(left: HeapEntry<T>, right: HeapEntry<T>): number {
   const eventOrder = compareQueuedEvents(left.event, right.event);
   if (eventOrder) return eventOrder;
-  if (
-    left.causalOrder != null
-    && right.causalOrder != null
-    && left.causalOrder !== right.causalOrder
-  ) {
+  if (left.causalOrder != null && right.causalOrder != null && left.causalOrder !== right.causalOrder) {
     return left.causalOrder - right.causalOrder;
   }
   return left.sequence - right.sequence;
@@ -50,20 +43,14 @@ function compareHeapEntries<T extends QueuedEvent>(
  * @param {QueuedEvent} right
  * @returns {number}
  */
-export function compareQueuedEvents(
-  left: QueuedEvent,
-  right: QueuedEvent,
-): number {
-  const time =
-    Number(left.at ?? left.time ?? 0) - Number(right.at ?? right.time ?? 0);
+export function compareQueuedEvents(left: QueuedEvent, right: QueuedEvent): number {
+  const time = Number(left.at ?? left.time ?? 0) - Number(right.at ?? right.time ?? 0);
   if (time) return time;
   const priority = Number(left.priority || 0) - Number(right.priority || 0);
   if (priority) return priority;
   const leftOrder = explicitCausalOrder(left);
   const rightOrder = explicitCausalOrder(right);
-  return leftOrder != null && rightOrder != null
-    ? leftOrder - rightOrder
-    : 0;
+  return leftOrder != null && rightOrder != null ? leftOrder - rightOrder : 0;
 }
 
 /**
@@ -84,15 +71,11 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     this.heap = [...events].map((event, sequence) => ({
       event,
       causalOrder: explicitCausalOrder(event),
-      sequence,
+      sequence
     }));
     this.nextSequence = this.heap.length;
     this.currentCausalOrder = null;
-    for (
-      let index = Math.floor(this.heap.length / 2) - 1;
-      index >= 0;
-      index -= 1
-    ) {
+    for (let index = Math.floor(this.heap.length / 2) - 1; index >= 0; index -= 1) {
       this.siftDown(index);
     }
   }
@@ -108,9 +91,8 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   enqueue(event: T): T {
     const entry: HeapEntry<T> = {
       event,
-      causalOrder:
-        explicitCausalOrder(event) ?? this.currentCausalOrder,
-      sequence: this.nextSequence,
+      causalOrder: explicitCausalOrder(event) ?? this.currentCausalOrder,
+      sequence: this.nextSequence
     };
     this.nextSequence += 1;
     this.heap.push(entry);
@@ -118,8 +100,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     while (index > 0) {
       const parent = Math.floor((index - 1) / 2);
       if (compareHeapEntries(this.heap[index], this.heap[parent]) >= 0) break;
-      [this.heap[index], this.heap[parent]] =
-        [this.heap[parent], this.heap[index]];
+      [this.heap[index], this.heap[parent]] = [this.heap[parent], this.heap[index]];
       index = parent;
     }
     return event;
@@ -150,21 +131,14 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
       const left = index * 2 + 1;
       const right = left + 1;
       let smallest = index;
-      if (
-        left < this.heap.length
-        && compareHeapEntries(this.heap[left], this.heap[smallest]) < 0
-      ) {
+      if (left < this.heap.length && compareHeapEntries(this.heap[left], this.heap[smallest]) < 0) {
         smallest = left;
       }
-      if (
-        right < this.heap.length
-        && compareHeapEntries(this.heap[right], this.heap[smallest]) < 0
-      ) {
+      if (right < this.heap.length && compareHeapEntries(this.heap[right], this.heap[smallest]) < 0) {
         smallest = right;
       }
       if (smallest === index) return;
-      [this.heap[index], this.heap[smallest]] =
-        [this.heap[smallest], this.heap[index]];
+      [this.heap[index], this.heap[smallest]] = [this.heap[smallest], this.heap[index]];
       index = smallest;
     }
   }
@@ -176,11 +150,9 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
  * @returns {StableEventQueue<T>}
  */
 export function createEventQueue<T extends QueuedEvent>(
-  events: readonly T[] | StableEventQueue<T> = [],
+  events: readonly T[] | StableEventQueue<T> = []
 ): StableEventQueue<T> {
-  return events instanceof StableEventQueue
-    ? events
-    : new StableEventQueue(events);
+  return events instanceof StableEventQueue ? events : new StableEventQueue(events);
 }
 
 /**
@@ -191,10 +163,7 @@ export function createEventQueue<T extends QueuedEvent>(
  * @param {T} event
  * @returns {T}
  */
-export function enqueueOrdered<T extends QueuedEvent>(
-  queue: T[] | StableEventQueue<T>,
-  event: T,
-): T {
+export function enqueueOrdered<T extends QueuedEvent>(queue: T[] | StableEventQueue<T>, event: T): T {
   if (queue instanceof StableEventQueue) return queue.enqueue(event);
   queue.push(event);
   let index = queue.length - 1;
@@ -212,9 +181,7 @@ export function enqueueOrdered<T extends QueuedEvent>(
  * @param {T[]|StableEventQueue<T>} queue
  * @returns {T[]|StableEventQueue<T>}
  */
-export function sortQueuedEvents<T extends QueuedEvent>(
-  queue: T[] | StableEventQueue<T>,
-): T[] | StableEventQueue<T> {
+export function sortQueuedEvents<T extends QueuedEvent>(queue: T[] | StableEventQueue<T>): T[] | StableEventQueue<T> {
   if (queue instanceof StableEventQueue) return queue;
   return queue.sort(compareQueuedEvents);
 }
@@ -226,10 +193,6 @@ export function sortQueuedEvents<T extends QueuedEvent>(
  * @param {T[]|StableEventQueue<T>} queue
  * @returns {T|undefined}
  */
-export function takeNextEvent<T extends QueuedEvent>(
-  queue: T[] | StableEventQueue<T>,
-): T | undefined {
-  return queue instanceof StableEventQueue
-    ? queue.dequeue()
-    : queue.shift();
+export function takeNextEvent<T extends QueuedEvent>(queue: T[] | StableEventQueue<T>): T | undefined {
+  return queue instanceof StableEventQueue ? queue.dequeue() : queue.shift();
 }

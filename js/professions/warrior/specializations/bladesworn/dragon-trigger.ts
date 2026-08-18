@@ -1,11 +1,8 @@
-import { hasTrait } from "../../../../platform/gw2/trait-state.js";
-import { WARRIOR_TRAIT_IDS as TRAIT } from "../../data/ids.js";
-import type {
-  WarriorCastContext,
-  WarriorSchedulerContext,
-} from "../../types.js";
-import { warriorBalanceProfile } from "../../core/profiles.js";
-import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
+import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import type { WarriorCastContext, WarriorSchedulerContext } from '../../types.js';
+import { warriorBalanceProfile } from '../../core/profiles.js';
+import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 // Dragon Trigger ticks every 250 ms to potentially grant one charge.
 export const DRAGON_CHARGE_INTERVAL_SECONDS = 0.25;
@@ -13,8 +10,8 @@ export const DRAGON_FLOW_PER_INTERVAL = 5;
 export const DRAGON_TRIGGER_FLOW_COST = 15;
 export const DRAGON_TRIGGER_DURATION_SECONDS = 30;
 
-export const DRAGON_TRIGGER_ENTRY_RESOURCE_REASON = "dragon trigger entry";
-export const DRAGON_TRIGGER_TICK_RESOURCE_REASON = "dragon trigger charge";
+export const DRAGON_TRIGGER_ENTRY_RESOURCE_REASON = 'dragon trigger entry';
+export const DRAGON_TRIGGER_TICK_RESOURCE_REASON = 'dragon trigger charge';
 
 export interface DragonFlowRateSegment {
   readonly start: number;
@@ -50,7 +47,7 @@ export function projectDragonFlow(
   maximumFlow: number,
   from: number,
   to: number,
-  flowRateSegments: readonly DragonFlowRateSegment[],
+  flowRateSegments: readonly DragonFlowRateSegment[]
 ): number {
   if (!(to > from)) return Math.min(maximumFlow, Math.max(0, flow));
   const gained = flowRateSegments.reduce((total, segment) => {
@@ -60,37 +57,20 @@ export function projectDragonFlow(
   return Math.min(maximumFlow, Math.max(0, flow + gained));
 }
 
-export function projectDragonCharges(
-  input: DragonChargeProjectionInput,
-): readonly DragonChargeTick[] {
+export function projectDragonCharges(input: DragonChargeProjectionInput): readonly DragonChargeTick[] {
   const ticks: DragonChargeTick[] = [];
   const interval = input.intervalSeconds ?? DRAGON_CHARGE_INTERVAL_SECONDS;
   let at = input.firstTickAt ?? input.startTime + interval;
   let previousAt = input.startTime;
   let flow = Math.min(input.maximumFlow, Math.max(0, input.flow));
-  let charges = Math.min(
-    input.maximumCharges,
-    Math.max(0, input.initialCharges ?? 0),
-  );
+  let charges = Math.min(input.maximumCharges, Math.max(0, input.initialCharges ?? 0));
 
-  while (
-    at <= input.deadline + PROJECTION_EPSILON &&
-    charges < input.maximumCharges
-  ) {
-    flow = projectDragonFlow(
-      flow,
-      input.maximumFlow,
-      previousAt,
-      at,
-      input.flowRateSegments,
-    );
+  while (at <= input.deadline + PROJECTION_EPSILON && charges < input.maximumCharges) {
+    flow = projectDragonFlow(flow, input.maximumFlow, previousAt, at, input.flowRateSegments);
     const granted = flow + PROJECTION_EPSILON >= input.flowPerInterval;
     if (granted) {
       flow = Math.max(0, flow - input.flowPerInterval);
-      charges = Math.min(
-        input.maximumCharges,
-        charges + input.chargesPerInterval,
-      );
+      charges = Math.min(input.maximumCharges, charges + input.chargesPerInterval);
     }
     ticks.push({ at, charges, flowAfter: flow, granted });
     previousAt = at;
@@ -104,14 +84,11 @@ export function dragonSlashCoefficient(
   minimum: number,
   maximum: number,
   charges: number,
-  maximumCharges: number,
+  maximumCharges: number
 ): number {
   if (maximumCharges <= 1) return maximum;
   const resolvedCharges = Math.max(1, Math.min(maximumCharges, charges));
-  return (
-    minimum +
-    (maximum - minimum) * ((resolvedCharges - 1) / (maximumCharges - 1))
-  );
+  return minimum + (maximum - minimum) * ((resolvedCharges - 1) / (maximumCharges - 1));
 }
 
 // Maps charges to adrenaline bars spent (1 bar = 10): 1–4 charges → 10,
@@ -132,17 +109,11 @@ export function maximumDragonCharges(context: DragonTriggerContext): number {
 }
 
 export function dragonFlowPerInterval(context: DragonTriggerContext): number {
-  const cost = Number(
-    warriorBalanceProfile(context, PROFILE.dragonTrigger)?.resourceCost ??
-      DRAGON_FLOW_PER_INTERVAL,
-  );
+  const cost = Number(warriorBalanceProfile(context, PROFILE.dragonTrigger)?.resourceCost ?? DRAGON_FLOW_PER_INTERVAL);
   return hasTrait(context, TRAIT.DARING_DRAGON) ? cost * 2 : cost;
 }
 
-export function requestedDragonCharges(
-  context: WarriorCastContext,
-  maximumCharges: number,
-): number {
+export function requestedDragonCharges(context: WarriorCastContext, maximumCharges: number): number {
   const configured = context.command.releaseAtCharges;
   if (configured == null) return maximumCharges;
   return Math.min(maximumCharges, Math.max(1, configured));

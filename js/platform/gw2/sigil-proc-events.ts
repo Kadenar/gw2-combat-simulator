@@ -1,11 +1,9 @@
-import type { SimulationEvent, SimulationEventInput } from "../engine/types.js";
-import type { Gw2SigilProc } from "./types.js";
+import type { SimulationEvent, SimulationEventInput } from '../engine/types.js';
+import type { Gw2SigilProc } from './types.js';
 
-export const RESOLVER_CRITICAL_SIGILS = Object.freeze(
-  new Set(["Air", "Earth", "Torment"]),
-);
+export const RESOLVER_CRITICAL_SIGILS = Object.freeze(new Set(['Air', 'Earth', 'Torment']));
 
-export const GW2_SCHEDULER_SIGIL_PREDICTION = "critical-sigil";
+export const GW2_SCHEDULER_SIGIL_PREDICTION = 'critical-sigil';
 
 export function isResolverCriticalSigil(name: string): boolean {
   return RESOLVER_CRITICAL_SIGILS.has(name);
@@ -17,57 +15,48 @@ export function isSchedulerSigilPrediction(event: SimulationEvent): boolean {
 
 function commonSigilEvent(
   name: string,
-  sourceSkill: string,
-): Pick<
-  SimulationEventInput,
-  "name" | "skillName" | "source" | "sourceId" | "actorType"
-> & { readonly triggeredBy: string } {
+  sourceSkill: string
+): Pick<SimulationEventInput, 'name' | 'skillName' | 'source' | 'sourceId' | 'actorType'> & {
+  readonly triggeredBy: string;
+} {
   return {
     name: `Sigil of ${name}`,
     skillName: `Sigil of ${name}`,
-    source: "Sigil",
+    source: 'Sigil',
     sourceId: `sigil.${name.toLowerCase()}`,
-    actorType: "effect",
-    triggeredBy: sourceSkill,
+    actorType: 'effect',
+    triggeredBy: sourceSkill
   };
 }
 
 /** Builds the canonical strike packet shared by scheduler and resolver sigils. */
-export function createSigilStrikeEvent(
-  name: string,
-  proc: Gw2SigilProc,
-  sourceSkill: string,
-): SimulationEventInput {
+export function createSigilStrikeEvent(name: string, proc: Gw2SigilProc, sourceSkill: string): SimulationEventInput {
   return {
     ...commonSigilEvent(name, sourceSkill),
-    ...(name === "Air" ? { ownerActorType: "player" as const } : {}),
-    type: "damage",
+    ...(name === 'Air' ? { ownerActorType: 'player' as const } : {}),
+    type: 'damage',
     at: 0,
     coefficient: proc.coefficient,
     hits: 1,
     hitIndex: 1,
     totalHits: 1,
     weaponStrength: proc.weaponStrength,
-    skillWeapon: "Unequipped",
+    skillWeapon: 'Unequipped',
     noCrit: !proc.canCrit,
     canTriggerCriticalSigils: proc.canCrit === true,
-    canTriggerCriticalTraits: proc.canCrit === true,
+    canTriggerCriticalTraits: proc.canCrit === true
   };
 }
 
 /** Builds the canonical condition packet shared by scheduler and resolver sigils. */
-export function createSigilConditionEvent(
-  name: string,
-  proc: Gw2SigilProc,
-  sourceSkill: string,
-): SimulationEventInput {
+export function createSigilConditionEvent(name: string, proc: Gw2SigilProc, sourceSkill: string): SimulationEventInput {
   return {
     ...commonSigilEvent(name, sourceSkill),
-    type: "condition",
+    type: 'condition',
     at: 0,
-    name: `Sigil of ${name} — ${String(proc.condition || "")}`,
+    name: `Sigil of ${name} — ${String(proc.condition || '')}`,
     condition: proc.condition,
     duration: proc.duration,
-    stacks: proc.stacks,
+    stacks: proc.stacks
   };
 }

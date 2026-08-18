@@ -56,14 +56,9 @@ export function requiredSelect(id: string): HTMLSelectElement {
  * @throws {Error} When the element is missing.
  * @throws {TypeError} When the element is neither an `<input>` nor a `<select>`.
  */
-export function requiredValueControl(
-  id: string,
-): HTMLInputElement | HTMLSelectElement {
+export function requiredValueControl(id: string): HTMLInputElement | HTMLSelectElement {
   const element = requiredElement(id);
-  if (
-    !(element instanceof HTMLInputElement) &&
-    !(element instanceof HTMLSelectElement)
-  ) {
+  if (!(element instanceof HTMLInputElement) && !(element instanceof HTMLSelectElement)) {
     throw new TypeError(`Element #${id} must expose a value.`);
   }
   return element;

@@ -1,17 +1,13 @@
-import {
-  RELIC_NAMES,
-  WEAPON_DATA,
-  createProfessionWeaponData,
-} from "../../platform/gw2/gear-data.js";
-import { defaultWeaponSkillMatchesSet } from "../../platform/gw2/weapon-skill-matcher.js";
-import { renderRotationBuilder } from "../rotation/index.js";
-import { renderResults } from "../rotation/result-view.js";
+import { RELIC_NAMES, WEAPON_DATA, createProfessionWeaponData } from '../../platform/gw2/gear-data.js';
+import { defaultWeaponSkillMatchesSet } from '../../platform/gw2/weapon-skill-matcher.js';
+import { renderRotationBuilder } from '../rotation/index.js';
+import { renderResults } from '../rotation/result-view.js';
 import type {
   Gw2AppAdapter,
   Gw2AppAdapterOptions,
   ProfessionAssumptionControl,
-  ProfessionSlotLoadout,
-} from "./types.js";
+  ProfessionSlotLoadout
+} from './types.js';
 
 /**
  * Builds the browser application adapter for a GW2 profession.
@@ -36,10 +32,10 @@ export function createGw2AppAdapter({
   randomDistributionRequest,
   calculateRandomDistribution,
   isSkillAvailable,
-  defaultOffhand,
+  defaultOffhand
 }: Gw2AppAdapterOptions): Readonly<Gw2AppAdapter> {
   const weaponData = createProfessionWeaponData(profession.catalog, {
-    weaponData: WEAPON_DATA,
+    weaponData: WEAPON_DATA
   });
 
   return Object.freeze({
@@ -68,14 +64,11 @@ export function createGw2AppAdapter({
     calculateRandomDistribution,
     renderResults,
     renderRotationBuilder,
-    slotLoadout: profession.ui.slotLoadout
-      ? (profession.ui.slotLoadout as unknown as ProfessionSlotLoadout)
-      : null,
+    slotLoadout: profession.ui.slotLoadout ? (profession.ui.slotLoadout as unknown as ProfessionSlotLoadout) : null,
     assumptionControls: (profession.ui.assumptionControls ||
       Object.freeze([])) as readonly ProfessionAssumptionControl[],
-    weaponSkillMatchesSet:
-      profession.ui.weaponSkillMatchesSet || defaultWeaponSkillMatchesSet,
+    weaponSkillMatchesSet: profession.ui.weaponSkillMatchesSet || defaultWeaponSkillMatchesSet,
     isSkillAvailable,
-    defaultOffhand,
+    defaultOffhand
   });
 }

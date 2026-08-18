@@ -1,19 +1,12 @@
-import type {
-  SchedulerRecord,
-  Skill,
-  SkillHandlerMode,
-  SkillHandlerPhase,
-  SkillHandlerStrategy,
-} from "./types.js";
+import type { SchedulerRecord, Skill, SkillHandlerMode, SkillHandlerPhase, SkillHandlerStrategy } from './types.js';
 
-type SkillHandlerOptions<TContext extends object> =
-  Omit<
-    Partial<SkillHandlerStrategy<TContext>>,
-    "mode" | "beforeEffects"
-  > & {
-    readonly mode?: unknown;
-    readonly beforeEffects?: SkillHandlerPhase<TContext> | null;
-  };
+type SkillHandlerOptions<TContext extends object> = Omit<
+  Partial<SkillHandlerStrategy<TContext>>,
+  'mode' | 'beforeEffects'
+> & {
+  readonly mode?: unknown;
+  readonly beforeEffects?: SkillHandlerPhase<TContext> | null;
+};
 
 /**
  * Shared skill-handler strategy contract.
@@ -25,41 +18,28 @@ type SkillHandlerOptions<TContext extends object> =
  */
 
 export const SKILL_HANDLER_MODES = Object.freeze({
-  AUGMENT: "augment",
-  REPLACE: "replace",
+  AUGMENT: 'augment',
+  REPLACE: 'replace'
 } as const);
 
-const VALID_MODES: ReadonlySet<string> = new Set(
-  Object.values(SKILL_HANDLER_MODES),
-);
-const HANDLER_PHASES = Object.freeze([
-  "beforeEffects",
-  "afterEffect",
-  "afterEffects",
-] as const);
-const HANDLER_FIELDS = new Set(["mode", "resolveMode", ...HANDLER_PHASES]);
+const VALID_MODES: ReadonlySet<string> = new Set(Object.values(SKILL_HANDLER_MODES));
+const HANDLER_PHASES = Object.freeze(['beforeEffects', 'afterEffect', 'afterEffects'] as const);
+const HANDLER_FIELDS = new Set(['mode', 'resolveMode', ...HANDLER_PHASES]);
 
 function assertFields(value: object, handlerId: string): void {
-  const unknownFields = Object.keys(value).filter(
-    (field) => !HANDLER_FIELDS.has(field),
-  );
+  const unknownFields = Object.keys(value).filter((field) => !HANDLER_FIELDS.has(field));
   if (unknownFields.length) {
     throw new TypeError(
       `Skill handler ${handlerId} has unsupported field` +
-        `${unknownFields.length === 1 ? "" : "s"}: ` +
-        unknownFields.join(", "),
+        `${unknownFields.length === 1 ? '' : 's'}: ` +
+        unknownFields.join(', ')
     );
   }
 }
 
 function assertMode(mode: unknown, handlerId: string): SkillHandlerMode {
-  if (
-    typeof mode !== "string" ||
-    !VALID_MODES.has(mode)
-  ) {
-    throw new TypeError(
-      `Skill handler ${handlerId} has invalid mode "${String(mode)}".`,
-    );
+  if (typeof mode !== 'string' || !VALID_MODES.has(mode)) {
+    throw new TypeError(`Skill handler ${handlerId} has invalid mode "${String(mode)}".`);
   }
   return mode as SkillHandlerMode;
 }
@@ -71,36 +51,28 @@ function assertMode(mode: unknown, handlerId: string): SkillHandlerMode {
  * @param {Partial<SkillHandlerStrategy<TContext>> & {mode?: unknown}} [options]
  * @returns {Readonly<SkillHandlerStrategy<TContext>>}
  */
-export function skillHandler<
-  TContext extends object = SchedulerRecord,
->(
-  options: SkillHandlerOptions<TContext> = {},
+export function skillHandler<TContext extends object = SchedulerRecord>(
+  options: SkillHandlerOptions<TContext> = {}
 ): Readonly<SkillHandlerStrategy<TContext>> {
-  assertFields(options, "<unregistered>");
-  const {
-    mode,
-    resolveMode = null,
-    beforeEffects = null,
-    afterEffect = null,
-    afterEffects = null,
-  } = options;
-  assertMode(mode, "<unregistered>");
-  if (resolveMode != null && typeof resolveMode !== "function") {
-    throw new TypeError("Skill handler resolveMode must be a function.");
+  assertFields(options, '<unregistered>');
+  const { mode, resolveMode = null, beforeEffects = null, afterEffect = null, afterEffects = null } = options;
+  assertMode(mode, '<unregistered>');
+  if (resolveMode != null && typeof resolveMode !== 'function') {
+    throw new TypeError('Skill handler resolveMode must be a function.');
   }
   for (const phase of HANDLER_PHASES) {
     const handler = { beforeEffects, afterEffect, afterEffects }[phase];
     if (handler == null) continue;
-    if (typeof handler !== "function") {
+    if (typeof handler !== 'function') {
       throw new TypeError(`Skill handler ${phase} must be a function.`);
     }
   }
   const strategy: SkillHandlerStrategy<TContext> = {
-    mode: assertMode(mode, "<unregistered>"),
+    mode: assertMode(mode, '<unregistered>'),
     ...(resolveMode ? { resolveMode } : {}),
     ...(beforeEffects ? { beforeEffects } : {}),
     ...(afterEffect ? { afterEffect } : {}),
-    ...(afterEffects ? { afterEffects } : {}),
+    ...(afterEffects ? { afterEffects } : {})
   };
   return Object.freeze(strategy);
 }
@@ -110,19 +82,14 @@ export function skillHandler<
  * @param {SkillHandlerPhase<TContext>} beforeEffects
  * @param {Omit<Partial<SkillHandlerStrategy<TContext>>, "mode" | "beforeEffects">} [options]
  */
-export function augmentSkillHandler<
-  TContext extends object = SchedulerRecord,
->(
+export function augmentSkillHandler<TContext extends object = SchedulerRecord>(
   beforeEffects: SkillHandlerPhase<TContext> | null,
-  options: Omit<
-    Partial<SkillHandlerStrategy<TContext>>,
-    "mode" | "beforeEffects"
-  > = {},
+  options: Omit<Partial<SkillHandlerStrategy<TContext>>, 'mode' | 'beforeEffects'> = {}
 ): Readonly<SkillHandlerStrategy<TContext>> {
   return skillHandler({
     ...options,
     mode: SKILL_HANDLER_MODES.AUGMENT,
-    beforeEffects,
+    beforeEffects
   });
 }
 
@@ -131,19 +98,14 @@ export function augmentSkillHandler<
  * @param {SkillHandlerPhase<TContext>} beforeEffects
  * @param {Omit<Partial<SkillHandlerStrategy<TContext>>, "mode" | "beforeEffects">} [options]
  */
-export function replaceSkillHandler<
-  TContext extends object = SchedulerRecord,
->(
+export function replaceSkillHandler<TContext extends object = SchedulerRecord>(
   beforeEffects: SkillHandlerPhase<TContext> | null,
-  options: Omit<
-    Partial<SkillHandlerStrategy<TContext>>,
-    "mode" | "beforeEffects"
-  > = {},
+  options: Omit<Partial<SkillHandlerStrategy<TContext>>, 'mode' | 'beforeEffects'> = {}
 ): Readonly<SkillHandlerStrategy<TContext>> {
   return skillHandler({
     ...options,
     mode: SKILL_HANDLER_MODES.REPLACE,
-    beforeEffects,
+    beforeEffects
   });
 }
 
@@ -155,47 +117,31 @@ export function replaceSkillHandler<
  * @param {unknown} value
  * @returns {Readonly<SkillHandlerStrategy<TContext>>}
  */
-export function normalizeSkillHandler<
-  TContext extends object = SchedulerRecord,
->(
+export function normalizeSkillHandler<TContext extends object = SchedulerRecord>(
   handlerId: string,
-  value: unknown,
+  value: unknown
 ): Readonly<SkillHandlerStrategy<TContext>> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new TypeError(
-      `Skill handler ${handlerId} must be an explicit strategy object.`,
-    );
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError(`Skill handler ${handlerId} must be an explicit strategy object.`);
   }
   assertFields(value, handlerId);
-  const candidate =
-    value as Partial<SkillHandlerStrategy<TContext>> & SchedulerRecord;
+  const candidate = value as Partial<SkillHandlerStrategy<TContext>> & SchedulerRecord;
   const mode = assertMode(candidate.mode, handlerId);
-  if (
-    candidate.resolveMode != null &&
-    typeof candidate.resolveMode !== "function"
-  ) {
-    throw new TypeError(
-      `Skill handler ${handlerId} resolveMode must be a function.`,
-    );
+  if (candidate.resolveMode != null && typeof candidate.resolveMode !== 'function') {
+    throw new TypeError(`Skill handler ${handlerId} resolveMode must be a function.`);
   }
   for (const phase of HANDLER_PHASES) {
     if (candidate[phase] == null) continue;
-    if (typeof candidate[phase] !== "function") {
-      throw new TypeError(
-        `Skill handler ${handlerId} ${phase} must be a function.`,
-      );
+    if (typeof candidate[phase] !== 'function') {
+      throw new TypeError(`Skill handler ${handlerId} ${phase} must be a function.`);
     }
   }
   const strategy: SkillHandlerStrategy<TContext> = {
     mode,
     ...(candidate.resolveMode ? { resolveMode: candidate.resolveMode } : {}),
-    ...(candidate.beforeEffects
-      ? { beforeEffects: candidate.beforeEffects }
-      : {}),
+    ...(candidate.beforeEffects ? { beforeEffects: candidate.beforeEffects } : {}),
     ...(candidate.afterEffect ? { afterEffect: candidate.afterEffect } : {}),
-    ...(candidate.afterEffects
-      ? { afterEffects: candidate.afterEffects }
-      : {}),
+    ...(candidate.afterEffects ? { afterEffects: candidate.afterEffects } : {})
   };
   return Object.freeze(strategy);
 }
@@ -207,16 +153,12 @@ export function normalizeSkillHandler<
  * @param {Skill} skill
  * @returns {SkillHandlerMode}
  */
-export function resolveSkillHandlerMode<
-  TContext extends object = SchedulerRecord,
->(
+export function resolveSkillHandlerMode<TContext extends object = SchedulerRecord>(
   strategy: SkillHandlerStrategy<TContext> | null | undefined,
   context: TContext,
-  skill: Skill,
+  skill: Skill
 ): SkillHandlerMode {
   if (!strategy) return SKILL_HANDLER_MODES.AUGMENT;
-  const selected = strategy.resolveMode
-    ? strategy.resolveMode(context, skill)
-    : strategy.mode;
-  return assertMode(selected, skill?.handlerId || "<unregistered>");
+  const selected = strategy.resolveMode ? strategy.resolveMode(context, skill) : strategy.mode;
+  return assertMode(selected, skill?.handlerId || '<unregistered>');
 }

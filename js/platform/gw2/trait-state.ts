@@ -1,14 +1,8 @@
-import type { SkillId } from "../engine/types.js";
-import type { Gw2TraitContext } from "./types.js";
+import type { SkillId } from '../engine/types.js';
+import type { Gw2TraitContext } from './types.js';
 
-function includesTrait(
-  values: readonly (string | number)[] | undefined,
-  traitId: SkillId,
-  key: string,
-): boolean {
-  return Boolean(
-    values?.some((value) => value === traitId || String(value) === key),
-  );
+function includesTrait(values: readonly (string | number)[] | undefined, traitId: SkillId, key: string): boolean {
+  return Boolean(values?.some((value) => value === traitId || String(value) === key));
 }
 
 /**

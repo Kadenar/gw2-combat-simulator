@@ -1,84 +1,82 @@
-import { GUARDIAN_SKILL_IDS as ID } from "../../data/ids.js";
-import type { SkillFragment } from "../../../../platform/engine/types.js";
+import { GUARDIAN_SKILL_IDS as ID } from '../../data/ids.js';
+import type { SkillFragment } from '../../../../platform/engine/types.js';
 
-export const WILLBENDER_SKILL_MECHANICS: Readonly<
-  Record<number, SkillFragment>
-> = Object.freeze({
+export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ROILING_LIGHT]: {
     implemented: true,
     castTimeMs: 250,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.33,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "control",
+        type: 'control',
         metadata: {
-          controlKind: "control",
-        },
+          controlKind: 'control'
+        }
       },
       {
-        type: "blind",
-      },
-    ],
+        type: 'blind'
+      }
+    ]
   },
   [ID.WILLBENDER_FLAMES]: {
     implemented: true,
     castTimeMs: 0,
-    effects: [],
+    effects: []
   },
   [ID.CRASHING_COURAGE]: {
     implemented: true,
     quicknessCastTimeMs: 680,
-    handlerId: "guardian.willbender-virtue",
+    handlerId: 'guardian.willbender-virtue',
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Crashing Courage — Initial Damage",
+        name: 'Crashing Courage — Initial Damage',
         atMs: 520,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "boon",
-        boon: "aegis",
+        type: 'boon',
+        boon: 'aegis',
         stacks: 1,
         duration: 4,
         atMs: 520,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "boon",
-        boon: "stability",
+        type: 'boon',
+        boon: 'stability',
         stacks: 1,
         duration: 4,
         atMs: 520,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.HEEL_CRACK]: {
     implemented: true,
     castTimeMs: 250,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.75,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "control",
+        type: 'control',
         metadata: {
-          controlKind: "control",
-        },
-      },
-    ],
+          controlKind: 'control'
+        }
+      }
+    ]
   },
   [ID.HEAVENS_PALM]: {
     implemented: true,
@@ -86,17 +84,17 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
     cooldown: 20,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3,
-        hits: 1,
+        hits: 1
       },
       {
-        type: "control",
+        type: 'control',
         metadata: {
-          controlKind: "knockback",
-        },
-      },
-    ],
+          controlKind: 'knockback'
+        }
+      }
+    ]
   },
   [ID.WHIRLING_LIGHT]: {
     implemented: true,
@@ -104,54 +102,54 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
     cooldown: 15,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         comboFinishers: [
           {
-            ownerId: "guardian",
-            finisherType: "Whirl",
+            ownerId: 'guardian',
+            finisherType: 'Whirl',
             applications: 4,
-            ambiguousFieldSelection: "oldest",
-            preferredFieldTypes: ["Fire"],
-          },
+            ambiguousFieldSelection: 'oldest',
+            preferredFieldTypes: ['Fire']
+          }
         ],
         ticks: [280, 480, 680, 880].map((atMs) => ({
           atMs,
-          coefficient: 1,
+          coefficient: 1
         })),
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
+        type: 'condition',
         ticks: [280, 480, 680, 880].map((atMs) => ({
           atMs,
-          condition: "Weakness",
+          condition: 'Weakness',
           stacks: 1,
-          duration: 3,
+          duration: 3
         })),
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
+        type: 'condition',
         ticks: [280, 480, 680, 880].map((atMs) => ({
           atMs,
-          condition: "Burning",
+          condition: 'Burning',
           stacks: 1,
-          duration: 3,
+          duration: 3
         })),
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.FLOWING_RESOLVE]: {
     implemented: true,
     castTimeMs: 520,
     unaffectedByQuickness: true,
     ammoCastLockout: 0.5,
-    handlerId: "guardian.willbender-virtue",
-    effects: [],
+    handlerId: 'guardian.willbender-virtue',
+    effects: []
   },
   [ID.FLASH_COMBO]: {
     implemented: true,
@@ -159,97 +157,97 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<
     cooldown: 20,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 4.5,
-        hits: 5,
-      },
-    ],
+        hits: 5
+      }
+    ]
   },
   [ID.WILLBENDER_FLAMES_ID_62618]: {
     implemented: true,
     castTimeMs: 0,
-    effects: [],
+    effects: []
   },
   [ID.REVERSAL_OF_FORTUNE]: {
     implemented: true,
     castTimeMs: 1000,
-    effects: [],
+    effects: []
   },
   [ID.CRASHING_COURAGE_ID_62648]: {
     implemented: true,
     quicknessCastTimeMs: 680,
-    handlerId: "guardian.willbender-virtue",
+    handlerId: 'guardian.willbender-virtue',
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Crashing Courage — Initial Damage",
+        name: 'Crashing Courage — Initial Damage',
         atMs: 520,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "boon",
-        boon: "aegis",
+        type: 'boon',
+        boon: 'aegis',
         stacks: 1,
         duration: 4,
         atMs: 520,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "boon",
-        boon: "stability",
+        type: 'boon',
+        boon: 'stability',
         stacks: 1,
         duration: 4,
         atMs: 520,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.RUSHING_JUSTICE]: {
     implemented: true,
     quicknessCastTimeMs: 480,
-    rechargeAnchor: "castStart",
-    handlerId: "guardian.willbender-virtue",
+    rechargeAnchor: 'castStart',
+    handlerId: 'guardian.willbender-virtue',
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Rushing Justice — Impact Damage",
+        name: 'Rushing Justice — Impact Damage',
         atMs: -40,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 4,
-        name: "Rushing Justice — Initial Burning",
+        name: 'Rushing Justice — Initial Burning',
         atMs: -40,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.REPOSE]: {
     implemented: true,
     castTimeMs: 250,
-    effects: [],
+    effects: []
   },
   [ID.QUICK_RETRIBUTION]: {
     implemented: true,
     castTimeMs: 250,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
-        hits: 1,
-      },
-    ],
-  },
+        hits: 1
+      }
+    ]
+  }
 });

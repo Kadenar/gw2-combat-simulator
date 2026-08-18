@@ -1,26 +1,17 @@
-import { EVTC_STATE_CHANGE } from "../../../types.js";
-import type {
-  EvtcProfessionReconstructionContext,
-  EvtcRecordedRotationAction,
-} from "../types.js";
+import { EVTC_STATE_CHANGE } from '../../../types.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 import {
   assembleRevenantActions,
   firstActionAnchor,
   initialEnchantedDaggersActions,
   legendSwapActions,
-  recoverRevenantPrecastActions,
-} from "./common.js";
-import {
-  directAction,
-  playerInstance,
-  rawSkillName,
-  runtimeDuration,
-  type RevenantActionIdentity,
-} from "./shared.js";
+  recoverRevenantPrecastActions
+} from './common.js';
+import { directAction, playerInstance, rawSkillName, runtimeDuration, type RevenantActionIdentity } from './shared.js';
 
 const ORDERS_FROM_ABOVE = Object.freeze({
-  name: "Orders from Above",
-  skillId: 45537,
+  name: 'Orders from Above',
+  skillId: 45537
 });
 const ALACRITY_BUFF = 30328;
 
@@ -29,19 +20,17 @@ const WARBAND_SPECIES_ACTIONS = new Map<number, RevenantActionIdentity>([
   [18791, { name: "Razorclaw's Rage", skillId: 42949 }],
   [18806, { name: "Breakrazor's Bastion", skillId: 45686 }],
   [18594, { name: "Darkrazor's Daring", skillId: 41220 }],
-  [19002, { name: "Soulcleave's Summit", skillId: 45773 }],
+  [19002, { name: "Soulcleave's Summit", skillId: 45773 }]
 ]);
 
 const WARBAND_ANIMATION_ACTIONS = new Map<number, RevenantActionIdentity>([
   [72353, { name: "Icerazor's Ire", skillId: 40485 }],
   [72370, { name: "Razorclaw's Rage", skillId: 42949 }],
   [72360, { name: "Darkrazor's Daring", skillId: 41220 }],
-  [42614, { name: "Soulcleave's Summit", skillId: 45773 }],
+  [42614, { name: "Soulcleave's Summit", skillId: 45773 }]
 ]);
 
-function ordersFromAboveActions(
-  context: EvtcProfessionReconstructionContext,
-): EvtcRecordedRotationAction[] {
+function ordersFromAboveActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   const actions: EvtcRecordedRotationAction[] = [];
   let previousPulse: number | null = null;
   context.log.events.forEach((event, eventIndex) => {
@@ -55,18 +44,11 @@ function ordersFromAboveActions(
     ) {
       return;
     }
-    const beginsActivation =
-      previousPulse == null || event.time - previousPulse > 1500;
+    const beginsActivation = previousPulse == null || event.time - previousPulse > 1500;
     previousPulse = event.time;
     if (!beginsActivation) return;
     actions.push(
-      directAction(
-        eventIndex,
-        event.time,
-        event.skillId,
-        rawSkillName(context, event.skillId),
-        ORDERS_FROM_ABOVE,
-      ),
+      directAction(eventIndex, event.time, event.skillId, rawSkillName(context, event.skillId), ORDERS_FROM_ABOVE)
     );
   });
   return actions;
@@ -74,7 +56,7 @@ function ordersFromAboveActions(
 
 function initialWarbandActions(
   context: EvtcProfessionReconstructionContext,
-  anchor: number,
+  anchor: number
 ): EvtcRecordedRotationAction[] {
   if (!Number.isFinite(anchor)) return [];
   const ownerInstance = playerInstance(context);
@@ -85,9 +67,9 @@ function initialWarbandActions(
         (event) =>
           event.source !== context.playerAddress &&
           event.sourceMasterInstance === ownerInstance &&
-          event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL,
+          event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
       )
-      .map((event) => event.source),
+      .map((event) => event.source)
   );
   const identities = context.log.agents.flatMap((agent) => {
     if (!initialAddresses.has(agent.address)) return [];
@@ -104,16 +86,8 @@ function initialWarbandActions(
     const duration = runtimeDuration(context, identity);
     cursor -= duration;
     reversed.push({
-      ...directAction(
-        -4000 + index,
-        cursor,
-        identity.skillId,
-        identity.name,
-        identity,
-        "initial-state",
-        duration,
-      ),
-      precast: true,
+      ...directAction(-4000 + index, cursor, identity.skillId, identity.name, identity, 'initial-state', duration),
+      precast: true
     });
   }
   return reversed.reverse();
@@ -121,7 +95,7 @@ function initialWarbandActions(
 
 function warbandActorActions(
   context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[],
+  actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const ownerInstance = playerInstance(context);
   if (ownerInstance == null) return [];
@@ -139,45 +113,32 @@ function warbandActorActions(
             action.canonicalSkillId === identity.skillId ||
             action.rawName === identity.name) &&
           action.start <= event.time &&
-          event.time - action.start <= 1000,
+          event.time - action.start <= 1000
       )
     ) {
       return [];
     }
     const swapsImmediatelyAfter = legendSwaps.some(
-      (swap) => swap.start >= event.time && swap.start - event.time <= 250,
+      (swap) => swap.start >= event.time && swap.start - event.time <= 250
     );
     const start = event.time - (swapsImmediatelyAfter ? 200 : 0);
     return [
-      directAction(
-        eventIndex,
-        start,
-        event.skillId,
-        rawSkillName(context, event.skillId),
-        identity,
-        "animation",
-      ),
+      directAction(eventIndex, start, event.skillId, rawSkillName(context, event.skillId), identity, 'animation')
     ];
   });
 }
 
 export function reconstructRenegadeActions(
-  context: EvtcProfessionReconstructionContext,
+  context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {
   const recoveredPrecasts = recoverRevenantPrecastActions(context);
   const firstAnchor = firstActionAnchor(context, recoveredPrecasts);
   const initialWarband = initialWarbandActions(context, firstAnchor);
-  const warbandAnchor = Math.min(
-    ...initialWarband.map((action) => action.start),
-    firstAnchor,
-  );
+  const warbandAnchor = Math.min(...initialWarband.map((action) => action.start), firstAnchor);
   const actions = assembleRevenantActions(context, {
-    initialActions: [
-      ...initialEnchantedDaggersActions(context, warbandAnchor),
-      ...initialWarband,
-    ],
+    initialActions: [...initialEnchantedDaggersActions(context, warbandAnchor), ...initialWarband],
     recoveredPrecasts,
-    afterUpkeepActions: ordersFromAboveActions(context),
+    afterUpkeepActions: ordersFromAboveActions(context)
   });
   return [...actions, ...warbandActorActions(context, actions)];
 }

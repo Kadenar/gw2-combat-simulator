@@ -6,9 +6,7 @@ export interface Gw2BuildTemplateProfessionData {
 }
 
 /** Resolves build-template profession and palette IDs without a runtime API call. */
-export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<
-  Record<number, Gw2BuildTemplateProfessionData>
-> = Object.freeze({
+export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<Record<number, Gw2BuildTemplateProfessionData>> = Object.freeze({
   1: {
     paletteEntries: Object.freeze([
       [1, 12343],
@@ -206,8 +204,8 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<
       [7534, 77197],
       [7544, 77300],
       [7650, 78873],
-      [7700, 79766],
-    ]) as readonly (readonly [number, number])[],
+      [7700, 79766]
+    ]) as readonly (readonly [number, number])[]
   },
   2: {
     paletteEntries: Object.freeze([
@@ -406,8 +404,8 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<
       [7550, 76934],
       [7558, 77040],
       [7650, 78873],
-      [7700, 79766],
-    ]) as readonly (readonly [number, number])[],
+      [7700, 79766]
+    ]) as readonly (readonly [number, number])[]
   },
   3: {
     paletteEntries: Object.freeze([
@@ -616,8 +614,8 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<
       [7554, 76908],
       [7557, 77069],
       [7650, 78873],
-      [7700, 79766],
-    ]) as readonly (readonly [number, number])[],
+      [7700, 79766]
+    ]) as readonly (readonly [number, number])[]
   },
   4: {
     paletteEntries: Object.freeze([
@@ -880,8 +878,8 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<
       [7628, 43375],
       [7650, 78873],
       [7700, 79766],
-      [7730, 44626],
-    ]) as readonly (readonly [number, number])[],
+      [7730, 44626]
+    ]) as readonly (readonly [number, number])[]
   },
   5: {
     paletteEntries: Object.freeze([
@@ -1076,8 +1074,8 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<
       [7548, 77255],
       [7564, 76808],
       [7650, 78873],
-      [7700, 79766],
-    ]) as readonly (readonly [number, number])[],
+      [7700, 79766]
+    ]) as readonly (readonly [number, number])[]
   },
   6: {
     paletteEntries: Object.freeze([
@@ -1270,8 +1268,8 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<
       [7543, 76711],
       [7563, 77190],
       [7650, 78873],
-      [7700, 79766],
-    ]) as readonly (readonly [number, number])[],
+      [7700, 79766]
+    ]) as readonly (readonly [number, number])[]
   },
   7: {
     paletteEntries: Object.freeze([
@@ -1468,8 +1466,8 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<
       [7556, 76611],
       [7561, 76695],
       [7650, 78873],
-      [7700, 79766],
-    ]) as readonly (readonly [number, number])[],
+      [7700, 79766]
+    ]) as readonly (readonly [number, number])[]
   },
   8: {
     paletteEntries: Object.freeze([
@@ -1665,8 +1663,8 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<
       [7565, 77022],
       [7566, 76739],
       [7650, 78873],
-      [7700, 79766],
-    ]) as readonly (readonly [number, number])[],
+      [7700, 79766]
+    ]) as readonly (readonly [number, number])[]
   },
   9: {
     paletteEntries: Object.freeze([
@@ -1791,7 +1789,7 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<
       [7461, 75783],
       [7523, 76610],
       [7650, 78873],
-      [7700, 79766],
-    ]) as readonly (readonly [number, number])[],
-  },
+      [7700, 79766]
+    ]) as readonly (readonly [number, number])[]
+  }
 });

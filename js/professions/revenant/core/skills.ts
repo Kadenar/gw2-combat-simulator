@@ -1,20 +1,12 @@
 /**
  * Core skill mechanics owned by the Core Revenant module.
  */
-import {
-  REVENANT_LEGEND_IDS as LEGEND,
-  REVENANT_SKILL_IDS as ID,
-  REVENANT_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
-import type {
-  BalanceProfile,
-  Skill,
-  SkillFragment,
-} from "../../../platform/engine/types.js";
+import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import type { BalanceProfile, Skill, SkillFragment } from '../../../platform/engine/types.js';
 
 export const REVENANT_CORE_BALANCE_PROFILE_IDS = Object.freeze({
-  resources: "revenant.core.resources",
-  battleScars: "revenant.core.battle-scars",
+  resources: 'revenant.core.resources',
+  battleScars: 'revenant.core.battle-scars',
   spiritBoon: TRAIT.SPIRIT_BOON,
   songOfTheMists: TRAIT.SONG_OF_THE_MISTS,
   chargedMists: TRAIT.CHARGED_MISTS,
@@ -27,15 +19,13 @@ export const REVENANT_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   dwarvenBattleTraining: TRAIT.DWARVEN_BATTLE_TRAINING,
   exposeDefenses: TRAIT.EXPOSE_DEFENSES,
   viciousReprisal: TRAIT.VICIOUS_REPRISAL,
-  notoriety: TRAIT.NOTORIETY,
+  notoriety: TRAIT.NOTORIETY
 });
 
-export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
-  Record<number, SkillFragment>
-> = Object.freeze({
+export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.VENGEFUL_HAMMERS]: {
     implemented: true,
-    handlerId: "revenant.upkeep",
+    handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 5,
@@ -43,21 +33,21 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     pulseInterval: 1 / 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.2,
         hits: 3,
-        name: "Vengeful Hammers",
-        actorType: "effect",
-      },
+        name: 'Vengeful Hammers',
+        actorType: 'effect'
+      }
     ],
-    legendId: "LegendaryDwarf",
+    legendId: 'LegendaryDwarf'
   },
   [ID.LEGENDARY_DWARF_STANCE_ID_26650]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.MANIFEST_TOXIN]: {
     implemented: true,
@@ -66,26 +56,26 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.6,
         hits: 1,
-        name: "Manifest Toxin — Packet 1",
-        actorType: "player",
+        name: 'Manifest Toxin — Packet 1',
+        actorType: 'player',
         atMs: 440,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 12,
-        actorType: "player",
+        actorType: 'player',
         atMs: 440,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.FORCED_ENGAGEMENT]: {
     implemented: true,
@@ -94,38 +84,38 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Forced Engagement",
-        actorType: "player",
+        name: 'Forced Engagement',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Slow",
+        type: 'condition',
+        condition: 'Slow',
         stacks: 1,
         duration: 4,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "taunt",
-          duration: 4,
-        },
-      },
+          controlKind: 'taunt',
+          duration: 4
+        }
+      }
     ],
-    legendId: "LegendaryDwarf",
+    legendId: 'LegendaryDwarf'
   },
   [ID.RESIST_THE_DARKNESS]: {
     implemented: true,
-    handlerId: "revenant.upkeep-release",
+    handlerId: 'revenant.upkeep-release',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     effects: [],
-    legendId: "LegendaryDemon",
+    legendId: 'LegendaryDemon'
   },
   [ID.UNRELENTING_ASSAULT]: {
     implemented: true,
@@ -134,23 +124,23 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 15,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3.9325,
         hits: 5,
-        name: "Unrelenting Assault",
-        actorType: "player",
+        name: 'Unrelenting Assault',
+        actorType: 'player',
         atMs: 150,
         intervalMs: 150,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 8,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.ANGUISH_SWIPE]: {
     implemented: true,
@@ -159,76 +149,76 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.4,
         hits: 1,
-        name: "Anguish Swipe",
-        actorType: "player",
+        name: 'Anguish Swipe',
+        actorType: 'player',
         atMs: 280,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player',
         atMs: 280,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.PROTECTIVE_SOLACE]: {
     implemented: true,
-    handlerId: "revenant.upkeep",
+    handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 5,
     energyCost: 5,
     upkeepCost: 8,
     pulseInterval: 1,
     effects: [],
-    legendId: "LegendaryCentaur",
+    legendId: 'LegendaryCentaur'
   },
   [ID.ENCHANTED_DAGGERS]: {
     implemented: true,
-    handlerId: "revenant.enchanted-daggers",
+    handlerId: 'revenant.enchanted-daggers',
     castTimeMs: 500,
     cooldown: 30,
     energyCost: 5,
     effects: [
       {
-        type: "buff",
-        kind: "enchanted-daggers",
+        type: 'buff',
+        kind: 'enchanted-daggers',
         duration: 15,
         stacks: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0,
         hits: 1,
         atMs: 500,
         intervalMs: 500,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         flatStrikeBase: 1028,
         flatStrikePowerCoeff: 0.06,
-        name: "Enchanted Daggers — Siphon Damage",
-        actorType: "effect",
-      },
+        name: 'Enchanted Daggers — Siphon Damage',
+        actorType: 'effect'
+      }
     ],
-    legendId: "LegendaryAssassin",
+    legendId: 'LegendaryAssassin'
   },
   [ID.RELEASE_HAMMERS]: {
     implemented: true,
-    handlerId: "revenant.upkeep-release",
+    handlerId: 'revenant.upkeep-release',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     effects: [],
-    legendId: "LegendaryDwarf",
+    legendId: 'LegendaryDwarf'
   },
   [ID.NATURAL_HARMONY]: {
     implemented: true,
@@ -236,7 +226,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 2,
     energyCost: 20,
     effects: [],
-    legendId: "LegendaryCentaur",
+    legendId: 'LegendaryCentaur'
   },
   [ID.MISERY_SWIPE]: {
     implemented: true,
@@ -245,69 +235,69 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.35,
         hits: 1,
-        name: "Misery Swipe",
-        actorType: "player",
+        name: 'Misery Swipe',
+        actorType: 'player',
         atMs: 280,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player',
         atMs: 280,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.DEATHSTRIKE]: {
     implemented: true,
     quicknessCastTimeMs: 720,
     cooldown: 15,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     rechargeOffsetMs: 420,
     energyCost: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.45,
         hits: 1,
-        name: "Initial Damage",
-        actorType: "player",
+        name: 'Initial Damage',
+        actorType: 'player',
         atMs: 320,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.67,
         hits: 1,
-        name: "Final Damage",
-        actorType: "player",
+        name: 'Final Damage',
+        actorType: 'player',
         atMs: 600,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "boon",
-        boon: "fury",
+        type: 'boon',
+        boon: 'fury',
         duration: 8,
         stacks: 1,
         atMs: 320,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.IMPOSSIBLE_ODDS]: {
     implemented: true,
-    handlerId: "revenant.upkeep",
+    handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 5,
@@ -317,18 +307,18 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     pulseInterval: 1,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.65,
         hits: 1,
         atMs: 250,
         intervalMs: 250,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        name: "Impossible Odds",
-        actorType: "effect",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Impossible Odds',
+        actorType: 'effect'
+      }
     ],
-    legendId: "LegendaryAssassin",
+    legendId: 'LegendaryAssassin'
   },
   [ID.DOME_OF_THE_MISTS]: {
     implemented: true,
@@ -337,13 +327,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 1,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.PAIN_ABSORPTION]: {
     implemented: true,
@@ -352,25 +342,25 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 30,
     effects: [
       {
-        type: "boon",
-        boon: "resistance",
+        type: 'boon',
+        boon: 'resistance',
         duration: 3,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "resolution",
+        type: 'boon',
+        boon: 'resolution',
         duration: 5,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "resistance",
+        type: 'boon',
+        boon: 'resistance',
         duration: 1,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    legendId: "LegendaryDemon",
+    legendId: 'LegendaryDemon'
   },
   [ID.ENERGY_EXPULSION]: {
     implemented: true,
@@ -379,21 +369,21 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 35,
     effects: [
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "knockdown",
-          duration: 3,
-        },
+          controlKind: 'knockdown',
+          duration: 3
+        }
       },
       {
-        type: "boon",
-        boon: "stability",
+        type: 'boon',
+        boon: 'stability',
         duration: 5,
-        stacks: 3,
-      },
+        stacks: 3
+      }
     ],
-    legendId: "LegendaryCentaur",
+    legendId: 'LegendaryCentaur'
   },
   [ID.SOOTHING_STONE]: {
     implemented: true,
@@ -402,13 +392,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     effects: [
       {
-        type: "boon",
-        boon: "resolution",
+        type: 'boon',
+        boon: 'resolution',
         duration: 5,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    legendId: "LegendaryDwarf",
+    legendId: 'LegendaryDwarf'
   },
   [ID.BANISH_ENCHANTMENT]: {
     interruptCommitMs: 0,
@@ -418,62 +408,62 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 20,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 3,
-        name: "Banish Enchantment",
-        actorType: "player",
+        name: 'Banish Enchantment',
+        actorType: 'player',
         atMs: 402,
         intervalMs: 119,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {},
+        metadata: {}
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 1,
         applications: 3,
         atMs: 402,
         intervalMs: 119,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
         metadata: {},
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 3,
         applications: 3,
         atMs: 402,
         intervalMs: 119,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
         metadata: {},
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    legendId: "LegendaryDemon",
+    legendId: 'LegendaryDemon'
   },
   [ID.DIMINISH_SOLACE]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 5,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.LEGENDARY_ASSASSIN_STANCE_ID_27659]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.FIELD_OF_THE_MISTS]: {
     interruptCommitMs: 0,
@@ -483,41 +473,41 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 10,
     comboFields: [
       {
-        ownerId: "revenant",
-        fieldType: "Dark",
+        ownerId: 'revenant',
+        fieldType: 'Dark',
         duration: 6,
         startMs: 560,
-        startAnchor: "castStart",
-      },
+        startAnchor: 'castStart'
+      }
     ],
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.8,
         hits: 1,
-        name: "Field of the Mists",
-        actorType: "player",
+        name: 'Field of the Mists',
+        actorType: 'player',
         atMs: 560,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
         metadata: {},
         comboFinishers: [
           {
-            ownerId: "revenant",
-            finisherType: "Projectile",
+            ownerId: 'revenant',
+            finisherType: 'Projectile',
             chance: 1,
-            ambiguousFieldSelection: "oldest",
-          },
-        ],
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       },
       {
-        type: "boon",
-        boon: "aegis",
+        type: 'boon',
+        boon: 'aegis',
         duration: 2,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.PURIFYING_ESSENCE]: {
     implemented: true,
@@ -525,7 +515,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 5,
     energyCost: 25,
     effects: [],
-    legendId: "LegendaryCentaur",
+    legendId: 'LegendaryCentaur'
   },
   [ID.CALL_TO_ANGUISH]: {
     interruptCommitMs: 0,
@@ -535,43 +525,43 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 30,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 1,
-        name: "Call to Anguish",
-        actorType: "player",
+        name: 'Call to Anguish',
+        actorType: 'player',
         atMs: 804,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {},
+        metadata: {}
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 2,
-        actorType: "player",
+        actorType: 'player',
         atMs: 804,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {},
+        metadata: {}
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         atMs: 804,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
         metadata: {
-          controlKind: "pull",
-          duration: 360,
-        },
-      },
+          controlKind: 'pull',
+          duration: 360
+        }
+      }
     ],
-    legendId: "LegendaryDemon",
+    legendId: 'LegendaryDemon'
   },
   [ID.ECHOING_ERUPTION]: {
     implemented: true,
@@ -582,52 +572,52 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     comboFinishers: [
       {
-        ownerId: "revenant",
-        finisherType: "Blast",
-        ambiguousFieldSelection: "oldest",
-      },
+        ownerId: 'revenant',
+        finisherType: 'Blast',
+        ambiguousFieldSelection: 'oldest'
+      }
     ],
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Echoing Eruption",
-        actorType: "player",
+        name: 'Echoing Eruption',
+        actorType: 'player',
         atMs: 800,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 4,
         duration: 5,
-        actorType: "player",
+        actorType: 'player',
         atMs: 800,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player',
         atMs: 800,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "boon",
-        boon: "Might",
+        type: 'boon',
+        boon: 'Might',
         duration: 9,
         stacks: 3,
         atMs: 800,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.RITE_OF_THE_GREAT_DWARF]: {
     implemented: true,
@@ -635,7 +625,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 0,
     energyCost: 40,
     effects: [],
-    legendId: "LegendaryDwarf",
+    legendId: 'LegendaryDwarf'
   },
   [ID.PHASE_SMASH]: {
     implemented: true,
@@ -644,27 +634,27 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.22,
         hits: 1,
-        name: "Phase Smash",
-        actorType: "player",
+        name: 'Phase Smash',
+        actorType: 'player',
         comboFinishers: [
           {
-            ownerId: "revenant",
-            finisherType: "Blast",
-            ambiguousFieldSelection: "oldest",
-          },
-        ],
+            ownerId: 'revenant',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 2,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.FRIGID_BLITZ]: {
     implemented: true,
@@ -673,41 +663,41 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.15,
         hits: 1,
-        name: "Pass-Through Damage",
-        actorType: "player",
+        name: 'Pass-Through Damage',
+        actorType: 'player'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Final Damage",
-        actorType: "player",
+        name: 'Final Damage',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 2,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 3,
         duration: 6,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.LEGENDARY_DRAGON_STANCE]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.DROP_THE_HAMMER]: {
     interruptCommitMs: 0,
@@ -717,58 +707,58 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3.2,
         hits: 1,
-        name: "Drop the Hammer",
-        actorType: "player",
+        name: 'Drop the Hammer',
+        actorType: 'player',
         atMs: 1639,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
         metadata: {},
         comboFinishers: [
           {
-            ownerId: "revenant",
-            finisherType: "Blast",
-            ambiguousFieldSelection: "oldest",
-          },
-        ],
+            ownerId: 'revenant',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         atMs: 1639,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
         metadata: {
-          controlKind: "knockdown",
-          duration: 3,
-        },
-      },
-    ],
+          controlKind: 'knockdown',
+          duration: 3
+        }
+      }
+    ]
   },
   [ID.LEGENDARY_ASSASSIN_STANCE]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.LEGENDARY_CENTAUR_STANCE_ID_28141]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.LEGENDARY_CENTAUR_STANCE]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.EMPOWERING_MISERY]: {
     implemented: true,
@@ -777,13 +767,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     effects: [
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 8,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    legendId: "LegendaryDemon",
+    legendId: 'LegendaryDemon'
   },
   [ID.PHASE_TRAVERSAL]: {
     implemented: true,
@@ -792,20 +782,20 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 30,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 1,
-        name: "Phase Traversal",
-        actorType: "player",
+        name: 'Phase Traversal',
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "quickness",
+        type: 'boon',
+        boon: 'quickness',
         duration: 3,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    legendId: "LegendaryAssassin",
+    legendId: 'LegendaryAssassin'
   },
   [ID.COALESCENCE_OF_RUIN]: {
     interruptCommitMs: 0,
@@ -815,29 +805,29 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3.5,
         hits: 1,
-        name: "Coalescence of Ruin",
-        actorType: "player",
+        name: 'Coalescence of Ruin',
+        actorType: 'player',
         atMs: 561,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {},
-      },
-    ],
+        metadata: {}
+      }
+    ]
   },
   [ID.CRYSTAL_HIBERNATION]: {
     implemented: true,
     castTimeMs: 3000,
     cooldown: 25,
     energyCost: 20,
-    effects: [],
+    effects: []
   },
   [ID.EMBRACE_THE_DARKNESS]: {
     implemented: true,
-    handlerId: "revenant.upkeep",
+    handlerId: 'revenant.upkeep',
     quicknessCastTimeMs: 440,
     cooldown: 3,
     energyCost: 5,
@@ -845,32 +835,32 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     pulseInterval: 1,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.3,
         hits: 1,
         atMs: 362,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        name: "Embrace the Darkness",
-        actorType: "player",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Embrace the Darkness',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 5,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 2,
         duration: 5,
-        actorType: "player",
-        metadata: { trigger: "empowered-upkeep-pulse" },
-      },
+        actorType: 'player',
+        metadata: { trigger: 'empowered-upkeep-pulse' }
+      }
     ],
-    legendId: "LegendaryDemon",
+    legendId: 'LegendaryDemon'
   },
   [ID.SEARING_FISSURE]: {
     implemented: true,
@@ -880,78 +870,78 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     comboFields: [
       {
-        ownerId: "revenant",
-        fieldType: "Fire",
+        ownerId: 'revenant',
+        fieldType: 'Fire',
         duration: 3,
-        startAnchor: "castEnd",
-      },
+        startAnchor: 'castEnd'
+      }
     ],
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Initial Strike",
-        actorType: "player",
+        name: 'Initial Strike',
+        actorType: 'player',
         atMs: 480,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.75,
         hits: 3,
-        name: "Pulsing Strikes",
-        actorType: "player",
+        name: 'Pulsing Strikes',
+        actorType: 'player',
         atMs: 1480,
         intervalMs: 1000,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {},
+        metadata: {}
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 3,
         duration: 3,
-        actorType: "player",
+        actorType: 'player',
         atMs: 480,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 1,
         applications: 3,
         atMs: 1480,
         intervalMs: 1000,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        actorType: "player",
-        persistsAfterInterrupt: true,
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player',
+        persistsAfterInterrupt: true
+      }
+    ]
   },
   [ID.LEGENDARY_DEMON_STANCE_ID_28376]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.RELINQUISH_POWER]: {
     implemented: true,
-    handlerId: "revenant.upkeep-release",
+    handlerId: 'revenant.upkeep-release',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     effects: [],
-    legendId: "LegendaryAssassin",
+    legendId: 'LegendaryAssassin'
   },
   [ID.JADE_WINDS]: {
     implemented: true,
@@ -960,21 +950,21 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 35,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3,
         hits: 1,
-        name: "Jade Winds",
-        actorType: "player",
+        name: 'Jade Winds',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 6,
         duration: 6,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    legendId: "LegendaryAssassin",
+    legendId: 'LegendaryAssassin'
   },
   [ID.TEMPORAL_RIFT]: {
     implemented: true,
@@ -983,44 +973,44 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.75,
         hits: 1,
-        name: "Temporal Rift",
-        actorType: "player",
+        name: 'Temporal Rift',
+        actorType: 'player',
         atMs: 640,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 4,
         duration: 10,
-        actorType: "player",
+        actorType: 'player',
         atMs: 640,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         atMs: 640,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
         metadata: {
-          controlKind: "pull",
-          duration: 300,
-        },
-      },
-    ],
+          controlKind: 'pull',
+          duration: 300
+        }
+      }
+    ]
   },
   [ID.LEGENDARY_DWARF_STANCE]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.VENTARIS_WILL]: {
     implemented: true,
@@ -1028,7 +1018,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 0.25,
     energyCost: 0,
     effects: [],
-    legendId: "LegendaryCentaur",
+    legendId: 'LegendaryCentaur'
   },
   [ID.SHACKLING_WAVE]: {
     implemented: true,
@@ -1037,58 +1027,58 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 1,
-        name: "Initial Damage",
-        actorType: "player",
+        name: 'Initial Damage',
+        actorType: 'player',
         atMs: 640,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
-        name: "Additional Strikes",
-        actorType: "player",
+        type: 'strike',
+        name: 'Additional Strikes',
+        actorType: 'player',
         ticks: [
           { atMs: 720, coefficient: 0.4 },
           { atMs: 800, coefficient: 0.4 },
           { atMs: 880, coefficient: 0.4 },
           { atMs: 960, coefficient: 0.4 },
-          { atMs: 1040, coefficient: 0.4 },
+          { atMs: 1040, coefficient: 0.4 }
         ],
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        metadata: {},
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        metadata: {}
       },
       {
-        type: "condition",
-        condition: "Immobilized",
+        type: 'condition',
+        condition: 'Immobilized',
         stacks: 1,
         duration: 1,
-        actorType: "player",
+        actorType: 'player',
         atMs: 640,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 8,
         duration: 5,
-        actorType: "player",
+        actorType: 'player',
         atMs: 640,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.LEGENDARY_DEMON_STANCE]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.INSPIRING_REINFORCEMENT]: {
     implemented: true,
@@ -1097,38 +1087,38 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 30,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Inspiring Reinforcement",
-        actorType: "player",
+        name: 'Inspiring Reinforcement',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "stability",
+        type: 'boon',
+        boon: 'stability',
         duration: 3,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "stability",
+        type: 'boon',
+        boon: 'stability',
         duration: 3,
         stacks: 1,
         applications: 5,
         atMs: 500,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-      },
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
     ],
-    legendId: "LegendaryDwarf",
+    legendId: 'LegendaryDwarf'
   },
   [ID.HAMMER_BOLT]: {
     implemented: true,
@@ -1137,24 +1127,24 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.9,
         hits: 1,
-        name: "Hammer Bolt",
-        actorType: "player",
+        name: 'Hammer Bolt',
+        actorType: 'player',
         atMs: 481,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         comboFinishers: [
           {
-            ownerId: "revenant",
-            finisherType: "Projectile",
+            ownerId: 'revenant',
+            finisherType: 'Projectile',
             chance: 1,
-            ambiguousFieldSelection: "oldest",
-          },
-        ],
-      },
-    ],
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
+      }
+    ]
   },
   [ID.DEATHSTRIKE_ID_28625]: {
     implemented: true,
@@ -1163,13 +1153,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.67,
         hits: 1,
-        name: "Final Strike Damage",
-        actorType: "player",
-      },
-    ],
+        name: 'Final Strike Damage',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.IGNITING_BRAND]: {
     implemented: true,
@@ -1178,20 +1168,20 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.25,
         hits: 1,
-        name: "Igniting Brand",
-        actorType: "player",
+        name: 'Igniting Brand',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 1,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.SPEAR_OF_ANGUISH]: {
     implemented: true,
@@ -1200,27 +1190,27 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        name: "Spear of Anguish",
-        actorType: "player",
+        name: 'Spear of Anguish',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 8,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 4,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.FRIGID_DISCHARGE]: {
     implemented: true,
@@ -1229,20 +1219,20 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 1,
-        name: "Frigid Discharge",
-        actorType: "player",
+        name: 'Frigid Discharge',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 3,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.DEVOUR_BRAND]: {
     implemented: true,
@@ -1251,13 +1241,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Devour Brand",
-        actorType: "player",
-      },
-    ],
+        name: 'Devour Brand',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.VENOMOUS_SPHERE]: {
     implemented: true,
@@ -1266,20 +1256,20 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.2,
         hits: 1,
-        name: "Venomous Sphere",
-        actorType: "player",
+        name: 'Venomous Sphere',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 4,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.RAPID_ASSAULT]: {
     implemented: true,
@@ -1288,24 +1278,24 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 24,
         hits: 8,
-        name: "Rapid Assault",
-        actorType: "player",
+        name: 'Rapid Assault',
+        actorType: 'player',
         atMs: 156,
         intervalMs: 156,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 3,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.RIFT_CONTAINMENT]: {
     implemented: true,
@@ -1314,17 +1304,17 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 20,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 6.6000000000000005,
         hits: 5,
-        name: "Rift Containment",
-        actorType: "player",
+        name: 'Rift Containment',
+        actorType: 'player',
         atMs: 100,
         intervalMs: 100,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.RIFT_SLASH]: {
     implemented: true,
@@ -1333,27 +1323,27 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.9,
         hits: 1,
-        name: "Rift Slash — Packet 1",
-        actorType: "player",
+        name: 'Rift Slash — Packet 1',
+        actorType: 'player',
         atMs: 400,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.2175,
         hits: 1,
-        name: "Rift Damage",
-        actorType: "player",
+        name: 'Rift Damage',
+        actorType: 'player',
         atMs: 1400,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        metadata: {},
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        metadata: {}
+      }
+    ]
   },
   [ID.SURGE_OF_THE_MISTS]: {
     implemented: true,
@@ -1362,25 +1352,25 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 15,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 29.160000000000004,
         hits: 9,
-        name: "Surge of the Mists",
-        actorType: "player",
+        name: 'Surge of the Mists',
+        actorType: 'player',
         atMs: 111,
         intervalMs: 111,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "knockback",
-          duration: 120,
-        },
-      },
-    ],
+          controlKind: 'knockback',
+          duration: 120
+        }
+      }
+    ]
   },
   [ID.REJUVENATING_ASSAULT]: {
     implemented: true,
@@ -1389,17 +1379,17 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 2,
-        name: "Rejuvenating Assault",
-        actorType: "player",
+        name: 'Rejuvenating Assault',
+        actorType: 'player',
         atMs: 500,
         intervalMs: 500,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.PREPARATION_THRUST]: {
     implemented: true,
@@ -1408,26 +1398,26 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.75,
         hits: 1,
-        name: "Preparation Thrust",
-        actorType: "player",
+        name: 'Preparation Thrust',
+        actorType: 'player',
         atMs: 320,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 6,
-        actorType: "player",
+        actorType: 'player',
         atMs: 320,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.NATURAL_HARMONY_ID_29082]: {
     implemented: true,
@@ -1435,7 +1425,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 2,
     energyCost: 20,
     effects: [],
-    legendId: "LegendaryCentaur",
+    legendId: 'LegendaryCentaur'
   },
   [ID.ENERGY_EXPULSION_ID_29114]: {
     implemented: true,
@@ -1444,21 +1434,21 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 35,
     effects: [
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "knockdown",
-          duration: 3,
-        },
+          controlKind: 'knockdown',
+          duration: 3
+        }
       },
       {
-        type: "boon",
-        boon: "stability",
+        type: 'boon',
+        boon: 'stability',
         duration: 5,
-        stacks: 3,
-      },
+        stacks: 3
+      }
     ],
-    legendId: "LegendaryCentaur",
+    legendId: 'LegendaryCentaur'
   },
   [ID.MENDERS_REBUKE]: {
     implemented: true,
@@ -1467,20 +1457,20 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
         name: "Mender's Rebuke",
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 3,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.PROJECT_TRANQUILITY]: {
     implemented: true,
@@ -1488,7 +1478,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 2,
     energyCost: 0,
     effects: [],
-    legendId: "LegendaryCentaur",
+    legendId: 'LegendaryCentaur'
   },
   [ID.RAPID_SWIPE]: {
     implemented: true,
@@ -1497,13 +1487,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.65,
         hits: 1,
-        name: "Rapid Swipe",
-        actorType: "player",
-      },
-    ],
+        name: 'Rapid Swipe',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.PURIFYING_ESSENCE_ID_29197]: {
     implemented: true,
@@ -1511,7 +1501,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 5,
     energyCost: 25,
     effects: [],
-    legendId: "LegendaryCentaur",
+    legendId: 'LegendaryCentaur'
   },
   [ID.RIPOSTING_SHADOWS]: {
     implemented: true,
@@ -1520,13 +1510,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 30,
     effects: [
       {
-        type: "boon",
-        boon: "fury",
+        type: 'boon',
+        boon: 'fury',
         duration: 6,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    legendId: "LegendaryAssassin",
+    legendId: 'LegendaryAssassin'
   },
   [ID.CHILLING_ISOLATION]: {
     implemented: true,
@@ -1538,38 +1528,38 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        name: "Chilling Isolation — Packet 1",
-        actorType: "player",
+        name: 'Chilling Isolation — Packet 1',
+        actorType: 'player',
         atMs: 280,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.6,
         hits: 1,
-        name: "Isolated Damage",
-        actorType: "player",
+        name: 'Isolated Damage',
+        actorType: 'player',
         atMs: 480,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {},
+        metadata: {}
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 2,
-        actorType: "player",
+        actorType: 'player',
         atMs: 280,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.BRUTAL_BLADE]: {
     implemented: true,
@@ -1578,26 +1568,26 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        name: "Brutal Blade",
-        actorType: "player",
+        name: 'Brutal Blade',
+        actorType: 'player',
         atMs: 480,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 2,
         duration: 6,
-        actorType: "player",
+        actorType: 'player',
         atMs: 480,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.WARDING_RIFT]: {
     implemented: true,
@@ -1606,35 +1596,35 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.4,
         hits: 1,
-        name: "Warding Rift",
-        actorType: "player",
+        name: 'Warding Rift',
+        actorType: 'player'
       },
       {
-        type: "blind",
-        actorType: "player",
-      },
-    ],
+        type: 'blind',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.PROTECTIVE_SOLACE_ID_29310]: {
     implemented: true,
-    handlerId: "revenant.upkeep",
+    handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 5,
     energyCost: 5,
     upkeepCost: 8,
     pulseInterval: 1,
     effects: [],
-    legendId: "LegendaryCentaur",
+    legendId: 'LegendaryCentaur'
   },
   [ID.RENEWING_WAVE]: {
     implemented: true,
     castTimeMs: 1000,
     cooldown: 15,
     energyCost: 15,
-    effects: [],
+    effects: []
   },
   [ID.FORCEFUL_BASH]: {
     implemented: true,
@@ -1643,20 +1633,20 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.75,
         hits: 1,
-        name: "Forceful Bash",
-        actorType: "player",
-      },
-    ],
+        name: 'Forceful Bash',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.HEALING_ORB]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.ENVOY_OF_EXUBERANCE]: {
     implemented: true,
@@ -1665,18 +1655,18 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 8,
     effects: [
       {
-        type: "boon",
-        boon: "protection",
+        type: 'boon',
+        boon: 'protection',
         duration: 3,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "aegis",
+        type: 'boon',
+        boon: 'aegis',
         duration: 4,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.JADE_WINDS_ID_31294]: {
     implemented: true,
@@ -1685,21 +1675,21 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 35,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3,
         hits: 1,
-        name: "Jade Winds",
-        actorType: "player",
+        name: 'Jade Winds',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 6,
         duration: 6,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    legendId: "LegendaryAssassin",
+    legendId: 'LegendaryAssassin'
   },
   [ID.RITE_OF_THE_GREAT_DWARF_TRAIT_SKILL]: {
     implemented: true,
@@ -1707,7 +1697,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 45,
     energyCost: 0,
     effects: [],
-    legendId: "LegendaryDwarf",
+    legendId: 'LegendaryDwarf'
   },
   [ID.VENGEFUL_SNOWBALLS]: {
     implemented: true,
@@ -1716,13 +1706,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 2,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.BLOODBANE_PATH]: {
     implemented: true,
@@ -1732,25 +1722,25 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 4,
     effects: [
       {
-        type: "strike",
-        name: "Bloodbane Path",
-        actorType: "player",
+        type: 'strike',
+        name: 'Bloodbane Path',
+        actorType: 'player',
         ticks: [
           { atMs: 600, coefficient: 0.4 },
           { atMs: 720, coefficient: 0.4 },
-          { atMs: 840, coefficient: 0.4 },
+          { atMs: 840, coefficient: 0.4 }
         ],
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 3,
         duration: 6,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.SHATTERSHOT]: {
     implemented: true,
@@ -1760,31 +1750,31 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     comboFinishers: [
       {
-        ownerId: "revenant",
-        finisherType: "Projectile",
+        ownerId: 'revenant',
+        finisherType: 'Projectile',
         chance: 0.2,
-        ambiguousFieldSelection: "oldest",
-      },
+        ambiguousFieldSelection: 'oldest'
+      }
     ],
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.65,
         hits: 1,
-        name: "Shattershot",
-        actorType: "player",
+        name: 'Shattershot',
+        actorType: 'player',
         atMs: 400,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 1,
         duration: 3,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.SCORCHRAZOR]: {
     implemented: true,
@@ -1793,37 +1783,37 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 16,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Scorchrazor",
-        actorType: "player",
+        name: 'Scorchrazor',
+        actorType: 'player',
         atMs: 440,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 4,
-        actorType: "player",
+        actorType: 'player',
         atMs: 440,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         atMs: 440,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         metadata: {
-          controlKind: "knockdown",
-          duration: 2,
-        },
-      },
-    ],
+          controlKind: 'knockdown',
+          duration: 2
+        }
+      }
+    ]
   },
   [ID.SEVENSHOT]: {
     implemented: true,
@@ -1833,17 +1823,17 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 7,
     comboFinishers: [
       {
-        ownerId: "revenant",
-        finisherType: "Projectile",
+        ownerId: 'revenant',
+        finisherType: 'Projectile',
         chance: 0.2,
-        ambiguousFieldSelection: "oldest",
-      },
+        ambiguousFieldSelection: 'oldest'
+      }
     ],
     effects: [
       {
-        type: "strike",
-        name: "Sevenshot",
-        actorType: "player",
+        type: 'strike',
+        name: 'Sevenshot',
+        actorType: 'player',
         ticks: [
           { atMs: 0, coefficient: 0.31 },
           { atMs: 160, coefficient: 0.31 },
@@ -1851,34 +1841,34 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
           { atMs: 360, coefficient: 0.31 },
           { atMs: 400, coefficient: 0.31 },
           { atMs: 600, coefficient: 0.31 },
-          { atMs: 600, coefficient: 0.31 },
+          { atMs: 600, coefficient: 0.31 }
         ],
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        actorType: "player",
+        type: 'condition',
+        actorType: 'player',
         ticks: [
-          { atMs: 0, condition: "Torment", stacks: 1, duration: 4 },
-          { atMs: 160, condition: "Torment", stacks: 1, duration: 4 },
-          { atMs: 200, condition: "Torment", stacks: 1, duration: 4 },
-          { atMs: 360, condition: "Torment", stacks: 1, duration: 4 },
-          { atMs: 400, condition: "Torment", stacks: 1, duration: 4 },
-          { atMs: 600, condition: "Torment", stacks: 1, duration: 4 },
-          { atMs: 600, condition: "Torment", stacks: 1, duration: 4 },
+          { atMs: 0, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 160, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 200, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 360, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 400, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 600, condition: 'Torment', stacks: 1, duration: 4 },
+          { atMs: 600, condition: 'Torment', stacks: 1, duration: 4 }
         ],
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.LEGENDARY_RENEGADE_STANCE]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.SPIRITCRUSH]: {
     implemented: true,
@@ -1888,60 +1878,60 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 12,
     comboFields: [
       {
-        ownerId: "revenant",
-        fieldType: "Fire",
+        ownerId: 'revenant',
+        fieldType: 'Fire',
         duration: 3,
-        startAnchor: "castEnd",
-      },
+        startAnchor: 'castEnd'
+      }
     ],
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.25,
         hits: 1,
-        name: "Initial Damage",
-        actorType: "player",
+        name: 'Initial Damage',
+        actorType: 'player',
         atMs: 1320,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.75,
         hits: 3,
-        name: "Spiritcrush — Fire Field",
-        actorType: "player",
+        name: 'Spiritcrush — Fire Field',
+        actorType: 'player',
         atMs: 2320,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        metadata: {},
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        metadata: {}
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 3,
         applications: 4,
         atMs: 1320,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        actorType: "player",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Slow",
+        type: 'condition',
+        condition: 'Slow',
         stacks: 1,
         duration: 1.5,
         applications: 4,
         atMs: 1320,
         intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-        actorType: "player",
-      },
-    ],
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.ESSENCE_SAP_DOPPELGANGER]: {
     implemented: true,
@@ -1950,27 +1940,27 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Essence Sap (Doppelganger)",
-        actorType: "player",
+        name: 'Essence Sap (Doppelganger)',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Slow",
+        type: 'condition',
+        condition: 'Slow',
         stacks: 1,
         duration: 1,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.LEGENDARY_RENEGADE_STANCE_ID_46409]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.CALL_OF_THE_DWARF]: {
     implemented: true,
@@ -1979,27 +1969,27 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.75,
         hits: 1,
-        name: "Call of the Dwarf",
-        actorType: "player",
+        name: 'Call of the Dwarf',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 5,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.CALL_OF_THE_CENTAUR]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.CALL_OF_THE_RENEGADE]: {
     implemented: true,
@@ -2008,20 +1998,20 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Call of the Renegade",
-        actorType: "player",
+        name: 'Call of the Renegade',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Bleeding",
+        type: 'condition',
+        condition: 'Bleeding',
         stacks: 2,
         duration: 8,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.CALL_OF_THE_ASSASSIN]: {
     implemented: true,
@@ -2030,32 +2020,32 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.93,
         hits: 1,
-        name: "Call of the Assassin",
-        actorType: "player",
+        name: 'Call of the Assassin',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 8,
         duration: 5,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "Quickness",
+        type: 'boon',
+        boon: 'Quickness',
         duration: 2,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "Quickness",
+        type: 'boon',
+        boon: 'Quickness',
         duration: 1,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.CALL_OF_THE_DEMON]: {
     implemented: true,
@@ -2064,27 +2054,27 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.9,
         hits: 1,
-        name: "Call of the Demon",
-        actorType: "player",
+        name: 'Call of the Demon',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Slow",
+        type: 'condition',
+        condition: 'Slow',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 2,
         duration: 8,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.CALL_OF_THE_DRAGON]: {
     implemented: true,
@@ -2093,41 +2083,41 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.75,
         hits: 1,
-        name: "Call of the Dragon",
-        actorType: "player",
+        name: 'Call of the Dragon',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 2,
         duration: 3,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 3,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.UNCHAINED_DESOLATION]: {
     implemented: true,
     castTimeMs: 2000,
     cooldown: 5,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.LEGENDARY_PRISONER_STANCE]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.RIFT_OF_PAIN]: {
     implemented: true,
@@ -2136,26 +2126,26 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.25,
         hits: 1,
-        name: "Rift of Pain",
-        actorType: "player",
+        name: 'Rift of Pain',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 1,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "protection",
+        type: 'boon',
+        boon: 'protection',
         duration: 1.5,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.MISTSFIRE]: {
     implemented: true,
@@ -2164,48 +2154,48 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.6,
         hits: 1,
-        name: "Mistsfire",
-        actorType: "player",
+        name: 'Mistsfire',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 2,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 1.75,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Slow",
+        type: 'condition',
+        condition: 'Slow',
         stacks: 1,
         duration: 0.5,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.RECKONING_BLAST]: {
     implemented: true,
@@ -2214,60 +2204,60 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.8,
         hits: 2,
-        name: "Reckoning Blast",
-        actorType: "player",
+        name: 'Reckoning Blast',
+        actorType: 'player',
         atMs: 500,
         intervalMs: 500,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 2,
         duration: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 3,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 2,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 2,
         duration: 1.5,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Slow",
+        type: 'condition',
+        condition: 'Slow',
         stacks: 1,
         duration: 1,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "knockback",
-          duration: 400,
-        },
-      },
-    ],
+          controlKind: 'knockback',
+          duration: 400
+        }
+      }
+    ]
   },
   [ID.PORTAL_FIRE]: {
     implemented: true,
@@ -2276,52 +2266,52 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 21.12,
         hits: 8,
-        name: "Portal Fire",
-        actorType: "player",
+        name: 'Portal Fire',
+        actorType: 'player',
         atMs: 156,
         intervalMs: 156,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 2,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 1.5,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Slow",
+        type: 'condition',
+        condition: 'Slow',
         stacks: 1,
         duration: 0.5,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.TORRENTIAL_MISTS]: {
     implemented: true,
@@ -2330,74 +2320,74 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 20,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 106.47999999999999,
         hits: 22,
-        name: "Torrential Mists",
-        actorType: "player",
+        name: 'Torrential Mists',
+        actorType: 'player',
         atMs: 91,
         intervalMs: 91,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 2,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 1.5,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Slow",
+        type: 'condition',
+        condition: 'Slow',
         stacks: 1,
         duration: 0.5,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.ANCIENT_ECHO]: {
     implemented: true,
-    handlerId: "revenant.ancient-echo",
+    handlerId: 'revenant.ancient-echo',
     castTimeMs: 500,
     cooldown: 20,
     energyCost: 0,
     resourceGain: 25,
     effects: [
       {
-        type: "boon",
-        boon: "regeneration",
+        type: 'boon',
+        boon: 'regeneration',
         duration: 5,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "Resistance",
+        type: 'boon',
+        boon: 'Resistance',
         duration: 3,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.SOOTHING_STONE_ID_56661]: {
     implemented: true,
@@ -2406,13 +2396,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     effects: [
       {
-        type: "boon",
-        boon: "resolution",
+        type: 'boon',
+        boon: 'resolution',
         duration: 5,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    legendId: "LegendaryDwarf",
+    legendId: 'LegendaryDwarf'
   },
   [ID.FORCED_ENGAGEMENT_ID_56662]: {
     implemented: true,
@@ -2421,33 +2411,33 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Forced Engagement",
-        actorType: "player",
+        name: 'Forced Engagement',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Slow",
+        type: 'condition',
+        condition: 'Slow',
         stacks: 1,
         duration: 4,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "taunt",
-          duration: 4,
-        },
-      },
+          controlKind: 'taunt',
+          duration: 4
+        }
+      }
     ],
-    legendId: "LegendaryDwarf",
+    legendId: 'LegendaryDwarf'
   },
   [ID.VENGEFUL_HAMMERS_ID_56752]: {
     implemented: true,
-    handlerId: "revenant.upkeep",
+    handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 5,
@@ -2455,14 +2445,14 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     pulseInterval: 1 / 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.2,
         hits: 3,
-        name: "Vengeful Hammers",
-        actorType: "effect",
-      },
+        name: 'Vengeful Hammers',
+        actorType: 'effect'
+      }
     ],
-    legendId: "LegendaryDwarf",
+    legendId: 'LegendaryDwarf'
   },
   [ID.RITE_OF_THE_GREAT_DWARF_ID_56773]: {
     implemented: true,
@@ -2470,7 +2460,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     cooldown: 0,
     energyCost: 40,
     effects: [],
-    legendId: "LegendaryDwarf",
+    legendId: 'LegendaryDwarf'
   },
   [ID.INSPIRING_REINFORCEMENT_ID_56841]: {
     implemented: true,
@@ -2479,37 +2469,37 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 30,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 7.5,
         hits: 5,
-        name: "Inspiring Reinforcement",
-        actorType: "player",
+        name: 'Inspiring Reinforcement',
+        actorType: 'player',
         atMs: 50,
         intervalMs: 50,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "stability",
+        type: 'boon',
+        boon: 'stability',
         duration: 3,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "stability",
+        type: 'boon',
+        boon: 'stability',
         duration: 3,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    legendId: "LegendaryDwarf",
+    legendId: 'LegendaryDwarf'
   },
   [ID.INVOKE_TORMENT]: {
     implemented: true,
@@ -2518,20 +2508,20 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Invoke Torment",
-        actorType: "player",
+        name: 'Invoke Torment',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 10,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.MIST_SLASH]: {
     implemented: true,
@@ -2541,26 +2531,26 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        name: "Mist Slash",
-        actorType: "player",
+        name: 'Mist Slash',
+        actorType: 'player',
         atMs: 400,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 10,
-        actorType: "player",
+        actorType: 'player',
         atMs: 400,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.MIST_UNLEASHED]: {
     implemented: true,
@@ -2569,23 +2559,23 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.6,
         hits: 1,
-        name: "Mist Unleashed",
-        actorType: "player",
+        name: 'Mist Unleashed',
+        actorType: 'player',
         atMs: 400,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 3,
         duration: 10,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.CALL_OF_THE_ALLIANCE]: {
     implemented: true,
@@ -2595,13 +2585,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     resourceGain: 8,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.93,
         hits: 1,
-        name: "Call of the Alliance",
-        actorType: "player",
-      },
-    ],
+        name: 'Call of the Alliance',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.PHANTOMS_ONSLAUGHT_ID_62713]: {
     implemented: true,
@@ -2609,31 +2599,31 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     dashTimeMs: 38,
     hitDelayMs: 400,
     cooldown: 8,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     rechargeOffsetMs: 420,
     energyCost: 8,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.6,
         hits: 1,
         name: "Phantom's Onslaught",
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "fury",
+        type: 'boon',
+        boon: 'fury',
         duration: 3,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.ARCING_MISTS]: {
     implemented: true,
@@ -2643,36 +2633,36 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 1,
-        name: "Arcing Mists",
-        actorType: "player",
+        name: 'Arcing Mists',
+        actorType: 'player',
         atMs: 440,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player',
         atMs: 440,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 2,
         duration: 10,
-        actorType: "player",
+        actorType: 'player',
         atMs: 440,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.TRUE_STRIKE]: {
     implemented: true,
@@ -2681,20 +2671,20 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "True Strike (vindicator) — Packet 1",
-        actorType: "player",
-      },
-    ],
+        name: 'True Strike (vindicator) — Packet 1',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.LEGENDARY_ALLIANCE_STANCE]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.PHANTOMS_ONSLAUGHT]: {
     implemented: true,
@@ -2702,31 +2692,31 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     dashTimeMs: 38,
     hitDelayMs: 400,
     cooldown: 8,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     rechargeOffsetMs: 420,
     energyCost: 8,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.6,
         hits: 1,
         name: "Phantom's Onslaught",
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "fury",
+        type: 'boon',
+        boon: 'fury',
         duration: 3,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.MIST_SWING]: {
     implemented: true,
@@ -2736,13 +2726,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.7,
         hits: 1,
-        name: "Mist Swing",
-        actorType: "player",
-      },
-    ],
+        name: 'Mist Swing',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.IMPERIAL_GUARD]: {
     implemented: true,
@@ -2751,7 +2741,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     defaultInterruptMs: 80,
     cooldown: 12,
     energyCost: 10,
-    effects: [],
+    effects: []
   },
   [ID.ETERNITYS_REQUIEM]: {
     implemented: true,
@@ -2760,11 +2750,11 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         name: "Eternity's Requiem",
-        actorType: "player",
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
         ticks: [
           // Median packet positions by hit rank across the supplied logs.
           // Individual uses vary from six to ten target hits.
@@ -2775,11 +2765,11 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
           { atMs: 646, coefficient: 0.6 },
           { atMs: 722, coefficient: 0.5 },
           { atMs: 838, coefficient: 0.4 },
-          { atMs: 922, coefficient: 0.3 },
+          { atMs: 922, coefficient: 0.3 }
         ],
-        metadata: {},
-      },
-    ],
+        metadata: {}
+      }
+    ]
   },
   [ID.BLOSSOMING_AURA]: {
     implemented: true,
@@ -2788,45 +2778,45 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 10,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 4.8,
         hits: 4,
-        name: "Pulsing Damage",
-        actorType: "player",
+        name: 'Pulsing Damage',
+        actorType: 'player',
         atMs: 188,
         intervalMs: 188,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Final Damage",
-        actorType: "player",
+        name: 'Final Damage',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 3,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.OTHERWORLDLY_ATTRACTION_ALLY]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 5,
     energyCost: 10,
-    effects: [],
+    effects: []
   },
   [ID.DEACTIVATE_OTHERWORLDLY_BOND]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.OTHERWORLDLY_ATTRACTION_ENEMY]: {
     implemented: true,
@@ -2835,13 +2825,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 10,
     effects: [
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 6,
         duration: 10,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.ACERBIC_CUT]: {
     implemented: true,
@@ -2850,19 +2840,19 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.533,
         hits: 1,
-        name: "Acerbic Cut",
-        actorType: "player",
+        name: 'Acerbic Cut',
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 9,
-        stacks: 2,
-      },
-    ],
+        stacks: 2
+      }
+    ]
   },
   [ID.SERENE_SLASH]: {
     implemented: true,
@@ -2871,13 +2861,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.533,
         hits: 1,
-        name: "Serene Slash",
-        actorType: "player",
-      },
-    ],
+        name: 'Serene Slash',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.MOTIVATING_WHIRL]: {
     implemented: true,
@@ -2886,13 +2876,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Motivating Whirl",
-        actorType: "player",
-      },
-    ],
+        name: 'Motivating Whirl',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.OTHERWORLDLY_BOND]: {
     implemented: true,
@@ -2901,50 +2891,50 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     effects: [
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 10,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Crippled",
+        type: 'condition',
+        condition: 'Crippled',
         stacks: 1,
         duration: 2,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Slow",
+        type: 'condition',
+        condition: 'Slow',
         stacks: 1,
         duration: 1,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 9,
-        stacks: 1,
+        stacks: 1
       },
       {
-        type: "boon",
-        boon: "fury",
+        type: 'boon',
+        boon: 'fury',
         duration: 3,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.DETONATE_BLOSSOMING_AURA]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.ABYSSAL_FIRE]: {
     implemented: true,
-    handlerId: "revenant.spear-recharge",
+    handlerId: 'revenant.spear-recharge',
     simulatorExcluded: true,
     quicknessCastTimeMs: 460,
     cooldown: 0,
@@ -2953,205 +2943,205 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     flipParentId: null,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.85,
         hits: 1,
-        name: "Abyssal Fire",
-        actorType: "player",
+        name: 'Abyssal Fire',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 6,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.ABYSSAL_BLITZ]: {
     interruptCommitMs: 0,
     implemented: true,
-    handlerId: "revenant.spear-recharge",
+    handlerId: 'revenant.spear-recharge',
     quicknessCastTimeMs: 520,
     cooldown: 10,
     energyCost: 10,
     rechargeReduction: 3,
     effects: [
       {
-        type: "strike",
-        name: "Abyssal Blitz — Mine",
-        actorType: "player",
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        type: 'strike',
+        name: 'Abyssal Blitz — Mine',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
         ticks: [
           { atMs: 560, coefficient: 0.5 },
           { atMs: 720, coefficient: 0.5 },
-          { atMs: 960, coefficient: 0.5 },
+          { atMs: 960, coefficient: 0.5 }
         ],
-        metadata: {},
+        metadata: {}
       },
       {
-        type: "condition",
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        actorType: "player",
+        type: 'condition',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player',
         persistsAfterInterrupt: true,
         ticks: [
-          { atMs: 560, condition: "Slow", stacks: 1, duration: 3 },
-          { atMs: 720, condition: "Slow", stacks: 1, duration: 3 },
-          { atMs: 960, condition: "Slow", stacks: 1, duration: 3 },
+          { atMs: 560, condition: 'Slow', stacks: 1, duration: 3 },
+          { atMs: 720, condition: 'Slow', stacks: 1, duration: 3 },
+          { atMs: 960, condition: 'Slow', stacks: 1, duration: 3 }
         ],
-        metadata: {},
+        metadata: {}
       },
       {
-        type: "condition",
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        actorType: "player",
+        type: 'condition',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player',
         persistsAfterInterrupt: true,
         ticks: [
-          { atMs: 560, condition: "Chilled", stacks: 1, duration: 3 },
-          { atMs: 720, condition: "Chilled", stacks: 1, duration: 3 },
-          { atMs: 960, condition: "Chilled", stacks: 1, duration: 3 },
+          { atMs: 560, condition: 'Chilled', stacks: 1, duration: 3 },
+          { atMs: 720, condition: 'Chilled', stacks: 1, duration: 3 },
+          { atMs: 960, condition: 'Chilled', stacks: 1, duration: 3 }
         ],
-        metadata: {},
+        metadata: {}
       },
       {
-        type: "condition",
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        actorType: "player",
+        type: 'condition',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player',
         persistsAfterInterrupt: true,
         ticks: [
-          { atMs: 560, condition: "Weakness", stacks: 1, duration: 3 },
-          { atMs: 720, condition: "Weakness", stacks: 1, duration: 3 },
-          { atMs: 960, condition: "Weakness", stacks: 1, duration: 3 },
+          { atMs: 560, condition: 'Weakness', stacks: 1, duration: 3 },
+          { atMs: 720, condition: 'Weakness', stacks: 1, duration: 3 },
+          { atMs: 960, condition: 'Weakness', stacks: 1, duration: 3 }
         ],
-        metadata: {},
-      },
-    ],
+        metadata: {}
+      }
+    ]
   },
   [ID.ABYSSAL_BLOT]: {
     interruptCommitMs: 0,
     implemented: true,
-    handlerId: "revenant.spear-recharge",
+    handlerId: 'revenant.spear-recharge',
     quicknessCastTimeMs: 800,
     cooldown: 15,
     energyCost: 12,
     rechargeReduction: 2,
     effects: [
       {
-        type: "strike",
-        name: "Abyssal Blot",
-        actorType: "player",
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        type: 'strike',
+        name: 'Abyssal Blot',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
         ticks: [
           { atMs: 960, coefficient: 0.4 },
           { atMs: 1240, coefficient: 0.4 },
           { atMs: 1520, coefficient: 0.4 },
           { atMs: 1800, coefficient: 0.4 },
-          { atMs: 2080, coefficient: 0.4 },
+          { atMs: 2080, coefficient: 0.4 }
         ],
-        metadata: {},
+        metadata: {}
       },
       {
-        type: "condition",
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        actorType: "player",
+        type: 'condition',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player',
         persistsAfterInterrupt: true,
         ticks: [
-          { atMs: 960, condition: "Poisoned", stacks: 1, duration: 6 },
-          { atMs: 1240, condition: "Poisoned", stacks: 1, duration: 6 },
-          { atMs: 1520, condition: "Poisoned", stacks: 1, duration: 6 },
-          { atMs: 1800, condition: "Poisoned", stacks: 1, duration: 6 },
-          { atMs: 2080, condition: "Poisoned", stacks: 1, duration: 6 },
+          { atMs: 960, condition: 'Poisoned', stacks: 1, duration: 6 },
+          { atMs: 1240, condition: 'Poisoned', stacks: 1, duration: 6 },
+          { atMs: 1520, condition: 'Poisoned', stacks: 1, duration: 6 },
+          { atMs: 1800, condition: 'Poisoned', stacks: 1, duration: 6 },
+          { atMs: 2080, condition: 'Poisoned', stacks: 1, duration: 6 }
         ],
-        metadata: {},
+        metadata: {}
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 2,
         atMs: 960,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         atMs: 960,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
         metadata: {
-          controlKind: "pull",
-          duration: 180,
-        },
-      },
-    ],
+          controlKind: 'pull',
+          duration: 180
+        }
+      }
+    ]
   },
   [ID.ABYSSAL_FORCE]: {
     interruptCommitMs: 0,
     implemented: true,
-    handlerId: "revenant.spear-recharge",
+    handlerId: 'revenant.spear-recharge',
     quicknessCastTimeMs: 520,
     cooldown: 6,
     energyCost: 4,
     rechargeReduction: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        name: "Abyssal Force",
-        actorType: "player",
+        name: 'Abyssal Force',
+        actorType: 'player',
         atMs: 1162,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: {},
+        metadata: {}
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 8,
-        actorType: "player",
+        actorType: 'player',
         atMs: 1162,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "condition",
-        condition: "Chilled",
+        type: 'condition',
+        condition: 'Chilled',
         stacks: 1,
         duration: 2,
-        actorType: "player",
+        actorType: 'player',
         atMs: 1162,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
+      }
+    ]
   },
   [ID.ABYSSAL_STRIKE]: {
     implemented: true,
-    handlerId: "revenant.spear-recharge",
+    handlerId: 'revenant.spear-recharge',
     quicknessCastTimeMs: 520,
     interruptCommitMs: 396,
     cooldown: 0,
@@ -3160,43 +3150,43 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     nextChainId: null,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.85,
         hits: 1,
-        name: "Abyssal Strike",
-        actorType: "player",
+        name: 'Abyssal Strike',
+        actorType: 'player',
         atMs: 396,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player',
         atMs: 396,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 1,
         duration: 6,
-        actorType: "player",
+        actorType: 'player',
         atMs: 396,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        persistsAfterInterrupt: true,
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
+      }
+    ]
   },
   [ID.ABYSSAL_RAZE]: {
     implemented: true,
-    handlerId: "revenant.abyssal-raze",
+    handlerId: 'revenant.abyssal-raze',
     quicknessCastTimeMs: 600,
     cooldown: 1,
     recharge: 1,
@@ -3206,50 +3196,50 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     maximumStacks: 3,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
         damageIncreasePerStack: 0.33,
         atMs: 559,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        name: "Abyssal Raze",
-        actorType: "player",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Abyssal Raze',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 5,
         atMs: 559,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        actorType: "player",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 2,
         duration: 5,
         atMs: 559,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        actorType: "player",
-        metadata: { trigger: "crushing-abyss" },
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player',
+        metadata: { trigger: 'crushing-abyss' }
       },
       {
-        type: "buff",
+        type: 'buff',
         sourceId: 72962,
-        kind: "crushing-abyss",
+        kind: 'crushing-abyss',
         duration: 10,
         stacks: 1,
         atMs: 559,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        name: "Crushing Abyss",
-        actorType: "player",
-      },
-    ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Crushing Abyss',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.BLITZ_MINES]: {
     implemented: true,
@@ -3258,27 +3248,27 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.5,
         hits: 1,
-        name: "Blitz Mines",
-        actorType: "player",
+        name: 'Blitz Mines',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Slow",
+        type: 'condition',
+        condition: 'Slow',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Weakness",
+        type: 'condition',
+        condition: 'Weakness',
         stacks: 1,
         duration: 3,
-        actorType: "player",
-      },
-    ],
+        actorType: 'player'
+      }
+    ]
   },
   [ID.REPLENISHING_DESPAIR_TRAIT_SKILL]: {
     implemented: true,
@@ -3287,13 +3277,13 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.064,
         hits: 1,
-        name: "Replenishing Despair (trait skill)",
-        actorType: "player",
-      },
-    ],
+        name: 'Replenishing Despair (trait skill)',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.UNYIELDING_IMPACT]: {
     implemented: true,
@@ -3302,491 +3292,490 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     energyCost: 5,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "Unyielding Impact",
-        actorType: "player",
+        name: 'Unyielding Impact',
+        actorType: 'player',
         atMs: 557,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player',
         atMs: 557,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 4,
         duration: 3,
-        actorType: "player",
+        actorType: 'player',
         atMs: 557,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Poisoned",
+        type: 'condition',
+        condition: 'Poisoned',
         stacks: 1,
         duration: 3,
-        actorType: "player",
+        actorType: 'player',
         atMs: 557,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
     ],
-    legendId: "LegendaryDemon",
+    legendId: 'LegendaryDemon'
   },
   [ID.LEGENDARY_ENTITY_STANCE]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.PAIN_ABSORPTION_ID_78505]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 5,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.BANISH_ENCHANTMENT_ID_78587]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 5,
     energyCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.EMPOWERING_MISERY_ID_78681]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 30,
     energyCost: 0,
-    effects: [],
-  },
+    effects: []
+  }
 });
 
 const extraSkills: readonly Skill[] = [
   {
     id: ID.SWAP_WEAPONS,
-    handlerId: "revenant.weapon-swap",
-    name: "Swap Weapons",
-    description: "Swap equipped weapon sets.",
-    icon: "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
-    type: "Action",
-    slot: "Action",
+    handlerId: 'revenant.weapon-swap',
+    name: 'Swap Weapons',
+    description: 'Swap equipped weapon sets.',
+    icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
+    type: 'Action',
+    slot: 'Action',
     castTimeMs: 0,
     cooldown: 10,
-    rechargeAnchor: "castStart",
+    rechargeAnchor: 'castStart',
     implemented: true,
-    effects: [],
+    effects: []
   },
   {
     id: ID.SWAP_LEGENDS,
-    handlerId: "revenant.legend-swap",
-    name: "Swap Legends",
-    description: "Invoke the other selected legend and reset energy.",
-    icon: "",
-    type: "Profession",
-    slot: "Profession_1",
+    handlerId: 'revenant.legend-swap',
+    name: 'Swap Legends',
+    description: 'Invoke the other selected legend and reset energy.',
+    icon: '',
+    type: 'Profession',
+    slot: 'Profession_1',
     castTimeMs: 0,
     cooldown: 10,
     resourceGain: 50,
     implemented: true,
-    effects: [],
+    effects: []
   },
   {
     id: ID.DODGE,
-    handlerId: "revenant.dodge",
-    name: "Dodge",
-    description: "Perform the selected dodge.",
-    icon: "https://wiki.guildwars2.com/images/b/b2/Dodge.png",
-    type: "Action",
-    slot: "Action",
+    handlerId: 'revenant.dodge',
+    name: 'Dodge',
+    description: 'Perform the selected dodge.',
+    icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
+    type: 'Action',
+    slot: 'Action',
     castTimeMs: 0,
     cooldown: 0,
     resourceCost: 50,
     implemented: true,
-    effects: [],
-  },
+    effects: []
+  }
 ];
 
 export const REVENANT_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze(
-  extraSkills.map((skill) => Object.freeze(skill)),
+  extraSkills.map((skill) => Object.freeze(skill))
 );
 
-export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] =
-  Object.freeze([
-    {
-      id: REVENANT_CORE_BALANCE_PROFILE_IDS.resources,
-      name: "Revenant Resources",
-      profileKind: "mechanic",
-      energyRegenerationPerSecond: 5,
-      enduranceRegenerationPerSecond: 5,
-      vigorRegenerationMultiplier: 1.5,
-      effects: [],
-    },
-    {
-      id: REVENANT_CORE_BALANCE_PROFILE_IDS.chargedMists,
-      name: "Charged Mists",
-      profileKind: "trait",
-      categories: ["Trait"],
-      skillFamily: "Trait",
-      resourceGain: 75,
-      threshold: 10,
-      effects: [],
-    },
-    {
-      id: REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars,
-      name: "Battle Scars",
-      profileKind: "mechanic",
-      maximumStacks: 25,
-      effects: [
-        {
-          type: "buff",
-          kind: "battle-scars",
-          duration: 10,
-          stacks: 1,
-          actorType: "player",
-        },
-        {
-          type: "strike",
-          coefficient: 0,
-          hits: 1,
-          flatStrikeBase: 117,
-          flatStrikePowerCoeff: 0.006,
-          name: "Battle Scars — Life Siphon",
-          actorType: "effect",
-        },
-      ],
-    },
-    {
-      id: REVENANT_CORE_BALANCE_PROFILE_IDS.battleScarred,
-      name: "Battle Scarred",
-      profileKind: "trait",
-      categories: ["Trait"],
-      skillFamily: "Trait",
-      effects: [
-        {
-          type: "buff",
-          kind: "battle-scars",
-          duration: 10,
-          stacks: 5,
-          actorType: "player",
-        },
-      ],
-    },
-    {
-      id: REVENANT_CORE_BALANCE_PROFILE_IDS.thrillOfCombat,
-      name: "Thrill of Combat",
-      profileKind: "trait",
-      categories: ["Trait"],
-      skillFamily: "Trait",
-      cooldown: 1,
-      effects: [
-        {
-          type: "buff",
-          kind: "battle-scars",
-          duration: 10,
-          stacks: 1,
-          actorType: "player",
-        },
-      ],
-    },
-    {
-      id: REVENANT_CORE_BALANCE_PROFILE_IDS.abyssalChill,
-      name: "Abyssal Chill",
-      profileKind: "trait",
-      categories: ["Trait"],
-      skillFamily: "Trait",
-      effects: [
-        {
-          type: "condition",
-          condition: "Torment",
-          stacks: 1,
-          duration: 3,
-          actorType: "player",
-        },
-      ],
-    },
-    {
-      id: REVENANT_CORE_BALANCE_PROFILE_IDS.assassinsPresence,
-      name: "Assassin's Presence",
-      profileKind: "trait",
-      categories: ["Trait"],
-      skillFamily: "Trait",
-      cooldown: 10,
-      effects: [
-        {
-          type: "boon",
-          boon: "fury",
-          duration: 3,
-          stacks: 1,
-          actorType: "player",
-        },
-      ],
-    },
-    {
-      id: REVENANT_CORE_BALANCE_PROFILE_IDS.brutality,
-      name: "Brutality",
-      profileKind: "trait",
-      categories: ["Trait"],
-      skillFamily: "Trait",
-      cooldown: 9,
-      effects: [
-        {
-          type: "boon",
-          boon: "quickness",
-          duration: 3,
-          stacks: 1,
-          actorType: "player",
-        },
-      ],
-    },
-    {
-      id: REVENANT_CORE_BALANCE_PROFILE_IDS.dwarvenBattleTraining,
-      name: "Dwarven Battle Training",
-      profileKind: "trait",
-      categories: ["Trait"],
-      skillFamily: "Trait",
-      effects: [
-        {
-          type: "condition",
-          condition: "Weakness",
-          stacks: 1,
-          duration: 5,
-          actorType: "player",
-        },
-      ],
-    },
-    {
-      id: REVENANT_CORE_BALANCE_PROFILE_IDS.exposeDefenses,
-      name: "Expose Defenses",
-      profileKind: "trait",
-      categories: ["Trait"],
-      skillFamily: "Trait",
-      effects: [
-        {
-          type: "condition",
-          condition: "Vulnerability",
-          stacks: 5,
-          duration: 5,
-          actorType: "player",
-        },
-      ],
-    },
-    {
-      id: REVENANT_CORE_BALANCE_PROFILE_IDS.viciousReprisal,
-      name: "Vicious Reprisal",
-      profileKind: "trait",
-      categories: ["Trait"],
-      skillFamily: "Trait",
-      cooldown: 1,
-      effects: [
-        {
-          type: "boon",
-          boon: "might",
-          duration: 10,
-          stacks: 1,
-          actorType: "player",
-        },
-      ],
-    },
-    {
-      id: REVENANT_CORE_BALANCE_PROFILE_IDS.notoriety,
-      name: "Notoriety",
-      profileKind: "trait",
-      categories: ["Trait"],
-      skillFamily: "Trait",
-      effects: [
-        {
-          type: "boon",
-          boon: "might",
-          duration: 10,
-          stacks: 2,
-          actorType: "player",
-        },
-      ],
-    },
-    {
-      id: REVENANT_CORE_BALANCE_PROFILE_IDS.spiritBoon,
-      name: "Spirit Boon (Core Legends)",
-      profileKind: "trait",
-      categories: ["Trait"],
-      skillFamily: "Trait",
-      effects: [
-        {
-          type: "boon",
-          boon: "might",
-          duration: 10,
-          stacks: 2,
-          actorType: "player",
-          metadata: { legendId: LEGEND.ASSASSIN },
-        },
-        {
-          type: "boon",
-          boon: "resistance",
-          duration: 2,
-          stacks: 1,
-          actorType: "player",
-          metadata: { legendId: LEGEND.DEMON },
-        },
-        {
-          type: "boon",
-          boon: "stability",
-          duration: 3,
-          stacks: 1,
-          actorType: "player",
-          metadata: { legendId: LEGEND.DWARF },
-        },
-        {
-          type: "boon",
-          boon: "regeneration",
-          duration: 5,
-          stacks: 1,
-          actorType: "player",
-          metadata: { legendId: LEGEND.CENTAUR },
-        },
-      ],
-    },
-    {
-      id: REVENANT_CORE_BALANCE_PROFILE_IDS.songOfTheMists,
-      name: "Song of the Mists (Core Legends)",
-      profileKind: "trait",
-      categories: ["Trait"],
-      skillFamily: "Trait",
-      effects: [
-        {
-          type: "strike",
-          coefficient: 0.93,
-          hits: 1,
-          name: "Call of the Assassin",
-          actorType: "player",
-          metadata: { legendId: LEGEND.ASSASSIN },
-        },
-        {
-          type: "condition",
-          condition: "Vulnerability",
-          stacks: 8,
-          duration: 5,
-          name: "Call of the Assassin",
-          actorType: "player",
-          metadata: { legendId: LEGEND.ASSASSIN },
-        },
-        {
-          type: "boon",
-          boon: "quickness",
-          duration: 2,
-          stacks: 1,
-          name: "Call of the Assassin",
-          actorType: "player",
-          metadata: { legendId: LEGEND.ASSASSIN },
-        },
-        {
-          type: "strike",
-          coefficient: 0.75,
-          hits: 1,
-          name: "Call of the Dwarf",
-          actorType: "player",
-          metadata: { legendId: LEGEND.DWARF },
-        },
-        {
-          type: "condition",
-          condition: "Weakness",
-          stacks: 1,
-          duration: 5,
-          name: "Call of the Dwarf",
-          actorType: "player",
-          metadata: { legendId: LEGEND.DWARF },
-        },
-        {
-          type: "strike",
-          coefficient: 0.9,
-          hits: 1,
-          name: "Call of the Demon",
-          actorType: "player",
-          metadata: { legendId: LEGEND.DEMON },
-        },
-        {
-          type: "condition",
-          condition: "Slow",
-          stacks: 1,
-          duration: 3,
-          name: "Call of the Demon",
-          actorType: "player",
-          metadata: { legendId: LEGEND.DEMON },
-        },
-        {
-          type: "condition",
-          condition: "Torment",
-          stacks: 2,
-          duration: 8,
-          name: "Call of the Demon",
-          actorType: "player",
-          metadata: { legendId: LEGEND.DEMON },
-        },
-      ],
-    },
-    {
-      id: REVENANT_CORE_BALANCE_PROFILE_IDS.invokingTorment,
-      name: "Invoke Torment",
-      profileKind: "trait",
-      categories: ["Trait"],
-      skillFamily: "Trait",
-      effects: [
-        {
-          type: "strike",
-          coefficient: 1,
-          hits: 1,
-          atMs: 750,
-          timingAnchor: "castStart",
-          timingScale: "fixed",
-          name: "Invoke Torment",
-          actorType: "player",
-        },
-        {
-          type: "condition",
-          condition: "Torment",
-          stacks: 1,
-          duration: 10,
-          atMs: 750,
-          timingAnchor: "castStart",
-          timingScale: "fixed",
-          name: "Invoke Torment",
-          actorType: "player",
-        },
-        {
-          type: "condition",
-          condition: "Poisoned",
-          stacks: 1,
-          duration: 10,
-          atMs: 750,
-          timingAnchor: "castStart",
-          timingScale: "fixed",
-          name: "Invoke Torment",
-          actorType: "player",
-          metadata: { trigger: "diabolic-inferno" },
-        },
-        {
-          type: "condition",
-          condition: "Burning",
-          stacks: 1,
-          duration: 4,
-          atMs: 750,
-          timingAnchor: "castStart",
-          timingScale: "fixed",
-          name: "Invoke Torment",
-          actorType: "player",
-          metadata: { trigger: "diabolic-inferno" },
-        },
-      ],
-    },
-  ] satisfies readonly BalanceProfile[]);
+export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.resources,
+    name: 'Revenant Resources',
+    profileKind: 'mechanic',
+    energyRegenerationPerSecond: 5,
+    enduranceRegenerationPerSecond: 5,
+    vigorRegenerationMultiplier: 1.5,
+    effects: []
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.chargedMists,
+    name: 'Charged Mists',
+    profileKind: 'trait',
+    categories: ['Trait'],
+    skillFamily: 'Trait',
+    resourceGain: 75,
+    threshold: 10,
+    effects: []
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars,
+    name: 'Battle Scars',
+    profileKind: 'mechanic',
+    maximumStacks: 25,
+    effects: [
+      {
+        type: 'buff',
+        kind: 'battle-scars',
+        duration: 10,
+        stacks: 1,
+        actorType: 'player'
+      },
+      {
+        type: 'strike',
+        coefficient: 0,
+        hits: 1,
+        flatStrikeBase: 117,
+        flatStrikePowerCoeff: 0.006,
+        name: 'Battle Scars — Life Siphon',
+        actorType: 'effect'
+      }
+    ]
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.battleScarred,
+    name: 'Battle Scarred',
+    profileKind: 'trait',
+    categories: ['Trait'],
+    skillFamily: 'Trait',
+    effects: [
+      {
+        type: 'buff',
+        kind: 'battle-scars',
+        duration: 10,
+        stacks: 5,
+        actorType: 'player'
+      }
+    ]
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.thrillOfCombat,
+    name: 'Thrill of Combat',
+    profileKind: 'trait',
+    categories: ['Trait'],
+    skillFamily: 'Trait',
+    cooldown: 1,
+    effects: [
+      {
+        type: 'buff',
+        kind: 'battle-scars',
+        duration: 10,
+        stacks: 1,
+        actorType: 'player'
+      }
+    ]
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.abyssalChill,
+    name: 'Abyssal Chill',
+    profileKind: 'trait',
+    categories: ['Trait'],
+    skillFamily: 'Trait',
+    effects: [
+      {
+        type: 'condition',
+        condition: 'Torment',
+        stacks: 1,
+        duration: 3,
+        actorType: 'player'
+      }
+    ]
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.assassinsPresence,
+    name: "Assassin's Presence",
+    profileKind: 'trait',
+    categories: ['Trait'],
+    skillFamily: 'Trait',
+    cooldown: 10,
+    effects: [
+      {
+        type: 'boon',
+        boon: 'fury',
+        duration: 3,
+        stacks: 1,
+        actorType: 'player'
+      }
+    ]
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.brutality,
+    name: 'Brutality',
+    profileKind: 'trait',
+    categories: ['Trait'],
+    skillFamily: 'Trait',
+    cooldown: 9,
+    effects: [
+      {
+        type: 'boon',
+        boon: 'quickness',
+        duration: 3,
+        stacks: 1,
+        actorType: 'player'
+      }
+    ]
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.dwarvenBattleTraining,
+    name: 'Dwarven Battle Training',
+    profileKind: 'trait',
+    categories: ['Trait'],
+    skillFamily: 'Trait',
+    effects: [
+      {
+        type: 'condition',
+        condition: 'Weakness',
+        stacks: 1,
+        duration: 5,
+        actorType: 'player'
+      }
+    ]
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.exposeDefenses,
+    name: 'Expose Defenses',
+    profileKind: 'trait',
+    categories: ['Trait'],
+    skillFamily: 'Trait',
+    effects: [
+      {
+        type: 'condition',
+        condition: 'Vulnerability',
+        stacks: 5,
+        duration: 5,
+        actorType: 'player'
+      }
+    ]
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.viciousReprisal,
+    name: 'Vicious Reprisal',
+    profileKind: 'trait',
+    categories: ['Trait'],
+    skillFamily: 'Trait',
+    cooldown: 1,
+    effects: [
+      {
+        type: 'boon',
+        boon: 'might',
+        duration: 10,
+        stacks: 1,
+        actorType: 'player'
+      }
+    ]
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.notoriety,
+    name: 'Notoriety',
+    profileKind: 'trait',
+    categories: ['Trait'],
+    skillFamily: 'Trait',
+    effects: [
+      {
+        type: 'boon',
+        boon: 'might',
+        duration: 10,
+        stacks: 2,
+        actorType: 'player'
+      }
+    ]
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.spiritBoon,
+    name: 'Spirit Boon (Core Legends)',
+    profileKind: 'trait',
+    categories: ['Trait'],
+    skillFamily: 'Trait',
+    effects: [
+      {
+        type: 'boon',
+        boon: 'might',
+        duration: 10,
+        stacks: 2,
+        actorType: 'player',
+        metadata: { legendId: LEGEND.ASSASSIN }
+      },
+      {
+        type: 'boon',
+        boon: 'resistance',
+        duration: 2,
+        stacks: 1,
+        actorType: 'player',
+        metadata: { legendId: LEGEND.DEMON }
+      },
+      {
+        type: 'boon',
+        boon: 'stability',
+        duration: 3,
+        stacks: 1,
+        actorType: 'player',
+        metadata: { legendId: LEGEND.DWARF }
+      },
+      {
+        type: 'boon',
+        boon: 'regeneration',
+        duration: 5,
+        stacks: 1,
+        actorType: 'player',
+        metadata: { legendId: LEGEND.CENTAUR }
+      }
+    ]
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.songOfTheMists,
+    name: 'Song of the Mists (Core Legends)',
+    profileKind: 'trait',
+    categories: ['Trait'],
+    skillFamily: 'Trait',
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.93,
+        hits: 1,
+        name: 'Call of the Assassin',
+        actorType: 'player',
+        metadata: { legendId: LEGEND.ASSASSIN }
+      },
+      {
+        type: 'condition',
+        condition: 'Vulnerability',
+        stacks: 8,
+        duration: 5,
+        name: 'Call of the Assassin',
+        actorType: 'player',
+        metadata: { legendId: LEGEND.ASSASSIN }
+      },
+      {
+        type: 'boon',
+        boon: 'quickness',
+        duration: 2,
+        stacks: 1,
+        name: 'Call of the Assassin',
+        actorType: 'player',
+        metadata: { legendId: LEGEND.ASSASSIN }
+      },
+      {
+        type: 'strike',
+        coefficient: 0.75,
+        hits: 1,
+        name: 'Call of the Dwarf',
+        actorType: 'player',
+        metadata: { legendId: LEGEND.DWARF }
+      },
+      {
+        type: 'condition',
+        condition: 'Weakness',
+        stacks: 1,
+        duration: 5,
+        name: 'Call of the Dwarf',
+        actorType: 'player',
+        metadata: { legendId: LEGEND.DWARF }
+      },
+      {
+        type: 'strike',
+        coefficient: 0.9,
+        hits: 1,
+        name: 'Call of the Demon',
+        actorType: 'player',
+        metadata: { legendId: LEGEND.DEMON }
+      },
+      {
+        type: 'condition',
+        condition: 'Slow',
+        stacks: 1,
+        duration: 3,
+        name: 'Call of the Demon',
+        actorType: 'player',
+        metadata: { legendId: LEGEND.DEMON }
+      },
+      {
+        type: 'condition',
+        condition: 'Torment',
+        stacks: 2,
+        duration: 8,
+        name: 'Call of the Demon',
+        actorType: 'player',
+        metadata: { legendId: LEGEND.DEMON }
+      }
+    ]
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.invokingTorment,
+    name: 'Invoke Torment',
+    profileKind: 'trait',
+    categories: ['Trait'],
+    skillFamily: 'Trait',
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1,
+        hits: 1,
+        atMs: 750,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Invoke Torment',
+        actorType: 'player'
+      },
+      {
+        type: 'condition',
+        condition: 'Torment',
+        stacks: 1,
+        duration: 10,
+        atMs: 750,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Invoke Torment',
+        actorType: 'player'
+      },
+      {
+        type: 'condition',
+        condition: 'Poisoned',
+        stacks: 1,
+        duration: 10,
+        atMs: 750,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Invoke Torment',
+        actorType: 'player',
+        metadata: { trigger: 'diabolic-inferno' }
+      },
+      {
+        type: 'condition',
+        condition: 'Burning',
+        stacks: 1,
+        duration: 4,
+        atMs: 750,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Invoke Torment',
+        actorType: 'player',
+        metadata: { trigger: 'diabolic-inferno' }
+      }
+    ]
+  }
+] satisfies readonly BalanceProfile[]);

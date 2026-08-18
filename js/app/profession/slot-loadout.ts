@@ -120,62 +120,45 @@ export interface FixedSlotLoadout {
   normalizeBuild(build: BuildRecord, context?: SlotLoadoutContext): BuildRecord;
   validateBuild(build: BuildRecord, context?: SlotLoadoutContext): string[];
   view(context?: SlotLoadoutContext): SlotLoadoutView;
-  updateBuild(
-    build: BuildRecord,
-    selectorKey: string,
-    value: unknown,
-    context?: SlotLoadoutContext,
-  ): BuildRecord;
+  updateBuild(build: BuildRecord, selectorKey: string, value: unknown, context?: SlotLoadoutContext): BuildRecord;
   selectedSkillIds(context?: SlotLoadoutContext): number[];
   paletteGroups(context?: SlotLoadoutContext): SlotLoadoutPaletteGroup[];
-  unavailableReason(
-    skill: { readonly id: number },
-    context?: SlotLoadoutContext,
-  ): string;
+  unavailableReason(skill: { readonly id: number }, context?: SlotLoadoutContext): string;
 }
 
 function stableId(value: unknown): string {
-  return String(value ?? "").trim();
+  return String(value ?? '').trim();
 }
 
-function normalizeOptions(options: {
-  entries?: readonly SlotLoadoutEntryInput[];
-}): readonly SlotLoadoutEntry[] {
+function normalizeOptions(options: { entries?: readonly SlotLoadoutEntryInput[] }): readonly SlotLoadoutEntry[] {
   const entries = (options.entries || []).map((entry) =>
     Object.freeze({
       id: stableId(entry.id),
       name: String(entry.name || entry.id),
       compactName: String(entry.compactName || entry.name || entry.id),
-      icon: String(entry.icon || ""),
-      skillIds: Object.freeze([
-        ...new Set((entry.skillIds || []).map(Number).filter(Number.isFinite)),
-      ]),
-      specialization: String(entry.specialization || ""),
-    }),
+      icon: String(entry.icon || ''),
+      skillIds: Object.freeze([...new Set((entry.skillIds || []).map(Number).filter(Number.isFinite))]),
+      specialization: String(entry.specialization || '')
+    })
   );
   if (entries.length < 2 || entries.some((entry) => !entry.id)) {
-    throw new TypeError(
-      "A fixed slot loadout requires at least two stable entries.",
-    );
+    throw new TypeError('A fixed slot loadout requires at least two stable entries.');
   }
   if (new Set(entries.map((entry) => entry.id)).size !== entries.length) {
-    throw new TypeError("Fixed slot loadout entry ids must be unique.");
+    throw new TypeError('Fixed slot loadout entry ids must be unique.');
   }
   return Object.freeze(entries);
 }
 
 function loadoutContext(
   context: SlotLoadoutContext,
-  entries: readonly SlotLoadoutEntry[],
+  entries: readonly SlotLoadoutEntry[]
 ): SlotLoadoutContext & {
   specialization: string;
   legal: SlotLoadoutEntry[];
 } {
-  const specialization =
-    context.specialization || context.config?.specialization || "Core";
-  const legal = entries.filter(
-    (entry) => !entry.specialization || entry.specialization === specialization,
-  );
+  const specialization = context.specialization || context.config?.specialization || 'Core';
+  const legal = entries.filter((entry) => !entry.specialization || entry.specialization === specialization);
   return { ...context, specialization, legal };
 }
 
@@ -184,22 +167,20 @@ function loadoutContext(
  * skills are selected as packages rather than five independent dropdowns.
  */
 export function createFixedSlotLoadout({
-  id = "fixed-slot-loadout",
-  label = "Loadout",
-  entryLabel = "Bar",
+  id = 'fixed-slot-loadout',
+  label = 'Loadout',
+  entryLabel = 'Bar',
   selectionKey: selectionKeyOption,
   startingKey: startingKeyOption,
   selectionCount = 2,
-  selectionControl = "select",
+  selectionControl = 'select',
   includeStartingSelector = true,
   formatActiveBar = true,
   entries: rawEntries,
-  defaults,
+  defaults
 }: CreateFixedSlotLoadoutOptions = {}): FixedSlotLoadout {
   if (!selectionKeyOption || !startingKeyOption || selectionCount < 1) {
-    throw new TypeError(
-      "Fixed slot loadouts require selectionKey, startingKey, and selectionCount.",
-    );
+    throw new TypeError('Fixed slot loadouts require selectionKey, startingKey, and selectionCount.');
   }
   // Capture the validated keys as `const` so their narrowed `string` type
   // survives into the closures below (destructured params do not).
@@ -212,73 +193,47 @@ export function createFixedSlotLoadout({
     .filter((entryId) => byId.has(entryId))
     .slice(0, selectionCount);
   if (defaultIds.length !== selectionCount) {
-    throw new TypeError(
-      "Fixed slot loadout defaults must fill every selection.",
-    );
+    throw new TypeError('Fixed slot loadout defaults must fill every selection.');
   }
 
   function legalEntries(context: SlotLoadoutContext = {}): SlotLoadoutEntry[] {
     return loadoutContext(context, entries).legal;
   }
 
-  function normalizedSelection(
-    build: BuildRecord | undefined,
-    context: SlotLoadoutContext = {},
-  ): string[] {
+  function normalizedSelection(build: BuildRecord | undefined, context: SlotLoadoutContext = {}): string[] {
     const legal = legalEntries(context);
     const legalIds = new Set(legal.map((entry) => entry.id));
     const rawRequested = build?.[selectionKey];
-    const requested = Array.isArray(rawRequested)
-      ? rawRequested.map(stableId)
-      : [];
-    const fallback = [
-      ...defaultIds.filter((entryId) => legalIds.has(entryId)),
-      ...legal.map((entry) => entry.id),
-    ];
+    const requested = Array.isArray(rawRequested) ? rawRequested.map(stableId) : [];
+    const fallback = [...defaultIds.filter((entryId) => legalIds.has(entryId)), ...legal.map((entry) => entry.id)];
     const selected: string[] = [];
     for (const candidate of [...requested, ...fallback]) {
-      if (
-        legalIds.has(candidate) &&
-        !selected.includes(candidate) &&
-        selected.length < selectionCount
-      )
+      if (legalIds.has(candidate) && !selected.includes(candidate) && selected.length < selectionCount)
         selected.push(candidate);
     }
     return selected;
   }
 
-  function normalizeBuild(
-    build: BuildRecord,
-    context: SlotLoadoutContext = {},
-  ): BuildRecord {
+  function normalizeBuild(build: BuildRecord, context: SlotLoadoutContext = {}): BuildRecord {
     const selected = normalizedSelection(build, context);
     const requestedStart = stableId(build?.[startingKey]);
     return {
       [selectionKey]: selected,
-      [startingKey]: selected.includes(requestedStart)
-        ? requestedStart
-        : selected[0],
+      [startingKey]: selected.includes(requestedStart) ? requestedStart : selected[0]
     };
   }
 
-  function validateBuild(
-    build: BuildRecord,
-    context: SlotLoadoutContext = {},
-  ): string[] {
+  function validateBuild(build: BuildRecord, context: SlotLoadoutContext = {}): string[] {
     const errors: string[] = [];
     const rawSelected = build?.[selectionKey];
-    const selected = Array.isArray(rawSelected)
-      ? rawSelected.map(stableId)
-      : [];
+    const selected = Array.isArray(rawSelected) ? rawSelected.map(stableId) : [];
     const legalIds = new Set(legalEntries(context).map((entry) => entry.id));
     if (
       selected.length !== selectionCount ||
       new Set(selected).size !== selectionCount ||
       selected.some((value) => !legalIds.has(value))
     ) {
-      errors.push(
-        `${selectionKey} must contain ${selectionCount} distinct legal ${entryLabel.toLowerCase()} ids.`,
-      );
+      errors.push(`${selectionKey} must contain ${selectionCount} distinct legal ${entryLabel.toLowerCase()} ids.`);
     }
     if (!selected.includes(stableId(build?.[startingKey]))) {
       errors.push(`${startingKey} must be included in ${selectionKey}.`);
@@ -288,13 +243,9 @@ export function createFixedSlotLoadout({
 
   function activeId(context: SlotLoadoutContext, selected: string[]): string {
     const runtimeId = stableId(
-      context.professionState?.activeLoadoutId ??
-        context.state?.profession?.activeLoadoutId ??
-        context.activeLoadoutId,
+      context.professionState?.activeLoadoutId ?? context.state?.profession?.activeLoadoutId ?? context.activeLoadoutId
     );
-    return selected.includes(runtimeId)
-      ? runtimeId
-      : stableId(context.build?.[startingKey] || selected[0]);
+    return selected.includes(runtimeId) ? runtimeId : stableId(context.build?.[startingKey] || selected[0]);
   }
 
   function view(context: SlotLoadoutContext = {}): SlotLoadoutView {
@@ -305,21 +256,17 @@ export function createFixedSlotLoadout({
     const options: SlotLoadoutSelectorOption[] = legal.map((entry) => ({
       value: entry.id,
       label: entry.name,
-      icon: entry.icon,
+      icon: entry.icon
     }));
-    const selectors: SlotLoadoutSelector[] = Array.from(
-      { length: selectionCount },
-      (_, index) => ({
-        key: `${selectionKey}:${index}`,
-        label: `${entryLabel} ${index + 1}`,
-        value: selected[index],
-        options: options.map((option) => ({
-          ...option,
-          disabled:
-            selected.includes(option.value) && option.value !== selected[index],
-        })),
-      }),
-    );
+    const selectors: SlotLoadoutSelector[] = Array.from({ length: selectionCount }, (_, index) => ({
+      key: `${selectionKey}:${index}`,
+      label: `${entryLabel} ${index + 1}`,
+      value: selected[index],
+      options: options.map((option) => ({
+        ...option,
+        disabled: selected.includes(option.value) && option.value !== selected[index]
+      }))
+    }));
     if (includeStartingSelector) {
       selectors.push({
         key: startingKey,
@@ -328,8 +275,8 @@ export function createFixedSlotLoadout({
         options: selected.map((value) => ({
           value,
           label: byId.get(value)?.name || value,
-          icon: byId.get(value)?.icon || "",
-        })),
+          icon: byId.get(value)?.icon || ''
+        }))
       });
     }
     const bars: SlotLoadoutBar[] = selected.map((value) => {
@@ -338,9 +285,9 @@ export function createFixedSlotLoadout({
         id: value,
         label: entry?.name || value,
         compactLabel: entry?.compactName || entry?.name || value,
-        icon: entry?.icon || "",
+        icon: entry?.icon || '',
         active: value === active,
-        skillIds: [...(entry?.skillIds || [])],
+        skillIds: [...(entry?.skillIds || [])]
       };
     });
     return {
@@ -351,7 +298,7 @@ export function createFixedSlotLoadout({
       selectors,
       activeBar: bars.find((bar) => bar.active) || bars[0],
       inactiveBars: bars.filter((bar) => !bar.active),
-      bars,
+      bars
     };
   }
 
@@ -359,11 +306,11 @@ export function createFixedSlotLoadout({
     build: BuildRecord,
     selectorKey: string,
     value: unknown,
-    context: SlotLoadoutContext = {},
+    context: SlotLoadoutContext = {}
   ): BuildRecord {
     const selected = normalizedSelection(build, context);
     if (selectorKey.startsWith(`${selectionKey}:`)) {
-      const index = Number(selectorKey.split(":").at(-1));
+      const index = Number(selectorKey.split(':').at(-1));
       const next = stableId(value);
       const legalIds = new Set(legalEntries(context).map((entry) => entry.id));
       if (
@@ -371,10 +318,7 @@ export function createFixedSlotLoadout({
         index >= 0 &&
         index < selectionCount &&
         legalIds.has(next) &&
-        !selected.some(
-          (entryId, selectedIndex) =>
-            entryId === next && selectedIndex !== index,
-        )
+        !selected.some((entryId, selectedIndex) => entryId === next && selectedIndex !== index)
       ) {
         selected[index] = next;
         build[selectionKey] = selected;
@@ -382,10 +326,7 @@ export function createFixedSlotLoadout({
           build[startingKey] = selected[0];
         }
       }
-    } else if (
-      selectorKey === startingKey &&
-      selected.includes(stableId(value))
-    ) {
+    } else if (selectorKey === startingKey && selected.includes(stableId(value))) {
       build[startingKey] = stableId(value);
     }
     return build;
@@ -395,29 +336,22 @@ export function createFixedSlotLoadout({
     return view(context).activeBar?.skillIds || [];
   }
 
-  function paletteGroups(
-    context: SlotLoadoutContext = {},
-  ): SlotLoadoutPaletteGroup[] {
+  function paletteGroups(context: SlotLoadoutContext = {}): SlotLoadoutPaletteGroup[] {
     return view(context).bars.map((bar) => ({
       id: `${id}:${bar.id}`,
       label: bar.compactLabel,
       skillIds: [...bar.skillIds],
       reservedSkillIds: [],
-      active: bar.active,
+      active: bar.active
     }));
   }
 
-  function unavailableReason(
-    skill: { readonly id: number },
-    context: SlotLoadoutContext = {},
-  ): string {
+  function unavailableReason(skill: { readonly id: number }, context: SlotLoadoutContext = {}): string {
     const current = view(context);
     const active = new Set(current.activeBar?.skillIds || []);
-    if (active.has(skill.id)) return "";
-    const owner = current.inactiveBars.find((bar) =>
-      bar.skillIds.includes(skill.id),
-    );
-    return owner ? `Swap to ${owner.label} to use this skill` : "";
+    if (active.has(skill.id)) return '';
+    const owner = current.inactiveBars.find((bar) => bar.skillIds.includes(skill.id));
+    return owner ? `Swap to ${owner.label} to use this skill` : '';
   }
 
   return Object.freeze({
@@ -432,6 +366,6 @@ export function createFixedSlotLoadout({
     updateBuild,
     selectedSkillIds,
     paletteGroups,
-    unavailableReason,
+    unavailableReason
   });
 }

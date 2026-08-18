@@ -1,5 +1,5 @@
-import type { LegacyRotationItem } from "../../platform/engine/types.js";
-import type { ProfessionAppState } from "../profession/types.js";
+import type { LegacyRotationItem } from '../../platform/engine/types.js';
+import type { ProfessionAppState } from '../profession/types.js';
 
 /**
  * Undo/redo history for the rotation timeline.
@@ -21,22 +21,12 @@ interface RotationHistory {
   current: LegacyRotationItem[];
 }
 
-function cloneRotation(
-  rotation: readonly LegacyRotationItem[],
-): LegacyRotationItem[] {
-  return rotation.map((item) =>
-    item !== null && typeof item === "object" ? { ...item } : item,
-  );
+function cloneRotation(rotation: readonly LegacyRotationItem[]): LegacyRotationItem[] {
+  return rotation.map((item) => (item !== null && typeof item === 'object' ? { ...item } : item));
 }
 
-function sameRotation(
-  left: readonly LegacyRotationItem[],
-  right: readonly LegacyRotationItem[],
-): boolean {
-  return (
-    left.length === right.length &&
-    JSON.stringify(left) === JSON.stringify(right)
-  );
+function sameRotation(left: readonly LegacyRotationItem[], right: readonly LegacyRotationItem[]): boolean {
+  return left.length === right.length && JSON.stringify(left) === JSON.stringify(right);
 }
 
 function ensureHistory(app: ProfessionAppState): RotationHistory {
@@ -44,7 +34,7 @@ function ensureHistory(app: ProfessionAppState): RotationHistory {
     app._rotationHistory = {
       undo: [],
       redo: [],
-      current: cloneRotation(app.build.rotation),
+      current: cloneRotation(app.build.rotation)
     };
   }
   return app._rotationHistory;
@@ -90,8 +80,8 @@ export function redoRotation(app: ProfessionAppState): void {
 
 /** Reflect undo/redo availability on the toolbar buttons. */
 export function renderRotationHistoryControls(app: ProfessionAppState): void {
-  const undoButton = document.getElementById("btn-sim-undo");
-  const redoButton = document.getElementById("btn-sim-redo");
+  const undoButton = document.getElementById('btn-sim-undo');
+  const redoButton = document.getElementById('btn-sim-redo');
   if (undoButton instanceof HTMLButtonElement) {
     undoButton.disabled = !canUndoRotation(app);
   }

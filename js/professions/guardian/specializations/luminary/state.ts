@@ -1,12 +1,12 @@
-import type { GuardianLuminaryState } from "../../types.js";
-import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
+import type { GuardianLuminaryState } from '../../types.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
 
 export function createLuminaryState(): GuardianLuminaryState {
   return {
     radiantForge: false,
     radiantForgeEndsAt: 0,
     radiantForgeEnteredAt: 0,
-    radiantWeapon: "",
+    radiantWeapon: '',
     // Tracks which of the four weapon types were used so finalizeRadiantForgeCooldown
     // can scale the recharge by the number of unused weapons.
     radiantWeaponsUsed: {},
@@ -23,11 +23,8 @@ export function createLuminaryState(): GuardianLuminaryState {
     // window is checked in real time; the detonation event then replays it
     // into resolver state for damage calculation.
     effulgentActiveUntil: 0,
-    effulgentStacks: 0,
+    effulgentStacks: 0
   };
 }
 
-export const luminaryState = defineProfessionSpecializationState(
-  "Luminary",
-  createLuminaryState,
-);
+export const luminaryState = defineProfessionSpecializationState('Luminary', createLuminaryState);

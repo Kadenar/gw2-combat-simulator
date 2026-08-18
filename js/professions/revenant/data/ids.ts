@@ -211,7 +211,7 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   TWIN_MOON_SWEEP_ID_77001: 77001, // Twin Moon Sweep
   FORM_OF_THE_DERVISH_ATTACK_ELITE: 77116, // Form of the Dervish (Attack - Elite)
   DWARVEN_RETRIBUTION: 77920, // Dwarven Retribution
-  LESSER_ENCHANTED_DAGGERS: 78971, // Lesser Enchanted Daggers
+  LESSER_ENCHANTED_DAGGERS: 78971 // Lesser Enchanted Daggers
 });
 
 export const REVENANT_TRAIT_IDS = Object.freeze({
@@ -322,7 +322,7 @@ export const REVENANT_TRAIT_IDS = Object.freeze({
   ETHEREAL_PURIFICATION: 2416, // Ethereal Purification
   MISTFIRE: 2429, // Mistfire
   ENHANCED_EMBODIMENT: 2379, // Enhanced Embodiment
-  FOUND_PURPOSE: 2352, // Found Purpose
+  FOUND_PURPOSE: 2352 // Found Purpose
 });
 
 export const REVENANT_SPECIALIZATION_IDS = Object.freeze({
@@ -334,19 +334,18 @@ export const REVENANT_SPECIALIZATION_IDS = Object.freeze({
   HERALD: 52, // Herald
   RENEGADE: 63, // Renegade
   VINDICATOR: 69, // Vindicator
-  CONDUIT: 79, // Conduit
+  CONDUIT: 79 // Conduit
 });
 
 export const REVENANT_LEGEND_IDS = Object.freeze({
-  ASSASSIN: "LegendaryAssassin",
-  DEMON: "LegendaryDemon",
-  DWARF: "LegendaryDwarf",
-  CENTAUR: "LegendaryCentaur",
-  DRAGON: "LegendaryDragon",
-  RENEGADE: "LegendaryRenegade",
-  ALLIANCE: "LegendaryAlliance",
-  ENTITY: "LegendaryEntity",
+  ASSASSIN: 'LegendaryAssassin',
+  DEMON: 'LegendaryDemon',
+  DWARF: 'LegendaryDwarf',
+  CENTAUR: 'LegendaryCentaur',
+  DRAGON: 'LegendaryDragon',
+  RENEGADE: 'LegendaryRenegade',
+  ALLIANCE: 'LegendaryAlliance',
+  ENTITY: 'LegendaryEntity'
 });
 
-export type RevenantLegendId =
-  (typeof REVENANT_LEGEND_IDS)[keyof typeof REVENANT_LEGEND_IDS];
+export type RevenantLegendId = (typeof REVENANT_LEGEND_IDS)[keyof typeof REVENANT_LEGEND_IDS];

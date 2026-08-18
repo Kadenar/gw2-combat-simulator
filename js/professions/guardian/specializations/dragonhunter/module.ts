@@ -1,35 +1,25 @@
-import {
-  defineNativeModule,
-  onResolvedControl,
-  onResolvedDamage,
-} from "../../../../platform/gw2/native-profession.js";
-import { createGuardianModuleData } from "../../catalog-data.js";
-import { dragonhunterSkillHandlers } from "./handlers.js";
-import {
-  dragonhunterEventHandlers,
-  dragonhunterEventReactions,
-} from "./resolver.js";
-import {
-  dragonhunterAttributeRules,
-  dragonhunterSchedulerHooks,
-} from "./rules.js";
-import { DRAGONHUNTER_SKILL_MECHANICS } from "./skills.js";
-import { dragonhunterState } from "./state.js";
-import { dragonhunterUi } from "./ui.js";
-import { DRAGONHUNTER_BALANCE_PROFILES } from "./profiles.js";
+import { defineNativeModule, onResolvedControl, onResolvedDamage } from '../../../../platform/gw2/native-profession.js';
+import { createGuardianModuleData } from '../../catalog-data.js';
+import { dragonhunterSkillHandlers } from './handlers.js';
+import { dragonhunterEventHandlers, dragonhunterEventReactions } from './resolver.js';
+import { dragonhunterAttributeRules, dragonhunterSchedulerHooks } from './rules.js';
+import { DRAGONHUNTER_SKILL_MECHANICS } from './skills.js';
+import { dragonhunterState } from './state.js';
+import { dragonhunterUi } from './ui.js';
+import { DRAGONHUNTER_BALANCE_PROFILES } from './profiles.js';
 
 export const dragonhunterModule = defineNativeModule({
-  id: "Dragonhunter",
-  data: createGuardianModuleData("Dragonhunter", {
+  id: 'Dragonhunter',
+  data: createGuardianModuleData('Dragonhunter', {
     skillMechanics: DRAGONHUNTER_SKILL_MECHANICS,
     balanceProfiles: DRAGONHUNTER_BALANCE_PROFILES,
-    handlers: dragonhunterSkillHandlers,
+    handlers: dragonhunterSkillHandlers
   }),
   state: {
     // Same factory for both phases: scheduler writes tetherUntil during cast,
     // resolver re-derives it from emitted events, so they must start identical.
     scheduler: dragonhunterState.create,
-    resolver: dragonhunterState.create,
+    resolver: dragonhunterState.create
   },
   mechanics: {
     modifiers: dragonhunterAttributeRules,
@@ -38,9 +28,9 @@ export const dragonhunterModule = defineNativeModule({
       // onResolvedDamage/onResolvedControl wrap the handlers so they fire on
       // "damage.resolved" / control events in resolver order, not as raw event handlers
       ...dragonhunterEventReactions.damage.map(onResolvedDamage),
-      ...dragonhunterEventReactions.control.map(onResolvedControl),
+      ...dragonhunterEventReactions.control.map(onResolvedControl)
     ],
-    resolverHooks: { eventHandlers: dragonhunterEventHandlers },
+    resolverHooks: { eventHandlers: dragonhunterEventHandlers }
   },
-  presentation: dragonhunterUi,
+  presentation: dragonhunterUi
 });

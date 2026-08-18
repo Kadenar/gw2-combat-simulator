@@ -7,44 +7,41 @@ import {
   formatTimelineSkillTooltip,
   timelineDeadTimeMarkers,
   timelineSkillCastOrdinals,
-  updateRotationEntry,
-} from "../../platform/ui/timeline.js";
+  updateRotationEntry
+} from '../../platform/ui/timeline.js';
 import {
   closeActivationEditor,
   openActivationEditor,
-  suggestedActivationInterruptMs,
-} from "../../platform/ui/activation-editor.js";
-import { closeChargeReleaseEditor } from "../../platform/ui/charge-release-editor.js";
-import {
-  closeDurationEditor,
-  openDurationEditor,
-} from "../../platform/ui/duration-editor.js";
-import { escapeHtml as esc } from "../../platform/ui/html.js";
+  suggestedActivationInterruptMs
+} from '../../platform/ui/activation-editor.js';
+import { closeChargeReleaseEditor } from '../../platform/ui/charge-release-editor.js';
+import { closeDurationEditor, openDurationEditor } from '../../platform/ui/duration-editor.js';
+import { escapeHtml as esc } from '../../platform/ui/html.js';
 import {
   mountRotationInsertionCursor,
   rotationInsertionGapHtml,
-  rotationTimelineEntryHtml,
-} from "../../platform/ui/insertion-cursor.js";
-import { activeSpecialization, professionEndState } from "./context.js";
+  rotationTimelineEntryHtml
+} from '../../platform/ui/insertion-cursor.js';
+import { activeSpecialization, professionEndState } from './context.js';
 import {
   ACTION_ICONS,
   COMBAT_START_ICON,
   COOLDOWN_RESET_ICON,
   PLACEHOLDER_ICON,
   WAIT_ICON,
-  resolveProcIcon,
-} from "./icons.js";
-import { renderPalette, resolvePaletteDropItem } from "./palette-view.js";
-import { renderRotationStateSnapshot } from "./state-snapshot-view.js";
-import { createRotationItem, resolveEntrySkill } from "./actions.js";
-import { openDragonSlashReleaseEditor } from "./charge-release.js";
+  resolveProcIcon
+} from './icons.js';
+import { renderPalette, resolvePaletteDropItem } from './palette-view.js';
+import { renderRotationStateSnapshot } from './state-snapshot-view.js';
+import { createRotationItem, resolveEntrySkill } from './actions.js';
+import { openDragonSlashReleaseEditor } from './charge-release.js';
 import {
   closeDoubleEdgeEditor,
   doubleEdgeOutcomeLabel,
   hasConfigurableDoubleEdgeOutcome,
-  openDoubleEdgeEditor,
-} from "./double-edge.js";
-import { formatTimelineTime, resultCombatReferenceMs } from "./result-model.js";
+  openDoubleEdgeEditor
+} from './double-edge.js';
+import { formatTimelineTime, resultCombatReferenceMs } from './result-model.js';
 import {
   automaticTomeStowTimelineMarkers,
   continuumEndTimelineMarkers,
@@ -59,19 +56,12 @@ import {
   sigilProcTimelineMarkers,
   targetHealthTimelineMarkers,
   timelineStepsWithChargeFills,
-  timelineWeaponRows,
-} from "./timeline-model.js";
-import type {
-  LegacyRotationItem,
-  SchedulerRecord,
-  SchedulerStep,
-} from "../../platform/engine/types.js";
-import type { Gw2ProcStep } from "../../platform/gw2/types.js";
-import type { TimelineInteractionOptions } from "../../platform/ui/types.js";
-import type {
-  ProfessionAppState,
-  RotationActionOptions,
-} from "../profession/types.js";
+  timelineWeaponRows
+} from './timeline-model.js';
+import type { LegacyRotationItem, SchedulerRecord, SchedulerStep } from '../../platform/engine/types.js';
+import type { Gw2ProcStep } from '../../platform/gw2/types.js';
+import type { TimelineInteractionOptions } from '../../platform/ui/types.js';
+import type { ProfessionAppState, RotationActionOptions } from '../profession/types.js';
 
 type TimelineItem = SchedulerRecord & {
   name: string;
@@ -84,30 +74,20 @@ type TimelineItem = SchedulerRecord & {
 };
 
 // Normalizes legacy string rotation entries (bare skill names) into object shape.
-function timelineItem(
-  entry: LegacyRotationItem | SchedulerRecord,
-): TimelineItem {
-  if (entry && typeof entry === "object") {
+function timelineItem(entry: LegacyRotationItem | SchedulerRecord): TimelineItem {
+  if (entry && typeof entry === 'object') {
     return entry as TimelineItem;
   }
-  return { name: String(entry || "") };
+  return { name: String(entry || '') };
 }
 
 // Merges new proc keys into the visible set. New procs auto-show; previously
 // hidden procs stay hidden; procs that disappeared are dropped.
-export function syncProcVisibility(
-  app: ProfessionAppState,
-  procSteps: readonly Gw2ProcStep[],
-): Set<string> {
+export function syncProcVisibility(app: ProfessionAppState, procSteps: readonly Gw2ProcStep[]): Set<string> {
   const procKeys = new Set(procSteps.map(procFilterKey));
   const current = app.procVisibility instanceof Set ? app.procVisibility : null;
-  const knownKeys =
-    app.procVisibilityKeys instanceof Set ? app.procVisibilityKeys : null;
-  app.procVisibility = new Set(
-    [...procKeys].filter(
-      (key) => !knownKeys || !knownKeys.has(key) || current?.has(key),
-    ),
-  );
+  const knownKeys = app.procVisibilityKeys instanceof Set ? app.procVisibilityKeys : null;
+  app.procVisibility = new Set([...procKeys].filter((key) => !knownKeys || !knownKeys.has(key) || current?.has(key)));
   app.procVisibilityKeys = procKeys;
   return app.procVisibility as Set<string>;
 }
@@ -121,8 +101,8 @@ export function syncProcVisibility(
 function editRotationDuration(
   app: ProfessionAppState,
   index: number,
-  key: "offset" | "waitMs",
-  event?: Event,
+  key: 'offset' | 'waitMs',
+  event?: Event
 ): boolean {
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
@@ -131,31 +111,29 @@ function editRotationDuration(
   const anchor =
     (eventTarget instanceof HTMLElement ? eventTarget : null) ||
     document.querySelector<HTMLElement>(
-      `#rotation-timeline .${key === "offset" ? "rot-offset-badge" : "rot-wait-badge"}[data-idx="${index}"]`,
+      `#rotation-timeline .${key === 'offset' ? 'rot-offset-badge' : 'rot-wait-badge'}[data-idx="${index}"]`
     );
   if (!anchor) return false;
 
   const skill = resolveEntrySkill(app, item);
-  const isWait = key === "waitMs";
+  const isWait = key === 'waitMs';
   openDurationEditor({
     anchor,
-    heading: isWait ? "Edit wait" : "Edit offset",
-    name: isWait
-      ? "Wait"
-      : String(skill?.displayName || skill?.name || item.name),
+    heading: isWait ? 'Edit wait' : 'Edit offset',
+    name: isWait ? 'Wait' : String(skill?.displayName || skill?.name || item.name),
     icon:
-      anchor.closest(".rot-skill")?.querySelector<HTMLImageElement>("img")
-        ?.src || (isWait ? WAIT_ICON : skill?.icon || undefined),
-    label: isWait ? "Duration" : "From start of preceding cast",
+      anchor.closest('.rot-skill')?.querySelector<HTMLImageElement>('img')?.src ||
+      (isWait ? WAIT_ICON : skill?.icon || undefined),
+    label: isWait ? 'Duration' : 'From start of preceding cast',
     value: Number(item[key]) || 1,
     onApply(durationMs) {
       const currentEntry = app.build.rotation[index];
       if (currentEntry === undefined) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
-        [key]: durationMs,
+        [key]: durationMs
       }) as LegacyRotationItem;
       app.changed(false);
-    },
+    }
   });
   return false;
 }
@@ -164,11 +142,7 @@ function editRotationDuration(
 // charge threshold at which the skill fires. releaseAtCharges == null means "wait
 // for maximum charges" (the default). insertionIndex lets the editor know where in
 // the rotation this cast falls so it can show available charge counts in context.
-function editReleaseAtCharges(
-  app: ProfessionAppState,
-  index: number,
-  event?: Event,
-): boolean {
+function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Event): boolean {
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
@@ -177,25 +151,22 @@ function editReleaseAtCharges(
   const eventTarget = event?.currentTarget;
   const anchor =
     (eventTarget instanceof HTMLElement ? eventTarget : null) ||
-    document.querySelector<HTMLElement>(
-      `#rotation-timeline .rot-charge-release-badge[data-idx="${index}"]`,
-    );
+    document.querySelector<HTMLElement>(`#rotation-timeline .rot-charge-release-badge[data-idx="${index}"]`);
   if (!anchor) return false;
   openDragonSlashReleaseEditor({
     app,
     anchor,
     skill,
     insertionIndex: index,
-    currentReleaseAtCharges:
-      item.releaseAtCharges == null ? null : Number(item.releaseAtCharges),
+    currentReleaseAtCharges: item.releaseAtCharges == null ? null : Number(item.releaseAtCharges),
     onApply(releaseAtCharges) {
       const currentEntry = app.build.rotation[index];
       if (currentEntry === undefined) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
-        releaseAtCharges,
+        releaseAtCharges
       }) as LegacyRotationItem;
       app.changed(false);
-    },
+    }
   });
   return false;
 }
@@ -207,52 +178,38 @@ function editReleaseAtCharges(
 // .rot-skill card rather than the edit button so the popover positions correctly.
 // interruptMs null → no interrupt configured; onApply passes undefined (not null)
 // to remove the field from the rotation entry cleanly.
-function editRotationActivation(
-  app: ProfessionAppState,
-  index: number,
-  event?: Event,
-): boolean {
+function editRotationActivation(app: ProfessionAppState, index: number, event?: Event): boolean {
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item);
   if (!skill) return false;
 
-  const step = app.results?.steps?.find(
-    (candidate) => candidate.ri === index && !candidate.invalid,
-  );
+  const step = app.results?.steps?.find((candidate) => candidate.ri === index && !candidate.invalid);
   const catalogCastMs = Math.round(Number(skill.castTimeMs) || 0);
   const fullCastMs = Math.round(Number(step?.fullCastMs) || catalogCastMs);
   const eventTarget = event?.currentTarget;
   const eventElement = eventTarget instanceof HTMLElement ? eventTarget : null;
   const anchor =
-    eventElement?.closest<HTMLElement>(".rot-skill") ||
-    document.querySelector<HTMLElement>(
-      `#rotation-timeline .rot-skill[data-idx="${index}"]`,
-    );
+    eventElement?.closest<HTMLElement>('.rot-skill') ||
+    document.querySelector<HTMLElement>(`#rotation-timeline .rot-skill[data-idx="${index}"]`);
   if (!anchor) return false;
 
   openActivationEditor({
     anchor,
     skillName: String(skill.displayName || skill.name),
-    icon:
-      anchor.querySelector<HTMLImageElement>("img")?.getAttribute("src") ||
-      skill.icon ||
-      undefined,
+    icon: anchor.querySelector<HTMLImageElement>('img')?.getAttribute('src') || skill.icon || undefined,
     interruptMs: item.interruptMs == null ? null : Number(item.interruptMs),
     fullCastMs,
-    suggestedInterruptMs: suggestedActivationInterruptMs(
-      fullCastMs,
-      catalogCastMs,
-    ),
+    suggestedInterruptMs: suggestedActivationInterruptMs(fullCastMs, catalogCastMs),
     onApply(interruptMs) {
       const currentEntry = app.build.rotation[index];
       if (currentEntry === undefined) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
-        interruptMs: interruptMs ?? undefined,
+        interruptMs: interruptMs ?? undefined
       }) as LegacyRotationItem;
       app.changed(false);
-    },
+    }
   });
   return false;
 }
@@ -260,11 +217,7 @@ function editRotationActivation(
 // Double Edge is a warrior skill with a random success/backfire outcome in-game;
 // the sim lets users pin the outcome so benchmarks are deterministic. Defaults to
 // "success" for any value other than the explicit "backfire" string, including unset.
-function editDoubleEdgeOutcome(
-  app: ProfessionAppState,
-  index: number,
-  event?: Event,
-): boolean {
+function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: Event): boolean {
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
@@ -273,44 +226,36 @@ function editDoubleEdgeOutcome(
   const eventTarget = event?.currentTarget;
   const anchor =
     (eventTarget instanceof HTMLElement ? eventTarget : null) ||
-    document.querySelector<HTMLElement>(
-      `#rotation-timeline .rot-double-edge-badge[data-idx="${index}"]`,
-    );
+    document.querySelector<HTMLElement>(`#rotation-timeline .rot-double-edge-badge[data-idx="${index}"]`);
   if (!anchor) return false;
   openDoubleEdgeEditor({
     anchor,
     skillName: String(skill.displayName || skill.name),
     icon: skill.icon || undefined,
-    outcome: item.doubleEdgeOutcome === "backfire" ? "backfire" : "success",
+    outcome: item.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success',
     onApply(outcome) {
       const currentEntry = app.build.rotation[index];
       if (currentEntry === undefined) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
-        doubleEdgeOutcome: outcome,
+        doubleEdgeOutcome: outcome
       }) as LegacyRotationItem;
       app.changed(false);
-    },
+    }
   });
   return false;
 }
 
 function paletteDragAnchor(name: string): HTMLElement | null {
   return (
-    document.querySelector<HTMLElement>(
-      "#rotation-palette .pal-skill.dragging",
+    document.querySelector<HTMLElement>('#rotation-palette .pal-skill.dragging') ||
+    [...document.querySelectorAll<HTMLElement>('#rotation-palette .pal-skill[data-skill]')].find(
+      (element) => element.dataset.skill === name
     ) ||
-    [
-      ...document.querySelectorAll<HTMLElement>(
-        "#rotation-palette .pal-skill[data-skill]",
-      ),
-    ].find((element) => element.dataset.skill === name) ||
     null
   );
 }
 
-function timelineInteractionOptions(
-  app: ProfessionAppState,
-): TimelineInteractionOptions {
+function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractionOptions {
   return {
     rotation: app.build.rotation,
     getDragState: () => app.dragState,
@@ -321,28 +266,28 @@ function timelineInteractionOptions(
       const parsedSkillId = Number(drag?.skillId);
       const skill = resolveEntrySkill(app, {
         name,
-        skillId: drag?.skillId,
+        skillId: drag?.skillId
       });
       const insert = (options: RotationActionOptions = {}): void => {
         const item = createRotationItem(app, name, {
           ...(Number.isFinite(parsedSkillId) ? { skillId: parsedSkillId } : {}),
-          ...options,
+          ...options
         });
         app.build.rotation.splice(insertAt, 0, item);
         app.rotationInsertionIndex = null;
         app.changed(false);
       };
-      if (name === "__wait") {
+      if (name === '__wait') {
         const anchor = paletteDragAnchor(name);
         if (!anchor) return null;
         openDurationEditor({
           anchor,
-          heading: "Add wait",
-          name: "Wait",
+          heading: 'Add wait',
+          name: 'Wait',
           icon: WAIT_ICON,
-          label: "Duration",
+          label: 'Duration',
           value: 1000,
-          onApply: (waitMs) => insert({ waitMs }),
+          onApply: (waitMs) => insert({ waitMs })
         });
         return null;
       }
@@ -356,9 +301,9 @@ function timelineInteractionOptions(
           insertionIndex: insertAt,
           onApply(releaseAtCharges) {
             insert({
-              ...(releaseAtCharges == null ? {} : { releaseAtCharges }),
+              ...(releaseAtCharges == null ? {} : { releaseAtCharges })
             });
-          },
+          }
         });
         return null;
       }
@@ -369,16 +314,12 @@ function timelineInteractionOptions(
           anchor,
           skillName: String(skill.displayName || skill.name),
           icon: skill.icon || undefined,
-          outcome: "success",
-          onApply: (doubleEdgeOutcome) => insert({ doubleEdgeOutcome }),
+          outcome: 'success',
+          onApply: (doubleEdgeOutcome) => insert({ doubleEdgeOutcome })
         });
         return null;
       }
-      return resolvePaletteDropItem(
-        app,
-        name,
-        Number.isFinite(parsedSkillId) ? parsedSkillId : null,
-      );
+      return resolvePaletteDropItem(app, name, Number.isFinite(parsedSkillId) ? parsedSkillId : null);
     },
     onChanged: () => {
       app.rotationInsertionIndex = null;
@@ -386,16 +327,11 @@ function timelineInteractionOptions(
     },
     onRemove: (index) => app.build.rotation.splice(index, 1),
     onTruncate: (index) => app.build.rotation.splice(index),
-    onEditOffset: (index, event) =>
-      editRotationDuration(app, index, "offset", event),
-    onEditActivation: (index, event) =>
-      editRotationActivation(app, index, event),
-    onEditReleaseAtCharges: (index, event) =>
-      editReleaseAtCharges(app, index, event),
-    onEditDoubleEdgeOutcome: (index, event) =>
-      editDoubleEdgeOutcome(app, index, event),
-    onEditWait: (index, event) =>
-      editRotationDuration(app, index, "waitMs", event),
+    onEditOffset: (index, event) => editRotationDuration(app, index, 'offset', event),
+    onEditActivation: (index, event) => editRotationActivation(app, index, event),
+    onEditReleaseAtCharges: (index, event) => editReleaseAtCharges(app, index, event),
+    onEditDoubleEdgeOutcome: (index, event) => editDoubleEdgeOutcome(app, index, event),
+    onEditWait: (index, event) => editRotationDuration(app, index, 'waitMs', event)
   };
 }
 
@@ -405,12 +341,10 @@ export function renderTimeline(app: ProfessionAppState): void {
   closeChargeReleaseEditor();
   closeDoubleEdgeEditor();
   closeDurationEditor();
-  const element = document.getElementById("rotation-timeline");
-  const procElement = document.getElementById("rotation-procs");
+  const element = document.getElementById('rotation-timeline');
+  const procElement = document.getElementById('rotation-procs');
   if (!element) return;
-  const procPanel =
-    procElement?.querySelector<HTMLDetailsElement>(".rotation-procs-wrap") ||
-    null;
+  const procPanel = procElement?.querySelector<HTMLDetailsElement>('.rotation-procs-wrap') || null;
   // Capture open state before innerHTML wipes the element, so the panel stays open after re-render.
   const procPanelWasOpen = procPanel?.open ?? false;
   element.ondragover = null;
@@ -418,12 +352,12 @@ export function renderTimeline(app: ProfessionAppState): void {
   element.ondrop = null;
   if (!app.build.rotation.length) {
     app.rotationSkillHighlightKey = null;
-    element.classList.add("is-empty");
+    element.classList.add('is-empty');
     element.innerHTML = `<div class="rot-empty">
             <strong>Build your rotation</strong>
             <span>Click or drag skills from the palette above</span>
         </div>`;
-    if (procElement) procElement.innerHTML = "";
+    if (procElement) procElement.innerHTML = '';
     app.rotationInsertionIndex = mountRotationInsertionCursor({
       root: element,
       insertionIndex: app.rotationInsertionIndex,
@@ -439,27 +373,22 @@ export function renderTimeline(app: ProfessionAppState): void {
         renderPalette(app);
         renderTimeline(app);
         renderRotationStateSnapshot(app);
-      },
+      }
     });
     bindTimelineInteractions(element, timelineInteractionOptions(app));
     return;
   }
-  element.classList.remove("is-empty");
+  element.classList.remove('is-empty');
   const resultSteps = app.results?.steps || [];
   // ri < 0 marks injected/synthetic steps (e.g. auto-attacks) not tied to a rotation entry.
   const steps = new Map<number, SchedulerStep>(
-    resultSteps.filter((step) => step.ri >= 0).map((step) => [step.ri, step]),
+    resultSteps.filter((step) => step.ri >= 0).map((step) => [step.ri, step])
   );
   const castOrdinals = timelineSkillCastOrdinals(resultSteps);
   const resourceSpends = shatterResourceSpends(app.results);
-  const automaticTomeStows = automaticTomeStowTimelineMarkers(
-    app.results,
-    app.build.rotation.length,
-  );
+  const automaticTomeStows = automaticTomeStowTimelineMarkers(app.results, app.build.rotation.length);
   // Tome stow indexes act as weapon-row boundaries — the tome weapon line ends when pages run out.
-  const automaticTomeStowIndexes = new Set(
-    automaticTomeStows.map((marker) => marker.insertionIndex),
-  );
+  const automaticTomeStowIndexes = new Set(automaticTomeStows.map((marker) => marker.insertionIndex));
   const startingWeaponSet = app.build.startingWeaponSet;
   const specialization = activeSpecialization(app);
   const startingWeaponLine =
@@ -468,14 +397,12 @@ export function renderTimeline(app: ProfessionAppState): void {
       build: app.build,
       specialization,
       weaponSet: startingWeaponSet,
-      weaponLine: null,
+      weaponLine: null
     }) ?? null;
   const rows = timelineWeaponRows(app.build.rotation, {
     startingWeaponSet,
     startingWeaponLine,
-    weaponSwapChangesSet:
-      app.profession.ui.weaponSwapChangesSet !== false &&
-      Boolean(app.build.alternateWeapons?.[0]),
+    weaponSwapChangesSet: app.profession.ui.weaponSwapChangesSet !== false && Boolean(app.build.alternateWeapons?.[0]),
     weaponLineEndIndexes: automaticTomeStowIndexes,
     weaponLineTransition: (entry, current) => {
       const item = timelineItem(entry);
@@ -485,16 +412,13 @@ export function renderTimeline(app: ProfessionAppState): void {
         skill,
         build: app.build,
         specialization,
-        ...current,
+        ...current
       });
-    },
+    }
   });
   const combatReferenceMs = resultCombatReferenceMs(app.results);
-  const formatTime = (timeMs: number): string =>
-    formatTimelineTime(timeMs, combatReferenceMs);
-  const deadTimes = timelineDeadTimeMarkers(
-    timelineStepsWithChargeFills(resultSteps, resourceSpends),
-  );
+  const formatTime = (timeMs: number): string => formatTimelineTime(timeMs, combatReferenceMs);
+  const deadTimes = timelineDeadTimeMarkers(timelineStepsWithChargeFills(resultSteps, resourceSpends));
   const deadTimesByIndex = new Map<number, typeof deadTimes>();
   for (const marker of deadTimes) {
     const markers = deadTimesByIndex.get(marker.insertionIndex) || [];
@@ -502,49 +426,32 @@ export function renderTimeline(app: ProfessionAppState): void {
     deadTimesByIndex.set(marker.insertionIndex, markers);
   }
   const procColors: Readonly<Record<string, string>> = {
-    relic_proc: "#ddaa33",
-    sigil_proc: "#4488cc",
-    trait_proc: "#77cc77",
-    skill_proc: "#bb88ff",
+    relic_proc: '#ddaa33',
+    sigil_proc: '#4488cc',
+    trait_proc: '#77cc77',
+    skill_proc: '#bb88ff'
   };
-  const procSteps = [...(app.results?.procSteps || [])].sort(
-    (a, b) => a.start - b.start,
-  );
-  const procVisibility = procSteps.length
-    ? syncProcVisibility(app, procSteps)
-    : new Set<string>();
+  const procSteps = [...(app.results?.procSteps || [])].sort((a, b) => a.start - b.start);
+  const procVisibility = procSteps.length ? syncProcVisibility(app, procSteps) : new Set<string>();
   const overlayProcMarkers = [
-    ...(app.overlaySigilProcs
-      ? sigilProcTimelineMarkers(app.results, app.build.rotation.length)
-      : []),
-    ...(app.overlayRelicProcs
-      ? relicProcTimelineMarkers(app.results, app.build.rotation.length)
-      : []),
+    ...(app.overlaySigilProcs ? sigilProcTimelineMarkers(app.results, app.build.rotation.length) : []),
+    ...(app.overlayRelicProcs ? relicProcTimelineMarkers(app.results, app.build.rotation.length) : [])
   ].sort((left, right) => left.start - right.start);
-  const overlayProcMarkersByIndex = new Map<
-    number,
-    typeof overlayProcMarkers
-  >();
+  const overlayProcMarkersByIndex = new Map<number, typeof overlayProcMarkers>();
   for (const marker of overlayProcMarkers) {
     const markers = overlayProcMarkersByIndex.get(marker.insertionIndex) || [];
     markers.push(marker);
     overlayProcMarkersByIndex.set(marker.insertionIndex, markers);
   }
 
-  const continuumEnds = continuumEndTimelineMarkers(
-    app.results,
-    app.build.rotation.length,
-  );
+  const continuumEnds = continuumEndTimelineMarkers(app.results, app.build.rotation.length);
   const continuumEndsByIndex = new Map<number, typeof continuumEnds>();
   for (const marker of continuumEnds) {
     const markers = continuumEndsByIndex.get(marker.insertionIndex) || [];
     markers.push(marker);
     continuumEndsByIndex.set(marker.insertionIndex, markers);
   }
-  const automaticTomeStowsByIndex = new Map<
-    number,
-    typeof automaticTomeStows
-  >();
+  const automaticTomeStowsByIndex = new Map<number, typeof automaticTomeStows>();
   for (const marker of automaticTomeStows) {
     const markers = automaticTomeStowsByIndex.get(marker.insertionIndex) || [];
     markers.push(marker);
@@ -554,13 +461,13 @@ export function renderTimeline(app: ProfessionAppState): void {
     app.profession.ui.targetHealthThresholds?.({
       specialization: activeSpecialization(app),
       build: app.build,
-      professionState: professionEndState(app.results),
+      professionState: professionEndState(app.results)
     }) || [];
   const healthMarkers = targetHealthTimelineMarkers(
     app.results,
     app.build.targetHealth,
     targetThresholds,
-    app.build.rotation.length,
+    app.build.rotation.length
   );
   const healthMarkersByIndex = new Map<number, typeof healthMarkers>();
   for (const marker of healthMarkers) {
@@ -568,35 +475,24 @@ export function renderTimeline(app: ProfessionAppState): void {
     markers.push(marker);
     healthMarkersByIndex.set(marker.insertionIndex, markers);
   }
-  const renderContinuumEnd = (
-    marker: (typeof continuumEnds)[number],
-  ): string => {
+  const renderContinuumEnd = (marker: (typeof continuumEnds)[number]): string => {
     const time = formatTime(marker.start);
     const detail = [
-      "Continuum Shift",
+      'Continuum Shift',
       `Continuum Split ended automatically at ${time}`,
-      "Cooldown state restored",
-    ].join("\n");
+      'Cooldown state restored'
+    ].join('\n');
     return `<div class="rot-skill rot-injected" title="${esc(detail)}"
             style="--att-border:#d6b46b">
-            <img src="${esc(ACTION_ICONS["Continuum Shift"])}" alt="" />
+            <img src="${esc(ACTION_ICONS['Continuum Shift'])}" alt="" />
             <span class="rot-injected-badge">AUTO</span>
             <span class="rot-time">${time}</span>
         </div>`;
   };
-  const renderAutomaticTomeStow = (
-    marker: (typeof automaticTomeStows)[number],
-  ): string => {
+  const renderAutomaticTomeStow = (marker: (typeof automaticTomeStows)[number]): string => {
     const time = formatTime(marker.start);
-    const detail = [
-      "Stow Tome",
-      `Tome closed automatically at ${time}`,
-      "No tome pages remaining",
-    ].join("\n");
-    const icon =
-      app.activeCatalog.skillsByName.get("Stow Tome")?.icon ||
-      ACTION_ICONS["Stow Tome"] ||
-      PLACEHOLDER_ICON;
+    const detail = ['Stow Tome', `Tome closed automatically at ${time}`, 'No tome pages remaining'].join('\n');
+    const icon = app.activeCatalog.skillsByName.get('Stow Tome')?.icon || ACTION_ICONS['Stow Tome'] || PLACEHOLDER_ICON;
     return `<div class="rot-skill rot-injected" title="${esc(detail)}"
             style="--att-border:#d6b46b">
             <img src="${esc(icon)}" alt="" />
@@ -604,16 +500,14 @@ export function renderTimeline(app: ProfessionAppState): void {
             <span class="rot-time">${time}</span>
         </div>`;
   };
-  const renderHealthMarker = (
-    marker: (typeof healthMarkers)[number],
-  ): string => {
+  const renderHealthMarker = (marker: (typeof healthMarkers)[number]): string => {
     const time = formatTime(marker.start);
     const label = `${marker.healthPercent}%`;
     const detail = [
       `Target reached ${label} health`,
       `At ${time}`,
-      `${Math.round(marker.damage).toLocaleString()} cumulative damage`,
-    ].join("\n");
+      `${Math.round(marker.damage).toLocaleString()} cumulative damage`
+    ].join('\n');
     return `<div class="rot-skill rot-injected rot-health-marker"
             title="${esc(detail)}" style="--att-border:#d96b6b">
             <img src="${esc(COMBAT_START_ICON)}" alt="" />
@@ -625,23 +519,21 @@ export function renderTimeline(app: ProfessionAppState): void {
     const duration = formatTimelineDuration(marker.durationMs);
     const detail = [
       `Dead time: ${duration} wasted`,
-      `No skill cast from ${formatTime(marker.start)} to ${formatTime(marker.end)}`,
-    ].join("\n");
+      `No skill cast from ${formatTime(marker.start)} to ${formatTime(marker.end)}`
+    ].join('\n');
     return `<div class="rot-skill rot-injected rot-dead-time" role="note"
             aria-label="${esc(detail)}" title="${esc(detail)}">
             <span class="rot-dead-time-label">Dead</span>
             <strong class="rot-dead-time-duration">${esc(duration)}</strong>
         </div>`;
   };
-  const renderOverlayProcMarker = (
-    marker: (typeof overlayProcMarkers)[number],
-  ): string => {
+  const renderOverlayProcMarker = (marker: (typeof overlayProcMarkers)[number]): string => {
     const key = procFilterKey(marker);
     const time = formatTime(marker.start);
     const icon = resolveProcIcon(app, marker) || PLACEHOLDER_ICON;
-    const isRelic = marker.type === "relic_proc";
-    const type = isRelic ? "Relic" : "Sigil";
-    const color = procColors[marker.type] || "#9d7bd0";
+    const isRelic = marker.type === 'relic_proc';
+    const type = isRelic ? 'Relic' : 'Sigil';
+    const color = procColors[marker.type] || '#9d7bd0';
     const count = marker.activations.length;
     const badgeLabel = procBadgeLabel(marker.activations);
     const detail =
@@ -649,30 +541,28 @@ export function renderTimeline(app: ProfessionAppState): void {
         ? [
             marker.skill,
             `${type} proc at ${time}`,
-            marker.sourceSkill ? `Triggered by ${marker.sourceSkill}` : "",
-            marker.detail || "",
+            marker.sourceSkill ? `Triggered by ${marker.sourceSkill}` : '',
+            marker.detail || ''
           ]
             .filter(Boolean)
-            .join("\n")
+            .join('\n')
         : [
             marker.skill,
             `${type} proc x${count}`,
             ...marker.activations.map((activation, index) =>
               [
                 `${index + 1}. ${formatTime(activation.start)}`,
-                activation.sourceSkill
-                  ? `Triggered by ${activation.sourceSkill}`
-                  : "",
-                activation.detail || "",
+                activation.sourceSkill ? `Triggered by ${activation.sourceSkill}` : '',
+                activation.detail || ''
               ]
                 .filter(Boolean)
-                .join(" - "),
-            ),
-          ].join("\n");
-    return `<div class="rot-skill rot-injected rot-proc-overlay ${isRelic ? "rot-relic-proc" : "rot-sigil-proc"}" data-proc-key="${esc(key)}"${procVisibility.has(key) ? "" : " hidden"}
+                .join(' - ')
+            )
+          ].join('\n');
+    return `<div class="rot-skill rot-injected rot-proc-overlay ${isRelic ? 'rot-relic-proc' : 'rot-sigil-proc'}" data-proc-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'}
             title="${esc(detail)}" style="--att-border:${color};--proc-color:${color}">
             <img src="${esc(icon)}" alt="" />
-            ${badgeLabel ? `<span class="proc-count">${esc(badgeLabel)}</span>` : ""}
+            ${badgeLabel ? `<span class="proc-count">${esc(badgeLabel)}</span>` : ''}
             <span class="rot-injected-badge">${type.toUpperCase()}</span>
             <span class="rot-time">${time}</span>
         </div>`;
@@ -680,16 +570,10 @@ export function renderTimeline(app: ProfessionAppState): void {
 
   let timelineHtml = rows
     .map((row, rowNumber) => {
-      const weapons =
-        row.weaponSet === 1 ? app.build.weapons : app.build.alternateWeapons;
-      const weaponLabel =
-        row.weaponLine || weapons.filter(Boolean).join("/") || "Unequipped";
-      const rowLabel = row.weaponLine
-        ? row.weaponLine.replace(/ Kit$/, "")
-        : `W${row.weaponSet}`;
-      const rowTitle = row.weaponLine
-        ? `${row.weaponLine} weapon line`
-        : `Weapon set ${row.weaponSet}: ${weaponLabel}`;
+      const weapons = row.weaponSet === 1 ? app.build.weapons : app.build.alternateWeapons;
+      const weaponLabel = row.weaponLine || weapons.filter(Boolean).join('/') || 'Unequipped';
+      const rowLabel = row.weaponLine ? row.weaponLine.replace(/ Kit$/, '') : `W${row.weaponSet}`;
+      const rowTitle = row.weaponLine ? `${row.weaponLine} weapon line` : `Weapon set ${row.weaponSet}: ${weaponLabel}`;
       const rowItems: string[] = [];
       row.skills.forEach(({ entry, index }) => {
         for (const marker of deadTimesByIndex.get(index) || []) {
@@ -713,23 +597,21 @@ export function renderTimeline(app: ProfessionAppState): void {
         const step = steps.get(index);
         const invalid = Boolean(step?.invalid);
         const display =
-          item.name === "__wait"
-            ? "Wait"
-            : item.name === "__combat_start"
-              ? "Combat Start"
-              : item.name === "__cooldown_reset"
-                ? "Cooldown Reset"
+          item.name === '__wait'
+            ? 'Wait'
+            : item.name === '__combat_start'
+              ? 'Combat Start'
+              : item.name === '__cooldown_reset'
+                ? 'Cooldown Reset'
                 : item.name;
         const defaultIcon =
-          item.name === "__wait"
+          item.name === '__wait'
             ? WAIT_ICON
-            : item.name === "__combat_start"
+            : item.name === '__combat_start'
               ? COMBAT_START_ICON
-              : item.name === "__cooldown_reset"
+              : item.name === '__cooldown_reset'
                 ? COOLDOWN_RESET_ICON
-                : skill?.icon ||
-                  (skill?.name ? ACTION_ICONS[skill.name] : "") ||
-                  PLACEHOLDER_ICON;
+                : skill?.icon || (skill?.name ? ACTION_ICONS[skill.name] : '') || PLACEHOLDER_ICON;
         const icon =
           app.profession.ui.timelineSkillIcon?.({
             entry: item,
@@ -737,48 +619,38 @@ export function renderTimeline(app: ProfessionAppState): void {
             rotation: app.build.rotation,
             build: app.build,
             skill,
-            defaultIcon,
+            defaultIcon
           }) || defaultIcon;
-        const time = step && !invalid ? formatTime(step.start) : "";
+        const time = step && !invalid ? formatTime(step.start) : '';
         const resourceSpend = resourceSpends.get(index);
-        const resourceSingular = resourceSpend?.resource.endsWith("s")
+        const resourceSingular = resourceSpend?.resource.endsWith('s')
           ? resourceSpend.resource.slice(0, -1)
           : resourceSpend?.resource;
         // Blades and notes are consumed on cast end (when the hit lands); other resources on cast start.
         const resourceSpendTiming =
-          resourceSpend?.resource === "blades" ||
-          resourceSpend?.resource === "notes"
-            ? "cast end"
-            : "cast start";
+          resourceSpend?.resource === 'blades' || resourceSpend?.resource === 'notes' ? 'cast end' : 'cast start';
         const resourceLabel = resourceSpend
           ? `${resourceSpend.count} ${
-              resourceSpend.count === 1
-                ? resourceSingular
-                : resourceSpend.resource
+              resourceSpend.count === 1 ? resourceSingular : resourceSpend.resource
             } consumed at ${resourceSpendTiming}`
-          : "";
+          : '';
         const resourceShortLabel = resourceSpend
-          ? resourceSpend.resource === "dragon charges"
+          ? resourceSpend.resource === 'dragon charges'
             ? `⚡${resourceSpend.count}`
             : `${resourceSpend.count}${
-                resourceSpend.resource === "blades"
-                  ? "B"
-                  : resourceSpend.resource === "clones"
-                    ? "C"
-                    : resourceSpend.resource === "notes"
-                      ? "N"
-                      : "R"
+                resourceSpend.resource === 'blades'
+                  ? 'B'
+                  : resourceSpend.resource === 'clones'
+                    ? 'C'
+                    : resourceSpend.resource === 'notes'
+                      ? 'N'
+                      : 'R'
               }`
-          : "";
-        const dragonOutcome =
-          resourceSpend?.resource === "dragon charges" ? resourceSpend : null;
+          : '';
+        const dragonOutcome = resourceSpend?.resource === 'dragon charges' ? resourceSpend : null;
         const requestedCharges =
-          item.releaseAtCharges == null
-            ? Number(dragonOutcome?.maximumCharges)
-            : Number(item.releaseAtCharges);
-        const actualCharges = Number(
-          dragonOutcome?.chargesReached ?? dragonOutcome?.count,
-        );
+          item.releaseAtCharges == null ? Number(dragonOutcome?.maximumCharges) : Number(item.releaseAtCharges);
+        const actualCharges = Number(dragonOutcome?.chargesReached ?? dragonOutcome?.count);
         // Mismatch means the sim ran out of flow before reaching the requested charge count.
         const chargeMismatch =
           Boolean(dragonOutcome) &&
@@ -789,136 +661,103 @@ export function renderTimeline(app: ProfessionAppState): void {
           ? [
               `Charges reached: ${actualCharges}`,
               `Time spent charging: ${Number(dragonOutcome.chargingSeconds || 0).toFixed(3)}s`,
-              `Flow spent: ${Number(dragonOutcome.flowSpent || 0).toFixed(2)}`,
+              `Flow spent: ${Number(dragonOutcome.flowSpent || 0).toFixed(2)}`
             ]
           : [];
         const skillTooltip =
           step &&
           !invalid &&
-          item.name !== "__wait" &&
-          item.name !== "__combat_start" &&
-          item.name !== "__cooldown_reset"
-            ? formatTimelineSkillTooltip(
-                display,
-                step,
-                castOrdinals.get(index),
-                formatTime,
-                chargeOutcomeDetails,
-              )
+          item.name !== '__wait' &&
+          item.name !== '__combat_start' &&
+          item.name !== '__cooldown_reset'
+            ? formatTimelineSkillTooltip(display, step, castOrdinals.get(index), formatTime, chargeOutcomeDetails)
             : display;
         const titleSuffix = invalid
-          ? `\n${step?.invalidReason || "Not valid here — will not be simulated"}`
-          : step &&
-              (item.name === "__wait" ||
-                item.name === "__combat_start" ||
-                item.name === "__cooldown_reset")
+          ? `\n${step?.invalidReason || 'Not valid here — will not be simulated'}`
+          : step && (item.name === '__wait' || item.name === '__combat_start' || item.name === '__cooldown_reset')
             ? `\n${formatTimelineCastDetails(step, formatTime)}`
-            : "";
-        const resourceTitle = resourceLabel ? `\n${resourceLabel}` : "";
-        const concurrentLabel =
-          item.offset != null
-            ? formatConcurrentTimelineBadge(item.offset, time)
-            : "";
-        const interruptLabel =
-          item.interruptMs != null
-            ? formatInterruptTimelineBadge(item.interruptMs, time)
-            : "";
+            : '';
+        const resourceTitle = resourceLabel ? `\n${resourceLabel}` : '';
+        const concurrentLabel = item.offset != null ? formatConcurrentTimelineBadge(item.offset, time) : '';
+        const interruptLabel = item.interruptMs != null ? formatInterruptTimelineBadge(item.interruptMs, time) : '';
         const chargeReleaseLabel = skill?.dragonSlash
-          ? `⚡${item.releaseAtCharges == null ? "Max" : Number(item.releaseAtCharges)}${time ? `\n${time}` : ""}`
-          : "";
-        const doubleEdgeOutcome =
-          item.doubleEdgeOutcome === "backfire" ? "backfire" : "success";
-        const doubleEdgeLabel =
-          doubleEdgeOutcome === "backfire" ? "DE!" : "DE✓";
+          ? `⚡${item.releaseAtCharges == null ? 'Max' : Number(item.releaseAtCharges)}${time ? `\n${time}` : ''}`
+          : '';
+        const doubleEdgeOutcome = item.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success';
+        const doubleEdgeLabel = doubleEdgeOutcome === 'backfire' ? 'DE!' : 'DE✓';
         const catalogCastMs = Math.round(Number(skill?.castTimeMs) || 0);
-        const fullCastMs = Math.round(
-          Number(step?.fullCastMs) || catalogCastMs,
-        );
+        const fullCastMs = Math.round(Number(step?.fullCastMs) || catalogCastMs);
         // Show the edit button only if there is something to configure (instant skills have nothing to interrupt).
-        const canEditActivation =
-          item.interruptMs != null || fullCastMs > 0 || catalogCastMs > 0;
+        const canEditActivation = item.interruptMs != null || fullCastMs > 0 || catalogCastMs > 0;
         rowItems.push(
           rotationTimelineEntryHtml(
             index,
             app.rotationInsertionIndex,
-            `<div class="rot-skill${item.offset != null ? " rot-concurrent" : ""}${invalid ? " rot-invalid" : ""}${chargeMismatch ? " rot-charge-mismatch" : ""}" draggable="true"
+            `<div class="rot-skill${item.offset != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}" draggable="true"
                     data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
-                    ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ""}
+                    ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ''}
                     ${
                       canEditActivation
                         ? `<button type="button" class="rot-edit-activation" data-idx="${index}"
                         title="Edit cast behavior" aria-label="Edit ${esc(display)} cast behavior" aria-haspopup="dialog">&#9998;</button>`
-                        : ""
+                        : ''
                     }
                     <span class="rot-x" title="Remove (Shift: remove this and everything after)">×</span>
-                    ${invalid ? '<span class="rot-invalid-badge" title="Invalid — not simulated">✕</span>' : ""}
+                    ${invalid ? '<span class="rot-invalid-badge" title="Invalid — not simulated">✕</span>' : ''}
                     ${
                       resourceSpend
                         ? `<span class="rot-resource-spend-badge"
                         title="${esc(resourceLabel)}" aria-label="${esc(resourceLabel)}">${esc(resourceShortLabel)}</span>`
-                        : ""
+                        : ''
                     }
-                    ${time && item.offset == null && item.interruptMs == null && !skill?.dragonSlash ? `<span class="rot-time">${time}</span>` : ""}
+                    ${time && item.offset == null && item.interruptMs == null && !skill?.dragonSlash ? `<span class="rot-time">${time}</span>` : ''}
                     ${
                       item.offset != null
                         ? `<span class="rot-offset-badge rot-timed-action-badge" data-idx="${index}"
                         title="Delay ${item.offset}ms; cast at ${esc(time)}">${esc(concurrentLabel)}</span>`
-                        : ""
+                        : ''
                     }
                     ${
                       item.interruptMs != null
                         ? `<span class="rot-gapfill-badge rot-interrupt-badge rot-timed-action-badge"
                         data-idx="${index}" title="Interrupt after ${item.interruptMs}ms; cast at ${esc(time)}">${esc(interruptLabel)}</span>`
-                        : ""
+                        : ''
                     }
                     ${
                       skill?.dragonSlash
                         ? `<span class="rot-gapfill-badge rot-charge-release-badge rot-timed-action-badge"
-                        data-idx="${index}" title="Release at ${item.releaseAtCharges == null ? "maximum" : item.releaseAtCharges} charges; cast at ${esc(time)}">${esc(chargeReleaseLabel)}</span>`
-                        : ""
+                        data-idx="${index}" title="Release at ${item.releaseAtCharges == null ? 'maximum' : item.releaseAtCharges} charges; cast at ${esc(time)}">${esc(chargeReleaseLabel)}</span>`
+                        : ''
                     }
                     ${
                       hasConfigurableDoubleEdgeOutcome(skill)
                         ? `<span class="rot-gapfill-badge rot-double-edge-badge rot-timed-action-badge"
                         data-idx="${index}" title="Risky recast: ${esc(doubleEdgeOutcomeLabel(doubleEdgeOutcome))}">${esc(doubleEdgeLabel)}</span>`
-                        : ""
+                        : ''
                     }
-                    ${item.waitMs != null ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${index}">⌛${item.waitMs}ms</span>` : ""}
-                </div>`,
-          ),
+                    ${item.waitMs != null ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${index}">⌛${item.waitMs}ms</span>` : ''}
+                </div>`
+          )
         );
       });
       // Trailing markers (insertionIndex === rotation.length) belong after the last skill in the last row.
       if (rowNumber === rows.length - 1) {
-        for (const marker of overlayProcMarkersByIndex.get(
-          app.build.rotation.length,
-        ) || []) {
+        for (const marker of overlayProcMarkersByIndex.get(app.build.rotation.length) || []) {
           rowItems.push(renderOverlayProcMarker(marker));
         }
-        rowItems.push(
-          rotationInsertionGapHtml(
-            app.build.rotation.length,
-            app.rotationInsertionIndex,
-          ),
-        );
-        for (const marker of healthMarkersByIndex.get(
-          app.build.rotation.length,
-        ) || []) {
+        rowItems.push(rotationInsertionGapHtml(app.build.rotation.length, app.rotationInsertionIndex));
+        for (const marker of healthMarkersByIndex.get(app.build.rotation.length) || []) {
           rowItems.push(renderHealthMarker(marker));
         }
-        for (const marker of continuumEndsByIndex.get(
-          app.build.rotation.length,
-        ) || []) {
+        for (const marker of continuumEndsByIndex.get(app.build.rotation.length) || []) {
           rowItems.push(renderContinuumEnd(marker));
         }
-        for (const marker of automaticTomeStowsByIndex.get(
-          app.build.rotation.length,
-        ) || []) {
+        for (const marker of automaticTomeStowsByIndex.get(app.build.rotation.length) || []) {
           rowItems.push(renderAutomaticTomeStow(marker));
         }
       }
-      const skills = rowItems.join("");
+      const skills = rowItems.join('');
       const finalSkill = row.skills.at(-1);
       const insertAt = finalSkill ? finalSkill.index + 1 : 0;
       return `<div class="rot-row" style="--row-color:#9d7bd0">
@@ -926,29 +765,27 @@ export function renderTimeline(app: ProfessionAppState): void {
             <div class="rot-row-skills" data-insert-idx="${insertAt}">${skills}</div>
         </div>`;
     })
-    .join("");
+    .join('');
 
   if (procSteps.length) {
-    const procOptions = [
-      ...new Map(procSteps.map((proc) => [procFilterKey(proc), proc])).values(),
-    ].sort((a, b) => procFilterLabel(a).localeCompare(procFilterLabel(b)));
-    const visibleProcCount = procOptions.filter((proc) =>
-      procVisibility.has(procFilterKey(proc)),
-    ).length;
+    const procOptions = [...new Map(procSteps.map((proc) => [procFilterKey(proc), proc])).values()].sort((a, b) =>
+      procFilterLabel(a).localeCompare(procFilterLabel(b))
+    );
+    const visibleProcCount = procOptions.filter((proc) => procVisibility.has(procFilterKey(proc))).length;
     const procs = groupConsecutiveProcSteps(procSteps)
       .map((group) => {
         const proc = group.steps[0];
-        if (!proc) return "";
+        if (!proc) return '';
         const { key } = group;
         const icon = resolveProcIcon(app, proc) || PLACEHOLDER_ICON;
         const type =
-          proc.type === "relic_proc"
-            ? "Relic"
-            : proc.type === "sigil_proc"
-              ? "Sigil"
-              : proc.type === "skill_proc"
-                ? "Skill"
-                : "Trait";
+          proc.type === 'relic_proc'
+            ? 'Relic'
+            : proc.type === 'sigil_proc'
+              ? 'Sigil'
+              : proc.type === 'skill_proc'
+                ? 'Skill'
+                : 'Trait';
         const time = formatTime(proc.start);
         const count = group.steps.length;
         const badgeLabel = procBadgeLabel(group.steps);
@@ -958,65 +795,65 @@ export function renderTimeline(app: ProfessionAppState): void {
             ? [
                 proc.skill,
                 `${type} proc at ${time}`,
-                proc.sourceSkill ? `Triggered by ${proc.sourceSkill}` : "",
-                proc.detail || "",
+                proc.sourceSkill ? `Triggered by ${proc.sourceSkill}` : '',
+                proc.detail || ''
               ]
                 .filter(Boolean)
-                .join("\n")
+                .join('\n')
             : [
                 proc.skill,
                 `${type} proc x${count}`,
                 ...group.steps.map((step, index) =>
                   [
                     `${index + 1}. ${formatTime(step.start)}`,
-                    step.sourceSkill ? `Triggered by ${step.sourceSkill}` : "",
-                    step.detail || "",
+                    step.sourceSkill ? `Triggered by ${step.sourceSkill}` : '',
+                    step.detail || ''
                   ]
                     .filter(Boolean)
-                    .join(" - "),
-                ),
-              ].join("\n");
-        return `<div class="proc-icon" data-proc-key="${esc(key)}"${procVisibility.has(key) ? "" : " hidden"} title="${esc(detail)}"
-                style="--proc-color:${procColors[proc.type] || "#9d7bd0"}">
+                    .join(' - ')
+                )
+              ].join('\n');
+        return `<div class="proc-icon" data-proc-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'} title="${esc(detail)}"
+                style="--proc-color:${procColors[proc.type] || '#9d7bd0'}">
                 <img src="${esc(icon)}" alt="" />
-                ${badgeLabel ? `<span class="proc-count">${esc(badgeLabel)}</span>` : ""}
-                ${stackLabel ? `<span class="proc-stack">${esc(stackLabel)}</span>` : ""}
+                ${badgeLabel ? `<span class="proc-count">${esc(badgeLabel)}</span>` : ''}
+                ${stackLabel ? `<span class="proc-stack">${esc(stackLabel)}</span>` : ''}
                 <span class="proc-time">${time}</span>
             </div>`;
       })
-      .join("");
+      .join('');
     if (procElement)
-      procElement.innerHTML = `<details class="rotation-procs-wrap"${procPanelWasOpen ? " open" : ""}>
-            <summary>Procs (${procSteps.length} activation${procSteps.length === 1 ? "" : "s"})</summary>
+      procElement.innerHTML = `<details class="rotation-procs-wrap"${procPanelWasOpen ? ' open' : ''}>
+            <summary>Procs (${procSteps.length} activation${procSteps.length === 1 ? '' : 's'})</summary>
             <div class="rotation-procs-content">
                 <div class="proc-overlay-toggles">
                     <label class="proc-overlay-toggle" title="Show sigil activations at their simulated positions in the rotation">
-                        <input type="checkbox" data-overlay-proc-type="sigil"${app.overlaySigilProcs ? " checked" : ""}${procSteps.some((proc) => proc.type === "sigil_proc") ? "" : " disabled"}>
+                        <input type="checkbox" data-overlay-proc-type="sigil"${app.overlaySigilProcs ? ' checked' : ''}${procSteps.some((proc) => proc.type === 'sigil_proc') ? '' : ' disabled'}>
                         <span>Overlay sigils</span>
                     </label>
                     <label class="proc-overlay-toggle" title="Show relic activations at their simulated positions in the rotation">
-                        <input type="checkbox" data-overlay-proc-type="relic"${app.overlayRelicProcs ? " checked" : ""}${procSteps.some((proc) => proc.type === "relic_proc") ? "" : " disabled"}>
+                        <input type="checkbox" data-overlay-proc-type="relic"${app.overlayRelicProcs ? ' checked' : ''}${procSteps.some((proc) => proc.type === 'relic_proc') ? '' : ' disabled'}>
                         <span>Overlay relics</span>
                     </label>
                 </div>
-                <details class="proc-filter"${app.procFilterOpen ? " open" : ""}>
+                <details class="proc-filter"${app.procFilterOpen ? ' open' : ''}>
                     <summary title="Choose which proc types are shown">Visible <span class="proc-filter-count">${visibleProcCount}/${procOptions.length}</span></summary>
                     <div class="proc-filter-menu">
                         ${procOptions
                           .map((proc) => {
                             const key = procFilterKey(proc);
                             return `<label class="proc-filter-option">
-                                <input type="checkbox" data-proc-key="${esc(key)}"${procVisibility.has(key) ? " checked" : ""}>
+                                <input type="checkbox" data-proc-key="${esc(key)}"${procVisibility.has(key) ? ' checked' : ''}>
                                 <span>${esc(procFilterLabel(proc))}</span>
                             </label>`;
                           })
-                          .join("")}
+                          .join('')}
                     </div>
                 </details>
                 <div class="proc-icons-row">${procs}</div>
             </div>
         </details>`;
-  } else if (procElement) procElement.innerHTML = "";
+  } else if (procElement) procElement.innerHTML = '';
   element.innerHTML = timelineHtml;
   app.rotationInsertionIndex = mountRotationInsertionCursor({
     root: element,
@@ -1033,126 +870,94 @@ export function renderTimeline(app: ProfessionAppState): void {
       renderPalette(app);
       renderTimeline(app);
       renderRotationStateSnapshot(app);
-    },
+    }
   });
 
   const applySkillHighlight = (): void => {
-    const skills = [
-      ...element.querySelectorAll<HTMLElement>(
-        ".rot-skill[data-skill-highlight-key]",
-      ),
-    ];
+    const skills = [...element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]')];
     const key = app.rotationSkillHighlightKey;
-    const active =
-      !!key && skills.some((skill) => skill.dataset.skillHighlightKey === key);
+    const active = !!key && skills.some((skill) => skill.dataset.skillHighlightKey === key);
     if (!active) app.rotationSkillHighlightKey = null;
     skills.forEach((skill) => {
       const match = active && skill.dataset.skillHighlightKey === key;
-      skill.classList.toggle("skill-highlight", match);
-      skill.classList.toggle("skill-faded", active && !match);
+      skill.classList.toggle('skill-highlight', match);
+      skill.classList.toggle('skill-faded', active && !match);
     });
   };
-  element
-    .querySelectorAll<HTMLElement>(".rot-skill[data-skill-highlight-key]")
-    .forEach((skill) => {
-      skill.addEventListener("click", () => {
-        const key = skill.dataset.skillHighlightKey;
-        app.rotationSkillHighlightKey =
-          app.rotationSkillHighlightKey === key ? null : key;
-        applySkillHighlight();
-      });
+  element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]').forEach((skill) => {
+    skill.addEventListener('click', () => {
+      const key = skill.dataset.skillHighlightKey;
+      app.rotationSkillHighlightKey = app.rotationSkillHighlightKey === key ? null : key;
+      applySkillHighlight();
     });
+  });
   applySkillHighlight();
 
-  const procFilter =
-    procElement?.querySelector<HTMLDetailsElement>(".proc-filter") || null;
-  procElement
-    ?.querySelectorAll<HTMLInputElement>("input[data-overlay-proc-type]")
-    .forEach((procOverlayToggle) => {
-      procOverlayToggle.addEventListener("change", () => {
-        if (procOverlayToggle.dataset.overlayProcType === "relic") {
-          app.overlayRelicProcs = procOverlayToggle.checked;
-        } else {
-          app.overlaySigilProcs = procOverlayToggle.checked;
-        }
-        renderTimeline(app);
-      });
+  const procFilter = procElement?.querySelector<HTMLDetailsElement>('.proc-filter') || null;
+  procElement?.querySelectorAll<HTMLInputElement>('input[data-overlay-proc-type]').forEach((procOverlayToggle) => {
+    procOverlayToggle.addEventListener('change', () => {
+      if (procOverlayToggle.dataset.overlayProcType === 'relic') {
+        app.overlayRelicProcs = procOverlayToggle.checked;
+      } else {
+        app.overlaySigilProcs = procOverlayToggle.checked;
+      }
+      renderTimeline(app);
     });
+  });
   const activeProcVisibility = app.procVisibility || new Set();
   if (procFilter && procElement) {
-    procFilter.addEventListener("toggle", () => {
+    procFilter.addEventListener('toggle', () => {
       app.procFilterOpen = procFilter.open;
     });
     // Proc filter toggles update DOM visibility directly rather than re-rendering,
     // keeping the panel open and avoiding an expensive full timeline rebuild.
-    procFilter.querySelectorAll("input[data-proc-key]").forEach((input) => {
+    procFilter.querySelectorAll('input[data-proc-key]').forEach((input) => {
       if (!(input instanceof HTMLInputElement)) return;
-      input.addEventListener("change", () => {
-        const key = input.dataset.procKey || "";
+      input.addEventListener('change', () => {
+        const key = input.dataset.procKey || '';
         if (input.checked) activeProcVisibility.add(key);
         else activeProcVisibility.delete(key);
         app.procFilterOpen = true;
-        procElement
-          .querySelectorAll(".proc-icon[data-proc-key]")
-          .forEach((procIcon) => {
-            if (!(procIcon instanceof HTMLElement)) return;
-            procIcon.hidden = !activeProcVisibility.has(
-              procIcon.dataset.procKey || "",
-            );
-          });
-        element
-          .querySelectorAll(".rot-proc-overlay[data-proc-key]")
-          .forEach((procIcon) => {
-            if (!(procIcon instanceof HTMLElement)) return;
-            procIcon.hidden = !activeProcVisibility.has(
-              procIcon.dataset.procKey || "",
-            );
-          });
-        const count = procFilter.querySelector(".proc-filter-count");
+        procElement.querySelectorAll('.proc-icon[data-proc-key]').forEach((procIcon) => {
+          if (!(procIcon instanceof HTMLElement)) return;
+          procIcon.hidden = !activeProcVisibility.has(procIcon.dataset.procKey || '');
+        });
+        element.querySelectorAll('.rot-proc-overlay[data-proc-key]').forEach((procIcon) => {
+          if (!(procIcon instanceof HTMLElement)) return;
+          procIcon.hidden = !activeProcVisibility.has(procIcon.dataset.procKey || '');
+        });
+        const count = procFilter.querySelector('.proc-filter-count');
         if (count) {
-          const visible = procFilter.querySelectorAll(
-            "input[data-proc-key]:checked",
-          ).length;
-          const total = procFilter.querySelectorAll(
-            "input[data-proc-key]",
-          ).length;
+          const visible = procFilter.querySelectorAll('input[data-proc-key]:checked').length;
+          const total = procFilter.querySelectorAll('input[data-proc-key]').length;
           count.textContent = `${visible}/${total}`;
         }
       });
     });
   }
 
-  const procIconsRow =
-    procElement?.querySelector<HTMLElement>(".proc-icons-row") || null;
+  const procIconsRow = procElement?.querySelector<HTMLElement>('.proc-icons-row') || null;
   if (procIconsRow) {
     const applyProcHighlight = (): void => {
-      const icons = [
-        ...procIconsRow.querySelectorAll(".proc-icon[data-proc-key]"),
-      ];
+      const icons = [...procIconsRow.querySelectorAll('.proc-icon[data-proc-key]')];
       const key = app.procHighlightKey;
-      const active =
-        !!key &&
-        icons.some(
-          (icon) => icon instanceof HTMLElement && icon.dataset.procKey === key,
-        );
+      const active = !!key && icons.some((icon) => icon instanceof HTMLElement && icon.dataset.procKey === key);
       if (!active) app.procHighlightKey = null;
       icons.forEach((icon) => {
         if (!(icon instanceof HTMLElement)) return;
         const match = active && icon.dataset.procKey === key;
-        icon.classList.toggle("proc-highlight", match);
-        icon.classList.toggle("proc-faded", active && !match);
+        icon.classList.toggle('proc-highlight', match);
+        icon.classList.toggle('proc-faded', active && !match);
       });
     };
-    procIconsRow
-      .querySelectorAll(".proc-icon[data-proc-key]")
-      .forEach((icon) => {
-        if (!(icon instanceof HTMLElement)) return;
-        icon.addEventListener("click", () => {
-          const key = icon.dataset.procKey;
-          app.procHighlightKey = app.procHighlightKey === key ? null : key;
-          applyProcHighlight();
-        });
+    procIconsRow.querySelectorAll('.proc-icon[data-proc-key]').forEach((icon) => {
+      if (!(icon instanceof HTMLElement)) return;
+      icon.addEventListener('click', () => {
+        const key = icon.dataset.procKey;
+        app.procHighlightKey = app.procHighlightKey === key ? null : key;
+        applyProcHighlight();
       });
+    });
     applyProcHighlight();
   }
 

@@ -1,13 +1,13 @@
-import { createSimulationRandom } from "../../engine/simulation-random.js";
-import { createGw2ComboRuntimeState } from "../combo-events.js";
+import { createSimulationRandom } from '../../engine/simulation-random.js';
+import { createGw2ComboRuntimeState } from '../combo-events.js';
 
 import type {
   CreateGw2ResolverRuntimeStateOptions,
   Gw2CriticalResult,
   Gw2DamageBreakdownEntry,
   Gw2ResolverEvent,
-  Gw2ResolverRuntime,
-} from "../types.js";
+  Gw2ResolverRuntime
+} from '../types.js';
 
 /**
  * Creates the mutable state for the full GW2 timeline resolver.
@@ -25,7 +25,7 @@ export function createGw2ResolverRuntimeState({
   warnings = [],
   eventFilterState = {},
   createEquipmentState,
-  reactions,
+  reactions
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
   const equipment = createEquipmentState(config);
   const runtime: Gw2ResolverRuntime = {
@@ -47,7 +47,7 @@ export function createGw2ResolverRuntimeState({
     boons: new Map(),
     totals: {
       strike: 0,
-      condition: 0,
+      condition: 0
     },
     firstHitTime: null,
     lastHitTime: null,
@@ -70,10 +70,10 @@ export function createGw2ResolverRuntimeState({
       type: string,
       name: string,
       at: number,
-      sourceSkill = "",
-      detail = "",
-      icon = "",
-      cooldownReduction: number | null = null,
+      sourceSkill = '',
+      detail = '',
+      icon = '',
+      cooldownReduction: number | null = null
     ): void {
       const start = Math.round(at * 1000);
       const key = `${type}|${name}|${start}|${sourceSkill}`;
@@ -87,37 +87,33 @@ export function createGw2ResolverRuntimeState({
         sourceSkill,
         detail,
         icon,
-        ...(Number.isFinite(reducedBy) && reducedBy > 0
-          ? { cooldownReduction: reducedBy }
-          : {}),
+        ...(Number.isFinite(reducedBy) && reducedBy > 0 ? { cooldownReduction: reducedBy } : {}),
         start,
-        end: start,
+        end: start
       });
     },
 
     addBreakdown(
       name: string,
       damage: number,
-      type: "strikeDamage" | "conditionDamage",
+      type: 'strikeDamage' | 'conditionDamage',
       hits = 0,
       source: Gw2ResolverEvent | null = null,
-      critical: Gw2CriticalResult | null = null,
+      critical: Gw2CriticalResult | null = null
     ): void {
       const sourceSkill = source?.skillName || source?.name || name;
-      const parentSkill = source?.parentSkillName || "";
+      const parentSkill = source?.parentSkillName || '';
       const skillId = source?.skillId ?? null;
       const sourceId = source?.sourceId ?? skillId ?? sourceSkill;
       const identityId = skillId ?? sourceId;
-      const actorIdentity = source?.actorType ?? source?.source ?? "";
-      const key = source
-        ? `${String(identityId)}|${actorIdentity}|${parentSkill}|${name}`
-        : name;
+      const actorIdentity = source?.actorType ?? source?.source ?? '';
+      const key = source ? `${String(identityId)}|${actorIdentity}|${parentSkill}|${name}` : name;
       const current: Gw2DamageBreakdownEntry = this.breakdown.get(key) || {
         name,
         sourceSkill,
         parentSkill,
         damageBreakdownName: source?.damageBreakdownName,
-        icon: source?.icon || "",
+        icon: source?.icon || '',
         skillId,
         sourceId,
         actorType: source?.actorType,
@@ -127,7 +123,7 @@ export function createGw2ResolverRuntimeState({
         conditionDamage: 0,
         hits: 0,
         critHits: 0,
-        critEligibleHits: 0,
+        critEligibleHits: 0
       };
       if (current.skillId == null && source?.skillId != null) {
         current.skillId = source.skillId;
@@ -147,7 +143,7 @@ export function createGw2ResolverRuntimeState({
       // Crit accounting only makes sense for strike hits. In stochastic runs
       // didCrit is a per-event boolean (all hits of the event share it); in
       // deterministic runs it is null, so expected crits = chance * hits.
-      if (type === "strikeDamage" && critical) {
+      if (type === 'strikeDamage' && critical) {
         const eligible = Number(hits) || 0;
         current.critEligibleHits = (current.critEligibleHits || 0) + eligible;
         const critShare =
@@ -164,7 +160,7 @@ export function createGw2ResolverRuntimeState({
     markDamageTime(at: number): void {
       if (this.firstHitTime == null) this.firstHitTime = at;
       this.lastHitTime = at;
-    },
+    }
   };
   return runtime;
 }

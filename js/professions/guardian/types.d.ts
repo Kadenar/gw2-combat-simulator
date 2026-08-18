@@ -7,17 +7,17 @@ import type {
   SchedulerState,
   SimulationActorType,
   Skill,
-  SkillId,
-} from "../../platform/engine/types.js";
+  SkillId
+} from '../../platform/engine/types.js';
 import type {
   Gw2Build,
   Gw2BuildAttributeRuleContext,
   Gw2CanonicalBuild,
   Gw2Config,
   Gw2ResolverEvent,
-  Gw2ResolverRuntime,
-} from "../../platform/gw2/types.js";
-import type { ProfessionApplicationBuild } from "../../app/profession/types.js";
+  Gw2ResolverRuntime
+} from '../../platform/gw2/types.js';
+import type { ProfessionApplicationBuild } from '../../app/profession/types.js';
 
 export interface GuardianSpecializationSelection {
   readonly name?: string;
@@ -37,10 +37,7 @@ export interface GuardianApplicationBuild extends ProfessionApplicationBuild {
   initialTomePages: number;
 }
 
-export interface GuardianBuildAttributeRuleContext extends Omit<
-  Gw2BuildAttributeRuleContext,
-  "build"
-> {
+export interface GuardianBuildAttributeRuleContext extends Omit<Gw2BuildAttributeRuleContext, 'build'> {
   readonly build: GuardianBuild;
 }
 
@@ -68,7 +65,7 @@ export interface GuardianCoreState {
   justiceBurns: number;
   justiceActiveBurns: number;
   justicePassiveBurns: number;
-  virtueReadyAt: Record<"justice" | "resolve" | "courage", number>;
+  virtueReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
   lastVirtue: string;
   lastVirtuePassiveWasReady: boolean;
   autoattackChains: Record<string, SkillId>;
@@ -99,7 +96,7 @@ export interface GuardianFirebrandState {
   ashesNextTriggerAt: number;
   ashesExpiresAt: number;
   nextCourageAegisAt: number;
-  tomeDormantReadyAt: Record<"justice" | "resolve" | "courage", number>;
+  tomeDormantReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
   swiftScholarTome: string;
   swiftScholarCount: number;
   liberatorsVowReadyAt: number;
@@ -138,33 +135,28 @@ export interface GuardianWillbenderState {
   justiceUntil: number;
   resolveUntil: number;
   courageUntil: number;
-  virtueHitCounts: Record<"justice" | "resolve" | "courage", number>;
+  virtueHitCounts: Record<'justice' | 'resolve' | 'courage', number>;
   lethalTempoStacks: number;
   lethalTempoUntil: number;
   triggeredVirtueEffects: number;
 }
 
 export interface GuardianState
-  extends
-    GuardianCoreState,
-    GuardianDragonhunterState,
-    GuardianFirebrandState,
-    GuardianLuminaryState {}
+  extends GuardianCoreState, GuardianDragonhunterState, GuardianFirebrandState, GuardianLuminaryState {}
 
 export interface GuardianRuntimeState {
   core: GuardianCoreState;
   specialization:
-    | { kind: "Core"; state: Record<string, never> }
-    | { kind: "Dragonhunter"; state: GuardianDragonhunterState }
-    | { kind: "Firebrand"; state: GuardianFirebrandState }
-    | { kind: "Willbender"; state: GuardianWillbenderState }
-    | { kind: "Luminary"; state: GuardianLuminaryState };
+    | { kind: 'Core'; state: Record<string, never> }
+    | { kind: 'Dragonhunter'; state: GuardianDragonhunterState }
+    | { kind: 'Firebrand'; state: GuardianFirebrandState }
+    | { kind: 'Willbender'; state: GuardianWillbenderState }
+    | { kind: 'Luminary'; state: GuardianLuminaryState };
 }
 
-export type GuardianSchedulerContext =
-  SchedulerContext<GuardianRuntimeState> & {
-    readonly config: GuardianConfig;
-  };
+export type GuardianSchedulerContext = SchedulerContext<GuardianRuntimeState> & {
+  readonly config: GuardianConfig;
+};
 
 export type GuardianCastContext = CastLifecycleContext<GuardianRuntimeState> & {
   readonly config: GuardianConfig;
@@ -183,7 +175,7 @@ export interface GuardianAvailabilityContext extends SchedulerRecord {
   readonly config?: GuardianConfig;
   readonly catalog?: CanonicalCatalog;
   readonly specialization?: string;
-  readonly specializations?: GuardianConfig["specializations"];
+  readonly specializations?: GuardianConfig['specializations'];
 }
 
 export interface GuardianEventExtra extends SchedulerRecord {
@@ -220,7 +212,7 @@ export type GuardianResolverContext = Gw2ResolverRuntime & {
   readonly epsilon?: number;
 };
 
-export type GuardianVirtue = "justice" | "resolve" | "courage";
+export type GuardianVirtue = 'justice' | 'resolve' | 'courage';
 
 export type GuardianResolverEvent = Gw2ResolverEvent & {
   readonly activeTome?: string;

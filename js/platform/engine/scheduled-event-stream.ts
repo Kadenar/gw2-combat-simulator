@@ -1,6 +1,6 @@
-import { assertSimulationEvent, EVENT_SCHEMA_VERSION } from "./events.js";
+import { assertSimulationEvent, EVENT_SCHEMA_VERSION } from './events.js';
 
-import type { ScheduledEventStream, SimulationEvent } from "./types.js";
+import type { ScheduledEventStream, SimulationEvent } from './types.js';
 
 interface BuildScheduledEventStreamOptions {
   readonly events: readonly SimulationEvent[];
@@ -13,7 +13,7 @@ interface BuildScheduledEventStreamOptions {
 /**
  * Versioned handoff format between scheduler and resolver.
  */
-export const SCHEDULED_EVENT_STREAM_KIND = "gw2.simulation.events" as const;
+export const SCHEDULED_EVENT_STREAM_KIND = 'gw2.simulation.events' as const;
 export const SCHEDULED_EVENT_STREAM_VERSION = 1 as const;
 
 /**
@@ -28,28 +28,20 @@ export const SCHEDULED_EVENT_STREAM_VERSION = 1 as const;
  * }} options
  * @returns {ScheduledEventStream}
  */
-export function buildScheduledEventStream(
-  options: BuildScheduledEventStreamOptions,
-): ScheduledEventStream {
+export function buildScheduledEventStream(options: BuildScheduledEventStreamOptions): ScheduledEventStream {
   const {
     events,
     rotationEndTime,
     resolutionEndTime = rotationEndTime,
     resolverHandoff = {},
-    source = "platform.engine.scheduler",
+    source = 'platform.engine.scheduler'
   } = options;
-  if (!Array.isArray(events))
-    throw new TypeError("Scheduled stream requires events.");
+  if (!Array.isArray(events)) throw new TypeError('Scheduled stream requires events.');
   if (!Number.isFinite(rotationEndTime)) {
-    throw new TypeError("Scheduled stream requires a finite rotation end.");
+    throw new TypeError('Scheduled stream requires a finite rotation end.');
   }
-  if (
-    !Number.isFinite(resolutionEndTime) ||
-    resolutionEndTime < rotationEndTime
-  ) {
-    throw new TypeError(
-      "Scheduled stream resolution end must be finite and not precede the rotation end.",
-    );
+  if (!Number.isFinite(resolutionEndTime) || resolutionEndTime < rotationEndTime) {
+    throw new TypeError('Scheduled stream resolution end must be finite and not precede the rotation end.');
   }
   for (const event of events) assertSimulationEvent(event);
   return Object.freeze({
@@ -60,7 +52,7 @@ export function buildScheduledEventStream(
     rotationEndTime,
     resolutionEndTime,
     events: Object.freeze([...events]),
-    resolverHandoff: Object.freeze({ ...resolverHandoff }),
+    resolverHandoff: Object.freeze({ ...resolverHandoff })
   });
 }
 
@@ -70,9 +62,7 @@ export function buildScheduledEventStream(
  * @param {unknown} stream
  * @returns {ScheduledEventStream}
  */
-export function assertScheduledEventStream(
-  stream: unknown,
-): ScheduledEventStream {
+export function assertScheduledEventStream(stream: unknown): ScheduledEventStream {
   const candidate = stream as Partial<ScheduledEventStream> | null | undefined;
   if (
     !candidate ||
@@ -84,13 +74,13 @@ export function assertScheduledEventStream(
     (candidate.resolutionEndTime != null &&
       (!Number.isFinite(candidate.resolutionEndTime) ||
         candidate.resolutionEndTime < Number(candidate.rotationEndTime))) ||
-    typeof candidate.source !== "string" ||
+    typeof candidate.source !== 'string' ||
     !candidate.source ||
     !candidate.resolverHandoff ||
-    typeof candidate.resolverHandoff !== "object" ||
+    typeof candidate.resolverHandoff !== 'object' ||
     Array.isArray(candidate.resolverHandoff)
   ) {
-    throw new Error("Invalid scheduled event stream.");
+    throw new Error('Invalid scheduled event stream.');
   }
   for (const event of candidate.events) assertSimulationEvent(event);
   return candidate as ScheduledEventStream;

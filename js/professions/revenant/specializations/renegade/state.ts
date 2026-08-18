@@ -1,5 +1,5 @@
-import type { RenegadeState } from "../../types.js";
-import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
+import type { RenegadeState } from '../../types.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
 
 export function createRenegadeState(): RenegadeState {
   return {
@@ -16,12 +16,9 @@ export function createRenegadeState(): RenegadeState {
       charges: 0,
       expiresAt: 0,
       // readyAt enforces the per-hit internal cooldown between Razorclaw bleeds
-      readyAt: 0,
-    },
+      readyAt: 0
+    }
   };
 }
 
-export const renegadeState = defineProfessionSpecializationState(
-  "Renegade",
-  createRenegadeState,
-);
+export const renegadeState = defineProfessionSpecializationState('Renegade', createRenegadeState);

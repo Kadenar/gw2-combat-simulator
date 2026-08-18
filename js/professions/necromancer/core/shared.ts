@@ -1,5 +1,5 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
-import { gw2StatsForWeaponSet } from "../../../platform/gw2/runtime-rules.js";
+import { professionCoreState } from '../../../platform/engine/profession.js';
+import { gw2StatsForWeaponSet } from '../../../platform/gw2/runtime-rules.js';
 /**
  * Shared primitives for every necromancer skill handler.
  *
@@ -16,20 +16,9 @@ import { gw2StatsForWeaponSet } from "../../../platform/gw2/runtime-rules.js";
  *
  * Handlers depend on this module; it must not depend on them.
  */
-import {
-  NECROMANCER_SKILL_IDS as ID,
-  NECROMANCER_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
-import {
-  hasNecromancerTrait,
-  snapshotNecromancerState,
-  syncNecromancerResources,
-} from "./state.js";
-import type {
-  SchedulerRecord,
-  SimulationActorType,
-  SkillId,
-} from "../../../platform/engine/types.js";
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { hasNecromancerTrait, snapshotNecromancerState, syncNecromancerResources } from './state.js';
+import type { SchedulerRecord, SimulationActorType, SkillId } from '../../../platform/engine/types.js';
 import type {
   HarbingerState,
   NecromancerCastContext,
@@ -38,37 +27,30 @@ import type {
   NecromancerEmissionContext,
   NecromancerSchedulerContext,
   NecromancerSkill,
-  ScourgeState,
-} from "../types.js";
+  ScourgeState
+} from '../types.js';
 
 export const SHROUD_ENTRY: Readonly<Record<SkillId, string>> = Object.freeze({
-  [ID.DEATH_SHROUD]: "death",
-  [ID.REAPERS_SHROUD]: "reaper",
-  [ID.HARBINGER_SHROUD]: "harbinger",
-  [ID.RITUALISTS_SHROUD]: "ritualist",
+  [ID.DEATH_SHROUD]: 'death',
+  [ID.REAPERS_SHROUD]: 'reaper',
+  [ID.HARBINGER_SHROUD]: 'harbinger',
+  [ID.RITUALISTS_SHROUD]: 'ritualist'
 });
 export const SHROUD_EXIT: Readonly<Record<SkillId, SkillId>> = Object.freeze({
   [ID.END_DEATH_SHROUD]: ID.DEATH_SHROUD,
   [ID.EXIT_REAPERS_SHROUD]: ID.REAPERS_SHROUD,
   [ID.EXIT_HARBINGER_SHROUD]: ID.HARBINGER_SHROUD,
-  [ID.EXIT_RITUALISTS_SHROUD]: ID.RITUALISTS_SHROUD,
+  [ID.EXIT_RITUALISTS_SHROUD]: ID.RITUALISTS_SHROUD
 });
-export const EXIT_ID_BY_SHROUD: Readonly<Record<string, SkillId>> =
-  Object.freeze({
-    death: ID.END_DEATH_SHROUD,
-    reaper: ID.EXIT_REAPERS_SHROUD,
-    harbinger: ID.EXIT_HARBINGER_SHROUD,
-    ritualist: ID.EXIT_RITUALISTS_SHROUD,
-  });
-export const ENTRY_ID_BY_SHROUD: Readonly<Record<string, SkillId>> =
-  Object.freeze(
-    Object.fromEntries(
-      Object.entries(SHROUD_ENTRY).map(([skillId, shroud]) => [
-        shroud,
-        Number(skillId),
-      ]),
-    ),
-  );
+export const EXIT_ID_BY_SHROUD: Readonly<Record<string, SkillId>> = Object.freeze({
+  death: ID.END_DEATH_SHROUD,
+  reaper: ID.EXIT_REAPERS_SHROUD,
+  harbinger: ID.EXIT_HARBINGER_SHROUD,
+  ritualist: ID.EXIT_RITUALISTS_SHROUD
+});
+export const ENTRY_ID_BY_SHROUD: Readonly<Record<string, SkillId>> = Object.freeze(
+  Object.fromEntries(Object.entries(SHROUD_ENTRY).map(([skillId, shroud]) => [shroud, Number(skillId)]))
+);
 
 interface EmitDamageOptions {
   readonly at?: number;
@@ -90,36 +72,27 @@ interface EmitEventOptions {
   readonly metadata?: Readonly<Record<string, unknown>>;
 }
 
-export function traits(context: {
-  readonly config: NecromancerConfig;
-}): Set<string | number> {
+export function traits(context: { readonly config: NecromancerConfig }): Set<string | number> {
   return new Set([
     ...(context.config?.traitIds || []),
     ...(context.config?.selectedTraitIds || []),
-    ...(context.config?.selectedTraits || []),
+    ...(context.config?.selectedTraits || [])
   ]);
 }
 
-export function hasTrait(
-  context: { readonly config: NecromancerConfig },
-  traitId: SkillId,
-): boolean {
+export function hasTrait(context: { readonly config: NecromancerConfig }, traitId: SkillId): boolean {
   return hasNecromancerTrait(traits(context), traitId);
 }
 
-export function emitState(
-  context: NecromancerSchedulerContext,
-  at: number,
-  reason = "",
-): void {
+export function emitState(context: NecromancerSchedulerContext, at: number, reason = ''): void {
   context.emit({
-    type: "necromancer.state",
+    type: 'necromancer.state',
     at,
-    source: "necromancer",
-    sourceId: `necromancer.state.${reason || "update"}`,
-    actorType: "player",
+    source: 'necromancer',
+    sourceId: `necromancer.state.${reason || 'update'}`,
+    actorType: 'player',
     reason,
-    state: snapshotNecromancerState(context.state.profession),
+    state: snapshotNecromancerState(context.state.profession)
   });
 }
 
@@ -132,20 +105,17 @@ export function emitDamage(
     hits = 1,
     interval = 0,
     name = skill.name,
-    source = "necromancer",
+    source = 'necromancer',
     sourceId = skill.id,
-    actorType = "player",
-    skillWeapon = String(
-      skill.skillWeapon ??
-        (skill.type === "Weapon" ? skill.weapon || "" : "Unequipped"),
-    ),
-    metadata = {},
-  }: EmitDamageOptions = {},
+    actorType = 'player',
+    skillWeapon = String(skill.skillWeapon ?? (skill.type === 'Weapon' ? skill.weapon || '' : 'Unequipped')),
+    metadata = {}
+  }: EmitDamageOptions = {}
 ): void {
   const perHit = Number(coefficient || 0) / Math.max(1, hits);
   for (let index = 0; index < Math.max(1, hits); index += 1) {
     context.emit({
-      type: "damage",
+      type: 'damage',
       at: at + index * interval,
       source,
       sourceId,
@@ -159,7 +129,7 @@ export function emitDamage(
       totalHits: hits,
       skillWeapon,
       canCrit: metadata.canCrit !== false,
-      ...metadata,
+      ...metadata
     });
   }
 }
@@ -172,14 +142,14 @@ export function emitCondition(
   duration: number,
   {
     at = context.effectiveEnd ?? context.state.time,
-    source = "necromancer",
+    source = 'necromancer',
     sourceId = skill.id,
-    actorType = "player",
-    metadata = {},
-  }: EmitEventOptions = {},
+    actorType = 'player',
+    metadata = {}
+  }: EmitEventOptions = {}
 ): void {
   context.emit({
-    type: "condition",
+    type: 'condition',
     at,
     source,
     sourceId,
@@ -190,27 +160,27 @@ export function emitCondition(
     condition: name,
     stacks,
     duration,
-    ...metadata,
+    ...metadata
   });
 }
 
 export function emitControl(
   context: NecromancerEmissionContext,
   skill: NecromancerSkill,
-  kind = "control",
+  kind = 'control',
   at = context.effectiveEnd ?? context.state.time,
-  duration = 0,
+  duration = 0
 ): void {
   context.emit({
-    type: "control",
+    type: 'control',
     at,
-    source: "necromancer",
+    source: 'necromancer',
     sourceId: skill.id,
-    actorType: "player",
+    actorType: 'player',
     skillId: skill.id,
     skillName: skill.name,
     controlKind: kind,
-    ...(duration > 0 ? { duration } : {}),
+    ...(duration > 0 ? { duration } : {})
   });
 }
 
@@ -222,31 +192,29 @@ export function emitBuff(
   stacks = 1,
   {
     at = context.effectiveEnd ?? context.state.time,
-    metadata = {},
+    metadata = {}
   }: {
     readonly at?: number;
     readonly metadata?: Readonly<Record<string, unknown>>;
-  } = {},
+  } = {}
 ): void {
   context.emit({
-    type: "buff",
+    type: 'buff',
     at,
-    source: "necromancer",
+    source: 'necromancer',
     sourceId: skill.id,
-    actorType: "player",
+    actorType: 'player',
     skillId: skill.id,
     skillName: skill.name,
     kind,
     duration,
     stacks,
-    ...metadata,
+    ...metadata
   });
 }
 
 /** Pattern 2/3 party-boon metadata with concrete active minion identities. */
-export function necromancerPartyBoonRecipients(
-  context: NecromancerEmissionContext,
-): Readonly<SchedulerRecord> {
+export function necromancerPartyBoonRecipients(context: NecromancerEmissionContext): Readonly<SchedulerRecord> {
   const core = professionCoreState(context);
   const companionIds: string[] = [];
   for (const [key, count] of Object.entries(core.activeMinions || {})) {
@@ -255,9 +223,9 @@ export function necromancerPartyBoonRecipients(
     }
   }
   return {
-    recipients: "party",
+    recipients: 'party',
     maximumRecipients: 5,
-    companionIds,
+    companionIds
   };
 }
 
@@ -265,22 +233,19 @@ export function necromancerBoonDuration(
   context: NecromancerCastContext,
   boon: string,
   baseDuration: number,
-  at = context.effectiveEnd,
+  at = context.effectiveEnd
 ): number {
-  const stats = gw2StatsForWeaponSet(
-    context.config,
-    context.state.activeWeaponSet,
-  );
+  const stats = gw2StatsForWeaponSet(context.config, context.state.activeWeaponSet);
   let concentration = Number(stats.concentration || 0);
   const active = context.state.profession.specialization;
   if (
     hasTrait(context, TRAIT.SAND_SAGE) &&
-    active.kind === "Scourge" &&
+    active.kind === 'Scourge' &&
     active.state.shades.some((expiresAt: number) => expiresAt > at)
   ) {
     concentration += 225;
   }
-  const name = String(boon || "");
+  const name = String(boon || '');
   const bonus =
     concentration / 1500 +
     Number(stats.boonDurationBonus || 0) / 100 +
@@ -289,22 +254,13 @@ export function necromancerBoonDuration(
 }
 
 export function purgeTimedState(state: NecromancerCoreState, at: number): void {
-  state.carapaceExpiries = state.carapaceExpiries.filter(
-    (expiresAt: number) => expiresAt > at,
-  );
-  state.soulShardExpiries = state.soulShardExpiries.filter(
-    (expiresAt: number) => expiresAt > at,
-  );
+  state.carapaceExpiries = state.carapaceExpiries.filter((expiresAt: number) => expiresAt > at);
+  state.soulShardExpiries = state.soulShardExpiries.filter((expiresAt: number) => expiresAt > at);
   syncNecromancerResources(state);
 }
 
-export function purgeHarbingerTimedState(
-  state: HarbingerState,
-  at: number,
-): void {
-  state.blightExpiries = state.blightExpiries.filter(
-    (expiresAt: number) => expiresAt > at,
-  );
+export function purgeHarbingerTimedState(state: HarbingerState, at: number): void {
+  state.blightExpiries = state.blightExpiries.filter((expiresAt: number) => expiresAt > at);
   state.blight = state.blightExpiries.length;
 }
 
@@ -312,83 +268,42 @@ export function purgeScourgeTimedState(state: ScourgeState, at: number): void {
   state.shades = state.shades.filter((expiresAt: number) => expiresAt > at);
 }
 
-export function addCarapace(
-  state: NecromancerCoreState,
-  stacks: number,
-  at: number,
-  duration = 10,
-): number {
+export function addCarapace(state: NecromancerCoreState, stacks: number, at: number, duration = 10): number {
   purgeTimedState(state, at);
-  const count = Math.min(
-    Math.max(0, Math.trunc(Number(stacks || 0))),
-    30 - state.carapaceExpiries.length,
-  );
-  state.carapaceExpiries.push(
-    ...Array.from({ length: count }, () => at + duration),
-  );
+  const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), 30 - state.carapaceExpiries.length);
+  state.carapaceExpiries.push(...Array.from({ length: count }, () => at + duration));
   return count;
 }
 
-export function addBlight(
-  state: HarbingerState,
-  stacks: number,
-  at: number,
-): number {
+export function addBlight(state: HarbingerState, stacks: number, at: number): number {
   purgeHarbingerTimedState(state, at);
-  const count = Math.min(
-    Math.max(0, Math.trunc(Number(stacks || 0))),
-    25 - state.blightExpiries.length,
-  );
+  const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), 25 - state.blightExpiries.length);
   state.blightExpiries.push(...Array.from({ length: count }, () => at + 25));
   state.blight = state.blightExpiries.length;
   return count;
 }
 
-export function consumeBlight(
-  state: HarbingerState,
-  stacks: number,
-  at: number,
-): number {
+export function consumeBlight(state: HarbingerState, stacks: number, at: number): number {
   purgeHarbingerTimedState(state, at);
-  const count = Math.min(
-    Math.max(0, Math.trunc(Number(stacks || 0))),
-    state.blightExpiries.length,
-  );
+  const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), state.blightExpiries.length);
   state.blightExpiries.splice(0, count);
   state.blight = state.blightExpiries.length;
   return count;
 }
 
-export function addSoulShards(
-  state: NecromancerCoreState,
-  stacks: number,
-  at: number,
-  duration = 10,
-): number {
+export function addSoulShards(state: NecromancerCoreState, stacks: number, at: number, duration = 10): number {
   purgeTimedState(state, at);
   const expiresAt = at + duration;
   state.soulShardExpiries = state.soulShardExpiries.map(() => expiresAt);
-  const count = Math.min(
-    Math.max(0, Math.trunc(Number(stacks || 0))),
-    6 - state.soulShardExpiries.length,
-  );
-  state.soulShardExpiries.push(
-    ...Array.from({ length: count }, () => expiresAt),
-  );
+  const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), 6 - state.soulShardExpiries.length);
+  state.soulShardExpiries.push(...Array.from({ length: count }, () => expiresAt));
   syncNecromancerResources(state);
   return count;
 }
 
-export function consumeSoulShards(
-  state: NecromancerCoreState,
-  stacks: number,
-  at: number,
-): number {
+export function consumeSoulShards(state: NecromancerCoreState, stacks: number, at: number): number {
   purgeTimedState(state, at);
-  const count = Math.min(
-    Math.max(0, Math.trunc(Number(stacks || 0))),
-    state.soulShardExpiries.length,
-  );
+  const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), state.soulShardExpiries.length);
   state.soulShardExpiries.splice(0, count);
   syncNecromancerResources(state);
   return count;
@@ -398,7 +313,7 @@ export function gainNecromancerLifeForce(
   context: NecromancerSchedulerContext,
   amount: number,
   at: number,
-  reason = "",
+  reason = ''
 ): number {
   if (!(Number(amount) > 0)) return 0;
   const state = professionCoreState(context);
@@ -406,9 +321,7 @@ export function gainNecromancerLifeForce(
   const before = state.lifeForce;
   state.lifeForce = Math.min(
     state.maximumLifeForce,
-    state.lifeForce +
-      ((Number(amount) * Number(state.maximumLifeForce || 100)) / 100) *
-        multiplier,
+    state.lifeForce + ((Number(amount) * Number(state.maximumLifeForce || 100)) / 100) * multiplier
   );
   syncNecromancerResources(state);
   if (state.lifeForce !== before && reason) emitState(context, at, reason);
@@ -419,13 +332,10 @@ type CreatureSummonReaction = (
   context: NecromancerCastContext,
   skill: NecromancerSkill,
   at: number,
-  count: number,
+  count: number
 ) => void;
 
-const creatureSummonReactions = new WeakMap<
-  object,
-  Map<string, CreatureSummonReaction>
->();
+const creatureSummonReactions = new WeakMap<object, Map<string, CreatureSummonReaction>>();
 
 /**
  * Registers an active module's reaction without making Core depend on that
@@ -434,7 +344,7 @@ const creatureSummonReactions = new WeakMap<
 export function registerCreatureSummonReaction(
   context: NecromancerSchedulerContext,
   id: string,
-  reaction: CreatureSummonReaction,
+  reaction: CreatureSummonReaction
 ): void {
   let reactions = creatureSummonReactions.get(context.state);
   if (!reactions) {
@@ -448,10 +358,9 @@ export function runCreatureSummonReactions(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
   at: number,
-  count = 1,
+  count = 1
 ): void {
-  for (const reaction of creatureSummonReactions.get(context.state)?.values() ||
-    []) {
+  for (const reaction of creatureSummonReactions.get(context.state)?.values() || []) {
     reaction(context, skill, at, count);
   }
 }

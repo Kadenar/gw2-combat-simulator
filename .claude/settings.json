@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"import\\('./js/professions/mesmer/data/mesmer-catalog.js'\\).then\\(m=>{m.SPECIALIZATIONS.forEach\\(s=>console.log\\(s.name,'minor',s.minorTraits?.length,'major',s.majorTraits?.length, Array.isArray\\(s.majorTraits?.[0]\\)?'\\(nested\\)':'\\(flat\\)'\\)\\)}\\).catch\\(e=>console.log\\('ERR',e.message\\)\\)\")",
+      "Bash(git mv *)",
+      "Bash(node --test tests/resolver-architecture.test.js)",
+      "Bash(node _tmp_signet.mjs)",
+      "Bash(node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none ./tests/platform-architecture.test.js ./tests/profession-prerequisites.test.js ./tests/mesmer-oracle.test.js ./tests/app-ui.test.js ./tests/profession-expansion-migration.test.js)",
+      "Bash(node -e ' *)",
+      "Bash(grep -v \"//\\\\|^\\\\s*/\\\\*\\\\|^\\\\s*\\\\*\")",
+      "Bash(grep -v \"//\\\\|^\\\\s*\\\\*\")",
+      "Bash(git stash *)",
+      "Bash(ls -la \"F:/Downloads/20260428-014019.zevtc\" 2>/dev/null && echo \"---\" && node --version)",
+      "Read(//f/Downloads/**)",
+      "Bash(node scripts/analysis/analyze-evtc.mjs \"F:/Downloads/20260428-014019.zevtc\" --debug-name=swordsman --debug-name=blurred --debug-name=leap)",
+      "Bash(node -e \"const r=require\\('C:/Users/kyles/AppData/Local/Temp/claude/d--gw2-combat-simulator/9777ec30-571d-4e3d-8372-f0096c1a4538/scratchpad/dbg.json'\\); console.log\\('debugSkills:', JSON.stringify\\(r.debugSkills,null,1\\)\\);\")",
+      "Bash(node \"C:/Users/kyles/AppData/Local/Temp/claude/d--gw2-combat-simulator/9777ec30-571d-4e3d-8372-f0096c1a4538/scratchpad/trace.mjs\" \"F:/Downloads/20260428-014019.zevtc\" 0x143d)",
+      "Bash(node \"C:/Users/kyles/AppData/Local/Temp/claude/d--gw2-combat-simulator/9777ec30-571d-4e3d-8372-f0096c1a4538/scratchpad/phantasms.mjs\" \"F:/Downloads/20260428-014019.zevtc\")",
+      "Bash(node \"C:/Users/kyles/AppData/Local/Temp/claude/d--gw2-combat-simulator/9777ec30-571d-4e3d-8372-f0096c1a4538/scratchpad/trace.mjs\" \"F:/Downloads/20260428-014019.zevtc\" 0x1456)",
+      "Bash(node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none)",
+      "Bash(echo \"exit=$?\")",
+      "PowerShell(npm --prefix D:/gw2-combat-simulator run build 2>&1)",
+      "Bash(node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none tests/engineer.test.js)",
+      "Read(//tmp/**)",
+      "Bash(tail -40 /tmp/eng-test.log)",
+      "Bash(grep -nE \"^\\(ok|not ok|# tests|# pass|# fail|✖|✔\\)\" /tmp/eng-test.log | grep -iE \"not ok|✖|# tests|# pass|# fail\" | head -60)",
+      "Bash(awk '/PHANTASMAL_WARLOCK\\\\]/{f=1} *)",
+      "PowerShell(node scripts/analysis/analyze-dps-report.mjs \"https://dps.report/qhoR-20260509-162737_golem\" --summary 2>&1)",
+      "PowerShell(node scripts/analysis/analyze-dps-report.mjs \"https://dps.report/qhoR-20260509-162737_golem\" 2>&1 | Out-String | Select-String -Pattern '\"casts\"' -Context 0,200 | Select-Object -First 1 | ForEach-Object { $_.Line; $_.Context.PostContext -join \"`n\" })"
+    ]
+  }
+}

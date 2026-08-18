@@ -1,15 +1,9 @@
 // Stateless GW2 damage formulas plus the legacy skill-preview calculator.
 // Runtime resolution uses the same primitives but applies timestamp-aware rules.
 
-import {
-  CONDITION_FORMULAS,
-  conditionTickDamage,
-} from "./condition-formulas.js";
-import { clamp } from "./numeric.js";
-import {
-  criticalChanceFractionFromPrecision,
-  criticalDamageMultiplierFromFerocity,
-} from "./stat-scaling.js";
+import { CONDITION_FORMULAS, conditionTickDamage } from './condition-formulas.js';
+import { clamp } from './numeric.js';
+import { criticalChanceFractionFromPrecision, criticalDamageMultiplierFromFerocity } from './stat-scaling.js';
 
 interface AttributeValue {
   readonly final?: number;
@@ -25,12 +19,10 @@ interface PreviewCondition {
 interface PreviewHit {
   readonly hit: number;
   readonly damage?: number;
-  readonly numberOfImpacts?: number | "Duration";
+  readonly numberOfImpacts?: number | 'Duration';
   readonly interval?: number;
   readonly duration?: number;
-  readonly conditions?: Readonly<
-    Record<string, PreviewCondition | null | undefined>
-  >;
+  readonly conditions?: Readonly<Record<string, PreviewCondition | null | undefined>>;
 }
 
 interface PreviewSkill {
@@ -47,29 +39,21 @@ interface CalculateSkillDamageOptions {
 const TARGET_ARMOR = 2597;
 
 const CONDITION_DURATION_KEYS: Readonly<Record<string, string>> = {
-  Burning: "Burning Duration",
-  Bleeding: "Bleeding Duration",
-  Poisoned: "Poison Duration",
-  Poison: "Poison Duration",
-  Torment: "Torment Duration",
-  Confusion: "Confusion Duration",
+  Burning: 'Burning Duration',
+  Bleeding: 'Bleeding Duration',
+  Poisoned: 'Poison Duration',
+  Poison: 'Poison Duration',
+  Torment: 'Torment Duration',
+  Confusion: 'Confusion Duration'
 };
 
 // GW2 strike damage formula before critical hits and outgoing modifiers.
-export function strikeDamage(
-  coefficient: number,
-  weaponStrength: number,
-  power: number,
-  armor = TARGET_ARMOR,
-): number {
+export function strikeDamage(coefficient: number, weaponStrength: number, power: number, armor = TARGET_ARMOR): number {
   return (coefficient * weaponStrength * power) / armor;
 }
 
 // Percentage-form API used by attribute tables (e.g. 50 chance, 200 damage).
-export function expectedCritMultiplier(
-  critChancePct: number,
-  critDamagePct: number,
-): number {
+export function expectedCritMultiplier(critChancePct: number, critDamagePct: number): number {
   const cc = Math.min(critChancePct / 100, 1);
   const cd = critDamagePct / 100;
   return 1 + cc * (cd - 1);
@@ -86,10 +70,7 @@ export function criticalDamageMultiplier(ferocity: number): number {
   return criticalDamageMultiplierFromFerocity(Math.max(0, Number(ferocity)));
 }
 
-export function expectedCriticalMultiplier(
-  chance: number,
-  multiplier: number,
-): number {
+export function expectedCriticalMultiplier(chance: number, multiplier: number): number {
   // Fraction-form companion to expectedCritMultiplier.
   const normalizedChance = clamp(Number(chance), 0, 1);
   return 1 + normalizedChance * (Number(multiplier) - 1);
@@ -101,41 +82,32 @@ export function conditionTotalDamage(
   stacks: number,
   baseDurationSec: number,
   conditionDamage: number,
-  durationBonusPct: number,
+  durationBonusPct: number
 ): number {
   const tickDmg = conditionTickDamage(conditionType, conditionDamage);
-  const adjustedDuration =
-    baseDurationSec * clamp(1 + durationBonusPct / 100, 1, 2);
+  const adjustedDuration = baseDurationSec * clamp(1 + durationBonusPct / 100, 1, 2);
   return stacks * tickDmg * adjustedDuration;
 }
 
 // Attribute tables store both duration components as percentage points.
-export function getConditionDurationBonus(
-  conditionType: string,
-  attributes: AttributeTable,
-): number {
-  const base = attributes["Condition Duration"]?.final ?? 0;
+export function getConditionDurationBonus(conditionType: string, attributes: AttributeTable): number {
+  const base = attributes['Condition Duration']?.final ?? 0;
   const key = CONDITION_DURATION_KEYS[conditionType];
-  const specific =
-    key && attributes[key] !== undefined ? (attributes[key]?.final ?? 0) : 0;
+  const specific = key && attributes[key] !== undefined ? (attributes[key]?.final ?? 0) : 0;
   return base + specific;
 }
 
 const BOON_DURATION_KEYS: Readonly<Record<string, string>> = {
-  Might: "Might Duration",
-  Fury: "Fury Duration",
-  Quickness: "Quickness Duration",
+  Might: 'Might Duration',
+  Fury: 'Fury Duration',
+  Quickness: 'Quickness Duration'
 };
 
 // Lookup boon duration bonus from attributes
-export function getBoonDurationBonus(
-  boonType: string,
-  attributes: AttributeTable,
-): number {
-  const base = attributes["Boon Duration"]?.final ?? 0;
+export function getBoonDurationBonus(boonType: string, attributes: AttributeTable): number {
+  const base = attributes['Boon Duration']?.final ?? 0;
   const key = BOON_DURATION_KEYS[boonType];
-  const specific =
-    key && attributes[key] !== undefined ? (attributes[key]?.final ?? 0) : 0;
+  const specific = key && attributes[key] !== undefined ? (attributes[key]?.final ?? 0) : 0;
   return base + specific;
 }
 
@@ -146,15 +118,12 @@ export function calculateSkillDamage(
   skillHits: readonly PreviewHit[] | null | undefined,
   weaponStrength: number,
   attributes: AttributeTable,
-  {
-    maxHit = Infinity,
-    infernoBurningTick = 0,
-  }: CalculateSkillDamageOptions = {},
+  { maxHit = Infinity, infernoBurningTick = 0 }: CalculateSkillDamageOptions = {}
 ) {
-  const power = attributes["Power"]?.final ?? 1000;
-  const condDmg = attributes["Condition Damage"]?.final ?? 0;
-  const critChance = attributes["Critical Chance"]?.final ?? 0;
-  const critDamage = attributes["Critical Damage"]?.final ?? 150;
+  const power = attributes['Power']?.final ?? 1000;
+  const condDmg = attributes['Condition Damage']?.final ?? 0;
+  const critChance = attributes['Critical Chance']?.final ?? 0;
+  const critDamage = attributes['Critical Damage']?.final ?? 150;
   const critMult = expectedCritMultiplier(critChance, critDamage);
 
   let totalStrike = 0;
@@ -170,7 +139,7 @@ export function calculateSkillDamage(
 
     let tickCount = 1;
     let isPerTick = false;
-    if (hit.numberOfImpacts === "Duration") {
+    if (hit.numberOfImpacts === 'Duration') {
       // Duration entries describe a repeating pulse rather than one hit.
       isPerTick = true;
       const interval = hit.interval || 1;
@@ -195,15 +164,11 @@ export function calculateSkillDamage(
       coefficient,
       isPerTick,
       tickCount,
-      strikeDamage: hitStrike,
+      strikeDamage: hitStrike
     });
 
     for (const [condType, condVal] of Object.entries(hit.conditions || {})) {
-      if (
-        !condVal ||
-        !(CONDITION_FORMULAS as Readonly<Record<string, unknown>>)[condType]
-      )
-        continue;
+      if (!condVal || !(CONDITION_FORMULAS as Readonly<Record<string, unknown>>)[condType]) continue;
       const stacks = condVal.stacks || 0;
       const duration = condVal.duration || 0;
       if (stacks <= 0 || duration <= 0) continue;
@@ -212,9 +177,7 @@ export function calculateSkillDamage(
       const effectiveStacks = isPerTick ? stacks * tickCount : stacks;
       // Inferno can supply a precomputed Burning tick with its own rules.
       const tickDmg =
-        infernoBurningTick > 0 && condType === "Burning"
-          ? infernoBurningTick
-          : conditionTickDamage(condType, condDmg);
+        infernoBurningTick > 0 && condType === 'Burning' ? infernoBurningTick : conditionTickDamage(condType, condDmg);
       const adjustedDuration = duration * clamp(1 + durationBonus / 100, 1, 2);
       const dmg = effectiveStacks * tickDmg * adjustedDuration;
       totalCondition += dmg;
@@ -225,7 +188,7 @@ export function calculateSkillDamage(
         baseDuration: duration,
         adjustedDuration,
         tickDamage: tickDmg,
-        totalDamage: dmg,
+        totalDamage: dmg
       });
     }
   }
@@ -246,13 +209,11 @@ export function calculateSkillDamage(
     dps,
     critMultiplier: critMult,
     hitDetails,
-    conditionDetails,
+    conditionDetails
   };
 }
 
 function hasConditions(hit: PreviewHit): boolean {
   if (!hit.conditions) return false;
-  return Object.values(hit.conditions).some(
-    (c) => c && Number(c.stacks || 0) > 0,
-  );
+  return Object.values(hit.conditions).some((c) => c && Number(c.stacks || 0) > 0);
 }

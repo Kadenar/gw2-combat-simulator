@@ -1,17 +1,9 @@
-import { EPSILON } from "../../engine/clock.js";
-import { createEventQueue } from "../../engine/event-queue.js";
-import { assertScheduledEventStream as assertPlatformStream } from "../../engine/scheduled-event-stream.js";
-import {
-  createGw2ResolverHandlerRegistry,
-  runGw2ResolverEventLoop,
-} from "./event-loop.js";
+import { EPSILON } from '../../engine/clock.js';
+import { createEventQueue } from '../../engine/event-queue.js';
+import { assertScheduledEventStream as assertPlatformStream } from '../../engine/scheduled-event-stream.js';
+import { createGw2ResolverHandlerRegistry, runGw2ResolverEventLoop } from './event-loop.js';
 
-import type {
-  Gw2ResolverEvent,
-  Gw2ResolverResult,
-  Gw2ResolverRuntime,
-  ResolveGw2TimelineOptions,
-} from "../types.js";
+import type { Gw2ResolverEvent, Gw2ResolverResult, Gw2ResolverRuntime, ResolveGw2TimelineOptions } from '../types.js';
 
 interface Gw2ResolverHandoff {
   readonly warnings?: readonly string[];
@@ -27,12 +19,12 @@ interface CastCount {
 function addCastsToBreakdown(
   ctx: Gw2ResolverRuntime,
   events: readonly Gw2ResolverEvent[],
-  effectiveEnd: number,
+  effectiveEnd: number
 ): Map<string, CastCount> {
   const countsById = new Map<string, number>();
   const output = new Map<string, CastCount>();
   for (const event of events) {
-    if (event.type !== "action" || event.at > effectiveEnd + EPSILON) continue;
+    if (event.type !== 'action' || event.at > effectiveEnd + EPSILON) continue;
     const id = String(event.skillId ?? event.sourceId);
     const name = event.name || event.skillName || String(event.sourceId);
     countsById.set(id, (countsById.get(id) || 0) + 1);
@@ -45,8 +37,7 @@ function addCastsToBreakdown(
   // rows whose events have no catalog skill id.
   for (const entry of ctx.breakdown.values()) {
     const identityId = String(entry.skillId ?? entry.sourceId);
-    entry.casts =
-      countsById.get(identityId) ?? output.get(entry.name)?.count ?? 0;
+    entry.casts = countsById.get(identityId) ?? output.get(entry.name)?.count ?? 0;
   }
   return output;
 }
@@ -58,30 +49,23 @@ function addCastsToBreakdown(
 function buildResolverResult(
   ctx: Gw2ResolverRuntime,
   scheduled: ReturnType<typeof assertPlatformStream>,
-  handoff: Readonly<Gw2ResolverHandoff>,
+  handoff: Readonly<Gw2ResolverHandoff>
 ): Gw2ResolverResult {
   const totalDamage = ctx.totals.strike + ctx.totals.condition;
   const effectiveEnd = ctx.deathTime ?? ctx.horizon;
-  const effectiveEvents = scheduled.events.filter(
-    (event) => event.at <= effectiveEnd + EPSILON,
-  ) as Gw2ResolverEvent[];
+  const effectiveEvents = scheduled.events.filter((event) => event.at <= effectiveEnd + EPSILON) as Gw2ResolverEvent[];
   const casts = addCastsToBreakdown(ctx, effectiveEvents, effectiveEnd);
   const explicitCombatStart = Number(handoff.combatStartTime || 0);
   // DPS always begins with the first surviving positive damage event. An
   // explicit Combat Start only filters earlier combat events and provides the
   // fallback for a damage-free encounter; it is not itself damage.
-  const dpsStart =
-    ctx.firstHitTime ??
-    (handoff.hasExplicitCombatStart ? explicitCombatStart : 0);
+  const dpsStart = ctx.firstHitTime ?? (handoff.hasExplicitCombatStart ? explicitCombatStart : 0);
   const dpsWindow = Math.max(0, effectiveEnd - dpsStart);
-  const damagePerSecond = (damage: number): number =>
-    dpsWindow > 0 ? damage / dpsWindow : 0;
+  const damagePerSecond = (damage: number): number => (dpsWindow > 0 ? damage / dpsWindow : 0);
 
   return {
     duration: scheduled.rotationEndTime,
-    combatStartTime: handoff.hasExplicitCombatStart
-      ? explicitCombatStart
-      : ctx.firstHitTime,
+    combatStartTime: handoff.hasExplicitCombatStart ? explicitCombatStart : ctx.firstHitTime,
     hasExplicitCombatStart: Boolean(handoff.hasExplicitCombatStart),
     dpsStartTime: dpsStart,
     dpsWindow,
@@ -92,15 +76,13 @@ function buildResolverResult(
     dps: damagePerSecond(totalDamage),
     strikeDamage: ctx.totals.strike,
     conditionDamage: ctx.totals.condition,
-    breakdown: [...ctx.breakdown.values()].sort(
-      (left, right) => right.damage - left.damage,
-    ),
+    breakdown: [...ctx.breakdown.values()].sort((left, right) => right.damage - left.damage),
     conditionBreakdown: [...ctx.conditions.values()]
       .map((entry) => ({
         name: entry.name,
         damage: entry.damage,
         dps: damagePerSecond(entry.damage),
-        averageStacks: damagePerSecond(entry.stackSeconds),
+        averageStacks: damagePerSecond(entry.stackSeconds)
       }))
       .sort((left, right) => right.damage - left.damage),
     events: effectiveEvents,
@@ -114,9 +96,9 @@ function buildResolverResult(
       .sort((left, right) => right.count - left.count),
     randomness: {
       mode: ctx.random.mode,
-      seed: ctx.random.seed,
+      seed: ctx.random.seed
     },
-    profession: ctx.profession,
+    profession: ctx.profession
   };
 }
 
@@ -137,18 +119,14 @@ export function resolveGw2Timeline({
   professionHandlers = {},
   professionState = {},
   eventFilterState = {},
-  shouldSkipEvent,
+  shouldSkipEvent
 }: ResolveGw2TimelineOptions): Gw2ResolverResult {
-  if (typeof createRuntimeState !== "function") {
-    throw new TypeError("GW2 timeline resolver requires createRuntimeState.");
+  if (typeof createRuntimeState !== 'function') {
+    throw new TypeError('GW2 timeline resolver requires createRuntimeState.');
   }
   const scheduled = assertPlatformStream(stream);
-  const resolutionEndTime = Number(
-    scheduled.resolutionEndTime ?? scheduled.rotationEndTime,
-  );
-  const queue = createEventQueue(
-    scheduled.events.map((event) => ({ ...event }) as Gw2ResolverEvent),
-  );
+  const resolutionEndTime = Number(scheduled.resolutionEndTime ?? scheduled.rotationEndTime);
+  const queue = createEventQueue(scheduled.events.map((event) => ({ ...event }) as Gw2ResolverEvent));
   const handoff = scheduled.resolverHandoff as Readonly<Gw2ResolverHandoff>;
   const ctx = createRuntimeState({
     config,
@@ -160,7 +138,7 @@ export function resolveGw2Timeline({
     professionState,
     eventFilterState,
     warnings: [...(handoff.warnings || [])],
-    reactions,
+    reactions
   });
   if (handoff.hasExplicitCombatStart) {
     ctx.combatStartTime = handoff.combatStartTime;
@@ -169,22 +147,22 @@ export function resolveGw2Timeline({
   beforeResolveTimeline(ctx, scheduled.events, resolutionEndTime);
 
   for (const event of scheduled.events) {
-    if (event.type === "proc") {
+    if (event.type === 'proc') {
       ctx.recordProc(
-        event.procType || "proc",
+        event.procType || 'proc',
         event.name || String(event.sourceId),
         event.at,
         event.sourceSkill,
         event.detail,
         event.icon,
-        event.cooldownReduction,
+        event.cooldownReduction
       );
     }
   }
 
   const registry = createGw2ResolverHandlerRegistry({
     commonHandlers,
-    professionHandlers,
+    professionHandlers
   });
   runGw2ResolverEventLoop(ctx, registry, { shouldSkipEvent });
 

@@ -1,20 +1,13 @@
-import { specterState } from "./state.js";
-import { THIEF_TRAIT_IDS as TRAIT } from "../../data/ids.js";
-import { hasThiefTrait } from "../../core/state.js";
-import { emitThiefShroudSwap, emitThiefState } from "../../core/shared.js";
-import {
-  thiefBalanceProfile,
-  thiefBalanceProfileEffect,
-} from "../../core/profiles.js";
-import { completeStealWithStoredSkill } from "../../core/steal.js";
-import { gw2AlliedPlayerAssumptions } from "../../../../platform/gw2/allied-players.js";
-import type {
-  ThiefCastContext,
-  ThiefSchedulerContext,
-  ThiefSkill,
-} from "../../types.js";
-import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
-import { professionCoreState } from "../../../../platform/engine/profession.js";
+import { specterState } from './state.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { hasThiefTrait } from '../../core/state.js';
+import { emitThiefShroudSwap, emitThiefState } from '../../core/shared.js';
+import { thiefBalanceProfile, thiefBalanceProfileEffect } from '../../core/profiles.js';
+import { completeStealWithStoredSkill } from '../../core/steal.js';
+import { gw2AlliedPlayerAssumptions } from '../../../../platform/gw2/allied-players.js';
+import type { ThiefCastContext, ThiefSchedulerContext, ThiefSkill } from '../../types.js';
+import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { professionCoreState } from '../../../../platform/engine/profession.js';
 
 export function completeSiphon(context: ThiefCastContext): void {
   const state = specterState.from(context);
@@ -23,106 +16,87 @@ export function completeSiphon(context: ThiefCastContext): void {
     state.maximumShadowForce,
     state.shadowForce +
       (hasThiefTrait(context.config, TRAIT.AMPLIFIED_SIPHONING)
-        ? Number(
-            thiefBalanceProfile(context, PROFILE.amplifiedSiphoning)
-              ?.resourceGain || 27.5,
-          )
-        : Number(resources?.lifeForceGain || 25)),
+        ? Number(thiefBalanceProfile(context, PROFILE.amplifiedSiphoning)?.resourceGain || 27.5)
+        : Number(resources?.lifeForceGain || 25))
   );
   // Siphon is a profession skill, not a steal; null clears any stored stolen skill.
   completeStealWithStoredSkill(context, null);
 }
 
-export function enterShadowShroud(
-  context: ThiefCastContext,
-  skill: ThiefSkill,
-): void {
+export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = specterState.from(context);
   const at = context.effectiveEnd;
   const profile = thiefBalanceProfile(context, PROFILE.enterShadowShroud);
-  const barrier = thiefBalanceProfileEffect(profile, "buff");
+  const barrier = thiefBalanceProfileEffect(profile, 'buff');
   state.shadowShroudActive = true;
   state.shadowForceUpdatedAt = at;
   // Enter Shadow Shroud only barriers one ally (tethered target), not the whole party.
   const alliedRecipients = Math.min(
     Number(profile?.maximumTargets || 1),
-    gw2AlliedPlayerAssumptions(context.config).count,
+    gw2AlliedPlayerAssumptions(context.config).count
   );
   if (alliedRecipients > 0) {
     context.emit({
-      type: "buff",
+      type: 'buff',
       at,
-      source: "thief",
+      source: 'thief',
       sourceId: skill.id,
-      actorType: "player",
+      actorType: 'player',
       skillId: skill.id,
       skillName: skill.name,
-      name: "Enter Shadow Shroud - Barrier",
-      kind: "barrier",
+      name: 'Enter Shadow Shroud - Barrier',
+      kind: 'barrier',
       duration: Number(barrier?.duration || 5),
       stacks: Number(barrier?.stacks || 1),
       affectsSelf: false,
-      recipients: "allies",
+      recipients: 'allies',
       recipientCount: alliedRecipients,
-      maximumRecipients: alliedRecipients,
+      maximumRecipients: alliedRecipients
     });
     context.tasks.schedule({
-      type: "thief.specter-dark-sentry",
+      type: 'thief.specter-dark-sentry',
       at,
-      payload: { allyIndices: [1] },
+      payload: { allyIndices: [1] }
     });
   }
   emitThiefShroudSwap(context, skill, at);
-  emitThiefState(context, at, "enter-shadow-shroud");
+  emitThiefState(context, at, 'enter-shadow-shroud');
 }
 
-export function exitShadowShroud(
-  context: ThiefCastContext,
-  skill: ThiefSkill,
-): void {
+export function exitShadowShroud(context: ThiefCastContext, skill: ThiefSkill): void {
   const at = context.effectiveEnd;
   specterState.from(context).shadowShroudActive = false;
   emitThiefShroudSwap(context, skill, at);
-  emitThiefState(context, at, "exit-shadow-shroud");
+  emitThiefState(context, at, 'exit-shadow-shroud');
 }
 
 // Specter converts spent initiative into shadow force instead of consuming it for damage.
 // The core thief handler still deducts initiative; this is a parallel gain on top of that.
-export function spendSpecterResources(
-  context: ThiefCastContext,
-  skill: ThiefSkill,
-): void {
+export function spendSpecterResources(context: ThiefCastContext, skill: ThiefSkill): void {
   const cost = Number(skill.initiativeCost || 0);
   if (!(cost > 0)) return;
   const state = specterState.from(context);
   const resources = thiefBalanceProfile(context, PROFILE.resources);
   state.shadowForce = Math.min(
     state.maximumShadowForce,
-    state.shadowForce + cost * Number(resources?.resourceGain || 1),
+    state.shadowForce + cost * Number(resources?.resourceGain || 1)
   );
   // Emit at cast start so the resource timeline reflects the gain immediately.
-  emitThiefState(context, context.start, "shadow-force");
+  emitThiefState(context, context.start, 'shadow-force');
 }
 
-export function advanceSpecterResources(
-  context: ThiefSchedulerContext,
-  target: number,
-): void {
+export function advanceSpecterResources(context: ThiefSchedulerContext, target: number): void {
   const state = specterState.from(context);
   const resources = thiefBalanceProfile(context, PROFILE.resources);
   state.maximumShadowForce = Number(resources?.maximumStacks || 100);
   state.shadowForcePoolCapacity =
-    Number(professionCoreState(context).maximumHealth || 0) *
-    Number(resources?.attributeConversion || 0.69);
+    Number(professionCoreState(context).maximumHealth || 0) * Number(resources?.attributeConversion || 0.69);
   state.shadowForce = Math.min(state.maximumShadowForce, state.shadowForce);
   const shadowFrom = Number(state.shadowForceUpdatedAt || 0);
   if (target > shadowFrom && state.shadowShroudActive) {
     state.shadowForce = Math.max(
       0,
-      state.shadowForce -
-        (target - shadowFrom) *
-          state.maximumShadowForce *
-          Number(resources?.lifeForceDrain || 0.02),
+      state.shadowForce - (target - shadowFrom) * state.maximumShadowForce * Number(resources?.lifeForceDrain || 0.02)
     );
     // When force hits exactly 0, shroud collapses automatically without an explicit exit cast.
     if (state.shadowForce === 0) {
@@ -130,14 +104,14 @@ export function advanceSpecterResources(
       emitThiefShroudSwap(
         context,
         {
-          id: "thief.shadow-shroud-depleted",
-          name: "Exit Shadow Shroud",
+          id: 'thief.shadow-shroud-depleted',
+          name: 'Exit Shadow Shroud'
         },
-        target,
+        target
       );
-      emitThiefState(context, target, "shadow-shroud-depleted");
+      emitThiefState(context, target, 'shadow-shroud-depleted');
     }
   }
   state.shadowForceUpdatedAt = target;
-  emitThiefState(context, target, "resources");
+  emitThiefState(context, target, 'resources');
 }

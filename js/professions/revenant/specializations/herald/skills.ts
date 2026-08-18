@@ -1,271 +1,266 @@
 /**
  * Herald skill mechanics owned by the Herald Revenant module.
  */
-import { REVENANT_SKILL_IDS as ID } from "../../data/ids.js";
-import type {
-  BalanceProfile,
-  SkillFragment,
-} from "../../../../platform/engine/types.js";
+import { REVENANT_SKILL_IDS as ID } from '../../data/ids.js';
+import type { BalanceProfile, SkillFragment } from '../../../../platform/engine/types.js';
 
-export const HERALD_SPIRIT_BOON_PROFILE_ID = "revenant.spirit-boon.dragon";
+export const HERALD_SPIRIT_BOON_PROFILE_ID = 'revenant.spirit-boon.dragon';
 
-export const HERALD_BASE_SKILL_MECHANICS: Readonly<
-  Record<number, SkillFragment>
-> = Object.freeze({
+export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FACET_OF_STRENGTH]: {
     implemented: true,
-    handlerId: "revenant.upkeep",
+    handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     upkeepCost: 2,
     effects: [],
-    legendId: "LegendaryDragon",
+    legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
-    upkeepPulse: { kind: "might", duration: 12, stacks: 1 },
-    upkeepConsumeId: ID.BURST_OF_STRENGTH,
+    upkeepPulse: { kind: 'might', duration: 12, stacks: 1 },
+    upkeepConsumeId: ID.BURST_OF_STRENGTH
   },
   [ID.FACET_OF_ELEMENTS]: {
     implemented: true,
-    handlerId: "revenant.upkeep",
+    handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     upkeepCost: 1,
     effects: [],
-    legendId: "LegendaryDragon",
+    legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
-    upkeepPulse: { kind: "swiftness", duration: 3, stacks: 1 },
-    upkeepConsumeId: ID.ELEMENTAL_BLAST,
+    upkeepPulse: { kind: 'swiftness', duration: 3, stacks: 1 },
+    upkeepConsumeId: ID.ELEMENTAL_BLAST
   },
   [ID.GAZE_OF_DARKNESS]: {
     implemented: true,
-    handlerId: "revenant.facet-consume",
+    handlerId: 'revenant.facet-consume',
     castTimeMs: 0,
     cooldown: 15,
     energyCost: 0,
     effects: [
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 10,
         duration: 6,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Revealed",
+        type: 'condition',
+        condition: 'Revealed',
         stacks: 1,
         duration: 5,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "blind",
-        actorType: "player",
+        type: 'blind',
+        actorType: 'player',
         metadata: {
-          duration: 5,
-        },
-      },
+          duration: 5
+        }
+      }
     ],
-    legendId: "LegendaryDragon",
-    consume: true,
+    legendId: 'LegendaryDragon',
+    consume: true
   },
   [ID.ELEMENTAL_BLAST]: {
     implemented: true,
-    handlerId: "revenant.facet-consume",
+    handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: 12,
     energyCost: 0,
     effects: [
       {
-        type: "strike",
-        name: "Elemental Blast",
-        actorType: "player",
+        type: 'strike',
+        name: 'Elemental Blast',
+        actorType: 'player',
         ticks: [
           {
             atMs: 280,
             coefficient: 1.5,
-            metadata: { name: "Elemental Blast — Pulse 1" },
+            metadata: { name: 'Elemental Blast — Pulse 1' }
           },
           {
             atMs: 1280,
             coefficient: 1.5,
-            metadata: { name: "Elemental Blast — Pulse 2" },
+            metadata: { name: 'Elemental Blast — Pulse 2' }
           },
           {
             atMs: 2280,
             coefficient: 1.5,
-            metadata: { name: "Elemental Blast — Pulse 3" },
-          },
+            metadata: { name: 'Elemental Blast — Pulse 3' }
+          }
         ],
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        actorType: "player",
+        type: 'condition',
+        actorType: 'player',
         ticks: [
           {
             atMs: 280,
-            condition: "Weakness",
+            condition: 'Weakness',
             stacks: 1,
-            duration: 5,
+            duration: 5
           },
           {
             atMs: 1280,
-            condition: "Chilled",
+            condition: 'Chilled',
             stacks: 1,
-            duration: 3,
+            duration: 3
           },
           {
             atMs: 2280,
-            condition: "Burning",
+            condition: 'Burning',
             stacks: 2,
-            duration: 4,
-          },
+            duration: 4
+          }
         ],
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
     ],
-    legendId: "LegendaryDragon",
-    consume: true,
+    legendId: 'LegendaryDragon',
+    consume: true
   },
   [ID.FACET_OF_LIGHT]: {
     implemented: true,
-    handlerId: "revenant.upkeep",
+    handlerId: 'revenant.upkeep',
     castTimeMs: 250,
     cooldown: 0,
     energyCost: 0,
     upkeepCost: 1,
     effects: [],
-    legendId: "LegendaryDragon",
+    legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
-    upkeepPulse: { kind: "regeneration", duration: 4, stacks: 1 },
-    upkeepConsumeId: ID.INFUSE_LIGHT,
+    upkeepPulse: { kind: 'regeneration', duration: 4, stacks: 1 },
+    upkeepConsumeId: ID.INFUSE_LIGHT
   },
   [ID.INFUSE_LIGHT]: {
     implemented: true,
-    handlerId: "revenant.facet-consume",
+    handlerId: 'revenant.facet-consume',
     castTimeMs: 0,
     cooldown: 30,
     energyCost: 0,
     effects: [],
-    legendId: "LegendaryDragon",
-    consume: true,
+    legendId: 'LegendaryDragon',
+    consume: true
   },
   [ID.FACET_OF_CHAOS]: {
     implemented: true,
-    handlerId: "revenant.upkeep",
+    handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     upkeepCost: 4,
     effects: [],
-    legendId: "LegendaryDragon",
+    legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
-    upkeepPulse: { kind: "protection", duration: 3, stacks: 1 },
-    upkeepConsumeId: ID.CHAOTIC_RELEASE,
+    upkeepPulse: { kind: 'protection', duration: 3, stacks: 1 },
+    upkeepConsumeId: ID.CHAOTIC_RELEASE
   },
   [ID.CHAOTIC_RELEASE]: {
     implemented: true,
-    handlerId: "revenant.facet-consume",
+    handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 600,
     cooldown: 20,
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 4,
         hits: 1,
-        name: "Chaotic Release",
-        actorType: "player",
+        name: 'Chaotic Release',
+        actorType: 'player',
         atMs: 560,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         atMs: 560,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         metadata: {
-          controlKind: "knockback",
-          duration: 360,
-        },
+          controlKind: 'knockback',
+          duration: 360
+        }
       },
       {
-        type: "boon",
-        boon: "superspeed",
+        type: 'boon',
+        boon: 'superspeed',
         duration: 5,
         stacks: 1,
         atMs: 560,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
     ],
-    legendId: "LegendaryDragon",
-    consume: true,
+    legendId: 'LegendaryDragon',
+    consume: true
   },
   [ID.BURST_OF_STRENGTH]: {
     implemented: true,
-    handlerId: "revenant.facet-consume",
+    handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 840,
     cooldown: 12,
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3.2,
         hits: 2,
-        name: "Burst of Strength",
-        actorType: "player",
+        name: 'Burst of Strength',
+        actorType: 'player',
         atMs: 360,
         intervalMs: 320,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "buff",
-        kind: "burst-of-strength",
+        type: 'buff',
+        kind: 'burst-of-strength',
         duration: 10,
         stacks: 1,
         atMs: 360,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
     ],
-    legendId: "LegendaryDragon",
-    consume: true,
+    legendId: 'LegendaryDragon',
+    consume: true
   },
   [ID.FACET_OF_DARKNESS]: {
     implemented: true,
-    handlerId: "revenant.upkeep",
+    handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     upkeepCost: 2,
     effects: [],
-    legendId: "LegendaryDragon",
+    legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
-    upkeepPulse: { kind: "fury", duration: 3, stacks: 1 },
-    upkeepConsumeId: ID.GAZE_OF_DARKNESS,
+    upkeepPulse: { kind: 'fury', duration: 3, stacks: 1 },
+    upkeepConsumeId: ID.GAZE_OF_DARKNESS
   },
   [ID.FACET_OF_NATURE]: {
     implemented: true,
-    handlerId: "revenant.upkeep",
+    handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
     upkeepCost: 2,
     effects: [],
-    legendId: "LegendaryDragon",
+    legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
     upkeepConsumeByLegendId: {
@@ -273,101 +268,98 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<
       LegendaryDwarf: ID.TRUE_NATURE_ID_51675,
       LegendaryDragon: ID.TRUE_NATURE_ID_51696,
       LegendaryCentaur: ID.TRUE_NATURE_ID_51713,
-      LegendaryDemon: ID.TRUE_NATURE_ID_51714,
-    },
+      LegendaryDemon: ID.TRUE_NATURE_ID_51714
+    }
   },
   [ID.TRUE_NATURE]: {
     implemented: true,
-    handlerId: "revenant.facet-consume",
+    handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: 20,
     energyCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: "True Nature (assassin)",
-        actorType: "player",
-      },
+        name: 'True Nature (assassin)',
+        actorType: 'player'
+      }
     ],
-    legendId: "LegendaryDragon",
-    consume: true,
+    legendId: 'LegendaryDragon',
+    consume: true
   },
   [ID.TRUE_NATURE_ID_51675]: {
     implemented: true,
-    handlerId: "revenant.facet-consume",
+    handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: 20,
     energyCost: 0,
     effects: [
       {
-        type: "boon",
-        boon: "stability",
+        type: 'boon',
+        boon: 'stability',
         duration: 4,
-        stacks: 2,
-      },
+        stacks: 2
+      }
     ],
-    legendId: "LegendaryDragon",
-    consume: true,
+    legendId: 'LegendaryDragon',
+    consume: true
   },
   [ID.TRUE_NATURE_ID_51696]: {
     implemented: true,
-    handlerId: "revenant.facet-consume",
+    handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: 20,
     energyCost: 0,
     effects: [],
-    legendId: "LegendaryDragon",
-    consume: true,
+    legendId: 'LegendaryDragon',
+    consume: true
   },
   [ID.TRUE_NATURE_ID_51713]: {
     implemented: true,
-    handlerId: "revenant.facet-consume",
+    handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: 20,
     energyCost: 0,
     effects: [],
-    legendId: "LegendaryDragon",
-    consume: true,
+    legendId: 'LegendaryDragon',
+    consume: true
   },
   [ID.TRUE_NATURE_ID_51714]: {
     implemented: true,
-    handlerId: "revenant.facet-consume",
+    handlerId: 'revenant.facet-consume',
     quicknessCastTimeMs: 480,
     cooldown: 20,
     energyCost: 0,
     effects: [
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 10,
-        stacks: 5,
-      },
+        stacks: 5
+      }
     ],
-    legendId: "LegendaryDragon",
-    consume: true,
-  },
+    legendId: 'LegendaryDragon',
+    consume: true
+  }
 });
 
-export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
-  [
-    {
-      id: HERALD_SPIRIT_BOON_PROFILE_ID,
-      name: "Spirit Boon (Dragon)",
-      profileKind: "trait",
-      description:
-        "Invoking Legendary Dragon grants protection to nearby allies.",
-      icon: "https://render.guildwars2.com/file/62279406A52F47A00CE7BFFB43D405907A67A60F/1012681.png",
-      effects: [
-        {
-          type: "boon",
-          boon: "protection",
-          duration: 3,
-          stacks: 1,
-          actorType: "player",
-        },
-      ],
-    },
-  ],
-);
+export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  {
+    id: HERALD_SPIRIT_BOON_PROFILE_ID,
+    name: 'Spirit Boon (Dragon)',
+    profileKind: 'trait',
+    description: 'Invoking Legendary Dragon grants protection to nearby allies.',
+    icon: 'https://render.guildwars2.com/file/62279406A52F47A00CE7BFFB43D405907A67A60F/1012681.png',
+    effects: [
+      {
+        type: 'boon',
+        boon: 'protection',
+        duration: 3,
+        stacks: 1,
+        actorType: 'player'
+      }
+    ]
+  }
+]);

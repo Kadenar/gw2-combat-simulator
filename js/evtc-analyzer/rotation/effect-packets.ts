@@ -1,10 +1,7 @@
-import type { Skill, StrikeEffect } from "../../platform/engine/types.js";
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from "../types.js";
-import { findRotationSkill } from "./catalog.js";
-import type {
-  EvtcProfessionReconstructionContext,
-  EvtcRecordedRotationAction,
-} from "./professions/types.js";
+import type { Skill, StrikeEffect } from '../../platform/engine/types.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../types.js';
+import { findRotationSkill } from './catalog.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from './professions/types.js';
 
 export const EFFECT_PACKET_TOLERANCE_MS = 80;
 const AGENT_SPAWN_STATE_CHANGE = 6;
@@ -30,10 +27,7 @@ interface ExpectedStrikePacket {
 
 export interface StrikePacketMatcherOptions {
   readonly toleranceMs?: number;
-  readonly runtimeDurationMs?: (
-    skill: Skill,
-    action: EvtcRecordedRotationAction,
-  ) => number;
+  readonly runtimeDurationMs?: (skill: Skill, action: EvtcRecordedRotationAction) => number;
 }
 
 export interface CommittedStrikeActionOptions {
@@ -42,20 +36,20 @@ export interface CommittedStrikeActionOptions {
 }
 
 export function normalized(value: unknown): string {
-  return String(value || "")
+  return String(value || '')
     .trim()
     .toLowerCase();
 }
 
 export function skillForAction(
   context: EvtcProfessionReconstructionContext,
-  action: EvtcRecordedRotationAction,
+  action: EvtcRecordedRotationAction
 ): Skill | null {
   return findRotationSkill(
     action.canonicalSkillId ?? action.rawSkillId,
     action.canonicalName ?? action.rawName,
     context.catalog,
-    context.profile,
+    context.profile
   );
 }
 
@@ -69,24 +63,17 @@ export function quicknessRuntimeDurationMs(skill: Skill | null): number {
 export function strikePacketOffsets(
   skill: Skill,
   effect: StrikeEffect,
-  runtimeDurationMs = quicknessRuntimeDurationMs(skill),
+  runtimeDurationMs = quicknessRuntimeDurationMs(skill)
 ): number[] {
-  const origin = effect.timingAnchor === "castEnd" ? runtimeDurationMs : 0;
+  const origin = effect.timingAnchor === 'castEnd' ? runtimeDurationMs : 0;
   const baseDurationMs = Math.max(0, Number(skill.castTimeMs || 0));
-  const castScale =
-    effect.timingScale === "cast" && baseDurationMs > 0
-      ? runtimeDurationMs / baseDurationMs
-      : 1;
+  const castScale = effect.timingScale === 'cast' && baseDurationMs > 0 ? runtimeDurationMs / baseDurationMs : 1;
   if (Array.isArray(effect.ticks) && effect.ticks.length) {
     return effect.ticks.map((tick) => origin + Number(tick.atMs) * castScale);
   }
   const hits = Math.max(1, Math.trunc(Number(effect.hits || 1)));
-  const first =
-    origin +
-    (effect.atMs == null
-      ? runtimeDurationMs - origin
-      : Number(effect.atMs) * castScale);
-  const intervalScale = effect.intervalTimingScale === "fixed" ? 1 : castScale;
+  const first = origin + (effect.atMs == null ? runtimeDurationMs - origin : Number(effect.atMs) * castScale);
+  const intervalScale = effect.intervalTimingScale === 'fixed' ? 1 : castScale;
   const interval = Math.max(0, Number(effect.intervalMs || 0)) * intervalScale;
   return Array.from({ length: hits }, (_, index) => first + index * interval);
 }
@@ -94,15 +81,11 @@ export function strikePacketOffsets(
 export function firstStrikePacketOffsetMs(
   skill: Skill | null,
   runtimeDurationMs = quicknessRuntimeDurationMs(skill),
-  options: { readonly explicitOnly?: boolean } = {},
+  options: { readonly explicitOnly?: boolean } = {}
 ): number | null {
   const offsets = (skill?.effects || []).flatMap((effect) => {
-    if (effect.type !== "strike") return [];
-    if (
-      options.explicitOnly === true &&
-      effect.atMs == null &&
-      !(Array.isArray(effect.ticks) && effect.ticks.length)
-    ) {
+    if (effect.type !== 'strike') return [];
+    if (options.explicitOnly === true && effect.atMs == null && !(Array.isArray(effect.ticks) && effect.ticks.length)) {
       return [];
     }
     return strikePacketOffsets(skill!, effect, runtimeDurationMs);
@@ -112,14 +95,10 @@ export function firstStrikePacketOffsetMs(
 
 export function createStrikePacketMatcher(
   context: EvtcProfessionReconstructionContext,
-  options: StrikePacketMatcherOptions = {},
+  options: StrikePacketMatcherOptions = {}
 ): (action: EvtcRecordedRotationAction) => StrikePacketValidation {
-  const names = new Map(
-    context.log.skills.map((skill) => [skill.id, skill.name.trim()]),
-  );
-  const availableNames = new Set(
-    [...names.values()].map((name) => normalized(name)),
-  );
+  const names = new Map(context.log.skills.map((skill) => [skill.id, skill.name.trim()]));
+  const availableNames = new Set([...names.values()].map((name) => normalized(name)));
   const directEvents = context.log.events
     .map((event, eventIndex) => ({ event, eventIndex }))
     .filter(
@@ -128,24 +107,20 @@ export function createStrikePacketMatcher(
         event.buff === 0 &&
         event.value > 0 &&
         event.activation === EVTC_ACTIVATION.NONE &&
-        event.stateChange === EVTC_STATE_CHANGE.NONE,
+        event.stateChange === EVTC_STATE_CHANGE.NONE
     );
-  const cache = new WeakMap<
-    EvtcRecordedRotationAction,
-    StrikePacketValidation
-  >();
+  const cache = new WeakMap<EvtcRecordedRotationAction, StrikePacketValidation>();
 
   return (action) => {
     const cached = cache.get(action);
     if (cached) return cached;
     const skill = skillForAction(context, action);
     const runtimeDurationMs = skill
-      ? (options.runtimeDurationMs?.(skill, action) ??
-        quicknessRuntimeDurationMs(skill))
+      ? (options.runtimeDurationMs?.(skill, action) ?? quicknessRuntimeDurationMs(skill))
       : 0;
     const packets: ExpectedStrikePacket[] = skill
       ? (skill.effects || []).flatMap((effect) => {
-          if (effect.type !== "strike" || effect.actorType === "summon") {
+          if (effect.type !== 'strike' || effect.actorType === 'summon') {
             return [];
           }
           const effectName = normalized(effect.name || skill.name);
@@ -161,14 +136,12 @@ export function createStrikePacketMatcher(
             (Array.isArray(effect.ticks) && effect.ticks.length > 0) ||
             effect.timingAnchor != null ||
             effect.timingScale != null;
-          return strikePacketOffsets(skill, effect, runtimeDurationMs).map(
-            (offsetMs) => ({
-              signalName,
-              offsetMs,
-              timingExplicit,
-              persistsAfterInterrupt: effect.persistsAfterInterrupt === true,
-            }),
-          );
+          return strikePacketOffsets(skill, effect, runtimeDurationMs).map((offsetMs) => ({
+            signalName,
+            offsetMs,
+            timingExplicit,
+            persistsAfterInterrupt: effect.persistsAfterInterrupt === true
+          }));
         })
       : [];
     const used = new Set<number>();
@@ -185,18 +158,14 @@ export function createStrikePacketMatcher(
             !used.has(eventIndex) &&
             normalized(names.get(event.skillId)) === packet.signalName &&
             (packet.timingExplicit
-              ? Math.abs(event.time - expectedTime) <=
-                (options.toleranceMs ?? EFFECT_PACKET_TOLERANCE_MS)
+              ? Math.abs(event.time - expectedTime) <= (options.toleranceMs ?? EFFECT_PACKET_TOLERANCE_MS)
               : event.time >= action.start &&
-                event.time <=
-                  expectedTime +
-                    (options.toleranceMs ?? EFFECT_PACKET_TOLERANCE_MS)),
+                event.time <= expectedTime + (options.toleranceMs ?? EFFECT_PACKET_TOLERANCE_MS))
         )
         .sort(
           (left, right) =>
-            Math.abs(left.event.time - expectedTime) -
-              Math.abs(right.event.time - expectedTime) ||
-            left.eventIndex - right.eventIndex,
+            Math.abs(left.event.time - expectedTime) - Math.abs(right.event.time - expectedTime) ||
+            left.eventIndex - right.eventIndex
         )[0];
       if (!match) {
         missingOffsets.push(packet.offsetMs);
@@ -213,25 +182,15 @@ export function createStrikePacketMatcher(
     const validation = {
       expectedCount: packets.length,
       observedCount: observedOffsets.length,
-      allObserved:
-        packets.length > 0 && observedOffsets.length === packets.length,
+      allObserved: packets.length > 0 && observedOffsets.length === packets.length,
       anyObserved: observedOffsets.length > 0,
-      allObservedTimingExplicit:
-        observedExplicitTimings.length > 0 &&
-        observedExplicitTimings.every(Boolean),
-      firstMissingOffsetMs: missingOffsets.length
-        ? Math.min(...missingOffsets)
-        : null,
-      lastObservedOffsetMs: observedOffsets.length
-        ? Math.max(...observedOffsets)
-        : null,
-      lastObservedExpectedOffsetMs: observedExpectedOffsets.length
-        ? Math.max(...observedExpectedOffsets)
-        : null,
-      lastObservedCancelableExpectedOffsetMs:
-        observedCancelableExpectedOffsets.length
-          ? Math.max(...observedCancelableExpectedOffsets)
-          : null,
+      allObservedTimingExplicit: observedExplicitTimings.length > 0 && observedExplicitTimings.every(Boolean),
+      firstMissingOffsetMs: missingOffsets.length ? Math.min(...missingOffsets) : null,
+      lastObservedOffsetMs: observedOffsets.length ? Math.max(...observedOffsets) : null,
+      lastObservedExpectedOffsetMs: observedExpectedOffsets.length ? Math.max(...observedExpectedOffsets) : null,
+      lastObservedCancelableExpectedOffsetMs: observedCancelableExpectedOffsets.length
+        ? Math.max(...observedCancelableExpectedOffsets)
+        : null
     };
     cache.set(action, validation);
     return validation;
@@ -241,7 +200,7 @@ export function createStrikePacketMatcher(
 export function committedActionsFromStrikePackets(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[],
-  options: CommittedStrikeActionOptions = {},
+  options: CommittedStrikeActionOptions = {}
 ): ReadonlySet<EvtcRecordedRotationAction> {
   const validatePackets = createStrikePacketMatcher(context, options.matcher);
   const committed = new Set<EvtcRecordedRotationAction>();
@@ -252,10 +211,7 @@ export function committedActionsFromStrikePackets(
     }
   }
 
-  const maxFallbackImpactMs = Math.max(
-    0,
-    Number(options.maxFallbackImpactMs ?? 0),
-  );
+  const maxFallbackImpactMs = Math.max(0, Number(options.maxFallbackImpactMs ?? 0));
   if (maxFallbackImpactMs === 0) return committed;
   for (const event of context.log.events) {
     if (
@@ -270,15 +226,11 @@ export function committedActionsFromStrikePackets(
     const candidate = actions
       .filter(
         (action) =>
-          (event.skillId === action.rawSkillId ||
-            event.skillId === action.canonicalSkillId) &&
+          (event.skillId === action.rawSkillId || event.skillId === action.canonicalSkillId) &&
           action.start <= event.time &&
-          event.time - action.start <= maxFallbackImpactMs,
+          event.time - action.start <= maxFallbackImpactMs
       )
-      .sort(
-        (left, right) =>
-          right.start - left.start || right.eventIndex - left.eventIndex,
-      )[0];
+      .sort((left, right) => right.start - left.start || right.eventIndex - left.eventIndex)[0];
     if (candidate) committed.add(candidate);
   }
   return committed;
@@ -286,54 +238,37 @@ export function committedActionsFromStrikePackets(
 
 export function reconcileCastEffectPackets(
   context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[],
+  actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const validatePackets = createStrikePacketMatcher(context);
-  const skillNames = new Map(
-    context.log.skills.map((skill) => [skill.id, normalized(skill.name)]),
-  );
-  const sorted = [...actions].sort(
-    (left, right) =>
-      left.start - right.start || left.eventIndex - right.eventIndex,
-  );
+  const skillNames = new Map(context.log.skills.map((skill) => [skill.id, normalized(skill.name)]));
+  const sorted = [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   return actions.map((action) => {
     if (action.forceCompleteReplay) {
-      return { ...action, status: "completed" as const };
+      return { ...action, status: 'completed' as const };
     }
-    if (action.status !== "completed" && action.status !== "interrupted") {
+    if (action.status !== 'completed' && action.status !== 'interrupted') {
       return action;
     }
     const packets = validatePackets(action);
     const actualDuration = Math.max(0, action.end - action.start);
     const skill = skillForAction(context, action);
     const evtcQuicknessDuration =
-      action.expectedDuration == null
-        ? 0
-        : (Math.max(0, Number(action.expectedDuration)) * 2) / 3;
-    const runtimeDuration = Math.max(
-      0,
-      quicknessRuntimeDurationMs(skill) || evtcQuicknessDuration,
-    );
+      action.expectedDuration == null ? 0 : (Math.max(0, Number(action.expectedDuration)) * 2) / 3;
+    const runtimeDuration = Math.max(0, quicknessRuntimeDurationMs(skill) || evtcQuicknessDuration);
     let phantasmCommitted = false;
     if (skill?.phantasm === true) {
-      const phantasmIdentity = normalized(
-        action.canonicalName || action.rawName,
-      ).replace(/^phantasmal\s+/, "");
+      const phantasmIdentity = normalized(action.canonicalName || action.rawName).replace(/^phantasmal\s+/, '');
       const matchingPhantasmAddresses = new Set(
         context.log.agents
-          .filter(
-            (agent) =>
-              normalized(agent.character).replace(/^illusionary\s+/, "") ===
-              phantasmIdentity,
-          )
-          .map((agent) => agent.address),
+          .filter((agent) => normalized(agent.character).replace(/^illusionary\s+/, '') === phantasmIdentity)
+          .map((agent) => agent.address)
       );
       const matchingPhantasmSpawn = context.log.events.some(
         (event) =>
           matchingPhantasmAddresses.has(event.source) &&
           event.stateChange === AGENT_SPAWN_STATE_CHANGE &&
-          Math.abs(event.time - (action.start + runtimeDuration)) <=
-            EFFECT_PACKET_TOLERANCE_MS,
+          Math.abs(event.time - (action.start + runtimeDuration)) <= EFFECT_PACKET_TOLERANCE_MS
       );
       phantasmCommitted =
         matchingPhantasmSpawn &&
@@ -347,46 +282,31 @@ export function reconcileCastEffectPackets(
               event.stateChange === EVTC_STATE_CHANGE.NONE &&
               (event.skillId === action.rawSkillId ||
                 event.skillId === action.canonicalSkillId ||
-                skillNames.get(event.skillId) ===
-                  normalized(action.canonicalName || action.rawName)) &&
-              Math.abs(event.time - (action.start + runtimeDuration)) <=
-                EFFECT_PACKET_TOLERANCE_MS,
+                skillNames.get(event.skillId) === normalized(action.canonicalName || action.rawName)) &&
+              Math.abs(event.time - (action.start + runtimeDuration)) <= EFFECT_PACKET_TOLERANCE_MS
           ));
     }
     if (!packets.anyObserved && !phantasmCommitted) return action;
-    if (
-      action.status === "interrupted" &&
-      phantasmCommitted &&
-      runtimeDuration > 0
-    ) {
+    if (action.status === 'interrupted' && phantasmCommitted && runtimeDuration > 0) {
       return {
         ...action,
-        status: "completed" as const,
-        replayCastEnd: action.start + runtimeDuration,
+        status: 'completed' as const,
+        replayCastEnd: action.start + runtimeDuration
       };
     }
-    let replayDuration = Math.min(
-      runtimeDuration || actualDuration,
-      actualDuration,
-    );
+    let replayDuration = Math.min(runtimeDuration || actualDuration, actualDuration);
     let preserveEffectsAfterInterrupt = false;
     let replayCastEnd = action.replayCastEnd;
     let suppressFollowingWait = action.suppressFollowingWait;
-    const lastCancelableEffectOffset =
-      packets.lastObservedCancelableExpectedOffsetMs || 0;
+    const lastCancelableEffectOffset = packets.lastObservedCancelableExpectedOffsetMs || 0;
     if (packets.allObserved && lastCancelableEffectOffset > actualDuration) {
       const nextSerialAction = sorted.find((candidate) => {
         if (candidate.start <= action.start) return false;
         const candidateSkill = skillForAction(context, candidate);
-        return (
-          candidateSkill?.independentCast !== true &&
-          candidateSkill?.canCastConcurrently !== true
-        );
+        return candidateSkill?.independentCast !== true && candidateSkill?.canCastConcurrently !== true;
       });
       const nextSerialOffset =
-        nextSerialAction == null
-          ? Number.POSITIVE_INFINITY
-          : nextSerialAction.start - action.start;
+        nextSerialAction == null ? Number.POSITIVE_INFINITY : nextSerialAction.start - action.start;
       if (
         runtimeDuration > 0 &&
         packets.allObservedTimingExplicit &&
@@ -401,25 +321,21 @@ export function reconcileCastEffectPackets(
         }
       }
     }
-    if (action.status === "interrupted") {
-      if (
-        packets.allObserved &&
-        runtimeDuration > 0 &&
-        replayDuration + 10 >= runtimeDuration
-      ) {
+    if (action.status === 'interrupted') {
+      if (packets.allObserved && runtimeDuration > 0 && replayDuration + 10 >= runtimeDuration) {
         return {
           ...action,
-          status: "completed" as const,
-          replayCastEnd: Math.max(action.end, action.start + replayDuration),
+          status: 'completed' as const,
+          replayCastEnd: Math.max(action.end, action.start + replayDuration)
         };
       }
       return {
         ...action,
-        status: "reduced" as const,
+        status: 'reduced' as const,
         replayInterruptMs: replayDuration,
         replayPreserveEffectsAfterInterrupt: preserveEffectsAfterInterrupt,
         ...(replayCastEnd == null ? {} : { replayCastEnd }),
-        ...(suppressFollowingWait == null ? {} : { suppressFollowingWait }),
+        ...(suppressFollowingWait == null ? {} : { suppressFollowingWait })
       };
     }
     if (actualDuration === 0) return action;
@@ -433,11 +349,11 @@ export function reconcileCastEffectPackets(
     return runtimeDuration > 0 && replayDuration + 75 < runtimeDuration
       ? {
           ...action,
-          status: "reduced" as const,
+          status: 'reduced' as const,
           replayInterruptMs: replayDuration,
           replayPreserveEffectsAfterInterrupt: preserveEffectsAfterInterrupt,
           ...(replayCastEnd == null ? {} : { replayCastEnd }),
-          ...(suppressFollowingWait == null ? {} : { suppressFollowingWait }),
+          ...(suppressFollowingWait == null ? {} : { suppressFollowingWait })
         }
       : action;
   });

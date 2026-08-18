@@ -1,15 +1,9 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
-import { emitEngineerState } from "./events.js";
-import { turretOwnerId } from "./turrets.js";
-import type {
-  EngineerCastContext,
-  EngineerSkill,
-} from "../types.js";
+import { professionCoreState } from '../../../platform/engine/profession.js';
+import { emitEngineerState } from './events.js';
+import { turretOwnerId } from './turrets.js';
+import type { EngineerCastContext, EngineerSkill } from '../types.js';
 
-function armFlip(
-  context: EngineerCastContext,
-  skill: EngineerSkill,
-): void {
+function armFlip(context: EngineerCastContext, skill: EngineerSkill): void {
   // paletteFlipSkillId explicitly declares a palette flip; flipSkillId is the raw API
   // field which conflates palette flips with chain skills. Fall back to flipSkillId
   // only for skills not yet annotated with an explicit paletteFlipSkillId.
@@ -17,26 +11,20 @@ function armFlip(
   if (!Number.isFinite(flipSkillId)) return;
   professionCoreState(context).availableFlips[flipSkillId] = true;
   // effectiveEnd: flip becomes available after the cast completes, not when it starts
-  emitEngineerState(context, context.effectiveEnd, "arm-flip");
+  emitEngineerState(context, context.effectiveEnd, 'arm-flip');
 }
 
-function consumeFlip(
-  context: EngineerCastContext,
-  skill: EngineerSkill,
-): void {
+function consumeFlip(context: EngineerCastContext, skill: EngineerSkill): void {
   professionCoreState(context).availableFlips[skill.id] = false;
-  const parentId = Number(
-    skill.flipParentId
-    ?? context.catalog.skillsByName.get(skill.flipParentName || "")?.id,
-  );
+  const parentId = Number(skill.flipParentId ?? context.catalog.skillsByName.get(skill.flipParentName || '')?.id);
   // cancel pending turret auto-attack tasks — the turret no longer exists after detonation
   if (Number.isFinite(parentId)) {
     context.tasks.cancelOwner(turretOwnerId(parentId));
   }
-  emitEngineerState(context, context.effectiveEnd, "consume-flip");
+  emitEngineerState(context, context.effectiveEnd, 'consume-flip');
 }
 
 export const engineerFlipSkillHandlers = Object.freeze({
-  "engineer.arm-flip": armFlip,
-  "engineer.consume-flip": consumeFlip,
+  'engineer.arm-flip': armFlip,
+  'engineer.consume-flip': consumeFlip
 });

@@ -1,41 +1,33 @@
-import type {
-  DamageEvent,
-  SimulationEventInput,
-  Skill,
-} from "../../../platform/engine/types.js";
-import type {
-  GuardianEventContext,
-  GuardianEventExtra,
-  GuardianStrikeFields,
-} from "../types.js";
+import type { DamageEvent, SimulationEventInput, Skill } from '../../../platform/engine/types.js';
+import type { GuardianEventContext, GuardianEventExtra, GuardianStrikeFields } from '../types.js';
 
 export function emitGuardianEvent(
   context: GuardianEventContext,
   skill: Skill,
   type: string,
-  event: GuardianEventExtra = {},
+  event: GuardianEventExtra = {}
 ): void {
   context.emit({
     type,
     at: event.at ?? context.effectiveEnd ?? context.state.time,
-    source: "guardian",
+    source: 'guardian',
     sourceId: skill.id,
-    actorType: "player",
+    actorType: 'player',
     skillId: skill.id,
     skillName: skill.name,
-    ...event,
+    ...event
   } as SimulationEventInput);
 }
 
 const GUARDIAN_STRIKE_DEFAULTS = Object.freeze({
-  type: "damage",
-  source: "guardian",
-  actorType: "player",
+  type: 'damage',
+  source: 'guardian',
+  actorType: 'player',
   hits: 1,
   hitIndex: 1,
   totalHits: 1,
-  skillWeapon: "",
-  canCrit: true,
+  skillWeapon: '',
+  canCrit: true
 });
 
 /**
@@ -49,6 +41,6 @@ const GUARDIAN_STRIKE_DEFAULTS = Object.freeze({
 export function buildGuardianStrike(fields: GuardianStrikeFields): DamageEvent {
   return {
     ...GUARDIAN_STRIKE_DEFAULTS,
-    ...fields,
+    ...fields
   } as DamageEvent;
 }

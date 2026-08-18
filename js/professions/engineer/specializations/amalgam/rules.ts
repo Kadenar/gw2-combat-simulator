@@ -1,140 +1,107 @@
-import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
-import { hasTrait } from "../../../../platform/gw2/trait-state.js";
-import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
+import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
+import { hasTrait } from '../../../../platform/gw2/trait-state.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import {
   activeBoonStacks,
   activeEngineerSpecializationState,
   cloneEngineerAttributes,
-  eventSkill,
-} from "../../core/rule-helpers.js";
-import { applyEngineerSharpshooterConditionDamage } from "../../core/rules.js";
-import { hasEngineerTrait } from "../../core/state.js";
-import { engineerBalanceValue } from "../../core/profiles.js";
-import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
-import { amalgamCastAvailability } from "./availability.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
-import type {
-  Gw2ModifierContext,
-  Gw2ModifierRule,
-} from "../../../../platform/gw2/types.js";
-import type {
-  EngineerEvolveAttributePool,
-  EngineerMaximumAmmoContext,
-} from "../../types.js";
-import {
-  handleMercurialTendencies,
-  observeAmalgamScheduledEvent,
-} from "./amalgam.js";
+  eventSkill
+} from '../../core/rule-helpers.js';
+import { applyEngineerSharpshooterConditionDamage } from '../../core/rules.js';
+import { hasEngineerTrait } from '../../core/state.js';
+import { engineerBalanceValue } from '../../core/profiles.js';
+import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { amalgamCastAvailability } from './availability.js';
+import type { SchedulerRecord } from '../../../../platform/engine/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { EngineerEvolveAttributePool, EngineerMaximumAmmoContext } from '../../types.js';
+import { handleMercurialTendencies, observeAmalgamScheduledEvent } from './amalgam.js';
 
 export const amalgamSchedulerHooks = Object.freeze({
   onEventScheduled: {
-    id: "engineer.amalgam-events",
+    id: 'engineer.amalgam-events',
     order: 20,
-    handler: observeAmalgamScheduledEvent,
+    handler: observeAmalgamScheduledEvent
   },
   taskHandlers: Object.freeze({
-    "engineer.mercurial-tendencies": handleMercurialTendencies,
-  }),
+    'engineer.mercurial-tendencies': handleMercurialTendencies
+  })
 });
 
 // Evolved adds 10% of its eligible stat pool, or 20% with Double Helix.
 // Derived armor/crit fields update from toughness, ferocity, and precision.
 const EVOLVE_ATTRIBUTES = Object.freeze([
-  ["power", "Power"],
-  ["precision", "Precision"],
-  ["toughness", "Toughness"],
-  ["vitality", "Vitality"],
-  ["ferocity", "Ferocity"],
-  ["conditionDamage", "Condition Damage"],
-  ["expertise", "Expertise"],
-  ["concentration", "Concentration"],
-  ["healingPower", "Healing Power"],
+  ['power', 'Power'],
+  ['precision', 'Precision'],
+  ['toughness', 'Toughness'],
+  ['vitality', 'Vitality'],
+  ['ferocity', 'Ferocity'],
+  ['conditionDamage', 'Condition Damage'],
+  ['expertise', 'Expertise'],
+  ['concentration', 'Concentration'],
+  ['healingPower', 'Healing Power']
 ] as const);
 
 function morphStrike(context: Gw2ModifierContext): boolean {
-  return Boolean(
-    context.event?.actorType !== "summon" &&
-    eventSkill(context)?.categories?.includes("Morph"),
-  );
+  return Boolean(context.event?.actorType !== 'summon' && eventSkill(context)?.categories?.includes('Morph'));
 }
 
 export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
-    id: "engineer.willing-host",
+    id: 'engineer.willing-host',
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
-    operation: "damage-additive",
+    operation: 'damage-additive',
     amount: 0.05,
     when: (context) =>
-      context.event?.actorType !== "summon" &&
+      context.event?.actorType !== 'summon' &&
       hasTrait(context, TRAIT.WILLING_HOST) &&
-      activeEngineerSpecializationState(context, "Amalgam", "willingHostUntil"),
+      activeEngineerSpecializationState(context, 'Amalgam', 'willingHostUntil')
   },
   {
-    id: "engineer.symbiotic-synergy",
+    id: 'engineer.symbiotic-synergy',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "damage-additive",
+    operation: 'damage-additive',
     amount: 0.33,
-    when: (context) =>
-      hasTrait(context, TRAIT.SYMBIOTIC_SYNERGY) && morphStrike(context),
+    when: (context) => hasTrait(context, TRAIT.SYMBIOTIC_SYNERGY) && morphStrike(context)
   },
   {
-    id: "engineer.plasmatic-state",
+    id: 'engineer.plasmatic-state',
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
-    operation: "damage-additive",
+    operation: 'damage-additive',
     amount: 0.07,
     when: (context) =>
-      context.event?.actorType !== "summon" &&
-      activeEngineerSpecializationState(
-        context,
-        "Amalgam",
-        "plasmaticStateUntil",
-      ),
+      context.event?.actorType !== 'summon' &&
+      activeEngineerSpecializationState(context, 'Amalgam', 'plasmaticStateUntil')
   },
   {
-    id: "engineer.carbolic-composition-duration",
+    id: 'engineer.carbolic-composition-duration',
     target: MODIFIER_TARGET.CONDITION_DURATION,
-    operation: "add",
+    operation: 'add',
     amount: 0.33,
-    when: (context) =>
-      context.condition === "Poisoned" &&
-      hasTrait(context, TRAIT.CARBOLIC_COMPOSITION),
-  },
+    when: (context) => context.condition === 'Poisoned' && hasTrait(context, TRAIT.CARBOLIC_COMPOSITION)
+  }
 ]);
 
-function modifyAmalgamAttributes(
-  context: Gw2ModifierContext,
-  attributes: SchedulerRecord,
-): SchedulerRecord {
+function modifyAmalgamAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   const modified = cloneEngineerAttributes(attributes);
-  if (activeEngineerSpecializationState(context, "Amalgam", "evolvedUntil")) {
+  if (activeEngineerSpecializationState(context, 'Amalgam', 'evolvedUntil')) {
     const evolveFactor = hasTrait(context, TRAIT.DOUBLE_HELIX)
-      ? engineerBalanceValue(
-          context,
-          PROFILE.evolve,
-          "coefficientMultiplier",
-          1.2,
-        )
-      : engineerBalanceValue(context, PROFILE.evolve, "damageMultiplier", 1.1);
-    const pool = context.config?.amalgamEvolveAttributePool as
-      EngineerEvolveAttributePool | undefined;
+      ? engineerBalanceValue(context, PROFILE.evolve, 'coefficientMultiplier', 1.2)
+      : engineerBalanceValue(context, PROFILE.evolve, 'damageMultiplier', 1.1);
+    const pool = context.config?.amalgamEvolveAttributePool as EngineerEvolveAttributePool | undefined;
     for (const [attribute, poolAttribute] of EVOLVE_ATTRIBUTES) {
-      const eligible = Number(
-        pool?.[poolAttribute] ?? modified[attribute] ?? 0,
-      );
+      const eligible = Number(pool?.[poolAttribute] ?? modified[attribute] ?? 0);
       const bonus = eligible * (evolveFactor - 1);
       modified[attribute] =
         Number(modified[attribute] || 0) +
-        (["power", "conditionDamage"].includes(attribute)
-          ? Math.round(bonus)
-          : bonus);
+        (['power', 'conditionDamage'].includes(attribute) ? Math.round(bonus) : bonus);
     }
   }
-  if (activeEngineerSpecializationState(context, "Amalgam", "titanicUntil")) {
+  if (activeEngineerSpecializationState(context, 'Amalgam', 'titanicUntil')) {
     // Titanic Strain adds 5 power + 5 condition damage per might stack on top
     // of the standard 30 power per stack that's already in the base attributes.
     const improvedMight =
-      activeBoonStacks(context, "might") *
-      engineerBalanceValue(context, PROFILE.strains, "attributePerStack", 5);
+      activeBoonStacks(context, 'might') * engineerBalanceValue(context, PROFILE.strains, 'attributePerStack', 5);
     modified.power += improvedMight;
     modified.conditionDamage += improvedMight;
   }
@@ -146,29 +113,22 @@ function modifyAmalgamAttributes(
 
 // Double Helix upgrades Evolve from a single-charge to a 2-ammo skill, which
 // lets it store a second use while on cooldown.
-function modifyAmalgamMaximumAmmo(
-  context: EngineerMaximumAmmoContext,
-  maximum: number,
-): number {
-  return context.skill?.name === "Evolve" &&
-    hasEngineerTrait(context.config, TRAIT.DOUBLE_HELIX)
-    ? Math.max(
-        engineerBalanceValue(context, PROFILE.evolve, "maximumStacks", 2),
-        Number(maximum || 0),
-      )
+function modifyAmalgamMaximumAmmo(context: EngineerMaximumAmmoContext, maximum: number): number {
+  return context.skill?.name === 'Evolve' && hasEngineerTrait(context.config, TRAIT.DOUBLE_HELIX)
+    ? Math.max(engineerBalanceValue(context, PROFILE.evolve, 'maximumStacks', 2), Number(maximum || 0))
     : maximum;
 }
 
 export const amalgamAttributeRules = Object.freeze({
   modifyAttributes: modifyAmalgamAttributes,
-  modifierRules: amalgamModifierRules,
+  modifierRules: amalgamModifierRules
 });
 
 export const amalgamCastRules = Object.freeze({
   availability: {
-    id: "engineer.amalgam-availability",
+    id: 'engineer.amalgam-availability',
     order: 30,
-    handler: amalgamCastAvailability,
+    handler: amalgamCastAvailability
   },
-  modifyMaximumAmmo: modifyAmalgamMaximumAmmo,
+  modifyMaximumAmmo: modifyAmalgamMaximumAmmo
 });

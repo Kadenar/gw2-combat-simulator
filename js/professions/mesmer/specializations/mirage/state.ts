@@ -1,18 +1,13 @@
-import type {
-  MesmerConfig,
-  MesmerMirageState,
-} from "../../types.js";
-import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
+import type { MesmerConfig, MesmerMirageState } from '../../types.js';
+import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
 
-export function createMirageState(
-  _config: Partial<MesmerConfig> = {},
-): MesmerMirageState {
+export function createMirageState(_config: Partial<MesmerConfig> = {}): MesmerMirageState {
   return {
     ambushUntil: 0,
-    ambushSource: "",
+    ambushSource: '',
     cloneAmbushUntil: 0,
     riddleOfSandReady: false,
-    mirrors: [],
+    mirrors: []
   };
 }
 
@@ -20,7 +15,4 @@ export function createMirageResolverState(): Record<string, never> {
   return {};
 }
 
-export const mirageState = defineProfessionSpecializationState(
-  "Mirage",
-  createMirageState,
-);
+export const mirageState = defineProfessionSpecializationState('Mirage', createMirageState);

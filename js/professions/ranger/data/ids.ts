@@ -315,7 +315,7 @@ export const RANGER_SKILL_IDS = Object.freeze({
   QUARRYS_PERIL: 76807, // Quarry's Peril (PvE)
   PELT: 76722, // Pelt
   SUPERSONIC_ARROW: 77174, // Supersonic Arrow
-  WUTHERING_WIND: 76905, // Wuthering Wind
+  WUTHERING_WIND: 76905 // Wuthering Wind
 });
 
 export const RANGER_TRAIT_IDS = Object.freeze({
@@ -426,7 +426,7 @@ export const RANGER_TRAIT_IDS = Object.freeze({
   THRILL_OF_THE_CATCH: 2396, // Thrill of the Catch
   CLOUDBURST: 2425, // Cloudburst
   GALE_FORCE: 2336, // Gale Force
-  SHRIKE: 2372, // Shrike
+  SHRIKE: 2372 // Shrike
 });
 
 export const RANGER_SPECIALIZATION_IDS = Object.freeze({
@@ -438,5 +438,5 @@ export const RANGER_SPECIALIZATION_IDS = Object.freeze({
   WILDERNESS_SURVIVAL: 33, // Wilderness Survival
   SOULBEAST: 55, // Soulbeast
   UNTAMED: 72, // Untamed
-  GALESHOT: 78, // Galeshot
+  GALESHOT: 78 // Galeshot
 });

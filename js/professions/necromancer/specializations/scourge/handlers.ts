@@ -1,22 +1,19 @@
-import { necromancerShadeSkillHandlers } from "./shades.js";
-import {
-  augmentSkillHandler,
-  replaceSkillHandler,
-} from "../../../../platform/engine/skill-handlers.js";
+import { necromancerShadeSkillHandlers } from './shades.js';
+import { augmentSkillHandler, replaceSkillHandler } from '../../../../platform/engine/skill-handlers.js';
 
 export const scourgeSkillHandlers = new Map([
   [
     // Shade handler is a full replacement: Scourge never enters shroud, so the
     // base necromancer shroud logic must not run at all
-    "necromancer.shade",
-    replaceSkillHandler(necromancerShadeSkillHandlers["necromancer.shade"]),
+    'necromancer.shade',
+    replaceSkillHandler(necromancerShadeSkillHandlers['necromancer.shade'])
   ],
   [
     // Barrier skills keep their base handler; Scourge only appends trait procs
     // (Abrasive Grit might, Desert Empowerment alacrity) as afterEffects
-    "necromancer.barrier",
+    'necromancer.barrier',
     augmentSkillHandler(null, {
-      afterEffects: necromancerShadeSkillHandlers["necromancer.barrier"],
-    }),
-  ],
+      afterEffects: necromancerShadeSkillHandlers['necromancer.barrier']
+    })
+  ]
 ]);

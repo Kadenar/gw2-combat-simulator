@@ -1,26 +1,21 @@
-import { skillBreakdownRows } from "../rotation/result-model.js";
-import type {
-  PatchComparison,
-  ProfessionAppState,
-} from "../profession/types.js";
-import type { PatchOverviewEntry } from "../../platform/gw2/skill-patch.js";
+import { skillBreakdownRows } from '../rotation/result-model.js';
+import type { PatchComparison, ProfessionAppState } from '../profession/types.js';
+import type { PatchOverviewEntry } from '../../platform/gw2/skill-patch.js';
 
 function escapeHtml(value: unknown): string {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 }
 
 function httpUrl(value: string | undefined): string | null {
   if (!value) return null;
   try {
     const url = new URL(value);
-    return url.protocol === "https:" || url.protocol === "http:"
-      ? url.href
-      : null;
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : null;
   } catch {
     return null;
   }
@@ -28,27 +23,24 @@ function httpUrl(value: string | undefined): string | null {
 
 function signed(value: number, digits = 0): string {
   const normalized = Math.abs(value) < 10 ** -digits / 2 ? 0 : value;
-  return `${normalized > 0 ? "+" : ""}${normalized.toLocaleString(undefined, {
+  return `${normalized > 0 ? '+' : ''}${normalized.toLocaleString(undefined, {
     minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
+    maximumFractionDigits: digits
   })}`;
 }
 
 function skillDeltas(comparison: PatchComparison) {
-  const rows = new Map<
-    string,
-    { name: string; current: number; preview: number }
-  >();
+  const rows = new Map<string, { name: string; current: number; preview: number }>();
   for (const [version, result] of [
-    ["current", comparison.current],
-    ["preview", comparison.preview],
+    ['current', comparison.current],
+    ['preview', comparison.preview]
   ] as const) {
     for (const row of skillBreakdownRows(result)) {
       const key = `${row.group}|${row.name}`;
       const entry = rows.get(key) || {
         name: row.name,
         current: 0,
-        preview: 0,
+        preview: 0
       };
       entry[version] = row.dps;
       rows.set(key, entry);
@@ -69,47 +61,47 @@ function overviewRows(entries: readonly PatchOverviewEntry[]): string {
       (entry) => `<li>
         <span class="patch-note-status">changed</span>
         <span><strong>${escapeHtml(entry.subject)}</strong> ${escapeHtml(entry.text)}</span>
-      </li>`,
+      </li>`
     )
-    .join("")}</ul>`;
+    .join('')}</ul>`;
 }
 
 export function mountPatchPreviewControls(app: ProfessionAppState): void {
   const preview = app.profession.preview;
-  const header = document.querySelector("body[data-profession] #app > header");
-  if (!preview || !header || header.querySelector(".patch-preview-picker")) {
+  const header = document.querySelector('body[data-profession] #app > header');
+  if (!preview || !header || header.querySelector('.patch-preview-picker')) {
     return;
   }
-  const control = document.createElement("div");
-  control.className = "patch-preview-picker";
-  control.setAttribute("role", "group");
-  control.setAttribute("aria-label", "Game data version");
+  const control = document.createElement('div');
+  control.className = 'patch-preview-picker';
+  control.setAttribute('role', 'group');
+  control.setAttribute('aria-label', 'Game data version');
 
-  const caption = document.createElement("span");
-  caption.className = "patch-preview-picker-label";
-  caption.textContent = "Game data";
+  const caption = document.createElement('span');
+  caption.className = 'patch-preview-picker-label';
+  caption.textContent = 'Game data';
   control.append(caption);
 
-  const options = document.createElement("div");
-  options.className = "patch-preview-options";
+  const options = document.createElement('div');
+  options.className = 'patch-preview-options';
   for (const [patchId, label] of [
-    ["current", "Live"],
-    [preview.id, preview.label],
+    ['current', 'Live'],
+    [preview.id, preview.label]
   ]) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "patch-preview-option";
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'patch-preview-option';
     button.textContent = label;
     button.dataset.patchId = patchId;
     const active = patchId === app.patchId;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-pressed", String(active));
-    button.addEventListener("click", () => {
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+    button.addEventListener('click', () => {
       app.selectPatch(patchId);
-      for (const option of options.querySelectorAll("button")) {
+      for (const option of options.querySelectorAll('button')) {
         const selected = option.dataset.patchId === patchId;
-        option.classList.toggle("active", selected);
-        option.setAttribute("aria-pressed", String(selected));
+        option.classList.toggle('active', selected);
+        option.setAttribute('aria-pressed', String(selected));
       }
     });
     options.append(button);
@@ -118,10 +110,7 @@ export function mountPatchPreviewControls(app: ProfessionAppState): void {
   header.prepend(control);
 }
 
-export function renderPatchComparison(
-  container: HTMLElement,
-  app: ProfessionAppState,
-): void {
+export function renderPatchComparison(container: HTMLElement, app: ProfessionAppState): void {
   const preview = app.profession.preview;
   const comparison = app.patchComparison;
   if (!preview || !comparison) return;
@@ -131,12 +120,11 @@ export function renderPatchComparison(
   const percent = currentDps === 0 ? 0 : (delta / currentDps) * 100;
   const deltas = skillDeltas(comparison);
   const overview = preview.professions?.[app.profession.id]?.overview || [];
-  const selectedLabel =
-    app.patchId === preview.id ? preview.label : "Live game data";
+  const selectedLabel = app.patchId === preview.id ? preview.label : 'Live game data';
   const sourceUrl = httpUrl(preview.sourceUrl);
-  const section = document.createElement("section");
-  section.className = "patch-comparison";
-  section.setAttribute("aria-label", "Patch preview comparison");
+  const section = document.createElement('section');
+  section.className = 'patch-comparison';
+  section.setAttribute('aria-label', 'Patch preview comparison');
   section.innerHTML = `
     <div class="patch-comparison-header">
       <div>
@@ -148,18 +136,18 @@ export function renderPatchComparison(
         ${
           sourceUrl
             ? `<a class="patch-source-link" href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">Official patch notes <span aria-hidden="true">↗</span></a>`
-            : ""
+            : ''
         }
       </div>
     </div>
     <div class="patch-comparison-metrics">
       <div><span>Live DPS</span><strong>${Math.round(currentDps).toLocaleString()}</strong></div>
       <div><span>Preview DPS</span><strong>${Math.round(previewDps).toLocaleString()}</strong></div>
-      <div class="${delta > 0 ? "positive" : delta < 0 ? "negative" : ""}">
+      <div class="${delta > 0 ? 'positive' : delta < 0 ? 'negative' : ''}">
         <span>Difference</span><strong>${signed(delta)} <small>(${signed(percent, 2)}%)</small></strong>
       </div>
     </div>
-    <details class="patch-skill-deltas"${deltas.length ? " open" : ""}>
+    <details class="patch-skill-deltas"${deltas.length ? ' open' : ''}>
       <summary>Per-skill DPS changes (${deltas.length})</summary>
       ${
         deltas.length
@@ -168,10 +156,10 @@ export function renderPatchComparison(
                 (row) => `<div>
                   <span>${escapeHtml(row.name)}</span>
                   <span>${Math.round(row.current).toLocaleString()} &rarr; ${Math.round(row.preview).toLocaleString()}</span>
-                  <strong class="${row.delta > 0 ? "positive" : "negative"}">${signed(row.delta)}</strong>
-                </div>`,
+                  <strong class="${row.delta > 0 ? 'positive' : 'negative'}">${signed(row.delta)}</strong>
+                </div>`
               )
-              .join("")}</div>`
+              .join('')}</div>`
           : '<p class="patch-preview-empty">This rotation is unaffected by the applied preview edits.</p>'
       }
     </details>

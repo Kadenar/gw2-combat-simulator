@@ -1,13 +1,13 @@
-import { normalizeWeaponSigils } from "../../platform/gw2/weapon-sigils.js";
-import { createGw2BuildCodec } from "../../platform/gw2/build-codec.js";
-import { createDefaultTargetConditions } from "../../platform/gw2/default-target-conditions.js";
+import { normalizeWeaponSigils } from '../../platform/gw2/weapon-sigils.js';
+import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
+import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import {
   DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
   normalizeSimulationRandomnessAssumptions,
-  validateSimulationRandomnessAssumptions,
-} from "../../app/simulation/randomness.js";
-import { guardianCatalog } from "./catalog.js";
-import type { GuardianCanonicalBuild } from "./types.js";
+  validateSimulationRandomnessAssumptions
+} from '../../app/simulation/randomness.js';
+import { guardianCatalog } from './catalog.js';
+import type { GuardianCanonicalBuild } from './types.js';
 
 /**
  * Guardian persisted-build definition.
@@ -19,7 +19,7 @@ import type { GuardianCanonicalBuild } from "./types.js";
  */
 
 export const GUARDIAN_BUILD_SCHEMA_VERSION = 3;
-export const GUARDIAN_PROFESSION_ID = "guardian";
+export const GUARDIAN_PROFESSION_ID = 'guardian';
 
 export { createDefaultTargetConditions };
 
@@ -42,36 +42,36 @@ export function createGuardianBuildDefaults(): GuardianCanonicalBuild {
       Accessory2: "Berserker's",
       Back: "Dragon's",
       Weapon1: "Berserker's",
-      Weapon2: "Berserker's",
+      Weapon2: "Berserker's"
     },
     alternateWeaponPrefixes: ["Berserker's", "Berserker's"],
-    weapons: ["Spear", ""],
-    alternateWeapons: ["Greatsword", ""],
-    rune: "Dragonhunter",
+    weapons: ['Spear', ''],
+    alternateWeapons: ['Greatsword', ''],
+    rune: 'Dragonhunter',
     weaponSigils: normalizeWeaponSigils([
-      ["Force", "Impact"],
-      ["Force", "Impact"],
+      ['Force', 'Impact'],
+      ['Force', 'Impact']
     ]),
-    relic: "Dragonhunter",
-    food: "Cilantro Lime Sous-Vide Steak",
-    utility: "Superior Sharpening Stone",
+    relic: 'Dragonhunter',
+    food: 'Cilantro Lime Sous-Vide Steak',
+    utility: 'Superior Sharpening Stone',
     jadeBotCore: true,
     infusions: [
-      { stat: "Power", count: 18 },
-      { stat: "Precision", count: 0 },
-      { stat: "Condition Damage", count: 0 },
+      { stat: 'Power', count: 18 },
+      { stat: 'Precision', count: 0 },
+      { stat: 'Condition Damage', count: 0 }
     ],
     specializations: [
-      { name: "Radiance", traits: "3-3-3" },
-      { name: "Zeal", traits: "2-2-3" },
-      { name: "Dragonhunter", traits: "1-2-3" },
+      { name: 'Radiance', traits: '3-3-3' },
+      { name: 'Zeal', traits: '2-2-3' },
+      { name: 'Dragonhunter', traits: '1-2-3' }
     ],
     selectedSkills: {
-      Heal: "Purification",
-      Utility1: "Procession of Blades",
-      Utility2: "Sword of Justice",
-      Utility3: "Bane Signet",
-      Elite: "Dragon's Maw",
+      Heal: 'Purification',
+      Utility1: 'Procession of Blades',
+      Utility2: 'Sword of Justice',
+      Utility3: 'Bane Signet',
+      Elite: "Dragon's Maw"
     },
     assumptions: {
       ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
@@ -88,13 +88,13 @@ export function createGuardianBuildDefaults(): GuardianCanonicalBuild {
       targetMoving: false,
       targetBoonless: true,
       targetConditions: createDefaultTargetConditions(),
-      targetSkillActivationsPerSecond: 0,
+      targetSkillActivationsPerSecond: 0
     },
     initialTomePages: 5,
     startingWeaponSet: 1,
     targetHealth: 3_970_000,
     targetArmor: 2597,
-    rotation: [],
+    rotation: []
   };
 }
 
@@ -108,24 +108,17 @@ const guardianBuildCodec = createGw2BuildCodec({
     const { initialResource: _discardedInitialResource, ...current } = build;
     return {
       ...current,
-      assumptions: normalizeSimulationRandomnessAssumptions(
-        current.assumptions,
-      ),
-      initialTomePages: Math.max(
-        0,
-        Math.min(8, Math.trunc(Number.isFinite(configured) ? configured : 5)),
-      ),
+      assumptions: normalizeSimulationRandomnessAssumptions(current.assumptions),
+      initialTomePages: Math.max(0, Math.min(8, Math.trunc(Number.isFinite(configured) ? configured : 5)))
     };
   },
   validateExtra(build) {
     const errors = validateSimulationRandomnessAssumptions(build.assumptions);
-    if (!(
-      Number(build.initialTomePages) >= 0 && Number(build.initialTomePages) <= 8
-    )) {
-      errors.push("initialTomePages must be between 0 and 8.");
+    if (!(Number(build.initialTomePages) >= 0 && Number(build.initialTomePages) <= 8)) {
+      errors.push('initialTomePages must be between 0 and 8.');
     }
     return errors;
-  },
+  }
 });
 
 export const migrateGuardianBuild = guardianBuildCodec.migrateBuild;

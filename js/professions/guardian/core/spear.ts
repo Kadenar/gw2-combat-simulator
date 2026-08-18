@@ -1,22 +1,18 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
+import { professionCoreState } from '../../../platform/engine/profession.js';
 /**
  * @fileoverview Implements Guardian spear's Illuminated state machine and
  * applies its conditional damage changes to scheduler events.
  */
 
-import { GUARDIAN_SKILL_IDS as ID } from "../data/ids.js";
-import { buildGuardianStrike } from "./events.js";
+import { GUARDIAN_SKILL_IDS as ID } from '../data/ids.js';
+import { buildGuardianStrike } from './events.js';
 import {
   GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE,
   guardianBalanceProfile,
-  guardianBalanceProfileEffect,
-} from "./profiles.js";
-import type { SkillEffect, SkillId } from "../../../platform/engine/types.js";
-import type {
-  GuardianCastContext,
-  GuardianSchedulerContext,
-  GuardianSkill,
-} from "../types.js";
+  guardianBalanceProfileEffect
+} from './profiles.js';
+import type { SkillEffect, SkillId } from '../../../platform/engine/types.js';
+import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill } from '../types.js';
 
 type GuardianSpearEffect = SkillEffect & { readonly at?: number };
 
@@ -41,22 +37,16 @@ type GuardianSpearEffect = SkillEffect & { readonly at?: number };
 //   Helio Rush     1.5 → 2.25 (×1.50)
 //   Gleaming Disc  3.0 → 3.75 (×1.25 aggregate; shock-wave bonus)
 //   Solar Storm    3.6 → 4.5   (+4th/5th shard ≈ ×1.25)
-const SPEAR_ILLUMINATION_ARMERS: ReadonlySet<SkillId> = new Set([
-  ID.HELIO_RUSH,
-  ID.GLEAMING_DISC,
-  ID.SOLAR_STORM,
-]);
-const SPEAR_PROFILE_BY_SKILL_ID: Readonly<Record<string | number, SkillId>> =
-  Object.freeze({
-    [ID.HELIO_RUSH]: PROFILE.spearHelioRush,
-    [ID.GLEAMING_DISC]: PROFILE.spearGleamingDisc,
-    [ID.SOLAR_STORM]: PROFILE.spearSolarStorm,
-  });
+const SPEAR_ILLUMINATION_ARMERS: ReadonlySet<SkillId> = new Set([ID.HELIO_RUSH, ID.GLEAMING_DISC, ID.SOLAR_STORM]);
+const SPEAR_PROFILE_BY_SKILL_ID: Readonly<Record<string | number, SkillId>> = Object.freeze({
+  [ID.HELIO_RUSH]: PROFILE.spearHelioRush,
+  [ID.GLEAMING_DISC]: PROFILE.spearGleamingDisc,
+  [ID.SOLAR_STORM]: PROFILE.spearSolarStorm
+});
 
-const ILLUMINATED_ICON =
-  "https://wiki.guildwars2.com/images/7/7d/Illuminated.png";
+const ILLUMINATED_ICON = 'https://wiki.guildwars2.com/images/7/7d/Illuminated.png';
 const SYMBOL_OF_LUMINANCE_ICON =
-  "https://render.guildwars2.com/file/0E1E2D69CBC3C0E36217506C6CCB710138035373/3379129.png";
+  'https://render.guildwars2.com/file/0E1E2D69CBC3C0E36217506C6CCB710138035373/3379129.png';
 
 /**
  * Resolves a declarative effect's first strike time in simulation seconds.
@@ -65,10 +55,7 @@ const SYMBOL_OF_LUMINANCE_ICON =
  * @param {GuardianSpearEffect} effect Declarative skill effect.
  * @returns {number} Absolute simulation timestamp for the first strike.
  */
-function strikeStartSeconds(
-  context: GuardianCastContext,
-  effect: GuardianSpearEffect,
-): number {
+function strikeStartSeconds(context: GuardianCastContext, effect: GuardianSpearEffect): number {
   if (effect.atMs != null) return context.start + Number(effect.atMs) / 1000;
   if (effect.at != null) return context.start + Number(effect.at);
   return context.fullEnd;
@@ -84,21 +71,14 @@ function strikeStartSeconds(
  * @returns {number|null} Timestamp used for the Illuminated proc, or null when
  * no bonus packet could be applied.
  */
-function emitIlluminatedBonus(
-  context: GuardianCastContext,
-  skill: GuardianSkill,
-  multiplier: number,
-): number | null {
+function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill, multiplier: number): number | null {
   const interrupted = context.effectiveEnd < context.fullEnd - context.epsilon;
   const bonusFraction = multiplier - 1;
   let emittedAt: number | null = null;
   if (skill.id === ID.SOLAR_STORM) {
-    const profile = guardianBalanceProfile(
-      context,
-      SPEAR_PROFILE_BY_SKILL_ID[skill.id],
-    );
+    const profile = guardianBalanceProfile(context, SPEAR_PROFILE_BY_SKILL_ID[skill.id]);
     const extraProjectiles = (profile?.effects || [])
-      .filter((effect) => effect.type === "strike")
+      .filter((effect) => effect.type === 'strike')
       .map((effect, index) => ({ ...effect, hitIndex: index + 4 }));
     for (const projectile of extraProjectiles) {
       const at = context.start + Number(projectile.atMs || 0) / 1000;
@@ -114,15 +94,15 @@ function emitIlluminatedBonus(
           coefficient: Number(projectile.coefficient || 0),
           hitIndex,
           totalHits: 5,
-          skillWeapon: "Spear",
-        }),
+          skillWeapon: 'Spear'
+        })
       );
       if (emittedAt == null) emittedAt = context.start + 0.56;
     }
     return emittedAt;
   }
   for (const effect of skill.effects || []) {
-    if (effect.type !== "strike" || !(Number(effect.coefficient) > 0)) continue;
+    if (effect.type !== 'strike' || !(Number(effect.coefficient) > 0)) continue;
     const hits = Math.max(1, Math.trunc(Number(effect.hits || 1)));
     const totalBonus = Number(effect.coefficient) * bonusFraction;
     const perHit = totalBonus / hits;
@@ -131,13 +111,11 @@ function emitIlluminatedBonus(
     if (skill.id === ID.HELIO_RUSH && hits === 1) {
       const baseHit = context.events.find(
         (event) =>
-          event.type === "damage" &&
-          event.skillId === skill.id &&
-          Math.abs(event.at - firstAt) <= context.epsilon,
+          event.type === 'damage' && event.skillId === skill.id && Math.abs(event.at - firstAt) <= context.epsilon
       );
       if (baseHit) {
         context.replaceEvent(baseHit, {
-          coefficient: Number(baseHit.coefficient) + totalBonus,
+          coefficient: Number(baseHit.coefficient) + totalBonus
         });
         emittedAt = firstAt;
       }
@@ -150,14 +128,14 @@ function emitIlluminatedBonus(
       }
       const shockWave = context.events.find(
         (event) =>
-          event.type === "damage" &&
+          event.type === 'damage' &&
           event.skillId === skill.id &&
           event.hitIndex === 2 &&
-          Math.abs(event.at - shockWaveAt) <= context.epsilon,
+          Math.abs(event.at - shockWaveAt) <= context.epsilon
       );
       if (shockWave) {
         context.replaceEvent(shockWave, {
-          coefficient: Number(shockWave.coefficient) + totalBonus,
+          coefficient: Number(shockWave.coefficient) + totalBonus
         });
         emittedAt = firstAt;
       }
@@ -176,8 +154,8 @@ function emitIlluminatedBonus(
           coefficient: perHit,
           hitIndex,
           totalHits: hits,
-          skillWeapon: "Spear",
-        }),
+          skillWeapon: 'Spear'
+        })
       );
       if (emittedAt == null) emittedAt = at;
     }
@@ -202,18 +180,18 @@ function emitProc(
   name: string,
   sourceSkill: string,
   icon: string,
-  detail: string,
+  detail: string
 ): void {
   context.emit({
-    type: "proc",
-    procType: "skill",
+    type: 'proc',
+    procType: 'skill',
     at,
     name,
     sourceSkill,
-    source: "Skill",
-    sourceId: `guardian.${name.toLowerCase().replace(/\s+/g, "-")}`,
+    source: 'Skill',
+    sourceId: `guardian.${name.toLowerCase().replace(/\s+/g, '-')}`,
     icon,
-    detail,
+    detail
   });
 }
 
@@ -226,40 +204,26 @@ function emitProc(
  * @param {GuardianSkill} skill Completed skill.
  * @returns {void}
  */
-export function updateSpearIlluminationState(
-  context: GuardianCastContext,
-  skill: GuardianSkill,
-): void {
+export function updateSpearIlluminationState(context: GuardianCastContext, skill: GuardianSkill): void {
   const state = professionCoreState(context);
   if (skill.id === ID.DAYBREAKING_SLASH) {
-    state.daybreakingSlashChainStep =
-      Number(state.daybreakingSlashChainStep || 0) === 0 ? 1 : 0;
+    state.daybreakingSlashChainStep = Number(state.daybreakingSlashChainStep || 0) === 0 ? 1 : 0;
   } else {
     state.daybreakingSlashChainStep = 0;
   }
-  if (skill.weapon !== "Spear") return;
-  const luminanceActive =
-    Number(state.spearLuminanceUntil || 0) > context.start + context.epsilon;
-  const illuminatedArmed =
-    Number(state.spearIlluminatedUntil || 0) > context.start + context.epsilon;
+  if (skill.weapon !== 'Spear') return;
+  const luminanceActive = Number(state.spearLuminanceUntil || 0) > context.start + context.epsilon;
+  const illuminatedArmed = Number(state.spearIlluminatedUntil || 0) > context.start + context.epsilon;
   state.spearIlluminatedArmed = illuminatedArmed;
   const illuminated = luminanceActive || illuminatedArmed;
   const multiplier = Number(
-    guardianBalanceProfile(context, SPEAR_PROFILE_BY_SKILL_ID[skill.id])
-      ?.damageMultiplier || 1,
+    guardianBalanceProfile(context, SPEAR_PROFILE_BY_SKILL_ID[skill.id])?.damageMultiplier || 1
   );
 
   if (illuminated && multiplier > 1) {
     const at = emitIlluminatedBonus(context, skill, multiplier);
     if (at != null) {
-      emitProc(
-        context,
-        at,
-        "Illuminated",
-        skill.name,
-        ILLUMINATED_ICON,
-        `${skill.name} illuminated (×${multiplier})`,
-      );
+      emitProc(context, at, 'Illuminated', skill.name, ILLUMINATED_ICON, `${skill.name} illuminated (×${multiplier})`);
     }
   }
   // Only skills with an Illuminated variant consume the armed effect. Symbol
@@ -271,37 +235,28 @@ export function updateSpearIlluminationState(
 
   if (skill.id === ID.SYMBOL_OF_LUMINANCE) {
     const duration = Number(
-      guardianBalanceProfileEffect(
-        guardianBalanceProfile(context, PROFILE.spearLuminance),
-        "buff",
-      )?.duration || 5,
+      guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.spearLuminance), 'buff')?.duration || 5
     );
     state.spearLuminanceUntil = context.effectiveEnd + duration;
     emitProc(
       context,
       context.effectiveEnd,
-      "Symbol of Luminance",
+      'Symbol of Luminance',
       skill.name,
       SYMBOL_OF_LUMINANCE_ICON,
-      "All spear skills illuminated while active",
+      'All spear skills illuminated while active'
     );
   } else if (SPEAR_ILLUMINATION_ARMERS.has(skill.id)) {
     const firstStrikeAt =
       (skill.effects || [])
-        .filter(
-          (effect) =>
-            effect.type === "strike" && Number(effect.coefficient) > 0,
-        )
+        .filter((effect) => effect.type === 'strike' && Number(effect.coefficient) > 0)
         .map((effect) => strikeStartSeconds(context, effect))
         .sort((left, right) => left - right)[0] ?? context.effectiveEnd;
     state.spearIlluminatedArmed = true;
     state.spearIlluminatedUntil =
       firstStrikeAt +
       Number(
-        guardianBalanceProfileEffect(
-          guardianBalanceProfile(context, PROFILE.spearLuminance),
-          "buff",
-        )?.duration || 5,
+        guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.spearLuminance), 'buff')?.duration || 5
       );
   }
 }
@@ -313,15 +268,9 @@ export function updateSpearIlluminationState(
  * @param {number} target Target simulation time.
  * @returns {void}
  */
-export function advanceSpearIlluminationState(
-  context: GuardianSchedulerContext,
-  target: number,
-): void {
+export function advanceSpearIlluminationState(context: GuardianSchedulerContext, target: number): void {
   const state = professionCoreState(context);
-  if (
-    state.spearIlluminatedArmed &&
-    Number(state.spearIlluminatedUntil || 0) <= target + context.epsilon
-  ) {
+  if (state.spearIlluminatedArmed && Number(state.spearIlluminatedUntil || 0) <= target + context.epsilon) {
     state.spearIlluminatedArmed = false;
     state.spearIlluminatedUntil = 0;
   }

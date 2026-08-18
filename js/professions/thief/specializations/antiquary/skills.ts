@@ -1,281 +1,279 @@
-import { THIEF_SKILL_IDS as ID } from "../../data/ids.js";
-import type { SkillFragment } from "../../../../platform/engine/types.js";
+import { THIEF_SKILL_IDS as ID } from '../../data/ids.js';
+import type { SkillFragment } from '../../../../platform/engine/types.js';
 
-export const ANTIQUARY_SKILL_MECHANICS: Readonly<
-  Record<number, SkillFragment>
-> = Object.freeze({
+export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.METAL_LEGION_GUITAR]: {
     implemented: true,
-    handlerId: "thief.artifact",
+    handlerId: 'thief.artifact',
     castTimeMs: 2875,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3.2,
         hits: 4,
-        name: "Metal Legion Guitar — Packet 1",
-        actorType: "player",
+        name: 'Metal Legion Guitar — Packet 1',
+        actorType: 'player'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.5,
         hits: 1,
-        name: "Final Smash",
-        actorType: "player",
+        name: 'Final Smash',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Confusion",
+        type: 'condition',
+        condition: 'Confusion',
         stacks: 1,
         duration: 8,
-        actorType: "player",
+        actorType: 'player',
         applications: 4,
         atMs: 400,
         intervalMs: 500,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "stun",
-          duration: 2,
-        },
-      },
+          controlKind: 'stun',
+          duration: 2
+        }
+      }
     ],
-    artifactKind: "offensive",
+    artifactKind: 'offensive'
   },
   [ID.METAL_LEGION_GUITAR_ID_76591]: {
     implemented: true,
-    handlerId: "thief.artifact",
+    handlerId: 'thief.artifact',
     castTimeMs: 2000,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        name: "Metal Legion Guitar — Packet 1",
-        actorType: "player",
+        name: 'Metal Legion Guitar — Packet 1',
+        actorType: 'player'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.5,
         hits: 1,
-        name: "Final Smash",
-        actorType: "player",
+        name: 'Final Smash',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Confusion",
+        type: 'condition',
+        condition: 'Confusion',
         stacks: 1,
         duration: 8,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "stun",
-          duration: 2,
-        },
-      },
+          controlKind: 'stun',
+          duration: 2
+        }
+      }
     ],
-    artifactKind: "offensive",
+    artifactKind: 'offensive'
   },
   [ID.FORGED_SURFER_DASH_ID_76633]: {
     implemented: true,
     movementSkill: true,
-    handlerId: "thief.forged-surfer",
+    handlerId: 'thief.forged-surfer',
     castTimeMs: 300,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.4,
         hits: 1,
-        name: "Forged Surfer Dash — Packet 1",
-        actorType: "player",
+        name: 'Forged Surfer Dash — Packet 1',
+        actorType: 'player'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 6,
         hits: 5,
-        name: "Additional Bomb Damage",
-        actorType: "player",
+        name: 'Additional Bomb Damage',
+        actorType: 'player',
         intervalMs: 100,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 3.5,
-        actorType: "player",
+        actorType: 'player',
         applications: 5,
         intervalMs: 100,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 6,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    artifactKind: "offensive",
+    artifactKind: 'offensive'
   },
   [ID.HOLO_DANCER_DECOY]: {
     implemented: true,
-    handlerId: "thief.artifact",
+    handlerId: 'thief.artifact',
     castTimeMs: 850,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "taunt",
-          duration: 3,
-        },
+          controlKind: 'taunt',
+          duration: 3
+        }
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2,
         hits: 1,
-        name: "Holo-Dancer Decoy",
-        actorType: "player",
+        name: 'Holo-Dancer Decoy',
+        actorType: 'player',
         atMs: 3000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 8,
-        stacks: 2,
+        stacks: 2
       },
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 8,
         stacks: 4,
         atMs: 3000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
-        type: "boon",
-        boon: "fury",
+        type: 'boon',
+        boon: 'fury',
         duration: 8,
         stacks: 1,
         atMs: 3000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-      },
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
     ],
-    artifactKind: "defensive",
+    artifactKind: 'defensive'
   },
   [ID.EXALTED_HAMMER_ID_76702]: {
     implemented: true,
     movementSkill: true,
-    handlerId: "thief.artifact",
+    handlerId: 'thief.artifact',
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Exalted Hammer",
-        actorType: "player",
+        name: 'Exalted Hammer',
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "protection",
+        type: 'boon',
+        boon: 'protection',
         duration: 5,
-        stacks: 1,
-      },
+        stacks: 1
+      }
     ],
-    artifactKind: "defensive",
+    artifactKind: 'defensive'
   },
   [ID.STONE_SUMMIT_CANNON]: {
     implemented: true,
-    handlerId: "thief.double-edge",
+    handlerId: 'thief.double-edge',
     usableWhileRecharging: true,
     castTimeMs: 780,
     cooldown: 15,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3,
         hits: 3,
-        name: "Stone Summit Cannon — Packet 1",
-        actorType: "player",
+        name: 'Stone Summit Cannon — Packet 1',
+        actorType: 'player',
         atMs: 167,
         intervalMs: 167,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3,
         hits: 1,
-        name: "Stone Summit Cannon — Packet 2",
-        actorType: "player",
+        name: 'Stone Summit Cannon — Packet 2',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 3,
         duration: 3,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 3,
         duration: 4,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    doubleEdge: true,
+    doubleEdge: true
   },
   [ID.ZEPHYRITE_SUN_CRYSTAL_ID_76733]: {
     implemented: true,
     movementSkill: true,
-    handlerId: "thief.artifact",
+    handlerId: 'thief.artifact',
     castTimeMs: 1000,
     cooldown: 1,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 1,
-        name: "Zephyrite Sun Crystal",
-        actorType: "player",
+        name: 'Zephyrite Sun Crystal',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 2,
         duration: 4,
-        actorType: "player",
-      },
+        actorType: 'player'
+      }
     ],
-    artifactKind: "defensive",
+    artifactKind: 'defensive'
   },
   [ID.CANACH_COIN_TOSS]: {
     implemented: true,
@@ -283,7 +281,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<
     cooldown: 15,
     initiativeCost: 0,
     effects: [],
-    backfire: true,
+    backfire: true
   },
   [ID.EMERGENCY_JADE_SHIELD]: {
     implemented: true,
@@ -291,89 +289,89 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<
     cooldown: 15,
     initiativeCost: 0,
     effects: [],
-    backfire: true,
+    backfire: true
   },
   [ID.INQUEST_PORTAL_DEVICE]: {
     implemented: true,
-    handlerId: "thief.double-edge",
+    handlerId: 'thief.double-edge',
     usableWhileRecharging: true,
     castTimeMs: 500,
     cooldown: 20,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 1,
-        name: "Inquest Portal Device — Packet 1",
-        actorType: "player",
+        name: 'Inquest Portal Device — Packet 1',
+        actorType: 'player'
       },
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 1,
-        name: "Inquest Portal Device — Packet 2",
-        actorType: "player",
+        name: 'Inquest Portal Device — Packet 2',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 3,
         duration: 5,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Vulnerability",
+        type: 'condition',
+        condition: 'Vulnerability',
         stacks: 3,
         duration: 5,
-        actorType: "player",
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "knockdown",
-          duration: 3,
-        },
-      },
+          controlKind: 'knockdown',
+          duration: 3
+        }
+      }
     ],
-    doubleEdge: true,
+    doubleEdge: true
   },
   [ID.CHAK_SHIELD]: {
     implemented: true,
-    handlerId: "thief.artifact",
+    handlerId: 'thief.artifact',
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 5,
-        name: "Chak Shield",
-        actorType: "player",
-      },
+        name: 'Chak Shield',
+        actorType: 'player'
+      }
     ],
-    artifactKind: "defensive",
+    artifactKind: 'defensive'
   },
   [ID.EMERGENCY_JADE_SHIELD_ID_76879]: {
     implemented: true,
-    handlerId: "thief.double-edge",
+    handlerId: 'thief.double-edge',
     usableWhileRecharging: true,
     castTimeMs: 0,
     cooldown: 15,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.6,
         hits: 1,
-        name: "Emergency Jade Shield",
-        actorType: "player",
-      },
+        name: 'Emergency Jade Shield',
+        actorType: 'player'
+      }
     ],
-    doubleEdge: true,
+    doubleEdge: true
   },
   [ID.ANTIVENOM_DRAUGHT_BACKFIRED]: {
     implemented: true,
@@ -381,53 +379,53 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<
     cooldown: 10,
     initiativeCost: 0,
     effects: [],
-    backfire: true,
+    backfire: true
   },
   [ID.ANTIVENOM_DRAUGHT]: {
     implemented: true,
-    handlerId: "thief.double-edge",
+    handlerId: 'thief.double-edge',
     usableWhileRecharging: true,
     castTimeMs: 750,
     cooldown: 10,
     initiativeCost: 0,
     effects: [],
-    doubleEdge: true,
+    doubleEdge: true
   },
   [ID.ZEPHYRITE_SUN_CRYSTAL]: {
     implemented: true,
     movementSkill: true,
-    handlerId: "thief.artifact",
+    handlerId: 'thief.artifact',
     castTimeMs: 330,
     cooldown: 1,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.2,
         hits: 1,
-        name: "Zephyrite Sun Crystal",
-        actorType: "player",
+        name: 'Zephyrite Sun Crystal',
+        actorType: 'player'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 2,
         duration: 4,
-        actorType: "player",
+        actorType: 'player',
         atMs: 400,
         intervalMs: 500,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "blind",
-        actorType: "player",
+        type: 'blind',
+        actorType: 'player',
         metadata: {
-          duration: 5,
-        },
-      },
+          duration: 5
+        }
+      }
     ],
-    artifactKind: "defensive",
+    artifactKind: 'defensive'
   },
   [ID.UNSTABLE_SKRITT_BOMB]: {
     implemented: true,
@@ -436,30 +434,30 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3,
         hits: 1,
-        name: "Unstable Skritt Bomb",
-        actorType: "player",
+        name: 'Unstable Skritt Bomb',
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "knockback",
-          duration: 180,
-        },
-      },
+          controlKind: 'knockback',
+          duration: 180
+        }
+      }
     ],
-    backfire: true,
+    backfire: true
   },
   [ID.RESHUFFLE]: {
     implemented: true,
-    handlerId: "thief.reshuffle",
+    handlerId: 'thief.reshuffle',
     castTimeMs: 0,
     cooldown: 5,
     initiativeCost: 2,
-    effects: [],
+    effects: []
   },
   [ID.STONE_SUMMIT_CANNON_ID_77092]: {
     implemented: true,
@@ -467,40 +465,40 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<
     cooldown: 15,
     initiativeCost: 0,
     effects: [],
-    backfire: true,
+    backfire: true
   },
   [ID.SUMMON_KRYPTIS_TURRET_ID_77192]: {
     implemented: true,
-    handlerId: "thief.artifact",
+    handlerId: 'thief.artifact',
     castTimeMs: 660,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.8,
         hits: 8,
-        name: "Summon Kryptis Turret",
-        actorType: "player",
+        name: 'Summon Kryptis Turret',
+        actorType: 'player',
         atMs: 760,
         intervalMs: 400,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Torment",
+        type: 'condition',
+        condition: 'Torment',
         stacks: 1,
         duration: 4,
-        actorType: "player",
+        actorType: 'player',
         applications: 8,
         atMs: 760,
         intervalMs: 400,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-      },
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
     ],
-    artifactKind: "offensive",
+    artifactKind: 'offensive'
   },
   [ID.ZEPHYRITE_SUN_CRYSTAL_ID_78309]: {
     implemented: true,
@@ -508,7 +506,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<
     castTimeMs: 0,
     cooldown: 1,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.FORGED_SURFER_DASH]: {
     implemented: true,
@@ -516,7 +514,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.EXALTED_HAMMER]: {
     implemented: true,
@@ -526,19 +524,19 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: "Exalted Hammer",
-        actorType: "player",
+        name: 'Exalted Hammer',
+        actorType: 'player'
       },
       {
-        type: "boon",
-        boon: "protection",
+        type: 'boon',
+        boon: 'protection',
         duration: 5,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.HOLO_DANCER_DECOY_ID_76800]: {
     implemented: true,
@@ -547,117 +545,117 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 6,
         hits: 3,
-        name: "Holo-Dancer Decoy",
-        actorType: "player",
+        name: 'Holo-Dancer Decoy',
+        actorType: 'player',
         atMs: 167,
         intervalMs: 167,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 8,
-        stacks: 2,
+        stacks: 2
       },
       {
-        type: "boon",
-        boon: "might",
+        type: 'boon',
+        boon: 'might',
         duration: 8,
-        stacks: 4,
+        stacks: 4
       },
       {
-        type: "boon",
-        boon: "fury",
+        type: 'boon',
+        boon: 'fury',
         duration: 8,
-        stacks: 1,
-      },
-    ],
+        stacks: 1
+      }
+    ]
   },
   [ID.SUMMON_KRYPTIS_TURRET]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.MISTBURN_MORTAR_ID_77288]: {
     implemented: true,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [],
+    effects: []
   },
   [ID.CANACH_COIN_TOSS_ID_77230]: {
     implemented: true,
-    handlerId: "thief.double-edge",
+    handlerId: 'thief.double-edge',
     usableWhileRecharging: true,
     castTimeMs: 0,
     cooldown: 15,
     initiativeCost: 0,
     effects: [],
-    doubleEdge: true,
+    doubleEdge: true
   },
   [ID.SKRITT_SCUFFLE]: {
     implemented: true,
-    handlerId: "thief.skritt-scuffle",
+    handlerId: 'thief.skritt-scuffle',
     castTimeMs: 840,
     cooldown: 50,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 3,
         hits: 1,
-        name: "Skritt Scuffle",
-        actorType: "player",
+        name: 'Skritt Scuffle',
+        actorType: 'player'
       },
       {
-        type: "control",
-        actorType: "player",
+        type: 'control',
+        actorType: 'player',
         metadata: {
-          controlKind: "launch",
-          duration: 0,
-        },
-      },
+          controlKind: 'launch',
+          duration: 0
+        }
+      }
     ],
-    doubleEdge: true,
+    doubleEdge: true
   },
   [ID.MISTBURN_MORTAR]: {
     implemented: true,
-    handlerId: "thief.artifact",
+    handlerId: 'thief.artifact',
     castTimeMs: 950,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
       {
-        type: "strike",
+        type: 'strike',
         coefficient: 2.5,
         hits: 5,
-        name: "Mistburn Mortar",
-        actorType: "player",
+        name: 'Mistburn Mortar',
+        actorType: 'player',
         atMs: 500,
         intervalMs: 1000,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
-        type: "condition",
-        condition: "Burning",
+        type: 'condition',
+        condition: 'Burning',
         stacks: 1,
         duration: 1.5,
-        actorType: "player",
+        actorType: 'player',
         applications: 5,
         atMs: 500,
         intervalMs: 1000,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      },
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
     ],
-    artifactKind: "offensive",
+    artifactKind: 'offensive'
   },
   [ID.INQUEST_PORTAL_DEVICE_BACKFIRED]: {
     implemented: true,
@@ -665,15 +663,15 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<
     cooldown: 20,
     initiativeCost: 0,
     effects: [],
-    backfire: true,
+    backfire: true
   },
   [ID.SKRITT_SWIPE]: {
     implemented: true,
     movementSkill: true,
-    handlerId: "thief.skritt-swipe",
+    handlerId: 'thief.skritt-swipe',
     castTimeMs: 0,
     cooldown: 25,
     initiativeCost: 0,
-    effects: [],
-  },
+    effects: []
+  }
 });

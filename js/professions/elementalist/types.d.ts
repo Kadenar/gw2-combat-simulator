@@ -7,21 +7,21 @@ import type {
   SchedulerState,
   SimulationEvent,
   Skill,
-  SkillId,
-} from "../../platform/engine/types.js";
+  SkillId
+} from '../../platform/engine/types.js';
 import type {
   Gw2Build,
   Gw2CanonicalBuild,
   Gw2Config,
   Gw2ResolverEvent,
-  Gw2ResolverRuntime,
-} from "../../platform/gw2/types.js";
-import type { ProfessionApplicationBuild } from "../../app/profession/types.js";
-import type { ElementalistCoreState } from "./core/state.js";
-import type { TempestState } from "./specializations/tempest/state.js";
-import type { WeaverState } from "./specializations/weaver/state.js";
-import type { CatalystState } from "./specializations/catalyst/state.js";
-import type { EvokerState } from "./specializations/evoker/state.js";
+  Gw2ResolverRuntime
+} from '../../platform/gw2/types.js';
+import type { ProfessionApplicationBuild } from '../../app/profession/types.js';
+import type { ElementalistCoreState } from './core/state.js';
+import type { TempestState } from './specializations/tempest/state.js';
+import type { WeaverState } from './specializations/weaver/state.js';
+import type { CatalystState } from './specializations/catalyst/state.js';
+import type { EvokerState } from './specializations/evoker/state.js';
 
 export interface ElementalistBuildSpecialization {
   name: string;
@@ -46,12 +46,12 @@ export interface ElementalistBuild extends Gw2Build {
   evokerElement?: string;
   initialEvokerCharges?: number;
   initialEvokerEmpowered?: number;
-  pistolBullets?: Partial<Record<"Fire" | "Water" | "Air" | "Earth", boolean>>;
+  pistolBullets?: Partial<Record<'Fire' | 'Water' | 'Air' | 'Earth', boolean>>;
   selectedSkills?: readonly string[] | Record<string, string>;
 }
 
 export interface ElementalistCanonicalBuild extends Gw2CanonicalBuild {
-  profession: "elementalist";
+  profession: 'elementalist';
   assumptions: SchedulerRecord;
   startAttunement: string;
   secondaryAttunement: string;
@@ -59,7 +59,7 @@ export interface ElementalistCanonicalBuild extends Gw2CanonicalBuild {
   evokerElement: string;
   initialEvokerCharges: number;
   initialEvokerEmpowered: number;
-  pistolBullets: Record<"Fire" | "Water" | "Air" | "Earth", boolean>;
+  pistolBullets: Record<'Fire' | 'Water' | 'Air' | 'Earth', boolean>;
 }
 
 export interface ElementalistConfig extends Gw2Config {
@@ -70,25 +70,21 @@ export interface ElementalistConfig extends Gw2Config {
   readonly evokerElement?: string;
   readonly initialEvokerCharges?: number;
   readonly initialEvokerEmpowered?: number;
-  readonly pistolBullets?: Readonly<
-    Partial<Record<"Fire" | "Water" | "Air" | "Earth", boolean>>
-  >;
-  readonly selectedSkills?:
-    readonly string[] | Readonly<Record<string, string>>;
+  readonly pistolBullets?: Readonly<Partial<Record<'Fire' | 'Water' | 'Air' | 'Earth', boolean>>>;
+  readonly selectedSkills?: readonly string[] | Readonly<Record<string, string>>;
 }
 
 export interface ElementalistRuntimeState {
   core: ElementalistCoreState;
   specialization:
-    | { kind: "Core"; state: Record<string, never> }
-    | { kind: "Tempest"; state: TempestState }
-    | { kind: "Weaver"; state: WeaverState }
-    | { kind: "Catalyst"; state: CatalystState }
-    | { kind: "Evoker"; state: EvokerState };
+    | { kind: 'Core'; state: Record<string, never> }
+    | { kind: 'Tempest'; state: TempestState }
+    | { kind: 'Weaver'; state: WeaverState }
+    | { kind: 'Catalyst'; state: CatalystState }
+    | { kind: 'Evoker'; state: EvokerState };
 }
 
-export interface ElementalistState
-  extends ElementalistCoreState, WeaverState, CatalystState, EvokerState {}
+export interface ElementalistState extends ElementalistCoreState, WeaverState, CatalystState, EvokerState {}
 
 export interface ElementalistSkill extends Skill {
   readonly attunement?: string;
@@ -99,26 +95,23 @@ export interface ElementalistSkill extends Skill {
   readonly skillWeapon?: string;
 }
 
-export type ElementalistSchedulerContext =
-  SchedulerContext<ElementalistRuntimeState> &
-    SchedulerRecord & {
-      readonly catalog: CanonicalCatalog<ElementalistSkill>;
-      readonly config: ElementalistConfig;
-    };
-
-export type ElementalistPrecastContext =
-  CastContext<ElementalistRuntimeState> & {
+export type ElementalistSchedulerContext = SchedulerContext<ElementalistRuntimeState> &
+  SchedulerRecord & {
     readonly catalog: CanonicalCatalog<ElementalistSkill>;
     readonly config: ElementalistConfig;
-    readonly skill: ElementalistSkill;
   };
 
-export type ElementalistCastContext =
-  CastLifecycleContext<ElementalistRuntimeState> & {
-    readonly catalog: CanonicalCatalog<ElementalistSkill>;
-    readonly config: ElementalistConfig;
-    readonly skill: ElementalistSkill;
-  };
+export type ElementalistPrecastContext = CastContext<ElementalistRuntimeState> & {
+  readonly catalog: CanonicalCatalog<ElementalistSkill>;
+  readonly config: ElementalistConfig;
+  readonly skill: ElementalistSkill;
+};
+
+export type ElementalistCastContext = CastLifecycleContext<ElementalistRuntimeState> & {
+  readonly catalog: CanonicalCatalog<ElementalistSkill>;
+  readonly config: ElementalistConfig;
+  readonly skill: ElementalistSkill;
+};
 
 export type ElementalistSimulationEvent = SimulationEvent & {
   readonly application?: ElementalistSimulationEvent;
@@ -157,5 +150,5 @@ export interface ElementalistApplicationBuild extends ProfessionApplicationBuild
   evokerElement: string;
   initialEvokerCharges: number;
   initialEvokerEmpowered: number;
-  pistolBullets: Record<"Fire" | "Water" | "Air" | "Earth", boolean>;
+  pistolBullets: Record<'Fire' | 'Water' | 'Air' | 'Earth', boolean>;
 }

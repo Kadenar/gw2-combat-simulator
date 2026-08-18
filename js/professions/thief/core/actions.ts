@@ -1,10 +1,7 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
-import {
-  THIEF_SKILL_IDS as ID,
-  THIEF_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
-import { hasThiefTrait } from "./state.js";
-import { emitThiefState, gainThiefInitiative } from "./shared.js";
+import { professionCoreState } from '../../../platform/engine/profession.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import { hasThiefTrait } from './state.js';
+import { emitThiefState, gainThiefInitiative } from './shared.js';
 import type {
   ThiefCastContext,
   ThiefScheduledTask,
@@ -12,12 +9,9 @@ import type {
   ThiefSkill,
   ThiefSummonAttack,
   ThiefSummonDefinition,
-  ThiefSummonStrike,
-} from "../types.js";
-import {
-  thiefBalanceProfile,
-  THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE,
-} from "./profiles.js";
+  ThiefSummonStrike
+} from '../types.js';
+import { thiefBalanceProfile, THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 interface ThievesGuildTaskPayload extends Record<string, unknown> {
   readonly attack: ThiefSummonStrike;
@@ -26,58 +20,48 @@ interface ThievesGuildTaskPayload extends Record<string, unknown> {
   readonly summon: ThiefSummonDefinition;
 }
 
-function thievesGuildSummons(
-  profile: ThiefSummonAttack,
-  variant: string,
-): readonly ThiefSummonDefinition[] {
-  return profile.summons.filter(
-    (summon) => summon.variant == null || summon.variant === variant,
-  );
+function thievesGuildSummons(profile: ThiefSummonAttack, variant: string): readonly ThiefSummonDefinition[] {
+  return profile.summons.filter((summon) => summon.variant == null || summon.variant === variant);
 }
 
-export function summonThievesGuild(
-  context: ThiefCastContext,
-  skill: ThiefSkill,
-): void {
+export function summonThievesGuild(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  const variant = state.thievesGuildVariant || "Core Thief";
+  const variant = state.thievesGuildVariant || 'Core Thief';
   const profile = skill.summonAttack;
   if (!profile) return;
   const summons = thievesGuildSummons(profile, variant);
   const expiresAt = context.start + Number(profile.duration || 0);
   state.activeThievesGuild = {
     variant: summons.find((summon) => summon.variant != null)?.name || variant,
-    expiresAt,
+    expiresAt
   };
-  context.tasks.cancelOwner("thief.thieves-guild");
+  context.tasks.cancelOwner('thief.thieves-guild');
   context.tasks.schedule({
-    type: "thief.thieves-guild-expire",
+    type: 'thief.thieves-guild-expire',
     at: expiresAt,
-    ownerId: "thief.thieves-guild",
-    payload: { expiresAt },
+    ownerId: 'thief.thieves-guild',
+    payload: { expiresAt }
   });
   for (const summon of summons) {
-    const attacks = summon.attacks?.length
-      ? summon.attacks
-      : profile.fallbackAttacks || [];
+    const attacks = summon.attacks?.length ? summon.attacks : profile.fallbackAttacks || [];
     for (const attack of attacks) {
       const attackAt = at + Number(attack.initialDelay || 0);
       if (attackAt >= expiresAt) continue;
       context.tasks.schedule({
-        type: "thief.thieves-guild-attack",
+        type: 'thief.thieves-guild-attack',
         at: attackAt,
-        ownerId: "thief.thieves-guild",
-        payload: { attack, expiresAt, profile, summon },
+        ownerId: 'thief.thieves-guild',
+        payload: { attack, expiresAt, profile, summon }
       });
     }
   }
-  emitThiefState(context, at, "thieves-guild");
+  emitThiefState(context, at, 'thieves-guild');
 }
 
 export function handleThievesGuildAttack(
   context: ThiefSchedulerContext,
-  task: ThiefScheduledTask<ThievesGuildTaskPayload>,
+  task: ThiefScheduledTask<ThievesGuildTaskPayload>
 ): void {
   if (task.at > Number(task.payload.expiresAt || 0)) return;
   const { attack, profile, summon } = task.payload;
@@ -86,14 +70,14 @@ export function handleThievesGuildAttack(
   const attackName = `${summonName} \u2014 ${attack.name}`;
   const damageBreakdownName = `${summon.displayName || summon.name} \u2014 ${attack.name}`;
   context.emit({
-    type: "damage",
+    type: 'damage',
     at: task.at,
-    source: "thief",
-    sourceId: "thief.thieves-guild",
-    actorType: "summon",
+    source: 'thief',
+    sourceId: 'thief.thieves-guild',
+    actorType: 'summon',
     skillId: attack.skillId ?? ID.THIEVES_GUILD,
     skillName: summonName,
-    parentSkillName: "Thieves Guild",
+    parentSkillName: 'Thieves Guild',
     damageBreakdownName,
     name: attackName,
     coefficient: Number(attack.coefficientPerHit || 0) * hits,
@@ -107,18 +91,18 @@ export function handleThievesGuildAttack(
     summonCriticalChance: Number(profile.criticalChance),
     summonCriticalDamage: Number(profile.criticalDamage),
     summonIgnoresBoons: true,
-    summonUsesEquipmentModifiers: false,
+    summonUsesEquipmentModifiers: false
   });
   for (const condition of attack.conditions || []) {
     context.emit({
-      type: "condition",
+      type: 'condition',
       at: task.at,
-      source: "thief",
-      sourceId: "thief.thieves-guild",
-      actorType: "summon",
+      source: 'thief',
+      sourceId: 'thief.thieves-guild',
+      actorType: 'summon',
       skillId: attack.skillId ?? ID.THIEVES_GUILD,
       skillName: summonName,
-      parentSkillName: "Thieves Guild",
+      parentSkillName: 'Thieves Guild',
       damageBreakdownName,
       name: `${attackName} \u2014 ${condition.condition}`,
       condition: condition.condition,
@@ -126,7 +110,7 @@ export function handleThievesGuildAttack(
       duration: Number(condition.duration || 0),
       summonInheritsAttributes: true,
       summonIgnoresBoons: true,
-      summonUsesEquipmentModifiers: false,
+      summonUsesEquipmentModifiers: false
     });
   }
   const interval = Number(attack.interval || 0);
@@ -138,83 +122,63 @@ export function handleThievesGuildAttack(
 
 export function expireThievesGuild(
   context: ThiefSchedulerContext,
-  task: ThiefScheduledTask<Record<string, unknown>>,
+  task: ThiefScheduledTask<Record<string, unknown>>
 ): void {
   const state = professionCoreState(context);
-  if (
-    state.activeThievesGuild &&
-    Number(state.activeThievesGuild.expiresAt) <= task.at
-  ) {
+  if (state.activeThievesGuild && Number(state.activeThievesGuild.expiresAt) <= task.at) {
     state.activeThievesGuild = null;
-    emitThiefState(context, task.at, "thieves-guild-expired");
+    emitThiefState(context, task.at, 'thieves-guild-expired');
   }
 }
 
-export function swapThiefWeapons(
-  context: ThiefCastContext,
-  skill: ThiefSkill,
-): void {
+export function swapThiefWeapons(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   context.state.activeWeaponSet = context.state.activeWeaponSet === 1 ? 2 : 1;
   context.emit({
-    type: "weapon_set",
+    type: 'weapon_set',
     at,
-    source: "thief",
+    source: 'thief',
     sourceId: skill.id,
-    actorType: "player",
+    actorType: 'player',
     skillId: skill.id,
     skillName: skill.name,
-    weaponSet: context.state.activeWeaponSet,
+    weaponSet: context.state.activeWeaponSet
   });
   state.kneeling = false;
   state.autoattackChains = {};
-  emitThiefState(context, at, "stand");
+  emitThiefState(context, at, 'stand');
   const inCombat =
     !context.hasExplicitCombatStart ||
-    (context.combatStartTime != null &&
-      at + Number(context.epsilon || 0.0001) >=
-        Number(context.combatStartTime));
+    (context.combatStartTime != null && at + Number(context.epsilon || 0.0001) >= Number(context.combatStartTime));
   if (
     inCombat &&
     hasThiefTrait(context.config, TRAIT.QUICK_POCKETS) &&
-    at + Number(context.epsilon || 0.0001) >=
-      Number(state.quickPocketsReadyAt || 0)
+    at + Number(context.epsilon || 0.0001) >= Number(state.quickPocketsReadyAt || 0)
   ) {
     const profile = thiefBalanceProfile(context, PROFILE.quickPockets);
     state.quickPocketsReadyAt = at + Number(profile?.internalCooldown || 8);
-    gainThiefInitiative(
-      context,
-      Number(profile?.resourceGain || 3),
-      at,
-      "quick-pockets",
-    );
+    gainThiefInitiative(context, Number(profile?.resourceGain || 3), at, 'quick-pockets');
   }
 }
 
 export function kneel(context: ThiefCastContext): void {
   professionCoreState(context).kneeling = true;
-  emitThiefState(context, context.effectiveEnd, "kneel");
+  emitThiefState(context, context.effectiveEnd, 'kneel');
 }
 
 export function stand(context: ThiefCastContext): void {
   professionCoreState(context).kneeling = false;
-  emitThiefState(context, context.effectiveEnd, "stand");
+  emitThiefState(context, context.effectiveEnd, 'stand');
 }
 
 export function activateAssassinsSignet(context: ThiefCastContext): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   state.assassinsSignetActiveUntil =
-    at +
-    Number(
-      thiefBalanceProfile(context, PROFILE.assassinsSignet)
-        ?.durationMultiplier || 5,
-    );
+    at + Number(thiefBalanceProfile(context, PROFILE.assassinsSignet)?.durationMultiplier || 5);
   state.assassinsSignetPassiveDisabledUntil = Number(
-    context.rechargeReadyAt ||
-      context.state.cooldowns.get(ID.ASSASSINS_SIGNET) ||
-      at,
+    context.rechargeReadyAt || context.state.cooldowns.get(ID.ASSASSINS_SIGNET) || at
   );
-  emitThiefState(context, at, "assassins-signet");
+  emitThiefState(context, at, 'assassins-signet');
 }

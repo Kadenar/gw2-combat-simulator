@@ -1,46 +1,45 @@
 export type SkillId = string | number;
 
 export type ObservationPolicy =
-  | { readonly kind: "rotation" }
-  | { readonly kind: "tail"; readonly durationMs: number }
-  | { readonly kind: "absolute"; readonly endTimeMs: number };
+  | { readonly kind: 'rotation' }
+  | { readonly kind: 'tail'; readonly durationMs: number }
+  | { readonly kind: 'absolute'; readonly endTimeMs: number };
 
 export type NormalizedObservationPolicy = ObservationPolicy;
 
 export type SimulationActorType =
-  | "player"
-  | "summon"
-  | "effect"
-  | "unknown"
+  | 'player'
+  | 'summon'
+  | 'effect'
+  | 'unknown'
   /**
    * Legacy Mesmer scheduler detail. Resolver ownership classifies this as a
    * summon; future event normalization should remove it from the public union.
    */
-  | "phantasm";
+  | 'phantasm';
 
 export type CommonSimulationEventType =
-  | "action"
-  | "aura"
-  | "combo"
-  | "combo_field"
-  | "combo_finisher"
-  | "combat_start"
-  | "condition_tick"
-  | "control"
-  | "blind"
-  | "weapon_set"
-  | "sigil_swap"
-  | "proc"
-  | "marker"
-  | "resource"
-  | "buff"
-  | "weakness_vulnerability"
-  | "peitha";
+  | 'action'
+  | 'aura'
+  | 'combo'
+  | 'combo_field'
+  | 'combo_finisher'
+  | 'combat_start'
+  | 'condition_tick'
+  | 'control'
+  | 'blind'
+  | 'weapon_set'
+  | 'sigil_swap'
+  | 'proc'
+  | 'marker'
+  | 'resource'
+  | 'buff'
+  | 'weakness_vulnerability'
+  | 'peitha';
 
 export type CustomSimulationEventType = `${string}.${string}`;
 
-export type LegacySimulationEventType =
-  "boon" | "cooldown_snapshot" | "self_condition";
+export type LegacySimulationEventType = 'boon' | 'cooldown_snapshot' | 'self_condition';
 
 export interface SimulationEventBase<TType extends string = string> {
   readonly schemaVersion?: 1;
@@ -71,7 +70,7 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly [field: string]: unknown;
 }
 
-export type DamageEvent = SimulationEventBase<"damage"> &
+export type DamageEvent = SimulationEventBase<'damage'> &
   (
     | {
         readonly coefficient: number;
@@ -90,7 +89,7 @@ export type DamageEvent = SimulationEventBase<"damage"> &
       }
   ) & {
     readonly coefficientModifiers?: ReadonlyArray<{
-      readonly kind: "target-health-below";
+      readonly kind: 'target-health-below';
       readonly threshold: number;
       readonly multiplier: number;
     }>;
@@ -102,27 +101,20 @@ export type DamageEvent = SimulationEventBase<"damage"> &
     readonly didCrit?: boolean;
   };
 
-export interface ConditionEvent extends SimulationEventBase<"condition"> {
+export interface ConditionEvent extends SimulationEventBase<'condition'> {
   readonly condition: string;
   readonly stacks: number;
   readonly duration: number;
 }
 
-export type CommonSimulationEvent =
-  SimulationEventBase<CommonSimulationEventType>;
+export type CommonSimulationEvent = SimulationEventBase<CommonSimulationEventType>;
 
-export type CustomSimulationEvent =
-  SimulationEventBase<CustomSimulationEventType>;
+export type CustomSimulationEvent = SimulationEventBase<CustomSimulationEventType>;
 
-export type LegacySimulationEvent =
-  SimulationEventBase<LegacySimulationEventType>;
+export type LegacySimulationEvent = SimulationEventBase<LegacySimulationEventType>;
 
 export type SimulationEvent =
-  | DamageEvent
-  | ConditionEvent
-  | CommonSimulationEvent
-  | CustomSimulationEvent
-  | LegacySimulationEvent;
+  DamageEvent | ConditionEvent | CommonSimulationEvent | CustomSimulationEvent | LegacySimulationEvent;
 
 export interface SimulationEventInput {
   readonly type: string;
@@ -152,7 +144,7 @@ export interface SimulationEventInput {
 }
 
 export interface ScheduledEventStream {
-  readonly kind: "gw2.simulation.events";
+  readonly kind: 'gw2.simulation.events';
   readonly version: 1;
   readonly eventSchemaVersion: 1;
   readonly source: string;
@@ -168,7 +160,7 @@ export interface CatalogSkill {
   readonly [field: string]: unknown;
 }
 
-export type SkillHandlerMode = "augment" | "replace";
+export type SkillHandlerMode = 'augment' | 'replace';
 
 export interface StrikeTick {
   readonly atMs: number;
@@ -189,9 +181,9 @@ export interface SkillEffectBase {
   readonly type: string;
   readonly atMs?: number;
   readonly intervalMs?: number;
-  readonly timingAnchor?: "castStart" | "castEnd";
-  readonly timingScale?: "cast" | "fixed";
-  readonly durationScale?: "boon" | "fixed";
+  readonly timingAnchor?: 'castStart' | 'castEnd';
+  readonly timingScale?: 'cast' | 'fixed';
+  readonly durationScale?: 'boon' | 'fixed';
   readonly applications?: number;
   readonly persistsAfterInterrupt?: boolean;
   readonly source?: string;
@@ -206,20 +198,20 @@ export interface SkillEffectBase {
 }
 
 export interface StrikeEffect extends SkillEffectBase {
-  readonly type: "strike";
+  readonly type: 'strike';
   readonly coefficient?: number;
   readonly hits?: number;
   readonly ticks?: readonly StrikeTick[];
   readonly canCrit?: boolean;
-  readonly coefficientModifiers?: DamageEvent["coefficientModifiers"];
+  readonly coefficientModifiers?: DamageEvent['coefficientModifiers'];
   readonly weapon?: string;
   readonly weaponStrength?: number;
   readonly weaponStrengthProfileId?: string;
-  readonly weaponStrengthSource?: "equipped";
+  readonly weaponStrengthSource?: 'equipped';
 }
 
 export interface ConditionEffect extends SkillEffectBase {
-  readonly type: "condition";
+  readonly type: 'condition';
   readonly condition?: string;
   readonly stacks?: number;
   readonly duration?: number;
@@ -227,11 +219,11 @@ export interface ConditionEffect extends SkillEffectBase {
 }
 
 export interface ControlEffect extends SkillEffectBase {
-  readonly type: "control" | "blind";
+  readonly type: 'control' | 'blind';
 }
 
 export interface StatusEffect extends SkillEffectBase {
-  readonly type: "boon" | "buff";
+  readonly type: 'boon' | 'buff';
   readonly boon?: string;
   readonly kind?: string;
   readonly duration: number;
@@ -239,13 +231,12 @@ export interface StatusEffect extends SkillEffectBase {
 }
 
 export interface CustomEffect extends SkillEffectBase {
-  readonly type: "custom";
+  readonly type: 'custom';
   readonly eventType: string;
   readonly event: Readonly<Record<string, unknown>>;
 }
 
-export type SkillEffect =
-  StrikeEffect | ConditionEffect | ControlEffect | StatusEffect | CustomEffect;
+export type SkillEffect = StrikeEffect | ConditionEffect | ControlEffect | StatusEffect | CustomEffect;
 
 export interface Skill extends CatalogSkill {
   readonly description?: string;
@@ -287,12 +278,12 @@ export interface Skill extends CatalogSkill {
   /** Whether an instant skill may be scheduled during another cast. */
   readonly canCastConcurrently?: boolean;
   readonly lockouts?: readonly SkillLockout[];
-  readonly rechargeAnchor?: "castStart" | "castEnd";
+  readonly rechargeAnchor?: 'castStart' | 'castEnd';
   readonly rechargeOffsetMs?: number;
   readonly cooldown?: number;
   readonly recharge?: number;
   /** Which actor's active boons determine recharge-rate modifiers. */
-  readonly rechargeBuffAudience?: "self" | "summon";
+  readonly rechargeBuffAudience?: 'self' | 'summon';
   /**
    * Allows a profession mechanic to activate this skill while its ordinary
    * recharge is still running. The profession remains responsible for
@@ -347,7 +338,7 @@ export interface Skill extends CatalogSkill {
  * catalog while retaining the same declarative effect vocabulary.
  */
 export interface BalanceProfile extends CatalogSkill {
-  readonly profileKind: "trait" | "mechanic" | "skill-variant";
+  readonly profileKind: 'trait' | 'mechanic' | 'skill-variant';
   readonly effects?: readonly SkillEffect[];
   /** Amount of the resource selected by the consuming profession mechanic. */
   readonly resourceGain?: number;
@@ -371,26 +362,21 @@ export interface AutoattackChainPosition {
 export type SchedulerRecord = Record<string, unknown>;
 
 export interface SimulationRandomnessConfig {
-  readonly mode?: "deterministic" | "stochastic";
+  readonly mode?: 'deterministic' | 'stochastic';
   readonly seed?: number;
 }
 
 export interface SimulationRandom {
-  readonly mode: "deterministic" | "stochastic";
+  readonly mode: 'deterministic' | 'stochastic';
   readonly seed: number;
   readonly stochastic: boolean;
   next(stream?: string): number;
   roll(probability: number, stream?: string): boolean;
 }
 
-export type SkillHandlerPhase<TContext extends object = SchedulerRecord> = (
-  context: TContext,
-  skill: Skill,
-) => unknown;
+export type SkillHandlerPhase<TContext extends object = SchedulerRecord> = (context: TContext, skill: Skill) => unknown;
 
-export interface SkillHandlerStrategy<
-  TContext extends object = SchedulerRecord,
-> {
+export interface SkillHandlerStrategy<TContext extends object = SchedulerRecord> {
   readonly mode: SkillHandlerMode;
   readonly resolveMode?: (context: TContext, skill: Skill) => SkillHandlerMode;
   readonly beforeEffects?: SkillHandlerPhase<TContext>;
@@ -402,19 +388,12 @@ export interface SkillHandlerStrategy<
     details: {
       readonly effect: SkillEffect;
       readonly effectIndex: number;
-    },
+    }
   ) => unknown;
-  readonly afterEffects?: (
-    context: TContext,
-    skill: Skill,
-    handlerState: unknown,
-  ) => unknown;
+  readonly afterEffects?: (context: TContext, skill: Skill, handlerState: unknown) => unknown;
 }
 
-export interface CanonicalCatalog<
-  TSkill extends Skill = Skill,
-  TContext extends object = SchedulerRecord,
-> {
+export interface CanonicalCatalog<TSkill extends Skill = Skill, TContext extends object = SchedulerRecord> {
   readonly skills: readonly TSkill[];
   readonly skillsById: ReadonlyMap<SkillId, TSkill>;
   readonly skillsByName: ReadonlyMap<string, TSkill>;
@@ -423,10 +402,7 @@ export interface CanonicalCatalog<
   readonly balanceProfilesByName: ReadonlyMap<string, BalanceProfile>;
   readonly skillHandlers: ReadonlyMap<string, SkillHandlerStrategy<TContext>>;
   readonly autoattackChains: readonly (readonly number[])[];
-  readonly autoattackChainPositions: ReadonlyMap<
-    number,
-    AutoattackChainPosition
-  >;
+  readonly autoattackChainPositions: ReadonlyMap<number, AutoattackChainPosition>;
   readonly traits: readonly CatalogEntity[];
   readonly specializations: readonly CatalogEntity[];
   readonly weapons: ReadonlySet<string>;
@@ -486,7 +462,7 @@ export interface ScheduledTaskInput<TPayload = unknown> {
 
 export type ScheduledTaskHandler<TContext = unknown, TPayload = unknown> = (
   context: TContext,
-  task: ScheduledTask<TPayload>,
+  task: ScheduledTask<TPayload>
 ) => unknown;
 
 export interface TaskQueue<TContext = unknown, TPayload = unknown> {
@@ -512,11 +488,7 @@ export interface SchedulerConfig extends SchedulerRecord {
 export interface CooldownController {
   ammoMaximum(skill: Skill): number;
   ensureAmmo(skill: Skill, at?: number): AmmoState | null;
-  reduceAmmoRecharge(
-    skill: Skill,
-    reduction: number,
-    at?: number,
-  ): { ammo: AmmoState | null; reducedBy: number };
+  reduceAmmoRecharge(skill: Skill, reduction: number, at?: number): { ammo: AmmoState | null; reducedBy: number };
   refreshAmmo(skill: Skill, at: number): AmmoState | null;
   setAmmoLockout(skill: Skill, readyAt: number, at?: number): AmmoState | null;
   spendAmmo(skill: Skill, at: number): AmmoState | false;
@@ -529,42 +501,35 @@ export interface SchedulerTaskAccess {
   nextAt(): number;
 }
 
-export interface SchedulerPolicy<
-  TProfessionState extends object = SchedulerRecord,
-> {
+export interface SchedulerPolicy<TProfessionState extends object = SchedulerRecord> {
   readonly initialWeaponSet?: (input: {
     profession: NormalizedProfessionContract<TProfessionState>;
     config: SchedulerConfig;
   }) => number;
   readonly prepareEvent?: (
     context: SchedulerContext<TProfessionState>,
-    event: SimulationEventInput,
+    event: SimulationEventInput
   ) => SimulationEventInput | undefined;
-  readonly initialize?: (
-    context: SchedulerContext<TProfessionState>,
-  ) => unknown;
+  readonly initialize?: (context: SchedulerContext<TProfessionState>) => unknown;
   readonly availability?: (
     context: CastContext<TProfessionState>,
-    skill: Skill,
+    skill: Skill
   ) => AvailabilityResult | boolean | null | undefined;
-  readonly validateCast?: (
-    context: CastContext<TProfessionState>,
-    skill: Skill,
-  ) => boolean | void;
+  readonly validateCast?: (context: CastContext<TProfessionState>, skill: Skill) => boolean | void;
   readonly castDuration?: (
     context: CastContext<TProfessionState>,
     skill: Skill,
-    duration: number,
+    duration: number
   ) => number | undefined;
   readonly rechargeDuration?: (
     context: SchedulerContext<TProfessionState> & SchedulerRecord,
     skill: Skill,
-    duration: number,
+    duration: number
   ) => number | undefined;
   readonly maximumAmmo?: (
     context: SchedulerContext<TProfessionState> & { skill: Skill },
     skill: Skill,
-    maximum: number,
+    maximum: number
   ) => number | undefined;
   readonly effectTiming?: (
     context: SchedulerContext<TProfessionState> &
@@ -575,13 +540,13 @@ export interface SchedulerPolicy<
         effectiveEnd: number;
       },
     skill: Skill,
-    effect: SkillEffect,
+    effect: SkillEffect
   ) => SkillEffect | undefined;
   readonly effectDuration?: (
     context: SchedulerContext<TProfessionState>,
     skill: Skill,
     effect: SkillEffect,
-    duration: number,
+    duration: number
   ) => number | undefined;
   readonly buffStacks?: (
     context: SchedulerContext<TProfessionState>,
@@ -589,27 +554,16 @@ export interface SchedulerPolicy<
     at: number,
     configuredStacks: number,
     applications: readonly SimulationEvent[],
-    defaultStacks: number,
+    defaultStacks: number
   ) => number | undefined;
-  readonly onEventScheduled?: (
-    context: SchedulerContext<TProfessionState>,
-    event: SimulationEvent,
-  ) => unknown;
-  readonly advance?: (
-    context: SchedulerContext<TProfessionState>,
-    at: number,
-  ) => unknown;
+  readonly onEventScheduled?: (context: SchedulerContext<TProfessionState>, event: SimulationEvent) => unknown;
+  readonly advance?: (context: SchedulerContext<TProfessionState>, at: number) => unknown;
   readonly taskHandlers?: Readonly<
-    Record<
-      string,
-      ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>
-    >
+    Record<string, ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>>
   >;
 }
 
-export interface SchedulerContext<
-  TProfessionState extends object = SchedulerRecord,
-> {
+export interface SchedulerContext<TProfessionState extends object = SchedulerRecord> {
   readonly profession: NormalizedProfessionContract<TProfessionState>;
   readonly config: SchedulerConfig;
   readonly catalog: CanonicalCatalog;
@@ -626,40 +580,27 @@ export interface SchedulerContext<
   tasks: SchedulerTaskAccess;
   cooldownController: CooldownController;
   castDurationFor(context: CastContext<TProfessionState>, skill: Skill): number;
-  rechargeDurationFor(
-    skill: Skill,
-    at?: number,
-    details?: SchedulerRecord,
-  ): number;
+  rechargeDurationFor(skill: Skill, at?: number, details?: SchedulerRecord): number;
   maximumAmmoFor(skill: Skill): number;
-  createActivationId(kind?: "effect" | "summon-attack" | string): string;
+  createActivationId(kind?: 'effect' | 'summon-attack' | string): string;
   advanceTo(at: number): void;
   emit(event: SimulationEventInput): SimulationEvent;
-  replaceEvent(
-    event: SimulationEvent,
-    updates: SchedulerRecord,
-  ): SimulationEvent;
-  emitDerived(
-    cause: SimulationEvent,
-    event: SimulationEventInput,
-  ): SimulationEvent;
+  replaceEvent(event: SimulationEvent, updates: SchedulerRecord): SimulationEvent;
+  emitDerived(cause: SimulationEvent, event: SimulationEventInput): SimulationEvent;
   buffStacks(kind: string, at?: number): number;
   hasBuff(kind: string, at?: number): boolean;
 }
 
-export type CastContext<TProfessionState extends object = SchedulerRecord> =
-  SchedulerContext<TProfessionState> &
-    SchedulerRecord & {
-      readonly command: CastCommand;
-      readonly commandIndex: number;
-      readonly skill: Skill;
-      readonly start: number;
-      readonly ammo: AmmoState | null;
-    };
+export type CastContext<TProfessionState extends object = SchedulerRecord> = SchedulerContext<TProfessionState> &
+  SchedulerRecord & {
+    readonly command: CastCommand;
+    readonly commandIndex: number;
+    readonly skill: Skill;
+    readonly start: number;
+    readonly ammo: AmmoState | null;
+  };
 
-export type CastLifecycleContext<
-  TProfessionState extends object = SchedulerRecord,
-> = CastContext<TProfessionState> & {
+export type CastLifecycleContext<TProfessionState extends object = SchedulerRecord> = CastContext<TProfessionState> & {
   readonly action: SimulationEvent;
   readonly fullEnd: number;
   readonly effectiveEnd: number;
@@ -682,9 +623,7 @@ export interface SchedulerStep {
   readonly invalidReason?: string;
 }
 
-export interface SchedulerRunResult<
-  TProfessionState extends object = SchedulerRecord,
-> {
+export interface SchedulerRunResult<TProfessionState extends object = SchedulerRecord> {
   readonly context: SchedulerContext<TProfessionState>;
   readonly state: SchedulerState<TProfessionState>;
   readonly events: readonly SimulationEvent[];
@@ -770,7 +709,7 @@ export interface ProfessionPaletteGroup {
   readonly label: string;
   readonly skillIds: readonly SkillId[];
   /** Moves a profession group beside the indicated palette surface. */
-  readonly placement?: "profession" | "weapon-set-1" | "active-weapon";
+  readonly placement?: 'profession' | 'weapon-set-1' | 'active-weapon';
   /** Optional row label used when placing a group beside the active weapon. */
   readonly weaponRowLabel?: string;
   readonly resourceAnchor?: boolean;
@@ -780,7 +719,7 @@ export interface ProfessionPaletteGroup {
   /** Resource meters rendered in the same visual container as this group. */
   readonly resourceIds?: readonly string[];
   /** Where attached resources sit relative to the group's skills. */
-  readonly resourcePlacement?: "above" | "beside" | "below";
+  readonly resourcePlacement?: 'above' | 'beside' | 'below';
   readonly reservedSkillIds?: readonly number[];
   readonly skillEntries?: readonly SchedulerRecord[];
   readonly includeActionSkills?: boolean;
@@ -795,10 +734,7 @@ export interface ProfessionPaletteSkillRenderOptions {
   readonly view?: SchedulerRecord;
 }
 
-export type ProfessionPaletteSkillRenderer = (
-  skill: Skill,
-  options?: ProfessionPaletteSkillRenderOptions,
-) => string;
+export type ProfessionPaletteSkillRenderer = (skill: Skill, options?: ProfessionPaletteSkillRenderOptions) => string;
 
 export type ProfessionWeaponPaletteRenderContext = SchedulerRecord & {
   readonly skills: readonly Skill[];
@@ -828,7 +764,7 @@ export interface ProfessionSkillBarGroup extends SchedulerRecord {
   /** Presentation-only child-to-root links rendered like autoattack chains. */
   readonly inspectionChainRoots?: Readonly<Record<string, SkillId>>;
   /** Places a read-only mechanic group with the weapon previews. */
-  readonly placement?: "skill-bar" | "weapon-bar";
+  readonly placement?: 'skill-bar' | 'weapon-bar';
   readonly selections?: readonly ProfessionSkillBarSelection[];
   readonly optionSkillIds?: readonly SkillId[];
   readonly optionEntries?: readonly ProfessionSkillBarSelectionOption[];
@@ -906,90 +842,41 @@ export interface RotationStateSnapshotItem {
 
 export interface ProfessionUiContract {
   readonly assumptionControls: readonly SchedulerRecord[];
-  readonly chargeReleaseProjection: (
-    context: SchedulerRecord,
-  ) => SchedulerRecord | null;
+  readonly chargeReleaseProjection: (context: SchedulerRecord) => SchedulerRecord | null;
   readonly eventLogRow?: (
     context: SchedulerRecord,
-    event: SimulationEvent,
+    event: SimulationEvent
   ) => ProfessionEventLogDescriptor | null | undefined;
-  readonly isPaletteSkillInstant: (
-    context: SchedulerRecord,
-    skill: Skill,
-  ) => boolean;
-  readonly paletteSkillAvailability: (
-    context: SchedulerRecord,
-    skill: Skill,
-  ) => PaletteSkillAvailability;
-  readonly isPaletteSkillAvailable: (
-    context: SchedulerRecord,
-    skill: Skill,
-  ) => boolean;
-  readonly isSlotSkillSelectable: (
-    context: SchedulerRecord,
-    skill: Skill,
-  ) => boolean;
-  readonly paletteSkillUnavailableMessage: (
-    context: SchedulerRecord,
-    skill: Skill,
-  ) => string;
-  readonly paletteGroups: (
-    context: SchedulerRecord,
-  ) => ProfessionPaletteGroup[];
+  readonly isPaletteSkillInstant: (context: SchedulerRecord, skill: Skill) => boolean;
+  readonly paletteSkillAvailability: (context: SchedulerRecord, skill: Skill) => PaletteSkillAvailability;
+  readonly isPaletteSkillAvailable: (context: SchedulerRecord, skill: Skill) => boolean;
+  readonly isSlotSkillSelectable: (context: SchedulerRecord, skill: Skill) => boolean;
+  readonly paletteSkillUnavailableMessage: (context: SchedulerRecord, skill: Skill) => string;
+  readonly paletteGroups: (context: SchedulerRecord) => ProfessionPaletteGroup[];
   /** Adds or projects profession-owned actions before the shell renders them. */
-  readonly paletteActionSkills: (
-    context: SchedulerRecord,
-    skills: readonly Skill[],
-  ) => Skill[];
+  readonly paletteActionSkills: (context: SchedulerRecord, skills: readonly Skill[]) => Skill[];
   /** Projects profession state into the weapon skills rendered by the shell. */
-  readonly paletteWeaponSkills: (
-    context: SchedulerRecord,
-    skills: readonly Skill[],
-  ) => Skill[];
+  readonly paletteWeaponSkills: (context: SchedulerRecord, skills: readonly Skill[]) => Skill[];
   /** Lets a specialization own an exceptional weapon layout without shell policy. */
-  readonly renderWeaponPalette: (
-    context: ProfessionWeaponPaletteRenderContext,
-  ) => ProfessionWeaponPaletteView | null;
+  readonly renderWeaponPalette: (context: ProfessionWeaponPaletteRenderContext) => ProfessionWeaponPaletteView | null;
   /** Resolves a profession-owned palette action into canonical rotation items. */
   readonly resolvePaletteAction: (
     context: SchedulerRecord,
-    action: ProfessionPaletteActionIdentity,
+    action: ProfessionPaletteActionIdentity
   ) => LegacyRotationItem | LegacyRotationItem[] | null | undefined;
   /** Applies a profession-owned palette control action to mutable build state. */
-  readonly updatePaletteControl: (
-    context: SchedulerRecord,
-    controlId: string,
-  ) => boolean;
-  readonly resourceView: (
-    context: SchedulerRecord,
-  ) => ProfessionResourceView | null;
-  readonly resourceViews: (
-    context: SchedulerRecord,
-  ) => ProfessionResourceView[];
-  readonly skillBarGroups: (
-    context: SchedulerRecord,
-  ) => ProfessionSkillBarGroup[];
-  readonly startControls: (
-    context: SchedulerRecord,
-  ) => ProfessionStartControl[];
+  readonly updatePaletteControl: (context: SchedulerRecord, controlId: string) => boolean;
+  readonly resourceView: (context: SchedulerRecord) => ProfessionResourceView | null;
+  readonly resourceViews: (context: SchedulerRecord) => ProfessionResourceView[];
+  readonly skillBarGroups: (context: SchedulerRecord) => ProfessionSkillBarGroup[];
+  readonly startControls: (context: SchedulerRecord) => ProfessionStartControl[];
   readonly slotLoadout: SchedulerRecord | null;
   readonly targetHealthThresholds: (context: SchedulerRecord) => number[];
-  readonly rotationStateSnapshot: (
-    context: SchedulerRecord,
-  ) => RotationStateSnapshotItem[];
-  readonly timelineWeaponLineTransition: (
-    context: SchedulerRecord,
-  ) => string | null | undefined;
+  readonly rotationStateSnapshot: (context: SchedulerRecord) => RotationStateSnapshotItem[];
+  readonly timelineWeaponLineTransition: (context: SchedulerRecord) => string | null | undefined;
   readonly timelineSkillIcon: (context: SchedulerRecord) => string;
-  readonly updateSkillBarSelection: (
-    context: SchedulerRecord,
-    selection: SchedulerRecord,
-  ) => boolean;
-  readonly weaponSkillMatchesSet?: (
-    skill: Skill,
-    weapons: string[],
-    context: SchedulerRecord,
-  ) => boolean;
+  readonly updateSkillBarSelection: (context: SchedulerRecord, selection: SchedulerRecord) => boolean;
+  readonly weaponSkillMatchesSet?: (skill: Skill, weapons: string[], context: SchedulerRecord) => boolean;
   readonly weaponSwapChangesSet: boolean;
 }
 
@@ -1004,12 +891,8 @@ export interface ProfessionBuildDefinition {
   readonly validateBuild?: (build: SchedulerRecord) => BuildValidationResult;
 }
 
-export interface ProfessionResourceDefinition<
-  TProfessionState extends object = SchedulerRecord,
-> {
-  readonly createProfessionState?: (
-    config: Readonly<SchedulerConfig>,
-  ) => TProfessionState;
+export interface ProfessionResourceDefinition<TProfessionState extends object = SchedulerRecord> {
+  readonly createProfessionState?: (config: Readonly<SchedulerConfig>) => TProfessionState;
   readonly createResolverState?: (config: Readonly<SchedulerConfig>) => object;
   readonly projectEndState?: unknown;
 }
@@ -1032,21 +915,15 @@ export interface ProfessionSchedulerHookDefinition {
   readonly modifyRechargeDuration?: unknown;
   readonly modifyRechargeStart?: unknown;
   readonly modifyMaximumAmmo?: unknown;
-  readonly taskHandlers?: Readonly<
-    Record<string, (...args: never[]) => unknown>
-  >;
+  readonly taskHandlers?: Readonly<Record<string, (...args: never[]) => unknown>>;
 }
 
 export interface ProfessionResolverHookDefinition {
-  readonly eventHandlers?: Readonly<
-    Record<string, (...args: never[]) => unknown>
-  >;
+  readonly eventHandlers?: Readonly<Record<string, (...args: never[]) => unknown>>;
   readonly eventReactions?: Readonly<Record<string, unknown>>;
 }
 
-export interface ProfessionDefinition<
-  TProfessionState extends object = SchedulerRecord,
-> {
+export interface ProfessionDefinition<TProfessionState extends object = SchedulerRecord> {
   readonly id: string;
   readonly name: string;
   readonly catalog?: CanonicalCatalog;
@@ -1058,37 +935,29 @@ export interface ProfessionDefinition<
   readonly resolverHooks?: ProfessionResolverHookDefinition;
   readonly ui?: Partial<ProfessionUiContract> & SchedulerRecord;
   readonly simulation?: SchedulerRecord | null;
-  readonly createProfessionState?: (
-    config: Readonly<SchedulerConfig>,
-  ) => TProfessionState;
+  readonly createProfessionState?: (config: Readonly<SchedulerConfig>) => TProfessionState;
   readonly createResolverState?: (config: Readonly<SchedulerConfig>) => object;
-  readonly eventHandlers?: Readonly<
-    Record<string, (...args: never[]) => unknown>
-  >;
+  readonly eventHandlers?: Readonly<Record<string, (...args: never[]) => unknown>>;
   readonly eventReactions?: Readonly<Record<string, unknown>>;
 }
 
 export interface ProfessionModuleCatalogFragment {
   readonly skills?: readonly Skill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
-  readonly skillHandlers?:
-    ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>>;
+  readonly skillHandlers?: ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>>;
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
   readonly weapons?: readonly string[];
-  readonly weaponHands?:
-    ReadonlyMap<string, string> | Readonly<Record<string, string>>;
+  readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
   readonly autoattackChains?: {
     readonly additional?: readonly (readonly SkillId[])[];
     readonly excludeSkillIds?: readonly SkillId[];
   };
-  readonly skillNameCollision?: "first" | "last";
+  readonly skillNameCollision?: 'first' | 'last';
   readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
 }
 
-export interface ProfessionModuleDefinition<
-  TModuleState extends object = SchedulerRecord,
-> {
+export interface ProfessionModuleDefinition<TModuleState extends object = SchedulerRecord> {
   readonly id: string;
   readonly catalog?: ProfessionModuleCatalogFragment;
   readonly resources?: ProfessionResourceDefinition<TModuleState>;
@@ -1101,7 +970,7 @@ export interface ProfessionModuleDefinition<
 
 export interface ComposedProfessionState<
   TCoreState extends object = SchedulerRecord,
-  TSpecializationState extends object = SchedulerRecord,
+  TSpecializationState extends object = SchedulerRecord
 > {
   readonly core: TCoreState;
   readonly specialization: {
@@ -1110,17 +979,13 @@ export interface ComposedProfessionState<
   };
 }
 
-export interface ProfessionFamilyDefinition<
-  TProfessionState extends object = SchedulerRecord,
-> {
+export interface ProfessionFamilyDefinition<TProfessionState extends object = SchedulerRecord> {
   readonly id: string;
   readonly name: string;
   readonly catalog: CanonicalCatalog;
   readonly build?: ProfessionBuildDefinition;
   readonly core: ProfessionModuleDefinition<any>;
-  readonly specializations: Readonly<
-    Record<string, ProfessionModuleDefinition<any>>
-  >;
+  readonly specializations: Readonly<Record<string, ProfessionModuleDefinition<any>>>;
   /**
    * Application-only callbacks that are genuinely global to the family.
    * Runtime callbacks belong to Core or the active specialization module.
@@ -1129,132 +994,59 @@ export interface ProfessionFamilyDefinition<
   readonly simulation?: SchedulerRecord | null;
 }
 
-export interface NormalizedProfessionContract<
-  TProfessionState extends object = SchedulerRecord,
-> {
+export interface NormalizedProfessionContract<TProfessionState extends object = SchedulerRecord> {
   readonly id: string;
   readonly name: string;
   readonly catalog: CanonicalCatalog;
   readonly ui: ProfessionUiContract;
   readonly simulation: SchedulerRecord | null;
-  readonly skillHandlerFor: (
-    skill: Skill,
-  ) => SkillHandlerStrategy<CastLifecycleContext<TProfessionState>> | null;
+  readonly skillHandlerFor: (skill: Skill) => SkillHandlerStrategy<CastLifecycleContext<TProfessionState>> | null;
   readonly createBuildDefaults: () => SchedulerRecord;
   readonly migrateBuild: (saved: SchedulerRecord) => SchedulerRecord;
   readonly validateBuild: (build: SchedulerRecord) => BuildValidationResult;
-  readonly createProfessionState: (
-    config: Readonly<SchedulerConfig>,
-  ) => TProfessionState;
-  readonly createResolverState:
-    ((config: Readonly<SchedulerConfig>) => object) | null;
+  readonly createProfessionState: (config: Readonly<SchedulerConfig>) => TProfessionState;
+  readonly createResolverState: ((config: Readonly<SchedulerConfig>) => object) | null;
   readonly taskHandlers: Readonly<
-    Record<
-      string,
-      ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>
-    >
+    Record<string, ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>>
   >;
-  readonly eventHandlers: Readonly<
-    Record<string, (...args: never[]) => unknown>
-  >;
-  readonly eventReactions: Readonly<
-    Record<string, (...args: never[]) => unknown>
-  >;
+  readonly eventHandlers: Readonly<Record<string, (...args: never[]) => unknown>>;
+  readonly eventReactions: Readonly<Record<string, (...args: never[]) => unknown>>;
   readonly prepareEvent: (
     context: SchedulerContext<TProfessionState>,
-    event: SimulationEventInput,
+    event: SimulationEventInput
   ) => SimulationEventInput;
   readonly initialize: (context: SchedulerContext<TProfessionState>) => unknown;
-  readonly availability: (
-    context: CastContext<TProfessionState>,
-    skill: Skill,
-  ) => AvailabilityResult;
-  readonly validateCast: (
-    context: CastContext<TProfessionState>,
-    skill: Skill,
-  ) => boolean;
-  readonly scheduleSkill: (
-    context: CastLifecycleContext<TProfessionState>,
-    skill: Skill,
-  ) => boolean | void;
-  readonly afterCast: (
-    context: CastLifecycleContext<TProfessionState>,
-    skill: Skill,
-  ) => unknown;
-  readonly advance: (
-    context: SchedulerContext<TProfessionState>,
-    at: number,
-  ) => unknown;
+  readonly availability: (context: CastContext<TProfessionState>, skill: Skill) => AvailabilityResult;
+  readonly validateCast: (context: CastContext<TProfessionState>, skill: Skill) => boolean;
+  readonly scheduleSkill: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => boolean | void;
+  readonly afterCast: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;
+  readonly advance: (context: SchedulerContext<TProfessionState>, at: number) => unknown;
   readonly snapshot: (context: SchedulerContext<TProfessionState>) => unknown;
   readonly projectEndState: (...args: never[]) => unknown;
-  readonly onCastStart: (
-    context: CastLifecycleContext<TProfessionState>,
-    skill: Skill,
-  ) => unknown;
-  readonly onCastComplete: (
-    context: CastLifecycleContext<TProfessionState>,
-    skill: Skill,
-  ) => unknown;
-  readonly onCooldownReset: (
-    context: SchedulerContext<TProfessionState>,
-  ) => unknown;
-  readonly onEventScheduled: (
-    context: SchedulerContext<TProfessionState>,
-    event: SimulationEvent,
-  ) => unknown;
-  readonly modifyCastDuration: (
-    context: CastContext<TProfessionState>,
-    duration: number,
-  ) => number;
+  readonly onCastStart: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;
+  readonly onCastComplete: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;
+  readonly onCooldownReset: (context: SchedulerContext<TProfessionState>) => unknown;
+  readonly onEventScheduled: (context: SchedulerContext<TProfessionState>, event: SimulationEvent) => unknown;
+  readonly modifyCastDuration: (context: CastContext<TProfessionState>, duration: number) => number;
   readonly modifyRechargeDuration: (
     context: SchedulerContext<TProfessionState> & SchedulerRecord,
-    duration: number,
+    duration: number
   ) => number;
-  readonly modifyRechargeStart: (
-    context: CastContext<TProfessionState> & SchedulerRecord,
-    start: number,
-  ) => number;
+  readonly modifyRechargeStart: (context: CastContext<TProfessionState> & SchedulerRecord, start: number) => number;
   readonly modifyMaximumAmmo: (
     context: SchedulerContext<TProfessionState> & { skill: Skill },
-    maximum: number,
+    maximum: number
   ) => number;
-  readonly modifyAttributes: (
-    context: SchedulerRecord,
-    attributes: SchedulerRecord,
-  ) => SchedulerRecord;
-  readonly modifyCriticalChance: (
-    context: SchedulerRecord,
-    chance: number,
-  ) => number;
-  readonly modifyCriticalDamage: (
-    context: SchedulerRecord,
-    multiplier: number,
-  ) => number;
-  readonly modifyStrikeDamage: (
-    context: SchedulerRecord,
-    multiplier: number,
-  ) => number;
-  readonly modifyConditionDamage: (
-    context: SchedulerRecord,
-    multiplier: number,
-  ) => number;
-  readonly modifyConditionBaseDuration: (
-    context: SchedulerRecord,
-    multiplier: number,
-  ) => number;
-  readonly modifyConditionDuration: (
-    context: SchedulerRecord,
-    multiplier: number,
-  ) => number;
-  readonly paletteGroups: (
-    context: SchedulerRecord,
-  ) => ProfessionPaletteGroup[];
-  readonly resourceView: (
-    context: SchedulerRecord,
-  ) => ProfessionResourceView | null;
-  readonly resourceViews: (
-    context: SchedulerRecord,
-  ) => ProfessionResourceView[];
+  readonly modifyAttributes: (context: SchedulerRecord, attributes: SchedulerRecord) => SchedulerRecord;
+  readonly modifyCriticalChance: (context: SchedulerRecord, chance: number) => number;
+  readonly modifyCriticalDamage: (context: SchedulerRecord, multiplier: number) => number;
+  readonly modifyStrikeDamage: (context: SchedulerRecord, multiplier: number) => number;
+  readonly modifyConditionDamage: (context: SchedulerRecord, multiplier: number) => number;
+  readonly modifyConditionBaseDuration: (context: SchedulerRecord, multiplier: number) => number;
+  readonly modifyConditionDuration: (context: SchedulerRecord, multiplier: number) => number;
+  readonly paletteGroups: (context: SchedulerRecord) => ProfessionPaletteGroup[];
+  readonly resourceView: (context: SchedulerRecord) => ProfessionResourceView | null;
+  readonly resourceViews: (context: SchedulerRecord) => ProfessionResourceView[];
 }
 
 export interface ProfessionApplicationContract {
@@ -1269,43 +1061,41 @@ export interface ProfessionApplicationContract {
 }
 
 export interface ProfessionFamilyContract<
-  TProfessionState extends object = SchedulerRecord,
+  TProfessionState extends object = SchedulerRecord
 > extends ProfessionApplicationContract {
   readonly resolveRuntime: (
-    config: Readonly<SchedulerConfig>,
+    config: Readonly<SchedulerConfig>
   ) => Readonly<NormalizedProfessionContract<TProfessionState>>;
 }
 
-export type ProfessionSource<
-  TProfessionState extends object = SchedulerRecord,
-> = NormalizedProfessionContract<TProfessionState> | ProfessionFamilyContract;
+export type ProfessionSource<TProfessionState extends object = SchedulerRecord> =
+  NormalizedProfessionContract<TProfessionState> | ProfessionFamilyContract;
 
 export interface CastCommand {
-  readonly type: "cast";
+  readonly type: 'cast';
   readonly skillId: SkillId;
   readonly concurrentOffsetMs?: number;
   readonly interruptAfterMs?: number;
   readonly preserveEffectsAfterInterrupt?: boolean;
   readonly releaseAtCharges?: number;
-  readonly doubleEdgeOutcome?: "success" | "backfire";
+  readonly doubleEdgeOutcome?: 'success' | 'backfire';
 }
 
 export interface WaitCommand {
-  readonly type: "wait";
+  readonly type: 'wait';
   readonly durationMs: number;
 }
 
 export interface CombatStartCommand {
-  readonly type: "combat-start";
+  readonly type: 'combat-start';
   readonly concurrentOffsetMs?: number;
 }
 
 export interface CooldownResetCommand {
-  readonly type: "cooldown-reset";
+  readonly type: 'cooldown-reset';
 }
 
-export type RotationCommand =
-  CastCommand | WaitCommand | CombatStartCommand | CooldownResetCommand;
+export type RotationCommand = CastCommand | WaitCommand | CombatStartCommand | CooldownResetCommand;
 
 export interface LegacyRotationEntry {
   name: SkillId;
@@ -1314,7 +1104,7 @@ export interface LegacyRotationEntry {
   interruptMs?: number | null;
   preserveEffectsAfterInterrupt?: boolean | null;
   releaseAtCharges?: number | null;
-  doubleEdgeOutcome?: "success" | "backfire" | null;
+  doubleEdgeOutcome?: 'success' | 'backfire' | null;
   waitMs?: number;
 }
 

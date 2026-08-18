@@ -1,20 +1,17 @@
-import { luminaryState } from "./state.js";
-import { professionCoreState } from "../../../../platform/engine/profession.js";
+import { luminaryState } from './state.js';
+import { professionCoreState } from '../../../../platform/engine/profession.js';
 /**
  * @fileoverview Implements Luminary Radiant Forge cast validation, mode
  * transitions, radiant-weapon effects, forge expiry, and resolver state
  * replay.
  */
 
-import { GUARDIAN_SKILL_IDS } from "../../data/ids.js";
-import { selectedGuardianSpecialization } from "../../core/availability.js";
-import { handleRadiantWeaponEquipped } from "./traits.js";
-import { buildGuardianStrike, emitGuardianEvent } from "../../core/events.js";
-import {
-  guardianBalanceProfile,
-  guardianBalanceProfileEffect,
-} from "../../core/profiles.js";
-import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from "./profiles.js";
+import { GUARDIAN_SKILL_IDS } from '../../data/ids.js';
+import { selectedGuardianSpecialization } from '../../core/availability.js';
+import { handleRadiantWeaponEquipped } from './traits.js';
+import { buildGuardianStrike, emitGuardianEvent } from '../../core/events.js';
+import { guardianBalanceProfile, guardianBalanceProfileEffect } from '../../core/profiles.js';
+import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import type {
   GuardianCastContext,
   GuardianEventContext,
@@ -23,8 +20,8 @@ import type {
   GuardianResolverContext,
   GuardianResolverEvent,
   GuardianSchedulerContext,
-  GuardianSkill,
-} from "../../types.js";
+  GuardianSkill
+} from '../../types.js';
 
 /**
  * Emits the sigil-swap trigger caused by equipping a radiant weapon.
@@ -37,16 +34,16 @@ import type {
 function emitForgeWeaponSwap(
   context: GuardianEventContext,
   skill: GuardianSkill,
-  event: GuardianEventExtra = {},
+  event: GuardianEventExtra = {}
 ): void {
   // sigil_swap (not weapon_set) so the sigil proc engine triggers on-swap
   // sigil procs for the radiant weapon equip without changing the active
   // weapon bar. mechanicSwap prevents the sigil engine from treating this as
   // a genuine player-initiated weapon swap for ICD purposes.
-  emitGuardianEvent(context, skill, "sigil_swap", {
+  emitGuardianEvent(context, skill, 'sigil_swap', {
     weaponSet: context.state.activeWeaponSet,
     mechanicSwap: true,
-    ...event,
+    ...event
   });
 }
 
@@ -61,12 +58,12 @@ function emitForgeWeaponSwap(
 function emitForgeTransition(
   context: GuardianEventContext,
   skill: GuardianSkill,
-  event: GuardianEventExtra = {},
+  event: GuardianEventExtra = {}
 ): void {
-  emitGuardianEvent(context, skill, "weapon_set", {
+  emitGuardianEvent(context, skill, 'weapon_set', {
     weaponSet: context.state.activeWeaponSet,
     mechanicSwap: true,
-    ...event,
+    ...event
   });
 }
 
@@ -78,27 +75,18 @@ function emitForgeTransition(
  * @param {GuardianSkill} skill Candidate skill.
  * @returns {boolean|undefined} Whether the relevant forge skill is castable.
  */
-export function validateRadiantForgeCast(
-  context: GuardianPrecastContext,
-  skill: GuardianSkill,
-): boolean | undefined {
-  if (skill.type === "Weapon" && luminaryState.from(context).radiantForge) {
+export function validateRadiantForgeCast(context: GuardianPrecastContext, skill: GuardianSkill): boolean | undefined {
+  if (skill.type === 'Weapon' && luminaryState.from(context).radiantForge) {
     return false;
   }
   if (skill.radiantForgeSkill) {
     return Boolean(luminaryState.from(context).radiantForge);
   }
-  if (skill.name === "Enter Radiant Forge") {
-    return (
-      selectedGuardianSpecialization(context) === "Luminary" &&
-      !luminaryState.from(context).radiantForge
-    );
+  if (skill.name === 'Enter Radiant Forge') {
+    return selectedGuardianSpecialization(context) === 'Luminary' && !luminaryState.from(context).radiantForge;
   }
-  if (skill.name === "Exit Radiant Forge") {
-    return (
-      selectedGuardianSpecialization(context) === "Luminary" &&
-      luminaryState.from(context).radiantForge
-    );
+  if (skill.name === 'Exit Radiant Forge') {
+    return selectedGuardianSpecialization(context) === 'Luminary' && luminaryState.from(context).radiantForge;
   }
 }
 
@@ -110,11 +98,8 @@ export function validateRadiantForgeCast(
  * @param {GuardianSkill} skill Enter or Exit Radiant Forge.
  * @returns {boolean} Always true because this replacing handler owns the cast.
  */
-function radiantForge(
-  context: GuardianCastContext,
-  skill: GuardianSkill,
-): boolean {
-  const entering = skill.name === "Enter Radiant Forge";
+function radiantForge(context: GuardianCastContext, skill: GuardianSkill): boolean {
+  const entering = skill.name === 'Enter Radiant Forge';
   const state = luminaryState.from(context);
   if (!entering) {
     // Cooldown is finalized on manual exit; automatic expiry calls this
@@ -124,35 +109,23 @@ function radiantForge(
   state.radiantForge = entering;
   state.radiantForgeEndsAt = entering
     ? context.effectiveEnd +
-      Number(
-        guardianBalanceProfileEffect(
-          guardianBalanceProfile(context, PROFILE.forge),
-          "buff",
-        )?.duration || 20,
-      )
+      Number(guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.forge), 'buff')?.duration || 20)
     : 0;
   state.radiantForgeEnteredAt = entering ? context.effectiveEnd : 0;
   // Reset active weapon so traits don't carry stale weapon state across entries.
-  state.radiantWeapon = "";
+  state.radiantWeapon = '';
   // Autoattack chains must be wiped because the weapon bar changes entirely.
   professionCoreState(context).autoattackChains = {};
   if (entering) {
     state.radiantWeaponsUsed = {};
   }
   if (!entering) professionCoreState(context).availableFlips = {};
-  emitGuardianEvent(
-    context,
-    skill,
-    entering
-      ? "guardian.radiant-forge-entered"
-      : "guardian.radiant-forge-exited",
-    {
-      radiantForge: state.radiantForge,
-      radiantForgeEndsAt: state.radiantForgeEndsAt,
-      radiantForgeEnteredAt: state.radiantForgeEnteredAt,
-      radiantWeapon: state.radiantWeapon,
-    },
-  );
+  emitGuardianEvent(context, skill, entering ? 'guardian.radiant-forge-entered' : 'guardian.radiant-forge-exited', {
+    radiantForge: state.radiantForge,
+    radiantForgeEndsAt: state.radiantForgeEndsAt,
+    radiantForgeEnteredAt: state.radiantForgeEnteredAt,
+    radiantWeapon: state.radiantWeapon
+  });
   emitForgeTransition(context, skill);
   return true;
 }
@@ -166,10 +139,7 @@ function radiantForge(
  * @returns {boolean} True for interrupted casts; otherwise false so declared
  * effects remain authoritative.
  */
-function radiantWeapon(
-  context: GuardianCastContext,
-  skill: GuardianSkill,
-): boolean {
+function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): boolean {
   // Return true (interrupted) so the engine discards declared effects; the
   // handler owns all output and must suppress on interrupt.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
@@ -178,16 +148,10 @@ function radiantWeapon(
     handleRadiantWeaponEquipped(context, skill);
     emitForgeWeaponSwap(context, skill);
   }
-  if (
-    skill.id === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER &&
-    luminaryState.from(context).radiantJusticeArmed
-  ) {
-    const profile = guardianBalanceProfile(
-      context,
-      PROFILE.radiantJusticeImpact,
-    );
-    const strike = guardianBalanceProfileEffect(profile, "strike");
-    const vulnerability = guardianBalanceProfileEffect(profile, "buff");
+  if (skill.id === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER && luminaryState.from(context).radiantJusticeArmed) {
+    const profile = guardianBalanceProfile(context, PROFILE.radiantJusticeImpact);
+    const strike = guardianBalanceProfileEffect(profile, 'strike');
+    const vulnerability = guardianBalanceProfileEffect(profile, 'buff');
     const delay = Number(strike?.atMs || 750) / 1000;
     luminaryState.from(context).radiantJusticeArmed = false;
     context.emit(
@@ -196,49 +160,43 @@ function radiantWeapon(
         sourceId: skill.id,
         skillId: skill.id,
         skillName: skill.name,
-        name: "Dazzling Hammer — Radiant Justice Impact",
-        coefficient: Number(strike?.coefficient || 1.5),
-      }),
+        name: 'Dazzling Hammer — Radiant Justice Impact',
+        coefficient: Number(strike?.coefficient || 1.5)
+      })
     );
     context.emit({
-      type: "buff",
+      type: 'buff',
       at: context.effectiveEnd + delay,
-      source: "guardian",
+      source: 'guardian',
       sourceId: skill.id,
-      actorType: "effect",
+      actorType: 'effect',
       skillId: skill.id,
       skillName: skill.name,
-      kind: "target-vulnerability",
+      kind: 'target-vulnerability',
       stacks: Number(vulnerability?.stacks || 8),
-      duration: Number(vulnerability?.duration || 8),
+      duration: Number(vulnerability?.duration || 8)
     });
   }
-  if (
-    skill.id === GUARDIAN_SKILL_IDS.GLEAMING_BLADE &&
-    luminaryState.from(context).radiantCourageSwordArmed
-  ) {
+  if (skill.id === GUARDIAN_SKILL_IDS.GLEAMING_BLADE && luminaryState.from(context).radiantCourageSwordArmed) {
     luminaryState.from(context).radiantCourageSwordArmed = false;
     context.emit({
-      type: "buff",
+      type: 'buff',
       at: context.effectiveEnd,
-      source: "guardian",
+      source: 'guardian',
       sourceId: GUARDIAN_SKILL_IDS.RADIANT_COURAGE,
-      actorType: "player",
+      actorType: 'player',
       skillId: GUARDIAN_SKILL_IDS.RADIANT_COURAGE,
-      skillName: "Radiant Courage",
-      kind: "guardian-radiant-courage-sword",
+      skillName: 'Radiant Courage',
+      kind: 'guardian-radiant-courage-sword',
       stacks: 1,
       // Minimal duration: this buff is checked by the gleaming-blade modifier
       // rule at the exact cast end timestamp, so it only needs to exist for
       // that instant — a longer duration could incorrectly carry over to the
       // next cast.
-      duration: 0.001,
+      duration: 0.001
     });
   }
-  if (
-    skill.id === GUARDIAN_SKILL_IDS.RADIANT_BULWARK &&
-    luminaryState.from(context).radiantCourageShieldArmed
-  ) {
+  if (skill.id === GUARDIAN_SKILL_IDS.RADIANT_BULWARK && luminaryState.from(context).radiantCourageShieldArmed) {
     luminaryState.from(context).radiantCourageShieldArmed = false;
   }
   return false;
@@ -251,23 +209,18 @@ function radiantWeapon(
  * @param {GuardianSkill} skill Glaring Burst skill definition.
  * @returns {void}
  */
-function glaringBurst(
-  context: GuardianCastContext,
-  skill: GuardianSkill,
-): void {
+function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const radiantWeapon = luminaryState.from(context).radiantWeapon;
   const profileId =
-    radiantWeapon === "hammer"
+    radiantWeapon === 'hammer'
       ? PROFILE.glaringBurstHammer
-      : radiantWeapon === "blade"
+      : radiantWeapon === 'blade'
         ? PROFILE.glaringBurstBlade
         : null;
   const coefficient = Number(
-    guardianBalanceProfileEffect(
-      profileId ? guardianBalanceProfile(context, profileId) : undefined,
-      "strike",
-    )?.coefficient || 0,
+    guardianBalanceProfileEffect(profileId ? guardianBalanceProfile(context, profileId) : undefined, 'strike')
+      ?.coefficient || 0
   );
   if (coefficient <= 0) return;
   context.emit(
@@ -278,8 +231,8 @@ function glaringBurst(
       skillName: skill.name,
       name: skill.name,
       coefficient,
-      radiantWeapon,
-    }),
+      radiantWeapon
+    })
   );
 }
 
@@ -291,28 +244,20 @@ function glaringBurst(
  * @param {number} at Simulation time when the forge ends.
  * @returns {void}
  */
-function finalizeRadiantForgeCooldown(
-  context: GuardianSchedulerContext,
-  at: number,
-): void {
+function finalizeRadiantForgeCooldown(context: GuardianSchedulerContext, at: number): void {
   const state = luminaryState.from(context);
-  const enter = context.catalog.skillsById.get(
-    GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE,
-  );
+  const enter = context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE);
   if (!enter || !state.radiantForge) return;
   const used = Object.keys(state.radiantWeaponsUsed || {}).filter((weapon) =>
-    ["hammer", "staff", "blade", "bulwark"].includes(weapon),
+    ['hammer', 'staff', 'blade', 'bulwark'].includes(weapon)
   ).length;
   const forge = guardianBalanceProfile(context, PROFILE.forge);
   // Each unused weapon slot adds 5 s to the recharge (capped at 5 s minimum).
   const unused = Math.max(0, Number(forge?.maximumStacks || 4) - used);
-  const baseRecharge = Math.max(
-    0,
-    Number(enter.cooldown ?? enter.recharge ?? 10),
-  );
+  const baseRecharge = Math.max(0, Number(enter.cooldown ?? enter.recharge ?? 10));
   const adjustedBase = Math.max(
     Number(forge?.threshold || 5),
-    baseRecharge - unused * Number(forge?.rechargeReduction || 5),
+    baseRecharge - unused * Number(forge?.rechargeReduction || 5)
   );
   // Preserve the ratio of effective-to-base recharge so alacrity/recharge
   // traits still apply proportionally to the adjusted cooldown.
@@ -329,10 +274,7 @@ function finalizeRadiantForgeCooldown(
  * @param {GuardianSkill} skill Completed skill.
  * @returns {void}
  */
-export function clearRadiantForgeEntryCooldown(
-  context: GuardianCastContext,
-  skill: GuardianSkill,
-): void {
+export function clearRadiantForgeEntryCooldown(context: GuardianCastContext, skill: GuardianSkill): void {
   if (skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE) {
     context.state.cooldowns.delete(skill.id);
   }
@@ -342,9 +284,9 @@ export function clearRadiantForgeEntryCooldown(
  * Raw Radiant Forge callbacks consumed by the central handler registry.
  */
 export const guardianRadiantForgeSkillHandlers = Object.freeze({
-  "guardian.radiant-forge": radiantForge,
-  "guardian.radiant-weapon": radiantWeapon,
-  "guardian.glaring-burst": glaringBurst,
+  'guardian.radiant-forge': radiantForge,
+  'guardian.radiant-weapon': radiantWeapon,
+  'guardian.glaring-burst': glaringBurst
 });
 
 /**
@@ -355,20 +297,13 @@ export const guardianRadiantForgeSkillHandlers = Object.freeze({
  * event.
  * @returns {void}
  */
-function handleRadiantForgeTransition(
-  context: GuardianResolverContext,
-  event: GuardianResolverEvent,
-): void {
+function handleRadiantForgeTransition(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   // One handler serves both entered and exited events; the event payload
   // carries the full post-transition snapshot so no conditional logic is needed.
   luminaryState.from(context).radiantForge = Boolean(event.radiantForge);
-  luminaryState.from(context).radiantForgeEndsAt = Number(
-    event.radiantForgeEndsAt || 0,
-  );
-  luminaryState.from(context).radiantForgeEnteredAt = Number(
-    event.radiantForgeEnteredAt || 0,
-  );
-  luminaryState.from(context).radiantWeapon = String(event.radiantWeapon || "");
+  luminaryState.from(context).radiantForgeEndsAt = Number(event.radiantForgeEndsAt || 0);
+  luminaryState.from(context).radiantForgeEnteredAt = Number(event.radiantForgeEnteredAt || 0);
+  luminaryState.from(context).radiantWeapon = String(event.radiantWeapon || '');
   if (!luminaryState.from(context).radiantForge) {
     // Clear flips so the resolver doesn't offer Exit Radiant Forge after expiry.
     professionCoreState(context).availableFlips = {};
@@ -379,8 +314,8 @@ function handleRadiantForgeTransition(
  * Resolver handlers for Radiant Forge timeline events.
  */
 export const guardianRadiantForgeEventHandlers = Object.freeze({
-  "guardian.radiant-forge-entered": handleRadiantForgeTransition,
-  "guardian.radiant-forge-exited": handleRadiantForgeTransition,
+  'guardian.radiant-forge-entered': handleRadiantForgeTransition,
+  'guardian.radiant-forge-exited': handleRadiantForgeTransition
 });
 
 /**
@@ -391,38 +326,30 @@ export const guardianRadiantForgeEventHandlers = Object.freeze({
  * @param {number} target Target simulation time.
  * @returns {void}
  */
-export function advanceRadiantForgeState(
-  context: GuardianSchedulerContext,
-  target: number,
-): void {
+export function advanceRadiantForgeState(context: GuardianSchedulerContext, target: number): void {
   const state = luminaryState.from(context);
-  if (
-    state.radiantForge &&
-    state.radiantForgeEndsAt <= target + context.epsilon
-  ) {
+  if (state.radiantForge && state.radiantForgeEndsAt <= target + context.epsilon) {
     const expiredAt = state.radiantForgeEndsAt;
     finalizeRadiantForgeCooldown(context, expiredAt);
-    const exit = context.catalog.skillsById.get(
-      GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE,
-    );
+    const exit = context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE);
     if (exit) {
-      emitGuardianEvent(context, exit, "guardian.radiant-forge-exited", {
+      emitGuardianEvent(context, exit, 'guardian.radiant-forge-exited', {
         at: expiredAt,
         automatic: true,
         radiantForge: false,
         radiantForgeEndsAt: 0,
         radiantForgeEnteredAt: 0,
-        radiantWeapon: "",
+        radiantWeapon: ''
       });
       emitForgeTransition(context, exit, {
         at: expiredAt,
-        automatic: true,
+        automatic: true
       });
     }
     state.radiantForge = false;
     state.radiantForgeEndsAt = 0;
     state.radiantForgeEnteredAt = 0;
-    state.radiantWeapon = "";
+    state.radiantWeapon = '';
     professionCoreState(context).autoattackChains = {};
     professionCoreState(context).availableFlips = {};
   }

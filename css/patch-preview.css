@@ -24,7 +24,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font:
-    13px/1.45 "Segoe UI",
+    13px/1.45 'Segoe UI',
     system-ui,
     sans-serif;
 }
@@ -66,7 +66,7 @@ textarea:focus-visible {
 
 code,
 pre {
-  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-family: 'Cascadia Code', 'SFMono-Regular', Consolas, monospace;
 }
 
 .patch-page-shell {
@@ -174,10 +174,7 @@ pre {
 
 .patch-preview-meta {
   display: grid;
-  grid-template-columns: minmax(160px, 0.8fr) minmax(220px, 1.2fr) 150px minmax(
-      260px,
-      2fr
-    );
+  grid-template-columns: minmax(160px, 0.8fr) minmax(220px, 1.2fr) 150px minmax(260px, 2fr);
   gap: 10px;
   padding: 14px;
   border: 1px solid var(--border);
@@ -818,8 +815,8 @@ pre {
   resize: vertical;
   color: #c9d2df;
   font:
-    11px/1.5 "Cascadia Code",
-    "SFMono-Regular",
+    11px/1.5 'Cascadia Code',
+    'SFMono-Regular',
     Consolas,
     monospace;
 }

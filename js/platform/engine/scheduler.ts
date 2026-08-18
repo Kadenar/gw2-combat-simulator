@@ -1,28 +1,16 @@
-import { ACTION_SAFETY_LIMIT, EPSILON } from "./clock.js";
-import { foldAvailability } from "./availability.js";
-import { createEvent } from "./events.js";
-import {
-  effectFirstAt,
-  materializeSkillEffectApplications,
-} from "./effect-materializer.js";
-import { createCooldownController } from "./cooldown-controller.js";
-import {
-  normalizeObservationPolicy,
-  observationEndTime,
-} from "./observation-policy.js";
-import { normalizeRotation } from "./rotation-commands.js";
-import { createSchedulerState } from "./scheduler-state.js";
-import { buildScheduledEventStream } from "./scheduled-event-stream.js";
-import { sortQueuedEvents } from "./event-queue.js";
-import { createTaskQueue } from "./task-queue.js";
-import {
-  cloneProfessionState,
-  resolveProfessionRuntime,
-} from "./profession.js";
-import {
-  resolveSkillHandlerMode,
-  SKILL_HANDLER_MODES,
-} from "./skill-handlers.js";
+import { ACTION_SAFETY_LIMIT, EPSILON } from './clock.js';
+import { foldAvailability } from './availability.js';
+import { createEvent } from './events.js';
+import { effectFirstAt, materializeSkillEffectApplications } from './effect-materializer.js';
+import { createCooldownController } from './cooldown-controller.js';
+import { normalizeObservationPolicy, observationEndTime } from './observation-policy.js';
+import { normalizeRotation } from './rotation-commands.js';
+import { createSchedulerState } from './scheduler-state.js';
+import { buildScheduledEventStream } from './scheduled-event-stream.js';
+import { sortQueuedEvents } from './event-queue.js';
+import { createTaskQueue } from './task-queue.js';
+import { cloneProfessionState, resolveProfessionRuntime } from './profession.js';
+import { resolveSkillHandlerMode, SKILL_HANDLER_MODES } from './skill-handlers.js';
 import type {
   AmmoState,
   AvailabilityResult,
@@ -49,8 +37,8 @@ import type {
   SimulationEventInput,
   Skill,
   SkillId,
-  TaskQueue,
-} from "./types.js";
+  TaskQueue
+} from './types.js';
 
 interface CastReservation<TProfessionState extends object> {
   id: string;
@@ -98,13 +86,9 @@ function cancelledBeforeInterruptCommit<TProfessionState extends object>(
   skill: Skill,
   start: number,
   fullEnd: number,
-  effectiveEnd: number,
+  effectiveEnd: number
 ): boolean {
-  if (
-    skill.interruptCommitMs == null ||
-    effectiveEnd >= fullEnd - context.epsilon
-  )
-    return false;
+  if (skill.interruptCommitMs == null || effectiveEnd >= fullEnd - context.epsilon) return false;
   const elapsedMs = (effectiveEnd - start) * 1000;
   return elapsedMs + context.epsilon * 1000 < Number(skill.interruptCommitMs);
 }
@@ -124,15 +108,10 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
   effectiveEnd: number,
   cancelledBeforeCommit: boolean,
   preserveEffectsAfterInterrupt: boolean,
-  observeEffect: (
-    event: SimulationEvent,
-    effect: SkillEffect,
-    effectIndex: number,
-  ) => void = () => {},
+  observeEffect: (event: SimulationEvent, effect: SkillEffect, effectIndex: number) => void = () => {}
 ): void {
   const interrupted = effectiveEnd < fullEnd - context.epsilon;
-  const slotSkill =
-    skill.type === "Heal" || skill.type === "Utility" || skill.type === "Elite";
+  const slotSkill = skill.type === 'Heal' || skill.type === 'Utility' || skill.type === 'Elite';
   const effects = skill.effects || [];
   for (let index = 0; index < effects.length; index += 1) {
     const effect = effects[index];
@@ -143,10 +122,10 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
           skill,
           start,
           fullEnd,
-          effectiveEnd,
+          effectiveEnd
         },
         skill,
-        effect,
+        effect
       ) ?? effect;
     const firstAt = effectFirstAt(start, fullEnd, timing);
     const cancelPendingEffects =
@@ -156,60 +135,44 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
     // An interrupt only suppresses effects that have not fired yet. Earlier
     // ticks remain in the stream even when the full cast never completes.
     // A committed channel can explicitly keep its remaining packets.
-    if (cancelPendingEffects && firstAt > effectiveEnd + context.epsilon)
-      continue;
+    if (cancelPendingEffects && firstAt > effectiveEnd + context.epsilon) continue;
     const base = {
       activationId,
       source: effect.source || context.profession.id,
       sourceId: effect.sourceId ?? skill.id,
-      actorType: effect.actorType || "player",
-      ...(effect.ownerActorType
-        ? { ownerActorType: effect.ownerActorType }
-        : {}),
+      actorType: effect.actorType || 'player',
+      ...(effect.ownerActorType ? { ownerActorType: effect.ownerActorType } : {}),
       skillId: skill.id,
       skillName: skill.name,
-      ...(effect.persistsAfterInterrupt === true
-        ? { persistsAfterInterrupt: true }
-        : {}),
+      ...(effect.persistsAfterInterrupt === true ? { persistsAfterInterrupt: true } : {})
     };
     const baseDuration =
-      effect.type === "boon" || effect.type === "buff"
-        ? Math.max(0, Number(effect.duration || 0))
-        : undefined;
+      effect.type === 'boon' || effect.type === 'buff' ? Math.max(0, Number(effect.duration || 0)) : undefined;
     const duration =
       baseDuration == null
         ? undefined
-        : (context.schedulerPolicy.effectDuration?.(
-            context,
-            skill,
-            effect,
-            baseDuration,
-          ) ?? baseDuration);
+        : (context.schedulerPolicy.effectDuration?.(context, skill, effect, baseDuration) ?? baseDuration);
     const applications = materializeSkillEffectApplications({
       skill,
       effect: timing,
       start,
       fullEnd,
       baseEvent: base,
-      skillWeaponFallback: slotSkill ? "Unequipped" : "",
-      statusDuration: duration,
+      skillWeaponFallback: slotSkill ? 'Unequipped' : '',
+      statusDuration: duration
     });
 
     // An interrupt only suppresses applications that have not fired yet. Earlier
     // ticks remain in the stream even when the full cast never completes; a
     // committed channel can explicitly keep its remaining packets.
     for (const application of applications) {
-      if (
-        cancelPendingEffects &&
-        application.at > effectiveEnd + context.epsilon
-      )
-        break;
+      if (cancelPendingEffects && application.at > effectiveEnd + context.epsilon) break;
       observeEffect(context.emit(application.event), effect, index);
     }
   }
 }
 
-const CORE_CAST_COMPLETE = "platform.cast-complete";
+const CORE_CAST_COMPLETE = 'platform.cast-complete';
 
 /**
  * @param {string} reason
@@ -217,11 +180,7 @@ const CORE_CAST_COMPLETE = "platform.cast-complete";
  * @param {number | null} [retryAt]
  * @returns {AvailabilityResult}
  */
-function unavailable(
-  reason: string,
-  code = "platform.unavailable",
-  retryAt: number | null = null,
-): AvailabilityResult {
+function unavailable(reason: string, code = 'platform.unavailable', retryAt: number | null = null): AvailabilityResult {
   return { ready: false, retryAt, reason, code };
 }
 
@@ -230,17 +189,15 @@ function unavailable(
  * @returns {AvailabilityResult}
  */
 function combineAvailability(
-  results: readonly (AvailabilityResult | boolean | null | undefined)[],
+  results: readonly (AvailabilityResult | boolean | null | undefined)[]
 ): AvailabilityResult {
   return foldAvailability(
     (function* () {
       for (const result of results) {
         if (result == null || result === true) continue;
-        yield result === false
-          ? unavailable("The skill is unavailable.")
-          : result;
+        yield result === false ? unavailable('The skill is unavailable.') : result;
       }
-    })(),
+    })()
   );
 }
 
@@ -259,32 +216,29 @@ function combineAvailability(
  * }} [options]
  * @returns {Scheduler<TProfessionState>}
  */
-export function createScheduler<
-  TProfessionState extends object = SchedulerRecord,
->({
+export function createScheduler<TProfessionState extends object = SchedulerRecord>({
   profession,
   config = {},
   catalog,
   startingTime = 0,
   epsilon = EPSILON,
   schedulerPolicy = {},
-  observationPolicy,
+  observationPolicy
 }: CreateSchedulerOptions<TProfessionState> = {}): Scheduler<TProfessionState> {
-  if (!profession?.id) throw new TypeError("Scheduler requires a profession.");
+  if (!profession?.id) throw new TypeError('Scheduler requires a profession.');
   const activeProfession = resolveProfessionRuntime(profession, config);
   const activeCatalog = catalog ?? activeProfession.catalog;
-  const normalizedObservationPolicy =
-    normalizeObservationPolicy(observationPolicy);
+  const normalizedObservationPolicy = normalizeObservationPolicy(observationPolicy);
   const initialWeaponSet =
     schedulerPolicy.initialWeaponSet?.({
       profession: activeProfession,
-      config,
+      config
     }) ?? 1;
   const state = createSchedulerState({
     profession: activeProfession,
     config,
     startingTime,
-    activeWeaponSet: initialWeaponSet,
+    activeWeaponSet: initialWeaponSet
   });
   const events: SimulationEvent[] = [];
   const steps: SchedulerStep[] = [];
@@ -306,9 +260,7 @@ export function createScheduler<
   // the relevant buffs instead of the entire event log on every query.
   const buffIndex = new Map<string, SimulationEvent[]>();
   const buffKindKey = (event: SimulationEvent): string | null =>
-    event.type === "buff" && event.affectsSelf !== false
-      ? String(event.kind || "").toLowerCase()
-      : null;
+    event.type === 'buff' && event.affectsSelf !== false ? String(event.kind || '').toLowerCase() : null;
   const indexBuffEvent = (event: SimulationEvent): void => {
     const key = buffKindKey(event);
     if (key == null) return;
@@ -342,8 +294,7 @@ export function createScheduler<
   let taskQueue: TaskQueue<SchedulerContext<TProfessionState>, SchedulerRecord>;
 
   const skillFor = (skillId: SkillId): Skill | undefined =>
-    activeCatalog?.skillsById?.get(skillId) ||
-    activeCatalog?.skills?.find((skill) => skill.id === skillId);
+    activeCatalog?.skillsById?.get(skillId) || activeCatalog?.skills?.find((skill) => skill.id === skillId);
 
   const context: SchedulerContext<TProfessionState> = {
     profession: activeProfession,
@@ -356,9 +307,7 @@ export function createScheduler<
     schedulerPolicy,
     observationPolicy: normalizedObservationPolicy,
     observationEndTime:
-      normalizedObservationPolicy.kind === "absolute"
-        ? normalizedObservationPolicy.endTimeMs / 1000
-        : null,
+      normalizedObservationPolicy.kind === 'absolute' ? normalizedObservationPolicy.endTimeMs / 1000 : null,
     inFlight,
     hasExplicitCombatStart: false,
     combatStartTime: null,
@@ -368,18 +317,16 @@ export function createScheduler<
     rechargeDurationFor,
     maximumAmmoFor,
     advanceTo,
-    createActivationId(kind = "effect") {
-      const prefix = String(kind || "effect");
+    createActivationId(kind = 'effect') {
+      const prefix = String(kind || 'effect');
       return `${prefix}:${++activationOrder}`;
     },
     emit(/** @type {SimulationEventInput} */ event) {
       const professionPrepared = activeProfession.prepareEvent(context, event);
-      const prepared =
-        schedulerPolicy.prepareEvent?.(context, professionPrepared) ??
-        professionPrepared;
+      const prepared = schedulerPolicy.prepareEvent?.(context, professionPrepared) ?? professionPrepared;
       const normalized = createEvent({
         ...prepared,
-        __order: eventOrder++,
+        __order: eventOrder++
       });
       events.push(normalized);
       indexBuffEvent(normalized);
@@ -391,9 +338,7 @@ export function createScheduler<
         try {
           while (observationQueue.length) {
             if (++observationCount > ACTION_SAFETY_LIMIT) {
-              throw new Error(
-                "Scheduled-event observation safety limit exceeded.",
-              );
+              throw new Error('Scheduled-event observation safety limit exceeded.');
             }
             const observed = observationQueue.shift();
             if (observed) {
@@ -407,10 +352,7 @@ export function createScheduler<
       }
       return normalized;
     },
-    replaceEvent(
-      /** @type {SimulationEvent} */ event,
-      /** @type {SchedulerRecord} */ updates,
-    ) {
+    replaceEvent(/** @type {SimulationEvent} */ event, /** @type {SchedulerRecord} */ updates) {
       const replacement = createEvent({ ...event, ...updates });
       const replaceReference = (collection: SimulationEvent[]): void => {
         const index = collection.indexOf(event);
@@ -423,26 +365,21 @@ export function createScheduler<
       indexBuffEvent(replacement);
       return replacement;
     },
-    emitDerived(
-      /** @type {SimulationEvent} */ cause,
-      /** @type {SimulationEventInput} */ event,
-    ) {
-      const rootOrder = Math.floor(
-        Number(cause?.causalOrder ?? cause?.__order),
-      );
+    emitDerived(/** @type {SimulationEvent} */ cause, /** @type {SimulationEventInput} */ event) {
+      const rootOrder = Math.floor(Number(cause?.causalOrder ?? cause?.__order));
       if (!Number.isFinite(rootOrder)) {
-        throw new TypeError("Derived events require a scheduled cause.");
+        throw new TypeError('Derived events require a scheduled cause.');
       }
       const count = (derivedEventCounts.get(rootOrder) || 0) + 1;
       derivedEventCounts.set(rootOrder, count);
       return context.emit({
         ...event,
         causalOrder: rootOrder + count / 1_000_000,
-        triggeredBy: event.triggeredBy ?? cause.skillName ?? cause.name ?? "",
+        triggeredBy: event.triggeredBy ?? cause.skillName ?? cause.name ?? ''
       });
     },
     buffStacks(/** @type {string} */ kind, at = state.time) {
-      const normalized = String(kind || "").toLowerCase();
+      const normalized = String(kind || '').toLowerCase();
       const permanent = config.boons?.[normalized];
       const base = permanent === true ? 1 : Number(permanent || 0);
       // Scheduled buff events are already known even if the scheduler clock has
@@ -451,52 +388,30 @@ export function createScheduler<
       const bucket = buffIndex.get(normalized);
       let stacks = base;
       for (const event of bucket || []) {
-        if (
-          event.at <= at + epsilon &&
-          event.at + Number(event.duration || 0) > at + epsilon
-        ) {
+        if (event.at <= at + epsilon && event.at + Number(event.duration || 0) > at + epsilon) {
           stacks += Number(event.stacks || 1);
         }
       }
       return Math.max(
         0,
-        Number(
-          schedulerPolicy.buffStacks?.(
-            context,
-            normalized,
-            at,
-            base,
-            bucket || [],
-            stacks,
-          ) ?? stacks,
-        ),
+        Number(schedulerPolicy.buffStacks?.(context, normalized, at, base, bucket || [], stacks) ?? stacks)
       );
     },
     hasBuff(/** @type {string} */ kind, at = state.time) {
       return context.buffStacks(kind, at) > 0;
-    },
+    }
   };
 
   /**
    * @param {CastContext<TProfessionState>} castContext
    * @param {Skill} skill
    */
-  function castDurationFor(
-    castContext: CastContext<TProfessionState>,
-    skill: Skill,
-  ): number {
+  function castDurationFor(castContext: CastContext<TProfessionState>, skill: Skill): number {
     const baseDuration = baseDurationSeconds(skill);
     // Shared game rules run before profession-specific modifiers. The same
     // ordering is used for recharge and maximum-ammo calculations below.
-    const sharedDuration =
-      schedulerPolicy.castDuration?.(castContext, skill, baseDuration) ??
-      baseDuration;
-    return Math.max(
-      0,
-      Number(
-        activeProfession.modifyCastDuration(castContext, sharedDuration) || 0,
-      ),
-    );
+    const sharedDuration = schedulerPolicy.castDuration?.(castContext, skill, baseDuration) ?? baseDuration;
+    return Math.max(0, Number(activeProfession.modifyCastDuration(castContext, sharedDuration) || 0));
   }
 
   /**
@@ -504,16 +419,12 @@ export function createScheduler<
    * @param {number} [at]
    * @param {SchedulerRecord} [details]
    */
-  function rechargeDurationFor(
-    skill: Skill,
-    at = state.time,
-    details: SchedulerRecord = {},
-  ): number {
+  function rechargeDurationFor(skill: Skill, at = state.time, details: SchedulerRecord = {}): number {
     const rechargeContext = {
       ...context,
       ...details,
       skill,
-      at,
+      at
     };
     const ammoRecharge = Number(skill.ammoRecharge || 0);
     // Ammo skills have two independent timings: per-charge recharge and an
@@ -528,51 +439,25 @@ export function createScheduler<
             : 0
           : Number(skill.ammo || 0) > 0 && ammoRecharge > 0
             ? ammoRecharge
-            : (skill.cooldown ?? skill.recharge ?? 0),
-      ),
+            : (skill.cooldown ?? skill.recharge ?? 0)
+      )
     );
-    const sharedDuration =
-      schedulerPolicy.rechargeDuration?.(
-        rechargeContext,
-        skill,
-        baseDuration,
-      ) ?? baseDuration;
-    return Math.max(
-      0,
-      Number(
-        activeProfession.modifyRechargeDuration(
-          rechargeContext,
-          sharedDuration,
-        ) || 0,
-      ),
-    );
+    const sharedDuration = schedulerPolicy.rechargeDuration?.(rechargeContext, skill, baseDuration) ?? baseDuration;
+    return Math.max(0, Number(activeProfession.modifyRechargeDuration(rechargeContext, sharedDuration) || 0));
   }
 
   /** @param {Skill} skill */
   function maximumAmmoFor(skill: Skill): number {
     const baseMaximum = Math.max(0, Number(skill.ammo || 0));
-    const sharedMaximum =
-      schedulerPolicy.maximumAmmo?.(
-        { ...context, skill },
-        skill,
-        baseMaximum,
-      ) ?? baseMaximum;
-    return Math.max(
-      0,
-      Number(
-        activeProfession.modifyMaximumAmmo(
-          { ...context, skill },
-          sharedMaximum,
-        ) || 0,
-      ),
-    );
+    const sharedMaximum = schedulerPolicy.maximumAmmo?.({ ...context, skill }, skill, baseMaximum) ?? baseMaximum;
+    return Math.max(0, Number(activeProfession.modifyMaximumAmmo({ ...context, skill }, sharedMaximum) || 0));
   }
 
   const cooldownController = createCooldownController({
     state,
     epsilon,
     rechargeDuration: rechargeDurationFor,
-    maximumAmmo: maximumAmmoFor,
+    maximumAmmo: maximumAmmoFor
   });
   context.cooldownController = cooldownController;
   context.castDurationFor = castDurationFor;
@@ -583,12 +468,12 @@ export function createScheduler<
    * @param {SchedulerContext<TProfessionState>} _taskContext
    * @param {ScheduledTask<SchedulerRecord>} task
    */
-  const completeReservation: ScheduledTaskHandler<
-    SchedulerContext<TProfessionState>,
-    SchedulerRecord
-  > = (_taskContext, task) => {
+  const completeReservation: ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord> = (
+    _taskContext,
+    task
+  ) => {
     const reservationId = task.payload?.reservationId;
-    if (typeof reservationId !== "string") return;
+    if (typeof reservationId !== 'string') return;
     const reservation = reservations.get(reservationId);
     if (!reservation) return;
     const {
@@ -600,7 +485,7 @@ export function createScheduler<
       rechargeDuration,
       ammoLockoutDuration,
       rechargeStart,
-      rechargeReadyAt,
+      rechargeReadyAt
     } = reservation;
     const active = inFlight.get(skill.id);
     active?.delete(reservation.id);
@@ -608,11 +493,7 @@ export function createScheduler<
     if (reservation.ammo) {
       cooldownController.spendAmmo(skill, rechargeStart);
       if (ammoLockoutDuration > 0) {
-        cooldownController.setAmmoLockout(
-          skill,
-          rechargeStart + ammoLockoutDuration,
-          rechargeStart,
-        );
+        cooldownController.setAmmoLockout(skill, rechargeStart + ammoLockoutDuration, rechargeStart);
       }
     } else if (rechargeDuration) {
       state.cooldowns.set(skill.id, rechargeStart + rechargeDuration);
@@ -633,7 +514,7 @@ export function createScheduler<
         emit(event) {
           return context.emit({
             activationId: reservation.id,
-            ...event,
+            ...event
           });
         },
         tasks: {
@@ -643,23 +524,20 @@ export function createScheduler<
               ...task,
               payload: {
                 activationId: reservation.id,
-                ...(task.payload || {}),
-              },
+                ...(task.payload || {})
+              }
             });
-          },
-        },
+          }
+        }
       },
-      skill,
+      skill
     );
     reservations.delete(reservation.id);
   };
-  const taskHandlers: Record<
-    string,
-    ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>
-  > = {
+  const taskHandlers: Record<string, ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>> = {
     [CORE_CAST_COMPLETE]: completeReservation,
     ...(schedulerPolicy.taskHandlers || {}),
-    ...activeProfession.taskHandlers,
+    ...activeProfession.taskHandlers
   };
   const activationAwareTaskHandlers: Record<
     string,
@@ -667,18 +545,14 @@ export function createScheduler<
   > = Object.fromEntries(
     Object.entries(taskHandlers).map(([type, handler]) => [
       type,
-      (
-        taskContext: SchedulerContext<TProfessionState>,
-        task: ScheduledTask<SchedulerRecord>,
-      ) => {
+      (taskContext: SchedulerContext<TProfessionState>, task: ScheduledTask<SchedulerRecord>) => {
         const inheritedActivationId =
-          typeof task.payload?.activationId === "string"
+          typeof task.payload?.activationId === 'string'
             ? task.payload.activationId
-            : typeof task.payload?.reservationId === "string"
+            : typeof task.payload?.reservationId === 'string'
               ? task.payload.reservationId
               : null;
-        const taskActivationId =
-          inheritedActivationId || taskContext.createActivationId("effect");
+        const taskActivationId = inheritedActivationId || taskContext.createActivationId('effect');
         const scopedTasks = inheritedActivationId
           ? {
               ...taskContext.tasks,
@@ -687,10 +561,10 @@ export function createScheduler<
                   ...input,
                   payload: {
                     activationId: inheritedActivationId,
-                    ...(input.payload || {}),
-                  },
+                    ...(input.payload || {})
+                  }
                 });
-              },
+              }
             }
           : taskContext.tasks;
         return handler(
@@ -700,34 +574,32 @@ export function createScheduler<
             emit(event: SimulationEventInput) {
               return taskContext.emit({
                 activationId: taskActivationId,
-                ...event,
+                ...event
               });
-            },
+            }
           },
-          task,
+          task
         );
-      },
-    ]),
+      }
+    ])
   );
   // Later spreads intentionally win, allowing a profession to specialize a
   // policy task type while the core completion task remains the default.
   taskQueue = createTaskQueue({
     handlers: activationAwareTaskHandlers,
     epsilon,
-    safetyLimit: ACTION_SAFETY_LIMIT,
+    safetyLimit: ACTION_SAFETY_LIMIT
   });
   context.tasks = Object.freeze({
     schedule(task: ScheduledTaskInput<SchedulerRecord>) {
       if (Number(task?.at) < state.time - epsilon) {
-        throw new RangeError(
-          "Scheduled tasks cannot be placed before the clock.",
-        );
+        throw new RangeError('Scheduled tasks cannot be placed before the clock.');
       }
       return taskQueue.schedule(task);
     },
     cancel: taskQueue.cancel,
     cancelOwner: taskQueue.cancelOwner,
-    nextAt: taskQueue.nextAt,
+    nextAt: taskQueue.nextAt
   });
 
   /** @param {number} at */
@@ -742,7 +614,7 @@ export function createScheduler<
   function advanceTo(time: number): void {
     const target = Math.max(state.time, Number(time));
     if (!Number.isFinite(target)) {
-      throw new TypeError("Scheduler time must be finite.");
+      throw new TypeError('Scheduler time must be finite.');
     }
     while (taskQueue.nextAt() <= target + epsilon) {
       const next = Math.max(state.time, taskQueue.nextAt());
@@ -760,9 +632,7 @@ export function createScheduler<
     state.time = target;
     // pendingEvents is only a scheduler-side view of future work; the complete
     // canonical event list remains in events for the resolver handoff.
-    state.pendingEvents = state.pendingEvents.filter(
-      (event) => event.at > target + epsilon,
-    );
+    state.pendingEvents = state.pendingEvents.filter((event) => event.at > target + epsilon);
   }
   context.advanceTo = advanceTo;
 
@@ -770,55 +640,35 @@ export function createScheduler<
    * @param {Skill} skill
    * @param {number} at
    */
-  function engineAvailability(
-    skill: Skill,
-    at: number,
-  ): { ammo: AmmoState | null; result: AvailabilityResult } {
+  function engineAvailability(skill: Skill, at: number): { ammo: AmmoState | null; result: AvailabilityResult } {
     const ammo = cooldownController.refreshAmmo(skill, at);
     const readyAt = state.cooldowns.get(skill.id) || 0;
     const active = inFlight.get(skill.id);
     const activeReservations = active?.size
       ? [...active]
           .map((id) => reservations.get(id))
-          .filter(
-            (
-              /** @type {CastReservation<TProfessionState> | undefined} */ reservation,
-            ) => reservation != null,
-          )
+          .filter((/** @type {CastReservation<TProfessionState> | undefined} */ reservation) => reservation != null)
       : [];
     const reservedUntil = activeReservations.length
       ? Math.max(
-          ...activeReservations.map(
-            (reservation) =>
-              reservation.rechargeReadyAt ?? reservation.effectiveEnd ?? at,
-          ),
+          ...activeReservations.map((reservation) => reservation.rechargeReadyAt ?? reservation.effectiveEnd ?? at)
         )
       : 0;
     // rechargeReadyAt is preferred to effectiveEnd because a concurrent cast
     // cannot reuse the same skill while its reservation still owns recharge.
     const result: AvailabilityResult[] = [];
-    if (
-      (readyAt > at + epsilon && skill.usableWhileRecharging !== true) ||
-      (ammo && ammo.charges <= 0)
-    ) {
+    if ((readyAt > at + epsilon && skill.usableWhileRecharging !== true) || (ammo && ammo.charges <= 0)) {
       result.push(
-        unavailable(
-          `${skill.name} is on cooldown until ${readyAt.toFixed(3)}.`,
-          "platform.cooldown",
-          readyAt,
-        ),
+        unavailable(`${skill.name} is on cooldown until ${readyAt.toFixed(3)}.`, 'platform.cooldown', readyAt)
       );
     }
-    if (
-      reservedUntil > at + epsilon &&
-      skill.independentCastCanOverlap !== true
-    ) {
+    if (reservedUntil > at + epsilon && skill.independentCastCanOverlap !== true) {
       result.push(
         unavailable(
           `${skill.name} is already being cast until ${reservedUntil.toFixed(3)}.`,
-          "platform.in-flight",
-          reservedUntil,
-        ),
+          'platform.in-flight',
+          reservedUntil
+        )
       );
     }
     for (const lockout of skill.lockouts || []) {
@@ -826,11 +676,10 @@ export function createScheduler<
       if (lockoutReadyAt > at + epsilon) {
         result.push(
           unavailable(
-            `${skill.name} is locked by ${lockout.group} until ` +
-              `${lockoutReadyAt.toFixed(3)}.`,
-            "platform.skill-group-lockout",
-            lockoutReadyAt,
-          ),
+            `${skill.name} is locked by ${lockout.group} until ` + `${lockoutReadyAt.toFixed(3)}.`,
+            'platform.skill-group-lockout',
+            lockoutReadyAt
+          )
         );
       }
     }
@@ -847,7 +696,7 @@ export function createScheduler<
     skill: Skill,
     command: CastCommand,
     commandIndex: number,
-    start: number,
+    start: number
   ): {
     result: AvailabilityResult;
     castContext: CastContext<TProfessionState>;
@@ -858,45 +707,30 @@ export function createScheduler<
       commandIndex,
       skill,
       start,
-      ammo: state.ammo.get(skill.id) || null,
+      ammo: state.ammo.get(skill.id) || null
     };
-    const professionAvailability = activeProfession.availability(
-      preliminaryContext,
-      skill,
-    );
+    const professionAvailability = activeProfession.availability(preliminaryContext, skill);
     // A permanent profession denial cannot become valid after shared state is
     // refreshed, so return it before running policy/legacy validation.
-    if (
-      professionAvailability?.ready === false &&
-      professionAvailability.retryAt == null
-    ) {
+    if (professionAvailability?.ready === false && professionAvailability.retryAt == null) {
       return {
         result: professionAvailability,
-        castContext: preliminaryContext,
+        castContext: preliminaryContext
       };
     }
     const shared = engineAvailability(skill, start);
     const castContext: CastContext<TProfessionState> = {
       ...preliminaryContext,
-      ammo: shared.ammo,
+      ammo: shared.ammo
     };
-    const policyAvailability = schedulerPolicy.availability?.(
-      castContext,
-      skill,
-    );
+    const policyAvailability = schedulerPolicy.availability?.(castContext, skill);
     const legacyReady =
-      schedulerPolicy.validateCast?.(castContext, skill) !== false &&
-      activeProfession.validateCast(castContext, skill);
+      schedulerPolicy.validateCast?.(castContext, skill) !== false && activeProfession.validateCast(castContext, skill);
     const result = combineAvailability([
       shared.result,
       policyAvailability,
       professionAvailability,
-      legacyReady
-        ? null
-        : unavailable(
-            `${skill.name} is unavailable.`,
-            "platform.legacy-validation",
-          ),
+      legacyReady ? null : unavailable(`${skill.name} is unavailable.`, 'platform.legacy-validation')
     ]);
     return { result, castContext };
   }
@@ -907,12 +741,7 @@ export function createScheduler<
    * @param {number} start
    * @param {string} reason
    */
-  function recordInvalid(
-    commandIndex: number,
-    skill: Skill,
-    start: number,
-    reason: string,
-  ): void {
+  function recordInvalid(commandIndex: number, skill: Skill, start: number, reason: string): void {
     warnings.push(reason);
     steps.push({
       ri: commandIndex,
@@ -920,7 +749,7 @@ export function createScheduler<
       start: Math.round(start * 1000),
       end: Math.round(start * 1000),
       invalid: true,
-      invalidReason: reason,
+      invalidReason: reason
     });
   }
 
@@ -940,23 +769,17 @@ export function createScheduler<
         start: Math.round(state.time * 1000),
         end: Math.round(state.time * 1000),
         invalid: true,
-        invalidReason: reason,
+        invalidReason: reason
       });
       return false;
     }
     const concurrent = command.concurrentOffsetMs != null;
     if (concurrent && skill.canCastConcurrently === false) {
-      recordInvalid(
-        commandIndex,
-        skill,
-        state.time,
-        `${skill.name} cannot be cast concurrently.`,
-      );
+      recordInvalid(commandIndex, skill, state.time, `${skill.name} cannot be cast concurrently.`);
       return false;
     }
     const independent = skill.independentCast === true;
-    const overlappingIndependent =
-      independent && skill.independentCastCanOverlap === true;
+    const overlappingIndependent = independent && skill.independentCastCanOverlap === true;
     const stunbreak = skill.stunbreak === true;
     // Instant-cast skills (Berserk, signets, most profession keys) are not held
     // by a self-stun; only skills that occupy the cast bar are. A stunbreak also
@@ -972,19 +795,9 @@ export function createScheduler<
           : Math.max(state.time, independentReadyAt)
         : bypassesSelfStun
           ? Math.max(state.time, serialReadyAt, latestBlockingEnd)
-          : Math.max(
-              state.time,
-              serialReadyAt,
-              latestBlockingEnd,
-              selfStunUntil,
-            );
+          : Math.max(state.time, serialReadyAt, latestBlockingEnd, selfStunUntil);
     if (start < state.time - epsilon) {
-      recordInvalid(
-        commandIndex,
-        skill,
-        start,
-        `${skill.name} cannot start before the current simulation clock.`,
-      );
+      recordInvalid(commandIndex, skill, start, `${skill.name} cannot start before the current simulation clock.`);
       return false;
     }
     advanceTo(start);
@@ -995,27 +808,20 @@ export function createScheduler<
     // first: the declared retry time or a state-changing scheduled task.
     while (checked.result.ready === false && checked.result.retryAt != null) {
       if (++guard > ACTION_SAFETY_LIMIT) {
-        throw new Error("Cast availability wait safety limit exceeded.");
+        throw new Error('Cast availability wait safety limit exceeded.');
       }
       const retryAt = Math.max(state.time, Number(checked.result.retryAt));
       const nextTaskAt = taskQueue.nextAt();
       const next = Math.min(retryAt, nextTaskAt);
       if (!Number.isFinite(next) || next <= state.time) {
-        throw new Error(
-          `Cast availability for ${skill.name} did not make progress.`,
-        );
+        throw new Error(`Cast availability for ${skill.name} did not make progress.`);
       }
       advanceTo(next);
       start = state.time;
       checked = castAvailability(skill, command, commandIndex, start);
     }
     if (checked.result.ready === false) {
-      recordInvalid(
-        commandIndex,
-        skill,
-        start,
-        String(checked.result.reason || `${skill.name} is unavailable.`),
-      );
+      recordInvalid(commandIndex, skill, start, String(checked.result.reason || `${skill.name} is unavailable.`));
       return false;
     }
 
@@ -1023,39 +829,24 @@ export function createScheduler<
     for (const lockout of skill.lockouts || []) {
       state.lockouts.set(
         lockout.group,
-        Math.max(
-          Number(state.lockouts.get(lockout.group) || 0),
-          start + Number(lockout.durationMs) / 1000,
-        ),
+        Math.max(Number(state.lockouts.get(lockout.group) || 0), start + Number(lockout.durationMs) / 1000)
       );
     }
     const fullEnd = start + castDurationFor(castContext, skill);
-    const interruptAfterMs =
-      command.interruptAfterMs ?? skill.defaultInterruptMs;
+    const interruptAfterMs = command.interruptAfterMs ?? skill.defaultInterruptMs;
     const effectiveEnd =
-      interruptAfterMs == null
-        ? fullEnd
-        : Math.min(fullEnd, start + Number(interruptAfterMs) / 1000);
+      interruptAfterMs == null ? fullEnd : Math.min(fullEnd, start + Number(interruptAfterMs) / 1000);
     const interrupted = effectiveEnd < fullEnd - epsilon;
     // Some skills commit and begin recharge at their interrupt point but retain
     // the remainder of their ordinary cast as aftercast. Keep completion and
     // recharge anchored to effectiveEnd while reserving the cast lane through
     // fullEnd for those skills.
-    const castLockoutEnd =
-      interrupted && skill.retainsCastLockoutAfterInterrupt === true
-        ? fullEnd
-        : effectiveEnd;
-    const cancelledBeforeCommit = cancelledBeforeInterruptCommit(
-      context,
-      skill,
-      start,
-      fullEnd,
-      effectiveEnd,
-    );
+    const castLockoutEnd = interrupted && skill.retainsCastLockoutAfterInterrupt === true ? fullEnd : effectiveEnd;
+    const cancelledBeforeCommit = cancelledBeforeInterruptCommit(context, skill, start, fullEnd, effectiveEnd);
     const rechargeDuration = rechargeDurationFor(skill, effectiveEnd, {
       ...castContext,
       fullEnd,
-      effectiveEnd,
+      effectiveEnd
     });
     const ammoLockoutDuration =
       castContext.ammo && Number(skill.ammo || 0) > 0
@@ -1063,13 +854,11 @@ export function createScheduler<
             ...castContext,
             fullEnd,
             effectiveEnd,
-            ammoCastLockout: true,
+            ammoCastLockout: true
           })
         : 0;
-    const rechargeAnchor =
-      skill.rechargeAnchor === "castStart" ? start : effectiveEnd;
-    const canonicalRechargeStart =
-      rechargeAnchor + Number(skill.rechargeOffsetMs || 0) / 1000;
+    const rechargeAnchor = skill.rechargeAnchor === 'castStart' ? start : effectiveEnd;
+    const canonicalRechargeStart = rechargeAnchor + Number(skill.rechargeOffsetMs || 0) / 1000;
     const rechargeStart = Math.max(
       start,
       Number(
@@ -1078,20 +867,17 @@ export function createScheduler<
             ...castContext,
             fullEnd,
             effectiveEnd,
-            rechargeDuration,
+            rechargeDuration
           },
-          canonicalRechargeStart,
-        ),
-      ),
+          canonicalRechargeStart
+        )
+      )
     );
     const ammoChargeReadyAt =
       castContext.ammo && castContext.ammo.charges <= 1
         ? (castContext.ammo.nextRechargeAt ?? rechargeStart + rechargeDuration)
         : 0;
-    const ammoLockoutReadyAt =
-      castContext.ammo && ammoLockoutDuration > 0
-        ? rechargeStart + ammoLockoutDuration
-        : 0;
+    const ammoLockoutReadyAt = castContext.ammo && ammoLockoutDuration > 0 ? rechargeStart + ammoLockoutDuration : 0;
     const rechargeReadyAt = castContext.ammo
       ? Math.max(ammoChargeReadyAt, ammoLockoutReadyAt) || null
       : rechargeDuration > 0
@@ -1111,19 +897,19 @@ export function createScheduler<
       ammoLockoutDuration,
       rechargeStart,
       rechargeReadyAt,
-      action: null,
+      action: null
     };
     reservations.set(reservationId, reservation);
     if (!inFlight.has(skill.id)) inFlight.set(skill.id, new Set());
     inFlight.get(skill.id)?.add(reservationId);
 
     const action = context.emit({
-      type: "action",
+      type: 'action',
       activationId: reservationId,
       at: start,
       source: activeProfession.id,
       sourceId: skill.id,
-      actorType: "player",
+      actorType: 'player',
       skillId: skill.id,
       skillName: skill.name,
       name: skill.name,
@@ -1131,10 +917,8 @@ export function createScheduler<
       fullEndsAt: fullEnd,
       rechargeReadyAt,
       interrupted,
-      ...(castLockoutEnd > effectiveEnd + epsilon
-        ? { castLockoutEndsAt: castLockoutEnd }
-        : {}),
-      ...(cancelledBeforeCommit ? { cancelled: true } : {}),
+      ...(castLockoutEnd > effectiveEnd + epsilon ? { castLockoutEndsAt: castLockoutEnd } : {}),
+      ...(cancelledBeforeCommit ? { cancelled: true } : {})
     });
     reservation.action = action;
     const lifecycleContext: CastLifecycleContext<TProfessionState> = {
@@ -1150,7 +934,7 @@ export function createScheduler<
       emit(event) {
         return context.emit({
           activationId: reservationId,
-          ...event,
+          ...event
         });
       },
       tasks: {
@@ -1160,24 +944,19 @@ export function createScheduler<
             ...task,
             payload: {
               activationId: reservationId,
-              ...(task.payload || {}),
-            },
+              ...(task.payload || {})
+            }
           });
-        },
-      },
+        }
+      }
     };
     activeProfession.onCastStart(lifecycleContext, skill);
     const handler = activeProfession.skillHandlerFor?.(skill);
-    const handlerMode = resolveSkillHandlerMode(
-      handler,
-      lifecycleContext,
-      skill,
-    );
+    const handlerMode = resolveSkillHandlerMode(handler, lifecycleContext, skill);
     const handlerState = handler?.beforeEffects?.(lifecycleContext, skill);
     // The profession-level hook remains for schedulers that still own their
     // complete event materialization; catalog handlers use explicit strategies.
-    const professionHandled =
-      activeProfession.scheduleSkill(lifecycleContext, skill) === true;
+    const professionHandled = activeProfession.scheduleSkill(lifecycleContext, skill) === true;
     if (handlerMode !== SKILL_HANDLER_MODES.REPLACE && !professionHandled) {
       scheduleDeclarativeEffects(
         context,
@@ -1191,8 +970,8 @@ export function createScheduler<
         (event, effect, effectIndex) =>
           handler?.afterEffect?.(lifecycleContext, skill, event, handlerState, {
             effect,
-            effectIndex,
-          }),
+            effectIndex
+          })
       );
     }
     handler?.afterEffects?.(lifecycleContext, skill, handlerState);
@@ -1204,7 +983,7 @@ export function createScheduler<
       at: effectiveEnd,
       priority: -100,
       ownerId: reservationId,
-      payload: { reservationId },
+      payload: { reservationId }
     });
     // Completion runs early among same-time tasks so following state work sees
     // committed cooldown/ammo and the profession's completed-cast state.
@@ -1215,7 +994,7 @@ export function createScheduler<
       end: Math.round(effectiveEnd * 1000),
       actualStart: Math.round(start * 1000),
       fullCastMs: Math.round((fullEnd - start) * 1000),
-      interrupted,
+      interrupted
     });
     latestReservedEnd = Math.max(latestReservedEnd, castLockoutEnd);
     if (independent) {
@@ -1231,11 +1010,8 @@ export function createScheduler<
       // fresh one, unless stability is up when the cast ends.
       if (stunbreak) selfStunUntil = state.time;
       const selfStunMs = Number(skill.selfStunMs || 0);
-      if (selfStunMs > 0 && !context.hasBuff("stability", effectiveEnd)) {
-        selfStunUntil = Math.max(
-          selfStunUntil,
-          effectiveEnd + selfStunMs / 1000,
-        );
+      if (selfStunMs > 0 && !context.hasBuff('stability', effectiveEnd)) {
+        selfStunUntil = Math.max(selfStunUntil, effectiveEnd + selfStunMs / 1000);
       }
     }
     return true;
@@ -1247,22 +1023,18 @@ export function createScheduler<
   /**
    * @param {readonly unknown[]} rotation
    */
-  function run(
-    rotation: readonly unknown[],
-  ): SchedulerRunResult<TProfessionState> {
+  function run(rotation: readonly unknown[]): SchedulerRunResult<TProfessionState> {
     const commands = normalizeRotation(rotation, activeCatalog, {
-      strict: true,
+      strict: true
     });
-    context.hasExplicitCombatStart = commands.some(
-      (command) => command.type === "combat-start",
-    );
+    context.hasExplicitCombatStart = commands.some((command) => command.type === 'combat-start');
     context.combatStartTime = null;
     if (commands.length > ACTION_SAFETY_LIMIT) {
-      throw new Error("Rotation action safety limit exceeded.");
+      throw new Error('Rotation action safety limit exceeded.');
     }
     for (let index = 0; index < commands.length; index += 1) {
       const command = commands[index];
-      if (command.type === "wait") {
+      if (command.type === 'wait') {
         // Wait is serial: it starts only after all outstanding casts finish.
         const start = Math.max(state.time, serialReadyAt, latestReservedEnd);
         advanceTo(start);
@@ -1271,11 +1043,11 @@ export function createScheduler<
         advanceTo(end);
         steps.push({
           ri: index,
-          skill: "Wait",
+          skill: 'Wait',
           start: Math.round(start * 1000),
-          end: Math.round(end * 1000),
+          end: Math.round(end * 1000)
         });
-      } else if (command.type === "cooldown-reset") {
+      } else if (command.type === 'cooldown-reset') {
         // Benchmark logs can include a pre-cast followed by the training-area
         // cooldown reset. The field remains active while skill recharges reset.
         const at = Math.max(state.time, serialReadyAt, latestReservedEnd);
@@ -1285,35 +1057,34 @@ export function createScheduler<
         state.lockouts.clear();
         activeProfession.onCooldownReset(context);
         context.emit({
-          type: "marker",
+          type: 'marker',
           at,
-          source: "platform",
-          sourceId: "cooldown-reset",
-          action: "cooldown-reset",
-          name: "Cooldown Reset",
+          source: 'platform',
+          sourceId: 'cooldown-reset',
+          action: 'cooldown-reset',
+          name: 'Cooldown Reset'
         });
         steps.push({
           ri: index,
-          skill: "Cooldown Reset",
+          skill: 'Cooldown Reset',
           start: Math.round(at * 1000),
-          end: Math.round(at * 1000),
+          end: Math.round(at * 1000)
         });
-      } else if (command.type === "combat-start") {
+      } else if (command.type === 'combat-start') {
         if (combatStartTime != null) {
-          const reason = "Combat Start is already set.";
+          const reason = 'Combat Start is already set.';
           warnings.push(reason);
           steps.push({
             ri: index,
-            skill: "Combat Start",
+            skill: 'Combat Start',
             start: Math.round(state.time * 1000),
             end: Math.round(state.time * 1000),
             invalid: true,
-            invalidReason: reason,
+            invalidReason: reason
           });
           continue;
         }
-        const concurrent =
-          command.concurrentOffsetMs != null && hasPreviousCast;
+        const concurrent = command.concurrentOffsetMs != null && hasPreviousCast;
         combatStartTime = concurrent
           ? previousCastStart + Number(command.concurrentOffsetMs) / 1000
           : Math.max(state.time, serialReadyAt, latestReservedEnd);
@@ -1322,17 +1093,17 @@ export function createScheduler<
         advanceTo(combatStartTime);
         context.combatStartTime = combatStartTime;
         context.emit({
-          type: "combat_start",
+          type: 'combat_start',
           at: combatStartTime,
-          source: "platform",
-          sourceId: "combat-start",
-          action: "combat-start",
+          source: 'platform',
+          sourceId: 'combat-start',
+          action: 'combat-start'
         });
         steps.push({
           ri: index,
-          skill: "Combat Start",
+          skill: 'Combat Start',
           start: Math.round(combatStartTime * 1000),
-          end: Math.round(combatStartTime * 1000),
+          end: Math.round(combatStartTime * 1000)
         });
       } else {
         cast(command, index);
@@ -1340,10 +1111,7 @@ export function createScheduler<
     }
     const rotationEnd = Math.max(state.time, serialReadyAt, latestReservedEnd);
     const normalizedRotationEnd = Math.max(rotationEnd, 0);
-    const resolutionEnd = observationEndTime(
-      normalizedObservationPolicy,
-      normalizedRotationEnd,
-    );
+    const resolutionEnd = observationEndTime(normalizedObservationPolicy, normalizedRotationEnd);
     context.observationEndTime = resolutionEnd;
     // Profession tasks are materialized only through the finite caller-owned
     // observation boundary. Actor handlers remain responsible for their own
@@ -1351,9 +1119,7 @@ export function createScheduler<
     advanceTo(resolutionEnd);
     steps.sort((left, right) => left.ri - right.ri);
     sortQueuedEvents(events);
-    const snapshot =
-      activeProfession.snapshot(context) ??
-      cloneProfessionState(state.profession);
+    const snapshot = activeProfession.snapshot(context) ?? cloneProfessionState(state.profession);
     return {
       context,
       state,
@@ -1369,9 +1135,9 @@ export function createScheduler<
           profession: activeProfession.id,
           professionState: snapshot,
           hasExplicitCombatStart: combatStartTime != null,
-          combatStartTime,
-        },
-      }),
+          combatStartTime
+        }
+      })
     };
   }
 

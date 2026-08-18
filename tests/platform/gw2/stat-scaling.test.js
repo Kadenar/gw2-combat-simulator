@@ -1,23 +1,17 @@
-import assert from "node:assert/strict";
-import test from "node:test";
-import {
-  criticalChance,
-  criticalDamageMultiplier,
-} from "../../../js/platform/gw2/damage.js";
-import {
-  gw2ConditionDurationMultiplier,
-  gw2WeaponStrength,
-} from "../../../js/platform/gw2/runtime-rules.js";
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { criticalChance, criticalDamageMultiplier } from '../../../js/platform/gw2/damage.js';
+import { gw2ConditionDurationMultiplier, gw2WeaponStrength } from '../../../js/platform/gw2/runtime-rules.js';
 import {
   conditionDurationFractionFromExpertise,
   conditionDurationPercentFromExpertise,
   criticalChanceFractionFromPrecision,
   criticalChancePercentFromPrecision,
   criticalDamageMultiplierFromFerocity,
-  criticalDamagePercentFromFerocity,
-} from "../../../js/platform/gw2/stat-scaling.js";
+  criticalDamagePercentFromFerocity
+} from '../../../js/platform/gw2/stat-scaling.js';
 
-test("stat scaling preserves exact percent- and fraction-form values", () => {
+test('stat scaling preserves exact percent- and fraction-form values', () => {
   assert.equal(criticalChancePercentFromPrecision(896), 0.047619047619047616);
   assert.equal(criticalChanceFractionFromPrecision(896), 0.0004761904761904773);
 
@@ -25,42 +19,30 @@ test("stat scaling preserves exact percent- and fraction-form values", () => {
   assert.equal(criticalDamageMultiplierFromFerocity(2), 1.5013333333333334);
 
   assert.equal(conditionDurationPercentFromExpertise(5), 0.3333333333333333);
-  assert.equal(
-    conditionDurationFractionFromExpertise(5),
-    0.0033333333333333335,
-  );
+  assert.equal(conditionDurationFractionFromExpertise(5), 0.0033333333333333335);
 });
 
-test("runtime stat wrappers retain their caps and floors", () => {
+test('runtime stat wrappers retain their caps and floors', () => {
   assert.equal(criticalChance(894), 0);
   assert.equal(criticalChance(2996), 1);
   assert.equal(criticalDamageMultiplier(-100), 1.5);
 
-  assert.equal(
-    gw2ConditionDurationMultiplier("Burning", { expertise: -100 }),
-    1,
-  );
-  assert.equal(
-    gw2ConditionDurationMultiplier("Burning", { expertise: 3000 }),
-    2,
-  );
+  assert.equal(gw2ConditionDurationMultiplier('Burning', { expertise: -100 }), 1);
+  assert.equal(gw2ConditionDurationMultiplier('Burning', { expertise: 3000 }), 2);
 });
 
-test("weapon strength alias patterns compile once per alias map", () => {
+test('weapon strength alias patterns compile once per alias map', () => {
   let aliasReads = 0;
-  const aliases = Object.defineProperty({}, "^kit(?: |$)", {
+  const aliases = Object.defineProperty({}, '^kit(?: |$)', {
     enumerable: true,
     get() {
       aliasReads += 1;
-      return "Utility";
-    },
+      return 'Utility';
+    }
   });
   const options = { strengths: { Utility: 999 }, aliases };
 
-  assert.equal(
-    gw2WeaponStrength({ weapon: "Kit Flamethrower" }, {}, options),
-    999,
-  );
-  assert.equal(gw2WeaponStrength({ weapon: "kit grenade" }, {}, options), 999);
+  assert.equal(gw2WeaponStrength({ weapon: 'Kit Flamethrower' }, {}, options), 999);
+  assert.equal(gw2WeaponStrength({ weapon: 'kit grenade' }, {}, options), 999);
   assert.equal(aliasReads, 1);
 });

@@ -1,9 +1,7 @@
-import type { Skill } from "../../platform/engine/types.js";
+import type { Skill } from '../../platform/engine/types.js';
 
 const ATTUNEMENT_ORDER = new Map(
-  ["Fire", "Water", "Air", "Earth", "Dual", "Special"].map(
-    (attunement, index) => [attunement, index],
-  ),
+  ['Fire', 'Water', 'Air', 'Earth', 'Dual', 'Special'].map((attunement, index) => [attunement, index])
 );
 
 export interface WeaponAttunementGroup {
@@ -11,10 +9,7 @@ export interface WeaponAttunementGroup {
   readonly skills: Skill[];
 }
 
-export function weaponBarSkillStacks(
-  skills: readonly Skill[],
-  flattenSameSlots = false,
-): Skill[][] {
+export function weaponBarSkillStacks(skills: readonly Skill[], flattenSameSlots = false): Skill[][] {
   if (flattenSameSlots) return skills.map((skill) => [skill]);
 
   const bySlot = new Map<string, Skill[]>();
@@ -33,23 +28,18 @@ export function weaponBarSkillStacks(
  */
 export function groupWeaponSkillsByAttunement(
   skills: readonly Skill[],
-  specialization: string,
+  specialization: string
 ): WeaponAttunementGroup[] {
   const byAttunement = new Map<string, Skill[]>();
   for (const skill of skills) {
-    const skillAttunement = String(skill.attunement || "Special");
-    const attunement =
-      specialization === "Weaver" && skillAttunement.includes("+")
-        ? "Dual"
-        : skillAttunement;
+    const skillAttunement = String(skill.attunement || 'Special');
+    const attunement = specialization === 'Weaver' && skillAttunement.includes('+') ? 'Dual' : skillAttunement;
     const groupedSkills = byAttunement.get(attunement) || [];
     groupedSkills.push(skill);
     byAttunement.set(attunement, groupedSkills);
   }
 
-  const elementalAttunementCount = [...byAttunement.keys()].filter(
-    (attunement) => attunement !== "Special",
-  ).length;
+  const elementalAttunementCount = [...byAttunement.keys()].filter((attunement) => attunement !== 'Special').length;
   if (elementalAttunementCount < 2) {
     return [{ attunement: null, skills: [...skills] }];
   }
@@ -58,10 +48,10 @@ export function groupWeaponSkillsByAttunement(
     .sort(
       ([left], [right]) =>
         (ATTUNEMENT_ORDER.get(left) ?? Number.MAX_SAFE_INTEGER) -
-        (ATTUNEMENT_ORDER.get(right) ?? Number.MAX_SAFE_INTEGER),
+        (ATTUNEMENT_ORDER.get(right) ?? Number.MAX_SAFE_INTEGER)
     )
     .map(([attunement, groupedSkills]) => ({
       attunement,
-      skills: groupedSkills,
+      skills: groupedSkills
     }));
 }

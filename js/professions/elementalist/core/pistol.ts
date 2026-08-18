@@ -1,30 +1,22 @@
-import type { SchedulerRecord, Skill } from "../../../platform/engine/types.js";
-import type { ElementalistCastContext as ElementalistLifecycleContext } from "../types.js";
-import { elementalistCoreState } from "./state.js";
-import {
-  PISTOL_DUAL_ELEMENTS,
-  PISTOL_NO_CONSUME,
-  PISTOL_NO_GRANT,
-  PISTOL_SKILL_ELEMENTS,
-} from "./constants.js";
+import type { SchedulerRecord, Skill } from '../../../platform/engine/types.js';
+import type { ElementalistCastContext as ElementalistLifecycleContext } from '../types.js';
+import { elementalistCoreState } from './state.js';
+import { PISTOL_DUAL_ELEMENTS, PISTOL_NO_CONSUME, PISTOL_NO_GRANT, PISTOL_SKILL_ELEMENTS } from './constants.js';
 import {
   applyElementalistAura,
   emitProfiledBuff,
   emitProfiledCondition,
   profiledEffect,
-  skillWeapon,
-} from "./mechanics.js";
+  skillWeapon
+} from './mechanics.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
   elementalistBalanceValue,
-  elementalistEffectValue,
-} from "./profiles.js";
+  elementalistEffectValue
+} from './profiles.js';
 
-export function applyPistolState(
-  context: ElementalistLifecycleContext,
-  skill: Skill,
-): void {
-  if (skillWeapon(skill) !== "Pistol") return;
+export function applyPistolState(context: ElementalistLifecycleContext, skill: Skill): void {
+  if (skillWeapon(skill) !== 'Pistol') return;
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = context.effectiveEnd;
   const dual = PISTOL_DUAL_ELEMENTS[skill.name];
@@ -33,109 +25,69 @@ export function applyPistolState(
     if (active.length) {
       for (const element of active) {
         state.pistolBullets[element] = false;
-        if (skill.name === "Frostfire Flurry") {
-          if (element === "Fire") {
-            const aura = profiledEffect(
-              context,
-              PROFILE.frostfireFlurry,
-              "buff",
-              "Fire",
-            );
+        if (skill.name === 'Frostfire Flurry') {
+          if (element === 'Fire') {
+            const aura = profiledEffect(context, PROFILE.frostfireFlurry, 'buff', 'Fire');
             applyElementalistAura(context, {
               at,
-              aura: String(aura?.kind || "Fire Aura"),
+              aura: String(aura?.kind || 'Fire Aura'),
               duration: Number(aura?.duration ?? 3),
               skillName: skill.name,
-              sourceId: skill.id,
+              sourceId: skill.id
             });
-          } else if (element === "Water") {
+          } else if (element === 'Water') {
             emitProfiledCondition(
               context,
               at,
               PROFILE.frostfireFlurry,
-              "Water",
-              "Vulnerability",
+              'Water',
+              'Vulnerability',
               4,
               8,
               skill.name,
-              skill.id,
+              skill.id
             );
           }
-        } else if (skill.name === "Purblinding Plasma" && element === "Fire") {
-          emitProfiledCondition(
-            context,
-            at,
-            PROFILE.purblindingPlasma,
-            "Fire",
-            "Burning",
-            3,
-            4,
-            skill.name,
-            skill.id,
-          );
-        } else if (skill.name === "Molten Meteor" && element === "Earth") {
-          emitProfiledCondition(
-            context,
-            at,
-            PROFILE.moltenMeteor,
-            "Earth",
-            "Bleeding",
-            3,
-            8,
-            skill.name,
-            skill.id,
-          );
-        } else if (skill.name === "Flowing Finesse") {
-          if (element === "Water") {
-            const aura = profiledEffect(
-              context,
-              PROFILE.flowingFinesse,
-              "buff",
-              "Water",
-            );
+        } else if (skill.name === 'Purblinding Plasma' && element === 'Fire') {
+          emitProfiledCondition(context, at, PROFILE.purblindingPlasma, 'Fire', 'Burning', 3, 4, skill.name, skill.id);
+        } else if (skill.name === 'Molten Meteor' && element === 'Earth') {
+          emitProfiledCondition(context, at, PROFILE.moltenMeteor, 'Earth', 'Bleeding', 3, 8, skill.name, skill.id);
+        } else if (skill.name === 'Flowing Finesse') {
+          if (element === 'Water') {
+            const aura = profiledEffect(context, PROFILE.flowingFinesse, 'buff', 'Water');
             applyElementalistAura(context, {
               at,
-              aura: String(aura?.kind || "Frost Aura"),
+              aura: String(aura?.kind || 'Frost Aura'),
               duration: Number(aura?.duration ?? 3),
               skillName: skill.name,
-              sourceId: skill.id,
+              sourceId: skill.id
             });
-          } else if (element === "Air") {
-            emitProfiledBuff(
-              context,
-              at,
-              PROFILE.flowingFinesse,
-              "Air",
-              "Superspeed",
-              1,
-              4,
-              skill.name,
-              skill.id,
-            );
+          } else if (element === 'Air') {
+            emitProfiledBuff(context, at, PROFILE.flowingFinesse, 'Air', 'Superspeed', 1, 4, skill.name, skill.id);
           }
-        } else if (skill.name === "Enervating Earth") {
-          if (element === "Air") {
+        } else if (skill.name === 'Enervating Earth') {
+          if (element === 'Air') {
             context.emit({
-              type: "control",
+              type: 'control',
               at,
               source: skill.name,
               sourceId: skill.id,
-              actorType: "player",
+              actorType: 'player',
               skillName: skill.name,
               skillId: skill.id,
-              controlKind: "crowd-control",
+              controlKind: 'crowd-control'
             });
-          } else if (element === "Earth") {
+          } else if (element === 'Earth') {
             emitProfiledCondition(
               context,
               at,
               PROFILE.enervatingEarth,
-              "Earth",
-              "Bleeding",
+              'Earth',
+              'Bleeding',
               4,
               8,
               skill.name,
-              skill.id,
+              skill.id
             );
           }
         }
@@ -149,109 +101,71 @@ export function applyPistolState(
   if (!element) return;
   if (state.pistolBullets[element] && !PISTOL_NO_CONSUME.has(skill.name)) {
     state.pistolBullets[element] = false;
-    if (skill.name === "Raging Ricochet") {
-      emitProfiledBuff(
-        context,
-        at,
-        PROFILE.ragingRicochet,
-        "Fire",
-        "Might",
-        1,
-        10,
-        skill.name,
-        skill.id,
-      );
-    } else if (skill.name === "Searing Salvo") {
-      const aura = profiledEffect(
-        context,
-        PROFILE.searingSalvo,
-        "buff",
-        "Fire",
-      );
+    if (skill.name === 'Raging Ricochet') {
+      emitProfiledBuff(context, at, PROFILE.ragingRicochet, 'Fire', 'Might', 1, 10, skill.name, skill.id);
+    } else if (skill.name === 'Searing Salvo') {
+      const aura = profiledEffect(context, PROFILE.searingSalvo, 'buff', 'Fire');
       applyElementalistAura(context, {
         at,
-        aura: String(aura?.kind || "Fire Aura"),
+        aura: String(aura?.kind || 'Fire Aura'),
         duration: Number(aura?.duration ?? 4),
         skillName: skill.name,
-        sourceId: skill.id,
+        sourceId: skill.id
       });
-    } else if (skill.name === "Frozen Fusillade") {
-      const delay = elementalistBalanceValue(
-        context,
-        PROFILE.frozenFusillade,
-        "initialDelay",
-        4,
-      );
+    } else if (skill.name === 'Frozen Fusillade') {
+      const delay = elementalistBalanceValue(context, PROFILE.frozenFusillade, 'initialDelay', 4);
       context.emit({
-        type: "damage",
+        type: 'damage',
         at: at + delay,
         source: skill.name,
         sourceId: skill.id,
-        actorType: "player",
+        actorType: 'player',
         skillName: skill.name,
         skillId: skill.id,
-        coefficient: elementalistEffectValue(
-          context,
-          PROFILE.frozenFusillade,
-          "strike",
-          "coefficient",
-          0.75,
-        ),
-        skillWeapon: "Pistol",
+        coefficient: elementalistEffectValue(context, PROFILE.frozenFusillade, 'strike', 'coefficient', 0.75),
+        skillWeapon: 'Pistol'
       });
       emitProfiledCondition(
         context,
         at + delay,
         PROFILE.frozenFusillade,
-        "Water Bullet",
-        "Bleeding",
+        'Water Bullet',
+        'Bleeding',
         5,
         8,
         skill.name,
-        skill.id,
+        skill.id
       );
-    } else if (skill.name === "Dazing Discharge") {
+    } else if (skill.name === 'Dazing Discharge') {
       state.dazingDischargeUntil =
-        at +
-        elementalistBalanceValue(
-          context,
-          PROFILE.dazingDischarge,
-          "durationMultiplier",
-          5,
-        );
-    } else if (skill.name === "Shattering Stone") {
+        at + elementalistBalanceValue(context, PROFILE.dazingDischarge, 'durationMultiplier', 5);
+    } else if (skill.name === 'Shattering Stone') {
       state.shatteringStoneHitsRemaining = elementalistBalanceValue(
         context,
         PROFILE.shatteringStone,
-        "maximumStacks",
-        3,
+        'maximumStacks',
+        3
       );
       state.shatteringStoneUntil =
-        at +
-        elementalistBalanceValue(
-          context,
-          PROFILE.shatteringStone,
-          "durationMultiplier",
-          10,
-        );
-    } else if (skill.name === "Boulder Blast") {
+        at + elementalistBalanceValue(context, PROFILE.shatteringStone, 'durationMultiplier', 10);
+    } else if (skill.name === 'Boulder Blast') {
       context.emit({
-        type: "damage",
+        type: 'damage',
         at,
         source: skill.name,
         sourceId: skill.id,
-        actorType: "effect",
+        actorType: 'effect',
         skillName: skill.name,
         skillId: skill.id,
         coefficient: 0,
         noCrit: true,
         comboFinishers: [
           {
-            ownerId: "elementalist",
-            finisherType: "Projectile",
-            ambiguousFieldSelection: "oldest",
-          },
-        ],
+            ownerId: 'elementalist',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       });
     }
   } else if (!PISTOL_NO_GRANT.has(skill.name)) {

@@ -1,13 +1,9 @@
-import { guardianTomeEventHandlers, reactToAshesHit } from "./tomes.js";
-import {
-  handleFirebrandVirtueActivation,
-  reactToFirebrandBuffTraits,
-  reactToFirebrandJusticeHit,
-} from "./traits.js";
+import { guardianTomeEventHandlers, reactToAshesHit } from './tomes.js';
+import { handleFirebrandVirtueActivation, reactToFirebrandBuffTraits, reactToFirebrandJusticeHit } from './traits.js';
 
 export const firebrandEventHandlers = Object.freeze({
   ...guardianTomeEventHandlers,
-  "guardian.firebrand-virtue-activated": handleFirebrandVirtueActivation,
+  'guardian.firebrand-virtue-activated': handleFirebrandVirtueActivation
 });
 
 export const firebrandEventReactions = Object.freeze({
@@ -15,21 +11,21 @@ export const firebrandEventReactions = Object.freeze({
     {
       // Ashes runs first (order 10) so it can consume a charge before Justice
       // (order 20) potentially changes the hit context for the same event.
-      id: "guardian.ashes-of-the-just",
+      id: 'guardian.ashes-of-the-just',
       order: 10,
-      handler: reactToAshesHit,
+      handler: reactToAshesHit
     },
     {
-      id: "guardian.firebrand.justice",
+      id: 'guardian.firebrand.justice',
       order: 20,
-      handler: reactToFirebrandJusticeHit,
-    },
+      handler: reactToFirebrandJusticeHit
+    }
   ]),
   buff: Object.freeze([
     {
-      id: "guardian.firebrand.traits",
+      id: 'guardian.firebrand.traits',
       order: 5,
-      handler: reactToFirebrandBuffTraits,
-    },
-  ]),
+      handler: reactToFirebrandBuffTraits
+    }
+  ])
 });

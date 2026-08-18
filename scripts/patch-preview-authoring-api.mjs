@@ -1,22 +1,15 @@
-import { writeFile } from "node:fs/promises";
-import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-import { generatePatchOverview } from "../js/app/patch-preview/model.js";
+import { generatePatchOverview } from '../js/app/patch-preview/model.js';
 
-const API_PATH = "/api/patch-preview";
+const API_PATH = '/api/patch-preview';
 const MAX_REQUEST_BYTES = 5 * 1024 * 1024;
-const TOP_LEVEL_FIELDS = new Set([
-  "id",
-  "label",
-  "publishedAt",
-  "sourceUrl",
-  "constants",
-  "professions",
-]);
+const TOP_LEVEL_FIELDS = new Set(['id', 'label', 'publishedAt', 'sourceUrl', 'constants', 'professions']);
 
 function isRecord(value) {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
 function assertRecord(value, label) {
@@ -24,33 +17,27 @@ function assertRecord(value, label) {
 }
 
 function assertAuthoringShape(preview) {
-  assertRecord(preview, "Patch preview");
+  assertRecord(preview, 'Patch preview');
   for (const field of Object.keys(preview)) {
     if (!TOP_LEVEL_FIELDS.has(field)) {
       throw new TypeError(`Patch preview has unsupported field ${field}.`);
     }
   }
   if (preview.professions != null) {
-    assertRecord(preview.professions, "Patch preview professions");
+    assertRecord(preview.professions, 'Patch preview professions');
   }
   if (preview.constants != null) {
-    assertRecord(preview.constants, "Patch preview constants");
+    assertRecord(preview.constants, 'Patch preview constants');
   }
 }
 
-function jsonResponse(
-  response,
-  status,
-  payload,
-  extraHeaders = {},
-  headOnly = false,
-) {
+function jsonResponse(response, status, payload, extraHeaders = {}, headOnly = false) {
   const body = JSON.stringify(payload);
   response.writeHead(status, {
-    "Content-Type": "application/json; charset=utf-8",
-    "Cache-Control": "no-store",
-    "Content-Length": String(Buffer.byteLength(body)),
-    ...extraHeaders,
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-store',
+    'Content-Length': String(Buffer.byteLength(body)),
+    ...extraHeaders
   });
   response.end(headOnly ? undefined : body);
 }
@@ -61,15 +48,15 @@ async function readJsonBody(request) {
   for await (const chunk of request) {
     size += chunk.length;
     if (size > MAX_REQUEST_BYTES) {
-      throw new RangeError("Patch preview request exceeds 5 MB.");
+      throw new RangeError('Patch preview request exceeds 5 MB.');
     }
     chunks.push(chunk);
   }
-  if (!chunks.length) throw new TypeError("Patch preview request is empty.");
+  if (!chunks.length) throw new TypeError('Patch preview request is empty.');
   try {
-    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    return JSON.parse(Buffer.concat(chunks).toString('utf8'));
   } catch {
-    throw new TypeError("Patch preview request contains invalid JSON.");
+    throw new TypeError('Patch preview request contains invalid JSON.');
   }
 }
 
@@ -91,23 +78,16 @@ export function validateAuthoringPreview(preview, runtime) {
   runtime.validatePatchPreview(preview);
   const generated = generatePatchOverview(
     preview,
-    runtime.professions.map((profession) => profession.patchAuthoring),
+    runtime.professions.map((profession) => profession.patchAuthoring)
   );
   const validated = runtime.validatePatchPreview(generated);
   const professions = new Map(
-    runtime.professions.map((profession) => [
-      profession.patchAuthoring.professionId,
-      profession,
-    ]),
+    runtime.professions.map((profession) => [profession.patchAuthoring.professionId, profession])
   );
-  for (const [professionId, patch] of Object.entries(
-    validated.professions || {},
-  )) {
+  for (const [professionId, patch] of Object.entries(validated.professions || {})) {
     const profession = professions.get(professionId);
     if (!profession) {
-      throw new TypeError(
-        `Patch references unknown profession ${professionId}.`,
-      );
+      throw new TypeError(`Patch references unknown profession ${professionId}.`);
     }
     profession.validatePatch(patch);
   }
@@ -115,98 +95,71 @@ export function validateAuthoringPreview(preview, runtime) {
 }
 
 export function createPatchPreviewAuthoringApi({ root, buildRoot }) {
-  const sourceFile = path.join(root, "js", "patches", "active-preview.ts");
+  const sourceFile = path.join(root, 'js', 'patches', 'active-preview.ts');
   let runtimePromise;
   let savedPreview;
   let saveQueue = Promise.resolve();
 
   const loadRuntime = async () => {
     runtimePromise ||= Promise.all([
-      import(
-        pathToFileURL(
-          path.join(buildRoot, "js", "platform", "gw2", "skill-patch.js"),
-        ).href
-      ),
-      import(
-        pathToFileURL(
-          path.join(buildRoot, "js", "app", "profession", "registry.js"),
-        ).href
-      ),
+      import(pathToFileURL(path.join(buildRoot, 'js', 'platform', 'gw2', 'skill-patch.js')).href),
+      import(pathToFileURL(path.join(buildRoot, 'js', 'app', 'profession', 'registry.js')).href)
     ]).then(async ([patchModule, registryModule]) => {
-      const professions = await Promise.all(
-        registryModule.professionRegistry.map((entry) =>
-          entry.loadProfession(),
-        ),
-      );
+      const professions = await Promise.all(registryModule.professionRegistry.map((entry) => entry.loadProfession()));
       const previewModule = await import(
-        pathToFileURL(
-          path.join(buildRoot, "js", "patches", "active-preview.js"),
-        ).href
+        pathToFileURL(path.join(buildRoot, 'js', 'patches', 'active-preview.js')).href
       );
       return {
         professions,
         validatePatchPreview: patchModule.validatePatchPreview,
-        initialPreview: previewModule.activePatchPreview,
+        initialPreview: previewModule.activePatchPreview
       };
     });
     return runtimePromise;
   };
 
-  return async function handlePatchPreviewAuthoring(
-    request,
-    response,
-    pathname,
-  ) {
+  return async function handlePatchPreviewAuthoring(request, response, pathname) {
     if (pathname !== API_PATH) return false;
     try {
       const runtime = await loadRuntime();
-      if (request.method === "GET" || request.method === "HEAD") {
+      if (request.method === 'GET' || request.method === 'HEAD') {
         jsonResponse(
           response,
           200,
           {
             preview: savedPreview ?? runtime.initialPreview,
-            professions: runtime.professions.map(
-              (profession) => profession.patchAuthoring,
-            ),
-            sourceFile: path.relative(root, sourceFile).replaceAll("\\", "/"),
+            professions: runtime.professions.map((profession) => profession.patchAuthoring),
+            sourceFile: path.relative(root, sourceFile).replaceAll('\\', '/')
           },
           {},
-          request.method === "HEAD",
+          request.method === 'HEAD'
         );
         return true;
       }
-      if (request.method !== "PUT") {
+      if (request.method !== 'PUT') {
         jsonResponse(
           response,
           405,
-          { error: "Use GET or PUT for patch preview authoring." },
-          { Allow: "GET, HEAD, PUT" },
+          { error: 'Use GET or PUT for patch preview authoring.' },
+          { Allow: 'GET, HEAD, PUT' }
         );
         return true;
       }
       const body = await readJsonBody(request);
-      const candidate =
-        isRecord(body) && "preview" in body ? body.preview : body;
+      const candidate = isRecord(body) && 'preview' in body ? body.preview : body;
       const validated = validateAuthoringPreview(candidate, runtime);
-      saveQueue = saveQueue.then(() =>
-        writeFile(sourceFile, serializeActivePatchPreview(validated), "utf8"),
-      );
+      saveQueue = saveQueue.then(() => writeFile(sourceFile, serializeActivePatchPreview(validated), 'utf8'));
       await saveQueue;
       savedPreview = validated;
       jsonResponse(response, 200, {
         preview: validated,
-        sourceFile: path.relative(root, sourceFile).replaceAll("\\", "/"),
-        rebuildRequired: true,
+        sourceFile: path.relative(root, sourceFile).replaceAll('\\', '/'),
+        rebuildRequired: true
       });
     } catch (error) {
-      const clientError =
-        error instanceof TypeError || error instanceof RangeError;
+      const clientError = error instanceof TypeError || error instanceof RangeError;
       jsonResponse(response, clientError ? 400 : 500, {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Patch preview request failed.",
+        error: error instanceof Error ? error.message : 'Patch preview request failed.'
       });
     }
     return true;

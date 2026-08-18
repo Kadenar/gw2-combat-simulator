@@ -9,9 +9,7 @@
         "id": 40
       }
     ],
-    "specializations": [
-      2
-    ],
+    "specializations": [2],
     "training": [
       {
         "name": "Elite",
@@ -48,20 +46,8 @@
       "elite": true,
       "icon": "elite.png",
       "background": "elite-bg.png",
-      "minor_traits": [
-        2
-      ],
-      "major_traits": [
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11
-      ]
+      "minor_traits": [2],
+      "major_traits": [3, 4, 5, 6, 7, 8, 9, 10, 11]
     }
   ],
   "traits": [
@@ -187,9 +173,7 @@
       "name": "Elite Skill",
       "type": "Utility",
       "slot": "Utility",
-      "categories": [
-        "Fixture"
-      ],
+      "categories": ["Fixture"],
       "facts": [
         {
           "type": "Recharge",

@@ -1,29 +1,18 @@
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from "../../../types.js";
-import {
-  committedActionsFromStrikePackets,
-  firstStrikePacketOffsetMs,
-} from "../../effect-packets.js";
-import { findRotationSkill } from "../../catalog.js";
-import type {
-  EvtcProfessionReconstructionContext,
-  EvtcRecordedRotationAction,
-} from "../types.js";
-import { SIGNAL_DEDUPLICATION_WINDOW_MS } from "./shared.js";
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '../../../types.js';
+import { committedActionsFromStrikePackets, firstStrikePacketOffsetMs } from '../../effect-packets.js';
+import { findRotationSkill } from '../../catalog.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
+import { SIGNAL_DEDUPLICATION_WINDOW_MS } from './shared.js';
 
 const REDUCED_CAST_TOLERANCE_MS = 50;
 
 const SPLIT_ANIMATION_PAIRS = new Map<number, number>([
   [27074, 28625],
-  [62895, 62713],
+  [62895, 62713]
 ]);
 
-function mergeSplitAnimations(
-  actions: readonly EvtcRecordedRotationAction[],
-): EvtcRecordedRotationAction[] {
-  const sorted = [...actions].sort(
-    (left, right) =>
-      left.start - right.start || left.eventIndex - right.eventIndex,
-  );
+function mergeSplitAnimations(actions: readonly EvtcRecordedRotationAction[]): EvtcRecordedRotationAction[] {
+  const sorted = [...actions].sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const merged: EvtcRecordedRotationAction[] = [];
   for (let index = 0; index < sorted.length; index += 1) {
     const action = sorted[index];
@@ -37,10 +26,7 @@ function mergeSplitAnimations(
       merged.push({
         ...action,
         end: Math.max(action.end, second.end),
-        status:
-          action.status === "unknown" || second.status === "unknown"
-            ? "unknown"
-            : "completed",
+        status: action.status === 'unknown' || second.status === 'unknown' ? 'unknown' : 'completed'
       });
       index += 1;
       continue;
@@ -52,7 +38,7 @@ function mergeSplitAnimations(
 
 function cancelFireAtActionEnd(
   context: EvtcProfessionReconstructionContext,
-  action: EvtcRecordedRotationAction,
+  action: EvtcRecordedRotationAction
 ): boolean {
   return context.log.events.some(
     (event) =>
@@ -60,13 +46,13 @@ function cancelFireAtActionEnd(
       event.skillId === action.rawSkillId &&
       event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP &&
       event.activation === EVTC_ACTIVATION.CANCEL_FIRE &&
-      Math.abs(event.time - action.end) <= SIGNAL_DEDUPLICATION_WINDOW_MS,
+      Math.abs(event.time - action.end) <= SIGNAL_DEDUPLICATION_WINDOW_MS
   );
 }
 
 export function normalizeRevenantCastPackets(
   context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[],
+  actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
   const normalized: EvtcRecordedRotationAction[] = [];
   const autoattacks = actions.filter((action) => {
@@ -74,28 +60,23 @@ export function normalizeRevenantCastPackets(
       action.canonicalSkillId ?? action.rawSkillId,
       action.canonicalName ?? action.rawName,
       context.catalog,
-      context.profile,
+      context.profile
     );
-    return String(skill?.slot || "").toLowerCase() === "weapon_1";
+    return String(skill?.slot || '').toLowerCase() === 'weapon_1';
   });
   const committed = committedActionsFromStrikePackets(context, autoattacks, {
-    maxFallbackImpactMs: 2_000,
+    maxFallbackImpactMs: 2_000
   });
-  const absorbCanceledAnimation = (
-    action: EvtcRecordedRotationAction,
-  ): void => {
+  const absorbCanceledAnimation = (action: EvtcRecordedRotationAction): void => {
     let previousIndex = normalized.length - 1;
-    while (
-      previousIndex >= 0 &&
-      normalized[previousIndex].end <= normalized[previousIndex].start
-    ) {
+    while (previousIndex >= 0 && normalized[previousIndex].end <= normalized[previousIndex].start) {
       previousIndex -= 1;
     }
     if (previousIndex < 0) return;
     const previous = normalized[previousIndex];
     normalized[previousIndex] = {
       ...previous,
-      end: Math.max(previous.end, action.end),
+      end: Math.max(previous.end, action.end)
     };
   };
 
@@ -104,24 +85,21 @@ export function normalizeRevenantCastPackets(
       action.canonicalSkillId ?? action.rawSkillId,
       action.canonicalName ?? action.rawName,
       context.catalog,
-      context.profile,
+      context.profile
     );
     if (
-      action.status === "interrupted" &&
-      String(skill?.slot || "").toLowerCase() === "weapon_1" &&
+      action.status === 'interrupted' &&
+      String(skill?.slot || '').toLowerCase() === 'weapon_1' &&
       !committed.has(action)
     ) {
       absorbCanceledAnimation(action);
       continue;
     }
     const duration = Math.max(0, action.end - action.start);
-    const expected = Math.max(
-      0,
-      Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0),
-    );
-    const autoattack = String(skill?.slot || "").toLowerCase() === "weapon_1";
+    const expected = Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
+    const autoattack = String(skill?.slot || '').toLowerCase() === 'weapon_1';
     const strikeCommit = firstStrikePacketOffsetMs(skill, undefined, {
-      explicitOnly: true,
+      explicitOnly: true
     });
     if (
       autoattack &&
@@ -134,13 +112,13 @@ export function normalizeRevenantCastPackets(
       continue;
     }
     if (
-      action.status === "completed" &&
+      action.status === 'completed' &&
       duration > 0 &&
       expected > 0 &&
       duration + REDUCED_CAST_TOLERANCE_MS < expected &&
       cancelFireAtActionEnd(context, action)
     ) {
-      normalized.push({ ...action, status: "reduced" as const });
+      normalized.push({ ...action, status: 'reduced' as const });
       continue;
     }
     normalized.push(action);

@@ -1,12 +1,12 @@
-import type { CatalogEntity } from "../engine/types.js";
+import type { CatalogEntity } from '../engine/types.js';
 import type {
   Gw2TraitCoverageCatalog,
   Gw2TraitCoverageEffect,
   Gw2TraitCoverageEffectInput,
   Gw2TraitCoverageEntry,
   Gw2TraitCoverageEntryInput,
-  Gw2TraitCoverageStatus,
-} from "./types.js";
+  Gw2TraitCoverageStatus
+} from './types.js';
 
 /** @type {{
  *   readonly IMPLEMENTED: "implemented",
@@ -15,17 +15,15 @@ import type {
  * }}
  */
 export const TRAIT_COVERAGE_STATUSES = Object.freeze({
-  IMPLEMENTED: "implemented",
-  OUT_OF_MODEL: "out-of-model",
-  PENDING: "pending",
+  IMPLEMENTED: 'implemented',
+  OUT_OF_MODEL: 'out-of-model',
+  PENDING: 'pending'
 } as const);
 
-const VALID_STATUSES: ReadonlySet<Gw2TraitCoverageStatus> = new Set(
-  Object.values(TRAIT_COVERAGE_STATUSES),
-);
+const VALID_STATUSES: ReadonlySet<Gw2TraitCoverageStatus> = new Set(Object.values(TRAIT_COVERAGE_STATUSES));
 
 function normalizedText(value: unknown): string {
-  return String(value || "").trim();
+  return String(value || '').trim();
 }
 
 // Strips non-alphanumerics so "Feline Grace." and "Feline Grace" compare equal —
@@ -33,7 +31,7 @@ function normalizedText(value: unknown): string {
 function comparableText(value: unknown): string {
   return normalizedText(value)
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
+    .replace(/[^a-z0-9]+/g, '');
 }
 
 // Rejects boilerplate placeholders and overly short strings that don't actually
@@ -41,12 +39,7 @@ function comparableText(value: unknown): string {
 function concreteReason(value: unknown): boolean {
   const reason = normalizedText(value);
   if (reason.length < 12) return false;
-  return ![
-    "out of model",
-    "not supported",
-    "unsupported",
-    "not applicable",
-  ].includes(reason.toLowerCase());
+  return !['out of model', 'not supported', 'unsupported', 'not applicable'].includes(reason.toLowerCase());
 }
 
 /**
@@ -60,52 +53,40 @@ function normalizeEffect(
   effect: unknown,
   entry: Gw2TraitCoverageEntryInput,
   trait: CatalogEntity,
-  index: number,
+  index: number
 ): Gw2TraitCoverageEffect {
   // A bare string is shorthand for an effect that inherits the entry-level status —
   // convenient for simple traits where every effect has the same status.
   const value = (
-    typeof effect === "string"
+    typeof effect === 'string'
       ? { description: effect, status: entry.status }
-      : effect && typeof effect === "object" && !Array.isArray(effect)
+      : effect && typeof effect === 'object' && !Array.isArray(effect)
         ? { ...effect }
         : {}
   ) as Gw2TraitCoverageEffectInput;
   const description = normalizedText(value.description);
   if (!description) {
-    throw new TypeError(
-      `Trait ${trait.id} coverage effect ${index + 1} needs a description.`,
-    );
+    throw new TypeError(`Trait ${trait.id} coverage effect ${index + 1} needs a description.`);
   }
   if (comparableText(description) === comparableText(trait.name)) {
-    throw new TypeError(
-      `Trait ${trait.id} coverage must document effects, not only its name.`,
-    );
+    throw new TypeError(`Trait ${trait.id} coverage must document effects, not only its name.`);
   }
   const rawStatus = value.status || entry.status;
-  if (
-    typeof rawStatus !== "string" ||
-    !VALID_STATUSES.has(rawStatus as Gw2TraitCoverageStatus)
-  ) {
-    throw new TypeError(
-      `Trait ${trait.id} coverage effect ${index + 1} has invalid status.`,
-    );
+  if (typeof rawStatus !== 'string' || !VALID_STATUSES.has(rawStatus as Gw2TraitCoverageStatus)) {
+    throw new TypeError(`Trait ${trait.id} coverage effect ${index + 1} has invalid status.`);
   }
   const status = rawStatus as Gw2TraitCoverageStatus;
   const reason = normalizedText(value.reason || entry.reason);
   if (
-    (status === TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL ||
-      status === TRAIT_COVERAGE_STATUSES.PENDING) &&
+    (status === TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL || status === TRAIT_COVERAGE_STATUSES.PENDING) &&
     !concreteReason(reason)
   ) {
-    throw new TypeError(
-      `Trait ${trait.id} ${status} effect ${index + 1} needs a concrete reason.`,
-    );
+    throw new TypeError(`Trait ${trait.id} ${status} effect ${index + 1} needs a concrete reason.`);
   }
   return Object.freeze({
     description,
     status,
-    reason: reason || null,
+    reason: reason || null
   });
 }
 
@@ -125,70 +106,48 @@ export function validateTraitCoverageManifest(
   catalog: Gw2TraitCoverageCatalog | null | undefined,
   manifest: unknown,
   {
-    professionId = "profession",
+    professionId = 'profession'
   }: {
     readonly professionId?: string;
-  } = {},
+  } = {}
 ): readonly Gw2TraitCoverageEntry[] {
   const traits = Array.isArray(catalog?.traits) ? catalog.traits : [];
   if (!Array.isArray(manifest)) {
     throw new TypeError(`${professionId} trait coverage must be an array.`);
   }
-  const traitsById = new Map<number, CatalogEntity>(
-    traits.map((trait) => [Number(trait.id), trait]),
-  );
+  const traitsById = new Map<number, CatalogEntity>(traits.map((trait) => [Number(trait.id), trait]));
   const coverageById = new Map<number, Gw2TraitCoverageEntry>();
 
   for (const rawEntry of manifest) {
-    if (!rawEntry || typeof rawEntry !== "object" || Array.isArray(rawEntry)) {
-      throw new TypeError(
-        `${professionId} trait coverage entries must be objects.`,
-      );
+    if (!rawEntry || typeof rawEntry !== 'object' || Array.isArray(rawEntry)) {
+      throw new TypeError(`${professionId} trait coverage entries must be objects.`);
     }
     const entry = rawEntry as Gw2TraitCoverageEntryInput;
-    if (Object.hasOwn(entry, "tests")) {
-      throw new TypeError(
-        `${professionId} trait coverage cannot use test-title evidence.`,
-      );
+    if (Object.hasOwn(entry, 'tests')) {
+      throw new TypeError(`${professionId} trait coverage cannot use test-title evidence.`);
     }
     const traitId = Number(entry.traitId);
     const trait = traitsById.get(traitId);
     if (!trait) {
-      throw new TypeError(
-        `${professionId} trait coverage references unknown trait ${entry.traitId}.`,
-      );
+      throw new TypeError(`${professionId} trait coverage references unknown trait ${entry.traitId}.`);
     }
     if (coverageById.has(traitId)) {
-      throw new TypeError(
-        `${professionId} trait coverage duplicates trait ${traitId}.`,
-      );
+      throw new TypeError(`${professionId} trait coverage duplicates trait ${traitId}.`);
     }
-    if (
-      typeof entry.status !== "string" ||
-      !VALID_STATUSES.has(entry.status as Gw2TraitCoverageStatus)
-    ) {
-      throw new TypeError(
-        `${professionId} trait ${traitId} has invalid coverage status.`,
-      );
+    if (typeof entry.status !== 'string' || !VALID_STATUSES.has(entry.status as Gw2TraitCoverageStatus)) {
+      throw new TypeError(`${professionId} trait ${traitId} has invalid coverage status.`);
     }
     if (!Array.isArray(entry.effects) || entry.effects.length === 0) {
-      throw new TypeError(
-        `${professionId} trait ${traitId} must document every reviewed effect.`,
-      );
+      throw new TypeError(`${professionId} trait ${traitId} must document every reviewed effect.`);
     }
-    const effects = (entry.effects as unknown[]).map((effect, index) =>
-      normalizeEffect(effect, entry, trait, index),
-    );
+    const effects = (entry.effects as unknown[]).map((effect, index) => normalizeEffect(effect, entry, trait, index));
     const status = entry.status as Gw2TraitCoverageStatus;
     const reason = normalizedText(entry.reason);
     if (
-      (status === TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL ||
-        status === TRAIT_COVERAGE_STATUSES.PENDING) &&
+      (status === TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL || status === TRAIT_COVERAGE_STATUSES.PENDING) &&
       !concreteReason(reason)
     ) {
-      throw new TypeError(
-        `${professionId} ${status} trait ${traitId} needs a concrete reason.`,
-      );
+      throw new TypeError(`${professionId} ${status} trait ${traitId} needs a concrete reason.`);
     }
     coverageById.set(
       traitId,
@@ -196,8 +155,8 @@ export function validateTraitCoverageManifest(
         traitId,
         status,
         effects: Object.freeze(effects),
-        reason: reason || null,
-      }),
+        reason: reason || null
+      })
     );
   }
 
@@ -207,9 +166,7 @@ export function validateTraitCoverageManifest(
     .filter((trait) => !coverageById.has(Number(trait.id)))
     .map((trait) => `${trait.id} (${trait.name})`);
   if (missing.length) {
-    throw new TypeError(
-      `${professionId} trait coverage is missing: ${missing.join(", ")}.`,
-    );
+    throw new TypeError(`${professionId} trait coverage is missing: ${missing.join(', ')}.`);
   }
   return Object.freeze([...coverageById.values()]);
 }

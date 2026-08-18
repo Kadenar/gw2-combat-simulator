@@ -1,17 +1,13 @@
-import { createSimulationRandom } from "../../engine/simulation-random.js";
-import type {
-  SchedulerRecord,
-  SchedulerState,
-  SimulationRandom,
-} from "../../engine/types.js";
-import { createRelicRuntime } from "../relic-rules.js";
+import { createSimulationRandom } from '../../engine/simulation-random.js';
+import type { SchedulerRecord, SchedulerState, SimulationRandom } from '../../engine/types.js';
+import { createRelicRuntime } from '../relic-rules.js';
 import type {
   Gw2CombatQuery,
   Gw2Config,
   Gw2RelicRuntime,
   Gw2RuntimeConditionEntry,
-  Gw2TimedBuffApplication,
-} from "../types.js";
+  Gw2TimedBuffApplication
+} from '../types.js';
 
 export interface MaterializerProfessionState extends SchedulerRecord {
   maximumEndurance?: number;
@@ -45,7 +41,7 @@ export interface MaterializerState extends SchedulerRecord {
 export function createMaterializerState(
   config: Gw2Config,
   traits: ReadonlySet<string | number> | null,
-  criticalFactsRequired: boolean,
+  criticalFactsRequired: boolean
 ): MaterializerState {
   return {
     config,
@@ -66,7 +62,7 @@ export function createMaterializerState(
       readyAt: new Map(),
       criticalProgress: 0,
       doomPending: false,
-      severanceUntil: 0,
-    },
+      severanceUntil: 0
+    }
   };
 }

@@ -96,7 +96,7 @@
   border-bottom: 1px solid var(--activation-editor-accent);
   border-left: 1px solid var(--activation-editor-accent);
   background: #191925;
-  content: "";
+  content: '';
   transform: rotate(45deg);
 }
 

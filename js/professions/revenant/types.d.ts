@@ -8,21 +8,11 @@ import type {
   SchedulerContext,
   SchedulerRecord,
   Skill,
-  SkillId,
-} from "../../platform/engine/types.js";
-import type {
-  Gw2Build,
-  Gw2CanonicalBuild,
-  Gw2Config,
-} from "../../platform/gw2/types.js";
-import type {
-  Gw2ResolverEvent,
-  Gw2ResolverRuntime,
-} from "../../platform/gw2/types.js";
-import type {
-  ProfessionApplicationBuild,
-  ProfessionBuildAssumptions,
-} from "../../app/profession/types.js";
+  SkillId
+} from '../../platform/engine/types.js';
+import type { Gw2Build, Gw2CanonicalBuild, Gw2Config } from '../../platform/gw2/types.js';
+import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../platform/gw2/types.js';
+import type { ProfessionApplicationBuild, ProfessionBuildAssumptions } from '../../app/profession/types.js';
 
 export interface RevenantSpecializationSelection {
   readonly name?: string;
@@ -53,9 +43,8 @@ export interface RevenantSkill extends Skill {
   readonly pulseInterval?: number;
 }
 
-export type RevenantDodge =
-  "Death Drop" | "Saint of zu Heltzer" | "Imperial Impact";
-export type RevenantAllianceSide = "luxon" | "kurzick";
+export type RevenantDodge = 'Death Drop' | 'Saint of zu Heltzer' | 'Imperial Impact';
+export type RevenantAllianceSide = 'luxon' | 'kurzick';
 
 export interface RevenantBuild extends Gw2Build {
   assumptions?: ProfessionBuildAssumptions;
@@ -182,38 +171,28 @@ export interface ConduitState {
   energyCostOverrides: Record<string, number>;
 }
 
-export interface RevenantState
-  extends
-    RevenantCoreState,
-    HeraldState,
-    RenegadeState,
-    VindicatorState,
-    ConduitState {}
+export interface RevenantState extends RevenantCoreState, HeraldState, RenegadeState, VindicatorState, ConduitState {}
 
 export interface RevenantRuntimeState {
   core: RevenantCoreState;
   specialization:
-    | { kind: "Core"; state: Record<string, never> }
-    | { kind: "Herald"; state: HeraldState }
-    | { kind: "Renegade"; state: RenegadeState }
-    | { kind: "Vindicator"; state: VindicatorState }
-    | { kind: "Conduit"; state: ConduitState };
+    | { kind: 'Core'; state: Record<string, never> }
+    | { kind: 'Herald'; state: HeraldState }
+    | { kind: 'Renegade'; state: RenegadeState }
+    | { kind: 'Vindicator'; state: VindicatorState }
+    | { kind: 'Conduit'; state: ConduitState };
 }
 
-export type RevenantSchedulerContext =
-  SchedulerContext<RevenantRuntimeState> & {
-    readonly catalog: CanonicalCatalog<RevenantSkill>;
-    readonly config: RevenantConfig;
-    readonly schedulerPolicy: SchedulerContext<RevenantRuntimeState>["schedulerPolicy"] & {
-      readonly combatBeganAt?: () => number | null;
-      readonly critical?: (
-        context: RevenantSchedulerContext,
-        event: SimulationEvent,
-      ) => { readonly chance?: number };
-      readonly isCombatActive?: () => boolean;
-      readonly requireCriticalFacts?: () => void;
-    };
+export type RevenantSchedulerContext = SchedulerContext<RevenantRuntimeState> & {
+  readonly catalog: CanonicalCatalog<RevenantSkill>;
+  readonly config: RevenantConfig;
+  readonly schedulerPolicy: SchedulerContext<RevenantRuntimeState>['schedulerPolicy'] & {
+    readonly combatBeganAt?: () => number | null;
+    readonly critical?: (context: RevenantSchedulerContext, event: SimulationEvent) => { readonly chance?: number };
+    readonly isCombatActive?: () => boolean;
+    readonly requireCriticalFacts?: () => void;
   };
+};
 
 export type RevenantCastContext = CastLifecycleContext<RevenantRuntimeState> & {
   readonly catalog: CanonicalCatalog<RevenantSkill>;
@@ -252,9 +231,7 @@ export interface RevenantEnergyContext {
   readonly hasBuff?: (kind: string, at?: number) => boolean;
 }
 
-export type RevenantScheduledTask<
-  TPayload extends SchedulerRecord = SchedulerRecord,
-> = ScheduledTask<TPayload>;
+export type RevenantScheduledTask<TPayload extends SchedulerRecord = SchedulerRecord> = ScheduledTask<TPayload>;
 
 export type RevenantSimulationEvent = SimulationEvent & {
   readonly __order?: number;
@@ -280,9 +257,7 @@ export interface RevenantUiContext extends SchedulerRecord {
   };
   readonly professionState?: Partial<RevenantState>;
   readonly initialEnergy?: number;
-  readonly cooldowns?: Readonly<
-    Record<string, { readonly remaining?: number }>
-  >;
+  readonly cooldowns?: Readonly<Record<string, { readonly remaining?: number }>>;
   readonly entry?: unknown;
   readonly rotation?: readonly unknown[];
   readonly index?: number;

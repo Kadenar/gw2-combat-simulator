@@ -8,7 +8,7 @@ export const CONDITION_FORMULAS = Object.freeze({
     base: 18.25,
     scaling: 0.05,
     activationBase: 16.24,
-    activationScaling: 0.0325,
+    activationScaling: 0.0325
   }),
   // Fear enters this formula only when a profession explicitly schedules it
   // as damaging; ordinary control-only fear events never enter this table.
@@ -20,13 +20,11 @@ export const CONDITION_FORMULAS = Object.freeze({
     base: 22,
     scaling: 0.06,
     stationaryBase: 31.8,
-    stationaryScaling: 0.09,
-  }),
+    stationaryScaling: 0.09
+  })
 });
 
-const CONDITION_FORMULA_LOOKUP: Readonly<
-  Record<string, ConditionFormula>
-> = CONDITION_FORMULAS;
+const CONDITION_FORMULA_LOOKUP: Readonly<Record<string, ConditionFormula>> = CONDITION_FORMULAS;
 
 /**
  * Returns one stack's one-second tick before duration and damage modifiers.
@@ -36,14 +34,15 @@ const CONDITION_FORMULA_LOOKUP: Readonly<
 export function conditionTickDamage(
   condition: string,
   conditionDamage = 0,
-  options: { readonly stationary?: boolean } = {},
+  options: { readonly stationary?: boolean } = {}
 ): number {
   const formula = CONDITION_FORMULA_LOOKUP[condition];
   if (!formula) return 0;
-  if (condition === "Torment" && options.stationary !== false) {
-    return Number(formula.stationaryBase || 0)
-      + Number(formula.stationaryScaling || 0) *
-        Math.max(0, Number(conditionDamage));
+  if (condition === 'Torment' && options.stationary !== false) {
+    return (
+      Number(formula.stationaryBase || 0) +
+      Number(formula.stationaryScaling || 0) * Math.max(0, Number(conditionDamage))
+    );
   }
   return formula.base + formula.scaling * Math.max(0, Number(conditionDamage));
 }

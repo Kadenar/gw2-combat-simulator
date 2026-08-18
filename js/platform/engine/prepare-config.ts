@@ -47,10 +47,9 @@ interface PrepareSimulationConfigOptions {
 export function prepareSimulationConfig(
   defaults: SimulationConfigDefaults,
   userConfig: SimulationConfigOverrides = {},
-  { duration = userConfig.duration }: PrepareSimulationConfigOptions = {},
+  { duration = userConfig.duration }: PrepareSimulationConfigOptions = {}
 ): PreparedSimulationConfig {
-  const hasTargetConditions =
-    Boolean(userConfig.target) && Object.hasOwn(userConfig.target!, "conditions");
+  const hasTargetConditions = Boolean(userConfig.target) && Object.hasOwn(userConfig.target!, 'conditions');
 
   return {
     ...defaults,
@@ -61,9 +60,7 @@ export function prepareSimulationConfig(
     target: {
       ...defaults.target,
       ...(userConfig.target || {}),
-      conditions: hasTargetConditions
-        ? { ...(userConfig.target?.conditions || {}) }
-        : { ...defaults.target.conditions },
-    },
+      conditions: hasTargetConditions ? { ...(userConfig.target?.conditions || {}) } : { ...defaults.target.conditions }
+    }
   };
 }

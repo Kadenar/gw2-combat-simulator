@@ -1,65 +1,54 @@
-import { EVTC_STATE_CHANGE } from "../../types.js";
-import { ELEMENTALIST_SKILL_IDS as ID } from "../../../professions/elementalist/data/ids.js";
-import { reconstructEvokerActions } from "./elementalist/evoker.js";
-import type {
-  EvtcProfessionReconstructionContext,
-  EvtcRecordedRotationAction,
-} from "./types.js";
+import { EVTC_STATE_CHANGE } from '../../types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '../../../professions/elementalist/data/ids.js';
+import { reconstructEvokerActions } from './elementalist/evoker.js';
+import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from './types.js';
 
 const ELEMENTAL_COMMANDS = Object.freeze([
   {
     speciesId: 6524,
-    character: "Fire Elemental",
-    action: { name: "Flame Barrage", skillId: 2662 },
+    character: 'Fire Elemental',
+    action: { name: 'Flame Barrage', skillId: 2662 }
   },
   {
     speciesId: 6523,
-    character: "Earth Elemental",
-    action: { name: "Stomp", skillId: 2666 },
-  },
+    character: 'Earth Elemental',
+    action: { name: 'Stomp', skillId: 2666 }
+  }
 ]);
 
 type ElementalistActionTransform = (
   context: EvtcProfessionReconstructionContext,
-  actions: readonly EvtcRecordedRotationAction[],
+  actions: readonly EvtcRecordedRotationAction[]
 ) => EvtcRecordedRotationAction[];
 
-const specializationAnalyzers: ReadonlyMap<
-  string,
-  ElementalistActionTransform
-> = new Map([["evoker", reconstructEvokerActions]]);
+const specializationAnalyzers: ReadonlyMap<string, ElementalistActionTransform> = new Map([
+  ['evoker', reconstructEvokerActions]
+]);
 
-function playerInstance(
-  context: EvtcProfessionReconstructionContext,
-): number | null {
+function playerInstance(context: EvtcProfessionReconstructionContext): number | null {
   return (
-    context.log.events.find(
-      (event) =>
-        event.source === context.playerAddress && event.sourceInstance > 0,
-    )?.sourceInstance ?? null
+    context.log.events.find((event) => event.source === context.playerAddress && event.sourceInstance > 0)
+      ?.sourceInstance ?? null
   );
 }
 
 function ownedElementalCommandActions(
-  context: EvtcProfessionReconstructionContext,
+  context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {
   const ownerInstance = playerInstance(context);
   if (ownerInstance == null) return [];
   return ELEMENTAL_COMMANDS.flatMap(({ speciesId, character, action }) => {
     const actors = new Set(
       context.log.agents
-        .filter(
-          (agent) =>
-            agent.profession === speciesId || agent.character === character,
-        )
-        .map((agent) => agent.address),
+        .filter((agent) => agent.profession === speciesId || agent.character === character)
+        .map((agent) => agent.address)
     );
     const starts = context.log.events.filter(
       (event) =>
         actors.has(event.source) &&
         event.sourceMasterInstance === ownerInstance &&
         event.skillId === action.skillId &&
-        event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START,
+        event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START
     );
 
     return context.log.events.flatMap((event, eventIndex) => {
@@ -70,8 +59,7 @@ function ownedElementalCommandActions(
       ) {
         return [];
       }
-      const directStart =
-        event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START;
+      const directStart = event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START;
       const unmatchedStop =
         event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP &&
         event.value > 0 &&
@@ -79,7 +67,7 @@ function ownedElementalCommandActions(
           (start) =>
             start.source === event.source &&
             start.time < event.time &&
-            Math.abs(event.time - start.time - event.value) <= 150,
+            Math.abs(event.time - start.time - event.value) <= 150
         );
       if (!directStart && !unmatchedStop) return [];
       const start = directStart ? event.time : event.time - event.value;
@@ -92,34 +80,28 @@ function ownedElementalCommandActions(
           rawName: action.name,
           canonicalSkillId: action.skillId,
           canonicalName: action.name,
-          evidence: "animation" as const,
-          status: "instant" as const,
+          evidence: 'animation' as const,
+          status: 'instant' as const,
           eventIndex,
-          ...(unmatchedStop ? { precast: true } : {}),
-        },
+          ...(unmatchedStop ? { precast: true } : {})
+        }
       ];
     });
   });
 }
 
 export function reconstructElementalistProfessionActions(
-  context: EvtcProfessionReconstructionContext,
+  context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {
   let actions = context.recordedActions.filter(
     (action) =>
       !(
         action.initialState === true &&
-        (action.rawSkillId === ID.FIRE_ATTUNEMENT ||
-          action.canonicalSkillId === ID.FIRE_ATTUNEMENT)
-      ),
+        (action.rawSkillId === ID.FIRE_ATTUNEMENT || action.canonicalSkillId === ID.FIRE_ATTUNEMENT)
+      )
   );
-  actions =
-    specializationAnalyzers.get(context.profile.specializationId)?.(
-      context,
-      actions,
-    ) || actions;
+  actions = specializationAnalyzers.get(context.profile.specializationId)?.(context, actions) || actions;
   return [...actions, ...ownedElementalCommandActions(context)].sort(
-    (left, right) =>
-      left.start - right.start || left.eventIndex - right.eventIndex,
+    (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
   );
 }
