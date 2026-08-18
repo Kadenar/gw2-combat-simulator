@@ -312,9 +312,10 @@ const result = simulateGw2({
 });
 ```
 
-Registered IDs are `mesmer`, `elementalist`, `guardian`, `necromancer`,
-`engineer`, `revenant`, and `thief`. Each profession still needs an appropriate
-config; loading the contract does not create a build or copy UI defaults.
+Registered IDs are `elementalist`, `mesmer`, `necromancer`, `ranger`, `thief`,
+`engineer`, `guardian`, `warrior`, and `revenant`. Each profession still needs an
+appropriate config; loading the contract does not create a build or copy UI
+defaults.
 
 ## Reading the result
 

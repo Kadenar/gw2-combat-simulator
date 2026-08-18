@@ -1,5 +1,25 @@
 # Profession-neutral simulator architecture
 
+How the simulator is composed, the contracts each layer exposes, and the
+workflow for adding a profession. For a directory-level reference of what each
+module and folder owns, see [MODULES.md](./MODULES.md).
+
+## Contents
+
+- [Layers](#layers)
+- [Key concepts](#key-concepts)
+- [Dependency rules](#dependency-rules)
+- [Declarative profession mechanics layout](#declarative-profession-mechanics-layout)
+- [Profession contract](#profession-contract)
+- [Phase-explicit native helpers](#phase-explicit-native-helpers)
+- [Events](#events)
+- [Skills, traits, and rotations](#skills-traits-and-rotations)
+- [Builds](#builds)
+- [Included professions](#included-professions)
+- [Adding another profession](#adding-another-profession)
+
+## Layers
+
 The simulator is composed in three layers:
 
 ```text
@@ -21,6 +41,8 @@ js/
   app/             browser composition and persistence adapters
 ```
 
+### Shared attribute assembly
+
 Common GW2 attribute assembly and derived-stat finalization live in
 `js/platform/gw2/attributes.ts`; profession calculators own only their resolved
 trait and skill deltas. The shared `calculateCommonAttributes()` assembles
@@ -28,6 +50,8 @@ equipment, consumables, infusions, sigils, and base derived stats. Native
 professions pass their resolved deltas to `finalizeBuildAttributes()`, which
 rebuilds critical chance, critical damage, boon duration, and condition
 duration.
+
+### Profession composition boundary
 
 Elementalist uses the shared scheduler and resolver. Its profession directory
 owns attunements, weapon mechanics, specialization state, rules, resolver
@@ -49,6 +73,25 @@ visible so their cooldown state can still be inspected.
 The registry-driven profession selector routes between every registered
 application while preserving one visual system and independent persisted
 builds.
+
+## Key concepts
+
+- **Build** — complete character configuration: gear/prefixes, weapons/sigils,
+  runes/relics, food/utility, infusions, trait selections, skill selections, and
+  assumptions (boons/target state).
+- **Rotation** — ordered sequence of skill activations with optional timing
+  offsets, representing the player's action sequence.
+- **Simulation pass** — a single execution of a rotation under specific config:
+  determines when skills activate, calculates damage, applies conditions, and
+  tracks cooldowns.
+- **Attributes** — stats derived from a build (Power, Precision, Ferocity,
+  Expertise, Concentration) plus derived metrics like critical chance, critical
+  damage, and duration bonuses.
+- **Event** — an atomic timestamped action (skill cast, cooldown, resource
+  change, condition, damage, trait proc) that flows through the scheduler →
+  resolver pipeline.
+- **Resolver** — the post-scheduler phase that converts timed events into damage
+  numbers using calculated attributes and condition formulas.
 
 ## Dependency rules
 
@@ -135,7 +178,7 @@ Every native profession otherwise uses the same source roles:
 Profession-specific state machines remain in named feature modules beside
 these boundaries. Skill entries reference those handlers explicitly.
 The repeatable module authoring and migration requirements are defined in
-`docs/MODULES.md`.
+[MODULES.md](./MODULES.md).
 
 ## Profession contract
 

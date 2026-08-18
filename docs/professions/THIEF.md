@@ -1,55 +1,41 @@
-# Thief simulator
+# Thief
 
-The Thief implementation uses the checked-in Guild Wars 2 API identity
-snapshot from July 28, 2026 plus manually reviewed PvE mechanics encoded in
-the profession modules.
+Native shared-engine profession. Entry point `thief.html`. Core owns shared
+initiative, stealth, weapons, and traits; each specialization owns a complete
+vertical slice under `specializations/<name>/` and only the selected elite
+(Daredevil, Deadeye, Specter, or Antiquary) is present in a given runtime.
+
+## Data
+
+- API identity snapshot: 2026-07-28 (official GW2 API).
+- Refresh: `npm run update:profession-data -- --profession Thief`.
+- Runtime simulation is network-free. Initiative and other non-API mechanics
+  are manually reviewed and checked into the mechanics modules.
 
 ## Implemented systems
 
-- Nine terrestrial weapon families and exact main-hand/off-hand matching for
-  every dual-wield and empty-offhand slot-3 skill.
-- Shared initiative, passive regeneration, explicit weapon-skill costs, weapon
-  swap preservation, Preparedness, and initiative-gain traits.
-- Stealth stacking, Revealed, active-weapon stealth attacks, and Deadeye
-  malicious stealth attacks.
-- Dagger cast timings measured under Quickness, per-hit strike packets,
-  Heartseeker health thresholds, Wild Strike endurance, Death Blossom's whirl
-  finisher, shadowstep triggers, and Deadeye's 10%-per-malice Backstab scaling.
-- Core/Daredevil stolen skills, Deadeye-specific stolen skills and
-  Mark/malice/Kneel, Daredevil endurance and dodge replacements, and Specter
-  Shadow Force and Shadow Shroud transitions. The maximum Shadow Force pool is
-  69% of maximum health and drains by 2% of that pool per second in shroud.
-- Daredevil's EVTC-measured dagger benchmark timings, physical-skill endurance,
-  Fist Flurry/Palm Strike window, delayed Pulmonary Impact, Weakening Strikes,
-  Havoc Specialist, six-second Bound/Impaling Lotus damage windows, and Staff
-  strike packets, conditions, control effects, and combo finishers.
-- Specter's measured Quickness cast times, Scepter and Shadow Shroud hit
-  packets, per-hit conditions, combo-finisher metadata, delayed Mind Shock,
-  and one-second Well of Bounty/Sorrow/Tears pulse sequences.
-- Specter initiative spending grants 1% Shadow Force per point. Siphon grants
-  25%, or 27.5% with Amplified Siphoning, and combines Lead Attacks with
-  Sleight of Hand additively. Larcenous Torment resolves once per torment
-  stack, including its 0.5% Shadow Force gain and life siphon.
-- Second Opinion, Dark Sentry/Rot Wallow Venom, Strength of Shadows, and
-  Shadestep ally boons. Ally-triggered Rot Wallow packets use the configured
-  allied-player count and strike rate. Shallow Grave, Consume Shadows,
-  Traversing Dusk, Panaku's Ambition, and Hungering Darkness remain outside
-  the implemented model.
-- Antiquary artifact uses with all artifacts available for player choice,
-  per-cast Double Edge outcomes, backfire state, and persistent Antiquary
-  summons.
-- Current researched damage, condition, control, boon, cooldown, ammo, and
-  chain packets, plus a validated coverage disposition for all 108 traits.
+- **Core** — nine terrestrial weapon families with exact main-hand/off-hand
+  matching for every dual-wield and empty-offhand slot-3 skill; shared
+  initiative, passive regeneration, explicit weapon-skill costs, weapon-swap
+  preservation, Preparedness, and initiative-gain traits; stealth stacking,
+  Revealed, active-weapon stealth attacks, and core/Daredevil stolen skills.
+- **Daredevil** — physical-skill endurance, the Fist Flurry/Palm Strike window,
+  delayed Pulmonary Impact, staff packets, and its damage-window traits.
+- **Deadeye** — Mark, malice, Kneel, malicious stealth attacks, and per-malice
+  Backstab scaling.
+- **Specter** — Shadow Force pool and Shadow Shroud transitions, Scepter and
+  shroud hit packets, wells, Siphon, and initiative-to-Shadow-Force gain.
+- **Antiquary** — artifact uses with all artifacts selectable, per-cast Double
+  Edge outcomes, backfire state, and persistent Antiquary summons.
+- All 108 traits have a validated coverage disposition.
 
-The default stolen skill is Throw Gunk, matching the standard raid-golem
-scenario. Double Edge success or backfire is saved on each affected rotation
-entry; simulation never uses unseeded randomness.
+The default stolen skill is Throw Gunk (standard raid-golem scenario). Double
+Edge success/backfire is saved per rotation entry; simulation never uses
+unseeded randomness.
 
-## Data provenance
+## Modeling boundaries
 
-Refresh API identity data with
-`npm run update:profession-data -- --profession Thief`, which runs
-`scripts/data/update-profession-api-data.mjs`. Runtime simulation is network-free.
-Initiative and other non-API mechanics are manually reviewed and checked into
-the mechanics modules; the repository does not currently track per-record
-Wiki revision metadata.
+Single-target, outgoing-damage focused. Incoming attacks, active defense, ally
+support (Shallow Grave, Consume Shadows, Traversing Dusk, Panaku's Ambition,
+Hungering Darkness, etc.), pathing, secondary targets, and competitive (PvP/WvW)
+splits are out of model.
