@@ -52,6 +52,7 @@ import {
   materializeBoonRelics,
   relicConditionDurationBonus,
   relicOutgoingDamageBonus,
+  relicStrikeMultiplier,
   recordPassiveRelicTimeline,
 } from "../../js/platform/gw2/relic-rules.js";
 import { sigilCriticalContribution } from "../../js/platform/gw2/sigil-rules.js";
@@ -2506,6 +2507,34 @@ test("Relic of Bloodstone explodes on the third blast and grants Fervor", () => 
   assert.equal(explosion.at, 0.68);
   assert.equal(bleeding.stacks, 6);
   assert.equal(bleeding.duration, 6);
+});
+
+test("Bloodstone Fervor follows player modifier ownership", () => {
+  const relic = createRelicRuntime("Bloodstone");
+  const context = { relic };
+  relic.state.buffUntil = 8;
+
+  const effect = {
+    type: "damage",
+    at: 1,
+    actorType: "effect",
+    skillName: "Owned Effect",
+  };
+  assert.equal(
+    relicStrikeMultiplier(context, {
+      ...effect,
+      ownerActorType: "player",
+    }),
+    1.07,
+  );
+  assert.equal(relicStrikeMultiplier(context, effect), 1);
+  assert.equal(
+    relicStrikeMultiplier(context, {
+      ...effect,
+      sourceId: "relic.bloodstone",
+    }),
+    1.07,
+  );
 });
 
 test("Relic of the Shackles strikes five seconds after immobilize with a strict ten-second ICD", () => {

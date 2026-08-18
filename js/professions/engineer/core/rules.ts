@@ -379,22 +379,32 @@ function modifyEngineerCoreAttributes(
           20,
         );
   }
-  if (
-    hasTrait(context, TRAIT.SHARPSHOOTER) &&
-    context.event?.condition === "Bleeding" &&
-    context.event?.actorType !== "summon"
-  ) {
-    // Sharpshooter: bleeding condition damage becomes power * 2/3 (replaces, not adds to, conditionDamage)
-    modified.conditionDamage =
-      Number(modified.power || 0) *
-      engineerBalanceValue(
-        context,
-        PROFILE.sharpshooter,
-        "coefficientMultiplier",
-        2 / 3,
-      );
-  }
+  applyEngineerSharpshooterConditionDamage(context, modified);
   return modified;
+}
+
+// Sharpshooter replaces bleeding's condition-damage attribute with a Power
+// conversion. Specializations can rerun this after their dynamic Power hooks
+// so the replacement includes bonuses such as Amalgam's Evolved state.
+export function applyEngineerSharpshooterConditionDamage(
+  context: Gw2ModifierContext,
+  attributes: SchedulerRecord,
+): void {
+  if (
+    !hasTrait(context, TRAIT.SHARPSHOOTER) ||
+    context.event?.condition !== "Bleeding" ||
+    context.event?.actorType === "summon"
+  ) {
+    return;
+  }
+  attributes.conditionDamage =
+    Number(attributes.power || 0) *
+    engineerBalanceValue(
+      context,
+      PROFILE.sharpshooter,
+      "coefficientMultiplier",
+      2 / 3,
+    );
 }
 
 function modifyEngineerCoreRechargeDuration(

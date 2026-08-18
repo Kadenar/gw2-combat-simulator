@@ -172,6 +172,77 @@ test("condition applications shorter than one second deal fractional damage", ()
   assert.deepEqual(result.warnings, ["resolver handoff warning"]);
 });
 
+test("staggered condition applications preserve fractional stack-seconds", () => {
+  const stream = buildScheduledEventStream({
+    events: [
+      {
+        type: "condition",
+        at: 0,
+        name: "Long Bleed",
+        skillName: "Long Bleed",
+        condition: "Bleeding",
+        duration: 1.25,
+        stacks: 1,
+        source: "Player",
+        sourceId: "long-bleed",
+      },
+      {
+        type: "condition",
+        at: 0.75,
+        name: "Short Bleed",
+        skillName: "Short Bleed",
+        condition: "Bleeding",
+        duration: 0.5,
+        stacks: 1,
+        source: "Player",
+        sourceId: "short-bleed",
+      },
+    ],
+    rotationEndTime: 2,
+  });
+  const result = resolveTestGw2Stream({
+    stream,
+    config: {
+      target: {},
+      sigilSets: [{ names: [] }],
+    },
+    traits: new Set(),
+    query: {
+      statsAt: () => ({
+        power: 1000,
+        precision: 1000,
+        ferocity: 0,
+        conditionDamage: 1000,
+        expertise: 0,
+      }),
+      critical: () => ({ chance: 0.05, damage: 1.5 }),
+      strikeMultiplier: () => 1,
+      conditionMultiplier: () => 1,
+      conditionDurationMultiplier: () => 1,
+      activeWeaponSetAt: () => 1,
+    },
+    helpers: {
+      conditionName: (name) => name,
+      skillsByName: new Map(),
+      weaponStrength: () => 1000,
+    },
+  });
+
+  const applications = result.resolvedEvents.filter(
+    (event) => event.type === "condition",
+  );
+  // Independent fractional durations integrate to 1.75 stack-seconds instead
+  // of being rounded onto a shared one-second condition-tick cadence.
+  assert.equal(
+    applications.reduce(
+      (total, application) => total + application.damagingStackSeconds,
+      0,
+    ),
+    1.75,
+  );
+  assert.equal(result.conditionDamage, 143.5);
+});
+
 test("precombat conditions carry across an explicit combat start", () => {
   const stream = buildScheduledEventStream({
     events: [

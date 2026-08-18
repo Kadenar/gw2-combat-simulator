@@ -23,6 +23,7 @@ interface QueueDamageOptions {
   readonly coefficient: number;
   readonly sourceId?: SkillId | null;
   readonly actorType?: SimulationActorType;
+  readonly ownerActorType?: SimulationActorType;
   readonly at?: number;
   readonly noCrit?: boolean;
   readonly explosion?: boolean;
@@ -69,6 +70,7 @@ export function queueDamage(
     coefficient,
     sourceId = event.skillId,
     actorType = "player",
+    ownerActorType,
     at = event.at,
     noCrit = false,
     explosion = false,
@@ -89,6 +91,8 @@ export function queueDamage(
     source: actorType === "effect" ? "Trait" : "engineer",
     sourceId: sourceId ?? event.skillId ?? event.sourceId,
     actorType,
+    // Effect-owned strikes can inherit player modifiers without becoming player actors for proc eligibility.
+    ...(ownerActorType == null ? {} : { ownerActorType }),
     // skillId only on player events — summon/effect damage should not carry the parent skill ID
     skillId: actorType === "player" ? event.skillId : undefined,
     // "Spear" default for player spear skills; non-player damage uses "Unequipped" for weapon lookups

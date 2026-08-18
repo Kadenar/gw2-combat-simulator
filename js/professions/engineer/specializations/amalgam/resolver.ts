@@ -62,11 +62,13 @@ function reactToAmalgamDamage(
     isInternalCooldownReady(event.at, Number(state.rapacious || 0))
   ) {
     state.rapacious = event.at + 0.5;
+    // Keep Rapacious effect-owned for proc gating while inheriting the player's outgoing modifiers.
     queueDamage(context, event, {
       name: "Rapacious Strain",
       coefficient: 0.3,
       sourceId: "engineer.rapacious-strain",
       actorType: "effect",
+      ownerActorType: "player",
     });
     recordTrait(
       context,
