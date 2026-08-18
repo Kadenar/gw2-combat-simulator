@@ -153,6 +153,19 @@ test("Tempest overloads activate Relic of Fireworks as profession mechanics", ()
   );
 });
 
+test("Updraft's 0-damage hit activates Relic of Fireworks", () => {
+  const result = runNative({
+    lines: [["Air"], ["Fire"], ["Arcane"]],
+    rotation: ["Updraft", 3000],
+    startAttunement: "Air",
+  });
+  const procs = result.procSteps.filter(
+    (step) => step.skill === "Relic of Fireworks",
+  );
+  assert.ok(procs.length > 0);
+  assert.ok(procs.every((step) => step.sourceSkill === "Updraft"));
+});
+
 test("Catalyst mechanics execute through native hooks", () => {
   const result = runNative({
     lines: [["Fire"], ["Air"], ["Catalyst"]],

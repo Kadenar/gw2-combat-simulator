@@ -2903,6 +2903,22 @@ test("Relic of Fireworks ignores non-weapon skills with qualifying cooldowns", (
   );
 });
 
+test("Relic of Fireworks triggers on Virtuoso bladesongs", () => {
+  const fireworks = simulateMesmer(
+    ["Bladesong Sorrow", { name: "__wait", waitMs: 12000 }],
+    defaultSimulationConfig({
+      specialization: "Virtuoso",
+      relic: "Fireworks",
+      initialResource: 5,
+    }),
+  );
+  const procs = fireworks.procSteps.filter(
+    (proc) => proc.skill === "Relic of Fireworks",
+  );
+  assert.ok(procs.length > 0);
+  assert.ok(procs.every((proc) => proc.sourceSkill === "Bladesong Sorrow"));
+});
+
 test("Relic of Akeem triggers on control against five confusion stacks", () => {
   const result = simulateMesmer(
     [

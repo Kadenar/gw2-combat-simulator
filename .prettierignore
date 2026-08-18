@@ -4,3 +4,7 @@
 *.md
 /node_modules/
 /reference-repos/
+package-lock.json
+dist/
+build/
+coverage/

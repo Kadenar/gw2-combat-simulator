@@ -4847,6 +4847,24 @@ test("Dragonhunter virtues apply tether, passive aegis, and virtue traits", () =
   );
 });
 
+test("Relic of Fireworks triggers on Dragonhunter virtues", () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Spear of Justice", { type: "wait", durationMs: 3000 }],
+    config: {
+      ...config,
+      specialization: "Dragonhunter",
+      primaryWeapon: "Spear",
+      relic: "Fireworks",
+    },
+  });
+  const procs = result.procSteps.filter(
+    (step) => step.skill === "Relic of Fireworks",
+  );
+  assert.ok(procs.length > 0);
+  assert.ok(procs.every((step) => step.sourceSkill === "Spear of Justice"));
+});
+
 test("Dragonhunter traps and control traits apply their complete effects", () => {
   const trap = simulateGw2({
     profession: guardianProfession,

@@ -3314,6 +3314,20 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     effects: [
       {
+        // Updraft's launch registers a 0-damage strike, which is what lets it
+        // trigger on-hit effects such as Relic of Fireworks despite dealing no
+        // damage.
+        type: "strike",
+        ticks: [
+          {
+            atMs: 1320,
+            coefficient: 0,
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
         type: "boon",
         boon: "Swiftness",
         stacks: 1,
