@@ -319,9 +319,13 @@ function normalizePaletteAvailability(value: unknown, professionId: string): Pal
   if (typeof result.available !== 'boolean') {
     throw new TypeError(`${professionId} paletteSkillAvailability.available must be boolean.`);
   }
+  if (result.retryAt != null && !Number.isFinite(Number(result.retryAt))) {
+    throw new TypeError(`${professionId} paletteSkillAvailability.retryAt must be a finite number or null.`);
+  }
   return {
     available: result.available,
-    message: String(result.message || '')
+    message: String(result.message || ''),
+    ...(result.retryAt == null ? {} : { retryAt: Number(result.retryAt) })
   };
 }
 

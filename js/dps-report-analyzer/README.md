@@ -21,6 +21,8 @@ provide a profession-specific dependency or repeated-cycle proof:
 
 - Engineer reconstructs Bomb Kit equips from kit weapon skills and Throw Mine from otherwise impossible Detonate Mine
   casts.
+- Elementalist normalizes attunement-dependent skills and Aerial Agility chains, preserves shortened channels, and
+  recovers otherwise omitted aura and Blinding Flash casts from build-gated buff and condition evidence.
 - Luminary reconstructs the opening Radiant Courage and Radiant Forge state from Forge-only skills and the later
   reported activation cadence. Internal Forge transitions are separated from physical weapon swaps.
 - Herald reconstructs opening facet consumes and a precombat Spiritcrush from dependent consumes and the later repeated

@@ -58,7 +58,7 @@ function animation(skillId, start, duration) {
   ];
 }
 
-function catalogSkill(id, name, type = 'Profession') {
+function catalogSkill(id, name, type = 'Profession', extras = {}) {
   return {
     id,
     name,
@@ -67,9 +67,395 @@ function catalogSkill(id, name, type = 'Profession') {
     castTimeMs: 0,
     quicknessCastTimeMs: 0,
     effects: [],
-    implemented: true
+    implemented: true,
+    ...extras
   };
 }
+
+test('recovers the clipped power Tempest opener and legacy Flame Barrage commands', () => {
+  const events = [
+    event({
+      time: 10_000,
+      target: PLAYER,
+      skillId: 5575,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+    }),
+    event({
+      time: 10_000,
+      source: FIRE_ELEMENTAL,
+      target: TARGET,
+      value: 100,
+      skillId: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
+      sourceInstance: 8,
+      sourceMasterInstance: 7
+    }),
+    event({
+      time: 10_023,
+      target: TARGET,
+      value: 100,
+      skillId: ID.OVERLOAD_AIR
+    }),
+    event({
+      time: 10_100,
+      value: 3_200,
+      buffDamage: 4_800,
+      skillId: ID.OVERLOAD_AIR,
+      activation: EVTC_ACTIVATION.CANCEL_FIRE
+    }),
+    event({
+      time: 12_200,
+      source: FIRE_ELEMENTAL,
+      value: 3_000,
+      buffDamage: 3_040,
+      skillId: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
+      sourceInstance: 8,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.RESET
+    }),
+    event({ time: 15_000, target: TARGET, value: 100, skillId: ID.HURL }),
+    event({ time: 15_200, target: TARGET, value: 100, skillId: ID.HURL }),
+    event({ time: 15_400, target: TARGET, value: 100, skillId: ID.HURL }),
+    event({
+      time: 20_000,
+      source: FIRE_ELEMENTAL,
+      value: 2_000,
+      skillId: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
+      sourceInstance: 8,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.START
+    }),
+    event({
+      time: 23_040,
+      source: FIRE_ELEMENTAL,
+      value: 3_040,
+      buffDamage: 3_040,
+      skillId: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
+      sourceInstance: 8,
+      sourceMasterInstance: 7,
+      activation: EVTC_ACTIVATION.RESET
+    }),
+    event({
+      time: 30_000,
+      value: 940,
+      buffDamage: 1_033,
+      skillId: ID.OVERLOAD_AIR,
+      activation: EVTC_ACTIVATION.START
+    }),
+    event({
+      time: 33_200,
+      value: 3_200,
+      buffDamage: 4_800,
+      skillId: ID.OVERLOAD_AIR,
+      activation: EVTC_ACTIVATION.CANCEL_FIRE
+    })
+  ];
+  const fixture = {
+    header: {
+      magic: 'EVTC',
+      arcdpsBuild: '20260317',
+      revision: 1,
+      encounterId: 16199,
+      agentCount: 3,
+      skillCount: 6,
+      eventCount: events.length
+    },
+    agents: [
+      {
+        address: PLAYER,
+        profession: 6,
+        elite: 48,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Fixture Tempest',
+        account: ':Fixture.1234',
+        subgroup: '1'
+      },
+      {
+        address: TARGET,
+        profession: 16199,
+        elite: 0,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Standard Kitty Golem',
+        account: '',
+        subgroup: ''
+      },
+      {
+        address: FIRE_ELEMENTAL,
+        profession: 6524,
+        elite: 0xffffffff,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Fire Elemental',
+        account: '',
+        subgroup: ''
+      }
+    ],
+    skills: [
+      { id: 5575, name: 'Air Attunement' },
+      { id: ID.ROCK_BARRIER, name: 'Rock Barrier' },
+      { id: ID.HURL, name: 'Hurl' },
+      { id: ID.OVERLOAD_AIR, name: 'Overload Air' },
+      { id: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND, name: 'Flame Barrage' }
+    ],
+    events
+  };
+  const skills = [
+    catalogSkill(ID.AIR_ATTUNEMENT, 'Air Attunement'),
+    catalogSkill(ID.ROCK_BARRIER, 'Rock Barrier', 'Weapon', { quicknessCastTimeMs: 760 }),
+    catalogSkill(ID.HURL, 'Hurl', 'Weapon'),
+    catalogSkill(ID.OVERLOAD_AIR, 'Overload Air', 'Profession', { quicknessCastTimeMs: 3_200 }),
+    catalogSkill(ID.FLAME_BARRAGE_ELEMENTAL_COMMAND, 'Flame Barrage', 'Elite', { independentCast: true })
+  ];
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.deepEqual(result.rotation.slice(0, 4), [
+    { name: 'Rock Barrier', skillId: ID.ROCK_BARRIER },
+    { name: 'Air Attunement', skillId: ID.AIR_ATTUNEMENT },
+    { name: '__wait', waitMs: 5_000 },
+    { name: 'Overload Air', skillId: ID.OVERLOAD_AIR }
+  ]);
+  assert.deepEqual(
+    result.actions
+      .filter((action) => action.name === 'Flame Barrage')
+      .map(({ timestampMs, evidence }) => ({ timestampMs, evidence })),
+    [
+      { timestampMs: 8_860, evidence: 'initial-state' },
+      { timestampMs: 18_860, evidence: 'legacy-activation' }
+    ]
+  );
+  assert.equal(result.actions.filter((action) => action.name === 'Hurl').length, 1);
+  assert.deepEqual(
+    result.rotation.find((command) => command.name === '__combat_start'),
+    { name: '__combat_start', offset: 3_123 }
+  );
+  assert.equal(result.combatStartTimestampMs, 8_883);
+});
+
+test('infers partial Arc Lightning channels from EVTC packet boundaries', () => {
+  const arcStart = 2_000;
+  const observedPacketOffsets = [440, 680, 960, 1_200, 1_440, 1_720, 1_960, 2_200];
+  const events = [
+    event({
+      time: 1_000,
+      target: PLAYER,
+      skillId: 5575,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+    }),
+    event({
+      time: arcStart,
+      value: 1_571,
+      buffDamage: 1_821,
+      skillId: ID.ARC_LIGHTNING,
+      activation: EVTC_ACTIVATION.START
+    }),
+    ...observedPacketOffsets.map((offset) =>
+      event({
+        time: arcStart + offset,
+        target: TARGET,
+        value: 100,
+        skillId: ID.ARC_LIGHTNING
+      })
+    ),
+    event({
+      time: arcStart + 2_237,
+      value: 2_237,
+      buffDamage: 3_360,
+      skillId: ID.ARC_LIGHTNING,
+      activation: EVTC_ACTIVATION.CANCEL_FIRE
+    }),
+    event({
+      time: 6_000,
+      value: 1_571,
+      buffDamage: 1_821,
+      skillId: ID.ARC_LIGHTNING,
+      activation: EVTC_ACTIVATION.START
+    }),
+    event({
+      time: 6_161,
+      source: TARGET,
+      stateChange: EVTC_STATE_CHANGE.CHANGE_DEAD
+    })
+  ];
+  const fixture = {
+    header: {
+      magic: 'EVTC',
+      arcdpsBuild: '20260317',
+      revision: 1,
+      encounterId: 16199,
+      agentCount: 2,
+      skillCount: 2,
+      eventCount: events.length
+    },
+    agents: [
+      {
+        address: PLAYER,
+        profession: 6,
+        elite: 48,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Fixture Tempest',
+        account: ':Fixture.1234',
+        subgroup: '1'
+      },
+      {
+        address: TARGET,
+        profession: 16199,
+        elite: 0,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Standard Kitty Golem',
+        account: '',
+        subgroup: ''
+      }
+    ],
+    skills: [
+      { id: 5575, name: 'Air Attunement' },
+      { id: ID.ARC_LIGHTNING, name: 'Arc Lightning' }
+    ],
+    events
+  };
+  const skills = [
+    catalogSkill(ID.AIR_ATTUNEMENT, 'Air Attunement'),
+    catalogSkill(ID.ARC_LIGHTNING, 'Arc Lightning', 'Weapon', {
+      castTimeMs: 4_080,
+      quicknessCastTimeMs: 2_720,
+      effects: [
+        {
+          type: 'strike',
+          ticks: [660, 1_020, 1_440, 1_800, 2_160, 2_580, 2_940, 3_300, 3_720, 4_080].map((atMs) => ({
+            atMs,
+            coefficient: 1
+          })),
+          timingAnchor: 'castStart',
+          timingScale: 'cast'
+        }
+      ]
+    })
+  ];
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+  const arcActions = result.actions.filter((action) => action.name === 'Arc Lightning');
+  const arcCommands = result.rotation.filter((command) => command.name === 'Arc Lightning');
+
+  assert.deepEqual(
+    arcActions.map(({ durationMs, status }) => ({ durationMs, status })),
+    [
+      { durationMs: 2_237, status: 'reduced' },
+      { durationMs: 161, status: 'reduced' }
+    ]
+  );
+  assert.deepEqual(arcCommands, [
+    {
+      name: 'Arc Lightning',
+      skillId: ID.ARC_LIGHTNING,
+      interruptMs: 2_237
+    },
+    {
+      name: 'Arc Lightning',
+      skillId: ID.ARC_LIGHTNING,
+      interruptMs: 161
+    }
+  ]);
+});
+
+test('omits cancelled Flamestrike autoattacks without a damage packet', () => {
+  const events = [
+    event({
+      time: 1_000,
+      target: PLAYER,
+      skillId: 5585,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+    }),
+    ...animation(ID.FLAMESTRIKE, 2_000, 120),
+    ...animation(ID.FLAMESTRIKE, 3_000, 600),
+    event({
+      time: 3_300,
+      target: TARGET,
+      value: 100,
+      skillId: ID.FLAMESTRIKE
+    })
+  ];
+  const fixture = {
+    header: {
+      magic: 'EVTC',
+      arcdpsBuild: '20260317',
+      revision: 1,
+      encounterId: 16199,
+      agentCount: 2,
+      skillCount: 2,
+      eventCount: events.length
+    },
+    agents: [
+      {
+        address: PLAYER,
+        profession: 6,
+        elite: 48,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Fixture Tempest',
+        account: ':Fixture.1234',
+        subgroup: '1'
+      },
+      {
+        address: TARGET,
+        profession: 16199,
+        elite: 0,
+        toughness: 0,
+        concentration: 0,
+        healing: 0,
+        condition: 0,
+        character: 'Standard Kitty Golem',
+        account: '',
+        subgroup: ''
+      }
+    ],
+    skills: [
+      { id: 5585, name: 'Fire Attunement' },
+      { id: ID.FLAMESTRIKE, name: 'Flamestrike' }
+    ],
+    events
+  };
+  const skills = [
+    catalogSkill(ID.FIRE_ATTUNEMENT, 'Fire Attunement'),
+    catalogSkill(ID.FLAMESTRIKE, 'Flamestrike', 'Weapon', {
+      quicknessCastTimeMs: 600,
+      effects: [
+        {
+          type: 'strike',
+          ticks: [{ atMs: 300, coefficient: 1 }],
+          timingAnchor: 'castStart'
+        }
+      ]
+    })
+  ];
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+
+  assert.deepEqual(
+    result.actions
+      .filter((action) => action.name === 'Flamestrike')
+      .map(({ timestampMs, status }) => ({ timestampMs, status })),
+    [{ timestampMs: 0, status: 'completed' }]
+  );
+  assert.equal(result.rotation.filter((command) => command.name === 'Flamestrike').length, 1);
+});
 
 test('reconstructs Catalyst attunements, Glyph of Storms aliases, and Earth Stomp', () => {
   const events = [

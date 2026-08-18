@@ -27,6 +27,11 @@ export interface DpsReportRotationGroup {
   readonly skills: readonly DpsReportCast[];
 }
 
+export interface DpsReportBuffTimeline {
+  readonly id: number;
+  readonly states?: readonly (readonly [number, number])[];
+}
+
 export interface DpsReportPlayer {
   readonly name: string;
   readonly account?: string;
@@ -35,7 +40,12 @@ export interface DpsReportPlayer {
   readonly firstAware?: number;
   readonly lastAware?: number;
   readonly activeTimes?: readonly number[];
+  readonly buffUptimes?: readonly DpsReportBuffTimeline[];
   readonly rotation: readonly DpsReportRotationGroup[];
+}
+
+export interface DpsReportTarget {
+  readonly buffs?: readonly DpsReportBuffTimeline[];
 }
 
 export interface DpsReportPhase {
@@ -58,6 +68,7 @@ export interface ParsedDpsReport {
   readonly durationMS?: number;
   readonly success?: boolean;
   readonly players: readonly DpsReportPlayer[];
+  readonly targets?: readonly DpsReportTarget[];
   readonly phases: readonly DpsReportPhase[];
   readonly skillMap: Readonly<Record<string, DpsReportSkillMetadata>>;
 }

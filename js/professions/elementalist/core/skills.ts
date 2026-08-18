@@ -1342,6 +1342,7 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'strike',
+        // Arc Lightning ramps over ten attacks: three stage-one, three stage-two, then four stage-three packets.
         ticks: [
           [660, 0.35],
           [1020, 0.35],
@@ -1349,10 +1350,10 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
           [1800, 0.4],
           [2160, 0.4],
           [2580, 0.4],
-          [2940, 0.3375],
-          [3300, 0.3375],
-          [3720, 0.3375],
-          [4080, 0.3375]
+          [2940, 0.45],
+          [3300, 0.45],
+          [3720, 0.45],
+          [4080, 0.45]
         ].map(([atMs, coefficient]) => ({ atMs, coefficient })),
         timingAnchor: 'castStart',
         timingScale: 'cast'

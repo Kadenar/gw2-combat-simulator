@@ -12,6 +12,8 @@ export const elementalistProfileSource: ProfessionProfileSource = {
     evoker: 'Evoker'
   },
   dodgeId: ID.DODGE,
+  // Hurl emits one direct packet per rock; the profession reconstructor collapses them into one input.
+  ignoredInstantSkillIds: [ID.HURL],
   skillIdAliasesBySpecialization: Object.fromEntries(
     ['core', 'tempest', 'weaver', 'catalyst', 'evoker'].map((specialization) => [
       specialization,

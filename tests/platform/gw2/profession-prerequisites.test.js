@@ -457,6 +457,13 @@ test('summon-targeted trait boons bypass disabled player boon sharing', () => {
 
   assert.equal(query.statsAt(1, summonEvent).power, 1060);
   assert.equal(query.statsAt(1, independentSummonEvent).conditionDamage, 1060);
+  assert.deepEqual(
+    {
+      power: query.statsAt(1, { ...independentSummonEvent, summonUsesMight: false }).power,
+      conditionDamage: query.statsAt(1, { ...independentSummonEvent, summonUsesMight: false }).conditionDamage
+    },
+    { power: 1524, conditionDamage: 1000 }
+  );
   assert.equal(query.critical(summonEvent, 1).chance, 0.3);
   assert.equal(query.critical(summonEvent, 5).chance, 0.05);
   assert.equal(

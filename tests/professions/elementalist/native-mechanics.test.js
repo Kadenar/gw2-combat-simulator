@@ -213,7 +213,8 @@ test('Tempest party boons affect the summoned elemental', () => {
   const sharedBarrage = firstBarrage(shared);
   const isolatedBarrage = firstBarrage(isolated);
 
-  assert.ok(sharedBarrage.damage > isolatedBarrage.damage * 1.2);
+  const nonCriticalDamage = (event) => event.damage / (1 + event.criticalChance * 0.5);
+  assert.ok(Math.abs(nonCriticalDamage(sharedBarrage) - nonCriticalDamage(isolatedBarrage)) < 1e-9);
   assert.ok(sharedBarrage.criticalChance > isolatedBarrage.criticalChance);
 });
 
@@ -1727,6 +1728,40 @@ test('Transcendent Tempest precedes same-time Overload completion damage', () =>
   assert.ok(joltWithTrait.damage > joltWithoutTrait.damage * 1.2);
 });
 
+test('Overload Air applies a 1.32 non-critical Lightning Jolt to the player and active elemental', () => {
+  const result = runNative({
+    lines: [['Fire'], ['Air'], ['Tempest', '3-2-1']],
+    rotation: ['Glyph of Elementals', 'Overload Air', 10000],
+    startAttunement: 'Air',
+    targetHealth: 0
+  });
+  const jolts = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillName === 'Lightning Jolt'
+  );
+  const playerJolt = jolts.find((event) => event.actorType === 'effect');
+  const elementalJolt = jolts.find((event) => event.actorType === 'summon');
+  const triggeringElementalStrike = result.resolvedEvents.find(
+    (event) =>
+      event.type === 'damage' &&
+      event.actorType === 'summon' &&
+      event.skillName !== 'Lightning Jolt' &&
+      event.at === elementalJolt?.at
+  );
+
+  assert.equal(jolts.length, 2);
+  assert.equal(playerJolt.coefficient, 1.32);
+  assert.equal(playerJolt.resolvedWeaponStrength, 690.5);
+  assert.equal(playerJolt.criticalChance, 0);
+  assert.equal(elementalJolt.coefficient, 1.32);
+  assert.equal(elementalJolt.resolvedWeaponStrength, 690.5);
+  assert.equal(elementalJolt.criticalChance, 0);
+  assert.equal(elementalJolt.independentSummonStrike, true);
+  assert.equal(elementalJolt.summonUsesMight, false);
+  assert.equal(elementalJolt.summonUsesProfessionModifiers, false);
+  assert.ok(elementalJolt.at > playerJolt.at);
+  assert.ok(triggeringElementalStrike);
+});
+
 test('Evoker familiar flip interruption cancels both familiar attacks', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Evoker']],
@@ -2263,6 +2298,8 @@ test('Fire Elemental autonomously alternates Flame Burst and Fireball', () => {
   const elementalActions = result.events.filter(
     (event) => event.type === 'action' && event.actorType === 'summon' && event.at < 16
   );
+  const flameBurst = result.events.find((event) => event.type === 'damage' && event.skillName === 'Flame Burst');
+  const fireball = result.events.find((event) => event.type === 'damage' && event.skillName === 'Fireball');
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
@@ -2284,6 +2321,11 @@ test('Fire Elemental autonomously alternates Flame Burst and Fireball', () => {
     result.events.filter((event) => event.type === 'damage' && event.skillName === 'Fireball' && event.at < 16).length,
     3
   );
+  // Autonomous fire attacks retain their documented bases and may scale with the elemental's Might/modifiers.
+  assert.equal(flameBurst.summonDamagePerCoefficient, 1150);
+  assert.equal(fireball.summonDamagePerCoefficient, 830);
+  assert.notEqual(flameBurst.summonUsesMight, false);
+  assert.notEqual(fireball.summonUsesEquipmentModifiers, false);
   assert.equal(result.endState.profession.availableFlips['Flame Barrage'], Infinity);
   assert.equal(result.endState.cooldowns['Glyph of Elementals'], undefined);
 });
@@ -2342,11 +2384,24 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   const firstBarrageBurns = result.events.filter(
     (event) => event.type === 'condition' && event.skillName === 'Flame Barrage' && event.at < 5
   );
-  assert.equal(firstBarrageBurns.length, 3);
+  assert.equal(firstBarrageBurns.length, 1);
   assert.ok(
     firstBarrageBurns.every(
       (event) =>
-        event.actorType === 'player' && event.condition === 'Burning' && event.stacks === 1 && event.duration === 3
+        event.actorType === 'player' && event.condition === 'Burning' && event.stacks === 3 && event.duration === 3
+    )
+  );
+
+  assert.deepEqual(
+    firstBarrageDamage.map((event) => event.coefficient),
+    [0.15, 0.15, 0.15, 1.8]
+  );
+  assert.ok(
+    firstBarrageDamage.every(
+      (event) =>
+        event.summonDamagePerCoefficient === 2500 &&
+        event.summonUsesMight === false &&
+        event.summonUsesEquipmentModifiers === false
     )
   );
 

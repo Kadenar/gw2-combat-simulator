@@ -19,7 +19,7 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
   if (skillWeapon(skill) !== 'Pistol') return;
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = context.effectiveEnd;
-  const dual = PISTOL_DUAL_ELEMENTS[skill.name];
+  const dual = PISTOL_DUAL_ELEMENTS[Number(skill.id)];
   if (dual) {
     const active = dual.filter((element) => state.pistolBullets[element]);
     if (active.length) {
@@ -97,9 +97,9 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
     }
     return;
   }
-  const element = PISTOL_SKILL_ELEMENTS[skill.name];
+  const element = PISTOL_SKILL_ELEMENTS[Number(skill.id)];
   if (!element) return;
-  if (state.pistolBullets[element] && !PISTOL_NO_CONSUME.has(skill.name)) {
+  if (state.pistolBullets[element] && !PISTOL_NO_CONSUME.has(Number(skill.id))) {
     state.pistolBullets[element] = false;
     if (skill.name === 'Raging Ricochet') {
       emitProfiledBuff(context, at, PROFILE.ragingRicochet, 'Fire', 'Might', 1, 10, skill.name, skill.id);
@@ -168,7 +168,7 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
         ]
       });
     }
-  } else if (!PISTOL_NO_GRANT.has(skill.name)) {
+  } else if (!PISTOL_NO_GRANT.has(Number(skill.id))) {
     state.pistolBullets[element] = true;
   }
 }

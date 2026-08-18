@@ -2,7 +2,7 @@ import type { Skill } from '../../platform/engine/types.js';
 import type { EvtcRotationActionStatus } from '../../evtc-analyzer/types.js';
 import type { EvtcRotationCatalog } from '../../evtc-analyzer/rotation/catalog.js';
 import type { EvtcRotationProfessionProfile } from '../../evtc-analyzer/rotation/profiles.js';
-import type { ParsedDpsReport } from '../types.js';
+import type { DpsReportPhase, DpsReportPlayer, ParsedDpsReport } from '../types.js';
 
 export interface DpsReportRotationOptions {
   readonly playerIndex?: number;
@@ -26,7 +26,14 @@ export interface DpsReportRecordedAction {
   readonly control?: 'cooldown-reset';
   readonly followingWaitMs?: number;
   readonly inference?:
-    'initial-kit' | 'mine-setup' | 'luminary-opening' | 'renegade-warband' | 'herald-opening' | 'conduit-opening';
+    | 'initial-kit'
+    | 'mine-setup'
+    | 'luminary-opening'
+    | 'renegade-warband'
+    | 'herald-opening'
+    | 'conduit-opening'
+    | 'elementalist-aura'
+    | 'elementalist-blinding-flash';
   readonly canonicalSkillId?: number;
   readonly canonicalName?: string;
 }
@@ -39,6 +46,8 @@ export interface DpsReportResolvedAction extends DpsReportRecordedAction {
 
 export interface DpsReportProfessionReconstructionContext {
   readonly report: ParsedDpsReport;
+  readonly player: DpsReportPlayer;
+  readonly phase: DpsReportPhase;
   readonly profile: EvtcRotationProfessionProfile;
   readonly catalog: EvtcRotationCatalog | null;
   readonly recordedActions: readonly DpsReportRecordedAction[];

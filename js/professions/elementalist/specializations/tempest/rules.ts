@@ -11,6 +11,8 @@ import {
   triggerElementalistSunspot
 } from '../../core/rules.js';
 import { elementalistCoreState, setElementalistAttunementReadyAt } from '../../core/state.js';
+import { armElementalistElementalLightningJolt } from '../../core/elementals.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '../../data/ids.js';
 import { tempestModifierRules } from './modifiers.js';
 import { elementalistBalanceEffect, elementalistBalanceValue, elementalistEffectValue } from '../../core/profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -92,7 +94,7 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
       ? elementalistBalanceValue(context, PROFILE.overloads, 'durationMultiplier', 4)
       : elementalistBalanceValue(context, PROFILE.overloads, 'initialDelay', 6)) /
     (context.config.boons?.alacrity ? 1.25 : 1);
-  const startingAttunementReady = state.attunementEnteredAt === 0;
+  const startingAttunementReady = state.attunementEnteredAt < 0;
   const readyAt = startingAttunementReady ? context.start : state.attunementEnteredAt + dwell;
   return readyAt > context.start + context.epsilon
     ? {
@@ -198,22 +200,25 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
     });
   }
   if (skill.name === 'Overload Air') {
+    const coefficient = elementalistEffectValue(context, PROFILE.lightningJolt, 'strike', 'coefficient', 1.32);
     context.emit({
       type: 'damage',
       at: context.effectiveEnd,
       source: 'Lightning Jolt',
-      sourceId: skill.id,
+      sourceId: ID.LIGHTNING_JOLT,
       actorType: 'effect',
+      skillId: ID.LIGHTNING_JOLT,
       skillName: 'Lightning Jolt',
-      coefficient: elementalistEffectValue(context, PROFILE.lightningJolt, 'strike', 'coefficient', 2.64),
+      coefficient,
       skillWeapon: 'Unequipped',
       noCrit: true
     });
+    armElementalistElementalLightningJolt(context, ID.LIGHTNING_JOLT, coefficient);
     emitElementalistProc(context as never, {
       at: context.effectiveEnd,
       name: 'Lightning Jolt',
       procType: 'skill',
-      sourceId: skill.id,
+      sourceId: ID.LIGHTNING_JOLT,
       sourceSkill: skill.name
     });
   }

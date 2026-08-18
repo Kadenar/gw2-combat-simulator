@@ -229,7 +229,7 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
     }
   }
 
-  const aura = AURA_TRANSMUTE_SKILLS[skill.name];
+  const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
   if (aura) {
     state.activeAuras = state.activeAuras.filter((candidate) => candidate.type !== aura || candidate.expiresAt <= at);
   }
@@ -265,7 +265,7 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
       if (skill.name === candidate.etching) continue;
       const otherCasts =
         progress.otherCasts +
-        (FULL_ETCHING_CHARGE_SKILLS.has(skill.name)
+        (FULL_ETCHING_CHARGE_SKILLS.has(Number(skill.id))
           ? elementalistBalanceValue(context, PROFILE.spearEmpowerments, 'playerStacks', 3)
           : 1);
       state.etchings[candidate.etching] = {

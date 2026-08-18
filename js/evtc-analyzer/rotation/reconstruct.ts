@@ -862,7 +862,7 @@ export function reconstructWithProfile(
         .filter((action) => action.status === 'completed')
         .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex)[0]?.start)
     : null;
-  const combatStart =
+  let combatStart =
     options.includeCombatStart === false ? null : (combatStartEvent?.time ?? inferredCombatStart ?? null);
   const genericActions = [
     ...castActions,
@@ -889,6 +889,14 @@ export function reconstructWithProfile(
     professionContext,
     reconstructProfessionActions(professionContext)
   );
+  if (options.includeCombatStart !== false && combatStart == null) {
+    // A profession parser may recover a clipped opener's combat boundary from its first observed effect packet.
+    combatStart =
+      professionActions
+        .map((action) => action.inferredCombatStart)
+        .filter((time): time is number => time != null && Number.isFinite(time))
+        .sort((left, right) => left - right)[0] ?? null;
+  }
   const initialSummons = initialSummonActions(
     log,
     agent.address,

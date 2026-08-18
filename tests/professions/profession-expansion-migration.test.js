@@ -417,7 +417,6 @@ test('ready native professions classify every trait with no pending entries', as
 test('ready native professions expose deliberate public end-state keys', async () => {
   const internalKeys = {
     elementalist: [
-      'attunementEnteredAt',
       'freshAirProgress',
       'freshAirLastResetAt',
       'burningPrecisionProgress',

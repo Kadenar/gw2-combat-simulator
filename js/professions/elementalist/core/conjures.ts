@@ -17,7 +17,7 @@ function hasTrait(context: unknown, trait: string): boolean {
 export function applyConjureState(context: ElementalistLifecycleContext, skill: Skill): void {
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = context.effectiveEnd;
-  const conjuredWeapon = CONJURE_SKILLS[skill.name];
+  const conjuredWeapon = CONJURE_SKILLS[Number(skill.id)];
   let swapped = false;
   if (conjuredWeapon) {
     state.conjureEquipped = conjuredWeapon;

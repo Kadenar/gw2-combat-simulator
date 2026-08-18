@@ -169,7 +169,8 @@ function addGroup(
   className = '',
   statusIcon?: ProfessionPaletteGroup['statusIcon'],
   controls: ProfessionPaletteGroup['controls'] = [],
-  id = ''
+  id = '',
+  retryAt: (skill: Skill) => number | null = () => null
 ): string {
   if (!skills.length && !controls.length && !statusIcon) return '';
   return paletteGroupHtml({
@@ -179,7 +180,9 @@ function addGroup(
     className,
     statusIcon,
     controls,
-    skills: skills.map((skill) => paletteSkillView(app, skill, isAvailable(skill), unavailableMessage(skill)))
+    skills: skills.map((skill) =>
+      paletteSkillView(app, skill, isAvailable(skill), unavailableMessage(skill), retryAt(skill))
+    )
   });
 }
 
@@ -193,16 +196,28 @@ export function paletteSkillView(
   app: ProfessionAppState,
   skill: Skill,
   contextAvailable = true,
-  contextMessage = ''
+  contextMessage = '',
+  contextRetryAt: number | null = null
 ): PaletteSkillView {
   const displayName = skill.displayName || skill.name;
   const cd = currentCooldown(app, skill.name);
+  const endTime = Number(paletteEndState(app)?.time || 0);
+  const contextReadyAt = Number(contextRetryAt) * 1000;
+  const contextRemaining = Number.isFinite(contextReadyAt) ? Math.max(0, Math.round(contextReadyAt - endTime)) : 0;
+  // A future retryAt is scheduler-queueable: keep the countdown styling, but
+  // allow clicks so the inserted action can wait for the temporary lockout.
+  const retryableContext =
+    !contextAvailable && contextRetryAt != null && Number.isFinite(contextReadyAt) && contextReadyAt > endTime;
+  // Context lockouts such as Tempest singularity share the cooldown badge;
+  // show whichever restriction keeps the skill unavailable for longer.
+  const remaining = Math.max(Number(cd.remaining || 0), contextRemaining);
+  const readyAt = contextRemaining > Number(cd.remaining || 0) ? contextReadyAt : cd.readyAt;
   const ammo = currentAmmo(app, skill);
   const maximumAmmo = ammo?.maximum ?? Number(skill.ammo || 0);
   const recharge =
     maximumAmmo && Number(skill.ammoRecharge || 0) > 0 ? Number(skill.ammoRecharge) : Number(skill.cooldown || 0);
   const ammoDisplay = ammoDisplayView(ammo?.charges ?? maximumAmmo, maximumAmmo);
-  const unavailable = cd.remaining > 0 || !contextAvailable;
+  const unavailable = remaining > 0 || !contextAvailable;
   const highlighted = (Boolean(skill.ambush) || Boolean(skill.stealthAttack)) && !unavailable;
   const castTimeSeconds = Number(skill.castTimeMs || 0) / 1000;
   const hasEnergyCost = skill.energyCost != null;
@@ -213,11 +228,13 @@ export function paletteSkillView(
     hasEnergyCost ? `Energy cost: ${energyCost}` : '',
     recharge ? `${maximumAmmo ? 'Count recharge' : 'Cooldown'}: ${recharge}s` : '',
     !contextAvailable
-      ? contextMessage || 'Unavailable in the current state'
+      ? [contextMessage || 'Unavailable in the current state', remaining ? `Remaining: ${seconds(remaining)}` : '']
+          .filter(Boolean)
+          .join(' · ')
       : ammoDisplay
         ? `${ammoDisplay.label}${ammo?.remaining ? ` · next charge in ${seconds(Number(ammo.remaining))}` : ''}`
-        : cd.remaining
-          ? `Remaining: ${seconds(cd.remaining)} · available at ${seconds(cd.readyAt)}`
+        : remaining
+          ? `Remaining: ${seconds(remaining)} · available at ${seconds(readyAt)}`
           : 'Available now',
     gw2ApiText(skill.description)
   ]
@@ -232,11 +249,11 @@ export function paletteSkillView(
     title,
     color: unavailable ? '#625a73' : highlighted ? '#f0c766' : '#a88be8',
     disabled: unavailable,
-    contextDisabled: !contextAvailable,
+    contextDisabled: !contextAvailable && !retryableContext,
     concealed: Boolean(skill.concealed),
     highlighted,
     draggable: contextAvailable,
-    cooldownLabel: cd.remaining ? seconds(cd.remaining) : '',
+    cooldownLabel: remaining ? seconds(remaining) : '',
     ammo: ammoDisplay,
     resource: paletteSkillResourceView(app, skill.id)
   };
@@ -368,6 +385,8 @@ export function renderPalette(app: ProfessionAppState): void {
     !loadoutUnavailableMessage(skill) && professionPaletteAvailability(skill).available;
   const professionPaletteUnavailableMessage = (skill: Skill): string =>
     loadoutUnavailableMessage(skill) || professionPaletteAvailability(skill).message;
+  const professionPaletteRetryAt = (skill: Skill): number | null =>
+    professionPaletteAvailability(skill).retryAt ?? null;
   const flipAvailable = (skill: Skill): boolean => Boolean(availableFlips[skill.id] ?? availableFlips[skill.name]);
   const flipParentName = (skill: Skill): string =>
     String(skill.flipParent || app.skillById.get(Number(skill.flipParentId))?.name || 'its parent skill');
@@ -531,7 +550,8 @@ export function renderPalette(app: ProfessionAppState): void {
       group.className,
       group.statusIcon,
       group.controls,
-      group.id
+      group.id,
+      professionPaletteRetryAt
     );
     const attachedResourcesHtml = group.resourceIds?.length
       ? activeResourceGroup(app, { includeIds: group.resourceIds })

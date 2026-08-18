@@ -119,7 +119,7 @@ test('Specialized Elements models percentage recharge changes as multipliers', (
   assert.equal(empowered.rechargeMultiplier, 0.67);
 });
 
-test('Arc Lightning models its damage packets as one tick sequence', () => {
+test('Arc Lightning models its three coefficient stages across ten attacks', () => {
   const arcLightning = ELEMENTALIST_CORE_SKILL_MECHANICS[ELEMENTALIST_SKILL_IDS.ARC_LIGHTNING];
 
   assert.equal(arcLightning.effects.length, 1);
@@ -132,10 +132,10 @@ test('Arc Lightning models its damage packets as one tick sequence', () => {
       [1800, 0.4],
       [2160, 0.4],
       [2580, 0.4],
-      [2940, 0.3375],
-      [3300, 0.3375],
-      [3720, 0.3375],
-      [4080, 0.3375]
+      [2940, 0.45],
+      [3300, 0.45],
+      [3720, 0.45],
+      [4080, 0.45]
     ]
   );
 });
