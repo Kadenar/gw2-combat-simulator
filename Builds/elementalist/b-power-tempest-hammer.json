@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "elementalist",
   "gear": {
     "Helm": "Berserker's",
@@ -22,7 +22,7 @@
   "alternateWeapons": ["", ""],
   "rune": "Scholar",
   "weaponSigils": [
-    ["Force", "Air"],
+    ["Force", "Accuracy"],
     ["Force", "Air"]
   ],
   "relic": "Fireworks",
@@ -61,7 +61,7 @@
     "Heal": "Signet of Restoration",
     "Utility1": "Feel the Burn!",
     "Utility2": "Glyph of Storms (Fire)",
-    "Utility3": "Signet of Fire",
+    "Utility3": "Arcane Blast",
     "Elite": "Glyph of Elementals"
   },
   "assumptions": {

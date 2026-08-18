@@ -1,333 +1,597 @@
 {
   "rotation": [
-    "Flame Wheel",
-    "Air Attunement",
+    {
+      "name": "Flame Wheel"
+    },
+    {
+      "name": "Air Attunement"
+    },
     {
       "name": "__wait",
-      "waitMs": 5000
+      "waitMs": 6000
     },
-    "Crescent Wind",
-    "Overload Air",
+    {
+      "name": "Overload Air"
+    },
+    {
+      "name": "Crescent Wind",
+      "offset": 100
+    },
     {
       "name": "__combat_start",
       "offset": 3100
     },
     {
-      "name": "Flame Barrage",
-      "offset": 3100
+      "name": "Shock Blast"
     },
-    "Shock Blast",
-    {
-      "name": "Fire Attunement",
-      "offset": 120
-    },
-    "Singeing Strike",
-    "Triple Sear",
-    {
-      "name": "Air Attunement",
-      "offset": 242
-    },
-    {
-      "name": "Feel the Burn!",
-      "offset": 401
-    },
-    "Glyph of Storms (Air)",
-    "Hurricane of Pain",
-    "Overload Air",
-    "Earth Attunement",
-    "Ground Pound",
-    {
-      "name": "Rocky Loop",
-      "offset": 122
-    },
-    "Whirling Stones",
-    {
-      "name": "Air Attunement",
-      "offset": 161
-    },
-    "Wind Slam",
-    "Wind Slam",
-    "Wind Slam",
     {
       "name": "Flame Barrage",
-      "offset": 577
-    },
-    "Overload Air",
-    "Hurricane of Pain",
-    {
-      "name": "Water Attunement",
-      "offset": 165
-    },
-    {
-      "name": "Icy Coil",
-      "offset": 285
-    },
-    {
-      "name": "Air Attunement",
-      "offset": 442
-    },
-    "Shock Blast",
-    "Wind Slam",
-    "Grand Finale",
-    {
-      "name": "Wind Slam",
-      "interruptMs": 42
-    },
-    "Overload Air",
-    {
-      "name": "Crescent Wind",
-      "offset": 1116
+      "offset": 100
     },
     {
       "name": "Fire Attunement",
-      "offset": 3157
+      "offset": 100
     },
-    "Singeing Strike",
     {
-      "name": "Flame Barrage",
-      "offset": 332
-    },
-    "Triple Sear",
-    {
-      "name": "Flame Wheel",
-      "offset": 1
-    },
-    "Molten End",
-    {
-      "name": "Air Attunement",
-      "offset": 166
+      "name": "Triple Sear"
     },
     {
       "name": "Feel the Burn!",
-      "offset": 321
+      "offset": 100
     },
-    "Wind Slam",
-    "Hurricane of Pain",
-    "Overload Air",
-    "Earth Attunement",
-    "Ground Pound",
-    {
-      "name": "Rocky Loop",
-      "offset": 123
-    },
-    "Whirling Stones",
     {
       "name": "Air Attunement",
-      "offset": 124
+      "offset": 100
     },
-    "Wind Slam",
-    "Wind Slam",
-    "Wind Slam",
-    "Overload Air",
+    {
+      "name": "Glyph of Storms (Air)"
+    },
+    {
+      "name": "Arcane Blast",
+      "offset": 100
+    },
+    {
+      "name": "Hurricane of Pain"
+    },
+    {
+      "name": "Arcane Blast",
+      "offset": 100
+    },
+    {
+      "name": "Arcane Blast",
+      "offset": 100
+    },
+    {
+      "name": "Overload Air"
+    },
+    {
+      "name": "Earth Attunement"
+    },
+    {
+      "name": "Ground Pound"
+    },
+    {
+      "name": "Rocky Loop",
+      "offset": 100
+    },
+    {
+      "name": "Whirling Stones"
+    },
+    {
+      "name": "Air Attunement",
+      "offset": 100
+    },
+    {
+      "name": "Wind Slam"
+    },
+    {
+      "name": "Wind Slam"
+    },
+    {
+      "name": "Wind Slam"
+    },
+    {
+      "name": "Overload Air"
+    },
+    {
+      "name": "Hurricane of Pain"
+    },
     {
       "name": "Flame Barrage",
-      "offset": 372
+      "offset": 100
     },
-    "Hurricane of Pain",
     {
       "name": "Water Attunement",
-      "offset": 92
+      "offset": 100
     },
     {
       "name": "Icy Coil",
-      "offset": 211
+      "offset": 100
     },
     {
       "name": "Air Attunement",
-      "offset": 376
+      "offset": 100
     },
-    "Shock Blast",
-    "Wind Slam",
-    "Grand Finale",
+    {
+      "name": "Shock Blast"
+    },
     {
       "name": "Wind Slam",
-      "interruptMs": 39
+      "skillId": 62747
     },
-    "Overload Air",
     {
-      "name": "Crescent Wind",
-      "offset": 1202
+      "name": "Arcane Blast",
+      "skillId": 5539,
+      "offset": 100
     },
-    "Fire Attunement",
-    "Singeing Strike",
-    "Triple Sear",
     {
-      "name": "Flame Wheel",
-      "offset": 38
+      "name": "Grand Finale",
+      "skillId": 62876
     },
-    "Molten End",
     {
-      "name": "Air Attunement",
-      "offset": 158
+      "name": "Overload Air",
+      "skillId": 29719
     },
     {
       "name": "Feel the Burn!",
-      "offset": 275
+      "skillId": 30662,
+      "offset": 100
     },
-    "Wind Slam",
+    {
+      "name": "Crescent Wind",
+      "skillId": 62887,
+      "offset": 100
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492
+    },
+    {
+      "name": "Triple Sear",
+      "skillId": 62807
+    },
+    {
+      "name": "Flame Wheel",
+      "skillId": 62758,
+      "offset": 100
+    },
+    {
+      "name": "Molten End",
+      "skillId": 62910
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 100
+    },
+    {
+      "name": "Wind Slam",
+      "skillId": 62747
+    },
+    {
+      "name": "Hurricane of Pain",
+      "skillId": 62812
+    },
+    {
+      "name": "Overload Air",
+      "skillId": 29719
+    },
     {
       "name": "Flame Barrage",
-      "offset": 333
+      "skillId": 2662,
+      "offset": 100
     },
-    "Hurricane of Pain",
-    "Overload Air",
     {
       "name": "Earth Attunement",
-      "offset": 3159
+      "skillId": 5495
     },
-    "Ground Pound",
+    {
+      "name": "Ground Pound",
+      "skillId": 62778
+    },
     {
       "name": "Rocky Loop",
-      "offset": 118
+      "skillId": 62975,
+      "offset": 100
     },
-    "Whirling Stones",
+    {
+      "name": "Whirling Stones",
+      "skillId": 62976
+    },
     {
       "name": "Air Attunement",
-      "offset": 121
+      "skillId": 5494,
+      "offset": 100
     },
-    "Glyph of Storms (Air)",
-    "Wind Slam",
     {
       "name": "Wind Slam",
-      "interruptMs": 79
+      "skillId": 62747
     },
-    "Overload Air",
     {
-      "name": "Flame Barrage",
-      "offset": 2292
+      "name": "Wind Slam",
+      "skillId": 62747
     },
-    "Hurricane of Pain",
+    {
+      "name": "Wind Slam",
+      "skillId": 62747
+    },
+    {
+      "name": "Overload Air",
+      "skillId": 29719
+    },
+    {
+      "name": "Arcane Blast",
+      "skillId": 5539,
+      "offset": 100
+    },
+    {
+      "name": "Hurricane of Pain",
+      "skillId": 62812
+    },
     {
       "name": "Water Attunement",
-      "offset": 165
+      "skillId": 5493,
+      "offset": 100
     },
     {
       "name": "Icy Coil",
-      "offset": 284
+      "skillId": 62834,
+      "offset": 100
     },
     {
       "name": "Air Attunement",
-      "offset": 445
+      "skillId": 5494,
+      "offset": 100
     },
-    "Shock Blast",
-    "Wind Slam",
-    "Grand Finale",
+    {
+      "name": "Shock Blast",
+      "skillId": 62716
+    },
     {
       "name": "Wind Slam",
-      "interruptMs": 119
-    },
-    "Overload Air",
-    {
-      "name": "Crescent Wind",
-      "offset": 1041
-    },
-    "Fire Attunement",
-    "Singeing Strike",
-    "Triple Sear",
-    {
-      "name": "Flame Wheel",
-      "offset": 39
-    },
-    "Molten End",
-    {
-      "name": "Air Attunement",
-      "offset": 224
-    },
-    {
-      "name": "Feel the Burn!",
-      "offset": 320
-    },
-    "Wind Slam",
-    "Hurricane of Pain",
-    {
-      "name": "Flame Barrage",
-      "offset": 1358
-    },
-    "Overload Air",
-    "Earth Attunement",
-    "Ground Pound",
-    {
-      "name": "Rocky Loop",
-      "offset": 159
-    },
-    "Whirling Stones",
-    {
-      "name": "Air Attunement",
-      "offset": 203
-    },
-    "Wind Slam",
-    "Wind Slam",
-    "Wind Slam",
-    "Overload Air",
-    "Hurricane of Pain",
-    {
-      "name": "Water Attunement",
-      "offset": 222
-    },
-    {
-      "name": "Icy Coil",
-      "offset": 321
+      "skillId": 62747
     },
     {
       "name": "Flame Barrage",
-      "offset": 95
+      "skillId": 2662,
+      "offset": 100
     },
     {
-      "name": "Air Attunement",
-      "offset": 345
+      "name": "Grand Finale",
+      "skillId": 62876
     },
-    "Shock Blast",
-    "Wind Slam",
-    "Grand Finale",
     {
-      "name": "Wind Slam",
-      "interruptMs": 40
+      "name": "Overload Air",
+      "skillId": 29719
     },
-    "Overload Air",
     {
       "name": "Crescent Wind",
-      "offset": 1199
+      "skillId": 62887,
+      "offset": 100
     },
     {
       "name": "Fire Attunement",
-      "offset": 3156
+      "skillId": 5492
     },
-    "Singeing Strike",
-    "Triple Sear",
+    {
+      "name": "Triple Sear",
+      "skillId": 62807
+    },
     {
       "name": "Flame Wheel",
-      "offset": 42
+      "skillId": 62758,
+      "offset": 100
     },
-    "Molten End",
+    {
+      "name": "Molten End",
+      "skillId": 62910
+    },
     {
       "name": "Air Attunement",
-      "offset": 200
+      "skillId": 5494,
+      "offset": 100
+    },
+    {
+      "name": "Wind Slam",
+      "skillId": 62747
     },
     {
       "name": "Feel the Burn!",
-      "offset": 282
+      "skillId": 30662,
+      "offset": 100
     },
-    "Wind Slam",
-    "Hurricane of Pain",
     {
-      "name": "Flame Barrage",
-      "offset": 1660
+      "name": "Hurricane of Pain",
+      "skillId": 62812
     },
-    "Overload Air",
+    {
+      "name": "Overload Air",
+      "skillId": 29719
+    },
+    {
+      "name": "Arcane Blast",
+      "skillId": 5539,
+      "offset": 100
+    },
     {
       "name": "Earth Attunement",
-      "offset": 3162
+      "skillId": 5495
     },
-    "Ground Pound",
+    {
+      "name": "Ground Pound",
+      "skillId": 62778
+    },
     {
       "name": "Rocky Loop",
-      "offset": 116
+      "skillId": 62975
     },
-    "Whirling Stones",
+    {
+      "name": "Whirling Stones",
+      "skillId": 62976
+    },
     {
       "name": "Air Attunement",
-      "offset": 238
+      "skillId": 5494,
+      "offset": 100
     },
-    "Grand Finale"
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 100
+    },
+    {
+      "name": "Glyph of Storms (Air)",
+      "skillId": 5737
+    },
+    {
+      "name": "Wind Slam",
+      "skillId": 62747
+    },
+    {
+      "name": "__wait",
+      "waitMs": 100
+    },
+    {
+      "name": "Overload Air",
+      "skillId": 29719
+    },
+    {
+      "name": "Hurricane of Pain",
+      "skillId": 62812
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493,
+      "offset": 100
+    },
+    {
+      "name": "Icy Coil",
+      "skillId": 62834,
+      "offset": 100
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 100
+    },
+    {
+      "name": "Shock Blast",
+      "skillId": 62716
+    },
+    {
+      "name": "Wind Slam",
+      "skillId": 62747
+    },
+    {
+      "name": "Grand Finale",
+      "skillId": 62876
+    },
+    {
+      "name": "Overload Air",
+      "skillId": 29719
+    },
+    {
+      "name": "Crescent Wind",
+      "skillId": 62887,
+      "offset": 100
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492
+    },
+    {
+      "name": "Triple Sear",
+      "skillId": 62807
+    },
+    {
+      "name": "Flame Wheel",
+      "skillId": 62758,
+      "offset": 100
+    },
+    {
+      "name": "Molten End",
+      "skillId": 62910
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 100
+    },
+    {
+      "name": "Wind Slam",
+      "skillId": 62747
+    },
+    {
+      "name": "Hurricane of Pain",
+      "skillId": 62812
+    },
+    {
+      "name": "Feel the Burn!",
+      "skillId": 30662,
+      "offset": 100
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 100
+    },
+    {
+      "name": "Arcane Blast",
+      "skillId": 5539,
+      "offset": 100
+    },
+    {
+      "name": "Overload Air",
+      "skillId": 29719
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495
+    },
+    {
+      "name": "Ground Pound",
+      "skillId": 62778
+    },
+    {
+      "name": "Rocky Loop",
+      "skillId": 62975,
+      "offset": 100
+    },
+    {
+      "name": "Whirling Stones",
+      "skillId": 62976
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 100
+    },
+    {
+      "name": "Wind Slam",
+      "skillId": 62747
+    },
+    {
+      "name": "Wind Slam",
+      "skillId": 62747
+    },
+    {
+      "name": "Wind Slam",
+      "skillId": 62747
+    },
+    {
+      "name": "Overload Air",
+      "skillId": 29719
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 100
+    },
+    {
+      "name": "Hurricane of Pain",
+      "skillId": 62812
+    },
+    {
+      "name": "Water Attunement",
+      "skillId": 5493,
+      "offset": 100
+    },
+    {
+      "name": "Icy Coil",
+      "skillId": 62834,
+      "offset": 100
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 100
+    },
+    {
+      "name": "Arcane Blast",
+      "skillId": 5539,
+      "offset": 100
+    },
+    {
+      "name": "Shock Blast",
+      "skillId": 62716
+    },
+    {
+      "name": "Wind Slam",
+      "skillId": 62747
+    },
+    {
+      "name": "Grand Finale",
+      "skillId": 62876
+    },
+    {
+      "name": "Overload Air",
+      "skillId": 29719
+    },
+    {
+      "name": "Crescent Wind",
+      "skillId": 62887,
+      "offset": 100
+    },
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492
+    },
+    {
+      "name": "Triple Sear",
+      "skillId": 62807
+    },
+    {
+      "name": "Flame Wheel",
+      "skillId": 62758,
+      "offset": 100
+    },
+    {
+      "name": "Molten End",
+      "skillId": 62910
+    },
+    {
+      "name": "Air Attunement",
+      "skillId": 5494,
+      "offset": 100
+    },
+    {
+      "name": "Wind Slam",
+      "skillId": 62747
+    },
+    {
+      "name": "Feel the Burn!",
+      "skillId": 30662,
+      "offset": 100
+    },
+    {
+      "name": "Hurricane of Pain",
+      "skillId": 62812
+    },
+    {
+      "name": "Overload Air",
+      "skillId": 29719
+    },
+    {
+      "name": "Flame Barrage",
+      "skillId": 2662,
+      "offset": 100
+    },
+    {
+      "name": "Earth Attunement",
+      "skillId": 5495
+    },
+    {
+      "name": "Ground Pound",
+      "skillId": 62778
+    },
+    {
+      "name": "Rocky Loop",
+      "skillId": 62975,
+      "offset": 100
+    },
+    {
+      "name": "Grand Finale",
+      "skillId": 62876
+    }
   ]
 }
