@@ -257,6 +257,23 @@ test("clone state remains capped at three when input or new summons exceed the c
   assert.ok(resourceEvents.every((event) => event.value <= 3));
 });
 
+test("clone resource pips render without a redundant numeric count", () => {
+  const resourceHtml = activeResourceGroup({
+    profession: mesmerProfession,
+    adapter: { eliteSpecialization: () => "Chronomancer" },
+    build: { initialResource: 0 },
+    results: {
+      endState: {
+        profession: { clones: [{}, {}, {}] },
+      },
+    },
+  });
+
+  assert.match(resourceHtml, /data-resource-id="clones"/);
+  assert.equal(resourceHtml.match(/active-resource-pip active/g)?.length, 3);
+  assert.doesNotMatch(resourceHtml, /<strong>3\/3<\/strong>/);
+});
+
 test("non-Chronomancer alacrity starts the reduced cooldown after the cast", () => {
   const result = simulateMesmer(
     ["Bladecall", "Bladecall"],

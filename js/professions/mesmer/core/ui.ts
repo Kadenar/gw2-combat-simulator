@@ -88,6 +88,9 @@ export function mesmerResourceViews(
       shortLabel:
         definition.id === "clones" ? "Cln" : definition.singular.slice(0, 3),
       statusLabel: definition.id === "clones" ? "Active" : "Current",
+      // The three clone pips already communicate the exact count without a
+      // redundant numeric label; other Mesmer resources retain their value.
+      showValue: definition.id !== "clones",
     },
   ];
 }
