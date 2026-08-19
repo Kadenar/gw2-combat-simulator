@@ -71,17 +71,24 @@ export function createMirageActionController({
   currentResource,
   balanceProfile
 }: MirageActionControllerOptions): MesmerMirageController {
+
+  // Returns the numeric value of a given field from a balance profile, or a fallback if not found.
   const profileValue = (id: SkillId, field: string, fallback: number) => {
     const value = balanceProfile(id)?.[field];
     return Number.isFinite(Number(value)) ? Number(value) : fallback;
   };
+
+  // Returns the first effect of a given type from a balance profile, or undefined if not found.
   const profileEffect = (id: SkillId, type: string, index = 0): SkillEffect | undefined =>
     balanceProfile(id)?.effects?.filter((effect) => effect.type === type)[index];
+
   const statusFromEffect = (effect: SkillEffect | undefined, fallback: MesmerAttackStatus): MesmerAttackStatus => ({
     name: String(effect?.condition || effect?.boon || fallback.name),
     duration: Number(effect?.duration ?? fallback.duration),
     stacks: Number(effect?.stacks ?? fallback.stacks ?? 1)
   });
+
+  // Creates Mirage Mirrors at the given time, with the specified count and source, optionally delayed.
   const createMirrors = (at: number, count: number, source: string, delay = 0) => {
     const availableAt = at + Math.max(0, delay);
     for (let index = 0; index < Math.max(0, count); index += 1) {
@@ -93,6 +100,7 @@ export function createMirageActionController({
     }
   };
 
+  // Adds a boon to the event log at the specified time, with the given source skill and actor type, optionally for party recipients.
   const addBoon = (
     at: number,
     boon: MesmerAttackStatus,
@@ -138,6 +146,7 @@ export function createMirageActionController({
     });
   };
 
+  // Executes clone ambush attacks at the specified time, optionally for a given set of clones.
   const executeCloneAmbushes = (at: number, clones: readonly MesmerClone[] = professionCoreState(state).clones) => {
     if (!traits.has(TRAIT.INFINITE_HORIZON) || !clones.length) return;
     addTraitProc(
@@ -182,6 +191,7 @@ export function createMirageActionController({
     }
   };
 
+  // Grants an ambush window at the specified time, with the given source and optional duration
   const grantAmbushWindow = (
     at: number,
     source: string,
@@ -198,6 +208,7 @@ export function createMirageActionController({
     });
   };
 
+  // Reduces the recharge of Mind Wrack and Cry of Frustration by 1 second if the Dune Cloak trait is present.
   const reduceDuneCloakShatters = (at: number, source: string) => {
     if (!traits.has(TRAIT.DUNE_CLOAK)) return;
     for (const id of [ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION]) {
@@ -213,6 +224,7 @@ export function createMirageActionController({
     addTraitProc('Dune Cloak', at, source, 'Mind Wrack and Cry of Frustration recharge reduced by 1s');
   };
 
+  // Grants Mirage Cloak at the specified time
   const grantMirageCloak = (
     at: number,
     source: string,
@@ -257,6 +269,7 @@ export function createMirageActionController({
     }
   };
 
+  // Executes a player ambush attack at the specified time
   const executePlayerAmbush = (skill: MesmerSkill, at: number, castStart = at) => {
     const weapon = activePrimaryWeapon();
     const ambush = ambushAttacks[weapon];
@@ -317,6 +330,7 @@ export function createMirageActionController({
     mirageState.from(state).ambushSource = '';
   };
 
+  // Handles Mirage Shatter effects, including Riddle of Sand, Nomad's Endurance, Desert Distortion, and Dune Cloak.
   const handleMirageShatter = (skill: MesmerSkill, at: number, spent: number) => {
     if (config.specialization !== 'Mirage') return;
     if (traits.has(TRAIT.RIDDLE_OF_SAND)) {
@@ -346,15 +360,19 @@ export function createMirageActionController({
     }
   };
 
+  // Handles post-skill effects for Mirage, including mirror creation, cloak granting, and Self-Deception resource gain.
   const handlePostSkill = (skill: MesmerSkill, at: number) => {
     if (skill.id === ID.CRYSTAL_SANDS) {
-      // The supplied EVTC places the strike and mirror roughly 0.32s after
-      // Crystal Sands completes, rather than at cast completion.
       createMirrors(at, 1, skill.name, profileValue(PROFILE.mechanics, 'initialDelay', 0.32));
+    } else if(skill.id == ID.FALSE_OASIS) {
+      createMirrors(at, 1, skill.name, profileValue(PROFILE.mechanics, 'initialDelay', 3)); // ? need to confirm this delay value
     }
+
     if (MIRAGE_CLOAK_SKILLS.has(skill.id)) {
       grantMirageCloak(at, skill.name);
     }
+    
+    // If Self-Deception trait is taken, grant a clone if user already has at least 1 clone and skill used was classified as a Deception skill
     if (traits.has(TRAIT.SELF_DECEPTION) && DECEPTION_SKILLS.has(skill.id) && currentResource() > 0) {
       queueResources(
         at + epsilon,
@@ -370,6 +388,7 @@ export function createMirageActionController({
     }
   };
 
+  // Attempts to pick up a Mirage Mirror at the given time, applying damage and granting Mirage Cloak if successful.
   const pickUpMirror = (at: number, source: string) => {
     const mirrors = mirageState.from(state).mirrors;
     const index = mirrors.findIndex((mirror) => mirror.availableAt <= at + epsilon && mirror.expiresAt > at + epsilon);
