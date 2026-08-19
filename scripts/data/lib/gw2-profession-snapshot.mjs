@@ -12,6 +12,7 @@ function englishPath(pathname) {
   return `${pathname}${pathname.includes('?') ? '&' : '?'}lang=en`;
 }
 
+// Fetches a Guild Wars 2 API object by its path, throwing an error if the request fails.
 export async function fetchGw2Api(pathname, { fetchImpl = fetch, apiRoot = GW2_API_ROOT } = {}) {
   const response = await fetchImpl(`${apiRoot}${englishPath(pathname)}`);
   if (!response.ok) {
@@ -20,6 +21,7 @@ export async function fetchGw2Api(pathname, { fetchImpl = fetch, apiRoot = GW2_A
   return response.json();
 }
 
+// Fetches multiple Guild Wars 2 API objects by their IDs, batching requests to avoid exceeding the API limit.
 export async function fetchManyGw2(endpoint, ids, options = {}) {
   const values = [];
   const unique = [...new Set(ids.map(Number))].filter(Number.isFinite).sort((left, right) => left - right);
@@ -30,6 +32,7 @@ export async function fetchManyGw2(endpoint, ids, options = {}) {
   return values;
 }
 
+// Creates a snapshot of a trait for use in the patch preview.
 export function traitSnapshot(trait, specialization) {
   return {
     id: trait.id,
@@ -43,6 +46,7 @@ export function traitSnapshot(trait, specialization) {
   };
 }
 
+// Creates a snapshot of a specialization for use in the patch preview.
 export function buildSpecializationSnapshots(specializationData, traitData) {
   const traitsById = new Map(traitData.map((trait) => [trait.id, trait]));
   return [...specializationData]
@@ -71,6 +75,7 @@ function firstFact(skill, predicate) {
   return (skill.facts || []).find(predicate);
 }
 
+// Creates a snapshot of a skill for use in the patch preview.
 export function skillSnapshot(skill, { weapon = '', specialization = '' } = {}) {
   const recharge = firstFact(skill, (fact) => fact.type === 'Recharge');
   const countRecharge = firstFact(skill, (fact) => fact.text === 'Count Recharge');
@@ -97,6 +102,7 @@ export function skillSnapshot(skill, { weapon = '', specialization = '' } = {}) 
   };
 }
 
+// Determines if a skill is land-based, based on its properties and the provided exclusions.
 export function isTerrestrialSkill(
   skill,
   weapon = '',
@@ -121,6 +127,7 @@ export function isTerrestrialSkill(
   return typeof filterSkill === 'function' ? filterSkill(skill, { weapon }) !== false : true;
 }
 
+// Builds associations between skills and their respective professions, specializations, and weapons.
 export function professionSkillAssociations(
   profession,
   specializationData,
@@ -164,6 +171,7 @@ function linkedSkillIds(skill) {
   return [skill?.next_chain, skill?.flip_skill].filter(Number.isFinite);
 }
 
+// Builds a snapshot of all skills for a profession, including linked skills, based on the provided skill data and associations.
 export function buildSkillSnapshots({ profession, specializationData, skillData, config = {} }) {
   const normalizedSkillData = skillData.map((skill) => {
     const override = config.skillOverrides?.[skill.id] || {};
@@ -218,6 +226,7 @@ export function buildSkillSnapshots({ profession, specializationData, skillData,
   });
 }
 
+// Creates a snapshot of a profession's data for use in the patch preview.
 export function createProfessionSnapshot({ profession, specializationData, traitData, skillData, config = {} }) {
   return {
     specializations: buildSpecializationSnapshots(specializationData, traitData),
@@ -230,6 +239,7 @@ export function createProfessionSnapshot({ profession, specializationData, trait
   };
 }
 
+// Fetches a snapshot of a profession's data from the GW2 API for use in the patch preview.
 export async function fetchProfessionSnapshot({
   professionName,
   config = {},
@@ -267,6 +277,7 @@ export async function fetchProfessionSnapshot({
   });
 }
 
+// Creates a TypeScript declaration for a profession snapshot, including the snapshot date, specializations, and skills.
 export function serializeProfessionSnapshot({ professionName, snapshotDate, specializations, skills }) {
   const id = professionName.toLowerCase();
   return [
@@ -281,6 +292,7 @@ export function serializeProfessionSnapshot({ professionName, snapshotDate, spec
   ].join('\n');
 }
 
+// Writes a profession snapshot to a TypeScript file, creating the necessary directories if they do not exist.
 export async function writeProfessionSnapshot({
   output,
   professionName,

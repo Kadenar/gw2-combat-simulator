@@ -30,6 +30,7 @@ async function fetchJson(pathname) {
   return response.json();
 }
 
+// Fetches all ranger pet skills from the GW2 API, returning an array of skill objects.
 async function rangerPetSkills() {
   const petIds = await fetchJson('/pets');
   const pets = [];

@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Implements the patch preview authoring API.
+ * @module patch-preview-authoring-api
+ * @example
+ *   import { createPatchPreviewAuthoringApi } from './patch-preview-authoring-api.mjs';
+ *   const handlePatchPreviewAuthoring = createPatchPreviewAuthoringApi({ root, buildRoot }); 
+ */
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -16,6 +23,7 @@ function assertRecord(value, label) {
   if (!isRecord(value)) throw new TypeError(`${label} must be an object.`);
 }
 
+// Validates the shape of a patch preview for authoring purposes.
 function assertAuthoringShape(preview) {
   assertRecord(preview, 'Patch preview');
   for (const field of Object.keys(preview)) {
@@ -23,14 +31,17 @@ function assertAuthoringShape(preview) {
       throw new TypeError(`Patch preview has unsupported field ${field}.`);
     }
   }
+
   if (preview.professions != null) {
     assertRecord(preview.professions, 'Patch preview professions');
   }
+
   if (preview.constants != null) {
     assertRecord(preview.constants, 'Patch preview constants');
   }
 }
 
+// Writes a JSON response to the given HTTP response object.
 function jsonResponse(response, status, payload, extraHeaders = {}, headOnly = false) {
   const body = JSON.stringify(payload);
   response.writeHead(status, {
@@ -42,6 +53,7 @@ function jsonResponse(response, status, payload, extraHeaders = {}, headOnly = f
   response.end(headOnly ? undefined : body);
 }
 
+// Reads the JSON body of a request, throwing an error if it is too large or invalid.
 async function readJsonBody(request) {
   let size = 0;
   const chunks = [];
@@ -52,6 +64,7 @@ async function readJsonBody(request) {
     }
     chunks.push(chunk);
   }
+
   if (!chunks.length) throw new TypeError('Patch preview request is empty.');
   try {
     return JSON.parse(Buffer.concat(chunks).toString('utf8'));
@@ -60,6 +73,7 @@ async function readJsonBody(request) {
   }
 }
 
+// Serializes a patch preview to a TypeScript module for saving to disk.
 export function serializeActivePatchPreview(preview) {
   return `import type { PatchPreview } from "../platform/gw2/skill-patch.js";
 
@@ -73,6 +87,7 @@ export default activePatchPreview;
 `;
 }
 
+// Validates a patch preview for authoring purposes.
 export function validateAuthoringPreview(preview, runtime) {
   assertAuthoringShape(preview);
   runtime.validatePatchPreview(preview);
@@ -80,10 +95,12 @@ export function validateAuthoringPreview(preview, runtime) {
     preview,
     runtime.professions.map((profession) => profession.patchAuthoring)
   );
+
   const validated = runtime.validatePatchPreview(generated);
   const professions = new Map(
     runtime.professions.map((profession) => [profession.patchAuthoring.professionId, profession])
   );
+
   for (const [professionId, patch] of Object.entries(validated.professions || {})) {
     const profession = professions.get(professionId);
     if (!profession) {
@@ -91,9 +108,11 @@ export function validateAuthoringPreview(preview, runtime) {
     }
     profession.validatePatch(patch);
   }
+
   return validated;
 }
 
+// Creates a patch preview authoring API handler for the given root and buildRoot directories.
 export function createPatchPreviewAuthoringApi({ root, buildRoot }) {
   const sourceFile = path.join(root, 'js', 'patches', 'active-preview.ts');
   let runtimePromise;
@@ -115,9 +134,11 @@ export function createPatchPreviewAuthoringApi({ root, buildRoot }) {
         initialPreview: previewModule.activePatchPreview
       };
     });
+
     return runtimePromise;
   };
 
+  // Handles a patch preview authoring request, returning true if handled, false otherwise.
   return async function handlePatchPreviewAuthoring(request, response, pathname) {
     if (pathname !== API_PATH) return false;
     try {
@@ -136,6 +157,7 @@ export function createPatchPreviewAuthoringApi({ root, buildRoot }) {
         );
         return true;
       }
+
       if (request.method !== 'PUT') {
         jsonResponse(
           response,
@@ -145,6 +167,7 @@ export function createPatchPreviewAuthoringApi({ root, buildRoot }) {
         );
         return true;
       }
+
       const body = await readJsonBody(request);
       const candidate = isRecord(body) && 'preview' in body ? body.preview : body;
       const validated = validateAuthoringPreview(candidate, runtime);
@@ -162,6 +185,7 @@ export function createPatchPreviewAuthoringApi({ root, buildRoot }) {
         error: error instanceof Error ? error.message : 'Patch preview request failed.'
       });
     }
+
     return true;
   };
 }
