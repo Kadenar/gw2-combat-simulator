@@ -11,6 +11,7 @@ import { addRotation } from './rotation/actions.js';
 import { recordRotationHistory } from './rotation/history.js';
 import { ModifierContributionRunner } from './simulation/modifier-contribution-runner.js';
 import { RandomDistributionRunner } from './simulation/random-distribution-runner.js';
+import { RelicComparisonRunner } from './simulation/relic-comparison-runner.js';
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '../platform/gw2/gear-data.js';
 import { mountPatchPreviewControls } from './simulation/patch-preview-view.js';
 
@@ -54,6 +55,7 @@ export class ProfessionApp implements ProfessionAppState {
   templateUndoBuild: ProfessionApplicationBuild | null;
   readonly modifierContributionRunner: ModifierContributionRunner;
   readonly randomDistributionRunner: RandomDistributionRunner;
+  readonly relicComparisonRunner: RelicComparisonRunner;
   private initialRenderGeneration: number;
 
   constructor(adapter: Gw2AppAdapter) {
@@ -87,6 +89,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.templateUndoBuild = null;
     this.modifierContributionRunner = new ModifierContributionRunner(this);
     this.randomDistributionRunner = new RandomDistributionRunner(this);
+    this.relicComparisonRunner = new RelicComparisonRunner(this);
     this.initialRenderGeneration = 0;
   }
 
@@ -135,6 +138,7 @@ export class ProfessionApp implements ProfessionAppState {
     }
     this.randomDistributionRunner.schedule();
     this.modifierContributionRunner.schedule();
+    this.relicComparisonRunner.schedule();
     saveBuild(this.build, this.adapter);
   }
 
@@ -174,6 +178,10 @@ export class ProfessionApp implements ProfessionAppState {
 
   runRandomDistribution(): void {
     this.randomDistributionRunner.run();
+  }
+
+  runRelicComparison(): void {
+    this.relicComparisonRunner.run();
   }
 
   selectPatch(patchId: string): void {

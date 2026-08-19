@@ -21,6 +21,7 @@ import type {
   Gw2WeaponDataEntry
 } from '../../platform/gw2/types.js';
 import type { PatchPreview, PatchRuntimeValues } from '../../platform/gw2/skill-patch.js';
+import type { RelicComparisonModel } from '../simulation/relic-comparison.js';
 
 export interface ProfessionBuildAssumptions extends SchedulerRecord {
   might?: number;
@@ -102,6 +103,14 @@ export interface RandomDistributionRequest {
 export interface RandomDistributionJobRequest extends RandomDistributionRequest {
   readonly professionId: string;
   readonly trials: number;
+}
+
+export interface RelicComparisonJobRequest {
+  readonly professionId: string;
+  readonly rotation: readonly LegacyRotationItem[];
+  readonly baseConfig: Gw2Config;
+  readonly opponentRelic: string;
+  readonly comparisonRelic: string;
 }
 
 export interface RandomDistributionOptions {
@@ -372,6 +381,10 @@ export interface ProfessionAppState {
     schedule(run?: boolean): void;
     run(): void;
   };
+  relicComparisonRunner: {
+    schedule(): void;
+    run(): void;
+  };
   changed(rebuildStatic?: boolean, rebuildGear?: boolean): void;
   renderGear(): void;
   renderTraits(): void;
@@ -380,6 +393,7 @@ export interface ProfessionAppState {
   renderAssumptions(): void;
   addRotation(name: string, options?: RotationActionOptions): void;
   runRandomDistribution(): void;
+  runRelicComparison(): void;
   resetBuild(): void;
   selectPatch(patchId: string): void;
 }
@@ -406,6 +420,11 @@ export interface ProfessionAppResult extends Gw2SimulationResult {
   randomDistributionError?: string;
   randomDistributionProgress?: RandomDistributionProgress;
   randomDistribution?: RandomDistributionSummary;
+  relicComparisonAvailable?: boolean;
+  relicComparisonStale?: boolean;
+  relicComparisonError?: string;
+  relicComparisonOpponent?: string;
+  relicComparison?: RelicComparisonModel;
 }
 
 export interface ProfessionAppFilenames {
@@ -460,6 +479,7 @@ export interface ProfessionRuntimeApi {
   calculateModifierContributions(request: ModifierContributionRequest): ModifierContribution[];
   computeModifierContributions(app: ProfessionAppState): ModifierContribution[];
   randomDistributionRequest(app: ProfessionAppState): RandomDistributionJobRequest | null;
+  relicComparisonRequest(app: ProfessionAppState): RelicComparisonJobRequest | null;
   calculateRandomDistribution(
     request: RandomDistributionRequest,
     options?: RandomDistributionOptions
@@ -486,6 +506,7 @@ export interface Gw2AppAdapterOptions {
   readonly modifierContributionRequest: ProfessionRuntimeApi['modifierContributionRequest'];
   readonly calculateModifierContributions: ProfessionRuntimeApi['calculateModifierContributions'];
   readonly randomDistributionRequest: ProfessionRuntimeApi['randomDistributionRequest'];
+  readonly relicComparisonRequest: ProfessionRuntimeApi['relicComparisonRequest'];
   readonly calculateRandomDistribution: ProfessionRuntimeApi['calculateRandomDistribution'];
   readonly isSkillAvailable: ProfessionIsSkillAvailable;
   readonly defaultOffhand: ProfessionDefaultOffhand;

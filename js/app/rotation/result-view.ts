@@ -79,7 +79,12 @@ export function renderResults(app: ProfessionAppState): void {
       randomDistributionTrials: Number(result.randomDistributionTrials || 0),
       randomDistributionProgress: result.randomDistributionProgress || null,
       randomDistributionError: result.randomDistributionError || '',
-      chartSeries: series
+      chartSeries: series,
+      relicComparison: result.relicComparison || null,
+      relicComparisonAvailable: result.relicComparisonAvailable === true,
+      relicComparisonStale: result.relicComparisonStale === true,
+      relicComparisonError: result.relicComparisonError || '',
+      relicComparisonOpponent: result.relicComparisonOpponent || ''
     },
     {
       resolveSkillIcon: (row) => resultSkillIcon(app, row as ResultIconRow),
@@ -103,6 +108,9 @@ export function renderResults(app: ProfessionAppState): void {
       },
       onRunRandomDistribution() {
         app.runRandomDistribution();
+      },
+      onRunRelicComparison() {
+        app.runRelicComparison();
       }
     }
   );

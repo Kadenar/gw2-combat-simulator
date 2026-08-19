@@ -30,6 +30,7 @@ export function createGw2AppAdapter({
   modifierContributionRequest,
   calculateModifierContributions,
   randomDistributionRequest,
+  relicComparisonRequest,
   calculateRandomDistribution,
   isSkillAvailable,
   defaultOffhand
@@ -61,6 +62,7 @@ export function createGw2AppAdapter({
     modifierContributionRequest,
     calculateModifierContributions,
     randomDistributionRequest,
+    relicComparisonRequest,
     calculateRandomDistribution,
     renderResults,
     renderRotationBuilder,

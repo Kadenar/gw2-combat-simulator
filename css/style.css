@@ -5072,6 +5072,157 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   color: #e58b70;
 }
 
+.relic-cmp {
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.relic-cmp-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.relic-cmp-heading h4 {
+  margin: 0 0 3px;
+  color: var(--text-bright);
+  font-size: 12px;
+}
+
+.relic-cmp-heading p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+.relic-cmp-heading-actions {
+  flex: none;
+}
+
+.relic-cmp-status {
+  padding: 10px;
+  color: var(--text-dim);
+  font-size: 10px;
+  background: var(--bg-card);
+  border-radius: 6px;
+}
+
+.relic-cmp-error {
+  color: #e58b70;
+}
+
+.relic-cmp-manual {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  background: var(--bg-card);
+  border-radius: 6px;
+}
+
+.relic-cmp-manual > span {
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+.relic-cmp-run-button {
+  flex: none;
+  padding: 6px 10px;
+  color: var(--text-bright);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--health) 18%, var(--bg-card));
+  border: 1px solid color-mix(in srgb, var(--health) 55%, var(--border));
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.relic-cmp-run-button:hover,
+.relic-cmp-run-button:focus-visible {
+  background: color-mix(in srgb, var(--health) 28%, var(--bg-card));
+  outline: none;
+}
+
+.relic-cmp-figure {
+  margin: 0;
+}
+
+.relic-cmp-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--bg-card);
+  border-radius: 6px;
+}
+
+.relic-cmp-axis-label {
+  fill: var(--text-dim);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.relic-cmp-crossover-label {
+  fill: var(--text-bright);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.relic-cmp-caption {
+  margin-top: 8px;
+}
+
+.relic-cmp-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+
+.relic-cmp-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+.relic-cmp-key b {
+  color: var(--text-bright);
+  font-variant-numeric: tabular-nums;
+}
+
+.relic-cmp-swatch {
+  width: 16px;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.relic-cmp-verdict {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+.relic-cmp-verdict b {
+  color: var(--text-bright);
+}
+
+.relic-cmp-empty {
+  margin: 0;
+  padding: 10px;
+  color: var(--text-dim);
+  font-size: 10px;
+  background: var(--bg-card);
+  border-radius: 6px;
+}
+
 @media (max-width: 620px) {
   .rng-driver {
     align-items: start;

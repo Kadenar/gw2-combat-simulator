@@ -1,5 +1,7 @@
 import type { ChartOptions, ChartSeries } from './charts.js';
 import { mountHitTimeline, mountTimeSeriesCharts } from './charts.js';
+import type { RelicComparisonModel } from './relic-comparison-chart.js';
+import { relicComparisonChartSvg } from './relic-comparison-chart.js';
 import { escapeHtml } from './html.js';
 export { mountRotationWarnings } from './rotation-warnings.js';
 
@@ -114,6 +116,11 @@ export interface RotationResultsModel {
   readonly randomDistributionProgress?: ResultRandomDistributionProgress | null;
   readonly randomDistributionError?: string;
   readonly chartSeries?: ChartSeries | null;
+  readonly relicComparison?: RelicComparisonModel | null;
+  readonly relicComparisonAvailable?: boolean;
+  readonly relicComparisonStale?: boolean;
+  readonly relicComparisonError?: string;
+  readonly relicComparisonOpponent?: string;
 }
 
 export interface RotationResultsOptions {
@@ -124,6 +131,7 @@ export interface RotationResultsOptions {
   readonly sortState?: Partial<ResultSortState>;
   readonly onSortStateChange?: (state: ResultSortState) => unknown;
   readonly onRunRandomDistribution?: () => unknown;
+  readonly onRunRelicComparison?: () => unknown;
 }
 
 // Default column schema shared by the renderer and profession adapters.
@@ -390,6 +398,17 @@ export function mountRotationResults(
         </button>`
       : '';
   const chartSeries = model.chartSeries || null;
+  const relicComparison = model.relicComparison || null;
+  const relicComparisonAvailable = model.relicComparisonAvailable === true;
+  const relicComparisonStale = model.relicComparisonStale === true;
+  const relicComparisonError = String(model.relicComparisonError || '');
+  const relicComparisonOpponent = String(model.relicComparisonOpponent || '');
+  const relicComparisonAction =
+    relicComparison || relicComparisonError
+      ? `<button type="button" class="relic-cmp-run-button" data-role="relic-comparison-run">
+          ${relicComparisonError ? 'Retry' : 'Run again'}
+        </button>`
+      : '';
   let sortState: ResultSortState = {
     column: options.sortState?.column || null,
     direction: options.sortState?.direction || null
@@ -553,6 +572,33 @@ export function mountRotationResults(
   }
   ${chartSeries ? '<div data-role="result-charts"></div>' : ''}
   ${
+    relicComparisonAvailable
+      ? `<section class="relic-cmp">
+    <div class="relic-cmp-heading">
+      <div>
+        <h4>Relic of Thorns break-even</h4>
+        <p>Relic of Thorns ramps its Condition Damage over ~48s. Run a second simulation to see the fight duration at which it overtakes ${escapeHtml(relicComparisonOpponent ? `Relic of ${relicComparisonOpponent}` : 'your equipped relic')}.</p>
+      </div>
+      ${relicComparisonStale ? '' : `<div class="relic-cmp-heading-actions">${relicComparisonAction}</div>`}
+    </div>
+    ${
+      relicComparisonStale
+        ? `<div class="relic-cmp-status" role="status">Running comparison simulation…</div>`
+        : relicComparisonError
+          ? `<div class="relic-cmp-status relic-cmp-error">${escapeHtml(relicComparisonError)}</div>`
+          : relicComparison
+            ? relicComparisonChartSvg(relicComparison, {
+                opponentLabel: relicComparisonOpponent ? `Relic of ${relicComparisonOpponent}` : undefined
+              })
+            : `<div class="relic-cmp-manual">
+                <span>Off by default to avoid a second simulation on every edit.</span>
+                <button type="button" class="relic-cmp-run-button" data-role="relic-comparison-run">Run comparison</button>
+              </div>`
+    }
+  </section>`
+      : ''
+  }
+  ${
     contributions.length || contributionsStale
       ? `<div class="res-contributions">
     <h4>
@@ -684,6 +730,12 @@ export function mountRotationResults(
   if (runRandomDistribution && typeof options.onRunRandomDistribution === 'function') {
     runRandomDistribution.onclick = () => {
       options.onRunRandomDistribution?.();
+    };
+  }
+  const runRelicComparison = container.querySelector<HTMLElement>('[data-role="relic-comparison-run"]');
+  if (runRelicComparison && typeof options.onRunRelicComparison === 'function') {
+    runRelicComparison.onclick = () => {
+      options.onRunRelicComparison?.();
     };
   }
   return { getSortState: () => ({ ...sortState }), renderSortedRows };
