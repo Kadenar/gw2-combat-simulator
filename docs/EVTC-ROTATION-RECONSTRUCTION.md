@@ -1,122 +1,567 @@
-# EVTC rotation reconstruction
+# Programmatic simulation
 
-The EVTC rotation layer reconstructs a player's recorded Guild Wars 2 actions from an ArcDPS combat log and converts them into the simulator's rotation format.
+The simulator can run entirely from Node.js without opening the browser UI.
 
-It supports Core and every elite specialization across all nine professions.
-
-> [!WARNING]
-> EVTC import is experimental. Reconstructed rotations may be incomplete or inaccurate and should be reviewed before relying on them.
-
-## Using EVTC import
-
-Select an `.evtc`, `.evtc.zip`, or `.zevtc` file through **Load Rotation**.
-
-The active simulator must match the recorded player's profession and specialization so reconstructed actions are resolved against the correct skill catalog.
-
-The importer can recover:
-
-* animated skill casts, including interrupted and shortened casts;
-* dodges and weapon swaps;
-* profession state changes such as shrouds, attunements, kits, legends, tomes, and similar transformations;
-* supported pet, summon, and profession-mechanic commands;
-* selected precombat and truncated opening actions;
-* otherwise-unrecorded instant casts when they can be inferred from direct combat evidence.
-
-Profession-specific reconstruction handles mechanics that cannot be determined reliably through the generic EVTC event stream alone.
-
-## Actions and rotation output
-
-Reconstruction produces two related outputs:
-
-* **`actions`** — the evidence-bearing reconstructed timeline, including timestamps, duration, action status, and evidence source.
-* **`rotation`** — the simulator-compatible representation built from those actions, including waits and concurrent offsets.
-
-The rotation output may normalize timing where necessary to produce a usable simulator replay.
-
-Catalog misses are retained in the action timeline and reported as warnings instead of being silently discarded.
-
-## Reconstruction model
-
-The generic reconstructor:
-
-1. identifies the selected player;
-2. records animation casts, weapon swaps, and configured state transitions;
-3. dispatches to the matching profession parser;
-4. reconciles casts against observed combat-effect packets;
-5. resolves reconstructed actions against the simulator catalog;
-6. converts the resulting timeline into simulator rotation commands.
-
-Shared cast and strike-packet logic lives under:
-
-```text
-js/evtc-analyzer/rotation/
-```
-
-Profession-specific interpretation lives under:
-
-```text
-js/evtc-analyzer/rotation/professions/
-```
-
-These modules handle mechanics such as transformation states, pets and summons, composite animations, profession resources, effect aliases, and profession-specific precasts.
-
-## Effect reconciliation
-
-EVTC animation state alone is not always sufficient to determine whether a skill committed.
-
-Where the simulator has timing metadata for a skill's strike packets, reconstruction compares the expected packet timeline against observed EVTC damage events.
-
-Observed packets provide positive evidence that a cast committed even when ArcDPS reports an interruption or unusually short animation.
-
-Missing damage is **not** treated as proof that a cast failed, since an attack may miss, be blocked, or fail to connect with the selected target.
-
-## Player selection
-
-When a log contains a single suitable player, reconstruction can select that player automatically.
-
-When player selection is ambiguous, provide the player's EVTC address explicitly.
+The canonical entry point is:
 
 ```js
-import { parseEvtcRotation } from "./js/evtc-analyzer/rotation/index.js";
+simulateGw2({
+  profession,
+  rotation,
+  config,
+  observationPolicy,
+});
+```
 
-const result = parseEvtcRotation(expandedBytes, profession.catalog, {
-  playerAddress: "0x1234",
+This uses the same scheduler and combat resolver as the interactive simulator.
+
+Headless simulation is useful for:
+
+* comparing rotations or build assumptions;
+* writing profession and mechanic tests;
+* running parameter sweeps;
+* analyzing damage programmatically;
+* replaying saved simulator builds;
+* running benchmark regressions;
+* generating simulation data for other tools.
+
+No web server, DOM, local storage, or browser is required.
+
+## Setup
+
+Node.js **20.19+** is required.
+
+Install dependencies and build the project:
+
+```sh
+npm install
+npm run build
+```
+
+Headless scripts should import the normal source-looking module paths and run through the repository's module loader:
+
+```sh
+node --import ./scripts/testing/register-dist-loader.mjs ./simulate.mjs
+```
+
+The loader redirects compiled TypeScript imports into `dist/js` while preserving JavaScript-only source dependencies.
+
+Rebuild after changing simulator source.
+
+---
+
+## Run a simulation directly
+
+For controlled experiments, import a profession contract and call `simulateGw2()` directly.
+
+Create `simulate.mjs` in the repository root:
+
+```js
+import { simulateGw2 } from "./js/platform/gw2/simulate.js";
+import { engineerProfession } from "./js/professions/engineer/definition.js";
+
+const result = simulateGw2({
+  profession: engineerProfession,
+
+  rotation: [
+    "Grenade Kit",
+    "Grenade",
+    { type: "wait", durationMs: 1000 },
+  ],
+
+  config: {
+    specialization: "Core",
+
+    selectedSkills: [
+      "Healing Turret",
+      "Grenade Kit",
+      "Throw Mine",
+      "Rifle Turret",
+      "Supply Crate",
+    ],
+
+    stats: {
+      power: 2500,
+      precision: 1500,
+      ferocity: 500,
+      conditionDamage: 1000,
+      expertise: 0,
+    },
+
+    boons: {
+      might: 25,
+      fury: true,
+      quickness: true,
+    },
+
+    target: {
+      armor: 2597,
+      conditions: {
+        Vulnerability: 25,
+      },
+    },
+  },
 });
 
-result.actions;
-result.rotation;
-result.warnings;
+console.log({
+  duration: result.duration,
+  damage: Math.round(result.totalDamage),
+  dps: Math.round(result.dps),
+  strike: Math.round(result.strikeDamage),
+  condition: Math.round(result.conditionDamage),
+});
+
+if (result.warnings.length) {
+  console.warn(result.warnings);
+}
 ```
 
-## CLI
-
-Build the TypeScript modules:
+Run it with:
 
 ```sh
-npm run build:modules
+node --import ./scripts/testing/register-dist-loader.mjs ./simulate.mjs
 ```
 
-Then reconstruct a rotation:
+`simulateGw2()` is synchronous and returns the complete simulation result.
 
-```sh
-node scripts/analysis/reconstruct-evtc-rotation.mjs fight.zevtc > rotation.json
+---
+
+## Compare builds or rotations
+
+A common headless use case is running the same scenario repeatedly with small changes.
+
+`prepareSimulationConfig()` makes it convenient to define shared assumptions once and override individual values.
+
+```js
+import { prepareSimulationConfig } from "./js/platform/engine/prepare-config.js";
+import { simulateGw2 } from "./js/platform/gw2/simulate.js";
+import { engineerProfession } from "./js/professions/engineer/definition.js";
+
+const baseConfig = {
+  specialization: "Core",
+
+  selectedSkills: [
+    "Healing Turret",
+    "Grenade Kit",
+    "Throw Mine",
+    "Rifle Turret",
+    "Supply Crate",
+  ],
+
+  stats: {
+    power: 2500,
+    precision: 1500,
+    ferocity: 500,
+    conditionDamage: 1000,
+    expertise: 0,
+  },
+
+  boons: {
+    might: 25,
+    fury: true,
+    quickness: true,
+  },
+
+  target: {
+    armor: 2597,
+    conditions: {
+      Vulnerability: 25,
+    },
+  },
+};
+
+function run(rotation, overrides = {}) {
+  return simulateGw2({
+    profession: engineerProfession,
+    rotation,
+    config: prepareSimulationConfig(baseConfig, overrides),
+  });
+}
+
+const baseline = run([
+  "Grenade Kit",
+  "Grenade",
+  "Grenade",
+]);
+
+const variant = run([
+  "Grenade Kit",
+  "Grenade",
+  "Throw Mine",
+  "Grenade",
+]);
+
+console.table([
+  {
+    scenario: "Baseline",
+    damage: Math.round(baseline.totalDamage),
+    dps: Math.round(baseline.dps),
+  },
+  {
+    scenario: "Variant",
+    damage: Math.round(variant.totalDamage),
+    dps: Math.round(variant.dps),
+  },
+]);
+
+console.log(
+  `DPS difference: ${Math.round(variant.dps - baseline.dps)}`,
+);
 ```
 
-Useful options:
+The same pattern can be used to sweep stats, traits, target assumptions, or entire rotations.
+
+For example:
+
+```js
+for (const power of [2000, 2250, 2500, 2750, 3000]) {
+  const result = run(["Grenade Kit", "Grenade"], {
+    stats: { power },
+  });
+
+  console.log(power, Math.round(result.dps));
+}
+```
+
+`prepareSimulationConfig()` preserves the other nested `stats`, `boons`, and `target` values while applying the supplied overrides.
+
+---
+
+## Simulate a saved build without the UI
+
+If you want to reproduce what the interactive application would simulate, use the profession's application adapter rather than manually recreating its final stats.
+
+This is the same general path used by the repository's preset benchmark tests.
+
+```js
+import { readFile } from "node:fs/promises";
+
+import { loadProfessionAppAdapter } from "./js/app/profession/registry.js";
+
+const professionId = "engineer";
+
+const savedBuild = JSON.parse(
+  await readFile("./build.json", "utf8"),
+);
+
+const savedRotation = JSON.parse(
+  await readFile("./rotation.json", "utf8"),
+);
+
+const adapter = await loadProfessionAppAdapter(professionId);
+
+if (!adapter) {
+  throw new Error(`Unknown profession: ${professionId}`);
+}
+
+const build = adapter.toApplicationBuild({
+  ...savedBuild,
+  rotation: savedRotation.rotation ?? savedRotation,
+});
+
+const app = {
+  build,
+  adapter,
+  profession: adapter.profession,
+  skillByName: adapter.profession.catalog.skillsByName,
+  skillById: adapter.profession.catalog.skillsById,
+  attributeWeaponSet: 1,
+};
+
+// Reproduce the application's derived attributes and profession assumptions.
+adapter.recalculate(app);
+
+const config = adapter.simulationConfig(app);
+
+const result = adapter.simulateBuild(
+  build.rotation,
+  config,
+);
+
+console.log({
+  profession: adapter.profession.name,
+  damage: Math.round(result.totalDamage),
+  dps: Math.round(result.dps),
+  duration: result.duration,
+});
+
+if (result.warnings.length) {
+  console.warn(result.warnings);
+}
+```
+
+This approach is preferable when working with exported simulator builds because the application adapter handles:
+
+* equipment-derived attributes;
+* selected traits and skills;
+* weapon sets;
+* profession resources;
+* specialization-specific assumptions;
+* other configuration normally assembled by the UI.
+
+Use direct `simulateGw2()` calls when you intentionally want to provide resolved combat values yourself.
+
+---
+
+## Rotation format
+
+A rotation is an ordered list of skills and simulator commands.
+
+The simplest form uses skill names:
+
+```js
+const rotation = [
+  "Grenade Kit",
+  "Grenade",
+  "Throw Mine",
+];
+```
+
+Numeric skill IDs can also be used:
+
+```js
+const rotation = [
+  5882,
+  5806,
+];
+```
+
+IDs are generally safer for long-lived scripts because skill names can change.
+
+Common explicit commands include:
+
+```js
+const rotation = [
+  { type: "cast", skillId: 5882 },
+
+  { type: "wait", durationMs: 1000 },
+
+  { type: "combat-start" },
+
+  { type: "cooldown-reset" },
+];
+```
+
+Explicit casts can also describe timing behavior when needed:
+
+```js
+{
+  type: "cast",
+  skillId: 5882,
+  concurrentOffsetMs: 100,
+  interruptAfterMs: 500,
+}
+```
+
+You can inspect a profession's available skills programmatically:
+
+```js
+console.table(
+  engineerProfession.catalog.skills.map(({ id, name }) => ({
+    id,
+    name,
+  })),
+);
+```
+
+Always inspect `result.warnings`; unavailable, invalid, or mistimed actions may otherwise produce a result different from what the caller intended.
+
+---
+
+## Observe effects after the rotation
+
+By default, simulation resolution ends at the rotation boundary.
+
+That is normally what you want for benchmark-style comparisons.
+
+Sometimes you may want to observe delayed damage, conditions, summons, fields, or other effects after the final player action.
+
+Use an observation tail:
+
+```js
+const result = simulateGw2({
+  profession: engineerProfession,
+  rotation,
+  config,
+  observationPolicy: {
+    kind: "tail",
+    durationMs: 5000,
+  },
+});
+```
+
+An observation tail extends the resolver window without adding an artificial player wait to the rotation.
+
+This is useful for isolated mechanic tests such as:
 
 ```text
---timeline         Include reconstructed action records in metadata
---player=0x...     Select a specific player from an ambiguous log
+cast skill
+→ stop issuing inputs
+→ observe its complete damage/effect lifetime
 ```
 
-## Accuracy boundary
+An explicit rotation wait is different:
 
-EVTC records combat events, not keyboard input.
+```js
+{ type: "wait", durationMs: 5000 }
+```
 
-Animated casts, animation timing, weapon swaps, and similar state changes provide direct evidence of player actions. Other actions—particularly instant skills, summon commands, precasts, and profession mechanics—may need to be inferred from buffs, damage packets, effects, missiles, owned agents, or other combat-log evidence.
+A wait is part of the player's command timeline and therefore changes the rotation duration.
 
-Inferred actions are marked with their evidence source and surfaced through reconstruction warnings where appropriate.
+---
 
-Some precombat actions cannot be assigned an exact original cast timestamp. For example, an initial player-owned summon proves that the summon already existed when logging began, but not exactly when it was cast.
+## Read simulation results
 
-Because of these limitations, reconstructed rotations should be treated as a best-effort interpretation of the combat log rather than a literal recording of player inputs.
+The most commonly useful fields are:
+
+| Field                | Meaning                                            |
+| -------------------- | -------------------------------------------------- |
+| `dps`                | Overall DPS                                        |
+| `totalDamage`        | Total resolved damage                              |
+| `strikeDamage`       | Strike damage                                      |
+| `conditionDamage`    | Condition damage                                   |
+| `duration`           | Rotation duration                                  |
+| `dpsWindow`          | Window used for DPS calculation                    |
+| `casts`              | Aggregate cast counts                              |
+| `breakdown`          | Raw skill damage contributions                     |
+| `conditionBreakdown` | Condition damage contributions                     |
+| `events`             | Scheduled event timeline                           |
+| `resolvedEvents`     | Resolved combat timeline                           |
+| `endState`           | Final cooldown, ammo, weapon, and profession state |
+| `warnings`           | Invalid or constrained simulation behavior         |
+
+For a ready-to-use per-skill breakdown:
+
+```js
+import { skillBreakdownRows } from "./js/platform/ui/result-tables.js";
+
+const rows = skillBreakdownRows(result);
+
+console.table(
+  rows.map((row) => ({
+    skill: row.name,
+    casts: row.casts,
+    hits: row.hits,
+    damage: Math.round(row.total),
+    dps: Math.round(row.dps),
+  })),
+);
+```
+
+Raw `events` and `resolvedEvents` are useful when writing analysis tools or debugging exact simulator behavior.
+
+---
+
+## Deterministic and stochastic simulation
+
+Deterministic mode is appropriate for reproducible build and rotation comparisons:
+
+```js
+randomness: {
+  mode: "deterministic",
+  seed: 1,
+}
+```
+
+A reproducible stochastic run can instead use:
+
+```js
+randomness: {
+  mode: "stochastic",
+  seed: 42,
+}
+```
+
+To study RNG distributions, run multiple seeds rather than relying on one stochastic result:
+
+```js
+const samples = [];
+
+for (let seed = 1; seed <= 500; seed += 1) {
+  const result = run(rotation, {
+    randomness: {
+      mode: "stochastic",
+      seed,
+    },
+  });
+
+  samples.push(result.dps);
+}
+
+samples.sort((a, b) => a - b);
+
+const mean =
+  samples.reduce((sum, value) => sum + value, 0) /
+  samples.length;
+
+console.log({
+  trials: samples.length,
+  mean: Math.round(mean),
+  minimum: Math.round(samples[0]),
+  maximum: Math.round(samples.at(-1)),
+});
+```
+
+This makes the headless API suitable for custom RNG analysis as well as deterministic benchmarking.
+
+---
+
+## Load professions dynamically
+
+Scripts that accept a profession as input can use the shared registry:
+
+```js
+import { loadProfession } from "./js/app/profession/registry.js";
+import { simulateGw2 } from "./js/platform/gw2/simulate.js";
+
+const professionId = process.argv[2] || "engineer";
+
+const profession = await loadProfession(professionId);
+
+if (!profession) {
+  throw new Error(`Unknown profession: ${professionId}`);
+}
+
+const result = simulateGw2({
+  profession,
+  rotation,
+  config,
+});
+```
+
+Registered profession IDs are:
+
+```text
+elementalist
+mesmer
+necromancer
+ranger
+thief
+engineer
+guardian
+warrior
+revenant
+```
+
+Loading a profession contract does not automatically create a build or derive equipment stats. Use its application adapter when you need UI-equivalent build processing.
+
+---
+
+## API boundary
+
+The programmatic simulator consumes **resolved simulation configuration**.
+
+A direct `simulateGw2()` call does not:
+
+* read local storage;
+* inspect browser form controls;
+* calculate a build from the UI;
+* automatically derive equipment attributes.
+
+For low-level experiments, provide the required combat configuration directly.
+
+For saved builds and UI-equivalent simulation, use the profession application adapter.
+
+The project is not published as a reusable npm package. `package.json` is marked `private`, and these module paths are internal repository APIs. Headless scripts should therefore live alongside the repository or be pinned to a compatible revision.
+
+No browser or web server is required.
