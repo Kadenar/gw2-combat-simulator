@@ -105,14 +105,17 @@ const necromancerBuildCodec = createGw2BuildCodec<NecromancerCanonicalBuild>({
     if (!(Number(build.initialResource) >= 0 && Number(build.initialResource) <= 100)) {
       errors.push('initialResource must be between 0 and 100.');
     }
+
     if (!(Number(build.initialBlight) >= 0 && Number(build.initialBlight) <= 25)) {
       errors.push('initialBlight must be between 0 and 25.');
     }
+
     if (!(
       Number(build.initialCascadingCorruptionStacks) >= 0 && Number(build.initialCascadingCorruptionStacks) <= 19
     )) {
       errors.push('initialCascadingCorruptionStacks must be between 0 and 19.');
     }
+
     return errors;
   }
 });

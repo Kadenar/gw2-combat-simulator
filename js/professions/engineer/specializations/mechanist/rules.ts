@@ -57,9 +57,11 @@ function engineerMechEvent(context: Gw2ModifierContext): boolean {
   if (event?.engineerMech === true || event?.application?.engineerMech === true) {
     return true;
   }
+
   if (context.config?.specialization !== 'Mechanist' || event?.actorType !== 'summon') {
     return false;
   }
+
   const slot = Number(eventSkill(context)?.mechanicSlot || 0);
   return slot >= 1 && slot <= 3;
 }
@@ -148,6 +150,7 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Sche
     mech.power += mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK;
     mech.conditionDamage += mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK;
   }
+
   return mech;
 }
 
@@ -156,6 +159,7 @@ function modifyMechanistRechargeDuration(context: EngineerRechargeContext, durat
   if (isEngineerMechCommand(skill) && hasEngineerTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)) {
     return duration * engineerBalanceValue(context, PROFILE.jadeDynamo, 'rechargeMultiplier', 0.8);
   }
+
   if (
     skill?.id !== ID.OVERCLOCK_SIGNET &&
     skill?.categories?.some((category) => String(category).toLowerCase() === 'signet')
@@ -171,6 +175,7 @@ function modifyMechanistRechargeDuration(context: EngineerRechargeContext, durat
       return duration * (jDrive ? 0.76 : 0.8);
     }
   }
+
   return duration;
 }
 

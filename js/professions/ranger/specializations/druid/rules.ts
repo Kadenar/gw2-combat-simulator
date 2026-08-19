@@ -81,6 +81,7 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
       emitGraceOfTheLand(context, skill, context.start + atMs / 1000);
     }
   }
+
   if (!hasTrait(context, TRAIT.ECLIPSE)) return;
   switch (skill.id) {
     case ID.COSMIC_RAY:
@@ -95,6 +96,7 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
           Number(effect?.stacks ?? 1)
         );
       }
+
       break;
     case ID.SEED_OF_LIFE:
       {
@@ -108,6 +110,7 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
           Number(effect?.stacks ?? 3)
         );
       }
+
       break;
     case ID.LUNAR_IMPACT:
       // Lunar Impact lands at effectiveEnd (it's a ground-targeted projectile with travel time)
@@ -122,6 +125,7 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
           Number(effect?.stacks ?? 1)
         );
       }
+
       break;
     case ID.REJUVENATING_TIDES:
       {
@@ -135,6 +139,7 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
           Number(effect?.stacks ?? 1)
         );
       }
+
       break;
     case ID.NATURAL_CONVERGENCE:
       for (const [index, atMs] of pulses.entries()) {
@@ -149,6 +154,7 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
           Number(effect?.stacks ?? (index === pulses.length - 1 ? 3 : 1))
         );
       }
+
       break;
   }
 }
@@ -215,10 +221,12 @@ export function druidCastAvailability(context: RangerPrecastContext, skill: Rang
   if (skill.celestialAvatarSkill && !state.celestialAvatarActive) {
     return deny(skill, 'ranger.avatar-inactive', 'enter Celestial Avatar first.');
   }
+
   if (skill.name === 'Celestial Avatar') {
     if (state.celestialAvatarActive) {
       return deny(skill, 'ranger.avatar-active', 'Celestial Avatar is already active.');
     }
+
     if (state.astralForce < state.maximumAstralForce) {
       const retryAt = astralForceReadyAt(context);
       // Provide a retryAt when Natural Mender can predict the ready time so the scheduler waits instead of skipping
@@ -230,16 +238,20 @@ export function druidCastAvailability(context: RangerPrecastContext, skill: Rang
           reason: `${skill.name} is recharging astral force.`
         };
       }
+
       // No retryAt: force only comes from hits, can't predict when it will be full
       return deny(skill, 'ranger.astral-force', 'requires full astral force.');
     }
   }
+
   if (skill.name === 'Release Celestial Avatar' && !state.celestialAvatarActive) {
     return deny(skill, 'ranger.avatar-inactive', 'Celestial Avatar is not active.');
   }
+
   if (state.celestialAvatarActive && skill.type === 'Weapon' && !skill.celestialAvatarSkill) {
     return deny(skill, 'ranger.avatar-weapon-bar', 'Celestial Avatar replaces weapon skills.');
   }
+
   return { ready: true };
 }
 

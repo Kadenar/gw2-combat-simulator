@@ -136,6 +136,7 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
       }) > context.epsilon
     );
   }
+
   return context.events.some(
     (event) =>
       event.type === 'buff' &&
@@ -151,6 +152,7 @@ function configuredWeaponSet(config: Gw2Config, weaponSet: number): [string | un
   if (weaponSet === 2) {
     return [config.weaponSet2Primary, config.weaponSet2Secondary];
   }
+
   return [config.primaryWeapon, config.secondaryWeapon];
 }
 
@@ -168,6 +170,7 @@ export function isGw2WeaponSkillEquipped(
   if (!hasExplicitRequirement && (skill.type !== 'Weapon' || !skill.weapon)) {
     return true;
   }
+
   const configured = configuredWeaponSet(context.config as Gw2Config, context.state?.activeWeaponSet === 2 ? 2 : 1);
   // Empty weapon configuration is treated as an unrestricted sandbox build.
   return (
@@ -248,6 +251,7 @@ export function createGw2SchedulerPolicy(
       if ((effect.type !== 'boon' && effect.type !== 'buff') || effect.durationScale === 'fixed') {
         return baseDuration;
       }
+
       const name = titleCase(effect.boon || effect.kind || effect.name);
       const weaponSet = _context.state?.activeWeaponSet === 2 ? 2 : 1;
       const sigils = config.sigilSets?.[weaponSet - 1] || {};
@@ -305,6 +309,7 @@ export function createGw2SchedulerPolicy(
       if (skill.quicknessCastTimeMs != null) {
         return Math.max(0, Number(skill.quicknessCastTimeMs)) / 1000;
       }
+
       const quicknessMs = (baseDuration * 1000) / QUICKNESS_ACTION_RATE;
       return quantizeUp(quicknessMs, ACTION_TICK_MS) / 1000;
     },
@@ -322,6 +327,7 @@ export function createGw2SchedulerPolicy(
       if (OUT_OF_COMBAT_SWAP_SKILLS.has(skill.name) && !materializer.isCombatActive()) {
         return 0;
       }
+
       const hasAlacrity = gw2BuffActiveForAudience(context, 'alacrity', at, skill.rechargeBuffAudience || 'self');
       const rate = hasAlacrity ? Number(config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE) : 1;
       // Alacrity is evaluated when recharge begins, which can differ from cast

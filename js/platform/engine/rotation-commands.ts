@@ -12,6 +12,7 @@ function finiteMilliseconds(
   if (!Number.isFinite(number) || (!allowNegative && number < 0)) {
     throw new TypeError(`${field} must be ${allowNegative ? 'a finite' : 'a non-negative'} number.`);
   }
+
   return number;
 }
 
@@ -20,6 +21,7 @@ function positiveInteger(value: unknown, field: string): number {
   if (!Number.isInteger(number) || number < 1) {
     throw new TypeError(`${field} must be a positive whole number.`);
   }
+
   return number;
 }
 
@@ -39,14 +41,17 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
     const skill = catalog?.skillsByName?.get(entry);
     return skill ? { type: 'cast', skillId: skill.id } : { type: 'cast', skillId: entry };
   }
+
   if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
     throw new TypeError('Rotation command must be a skill, wait, cooldown-reset, ' + 'or combat-start entry.');
   }
+
   const candidate = entry as Record<string, unknown>;
 
   if (candidate.type === 'cooldown-reset' || candidate.name === '__cooldown_reset') {
     return { type: 'cooldown-reset' };
   }
+
   if (candidate.type === 'combat-start' || candidate.name === '__combat_start') {
     const concurrent = candidate.concurrentOffsetMs ?? candidate.offset;
     return concurrent == null
@@ -56,12 +61,14 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
           concurrentOffsetMs: finiteMilliseconds(concurrent, 'Concurrent offset', { allowNegative: true })
         };
   }
+
   if (candidate.type === 'wait' || candidate.name === '__wait') {
     return {
       type: 'wait',
       durationMs: finiteMilliseconds(candidate.durationMs ?? candidate.waitMs ?? 0, 'Wait duration')
     };
   }
+
   const skillId =
     candidate.skillId ??
     candidate.id ??
@@ -70,9 +77,11 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
   if (skillId === undefined || skillId === null || skillId === '') {
     throw new TypeError('Cast command requires skillId.');
   }
+
   if (typeof skillId !== 'number' && typeof skillId !== 'string') {
     throw new TypeError('Cast command skillId must be a string or number.');
   }
+
   const concurrent = candidate.concurrentOffsetMs ?? candidate.offset;
   const interrupt = candidate.interruptAfterMs ?? candidate.interruptMs;
   const preserveEffectsAfterInterrupt = candidate.preserveEffectsAfterInterrupt === true;
@@ -81,6 +90,7 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
   if (doubleEdgeOutcome != null && doubleEdgeOutcome !== 'success' && doubleEdgeOutcome !== 'backfire') {
     throw new TypeError('Double Edge outcome must be either success or backfire.');
   }
+
   return {
     type: 'cast',
     skillId,
@@ -122,6 +132,7 @@ export function normalizeRotation(
     if (strict) throw new TypeError('Rotation must be an array.');
     return [];
   }
+
   const commands: RotationCommand[] = [];
   for (const entry of rotation) {
     try {
@@ -130,6 +141,7 @@ export function normalizeRotation(
       if (strict) throw error;
     }
   }
+
   return commands;
 }
 
@@ -144,16 +156,20 @@ export function toLegacyRotationEntry(command: RotationCommand, catalog: Catalog
   if (command.type === 'cooldown-reset') {
     return { name: '__cooldown_reset' };
   }
+
   if (command.type === 'combat-start') {
     const entry: LegacyRotationEntry = { name: '__combat_start' };
     if (command.concurrentOffsetMs != null) {
       entry.offset = command.concurrentOffsetMs;
     }
+
     return entry;
   }
+
   if (command.type === 'wait') {
     return { name: '__wait', waitMs: command.durationMs };
   }
+
   const skill = catalog?.skillsById?.get(command.skillId);
   const entry: LegacyRotationEntry = {
     name: skill?.name ?? command.skillId
@@ -161,6 +177,7 @@ export function toLegacyRotationEntry(command: RotationCommand, catalog: Catalog
   if (skill && catalog?.skills?.some((candidate) => candidate.id !== skill.id && candidate.name === skill.name)) {
     entry.skillId = command.skillId;
   }
+
   if (command.concurrentOffsetMs != null) entry.offset = command.concurrentOffsetMs;
   if (command.interruptAfterMs != null) entry.interruptMs = command.interruptAfterMs;
   if (command.preserveEffectsAfterInterrupt === true) entry.preserveEffectsAfterInterrupt = true;

@@ -27,6 +27,7 @@ test('all profession pages use the shared default target conditions', () => {
 
 test('ally calculations always use one strike per second per ally', () => {
   const build = createMesmerBuildDefaults();
+
   build.assumptions.alliedPlayerCount = 3;
   build.assumptions.alliedPlayerStrikesPerSecond = 9;
   const config = createGw2SimulationConfig({
@@ -57,5 +58,6 @@ test('ally calculations always use one strike per second per ally', () => {
     attributeData: { attributes: {} },
     specialization: 'Core'
   });
+
   assert.equal(isolatedSummonConfig.sharePlayerBoonsWithSummons, false);
 });

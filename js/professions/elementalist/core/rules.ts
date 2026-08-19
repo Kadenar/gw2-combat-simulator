@@ -199,6 +199,7 @@ export function elementalistAfterCast(context: ElementalistLifecycleContext, ski
       ...(followup.critical ? { forceCrit: true } : {})
     });
   }
+
   if (followup.control && activationEvents[0]) {
     const first = activationEvents[0];
     context.emit({
@@ -212,6 +213,7 @@ export function elementalistAfterCast(context: ElementalistLifecycleContext, ski
       controlKind: 'crowd-control'
     });
   }
+
   delete state.spearFollowups[context.reservationId];
 }
 
@@ -331,6 +333,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
     applySpecialSkillProgression(context, skill);
     return;
   }
+
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   applyConjureState(context, skill);
   applySpecialSkillProgression(context, skill);
@@ -349,6 +352,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
     );
     triggerEvasiveArcana(context, skill);
   }
+
   if (skill.name === 'Arcane Echo') {
     state.arcaneEchoUntil =
       context.effectiveEnd + elementalistBalanceValue(context, PROFILE.arcaneEcho, 'durationMultiplier', 10);
@@ -368,6 +372,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
       context.state.cooldowns.set(arcaneEcho.id, currentReadyAt + context.rechargeDuration);
     }
   }
+
   if (skill.name === 'Fulgor') {
     const pulse = profiledEffect(context, PROFILE.fulgor, 'strike');
     const hits = Math.max(0, Math.trunc(Number(pulse?.hits ?? 6)));
@@ -389,6 +394,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
       });
     }
   }
+
   applyPistolState(context, skill);
   applyHammerState(context, skill);
   applyGenericPostCast(context, skill);
@@ -409,6 +415,7 @@ export function observeElementalistEvent(context: ElementalistSchedulerContext, 
     if (state.shatteringStoneHitsRemaining === 0) {
       state.shatteringStoneUntil = 0;
     }
+
     emitProfiledCondition(
       context,
       event.at + context.epsilon,
@@ -421,6 +428,7 @@ export function observeElementalistEvent(context: ElementalistSchedulerContext, 
       event.skillId ?? event.sourceId
     );
   }
+
   observeElementalistTraitEvent(context, event);
 }
 
@@ -436,13 +444,16 @@ export function advanceElementalistState(context: ElementalistSchedulerContext, 
       state.hammerOrbActivationIds[element] = null;
     }
   }
+
   for (const [weapon, expiresAt] of Object.entries(state.conjurePickups)) {
     if (expiresAt < at) delete state.conjurePickups[weapon];
   }
+
   if (state.shatteringStoneUntil < at) {
     state.shatteringStoneUntil = 0;
     state.shatteringStoneHitsRemaining = 0;
   }
+
   if (state.dazingDischargeUntil < at) state.dazingDischargeUntil = 0;
   if (state.rockBarrierExpiresAt > 0 && state.rockBarrierExpiresAt <= at) {
     const expiresAt = state.rockBarrierExpiresAt;
@@ -473,11 +484,13 @@ export function modifyElementalistRechargeDuration(
   if (skill.name === 'Rock Barrier' && !(context as unknown as SchedulerRecord).rockBarrierRelease) {
     return 0;
   }
+
   if (skill.type !== 'Weapon') {
     return (skill.overload || skill.skillFamily === 'Jade Sphere') && hasTrait(context, 'Elemental Enchantment')
       ? duration * elementalistBalanceValue(context, PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85)
       : duration;
   }
+
   let adjustedDuration = duration;
   let weaponRechargeMultiplier = 1;
   if (state.spearNextRechargeReduction && skillWeapon(skill) === 'Spear' && String(skill.slot || '') !== 'Weapon_1') {
@@ -489,17 +502,21 @@ export function modifyElementalistRechargeDuration(
     );
     state.spearNextRechargeReduction = false;
   }
+
   if (state.dazingDischargeUntil > at && skillWeapon(skill) === 'Pistol' && String(skill.slot || '') !== 'Weapon_1') {
     weaponRechargeMultiplier *= elementalistBalanceValue(context, PROFILE.dazingDischarge, 'rechargeMultiplier', 0.67);
     state.dazingDischargeUntil = 0;
   }
+
   adjustedDuration *= Math.max(0, weaponRechargeMultiplier);
   if (skill.name === 'Purblinding Plasma' && state.pistolBullets.Air) {
     adjustedDuration *= elementalistBalanceValue(context, PROFILE.purblindingPlasma, 'rechargeMultiplier', 2 / 3);
   }
+
   if (skill.name === 'Ride the Lightning') {
     adjustedDuration *= elementalistBalanceValue(context, PROFILE.rideTheLightning, 'rechargeMultiplier', 0.5);
   }
+
   const attunement = String(skill.attunement || '');
   if (
     (attunement === 'Fire' && hasTrait(context, "Pyromancer's Training")) ||
@@ -520,6 +537,7 @@ export function modifyElementalistRechargeDuration(
               : TRAIT.FLOW_STATE;
     adjustedDuration *= elementalistBalanceValue(context, profileId, 'rechargeMultiplier', 0.8);
   }
+
   return adjustedDuration;
 }
 

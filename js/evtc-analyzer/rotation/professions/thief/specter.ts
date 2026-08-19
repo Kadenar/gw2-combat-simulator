@@ -48,6 +48,7 @@ function specterPrecastActions(
   if (!wellSignal || hasRecordedAction(actions, WELL_OF_SORROW, atCombat, 1_000)) {
     return [];
   }
+
   const duration = skillDuration(context, WELL_OF_SORROW);
   const wellStart = atCombat - duration;
   const inferred: EvtcRecordedRotationAction[] = [
@@ -84,6 +85,7 @@ function specterPrecastActions(
       precast: true
     });
   }
+
   return inferred;
 }
 
@@ -106,10 +108,12 @@ function specterDelayedWeaponSwapActions(
     ) {
       return [];
     }
+
     const transitionDistance = Math.min(...transitions.map((transition) => Math.abs(transition.time - event.time)));
     if (transitionDistance <= 50 || transitionDistance > SIGNAL_WINDOW_MS) {
       return [];
     }
+
     const rawSet = Number(event.target);
     return [
       {

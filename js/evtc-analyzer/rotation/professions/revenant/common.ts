@@ -50,6 +50,7 @@ export function legendSwapActions(context: EvtcProfessionReconstructionContext):
     ) {
       return [];
     }
+
     return [directAction(eventIndex, event.time, event.skillId, rawSkillName(context, event.skillId), SWAP_LEGENDS)];
   });
 }
@@ -66,6 +67,7 @@ function upkeepActions(context: EvtcProfessionReconstructionContext): EvtcRecord
     ) {
       return [];
     }
+
     return [directAction(eventIndex, event.time, event.skillId, rawSkillName(context, event.skillId), IMPOSSIBLE_ODDS)];
   });
 }
@@ -84,6 +86,7 @@ function truncatedPrecastActions(context: EvtcProfessionReconstructionContext): 
     ) {
       return [];
     }
+
     const start = event.time - event.value;
     if (
       start >= atCombat ||
@@ -91,6 +94,7 @@ function truncatedPrecastActions(context: EvtcProfessionReconstructionContext): 
     ) {
       return [];
     }
+
     return [
       {
         ...directAction(
@@ -134,6 +138,7 @@ function truncatedSpiritcrushActions(
   if (start >= atCombat || hasRecordedAction(actions, SPIRITCRUSH, start, SIGNAL_DEDUPLICATION_WINDOW_MS)) {
     return [];
   }
+
   return [
     {
       ...directAction(
@@ -184,6 +189,7 @@ export function initialEnchantedDaggersActions(
   ) {
     return [];
   }
+
   const duration = runtimeDuration(context, ENCHANTED_DAGGERS);
   const actions: EvtcRecordedRotationAction[] = [
     {
@@ -212,6 +218,7 @@ export function initialEnchantedDaggersActions(
       precast: true
     });
   }
+
   return actions;
 }
 

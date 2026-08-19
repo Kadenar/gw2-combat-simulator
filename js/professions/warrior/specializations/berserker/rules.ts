@@ -44,6 +44,7 @@ function active(context: Gw2ModifierContext): boolean {
   if ((context.timeline?.buffStacksAt('berserk', context.time, 0, 1) || 0) > 0) {
     return true;
   }
+
   const runtime = (
     context.runtime as
       | {
@@ -81,6 +82,7 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerReco
       result.ferocity += powerBonus * conversion;
     }
   }
+
   if (hasTrait(context, TRAIT.BLOOD_REACTION)) {
     const profile = warriorBalanceProfile(context, PROFILE.bloodReaction);
     const conversion = active(context)
@@ -89,6 +91,7 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerReco
     result.ferocity += conversionPrecision * conversion;
     result.conditionDamage += conversionPower * conversion;
   }
+
   return result;
 }
 

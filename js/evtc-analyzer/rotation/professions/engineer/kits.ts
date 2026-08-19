@@ -31,6 +31,7 @@ export function inferDetonateActions(context: EvtcProfessionReconstructionContex
   if (context.selectedSkillNames?.length && !selectedSkill(context, 'Throw Mine')) {
     return [];
   }
+
   return context.log.events.flatMap((event, eventIndex) => {
     if (
       event.source !== context.playerAddress ||
@@ -42,6 +43,7 @@ export function inferDetonateActions(context: EvtcProfessionReconstructionContex
     ) {
       return [];
     }
+
     return [canonicalAction(eventIndex, event.time, DETONATE, event.skillId)];
   });
 }
@@ -94,6 +96,7 @@ export function normalizeKitTransitions(
       swaps.push(sorted[index + 1]);
       index += 1;
     }
+
     const entersKit = swaps.some((swap) => Number(swap.weaponSet) === KIT_WEAPON_SET);
     const nextSwap = sorted.slice(index + 1).find((candidate) => candidate.rawName === 'Swap Weapons');
     const nextKitAction = sorted
@@ -108,15 +111,19 @@ export function normalizeKitTransitions(
         result.push(canonicalAction(swaps.at(-1)!.eventIndex, swaps.at(-1)!.start, identity, 0, 'state-change'));
         activeKit = nextKit;
       }
+
       continue;
     }
+
     if (activeKit) {
       const identity = kitIdentity(context, activeKit, true);
       if (identity) {
         result.push(canonicalAction(swaps[0].eventIndex, swaps[0].start, identity, 0, 'state-change'));
       }
+
       activeKit = null;
     }
   }
+
   return result;
 }

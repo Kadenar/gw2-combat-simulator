@@ -11,6 +11,7 @@ export function prepareRevenantHitboxEvent(
   if (String(assumptions.hitboxSize || 'small') === 'large' || event.largeHitboxOnly !== true) {
     return event;
   }
+
   return {
     ...event,
     type: 'marker',
@@ -31,5 +32,6 @@ export function handleRevenantState(context: RevenantResolverContext, event: Rev
     const owner = Object.hasOwn(specialization, key) ? specialization : core;
     (owner as Record<string, unknown>)[key] = structuredClone(value);
   }
+
   Object.assign(core, preserved);
 }

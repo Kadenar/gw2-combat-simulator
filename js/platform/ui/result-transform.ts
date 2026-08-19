@@ -115,6 +115,7 @@ export function targetHealthBreakpointSnapshots(
       });
       milestoneIndex += 1;
     }
+
     if (milestoneIndex >= milestones.length) break;
   }
 

@@ -128,15 +128,19 @@ export function createGw2ResolverRuntimeState({
       if (current.skillId == null && source?.skillId != null) {
         current.skillId = source.skillId;
       }
+
       if (current.sourceId == null && sourceId != null) {
         current.sourceId = sourceId;
       }
+
       if (!current.actorType && source?.actorType) {
         current.actorType = source.actorType;
       }
+
       if (!current.source && source?.source) {
         current.source = source.source;
       }
+
       current.damage += damage;
       current[type] += damage;
       current.hits += hits;
@@ -154,6 +158,7 @@ export function createGw2ResolverRuntimeState({
               : Number(critical.chance || 0) * eligible;
         current.critHits = (current.critHits || 0) + critShare;
       }
+
       this.breakdown.set(key, current);
     },
 

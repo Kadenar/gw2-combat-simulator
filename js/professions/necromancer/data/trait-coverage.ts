@@ -132,6 +132,7 @@ const manifest = necromancerCatalog.traits.map((trait) => {
   if (!implemented && !reason) {
     throw new TypeError(`Necromancer trait ${trait.name} needs an explicit coverage reason.`);
   }
+
   return {
     traitId: trait.id,
     status,

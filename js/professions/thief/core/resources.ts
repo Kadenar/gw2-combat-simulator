@@ -57,12 +57,15 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
   if (Number(state.spiderVenomExpiresAt || 0) <= target) {
     state.spiderVenomCharges = 0;
   }
+
   if (state.activeThievesGuild && Number(state.activeThievesGuild.expiresAt || 0) <= target) {
     state.activeThievesGuild = null;
   }
+
   for (const [skillId, expiresAt] of Object.entries(state.availableFlips)) {
     if (Number(expiresAt || 0) <= target) delete state.availableFlips[skillId];
   }
+
   const initiativeFrom = Number(state.initiativeUpdatedAt || 0);
   if (target > initiativeFrom) {
     state.initiative = Math.min(
@@ -71,6 +74,7 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
     );
     state.initiativeUpdatedAt = target;
   }
+
   const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
   if (target > enduranceFrom) {
     state.endurance = Math.min(
@@ -79,6 +83,7 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
     );
     state.enduranceUpdatedAt = target;
   }
+
   emitThiefState(context, target, 'resources');
 }
 
@@ -89,6 +94,7 @@ export function spendThiefCoreResources(context: ThiefPrecastContext, skill: Thi
     state.initiative = Math.max(0, state.initiative - cost);
     emitThiefState(context, context.start, 'initiative-spent');
   }
+
   if (
     (skill.categories || []).some((category) => String(category).toLowerCase().includes('signet')) &&
     hasThiefTrait(context.config, TRAIT.SIGNETS_OF_POWER)

@@ -67,6 +67,7 @@ export function createGw2HitResolution({
         didCrit: ctx.random?.stochastic ? false : null
       };
     }
+
     const critical = ctx.query.critical(event, event.at, ctx);
     critical.didCrit = ctx.random?.stochastic
       ? typeof event.didCrit === 'boolean'
@@ -85,6 +86,7 @@ export function createGw2HitResolution({
     if (threshold > 0 && healthFraction != null && healthFraction < threshold) {
       outgoingMultiplier *= Number(event.flatStrikeThresholdMultiplier ?? 1);
     }
+
     const baseDamage =
       Number(event.flatDamage ?? event.flatStrikeBase ?? 0) + Number(event.flatStrikePowerCoeff || 0) * power;
     return {

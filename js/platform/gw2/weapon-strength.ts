@@ -54,6 +54,7 @@ function defineProfile(rawId: unknown, rawMin: unknown, rawMax: unknown): Readon
   if (!Number.isFinite(min) || !Number.isFinite(max) || min > max) {
     throw new TypeError(`Weapon-strength profile ${id} has invalid bounds.`);
   }
+
   return Object.freeze({ id, min, max });
 }
 
@@ -136,6 +137,7 @@ export function sampleWeaponStrength(profile: Gw2WeaponStrengthProfile, unitInte
   if (!(sample >= 0 && sample < 1)) {
     throw new RangeError('Weapon-strength samples must be in [0, 1).');
   }
+
   return profile.min + sample * (profile.max - profile.min);
 }
 
@@ -174,13 +176,16 @@ export function weaponStrengthProfileIdForEvent(
   if (skill?.forgeSkill) {
     return 'transform.photon-forge';
   }
+
   if (skill?.shadowShroudSkill) {
     return 'transform.shadow-shroud';
   }
+
   const skillShroud = String(skill?.shroud || '').toLowerCase();
   if (skillShroud && SHROUD_PROFILE_IDS[skillShroud]) {
     return SHROUD_PROFILE_IDS[skillShroud];
   }
+
   if (skill?.kit) return 'bundle.ascended';
 
   for (const candidate of [event.weapon, event.skillWeapon]) {
@@ -203,10 +208,12 @@ export function weaponStrengthProfileIdForEvent(
   if (activeShroud && SHROUD_PROFILE_IDS[activeShroud]) {
     return SHROUD_PROFILE_IDS[activeShroud];
   }
+
   if (profession.radiantForge === true) return 'transform.radiant-forge';
   if (profession.photonForgeActive === true) {
     return 'transform.photon-forge';
   }
+
   if (profession.shadowShroudActive === true) {
     return 'transform.shadow-shroud';
   }
@@ -219,9 +226,11 @@ export function weaponStrengthProfileIdForEvent(
   if (['Heal', 'Utility', 'Elite'].includes(String(skill?.type || ''))) {
     return 'nonweapon.unequipped';
   }
+
   if (String(skill?.type || '') === 'Profession') {
     return 'nonweapon.profession-mechanic';
   }
+
   // This final configured-weapon branch only runs in the scheduler, where the
   // active set still represents activation time.
   const activeSet = Number(state?.activeWeaponSet) === 2 ? 2 : 1;

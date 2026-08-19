@@ -216,6 +216,7 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
       boonOptions
     );
   }
+
   emitElixirEffects(
     context,
     skill,
@@ -271,10 +272,12 @@ function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): 
       );
     }
   }
+
   // Devouring Cut has no CC; Voracious Arc normally dazes but Doom Approaches upgrades the daze to a fear.
   if (skill.id !== ID.DEVOURING_CUT) {
     emitControl(context, skill, hasTrait(context, TRAIT.DOOM_APPROACHES) ? 'fear' : 'daze', impactAt, 0.5);
   }
+
   return true;
 }
 

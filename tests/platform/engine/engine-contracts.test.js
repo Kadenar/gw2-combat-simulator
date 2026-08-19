@@ -83,6 +83,7 @@ test('typed event and stream constructors return immutable envelopes', () => {
     rotationEndTime: 1,
     resolutionEndTime: 2
   });
+
   assert.equal(delayedStream.rotationEndTime, 1);
   assert.equal(delayedStream.resolutionEndTime, 2);
 

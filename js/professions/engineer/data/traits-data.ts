@@ -29,5 +29,6 @@ export function getActiveTraits(specializations: readonly EngineerSpecialization
       if (trait) active.push(trait);
     }
   }
+
   return active;
 }

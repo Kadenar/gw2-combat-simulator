@@ -18,6 +18,7 @@ export function setTutorialAnimationState(image: HTMLImageElement, shouldPlay: b
     if (!image.getAttribute('src')) image.setAttribute('src', source);
     return;
   }
+
   image.removeAttribute('src');
 }
 
@@ -201,6 +202,7 @@ export function mountSimulatorTutorial(root: Document = document): void {
       if (typeof dialog.showModal === 'function') dialog.showModal();
       else dialog.setAttribute('open', '');
     }
+
     activateTutorialPanel(dialog, activeTutorialId, shouldPlay());
   });
   dialog.addEventListener('click', (event) => {
@@ -208,6 +210,7 @@ export function mountSimulatorTutorial(root: Document = document): void {
       closeDialog();
       return;
     }
+
     const target = event.target as { closest?: (selector: string) => Element };
     const choice = target.closest?.('[data-tutorial-choice]') as HTMLElement | undefined;
     if (choice?.dataset.tutorialChoice) {

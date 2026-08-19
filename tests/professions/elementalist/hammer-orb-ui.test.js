@@ -16,6 +16,7 @@ function createHammerApp(hammerOrbs, time = 0) {
       { name: 'Catalyst', traits: '1-1-1' }
     ]
   });
+
   return {
     build,
     adapter: elementalistAppAdapter,
@@ -43,6 +44,7 @@ function createHammerApp(hammerOrbs, time = 0) {
 function renderPaletteMarkup(app) {
   const palette = { innerHTML: '', querySelectorAll: () => [] };
   const previousDocument = globalThis.document;
+
   globalThis.document = {
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
@@ -51,6 +53,7 @@ function renderPaletteMarkup(app) {
   } finally {
     globalThis.document = previousDocument;
   }
+
   return palette.innerHTML;
 }
 
@@ -85,6 +88,7 @@ test('Flame Wheel is disabled for the shared active-orb window', () => {
     build: { startAttunement: 'Water' },
     professionState: { ...activeContext.professionState, primaryAttunement: 'Water' }
   };
+
   assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability(waterContext, icyCoil), {
     available: false,
     message: 'Grand Finale must consume the active orb before it can be created again.'

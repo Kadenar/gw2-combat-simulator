@@ -41,6 +41,7 @@ function assertMode(mode: unknown, handlerId: string): SkillHandlerMode {
   if (typeof mode !== 'string' || !VALID_MODES.has(mode)) {
     throw new TypeError(`Skill handler ${handlerId} has invalid mode "${String(mode)}".`);
   }
+
   return mode as SkillHandlerMode;
 }
 
@@ -60,6 +61,7 @@ export function skillHandler<TContext extends object = SchedulerRecord>(
   if (resolveMode != null && typeof resolveMode !== 'function') {
     throw new TypeError('Skill handler resolveMode must be a function.');
   }
+
   for (const phase of HANDLER_PHASES) {
     const handler = { beforeEffects, afterEffect, afterEffects }[phase];
     if (handler == null) continue;
@@ -67,6 +69,7 @@ export function skillHandler<TContext extends object = SchedulerRecord>(
       throw new TypeError(`Skill handler ${phase} must be a function.`);
     }
   }
+
   const strategy: SkillHandlerStrategy<TContext> = {
     mode: assertMode(mode, '<unregistered>'),
     ...(resolveMode ? { resolveMode } : {}),
@@ -124,18 +127,21 @@ export function normalizeSkillHandler<TContext extends object = SchedulerRecord>
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError(`Skill handler ${handlerId} must be an explicit strategy object.`);
   }
+
   assertFields(value, handlerId);
   const candidate = value as Partial<SkillHandlerStrategy<TContext>> & SchedulerRecord;
   const mode = assertMode(candidate.mode, handlerId);
   if (candidate.resolveMode != null && typeof candidate.resolveMode !== 'function') {
     throw new TypeError(`Skill handler ${handlerId} resolveMode must be a function.`);
   }
+
   for (const phase of HANDLER_PHASES) {
     if (candidate[phase] == null) continue;
     if (typeof candidate[phase] !== 'function') {
       throw new TypeError(`Skill handler ${handlerId} ${phase} must be a function.`);
     }
   }
+
   const strategy: SkillHandlerStrategy<TContext> = {
     mode,
     ...(candidate.resolveMode ? { resolveMode: candidate.resolveMode } : {}),

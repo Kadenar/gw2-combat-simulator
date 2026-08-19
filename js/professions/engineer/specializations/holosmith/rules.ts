@@ -71,30 +71,38 @@ function heatTierStrikeFactor(context: Gw2ModifierContext, parameters: Readonly<
     if (heat >= parameters.enhancedHeatThreshold && hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)) {
       return parameters.swordEnhancedFactor;
     }
+
     return heat > parameters.highHeatThreshold ? parameters.swordHighFactor : 1;
   }
+
   if (skillName === 'Blade Burst' && heat > parameters.highHeatThreshold) {
     if (heat >= parameters.enhancedHeatThreshold && hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)) {
       return parameters.bladeBurstEnhancedFactor;
     }
+
     return parameters.bladeBurstHighFactor;
   }
+
   const enhancedCapacityTier =
     event?.enhancedCapacityTier === true ||
     (heat >= parameters.enhancedHeatThreshold && hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT));
   if (skillName === 'Particle Accelerator' && heat > parameters.highHeatThreshold) {
     return enhancedCapacityTier ? parameters.particleEnhancedFactor : parameters.particleHighFactor;
   }
+
   if (!enhancedCapacityTier) return 1;
   if (['Laser Disk', 'Launch Wall'].includes(skillName)) {
     return parameters.generalEnhancedFactor;
   }
+
   if (skillName === 'Prismatic Singularity' && event?.name === 'Explosion Damage') {
     return parameters.singularityFactor;
   }
+
   if (skillName === 'Prime Light Beam' && event?.name === 'Field Damage') {
     return parameters.beamFactor;
   }
+
   return 1;
 }
 

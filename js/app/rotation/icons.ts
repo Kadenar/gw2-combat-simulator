@@ -64,6 +64,7 @@ function resolveRelicIcon(label: unknown): string {
       return String(relic.icon);
     }
   }
+
   return '';
 }
 
@@ -82,9 +83,11 @@ function resolveModifierIcon(row: ResultIconRow): string {
   if (foodName && FOOD_DATA[foodName]?.icon) {
     return String(FOOD_DATA[foodName].icon);
   }
+
   if (label === 'Nourishment' || label === 'Food: Nourishment') {
     return NOURISHMENT_ICON;
   }
+
   return '';
 }
 
@@ -113,11 +116,13 @@ export function resultSkillIcon(app: ProfessionAppState, row: ResultIconRow): st
     const traitIcon = (app.attributeData?.activeTraits || []).find((candidate) => candidate.name === row.name)?.icon;
     if (traitIcon) return String(traitIcon);
   }
+
   for (const id of [row.skillId, row.sourceId]) {
     if (id == null) continue;
     const skill = app.skillById?.get(id) || app.skills.find((candidate) => String(candidate.id) === String(id));
     if (skill?.icon) return String(skill.icon);
   }
+
   const breakdownName = baseBreakdownName(row.name);
   const actionIcon = ACTION_ICONS[row.name] || ACTION_ICONS[breakdownName];
   if (actionIcon) return actionIcon;
@@ -160,5 +165,6 @@ export function resultSkillIcon(app: ProfessionAppState, row: ResultIconRow): st
     );
     if (autoattack?.icon) return autoattack.icon;
   }
+
   return PLACEHOLDER_ICON;
 }

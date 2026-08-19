@@ -160,6 +160,7 @@ function inferStartingElement(
     const skillElement = attunement.includes('+') ? null : elementName(attunement);
     if (skillElement) return skillElement;
   }
+
   return configuredStartingElement(context);
 }
 
@@ -207,6 +208,7 @@ function normalizeRecordedActions(context: DpsReportProfessionReconstructionCont
 
     result.push(normalizedAction);
   }
+
   return result;
 }
 
@@ -246,6 +248,7 @@ function activationTimes(states: readonly (readonly [number, number])[] | undefi
     if (previous === 0 && active && Number.isFinite(at)) activations.push(at);
     previous = value;
   }
+
   return activations;
 }
 
@@ -283,6 +286,7 @@ function recoverAuraActions(
       }
     }
   }
+
   return recovered;
 }
 
@@ -309,6 +313,7 @@ function recoverBlindingFlashActions(
       }
     }
   }
+
   if (!blindTimes.size && !weaknessTimes.size) return [];
 
   const candidates = new Set<number>();
@@ -322,6 +327,7 @@ function recoverBlindingFlashActions(
       ) {
         weaknessIndex += 1;
       }
+
       if (
         weaknessIndex < sortedWeakness.length &&
         Math.abs(sortedWeakness[weaknessIndex] - blindAt) <= BLINDING_FLASH_COOCCURRENCE_MS
@@ -348,6 +354,7 @@ function recoverBlindingFlashActions(
     if (!blindTimes.size && weaknessTimes.size && hasWeaknessSource) continue;
     recovered.push(inferredAction(skill, at, nextEventIndex(), 'elementalist-blinding-flash'));
   }
+
   return recovered;
 }
 
@@ -361,6 +368,7 @@ export function reconstructElementalistDpsReportActions(
     eventIndex += 1;
     return eventIndex;
   };
+
   const recoveredAuras = recoverAuraActions(context, normalizedActions, nextEventIndex);
   const recoveredBlindingFlash = recoverBlindingFlashActions(context, normalizedActions, nextEventIndex);
   return [...normalizedActions, ...recoveredAuras, ...recoveredBlindingFlash].sort(

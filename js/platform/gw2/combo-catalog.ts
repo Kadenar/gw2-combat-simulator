@@ -6,6 +6,7 @@ function positiveInteger(value: unknown, fallback: number, label: string): numbe
   if (!Number.isInteger(normalized) || normalized <= 0) {
     throw new TypeError(`${label} must be a positive integer.`);
   }
+
   return normalized;
 }
 
@@ -13,24 +14,29 @@ function normalizeFieldDescriptors(value: unknown): readonly Readonly<SchedulerR
   if (!Array.isArray(value) || value.length === 0) {
     throw new TypeError('comboFields must be a non-empty array.');
   }
+
   return Object.freeze(
     value.map((raw, index) => {
       if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
         throw new TypeError(`comboFields entry ${index + 1} must be an object.`);
       }
+
       const descriptor = raw as SchedulerRecord;
       const duration = Number(descriptor.duration);
       if (!(duration > 0) || !Number.isFinite(duration)) {
         throw new TypeError(`comboFields entry ${index + 1} requires a positive duration.`);
       }
+
       const startMs = Number(descriptor.startMs ?? 0);
       if (!(startMs >= 0) || !Number.isFinite(startMs)) {
         throw new TypeError(`comboFields entry ${index + 1} requires a non-negative startMs.`);
       }
+
       const startAnchor = descriptor.startAnchor ?? 'castStart';
       if (!['castStart', 'castEnd', 'event'].includes(String(startAnchor))) {
         throw new TypeError(`comboFields entry ${index + 1} has an invalid startAnchor.`);
       }
+
       return Object.freeze({
         ...descriptor,
         fieldType: normalizeComboFieldType(descriptor.fieldType ?? descriptor.type),
@@ -46,20 +52,24 @@ function normalizeFinisherDescriptors(value: unknown, attemptGroup?: string): re
   if (!Array.isArray(value) || value.length === 0) {
     throw new TypeError('comboFinishers must be a non-empty array.');
   }
+
   return Object.freeze(
     value.map((raw, index) => {
       if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
         throw new TypeError(`comboFinishers entry ${index + 1} must be an object.`);
       }
+
       const descriptor = raw as SchedulerRecord;
       const chance = Number(descriptor.chance ?? 1);
       if (!Number.isFinite(chance)) {
         throw new TypeError(`comboFinishers entry ${index + 1} requires a finite chance.`);
       }
+
       const effectDelay = Number(descriptor.effectDelay ?? 0);
       if (!(effectDelay >= 0) || !Number.isFinite(effectDelay)) {
         throw new TypeError(`comboFinishers entry ${index + 1} requires a non-negative effectDelay.`);
       }
+
       return Object.freeze({
         ...descriptor,
         ...(descriptor.attemptGroup == null && attemptGroup ? { attemptGroup } : {}),

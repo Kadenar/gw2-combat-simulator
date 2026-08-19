@@ -309,6 +309,7 @@ test('Dragon Slash resource spends preserve charge outcome details', () => {
       }
     ]
   });
+
   assert.deepEqual(spends.get(4), {
     count: 4,
     resource: 'dragon charges',
@@ -327,10 +328,12 @@ test('proc visibility remains hidden after its first render', () => {
   const key = 'trait_proc:Sharper Images';
 
   const firstVisibility = syncProcVisibility(app, procSteps);
+
   assert.notEqual(app.procVisibility, app.procVisibilityKeys);
   firstVisibility.delete(key);
 
   const nextVisibility = syncProcVisibility(app, [...procSteps, { type: 'relic_proc', skill: 'Relic of Fireworks' }]);
+
   assert.equal(nextVisibility.has(key), false);
   assert.equal(nextVisibility.has('relic_proc:Relic of Fireworks'), true);
 });
@@ -527,6 +530,7 @@ test('shared app and platform helpers are profession neutral', async () => {
 
 test('Guardian is exposed by the profession selector and app composition', async () => {
   const guardianPage = await readFile(new URL('../../guardian.html', import.meta.url), 'utf8');
+
   assert.equal(
     professionOptions.some((option) => option.id === 'guardian'),
     true
@@ -573,11 +577,13 @@ test('the generic landing page and profession simulators have separate entries',
     assert.doesNotMatch(source, /weapon-sets-panel/);
     assert.match(source, /skill-bar-column weapon-bar-column/);
     assert.match(source, /skill-bar-column equipped-skill-bar-column/);
+
     if (entry.id === 'elementalist') {
       assert.match(source, /class="elementalist-theme"/);
     } else {
       assert.match(source, /profession-loadout-theme/);
     }
+
     assert.doesNotMatch(source, /id="skill-info-table"/);
     assert.doesNotMatch(source, /selected-skills-panel/);
   }
@@ -595,6 +601,7 @@ test('Mesmer default builds resolve without embedded rotations', async () => {
   for (const preset of presets) {
     const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
     const build = adapter.toApplicationBuild(saved);
+
     assert.equal(Object.hasOwn(saved, 'rotation'), false);
     assert.equal(build.schemaVersion, 3);
     assert.equal(build.profession, 'mesmer');
@@ -870,6 +877,7 @@ test('Revenant Condition Quickness Herald default build resolves', async () => {
     attributeWeaponSet: 1,
     results: null
   };
+
   adapter.recalculate(contributionApp);
   assert.deepEqual(
     adapter
@@ -947,13 +955,16 @@ test('Necromancer preset builds keep rotation data separate', async () => {
   for (const preset of presets) {
     const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
     const build = adapter.toApplicationBuild(saved);
+
     assert.equal(Object.hasOwn(saved, 'rotation'), false);
     assert.equal(build.profession, 'necromancer');
     assert.equal(build.specializations[2].name, preset.section);
     assert.equal(build.weapons.length, 2);
     assert.equal(build.alternateWeapons.length, 2);
   }
+
   const power = JSON.parse(await readFile(new URL(`../../${harbingerPresets[0].build}`, import.meta.url), 'utf8'));
+
   assert.deepEqual(power.weapons, ['Greatsword', '']);
   assert.deepEqual(power.alternateWeapons, ['Spear', '']);
   assert.equal(power.rune, 'Dragonhunter');
@@ -968,6 +979,7 @@ test('Necromancer preset builds keep rotation data separate', async () => {
 test('build import and export leave rotation state separate', async () => {
   const adapter = await loadProfessionAppAdapter('mesmer');
   const current = createDefaultBuild(adapter);
+
   current.rotation = ['Keep this rotation'];
   const imported = {
     ...createDefaultBuild(adapter),
@@ -997,12 +1009,14 @@ test('Mesmer and Guardian palettes show only equipped weapon-set rows', () => {
       weaponData: WEAPON_DATA
     })
   });
+
   for (const app of [
     appFor(mesmerProfession, createMesmerBuildDefaults()),
     appFor(guardianProfession, createGuardianBuildDefaults())
   ]) {
     const setOne = weaponPaletteRows(app, 1);
     const setTwo = weaponPaletteRows(app, 2);
+
     assert.deepEqual(
       setOne.map((row) => row.label),
       ['W1', 'W2']
@@ -1048,6 +1062,7 @@ test('Mesmer palette advances through autoattack chain skills', () => {
   const availabilityAfter = (rotation) => {
     const result = simulateMesmer(rotation, config);
     const chainState = result.endState.profession.autoattackChains;
+
     return ['Mind Slash', 'Mind Gash', 'Mind Spike'].map((name) =>
       autoattackChainSkillAvailable(skill(name), chainState)
     );
@@ -1139,6 +1154,7 @@ test('Mesmer weapon flips replace and restore their parent palette tile', () => 
   };
   const displayedAfter = (rotation) => {
     app.results = simulateMesmer(rotation, config);
+
     return displayedWeaponSkills(app, [parent, flip]).map((skill) => skill.name);
   };
 
@@ -1223,6 +1239,7 @@ test('clone attack damage rows use their weapon skill icons', () => {
 
 test('Mesmer weapon palette displays only the current autoattack chain step', () => {
   const build = createMesmerBuildDefaults();
+
   build.specializations[2] = { name: 'Mirage', traits: '1-1-1' };
   build.weapons = ['Axe', 'Sword'];
   const app = {
@@ -1272,6 +1289,7 @@ test('target-health timeline markers are inserted after the crossing hit', () =>
 
 test('weapon-set palette groups render side by side in set order', () => {
   const html = weaponPaletteStackHtml(['<div data-weapon-set="1">W1</div>', '<div data-weapon-set="2">W2</div>']);
+
   assert.match(html, /data-role="weapon-set-stack"/);
   assert.match(html, /flex-direction:row/);
   assert.match(html, /flex-wrap:wrap/);
@@ -1298,11 +1316,13 @@ test('weapon actions stay ordered beside the stacked weapon sets', () => {
     }
   };
   const mesmerActions = paletteActionSkills(mesmer);
+
   assert.deepEqual(
     mesmerActions.map((skill) => skill.name),
     ['Dodge / Mirage Cloak', 'Pick Up Mirage Mirror', 'Swap Weapons']
   );
   const mirrorIcon = 'https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png';
+
   assert.equal(mesmerActions.find((skill) => skill.name === 'Pick Up Mirage Mirror')?.icon, mirrorIcon);
   assert.equal(ACTION_ICONS['Pick Up Mirage Mirror'], mirrorIcon);
   assert.equal(ACTION_ICONS['Mirage Mirror'], mirrorIcon);
@@ -1314,6 +1334,7 @@ test('weapon actions stay ordered beside the stacked weapon sets', () => {
       eliteSpecialization: () => 'Troubadour'
     }
   };
+
   assert.deepEqual(
     paletteActionSkills(troubadour).map((skill) => skill.name),
     ['Dodge', 'Swap Weapons']
@@ -1324,6 +1345,7 @@ test('weapon actions stay ordered beside the stacked weapon sets', () => {
   );
 
   const html = weaponPaletteSectionHtml(['<div>W1</div>', '<div>W2</div>'], '<div>Act</div>', '<div>Legends</div>');
+
   assert.match(html, /data-role="weapon-palette-section"/);
   assert.equal(html.indexOf('weapon-set-stack') < html.indexOf('Act'), true);
   assert.equal(html.indexOf('Act') < html.indexOf('Legends'), true);
@@ -1339,11 +1361,13 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
     skillByName: adapter.profession.catalog.skillsByName,
     adapter
   };
+
   assert.equal(
     paletteActionSkills(engineer).some((skill) => skill.name === 'Swap Weapons'),
     true
   );
   const swapWeapons = engineer.skillById.get(-3);
+
   assert.equal(
     engineer.adapter.isSkillAvailable(engineer.skillByName.get('Rifle Burst Grenade'), { specialization: 'Core' }),
     false
@@ -1418,6 +1442,7 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
     [1, 1]
   );
   const flips = rotationUtilityFlipByParent(engineer);
+
   for (const [parent, flip] of [
     ['Throw Mine', 'Detonate'],
     ['Rifle Turret', 'Detonate Rifle Turret'],
@@ -1429,6 +1454,7 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
   ]) {
     assert.equal(flips.get(parent)?.name, flip, parent);
   }
+
   assert.equal(flips.has('Grenade Kit'), false);
 });
 
@@ -1449,6 +1475,7 @@ test('Engineer kits register distinct weapon lines in the timeline', async () =>
     weaponSwapChangesSet: false,
     weaponLineTransition(entry, current) {
       const name = typeof entry === 'string' ? entry : entry.name;
+
       return adapter.profession.ui.timelineWeaponLineTransition({
         entry: { name },
         skill: skillByName.get(name),

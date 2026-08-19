@@ -25,6 +25,7 @@ export function selectedIdentity(
   if (selected && typeof selected.id === 'number') {
     return { name: selected.name, skillId: Number(selected.id) };
   }
+
   const skill = findRotationSkill(fallbackSkillId, name, context.catalog, context.profile);
   return {
     name: skill?.name || name,

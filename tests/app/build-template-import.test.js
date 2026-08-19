@@ -20,6 +20,7 @@ const ENGINEER_CODE = '[&DQMGJyY5SzYqDwAAhgAAAAcBAACTAQAAex0AAAAAAAAAAAAAAAAAAAA
 
 test('in-game build import replaces selections without discarding gear or rotation', () => {
   const current = elementalistAppAdapter.toApplicationBuild({});
+
   current.gear.Head = "Viper's";
   current.rotation = ['Fireball', { name: '__wait', waitMs: 250 }];
   let changedCalls = 0;
@@ -70,6 +71,7 @@ test('Engineer build import equips the inferred primary spear', () => {
   assert.match(warnings[0], /Choose the intended weapon set/);
 
   const pistolPreview = previewBuildTemplateCode(app, ENGINEER_CODE);
+
   applyBuildTemplatePreview(app, pistolPreview, pistolPreview.weaponOptions[1]);
   assert.deepEqual(app.build.weapons, ['Pistol', 'Pistol']);
 });
@@ -87,6 +89,7 @@ test('cross-profession imports identify the build and offer its simulator', () =
       assert.ok(error instanceof BuildTemplateProfessionMismatchError);
       assert.equal(error.message, 'This build code is for Engineer. You are currently viewing the Mesmer simulator.');
       assert.equal(error.actualProfession.route, 'engineer.html');
+
       return true;
     }
   );

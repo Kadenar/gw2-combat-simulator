@@ -34,6 +34,7 @@ workerScope.addEventListener('message', async ({ data }) => {
     if (!adapter) {
       throw new Error(`No application adapter for ${request.professionId}.`);
     }
+
     workerScope.postMessage({
       requestId,
       contributions: adapter.calculateModifierContributions(request)

@@ -39,18 +39,23 @@ function skillGroupIdentity(entry: NativePatchAuthoringSkill): SkillGroupIdentit
           order: 1
         };
   }
+
   if (type === 'Heal') {
     return { key: 'slot:heal', label: 'Heal skills', order: 2 };
   }
+
   if (type === 'Utility') {
     return { key: 'slot:utility', label: 'Utility skills', order: 3 };
   }
+
   if (type === 'Elite') {
     return { key: 'slot:elite', label: 'Elite skills', order: 4 };
   }
+
   if (type === 'Profession') {
     return { key: 'profession', label: 'Profession skills', order: 5 };
   }
+
   return {
     key: 'triggered',
     label: 'Actions and triggered skills',
@@ -68,6 +73,7 @@ export function groupPatchAuthoringSkills(
     group.skills.push(skill);
     groups.set(identity.key, group);
   }
+
   return [...groups.values()]
     .sort((left, right) => left.order - right.order || left.label.localeCompare(right.label))
     .map(({ key, label, skills: entries }) => ({
@@ -154,9 +160,11 @@ function describeNumEdit(field: string, edit: NumEdit): string {
   if ('from' in edit) {
     return `${label} ${formatNumber(edit.from)} → ${formatNumber(edit.to)}`;
   }
+
   if ('multiply' in edit) {
     return `${label} x${formatNumber(edit.multiply)}`;
   }
+
   const sign = edit.add >= 0 ? '+' : '';
   return `${label} ${sign}${formatNumber(edit.add)}`;
 }
@@ -179,6 +187,7 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
   for (const [field, numericEdit] of Object.entries(edit.fields || {})) {
     changes.add(describeNumEdit(field, numericEdit));
   }
+
   for (const [field, numericEdit] of [
     ['cooldown', edit.cooldown],
     ['castTimeMs', edit.castTimeMs],
@@ -186,6 +195,7 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
   ] as const) {
     if (numericEdit != null) changes.add(describeNumEdit(field, numericEdit));
   }
+
   for (const [condition, fields] of Object.entries(edit.conditions || {})) {
     for (const [field, numericEdit] of Object.entries(fields)) {
       if (numericEdit != null) {
@@ -193,6 +203,7 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
       }
     }
   }
+
   for (const [boon, fields] of Object.entries(edit.boons || {})) {
     for (const [field, numericEdit] of Object.entries(fields)) {
       if (numericEdit != null) {
@@ -200,6 +211,7 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
       }
     }
   }
+
   for (const effect of edit.effects || []) {
     for (const field of PATCHABLE_EFFECT_NUMERIC_FIELDS) {
       const numericEdit = effect[field];
@@ -208,12 +220,15 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
       }
     }
   }
+
   for (const effect of edit.addEffects || []) {
     changes.add(`added ${effectIdentity(effect)} effect`);
   }
+
   for (const selector of edit.removeEffects || []) {
     changes.add(`removed ${effectTarget(selector)}`);
   }
+
   const summary = [...changes].join('; ');
   return summary ? `${summary[0].toLocaleUpperCase()}${summary.slice(1)}.` : 'Skill metadata changed.';
 }
@@ -229,6 +244,7 @@ function generatedSkillOverview(
       names.set(skill.name, skill.name);
     }
   }
+
   return Object.entries(skills).map(([key, edit]) => ({
     subject: names.get(key) || key,
     text: skillPatchSummary(edit),
@@ -247,6 +263,7 @@ function generatedBalanceProfileOverview(
       names.set(entry.name, entry.name);
     }
   }
+
   return Object.entries(profiles).map(([key, edit]) => ({
     subject: names.get(key) || key,
     text: skillPatchSummary(edit),
@@ -262,9 +279,11 @@ function modifierPatchSummary(edit: ModifierRulePatchEdit): string {
       changes.push(describeNumEdit(field, numericEdit));
     }
   }
+
   for (const [name, numericEdit] of Object.entries(edit.parameters || {})) {
     changes.push(`parameter ${describeNumEdit(name, numericEdit)}`);
   }
+
   const summary = changes.join('; ');
   return summary ? `${summary[0].toLocaleUpperCase()}${summary.slice(1)}.` : 'Modifier metadata changed.';
 }
@@ -279,6 +298,7 @@ function generatedModifierOverview(
       labels.set(rule.id, rule.label || rule.id);
     }
   }
+
   return Object.entries(edits).map(([id, edit]) => ({
     subject: labels.get(id) || id,
     text: modifierPatchSummary(edit),
@@ -307,6 +327,7 @@ export function generatePatchOverview(
     if (overview.length) patch.overview = overview;
     else delete patch.overview;
   }
+
   return generated;
 }
 
@@ -315,6 +336,7 @@ function compactValue(value: unknown): unknown {
     const values = value.map(compactValue).filter((entry) => entry !== undefined);
     return values.length ? values : undefined;
   }
+
   if (value && typeof value === 'object') {
     const entries = Object.entries(value).flatMap(([key, child]) => {
       const compacted = compactValue(child);
@@ -322,6 +344,7 @@ function compactValue(value: unknown): unknown {
     });
     return entries.length ? Object.fromEntries(entries) : undefined;
   }
+
   return value === undefined ? undefined : value;
 }
 

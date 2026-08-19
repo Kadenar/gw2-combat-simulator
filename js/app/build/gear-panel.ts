@@ -89,6 +89,7 @@ export function renderGear(app: ProfessionAppState): void {
           )
           .join("")}`;
   };
+
   requiredElement("gear-slots").innerHTML = `<div class="gear-row gear-set-all-row">
         <span class="gear-label">Set all</span>
         <select class="gear-select" id="sel-set-all">
@@ -137,6 +138,7 @@ export function renderGear(app: ProfessionAppState): void {
       } else {
         b.alternateWeaponPrefixes[slot] = select.value;
       }
+
       app.changed(true, false);
     });
   });
@@ -148,10 +150,12 @@ export function renderGear(app: ProfessionAppState): void {
       for (const slot of GEAR_SLOTS) {
         b.gear[slot] = value;
       }
+
       if (hasSecondWeaponSet) {
         b.alternateWeaponPrefixes[0] = value;
         b.alternateWeaponPrefixes[1] = value;
       }
+
       app.changed();
     });
   }
@@ -201,6 +205,7 @@ export function renderGear(app: ProfessionAppState): void {
                   )
                   .join("")}</div>`;
   };
+
   requiredElement("weapon-select").innerHTML = `
             ${weaponSetRows(1, b.weapons, b.weaponSigils[0])}
             ${hasSecondWeaponSet ? weaponSetRows(2, b.alternateWeapons, b.weaponSigils[1], true) : ""}`;
@@ -223,6 +228,7 @@ export function renderGear(app: ProfessionAppState): void {
           offHands[0] ||
           "";
       }
+
       app.changed();
     });
     const offHand = requiredSelect(`sel-oh${setNumber}`);
@@ -238,6 +244,7 @@ export function renderGear(app: ProfessionAppState): void {
       });
     }
   };
+
   bindWeaponSet(1, b.weapons);
   if (hasSecondWeaponSet) bindWeaponSet(2, b.alternateWeapons);
 
@@ -272,6 +279,7 @@ export function renderGear(app: ProfessionAppState): void {
       app.changed();
     });
   };
+
   bindValue("sel-rune", (value) => (b.rune = value));
   bindValue("sel-relic", (value) => (b.relic = value));
   bindValue("sel-food", (value) => (b.food = value));

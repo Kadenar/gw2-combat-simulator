@@ -82,6 +82,7 @@ export function reconstructRenegadeDpsReportActions(
     ) {
       return action;
     }
+
     const nextAutoattack = canonicalized.slice(index + 1).find((candidate) => {
       const skill = context.catalog?.skills.find(
         (catalogEntry) =>
@@ -104,6 +105,7 @@ export function reconstructRenegadeDpsReportActions(
     const action = inferredWarbandAction(context, anchor, ICERAZOR, anchor.start - duration, -2, false);
     if (action) inferred.push(action);
   }
+
   if (recurring.has(normalized(RAZORCLAW.name))) {
     const firstDemon = sorted.find((action) => normalized(action.rawName) === 'legendary demon stance');
     const availableGap = Math.max(0, Number(firstDemon?.start ?? anchor.start) - anchor.start);
@@ -117,6 +119,7 @@ export function reconstructRenegadeDpsReportActions(
     );
     if (action) inferred.push(action);
   }
+
   const firstDemon = sorted.find((action) => normalized(action.rawName) === 'legendary demon stance');
   // EI timestamps the opening legend at its applied state; align it to the
   // player input so the observed Searing/Razorclaw overlap and energy reset survive.

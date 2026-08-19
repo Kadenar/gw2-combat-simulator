@@ -191,6 +191,7 @@ export function projectGuardianEndState({
   ]) {
     if (Object.hasOwn(resolver, key)) mutableState[key] = resolver[key];
   }
+
   return Object.fromEntries(
     GUARDIAN_PUBLIC_END_STATE_KEYS.map((key) => [key, structuredClone(mutableState[key] ?? inactiveDefaults[key])])
   );

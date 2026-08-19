@@ -39,8 +39,10 @@ export function normalizeThiefAnimations(context: EvtcProfessionReconstructionCo
       if (committed.has(action)) {
         normalized.push(action);
       }
+
       continue;
     }
+
     const previous = normalized.at(-1);
     if (
       action.rawSkillId === CRIPPLING_STRIKE.skillId &&
@@ -49,6 +51,7 @@ export function normalizeThiefAnimations(context: EvtcProfessionReconstructionCo
     ) {
       continue;
     }
+
     if (action.status === 'interrupted') {
       const duration = skillDuration(context, {
         name: action.canonicalName ?? action.rawName,
@@ -62,6 +65,7 @@ export function normalizeThiefAnimations(context: EvtcProfessionReconstructionCo
       });
       continue;
     }
+
     if (action.rawSkillId === TWILIGHT_COMBO_FOLLOW_UP_ANIMATION) {
       let previousIndex = normalized.length - 1;
       let merged = false;
@@ -78,15 +82,19 @@ export function normalizeThiefAnimations(context: EvtcProfessionReconstructionCo
           merged = true;
           break;
         }
+
         previousIndex -= 1;
       }
+
       if (merged) continue;
     }
+
     if (action.rawSkillId === METAL_LEGION_GUITAR_FOLLOW_UP_ANIMATION) {
       let previousIndex = normalized.length - 1;
       while (previousIndex >= 0 && normalized[previousIndex].rawSkillId !== 76582) {
         previousIndex -= 1;
       }
+
       if (previousIndex >= 0) {
         const previousAction = normalized[previousIndex];
         normalized[previousIndex] = {
@@ -94,9 +102,12 @@ export function normalizeThiefAnimations(context: EvtcProfessionReconstructionCo
           end: Math.max(previousAction.end, action.end)
         };
       }
+
       continue;
     }
+
     normalized.push(action);
   }
+
   return normalized;
 }

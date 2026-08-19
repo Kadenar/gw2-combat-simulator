@@ -26,6 +26,7 @@ export function deadeyeCastAvailability(context: DeadeyeAvailabilityContext, ski
       };
     }
   }
+
   if (!skill.stealthAttack) return { ready: true };
   // Non-malicious stealth attacks (Backstab, Death's Judgment) are replaced by their malicious versions on Deadeye
   if (skill.malicious) return { ready: true };

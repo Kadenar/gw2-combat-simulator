@@ -156,6 +156,7 @@ export function calculateSkillDamage(
       } else {
         hitStrike = expected;
       }
+
       totalStrike += hitStrike;
     }
 

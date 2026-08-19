@@ -42,11 +42,13 @@ test('Elementalist skill mechanics have disjoint module ownership', () => {
   );
 
   const owners = new Map();
+
   for (const [directory, module, mechanics] of slices) {
     const source = readFileSync(
       new URL(`../../../js/professions/elementalist/${directory}/skills.ts`, import.meta.url),
       'utf8'
     );
+
     assert.match(source, /ELEMENTALIST_SKILL_IDS\s+as\s+ID/);
     assert.doesNotMatch(source, /^\s*["']?-?\d+["']?\s*:/m);
     assert.doesNotMatch(source, /\b(?:id|skillId|nextChainId|flipParentId|flipChildId)\s*:\s*-?\d+/);
@@ -64,6 +66,7 @@ test('Elementalist skill mechanics have disjoint module ownership', () => {
   );
   assert.equal(owners.size, 285);
   const declaredIds = new Set(Object.values(ELEMENTALIST_SKILL_IDS));
+
   for (const skillId of owners.keys()) {
     assert.equal(declaredIds.has(Number(skillId)), true, skillId);
   }
@@ -75,6 +78,7 @@ test('Glyph of Elementals delegates all damage to the summoned actor', () => {
     ELEMENTALIST_SKILL_IDS.GLYPH_OF_ELEMENTALS_EARTH
   ]) {
     const glyph = ELEMENTALIST_CORE_SKILL_MECHANICS[skillId];
+
     assert.deepEqual(glyph.effects, []);
     assert.equal(Object.hasOwn(glyph, 'referenceEffects'), false);
   }
@@ -102,6 +106,7 @@ test('Catalyst spheres and Tempest overloads delegate repeated packets to maps',
 
 test('Lightning Blitz uses a flat 0.28 coefficient', () => {
   const lightningBlitz = EVOKER_SKILL_MECHANICS[ELEMENTALIST_SKILL_IDS.LIGHTNING_BLITZ];
+
   assert.deepEqual(
     lightningBlitz.effects[0].ticks.map((tick) => tick.coefficient),
     [0.28, 0.28, 0.28, 0.28, 0.28]
@@ -231,15 +236,18 @@ test('Core repeated packets use compact tick sequences', () => {
   }
 
   const dustStorm = ELEMENTALIST_CORE_SKILL_MECHANICS[ELEMENTALIST_SKILL_IDS.DUST_STORM];
+
   assert.deepEqual(
     dustStorm.effects.filter((effect) => effect.type === 'blind').map((effect) => effect.atMs),
     [2340, 3960, 5340, 6960, 8340, 9960, 11340, 12960]
   );
 
   const frostVolley = ELEMENTALIST_CORE_SKILL_MECHANICS[ELEMENTALIST_SKILL_IDS.FROST_VOLLEY];
+
   assert.ok(frostVolley.effects[0].ticks.every((tick) => tick.comboFinishers[0].finisherType === 'Projectile'));
 
   const volcano = ELEMENTALIST_CORE_SKILL_MECHANICS[ELEMENTALIST_SKILL_IDS.VOLCANO];
+
   assert.deepEqual(
     volcano.effects[0].ticks.map((tick) => tick.coefficient),
     [1.21, 1.089, 0.968, 0.847, 0.726, 0.605, 0.484, 0.363, 0.242, 0.121, 0.05, 0.05]

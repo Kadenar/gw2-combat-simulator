@@ -68,6 +68,7 @@ export function remainingDurationStackSeconds<T extends DurationStackApplication
     remaining = Math.min(Math.max(0, Number(maximum)), remaining + Math.max(0, applicationDuration) * stacks);
     previousTime = appliedAt;
   }
+
   return Math.max(0, remaining - Math.max(0, time - previousTime));
 }
 
@@ -82,6 +83,7 @@ export function buffMatchesAudience(
   if (audience === 'summon-trait' && application.source !== 'Trait') {
     return false;
   }
+
   const companionIds = Array.isArray(application.companionIds)
     ? application.companionIds.map(String).filter(Boolean)
     : [];
@@ -108,5 +110,6 @@ export function sumActiveStacks<T>(
     if (shouldStop?.(item)) break;
     if (isActive(item)) stacks += weight(item);
   }
+
   return clamp(stacks, 0, maximum);
 }

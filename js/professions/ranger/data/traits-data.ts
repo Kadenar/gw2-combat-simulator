@@ -28,5 +28,6 @@ export function getActiveTraits(specializations: readonly RangerSpecializationSe
       if (trait) active.push(trait);
     }
   }
+
   return active;
 }

@@ -80,22 +80,28 @@ export function createGw2TriggerMaterializer(
           if (state.random.stochastic) {
             resolveCriticalTrigger(context, event, state);
           }
+
           break;
         }
+
         const criticalCause = resolveCriticalTrigger(context, event, state);
         if (criticalCause) {
           sigils.materialize('crit', context, event, criticalCause);
         }
+
         sigils.consumeDoom(context, event);
         if (sigilSupport.strike && isGw2PlayerActorEvent(event) && Number(event.coefficient) > 0) {
           sigils.materialize('strike', context, event);
         }
+
         break;
       }
+
       case 'control':
         if (state.combatActive) {
           sigils.materialize('control', context, event);
         }
+
         break;
       case 'weakness_vulnerability':
         if (!context.hasExplicitCombatStart || context.combatStartTime != null) {
@@ -107,12 +113,14 @@ export function createGw2TriggerMaterializer(
             event
           );
         }
+
         break;
       case 'weapon_set':
       case 'sigil_swap':
         if (state.combatActive) {
           sigils.materialize('swap', context, event);
         }
+
         break;
       default:
         break;

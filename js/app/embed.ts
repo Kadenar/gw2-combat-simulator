@@ -76,9 +76,11 @@ function setupResizeReporter(root: Document): void {
     const height = root.documentElement.scrollHeight;
     globalThis.parent?.postMessage({ type: EMBED_HEIGHT_MESSAGE, height, url: globalThis.location?.href }, HOST_ORIGIN);
   };
+
   if (typeof ResizeObserver !== 'undefined') {
     new ResizeObserver(post).observe(root.documentElement);
   }
+
   globalThis.addEventListener?.('load', post);
   post();
 }

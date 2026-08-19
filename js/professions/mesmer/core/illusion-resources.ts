@@ -55,6 +55,7 @@ export function createIllusionResourceController({
       });
       return;
     }
+
     if (skill.resource?.mode === 'add' && !atMaximum) {
       const resourceAt =
         skill.resource.timingAnchor === 'castStart'
@@ -69,6 +70,7 @@ export function createIllusionResourceController({
       );
       return;
     }
+
     const conversionGroups = new Map<number, MesmerPhantasmExecution[]>();
     for (const phantasm of phantasmExecutions) {
       const conversionAt = phantasm.virtuosoBladeAt ?? phantasm.conversionAt;
@@ -76,6 +78,7 @@ export function createIllusionResourceController({
       group.push(phantasm);
       conversionGroups.set(conversionAt, group);
     }
+
     for (const group of conversionGroups.values()) {
       phantasms.queueConversion(group[0], group.length);
     }

@@ -50,15 +50,19 @@ export function soulbeastCastAvailability(context: RangerPrecastContext, skill: 
   if (skill.beastmodeSkill && !toggle && !selectedRangerPet(context.config)?.beastmodeSkillIds.includes(skill.id)) {
     return deny(skill, 'ranger.inactive-merged-pet-skill', 'select the pet that grants this merged Beast skill.');
   }
+
   if (skill.beastmodeSkill && !state.beastmodeActive && skill.name !== 'Beastmode') {
     return deny(skill, 'ranger.beastmode-inactive', 'enter Beastmode first.');
   }
+
   if (skill.name === 'Beastmode' && state.beastmodeActive) {
     return deny(skill, 'ranger.beastmode-active', 'Beastmode is already active.');
   }
+
   if (skill.name === 'Leave Beastmode' && !state.beastmodeActive) {
     return deny(skill, 'ranger.beastmode-inactive', 'Beastmode is not active.');
   }
+
   return { ready: true };
 }
 

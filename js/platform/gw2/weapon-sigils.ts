@@ -16,6 +16,7 @@ export function normalizeWeaponSigils(
       if (typeof selected === 'string' && SIGIL_NAMES.includes(selected)) {
         return selected;
       }
+
       return fallback?.[setIndex]?.[slotIndex] || DEFAULT_WEAPON_SIGILS[setIndex]?.[slotIndex] || 'Force';
     });
     if (normalized[0] === normalized[1]) {
@@ -24,6 +25,7 @@ export function normalizeWeaponSigils(
       );
       if (replacement) normalized[1] = replacement;
     }
+
     return normalized;
   });
 }
@@ -42,6 +44,7 @@ export function setWeaponSigil(build: Gw2Build, setIndex: number, slotIndex: num
   if (![0, 1].includes(setIndex) || ![0, 1].includes(slotIndex) || !SIGIL_NAMES.includes(name)) {
     return;
   }
+
   const normalized = normalizeWeaponSigils(build.weaponSigils);
   build.weaponSigils = normalized;
   const sigils = normalized[setIndex];
@@ -101,6 +104,7 @@ export function aggregateSigilSet(sigilNames: readonly string[] | null | undefin
       }
     }
   }
+
   effects.strike = 1 + effects.strikeAdd;
   effects.condition = 1 + effects.conditionAdd;
   return effects;

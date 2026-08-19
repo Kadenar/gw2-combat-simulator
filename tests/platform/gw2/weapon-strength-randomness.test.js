@@ -57,11 +57,13 @@ test('canonical weapon-strength bounds derive every documented midpoint', () => 
   assert.deepEqual(Object.keys(WEAPON_STRENGTH_PROFILES).sort(), Object.keys(EXPECTED_PROFILES).sort());
   for (const [id, [min, max, midpoint]] of Object.entries(EXPECTED_PROFILES)) {
     const profile = weaponStrengthProfile(id);
+
     assert.deepEqual(profile, { id, min, max });
     assert.equal(weaponStrengthMidpoint(profile), midpoint);
     assert.equal(weaponStrengthHalfRange(profile), (max - min) / 2);
     assert.equal(Object.isFrozen(profile), true);
   }
+
   assert.equal(weaponStrengthHalfRange(weaponStrengthProfile('bundle.ascended')), 48.5);
   assert.equal(WEAPON_DATA.Longbow.weaponStrength, 1050);
   assert.equal(WEAPON_DATA.Longbow.weaponStrengthProfileId, 'weapon.longbow');
@@ -74,6 +76,7 @@ test('profile lookup and continuous sampling validate their inputs', () => {
   assert.equal(weaponStrengthProfileForName('unknown'), null);
   assert.throws(() => weaponStrengthProfile('weapon.unknown'), /Unknown/);
   const rifle = weaponStrengthProfile('weapon.rifle');
+
   assert.equal(sampleWeaponStrength(rifle, 0), rifle.min);
   assert.ok(sampleWeaponStrength(rifle, 0.999999) < rifle.max);
   assert.throws(() => sampleWeaponStrength(rifle, 1), /\[0, 1\)/);
@@ -88,6 +91,7 @@ test('skill metadata classifies transforms, kits, shrouds, and effects', () => {
     actorType: 'player',
     coefficient: 1
   };
+
   assert.equal(
     weaponStrengthProfileIdForEvent(event, {
       skill: { id: 1, name: 'Kit', kit: 'Grenade Kit' }
@@ -193,6 +197,7 @@ function fixtureProfession() {
     weapons: ['Dagger'],
     weaponHands: { Dagger: 'mh+oh' }
   });
+
   return defineProfession({
     id: 'weapon-strength-fixture',
     name: 'Weapon Strength Fixture',
@@ -221,6 +226,7 @@ function simulateFixture(mode, seed = 1, casts = 1) {
 test('deterministic strikes expose the exact profile midpoint', () => {
   const result = simulateFixture('deterministic');
   const hits = result.resolvedEvents.filter((event) => event.type === 'damage');
+
   assert.equal(hits.length, 3);
   assert.equal(new Set(hits.map((event) => event.activationId)).size, 1);
   assert.deepEqual([...new Set(hits.map((event) => event.resolvedWeaponStrength))], [1000]);
@@ -234,11 +240,14 @@ test('stochastic casts share one roll per activation and reroll per cast', () =>
   const result = simulateFixture('stochastic', seed, 2);
   const hits = result.resolvedEvents.filter((event) => event.type === 'damage');
   const byActivation = new Map();
+
   for (const hit of hits) {
     const activationHits = byActivation.get(hit.activationId) || [];
+
     activationHits.push(hit);
     byActivation.set(hit.activationId, activationHits);
   }
+
   assert.equal(byActivation.size, 2);
 
   const expectedRandom = createSimulationRandom({
@@ -250,11 +259,13 @@ test('stochastic casts share one roll per activation and reroll per cast', () =>
     sampleWeaponStrength(dagger, expectedRandom.next('weapon-strength:player')),
     sampleWeaponStrength(dagger, expectedRandom.next('weapon-strength:player'))
   ];
+
   assert.deepEqual(
     [...byActivation.values()].map((activationHits) => {
       assert.equal(activationHits.length, 3);
       assert.equal(new Set(activationHits.map((event) => event.resolvedWeaponStrength)).size, 1);
       assert.ok(activationHits.every((event) => event.weaponStrengthSampled === true));
+
       return activationHits[0].resolvedWeaponStrength;
     }),
     expected
@@ -264,14 +275,17 @@ test('stochastic casts share one roll per activation and reroll per cast', () =>
 test('weapon-strength draws do not advance critical or trait streams', () => {
   const seed = 42;
   const withStrength = createSimulationRandom({ mode: 'stochastic', seed });
+
   withStrength.next('weapon-strength:player');
   withStrength.next('weapon-strength:effect');
   const criticalAfterStrength = withStrength.next('critical:player');
 
   const isolated = createSimulationRandom({ mode: 'stochastic', seed });
+
   assert.equal(criticalAfterStrength, isolated.next('critical:player'));
 
   const withTrait = createSimulationRandom({ mode: 'stochastic', seed });
+
   withTrait.next('engineer.shrapnel');
   assert.equal(
     withTrait.next('weapon-strength:player'),
@@ -307,6 +321,7 @@ test('explicit fixed strength remains exempt from stochastic sampling', () => {
     config: { randomness: { mode: 'stochastic', seed: 9 } }
   });
   const hit = result.resolvedEvents.find((event) => event.type === 'damage');
+
   assert.equal(hit.weaponStrengthProfileId, 'fixed');
   assert.equal(hit.resolvedWeaponStrength, 777);
   assert.equal(hit.weaponStrengthSampled, false);

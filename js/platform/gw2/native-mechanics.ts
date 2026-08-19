@@ -29,6 +29,7 @@ function resolvedReaction<
   if (!String(declaration.id || '').trim() || typeof declaration.handler !== 'function') {
     throw new TypeError(`${stage} resolver reaction requires id and handler.`);
   }
+
   return Object.freeze({
     phase: 'resolver',
     stage,
@@ -203,8 +204,10 @@ export function onResolvedPlayerCriticalHit<
     if (!Number.isFinite(chance) || chance < 0 || chance > 1) {
       throw new TypeError(`${options.id} critical proc chance must be 0..1.`);
     }
+
     return chance;
   };
+
   const reaction = onResolvedDamage<TContext, TEvent, TDetails>({
     id: options.id,
     order: options.order,
@@ -233,8 +236,10 @@ export function onResolvedPlayerCriticalHit<
         if (options.internalCooldown) {
           options.internalCooldown.setReadyAt(context, event.at + internalCooldownDuration);
         }
+
         return;
       }
+
       // Deterministic mode: accumulate critChance × procChance per hit.
       // The while loop fires multiple times if progress is very high (e.g. 2.5 → 2 procs),
       // but the break after setting the ICD caps it at one proc per event — the ICD
@@ -263,6 +268,7 @@ function schedulerMechanic(
   if (!String(declaration.id || '').trim() || typeof declaration.handler !== 'function') {
     throw new TypeError(`${hook} scheduler mechanic requires id and handler.`);
   }
+
   return Object.freeze({
     phase: 'scheduler',
     hook,

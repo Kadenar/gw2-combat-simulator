@@ -40,9 +40,11 @@ function flip(context: NecromancerCastContext, skill: NecromancerSkill): boolean
       )[skill.id] || 5;
     state.availableFlips[skill.flipSkillId] = context.effectiveEnd + duration;
   }
+
   if (skill.flipParentId != null) {
     delete state.availableFlips[skill.id];
   }
+
   emitState(context, context.effectiveEnd, 'flip');
   return false;
 }

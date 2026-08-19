@@ -11,9 +11,11 @@ export function mesmerResourceDefinition(specialization: string): MesmerResource
   if (specialization === 'Virtuoso') {
     return { singular: 'blade', plural: 'blades', maximum: 5 };
   }
+
   if (specialization === 'Troubadour') {
     return { singular: 'note', plural: 'notes', maximum: 3 };
   }
+
   return { singular: 'clone', plural: 'clones', maximum: 3 };
 }
 
@@ -110,6 +112,7 @@ export function projectMesmerEndState({
       persistent
     };
   }
+
   const activeInstruments = Object.entries(publicState.instruments || {})
     .filter(([, expiresAt]) => expiresAt > endTime + EPSILON)
     .map(([name, expiresAt]) => ({

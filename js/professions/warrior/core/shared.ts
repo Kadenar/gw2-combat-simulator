@@ -15,9 +15,11 @@ function configuredTargetBoonCount(context: WarriorSchedulerContext | WarriorRes
   if (Array.isArray(target?.boons)) {
     return new Set(target.boons.map(String)).size;
   }
+
   if (target?.boonCount != null) {
     return Math.max(0, Math.trunc(Number(target.boonCount) || 0));
   }
+
   return target?.boonless === false ? 1 : 0;
 }
 

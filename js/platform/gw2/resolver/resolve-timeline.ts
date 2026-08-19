@@ -32,6 +32,7 @@ function addCastsToBreakdown(
     if (row) row.count += 1;
     else output.set(name, { name, count: 1 });
   }
+
   // Match each breakdown row to its caster by stable id (breakdown keys already
   // carry skillId/sourceId). The display-name fallback covers effect/summon
   // rows whose events have no catalog skill id.
@@ -39,6 +40,7 @@ function addCastsToBreakdown(
     const identityId = String(entry.skillId ?? entry.sourceId);
     entry.casts = countsById.get(identityId) ?? output.get(entry.name)?.count ?? 0;
   }
+
   return output;
 }
 
@@ -124,6 +126,7 @@ export function resolveGw2Timeline({
   if (typeof createRuntimeState !== 'function') {
     throw new TypeError('GW2 timeline resolver requires createRuntimeState.');
   }
+
   const scheduled = assertPlatformStream(stream);
   const resolutionEndTime = Number(scheduled.resolutionEndTime ?? scheduled.rotationEndTime);
   const queue = createEventQueue(scheduled.events.map((event) => ({ ...event }) as Gw2ResolverEvent));

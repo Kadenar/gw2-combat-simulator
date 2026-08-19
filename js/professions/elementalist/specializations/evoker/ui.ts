@@ -50,6 +50,7 @@ function updateFamiliarSelection(context: SchedulerRecord, selection: SchedulerR
   ) {
     return false;
   }
+
   (context.build as SchedulerRecord).evokerElement = value;
   return true;
 }
@@ -65,6 +66,7 @@ function familiarPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
       message: `${skill.name} is unavailable - the ${element} familiar is not selected.`
     };
   }
+
   const state = uiState(context);
   const build = context.build as SchedulerRecord | undefined;
   const maximum = Number(state.maximumCharges ?? 6);
@@ -78,6 +80,7 @@ function familiarPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
           message: `${skill.name} requires ${maximum} familiar charges.`
         };
   }
+
   return empowered >= 3
     ? { available: true, message: '' }
     : {

@@ -25,6 +25,7 @@ export function applyCatalystResolverAura(context: ElementalistResolverContext, 
   ) {
     return;
   }
+
   const empowerment = elementalistBalanceEffect(context, PROFILE.elementalEpitome, 'buff', 'Empowerment');
   queueElementalistBuff(
     context,
@@ -92,6 +93,7 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
         core.endurance + elementalistBalanceValue(context, PROFILE.elementalSynergy, 'resourceGain', 50)
       );
     }
+
     recordElementalistTraitProc(context, event, 'Elemental Synergy');
   }
 }
@@ -116,6 +118,7 @@ export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2R
   ) {
     return;
   }
+
   const state = catalystState.from(context);
   if (state.viciousEmpowermentReadyAt > event.at + EPSILON) return;
   state.viciousEmpowermentReadyAt =
@@ -177,6 +180,7 @@ export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2
     state.shatteringIceReadyAt = event.at;
     return;
   }
+
   if (kind !== 'elemental empowerment' || event.affectsSelf === false) {
     return;
   }

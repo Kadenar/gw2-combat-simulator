@@ -56,6 +56,7 @@ export function updateRangerWeaponState(context: RangerCastContext, skill: Range
       state.availableFlips[flip.id] = context.effectiveEnd + duration;
     }
   }
+
   if (
     skill.type === 'Weapon' &&
     !isRangerHammerVariant(skill.id) &&

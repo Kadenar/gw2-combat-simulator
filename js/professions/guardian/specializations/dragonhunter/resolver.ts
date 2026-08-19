@@ -34,6 +34,7 @@ function handleJusticePulse(context: GuardianResolverContext, event: GuardianRes
   if (dragonhunterState.from(context).tetherUntil < event.at - Number(context.epsilon || 0.0001)) {
     return;
   }
+
   enqueueOrdered(context.queue, {
     type: 'condition',
     at: event.at,
@@ -91,6 +92,7 @@ export function reactToDragonhunterJusticeHit(
   ) {
     return;
   }
+
   // priority: 5 ensures this vulnerability buff sorts after zero-priority damage
   // events at the same timestamp so modifiers can pick it up on the next resolve tick.
   const vulnerability = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.bigGameHunter), 'buff');
@@ -132,12 +134,14 @@ export function reactToDragonhunterControl(
       duration: Number(crippled?.duration || 4)
     });
   }
+
   if (
     !hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.HEAVY_LIGHT) ||
     event.at < state.heavyLightReadyAt - Number(context.epsilon || 0.0001)
   ) {
     return;
   }
+
   // 1-second internal cooldown on Heavy Light stability; not exposed by the trait's game tooltip.
   const heavyLight = guardianBalanceProfile(context, PROFILE.heavyLight);
   const stability = guardianBalanceProfileEffect(heavyLight, 'boon');

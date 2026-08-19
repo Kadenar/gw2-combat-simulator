@@ -45,6 +45,7 @@ function normalizedControl(control: ProfessionAssumptionControlInput): Professio
   if (!/^[a-z][a-zA-Z0-9]*$/.test(key)) {
     throw new TypeError('Assumption controls require stable camelCase keys.');
   }
+
   const common = {
     key,
     label: String(control.label || key),
@@ -73,6 +74,7 @@ function normalizedControl(control: ProfessionAssumptionControlInput): Professio
       if (!option || typeof option !== 'object' || Array.isArray(option)) {
         return { value: String(option), label: String(option) };
       }
+
       const source = option as Record<string, unknown>;
       return {
         value: String(source.value),
@@ -84,6 +86,7 @@ function normalizedControl(control: ProfessionAssumptionControlInput): Professio
     if (!options.length) {
       throw new TypeError(`Assumption control ${key} needs select options.`);
     }
+
     return Object.freeze({
       ...common,
       type,
@@ -107,6 +110,7 @@ export function createProfessionAssumptionControls(
   if (new Set(normalized.map((control) => control.key)).size !== normalized.length) {
     throw new TypeError('Assumption control keys must be unique.');
   }
+
   return Object.freeze(normalized);
 }
 
@@ -139,6 +143,7 @@ export function normalizeProfessionAssumptions(
         : String(control.defaultValue ?? control.options[0].value);
     }
   }
+
   return result;
 }
 
@@ -160,5 +165,6 @@ export function validateProfessionAssumptions(
       errors.push(`assumptions.${control.key} must be a legal choice.`);
     }
   }
+
   return errors;
 }

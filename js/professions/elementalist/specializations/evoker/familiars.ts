@@ -121,6 +121,7 @@ export function onCastStart(context: ElementalistCastContext, skill: Skill): voi
           : null
     });
   }
+
   if (familiarElement) {
     const concurrentParent =
       context.command.concurrentOffsetMs != null
@@ -137,12 +138,14 @@ export function onCastStart(context: ElementalistCastContext, skill: Skill): voi
       state.pendingWeaponChargeGains.push(concurrentParent.weaponChargeGain);
       concurrentParent.weaponChargeGain = null;
     }
+
     state.activeFamiliarCast = {
       reservationId: context.reservationId,
       endsAt: context.effectiveEnd,
       resetsCharges: BASIC_FAMILIARS.has(skill.name)
     };
   }
+
   // if the empowered familiar was recently cast and the basic fires within the window, the empowered effects are retroactively cancelled
   const interrupt = FAMILIAR_INTERRUPT_WINDOWS[skill.name];
   if (interrupt) {
@@ -178,11 +181,13 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
     delete state.cancelledFamiliarActivations[context.reservationId];
     return;
   }
+
   if (skill.name === 'Ignite') {
     // tier resets if unused for 15s; cycling through 4 tiers gives a short pulse on tier 1 to front-load damage
     if (context.start - state.igniteLastUsedAt >= elementalistBalanceValue(context, PROFILE.ignite, 'threshold', 15)) {
       state.igniteTier = 0;
     }
+
     const durations = [2, 0.5, 1, 1.5];
     for (const event of context.events) {
       if (event.activationId === context.reservationId && event.type === 'condition' && event.condition === 'Burning') {
@@ -198,9 +203,11 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
         });
       }
     }
+
     state.igniteTier = (state.igniteTier + 1) % durations.length;
     state.igniteLastUsedAt = context.start;
   }
+
   if (skill.name === "Fox's Fury") {
     const might = context.buffStacks('might', context.start);
     const threshold = elementalistBalanceValue(context, PROFILE.foxsFury, 'threshold', 10);
@@ -260,6 +267,7 @@ function grantFamiliarProwess(context: ElementalistCastContext, skill: Skill): v
     });
     return;
   }
+
   context.emit({
     type: 'buff',
     at,
@@ -283,6 +291,7 @@ function applyWeaponSkillRechargeMultiplier(context: ElementalistCastContext, mu
     if (readyAt > at) {
       context.state.cooldowns.set(candidate.id, Math.max(at, readyAt - reduction));
     }
+
     context.cooldownController.reduceAmmoRecharge(candidate, reduction, at);
   }
 }
@@ -295,6 +304,7 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
   if (FAMILIAR_ELEMENTS[skill.name] && hasTrait(context, "Familiar's Prowess")) {
     grantFamiliarProwess(context, skill);
   }
+
   const familiarElement = FAMILIAR_ELEMENTS[skill.name];
   if (familiarElement && hasTrait(context, "Familiar's Blessing")) {
     const quick = familiarElement === 'Fire' || familiarElement === 'Air';
@@ -314,6 +324,7 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
       skill.id
     );
   }
+
   if (familiarElement && hasTrait(context, 'Galvanic Enchantment')) {
     const stacks = elementalistBalanceValue(context, PROFILE.galvanicEnchantment, 'playerStacks', 2);
     state.electricEnchantmentStacks += stacks;
@@ -327,6 +338,7 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
       icon: ELECTRIC_ENCHANTMENT_ICON
     });
   }
+
   if (skill.name === 'Lightning Blitz') {
     const stacks = elementalistBalanceValue(context, PROFILE.familiarUtility, 'resourceGain', 1);
     state.electricEnchantmentStacks += stacks;
@@ -340,9 +352,11 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
       icon: ELECTRIC_ENCHANTMENT_ICON
     });
   }
+
   if (familiarElement) {
     materializeArmedElectricEnchantments(context, state);
   }
+
   if (skill.name === 'Zap') {
     const zap = elementalistBalanceEffect(context, PROFILE.familiarUtility, 'buff', 'Zap Window');
     context.emit({
@@ -357,6 +371,7 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
       duration: Number(zap?.duration ?? 5)
     });
   }
+
   if (BASIC_FAMILIARS.has(skill.name)) {
     state.charges = 0;
     state.empowered = Math.min(
@@ -372,6 +387,7 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
         Math.max(Number(context.state.cooldowns.get(empowered.id) || 0), at + delay)
       );
     }
+
     emitResource(context, skill, state);
   } else if (FAMILIAR_ELEMENTS[skill.name]) {
     state.empowered = 0;
@@ -380,13 +396,16 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
     state.charges = state.maximumCharges;
     emitResource(context, skill, state);
   }
+
   if (completesActiveFamiliar) {
     flushPendingWeaponChargeGains(context, state);
     state.activeFamiliarCast = null;
   }
+
   if (skill.name === 'Elemental Procession') {
     releaseElementalProcession(context, skill);
   }
+
   if (skill.name === "Hare's Agility") {
     const stacks = elementalistBalanceValue(context, PROFILE.familiarUtility, 'playerStacks', 5);
     state.electricEnchantmentStacks += stacks;

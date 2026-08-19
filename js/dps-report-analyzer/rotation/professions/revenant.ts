@@ -96,14 +96,17 @@ function normalizeRevenantAutoattacks(
       expectedSkillId = next != null && Number.isFinite(next) ? next : chainRoot;
       continue;
     }
+
     // Weapon and legend changes reset the equipped autoattack chain; ordinary
     // weapon/legend skills do not, so preserve EI's later chain stages across them.
     if (action.isSwap || skill?.handlerId === 'revenant.legend-swap') {
       activeChainRoot = null;
       expectedSkillId = null;
     }
+
     result.push(action);
   }
+
   return result;
 }
 

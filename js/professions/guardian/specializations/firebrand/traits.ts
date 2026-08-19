@@ -55,6 +55,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
       state.swiftScholarTome = virtue;
       state.swiftScholarCount = 0;
     }
+
     // If the passive was on cooldown when the tome opened, don't reset the
     // timer; the existing tomeDormantReadyAt carries the correct future time.
     const passiveReadyAt = passiveWasReady
@@ -89,6 +90,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
       });
     }
   }
+
   if (
     skill.type === 'Heal' &&
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.LIBERATORS_VOW) &&
@@ -108,6 +110,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
       icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.LIBERATORS_VOW)
     });
   }
+
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS) && isFinalMantraCharge(context, skill)) {
     const profile = guardianBalanceProfile(context, PROFILE.weightyTerms);
     const slow = guardianBalanceProfileEffect(profile, 'condition');
@@ -116,6 +119,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
     if (state.tomePages >= state.maximumTomePages) {
       state.nextTomePageAt = Number.POSITIVE_INFINITY;
     }
+
     context.emit({
       type: 'condition',
       at,
@@ -174,6 +178,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
     });
     return;
   }
+
   // Stoic Demeanor also triggers on certain debuffs applied to allies, which
   // arrive as condition events rather than control events; "slow" and "slowed"
   // are both checked because data inconsistency in the event stream.
@@ -200,6 +205,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
         triggeredBy: event.skillName
       });
     }
+
     emitGuardianProc(context, {
       name: 'Stoic Demeanor',
       at: event.at,
@@ -209,6 +215,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
     });
     return;
   }
+
   if (event.type !== 'damage') return;
   const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
   if (
@@ -273,6 +280,7 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
   ) {
     return;
   }
+
   const quickfire = guardianBalanceProfile(context, PROFILE.quickfire);
   const ashes = guardianBalanceProfile(context, PROFILE.ashes);
   const ashesBuff = guardianBalanceProfileEffect(quickfire, 'buff');
@@ -324,6 +332,7 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
       });
     }
   }
+
   context.recordProc(
     'trait',
     'Quickfire',

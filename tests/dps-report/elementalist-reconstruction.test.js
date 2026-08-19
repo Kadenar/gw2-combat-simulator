@@ -10,6 +10,7 @@ const skill = (id, name, extras = {}) => ({ id, name, implemented: true, ...extr
 // These fixtures isolate the EI signals needed for each Elementalist recovery rule.
 function reportFixture(profession, rotation, skillMap, extras = {}) {
   const end = extras.end ?? 10_000;
+
   return parseDpsReport({
     durationMS: end,
     players: [
@@ -214,6 +215,7 @@ test('recovers an unexplained equipped aura skill from its buff activation', () 
   const wrongWeapon = reconstructDpsReportRotation(report, catalog, {
     professionConfig: { primaryWeapon: 'Scepter', secondaryWeapon: 'Dagger' }
   });
+
   assert.equal(
     wrongWeapon.actions.some((action) => action.name === 'Fire Shield'),
     false

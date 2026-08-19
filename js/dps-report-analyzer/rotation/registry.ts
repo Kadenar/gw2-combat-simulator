@@ -62,10 +62,12 @@ export function reconstructDpsReportRotation(
   ) {
     player = undefined;
   }
+
   if (!player) {
     if (!players.length) {
       throw new DpsReportError('NO_PLAYER', 'The Elite Insights report contains no supported player.');
     }
+
     throw new DpsReportError(
       options.playerIndex == null ? 'PLAYER_SELECTION_REQUIRED' : 'PLAYER_NOT_FOUND',
       options.playerIndex == null
@@ -73,6 +75,7 @@ export function reconstructDpsReportRotation(
         : 'The requested player is not present in the Elite Insights report.'
     );
   }
+
   const parser = getDpsReportProfessionRotationParser(player.professionId, player.specializationId);
   if (!parser) {
     throw new DpsReportError(
@@ -80,5 +83,6 @@ export function reconstructDpsReportRotation(
       `No dps.report rotation parser is registered for ${player.professionName} ${player.specializationName}.`
     );
   }
+
   return parser.reconstruct(report, catalog, { ...options, playerIndex: player.index });
 }

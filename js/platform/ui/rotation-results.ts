@@ -171,6 +171,7 @@ export function nextResultSortState(
   if (currentColumn !== column) {
     return { column, direction: 'desc' };
   }
+
   const direction: ResultSortDirection =
     currentDirection === 'desc' ? 'asc' : currentDirection === 'asc' ? null : 'desc';
   return {
@@ -200,6 +201,7 @@ export function sortResultRows(
       return direction === 'asc' ? Number(leftValue) - Number(rightValue) : Number(rightValue) - Number(leftValue);
     });
   }
+
   return sorted.sort((left, right) =>
     direction === 'asc'
       ? String(left[column] ?? '').localeCompare(String(right[column] ?? ''))
@@ -274,6 +276,7 @@ function skillCellHtml(row: ResultRow, column: ResultColumn, options: RotationRe
     const icon = options.resolveSkillIcon?.(row) || options.placeholderIcon || '';
     return `<span class="res-skill"><img src="${escapeHtml(icon)}" alt="" />${escapeHtml(value)}</span>`;
   }
+
   const formatted = column.format
     ? column.format(value, row)
     : value == null
@@ -314,6 +317,7 @@ function skillRowsHtml(
     groupRows.push(row);
     grouped.set(group, groupRows);
   }
+
   const preferredOrder = new Map([
     ['Player', 0],
     ['Entities', 1],
@@ -332,9 +336,11 @@ function skillRowsHtml(
           if (column.key === 'name') {
             return `<span class="res-skill-group-name">${escapeHtml(group)}</span>`;
           }
+
           if (!summaryColumns.has(column.key)) {
             return '<span aria-hidden="true"></span>';
           }
+
           const total = groupRows.reduce((sum, row) => sum + Number(row[column.key] || 0), 0);
           const label = column.label || column.key;
           const classAttr = column.className ? ` ${escapeHtml(column.className)}` : '';
@@ -637,6 +643,7 @@ export function mountRotationResults(
       // Re-rendering discards row handlers; rebind selection and reapply it.
       bindSkillSelection();
     }
+
     const header = container.querySelector<HTMLElement>('[data-role="skill-header"]');
     if (header) {
       header.innerHTML = skillHeaderHtml(skillColumns, sortState);
@@ -644,6 +651,7 @@ export function mountRotationResults(
       bindSort();
     }
   };
+
   const bindSort = (): void => {
     const header = container.querySelector<HTMLElement>('[data-role="skill-header"]');
     for (const cell of header?.querySelectorAll<HTMLElement>('[data-sort-col]') || []) {
@@ -666,6 +674,7 @@ export function mountRotationResults(
       rowElement.setAttribute('aria-pressed', String(active));
     }
   };
+
   // Inline "Damage Events" timeline inserted beneath the selected row, showing
   // one marker per hit. Removed and re-inserted so it survives row re-sorts.
   const renderSkillTimeline = (): void => {
@@ -682,6 +691,7 @@ export function mountRotationResults(
         break;
       }
     }
+
     const doc = container.ownerDocument;
     if (!target || !doc || typeof target.after !== 'function') return;
     const timeline = doc.createElement('div');
@@ -694,6 +704,7 @@ export function mountRotationResults(
       label: 'Damage Events'
     });
   };
+
   const selectSkill = (key: string | null): void => {
     // Clicking the active row again clears the selection.
     selectedSkillKey = key && key === selectedSkillKey ? null : key;
@@ -701,6 +712,7 @@ export function mountRotationResults(
     chartHandle?.setSelectedSkill(selectedSkillKey);
     renderSkillTimeline();
   };
+
   const bindSkillSelection = (): void => {
     for (const rowElement of container.querySelectorAll<HTMLElement>('[data-role="skill-rows"] .res-row-selectable')) {
       rowElement.onclick = () => selectSkill(rowElement.dataset.skillKey || null);
@@ -711,6 +723,7 @@ export function mountRotationResults(
         }
       };
     }
+
     applySkillRowSelection();
     renderSkillTimeline();
   };
@@ -725,6 +738,7 @@ export function mountRotationResults(
         healthBreakpoints: breakpoints
       }) || null;
   }
+
   bindSkillSelection();
   const runRandomDistribution = container.querySelector<HTMLElement>('[data-role="rng-run"]');
   if (runRandomDistribution && typeof options.onRunRandomDistribution === 'function') {
@@ -732,11 +746,13 @@ export function mountRotationResults(
       options.onRunRandomDistribution?.();
     };
   }
+
   const runRelicComparison = container.querySelector<HTMLElement>('[data-role="relic-comparison-run"]');
   if (runRelicComparison && typeof options.onRunRelicComparison === 'function') {
     runRelicComparison.onclick = () => {
       options.onRunRelicComparison?.();
     };
   }
+
   return { getSortState: () => ({ ...sortState }), renderSortedRows };
 }

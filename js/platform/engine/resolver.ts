@@ -190,6 +190,7 @@ export function resolveScheduledStream<TProfessionState extends object>({
     handlerRegistry.dispatch(event, context);
     state.resolvedEvents.push(event);
   }
+
   const duration = Math.max(0.0001, scheduled.rotationEndTime);
   const totalDamage = state.totals.strike + state.totals.condition;
   return {

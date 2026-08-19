@@ -83,6 +83,7 @@ function selectedPrimaryWeapon(context: WarriorUiContext, weaponSet: 1 | 2): str
   if (context.build) {
     return String(weaponSet === 1 ? context.build.weapons?.[0] || '' : context.build.alternateWeapons?.[0] || '');
   }
+
   return String(weaponSet === 1 ? context.config?.primaryWeapon || '' : context.config?.weaponSet2Primary || '');
 }
 
@@ -178,6 +179,7 @@ function availability(context: WarriorUiContext, skill: WarriorSkill): PaletteSk
       message: `Switch to weapon set ${requiredWeaponSet}`
     };
   }
+
   if (skill.primalBurst && !state.berserkActive) return { available: false, message: 'Enter berserk mode first' };
   if (skill.handlerId === 'warrior.berserk' && state.berserkActive)
     return { available: false, message: 'Already in berserk mode' };
@@ -188,17 +190,20 @@ function availability(context: WarriorUiContext, skill: WarriorSkill): PaletteSk
       ? { available: true, message: '' }
       : { available: false, message: 'Requires Bladesworn' };
   }
+
   if (skill.gunsaberSkill) {
     if (specialization !== 'Bladesworn') return { available: false, message: 'Requires Bladesworn' };
     if ((skill.dragonSlash || skill.dragonTriggerSkill) && !state.dragonTriggerActive) {
       return { available: false, message: 'Enter Dragon Trigger first' };
     }
+
     if (!skill.dragonSlash && !skill.dragonTriggerSkill && !state.gunsaberActive)
       return { available: false, message: 'Unsheathe the gunsaber first' };
     if (state.dragonTriggerActive && !skill.dragonSlash && !skill.dragonTriggerSkill) {
       return { available: false, message: 'Finish Dragon Trigger first' };
     }
   }
+
   if (
     specialization === 'Bladesworn' &&
     (state.gunsaberActive || state.dragonTriggerActive) &&
@@ -207,9 +212,11 @@ function availability(context: WarriorUiContext, skill: WarriorSkill): PaletteSk
   ) {
     return { available: false, message: 'Sheathe the gunsaber first' };
   }
+
   if (skill.id === ID.UNSHEATHE_GUNSABER && state.gunsaberActive) {
     return { available: false, message: 'Gunsaber is already active' };
   }
+
   return { available: true, message: '' };
 }
 
@@ -260,6 +267,7 @@ function warriorCoreStateSnapshot(context: WarriorUiContext): RotationStateSnaps
       title: 'Peak Performance: +10% strike damage (+15% total from trait)'
     });
   }
+
   if (!hasSignetMasteryTrait(context)) return items;
   const stacks = Math.min(SIGNET_MASTERY_MAX_STACKS, timedBuffStacksAt(result, 'signet-mastery', at));
   if (stacks > 0) {
@@ -270,6 +278,7 @@ function warriorCoreStateSnapshot(context: WarriorUiContext): RotationStateSnaps
       title: `Signet Mastery: +${stacks * 100} ferocity (+100 per stack)`
     });
   }
+
   return items;
 }
 

@@ -144,9 +144,11 @@ function normalizeOptions(options: { entries?: readonly SlotLoadoutEntryInput[] 
   if (entries.length < 2 || entries.some((entry) => !entry.id)) {
     throw new TypeError('A fixed slot loadout requires at least two stable entries.');
   }
+
   if (new Set(entries.map((entry) => entry.id)).size !== entries.length) {
     throw new TypeError('Fixed slot loadout entry ids must be unique.');
   }
+
   return Object.freeze(entries);
 }
 
@@ -182,6 +184,7 @@ export function createFixedSlotLoadout({
   if (!selectionKeyOption || !startingKeyOption || selectionCount < 1) {
     throw new TypeError('Fixed slot loadouts require selectionKey, startingKey, and selectionCount.');
   }
+
   // Capture the validated keys as `const` so their narrowed `string` type
   // survives into the closures below (destructured params do not).
   const selectionKey: string = selectionKeyOption;
@@ -211,6 +214,7 @@ export function createFixedSlotLoadout({
       if (legalIds.has(candidate) && !selected.includes(candidate) && selected.length < selectionCount)
         selected.push(candidate);
     }
+
     return selected;
   }
 
@@ -235,9 +239,11 @@ export function createFixedSlotLoadout({
     ) {
       errors.push(`${selectionKey} must contain ${selectionCount} distinct legal ${entryLabel.toLowerCase()} ids.`);
     }
+
     if (!selected.includes(stableId(build?.[startingKey]))) {
       errors.push(`${startingKey} must be included in ${selectionKey}.`);
     }
+
     return errors;
   }
 
@@ -279,6 +285,7 @@ export function createFixedSlotLoadout({
         }))
       });
     }
+
     const bars: SlotLoadoutBar[] = selected.map((value) => {
       const entry = byId.get(value);
       return {
@@ -329,6 +336,7 @@ export function createFixedSlotLoadout({
     } else if (selectorKey === startingKey && selected.includes(stableId(value))) {
       build[startingKey] = stableId(value);
     }
+
     return build;
   }
 

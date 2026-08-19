@@ -34,6 +34,7 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
       event.skillId ?? event.sourceId
     );
   }
+
   if (event.type === 'damage' && event.actorType === 'player' && Number(event.coefficient) > 0) {
     if (state.electricEnchantmentStacks > 0) {
       state.electricEnchantmentStacks -= 1;
@@ -41,9 +42,11 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
       emitElectricEnchantment(context, event);
     }
   }
+
   if (event.type !== 'elementalist.attunement' && event.type !== 'elementalist.attunement-enter') {
     return;
   }
+
   // only counts entering YOUR current element (Elemental Dynamo or Specialized Elements entry)
   if (event.to !== state.element) return;
   if (hasTrait(context, 'Elemental Balance')) {
@@ -65,6 +68,7 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
       });
     }
   }
+
   if (!hasTrait(context, 'Elemental Dynamo')) return;
   state.charges = Math.min(
     state.maximumCharges,

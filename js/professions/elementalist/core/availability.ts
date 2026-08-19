@@ -50,6 +50,7 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
   ) {
     return unavailable(skill, 'elementalist.pistol-bullets', 'requires all four elemental bullets.');
   }
+
   const target = targetAttunement(skill);
   if (target) {
     if (
@@ -58,6 +59,7 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
     ) {
       return unavailable(skill, 'elementalist.same-attunement', `already attuned to ${target}.`);
     }
+
     const naturalReadyAt = Number(state.attunementReadyAt[target] || 0);
     const freshAirReadyAt = target === 'Air' ? projectedFreshAirReadyAt(context, naturalReadyAt) : null;
     const readyAt = freshAirReadyAt == null ? naturalReadyAt : Math.min(naturalReadyAt, freshAirReadyAt);
@@ -97,6 +99,7 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
       ? ready()
       : unavailable(skill, 'elementalist.no-bundle', 'no conjured weapon is equipped.');
   }
+
   if (skill.name.startsWith('__pickup_')) {
     const weapon = skill.name.slice('__pickup_'.length);
     const expiresAt = Number(state.conjurePickups[weapon] || 0);
@@ -123,6 +126,7 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
   if (skill.name === 'Hurl' && state.rockBarrierExpiresAt <= context.start + context.epsilon) {
     return unavailable(skill, 'elementalist.rock-barrier', 'requires an active Rock Barrier.');
   }
+
   if (skill.name === 'Rock Barrier' && state.rockBarrierExpiresAt > context.start + context.epsilon) {
     return unavailable(
       skill,
@@ -160,6 +164,7 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
         retryAt
       );
     }
+
     if (
       hammerElements.some((element) => {
         const expiresAt = state.hammerOrbs[element];
@@ -200,14 +205,17 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
         `drop ${state.conjureEquipped} before using normal weapon skills.`
       );
     }
+
     const chainAvailability = autoattackChainAvailability(context, skill, state);
     if (chainAvailability) return chainAvailability;
     return weaponAttunementAvailable(context, skill, state);
   }
+
   if (skill.attunement && !String(skill.attunement).includes('+') && skill.type !== 'Profession') {
     return String(skill.attunement) === state.primaryAttunement
       ? ready()
       : unavailable(skill, 'elementalist.attuned-utility', `requires ${String(skill.attunement)} attunement.`);
   }
+
   return ready();
 }

@@ -34,6 +34,7 @@ export function selectedDeadeyeStolenSkill(context: ThiefCastContext): number {
   if (hasThiefTrait(context.config, TRAIT.FIRE_FOR_EFFECT)) {
     return ID.STEAL_TIME;
   }
+
   const choice = context.config.deterministicChoices?.deadeyeStolenSkillChoice || 'steal-time';
   return DEADEYE_STOLEN_ID_BY_CHOICE[choice] || DEADEYE_STOLEN_ID_BY_CHOICE['steal-time'];
 }
@@ -72,6 +73,7 @@ export function observeDeadeyeScheduledEvent(context: ThiefSchedulerContext, eve
   ) {
     return;
   }
+
   const skill = skillForEvent(context, event);
   if (!skill || (!skill.malicious && !isInitiativeAttack(skill))) return;
   // Negative priority ensures the task runs after all damage events for this activation have been appended
@@ -100,6 +102,7 @@ function gainInitiativeAttackMalice(context: ThiefSchedulerContext, event: Thief
     criticalMalice = Math.floor(state.maliceCriticalProgress + context.epsilon);
     state.maliceCriticalProgress -= criticalMalice;
   }
+
   state.malice = Math.min(
     state.maximumMalice,
     state.malice + Number(resources?.resourceGain || 1) + criticalMalice * Number(resources?.playerStacks || 1)
@@ -119,6 +122,7 @@ function consumeMaliciousAttackMalice(context: ThiefSchedulerContext, event: Thi
     applyMaleficentSeven(context, event.at);
     emitThiefState(context, event.at, 'malicious-intent');
   }
+
   state.malice = 0;
   state.maleficentSevenTriggered = false;
   emitThiefState(context, event.at, 'malice-spent');
@@ -134,6 +138,7 @@ export function resolveDeadeyeMaliceHit(
   if (!event || typeof activationId !== 'string' || !markedAt(context, task.at)) {
     return;
   }
+
   const skill = skillForEvent(context, event);
   if (!skill) return;
   const state = deadeyeState.from(context);
@@ -156,6 +161,7 @@ function updateSilentScope(context: ThiefCastContext, skill: ThiefSkill): void {
   ) {
     return;
   }
+
   // Silent Scope grants one out-of-stealth stealth-attack charge, expiring 3s after the dodge ends
   state.stealthAttackCharges = 1;
   state.stealthAttackExpiresAt =
@@ -182,6 +188,7 @@ function updateCantripTraits(context: ThiefCastContext, skill: ThiefSkill): void
     });
     emitThiefState(context, at, 'deadeye-relic');
   }
+
   if (hasThiefTrait(context.config, TRAIT.ONE_IN_THE_CHAMBER)) {
     // One in the Chamber recharges the stolen skill on every cantrip use, overwriting any previously stored skill
     storeStolenSkill(context, selectedDeadeyeStolenSkill(context));

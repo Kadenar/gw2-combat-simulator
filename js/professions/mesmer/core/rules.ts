@@ -117,11 +117,13 @@ function traitSet(config: MesmerSchedulerContext['config'], catalog: MesmerCatal
     byId.set(Number(trait.id), trait);
     byName.set(trait.name, trait);
   }
+
   const values = new Set<number>();
   for (const value of configured) {
     const trait = (typeof value === 'string' ? byName.get(value) : undefined) || byId.get(Number(value));
     if (trait) values.add(Number(trait.id));
   }
+
   return values;
 }
 
@@ -268,17 +270,20 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
       if (event.type !== 'condition' || !active.skill.applyConditionsOnInterrupt) {
         return null;
       }
+
       return context.emit({
         activationId: active.activationId,
         ...event,
         at: active.effectiveEnd
       });
     }
+
     return context.emit({
       ...(active ? { activationId: active.activationId } : {}),
       ...event
     });
   };
+
   const { addEvent, addTraitProc, addCondition, addDamage } = createMesmerEventMaterializer({
     emit,
     activePrimaryWeapon,
@@ -306,6 +311,7 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
   const destroyClone = (clone: MesmerClone, _at: number) => {
     context.tasks.cancelOwner(clone.ownerId || `mesmer.clone:${clone.id}`);
   };
+
   const scheduleResourceTask = (candidate: MesmerPendingResource) => {
     if (runtime.activeEmission && candidate.at > runtime.activeEmission.effectiveEnd + EPSILON) return;
     context.tasks.schedule({
@@ -314,6 +320,7 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
       payload: candidate
     });
   };
+
   const resources = createResourceController({
     state,
     traits,
@@ -454,17 +461,21 @@ function updateAutoattackChains(runtime: MesmerRuntime, skill: MesmerSkill): voi
     for (const root of Object.keys(chains).map(Number)) {
       if (root !== position.root) delete chains[root];
     }
+
     if (position.next == null) {
       delete chains[position.root];
     } else {
       chains[position.root] = position.next;
     }
+
     return;
   }
+
   if (skill.id === -3) {
     professionCoreState(state).autoattackChains = {};
     return;
   }
+
   if (Number(skill.castTimeMs || 0) > 0 && skill.rechargeAnchor !== 'castStart') {
     for (const root of Object.keys(chains).map(Number)) {
       const preserve = preservesAutoattackChain(root, skill);
@@ -504,6 +515,7 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
       runtime.actions.restoreReservedResources(Number(details.shatterSpent || 0));
       return;
     }
+
     updateAutoattackChains(runtime, skill);
     if (skill.id === -3) {
       state.activeWeaponSet = state.activeWeaponSet === 1 ? 2 : 1;
@@ -514,10 +526,12 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
       });
       return;
     }
+
     if (skill.id === -4) {
       runtime.continuum.restoreContinuum(context.effectiveEnd, 'manual shift');
       return;
     }
+
     if (skill.id === -1) {
       runtime.mirage.grantMirageCloak(context.effectiveEnd, skill.name);
       if (runtime.traits.has(TRAIT.DECEPTIVE_EVASION)) {
@@ -532,8 +546,10 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
           }
         );
       }
+
       return;
     }
+
     if (skill.id === ID.DODGE_TROUBADOUR) {
       if (runtime.traits.has(TRAIT.MAYHEM)) {
         const flute = runtime.skillsById.get(ID.FLUSTERING_FLUTE);
@@ -549,8 +565,10 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
           runtime.addTraitProc('Mayhem', context.effectiveEnd, skill.name);
         }
       }
+
       return;
     }
+
     if (skill.id === ID.PICK_UP_MIRAGE_MIRROR) {
       runtime.mirage.pickUpMirror(context.effectiveEnd, skill.name);
       return;
@@ -588,6 +606,7 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
             : undefined
         );
       }
+
       runtime.mirage.handlePostSkill(skill, at);
       const armedFlip = runtime.flipSkillsByParent.get(skill.id);
       if (armedFlip && context.maximumAmmoFor(armedFlip)) {
@@ -610,6 +629,7 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
           }
         }
       }
+
       const flipParentId = skill.mesmerMechanic?.flipParentId;
       if (flipParentId) {
         const flipAmmo = state.ammo.get(skill.id);
@@ -622,9 +642,11 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
         } else {
           delete professionCoreState(state).availableFlips[skill.id];
         }
+
         if (skill.id === ID.COUNTERSPELL) {
           professionCoreState(state).counterspellAvailable = false;
         }
+
         if (skill.parentCooldownIncrease) {
           const parent = runtime.skillsById.get(flipParentId);
           const parentReadyAt = parent ? state.cooldowns.get(parent.id) : null;
@@ -637,6 +659,7 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
         }
       }
     }
+
     if (context.config.specialization === 'Troubadour' && TROUBADOUR_TALE_IDS.has(skill.id)) {
       runtime.actions.handleTale(skill, at, context.start);
       if (skill.id === ID.TALE_OF_THE_HONORABLE_ROGUE) {
@@ -649,6 +672,7 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
         }
       }
     }
+
     if (
       context.config.specialization === 'Troubadour' &&
       skill.resource?.mode === 'phantasm' &&
@@ -662,6 +686,7 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
         { traitId: TRAIT.HARMONIZE, traitName: 'Harmonize' }
       );
     }
+
     const core = professionCoreState(state);
     const mimicUntil = Number(core.traitReadyAt.mimicUntil || 0);
     if (skill.id === ID.MIMIC) {
@@ -687,6 +712,7 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
         reduction: context.rechargeDuration
       });
     }
+
     if (skill.id === ID.SIGNET_OF_THE_ETHER) {
       // In-game bug: the signet re-applies its own cooldown 300ms after the
       // cast completes.
@@ -696,9 +722,11 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
         payload: { skillId: skill.id }
       });
     }
+
     if (skill.id === ID.SIGNET_OF_ILLUSIONS) {
       restartSignetIllusionsPassive(context, context.fullEnd);
     }
+
     const disabled = runtime.controlSkills.has(skill.id) || (skill.id === ID.MENTAL_COLLAPSE && clarityConsumed);
     if (disabled && !runtime.instruments[skill.id]) {
       runtime.addEvent({
@@ -711,9 +739,11 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
         skillName: skill.name
       });
     }
+
     if (runtime.blindSkills.has(skill.id)) {
       runtime.addEvent({ type: 'blind', at, skillName: skill.name });
     }
+
     if (runtime.aristocracySkills.has(skill.id)) {
       runtime.addEvent({
         type: 'weakness_vulnerability',
@@ -721,6 +751,7 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
         skillName: skill.name
       });
     }
+
     if (runtime.peithaSkills.has(skill.id)) {
       // Shadowsteps and deception skills trigger Peitha on activation, not at
       // cast end or when a Mirage Mirror is collected.
@@ -748,6 +779,7 @@ export function initializeMesmerScheduler(context: MesmerSchedulerContext): void
   if (context.state.activeWeaponSet === 2 && !context.config.weaponSet2Primary && !context.config.weaponSet2Secondary) {
     context.state.activeWeaponSet = 1;
   }
+
   const runtime = createMesmerRuntime(context);
   context.mesmerRuntime = runtime;
   const { state, config } = context;
@@ -759,9 +791,11 @@ export function initializeMesmerScheduler(context: MesmerSchedulerContext): void
   ) {
     context.schedulerPolicy.requireCriticalFacts?.();
   }
+
   if (state.profession.specialization.kind === 'Mirage') {
     state.profession.specialization.state.riddleOfSandReady = runtime.traits.has(TRAIT.RIDDLE_OF_SAND);
   }
+
   const initial = clamp(Number(config.initialResource || 0), 0, runtime.resourceDefinition.maximum);
   runtime.resources.gainResources(0, initial, config.primaryWeapon, 'initial', {
     kind: 'initial'
@@ -770,10 +804,12 @@ export function initializeMesmerScheduler(context: MesmerSchedulerContext): void
     if (skill.id === ID.DODGE_TROUBADOUR && config.specialization !== 'Troubadour') {
       continue;
     }
+
     if (context.maximumAmmoFor(skill) > 0) {
       context.cooldownController.ensureAmmo(skill, 0);
     }
   }
+
   for (const skill of context.catalog.skills) {
     if (skill.armedAtStart && skill.mesmerMechanic?.flipParentId && context.maximumAmmoFor(skill)) {
       professionCoreState(state).availableFlips[skill.id] = {
@@ -783,6 +819,7 @@ export function initializeMesmerScheduler(context: MesmerSchedulerContext): void
       context.cooldownController.ensureAmmo(skill, 0);
     }
   }
+
   if (runtime.traits.has(TRAIT.INFINITE_FORGE)) {
     context.tasks.schedule({
       type: TASK.infiniteForge,
@@ -792,6 +829,7 @@ export function initializeMesmerScheduler(context: MesmerSchedulerContext): void
       payload: {}
     });
   }
+
   restartSignetIllusionsPassive(context, 0);
 }
 
@@ -818,6 +856,7 @@ export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill):
       rotationIndex: context.commandIndex
     });
   }
+
   runtime.castDetails.set(context.reservationId, {
     reservedShatterResources: delayedBladeSpend,
     shatterSpendCommitted: !delayedBladeSpend,
@@ -869,9 +908,11 @@ export function advanceMesmerScheduler(context: MesmerSchedulerContext, target: 
       }
     }
   }
+
   if (active.kind === 'Mirage') {
     active.state.mirrors = active.state.mirrors.filter((mirror) => mirror.expiresAt > target + EPSILON);
   }
+
   for (const [skillId, flip] of Object.entries(profession.availableFlips)) {
     if (flip.expiresAt < target - EPSILON) {
       delete profession.availableFlips[skillId];
@@ -1038,6 +1079,7 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
       triggerChaoticInterruption(context, event, skillName);
     }
   }
+
   if (event.type === 'proc' && event.sourceId === 'sigil.energy' && context.config.specialization === 'Mirage') {
     const dodge = runtime.skillsById.get(ID.DODGE_MIRAGE_CLOAK);
     const ammo = dodge ? context.cooldownController.refreshAmmo(dodge, event.at) : null;
@@ -1047,6 +1089,7 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
       context.state.cooldowns.delete(dodge.id);
     }
   }
+
   if (event.type === 'combat_start') {
     professionCoreState(context).hasExplicitCombatStart = true;
     professionCoreState(context).combatStartTime = event.at;
@@ -1170,6 +1213,7 @@ export function handleExpectedProcTask(
       });
     }
   }
+
   runtime.expected.process(task.payload.type === 'hit' && event ? { ...task.payload, event } : task.payload);
 }
 
@@ -1214,6 +1258,7 @@ export function handleSignetIllusionsPassiveTask(
     restartSignetIllusionsPassive(context, readyAt);
     return;
   }
+
   runtime.resources.gainResources(
     task.at,
     mesmerBalanceValue(context, PROFILE.signetOfIllusions, 'resourceGain', 1),
@@ -1241,9 +1286,11 @@ export function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDurat
   if (skill.id === ID.SWAP_WEAPONS) {
     return sharedDuration === 0 ? 0 : Number(skill.cooldown || 0);
   }
+
   if (skill.id === ID.DODGE_MIRAGE_CLOAK) {
     return Number(skill.cooldown || 0) / (config.boons?.vigor ? 1.5 : 1);
   }
+
   if (skill.id === ID.DODGE_TROUBADOUR) {
     const active = mesmerRuntimeFor(context).context.state.profession.specialization;
     const flutePlaying =
@@ -1251,6 +1298,7 @@ export function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDurat
       Number(active.state.instruments.Flute || 0) > mesmerRuntimeFor(context).context.state.time;
     return Number(skill.cooldown || 0) / (flutePlaying ? 1.25 : 1);
   }
+
   const traits = mesmerRuntimeFor(context).traits;
   let multiplier = 1;
   if (
@@ -1261,6 +1309,7 @@ export function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDurat
   if (skill.weapon === 'Sword' && traits.has(TRAIT.FENCERS_FINESSE)) {
     multiplier *= mesmerBalanceValue(context, PROFILE.fencersFinesse, 'rechargeMultiplier', 0.8);
   }
+
   const rechargeRate = gw2RechargeRate(config, {
     alacrityRate: config.specialization === 'Chronomancer' ? 1.5 : 1.25
   });
@@ -1271,6 +1320,7 @@ export function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDurat
     const baseCooldown = Number(skill.cooldown ?? skill.recharge ?? 0);
     return Math.max(0, baseCooldown * multiplier - reduction) / rechargeRate;
   }
+
   return gw2EffectiveCooldown(skill, config, {
     cooldownMultiplier: multiplier,
     rechargeRate

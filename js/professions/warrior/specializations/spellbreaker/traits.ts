@@ -75,8 +75,10 @@ export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event
     if (applications > 0 && hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
       gainAttackersInsight(context, spellbreakerState.from(context), event.at, applications);
     }
+
     return;
   }
+
   if (event.type === 'control') {
     if (hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
       gainAttackersInsight(
@@ -86,6 +88,7 @@ export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event
         attackerInsightApplications(context, event)
       );
     }
+
     if (
       hasTrait(context, TRAIT.NO_ESCAPE) &&
       ['daze', 'stun'].includes(String(event.controlKind || '').toLowerCase())
@@ -105,11 +108,14 @@ export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event
         duration: Number(effect?.duration ?? 1)
       });
     }
+
     return;
   }
+
   if (event.type !== 'damage' || !(Number(event.coefficient) > 0)) {
     return;
   }
+
   if (!hasTrait(context, TRAIT.MAGEBANE_TETHER)) return;
   const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
   if (skill?.burst) {
@@ -132,6 +138,7 @@ export function reactToSpellbreakerDamage(context: WarriorResolverContext, event
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || !hasTrait(context, TRAIT.MAGEBANE_TETHER)) {
     return;
   }
+
   const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
   if (skill?.burst && triggerMagebaneTether(context, spellbreakerState.from(context), event.at)) {
     context.recordProc('trait', 'Magebane Tether', event.at, event.skillName, '15% strike damage for 8 seconds');

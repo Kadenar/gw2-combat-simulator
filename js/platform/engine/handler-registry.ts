@@ -22,9 +22,11 @@ export class HandlerRegistry<TContext = unknown, TEvent extends { type: string }
     if (!eventType || typeof handler !== 'function') {
       throw new TypeError('Event handler registration requires a type and function.');
     }
+
     if (this.#handlers.has(eventType)) {
       throw new Error(`Duplicate event handler registration: ${eventType}`);
     }
+
     this.#handlers.set(eventType, handler);
     return this;
   }
@@ -38,6 +40,7 @@ export class HandlerRegistry<TContext = unknown, TEvent extends { type: string }
     for (const [type, handler] of Object.entries(handlers || {})) {
       this.register(type, handler);
     }
+
     return this;
   }
 
@@ -61,6 +64,7 @@ export class HandlerRegistry<TContext = unknown, TEvent extends { type: string }
         throw new Error(`Missing required event handler: ${type}`);
       }
     }
+
     return this;
   }
 
@@ -75,6 +79,7 @@ export class HandlerRegistry<TContext = unknown, TEvent extends { type: string }
     if (!handler) {
       throw new Error(`No event handler registered for required type: ${event.type}`);
     }
+
     return handler(context, event);
   }
 

@@ -151,6 +151,7 @@ test('duration-stacking boon charts show remaining stacked seconds', () => {
       name
     );
   }
+
   assert.deepEqual(series.effectUnits, {
     Quickness: 's',
     Alacrity: 's',

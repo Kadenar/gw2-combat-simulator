@@ -56,6 +56,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
       name: "Serpent's Touch — Poison"
     });
   }
+
   if (hasThiefTrait(context.config, TRAIT.MUG)) {
     const strike = traitEffect(context, PROFILE.mug, 'strike');
     context.emit({
@@ -72,6 +73,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
       canCrit: false
     });
   }
+
   if (hasThiefTrait(context.config, TRAIT.EVEN_THE_ODDS)) {
     const vulnerability = traitEffect(context, PROFILE.evenTheOdds, 'condition');
     emitThiefCondition(context, {
@@ -83,6 +85,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
       name: 'Even the Odds — Vulnerability'
     });
   }
+
   if (hasThiefTrait(context.config, TRAIT.DEADLY_AMBUSH)) {
     const bleeding = traitEffect(context, PROFILE.deadlyAmbush, 'condition');
     emitThiefCondition(context, {
@@ -94,6 +97,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
       name: 'Deadly Ambush — Bleeding'
     });
   }
+
   if (hasThiefTrait(context.config, TRAIT.THRILL_OF_THE_CRIME)) {
     for (const effect of (thiefBalanceProfile(context, PROFILE.thrillOfTheCrime)?.effects || []).filter(
       (entry) => entry.type === 'boon'
@@ -107,6 +111,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
       );
     }
   }
+
   if (hasThiefTrait(context.config, TRAIT.BOUNTIFUL_THEFT)) {
     const vigor = traitEffect(context, PROFILE.bountifulTheft, 'boon', 0);
     const might = traitEffect(context, PROFILE.bountifulTheft, 'boon', 1);
@@ -127,6 +132,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
       );
     }
   }
+
   if (hasThiefTrait(context.config, TRAIT.SLEIGHT_OF_HAND)) {
     const control = traitEffect(context, PROFILE.sleightOfHand, 'control');
     context.emit({
@@ -142,6 +148,7 @@ export function emitStealTraitEffects(context: ThiefCastContext): void {
       duration: Number(control?.duration || 1)
     });
   }
+
   if (hasThiefTrait(context.config, TRAIT.HIDDEN_THIEF)) {
     const profile = thiefBalanceProfile(context, PROFILE.hiddenThief);
     const blindness = thiefBalanceProfileEffect(profile, 'condition', 0);
@@ -178,6 +185,7 @@ export function applyStealCompletionTraits(context: ThiefCastContext, at: number
       'kleptomaniac'
     );
   }
+
   if (hasThiefTrait(context.config, TRAIT.ENDURANCE_THIEF)) {
     gainThiefEndurance(
       context,
@@ -202,11 +210,13 @@ export function updateThiefTraitCastState(context: ThiefCastContext, skill: Thie
     ) {
       expirations.push(at + Number(profile?.durationMultiplier || 10));
     }
+
     state.leadAttackExpirations = expirations;
     state.leadAttacksStacks = expirations.length;
     state.leadAttacksUntil = expirations.length ? Math.max(...expirations) : 0;
     emitThiefState(context, at, 'lead-attacks');
   }
+
   if (skill.movementSkill) {
     let movementStateChanged = false;
     if (hasThiefTrait(context.config, TRAIT.FLUID_STRIKES)) {
@@ -214,6 +224,7 @@ export function updateThiefTraitCastState(context: ThiefCastContext, skill: Thie
         at + Number(thiefBalanceProfile(context, PROFILE.fluidStrikes)?.durationMultiplier || 5);
       movementStateChanged = true;
     }
+
     if (hasThiefTrait(context.config, TRAIT.HARD_TO_CATCH)) {
       gainThiefEndurance(
         context,
@@ -225,6 +236,7 @@ export function updateThiefTraitCastState(context: ThiefCastContext, skill: Thie
       emitThiefState(context, at, 'fluid-strikes');
     }
   }
+
   const isDualWieldAttack =
     skill.categories?.includes('DualWield') ||
     Boolean(skill.requiredMainHand && typeof skill.requiredOffHand === 'string');
@@ -580,6 +592,7 @@ export function reactToThiefCoreCondition(context: ThiefResolverContext, applica
       coefficient: Number(strike?.coefficient || 0.033)
     });
   }
+
   if (
     application.condition === 'Immobilized' &&
     application.actorType === 'player' &&
@@ -605,6 +618,7 @@ export function reactToThiefCoreCondition(context: ThiefResolverContext, applica
       triggeredBy: application.skillName
     });
   }
+
   if (application.condition === 'Blindness' && hasThiefTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)) {
     const strike = traitEffect(context, PROFILE.cloakedInShadow, 'strike');
     enqueueSiphon(context, application, {
@@ -613,6 +627,7 @@ export function reactToThiefCoreCondition(context: ThiefResolverContext, applica
       coefficient: Number(strike?.coefficient || 0.04)
     });
   }
+
   if (application.condition === 'Bleeding' && Number(application.bonusAboveNinetyStacks || 0) > 0) {
     const maximum = Number(context.config?.target?.health || 0);
     const damage = Number(context.totals?.strike || 0) + Number(context.totals?.condition || 0);

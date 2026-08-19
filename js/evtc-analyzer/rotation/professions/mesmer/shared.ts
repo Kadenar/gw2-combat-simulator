@@ -109,6 +109,7 @@ function littleEndianHex(value: bigint): string {
       .padStart(2, '0');
     current >>= 8n;
   }
+
   return result.toUpperCase();
 }
 
@@ -181,9 +182,11 @@ export function clusterSignals(
       clustered.push(signal);
       clusterSize = 0;
     }
+
     clusterSize += 1;
     previousTime = signal.event.time;
   }
+
   return clustered;
 }
 
@@ -247,5 +250,6 @@ export function dedupeActions(
     );
     if (!duplicate) kept.push(action);
   }
+
   return kept;
 }

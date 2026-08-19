@@ -245,6 +245,7 @@ export function revenantActiveBoonCount(context: RevenantModifierContext): numbe
       active.add(normalized);
     }
   }
+
   return active.size;
 }
 
@@ -352,6 +353,7 @@ function modifyCoreConditionDuration(context: RevenantModifierContext, duration:
   if (hasTrait(context, TRAIT.PACT_OF_PAIN) && !professionStaticRulesApplied(context.config)) {
     modified += 0.15;
   }
+
   if (
     DAMAGING_CONDITIONS.has(String(context.condition || '')) &&
     hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) &&
@@ -359,6 +361,7 @@ function modifyCoreConditionDuration(context: RevenantModifierContext, duration:
   ) {
     modified += 0.1;
   }
+
   return modified;
 }
 
@@ -376,6 +379,7 @@ function modifyCoreAttributes(context: RevenantModifierContext, attributes: Gw2S
     modified.power = Number(modified.power || 0) + might * 10;
     modified.conditionDamage = Number(modified.conditionDamage || 0) - might * 10;
   }
+
   return modified;
 }
 

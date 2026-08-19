@@ -36,6 +36,7 @@ workerScope.addEventListener('message', async ({ data }) => {
     if (!adapter) {
       throw new Error(`No application adapter for ${request.professionId}.`);
     }
+
     const distribution = adapter.calculateRandomDistribution(request, {
       includeSamples: data.includeSamples === true,
       onProgress(progress) {

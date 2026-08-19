@@ -56,6 +56,7 @@ export function summonThievesGuild(context: ThiefCastContext, skill: ThiefSkill)
       });
     }
   }
+
   emitThiefState(context, at, 'thieves-guild');
 }
 
@@ -113,6 +114,7 @@ export function handleThievesGuildAttack(
       summonUsesEquipmentModifiers: false
     });
   }
+
   const interval = Number(attack.interval || 0);
   const nextAt = task.at + interval;
   if (interval > 0 && nextAt < Number(task.payload.expiresAt || 0)) {

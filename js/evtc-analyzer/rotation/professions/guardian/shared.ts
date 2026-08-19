@@ -59,6 +59,7 @@ export function recordedDuration(
   if (exactDurations.length) {
     return exactDurations[Math.floor(exactDurations.length / 2)];
   }
+
   if (durations.length) return durations[Math.floor(durations.length / 2)];
   const skill = skillFor(context, identity);
   return Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));

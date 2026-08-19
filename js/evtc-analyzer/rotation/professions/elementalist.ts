@@ -95,6 +95,7 @@ function ownedElementalCommandActions(
       ) {
         return [];
       }
+
       const directStart = isAnimationStart(event);
       const unmatchedStop =
         isCompletedAnimationStop(event) &&
@@ -198,10 +199,12 @@ function openingTempestScepterPrecast(
       hasOpeningAirAttunement = true;
       return { ...action, start: airAttunementAt, end: airAttunementAt, precast: true };
     }
+
     if (isAction(action, ID.OVERLOAD_AIR) && Math.abs(action.end - clippedOverload.event.time) <= 150) {
       hasOpeningOverload = true;
       return overloadCombatStart == null ? action : { ...action, inferredCombatStart: overloadCombatStart };
     }
+
     return action;
   });
 
@@ -235,6 +238,7 @@ function openingTempestScepterPrecast(
       precast: true
     });
   }
+
   if (!hasOpeningOverload) {
     adjusted.push({
       start: overloadStart,
@@ -251,6 +255,7 @@ function openingTempestScepterPrecast(
       ...(overloadCombatStart == null ? {} : { inferredCombatStart: overloadCombatStart })
     });
   }
+
   return adjusted;
 }
 
@@ -290,6 +295,7 @@ function collapsedHurlActions(
       eventIndex: packet.eventIndex
     });
   }
+
   return actionsFromPackets;
 }
 
@@ -339,6 +345,7 @@ function inferArcLightningChannelDurations(
         };
       }
     }
+
     if (action.status !== 'completed') return action;
     const packetBoundaryProvesInterruption =
       packets.anyObserved &&

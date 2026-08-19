@@ -83,6 +83,7 @@ export function applyMaleficentSeven(context: ThiefEmissionContext, at: number):
   ) {
     return;
   }
+
   state.maleficentSevenTriggered = true;
   const profile = thiefBalanceProfile(context, PROFILE.maleficentSeven);
   gainThiefInitiative(context, Number(profile?.resourceGain || 7), at, 'maleficent-seven');

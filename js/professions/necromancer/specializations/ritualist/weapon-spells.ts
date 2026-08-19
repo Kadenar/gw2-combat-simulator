@@ -27,6 +27,7 @@ function activeMinionRecipients(state: NecromancerCoreState): string[] {
       recipients.push(`minion:${key}:${index}`);
     }
   }
+
   return recipients;
 }
 
@@ -93,6 +94,7 @@ function applyWeaponSpell(context: NecromancerCastContext, skill: NecromancerSki
       });
     }
   }
+
   return true;
 }
 

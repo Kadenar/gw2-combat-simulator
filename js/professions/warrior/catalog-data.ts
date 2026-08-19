@@ -61,12 +61,14 @@ const canonicalIdByName = new Map<string, SkillId>();
 for (const skill of [...allSkills].sort((left, right) => Number(left.id) - Number(right.id))) {
   if (!canonicalIdByName.has(skill.name)) canonicalIdByName.set(skill.name, skill.id);
 }
+
 const flipParentById = new Map<SkillId, SkillId>();
 for (const skill of allSkills) {
   if (skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId && byId.has(skill.flipSkillId)) {
     flipParentById.set(skill.flipSkillId, skill.id);
   }
 }
+
 const generated: readonly Skill[] = Object.freeze(
   allSkills.map((skill) => {
     const { recharge: legacyRecharge, ...sourceSkill } = skill;

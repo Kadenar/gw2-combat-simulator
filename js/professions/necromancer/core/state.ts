@@ -36,13 +36,16 @@ function necromancerMaximumHealth(config: NecromancerConfig, traits: ReadonlySet
     if (hasNecromancerTrait(traits, NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE)) {
       vitality += Number(config.stats?.power ?? config.attributes?.power ?? 1000) * 0.1;
     }
+
     if (hasNecromancerTrait(traits, NECROMANCER_TRAIT_IDS.VITAL_PERSISTENCE)) {
       vitality += 180;
     }
+
     if (config.specialization === 'Harbinger' || hasNecromancerTrait(traits, NECROMANCER_TRAIT_IDS.ALCHEMIC_VIGOR)) {
       vitality += 240;
     }
   }
+
   return NECROMANCER_BASE_HEALTH + Math.max(0, vitality) * 10;
 }
 
@@ -72,6 +75,7 @@ export function syncNecromancerResources<
     state.blightExpiries = (state.blightExpiries || []).sort((left, right) => left - right).slice(-25);
     state.blight = state.blightExpiries.length;
   }
+
   state.soulShardExpiries = (state.soulShardExpiries || []).sort((left, right) => left - right).slice(-6);
   state.soulShards = state.soulShardExpiries.length;
   return state;

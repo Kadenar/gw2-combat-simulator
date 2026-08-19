@@ -14,6 +14,7 @@ export function isSlotSkillSelectable(
   ) {
     return false;
   }
+
   return (
     app.profession.ui.isSlotSkillSelectable?.(
       {
@@ -40,6 +41,7 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
     );
     return;
   }
+
   const slotTypes = {
     Heal: "Heal",
     Utility1: "Utility",

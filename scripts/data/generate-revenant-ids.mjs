@@ -16,13 +16,17 @@ function constantName(value) {
 function stableEntries(entries) {
   const result = [];
   const keys = new Set();
+
   for (const [name, id] of entries) {
     const base = constantName(name);
+
     if (!base) continue;
     const key = keys.has(base) ? `${base}_ID_${id}` : base;
+
     keys.add(key);
     result.push({ key, id: Number(id), name: String(name) });
   }
+
   return result;
 }
 
@@ -33,6 +37,7 @@ function declaration(name, entries, prefix = []) {
     ...entries.map((entry) => `  ${entry.key}: ${entry.id}, // ${entry.name}`),
     '});'
   ];
+
   return lines.join('\n');
 }
 
@@ -76,4 +81,5 @@ const output = [
 ].join('\n');
 
 const target = fileURLToPath(new URL('../../js/professions/revenant/data/ids.js', import.meta.url));
+
 await writeFile(target, output, 'utf8');

@@ -94,15 +94,19 @@ function outOfModelReason(trait: CatalogEntity): string {
   if (/ally|allies|reviv|nearby/.test(description)) {
     return OUT_OF_MODEL_REASONS.ally;
   }
+
   if (/heal|barrier|incoming|block|damage reduction|condition.*remove/.test(description)) {
     return OUT_OF_MODEL_REASONS.defensive;
   }
+
   if (/movement|swiftness|superspeed|downed/.test(description)) {
     return OUT_OF_MODEL_REASONS.movement;
   }
+
   if (/chance|random/.test(description)) {
     return OUT_OF_MODEL_REASONS.random;
   }
+
   return OUT_OF_MODEL_REASONS.missingMechanics;
 }
 

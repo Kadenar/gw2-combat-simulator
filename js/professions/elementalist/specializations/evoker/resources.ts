@@ -57,6 +57,7 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Evo
   ) {
     return 0;
   }
+
   // split-attunement skills (e.g. "Fire+Air") gain the higher playerStacks count when one of them matches the active element
   return String(skill.attunement || '')
     .split('+')
@@ -110,6 +111,7 @@ export function grantWeaponSkillCharges(context: ElementalistCastContext, skill:
     state.pendingWeaponChargeGains.push(chargeGain);
     return;
   }
+
   applyWeaponSkillChargeGain(context, state, chargeGain);
 }
 
@@ -117,5 +119,6 @@ export function flushPendingWeaponChargeGains(context: ElementalistCastContext, 
   for (const chargeGain of state.pendingWeaponChargeGains) {
     applyWeaponSkillChargeGain(context, state, chargeGain);
   }
+
   state.pendingWeaponChargeGains = [];
 }

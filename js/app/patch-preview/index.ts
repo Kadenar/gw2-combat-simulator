@@ -142,6 +142,7 @@ function cleanupProfessionPatch(): void {
   for (const key of ['skills', 'balanceProfiles', 'modifierRules', 'constants']) {
     removeEmptyRecord(patch, key);
   }
+
   if (!Object.keys(patch).length) delete professions[selectedProfessionId];
   if (!Object.keys(professions).length) delete root.professions;
 }
@@ -237,6 +238,7 @@ function modifierValueRows(rule: NativePatchAuthoringModifierRule): string {
       );
     }
   }
+
   for (const [name, current] of Object.entries(rule.parameters)) {
     rows.push(
       numberInput({
@@ -248,6 +250,7 @@ function modifierValueRows(rule: NativePatchAuthoringModifierRule): string {
       })
     );
   }
+
   return rows.length
     ? rows.join('')
     : '<p class="patch-empty-inline">This declaration has no patchable numeric value.</p>';
@@ -257,6 +260,7 @@ function traitReference(module: NativePatchAuthoringModule): string {
   if (!module.traits.length) {
     return '<p class="patch-empty-inline">No trait metadata is owned by this module.</p>';
   }
+
   return `<details class="patch-reference">
     <summary>Trait reference (${module.traits.length})</summary>
     <div class="patch-trait-grid">${module.traits
@@ -372,6 +376,7 @@ function effectNumericRows(
     });
     rows.push(`<div class="patch-tick"><strong>Tick ${tickIndex}</strong>${tickRows.join('')}</div>`);
   }
+
   return rows.join('');
 }
 
@@ -412,6 +417,7 @@ function skillDetail(skill: NativePatchAuthoringSkill | null): string {
   if (!skill) {
     return '<div class="patch-empty patch-empty-detail">Select a skill to inspect its metadata and author changes.</div>';
   }
+
   const edit = skillEdit(skill.id.toString()) as SkillPatchEdit | null;
   const rawMetadata = Object.fromEntries(Object.entries(skill.skill).filter(([key]) => key !== 'effects'));
   return `<article class="patch-skill-detail">
@@ -509,6 +515,7 @@ function renderSelectedSkill(): void {
   for (const option of app.querySelectorAll<HTMLButtonElement>('[data-select-skill]')) {
     option.classList.toggle('is-selected', option.dataset.selectSkill === selectedSkillId);
   }
+
   const editor = app.querySelector<HTMLElement>('.patch-skill-editor');
   if (editor) editor.innerHTML = skillDetail(selected);
 }
@@ -556,6 +563,7 @@ function balanceProfileEffectRows(
     });
     rows.push(`<div class="patch-tick"><strong>Tick ${tickIndex}</strong>${tickRows.join('')}</div>`);
   }
+
   return rows.join('');
 }
 
@@ -563,6 +571,7 @@ function balanceProfileDetail(entry: NativePatchAuthoringBalanceProfile | null):
   if (!entry) {
     return '<div class="patch-empty patch-empty-detail">Select a balance profile to inspect and author.</div>';
   }
+
   const id = String(entry.id);
   const edit = balanceProfileEdit(id) as SkillPatchEdit | null;
   const effects = (entry.profile.effects || []) as readonly SkillEffect[];
@@ -694,11 +703,13 @@ function render(): void {
     app.innerHTML = `<div class="patch-loading">${escapeHtml(status)}</div>`;
     return;
   }
+
   draft = generatePatchOverview(draft, payload.professions);
   const profession = selectedProfession() || payload.professions[0];
   if (profession && profession.professionId !== selectedProfessionId) {
     selectedProfessionId = profession.professionId;
   }
+
   const module = selectedModule() || profession?.modules[0] || null;
   if (module && module.id !== selectedModuleId) selectedModuleId = module.id;
   const changed = payload.professions.reduce((total, entry) => total + editCount(entry.professionId), 0);
@@ -792,6 +803,7 @@ function setNumericEdit(input: HTMLInputElement): void {
   if (!Number.isFinite(current) || !Number.isFinite(next)) {
     throw new TypeError('Preview values must be finite numbers.');
   }
+
   const entity = input.dataset.numericEntity;
   const id = input.dataset.numericId || '';
   const field = input.dataset.numericField || '';
@@ -806,6 +818,7 @@ function setNumericEdit(input: HTMLInputElement): void {
     if (!Object.keys(edit).length) deleteModifierEdit(id);
     return;
   }
+
   if (entity === 'skill') {
     const edit = skillEdit(id, Boolean(numericEdit));
     if (!edit) return;
@@ -816,6 +829,7 @@ function setNumericEdit(input: HTMLInputElement): void {
     if (!Object.keys(edit).length) deleteSkillEdit(id);
     return;
   }
+
   if (entity === 'balance-profile') {
     const edit = balanceProfileEdit(id, Boolean(numericEdit));
     if (!edit) return;
@@ -826,6 +840,7 @@ function setNumericEdit(input: HTMLInputElement): void {
     if (!Object.keys(edit).length) deleteBalanceProfileEdit(id);
     return;
   }
+
   if (entity === 'effect') {
     const effectIndex = Number(
       input.closest<HTMLElement>('.patch-effect')?.querySelector<HTMLElement>('[data-toggle-effect]')?.dataset
@@ -846,6 +861,7 @@ function setNumericEdit(input: HTMLInputElement): void {
       };
       effects.push(effect);
     }
+
     if (effect && numericEdit) effect[field] = numericEdit;
     else if (effect) delete effect[field];
     const retained = effects.filter((entry) =>
@@ -856,6 +872,7 @@ function setNumericEdit(input: HTMLInputElement): void {
     if (!Object.keys(edit).length) deleteSkillEdit(id);
     return;
   }
+
   if (entity === 'balance-profile-effect') {
     const effectIndex = Number(input.dataset.effectIndex);
     const tickIndex = input.dataset.tickIndex;
@@ -873,6 +890,7 @@ function setNumericEdit(input: HTMLInputElement): void {
       };
       effects.push(effect);
     }
+
     if (effect && numericEdit) effect[field] = numericEdit;
     else if (effect) delete effect[field];
     const retained = effects.filter((entry) =>
@@ -937,6 +955,7 @@ async function loadAuthoring(): Promise<void> {
     status = error instanceof Error ? error.message : 'Unable to load patch authoring metadata.';
     statusKind = 'error';
   }
+
   render();
 }
 
@@ -963,6 +982,7 @@ async function saveAuthoring(): Promise<void> {
     if (!response.ok || !result.preview) {
       throw new Error(result.error || 'Patch preview save failed.');
     }
+
     draft = structuredClone(result.preview);
     dirty = false;
     status = `Saved ${result.sourceFile}. Rebuild or restart the simulator to load it.`;
@@ -971,6 +991,7 @@ async function saveAuthoring(): Promise<void> {
     status = error instanceof Error ? error.message : 'Patch preview save failed.';
     statusKind = 'error';
   }
+
   render();
 }
 
@@ -1019,6 +1040,7 @@ app.addEventListener('click', (event) => {
     void loadAuthoring();
     return;
   }
+
   render();
 });
 
@@ -1027,6 +1049,7 @@ app.addEventListener('change', (event) => {
   if (target instanceof HTMLSelectElement && target.hasAttribute('data-new-effect-type')) {
     return;
   }
+
   try {
     if (target instanceof HTMLInputElement && target.dataset.previewField) {
       const field = target.dataset.previewField as keyof PatchPreview;
@@ -1046,6 +1069,7 @@ app.addEventListener('change', (event) => {
       if (!parsed || typeof parsed !== 'object' || !parsed.type) {
         throw new TypeError('An added effect must be a JSON object with a type.');
       }
+
       const edit = skillEdit(target.dataset.skillId || '', true)!;
       const effects = [...((edit.addEffects || []) as SkillEffect[])];
       effects[Number(target.dataset.addedEffect)] = parsed;
@@ -1056,6 +1080,7 @@ app.addEventListener('change', (event) => {
     status = error instanceof Error ? error.message : 'Invalid authoring value.';
     statusKind = 'error';
   }
+
   render();
 });
 

@@ -98,15 +98,19 @@ function outOfModelReason(trait: CatalogEntity): string {
   if (/ally|allies|share|revive/.test(description)) {
     return "This allied or revival payload cannot change the simulator's deterministic single-target damage output.";
   }
+
   if (/heal|barrier|incoming damage|damage reduction|health/.test(description)) {
     return 'This healing, barrier, health, or incoming-damage payload is outside the deterministic outgoing-damage model.';
   }
+
   if (/cleanse|remove.*condition|condition.*remove|blind/.test(description)) {
     return 'This defensive condition-management payload has no represented incoming-condition state or deterministic damage output.';
   }
+
   if (/movement|superspeed|swiftness|dodge/.test(description)) {
     return 'This movement or defensive-evasion payload has no effect in the stationary deterministic target model.';
   }
+
   return 'This catalog effect has no deterministic single-target damage, boon-uptime, recharge, or resource consequence in the native model.';
 }
 

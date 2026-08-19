@@ -213,6 +213,7 @@ export function createPhantasmEffectController({
       markCompounding(execution.summonAt, count);
       addTraitProc('Compounding Power', execution.summonAt, skill.name, `${count} phantasm${count === 1 ? '' : 's'}`);
     }
+
     addEvent({
       type: 'mesmer.phantasm-summoned',
       at: execution.summonAt,
@@ -232,8 +233,10 @@ export function createPhantasmEffectController({
       for (const item of executions) {
         addPhantasmalBlade(item, item.initialBladeAt);
       }
+
       addTraitProc('Phantasmal Blades', initialBladeAt, skill.name);
     }
+
     if (!execution.hasChronophantasma) return;
 
     // Chronophantasma re-summons the phantasm at spawnAt for a second attack cycle.
@@ -246,6 +249,7 @@ export function createPhantasmEffectController({
         `${count} phantasm${count === 1 ? '' : 's'}`
       );
     }
+
     addEvent({
       type: 'mesmer.phantasm-resummoned',
       at: execution.spawnAt,
@@ -264,8 +268,10 @@ export function createPhantasmEffectController({
       for (const item of executions) {
         addPhantasmalBlade(item, item.repeatDamageAt);
       }
+
       addTraitProc('Phantasmal Blades', repeatDamageAt, `${skill.name} - Chronophantasma`);
     }
+
     addTraitProc('Chronophantasma', execution.spawnAt, skill.name);
   };
 
@@ -363,6 +369,7 @@ export function createPhantasmEffectController({
         initialEventExtra
       );
     }
+
     const initialHitTimes = initialEvents.map((event) => event.at);
     let repeatHitTimes: readonly number[] = [];
     if (execution.hasChronophantasma) {
@@ -429,6 +436,7 @@ export function createPhantasmEffectController({
         }
       }
     }
+
     return { damageGroup, initialHitTimes, repeatHitTimes };
   };
 
@@ -484,6 +492,7 @@ export function createPhantasmEffectController({
         addCondition(execution.skill.name, execution.damageAt, condition, 'Phantasm', '', conditionEventExtra);
       }
     }
+
     if (!execution.hasChronophantasma || entityConditions.length === 0) return;
 
     // Repeat cycle: prefer dedicated Chronophantasma tick data; fall back to shifting
@@ -551,6 +560,7 @@ export function createPhantasmEffectController({
       });
       return;
     }
+
     queueResources(execution.conversionAt + epsilon, amount, null, `${execution.skill.name} phantasm conversion`, {
       kind: 'phantasm-conversion',
       sourceSkillId: execution.skill.id

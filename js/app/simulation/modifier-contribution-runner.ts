@@ -34,6 +34,7 @@ export class ModifierContributionRunner {
     for (const worker of this.workers) {
       worker.terminate();
     }
+
     this.workers.clear();
 
     if (!app.build.rotation.length || !app.results) {
@@ -49,11 +50,13 @@ export class ModifierContributionRunner {
       app.results.modifierContributionsStale = false;
       app.adapter.renderResults(app);
     };
+
     const failContributions = (): void => {
       if (requestId !== this.requestId || !app.results) return;
       for (const worker of this.workers) {
         worker.terminate();
       }
+
       this.workers.clear();
       app.results.modifierContributionsStale = false;
       app.adapter.renderResults(app);
@@ -79,6 +82,7 @@ export class ModifierContributionRunner {
           applyContributions([]);
           return;
         }
+
         const completed: ModifierContribution[][] = [];
         let failed = false;
         for (const comparisons of batches) {
@@ -88,17 +92,20 @@ export class ModifierContributionRunner {
             worker.terminate();
             this.workers.delete(worker);
           };
+
           worker.addEventListener('message', (event: MessageEvent<ModifierContributionWorkerMessage>) => {
             const { data } = event;
             if (failed || data.requestId !== requestId || requestId !== this.requestId) {
               return;
             }
+
             finishWorker();
             if (data.error) {
               failed = true;
               failContributions();
               return;
             }
+
             completed.push(data.contributions || []);
             if (completed.length === batches.length) {
               applyContributions(mergeModifierContributions(completed));
@@ -119,6 +126,7 @@ export class ModifierContributionRunner {
             request: { ...request, comparisons }
           });
         }
+
         return;
       }
 
@@ -128,6 +136,7 @@ export class ModifierContributionRunner {
         failContributions();
       }
     };
+
     this.timer = setTimeout(calculateContributions, MODIFIER_CONTRIBUTION_DEBOUNCE_MS);
   }
 }

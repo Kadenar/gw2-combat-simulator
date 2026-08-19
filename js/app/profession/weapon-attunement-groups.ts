@@ -19,6 +19,7 @@ export function weaponBarSkillStacks(skills: readonly Skill[], flattenSameSlots 
     stack.push(skill);
     bySlot.set(slot, stack);
   }
+
   return [...bySlot.values()];
 }
 

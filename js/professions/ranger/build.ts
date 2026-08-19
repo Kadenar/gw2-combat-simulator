@@ -24,6 +24,7 @@ function keepRangerRotationCommand(command: RangerCanonicalBuild['rotation'][num
   if (command.skillId === ID.OVERBEARING_SMASH_SECOND_STRIKE || command.skillId === 'Overbearing Smash (Follow-Up)') {
     return false;
   }
+
   const numericId = Number(command.skillId);
   const skill = Number.isFinite(numericId)
     ? rangerCatalog.skillsById.get(numericId)
@@ -141,18 +142,23 @@ const rangerBuildCodec = createGw2BuildCodec<RangerCanonicalBuild>({
     if (!(Number(build.initialAstralForce) >= 0 && Number(build.initialAstralForce) <= 100)) {
       errors.push('initialAstralForce must be between 0 and 100.');
     }
+
     if (!(Number(build.initialArrows) >= 0 && Number(build.initialArrows) <= 8)) {
       errors.push('initialArrows must be between 0 and 8.');
     }
+
     if (!RANGER_PETS.some((pet) => pet.name === build.selectedPet)) {
       errors.push('selectedPet must name an available Ranger pet.');
     }
+
     if (!RANGER_PETS.some((pet) => pet.name === build.selectedPet2)) {
       errors.push('selectedPet2 must name an available Ranger pet.');
     }
+
     if (!['Pet', 'Ranger'].includes(build.initialUntamedState)) {
       errors.push('initialUntamedState must be either "Pet" or "Ranger".');
     }
+
     const selectedHammerSkillIds = Array.isArray(build.selectedHammerSkillIds)
       ? build.selectedHammerSkillIds.map(Number)
       : [];
@@ -162,6 +168,7 @@ const rangerBuildCodec = createGw2BuildCodec<RangerCanonicalBuild>({
     ) {
       errors.push('selectedHammerSkillIds must contain one legal Hammer skill for slots 2, 3, 4, and 5.');
     }
+
     return errors;
   }
 });

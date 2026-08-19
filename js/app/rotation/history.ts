@@ -37,6 +37,7 @@ function ensureHistory(app: ProfessionAppState): RotationHistory {
       current: cloneRotation(app.build.rotation)
     };
   }
+
   return app._rotationHistory;
 }
 
@@ -85,6 +86,7 @@ export function renderRotationHistoryControls(app: ProfessionAppState): void {
   if (undoButton instanceof HTMLButtonElement) {
     undoButton.disabled = !canUndoRotation(app);
   }
+
   if (redoButton instanceof HTMLButtonElement) {
     redoButton.disabled = !canRedoRotation(app);
   }

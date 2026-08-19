@@ -222,6 +222,7 @@ export function necromancerPartyBoonRecipients(context: NecromancerEmissionConte
       companionIds.push(`minion:${key}:${index}`);
     }
   }
+
   return {
     recipients: 'party',
     maximumRecipients: 5,
@@ -245,6 +246,7 @@ export function necromancerBoonDuration(
   ) {
     concentration += 225;
   }
+
   const name = String(boon || '');
   const bonus =
     concentration / 1500 +
@@ -351,6 +353,7 @@ export function registerCreatureSummonReaction(
     reactions = new Map();
     creatureSummonReactions.set(context.state, reactions);
   }
+
   reactions.set(id, reaction);
 }
 

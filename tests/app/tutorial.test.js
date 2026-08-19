@@ -11,6 +11,7 @@ import {
 function tutorialImageStub(source = 'tutorial.gif') {
   const attributes = new Map();
   const changes = [];
+
   return {
     attributes,
     changes,
@@ -32,6 +33,7 @@ function tutorialImageStub(source = 'tutorial.gif') {
 
 function tutorialChoiceStub(id) {
   const attributes = new Map();
+
   return {
     attributes,
     dataset: { tutorialChoice: id },
@@ -79,7 +81,9 @@ test('tutorial picker shows and loads only the selected walkthrough', () => {
   const root = {
     querySelectorAll(selector) {
       if (selector === '[data-tutorial-choice]') return choices;
+
       if (selector === '[data-tutorial-panel]') return panels;
+
       return [];
     }
   };

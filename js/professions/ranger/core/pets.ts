@@ -61,6 +61,7 @@ function rangerPetAttributes(context?: RangerSchedulerContext) {
     power = 1868;
     conditionDamage = 400;
   }
+
   if (context) {
     if (petHasTrait(context, TRAIT.PACK_ALPHA)) {
       const bonus = rangerBalanceValue(context, PROFILE.packAlpha, 'weaponAttributeBonus', 300);
@@ -70,15 +71,19 @@ function rangerPetAttributes(context?: RangerSchedulerContext) {
       vitality += bonus;
       conditionDamage += bonus;
     }
+
     if (petHasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
       power += rangerBalanceValue(context, PROFILE.stridersStrength, 'attributeBonus', 120);
     }
+
     if (petHasTrait(context, TRAIT.HONED_AXES)) {
       ferocity += rangerBalanceValue(context, PROFILE.honedAxes, 'attributeBonus', 120);
     }
+
     if (petHasTrait(context, TRAIT.PETS_PROWESS)) {
       ferocity += rangerBalanceValue(context, PROFILE.petsProwess, 'attributeBonus', 300);
     }
+
     if (
       petHasSelectedSkill(context, 'Signet of the Wild') &&
       Number(context.state.cooldowns.get(ID.SIGNET_OF_THE_WILD) || 0) <= context.state.time
@@ -86,6 +91,7 @@ function rangerPetAttributes(context?: RangerSchedulerContext) {
       ferocity += rangerBalanceValue(context, PROFILE.signetOfTheWild, 'attributeBonus', 180);
     }
   }
+
   return {
     power,
     precision,
@@ -203,11 +209,13 @@ function schedulePetAuto(context: RangerSchedulerContext, at: number, reset = fa
     state.petAutoNextAt = 0;
     return;
   }
+
   if (reset) {
     context.tasks.cancelOwner(PET_AUTO_OWNER);
     state.petAutoGeneration += 1;
     state.petAutoTaskId = '';
   }
+
   const nextAt = Math.max(context.state.time, at, state.petAutoBusyUntil);
   state.petAutoNextAt = nextAt;
   state.petAutoTaskId = context.tasks.schedule({
@@ -226,6 +234,7 @@ function startPetAuto(context: RangerSchedulerContext, at: number, reset = false
   if (!reset && state.petAutoNextAt > context.state.time + context.epsilon) {
     return;
   }
+
   schedulePetAuto(context, at + profile.openingDelay, reset);
 }
 
@@ -240,6 +249,7 @@ function autonomousSkill(
     state.petAutoOpeningBasic = false;
     return profile.opening || profile.basic;
   }
+
   const laterIbogaActivation =
     state.activePet === 'Fanged Iboga' && state.petAutoActivationCounts[state.activePetSlot - 1] > 1;
   const specials = laterIbogaActivation ? [...profile.specials].reverse() : profile.specials;
@@ -318,6 +328,7 @@ export function handleRangerPetAutoEffectTask(
   if (Number(task.payload?.generation) !== professionCoreState(context).petAutoGeneration) {
     return;
   }
+
   if (task.payload?.event) context.emit(task.payload.event);
 }
 
@@ -336,6 +347,7 @@ export function handleRangerPetAutoTask(
     schedulePetAuto(context, state.petAutoBusyUntil);
     return;
   }
+
   const openingBasic = state.petAutoOpeningBasic;
   const quickness = gw2BuffActiveForAudience(context, 'quickness', task.at, 'summon');
   const selected = autonomousSkill(context, profile, task.at, quickness);
@@ -355,6 +367,7 @@ export function handleRangerPetAutoTask(
     state.petAutoActivationUses[String(selected.id)] =
       Number(state.petAutoActivationUses[String(selected.id)] || 0) + 1;
   }
+
   schedulePetAuto(
     context,
     task.at +
@@ -378,9 +391,11 @@ export function observeRangerPetEvent(context: RangerSchedulerContext, event: Si
   ) {
     updates.companionIds = [rangerPetCompanionId(context)];
   }
+
   if (commandDelay > 0 && event.type !== 'action') {
     updates.at = Number(event.at) + commandDelay;
   }
+
   if (
     event.source === 'ranger-pet' &&
     event.actorType === 'summon' &&
@@ -388,10 +403,12 @@ export function observeRangerPetEvent(context: RangerSchedulerContext, event: Si
   ) {
     Object.assign(updates, rangerPetCombatMetadata(context));
   }
+
   if (event.source === 'ranger-pet' && !event.icon) {
     const skill = context.catalog.skillsById.get(event.skillId ?? event.sourceId);
     if (skill?.icon) updates.icon = skill.icon;
   }
+
   if (Object.keys(updates).length) context.replaceEvent(event, updates);
   if (event.type === 'ranger.pet-swapped') {
     const slot = state.activePetSlot - 1;
@@ -404,10 +421,12 @@ export function observeRangerPetEvent(context: RangerSchedulerContext, event: Si
     startPetAuto(context, Number(event.at), true);
     return;
   }
+
   if (event.type === 'combat_start') {
     startPetAuto(context, Number(event.at));
     return;
   }
+
   if (!context.hasExplicitCombatStart && event.type === 'action' && event.actorType === 'player') {
     startPetAuto(context, Number(event.at));
   }
@@ -478,6 +497,7 @@ export function handleRangerPetCommandStartTask(
       context.state.cooldowns.set(skill.id, readyAt);
     }
   }
+
   if (state.petAutoTaskId) context.tasks.cancel(state.petAutoTaskId);
   state.petAutoTaskId = '';
   state.petAutoNextAt = 0;

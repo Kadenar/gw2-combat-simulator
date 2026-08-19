@@ -47,6 +47,7 @@ export function simulationEventLogRows(
       order: EVENT_LOG_ORDER[type] ?? 80
     });
   };
+
   const pushProfessionRow = (event: SimulationEvent): void => {
     const normalized = normalizeEventLogDescriptor(
       professionUi?.eventLogRow?.(
@@ -72,6 +73,7 @@ export function simulationEventLogRows(
       });
       return;
     }
+
     const message = `UNPRESENTED CUSTOM EVENT ${event.type}`;
     globalThis.console?.warn?.(message, event);
     push(event.at, 'diagnostic', message, 'diagnostic');
@@ -89,6 +91,7 @@ export function simulationEventLogRows(
         push(event.endsAt, 'cast_end', `END ${event.name}`);
         break;
       }
+
       case 'resource': {
         const amount = Number(event.amount || 0);
         const resource = String(event.resource || 'resource');
@@ -118,8 +121,10 @@ export function simulationEventLogRows(
             isCloneResource
           );
         }
+
         break;
       }
+
       case 'marker':
         push(event.at, event.type, `EVENT ${event.name}${event.detail ? ` - ${event.detail}` : ''}`, 'trigger');
         break;
@@ -144,6 +149,7 @@ export function simulationEventLogRows(
         if (!build || build.relic === 'Peitha') {
           push(event.at, 'trigger', `PEITHA TRIGGER ${event.skillName}`, 'trigger');
         }
+
         break;
       case 'buff':
         push(
@@ -157,6 +163,7 @@ export function simulationEventLogRows(
         if (String(event.type || '').includes('.')) {
           pushProfessionRow(event);
         }
+
         break;
     }
   }
@@ -201,6 +208,7 @@ export function renderEventLog(app: ProfessionAppState): void {
     if (element) element.innerHTML = '';
     return;
   }
+
   const eventLog = simulationEventLogRows(result, app.build, app.profession);
   const hasPhantasmClone = eventLog.some((event) => event.phantasmClone);
   mountEventLog(

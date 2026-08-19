@@ -15,6 +15,7 @@ function chronomancerAvailability(context: MesmerPrecastContext, skill: MesmerSk
   if (skill.id !== ID.CONTINUUM_SHIFT || chronomancerState.from(context).continuum) {
     return { ready: true };
   }
+
   return {
     ready: false,
     retryAt: null,

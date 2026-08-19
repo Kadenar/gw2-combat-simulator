@@ -190,12 +190,14 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
     );
     scheduleThornsRetaliation(context, skill, at);
   }
+
   if (hasEngineerTrait(context.config, TRAIT.WILLING_HOST)) {
     state.willingHostUntil = Math.max(
       state.willingHostUntil,
       at + engineerBalanceValue(context, PROFILE.willingHost, 'durationMultiplier', 10)
     );
   }
+
   if (hasEngineerTrait(context.config, TRAIT.HARDENED_CHROME)) {
     emitBuff(context, at, {
       kind: 'protection',
@@ -204,9 +206,11 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
       name: 'Hardened Chrome'
     });
   }
+
   if (hasEngineerTrait(context.config, TRAIT.SILVER_LINING)) {
     applyAmalgamStrain(context, skill.name, at);
   }
+
   if (hasEngineerTrait(context.config, TRAIT.NEW_GENES)) {
     emitBuff(context, at, {
       kind: 'alacrity',
@@ -230,6 +234,7 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
       });
     }
   }
+
   emitEngineerState(context, at, 'amalgam-morph');
 }
 
@@ -259,6 +264,7 @@ export function evolveAmalgam(context: EngineerCastContext): void {
       applyAmalgamStrain(context, morphName, at);
     }
   }
+
   if (hasEngineerTrait(context.config, TRAIT.SYMBIOTIC_SYNERGY)) {
     // Evolve recharges its morph skills as part of its traited kit. This is not
     // a discrete trait proc, so the reset is applied silently. Emitting a proc
@@ -268,6 +274,7 @@ export function evolveAmalgam(context: EngineerCastContext): void {
       context.state.cooldowns.delete(Number(skillId));
     }
   }
+
   if (hasEngineerTrait(context.config, TRAIT.HARDENED_CHROME)) {
     emitBuff(context, at, {
       kind: 'protection',
@@ -276,6 +283,7 @@ export function evolveAmalgam(context: EngineerCastContext): void {
       name: 'Hardened Chrome'
     });
   }
+
   emitEngineerState(context, at, 'evolve');
 }
 
@@ -321,12 +329,14 @@ export function handleMercurialTendencies(
       reducedBy += context.cooldownController.reduceAmmoRecharge(skill, rechargeReduction, at).reducedBy;
       continue;
     }
+
     const cooldown = Number(context.state.cooldowns.get(skillId) || 0);
     if (cooldown <= at + context.epsilon) continue;
     const reduction = Math.min(rechargeReduction, cooldown - at);
     context.state.cooldowns.set(skillId, cooldown - reduction);
     reducedBy += reduction;
   }
+
   if (!(reducedBy > 0)) return;
 
   coreState.traitProcReadyAt.mercurialTendencies =

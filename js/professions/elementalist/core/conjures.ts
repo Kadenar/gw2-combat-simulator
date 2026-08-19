@@ -44,6 +44,7 @@ export function applyConjureState(context: ElementalistLifecycleContext, skill: 
       swapped = true;
     }
   }
+
   if (swapped) {
     context.emit({
       type: 'sigil_swap',

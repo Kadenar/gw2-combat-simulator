@@ -14,6 +14,7 @@ function wields(build: ThiefBuild, weapon: string, weaponSet: number): boolean {
   const weapons = weaponSet === 2 ? build.alternateWeapons : build.weapons;
   return (weapons || []).includes(weapon);
 }
+
 function selectedSkill(skills: readonly Skill[], name: string): boolean {
   return (skills || []).some((skill) => skill?.name === name);
 }

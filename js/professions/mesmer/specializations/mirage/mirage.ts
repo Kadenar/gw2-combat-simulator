@@ -185,6 +185,7 @@ export function createMirageActionController({
       for (const condition of ambush.clone.conditions || []) {
         addCondition(`${ambush.name} — Clone`, impactAt, condition, 'Clone', '', { cloneId: clone.id });
       }
+
       for (const boon of ambush.cloneBoons || []) {
         addBoon(impactAt, boon, `${ambush.name} — Clone`, 'summon');
       }
@@ -221,6 +222,7 @@ export function createMirageActionController({
         );
       }
     }
+
     addTraitProc('Dune Cloak', at, source, 'Mind Wrack and Cry of Frustration recharge reduced by 1s');
   };
 
@@ -254,6 +256,7 @@ export function createMirageActionController({
       );
       addTraitProc('Renewing Oasis', at, source, '4s regeneration');
     }
+
     if (traits.has(TRAIT.ELUSIVE_MIND)) {
       addTraitProc(
         'Elusive Mind',
@@ -262,6 +265,7 @@ export function createMirageActionController({
         `${profileValue(PROFILE.elusiveMind, 'maximumStacks', 3)} conditions removed`
       );
     }
+
     reduceDuneCloakShatters(at, source);
     if (grantCloneCloak && traits.has(TRAIT.INFINITE_HORIZON)) {
       mirageState.from(state).cloneAmbushUntil = at + duration;
@@ -289,6 +293,7 @@ export function createMirageActionController({
     for (const condition of ambush.player.conditions || []) {
       addCondition(ambush.name, impactAt, condition);
     }
+
     if (mirageState.from(state).riddleOfSandReady && traits.has(TRAIT.RIDDLE_OF_SAND)) {
       addCondition(
         ambush.name,
@@ -304,9 +309,11 @@ export function createMirageActionController({
       addTraitProc('Riddle of Sand', impactAt, ambush.name, '2 confusion');
       mirageState.from(state).riddleOfSandReady = false;
     }
+
     for (const boon of ambush.playerBoons || []) {
       addBoon(impactAt, boon, ambush.name, 'player', ambush.id === ID.CHAOS_VORTEX ? 'party' : 'self');
     }
+
     if (traits.has(TRAIT.MIRAGE_MANTLE)) {
       addBoon(
         impactAt,
@@ -320,12 +327,14 @@ export function createMirageActionController({
       );
       addTraitProc('Mirage Mantle', impactAt, ambush.name, '4s alacrity');
     }
+
     addAmbushVulnerability(impactAt, ambush);
     if (ambush.createsClone) {
       queueResources(impactAt + epsilon, 1, weapon, ambush.name, {
         sourceSkillId: skill.id
       });
     }
+
     mirageState.from(state).ambushUntil = 0;
     mirageState.from(state).ambushSource = '';
   };
@@ -337,6 +346,7 @@ export function createMirageActionController({
       mirageState.from(state).riddleOfSandReady = true;
       addTraitProc('Riddle of Sand', at, skill.name, 'ambush primed');
     }
+
     if (traits.has(TRAIT.NOMADS_ENDURANCE)) {
       addBoon(
         at,
@@ -348,11 +358,13 @@ export function createMirageActionController({
       );
       addTraitProc("Nomad's Endurance", at, skill.name, '3s vigor');
     }
+
     if (skill.id === ID.DISTORTION && traits.has(TRAIT.DESERT_DISTORTION)) {
       grantAmbushWindow(at, 'Desert Distortion');
       createMirrors(at, spent * profileValue(PROFILE.desertDistortion, 'resourceGain', 1), 'Desert Distortion');
       addTraitProc('Desert Distortion', at, skill.name, `${spent} Mirage Mirror${spent === 1 ? '' : 's'} created`);
     }
+
     if (traits.has(TRAIT.DUNE_CLOAK) && spent >= profileValue(PROFILE.duneCloak, 'threshold', 3)) {
       grantMirageCloak(at, 'Dune Cloak', {
         duration: profileValue(PROFILE.duneCloak, 'durationMultiplier', 1)

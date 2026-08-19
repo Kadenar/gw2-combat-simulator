@@ -50,6 +50,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       reduceShroudCooldowns(context, hitAt);
     }
   }
+
   if (skill.categories?.includes('Shout') && hasNecromancerTrait(context, TRAIT.AUGURY_OF_DEATH)) {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.auguryOfDeath), 'strike');
     emitDamage(context, skill, 0, {
@@ -66,6 +67,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       }
     });
   }
+
   // Chilling Victory only procs on full completion; interrupted casts don't generate life force.
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const state = professionCoreState(context);
@@ -110,6 +112,7 @@ function modifyReaperAttributes(context: Gw2ModifierContext, attributes: Schedul
   if (hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) && necromancerActiveShroud(context) === 'reaper') {
     result.ferocity += Number(necromancerBalanceProfile(context, PROFILE.reapersOnslaught)?.attributeBonus || 300);
   }
+
   return result;
 }
 

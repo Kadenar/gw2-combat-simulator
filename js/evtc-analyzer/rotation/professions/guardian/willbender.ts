@@ -55,6 +55,7 @@ function inferInitialSwordOfJustice(context: EvtcProfessionReconstructionContext
   ) {
     return [];
   }
+
   const duration = recordedDuration(context, SWORD_OF_JUSTICE);
   return [
     {
@@ -144,6 +145,7 @@ function inferTruncatedRushingJustice(context: EvtcProfessionReconstructionConte
     ) {
       return [];
     }
+
     return [
       {
         ...canonicalAction(eventIndex, event.time - event.value, RUSHING_JUSTICE, event.skillId, 'animation'),
@@ -168,11 +170,13 @@ export function normalizeGuardianCompositeAnimations(
       normalized.push(action);
       continue;
     }
+
     const followUp = sorted[index + 1];
     if (followUp?.rawSkillId !== RUSHING_JUSTICE_IMPACT_ANIMATION || followUp.start - action.end > SIGNAL_WINDOW_MS) {
       normalized.push(action);
       continue;
     }
+
     normalized.push({
       ...action,
       end: Math.max(action.end, followUp.end),
@@ -186,6 +190,7 @@ export function normalizeGuardianCompositeAnimations(
     });
     index += 1;
   }
+
   return normalized;
 }
 

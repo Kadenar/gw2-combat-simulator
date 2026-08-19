@@ -48,6 +48,7 @@ function swapRangerPets(context: RangerCastContext, skill: RangerSkill): boolean
   if (context.state.profession.specialization.kind === 'Soulbeast') {
     context.state.profession.specialization.state.archetype = pet.archetype;
   }
+
   context.emit({
     type: 'ranger.pet-swapped',
     at: context.effectiveEnd,

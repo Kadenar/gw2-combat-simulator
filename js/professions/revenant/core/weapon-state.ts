@@ -25,6 +25,7 @@ export function updateRevenantWeaponState(context: RevenantCastContext, skill: R
   } else if (skill.type === 'Weapon' || Number(skill.castTimeMs || 0) > 0) {
     state.abyssalStrikeSecondCast = false;
   }
+
   const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
   if (chain) {
     if (chain.next == null) delete state.autoattackChains[chain.root];
@@ -45,6 +46,7 @@ export function observeRevenantWeaponEvent(context: RevenantSchedulerContext, ev
   if (event.type !== 'damage' || event.skillId !== ID.DROP_THE_HAMMER || Number(event.coefficient || 0) <= 0) {
     return;
   }
+
   context.tasks.schedule({
     id: `revenant.drop-the-hammer-reset:${event.__order}`,
     type: 'revenant.drop-the-hammer-reset',
@@ -101,9 +103,11 @@ export function completeRevenantWeaponCast(context: RevenantCastContext, skill: 
         context.effectiveEnd + (WEAPON_FLIP_DURATION_BY_PARENT[Number(skill.id)] || Number(skill.flipDuration || 5));
     }
   }
+
   if (skill.type === 'Weapon' && skill.id !== ID.TRUE_STRIKE && skill.flipParentId != null) {
     delete state.availableFlips[skill.id];
   }
+
   if (skill.id === ID.IMPERIAL_GUARD) {
     context.tasks.cancelOwner(IMPERIAL_GUARD_OWNER);
     context.tasks.schedule({

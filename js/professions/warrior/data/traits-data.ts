@@ -30,5 +30,6 @@ export function getActiveTraits(specializations: readonly WarriorSpecializationS
       }
     }
   }
+
   return active;
 }

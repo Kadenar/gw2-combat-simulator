@@ -62,6 +62,7 @@ function combatActivationKey(event: Gw2ResolverEvent): string | null {
   if (typeof event.activationId === 'string' && event.activationId) {
     return `id:${event.activationId}`;
   }
+
   const hitIndex = Math.trunc(Number(event.hitIndex));
   const totalHits = Math.trunc(Number(event.totalHits));
   if (totalHits <= 1 || hitIndex < 1 || hitIndex > totalHits) return null;
@@ -89,6 +90,7 @@ export function runGw2ResolverEventLoop(
   if (!handlerRegistry) {
     throw new TypeError('GW2 resolver event loop requires a handler registry.');
   }
+
   const queue = ctx.queue;
   const hp = targetHealth(ctx);
   let lethalActivationKey: string | null = null;
@@ -109,6 +111,7 @@ export function runGw2ResolverEventLoop(
       )
         continue;
     }
+
     if (shouldSkipEvent(ctx, event)) continue;
     if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON && isCombatGatedEvent(event)) continue;
 

@@ -208,24 +208,31 @@ function validateEntry(entry: ProfessionRegistryEntry, ids: Set<string>, routes:
   if (!/^[a-z][a-z0-9-]*$/.test(String(entry.id || ''))) {
     throw new TypeError('Profession registry ids must be stable and lowercase.');
   }
+
   if (ids.has(entry.id)) {
     throw new TypeError(`Duplicate profession registry id: ${entry.id}.`);
   }
+
   if (!String(entry.name || '').trim() || !String(entry.route || '').trim()) {
     throw new TypeError(`${entry.id} requires a name and route.`);
   }
+
   if (routes.has(entry.route)) {
     throw new TypeError(`Duplicate profession route: ${entry.route}.`);
   }
+
   if (typeof entry.loadProfession !== 'function') {
     throw new TypeError(`${entry.id} requires a profession loader.`);
   }
+
   if (!ARMOR_WEIGHTS.includes(entry.armorWeight)) {
     throw new TypeError(`${entry.id} has an invalid armor weight.`);
   }
+
   if (typeof entry.loadAppAdapter !== 'function') {
     throw new TypeError(`${entry.id} requires an adapter loader.`);
   }
+
   ids.add(entry.id);
   routes.add(entry.route);
 }
@@ -234,6 +241,7 @@ export function validateProfessionRegistryEntries(candidateEntries: readonly Pro
   if (!Array.isArray(candidateEntries)) {
     throw new TypeError('Profession registry entries must be an array.');
   }
+
   const ids = new Set<string>();
   const routes = new Set<string>();
   for (const entry of candidateEntries) validateEntry(entry, ids, routes);

@@ -66,6 +66,7 @@ function resourcePipRows(maximum: number, rowCount: number): number[] {
     rows.push(count);
     remaining -= count;
   }
+
   return rows;
 }
 
@@ -122,6 +123,7 @@ function resourcePipsHtml(
         if (!interactive) {
           return `<span class="active-resource-pip${stateClass}"></span>`;
         }
+
         return `<button class="resource-pip${stateClass}"
                 data-count="${label}" data-resource-key="${esc(definition.buildKey)}"
                 title="${label} ${esc(definition.plural)}"></button>`;
@@ -323,6 +325,7 @@ export function renderStartResource(app: ProfessionAppState): void {
       });
     });
   };
+
   const bindStartControls = (): void => {
     element.querySelectorAll<HTMLElement>('.start-state-btn').forEach((button) => {
       button.addEventListener('click', () => {
@@ -334,6 +337,7 @@ export function renderStartResource(app: ProfessionAppState): void {
       });
     });
   };
+
   if (!definitions.length) {
     element.innerHTML = `${weaponControl}${loadoutControl}${startControlsHtml}`;
     element.querySelectorAll<HTMLElement>('.weapon-set-btn').forEach((button) => {
@@ -346,6 +350,7 @@ export function renderStartResource(app: ProfessionAppState): void {
     bindStartControls();
     return;
   }
+
   const resourceControls = definitions
     .map((definition) => {
       if (definition.canStart === false) return '';
@@ -362,6 +367,7 @@ export function renderStartResource(app: ProfessionAppState): void {
                     data-resource-key="${esc(key)}">
             </div>`;
       }
+
       return `<div class="start-resource-control">
             <span class="start-att-label">Start ${esc(definition.plural)}:</span>
             ${resourcePipsHtml(definition, value, { interactive: true })}

@@ -151,6 +151,7 @@ export function grantKallasFervor(
   if (activeKallasFervorStacks(state, at, maximumStacks) >= maximumStacks) {
     return false;
   }
+
   const duration = Math.max(0, Number(effect.duration || 0));
   state.kallasFervor.push({ at, expiresAt: at + duration });
   context.emitDerived(cause, {
@@ -183,9 +184,11 @@ function refreshKallasFervor(context: RevenantSchedulerContext, at: number): num
       application.expiresAt = at + duration;
     }
   }
+
   if (state.kallasFervor.length) {
     emitRevenantState(context, at, 'kallas-fervor-refreshed');
   }
+
   return activeKallasFervorStacks(state, at, Math.max(1, Number(profile.maximumStacks || 1)));
 }
 
@@ -225,6 +228,7 @@ export function beginBandTogether(context: RevenantCastContext, skill: RevenantS
     core.energy = Math.min(core.maximumEnergy, core.energy + Math.max(0, Number(allForOne?.resourceGain || 0)));
     emitRevenantState(context, context.start, 'all-for-one');
   }
+
   if (profile) emitProfileEffects(context, skill, profile);
   return { enhanced, profileSkillId: profile?.id || skill.id };
 }
@@ -289,6 +293,7 @@ export function completeBandTogether(
   if (skill.id === ID.RAZORCLAWS_RAGE) {
     grantRazorclawsRage(context, skill, profile);
   }
+
   if (state.enhanced) return;
   const bandTogether = balanceProfileById(context, RENEGADE_PROFILE_IDS.bandTogether);
   const effect = effectByType(bandTogether, 'buff');

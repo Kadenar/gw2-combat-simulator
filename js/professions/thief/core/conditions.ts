@@ -109,6 +109,7 @@ export function observeSpearChainEffect(
     });
     return;
   }
+
   if (
     prepared.fallingSpiderEmpowered &&
     event.type === 'condition' &&
@@ -121,6 +122,7 @@ export function observeSpearChainEffect(
     });
     return;
   }
+
   if (skill.id === ID.UNSUSPECTING_STRIKE && event.type === 'condition' && event.condition === 'Bleeding') {
     context.replaceEvent(event, {
       bonusAboveNinetyStacks: 3
@@ -153,6 +155,7 @@ export function updateSpearChainState(context: ThiefCastContext, skill: ThiefSki
     emitThiefState(context, at, 'spear-chain');
     return;
   }
+
   if (skill.id === ID.DISTRACTING_THROW && (state.spearLastWasFinisher || Number(state.spearChainStage || 0) === 0)) {
     const followsFinisher = state.spearLastWasFinisher;
     state.spearChainStage = 1;
@@ -162,9 +165,11 @@ export function updateSpearChainState(context: ThiefCastContext, skill: ThiefSki
       state.distractingThrowBuffUntil =
         at + Number(thiefBalanceProfile(context, PROFILE.distractingThrow)?.durationMultiplier || 10);
     }
+
     emitThiefState(context, at, 'distracting-throw-lead');
     return;
   }
+
   if (skill.spearStealthAttack || SPEAR_STEALTH_SKILLS.has(Number(skill.id))) {
     state.spearChainStage = 0;
     state.spearLastWasFinisher = false;
@@ -215,6 +220,7 @@ export function activateSpiderVenom(context: ThiefCastContext): void {
       triggeredByAlly: proc.allyIndex
     });
   }
+
   emitThiefState(context, at, 'spider-venom');
 }
 
@@ -269,6 +275,7 @@ export function handleThousandNeedlesPulse(
       activationId
     });
   }
+
   for (const [condition, stacks, duration] of [
     ['Poisoned', 1, 8],
     ['Bleeding', 2, 5],
@@ -284,6 +291,7 @@ export function handleThousandNeedlesPulse(
       activationId
     });
   }
+
   if (pulse + 1 < THOUSAND_NEEDLES_PULSES) {
     context.tasks.schedule({
       ...task,
@@ -338,6 +346,7 @@ export function handleCaltropsPulse(
       activationId
     });
   }
+
   if (pulse + 1 < CALTROPS_PULSES) {
     context.tasks.schedule({
       ...task,

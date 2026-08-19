@@ -85,6 +85,7 @@ test('module-first assembly derives application and active runtime catalogs', ()
 
 test('module-first assembly rejects duplicate and incomplete contributions', () => {
   const core = coreModule();
+
   assert.throws(
     () =>
       assembleNativeApplicationCatalog([
@@ -158,6 +159,7 @@ test('phase-explicit reactions retain stable order', () => {
     name: 'Ordered',
     modules: [core]
   }).resolveRuntime({ specialization: 'Core' });
+
   runtime.eventReactions['damage.resolved']({}, { type: 'damage', at: 0 }, {});
   assert.deepEqual(calls, ['first', 'middle', 'later']);
 });
@@ -171,6 +173,7 @@ test('critical-hit helper preserves deterministic and stochastic semantics', () 
         state.rolls += 1;
         assert.equal(chance, 0.5);
         assert.equal(stream, 'fixture.critical');
+
         return true;
       }
     }
@@ -199,9 +202,11 @@ test('critical-hit helper preserves deterministic and stochastic semantics', () 
   });
   const event = { type: 'damage', at: 0, actorType: 'player', sourceId: 7 };
   const deterministic = { hitContext: { critical: { chance: 0.5 } } };
+
   for (let index = 0; index < 8; index += 1) {
     reaction.handler(context, { ...event, at: index / 4 }, deterministic);
   }
+
   assert.equal(state.procs, 1);
   assert.equal(state.rolls, 0);
   assert.equal(state.progress, 0);

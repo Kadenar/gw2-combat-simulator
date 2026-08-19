@@ -165,6 +165,7 @@ function contractProfession() {
           if (task.at > context.state.profession.actorActiveUntil + context.epsilon) {
             return;
           }
+
           context.emit({
             type: 'damage',
             at: task.at,
@@ -194,6 +195,7 @@ test('delayed packets resolve during later casts and lethal packets clip them', 
     config: fixtureConfig()
   });
   const delayed = nonlethal.resolvedEvents.find((event) => event.type === 'damage' && event.at === 0.8);
+
   assert.ok(delayed);
   assert.equal(nonlethal.duration, 2.2);
 
@@ -202,6 +204,7 @@ test('delayed packets resolve during later casts and lethal packets clip them', 
     rotation: ['Delayed Packet', 'Long Follow-up'],
     config: fixtureConfig({ target: { health: 50 } })
   });
+
   assert.equal(lethal.deathTime, 0.8);
   assert.equal(lethal.duration, 2.2);
   assert.ok(Math.abs(lethal.dpsWindow - 0.7) < 1e-12);
@@ -213,6 +216,7 @@ test('delayed packets resolve during later casts and lethal packets clip them', 
 
 test('terminal packets require an explicit observation tail or wait', () => {
   const scheduled = createScheduler({ profession }).run(['Delayed Packet']);
+
   assert.equal(scheduled.stream.rotationEndTime, 0.2);
   assert.equal(scheduled.stream.resolutionEndTime, 0.2);
   assert.ok(scheduled.events.some((event) => event.type === 'damage' && event.at === 0.8));
@@ -222,6 +226,7 @@ test('terminal packets require an explicit observation tail or wait', () => {
     rotation: ['Delayed Packet'],
     config: fixtureConfig()
   });
+
   assert.equal(defaultResult.duration, 0.2);
   assert.equal(
     defaultResult.resolvedEvents.some((event) => event.at === 0.8),
@@ -234,6 +239,7 @@ test('terminal packets require an explicit observation tail or wait', () => {
     config: fixtureConfig(),
     observationPolicy: { kind: 'tail', durationMs: 1000 }
   });
+
   assert.equal(tailed.duration, 0.2);
   assert.ok(tailed.resolvedEvents.some((event) => event.at === 0.8));
   assert.ok(Math.abs(tailed.dpsWindow - 1.1) < 1e-12);
@@ -243,6 +249,7 @@ test('terminal packets require an explicit observation tail or wait', () => {
     rotation: ['Delayed Packet', { type: 'wait', durationMs: 1000 }],
     config: fixtureConfig()
   });
+
   assert.equal(waited.duration, 1.2);
   assert.ok(waited.resolvedEvents.some((event) => event.at === 0.8));
 });
@@ -254,6 +261,7 @@ test('absolute observation is finite and target death clips it', () => {
     config: fixtureConfig(),
     observationPolicy: { kind: 'absolute', endTimeMs: 900 }
   });
+
   assert.equal(absolute.duration, 0.2);
   assert.equal(
     absolute.events.every((event) => event.at <= 0.9),
@@ -267,6 +275,7 @@ test('absolute observation is finite and target death clips it', () => {
     config: fixtureConfig({ target: { health: 50 } }),
     observationPolicy: { kind: 'tail', durationMs: 5000 }
   });
+
   assert.equal(deathClipped.deathTime, 0.8);
   assert.equal(
     deathClipped.events.every((event) => event.at <= 0.8),
@@ -287,6 +296,7 @@ test('invalid and contradictory observation boundaries are rejected', () => {
   ]) {
     assert.throws(() => createScheduler({ profession, observationPolicy }), /Observation|observation/);
   }
+
   assert.throws(
     () =>
       createScheduler({
@@ -322,6 +332,7 @@ test('interrupt persistence requires the declared commit point', () => {
     { name: 'Committed Channel', interruptMs: 200 },
     'Long Follow-up'
   ]);
+
   assert.deepEqual(
     beforeCommit.events
       .filter((event) => event.skillName === 'Committed Channel')
@@ -334,6 +345,7 @@ test('interrupt persistence requires the declared commit point', () => {
     { name: 'Committed Channel', interruptMs: 400 },
     'Long Follow-up'
   ]);
+
   assert.deepEqual(
     afterCommit.events
       .filter((event) => event.skillName === 'Committed Channel')
@@ -346,6 +358,7 @@ test('interrupt persistence requires the declared commit point', () => {
     rotation: [{ name: 'Committed Channel', interruptMs: 400 }, 'Long Follow-up'],
     config: fixtureConfig()
   });
+
   assert.ok(resolved.resolvedEvents.some((event) => event.at === 0.9));
 });
 
@@ -357,6 +370,7 @@ test('observed-packet replay preserves delayed effects without extending cast lo
     },
     'Long Follow-up'
   ]);
+
   assert.deepEqual(
     ordinaryInterrupt.events
       .filter((event) => event.skillName === 'Delayed Packet')
@@ -373,6 +387,7 @@ test('observed-packet replay preserves delayed effects without extending cast lo
     },
     'Long Follow-up'
   ]);
+
   assert.deepEqual(
     observedPacketReplay.events
       .filter((event) => event.skillName === 'Delayed Packet')
@@ -394,6 +409,7 @@ test('event metadata cannot extend an unrelated condition', () => {
     rotation: ['Long Condition', 'Metadata Bait'],
     config: fixtureConfig()
   });
+
   assert.equal(withMetadataBait.conditionDamage, clean.conditionDamage);
   assert.equal(withMetadataBait.duration, 0.2);
   assert.equal(
@@ -408,6 +424,7 @@ test('persistent actors respect lifetime, observation end, and target death', ()
     rotation: ['Persistent Actor'],
     config: fixtureConfig()
   });
+
   assert.equal(defaultResult.totalDamage, 0);
 
   const tailed = simulateGw2({
@@ -416,6 +433,7 @@ test('persistent actors respect lifetime, observation end, and target death', ()
     config: fixtureConfig(),
     observationPolicy: { kind: 'tail', durationMs: 2500 }
   });
+
   assert.deepEqual(
     tailed.resolvedEvents.filter((event) => event.source === 'Persistent Actor').map((event) => event.at),
     [1.1, 2.1]
@@ -427,6 +445,7 @@ test('persistent actors respect lifetime, observation end, and target death', ()
     config: fixtureConfig(),
     observationPolicy: { kind: 'tail', durationMs: 10_000 }
   });
+
   assert.deepEqual(
     longerThanLifetime.resolvedEvents.filter((event) => event.source === 'Persistent Actor').map((event) => event.at),
     [1.1, 2.1, 3.1, 4.1]
@@ -438,6 +457,7 @@ test('persistent actors respect lifetime, observation end, and target death', ()
     config: fixtureConfig({ target: { health: 5 } }),
     observationPolicy: { kind: 'tail', durationMs: 10_000 }
   });
+
   assert.equal(deathClipped.deathTime, 1.1);
   assert.deepEqual(
     deathClipped.events.filter((event) => event.source === 'Persistent Actor').map((event) => event.at),
@@ -451,13 +471,17 @@ test('production source and catalog data cannot declare event-owned horizons', (
   const visit = (entry) => {
     if (statSync(entry).isDirectory()) {
       for (const child of readdirSync(entry)) visit(path.join(entry, child));
+
       return;
     }
+
     if (!/\.(?:js|ts|json)$/.test(entry)) return;
+
     if (readFileSync(entry, 'utf8').includes(forbiddenHorizonField)) {
       violations.push(path.relative(repoRoot, entry));
     }
   };
+
   for (const root of roots) visit(root);
   assert.deepEqual(violations, []);
 });
@@ -468,9 +492,12 @@ test('saved rotations and regression tooling cannot select observation policy', 
   const visit = (entry) => {
     if (statSync(entry).isDirectory()) {
       for (const child of readdirSync(entry)) visit(path.join(entry, child));
+
       return;
     }
+
     if (!entry.endsWith('.json')) return;
+
     if (readFileSync(entry, 'utf8').includes(observationPolicyField)) {
       violations.push(path.relative(repoRoot, entry));
     }
@@ -482,6 +509,7 @@ test('saved rotations and regression tooling cannot select observation policy', 
     'scripts/analysis/capture-supported-build-metrics.mjs'
   ]) {
     const source = readFileSync(path.join(repoRoot, relativePath), 'utf8');
+
     if (source.includes(observationPolicyField)) violations.push(relativePath);
   }
 

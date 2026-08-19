@@ -78,15 +78,18 @@ function modifyDeadeyeAttributes(context: Gw2ModifierContext, attributes: Gw2Res
     if (hasTrait(context, TRAIT.SILENT_SCOPE)) {
       result.precision += Number(thiefBalanceProfile(context, PROFILE.silentScope)?.attributeBonus || 120);
     }
+
     if (hasTrait(context, TRAIT.PREMEDITATION)) {
       result.concentration += Number(thiefBalanceProfile(context, PROFILE.premeditation)?.attributeBonus || 180);
     }
   }
+
   if (hasTrait(context, TRAIT.BE_QUICK_OR_BE_KILLED) && boonActive(context, 'quickness')) {
     const bonus = Number(thiefBalanceProfile(context, PROFILE.beQuickOrBeKilled)?.attributeBonus || 200);
     result.power += bonus;
     result.precision += bonus;
   }
+
   return result;
 }
 

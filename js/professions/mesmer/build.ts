@@ -95,6 +95,7 @@ function migrateV0ToV1(saved: SchedulerRecord): SchedulerRecord {
   if (!Array.isArray(migrated.weaponSigils) && Array.isArray(migrated.sigils)) {
     migrated.weaponSigils = [migrated.sigils, migrated.sigils];
   }
+
   return migrated;
 }
 
@@ -107,6 +108,7 @@ function migrateV1ToV2(saved: SchedulerRecord): SchedulerRecord {
       Vulnerability: assumptions.vulnerability
     };
   }
+
   delete assumptions.vulnerability;
   delete assumptions.targetHealthAbove50;
   migrated.assumptions = assumptions;
@@ -143,6 +145,7 @@ const mesmerBuildCodec = createGw2BuildCodec({
     if (!(Number(build.initialResource) >= 0 && Number(build.initialResource) <= 5)) {
       errors.push('initialResource must be between 0 and 5.');
     }
+
     return errors;
   }
 });
@@ -178,10 +181,12 @@ function resolveLegacyRotation(candidate: unknown = {}): unknown[] {
           ? { type: 'cast', skillId: entry }
           : { type: 'cast', skillId: resolved };
     }
+
     const record = plainObject(entry);
     if (!entry || typeof entry !== 'object' || record.skillId != null || record.id != null) {
       return entry;
     }
+
     const resolved = resolveMesmerLegacySkillId(String(record.name || ''), {
       specialization
     });
@@ -200,6 +205,7 @@ export function migrateMesmerBuild(saved: unknown): MesmerCanonicalBuild {
     rotation: resolveLegacyRotation(source)
   });
 }
+
 export const validateMesmerBuild = mesmerBuildCodec.validateBuild;
 export function toApplicationBuild(saved: unknown) {
   return mesmerBuildCodec.toApplicationBuild(migrateMesmerBuild(saved));

@@ -44,6 +44,7 @@ export function renderResults(app: ProfessionAppState): void {
     if (mirror) mirror.innerHTML = '';
     return;
   }
+
   const metrics = resultSummaryMetrics(result).map((metric) =>
     result.randomDistributionRequested && metric.label === 'DPS' ? { ...metric, label: 'Baseline DPS' } : metric
   );
@@ -122,6 +123,7 @@ export function renderResults(app: ProfessionAppState): void {
     if (summary) mirror.appendChild(summary.cloneNode(true));
     if (bpDetails) mirror.appendChild(bpDetails.cloneNode(true));
   }
+
   renderPatchComparison(element, app);
   syncRotationFocusResults(document);
 }

@@ -58,6 +58,7 @@ export function modifyEvokerAttributes(context: Gw2ModifierContext, attributes: 
     modified.ferocity =
       Number(modified.ferocity || 0) + elementalistBalanceValue(context, PROFILE.enhancedPotency, 'attributeBonus', 75);
   }
+
   if (context.config?.evokerElement === 'Fire' && hasTrait(context, 'Enhanced Potency')) {
     // Fire Enhanced Potency scales condition damage per might stack
     modified.conditionDamage =
@@ -65,5 +66,6 @@ export function modifyEvokerAttributes(context: Gw2ModifierContext, attributes: 
       elementalistMightStacks(context) *
         elementalistBalanceValue(context, PROFILE.enhancedPotency, 'attributePerStack', 5);
   }
+
   return modified;
 }

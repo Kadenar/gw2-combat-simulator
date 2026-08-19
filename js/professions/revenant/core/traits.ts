@@ -43,6 +43,7 @@ function effectByType(profile: BalanceProfile | RevenantSkill, type: SkillEffect
   if (!effect) {
     throw new Error(`${profile.name} is missing its ${type} effect.`);
   }
+
   return effect;
 }
 
@@ -153,6 +154,7 @@ function grantBattleScars(
       expiresAt: at + duration
     });
   }
+
   const event = {
     type: 'buff',
     at,
@@ -181,6 +183,7 @@ function materializeThrillOfCombat(context: RevenantSchedulerContext, event: Rev
   if (state.nextThrillOfCombatAt == null) {
     state.nextThrillOfCombatAt = Number(state.combatBeganAt ?? event.at) + interval;
   }
+
   const next = Number(state.nextThrillOfCombatAt);
   if (!Number.isFinite(next) || next > event.at + context.epsilon) return;
   const elapsedGrants = Math.floor((event.at - next + context.epsilon) / interval) + 1;
@@ -197,6 +200,7 @@ function materializeThrillOfCombat(context: RevenantSchedulerContext, event: Rev
     });
     activeGrants += 1;
   }
+
   state.nextThrillOfCombatAt = next + elapsedGrants * interval;
   if (activeGrants) {
     context.emitDerived(event, {
@@ -246,6 +250,7 @@ function isLegendaryStanceSkill(skill: RevenantSkill): boolean {
   if (['Heal', 'Utility', 'Elite'].includes(String(skill.slot || '')) && skill.legendId) {
     return true;
   }
+
   return skill.type === 'Profession';
 }
 
@@ -264,6 +269,7 @@ export function modifyRevenantRechargeDuration(context: RevenantRechargeContext,
     if (duration === 0) return 0;
     return Math.max(0, Number(skill.cooldown ?? skill.recharge ?? duration));
   }
+
   return duration;
 }
 
@@ -280,6 +286,7 @@ export function afterRevenantCast(context: RevenantCastContext, skill: RevenantS
       duration: Number(buff.duration || 0)
     });
   }
+
   if (
     isLegendaryStanceSkill(skill) &&
     revenantCombatActive(context, context.effectiveEnd) &&
@@ -300,6 +307,7 @@ export function afterRevenantCast(context: RevenantCastContext, skill: RevenantS
       }
     );
   }
+
   if (!([ID.EMBRACE_THE_DARKNESS, ID.RESIST_THE_DARKNESS] as readonly number[]).includes(Number(skill.id))) {
     const embrace = professionCoreState(context).activeUpkeeps.find(
       (upkeep) => upkeep.skillId === ID.EMBRACE_THE_DARKNESS
@@ -322,6 +330,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       payload: { event }
     });
   }
+
   if (
     context.config.relic === 'Peitha' &&
     event.type === 'damage' &&
@@ -341,6 +350,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       name: 'Relic of Peitha'
     });
   }
+
   if (
     ['action', 'sigil_swap'].includes(event.type) &&
     event.skillId === ID.SWAP_WEAPONS &&
@@ -366,6 +376,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       stacks: Number(boon.stacks || 0)
     });
   }
+
   if (event.type === 'control' && hasRevenantTrait(context.config, TRAIT.DWARVEN_BATTLE_TRAINING)) {
     const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.dwarvenBattleTraining);
     const condition = effectByType(profile, 'condition');
@@ -379,6 +390,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       Number(condition.duration || 0)
     );
   }
+
   if (event.type === 'condition') {
     if (event.condition === 'Chilled' && hasRevenantTrait(context.config, TRAIT.ABYSSAL_CHILL)) {
       const profile = balanceProfileById(context, REVENANT_CORE_BALANCE_PROFILE_IDS.abyssalChill);
@@ -393,6 +405,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
         Number(condition.duration || 0)
       );
     }
+
     if (event.condition === 'Vulnerability' && hasRevenantTrait(context.config, TRAIT.DANCE_OF_DEATH)) {
       grantBattleScars(context, {
         at: event.at,
@@ -403,6 +416,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       });
     }
   }
+
   if (event.type === 'damage' && event.actorType === 'player' && Number(event.coefficient || 0) > 0) {
     materializeThrillOfCombat(context, event);
     consumeBattleScar(context, event);
@@ -427,6 +441,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
         stacks: Number(boon.stacks || 0)
       });
     }
+
     if (
       hasRevenantTrait(context.config, TRAIT.VICIOUS_REPRISAL) &&
       context.hasBuff('resolution', event.at) &&
@@ -449,6 +464,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
         stacks: Number(boon.stacks || 0)
       });
     }
+
     if (
       !state.exposeDefensesUsed &&
       hasRevenantTrait(context.config, TRAIT.EXPOSE_DEFENSES) &&
@@ -467,6 +483,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
         Number(condition.duration || 0)
       );
     }
+
     const daggers = state.enchantedDaggers;
     if (
       event.skillId !== ID.ENCHANTED_DAGGERS &&
@@ -478,6 +495,7 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
       if (!enchantedDaggers) {
         throw new Error('Missing Enchanted Daggers skill declaration.');
       }
+
       const strike = effectByType(enchantedDaggers, 'strike');
       const buff = effectByType(enchantedDaggers, 'buff');
       const interval = Number(strike.intervalMs || 0) / 1000;

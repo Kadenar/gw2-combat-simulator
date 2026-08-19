@@ -94,6 +94,7 @@ export function dragonChargeReleaseProjection(context: {
   for (let charges = chargesPerInterval; charges < maximumCharges; charges += chargesPerInterval) {
     chargeLevels.push(charges);
   }
+
   chargeLevels.push(maximumCharges);
 
   const stalled = projection.some((tick) => !tick.granted);

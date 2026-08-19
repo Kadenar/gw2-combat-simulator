@@ -283,16 +283,19 @@ export function validateComboDefinitions(values: readonly ComboDefinition[]): re
       throw new TypeError(`Combo definition ${key} requires an outcome.`);
     }
   }
+
   const expected = FIELD_TYPES.length * FINISHER_TYPES.length;
   if (values.length !== expected || keys.size !== expected) {
     throw new TypeError(`Combo definitions require all ${expected} field/finisher pairs.`);
   }
+
   for (const fieldType of FIELD_TYPES) {
     for (const finisherType of FINISHER_TYPES) {
       const key = `${fieldType}|${finisherType}`;
       if (!keys.has(key)) throw new TypeError(`Missing combo definition: ${key}.`);
     }
   }
+
   return values;
 }
 
@@ -307,6 +310,7 @@ export function comboDefinition(fieldType: ComboFieldType, finisherType: ComboFi
   if (!definition) {
     throw new TypeError(`Missing combo definition: ${fieldType}/${finisherType}.`);
   }
+
   return definition;
 }
 
@@ -413,6 +417,7 @@ export function materializeComboOutcome(combo: ComboEvent): readonly SimulationE
         return null;
     }
   };
+
   const applications = Math.max(1, combo.applicationCount);
   return Object.freeze(
     Array.from({ length: applications }, () => one()).filter((event): event is SimulationEventInput => event != null)

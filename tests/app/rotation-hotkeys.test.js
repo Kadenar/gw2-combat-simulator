@@ -116,6 +116,7 @@ test('fixed loadout flips retain their parent utility hotkey', () => {
 
 test('hotkey lookup, duplicate detection, and labels use keyboard codes', () => {
   const bindings = defaultRotationHotkeyBindings();
+
   bindings['weapon-1'] = 'KeyQ';
   bindings['weapon-2'] = 'KeyQ';
 

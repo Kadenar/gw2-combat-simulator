@@ -46,6 +46,7 @@ function truncatedBarrageActions(
     ) {
       return [];
     }
+
     const start = event.time - event.value;
     const alreadyRecorded = actions.some(
       (action) => action.rawSkillId === event.skillId && Math.abs(action.end - event.time) <= TRUNCATED_CAST_WINDOW_MS
@@ -75,6 +76,7 @@ function normalizeFalseInterruptions(
     ) {
       return action;
     }
+
     const skill = rangerSkill(context, action.rawSkillId, action.rawName);
     const duration = Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
     if (duration <= 0) return action;

@@ -41,6 +41,7 @@ function mergeSplitCast(
       result.push(action);
       continue;
     }
+
     const finish = actions.find(
       (candidate) =>
         !consumed.has(candidate) && candidate.rawSkillId === finishId && Math.abs(candidate.start - action.end) <= 10
@@ -49,6 +50,7 @@ function mergeSplitCast(
       result.push(action);
       continue;
     }
+
     consumed.add(finish);
     result.push({
       ...action,
@@ -59,6 +61,7 @@ function mergeSplitCast(
       canonicalName: action.rawName
     });
   }
+
   return result;
 }
 

@@ -46,6 +46,7 @@ export class RandomDistributionRunner {
     for (const worker of this.workers) {
       worker.terminate();
     }
+
     this.workers.clear();
 
     const results = app.results;
@@ -54,8 +55,10 @@ export class RandomDistributionRunner {
         results.randomDistributionRequested = false;
         results.randomDistributionStale = false;
       }
+
       return;
     }
+
     const request = app.adapter.randomDistributionRequest(app);
     if (!request) {
       results.randomDistributionRequested = false;
@@ -112,11 +115,13 @@ export class RandomDistributionRunner {
       app.results.randomDistributionError = '';
       app.adapter.renderResults(app);
     };
+
     const failDistribution = (error: unknown): void => {
       if (requestId !== this.requestId || !app.results) return;
       for (const worker of this.workers) {
         worker.terminate();
       }
+
       this.workers.clear();
       app.results.randomDistributionStale = false;
       app.results.randomDistributionError =
@@ -135,6 +140,7 @@ export class RandomDistributionRunner {
           applyDistribution(summarizeRandomDistribution([]));
           return;
         }
+
         const batchProgress: number[] = batches.map(() => 0);
         const completedSamples: Array<readonly number[] | null> = batches.map(() => null);
         const completedOutcomes: Array<readonly RandomDistributionOutcome[] | null> = batches.map(() => null);
@@ -148,11 +154,13 @@ export class RandomDistributionRunner {
             worker.terminate();
             this.workers.delete(worker);
           };
+
           worker.addEventListener('message', (event: MessageEvent<RandomDistributionWorkerMessage>) => {
             const { data } = event;
             if (failed || data.requestId !== requestId || requestId !== this.requestId) {
               return;
             }
+
             if (data.progress) {
               batchProgress[batchIndex] = Math.max(0, Math.min(batch.trials, Number(data.progress.completed || 0)));
               const completed = batchProgress.reduce((sum, value) => sum + value, 0);
@@ -163,12 +171,14 @@ export class RandomDistributionRunner {
               });
               return;
             }
+
             finishWorker();
             if (data.error) {
               failed = true;
               failDistribution(data.error);
               return;
             }
+
             completedSamples[batchIndex] = data.distribution?.samples || [];
             completedOutcomes[batchIndex] = data.distribution?.outcomes || [];
             completedWorkers += 1;

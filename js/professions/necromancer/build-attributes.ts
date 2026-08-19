@@ -138,6 +138,7 @@ export function applyNecromancerBuildAttributeRules(
   if (hasTrait('Barbed Precision')) {
     traitDurations['Bleeding Duration'] = 20;
   }
+
   const traitCriticalChance = hasTrait('Death Perception') ? 15 : 0;
 
   return finalizeBuildAttributes(common, {

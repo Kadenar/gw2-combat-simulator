@@ -15,6 +15,7 @@ test('non-weapon effect ownership has one canonical classifier', () => {
   for (const source of ['Trait', 'SIGIL', 'relic', 'Food', 'equipment']) {
     assert.equal(isGw2NonWeaponEffectEvent({ actorType: 'player', source }), true, source);
   }
+
   assert.equal(isGw2NonWeaponEffectEvent({ actorType: 'summon', source: 'Phantasm' }), false);
   assert.equal(isGw2NonWeaponEffectEvent({ actorType: 'player', source: ' Trait ' }), false);
   assert.equal(
@@ -60,6 +61,7 @@ test('event preparation groups related triggered packets per simulation pass', (
     state: { activeWeaponSet: 1, profession: {} },
     createActivationId(kind) {
       activationOrder += 1;
+
       return `${kind}:test:${activationOrder}`;
     }
   };
@@ -97,6 +99,7 @@ test('event preparation groups related triggered packets per simulation pass', (
     source: 'System',
     sourceId: 'marker'
   };
+
   assert.equal(preparer.prepare(context, marker), marker);
 });
 

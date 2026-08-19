@@ -114,6 +114,7 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
         context.state.cooldowns.set(chantId, Math.max(at, readyAt - Number(profile?.rechargeReduction ?? 2)));
       }
     }
+
     emitBoon(
       context,
       at,
@@ -125,6 +126,7 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
       false
     );
   }
+
   emitParagonState(context, at + context.epsilon, 'chant');
 }
 
@@ -238,6 +240,7 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
     if (level >= 2) {
       emitBoon(context, at, skill.id, skill.name, 'resolution', 3);
     }
+
     if (level === 3) {
       emitBoon(context, at, skill.id, skill.name, 'protection', 3);
     }
@@ -250,6 +253,7 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
     state.activeRefrain = '';
     state.nextRefrainAt = 0;
   }
+
   emitParagonState(context, at + context.epsilon, 'refrain-pulse');
 }
 
@@ -265,12 +269,14 @@ export function observeParagonEvent(context: WarriorSchedulerContext, event: War
   if (event.type !== 'combat_start' || state.callToActionActivated || !hasTrait(context, TRAIT.CALL_TO_ACTION)) {
     return;
   }
+
   state.callToActionActivated = true;
   gainMotivation(context, Number(warriorBalanceProfile(context, PROFILE.callToAction)?.resourceGain ?? 4));
   if (!state.activeRefrain) {
     state.activeRefrain = 'Chant of Action';
     state.nextRefrainAt = event.at + Number(warriorBalanceProfile(context, PROFILE.resources)?.pulseInterval ?? 3);
   }
+
   emitParagonState(context, event.at + context.epsilon, 'call-to-action');
 }
 
@@ -281,6 +287,7 @@ export function updateParagonCast(context: WarriorCastContext, skill: WarriorSki
       executePendingEcho(context, echo.id, context.effectiveEnd);
     }
   }
+
   // skill.id === -3 is the weapon-swap pseudo-skill.
   if (
     skill.id === -3 &&
@@ -307,6 +314,7 @@ export function beginParagonCast(context: WarriorCastContext, skill: WarriorSkil
   ) {
     return;
   }
+
   gainMotivation(context, Number(warriorBalanceProfile(context, PROFILE.rallyTheValiant)?.resourceGain ?? 4));
   emitParagonState(context, context.start + context.epsilon, 'rally');
 }

@@ -91,6 +91,7 @@ test('Necromancer uses the current API catalog and all nine trait lines', () => 
   for (const name of ['Corrupt Boon', 'Spectral Ring', 'Epidemic', 'Summon Flesh Wurm', 'Necrotic Traversal']) {
     assert.equal(necromancerCatalog.skillsByName.has(name), false, name);
   }
+
   assert.deepEqual(
     necromancerCatalog.specializations
       .filter((specialization) => specialization.elite)
@@ -101,6 +102,7 @@ test('Necromancer uses the current API catalog and all nine trait lines', () => 
 
 test('Necromancer modules expose isolated balance-profile authoring', () => {
   const modules = new Map(necromancerProfession.patchAuthoring.modules.map((module) => [module.id, module]));
+
   assert.deepEqual([...modules.keys()], ['Core', 'Reaper', 'Scourge', 'Harbinger', 'Ritualist']);
   assert.equal(
     [...modules.values()].every((module) => module.balanceProfiles.length > 0),
@@ -281,9 +283,11 @@ test('measured Quickness cast times remain exact', () => {
   );
   for (const [skillId, quicknessCastTimeMs] of expected) {
     const skill = necromancerCatalog.skillsById.get(skillId);
+
     assert.equal(skill.quicknessCastTimeMs, quicknessCastTimeMs, skill.name);
     assert.equal(skill.castTimeMs, quicknessCastTimeMs * 1.5, skill.name);
   }
+
   assert.equal(necromancerCatalog.skillsById.get(ID.SUFFER).castTimeMs, 0);
   assert.equal(necromancerCatalog.skillsById.get(ID.SUFFER).quicknessCastTimeMs, undefined);
 });
@@ -333,7 +337,9 @@ test('Necromancer multi-hit skills use their configured packet timings', () => {
   );
   const offsets = (result, skillName, skillId, type = 'damage') => {
     const start = result.steps.find((step) => step.skill === skillName)?.start;
+
     assert.notEqual(start, undefined, skillName);
+
     return result.events
       .filter((event) => event.type === type && event.skillId === skillId)
       .map((event) => Math.round(event.at * 1000 - start));
@@ -413,6 +419,7 @@ test('Necromancer single-hit skills use their configured offsets', () => {
   for (const [skillId, expectedOffset] of declarativeOffsets) {
     const skill = necromancerCatalog.skillsById.get(skillId);
     const strike = skill.effects.find((effect) => effect.type === 'strike');
+
     assert.equal(strike?.timingAnchor, 'castStart', skill.name);
     assert.equal(strike?.timingScale, 'cast', skill.name);
     assert.equal(Math.round((strike.atMs * skill.quicknessCastTimeMs) / skill.castTimeMs), expectedOffset, skill.name);
@@ -439,8 +446,10 @@ test('Necromancer single-hit skills use their configured offsets', () => {
   const customOffset = (result, skillName, skillId) => {
     const start = result.steps.find((step) => step.skill === skillName)?.start;
     const hit = result.events.find((event) => event.type === 'damage' && event.skillId === skillId);
+
     assert.notEqual(start, undefined, skillName);
     assert.ok(hit, skillName);
+
     return Math.round(hit.at * 1000 - start);
   };
 
@@ -562,6 +571,7 @@ test('interrupt-safe Necromancer attacks retain their committed packets', () => 
   const graspingDarknessHit = graspingDarkness.events.find(
     (event) => event.type === 'damage' && event.skillId === ID.GRASPING_DARKNESS
   );
+
   assert.equal(Math.round(graspingDarknessHit.at * 1000 - graspingDarkness.steps[0].start), 1440);
   assert.equal(
     graspingDarkness.events.filter((event) => event.type === 'damage' && event.skillId === ID.GRASPING_DARKNESS).length,
@@ -584,6 +594,7 @@ test('interrupt-safe Necromancer attacks retain their committed packets', () => 
   const ghastlyPackets = ghastlyClaws.events.filter(
     (event) => event.type === 'damage' && event.skillId === ID.GHASTLY_CLAWS
   );
+
   assert.equal(ghastlyClaws.steps[0].fullCastMs, 1440);
   assert.equal(ghastlyPackets.length, 8);
   assert.equal(new Set(ghastlyPackets.map((event) => event.at)).size, 8);
@@ -669,6 +680,7 @@ test('every catalog skill has mechanics and API aliases are excluded', () => {
   for (const name of NECROMANCER_NON_DPS_SKILL_NAMES) {
     assert.equal(necromancerCatalog.skillsByName.get(name)?.simulatorExcluded, true, name);
   }
+
   for (const skill of necromancerCatalog.skills) {
     if (skill.simulatorExcluded) continue;
     assert.equal(
@@ -937,6 +949,7 @@ test('Scourge shade costs and packets use their fixed PvE values', () => {
     true
   );
   const shadeProfile = necromancerCatalog.balanceProfilesById.get(SCOURGE_BALANCE_PROFILE_IDS.shade);
+
   assert.equal(shadeProfile.effects[0].coefficient, 0.666);
   assert.deepEqual(
     [shadeProfile.effects[1].condition, shadeProfile.effects[1].stacks, shadeProfile.effects[1].duration],
@@ -1136,6 +1149,7 @@ test('Harbinger shroud attacks use their Blight thresholds and coefficients', ()
   assert.deepEqual(strikeCoefficients(empoweredArc, ID.VORACIOUS_ARC), [2.8]);
   const vitalDrawCoefficients = strikeCoefficients(vitalDraw, ID.VITAL_DRAW);
   const darkBarrageCoefficients = strikeCoefficients(darkBarrage, ID.DARK_BARRAGE);
+
   assert.equal(vitalDrawCoefficients.length, 3);
   assert.ok(Math.abs(vitalDrawCoefficients.reduce((sum, value) => sum + value, 0) - 1.2) < 1e-12);
   assert.equal(darkBarrageCoefficients.length, 6);
@@ -1182,6 +1196,7 @@ test('Blight skills pay their cost before Wicked Corruption and elixirs', () => 
         conditions: { Vulnerability: 25 }
       }
     });
+
   for (const [skill, skillId, elixirConsumption] of [
     ['Devouring Cut', ID.DEVOURING_CUT, 15],
     ['Voracious Arc', ID.VORACIOUS_ARC, 17]
@@ -1287,6 +1302,7 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
   const perforate = damageEvents(utility, ID.PERFORATE).filter((event) => event.name === 'Perforate');
   const shards = damageEvents(utility, ID.SOUL_SHARDS).filter((event) => event.name === 'Soul Shards');
   const lowShards = damageEvents(belowHalf, ID.SOUL_SHARDS).filter((event) => event.name === 'Soul Shards');
+
   assert.equal(perforate.length, 7);
   assert.deepEqual(
     perforate.map((event) => event.coefficient),
@@ -1321,6 +1337,7 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
       .filter((event) => event.type === 'damage' && event.name === 'Soul Shards')
       .map((event) => event.damage)
   );
+
   assert.ok(Math.abs(lowShardDamage / normalShardDamage - 1.5) < 1e-12);
   const normalPerforateDamage = utility.resolvedEvents.find(
     (event) => event.type === 'damage' && event.name === 'Perforate'
@@ -1330,6 +1347,7 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
       .filter((event) => event.type === 'damage' && event.name === 'Perforate')
       .map((event) => event.damage)
   );
+
   assert.ok(Math.abs(lowPerforateDamage / normalPerforateDamage - 1.2) < 1e-12);
 });
 
@@ -1373,6 +1391,7 @@ test('Isolate and Distress expose the follow-up and reset Perforate', () => {
     true
   );
   const rows = skillBreakdownRows(result);
+
   assert.equal(rows.find((row) => row.name === 'Perforate')?.hits, 14);
   assert.equal(rows.find((row) => row.name === 'Soul Shards')?.hits, 6);
   assert.equal(
@@ -1444,6 +1463,7 @@ test('necromancer wells finish their pulses after the final rotation action', ()
       },
       observationTail(6000)
     );
+
     assert.equal(
       result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === skill).length,
       6,
@@ -1654,6 +1674,7 @@ test('Death Spiral includes its life-siphon damage packet', () => {
   assert.equal(resolvedSiphon?.damage, 3537);
 
   const rows = new Map(skillBreakdownRows(result).map((row) => [row.name, row]));
+
   assert.equal(rows.get('Death Spiral').hits, 1);
   assert.equal(rows.get('Death Spiral — Life Siphon').hits, 1);
   assert.equal(rows.get('Death Spiral — Life Siphon').parentSkill, 'Death Spiral');
@@ -1700,6 +1721,7 @@ test('Necromancer dark-field life steals inherit finisher attribution', () => {
         event.skillName === 'Leeching Bolts' &&
         event.parentSkillName === scenario.parentSkill
     );
+
     assert.equal(combo.applicationCount, scenario.hits);
     assert.equal(bolts.length, scenario.hits);
     assert.ok(
@@ -1708,8 +1730,10 @@ test('Necromancer dark-field life steals inherit finisher attribution', () => {
       )
     );
     const rows = skillBreakdownRows(result);
+
     assert.equal(rows.find((row) => row.name === scenario.parentSkill)?.hits, 1);
     const boltRow = rows.find((row) => row.name === 'Leeching Bolts');
+
     assert.equal(boltRow?.hits, scenario.hits);
     assert.equal(boltRow?.casts, 0);
   }
@@ -1717,6 +1741,7 @@ test('Necromancer dark-field life steals inherit finisher attribution', () => {
   const withoutField = simulate('Ritualist', ['Death Spiral'], {
     primaryWeapon: 'Greatsword'
   });
+
   assert.equal(
     withoutField.resolvedEvents.some((event) => event.type === 'combo' && event.fieldType === 'Dark'),
     false
@@ -2118,6 +2143,7 @@ test('player boon sharing can be disabled for Necromancer minions', () => {
   const cappedMight = capped.events.find(
     (event) => event.type === 'buff' && event.skillId === ID.BLOOD_IS_POWER && event.kind === 'might'
   );
+
   assert.equal(sharedMight.recipients, 'party');
   assert.deepEqual(sharedMight.companionIds, ['minion:bone-fiend:0']);
   assert.equal(sharedMight.affectsSummons, true);
@@ -2134,6 +2160,7 @@ test('player boon sharing can be disabled for Necromancer minions', () => {
     }
   );
   const damageByOwner = new Map();
+
   for (const event of partiallyCapped.resolvedEvents) {
     if (
       event.type === 'damage' &&
@@ -2143,6 +2170,7 @@ test('player boon sharing can be disabled for Necromancer minions', () => {
       damageByOwner.set(event.summonOwner, (damageByOwner.get(event.summonOwner) || 0) + event.damage);
     }
   }
+
   assert.ok(damageByOwner.get('minion:bone-minion:0') > damageByOwner.get('minion:bone-minion:1'));
 });
 
@@ -2338,6 +2366,7 @@ test('independent minions inherit dynamically shared Fury', () => {
     selectedTraitIds: [TRAIT.EMPOWERING_SPIRITS],
     sharePlayerBoonsWithSummons: true
   });
+
   assert.equal(firstBloodFiendAttack(base).criticalChance, 0.05);
   assert.equal(firstBloodFiendAttack(empowered).criticalChance, 0.3);
   assert.equal(firstBloodFiendAttack(capped).criticalChance, 0.05);
@@ -2345,6 +2374,7 @@ test('independent minions inherit dynamically shared Fury', () => {
   const spiritBoons = spiritEmpowered.events.filter(
     (event) => event.type === 'buff' && event.skillId === ID.WANDERLUST && ['quickness', 'fury'].includes(event.kind)
   );
+
   assert.equal(spiritBoons.length, 2);
   assert.ok(
     spiritBoons.every(
@@ -2673,6 +2703,7 @@ test('Ritualist weapon spells consume stacks and Resilient Weapon is usable', ()
   const splinterIcon = necromancerCatalog.skillsById.get(ID.SPLINTER_WEAPON).icon;
   const nightmareProcs = weaponSpells.procSteps.filter((step) => step.skill === 'Nightmare Weapon');
   const splinterProcs = weaponSpells.procSteps.filter((step) => step.skill === 'Splinter Weapon');
+
   assert.deepEqual(weaponSpells.warnings, []);
   assert.equal(nightmare.length, 5);
   assert.equal(splinter.length, 5);
@@ -2689,6 +2720,7 @@ test('Ritualist weapon spells consume stacks and Resilient Weapon is usable', ()
     true
   );
   const nightmareProc = necromancerCatalog.balanceProfilesById.get(RITUALIST_BALANCE_PROFILE_IDS.nightmareWeaponProc);
+
   assert.equal(nightmareProc.effects[1].stacks, 2);
   assert.equal(nightmareProc.effects[1].duration, 8);
   assert.deepEqual(resilient.warnings, []);
@@ -2746,6 +2778,7 @@ test('Ritualist weapon spells scale with allied players', () => {
     },
     observationTail(2000)
   );
+
   assert.equal(
     wieldersBoon.resolvedEvents.filter((event) => event.name === 'Nightmare Weapon' && event.triggeredByAlly === 1)
       .length,
@@ -2928,6 +2961,7 @@ test('requested Harbinger damage traits apply at their per-hit triggers', () => 
   const insidiousDisruption = result.resolvedEvents.filter(
     (event) => event.sourceId === TRAIT.INSIDIOUS_DISRUPTION && event.condition === 'Torment'
   );
+
   assert.equal(insidiousDisruption.length, 3);
   assert.ok(insidiousDisruption.every((event) => event.duration === 5));
 });
@@ -3032,6 +3066,7 @@ test('current Harbinger grandmaster traits use their live PvE mechanics', () => 
   const riskWeakness = cascading.resolvedEvents.find(
     (event) => event.skillId === ID.ELIXIR_OF_RISK && event.condition === 'Weakness'
   );
+
   assert.deepEqual(
     {
       stacks: riskWeakness?.stacks,
@@ -3050,6 +3085,7 @@ test('current Harbinger grandmaster traits use their live PvE mechanics', () => 
   const cascadingTorment = cascading.resolvedEvents.find(
     (event) => event.type === 'condition' && event.sourceId === TRAIT.CASCADING_CORRUPTION
   );
+
   assert.deepEqual(
     {
       skillId: cascadingStrike?.skillId,
@@ -3083,12 +3119,14 @@ test('current Harbinger grandmaster traits use their live PvE mechanics', () => 
     }
   );
   const cascadingRow = skillBreakdownRows(cascading).find((row) => row.name === 'Cascading Corruption');
+
   assert.ok(cascadingRow?.strike > 0);
   assert.ok(cascadingRow?.condition > 0);
   assert.equal(cascadingRow?.hits, 1);
   assert.equal(cascadingRow?.casts, 0);
   assert.equal(cascadingRow?.parentSkill, 'Elixir of Ambition');
   const meltdown = cascading.procSteps.find((step) => step.skill === 'Meltdown');
+
   assert.equal(meltdown?.icon, 'https://wiki.guildwars2.com/wiki/Special:FilePath/Meltdown.png');
   assert.equal(
     precombat.breakdown.some((entry) => entry.name === 'Cascading Corruption'),
@@ -3109,6 +3147,7 @@ test('current Harbinger grandmaster traits use their live PvE mechanics', () => 
   const twistedMedicineBoons = twistedMedicine.events.filter(
     (event) => event.type === 'buff' && ['might', 'fury'].includes(event.kind)
   );
+
   assert.equal(twistedMedicineBoons.length, 2);
   assert.ok(twistedMedicineBoons.every((event) => event.recipients === 'party' && event.affectsSummons === false));
   assert.equal(doom.events.filter((event) => event.type === 'damage' && event.skillId === ID.DARK_BARRAGE).length, 8);
@@ -3136,12 +3175,14 @@ test('Soul Barbs and Dark Gunslinger change their documented outputs', () => {
     [15, 15]
   );
   const soulBarbsSeries = buildChartSeries(soulBarbs, 100).effects['Soul Barbs'];
+
   assert.ok(soulBarbsSeries.some((point) => point.v === 1));
   assert.ok(soulBarbsSeries.every((point) => point.v === 0 || point.v === 1));
   assert.ok(gunslinger.steps[1].start < basePistol.steps[1].start);
   const gunslingerPoison = gunslinger.resolvedEvents.find(
     (event) => event.skillId === ID.VILE_BLAST && event.condition === 'Poisoned'
   );
+
   assert.ok(Math.abs(gunslingerPoison.effectiveDuration - 6.496) < 1e-12);
 });
 
@@ -3294,6 +3335,7 @@ test('modifier candidates exclude structural traits', () => {
     skillByName: necromancerCatalog.skillsByName,
     attributeWeaponSet: 1
   };
+
   recalculate(app);
 
   const activeTraitNames = new Set(app.attributeData.activeTraits.map((trait) => trait.name));
@@ -3341,6 +3383,7 @@ test('signet passives and Soul Battery are profession-owned resources', () => {
   const bloodCurse = perception.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillId === ID.BLOOD_CURSE
   );
+
   assert.ok(Math.abs(lifeBlast.criticalChance - 0.6761904761904762) < 1e-12);
   assert.ok(Math.abs(lifeBlast.criticalDamage - 1.8333333333333333) < 1e-12);
   assert.ok(Math.abs(bloodCurse.criticalChance - 0.6761904761904762) < 1e-12);
@@ -3369,6 +3412,7 @@ test('the Power Harbinger trait set uses current critical and resource rules', (
     result.resolvedEvents
       .filter((event) => event.type === 'damage' && event.skillId === ID.TAINTED_BOLTS)
       .reduce((sum, event) => sum + event.damage, 0);
+
   assert.ok(Math.abs(strikeDamage(deathPerception) / strikeDamage(base) - 1.1) < 1e-12);
   assert.ok(Math.abs(strikeDamage(wickedCorruption) / strikeDamage(base) - 1.1) < 1e-12);
   assert.ok(Math.abs(strikeDamage(both) / strikeDamage(base) - 1.21) < 1e-12);
@@ -3376,6 +3420,7 @@ test('the Power Harbinger trait set uses current critical and resource rules', (
   const implacable = simulate('Harbinger', ['Harbinger Shroud'], {
     selectedTraitIds: [TRAIT.IMPLACABLE_FOE]
   });
+
   assert.equal(
     implacable.events.some(
       (event) => event.type === 'buff' && event.kind === 'stability' && event.stacks === 3 && event.duration === 5
@@ -3392,6 +3437,7 @@ test('the Power Harbinger trait set uses current critical and resource rules', (
       health: 8000
     }
   });
+
   assert.equal(fortitude.endState.profession.lifeForce, 2.2);
 });
 
@@ -3610,6 +3656,7 @@ test('Necromancer renders life force above its F-skills', async () => {
   };
   const palette = { innerHTML: '', querySelectorAll: () => [] };
   const previousDocument = globalThis.document;
+
   globalThis.document = {
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
@@ -3622,6 +3669,7 @@ test('Necromancer renders life force above its F-skills', async () => {
   const html = palette.innerHTML;
   const mechanic = html.indexOf('compact-resource-palette necromancer-f-skills');
   const resource = html.indexOf('data-resource-id="life-force"');
+
   assert.ok(mechanic >= 0);
   assert.ok(resource > mechanic);
   assert.match(html, /compact-profession-resource-necromancer-life-force/);
@@ -3693,6 +3741,7 @@ test('Necromancer shroud transitions stay adjacent and toggle availability', () 
       specialization,
       professionState: { activeShroud: shroud }
     };
+
     for (const context of [inactiveContext, activeContext]) {
       assert.deepEqual(
         necromancerProfession.ui.paletteGroups(context)[0].skillIds.slice(0, 2),
@@ -3700,6 +3749,7 @@ test('Necromancer shroud transitions stay adjacent and toggle availability', () 
         specialization
       );
     }
+
     assert.equal(
       necromancerProfession.ui.isPaletteSkillAvailable(inactiveContext, necromancerCatalog.skillsById.get(entryId)),
       true,
@@ -3775,6 +3825,7 @@ test("Necromancer skill bar exposes each specialization's shroud abilities", () 
     },
     professionState: {}
   });
+
   assert.deepEqual(
     scourge.map((group) => group.label),
     ['F Keys']
@@ -3819,6 +3870,7 @@ test('Necromancer state events have a real event-log presentation', () => {
 
 test('slot skills are inaccessible in transformed shrouds', () => {
   const slotSkill = necromancerCatalog.skillsById.get(ID.BLOOD_IS_POWER);
+
   for (const [specialization, shroud, entry] of [
     ['Core', 'death', 'Death Shroud'],
     ['Reaper', 'reaper', "Reaper's Shroud"],
@@ -3840,8 +3892,10 @@ test('slot skills are inaccessible in transformed shrouds', () => {
       initialResource: 100,
       selectedSkills: ['Blood Is Power']
     });
+
     assert.match(result.warnings.join(' '), /Blood Is Power is unavailable/, specialization);
   }
+
   assert.equal(
     necromancerProfession.ui.isPaletteSkillAvailable(
       {
@@ -3903,6 +3957,7 @@ test('Harbinger can equip torch skills through Weaponmaster Training', async () 
     },
     2
   );
+
   assert.equal(
     scepterSkills.some((skill) => skill.name === 'Devouring Darkness'),
     true
@@ -3935,6 +3990,7 @@ test('Harbinger can equip torch skills through Weaponmaster Training', async () 
       sharePlayerBoonsWithSummons: true
     }
   );
+
   assert.deepEqual(torchRotation.warnings, []);
   assert.equal(
     torchRotation.breakdown.some((entry) => entry.name === 'Harrowing Wave'),
@@ -3947,12 +4003,14 @@ test('Harbinger can equip torch skills through Weaponmaster Training', async () 
   const oppressiveMight = torchRotation.events.find(
     (event) => event.type === 'buff' && event.skillId === ID.OPPRESSIVE_COLLAPSE && event.kind === 'might'
   );
+
   assert.equal(oppressiveMight.recipients, 'party');
   assert.equal(oppressiveMight.affectsSummons, false);
 });
 
 test('Necromancer builds migrate and validate against canonical metadata', () => {
   const defaults = createNecromancerBuildDefaults();
+
   assert.deepEqual(validateNecromancerBuild(defaults), {
     valid: true,
     errors: []
@@ -3964,6 +4022,7 @@ test('Necromancer builds migrate and validate against canonical metadata', () =>
     initialCascadingCorruptionStacks: 30,
     selectedSkillIds: [ID.SUMMON_BLOOD_FIEND, ID.BLOOD_IS_POWER, ID.LICH_FORM]
   });
+
   assert.deepEqual(migrated.weapons, ['Greatsword', '']);
   assert.equal(migrated.initialResource, 100);
   assert.equal(migrated.initialBlight, 0);
@@ -3979,6 +4038,7 @@ test('Necromancer builds migrate and validate against canonical metadata', () =>
 
 test('Necromancer is wired through the selector and application adapter', async () => {
   const page = await readFile(new URL('../../../necromancer.html', import.meta.url), 'utf8');
+
   assert.equal(
     professionOptions.some((option) => option.id === 'necromancer'),
     true

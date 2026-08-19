@@ -14,6 +14,7 @@ function resolveAdapter(adapter: unknown): Gw2AppAdapter {
   if (!adapter || typeof adapter !== "object" || Array.isArray(adapter)) {
     throw new TypeError("Application state requires a profession app adapter.");
   }
+
   const candidate = adapter as Partial<Gw2AppAdapter>;
   if (
     !candidate.profession ||
@@ -22,6 +23,7 @@ function resolveAdapter(adapter: unknown): Gw2AppAdapter {
   ) {
     throw new TypeError("Application state requires a profession app adapter.");
   }
+
   return candidate as Gw2AppAdapter;
 }
 

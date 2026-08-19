@@ -86,6 +86,7 @@ export function advanceDragonhunterState(context: GuardianSchedulerContext, targ
         duration: Number(aegis?.duration || 20)
       });
     }
+
     state.nextShieldOfCourageAegisAt += interval;
   }
 }
@@ -106,12 +107,14 @@ export function updateDragonhunterCastState(context: GuardianCastContext, skill:
       icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.HUNTERS_DETERMINATION)
     });
   }
+
   if (skill.id === ID.SPEAR_OF_JUSTICE) {
     const state = dragonhunterState.from(context);
     // Arm Hunter's Verdict as a flip that expires when the tether does,
     // so the availability check naturally gates it to the tether window.
     professionCoreState(context).availableFlips[ID.HUNTERS_VERDICT] = state.tetherUntil;
   }
+
   if (skill.categories?.includes('Trap') && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.HUNTERS_PREMONITION)) {
     // Hunter's Premonition fires on any trap cast, not just DH traps;
     // the "Trap" category tag on the skill definition is the only gate.

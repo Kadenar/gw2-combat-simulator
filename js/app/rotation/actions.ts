@@ -36,6 +36,7 @@ export function insertRotationItems(app: ProfessionAppState, items: readonly Leg
     app.build.rotation.splice(insertionIndex, 0, ...items);
     app.rotationInsertionIndex = insertionIndex + items.length;
   }
+
   app.changed(false);
   return true;
 }

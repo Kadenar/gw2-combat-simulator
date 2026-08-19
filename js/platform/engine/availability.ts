@@ -16,9 +16,11 @@ export function foldAvailability(results: Iterable<AvailabilityResult>): Availab
     if (!Number.isFinite(retryAt)) {
       throw new TypeError('Cast availability retryAt must be finite or null.');
     }
+
     if (combined.ready || retryAt > Number(combined.retryAt ?? -Infinity)) {
       combined = { ...result, retryAt };
     }
   }
+
   return combined;
 }

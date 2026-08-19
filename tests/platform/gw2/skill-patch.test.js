@@ -152,6 +152,7 @@ test('modifier rule patches edit static values and named resolver parameters', (
   const liveHooks = createModifierHooks({ rules });
   const previewHooks = createModifierHooks({ rules: preview });
   const context = { time: 0, config: { stacks: 3 } };
+
   assert.equal(liveHooks.modifyCriticalChance(context, 0), 0.13);
   assert.equal(previewHooks.modifyCriticalChance(context, 0), 0.26);
 });
@@ -356,6 +357,7 @@ test('skill patches add and remove complete condition effects', () => {
 
 test('patch authoring rejects unknown, ambiguous, and stale targets', () => {
   const live = fixtureCatalog();
+
   assert.throws(() => applySkillPatch(live, { skills: { Missing: { cooldown: 2 } } }), /unknown skill Missing/);
   assert.throws(
     () =>
@@ -478,6 +480,7 @@ test('native professions keep live and lazy preview catalogs side by side', () =
 
   const live = family.catalogFor();
   const preview = family.catalogFor('fixture-preview');
+
   assert.equal(family.catalog, live);
   assert.equal(live.skillsById.get(1).effects[0].coefficient, 1);
   assert.equal(preview.skillsById.get(1).effects[0].coefficient, 2);
@@ -493,6 +496,7 @@ test('native professions keep live and lazy preview catalogs side by side', () =
     2
   );
   const values = family.patchValuesFor('fixture-preview');
+
   assert.equal(patchRuntimeValue(values, 'shared.factor', 2), 3);
   assert.equal(patchRuntimeValue(values, 'fixture.factor', 4), 5);
   assert.equal(patchRuntimeValue(values, 'missing', 4), 4);
@@ -520,6 +524,7 @@ test('native professions keep live and lazy preview catalogs side by side', () =
     rotation: [1],
     config: { ...config, patchId: 'fixture-preview' }
   });
+
   assert.equal(previewResult.totalDamage, currentResult.totalDamage * 2);
 });
 
@@ -801,6 +806,7 @@ test('native professions compile preview modifier rules in isolated runtimes', (
     rotation: [10],
     config: { ...config, selectedTraitIds: [], patchId: 'current' }
   });
+
   assert.ok(previewResult.totalDamage > currentResult.totalDamage);
   assert.equal(unselectedPreviewResult.totalDamage, unselectedCurrentResult.totalDamage);
 });

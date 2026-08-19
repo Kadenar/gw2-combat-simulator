@@ -35,5 +35,6 @@ export function getActiveTraits(
       if (trait) active.push(trait);
     }
   }
+
   return active;
 }

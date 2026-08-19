@@ -50,22 +50,26 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
   if (bytes.byteLength > EVTC_PARSE_LIMITS.maximumExpandedBytes) {
     throw new EvtcError('EXPANDED_SIZE_EXCEEDED', 'The expanded EVTC file exceeds the 512 MiB safety limit.');
   }
+
   ensureRange(bytes.byteLength, 0, HEADER_SIZE, 'TRUNCATED_HEADER', 'header');
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const magic = String.fromCharCode(...bytes.subarray(0, 4));
   if (magic !== 'EVTC') {
     throw new EvtcError('INVALID_MAGIC', 'The file does not contain EVTC data.');
   }
+
   const arcdpsBuild = String.fromCharCode(...bytes.subarray(4, 12));
   if (!/^\d{8}$/.test(arcdpsBuild)) {
     throw new EvtcError('INVALID_MAGIC', 'The EVTC header has an invalid ArcDPS build identifier.');
   }
+
   const rawRevision = view.getUint8(12);
   if (rawRevision !== 0 && rawRevision !== 1) {
     throw new EvtcError('UNSUPPORTED_REVISION', `EVTC combat-event revision ${rawRevision} is not supported.`, {
       revision: rawRevision
     });
   }
+
   const revision: 0 | 1 = rawRevision;
   const encounterId = view.getUint16(13, true);
   let offset = HEADER_SIZE;
@@ -78,6 +82,7 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
       agentCount
     });
   }
+
   ensureRange(bytes.byteLength, offset, agentCount * AGENT_SIZE, 'TRUNCATED_AGENTS', 'agent table');
   const agents: ParsedEvtcAgent[] = [];
   for (let index = 0; index < agentCount; index += 1) {
@@ -96,6 +101,7 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
       subgroup: names[2] || ''
     });
   }
+
   offset += agentCount * AGENT_SIZE;
 
   ensureRange(bytes.byteLength, offset, 4, 'TRUNCATED_SKILLS', 'skill count');
@@ -106,6 +112,7 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
       skillCount
     });
   }
+
   ensureRange(bytes.byteLength, offset, skillCount * SKILL_SIZE, 'TRUNCATED_SKILLS', 'skill table');
   const skills: ParsedEvtcSkill[] = [];
   for (let index = 0; index < skillCount; index += 1) {
@@ -115,6 +122,7 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
       name: readString(bytes.subarray(record + 4, record + SKILL_SIZE))
     });
   }
+
   offset += skillCount * SKILL_SIZE;
 
   const remainingBytes = bytes.byteLength - offset;
@@ -127,12 +135,14 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
       trailingBytes
     });
   }
+
   const eventCount = eventBytes / EVENT_SIZE;
   if (eventCount > EVTC_PARSE_LIMITS.maximumEvents) {
     throw new EvtcError('LIMIT_EXCEEDED', `The EVTC combat-event count (${eventCount}) exceeds the safety limit.`, {
       eventCount
     });
   }
+
   const events: ParsedEvtcEvent[] = [];
   for (let index = 0; index < eventCount; index += 1) {
     const record = offset + index * EVENT_SIZE;

@@ -54,5 +54,6 @@ export function normalizeRevenantLegendIds(
   for (const legendId of [...(selectedLegends || []), ...legal]) {
     if (legalIds.has(legendId) && !selected.includes(legendId) && selected.length < 2) selected.push(legendId);
   }
+
   return selected;
 }

@@ -12,6 +12,7 @@ export function expireDeadeyesMark(
   if (Number(task.payload.generation || 0) !== state.markGeneration || task.at < state.markExpiresAt) {
     return;
   }
+
   state.markedTargetId = null;
   state.markExpiresAt = 0;
   // Malice resets when the mark expires; a fresh Deadeye's Mark starts at 0 (or initialDeadeyeMalice if Malicious Intent is equipped)

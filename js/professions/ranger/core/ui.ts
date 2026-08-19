@@ -51,6 +51,7 @@ function activePetSkillIds(context: RangerUiContext): SkillId[] {
   if (Array.isArray(state.activePetSkillIds)) {
     return [...(state.activePetSkillIds as SkillId[])];
   }
+
   return [...(selectedRangerUiPet(context)?.skillIds || [])];
 }
 
@@ -133,6 +134,7 @@ function updateHammerSelection(context: RangerUiContext, selection: RangerUiSele
   if (selection.key !== 'selectedHammerSkillIds' || !context.build) {
     return false;
   }
+
   const index = Number(selection.index);
   const skillId = Number(selection.skillId);
   if (
@@ -143,6 +145,7 @@ function updateHammerSelection(context: RangerUiContext, selection: RangerUiSele
   ) {
     return false;
   }
+
   const selected = selectedHammerSkillIds(context);
   selected[index] = skillId;
   context.build.selectedHammerSkillIds = selected;
@@ -160,6 +163,7 @@ function rangerWeaponSkillMatchesSet(skill: Skill, weapons: string[], context: S
   ) {
     return false;
   }
+
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }
 
@@ -167,6 +171,7 @@ function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSk
   if (isRangerHammerVariant(skill.id) && !selectedHammerSkillIds(context).includes(Number(skill.id))) {
     return { available: false, message: 'Select this Hammer variant first' };
   }
+
   const state = rangerUiState(context);
   const availableFlips = (state.availableFlips || {}) as SchedulerRecord;
   const flipParent = skill.flipParentId == null ? null : rangerCatalog.skillsById.get(Number(skill.flipParentId));
@@ -180,6 +185,7 @@ function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSk
   ) {
     return { available: false, message: `Use ${flipParent?.name || 'its opening weapon skill'} first` };
   }
+
   if (
     skill.type === 'Weapon' &&
     !isRangerHammerVariant(skill.id) &&
@@ -191,10 +197,12 @@ function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSk
   ) {
     return { available: false, message: 'Use or wait out the active follow-up skill' };
   }
+
   if (!skill.petSkill) return { available: true, message: '' };
   if (state.beastmodeActive) {
     return { available: false, message: 'Leave Beastmode first' };
   }
+
   const available = !skill.petAutonomousSkill && activePetSkillIds(context).includes(skill.id);
   return {
     available,
@@ -282,6 +290,7 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
         className: 'ranger-hammer'
       });
     }
+
     return groups;
   },
   updateSkillBarSelection: updateRangerCoreSelection,

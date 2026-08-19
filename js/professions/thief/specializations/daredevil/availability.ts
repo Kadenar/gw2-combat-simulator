@@ -9,6 +9,7 @@ export function daredevilCastAvailability(context: ThiefPrecastContext, skill: T
   if (daredevilState.from(context).palmStrikeUntil > context.start) {
     return { ready: true };
   }
+
   return {
     ready: false,
     // retryAt: null because there is no timer to poll — the window only opens on Fist Flurry hit

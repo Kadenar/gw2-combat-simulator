@@ -71,16 +71,19 @@ function assertNativeModuleDefinition(definition: object): void {
   if (!String(candidate.id || '').trim()) {
     throw new TypeError('Native profession module id is required.');
   }
+
   assertObject(candidate.data, `${candidate.id}.data`);
   assertObject(candidate.state, `${candidate.id}.state`);
   if (typeof candidate.state?.scheduler !== 'function') {
     throw new TypeError(`${candidate.id}.state.scheduler must be a function.`);
   }
+
   for (const name of ['resolver', 'project'] as const) {
     if (candidate.state?.[name] != null && typeof candidate.state[name] !== 'function') {
       throw new TypeError(`${candidate.id}.state.${name} must be a function.`);
     }
   }
+
   // availability can be a single mechanic or an array; normalize to array for uniform validation.
   const schedulerDeclarations = [
     ...(candidate.mechanics?.availability == null
@@ -95,6 +98,7 @@ function assertNativeModuleDefinition(definition: object): void {
       throw new TypeError(`${candidate.id} contains an invalid scheduler mechanic declaration.`);
     }
   }
+
   for (const declaration of candidate.mechanics?.reactions || []) {
     if (declaration.phase !== 'resolver') {
       throw new TypeError(`${candidate.id} contains a non-resolver reaction declaration.`);
@@ -181,12 +185,14 @@ function nativeModuleModifierRules(module: AnyNativeModule): readonly Gw2Modifie
   if (Array.isArray(modifiers)) {
     return modifiers as readonly Gw2ModifierRule[];
   }
+
   if (!modifiers || typeof modifiers !== 'object') return [];
   const rules = (modifiers as { readonly modifierRules?: unknown }).modifierRules;
   if (rules == null) return [];
   if (!Array.isArray(rules)) {
     throw new TypeError(`${module.id} modifierRules must be an array.`);
   }
+
   return rules as readonly Gw2ModifierRule[];
 }
 
@@ -197,6 +203,7 @@ function modifierAuthoringValue(value: Gw2ModifierRule['amount'] | Gw2ModifierRu
   if (typeof value === 'number') {
     return Object.freeze({ kind: 'static', value });
   }
+
   return Object.freeze({
     kind: typeof value === 'function' ? 'resolver' : 'absent'
   });
@@ -272,14 +279,17 @@ function assertProfessionPatchShape(professionId: string, patch: ProfessionPatch
       throw new TypeError(`${professionId} patch has unsupported field ${field}.`);
     }
   }
+
   for (const field of ['skills', 'balanceProfiles', 'modifierRules', 'constants'] as const) {
     if (patch[field] != null) {
       assertObject(patch[field], `${professionId} patch ${field}`);
     }
   }
+
   if (patch.overview != null && !Array.isArray(patch.overview)) {
     throw new TypeError(`${professionId} patch overview must be an array.`);
   }
+
   validatePatchOverview(patch.overview, `${professionId} patch overview`);
 }
 
@@ -302,6 +312,7 @@ function preparePreviewModifierRules(
   if (!entries.length) {
     return { byModule: new Map(), targets: Object.freeze([]) };
   }
+
   const declarations = modules.flatMap((module) => [...nativeModuleModifierRules(module)]);
   const patched = applyModifierRulePatch(declarations, patch);
   const patchedById = new Map(patched.map((rule) => [rule.id, rule]));
@@ -313,6 +324,7 @@ function preparePreviewModifierRules(
     for (const rule of rules) ownerById.set(rule.id, module.id);
     byModule.set(module.id, Object.freeze(rules.map((rule) => patchedById.get(rule.id) || rule)));
   }
+
   const targets = entries.map(([id, edit]) =>
     Object.freeze({
       id,
@@ -351,6 +363,7 @@ function compileNativeModule(
   ]) {
     appendOrderedHook(declaration.hook === 'availability' ? castRules : schedulerHooks, declaration.hook, declaration);
   }
+
   const resolverHooks = {
     ...((mechanics.resolverHooks || {}) as SchedulerRecord)
   };
@@ -372,6 +385,7 @@ function compileNativeModule(
       }
     ];
   }
+
   resolverHooks.eventReactions = reactions;
   const modifiers = Array.isArray(mechanics.modifiers)
     ? { modifierRules: modifierRules || mechanics.modifiers }
@@ -414,6 +428,7 @@ export function defineNativeProfession<
   if (!definition || typeof definition !== 'object') {
     throw new TypeError('A native profession definition is required.');
   }
+
   const modules = definition.modules as readonly AnyNativeModule[];
   for (const module of modules) assertNativeModuleDefinition(module);
   const preview = definition.patchPreview ? validatePatchPreview(definition.patchPreview) : null;
@@ -461,11 +476,13 @@ export function defineNativeProfession<
     previewFamily ||= defineProfessionFamily(createEngineDefinition(previewModifierRules.byModule));
     return previewFamily;
   };
+
   let previewCatalog: Readonly<CanonicalCatalog> | null = null;
   const validatedPreviewCatalog = (): Readonly<CanonicalCatalog> => {
     previewCatalog ||= applyBalanceProfilePatch(applySkillPatch(family.catalog, professionPatch), professionPatch);
     return previewCatalog;
   };
+
   // Cache patched runtime catalogs per original catalog object so we don't
   // re-apply the skill patch for every simulation that runs in preview mode.
   const runtimeCatalogs = new WeakMap<Readonly<CanonicalCatalog>, Readonly<CanonicalCatalog>>();
@@ -478,10 +495,12 @@ export function defineNativeProfession<
         (preview ? ` or ${preview.id}.` : '.')
     );
   };
+
   const catalogFor = (patchId = CURRENT_PATCH_ID): Readonly<CanonicalCatalog> => {
     if (assertPatchId(patchId) === CURRENT_PATCH_ID) return family.catalog;
     return validatedPreviewCatalog();
   };
+
   const patchValuesFor = (patchId = CURRENT_PATCH_ID) =>
     assertPatchId(patchId) === CURRENT_PATCH_ID ? Object.freeze({}) : patchRuntimeValuesFor(preview, definition.id);
   const validatePatch = (candidate: ProfessionPatchPreview | null | undefined): true => {
@@ -492,6 +511,7 @@ export function defineNativeProfession<
     applyModifierRulePatch(modifierRules, candidate.modifierRules);
     return true;
   };
+
   const resolveRuntime = (config: Readonly<SchedulerConfig> = {}) => {
     const patchId = assertPatchId(String(config.patchId || CURRENT_PATCH_ID));
     const runtime =
@@ -516,6 +536,7 @@ export function defineNativeProfession<
     runtimeOverlays.set(runtime, overlay);
     return overlay;
   };
+
   return Object.freeze({
     ...family,
     preview,

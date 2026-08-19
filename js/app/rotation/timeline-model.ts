@@ -58,6 +58,7 @@ function matchingProcTimelineMarkers(
     activations.push(proc);
     activationGroups.set(activationKey, activations);
   }
+
   return [...activationGroups.values()]
     .filter((activations) => activations[0]?.type === procType)
     .map((activations) => {
@@ -104,6 +105,7 @@ export function procBadgeLabel(procSteps: readonly Gw2ProcStep[] = []): string {
     const rounded = Math.round((total + Number.EPSILON) * 1000) / 1000;
     return `-${rounded}s`;
   }
+
   return procSteps.length > 1 ? `×${procSteps.length}` : '';
 }
 
@@ -123,6 +125,7 @@ export function groupConsecutiveProcSteps(procSteps: readonly Gw2ProcStep[] = []
       groups.push({ key, steps: [proc] });
     }
   }
+
   return groups;
 }
 
@@ -238,6 +241,7 @@ export function shatterResourceSpends(
     if (event.type !== 'resource' || event.reason !== 'profession mechanic' || !Number.isInteger(rotationIndex)) {
       continue;
     }
+
     spends.set(rotationIndex, {
       count: Math.abs(Number(event.amount || 0)),
       resource: String(event.resource || 'resources'),
@@ -249,6 +253,7 @@ export function shatterResourceSpends(
       ...(event.flowSpent == null ? {} : { flowSpent: Number(event.flowSpent) })
     });
   }
+
   return spends;
 }
 

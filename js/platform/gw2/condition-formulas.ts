@@ -44,8 +44,10 @@ export function conditionTickDamage(
       Number(formula.stationaryScaling || 0) * Math.max(0, Number(conditionDamage))
     );
   }
+
   return formula.base + formula.scaling * Math.max(0, Number(conditionDamage));
 }
+
 export interface ConditionFormula {
   readonly base: number;
   readonly scaling: number;

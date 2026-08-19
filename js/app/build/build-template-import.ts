@@ -74,6 +74,7 @@ function currentProfession(app: ProfessionAppState): BuildTemplateProfession {
   if (!profession) {
     throw new Error(`${app.adapter.id} does not support GW2 build templates.`);
   }
+
   return profession;
 }
 
@@ -88,6 +89,7 @@ export function previewBuildTemplateCode(app: ProfessionAppState, chatCode: stri
   if (actualProfession && actualProfession.code !== expectedProfession.code) {
     throw new BuildTemplateProfessionMismatchError(actualProfession, expectedProfession);
   }
+
   return Object.freeze({
     ...resolveGw2BuildTemplate(decoded, {
       catalog: app.activeCatalog,

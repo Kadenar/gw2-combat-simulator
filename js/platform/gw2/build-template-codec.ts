@@ -80,6 +80,7 @@ export function decodeGw2BuildTemplate(chatCode: string): DecodedGw2BuildTemplat
   if (!match) {
     throw new Error('Build template must be a Guild Wars 2 [&...=] chat code.');
   }
+
   let bytes: Uint8Array;
   try {
     const binary = atob(match[1]);
@@ -87,12 +88,15 @@ export function decodeGw2BuildTemplate(chatCode: string): DecodedGw2BuildTemplat
   } catch {
     throw new Error('Build template contains invalid base64 data.');
   }
+
   if (bytes.length < FIXED_LENGTH) {
     throw new Error('Build template is shorter than the GW2 fixed layout.');
   }
+
   if (bytes[0] !== BUILD_TEMPLATE_HEADER) {
     throw new Error('Chat code is not a GW2 build template.');
   }
+
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const specializations = [0, 1, 2].map((index) => {
     const offset = 2 + index * 2;
@@ -113,22 +117,27 @@ export function decodeGw2BuildTemplate(chatCode: string): DecodedGw2BuildTemplat
     if (weaponEnd > bytes.length) {
       throw new Error('Build template has a truncated weapon array.');
     }
+
     for (; offset < weaponEnd; offset += 2) {
       weaponTypeIds.push(uint16(view, offset));
     }
+
     if (offset >= bytes.length) {
       throw new Error('Build template is missing its skill-override count.');
     }
+
     const overrideCount = bytes[offset];
     offset += 1;
     const overrideEnd = offset + overrideCount * 4;
     if (overrideEnd !== bytes.length) {
       throw new Error('Build template has a malformed skill-override array.');
     }
+
     for (; offset < overrideEnd; offset += 4) {
       skillOverrides.push(view.getUint32(offset, true));
     }
   }
+
   return Object.freeze({
     professionCode: bytes[1],
     specializations: Object.freeze(specializations),
@@ -185,6 +194,7 @@ function inferredWeaponOptions(
       options.push(Object.freeze([main, '']));
       continue;
     }
+
     if (wielding !== 'mh' && wielding !== 'mh+oh') continue;
     const offhands = candidates.filter(
       (weapon, index) => index !== mainIndex && ['oh', 'mh+oh'].includes(catalog.weaponHands.get(weapon) || '')
@@ -192,6 +202,7 @@ function inferredWeaponOptions(
     for (const offhand of offhands) {
       options.push(Object.freeze([main, offhand]));
     }
+
     // The game deduplicates repeated weapon types, so one versatile weapon can
     // represent a dual-wielded set such as Pistol/Pistol or Dagger/Dagger.
     if (wielding === 'mh+oh') {
@@ -200,6 +211,7 @@ function inferredWeaponOptions(
       options.push(Object.freeze([main, '']));
     }
   }
+
   const unique = options.filter(
     (option, index) =>
       options.findIndex((candidate) => candidate[0] === option[0] && candidate[1] === option[1]) === index
@@ -211,6 +223,7 @@ function inferredWeaponOptions(
       'GW2 build codes store unique weapon types, not exact set pairing. Choose the intended weapon set before applying.'
     );
   }
+
   return Object.freeze(unique);
 }
 
@@ -234,9 +247,11 @@ export function resolveGw2BuildTemplate(
   if (!professionData) {
     throw new Error(`Build template uses unknown profession code ${decoded.professionCode}.`);
   }
+
   if (decoded.professionCode !== expectedProfession.code) {
     throw new Error(`Build template uses profession code ${decoded.professionCode}, not ${expectedProfession.name}.`);
   }
+
   const warnings: string[] = [];
   const specializations = decoded.specializations.flatMap((selection) => {
     const specialization = catalog.specializations.find((candidate) => Number(candidate.id) === selection.id);
@@ -244,9 +259,11 @@ export function resolveGw2BuildTemplate(
       warnings.push(`Unknown specialization ID ${selection.id}.`);
       return [];
     }
+
     if (selection.traits.includes('0')) {
       warnings.push(`${specialization.name} contains an unselected trait tier.`);
     }
+
     return [{ name: specialization.name, traits: selection.traits }];
   });
   const selectedSpecializations = new Set(specializations.map((specialization) => specialization.name));
@@ -260,6 +277,7 @@ export function resolveGw2BuildTemplate(
       warnings.push(`${slot} uses unknown palette ID ${paletteId}.`);
       continue;
     }
+
     const skill = preferredCandidate(
       selectableCandidates(catalog, skillId, type, selectedSpecializations),
       preferredAttunement,
@@ -269,8 +287,10 @@ export function resolveGw2BuildTemplate(
       warnings.push(`${slot} skill ${skillId} is not implemented.`);
       continue;
     }
+
     selectedSkills[slot] = skill.name;
   }
+
   const weaponCandidates = decoded.weaponTypeIds.flatMap((weaponId) => {
     const weapon = GW2_BUILD_TEMPLATE_WEAPON_NAMES[weaponId];
     if (weapon) return [weapon];
@@ -284,6 +304,7 @@ export function resolveGw2BuildTemplate(
       `${decoded.skillOverrides.length} weapon skill override(s) were decoded but are not applied to equipment.`
     );
   }
+
   return Object.freeze({
     professionId: expectedProfession.id,
     professionName: expectedProfession.name,

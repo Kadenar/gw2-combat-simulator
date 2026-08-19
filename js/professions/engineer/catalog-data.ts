@@ -151,6 +151,7 @@ for (const skill of allDeclared) {
     flipParentById.set(skill.flipSkillId, skill.id);
   }
 }
+
 const preferredFlipParentById = new Map<SkillId, SkillId>([
   [ID.DETONATE_RIFLE_TURRET, ID.RIFLE_TURRET],
   [ID.DETONATE_FLAME_TURRET, ID.FLAME_TURRET],
@@ -240,6 +241,7 @@ function normalizeMechanics(
         if (Number(id) === ID.FOCUSED_DEVASTATION) {
           return [id, { ...mechanic, simulatorExcluded: true }];
         }
+
         if (declared?.categories?.includes('Turret') && Number.isFinite(Number(mechanic.paletteFlipSkillId))) {
           return [
             id,
@@ -250,6 +252,7 @@ function normalizeMechanics(
             }
           ];
         }
+
         if (!declared?.categories?.includes('Morph')) return [id, mechanic];
         return [id, { ...mechanic, handlerId: 'engineer.amalgam-morph' }];
       })

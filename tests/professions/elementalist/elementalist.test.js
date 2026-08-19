@@ -41,10 +41,13 @@ async function professionSourceFiles(directory) {
   const nested = await Promise.all(
     entries.map((entry) => {
       const target = new URL(entry.name + (entry.isDirectory() ? '/' : ''), directory);
+
       if (entry.isDirectory()) return professionSourceFiles(target);
+
       return /\.(?:[cm]?js|ts)$/.test(entry.name) ? [target] : [];
     })
   );
+
   return nested.flat();
 }
 
@@ -54,11 +57,13 @@ async function accessSourceModule(target) {
   } catch (error) {
     if (!target.pathname.endsWith('.js')) throw error;
     const typeScript = new URL(target);
+
     typeScript.pathname = typeScript.pathname.replace(/\.js$/, '.ts');
     try {
       await access(typeScript);
     } catch {
       const declaration = new URL(target);
+
       declaration.pathname = declaration.pathname.replace(/\.js$/, '.d.ts');
       await access(declaration);
     }
@@ -80,6 +85,7 @@ test('Elementalist is registered through the generic profession contract', async
     loadProfession('elementalist'),
     loadProfessionAppAdapter('elementalist')
   ]);
+
   assert.equal(profession.id, 'elementalist');
   assert.equal(profession.name, 'Elementalist');
   assert.ok(profession.catalog.specializations.length >= 9);
@@ -93,6 +99,7 @@ test('Elementalist is registered through the generic profession contract', async
 
 test('Elementalist modules expose isolated balance-profile authoring', () => {
   const modules = new Map(elementalistProfession.patchAuthoring.modules.map((module) => [module.id, module]));
+
   assert.deepEqual([...modules.keys()], ['Core', 'Tempest', 'Weaver', 'Catalyst', 'Evoker']);
   assert.equal(
     [...modules.values()].every((module) => module.balanceProfiles.length > 0),
@@ -101,6 +108,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
 
   const profile = (moduleId, profileId) =>
     modules.get(moduleId).balanceProfiles.find((entry) => entry.id === profileId);
+
   assert.equal(profile('Core', ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources).patchableFields.recharge, 10);
   assert.equal(
     profile('Core', ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental).patchableFields.durationMultiplier,
@@ -118,6 +126,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
         Object.keys(rule.parameters).length === 0
     )
   );
+
   assert.deepEqual(opaqueModifierRules, []);
 
   const preview = applyElementalistPatch({
@@ -200,6 +209,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
 
 test('Elementalist build defaults and saved snapshots migrate explicitly', () => {
   const defaults = createElementalistBuildDefaults();
+
   assert.equal(defaults.profession, 'elementalist');
   assert.equal(defaults.weapons[0], 'Sword');
   assert.deepEqual(defaults.alternateWeapons, ['', '']);
@@ -212,11 +222,13 @@ test('Elementalist build defaults and saved snapshots migrate explicitly', () =>
     weapons: ['Scepter', 'Warhorn'],
     specializations: defaults.specializations
   });
+
   assert.equal(migrated.profession, 'elementalist');
   assert.deepEqual(migrated.weapons, ['Scepter', 'Warhorn']);
   assert.equal(validateElementalistBuild(migrated).valid, true);
 
   const migratedHitbox = migrateElementalistBuild({ hitboxSize: 'small' });
+
   assert.equal(migratedHitbox.assumptions.hitboxSize, 'small');
 
   const collapsed = migrateElementalistBuild({
@@ -224,6 +236,7 @@ test('Elementalist build defaults and saved snapshots migrate explicitly', () =>
     alternateWeapons: ['Staff', ''],
     startingWeaponSet: 2
   });
+
   assert.deepEqual(collapsed.alternateWeapons, ['', '']);
   assert.equal(collapsed.startingWeaponSet, 1);
   assert.equal(validateElementalistBuild(collapsed).valid, true);
@@ -313,6 +326,7 @@ test('standalone Elementalist snapshot fields migrate into the native schema', (
   };
 
   const migrated = migrateElementalistBuild(snapshot);
+
   assert.equal(validateElementalistBuild(migrated).valid, true);
   assert.deepEqual(migrated.selectedSkills, {
     Heal: 'Signet of Restoration',
@@ -393,14 +407,17 @@ test('all Elementalist build and rotation assets migrate through the native code
 
 test('every relative import in the Elementalist package resolves', async () => {
   const files = await professionSourceFiles(professionRoot);
+
   assert.ok(files.length > 30);
 
   for (const file of files) {
     const source = await readFile(file, 'utf8');
     const imports = source.matchAll(/(?:from\s+|import\s*)["'](\.[^"']+)["']/g);
+
     for (const match of imports) {
       const specifier = match[1].split('?')[0];
       const target = new URL(specifier, file);
+
       await assert.doesNotReject(
         accessSourceModule(target),
         `${path.relative(process.cwd(), file.pathname)} -> ${specifier}`
@@ -411,11 +428,13 @@ test('every relative import in the Elementalist package resolves', async () => {
 
 test('native Elementalist has no standalone, CSV, or optimizer dependency', async () => {
   const files = await professionSourceFiles(professionRoot);
+
   assert.ok(files.length > 30);
 
   for (const file of files) {
     const source = await readFile(file, 'utf8');
     const relative = path.relative(process.cwd(), file.pathname);
+
     assert.doesNotMatch(source, /(?:[\\/]|["'])legacy(?:[\\/]|["'])/i, relative);
     assert.doesNotMatch(source, /\bcsv\b/i, relative);
     assert.doesNotMatch(source, /\boptimizer\b|effectivePower|effective power/i, relative);

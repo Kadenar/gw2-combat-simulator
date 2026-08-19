@@ -117,6 +117,7 @@ const guardianBuildCodec = createGw2BuildCodec({
     if (!(Number(build.initialTomePages) >= 0 && Number(build.initialTomePages) <= 8)) {
       errors.push('initialTomePages must be between 0 and 8.');
     }
+
     return errors;
   }
 });

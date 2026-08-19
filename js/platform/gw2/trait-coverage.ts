@@ -68,13 +68,16 @@ function normalizeEffect(
   if (!description) {
     throw new TypeError(`Trait ${trait.id} coverage effect ${index + 1} needs a description.`);
   }
+
   if (comparableText(description) === comparableText(trait.name)) {
     throw new TypeError(`Trait ${trait.id} coverage must document effects, not only its name.`);
   }
+
   const rawStatus = value.status || entry.status;
   if (typeof rawStatus !== 'string' || !VALID_STATUSES.has(rawStatus as Gw2TraitCoverageStatus)) {
     throw new TypeError(`Trait ${trait.id} coverage effect ${index + 1} has invalid status.`);
   }
+
   const status = rawStatus as Gw2TraitCoverageStatus;
   const reason = normalizedText(value.reason || entry.reason);
   if (
@@ -83,6 +86,7 @@ function normalizeEffect(
   ) {
     throw new TypeError(`Trait ${trait.id} ${status} effect ${index + 1} needs a concrete reason.`);
   }
+
   return Object.freeze({
     description,
     status,
@@ -115,6 +119,7 @@ export function validateTraitCoverageManifest(
   if (!Array.isArray(manifest)) {
     throw new TypeError(`${professionId} trait coverage must be an array.`);
   }
+
   const traitsById = new Map<number, CatalogEntity>(traits.map((trait) => [Number(trait.id), trait]));
   const coverageById = new Map<number, Gw2TraitCoverageEntry>();
 
@@ -122,24 +127,30 @@ export function validateTraitCoverageManifest(
     if (!rawEntry || typeof rawEntry !== 'object' || Array.isArray(rawEntry)) {
       throw new TypeError(`${professionId} trait coverage entries must be objects.`);
     }
+
     const entry = rawEntry as Gw2TraitCoverageEntryInput;
     if (Object.hasOwn(entry, 'tests')) {
       throw new TypeError(`${professionId} trait coverage cannot use test-title evidence.`);
     }
+
     const traitId = Number(entry.traitId);
     const trait = traitsById.get(traitId);
     if (!trait) {
       throw new TypeError(`${professionId} trait coverage references unknown trait ${entry.traitId}.`);
     }
+
     if (coverageById.has(traitId)) {
       throw new TypeError(`${professionId} trait coverage duplicates trait ${traitId}.`);
     }
+
     if (typeof entry.status !== 'string' || !VALID_STATUSES.has(entry.status as Gw2TraitCoverageStatus)) {
       throw new TypeError(`${professionId} trait ${traitId} has invalid coverage status.`);
     }
+
     if (!Array.isArray(entry.effects) || entry.effects.length === 0) {
       throw new TypeError(`${professionId} trait ${traitId} must document every reviewed effect.`);
     }
+
     const effects = (entry.effects as unknown[]).map((effect, index) => normalizeEffect(effect, entry, trait, index));
     const status = entry.status as Gw2TraitCoverageStatus;
     const reason = normalizedText(entry.reason);
@@ -149,6 +160,7 @@ export function validateTraitCoverageManifest(
     ) {
       throw new TypeError(`${professionId} ${status} trait ${traitId} needs a concrete reason.`);
     }
+
     coverageById.set(
       traitId,
       Object.freeze({
@@ -168,5 +180,6 @@ export function validateTraitCoverageManifest(
   if (missing.length) {
     throw new TypeError(`${professionId} trait coverage is missing: ${missing.join(', ')}.`);
   }
+
   return Object.freeze([...coverageById.values()]);
 }

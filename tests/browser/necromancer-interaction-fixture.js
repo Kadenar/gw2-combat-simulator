@@ -6,15 +6,19 @@ const frame = document.getElementById('simulator');
 const assert = (condition, message) => {
   if (!condition) throw new Error(message);
 };
+
 const icon = (document, name) =>
   [...document.querySelectorAll('.pal-skill')].find((element) => element.dataset.skill === name);
 const waitFor = async (predicate, timeoutMs = 5000) => {
   const deadline = performance.now() + timeoutMs;
+
   while (performance.now() < deadline) {
     const value = predicate();
+
     if (value) return value;
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
+
   return null;
 };
 
@@ -23,6 +27,7 @@ frame.addEventListener('load', async () => {
     const window = frame.contentWindow;
     const document = frame.contentDocument;
     const app = await waitFor(() => window.necromancerApp);
+
     assert(app, 'Necromancer application did not initialize');
     app.build = createNecromancerBuildDefaults();
     app.changed();
@@ -31,6 +36,7 @@ frame.addEventListener('load', async () => {
     // before the selectable heal, utility, and elite skills.
     const combatLoadout = document.querySelector('.combat-loadout');
     const skillBarSections = [...document.querySelectorAll('#skill-bar > .combat-loadout-skill-section')];
+
     assert(
       combatLoadout?.contains(document.getElementById('weapon-bar')) &&
         combatLoadout.contains(document.getElementById('skill-bar')),
@@ -43,6 +49,7 @@ frame.addEventListener('load', async () => {
     );
     const weaponSetToggleButtons = [...document.querySelectorAll('[data-weapon-set-toggle]')];
     const weaponSetPreviews = [...document.querySelectorAll('[data-weapon-set-preview]')];
+
     assert(
       weaponSetToggleButtons.length === 2 &&
         weaponSetPreviews.length === 2 &&
@@ -68,6 +75,7 @@ frame.addEventListener('load', async () => {
     assert(document.getElementById('loading-overlay').classList.contains('hidden'), 'loading overlay did not clear');
     assert(document.querySelector('[data-resource-id="life-force"]'), 'Life Force display is missing');
     const blightInput = document.querySelector('input[data-resource-key="initialBlight"]');
+
     assert(blightInput, 'starting Blight control is missing');
     blightInput.value = '7';
     blightInput.dispatchEvent(new window.Event('change', { bubbles: true }));
@@ -79,6 +87,7 @@ frame.addEventListener('load', async () => {
     const weaponSkill = [...document.querySelectorAll('.pal-group')]
       .find((group) => group.querySelector('.pal-label')?.textContent === 'W1')
       ?.querySelector('.pal-skill');
+
     assert(weaponSkill?.classList.contains('pal-context-disabled'), 'normal weapon skill stayed enabled in shroud');
     icon(document, 'Tainted Bolts').click();
     assert(app.results.strikeDamage > 0, 'Harbinger strike did not resolve');

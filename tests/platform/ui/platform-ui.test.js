@@ -96,6 +96,7 @@ test('rotation workspace keeps the normal config visible and scopes its sheet to
   assert.equal(isSimulationConfigVisible(DEFAULT_ROTATION_WORKSPACE_STATE), true);
 
   const configOpen = reduceRotationWorkspaceState(DEFAULT_ROTATION_WORKSPACE_STATE, 'toggle-config');
+
   assert.deepEqual(configOpen, { configOpen: true, focus: false });
   assert.equal(isSimulationConfigVisible(configOpen), true);
   assert.deepEqual(reduceRotationWorkspaceState(configOpen, 'escape'), {
@@ -104,6 +105,7 @@ test('rotation workspace keeps the normal config visible and scopes its sheet to
   });
 
   const focused = reduceRotationWorkspaceState(DEFAULT_ROTATION_WORKSPACE_STATE, 'toggle-focus');
+
   assert.deepEqual(focused, { configOpen: false, focus: true });
   assert.equal(isSimulationConfigVisible(focused), false);
   assert.equal(isSimulationConfigVisible({ configOpen: true, focus: true }), true);
@@ -267,6 +269,7 @@ test('timeline skill tooltips include matching and global cast ordinals', () => 
 
 test('GW2 API text removes presentation tags for native tooltips', () => {
   const description = '<c=@abilitytype>Stances</c> grant protection.<br><c=@reminder>Once per interval.</c>';
+
   assert.equal(gw2ApiText(description), 'Stances grant protection.\nOnce per interval.');
   assert.equal(escapeHtml(gw2ApiText('<c=abilitytype>"Glamour" & allies</c>')), '&quot;Glamour&quot; &amp; allies');
 });
@@ -446,6 +449,7 @@ test('phase effects are cropped and rebased to the selected health range', () =>
 
 test('shared chart markup escapes effect names and uses scoped roles without ids', () => {
   const container = inertContainer();
+
   mountTimeSeriesCharts(
     container,
     {
@@ -504,6 +508,7 @@ test('shared chart markup escapes effect names and uses scoped roles without ids
   const finalPhaseButton = container.innerHTML.match(
     /<button type="button"[\s\S]*?data-chart-phase="20-0"[\s\S]*?<\/button>/
   );
+
   assert.ok(finalPhaseButton);
   assert.doesNotMatch(finalPhaseButton[0], /disabled/);
   assert.doesNotMatch(container.innerHTML, /\sid="/);
@@ -516,6 +521,7 @@ test('result charts reuse the target-health DPS snapshot breakpoints', () => {
     querySelector: (selector) => (selector === '[data-role="result-charts"]' ? chartContainer : null),
     querySelectorAll: () => []
   };
+
   mountRotationResults(container, {
     breakpoints: [
       { healthPercent: 80, dps: 1200, elapsed: 1, damage: 1200 },
@@ -549,6 +555,7 @@ test('result sorting handles defaults, numeric directions, strings, and cycling'
     { key: 'name', numeric: false },
     { key: 'dps', numeric: true }
   ];
+
   assert.deepEqual(
     sortResultRows(rows, columns, null, null).map((row) => row.name),
     ['Beta', 'Alpha']
@@ -582,6 +589,7 @@ test('result sorting handles defaults, numeric directions, strings, and cycling'
 test('shared results render summaries, totals, contributions, and icons', () => {
   const container = inertContainer();
   const resolved = [];
+
   mountRotationResults(
     container,
     {
@@ -649,6 +657,7 @@ test('shared results render summaries, totals, contributions, and icons', () => 
     {
       resolveSkillIcon: (row) => {
         resolved.push(row.name);
+
         return `icon-${row.name}.png`;
       }
     }
@@ -706,6 +715,7 @@ test('shared results render summaries, totals, contributions, and icons', () => 
 
 test('skill damage rows group player damage before owned entities', () => {
   const container = inertContainer();
+
   mountRotationResults(container, {
     skillColumns: [
       { key: 'name', label: 'Skill', numeric: false },
@@ -758,6 +768,7 @@ test('skill damage rows group player damage before owned entities', () => {
   const html = container.innerHTML;
   const playerGroup = html.indexOf('data-skill-group="Player"');
   const entityGroup = html.indexOf('data-skill-group="Entities"');
+
   assert.ok(playerGroup >= 0);
   assert.ok(entityGroup > playerGroup);
   assert.ok(html.indexOf('Player High') < html.indexOf('Player Low'));
@@ -780,6 +791,7 @@ test('RNG distribution waits for its manual run button', () => {
     querySelector: (selector) => (selector === '[data-role="rng-run"]' ? runButton : null)
   };
   let runCount = 0;
+
   mountRotationResults(
     container,
     {
@@ -803,6 +815,7 @@ test('RNG distribution waits for its manual run button', () => {
 
 test('RNG distribution renders completed outcomes and percentage progress', () => {
   const container = inertContainer();
+
   mountRotationResults(container, {
     metrics: [],
     randomDistributionRequested: true,
@@ -823,6 +836,7 @@ test('RNG distribution renders completed outcomes and percentage progress', () =
 
 test('rotation warnings render a collapsed count and escaped details', () => {
   const container = inertContainer();
+
   mountRotationWarnings(container, [
     { time: '1.25s', message: 'Unsafe <script>' },
     { time: '2.50s', message: 'Missing resource' }
@@ -863,6 +877,7 @@ test('palette primitives escape values and render state, ammo, cooldowns, and gr
       maximum: 100
     }
   });
+
   assert.match(html, /pal-disabled/);
   assert.match(html, /draggable="false"/);
   assert.match(html, /1\/2/);
@@ -886,6 +901,7 @@ test('palette primitives escape values and render state, ammo, cooldowns, and gr
     icon: 'wait.png'
   };
   const virtual = virtualPaletteSkillHtml(virtualView);
+
   assert.match(virtual, /draggable="true"/);
   assert.match(
     paletteGroupHtml({
@@ -947,6 +963,7 @@ test('palette controls delegate neutral control identities', () => {
     onclick: null
   };
   let activated = '';
+
   bindPaletteInteractions(
     {
       querySelectorAll(selector) {
@@ -983,6 +1000,7 @@ test('timeline canonical entries update, simplify, insert, and reject invalid mo
   );
 
   const rotation = ['A', 'B', 'C'];
+
   assert.equal(moveRotationEntry(rotation, 0, 3), true);
   assert.deepEqual(rotation, ['B', 'C', 'A']);
   assert.equal(moveRotationEntry(rotation, 1, 2), false);
@@ -1018,6 +1036,7 @@ test('timeline binding inserts palette entries and drop positions use tile halve
       changes += 1;
     }
   });
+
   assert.equal(binding.applyDrop(1), true);
   assert.deepEqual(rotation, ['A', { name: 'New', skillId: 12345, waitMs: 100 }]);
   assert.equal(dragState, null);
@@ -1038,6 +1057,7 @@ test('timeline binding inserts palette entries and drop positions use tile halve
       changes += 1;
     }
   });
+
   assert.equal(macroBinding.applyDrop(1), true);
   assert.deepEqual(rotation, [
     'A',
@@ -1052,6 +1072,7 @@ test('timeline binding inserts palette entries and drop positions use tile halve
     dataset: { idx: '3' },
     getBoundingClientRect: () => ({ left: 10, width: 40 })
   };
+
   assert.equal(getSkillDropInsertionIndex(tile, 20), 3);
   assert.equal(getSkillDropInsertionIndex(tile, 31), 4);
   assert.equal(getSkillDropInsertionIndex({ dataset: {} }, 0), null);
@@ -1066,6 +1087,7 @@ test('event logs order stably and CSV escapes cells', () => {
       { type: 'action', at: 0, name: 'Quote "skill"' }
     ]
   });
+
   assert.deepEqual(
     rows.map((row) => row.description),
     ['CAST Quote "skill"', 'CAST First', 'PROC Later']
@@ -1087,15 +1109,18 @@ test('event-log mounting filters rows, escapes descriptions, and configures file
     },
     querySelector(selector) {
       if (!mounted && selector.includes('event-log-details')) return { open: true };
+
       return null;
     },
     querySelectorAll(selector) {
       if (!mounted && selector.includes(':checked')) {
         return [{ dataset: { filterId: 'kept' } }];
       }
+
       return [];
     }
   };
+
   mountEventLog(
     container,
     [

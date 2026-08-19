@@ -55,6 +55,7 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerReco
   if (hasTrait(context, TRAIT.GUNS_AND_GLORY) && runtimeBuffActive(context, 'guns-and-glory')) {
     result.ferocity += Number(warriorBalanceProfile(context, PROFILE.gunsAndGlory)?.attributeBonus ?? 250);
   }
+
   return result;
 }
 
@@ -117,6 +118,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
       reason: 'Bladesworn cannot swap normal weapon sets in combat.'
     };
   }
+
   if (skill.id === ID.UNSHEATHE_GUNSABER && state.gunsaberActive) {
     return {
       ready: false,
@@ -125,6 +127,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
       reason: 'Gunsaber is already active.'
     };
   }
+
   if (skill.id === ID.SHEATHE_GUNSABER && !state.gunsaberActive) {
     return {
       ready: false,
@@ -133,6 +136,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
       reason: 'Gunsaber is not active.'
     };
   }
+
   if ((state.gunsaberActive || state.dragonTriggerActive) && skill.type === 'Weapon' && Boolean(skill.weapon)) {
     return {
       ready: false,
@@ -141,6 +145,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
       reason: 'Sheathe the gunsaber before using standard weapon skills.'
     };
   }
+
   if ((skill.dragonSlash || skill.dragonTriggerSkill) && !state.dragonTriggerActive) {
     return {
       ready: false,
@@ -149,6 +154,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
       reason: ENTER_DRAGON_TRIGGER_REASON
     };
   }
+
   if (skill.dragonSlash) {
     const maximumCharges = maximumDragonCharges(context);
     const releaseAtCharges = requestedDragonCharges(context, maximumCharges);
@@ -172,6 +178,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
             `before Dragon Trigger ended; it reached ${state.dragonCharges}.`
         };
       }
+
       return {
         ready: false,
         retryAt: nextChargeAt,
@@ -180,6 +187,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
       };
     }
   }
+
   if (state.dragonTriggerActive && skill.gunsaberSkill && !skill.dragonSlash && !skill.dragonTriggerSkill) {
     return {
       ready: false,
@@ -188,6 +196,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
       reason: 'Finish Dragon Trigger before using gunsaber attacks.'
     };
   }
+
   if (skill.gunsaberSkill && !skill.dragonSlash && !skill.dragonTriggerSkill && !state.gunsaberActive) {
     return {
       ready: false,
@@ -196,6 +205,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
       reason: 'Unsheathe the gunsaber first.'
     };
   }
+
   if (skill.id === ID.DRAGON_TRIGGER && state.dragonTriggerActive) {
     return {
       ready: false,
@@ -204,6 +214,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
       reason: 'Dragon Trigger is already active.'
     };
   }
+
   if (
     skill.id === ID.DRAGON_TRIGGER &&
     state.flow + context.epsilon <
@@ -219,6 +230,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
       reason: `Dragon Trigger requires at least ${flowCost} flow.`
     };
   }
+
   return { ready: true };
 }
 

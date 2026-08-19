@@ -58,6 +58,7 @@ export function createExpectedProcTracker({
         `Missing sampled critical outcome for Mesmer event ${String(event.skillName || event.name || event.sourceId)}.`
       );
     }
+
     return event.didCrit;
   };
 
@@ -87,6 +88,7 @@ export function createExpectedProcTracker({
     ) {
       return;
     }
+
     const core = professionCoreState(state);
     const criticals = stochastic
       ? sampledCritical(event)
@@ -96,6 +98,7 @@ export function createExpectedProcTracker({
     if (!stochastic && criticals > 0) {
       core.masterFencerProgress -= criticals;
     }
+
     const readyAt = Number(core.traitReadyAt[TRAIT.MASTER_FENCER] || 0);
     if (criticals <= 0 || !isInternalCooldownReady(event.at, readyAt)) {
       return;
@@ -146,10 +149,12 @@ export function createExpectedProcTracker({
         professionCoreState(state).sharperImagesProgress += chance;
         procCount = Math.floor(professionCoreState(state).sharperImagesProgress + PROC_PROGRESS_TOLERANCE);
       }
+
       if (procCount > 0) {
         if (!stochastic) {
           professionCoreState(state).sharperImagesProgress -= procCount;
         }
+
         emitEvent(event, {
           type: 'condition',
           at: event.at,

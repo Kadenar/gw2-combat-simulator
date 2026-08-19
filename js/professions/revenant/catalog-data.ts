@@ -47,6 +47,7 @@ for (const skill of allDeclared) {
     flipParentById.set(skill.flipSkillId, skill.id);
   }
 }
+
 const normalize = (skill: Skill): Skill => ({
   ...skill,
   simulatorExcluded: false,

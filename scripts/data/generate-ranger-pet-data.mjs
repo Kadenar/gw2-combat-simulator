@@ -170,15 +170,19 @@ const SOULBEAST_ARCHETYPE_SKILL_IDS = Object.freeze({
 
 async function fetchJson(pathname) {
   const response = await fetch(`${API_ROOT}${pathname}${pathname.includes('?') ? '&' : '?'}lang=en`);
+
   if (!response.ok) throw new Error(`${response.status} ${pathname}`);
+
   return response.json();
 }
 
 async function fetchMany(endpoint, ids) {
   const result = [];
+
   for (let index = 0; index < ids.length; index += 100) {
     result.push(...(await fetchJson(`/${endpoint}?ids=${ids.slice(index, index + 100).join(',')}`)));
   }
+
   return result;
 }
 
@@ -193,9 +197,11 @@ async function fetchWikiPetMetadata(pet) {
   const response = await fetch(`${WIKI_API}?${query}`, {
     headers: { 'User-Agent': 'gw2-combat-simulator/2.0 Ranger generator' }
   });
+
   if (!response.ok) throw new Error(`${response.status} ${pet.name}`);
   const result = await response.json();
   const source = String(result.parse?.wikitext || '');
+
   return {
     family: String(source.match(/^\|\s*family\s*=\s*([^\n]+)/im)?.[1] || '').trim(),
     archetype: String(source.match(/^\|\s*archetype\s*=\s*([^\n]+)/im)?.[1] || '').trim()
@@ -205,14 +211,17 @@ async function fetchWikiPetMetadata(pet) {
 async function mapConcurrent(values, limit, callback) {
   const output = new Array(values.length);
   let next = 0;
+
   await Promise.all(
     Array.from({ length: limit }, async () => {
       while (next < values.length) {
         const index = next++;
+
         output[index] = await callback(values[index]);
       }
     })
   );
+
   return output;
 }
 
@@ -227,12 +236,15 @@ function constantName(value) {
 
 const usedNames = new Set();
 const keyById = new Map();
+
 function keyFor(skill) {
   const override = SIMULATED_SKILL_KEY_OVERRIDES.get(Number(skill.id));
   const base = override || constantName(skill.name);
   const key = usedNames.has(base) ? `${base}_ID_${skill.id}` : base;
+
   usedNames.add(base);
   keyById.set(skill.id, key);
+
   return key;
 }
 
@@ -253,9 +265,11 @@ const skills = petSkillIds
   .map((id) => {
     const skill = fetchedSkillById.get(id) || SIMULATED_SKILL_FALLBACKS.get(id);
     const override = SIMULATED_SKILL_OVERRIDES.get(id);
+
     return skill ? { ...skill, ...override } : null;
   })
   .filter(Boolean);
+
 for (const skill of skills) keyFor(skill);
 const skillById = new Map(skills.map((skill) => [skill.id, skill]));
 
@@ -266,6 +280,7 @@ const skillLines = skills.map((skill) => {
     pets
       .filter((pet) => pet.skills.some((candidate) => candidate.id === skill.id))
       .map((pet) => pet.name.replace(/^Juvenile\s+/, ''));
+
   return `  {
     id: ID.${keyById.get(skill.id)},
     name: ${JSON.stringify(skill.name)},
@@ -293,9 +308,11 @@ const petLines = pets.map((pet, index) => {
     ...(SOULBEAST_FAMILY_SKILL_IDS[family] || []),
     SOULBEAST_ARCHETYPE_SKILL_IDS[archetypeKey]
   ].filter((id) => keyById.has(id));
+
   if (beastmodeSkillIds.length !== 3) {
     console.warn(`Expected three Soulbeast skills for ${name}; received ${beastmodeSkillIds.join(', ') || 'none'}.`);
   }
+
   return `  {
     id: ${pet.id},
     name: ${JSON.stringify(name)},
@@ -325,5 +342,6 @@ ${petLines.join('\n')}
 `;
 
 const target = fileURLToPath(new URL('../../js/professions/ranger/data/ranger-pet-data.ts', import.meta.url));
+
 await writeFile(target, source, 'utf8');
 console.log(`Wrote ${skills.length} Ranger pet skills and ${pets.length} pets.`);

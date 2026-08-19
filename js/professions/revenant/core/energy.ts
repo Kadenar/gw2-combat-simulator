@@ -84,6 +84,7 @@ export function advanceRevenantEnergy(context: RevenantSchedulerContext, target:
     state.endurance = Math.min(state.maximumEndurance, state.endurance + (target - enduranceFrom) * enduranceRate);
     state.enduranceUpdatedAt = target;
   }
+
   if (target <= from) return;
   const upkeep = state.activeUpkeeps.reduce((sum, active) => sum + Number(active.upkeepCost || 0), 0);
   const rate = regeneration - upkeep;
@@ -97,8 +98,10 @@ export function advanceRevenantEnergy(context: RevenantSchedulerContext, target:
       if (cooldown > 0) {
         context.state.cooldowns.set(active.skillId, starvedAt + cooldown);
       }
+
       context.tasks.cancelOwner(`revenant.upkeep:${active.skillId}`);
     }
+
     state.activeUpkeeps = [];
     state.availableFlips = {};
     state.energyUpdatedAt = starvedAt;
@@ -108,6 +111,7 @@ export function advanceRevenantEnergy(context: RevenantSchedulerContext, target:
     emitRevenantState(context, target, 'energy');
     return;
   }
+
   state.energy =
     rate > 0
       ? regenerateRevenantEnergy(context, state, from, target, rate)
@@ -136,6 +140,7 @@ function energyCostStateSlices(context: RevenantEnergyContext): {
       specialization: runtime.specialization.state as unknown as RevenantEnergyCostState
     };
   }
+
   // Application UI callers may supply the stable flat public projection.
   // Runtime scheduler callers always take the explicit nested branch above.
   const applicationState = candidate as RevenantEnergyCostState;
@@ -149,12 +154,14 @@ export function effectiveRevenantEnergyCost(context: RevenantEnergyContext, skil
   if (skill.freeWithTraitId != null && hasRevenantTrait(context.config, skill.freeWithTraitId)) {
     return 0;
   }
+
   if (
     skill.freeWhenStatePositive &&
     Number((state.specialization as unknown as Record<string, unknown>)[skill.freeWhenStatePositive] || 0) > 0
   ) {
     return 0;
   }
+
   const override = state.specialization.energyCostOverrides?.[String(skill.id)];
   if (override != null) return Math.max(0, Number(override));
   return Math.max(0, Number(skill.energyCost || 0));

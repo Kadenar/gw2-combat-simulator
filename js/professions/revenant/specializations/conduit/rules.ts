@@ -135,15 +135,19 @@ function modifyConduitAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
   for (const [attribute, bonus] of Object.entries(bonuses)) {
     modified[attribute] = Number(modified[attribute] || 0) + Number(bonus || 0);
   }
+
   if (hasTrait(context, TRAIT.DETERMINED_RESOLUTION)) {
     modified.strikeDamageReduction = Number(modified.strikeDamageReduction || 0) + 0.05;
   }
+
   if (hasTrait(context, TRAIT.SERENE_REJUVENATION)) {
     modified.healingEffectiveness = Number(modified.healingEffectiveness || 0) + 0.05;
   }
+
   if (hasTrait(context, TRAIT.CONTAINED_TEMPER)) {
     modified.containedTemperEnergyGainBonus = Number(modified.containedTemperEnergyGainBonus || 0) + 5;
   }
+
   return modified;
 }
 
@@ -170,6 +174,7 @@ function conduitCastAvailability(context: RevenantPrecastContext, skill: Revenan
       Number(state.beguilingHazeReadyAt)
     );
   }
+
   // Each legend maps to exactly one Release Potential variant; block the wrong variant before the engine
   // can queue it, since all five variants share the same handler id.
   if (
@@ -182,6 +187,7 @@ function conduitCastAvailability(context: RevenantPrecastContext, skill: Revenan
       'the active legend supplies a different Release Potential variant.'
     );
   }
+
   return { ready: true as const };
 }
 
@@ -204,6 +210,7 @@ function afterConduitCast(context: RevenantCastContext, skill: RevenantSkill): v
     // Affinity ticks 3 s after the upkeep begins; subsequent ticks are advanced in advanceConduitUpkeep.
     active.nextAffinityAt = context.effectiveEnd + 3;
   }
+
   if (active && skill.id === ID.IMPOSSIBLE_ODDS && active.nextAlliedProcAt == null) {
     // Impossible Odds also fires Lesser Enchanted Daggers every 1 s; first proc is 1 s after activation.
     active.nextAlliedProcAt = context.effectiveEnd + 1;
@@ -222,6 +229,7 @@ function advanceConduitUpkeep(context: RevenantSchedulerContext, target: number)
     state.conduitForm = '';
     syncConduitEnergyCostOverrides(context);
   }
+
   for (const active of professionCoreState(context).activeUpkeeps) {
     if (
       active.nextAffinityAt != null &&
@@ -231,6 +239,7 @@ function advanceConduitUpkeep(context: RevenantSchedulerContext, target: number)
       gainConduitAffinity(context, 1, 'enigmatic-upkeep');
       active.nextAffinityAt += 3;
     }
+
     if (
       active.skillId === ID.IMPOSSIBLE_ODDS &&
       active.nextAlliedProcAt != null &&
@@ -275,11 +284,13 @@ function observeConduitEvent(context: RevenantSchedulerContext, event: RevenantS
     const lingering = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.lingeringDetermination);
     gainConduitAffinity(context, Math.max(0, Number(lingering?.resourceGain || 0)), 'lingering-determination');
   }
+
   if (cosmicWisdomActive && hasRevenantTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)) {
     const enhanced = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment);
     const extension = enhanced?.effects?.find((effect) => effect.type === 'buff');
     state.cosmicWisdomUntil += Math.max(0, Number(extension?.duration || 0));
   }
+
   if (cosmicWisdomActive) {
     // On legend swap the form updates to match the newly active legend (e.g. swapping to Demon yields Mesmer form).
     state.conduitForm =
@@ -289,6 +300,7 @@ function observeConduitEvent(context: RevenantSchedulerContext, event: RevenantS
       ) || '';
     syncConduitEnergyCostOverrides(context);
   }
+
   const swapSkill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
   // Found Purpose fires Numinous Gift to allies on every legend swap.
   if (swapSkill && hasRevenantTrait(context.config, TRAIT.FOUND_PURPOSE)) {

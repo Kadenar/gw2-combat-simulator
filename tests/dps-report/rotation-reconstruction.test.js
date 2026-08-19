@@ -116,10 +116,12 @@ function appFixture() {
 
 test('validates dps.report IDs and builds the public JSON endpoint', () => {
   const id = 'fhZX-20260622-152654_golem';
+
   assert.equal(dpsReportId(id), id);
   assert.equal(dpsReportId(`https://b.dps.report/${id}?foo=bar`), id);
   assert.equal(dpsReportId(`https://example.com/${id}`), null);
   const endpoint = new URL(dpsReportJsonUrl(`https://dps.report/${id}`));
+
   assert.equal(endpoint.origin, 'https://dps.report');
   assert.equal(endpoint.pathname, '/getJson');
   assert.equal(endpoint.searchParams.get('permalink'), `https://dps.report/${id}`);
@@ -127,6 +129,7 @@ test('validates dps.report IDs and builds the public JSON endpoint', () => {
 
 test('validates Elite Insights player, phase, skill, and cast contracts', () => {
   const report = parseDpsReport(JSON.stringify(reportFixture()));
+
   assert.equal(isDpsReportData(report), true);
   assert.equal(report.players[0].rotation[0].skills[0].castTime, -500);
   assert.throws(
@@ -134,6 +137,7 @@ test('validates Elite Insights player, phase, skill, and cast contracts', () => 
     (error) => error instanceof DpsReportError && error.code === 'NO_PLAYER'
   );
   const invalid = reportFixture();
+
   invalid.players[0].rotation[0].skills[0].duration = 'bad';
   assert.throws(
     () => parseDpsReport(invalid),
@@ -145,11 +149,13 @@ test('fetches and validates the raw Elite Insights response', async () => {
   let requested = '';
   const report = await fetchDpsReport('fhZX-20260622-152654_golem', async (input) => {
     requested = String(input);
+
     return new Response(JSON.stringify(reportFixture()), {
       status: 200,
       headers: { 'content-type': 'application/json' }
     });
   });
+
   assert.match(requested, /^https:\/\/dps\.report\/getJson\?/);
   assert.equal(report.players[0].profession, 'Amalgam');
 });
@@ -163,6 +169,7 @@ test('registers a generic parser for every supported profession profile', () => 
 test('reconstructs generic report casts and applies Amalgam report corrections', () => {
   const report = parseDpsReport(reportFixture());
   const players = detectDpsReportRotationPlayers(report);
+
   assert.deepEqual(
     players.map((player) => [player.professionId, player.specializationId]),
     [['engineer', 'amalgam']]
@@ -170,6 +177,7 @@ test('reconstructs generic report casts and applies Amalgam report corrections',
   const result = reconstructDpsReportRotation(report, catalogFixture(), {
     selectedSkillIds: [76927, 77104]
   });
+
   assert.equal(result.combatStartTimestampMs, 900);
   assert.deepEqual(result.rotation.slice(0, 4), [
     { name: 'Throw Mine', skillId: 6161 },
@@ -214,6 +222,7 @@ test('reconstructs generic report casts and applies Amalgam report corrections',
 
 test('the app importer accepts raw EI JSON and fetched dps.report data', async () => {
   const imported = await readDpsReportRotationData(reportFixture(), appFixture());
+
   assert.equal(imported.playerLabel, 'Fixture Amalgam (Fixture.1234)');
   assert.equal(imported.phaseLabel, 'Full Fight');
   assert.equal(
@@ -226,5 +235,6 @@ test('the app importer accepts raw EI JSON and fetched dps.report data', async (
     appFixture(),
     async () => new Response(JSON.stringify(reportFixture()), { status: 200 })
   );
+
   assert.deepEqual(fetched.rotation, imported.rotation);
 });

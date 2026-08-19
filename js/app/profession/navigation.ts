@@ -134,9 +134,11 @@ export function mountSimulatorNavigation(root: Document = document): void {
         behavior: 'auto'
       });
     };
+
     restore();
     root.defaultView?.requestAnimationFrame(restore);
   };
+
   const showView = (view: SimulatorView): void => {
     if (view === activeView) {
       updateActiveView(root, view);
@@ -165,11 +167,13 @@ export function mountSimulatorNavigation(root: Document = document): void {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
         return;
       }
+
       event.preventDefault();
       const window = root.defaultView;
       if (window?.location.hash !== VIEW_HASHES[view]) {
         window?.history.pushState(null, '', VIEW_HASHES[view]);
       }
+
       showView(view);
     });
     navigation.append(link);

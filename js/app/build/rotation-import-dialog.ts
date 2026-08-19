@@ -41,6 +41,7 @@ export async function importRotationFile(file: File, app: ProfessionAppState): P
         warnings: []
       };
     }
+
     if (isDpsReportData(imported)) {
       const report = await readDpsReportRotationData(imported, app);
       app.build.rotation = [...report.rotation];
@@ -51,6 +52,7 @@ export async function importRotationFile(file: File, app: ProfessionAppState): P
         warnings: report.warnings
       };
     }
+
     throw new Error('Rotation array missing.');
   }
 
@@ -153,6 +155,7 @@ function createDialog(document: Document): RotationImportDialogElements {
   if (!dropZone || !status || !error || !warnings || !browseButton || !reportInput || !reportButton || !closeButton) {
     throw new Error('Rotation import dialog failed to initialize.');
   }
+
   return {
     dialog,
     dropZone,
@@ -181,8 +184,10 @@ function renderWarnings(element: HTMLElement, warnings: readonly string[]): void
     } else {
       item.textContent = warning;
     }
+
     list.append(item);
   }
+
   element.append(list);
 }
 
@@ -230,6 +235,7 @@ export function bindRotationImportDialog(
       if (imported.warnings.length) {
         elements.warnings.hidden = false;
       }
+
       renderWarnings(elements.warnings, imported.warnings);
     } catch (error) {
       elements.status.textContent = `Could not import ${file.name}.`;
@@ -257,6 +263,7 @@ export function bindRotationImportDialog(
       if (imported.warnings.length) {
         elements.warnings.hidden = false;
       }
+
       renderWarnings(elements.warnings, imported.warnings);
     } catch (error) {
       elements.status.textContent = 'Could not import the dps.report link.';
@@ -289,6 +296,7 @@ export function bindRotationImportDialog(
       elements.dropZone.classList.add('is-dragging');
     });
   }
+
   elements.dropZone.addEventListener('dragleave', (event) => {
     event.preventDefault();
     elements.dropZone.classList.remove('is-dragging');

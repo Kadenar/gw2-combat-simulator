@@ -13,5 +13,6 @@ export function amalgamCastAvailability(context: EngineerPrecastContext, skill: 
   if (skill.categories?.includes('Morph') && !state.selectedMorphSkillIds.includes(Number(skill.id))) {
     return denyEngineerCast(skill, 'engineer.morph-selection', 'another morph is selected for this profession slot.');
   }
+
   return { ready: true };
 }

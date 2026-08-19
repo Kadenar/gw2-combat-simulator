@@ -41,6 +41,7 @@ test('invalid alternate weapon prefixes are independently normalized', () => {
 
 test('attribute calculation uses the prefixes selected for each weapon set', () => {
   const build = defaults();
+
   build.alternateWeapons = ['Dagger', 'Sword'];
   build.alternateWeaponPrefixes = ["Viper's", "Viper's"];
 
@@ -54,6 +55,7 @@ test('attribute calculation uses the prefixes selected for each weapon set', () 
 
 test('runtime stats follow chronological weapon-set swaps', () => {
   const build = defaults();
+
   build.weapons = ['Dagger', 'Sword'];
   build.alternateWeapons = ['Dagger', 'Sword'];
   build.alternateWeaponPrefixes = ["Viper's", "Viper's"];

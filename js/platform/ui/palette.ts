@@ -22,6 +22,7 @@ export function paletteView(profession: ProfessionAppContract, context: Schedule
   if (!Array.isArray(groups)) {
     throw new TypeError('paletteGroups must return an array.');
   }
+
   // Copy and normalize the profession boundary so renderers never mutate
   // catalog-owned group definitions.
   return groups.map((group) => ({
@@ -200,6 +201,7 @@ export function bindPaletteInteractions(
       handlers.onControlActivate?.(control.dataset.paletteControlId || '', event as unknown as PaletteMouseEvent);
     };
   }
+
   // Assign DOM handler properties rather than accumulating listeners, making
   // rebinding the same rendered palette idempotent.
   for (const icon of root.querySelectorAll<HTMLElement>('.pal-skill[data-skill]')) {
@@ -211,26 +213,32 @@ export function bindPaletteInteractions(
         image.onerror = null;
         image.src = image.dataset.fallbackIcon || '';
       };
+
       image.onerror = useFallback;
       if (image.complete && image.naturalWidth === 0) useFallback();
     }
+
     icon.onclick = (event) => {
       if (icon.classList.contains('pal-context-disabled')) return;
       handlers.onActivate?.(name, event as unknown as PaletteMouseEvent);
     };
+
     icon.ondragstart = (event) => {
       if (!draggable) {
         event.preventDefault();
         return;
       }
+
       if (handlers.onDragStart?.(name, event as PaletteDragEvent) === false) {
         event.preventDefault();
         return;
       }
+
       icon.classList.add('dragging');
       event.dataTransfer?.setData('text/plain', name);
       if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy';
     };
+
     icon.ondragend = (event) => {
       icon.classList.remove('dragging');
       handlers.onDragEnd?.(name, event as PaletteDragEvent);

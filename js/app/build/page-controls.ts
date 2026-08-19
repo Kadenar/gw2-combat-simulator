@@ -38,6 +38,7 @@ export function bindPageControls(app: ProfessionAppState): void {
     ) {
       return;
     }
+
     const key = event.key.toLowerCase();
     if (key === 'z' && !event.shiftKey) {
       event.preventDefault();
@@ -63,6 +64,7 @@ export function bindPageControls(app: ProfessionAppState): void {
   if (!combatLoadoutTitle) {
     throw new Error('Combat loadout header is missing.');
   }
+
   combatLoadoutTitle.append(importCodeButton);
   bindBuildTemplateImportDialog(app, importCodeButton);
   importFileInput.addEventListener('change', async () => {

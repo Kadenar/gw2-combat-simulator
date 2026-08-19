@@ -81,6 +81,7 @@ function applyRitualistCreatureSummonTraits(
       at
     );
   }
+
   if (!hasTrait(context, TRAIT.EXPLOSIVE_GROWTH)) return;
   const explosive = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.explosiveGrowth), 'strike');
   emitDamage(context, skill, Number(explosive?.coefficient || 1.2) * count, {
@@ -200,6 +201,7 @@ function nextSpiritPulse(context: NecromancerCastContext, state: RitualistState,
     state.spiritAutoAnchorAt = at + delay;
     state.resummonedSpiritAutoCycle = false;
   }
+
   const interval = Number(resources?.pulseInterval || 4);
   return state.spiritAutoAnchorAt > at
     ? state.spiritAutoAnchorAt
@@ -223,6 +225,7 @@ function queueSpiritAutoattacks(
       payload: { ownerId: `spirit:${spirit.key}:${generation - 1}` }
     });
   }
+
   context.tasks.schedule({
     type: SPIRIT_ATTACK_TASK,
     at: nextSpiritPulse(context, state, at),
@@ -483,6 +486,7 @@ function summonSpirit(
     state.soulTwistingAvailable = false;
     state.pendingSoulTwistSkill = skill.id;
   }
+
   emitState(context, at, 'spirit-summoned');
   runCreatureSummonReactions(context, skill, at);
   emitEmpoweringSpirits(context, skill, spirit.key);
@@ -498,6 +502,7 @@ function summonSpirit(
     emitBuff(context, skill, 'protection', 4, 1, boonOptions);
     emitBuff(context, skill, 'vigor', 4, 1, boonOptions);
   }
+
   queueSpiritAutoattacks(context, skill, spirit, at);
 }
 
@@ -524,6 +529,7 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
         })
       });
     }
+
     if (spirit.key === 'wanderlust') {
       context.emit({
         type: 'control',
@@ -538,11 +544,13 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
         ...spiritMetadata(context, spirit.key, 'summon-spirits')
       });
     }
+
     state.spiritBusyUntil[spirit.key] = Math.max(
       Number(state.spiritBusyUntil[spirit.key] || 0),
       at + spirit.activeDuration
     );
   }
+
   emitState(context, at, 'summon-spirits');
 }
 
@@ -564,6 +572,7 @@ function ritualist(context: NecromancerCastContext, skill: NecromancerSkill): bo
     });
     return true;
   }
+
   if (skill.id === ID.SUMMON_SPIRITS) {
     summonSpirits(context, skill, at);
     return true;
@@ -627,6 +636,7 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
   } else {
     return false;
   }
+
   gainNecromancerLifeForce(context, 10, at);
   emitState(context, at, 'innervate');
   return true;

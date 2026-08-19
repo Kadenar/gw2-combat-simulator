@@ -29,5 +29,6 @@ export function getActiveTraits(specializations: readonly GuardianSpecialization
       if (trait) active.push(trait);
     }
   }
+
   return active;
 }

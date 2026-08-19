@@ -42,6 +42,7 @@ function recoverCompletedZeroDurationCasts(
     if (action.status !== 'interrupted' || action.end !== action.start) {
       return action;
     }
+
     if (!committed.has(action)) return action;
     const duration = recordedDuration(context, {
       name: action.rawName,
@@ -77,6 +78,7 @@ function inferZealotsFlame(
     ) {
       return;
     }
+
     inferred.push(canonicalAction(eventIndex, event.time, ZEALOTS_FLAME, event.skillId));
   });
   return inferred;

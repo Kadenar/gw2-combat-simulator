@@ -53,5 +53,6 @@ export function swapRevenantLegend(context: RevenantCastContext, skill: Revenant
   if (revenantCombatActive(context, at)) {
     applyLegendInvocationTraits(context, skill);
   }
+
   emitRevenantState(context, at, 'legend-swap');
 }

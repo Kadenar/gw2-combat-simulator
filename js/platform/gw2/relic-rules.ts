@@ -102,6 +102,7 @@ function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent
   if (event.type !== 'weakness_vulnerability' || !isInternalCooldownReady(event.at, state.readyAt)) {
     return null;
   }
+
   if (event.at >= state.expiresAt - EPSILON) state.stacks = 0;
   state.stacks = Math.min(ARISTOCRACY_MAX_STACKS, state.stacks + 1);
   state.expiresAt = event.at + ARISTOCRACY_DURATION;
@@ -132,6 +133,7 @@ function explicitCombatStartTime(events: readonly SimulationEvent[]): number {
       combatStartTime = Math.min(combatStartTime, event.at);
     }
   }
+
   return combatStartTime === Infinity ? -Infinity : combatStartTime;
 }
 
@@ -172,6 +174,7 @@ function aristocracyActivationAt(state: AristocracyState, at: number): Aristocra
     if (activation.at >= at - EPSILON) continue;
     return at < activation.expiresAt - EPSILON ? activation : null;
   }
+
   return null;
 }
 
@@ -254,6 +257,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON) {
         return;
       }
+
       applyAristocracyTrigger(state as AristocracyState, event);
     },
     timeline(ctx, _state, events) {
@@ -284,6 +288,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       if (application?.condition !== 'Poisoned' || !isGw2PlayerActorEvent(application)) {
         return;
       }
+
       // Deduplicate by activationId (or a synthesized key) so a single skill
       // application that produces multiple poison stacks only increments the
       // Blightbringer counter once.
@@ -420,6 +425,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       if (!isGw2PlayerActorEvent(event) || !skill?.categories?.includes('Trap')) {
         return;
       }
+
       recordTimedBuffProc(ctx, state, event, {
         duration: 5,
         name: 'Relic of the Dragonhunter'
@@ -459,6 +465,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       ) {
         return;
       }
+
       recordTimedBuffProc(ctx, state, event, {
         duration: 6,
         name: 'Relic of Fireworks'
@@ -540,6 +547,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       if (event.type !== 'buff' || event.sourceId !== 'relic.mistburn') {
         return;
       }
+
       ctx.recordProc('relic', 'Relic of Mistburn', event.at, event.triggeredBy || event.skillName);
     },
     criticalChanceBonus(_ctx, _state, event, mightStacks) {
@@ -681,6 +689,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       ) {
         return;
       }
+
       ctx.recordProc('relic', 'Relic of the Shackles', event.at, event.triggeredBy, 'damage');
     }
   }),
@@ -695,6 +704,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       ) {
         return;
       }
+
       if (Number(state.expiresAt || 0) <= event.at) state.stacks = 0;
       state.stacks = Math.min(5, Number(state.stacks || 0) + 1);
       state.expiresAt = event.at + 6;

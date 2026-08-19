@@ -24,6 +24,7 @@ test('ammo recharge reductions carry overflow until maximum charges', () => {
   controller.spendAmmo(skill, 0);
 
   const zeroToOne = controller.reduceAmmoRecharge(skill, 1, 11.3);
+
   assert.equal(zeroToOne.reducedBy, 1);
   assert.deepEqual(state.ammo.get(skill.id), {
     charges: 1,
@@ -34,6 +35,7 @@ test('ammo recharge reductions carry overflow until maximum charges', () => {
   assert.equal(state.cooldowns.has(skill.id), false);
 
   const oneToTwo = controller.reduceAmmoRecharge(skill, 5, 20);
+
   assert.equal(oneToTwo.reducedBy, 5);
   assert.deepEqual(state.ammo.get(skill.id), {
     charges: 2,
@@ -43,6 +45,7 @@ test('ammo recharge reductions carry overflow until maximum charges', () => {
   });
 
   const twoToThree = controller.reduceAmmoRecharge(skill, 5, 29);
+
   assert.equal(twoToThree.reducedBy, 1);
   assert.deepEqual(state.ammo.get(skill.id), {
     charges: 3,
@@ -160,6 +163,7 @@ test('an intermediate task can make a waiting cast available', () => {
         if (skill.name !== 'Gated Cast' || context.state.profession.ready) {
           return { ready: true };
         }
+
         return {
           ready: false,
           retryAt: 10,
@@ -433,6 +437,7 @@ test('scheduler policies own chronological tasks and causal derivatives', () => 
 test('typed tasks order deterministically and reject zero-time loops', () => {
   const order = [];
   let queue;
+
   queue = createTaskQueue({
     safetyLimit: 5,
     handlers: {
@@ -461,10 +466,12 @@ test('typed tasks require registered handlers and serializable payloads', () => 
   const queue = createTaskQueue({
     handlers: { fixture: (_context, task) => seen.push(task.payload) }
   });
+
   assert.throws(() => queue.schedule({ type: 'missing', at: 0, payload: {} }), /No scheduled task handler/);
   assert.throws(() => queue.schedule({ type: 'fixture', at: 0, payload: { fn() {} } }), /serializable data/);
 
   const payload = { nested: { value: 'scheduled' } };
+
   queue.schedule({ type: 'fixture', at: 1, payload });
   payload.nested.value = 'mutated';
   queue.drainThrough(1, {});
@@ -478,6 +485,7 @@ test('owner cancellation removes queued work without banning future owners', () 
       fixture: (_context, task) => seen.push(task.payload)
     }
   });
+
   queue.schedule({
     type: 'fixture',
     at: 1,

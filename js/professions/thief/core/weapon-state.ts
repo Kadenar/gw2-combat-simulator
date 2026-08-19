@@ -24,11 +24,13 @@ export function grantThiefStealth(
   if (entering && hasThiefTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
     gainThiefInitiative(context, 2, at, 'enter-stealth');
   }
+
   if (entering && hasThiefTrait(context.config, TRAIT.LEECHING_VENOMS)) {
     state.spiderVenomCharges = Math.min(6, Number(state.spiderVenomCharges || 0) + 3);
     state.spiderVenomExpiresAt = at + 24;
     state.spiderVenomGeneration += 1;
   }
+
   if (entering && hasThiefTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)) {
     context.emit({
       type: 'condition',
@@ -44,6 +46,7 @@ export function grantThiefStealth(
       duration: 5
     });
   }
+
   emitThiefState(context, at, 'stealth');
 }
 
@@ -58,12 +61,15 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
   } else if (skill.type === 'Weapon') {
     state.autoattackChains = {};
   }
+
   if (completed && !(skill.categories || []).includes('stolen skill')) {
     grantThiefStealth(context, skill, at);
   }
+
   if (completed && Number(skill.resourceGain || 0) > 0) {
     gainThiefEndurance(context, Number(skill.resourceGain), at, skill.name);
   }
+
   if (skill.shadowstepSkill && context.config.relic === 'Peitha' && completed) {
     context.emit({
       type: 'peitha',
@@ -76,6 +82,7 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
       name: 'Relic of Peitha'
     });
   }
+
   updateSpearChainState(context, skill, at);
   // Weapon sequence skills share one state contract: completing the opener
   // arms its replacement for the declared window, and using the child restores
@@ -87,6 +94,7 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
       emitThiefState(context, at, 'weapon-flip');
     }
   }
+
   if (completed && skill.type === 'Weapon' && skill.flipParentId != null) {
     delete state.availableFlips[skill.id];
     emitThiefState(context, at, 'weapon-flip-used');

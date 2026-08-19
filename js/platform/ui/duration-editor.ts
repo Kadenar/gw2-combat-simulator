@@ -110,6 +110,7 @@ export function openDurationEditor(options: DurationEditorOptions): DurationEdit
       handle.close();
       return;
     }
+
     const anchorRect = options.anchor.getBoundingClientRect();
     const editorRect = editor.getBoundingClientRect();
     const gap = 12;
@@ -120,6 +121,7 @@ export function openDurationEditor(options: DurationEditorOptions): DurationEdit
       opensLeft = true;
       left = anchorRect.left - editorRect.width - gap;
     }
+
     left = Math.max(viewportPadding, Math.min(left, window.innerWidth - editorRect.width - viewportPadding));
     const anchorCenter = anchorRect.top + anchorRect.height / 2;
     const top = Math.max(
@@ -134,18 +136,21 @@ export function openDurationEditor(options: DurationEditorOptions): DurationEdit
       `${Math.round(Math.max(18, Math.min(anchorCenter - top, editorRect.height - 18)))}px`
     );
   };
+
   const onOutsidePointerDown = (event: PointerEvent): void => {
     const target = event.target;
     if (target instanceof Node && !editor.contains(target) && !options.anchor.contains(target)) {
       handle.close();
     }
   };
+
   const onKeyDown = (event: KeyboardEvent): void => {
     if (event.key === 'Escape') {
       event.preventDefault();
       handle.close();
     }
   };
+
   const onViewportChange = (): void => position();
   const handle: DurationEditorHandle = {
     element: editor,
@@ -169,6 +174,7 @@ export function openDurationEditor(options: DurationEditorOptions): DurationEdit
       input.select();
       return;
     }
+
     handle.close();
     options.onApply(validation.value);
   };

@@ -65,8 +65,10 @@ export function createResourceController({
     if (active.kind !== 'Virtuoso' && active.kind !== 'Troubadour') {
       throw new TypeError(`${active.kind} does not own a numeric Mesmer resource.`);
     }
+
     return active.state;
   };
+
   let onAmbushCreatedClones = (_at: number, _clones: readonly MesmerClone[]): void => {};
 
   const markCompounding = (at: number, count: number) => {
@@ -101,6 +103,7 @@ export function createResourceController({
           const replaced = professionCoreState(state).clones.shift();
           if (replaced) destroyClone(replaced, at);
         }
+
         const clone = {
           id: ++cloneSequence,
           createdAt: at + index * epsilon,
@@ -136,10 +139,12 @@ export function createResourceController({
       markCompounding(at, gained);
       addTraitProc('Compounding Power', at, reason, `${gained} stack${gained === 1 ? '' : 's'}`);
     }
+
     const resourceTraitId = Number(cause.traitId);
     if (RESOURCE_TRAIT_IDS.has(resourceTraitId) && traits.has(resourceTraitId)) {
       addTraitProc(cause.traitName || reason, at, reason, `+${gained} ${resourceDefinition.singular}`);
     }
+
     if (
       (resourceTraitId === TRAIT.DECEPTIVE_EVASION ||
         (resourceTraitId === TRAIT.SELF_DECEPTION && cause.sourceSkillId === ID.ILLUSIONARY_AMBUSH)) &&
@@ -162,6 +167,7 @@ export function createResourceController({
       scheduleResourceTask({ at, count, weapon, reason, cause });
       return;
     }
+
     professionCoreState(state).pendingResources.push({
       at,
       count,

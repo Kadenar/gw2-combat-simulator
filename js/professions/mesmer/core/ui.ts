@@ -128,12 +128,14 @@ export function mesmerPaletteSkillAvailability(
       message: `${skill.name} is unavailable for ${specialization}.`
     };
   }
+
   if (!isMesmerContinuumSkillAvailable(mesmerSkill, Boolean(state.continuumActive))) {
     return {
       available: false,
       message: 'Unavailable until Continuum Split is active'
     };
   }
+
   const minimum = mesmerMinimumResource(mesmerSkill);
   const available = Number(state.resource ?? Infinity) >= minimum;
   return {

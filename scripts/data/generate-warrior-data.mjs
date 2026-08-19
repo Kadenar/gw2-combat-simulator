@@ -142,15 +142,19 @@ async function fetchJson(url) {
   const response = await fetch(url, {
     headers: { 'User-Agent': 'gw2-combat-simulator/2.0 Warrior generator' }
   });
+
   if (!response.ok) throw new Error(`${response.status} ${url}`);
+
   return response.json();
 }
 
 async function fetchMany(endpoint, ids) {
   const result = [];
+
   for (let index = 0; index < ids.length; index += 100) {
     result.push(...(await fetchJson(`${API_ROOT}/${endpoint}?ids=${ids.slice(index, index + 100).join(',')}&lang=en`)));
   }
+
   return result;
 }
 
@@ -161,19 +165,24 @@ function constantName(value) {
     .replace(/[^a-z0-9]+/gi, '_')
     .replace(/^_+|_+$/g, '')
     .toUpperCase();
+
   return /^\d/.test(normalized) ? `SKILL_${normalized}` : normalized;
 }
 
 function stableEntries(entries) {
   const result = [];
   const used = new Set();
+
   for (const entry of entries) {
     const base = constantName(entry.name);
+
     if (!base) continue;
     const key = used.has(base) ? `${base}_ID_${entry.id}` : base;
+
     used.add(base);
     result.push({ ...entry, key });
   }
+
   return result;
 }
 
@@ -183,15 +192,19 @@ function skillInfobox(wikitext) {
 
 function infoboxId(wikitext) {
   const raw = skillInfobox(wikitext).match(/^\|\s*id\s*=\s*([^\n]+)/im)?.[1] || '';
+
   return Number(raw.match(/\d+/)?.[0] || 0);
 }
 
 function activationFromWikitext(wikitext, skillId) {
   const infobox = skillInfobox(wikitext);
+
   if (!infobox) return 0;
   const ids = infobox.match(/^\|\s*id\s*=\s*([^\n]+)/im)?.[1] || '';
+
   if (ids && !ids.match(new RegExp(`(^|\\D)${skillId}(\\D|$)`))) return 0;
   const raw = infobox.match(/^\|\s*activation\s*=\s*([0-9.]+)/im)?.[1];
+
   return raw ? Math.round(Number(raw) * 1000) : 0;
 }
 
@@ -204,8 +217,10 @@ async function wikiWikitext(name) {
     page: name,
     redirects: '1'
   });
+
   try {
     const result = await fetchJson(`${WIKI_API}?${query}`);
+
     return String(result.parse?.wikitext || '');
   } catch {
     return '';
@@ -215,14 +230,17 @@ async function wikiWikitext(name) {
 async function mapConcurrent(values, limit, callback) {
   const output = new Array(values.length);
   let next = 0;
+
   await Promise.all(
     Array.from({ length: limit }, async () => {
       while (next < values.length) {
         const index = next++;
+
         output[index] = await callback(values[index]);
       }
     })
   );
+
   return output;
 }
 
@@ -232,12 +250,14 @@ function fact(raw, text, type) {
 
 function normalizeRawSkill(raw, identity) {
   const overrides = SUPPLEMENTAL_OVERRIDES_BY_ID.get(identity.id) || {};
+
   if (!raw) {
     const dragonSlash = identity.name.startsWith('Dragon Slash');
     const ammo = Number(overrides.ammo || 0);
     const ammoRecharge = Number(overrides.ammoRecharge || 0);
     const cooldown = Number(ammo > 0 ? ammoRecharge : dragonSlash ? 1 : 0);
     const ammoCastLockout = Number(overrides.ammoCastLockout || 0);
+
     return {
       id: identity.id,
       name: identity.name,
@@ -257,6 +277,7 @@ function normalizeRawSkill(raw, identity) {
       simulatorExcluded: false
     };
   }
+
   const maximumCount = fact(raw, 'Maximum Count', 'Number')?.value || 0;
   const countRecharge =
     (raw.facts || []).find((candidate) => candidate.text === 'Count Recharge' && candidate.type === 'Time')?.duration ||
@@ -264,6 +285,7 @@ function normalizeRawSkill(raw, identity) {
   const ammo = Number(overrides.ammo ?? maximumCount);
   const ammoRecharge = Number(overrides.ammoRecharge ?? countRecharge);
   const sourceRecharge = Number(fact(raw, 'Recharge', 'Recharge')?.value || 0);
+
   return {
     id: raw.id,
     name: raw.name,
@@ -287,16 +309,21 @@ function normalizeRawSkill(raw, identity) {
 function effectsFor(raw) {
   const effects = [];
   const seenFacts = new Set();
+
   for (const current of raw.facts || []) {
     const factKey = [current.type, current.text, current.status || ''].join('|');
+
     if (seenFacts.has(factKey)) continue;
     seenFacts.add(factKey);
+
     if (current.type === 'Damage' && Number(current.dmg_multiplier) > 0) {
       const burstLevel = Number(String(current.text || '').match(/^Level (\d+) Damage$/i)?.[1] || 0);
+
       if (burstLevel > 1) continue;
       const hits = Math.max(1, Number(current.hit_count || 1));
       const healthThreshold = Number(String(current.text || '').match(/under (\d+)% health/i)?.[1] || 0);
       const baseStrike = [...effects].reverse().find((effect) => effect.type === 'strike');
+
       if (healthThreshold > 0 && baseStrike && Number(baseStrike.coefficient) > 0) {
         baseStrike.coefficientModifiers = [
           {
@@ -307,6 +334,7 @@ function effectsFor(raw) {
         ];
         continue;
       }
+
       effects.push({
         type: 'strike',
         coefficient: Number(current.dmg_multiplier) * hits,
@@ -331,6 +359,7 @@ function effectsFor(raw) {
       });
     } else if (CONTROL_TYPES.has(current.type) || CONTROL_TYPES.has(current.text)) {
       const controlKind = CONTROL_TYPES.has(current.text) ? current.text : current.type;
+
       effects.push({
         type: 'control',
         metadata: {
@@ -340,6 +369,7 @@ function effectsFor(raw) {
       });
     }
   }
+
   return effects;
 }
 
@@ -347,23 +377,35 @@ function ownerOf(identity, raw) {
   if (identity.type === 'Weapon' || identity.type === 'Bundle') {
     return identity.type === 'Bundle' ? 'Bladesworn' : 'Core';
   }
+
   return SPECIALIZATION_BY_ID.get(Number(raw.specialization)) || identity.specialization || 'Core';
 }
 
 function handlerId(identity, raw) {
   if ([30185, 30435].includes(identity.id)) return 'warrior.berserk';
+
   if (identity.id === 44165) return 'warrior.full-counter';
+
   if (identity.id === 62697) return 'warrior.gunstinger';
+
   if (identity.id === 62800) return 'warrior.dragons-roar';
+
   if (identity.id === 62745) return 'warrior.gunsaber-enter';
+
   if (identity.id === 62861) return 'warrior.gunsaber-exit';
+
   if (identity.id === 62803) return 'warrior.dragon-trigger';
+
   if (identity.id === 62732) return 'warrior.artillery-slash';
+
   if (identity.name.startsWith('Dragon Slash')) return 'warrior.dragon-slash';
+
   if ([76782, 77155, 77342].includes(identity.id)) return 'warrior.chant';
+
   if (Number(raw.cost || 0) > 0 || fact(raw, 'Adrenaline', 'Number')) {
     return 'warrior.resource';
   }
+
   return '';
 }
 
@@ -372,9 +414,11 @@ const supplementalIds = supplementalWikitext.map((wikitext, index) => ({
   id: infoboxId(wikitext),
   name: SUPPLEMENTAL_NAMES[index]
 }));
+
 for (const skill of supplementalIds) {
   if (!skill.id) throw new Error(`Could not resolve ${skill.name} from the Guild Wars 2 Wiki.`);
 }
+
 const rawSkills = await fetchMany('skills', [...new Set(CANONICAL_SKILLS.map((skill) => skill.id))]);
 const rawById = new Map(rawSkills.map((skill) => [skill.id, skill]));
 const supplemental = supplementalIds.map((identity) => normalizeRawSkill(rawById.get(identity.id), identity));
@@ -595,6 +639,7 @@ const declarations = {
   Bladesworn: [],
   Paragon: []
 };
+
 for (const identity of identities) {
   const raw = rawById.get(identity.id) || identity;
   const castTimeMs = activationById.get(identity.id) || (identity.type === 'Profession' ? 0 : 500);
@@ -623,6 +668,7 @@ for (const identity of identities) {
     ...(skillMechanicOverrides.get(identity.id) || {}),
     ...(handler ? { handlerId: handler } : {})
   };
+
   declarations[ownerOf(identity, raw)].push({
     key: keyById.get(identity.id),
     mechanics
@@ -643,6 +689,7 @@ const constants = {
   Bladesworn: 'BLADESWORN_SKILL_MECHANICS',
   Paragon: 'PARAGON_SKILL_MECHANICS'
 };
+
 for (const [owner, owned] of Object.entries(declarations)) {
   const importPath = owner === 'Core' ? '../data/ids.js' : '../../data/ids.js';
   const typePath = owner === 'Core' ? '../../../platform/engine/types.js' : '../../../../platform/engine/types.js';
@@ -655,6 +702,7 @@ ${owned.map((entry) => `  [ID.${entry.key}]: ${JSON.stringify(entry.mechanics, n
 });
 `;
   const target = fileURLToPath(new URL(`../../js/professions/warrior/${roots[owner]}/skills.ts`, import.meta.url));
+
   await mkdir(fileURLToPath(new URL(`../../js/professions/warrior/${roots[owner]}/`, import.meta.url)), {
     recursive: true
   });
@@ -690,6 +738,7 @@ const idsSource = [
   declaration('WARRIOR_SPECIALIZATION_IDS', specializationEntries),
   ''
 ].join('\n');
+
 await writeFile(fileURLToPath(new URL('../../js/professions/warrior/data/ids.ts', import.meta.url)), idsSource, 'utf8');
 
 const supplementalSource = `// Generated by scripts/data/generate-warrior-data.mjs.
@@ -699,6 +748,7 @@ export const WARRIOR_SUPPLEMENTAL_SKILLS: readonly Skill[] = Object.freeze(
   ${JSON.stringify(supplemental, null, 2)},
 );
 `;
+
 await writeFile(
   fileURLToPath(new URL('../../js/professions/warrior/data/warrior-supplemental-skills.ts', import.meta.url)),
   supplementalSource,

@@ -16,12 +16,15 @@ function javascriptFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     if (SKIPPED_DIRECTORIES.has(entry.name)) return [];
     const target = path.join(directory, entry.name);
+
     if (entry.isDirectory()) return javascriptFiles(target);
+
     return /\.(?:js|mjs)$/.test(entry.name) ? [target] : [];
   });
 }
 
 const files = javascriptFiles(process.cwd()).sort();
+
 for (const file of files) {
   const source = ts.createSourceFile(
     file,
@@ -31,6 +34,7 @@ for (const file of files) {
     file.endsWith(".mjs") ? ts.ScriptKind.JS : ts.ScriptKind.JS,
   );
   const diagnostics = source.parseDiagnostics || [];
+
   if (diagnostics.length) {
     for (const diagnostic of diagnostics) {
       const position = diagnostic.start == null
@@ -39,6 +43,7 @@ for (const file of files) {
       const location = position
         ? `${file}:${position.line + 1}:${position.character + 1}`
         : file;
+
       process.stderr.write(
         `${location} ${ts.flattenDiagnosticMessageText(
           diagnostic.messageText,
@@ -46,7 +51,9 @@ for (const file of files) {
         )}\n`,
       );
     }
+
     process.exit(1);
   }
 }
+
 console.log(`Syntax checked ${files.length} JavaScript files.`);

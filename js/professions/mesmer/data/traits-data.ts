@@ -81,5 +81,6 @@ export function getActiveTraits(specializations?: readonly SpecializationSelecti
       if (trait) active.push(trait);
     });
   }
+
   return active;
 }

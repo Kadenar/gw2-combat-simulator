@@ -15,6 +15,7 @@ function recipientKeys(event: NecromancerResolverEvent): string[] {
   if (event.summonOwnerBase && Number(event.summonCount || 0) > 1) {
     return Array.from({ length: Number(event.summonCount) }, (_, index) => `${event.summonOwnerBase}:${index}`);
   }
+
   return event.summonOwner ? [event.summonOwner] : [];
 }
 
@@ -141,6 +142,7 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
       if (!recipient || recipient.stacks <= 0 || recipient.nextAt > event.at) {
         continue;
       }
+
       recipient.stacks -= 1;
       // nextAt enforces an ICD so rapid multi-hit attacks cannot consume multiple stacks simultaneously
       recipient.nextAt = event.at + Number(definition.internalCooldown || 0);

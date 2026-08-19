@@ -104,6 +104,7 @@ function emitEmbraceTheDarknessPulse(
   if (!strike || !torment) {
     throw new Error('Embrace the Darkness is missing its pulse effects.');
   }
+
   emitDamage(context, skill, at, Number(strike.coefficient || 0));
   emitCondition(context, skill, at, 'Torment', Number(torment.stacks || 0), Number(torment.duration || 0));
   active.empoweredNextPulse = false;
@@ -123,6 +124,7 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
     emitRevenantState(context, at, 'upkeep-disabled');
     return;
   }
+
   const active: RevenantUpkeepState = {
     skillId: skill.id,
     upkeepCost: Number(skill.upkeepCost || 0),
@@ -141,8 +143,10 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
     if (!strike) {
       throw new Error('Embrace the Darkness is missing its strike effect.');
     }
+
     emitEmbraceTheDarknessPulse(context, skill, active, context.start + Number(strike.atMs || 0) / 1000);
   }
+
   context.tasks.schedule({
     type: 'revenant.upkeep-pulse',
     at:
@@ -166,6 +170,7 @@ export function releaseRevenantUpkeep(context: RevenantCastContext, skill: Reven
   if (cooldown > 0) {
     context.state.cooldowns.set(parent.id, at + cooldown);
   }
+
   emitRevenantState(context, at, 'upkeep-released');
 }
 
@@ -203,6 +208,7 @@ export function handleRevenantUpkeepPulse(
       emitRevenantBoon(context, skill, pulse.kind, pulse.duration, pulse.stacks, { at: task.at });
     }
   }
+
   context.tasks.schedule({
     type: 'revenant.upkeep-pulse',
     at: task.at + pulseIntervalForUpkeep(skill),

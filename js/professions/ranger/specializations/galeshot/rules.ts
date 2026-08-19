@@ -66,9 +66,11 @@ export function applyGaleshotCycloneBowTraits(context: RangerCastContext, skill:
         triggeredBy: skill.name
       });
     }
+
     emitCloudburstBoons(context, skill);
     return;
   }
+
   if (skill.id === ID.BLUSTER) {
     // Wuthering Wind is primed by Bluster; the charge is only consumable at or
     // after effectiveEnd so the same cast can't immediately trigger itself.
@@ -76,6 +78,7 @@ export function applyGaleshotCycloneBowTraits(context: RangerCastContext, skill:
     state.wutheringWindReadyAt = context.effectiveEnd;
     emitCloudburstBoons(context, skill);
   }
+
   if (
     hasTrait(context, TRAIT.CLOUDBURST) &&
     [ID.QUARRYS_PERIL, ID.SUPERSONIC_ARROW].includes(skill.id as typeof ID.QUARRYS_PERIL | typeof ID.SUPERSONIC_ARROW)
@@ -121,31 +124,40 @@ export function galeshotCastAvailability(context: RangerPrecastContext, skill: R
   if (skill.cycloneBowSkill && !state.cycloneBowActive) {
     return deny(skill, 'ranger.cyclone-bow-inactive', 'summon the Cyclone Bow first.');
   }
+
   if (skill.id === ID.SUMMON_CYCLONE_BOW && state.cycloneBowActive) {
     return deny(skill, 'ranger.cyclone-bow-active', 'the Cyclone Bow is already active.');
   }
+
   if (skill.id === ID.DISMISS_CYCLONE_BOW && !state.cycloneBowActive) {
     return deny(skill, 'ranger.cyclone-bow-inactive', 'the Cyclone Bow is not active.');
   }
+
   if (Number(skill.arrowCost || 0) > state.arrows) {
     return deny(skill, 'ranger.arrows', `requires ${skill.arrowCost} arrows.`);
   }
+
   const maximumWindForce = rangerBalanceValue(context, PROFILE.resources, 'minimumStacks', 5);
   if (skill.id === ID.HAWKEYE && state.windForce < maximumWindForce) {
     return deny(skill, 'ranger.wind-force', `requires ${maximumWindForce} Wind Force.`);
   }
+
   if (skill.id === ID.KEEN_SHOT && state.windForce >= maximumWindForce) {
     return deny(skill, 'ranger.hawkeye-ready', 'Hawkeye replaces Keen Shot at 5 Wind Force.');
   }
+
   if (skill.id === ID.QUARRYS_PERIL && hasTrait(context, TRAIT.PERILOUS_SKIES)) {
     return deny(skill, 'ranger.perilous-skies', 'Pelt replaces this skill.');
   }
+
   if (skill.id === ID.PELT && !hasTrait(context, TRAIT.PERILOUS_SKIES)) {
     return deny(skill, 'ranger.perilous-skies', "select Perilous Skies to replace Quarry's Peril.");
   }
+
   if (state.cycloneBowActive && skill.type === 'Weapon' && !skill.cycloneBowSkill) {
     return deny(skill, 'ranger.cyclone-bow-weapon-bar', 'the Cyclone Bow replaces weapon skills.');
   }
+
   return { ready: true };
 }
 

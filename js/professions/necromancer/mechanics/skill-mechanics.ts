@@ -40,6 +40,7 @@ function applyNecromancerSkillDefaults(
         if (!shroudSkillWeapon) {
           return [skillId, mechanics];
         }
+
         return [
           skillId,
           Object.freeze({

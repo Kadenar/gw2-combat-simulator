@@ -18,6 +18,7 @@ export async function updateWarriorApiData(options = {}) {
     }
   });
   const source = await readFile(result.output, 'utf8');
+
   await writeFile(
     result.output,
     source.replace(
@@ -26,8 +27,10 @@ export async function updateWarriorApiData(options = {}) {
     ),
     'utf8'
   );
+
   return result;
 }
 
 const invokedPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';
+
 if (import.meta.url === invokedPath) await updateWarriorApiData();

@@ -19,6 +19,7 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Schedu
       Number(context.config?.stats?.conditionDamage || 0) *
       Number(necromancerBalanceProfile(context, PROFILE.fellBeacon)?.attributeConversion || 0.07);
   }
+
   if (
     hasTrait(context, TRAIT.SAND_SAGE) &&
     // Bonus only applies when at least one shade is alive — check expiry timestamps against current sim time
@@ -28,6 +29,7 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Schedu
     result.concentration += bonus;
     result.expertise += bonus;
   }
+
   return result;
 }
 

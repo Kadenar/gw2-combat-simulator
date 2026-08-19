@@ -212,6 +212,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
       TRAIT.LIVE_FAST
     );
   }
+
   if (hasTrait(context, TRAIT.WILTING_STRIKE)) {
     const weakness = profileEffect(context, PROFILE.wiltingStrike, 'condition');
     queueCondition(
@@ -223,6 +224,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
       'Wilting Strike'
     );
   }
+
   if (hasTrait(context, TRAIT.GO_FOR_THE_EYES) && event.at >= state.goForTheEyesReadyAt) {
     const profile = rangerBalanceProfile(context, PROFILE.goForTheEyes);
     const blind = rangerBalanceProfileEffect(profile, 'blind');
@@ -239,6 +241,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
       triggeredBy: event.skillName
     });
   }
+
   if (hasTrait(context, TRAIT.GO_FOR_THE_THROAT) && event.at >= state.goForTheThroatReadyAt) {
     const profile = rangerBalanceProfile(context, CORE_PROFILE.goForTheThroat);
     const lesserSicEm = rangerBalanceProfileEffect(profile, 'buff', 1);
@@ -278,6 +281,7 @@ export function reactToSoulbeastControl(context: RangerResolverContext, event: R
       TRAIT.TWICE_AS_VICIOUS
     );
   }
+
   if (hasTrait(context, TRAIT.BESTIAL_RAGE) && event.at >= state.bestialRageReadyAt) {
     const profile = rangerBalanceProfile(context, PROFILE.bestialRage);
     const might = rangerBalanceProfileEffect(profile, 'boon', 0);
@@ -309,6 +313,7 @@ export function reactToSoulbeastCondition(context: RangerResolverContext, event:
   if (event.condition !== 'Poisoned' || !hasTrait(context, TRAIT.PREDATORS_CUNNING)) {
     return;
   }
+
   const strike = profileEffect(context, PROFILE.predatorsCunning, 'strike');
   enqueueOrdered(context.queue, {
     type: 'damage',
@@ -340,6 +345,7 @@ export function reactToSoulbeastBuff(context: RangerResolverContext, event: Rang
   ) {
     return;
   }
+
   const profile = rangerBalanceProfile(context, PROFILE.essenceOfSpeed);
   state.essenceOfSpeedReadyAt = event.at + Number(profile?.internalCooldown ?? 5);
   enqueueOrdered(context.queue, {
@@ -367,6 +373,7 @@ export function reactToRangerWinterBite(context: RangerResolverContext, event: R
   ) {
     return;
   }
+
   core.winterBiteReady = false;
   const weakness = profileEffect(context, PROFILE.wintersBite, 'condition');
   queueCondition(

@@ -44,6 +44,7 @@ function ordersFromAboveActions(context: EvtcProfessionReconstructionContext): E
     ) {
       return;
     }
+
     const beginsActivation = previousPulse == null || event.time - previousPulse > 1500;
     previousPulse = event.time;
     if (!beginsActivation) return;
@@ -90,6 +91,7 @@ function initialWarbandActions(
       precast: true
     });
   }
+
   return reversed.reverse();
 }
 
@@ -118,6 +120,7 @@ function warbandActorActions(
     ) {
       return [];
     }
+
     const swapsImmediatelyAfter = legendSwaps.some(
       (swap) => swap.start >= event.time && swap.start - event.time <= 250
     );

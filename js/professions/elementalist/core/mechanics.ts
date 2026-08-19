@@ -251,9 +251,11 @@ export function applyElementalistAura(
     emitProfiledBuff(context, at, PROFILE.zephyrsBoon, 'Fury', 'Fury', 1, 5, skillName, sourceId);
     emitProfiledBuff(context, at, PROFILE.zephyrsBoon, 'Swiftness', 'Swiftness', 1, 5, skillName, sourceId);
   }
+
   if (hasTrait(context, 'Elemental Shielding')) {
     emitProfiledBuff(context, at, PROFILE.elementalShielding, 'Protection', 'Protection', 1, 3, skillName, sourceId);
   }
+
   if (hasTrait(context, 'Invigorating Torrents')) {
     emitProfiledBuff(context, at, TRAIT.INVIGORATING_TORRENTS, 'Vigor', 'Vigor', 1, 5, skillName, sourceId);
     emitProfiledBuff(
@@ -268,6 +270,7 @@ export function applyElementalistAura(
       sourceId
     );
   }
+
   if (hasTrait(context, 'Elemental Bastion')) {
     emitProfiledBuff(context, at, TRAIT.ELEMENTAL_BASTION, 'Alacrity', 'Alacrity', 1, 4, skillName, sourceId);
   }

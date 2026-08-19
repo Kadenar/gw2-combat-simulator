@@ -302,6 +302,7 @@ test('reconstructs Bladesworn precasts, mechanics, and bundle weapon casts', () 
   for (const name of ['Dragon Trigger', 'Triggerguard', 'Flicker Step', 'Dragon Slash—Force', 'Blooming Fire']) {
     assert.equal(names.includes(name), true, name);
   }
+
   assert.equal(result.actions.find((action) => action.name === 'Blooming Fire').status, 'interrupted');
 });
 
@@ -408,9 +409,11 @@ test('reconstructs Berserker mode, Outrage, composite Rush, and committed autos'
     ['Arc Divider', 680]
   ]) {
     const action = result.actions.find((candidate) => candidate.name === name);
+
     assert.equal(action.status, 'completed', name);
     assert.equal(action.durationMs, durationMs, name);
     const commandIndex = result.rotation.findIndex((command) => command.name === name);
+
     assert.notEqual(result.rotation[commandIndex + 1]?.name, '__wait', name);
   }
 });

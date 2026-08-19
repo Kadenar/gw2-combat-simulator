@@ -23,5 +23,6 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
   } else {
     queueElementalistBuff(context, event, 'Tempestuous Aria', 1, extension, elementalistSourceSkill(event));
   }
+
   recordElementalistTraitProc(context, event, 'Tempestuous Aria');
 }

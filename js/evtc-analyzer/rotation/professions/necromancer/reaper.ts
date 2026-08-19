@@ -95,6 +95,7 @@ function truncatedReaperPrecastActions(context: EvtcProfessionReconstructionCont
   ) {
     return actions;
   }
+
   const graspingSkill = findRotationSkill(
     GRASPING_DARKNESS.skillId,
     GRASPING_DARKNESS.name,

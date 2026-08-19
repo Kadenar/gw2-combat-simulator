@@ -136,6 +136,7 @@ export function gw2BoonApplicationRecipients(
       recipientCount: Math.max(0, Math.trunc(Number(event.recipientCount || 0)))
     });
   }
+
   const scope = String(event.recipients || '').toLowerCase();
   const summonOnly = ['summon', 'summons', 'pet', 'pets', 'companions'].includes(scope);
   const hasCompanionIds = Array.isArray(event.companionIds);
@@ -222,5 +223,6 @@ export function gw2AlliedPlayerProcTimeline(
       events.push({ allyIndex, procIndex, at });
     }
   }
+
   return events.sort((left, right) => left.at - right.at || left.allyIndex - right.allyIndex);
 }

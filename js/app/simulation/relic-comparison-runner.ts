@@ -34,6 +34,7 @@ export class RelicComparisonRunner {
       clearTimeout(this.timer);
       this.timer = null;
     }
+
     const results = app.results;
     if (!results) return;
 
@@ -54,6 +55,7 @@ export class RelicComparisonRunner {
     if (results.relicComparison && results.relicComparisonOpponent !== request.opponentRelic) {
       results.relicComparison = undefined;
     }
+
     results.relicComparisonOpponent = request.opponentRelic;
   }
 

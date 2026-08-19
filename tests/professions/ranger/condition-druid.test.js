@@ -65,6 +65,7 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
   }
 
   const doubleArc = rangerCatalog.skillsById.get(ID.DOUBLE_ARC);
+
   assert.equal(doubleArc.recharge, 6);
   assert.equal(doubleArc.effects.find(({ type }) => type === 'strike').coefficient, 1.6);
   assert.equal(
@@ -74,16 +75,19 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
   );
 
   const throwTorch = rangerCatalog.skillsById.get(ID.THROW_TORCH);
+
   assert.equal(throwTorch.ammo, 2);
   assert.equal(throwTorch.ammoRecharge, 15);
   assert.equal(throwTorch.ammoCastLockout, 1);
 
   const bonfire = rangerCatalog.skillsById.get(ID.BONFIRE);
+
   assert.equal(bonfire.recharge, 25);
   assert.equal(bonfire.comboFields[0].fieldType, 'Fire');
   assert.equal(bonfire.effects.find(({ type }) => type === 'strike').ticks.length, 9);
 
   const naturalConvergence = rangerCatalog.skillsById.get(ID.NATURAL_CONVERGENCE);
+
   assert.equal(naturalConvergence.castTimeMs, 3120);
   assert.equal(naturalConvergence.quicknessCastTimeMs, 2080);
   assert.deepEqual(
@@ -107,6 +111,7 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
   );
 
   const entangle = rangerCatalog.skillsById.get(ID.ENTANGLE);
+
   assert.deepEqual(
     entangle.effects
       .find(({ type, ticks }) =>
@@ -123,6 +128,7 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
   );
 
   const sunSpirit = rangerCatalog.skillsById.get(ID.SUN_SPIRIT);
+
   assert.equal(sunSpirit.recharge, 20);
   assert.deepEqual(
     sunSpirit.effects.map(({ type, duration, stacks }) => [type, duration, stacks]),
@@ -157,6 +163,7 @@ test('Ranger evade skills and dodges trigger Light on Your Feet', () => {
     secondaryWeapon: 'Dagger',
     selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
   });
+
   assert.equal(result.events.filter((event) => event.type === 'buff' && event.kind === 'light-on-your-feet').length, 2);
 });
 
@@ -165,6 +172,7 @@ test('Light on Your Feet and Natural Balance add condition duration', () => {
     ({ id }) => id === 'ranger.light-on-your-feet-condition-duration'
   );
   const naturalBalance = druidModifierRules.find(({ id }) => id === 'ranger.natural-balance-condition-duration');
+
   for (const rule of [lightOnYourFeet, naturalBalance]) {
     assert.equal(rule.target, 'conditionDuration');
     assert.equal(rule.operation, 'add');
@@ -196,6 +204,7 @@ test('Light on Your Feet and Natural Balance add condition duration', () => {
 
 test('Jacaranda AI and Beast command expose the requested pulses', () => {
   const jacaranda = RANGER_PETS.find(({ name }) => name === 'Jacaranda');
+
   assert.deepEqual(jacaranda.skillIds, [
     ID.JACARANDA_ROOT_SLAP,
     ID.JACARANDA_CALL_LIGHTNING,
@@ -204,6 +213,7 @@ test('Jacaranda AI and Beast command expose the requested pulses', () => {
   ]);
 
   const callLightning = rangerCatalog.skillsById.get(ID.JACARANDA_CALL_LIGHTNING);
+
   assert.equal(callLightning.recharge, 10);
   assert.equal(callLightning.effects[0].ticks.length, 5);
   assert.equal(
@@ -212,6 +222,7 @@ test('Jacaranda AI and Beast command expose the requested pulses', () => {
   );
 
   const embrace = rangerCatalog.skillsById.get(ID.JACARANDAS_EMBRACE);
+
   assert.equal(embrace.effects[0].ticks.length, 5);
   assert.deepEqual(
     embrace.effects
@@ -240,6 +251,7 @@ test('Poison Master remains player-scaled and Poisonous Strikes inherits its att
   const poisonMasterProc = poisonMaster.resolvedEvents.find(
     (event) => event.type === 'condition' && event.sourceId === TRAIT.POISON_MASTER
   );
+
   assert.equal(poisonMasterProc.stacks, 2);
   assert.equal(poisonMasterProc.duration, 8);
   assert.equal(poisonMasterProc.actorType, 'effect');
@@ -249,6 +261,7 @@ test('Poison Master remains player-scaled and Poisonous Strikes inherits its att
   const poisonousStrikeProcs = poisonousStrikes.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === ID.DOUBLE_ARC && event.skillName === 'Poisonous Strikes'
   );
+
   assert.equal(poisonousStrikeProcs.length, 2);
   assert.equal(poisonousStrikes.events.find((event) => event.type === 'ranger.poisonous-strikes').duration, 10);
   assert.equal(
@@ -290,6 +303,7 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
   }).resolvedEvents.find(
     (event) => event.type === 'condition' && event.sourceId === TRAIT.ECLIPSE && event.condition === 'Poisoned'
   );
+
   assert.equal(seed.stacks, 3);
   assert.equal(seed.duration, 8);
   assert.equal(
@@ -304,12 +318,14 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
     initialAstralForce: 0,
     selectedTraitIds: [TRAIT.NATURAL_MENDER]
   });
+
   assert.equal(naturalMender.endState.profession.astralForce, 16);
 
   const convergence = simulate(
     ['Celestial Avatar', 'Natural Convergence', 'Release Celestial Avatar', { type: 'wait', durationMs: 8000 }],
     { selectedTraitIds: [TRAIT.BLOOD_MOON] }
   );
+
   assert.deepEqual(
     convergence.resolvedEvents
       .filter((event) => event.type === 'condition' && event.sourceId === TRAIT.BLOOD_MOON)
@@ -326,6 +342,7 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
   const entangle = simulate(['Entangle', { type: 'wait', durationMs: 8000 }], {
     selectedTraitIds: [TRAIT.BLOOD_MOON]
   });
+
   assert.deepEqual(
     entangle.resolvedEvents
       .filter(
@@ -371,6 +388,7 @@ test('Astral Force follows landed direct damage and excludes pet damage', () => 
     initialAstralForce: 98.5,
     selectedTraitIds: [TRAIT.NATURAL_MENDER]
   });
+
   assert.equal(directDamage.steps.find(({ skill }) => skill === 'Celestial Avatar').start, 1000);
 
   const petDamage = simulate(['Poisonous Cloud', 'Celestial Avatar'], {
@@ -378,6 +396,7 @@ test('Astral Force follows landed direct damage and excludes pet damage', () => 
     selectedPet: 'Carrion Devourer',
     selectedTraitIds: [TRAIT.NATURAL_MENDER]
   });
+
   assert.equal(petDamage.steps.find(({ skill }) => skill === 'Celestial Avatar').start, 3000);
 
   const withoutEclipse = simulate([
@@ -390,12 +409,14 @@ test('Astral Force follows landed direct damage and excludes pet damage', () => 
     ['Celestial Avatar', 'Natural Convergence', { type: 'wait', durationMs: 8000 }, 'Release Celestial Avatar'],
     { selectedTraitIds: [TRAIT.ECLIPSE] }
   );
+
   assert.equal(withEclipse.endState.profession.astralForce, withoutEclipse.endState.profession.astralForce);
 
   const eclipseDamage = simulate(["Viper's Nest", 'Celestial Avatar'], {
     initialAstralForce: 97,
     selectedTraitIds: [TRAIT.ECLIPSE]
   });
+
   assert.equal(eclipseDamage.steps.find(({ skill }) => skill === 'Celestial Avatar').start, 500);
 });
 
@@ -409,6 +430,7 @@ test('Celestial Avatar transitions trigger swap mechanics and weapon lines', () 
       ]
     }
   );
+
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.events.filter((event) => event.type === 'sigil_swap').map((event) => event.skillName),
@@ -425,6 +447,7 @@ test('Celestial Avatar transitions trigger swap mechanics and weapon lines', () 
     startingWeaponSet: 1,
     weaponLineTransition(entry, current) {
       const name = typeof entry === 'string' ? entry : entry.name;
+
       return transition({
         entry: { name },
         skill: rangerCatalog.skillsByName.get(name),
@@ -433,6 +456,7 @@ test('Celestial Avatar transitions trigger swap mechanics and weapon lines', () 
       });
     }
   });
+
   assert.deepEqual(
     rows.map((row) => row.weaponLine),
     [null, 'Celestial Avatar', null]

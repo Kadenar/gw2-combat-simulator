@@ -53,6 +53,7 @@ export function scheduleGrandFinaleProfile(context: ElementalistLifecycleContext
     const [condition, stacks, duration] = conditions[element];
     emitProfiledCondition(context, at, PROFILE.grandFinale, element, condition, stacks, duration, skill.name, skill.id);
   }
+
   return true;
 }
 
@@ -71,6 +72,7 @@ export function hammerOrbMatchesAttunement(
   if (state.secondaryAttunement == null) {
     return element === state.primaryAttunement;
   }
+
   const grantedBy = state.hammerOrbGrantedBy[element];
   const grantingSkill = grantedBy ? context.catalog.skillsByName.get(grantedBy) : null;
   const required = String(grantingSkill?.attunement || element).split('+');
@@ -97,6 +99,7 @@ export function applyHammerState(context: ElementalistLifecycleContext, skill: S
         }
       }
     }
+
     for (const element of single ? [single] : dual) {
       state.hammerOrbs[element] = at + orbDuration;
       state.hammerOrbGrantedBy[element] = skill.name;
@@ -106,9 +109,11 @@ export function applyHammerState(context: ElementalistLifecycleContext, skill: S
         emitBuff(context, at, `Hammer ${element} Orb`, 1, orbDuration, skill.name, skill.id);
       }
     }
+
     state.hammerOrbLastCastAt = at;
     return;
   }
+
   if (skill.name !== 'Grand Finale') return;
   const active = ELEMENTALIST_ATTUNEMENTS.filter((element) => {
     const expiresAt = state.hammerOrbs[element];
@@ -119,6 +124,7 @@ export function applyHammerState(context: ElementalistLifecycleContext, skill: S
     for (const event of activeBuffEvents(context, `hammer ${element} orb`, at)) {
       context.replaceEvent(event, { duration: at + 1 - event.at });
     }
+
     state.hammerOrbs[element] = null;
     state.hammerOrbGrantedBy[element] = null;
     state.hammerOrbActivationIds[element] = null;

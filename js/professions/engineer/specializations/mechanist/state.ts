@@ -9,8 +9,10 @@ export function selectedMechCommands(traits: EngineerConfig | ReadonlySet<SkillI
     for (const [traitId, skillId] of groups) {
       if (hasEngineerTrait(traits, traitId)) return skillId;
     }
+
     return groups[0][1];
   };
+
   return [
     pick([
       [TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, ID.ROLLING_SMASH],
@@ -62,6 +64,7 @@ export function engineerMechAttributes(
     const value = profile?.[field];
     return Number.isFinite(Number(value)) ? Number(value) : fallback;
   };
+
   const baseAttribute = profileNumber('attributeBonus', 1000);
   const inheritanceRatio = profileNumber('attributeConversion', 0.5);
   const secondaryCap = profileNumber('minimumStacks', 750);

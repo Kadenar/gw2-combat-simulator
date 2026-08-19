@@ -35,6 +35,7 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
   if (!professionStaticRulesApplied(config) && hasThiefTrait(traits, TRAIT.MARAUDERS_RESILIENCE)) {
     maximumHealth += Number(config.stats?.power ?? config.attributes?.power ?? 1000) * 0.7;
   }
+
   const professionSkillId =
     specialization === 'Deadeye'
       ? ID.DEADEYES_MARK

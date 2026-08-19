@@ -8,11 +8,13 @@ function createFixture() {
   const materializer = createMesmerEventMaterializer({
     emit(event) {
       events.push(event);
+
       return event;
     },
     activePrimaryWeapon: () => 'Sword',
     weaponStrength: {}
   });
+
   return { events, materializer };
 }
 

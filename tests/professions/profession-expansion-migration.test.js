@@ -84,12 +84,14 @@ const PUBLIC_END_STATE_KEYS_BY_PROFESSION = Object.freeze({
 function createFixtureFetch(requests = []) {
   return async (requestUrl) => {
     const url = new URL(requestUrl);
+
     requests.push(url);
     const ids = String(url.searchParams.get('ids') || '')
       .split(',')
       .filter(Boolean)
       .map(Number);
     let value;
+
     if (url.pathname.startsWith('/v2/professions/')) {
       value = apiFixture.profession;
     } else if (url.pathname === '/v2/specializations') {
@@ -105,6 +107,7 @@ function createFixtureFetch(requests = []) {
         json: async () => ({})
       };
     }
+
     return {
       ok: true,
       status: 200,
@@ -117,20 +120,24 @@ function assertCatalogMetadata(entry, catalog) {
   const traitById = new Map(catalog.traits.map((trait) => [trait.id, trait]));
   const referencedTraitIds = new Set();
   const specializationNames = new Set(catalog.specializations.map((specialization) => specialization.name));
+
   for (const weapon of catalog.weapons) {
     assert.match(String(catalog.weaponHands.get(weapon) || ''), /^(?:mh|oh|mh\+oh|2h|-)$/, `${entry.id} ${weapon}`);
   }
+
   for (const specialization of catalog.specializations) {
     assert.equal(specialization.minorTraits.length, 3, specialization.name);
     assert.equal(specialization.majorTraits.length, 3, specialization.name);
     for (const tier of specialization.majorTraits) {
       assert.equal(tier.length, 3, specialization.name);
     }
+
     for (const trait of [...specialization.minorTraits, ...specialization.majorTraits.flat()]) {
       assert.equal(traitById.has(trait.id), true, trait.name);
       referencedTraitIds.add(trait.id);
     }
   }
+
   for (const trait of catalog.traits) {
     assert.equal(referencedTraitIds.has(trait.id), true, trait.name);
     assert.equal(specializationNames.has(trait.specialization), true, trait.name);
@@ -147,6 +154,7 @@ function assertUiContracts(entry, profession, specialization) {
     ? specialization
     : 'Core';
   let runtime;
+
   try {
     runtime = profession.resolveRuntime({
       specialization: runtimeSpecialization
@@ -154,6 +162,7 @@ function assertUiContracts(entry, profession, specialization) {
   } catch {
     runtime = profession.resolveRuntime({ specialization: 'Core' });
   }
+
   const context = {
     catalog: profession.catalog,
     specialization,
@@ -162,6 +171,7 @@ function assertUiContracts(entry, profession, specialization) {
   };
   const groups = profession.ui.paletteGroups(context);
   const views = profession.ui.resourceViews(context);
+
   assert.equal(Array.isArray(groups), true);
   assert.equal(Array.isArray(views), true);
   assert.equal(new Set(groups.map((group) => group.id)).size, groups.length);
@@ -177,6 +187,7 @@ function assertUiContracts(entry, profession, specialization) {
       assert.equal(profession.catalog.skillsById.has(id), true, String(id));
     }
   }
+
   assert.equal(new Set(views.map((view) => view.id)).size, views.length);
   for (const view of views) {
     assert.match(String(view.id || ''), /^[a-z][a-z0-9-]*$/);
@@ -191,6 +202,7 @@ function assertUiContracts(entry, profession, specialization) {
     assert.ok(String(view.shortLabel || '').trim(), `${entry.id} shortLabel`);
     assert.ok(String(view.statusLabel || '').trim(), `${entry.id} statusLabel`);
   }
+
   for (const callback of [
     'isPaletteSkillInstant',
     'paletteSkillAvailability',
@@ -208,11 +220,14 @@ function assertUiContracts(entry, profession, specialization) {
   ]) {
     assert.equal(typeof profession.ui[callback], 'function', `${entry.id} ui.${callback}`);
   }
+
   const sampleSkill = profession.catalog.skills.find(
     (skill) => skill.implemented !== false && !skill.simulatorExcluded
   );
+
   if (sampleSkill) {
     const availability = profession.ui.paletteSkillAvailability(context, sampleSkill);
+
     assert.equal(typeof availability.available, 'boolean');
     assert.equal(typeof availability.message, 'string');
   }
@@ -244,20 +259,25 @@ function assertEventDescriptors(entry, profession) {
       .filter((name) => {
         try {
           profession.resolveRuntime({ specialization: name });
+
           return true;
         } catch {
           return false;
         }
       })
   ];
+
   for (const specialization of specializations) {
     const runtime = profession.resolveRuntime({ specialization });
+
     for (const type of Object.keys(runtime.eventHandlers)) {
       const descriptor = profession.ui.eventLogRow?.(
         { specialization, config: { specialization } },
         { ...baseEvent, type }
       );
+
       assert.notEqual(descriptor, undefined, `${entry.id}/${specialization} must present or suppress ${type}`);
+
       if (descriptor === null) continue;
       assert.deepEqual(Object.keys(descriptor).sort(), ['className', 'description', 'flags', 'order', 'type'].sort());
       assert.ok(String(descriptor.type).trim());
@@ -272,9 +292,11 @@ function assertEventDescriptors(entry, profession) {
 test('profession registry entries conform to the shared contracts', async () => {
   const storageKeys = new Set();
   const filenames = new Set();
+
   for (const entry of professionRegistry) {
     await access(new URL(`../../${entry.route}`, import.meta.url));
     const [profession, adapter] = await Promise.all([entry.loadProfession(), entry.loadAppAdapter()]);
+
     assert.match(entry.id, /^[a-z][a-z0-9-]*$/);
     assert.equal(profession.id, entry.id);
     assert.equal(adapter.id, entry.id);
@@ -288,17 +310,21 @@ test('profession registry entries conform to the shared contracts', async () => 
     assertEventDescriptors(entry, profession);
 
     const ids = profession.catalog.skills.map((skill) => skill.id);
+
     assert.equal(new Set(ids).size, ids.length);
     for (const skill of profession.catalog.skills) {
       assert.equal(profession.catalog.skillsById.get(skill.id), skill);
       assert.ok(Number.isFinite(skill.castTimeMs), skill.name);
       assert.equal('activation' in skill, false, skill.name);
       assert.equal('castTime' in skill, false, skill.name);
+
       if (!skill.simulatorExcluded) {
         assert.equal(skill.implemented, true, skill.name);
       }
+
       if (skill.handlerId) {
         const handler = profession.catalog.skillHandlers.get(skill.handlerId);
+
         assert.equal(typeof handler, 'object', skill.handlerId);
         assert.equal(Object.values(SKILL_HANDLER_MODES).includes(handler.mode), true, `${skill.handlerId} mode`);
         assert.equal(
@@ -307,6 +333,7 @@ test('profession registry entries conform to the shared contracts', async () => 
           `${skill.handlerId} phases`
         );
       }
+
       for (const effect of skill.effects) {
         if (effect.type !== 'custom') continue;
         assert.equal(effect.eventType.startsWith(`${entry.id}.`), true, effect.eventType);
@@ -318,23 +345,28 @@ test('profession registry entries conform to the shared contracts', async () => 
             ? skill.specialization
             : 'Core';
         const runtime = profession.resolveRuntime({ specialization: owner });
+
         assert.equal(typeof runtime.eventHandlers[effect.eventType], 'function', effect.eventType);
       }
     }
+
     for (const specialization of [
       'Core',
       ...profession.catalog.specializations.filter((candidate) => candidate.elite).map((candidate) => candidate.name)
     ]) {
       let runtime;
+
       try {
         runtime = profession.resolveRuntime({ specialization });
       } catch {
         continue;
       }
+
       for (const type of Object.keys(runtime.eventHandlers)) {
         assert.equal(type.startsWith(`${entry.id}.`), true, type);
         assert.equal(COMMON_EVENT_TYPES.includes(type), false, type);
       }
+
       for (const type of Object.keys(runtime.taskHandlers)) {
         assert.equal(type.startsWith(`${entry.id}.`), true, type);
       }
@@ -342,6 +374,7 @@ test('profession registry entries conform to the shared contracts', async () => 
 
     const defaults = profession.createBuildDefaults();
     const migrated = profession.migrateBuild(defaults);
+
     assert.equal(profession.validateBuild(migrated).valid, true);
     assert.equal(migrated.profession, entry.id);
     assert.deepEqual(profession.migrateBuild(migrated), migrated);
@@ -350,6 +383,7 @@ test('profession registry entries conform to the shared contracts', async () => 
       alternateWeapons: ['', ''],
       startingWeaponSet: 2
     });
+
     assert.deepEqual(oneWeaponSet.alternateWeapons, ['', '']);
     assert.equal(oneWeaponSet.startingWeaponSet, 1);
     assert.equal(profession.validateBuild(oneWeaponSet).valid, true);
@@ -371,6 +405,7 @@ test('profession registry entries conform to the shared contracts', async () => 
     );
 
     const result = simulateGw2({ profession, rotation: [], config: {} });
+
     assert.deepEqual(
       Object.keys(result.endState).sort(),
       ['activeWeaponSet', 'ammo', 'ammoBySkillId', 'cooldowns', 'profession', 'time'].sort()
@@ -381,11 +416,13 @@ test('profession registry entries conform to the shared contracts', async () => 
       rotation: [{ type: 'cast', skillId: -999 }],
       config: {}
     });
+
     assert.match(unknown.warnings.join(' '), /Unknown skill id -999/);
 
     for (const specialization of ['Core', ...profession.catalog.specializations.map((value) => value.name)]) {
       assertUiContracts(entry, profession, specialization);
     }
+
     assert.equal(storageKeys.has(adapter.storageKey), false);
     storageKeys.add(adapter.storageKey);
     for (const filename of Object.values(adapter.filenames)) {
@@ -399,6 +436,7 @@ test('ready native professions classify every trait with no pending entries', as
   for (const entry of professionRegistry) {
     const profession = await entry.loadProfession();
     const coverage = TRAIT_COVERAGE_BY_PROFESSION[entry.id];
+
     assert.ok(coverage, `${entry.id} trait coverage`);
     assert.equal(coverage.length, profession.catalog.traits.length);
     assert.equal(new Set(coverage.map((item) => item.traitId)).size, profession.catalog.traits.length);
@@ -472,9 +510,11 @@ test('ready native professions expose deliberate public end-state keys', async (
       'traitProcReadyAt'
     ]
   };
+
   for (const entry of professionRegistry) {
     const profession = await entry.loadProfession();
     const result = simulateGw2({ profession, rotation: [], config: {} });
+
     assert.deepEqual(
       Object.keys(result.endState.profession).sort(),
       [...PUBLIC_END_STATE_KEYS_BY_PROFESSION[entry.id]].sort(),
@@ -488,6 +528,7 @@ test('ready native professions expose deliberate public end-state keys', async (
 
 test('Elementalist exposes only its manifest entry', () => {
   const elementalist = professionRegistry.find((entry) => entry.id === 'elementalist');
+
   assert.ok(elementalist);
   assert.equal(typeof elementalist.loadAppAdapter, 'function');
   assert.equal(
@@ -510,6 +551,7 @@ test('registry entries require an adapter loader', () => {
     specializationSummary: 'Core',
     loadProfession: async () => ({})
   };
+
   assert.throws(
     () =>
       validateProfessionRegistryEntries([
@@ -535,6 +577,7 @@ test('native build codecs share version, schema, and sanitization behavior', asy
   for (const entry of professionRegistry) {
     const [profession, adapter] = await Promise.all([entry.loadProfession(), entry.loadAppAdapter()]);
     const defaults = profession.createBuildDefaults();
+
     if (entry.id === 'guardian') {
       assert.equal(Object.hasOwn(defaults, 'initialResource'), false);
       assert.equal(
@@ -548,6 +591,7 @@ test('native build codecs share version, schema, and sanitization behavior', asy
         false
       );
     }
+
     assert.throws(() => replaceBuild({ ...defaults, profession: 'wrong-profession' }, adapter), /Cannot load/);
     assert.throws(
       () => replaceBuild({ ...defaults, schemaVersion: defaults.schemaVersion + 1 }, adapter),
@@ -558,6 +602,7 @@ test('native build codecs share version, schema, and sanitization behavior', asy
         ...defaults,
         schemaVersion: version
       });
+
       assert.equal(migrated.schemaVersion, defaults.schemaVersion, `${entry.id} v${version}`);
       assert.equal(profession.validateBuild(migrated).valid, true);
     }
@@ -568,6 +613,7 @@ test('native build codecs share version, schema, and sanitization behavior', asy
       weaponSigils: undefined,
       sigils: ['Force', 'Impact']
     });
+
     assert.deepEqual(legacySigils.weaponSigils, [
       ['Force', 'Impact'],
       ['Force', 'Impact']
@@ -577,9 +623,11 @@ test('native build codecs share version, schema, and sanitization behavior', asy
     for (const field of ['rune', 'food', 'utility']) {
       const invalidValue = `Unknown ${field}`;
       const invalidBuild = { ...defaults, [field]: invalidValue };
+
       assert.equal(profession.validateBuild(invalidBuild).valid, false);
       assert.equal(profession.migrateBuild(invalidBuild)[field], defaults[field]);
     }
+
     assert.equal(
       profession.validateBuild({
         ...defaults,
@@ -619,6 +667,7 @@ test('native build codecs share version, schema, and sanitization behavior', asy
         skill.specialization &&
         !selectedSpecializations.has(skill.specialization)
     );
+
     if (lockedSlotSkill && !adapter.slotLoadout) {
       const slot = lockedSlotSkill.type === 'Heal' ? 'Heal' : lockedSlotSkill.type === 'Elite' ? 'Elite' : 'Utility1';
       const lockedBuild = {
@@ -628,8 +677,10 @@ test('native build codecs share version, schema, and sanitization behavior', asy
           [slot]: lockedSlotSkill.name
         }
       };
+
       assert.equal(profession.validateBuild(lockedBuild).valid, false);
       const migrated = profession.migrateBuild(lockedBuild);
+
       assert.notEqual(migrated.selectedSkills[slot], lockedSlotSkill.name);
       assert.equal(profession.validateBuild(migrated).valid, true);
     }
@@ -642,8 +693,10 @@ test('native build codecs share version, schema, and sanitization behavior', asy
           Utility2: defaults.selectedSkills.Utility1
         }
       };
+
       assert.equal(profession.validateBuild(duplicateUtility).valid, false);
       const normalizedUtilities = profession.migrateBuild(duplicateUtility);
+
       assert.equal(
         new Set([
           normalizedUtilities.selectedSkills.Utility1,
@@ -655,11 +708,13 @@ test('native build codecs share version, schema, and sanitization behavior', asy
     }
 
     const twoHanded = [...profession.catalog.weaponHands].find(([, hand]) => hand === '2h')?.[0];
+
     if (twoHanded) {
       const migrated = profession.migrateBuild({
         ...defaults,
         weapons: [twoHanded, defaults.weapons[1] || 'invalid']
       });
+
       assert.deepEqual(migrated.weapons, [twoHanded, '']);
     }
 
@@ -673,8 +728,10 @@ test('native build codecs share version, schema, and sanitization behavior', asy
       rotation: [{ type: 'cast', skillId: -999 }],
       specializations: [defaults.specializations[0], defaults.specializations[0], defaults.specializations[0]]
     };
+
     assert.equal(profession.validateBuild(invalid).valid, false);
     const sanitized = profession.migrateBuild(invalid);
+
     assert.equal(sanitized.relic, defaults.relic);
     assert.equal(sanitized.gear.Helm, defaults.gear.Helm);
     assert.deepEqual(sanitized.specializations, defaults.specializations);
@@ -686,6 +743,7 @@ test('native build codecs share version, schema, and sanitization behavior', asy
     const flip = profession.catalog.skills.find(
       (skill) => skill.flipParentId != null && ['Heal', 'Utility', 'Elite'].includes(skill.type)
     );
+
     if (flip && !adapter.slotLoadout) {
       const slot = flip.type === 'Heal' ? 'Heal' : flip.type === 'Elite' ? 'Elite' : 'Utility1';
       const withFlip = {
@@ -695,6 +753,7 @@ test('native build codecs share version, schema, and sanitization behavior', asy
           [slot]: flip.name
         }
       };
+
       assert.equal(profession.validateBuild(withFlip).valid, false);
       assert.equal(profession.migrateBuild(withFlip).selectedSkills[slot], defaults.selectedSkills[slot]);
     }
@@ -704,6 +763,7 @@ test('native build codecs share version, schema, and sanitization behavior', asy
       ...defaults,
       rotation: [firstSkill.name]
     });
+
     assert.deepEqual(normalizedRotation.rotation, [
       {
         type: 'cast',
@@ -714,6 +774,7 @@ test('native build codecs share version, schema, and sanitization behavior', asy
       ...defaults,
       rotation: [{ type: 'cast', skillId: firstSkill.id }]
     });
+
     assert.equal(applicationBuild.rotation[0].name, firstSkill.name);
   }
 });
@@ -790,6 +851,7 @@ test('resolver profession state changes are chronological and preserve counters'
     rotation: ['Chronology Fixture', { type: 'wait', durationMs: 6000 }]
   });
   const hits = result.resolvedEvents.filter((event) => event.type === 'damage');
+
   assert.equal(Math.round(hits[1].damage / hits[0].damage), 2);
   assert.equal(Math.round(hits[2].damage / hits[0].damage), 2);
   assert.equal(result.profession.hitCount, 3);
@@ -801,6 +863,7 @@ test('resolver profession state changes are chronological and preserve counters'
     config: { initialActive: true }
   });
   const configuredHits = configured.resolvedEvents.filter((event) => event.type === 'damage');
+
   assert.equal(Math.round(configuredHits[2].damage / configuredHits[0].damage), 1);
 });
 
@@ -820,6 +883,7 @@ test('API snapshot transforms chains, filtering, and ordering', () => {
     traitData: [...apiFixture.traits].reverse(),
     skillData: [...apiFixture.skills].reverse()
   });
+
   assert.deepEqual(reordered, snapshot);
   assert.deepEqual(
     snapshot.skills.map((value) => value.id),
@@ -923,6 +987,7 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
     professionName: 'Warrior',
     fetchImpl
   });
+
   assert.deepEqual(
     snapshot.skills.map((skill) => skill.id),
     [10, 11, 12, 20, 21, 40]
@@ -934,6 +999,7 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
   );
   const directory = await mkdtemp(path.join(tmpdir(), 'gw2-profession-snapshot-'));
   const output = path.join(directory, 'warrior-api-metadata.js');
+
   try {
     const result = await updateProfessionApiData('warrior', {
       fetchImpl: createFixtureFetch(),
@@ -941,8 +1007,10 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
       output,
       log: () => {}
     });
+
     assert.equal(result.output, path.resolve(output));
     const source = await readFile(output, 'utf8');
+
     assert.match(source, /Generated Guild Wars 2 API metadata for warrior/);
     assert.match(source, /export const DATA_SNAPSHOT = "2026-07-27"/);
   } finally {

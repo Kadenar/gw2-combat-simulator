@@ -99,8 +99,10 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
       );
       if (emittedAt == null) emittedAt = context.start + 0.56;
     }
+
     return emittedAt;
   }
+
   for (const effect of skill.effects || []) {
     if (effect.type !== 'strike' || !(Number(effect.coefficient) > 0)) continue;
     const hits = Math.max(1, Math.trunc(Number(effect.hits || 1)));
@@ -119,13 +121,16 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
         });
         emittedAt = firstAt;
       }
+
       continue;
     }
+
     if (skill.id === ID.GLEAMING_DISC && hits === 2) {
       const shockWaveAt = firstAt + interval;
       if (interrupted && shockWaveAt > context.effectiveEnd + context.epsilon) {
         continue;
       }
+
       const shockWave = context.events.find(
         (event) =>
           event.type === 'damage' &&
@@ -139,8 +144,10 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
         });
         emittedAt = firstAt;
       }
+
       continue;
     }
+
     for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
       const at = firstAt + (hitIndex - 1) * interval;
       if (interrupted && at > context.effectiveEnd + context.epsilon) break;
@@ -160,6 +167,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
       if (emittedAt == null) emittedAt = at;
     }
   }
+
   return emittedAt;
 }
 
@@ -211,6 +219,7 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
   } else {
     state.daybreakingSlashChainStep = 0;
   }
+
   if (skill.weapon !== 'Spear') return;
   const luminanceActive = Number(state.spearLuminanceUntil || 0) > context.start + context.epsilon;
   const illuminatedArmed = Number(state.spearIlluminatedUntil || 0) > context.start + context.epsilon;
@@ -226,6 +235,7 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
       emitProc(context, at, 'Illuminated', skill.name, ILLUMINATED_ICON, `${skill.name} illuminated (×${multiplier})`);
     }
   }
+
   // Only skills with an Illuminated variant consume the armed effect. Symbol
   // of Luminance supplies illumination independently and leaves it intact.
   if (illuminatedArmed && illuminated && multiplier > 1 && !luminanceActive) {

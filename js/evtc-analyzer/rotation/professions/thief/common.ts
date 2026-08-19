@@ -51,6 +51,7 @@ function uniqueBuffApplyActions(
     ) {
       return;
     }
+
     inferred.push(canonicalAction(eventIndex, event.time, identity, event.skillId));
   });
   return inferred;
@@ -74,6 +75,7 @@ function thousandNeedlesActions(
     ) {
       return;
     }
+
     inferred.push(canonicalAction(eventIndex, event.time, THOUSAND_NEEDLES, event.skillId));
   });
   return inferred;
@@ -125,10 +127,12 @@ function initialPrepareThousandNeedlesAction(
     if (!firstPrepare || !truncatedCaltrops || firstPrepare.start > atCombat + 2_000) {
       return [];
     }
+
     eventIndex = firstPrepare.eventIndex - 0.2;
     rawSkillId = PREPARED_THOUSAND_NEEDLES_BUFF;
     anchor = firstPrepare.start;
   }
+
   const start = anchor - cooldownMs - duration;
   return [
     {
@@ -170,6 +174,7 @@ function unrecordedOpeningThousandNeedlesAction(
   if (atCombat == null || !firstPrepare || firstPrepare.start > atCombat + 2_000) {
     return [];
   }
+
   const hasTruncatedCaltrops = context.log.events.some(
     (event) =>
       event.source === context.playerAddress &&
@@ -206,6 +211,7 @@ function initialSkrittSwipeAction(
   if (!signal || hasRecordedAction(actions, SKRITT_SWIPE, signal.event.time, 500)) {
     return [];
   }
+
   const atCombat = combatStart(context) ?? signal.event.time;
   const duration = skillDuration(context, SKRITT_SWIPE);
   const end = Math.min(atCombat, signal.event.time);
@@ -240,6 +246,7 @@ function truncatedCaltropsAction(
     ) {
       return [];
     }
+
     const start = event.time - event.value;
     return [
       {

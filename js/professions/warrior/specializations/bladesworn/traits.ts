@@ -32,6 +32,7 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
   ) {
     return;
   }
+
   const state = bladeswornState.from(context);
   if (at + context.epsilon < state.gunsaberSwapTraitReadyAt) return;
   let traitId = 0;
@@ -89,6 +90,7 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
       recipients: 'party'
     });
   }
+
   if (!traitId) return;
   state.gunsaberSwapTraitReadyAt = at + Number(profile?.internalCooldown ?? 4);
   const positiveFlow = warriorBalanceProfileEffect(profile, 'buff');
@@ -96,6 +98,7 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
   if (state.traitPositiveFlowUntil <= at + context.epsilon) {
     state.traitPositiveFlowStartedAt = at;
   }
+
   state.traitPositiveFlowUntil = at + positiveFlowDuration;
   context.emit({
     type: 'buff',
@@ -117,6 +120,7 @@ function emitGunsaberWeaponSwap(context: WarriorCastContext, skill: WarriorSkill
   if (hasTrait(context, TRAIT.MARTIAL_CADENCE)) {
     professionCoreState(context).soldierFocusReadyAt = context.effectiveEnd;
   }
+
   context.emit({
     type: 'sigil_swap',
     at: context.effectiveEnd,
@@ -257,6 +261,7 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
       duration: 1
     });
   }
+
   if (hasTrait(context, TRAIT.DARING_DRAGON)) {
     context.emit({
       type: 'buff',
@@ -274,6 +279,7 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
       recipients: 'party'
     });
   }
+
   clearDragonTriggerState(state);
 }
 
@@ -354,6 +360,7 @@ function dragonFlowRateSegments(
       (sample >= state.traitPositiveFlowStartedAt && sample < state.traitPositiveFlowUntil ? positiveFlowBonus : 0);
     segments.push({ start, end, flowPerSecond });
   }
+
   return segments;
 }
 
@@ -431,6 +438,7 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
     state.flowUpdatedAt = target;
     return;
   }
+
   refreshDragonTriggerEntryProjection(context);
   const chargeThrough = Math.min(target, state.dragonTriggerChargeDeadline);
   const flowPerInterval = dragonFlowPerInterval(context);
@@ -458,6 +466,7 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
     if (tick.granted) {
       state.dragonTriggerFlowSpent += flowPerInterval;
     }
+
     context.emit({
       type: 'resource',
       at: tick.at,
@@ -478,6 +487,7 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
     });
     state.nextDragonChargeAt += chargeInterval;
   }
+
   gainPassiveFlow(context, state.flowUpdatedAt, target);
   state.flowUpdatedAt = target;
   if (target > state.dragonTriggerChargeDeadline + context.epsilon) {
@@ -505,6 +515,7 @@ function restoreAmmo(context: WarriorCastContext, skill: WarriorSkill, count: nu
   if (ammo.charges === 0 && mirroredRecharge != null && readyAt <= mirroredRecharge + context.epsilon) {
     context.state.cooldowns.delete(skill.id);
   }
+
   ammo.charges += restored;
   // Tactical Reload restores a charge without resetting count-recharge
   // progress. If the skill is temporarily full, the pending recharge can
@@ -513,6 +524,7 @@ function restoreAmmo(context: WarriorCastContext, skill: WarriorSkill, count: nu
   if (lockoutReadyAt > at + context.epsilon) {
     context.state.cooldowns.set(skill.id, lockoutReadyAt);
   }
+
   return restored;
 }
 
@@ -571,6 +583,7 @@ export function trackBladeswornAmmoCast(context: WarriorCastContext, skill: Warr
   if (state.ammoRoundsSpentByActivation[context.reservationId] == null) {
     state.ammoRoundsSpentByActivation[context.reservationId] = 1;
   }
+
   if (state.ammoStartedFullByActivation[context.reservationId] == null) {
     state.ammoStartedFullByActivation[context.reservationId] = Boolean(
       context.ammo && context.ammo.charges >= context.ammo.maximum
@@ -608,15 +621,18 @@ function skillIsOnActiveBar(context: WarriorCastContext, skill: WarriorSkill): b
   if (skill.gunsaberSkill) {
     return state.gunsaberActive || state.dragonTriggerActive;
   }
+
   if (skill.type === 'Weapon' || skill.weapon) {
     if (state.gunsaberActive || state.dragonTriggerActive) return false;
     const weapons = activeWeaponNames(context);
     return weapons.size === 0 || weapons.has(String(skill.weapon || ''));
   }
+
   if (['Heal', 'Utility', 'Elite'].includes(String(skill.type || ''))) {
     const selected = selectedSkillNames(context);
     return selected.size === 0 || selected.has(skill.name);
   }
+
   return true;
 }
 
@@ -625,6 +641,7 @@ function reduceSkillRecharge(context: WarriorCastContext, skill: WarriorSkill, a
   if (context.state.ammo.has(skill.id)) {
     return context.cooldownController.reduceAmmoRecharge(skill, reduction, at).reducedBy;
   }
+
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
   if (readyAt <= at + context.epsilon) return 0;
   const reducedBy = Math.min(reduction, readyAt - at);
@@ -640,8 +657,10 @@ function activateLushForest(context: WarriorCastContext, sourceSkill: WarriorSki
     if (!skill || LUSH_FOREST_EXCLUDED_SKILL_IDS.has(Number(skill.id)) || !skillIsOnActiveBar(context, skill)) {
       continue;
     }
+
     cooldownReduction += reduceSkillRecharge(context, skill, at);
   }
+
   context.emit({
     type: 'proc',
     at,
@@ -664,13 +683,16 @@ export function completeBladeswornSkill(context: WarriorCastContext, skill: Warr
   if (Number(skill.flowGain || 0) > 0) {
     state.flow = Math.min(state.maximumFlow, state.flow + Number(skill.flowGain));
   }
+
   if (skill.id === ID.FLOW_STABILIZER) {
     if (furyActiveBeforeCurrentCast(context)) {
       state.flow = Math.min(state.maximumFlow, state.flow + 15);
     }
+
     state.flowStabilizerWindows.push({ startedAt: at, expiresAt: at + 8 });
     refreshDragonTriggerEntryProjection(context);
   }
+
   if (skill.id === ID.TACTICAL_RELOAD) {
     reloadBladeswornAmmo(context, at);
     state.tacticalReloadUntil = at + 10;
@@ -688,10 +710,12 @@ export function completeBladeswornSkill(context: WarriorCastContext, skill: Warr
       duration: 10
     });
   }
+
   // Dragonspike Mine resets Dragon Trigger's cooldown on use (no ICD in game).
   if (skill.id === ID.DRAGONSPIKE_MINE) {
     context.state.cooldowns.delete(ID.DRAGON_TRIGGER);
   }
+
   if (roundsSpent > 0 && hasTrait(context, TRAIT.FIERCE_AS_FIRE)) {
     const profile = warriorBalanceProfile(context, PROFILE.fierceAsFire);
     const effect = warriorBalanceProfileEffect(profile, 'buff');
@@ -713,9 +737,11 @@ export function completeBladeswornSkill(context: WarriorCastContext, skill: Warr
       duration
     });
   }
+
   if (roundsSpent > 0 && startedFull && skill.id !== ID.ARTILLERY_SLASH && hasTrait(context, TRAIT.LUSH_FOREST)) {
     activateLushForest(context, skill, at);
   }
+
   delete state.ammoRoundsSpentByActivation[context.reservationId];
   delete state.ammoStartedFullByActivation[context.reservationId];
 }
@@ -725,6 +751,7 @@ function activeCartridgeWindow(state: ReturnType<typeof bladeswornState.from>, a
     const window = state.overchargedCartridgeWindows[index];
     if (window.startedAt <= at && window.expiresAt > at) return window;
   }
+
   return undefined;
 }
 
@@ -737,6 +764,7 @@ export function observeBladeswornEvent(context: WarriorSchedulerContext, event: 
   ) {
     return;
   }
+
   const state = bladeswornState.from(context);
   if (hasTrait(context, TRAIT.GUNS_AND_GLORY)) {
     const profile = warriorBalanceProfile(context, PROFILE.gunsAndGlory);
@@ -757,6 +785,7 @@ export function observeBladeswornEvent(context: WarriorSchedulerContext, event: 
       duration
     });
   }
+
   const cartridges = activeCartridgeWindow(state, event.at);
   if (cartridges) {
     const burning = warriorBalanceProfileEffect(

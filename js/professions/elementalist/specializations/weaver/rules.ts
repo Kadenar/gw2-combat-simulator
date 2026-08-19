@@ -53,6 +53,7 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
       reason: `${skill.name} is unavailable — requires Elements of Rage.`
     };
   }
+
   const chainPosition = context.catalog.autoattackChainPositions.get(Number(skill.id));
   if (skill.type === 'Weapon' && skill.attunement && !chainPosition) {
     const core = elementalistCoreState(context as unknown as SchedulerRecord);
@@ -83,6 +84,7 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
       };
     }
   }
+
   if (skill.name !== 'Tailored Victory') return { ready: true };
   const state = weaverState.from(context);
   return state.perfectWeaveUntil > context.start + context.epsilon
@@ -104,6 +106,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
   ) {
     return;
   }
+
   const state = weaverState.from(context);
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = event.at;
@@ -118,6 +121,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     core.secondaryAttunement = target;
     context.replaceEvent(event, { secondaryAttunement: target });
   }
+
   if (weaveSelfActive) {
     const recharge = elementalistAlacrityAdjustedDuration(
       context as never,
@@ -140,6 +144,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       sourceId
     );
   }
+
   if (weaveSelfActive) {
     const visited = new Set(state.weaveSelfVisited);
     visited.add(target);
@@ -148,6 +153,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     if (target === 'Fire' || target === 'Air') {
       emitElementalistBuff(context as never, at, `Weave Self ${target}`, 1, remaining, source, sourceId);
     }
+
     if (visited.size >= ELEMENTALIST_ATTUNEMENTS.length) {
       state.weaveSelfUntil = 0;
       state.weaveSelfVisited = [];
@@ -172,6 +178,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       sourceId
     );
   }
+
   triggerElementalistBountifulPower(context as never, at, unravelActive ? 1 : 2, sourceId);
 }
 
@@ -236,6 +243,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
     for (const attunement of Object.keys(core.attunementReadyAt)) {
       setElementalistAttunementReadyAt(context, attunement as keyof typeof core.attunementReadyAt, at);
     }
+
     const boon =
       previousPrimary === 'Fire'
         ? (['Fire', 'Might', 5] as const)
@@ -308,8 +316,10 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
         context.effectiveEnd
       );
     }
+
     return;
   }
+
   if (!skill.name.startsWith('Primordial Stance')) return;
   const tickTimes = new Set<number>();
   for (const event of context.events) {
@@ -318,6 +328,7 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
       if (event.at > context.effectiveEnd + context.epsilon) {
         tickTimes.add(event.at);
       }
+
       context.replaceEvent(event, {
         type: 'marker',
         cancelled: true,
@@ -331,6 +342,7 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
       });
     }
   }
+
   for (const at of tickTimes) {
     context.tasks.schedule({
       type: 'elementalist.primordial-stance',

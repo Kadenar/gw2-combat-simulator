@@ -21,11 +21,13 @@ export function ownedPetAddresses(
     ) {
       continue;
     }
+
     const skill = rangerSkill(context, event.skillId);
     if (skill?.petSkill === true || skill?.unleashedPetSkill === true) {
       addresses.add(event.source);
     }
   }
+
   return addresses;
 }
 
@@ -48,6 +50,7 @@ function petCommandActions(
     ) {
       return;
     }
+
     const name = rawSkillName(context, event.skillId);
     const skill = rangerSkill(context, event.skillId, name);
     if (skill?.petSkill !== true || skill.petAutonomousSkill === true) return;
@@ -81,6 +84,7 @@ function petCommandActions(
       });
       return;
     }
+
     if (
       !starts.has(key) &&
       firstEventTime != null &&
@@ -118,6 +122,7 @@ function petSwapActions(
     if (!petAddresses.has(event.source) || event.stateChange !== AGENT_SPAWN_STATE_CHANGE) {
       return [];
     }
+
     return [directAction(eventIndex, event.time, 0, SWAP_PETS.name, SWAP_PETS, 'state-change')];
   });
 }

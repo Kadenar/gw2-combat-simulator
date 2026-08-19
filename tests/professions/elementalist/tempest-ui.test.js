@@ -48,12 +48,14 @@ function createTempestApp(rotation = [], { tempestTraits = '1-1-2', alacrity = t
     attributeWeaponSet: 1,
     results: null
   };
+
   recalculate(app);
   app.results = simulateGw2({
     profession: elementalistProfession,
     rotation: commands,
     config: simulationConfig(app)
   });
+
   return app;
 }
 
@@ -72,6 +74,7 @@ function paletteContext(app) {
 function paletteHtml(app) {
   const palette = { innerHTML: '', querySelectorAll: () => [] };
   const previousDocument = globalThis.document;
+
   globalThis.document = {
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
@@ -80,6 +83,7 @@ function paletteHtml(app) {
   } finally {
     globalThis.document = previousDocument;
   }
+
   return palette.innerHTML;
 }
 
@@ -102,6 +106,7 @@ test('Tempest overload palette availability follows the active attunement', () =
 test('Tempest overload singularity delays a newly entered attunement but not the rotation start', () => {
   const startingApp = createTempestApp();
   const startingAir = catalog.skillsByName.get('Overload Air');
+
   assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability(paletteContext(startingApp), startingAir), {
     available: true,
     message: ''
@@ -132,11 +137,14 @@ test('Tempest overload singularity delays a newly entered attunement but not the
   );
 
   const unbuffedApp = createTempestApp(['Fire Attunement'], { alacrity: false });
+
   assert.equal(elementalistProfession.ui.paletteSkillAvailability(paletteContext(unbuffedApp), fire).retryAt, 6);
   const transcendentApp = createTempestApp(['Fire Attunement'], { tempestTraits: '1-1-1' });
+
   assert.equal(elementalistProfession.ui.paletteSkillAvailability(paletteContext(transcendentApp), fire).retryAt, 3.2);
 
   const dwelledApp = createTempestApp(['Fire Attunement', 4800]);
+
   assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability(paletteContext(dwelledApp), fire), {
     available: true,
     message: ''
@@ -164,6 +172,7 @@ test('an overload with 0.1 seconds remaining stays click-queueable and casts whe
   const overload = queuedApp.results.events.find(
     (event) => event.type === 'action' && event.skillName === 'Overload Fire'
   );
+
   assert.equal(overload.at, 4.8);
 });
 

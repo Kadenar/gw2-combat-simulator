@@ -38,6 +38,7 @@ export function effectFirstAt(start: number, fullEnd: number, effect: SkillEffec
   if (Array.isArray(effect.ticks) && effect.ticks.length) {
     return origin + Number(effect.ticks[0].atMs) / 1000;
   }
+
   if (effect.atMs != null) return origin + Number(effect.atMs) / 1000;
   return fullEnd;
 }

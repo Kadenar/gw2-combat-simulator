@@ -75,6 +75,7 @@ function mirageCloakActions(
   if (!mirrorSignals.length) {
     mirrorSignals.push(...directSkillSignals(context, new Set([MIRAGE_MIRROR_DAMAGE])));
   }
+
   return buffGainSignals(context, MIRAGE_CLOAK_BUFF, true)
     .filter(
       (signal) =>

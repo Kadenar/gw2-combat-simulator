@@ -75,6 +75,7 @@ export function createDefaultConfig() {
 
 export function simulateMesmer(rotation, userConfig = {}) {
   const config = prepareSimulationConfig(createDefaultConfig(), userConfig, { duration: 600 });
+
   return simulateGw2({
     profession: mesmerProfession,
     rotation,

@@ -36,6 +36,7 @@ function modifierContext({
   const mightStacksAt = () => Number(config.boons?.might || 0);
   const furyActiveAt = () => Boolean(config.boons?.fury);
   const vulnerabilityStacksAt = () => Number(config.target?.conditions?.Vulnerability || 0);
+
   return {
     time: 1,
     traits: new Set(traits),
@@ -111,6 +112,7 @@ test('Guardian additive and multiplicative modifiers use separate buckets', () =
   });
 
   const actual = guardianLuminaryRules.modifyStrikeDamage(context, 1.08);
+
   assert.ok(Math.abs(actual - 1.6 * 1.05 * 1.05) < 1e-12);
 });
 
@@ -141,6 +143,7 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
     traits: [NECROMANCER.SOUL_BARBS, NECROMANCER.DREAD, NECROMANCER.SPITEFUL_TALISMAN, NECROMANCER.CLOSE_TO_DEATH],
     runtime: runtime('Core', { dreadUntil: 10 }, {})
   });
+
   assert.ok(Math.abs(necromancerRules('Core').modifyStrikeDamage(core, 1.08) - 1.38 * 1.05 * 1.2) < 1e-12);
 
   const harbinger = modifierContext({
@@ -149,6 +152,7 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
     config: { ...shared.config, specialization: 'Harbinger' },
     runtime: runtime('Harbinger', {}, { blight: 10, meltdownUntil: 10 })
   });
+
   assertClose(necromancerRules('Harbinger').modifyStrikeDamage(harbinger, 1.08), 1.28);
   assertClose(
     necromancerRules('Harbinger').modifyConditionDamage({ ...harbinger, condition: 'Bleeding' }, 1.05),
@@ -161,6 +165,7 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
     config: { ...shared.config, specialization: 'Reaper' },
     runtime: runtime('Reaper', {}, {})
   });
+
   assert.ok(Math.abs(necromancerRules('Reaper').modifyStrikeDamage(reaper, 1.08) - 1.08 * 1.15 * 1.15) < 1e-12);
 
   const ritualist = modifierContext({
@@ -175,6 +180,7 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
       }
     )
   });
+
   assertClose(necromancerRules('Ritualist').modifyStrikeDamage(ritualist, 1.08), 1.13);
 });
 
@@ -200,6 +206,7 @@ test('Mesmer active runtimes isolate their additive damage buckets', () => {
   };
 
   const core = modifierContext(shared);
+
   assertClose(mesmerRules('Core').modifyStrikeDamage(core, 1.08), 1.18);
   assertClose(mesmerRules('Core').modifyConditionDamage({ ...core, condition: 'Torment' }, 1.05), 1.17);
 
@@ -208,6 +215,7 @@ test('Mesmer active runtimes isolate their additive damage buckets', () => {
     traits: [MESMER.NOMADS_ENDURANCE],
     config: { ...shared.config, specialization: 'Mirage' }
   });
+
   assertClose(mesmerRules('Mirage').modifyStrikeDamage(mirage, 1.08), 1.405);
   assertClose(mesmerRules('Mirage').modifyConditionDamage({ ...mirage, condition: 'Torment' }, 1.05), 1.32);
 
@@ -217,6 +225,7 @@ test('Mesmer active runtimes isolate their additive damage buckets', () => {
     config: { ...shared.config, specialization: 'Troubadour' },
     active: [...shared.active, 'altered-chord']
   });
+
   assertClose(mesmerRules('Troubadour').modifyStrikeDamage(troubadour, 1.08), 1.68);
   assertClose(mesmerRules('Troubadour').modifyConditionDamage({ ...troubadour, condition: 'Torment' }, 1.05), 1.42);
 });
@@ -264,10 +273,12 @@ test('Mesmer instrument checks skip other specializations and index events once'
           if (typeof property === 'string' && /^\d+$/.test(property)) {
             reads += 1;
           }
+
           return Reflect.get(target, property, receiver);
         }
       }
     );
+
     return { events, reads: () => reads };
   };
 
@@ -276,6 +287,7 @@ test('Mesmer instrument checks skip other specializations and index events once'
     config: { specialization: 'Virtuoso' },
     events: irrelevant.events
   });
+
   mesmerRules('Virtuoso').modifyAttributes(virtuoso, { power: 100 });
   mesmerRules('Virtuoso').modifyStrikeDamage(virtuoso, 1.08);
   assert.equal(irrelevant.reads(), 0);
@@ -313,6 +325,7 @@ test('Mesmer instrument checks skip other specializations and index events once'
   ]) {
     assert.equal(attributes[attribute], 108, attribute);
   }
+
   assert.equal(first, second);
   assert.equal(relevant.reads(), relevant.events.length);
 });

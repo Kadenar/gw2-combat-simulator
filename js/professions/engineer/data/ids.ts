@@ -18,6 +18,7 @@ function stableNameIndex(entries: readonly (readonly [string, string | number])[
     const key = Object.hasOwn(result, base) ? `${base}_ID_${id}` : base;
     result[key] = Number(id);
   }
+
   return Object.freeze(result);
 }
 

@@ -24,21 +24,26 @@ export function untamedCastAvailability(context: RangerPrecastContext, skill: Ra
   if (skill.name === 'Unleash Ranger' && state.rangerUnleashed) {
     return deny(skill, 'ranger.ranger-unleashed', 'the ranger is already unleashed.');
   }
+
   if (skill.name === 'Unleash Pet' && !state.rangerUnleashed) {
     return deny(skill, 'ranger.pet-unleashed', 'the pet is already unleashed.');
   }
+
   if (skill.unleashedPetSkill && state.rangerUnleashed) {
     return deny(skill, 'ranger.pet-not-unleashed', 'Unleash Pet first.');
   }
+
   if (skill.unleashedAmbushSkill) {
     if (!state.rangerUnleashed) {
       return deny(skill, 'ranger.not-unleashed', 'Unleash Ranger first.');
     }
+
     // ambushReadyUntil is a deadline, not a cooldown: the window closes when time reaches it.
     if (context.start >= state.ambushReadyUntil - context.epsilon) {
       return deny(skill, 'ranger.ambush-unavailable', 'unleash to make an ambush available.');
     }
   }
+
   return { ready: true };
 }
 
@@ -143,6 +148,7 @@ export const untamedSchedulerHooks = Object.freeze({
       context.state.cooldowns.set(ID.UNLEASH_PET, readyAt);
       context.replaceEvent(context.action, { rechargeReadyAt: readyAt });
     }
+
     if (
       skill.id !== ID.SWAP_WEAPONS ||
       !hasTrait(context, TRAIT.LET_LOOSE) ||
@@ -152,6 +158,7 @@ export const untamedSchedulerHooks = Object.freeze({
     ) {
       return;
     }
+
     const state = untamedState.from(context);
     if (context.start + context.epsilon < state.letLooseReadyAt) return;
     const profileId = PROFILE.letLoose;

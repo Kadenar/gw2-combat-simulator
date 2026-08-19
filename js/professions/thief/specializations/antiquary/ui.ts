@@ -70,6 +70,7 @@ export const antiquaryUi = Object.freeze({
               : 'This artifact was already used this pilfer'
       };
     }
+
     if (skill.id === ID.RESHUFFLE) {
       // Reshuffle is always greyed-out in the palette; it is queue-only and blocked by availability when there is nothing to reroll
       return {
@@ -77,6 +78,7 @@ export const antiquaryUi = Object.freeze({
         message: 'All artifacts are already available to choose'
       };
     }
+
     return { available: true, message: '' };
   }
 });

@@ -19,6 +19,7 @@ function instrumentEvents(context: Gw2ModifierContext): readonly SimulationEvent
     indexed = events.filter((event) => event.type === 'mesmer.instrument');
     instrumentEventIndex.set(events, indexed);
   }
+
   return indexed;
 }
 
@@ -35,6 +36,7 @@ function activeInstrumentCount(context: Gw2ModifierContext): number {
       active.add(String(event.instrument || ''));
     }
   }
+
   return active.size;
 }
 

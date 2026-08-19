@@ -62,12 +62,14 @@ function traitConditionCount(result, traitId) {
 test('seeded simulation random streams are reproducible and independent', () => {
   const first = createSimulationRandom({ mode: 'stochastic', seed: 42 });
   const second = createSimulationRandom({ mode: 'stochastic', seed: 42 });
+
   assert.deepEqual(
     [first.next('critical:player'), first.next('engineer.shrapnel'), first.next('critical:player')],
     [second.next('critical:player'), second.next('engineer.shrapnel'), second.next('critical:player')]
   );
 
   const isolated = createSimulationRandom({ mode: 'stochastic', seed: 42 });
+
   assert.equal(
     isolated.next('engineer.shrapnel'),
     createSimulationRandom({ mode: 'stochastic', seed: 42 }).next('engineer.shrapnel')
@@ -83,6 +85,7 @@ test('every native profession exposes persisted simulation randomness', () => {
     revenantProfession,
     thiefProfession
   ];
+
   for (const profession of professions) {
     assert.deepEqual(
       profession.ui.assumptionControls
@@ -104,6 +107,7 @@ test('every native profession exposes persisted simulation randomness', () => {
     createRevenantBuildDefaults(),
     createThiefBuildDefaults()
   ];
+
   for (const build of builds) {
     assert.equal(build.assumptions.simulationMode, 'deterministic');
     assert.equal(Object.hasOwn(build.assumptions, 'simulationSeed'), false);
@@ -119,6 +123,7 @@ test('every native profession exposes persisted simulation randomness', () => {
       simulationSeed: 9876
     }
   });
+
   assert.equal(migratedEngineer.assumptions.simulationMode, 'deterministic');
   assert.equal(Object.hasOwn(migratedEngineer.assumptions, 'simulationSeed'), false);
   assert.equal(
@@ -136,6 +141,7 @@ test('every native profession exposes persisted simulation randomness', () => {
 
 test('shared UI assumptions map to the resolver randomness config', () => {
   const build = createEngineerBuildDefaults();
+
   build.assumptions.simulationMode = 'stochastic';
   const config = simulationConfig(engineerProfession, build, 'Holosmith');
 
@@ -167,6 +173,7 @@ test('RNG distributions report expected and percentile DPS without a UI seed', (
     },
     (_rotation, config) => {
       seenSeeds.push(config.randomness.seed);
+
       return { dps: config.randomness.seed * 100 };
     },
     {
@@ -176,6 +183,7 @@ test('RNG distributions report expected and percentile DPS without a UI seed', (
       }
     }
   );
+
   assert.deepEqual(seenSeeds, [1, 2, 3]);
   assert.deepEqual(distribution.samples, [100, 200, 300]);
   assert.deepEqual(progressUpdates[0], {
@@ -260,6 +268,7 @@ test('RNG trials partition across available worker cores without changing seeds'
 
 test('RNG analysis is available while detailed Engineer results stay deterministic', () => {
   const build = createEngineerBuildDefaults();
+
   build.rotation = ['Grenade Kit', 'Grenade'];
   const app = {
     adapter: engineerAppAdapter,
@@ -276,11 +285,13 @@ test('RNG analysis is available while detailed Engineer results stay determinist
   assert.equal(app.results.randomness.mode, 'deterministic');
 
   const request = engineerAppAdapter.randomDistributionRequest(app);
+
   assert.equal(request.baseConfig.randomness.mode, 'stochastic');
   const distribution = engineerAppAdapter.calculateRandomDistribution({
     ...request,
     trials: 10
   });
+
   assert.equal(distribution.trials, 10);
   assert.equal(Number.isFinite(distribution.mean), true);
   assert.equal(distribution.p01 <= distribution.p99, true);
@@ -394,6 +405,7 @@ test('Necromancer randomizes Barbed Precision and Chilling Nova by seed', () => 
         randomness: { mode: 'stochastic', seed }
       }
     });
+
   assert.equal(
     traitConditionCount(barbed(1), NECROMANCER_TRAIT.BARBED_PRECISION),
     traitConditionCount(barbed(1), NECROMANCER_TRAIT.BARBED_PRECISION)
@@ -416,6 +428,7 @@ test('Necromancer randomizes Barbed Precision and Chilling Nova by seed', () => 
         randomness: { mode: 'stochastic', seed }
       }
     }).resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === NECROMANCER_TRAIT.CHILLING_NOVA);
+
   assert.equal(chillingNova(1), true);
   assert.equal(chillingNova(3), false);
 });
@@ -450,6 +463,7 @@ test('Reaper rolls ice-field projectile finishers per bullet by seed', () => {
   // reproduce for a fixed seed. A dud seed can also land zero bolts.
   const seeds = [1, 2, 3, 4, 8];
   const counts = seeds.map((seed) => boltCount('stochastic', seed));
+
   assert.equal(boltCount('stochastic', 1), counts[0]);
   assert.ok(new Set(counts).size > 1, 'per-bullet rolls should vary by seed');
   assert.ok(

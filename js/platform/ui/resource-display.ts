@@ -59,6 +59,7 @@ export function resourceDisplayViews(
   if (!Array.isArray(views)) {
     throw new TypeError('Profession resourceViews must return an array.');
   }
+
   return views.filter((view): view is ProfessionResourceView => view != null).map(normalizeResourceView);
 }
 

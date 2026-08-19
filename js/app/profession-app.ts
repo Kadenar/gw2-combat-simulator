@@ -62,6 +62,7 @@ export class ProfessionApp implements ProfessionAppState {
     if (!adapter?.profession) {
       throw new TypeError('ProfessionApp requires an app adapter.');
     }
+
     this.adapter = adapter;
     this.profession = adapter.profession;
     this.activeCatalog = this.profession.catalog;
@@ -123,6 +124,7 @@ export class ProfessionApp implements ProfessionAppState {
       renderSkills(this);
       renderAssumptions(this);
     }
+
     updateTemplateSelection(this);
     this.adapter.renderRotationBuilder(this);
   }
@@ -136,6 +138,7 @@ export class ProfessionApp implements ProfessionAppState {
     if (Array.isArray(previousContributions)) {
       this.results.contributions = previousContributions;
     }
+
     this.randomDistributionRunner.schedule();
     this.modifierContributionRunner.schedule();
     this.relicComparisonRunner.schedule();

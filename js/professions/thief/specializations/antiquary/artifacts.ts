@@ -122,6 +122,7 @@ function reduceUtilityRecharges(context: ThiefSchedulerContext, at: number): voi
       );
     }
   }
+
   state.improvisationReadyAt =
     at + Number(thiefBalanceProfile(context, CORE_PROFILE.improvisation)?.internalCooldown || 15);
 }
@@ -157,6 +158,7 @@ export function pilferArtifacts(
     grantCombatHigh(context, at);
     reduceUtilityRecharges(context, at);
   }
+
   emitThiefState(context, at, reason);
 }
 
@@ -220,9 +222,11 @@ export function consumeArtifact(context: ThiefCastContext, skill: ThiefSkill): v
       'enterprising-aristocrat'
     );
   }
+
   if (hasThiefTrait(context.config, TRAIT.EXHILARATING_EPHEMERA)) {
     extendExhilaratingEphemera(context, state, at);
   }
+
   if (hasThiefTrait(context.config, TRAIT.POSSESSIVE_HOARDER)) {
     const profile = thiefBalanceProfile(context, PROFILE.possessiveHoarder);
     const might = thiefBalanceProfileEffect(profile, 'boon', 0);
@@ -238,6 +242,7 @@ export function consumeArtifact(context: ThiefCastContext, skill: ThiefSkill): v
         'Possessive Hoarder'
       );
     }
+
     if (slot?.kind === 'defensive') {
       emitBoon(
         context,
@@ -248,6 +253,7 @@ export function consumeArtifact(context: ThiefCastContext, skill: ThiefSkill): v
         'Possessive Hoarder'
       );
     }
+
     emitBoon(
       context,
       at,
@@ -257,6 +263,7 @@ export function consumeArtifact(context: ThiefCastContext, skill: ThiefSkill): v
       'Possessive Hoarder'
     );
   }
+
   if (skill.id === ID.CHAK_SHIELD && hasThiefTrait(context.config, TRAIT.METICULOUS_CUSTODIAN)) {
     const strike = thiefBalanceProfileEffect(thiefBalanceProfile(context, PROFILE.meticulousCustodian), 'strike');
     context.emit({
@@ -273,6 +280,7 @@ export function consumeArtifact(context: ThiefCastContext, skill: ThiefSkill): v
       activationId: context.reservationId
     });
   }
+
   applyArtifactIdentity(context, skill, at);
   reduceSkrittSwipeRecharge(context, at);
   emitThiefState(context, at, 'artifact-used');
@@ -387,6 +395,7 @@ function consumeDoubleEdgeOutcome(context: ThiefCastContext, skill: ThiefSkill):
     state.scoundrelsLuck -= 1;
     return 'success';
   }
+
   return peekRiskyOutcome(context);
 }
 
@@ -474,6 +483,7 @@ function tossCanachCoins(context: ThiefCastContext, at: number, backfire: boolea
       initiative += heads ? 2 : 1;
     }
   }
+
   gainThiefInitiative(context, initiative, at, backfire ? 'canach-coin-backfire' : 'canach-coin-toss');
 }
 
@@ -496,9 +506,11 @@ export function resolveDoubleEdge(context: ThiefCastContext, skill: ThiefSkill):
       emitCannonSuccess(context);
     }
   }
+
   if (skill.id === ID.CANACH_COIN_TOSS_ID_77230) {
     tossCanachCoins(context, at, outcome === 'backfire');
   }
+
   emitThiefState(context, at, `double-edge-${outcome}`);
   return outcome;
 }

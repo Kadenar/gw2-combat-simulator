@@ -40,11 +40,13 @@ function meticulousArtifactStrikeFactor(
   if (event?.skillId === ID.METAL_LEGION_GUITAR) {
     return event.name === 'Final Smash' ? parameters.guitarFinalFactor : parameters.guitarFactor;
   }
+
   if (event?.skillId === ID.MISTBURN_MORTAR) return parameters.mortarFactor;
   if (event?.skillId === ID.CHAK_SHIELD) return parameters.chakFactor;
   if (event?.skillId === ID.SUMMON_KRYPTIS_TURRET_ID_77192) {
     return parameters.kryptisFactor;
   }
+
   if (event?.skillId === ID.HOLO_DANCER_DECOY) return parameters.holoFactor;
   return 1;
 }
@@ -165,6 +167,7 @@ function modifyAntiquaryRechargeDuration(context: ThiefPrecastContext, duration:
   if (context.skill.type !== 'Utility' || expirations.length === 0) {
     return duration;
   }
+
   // consume the earliest slot; each Holo-Dancer Decoy use adds one entry, so stacking is supported
   expirations.shift();
   state.holoUtilityCooldownReduction = expirations.length ? 1 - multiplier : 0;

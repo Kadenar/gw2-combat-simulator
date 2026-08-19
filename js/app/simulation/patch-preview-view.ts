@@ -46,6 +46,7 @@ function skillDeltas(comparison: PatchComparison) {
       rows.set(key, entry);
     }
   }
+
   return [...rows.values()]
     .map((row) => ({ ...row, delta: row.preview - row.current }))
     .filter((row) => Math.abs(row.delta) >= 0.05)
@@ -56,6 +57,7 @@ function overviewRows(entries: readonly PatchOverviewEntry[]): string {
   if (!entries.length) {
     return '<p class="patch-preview-empty">No skill or trait modifier changes are authored for this profession.</p>';
   }
+
   return `<ul class="patch-note-list">${entries
     .map(
       (entry) => `<li>
@@ -72,6 +74,7 @@ export function mountPatchPreviewControls(app: ProfessionAppState): void {
   if (!preview || !header || header.querySelector('.patch-preview-picker')) {
     return;
   }
+
   const control = document.createElement('div');
   control.className = 'patch-preview-picker';
   control.setAttribute('role', 'group');
@@ -106,6 +109,7 @@ export function mountPatchPreviewControls(app: ProfessionAppState): void {
     });
     options.append(button);
   }
+
   control.append(options);
   header.prepend(control);
 }

@@ -21,13 +21,16 @@ export function relativeError(actual, expected) {
 export async function assertManifestRegressions(professionId) {
   const manifest = JSON.parse(await readFile(repoUrl(`Builds/${professionId}/manifest.json`), 'utf8'));
   const adapter = await loadProfessionAppAdapter(professionId);
+
   assert.ok(adapter, `${professionId} has no native app adapter`);
   const mismatches = [];
 
   for (const section of manifest) {
     for (const preset of section.presets) {
       const label = `${professionId}: ${section.section} ${preset.label}`;
+
       assert.ok(Number.isFinite(preset.benchmarkDps) && preset.benchmarkDps > 0, label);
+
       if (!preset.rotation) continue;
 
       const [savedBuild, savedRotation] = await Promise.all([
@@ -54,6 +57,7 @@ export async function assertManifestRegressions(professionId) {
       const config = adapter.simulationConfig(app);
       const result = adapter.simulateBuild(build.rotation, config);
       const dpsError = relativeError(result.dps, preset.benchmarkDps);
+
       if (dpsError > 0.01) {
         mismatches.push({
           label,

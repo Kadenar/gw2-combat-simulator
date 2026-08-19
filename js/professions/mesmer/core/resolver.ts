@@ -15,6 +15,7 @@ export function handleMesmerControlEvent(
   if (!ctx.config.target?.activatingSkills || typeof applyCondition !== 'function') {
     return;
   }
+
   triggerIneptitudeFromInterrupt(ctx, event, applyCondition);
 }
 

@@ -70,6 +70,7 @@ function amalgamSkillBarGroups(context: EngineerUiContext) {
       if (options.some((skill) => skill.id === selected)) {
         skillIds[slot - 1] = selected;
       }
+
       return [
         slot,
         {
@@ -115,6 +116,7 @@ function updateAmalgamSkillBarSelection(context: EngineerUiContext, selection: E
     if (!replacement) return false;
     current[conflictIndex] = Number(replacement.id);
   }
+
   current[index] = Number(nextSkill.id);
   context.build.selectedMorphSkillIds = current;
   return true;

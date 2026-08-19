@@ -12,6 +12,7 @@ function isAmalgamSkillHit(context: EngineerResolverContext, event: EngineerReso
   if (event.actorType === 'effect') {
     return event.name === 'Rapacious Strain';
   }
+
   const skill = resolverSkill(context, event.skillId);
   return Boolean(
     skill?.specialization === 'Amalgam' ||
@@ -37,6 +38,7 @@ function reactToAmalgamDamage(
       actorType: 'effect'
     });
   }
+
   // Rapacious Strain requires both Evolved AND Rapacious (Thorns silver-lining)
   // to be active simultaneously, with a 0.5s ICD between procs.
   if (

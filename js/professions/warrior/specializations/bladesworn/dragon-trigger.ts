@@ -72,6 +72,7 @@ export function projectDragonCharges(input: DragonChargeProjectionInput): readon
       flow = Math.max(0, flow - input.flowPerInterval);
       charges = Math.min(input.maximumCharges, charges + input.chargesPerInterval);
     }
+
     ticks.push({ at, charges, flowAfter: flow, granted });
     previousAt = at;
     at += interval;

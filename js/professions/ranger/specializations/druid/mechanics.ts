@@ -106,6 +106,7 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
   if (state.astralForceUpdatedAt === 0 && state.naturalMenderReadyAt === 3) {
     state.naturalMenderReadyAt = naturalMenderInterval;
   }
+
   if (state.celestialAvatarActive) {
     const elapsed = Math.max(0, target - state.astralForceUpdatedAt);
     // Force drains linearly over the full 15s duration regardless of how much was held going in
@@ -117,10 +118,12 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
         Math.floor((target - state.naturalMenderReadyAt + context.epsilon) / naturalMenderInterval) + 1;
       state.naturalMenderReadyAt += skippedApplications * naturalMenderInterval;
     }
+
     // Either condition terminates CA as exhausted (force zeroed); caller must not double-exit
     if (target >= state.celestialAvatarEndsAt - context.epsilon || state.astralForce <= context.epsilon) {
       leaveAvatar(context, true, target);
     }
+
     return;
   }
 
@@ -132,6 +135,7 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
   ) {
     return;
   }
+
   // Catch up any ticks that were skipped if advance() jumped a large interval
   const applications = Math.floor((target - state.naturalMenderReadyAt + context.epsilon) / naturalMenderInterval) + 1;
   state.astralForce = Math.min(state.maximumAstralForce, state.astralForce + applications * naturalMenderForce);
@@ -165,6 +169,7 @@ export function observeDruidAstralForceEvent(context: RangerSchedulerContext, ev
   ) {
     return;
   }
+
   // Deferred task so all damage events at the same timestamp are coalesced into one force update
   context.tasks.schedule({
     type: DRUID_ASTRAL_FORCE_DAMAGE_TASK,

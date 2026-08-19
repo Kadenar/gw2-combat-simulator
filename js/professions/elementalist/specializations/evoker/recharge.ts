@@ -23,10 +23,12 @@ export function modifyRechargeDuration(
   ) {
     return duration;
   }
+
   const state = evokerState.from(context);
   if (state.elementalBalanceUntil <= context.state.time + context.epsilon) {
     return duration;
   }
+
   state.elementalBalanceUntil = 0; // single-use window; next arm cycle starts fresh
   return duration * elementalistBalanceValue(context, PROFILE.elementalBalance, 'rechargeMultiplier', 0.34);
 }

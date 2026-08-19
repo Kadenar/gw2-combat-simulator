@@ -78,6 +78,7 @@ function coalesceOverbearingSmash(actions: readonly EvtcRecordedRotationAction[]
     if (action.rawSkillId !== UNLEASHED_OVERBEARING_SMASH.skillId) {
       return [action];
     }
+
     const followUp = sorted.find(
       (candidate) =>
         !absorbed.has(candidate) &&
@@ -136,11 +137,13 @@ function unleashedPetActions(
     ) {
       return [];
     }
+
     const previous = lastSignalBySkill.get(event.skillId);
     if (previous != null && event.time - previous <= PET_SIGNAL_CLUSTER_MS) {
       lastSignalBySkill.set(event.skillId, event.time);
       return [];
     }
+
     lastSignalBySkill.set(event.skillId, event.time);
     const transition = nearestUnleashRanger(transitions, event.time);
     const start = transition ? transition.start - (UNLEASHED_PET_SIGNALS.length - signal.order) : event.time;
@@ -241,6 +244,7 @@ export function reconstructUntamedActions(
     if (action.canonicalSkillId !== UNLEASHED_OVERBEARING_SMASH.skillId) {
       return action;
     }
+
     const skill = rangerSkill(context, UNLEASHED_OVERBEARING_SMASH.skillId, UNLEASHED_OVERBEARING_SMASH.name);
     return skill
       ? {

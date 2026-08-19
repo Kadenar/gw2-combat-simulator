@@ -94,6 +94,7 @@ function rawActionCount(log: ParsedEvtc, address: bigint): number {
         lastTransitionSignal.set(key, event.time);
       }
     }
+
     if (!selectedPlayerEvent(event, address)) continue;
     if (event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START) {
       hasModernAnimations = true;
@@ -102,6 +103,7 @@ function rawActionCount(log: ParsedEvtc, address: bigint): number {
       count += 1;
     }
   }
+
   if (hasModernAnimations) return count;
   const hasLegacyStarts = log.events.some(
     (event) =>
@@ -120,6 +122,7 @@ function rawActionCount(log: ParsedEvtc, address: bigint): number {
       count += 1;
     }
   }
+
   return count;
 }
 
@@ -170,6 +173,7 @@ function selectPlayerAgent(
   if (!players.length) {
     throw new EvtcError('NO_PLAYER', 'The EVTC log contains no known player.');
   }
+
   let selected: EvtcRotationPlayer | undefined;
   if (requestedAddress != null) {
     const parsed = parseRequestedAddress(requestedAddress);
@@ -188,11 +192,13 @@ function selectPlayerAgent(
       { playerCount: players.length }
     );
   }
+
   const address = BigInt(selected.address);
   const agent = log.agents.find((candidate) => candidate.address === address);
   if (!agent) {
     throw new EvtcError('PLAYER_NOT_FOUND', 'The selected player agent is missing from the EVTC log.');
   }
+
   return { agent, player: selected };
 }
 
@@ -265,6 +271,7 @@ function pairAnimationEvents(
       if (end.event.value <= 0 || (!rawName.toLowerCase().includes('dodge') && !truncatedAtLogStart)) {
         continue;
       }
+
       actions.push({
         start: inferredStart,
         end: end.event.time,
@@ -278,6 +285,7 @@ function pairAnimationEvents(
       });
       continue;
     }
+
     start.matched = true;
     const elapsed = Math.max(0, end.event.time - start.event.time);
     const reported = Math.max(0, end.event.value);
@@ -293,6 +301,7 @@ function pairAnimationEvents(
       eventIndex: start.eventIndex
     });
   }
+
   for (const start of starts) {
     if (start.matched) continue;
     const duration = Math.max(0, expectedDuration(start.event) || 0);
@@ -309,6 +318,7 @@ function pairAnimationEvents(
       eventIndex: start.eventIndex
     });
   }
+
   return actions;
 }
 
@@ -354,6 +364,7 @@ function legacyActivationActions(
         if (event.activation === EVTC_ACTIVATION.START || event.activation === EVTC_ACTIVATION.QUICKNESS) {
           return { ...event, stateChange: -1 };
         }
+
         if (
           event.activation === EVTC_ACTIVATION.CANCEL_FIRE ||
           event.activation === EVTC_ACTIVATION.CANCEL_CANCEL ||
@@ -361,11 +372,13 @@ function legacyActivationActions(
         ) {
           return { ...event, stateChange: -2 };
         }
+
         return event;
       })
     };
     return pairAnimationEvents(synthetic, address, names, -1, -2, 'legacy-activation');
   }
+
   return log.events.flatMap((event, eventIndex) => {
     if (
       !selectedPlayerEvent(event, address) ||
@@ -375,6 +388,7 @@ function legacyActivationActions(
     ) {
       return [];
     }
+
     return [
       {
         start: event.time,
@@ -410,6 +424,7 @@ function buffTransitionActions(
     if (event.target !== address || event.buff === 0 || !supportedStateChange) {
       return [];
     }
+
     const transition = transitionsByBuff.get(event.skillId);
     if (!transition) return [];
     const identity = buffGain ? transition.gain : transition.loss;
@@ -421,11 +436,13 @@ function buffTransitionActions(
     ) {
       return [];
     }
+
     const key = String(identity.skillId);
     const previous = lastBySkillId.get(key);
     if (previous != null && event.time - previous < TRANSITION_WINDOW_MS) {
       return [];
     }
+
     lastBySkillId.set(key, event.time);
     return [
       {
@@ -502,6 +519,7 @@ function initialSummonActions(
       precast: true
     });
   }
+
   return reversed.reverse();
 }
 
@@ -510,6 +528,7 @@ function weaponSwapActions(log: ParsedEvtc, address: bigint, transitions: readon
     if (!selectedPlayerEvent(event, address) || event.stateChange !== EVTC_STATE_CHANGE.WEAPON_SWAP) {
       return [];
     }
+
     if (
       transitions.some(
         (transition) =>
@@ -518,6 +537,7 @@ function weaponSwapActions(log: ParsedEvtc, address: bigint, transitions: readon
     ) {
       return [];
     }
+
     const rawSet = Number(event.target);
     return [
       {
@@ -542,6 +562,7 @@ function isEffectSignal(event: ParsedEvtcEvent): boolean {
   ) {
     return false;
   }
+
   if (event.buff === 0) return event.value > 0 || event.buffDamage > 0;
   return event.buffRemove === 0 && event.value > 0;
 }
@@ -569,6 +590,7 @@ function inferInstantActions(
     const id = Number(skill.id);
     byId.set(id, [...(byId.get(id) || []), skill]);
   }
+
   const animatedIds = new Set(animated.map((action) => String(action.skillId)));
   const lastSignal = new Map<string, number>();
   const inferred: ResolvedAction[] = [];
@@ -583,6 +605,7 @@ function inferInstantActions(
     if (previous != null && event.time - previous < effectWindowMs(resolved)) {
       return;
     }
+
     lastSignal.set(key, event.time);
     inferred.push({
       start: event.time,
@@ -619,6 +642,7 @@ function resolveAction(
       ...skillIdentity(skill, profile.weaponSwap)
     };
   }
+
   if (isDodgeName(action.rawName)) {
     const skill = findNamedRotationSkill(profile.dodge.name, catalog, profile);
     return {
@@ -627,6 +651,7 @@ function resolveAction(
       ...skillIdentity(skill, profile.dodge)
     };
   }
+
   const skill = findRotationSkill(
     action.canonicalSkillId ?? action.rawSkillId,
     action.canonicalName ?? action.rawName,
@@ -663,12 +688,15 @@ function actionCommand(action: ResolvedAction): EvtcReconstructedCommand {
   ) {
     command.interruptMs = actualDuration;
   }
+
   if (action.replayPreserveEffectsAfterInterrupt === true) {
     command.preserveEffectsAfterInterrupt = true;
   }
+
   if (action.doubleEdgeOutcome != null) {
     command.doubleEdgeOutcome = action.doubleEdgeOutcome;
   }
+
   return command;
 }
 
@@ -688,6 +716,7 @@ function buildRotation(
   if (combatStart != null) {
     entries.push({ type: 'combat-start', at: combatStart, index: -1 });
   }
+
   entries.sort((left, right) => {
     const leftTime = left.type === 'action' ? left.action.start : left.at;
     const rightTime = right.type === 'action' ? right.action.start : right.at;
@@ -715,8 +744,10 @@ function buildRotation(
           rotation.push({ name: '__wait', waitMs: gap });
           activeCastEnd = at;
         }
+
         rotation.push({ name: '__combat_start' });
       }
+
       continue;
     }
 
@@ -739,8 +770,10 @@ function buildRotation(
       if (gap > TIMING_TOLERANCE_MS && !suppressGap) {
         rotation.push({ name: '__wait', waitMs: gap });
       }
+
       activeCastEnd = at;
     }
+
     rotation.push(command);
     if (independent) {
       activeCastEnd = Math.max(activeCastEnd, at);
@@ -749,9 +782,11 @@ function buildRotation(
       if (!instant) {
         activeCastEnd = Math.max(activeCastEnd, entry.action.replayCastEnd ?? entry.action.end);
       }
+
       suppressGap = entry.action.suppressFollowingWait === true;
     }
   }
+
   return rotation;
 }
 
@@ -766,21 +801,25 @@ function warningList(actions: readonly EvtcRotationAction[]): string[] {
       `${inferred.length} instant cast${inferred.length === 1 ? ' was' : 's were'} inferred from direct skill effects.`
     );
   }
+
   if (unsupported.length) {
     warnings.push(
       `${unsupported.length} recorded action${unsupported.length === 1 ? ' is' : 's are'} not present in the supplied simulator catalog.`
     );
   }
+
   if (unfinished.length) {
     warnings.push(
       `${unfinished.length} animation${unfinished.length === 1 ? ' has' : 's have'} no matching stop event.`
     );
   }
+
   if (interrupted.length) {
     warnings.push(
       `${interrupted.length} interrupted cast${interrupted.length === 1 ? ' is' : 's are'} preserved with ${interrupted.length === 1 ? 'its' : 'their'} recorded duration.`
     );
   }
+
   return warnings;
 }
 
@@ -795,6 +834,7 @@ function rightAlignInferredAmmoFlips(actions: readonly ResolvedAction[]): Resolv
     ) {
       return action;
     }
+
     const containingCast = sorted
       .filter(
         (candidate) =>
@@ -830,6 +870,7 @@ export function reconstructWithProfile(
       `The ${profile.professionName} ${profile.specializationName} parser cannot parse ${player.professionName} ${player.specializationName}.`
     );
   }
+
   const names = new Map(log.skills.map((skill) => [skill.id, skill.name]));
   const hasModernAnimations = log.events.some(
     (event) => selectedPlayerEvent(event, agent.address) && event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START
@@ -897,6 +938,7 @@ export function reconstructWithProfile(
         .filter((time): time is number => time != null && Number.isFinite(time))
         .sort((left, right) => left - right)[0] ?? null;
   }
+
   const initialSummons = initialSummonActions(
     log,
     agent.address,
@@ -912,11 +954,13 @@ export function reconstructWithProfile(
   if (options.inferInstantCasts !== false) {
     resolved.push(...inferInstantActions(log, agent.address, catalog, profile, resolved));
   }
+
   resolved = rightAlignInferredAmmoFlips(resolved);
   resolved.sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   if (!resolved.length) {
     throw new EvtcError('NO_ROTATION_ACTIONS', 'The selected player has no reconstructable EVTC actions.');
   }
+
   const origin = Math.min(resolved[0].start, combatStart == null ? Number.POSITIVE_INFINITY : combatStart);
   const actions: EvtcRotationAction[] = resolved.map((action) => ({
     timestampMs: action.start - origin,

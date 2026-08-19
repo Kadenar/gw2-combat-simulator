@@ -78,6 +78,7 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
       rotationEndStateAt(_app, index) {
         previewCount += 1;
         assert.equal(index, 1);
+
         return checkpoint;
       }
     }
@@ -106,6 +107,7 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
 test('every profession adapter exposes insertion-state previews', async () => {
   for (const entry of professionRegistry) {
     const adapter = await loadProfessionAppAdapter(entry.id);
+
     assert.equal(typeof adapter.rotationEndStateAt, 'function', entry.id);
   }
 });
@@ -113,6 +115,7 @@ test('every profession adapter exposes insertion-state previews', async () => {
 test('native insertion previews project weapon set and cooldown state', async () => {
   const adapter = await loadProfessionAppAdapter('mesmer');
   const build = createDefaultBuild(adapter);
+
   build.weapons = ['Greatsword', ''];
   build.alternateWeapons = ['Sword', 'Sword'];
   build.startingWeaponSet = 1;

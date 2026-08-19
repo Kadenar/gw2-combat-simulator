@@ -13,6 +13,7 @@ export function isMesmerBuildSkillAvailable(
   if (skill.id < 0) {
     return !skill.specialization || skill.specialization === config.specialization;
   }
+
   if (skill.environment !== 'Terrestrial') return false;
   if (skill.specialization && skill.type !== 'Weapon' && skill.specialization !== config.specialization) return false;
   if (
@@ -50,6 +51,7 @@ export function mesmerAvailability(
       reason: `${skill.name} is unavailable for this build.`
     };
   }
+
   const position = context.catalog.autoattackChainPositions.get(skill.id);
   if (position) {
     const expected = professionCoreState(state).autoattackChains[position.root] || position.root;
@@ -62,6 +64,7 @@ export function mesmerAvailability(
       };
     }
   }
+
   if (skill.mesmerMechanic?.flipParentId) {
     const flip = professionCoreState(state).availableFlips[skill.id];
     if (!flip || flip.expiresAt < at - EPSILON) {
@@ -74,6 +77,7 @@ export function mesmerAvailability(
           reason: `${parent.name} is still channeling.`
         };
       }
+
       return {
         ready: false,
         retryAt: null,
@@ -81,6 +85,7 @@ export function mesmerAvailability(
         reason: `${parent?.name || 'The parent skill'} is not active.`
       };
     }
+
     if (flip.availableAt > at + EPSILON) {
       return {
         ready: false,
@@ -90,6 +95,7 @@ export function mesmerAvailability(
       };
     }
   }
+
   if (runtime.actions.currentResource() < mesmerMinimumResource(skill)) {
     return {
       ready: false,
@@ -98,5 +104,6 @@ export function mesmerAvailability(
       reason: `${skill.name} requires at least one blade.`
     };
   }
+
   return { ready: true };
 }

@@ -21,6 +21,7 @@ function modifyRitualistAttributes(context: Gw2ModifierContext, attributes: Sche
   if (!professionStaticRulesApplied(context.config) && hasTrait(context, TRAIT.BOON_OF_CREATION)) {
     result.concentration += Number(necromancerBalanceProfile(context, PROFILE.boonOfCreation)?.attributeBonus || 180);
   }
+
   return result;
 }
 

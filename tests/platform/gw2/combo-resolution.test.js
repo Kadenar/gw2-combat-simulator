@@ -121,6 +121,7 @@ test('expiry is exclusive and an unbound ambiguous finisher does nothing', () =>
     field('fire:expired', 'Fire', 0, 1),
     finisher('expired', { kind: 'field-id', fieldId: 'fire:expired' })
   ]);
+
   assert.equal(
     expired.resolvedEvents.some((event) => event.type === 'combo'),
     false
@@ -132,6 +133,7 @@ test('expiry is exclusive and an unbound ambiguous finisher does nothing', () =>
     finisher('ambiguous', { kind: 'none' }),
     finisher('ambiguous:duplicate-warning', { kind: 'none' })
   ]);
+
   assert.equal(
     ambiguous.resolvedEvents.some((event) => event.type === 'combo'),
     false
@@ -178,6 +180,7 @@ test('attempt IDs deduplicate packets and deterministic progress stays keyed', (
     finisher('ice-keyed:1', { kind: 'field-id', fieldId: 'ice:keyed' }, { chance: 0.2 }),
     finisher('fire-keyed:5', { kind: 'field-id', fieldId: 'fire:keyed' }, { chance: 0.2 })
   ]);
+
   assert.deepEqual(
     keyed.resolvedEvents.filter((event) => event.type === 'combo').map((event) => event.fieldType),
     ['Fire']
@@ -282,9 +285,12 @@ test('target death rejects distinct same-time combo finishers and reactions', ()
 
 function stochasticSignature(seed, consumeUnrelated = false) {
   const state = createGw2ComboRuntimeState();
+
   registerComboField(state, field('fire:stochastic', 'Fire', 0, 10));
   const random = createSimulationRandom({ mode: 'stochastic', seed });
+
   if (consumeUnrelated) random.roll(0.5, 'unrelated-mechanic');
+
   return Array.from(
     { length: 12 },
     (_, index) =>
@@ -306,6 +312,7 @@ function stochasticSignature(seed, consumeUnrelated = false) {
 
 test('stochastic combo streams are seeded and isolated from unrelated rolls', () => {
   const first = stochasticSignature(7);
+
   assert.equal(stochasticSignature(7), first);
   assert.equal(stochasticSignature(7, true), first);
   assert.notEqual(stochasticSignature(8), first);

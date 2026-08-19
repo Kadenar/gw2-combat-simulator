@@ -62,16 +62,20 @@ function modifyWeaverAttributes(context: Gw2ModifierContext, attributes: Schedul
   if (runtimeCore?.secondaryAttunement == null && typeof context.config?.secondaryAttunement === 'string') {
     active.add(context.config.secondaryAttunement);
   }
+
   const attributeBonus = elementalistBalanceValue(context, PROFILE.elementalPolyphony, 'attributeBonus', 200);
   if (active.has('Fire')) {
     modified.power = Number(modified.power || 0) + attributeBonus;
   }
+
   if (active.has('Air')) {
     modified.ferocity = Number(modified.ferocity || 0) + attributeBonus;
   }
+
   if (active.has('Earth')) {
     modified.conditionDamage = Number(modified.conditionDamage || 0) + attributeBonus;
   }
+
   return modified;
 }
 

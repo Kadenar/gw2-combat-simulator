@@ -86,6 +86,7 @@ const warriorBuildCodec = createGw2BuildCodec<WarriorCanonicalBuild>({
     if (!(Number(build.initialResource) >= 0 && Number(build.initialResource) <= 100)) {
       errors.push('initialResource must be between 0 and 100.');
     }
+
     return errors;
   }
 });

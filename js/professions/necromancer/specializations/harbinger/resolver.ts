@@ -28,6 +28,7 @@ function reactToDamage(
       duration: Number(vulnerability?.duration || 6)
     });
   }
+
   // Septic Corruption procs on shroud slot 2 specifically (the pistol #2 skill), not all pistol hits.
   if (hasTrait(context, TRAIT.SEPTIC_CORRUPTION) && skill?.shroudSlot === 2) {
     const condition = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.septicCorruption), 'condition');

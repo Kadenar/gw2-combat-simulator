@@ -21,6 +21,7 @@ export function gw2BackupIconUrl(source: string): string {
   } catch {
     return '';
   }
+
   if (url.protocol !== 'https:' || url.hostname !== GW2_RENDER_HOST) return '';
 
   const match = /^\/file\/[^/]+\/(\d+)\.[^/.]+$/i.exec(url.pathname);
@@ -32,6 +33,7 @@ export function nextGw2IconFallback(source: string, stage?: Gw2IconFallbackStage
   if (stage === 'backup') {
     return { source: GW2_ICON_PLACEHOLDER, stage: 'placeholder' };
   }
+
   if (stage === 'placeholder') return null;
 
   const backup = gw2BackupIconUrl(source);
@@ -53,6 +55,7 @@ export function mountGw2IconFallback(root: Document = document): void {
       if (typeof HTMLImageElement === 'undefined' || !(event.target instanceof HTMLImageElement)) {
         return;
       }
+
       const image = event.target;
       const currentStage = image.dataset.gw2IconFallbackStage;
       const stage = currentStage === 'backup' || currentStage === 'placeholder' ? currentStage : undefined;

@@ -156,6 +156,7 @@ export function observeEngineerMechEvent(context: EngineerSchedulerContext, even
       mechBasicAttack: basicAttack
     });
   }
+
   context.replaceEvent(event, updates);
 }
 

@@ -41,9 +41,11 @@ async function collectSlices() {
     if (!profession.isDirectory()) continue;
 
     const professionRoot = path.join(PROFESSIONS_ROOT, profession.name);
+
     if (!(await isFile(path.join(professionRoot, 'modules.ts')))) continue;
 
     const coreModule = path.join(professionRoot, 'core/module.ts');
+
     if (await isFile(coreModule)) {
       slices.push({
         name: `${profession.name}/core`,
@@ -54,6 +56,7 @@ async function collectSlices() {
 
     const specializationsRoot = path.join(professionRoot, 'specializations');
     let specializations = [];
+
     try {
       specializations = await readdir(specializationsRoot, {
         withFileTypes: true
@@ -65,6 +68,7 @@ async function collectSlices() {
     for (const specialization of specializations) {
       if (!specialization.isDirectory()) continue;
       const modulePath = path.join(specializationsRoot, specialization.name, 'module.ts');
+
       if (await isFile(modulePath)) {
         slices.push({
           name: `${profession.name}/${specialization.name}`,
@@ -80,21 +84,26 @@ async function collectSlices() {
 
 function propertyName(node) {
   if (ts.isIdentifier(node) || ts.isStringLiteral(node)) return node.text;
+
   return undefined;
 }
 
 function findProperty(object, name) {
   if (!object || !ts.isObjectLiteralExpression(object)) return undefined;
+
   return object.properties.find((property) => ts.isPropertyAssignment(property) && propertyName(property.name) === name)
     ?.initializer;
 }
 
 function findNestedProperty(root, names) {
   let value = root;
+
   for (const name of names) {
     value = findProperty(value, name);
+
     if (!value) return undefined;
   }
+
   return value;
 }
 
@@ -110,19 +119,25 @@ function findModuleDefinition(sourceFile) {
       ts.isObjectLiteralExpression(node.arguments[0])
     ) {
       definition = node.arguments[0];
+
       return;
     }
+
     ts.forEachChild(node, visit);
   }
 
   visit(sourceFile);
+
   return definition;
 }
 
 function findDataDefinition(moduleDefinition) {
   const data = findProperty(moduleDefinition, 'data');
+
   if (ts.isObjectLiteralExpression(data)) return data;
+
   if (!ts.isCallExpression(data)) return undefined;
+
   return [...data.arguments].reverse().find((argument) => ts.isObjectLiteralExpression(argument));
 }
 
@@ -136,10 +151,13 @@ function collectImports(sourceFile) {
 
     const moduleSpecifier = statement.moduleSpecifier.text;
     const clause = statement.importClause;
+
     if (!clause) continue;
+
     if (clause.name) imports.set(clause.name.text, moduleSpecifier);
 
     const bindings = clause.namedBindings;
+
     if (bindings && ts.isNamespaceImport(bindings)) {
       imports.set(bindings.name.text, moduleSpecifier);
     } else if (bindings && ts.isNamedImports(bindings)) {
@@ -160,21 +178,25 @@ function collectReferencedIdentifiers(expression) {
 
     if (ts.isIdentifier(node)) {
       identifiers.add(node.text);
+
       return;
     }
 
     if (ts.isPropertyAccessExpression(node)) {
       visit(node.expression);
+
       return;
     }
 
     if (ts.isPropertyAssignment(node)) {
       visit(node.initializer);
+
       return;
     }
 
     if (ts.isShorthandPropertyAssignment(node)) {
       identifiers.add(node.name.text);
+
       return;
     }
 
@@ -182,6 +204,7 @@ function collectReferencedIdentifiers(expression) {
   }
 
   visit(expression);
+
   return identifiers;
 }
 
@@ -190,10 +213,13 @@ function professionImports(expression, imports, sliceRoot) {
 
   for (const identifier of collectReferencedIdentifiers(expression)) {
     const moduleSpecifier = imports.get(identifier);
+
     if (!moduleSpecifier?.startsWith('.')) continue;
 
     const resolvedImport = path.resolve(sliceRoot, moduleSpecifier);
+
     if (!resolvedImport.startsWith(PROFESSIONS_ROOT + path.sep)) continue;
+
     if (resolvedImport.includes(`${path.sep}data${path.sep}`)) continue;
     origins.add(path.basename(moduleSpecifier));
   }
@@ -203,11 +229,13 @@ function professionImports(expression, imports, sliceRoot) {
 
 function slotExpression(moduleDefinition, slot) {
   const names = slot.split('.');
+
   if (names[0] === 'presentation') {
     return findProperty(moduleDefinition, 'presentation');
   }
 
   const section = names[0] === 'data' ? findDataDefinition(moduleDefinition) : findProperty(moduleDefinition, names[0]);
+
   return findNestedProperty(section, names.slice(1));
 }
 
@@ -215,6 +243,7 @@ async function auditSlice(slice) {
   const source = await readFile(slice.modulePath, 'utf8');
   const sourceFile = ts.createSourceFile(slice.modulePath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const moduleDefinition = findModuleDefinition(sourceFile);
+
   assert.ok(moduleDefinition, `${slice.name}: defineNativeModule({...}) was not found`);
 
   const imports = collectImports(sourceFile);
@@ -223,9 +252,11 @@ async function auditSlice(slice) {
 
   for (const [slot, expectedFile] of SLOT_FILES) {
     const expression = slotExpression(moduleDefinition, slot);
+
     if (!expression) continue;
 
     const origins = professionImports(expression, imports, sliceRoot);
+
     if (origins.size === 0) {
       violations.push(`${slice.name}: ${slot} is inline, expected ${expectedFile}`);
       continue;
@@ -264,18 +295,23 @@ async function auditHandlerBoundary(slice) {
 
   if (handlersExist) {
     const source = await readFile(handlersPath, 'utf8');
+
     if (!/export\s+const\s+\w*SkillHandlers\b/.test(source)) {
       violations.push(`${slice.name}: handlers.ts does not export a skill-handler registry`);
     }
+
     if (/\b(?:hasTrait|has[A-Z][A-Za-z]*Trait)\s*\(/.test(source)) {
       violations.push(`${slice.name}: handlers.ts performs a trait lookup`);
     }
+
     if (/\bTRAIT\s*\.|\b[A-Z_]+_TRAIT_IDS\b/.test(source)) {
       violations.push(`${slice.name}: handlers.ts references trait IDs`);
     }
+
     if (/source\s*:\s*["']Trait["']/.test(source)) {
       violations.push(`${slice.name}: handlers.ts emits a trait-owned event`);
     }
+
     if (/Object\.freeze\(\s*\{\s*\}\s*\)/.test(source)) {
       violations.push(`${slice.name}: handlers.ts exports an empty registry`);
     }
@@ -283,6 +319,7 @@ async function auditHandlerBoundary(slice) {
 
   if (await isFile(rulesPath)) {
     const source = await readFile(rulesPath, 'utf8');
+
     if (/from\s+["']\.\/handlers\.js["']/.test(source)) {
       violations.push(`${slice.name}: rules.ts imports handlers.ts`);
     }
@@ -297,6 +334,7 @@ async function findForbiddenFiles(directory) {
 
   for (const entry of entries) {
     const entryPath = path.join(directory, entry.name);
+
     if (entry.isDirectory()) {
       violations.push(...(await findForbiddenFiles(entryPath)));
     } else if (['attribute-rules.ts', 'trait-rules.ts'].includes(entry.name)) {

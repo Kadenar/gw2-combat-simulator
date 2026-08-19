@@ -31,6 +31,7 @@ export function reconstructAmalgamDpsReportActions(
       result.push(action);
       continue;
     }
+
     result.push({
       ...action,
       end: Math.max(action.end, followUp.end),
@@ -39,5 +40,6 @@ export function reconstructAmalgamDpsReportActions(
     });
     consumed.add(followUp);
   }
+
   return result;
 }

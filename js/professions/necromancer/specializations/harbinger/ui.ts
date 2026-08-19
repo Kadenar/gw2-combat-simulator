@@ -37,6 +37,7 @@ function harbingerStateSnapshot(context: NecromancerUiContext) {
       title: 'Cascading Corruption stacks toward the next Meltdown'
     });
   }
+
   return items;
 }
 

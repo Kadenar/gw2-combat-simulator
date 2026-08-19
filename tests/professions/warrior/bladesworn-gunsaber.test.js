@@ -68,6 +68,7 @@ test('Gunsaber transitions start separate rotation lines', () => {
     weaponSwapChangesSet: false,
     weaponLineTransition(entry, current) {
       const name = typeof entry === 'string' ? entry : entry.name;
+
       return transition({
         entry: { name },
         skill: warriorCatalog.skillsByName.get(name),
@@ -93,6 +94,7 @@ test('Gunsaber transitions start separate rotation lines', () => {
       weaponSwapChangesSet: false,
       weaponLineTransition(entry, current) {
         const name = typeof entry === 'string' ? entry : entry.name;
+
         return transition({
           entry: { name },
           skill: warriorCatalog.skillsByName.get(name),
@@ -102,6 +104,7 @@ test('Gunsaber transitions start separate rotation lines', () => {
       }
     }
   );
+
   assert.deepEqual(
     alreadyUnsheathed.map((row) => row.skills.map((skill) => skill.index)),
     [[0], [1, 2, 3]]

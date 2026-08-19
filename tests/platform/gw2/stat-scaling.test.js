@@ -37,6 +37,7 @@ test('weapon strength alias patterns compile once per alias map', () => {
     enumerable: true,
     get() {
       aliasReads += 1;
+
       return 'Utility';
     }
   });

@@ -25,6 +25,7 @@ export function consumeExpectedCriticalProgress(state: ExpectedCriticalProgressS
     state.criticalProgress = progress;
     return false;
   }
+
   state.criticalProgress = Math.max(0, progress - 1);
   return true;
 }

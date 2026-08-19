@@ -33,6 +33,7 @@ function compareHeapEntries<T extends QueuedEvent>(left: HeapEntry<T>, right: He
   if (left.causalOrder != null && right.causalOrder != null && left.causalOrder !== right.causalOrder) {
     return left.causalOrder - right.causalOrder;
   }
+
   return left.sequence - right.sequence;
 }
 
@@ -103,6 +104,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
       [this.heap[index], this.heap[parent]] = [this.heap[parent], this.heap[index]];
       index = parent;
     }
+
     return event;
   }
 
@@ -117,6 +119,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
       this.heap[0] = last;
       this.siftDown(0);
     }
+
     this.currentCausalOrder = first.causalOrder;
     return first.event;
   }
@@ -134,9 +137,11 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
       if (left < this.heap.length && compareHeapEntries(this.heap[left], this.heap[smallest]) < 0) {
         smallest = left;
       }
+
       if (right < this.heap.length && compareHeapEntries(this.heap[right], this.heap[smallest]) < 0) {
         smallest = right;
       }
+
       if (smallest === index) return;
       [this.heap[index], this.heap[smallest]] = [this.heap[smallest], this.heap[index]];
       index = smallest;
@@ -171,6 +176,7 @@ export function enqueueOrdered<T extends QueuedEvent>(queue: T[] | StableEventQu
     [queue[index], queue[index - 1]] = [queue[index - 1], queue[index]];
     index -= 1;
   }
+
   return event;
 }
 

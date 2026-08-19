@@ -34,6 +34,7 @@ export async function readDpsReportRotationData(
   if (!isDpsReportData(input)) {
     throw new Error('The JSON is not an Elite Insights dps.report payload.');
   }
+
   const report = parseDpsReport(input);
   const rotationModule = await import('../../dps-report-analyzer/rotation/index.js');
   const activeSpecialization = app.adapter.eliteSpecialization(app.build).trim().toLowerCase();
@@ -51,12 +52,14 @@ export async function readDpsReportRotationData(
         (recorded ? ` Recorded players: ${recorded}.` : '')
     );
   }
+
   if (
     matchingPlayers.length > 1 &&
     matchingPlayers[0].recordedActionCount === matchingPlayers[1].recordedActionCount
   ) {
     throw new Error('Multiple matching players have the same recorded action count. Select a single-player report.');
   }
+
   const selected = matchingPlayers[0];
   const result = rotationModule.reconstructDpsReportRotation(report, app.activeCatalog, {
     playerIndex: selected.index,

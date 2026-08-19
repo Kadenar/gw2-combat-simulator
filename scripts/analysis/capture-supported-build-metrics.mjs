@@ -43,17 +43,20 @@ function finalDamagingPacket(result) {
     if (event.type === 'damage' && Number(event.damage) > 0) {
       return [{ at: event.at, name: event.name, type: 'strike' }];
     }
+
     return (event.damageTicks || []).map((tick) => ({
       at: tick.at,
       name: event.name,
       type: 'condition'
     }));
   });
+
   return packets.sort((left, right) => left.at - right.at).at(-1) || null;
 }
 
 function runSupportedBenchmark(adapter, app) {
   const config = adapter.simulationConfig(app);
+
   return adapter.simulateBuild(app.build.rotation, config);
 }
 
@@ -62,9 +65,11 @@ async function captureProfession(professionId) {
     readJson(`Builds/${professionId}/manifest.json`),
     loadProfessionAppAdapter(professionId)
   ]);
+
   if (!adapter) throw new Error(`${professionId} has no native app adapter.`);
 
   const metrics = [];
+
   for (const section of manifest) {
     for (const preset of section.presets) {
       if (!preset.rotation) continue;
@@ -85,6 +90,7 @@ async function captureProfession(professionId) {
       adapter.recalculate(app);
       const result = runSupportedBenchmark(adapter, app);
       const finalPacket = finalDamagingPacket(result);
+
       metrics.push({
         id: `${professionId}|${section.section || ''}|${preset.label}`,
         profession: professionId,
@@ -107,25 +113,31 @@ async function captureProfession(professionId) {
       });
     }
   }
+
   return metrics;
 }
 
 export async function captureSupportedBuildMetrics(professions = DEFAULT_PROFESSIONS) {
   const unknown = professions.filter((profession) => !DEFAULT_PROFESSIONS.includes(profession));
+
   if (unknown.length) {
     throw new TypeError(`Unknown professions: ${unknown.join(', ')}.`);
   }
 
   const metrics = [];
+
   for (const profession of professions) {
     metrics.push(...(await captureProfession(profession)));
   }
+
   return metrics;
 }
 
 const isMain = process.argv[1] != null && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
+
 if (isMain) {
   const requested = process.argv.slice(2);
   const metrics = await captureSupportedBuildMetrics(requested.length ? requested : DEFAULT_PROFESSIONS);
+
   process.stdout.write(`${JSON.stringify(metrics, null, 2)}\n`);
 }

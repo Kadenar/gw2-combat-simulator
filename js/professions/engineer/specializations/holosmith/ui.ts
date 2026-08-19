@@ -65,9 +65,11 @@ function holosmithPaletteAvailability(context: EngineerUiContext, skill: Enginee
       message: 'Photon Forge replaces equipped weapon skills'
     };
   }
+
   if (skill.forgeSkill && !state.photonForgeActive) {
     return { available: false, message: 'Enter Photon Forge first' };
   }
+
   return { available: true, message: '' };
 }
 

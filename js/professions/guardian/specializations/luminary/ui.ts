@@ -69,6 +69,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
       title: 'Dazzling Hammer: +7% strike damage'
     });
   }
+
   const piercing = timedBuffAt(result, 'guardian-piercing-stance', at);
   if (piercing) {
     items.push({
@@ -78,6 +79,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
       title: 'Piercing Stance: +10% strike damage'
     });
   }
+
   const daring = timedBuffAt(result, 'guardian-daring-advance', at);
   if (daring) {
     items.push({
@@ -87,6 +89,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
       title: 'Daring Advance: +15% strike damage'
     });
   }
+
   return items;
 }
 
@@ -135,24 +138,28 @@ export const luminaryUi = Object.freeze({
         message: 'Weapon skills are unavailable during Radiant Forge'
       };
     }
+
     if (skill.radiantForgeSkill && !state.radiantForge) {
       return {
         available: false,
         message: 'Enter Radiant Forge to use this skill'
       };
     }
+
     if (skill.name === 'Enter Radiant Forge' && state.radiantForge) {
       return {
         available: false,
         message: 'Radiant Forge is already active'
       };
     }
+
     if (skill.name === 'Exit Radiant Forge' && !state.radiantForge) {
       return {
         available: false,
         message: 'Radiant Forge is not active'
       };
     }
+
     return { available: true, message: '' };
   }
 });

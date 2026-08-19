@@ -4,6 +4,7 @@ function reduceCooldown(context: EngineerCastContext, skill: EngineerSkill, seco
   if (context.state.ammo.get(skill.id)) {
     return context.cooldownController.reduceAmmoRecharge(skill, seconds, at).reducedBy;
   }
+
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
   if (readyAt <= at + context.epsilon) return 0;
   const reducedBy = Math.min(seconds, readyAt - at);
@@ -22,6 +23,7 @@ export function rechargeOtherSwordSkills(context: EngineerCastContext, gleamSabe
       reducedBy += reduceCooldown(context, skill, 1, at);
     }
   }
+
   // only emit proc when something actually changed — no-op if no sword skill was on cooldown
   if (reducedBy <= 0) return;
   context.emit({

@@ -78,6 +78,7 @@ function timelineItem(entry: LegacyRotationItem | SchedulerRecord): TimelineItem
   if (entry && typeof entry === 'object') {
     return entry as TimelineItem;
   }
+
   return { name: String(entry || '') };
 }
 
@@ -277,6 +278,7 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
         app.rotationInsertionIndex = null;
         app.changed(false);
       };
+
       if (name === '__wait') {
         const anchor = paletteDragAnchor(name);
         if (!anchor) return null;
@@ -291,6 +293,7 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
         });
         return null;
       }
+
       if (skill?.dragonSlash) {
         const anchor = paletteDragAnchor(name);
         if (!anchor) return null;
@@ -307,6 +310,7 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
         });
         return null;
       }
+
       if (hasConfigurableDoubleEdgeOutcome(skill)) {
         const anchor = paletteDragAnchor(name);
         if (!anchor) return null;
@@ -319,6 +323,7 @@ function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractio
         });
         return null;
       }
+
       return resolvePaletteDropItem(app, name, Number.isFinite(parsedSkillId) ? parsedSkillId : null);
     },
     onChanged: () => {
@@ -378,6 +383,7 @@ export function renderTimeline(app: ProfessionAppState): void {
     bindTimelineInteractions(element, timelineInteractionOptions(app));
     return;
   }
+
   element.classList.remove('is-empty');
   const resultSteps = app.results?.steps || [];
   // ri < 0 marks injected/synthetic steps (e.g. auto-attacks) not tied to a rotation entry.
@@ -425,6 +431,7 @@ export function renderTimeline(app: ProfessionAppState): void {
     markers.push(marker);
     deadTimesByIndex.set(marker.insertionIndex, markers);
   }
+
   const procColors: Readonly<Record<string, string>> = {
     relic_proc: '#ddaa33',
     sigil_proc: '#4488cc',
@@ -451,12 +458,14 @@ export function renderTimeline(app: ProfessionAppState): void {
     markers.push(marker);
     continuumEndsByIndex.set(marker.insertionIndex, markers);
   }
+
   const automaticTomeStowsByIndex = new Map<number, typeof automaticTomeStows>();
   for (const marker of automaticTomeStows) {
     const markers = automaticTomeStowsByIndex.get(marker.insertionIndex) || [];
     markers.push(marker);
     automaticTomeStowsByIndex.set(marker.insertionIndex, markers);
   }
+
   const targetThresholds =
     app.profession.ui.targetHealthThresholds?.({
       specialization: activeSpecialization(app),
@@ -475,6 +484,7 @@ export function renderTimeline(app: ProfessionAppState): void {
     markers.push(marker);
     healthMarkersByIndex.set(marker.insertionIndex, markers);
   }
+
   const renderContinuumEnd = (marker: (typeof continuumEnds)[number]): string => {
     const time = formatTime(marker.start);
     const detail = [
@@ -489,6 +499,7 @@ export function renderTimeline(app: ProfessionAppState): void {
             <span class="rot-time">${time}</span>
         </div>`;
   };
+
   const renderAutomaticTomeStow = (marker: (typeof automaticTomeStows)[number]): string => {
     const time = formatTime(marker.start);
     const detail = ['Stow Tome', `Tome closed automatically at ${time}`, 'No tome pages remaining'].join('\n');
@@ -500,6 +511,7 @@ export function renderTimeline(app: ProfessionAppState): void {
             <span class="rot-time">${time}</span>
         </div>`;
   };
+
   const renderHealthMarker = (marker: (typeof healthMarkers)[number]): string => {
     const time = formatTime(marker.start);
     const label = `${marker.healthPercent}%`;
@@ -515,6 +527,7 @@ export function renderTimeline(app: ProfessionAppState): void {
             <span class="rot-time">${time}</span>
         </div>`;
   };
+
   const renderDeadTime = (marker: (typeof deadTimes)[number]): string => {
     const duration = formatTimelineDuration(marker.durationMs);
     const detail = [
@@ -527,6 +540,7 @@ export function renderTimeline(app: ProfessionAppState): void {
             <strong class="rot-dead-time-duration">${esc(duration)}</strong>
         </div>`;
   };
+
   const renderOverlayProcMarker = (marker: (typeof overlayProcMarkers)[number]): string => {
     const key = procFilterKey(marker);
     const time = formatTime(marker.start);
@@ -579,18 +593,23 @@ export function renderTimeline(app: ProfessionAppState): void {
         for (const marker of deadTimesByIndex.get(index) || []) {
           rowItems.push(renderDeadTime(marker));
         }
+
         for (const marker of overlayProcMarkersByIndex.get(index) || []) {
           rowItems.push(renderOverlayProcMarker(marker));
         }
+
         for (const marker of healthMarkersByIndex.get(index) || []) {
           rowItems.push(renderHealthMarker(marker));
         }
+
         for (const marker of continuumEndsByIndex.get(index) || []) {
           rowItems.push(renderContinuumEnd(marker));
         }
+
         for (const marker of automaticTomeStowsByIndex.get(index) || []) {
           rowItems.push(renderAutomaticTomeStow(marker));
         }
+
         const item = timelineItem(entry);
         const highlightKey = rotationSkillHighlightKey(entry);
         const skill = resolveEntrySkill(app, item);
@@ -746,17 +765,21 @@ export function renderTimeline(app: ProfessionAppState): void {
         for (const marker of overlayProcMarkersByIndex.get(app.build.rotation.length) || []) {
           rowItems.push(renderOverlayProcMarker(marker));
         }
+
         rowItems.push(rotationInsertionGapHtml(app.build.rotation.length, app.rotationInsertionIndex ?? app.build.rotation.length));
         for (const marker of healthMarkersByIndex.get(app.build.rotation.length) || []) {
           rowItems.push(renderHealthMarker(marker));
         }
+
         for (const marker of continuumEndsByIndex.get(app.build.rotation.length) || []) {
           rowItems.push(renderContinuumEnd(marker));
         }
+
         for (const marker of automaticTomeStowsByIndex.get(app.build.rotation.length) || []) {
           rowItems.push(renderAutomaticTomeStow(marker));
         }
       }
+
       const skills = rowItems.join('');
       const finalSkill = row.skills.at(-1);
       const insertAt = finalSkill ? finalSkill.index + 1 : 0;
@@ -884,6 +907,7 @@ export function renderTimeline(app: ProfessionAppState): void {
       skill.classList.toggle('skill-faded', active && !match);
     });
   };
+
   element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]').forEach((skill) => {
     skill.addEventListener('click', () => {
       const key = skill.dataset.skillHighlightKey;
@@ -901,6 +925,7 @@ export function renderTimeline(app: ProfessionAppState): void {
       } else {
         app.overlaySigilProcs = procOverlayToggle.checked;
       }
+
       renderTimeline(app);
     });
   });
@@ -950,6 +975,7 @@ export function renderTimeline(app: ProfessionAppState): void {
         icon.classList.toggle('proc-faded', active && !match);
       });
     };
+
     procIconsRow.querySelectorAll('.proc-icon[data-proc-key]').forEach((icon) => {
       if (!(icon instanceof HTMLElement)) return;
       icon.addEventListener('click', () => {

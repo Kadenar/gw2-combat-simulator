@@ -85,6 +85,7 @@ export function applyMesmerBuildAttributeRules(
         feedsConversions: false
       });
     }
+
     if (trait.ferocity) {
       attributeEffects.push({
         kind: 'flat',
@@ -94,6 +95,7 @@ export function applyMesmerBuildAttributeRules(
         feedsConversions: false
       });
     }
+
     if (trait.concentration) {
       attributeEffects.push({
         kind: 'flat',
@@ -103,6 +105,7 @@ export function applyMesmerBuildAttributeRules(
         feedsConversions: false
       });
     }
+
     if (trait.vitality) {
       attributeEffects.push({
         kind: 'flat',
@@ -112,15 +115,19 @@ export function applyMesmerBuildAttributeRules(
         feedsConversions: false
       });
     }
+
     if (trait.confusionDuration) {
       addAttribute(traitDurations, 'Confusion Duration', Number(trait.confusionDuration));
     }
+
     traitCriticalChance += Number(trait.criticalChance || 0);
   }
+
   const traitStats = resolveAttributeEffects(conversionPool, attributeEffects);
   if (hasTrait('Quiet Intensity') && assumptions.fury !== false) {
     traitCriticalChance += 15;
   }
+
   if (hasTrait('Flow of Time') && assumptions.alacrity !== false) {
     traitCriticalChance += 15;
   }

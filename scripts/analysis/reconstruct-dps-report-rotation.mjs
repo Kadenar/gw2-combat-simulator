@@ -26,6 +26,7 @@ import {
 } from '../../dist/js/dps-report-analyzer/rotation/index.js';
 
 const input = process.argv[2];
+
 if (!input) {
   console.error(
     'Usage: npm run build:modules && node ' +
@@ -43,8 +44,10 @@ const report = await fetchDpsReport(input);
 const players = detectDpsReportRotationPlayers(report);
 
 let selected;
+
 if (requestedPlayer != null) {
   const normalized = requestedPlayer.toLowerCase();
+
   selected = players.find(
     (player) =>
       String(player.index) === requestedPlayer ||
@@ -72,9 +75,11 @@ if (!selected) {
 }
 
 let build = {};
+
 if (buildPath) {
   build = JSON.parse(await readFile(buildPath, 'utf8'));
 }
+
 const profession = await loadProfession(selected.professionId);
 const phaseIndex = requestedPhase == null ? 0 : Number(requestedPhase);
 // Feed active-build selections into generic name/ID resolution so polymorphic

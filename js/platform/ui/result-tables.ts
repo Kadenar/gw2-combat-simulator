@@ -106,6 +106,7 @@ function buildResolvedLookup(result: Gw2ResolverResult): ResolvedLookup {
     if (event.name && !resolvedByName.has(event.name)) {
       resolvedByName.set(event.name, event);
     }
+
     if (!event.name) continue;
     for (const id of [event.skillId, event.sourceId]) {
       const identity = eventIdentity(id, event.name);
@@ -114,6 +115,7 @@ function buildResolvedLookup(result: Gw2ResolverResult): ResolvedLookup {
       }
     }
   }
+
   return { resolvedByName, resolvedByIdentity };
 }
 
@@ -196,6 +198,7 @@ export function skillDamageKeyByIdentity(result: Gw2ResolverResult): Map<string,
     const { group, name } = attributeBreakdownEntry(entry, lookup);
     keyByIdentity.set(identity, skillBreakdownKey(group, name));
   }
+
   return keyByIdentity;
 }
 
@@ -212,6 +215,7 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
     );
     actionCounts.set(name, (actionCounts.get(name) || 0) + 1);
   }
+
   const lookup = buildResolvedLookup(result);
   const grouped = new Map<string, GroupedSkillBreakdown>();
   for (const entry of result.breakdown || []) {
@@ -242,6 +246,7 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
     if (current.sourceId == null && sourceId != null) {
       current.sourceId = sourceId;
     }
+
     current.strike += Number(entry.strikeDamage || 0);
     current.condition += Number(entry.conditionDamage || 0);
     current.hits += Number(entry.hits || 0);
@@ -250,6 +255,7 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
     current.fallbackCasts = Math.max(current.fallbackCasts, Number(entry.casts || 0));
     grouped.set(groupKey, current);
   }
+
   return [...grouped.values()]
     .map((entry): SkillBreakdownRow => {
       // Older breakdown producers supplied casts directly; use that only when

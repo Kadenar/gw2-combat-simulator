@@ -14,6 +14,7 @@ export function dpsReportId(input: string): string | null {
   } catch {
     return null;
   }
+
   const hostname = url.hostname.toLowerCase();
   if (hostname !== 'dps.report' && !hostname.endsWith('.dps.report')) return null;
   const id = url.pathname.split('/').filter(Boolean)[0] || '';
@@ -26,6 +27,7 @@ export function dpsReportJsonUrl(input: string): string {
   if (!id) {
     throw new DpsReportError('INVALID_URL', 'Enter a valid dps.report link or report ID.');
   }
+
   const endpoint = new URL('https://dps.report/getJson');
   endpoint.searchParams.set('permalink', `https://dps.report/${id}`);
   return endpoint.toString();
@@ -43,19 +45,23 @@ export async function fetchDpsReport(
   } catch (error) {
     throw new DpsReportError('NETWORK_ERROR', `Unable to fetch dps.report: ${String(error)}`);
   }
+
   if (!response.ok) {
     throw new DpsReportError('HTTP_ERROR', `dps.report returned HTTP ${response.status}.`, {
       status: response.status
     });
   }
+
   let value: unknown;
   try {
     value = await response.json();
   } catch (error) {
     throw new DpsReportError('INVALID_JSON', `dps.report returned invalid JSON: ${String(error)}`);
   }
+
   if (value != null && typeof value === 'object' && 'error' in value && typeof value.error === 'string') {
     throw new DpsReportError('REPORT_ERROR', `dps.report error: ${value.error}`);
   }
+
   return parseDpsReport(value);
 }

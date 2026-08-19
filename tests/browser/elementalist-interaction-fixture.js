@@ -9,11 +9,14 @@ const assert = (condition, message) => {
 
 const waitFor = async (predicate, timeoutMs = 5000) => {
   const deadline = performance.now() + timeoutMs;
+
   while (performance.now() < deadline) {
     const value = predicate();
+
     if (value) return value;
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
+
   return null;
 };
 
@@ -22,6 +25,7 @@ frame.addEventListener('load', async () => {
     const window = frame.contentWindow;
     const document = frame.contentDocument;
     const app = await waitFor(() => window.professionApp);
+
     assert(app, 'Elementalist application did not initialize');
     app.build = createElementalistBuildDefaults();
     app.changed();
@@ -31,6 +35,7 @@ frame.addEventListener('load', async () => {
     let selector = document.querySelector('.attunement-preview-toggle-select');
     let previews = [...document.querySelectorAll('.weapon-attunement-preview')];
     const optionValues = [...selector.options].map((option) => option.value);
+
     assert(
       ['Fire', 'Water', 'Air', 'Earth'].every((attunement) => optionValues.includes(attunement)),
       'attunement preview dropdown is missing a core attunement'

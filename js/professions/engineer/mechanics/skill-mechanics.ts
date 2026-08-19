@@ -24,9 +24,11 @@ function mergeMechanicsFragments(): Readonly<Record<string, SkillFragment>> {
       if (Object.hasOwn(result, skillId)) {
         throw new TypeError(`Duplicate Engineer skill mechanics id ${skillId}.`);
       }
+
       result[skillId] = mechanics;
     }
   }
+
   return Object.freeze(result);
 }
 

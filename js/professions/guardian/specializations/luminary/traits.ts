@@ -93,6 +93,7 @@ function grantLightAura(context: GuardianCastContext, skill: GuardianSkill, at: 
   ) {
     detonateLightAura(context, skill, at);
   }
+
   luminaryState.from(context).lightAuraUntil =
     at +
     Number(guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.lightAura), 'buff')?.duration || 4);
@@ -124,6 +125,7 @@ function processLightAuraAndFields(context: GuardianCastContext, skill: Guardian
   if (sovereign && isLuminaryDetonator(skill)) {
     detonateLightAura(context, skill, activationAt);
   }
+
   const virtueOne = skill.categories?.includes('Virtue') && String(skill.slot) === 'Profession_1';
   const enteringRadiantForge = skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE;
   const grantsImmediately =
@@ -145,6 +147,7 @@ function processLightAuraAndFields(context: GuardianCastContext, skill: Guardian
       grantLightAura(context, skill, activationAt);
     }
   }
+
   if (virtueOne && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND)) {
     const blind = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.justiceIsBlind), 'blind');
     context.emit({
@@ -159,10 +162,12 @@ function processLightAuraAndFields(context: GuardianCastContext, skill: Guardian
       duration: Number(blind?.duration || 3)
     });
   }
+
   if (isGuardianSymbolSkill(skill)) addLightField(state, impactAt, 4);
   if (skill.id === GUARDIAN_SKILL_IDS.DARING_ADVANCE) {
     addLightField(state, impactAt, 5);
   }
+
   if (
     (isLightLeap(skill) || skill.id === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER) &&
     activeLightField(state, impactAt, context.epsilon)
@@ -190,6 +195,7 @@ function processStanceDamageBuffs(context: GuardianCastContext, skill: GuardianS
     // strikes scheduled at effectiveEnd (strict > comparison in the rule).
     emitGuardianBuff(context, skill, context.effectiveEnd + 0.001, 'guardian-daring-advance', 8);
   }
+
   if (skill.id === GUARDIAN_SKILL_IDS.EFFULGENT_STANCE) {
     // Both events are scheduled at cast time so the window boundaries are fixed
     // even if other events arrive out of order during resolver playback.
@@ -244,6 +250,7 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
       icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)
     });
   }
+
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS)) {
     const profile = guardianBalanceProfile(context, PROFILE.empoweredArmaments);
     const duration = Number(profile?.resourceGain || 6);
@@ -263,6 +270,7 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
       icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS)
     });
   }
+
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.ILLUMINATING_INSPIRATION)) {
     const reduction = Number(guardianBalanceProfile(context, PROFILE.illuminatingInspiration)?.rechargeReduction || 4);
     reduceVirtueCooldowns(context, at, reduction);
@@ -310,6 +318,7 @@ function handleLuminaryVirtueTraits(context: GuardianCastContext, skill: Guardia
       icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.MASTER_AT_ARMS)
     });
   }
+
   if (virtue === 'justice') {
     state.radiantJusticeArmed = true;
     emitGuardianProc(context, {
@@ -322,6 +331,7 @@ function handleLuminaryVirtueTraits(context: GuardianCastContext, skill: Guardia
       source: 'Skill'
     });
   }
+
   if (virtue === 'courage') {
     state.radiantCourageSwordArmed = true;
     state.radiantCourageShieldArmed = true;
@@ -344,6 +354,7 @@ export function updateLuminaryTraitCastState(context: GuardianCastContext, skill
     // POSITIVE_INFINITY means "no cooldown / never expires".
     professionCoreState(context).availableFlips[GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE] = Number.POSITIVE_INFINITY;
   }
+
   processStanceDamageBuffs(context, skill);
   processLightAuraAndFields(context, skill);
   handleLuminaryVirtueTraits(context, skill);
@@ -359,6 +370,7 @@ export function observeLuminaryScheduledEvent(context: GuardianSchedulerContext,
   ) {
     addLightField(luminaryState.from(context), event.at, 4);
   }
+
   if (event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.LUMINOUS_STAFF) {
     context.emit({
       type: 'buff',
@@ -401,6 +413,7 @@ export function reactToEffulgentStrike(context: GuardianResolverContext, event: 
   ) {
     return;
   }
+
   state.effulgentStacks = Math.min(maximumStacks, Number(state.effulgentStacks || 0) + 1);
 }
 

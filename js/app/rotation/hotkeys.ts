@@ -86,6 +86,7 @@ export function normalizeRotationHotkeyBindings(value: unknown): RotationHotkeyB
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return defaults;
   }
+
   const input = value as Record<string, unknown>;
   for (const action of ROTATION_HOTKEY_ACTIONS) {
     const candidate = input[action.id];
@@ -93,6 +94,7 @@ export function normalizeRotationHotkeyBindings(value: unknown): RotationHotkeyB
       defaults[action.id] = candidate;
     }
   }
+
   return defaults;
 }
 
@@ -162,12 +164,14 @@ export function rotationLoadoutHotkeyActions(
       addSkill(childId, action, visited);
     }
   };
+
   for (const bar of bars) {
     bar.skillIds.forEach((skillId, index) => {
       const action = rotationUtilityHotkeyAction(index);
       if (action) addSkill(skillId, action, new Set<number>());
     });
   }
+
   return hotkeys;
 }
 
@@ -186,6 +190,7 @@ export function activeRotationHotkeyAction(
   if (!active || event.isComposing || event.ctrlKey || event.altKey || event.metaKey) {
     return null;
   }
+
   return rotationHotkeyActionForCode(bindings, event.code);
 }
 
@@ -197,6 +202,7 @@ export function duplicateRotationHotkeyCodes(bindings: RotationHotkeyBindings): 
     if (seen.has(code)) duplicates.add(code);
     seen.add(code);
   }
+
   return [...duplicates];
 }
 
@@ -349,6 +355,7 @@ function populateDialog(controller: RotationHotkeyController, bindings = control
     input.dataset.code = bindings[action];
     input.value = formatRotationHotkey(bindings[action]);
   }
+
   const error = controller.dialog.querySelector<HTMLElement>('.rotation-hotkey-error');
   if (error) {
     error.hidden = true;
@@ -362,6 +369,7 @@ function dialogBindings(dialog: HTMLDialogElement): RotationHotkeyBindings {
     const action = input.dataset.hotkeyInput as RotationHotkeyAction;
     bindings[action] = input.dataset.code || '';
   }
+
   return bindings;
 }
 
@@ -398,6 +406,7 @@ function ensureDialog(controller: RotationHotkeyController): void {
         input.blur();
         return;
       }
+
       if (
         [
           'ControlLeft',
@@ -413,11 +422,13 @@ function ensureDialog(controller: RotationHotkeyController): void {
       ) {
         return;
       }
+
       const code = ['Backspace', 'Delete'].includes(event.code) ? '' : event.code;
       input.dataset.code = code;
       input.value = formatRotationHotkey(code);
     });
   }
+
   dialog.querySelector('[data-hotkey-reset]')?.addEventListener('click', () => {
     populateDialog(controller, defaultRotationHotkeyBindings());
   });
@@ -434,8 +445,10 @@ function ensureDialog(controller: RotationHotkeyController): void {
           .map(formatRotationHotkey)
           .join(', ')}.`;
       }
+
       return;
     }
+
     controller.bindings = bindings;
     controller.enabled = enabled;
     saveRotationHotkeyBindings(bindings);
@@ -492,6 +505,7 @@ function ensureControls(controller: RotationHotkeyController): void {
   } else {
     heading.append(controls);
   }
+
   controller.button = button;
   controller.status = status;
   setRotationHotkeysActive(controller, controller.active);
@@ -526,6 +540,7 @@ export function mountRotationHotkeys(root: HTMLElement | null): void {
         setRotationHotkeysActive(current, false);
         return;
       }
+
       activateRotationHotkey(current, event);
     });
     document.defaultView?.addEventListener('blur', () =>
@@ -535,6 +550,7 @@ export function mountRotationHotkeys(root: HTMLElement | null): void {
     controller.root = root;
     controller.scope = scope;
   }
+
   ensureStyles(document);
   ensureControls(controller);
   setRotationHotkeysActive(controller, controller.active);

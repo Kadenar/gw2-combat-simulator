@@ -226,6 +226,7 @@ function recomputeDerivedAttributes(
       if (pruneZeros) delete attributes[key];
       continue;
     }
+
     attributes[key] = derivedAttribute(
       value,
       traitDurations[key] || 0,
@@ -280,6 +281,7 @@ export function calculateCommonAttributes(
         : build.gear?.[slot] || '';
     addAttributes(gear, gearStats[prefix]?.[statSlot]);
   }
+
   const rune = runeData[build.rune || ''];
   addAttributes(runes, rune?.stats);
   addAttributes(runeDurations, rune?.durations);
@@ -311,11 +313,13 @@ export function calculateCommonAttributes(
       (infusions[stat] || 0) +
       (build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0);
   }
+
   for (const conversion of utilityData[build.utility || ''] || []) {
     const rate = (utilityRates[conversion.from] || 0) / 100;
     // GW2 stat conversions round each declared conversion independently.
     addAttribute(utility, conversion.to, Math.round((conversionPool[conversion.from] || 0) * rate));
   }
+
   addAttributes(utility, utilityStatData[build.utility || '']);
 
   let sigilCriticalChance = 0;
@@ -329,23 +333,30 @@ export function calculateCommonAttributes(
     if (sigil.conditionDuration) {
       addAttribute(sigilDurations, 'Condition Duration', sigil.conditionDuration);
     }
+
     if (sigil.bleedingDuration) {
       addAttribute(sigilDurations, 'Bleeding Duration', sigil.bleedingDuration);
     }
+
     if (sigil.burningDuration) {
       addAttribute(sigilDurations, 'Burning Duration', sigil.burningDuration);
     }
+
     if (sigil.poisonDuration) {
       addAttribute(sigilDurations, 'Poison Duration', sigil.poisonDuration);
     }
+
     if (sigil.tormentDuration) {
       addAttribute(sigilDurations, 'Torment Duration', sigil.tormentDuration);
     }
+
     if (sigil.boonDuration) {
       addAttribute(sigilDurations, 'Boon Duration', sigil.boonDuration);
     }
+
     sigilCriticalChance += Number(sigil.criticalChance || 0);
   }
+
   const attributes: Gw2AttributeMap = {};
   // First build primary attributes and their complete source attribution.
   for (const stat of PRIMARY_ATTRIBUTES) {
@@ -364,6 +375,7 @@ export function calculateCommonAttributes(
     breakdown.final = Object.values(breakdown).reduce((sum, value) => sum + value, 0);
     attributes[stat] = breakdown;
   }
+
   // Derived percentages are rebuilt from finalized primaries; trait bonuses are
   // applied later in finalizeBuildAttributes once profession rules resolve.
   recomputeDerivedAttributes(attributes, {

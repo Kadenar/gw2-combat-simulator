@@ -12,6 +12,7 @@ import { createGw2ResolverEventHandlers } from '../../../js/platform/gw2/resolve
 
 test('Mesmer skill damage scheduling is split into focused modules', () => {
   const core = new URL('../../../js/professions/mesmer/core/', import.meta.url);
+
   for (const filename of [
     'clone-attacks.ts',
     'phantasms.ts',
@@ -22,9 +23,11 @@ test('Mesmer skill damage scheduling is split into focused modules', () => {
   ]) {
     assert.equal(existsSync(new URL(filename, core)), true, filename);
   }
+
   assert.equal(existsSync(new URL('illusions.ts', core)), false);
 
   const pipeline = readFileSync(new URL('skill-effects.ts', core), 'utf8');
+
   assert.match(pipeline, /createPhantasmEffectController/);
   assert.match(pipeline, /createSkillDamageController/);
   assert.match(pipeline, /createIllusionResourceController/);
@@ -34,6 +37,7 @@ test('Mesmer skill damage scheduling is split into focused modules', () => {
 
   const phantasms = readFileSync(new URL('phantasms.ts', core), 'utf8');
   const clones = readFileSync(new URL('clone-attacks.ts', core), 'utf8');
+
   assert.match(phantasms, /mesmer\.phantasm-summoned/);
   assert.match(phantasms, /\baddDamage\s*\(/);
   assert.match(clones, /\baddDamage\s*\(/);
@@ -58,6 +62,7 @@ test('clone attacks are scheduled lazily as the timeline advances', () => {
     addDamage: (...args) => damage.push(args),
     addCondition: (...args) => conditions.push(args)
   });
+
   state.clones.push(
     scheduler.initializeClone({
       id: 1,
@@ -103,6 +108,7 @@ function tormentDamageAtMight(might) {
       }
     })
   );
+
   return result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Torment').damage;
 }
 
@@ -223,6 +229,7 @@ test('staggered condition applications preserve fractional stack-seconds', () =>
   });
 
   const applications = result.resolvedEvents.filter((event) => event.type === 'condition');
+
   // Independent fractional durations integrate to 1.75 stack-seconds instead
   // of being rounded onto a shared one-second condition-tick cadence.
   assert.equal(
@@ -291,6 +298,7 @@ test('precombat conditions carry across an explicit combat start', () => {
   const application = result.resolvedEvents.find(
     (event) => event.type === 'condition' && event.name === 'Precombat Bleed'
   );
+
   assert.equal(result.firstHitTime, 1);
   assert.equal(application.at, 0);
   assert.deepEqual(
@@ -333,6 +341,7 @@ test('shared buff handling prioritizes allied players over summon recipients', (
     maximumRecipients: 5,
     companionIds: ['clone:one', 'clone:two']
   };
+
   handlers.buff(context, application);
 
   assert.equal(application.affectsSelf, true);
@@ -393,11 +402,13 @@ test('an explicit empty target condition map does not restore default conditions
 
   const unconditioned = run({});
   const vulnerable = run({ Vulnerability: 25 });
+
   assert.ok(Math.abs(vulnerable / unconditioned - 1.25) < 1e-12);
 });
 
 test('same-time queued events retain stable insertion order', () => {
   const queue = [];
+
   enqueueOrdered(queue, { type: 'damage', at: 1, name: 'first' });
   enqueueOrdered(queue, { type: 'damage', at: 1, name: 'second' });
   enqueueOrdered(queue, {
@@ -419,6 +430,7 @@ test('heap event queues preserve priority and stable insertion order', () => {
     { type: 'damage', at: 1, name: 'first' },
     { type: 'damage', at: 1, name: 'second' }
   ]);
+
   enqueueOrdered(queue, {
     type: 'damage',
     at: 1,
@@ -428,6 +440,7 @@ test('heap event queues preserve priority and stable insertion order', () => {
   enqueueOrdered(queue, { type: 'damage', at: 1, name: 'third' });
 
   const names = [];
+
   while (queue.length) names.push(takeNextEvent(queue).name);
   assert.deepEqual(names, ['priority', 'first', 'second', 'third', 'later']);
 });
@@ -436,6 +449,7 @@ test('heap event queues keep derived causal order local to each queue', () => {
   // Consume enough fallback insertions to expose implementations that share
   // an ordering counter across otherwise independent simulations.
   const warmup = createEventQueue([{ type: 'damage', at: 0, name: 'warmup', __order: 0 }]);
+
   takeNextEvent(warmup);
   for (let index = 0; index < 20; index += 1) {
     enqueueOrdered(warmup, {
@@ -449,6 +463,7 @@ test('heap event queues keep derived causal order local to each queue', () => {
     { type: 'damage', at: 1, name: 'cause', __order: 10 },
     { type: 'damage', at: 1, name: 'unrelated', __order: 11 }
   ]);
+
   assert.equal(takeNextEvent(queue).name, 'cause');
 
   enqueueOrdered(queue, {
@@ -855,6 +870,7 @@ test('flat and no-crit strikes skip critical queries', () => {
       }),
       critical: () => {
         criticalQueries += 1;
+
         return { chance: 0.5, damage: 2 };
       },
       strikeMultiplier: () => 1,
@@ -1072,10 +1088,13 @@ test('critical sigils enqueue and resolve their own proc event', () => {
 test("seeded critical sigils consume the hit's single sampled crit outcome", () => {
   const defaults = defaultSimulationConfig();
   const rotation = [];
+
   for (let index = 0; index < 6; index += 1) {
     rotation.push('Flying Cutter');
+
     if (index < 5) rotation.push({ name: '__wait', waitMs: 5100 });
   }
+
   const config = defaultSimulationConfig({
     stats: {
       ...defaults.stats,
@@ -1102,6 +1121,7 @@ test("seeded critical sigils consume the hit's single sampled crit outcome", () 
   const sourceHits = stochastic.events.filter(
     (event) => event.type === 'damage' && event.skillName === 'Flying Cutter'
   );
+
   assert.deepEqual(
     sourceHits.map((event) => event.didCrit),
     expectedOutcomes
@@ -1114,6 +1134,7 @@ test("seeded critical sigils consume the hit's single sampled crit outcome", () 
   );
 
   const expectedProcs = expectedOutcomes.filter(Boolean).length;
+
   for (const sigil of ['Earth', 'Torment']) {
     assert.equal(
       stochastic.resolvedEvents.filter((event) => event.type === 'condition' && event.skillName === `Sigil of ${sigil}`)
@@ -1123,6 +1144,7 @@ test("seeded critical sigils consume the hit's single sampled crit outcome", () 
   }
 
   const deterministic = run('deterministic');
+
   for (const sigil of ['Earth', 'Torment']) {
     assert.equal(
       deterministic.resolvedEvents.filter(
@@ -1136,10 +1158,13 @@ test("seeded critical sigils consume the hit's single sampled crit outcome", () 
 test('Mesmer critical traits consume seeded hit outcomes in stochastic mode', () => {
   const defaults = defaultSimulationConfig();
   const rotation = [];
+
   for (let index = 0; index < 6; index += 1) {
     rotation.push('Flying Cutter');
+
     if (index < 5) rotation.push({ name: '__wait', waitMs: 5100 });
   }
+
   const config = defaultSimulationConfig({
     specialization: 'Virtuoso',
     selectedTraits: ['Jagged Mind', 'Deadly Blades'],
@@ -1171,6 +1196,7 @@ test('Mesmer critical traits consume seeded hit outcomes in stochastic mode', ()
   const deadlyBlades = stochastic.events.filter(
     (event) => event.type === 'buff' && event.kind === 'target-vulnerability' && event.sourceSkill === 'Flying Cutter'
   );
+
   assert.ok(criticals > 0 && criticals < hits.length);
   assert.equal(jaggedMind.length, criticals);
   assert.ok(jaggedMind.every((event) => event.stacks === 1));
@@ -1185,6 +1211,7 @@ test('Mesmer critical traits consume seeded hit outcomes in stochastic mode', ()
   const expectedJaggedMind = deterministic.events.filter(
     (event) => event.type === 'condition' && event.name.includes('Jagged Mind')
   );
+
   assert.equal(expectedJaggedMind.length, hits.length);
   assert.ok(expectedJaggedMind.every((event) => event.stacks === 0.5));
 });
@@ -1268,6 +1295,7 @@ test('Master Fencer grants self and allied fury on critical hits with an eight-s
   const openPartyFury = openParty.events.find(
     (event) => event.type === 'buff' && event.skillName === 'Master Fencer' && event.recipients === 'allies'
   );
+
   assert.equal(openPartyFury.affectsSummons, true);
   assert.equal(openPartyFury.alliedPlayerCount, 2);
   assert.equal(openPartyFury.recipientCount, 4);
@@ -1291,6 +1319,7 @@ test('Master Fencer grants self and allied fury on critical hits with an eight-s
     })
   );
   const isolatedFury = isolated.events.filter((event) => event.type === 'buff' && event.skillName === 'Master Fencer');
+
   assert.equal(isolatedFury.length, 2);
   assert.equal(isolatedFury.find((event) => event.recipients === 'self')?.affectsSummons, false);
   assert.equal(isolatedFury.find((event) => event.recipients === 'allies')?.affectsSummons, false);
@@ -1332,10 +1361,13 @@ test('Sharper Images samples illusion criticals instead of accumulating expected
 test('critical-strike food consumes seeded crit and proc outcomes in stochastic mode', () => {
   const defaults = defaultSimulationConfig();
   const rotation = [];
+
   for (let index = 0; index < 6; index += 1) {
     rotation.push('Flying Cutter');
+
     if (index < 5) rotation.push({ name: '__wait', waitMs: 2100 });
   }
+
   const seed = 117;
   const result = simulateMesmer(
     rotation,
@@ -1356,12 +1388,15 @@ test('critical-strike food consumes seeded crit and proc outcomes in stochastic 
   const procRandom = createSimulationRandom({ mode: 'stochastic', seed });
   let expectedProcs = 0;
   let foodReadyAt = -Infinity;
+
   for (const event of sourceHits) {
     if (event.didCrit !== true || event.at < foodReadyAt) continue;
+
     if (!procRandom.roll(0.66, 'food.critical-strike')) continue;
     expectedProcs += 1;
     foodReadyAt = event.at + 2;
   }
+
   const nourishment = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillName === 'Nourishment'
   );
@@ -1372,12 +1407,15 @@ test('critical-strike food consumes seeded crit and proc outcomes in stochastic 
 test('Earth bleeding grants a scheduler-visible Bloodsong blade', () => {
   const defaults = defaultSimulationConfig();
   const flyingCutters = [];
+
   for (let index = 0; index < 5; index += 1) {
     flyingCutters.push('Flying Cutter');
+
     if (index < 4) {
       flyingCutters.push({ name: '__wait', waitMs: 2100 });
     }
   }
+
   const run = (selectedTraits) =>
     simulateMesmer(
       [...flyingCutters, 'Bladesong Harmony'],
@@ -1407,6 +1445,7 @@ test('Earth bleeding grants a scheduler-visible Bloodsong blade', () => {
   assert.ok(bloodsong.at <= harmony.start / 1000);
 
   const withoutBloodsong = run([]);
+
   assert.equal(
     withoutBloodsong.events.some((event) => event.type === 'resource' && event.reason === 'Bloodsong'),
     false
@@ -1467,6 +1506,7 @@ test('critical-strike food procs remain unmodified without profession effects', 
   assert.equal(nourishment[0].damage, 325);
   assert.equal(nourishment[0].damageKind, 'condition');
   const nourishmentBreakdown = result.breakdown.find((entry) => entry.name === 'Nourishment');
+
   assert.equal(nourishmentBreakdown.strikeDamage, 0);
   assert.equal(nourishmentBreakdown.conditionDamage, 325);
   const withoutVulnerability = simulateMesmer(
@@ -1486,9 +1526,11 @@ test('critical-strike food procs remain unmodified without profession effects', 
       }
     })
   ).resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Nourishment');
+
   assert.equal(withoutVulnerability.length, 1);
   assert.equal(withoutVulnerability[0].damage, 325);
   const nourishmentProc = result.procSteps.find((proc) => proc.type === 'food_proc' && proc.skill === 'Nourishment');
+
   assert.equal(nourishmentProc.icon, 'https://wiki.guildwars2.com/images/c/ca/Nourishment_food.png');
 });
 
@@ -1574,6 +1616,7 @@ test('critical weapon-swap sigil strikes can trigger critical-hit sigils', () =>
   const torment = result.resolvedEvents.find(
     (event) => event.skillName === 'Sigil of Torment' && event.condition === 'Torment'
   );
+
   assert.equal(torment?.stacks, 2);
   assert.equal(torment?.duration, 5);
 });

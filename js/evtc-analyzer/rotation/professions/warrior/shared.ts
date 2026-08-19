@@ -76,6 +76,7 @@ export function sequentialInitialActions(
     cursor -= recordedDuration(context, identity);
     reversed.push(initialAction(context, identity, cursor, eventIndexBase + index));
   }
+
   return reversed.reverse();
 }
 

@@ -122,6 +122,7 @@ export function necromancerTransformSkillBarGroups(
       layout: 'necromancer-shroud'
     });
   }
+
   return groups;
 }
 
@@ -162,6 +163,7 @@ export function necromancerTransformPaletteGroups(
       stackId
     });
   }
+
   if (state.activeShroud === 'lich') {
     groups.push({
       id: 'lich',
@@ -170,6 +172,7 @@ export function necromancerTransformPaletteGroups(
       color: '#78b886'
     });
   }
+
   groups.push({
     id: 'necromancer-actions',
     label: 'Act',
@@ -189,12 +192,14 @@ function necromancerCorePaletteAvailability(
   if (skill.id === ID.DEVOURING_DARKNESS && !selectedTraits.has('Lingering Curse')) {
     return { available: false, message: 'Requires Lingering Curse' };
   }
+
   if (skill.id === ID.FEAST_OF_CORRUPTION && selectedTraits.has('Lingering Curse')) {
     return {
       available: false,
       message: 'Replaced by Devouring Darkness'
     };
   }
+
   if (
     skill.rechargeOnMinionDeath &&
     skill.flipSkillId != null &&
@@ -205,6 +210,7 @@ function necromancerCorePaletteAvailability(
       message: 'Summoned minion is still alive'
     };
   }
+
   if (active === 'lich') {
     const available = new Set(LICH_SKILLS).has(skill.id);
     return {
@@ -212,6 +218,7 @@ function necromancerCorePaletteAvailability(
       message: available ? '' : 'Unavailable while Lich Form is active'
     };
   }
+
   if (skill.shroud) {
     const available = active === skill.shroud;
     return {
@@ -219,24 +226,28 @@ function necromancerCorePaletteAvailability(
       message: available ? '' : `Enter ${skill.specialization || 'Death'} Shroud first`
     };
   }
+
   if (skill.type === 'Weapon' && active) {
     return {
       available: false,
       message: 'Weapon skills are unavailable while shrouded'
     };
   }
+
   if (active && ['Heal', 'Utility', 'Elite'].includes(String(skill.type || ''))) {
     return {
       available: false,
       message: 'Slot skills are unavailable while shrouded'
     };
   }
+
   if ((SHROUD_ENTRY_IDS.has(skill.id) || skill.id === ID.LICH_FORM) && active) {
     return {
       available: false,
       message: 'Exit the current transform first'
     };
   }
+
   if (SHROUD_EXIT_IDS.has(skill.id)) {
     const requiredShroud = SHROUD_BY_EXIT_ID[skill.id];
     const available = active === requiredShroud;
@@ -245,6 +256,7 @@ function necromancerCorePaletteAvailability(
       message: available ? '' : `Enter ${SHROUD_SKILL_BAR_LABELS[requiredShroud] || 'Shroud'} first`
     };
   }
+
   return { available: true, message: '' };
 }
 
@@ -263,11 +275,13 @@ export function necromancerEventLogRow(
       flags: []
     };
   }
+
   // Revive has no modeled target state, and summon attacks are replaced by
   // their materialized events, so neither needs a separate log row.
   if (['necromancer.revive', 'necromancer.summon-attack'].includes(event?.type)) {
     return null;
   }
+
   if (event?.type !== 'necromancer.state') return undefined;
   const state = event.state || {};
   const details = [`Life force ${Number(state.lifeForce || 0).toFixed(1)}`];
@@ -275,9 +289,11 @@ export function necromancerEventLogRow(
   if (Number(state.blight || 0) > 0) {
     details.push(`Blight ${Number(state.blight)}`);
   }
+
   if (Number(state.soulShards || 0) > 0) {
     details.push(`Soul shards ${Number(state.soulShards)}`);
   }
+
   return {
     type: event.type,
     description: [event.reason || 'State', ...details].join(' · '),
@@ -352,6 +368,7 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
   if (necromancerUiSpecialization(context) !== 'Harbinger') {
     views.push(...necromancerSoulShardResourceViews(context));
   }
+
   return views;
 }
 

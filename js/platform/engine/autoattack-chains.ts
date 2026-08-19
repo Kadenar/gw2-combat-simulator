@@ -36,8 +36,10 @@ export function deriveAutoattackChains(skills: readonly Skill[]): readonly (read
       chain.push(skill.id);
       skill = skill.nextChainId == null ? null : byId.get(skill.nextChainId);
     }
+
     if (chain.length > 1) chains.push(freezeChain(chain));
   }
+
   return Object.freeze(chains);
 }
 
@@ -55,10 +57,12 @@ export function indexAutoattackChains(chains: readonly (readonly SkillId[])[]): 
     if (chain.length < 2) {
       throw new TypeError('Autoattack chains require at least two skills.');
     }
+
     chain.forEach((skillId, index) => {
       if (positions.has(skillId)) {
         throw new TypeError(`Skill ${skillId} belongs to multiple autoattack chains.`);
       }
+
       positions.set(
         skillId,
         Object.freeze({
@@ -70,5 +74,6 @@ export function indexAutoattackChains(chains: readonly (readonly SkillId[])[]): 
       );
     });
   }
+
   return positions;
 }

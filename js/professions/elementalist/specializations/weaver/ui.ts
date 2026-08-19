@@ -22,6 +22,7 @@ function unravelPaletteAvailability(context: SchedulerRecord, skill: Skill): Pal
   if (skill.id !== ELEMENTALIST_WEAVER_SKILL_IDS.Unravel) {
     return { available: true, message: '' };
   }
+
   const available = hasElementsOfRage(context);
   return {
     available,

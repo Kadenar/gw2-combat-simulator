@@ -38,6 +38,7 @@ test('native wells, projectiles, and interrupted channels obey caller observatio
     { selectedSkills: ['Well of Suffering'] },
     { kind: 'tail', durationMs: 6000 }
   );
+
   assert.equal(
     well.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Well of Suffering').length,
     6
@@ -52,6 +53,7 @@ test('native wells, projectiles, and interrupted channels obey caller observatio
   const projectileHit = projectile.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillId === NECRO_SKILL.GRASPING_DARKNESS
   );
+
   assert.ok(projectileHit);
   assert.ok(projectileHit.at > projectile.steps[1].start / 1000);
   assert.ok(projectileHit.at <= projectile.duration);
@@ -62,6 +64,7 @@ test('native wells, projectiles, and interrupted channels obey caller observatio
     { boons: { quickness: true } },
     { kind: 'tail', durationMs: 2500 }
   );
+
   assert.equal(channel.steps[1].interrupted, true);
   assert.equal(
     channel.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === NECRO_SKILL.SOUL_SPIRAL)
@@ -80,6 +83,7 @@ test('native summons and condition builds stop at the observation boundary', () 
   const summonAttacks = summon.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillName === 'Summon Blood Fiend - Minion Attack'
   );
+
   assert.ok(summonAttacks.length >= 2);
   assert.equal(
     summonAttacks.every((event) => event.at <= summon.duration + 7),
@@ -92,6 +96,7 @@ test('native summons and condition builds stop at the observation boundary', () 
     { selectedSkills: ['Blood Is Power'] },
     { kind: 'tail', durationMs: 10_000 }
   );
+
   assert.ok(condition.conditionDamage > 0);
   assert.ok(condition.dpsWindow > condition.duration);
   assert.equal(

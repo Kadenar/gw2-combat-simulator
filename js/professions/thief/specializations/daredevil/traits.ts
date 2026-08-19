@@ -163,15 +163,18 @@ export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill
     state.boundingDamageUntil =
       context.effectiveEnd + Number(thiefBalanceProfile(context, PROFILE.boundingDodger)?.durationMultiplier || 6);
   }
+
   if (state.selectedDodge === 'Lotus Training') {
     // Same padding as Bounding Dodger — resolver checks > context.time so equality is not enough
     state.lotusConditionDamageUntil =
       context.effectiveEnd + Number(thiefBalanceProfile(context, PROFILE.lotusTraining)?.durationMultiplier || 6);
   }
+
   if (hasThiefTrait(context.config, TRAIT.WEAKENING_STRIKES)) {
     // Arm the one-shot Weakness proc; it fires on the very next attacking skill
     state.weakeningStrikeReady = true;
   }
+
   emitThiefState(context, context.effectiveEnd, 'daredevil-dodge');
   for (const effect of DAREDEVIL_DODGE_EFFECTS[state.selectedDodge] || []) {
     emitDodgeEffect(context, skill, effect);
@@ -189,6 +192,7 @@ function spendDaredevilTraitResources(context: ThiefCastContext, skill: ThiefSki
       'staff-master'
     );
   }
+
   if (BRAWLERS_TENACITY_PHYSICAL_SKILLS.has(skill.id) && hasThiefTrait(context.config, TRAIT.BRAWLERS_TENACITY)) {
     gainThiefEndurance(
       context,

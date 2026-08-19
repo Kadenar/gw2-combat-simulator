@@ -20,6 +20,7 @@ function overloadPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
       message: `Requires ${String(skill.attunement)} attunement.`
     };
   }
+
   const enteredAt = Number(state.attunementEnteredAt ?? -1);
   if (enteredAt < 0) return { available: true, message: '' };
 

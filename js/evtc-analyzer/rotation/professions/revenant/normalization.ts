@@ -31,8 +31,10 @@ function mergeSplitAnimations(actions: readonly EvtcRecordedRotationAction[]): E
       index += 1;
       continue;
     }
+
     merged.push(action);
   }
+
   return merged;
 }
 
@@ -72,6 +74,7 @@ export function normalizeRevenantCastPackets(
     while (previousIndex >= 0 && normalized[previousIndex].end <= normalized[previousIndex].start) {
       previousIndex -= 1;
     }
+
     if (previousIndex < 0) return;
     const previous = normalized[previousIndex];
     normalized[previousIndex] = {
@@ -95,6 +98,7 @@ export function normalizeRevenantCastPackets(
       absorbCanceledAnimation(action);
       continue;
     }
+
     const duration = Math.max(0, action.end - action.start);
     const expected = Math.max(0, Number(skill?.quicknessCastTimeMs || skill?.castTimeMs || 0));
     const autoattack = String(skill?.slot || '').toLowerCase() === 'weapon_1';
@@ -111,6 +115,7 @@ export function normalizeRevenantCastPackets(
       absorbCanceledAnimation(action);
       continue;
     }
+
     if (
       action.status === 'completed' &&
       duration > 0 &&
@@ -121,7 +126,9 @@ export function normalizeRevenantCastPackets(
       normalized.push({ ...action, status: 'reduced' as const });
       continue;
     }
+
     normalized.push(action);
   }
+
   return normalized;
 }

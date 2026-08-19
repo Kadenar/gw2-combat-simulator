@@ -79,11 +79,13 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
   if (active.kind === 'Harbinger') {
     active.state.nextBlightAt = Number.POSITIVE_INFINITY;
   }
+
   const exitId = EXIT_ID_BY_SHROUD[shroud];
   if (exitId != null) {
     delete state.availableFlips[exitId];
     delete state.availableFlips[String(exitId)];
   }
+
   if (shroud === 'ritualist') clearSpiritsUnlessLingering(context);
   context.state.cooldowns.delete(ID.ISOLATE);
   setShroudRecharge(context, shroud, at);
@@ -99,6 +101,7 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
       stacks: 1
     });
   }
+
   context.emit({
     type: 'weapon_set',
     at,
@@ -140,6 +143,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
       if (state.signetNextLifeForceAt > start + context.epsilon) {
         gainNecromancerLifeForce(context, Number(passive?.lifeForceGain || 0), state.signetNextLifeForceAt);
       }
+
       state.signetNextLifeForceAt += interval;
     }
   }
@@ -170,6 +174,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
             }
           });
       }
+
       state.vampirismNextAt += interval;
     }
   }
@@ -213,6 +218,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
     delete state.availableFlips[ID.EXIT_LICH_FORM];
     gainNecromancerLifeForce(context, 15, end);
   }
+
   state.lastResourceAt = end;
   syncNecromancerResources(state);
   emitState(context, end, 'advance');
@@ -223,12 +229,15 @@ export function applySkillLifeForceGain(context: NecromancerCastContext, skill: 
   if (skill.categories?.includes('Mark') && hasTrait(context, TRAIT.SOUL_MARKS)) {
     amount += 3;
   }
+
   if (new Set<string | number>([ID.FEAST_OF_CORRUPTION, ID.DEVOURING_DARKNESS]).has(skill.id)) {
     amount += Math.min(5, targetConditionCount(context.config));
   }
+
   if (skill.id === 10529 && targetBoonCount(context.config) === 0) {
     amount = 0;
   }
+
   if (amount > 0) {
     gainNecromancerLifeForce(context, amount, context.effectiveEnd, 'skill-life-force');
   }
@@ -243,10 +252,12 @@ export function finalizeNecromancerCast(context: NecromancerCastContext, skill: 
     context.state.cooldowns.set(skill.id, Number.POSITIVE_INFINITY);
     delete state.pendingShroudEntryId;
   }
+
   const specialization = context.state.profession.specialization;
   if (specialization.kind === 'Ritualist' && specialization.state.pendingSoulTwistSkill === skill.id) {
     context.state.cooldowns.delete(skill.id);
     delete specialization.state.pendingSoulTwistSkill;
   }
+
   emitState(context, context.effectiveEnd, 'after-cast');
 }

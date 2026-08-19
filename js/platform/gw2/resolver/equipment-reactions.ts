@@ -85,9 +85,11 @@ function isResolvedCriticalSigilCause(
   if (!(Number(event.coefficient) > 0) && event.canTriggerCriticalSigils !== true) {
     return false;
   }
+
   if (!isGw2PlayerActorEvent(event) && event.canTriggerCriticalSigils !== true) {
     return false;
   }
+
   const critical = details.hitContext?.critical;
   if (!critical) return false;
   if (ctx.random.stochastic) return critical.didCrit === true;
@@ -104,6 +106,7 @@ function createResolvedCriticalSigilEffects(
   if (!names.length || !isResolvedCriticalSigilCause(ctx, event, details)) {
     return;
   }
+
   const sourceSkill = event.skillName || '';
   for (const name of names) {
     const proc = SIGIL_PROC_LOOKUP[name];
@@ -111,6 +114,7 @@ function createResolvedCriticalSigilEffects(
     if (proc?.trigger !== 'crit' || !isInternalCooldownReady(event.at, readyAt)) {
       continue;
     }
+
     ctx.sigil.readyAt.set(name, event.at + proc.cooldown);
     const effect =
       proc.effect === 'strike'
@@ -175,6 +179,7 @@ function createCriticalFoodEffect(dispatch: Dispatch, ctx: Gw2ResolverRuntime, e
       noCrit: true
     } as Gw2ResolverEvent;
   }
+
   const professionUpdates =
     dispatch('food-proc.created', ctx, foodEvent, {
       proc,

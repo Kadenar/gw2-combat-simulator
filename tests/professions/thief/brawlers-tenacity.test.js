@@ -18,10 +18,13 @@ function simulate(rotation, selectedTraitIds = []) {
 
 function brawlersTenacityEnduranceGain(rotation) {
   const result = simulate(rotation, [TRAIT.BRAWLERS_TENACITY]);
+
   assert.deepEqual(result.warnings, []);
   const states = result.events.filter((event) => event.type === 'thief.state');
   const traitIndex = states.findIndex((event) => event.reason === 'brawlers-tenacity');
+
   if (traitIndex < 0) return 0;
+
   return states[traitIndex].state.endurance - states[traitIndex - 1].state.endurance;
 }
 
@@ -35,6 +38,7 @@ test("Brawler's Tenacity grants 15 endurance for each physical skill activation"
     'Impairing Daggers'
   ]) {
     const gain = brawlersTenacityEnduranceGain(['Dodge', skill]);
+
     assert.ok(Math.abs(gain - 15) < 1e-9, `${skill}: ${gain}`);
   }
 });

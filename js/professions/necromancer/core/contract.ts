@@ -48,6 +48,7 @@ function updateNecromancerCastState(context: NecromancerCastContext, skill: Necr
   ) {
     state.autoattackChains = {};
   }
+
   if (!completed) return;
 
   if (
@@ -61,6 +62,7 @@ function updateNecromancerCastState(context: NecromancerCastContext, skill: Necr
         context.rechargeStart + Math.max(1, Number(skill.flipDuration ?? skill.cooldown ?? skill.recharge ?? 5));
     }
   }
+
   if (skill.flipParentId != null && !EXIT_IDS.has(skill.id) && skill.handlerId !== 'necromancer.minion-command') {
     delete state.availableFlips[skill.id];
   }
@@ -96,6 +98,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
     addCarapace(state, 10, context.effectiveEnd);
     emitBuff(context, skill, 'protection', 3);
   }
+
   if (skill.categories?.includes('Signet') && hasTrait(context, TRAIT.SIGNETS_OF_SUFFERING)) {
     emitDamage(context, skill, 0, {
       name: 'Signets of Suffering',
@@ -110,9 +113,11 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       }
     });
   }
+
   if (skill.type === 'Weapon' && skill.weapon === 'Dagger' && hasTrait(context, TRAIT.OVERFLOWING_THIRST)) {
     emitBuff(context, skill, 'taste-for-blood', 10);
   }
+
   if (
     skill.type === 'Heal' &&
     hasTrait(context, TRAIT.MALICIOUS_SWARM) &&
@@ -127,6 +132,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       skillWeapon: 'Unequipped'
     });
   }
+
   if (skill.shroudSlot === 4 && hasTrait(context, TRAIT.TRANSFUSION)) {
     emitDamage(context, skill, 1.8, {
       name: 'Lesser Chilblains',
@@ -151,6 +157,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       duration: 2
     });
   }
+
   finalizeNecromancerCast(context, skill);
 }
 
@@ -172,6 +179,7 @@ function onEventScheduled(context: NecromancerSchedulerContext, event: Necromanc
     state.traitProcReadyAt.nourishingAshes = event.at + 3;
     gainNecromancerLifeForce(context, 5, event.at, 'nourishing-ashes');
   }
+
   if (
     !state.plagueSendingArmed ||
     event.type !== 'damage' ||

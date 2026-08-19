@@ -42,9 +42,11 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
   if (hasTrait(context, TRAIT.SOUL_COMPREHENSION)) {
     gainNecromancerLifeForce(context, Math.min(30, timedCarapace + minionCarapace) * 0.5, at);
   }
+
   if (hasTrait(context, TRAIT.ARMORED_SHROUD)) {
     addCarapace(state, 5, at);
   }
+
   if (hasTrait(context, TRAIT.SHROUDED_REMOVAL)) {
     const activeCondition = (state.selfConditions || []).find(
       (application) => application.appliedAt <= at && application.expiresAt > at
@@ -54,6 +56,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
       addCarapace(state, 3, at);
     }
   }
+
   state.activeShroud = shroud;
   state.shroudEnteredAt = at;
   state.lastResourceAt = at;
@@ -64,6 +67,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
     active.state.spiritAutoAnchorAt = Number.NaN;
     active.state.soulTwistingAvailable = shroud === 'ritualist' && hasTrait(context, TRAIT.SOUL_TWISTING);
   }
+
   const exitId = EXIT_ID_BY_SHROUD[shroud];
   state.availableFlips[exitId] = Number.POSITIVE_INFINITY;
   state.pendingShroudEntryId = skill.id;
@@ -75,18 +79,23 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
   if (hasTrait(context, TRAIT.SOUL_BARBS)) {
     emitBuff(context, skill, 'necromancer-soul-barbs', 15);
   }
+
   if (hasTrait(context, TRAIT.AWAKEN_THE_PAIN)) {
     emitBuff(context, skill, 'might', 5, 5);
   }
+
   if (hasTrait(context, TRAIT.FURIOUS_DEMISE)) {
     emitBuff(context, skill, 'fury', 8);
   }
+
   if (hasTrait(context, TRAIT.SPEED_OF_SHADOWS)) {
     emitBuff(context, skill, 'swiftness', 10);
   }
+
   if (hasTrait(context, TRAIT.ETERNAL_LIFE)) {
     emitBuff(context, skill, 'protection', 3);
   }
+
   if (hasTrait(context, TRAIT.WEAKENING_SHROUD)) {
     emitDamage(context, skill, 1.5, {
       name: 'Weakening Shroud',
@@ -106,6 +115,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
       actorType: 'effect'
     });
   }
+
   if (hasTrait(context, TRAIT.SPITEFUL_SPIRIT)) {
     const strike = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.spitefulSpirit), 'strike');
     emitDamage(context, skill, Number(strike?.coefficient || 0), {
@@ -116,6 +126,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
       skillWeapon: 'Unequipped'
     });
   }
+
   context.emit({
     type: 'weapon_set',
     at,
@@ -137,6 +148,7 @@ function shroud(context: NecromancerCastContext, skill: NecromancerSkill): boole
     leaveShroud(context, context.effectiveEnd);
     return true;
   }
+
   return false;
 }
 
@@ -156,6 +168,7 @@ function lich(context: NecromancerCastContext, skill: NecromancerSkill): boolean
     gainNecromancerLifeForce(context, 15, at);
     emitState(context, at, 'lich-exit');
   }
+
   return true;
 }
 

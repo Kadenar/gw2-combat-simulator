@@ -20,6 +20,7 @@ test('Song of the Mists calls use valid catalog icons in damage results', () => 
 
   for (const [skillId, expectedIcon] of EXPECTED_CALL_ICONS) {
     const skill = revenantCatalog.skillsById.get(skillId);
+
     assert.equal(skill.icon, expectedIcon);
     assert.equal(resultSkillIcon(app, { name: skill.name }), expectedIcon);
   }

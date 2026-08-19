@@ -56,7 +56,9 @@ function canonicalRotation(rotation) {
     if (typeof entry === 'number') {
       return { type: 'wait', durationMs: entry };
     }
+
     if (entry && typeof entry === 'object') return entry;
+
     return {
       type: 'cast',
       skillId: elementalistCatalog.skillsByName.get(entry).id
@@ -83,12 +85,15 @@ function createNativeApp({ lines, rotation = [], ...extras }) {
     skillById: elementalistCatalog.skillsById,
     attributeWeaponSet: 1
   };
+
   recalculate(app);
+
   return { app, commands };
 }
 
 function runNative(options) {
   const { app, commands } = createNativeApp(options);
+
   return simulateGw2({
     profession: elementalistProfession,
     rotation: commands,
@@ -108,6 +113,7 @@ test('Tempest mechanics execute through native hooks', () => {
   });
   const overload = result.events.find((event) => event.type === 'action' && event.skillName === 'Overload Fire');
   const swaps = result.events.filter((event) => event.type === 'elementalist.attunement');
+
   assert.ok(overload.rechargeReadyAt > overload.endsAt);
   assert.deepEqual(
     swaps.map((event) => event.to),
@@ -144,6 +150,7 @@ test("Updraft's 0-damage hit activates Relic of Fireworks", () => {
     startAttunement: 'Air'
   });
   const procs = result.procSteps.filter((step) => step.skill === 'Relic of Fireworks');
+
   assert.ok(procs.length > 0);
   assert.ok(procs.every((step) => step.sourceSkill === 'Updraft'));
 });
@@ -154,6 +161,7 @@ test('Catalyst mechanics execute through native hooks', () => {
     rotation: ['Deploy Jade Sphere (Fire)', 'Arcane Wave', 1000],
     initialCatalystEnergy: 30
   });
+
   assert.equal(result.endState.profession.energy, 20);
   assert.equal(result.endState.profession.maximumEnergy, 30);
   assert.equal(
@@ -214,6 +222,7 @@ test('Tempest party boons affect the summoned elemental', () => {
   const isolatedBarrage = firstBarrage(isolated);
 
   const nonCriticalDamage = (event) => event.damage / (1 + event.criticalChance * 0.5);
+
   assert.ok(Math.abs(nonCriticalDamage(sharedBarrage) - nonCriticalDamage(isolatedBarrage)) < 1e-9);
   assert.ok(sharedBarrage.criticalChance > isolatedBarrage.criticalChance);
 });
@@ -305,6 +314,7 @@ test('Core mechanics execute through native hooks', () => {
     startAttunement: 'Air'
   });
   const proc = result.events.find((event) => event.type === 'elementalist.fresh-air');
+
   assert.ok(proc);
   assert.equal(result.endState.profession.attunementReadyAt.Air, proc.at);
 });
@@ -353,6 +363,7 @@ test('attunement swaps start labeled rotation timeline rows', () => {
     weaponSwapChangesSet: false,
     weaponLineTransition(entry, current) {
       const name = typeof entry === 'string' ? entry : entry.name;
+
       return transition({
         entry: { name },
         skill: elementalistCatalog.skillsByName.get(name),
@@ -388,6 +399,7 @@ test('Weaver timeline rows show both active attunements', () => {
     weaponSwapChangesSet: false,
     weaponLineTransition(entry, current) {
       const name = typeof entry === 'string' ? entry : entry.name;
+
       return transition({
         entry: { name },
         skill: elementalistCatalog.skillsByName.get(name),
@@ -419,6 +431,7 @@ test('Unravel starts a fully attuned Weaver timeline row', () => {
     weaponSwapChangesSet: false,
     weaponLineTransition(entry, current) {
       const name = typeof entry === 'string' ? entry : entry.name;
+
       return transition({
         entry: { name },
         skill: elementalistCatalog.skillsByName.get(name),
@@ -466,6 +479,7 @@ test('weapon palette rows group Elementalist skills by attunement and slot', () 
   );
   for (const row of rows) {
     const slots = row.skills.map((skill) => Number(skill.slot.split('_')[1]));
+
     assert.deepEqual(
       slots,
       [...slots].sort((left, right) => left - right)
@@ -482,11 +496,13 @@ test('weapon palette rows group Elementalist skills by attunement and slot', () 
   app.build.weapons = ['Sword', 'Warhorn'];
   app.build.specializations[2] = { name: 'Weaver', traits: '1-1-1' };
   const weaverRows = weaponPaletteRows(app, 1);
+
   assert.deepEqual(
     weaverRows.map((row) => row.label),
     ['Fire', 'Water', 'Air', 'Earth', 'Dual']
   );
   const dual = weaverRows.find((row) => row.label === 'Dual');
+
   assert.equal(dual.skills.length, 6);
   assert.equal(
     dual.skills.every((skill) => skill.slot === 'Weapon_3'),
@@ -532,6 +548,7 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
   };
   const palette = { innerHTML: '', querySelectorAll: () => [] };
   const previousDocument = globalThis.document;
+
   globalThis.document = {
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
@@ -554,6 +571,7 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
   const currentEnd = palette.innerHTML.indexOf('utility-palette-group', currentStart);
   const bankStart = palette.innerHTML.indexOf('data-role="weaver-cooldown-bank"');
   const currentHtml = palette.innerHTML.slice(currentStart, currentEnd);
+
   assert.equal((currentHtml.match(/class="pal-skill/g) || []).length, 5);
   assert.doesNotMatch(currentHtml, /data-palette-static="true"/);
   assert.match(currentHtml, /data-skill="Fire Strike"/);
@@ -567,8 +585,10 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
   const bankHtml = [...palette.innerHTML.matchAll(/<section class="weaver-cooldown-lane[^>]*>[\s\S]*?<\/section>/g)]
     .map((match) => match[0])
     .join('');
+
   assert.equal((bankHtml.match(/class="weaver-cooldown-lane/g) || []).length, 3);
   const bankSkillCount = (bankHtml.match(/class="pal-skill/g) || []).length;
+
   assert.equal((bankHtml.match(/data-palette-static="true"/g) || []).length, bankSkillCount);
   assert.doesNotMatch(bankHtml, /draggable="true"/);
   assert.doesNotMatch(bankHtml, /data-hotkey-action=/);
@@ -579,6 +599,7 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
   const secondaryStart = palette.innerHTML.indexOf('data-role="weaver-secondary-bank"');
   const sameHtml = palette.innerHTML.slice(sameStart, dualStart);
   const dualHtml = palette.innerHTML.slice(dualStart, secondaryStart);
+
   assert.equal((sameHtml.match(/class="pal-skill/g) || []).length, 4);
   assert.equal((dualHtml.match(/class="pal-skill/g) || []).length, 6);
   assert.match(dualHtml, /data-skill="Pyro Vortex"[\s\S]*?<span class="pal-cd">3\.4s<\/span>/);
@@ -622,6 +643,7 @@ test('starting attunement controls render catalog icons', () => {
   };
   const selector = { innerHTML: '', querySelectorAll: () => [] };
   const previousDocument = globalThis.document;
+
   globalThis.document = {
     getElementById: (id) => (id === 'start-att-selector' ? selector : null)
   };
@@ -633,9 +655,11 @@ test('starting attunement controls render catalog icons', () => {
 
   for (const name of ['Fire', 'Water', 'Air', 'Earth']) {
     const icon = elementalistCatalog.skillsByName.get(`${name} Attunement`).icon;
+
     assert.ok(icon);
     assert.equal(selector.innerHTML.split(icon).length - 1, 2);
   }
+
   assert.match(selector.innerHTML, /Primary attunement/);
   assert.match(selector.innerHTML, /Secondary attunement/);
 });
@@ -662,6 +686,7 @@ test('rotation palette exposes each attunement as an action', () => {
   };
   const palette = { innerHTML: '', querySelectorAll: () => [] };
   const previousDocument = globalThis.document;
+
   globalThis.document = {
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
@@ -684,6 +709,7 @@ test('rotation palette exposes each attunement as an action', () => {
       new RegExp(`data-skill="${name} Attunement"[\\s\\S]*?pal-variant-badge">${badge}<`)
     );
   }
+
   assert.match(palette.innerHTML, /data-skill="Air Attunement"[^>]*draggable="true"/);
 
   app.build.specializations[2] = { name: 'Tempest', traits: '1-1-1' };
@@ -695,6 +721,7 @@ test('rotation palette exposes each attunement as an action', () => {
   } finally {
     globalThis.document = previousDocument;
   }
+
   assert.ok(
     palette.innerHTML.indexOf('data-skill="Air Attunement"') < palette.innerHTML.indexOf('data-skill="Overload Air"')
   );
@@ -738,6 +765,7 @@ test('Evoker selects its familiar in the skill bar and derives F5', () => {
     elementalistProfession.ui
       .paletteGroups({ ...context, professionState })
       .find((group) => group.id === 'elementalist-evoker-familiars');
+
   assert.deepEqual(f5({ element: 'Air', empowered: 0 }).skillIds, [elementalistCatalog.skillsByName.get('Zap').id]);
   assert.deepEqual(f5({ element: 'Air', empowered: 3 }).skillIds, [
     elementalistCatalog.skillsByName.get('Lightning Blitz').id
@@ -784,6 +812,7 @@ test('Evoker familiar palette availability follows current charges', () => {
   };
 
   const unavailable = elementalistProfession.ui.paletteSkillAvailability(context, ignite);
+
   assert.equal(unavailable.available, false);
   assert.match(unavailable.message, /requires 6 familiar charges/);
   assert.equal(
@@ -818,6 +847,7 @@ test('Evoker familiar stays available when its element differs from the active a
     catalog: elementalistCatalog,
     professionState: { element: 'Air', charges: 6, maximumCharges: 6, empowered: 0, primaryAttunement: 'Fire' }
   };
+
   assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability(context, zap), {
     available: true,
     message: ''
@@ -861,6 +891,7 @@ test('core attunements enforce and report their individual recharge', () => {
     },
     elementalistCatalog.skillsByName.get('Water Attunement')
   );
+
   assert.deepEqual(waterAvailability, { available: true, message: '' });
   const waterView = paletteSkillView(
     {
@@ -873,6 +904,7 @@ test('core attunements enforce and report their individual recharge', () => {
     },
     elementalistCatalog.skillsByName.get('Water Attunement')
   );
+
   assert.equal(waterView.disabled, true);
   assert.equal(waterView.cooldownLabel, '8.5s');
 });
@@ -967,6 +999,7 @@ test('Unravel requires Elements of Rage, disables dual attacks, and has a 25-sec
     startAttunement: 'Air',
     secondaryAttunement: 'Fire'
   });
+
   assert.equal(
     unavailable.events.some((event) => event.type === 'action' && event.skillName === 'Unravel'),
     false
@@ -980,6 +1013,7 @@ test('Unravel requires Elements of Rage, disables dual attacks, and has a 25-sec
     secondaryAttunement: 'Air',
     weapons: ['Sword', 'Dagger']
   });
+
   assert.equal(
     dualAttack.events.some((event) => event.type === 'action' && event.skillName === 'Pyro Vortex'),
     false
@@ -1001,6 +1035,7 @@ test('Unravel requires Elements of Rage, disables dual attacks, and has a 25-sec
     secondaryAttunement: 'Air',
     weapons: ['Sword', 'Dagger']
   });
+
   assert.deepEqual(queuedDualAttack.warnings, []);
   assert.deepEqual(
     queuedDualAttack.steps.map((step) => [step.skill, step.start, step.end]),
@@ -1026,6 +1061,7 @@ test('Unravel requires Elements of Rage, disables dual attacks, and has a 25-sec
       alacrity: false
     }
   });
+
   assert.deepEqual(
     cooldown.steps.map((step) => step.start),
     [0, 25000]
@@ -1052,6 +1088,7 @@ test('autoattack chains carry across attunements until their third strike', () =
   const fireRoot = elementalistCatalog.skillsByName.get('Fire Strike').id;
   const fireSecond = elementalistCatalog.skillsByName.get('Fire Swipe');
   const airRoot = elementalistCatalog.skillsByName.get('Charged Strike').id;
+
   assert.deepEqual(
     elementalistCatalog.autoattackChains
       .find((chain) => chain[0] === fireRoot)
@@ -1065,6 +1102,7 @@ test('autoattack chains carry across attunements until their third strike', () =
     startAttunement: 'Fire',
     weapons: ['Sword', 'Dagger']
   });
+
   assert.deepEqual(carried.warnings, []);
   assert.deepEqual(carried.endState.profession.autoattackCarryover, {
     root: fireRoot,
@@ -1091,6 +1129,7 @@ test('autoattack chains carry across attunements until their third strike', () =
     startAttunement: 'Fire',
     weapons: ['Sword', 'Dagger']
   });
+
   assert.deepEqual(completed.warnings, []);
   assert.equal(completed.endState.profession.autoattackCarryover, null);
   assert.equal(
@@ -1306,6 +1345,7 @@ test("Evasive Arcana uses the active attunement's native trait skill", () => {
       Elite: 'Conjure Fiery Greatsword'
     }
   });
+
   assert.equal(result.endState.profession.endurance, 57.5);
   assert.equal(
     result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Flame Burst (trait)'),
@@ -1341,6 +1381,7 @@ test('Weaver mechanics execute through native hooks', () => {
       Elite: 'Weave Self'
     }
   });
+
   assert.equal(
     result.events.some((event) => event.type === 'buff' && event.kind === 'perfect weave'),
     true
@@ -1355,6 +1396,7 @@ test('Weaver mechanics execute through native hooks', () => {
   const weaveSelfFire = result.events.find(
     (event) => event.type === 'buff' && event.source === 'Weave Self' && event.kind === 'weave self fire'
   );
+
   assert.equal(weaveSelfFire.at - weaveSelf.at, 0.52);
   assert.ok(weaveSelfFire.at < weaveSelf.endsAt);
   assert.equal(weaveSelf.rechargeReadyAt - weaveSelfFire.at, 72);
@@ -1368,6 +1410,7 @@ test('Evoker mechanics execute through native hooks', () => {
     initialEvokerCharges: 6,
     initialEvokerEmpowered: 3
   });
+
   assert.equal(result.endState.profession.maximumCharges, 6);
   assert.equal(result.endState.profession.empowered, 0);
   assert.equal(
@@ -1646,6 +1689,7 @@ test('Pistol bullets grant, consume, and apply their payload', () => {
     rotation: ['Elemental Explosion'],
     weapons: ['Pistol', 'Warhorn']
   });
+
   assert.equal(
     unavailableExplosion.events.some((event) => event.type === 'action' && event.skillName === 'Elemental Explosion'),
     false
@@ -1658,6 +1702,7 @@ test('Pistol bullets grant, consume, and apply their payload', () => {
     weapons: ['Pistol', 'Warhorn'],
     pistolBullets: { Fire: true, Water: true, Air: true, Earth: true }
   });
+
   assert.deepEqual(explosion.warnings, []);
   assert.equal(
     explosion.events.some((event) => event.type === 'action' && event.skillName === 'Elemental Explosion'),
@@ -1697,12 +1742,14 @@ test('Hammer orbs block reuse and Grand Finale cancels future packets', () => {
   );
   const finale = result.events.find((event) => event.type === 'action' && event.skillName === 'Grand Finale');
   const finaleHits = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Grand Finale');
+
   assert.equal(finaleHits.length, 1);
   assert.equal(finaleHits[0].coefficient, 1.4);
   assert.ok(Math.abs(finaleHits[0].at - finale.endsAt - 0.68) < 0.001);
   const airProcs = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillName === 'Sigil of Air'
   );
+
   assert.equal(airProcs.length, 1);
   assert.equal(airProcs[0].triggeredBy, 'Grand Finale');
 });
@@ -1935,6 +1982,7 @@ test('core damage traits expose their exact resolver modifiers', () => {
   const { app: core } = createNativeApp({
     lines: [['Fire'], ['Air'], ['Arcane']]
   });
+
   assert.equal(core.attributeData.attributes['Condition Damage'].traits, 180);
   assert.equal(core.attributeData.attributes.Ferocity.traits, 150);
   assert.equal(core.attributeData.attributes.Concentration.traits, 180);
@@ -1944,8 +1992,10 @@ test('core damage traits expose their exact resolver modifiers', () => {
   const { app: water } = createNativeApp({
     lines: [['Water', '1-1-3'], ['Air'], ['Arcane']]
   });
+
   assert.equal(water.attributeData.attributes.Vitality.traits, 300);
   const withoutSoothingPower = calculateAttributes(water.build, [], 1, 'Soothing Power');
+
   assert.equal(withoutSoothingPower.attributes.Vitality.traits, 0);
   assert.equal(
     withoutSoothingPower.activeTraits.some((trait) => trait.name === 'Soothing Power'),
@@ -1955,11 +2005,13 @@ test('core damage traits expose their exact resolver modifiers', () => {
   const { app: tempest } = createNativeApp({
     lines: [['Fire'], ['Air'], ['Tempest']]
   });
+
   assert.equal(tempest.attributeData.attributes.Concentration.traits, 240);
 
   const { app: weaver } = createNativeApp({
     lines: [['Fire'], ['Earth'], ['Weaver']]
   });
+
   assert.equal(weaver.attributeData.attributes.Vitality.traits, 180);
 
   const persistingFlames = runNative({
@@ -1968,6 +2020,7 @@ test('core damage traits expose their exact resolver modifiers', () => {
     startAttunement: 'Fire',
     weapons: ['Sword', 'Warhorn']
   });
+
   assert.equal(
     persistingFlames.events.filter((event) => event.type === 'damage' && event.skillName === 'Flame Uprising').length,
     5
@@ -1998,6 +2051,7 @@ test('core attunement and aura traits emit named boon and damage payloads', () =
       source
     );
   }
+
   assert.equal(
     fire.procSteps.some((step) => step.skill === 'Sunspot'),
     true
@@ -2019,6 +2073,7 @@ test('core attunement and aura traits emit named boon and damage payloads', () =
       Elite: 'Glyph of Elementals'
     }
   });
+
   for (const source of ["Earth's Embrace", 'Earthen Blast', 'Rock Solid', 'Written in Stone']) {
     assert.equal(
       earth.events.some((event) => event.source === source),
@@ -2026,6 +2081,7 @@ test('core attunement and aura traits emit named boon and damage payloads', () =
       source
     );
   }
+
   assert.equal(
     earth.procSteps.some((step) => step.skill === 'Earthen Blast'),
     true
@@ -2046,6 +2102,7 @@ test('core attunement and aura traits emit named boon and damage payloads', () =
   const strengthBleeds = resolvedAndScheduledEvents(strength).filter(
     (event) => event.type === 'condition' && event.source === 'Strength of Stone'
   );
+
   assert.equal(strengthBleeds.length, 1);
   assert.equal(strengthBleeds[0].stacks, 3);
   assert.equal(strengthBleeds[0].duration, 10);
@@ -2061,6 +2118,7 @@ test('core critical-hit and control traits enforce their proc rules', () => {
     rotation: ['Updraft', 'Charged Strike', 'Polaric Slash', 'Call Lightning'],
     startAttunement: 'Air'
   });
+
   for (const source of [
     'Lightning Rod',
     'Elemental Lockdown',
@@ -2074,6 +2132,7 @@ test('core critical-hit and control traits enforce their proc rules', () => {
       source
     );
   }
+
   assert.equal(
     resolvedAndScheduledEvents(critical).some(
       (event) => event.source === 'Lightning Rod' && event.type === 'condition' && event.condition === 'Weakness'
@@ -2093,6 +2152,7 @@ test('core critical-hit and control traits enforce their proc rules', () => {
     rotation: ['Updraft', 'Charged Strike', 'Polaric Slash', 'Call Lightning'],
     startAttunement: 'Air'
   });
+
   assert.equal(
     stamina.events.some((event) => event.type === 'buff' && event.source === 'Renewing Stamina'),
     true
@@ -2122,6 +2182,7 @@ test('Tempest traits enforce overload dwell, auras, boons, and damage windows', 
     rotation: ['Overload Fire'],
     startAttunement: 'Fire'
   });
+
   for (const kind of ['vigor', 'regeneration', 'alacrity']) {
     assert.equal(
       auraSupport.events.some((event) => event.type === 'buff' && event.kind === kind),
@@ -2141,6 +2202,7 @@ test('Tempest traits enforce overload dwell, auras, boons, and damage windows', 
       Elite: 'Glyph of Elementals'
     }
   });
+
   assert.equal(
     healingAndShout.events.some((event) => event.source === 'Gale Song'),
     true
@@ -2155,6 +2217,7 @@ test('Tempest traits enforce overload dwell, auras, boons, and damage windows', 
     rotation: ['Water Attunement'],
     startAttunement: 'Fire'
   });
+
   assert.equal(
     latent.events.some((event) => event.source === 'Latent Stamina'),
     true
@@ -2172,6 +2235,7 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
       alacrity: false
     }
   });
+
   assert.equal(
     dual.events.some(
       (event) => event.type === 'condition' && event.skillName === 'Pyro Vortex' && event.condition === 'Weakness'
@@ -2202,6 +2266,7 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
       alacrity: false
     }
   });
+
   assert.deepEqual(
     flow.steps.filter((step) => String(step.skill).endsWith(' Attunement')).map((step) => step.start),
     [0, 3000]
@@ -2221,6 +2286,7 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
   const moltenMeteor = flowDualAttack.events.find(
     (event) => event.type === 'action' && event.skillName === 'Molten Meteor'
   );
+
   assert.ok(Math.abs(moltenMeteor.rechargeReadyAt - moltenMeteor.endsAt - 9.6) < 1e-9);
 
   const pursuit = runNative({
@@ -2236,6 +2302,7 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
       Elite: 'Weave Self'
     }
   });
+
   assert.equal(
     pursuit.events.some((event) => event.source === 'Elemental Pursuit'),
     true
@@ -2278,6 +2345,7 @@ test('Catalyst traits enforce energy, empowerment, aura, and sphere rules', () =
     rotation: ['Deploy Jade Sphere (Fire)', 'Arcane Wave', 1000, 'Air Attunement'],
     initialCatalystEnergy: 30
   });
+
   assert.equal(
     sphere.events.some((event) => event.type === 'resource' && event.source === 'Energized Elements'),
     true
@@ -2304,6 +2372,7 @@ test('Catalyst traits enforce energy, empowerment, aura, and sphere rules', () =
     rotation: ['Deploy Jade Sphere (Fire)', 'Arcane Wave', 1000, 'Air Attunement', 'Updraft'],
     initialCatalystEnergy: 30
   });
+
   for (const source of ['Elemental Synergy', 'Elemental Epitome']) {
     assert.equal(
       control.procSteps.some((step) => step.skill === source),
@@ -2311,6 +2380,7 @@ test('Catalyst traits enforce energy, empowerment, aura, and sphere rules', () =
       source
     );
   }
+
   assert.equal(
     control.procSteps.some((step) => step.skill === 'Vicious Empowerment'),
     true
@@ -2329,6 +2399,7 @@ test('Evoker traits enforce familiar boons, enchantments, and charge rules', () 
     evokerElement: 'Air',
     initialEvokerCharges: 6
   });
+
   assert.equal(
     offensive.events.some((event) => event.source === "Familiar's Prowess"),
     true
@@ -2353,6 +2424,7 @@ test('Evoker traits enforce familiar boons, enchantments, and charge rules', () 
       Elite: 'Glyph of Elementals'
     }
   });
+
   assert.equal(
     boons.events.some((event) => event.type === 'buff' && event.source === "Familiar's Blessing"),
     true
@@ -2371,6 +2443,7 @@ test('Evoker traits enforce familiar boons, enchantments, and charge rules', () 
     evokerElement: 'Air',
     initialEvokerCharges: 0
   });
+
   assert.equal(
     dynamo.events.some((event) => event.type === 'resource' && event.source === 'Elemental Dynamo'),
     true
@@ -2385,6 +2458,7 @@ test('Elementalist trait coverage documents implementation scope', () => {
 
   for (const entry of implemented) {
     const trait = traitsById.get(entry.traitId);
+
     assert.ok(trait, String(entry.traitId));
     assert.doesNotMatch(entry.effects[0].description, /Reviewed Elementalist behavior/);
     assert.equal(entry.effects[0].description, String(trait.description).trim());
@@ -2394,6 +2468,7 @@ test('Elementalist trait coverage documents implementation scope', () => {
   for (const name of ['Conjurer', 'Gathered Focus', 'Harmonious Conduit', 'Lucid Singularity']) {
     const trait = elementalistCatalog.traits.find((candidate) => candidate.name === name);
     const entry = ELEMENTALIST_TRAIT_COVERAGE.find((candidate) => candidate.traitId === trait.id);
+
     assert.equal(entry.status, TRAIT_COVERAGE_STATUSES.IMPLEMENTED, name);
   }
 });
@@ -2488,6 +2563,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   const firstBarrageDamage = result.events.filter(
     (event) => event.type === 'damage' && event.skillName === 'Flame Barrage' && event.at < 5
   );
+
   assert.deepEqual(
     firstBarrageDamage.map((event) => Math.round(event.at * 1000)),
     [3370, 3570, 3770, 3770]
@@ -2497,6 +2573,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   const firstBarrageBurns = result.events.filter(
     (event) => event.type === 'condition' && event.skillName === 'Flame Barrage' && event.at < 5
   );
+
   assert.equal(firstBarrageBurns.length, 1);
   assert.ok(
     firstBarrageBurns.every(
@@ -2521,6 +2598,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   const resolvedBarrages = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillName === 'Flame Barrage' && event.hitIndex === 1
   );
+
   assert.equal(resolvedBarrages.length, 2);
   assert.equal(resolvedBarrages[0].damage, resolvedBarrages[1].damage);
   assert.equal(result.endState.profession.availableFlips['Flame Barrage'], Infinity);
@@ -2550,6 +2628,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   };
   const palette = { innerHTML: '', querySelectorAll: () => [] };
   const previousDocument = globalThis.document;
+
   globalThis.document = {
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
@@ -2558,6 +2637,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   } finally {
     globalThis.document = previousDocument;
   }
+
   assert.doesNotMatch(palette.innerHTML, /data-skill="Glyph of Elementals"/);
   assert.match(palette.innerHTML, /class="pal-skill" data-skill="Flame Barrage"[\s\S]*?draggable="true"/);
   assert.equal(
@@ -2716,6 +2796,7 @@ test('Elementalist small-hitbox caps exclude only excess multi-hit packets', () 
         }
       });
       const strikes = result.events.filter((event) => event.type === 'damage' && event.skillName === entry.skill);
+
       assert.equal(strikes.length, entry[hitboxSize], `${entry.skill} on ${hitboxSize}`);
     }
   }
@@ -2735,6 +2816,7 @@ test('large Elementalist hitboxes extend Wildfire by two packets', () => {
           quickness: false
         }
       });
+
       return [
         hitboxSize,
         result.events.filter((event) => event.type === 'damage' && event.skillName === 'Wildfire').length
@@ -2757,6 +2839,7 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
     lines: [['Fire'], ['Air'], ['Arcane']],
     selectedSkills
   });
+
   Object.assign(app, {
     skills: elementalistCatalog.skills,
     weaponData: elementalistAppAdapter.weaponData
@@ -2771,6 +2854,7 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
     app.results = result;
     const palette = { innerHTML: '', querySelectorAll: () => [] };
     const previousDocument = globalThis.document;
+
     globalThis.document = {
       getElementById: (id) => (id === 'rotation-palette' ? palette : null)
     };
@@ -2779,10 +2863,12 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
     } finally {
       globalThis.document = previousDocument;
     }
+
     return palette.innerHTML;
   };
 
   const initialHtml = renderResult(null);
+
   assert.match(initialHtml, /data-skill="Dodge"/);
   assert.doesNotMatch(initialHtml, /data-skill="__drop_bundle"/);
   assert.doesNotMatch(initialHtml, /data-skill="__pickup_/);
@@ -2794,6 +2880,7 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
       selectedSkills
     })
   );
+
   assert.match(equippedHtml, /data-skill="Frost Volley"/);
   assert.match(equippedHtml, /data-skill="__drop_bundle"/);
   assert.doesNotMatch(equippedHtml, /data-skill="__pickup_/);
@@ -2806,6 +2893,7 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
       selectedSkills
     })
   );
+
   assert.match(pickupHtml, /data-skill="__pickup_Frost Bow"/);
   assert.doesNotMatch(pickupHtml, /data-skill="__drop_bundle"/);
   assert.match(pickupHtml, /data-skill="Flame Uprising"/);

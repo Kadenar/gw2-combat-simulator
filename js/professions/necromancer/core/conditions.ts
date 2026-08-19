@@ -113,6 +113,7 @@ export function removeNecromancerSelfCondition(
     if (selected.size >= maximumConditionTypes) break;
     selected.add(application.condition);
   }
+
   state.selfConditions = active.filter((application) => !selected.has(application.condition));
   return selected.size;
 }
@@ -184,6 +185,7 @@ function emitTransferredApplication(
     });
     return;
   }
+
   context.emit({
     ...common,
     type: 'condition',
@@ -213,19 +215,23 @@ export function transferNecromancerSelfConditions(
     for (const application of transferred) {
       emitTransferredApplication(context, skill, application, at);
     }
+
     return transferred.length;
   }
+
   const selected = new Set<string>();
   for (const application of active) {
     if (selected.size >= maximumConditionTypes) break;
     selected.add(application.condition);
   }
+
   if (!selected.size) return 0;
   const transferred = active.filter((application) => selected.has(application.condition));
   state.selfConditions = active.filter((application) => !selected.has(application.condition));
   for (const application of transferred) {
     emitTransferredApplication(context, skill, application, at);
   }
+
   return transferred.length;
 }
 
@@ -251,6 +257,7 @@ function corruption(context: NecromancerCastContext, skill: NecromancerSkill): b
       Number(application[2])
     );
   }
+
   if (hasTrait(context, TRAIT.MASTER_OF_CORRUPTION)) {
     for (const application of mechanics.master) {
       applyNecromancerSelfCondition(
@@ -262,6 +269,7 @@ function corruption(context: NecromancerCastContext, skill: NecromancerSkill): b
       );
     }
   }
+
   if (professionCoreState(context).plagueSendingArmed) {
     const transferred = transferNecromancerSelfConditions(context, skill, 2, context.effectiveEnd, {
       latestApplications: true
@@ -271,11 +279,13 @@ function corruption(context: NecromancerCastContext, skill: NecromancerSkill): b
       professionCoreState(context).plagueSendingEntrySkillId = null;
     }
   }
+
   if (skill.id === ID.BLOOD_IS_POWER) {
     emitBuff(context, skill, 'might', necromancerBoonDuration(context, 'Might', 20), 5, {
       metadata: necromancerPartyBoonRecipients(context)
     });
   }
+
   return false;
 }
 
@@ -324,6 +334,7 @@ function devouringDarkness(context: NecromancerCastContext, skill: NecromancerSk
   if (count > 0) {
     emitCondition(context, skill, 'Torment', count, 4, { at: impactAt });
   }
+
   return true;
 }
 

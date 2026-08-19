@@ -32,8 +32,10 @@ export function handleNecromancerPainfulBond(
         mode: 'tick'
       });
     }
+
     return;
   }
+
   if (event.mode !== 'tick') return;
 
   // Damage fires only while the debuff is still active; the final tick at expiry is suppressed
@@ -87,6 +89,7 @@ export function handleNecromancerWeaponSpell(
       nextAt: 0
     };
   }
+
   ritualistState.from(context).weaponSpells[event.spell] = {
     skillId: event.skillId ?? undefined,
     skillName: event.skillName,

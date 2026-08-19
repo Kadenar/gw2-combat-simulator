@@ -42,6 +42,7 @@ export function removeUncommittedMesmerAutoattacks(
     ) {
       return false;
     }
+
     return !requiresDamageEvidence(context, action) || committed.has(action);
   });
 }

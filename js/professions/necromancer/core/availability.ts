@@ -104,6 +104,7 @@ function devouringGate(
   if (!hasTrait(context, TRAIT.LINGERING_CURSE)) {
     return deny(skill, 'necromancer.trait-locked', 'requires Lingering Curse.');
   }
+
   return activeShroud ? deny(skill, 'necromancer.in-shroud', `cannot cast in ${activeShroud} shroud.`) : READY;
 }
 
@@ -116,13 +117,16 @@ function shroudEntryGate(
   if (activeShroud) {
     return deny(skill, 'necromancer.in-shroud', `already in ${activeShroud} shroud.`);
   }
+
   const expected = SHROUD_FOR_SPECIALIZATION[spec] || 'death';
   if (ENTRY_SHROUD_BY_ID[skill.id] !== expected) {
     return deny(skill, 'necromancer.wrong-specialization', `not available for the ${spec} specialization.`);
   }
+
   if (spec !== 'Harbinger' && Number(state.lifeForce || 0) < Number(state.maximumLifeForce || 100) * 0.1) {
     return deny(skill, 'necromancer.insufficient-life-force', 'requires 10 life force.');
   }
+
   return READY;
 }
 
@@ -166,6 +170,7 @@ function inShroudGate(
   if (activeShroud !== shroud) {
     return deny(skill, 'necromancer.wrong-shroud', `requires ${shroud} shroud.`);
   }
+
   return chainVerdict(context, skill, state);
 }
 
@@ -198,6 +203,7 @@ function selectedSlotSkillGate(context: NecromancerPrecastContext, skill: Necrom
   if (!['Heal', 'Utility', 'Elite'].includes(String(skill.type || '')) || skill.flipParentId != null) {
     return null;
   }
+
   const source = context.config?.selectedSkills || [];
   const selected = Array.isArray(source) ? source : Object.values(source);
   if (!selected.length || selected.includes(skill.name)) return null;
@@ -213,6 +219,7 @@ function baselineGate(
   if (activeShroud) {
     return deny(skill, 'necromancer.in-shroud', `cannot cast in ${activeShroud} shroud.`);
   }
+
   if (
     skill.lifeForceCost &&
     Number(state.lifeForce || 0) < normalizedNecromancerLifeForceCost(state, skill.lifeForceCost)
@@ -223,9 +230,11 @@ function baselineGate(
       `requires ${Math.round(actualNecromancerLifeForceCost(skill.lifeForceCost))} life force.`
     );
   }
+
   if (skill.flipParentId != null && !(Number(state.availableFlips[skill.id] || 0) > context.start)) {
     return deny(skill, 'necromancer.flip-not-armed', 'not currently armed.');
   }
+
   return chainVerdict(context, skill, state);
 }
 
@@ -254,6 +263,7 @@ export function validateNecromancerBuild(context: NecromancerPrecastContext, ski
   if (skill.type !== 'Weapon' && skill.specialization && skill.specialization !== specialization(context)) {
     return false;
   }
+
   if (skill.id === ID.FEAST_OF_CORRUPTION && hasTrait(context, TRAIT.LINGERING_CURSE)) return false;
   if (skill.id === ID.SANDSTORM_SHROUD && !hasTrait(context, TRAIT.HERALD_OF_SORROW)) return false;
   if (skill.id === ID.DESERT_SHROUD && hasTrait(context, TRAIT.HERALD_OF_SORROW)) return false;
@@ -278,5 +288,6 @@ export function necromancerCastAvailability(
     const verdict = gate(context, skill, env);
     if (verdict != null) return verdict;
   }
+
   return READY;
 }

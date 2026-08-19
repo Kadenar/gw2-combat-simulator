@@ -25,11 +25,13 @@ function kineticAcceleratorsTriggerAllowed(context: EngineerSchedulerContext, ev
   ) {
     return false;
   }
+
   if (event.finisherType !== 'Whirl') return true;
   const state = scrapperState.from(context);
   if (state.kineticAcceleratorsWhirlReadyAt > event.at + context.epsilon) {
     return false;
   }
+
   state.kineticAcceleratorsWhirlReadyAt =
     event.at + engineerBalanceValue(context, PROFILE.kineticAccelerators, 'internalCooldown', 3);
   return true;
@@ -58,6 +60,7 @@ function observeScrapperScheduledEvent(context: EngineerSchedulerContext, event:
       recipients: 'party'
     });
   };
+
   emitBoon('quickness', engineerBalanceEffectValue(context, PROFILE.kineticAccelerators, 'boon', 'duration', 3), 1);
   emitBoon(
     'might',

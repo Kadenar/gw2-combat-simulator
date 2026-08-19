@@ -170,6 +170,7 @@ function minionDefinitionFor(context: NecromancerCastContext, key: string): Mini
     const definition = minionDefinitionForSkill(context, Number(skillId));
     if (definition?.key === key) return definition;
   }
+
   return undefined;
 }
 
@@ -223,6 +224,7 @@ function summonStrikeMetadata(
   if (!definition || !Number.isFinite(Number(definition.basePower)) || !Number.isFinite(Number(damagePerCoefficient))) {
     return {};
   }
+
   return {
     summonBasePower: Number(definition.basePower),
     summonDamagePerCoefficient: Number(damagePerCoefficient),
@@ -415,9 +417,11 @@ function summonMinion(context: NecromancerCastContext, skill: NecromancerSkill):
   if (definition.commandId) {
     state.availableFlips[definition.commandId] = Number.POSITIVE_INFINITY;
   }
+
   if (skill.rechargeOnMinionDeath) {
     context.state.cooldowns.delete(skill.id);
   }
+
   emitState(context, context.effectiveEnd, 'minion-summoned');
   runCreatureSummonReactions(context, skill, context.effectiveEnd, definition.count);
   queueSummonAttacks(context, skill, definition, context.effectiveEnd);
@@ -442,6 +446,7 @@ function emitMinionCommandEffects(
       }
     });
   }
+
   if (definition.condition) {
     emitCondition(
       context,
@@ -452,6 +457,7 @@ function emitMinionCommandEffects(
       { at, source: 'Minion', actorType: 'summon' }
     );
   }
+
   for (const condition of definition.conditions || []) {
     emitCondition(context, skill, String(condition[0]), Number(condition[1]), Number(condition[2]), {
       at,
@@ -459,9 +465,11 @@ function emitMinionCommandEffects(
       actorType: 'summon'
     });
   }
+
   if (definition.control && definition.control !== 'blind') {
     emitControl(context, skill, definition.control);
   }
+
   if (definition.control === 'blind') {
     context.emit({
       type: 'blind',
@@ -524,6 +532,7 @@ function minionCommand(context: NecromancerCastContext, skill: NecromancerSkill)
   } else {
     emitMinionCommandEffects(context, skill, definition, context.effectiveEnd);
   }
+
   if (definition.consumes) {
     const remaining = Math.max(
       0,
@@ -552,6 +561,7 @@ function minionCommand(context: NecromancerCastContext, skill: NecromancerSkill)
   } else if (Number(professionCoreState(context).activeMinions[definition.minion] || 0) > 0) {
     professionCoreState(context).availableFlips[skill.id] = Number.POSITIVE_INFINITY;
   }
+
   emitState(context, context.effectiveEnd, 'minion-command');
   return true;
 }
@@ -593,6 +603,7 @@ function summonMadness(context: NecromancerCastContext, skill: NecromancerSkill)
       metadata: { summonKind: 'minion' }
     });
   }
+
   return true;
 }
 

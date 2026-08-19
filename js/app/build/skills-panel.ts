@@ -45,9 +45,11 @@ export function availableSlotSkills(
     ) {
       continue;
     }
+
     const displayName = String(skill.displayName || skill.name);
     if (!byDisplayName.has(displayName)) byDisplayName.set(displayName, skill);
   }
+
   return [...byDisplayName.values()];
 }
 
@@ -72,6 +74,7 @@ export function skillBarDisplaySkill(
     if (flips[flip.id] ?? flips[flip.name]) display = flip;
     current = flip;
   }
+
   return display;
 }
 
@@ -100,6 +103,7 @@ export function skillBarInspectionStacks(
     ) {
       continue;
     }
+
     if (!childrenByRoot.has(rootId)) childrenByRoot.set(rootId, []);
     childrenByRoot.get(rootId)?.push(skill);
     childSkillIds.add(Number(skill.id));
@@ -360,6 +364,7 @@ export function renderSkills(app: ProfessionAppState): void {
       return sequenceOrder || 0;
     });
   };
+
   const set1Skills = skillsForSet(app.build.weapons);
   const set2Skills = skillsForSet(app.build.alternateWeapons);
 
@@ -433,6 +438,7 @@ export function renderSkills(app: ProfessionAppState): void {
         })
         .join("")}</div>`;
     }
+
     return stacks
       .map(
         (slotSkills, slotIndex) =>
@@ -484,6 +490,7 @@ export function renderSkills(app: ProfessionAppState): void {
         : "";
       return `<div class="weapon-set-preview" data-weapon-set-preview="${setNumber}">${label}${weaponSlots(skills, false, separateWeaponChains)}</div>`;
     }
+
     return `<div class="weapon-set-preview-group" data-weapon-set="${setNumber}" data-weapon-set-preview="${setNumber}">
         ${showSetLabel ? `<span class="weapon-set-preview-group-label">${setLabel}</span>` : ""}
         ${groups
@@ -545,6 +552,7 @@ export function renderSkills(app: ProfessionAppState): void {
   if (visibleAttunement) {
     weaponBar.dataset.visibleAttunement = visibleAttunement;
   }
+
   weaponBar.innerHTML = `
             ${
               useWeaponSetToggle
@@ -603,6 +611,7 @@ export function renderSkills(app: ProfessionAppState): void {
         button.setAttribute("aria-pressed", String(active));
       });
   };
+
   if (useWeaponSetToggle) {
     showWeaponSetPreview(visibleWeaponSet);
     weaponBar
@@ -624,6 +633,7 @@ export function renderSkills(app: ProfessionAppState): void {
         preview.hidden = preview.dataset.attunement !== attunement;
       });
   };
+
   if (useAttunementToggle) {
     showAttunementPreview(visibleAttunement);
     weaponBar
@@ -640,6 +650,7 @@ export function renderSkills(app: ProfessionAppState): void {
     renderFixedSlotLoadout(app, spec);
     return;
   }
+
   const slots: readonly (readonly [string, string])[] = [
     ["Heal", "Heal"],
     ["Utility1", "Utility"],
@@ -713,6 +724,7 @@ export function renderSkills(app: ProfessionAppState): void {
       });
       dropdown.classList.toggle("open");
     };
+
     icon.addEventListener("click", toggleDropdown);
     slot.querySelectorAll(".dd-item").forEach((item) => {
       if (!(item instanceof HTMLElement)) return;
@@ -750,6 +762,7 @@ export function renderSkills(app: ProfessionAppState): void {
           filterEmpty.hidden = visibleOptions > 0;
         }
       };
+
       if (filterInput instanceof HTMLInputElement) {
         filterInput.addEventListener("input", filterOptions);
         filterInput.addEventListener("keydown", (event) => {
@@ -759,6 +772,7 @@ export function renderSkills(app: ProfessionAppState): void {
           filterInput.blur();
         });
       }
+
       icon.addEventListener("click", (event) => {
         event.stopPropagation();
         document.querySelectorAll(".sbar-dropdown.open").forEach((drop) => {
@@ -791,6 +805,7 @@ export function renderSkills(app: ProfessionAppState): void {
           ) {
             return;
           }
+
           if (app.profession.ui.updateSkillBarSelection) {
             app.profession.ui.updateSkillBarSelection(
               {
@@ -813,6 +828,7 @@ export function renderSkills(app: ProfessionAppState): void {
             values[index] = skillId;
             app.build[key] = values;
           }
+
           app.changed();
         });
       });
@@ -926,6 +942,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
           </div>
         </div>`;
     }
+
     return `<label><span>${esc(selector.label)}</span>
                 <select class="gear-select" data-loadout-key="${esc(selector.key)}">
                     ${selector.options
@@ -937,6 +954,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
                 </select>
             </label>`;
   };
+
   const pairedIconLoadout =
     view.selectionControl === "icons" &&
     view.selectors.length === view.bars.length;

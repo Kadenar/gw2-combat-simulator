@@ -60,6 +60,7 @@ export function engineerCoreCastAvailability(
           engineerEnduranceReadyAt(context, enduranceCost)
         );
   }
+
   if (skill.name === 'Electric Artillery' && !state.electricArtilleryAvailable) {
     // electricArtilleryReadyAt is set while Lightning Rod is still charging; gate EA until then
     const retryAt = Number(state.electricArtilleryReadyAt || 0);
@@ -70,6 +71,7 @@ export function engineerCoreCastAvailability(
       retryAt > context.start ? retryAt : null
     );
   }
+
   if (
     skill.name === 'Lightning Rod' &&
     (state.electricArtilleryAvailable || Number(state.electricArtilleryReadyAt || 0) > context.start)
@@ -82,6 +84,7 @@ export function engineerCoreCastAvailability(
       Number(state.electricArtilleryExpiresAt || 0) > context.start ? state.electricArtilleryExpiresAt : null
     );
   }
+
   if (skill.simulatorExcluded) {
     // skills marked simulatorExcluded fire automatically from their parent; manual queuing would double them
     return denyEngineerCast(
@@ -90,6 +93,7 @@ export function engineerCoreCastAvailability(
       'this skill activates automatically from its parent skill.'
     );
   }
+
   if (skill.id === ID.SWAP_WEAPONS) {
     // engineers have no weapon swap except to exit a kit back to baseline weapons
     return state.activeKit
@@ -100,6 +104,7 @@ export function engineerCoreCastAvailability(
           'engineers can use weapon swap only to leave an active kit.'
         );
   }
+
   if (
     skill.specialization &&
     skill.type !== 'Weapon' &&
@@ -108,6 +113,7 @@ export function engineerCoreCastAvailability(
   ) {
     return denyEngineerCast(skill, 'engineer.wrong-specialization', `requires ${skill.specialization}.`);
   }
+
   if (skill.kit) {
     if (state.activeKit !== skill.kit) {
       return denyEngineerCast(skill, 'engineer.inactive-kit', `equip ${skill.kit} first.`);
@@ -116,10 +122,12 @@ export function engineerCoreCastAvailability(
     // active kit completely replaces the weapon bar; baseline weapon skills are inaccessible
     return denyEngineerCast(skill, 'engineer.weapon-bar-replaced', 'the active kit replaces weapon skills.');
   }
+
   if (skill.handlerId === 'engineer.kit-equip') {
     if (!selectedEngineerSkillNames(context.config).has(skill.kitName || skill.name)) {
       return denyEngineerCast(skill, 'engineer.kit-not-equipped', 'the kit is not selected in a slot.');
     }
+
     if (state.activeKit === (skill.kitName || skill.name)) {
       return denyEngineerCast(
         skill,
@@ -128,6 +136,7 @@ export function engineerCoreCastAvailability(
       );
     }
   }
+
   if (
     skill.handlerId === 'engineer.consume-flip' &&
     // availableFlips is populated by the parent skill's handler; absent = parent hasn't fired yet
@@ -139,6 +148,7 @@ export function engineerCoreCastAvailability(
       `use ${skill.flipParentName || 'its parent skill'} first.`
     );
   }
+
   if (
     skill.toolbeltParentName &&
     // Photon Forge toolbelt skills have no conventional utility parent — they are spec-mechanic skills
@@ -148,8 +158,10 @@ export function engineerCoreCastAvailability(
   ) {
     return denyEngineerCast(skill, 'engineer.toolbelt-parent', `${skill.toolbeltParentName} is not equipped.`);
   }
+
   if (!expectedEngineerChainSkill(context, skill, state)) {
     return denyEngineerCast(skill, 'engineer.autoattack-chain', 'cast the earlier chain skill first.');
   }
+
   return { ready: true };
 }

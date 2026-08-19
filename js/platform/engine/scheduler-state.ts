@@ -23,6 +23,7 @@ export function createSchedulerState<TProfessionState extends object = Scheduler
   if (!profession || typeof profession.createProfessionState !== 'function') {
     throw new TypeError('Scheduler state requires a profession contract.');
   }
+
   return {
     time: Number(startingTime || 0),
     cooldowns: new Map(),

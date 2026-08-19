@@ -102,6 +102,7 @@ export function timelineSkillCastOrdinals(steps: readonly SchedulerStep[] = []):
   for (const cast of casts) {
     totalsBySkill.set(cast.skill, (totalsBySkill.get(cast.skill) || 0) + 1);
   }
+
   const seenBySkill = new Map<string, number>();
   return new Map(
     casts.map((cast, index) => {
@@ -172,6 +173,7 @@ export function timelineDeadTimeMarkers(steps: readonly TimelineDeadTimeStep[] =
     containsFutureSkill ||= busy[index]?.containsSkill || false;
     futureContainsSkill[index] = containsFutureSkill;
   }
+
   let previousContainsSkill = busy[0]?.containsSkill || false;
   for (let index = 1; index < busy.length; index += 1) {
     const previous = busy[index - 1];
@@ -186,8 +188,10 @@ export function timelineDeadTimeMarkers(steps: readonly TimelineDeadTimeStep[] =
         durationMs
       });
     }
+
     previousContainsSkill ||= next.containsSkill;
   }
+
   return markers;
 }
 
@@ -284,11 +288,13 @@ export function updateRotationEntry(
       updated[key] = value;
     }
   }
+
   const keys = Object.keys(updated);
   // Compact back to a primitive after the last option is removed.
   if (keys.length === 1 && keys[0] === 'name') {
     return typeof updated.name === 'number' ? updated.name : String(updated.name || '');
   }
+
   return updated;
 }
 
@@ -307,6 +313,7 @@ export function insertRotationEntry(
   if (!Array.isArray(rotation) || entry == null || !Number.isInteger(index)) {
     return false;
   }
+
   const boundedIndex = Math.max(0, Math.min(index, rotation.length));
   rotation.splice(boundedIndex, 0, entry);
   return true;
@@ -326,6 +333,7 @@ export function insertRotationEntries(
   ) {
     return false;
   }
+
   const boundedIndex = Math.max(0, Math.min(index, rotation.length));
   rotation.splice(boundedIndex, 0, ...entries);
   return true;
@@ -443,6 +451,7 @@ export function bindTimelineInteractions(
       changed();
       return true;
     }
+
     if (drag.source === 'palette') {
       const name = String(drag.name ?? drag.skillName ?? '');
       const resolved = options.resolvePaletteEntry?.(name, drag, insertAt);
@@ -454,6 +463,7 @@ export function bindTimelineInteractions(
       changed();
       return true;
     }
+
     return false;
   };
 
@@ -472,10 +482,12 @@ export function bindTimelineInteractions(
         event.preventDefault();
         event.stopPropagation();
       };
+
       remove.ondragstart = (event) => {
         event.preventDefault();
         event.stopPropagation();
       };
+
       remove.onclick = (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -489,30 +501,36 @@ export function bindTimelineInteractions(
         } else {
           rotation.splice(index, 1);
         }
+
         changed();
       };
     }
+
     const editActivation = item.querySelector<HTMLElement>('.rot-edit-activation');
     if (editActivation) {
       editActivation.setAttribute('draggable', 'false');
       editActivation.onmousedown = (event) => {
         event.stopPropagation();
       };
+
       editActivation.ondragstart = (event) => {
         event.preventDefault();
         event.stopPropagation();
       };
     }
+
     item.ondragstart = (event) => {
       if (!Number.isInteger(index)) {
         event.preventDefault();
         return;
       }
+
       setDragState({ source: 'timeline', index });
       item.classList.add('dragging');
       event.dataTransfer?.setData('text/plain', String(index));
       if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
     };
+
     item.ondragend = () => cleanup(item);
     item.ondragover = (event) => {
       if (!getDragState()) return;
@@ -520,9 +538,11 @@ export function bindTimelineInteractions(
       clearTimelineDropIndicators(root);
       updateSkillDropIndicator(item, event.clientX);
     };
+
     item.ondragleave = () => {
       item.classList.remove('drag-insert-before', 'drag-insert-after');
     };
+
     item.ondrop = (event) => {
       if (!getDragState()) return;
       event.preventDefault();
@@ -543,9 +563,11 @@ export function bindTimelineInteractions(
       clearTimelineDropIndicators(root);
       row.classList.add('drag-over');
     };
+
     row.ondragleave = (event) => {
       if (event.target === row) row.classList.remove('drag-over');
     };
+
     row.ondrop = (event) => {
       const target = event.target instanceof Element ? event.target : null;
       if (!getDragState() || target?.closest('.rot-skill')) return;
@@ -565,9 +587,11 @@ export function bindTimelineInteractions(
     clearTimelineDropIndicators(root);
     root.classList.add('drag-over-empty');
   };
+
   root.ondragleave = (event) => {
     if (event.target === root) root.classList.remove('drag-over-empty');
   };
+
   root.ondrop = (event) => {
     const target = event.target instanceof Element ? event.target : null;
     if (!getDragState() || target?.closest('.rot-row-skills')) return;
@@ -588,6 +612,7 @@ export function bindTimelineInteractions(
       };
     }
   };
+
   bindEdit('.rot-offset-badge', options.onEditOffset);
   bindEdit('.rot-edit-activation, .rot-interrupt-badge', options.onEditActivation || options.onEditInterrupt);
   bindEdit('.rot-charge-release-badge', options.onEditReleaseAtCharges);

@@ -50,15 +50,19 @@ export function reduceRotationWorkspaceState(
   if (action === 'toggle-config') {
     return { ...state, configOpen: !state.configOpen };
   }
+
   if (action === 'close-config') {
     return { ...state, configOpen: false };
   }
+
   if (action === 'toggle-focus') {
     return { configOpen: false, focus: !state.focus };
   }
+
   if (state.configOpen) {
     return { ...state, configOpen: false };
   }
+
   return state;
 }
 

@@ -130,9 +130,11 @@ export function applyLegendInvocationTraits(context: RevenantCastContext, swapSk
   if (CORE_LEGENDS.has(legendId) && hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
     emitSpiritBoon(context, swapSkill, legendId, at);
   }
+
   if (CORE_LEGENDS.has(legendId) && hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) {
     emitSongOfTheMists(context, swapSkill, legendId, at);
   }
+
   if (hasRevenantTrait(context.config, TRAIT.INVOKING_TORMENT)) {
     emitInvokingTorment(context, at);
   }

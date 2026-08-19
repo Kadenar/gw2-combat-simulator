@@ -138,6 +138,7 @@ const thiefBuildCodec = createGw2BuildCodec({
         errors.push(`weapon set ${pair[0] || 'empty'}/${pair[1] || 'empty'} has no legal Thief slot-3 skill.`);
       }
     }
+
     return errors;
   }
 });

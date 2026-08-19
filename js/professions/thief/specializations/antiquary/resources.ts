@@ -21,19 +21,23 @@ export function advanceAntiquaryResources(context: ThiefSchedulerContext, target
   if (Number(state.stealthAttackExpiresAt || 0) <= target) {
     state.stealthAttackCharges = 0;
   }
+
   if (Number(state.mistburnExpiresAt || 0) <= target) {
     state.mistburnCharges = 0;
   }
+
   if (Number(state.holoUtilityCooldownReductionExpiresAt || 0) <= target) {
     // bulk-clear the per-use expiration list once the last window has passed; individual uses are consumed in rules.ts
     state.holoUtilityCooldownReduction = 0;
     state.holoUtilityCooldownReductionExpirations = [];
   }
+
   for (const [skillId, penalty] of Object.entries(state.backfireState)) {
     if (Number(penalty.activeUntil || 0) <= target) {
       delete state.backfireState[skillId];
     }
   }
+
   emitThiefState(context, target, 'resources');
 }
 
@@ -45,6 +49,7 @@ export function spendAntiquaryResources(context: ThiefCastContext, skill: ThiefS
   if (Number(state.chakInitiativeRefundUntil || 0) > context.start) {
     gainThiefInitiative(context, cost, context.start, 'chak-shield-refund');
   }
+
   // Prodigious Pincher should not fire during pre-cast; initiative spent before combat begins must not count toward the threshold
   const inCombat =
     !context.hasExplicitCombatStart ||

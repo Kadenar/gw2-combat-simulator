@@ -43,6 +43,7 @@ function adjustResourceSkillEffect(
   if (!state.berserkersPowerGranted && grantBerserkersPowerOnFirstHit(context, skill, event, spent)) {
     state.berserkersPowerGranted = true;
   }
+
   if (skill.id === ID.BLOODTHIRSTER && event.type === 'condition' && event.condition === 'Bleeding') {
     const tier = burstTier(context, spent);
     const bleeding = warriorBalanceProfileEffect(
@@ -55,9 +56,11 @@ function adjustResourceSkillEffect(
       duration: Number(bleeding?.duration || event.duration)
     });
   }
+
   if (skill.id !== ID.EVISCERATE || event.type !== 'damage' || !(Number(event.coefficient) > 0)) {
     return;
   }
+
   const tier = burstTier(context, spent);
   const variantId = [PROFILE.eviscerateTier1, PROFILE.eviscerateTier2, PROFILE.eviscerateTier3][tier - 1];
   const strike = warriorBalanceProfileEffect(warriorBalanceProfile(context, variantId), 'strike');
@@ -105,6 +108,7 @@ function useCombustiveShot(context: WarriorCastContext, skill: WarriorSkill): vo
     ) {
       resource.berserkersPowerGranted = true;
     }
+
     context.emit({
       type: 'condition',
       at,
@@ -153,6 +157,7 @@ function adjustFierceBlowDamage(
   ) {
     return;
   }
+
   context.replaceEvent(event, {
     coefficient: 2.7,
     name: 'Fierce Blow — Damage to Controlled or Defiant Foes'
@@ -190,6 +195,7 @@ function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill)
     state.ammoStartedFullByActivation[context.reservationId] =
       bullets >= Number(context.ammo?.maximum || skill.ammo || 0);
   }
+
   if (context.ammo && context.ammo.charges > 1) context.ammo.charges = 1;
   context.replaceEvent(context.action, {
     rechargeReadyAt: context.rechargeStart + Math.max(context.rechargeDuration, context.ammoLockoutDuration)

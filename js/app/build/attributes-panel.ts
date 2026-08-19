@@ -16,6 +16,7 @@ export function renderAttributes(app: ProfessionAppState): void {
   ) {
     throw new Error("Required attribute weapon-set control is missing.");
   }
+
   const hasSecondWeaponSet = app.profession.ui.weaponSwapChangesSet !== false;
   if (!hasSecondWeaponSet) app.attributeWeaponSet = 1;
   weaponSet.disabled = !hasSecondWeaponSet;
@@ -24,6 +25,7 @@ export function renderAttributes(app: ProfessionAppState): void {
   if (!app.attributeData) {
     throw new Error("Profession attributes must exist before rendering.");
   }
+
   const attributes = app.attributeData.attributes;
   const section = (title: string, names: readonly string[]): string =>
     `<div class="attr-section"><h4>${title}</h4>${names
@@ -32,6 +34,7 @@ export function renderAttributes(app: ProfessionAppState): void {
         if (SPECIFIC_CONDITION_DURATION_ATTRIBUTES.has(name)) {
           value += attributes["Condition Duration"]?.final || 0;
         }
+
         const breakdown = attributes[name]
           ? Object.entries(attributes[name])
               .filter(([key, amount]) => key !== "final" && amount)

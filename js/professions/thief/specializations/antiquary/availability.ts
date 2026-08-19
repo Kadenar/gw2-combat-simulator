@@ -22,13 +22,16 @@ export function antiquaryCastAvailability(context: ThiefPrecastContext, skill: T
       return deny(skill, 'thief.artifact', 'this artifact is not in an available artifact slot.', retryAt);
     }
   }
+
   // backfire variants (e.g. Stone Summit Misfire) are not player-selectable; they are emitted internally by resolveDoubleEdge
   if (skill.backfire) {
     return deny(skill, 'thief.backfire-variant', 'backfire variants are resolved by their Double Edge skill.');
   }
+
   // Reshuffle requires an active artifact pool to reroll; it cannot create a pool from nothing
   if (skill.id === ID.RESHUFFLE && (state.artifactUsesRemaining <= 0 || state.artifactSlots.length === 0)) {
     return deny(skill, 'thief.artifact', 'pilfer artifacts first.');
   }
+
   return { ready: true };
 }

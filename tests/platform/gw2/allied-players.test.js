@@ -15,6 +15,7 @@ test('allied effect recipients prioritize players before companions', () => {
       companionIds: ['minion:one', 'minion:two', 'minion:three']
     }
   );
+
   assert.deepEqual(partialParty, {
     includesSelf: true,
     alliedPlayerCount: 2,
@@ -29,6 +30,7 @@ test('allied effect recipients prioritize players before companions', () => {
       companionIds: ['minion:one', 'minion:two']
     }
   );
+
   assert.deepEqual(fullParty, {
     includesSelf: true,
     alliedPlayerCount: 4,
@@ -49,6 +51,7 @@ test('boon applications resolve player recipients before summons', () => {
       companionIds: ['clone:one', 'clone:two']
     }
   );
+
   assert.deepEqual(fullParty, {
     includesSelf: true,
     affectsSelf: true,
@@ -69,6 +72,7 @@ test('boon applications resolve player recipients before summons', () => {
       companionIds: ['clone:one', 'clone:two', 'clone:three']
     }
   );
+
   assert.deepEqual(partialParty, {
     includesSelf: true,
     affectsSelf: true,
@@ -86,6 +90,7 @@ test('boon applications resolve player recipients before summons', () => {
       companionIds: ['clone:one', 'clone:two']
     }
   );
+
   assert.deepEqual(alliesOnly, {
     includesSelf: false,
     affectsSelf: false,
@@ -104,6 +109,7 @@ test('boon audiences distinguish self, capped sharing, and summon-only effects',
     },
     { recipients: 'self', maximumRecipients: 1 }
   );
+
   assert.deepEqual(selfOnly, {
     includesSelf: true,
     affectsSelf: true,
@@ -124,6 +130,7 @@ test('boon audiences distinguish self, capped sharing, and summon-only effects',
       maximumRecipients: 5
     }
   );
+
   assert.equal(sharingDisabled.affectsSummons, false);
 
   const explicitSelfAndPet = gw2BoonApplicationRecipients(
@@ -133,6 +140,7 @@ test('boon audiences distinguish self, capped sharing, and summon-only effects',
     },
     { affectsSummons: true, maximumRecipients: 2 }
   );
+
   assert.deepEqual(explicitSelfAndPet, {
     includesSelf: true,
     affectsSelf: true,
@@ -149,6 +157,7 @@ test('boon audiences distinguish self, capped sharing, and summon-only effects',
     },
     { recipients: 'party', maximumRecipients: 5 }
   );
+
   assert.equal(implicitSharingDisabled.affectsSummons, false);
 
   const openPartySlot = gw2BoonApplicationRecipients(
@@ -158,6 +167,7 @@ test('boon audiences distinguish self, capped sharing, and summon-only effects',
     },
     { recipients: 'party', maximumRecipients: 5 }
   );
+
   assert.equal(openPartySlot.affectsSummons, true);
 
   const resolvedOpenPartySlot = gw2BoonApplicationRecipients(
@@ -172,6 +182,7 @@ test('boon audiences distinguish self, capped sharing, and summon-only effects',
       boonAudienceResolved: true
     }
   );
+
   assert.deepEqual(resolvedOpenPartySlot, openPartySlot);
 
   const noEligibleCompanions = gw2BoonApplicationRecipients(
@@ -181,6 +192,7 @@ test('boon audiences distinguish self, capped sharing, and summon-only effects',
     },
     { recipients: 'party', maximumRecipients: 5, companionIds: [] }
   );
+
   assert.equal(noEligibleCompanions.affectsSummons, false);
   assert.equal(noEligibleCompanions.recipientCount, 1);
 
@@ -191,6 +203,7 @@ test('boon audiences distinguish self, capped sharing, and summon-only effects',
     },
     { recipients: 'party', maximumRecipients: 5 }
   );
+
   assert.equal(cappedParty.affectsSummons, false);
   assert.equal(cappedParty.recipientCount, 5);
 
@@ -205,6 +218,7 @@ test('boon audiences distinguish self, capped sharing, and summon-only effects',
       companionIds: ['ranger-pet']
     }
   );
+
   assert.deepEqual(summonOnly, {
     includesSelf: false,
     affectsSelf: false,
@@ -226,6 +240,7 @@ test("allied proc timelines respect the effect's selected player count", () => {
       internalCooldown: 1
     }
   );
+
   assert.equal(procs.length, 6);
   assert.deepEqual([...new Set(procs.map((proc) => proc.allyIndex))], [1, 2]);
   assert.deepEqual(

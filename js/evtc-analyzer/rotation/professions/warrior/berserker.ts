@@ -40,6 +40,7 @@ function berserkEntryActions(
     ) {
       return [];
     }
+
     return [instantAction(eventIndex, event.time, event.skillId, 'Berserk', BERSERK, 'buff-transition')];
   });
 }
@@ -97,6 +98,7 @@ function outrageActions(
     ) {
       return [];
     }
+
     const precedingSwap = actions
       .filter(
         (action) => action.rawName === 'Swap Weapons' && action.start <= event.time && event.time - action.start <= 150
@@ -165,9 +167,11 @@ function openingPrecasts(
       });
     }
   }
+
   if (!recordedHeadButt) {
     inferred.push(initialAction(context, HEAD_BUTT, headButtStart, firstEntry.eventIndex - 2));
   }
+
   if (outrages.length > 0 && !hasActionNear(actions, OUTRAGE, atCombat, OPENING_WINDOW_MS)) {
     inferred.push({
       ...instantAction(
@@ -181,6 +185,7 @@ function openingPrecasts(
       precast: true
     });
   }
+
   return inferred;
 }
 

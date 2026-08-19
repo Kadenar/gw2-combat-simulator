@@ -20,6 +20,7 @@ export function selectedGuardianSpecialization(context: GuardianAvailabilityCont
   if (typeof config.specialization === 'string') {
     return config.specialization;
   }
+
   return (
     (config.specializations || [])
       .map((value) => (typeof value === 'string' ? value : value?.name))
@@ -39,12 +40,15 @@ export function validateGuardianBuild(context: GuardianAvailabilityContext, skil
   if (skill.type !== 'Weapon' && skill.specialization && specialization !== skill.specialization) {
     return false;
   }
+
   if (skill.id === GUARDIAN_SKILL_IDS.MIGHTY_BLOW) {
     return !hasTrait(context, GUARDIAN_TRAIT_IDS.GLACIAL_HEART);
   }
+
   if (skill.id === GUARDIAN_SKILL_IDS.GLACIAL_BLOW) {
     return hasTrait(context, GUARDIAN_TRAIT_IDS.GLACIAL_HEART);
   }
+
   return true;
 }
 
@@ -64,6 +68,7 @@ export function guardianCastAvailability(
   ) {
     return deny(skill, 'guardian.flip-parent-active', 'use the active flip skill first.');
   }
+
   if (skill.flipParentId != null) {
     // Firebrand mantra flips use persistent ammo/final-charge state and are
     // validated by their specialization instead of a short flip window.
@@ -72,6 +77,7 @@ export function guardianCastAvailability(
       ? READY
       : deny(skill, 'guardian.flip-not-armed', 'not currently armed.');
   }
+
   const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
   if (!chain) return READY;
   const expected = state.autoattackChains[chain.root] || chain.root;

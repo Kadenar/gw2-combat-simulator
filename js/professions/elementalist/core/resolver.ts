@@ -217,6 +217,7 @@ export function applyElementalistResolverAura(context: Gw2ResolverRuntime, event
   if (event.elementalistResolverGeneratedAura === true) {
     context.resolved.push(event);
   }
+
   if (hasTrait(context, 'Empowering Auras')) {
     const maximumStacks = elementalistBalanceValue(context, TRAIT.EMPOWERING_AURAS, 'maximumStacks', 5);
     const duration = elementalistBalanceValue(context, TRAIT.EMPOWERING_AURAS, 'durationMultiplier', 10);
@@ -226,11 +227,14 @@ export function applyElementalistResolverAura(context: Gw2ResolverRuntime, event
     if (activeStacks < maximumStacks) {
       queueElementalistBuff(context, event, 'Empowering Auras', 1, duration, skillName);
     }
+
     recordElementalistTraitProc(context, event, 'Empowering Auras');
   }
+
   if (context.combatStartTime != null && event.at < context.combatStartTime) {
     return;
   }
+
   if (event.elementalistResolverGeneratedAura === true || event.type === 'aura') {
     if (hasTrait(context, "Zephyr's Boon")) {
       const fury = elementalistBalanceEffect(context, PROFILE.zephyrsBoon, 'boon', 'Fury');
@@ -252,6 +256,7 @@ export function applyElementalistResolverAura(context: Gw2ResolverRuntime, event
         skillName
       );
     }
+
     if (hasTrait(context, 'Elemental Shielding')) {
       const protection = elementalistBalanceEffect(context, PROFILE.elementalShielding, 'boon', 'Protection');
       queueElementalistBuff(
@@ -263,6 +268,7 @@ export function applyElementalistResolverAura(context: Gw2ResolverRuntime, event
         skillName
       );
     }
+
     if (hasTrait(context, 'Invigorating Torrents')) {
       for (const [name, kind] of [
         ['Vigor', 'Vigor'],
@@ -279,6 +285,7 @@ export function applyElementalistResolverAura(context: Gw2ResolverRuntime, event
         );
       }
     }
+
     if (hasTrait(context, 'Elemental Bastion')) {
       const alacrity = elementalistBalanceEffect(context, TRAIT.ELEMENTAL_BASTION, 'boon', 'Alacrity');
       queueElementalistBuff(
@@ -291,6 +298,7 @@ export function applyElementalistResolverAura(context: Gw2ResolverRuntime, event
       );
     }
   }
+
   if (event.type === 'elementalist.aura') {
     Object.assign(event, { elementalistAuraReactionDispatched: true });
     context.dispatchReaction('aura.applied', event);
@@ -317,6 +325,7 @@ function applyBurningPrecision(
   ) {
     return;
   }
+
   const state = coreState(context);
   const chance = Number(details.hitContext.critical.chance || 0);
   state.burningPrecisionProgress +=
@@ -324,6 +333,7 @@ function applyBurningPrecision(
   if (state.burningPrecisionProgress < 1 || Number(state.procReadyAt.burningPrecision || 0) >= event.at - EPSILON) {
     return;
   }
+
   state.burningPrecisionProgress -= 1;
   state.procReadyAt.burningPrecision =
     event.at + elementalistBalanceValue(context, PROFILE.burningPrecision, 'internalCooldown', 5);
@@ -386,6 +396,7 @@ export function applyElementalistResolvedCondition(
       recordElementalistTraitProc(context, event, 'Strength of Stone');
     }
   }
+
   if (event.condition === 'Burning') grantPersistingFlames(context, event);
 }
 
@@ -394,6 +405,7 @@ export function applyElementalistResolverAttunement(context: Gw2ResolverRuntime,
   if (isElementalistAttunement(event.to)) {
     core.primaryAttunement = event.to;
   }
+
   core.secondaryAttunement = isElementalistAttunement(event.secondaryAttunement) ? event.secondaryAttunement : null;
   core.attunementEnteredAt = event.at;
 }

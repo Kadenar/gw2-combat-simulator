@@ -57,12 +57,14 @@ export function createGw2ConditionResolution({
     if (name === 'Torment' && ctx.config.target?.moving) {
       return MOVING_TORMENT.base + MOVING_TORMENT.scaling * conditionDamage;
     }
+
     let rate = conditionTickDamage(name, conditionDamage);
     if (name === 'Confusion') {
       rate +=
         Number(ctx.config.target?.confusionActivationsPerSecond || 0) *
         (CONFUSION_ACTIVATION.base + CONFUSION_ACTIVATION.scaling * conditionDamage);
     }
+
     return rate;
   }
 
@@ -70,6 +72,7 @@ export function createGw2ConditionResolution({
     if (!ctx.conditionState.has(name)) {
       ctx.conditionState.set(name, { stacks: [] });
     }
+
     return ctx.conditionState.get(name)!;
   }
 
@@ -91,6 +94,7 @@ export function createGw2ConditionResolution({
         fraction: 1
       });
     }
+
     const remainder = Math.max(0, activeDuration - fullTicks);
     if (remainder > EPSILON) {
       enqueueOrdered(ctx.queue, {
@@ -169,6 +173,7 @@ export function createGw2ConditionResolution({
     if (Number.isFinite(Number(application.removedAt)) && event.at >= Number(application.removedAt) - EPSILON) {
       return null;
     }
+
     const condition = event.condition || application.condition;
 
     const stats = ctx.query.statsAt(event.at, application, ctx);

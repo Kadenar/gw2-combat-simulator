@@ -31,6 +31,7 @@ function calcifyActions(context: EvtcProfessionReconstructionContext): EvtcRecor
     if (event.sourceMasterInstance !== ownerInstance || event.skillId !== CALCIFY_RAW_SKILL_ID) {
       return [];
     }
+
     const directStart = event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START;
     const unmatchedStop =
       event.stateChange === EVTC_STATE_CHANGE.ANIMATION_STOP &&

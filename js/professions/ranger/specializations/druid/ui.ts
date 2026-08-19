@@ -26,17 +26,21 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
         message: 'Celestial Avatar is already active'
       };
     }
+
     // UI check mirrors druidCastAvailability: full force required to enter
     if (Number(state.astralForce || 0) < 100) {
       return { available: false, message: 'Requires full Astral Force' };
     }
   }
+
   if (skill.id === ID.RELEASE_CELESTIAL_AVATAR && !active) {
     return { available: false, message: 'Celestial Avatar is not active' };
   }
+
   if (skill.celestialAvatarSkill && !active) {
     return { available: false, message: 'Enter Celestial Avatar first' };
   }
+
   // Normal weapon skills are suppressed while in CA; only CA skills (celestialAvatarSkill=true) show available
   if (skill.type === 'Weapon' && active && !skill.celestialAvatarSkill) {
     return {
@@ -44,6 +48,7 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
       message: 'Celestial Avatar replaces weapon skills'
     };
   }
+
   return { available: true, message: '' };
 }
 
@@ -77,10 +82,12 @@ export const druidUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.f
     if (skill?.handlerId === 'ranger.celestial-avatar-enter') {
       return 'Celestial Avatar';
     }
+
     if (skill?.handlerId === 'ranger.celestial-avatar-exit') {
       // null signals end of CA section on the timeline without starting a new named line
       return null;
     }
+
     return undefined;
   },
   resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {

@@ -66,6 +66,7 @@ export function createContinuumController({
       const ammoSkill = skillsById.get(id);
       if (ammoSkill) refreshAmmo(ammoSkill, at);
     }
+
     addEvent({
       type: 'marker',
       at,

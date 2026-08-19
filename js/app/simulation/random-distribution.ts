@@ -94,6 +94,7 @@ export function summarizeRandomDistribution(values: unknown[] = []): RandomDistr
       p99: 0
     };
   }
+
   return {
     trials: sorted.length,
     mean: sorted.reduce((sum, value) => sum + value, 0) / sorted.length,
@@ -149,12 +150,15 @@ function criticalMetric(event: Gw2ResolverEvent): Readonly<{
   if (event.source === 'Clone' || event.source === 'Phantasm' || event.actorType === 'phantasm') {
     return { id: 'illusion', label: 'Illusion critical hits' };
   }
+
   if (event.actorType === 'summon') {
     return { id: 'summon', label: 'Summon critical hits' };
   }
+
   if (event.actorType === 'effect') {
     return { id: 'effect', label: 'Triggered-effect critical hits' };
   }
+
   return { id: 'player', label: 'Player critical hits' };
 }
 
@@ -232,6 +236,7 @@ export function randomDistributionMetrics(result: DistributionSimulationResult):
           Number(event.hits || 1)
         );
       }
+
       continue;
     }
 
@@ -294,10 +299,12 @@ export function randomDistributionMetrics(result: DistributionSimulationResult):
       1
     );
   };
+
   for (const event of result.events || []) {
     if (event.type !== 'proc') continue;
     addProc(event.name || event.skillName || event.sourceId, Number(event.at || 0) * 1000, event.sourceSkill);
   }
+
   for (const step of result.procSteps || []) {
     addProc(step.skill, Number(step.start || 0), step.sourceSkill);
   }
@@ -318,6 +325,7 @@ function linearRelationship(leftValues: readonly number[], rightValues: readonly
   if (!leftValues.length || leftValues.length !== rightValues.length) {
     return { correlation: 0, slope: 0 };
   }
+
   const leftMean = average(leftValues);
   const rightMean = average(rightValues);
   let numerator = 0;
@@ -330,6 +338,7 @@ function linearRelationship(leftValues: readonly number[], rightValues: readonly
     leftVariance += leftDelta ** 2;
     rightVariance += rightDelta ** 2;
   }
+
   const denominator = Math.sqrt(leftVariance * rightVariance);
   return {
     correlation: denominator > 0 ? numerator / denominator : 0,
@@ -366,8 +375,10 @@ export function summarizeRandomDistributionOutcomes(
       metadata.set(metric.id, metric);
       values.set(metric.id, Number(metric.value || 0));
     }
+
     valueMaps.set(outcome, values);
   }
+
   const valuesFor = (cohort: readonly RandomDistributionOutcome[], id: string): number[] =>
     cohort.map((outcome) => Number(valueMaps.get(outcome)?.get(id) || 0));
   const dpsValues = outcomes.map((outcome) => Number(outcome.dps));
@@ -420,6 +431,7 @@ export function summarizeRandomDistributionOutcomes(
     drivers.push(candidate.driver);
     if (drivers.length >= MAX_EXPLANATION_DRIVERS) break;
   }
+
   if (!drivers.length) return base;
 
   return {
@@ -449,6 +461,7 @@ export function calculateRandomDistribution(
   if (typeof simulateBuild !== 'function') {
     throw new TypeError('A simulation function is required.');
   }
+
   const count = normalizedTrialCount(trials);
   const outcomes: RandomDistributionOutcome[] = [];
   const progressInterval = Math.max(1, Math.ceil(count / 50));
@@ -478,6 +491,7 @@ export function calculateRandomDistribution(
       reportProgress(completed);
     }
   }
+
   const summary = summarizeRandomDistributionOutcomes(outcomes);
   return includeSamples
     ? {

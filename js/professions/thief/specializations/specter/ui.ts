@@ -87,15 +87,18 @@ export const specterUi = Object.freeze({
             : 'Use Siphon or spend initiative to gain shadow force'
       };
     }
+
     if (skill.id === ID.EXIT_SHADOW_SHROUD) {
       return {
         available: Boolean(state.shadowShroudActive),
         message: state.shadowShroudActive ? '' : 'Enter Shadow Shroud first'
       };
     }
+
     if (skill.shadowShroudSkill && !state.shadowShroudActive) {
       return { available: false, message: 'Enter Shadow Shroud first' };
     }
+
     if (
       state.shadowShroudActive &&
       !skill.shadowShroudSkill &&
@@ -106,6 +109,7 @@ export const specterUi = Object.freeze({
         message: 'Shadow Shroud replaces weapon and slot skills'
       };
     }
+
     return { available: true, message: '' };
   }
 });

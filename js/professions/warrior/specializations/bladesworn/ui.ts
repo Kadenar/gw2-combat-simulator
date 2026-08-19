@@ -113,9 +113,11 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
     if ((skillId === ID.UNSHEATHE_GUNSABER || skillId === ID.DRAGON_TRIGGER) && context.weaponLine !== 'Gunsaber') {
       return 'Gunsaber';
     }
+
     if (skillId === ID.SHEATHE_GUNSABER && context.weaponLine === 'Gunsaber') {
       return null;
     }
+
     return undefined;
   },
   resourceViews: resources,
@@ -148,6 +150,7 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
         expiresAt: Number(state.traitPositiveFlowUntil)
       });
     }
+
     if (positiveFlowSources.length) {
       const stacks = positiveFlowSources.reduce((total, source) => total + source.stacks, 0);
       const remaining = Math.min(...positiveFlowSources.map((source) => source.expiresAt)) - at;

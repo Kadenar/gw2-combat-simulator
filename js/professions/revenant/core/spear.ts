@@ -56,6 +56,7 @@ function emitAbyssalRazePackets(
   if (!strike || !baseTorment || !crushingTorment) {
     throw new Error('Abyssal Raze is missing its declarative effects.');
   }
+
   const coefficient = triggeredBy
     ? Number(strike.coefficient || 0)
     : Number(strike.coefficient || 0) * (1 + Number(strike.damageIncreasePerStack || 0) * crushingAbyssStacks);

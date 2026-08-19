@@ -27,5 +27,6 @@ export function getActiveTraits(specializations: readonly ThiefSpecializationSel
       if (trait) active.push(trait);
     }
   }
+
   return active;
 }

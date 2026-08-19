@@ -78,6 +78,7 @@ export function createGw2CombatObserver(state: MaterializerState): Readonly<Gw2C
           if (event.kind !== 'target-vulnerability' || !beforeExplicitCombatStart(context, event)) {
             recordBuff(event);
           }
+
           break;
         case 'condition':
           markCombatActive(context, event);

@@ -90,6 +90,7 @@ export function normalizeWarriorCommonActions(
     while (previousIndex >= 0 && normalized[previousIndex].end <= normalized[previousIndex].start) {
       previousIndex -= 1;
     }
+
     if (previousIndex < 0) return;
     const previous = normalized[previousIndex];
     normalized[previousIndex] = {
@@ -129,8 +130,10 @@ export function normalizeWarriorCommonActions(
       });
       continue;
     }
+
     normalized.push(action);
   }
+
   return normalized;
 }
 

@@ -62,6 +62,7 @@ function normalizeTargetConditions(
     const name = canonicalTargetConditionName(condition);
     if (!normalized.has(name)) normalized.set(name, value);
   }
+
   return normalized;
 }
 
@@ -88,9 +89,11 @@ function configuredConditionValue(
   if (Object.hasOwn(conditions, canonicalName)) {
     return conditions[canonicalName];
   }
+
   if (normalizedConditions) {
     return normalizedConditions.get(canonicalName) ?? 0;
   }
+
   const entry = Object.entries(conditions).find(
     ([condition]) => canonicalTargetConditionName(condition) === canonicalName
   );
@@ -166,6 +169,7 @@ export function runtimeTargetConditionStacks(
     if (canonicalTargetConditionName(condition) !== canonicalName) continue;
     total += (entry?.stacks || []).reduce((sum, stack) => sum + activeRuntimeStackWeight(stack, at), 0);
   }
+
   return total;
 }
 

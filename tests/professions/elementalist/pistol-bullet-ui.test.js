@@ -53,12 +53,14 @@ function createPistolApp() {
       changeCount += 1;
     }
   };
+
   return { app, changeCount: () => changeCount };
 }
 
 function renderPaletteMarkup(app) {
   const palette = { innerHTML: '', querySelectorAll: () => [] };
   const previousDocument = globalThis.document;
+
   globalThis.document = {
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
@@ -67,6 +69,7 @@ function renderPaletteMarkup(app) {
   } finally {
     globalThis.document = previousDocument;
   }
+
   return palette.innerHTML;
 }
 
@@ -107,6 +110,7 @@ test('Elementalist pistol palette toggles the selected starting bullet', () => {
     }
   };
   const previousDocument = globalThis.document;
+
   globalThis.document = {
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
@@ -125,6 +129,7 @@ test('Elemental Explosion replaces the active pistol autoattack at full stock', 
   const { app } = createPistolApp();
 
   const partialStock = renderPaletteMarkup(app);
+
   assert.doesNotMatch(partialStock, /data-skill="Elemental Explosion"/);
   assert.match(partialStock, /data-skill="Electric Exposure"/);
   assert.doesNotMatch(partialStock, />Special<\/div>/);
@@ -136,6 +141,7 @@ test('Elemental Explosion replaces the active pistol autoattack at full stock', 
     Earth: true
   };
   const fullStock = renderPaletteMarkup(app);
+
   assert.match(fullStock, /data-skill="Elemental Explosion"/);
   assert.doesNotMatch(fullStock, /data-skill="Electric Exposure"/);
   assert.match(fullStock, /data-skill="Scorching Shot"/);
@@ -144,6 +150,7 @@ test('Elemental Explosion replaces the active pistol autoattack at full stock', 
   const explosion = fullStock.indexOf('data-skill="Elemental Explosion"');
   const bullets = fullStock.indexOf('data-palette-group="elementalist-pistol-bullets"');
   const earthAutoattack = fullStock.indexOf('data-skill="Piercing Pebble"');
+
   assert.ok(explosion < bullets);
   assert.ok(bullets < earthAutoattack);
 });
@@ -159,6 +166,7 @@ test('Aerial Agility collapses its chain into one pistol palette tile', () => {
 
 test('Elementalist bullet controls stay hidden without a pistol', () => {
   const { app } = createPistolApp();
+
   app.build.weapons = ['Sword', 'Warhorn'];
 
   assert.doesNotMatch(renderPaletteMarkup(app), /data-palette-group="elementalist-pistol-bullets"/);

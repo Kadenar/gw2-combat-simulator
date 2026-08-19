@@ -230,6 +230,7 @@ export function applyCosmicWisdomAfterCast(context: RevenantCastContext, skill: 
   if (skill.legendId === LEGEND.ASSASSIN && revenantConduitFormIsActive(conduitState.from(context), 'Assassin', at)) {
     emitLesserEnchantedDaggers(context, skill, at);
   }
+
   if (skill.legendId !== LEGEND.ENTITY || !revenantConduitFormIsActive(conduitState.from(context), 'Dervish', at))
     return;
   emitDervishFormAttack(context, skill);
@@ -298,10 +299,12 @@ export function gainConduitAffinity(context: RevenantMechanicContext, amount: nu
       coreState.energy + Math.max(0, Number(expanded?.resourceGain || 0))
     );
   }
+
   if (state.affinity !== previous) {
     // Use cast-start time when available so the state event aligns with the skill timeline rather than the clock.
     emitRevenantState(context, context.start ?? context.state.time, reason);
   }
+
   return state.affinity - previous;
 }
 
@@ -312,6 +315,7 @@ export function syncConduitEnergyCostOverrides(context: RevenantSchedulerContext
     state.energyCostOverrides = {};
     return;
   }
+
   state.energyCostOverrides = {
     [ID.BANISH_ENCHANTMENT]: Number(
       balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerBanishEnchantment)?.energyCost || 0
@@ -385,12 +389,14 @@ export function castBeguilingHaze(context: RevenantCastContext, skill: RevenantS
       name: 'Beguiling Haze'
     });
   }
+
   if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
     const shared = sharedWisdomEffect(context, 'beguiling-haze');
     if (shared?.type === 'boon' && shared.boon) {
       emitRevenantBoon(context, skill, shared.boon, Number(shared.duration || 0), Number(shared.stacks || 1));
     }
   }
+
   emitRevenantState(context, context.effectiveEnd, 'beguiling-haze');
 }
 
@@ -410,6 +416,7 @@ export function completeBeguilingHaze(context: RevenantCastContext, skill: Reven
       context.state.cooldowns.get(skill.id) ?? context.state.ammo.get(skill.id)?.nextRechargeAt ?? context.effectiveEnd
     );
   }
+
   // Mirror ConduitState into the platform ammo/cooldown system so the UI and scheduler agree.
   const ammo = context.state.ammo.get(skill.id);
   if (ammo) {
@@ -429,6 +436,7 @@ export function completeBeguilingHaze(context: RevenantCastContext, skill: Reven
       context.state.cooldowns.set(skill.id, state.beguilingHazeReadyAt);
     }
   }
+
   emitRevenantState(context, context.effectiveEnd, 'beguiling-haze-follow-up');
 }
 
@@ -462,6 +470,7 @@ export function castHexEaterVortex(context: RevenantCastContext, skill: Revenant
     state.selfConditionCount -= configuredRemoved;
     state.selfConditions.splice(0, conditionsRemoved - configuredRemoved);
   }
+
   for (let index = 0; index < projectileCount; index += 1) {
     const strikeTick = strikeTicks[index];
     const tormentTick = tormentTicks[index];
@@ -481,12 +490,14 @@ export function castHexEaterVortex(context: RevenantCastContext, skill: Revenant
       name: `Hex-Eater Vortex — Projectile ${index + 1}`
     });
   }
+
   if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
     const shared = sharedWisdomEffect(context, 'hex-eater-vortex');
     if (shared?.type === 'boon' && shared.boon) {
       emitRevenantBoon(context, skill, shared.boon, Number(shared.duration || 0), Number(shared.stacks || 1));
     }
   }
+
   emitRevenantState(context, at, 'hex-eater-vortex');
 }
 
@@ -498,6 +509,7 @@ export function castGladiatorsDefense(context: RevenantCastContext, skill: Reven
       coefficient: Number(strike.coefficient || 0)
     });
   }
+
   for (const effect of skill.effects || []) {
     if (effect.type === 'condition' && effect.condition) {
       emitCondition(context, skill, {
@@ -509,6 +521,7 @@ export function castGladiatorsDefense(context: RevenantCastContext, skill: Reven
       emitRevenantBoon(context, skill, effect.boon, Number(effect.duration || 0), Number(effect.stacks || 1));
     }
   }
+
   if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
     const shared = sharedWisdomEffect(context, 'gladiators-defense');
     if (shared?.type === 'boon' && shared.boon) {
@@ -563,6 +576,7 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
       }
     );
   }
+
   const immobilized = (skill.effects || []).find(
     (effect) => effect.type === 'condition' && effect.metadata?.legendId === LEGEND.ASSASSIN
   );
@@ -574,6 +588,7 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
       duration: Number(immobilized?.duration || 0)
     });
   }
+
   if (hasLegend(context, LEGEND.DEMON)) {
     const shatter = (skill.effects || []).find(
       (effect) => effect.type === 'strike' && effect.metadata?.legendId === LEGEND.DEMON
@@ -592,6 +607,7 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
         totalHits: shatterHits
       });
     }
+
     const confusionApplications = Math.max(0, Number(confusion?.applications || 0));
     for (let index = 0; index < confusionApplications; index += 1) {
       emitCondition(context, skill, {
@@ -603,6 +619,7 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
       });
     }
   }
+
   if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
     const shared = sharedWisdomEffect(context, 'twin-moon-sweep');
     const applications = Math.max(0, Number(shared?.applications || 0));
@@ -637,6 +654,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
         if (effect.type !== 'boon' || !effect.boon) continue;
         emitRevenantBoon(context, skill, effect.boon, Number(effect.duration || 0), Number(effect.stacks || 1));
       }
+
       break;
     case ID.RELEASE_POTENTIAL_DERVISH: {
       const impactAt = effectAt(context, strike);
@@ -653,6 +671,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
           duration: Number(bleeding?.duration || 0)
         });
       }
+
       if (hasLegend(context, LEGEND.CENTAUR) || allLegendEffects) {
         for (const effect of boons.filter((candidate) => candidate.metadata?.legendId === LEGEND.CENTAUR)) {
           if (effect.type !== 'boon' || !effect.boon) continue;
@@ -661,8 +680,10 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
           });
         }
       }
+
       break;
     }
+
     case ID.RELEASE_POTENTIAL_MESMER: {
       const impactAt = effectAt(context, strike);
       emitDamage(context, skill, {
@@ -693,6 +714,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
           skillName: skill.name
         });
       }
+
       const control = (skill.effects || []).find((effect) => effect.type === 'control');
       emitControl(
         context,
@@ -703,6 +725,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
       );
       break;
     }
+
     case ID.RELEASE_POTENTIAL_ASSASSIN: {
       const ticks = strike?.type === 'strike' ? strike.ticks || [] : [];
       for (const [index, tick] of ticks.entries()) {
@@ -713,6 +736,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
           totalHits: ticks.length
         });
       }
+
       // Conditions land with the final hit; both share the same affinity-scaled duration formula.
       for (const effect of conditions) {
         if (effect.type !== 'condition' || !effect.condition) continue;
@@ -723,8 +747,10 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
           duration: Number(effect.duration || 0) * (1 + affinity * Number(effect.durationPerAffinity || 0))
         });
       }
+
       break;
     }
+
     case ID.RELEASE_POTENTIAL_WARRIOR:
       emitDamage(context, skill, {
         coefficient: Number(strike?.coefficient || 0)
@@ -775,6 +801,7 @@ export function activateCosmicWisdom(context: RevenantCastContext): void {
       duration: Number(burning?.duration || 0)
     });
   }
+
   const cosmicWisdom = (context.skill.effects || []).find(
     (effect) => effect.type === 'buff' && effect.kind === 'cosmic-wisdom'
   );

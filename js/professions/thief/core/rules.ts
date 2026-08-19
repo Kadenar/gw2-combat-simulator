@@ -71,8 +71,10 @@ export function thiefRuntimeSpecializationState<TKind extends keyof ThiefSpecial
     if (state.specialization.kind !== expectedKind) {
       throw new TypeError(`Expected active specialization ${expectedKind}, received ${state.specialization.kind}.`);
     }
+
     return state.specialization.state as unknown as Partial<ThiefSpecializationStateMap[TKind]>;
   }
+
   return state as Partial<ThiefSpecializationStateMap[TKind]>;
 }
 
@@ -278,15 +280,18 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
       result.power += Number(profile?.attributePerStack || 540);
     }
   }
+
   if (hasTrait(context, TRAIT.REVEALED_TRAINING)) {
     const profile = thiefBalanceProfile(context, PROFILE.revealedTraining);
     if (!staticRulesApplied) {
       result.power += Number(profile?.attributeBonus || 80);
     }
+
     if (Number(state.revealedUntil || 0) > context.time && !thiefEventSkill(context)?.stealthAttack) {
       result.power += Number(profile?.attributePerStack || 120);
     }
   }
+
   if (
     hasTrait(context, TRAIT.NO_QUARTER) &&
     context.query?.furyActiveAt(context.time, context.runtime, context.event) &&
@@ -294,6 +299,7 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
   ) {
     result.ferocity += Number(thiefBalanceProfile(context, PROFILE.noQuarter)?.attributeBonus || 250);
   }
+
   return result;
 }
 
@@ -314,6 +320,7 @@ function modifyThiefCoreRechargeDuration(context: ThiefPrecastContext, duration:
   if (skill.usableWhileRecharging === true && readyAt > context.start + Number(context.epsilon || 0.0001)) {
     return 0;
   }
+
   let result = duration;
   if (skill.id === state.professionSkillId) {
     const leadAttacks = hasThiefTrait(context.config, TRAIT.LEAD_ATTACKS);
@@ -329,6 +336,7 @@ function modifyThiefCoreRechargeDuration(context: ThiefPrecastContext, duration:
       if (sleightOfHand) result *= sleightMultiplier;
     }
   }
+
   return result;
 }
 

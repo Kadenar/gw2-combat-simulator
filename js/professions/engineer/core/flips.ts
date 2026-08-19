@@ -21,6 +21,7 @@ function consumeFlip(context: EngineerCastContext, skill: EngineerSkill): void {
   if (Number.isFinite(parentId)) {
     context.tasks.cancelOwner(turretOwnerId(parentId));
   }
+
   emitEngineerState(context, context.effectiveEnd, 'consume-flip');
 }
 

@@ -23,6 +23,7 @@ function unleash(context: RangerCastContext, rangerUnleashed: boolean): void {
   ) {
     return;
   }
+
   // 4-second window from the cast start, not effectiveEnd, matching the in-game timing.
   state.ambushReadyUntil = context.start + rangerBalanceValue(context, PROFILE.resources, 'durationMultiplier', 4);
   state.unleashedPowerReadyAt = context.start + rangerBalanceValue(context, PROFILE.resources, 'internalCooldown', 9);

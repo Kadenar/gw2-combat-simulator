@@ -68,6 +68,7 @@ function coalesceCompositeAnimations(
       result.push(action);
       continue;
     }
+
     const identity = selectedIdentity(context, action.rawName, action.rawSkillId);
     result.push({
       ...action,
@@ -79,6 +80,7 @@ function coalesceCompositeAnimations(
     });
     consumed.add(followUp);
   }
+
   return result;
 }
 
@@ -90,6 +92,7 @@ function normalizeAmalgamIdentities(
     if (!AMALGAM_PROTOCOL_NAMES.has(action.rawName) && action.rawName !== EVOLVE.name) {
       return action;
     }
+
     const identity = selectedIdentity(
       context,
       action.rawName,
@@ -120,6 +123,7 @@ function inferThornsActions(context: EvtcProfessionReconstructionContext): EvtcR
     ) {
       return [];
     }
+
     previous = event.time;
     return [canonicalAction(eventIndex, event.time, identity, event.skillId)];
   });
@@ -162,10 +166,12 @@ function openingPrecastActions(context: EvtcProfessionReconstructionContext): Ev
     if (bomb.name === 'Fire Bomb' && hasInitialEvolve(context)) {
       ordered.push({ ...EVOLVE, evidence: 'initial-state' });
     }
+
     if (bomb.name !== opening.rawName) {
       ordered.push({ ...bomb, evidence: 'initial-state' });
     }
   }
+
   if (!bombs.length && hasInitialEvolve(context)) {
     ordered.push({ ...EVOLVE, evidence: 'initial-state' });
   }
@@ -191,6 +197,7 @@ function openingPrecastActions(context: EvtcProfessionReconstructionContext): Ev
     if (equip) {
       scheduled.unshift(canonicalAction(opening.eventIndex - 300, cursor, equip, equip.skillId, 'initial-state'));
     }
+
     if (stow) {
       const openingSkill = skillForAction(context, opening);
       const stowTime = openingIsBomb
@@ -200,6 +207,7 @@ function openingPrecastActions(context: EvtcProfessionReconstructionContext): Ev
           : opening.end;
       scheduled.push(canonicalAction(opening.eventIndex - 1, stowTime, stow, stow.skillId, 'initial-state'));
     }
+
     if (selectedSkill(context, THROW_MINE.name) && initialBombNames.has(THROW_MINE.name)) {
       const mineEnd = cursor - PRECAST_MINE_WAIT_MS;
       const mineStart = mineEnd - PRECAST_MINE_DURATION_MS;
@@ -212,6 +220,7 @@ function openingPrecastActions(context: EvtcProfessionReconstructionContext): Ev
       });
     }
   }
+
   scheduled.push(opening);
   return scheduled;
 }

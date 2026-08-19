@@ -43,6 +43,7 @@ export function serializeEvtcError(error: unknown): SerializedEvtcError {
   if (error instanceof EvtcError) {
     return { code: error.code, message: error.message, details: error.details };
   }
+
   return {
     code: 'WORKER_ERROR',
     message: error instanceof Error ? error.message : String(error)

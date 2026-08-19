@@ -47,6 +47,7 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
       skill.id
     );
   }
+
   if (hasTrait(context, 'Harmonious Conduit')) {
     const swiftness = elementalistBalanceEffect(context, PROFILE.harmoniousConduit, 'boon', 'Swiftness');
     const stability = elementalistBalanceEffect(context, PROFILE.harmoniousConduit, 'boon', 'Stability');
@@ -69,6 +70,7 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
       skill.id
     );
   }
+
   if (skill.attunement === 'Fire') {
     triggerElementalistSunspot(context as never, context.start, skill.id);
   } else if (skill.attunement === 'Air') {
@@ -89,6 +91,7 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
       reason: `${skill.name} is unavailable — requires ${String(skill.attunement)} attunement.`
     };
   }
+
   const dwell =
     (hasTrait(context, 'Transcendent Tempest')
       ? elementalistBalanceValue(context, PROFILE.overloads, 'durationMultiplier', 4)
@@ -161,6 +164,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
       Math.max(state.attunementReadyAt[typedAttunement], Number(context.rechargeReadyAt || context.effectiveEnd))
     );
   }
+
   if (hasTrait(context, 'Unstable Conduit')) {
     const aura =
       attunement === 'Fire'
@@ -180,9 +184,11 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
       priority: -20
     });
   }
+
   if (attunement === 'Fire') {
     triggerElementalistFlameExpulsion(context as never, context.effectiveEnd, skill.id);
   }
+
   if (hasTrait(context, 'Transcendent Tempest')) {
     context.emit({
       type: 'buff',
@@ -199,6 +205,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
       duration: elementalistBalanceValue(context, PROFILE.transcendentTempest, 'durationMultiplier', 7)
     });
   }
+
   if (skill.name === 'Overload Air') {
     const coefficient = elementalistEffectValue(context, PROFILE.lightningJolt, 'strike', 'coefficient', 1.32);
     context.emit({

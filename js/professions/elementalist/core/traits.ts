@@ -63,6 +63,7 @@ export function triggerElementalistSunspot(
   ) {
     return;
   }
+
   const applySunspotAura = () =>
     applyElementalistAura(context, {
       at,
@@ -86,6 +87,7 @@ export function triggerElementalistSunspot(
   if (hasTrait(context, 'Burning Rage')) {
     emitProfiledCondition(context, at, PROFILE.burningRage, 'Sunspot Burning', 'Burning', 2, 4, 'Sunspot', sourceId);
   }
+
   emitElementalistProc(context, {
     at,
     name: 'Sunspot',
@@ -108,6 +110,7 @@ export function triggerElementalistFlameExpulsion(
   ) {
     return;
   }
+
   const cappedMight = Math.min(
     elementalistBalanceValue(context, PROFILE.pyromancersPuissance, 'maximumStacks', 10),
     context.buffStacks('might', at)
@@ -229,6 +232,7 @@ export function triggerElementalistEarthenBlast(
   ) {
     return;
   }
+
   context.emit({
     type: 'damage',
     at,
@@ -262,6 +266,7 @@ export function grantElementalistRockSolid(
   ) {
     return;
   }
+
   emitProfiledBuff(context, at, PROFILE.rockSolid, 'Stability', 'Stability', 1, 3, 'Rock Solid', sourceId);
 }
 
@@ -377,6 +382,7 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
     emitProfiledCondition(context, at, PROFILE.evasiveArcana, 'Earth Bleeding', 'Bleeding', 1, 20, source, skill.id);
     emitProfiledCondition(context, at, PROFILE.evasiveArcana, 'Earth Cripple', 'Cripple', 1, 2, source, skill.id);
   }
+
   context.emit({
     type: 'elementalist.evasive-arcana',
     at,
@@ -411,10 +417,12 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
       skill.id
     );
   }
+
   if (skill.type === 'Heal') {
     if (hasTrait(context, 'Gale Song')) {
       emitProfiledBuff(context, at, TRAIT.GALE_SONG, 'Protection', 'Protection', 1, 3, 'Gale Song', skill.id);
     }
+
     if (hasTrait(context, "Earth's Embrace") && Number(state.procReadyAt.earthsEmbrace || 0) <= at + context.epsilon) {
       state.procReadyAt.earthsEmbrace =
         at + elementalistBalanceValue(context, PROFILE.earthsEmbrace, 'internalCooldown', 15);
@@ -430,6 +438,7 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
         skill.id
       );
     }
+
     if (hasTrait(context, 'Soothing Ice') && Number(state.procReadyAt.soothingIce || 0) <= at + context.epsilon) {
       state.procReadyAt.soothingIce =
         at + elementalistBalanceValue(context, PROFILE.soothingIce, 'internalCooldown', 15);
@@ -453,6 +462,7 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
       );
     }
   }
+
   if (hasTrait(context, 'Written in Stone') && skill.skillFamily === 'Signet') {
     const aura =
       skill.name === 'Signet of Restoration'
@@ -473,6 +483,7 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
       });
     }
   }
+
   if (hasTrait(context, 'Inscription') && skill.skillFamily === 'Glyph') {
     const boon =
       state.primaryAttunement === 'Fire'
@@ -484,9 +495,11 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
             : (['Earth', 'Protection', 1, 3] as const);
     emitProfiledBuff(context, at, PROFILE.inscription, boon[0], boon[1], boon[2], boon[3], skill.name, skill.id);
   }
+
   if (hasTrait(context, 'Bolstered Elements') && skill.skillFamily === 'Stance') {
     emitProfiledBuff(context, at, TRAIT.BOLSTERED_ELEMENTS, 'Protection', 'Protection', 1, 3, skill.name, skill.id);
   }
+
   if (hasTrait(context, 'Swift Revenge') && String(skill.attunement || '').includes('+')) {
     for (const element of new Set(String(skill.attunement).split('+'))) {
       if (element === 'Fire') {
@@ -501,6 +514,7 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
       }
     }
   }
+
   if (hasTrait(context, 'Arcane Lightning') && skill.skillFamily === 'Arcane') {
     const arcaneWindow = profiledEffect(context, PROFILE.arcaneLightning, 'buff', 'Arcane Lightning');
     emitBuff(
@@ -550,6 +564,7 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
       emitProfiledBuff(context, at, PROFILE.arcaneLightning, 'Arcane Echo', 'Quickness', 1, 4, skill.name, skill.id);
     }
   }
+
   if (
     hasTrait(context, 'Superior Elements') &&
     String(skill.attunement || '').includes('+') &&
@@ -565,6 +580,7 @@ export function extendPersistingFlamesPackets(context: ElementalistLifecycleCont
   if (!hasTrait(context, 'Persisting Flames') || !PERSISTING_FLAMES_FIELD_SKILLS.has(skill.name)) {
     return;
   }
+
   const fieldPackets = context.events
     .filter(
       (event) =>
@@ -612,6 +628,7 @@ export function extendPersistingFlamesField(context: ElementalistSchedulerContex
   ) {
     return;
   }
+
   const field = context.events.find(
     (candidate) =>
       candidate.type === 'combo_field' &&
@@ -636,6 +653,7 @@ function observeFreshAir(context: ElementalistSchedulerContext, event: Simulatio
   ) {
     return;
   }
+
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   state.freshAirCandidates.push({
     at: event.at,
@@ -655,6 +673,7 @@ export function processFreshAirCandidates(context: ElementalistSchedulerContext,
       pending.push(candidate);
       continue;
     }
+
     if (state.primaryAttunement === 'Air') continue;
     state.freshAirProgress += candidate.criticalChance;
     if (state.freshAirProgress + context.epsilon < 1) continue;
@@ -664,6 +683,7 @@ export function processFreshAirCandidates(context: ElementalistSchedulerContext,
       context.state.cooldowns.delete(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air);
       context.state.cooldowns.delete(ELEMENTALIST_OVERLOAD_SKILL_IDS.Air);
     }
+
     context.emit({
       type: 'elementalist.fresh-air',
       at: candidate.at,
@@ -675,6 +695,7 @@ export function processFreshAirCandidates(context: ElementalistSchedulerContext,
       triggeringSkillId: candidate.sourceId
     });
   }
+
   state.freshAirCandidates = pending;
 }
 
@@ -701,6 +722,7 @@ function observeCriticalTraits(context: ElementalistSchedulerContext, event: Sim
   ) {
     return;
   }
+
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const chance = eventCriticalChance(context);
   if (hasTrait(context, 'Raging Storm')) {
@@ -725,6 +747,7 @@ function observeCriticalTraits(context: ElementalistSchedulerContext, event: Sim
       );
     }
   }
+
   if (hasTrait(context, 'Arcane Precision')) {
     state.criticalProcProgress.arcanePrecision =
       Number(state.criticalProcProgress.arcanePrecision || 0) +
@@ -786,6 +809,7 @@ function observeCriticalTraits(context: ElementalistSchedulerContext, event: Sim
           event.skillId ?? event.sourceId
         );
       }
+
       emitElementalistProc(context, {
         at: event.at,
         name: 'Arcane Precision',
@@ -795,6 +819,7 @@ function observeCriticalTraits(context: ElementalistSchedulerContext, event: Sim
       });
     }
   }
+
   if (hasTrait(context, 'Renewing Stamina')) {
     state.criticalProcProgress.renewingStamina = Number(state.criticalProcProgress.renewingStamina || 0) + chance;
     if (
@@ -852,6 +877,7 @@ function observeLightningRod(context: ElementalistSchedulerContext, event: Simul
       sourceSkill: String(event.skillName || event.source || '')
     });
   }
+
   if (hasTrait(context, 'Elemental Pursuit')) {
     emitProfiledBuff(
       context,
@@ -865,6 +891,7 @@ function observeLightningRod(context: ElementalistSchedulerContext, event: Simul
       sourceId
     );
   }
+
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   if (
     !hasTrait(context, 'Elemental Lockdown') ||
@@ -872,6 +899,7 @@ function observeLightningRod(context: ElementalistSchedulerContext, event: Simul
   ) {
     return;
   }
+
   state.procReadyAt.elementalLockdown =
     event.at + elementalistBalanceValue(context, PROFILE.elementalLockdown, 'internalCooldown', 1);
   const fallback: Readonly<Record<ElementalistAttunement, readonly [string, number, number]>> = {

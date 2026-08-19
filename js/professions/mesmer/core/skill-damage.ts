@@ -92,10 +92,12 @@ export function createSkillDamageController({
         timingScale: 'fixed'
       });
     }
+
     if (interval > 0 && Number(damageGroup.hits || 1) > 1) {
       const timingAnchorAt = group.timingAnchor === 'castStart' ? castStart : at;
       return emittedAt(timingAnchorAt, damageGroup);
     }
+
     if (pulseTimes.length > 0 && Number(damageGroup.hits || 1) === pulseTimes.length) {
       const origin = Math.min(...pulseTimes);
       const coefficient = Number(damageGroup.coefficient || 0) / pulseTimes.length;
@@ -113,6 +115,7 @@ export function createSkillDamageController({
         timingScale: 'fixed'
       });
     }
+
     if (group.castProgress != null) {
       const hitAt = group.castProgress != null ? castStart + (at - castStart) * Number(group.castProgress) : at;
       return emittedAt(hitAt, {
@@ -123,6 +126,7 @@ export function createSkillDamageController({
         timingScale: undefined
       });
     }
+
     const timingAnchorAt = group.timingAnchor === 'castStart' ? castStart : at;
     return emittedAt(timingAnchorAt, damageGroup);
   };
@@ -166,6 +170,7 @@ export function createSkillDamageController({
         );
       }
     }
+
     professionCoreState(state).trackedSkillHits[skill.id] = recentHits;
   };
 
@@ -214,6 +219,7 @@ export function createSkillDamageController({
       if (!traits.has(TRAIT.FENCERS_FINESSE) || skill.weapon !== 'Sword' || hitTimes.length === 0) {
         return;
       }
+
       const hitCount = Math.max(1, Math.trunc(Number(hits || 1)));
       if (hitTimes.length === hitCount) {
         for (const hitAt of hitTimes) {
@@ -226,8 +232,10 @@ export function createSkillDamageController({
           });
           firstFencerTriggerAt = Math.min(firstFencerTriggerAt, hitAt + epsilon);
         }
+
         return;
       }
+
       addEvent({
         type: 'buff',
         at: hitTimes[0] + epsilon,
@@ -251,13 +259,16 @@ export function createSkillDamageController({
         if (phantasmExecutions.length === 0) {
           throw new TypeError(`Phantasm strike ${skill.id} requires phantasm resource metadata.`);
         }
+
         for (const phantasm of phantasmExecutions) {
           const result = phantasms.scheduleStrike(phantasm, group, selectedGroup, at, castStart);
           addFencerStacks(result.initialHitTimes, result.damageGroup.hits);
           addFencerStacks(result.repeatHitTimes, result.damageGroup.hits);
         }
+
         continue;
       }
+
       const hitAt =
         group.castProgress != null
           ? castStart + (at - castStart) * Number(group.castProgress)
@@ -269,6 +280,7 @@ export function createSkillDamageController({
         addFencerStacks(hitTimes, selectedGroup.hits);
       }
     }
+
     scheduleTrackedHits(skill, playerHitTimes);
     if (phantasmExecutions.length > 0) {
       const playerConditions = conditions.filter((effect) => effect.actorType === 'player');
@@ -280,6 +292,7 @@ export function createSkillDamageController({
     } else {
       schedulePlayerConditions(skill, at, castStart, pulseTimes, conditions);
     }
+
     return { firstFencerTriggerAt };
   };
 

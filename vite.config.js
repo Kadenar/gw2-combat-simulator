@@ -43,6 +43,7 @@ function copyRuntimeData() {
 // dev server matches the built site layout, bypassing Vite's .json transform.
 function serveRuntimeData() {
   const roots = runtimeDirectories.map((directory) => path.resolve(directory));
+
   return {
     name: 'serve-runtime-data',
     apply: 'serve',
@@ -51,11 +52,14 @@ function serveRuntimeData() {
         if (!request.url) return next();
         const { pathname } = new URL(request.url, 'http://local');
         const segment = pathname.split('/')[1];
+
         if (!runtimeDirectories.includes(segment)) return next();
         const target = path.resolve('.' + decodeURIComponent(pathname));
+
         if (!roots.some((root) => target === root || target.startsWith(`${root}${path.sep}`))) {
           return next();
         }
+
         try {
           if ((await stat(target)).isDirectory()) return next();
           response.setHeader(

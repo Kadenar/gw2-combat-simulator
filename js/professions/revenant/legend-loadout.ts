@@ -198,12 +198,15 @@ export const revenantLegendLoadout = Object.freeze({
         if (Number.isFinite(heraldFlipId) && availableFlips[heraldFlipId]) {
           return [heraldFlipId];
         }
+
         if (skillId === SKILL.IMPOSSIBLE_ODDS && availableFlips[SKILL.RELINQUISH_POWER]) {
           return [skillId, SKILL.RELINQUISH_POWER];
         }
+
         if (skillId === SKILL.CALL_TO_ANGUISH && availableFlips[SKILL.UNYIELDING_IMPACT]) {
           return [skillId, SKILL.UNYIELDING_IMPACT];
         }
+
         return [skillId];
       })
     }));

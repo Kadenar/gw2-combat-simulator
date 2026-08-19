@@ -57,6 +57,7 @@ test('Guardian uses a current API catalog with real skills and trait lines', () 
 
 test('Guardian modules expose isolated balance-profile authoring', () => {
   const modules = new Map(guardianProfession.patchAuthoring.modules.map((module) => [module.id, module]));
+
   assert.deepEqual([...modules.keys()], ['Core', 'Dragonhunter', 'Firebrand', 'Willbender', 'Luminary']);
   assert.equal(
     [...modules.values()].every((module) => module.balanceProfiles.length > 0),
@@ -65,6 +66,7 @@ test('Guardian modules expose isolated balance-profile authoring', () => {
 
   const profile = (moduleId, profileId) =>
     modules.get(moduleId).balanceProfiles.find((entry) => entry.id === profileId);
+
   assert.equal(profile('Core', GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice).profile.threshold, 5);
   assert.equal(profile('Dragonhunter', DRAGONHUNTER_BALANCE_PROFILE_IDS.tether).profile.effects[0].duration, 2);
   assert.equal(profile('Firebrand', FIREBRAND_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 5);
@@ -134,10 +136,13 @@ test('Guardian modules expose isolated balance-profile authoring', () => {
 
 test('Masterful Writ utilities grant their flat attributes', () => {
   const baseline = createGuardianBuildDefaults();
+
   baseline.utility = '';
   const strength = structuredClone(baseline);
+
   strength.utility = 'Writ of Masterful Strength';
   const malice = structuredClone(baseline);
+
   malice.utility = 'Writ of Masterful Malice';
 
   const baselineAttributes = calculateGuardianAttributes(baseline, []).attributes;
@@ -254,6 +259,7 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
     });
   const profile = (result, skillName) => {
     const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
+
     return {
       cast: Math.round((action.endsAt - action.at) * 1000),
       ticks: result.resolvedEvents
@@ -267,6 +273,7 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
       )
     };
   };
+
   const normal = simulate(false);
   const quick = simulate(true);
 
@@ -304,6 +311,7 @@ test('Guardian greatsword uses the reference cast and strike profiles', () => {
     coefficient: 2.5
   });
   const tether = quick.resolvedEvents.filter((event) => event.sourceId === GUARDIAN_SKILL_IDS.BINDING_BLADE_TETHER);
+
   assert.equal(tether.length, 10);
   assert.equal(
     tether.every((event) => event.canCrit === false),
@@ -344,6 +352,7 @@ test('Guardian utilities and traps use the reference damage timelines', () => {
         const damage = result.resolvedEvents.filter(
           (event) => event.type === 'damage' && event.skillName === skillName
         );
+
         return [
           skillName,
           {
@@ -434,6 +443,7 @@ test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () =
   // The armed buff makes Gleaming Disc illuminated: an "Illuminated" proc fires
   // and the combo out-damages the two skills cast in isolation.
   const illuminated = combo.procSteps.filter((step) => step.skill === 'Illuminated');
+
   assert.equal(illuminated.length, 1);
   assert.equal(illuminated[0].sourceSkill, 'Gleaming Disc');
   assert.ok(combo.strikeDamage > helioAlone.strikeDamage + gleamingAlone.strikeDamage + 1);
@@ -443,6 +453,7 @@ test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () =
     rotation: ['Helio Rush', { type: 'wait', durationMs: 5001 }, 'Gleaming Disc', { type: 'wait', durationMs: 1000 }],
     config: spearConfig
   });
+
   assert.deepEqual(
     expired.resolvedEvents
       .filter((event) => event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC)
@@ -455,6 +466,7 @@ test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () =
     rotation: ['Helio Rush', 'Daybreaking Slash', 'Gleaming Disc', { type: 'wait', durationMs: 1000 }],
     config: spearConfig
   });
+
   assert.deepEqual(
     preservedThroughFiller.resolvedEvents
       .filter((event) => event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC)
@@ -516,6 +528,7 @@ test('Guardian spear coefficients and repeated pulses stay per-hit', () => {
   const gleamingAction = result.events.find(
     (event) => event.type === 'action' && event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC
   );
+
   assert.deepEqual(
     result.resolvedEvents
       .filter((event) => event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC)
@@ -543,6 +556,7 @@ test('Guardian swaps weapons and exposes profession palette groups', () => {
     rotation: ['Swap Weapons'],
     config
   });
+
   assert.equal(result.endState.activeWeaponSet, 2);
   assert.deepEqual(guardianProfession.ui.resourceViews({}), []);
   assert.deepEqual(guardianProfession.ui.paletteGroups({})[0].skillIds, [
@@ -556,6 +570,7 @@ test('Guardian skill bar exposes F keys and Luminary Radiant Forge skills', () =
   const coreGroups = guardianProfession.ui.skillBarGroups({
     specialization: 'Core'
   });
+
   assert.deepEqual(
     coreGroups.map((group) => group.label),
     ['F Keys']
@@ -570,6 +585,7 @@ test('Guardian skill bar exposes F keys and Luminary Radiant Forge skills', () =
     specialization: 'Luminary',
     professionState: { radiantForge: false }
   });
+
   assert.deepEqual(
     luminaryGroups.map((group) => group.label),
     ['F Keys', 'Radiant Forge']
@@ -596,6 +612,7 @@ test('Guardian skill bar exposes F keys and Luminary Radiant Forge skills', () =
     specialization: 'Firebrand',
     professionState: { activeTome: '', tomePages: 5 }
   });
+
   assert.deepEqual(
     firebrandGroups.map((group) => group.label),
     ['F Keys', 'Tome of Justice', 'Tome of Resolve', 'Tome of Courage']
@@ -670,6 +687,7 @@ test('Guardian palettes keep inactive tome and forge skills visible', () => {
     specialization: 'Luminary',
     professionState: { radiantForge: true }
   });
+
   assert.deepEqual(
     inactiveForgeGroups.map((group) => group.stackId),
     ['luminary-profession', 'luminary-profession']
@@ -889,6 +907,7 @@ test('Guardian measured Quickness cast times remain exact', () => {
       config: quicknessConfig
     });
     const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
+
     return Math.round((action.endsAt - action.at) * 1000);
   };
 
@@ -902,6 +921,7 @@ test('Guardian measured Quickness cast times remain exact', () => {
     rotation: ['Daybreaking Slash', 'Daybreaking Slash', 'Helio Rush', 'Daybreaking Slash'],
     config: quicknessConfig
   });
+
   assert.deepEqual(
     chain.events
       .filter((event) => event.type === 'action' && event.skillName === 'Daybreaking Slash')
@@ -1202,6 +1222,7 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
   const rushingJusticeAction = full.events.find(
     (event) => event.type === 'action' && event.skillName === 'Rushing Justice'
   );
+
   assert.equal(rushingJusticeAction.rechargeReadyAt - rushingJusticeAction.at, 12);
 });
 
@@ -1266,6 +1287,7 @@ test('Willbender flame replacement and Phoenix Protocol follow virtue triggers',
     new Set(['justice', 'resolve'])
   );
   const allVirtueTriggers = allVirtues.events.filter((event) => event.type === 'guardian.willbender-virtue-triggered');
+
   assert.deepEqual(new Set(allVirtueTriggers.map((event) => event.virtue)), new Set(['justice', 'resolve', 'courage']));
   for (const virtue of ['justice', 'resolve', 'courage']) {
     assert.equal(
@@ -1273,7 +1295,9 @@ test('Willbender flame replacement and Phoenix Protocol follow virtue triggers',
       true
     );
   }
+
   const courageTriggers = allVirtueTriggers.filter((event) => event.virtue === 'courage');
+
   for (const kind of ['aegis', 'stability']) {
     assert.equal(
       allVirtues.events.filter(
@@ -1286,6 +1310,7 @@ test('Willbender flame replacement and Phoenix Protocol follow virtue triggers',
       courageTriggers.length
     );
   }
+
   const phoenixResolveTriggers = phoenix.events.filter(
     (event) => event.type === 'guardian.willbender-virtue-triggered' && event.virtue === 'resolve'
   );
@@ -1295,6 +1320,7 @@ test('Willbender flame replacement and Phoenix Protocol follow virtue triggers',
   const phoenixTriggeredAlacrity = phoenix.events.filter(
     (event) => event.type === 'buff' && event.name === 'Phoenix Protocol — Alacrity'
   );
+
   assert.deepEqual(
     phoenixActivationAlacrity.map((event) => [
       event.duration,
@@ -1489,6 +1515,7 @@ test('every catalog skill has executable mechanics', () => {
     rotation: ['Hammer Swing'],
     config: { ...config, primaryWeapon: 'Hammer' }
   });
+
   assert.ok(result.totalDamage > 0);
   assert.deepEqual(result.warnings, []);
 });
@@ -1496,6 +1523,7 @@ test('every catalog skill has executable mechanics', () => {
 test('API mode aliases are not exposed as parent-child skill flips', () => {
   for (const name of ['Sword of Justice', '"Feel My Wrath!"']) {
     const variants = guardianCatalog.skills.filter((skill) => skill.name === name);
+
     assert.equal(variants.length, 2);
     assert.equal(
       variants.every((skill) => skill.flipParentId == null),
@@ -1520,6 +1548,7 @@ test('non-DPS Guardian slot skills are excluded from the simulator surface', () 
     'Hallowed Ground',
     'Bow of Truth'
   ];
+
   for (const name of excludedNames) {
     assert.equal(guardianCatalog.skillsByName.get(name)?.simulatorExcluded, true, name);
   }
@@ -1531,6 +1560,7 @@ test('non-DPS Guardian slot skills are excluded from the simulator surface', () 
       Utility1: 'Contemplation of Purity'
     }
   });
+
   assert.notEqual(migrated.selectedSkills.Utility1, 'Contemplation of Purity');
 });
 
@@ -1687,6 +1717,7 @@ test('Firebrand tome chapters use their reference packets and cooldowns', () => 
   });
   const resolveBuffs = (skillId, kind) =>
     resolve.events.filter((event) => event.type === 'buff' && event.skillId === skillId && event.kind === kind);
+
   assert.equal(resolveBuffs(GUARDIAN_SKILL_IDS.AZURE_SUN, 'vigor')[0].duration, 5);
   assert.equal(resolveBuffs(GUARDIAN_SKILL_IDS.AZURE_SUN, 'regeneration')[0].duration, 6);
   assert.equal(resolveBuffs(GUARDIAN_SKILL_IDS.AZURE_SUN, 'swiftness')[0].duration, 5);
@@ -1707,6 +1738,7 @@ test('Firebrand tome chapters use their reference packets and cooldowns', () => 
   });
   const courageBuffs = (skillId, kind) =>
     courage.events.filter((event) => event.type === 'buff' && event.skillId === skillId && event.kind === kind);
+
   assert.equal(
     courage.events
       .filter((event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.DARING_CHALLENGE)
@@ -1814,6 +1846,7 @@ test('Ashes of the Just cannot trigger before its application event', () => {
   const ashes = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just'
   );
+
   assert.ok(ashes.length > 0);
   assert.ok(ashes.every((event) => event.at >= ashesAppliedAt));
 });
@@ -1908,6 +1941,7 @@ test('Firebrand page exhaustion injects a timeline stow and closes its lane', ()
     ),
     weaponLineTransition(entry, current) {
       const name = typeof entry === 'string' ? entry : entry.name;
+
       return transition({
         entry: { name },
         skill: guardianCatalog.skillsByName.get(name),
@@ -1916,6 +1950,7 @@ test('Firebrand page exhaustion injects a timeline stow and closes its lane', ()
       });
     }
   });
+
   assert.deepEqual(
     rows.map((row) => row.weaponLine),
     [null, 'Tome of Resolve', null]
@@ -1939,6 +1974,7 @@ test('Firebrand tome page cost waits for a regenerating page', () => {
   });
 
   const epilogue = result.steps.find((step) => step.skill === 'Epilogue: Eternal Oasis');
+
   assert.deepEqual(result.warnings, []);
   assert.ok(epilogue && !epilogue.invalid);
   // The first page lands at the 8s interval, so the cast is delayed to it.
@@ -1987,6 +2023,7 @@ test('Firebrand axe skills and Unrelenting Criticism use reference packets', () 
   const criticism = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.name === 'Unrelenting Criticism — Bleeding'
   );
+
   assert.equal(criticism.length, 12);
   assert.ok(criticism.every((event) => event.duration === 4.5));
   assert.equal(
@@ -2017,6 +2054,7 @@ test('Firebrand axe skills and Unrelenting Criticism use reference packets', () 
 test('Condition Firebrand uses configured cast and strike packet timings', () => {
   const profile = (result, skillName) => {
     const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
+
     return {
       cast: Math.round((action.endsAt - action.at) * 1000),
       packets: result.resolvedEvents
@@ -2024,6 +2062,7 @@ test('Condition Firebrand uses configured cast and strike packet timings', () =>
         .map((event) => Math.round((event.at - action.at) * 1000))
     };
   };
+
   const firebrandConfig = {
     ...config,
     specialization: 'Firebrand',
@@ -2398,6 +2437,7 @@ test('Firebrand mantra parents and charged skills use distinct cast states', () 
       selectedSkills: ['Mantra of Flame']
     }
   });
+
   assert.ok(normal.endState.profession.availableFlips[rush.id]);
   assert.equal(normal.endState.profession.availableFlips[surge.id], undefined);
   assert.equal(normal.endState.ammo['Flame Rush'].charges, 2);
@@ -2411,6 +2451,7 @@ test('Firebrand mantra parents and charged skills use distinct cast states', () 
       selectedSkills: ['Mantra of Flame']
     }
   });
+
   assert.equal(final.endState.profession.availableFlips[rush.id], undefined);
   assert.ok(final.endState.profession.availableFlips[surge.id]);
 
@@ -2423,6 +2464,7 @@ test('Firebrand mantra parents and charged skills use distinct cast states', () 
       selectedSkills: ['Mantra of Flame']
     }
   });
+
   assert.equal(depleted.endState.profession.availableFlips[rush.id], undefined);
   assert.equal(depleted.endState.profession.availableFlips[surge.id], undefined);
   assert.equal(depleted.endState.ammo['Flame Rush'], undefined);
@@ -2435,6 +2477,7 @@ test('Firebrand tome transitions are weapon swaps and timeline row changes', () 
     rotation: ['Tome of Justice', 'Stow Tome', 'Tome of Resolve', 'Stow Tome'],
     config: { ...config, specialization: 'Firebrand' }
   });
+
   assert.deepEqual(
     result.events.filter((event) => event.type === 'weapon_set').map((event) => [event.skillName, event.mechanicSwap]),
     [
@@ -2458,6 +2501,7 @@ test('Firebrand tome transitions are weapon swaps and timeline row changes', () 
     startingWeaponSet: 1,
     weaponLineTransition(entry, current) {
       const name = typeof entry === 'string' ? entry : entry.name;
+
       return transition({
         entry: { name },
         skill: guardianCatalog.skillsByName.get(name),
@@ -2466,6 +2510,7 @@ test('Firebrand tome transitions are weapon swaps and timeline row changes', () 
       });
     }
   });
+
   assert.deepEqual(
     rows.map((row) => row.weaponLine),
     [null, 'Tome of Justice', null, 'Tome of Resolve']
@@ -2584,6 +2629,7 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.LEGENDARY_LORE]
     }
   });
+
   assert.equal(lore.endState.profession.tomePages, 3);
   assert.equal(
     lore.events.filter(
@@ -2614,6 +2660,7 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS]
     }
   });
+
   assert.deepEqual(weighted.warnings, []);
   assert.equal(weighted.endState.profession.tomePages, 3);
   assert.deepEqual(
@@ -2633,6 +2680,7 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.LIBERATORS_VOW]
     }
   });
+
   assert.equal(
     liberated.events.some(
       (event) =>
@@ -2658,6 +2706,7 @@ test('Firebrand grandmaster support traits react to boons and control', () => {
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.STALWART_SPEED, GUARDIAN_TRAIT_IDS.QUICKFIRE]
     }
   });
+
   assert.equal(
     quickfire.procSteps.some((step) => step.skill === 'Stalwart Speed'),
     true
@@ -2678,6 +2727,7 @@ test('Firebrand grandmaster support traits react to boons and control', () => {
   const stoicBuffs = stoic.events.filter(
     (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR
   );
+
   assert.deepEqual(
     stoicBuffs.map((event) => [event.kind, event.stacks, event.duration]),
     [
@@ -2697,6 +2747,7 @@ test('Firebrand dormant passives and Imbued Haste use timeline state', () => {
       primaryWeapon: 'Greatsword'
     }
   });
+
   assert.equal(passive.endState.profession.justicePassiveBurns, 2);
   assert.equal(
     passive.resolvedEvents
@@ -2726,6 +2777,7 @@ test('Firebrand dormant passives and Imbued Haste use timeline state', () => {
     });
   const normal = tome([]);
   const imbued = tome([GUARDIAN_TRAIT_IDS.IMBUED_HASTE]);
+
   assert.ok(imbued.conditionDamage > normal.conditionDamage);
 });
 
@@ -2746,6 +2798,7 @@ test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
   assert.equal(result.endState.profession.radiantForge, true);
   assert.equal(result.endState.profession.radiantWeapon, 'hammer');
   const glaring = result.resolvedEvents.find((event) => event.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST);
+
   assert.equal(glaring.coefficient, 1);
   assert.equal(glaring.radiantWeapon, 'hammer');
   assert.equal(Object.hasOwn(result.endState.cooldowns, 'Enter Radiant Forge'), false);
@@ -2765,6 +2818,7 @@ test('Guardian weapon and Radiant Forge flips occupy one live palette tile', () 
       rotation,
       config: { ...config, ...extraConfig }
     });
+
     return displayedFlipSkills(
       app,
       skillIds.map((skillId) => guardianCatalog.skillsById.get(skillId))
@@ -2774,6 +2828,7 @@ test('Guardian weapon and Radiant Forge flips occupy one live palette tile', () 
   const hammerTwo = [GUARDIAN_SKILL_IDS.MIGHTY_BLOW, GUARDIAN_SKILL_IDS.GLACIAL_BLOW].map((skillId) =>
     guardianCatalog.skillsById.get(skillId)
   );
+
   assert.deepEqual(
     guardianProfession.ui.paletteWeaponSkills({ traits: new Set() }, hammerTwo).map((skill) => skill.id),
     [GUARDIAN_SKILL_IDS.MIGHTY_BLOW]
@@ -2788,6 +2843,7 @@ test('Guardian weapon and Radiant Forge flips occupy one live palette tile', () 
   const shieldParent = GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION;
   const shieldChild = GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION_ID_9224;
   const shieldConfig = { primaryWeapon: 'Mace', secondaryWeapon: 'Shield' };
+
   assert.deepEqual(displayedIdsAfter([], [shieldParent], shieldConfig), [shieldParent]);
   assert.deepEqual(displayedIdsAfter([{ type: 'cast', skillId: shieldParent }], [shieldParent], shieldConfig), [
     shieldChild
@@ -2885,6 +2941,7 @@ test('Radiant Forge strikes use its normalized transform weapon strength', () =>
     result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === skillName);
   const assertProfile = (skillName, profileId, strength) => {
     const hits = hitsFor(skillName);
+
     assert.ok(hits.length > 0, skillName);
     assert.ok(
       hits.every((event) => event.weaponStrengthProfileId === profileId && event.resolvedWeaponStrength === strength),
@@ -2969,6 +3026,7 @@ test('Radiant Forge transitions emit the current set and trigger swap sigils', (
       ]
     }
   });
+
   assert.equal(
     outOfCombat.procSteps.some((step) => step.type === 'sigil_proc'),
     false
@@ -3060,6 +3118,7 @@ test('Radiant Forge transitions emit the current set and trigger swap sigils', (
       ]
     }
   });
+
   assert.deepEqual(
     manualExit.procSteps
       .filter((step) => step.skill === 'Sigil of Hydromancy')
@@ -3086,6 +3145,7 @@ test('Radiant Forge transitions emit the current set and trigger swap sigils', (
       ]
     }
   });
+
   assert.deepEqual(
     automaticExit.procSteps
       .filter((step) => step.skill === 'Sigil of Geomancy')
@@ -3129,6 +3189,7 @@ test('Radiant Forge transitions emit the current set and trigger swap sigils', (
       ]
     }
   });
+
   assert.deepEqual(
     radiantWeapon.procSteps
       .filter((step) => step.skill === 'Sigil of Hydromancy')
@@ -3202,6 +3263,7 @@ test('Luminary weapon coefficients, disables, and armament buffs resolve', () =>
   assert.ok(Math.abs(shining.damage / damage(empowered, 'Shining Spin').damage - 1.17 / 1.1) < 1e-9);
   const armamentStaff = armaments.resolvedEvents.filter((event) => event.name === 'Luminous Staff — Symbol Damage');
   const empoweredStaff = empowered.resolvedEvents.filter((event) => event.name === 'Luminous Staff — Symbol Damage');
+
   assert.ok(Math.abs(armamentStaff[0].damage / empoweredStaff[0].damage - 1.17 / 1.1) < 1e-9);
   assert.equal(
     armamentStaff
@@ -3225,6 +3287,7 @@ test('Luminary weapon coefficients, disables, and armament buffs resolve', () =>
     config: { ...config, specialization: 'Luminary' }
   });
   const hammerPackets = justice.resolvedEvents.filter((event) => event.skillId === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER);
+
   assert.deepEqual(
     hammerPackets.map((event) => event.coefficient),
     [1.2, 1.5]
@@ -3239,6 +3302,7 @@ test('Luminary weapon coefficients, disables, and armament buffs resolve', () =>
     });
   const normalBlade = damage(gleaming(false), 'Gleaming Blade');
   const empoweredBlade = damage(gleaming(true), 'Gleaming Blade');
+
   assert.ok(Math.abs(empoweredBlade.damage / normalBlade.damage - 1.5) < 1e-9);
 });
 
@@ -3514,6 +3578,7 @@ test('Sovereign of Light consumes combo and trait-granted light auras', () => {
   assert.equal(justice.resolvedEvents.filter((event) => event.name === 'Sovereign of Light').length, 1);
   const justiceSovereign = justice.resolvedEvents.find((event) => event.name === 'Sovereign of Light');
   const clawSovereign = justiceWithClaw.resolvedEvents.find((event) => event.name === 'Sovereign of Light');
+
   assert.deepEqual(
     {
       actorType: clawSovereign.actorType,
@@ -3665,6 +3730,7 @@ test('resolution traits affect strike damage, critical chance, and might', () =>
 
 test('Guardian build attributes expose static Zeal and Radiance bonuses', () => {
   const build = createGuardianBuildDefaults();
+
   build.weapons = ['Greatsword', ''];
   build.specializations = [
     { name: 'Zeal', traits: '2-2-3' },
@@ -3684,11 +3750,13 @@ test('Guardian build attributes expose static Zeal and Radiance bonuses', () => 
   build.weapons = ['Sword', 'Focus'];
   const oneHanded = calculateGuardianAttributes(build, []).attributes;
   const oneHandedWithout = calculateGuardianAttributes(build, [], 1, 'Right-Hand Strength').attributes;
+
   assert.equal(oneHanded.Power.final - oneHandedWithout.Power.final, 80);
 
   build.specializations[1] = { name: 'Radiance', traits: '2-2-3' };
   const radiantFire = calculateGuardianAttributes(build, []).attributes;
   const withoutRadiantFire = calculateGuardianAttributes(build, [], 1, 'Radiant Fire').attributes;
+
   assert.equal(radiantFire['Burning Duration'].traits, 20);
   assert.equal(radiantFire['Burning Duration'].final, 20);
   assert.equal(withoutRadiantFire['Burning Duration'], undefined);
@@ -3698,6 +3766,7 @@ test('Guardian build attributes expose static Zeal and Radiance bonuses', () => 
     skillByName: guardianCatalog.skillsByName,
     attributeWeaponSet: 1
   };
+
   recalculateGuardian(app);
   assert.equal(guardianSimulationConfig(app).stats.conditionDurationBonuses.Burning, undefined);
 });
@@ -3768,6 +3837,7 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER]
     }
   });
+
   assert.deepEqual(verdict.warnings, []);
   assert.equal(verdict.resolvedEvents.filter((event) => event.name === 'Spear of Justice — Active Burning').length, 1);
   assert.equal(
@@ -3790,6 +3860,7 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
       ]
     }
   });
+
   assert.equal(
     courage.events.some((event) => event.type === 'buff' && event.kind === 'protection'),
     true
@@ -3811,6 +3882,7 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOARING_DEVASTATION]
     }
   });
+
   assert.equal(
     soaring.resolvedEvents.some(
       (event) => event.type === 'damage' && event.skillName === 'Wings of Resolve' && event.coefficient === 1.5
@@ -3835,6 +3907,7 @@ test('Relic of Fireworks triggers on Dragonhunter virtues', () => {
     }
   });
   const procs = result.procSteps.filter((step) => step.skill === 'Relic of Fireworks');
+
   assert.ok(procs.length > 0);
   assert.ok(procs.every((step) => step.sourceSkill === 'Spear of Justice'));
 });
@@ -3850,6 +3923,7 @@ test('Dragonhunter traps and control traits apply their complete effects', () =>
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.HUNTERS_PREMONITION]
     }
   });
+
   assert.equal(trap.procSteps.filter((step) => step.skill === 'Relic of the Dragonhunter').length, 10);
   assert.equal(
     trap.events.some(
@@ -3951,6 +4025,7 @@ test('Glacial Heart and Master of Consecrations replace their numeric effects', 
     [320, 1320, 2320, 3320, 4320, 5320, 6320, 7320]
   );
   const purgingAction = purging.events.find((event) => event.type === 'action' && event.skillName === 'Purging Flames');
+
   assert.equal(purgingAction.comboFields[0].fieldType, 'Fire');
   assert.equal(purgingAction.comboFields[0].duration, 7);
 });
@@ -4027,6 +4102,7 @@ test('Guardian builds migrate and validate against real catalog metadata', () =>
     ...defaults,
     rotation: ['Virtue of Justice', 'True Strike']
   });
+
   assert.equal(validateGuardianBuild(migrated).valid, true);
   assert.deepEqual(
     migrated.rotation.map((command) => command.skillId),

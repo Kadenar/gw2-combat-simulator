@@ -48,10 +48,12 @@ function assertAuthoringHook(value: unknown, label: string): void {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError(`${label} must be a function or ordered hook.`);
   }
+
   const hook = value as Partial<AuthoringHook>;
   if (!String(hook.id || '').trim() || typeof hook.handler !== 'function') {
     throw new TypeError(`${label} must have an id and handler.`);
   }
+
   if (hook.order != null && !Number.isFinite(Number(hook.order))) {
     throw new TypeError(`${label} order must be finite.`);
   }
@@ -68,11 +70,13 @@ export function defineGw2ResolverReactions<const T extends Readonly<Record<strin
   if (!reactions || typeof reactions !== 'object' || Array.isArray(reactions)) {
     throw new TypeError('GW2 resolver reactions must be an object.');
   }
+
   for (const [stage, source] of Object.entries(reactions)) {
     assertStage(stage);
     const hooks = Array.isArray(source) ? source : [source];
     hooks.forEach((hook, index) => assertAuthoringHook(hook, `GW2 resolver reaction ${stage}[${index}]`));
   }
+
   return Object.freeze({ ...reactions });
 }
 
@@ -108,6 +112,7 @@ export function createGw2ResolverReactionRegistry({
           handler: profession
         });
       }
+
       return hooks.length ? [[stage, hooks]] : [];
     })
   );

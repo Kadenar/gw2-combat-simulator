@@ -9,6 +9,7 @@ const buildRoot = path.join(root, 'dist', 'js');
 async function exists(file) {
   try {
     await access(file);
+
     return true;
   } catch {
     return false;
@@ -18,11 +19,14 @@ async function exists(file) {
 export async function resolve(specifier, context, nextResolve) {
   if ((specifier.startsWith('.') || specifier.startsWith('file:')) && context.parentURL) {
     const requestedUrl = new URL(specifier, context.parentURL);
+
     if (requestedUrl.protocol === 'file:') {
       const requested = fileURLToPath(requestedUrl);
       const sourceRelative = path.relative(sourceRoot, requested);
+
       if (sourceRelative && !sourceRelative.startsWith('..') && !path.isAbsolute(sourceRelative)) {
         const built = path.join(buildRoot, sourceRelative);
+
         if (await exists(built)) {
           return {
             url: pathToFileURL(built).href,
@@ -32,6 +36,7 @@ export async function resolve(specifier, context, nextResolve) {
       }
 
       const buildRelative = path.relative(buildRoot, requested);
+
       if (
         buildRelative &&
         !buildRelative.startsWith('..') &&
@@ -39,6 +44,7 @@ export async function resolve(specifier, context, nextResolve) {
         !(await exists(requested))
       ) {
         const source = path.join(sourceRoot, buildRelative);
+
         if (await exists(source)) {
           return {
             url: pathToFileURL(source).href,
@@ -48,5 +54,6 @@ export async function resolve(specifier, context, nextResolve) {
       }
     }
   }
+
   return nextResolve(specifier, context);
 }

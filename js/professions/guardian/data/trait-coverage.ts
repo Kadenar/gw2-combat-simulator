@@ -84,6 +84,7 @@ function outOfModelReason(trait: CatalogEntity): string {
   if (/heal|barrier|incoming|block|damage reduction|aegis/.test(description)) {
     return REASONS.defensive;
   }
+
   if (/movement|dodge|downed/.test(description)) return REASONS.movement;
   return REASONS.missingMechanics;
 }

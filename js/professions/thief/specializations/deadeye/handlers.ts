@@ -75,6 +75,7 @@ function observeDeadeyeStealthEffect(
       deadeyeMaliceSnapshot: Number(prepared.malice || 0)
     });
   }
+
   if (skill.id === ID.MALICIOUS_SNEAK_ATTACK && event.type === 'condition' && event.condition === 'Torment') {
     // Malicious Sneak Attack scales Torment duration by malice: base 1s + 2s per stack
     context.replaceEvent(event, {
@@ -105,6 +106,7 @@ function observeDeadeyeStolenEffect(
     // Suppress the skill's built-in stealth grant when malice < 3; zeroing duration/stacks is the standard nullification pattern
     context.replaceEvent(event, { duration: 0, stacks: 0 });
   }
+
   if (event.type === 'buff' && event.boon) {
     // Stolen skill boons are applied to the party (up to 5 allies), not just self
     context.replaceEvent(event, {
@@ -119,6 +121,7 @@ function completeDeadeyeStolenSkill(context: ThiefCastContext, skill: ThiefSkill
   if (prepared.grantsStealth) {
     grantThiefStealth(context, skill, context.effectiveEnd, 3);
   }
+
   consumeStoredStolenSkill(context);
   applyDeadeyeStolenSkillTraits(context, context.effectiveEnd);
 }
@@ -205,6 +208,7 @@ function completeDeadeyeSpearStealthAttack(context: ThiefCastContext, skill: Thi
       name: 'Malicious Ashen Assault — Torment'
     });
   }
+
   completeStealthAttack(context, skill);
 }
 

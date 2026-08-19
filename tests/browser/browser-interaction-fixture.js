@@ -9,10 +9,12 @@ const assert = (condition, message) => {
 
 const waitFor = async (predicate, timeoutMs = 3000) => {
   const deadline = performance.now() + timeoutMs;
+
   while (performance.now() < deadline) {
     if (predicate()) return;
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
+
   throw new Error('timed out waiting for background modifier contributions');
 };
 
@@ -25,12 +27,15 @@ const dragEvent = (window, type, dataTransfer, options = {}) => {
     cancelable: true,
     clientX: options.clientX || 0
   });
+
   Object.defineProperty(event, 'dataTransfer', { value: dataTransfer });
+
   return event;
 };
 
 const dataTransfer = () => {
   const values = new Map();
+
   return {
     effectAllowed: 'none',
     setData(type, value) {
@@ -45,9 +50,11 @@ const dataTransfer = () => {
 frame.addEventListener('load', async () => {
   let app;
   let originalBuild;
+
   try {
     const window = frame.contentWindow;
     const document = frame.contentDocument;
+
     await waitFor(() => window.professionApp);
     app = window.professionApp;
     assert(app, 'application did not initialize');
@@ -57,8 +64,10 @@ frame.addEventListener('load', async () => {
 
     const workspaceTab = document.querySelector('[data-simulator-view="workspace"]');
     const analysisTab = document.querySelector('[data-simulator-view="analysis"]');
+
     assert(workspaceTab && analysisTab, 'simulator view tabs are missing');
     const workspaceScrollTop = Math.min(600, document.documentElement.scrollHeight - window.innerHeight);
+
     window.scrollTo(0, workspaceScrollTop);
     assert(window.scrollY > 0, 'workspace is not scrollable');
     analysisTab.click();
@@ -66,6 +75,7 @@ frame.addEventListener('load', async () => {
     assert(window.scrollY === workspaceScrollTop, 'returning to the workspace reset its scroll position');
 
     const professionResourceStack = document.querySelector('[data-role="profession-resource-stack"]');
+
     assert(
       professionResourceStack &&
         professionResourceStack.firstElementChild?.classList.contains('pal-group') &&
@@ -106,6 +116,7 @@ frame.addEventListener('load', async () => {
       'stacking target condition control missing'
     );
     const alternateMain = document.getElementById('sel-mh2');
+
     assert(alternateMain?.value === 'Spear', 'alternate weapon-set control missing');
     assert(
       document.getElementById('sel-sig1-1') &&
@@ -122,6 +133,7 @@ frame.addEventListener('load', async () => {
       'each weapon set does not expose two stat-prefix controls'
     );
     const alternateWeaponPrefix = document.getElementById('sel-stat2-1');
+
     alternateWeaponPrefix.value = "Viper's";
     alternateWeaponPrefix.dispatchEvent(new window.Event('change', { bubbles: true }));
     assert(app.build.alternateWeaponPrefixes[0] === "Viper's", 'alternate weapon stat-prefix selection was not saved');
@@ -134,6 +146,7 @@ frame.addEventListener('load', async () => {
       'the other equipped sigil is not disabled in the set selector'
     );
     const attributeWeaponSet = document.getElementById('attribute-weapon-set');
+
     assert(attributeWeaponSet, 'attribute weapon-set selector missing');
     attributeWeaponSet.value = '2';
     attributeWeaponSet.dispatchEvent(new window.Event('change', { bubbles: true }));
@@ -148,10 +161,12 @@ frame.addEventListener('load', async () => {
     const alternateSkill = app.skills.find(
       (skill) => skill.type === 'Weapon' && skill.weapon === app.build.alternateWeapons[0]
     );
+
     assert(icon(document, alternateSkill.name), 'palette did not switch to alternate weapon skills');
     app.build.rotation = ['Bladecall', 'Swap Weapons', 'Psycut'];
     app.changed(false);
     const weaponRows = [...document.querySelectorAll('#rotation-timeline .rot-row:not(.rot-procs-row)')];
+
     assert(weaponRows.length === 2, 'weapon swap did not create a new timeline row');
     assert(
       weaponRows[0].querySelector('.rot-row-label').textContent.includes('W1') &&
@@ -165,9 +180,11 @@ frame.addEventListener('load', async () => {
     const movedSkill = timelineSkills[0];
     const dropTarget = timelineSkills[2];
     const reorderTransfer = dataTransfer();
+
     movedSkill.dispatchEvent(dragEvent(window, 'dragstart', reorderTransfer));
     assert(movedSkill.classList.contains('dragging'), 'dragged timeline skill is not styled');
     const targetRect = dropTarget.getBoundingClientRect();
+
     dropTarget.dispatchEvent(
       dragEvent(window, 'dragover', reorderTransfer, {
         clientX: targetRect.right + 1
@@ -189,8 +206,10 @@ frame.addEventListener('load', async () => {
     app.changed(false);
     const paletteSkill = icon(document, 'Bladecall');
     const paletteTransfer = dataTransfer();
+
     paletteSkill.dispatchEvent(dragEvent(window, 'dragstart', paletteTransfer));
     const emptyTimeline = document.getElementById('rotation-timeline');
+
     assert(emptyTimeline.classList.contains('is-empty'), 'empty timeline is not using the centered empty state');
     emptyTimeline.dispatchEvent(dragEvent(window, 'dragover', paletteTransfer));
     assert(emptyTimeline.classList.contains('drag-over-empty'), 'empty timeline does not show its drop target');
@@ -207,12 +226,15 @@ frame.addEventListener('load', async () => {
     app.changed(false);
     const draggedWait = icon(document, '__wait');
     const waitTransfer = dataTransfer();
+
     draggedWait.dispatchEvent(dragEvent(window, 'dragstart', waitTransfer));
     const waitDropTimeline = document.getElementById('rotation-timeline');
+
     waitDropTimeline.dispatchEvent(dragEvent(window, 'dragover', waitTransfer));
     waitDropTimeline.dispatchEvent(dragEvent(window, 'drop', waitTransfer));
     draggedWait.dispatchEvent(dragEvent(window, 'dragend', waitTransfer));
     const draggedWaitEditor = document.querySelector('.rotation-duration-editor');
+
     assert(
       draggedWaitEditor && app.build.rotation.length === 0,
       'dragged wait did not defer insertion to the duration editor'
@@ -231,6 +253,7 @@ frame.addEventListener('load', async () => {
     assert(icon(document, 'Bladecall').querySelector('.pal-cd'), 'cooldown badge missing after cast');
     assert(icon(document, 'Bladecall').title.includes('available at'), 'ready time missing from cooldown tooltip');
     const procPanel = document.querySelector('.rotation-procs-wrap');
+
     assert(procPanel, 'relic and trait proc panel is missing below the rotation');
     assert(!procPanel.open, 'proc panel should be collapsed by default');
     procPanel.querySelector(':scope > summary').click();
@@ -238,12 +261,14 @@ frame.addEventListener('load', async () => {
     const procFilter = procPanel.querySelector('.proc-filter');
     const procMenu = procFilter?.querySelector('.proc-filter-menu');
     const procCheckbox = procMenu?.querySelector('input[data-proc-key]');
+
     assert(procFilter && procMenu && procCheckbox, 'proc visibility controls are missing');
     procFilter.querySelector(':scope > summary').click();
     procMenu.style.height = '12px';
     procMenu.style.overflowY = 'scroll';
     procMenu.scrollTop = procMenu.scrollHeight;
     const procMenuScrollTop = procMenu.scrollTop;
+
     procCheckbox.checked = false;
     procCheckbox.dispatchEvent(new window.Event('change', { bubbles: true }));
     assert(
@@ -278,6 +303,7 @@ frame.addEventListener('load', async () => {
     );
     const dpsChart = document.querySelector('[data-role="dps-canvas"]');
     const dpsRect = dpsChart.getBoundingClientRect();
+
     dpsChart.dispatchEvent(
       new MouseEvent('mousemove', {
         bubbles: true,
@@ -291,6 +317,7 @@ frame.addEventListener('load', async () => {
     );
     const effectsChart = document.querySelector('[data-role="effects-canvas"]');
     const effectsRect = effectsChart.getBoundingClientRect();
+
     effectsChart.dispatchEvent(
       new MouseEvent('mousemove', {
         bubbles: true,
@@ -317,12 +344,14 @@ frame.addEventListener('load', async () => {
     assert(app.build.rotation[1].offset === 100, 'Shift+click did not create concurrent command');
     assert(app.results.steps[1].start === 100, 'concurrent command did not start at 100ms');
     const concurrentBadge = document.querySelector('#rotation-timeline .rot-skill[data-idx="1"] .rot-offset-badge');
+
     assert(
       concurrentBadge?.textContent.includes('100ms') && /-?\d+\.\d+s/.test(concurrentBadge.textContent),
       'concurrent skill badge does not show both delay and cast timestamp'
     );
     concurrentBadge.click();
     let durationEditor = document.querySelector('.rotation-duration-editor');
+
     assert(
       durationEditor?.querySelector('.activation-editor-input')?.value === '100',
       'offset duration editor did not open with the current value'
@@ -346,6 +375,7 @@ frame.addEventListener('load', async () => {
       'wait duration editor did not add the wait'
     );
     const waitBadge = document.querySelector('#rotation-timeline .rot-skill[data-idx="0"] .rot-wait-badge');
+
     waitBadge.click();
     durationEditor = document.querySelector('.rotation-duration-editor');
     durationEditor.querySelector('.activation-editor-input').value = '900';
@@ -356,6 +386,7 @@ frame.addEventListener('load', async () => {
     app.changed(false);
     icon(document, 'Bladecall').dispatchEvent(new MouseEvent('click', { bubbles: true, ctrlKey: true }));
     const paletteActivationEditor = document.querySelector('.rotation-activation-editor');
+
     assert(
       paletteActivationEditor?.querySelector('input[value="interrupt"]')?.checked,
       'Ctrl+click did not open the activation popover in interrupt mode'
@@ -367,9 +398,11 @@ frame.addEventListener('load', async () => {
     app.build.rotation = ['Bladecall'];
     app.changed(false);
     const editActivation = document.querySelector('#rotation-timeline .rot-skill[data-idx="0"] .rot-edit-activation');
+
     assert(editActivation, 'normal cast does not expose the activation editor');
     editActivation.click();
     let activationEditor = document.querySelector('.rotation-activation-editor');
+
     assert(
       activationEditor &&
         activationEditor.querySelector('input[value="normal"]')?.checked &&
@@ -381,6 +414,7 @@ frame.addEventListener('load', async () => {
     activationEditor.querySelector('.activation-editor-apply').click();
     assert(app.build.rotation[0].interruptMs === 120, 'activation editor did not add a manual interruption');
     let interruptBadge = document.querySelector('#rotation-timeline .rot-skill[data-idx="0"] .rot-interrupt-badge');
+
     assert(
       interruptBadge?.textContent.includes('120ms') && /-?\d+\.\d+s/.test(interruptBadge.textContent),
       'interrupt skill badge does not show both delay and cast timestamp'
@@ -401,6 +435,7 @@ frame.addEventListener('load', async () => {
     const originalPower = app.attributeData.attributes.Power.final;
     const helm = document.querySelector('[data-slot="Helm"]');
     const gearRotationDps = document.querySelector('[data-role="current-rotation-dps"]');
+
     assert(
       gearRotationDps?.textContent === Math.round(app.results.dps).toLocaleString(),
       'gear panel does not show the current rotation DPS'
@@ -493,6 +528,7 @@ frame.addEventListener('load', async () => {
     app.changed();
     const split = icon(document, 'Continuum Split');
     const shift = icon(document, 'Continuum Shift');
+
     assert(split?.nextElementSibling === shift, 'Continuum Shift is not directly beside Continuum Split');
     assert(shift.classList.contains('pal-context-disabled'), 'Continuum Shift is enabled before the split');
     assert(

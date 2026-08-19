@@ -31,6 +31,7 @@ export const rangerApp = defineProfessionApp({
     if (skill.unleashedAmbushSkill && context.specialization !== 'Untamed') {
       return false;
     }
+
     if (
       skill.id === ID.PET_SWAP &&
       context.specialization === 'Soulbeast' &&
@@ -38,6 +39,7 @@ export const rangerApp = defineProfessionApp({
     ) {
       return false;
     }
+
     return true;
   },
   defaultOffhand: preferOffhand('Axe')

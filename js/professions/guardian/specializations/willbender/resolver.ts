@@ -46,6 +46,7 @@ function handleWillbenderVirtueActivation(context: GuardianResolverContext, even
   if (state[`${virtue}Until`] <= event.at + Number(context.epsilon ?? 1e-9)) {
     state.virtueHitCounts[virtue] = 0;
   }
+
   const until = event.at + Number(event.duration || 0);
   if (virtue === 'justice') state.justiceUntil = until;
   if (virtue === 'resolve') state.resolveUntil = until;

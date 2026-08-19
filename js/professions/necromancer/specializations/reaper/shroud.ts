@@ -24,6 +24,7 @@ export function ensurePermanentIceFieldAssumption(
   ) {
     return;
   }
+
   context.emitDerived(event, {
     type: 'combo_field',
     at: event.at,
@@ -52,6 +53,7 @@ export function resolveSummonOwnedComboFinisher(
   if (event.type !== 'damage' || event.actorType !== 'summon' || !(Number(event.coefficient) > 0)) {
     return;
   }
+
   const descriptors = Array.isArray(event.comboFinishers) ? event.comboFinishers : [];
   descriptors.forEach((descriptor, index) => {
     if (
@@ -61,6 +63,7 @@ export function resolveSummonOwnedComboFinisher(
     ) {
       return;
     }
+
     enqueueGw2OwnedComboFinisher(context, event, {
       ownerId: 'necromancer',
       // index+1 disambiguates multiple finishers on the same hit (e.g. multi-projectile summon attacks).

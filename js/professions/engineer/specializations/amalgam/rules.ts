@@ -97,6 +97,7 @@ function modifyAmalgamAttributes(context: Gw2ModifierContext, attributes: Schedu
         (['power', 'conditionDamage'].includes(attribute) ? Math.round(bonus) : bonus);
     }
   }
+
   if (activeEngineerSpecializationState(context, 'Amalgam', 'titanicUntil')) {
     // Titanic Strain adds 5 power + 5 condition damage per might stack on top
     // of the standard 30 power per stack that's already in the base attributes.
@@ -105,6 +106,7 @@ function modifyAmalgamAttributes(context: Gw2ModifierContext, attributes: Schedu
     modified.power += improvedMight;
     modified.conditionDamage += improvedMight;
   }
+
   // Amalgam modifies Power after Core runs, so finalize Sharpshooter here to
   // keep its replacement attribute based on Evolve and Titanic Power bonuses.
   applyEngineerSharpshooterConditionDamage(context, modified);

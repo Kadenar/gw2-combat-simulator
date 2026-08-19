@@ -22,6 +22,7 @@ import { parseEvtc } from '../../dist/js/evtc-analyzer/parser.js';
 import { detectEvtcRotationPlayers, reconstructEvtcRotation } from '../../dist/js/evtc-analyzer/rotation/index.js';
 
 const input = process.argv[2];
+
 if (!input) {
   console.error(
     'Usage: npm run build:modules && node ' +
@@ -40,13 +41,16 @@ const log = parseEvtc(expanded);
 const players = detectEvtcRotationPlayers(log);
 
 let selected;
+
 if (requestedAddress) {
   let address = null;
+
   try {
     address = BigInt(requestedAddress);
   } catch {
     address = null;
   }
+
   selected = players.find((player) => address != null && BigInt(player.address) === address);
 } else if (players.length === 1 || players[0]?.recordedActionCount > players[1]?.recordedActionCount) {
   selected = players[0];

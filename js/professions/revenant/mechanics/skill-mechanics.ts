@@ -25,10 +25,12 @@ function composeSkillMechanics(): Readonly<Record<string, SkillFragment>> {
       if (owners.has(skillId)) {
         throw new TypeError(`Duplicate Revenant skill mechanics ${skillId}.`);
       }
+
       owners.add(skillId);
       entries.push([skillId, Object.freeze({ ...mechanics })]);
     }
   }
+
   return Object.freeze(Object.fromEntries(entries));
 }
 

@@ -127,6 +127,7 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerReco
   if (!hasTrait(context, TRAIT.INSPIRING_IMPLEMENTS) || professionStaticRulesApplied(context.config)) {
     return attributes;
   }
+
   return {
     ...attributes,
     concentration:

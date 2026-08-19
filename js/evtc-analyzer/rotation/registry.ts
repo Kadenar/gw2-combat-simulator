@@ -60,14 +60,17 @@ export function reconstructEvtcRotation(
     } catch {
       address = null;
     }
+
     player = players.find((candidate) => address != null && BigInt(candidate.address) === address);
   } else if (players.length > 1 && players[0].recordedActionCount === players[1].recordedActionCount) {
     player = undefined;
   }
+
   if (!player) {
     if (!players.length) {
       throw new EvtcError('NO_PLAYER', 'The EVTC log contains no known player.');
     }
+
     throw new EvtcError(
       options.playerAddress == null ? 'PLAYER_SELECTION_REQUIRED' : 'PLAYER_NOT_FOUND',
       options.playerAddress == null
@@ -75,6 +78,7 @@ export function reconstructEvtcRotation(
         : 'The requested player is not present in the EVTC log.'
     );
   }
+
   const parser = getEvtcProfessionRotationParser(player.professionId, player.specializationId);
   if (!parser) {
     throw new EvtcError(
@@ -82,6 +86,7 @@ export function reconstructEvtcRotation(
       `No EVTC rotation parser is registered for ${player.professionName} ${player.specializationName}.`
     );
   }
+
   return parser.reconstruct(log, catalog, {
     ...options,
     playerAddress: player.address

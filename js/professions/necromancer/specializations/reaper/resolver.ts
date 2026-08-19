@@ -90,6 +90,7 @@ function reactToControl(context: NecromancerResolverContext, event: NecromancerR
   if ((event.controlKind !== 'fear' && event.kind !== 'fear') || !hasTrait(context, TRAIT.SHIVERS_OF_DREAD)) {
     return;
   }
+
   const chill = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.shiversOfDread), 'condition');
   enqueueOrdered(context.queue, {
     type: 'necromancer.chill',

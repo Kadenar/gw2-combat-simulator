@@ -12,6 +12,7 @@ function reduceCooldown(context: EngineerCastContext, skill: EngineerSkill, seco
   if (ammo) {
     return context.cooldownController.reduceAmmoRecharge(skill, seconds, at).reducedBy;
   }
+
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
   // skill already ready — nothing to reduce, avoid mutating the map unnecessarily
   if (readyAt <= at + context.epsilon) return 0;
@@ -35,6 +36,7 @@ function reduceMatchingCooldowns(
       reducedBy += reduceCooldown(context, skill, seconds, at);
     }
   }
+
   return reducedBy;
 }
 

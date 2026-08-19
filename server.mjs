@@ -30,14 +30,17 @@ function isWithin(directory, target) {
 async function resolveFile(relative) {
   for (const directory of [siteRoot, buildRoot, root]) {
     const target = path.resolve(directory, relative);
+
     if (!isWithin(directory, target)) return null;
     try {
       const metadata = await stat(target);
+
       return metadata.isDirectory() ? path.join(target, 'index.html') : target;
     } catch {
       // Continue through the bundled, compiled-module, and source roots.
     }
   }
+
   throw new Error('Not found');
 }
 
@@ -46,20 +49,26 @@ function acceptedEncoding(header = '') {
     header.split(',').map((entry) => {
       const [name, ...parameters] = entry.trim().toLowerCase().split(';');
       const quality = parameters.map((parameter) => parameter.trim()).find((parameter) => parameter.startsWith('q='));
+
       return [name, quality ? Number(quality.slice(2)) : 1];
     })
   );
+
   if ((accepted.get('br') || 0) > 0) return 'br';
+
   if ((accepted.get('gzip') || 0) > 0) return 'gzip';
+
   return null;
 }
 
 function cacheControl(file, extension) {
   if (extension === '.html') return 'no-cache';
   const relative = path.relative(siteRoot, file);
+
   if (isWithin(siteRoot, file) && relative.split(path.sep)[0] === 'assets') {
     return 'public, max-age=31536000, immutable';
   }
+
   return 'no-cache';
 }
 
@@ -67,6 +76,7 @@ async function encodeBody(file, metadata, body, encoding) {
   if (!encoding || body.length < 1024) return body;
   const key = `${file}:${metadata.mtimeMs}:${encoding}`;
   const cached = compressedBodies.get(key);
+
   if (cached) return cached;
   const encoded =
     encoding === 'br'
@@ -76,8 +86,10 @@ async function encodeBody(file, metadata, body, encoding) {
           }
         })
       : await gzipBody(body);
+
   if (compressedBodies.size >= 64) compressedBodies.clear();
   compressedBodies.set(key, encoded);
+
   return encoded;
 }
 
@@ -86,10 +98,13 @@ createServer(async (request, response) => {
     const pathname = decodeURIComponent(new URL(request.url, 'http://local').pathname);
     const relative = pathname === '/' ? 'index.html' : pathname.slice(1);
     const file = await resolveFile(relative);
+
     if (!file) {
       response.writeHead(403).end('Forbidden');
+
       return;
     }
+
     const metadata = await stat(file);
     const extension = path.extname(file);
     const etag = `W/"${metadata.size.toString(16)}-${Math.trunc(metadata.mtimeMs).toString(16)}"`;
@@ -99,16 +114,20 @@ createServer(async (request, response) => {
       ETag: etag,
       Vary: 'Accept-Encoding'
     };
+
     if (request.headers['if-none-match'] === etag) {
       response.writeHead(304, headers).end();
+
       return;
     }
+
     const body = await readFile(file);
     const encoding =
       compressibleExtensions.has(extension) && !request.headers.range
         ? acceptedEncoding(request.headers['accept-encoding'])
         : null;
     const encoded = await encodeBody(file, metadata, body, encoding);
+
     if (encoding && encoded !== body) headers['Content-Encoding'] = encoding;
     headers['Content-Length'] = String(encoded.length);
     response.writeHead(200, headers);

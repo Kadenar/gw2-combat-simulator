@@ -101,9 +101,11 @@ function targetBoonCount(context: Gw2ModifierContext): number {
   if (Array.isArray(target?.boons)) {
     return new Set(target.boons.map(String)).size;
   }
+
   if (target?.boonCount != null) {
     return Math.max(0, Math.trunc(Number(target.boonCount) || 0));
   }
+
   return target?.boonless === false ? 1 : 0;
 }
 
@@ -158,15 +160,18 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
       Number(context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) *
       Number(profile?.attributeBonus ?? 10);
   }
+
   if (hasTrait(context, TRAIT.FORCEFUL_GREATSWORD) && !staticRulesApplied) {
     const profile = warriorBalanceProfile(context, PROFILE.forcefulGreatsword);
     result.power +=
       Number(profile?.attributeBonus ?? 120) +
       Number(wieldingWeapon(context, 'Greatsword')) * Number(profile?.weaponAttributeBonus ?? 120);
   }
+
   if (hasTrait(context, TRAIT.ROARING_REVEILLE) && !staticRulesApplied) {
     result.concentration += Number(warriorBalanceProfile(context, PROFILE.roaringReveille)?.attributeBonus ?? 120);
   }
+
   if (hasTrait(context, TRAIT.SIGNET_MASTERY))
     result.ferocity += signetStacks * Number(signetMastery?.attributeBonus ?? 100);
   if (hasTrait(context, TRAIT.GREAT_FORTITUDE) && !staticRulesApplied) {
@@ -176,10 +181,12 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
     result.vitality += gearPower * conversion;
     result.ferocity += gearPower * conversion;
   }
+
   if (hasTrait(context, TRAIT.VIGOROUS_SHOUTS) && !staticRulesApplied) {
     result.healingPower +=
       gearPower * Number(warriorBalanceProfile(context, PROFILE.vigorousShouts)?.attributeConversion ?? 0.13);
   }
+
   if (
     hasTrait(context, TRAIT.DEEP_STRIKES) &&
     boonActive(context, 'fury') &&
@@ -187,20 +194,24 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
   ) {
     result.conditionDamage += Number(warriorBalanceProfile(context, PROFILE.deepStrikes)?.attributeBonus ?? 180);
   }
+
   if (hasTrait(context, TRAIT.BLADEMASTER) && wieldingWeapon(context, 'Sword')) {
     result.conditionDamage += Number(warriorBalanceProfile(context, PROFILE.blademaster)?.attributeBonus ?? 120);
   }
+
   result.conditionDamage +=
     activeBuffStacks(context, 'furious-surge', Number(furious?.maximumStacks ?? 25)) *
     Number(furious?.attributeBonus ?? 15);
   if (hasTrait(context, TRAIT.BURST_PRECISION) && activeBuffStacks(context, 'burst-precision', 1) > 0) {
     result.ferocity += Number(warriorBalanceProfile(context, PROFILE.burstPrecision)?.attributeBonus ?? 250);
   }
+
   if (activeBuffStacks(context, 'signet-of-fury-active', 1) > 0) {
     const bonus = Number(warriorBalanceProfile(context, PROFILE.signetOfFuryActive)?.attributeBonus ?? 360);
     result.precision += bonus;
     result.ferocity += bonus;
   }
+
   for (const [name, id, attribute] of [
     ['Signet of Might', ID.SIGNET_OF_MIGHT, 'power'],
     ['Signet of Fury', ID.SIGNET_OF_FURY, 'precision']
@@ -216,6 +227,7 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Schedu
       result[attribute] += delta;
     }
   }
+
   return result;
 }
 
@@ -478,6 +490,7 @@ function modifyCastDuration(context: WarriorCastContext, duration: number): numb
   if (measured > 0 && context.hasBuff('quickness', context.start)) {
     return measured / 1000;
   }
+
   return roundToActionTick(duration / 1.25);
 }
 

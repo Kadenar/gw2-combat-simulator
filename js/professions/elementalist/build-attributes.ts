@@ -105,6 +105,7 @@ export function applyElementalistBuildAttributeRules(
   if (hasTrait('Burning Precision')) {
     traitDurations['Burning Duration'] = 20;
   }
+
   if (hasTrait('Serrated Stones')) {
     traitDurations['Bleeding Duration'] = 20;
   }

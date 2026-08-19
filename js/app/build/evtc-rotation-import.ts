@@ -51,6 +51,7 @@ export async function readEvtcRotationFile(
         (recorded ? ` Recorded players: ${recorded}.` : ""),
     );
   }
+
   if (
     matchingPlayers.length > 1 &&
     matchingPlayers[0].recordedActionCount ===
@@ -61,6 +62,7 @@ export async function readEvtcRotationFile(
         "Use the EVTC reconstruction CLI with --player=<address>.",
     );
   }
+
   const selected = matchingPlayers[0];
   // Forward active build mechanics when the full app adapter is available;
   // lightweight parser consumers can still use the build's resource default.

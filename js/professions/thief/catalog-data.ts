@@ -79,6 +79,7 @@ function spearWeaponBarMetadata(skill: ThiefSkill): Partial<ThiefSkill> {
     weaponBarChainStep: stage + 1
   };
 }
+
 const SIMULATOR_EXCLUDED_SKILL_NAMES = new Set([
   'Prepare Seal Area',
   'Prepare Shadow Portal',
@@ -187,6 +188,7 @@ for (const skill of allDeclared) {
     flipParentById.set(skill.flipSkillId, skill.id);
   }
 }
+
 const normalize = (skill: ThiefSkill): ThiefSkill => ({
   ...skill,
   ...scepterAutoattackMetadata(skill),

@@ -111,6 +111,7 @@ function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill): void 
   if (!hasTrait(context, TRAIT.CHILD_OF_EARTH) || context.start < state.childOfEarthReadyAt) {
     return;
   }
+
   state.childOfEarthReadyAt = context.start + Number(profile?.internalCooldown ?? 20);
   const at = context.effectiveEnd;
   const immobilized = rangerBalanceProfileEffect(profile, 'condition', 0);
@@ -166,6 +167,7 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
   ) {
     state.quickDrawUntil = 0;
   }
+
   if (skill.type === 'Heal') {
     if (hasTrait(context, TRAIT.WELLSPRING)) {
       const effect = profileEffect(context, PROFILE.wellspring, 'boon');
@@ -179,8 +181,10 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
         Number(effect?.stacks ?? 1)
       );
     }
+
     emitChildOfEarth(context, skill);
   }
+
   if (skill.weapon === 'Warhorn' && hasTrait(context, TRAIT.WINDBORNE_NOTES)) {
     const effect = profileEffect(context, PROFILE.windborneNotes, 'boon');
     emitPartyBoon(
@@ -193,9 +197,11 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
       Number(effect?.stacks ?? 1)
     );
   }
+
   if (String(skill.description || '').startsWith('Command.')) {
     applyRangerCommandTraits(context, skill);
   }
+
   if (!isBeastSkill(skill)) return;
   if (hasTrait(context, TRAIT.REJUVENATION) && context.start >= state.rejuvenationReadyAt) {
     const profile = rangerBalanceProfile(context, PROFILE.rejuvenation);
@@ -211,6 +217,7 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
       Number(effect?.stacks ?? 1)
     );
   }
+
   const notBeforeCombat =
     !context.hasExplicitCombatStart || (context.combatStartTime != null && context.start >= context.combatStartTime);
   if (hasTrait(context, TRAIT.POISON_MASTER) && notBeforeCombat) {
@@ -224,6 +231,7 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
       skillName: skill.name
     });
   }
+
   if (
     hasTrait(context, TRAIT.WOLFSONG) &&
     rangerPetByName(professionCoreState(context).activePet).family === 'canine'
@@ -270,6 +278,7 @@ export function applyRangerWeaponSwapTraits(
       stacks: Number(effect?.stacks ?? 1)
     });
   }
+
   if (inCombat && hasTrait({ config: context.config }, TRAIT.QUICK_DRAW) && at >= state.quickDrawReadyAt) {
     const profile = rangerBalanceProfile(context, PROFILE.quickDraw);
     const effect = rangerBalanceProfileEffect(profile, 'boon');
@@ -288,6 +297,7 @@ export function applyRangerWeaponSwapTraits(
       stacks: Number(effect?.stacks ?? 1)
     });
   }
+
   if (inCombat && hasTrait({ config: context.config }, TRAIT.FURIOUS_GRIP) && at >= state.furiousGripReadyAt) {
     const profile = rangerBalanceProfile(context, PROFILE.furiousGrip);
     const effect = rangerBalanceProfileEffect(profile, 'boon');
@@ -334,6 +344,7 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
       Number(fury?.stacks ?? 1)
     );
   }
+
   if (hasTrait(context, TRAIT.CLARION_BOND) && context.start >= state.clarionBondReadyAt) {
     const profile = rangerBalanceProfile(context, PROFILE.clarionBond);
     state.clarionBondReadyAt = context.start + Number(profile?.internalCooldown ?? 15);
@@ -350,6 +361,7 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
         Number(effect?.stacks ?? [1, 6, 1][index])
       );
     }
+
     const weakness = rangerBalanceProfileEffect(profile, 'condition');
     context.emit({
       type: 'condition',
@@ -402,6 +414,7 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
     });
     return;
   }
+
   const boonKinds = new Set([
     'aegis',
     'alacrity',
@@ -422,6 +435,7 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
     const stacks = kind === 'might' ? Math.min(25, Math.max(0, Number(configured || 0))) : configured ? 1 : 0;
     if (stacks > 0) active.set(kind, { duration: 3600, stacks });
   }
+
   for (const event of context.events) {
     const kind = String(event.kind || '').toLowerCase();
     const remaining = Number(event.at) + Number(event.duration || 0) - context.effectiveEnd;
@@ -434,6 +448,7 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
     ) {
       continue;
     }
+
     const previous = active.get(kind);
     active.set(kind, {
       duration: Math.max(remaining, Number(previous?.duration || 0)),
@@ -443,6 +458,7 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
       )
     });
   }
+
   for (const [kind, application] of active) {
     context.emit({
       type: 'buff',
@@ -551,6 +567,7 @@ function triggerPoisonMaster(context: RangerResolverContext, event: RangerResolv
   if (!state.poisonMasterPetAttackReady || !isPetStrike(event) || !(Number(event.coefficient) > 0)) {
     return;
   }
+
   state.poisonMasterPetAttackReady = false;
   const poison = profileEffect(context, PROFILE.poisonMaster, 'condition');
   enqueueOrdered(context.queue, {
@@ -574,11 +591,13 @@ function triggerPoisonousStrikes(context: RangerResolverContext, event: RangerRe
   if (event.at > state.poisonousStrikesExpiresAt) {
     state.poisonousStrikesCharges = 0;
   }
+
   const merged = beastmodeActive(context);
   const eligibleStrike = merged ? isPlayerStrike(event) : isPetStrike(event);
   if (state.poisonousStrikesCharges <= 0 || !eligibleStrike || !(Number(event.coefficient) > 0)) {
     return;
   }
+
   state.poisonousStrikesCharges -= 1;
   const petSource = !merged;
   const poison = profileEffect(context, PROFILE.poisonousStrikes, 'condition');
@@ -604,9 +623,11 @@ function triggerSharpeningStone(context: RangerResolverContext, event: RangerRes
   if (event.at > state.sharpeningStoneExpiresAt) {
     state.sharpeningStoneCharges = 0;
   }
+
   if (state.sharpeningStoneCharges <= 0 || !isPlayerStrike(event) || !(Number(event.coefficient) > 0)) {
     return;
   }
+
   state.sharpeningStoneCharges -= 1;
   const bleeding = profileEffect(context, PROFILE.sharpeningStone, 'condition');
   enqueueOrdered(context.queue, {
@@ -633,6 +654,7 @@ function triggerArachnophobia(context: RangerResolverContext, event: RangerResol
   ) {
     return;
   }
+
   const torment = profileEffect(context, PROFILE.arachnophobia, 'condition');
   queueCondition(
     context,
@@ -685,6 +707,7 @@ function triggerGoForTheThroat(context: RangerResolverContext, event: RangerReso
   ) {
     return;
   }
+
   const profile = rangerBalanceProfile(context, PROFILE.goForTheThroat);
   const lesserSicEm = rangerBalanceProfileEffect(profile, 'buff', 0);
   state.goForTheThroatPetReadyAt = event.at + Number(profile?.internalCooldown ?? 10);
@@ -794,6 +817,7 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
       triggeredBy: event.skillName
     });
   }
+
   if (state.bloodThirstCharges > 0 && event.sourceId !== ID.CRIPPLING_SHOT) {
     state.bloodThirstCharges -= 1;
     const bleeding = profileEffect(context, PROFILE.bloodThirst, 'condition');
@@ -806,6 +830,7 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
       Number(bleeding?.stacks ?? 1)
     );
   }
+
   if (
     skill?.id === ID.CONCUSSION_SHOT &&
     hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
@@ -838,6 +863,7 @@ export function reactToRangerCoreControl(context: RangerResolverContext, event: 
   ) {
     return;
   }
+
   const profile = rangerBalanceProfile(context, PROFILE.carnivore);
   const strike = rangerBalanceProfileEffect(profile, 'strike');
   state.carnivoreReadyAt = event.at + Number(profile?.internalCooldown ?? 0.25);

@@ -51,6 +51,7 @@ export function createCloneAttackScheduler({
     for (const clone of profession.clones) {
       next = Math.min(next, clone.nextAttackAt ?? Infinity);
     }
+
     return next;
   };
 
@@ -95,6 +96,7 @@ export function createCloneAttackScheduler({
         summonOwner: clone.ownerId
       });
     }
+
     if (Array.isArray(attack.sequence) && attack.sequence.length > 0) {
       clone.attackSequenceIndex = (Number(clone.attackSequenceIndex || 0) + 1) % attack.sequence.length;
     }

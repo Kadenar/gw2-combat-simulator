@@ -17,10 +17,12 @@ function pairedDaredevilDodgeActions(context: EvtcProfessionReconstructionContex
     if (event.source !== context.playerAddress || event.skillId !== DAREDEVIL_DODGE_ANIMATION) {
       return;
     }
+
     if (event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START) {
       starts.push({ time: event.time, eventIndex });
       return;
     }
+
     if (event.stateChange !== EVTC_STATE_CHANGE.ANIMATION_STOP) return;
     const start = starts.shift();
     if (!start || event.time < start.time) return;
@@ -61,6 +63,7 @@ function daredevilStealActions(
     ) {
       return [];
     }
+
     const mightPackets = events.filter(
       (candidate) =>
         candidate.source === context.playerAddress &&

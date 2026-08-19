@@ -17,6 +17,7 @@ import { inflateSync } from 'node:zlib';
 
 const args = process.argv.slice(2);
 const input = args.find((argument) => !argument.startsWith('--'));
+
 if (!input) {
   console.error(
     'Usage: node scripts/analysis/analyze-dps-report.mjs ' +
@@ -43,15 +44,18 @@ async function readInput(source) {
     headers: { 'user-agent': 'gw2-combat-simulator report analyzer' },
     redirect: 'follow'
   });
+
   if (!response.ok) {
     throw new Error(`Unable to download ${source}: ${response.status} ${response.statusText}`);
   }
+
   return response.text();
 }
 
 function extractAssignment(html, name, nextName) {
   const marker = `const ${name} = `;
   const start = html.indexOf(marker);
+
   if (start < 0) {
     throw new Error(`The report does not contain an embedded ${name} value.`);
   }
@@ -60,6 +64,7 @@ function extractAssignment(html, name, nextName) {
   const nextMarker = nextName ? html.indexOf(`const ${nextName}`, valueStart) : -1;
   const scriptEnd = html.indexOf('</script>', valueStart);
   const valueEnd = nextMarker >= 0 ? nextMarker : scriptEnd;
+
   if (valueEnd < 0) {
     throw new Error(`The embedded ${name} value is not terminated.`);
   }
@@ -69,6 +74,7 @@ function extractAssignment(html, name, nextName) {
 
 function decodeLogData(html) {
   let logData;
+
   try {
     logData = JSON.parse(extractAssignment(html, '_logData', '_crData'));
   } catch (error) {
@@ -79,6 +85,7 @@ function decodeLogData(html) {
 
   try {
     const compressed = Buffer.from(logData, 'base64');
+
     return JSON.parse(inflateSync(compressed).toString('utf8'));
   } catch (error) {
     throw new Error(`Unable to inflate the report's embedded log data: ${error}`);
@@ -90,6 +97,7 @@ function resolveIndex(items, selector, label, fields) {
 
   if (/^\d+$/.test(selector)) {
     const index = Number(selector);
+
     if (index >= 0 && index < items.length) return index;
   }
 
@@ -101,6 +109,7 @@ function resolveIndex(items, selector, label, fields) {
         .includes(normalized)
     )
   );
+
   if (index >= 0) return index;
 
   throw new Error(
@@ -120,12 +129,14 @@ const ROTATION_STATUS = new Map([
 
 function skillMetadata(logData, skillId, isBuff = false) {
   const map = isBuff ? logData.buffMap : logData.skillMap;
+
   return map?.[`${isBuff ? 'b' : 's'}${skillId}`] ?? null;
 }
 
 function rotationEntries(logData, player, phaseIndex) {
   return (player.details?.rotation?.[phaseIndex] ?? []).map(([at, skillId, durationMs, statusId, quickness]) => {
     const skill = skillMetadata(logData, skillId);
+
     return {
       at,
       skillId,
@@ -144,11 +155,13 @@ function rotationEntries(logData, player, phaseIndex) {
 
 function damageEntries(logData, player, phaseIndex) {
   const distribution = player.details?.dmgDistributions?.[phaseIndex]?.distribution ?? [];
+
   return distribution
     .map((row) => {
       const isBuff = row[0] === true;
       const skillId = row[1];
       const skill = skillMetadata(logData, skillId, isBuff);
+
       return {
         skillId,
         skill: skill?.name ?? `Unknown ${skillId}`,
@@ -184,9 +197,11 @@ function summarizeCasts(casts) {
           casts: 0,
           averageDurationMs: 0
         };
+
         current.averageDurationMs = (current.averageDurationMs * current.casts + cast.durationMs) / (current.casts + 1);
         current.casts += 1;
         counts.set(key, current);
+
         return counts;
       }, new Map())
       .values()
@@ -195,6 +210,7 @@ function summarizeCasts(casts) {
 
 const html = await readInput(input);
 const logData = decodeLogData(html);
+
 if (!Array.isArray(logData.phases) || !Array.isArray(logData.players)) {
   throw new Error('The embedded Elite Insights data has no phases or players.');
 }

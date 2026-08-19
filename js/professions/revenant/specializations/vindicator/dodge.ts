@@ -53,6 +53,7 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
     // Casting Energy Meld arms Reaver's Curse; the next dodge will consume and zero this timestamp.
     state.reaversCurseUntil = at + Math.max(0, Number(effect?.duration));
   }
+
   if (
     hasRevenantTrait(context.config, TRAIT.ANGSIYANS_TRUST) &&
     // Angsiyah's Trust energy is gated by combat; pre-combat Energy Meld does not refund energy.
@@ -64,6 +65,7 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
       coreState.energy + Math.max(0, Number(angsiyansTrust?.resourceGain))
     );
   }
+
   if (songOfArboreum) {
     const vigor = enduranceProfile?.effects?.find((candidate) => candidate.type === 'boon');
     if (vigor) {
@@ -77,6 +79,7 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
       );
     }
   }
+
   // State snapshot carries endurance value to the resolver; must come after all mutations above.
   emitRevenantState(context, at, 'energy-meld');
 }
@@ -147,5 +150,6 @@ export function completeVindicatorDodge(context: RevenantSchedulerContext, skill
       stacks: Number(forerunnerEffect?.stacks || 1)
     });
   }
+
   emitRevenantState(context, at, 'vindicator-dodge-impact');
 }

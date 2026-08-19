@@ -64,6 +64,7 @@ for (const skill of allSkills) {
     flipParentById.set(skill.flipSkillId!, skill.id);
   }
 }
+
 const generated: readonly Skill[] = allSkills.map((skill) => {
   const canonicalAliasId = CANONICAL_ALIAS_ID_BY_NAME[skill.name];
   const flipParentId = flipParentById.get(skill.id);

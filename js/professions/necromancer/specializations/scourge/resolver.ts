@@ -24,6 +24,7 @@ function reactToCondition(
   ) {
     return;
   }
+
   const profile = necromancerBalanceProfile(context, PROFILE.demonicLore);
   const effect = balanceProfileEffect(profile, 'condition');
   // Advance the ICD before applying the condition so re-entrant Torment events

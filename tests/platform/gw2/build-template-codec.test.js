@@ -43,6 +43,7 @@ test('GW2 build templates resolve Elementalist palette IDs to stable catalog ski
   assert.equal(resolved.warnings.length, 1);
 
   const glyph = elementalistCatalog.skillsByName.get('Glyph of Storms (Fire)');
+
   assert.equal(glyph.id, 5736);
   assert.equal(glyph.apiSkillId ?? glyph.id, 5736);
   assert.equal(glyph.loadoutSkillId, 5734);
@@ -82,14 +83,17 @@ test('build-template decoding rejects malformed and mismatched chat codes', () =
   assert.throws(() => decodeGw2BuildTemplate(chatCode(Uint8Array.of(0x0d, 6))), /shorter/);
 
   const wrongHeader = new Uint8Array(44);
+
   assert.throws(() => decodeGw2BuildTemplate(chatCode(wrongHeader)), /not a/);
 
   const truncatedWeapons = new Uint8Array(45);
+
   truncatedWeapons[0] = 0x0d;
   truncatedWeapons[44] = 1;
   assert.throws(() => decodeGw2BuildTemplate(chatCode(truncatedWeapons)), /truncated weapon/);
 
   const malformedOverrides = new Uint8Array(46);
+
   malformedOverrides[0] = 0x0d;
   malformedOverrides[44] = 0;
   malformedOverrides[45] = 1;

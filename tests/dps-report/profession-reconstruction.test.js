@@ -90,6 +90,7 @@ test('recovers alacrity Luminary opening state and retains only physical weapon 
   };
 
   const result = reconstructDpsReportRotation(report, catalog);
+
   assert.deepEqual(result.rotation.slice(0, 4), [
     { name: 'Radiant Courage', skillId: 78358 },
     { name: 'Enter Radiant Forge', skillId: 77073 },
@@ -170,6 +171,7 @@ test('recovers Renegade warband precasts and normalizes legend and enhanced summ
   };
 
   const result = reconstructDpsReportRotation(report, catalog);
+
   assert.deepEqual(result.rotation.slice(0, 5), [
     { name: "Icerazor's Ire", skillId: 40485 },
     { name: 'Searing Fissure', skillId: 28357 },
@@ -186,6 +188,7 @@ test('recovers Renegade warband precasts and normalizes legend and enhanced summ
     true
   );
   const tail = result.rotation.slice(-2);
+
   assert.deepEqual(tail, [
     { name: 'Shattershot', skillId: 40497 },
     { name: "Razorclaw's Rage", skillId: 42949, offset: 100 }
@@ -275,6 +278,7 @@ test('recovers Herald facet and Shortbow precasts without importing automatic le
   };
 
   const result = reconstructDpsReportRotation(report, catalog);
+
   assert.deepEqual(result.rotation.slice(0, 5), [
     { name: 'Facet of Elements', skillId: 27014 },
     { name: 'Facet of Strength', skillId: 26644 },
@@ -398,6 +402,7 @@ test('recovers evidence-backed Conduit state and collapses composite animations 
       startingLegend: 'LegendaryEntity'
     }
   });
+
   assert.deepEqual(result.rotation.slice(0, 5), [
     { name: 'Swap Legends', skillId: -4 },
     { name: 'Impossible Odds', skillId: 27107 },
@@ -456,6 +461,7 @@ test('recovers Conduit opening state from dependencies without assuming one benc
       startingLegend: 'LegendaryEntity'
     }
   });
+
   assert.deepEqual(
     result.rotation.map((command) => command.name),
     ['__combat_start', 'Swap Legends', 'Impossible Odds', '__cooldown_reset', 'Preparation Thrust', 'Swap Legends']
@@ -471,6 +477,7 @@ test('recovers Conduit opening state from dependencies without assuming one benc
       startingLegend: 'LegendaryAssassin'
     }
   });
+
   assert.deepEqual(
     assassinStart.rotation.map((command) => command.name),
     ['__combat_start', 'Impossible Odds', 'Preparation Thrust', 'Swap Legends']

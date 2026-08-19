@@ -59,6 +59,7 @@ export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill):
       payload: { allyIndices: [1] }
     });
   }
+
   emitThiefShroudSwap(context, skill, at);
   emitThiefState(context, at, 'enter-shadow-shroud');
 }
@@ -112,6 +113,7 @@ export function advanceSpecterResources(context: ThiefSchedulerContext, target: 
       emitThiefState(context, target, 'shadow-shroud-depleted');
     }
   }
+
   state.shadowForceUpdatedAt = target;
   emitThiefState(context, target, 'resources');
 }

@@ -63,6 +63,7 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
       emitShadeStepBoon(context, String(boon?.boon || 'aegis'), Number(boon?.duration || 4));
     }
   }
+
   // Dawn's Repose grants barrier to the tethered ally and nearby allies.
   // Dark Sentry is a mandatory Specter minor trait.
   if (skill.id === ID.DAWNS_REPOSE) {
@@ -162,6 +163,7 @@ export function handleDarkSentry(
   for (const allyIndex of eligibleAllies) {
     state.darkSentryReadyAtByAlly[String(allyIndex)] = task.at + Number(profile?.internalCooldown || 1);
   }
+
   state.darkSentryReadyAt = Math.max(0, ...Object.values(state.darkSentryReadyAtByAlly));
   context.emit({
     type: 'buff',
@@ -202,6 +204,7 @@ export function handleDarkSentry(
       });
     }
   }
+
   emitThiefState(context, task.at, 'dark-sentry');
 }
 
@@ -236,6 +239,7 @@ export function applyLarcenousTorment(context: ThiefResolverContext, application
       stackIndex: stack
     });
   }
+
   const state = specterState.from(context);
   state.shadowForce = Math.min(
     state.maximumShadowForce,

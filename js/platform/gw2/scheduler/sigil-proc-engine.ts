@@ -214,6 +214,7 @@ export function createSigilProcEngine(config: Gw2Config, state: MaterializerStat
       if (!state.sigil.doomPending || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) {
         return;
       }
+
       state.sigil.doomPending = false;
       const effect = {
         context,

@@ -17,12 +17,14 @@ const PLAYER = 0x1000n;
 
 function crc32(bytes) {
   let crc = 0xffffffff;
+
   for (const byte of bytes) {
     crc ^= byte;
     for (let bit = 0; bit < 8; bit += 1) {
       crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
     }
   }
+
   return (crc ^ 0xffffffff) >>> 0;
 }
 
@@ -32,6 +34,7 @@ function zipEvtc(bytes) {
   const checksum = crc32(bytes);
   const local = new Uint8Array(30 + name.length);
   const localView = new DataView(local.buffer);
+
   localView.setUint32(0, 0x04034b50, true);
   localView.setUint16(4, 20, true);
   localView.setUint16(8, 8, true);
@@ -43,6 +46,7 @@ function zipEvtc(bytes) {
 
   const central = new Uint8Array(46 + name.length);
   const centralView = new DataView(central.buffer);
+
   centralView.setUint32(0, 0x02014b50, true);
   centralView.setUint16(4, 20, true);
   centralView.setUint16(6, 20, true);
@@ -55,6 +59,7 @@ function zipEvtc(bytes) {
 
   const end = new Uint8Array(22);
   const endView = new DataView(end.buffer);
+
   endView.setUint32(0, 0x06054b50, true);
   endView.setUint16(8, 1, true);
   endView.setUint16(10, 1, true);
@@ -62,10 +67,12 @@ function zipEvtc(bytes) {
   endView.setUint32(16, local.length + compressed.length, true);
 
   const result = new Uint8Array(local.length + compressed.length + central.length + end.length);
+
   result.set(local, 0);
   result.set(compressed, local.length);
   result.set(central, local.length + compressed.length);
   result.set(end, local.length + compressed.length + central.length);
+
   return result;
 }
 
@@ -178,28 +185,35 @@ const catalog = {
 
 function expandedEvtcFixture() {
   const header = Buffer.alloc(16);
+
   header.write('EVTC20260815', 0, 'ascii');
   header[12] = 1;
   header.writeUInt16LE(16_199, 13);
   const agentCount = Buffer.alloc(4);
+
   agentCount.writeUInt32LE(1);
   const agent = Buffer.alloc(96);
+
   agent.writeBigUInt64LE(PLAYER, 0);
   agent.writeUInt32LE(7, 8);
   agent.writeUInt32LE(40, 12);
   Buffer.from(['Fixture Chronomancer', ':Fixture.1234', '1', ''].join('\0'), 'utf8').copy(agent, 28);
   const skillCount = Buffer.alloc(4);
+
   skillCount.writeUInt32LE(1);
   const skill = Buffer.alloc(68);
+
   skill.writeUInt32LE(1_000, 0);
   skill.write('Mind Stab', 4, 'utf8');
   const activation = Buffer.alloc(64);
+
   activation.writeBigUInt64LE(1_000n, 0);
   activation.writeBigUInt64LE(PLAYER, 8);
   activation.writeInt32LE(800, 24);
   activation.writeUInt32LE(1_000, 36);
   activation.writeUInt16LE(1, 40);
   activation[56] = 67;
+
   return Buffer.concat([header, agentCount, agent, skillCount, skill, activation]);
 }
 
@@ -225,6 +239,7 @@ test('registers an individual parser for every current profession specialization
       ],
       events: [event({ stateChange: 67, skillId: 1_000 })]
     });
+
     assert.equal(
       parser.reconstruct(fixture, catalog, {
         inferInstantCasts: false
@@ -271,6 +286,7 @@ test('reconstructs casts, inferred instants, swaps, dodges, and exact timing', (
       })
     ]
   });
+
   fixture.header.eventCount = fixture.events.length;
 
   const result = reconstructEvtcRotation(fixture, catalog);
@@ -470,6 +486,7 @@ test('pairs a stop before the next same-millisecond animation start', () => {
     includeCombatStart: false,
     inferInstantCasts: false
   });
+
   assert.deepEqual(
     result.actions.map((action) => ({
       timestampMs: action.timestampMs,
@@ -508,6 +525,7 @@ test('keeps an instant at the preceding cast end sequential', () => {
   const result = reconstructEvtcRotation(fixture, catalog, {
     includeCombatStart: false
   });
+
   assert.deepEqual(result.rotation, [
     { name: 'Mind Stab', skillId: 1_000 },
     { name: 'Time Sink', skillId: 2_000 }
@@ -541,6 +559,7 @@ test('resolves Weaponmaster skills owned by another specialization', () => {
       }
     ]
   });
+
   assert.equal(result.actions[0].skillId, 45_846);
   assert.equal(result.actions[0].supportedByCatalog, true);
 });
@@ -609,6 +628,7 @@ test('reconstructs Harbinger Shroud entry and exit from buff transitions', () =>
       catalog.skills.at(-1)
     ]
   });
+
   assert.deepEqual(
     result.actions.map((action) => ({
       name: action.name,
@@ -704,6 +724,7 @@ test('reconstructs Distress from its consumed availability buff', () => {
       }
     ]
   });
+
   assert.deepEqual(
     result.actions.map((action) => [action.name, action.skillId, action.evidence]),
     [['Distress', 73_116, 'buff-transition']]
@@ -900,6 +921,7 @@ test('reconstructs Ritualist shroud and player-owned initial minion precasts', (
       }
     ]
   });
+
   assert.deepEqual(result.rotation.slice(0, 6), [
     { name: 'Summon Blood Fiend', skillId: 10_547 },
     { name: 'Summon Flesh Golem', skillId: 10_646 },
@@ -2331,6 +2353,7 @@ test('reconstructs Bladesworn Gunsaber unsheathe and sheathe transitions', () =>
       catalog.skills.at(-1)
     ]
   });
+
   assert.deepEqual(
     result.actions.map((action) => [action.name, action.skillId, action.evidence]),
     [
@@ -2357,6 +2380,7 @@ test('canonicalizes Paragon Breaching Strike and Bloodthirster EVTC IDs', () => 
     })),
     events: rawIds.flatMap((skillId, index) => {
       const time = 1_000 + index * 1_000;
+
       return [
         event({ time, stateChange: 67, skillId, value: 500 }),
         event({
@@ -2410,6 +2434,7 @@ test('canonicalizes Paragon Breaching Strike and Bloodthirster EVTC IDs', () => 
     ]
   };
   const result = reconstructEvtcRotation(fixture, canonicalCatalog);
+
   assert.deepEqual(
     result.actions.map((action) => [action.rawSkillId, action.skillId]),
     [
@@ -2435,6 +2460,7 @@ test('canonicalizes Paragon Breaching Strike and Bloodthirster EVTC IDs', () => 
     }),
     canonicalCatalog
   );
+
   assert.equal(spellbreaker.actions[0].skillId, 69_297);
 });
 
@@ -2452,6 +2478,7 @@ test('supports the legacy single-event activation encoding', () => {
   const result = reconstructEvtcRotation(fixture, catalog, {
     includeCombatStart: false
   });
+
   assert.deepEqual(result.actions[0], {
     timestampMs: 0,
     endTimestampMs: 500,
@@ -2645,6 +2672,7 @@ test('reconstructs Thief Antiquary buff, precast, and animation-only mechanics',
   ]) {
     assert.equal(names.filter((candidate) => candidate === name).length, 1);
   }
+
   assert.deepEqual(
     result.actions.filter((action) => action.name === 'Stone Summit Cannon').map((action) => action.doubleEdgeOutcome),
     ['success', 'backfire']
@@ -3103,6 +3131,7 @@ test('reconstructs Specter shroud, swaps, aliases, and opening precasts', () => 
   ]) {
     assert.equal(names.filter((candidate) => candidate === name).length, 1);
   }
+
   assert.equal(result.actions.find((action) => action.name === 'Twilight Combo').durationMs, 800);
 });
 
@@ -3128,6 +3157,7 @@ test('requires an address when multiple players have equal action evidence', () 
     ]
   });
   const players = detectEvtcRotationPlayers(fixture);
+
   assert.equal(players.length, 2);
   assert.throws(
     () => reconstructEvtcRotation(fixture, catalog),
@@ -3152,6 +3182,7 @@ test('the browser rotation importer reads compressed .zevtc files', async () => 
       activeCatalog: catalog
     }
   );
+
   assert.equal(imported.playerLabel, 'Fixture Chronomancer (:Fixture.1234)');
   assert.equal(imported.actionCount, 1);
   assert.deepEqual(imported.rotation, [{ name: 'Mind Stab', skillId: 1_000 }]);
@@ -3170,8 +3201,10 @@ test('every profession page exposes JSON and EVTC rotation files', async () => {
     'thief',
     'warrior'
   ];
+
   for (const page of pages) {
     const html = await readFile(new URL(`../../${page}.html`, import.meta.url), 'utf8');
+
     assert.match(
       html,
       /id="rotation-file-input"\s+accept="\.json,\.evtc,\.evtc\.zip,\.zevtc,application\/json,application\/zip"/,

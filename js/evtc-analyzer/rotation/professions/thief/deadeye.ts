@@ -109,6 +109,7 @@ function deadeyeMechanicActions(
         .at(-1);
       if (precedingSteal) mercyTime = precedingSteal.start - 1;
     }
+
     if (!hasRecordedAction([...actions, ...inferred], MERCY, mercyTime)) {
       inferred.push(
         canonicalAction(relic?.eventIndex ?? eventIndex - 0.1, mercyTime, MERCY, RELIC_OF_THE_DEADEYE_BUFF)
@@ -129,6 +130,7 @@ function deadeyeMechanicActions(
       ) {
         return;
       }
+
       const knownCantrip = [SHADOW_FLARE, SHADOW_MELD].some((identity) =>
         actions.some(
           (action) =>
@@ -172,6 +174,7 @@ function deadeyeMechanicActions(
     ) {
       return;
     }
+
     inferred.push(canonicalAction(eventIndex, event.time, SHADOW_SWAP, event.skillId));
   });
   return inferred;

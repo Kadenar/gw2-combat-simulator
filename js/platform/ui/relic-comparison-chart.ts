@@ -94,6 +94,7 @@ function valueAt(points: readonly RelicComparisonPoint[], tMs: number, pick: (po
       return pick(previous) + (pick(current) - pick(previous)) * fraction;
     }
   }
+
   return pick(points[points.length - 1]);
 }
 

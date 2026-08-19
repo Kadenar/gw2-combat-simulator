@@ -323,6 +323,7 @@ test('validates Engineer cast completion from observed strike packets', () => {
     ],
     { elite: 70 }
   );
+
   fixture.skills.push({ id: 68079, name: 'Rifle Burst Grenade' }, { id: 68091, name: 'Jump Shot' });
 
   const result = reconstructEvtcRotation(fixture, { skills });
@@ -813,6 +814,7 @@ test('maps Engineer kit swaps, Amalgam morphs, and passive packets', () => {
     event({ time: 7_100, target: TARGET, value: 1_000, skillId: 29889 }),
     ...animation(76651, 8_000, 400)
   ]);
+
   fixture.skills.push(
     { id: 76693, name: 'Offensive Protocol: Demolish' },
     { id: 77013, name: 'Offensive Protocol: Demolish' },

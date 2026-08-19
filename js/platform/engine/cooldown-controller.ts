@@ -22,6 +22,7 @@ export function createCooldownController<TProfessionState extends object>({
   if (!state?.ammo || !state?.cooldowns) {
     throw new TypeError('Cooldown controller requires scheduler state.');
   }
+
   if (typeof rechargeDuration !== 'function') {
     throw new TypeError('Cooldown controller requires rechargeDuration.');
   }
@@ -55,6 +56,7 @@ export function createCooldownController<TProfessionState extends object>({
         nextRechargeAt: null
       });
     }
+
     return state.ammo.get(skill.id) ?? null;
   };
 
@@ -69,6 +71,7 @@ export function createCooldownController<TProfessionState extends object>({
       ammo.charges = Math.min(ammo.maximum, ammo.charges + 1);
       ammo.nextRechargeAt = ammo.charges < ammo.maximum ? ammo.nextRechargeAt + ammo.rechargeDuration : null;
     }
+
     syncAmmoCooldown(skill, ammo, at);
     return ammo;
   };
@@ -84,6 +87,7 @@ export function createCooldownController<TProfessionState extends object>({
       ammo.rechargeDuration = Math.max(0, Number(rechargeDuration(skill, at) || 0));
       ammo.nextRechargeAt = at + ammo.rechargeDuration;
     }
+
     syncAmmoCooldown(skill, ammo, at);
     return ammo;
   };

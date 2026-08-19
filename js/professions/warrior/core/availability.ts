@@ -17,6 +17,7 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
           reason: 'Dodge requires 50 endurance.'
         };
   }
+
   if (skill.primalBurst) {
     const active =
       context.state.profession.specialization.kind === 'Berserker' &&
@@ -30,6 +31,7 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
       };
     }
   }
+
   if (skill.handlerId === 'warrior.berserk') {
     if (specialization !== 'Berserker') {
       return {
@@ -39,6 +41,7 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
         reason: 'Berserk requires the Berserker specialization.'
       };
     }
+
     const spec = context.state.profession.specialization;
     if (spec.kind === 'Berserker' && spec.state.berserkActive) {
       return {
@@ -49,6 +52,7 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
       };
     }
   }
+
   if (skill.burst && specialization === 'Bladesworn' && !skill.dragonSlash) {
     return {
       ready: false,
@@ -57,6 +61,7 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
       reason: 'Bladesworn replaces weapon bursts with Dragon Slash.'
     };
   }
+
   const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
   if (chain) {
     const expected = state.autoattackChains[chain.root] || chain.root;
@@ -70,6 +75,7 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
       };
     }
   }
+
   const cost = Number(skill.adrenalineCost || 0);
   if (cost > Number(state.adrenaline || 0) + context.epsilon) {
     const selectedSkills = context.config.selectedSkills || [];
@@ -82,6 +88,7 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
       const skippedPulses = Math.max(0, Math.ceil((signetCooldown - state.signetOfRageNextAt - context.epsilon) / 3));
       passiveReadyAt = state.signetOfRageNextAt + (skippedPulses + passivePulses - 1) * 3;
     }
+
     return {
       ready: false,
       retryAt: passiveReadyAt,
@@ -89,5 +96,6 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
       reason: `${skill.name} requires ${cost} adrenaline.`
     };
   }
+
   return { ready: true };
 }

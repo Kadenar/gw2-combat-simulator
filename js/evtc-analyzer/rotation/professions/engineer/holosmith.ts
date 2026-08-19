@@ -77,11 +77,13 @@ function preserveOverheatBoundaries(
       complete.add(spanning);
       continue;
     }
+
     const preceding = actions
       .filter((action) => action.end <= time)
       .sort((left, right) => right.end - left.end || right.eventIndex - left.eventIndex)[0];
     if (preceding) preserve.add(preceding);
   }
+
   return actions.map((action) => {
     if (complete.has(action)) return { ...action, forceCompleteReplay: true };
     if (preserve.has(action)) return { ...action, suppressFollowingWait: false };
@@ -117,6 +119,7 @@ function normalizeHolosmithTransitions(
       result.push(action);
       continue;
     }
+
     const swaps = [action];
     while (
       sorted[index + 1]?.rawName === 'Swap Weapons' &&
@@ -125,6 +128,7 @@ function normalizeHolosmithTransitions(
       swaps.push(sorted[index + 1]);
       index += 1;
     }
+
     const forgeSwap = swaps.find((swap) => Number(swap.weaponSet) === FORGE_WEAPON_SET);
     if (forgeSwap) {
       result.push(canonicalAction(forgeSwap.eventIndex, forgeSwap.start, ENGAGE_FORGE, 0, 'state-change'));
@@ -138,6 +142,7 @@ function normalizeHolosmithTransitions(
       if (!isOverheatTransition(context, normalSwap.start)) {
         result.push(canonicalAction(normalSwap.eventIndex, normalSwap.start, DEACTIVATE_FORGE, 0, 'state-change'));
       }
+
       forgeActive = false;
     }
 
@@ -149,16 +154,20 @@ function normalizeHolosmithTransitions(
         result.push(canonicalAction(swaps.at(-1)!.eventIndex, swaps.at(-1)!.start, identity, 0, 'state-change'));
         activeKit = nextKit;
       }
+
       continue;
     }
+
     if (!forgeActive && activeKit && normalSwap) {
       const identity = kitIdentity(context, activeKit, true);
       if (identity) {
         result.push(canonicalAction(normalSwap.eventIndex, normalSwap.start, identity, 0, 'state-change'));
       }
+
       activeKit = null;
     }
   }
+
   return result;
 }
 
@@ -175,6 +184,7 @@ function inferDirectInputs(context: EvtcProfessionReconstructionContext): EvtcRe
     ) {
       return [];
     }
+
     const skill = findRotationSkill(
       event.skillId,
       context.log.skills.find((candidate) => candidate.id === event.skillId)?.name || '',
@@ -186,6 +196,7 @@ function inferDirectInputs(context: EvtcProfessionReconstructionContext): EvtcRe
     if (previous != null && event.time - previous < Math.max(1, effectWindowMs(skill))) {
       return [];
     }
+
     lastSignal.set(event.skillId, event.time);
     return [canonicalAction(eventIndex, event.time, { name: skill.name, skillId: Number(skill.id) }, event.skillId)];
   });
@@ -220,16 +231,19 @@ function openingActions(context: EvtcProfessionReconstructionContext): EvtcRecor
       precast: true
     });
   }
+
   const bombKit = kitIdentity(context, 'Bomb Kit', false);
   if (bombs.length && bombKit) {
     scheduled.unshift(canonicalAction(opening.eventIndex - 300, cursor, bombKit, bombKit.skillId, 'initial-state'));
   }
+
   const grenadeKit = kitIdentity(context, 'Grenade Kit', false);
   if (grenadeKit) {
     scheduled.push(
       canonicalAction(opening.eventIndex - 1, opening.start, grenadeKit, grenadeKit.skillId, 'initial-state')
     );
   }
+
   scheduled.push(opening);
   return scheduled;
 }

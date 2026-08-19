@@ -73,6 +73,7 @@ export function eventLogRows(
       ...descriptor
     });
   }
+
   return (
     rows
       // Type order makes same-timestamp rows read as cause before consequence.
@@ -120,6 +121,7 @@ function downloadCsv(rows: readonly EventLogRow[], filename: string): void {
   if (typeof Blob === 'undefined' || !globalThis.URL?.createObjectURL || !globalThis.document?.createElement) {
     return;
   }
+
   const blob = new Blob([eventLogCsv(rows)], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
@@ -165,6 +167,7 @@ export function mountEventLog(
         filters.every((filter) => !activeFilters.has(String(filter.id)) || Boolean(filter.predicate?.(row)))
     );
   };
+
   const initialLines = open ? eventLogLinesHtml(filteredRows()) : '';
   container.innerHTML = `<details class="res-log-wrap" data-role="event-log-details"${open ? ' open' : ''}>
     <summary>${escapeHtml(title)} (${resolvedRows.length} events)</summary>
@@ -195,15 +198,18 @@ export function mountEventLog(
     if (!logElement || (!force && logElement.dataset.rendered === 'true')) {
       return;
     }
+
     logElement.innerHTML = eventLogLinesHtml(filteredRows());
     logElement.dataset.rendered = 'true';
   };
+
   if (details?.open) renderLogLines();
   if (details) {
     details.ontoggle = () => {
       if (details.open) renderLogLines();
     };
   }
+
   for (const checkbox of container.querySelectorAll<HTMLInputElement>('[data-role="event-log-filter"]')) {
     checkbox.onchange = () => {
       const id = checkbox.dataset.filterId;
@@ -213,6 +219,7 @@ export function mountEventLog(
       if (details?.open) renderLogLines(true);
     };
   }
+
   const search = container.querySelector<HTMLInputElement>('[data-role="event-log-search"]');
   if (search) {
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -225,6 +232,7 @@ export function mountEventLog(
       }, 200);
     };
   }
+
   const download = container.querySelector<HTMLElement>('[data-role="event-log-download"]');
   // Export the complete log, independent of temporary display filters.
   if (download) download.onclick = () => downloadCsv(resolvedRows, filename);

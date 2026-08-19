@@ -147,11 +147,13 @@ function flowStabilizerActions(
       current.push(signal);
     }
   }
+
   return groups.flatMap((group) => {
     const signal = group[0];
     if (group.length < 2 || hasActionNear(actions, FLOW_STABILIZER, signal.event.time)) {
       return [];
     }
+
     return [
       instantAction(signal.eventIndex, signal.event.time, signal.event.skillId, 'Positive Flow', FLOW_STABILIZER)
     ];
@@ -175,6 +177,7 @@ function triggerguardActions(
     ) {
       return [];
     }
+
     return [instantAction(eventIndex, event.time, event.skillId, 'Aegis', TRIGGERGUARD)];
   });
 }
@@ -197,6 +200,7 @@ function flickerStepActions(
     ) {
       return [];
     }
+
     const trigger = [...triggers]
       .reverse()
       .find((candidate) => candidate.start <= event.time && event.time <= candidate.end + PEITHA_TRIGGER_GRACE_MS);

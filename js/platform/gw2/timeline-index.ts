@@ -58,6 +58,7 @@ export function createGw2TimelineIndex({
       target.push(event);
       return;
     }
+
     let low = 0;
     let high = target.length;
     // Events are usually appended chronologically. Binary insertion handles
@@ -70,8 +71,10 @@ export function createGw2TimelineIndex({
         high = middle;
       }
     }
+
     target.splice(low, 0, event);
   };
+
   const indexed: IndexedEvents = {
     weaponSet: [],
     cooldown: []
@@ -83,6 +86,7 @@ export function createGw2TimelineIndex({
     indexedBuffs.clear();
     indexedLength = 0;
   };
+
   const indexBuff = (event: SimulationEvent): void => {
     const kind = String(event.kind || '').toLowerCase();
     let bucket = indexedBuffs.get(kind);
@@ -90,16 +94,20 @@ export function createGw2TimelineIndex({
       bucket = { all: [], summon: [], summonTrait: [] };
       indexedBuffs.set(kind, bucket);
     }
+
     if (buffMatchesAudience(event, 'all')) {
       insertOrdered(bucket.all, event);
     }
+
     if (buffMatchesAudience(event, 'summon')) {
       insertOrdered(bucket.summon, event);
     }
+
     if (buffMatchesAudience(event, 'summon-trait')) {
       insertOrdered(bucket.summonTrait, event);
     }
   };
+
   const refreshIndex = (): void => {
     // The source array is append-oriented. Shrinking it signals replacement and
     // rebuilds the index; same-length in-place mutation is outside the contract.
@@ -110,9 +118,11 @@ export function createGw2TimelineIndex({
       if (event.type === 'buff') {
         indexBuff(event);
       }
+
       if (event.type === 'weapon_set') {
         insertOrdered(indexed.weaponSet, event);
       }
+
       if (event.type === 'action' || event.type === 'cooldown_snapshot') {
         insertOrdered(indexed.cooldown, event);
       }
@@ -147,6 +157,7 @@ export function createGw2TimelineIndex({
       });
       return remaining > EPSILON ? Math.min(1, Math.max(0, maximum)) : 0;
     }
+
     return sumActiveStacks(
       applications || [],
       // Event duration wins; duration is a fallback for compact buff records.
@@ -181,6 +192,7 @@ export function createGw2TimelineIndex({
       // Same-timestamp swaps are visible to effects emitted after the swap.
       activeSet = Number(event.weaponSet);
     }
+
     return activeSet;
   };
 
@@ -207,6 +219,7 @@ export function createGw2TimelineIndex({
         readyAt = Number(cooldowns[String(skillId)] || 0);
       }
     }
+
     return readyAt > time + EPSILON;
   };
 

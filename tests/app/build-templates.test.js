@@ -44,8 +44,10 @@ function createButton() {
 
 test('template discovery loads the profession-scoped manifest', async (t) => {
   let requestedPath;
+
   t.mock.method(globalThis, 'fetch', async (url) => {
     requestedPath = String(url).split('?')[0];
+
     return { ok: false };
   });
 
@@ -144,9 +146,11 @@ test('template actions load paired or partial state and support undo', async (t)
     ],
     ['Rotations/mesmer/test-rotation.json', { rotation: ['Template rotation'] }]
   ]);
+
   t.mock.method(globalThis, 'fetch', async (url) => {
     const path = String(url).split('?')[0];
     const payload = payloads.get(path);
+
     return {
       ok: payload !== undefined,
       json: async () => structuredClone(payload)
@@ -160,6 +164,7 @@ test('template actions load paired or partial state and support undo', async (t)
   };
 
   const templateApp = createApp();
+
   await loadTemplateAction(templateApp, preset, 'template', createButton());
   assert.equal(templateApp.build.marker, 'template');
   assert.deepEqual(templateApp.build.rotation, ['Template rotation']);
@@ -172,12 +177,14 @@ test('template actions load paired or partial state and support undo', async (t)
   assert.deepEqual(templateApp.changedCalls, [[], []]);
 
   const buildOnlyApp = createApp();
+
   await loadTemplateAction(buildOnlyApp, preset, 'build', createButton());
   assert.equal(buildOnlyApp.build.marker, 'template');
   assert.deepEqual(buildOnlyApp.build.rotation, ['Current rotation']);
   assert.deepEqual(buildOnlyApp.changedCalls, [[]]);
 
   const rotationOnlyApp = createApp();
+
   await loadTemplateAction(rotationOnlyApp, preset, 'rotation', createButton());
   assert.equal(rotationOnlyApp.build.marker, 'current');
   assert.deepEqual(rotationOnlyApp.build.rotation, ['Template rotation']);

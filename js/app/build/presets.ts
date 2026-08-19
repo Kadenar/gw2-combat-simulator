@@ -35,6 +35,7 @@ function templateSummary(preset: BuildTemplatePreset): string {
   if (Number.isFinite(benchmarkDps) && benchmarkDps > 0) {
     details.push(`${Math.round(benchmarkDps).toLocaleString("en-US")} DPS`);
   }
+
   return details.join(" · ");
 }
 
@@ -46,6 +47,7 @@ export function templateCategory(
   if (/\b(?:condi|condition)\b|\/b-condi(?:tion)?-/.test(description)) {
     return "condi";
   }
+
   return "other";
 }
 
@@ -269,6 +271,7 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
       templateRegion.className = "build-templates-region";
       layout.insertBefore(templateRegion, existingMain);
     }
+
     templateRegion.append(container);
     return;
   }
@@ -289,6 +292,7 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
   while (layout.nextSibling) {
     main.append(layout.nextSibling);
   }
+
   const simulationWorkspace = main.querySelector<HTMLElement>(
     ":scope > .simulation-workspace",
   );
@@ -354,14 +358,17 @@ export async function initBuildTemplates(
           templateFilter = filter;
           applyTemplateFilter(container, templateFilter, boonOnly);
         }
+
         return;
       }
+
       const boonFilterButton = target.closest("[data-template-boon-filter]");
       if (boonFilterButton instanceof HTMLButtonElement) {
         boonOnly = !boonOnly;
         applyTemplateFilter(container, templateFilter, boonOnly);
         return;
       }
+
       const button = target.closest("[data-template-action]");
       if (!(button instanceof HTMLButtonElement)) return;
       const action = button.dataset.templateAction;
@@ -369,6 +376,7 @@ export async function initBuildTemplates(
         undoTemplateLoad(app);
         return;
       }
+
       if (
         action !== "build" &&
         action !== "rotation" &&
@@ -376,6 +384,7 @@ export async function initBuildTemplates(
       ) {
         return;
       }
+
       const preset = app.templatePresets[Number(button.dataset.templateIndex)];
       if (!preset) return;
       closeTemplateMenus(container);
@@ -415,11 +424,13 @@ export async function loadTemplateAction(
       if (!preset.rotation) {
         throw new Error("Rotation asset missing.");
       }
+
       const rotationData = await fetchJsonAsset(preset.rotation);
       const rotationItems = getRotationItems(rotationData);
       if (!Array.isArray(rotationItems)) {
         throw new Error("Rotation array missing.");
       }
+
       app.build.rotation = rotationItems as LegacyRotationItem[];
       app.currentTemplate = null;
       app.changed(false);
@@ -435,6 +446,7 @@ export async function loadTemplateAction(
       if (preset.rotation && !Array.isArray(rotationItems)) {
         throw new Error("Rotation array missing.");
       }
+
       app.build = replaceBuildConfiguration(buildData, app.build, app.adapter);
       app.build.rotation = Array.isArray(rotationItems) ? rotationItems : [];
       app.changed();
@@ -444,6 +456,7 @@ export async function loadTemplateAction(
       };
       updateTemplateSelection(app);
     }
+
     showTemplateUndo(app, loadedMessage(preset, action), previousBuild);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

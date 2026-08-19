@@ -34,6 +34,7 @@ export function firstUiMatch(
     const result = (callback as UiCallback)(...args);
     if (isMatch(result)) return result;
   }
+
   return fallback;
 }
 

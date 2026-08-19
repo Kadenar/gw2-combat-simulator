@@ -44,6 +44,7 @@ function assertAuthoringShape(preview) {
 // Writes a JSON response to the given HTTP response object.
 function jsonResponse(response, status, payload, extraHeaders = {}, headOnly = false) {
   const body = JSON.stringify(payload);
+
   response.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
     'Cache-Control': 'no-store',
@@ -57,11 +58,14 @@ function jsonResponse(response, status, payload, extraHeaders = {}, headOnly = f
 async function readJsonBody(request) {
   let size = 0;
   const chunks = [];
+
   for await (const chunk of request) {
     size += chunk.length;
+
     if (size > MAX_REQUEST_BYTES) {
       throw new RangeError('Patch preview request exceeds 5 MB.');
     }
+
     chunks.push(chunk);
   }
 
@@ -103,9 +107,11 @@ export function validateAuthoringPreview(preview, runtime) {
 
   for (const [professionId, patch] of Object.entries(validated.professions || {})) {
     const profession = professions.get(professionId);
+
     if (!profession) {
       throw new TypeError(`Patch references unknown profession ${professionId}.`);
     }
+
     profession.validatePatch(patch);
   }
 
@@ -128,6 +134,7 @@ export function createPatchPreviewAuthoringApi({ root, buildRoot }) {
       const previewModule = await import(
         pathToFileURL(path.join(buildRoot, 'js', 'patches', 'active-preview.js')).href
       );
+
       return {
         professions,
         validatePatchPreview: patchModule.validatePatchPreview,
@@ -143,6 +150,7 @@ export function createPatchPreviewAuthoringApi({ root, buildRoot }) {
     if (pathname !== API_PATH) return false;
     try {
       const runtime = await loadRuntime();
+
       if (request.method === 'GET' || request.method === 'HEAD') {
         jsonResponse(
           response,
@@ -155,6 +163,7 @@ export function createPatchPreviewAuthoringApi({ root, buildRoot }) {
           {},
           request.method === 'HEAD'
         );
+
         return true;
       }
 
@@ -165,12 +174,14 @@ export function createPatchPreviewAuthoringApi({ root, buildRoot }) {
           { error: 'Use GET or PUT for patch preview authoring.' },
           { Allow: 'GET, HEAD, PUT' }
         );
+
         return true;
       }
 
       const body = await readJsonBody(request);
       const candidate = isRecord(body) && 'preview' in body ? body.preview : body;
       const validated = validateAuthoringPreview(candidate, runtime);
+
       saveQueue = saveQueue.then(() => writeFile(sourceFile, serializeActivePatchPreview(validated), 'utf8'));
       await saveQueue;
       savedPreview = validated;
@@ -181,6 +192,7 @@ export function createPatchPreviewAuthoringApi({ root, buildRoot }) {
       });
     } catch (error) {
       const clientError = error instanceof TypeError || error instanceof RangeError;
+
       jsonResponse(response, clientError ? 400 : 500, {
         error: error instanceof Error ? error.message : 'Patch preview request failed.'
       });

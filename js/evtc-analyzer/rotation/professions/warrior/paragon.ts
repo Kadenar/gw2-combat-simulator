@@ -38,6 +38,7 @@ function paragonPrecasts(context: EvtcProfessionReconstructionContext): EvtcReco
   if (playerInitialBuff(context, CHANT_OF_ACTION_BUFF)) {
     identities.push(CHANT_OF_ACTION);
   }
+
   if (fury) identities.push(fury);
   return [
     ...sequentialInitialActions(context, identities, bullsStart, -3000),

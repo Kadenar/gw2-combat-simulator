@@ -60,6 +60,7 @@ export function applyRangerBuildAttributeRules(
       });
     }
   }
+
   const favoredWeapon = weapons?.some((weapon) => ['Dagger', 'Mace', 'Torch'].includes(weapon));
   attributeEffects.push(
     {
@@ -141,6 +142,7 @@ export function applyRangerBuildAttributeRules(
       });
     }
   }
+
   const traitStats = resolveAttributeEffects(conversionPool, attributeEffects);
 
   return finalizeBuildAttributes(common, {

@@ -53,6 +53,7 @@ function truncatedNaturalConvergence(
     ) {
       return [];
     }
+
     const start = event.time - event.value;
     const recorded = actions.some(
       (action) => action.rawSkillId === event.skillId && Math.abs(action.end - event.time) <= TRANSITION_WINDOW_MS
@@ -91,6 +92,7 @@ function avatarExitActions(context: EvtcProfessionReconstructionContext): EvtcRe
     ) {
       return [];
     }
+
     seen.add(event.time);
     return [
       directAction(
@@ -139,6 +141,7 @@ function initialVipersNest(
   ) {
     return [];
   }
+
   const signal = context.log.events
     .map((event, eventIndex) => ({ event, eventIndex }))
     .find(
@@ -237,6 +240,7 @@ function dodgeActions(
     ) {
       return [];
     }
+
     previous = event.time;
     const recordedEvade = actions.some((action) => {
       const skill = rangerSkill(

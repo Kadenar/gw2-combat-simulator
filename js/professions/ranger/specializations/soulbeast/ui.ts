@@ -31,15 +31,19 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
       message: 'Select the pet that grants this merged Beast skill'
     };
   }
+
   if (skill.beastmodeSkill && !active && skill.id !== ID.BEASTMODE) {
     return { available: false, message: 'Enter Beastmode first' };
   }
+
   if (skill.id === ID.BEASTMODE && active) {
     return { available: false, message: 'Beastmode is already active' };
   }
+
   if (skill.id === ID.LEAVE_BEASTMODE && !active) {
     return { available: false, message: 'Beastmode is not active' };
   }
+
   return { available: true, message: '' };
 }
 

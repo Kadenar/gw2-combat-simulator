@@ -120,6 +120,7 @@ export function applyWillbenderVirtueActivationTraits(
       duration: Number(vigor?.duration || 3)
     });
   }
+
   if (virtue === 'resolve' && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)) {
     const alacrity = guardianBalanceProfileEffect(guardianBalanceProfile(context, PROFILE.phoenixProtocol), 'boon');
     context.emit({
@@ -138,6 +139,7 @@ export function applyWillbenderVirtueActivationTraits(
       affectsSelf: true
     });
   }
+
   return duration;
 }
 
@@ -169,6 +171,7 @@ function reduceWeaponCooldown(
   if (context.state.ammo.has(skill.id)) {
     return context.cooldownController.reduceAmmoRecharge(skill, reductionAmount, at).reducedBy;
   }
+
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
   if (readyAt <= at + context.epsilon) return 0; // already ready; nothing to reduce
   const reducedBy = Math.min(reductionAmount, readyAt - at);
@@ -193,6 +196,7 @@ function queueInFlightWeaponCooldownReduction(
     ) {
       continue;
     }
+
     if (event.skillId == null) continue;
     const skill = context.catalog.skillsById.get(event.skillId) as GuardianSkill | undefined;
     if (!isActiveWeaponSkill(skill, weaponNames)) continue;
@@ -210,6 +214,7 @@ function queueInFlightWeaponCooldownReduction(
     state.pendingWeaponCooldownReduction[activationId] = pending + reduction;
     reducedBy += reduction;
   }
+
   return reducedBy;
 }
 
@@ -223,6 +228,7 @@ function reduceActiveWeaponCooldowns(context: GuardianSchedulerContext, at: numb
       reducedBy += reduceWeaponCooldown(context, skill, at);
     }
   }
+
   reducedBy += queueInFlightWeaponCooldownReduction(context, weaponNames, at);
   return reducedBy;
 }
@@ -300,6 +306,7 @@ function handleWillbenderFlamePulse(context: GuardianSchedulerContext, task: Sch
   if (!payload || Number(payload.flameGeneration) !== state.flameGeneration) {
     return;
   }
+
   const at = Number(task.at);
   const flameId = Number(payload.flameId);
   const pulse = Number(payload.pulse);
@@ -363,6 +370,7 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
         });
       }
     }
+
     context.emit({
       type: 'guardian.willbender-virtue-triggered',
       at,
@@ -395,6 +403,7 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
         });
       }
     }
+
     if (virtue === 'resolve' && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)) {
       const alacrity = guardianBalanceProfileEffect(
         guardianBalanceProfile(context, PROFILE.phoenixProtocol),
@@ -444,6 +453,7 @@ function observeWillbenderEvent(context: GuardianSchedulerContext, event: Schedu
   ) {
     return;
   }
+
   context.tasks.schedule({
     // __order (monotone emission index) is preferred over at because multiple events
     // can share the same timestamp; using at alone would collapse them into one task id.

@@ -60,6 +60,7 @@ export function reactToWarriorDamage(context: WarriorResolverContext, event: War
       duration: Number(effect.duration || 0)
     });
   }
+
   context.recordProc(
     'trait',
     'Lesser Signet of Might',
@@ -74,6 +75,7 @@ export function reactToWarriorBuff(context: WarriorResolverContext, event: Warri
   if (Number(event.sourceId) !== TRAIT.PEAK_PERFORMANCE || event.kind !== 'peak-performance') {
     return;
   }
+
   context.recordProc('trait', 'Peak Performance', event.at, event.skillName, '+10% strike damage for 6 seconds');
 }
 
@@ -109,6 +111,7 @@ export function armBurstPrecision(context: WarriorCastContext, skill: WarriorSki
   if (!skill.burst || spent <= 0 || !hasTrait(context, TRAIT.BURST_PRECISION)) {
     return;
   }
+
   const profile = warriorBalanceProfile(context, PROFILE.burstPrecision);
   professionCoreState(context).burstPrecisionDurations[context.reservationId] =
     spent >= 30 ? Number(profile?.maximumStacks || 4) : Number(profile?.minimumStacks || 2);
@@ -124,6 +127,7 @@ export function applyWarriorBurstSpendTraits(
   if (!skill.burst || adrenalineSpent <= 0 || !hasTrait(context, TRAIT.BURST_MASTERY)) {
     return;
   }
+
   const bladesworn = context.state.profession.specialization.kind === 'Bladesworn';
   const profile = warriorBalanceProfile(context, PROFILE.burstMastery);
   const swiftness = warriorBalanceProfileEffect(profile, 'boon');
@@ -152,6 +156,7 @@ function berserkersPowerStacks(context: WarriorCastContext, skill: WarriorSkill,
   if (!skill.burst || spent <= 0 || !hasTrait(context, TRAIT.BERSERKERS_POWER)) {
     return 0;
   }
+
   const tiers = warriorBalanceProfile(context, PROFILE.burstTiers);
   const tierTwo = Number(tiers?.threshold || 20);
   const tierThree = Number(tiers?.maximumStacks || 30);
@@ -173,6 +178,7 @@ export function grantBerserkersPowerOnFirstHit(
   if (event.type !== 'damage' || !(Number(event.coefficient) > 0)) {
     return false;
   }
+
   const stacks = berserkersPowerStacks(context, skill, spent);
   if (stacks <= 0) return false;
   grantBerserkersPower(context, stacks, event.at + context.epsilon, skill);
@@ -268,12 +274,14 @@ function restoreAmmo(context: WarriorCastContext, skill: WarriorSkill, count: nu
   if (ammo.charges === 0 && mirroredRecharge != null && readyAt <= mirroredRecharge + context.epsilon) {
     context.state.cooldowns.delete(skill.id);
   }
+
   ammo.charges += restored;
   if (ammo.charges >= ammo.maximum) ammo.nextRechargeAt = null;
   context.cooldownController.refreshAmmo(skill, at);
   if (lockoutReadyAt > at + context.epsilon) {
     context.state.cooldowns.set(skill.id, lockoutReadyAt);
   }
+
   return restored;
 }
 
@@ -295,19 +303,24 @@ export function completeWarriorSkill(context: WarriorCastContext, skill: Warrior
       duration: Number(effect?.duration || 60)
     });
   }
+
   if (skill.id === ID.TREMOR) {
     context.state.cooldowns.delete(ID.CRUSHING_BLOW);
   }
+
   if (skill.id === ID.BACKBREAKER) {
     context.state.cooldowns.delete(ID.FIERCE_BLOW);
   }
+
   if (skill.id === ID.TO_THE_LIMIT) {
     gainWarriorEndurance(context, 100, at);
   }
+
   if (skill.id === ID.GUNSTINGER) {
     const dragonsRoar = context.catalog.skillsById.get(ID.DRAGONS_ROAR);
     if (dragonsRoar) restoreAmmo(context, dragonsRoar, 3, at);
   }
+
   if (skill.shadowstepSkill && context.config.relic === 'Peitha') {
     context.emit({
       type: 'peitha',
@@ -320,6 +333,7 @@ export function completeWarriorSkill(context: WarriorCastContext, skill: Warrior
       name: 'Relic of Peitha'
     });
   }
+
   if (MOVEMENT_SKILL_IDS.has(Number(skill.id)) && hasTrait(context, TRAIT.BRAVE_STRIDE)) {
     const profile = warriorBalanceProfile(context, PROFILE.braveStride);
     const stability = warriorBalanceProfileEffect(profile, 'boon');
@@ -339,6 +353,7 @@ export function completeWarriorSkill(context: WarriorCastContext, skill: Warrior
       duration: Number(stability?.duration || 5)
     });
   }
+
   if (skill.dragonSlash && context.state.profession.specialization.kind === 'Bladesworn') {
     const state = context.state.profession.specialization.state;
     const charges = Math.max(0, Number(state.dragonChargesSpentByActivation[context.reservationId] || 0));
@@ -365,9 +380,11 @@ export function beginWarriorSkill(context: WarriorCastContext, skill: WarriorSki
       duration: 3
     });
   }
+
   if (!skill.categories?.includes('Physical') || !hasTrait(context, TRAIT.PEAK_PERFORMANCE)) {
     return;
   }
+
   const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.peakPerformance), 'buff');
   let at = context.effectiveEnd;
   if (skill.id === ID.KICK) {
@@ -379,6 +396,7 @@ export function beginWarriorSkill(context: WarriorCastContext, skill: WarriorSki
       strike?.timingScale === 'cast' ? authoredOffsetMs * (runtimeCastMs / baseCastMs) : authoredOffsetMs;
     at = Math.min(context.effectiveEnd, context.start + offsetMs / 1000);
   }
+
   context.emit({
     type: 'buff',
     at,
@@ -402,8 +420,10 @@ function armsCriticalCount(context: WarriorSchedulerContext, event: WarriorSimul
         `Missing sampled critical outcome for Warrior event ${String(event.skillName || event.name || event.sourceId)}.`
       );
     }
+
     return event.didCrit ? hits : 0;
   }
+
   const state = professionCoreState(context);
   const criticalPolicy = context.schedulerPolicy as unknown as {
     critical?: (
@@ -432,6 +452,7 @@ function bloodlustProcCount(
     for (let critical = 0; critical < criticals; critical += 1) {
       if (policy.rollRandom(procChance, 'warrior.bloodlust')) count += 1;
     }
+
     return count;
   }
 
@@ -459,6 +480,7 @@ function applyArmsCriticalTraits(
   if (criticals > 0 && event.skillId === ID.KEEN_STRIKE) {
     emitTraitBoon(context, event, ID.KEEN_STRIKE, 'Keen Strike — Critical Might', 'might', 5);
   }
+
   const state = professionCoreState(context);
   if (hasTrait(context, TRAIT.BLOODLUST)) {
     const bleeding = bloodlustProcCount(context, event, criticals);
@@ -479,6 +501,7 @@ function applyArmsCriticalTraits(
       });
     }
   }
+
   if (hasTrait(context, TRAIT.FURIOUS) && criticals > 0) {
     const profile = warriorBalanceProfile(context, PROFILE.furious);
     const effect = warriorBalanceProfileEffect(profile, 'buff');
@@ -498,6 +521,7 @@ function applyArmsCriticalTraits(
       duration: Number(effect?.duration || 10)
     });
   }
+
   if (
     firstBurstHit &&
     hasTrait(context, TRAIT.SUNDERING_BURST) &&
@@ -588,6 +612,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
   if (event.type === 'combat_start') {
     state.signetOfRageNextAt = event.at + 3;
   }
+
   const opportunistTrigger =
     (event.type === 'control' && event.actorType === 'player') ||
     (event.type === 'condition' && event.actorType === 'player' && event.condition === 'Immobilized');
@@ -610,6 +635,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
       Number(fury?.stacks || 1)
     );
   }
+
   if (event.type === 'control' && event.actorType === 'player') {
     state.targetControlledUntil = Math.max(state.targetControlledUntil, event.at + Number(event.duration || 1));
     if (hasTrait(context, TRAIT.MERCILESS_HAMMER)) {
@@ -618,6 +644,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
         Number(warriorBalanceProfile(context, PROFILE.mercilessHammer)?.resourceGain || 7)
       );
     }
+
     if (
       hasTrait(context, TRAIT.STALWART_STRENGTH) &&
       event.at + context.epsilon >= Number(state.traitProcReadyAt.stalwartStrength || 0)
@@ -635,6 +662,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
         Number(stability?.stacks || 1)
       );
     }
+
     if (
       hasTrait(context, TRAIT.BODY_BLOW) &&
       BODY_BLOW_CONTROL_KINDS.has(String(event.controlKind || '').toLowerCase())
@@ -661,6 +689,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
         });
       }
     }
+
     if (hasTrait(context, TRAIT.AGGRESSIVE_ONSLAUGHT)) {
       const readyAt = Number(state.traitProcReadyAt.aggressiveOnslaught || 0);
       if (event.at + context.epsilon >= readyAt) {
@@ -679,6 +708,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
       }
     }
   }
+
   if (event.type === 'condition' && event.condition === 'Crippled' && hasTrait(context, TRAIT.LEG_SPECIALIST)) {
     const effect = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.legSpecialist), 'condition');
     context.emitDerived(event, {
@@ -695,6 +725,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
       duration: Number(effect?.duration || 1)
     });
   }
+
   if (
     event.type === 'buff' &&
     event.kind === 'might' &&
@@ -704,6 +735,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
   ) {
     emitTraitBoon(context, event, TRAIT.PHALANX_STRENGTH, 'Phalanx Strength', 'might', 5, 1, 'allies');
   }
+
   if (
     event.type === 'damage' &&
     (event.actorType === 'player' || event.canTriggerCriticalTraits === true) &&
@@ -733,6 +765,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
             duration: 3.5
           });
         }
+
         if (hasTrait(context, TRAIT.BURST_PRECISION)) {
           const duration = Number(
             state.burstPrecisionDurations[activationKey] || (Number(skill.burstTier || 1) >= 3 ? 4 : 2)
@@ -752,6 +785,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
             duration
           });
         }
+
         if (hasTrait(context, TRAIT.BUILDING_MOMENTUM)) {
           gainWarriorEndurance(
             context,
@@ -759,6 +793,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
             event.at
           );
         }
+
         if (hasTrait(context, TRAIT.MARCHING_ORDERS) && event.at + context.epsilon >= state.soldierFocusReadyAt) {
           const marchingOrders = warriorBalanceProfile(context, PROFILE.marchingOrders);
           const might = warriorBalanceProfileEffect(marchingOrders, 'boon');
@@ -789,6 +824,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
               'party'
             );
           }
+
           if (hasTrait(context, TRAIT.MARTIAL_CADENCE)) {
             const stability = warriorBalanceProfileEffect(
               warriorBalanceProfile(context, PROFILE.martialCadence),
@@ -808,6 +844,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
         }
       }
     }
+
     const armsActivationKey = String(event.activationId || `${event.skillId}:${event.at}`);
     const armsBurstKey = `arms:${armsActivationKey}`;
     const firstBurstHit = Boolean(skill?.burst) && !state.burstHitActivations[armsBurstKey];
@@ -829,6 +866,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
       });
     }
   }
+
   if (
     context.config.specialization === 'Bladesworn' ||
     event.type !== 'damage' ||
@@ -855,6 +893,7 @@ export function advanceWarriorTraits(context: WarriorSchedulerContext, target: n
       state.signetOfRageNextAt += 3;
     }
   }
+
   if (!hasTrait(context, TRAIT.EMPOWER_ALLIES)) return;
   const empowerAllies = warriorBalanceProfile(context, PROFILE.empowerAllies);
   const might = warriorBalanceProfileEffect(empowerAllies, 'boon');
@@ -884,6 +923,7 @@ export function updateWarriorCastState(context: WarriorCastContext, skill: Warri
   if (skill.id === -3 && hasTrait(context, TRAIT.VERSATILE_RAGE)) {
     gainWarriorAdrenaline(context, 5);
   }
+
   if (
     skill.id === -3 &&
     hasTrait(context, TRAIT.FURIOUS_BURST) &&
@@ -907,6 +947,7 @@ export function updateWarriorCastState(context: WarriorCastContext, skill: Warri
       duration: Number(fury?.duration || 2.5)
     });
   }
+
   const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
   if (chain) {
     if (chain.next == null) delete state.autoattackChains[chain.root];

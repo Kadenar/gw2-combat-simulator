@@ -91,6 +91,7 @@ export function renderTraits(app: ProfessionAppState): void {
           }
         });
       }
+
       const definition = app.resourceDefinition(
         app.adapter.eliteSpecialization(app.build),
       );
@@ -101,6 +102,7 @@ export function renderTraits(app: ProfessionAppState): void {
           app.build[buildKey] = Math.min(value, definition.maximum);
         }
       }
+
       app.changed();
     });
   });
@@ -117,6 +119,7 @@ export function renderTraits(app: ProfessionAppState): void {
       ) {
         return;
       }
+
       const spec = app.build.specializations[line];
       if (!spec) return;
       const picks = spec.traits.split("-");

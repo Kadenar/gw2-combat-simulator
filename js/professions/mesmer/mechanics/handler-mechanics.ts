@@ -67,12 +67,14 @@ export function mesmerHandlerIdFor(skill: MesmerSkillCatalogFragment): string | 
   if (SHATTER_SKILL_IDS.has(id)) {
     return id >= ID.BLADETURN_REQUIEM ? 'mesmer.bladesong' : 'mesmer.shatter';
   }
+
   if (INSTRUMENT_SKILL_IDS.has(id)) return 'mesmer.instrument';
   if (id === ID.CRESCENDO) return 'mesmer.crescendo';
   if (skill.ambush) return 'mesmer.ambush';
   if (skill.phantasm || resource?.mode === 'phantasm') {
     return 'mesmer.phantasm';
   }
+
   if (FLIP_SKILL_IDS.has(id)) return 'mesmer.flip';
   if (id === ID.FLYING_CUTTER) return 'mesmer.tracked-hits';
   if (skill.resource) return 'mesmer.resource-skill';
@@ -87,6 +89,7 @@ export function mesmerHandlerIdFor(skill: MesmerSkillCatalogFragment): string | 
   ) {
     return 'mesmer.special-profile';
   }
+
   return (skill.effects || []).length ? 'mesmer.declarative' : null;
 }
 
@@ -111,6 +114,7 @@ export function prepareMesmerSkillForCatalog<TSkill extends MesmerSkillCatalogFr
   if (handlerId === 'mesmer.declarative') {
     return { ...prepared, handlerId };
   }
+
   return {
     ...prepared,
     handlerId,

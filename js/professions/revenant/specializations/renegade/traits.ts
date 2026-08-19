@@ -37,8 +37,10 @@ function criticalCount(context: RevenantSchedulerContext, event: RevenantSimulat
         )}.`
       );
     }
+
     return event.didCrit ? 1 : 0;
   }
+
   // Deterministic mode: accumulate fractional crit probability across events so that the expected number of procs over the full simulation equals (sum of crit chances)
   const state = renegadeState.from(context);
   const chance = Number(context.schedulerPolicy.critical?.(context, event)?.chance || 0);
@@ -63,10 +65,12 @@ function applyCriticalTraits(context: RevenantSchedulerContext, event: RevenantS
       sourceName: 'Ambush Commander'
     });
   }
+
   const state = professionCoreState(context);
   if (!enmity || criticals <= 0 || event.at + context.epsilon < Number(state.traitProcReadyAt.endlessEnmity || 0)) {
     return;
   }
+
   const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.endlessEnmity);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'boon');
   if (!profile || !effect) return;
@@ -96,6 +100,7 @@ function applyVindication(context: RevenantSchedulerContext, event: RevenantSimu
   ) {
     return;
   }
+
   const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.vindication);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'control');
   if (!profile || !effect) return;
@@ -121,6 +126,7 @@ function applyKallasFervorLifeSiphon(context: RevenantSchedulerContext, event: R
   if (!Number.isFinite(Number(event.flatStrikeBase)) && !Number.isFinite(Number(event.flatStrikePowerCoeff))) {
     return;
   }
+
   // Name-based guard distinguishes Soulcleave's life-siphon packet from other flat-strike effects
   if (!/siphon/i.test(`${event.name || ''} ${event.skillName || ''}`)) return;
   const stacks = activeKallasFervorStacks(renegadeState.from(context), event.at);
@@ -162,6 +168,7 @@ export function handleRenegadeCriticalTraitsTask(
   if (!event) {
     throw new Error(`Missing Renegade critical event ${String(eventOrder)}.`);
   }
+
   applyCriticalTraits(context, event);
 }
 
@@ -203,13 +210,16 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
       sourceName: 'Blood Fury'
     });
   }
+
   if (event.type === 'damage') {
     applyVindication(context, event);
     applyKallasFervorLifeSiphon(context, event);
   }
+
   if (event.type !== 'damage' || event.actorType !== 'player' || Number(event.coefficient || 0) <= 0) {
     return;
   }
+
   const tracksCriticalTraits =
     hasRevenantTrait(context.config, TRAIT.AMBUSH_COMMANDER) || hasRevenantTrait(context.config, TRAIT.ENDLESS_ENMITY);
   if (tracksCriticalTraits) {
@@ -227,6 +237,7 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
       applyCriticalTraits(context, event);
     }
   }
+
   const razorclaw = state.razorclawsRage;
   if (
     // Skip the Razorclaw's Rage hit itself to avoid infinite recursion
@@ -238,6 +249,7 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
   ) {
     return;
   }
+
   const profile = context.catalog.skillsById.get(RENEGADE_PROFILE_IDS.razorclawsRageProc);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'condition');
   if (!profile || !effect) return;

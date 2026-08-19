@@ -26,7 +26,9 @@ const SUPPLEMENTAL_SKILLS = [
 
 async function fetchJson(pathname) {
   const response = await fetch(`https://api.guildwars2.com/v2${pathname}${pathname.includes('?') ? '&' : '?'}lang=en`);
+
   if (!response.ok) throw new Error(`${response.status} ${pathname}`);
+
   return response.json();
 }
 
@@ -34,14 +36,18 @@ async function fetchJson(pathname) {
 async function rangerPetSkills() {
   const petIds = await fetchJson('/pets');
   const pets = [];
+
   for (let index = 0; index < petIds.length; index += 100) {
     pets.push(...(await fetchJson(`/pets?ids=${petIds.slice(index, index + 100).join(',')}`)));
   }
+
   const ids = [...new Set(pets.flatMap((pet) => pet.skills.map((skill) => skill.id)))];
   const skills = [];
+
   for (let index = 0; index < ids.length; index += 100) {
     skills.push(...(await fetchJson(`/skills?ids=${ids.slice(index, index + 100).join(',')}`)));
   }
+
   return skills;
 }
 
@@ -57,13 +63,17 @@ function constantName(value) {
 function stableEntries(entries) {
   const result = [];
   const keys = new Set();
+
   for (const [name, id] of entries) {
     const base = constantName(name);
+
     if (!base) continue;
     const key = keys.has(base) ? `${base}_ID_${id}` : base;
+
     keys.add(base);
     result.push({ key, id: Number(id), name: String(name) });
   }
+
   return result;
 }
 
@@ -107,5 +117,6 @@ const source = [
 ].join('\n');
 
 const target = fileURLToPath(new URL('../../js/professions/ranger/data/ids.ts', import.meta.url));
+
 await writeFile(target, source, 'utf8');
 console.log(`Wrote ${skills.length} skill, ${traits.length} trait, and ${specializations.length} specialization IDs.`);

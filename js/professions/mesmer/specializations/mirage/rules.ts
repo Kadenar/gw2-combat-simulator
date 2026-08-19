@@ -20,6 +20,7 @@ function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): 
     ) {
       return { ready: true };
     }
+
     const retryAt = Math.min(
       ...mirrors.filter((mirror) => mirror.expiresAt > context.start + EPSILON).map((mirror) => mirror.availableAt)
     );
@@ -30,6 +31,7 @@ function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): 
       reason: 'No Mirage Mirror is available to pick up.'
     };
   }
+
   if (!skill.ambush) return { ready: true };
   const runtime = mesmerRuntimeFor(context);
   const activeAmbush = runtime.ambushAttacks[runtime.activePrimaryWeapon()];
@@ -42,6 +44,7 @@ function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): 
   ) {
     return { ready: true };
   }
+
   return {
     ready: false,
     retryAt: null,

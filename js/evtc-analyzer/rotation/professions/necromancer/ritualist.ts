@@ -49,6 +49,7 @@ function summonSpiritsActions(context: EvtcProfessionReconstructionContext): Evt
     ) {
       return;
     }
+
     actions.push(effectAction(eventIndex, start, event.skillId, SUMMON_SPIRITS.name));
   });
   return actions;
@@ -60,6 +61,7 @@ function innervateAnguishActions(context: EvtcProfessionReconstructionContext): 
     if (event.source !== context.playerAddress || event.skillId !== INNERVATE_ANGUISH_SIGNAL || event.buff !== 0) {
       return;
     }
+
     if (
       hasRecordedAction(
         context,
@@ -72,6 +74,7 @@ function innervateAnguishActions(context: EvtcProfessionReconstructionContext): 
     ) {
       return;
     }
+
     actions.push(effectAction(eventIndex, event.time, event.skillId, INNERVATE_ANGUISH.name));
   });
   return actions;
@@ -90,6 +93,7 @@ function innervateWanderlustActions(context: EvtcProfessionReconstructionContext
     ) {
       return;
     }
+
     if (
       hasRecordedAction(
         context,
@@ -102,6 +106,7 @@ function innervateWanderlustActions(context: EvtcProfessionReconstructionContext
     ) {
       return;
     }
+
     actions.push(effectAction(eventIndex, event.time, event.skillId, INNERVATE_WANDERLUST.name));
   });
   return actions;

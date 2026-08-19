@@ -12,6 +12,7 @@ function weaverApp(selectedSkills = {}) {
     ...defaults,
     selectedSkills: { ...defaults.selectedSkills, ...selectedSkills }
   });
+
   return {
     build,
     adapter: elementalistAppAdapter,

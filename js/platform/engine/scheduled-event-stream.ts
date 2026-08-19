@@ -40,9 +40,11 @@ export function buildScheduledEventStream(options: BuildScheduledEventStreamOpti
   if (!Number.isFinite(rotationEndTime)) {
     throw new TypeError('Scheduled stream requires a finite rotation end.');
   }
+
   if (!Number.isFinite(resolutionEndTime) || resolutionEndTime < rotationEndTime) {
     throw new TypeError('Scheduled stream resolution end must be finite and not precede the rotation end.');
   }
+
   for (const event of events) assertSimulationEvent(event);
   return Object.freeze({
     kind: SCHEDULED_EVENT_STREAM_KIND,
@@ -82,6 +84,7 @@ export function assertScheduledEventStream(stream: unknown): ScheduledEventStrea
   ) {
     throw new Error('Invalid scheduled event stream.');
   }
+
   for (const event of candidate.events) assertSimulationEvent(event);
   return candidate as ScheduledEventStream;
 }

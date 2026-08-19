@@ -98,9 +98,11 @@ function withSmallHitboxCap(skill: Skill, smallHitboxCap: number): readonly Skil
           }))
         };
       }
+
       if (hitCount !== 1) {
         throw new TypeError(`${skill.name} needs individually timed strikes for hitbox caps.`);
       }
+
       return {
         ...effect,
         metadata: {
@@ -123,6 +125,7 @@ function withSmallHitboxCap(skill: Skill, smallHitboxCap: number): readonly Skil
         }))
       } as SkillEffect;
     }
+
     return {
       ...effect,
       metadata: {
@@ -151,6 +154,7 @@ function withLargeWildfireDuration(skill: Skill): readonly SkillEffect[] {
         ]
       };
     }
+
     if (effect.type === 'condition') {
       return {
         ...effect,
@@ -166,6 +170,7 @@ function withLargeWildfireDuration(skill: Skill): readonly SkillEffect[] {
         ]
       };
     }
+
     return effect;
   });
 }
@@ -178,6 +183,7 @@ function withHammerOrbPackets(skill: Skill): Skill {
       if (!Array.isArray(effect.ticks) || effect.ticks.length !== 1) {
         return effect;
       }
+
       const [packet] = effect.ticks;
       return {
         ...effect,
@@ -300,6 +306,7 @@ function finalizedSkillMechanics(
         if (!mechanics) {
           throw new TypeError(`Unknown Elementalist skill declaration ${id}.`);
         }
+
         return [id, mechanics];
       })
     )
@@ -321,6 +328,7 @@ function circularElementalistAutoattackChains(): readonly (readonly number[])[] 
     ) {
       continue;
     }
+
     const chain: number[] = [];
     const path = new Set<number>();
     let current: Skill | undefined = root;
@@ -330,9 +338,11 @@ function circularElementalistAutoattackChains(): readonly (readonly number[])[] 
       chain.push(id);
       current = current.nextChainId == null ? undefined : skillsById.get(Number(current.nextChainId));
     }
+
     for (const id of path) visited.add(id);
     if (current?.id === root.id && chain.length > 1) chains.push(chain);
   }
+
   return Object.freeze(chains.map((chain) => Object.freeze(chain)));
 }
 

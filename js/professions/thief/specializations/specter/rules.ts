@@ -49,11 +49,13 @@ function modifySpecterAttributes(context: Gw2ModifierContext, attributes: Gw2Res
       Number(profile?.attributeBonus || 90) +
       (wieldingScepter(context) ? Number(profile?.attributePerStack || 90) : 0);
   }
+
   if (hasTrait(context, TRAIT.STRENGTH_OF_SHADOWS)) {
     result.expertise =
       Number(result.expertise || 0) +
       gearVitality * Number(thiefBalanceProfile(context, PROFILE.strengthOfShadows)?.attributeConversion || 0.13);
   }
+
   return result;
 }
 

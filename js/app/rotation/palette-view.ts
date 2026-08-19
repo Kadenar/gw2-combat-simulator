@@ -125,6 +125,7 @@ export function resolvePaletteDropItem(
   if (name === '__combat_start' && app.build.rotation.some((entry) => rotationEntryName(entry) === '__combat_start')) {
     return null;
   }
+
   if (name === '__wait') return null;
   return createRotationItem(app, name, skillId == null ? {} : { skillId });
 }
@@ -347,6 +348,7 @@ export function renderPalette(app: ProfessionAppState): void {
       visited.add(Number(current.id));
       current = utilityFlipByParent.get(current.name);
     }
+
     return chain.map((candidate) => ({
       ...candidate,
       hotkeyAction: rotationUtilityHotkeyAction(index)
@@ -363,20 +365,24 @@ export function renderPalette(app: ProfessionAppState): void {
   const weaponSwapActions = actions.filter((skill) => skill.name === 'Swap Weapons');
   const generalActions = actions.filter((skill) => skill.name !== 'Swap Weapons');
   const activeWeaponSet = endState?.activeWeaponSet || 1;
+
   const availableFlips =
     professionState.availableFlips && typeof professionState.availableFlips === 'object'
       ? (professionState.availableFlips as SchedulerRecord)
       : {};
+
   const availableAmbush =
     professionState.availableAmbush && typeof professionState.availableAmbush === 'object'
       ? (professionState.availableAmbush as SchedulerRecord)
       : null;
+
   const autoattackChains =
     professionState.autoattackChains && typeof professionState.autoattackChains === 'object'
       ? (professionState.autoattackChains as SchedulerRecord)
       : {};
   const loadoutUnavailableMessage = (skill: Skill): string =>
     app.adapter.slotLoadout?.unavailableReason(skill, paletteContext) || '';
+
   // Loadout and profession availability are independent vetoes. Cache the
   // structured profession result because both its flag and message are read.
   const paletteAvailabilityBySkill = new Map<Skill, PaletteSkillAvailability>();
@@ -384,26 +390,35 @@ export function renderPalette(app: ProfessionAppState): void {
     if (!paletteAvailabilityBySkill.has(skill)) {
       paletteAvailabilityBySkill.set(skill, app.profession.ui.paletteSkillAvailability(paletteContext, skill));
     }
+
     return paletteAvailabilityBySkill.get(skill) as PaletteSkillAvailability;
   };
+
   const professionAllowsPaletteSkill = (skill: Skill): boolean =>
     !loadoutUnavailableMessage(skill) && professionPaletteAvailability(skill).available;
+
   const professionPaletteUnavailableMessage = (skill: Skill): string =>
     loadoutUnavailableMessage(skill) || professionPaletteAvailability(skill).message;
+
   const professionPaletteRetryAt = (skill: Skill): number | null =>
     professionPaletteAvailability(skill).retryAt ?? null;
+
   const flipAvailable = (skill: Skill): boolean => {
     const value = availableFlips[skill.id] ?? availableFlips[skill.name];
     return typeof value === 'number' ? value > Number(endState?.time || 0) / 1000 : Boolean(value);
   };
+
   const flipParentName = (skill: Skill): string =>
     String(skill.flipParent || app.skillById.get(Number(skill.flipParentId))?.name || 'its parent skill');
+
   const usesStatefulFlip = (skill: Skill): boolean =>
     skill.paletteFlip !== false && Boolean(skill.flipParent || skill.flipParentId != null);
+
   const chainExpected = (skill: Skill): unknown => {
     const root = String(skill.chainRoot || '');
     return autoattackChains[root] || root;
   };
+
   const weaponSkillAvailable = (skill: Skill, weaponSet: number): boolean => {
     if (weaponSet !== activeWeaponSet) return false;
     if (!professionAllowsPaletteSkill(skill)) return false;
@@ -412,24 +427,30 @@ export function renderPalette(app: ProfessionAppState): void {
     if (usesStatefulFlip(skill) && !flipAvailable(skill)) return false;
     return autoattackChainSkillAvailable(skill, autoattackChains);
   };
+
   const weaponSkillUnavailableMessage = (skill: Skill, weaponSet: number): string => {
     if (weaponSet !== activeWeaponSet) {
       return `Swap to weapon set ${weaponSet} to use this skill`;
     }
+
     if (!professionAllowsPaletteSkill(skill)) {
       return professionPaletteUnavailableMessage(skill);
     }
+
     if (skill.ambush) {
       return availableAmbush
         ? `Current ambush is ${String(availableAmbush.name || '')}`
         : 'Gain Mirage Cloak to use this ambush';
     }
+
     if (availableAmbush && skill.slot === 'Weapon_1') {
       return `${String(availableAmbush.name || '')} currently replaces weapon skill 1`;
     }
+
     if (usesStatefulFlip(skill) && !flipAvailable(skill)) {
       return `Unavailable until ${flipParentName(skill)} has been used`;
     }
+
     if (skill.chainRoot) {
       const expected = chainExpected(skill);
       if (skill.name !== expected && skill.id !== Number(expected)) {
@@ -437,8 +458,10 @@ export function renderPalette(app: ProfessionAppState): void {
         return `Cast ${expectedSkill?.name || expected} first`;
       }
     }
+
     return '';
   };
+
   const activeFlipDescendantFor = (skill: Skill): Skill | null => {
     const visited = new Set<number>();
     let flip = utilityFlipByParent.get(skill.name);
@@ -447,45 +470,58 @@ export function renderPalette(app: ProfessionAppState): void {
       visited.add(Number(flip.id));
       flip = utilityFlipByParent.get(flip.name);
     }
+    
     return null;
   };
+
   const selectedWithFlips = selectedWithFlipChains.filter((skill) =>
     usesStatefulFlip(skill) ? flipAvailable(skill) : !activeFlipDescendantFor(skill)
   );
+
   const utilitySkillAvailable = (skill: Skill): boolean => {
     if (!professionAllowsPaletteSkill(skill)) return false;
     if (usesStatefulFlip(skill)) return flipAvailable(skill);
     return !activeFlipDescendantFor(skill);
   };
+
   const utilitySkillUnavailableMessage = (skill: Skill): string => {
     if (!professionAllowsPaletteSkill(skill)) {
       return professionPaletteUnavailableMessage(skill);
     }
+
     if (usesStatefulFlip(skill) && !flipAvailable(skill)) {
       return `Unavailable until ${flipParentName(skill)} has been used`;
     }
+
     const flip = activeFlipDescendantFor(skill);
     if (flip) return `Unavailable while ${flip.name} has charges`;
+
     return '';
   };
 
   const professionSkillAvailable = (skill: Skill): boolean => {
     if (!professionAllowsPaletteSkill(skill)) return false;
+
     if (usesStatefulFlip(skill) && !flipAvailable(skill)) {
       return false;
     }
+
     if (!autoattackChainSkillAvailable(skill, autoattackChains)) {
       return false;
     }
+
     return true;
   };
+  
   const professionSkillUnavailableMessage = (skill: Skill): string => {
     if (!professionAllowsPaletteSkill(skill)) {
       return professionPaletteUnavailableMessage(skill);
     }
+
     if (usesStatefulFlip(skill) && !flipAvailable(skill)) {
       return `Unavailable until ${flipParentName(skill)} has been used`;
     }
+
     if (skill.chainRoot) {
       const expected = chainExpected(skill);
       if (skill.name !== expected && skill.id !== Number(expected)) {
@@ -493,8 +529,10 @@ export function renderPalette(app: ProfessionAppState): void {
         return `Cast ${expectedSkill?.name || expected} first`;
       }
     }
+
     return '';
   };
+
   const loadoutHasResourceAnchor = renderedLoadoutGroups.some((group) => group.resourceAnchor);
   const loadoutStackHtml = renderedLoadoutGroups.length
     ? `<div class="weapon-palette-stack loadout-palette-stack"
@@ -515,11 +553,13 @@ export function renderPalette(app: ProfessionAppState): void {
               .join('')}</div>`
     : '';
   const attachedResourceIds = renderedProfessionGroups.flatMap((group) => group.resourceIds || []);
+
   // Resources attached to a specific group are rendered with that group and
   // excluded from the remaining unpositioned resource block.
   const resourceGroupsHtml = activeResourceGroup(app, {
     excludeIds: attachedResourceIds
   });
+
   let resourceAnchorRendered = false;
   // The first eligible anchor consumes the unpositioned resource block; later
   // anchors must not duplicate it.
@@ -532,6 +572,7 @@ export function renderPalette(app: ProfessionAppState): void {
                 ${resourceGroupsHtml}
             </div>`;
   };
+
   const loadoutStack = stackWithResources(loadoutStackHtml, loadoutHasResourceAnchor);
   const loadoutAfterActions = app.adapter.slotLoadout?.palettePlacement === 'after-actions';
   const loadoutBeforeWeapons = loadoutAfterActions ? '' : loadoutStack;
@@ -547,6 +588,7 @@ export function renderPalette(app: ProfessionAppState): void {
   const standardProfessionGroups = renderedProfessionGroups.filter(
     (group) => group.placement === 'profession' || !group.placement
   );
+
   const renderProfessionGroup = (group: RenderedPaletteGroup): string => {
     const groupHtml = addGroup(
       app,
@@ -571,12 +613,14 @@ export function renderPalette(app: ProfessionAppState): void {
               ${resourcesFirst ? groupHtml : attachedResourcesHtml}
             </div>`;
   };
+
   const renderedStackIds = new Set<string>();
   const professionGroupsHtml = standardProfessionGroups
     .map((group) => {
       if (!group.stackId) {
         return stackWithResources(renderProfessionGroup(group), group.resourceAnchor && !loadoutHasResourceAnchor);
       }
+
       if (renderedStackIds.has(group.stackId)) return '';
       renderedStackIds.add(group.stackId);
       const stackedGroups = standardProfessionGroups.filter((candidate) => candidate.stackId === group.stackId);
@@ -588,12 +632,14 @@ export function renderPalette(app: ProfessionAppState): void {
       );
     })
     .join('');
+
   const unanchoredResourceGroupsHtml = resourceAnchorRendered ? '' : resourceGroupsHtml;
   const professionPaletteContent = professionGroupsHtml + unanchoredResourceGroupsHtml + loadoutBeforeWeapons;
   const professionPaletteSectionHtml = professionPaletteContent
     ? `<div class="profession-palette-section"
           data-role="profession-palette-section">${professionPaletteContent}</div>`
     : '';
+
   const utilityGroupHtml = addGroup(
     app,
     'Skill',
@@ -603,6 +649,7 @@ export function renderPalette(app: ProfessionAppState): void {
     utilitySkillUnavailableMessage,
     'utility-palette-group'
   );
+
   const paletteWeaponSkills = (skills: readonly Skill[], context: SchedulerRecord = {}): Skill[] =>
     app.profession.ui.paletteWeaponSkills({ ...paletteContext, ...context }, skills);
   // Custom weapon layouts still receive generic availability, tooltip, and
@@ -615,6 +662,7 @@ export function renderPalette(app: ProfessionAppState): void {
       ...((options.view || {}) as PaletteSkillView)
     });
   };
+
   const customWeaponPalette = app.profession.ui.renderWeaponPalette({
     ...paletteContext,
     skills: paletteWeaponSkills(displayedWeaponSkills(app, weaponSkills(app, 1), 1), { weaponSet: 1 }),
@@ -623,6 +671,7 @@ export function renderPalette(app: ProfessionAppState): void {
     unavailableMessage: (skill) => weaponSkillUnavailableMessage(skill, 1),
     renderSkill: renderWeaponSkill
   });
+
   const positionedActiveWeaponGroups = new Set<string>();
   // Standard layouts place weapon swap in the first active weapon row and then
   // omit it from the shared action row.
@@ -675,6 +724,7 @@ export function renderPalette(app: ProfessionAppState): void {
       ];
     });
   })();
+
   if (!customWeaponPalette) {
     weaponGroupsHtml.push(
       ...activeWeaponProfessionGroups
@@ -682,9 +732,11 @@ export function renderPalette(app: ProfessionAppState): void {
         .map(renderProfessionGroup)
     );
   }
+
   const activeWeaponPrimaryHtml = customWeaponPalette
     ? activeWeaponProfessionGroups.map(renderProfessionGroup).join('')
     : '';
+
   const timelineControlsHtml = `<div class="pal-group"><div class="pal-label" style="color:#d66d2f">Cmb</div>
             <div class="pal-row">${virtualPaletteSkillHtml({
               name: '__combat_start',
@@ -707,11 +759,13 @@ export function renderPalette(app: ProfessionAppState): void {
               icon: WAIT_ICON
             })}</div>
         </div>`;
+
   const timelineToolsHtml = `<div class="timeline-tools-palette-stack"
         data-role="timeline-tools-palette-stack">
           <div class="pal-break"></div>
           ${timelineControlsHtml}
       </div>`;
+
   const actionGroupHtml = addGroup(
     app,
     'Act',
@@ -721,6 +775,7 @@ export function renderPalette(app: ProfessionAppState): void {
     professionSkillUnavailableMessage,
     'action-palette-group'
   );
+
   const primaryPaletteHtml = customWeaponPalette
     ? `<div class="${esc(customWeaponPalette.primaryClassName || 'profession-weapon-primary')}" data-role="${esc(customWeaponPalette.primaryRole || 'profession-weapon-primary')}">
           ${professionPaletteSectionHtml}
@@ -730,6 +785,7 @@ export function renderPalette(app: ProfessionAppState): void {
           ${customWeaponPalette.placeActionsInPrimary ? actionGroupHtml : ''}
         </div>${customWeaponPalette.placeUtilityInPrimary ? '' : utilityGroupHtml}`
     : professionPaletteSectionHtml + utilityGroupHtml;
+
   element.innerHTML =
     primaryPaletteHtml +
     weaponPaletteSectionHtml(weaponGroupsHtml, customWeaponPalette?.placeActionsInPrimary ? '' : actionGroupHtml) +
@@ -756,9 +812,12 @@ export function renderPalette(app: ProfessionAppState): void {
         if (professionAction !== null) {
           insertRotationItems(app, Array.isArray(professionAction) ? professionAction : [professionAction]);
         }
+
         return;
       }
+
       if (name === '__combat_start' && icon.classList.contains('pal-disabled')) return;
+
       if (name === '__wait') {
         openDurationEditor({
           anchor: icon,
@@ -771,8 +830,10 @@ export function renderPalette(app: ProfessionAppState): void {
             app.addRotation(name, { waitMs });
           }
         });
+
         return;
       }
+
       const skill = skillId == null ? app.skillByName.get(name) : app.skillById.get(skillId);
       if (skill?.dragonSlash) {
         const insertionIndex =
@@ -790,8 +851,10 @@ export function renderPalette(app: ProfessionAppState): void {
             });
           }
         });
+
         return;
       }
+
       if (hasConfigurableDoubleEdgeOutcome(skill)) {
         openDoubleEdgeEditor({
           anchor: icon,
@@ -805,14 +868,18 @@ export function renderPalette(app: ProfessionAppState): void {
             });
           }
         });
+
         return;
       }
+
       const instant = paletteSkillIsInstant(app, paletteContext, skill, name);
       if (event.shiftKey && instant && skill?.canCastConcurrently !== false && app.build.rotation.length) {
+
         app.addRotation(name, {
           ...identity,
           offset: CONCURRENT_OFFSET_MS
         });
+
       } else if (event.ctrlKey && !instant) {
         const suggestedInterruptMs = suggestedPaletteInterruptMs(skill);
         openActivationEditor({

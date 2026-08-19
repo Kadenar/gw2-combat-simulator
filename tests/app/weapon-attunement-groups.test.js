@@ -67,6 +67,7 @@ test('Weaver dual attacks follow the four elemental rows', () => {
   const dualSkills = groupWeaponSkillsByAttunement(skills, 'Weaver').find(
     (group) => group.attunement === 'Dual'
   )?.skills;
+
   assert.deepEqual(
     weaponBarSkillStacks(dualSkills || [], true).map((stack) => stack.map((entry) => entry.name)),
     [['Twin Strike'], ['Pyro Vortex']]

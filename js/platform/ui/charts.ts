@@ -135,6 +135,7 @@ export function chartValueAt(points: readonly ChartPoint[], time: number): numbe
     if (Number(point.t || 0) > time) break;
     value = Number(point.v || 0);
   }
+
   return value;
 }
 
@@ -193,6 +194,7 @@ export function buildChartSeries(
         damage += Number(event.damage || 0);
       }
     }
+
     return { t: time, v: damage / elapsed };
   });
   const applications: ChartEffectApplication[] = [];
@@ -219,6 +221,7 @@ export function buildChartSeries(
       });
     }
   }
+
   for (const event of result.events || []) {
     if (event.type !== 'buff' || event.affectsSelf === false || !Number(event.duration || 0)) continue;
     const start = Number(event.at || 0) * 1000 - dpsStartMs;
@@ -231,6 +234,7 @@ export function buildChartSeries(
       replacementGroup: replacementGroup(event.kind, event)
     });
   }
+
   const effects: Record<string, ChartPoint[]> = {};
   const effectTypes: Record<string, ChartEffectType> = {};
   for (const name of new Set(applications.map((entry) => entry.name))) {
@@ -252,6 +256,7 @@ export function buildChartSeries(
           })
         };
       }
+
       const activeReplacements = new Map<string, (typeof applications)[number]>();
       for (const entry of applications) {
         if (!entry.replacementGroup || entry.start > time) continue;
@@ -260,6 +265,7 @@ export function buildChartSeries(
           activeReplacements.set(entry.replacementGroup, entry);
         }
       }
+
       return {
         t: time,
         v: Math.min(
@@ -278,6 +284,7 @@ export function buildChartSeries(
       };
     });
   }
+
   const cumulativeDamage = dps.map((point) => ({
     t: point.t,
     v: point.v * (point.t / 1000)
@@ -294,6 +301,7 @@ export function buildChartSeries(
       if (skillName && skillNames[key] == null) {
         skillNames[key] = skillName(key, event);
       }
+
       const crit = event.didCrit ?? null;
       const damageTicks = eventDamageTicks(event);
       if (damageTicks.length) {
@@ -313,10 +321,12 @@ export function buildChartSeries(
         }
       }
     }
+
     for (const key of Object.keys(skillDamage)) {
       skillDamage[key]!.sort((left, right) => left.t - right.t);
     }
   }
+
   return {
     durationMs,
     dps,
@@ -353,6 +363,7 @@ const chartNumber = (value: unknown): string => {
   if (number >= 1000) {
     return `${(number / 1000).toFixed(number >= 10_000 ? 0 : 1)}k`;
   }
+
   return number.toFixed(number < 10 && number % 1 ? 1 : 0);
 };
 
@@ -393,6 +404,7 @@ function healthBreakpointMarkers(
       ) {
         return false;
       }
+
       seen.add(healthPercent);
       return true;
     })
@@ -432,6 +444,7 @@ function fightPhases(series: ChartSeries, markers: readonly ChartMarker[]): Char
       });
     }
   }
+
   if (Number.isFinite(finalDamage)) {
     boundaries.set(0, {
       timeMs: series.durationMs,
@@ -485,6 +498,7 @@ export function buildPhaseDpsSeries(
       v: Math.max(0, Number(point.v) - startDamage) / Math.max(0.001, elapsedMs / 1000)
     });
   }
+
   points.push({
     t: durationMs,
     v: Math.max(0, endDamage - startDamage) / Math.max(0.001, durationMs / 1000)
@@ -513,6 +527,7 @@ function dpsViewForPhase(series: ChartSeries, markers: readonly ChartMarker[], p
       markers
     };
   }
+
   return {
     label: phase.label,
     durationMs: phase.endMs - phase.startMs,
@@ -539,6 +554,7 @@ function effectsViewForPhase(series: ChartSeries, phase: ChartFightPhase): Chart
       effects: series.effects
     };
   }
+
   return {
     durationMs: phase.endMs - phase.startMs,
     effects: Object.fromEntries(
@@ -624,6 +640,7 @@ function drawLineChart(
     group.push(marker);
     markerGroups.set(marker.timeMs, group);
   }
+
   for (const [timeMs, group] of markerGroups) {
     const x = pad.left + (timeMs / durationMs) * plotWidth;
     context.save();
@@ -751,6 +768,7 @@ function drawHitTimeline(
       context.textAlign = index === 0 ? 'left' : index === 5 ? 'right' : 'center';
       context.fillText(`${((durationMs * ratio) / 1000).toFixed(durationMs < 10_000 ? 1 : 0)}s`, x, baseY + 5);
     }
+
     context.textBaseline = 'middle';
   }
 
@@ -804,6 +822,7 @@ function bindHitTimelineHover(
   canvas.onmouseleave = () => {
     tooltip.style.display = 'none';
   };
+
   canvas.onmousemove = (event) => {
     const layout = state.layout();
     if (!layout) return;
@@ -824,10 +843,12 @@ function bindHitTimelineHover(
         nearest = hit;
       }
     }
+
     if (!nearest || nearestDistance > toleranceMs) {
       tooltip.style.display = 'none';
       return;
     }
+
     const critLine = nearest.crit == null ? '' : `<div>Critical: ${nearest.crit ? 'Yes' : 'No'}</div>`;
     const label = state.label();
     tooltip.innerHTML =
@@ -1029,10 +1050,12 @@ export function mountTimeSeriesCharts(
       dpsTitle.textContent =
         `${resolvedOptions.dpsLabel} Over Time` + (activePhase.id === 'full' ? '' : ` — ${activePhase.label}`);
     }
+
     const effectsTitle = container.querySelector<HTMLElement>('[data-role="effects-panel-title"]');
     if (effectsTitle) {
       effectsTitle.textContent = 'Effects Over Time' + (activePhase.id === 'full' ? '' : ` — ${activePhase.label}`);
     }
+
     // DPS is always shown; only effect series are toggleable.
     chartState.dpsLayout = drawLineChart(
       container.querySelector<HTMLCanvasElement>('[data-role="dps-canvas"]'),
@@ -1099,6 +1122,7 @@ export function mountTimeSeriesCharts(
     canvas.onmouseleave = () => {
       tooltip.style.display = 'none';
     };
+
     canvas.onmousemove = (event) => {
       const layout = kind === 'dps' ? chartState.dpsLayout : chartState.effectsLayout;
       if (!layout) return;
@@ -1159,6 +1183,7 @@ export function mountTimeSeriesCharts(
   for (const input of chartTogglesEl?.querySelectorAll<HTMLInputElement>('input') || []) {
     input.onchange = redraw;
   }
+
   for (const button of chartTogglesEl?.querySelectorAll<HTMLButtonElement>(
     '[data-role="chart-toggle-group"] [data-toggle-action]'
   ) || []) {
@@ -1169,9 +1194,11 @@ export function mountTimeSeriesCharts(
       for (const input of group.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')) {
         input.checked = checked;
       }
+
       redraw();
     };
   }
+
   for (const button of chartPhaseTogglesEl?.querySelectorAll<HTMLButtonElement>('button') || []) {
     button.onclick = () => {
       if (button.disabled) return;
@@ -1179,9 +1206,11 @@ export function mountTimeSeriesCharts(
       for (const phaseButton of chartPhaseTogglesEl?.querySelectorAll<HTMLButtonElement>('button') || []) {
         phaseButton.setAttribute('aria-pressed', String(phaseButton.dataset.chartPhase === activePhaseId));
       }
+
       redraw();
     };
   }
+
   bindHover('dps-canvas', 'dps-tooltip', 'dps');
   bindHover('effects-canvas', 'effects-tooltip', 'effects');
   bindHitTimelineHover(
@@ -1201,6 +1230,7 @@ export function mountTimeSeriesCharts(
     if (redrawFrame !== null || ACTIVE_MOUNTS.get(container)?.token !== mountToken) {
       return;
     }
+
     const requestFrame =
       container.ownerDocument?.defaultView?.requestAnimationFrame?.bind(container.ownerDocument.defaultView) ||
       globalThis.requestAnimationFrame;
@@ -1208,6 +1238,7 @@ export function mountTimeSeriesCharts(
       redraw();
       return;
     }
+
     redrawFrame = requestFrame(() => {
       redrawFrame = null;
       redraw();
@@ -1226,6 +1257,7 @@ export function mountTimeSeriesCharts(
     });
     activeMount.resizeObserver.observe(observedContainer);
   }
+
   requestRedraw();
   const setSelectedSkill = (key: string | null): void => {
     const next = key && resolvedSeries.skillDamage?.[key]?.length ? key : null;
@@ -1233,6 +1265,7 @@ export function mountTimeSeriesCharts(
     selectedSkillKey = next;
     redraw();
   };
+
   return { redraw, setSelectedSkill };
 }
 
@@ -1277,6 +1310,7 @@ export function mountHitTimeline(
       showAxis: true
     });
   };
+
   bindHitTimelineHover(canvas, tooltip, {
     layout: () => layout,
     hits: () => hits,
@@ -1295,5 +1329,6 @@ export function mountHitTimeline(
     });
     activeMount.resizeObserver.observe(wrap);
   }
+
   return { redraw };
 }

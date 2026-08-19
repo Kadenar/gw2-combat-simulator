@@ -18,6 +18,7 @@ export function uniqueByName(skills: readonly Skill[]): Skill[] {
   for (const skill of skills) {
     if (!unique.has(skill.name)) unique.set(skill.name, skill);
   }
+
   return [...unique.values()];
 }
 
@@ -42,6 +43,7 @@ export function uniqueBySpecializedName(skills: readonly Skill[], specialization
       byName.set(skill.name, skill);
     }
   }
+
   return [...byName.values()];
 }
 
@@ -60,6 +62,7 @@ export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
       ) {
         return false;
       }
+
       return (app.adapter.weaponSkillMatchesSet || defaultWeaponSkillMatchesSet)(skill, [mainHand, offHand], {
         build: app.build,
         specialization: activeSpecialization(app),
@@ -137,6 +140,7 @@ export function displayedFlipSkills(app: ProfessionAppState, skills: readonly Sk
     flipByParentId.set(Number(parent.id), child);
     parentByFlipId.set(Number(child.id), parent);
   }
+
   for (const parent of catalogSkills) {
     if (parent.paletteFlip === false || parent.flipSkillId == null || parent.flipSkillId === parent.nextChainId)
       continue;
@@ -150,6 +154,7 @@ export function displayedFlipSkills(app: ProfessionAppState, skills: readonly Sk
     ) {
       continue;
     }
+
     flipByParentId.set(Number(parent.id), child);
     parentByFlipId.set(Number(child.id), parent);
   }
@@ -169,8 +174,10 @@ export function displayedFlipSkills(app: ProfessionAppState, skills: readonly Sk
       if (paletteFlipAvailable(flip, availableFlips, at)) {
         displayed = candidateById.get(Number(flip.id)) || flip;
       }
+
       current = flip;
     }
+
     if (displayedIds.has(Number(displayed.id))) return [];
     displayedIds.add(Number(displayed.id));
     return [displayed];
@@ -222,6 +229,7 @@ export function displayedWeaponSkills(
     if (!autoattackChainSkillAvailable(displayed, autoattackChains) || displayedIds.has(Number(displayed.id))) {
       return [];
     }
+
     displayedIds.add(Number(displayed.id));
     return [displayed];
   });
@@ -272,6 +280,7 @@ export function weaponPaletteRows(app: ProfessionAppState, activeWeaponSet = 1):
     if (groups.length === 1 && groups[0].attunement == null) {
       return [row];
     }
+
     return groups.map(({ attunement, skills }) => ({
       ...row,
       id: `${row.id}-${String(attunement)
@@ -407,9 +416,11 @@ export function rotationUtilityFlipByParent(app: ProfessionAppState): Map<string
     ) {
       continue;
     }
+
     const parentName = String(skill.flipParent || skillById.get(Number(skill.flipParentId))?.name || '');
     if (parentName) flips.set(parentName, skill);
   }
+
   return flips;
 }
 

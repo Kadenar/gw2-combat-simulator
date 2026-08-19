@@ -42,15 +42,18 @@ function modifyEngineerConditionBaseDuration(context: Gw2ModifierContext, multip
   if (event?.skillWeapon !== 'Pistol' && event?.application?.skillWeapon !== 'Pistol' && skill?.weapon !== 'Pistol') {
     return multiplier;
   }
+
   const skillName = skill?.name || event?.skillName || event?.application?.skillName;
   const condition = context.condition || event?.condition || event?.application?.condition;
   // Blowtorch and Glue Shot have unique per-skill multipliers sourced from the wiki
   if (skillName === 'Blowtorch' && condition === 'Burning') {
     return multiplier * 1.2;
   }
+
   if (skillName === 'Glue Shot') {
     return condition === 'Crippled' ? multiplier * 1.5 : multiplier;
   }
+
   return multiplier * (4 / 3);
 }
 
@@ -252,10 +255,12 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: S
       Number(modified.conditionDamage || 0) +
       engineerBalanceValue(context, PROFILE.chemicalRounds, 'attributeBonus', 120);
   }
+
   if (hasTrait(context, TRAIT.THERMAL_VISION) && !buildAttributesApplied) {
     modified.expertise =
       Number(modified.expertise || 0) + engineerBalanceValue(context, PROFILE.thermalVision, 'attributeBonus', 150);
   }
+
   if (
     hasTrait(context, TRAIT.ENERGY_AMPLIFIER) &&
     activeBoonStacks(context, 'regeneration', 1) > 0 &&
@@ -266,6 +271,7 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: S
     modified.power = Number(modified.power || 0) + attributeBonus;
     modified.healingPower = Number(modified.healingPower || 0) + attributeBonus;
   }
+
   if (
     hasTrait(context, TRAIT.NO_SCOPE) &&
     activeBoonStacks(context, 'fury', 1) > 0 &&
@@ -274,6 +280,7 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: S
     modified.ferocity =
       Number(modified.ferocity || 0) + engineerBalanceValue(context, PROFILE.noScope, 'attributeBonus', 150);
   }
+
   if (hasTrait(context, TRAIT.EXPLOSIVE_TEMPER)) {
     modified.ferocity =
       Number(modified.ferocity || 0) +
@@ -284,6 +291,7 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: S
       ) *
         engineerBalanceValue(context, PROFILE.explosiveTemper, 'attributePerStack', 20);
   }
+
   applyEngineerSharpshooterConditionDamage(context, modified);
   return modified;
 }
@@ -302,6 +310,7 @@ export function applyEngineerSharpshooterConditionDamage(
   ) {
     return;
   }
+
   attributes.conditionDamage =
     Number(attributes.power || 0) * engineerBalanceValue(context, PROFILE.sharpshooter, 'coefficientMultiplier', 2 / 3);
 }
@@ -311,12 +320,14 @@ function modifyEngineerCoreRechargeDuration(context: EngineerRechargeContext, du
   if (isEngineerToolbeltSkill(skill) && hasEngineerTrait(context.config, TRAIT.MECHANIZED_DEPLOYMENT)) {
     return duration * 0.85;
   }
+
   if (
     skill?.categories?.some((category) => String(category).toLowerCase() === 'gadget') &&
     hasEngineerTrait(context.config, TRAIT.GADGETEER)
   ) {
     return duration * 0.8;
   }
+
   return duration;
 }
 

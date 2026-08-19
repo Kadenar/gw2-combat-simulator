@@ -66,8 +66,10 @@ function normalizeGuardianAutoattacks(
       activeChainRoot = null;
       expectedSkillId = null;
     }
+
     result.push(action);
   }
+
   return result;
 }
 

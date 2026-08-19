@@ -58,6 +58,7 @@ export function observeGaleshotEvent(context: RangerSchedulerContext, event: Sim
     // swap rather than transferring to the incoming pet.
     galeshotState.from(context).wutheringWindReady = false;
   }
+
   if (
     event.type === 'damage' &&
     event.actorType === 'player' &&
@@ -74,6 +75,7 @@ export function observeGaleshotEvent(context: RangerSchedulerContext, event: Sim
       }
     });
   }
+
   if (
     event.type === 'damage' &&
     event.actorType === 'summon' &&
@@ -90,6 +92,7 @@ export function observeGaleshotEvent(context: RangerSchedulerContext, event: Sim
       }
     });
   }
+
   if (event.type === 'control' && (event.actorType === 'player' || event.actorType === 'summon')) {
     context.tasks.schedule({
       type: 'ranger.galeshot-disable',
@@ -142,6 +145,7 @@ export function handleGaleshotMissileHitTask(context: RangerSchedulerContext, ta
       activationId: payload?.activationId
     });
   }
+
   if (!hasTrait({ config: context.config }, TRAIT.SHRIKE)) return;
   const profile = rangerBalanceProfile(context, PROFILE.shrike);
   const threshold = Number(profile?.threshold ?? 12);
@@ -188,6 +192,7 @@ export function handleGaleshotPetHitTask(context: RangerSchedulerContext, task: 
   ) {
     return;
   }
+
   state.wutheringWindReady = false;
   if (activationId) state.wutheringWindActivationIds[activationId] = true;
   const strike = rangerBalanceProfileEffect(rangerBalanceProfile(context, PROFILE.wutheringWind), 'strike');
@@ -236,6 +241,7 @@ export function handleGaleshotDisableTask(context: RangerSchedulerContext, _task
   ) {
     return;
   }
+
   // 0.25 s ICD prevents one multi-hit ability from restoring more than one arrow.
   const profile = rangerBalanceProfile(context, PROFILE.thrillOfTheCatch);
   state.thrillOfTheCatchReadyAt = context.state.time + Number(profile?.internalCooldown ?? 0.25);
@@ -261,6 +267,7 @@ export function completeGaleshotSkill(context: RangerCastContext, skill: RangerS
   ) {
     return;
   }
+
   const profile = rangerBalanceProfile(context, PROFILE.flockTogether);
   const quickness = rangerBalanceProfileEffect(profile, 'boon');
   state.flockTogetherReadyAt = context.effectiveEnd + Number(profile?.internalCooldown ?? 20);

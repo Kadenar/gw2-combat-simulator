@@ -25,6 +25,7 @@ function firebrandEventLogRow(
   if (event.type === 'guardian.tome-stowed') {
     return { ...base, description: 'TOME STOWED' };
   }
+
   if (event.type === 'guardian.tome-page-used') {
     const cost = Math.max(1, Number(event.pageCost || 1));
     return {
@@ -34,6 +35,7 @@ function firebrandEventLogRow(
         `(-${cost}) -> ${Number(event.pagesRemaining || 0)} remaining`
     };
   }
+
   return undefined;
 }
 
@@ -80,11 +82,13 @@ export const firebrandUi = Object.freeze({
       // returning the skill name triggers the timeline lane switch.
       return context.weaponLine === skill?.name ? undefined : skill?.name;
     }
+
     if (skill?.name === 'Stow Tome') {
       // null signals "end of a named weapon line" to the timeline renderer;
       // undefined means there was no active tome line to close.
       return /^Tome of /.test(String(context.weaponLine || '')) ? null : undefined;
     }
+
     return undefined;
   },
   skillBarGroups: tomeGroups,
@@ -117,18 +121,21 @@ export const firebrandUi = Object.freeze({
         message: 'Weapon skills are unavailable while a tome is equipped'
       };
     }
+
     if (skill.tome && !state.activeTome) {
       return {
         available: false,
         message: 'Equip this tome to use its chapter skills'
       };
     }
+
     if (skill.tome && state.activeTome !== skill.tome) {
       return {
         available: false,
         message: `Currently using the ${state.activeTome} tome`
       };
     }
+
     const pageCost = Number(skill.pageCost || 1);
     if (skill.tome && Number(state.tomePages || 0) < pageCost) {
       return {
@@ -136,12 +143,14 @@ export const firebrandUi = Object.freeze({
         message: `Requires ${pageCost} tome pages`
       };
     }
+
     if (skill.name === 'Stow Tome' && !state.activeTome) {
       return {
         available: false,
         message: 'No tome is currently equipped'
       };
     }
+
     return { available: true, message: '' };
   },
   resourceViews: (context: GuardianUiContext) => {

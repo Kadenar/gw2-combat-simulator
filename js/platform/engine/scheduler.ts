@@ -268,6 +268,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     if (bucket) bucket.push(event);
     else buffIndex.set(key, [event]);
   };
+
   const deindexBuffEvent = (event: SimulationEvent): void => {
     const key = buffKindKey(event);
     if (key == null) return;
@@ -275,6 +276,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     const at = bucket?.indexOf(event) ?? -1;
     if (bucket && at >= 0) bucket.splice(at, 1);
   };
+
   let reservationOrder = 0;
   let activationOrder = 0;
   let previousCastStart = state.time;
@@ -340,6 +342,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
             if (++observationCount > ACTION_SAFETY_LIMIT) {
               throw new Error('Scheduled-event observation safety limit exceeded.');
             }
+
             const observed = observationQueue.shift();
             if (observed) {
               schedulerPolicy.onEventScheduled?.(context, observed);
@@ -350,6 +353,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
           observingEvents = false;
         }
       }
+
       return normalized;
     },
     replaceEvent(/** @type {SimulationEvent} */ event, /** @type {SchedulerRecord} */ updates) {
@@ -358,6 +362,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         const index = collection.indexOf(event);
         if (index >= 0) collection[index] = replacement;
       };
+
       deindexBuffEvent(event);
       replaceReference(events);
       replaceReference(state.pendingEvents);
@@ -370,6 +375,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       if (!Number.isFinite(rootOrder)) {
         throw new TypeError('Derived events require a scheduled cause.');
       }
+
       const count = (derivedEventCounts.get(rootOrder) || 0) + 1;
       derivedEventCounts.set(rootOrder, count);
       return context.emit({
@@ -392,6 +398,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
           stacks += Number(event.stacks || 1);
         }
       }
+
       return Math.max(
         0,
         Number(schedulerPolicy.buffStacks?.(context, normalized, at, base, bucket || [], stacks) ?? stacks)
@@ -498,6 +505,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     } else if (rechargeDuration) {
       state.cooldowns.set(skill.id, rechargeStart + rechargeDuration);
     }
+
     // Cooldown/ammo commitment precedes the profession completion hook so the
     // hook observes the state players would have immediately after the cast.
     activeProfession.onCastComplete(
@@ -534,6 +542,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     );
     reservations.delete(reservation.id);
   };
+
   const taskHandlers: Record<string, ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>> = {
     [CORE_CAST_COMPLETE]: completeReservation,
     ...(schedulerPolicy.taskHandlers || {}),
@@ -595,6 +604,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       if (Number(task?.at) < state.time - epsilon) {
         throw new RangeError('Scheduled tasks cannot be placed before the clock.');
       }
+
       return taskQueue.schedule(task);
     },
     cancel: taskQueue.cancel,
@@ -616,6 +626,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     if (!Number.isFinite(target)) {
       throw new TypeError('Scheduler time must be finite.');
     }
+
     while (taskQueue.nextAt() <= target + epsilon) {
       const next = Math.max(state.time, taskQueue.nextAt());
       // Advance continuous state before executing discrete work at that same
@@ -626,6 +637,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       state.time = next;
       taskQueue.drainThrough(next, context);
     }
+
     refreshSharedState(target);
     schedulerPolicy.advance?.(context, target);
     activeProfession.advance(context, target);
@@ -634,6 +646,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     // canonical event list remains in events for the resolver handoff.
     state.pendingEvents = state.pendingEvents.filter((event) => event.at > target + epsilon);
   }
+
   context.advanceTo = advanceTo;
 
   /**
@@ -662,6 +675,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         unavailable(`${skill.name} is on cooldown until ${readyAt.toFixed(3)}.`, 'platform.cooldown', readyAt)
       );
     }
+
     if (reservedUntil > at + epsilon && skill.independentCastCanOverlap !== true) {
       result.push(
         unavailable(
@@ -671,6 +685,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         )
       );
     }
+
     for (const lockout of skill.lockouts || []) {
       const lockoutReadyAt = Number(state.lockouts.get(lockout.group) || 0);
       if (lockoutReadyAt > at + epsilon) {
@@ -683,6 +698,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         );
       }
     }
+
     return { ammo, result: combineAvailability(result) };
   }
 
@@ -718,6 +734,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         castContext: preliminaryContext
       };
     }
+
     const shared = engineAvailability(skill, start);
     const castContext: CastContext<TProfessionState> = {
       ...preliminaryContext,
@@ -773,11 +790,13 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       });
       return false;
     }
+
     const concurrent = command.concurrentOffsetMs != null;
     if (concurrent && skill.canCastConcurrently === false) {
       recordInvalid(commandIndex, skill, state.time, `${skill.name} cannot be cast concurrently.`);
       return false;
     }
+
     const independent = skill.independentCast === true;
     const overlappingIndependent = independent && skill.independentCastCanOverlap === true;
     const stunbreak = skill.stunbreak === true;
@@ -800,6 +819,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       recordInvalid(commandIndex, skill, start, `${skill.name} cannot start before the current simulation clock.`);
       return false;
     }
+
     advanceTo(start);
 
     let checked = castAvailability(skill, command, commandIndex, start);
@@ -810,16 +830,19 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       if (++guard > ACTION_SAFETY_LIMIT) {
         throw new Error('Cast availability wait safety limit exceeded.');
       }
+
       const retryAt = Math.max(state.time, Number(checked.result.retryAt));
       const nextTaskAt = taskQueue.nextAt();
       const next = Math.min(retryAt, nextTaskAt);
       if (!Number.isFinite(next) || next <= state.time) {
         throw new Error(`Cast availability for ${skill.name} did not make progress.`);
       }
+
       advanceTo(next);
       start = state.time;
       checked = castAvailability(skill, command, commandIndex, start);
     }
+
     if (checked.result.ready === false) {
       recordInvalid(commandIndex, skill, start, String(checked.result.reason || `${skill.name} is unavailable.`));
       return false;
@@ -832,6 +855,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         Math.max(Number(state.lockouts.get(lockout.group) || 0), start + Number(lockout.durationMs) / 1000)
       );
     }
+
     const fullEnd = start + castDurationFor(castContext, skill);
     const interruptAfterMs = command.interruptAfterMs ?? skill.defaultInterruptMs;
     const effectiveEnd =
@@ -974,6 +998,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
           })
       );
     }
+
     handler?.afterEffects?.(lifecycleContext, skill, handlerState);
     state.skillUses.set(skill.id, (state.skillUses.get(skill.id) || 0) + 1);
     activeProfession.afterCast(lifecycleContext, skill);
@@ -1014,6 +1039,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         selfStunUntil = Math.max(selfStunUntil, effectiveEnd + selfStunMs / 1000);
       }
     }
+
     return true;
   }
 
@@ -1032,6 +1058,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     if (commands.length > ACTION_SAFETY_LIMIT) {
       throw new Error('Rotation action safety limit exceeded.');
     }
+
     for (let index = 0; index < commands.length; index += 1) {
       const command = commands[index];
       if (command.type === 'wait') {
@@ -1084,6 +1111,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
           });
           continue;
         }
+
         const concurrent = command.concurrentOffsetMs != null && hasPreviousCast;
         combatStartTime = concurrent
           ? previousCastStart + Number(command.concurrentOffsetMs) / 1000
@@ -1109,6 +1137,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         cast(command, index);
       }
     }
+
     const rotationEnd = Math.max(state.time, serialReadyAt, latestReservedEnd);
     const normalizedRotationEnd = Math.max(rotationEnd, 0);
     const resolutionEnd = observationEndTime(normalizedObservationPolicy, normalizedRotationEnd);

@@ -69,8 +69,10 @@ function normalizeAutoattackChains(
           activeChainIndex = null;
           expectedActionIndex = 0;
         }
+
         return action;
       }
+
       const actionIndex = activeChainIndex === position.chainIndex ? expectedActionIndex : 0;
       const chain = AUTOATTACK_CHAINS[position.chainIndex];
       const identity = chain[actionIndex];
@@ -81,6 +83,7 @@ function normalizeAutoattackChains(
         activeChainIndex = null;
         expectedActionIndex = 0;
       }
+
       return {
         ...action,
         canonicalSkillId: identity.skillId,

@@ -13,18 +13,22 @@ export function normalizeObservationPolicy(
   if (policy.kind === 'rotation') {
     return Object.freeze({ kind: 'rotation' });
   }
+
   if (policy.kind === 'tail') {
     const durationMs = Number(policy.durationMs);
     if (!Number.isFinite(durationMs) || durationMs < 0) {
       throw new TypeError('Observation tail durationMs must be a non-negative finite number.');
     }
+
     return Object.freeze({ kind: 'tail', durationMs });
   }
+
   if (policy.kind === 'absolute') {
     const endTimeMs = Number(policy.endTimeMs);
     if (!Number.isFinite(endTimeMs) || endTimeMs < 0) {
       throw new TypeError('Absolute observation endTimeMs must be a non-negative finite number.');
     }
+
     return Object.freeze({ kind: 'absolute', endTimeMs });
   }
 
@@ -47,5 +51,6 @@ export function observationEndTime(policy: NormalizedObservationPolicy, rotation
   if (absoluteEnd < normalizedRotationEnd - EPSILON) {
     throw new RangeError('Absolute observation endTimeMs cannot precede rotation end.');
   }
+
   return Math.max(normalizedRotationEnd, absoluteEnd);
 }

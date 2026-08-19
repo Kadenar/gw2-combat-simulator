@@ -70,11 +70,13 @@ export function normalizeNecromancerAutoattackChains(
         expectedActionIndex = 0;
         return [];
       }
+
       if (!position) {
         if (resetsAutoattackChain(context, action)) {
           activeChainIndex = null;
           expectedActionIndex = 0;
         }
+
         return [action];
       }
 
@@ -93,6 +95,7 @@ export function normalizeNecromancerAutoattackChains(
         activeChainIndex = null;
         expectedActionIndex = 0;
       }
+
       return [normalized];
     });
 }

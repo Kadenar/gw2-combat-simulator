@@ -24,9 +24,11 @@ const sourceAssetPattern = /(?:src|href)=["'](?:\.\/)?(?:css|js)\//;
 
 for (const page of pages) {
   const source = await readFile(path.join(siteRoot, page), "utf8");
+
   if (sourceAssetPattern.test(source)) {
     throw new Error(`${page} still references an unbundled source asset.`);
   }
+
   if (!source.includes("assets/")) {
     throw new Error(`${page} does not reference a bundled asset.`);
   }

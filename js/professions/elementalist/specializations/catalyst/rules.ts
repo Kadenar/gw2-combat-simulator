@@ -117,6 +117,7 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
       reason: `${skill.name} is unavailable - requires ${String(skill.attunement)} attunement.`
     };
   }
+
   const sphereCost = elementalistBalanceValue(context, PROFILE.resources, 'resourceCost', SPHERE_COST);
   return state.energy >= sphereCost
     ? { ready: true }
@@ -217,6 +218,7 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
   if (skill.skillFamily !== 'Jade Sphere' || !hasTrait(context, 'Sphere Specialist')) {
     return;
   }
+
   for (const event of context.events) {
     if (
       event.activationId === context.reservationId &&
@@ -286,6 +288,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
         context.state.cooldowns.set(candidate.id, at);
       }
     }
+
     const boons: readonly (readonly [ElementalistAttunement, string, number, number])[] = [
       ['Fire', 'might', 5, 6],
       ['Water', 'vigor', 1, 6],
@@ -324,6 +327,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       payload: { applicationAt: event.at }
     });
   }
+
   if (
     event.type === 'buff' &&
     String(event.kind || '').toLowerCase() === 'elemental empowerment' &&
@@ -341,6 +345,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     });
     return;
   }
+
   if (event.type === 'elementalist.aura' && hasTrait(context, 'Elemental Epitome')) {
     const empowerment = elementalistBalanceEffect(context, PROFILE.elementalEpitome, 'buff', 'Empowerment');
     emitElementalistBuff(
@@ -354,6 +359,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
     );
     return;
   }
+
   if (event.type === 'elementalist.attunement' && hasTrait(context, 'Energized Elements')) {
     const before = state.energy;
     const energyGain = elementalistBalanceValue(context, PROFILE.energizedElements, 'resourceGain', 2);
@@ -382,8 +388,10 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
         change: state.energy - before
       });
     }
+
     return;
   }
+
   if (event.type === 'combo') {
     const attunement = String(event.attunement || core.primaryAttunement) as ElementalistAttunement;
     if (
@@ -409,6 +417,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
         sourceId: event.sourceId
       });
     }
+
     if (
       hasTrait(context, 'Elemental Synergy') &&
       Number(state.elementalSynergyReadyAt[attunement] || 0) <= event.at + context.epsilon
@@ -433,8 +442,10 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
         );
       }
     }
+
     return;
   }
+
   const immobilize =
     event.type === 'condition' && ['Immobilize', 'Immobilized'].includes(String(event.condition || ''));
   if (
@@ -448,9 +459,11 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       payload: { applicationAt: event.at }
     });
   }
+
   if (event.type !== 'damage' || event.actorType === 'summon' || !(Number(event.coefficient) > 0)) {
     return;
   }
+
   context.tasks.schedule({
     type: CATALYST_ENERGY_HIT_TASK,
     at: event.at,
@@ -467,6 +480,7 @@ function handleCatalystEnergyHit(context: ElementalistSchedulerContext, task: Sc
   if (task.at < state.sphereActiveUntil && !hasTrait(context, 'Sphere Specialist')) {
     return;
   }
+
   const before = state.energy;
   const energyGain = elementalistBalanceValue(context, PROFILE.resources, 'resourceGain', 1);
   state.energy = Math.min(maximumEnergy(context), state.energy + energyGain);

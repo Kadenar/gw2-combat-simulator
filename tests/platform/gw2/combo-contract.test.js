@@ -28,6 +28,7 @@ test('the universal combo table defines every field/finisher pair once', () => {
       assert.equal(comboDefinition(fieldType, finisherType).fieldType, fieldType);
     }
   }
+
   assert.throws(() => validateComboDefinitions(COMBO_DEFINITIONS.slice(1)), /all 36 field\/finisher pairs/);
 });
 
@@ -56,6 +57,7 @@ test('combo events normalize casing and clamp chance at the GW2 boundary', () =>
 
 test('missing bindings and invalid field lifetimes fail event validation', () => {
   const preparer = createGw2EventPreparer();
+
   assert.throws(
     () =>
       preparer.prepare(context, {

@@ -1,8 +1,10 @@
 import { runCoreFixtures } from '../helpers/fixture-harness-core.js';
 
 const output = document.getElementById('fixture-output');
+
 try {
   const result = runCoreFixtures();
+
   output.textContent = JSON.stringify(
     {
       power: result.attributes.attributes.Power.final,

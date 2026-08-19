@@ -45,6 +45,7 @@ const revenantConduitRules = revenantProfession.resolveRuntime({
 function traitDelta(calculate, build, trait, attribute, selectedSkills = [], weaponSet = 1) {
   const withTrait = calculate(build, selectedSkills, weaponSet).attributes;
   const withoutTrait = calculate(build, selectedSkills, weaponSet, trait).attributes;
+
   return withTrait[attribute].final - withoutTrait[attribute].final;
 }
 
@@ -145,6 +146,7 @@ test('shared attribute provenance applies profession static rules once', () => {
     },
     { conditionDamage: 1120 }
   );
+
   assert.equal(engineerDirect.conditionDamage, 1120);
   assert.equal(engineerBrowser.conditionDamage, engineerDirect.conditionDamage);
 
@@ -165,6 +167,7 @@ test('shared attribute provenance applies profession static rules once', () => {
     },
     { power: 1240, precision: 1000, ferocity: 0, vitality: 1000 }
   );
+
   assert.equal(guardianDirect.power, 1240);
   assert.equal(guardianBrowser.power, guardianDirect.power);
 
@@ -183,6 +186,7 @@ test('shared attribute provenance applies profession static rules once', () => {
     },
     { precision: 1180 }
   );
+
   assert.equal(necromancerDirect.precision, 1180);
   assert.equal(necromancerBrowser.precision, necromancerDirect.precision);
 
@@ -195,6 +199,7 @@ test('shared attribute provenance applies profession static rules once', () => {
     traitIds: [NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE],
     stats: { power: 1000, vitality: 1100 }
   });
+
   assert.equal(necromancerBrowserState.maximumHealth, necromancerDirectState.maximumHealth);
 
   const revenantDirect = revenantCoreRules.modifyConditionDuration(
@@ -214,6 +219,7 @@ test('shared attribute provenance applies profession static rules once', () => {
     },
     1.15
   );
+
   assert.equal(revenantDirect, 1.15);
   assert.equal(revenantBrowser, revenantDirect);
 
@@ -226,11 +232,13 @@ test('shared attribute provenance applies profession static rules once', () => {
     traitIds: [THIEF_TRAIT_IDS.MARAUDERS_RESILIENCE],
     stats: { vitality: 1070, power: 1000 }
   });
+
   assert.equal(thiefBrowser.maximumHealth, thiefDirect.maximumHealth);
 });
 
 test('Engineer exposes current unconditional trait attributes', () => {
   const build = createEngineerBuildDefaults();
+
   build.specializations = [
     { name: 'Alchemy', traits: '1-1-1' },
     { name: 'Amalgam', traits: '1-1-1' }
@@ -240,6 +248,7 @@ test('Engineer exposes current unconditional trait attributes', () => {
   assert.equal(traitDelta(calculateEngineerAttributes, build, 'Hybrid Vigor', 'Vitality'), 240);
 
   const firearms = createEngineerBuildDefaults();
+
   firearms.specializations = [{ name: 'Firearms', traits: '1-2-1' }];
   assert.equal(traitDelta(calculateEngineerAttributes, firearms, 'Chemical Rounds', 'Condition Damage'), 120);
   assert.equal(traitDelta(calculateEngineerAttributes, firearms, 'Thermal Vision', 'Expertise'), 150);
@@ -247,15 +256,18 @@ test('Engineer exposes current unconditional trait attributes', () => {
 
 test('Engineer omits conditional and obsolete attribute effects', () => {
   const firearms = createEngineerBuildDefaults();
+
   firearms.specializations = [{ name: 'Firearms', traits: '3-1-1' }];
   assert.equal(traitDelta(calculateEngineerAttributes, firearms, 'High Caliber', 'Precision'), 0);
 
   const scrapper = createEngineerBuildDefaults();
+
   scrapper.specializations = [{ name: 'Scrapper', traits: '3-1-3' }];
   assert.equal(traitDelta(calculateEngineerAttributes, scrapper, 'Mass Momentum', 'Power'), 0);
   assert.equal(traitDelta(calculateEngineerAttributes, scrapper, 'Applied Force', 'Power'), 0);
 
   const kinetic = structuredClone(scrapper);
+
   kinetic.specializations[0].traits = '3-1-2';
   assert.equal(
     traitDelta(calculateEngineerAttributes, kinetic, 'Kinetic Accelerators', 'Concentration'),
@@ -267,12 +279,14 @@ test('Engineer omits conditional and obsolete attribute effects', () => {
     { name: 'Force Signet' },
     { name: 'Superconducting Signet' }
   ]).attributes;
+
   assert.equal(withSignets.Power.final, withoutSignets.Power.final);
   assert.equal(withSignets['Condition Damage'].final, withoutSignets['Condition Damage'].final);
 });
 
 test("only Forceful Greatsword's base Power feeds conversions", () => {
   const build = createWarriorBuildDefaults();
+
   build.food = '';
   build.utility = '';
   build.specializations = [
@@ -304,6 +318,7 @@ test("only Forceful Greatsword's base Power feeds conversions", () => {
 
 test('Guardian includes Force of Will before Power of the Virtuous', () => {
   const build = createGuardianBuildDefaults();
+
   build.specializations = [
     { name: 'Honor', traits: '1-1-3' },
     { name: 'Virtues', traits: '1-1-1' }
@@ -347,6 +362,7 @@ test('Guardian eligible flat traits feed attribute conversions', () => {
 
   for (const { specialization, trait, amount } of vitalitySources) {
     const build = createGuardianBuildDefaults();
+
     build.food = '';
     build.utility = '';
     build.assumptions.quickness = true;
@@ -363,6 +379,7 @@ test('Guardian eligible flat traits feed attribute conversions', () => {
   }
 
   const power = createGuardianBuildDefaults();
+
   power.food = '';
   power.utility = '';
   power.specializations = [
@@ -371,6 +388,7 @@ test('Guardian eligible flat traits feed attribute conversions', () => {
   ];
   const withPower = calculateGuardianAttributes(power).attributes;
   const withoutKindledZeal = calculateGuardianAttributes(power, [], 1, 'Kindled Zeal').attributes;
+
   assert.equal(traitDelta(calculateGuardianAttributes, power, 'Power for Power', 'Power'), 120);
   assert.equal(
     withPower['Condition Damage'].final - withoutKindledZeal['Condition Damage'].final,
@@ -378,12 +396,14 @@ test('Guardian eligible flat traits feed attribute conversions', () => {
   );
 
   const conditionDamage = createGuardianBuildDefaults();
+
   conditionDamage.specializations = [{ name: 'Willbender', traits: '1-1-1' }];
   assert.equal(traitDelta(calculateGuardianAttributes, conditionDamage, 'Searing Pact', 'Condition Damage'), 120);
 });
 
 test('Mesmer static regeneration traits remain represented', () => {
   const build = createMesmerBuildDefaults();
+
   build.specializations = [{ name: 'Chaos', traits: '1-1-1' }];
   build.assumptions.regeneration = true;
 
@@ -393,6 +413,7 @@ test('Mesmer static regeneration traits remain represented', () => {
 
 test('Necromancer static minor attributes remain represented', () => {
   const build = createNecromancerBuildDefaults();
+
   build.specializations = [{ name: 'Curses', traits: '1-1-1' }];
 
   assert.equal(traitDelta(calculateNecromancerAttributes, build, 'Furious Demise', 'Precision'), 180);
@@ -406,6 +427,7 @@ test('Dark Gunslinger rounds its Expertise conversion for game parity', () => {
 
 test('Lingering Curse and Boon of Creation do not feed conversions', () => {
   const scourge = createNecromancerBuildDefaults();
+
   scourge.specializations = [
     { name: 'Curses', traits: '1-1-3' },
     { name: 'Scourge', traits: '2-1-1' }
@@ -413,16 +435,19 @@ test('Lingering Curse and Boon of Creation do not feed conversions', () => {
 
   const all = calculateNecromancerAttributes(scourge).attributes;
   const withoutLingeringCurse = calculateNecromancerAttributes(scourge, [], 1, 'Lingering Curse').attributes;
+
   assert.equal(all['Condition Damage'].final - withoutLingeringCurse['Condition Damage'].final, 200);
   assert.equal(all.Expertise.final, withoutLingeringCurse.Expertise.final);
 
   const ritualist = createNecromancerBuildDefaults();
+
   ritualist.specializations = [{ name: 'Ritualist', traits: '1-1-1' }];
   assert.equal(traitDelta(calculateNecromancerAttributes, ritualist, 'Boon of Creation', 'Concentration'), 180);
 });
 
 test('Condition Harbinger attributes match the in-game stat panel', () => {
   const build = createNecromancerBuildDefaults();
+
   build.food = 'Salsa-Topped Veggie Flatbread';
   build.utility = 'Tuning Icicle';
   build.infusions = [{ stat: 'Expertise', count: 18 }];
@@ -445,12 +470,15 @@ test('Condition Harbinger attributes match the in-game stat panel', () => {
 
 test('Bolstered Bonds follows both selected legends in build attributes', () => {
   const build = createRevenantBuildDefaults();
+
   build.specializations = [{ name: 'Conduit', traits: '1-1-1' }];
   build.selectedLegends = [LEGEND.ASSASSIN, LEGEND.ENTITY];
 
   const app = { build, attributeWeaponSet: 1, results: null };
+
   recalculateRevenant(app);
   const assassin = app.attributeData.attributes;
+
   assert.equal(assassin.Power.traits, 150);
   assert.equal(assassin.Precision.traits, 75);
   assert.equal(assassin.Ferocity.traits, 150);
@@ -459,6 +487,7 @@ test('Bolstered Bonds follows both selected legends in build attributes', () => 
   build.selectedLegends = [LEGEND.DWARF, LEGEND.ENTITY];
   recalculateRevenant(app);
   const dwarf = app.attributeData.attributes;
+
   assert.equal(dwarf.Power.traits, 75);
   assert.equal(dwarf.Toughness.traits, 225);
   assert.equal(dwarf.Vitality.traits, 225);
@@ -491,6 +520,7 @@ test('Bolstered Bonds runtime only adds the temporary Cosmic Wisdom copy', () =>
 
   context.runtime.profession.cosmicWisdomUntil = 5;
   const cosmic = revenantConduitRules.modifyAttributes(context, attributes);
+
   assert.equal(cosmic.power, 1300);
   assert.equal(cosmic.precision, 1150);
   assert.equal(cosmic.ferocity, 300);
@@ -498,9 +528,11 @@ test('Bolstered Bonds runtime only adds the temporary Cosmic Wisdom copy', () =>
 
 test('Revenant exposes static minor attributes and conversions', () => {
   const salvation = createRevenantBuildDefaults();
+
   salvation.specializations = [{ name: 'Salvation', traits: '1-1-1' }];
   const withLife = calculateRevenantAttributes(salvation).attributes;
   const withoutLife = calculateRevenantAttributes(salvation, [], 1, 'Life Attunement').attributes;
+
   assert.equal(withLife['Healing Power'].final - withoutLife['Healing Power'].final, 120);
   assert.equal(
     withLife.Concentration.final - withoutLife.Concentration.final,
@@ -508,12 +540,15 @@ test('Revenant exposes static minor attributes and conversions', () => {
   );
 
   const retribution = createRevenantBuildDefaults();
+
   retribution.specializations = [{ name: 'Retribution', traits: '1-1-2' }];
   const withVersed = calculateRevenantAttributes(retribution).attributes;
   const withoutVersed = calculateRevenantAttributes(retribution, [], 1, 'Versed in Stone').attributes;
+
   assert.equal(withVersed.Power.final - withoutVersed.Power.final, Math.round(withVersed.Toughness.final * 0.13));
 
   const herald = createRevenantBuildDefaults();
+
   herald.specializations = [{ name: 'Herald', traits: '1-1-1' }];
   assert.equal(traitDelta(calculateRevenantAttributes, herald, 'Reinforced Potency', 'Concentration'), 240);
   assert.equal(
@@ -524,6 +559,7 @@ test('Revenant exposes static minor attributes and conversions', () => {
 
 test('Brutal Momentum exposes its unconditional critical chance', () => {
   const build = createRevenantBuildDefaults();
+
   build.specializations = [{ name: 'Renegade', traits: '1-1-1' }];
 
   assert.equal(traitDelta(calculateRevenantAttributes, build, 'Brutal Momentum', 'Critical Chance'), 10);
@@ -543,11 +579,13 @@ test('Brutal Momentum exposes its unconditional critical chance', () => {
     },
     0.2
   );
+
   assert.ok(Math.abs(runtime - 0.3) < 1e-9);
 });
 
 test('Death Perception exposes its unconditional critical chance', () => {
   const build = createNecromancerBuildDefaults();
+
   build.specializations = [{ name: 'Soul Reaping', traits: '1-1-2' }];
 
   assert.equal(traitDelta(calculateNecromancerAttributes, build, 'Death Perception', 'Critical Chance'), 15);
@@ -555,6 +593,7 @@ test('Death Perception exposes its unconditional critical chance', () => {
 
 test("Numinous Gift's static duration improvement appears in build stats", () => {
   const build = createRevenantBuildDefaults();
+
   build.specializations = [
     { name: 'Corruption', traits: '1-1-1' },
     { name: 'Conduit', traits: '1-1-1' }
@@ -562,18 +601,21 @@ test("Numinous Gift's static duration improvement appears in build stats", () =>
 
   const all = calculateRevenantAttributes(build).attributes;
   const withoutNuminous = calculateRevenantAttributes(build, [], 1, 'Numinous Gift').attributes;
+
   assert.equal(all['Bleeding Duration'].traits, 15);
   assert.equal(withoutNuminous['Bleeding Duration'].traits, 10);
 });
 
 test('Thief weapon traits use the displayed weapon set', () => {
   const build = createThiefBuildDefaults();
+
   build.specializations = [{ name: 'Deadly Arts', traits: '1-1-1' }];
   build.weapons = ['Dagger', 'Dagger'];
   build.alternateWeapons = ['Sword', 'Pistol'];
 
   const dagger = calculateThiefAttributes(build, [], 1).attributes;
   const sword = calculateThiefAttributes(build, [], 2).attributes;
+
   assert.equal(dagger.Power.traits, 160);
   assert.equal(sword.Power.traits, 80);
 });
@@ -611,6 +653,7 @@ test("Thief eligible power traits feed Marauder's Resilience", () => {
 
   for (const testCase of cases) {
     const build = createThiefBuildDefaults();
+
     build.food = '';
     build.utility = '';
     build.specializations = testCase.specializations;
@@ -643,6 +686,7 @@ test("Thief eligible power traits feed Marauder's Resilience", () => {
 
 test('Silent Scope feeds Practiced Tolerance', () => {
   const build = createThiefBuildDefaults();
+
   build.specializations = [
     { name: 'Critical Strikes', traits: '1-2-1' },
     { name: 'Deadeye', traits: '1-1-1' }
@@ -662,6 +706,7 @@ test('Silent Scope feeds Practiced Tolerance', () => {
 
 test('Deadly Ambition and both Second Opinion values feed its conversion', () => {
   const build = createThiefBuildDefaults();
+
   build.specializations = [
     { name: 'Deadly Arts', traits: '3-1-1' },
     { name: 'Specter', traits: '1-1-1' }
@@ -692,6 +737,7 @@ test('Deadly Ambition and both Second Opinion values feed its conversion', () =>
 
 test('Preparedness remains an eligible flat Expertise trait', () => {
   const build = createThiefBuildDefaults();
+
   build.specializations = [{ name: 'Trickery', traits: '1-1-1' }];
 
   assert.equal(traitDelta(calculateThiefAttributes, build, 'Preparedness', 'Expertise'), 150);
@@ -699,19 +745,23 @@ test('Preparedness remains an eligible flat Expertise trait', () => {
 
 test('Thief uses current flat trait and conversion values', () => {
   const deadlyArts = createThiefBuildDefaults();
+
   deadlyArts.specializations = [{ name: 'Deadly Arts', traits: '3-3-3' }];
   assert.equal(traitDelta(calculateThiefAttributes, deadlyArts, 'Deadly Ambition', 'Condition Damage'), 180);
   assert.equal(traitDelta(calculateThiefAttributes, deadlyArts, 'Revealed Training', 'Power'), 80);
 
   const criticalStrikes = createThiefBuildDefaults();
+
   criticalStrikes.specializations = [{ name: 'Critical Strikes', traits: '1-2-1' }];
   const precision = calculateThiefAttributes(criticalStrikes).attributes.Precision.final;
+
   assert.equal(
     traitDelta(calculateThiefAttributes, criticalStrikes, 'Practiced Tolerance', 'Ferocity'),
     Math.round(precision * 0.1)
   );
 
   const specter = createThiefBuildDefaults();
+
   specter.specializations = [{ name: 'Specter', traits: '1-1-1' }];
   specter.weapons = ['Scepter', 'Dagger'];
   specter.alternateWeapons = ['Dagger', 'Dagger'];

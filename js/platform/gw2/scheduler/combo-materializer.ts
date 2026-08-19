@@ -111,6 +111,7 @@ function finisherDescriptors(context: SchedulerContext, event: SimulationEvent):
       descriptors = skill.comboFinishers;
     }
   }
+
   return descriptors
     .filter((raw): raw is SchedulerRecord => Boolean(raw && typeof raw === 'object' && !Array.isArray(raw)))
     .filter((raw) => String(raw.ownerId || '').length > 0)
@@ -165,6 +166,7 @@ function descriptorBinding(
         : undefined;
     return { binding: explicit, fieldAt: field?.at, warnOnUnbound: false };
   }
+
   const fields = activeOwnedFields(context, descriptor.ownerId, at);
   const { field, ambiguous } = selectComboFieldForFinisher(fields, {
     preferredFieldTypes: descriptor.preferredFieldTypes as readonly ComboFieldType[] | undefined,
@@ -187,6 +189,7 @@ function projectilePacketIdentity(event: SimulationEvent, parentEventOrder: numb
   if (event.applicationIndex != null) {
     return `application:${String(event.applicationIndex)}`;
   }
+
   if (event.tickIndex != null) return `tick:${String(event.tickIndex)}`;
   return `event:${parentEventOrder}`;
 }
@@ -196,6 +199,7 @@ function rebindPendingFinishers(context: SchedulerContext, ownerId: string): voi
     if (pending.type !== 'combo_finisher' || pending.comboAllowRebind !== true || pending.comboOwnerId !== ownerId) {
       continue;
     }
+
     const descriptor = {
       ownerId,
       finisherType: normalizeComboFinisherType(pending.finisherType),
@@ -227,6 +231,7 @@ function produceField(
   if (!(descriptor.duration > 0) || !Number.isFinite(descriptor.duration)) {
     return;
   }
+
   context.emitDerived(event, {
     type: 'combo_field',
     at,
@@ -293,6 +298,7 @@ export function produceGw2OwnedComboEvents(context: SchedulerContext, event: Sim
   if (Array.isArray(event.comboFields) && Number(event.hitIndex ?? event.applicationIndex ?? 1) !== 1) {
     return;
   }
+
   fieldDescriptors(context, event).forEach((descriptor, descriptorIndex) => {
     produceField(context, event, descriptor, descriptorIndex);
   });
@@ -315,6 +321,7 @@ export function createGw2ComboMaterializer(config: Gw2Config = {}) {
         if (event.type === 'combo_field') {
           rebindPendingFinishers(context, String(event.ownerId));
         }
+
         context.tasks.schedule({
           type: GW2_COMBO_MATERIALIZE_EVENT_TASK,
           at: Math.max(context.state.time, event.at),
@@ -323,6 +330,7 @@ export function createGw2ComboMaterializer(config: Gw2Config = {}) {
         });
         return;
       }
+
       produceGw2OwnedComboEvents(context, event);
     },
 
@@ -333,6 +341,7 @@ export function createGw2ComboMaterializer(config: Gw2Config = {}) {
         registerComboField(state, event as ComboFieldEvent);
         return;
       }
+
       if (event.type !== 'combo_finisher') return;
       const combos = resolveComboAttempt(state, event as ComboFinisherEvent, {
         stochastic: random.stochastic,

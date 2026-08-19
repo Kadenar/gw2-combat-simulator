@@ -81,6 +81,7 @@ export function createProfessionActionController({
     const value = balanceProfile(id)?.[field];
     return Number.isFinite(Number(value)) ? Number(value) : fallback;
   };
+
   const profileEffect = (id: number | string, type: string, index = 0) =>
     balanceProfile(id)?.effects?.filter((effect) => effect.type === type)[index];
   const conditionFromProfile = (id: number | string, fallback: { name: string; duration: number; stacks: number }) => {
@@ -91,28 +92,35 @@ export function createProfessionActionController({
       stacks: Number(effect?.stacks ?? fallback.stacks)
     };
   };
+
   // Typed accessors — throw if the active specialization doesn't own this state shape.
   const numericResourceState = () => {
     const active = state.profession.specialization;
     if (active.kind !== 'Virtuoso' && active.kind !== 'Troubadour') {
       throw new TypeError(`${active.kind} does not own a numeric Mesmer resource.`);
     }
+
     return active.state;
   };
+
   const chronomancerState = () => {
     const active = state.profession.specialization;
     if (active.kind !== 'Chronomancer') {
       throw new TypeError(`Expected Chronomancer, received ${active.kind}.`);
     }
+
     return active.state;
   };
+
   const troubadourState = () => {
     const active = state.profession.specialization;
     if (active.kind !== 'Troubadour') {
       throw new TypeError(`Expected Troubadour, received ${active.kind}.`);
     }
+
     return active.state;
   };
+
   // Clone-based specs (core/Chronomancer) count live clones; numeric specs (Virtuoso/Troubadour) use a counter.
   const currentResource = () =>
     resourceDefinition.singular === 'clone'
@@ -153,10 +161,12 @@ export function createProfessionActionController({
       for (const clone of professionCoreState(state).clones) {
         destroyClone(clone, at);
       }
+
       professionCoreState(state).clones = [];
     } else {
       numericResourceState().numericResource = 0;
     }
+
     return addResourceSpendEvent(at, spent, { sourceSkill, rotationIndex });
   };
 
@@ -167,6 +177,7 @@ export function createProfessionActionController({
     if (resourceDefinition.singular === 'clone') {
       throw new Error('Clone resources cannot be reserved.');
     }
+
     numericResourceState().numericResource = 0;
     return spent;
   };
@@ -223,6 +234,7 @@ export function createProfessionActionController({
       );
       addTraitProc('Maim the Disillusioned', at, skill.name);
     }
+
     if (traits.has(TRAIT.PHANTOM_PAIN)) {
       addEvent({
         type: 'buff',
@@ -233,6 +245,7 @@ export function createProfessionActionController({
       });
       addTraitProc('Phantom Pain', at + epsilon, skill.name);
     }
+
     // Illusionary Membrane only procs on the F2 shatter (slot 2).
     if (shatter?.slot === 2 && traits.has(TRAIT.ILLUSIONARY_MEMBRANE)) {
       const effect = profileEffect(TRAIT.ILLUSIONARY_MEMBRANE, 'buff');
@@ -245,6 +258,7 @@ export function createProfessionActionController({
       });
       addTraitProc('Illusionary Membrane', at + epsilon, skill.name);
     }
+
     // Deadly Blades only procs on Virtuoso blade songs, not core/chrono shatters.
     if (bladeSong && traits.has(TRAIT.DEADLY_BLADES)) {
       addEvent({
@@ -256,6 +270,7 @@ export function createProfessionActionController({
       });
       addTraitProc('Deadly Blades', at + epsilon, skill.name);
     }
+
     // Stretched Time (alacrity) and Seize the Moment (quickness) both scale duration by (spent + 1) tiers.
     const triggerShatterBoon = (traitId: number, traitName: string, fallbackBoon: 'alacrity' | 'quickness'): void => {
       if (!traits.has(traitId)) return;
@@ -282,6 +297,7 @@ export function createProfessionActionController({
       });
       addTraitProc(traitName, at, skill.name, `${duration}s ${kind}`);
     };
+
     triggerShatterBoon(TRAIT.STRETCHED_TIME, 'Stretched Time', 'alacrity');
     triggerShatterBoon(TRAIT.SEIZE_THE_MOMENT, 'Seize the Moment', 'quickness');
     // Illusionary Reversion refunds a clone only when exactly the threshold number of clones were spent.
@@ -315,6 +331,7 @@ export function createProfessionActionController({
     if (!shatter) {
       throw new Error(`Missing Mesmer shatter data for ${skill.name}.`);
     }
+
     const isBladeSong = shatter.kind.startsWith('blade');
     // Maim is tracked separately for blade shatters: each blade tick can trigger it independently,
     // so we defer addTraitProc until after all ticks are processed to avoid duplicate proc entries.
@@ -329,10 +346,12 @@ export function createProfessionActionController({
       addCondition(skill.name, hitAt, maim, 'Player', `${skill.name} — Maim the Disillusioned`);
       maimTriggered = true;
     };
+
     if (isBladeSong && resourcesSpent == null && currentResource() < 1) {
       warnings.push(`${skill.name} skipped at ${at.toFixed(2)}s: no blades.`);
       return false;
     }
+
     const spent = resourcesSpent ?? consumeResources(at);
     const sources = spent + 1;
     // Each blade fires a separate damage tick; coefficient is split evenly across all blades.
@@ -516,6 +535,7 @@ export function createProfessionActionController({
     if (maimTriggered) {
       addTraitProc('Maim the Disillusioned', at, skill.name);
     }
+
     triggerShatterTraits(skill, at, spent, isBladeSong, {
       skipMaim: maimTriggered
     });
@@ -549,6 +569,7 @@ export function createProfessionActionController({
       );
       addTraitProc('Time Bomb', at, skill.name, 'explodes after 5s');
     }
+
     // Infinite Forge refunds blades when a blade song consumed at least the threshold count.
     if (
       isBladeSong &&
@@ -566,6 +587,7 @@ export function createProfessionActionController({
         }
       );
     }
+
     addEvent({
       type: 'marker',
       at,
@@ -605,6 +627,7 @@ export function createProfessionActionController({
         { source, sourceId: skill.id, skillId: skill.id, actorType }
       );
     }
+
     for (const condition of data.conditions || []) {
       addCondition(skill.name, damageAt, condition, source, '', {
         source,
@@ -613,6 +636,7 @@ export function createProfessionActionController({
         actorType
       });
     }
+
     // Mayhem applies Torment only on Flute hits.
     if (data.instrument === 'Flute' && traits.has(TRAIT.MAYHEM)) {
       addCondition(
@@ -628,6 +652,7 @@ export function createProfessionActionController({
         { source, sourceId: TRAIT.MAYHEM, skillId: skill.id, actorType }
       );
     }
+
     // Flute and Drum both emit a control event (fear and daze respectively).
     if (data.instrument === 'Flute' || data.instrument === 'Drum') {
       addEvent({
@@ -640,6 +665,7 @@ export function createProfessionActionController({
         actorType
       });
     }
+
     // Syncopate fires a delayed second wave + daze on Drum hits.
     if (data.instrument === 'Drum' && traits.has(TRAIT.SYNCOPATE)) {
       const delayedAt = damageAt + profileValue(TRAIT.SYNCOPATE, 'initialDelay', 3);
@@ -679,6 +705,7 @@ export function createProfessionActionController({
       });
       addTraitProc('Syncopate', delayedAt, skill.name, 'delayed drum wave');
     }
+
     // Life of the Party grants quickness + might to the party on Lute hits.
     if (traits.has(TRAIT.LIFE_OF_THE_PARTY) && data.instrument === 'Lute') {
       const quickness = profileEffect(TRAIT.LIFE_OF_THE_PARTY, 'boon', 0);
@@ -718,6 +745,7 @@ export function createProfessionActionController({
     if (!data) {
       throw new Error(`Missing Mesmer instrument data for ${skill.name}.`);
     }
+
     const spent = consumeResources(at, spendDetails);
     const damageAt = castStart + Number(data.damageAtMs || 0) / 1000;
     instrumentAttack(skill, data, damageAt);
@@ -752,6 +780,7 @@ export function createProfessionActionController({
       instrumentAttack(skill, data, afterimageAt, 'Afterimage', 'summon');
       addTraitProc('Call and Response', afterimageAt, skill.name);
     }
+
     addEvent({
       type: 'marker',
       at,
@@ -851,6 +880,7 @@ export function createProfessionActionController({
         addTraitProc('Altered Chord', damageAt, skill.name, 'Drum');
       }
     }
+
     // Fortissimo queues one note per interval tick after Crescendo (pulse-based resource gain).
     if (traits.has(TRAIT.FORTISSIMO)) {
       const applications = profileValue(TRAIT.FORTISSIMO, 'maximumStacks', 5);
@@ -885,6 +915,7 @@ export function createProfessionActionController({
         ...partyBoonRecipients()
       });
     }
+
     const requiredInstrument = new Map<number, string>([
       [ID.TALE_OF_THE_SOULKEEPER, 'Lute'],
       [ID.TALE_OF_THE_HONORABLE_ROGUE, 'Drum'],
@@ -895,6 +926,7 @@ export function createProfessionActionController({
       const count = Number(taleProfile?.resourceGain || 1);
       queueResources(at + epsilon, count, activePrimaryWeapon(), skill.name);
     }
+
     // Honorable Rogue restores endurance (dodge energy) — logged as a marker since the engine doesn't model dodge.
     if (skill.id === ID.TALE_OF_THE_HONORABLE_ROGUE) {
       addEvent({
@@ -904,6 +936,7 @@ export function createProfessionActionController({
         detail: '50 endurance restored'
       });
     }
+
     // Raconteur grants protection to the party on every Tale cast.
     if (traits.has(TRAIT.RACONTEUR)) {
       const protection = profileEffect(TRAIT.RACONTEUR, 'boon');

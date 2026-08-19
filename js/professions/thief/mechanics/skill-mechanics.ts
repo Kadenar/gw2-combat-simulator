@@ -14,9 +14,11 @@ function mergeMechanics(
       if (Object.hasOwn(result, id)) {
         throw new TypeError(`Duplicate Thief skill mechanics ID ${id}.`);
       }
+
       result[id] = mechanics;
     }
   }
+
   return Object.freeze(result);
 }
 

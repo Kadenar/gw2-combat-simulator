@@ -47,6 +47,7 @@ export const rangerCoreSchedulerHooks = Object.freeze({
     if (skill.id !== ID.PATH_OF_SCARS && skill.id !== ID.PATH_OF_SCARS_MAX_RANGE) {
       return;
     }
+
     const readyAt = Number(context.state.cooldowns.get(skill.id) || context.effectiveEnd);
     context.state.cooldowns.set(ID.PATH_OF_SCARS, readyAt);
     context.state.cooldowns.set(ID.PATH_OF_SCARS_MAX_RANGE, readyAt);
@@ -99,6 +100,7 @@ function targetConditionCount(context: Gw2ModifierContext): number {
       active.add(condition);
     }
   }
+
   return active.size;
 }
 
@@ -129,12 +131,14 @@ function petBoonActive(context: Gw2ModifierContext, boon: string): boolean {
   if (context.timeline?.buffStacksAt(boon, context.time, 0, 25, 'summon')) {
     return true;
   }
+
   if (
     context.config?.sharePlayerBoonsWithSummons !== false &&
     context.timeline?.buffStacksAt(boon, context.time, 0, 25, 'all')
   ) {
     return true;
   }
+
   return (context.runtime?.boons?.get(boon) || []).some(
     (application) =>
       (application.affectsSummons === true ||
@@ -287,6 +291,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
   const adjust = (attribute: keyof Gw2ResolvedStats, amount: number): void => {
     result[attribute] = Number(result[attribute] || 0) + amount;
   };
+
   if (petEvent(context) && hasTrait(context, TRAIT.FANG_AND_CLAW)) {
     const family = activePetFamily(context);
     if (['feline', 'avian', 'drake'].includes(family)) {
@@ -294,17 +299,20 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
       adjust('ferocity', rangerBalanceValue(context, PROFILE.fangAndClaw, 'weaponAttributeBonus', 450));
     }
   }
+
   if (petEvent(context) && hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
     const family = activePetFamily(context);
     if (['spider', 'devourer'].includes(family)) {
       adjust('expertise', rangerBalanceValue(context, PROFILE.arachnophobia, 'weaponAttributeBonus', 225));
     }
   }
+
   if (!staticRulesApplied) {
     if (hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
       const bonus = rangerBalanceValue(context, PROFILE.stridersStrength, 'attributeBonus', 120);
       adjust('power', bonus + (activePrimaryWeapon(context) === 'Sword' ? bonus : 0));
     }
+
     if (hasTrait(context, TRAIT.HONED_AXES)) {
       const bonus = rangerBalanceValue(context, PROFILE.honedAxes, 'attributeBonus', 120);
       adjust(
@@ -312,17 +320,21 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
         bonus + (weaponSetIncludes(context, Number(context.runtime?.activeWeaponSet), ['Axe']) ? bonus : 0)
       );
     }
+
     if (hasTrait(context, TRAIT.VICIOUS_QUARRY) && boonActive(context, 'fury')) {
       adjust('ferocity', rangerBalanceValue(context, PROFILE.viciousQuarry, 'attributeBonus', 250));
     }
+
     if (merged && hasTrait(context, TRAIT.PACK_ALPHA)) {
       for (const attribute of PACK_ALPHA_RUNTIME_ATTRIBUTES) {
         adjust(attribute, rangerBalanceValue(context, PROFILE.packAlpha, 'attributeBonus', 150));
       }
     }
+
     if (merged && hasTrait(context, TRAIT.PETS_PROWESS)) {
       adjust('ferocity', rangerBalanceValue(context, PROFILE.petsProwess, 'attributeBonus', 300));
     }
+
     if (merged) {
       for (const [attribute, amount] of Object.entries(
         soulbeastArchetypeAttributes(context, petArchetype(context, true))
@@ -330,12 +342,15 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
         adjust(attribute as keyof Gw2ResolvedStats, Number(amount));
       }
     }
+
     if (hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
       adjust('expertise', rangerBalanceValue(context, PROFILE.arachnophobia, 'attributeBonus', 150));
     }
+
     if (hasTrait(context, TRAIT.LINGERING_MAGIC)) {
       adjust('concentration', rangerBalanceValue(context, PROFILE.lingeringMagic, 'attributeBonus', 240));
     }
+
     if (hasTrait(context, TRAIT.AMBIDEXTERITY)) {
       const bonus = rangerBalanceValue(context, PROFILE.ambidexterity, 'attributeBonus', 120);
       adjust(
@@ -345,6 +360,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
           : bonus
       );
     }
+
     if (hasTrait(context, TRAIT.WELLSPRING) && !petEvent(context)) {
       // Convert gear-only power (config.stats), not the live power
       // that already includes might and Strider's Strength.
@@ -354,6 +370,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
           rangerBalanceValue(context, PROFILE.wellspring, 'attributeConversion', 0.07)
       );
     }
+
     if (hasTrait(context, TRAIT.NATURAL_FORTITUDE)) {
       adjust(
         'vitality',
@@ -366,6 +383,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
         adjust(attribute, -150);
       }
     }
+
     if (hasTrait(context, TRAIT.PETS_PROWESS)) adjust('ferocity', -300);
     for (const [attribute, amount] of Object.entries(
       SOULBEAST_ARCHETYPE_RUNTIME_ATTRIBUTES[petArchetype(context, false)] || {}
@@ -380,25 +398,30 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
     )) {
       adjust(attribute as keyof Gw2ResolvedStats, -Number(amount));
     }
+
     for (const [attribute, amount] of Object.entries(soulbeastArchetypeAttributes(context, activeArchetype))) {
       adjust(attribute as keyof Gw2ResolvedStats, Number(amount));
     }
+
     if (hasTrait(context, TRAIT.PACK_ALPHA)) {
       const bonus = rangerBalanceValue(context, PROFILE.packAlpha, 'attributeBonus', 150);
       for (const attribute of PACK_ALPHA_RUNTIME_ATTRIBUTES) {
         adjust(attribute, bonus - 150);
       }
     }
+
     if (hasTrait(context, TRAIT.PETS_PROWESS)) {
       adjust('ferocity', rangerBalanceValue(context, PROFILE.petsProwess, 'attributeBonus', 300) - 300);
     }
   }
+
   if (staticRulesApplied && !petEvent(context) && hasTrait(context, TRAIT.HONED_AXES)) {
     const bonus = rangerBalanceValue(context, PROFILE.honedAxes, 'attributeBonus', 120);
     const activeHasAxe = weaponSetIncludes(context, Number(context.runtime?.activeWeaponSet), ['Axe']);
     const calculatedHasAxe = weaponSetIncludes(context, calculatedWeaponSet, ['Axe']);
     adjust('ferocity', bonus * (1 + Number(activeHasAxe)) - 120 * (1 + Number(calculatedHasAxe)));
   }
+
   if (staticRulesApplied && !petEvent(context) && hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
     const bonus = rangerBalanceValue(context, PROFILE.stridersStrength, 'attributeBonus', 120);
     adjust(
@@ -406,6 +429,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
       bonus * (1 + Number(activePrimaryWeapon(context) === 'Sword')) - 120 * (1 + Number(calculatedWeapon === 'Sword'))
     );
   }
+
   if (staticRulesApplied && !petEvent(context) && hasTrait(context, TRAIT.AMBIDEXTERITY)) {
     const bonus = rangerBalanceValue(context, PROFILE.ambidexterity, 'attributeBonus', 120);
     const favored = ['Dagger', 'Mace', 'Torch'];
@@ -413,19 +437,23 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
     const calculated = weaponSetIncludes(context, calculatedWeaponSet, favored);
     adjust('conditionDamage', bonus * (1 + Number(active)) - 120 * (1 + Number(calculated)));
   }
+
   if (staticRulesApplied && !petEvent(context)) {
     if (hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
       adjust('expertise', rangerBalanceValue(context, PROFILE.arachnophobia, 'attributeBonus', 150) - 150);
     }
+
     if (hasTrait(context, TRAIT.LINGERING_MAGIC)) {
       adjust('concentration', rangerBalanceValue(context, PROFILE.lingeringMagic, 'attributeBonus', 240) - 240);
     }
+
     if (hasTrait(context, TRAIT.NATURAL_FORTITUDE)) {
       adjust(
         'vitality',
         rangerBalanceValue(context, DRUID_BALANCE_PROFILE_IDS.naturalFortitude, 'attributeBonus', 240) - 240
       );
     }
+
     if (hasTrait(context, TRAIT.WELLSPRING)) {
       adjust(
         'healingPower',
@@ -433,6 +461,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
           (rangerBalanceValue(context, PROFILE.wellspring, 'attributeConversion', 0.07) - 0.07)
       );
     }
+
     if (hasTrait(context, TRAIT.VICIOUS_QUARRY)) {
       const configuredFury = Boolean(context.config?.boons?.fury);
       const activeFury = boonActive(context, 'fury');
@@ -443,11 +472,13 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
       );
     }
   }
+
   if (petEvent(context) && hasTrait(context, TRAIT.WELLSPRING)) {
     const conversion = rangerBalanceValue(context, PROFILE.wellspring, 'attributeConversion', 0.07);
     if (staticRulesApplied) {
       adjust('healingPower', -Number(context.config?.stats?.power || 0) * 0.07);
     }
+
     const summonBasePower = Number(context.event?.summonBasePower);
     const petPower =
       Number.isFinite(summonBasePower) && summonBasePower > 0
@@ -457,12 +488,14 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
         : Number(result.power || 0);
     adjust('healingPower', petPower * conversion);
   }
+
   if (selectedSkill(context, 'Signet of the Wild')) {
     const active = !context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_THE_WILD, context.time);
     const bonus = rangerBalanceValue(context, PROFILE.signetOfTheWild, 'attributeBonus', 180);
     if (staticRulesApplied) adjust('ferocity', active ? bonus - 180 : -180);
     if (!staticRulesApplied && active) adjust('ferocity', bonus);
   }
+
   return result;
 }
 
@@ -480,17 +513,21 @@ function modifyRangerConditionBaseDuration(context: Gw2ModifierContext, duration
       )
     );
   }
+
   if (hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && positional(context)) {
     if (skill?.id === ID.CROSSFIRE && context.condition === 'Bleeding') {
       return result + rangerBalanceValue(context, PROFILE.lightOnYourFeet, 'durationPerTier', 2);
     }
+
     if (skill?.id === ID.POISON_VOLLEY && context.condition === 'Poisoned') {
       return result + rangerBalanceValue(context, PROFILE.lightOnYourFeet, 'durationPerTier', 2);
     }
+
     if (skill?.id === ID.CRIPPLING_SHOT && context.condition === 'Immobilized') {
       return result + rangerBalanceValue(context, PROFILE.lightOnYourFeet, 'minimumStacks', 1);
     }
   }
+
   return result;
 }
 
@@ -504,6 +541,7 @@ function targetImpaired(context: Gw2ModifierContext): boolean {
   if (context.config?.target?.defiant || context.config?.target?.disabled || context.config?.target?.defianceBroken) {
     return true;
   }
+
   return ['Chilled', 'Crippled', 'Immobilized', 'Taunt', 'Fear'].some((condition) =>
     Boolean(context.query?.targetHasCondition(condition, context.time, context.runtime))
   );
@@ -743,18 +781,22 @@ export const rangerCoreCastRules = Object.freeze({
     ) {
       result *= rangerBalanceValue(context, PROFILE.quickDraw, 'rechargeMultiplier', 0.34);
     }
+
     if (skill?.weapon === 'Axe' && hasTrait(context as unknown as Gw2ModifierContext, TRAIT.HONED_AXES)) {
       result *= rangerBalanceValue(context, PROFILE.honedAxes, 'rechargeMultiplier', 0.8);
     }
+
     if (skill?.weapon === 'Shortbow' && hasTrait(context as unknown as Gw2ModifierContext, TRAIT.LIGHT_ON_YOUR_FEET)) {
       result *= rangerBalanceValue(context, PROFILE.lightOnYourFeet, 'rechargeMultiplier', 0.8);
     }
+
     if (
       ['Dagger', 'Torch'].includes(String(skill?.weapon || '')) &&
       hasTrait(context as unknown as Gw2ModifierContext, TRAIT.AMBIDEXTERITY)
     ) {
       result *= rangerBalanceValue(context, PROFILE.ambidexterity, 'rechargeMultiplier', 0.8);
     }
+
     if (
       skill?.petSkill &&
       !skill.beastmodeSkill &&
@@ -763,6 +805,7 @@ export const rangerCoreCastRules = Object.freeze({
     ) {
       result *= rangerBalanceValue(context, PROFILE.packAlpha, 'rechargeMultiplier', 0.8);
     }
+
     return result;
   }
 });

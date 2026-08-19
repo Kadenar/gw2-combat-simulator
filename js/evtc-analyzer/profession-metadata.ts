@@ -146,6 +146,7 @@ export function evtcSpecializationMetadata(
   if (!specialization || specialization.professionId !== professionId) {
     return null;
   }
+
   const { professionId: _professionId, ...metadata } = specialization;
   return metadata;
 }

@@ -32,6 +32,7 @@ export function resolveTestGw2Stream({ stream, config, traits, query, helpers })
     },
     reactions: extensions.reactions
   });
+
   return resolveGw2Timeline({
     stream,
     config,

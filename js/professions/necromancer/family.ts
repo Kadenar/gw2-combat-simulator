@@ -13,6 +13,7 @@ function targetBelowHalfAt(result: Gw2SimulationResult, targetHealth: number): n
     if (!(amount > 0)) return;
     damageByTime.set(Number(at), (damageByTime.get(Number(at)) || 0) + amount);
   };
+
   const resolvedEvents = (result.resolvedEvents as readonly NecromancerResolverEvent[] | undefined) || [];
   for (const event of resolvedEvents) {
     if (event.type === 'damage') {
@@ -23,11 +24,13 @@ function targetBelowHalfAt(result: Gw2SimulationResult, targetHealth: number): n
       }
     }
   }
+
   let damage = 0;
   for (const [at, amount] of [...damageByTime].sort((left, right) => left[0] - right[0])) {
     damage += amount;
     if (damage > targetHealth * 0.5) return at;
   }
+
   return null;
 }
 

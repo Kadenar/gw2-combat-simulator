@@ -23,6 +23,7 @@ export function sigilCriticalContribution(
   if (!(Number(runtime?.sigil?.severanceUntil || 0) > at)) {
     return NO_CRITICAL_CONTRIBUTION;
   }
+
   const severance = SIGIL_DATA.Severance;
   const chance = Number(severance.procPrecision || 0) / PRECISION_PER_CRITICAL_CHANCE_FRACTION;
   return {

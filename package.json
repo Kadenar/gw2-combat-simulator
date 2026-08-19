@@ -24,13 +24,17 @@
     "update:warrior-data": "node scripts/data/update-warrior-api-data.mjs && node scripts/data/generate-warrior-data.mjs",
     "update:ranger-data": "node scripts/data/update-profession-api-data.mjs --profession Ranger && node scripts/data/generate-ranger-ids.mjs && node scripts/data/generate-ranger-pet-data.mjs && node scripts/data/generate-ranger-skill-mechanics.mjs",
     "generate:revenant-ids": "node scripts/data/generate-revenant-ids.mjs",
-    "patch-preview:report": "npm run build:modules && node --import ./scripts/testing/register-dist-loader.mjs scripts/patch-preview-report.mjs"
+    "patch-preview:report": "npm run build:modules && node --import ./scripts/testing/register-dist-loader.mjs scripts/patch-preview-report.mjs",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "engines": {
     "node": ">=20.19"
   },
   "devDependencies": {
+    "@stylistic/eslint-plugin": "^5.10.0",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.67.0",
     "vite": "^8.2.1"
   }
 }

@@ -110,9 +110,11 @@ const revenantBuildCodec = createGw2BuildCodec<RevenantCanonicalBuild>({
     if (!(Number(build.initialEnergy) >= 0 && Number(build.initialEnergy) <= 100)) {
       errors.push('initialEnergy must be between 0 and 100.');
     }
+
     if (!['luxon', 'kurzick'].includes(build.allianceSide)) {
       errors.push('allianceSide must be luxon or kurzick.');
     }
+
     return errors;
   }
 });

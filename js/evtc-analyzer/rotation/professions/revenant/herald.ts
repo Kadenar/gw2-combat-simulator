@@ -39,6 +39,7 @@ function facetActions(context: EvtcProfessionReconstructionContext): EvtcRecorde
     ) {
       return [];
     }
+
     return [directAction(eventIndex, event.time, event.skillId, rawSkillName(context, event.skillId), identity)];
   });
 }
@@ -59,6 +60,7 @@ function initialFacetActions(
   ) {
     return [];
   }
+
   let cursor = anchor;
   const reversed: EvtcRecordedRotationAction[] = [];
   for (let index = INITIAL_FACETS.length - 1; index >= 0; index -= 1) {
@@ -70,6 +72,7 @@ function initialFacetActions(
       precast: true
     });
   }
+
   return reversed.reverse();
 }
 

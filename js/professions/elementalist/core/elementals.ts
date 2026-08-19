@@ -105,6 +105,7 @@ function selectedElemental(context: ElementalistSchedulerContext): ElementalKind
   if (selected.has('Glyph of Elementals') || selected.has('Glyph of Elementals (Fire)')) {
     return 'Fire';
   }
+
   return null;
 }
 
@@ -118,9 +119,11 @@ function elementalForGlyph(skill: Skill): ElementalKind | null {
   if (skill.id === ID.GLYPH_OF_ELEMENTALS_EARTH || skill.name === 'Glyph of Elementals (Earth)') {
     return 'Earth';
   }
+
   if (skill.id === ID.GLYPH_OF_ELEMENTALS || skill.name === 'Glyph of Elementals') {
     return 'Fire';
   }
+
   return null;
 }
 
@@ -432,6 +435,7 @@ function emitStrike(
       summonOwner: companionId(Number(task.payload?.summonGeneration || 0))
     });
   }
+
   context.emit({
     type: 'damage',
     activationId: task.payload?.activationId,
@@ -562,6 +566,7 @@ function handleElementalImpactTask(
     emitStrike(context, task, profile.skillId, 'Fireball', profile.baseDamage, 1, 1);
     return;
   }
+
   if (payload.impact === 'flame-burst') {
     const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst;
     emitStrike(context, task, profile.skillId, 'Flame Burst', profile.baseDamage, 1, 1);
@@ -569,6 +574,7 @@ function handleElementalImpactTask(
     emitFlameBurstMight(context, task);
     return;
   }
+
   if (payload.impact === 'flame-barrage-projectile') {
     // 3 projectile hits (hitIndex 1..3 of 4); the first also applies stacked Burning.
     const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage;
@@ -599,8 +605,10 @@ function handleElementalImpactTask(
         profile.burningStacks
       );
     }
+
     return;
   }
+
   if (payload.impact === 'flame-barrage-explosion') {
     // Final 4th hit of Flame Barrage with its own explosion coefficient.
     const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage;
@@ -620,17 +628,20 @@ function handleElementalImpactTask(
     );
     return;
   }
+
   if (payload.impact === 'punch') {
     const profile = EARTH_ELEMENTAL_EVTC_PROFILE.punch;
     emitStrike(context, task, profile.skillId, 'Punch', profile.baseDamage, 1, 1);
     return;
   }
+
   if (payload.impact === 'enervating-punch') {
     const profile = EARTH_ELEMENTAL_EVTC_PROFILE.enervatingPunch;
     emitStrike(context, task, profile.skillId, 'Enervating Punch', profile.baseDamage, 1, 1);
     emitPlayerOwnedCondition(context, task, profile.skillId, 'Enervating Punch', 'Weakness', profile.weaknessDuration);
     return;
   }
+
   if (payload.impact === 'stomp') {
     const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
     emitStrike(context, task, profile.skillId, 'Stomp', profile.baseDamage, 1, 1);
@@ -653,6 +664,7 @@ function handleElementalAiTask(context: ElementalistSchedulerContext, task: Sche
   ) {
     return;
   }
+
   elemental.nextActionAt = 0;
   if (elemental.element === 'Earth') {
     if (elemental.secondaryAttackReadyAt <= task.at + context.epsilon) {
@@ -720,10 +732,12 @@ function startElemental(context: ElementalistSchedulerContext, at: number): void
   ) {
     return;
   }
+
   elemental.started = true;
   if (elemental.element === 'Earth' && elemental.nextActionAt > at + context.epsilon) {
     return;
   }
+
   const delay = elementalistBalanceValue(
     context,
     PROFILE.summonedElemental,
@@ -846,6 +860,7 @@ export function observeElementalistElementalEvent(context: ElementalistScheduler
     const glyph = glyphSkillForElement(context, selected);
     if (glyph) summonElemental(context, glyph, event.at, false, selected);
   }
+
   const combatStarted =
     event.type === 'combat_start' ||
     (!context.hasExplicitCombatStart &&
@@ -857,6 +872,7 @@ export function observeElementalistElementalEvent(context: ElementalistScheduler
     if (glyph) summonElemental(context, glyph, event.at, true, selected);
     return;
   }
+
   startElemental(context, event.at);
 }
 
@@ -877,6 +893,7 @@ export function elementalistElementalAvailability(
       ? ready()
       : unavailable('an active Fire Elemental is required.');
   }
+
   if (skill.id === STOMP_ID || skill.name === 'Stomp') {
     const active = elemental.element === 'Earth' && elemental.activeUntil > context.start + context.epsilon;
     return active ||
@@ -886,6 +903,7 @@ export function elementalistElementalAvailability(
       ? ready()
       : unavailable('an active Earth Elemental is required.');
   }
+
   if (!elementalForGlyph(skill)) return null;
   return elemental.activeUntil > context.start + context.epsilon
     ? unavailable(`the ${elemental.element || 'summoned'} elemental is still active.`, elemental.activeUntil)

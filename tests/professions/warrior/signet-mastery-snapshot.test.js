@@ -24,6 +24,7 @@ function snapshot(build, atSeconds) {
 
 test('Signet Mastery bar shows the stacks active at the inspection point', () => {
   const [item] = snapshot(WITH_TRAIT, 3);
+
   assert.equal(item.id, 'signet-mastery');
   assert.equal(item.label, 'Signet Mastery');
   assert.equal(item.value, '2/5');
@@ -51,6 +52,7 @@ test('Signet Mastery bar caps at 5 stacks', () => {
     result: overstacked,
     atSeconds: 1
   });
+
   assert.equal(item.value, '5/5');
 });
 

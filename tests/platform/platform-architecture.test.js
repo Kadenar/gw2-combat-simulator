@@ -66,22 +66,27 @@ import { testProfession } from '../fixtures/test-profession.js';
 test('native professions share one skill timing contract', async () => {
   for (const entry of professionRegistry) {
     const catalog = (await entry.loadProfession()).catalog;
+
     for (const skill of catalog.skills) {
       assert.equal('activation' in skill, false, skill.name);
       assert.equal('castTime' in skill, false, skill.name);
       assert.ok(Number.isFinite(skill.castTimeMs), skill.name);
+
       if (skill.quicknessCastTimeMs != null) {
         assert.equal(skill.castTimeMs, skill.quicknessCastTimeMs * 1.5, skill.name);
       }
+
       if (skill.unaffectedByQuickness) {
         assert.equal(skill.quicknessCastTimeMs, undefined, skill.name);
       }
+
       assert.ok(Array.isArray(skill.lockouts), skill.name);
       for (const effect of skill.effects) {
         assert.equal('atMsList' in effect, false, skill.name);
         assert.equal('packetOffsets' in effect, false, skill.name);
         assert.equal('atCastEndOffsetMs' in effect, false, skill.name);
         const explicitlyTimed = effect.atMs != null || effect.intervalMs != null || effect.ticks != null;
+
         assert.equal(explicitlyTimed, effect.timingAnchor != null && effect.timingScale != null, skill.name);
       }
     }
@@ -93,6 +98,7 @@ test('native skill authoring uses one cast timing source', async () => {
 
   for (const entry of professionRegistry) {
     const files = await javascriptFiles(path.join(professionsRoot, entry.id));
+
     for (const file of files) {
       const source = ts.createSourceFile(file, await readFile(file, 'utf8'), ts.ScriptTarget.Latest, true);
 
@@ -101,9 +107,11 @@ test('native skill authoring uses one cast timing source', async () => {
           const propertyNames = new Set(
             node.properties.flatMap((property) => {
               if (!ts.isPropertyAssignment(property)) return [];
+
               if (!ts.isIdentifier(property.name) && !ts.isStringLiteral(property.name)) {
                 return [];
               }
+
               return [property.name.text];
             })
           );
@@ -111,6 +119,7 @@ test('native skill authoring uses one cast timing source', async () => {
           const hasQuicknessCast = propertyNames.has('quicknessCastTimeMs');
           const hasQuicknessImmunity = propertyNames.has('unaffectedByQuickness');
           const line = source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
+
           assert.equal(hasBaseCast && hasQuicknessCast, false, `${path.relative(professionsRoot, file)}:${line}`);
           assert.equal(
             hasQuicknessCast && hasQuicknessImmunity,
@@ -118,8 +127,10 @@ test('native skill authoring uses one cast timing source', async () => {
             `${path.relative(professionsRoot, file)}:${line}`
           );
         }
+
         ts.forEachChild(node, visit);
       }
+
       visit(source);
     }
   }
@@ -173,10 +184,12 @@ test('native profession weapon swaps share timing policy except Elementalist', a
   for (const entry of professionRegistry) {
     const catalog = (await entry.loadProfession()).catalog;
     const skill = catalog.skillsByName.get('Swap Weapons');
+
     if (entry.id === 'elementalist') {
       assert.equal(skill, undefined, entry.id);
       continue;
     }
+
     assert.ok(skill, entry.id);
     assert.equal(skill.castTimeMs, 0, entry.id);
     assert.equal(Number(skill.quicknessCastTimeMs || 0), 0, entry.id);
@@ -213,6 +226,7 @@ test('profession contract supplies defaults and deterministic hook ordering', ()
       }
     }
   });
+
   profession.initialize({});
   assert.deepEqual(calls, ['first', 'same', 'later']);
   profession.eventReactions.control({}, { type: 'control' });
@@ -238,6 +252,7 @@ test('profession contract supports zero or multiple resource views', () => {
       ]
     }
   });
+
   assert.deepEqual(none.ui.resourceViews({}), []);
   assert.equal(none.ui.resourceView({}), null);
   assert.equal(multiple.ui.resourceViews({}).length, 2);
@@ -250,6 +265,7 @@ test('shared autoattack helpers derive and index ID-based chains', () => {
     { id: 2, type: 'Weapon', slot: 'Weapon_1', nextChainId: 3 },
     { id: 3, type: 'Weapon', slot: 'Weapon_1', nextChainId: null }
   ]);
+
   assert.deepEqual(chains, [[1, 2, 3]]);
   assert.deepEqual(indexAutoattackChains(chains).get(2), {
     root: 1,
@@ -428,6 +444,7 @@ test('declarative boons can gate dynamic skill availability', () => {
     rotation: ['Grant Aegis', { type: 'wait', durationMs: 3100 }, 'Aegis Strike'],
     config: { stats: { concentration: 1500 } }
   });
+
   assert.ok(available.totalDamage > 0);
   assert.equal(expired.totalDamage, 0);
   assert.ok(extended.totalDamage > 0);
@@ -436,6 +453,7 @@ test('declarative boons can gate dynamic skill availability', () => {
 
 test('handler registry rejects duplicates and missing required handlers', () => {
   const registry = new HandlerRegistry().register('damage', () => {});
+
   assert.throws(() => registry.register('damage', () => {}), /Duplicate event handler/);
   assert.throws(() => registry.require(['condition']), /Missing required/);
   assert.throws(() => registry.dispatch({ type: 'unknown' }, {}), /No event handler/);
@@ -443,6 +461,7 @@ test('handler registry rejects duplicates and missing required handlers', () => 
 
 test('generic scheduler state contains no profession-specific fields', () => {
   const state = createSchedulerState({ profession: testProfession });
+
   assert.deepEqual(
     Object.keys(state).sort(),
     ['activeWeaponSet', 'ammo', 'cooldowns', 'lockouts', 'pendingEvents', 'profession', 'skillUses', 'time'].sort()
@@ -592,6 +611,7 @@ test('concurrent and interrupted casts are first-class scheduler commands', () =
   ]);
   const slash = result.events.find((event) => event.sourceId === 900001);
   const charge = result.events.find((event) => event.type === 'action' && event.sourceId === 900002);
+
   assert.equal(slash.endsAt, 0.4);
   assert.equal(slash.interrupted, true);
   assert.equal(charge.at, 0.1);
@@ -674,6 +694,7 @@ test('test profession runs end to end without importing Mesmer', () => {
       weaponStrength: 1000
     }
   });
+
   assert.ok(base.totalDamage > withoutTrait.totalDamage);
   assert.equal(base.profession.charge, 1);
   assert.equal(base.profession.controlEvents, 1);
@@ -1260,6 +1281,7 @@ test('GW2 Quickness quantizes casts and scales explicit cast timing', () => {
   });
   const profile = (skillName) => {
     const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
+
     return {
       cast: Math.round((action.endsAt - action.at) * 1000),
       ticks: result.resolvedEvents
@@ -1450,6 +1472,7 @@ test('resolver modifiers receive stable trait, event, and runtime context', () =
           skillId: context.skillId,
           trait: context.traits.has('context-fixture.damage')
         };
+
         return observed.trait && observed.skillId === 930002 ? multiplier * 2 : multiplier;
       }
     }
@@ -1514,6 +1537,7 @@ test('unknown required custom events fail clearly', () => {
     ],
     rotationEndTime: 1
   });
+
   assert.throws(
     () =>
       resolveScheduledStream({
@@ -1551,6 +1575,7 @@ test('canonical catalog validation rejects duplicate ids and missing handlers', 
     ],
     skillNameCollision: 'last'
   });
+
   assert.equal(lastNameWins.skillsByName.get('Variant').id, 2);
   assert.throws(() => createCanonicalCatalog({ skillNameCollision: 'invalid' }), /collision policy/);
 });
@@ -1560,6 +1585,7 @@ test('canonical catalogs carry validated traits and specializations', () => {
     traits: [{ id: 1, name: 'Fixture Trait' }],
     specializations: [{ id: 2, name: 'Fixture Line' }]
   });
+
   assert.equal(catalog.traits[0].name, 'Fixture Trait');
   assert.equal(catalog.specializations[0].name, 'Fixture Line');
   assert.throws(
@@ -1586,6 +1612,7 @@ test('canonical catalogs validate and freeze skill-group lockouts', () => {
     ]
   });
   const skill = catalog.skillsById.get(930030);
+
   assert.deepEqual(skill.lockouts, [
     {
       group: 'fixture.family',
@@ -1961,6 +1988,7 @@ test('Severance critical contributions are data-driven and expire exactly', () =
     chanceContributors: []
   });
   const runtime = { sigil: { severanceUntil: 4 } };
+
   assert.deepEqual(sigilCriticalContribution(runtime, 3.999), {
     chance: 250 / PRECISION_PER_CRITICAL_CHANCE_FRACTION,
     damage: 250 / FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
@@ -2043,8 +2071,10 @@ test('Nourys owns its generic stack cadence and additive damage window', () => {
 
 test('generic combat query modules contain no equipment-specific policy', async () => {
   const root = new URL('../../js/platform/gw2/', import.meta.url);
+
   for (const filename of ['query.ts', 'timeline-index.ts']) {
     const source = await readFile(new URL(filename, root), 'utf8');
+
     assert.doesNotMatch(source, /Aristocracy|Severance/, filename);
   }
 });
@@ -2322,6 +2352,7 @@ test('Relic of Bloodstone explodes on the third blast and grants Fervor', () => 
 test('Bloodstone Fervor follows player modifier ownership', () => {
   const relic = createRelicRuntime('Bloodstone');
   const context = { relic };
+
   relic.state.buffUntil = 8;
 
   const effect = {
@@ -2330,6 +2361,7 @@ test('Bloodstone Fervor follows player modifier ownership', () => {
     actorType: 'effect',
     skillName: 'Owned Effect'
   };
+
   assert.equal(
     relicStrikeMultiplier(context, {
       ...effect,
@@ -2468,6 +2500,7 @@ test('Mesmer build migrations produce validated schema version 3 data', () => {
     assumptions: { vulnerability: 10 },
     rotation: ['Mind Stab', { name: '__wait', waitMs: 125 }]
   });
+
   assert.equal(migrated.schemaVersion, BUILD_SCHEMA_VERSION);
   assert.equal(migrated.profession, 'mesmer');
   assert.equal(migrated.assumptions.targetConditions.Vulnerability, 10);
@@ -2482,6 +2515,7 @@ test('Mesmer build migrations produce validated schema version 3 data', () => {
 test('common weapon data includes Guardian weapon families', () => {
   const guardianWeapons = createProfessionWeaponData(guardianCatalog);
   const mesmerWeapons = createProfessionWeaponData(mesmerCatalog);
+
   assert.equal(guardianWeapons.Mace.wielding, 'mh');
   assert.equal(guardianWeapons.Sword.wielding, 'mh+oh');
   assert.equal(guardianWeapons.Hammer.wielding, '2h');
@@ -2500,9 +2534,11 @@ test('Mesmer state creation and snapshots are profession owned', () => {
     specialization: 'Virtuoso',
     infiniteForge: true
   });
+
   state.specialization.state.numericResource = 3;
   state.core.clones.push({ id: 1 });
   const snapshot = snapshotMesmerState(state);
+
   assert.equal(state.specialization.state.nextForgeAt, 3);
   assert.equal(snapshot.numericResource, 3);
   assert.equal(snapshot.cloneCount, 1);
@@ -2526,6 +2562,7 @@ async function javascriptFiles(root) {
   const nested = await Promise.all(
     entries.map((entry) => {
       const target = path.join(root, entry.name);
+
       return entry.isDirectory()
         ? javascriptFiles(target)
         : entry.name.endsWith('.js') || (entry.name.endsWith('.ts') && !entry.name.endsWith('.d.ts'))
@@ -2533,6 +2570,7 @@ async function javascriptFiles(root) {
           : [];
     })
   );
+
   return nested.flat();
 }
 
@@ -2541,14 +2579,18 @@ test('Mesmer conforms to native handler, identity, and state boundaries', async 
     assert.ok(handlerId.startsWith('mesmer.'));
     assert.ok(strategy.mode === SKILL_HANDLER_MODES.AUGMENT || strategy.mode === SKILL_HANDLER_MODES.REPLACE);
   }
+
   for (const skill of mesmerCatalog.skills) {
     if (!skill.handlerId) continue;
     const strategy = mesmerCatalog.skillHandlers.get(skill.handlerId);
+
     assert.ok(strategy, `${skill.name} has an unresolved handler`);
+
     if (strategy.mode === SKILL_HANDLER_MODES.REPLACE) {
       assert.deepEqual(skill.effects, [], skill.name);
     }
   }
+
   assert.ok(
     Object.values(MECHANIC_SKILLS)
       .flat()
@@ -2562,9 +2604,11 @@ test('Mesmer conforms to native handler, identity, and state boundaries', async 
   );
 
   const projected = simulateMesmer(['Mind Stab'], createDefaultConfig({ specialization: 'Core' })).endState.profession;
+
   assert.deepEqual(JSON.parse(JSON.stringify(projected)), projected);
 
   const mesmerRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/professions/mesmer');
+
   await assert.rejects(
     readFile(path.join(mesmerRoot, 'mechanics', 'contract.ts'), 'utf8'),
     (error) => error?.code === 'ENOENT'
@@ -2579,9 +2623,11 @@ test('Mesmer conforms to native handler, identity, and state boundaries', async 
     path.join(mesmerRoot, 'core'),
     path.join(mesmerRoot, 'specializations')
   ];
+
   for (const root of behavioralRoots) {
     for (const file of await javascriptFiles(root)) {
       const source = await readFile(file, 'utf8');
+
       assert.doesNotMatch(
         source,
         /skill\.name\s*(?:===|!==)|\.has\(skill\.name\)|\[skill\.name\]|skill\.description/,
@@ -2593,10 +2639,12 @@ test('Mesmer conforms to native handler, identity, and state boundaries', async 
 
 test('platform import boundaries are profession neutral', async () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/platform');
+
   for (const file of await javascriptFiles(root)) {
     const source = await readFile(file, 'utf8');
     const relative = path.relative(root, file).replaceAll('\\', '/');
     const modulePath = relative.replace(/\.(?:js|ts)$/, '');
+
     for (const entry of professionRegistry) {
       for (const term of [entry.id, entry.name]) {
         if (
@@ -2604,20 +2652,25 @@ test('platform import boundaries are profession neutral', async () => {
           ['gw2/gear-data', 'gw2/relic-rules', 'gw2/resolver/runtime-state'].includes(modulePath)
         )
           continue;
+
         if (entry.id === 'ranger' && ['gw2/gear-data', 'gw2/relic-rules'].includes(modulePath)) {
           continue;
         }
+
         if (entry.id === 'elementalist' && modulePath === 'gw2/gear-data') {
           continue;
         }
+
         assert.equal(source.toLowerCase().includes(term.toLowerCase()), false, `${relative} mentions ${term}`);
       }
     }
+
     if (relative.startsWith('engine/')) {
       assert.doesNotMatch(source, /(?:\.\.\/)+gw2\//, `${relative} imports GW2`);
       assert.doesNotMatch(source, /(?:\.\.\/)+ui\//, `${relative} imports UI`);
       assert.doesNotMatch(source, /professions\//, `${relative} imports a profession`);
     }
+
     if (relative.startsWith('gw2/') || relative.startsWith('ui/')) {
       assert.doesNotMatch(source, /professions\//, `${relative} imports a profession`);
     }
@@ -2626,6 +2679,7 @@ test('platform import boundaries are profession neutral', async () => {
 
 test('test profession fixture has no native profession dependency', async () => {
   const source = await readFile(fileURLToPath(new URL('../fixtures/test-profession.js', import.meta.url)), 'utf8');
+
   for (const entry of professionRegistry) {
     assert.equal(source.toLowerCase().includes(entry.id), false, entry.id);
   }
@@ -2634,8 +2688,10 @@ test('test profession fixture has no native profession dependency', async () => 
 async function relativeModuleGraph(entryFiles) {
   const visited = new Set();
   const pending = [...entryFiles];
+
   while (pending.length) {
     const file = await sourceModulePath(path.resolve(pending.pop()));
+
     if (visited.has(file)) continue;
     visited.add(file);
     const source = await readFile(file, 'utf8');
@@ -2658,24 +2714,30 @@ async function relativeModuleGraph(entryFiles) {
       ) {
         specifiers.push(node.arguments[0].text);
       }
+
       ts.forEachChild(node, visit);
     };
+
     visit(syntax);
     for (const specifier of specifiers) {
       const dependency = path.resolve(path.dirname(file), specifier);
+
       if (dependency.endsWith('.js') || dependency.endsWith('.mjs')) {
         pending.push(dependency);
       }
     }
   }
+
   return visited;
 }
 
 async function sourceModulePath(file) {
   if (!file.endsWith('.js')) return file;
   const typeScript = file.replace(/\.js$/, '.ts');
+
   try {
     await access(typeScript);
+
     return typeScript;
   } catch {
     return file;
@@ -2688,13 +2750,16 @@ async function readSourceModule(file) {
 
 test('native registry loaders do not pull another profession module graph', async () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js');
+
   for (const entry of professionRegistry) {
     const graph = await relativeModuleGraph([
       path.join(root, 'professions', entry.id, 'definition.js'),
       path.join(root, 'professions', entry.id, 'app', 'app-definition.js')
     ]);
+
     for (const file of graph) {
       const relative = path.relative(root, file).replaceAll('\\', '/');
+
       for (const other of professionRegistry) {
         if (other.id === entry.id) continue;
         assert.equal(relative.startsWith(`professions/${other.id}/`), false, `${entry.id} imports ${relative}`);
@@ -2705,12 +2770,15 @@ test('native registry loaders do not pull another profession module graph', asyn
 
 test('declarative professions use the standard mechanics module roles', async () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/professions');
+
   for (const profession of professionRegistry.map((entry) => entry.id)) {
     const mechanicsRoot = path.join(root, profession, 'mechanics');
     const prefix = profession.toUpperCase();
     const mechanics = await readSourceModule(path.join(mechanicsRoot, 'skill-mechanics.js'));
+
     assert.match(mechanics, new RegExp(`export const ${prefix}_SKILL_MECHANICS\\b`));
     assert.doesNotMatch(mechanics, /apiDamage|apiConditions/);
+
     if (profession === 'necromancer') {
       const localMechanics = await Promise.all(
         [
@@ -2732,10 +2800,12 @@ test('declarative professions use the standard mechanics module roles', async ()
           ].map(readSourceModule)
         )
       ).join('\n');
+
       for (const source of localMechanics) {
         assert.match(source, /export const \w+_MECHANICS\b/);
         assert.doesNotMatch(source, /HANDLER_MECHANICS/);
       }
+
       assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
       assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
       assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
@@ -2756,10 +2826,12 @@ test('declarative professions use the standard mechanics module roles', async ()
           ].map(readSourceModule)
         )
       ).join('\n');
+
       for (const source of localMechanics) {
         assert.match(source, /export const \w+_MECHANICS\b/);
         assert.doesNotMatch(source, /HANDLER_MECHANICS/);
       }
+
       assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
       assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
       assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
@@ -2779,10 +2851,12 @@ test('declarative professions use the standard mechanics module roles', async ()
           sliceDirectories.map((directory) => readSourceModule(path.join(root, profession, directory, 'handlers.js')))
         )
       ).join('\n');
+
       for (const source of localMechanics) {
         assert.match(source, /export const MESMER_\w+\b/);
         assert.doesNotMatch(source, /HANDLER_MECHANICS/);
       }
+
       assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
       assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
       assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
@@ -2805,6 +2879,7 @@ test('declarative professions use the standard mechanics module roles', async ()
           sliceDirectories.map((directory) => readSourceModule(path.join(root, profession, directory, 'handlers.js')))
         )
       ).join('\n');
+
       assert.match(heraldMechanics, /export const HERALD_MECHANICS\b/);
       assert.doesNotMatch(heraldMechanics, /HANDLER_MECHANICS/);
       assert.ok(authorableSlices.every((source) => /BALANCE_PROFILES\b/.test(source)));
@@ -2816,6 +2891,7 @@ test('declarative professions use the standard mechanics module roles', async ()
     const catalog = await readSourceModule(path.join(root, profession, 'catalog.js'));
     const catalogData = await readSourceModule(path.join(root, profession, 'catalog-data.js'));
     const family = await readSourceModule(path.join(root, profession, 'family.js'));
+
     assert.match(catalog, /assembleNativeApplicationCatalog/);
     assert.doesNotMatch(catalog, /mechanics\/skill-mechanics\.js/);
     assert.match(catalogData, /createNativeModuleData/);
@@ -2824,7 +2900,9 @@ test('declarative professions use the standard mechanics module roles', async ()
     assert.doesNotMatch(catalog, /mechanics\/skill-(?:defaults|overrides)\.js/);
 
     const metadata = await readFile(path.join(root, profession, 'data', `${profession}-api-metadata.js`), 'utf8');
+
     assert.doesNotMatch(metadata, /apiDamage|apiConditions|"facts"|"coefficient"|dmg_multiplier/);
+
     if (profession !== 'mesmer') {
       assert.doesNotMatch(metadata, /export const TRAITS\b/);
       assert.match(catalogData, /data\/traits-data\.js/);
@@ -2834,28 +2912,34 @@ test('declarative professions use the standard mechanics module roles', async ()
 
 test('obsolete compatibility trees are removed', async () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js');
+
   for (const directory of ['core', 'data', 'sim']) {
     await assert.rejects(readdir(path.join(root, directory)), (error) => error?.code === 'ENOENT');
   }
+
   await assert.rejects(
     readFile(path.join(root, 'professions', 'mesmer', 'app', 'app-rotation-ui.js'), 'utf8'),
     (error) => error?.code === 'ENOENT'
   );
   for (const profession of ['engineer', 'guardian', 'mesmer', 'necromancer', 'revenant', 'thief', 'warrior']) {
     const extension = 'ts';
+
     for (const facade of ['attribute-rules', 'resolver', 'state', 'ui']) {
       await assert.rejects(
         readFile(path.join(root, 'professions', profession, `${facade}.${extension}`), 'utf8'),
         (error) => error?.code === 'ENOENT'
       );
     }
+
     const family = await readFile(path.join(root, 'professions', profession, `family.${extension}`), 'utf8');
+
     assert.doesNotMatch(family, /(?:attribute-rules|handlers|mechanics\/contract|resolver|state|ui)\.js/);
   }
 });
 
 test('migrated combo professions have no local compatibility path', async () => {
   const professionsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/professions');
+
   for (const profession of [
     'elementalist',
     'engineer',
@@ -2881,13 +2965,16 @@ test('migrated combo professions have no local compatibility path', async () => 
 test('profession family state composition has no flat runtime adapters', async () => {
   const jsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js');
   const engineSource = await readFile(path.join(jsRoot, 'platform', 'engine', 'profession.ts'), 'utf8');
+
   assert.doesNotMatch(engineSource, /\bnew Proxy\b|Object\.defineProperty|createComposedStateAdapter/);
 
   for (const profession of ['engineer', 'guardian', 'mesmer', 'necromancer', 'revenant']) {
     const root = path.join(jsRoot, 'professions', profession);
+
     for (const file of await javascriptFiles(root)) {
       if (path.basename(file) !== 'module.ts') continue;
       const source = await readFile(file, 'utf8');
+
       assert.doesNotMatch(source, /defineProfessionModule<SchedulerRecord>/, path.relative(jsRoot, file));
     }
   }
@@ -2895,20 +2982,24 @@ test('profession family state composition has no flat runtime adapters', async (
 
 test('specialization state factories and accessors stay owner-local', async () => {
   const professionRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../js/professions');
+
   for (const profession of ['engineer', 'guardian', 'mesmer', 'necromancer', 'revenant', 'thief']) {
     const specializationsRoot = path.join(professionRoot, profession, 'specializations');
     const directories = await readdir(specializationsRoot, {
       withFileTypes: true
     });
+
     for (const directory of directories.filter((entry) => entry.isDirectory())) {
       const root = path.join(specializationsRoot, directory.name);
       const extension = 'ts';
       const stateSource = await readFile(path.join(root, `state.${extension}`), 'utf8');
       const moduleSource = await readFile(path.join(root, `module.${extension}`), 'utf8');
+
       assert.match(stateSource, /defineProfessionSpecializationState\(/, `${profession}/${directory.name}/state`);
       assert.match(moduleSource, /scheduler:\s*\w+State\.create/, `${profession}/${directory.name}/module`);
       for (const file of await javascriptFiles(root)) {
         const source = await readFile(file, 'utf8');
+
         assert.doesNotMatch(source, /\bprofessionSpecializationState\b/, path.relative(professionRoot, file));
       }
     }
@@ -2922,12 +3013,15 @@ test('application shell uses feature-owned modules without legacy facades', asyn
     .filter((entry) => entry.isFile())
     .map((entry) => entry.name)
     .sort();
+
   assert.deepEqual(topLevelFiles, ['app.ts', 'bootstrap.ts', 'embed.ts', 'profession-app.ts']);
 
   const directories = new Set(entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name));
+
   assert.deepEqual([...directories].sort(), ['build', 'patch-preview', 'profession', 'rotation', 'simulation']);
 
   const appEntry = await readFile(path.join(appRoot, 'app.ts'), 'utf8');
+
   assert.match(appEntry, /bootstrapProfessionApp/);
   assert.doesNotMatch(appEntry, /class ProfessionApp|renderPalette|renderGear/);
 });
@@ -2943,8 +3037,10 @@ test('profession sources persist terrestrial skill data only', async () => {
       '"name": "Use Trident"'
     ].join('|')
   );
+
   for (const file of await javascriptFiles(root)) {
     const source = await readFile(file, 'utf8');
+
     assert.doesNotMatch(source, forbiddenPersistedMetadata, path.relative(root, file));
   }
 });

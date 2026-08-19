@@ -24,6 +24,7 @@ function parseCast(value: unknown, playerIndex: number, groupIndex: number, cast
       castIndex
     });
   }
+
   return value as unknown as DpsReportCast;
 }
 
@@ -35,6 +36,7 @@ function parseRotationGroup(value: unknown, playerIndex: number, groupIndex: num
       { playerIndex, groupIndex }
     );
   }
+
   return {
     id: value.id,
     skills: value.skills.map((cast, castIndex) => parseCast(cast, playerIndex, groupIndex, castIndex))
@@ -52,6 +54,7 @@ function parsePlayer(value: unknown, playerIndex: number): DpsReportPlayer {
       playerIndex
     });
   }
+
   return {
     ...(value as unknown as DpsReportPlayer),
     rotation: value.rotation.map((group, groupIndex) => parseRotationGroup(group, playerIndex, groupIndex))
@@ -64,6 +67,7 @@ function parsePhase(value: unknown, phaseIndex: number): DpsReportPhase {
       phaseIndex
     });
   }
+
   return value as unknown as DpsReportPhase;
 }
 
@@ -71,6 +75,7 @@ function parseSkillMap(value: unknown): Readonly<Record<string, DpsReportSkillMe
   if (!record(value)) {
     throw new DpsReportError('INVALID_SKILL_MAP', 'The Elite Insights report has no skill metadata map.');
   }
+
   for (const [key, metadata] of Object.entries(value)) {
     if (!record(metadata) || typeof metadata.name !== 'string') {
       throw new DpsReportError('INVALID_SKILL_METADATA', 'The Elite Insights report contains invalid skill metadata.', {
@@ -78,6 +83,7 @@ function parseSkillMap(value: unknown): Readonly<Record<string, DpsReportSkillMe
       });
     }
   }
+
   return value as Readonly<Record<string, DpsReportSkillMetadata>>;
 }
 
@@ -91,15 +97,19 @@ export function parseDpsReport(input: string | unknown): ParsedDpsReport {
       throw new DpsReportError('INVALID_JSON', `Unable to parse Elite Insights JSON: ${String(error)}`);
     }
   }
+
   if (!record(value) || !Array.isArray(value.players) || !Array.isArray(value.phases)) {
     throw new DpsReportError('INVALID_REPORT', 'The JSON is not an Elite Insights report with players and phases.');
   }
+
   if (!value.players.length) {
     throw new DpsReportError('NO_PLAYER', 'The Elite Insights report contains no players.');
   }
+
   if (!value.phases.length) {
     throw new DpsReportError('NO_PHASE', 'The Elite Insights report contains no phases.');
   }
+
   return {
     ...(value as unknown as ParsedDpsReport),
     players: value.players.map(parsePlayer),

@@ -33,6 +33,7 @@ function isElementalistSkillAvailable(skill: Skill, context: ProfessionSkillAvai
   if (skill.type === 'Weapon' && String(skill.attunement || '').includes('+') && context.specialization !== 'Weaver') {
     return false;
   }
+
   return defaultIsSkillAvailable(skill, context);
 }
 

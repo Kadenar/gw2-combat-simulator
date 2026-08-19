@@ -19,6 +19,7 @@ export function hasTrait(context: Gw2TraitContext, traitId: SkillId): boolean {
       (Number.isFinite(numeric) && context.traits.has(numeric))
     );
   }
+
   return (
     includesTrait(context.config?.traitIds, traitId, key) ||
     includesTrait(context.config?.selectedTraitIds, traitId, key) ||

@@ -88,6 +88,7 @@ export function deployEngineerTurret(context: EngineerCastContext, skill: Engine
   if (Number.isFinite(flipSkillId)) {
     professionCoreState(context).availableFlips[flipSkillId] = true;
   }
+
   if (skill.id === ID.HEALING_TURRET) {
     context.emit({
       type: 'buff',
@@ -103,6 +104,7 @@ export function deployEngineerTurret(context: EngineerCastContext, skill: Engine
       duration: 3
     });
   }
+
   if (TURRET_ATTACK_SKILL_BY_DEPLOYMENT[Number(skill.id)]) {
     // schedule the first attack; each attack task schedules the next up to the 5-attack max
     context.tasks.schedule({
@@ -115,6 +117,7 @@ export function deployEngineerTurret(context: EngineerCastContext, skill: Engine
       }
     });
   }
+
   emitEngineerState(context, at, 'deploy-turret');
 }
 
@@ -165,6 +168,7 @@ export function handleEngineerTurretAttack(
       duration: Number(condition.duration || 0)
     });
   }
+
   // 5 attacks per deployment — stop scheduling after the last one
   if (attackIndex >= maximumAttacks) return;
   context.tasks.schedule({

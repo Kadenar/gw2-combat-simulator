@@ -66,5 +66,6 @@ export function calculateContributionComparisons(
       pctIncrease: without.dps > 0 ? (dpsIncrease / without.dps) * 100 : 0
     });
   }
+
   return contributions.sort((left, right) => right.dpsIncrease - left.dpsIncrease);
 }

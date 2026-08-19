@@ -56,6 +56,7 @@ function truncatedOverbearingSmashActions(
     ) {
       return [];
     }
+
     const start = event.time - event.value;
     const alreadyRecorded = actions.some(
       (action) => action.rawSkillId === event.skillId && Math.abs(action.end - event.time) <= TRUNCATED_CAST_WINDOW_MS
@@ -154,6 +155,7 @@ function sicEmActions(
     if (index > 0 && event.time - applications[index - 1].event.time <= TRANSITION_WINDOW_MS) {
       return [];
     }
+
     return [
       directAction(
         eventIndex,
@@ -210,6 +212,7 @@ function normalizePathOfScarsRange(
     if (hits.length < 2 || hits[1].time - hits[0].time <= PATH_RETURN_GAP_THRESHOLD_MS) {
       return action;
     }
+
     return {
       ...action,
       canonicalSkillId: PATH_OF_SCARS_MAX_RANGE.skillId,
@@ -246,6 +249,7 @@ function sharpeningStoneActions(
     ) {
       return [];
     }
+
     previousApplication = event.time;
     return [directAction(eventIndex, event.time, event.skillId, SHARPENING_STONE.name, SHARPENING_STONE, 'effect')];
   });

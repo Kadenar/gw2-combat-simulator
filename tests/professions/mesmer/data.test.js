@@ -72,6 +72,7 @@ test('catalog contains every terrestrial Mesmer skill and trait line', () => {
 
 test('Mesmer modules expose isolated balance-profile authoring', () => {
   const modules = new Map(mesmerProfession.patchAuthoring.modules.map((module) => [module.id, module]));
+
   assert.deepEqual([...modules.keys()], ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']);
   assert.equal(
     [...modules.values()].every((module) => module.balanceProfiles.length > 0),
@@ -80,6 +81,7 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
 
   const profile = (moduleId, profileId) =>
     modules.get(moduleId).balanceProfiles.find((entry) => entry.id === profileId);
+
   assert.equal(profile('Core', MESMER_CORE_BALANCE_PROFILE_IDS.mindWrack).profile.effects[1].coefficient, 1.61);
   assert.equal(
     profile('Chronomancer', CHRONOMANCER_BALANCE_PROFILE_IDS.dangerTime).patchableFields.durationMultiplier,
@@ -114,6 +116,7 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
         Object.keys(rule.parameters).length === 0
     )
   );
+
   assert.deepEqual(opaqueModifierRules, []);
 
   const preview = applyMesmerPatch({
@@ -186,6 +189,7 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
     { [ID.MIND_WRACK]: SHATTERS[ID.MIND_WRACK] },
     MESMER_CORE_SHATTER_PROFILE_IDS
   )[ID.MIND_WRACK];
+
   assert.deepEqual(profiledShatter.coefficients, [0.81, 1.75, 2.42, 3.22]);
   assert.equal(
     mesmerProfiledAmbush({ catalog: preview }, AMBUSH_ATTACKS.Axe, MIRAGE_AMBUSH_PROFILE_IDS.Axe).player.coefficient,
@@ -211,6 +215,7 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
 
 test('Mesmer and Guardian API catalogs use the same skill record shape', () => {
   const expectedKeys = Object.keys(GUARDIAN_API_SKILLS[0]).sort();
+
   for (const skill of SKILLS) {
     assert.deepEqual(Object.keys(skill).sort(), expectedKeys, skill.name);
   }
@@ -227,6 +232,7 @@ test('Mesmer mechanics are the sole simulation source and use stable skill ids',
     assert.ok(MESMER_SKILL_MECHANICS[skill.id], `${skill.name} is missing authoritative simulation mechanics`);
     assert.equal(MESMER_SKILL_MECHANICS[skill.id]?.implemented, true, skill.name);
   }
+
   assert.equal(MESMER_SKILL_MECHANICS[ID.WINDS_OF_CHAOS].quicknessCastTimeMs, 760);
   assert.equal(mesmerCatalog.skillsById.get(ID.WINDS_OF_CHAOS).castTimeMs, 1140);
   assert.equal(MESMER_SKILL_MECHANICS['Winds of Chaos'], undefined);
@@ -254,6 +260,7 @@ test('every Mesmer catalog skill is explicitly implemented', () => {
 
 test('Mesmer relic options exclude profession-inapplicable relics', () => {
   const excluded = ['Krait', 'Weaver', 'Fire', 'Mount Balrior'];
+
   assert.equal(mesmerAppAdapter.relicNames.includes('Claw'), true);
   assert.equal(mesmerAppAdapter.relicNames.includes('Nourys'), true);
   assert.equal(mesmerAppAdapter.relicNames.includes('Steamshrieker'), true);
@@ -317,6 +324,7 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
   );
   for (const skill of phantasms) {
     const timing = PHANTASM_ATTACK_TIMINGS[skill.id];
+
     assert.ok(timing, `${skill.name} is missing a phantasm attack timing`);
     assert.ok(timing.castTimeMs > 0, `${skill.name} has an invalid cast time`);
     assert.ok(timing.damageAtMs > 0, `${skill.name} has an invalid damage time`);
@@ -352,6 +360,7 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
 
   for (const [skillId, values] of Object.entries(expected)) {
     const timing = PHANTASM_ATTACK_TIMINGS[skillId];
+
     assert.deepEqual(
       [
         timing.castTimeMs,
@@ -363,6 +372,7 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
       values
     );
     const skill = mesmerCatalog.skillsById.get(Number(skillId));
+
     assert.equal(
       skill.castTimeMs,
       catalogCastTimeMs[skillId] ?? values[0] * 1.5,
@@ -373,6 +383,7 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
 
 test('Counterspell is cataloged as Illusionary Counter’s clone-generating flip skill', () => {
   const counterspell = mesmerCatalog.skillsById.get(ID.COUNTERSPELL);
+
   assert.equal(counterspell.id, 10314);
   assert.equal(counterspell.weapon, 'Scepter');
   assert.deepEqual(counterspell.resource, { mode: 'add', count: 1 });
@@ -380,11 +391,13 @@ test('Counterspell is cataloged as Illusionary Counter’s clone-generating flip
 
 test('Illusionary Counter does not grant its successful-block clones on activation', () => {
   const counter = catalogSkill('Illusionary Counter');
+
   assert.equal(counter.resource, null);
 });
 
 test('Signet of the Ether does not generate a clone on activation', () => {
   const signet = catalogSkill('Signet of the Ether');
+
   assert.equal(signet.resource, null);
 });
 
@@ -426,10 +439,13 @@ test('Mesmer instant-cast skills have zero cast time', () => {
 
   for (const name of instantSkills) {
     const skill = catalogSkill(name);
+
     assert.equal(skill.castTimeMs, 0, name);
     assert.equal(skill.quicknessCastTimeMs ?? 0, 0, name);
   }
+
   const prestige = catalogSkill('The Prestige');
+
   assert.equal(prestige.castTimeMs, 60);
   assert.equal(prestige.quicknessCastTimeMs, 40);
 });
@@ -437,8 +453,10 @@ test('Mesmer instant-cast skills have zero cast time', () => {
 test('Mesmer shatters share only the shatter-family lockout', () => {
   for (const id of Object.keys(SHATTERS).map(Number)) {
     const skill = mesmerCatalog.skillsById.get(id);
+
     assert.deepEqual(skill.lockouts, [{ group: 'mesmer.shatter', durationMs: 50 }], skill.name);
   }
+
   assert.deepEqual(catalogSkill('Power Spike').lockouts, []);
   assert.deepEqual(catalogSkill('Mirror Images').lockouts, []);
 });
@@ -450,10 +468,12 @@ test('Mesmer weapon autoattacks are cataloged as individual chain skills', () =>
     [ID.LACERATING_CHOP, ID.ETHEREAL_CHOP, ID.MIRROR_STRIKES],
     [ID.PSYCUT, ID.PSYSTRIKE, ID.MIND_PIERCE]
   ];
+
   assert.deepEqual(mesmerCatalog.autoattackChains, expectedChains);
   for (const chain of expectedChains) {
     const [rootId, ...childIds] = chain;
     const rootSkill = mesmerCatalog.skillsById.get(rootId);
+
     assert.equal(strikeEffects(rootSkill)[0].hits, 1);
     assert.notEqual(strikeEffects(rootSkill)[0].name, 'Full autoattack chain');
     assert.equal(rootSkill.chainRoot, rootId);
@@ -461,6 +481,7 @@ test('Mesmer weapon autoattacks are cataloged as individual chain skills', () =>
     assert.equal(rootSkill.nextChainId, childIds[0]);
     chain.forEach((skillId, index) => {
       const nextChainId = chain[index + 1] ?? null;
+
       assert.equal(SKILLS.find((skill) => skill.id === skillId).nextChainId, nextChainId);
       assert.equal(mesmerCatalog.skillsById.get(skillId).nextChainId, nextChainId);
     });
@@ -489,6 +510,7 @@ test('rotation actions use the requested icons without a duplicate fixed wait', 
   const dodge = PSEUDO_SKILLS.find((skill) => skill.name === 'Dodge / Mirage Cloak');
   const mirror = PSEUDO_SKILLS.find((skill) => skill.name === 'Pick Up Mirage Mirror');
   const shift = PSEUDO_SKILLS.find((skill) => skill.name === 'Continuum Shift');
+
   assert.equal(dodge.icon, 'https://wiki.guildwars2.com/images/b/b2/Dodge.png');
   assert.equal(mirror.icon, 'https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png');
   assert.equal(shift.icon, 'https://wiki.guildwars2.com/images/d/d7/Continuum_Shift.png');
@@ -568,6 +590,7 @@ test('supplied player and clone coefficient table is preserved', () => {
 
   for (const [name, coefficient, quicknessCast] of playerSkills) {
     const skill = normalized(name);
+
     assert.ok(Math.abs(totalCoefficient(skill) - coefficient) < 1e-12, name);
     assert.ok(Math.abs(skill.castTimeMs / 1500 - quicknessCast) < 1e-12, name);
   }
@@ -600,6 +623,7 @@ test('supplied player and clone coefficient table is preserved', () => {
 test('Lingering Thoughts variants use the six-second count recharge', () => {
   for (const id of [ID.LINGERING_THOUGHTS, ID.TROUBADOUR_LINGERING_THOUGHTS]) {
     const skill = mesmerCatalog.skillsById.get(id);
+
     assert.equal(skill.ammo, 2);
     assert.equal(skill.ammoRecharge, 6);
   }
@@ -607,6 +631,7 @@ test('Lingering Thoughts variants use the six-second count recharge', () => {
 
 test('Lingering Thoughts models the supplied clone, packets, conditions, and finishers', () => {
   const skill = mesmerCatalog.skillsById.get(ID.LINGERING_THOUGHTS);
+
   assert.equal(skill.cooldown, 0.25);
   assert.equal(skill.ammo, 2);
   assert.equal(skill.ammoRecharge, 6);
@@ -647,11 +672,13 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
   const normalized = catalogSkill;
   const effectiveCoefficient = (skill) => {
     const phantasmCount = Number(skill.resource?.count || 1);
+
     return strikeEffects(skill).reduce(
       (sum, effect) => sum + strikeCoefficient(effect) * (effect.actorType === 'phantasm' ? phantasmCount : 1),
       0
     );
   };
+
   const expectedSkills = {
     'Thousand Cuts': 5,
     Jaunt: 1,
@@ -696,8 +723,10 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
   assert.equal(AMBUSH_ATTACKS.Staff.clone.coefficient, 1.12);
 
   const lancer = normalized('Phantasmal Lancer');
+
   assert.equal(strikeEffects(lancer).find((effect) => effect.actorType === 'phantasm').coefficient, 1.23);
   const swordsman = normalized('Phantasmal Swordsman');
+
   assert.deepEqual(
     strikeEffects(swordsman).map((effect) => [effect.name, effect.coefficient]),
     [
@@ -707,6 +736,7 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
     ]
   );
   const mage = normalized('Phantasmal Mage');
+
   assert.deepEqual(
     strikeEffects(mage).map((effect) => [effect.actorType, effect.coefficient]),
     [
@@ -742,6 +772,7 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
   for (const [name, coefficient] of Object.entries(expectedSkills)) {
     assert.ok(Math.abs(totalCoefficient(name) - coefficient) < 1e-12, name);
   }
+
   assert.equal(normalized('Mind Spike').boonlessCoefficient, 2);
 
   assert.equal(CLONE_ATTACKS.Scepter.coefficient, 0.5);
@@ -761,6 +792,7 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
   assert.equal(AMBUSH_ATTACKS.Rifle.player.coefficient, 2.6);
 
   const flyingCutter = normalized('Flying Cutter');
+
   assert.equal(strikeEffects(flyingCutter)[0].coefficient, 0.5);
   assert.equal(strikeEffects(flyingCutter)[0].castProgress, 0.72);
   assert.deepEqual(flyingCutter.trackedHitDamage, {
@@ -811,6 +843,7 @@ test('supplied shatter and instrument coefficient tables are preserved', () => {
     [ID.BLADETURN_REQUIEM]: [0, 0.5, 1, 1.5, 2, 2.5],
     [ID.CONTINUUM_SPLIT]: [0, 0, 0, 0]
   };
+
   for (const [id, coefficients] of Object.entries(expectedShatters)) {
     assert.deepEqual(SHATTERS[id].coefficients, coefficients, mesmerCatalog.skillsById.get(Number(id)).name);
   }
@@ -833,6 +866,7 @@ test('supplied shatter and instrument coefficient tables are preserved', () => {
 
 test('dodge models two endurance charges with a ten-second base recharge', () => {
   const dodge = PSEUDO_SKILLS.find((skill) => skill.name === 'Dodge / Mirage Cloak');
+
   assert.equal(dodge.cooldown, 10);
   assert.equal(dodge.ammo, 2);
   assert.equal(dodge.castTimeMs, 0);
@@ -854,6 +888,7 @@ test('Mesmer supplemental identities, handler profiles, and trait coverage are e
     'environment',
     'flipParent'
   ];
+
   assert.ok(
     Object.values(MESMER_SUPPLEMENTAL_SKILL_MECHANICS).every((mechanics) =>
       identityFields.every((field) => !Object.hasOwn(mechanics, field))
@@ -863,9 +898,11 @@ test('Mesmer supplemental identities, handler profiles, and trait coverage are e
   assert.ok(MESMER_TRAIT_COVERAGE.every((entry) => entry.effects.length > 0));
 
   const shared = mesmerCatalog.skillsByName.get('Mind Stab');
+
   assert.equal(shared.handlerId, 'mesmer.declarative');
   assert.ok(shared.effects.length > 0);
   const replacing = mesmerCatalog.skillsByName.get('Phantasmal Swordsman');
+
   assert.equal(replacing.handlerId, 'mesmer.phantasm');
   assert.deepEqual(replacing.effects, []);
   assert.ok(replacing.mesmerEffects.length > 0);
@@ -889,9 +926,11 @@ test('legacy duplicate Mesmer names resolve explicitly by specialization', () =>
     ['Lively Lute', 'Troubadour', ID.LIVELY_LUTE],
     ['Harmonious Harp', 'Troubadour', ID.HARMONIOUS_HARP_ALTERNATE]
   ];
+
   for (const [name, specialization, expectedId] of specializationCases) {
     assert.equal(resolveMesmerLegacySkillId(name, { specialization }), expectedId, `${specialization} ${name}`);
   }
+
   for (const name of ['Axes of Symmetry', 'Lingering Thoughts', 'Lively Lute', 'Harmonious Harp']) {
     assert.equal(resolveMesmerLegacySkillId(name), null, name);
     assert.equal(
@@ -902,6 +941,7 @@ test('legacy duplicate Mesmer names resolve explicitly by specialization', () =>
       name
     );
   }
+
   assert.equal(resolveMesmerLegacySkillId('Bladecall'), ID.BLADECALL);
   assert.equal(
     resolveMesmerLegacySkillId('Mind Stab', {

@@ -145,6 +145,7 @@ function advanceRenegadeUpkeep(context: RevenantSchedulerContext, target: number
   if (!active || active.nextAlliedProcAt == null || target + context.epsilon < active.nextAlliedProcAt) {
     return;
   }
+
   const skill = context.catalog.skillsById.get(ID.SOULCLEAVES_SUMMIT);
   const proc = context.catalog.skillsById.get(RENEGADE_PROFILE_IDS.soulcleavesSummitProc);
   const allies = gw2AlliedPlayerAssumptions(context.config);
@@ -179,6 +180,7 @@ function advanceRenegadeUpkeep(context: RevenantSchedulerContext, target: number
         }
       }
     }
+
     // Advance by whichever is larger: the 1s internal cooldown or the ally's natural strike interval, preventing proc rates from exceeding what allies can realistically trigger
     active.nextAlliedProcAt += Math.max(Math.max(0, Number(proc.cooldown || 0)), 1 / allies.strikesPerSecond);
   }
@@ -194,9 +196,11 @@ function observeRenegadeEvent(context: RevenantSchedulerContext, event: Revenant
   ) {
     return;
   }
+
   if (hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
     emitLegendInvocationProfile(context, RENEGADE_SPIRIT_BOON_PROFILE_ID, event.at, TRAIT.SPIRIT_BOON);
   }
+
   if (!hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
   const song = context.catalog.skillsById.get(ID.CALL_OF_THE_RENEGADE);
   if (!song) return;

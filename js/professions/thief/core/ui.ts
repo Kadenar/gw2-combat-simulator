@@ -38,12 +38,14 @@ function corePaletteSkillAvailability(
       message: `Advance the spear chain to stage ${spearChainStage + 1}`
     };
   }
+
   if (skill.type === 'Weapon' && skill.flipParentId != null && !flipAvailable) {
     return {
       available: false,
       message: 'Use its opening weapon skill first'
     };
   }
+
   if (
     skill.type === 'Weapon' &&
     skill.flipSkillId != null &&
@@ -55,6 +57,7 @@ function corePaletteSkillAvailability(
       message: 'Use or wait out the active follow-up skill'
     };
   }
+
   if (skill.stealthAttack) {
     const available = stealthed || bonusStealthAttack;
     return {
@@ -62,12 +65,14 @@ function corePaletteSkillAvailability(
       message: available ? '' : 'Gain stealth first'
     };
   }
+
   if ((stealthed || bonusStealthAttack) && skill.type === 'Weapon' && skill.slot === 'Weapon_1') {
     return {
       available: false,
       message: "The active weapon's stealth attack replaces skill 1"
     };
   }
+
   return { available: true, message: '' };
 }
 

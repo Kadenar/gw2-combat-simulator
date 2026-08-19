@@ -11,13 +11,17 @@ const OUTPUT = path.resolve(
 /** Refreshes the checked-in palette map so imports never require live API access. */
 async function main() {
   const response = await fetch(API_URL);
+
   if (!response.ok) {
     throw new Error(`Guild Wars 2 API request failed (${response.status}).`);
   }
+
   const professions = await response.json();
+
   if (!Array.isArray(professions) || professions.length !== 9) {
     throw new Error('Guild Wars 2 API returned an incomplete profession list.');
   }
+
   const snapshotDate = new Date().toISOString().slice(0, 10);
   const lines = [
     '// Generated from the official Guild Wars 2 /v2/professions palette map.',
@@ -32,13 +36,16 @@ async function main() {
     '  Record<number, Gw2BuildTemplateProfessionData>',
     '> = Object.freeze({'
   ];
+
   for (const profession of professions.sort((left, right) => left.code - right.code)) {
     lines.push(`  ${profession.code}: {`, '    paletteEntries: Object.freeze([');
     for (const [paletteId, skillId] of profession.skills_by_palette.sort((left, right) => left[0] - right[0])) {
       lines.push(`      [${paletteId}, ${skillId}],`);
     }
+
     lines.push('    ]) as readonly (readonly [number, number])[],', '  },');
   }
+
   lines.push('});', '');
   await writeFile(OUTPUT, lines.join('\n'), 'utf8');
   console.log(`Wrote ${OUTPUT}.`);

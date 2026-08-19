@@ -137,9 +137,11 @@ function migrateElementalistV3ToV4(saved: SchedulerRecord): SchedulerRecord {
         if (typeof entry === 'number' || typeof entry === 'string') {
           return migrateLegacyElementalistSkillId(entry);
         }
+
         if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
           return entry;
         }
+
         const command = entry as SchedulerRecord;
         return {
           ...command,
@@ -200,24 +202,31 @@ const elementalistBuildCodec = createGw2BuildCodec<ElementalistCanonicalBuild>({
     if (Array.isArray(build.alternateWeapons) && build.alternateWeapons.some(Boolean)) {
       errors.push('Elementalist cannot equip a second weapon set.');
     }
+
     if (build.startingWeaponSet !== 1) {
       errors.push('Elementalist must start on weapon set 1.');
     }
+
     if (!ATTUNEMENTS.has(build.startAttunement)) {
       errors.push('startAttunement must be Fire, Water, Air, or Earth.');
     }
+
     if (!ATTUNEMENTS.has(build.secondaryAttunement)) {
       errors.push('secondaryAttunement must be Fire, Water, Air, or Earth.');
     }
+
     if (!(build.initialCatalystEnergy >= 0 && build.initialCatalystEnergy <= 30)) {
       errors.push('initialCatalystEnergy must be between 0 and 30.');
     }
+
     if (!(build.initialEvokerCharges >= 0 && build.initialEvokerCharges <= 6)) {
       errors.push('initialEvokerCharges must be between 0 and 6.');
     }
+
     if (!(build.initialEvokerEmpowered >= 0 && build.initialEvokerEmpowered <= 3)) {
       errors.push('initialEvokerEmpowered must be between 0 and 3.');
     }
+
     if (
       !build.pistolBullets ||
       ['Fire', 'Water', 'Air', 'Earth'].some(
@@ -226,6 +235,7 @@ const elementalistBuildCodec = createGw2BuildCodec<ElementalistCanonicalBuild>({
     ) {
       errors.push('pistolBullets must contain four boolean element states.');
     }
+
     return errors;
   }
 });

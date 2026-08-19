@@ -40,11 +40,13 @@ test('patch authoring omits unused skills but retains indirect runtime skills', 
   assert.equal(engineerSkillIds.has('engineer.turret.rifle.attack'), true);
 
   const lesserGrenadeBarrage = engineerSkills.find((entry) => entry.name === 'Lesser Grenade Barrage');
+
   assert.match(lesserGrenadeBarrage.skill.icon, /^https:\/\/render\.guildwars2\.com\//);
 
   const bandTogetherVariants = revenantProfession.patchAuthoring.modules
     .flatMap((module) => module.skills)
     .filter((entry) => entry.skill.variantBadge === 'Band Together');
+
   assert.equal(bandTogetherVariants.length, 4);
 });
 
@@ -62,6 +64,7 @@ test('patch authoring omits unreachable Thief skills but keeps live stolen and a
   ]) {
     assert.equal(names.has(unusedName), false, unusedName);
   }
+
   for (const usedId of [1110, 1123, 1162, 76702]) {
     assert.equal(ids.has(usedId), true, String(usedId));
   }
@@ -73,11 +76,13 @@ test('patch authoring omits unreachable skills for the remaining professions', (
   const namesFor = (profession) => new Set(skillsFor(profession).map((entry) => entry.name));
 
   const necromancerNames = namesFor(necromancerProfession);
+
   for (const unusedName of ['Consume Conditions', 'Spectral Walk', 'Weapon of Warding']) {
     assert.equal(necromancerNames.has(unusedName), false, unusedName);
   }
 
   const guardianNames = namesFor(guardianProfession);
+
   for (const unusedName of [
     '"Advance!"',
     'Mantra of Lore',
@@ -87,31 +92,39 @@ test('patch authoring omits unreachable skills for the remaining professions', (
   ]) {
     assert.equal(guardianNames.has(unusedName), false, unusedName);
   }
+
   assert.equal(guardianNames.has('Chapter 1: Searing Spell'), true);
 
   const warriorIds = idsFor(warriorProfession);
+
   for (const unusedId of [14372, 14422, 14443, 30989, 39972, 62804]) {
     assert.equal(warriorIds.has(unusedId), false, String(unusedId));
   }
+
   for (const usedId of [14353, 30435, 69297, 69433]) {
     assert.equal(warriorIds.has(usedId), true, String(usedId));
   }
 
   const rangerIds = idsFor(rangerProfession);
+
   for (const unusedId of [42809, 59554, 64882, 67382]) {
     assert.equal(rangerIds.has(unusedId), false, String(unusedId));
   }
+
   for (const usedId of [40729, 63094, 63258]) {
     assert.equal(rangerIds.has(usedId), true, String(usedId));
   }
 
   const revenantIds = idsFor(revenantProfession);
+
   for (const unusedId of [27198, 34198, 48170, 71827]) {
     assert.equal(revenantIds.has(unusedId), false, String(unusedId));
   }
+
   for (const usedId of [62689, 73149, 77920]) {
     assert.equal(revenantIds.has(usedId), true, String(usedId));
   }
+
   assert.equal(revenantIds.has('revenant.renegade.razorclaws-rage-proc'), true);
 });
 
@@ -283,6 +296,7 @@ test('patch authoring generates an overview and discards manual notes', () => {
   );
 
   const overview = preview.professions.necromancer.overview;
+
   assert.equal(preview.notes, undefined);
   assert.equal(preview.professions.necromancer.notes, undefined);
   assert.equal(overview.length, 3);

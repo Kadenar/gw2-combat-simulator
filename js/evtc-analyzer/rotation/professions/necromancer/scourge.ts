@@ -84,6 +84,7 @@ function initialManifestSandShadeActions(context: EvtcProfessionReconstructionCo
   ) {
     return [];
   }
+
   const duration = recordedDuration(context, MANIFEST_SAND_SHADE);
   return [
     {
@@ -123,6 +124,7 @@ function truncatedBloodIsPowerActions(context: EvtcProfessionReconstructionConte
     ) {
       return [];
     }
+
     const start = event.time - event.value;
     const alreadyRecorded = context.recordedActions.some(
       (action) => action.rawSkillId === event.skillId && Math.abs(action.end - event.time) <= INSTANT_SIGNAL_WINDOW_MS
@@ -155,6 +157,7 @@ function hauntActions(context: EvtcProfessionReconstructionContext): EvtcRecorde
     ) {
       return [];
     }
+
     return [effectAction(eventIndex, event.time, event.skillId, HAUNT.name, HAUNT, 'animation')];
   });
 }
@@ -171,6 +174,7 @@ function nefariousFavorActions(context: EvtcProfessionReconstructionContext): Ev
     ) {
       return;
     }
+
     actions.push(effectAction(eventIndex, event.time, event.skillId, NEFARIOUS_FAVOR.name, NEFARIOUS_FAVOR));
   });
   return actions;
@@ -183,6 +187,7 @@ function desertShroudActions(context: EvtcProfessionReconstructionContext): Evtc
     if (event.source !== context.playerAddress || event.skillId !== DESERT_SHROUD_PULSE_SIGNAL || event.buff !== 0) {
       return;
     }
+
     const beginsActivation = previousPulse == null || event.time - previousPulse > DESERT_SHROUD_PULSE_WINDOW_MS;
     previousPulse = event.time;
     if (!beginsActivation) return;
@@ -206,6 +211,7 @@ function sandCascadeActions(context: EvtcProfessionReconstructionContext): EvtcR
     ) {
       return;
     }
+
     actions.push(effectAction(eventIndex, event.time, event.skillId, SAND_CASCADE.name, SAND_CASCADE));
   });
   return actions;
@@ -226,6 +232,7 @@ function garishPillarActions(context: EvtcProfessionReconstructionContext): Evtc
     ) {
       return;
     }
+
     actions.push(effectAction(eventIndex, event.time, event.skillId, GARISH_PILLAR.name, GARISH_PILLAR));
   });
   return actions;

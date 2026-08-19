@@ -86,6 +86,7 @@ export function actionKind(skill: Skill | null, name: string): EvtcRotationActio
   if (normalizedName.includes('dodge') || normalizedName === 'mirage cloak') {
     return 'dodge';
   }
+
   const type = normalized(skill?.type);
   if (type === 'weapon') return 'weapon-skill';
   if (type === 'profession') return 'profession-skill';
@@ -104,6 +105,7 @@ export function effectWindowMs(skill: Skill): number {
     const interval = Math.max(0, Number(effect.intervalMs || 0));
     maximum = Math.max(maximum, at + (applications - 1) * interval);
   }
+
   return Math.max(100, Math.min(maximum + 100, 10_000));
 }
 

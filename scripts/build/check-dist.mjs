@@ -13,15 +13,19 @@ async function files(directory, extension) {
   const entries = await readdir(directory, { withFileTypes: true });
   const nested = await Promise.all(entries.map(async (entry) => {
     const target = path.join(directory, entry.name);
+
     if (entry.isDirectory()) return files(target, extension);
+
     return entry.name.endsWith(extension) ? [target] : [];
   }));
+
   return nested.flat();
 }
 
 async function exists(file) {
   try {
     await access(file);
+
     return true;
   } catch {
     return false;
@@ -32,6 +36,7 @@ const sources = (await files(sourceRoot, ".ts"))
   .filter((file) => !file.endsWith(".d.ts"));
 const missing = [];
 const duplicates = [];
+
 for (const source of sources) {
   const relative = path.relative(sourceRoot, source);
   const output = path.join(
@@ -39,18 +44,22 @@ for (const source of sources) {
     relative.replace(/\.ts$/, ".js"),
   );
   const sibling = source.replace(/\.ts$/, ".js");
+
   if (!(await exists(output))) missing.push(path.relative(root, output));
+
   if (await exists(sibling)) duplicates.push(path.relative(root, sibling));
 }
 
 const outputs = await files(buildRoot, ".js");
 const stale = [];
+
 for (const output of outputs) {
   const relative = path.relative(buildRoot, output);
   const source = path.join(
     sourceRoot,
     relative.replace(/\.js$/, ".ts"),
   );
+
   if (!(await exists(source))) stale.push(path.relative(root, output));
 }
 
@@ -58,15 +67,18 @@ if (missing.length || duplicates.length || stale.length) {
   if (missing.length) {
     console.error(`Missing compiled outputs:\n${missing.join("\n")}`);
   }
+
   if (duplicates.length) {
     console.error(
       `Generated JavaScript must not live beside TypeScript:\n` +
       duplicates.join("\n"),
     );
   }
+
   if (stale.length) {
     console.error(`Stale compiled outputs:\n${stale.join("\n")}`);
   }
+
   process.exit(1);
 }
 

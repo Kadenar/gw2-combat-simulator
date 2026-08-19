@@ -81,9 +81,11 @@ function addle(context: NecromancerCastContext, skill: NecromancerSkill): void {
   if (soulShardsAtActivation >= 3) {
     emitCondition(context, skill, 'Immobilized', 1, 1.5);
   }
+
   if (bonusEffects) {
     gainNecromancerLifeForce(context, 10, context.effectiveEnd, 'addle-bonus');
   }
+
   addShards(context, skill, bonusEffects ? 4 : 2, 'addle');
 }
 
@@ -134,6 +136,7 @@ function preparePerforate(context: NecromancerCastContext): PerforateState {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) {
     return { at, shardCount: 0, interrupted: true };
   }
+
   const shardCount = consumeSoulShards(professionCoreState(context), 6, at);
   return { at, shardCount };
 }

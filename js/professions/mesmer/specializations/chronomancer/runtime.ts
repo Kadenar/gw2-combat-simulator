@@ -38,6 +38,7 @@ export function initializeChronomancerRuntime(context: MesmerSchedulerContext): 
       context.cooldownController.ensureAmmo(skill, 0);
     }
   }
+
   runtime.continuum = createContinuumController({
     state: context.state,
     unaffectedCooldownIds: CONTINUUM_UNAFFECTED_COOLDOWN_IDS,

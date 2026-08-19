@@ -45,6 +45,7 @@ export function triggerIneptitudeFromInterrupt(
   if (defiant) {
     ctx.profession.ineptitudeReadyAt = event.at + mesmerBalanceValue(ctx, TRAIT.INEPTITUDE, 'internalCooldown', 3);
   }
+
   applyIneptitudeConfusion(
     ctx,
     { ...event, count: defiant ? 1 : event.count },

@@ -59,12 +59,14 @@ for (const skill of allSkills) {
     flipParentById.set(skill.flipSkillId, skill.id);
   }
 }
+
 // The API exposes Shield of Absorption's detonation under the same display
 // name, so it needs an explicit back-reference to remain one stateful tile.
 flipParentById.set(ID.SHIELD_OF_ABSORPTION_ID_9224, ID.SHIELD_OF_ABSORPTION);
 for (const [normalId, finalId] of firebrandFinalFlipByNormalId) {
   flipParentById.set(finalId, normalId);
 }
+
 const patchAuthoringExcludedSkillIds = new Set<SkillId>(
   allSkills.filter((skill) => GUARDIAN_NON_DPS_SKILL_NAMES.has(skill.name)).map((skill) => skill.id)
 );

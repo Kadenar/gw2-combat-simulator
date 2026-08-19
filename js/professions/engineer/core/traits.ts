@@ -220,6 +220,7 @@ function applyToolbeltTraits(context: EngineerCastContext, skill: EngineerSkill,
         }
       );
     }
+
     emitEngineerState(context, at, 'kinetic-battery');
   }
 }
@@ -298,6 +299,7 @@ export function reactToEngineerDamage(
       actorType: 'effect'
     });
   }
+
   if (explosion && hasTrait(context, TRAIT.SHORT_FUSE) && Number(state.shortFuse || 0) <= event.at) {
     state.shortFuse = event.at + engineerBalanceValue(context, PROFILE.shortFuse, 'internalCooldown', 3);
     queueBuff(context, event, {
@@ -310,6 +312,7 @@ export function reactToEngineerDamage(
     });
     recordTrait(context, 'Short Fuse', event);
   }
+
   if (explosion && hasTrait(context, TRAIT.EXPLOSIVE_TEMPER)) {
     queueBuff(context, event, {
       name: 'Explosive Temper',
@@ -321,6 +324,7 @@ export function reactToEngineerDamage(
     });
     recordTrait(context, 'Explosive Temper', event);
   }
+
   if (event.name === 'Explosive Entrance' && hasTrait(context, TRAIT.GRAND_ENTRANCE)) {
     queueBuff(context, event, {
       name: 'Grand Entrance — resistance',
@@ -340,6 +344,7 @@ export function reactToEngineerDamage(
     });
     recordTrait(context, 'Grand Entrance', event);
   }
+
   if (explosion && event.name !== 'Aim-Assisted Rocket' && hasTrait(context, TRAIT.SHRAPNEL)) {
     let triggered = false;
     if (usesRandomTraitProcs(context)) {
@@ -353,10 +358,12 @@ export function reactToEngineerDamage(
         Number(state.shrapnelProgress || 0) + engineerBalanceValue(context, PROFILE.shrapnel, 'procChance', 0.33);
       triggered = state.shrapnelProgress >= 1;
     }
+
     if (triggered) {
       if (!usesRandomTraitProcs(context)) {
         state.shrapnelProgress = Number(state.shrapnelProgress || 0) - 1;
       }
+
       applyCondition(details, context, event, {
         name: 'Shrapnel',
         condition: 'Bleeding',
@@ -393,10 +400,12 @@ export function reactToEngineerDamage(
         criticalChance * engineerBalanceValue(context, PROFILE.serratedSteel, 'procChance', 0.33);
       triggered = state.serratedSteelProgress >= 1;
     }
+
     if (triggered) {
       if (!usesRandomTraitProcs(context)) {
         state.serratedSteelProgress = Number(state.serratedSteelProgress || 0) - 1;
       }
+
       applyCondition(details, context, event, {
         name: 'Serrated Steel',
         condition: 'Bleeding',
@@ -423,10 +432,12 @@ export function reactToEngineerDamage(
       state.noScopeProgress = Number(state.noScopeProgress || 0) + criticalChance;
       triggered = state.noScopeProgress >= 1;
     }
+
     if (triggered) {
       if (!usesRandomTraitProcs(context)) {
         state.noScopeProgress = Number(state.noScopeProgress || 0) - 1;
       }
+
       state.noScope = event.at + engineerBalanceValue(context, PROFILE.noScope, 'internalCooldown', 8);
       queueBuff(context, event, {
         name: 'No Scope',
@@ -457,10 +468,12 @@ export function reactToEngineerDamage(
       state[progressKey] = Number(state[progressKey] || 0) + criticalChance;
       triggered = state[progressKey] >= 1 && Number(state[readyKey] || 0) <= event.at;
     }
+
     if (triggered) {
       if (!usesRandomTraitProcs(context)) {
         state[progressKey] = Number(state[progressKey] || 0) - 1;
       }
+
       state[readyKey] = event.at + engineerBalanceValue(context, PROFILE.incendiaryPowder, 'internalCooldown', 10);
       applyCondition(details, context, event, {
         name: 'Incendiary Powder',
@@ -535,6 +548,7 @@ export function reactToEngineerCondition(context: EngineerResolverContext, event
       event.at + engineerBalanceEffectValue(context, PROFILE.thermalVision, 'buff', 'duration', 4)
     );
   }
+
   if (event.condition === 'Bleeding' && event.actorType !== 'summon' && hasTrait(context, TRAIT.SANGUINE_ARRAY)) {
     queueBuff(context, event, {
       name: 'Sanguine Array',
@@ -546,6 +560,7 @@ export function reactToEngineerCondition(context: EngineerResolverContext, event
     });
     recordTrait(context, 'Sanguine Array', event);
   }
+
   if (event.condition === 'Bleeding' && event.actorType !== 'summon' && hasTrait(context, TRAIT.HEMATIC_FOCUS)) {
     const state = procState(context);
     if (Number(state.hematicFocus || 0) <= event.at) {

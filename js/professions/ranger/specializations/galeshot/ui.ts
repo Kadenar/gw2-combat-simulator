@@ -32,33 +32,42 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
   if (skill.id === ID.DISMISS_CYCLONE_BOW && !state.cycloneBowActive) {
     return { available: false, message: 'Cyclone Bow is not active' };
   }
+
   if (skill.id === ID.SUMMON_CYCLONE_BOW && state.cycloneBowActive) {
     return { available: false, message: 'Cyclone Bow is already active' };
   }
+
   if (skill.cycloneBowSkill && !state.cycloneBowActive) {
     return { available: false, message: 'Summon the Cyclone Bow first' };
   }
+
   if (Number(skill.arrowCost || 0) > Number(state.arrows || 0)) {
     return { available: false, message: `Requires ${skill.arrowCost} arrows` };
   }
+
   if (skill.id === ID.HAWKEYE && Number(state.windForce || 0) < 5) {
     return { available: false, message: 'Requires 5 Wind Force' };
   }
+
   if (skill.id === ID.KEEN_SHOT && Number(state.windForce || 0) >= 5) {
     return { available: false, message: 'Replaced by Hawkeye' };
   }
+
   if (skill.id === ID.QUARRYS_PERIL && hasTrait(context, TRAIT.PERILOUS_SKIES)) {
     return { available: false, message: 'Replaced by Pelt' };
   }
+
   if (skill.id === ID.PELT && !hasTrait(context, TRAIT.PERILOUS_SKIES)) {
     return { available: false, message: 'Requires Perilous Skies' };
   }
+
   if (state.cycloneBowActive && skill.type === 'Weapon' && !skill.cycloneBowSkill) {
     return {
       available: false,
       message: 'Cyclone Bow replaces weapon skills'
     };
   }
+
   return { available: true, message: '' };
 }
 
@@ -116,9 +125,11 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord = Objec
     if (skill?.handlerId === 'ranger.cyclone-bow-enter') {
       return 'Cyclone Bow';
     }
+
     if (skill?.handlerId === 'ranger.cyclone-bow-exit') {
       return null;
     }
+
     return undefined;
   },
   resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {

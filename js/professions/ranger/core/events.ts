@@ -45,6 +45,7 @@ export function handleRangerPetSwapped(context: RangerResolverContext, event: Ra
       application.removedAt = removedAt;
     }
   }
+
   for (const condition of context.conditionState.values()) {
     for (const stack of condition.stacks) {
       if (
@@ -55,6 +56,7 @@ export function handleRangerPetSwapped(context: RangerResolverContext, event: Ra
       }
     }
   }
+
   state.petAutoGeneration += 1;
   const pet = rangerPetByName(String(event.activePet || ''));
   state.activePet = pet.name;

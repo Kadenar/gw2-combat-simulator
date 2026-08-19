@@ -50,6 +50,7 @@ export function createTaskQueue<TContext, TPayload>({
         high = middle;
       }
     }
+
     queue.splice(low, 0, task);
   };
 
@@ -59,11 +60,13 @@ export function createTaskQueue<TContext, TPayload>({
     if (!Number.isFinite(normalizedAt)) {
       throw new TypeError('Scheduled task timestamps must be finite.');
     }
+
     const normalizedType = String(type || '');
     if (!normalizedType) throw new TypeError('Scheduled tasks require a type.');
     if (required && !registered.has(normalizedType)) {
       throw new TypeError(`No scheduled task handler is registered for "${normalizedType}".`);
     }
+
     const clonedPayload = cloneSerializable(payload, `Scheduled task "${normalizedType}" payload`);
     const task: ScheduledTask<TPayload> = Object.freeze({
       id: String(id || `task:${sequence + 1}`),
@@ -105,6 +108,7 @@ export function createTaskQueue<TContext, TPayload>({
     if (!Number.isFinite(normalizedTarget)) {
       throw new TypeError('Task drain target must be finite.');
     }
+
     let lastAt: number | null = null;
     let sameTimeCount = 0;
     while (nextAt() <= normalizedTarget + epsilon) {
@@ -117,12 +121,15 @@ export function createTaskQueue<TContext, TPayload>({
         lastAt = task.at;
         sameTimeCount = 1;
       }
+
       if (sameTimeCount > safetyLimit) {
         throw new Error(`Zero-time scheduled task loop detected at ${task.at.toFixed(3)}.`);
       }
+
       if (++processed > safetyLimit) {
         throw new Error(`Scheduled task safety limit (${safetyLimit}) exceeded.`);
       }
+
       const handler = registered.get(task.type);
       if (typeof handler === 'function') handler(context, task);
     }

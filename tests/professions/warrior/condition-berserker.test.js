@@ -36,12 +36,14 @@ test('Condition Berserker skill data uses configured values and packet timing', 
     [ID.SUNDERING_LEAP]: 920,
     [ID.HEAD_BUTT]: 800
   };
+
   for (const [id, castTime] of Object.entries(quicknessCastTimes)) {
     assert.equal(skill(Number(id)).quicknessCastTimeMs, castTime);
     assert.equal(castTime % 40, 0);
   }
 
   const dualShot = skill(ID.DUAL_SHOT);
+
   assert.deepEqual(
     dualShot.effects[0].ticks.map(({ atMs, coefficient }) => [atMs, coefficient]),
     [
@@ -55,6 +57,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   assert.equal(dualShot.comboFinishers[0].ambiguousFieldSelection, 'oldest');
 
   const fan = skill(ID.FAN_OF_FIRE);
+
   assert.equal(fan.cooldown, 5);
   assert.deepEqual(
     fan.effects.map(({ type, coefficient, hits, stacks, duration, atMs }) => ({
@@ -86,6 +89,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   );
 
   const arcingArrow = skill(ID.ARCING_ARROW);
+
   assert.equal(arcingArrow.ammo, 2);
   assert.equal(arcingArrow.ammoRecharge, 8);
   assert.equal(arcingArrow.ammoCastLockout, 1);
@@ -123,6 +127,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   );
 
   const smolderingArrow = skill(ID.SMOLDERING_ARROW);
+
   assert.equal(smolderingArrow.ammo, 3);
   assert.equal(smolderingArrow.ammoRecharge, 16);
   assert.equal(smolderingArrow.ammoCastLockout, 0.5);
@@ -135,6 +140,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   assert.equal(smolderingArrow.comboFinishers[0].chance, 1);
 
   const pinDown = skill(ID.PIN_DOWN);
+
   assert.equal(pinDown.cooldown, 20);
   assert.equal(pinDown.effects[0].coefficient, 0.44);
   assert.equal(pinDown.effects[1].stacks, 6);
@@ -144,6 +150,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   assert.equal(pinDown.comboFinishers[0].finisherType, 'Projectile');
 
   const combustiveShot = skill(ID.COMBUSTIVE_SHOT);
+
   assert.equal(combustiveShot.cooldown, 8);
   assert.equal(combustiveShot.comboFields[0].ownerId, 'warrior');
   assert.equal(combustiveShot.comboFields[0].fieldType, 'Fire');
@@ -153,6 +160,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   assert.deepEqual(combustiveShot.effects, []);
 
   const scorchedEarth = skill(ID.SCORCHED_EARTH);
+
   assert.equal(scorchedEarth.cooldown, 5);
   assert.equal(scorchedEarth.skillWeapon, 'Longbow');
   assert.equal(scorchedEarth.comboFields[0].fieldType, 'Fire');
@@ -170,6 +178,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   const savageBleeding = savageLeap.effects.find(
     (effect) => effect.type === 'condition' && effect.condition === 'Bleeding'
   );
+
   assert.equal(savageBleeding.stacks, 3);
   assert.equal(savageBleeding.duration, 5);
   assert.deepEqual(
@@ -182,6 +191,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   );
 
   const blazeBreaker = skill(ID.BLAZE_BREAKER);
+
   assert.equal(blazeBreaker.cooldown, 12);
   assert.equal(blazeBreaker.comboFinishers[0].finisherType, 'Blast');
   assert.equal(blazeBreaker.comboFinishers[0].chance, 1);
@@ -230,6 +240,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   );
 
   const flamesOfWar = skill(ID.FLAMES_OF_WAR);
+
   assert.equal(flamesOfWar.cooldown, 20);
   assert.equal(flamesOfWar.comboFields[0].fieldType, 'Fire');
   assert.equal(flamesOfWar.comboFields[0].duration, 5);
@@ -255,6 +266,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   );
 
   const flamingFlurry = skill(ID.FLAMING_FLURRY);
+
   assert.equal(flamingFlurry.skillWeapon, 'Sword');
   assert.deepEqual(
     flamingFlurry.effects[1].ticks.map(({ duration }) => duration),
@@ -264,6 +276,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
 
 test('Combustive Shot scales its pulses and field with adrenaline', async () => {
   const raw = JSON.parse(await readFile(buildUrl, 'utf8'));
+
   for (const [tier, expectedOffsets] of [
     [1, [520, 3520]],
     [2, [520, 3520, 6520]],
@@ -280,10 +293,13 @@ test('Combustive Shot scales its pulses and field with adrenaline', async () => 
       skillByName: warriorCatalog.skillsByName,
       attributeWeaponSet: 1
     };
+
     recalculate(app);
     const result = runSimulation(app);
+
     assert.deepEqual(result.warnings, []);
     const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.COMBUSTIVE_SHOT);
+
     assert.equal(action.burstTier, tier);
     assert.equal(action.comboFields[0].duration, tier * 3);
     assert.deepEqual(
@@ -324,6 +340,7 @@ test('a delayed primal-burst critical hit immediately detonates its new fire aur
     skillByName: warriorCatalog.skillsByName,
     attributeWeaponSet: 1
   };
+
   recalculate(app);
   const result = runSimulation(app);
   const scorchedAction = result.events.find((event) => event.type === 'action' && event.skillId === ID.SCORCHED_EARTH);
@@ -348,6 +365,7 @@ test('a final persistent Berserker packet does not extend the rotation horizon',
     skillByName: warriorCatalog.skillsByName,
     attributeWeaponSet: 1
   };
+
   recalculate(app);
   const result = runSimulation(app);
   const kingProc = result.procSteps.find((proc) => proc.type === 'trait_proc' && proc.skill === 'King of Fires');

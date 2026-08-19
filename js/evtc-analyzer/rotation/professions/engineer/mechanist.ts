@@ -51,6 +51,7 @@ function mechCommandActions(context: EvtcProfessionReconstructionContext): EvtcR
     if (!identity || event.sourceMasterInstance !== instance || event.source === context.playerAddress) {
       return;
     }
+
     const key = `${event.source}:${event.skillId}`;
     if (
       event.stateChange === EVTC_STATE_CHANGE.NONE &&
@@ -60,17 +61,20 @@ function mechCommandActions(context: EvtcProfessionReconstructionContext): EvtcR
       actions.push(canonicalAction(eventIndex, event.time, identity, event.skillId, 'resource-inference'));
       return;
     }
+
     if (
       event.stateChange !== EVTC_STATE_CHANGE.NONE ||
       (event.activation !== EVTC_ACTIVATION.CANCEL_FIRE && event.activation !== EVTC_ACTIVATION.RESET)
     ) {
       return;
     }
+
     const pending = outstanding.get(key) || 0;
     if (pending > 0) {
       outstanding.set(key, pending - 1);
       return;
     }
+
     const inferredStart = event.time - Math.max(0, event.value);
     if (event.value > 0 && combatStart != null && inferredStart < combatStart && event.time <= combatStart + 1200) {
       actions.push(canonicalAction(eventIndex, inferredStart, identity, event.skillId, 'resource-inference'));
@@ -93,6 +97,7 @@ function overclockActions(context: EvtcProfessionReconstructionContext): EvtcRec
     ) {
       return [];
     }
+
     previous = event.time;
     return [canonicalAction(eventIndex, event.time, OVERCLOCK_SIGNET, event.skillId, 'resource-inference')];
   });
@@ -132,14 +137,17 @@ function openingActions(
       precast: true
     });
   }
+
   const equip = kitIdentity(context, 'Bomb Kit', false);
   const stow = kitIdentity(context, 'Bomb Kit', true);
   if (equip) {
     scheduled.unshift(canonicalAction(opening.eventIndex - 300, cursor, equip, equip.skillId, 'initial-state'));
   }
+
   if (stow) {
     scheduled.push(canonicalAction(opening.eventIndex - 2, opening.start, stow, stow.skillId, 'initial-state'));
   }
+
   scheduled.push(opening);
   return scheduled;
 }

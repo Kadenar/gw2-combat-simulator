@@ -44,6 +44,7 @@ export function projectedFreshAirReadyAt(context: ElementalistCastContext, upTo:
     progress += candidate.criticalChance;
     if (progress + context.epsilon >= 1) return candidate.at;
   }
+
   return null;
 }
 
@@ -63,9 +64,11 @@ export function elementalistAttunementRechargeDuration(context: ElementalistLife
   if (hasTrait(context, 'Flow State')) {
     adjusted = Math.max(0, adjusted - elementalistBalanceValue(context, TRAIT.FLOW_STATE, 'rechargeReduction', 1));
   }
+
   if (hasTrait(context, 'Elemental Enchantment')) {
     adjusted *= elementalistBalanceValue(context, PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85);
   }
+
   return elementalistAlacrityAdjustedDuration(context, adjusted);
 }
 
@@ -122,9 +125,11 @@ export function onAttunementComplete(
           nextReadyAt = Math.min(nextReadyAt, freshAirReadyAt);
         }
       }
+
       setElementalistAttunementReadyAt(context, attunement, nextReadyAt);
     }
   }
+
   state.attunementEnteredAt = at;
   context.emit({
     type: 'elementalist.attunement',
@@ -154,6 +159,7 @@ export function onAttunementComplete(
   if (previous === 'Fire' && target !== 'Fire') {
     triggerElementalistFlameExpulsion(context, at, skill.id);
   }
+
   if (target === 'Fire') triggerElementalistSunspot(context, at, skill.id);
   if (target === 'Air') {
     triggerElementalistElectricDischarge(context, at, skill.id);
@@ -171,13 +177,16 @@ export function onAttunementComplete(
         -10
       );
     }
+
     if (hasTrait(context, 'One with Air')) {
       emitProfiledBuff(context, at, PROFILE.oneWithAir, 'Superspeed', 'Superspeed', 1, 3, skill.name, skill.id);
     }
+
     if (hasTrait(context, 'Inscription')) {
       emitProfiledBuff(context, at, PROFILE.inscription, 'Air Entry', 'Resistance', 1, 3, skill.name, skill.id);
     }
   }
+
   if (target === 'Water' && hasTrait(context, 'Latent Stamina')) {
     const readyAt = Number(state.procReadyAt.latentStamina || 0);
     if (readyAt <= at + context.epsilon) {
@@ -186,16 +195,20 @@ export function onAttunementComplete(
       emitProfiledBuff(context, at, TRAIT.LATENT_STAMINA, 'Vigor', 'Vigor', 1, 3, 'Latent Stamina', skill.id);
     }
   }
+
   if (target === 'Earth') {
     triggerElementalistEarthenBlast(context, at, skill.id);
     grantElementalistRockSolid(context, at, skill.id);
   }
+
   if (hasTrait(context, 'Arcane Prowess')) {
     emitProfiledBuff(context, at, PROFILE.arcaneProwess, 'Might', 'Might', 1, 8, 'Arcane Prowess', skill.id);
   }
+
   if (!dualAttunement || target !== previous) {
     grantElementalAttunementBoon(context, at, target, skill.id);
   }
+
   if (!dualAttunement) {
     triggerElementalistBountifulPower(context, at, 1, skill.id);
   }

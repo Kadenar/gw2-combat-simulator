@@ -39,6 +39,7 @@ function triggerMassMomentum(context: EngineerResolverContext, event: EngineerRe
     });
     recordTrait(context, 'Mass Momentum', event);
   }
+
   scheduleMassMomentumPulse(
     context,
     Math.max(
@@ -54,6 +55,7 @@ function handleMassMomentumPulse(context: EngineerResolverContext, event: Engine
   if (Math.abs(Number(state.massMomentumPulseAt || 0) - event.at) <= 1e-9) {
     state.massMomentumPulseAt = 0;
   }
+
   triggerMassMomentum(context, event);
 }
 
@@ -89,6 +91,7 @@ function reactToScrapperBuff(context: EngineerResolverContext, event: EngineerRe
       recordTrait(context, 'Applied Force', event);
     }
   }
+
   // Any new stability buff (including the one Applied Force just queued) kicks the pulse loop.
   if (kind === 'stability') triggerMassMomentum(context, event);
 }
@@ -100,12 +103,14 @@ function reactToScrapperCombo(context: EngineerResolverContext, event: EngineerR
   ) {
     return;
   }
+
   const state = scrapperState.from(context);
   if (event.finisherType === 'Whirl') {
     if (state.kineticAcceleratorsWhirlReadyAt > event.at + 1e-9) return;
     state.kineticAcceleratorsWhirlReadyAt =
       event.at + engineerBalanceValue(context, PROFILE.kineticAccelerators, 'internalCooldown', 3);
   }
+
   // Boons are emitted by the scheduler's resolved-combo prediction so they
   // remain visible in the canonical result timeline. Resolver confirmation
   // owns only proc attribution and its independent whirl ICD state.

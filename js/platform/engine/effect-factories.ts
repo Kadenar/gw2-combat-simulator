@@ -102,6 +102,7 @@ export const strikePackets = (
   if (count === 0) {
     throw new TypeError('Strike packet timelines require at least one offset.');
   }
+
   const perPacket = Number(coefficient) / count;
   return strikeTimeline(
     offsetsMs.map((atMs) => ({ atMs, coefficient: perPacket })),
@@ -136,6 +137,7 @@ export const condition = (
       ...(metadata ? { metadata } : {})
     };
   }
+
   return {
     type: 'condition',
     condition: conditionName,

@@ -44,6 +44,7 @@ function activateWillbenderVirtue(context: GuardianCastContext, skill: GuardianS
   if (state[`${virtue}Until`] <= at + context.epsilon) {
     state.virtueHitCounts[virtue] = 0;
   }
+
   const duration = applyWillbenderVirtueActivationTraits(context, virtue, at);
 
   emitGuardianEvent(context, skill, 'guardian.willbender-virtue-activated', {
@@ -73,6 +74,7 @@ function decorateWillbenderVirtueEffect(
   ) {
     return;
   }
+
   context.replaceEvent(event, {
     ...(skill.id === ID.RUSHING_JUSTICE ? { sourceId: ID.RUSHING_JUSTICE_IMPACT } : {}),
     ...(event.type === 'damage' ? { skillWeapon: 'Profession Mechanic' } : {})

@@ -70,6 +70,7 @@ test('hammer and dagger/mace timings preserve their 40 ms packet spacing', () =>
     [ID.BREACHING_STRIKE_ID_69297, 840, 760]
   ]) {
     const skill = warriorCatalog.skillsById.get(skillId);
+
     if (skillId === ID.BREACHING_STRIKE_ID_69297) {
       assert.equal(skill.castTimeMs, castMs, skill.name);
       assert.equal(skill.unaffectedByQuickness, true, skill.name);
@@ -77,6 +78,7 @@ test('hammer and dagger/mace timings preserve their 40 ms packet spacing', () =>
     } else {
       assert.equal(skill.quicknessCastTimeMs, castMs, skill.name);
     }
+
     const usesHammer = [
       ID.HAMMER_SWING,
       ID.HAMMER_BASH,
@@ -104,6 +106,7 @@ test('hammer and dagger/mace timings preserve their 40 ms packet spacing', () =>
     });
     const action = result.events.find((event) => event.type === 'action' && event.skillId === skillId);
     const damage = result.events.find((event) => event.type === 'damage' && event.activationId === action.activationId);
+
     assert.equal(Math.round((damage.at - action.at) * 1000), packetMs, skill.name);
   }
 
@@ -112,6 +115,7 @@ test('hammer and dagger/mace timings preserve their 40 ms packet spacing', () =>
     secondaryWeapon: 'Mace'
   });
   const tremorAction = tremor.events.find((event) => event.type === 'action');
+
   assert.deepEqual(
     tremor.events
       .filter((event) => event.type === 'damage')
@@ -134,6 +138,7 @@ test('hammer cooldowns, conditional damage, recharge, and Defense traits work', 
     [ID.TO_THE_LIMIT, 24]
   ]) {
     const skill = warriorCatalog.skillsById.get(skillId);
+
     assert.equal(skill.cooldown, cooldown);
     assert.equal(Object.hasOwn(skill, 'recharge'), false);
   }
@@ -143,10 +148,12 @@ test('hammer cooldowns, conditional damage, recharge, and Defense traits work', 
       primaryWeapon: 'Hammer',
       target: { defiant }
     }).events.find((event) => event.type === 'damage').coefficient;
+
   assert.equal(fierceCoefficient(false), 1.8);
   assert.equal(fierceCoefficient(true), 2.7);
 
   const reset = simulate('Core', ['Fierce Blow', 'Backbreaker', 'Fierce Blow'], { primaryWeapon: 'Hammer' });
+
   assert.deepEqual(
     reset.steps.filter(({ skill }) => skill === 'Fierce Blow').map(({ start }) => start),
     [0, 1760]
@@ -159,6 +166,7 @@ test('hammer cooldowns, conditional damage, recharge, and Defense traits work', 
     target: { defiant: true }
   });
   const weaknesses = defense.events.filter((event) => event.sourceId === TRAIT.CULL_THE_WEAK);
+
   assert.equal(weaknesses.length, 1);
   assert.deepEqual(
     {
@@ -184,6 +192,7 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
     initialResource: 10,
     target: { boonless: true }
   });
+
   assert.deepEqual(
     removals(breaching, ID.BREACHING_STRIKE_ID_69297).map(({ attemptedBoonRemovals, boonsRemoved }) => ({
       attemptedBoonRemovals,
@@ -199,6 +208,7 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
     initialResource: 10,
     target: { boonless: true }
   });
+
   assert.equal(insightStacks(breachingCombo), 1);
   assert.equal(
     breachingCombo.resolvedEvents.filter(
@@ -222,6 +232,7 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
     observationTail(5000)
   );
   const windsRemovals = removals(boonlessWinds, ID.WINDS_OF_DISENCHANTMENT);
+
   assert.equal(windsRemovals.length, 5);
   assert.deepEqual(
     windsRemovals.slice(1).map((event, index) => Number((event.at - windsRemovals[index].at).toFixed(3))),
@@ -238,12 +249,14 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
     },
     observationTail(5000)
   );
+
   assert.equal(insightStacks(boonfulWinds), 5);
 
   const breakEnchantments = simulate('Spellbreaker', [ID.BREAK_ENCHANTMENTS], {
     ...insightConfig,
     target: { boonCount: 4 }
   });
+
   assert.deepEqual(
     removals(breakEnchantments, ID.BREAK_ENCHANTMENTS).map(({ attemptedBoonRemovals, boonsRemoved }) => ({
       attemptedBoonRemovals,
@@ -257,12 +270,14 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
     ...insightConfig,
     target: { defiant: true }
   });
+
   assert.equal(insightStacks(bullsCharge), 1);
 
   const bullsChargeCombo = simulate('Spellbreaker', [ID.WINDS_OF_DISENCHANTMENT, ID.BULLS_CHARGE], {
     ...insightConfig,
     target: { boonless: true, defiant: true }
   });
+
   assert.equal(insightStacks(bullsChargeCombo), 2);
   assert.equal(
     bullsChargeCombo.resolvedEvents.filter(
@@ -294,6 +309,7 @@ test('Peak Performance and Magebane Tether use their logged recharge timing', ()
   });
   const bull = peak.steps.find(({ skill }) => skill === "Bull's Charge");
   const peakBuff = peak.events.find((event) => event.type === 'buff' && event.kind === 'peak-performance');
+
   assert.equal(peakBuff.at * 1000, bull.end);
   const peakState = warriorProfession.ui
     .rotationStateSnapshot({
@@ -302,6 +318,7 @@ test('Peak Performance and Magebane Tether use their logged recharge timing', ()
       atSeconds: peakBuff.at + 2
     })
     .find(({ id }) => id === 'peak-performance');
+
   assert.deepEqual(peakState, {
     id: 'peak-performance',
     label: 'Peak Performance',
@@ -327,13 +344,16 @@ test('"To the Limit!" restores endurance, grants flow, and triggers Thick Skin',
     initialResource: 0,
     selectedTraitIds: [TRAIT.THICK_SKIN]
   });
+
   assert.equal(core.endState.profession.adrenaline, 30);
   assert.equal(core.endState.profession.endurance, 100);
   const protection = core.events.find((event) => event.sourceId === TRAIT.THICK_SKIN);
+
   assert.deepEqual({ boon: protection.boon, duration: protection.duration }, { boon: 'protection', duration: 3 });
 
   const bladesworn = simulate('Bladesworn', ['"To the Limit!"'], {
     initialResource: 0
   });
+
   assert.ok(bladesworn.endState.profession.flow >= 30);
 });

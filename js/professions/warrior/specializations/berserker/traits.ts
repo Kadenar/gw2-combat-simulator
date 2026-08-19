@@ -65,6 +65,7 @@ export function applyBerserkEntryTraits(context: WarriorCastContext, skill: Warr
       Number(effect.stacks || 1)
     );
   }
+
   if (hasTrait(context, TRAIT.BLOODY_ROAR)) {
     const resistance = warriorBalanceProfileEffect(warriorBalanceProfile(context, PROFILE.bloodyRoar), 'boon');
     emitBoon(
@@ -116,6 +117,7 @@ function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
     state.berserkUntil +=
       skill.id === ID.DECAPITATE ? Number(profile?.minimumStacks ?? 1) : Number(profile?.resourceGain ?? 2);
   }
+
   if (skill.categories?.includes('Rage') && skill.id !== ID.BERSERK && skill.id !== ID.BERSERK_ID_30435) {
     state.berserkUntil +=
       rageBerserkExtension(context, skill) +
@@ -123,6 +125,7 @@ function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
         ? Number(warriorBalanceProfile(context, PROFILE.lastBlaze)?.durationMultiplier ?? 1)
         : 0);
   }
+
   if (state.berserkUntil > previousUntil) emitBerserkMarker(context, skill);
 }
 
@@ -144,6 +147,7 @@ function applyBerserkerTraits(context: WarriorCastContext, skill: WarriorSkill):
       duration: Number(burning?.duration ?? 4)
     });
   }
+
   if (skill.primalBurst && hasTrait(context, TRAIT.HEAT_THE_SOUL)) {
     const profile = warriorBalanceProfile(context, PROFILE.heatTheSoul);
     const quickness = warriorBalanceProfileEffect(profile, 'boon', 0);
@@ -225,6 +229,7 @@ function criticalCount(context: WarriorSchedulerContext, event: WarriorSimulatio
   if (context.config.randomness?.mode === 'stochastic') {
     return event.didCrit === true ? 1 : 0;
   }
+
   const criticalPolicy = context.schedulerPolicy as unknown as {
     critical?: (
       schedulerContext: WarriorSchedulerContext,
@@ -248,9 +253,11 @@ export function observeBerserkerEvent(context: WarriorSchedulerContext, event: W
     );
     return;
   }
+
   if (event.type !== 'damage' || event.actorType !== 'player' || !(Number(event.coefficient) > 0)) {
     return;
   }
+
   if (!hasTrait(context, TRAIT.KING_OF_FIRES)) return;
   context.tasks.schedule({
     type: 'warrior.king-of-fires-hit',
@@ -279,6 +286,7 @@ export function handleKingOfFiresHitTask(context: WarriorSchedulerContext, task:
   if (event.at + context.epsilon < state.kingOfFiresReadyAt || criticalCount(context, event) === 0) {
     return;
   }
+
   const profile = warriorBalanceProfile(context, PROFILE.kingOfFires);
   state.kingOfFiresReadyAt = event.at + Number(profile?.internalCooldown ?? 15);
   emitFireAura(context, event, 'Trait');

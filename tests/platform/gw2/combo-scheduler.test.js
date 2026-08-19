@@ -63,6 +63,7 @@ test('owned canonical descriptors produce shared combo events without a professi
   const field = result.events.find((event) => event.type === 'combo_field');
   const finisher = result.events.find((event) => event.type === 'combo_finisher');
   const combo = result.events.find((event) => event.type === 'combo');
+
   assert.equal(field.ownerId, 'combo-fixture');
   assert.deepEqual(finisher.fieldBinding, {
     kind: 'field-id',

@@ -68,6 +68,7 @@ function modifyVindicatorAttributes(context: Gw2ModifierContext, attributes: Gw2
   ) {
     modified.power = Number(modified.power || 0) + 240;
   }
+
   return modified;
 }
 
@@ -78,6 +79,7 @@ function observeVindicatorEvent(context: RevenantSchedulerContext, event: Revena
     if (skill) completeVindicatorDodge(context, skill, event.at);
     return;
   }
+
   if (event.type !== 'sigil_swap') return;
   const state = vindicatorState.from(context);
   const coreState = professionCoreState(context);
@@ -85,15 +87,18 @@ function observeVindicatorEvent(context: RevenantSchedulerContext, event: Revena
   if (coreState.activeLegendId === LEGEND.ALLIANCE) {
     state.allianceSide = context.config.allianceSide === 'kurzick' ? 'kurzick' : 'luxon';
   }
+
   // Invocation effects only fire when swapping INTO Alliance and within combat.
   if (coreState.activeLegendId !== LEGEND.ALLIANCE || !revenantCombatActive(context, event.at)) {
     return;
   }
+
   const swapSkill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
   if (!swapSkill) return;
   if (hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
     emitLegendInvocationProfile(context, VINDICATOR_BALANCE_PROFILE_IDS.spiritBoon, event.at, TRAIT.SPIRIT_BOON);
   }
+
   if (!hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
   const song = context.catalog.skillsById.get(ID.CALL_OF_THE_ALLIANCE);
   if (!song) return;

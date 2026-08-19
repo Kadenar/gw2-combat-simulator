@@ -54,6 +54,7 @@ export function necromancerTargetHasCondition(context: Gw2ModifierContext, condi
   if (context.query?.targetHasCondition) {
     return Boolean(context.query.targetHasCondition(condition, context.time, context.runtime));
   }
+
   return targetHasConfiguredCondition(context.config || {}, condition, context.time, context.runtime);
 }
 
@@ -155,6 +156,7 @@ export function modifyNecromancerCoreAttributes(
       result.power += signetPower;
     }
   }
+
   const timedCarapace = (necromancerRuntimeCoreState(context).carapaceExpiries || []).filter(
     (expiresAt: number) => expiresAt > context.time
   ).length;
@@ -175,18 +177,22 @@ export function modifyNecromancerCoreAttributes(
     result.power += carapace * perStack;
     result.conditionDamage += carapace * perStack;
   }
+
   if (hasTrait(context, TRAIT.AWAKEN_THE_PAIN)) {
     const perStack = Number(necromancerBalanceProfile(context, PROFILE.awakenThePain)?.attributePerStack || 10);
     result.power += Number(context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) * perStack;
   }
+
   if (!staticRulesApplied) {
     if (hasTrait(context, TRAIT.SPITEFUL_FORTITUDE)) {
       result.vitality +=
         gearPower * Number(necromancerBalanceProfile(context, PROFILE.spitefulFortitude)?.attributeConversion || 0.1);
     }
+
     if (hasTrait(context, TRAIT.FURIOUS_DEMISE)) {
       result.precision += Number(necromancerBalanceProfile(context, PROFILE.furiousDemise)?.attributeBonus || 180);
     }
+
     if (hasTrait(context, TRAIT.TARGET_THE_WEAK)) {
       // Flat Precision from Furious Demise is present before the conversion.
       result.conditionDamage += Math.floor(
@@ -194,15 +200,18 @@ export function modifyNecromancerCoreAttributes(
           Number(necromancerBalanceProfile(context, PROFILE.targetTheWeak)?.attributeConversion || 0.13)
       );
     }
+
     if (hasTrait(context, TRAIT.LINGERING_CURSE)) {
       result.conditionDamage += Number(
         necromancerBalanceProfile(context, PROFILE.lingeringCurse)?.attributeBonus || 200
       );
     }
+
     if (hasTrait(context, TRAIT.VITAL_PERSISTENCE)) {
       result.vitality += Number(necromancerBalanceProfile(context, PROFILE.vitalPersistence)?.attributeBonus || 180);
     }
   }
+
   return result;
 }
 
@@ -321,9 +330,11 @@ function modifyNecromancerCoreRechargeDuration(context: NecromancerRechargeModif
   if (skill?.categories?.includes('Corruption') && hasTrait(context, TRAIT.MASTER_OF_CORRUPTION)) {
     result *= 0.67;
   }
+
   if ((skill?.shroud || skill?.handlerId === 'necromancer.shade') && hasTrait(context, TRAIT.SINISTER_SHROUD)) {
     result *= 0.85;
   }
+
   return result;
 }
 

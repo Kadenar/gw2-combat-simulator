@@ -58,6 +58,7 @@ export function createSkillSpecialEffectController({
     if (CLARITY_CONSUMERS.has(skill.id)) {
       professionCoreState(state).clarityUntil = 0;
     }
+
     return consumed;
   };
 
@@ -98,6 +99,7 @@ export function createSkillSpecialEffectController({
         );
       }
     }
+
     if (skill.id === ID.MIND_THE_GAP) {
       professionCoreState(state).clarityUntil =
         at + Number(balanceProfile('mesmer.core.clarity')?.durationMultiplier || CLARITY_DURATION);
@@ -111,10 +113,12 @@ export function createSkillSpecialEffectController({
         icon: CLARITY_ICON
       });
     }
+
     if (skill.id === ID.SIGNET_OF_THE_ETHER) {
       for (const phantasmSkill of allSkills.filter((candidate) => candidate.phantasm)) {
         state.cooldowns.delete(phantasmSkill.id);
       }
+
       addEvent({
         type: 'marker',
         at,
@@ -122,6 +126,7 @@ export function createSkillSpecialEffectController({
         detail: 'Phantasm skill cooldowns reset'
       });
     }
+
     if (skill.id === ID.SIGNET_OF_ILLUSIONS) {
       for (const target of allSkills.filter(
         (candidate) =>
@@ -136,6 +141,7 @@ export function createSkillSpecialEffectController({
           state.cooldowns.delete(target.id);
         }
       }
+
       addEvent({
         type: 'marker',
         at,
@@ -143,6 +149,7 @@ export function createSkillSpecialEffectController({
         detail: 'Shatter/instrument cooldowns reset (excluding Continuum Split and Crescendo)'
       });
     }
+
     if (skill.id === ID.MENTAL_COLLAPSE) {
       const mindTheGap = allSkills.find((candidate) => candidate.id === ID.MIND_THE_GAP);
       if (mindTheGap) {
@@ -155,6 +162,7 @@ export function createSkillSpecialEffectController({
         });
       }
     }
+
     if (skill.type !== 'Heal' || !traits.has(TRAIT.METHOD_OF_MADNESS)) return;
     const storm = traitDamage['Lesser Chaos Storm'];
     const readyAt = professionCoreState(state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] || 0;

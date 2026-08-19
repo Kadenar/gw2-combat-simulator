@@ -26,6 +26,7 @@ export const spellbreakerUi: Partial<ProfessionUiContract> = Object.freeze({
         title: "Attacker's Insight stacks currently active"
       });
     }
+
     const tether = Number(state.magebaneTetherUntil || 0) - at;
     if (tether > 0) {
       items.push({
@@ -35,6 +36,7 @@ export const spellbreakerUi: Partial<ProfessionUiContract> = Object.freeze({
         title: 'Magebane Tether remaining on the target'
       });
     }
+
     return items;
   }
 });

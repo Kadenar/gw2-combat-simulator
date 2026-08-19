@@ -44,6 +44,7 @@ export function validateTomeCast(context: GuardianPrecastContext, skill: Guardia
   if (skill.type === 'Weapon' && firebrandState.from(context).activeTome) {
     return false;
   }
+
   if (skill.tome) {
     // A tome-page skill is only valid when the matching tome is open; returning
     // false here (wrong or no tome) causes the scheduler to skip it entirely
@@ -52,6 +53,7 @@ export function validateTomeCast(context: GuardianPrecastContext, skill: Guardia
       selectedGuardianSpecialization(context) === 'Firebrand' && firebrandState.from(context).activeTome === skill.tome
     );
   }
+
   if (skill.name === 'Stow Tome') {
     return Boolean(firebrandState.from(context).activeTome);
   }
@@ -134,11 +136,13 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
   if (state.tomePages >= state.maximumTomePages) {
     state.nextTomePageAt = context.effectiveEnd + state.tomePageInterval;
   }
+
   state.tomePages = Math.max(0, state.tomePages - pageCost);
   if (state.swiftScholarTome !== skill.tome) {
     state.swiftScholarTome = String(skill.tome || '');
     state.swiftScholarCount = 0;
   }
+
   state.swiftScholarCount += 1;
   const swiftScholar = guardianBalanceProfile(context, PROFILE.swiftScholar);
   if (state.swiftScholarCount >= Number(swiftScholar?.minimumStacks || 3)) {
@@ -148,6 +152,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
     if (state.tomePages >= state.maximumTomePages) {
       state.nextTomePageAt = Number.POSITIVE_INFINITY;
     }
+
     context.emit({
       type: 'proc',
       procType: 'trait',
@@ -160,6 +165,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
       detail: `+${pageGain} tome page${pageGain === 1 ? '' : 's'}`
     });
   }
+
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.LEGENDARY_LORE)) {
     const boon = guardianBalanceProfileEffect(
       guardianBalanceProfile(context, PROFILE.legendaryLore),
@@ -182,6 +188,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
       });
     }
   }
+
   if (skill.id === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST) {
     const at = context.effectiveEnd;
     const party = gw2AlliedPlayerAssumptions(context.config);
@@ -248,6 +255,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
         triggeredByAlly: proc.allyIndex
       });
     }
+
     context.emit({
       type: 'guardian.ashes-expired',
       at: state.ashesExpiresAt,
@@ -259,6 +267,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
       ashesExpiresAt: state.ashesExpiresAt
     });
   }
+
   // Auto-stow when the last page is consumed so the scheduler doesn't need to
   // inject a separate Stow Tome cast; automatic: true marks it as involuntary
   // for the timeline display.
@@ -271,6 +280,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): boolea
       automatic: true
     });
   }
+
   emitGuardianEvent(context, skill, 'guardian.tome-page-used', {
     tome: skill.tome,
     pageCost,
@@ -369,12 +379,15 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
     state.tomePages += 1;
     state.nextTomePageAt += state.tomePageInterval;
   }
+
   if (state.tomePages >= state.maximumTomePages) {
     state.nextTomePageAt = Number.POSITIVE_INFINITY;
   }
+
   if (state.ashesCharges > 0 && state.ashesExpiresAt <= target + context.epsilon) {
     state.ashesCharges = 0;
   }
+
   // Passive courage aegis is firebrand-only; skip early for other specs to
   // avoid emitting aegis that shouldn't exist on dragonhunter/core guardian.
   if (selectedGuardianSpecialization({ config: context.config }) !== 'Firebrand') return;
@@ -404,6 +417,7 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
         duration: Number(aegis?.duration || 40)
       });
     }
+
     state.nextCourageAegisAt += Number(passiveCourage?.pulseInterval || 40);
   }
 }

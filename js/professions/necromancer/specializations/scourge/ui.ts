@@ -39,12 +39,14 @@ function scourgePaletteAvailability(context: NecromancerUiContext, skill: Necrom
   if (skill.id === ID.SANDSTORM_SHROUD && !selectedTraits.has('Herald of Sorrow')) {
     return { available: false, message: 'Requires Herald of Sorrow' };
   }
+
   if (skill.id === ID.DESERT_SHROUD && selectedTraits.has('Herald of Sorrow')) {
     return {
       available: false,
       message: 'Replaced by Sandstorm Shroud'
     };
   }
+
   return { available: true, message: '' };
 }
 

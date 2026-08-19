@@ -82,6 +82,7 @@ function tomeIdentityBetween(
     const identity = FIREBRAND_TOME_CHAPTERS.get(action.rawSkillId);
     if (identity) return identity;
   }
+
   return null;
 }
 
@@ -106,6 +107,7 @@ function firebrandResourceEvents(
       if (FIREBRAND_TOME_IDS.has(skillId)) {
         return [{ action, at: action.start, kind: 'open', tomeId: skillId }];
       }
+
       const chapterTome = FIREBRAND_TOME_CHAPTERS.get(skillId);
       if (chapterTome && action.status !== 'interrupted') {
         return [
@@ -117,13 +119,16 @@ function firebrandResourceEvents(
           }
         ];
       }
+
       if (skillId === STOW_TOME.skillId) {
         return [{ action, at: action.start, kind: 'stow', tomeId: null }];
       }
+
       const skill = context.catalog?.skills.find((candidate) => Number(candidate.id) === skillId);
       if (FINAL_MANTRA_CHARGE_IDS.has(skillId) || /^Final Charge\./.test(String(skill?.description || ''))) {
         return [{ action, at: action.end, kind: 'page-gain', tomeId: null }];
       }
+
       return [];
     })
     .sort(
@@ -173,8 +178,10 @@ function omitAutomaticTomeStows(
         swiftScholarTomeId = event.tomeId;
         swiftScholarCount = 0;
       }
+
       continue;
     }
+
     if (event.kind === 'page') {
       if (pages >= maximumPages) nextPageAt = event.at + pageInterval;
       pages = Math.max(0, pages - tomePageCost(context, event.action));
@@ -182,30 +189,37 @@ function omitAutomaticTomeStows(
         swiftScholarTomeId = event.tomeId;
         swiftScholarCount = 0;
       }
+
       swiftScholarCount += 1;
       if (swiftScholarCount >= 3) {
         swiftScholarCount = 0;
         pages = Math.min(maximumPages, pages + 1);
         if (pages >= maximumPages) nextPageAt = Number.POSITIVE_INFINITY;
       }
+
       if (pages === 0) {
         activeTomeId = null;
         automaticStowPending = true;
       }
+
       continue;
     }
+
     if (event.kind === 'page-gain') {
       if (selectedTraits.has(WEIGHTY_TERMS)) {
         pages = Math.min(maximumPages, pages + 2);
         if (pages >= maximumPages) nextPageAt = Number.POSITIVE_INFINITY;
       }
+
       continue;
     }
+
     if (automaticStowPending && activeTomeId === null) {
       omitted.add(event.action);
       automaticStowPending = false;
       continue;
     }
+
     activeTomeId = null;
     swiftScholarTomeId = null;
     swiftScholarCount = 0;
@@ -244,6 +258,7 @@ export function normalizeFirebrandWeaponTransitions(
       exitEventIndex: exit.eventIndex
     });
   }
+
   const exits = new Map([...tomes.values()].map(({ identity, exitEventIndex }) => [exitEventIndex, identity]));
 
   const normalized = actions.flatMap((action) => {
@@ -260,6 +275,7 @@ export function normalizeFirebrandWeaponTransitions(
         }
       ];
     }
+
     if (exits.has(action.eventIndex)) {
       return [
         {
@@ -268,6 +284,7 @@ export function normalizeFirebrandWeaponTransitions(
         }
       ];
     }
+
     return [];
   });
   return normalized;
@@ -287,6 +304,7 @@ function inferFirebrandDamageInstants(context: EvtcProfessionReconstructionConte
     ) {
       return [];
     }
+
     return [canonicalAction(eventIndex, event.time, identity, event.skillId)];
   });
 }
@@ -310,6 +328,7 @@ function inferFirebrandHealMantras(context: EvtcProfessionReconstructionContext)
     ) {
       return;
     }
+
     const nearbyTimestamp = [...byTimestamp.keys()].find((timestamp) => Math.abs(timestamp - event.time) <= 5);
     const timestamp = nearbyTimestamp ?? event.time;
     byTimestamp.set(timestamp, [...(byTimestamp.get(timestamp) || []), { event, eventIndex }]);
@@ -324,6 +343,7 @@ function inferFirebrandHealMantras(context: EvtcProfessionReconstructionContext)
     const identity = ids.has(AEGIS_BUFF) ? REJUVENATING_RESPITE : RESTORING_REPRIEVE;
     inferred.push(canonicalAction(signals[0].eventIndex, timestamp, identity, signals[0].event.skillId));
   }
+
   return inferred;
 }
 

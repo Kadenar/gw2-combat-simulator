@@ -24,6 +24,7 @@ export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill)
   ) {
     stealthAttackState.stealthAttackCharges = Number(stealthAttackState.stealthAttackCharges || 0) - 1;
   }
+
   if (stealthed && hasThiefTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
     gainThiefInitiative(
       context,
@@ -32,6 +33,7 @@ export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill)
       'leave-stealth'
     );
   }
+
   if (stealthed && hasThiefTrait(context.config, TRAIT.LEECHING_VENOMS)) {
     const profile = thiefBalanceProfile(context, PROFILE.leechingVenoms);
     state.spiderVenomCharges = Math.min(
@@ -41,10 +43,12 @@ export function beginStealthAttack(context: ThiefCastContext, skill: ThiefSkill)
     state.spiderVenomExpiresAt = context.start + Number(profile?.durationMultiplier || 24);
     state.spiderVenomGeneration += 1;
   }
+
   state.stealthUntil = context.start;
   if (!skill?.preservesStealth) {
     state.revealedUntil = context.start + 3;
   }
+
   emitThiefState(context, context.start, 'stealth-attack');
 }
 

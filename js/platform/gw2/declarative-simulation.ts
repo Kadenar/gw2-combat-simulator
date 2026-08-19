@@ -216,5 +216,6 @@ export function simulateDeclarativeGw2(options: Gw2DeclarativeSimulationOptions)
     config = refined;
     result = simulateDeclarativeGw2Pass({ ...options, config });
   }
+
   return result;
 }

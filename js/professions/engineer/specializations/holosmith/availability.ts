@@ -20,6 +20,7 @@ export function holosmithCastAvailability(context: EngineerPrecastContext, skill
       );
     }
   }
+
   if (skill.forgeSkill) {
     // Allow the auto-attack chain to complete at the exact overheat timestamp.
     // The chain skill is already queued before the overheat fires, so the forge
@@ -35,17 +36,21 @@ export function holosmithCastAvailability(context: EngineerPrecastContext, skill
   } else if (skill.type === 'Weapon' && state.photonForgeActive) {
     return denyEngineerCast(skill, 'engineer.weapon-bar-replaced', 'Photon Forge replaces weapon skills.');
   }
+
   if (skill.name === 'Engage Photon Forge') {
     if (state.photonForgeActive) {
       return denyEngineerCast(skill, 'engineer.forge-active', 'Photon Forge is already active.');
     }
+
     if (state.overheated || state.heat >= state.maximumHeat) {
       return denyEngineerCast(skill, 'engineer.overheated', 'Photon Forge remains disabled until heat reaches zero.');
     }
   }
+
   if (skill.name.startsWith('Deactivate Photon Forge') && !state.photonForgeActive) {
     return denyEngineerCast(skill, 'engineer.forge-inactive', 'Photon Forge is not active.');
   }
+
   // Kits are locked for 6 s after entering Photon Forge. This prevents
   // immediately swapping out to avoid the bar-swap animation on the forge itself.
   if (skill.handlerId === 'engineer.kit-equip' && context.start < Number(state.kitLockoutUntil || 0)) {
@@ -56,5 +61,6 @@ export function holosmithCastAvailability(context: EngineerPrecastContext, skill
       state.kitLockoutUntil
     );
   }
+
   return { ready: true };
 }

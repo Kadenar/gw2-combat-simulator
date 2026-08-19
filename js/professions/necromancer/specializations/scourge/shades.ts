@@ -53,6 +53,7 @@ function applyBarrierTraits(context: NecromancerCastContext, skill: NecromancerS
       metadata: necromancerPartyBoonRecipients(context)
     });
   }
+
   if (hasTrait(context, TRAIT.DESERT_EMPOWERMENT)) {
     const alacrity = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.desertEmpowerment), 'boon');
     emitBuff(
@@ -110,10 +111,12 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       // null means a self-condition was already present before this cast
       coreState.plagueSendingEntrySkillId = hasActiveSelfCondition ? null : skill.id;
     }
+
     if (skill.id === ID.NEFARIOUS_FAVOR) {
       removeNecromancerSelfCondition(coreState, at, 1);
     }
   }
+
   syncNecromancerResources(professionCoreState(context));
   emitState(context, at, 'shade');
 
@@ -167,6 +170,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     if (hasTrait(context, TRAIT.SOUL_BARBS)) {
       emitBuff(context, skill, 'necromancer-soul-barbs', 15, 1, { at });
     }
+
     applyBarrierTraits(context, skill, at);
     const desert = necromancerBalanceProfile(context, PROFILE.desertShroud);
     const strike = balanceProfileEffect(desert, 'strike');
@@ -195,6 +199,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     if (hasTrait(context, TRAIT.SOUL_BARBS)) {
       emitBuff(context, skill, 'necromancer-soul-barbs', 15, 1, { at });
     }
+
     // Pulses fire at cast-end + 0s, 1s, 2s; detonation fires separately at cast-end + 3.5s
     for (let index = 0; index < pulseCount; index += 1) {
       const pulseAt = at + index * pulseInterval;
@@ -211,6 +216,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
         }
       );
     }
+
     applyBarrierTraits(context, skill, at + delay);
     emitBuff(
       context,
@@ -230,6 +236,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       at: at + delay
     });
   }
+
   return true;
 }
 

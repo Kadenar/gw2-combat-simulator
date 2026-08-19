@@ -35,16 +35,20 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
   if (skill.id === ID.UNLEASH_RANGER && rangerUnleashed) {
     return { available: false, message: 'Ranger is already unleashed' };
   }
+
   if (skill.id === ID.UNLEASH_PET && !rangerUnleashed) {
     return { available: false, message: 'Pet is already unleashed' };
   }
+
   if (skill.unleashedPetSkill && rangerUnleashed) {
     return { available: false, message: 'Unleash Pet first' };
   }
+
   if (skill.unleashedAmbushSkill) {
     if (!rangerUnleashed) {
       return { available: false, message: 'Unleash Ranger first' };
     }
+
     // ambushReadyUntil is a deadline; once current time passes it the window is gone.
     if (Number(context.time || 0) >= Number(state.ambushReadyUntil || 0)) {
       return {
@@ -53,6 +57,7 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
       };
     }
   }
+
   return { available: true, message: '' };
 }
 

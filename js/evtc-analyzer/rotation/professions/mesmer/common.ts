@@ -48,6 +48,7 @@ function firstOwnedAgentSignals(context: EvtcProfessionReconstructionContext, sp
     ) {
       return;
     }
+
     const current = firstByAddress.get(event.source);
     if (!current || event.time < current.event.time) {
       firstByAddress.set(event.source, { event, eventIndex });
@@ -159,6 +160,7 @@ function distortionActions(
   if (context.profile.specializationId === 'virtuoso' || context.profile.specializationId === 'troubadour') {
     return [];
   }
+
   return clusterSignals(buffGainSignals(context, DISTORTION_BUFF), 500).flatMap((signal) =>
     hasNearbyAction(actions, DISTORTION, signal.event.time, 100)
       ? []
@@ -175,6 +177,7 @@ function mirrorImagesActions(
   for (const signal of firstOwnedAgentSignals(context, STAFF_CLONE_SPECIES)) {
     spawnsByTime.set(signal.event.time, [...(spawnsByTime.get(signal.event.time) || []), signal]);
   }
+
   const pairs = [...spawnsByTime.values()].filter(
     (signals) => signals.length >= 2 && !phaseRetreatTimes.some((time) => Math.abs(time - signals[0].event.time) <= 50)
   );
@@ -218,6 +221,7 @@ function signetOfMidnightActions(
     if (restoredByContinuum || hasNearbyAction(actions, SIGNET_OF_MIDNIGHT, signal.event.time, 100)) {
       return [];
     }
+
     return [canonicalAction(signal.eventIndex, signal.event.time, SIGNET_OF_MIDNIGHT, signal.event.skillId, 'effect')];
   });
 }
@@ -245,6 +249,7 @@ function inferredOpeningMimic(
   ) {
     return [];
   }
+
   const duration = castDuration(context, MIMIC);
   return [
     canonicalAction(recorded[0].eventIndex - 1, combatStart - duration, MIMIC, MIMIC.skillId, 'initial-state', {

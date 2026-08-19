@@ -28,6 +28,7 @@ test('the shared simulation config defaults to day and preserves a night selecti
 
 function flyingCutterDamage(config) {
   const result = simulateMesmer(['Flying Cutter'], config);
+
   return result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Flying Cutter').damage;
 }
 
@@ -59,15 +60,19 @@ test('Night sigil uses an additive 3% strike bonus and a night-only 7% multiplie
 
 function pepperRotation() {
   const rotation = [];
+
   for (let index = 0; index < 5; index += 1) {
     rotation.push('Flying Cutter');
+
     if (index < 4) rotation.push({ name: '__wait', waitMs: 1100 });
   }
+
   return rotation;
 }
 
 function pepperSimulation(timeOfDay) {
   const defaults = defaultSimulationConfig();
+
   return simulateMesmer(
     pepperRotation(),
     defaultSimulationConfig({
@@ -95,6 +100,7 @@ function pepperSimulation(timeOfDay) {
 test('Ghost Pepper Popper grants Might by day and inflicts Chilled by night', () => {
   const food = FOOD_DATA['Ghost Pepper Popper'];
   const proc = food.proc;
+
   assert.equal(food.icon, 'https://render.guildwars2.com/file/1C1D9D0407CD96F3E80266DEBD2B544E799AF658/433666.png');
   assert.equal(proc.chance, 0.4);
   assert.equal(proc.icdMs, 1000);
@@ -113,6 +119,7 @@ test('Ghost Pepper Popper grants Might by day and inflicts Chilled by night', ()
 
   const day = pepperSimulation('day');
   const dayHits = day.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter');
+
   assert.equal(day.procSteps.filter((event) => event.type === 'food_proc').length, 2);
   assert.ok(dayHits.at(-1).damage > dayHits[0].damage);
   assert.equal(
@@ -124,10 +131,12 @@ test('Ghost Pepper Popper grants Might by day and inflicts Chilled by night', ()
   const nightChill = night.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.source === 'Food' && event.condition === 'Chilled'
   );
+
   assert.equal(nightChill.length, 2);
   assert.ok(nightChill.every((event) => event.effectiveDuration === 1));
   const nightHits = night.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillName === 'Flying Cutter'
   );
+
   assert.equal(nightHits.at(-1).damage, nightHits[0].damage);
 });

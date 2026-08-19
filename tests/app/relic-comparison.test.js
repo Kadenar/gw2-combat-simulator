@@ -63,6 +63,7 @@ test('break-even model treats an early tie then lead as "always ahead", not a cr
     { t: 2000, v: 1090 }
   ];
   const model = buildRelicComparisonModel({ opponentRelic: 'Fractal', durationMs: 2000, opponentDps, thornsDps });
+
   assert.equal(model.crossoverMs, null);
   assert.equal(model.thornsAlwaysAhead, true);
 });
@@ -80,6 +81,7 @@ test('break-even model interpolates a crossover between samples', () => {
     { t: 2000, v: 1100 }
   ];
   const model = buildRelicComparisonModel({ opponentRelic: 'Akeem', durationMs: 2000, opponentDps, thornsDps });
+
   // delta goes -100 -> +100 across [1000, 2000]; zero crossing at the midpoint.
   assert.equal(model.crossoverMs, 1500);
 });
@@ -98,6 +100,7 @@ test('break-even model ignores leading no-damage samples (no spurious t=0 crosso
     { t: 2000, v: 1100 }
   ];
   const model = buildRelicComparisonModel({ opponentRelic: 'Fractal', durationMs: 2000, opponentDps, thornsDps });
+
   assert.equal(model.points.length, 2);
   assert.equal(model.points[0].tMs, 1000);
   assert.equal(model.crossoverMs, 1500);
@@ -122,6 +125,7 @@ test('break-even model ignores an opponent lead confined to the opener', () => {
     { t: 12000, v: 1100 }
   ];
   const model = buildRelicComparisonModel({ opponentRelic: 'Fractal', durationMs: 12000, opponentDps, thornsDps });
+
   assert.equal(model.crossoverMs, null);
   assert.equal(model.thornsAlwaysAhead, true);
 });
@@ -140,6 +144,7 @@ test('break-even model reports a crossover that occurs past the opener threshold
     { t: 12000, v: 1100 }
   ];
   const model = buildRelicComparisonModel({ opponentRelic: 'Akeem', durationMs: 12000, opponentDps, thornsDps });
+
   // Last opponent lead is at 8000ms; crossing interpolates to 10000ms.
   assert.equal(model.crossoverMs, 10000);
   assert.equal(model.thornsAlwaysAhead, false);
@@ -155,6 +160,7 @@ test('break-even model reports no crossover when Thorns never catches up', () =>
     { t: 1000, v: 950 }
   ];
   const model = buildRelicComparisonModel({ opponentRelic: 'Fractal', durationMs: 1000, opponentDps, thornsDps });
+
   assert.equal(model.crossoverMs, null);
   assert.equal(model.thornsAlwaysAhead, false);
 });

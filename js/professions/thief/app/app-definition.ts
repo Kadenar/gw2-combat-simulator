@@ -30,6 +30,7 @@ export const thiefApp = defineProfessionApp({
     if (['Dagger', 'Pistol'].includes(mainHand || '')) {
       return offHands.includes('Pistol') ? 'Pistol' : offHands[0] || '';
     }
+
     return offHands[0] || '';
   }
 });

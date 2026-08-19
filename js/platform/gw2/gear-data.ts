@@ -651,6 +651,7 @@ export function getActiveGearSlots(
   if (is2H) {
     return GEAR_SLOTS.filter((s) => s !== 'Weapon2').map((s) => (s === 'Weapon1' ? 'Weapon2H' : s));
   }
+
   return [...GEAR_SLOTS];
 }
 

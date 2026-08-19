@@ -33,6 +33,7 @@ function registryKeys(core, specialization, container, key) {
 
 function presentationFor(module, catalog) {
   const presentation = module?.presentation;
+
   return typeof presentation === 'function' ? presentation(catalog) : presentation || {};
 }
 
@@ -49,11 +50,13 @@ function reactionKeys(...modules) {
 
 function modifierRules(module) {
   const modifiers = module?.mechanics?.modifiers;
+
   return Array.isArray(modifiers) ? modifiers : modifiers?.modifierRules || [];
 }
 
 function assertUniqueOwners(modules, select, label) {
   const owners = new Map();
+
   for (const module of modules) {
     for (const id of select(module)) {
       assert.equal(owners.has(id), false, `${label} ${id} is owned by both ${owners.get(id)} and ${module.id}`);
@@ -65,6 +68,7 @@ function assertUniqueOwners(modules, select, label) {
 export function assertProfessionFamilyConformance({ family, core, specializations }) {
   assert.equal(typeof family.resolveRuntime, 'function');
   const modules = [core, ...Object.values(specializations)];
+
   assertUniqueOwners(
     modules,
     (module) => modifierRules(module).map((rule) => String(rule.id)),
@@ -87,11 +91,13 @@ export function assertProfessionFamilyConformance({ family, core, specialization
   for (const [name, specialization] of [['Core', null], ...Object.entries(specializations)]) {
     const config = { specialization: name };
     const runtime = family.resolveRuntime(config);
+
     assert.equal(family.resolveRuntime(config), runtime, `${family.id}/${name}`);
     assert.equal(runtime.id, family.id);
     const state = runtime.createProfessionState(config);
     const expectedCoreState = core.state.scheduler(config);
     const expectedSpecializationState = specialization ? specialization.state.scheduler(config) : {};
+
     assert.deepEqual(Object.keys(state).sort(), ['core', 'specialization']);
     assert.deepEqual(state.core, expectedCoreState, `${family.id}/${name} core state`);
     assert.equal(state.specialization.kind, name);
@@ -105,6 +111,7 @@ export function assertProfessionFamilyConformance({ family, core, specialization
       sortedIds(
         family.catalog.skills.filter((skill) => {
           const owner = nativeSkillRuntimeOwner(modules, skill);
+
           return owner === 'Core' || owner === name;
         })
       ),
@@ -157,6 +164,7 @@ export function assertProfessionFamilyConformance({ family, core, specialization
       presentationFor(core, family.catalog),
       ...(specialization ? [presentationFor(specialization, family.catalog)] : [])
     ];
+
     assert.deepEqual(
       runtime.ui.assumptionControls,
       activePresentations.flatMap((ui) => ui.assumptionControls || []),
@@ -166,6 +174,7 @@ export function assertProfessionFamilyConformance({ family, core, specialization
       const expected = activePresentations.flatMap((ui) =>
         typeof ui[callback] === 'function' ? ui[callback](context) : []
       );
+
       assert.deepEqual(runtime.ui[callback](context), expected, `${family.id}/${name} ui.${callback}`);
     }
 
@@ -174,6 +183,7 @@ export function assertProfessionFamilyConformance({ family, core, specialization
       rotation: [],
       config
     }).endState.profession;
+
     assert.ok(projected && typeof projected === 'object');
     assert.equal(Object.hasOwn(projected, 'core'), false);
     assert.equal(Object.hasOwn(projected, 'specialization'), false);

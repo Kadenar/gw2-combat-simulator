@@ -49,6 +49,7 @@ export function readJsonFile(file: File): Promise<unknown> {
         if (typeof reader.result !== "string") {
           throw new Error("File contents are not text.");
         }
+
         resolve(JSON.parse(reader.result));
       } catch (error) {
         const message =
@@ -56,6 +57,7 @@ export function readJsonFile(file: File): Promise<unknown> {
         reject(new Error(`Invalid JSON: ${message}`));
       }
     };
+
     reader.onerror = () => reject(reader.error);
     reader.readAsText(file);
   });
@@ -82,6 +84,7 @@ export async function fetchJsonAsset(
     if (optional) return null;
     throw new Error(`Could not load ${path}`);
   }
+
   return response.json();
 }
 
@@ -140,5 +143,6 @@ export async function loadPresetBundle(
       rotationItems = items as LegacyRotationItem[];
     }
   }
+
   return { buildData, rotationItems };
 }

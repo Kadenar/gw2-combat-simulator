@@ -22,9 +22,11 @@ export function consumeRevenantFacet(context: RevenantCastContext, skill: Revena
     if (cooldown > 0) {
       context.state.cooldowns.set(facet.id, at + cooldown);
     }
+
     // Cancel the recurring upkeep-pulse task; without this the pulse loop would continue firing after the facet is gone.
     context.tasks.cancelOwner(`revenant.upkeep:${facet.id}`);
   }
+
   emitRevenantState(context, at, 'facet-consumed');
 }
 
@@ -32,5 +34,6 @@ export function heraldFacetConsumeId(skill: RevenantSkill, activeLegendId: strin
   if (skill.id === ID.FACET_OF_NATURE) {
     return (MECHANICS.trueNatureConsumeByLegendId as Readonly<Record<string, SkillId>>)[activeLegendId];
   }
+
   return (MECHANICS.facetConsumeBySkillId as Readonly<Record<SkillId, SkillId>>)[skill.id];
 }

@@ -32,8 +32,10 @@ export function createGw2ResolverExtensions({
     if (!reactions) {
       throw new TypeError('GW2 resolver reactions dispatched during construction.');
     }
+
     return reactions.dispatch(stage, context, event, details);
   };
+
   reactions = createGw2ResolverReactionRegistry({
     professionReactions,
     contributions: createGw2EquipmentReactionContributions({ dispatch })

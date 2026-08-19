@@ -234,6 +234,7 @@ export function modifyElementalistAttributes(
     modified.power =
       Number(modified.power || 0) + elementalistBalanceValue(context, PROFILE.empoweringFlame, 'attributeBonus', 150);
   }
+
   if (
     hasTrait(context, 'Power Overwhelming') &&
     elementalistMightStacks(context) >=
@@ -245,15 +246,18 @@ export function modifyElementalistAttributes(
         ? elementalistBalanceValue(context, PROFILE.powerOverwhelming, 'weaponAttributeBonus', 300)
         : elementalistBalanceValue(context, PROFILE.powerOverwhelming, 'attributeBonus', 150));
   }
+
   if (hasTrait(context, 'Fresh Air') && elementalistTimedBuffStacks(context, 'fresh air', 1) > 0) {
     modified.ferocity =
       Number(modified.ferocity || 0) + elementalistBalanceValue(context, PROFILE.freshAir, 'attributeBonus', 250);
   }
+
   if (hasTrait(context, "Aeromancer's Training") && primary === 'Air') {
     modified.ferocity =
       Number(modified.ferocity || 0) +
       elementalistBalanceValue(context, PROFILE.aeromancersTraining, 'attributeBonus', 150);
   }
+
   if (
     hasTrait(context, 'Raging Storm') &&
     Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
@@ -261,11 +265,13 @@ export function modifyElementalistAttributes(
     modified.ferocity =
       Number(modified.ferocity || 0) + elementalistBalanceValue(context, PROFILE.ragingStorm, 'attributeBonus', 180);
   }
+
   if (hasTrait(context, 'Arcane Lightning') && elementalistTimedBuffStacks(context, 'arcane lightning', 1) > 0) {
     modified.ferocity =
       Number(modified.ferocity || 0) +
       elementalistBalanceValue(context, PROFILE.arcaneLightning, 'attributeBonus', 150);
   }
+
   const weapon = eventWeapon(context);
   if (weapon === 'Fiery Greatsword') {
     modified.power =
@@ -281,10 +287,12 @@ export function modifyElementalistAttributes(
     modified.ferocity =
       Number(modified.ferocity || 0) + elementalistBalanceValue(context, PROFILE.lightningHammer, 'attributeBonus', 75);
   }
+
   if (Number(coreState(context).signetOfFireDisabledUntil || 0) > context.time) {
     modified.precision =
       Number(modified.precision || 0) - elementalistBalanceValue(context, PROFILE.signetOfFire, 'attributeBonus', 180);
   }
+
   return modified;
 }
 

@@ -78,12 +78,15 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
   if (!/^[a-z][a-z0-9-]*$/.test(String(professionId || ''))) {
     throw new TypeError('Build codec requires a stable professionId.');
   }
+
   if (!Number.isInteger(schemaVersion) || schemaVersion < 0) {
     throw new TypeError('Build codec requires a non-negative schemaVersion.');
   }
+
   if (!catalog?.skillsById || typeof createDefaults !== 'function') {
     throw new TypeError('Build codec requires a catalog and createDefaults.');
   }
+
   const aliases = Object.freeze({
     ...DEFAULT_GEAR_ALIASES,
     ...legacyGearAliases
@@ -165,10 +168,12 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     if (!RELIC_NAMES.includes(migrated.relic)) {
       migrated.relic = defaults.relic;
     }
+
     migrated = normalizeExtra(migrated, { saved, defaults });
     if (!migrated || typeof migrated !== 'object' || Array.isArray(migrated)) {
       throw new TypeError('normalizeExtra must return a build object.');
     }
+
     // Re-stamp after normalizeExtra so a buggy hook can't change the identity fields.
     migrated.schemaVersion = schemaVersion;
     migrated.profession = professionId;
@@ -176,6 +181,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     if (!migrated.alternateWeapons[0]) {
       migrated.startingWeaponSet = 1;
     }
+
     if (slotLoadout) {
       // Determine which elite spec is active (or "Core") so the slot-loadout
       // system can pick the correct skill palette for that specialization.
@@ -195,6 +201,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
         })
       );
     }
+
     // Strip legacy fields so they don't leak into the canonical output.
     delete migrated.selectedSkillIds;
     delete migrated.sigils;
@@ -206,6 +213,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     if (!build || typeof build !== 'object' || Array.isArray(build)) {
       return common;
     }
+
     const extra = validateExtra(build as TBuild);
     const extraErrors = Array.isArray(extra) ? extra : extra?.errors || [];
     const errors = [...common.errors, ...extraErrors.map(String)];
@@ -282,12 +290,14 @@ function normalizeGear(
   for (const [slot, prefix] of Object.entries(plainObject(value))) {
     if (typeof prefix === 'string') gear[slot] = prefix;
   }
+
   for (const slot of GEAR_SLOTS) {
     // Resolve abbreviated names ("Berserker" → "Berserker's") before lookup.
     gear[slot] = aliases[gear[slot]] || gear[slot];
     // If the resolved prefix still isn't a known stat, fall back to the default.
     if (!GEAR_STATS_BY_NAME[gear[slot]]) gear[slot] = defaults.gear[slot];
   }
+
   return gear;
 }
 
@@ -359,6 +369,7 @@ function normalizeSpecializations(
       if (typeof entry === 'string') {
         return { name: entry, traits: '1-1-1' };
       }
+
       const candidate = plainObject(entry);
       return {
         name: String(candidate.name || ''),
@@ -393,6 +404,7 @@ function selectedSkillsFromLegacy(saved: SchedulerRecord, catalog: CanonicalCata
   for (let index = 0; index < 3; index += 1) {
     result[`Utility${index + 1}`] = utilities[index]?.name || '';
   }
+
   return result;
 }
 
@@ -458,6 +470,7 @@ function normalizeSelectedSkills(
     normalized[slot] = skill?.name || '';
     if (type === 'Utility' && skill) selectedUtilityIds.add(skill.id);
   }
+
   return normalized;
 }
 
@@ -492,6 +505,7 @@ function normalizeInfusions(value: unknown, fallback: readonly Gw2BuildInfusion[
       present.add(entry.stat);
     }
   }
+
   return infusions;
 }
 
@@ -520,12 +534,14 @@ function migrateVersionedBuild(
   if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
     return {};
   }
+
   const candidateBuild = candidate as SchedulerRecord;
   // A missing profession field is treated as matching (e.g. very old saves);
   // a present but wrong profession is a hard error to prevent silent data corruption.
   if (candidateBuild.profession && candidateBuild.profession !== professionId) {
     throw new Error(`Cannot load ${candidateBuild.profession} build as ` + `${professionName(professionId)}.`);
   }
+
   // Clone before mutating so the original candidate object is never modified.
   let saved = clone(candidateBuild);
   let version = Number(saved.schemaVersion ?? 0);
@@ -533,6 +549,7 @@ function migrateVersionedBuild(
   if (!Number.isInteger(version) || version < 0 || version > schemaVersion) {
     throw new Error(`Unsupported build schema version: ${saved.schemaVersion}`);
   }
+
   while (version < schemaVersion) {
     const migrate = migrations[version];
     // If no migration function is registered for a version gap, just bump
@@ -541,6 +558,7 @@ function migrateVersionedBuild(
     version += 1;
     saved.schemaVersion = version;
   }
+
   return saved;
 }
 
@@ -562,6 +580,7 @@ function validateWeaponPair(
     errors.push(`${label} must contain a main-hand and off-hand slot.`);
     return;
   }
+
   const [mainHand, offHand] = pair;
   if (allowEmpty && !mainHand && !offHand) return;
   const mainWielding = catalog.weaponHands.get(mainHand);
@@ -569,9 +588,11 @@ function validateWeaponPair(
   if (!catalog.weapons.has(mainHand) || !['mh', 'mh+oh', '2h'].includes(mainWielding || '')) {
     errors.push(`${label} has an invalid main-hand weapon.`);
   }
+
   if (mainWielding === '2h' && offHand) {
     errors.push(`${mainHand} is two-handed and cannot use ${offHand}.`);
   }
+
   if (offHand && (!catalog.weapons.has(offHand) || !['oh', 'mh+oh'].includes(offWielding || ''))) {
     errors.push(`${offHand} cannot be equipped in the off hand.`);
   }
@@ -593,6 +614,7 @@ function validateSpecializations(
     errors.push('specializations must be an array.');
     return;
   }
+
   const known = new Map(catalog.specializations.map((specialization) => [specialization.name, specialization]));
   const selected = build.specializations
     .map((specialization) => known.get(specialization?.name))
@@ -600,17 +622,21 @@ function validateSpecializations(
   if (selected.length !== build.specializations.length) {
     errors.push(`specializations contain an unknown ${professionName(professionId)} line.`);
   }
+
   if (selected.filter((specialization) => specialization.elite).length > 1) {
     errors.push('only one elite specialization can be selected.');
   }
+
   if (new Set(selected.map((specialization) => specialization.name)).size !== selected.length) {
     errors.push('specializations cannot contain duplicates.');
   }
+
   if (
     build.specializations.some((specialization) => !/^[1-3]-[1-3]-[1-3]$/.test(String(specialization?.traits || '')))
   ) {
     errors.push('specialization traits must use the 1-1-1 selection format.');
   }
+
   if (build.specializations.length !== 3) {
     errors.push('exactly three specializations must be selected.');
   }
@@ -649,11 +675,13 @@ function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, er
     errors.push('rotation contains an invalid canonical command.');
     return;
   }
+
   const candidate = command as SchedulerRecord;
   if (!['cast', 'wait', 'combat-start'].includes(String(candidate.type))) {
     errors.push('rotation contains an invalid canonical command.');
     return;
   }
+
   if (
     !(candidate.type === 'combat-start'
       ? validCanonicalOffset(candidate, 'concurrentOffsetMs')
@@ -662,41 +690,51 @@ function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, er
   ) {
     errors.push('rotation timing fields must be finite; cast timing must be non-negative.');
   }
+
   if (!validCanonicalPositiveInteger(candidate, 'releaseAtCharges')) {
     errors.push('releaseAtCharges must be a positive whole number.');
   }
+
   if (
     Object.hasOwn(candidate, 'doubleEdgeOutcome') &&
     !['success', 'backfire'].includes(String(candidate.doubleEdgeOutcome))
   ) {
     errors.push('doubleEdgeOutcome must be success or backfire.');
   }
+
   if (
     Object.hasOwn(candidate, 'preserveEffectsAfterInterrupt') &&
     typeof candidate.preserveEffectsAfterInterrupt !== 'boolean'
   ) {
     errors.push('preserveEffectsAfterInterrupt must be boolean.');
   }
+
   if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'interruptAfterMs')) {
     errors.push('only cast commands may contain interruptAfterMs.');
   }
+
   if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'releaseAtCharges')) {
     errors.push('only cast commands may contain releaseAtCharges.');
   }
+
   if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'doubleEdgeOutcome')) {
     errors.push('only cast commands may contain doubleEdgeOutcome.');
   }
+
   if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'preserveEffectsAfterInterrupt')) {
     errors.push('only cast commands may contain preserveEffectsAfterInterrupt.');
   }
+
   if (candidate.type === 'wait') {
     if (!Object.hasOwn(candidate, 'durationMs') || !validCanonicalMilliseconds(candidate, 'durationMs')) {
       errors.push('wait commands require a non-negative durationMs.');
     }
+
     if (Object.hasOwn(candidate, 'concurrentOffsetMs')) {
       errors.push('wait commands cannot contain concurrentOffsetMs.');
     }
   }
+
   if (candidate.type === 'cast' && (!isSkillId(candidate.skillId) || !catalog.skillsById.has(candidate.skillId))) {
     errors.push(`rotation contains unknown skill ${candidate.skillId}.`);
   }
@@ -720,13 +758,16 @@ function validateCommonBuild(
   if (!build || typeof build !== 'object' || Array.isArray(build)) {
     return { valid: false, errors: ['Build must be an object.'] };
   }
+
   const candidate = build as Gw2CanonicalBuild;
   if (candidate.profession !== professionId) {
     errors.push(`profession must be ${professionId}.`);
   }
+
   if (candidate.schemaVersion !== schemaVersion) {
     errors.push(`schemaVersion must be ${schemaVersion}.`);
   }
+
   validateWeaponPair(candidate.weapons, 'weapons', catalog, errors);
   // Alternate weapons are optional; allowEmpty=true lets both slots be absent.
   validateWeaponPair(candidate.alternateWeapons, 'alternateWeapons', catalog, errors, true);
@@ -735,6 +776,7 @@ function validateCommonBuild(
   } else if (candidate.startingWeaponSet === 2 && !candidate.alternateWeapons?.[0]) {
     errors.push('startingWeaponSet cannot be 2 without a second weapon set.');
   }
+
   if (!Array.isArray(candidate.rotation)) {
     errors.push('rotation must be an array.');
   } else {
@@ -742,6 +784,7 @@ function validateCommonBuild(
       validateRotationCommand(command, catalog, errors);
     }
   }
+
   validateSpecializations(candidate, catalog, professionId, errors);
   if (slotLoadout) {
     // Slot-loadout professions manage skill slots through their own palette
@@ -778,9 +821,11 @@ function validateCommonBuild(
       ) {
         errors.push(`${slot} must contain an available ${type} skill.`);
       }
+
       if (type === 'Utility' && skill) selectedUtilityIds.add(skill.id);
     }
   }
+
   if (!isPlainObject(candidate.gear)) {
     errors.push('gear must be an object.');
   } else {
@@ -790,6 +835,7 @@ function validateCommonBuild(
       }
     }
   }
+
   // alternateWeaponPrefixes is optional (null/undefined = inherit main-hand gear);
   // only validate it when the field is actually present.
   if (
@@ -800,21 +846,27 @@ function validateCommonBuild(
   ) {
     errors.push('alternateWeaponPrefixes must contain two known gear prefixes.');
   }
+
   if (!listedName(RELIC_NAMES, candidate.relic)) {
     errors.push('relic must be a known relic.');
   }
+
   if (!listedName(RUNE_NAMES, candidate.rune)) {
     errors.push('rune must be a known rune.');
   }
+
   if (!listedName(FOOD_NAMES, candidate.food)) {
     errors.push('food must be a known food.');
   }
+
   if (!listedName(UTILITY_NAMES, candidate.utility)) {
     errors.push('utility must be a known utility consumable.');
   }
+
   if (typeof candidate.jadeBotCore !== 'boolean') {
     errors.push('jadeBotCore must be a boolean.');
   }
+
   if (
     !Array.isArray(candidate.weaponSigils) ||
     candidate.weaponSigils.length !== 2 ||
@@ -828,6 +880,7 @@ function validateCommonBuild(
   ) {
     errors.push('weaponSigils must contain two valid, unique sigils per set.');
   }
+
   if (!Array.isArray(candidate.infusions)) {
     errors.push('infusions must be an array.');
   } else {
@@ -838,15 +891,20 @@ function validateCommonBuild(
         errors.push('infusions contain an invalid stat or count.');
         break;
       }
+
       total += count;
     }
+
     if (total > 18) errors.push('infusion count cannot exceed 18.');
   }
+
   if (!Number.isFinite(Number(candidate.targetHealth)) || Number(candidate.targetHealth) < 0) {
     errors.push('targetHealth must be a non-negative number.');
   }
+
   if (!Number.isFinite(Number(candidate.targetArmor)) || Number(candidate.targetArmor) < 1) {
     errors.push('targetArmor must be at least 1.');
   }
+
   return { valid: errors.length === 0, errors };
 }

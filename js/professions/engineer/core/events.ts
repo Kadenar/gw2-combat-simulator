@@ -51,6 +51,7 @@ export function handleEngineerState(context: EngineerResolverContext, event: Eng
     const owner = Object.hasOwn(specialization, key) ? specialization : core;
     (owner as SchedulerRecord)[key] = structuredClone(value);
   }
+
   Object.assign(core, preserved);
 }
 

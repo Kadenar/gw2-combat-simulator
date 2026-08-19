@@ -159,6 +159,7 @@ test('resolver-backed modifier rules receive frozen named parameters', () => {
         parameters: { perStack: 0.02 },
         amount: (current, _target, parameters) => {
           receivedParameters = parameters;
+
           return Number(current.stacks || 0) * parameters.perStack;
         }
       }
@@ -180,6 +181,7 @@ test('inactive rules do not call their numeric resolver', () => {
         operation: 'add',
         amount: () => {
           calls += 1;
+
           return 0.1;
         },
         when: (current) => current.active
@@ -244,12 +246,14 @@ test('damage bucket policies can exclude the active sigil', () => {
     ...context(),
     damageAdditiveBonus: 0.25
   };
+
   assert.ok(Math.abs(hooks.modifyStrikeDamage({ ...nourysContext, illusion: true }, 1.33) - 1.35) < 1e-12);
   assert.ok(Math.abs(hooks.modifyStrikeDamage({ ...nourysContext, illusion: false }, 1.33) - 1.43) < 1e-12);
 });
 
 test('empty modifier sets preserve scalar and coherent damage inputs', () => {
   const hooks = createModifierHooks();
+
   assert.equal(hooks.modifyCriticalChance(context(), 0.5), 0.5);
   assert.equal(hooks.modifyConditionDuration(context(), 1.25), 1.25);
   assert.equal(hooks.modifyStrikeDamage(context(), 1.08), 1.08);
@@ -380,6 +384,7 @@ test('modifier declarations reject invalid schemas with the rule id', () => {
   for (const [rule, pattern] of invalidRules) {
     assert.throws(() => createModifierHooks({ rules: [rule] }), pattern);
   }
+
   assert.throws(
     () =>
       createModifierHooks({
@@ -428,6 +433,7 @@ test('modifier declarations and resolvers reject invalid runtime values', () => 
       }
     ]
   });
+
   assert.throws(() => amountHooks.modifyCriticalChance(context(), 0), /bad\.runtime-amount/);
 
   const amountTypeHooks = createModifierHooks({
@@ -440,6 +446,7 @@ test('modifier declarations and resolvers reject invalid runtime values', () => 
       }
     ]
   });
+
   assert.throws(() => amountTypeHooks.modifyCriticalChance(context(), 0), /bad\.runtime-amount-type/);
 
   const factorHooks = createModifierHooks({
@@ -452,6 +459,7 @@ test('modifier declarations and resolvers reject invalid runtime values', () => 
       }
     ]
   });
+
   assert.throws(() => factorHooks.modifyCriticalDamage(context(), 1), /bad\.runtime-factor/);
 });
 
@@ -476,5 +484,6 @@ test('modifier bucket policies reject unsupported declarations and results', () 
       strikeDamage: { includeSigil: () => 'yes' }
     }
   });
+
   assert.throws(() => hooks.modifyStrikeDamage(context(), 1.08), /strikeDamage/);
 });

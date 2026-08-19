@@ -112,11 +112,13 @@ function guidParts(guid) {
         .reverse()
         .join('')}`
     );
+
   return [part(0), part(8)];
 }
 
 function guidMapping(guid, contentId) {
   const [source, target] = guidParts(guid);
+
   return event({
     time: 0,
     source,

@@ -117,6 +117,7 @@ function missingMirrorImagesActions(actions: readonly EvtcRecordedRotationAction
     if (nextMirror.start - previousMirror.start < observedRecharge * 1.75) {
       continue;
     }
+
     for (
       let expected = previousMirror.start + observedRecharge;
       expected < nextMirror.start - observedRecharge * 0.75;
@@ -152,6 +153,7 @@ function missingMirrorImagesActions(actions: readonly EvtcRecordedRotationAction
       );
     }
   }
+
   return inferred;
 }
 

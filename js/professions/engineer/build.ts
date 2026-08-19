@@ -105,11 +105,13 @@ function normalizeMorphs(value: unknown): number[] {
     if (!AMALGAM_MORPHS.has(id) || ![2, 3, 4].includes(slot)) {
       continue;
     }
+
     if (selectedNames.has(skill!.name)) continue;
     if (selected.has(slot)) continue;
     selected.set(slot, id);
     selectedNames.add(skill!.name);
   }
+
   for (const slot of [2, 3, 4]) {
     if (selected.has(slot)) continue;
     const defaultId = DEFAULT_MORPHS[slot - 2];
@@ -122,6 +124,7 @@ function normalizeMorphs(value: unknown): number[] {
     selected.set(slot, replacement.id as number);
     selectedNames.add(replacement.name);
   }
+
   return [2, 3, 4].map((slot) => selected.get(slot)) as number[];
 }
 
@@ -173,6 +176,7 @@ const engineerBuildCodec = createGw2BuildCodec<EngineerCanonicalBuild>({
     if (!(Number(build.initialHeat) >= 0 && Number(build.initialHeat) <= 150)) {
       errors.push('initialHeat must be between 0 and 150.');
     }
+
     const morphs = Array.isArray(build.selectedMorphSkillIds) ? build.selectedMorphSkillIds : [];
     const slots = morphs.map((id) => Number(engineerCatalog.skillsById.get(Number(id))?.mechanicSlot));
     const names = morphs.map((id) => engineerCatalog.skillsById.get(Number(id))?.name);
@@ -185,6 +189,7 @@ const engineerBuildCodec = createGw2BuildCodec<EngineerCanonicalBuild>({
     ) {
       errors.push('selectedMorphSkillIds must contain one unique legal Amalgam morph for F2, F3, and F4.');
     }
+
     return errors;
   }
 });

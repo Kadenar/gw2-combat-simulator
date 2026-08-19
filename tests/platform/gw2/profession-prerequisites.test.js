@@ -45,6 +45,7 @@ test('profession composition validates UI callbacks and scheduler refiners', () 
       paletteSkillAvailability: () => true
     }
   });
+
   assert.throws(() => invalidAvailability.ui.paletteSkillAvailability({}, {}), /must return an object/);
 
   const mutating = defineProfession({
@@ -53,10 +54,12 @@ test('profession composition validates UI callbacks and scheduler refiners', () 
     simulation: {
       refineSchedulerConfig(config) {
         config.changed = true;
+
         return { ...config };
       }
     }
   });
+
   assert.throws(() => mutating.simulation.refineSchedulerConfig({}, {}), /must not mutate prior config/);
 
   const sameObject = defineProfession({
@@ -68,6 +71,7 @@ test('profession composition validates UI callbacks and scheduler refiners', () 
       }
     }
   });
+
   assert.throws(() => sameObject.simulation.refineSchedulerConfig({}, {}), /must return a new config object/);
 });
 
@@ -125,15 +129,18 @@ test('combat lookups normalize once per query without stale cross-query state', 
   const traits = selectedGw2TraitValues(config, {
     traits: [{ id: 123, name: 'Fixture Trait' }]
   });
+
   assert.equal(hasTrait({ config, traits }, 123), true);
   assert.equal(hasTrait({ config, traits }, '123'), true);
   assert.equal(hasTrait({ config, traits }, 456), false);
   assert.equal(hasTrait({ config }, '123'), true);
 
   const first = createGw2CombatQuery({ profession: queryProfession, config });
+
   assert.equal(first.targetConditionStacks('Poisoned', 0), 1);
   config.target.conditions.poison = 2;
   const second = createGw2CombatQuery({ profession: queryProfession, config });
+
   assert.equal(second.targetConditionStacks('Poisoned', 0), 2);
 });
 
@@ -479,6 +486,7 @@ test('summon-targeted trait boons bypass disabled player boon sharing', () => {
   );
 
   const runtime = { boons: new Map() };
+
   assert.equal(query.statsAt(1, summonEvent, runtime).power, 1000);
   runtime.boons.set('might', [
     {
@@ -535,6 +543,7 @@ test('trait coverage validates complete mixed-effect implementation manifests', 
 
 test('trait coverage rejects gaps, unknown traits, names, and title evidence', () => {
   const catalog = { traits: [{ id: 1, name: 'Known Trait' }] };
+
   assert.throws(() => validateTraitCoverageManifest(catalog, []), /coverage is missing/);
   assert.throws(
     () =>
@@ -605,6 +614,7 @@ test('profession event-log hooks present, hide, and diagnose custom events', () 
     ui: {
       eventLogRow(_context, event) {
         if (event.type === 'engineer.state') return null;
+
         if (event.type === 'engineer.kit-equipped') {
           return {
             type: 'trigger',
@@ -614,10 +624,12 @@ test('profession event-log hooks present, hide, and diagnose custom events', () 
             flags: []
           };
         }
+
         return undefined;
       }
     }
   };
+
   assert.deepEqual(
     simulationEventLogRows(result, null, profession).map((row) => row.description),
     ['KIT EQUIPPED Grenade Kit']
@@ -625,6 +637,7 @@ test('profession event-log hooks present, hide, and diagnose custom events', () 
 
   const warnings = [];
   const originalWarn = console.warn;
+
   console.warn = (...values) => warnings.push(values);
   try {
     const [diagnostic] = simulationEventLogRows({
@@ -632,6 +645,7 @@ test('profession event-log hooks present, hide, and diagnose custom events', () 
       resolvedEvents: [],
       endState: { profession: {} }
     });
+
     assert.equal(diagnostic.description, 'UNPRESENTED CUSTOM EVENT engineer.unknown');
     assert.equal(warnings.length, 1);
   } finally {
@@ -659,6 +673,7 @@ test('Engineer and Thief contracts present state and suppress known packet event
     { specialization: 'Holosmith' },
     engineerProfession
   );
+
   assert.equal(engineerRows.length, 1);
   assert.equal(engineerRows[0].type, 'engineer.state');
   assert.match(engineerRows[0].description, /enter-forge.*Heat 25\.0/);
@@ -680,13 +695,16 @@ test('Engineer and Thief contracts present state and suppress known packet event
     null,
     thiefProfession
   );
+
   assert.equal(thiefRows.length, 1);
   assert.equal(thiefRows[0].type, 'thief.state');
   assert.match(thiefRows[0].description, /initiative-spent.*Initiative 7\.0/);
   assert.notEqual(thiefRows[0].type, 'diagnostic');
 
   const originalWarn = console.warn;
+
   console.warn = () => {};
+
   try {
     const [unknown] = simulationEventLogRows(
       {
@@ -697,6 +715,7 @@ test('Engineer and Thief contracts present state and suppress known packet event
       null,
       engineerProfession
     );
+
     assert.equal(unknown.description, 'UNPRESENTED CUSTOM EVENT engineer.unhandled');
   } finally {
     console.warn = originalWarn;
@@ -706,6 +725,7 @@ test('Engineer and Thief contracts present state and suppress known packet event
 test('Guardian and Necromancer classify every known custom event', () => {
   const warnings = [];
   const originalWarn = console.warn;
+
   console.warn = (...values) => warnings.push(values);
   try {
     const guardianCoreRows = simulationEventLogRows(
@@ -762,6 +782,7 @@ test('Guardian and Necromancer classify every known custom event', () => {
       guardianProfession
     );
     const guardianRows = [...guardianCoreRows, ...guardianFirebrandRows, ...guardianLuminaryRows];
+
     assert.deepEqual(
       guardianRows.map((row) => row.type),
       [
@@ -813,6 +834,7 @@ test('Guardian and Necromancer classify every known custom event', () => {
       necromancerProfession
     );
     const necromancerRows = [...necromancerCoreRows, ...ritualistRows];
+
     assert.deepEqual(
       necromancerRows.map((row) => row.type),
       ['necromancer.state', 'necromancer.chill']
@@ -850,6 +872,7 @@ test('fixed slot loadouts normalize, validate, render, and gate alternate bars',
     },
     { specialization: 'Core' }
   );
+
   assert.deepEqual(normalized, {
     selectedLegends: ['jalis', 'mallyx'],
     startingLegend: 'jalis'
@@ -870,6 +893,7 @@ test('fixed slot loadouts normalize, validate, render, and gate alternate bars',
     startingLegend: 'jalis'
   };
   let view = loadout.view({ build, specialization: 'Core' });
+
   assert.deepEqual(view.activeBar.skillIds, [1, 2, 3, 4, 5]);
   assert.deepEqual(view.inactiveBars[0].skillIds, [6, 7, 8, 9, 10]);
   assert.match(loadout.unavailableReason({ id: 6 }, { build, specialization: 'Core' }), /Swap to Mallyx/);
@@ -936,10 +960,12 @@ test('weapon-set matching supports exact dual-wield and empty-offhand bars', () 
       invalid: [['Sword', 'Axe']]
     }
   ];
+
   for (const fixture of cases) {
     for (const pair of fixture.valid) {
       assert.equal(defaultWeaponSkillMatchesSet(fixture.skill, pair, context), true, `${pair.join('/')} should match`);
     }
+
     for (const pair of fixture.invalid) {
       assert.equal(
         defaultWeaponSkillMatchesSet(fixture.skill, pair, context),
@@ -950,6 +976,7 @@ test('weapon-set matching supports exact dual-wield and empty-offhand bars', () 
   }
 
   const exactMatcher = (skill, pair) => skill.combo === `${pair[0] || 'none'}/${pair[1] || 'none'}`;
+
   assert.equal(
     isGw2WeaponSkillEquipped(
       {
@@ -1005,6 +1032,7 @@ test('profession assumption controls normalize and validate deterministic inputs
     },
     controls
   );
+
   assert.deepEqual(assumptions, {
     targetDistance: 2000,
     playerHealthPercent: 0,

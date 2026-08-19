@@ -48,6 +48,7 @@ function mountCommunityActions(root: Document): void {
   if (!host || host.querySelector('.community-actions')) {
     return;
   }
+
   const actions = root.createElement('div');
   actions.className = 'community-actions';
   const submissionLink = root.createElement('a');
@@ -109,6 +110,7 @@ function mountStickyProfessionHeader(root: Document): void {
   const updateHeaderHeight = () => {
     appRoot.style.setProperty('--profession-header-height', `${Math.ceil(header.getBoundingClientRect().height)}px`);
   };
+
   updateHeaderHeight();
   if (header.dataset.stickyHeaderMounted === 'true') return;
   header.dataset.stickyHeaderMounted = 'true';
@@ -136,6 +138,7 @@ function populateProfessionSelector(select: HTMLSelectElement, active: string): 
     placeholder.selected = true;
     select.append(placeholder);
   }
+
   for (const group of professionGroups) {
     const optgroup = owner.createElement('optgroup');
     optgroup.label = group.label;
@@ -146,6 +149,7 @@ function populateProfessionSelector(select: HTMLSelectElement, active: string): 
       option.selected = entry.id === active;
       optgroup.append(option);
     }
+
     select.append(optgroup);
   }
 }
@@ -237,6 +241,7 @@ export function bindProfessionSelector(root: Document = document): void {
   if (entry?.themeClass && root.body) {
     root.body.classList.add(entry.themeClass);
   }
+
   populateProfessionSelector(select, entry?.id || '');
 
   select.addEventListener('change', () => {

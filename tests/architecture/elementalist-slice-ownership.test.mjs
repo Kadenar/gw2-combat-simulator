@@ -12,9 +12,11 @@ test('Elementalist Core does not own elite-specialization policy', async () => {
 
   for (const file of files) {
     const source = await readFile(path.join(CORE_ROOT, file), 'utf8');
+
     if (/from\s+["'][^"']*specializations\//.test(source)) {
       violations.push(`${file} imports a specialization slice`);
     }
+
     for (const name of ELITE_NAMES) {
       if (new RegExp(`\\b${name}\\b`).test(source)) {
         violations.push(`${file} names ${name}`);

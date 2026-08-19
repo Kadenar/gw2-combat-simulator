@@ -40,6 +40,7 @@ function rotationEntryName(entry: unknown): string {
   if (entry && typeof entry === 'object' && 'name' in entry) {
     return String(entry.name || '');
   }
+
   return '';
 }
 
@@ -75,18 +76,25 @@ export function revenantCorePaletteSkillAvailability(
 ): PaletteSkillAvailability {
   const state = revenantUiState(context);
   const activeLegend = activeRevenantLegend(context);
+  // Check if the skill's paletteLegendId matches the active legend
   if (skill.paletteLegendId === activeLegend) {
     return {
       available: false,
       message: `${skill.displayName || 'Legend'} is already active`
     };
   }
+
+  // Check for Unyielding Impact and Call to Anguish flip availability
   if (skill.id === SKILL.UNYIELDING_IMPACT && !state.availableFlips?.[SKILL.UNYIELDING_IMPACT]) {
     return { available: false, message: 'Cast Call to Anguish first' };
   }
+
+  // Check for Call to Anguish and Unyielding Impact flip availability
   if (skill.id === SKILL.CALL_TO_ANGUISH && state.availableFlips?.[SKILL.UNYIELDING_IMPACT]) {
     return { available: false, message: 'Use Unyielding Impact first' };
   }
+
+  // Check if the skill is an upkeep and if it is currently active
   const upkeepActive =
     skill.handlerId === 'revenant.upkeep' && (state.activeUpkeeps || []).some((upkeep) => upkeep.skillId === skill.id);
   if (upkeepActive) {
@@ -95,6 +103,8 @@ export function revenantCorePaletteSkillAvailability(
       message: 'Use the release skill to end this upkeep'
     };
   }
+
+  // Check player energy and compare it against the effective energy cost of the skill, also check if the skill is on cooldown
   const energy = Number(state.energy);
   const cost = effectiveEnergyCost(context, skill);
   const onCooldown = Number(context.cooldowns?.[skill.name]?.remaining || 0) > 0;
@@ -113,23 +123,32 @@ export const revenantCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
   },
   slotLoadout: revenantLegendLoadout,
   timelineSkillIcon: revenantTimelineSkillIcon,
-  paletteGroups: (context: RevenantUiContext) => [
-    {
-      id: 'revenant-profession',
-      label: 'F',
-      skillIds: [SKILL.ANCIENT_ECHO],
-      skillEntries: revenantLegendLoadout.view(context).bars.map((bar) => ({
-        skillId: -4,
-        displayName: bar.compactLabel,
-        fullDisplayName: bar.label,
-        icon: revenantLegend(bar.id)?.icon || '',
-        paletteLegendId: bar.id
-      })),
-      color: '#a84f54',
-      className: 'revenant-f-skills',
-      resourceAnchor: true
-    }
-  ],
+  paletteGroups: (context: RevenantUiContext) => {
+    const loadout = revenantLegendLoadout.view(context);
+    const destination = loadout.inactiveBars[0];
+
+    return [
+      {
+        id: 'revenant-profession',
+        label: 'F',
+        skillIds: [SKILL.ANCIENT_ECHO],
+        skillEntries: destination
+          ? [
+              {
+                skillId: -4,
+                displayName: destination.compactLabel,
+                fullDisplayName: destination.label,
+                icon: revenantLegend(destination.id)?.icon || '',
+                paletteLegendId: destination.id
+              }
+            ]
+          : [],
+        color: '#a84f54',
+        className: 'revenant-f-skills',
+        resourceAnchor: true
+      }
+    ];
+  },
   paletteSkillAvailability: revenantCorePaletteSkillAvailability,
   resourceViews: (context: RevenantUiContext) => {
     const state = revenantUiState(context);

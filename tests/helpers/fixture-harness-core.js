@@ -62,6 +62,7 @@ export function runCoreFixtures() {
     ['Bladecall', { name: 'Bladesong Distortion', offset: 100 }],
     defaultSimulationConfig()
   );
+
   return {
     attributes,
     cooldown,

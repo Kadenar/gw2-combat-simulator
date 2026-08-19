@@ -67,6 +67,7 @@ export function scheduleLightningRod(context: EngineerCastContext, skill: Engine
       payload: { activationId }
     });
   }
+
   context.tasks.schedule({
     type: 'engineer.electric-artillery-ready',
     at: readyAt,

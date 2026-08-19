@@ -44,6 +44,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
         at
       );
     }
+
     if (hasNecromancerTrait(context, TRAIT.DEATHLY_HASTE)) {
       const profile = necromancerBalanceProfile(context, PROFILE.deathlyHaste);
       const quickness = balanceProfileEffect(profile, 'boon');
@@ -63,6 +64,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
         metadata: recipients
       });
     }
+
     if (hasNecromancerTrait(context, TRAIT.IMPLACABLE_FOE)) {
       const profile = necromancerBalanceProfile(context, PROFILE.implacableFoe);
       const stability = balanceProfileEffect(profile, 'boon');
@@ -83,6 +85,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       );
     }
   }
+
   if (skill.id === ID.DARK_BARRAGE && hasNecromancerTrait(context, TRAIT.DEATHLY_HASTE)) {
     const profile = necromancerBalanceProfile(context, PROFILE.deathlyHaste);
     const quickness = balanceProfileEffect(profile, 'boon');
@@ -129,16 +132,19 @@ function modifyHarbingerAttributes(context: Gw2ModifierContext, attributes: Sche
     if (context.config?.specialization === 'Harbinger' || hasTrait(context, TRAIT.ALCHEMIC_VIGOR)) {
       result.vitality += Number(necromancerBalanceProfile(context, PROFILE.alchemicVigor)?.attributeBonus || 240);
     }
+
     if (hasTrait(context, TRAIT.IMPLACABLE_FOE)) {
       result.ferocity +=
         result.vitality *
         Number(necromancerBalanceProfile(context, PROFILE.implacableFoe)?.attributeConversion || 0.13);
     }
+
     if (hasTrait(context, TRAIT.TWISTED_MEDICINE)) {
       result.concentration +=
         result.vitality *
         Number(necromancerBalanceProfile(context, PROFILE.twistedMedicine)?.attributeConversion || 0.13);
     }
+
     if (hasTrait(context, TRAIT.DARK_GUNSLINGER)) {
       // Alchemic Vigor and other flat Vitality bonuses precede conversion.
       result.expertise += Math.round(
@@ -146,6 +152,7 @@ function modifyHarbingerAttributes(context: Gw2ModifierContext, attributes: Sche
       );
     }
   }
+
   return result;
 }
 

@@ -82,6 +82,7 @@ function phaseFor(report: ParsedDpsReport, phaseIndex: number | undefined): { ph
       phaseIndex: index
     });
   }
+
   return { phase: report.phases[index], index };
 }
 
@@ -126,12 +127,14 @@ function recordedActions(
       ignoredAutomaticProcs += group.skills.length;
       continue;
     }
+
     for (const cast of group.skills) {
       if (!castIntersectsPhase(cast, phase)) continue;
       if (duplicateDetectionSignal(cast, group.skills, metadata)) {
         ignoredDuplicateSignals += 1;
         continue;
       }
+
       const duration = Math.max(0, cast.duration);
       actions.push({
         start: cast.castTime,
@@ -147,6 +150,7 @@ function recordedActions(
       eventIndex += 1;
     }
   }
+
   actions.sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   return { actions, ignoredAutomaticProcs, ignoredDuplicateSignals };
 }
@@ -183,6 +187,7 @@ function resolveAction(
     const skill = findNamedRotationSkill(profile.weaponSwap.name, catalog, profile);
     return { ...action, skill, ...skillIdentity(skill, profile.weaponSwap) };
   }
+
   const selected = selectedSkillForAction(action, profile, catalog, selectedSkillIds);
   const skill =
     selected ||
@@ -214,6 +219,7 @@ function actionCommand(action: DpsReportResolvedAction): EvtcReconstructedComman
   if (action.status === 'interrupted' && actualDuration > 0 && actualDuration + 10 < runtimeDuration) {
     command.interruptMs = actualDuration;
   }
+
   return command;
 }
 
@@ -268,11 +274,13 @@ function buildRotation(actions: readonly DpsReportResolvedAction[], combatStart:
       rotation.push({ name: '__cooldown_reset' });
       continue;
     }
+
     if (!entry.action.skill) {
       if (entry.action.end > entry.action.start) {
         rotation.push({ name: '__wait', waitMs: entry.action.end - entry.action.start });
         activeCastEnd = Math.max(activeCastEnd, entry.action.end);
       }
+
       continue;
     }
 
@@ -286,10 +294,12 @@ function buildRotation(actions: readonly DpsReportResolvedAction[], combatStart:
     if (previousCastStart != null && (independent || overlapping)) {
       command.offset = Math.max(0, at - previousCastStart);
     }
+
     rotation.push(command);
     if (entry.action.followingWaitMs && entry.action.followingWaitMs > 0) {
       rotation.push({ name: '__wait', waitMs: entry.action.followingWaitMs });
     }
+
     if (!independent) {
       previousCastStart = at;
       if (entry.action.end > entry.action.start) {
@@ -297,6 +307,7 @@ function buildRotation(actions: readonly DpsReportResolvedAction[], combatStart:
       }
     }
   }
+
   return rotation;
 }
 
@@ -330,6 +341,7 @@ function warningList(
         : `${recoveredSetup.slice(0, -1).join(', ')} and ${recoveredSetup.at(-1)}`;
     warnings.push(`Recovered setup: added the missing ${setup} from dependent casts.`);
   }
+
   const recoveredReportEvidence = [
     ...new Set(
       resolved
@@ -344,16 +356,19 @@ function warningList(
       `Recovered report evidence: added missing ${recoveredReportEvidence.join(', ')} casts from buff and condition transitions.`
     );
   }
+
   if (unsupported.length) {
     warnings.push(
       `Needs review: ${unsupported.length} report action${unsupported.length === 1 ? '' : 's'} could not be matched and ${unsupported.length === 1 ? 'was' : 'were'} preserved as timing waits.`
     );
   }
+
   if (interrupted.length) {
     warnings.push(
       `Interrupted cast: ${interrupted.length} cast${interrupted.length === 1 ? ' was' : 's were'} kept at the recorded shortened duration.`
     );
   }
+
   const equippedKits = new Set<string>();
   let missingInitialKit = '';
   let mineArmed = false;
@@ -362,22 +377,27 @@ function warningList(
     if (action.skill?.handlerId === 'engineer.kit-equip') {
       equippedKits.add(normalized(action.skill.kitName || action.name));
     }
+
     const requiredKit = normalized(action.skill?.kit);
     if (requiredKit && !equippedKits.has(requiredKit) && !missingInitialKit) {
       missingInitialKit = String(action.skill?.kit || '').trim();
     }
+
     if (normalized(action.name) === 'throw mine') mineArmed = true;
     if (normalized(action.name) === 'detonate') {
       if (!mineArmed) missingMineSetup = true;
       mineArmed = false;
     }
   }
+
   if (missingInitialKit) {
     warnings.push(`Missing setup: ${missingInitialKit} was required, but its equip action could not be recovered.`);
   }
+
   if (missingMineSetup) {
     warnings.push('Missing setup: Detonate was present, but the preceding Throw Mine action could not be recovered.');
   }
+
   return warnings;
 }
 
@@ -392,6 +412,7 @@ export function reconstructDpsReportWithProfile(
   if (!player) {
     throw new DpsReportError('PLAYER_NOT_FOUND', 'The requested player is not present in the Elite Insights report.');
   }
+
   const detectedProfile = dpsReportRotationProfile(player.profession);
   if (
     detectedProfile?.professionId !== profile.professionId ||
@@ -423,6 +444,7 @@ export function reconstructDpsReportWithProfile(
   if (!resolved.length) {
     throw new DpsReportError('NO_ROTATION_ACTIONS', 'The selected player has no reconstructable casts in this phase.');
   }
+
   const origin = Math.min(resolved[0].start, phase.start);
   const actions: DpsReportRotationAction[] = resolved.map((action) => ({
     timestampMs: action.start - origin,

@@ -37,12 +37,14 @@ export function applyRevenantBuildAttributeRules(
   if (hasTrait('Pact of Pain')) {
     traitDurations['Condition Duration'] = 15;
   }
+
   if (hasTrait('Yearning Empowerment')) {
     const duration = hasTrait('Numinous Gift') ? 15 : 10;
     for (const condition of ['Bleeding', 'Burning', 'Confusion', 'Poison', 'Torment']) {
       traitDurations[`${condition} Duration`] = duration;
     }
   }
+
   const attributeEffects: Gw2AttributeEffect[] = [
     {
       kind: 'flat',
@@ -91,6 +93,7 @@ export function applyRevenantBuildAttributeRules(
       });
     }
   }
+
   attributeEffects.push(
     {
       kind: 'conversion',

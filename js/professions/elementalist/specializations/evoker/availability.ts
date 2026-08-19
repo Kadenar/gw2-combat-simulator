@@ -34,6 +34,7 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
         reason: `${skill.name} is unavailable - attunement swapping is disabled by Specialized Elements.`
       };
     }
+
     // capture remaining recharge before the swap fires so applyEvokerAttunementRechargePolicy can preserve shorter cooldowns
     if (!state.pendingOffAttunementRemainingByCommand[context.commandIndex]) {
       const core = elementalistCoreState(context as unknown as SchedulerRecord);
@@ -45,6 +46,7 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
       );
     }
   }
+
   if (state.activeFamiliarCast && context.start < state.activeFamiliarCast.endsAt - context.epsilon) {
     return {
       ready: false,
@@ -53,6 +55,7 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
       reason: `${skill.name} waits for the active familiar cast to finish.`
     };
   }
+
   const element = FAMILIAR_ELEMENTS[skill.name];
   if (!element) return { ready: true };
   if (state.element !== element) {
@@ -63,6 +66,7 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
       reason: `${skill.name} is unavailable - the ${element} familiar is not selected.`
     };
   }
+
   // basic familiar requires a full charge bar and no empowered stack (empowered means the flip form is active)
   if (BASIC_FAMILIARS.has(skill.name)) {
     const requiredEmpowered = elementalistBalanceValue(context, PROFILE.resources, 'minimumStacks', 3);
@@ -75,6 +79,7 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
           reason: `${skill.name} is unavailable - requires ${state.maximumCharges} charges and no empowered familiar.`
         };
   }
+
   // empowered familiar requires 3 empowered stacks built up from basic familiar casts
   const requiredEmpowered = elementalistBalanceValue(context, PROFILE.resources, 'minimumStacks', 3);
   return state.empowered >= requiredEmpowered

@@ -82,6 +82,7 @@ export function mountRotationTimelineSize(root: Document = document): void {
       element.textContent = option.label;
       select.append(element);
     }
+
     select.value = storedSize;
     select.addEventListener('change', () => {
       const size = normalizeRotationTimelineSize(select.value);

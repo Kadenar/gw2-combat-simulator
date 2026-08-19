@@ -34,6 +34,7 @@ export function mesmerRuntimeFor(
   if (!runtime) {
     throw new Error('Mesmer scheduler runtime is not initialized.');
   }
+
   return runtime;
 }
 
@@ -59,13 +60,16 @@ export function applyMesmerRuntimeManifest(runtime: MesmerRuntime, manifest: Mes
   if (manifest.ambushAttacks) {
     Object.assign(runtime.ambushAttacks, manifest.ambushAttacks);
   }
+
   if (manifest.shatters) Object.assign(runtime.shatters, manifest.shatters);
   if (manifest.instruments) {
     Object.assign(runtime.instruments, manifest.instruments);
   }
+
   if (manifest.traitDamage) {
     Object.assign(runtime.traitDamage, manifest.traitDamage);
   }
+
   if (manifest.phantasmAttackTimings) {
     for (const [id, timing] of Object.entries(manifest.phantasmAttackTimings)) {
       runtime.phantasmAttackTimings[Number(id)] = {
@@ -74,10 +78,12 @@ export function applyMesmerRuntimeManifest(runtime: MesmerRuntime, manifest: Mes
       };
     }
   }
+
   for (const id of manifest.controlSkills || []) runtime.controlSkills.add(id);
   for (const id of manifest.blindSkills || []) runtime.blindSkills.add(id);
   for (const id of manifest.aristocracySkills || []) {
     runtime.aristocracySkills.add(id);
   }
+
   for (const id of manifest.peithaSkills || []) runtime.peithaSkills.add(id);
 }

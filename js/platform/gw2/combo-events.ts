@@ -47,6 +47,7 @@ function positiveInteger(value: unknown, label: string): number {
   if (!Number.isInteger(normalized) || normalized <= 0) {
     throw new TypeError(`${label} must be a positive integer.`);
   }
+
   return normalized;
 }
 
@@ -61,6 +62,7 @@ export function normalizeComboFinisherType(value: unknown): ComboFinisherType {
   if (!normalized) {
     throw new TypeError(`Invalid combo finisher type: ${String(value)}.`);
   }
+
   return normalized;
 }
 
@@ -105,6 +107,7 @@ export function normalizeComboFieldBinding(value: unknown): ComboFieldBinding {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError('Combo finisher fieldBinding is required.');
   }
+
   const binding = value as SchedulerRecord;
   if (binding.kind === 'none') return Object.freeze({ kind: 'none' });
   if (binding.kind === 'field-id') {
@@ -113,12 +116,14 @@ export function normalizeComboFieldBinding(value: unknown): ComboFieldBinding {
       fieldId: requiredString(binding.fieldId, 'Combo field binding fieldId')
     });
   }
+
   if (binding.kind === 'field-type') {
     return Object.freeze({
       kind: 'field-type',
       fieldType: normalizeComboFieldType(binding.fieldType)
     });
   }
+
   throw new TypeError(`Invalid combo field binding kind: ${String(binding.kind)}.`);
 }
 
@@ -131,12 +136,15 @@ export function prepareGw2ComboEvent(event: SimulationEventInput): SimulationEve
     if (!Number.isFinite(expiresAt) || !(expiresAt > at)) {
       throw new TypeError('Combo field expiresAt must be later than at.');
     }
+
     if (comboBindingPriority != null && (!Number.isFinite(comboBindingPriority) || comboBindingPriority < 0)) {
       throw new TypeError('Combo field comboBindingPriority must be a non-negative finite number.');
     }
+
     if (!ACTOR_TYPES.has(event.ownerActorType as SimulationActorType)) {
       throw new TypeError('Combo field ownerActorType is invalid.');
     }
+
     return {
       ...event,
       // Fields default to priority -1 so they sort before finishers (default 0)
@@ -149,20 +157,24 @@ export function prepareGw2ComboEvent(event: SimulationEventInput): SimulationEve
       ...(comboBindingPriority == null ? {} : { comboBindingPriority })
     };
   }
+
   if (event.type === 'combo_finisher') {
     const at = Number(event.at);
     const effectAt = Number(event.effectAt);
     if (!Number.isFinite(effectAt) || effectAt < at) {
       throw new TypeError('Combo finisher effectAt must not precede at.');
     }
+
     const chance = Number(event.chance);
     if (!Number.isFinite(chance)) {
       throw new TypeError('Combo finisher chance must be finite.');
     }
+
     const parentEventOrder = event.parentEventOrder == null ? null : Number(event.parentEventOrder);
     if (parentEventOrder != null && !Number.isFinite(parentEventOrder)) {
       throw new TypeError('Combo finisher parentEventOrder must be finite.');
     }
+
     return {
       ...event,
       priority: event.priority ?? 0,
@@ -176,11 +188,13 @@ export function prepareGw2ComboEvent(event: SimulationEventInput): SimulationEve
       ...(parentEventOrder == null ? {} : { parentEventOrder })
     };
   }
+
   if (event.type === 'combo') {
     const outcome = event.outcome;
     if (!outcome || typeof outcome !== 'object' || Array.isArray(outcome)) {
       throw new TypeError('Combo outcome is required.');
     }
+
     return {
       ...event,
       comboId: requiredString(event.comboId, 'Combo comboId'),
@@ -200,13 +214,16 @@ export function prepareGw2ComboEvent(event: SimulationEventInput): SimulationEve
       applicationCount: positiveInteger(event.applicationCount, 'Combo applicationCount')
     };
   }
+
   if (event.type === 'aura') {
     const duration = Number(event.duration);
     if (!requiredString(event.aura, 'Aura name') || !(duration > 0)) {
       throw new TypeError('Aura events require a positive duration.');
     }
+
     return { ...event, duration };
   }
+
   return event;
 }
 
@@ -269,6 +286,7 @@ function boundField(
     );
     return null;
   }
+
   if (event.fieldBinding.kind === 'field-id') {
     const field = state.fields.get(event.fieldBinding.fieldId);
     if (field && activeAt(field, event.at)) return field;
@@ -280,6 +298,7 @@ function boundField(
     );
     return null;
   }
+
   const binding = event.fieldBinding;
   if (binding.kind !== 'field-type') return null;
   const candidates = [...state.fields.values()]
@@ -308,6 +327,7 @@ function deterministicSuccess(state: Gw2ComboRuntimeState, event: ComboFinisherE
     state.deterministicProgress.set(key, progress);
     return false;
   }
+
   state.deterministicProgress.set(key, Math.max(0, progress - 1));
   return true;
 }

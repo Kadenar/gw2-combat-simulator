@@ -42,6 +42,7 @@ export function applyEvokerAttunementRechargePolicy(
   ) {
     return;
   }
+
   const previous = event.from;
   const target = event.to;
   const commandIndex = Number(event.commandIndex);
@@ -68,6 +69,7 @@ export function applyEvokerAttunementRechargePolicy(
       )
     );
   }
+
   for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
     if (attunement === target || attunement === previous) continue;
     const defaultReadyAt =
@@ -120,6 +122,7 @@ export function triggerSpecializedElementEntry(
         skill.id
       );
     }
+
     if (hasTrait(context, 'Inscription')) {
       const resistance = elementalistBalanceEffect(context, CORE_PROFILE.inscription, 'boon', 'Air Entry');
       emitElementalistBuff(
@@ -132,6 +135,7 @@ export function triggerSpecializedElementEntry(
         skill.id
       );
     }
+
     if (hasTrait(context, 'Fresh Air')) {
       const freshAir = elementalistBalanceEffect(context, CORE_PROFILE.freshAir, 'buff');
       emitElementalistBuff(

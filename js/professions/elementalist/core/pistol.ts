@@ -95,8 +95,10 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
     } else {
       state.pistolBullets[state.primaryAttunement] = true;
     }
+
     return;
   }
+
   const element = PISTOL_SKILL_ELEMENTS[Number(skill.id)];
   if (!element) return;
   if (state.pistolBullets[element] && !PISTOL_NO_CONSUME.has(Number(skill.id))) {

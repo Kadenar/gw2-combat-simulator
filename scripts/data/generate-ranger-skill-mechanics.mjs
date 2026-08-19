@@ -87,15 +87,19 @@ async function fetchJson(url) {
   const response = await fetch(url, {
     headers: { 'User-Agent': 'gw2-combat-simulator/2.0 Ranger generator' }
   });
+
   if (!response.ok) throw new Error(`${response.status} ${url}`);
+
   return response.json();
 }
 
 async function fetchMany(endpoint, ids) {
   const result = [];
+
   for (let index = 0; index < ids.length; index += 100) {
     result.push(...(await fetchJson(`${API_ROOT}/${endpoint}?ids=${ids.slice(index, index + 100).join(',')}&lang=en`)));
   }
+
   return result;
 }
 
@@ -111,21 +115,27 @@ function constantName(value) {
 function stableKeys(entries) {
   const used = new Set();
   const result = new Map();
+
   for (const skill of entries) {
     const base = constantName(skill.name);
     const key = used.has(base) ? `${base}_ID_${skill.id}` : base;
+
     used.add(base);
     result.set(skill.id, key);
   }
+
   return result;
 }
 
 function activationFromWikitext(wikitext, skillId) {
   const infobox = String(wikitext || '').match(/\{\{Skill infobox[\s\S]*?\n\}\}/i)?.[0] || '';
+
   if (!infobox) return 0;
   const ids = infobox.match(/^\|\s*id\s*=\s*([^\n]+)/im)?.[1] || '';
+
   if (ids && !ids.match(new RegExp(`(^|\\D)${skillId}(\\D|$)`))) return 0;
   const raw = infobox.match(/^\|\s*activation\s*=\s*([0-9.]+)/im)?.[1];
+
   return raw ? Math.round(Number(raw) * 1000) : 0;
 }
 
@@ -137,8 +147,10 @@ async function wikiActivation(skill) {
     formatversion: '2',
     page: skill.name
   });
+
   try {
     const result = await fetchJson(`${WIKI_API}?${query}`);
+
     return activationFromWikitext(result.parse?.wikitext, skill.id);
   } catch {
     return 0;
@@ -148,23 +160,28 @@ async function wikiActivation(skill) {
 async function mapConcurrent(values, limit, callback) {
   const output = new Array(values.length);
   let next = 0;
+
   await Promise.all(
     Array.from({ length: limit }, async () => {
       while (next < values.length) {
         const index = next++;
+
         output[index] = await callback(values[index]);
       }
     })
   );
+
   return output;
 }
 
 function effectsFor(skill, petSkill) {
   const effects = [];
   const actor = petSkill ? { source: 'ranger-pet', actorType: 'summon' } : {};
+
   for (const fact of skill.facts || []) {
     if (fact.type === 'Damage' && Number(fact.dmg_multiplier) > 0) {
       const hits = Math.max(1, Number(fact.hit_count || 1));
+
       effects.push({
         type: 'strike',
         coefficient: Number(fact.dmg_multiplier) * hits,
@@ -194,6 +211,7 @@ function effectsFor(skill, petSkill) {
       effects.push({ type: 'control', ...actor });
     }
   }
+
   return effects;
 }
 
@@ -201,10 +219,15 @@ function ownerOf(skill, petIds) {
   if (petIds.has(skill.id) || skill.type === 'Weapon' || !skill.specialization) {
     if (skill.type !== 'Profession') return 'Core';
   }
+
   if ([31869, 31411].includes(skill.id)) return 'Druid';
+
   if ([63094, 63147, 63209, 63258, 63344].includes(skill.id)) return 'Untamed';
+
   if ([76787, 77213].includes(skill.id)) return 'Galeshot';
+
   if (skill.type === 'Profession') return 'Soulbeast';
+
   return skill.specialization || 'Core';
 }
 
@@ -356,8 +379,10 @@ function normalizeCastTiming(mechanics) {
 
   const castTimeMs = Number(mechanics.castTimeMs);
   const quicknessCastTimeMs = Number(mechanics.quicknessCastTimeMs);
+
   if (castTimeMs === quicknessCastTimeMs) {
     const { quicknessCastTimeMs: _quicknessCastTimeMs, ...normalized } = mechanics;
+
     return castTimeMs > 0 ? { ...normalized, unaffectedByQuickness: true } : normalized;
   }
 
@@ -365,6 +390,7 @@ function normalizeCastTiming(mechanics) {
   const scaleTiming = (value) => Number((Number(value) * scale).toFixed(12));
   const effects = mechanics.effects?.map((effect) => {
     if (effect.timingScale !== 'cast') return effect;
+
     return {
       ...effect,
       ...(Array.isArray(effect.ticks)
@@ -382,6 +408,7 @@ function normalizeCastTiming(mechanics) {
     };
   });
   const { castTimeMs: _castTimeMs, ...normalized } = mechanics;
+
   return effects ? { ...normalized, effects } : normalized;
 }
 
@@ -400,6 +427,7 @@ for (const identity of identities) {
     ...(petSkill ? { petSkill: true } : {}),
     ...(overrides.get(identity.id) || {})
   });
+
   declarations[ownerOf(identity, petSet)].push({
     key: keyById.get(identity.id),
     mechanics
@@ -420,6 +448,7 @@ const directories = {
   Untamed: 'specializations/untamed',
   Galeshot: 'specializations/galeshot'
 };
+
 for (const [owner, entries] of Object.entries(declarations)) {
   const importPath = owner === 'Core' ? '../data/ids.js' : '../../data/ids.js';
   const typePath = owner === 'Core' ? '../../../platform/engine/types.js' : '../../../../platform/engine/types.js';
@@ -519,6 +548,7 @@ ${entries.map((entry) => `  [ID.${entry.key}]: ${JSON.stringify(entry.mechanics,
 });${extraSource}
 `;
   const target = fileURLToPath(new URL(`../../js/professions/ranger/${directories[owner]}/skills.ts`, import.meta.url));
+
   await writeFile(target, source, 'utf8');
   console.log(`Wrote ${entries.length} ${owner} Ranger skill mechanics.`);
 }

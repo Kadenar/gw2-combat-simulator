@@ -20,6 +20,7 @@ import { decompressEvtcInput } from '../../dist/js/evtc-analyzer/decompression.j
 import { parseEvtc } from '../../dist/js/evtc-analyzer/parser.js';
 
 const input = process.argv[2];
+
 if (!input) {
   console.error(
     'Usage: npm run build && node scripts/analysis/analyze-evtc.mjs ' +
@@ -80,6 +81,7 @@ const report = {
         debugEvents: log.events
           .filter((event) => {
             const name = skillNames.get(event.skillId) || '';
+
             return (
               debugSkillIds.has(event.skillId) ||
               debugStateChanges.has(event.stateChange) ||

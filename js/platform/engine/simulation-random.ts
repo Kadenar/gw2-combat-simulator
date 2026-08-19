@@ -36,6 +36,7 @@ function streamSeed(seed: number, stream: string): number {
     hash ^= character.codePointAt(0) ?? 0;
     hash = Math.imul(hash, 0x01000193) >>> 0;
   }
+
   return hash;
 }
 

@@ -21,5 +21,6 @@ export function darkBarrage(context: NecromancerCastContext, skill: NecromancerS
       at: at + index * interval
     });
   }
+
   return true;
 }

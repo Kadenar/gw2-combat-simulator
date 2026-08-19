@@ -19,6 +19,7 @@ function catalystPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
   if (skill.skillFamily !== 'Jade Sphere') {
     return { available: true, message: '' };
   }
+
   const state = uiState(context);
   const build = context.build as SchedulerRecord | undefined;
   const energy = Number(state.energy ?? build?.initialCatalystEnergy ?? CATALYST_MAXIMUM_ENERGY);

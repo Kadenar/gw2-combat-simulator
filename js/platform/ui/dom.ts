@@ -27,6 +27,7 @@ export function requiredInput(id: string): HTMLInputElement {
   if (!(element instanceof HTMLInputElement)) {
     throw new TypeError(`Element #${id} must be an <input>.`);
   }
+
   return element;
 }
 
@@ -44,6 +45,7 @@ export function requiredSelect(id: string): HTMLSelectElement {
   if (!(element instanceof HTMLSelectElement)) {
     throw new TypeError(`Element #${id} must be a <select>.`);
   }
+
   return element;
 }
 
@@ -61,6 +63,7 @@ export function requiredValueControl(id: string): HTMLInputElement | HTMLSelectE
   if (!(element instanceof HTMLInputElement) && !(element instanceof HTMLSelectElement)) {
     throw new TypeError(`Element #${id} must expose a value.`);
   }
+
   return element;
 }
 

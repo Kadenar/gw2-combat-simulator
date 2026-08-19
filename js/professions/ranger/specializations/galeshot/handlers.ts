@@ -84,6 +84,7 @@ export const galeshotSkillHandlers = Object.freeze({
           state.windForce + Number(skill.windForceGain || 0)
         );
       }
+
       applyGaleshotCycloneBowTraits(context, skill);
       // Wind Force is gained partway through the cast (windForceApplyMs), not
       // at cast-end; Hawkeye emits at start because it resets WF before firing.

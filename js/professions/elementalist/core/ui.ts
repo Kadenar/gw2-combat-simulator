@@ -154,6 +154,7 @@ function paletteWeaponSkills(context: SchedulerRecord, skills: readonly Skill[])
   if (!explosion || !ELEMENTALIST_ATTUNEMENTS.every((element) => displayedPistolBullets(context)[element])) {
     return ordinarySkills;
   }
+
   const primaryAttunement = String(
     state.primaryAttunement || (context.build as SchedulerRecord | undefined)?.startAttunement || 'Fire'
   );
@@ -176,6 +177,7 @@ function updatePaletteControl(context: SchedulerRecord, controlId: string): bool
   if (!ELEMENTALIST_ATTUNEMENTS.includes(element as ElementalistAttunement)) {
     return false;
   }
+
   const build = context.build as SchedulerRecord | undefined;
   if (!build) return false;
   const configured = configuredPistolBullets(context);
@@ -193,6 +195,7 @@ function elementalistWeaponSkillMatchesSet(
   if (String(skill.attunement || '').includes('+') && !usesDualAttunements(context)) {
     return false;
   }
+
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }
 
@@ -244,6 +247,7 @@ function elementalistPaletteGroups(context: SchedulerRecord): ProfessionPaletteG
       includeActionSkills: true
     });
   }
+
   const pistolBullets = pistolBulletPaletteGroup(context);
   if (pistolBullets) groups.push(pistolBullets);
   return groups;
@@ -306,6 +310,7 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
   if (skill.skillFamily === 'Familiar') {
     return { available: true, message: '' };
   }
+
   const hasActiveHammerOrb = Object.values(state.hammerOrbs || {}).some(
     (expiresAt) => expiresAt != null && Number(expiresAt) >= now
   );
@@ -325,6 +330,7 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
       message: 'Grand Finale must consume the active orb before it can be created again.'
     };
   }
+
   // Grand Finale stays in the palette as the shared orb consumer, but cannot
   // be queued after the common orb lifetime has ended.
   if (skill.name === 'Grand Finale' && !hasActiveHammerOrb) {
@@ -333,6 +339,7 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
       message: 'Requires at least one active hammer orb.'
     };
   }
+
   if (skill.name === 'Elemental Explosion') {
     const bullets = displayedPistolBullets(context);
     const available = ELEMENTALIST_ATTUNEMENTS.every((element) => bullets[element]);
@@ -343,6 +350,7 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
       };
     }
   }
+
   const primary = String(
     state.primaryAttunement || (context.build as SchedulerRecord | undefined)?.startAttunement || 'Fire'
   );
@@ -361,6 +369,7 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
         message: `Cast ${expectedSkill?.name || 'the earlier chain skill'} first.`
       };
     }
+
     if (
       state.autoattackCarryover?.root === position.root &&
       state.autoattackCarryover.attunement === skill.attunement
@@ -368,6 +377,7 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
       return { available: true, message: '' };
     }
   }
+
   const attunement = String(skill.attunement || '');
   // Only the four attunement-swap actions use this branch; Tempest overloads
   // share the Attunement family tag but have their own availability rules.
@@ -376,6 +386,7 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
     if (!ELEMENTALIST_ATTUNEMENTS.includes(target as ElementalistAttunement)) {
       return { available: false, message: 'Unknown attunement.' };
     }
+
     const alreadyAttuned = target === primary && (!usesDualAttunements(context) || target === secondary);
     if (alreadyAttuned) {
       return {
@@ -383,14 +394,17 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
         message: `Already attuned to ${target}.`
       };
     }
+
     // Recharge is represented by the scheduler's normal cooldown projection.
     // Keep the action contextually available so palette clicks can queue it;
     // the scheduler will delay the swap until its retry time.
     return { available: true, message: '' };
   }
+
   if (!attunement) {
     return { available: true, message: '' };
   }
+
   const required = attunement.split('+');
   if (skill.type !== 'Weapon') {
     const available = required.length === 1 && required[0] === primary;
@@ -399,6 +413,7 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
       message: available ? '' : `Requires ${attunement} attunement.`
     };
   }
+
   const slot = Number(String(skill.slot || '').match(/(\d+)$/)?.[1] || 0);
   const dualAttunement = usesDualAttunements(context);
   const unravelActive = Number(state.unravelUntil || 0) > Number(context.time || 0);
@@ -435,6 +450,7 @@ function eventLogRow(
       flags: []
     };
   }
+
   if (event.type === 'elementalist.aura') {
     return {
       type: event.type,
@@ -444,6 +460,7 @@ function eventLogRow(
       flags: []
     };
   }
+
   if (
     event.type === 'combo_field' ||
     event.type === 'combo' ||
@@ -454,6 +471,7 @@ function eventLogRow(
   ) {
     return null;
   }
+
   return undefined;
 }
 
@@ -464,11 +482,13 @@ function timelineWeaponLineTransition(context: SchedulerRecord): string | undefi
     const secondary = currentAttunement(context, 'secondaryAttunement');
     return `${primary[0]}/${secondary[0]}`;
   }
+
   const skill = context.skill as Skill | undefined;
   const target = skill ? skill.name.replace(/ Attunement$/, '') : '';
   if (skill?.skillFamily !== 'Attunement' || !ELEMENTALIST_ATTUNEMENTS.includes(target as ElementalistAttunement)) {
     return undefined;
   }
+
   if (!usesDualAttunements(context)) return target;
 
   const build = context.build as SchedulerRecord | undefined;

@@ -16,13 +16,16 @@ export function isMesmerBuildSkillAvailable(
   if (skill.id < 0) {
     return !skill.specialization || skill.specialization === config.specialization;
   }
+
   if (skill.environment !== 'Terrestrial') return false;
   if (skill.type === 'Profession') {
     return (MECHANIC_SKILLS[config.specialization] || []).includes(skill.id);
   }
+
   if (skill.specialization && skill.type !== 'Weapon' && skill.specialization !== config.specialization) {
     return false;
   }
+
   if (
     skill.specialization &&
     skill.type === 'Weapon' &&
@@ -31,6 +34,7 @@ export function isMesmerBuildSkillAvailable(
   ) {
     return false;
   }
+
   return true;
 }
 

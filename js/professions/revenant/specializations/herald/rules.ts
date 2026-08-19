@@ -55,9 +55,11 @@ function observeHeraldEvent(context: RevenantSchedulerContext, event: RevenantSi
   ) {
     return;
   }
+
   if (hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
     emitLegendInvocationProfile(context, HERALD_SPIRIT_BOON_PROFILE_ID, event.at, TRAIT.SPIRIT_BOON);
   }
+
   if (!hasRevenantTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
   emitLegendInvocationSkill(context, ID.CALL_OF_THE_DRAGON, event.at, TRAIT.SONG_OF_THE_MISTS);
 }

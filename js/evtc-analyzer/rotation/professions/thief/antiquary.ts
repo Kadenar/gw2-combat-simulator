@@ -79,6 +79,7 @@ function canachCoinTossActions(
   ) {
     return [];
   }
+
   if (
     actions.some(
       (action) =>
@@ -90,6 +91,7 @@ function canachCoinTossActions(
   ) {
     return [];
   }
+
   const flawless = actions
     .filter(
       (action) =>
@@ -106,6 +108,7 @@ function canachCoinTossActions(
     if (inferred.some((action) => Math.abs(action.start - time) <= SIGNAL_WINDOW_MS)) {
       return;
     }
+
     inferred.push({
       ...canonicalAction(eventIndex, time, CANACH_COIN_TOSS, CANACH_COIN_TOSS.skillId, 'resource-inference'),
       doubleEdgeOutcome
@@ -129,13 +132,16 @@ function canachCoinTossActions(
       chains.push(chain);
       chain = [];
     }
+
     chain.push(action);
   }
+
   if (chain.length) chains.push(chain);
   for (const burst of chains) {
     if (burst.length < 4 || burst[0].start <= (followUp?.start ?? openingTime)) {
       continue;
     }
+
     for (const action of burst.slice(2, 4)) {
       add(action.start, action.eventIndex - 0.1, 'backfire');
     }
@@ -155,6 +161,7 @@ function canachCoinTossActions(
   if (lateFlawless) {
     add(lateFlawless.start, lateFlawless.eventIndex - 0.1, 'backfire');
   }
+
   return inferred;
 }
 

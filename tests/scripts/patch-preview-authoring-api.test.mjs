@@ -37,6 +37,7 @@ test('patch authoring validation dispatches each profession patch', () => {
         },
         validatePatch: (patch) => {
           validatedPatches.push(patch);
+
           return true;
         }
       }

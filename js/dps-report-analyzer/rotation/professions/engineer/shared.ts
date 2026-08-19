@@ -145,6 +145,7 @@ export function reconstructEngineerDependencies(
         lastKitEquip = null;
         continue;
       }
+
       if (activeKit) {
         const stow = kitStow(context, activeKit, action);
         if (stow) result.push(stow);
@@ -166,6 +167,7 @@ export function reconstructEngineerDependencies(
           inferredOpeningMine = true;
         }
       }
+
       result.push(action.rawSkillId < 0 ? { ...action, canonicalSkillId: 6162, canonicalName: 'Detonate' } : action);
       mineArmed = false;
       continue;
@@ -175,5 +177,6 @@ export function reconstructEngineerDependencies(
     if (actionName === 'throw mine') mineArmed = true;
     lastKitEquip = null;
   }
+
   return result.sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
 }

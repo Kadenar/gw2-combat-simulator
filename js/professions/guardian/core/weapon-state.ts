@@ -68,6 +68,7 @@ export function updateWeaponCastState(context: GuardianCastContext, skill: Guard
       professionCoreState(context).availableFlips[flip.id] = context.effectiveEnd + duration;
     }
   }
+
   if (skill.flipParentId != null) {
     delete professionCoreState(context).availableFlips[skill.id];
   }

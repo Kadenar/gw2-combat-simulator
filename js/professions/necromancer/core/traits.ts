@@ -98,6 +98,7 @@ export function applyTraitCondition(
   } else {
     enqueueOrdered(context.queue, application);
   }
+
   context.recordProc?.('trait', name, event.at, event.skillName);
 }
 
@@ -183,6 +184,7 @@ export function reactToNecromancerCoreDamage(
   if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) {
     return;
   }
+
   const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
   const firstHit = Number(event.hitIndex || 1) === 1;
   const shroudSkillOne = skill?.shroudSlot === 1 || event.necromancerShroudSkillOne === true;
@@ -203,6 +205,7 @@ export function reactToNecromancerCoreDamage(
     });
     context.recordProc?.('trait', "Reaper's Might", event.at, event.skillName);
   }
+
   if (
     hasTrait(context, TRAIT.SIPHONED_POWER) &&
     targetBelowHalfHealth(context) &&
@@ -226,12 +229,14 @@ export function reactToNecromancerCoreDamage(
     });
     context.recordProc?.('trait', 'Siphoned Power', event.at, event.skillName);
   }
+
   if (hasTrait(context, TRAIT.SPITEFUL_FORTITUDE) && event.actorType === 'player' && targetBelowHalfHealth(context)) {
     professionCoreState(context).spitefulFortitudeLifeForce =
       Number(professionCoreState(context).spitefulFortitudeLifeForce || 0) +
       Number(necromancerBalanceProfile(context, PROFILE.spitefulFortitude)?.lifeForceGain || 1) *
         (hasTrait(context, TRAIT.GLUTTONY) ? 1.1 : 1);
   }
+
   if (
     hasTrait(context, TRAIT.CHILL_OF_DEATH) &&
     targetBelowHalfHealth(context) &&
@@ -270,6 +275,7 @@ export function reactToNecromancerCoreDamage(
       duration: Number(balanceProfileEffect(profile, 'condition')?.duration || 5)
     });
   }
+
   if (hasTrait(context, TRAIT.DHUUMFIRE) && shroudSkillOne) {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.dhuumfire), 'condition');
     const interval = Number(event.dhuumfireInterval || 0);
@@ -282,6 +288,7 @@ export function reactToNecromancerCoreDamage(
       if (interval > 0) {
         professionCoreState(context).traitProcReadyAt.dhuumfire = event.at + interval;
       }
+
       applyTraitCondition(details, context, event, {
         name: 'Dhuumfire',
         traitId: TRAIT.DHUUMFIRE,
@@ -291,6 +298,7 @@ export function reactToNecromancerCoreDamage(
       });
     }
   }
+
   if (hasTrait(context, TRAIT.UNYIELDING_BLAST) && firstHit && shroudSkillOne) {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.unyieldingBlast), 'buff');
     applyTraitVulnerability(context, event, {
@@ -300,6 +308,7 @@ export function reactToNecromancerCoreDamage(
       duration: Number(effect?.duration || 10)
     });
   }
+
   necromancerBarbedPrecisionReaction.handler(context, event, details);
   if (
     hasTrait(context, TRAIT.VAMPIRIC_PRESENCE) &&
@@ -315,6 +324,7 @@ export function reactToNecromancerCoreDamage(
       flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff || 0.03)
     });
   }
+
   if (hasTrait(context, TRAIT.OVERFLOWING_THIRST) && hasActiveBuff(context, 'taste-for-blood', event.at)) {
     queueTraitDamage(context, event, {
       name: 'Taste for Blood',
@@ -367,6 +377,7 @@ export function reactToNecromancerCoreCondition(
       event.at + Number(event.effectiveDuration ?? event.duration ?? 0)
     );
   }
+
   if (event.actorType !== 'summon' && hasTrait(context, TRAIT.CORRUPTERS_FERVOR)) {
     addCarapace(professionCoreState(context), 1, event.at);
   }
@@ -417,6 +428,7 @@ export function reactToNecromancerCoreControl(
       });
     }
   }
+
   if (hasTrait(context, TRAIT.INSIDIOUS_DISRUPTION)) {
     const effect = balanceProfileEffect(necromancerBalanceProfile(context, PROFILE.insidiousDisruption), 'condition');
     applyTraitCondition(details, context, event, {

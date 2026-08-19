@@ -82,6 +82,7 @@ function renewedFocus(context: GuardianCastContext, skill: GuardianSkill): boole
   )) {
     context.state.cooldowns.delete(virtue.id);
   }
+
   emitGuardianEvent(context, skill, 'guardian.virtues-refreshed');
   return true;
 }
@@ -192,6 +193,7 @@ export function reactToJusticeHit(
   if (runtime.specialization?.kind && runtime.specialization.kind !== 'Core') {
     return;
   }
+
   reactToJusticeHitWithOptions(context, event, { hitContext, applyCondition });
 }
 

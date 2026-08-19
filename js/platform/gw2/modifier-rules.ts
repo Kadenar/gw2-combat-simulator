@@ -129,6 +129,7 @@ function normalizeResolver(
   if (!(field in rule)) {
     throw ruleError(rule.id, `${field} is required.`);
   }
+
   const resolver = rule[field];
   // Numeric callbacks are retained and validated again when invoked because
   // their result can depend on timestamp-specific combat context.
@@ -136,6 +137,7 @@ function normalizeResolver(
   if (typeof resolver !== 'number' || !Number.isFinite(resolver) || (positive && !(resolver > 0))) {
     throw ruleError(rule.id, `${field} must be ${positive ? 'a positive ' : 'a '}finite number or function.`);
   }
+
   return resolver;
 }
 
@@ -144,16 +146,20 @@ function normalizeParameters(rule: Gw2ModifierRule): Readonly<Record<string, num
   if (!rule.parameters || typeof rule.parameters !== 'object' || Array.isArray(rule.parameters)) {
     throw ruleError(rule.id, 'parameters must be an object.');
   }
+
   const parameters: Record<string, number> = {};
   for (const [name, value] of Object.entries(rule.parameters)) {
     if (!name.trim()) {
       throw ruleError(rule.id, 'parameter names must not be empty.');
     }
+
     if (typeof value !== 'number' || !Number.isFinite(value)) {
       throw ruleError(rule.id, `parameter ${name} must be a finite number.`);
     }
+
     parameters[name] = value;
   }
+
   return Object.freeze(parameters);
 }
 
@@ -169,13 +175,16 @@ function normalizeTargets(rule: Gw2ModifierRule): readonly Gw2ModifierTarget[] {
   if (!declared.length) {
     throw ruleError(rule.id, 'target must not be an empty array.');
   }
+
   const targets: Gw2ModifierTarget[] = [];
   for (const target of declared) {
     if (!TARGETS.has(target)) {
       throw ruleError(rule.id, `unknown target "${String(target)}".`);
     }
+
     if (!targets.includes(target)) targets.push(target);
   }
+
   return Object.freeze(targets);
 }
 
@@ -194,26 +203,32 @@ function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonl
   if (!rule || typeof rule !== 'object' || Array.isArray(rule)) {
     throw ruleError(`<missing at index ${declarationIndex}>`, 'must be an object.');
   }
+
   const id = typeof rule.id === 'string' ? rule.id.trim() : '';
   if (!id) {
     throw ruleError(`<missing at index ${declarationIndex}>`, 'id is required.');
   }
+
   const label = typeof rule.label === 'string' ? rule.label.trim() : '';
   if (Object.hasOwn(rule, 'label') && !label) {
     throw ruleError(id, 'label must be a non-empty string.');
   }
+
   const operation = rule.operation;
   if (typeof operation !== 'string' || !OPERATIONS.has(operation)) {
     throw ruleError(id, `unknown operation "${String(operation || '')}".`);
   }
+
   const targets = normalizeTargets({ ...rule, id });
   if (Object.hasOwn(rule, 'when') && typeof rule.when !== 'function') {
     throw ruleError(id, 'when must be a function.');
   }
+
   const order = Object.hasOwn(rule, 'order') ? rule.order : 0;
   if (typeof order !== 'number' || !Number.isFinite(order)) {
     throw ruleError(id, 'order must be a finite number.');
   }
+
   for (const target of targets) {
     const damageTarget = target === MODIFIER_TARGET.STRIKE_DAMAGE || target === MODIFIER_TARGET.CONDITION_DAMAGE;
     // Damage additions use GW2's shared additive bucket. Plain scalar addition
@@ -221,6 +236,7 @@ function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonl
     if (operation === 'add' && damageTarget) {
       throw ruleError(id, `add is not supported for ${target}.`);
     }
+
     if (operation === 'damage-additive' && !damageTarget) {
       throw ruleError(id, `damage-additive is not supported for ${target}.`);
     }
@@ -241,6 +257,7 @@ function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonl
   if (Object.keys(normalized.parameters).length && typeof resolver !== 'function') {
     throw ruleError(id, 'parameters require a resolver-backed numeric value.');
   }
+
   return Object.freeze({
     ...normalized,
     [field]: resolver
@@ -257,12 +274,14 @@ function normalizeRules(rules: readonly Gw2ModifierRule[]): readonly Readonly<Gw
   if (!Array.isArray(rules)) {
     throw new TypeError('Modifier rules must be an array.');
   }
+
   const ids = new Set<string>();
   const normalized = rules.map((rule, index) => {
     const result = normalizeRule(rule, index);
     if (ids.has(result.id)) {
       throw ruleError(result.id, 'id must be unique.');
     }
+
     ids.add(result.id);
     return result;
   });
@@ -285,6 +304,7 @@ function normalizeBucketPolicies(
   if (damageBuckets == null || typeof damageBuckets !== 'object' || Array.isArray(damageBuckets)) {
     throw new TypeError('Modifier damageBuckets must be an object.');
   }
+
   const policies: Partial<Record<Gw2DamageModifierTarget, Gw2DamageBucketPolicy>> = {};
   for (const target of DAMAGE_TARGETS) {
     if (!Object.hasOwn(damageBuckets, target)) {
@@ -293,21 +313,26 @@ function normalizeBucketPolicies(
       policies[target] = Object.freeze({ includeSigil: true });
       continue;
     }
+
     const declared = damageBuckets[target];
     if (declared == null || typeof declared !== 'object' || Array.isArray(declared)) {
       throw new TypeError(`Modifier bucket policy "${target}" must be an object.`);
     }
+
     const includeSigil = Object.hasOwn(declared, 'includeSigil') ? declared.includeSigil : true;
     if (typeof includeSigil !== 'boolean' && typeof includeSigil !== 'function') {
       throw new TypeError(`Modifier bucket policy "${target}" has an unsupported includeSigil value.`);
     }
+
     policies[target] = Object.freeze({ includeSigil });
   }
+
   for (const target of Object.keys(damageBuckets)) {
     if (!DAMAGE_TARGETS.has(target as Gw2DamageModifierTarget)) {
       throw new TypeError(`Modifier bucket policy has an unsupported target "${target}".`);
     }
   }
+
   return Object.freeze(policies) as Readonly<Record<Gw2DamageModifierTarget, Gw2DamageBucketPolicy>>;
 }
 
@@ -332,6 +357,7 @@ function resolveNumeric(
   if (typeof value !== 'number' || !Number.isFinite(value) || (field === 'factor' && !(value > 0))) {
     throw ruleError(rule.id, `${field} must resolve to ${field === 'factor' ? 'a positive ' : 'a '}finite number.`);
   }
+
   return value;
 }
 
@@ -360,6 +386,7 @@ function createScalarHook(
       } else {
         result *= resolveNumeric(rule, 'factor', context, target);
       }
+
       const contribution = result - previous;
       if (
         target === MODIFIER_TARGET.CRITICAL_CHANCE &&
@@ -381,6 +408,7 @@ function createScalarHook(
         });
       }
     }
+
     return result;
   });
 }
@@ -403,10 +431,12 @@ function createAttributeHook(
             ? value + resolveNumeric(rule, 'amount', context, target)
             : value * resolveNumeric(rule, 'factor', context, target);
       }
+
       if (hadKey || applied) {
         (result as Record<string, unknown>)[key] = value;
       }
     }
+
     return result;
   });
 }
@@ -442,11 +472,13 @@ function createDamageHook(
         multiplicativeFactor *= resolveNumeric(rule, 'factor', context, target);
       }
     }
+
     const includeSigil = typeof policy.includeSigil === 'function' ? policy.includeSigil(context) : policy.includeSigil;
     // Dynamic policies support weapon-set or event-specific sigil inclusion.
     if (typeof includeSigil !== 'boolean') {
       throw new TypeError(`Modifier bucket policy "${target}" includeSigil must resolve to a boolean.`);
     }
+
     return (
       applyAdditiveDamageBucket(context, initialValue, {
         damageType,
@@ -501,6 +533,7 @@ export function createModifierHooks({
   for (const rule of normalizedRules) {
     for (const target of rule.targets) rulesByTarget[target].push(rule);
   }
+
   for (const target of TARGETS) {
     // Stable declaration order is the final tie-breaker for equal rule order.
     rulesByTarget[target].sort(
@@ -508,6 +541,7 @@ export function createModifierHooks({
     );
     Object.freeze(rulesByTarget[target]);
   }
+
   Object.freeze(rulesByTarget);
 
   const hooks: {
@@ -523,6 +557,7 @@ export function createModifierHooks({
       hooks[hook] = createScalarHook(rulesByTarget[target], target);
     }
   }
+
   hooks.modifyAttributes = createAttributeHook(rulesByTarget);
   return Object.freeze(hooks) as Readonly<Gw2ModifierHooks>;
 }

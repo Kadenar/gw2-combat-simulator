@@ -57,6 +57,7 @@ export function guardianEventLogRow(
   if (event.type === 'guardian.righteous-instincts-tick' || event.type === 'guardian.symbol-of-ignition-field') {
     return null;
   }
+
   const base = {
     type: event.type,
     className: 'resource',
@@ -69,9 +70,11 @@ export function guardianEventLogRow(
       description: `VIRTUE ACTIVATED ${event.skillName || event.virtue || 'Unknown'}`
     };
   }
+
   if (event.type === 'guardian.virtues-refreshed') {
     return { ...base, description: 'VIRTUES REFRESHED' };
   }
+
   return undefined;
 }
 

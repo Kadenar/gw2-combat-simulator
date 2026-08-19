@@ -42,6 +42,7 @@ export function createGw2EventPreparer(): Readonly<Gw2EventPreparer> {
         boonAudienceResolved: true
       };
     }
+
     const coefficientBasedDamage = isCoefficientBasedDamage(event);
     if (!coefficientBasedDamage && event.type !== 'action') return event;
 

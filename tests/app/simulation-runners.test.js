@@ -8,6 +8,7 @@ import { RelicComparisonRunner } from '../../js/app/simulation/relic-comparison-
 function runTimersImmediately(t) {
   t.mock.method(globalThis, 'setTimeout', (callback) => {
     callback();
+
     return 0;
   });
 }
@@ -45,6 +46,7 @@ test('modifier fallback clears stale state when calculation fails', (t) => {
 test('RNG worker errors preserve the ErrorEvent cause', (t) => {
   runTimersImmediately(t);
   const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+
   t.after(() => {
     if (workerDescriptor) {
       Object.defineProperty(globalThis, 'Worker', workerDescriptor);
@@ -132,12 +134,14 @@ test('relic comparison scheduling publishes availability without simulating', ()
       },
       simulateBuild() {
         simulated += 1;
+
         return minimalResult(4000);
       },
       renderResults() {}
     }
   };
   const runner = new RelicComparisonRunner(app);
+
   runner.schedule();
   assert.equal(results.relicComparisonAvailable, true);
   assert.equal(results.relicComparisonOpponent, 'Fractal');
@@ -164,6 +168,7 @@ test('relic comparison run simulates Thorns once and stores the break-even model
       },
       simulateBuild(_rotation, config) {
         simulatedRelics.push(config.relic);
+
         return minimalResult(4200);
       },
       renderResults() {
@@ -172,6 +177,7 @@ test('relic comparison run simulates Thorns once and stores the break-even model
     }
   };
   const runner = new RelicComparisonRunner(app);
+
   runner.run();
 
   assert.deepEqual(simulatedRelics, ['Thorns'], 'exactly one Thorns simulation runs');
@@ -206,6 +212,7 @@ test('relic comparison run surfaces simulation failures', (t) => {
     }
   };
   const runner = new RelicComparisonRunner(app);
+
   runner.run();
 
   assert.equal(results.relicComparisonStale, false);

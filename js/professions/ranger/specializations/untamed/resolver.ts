@@ -122,6 +122,7 @@ function triggerLetLoose(context: RangerResolverContext, event: RangerResolverEv
   ) {
     return;
   }
+
   const activations = untamedState.from(context).letLooseActivations;
   // Each ambush activation grants boons exactly once even if the skill hits multiple times.
   if (activations[event.activationId]) return;
@@ -154,6 +155,7 @@ function triggerBlindingOutburst(context: RangerResolverContext, event: RangerRe
   if (event.skillId !== ID.VENOMOUS_OUTBURST || !hasTrait(context, TRAIT.BLINDING_OUTBURST)) {
     return;
   }
+
   const blindness = profileEffect(context, PROFILE.blindingOutburst, 'condition');
   queueTraitCondition(
     context,
@@ -174,6 +176,7 @@ export function reactToUntamedDamage(context: RangerResolverContext, event: Rang
   ) {
     return;
   }
+
   triggerBlindingOutburst(context, event);
   triggerFerociousSymbiosis(context, event);
   // Let Loose is player-only; pet hits cannot trigger it.
@@ -211,6 +214,7 @@ export function reactToUntamedControl(context: RangerResolverContext, event: Ran
       );
     }
   }
+
   if (hasTrait(context, TRAIT.ENHANCING_IMPACT) && event.at + epsilon(context) >= state.enhancingImpactReadyAt) {
     const profile = rangerBalanceProfile(context, PROFILE.enhancingImpact);
     const effect = rangerBalanceProfileEffect(profile, 'boon', state.rangerUnleashed ? 0 : 1);

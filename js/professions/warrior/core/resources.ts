@@ -47,6 +47,7 @@ export function gainWarriorAdrenaline(context: WarriorSchedulerContext, amount: 
     state.flow = Math.min(state.maximumFlow, state.flow + Math.max(0, Number(amount || 0)));
     return;
   }
+
   const state = professionCoreState(context);
   state.adrenaline += Math.max(0, Number(amount || 0));
   syncWarriorAdrenaline(context);
@@ -57,6 +58,7 @@ export function spendWarriorAdrenaline(context: WarriorCastContext, skill: Warri
   if (!skill.burst && !['warrior.berserk', 'warrior.full-counter', 'warrior.chant'].includes(String(skill.handlerId))) {
     return 0;
   }
+
   const available = Number(state.adrenaline || 0);
   const requested = Number(skill.adrenalineCost || 0);
   const spend =
@@ -79,6 +81,7 @@ export function applyWarriorSkillResource(context: WarriorCastContext, skill: Wa
   if (Number(skill.adrenalineGain || 0) > 0) {
     gainWarriorAdrenaline(context, Number(skill.adrenalineGain));
   }
+
   return spent;
 }
 

@@ -173,6 +173,7 @@ function previewItem(document: Document, label: string, detail: string, icon?: s
   } else {
     visual.className = 'build-template-preview-item-placeholder';
   }
+
   const copy = document.createElement('div');
   const name = document.createElement('span');
   const description = document.createElement('small');
@@ -244,6 +245,7 @@ export function bindBuildTemplateImportDialog(app: ProfessionAppState, button: H
     elements.error.hidden = true;
     elements.switchProfession.hidden = true;
   };
+
   const showError = (error: unknown): void => {
     activePreview = null;
     elements.applyButton.disabled = true;
@@ -258,6 +260,7 @@ export function bindBuildTemplateImportDialog(app: ProfessionAppState, button: H
       elements.switchProfession.hidden = true;
     }
   };
+
   const previewCode = (): void => {
     try {
       activePreview = previewBuildTemplateCode(app, elements.code.value);
@@ -293,6 +296,7 @@ export function bindBuildTemplateImportDialog(app: ProfessionAppState, button: H
   for (const closeButton of elements.closeButtons) {
     closeButton.addEventListener('click', () => elements.dialog.close());
   }
+
   elements.dialog.addEventListener('click', (event) => {
     if (event.target === elements.dialog) elements.dialog.close();
   });

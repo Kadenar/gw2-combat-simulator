@@ -46,6 +46,7 @@ function observeDeclarativeEffect(
     });
     return;
   }
+
   if (event.type === 'condition') {
     const condition = conditionName(event.condition);
     context.replaceEvent(event, {

@@ -139,6 +139,7 @@ export function advanceFirebrandMantras(context: GuardianSchedulerContext, targe
     if (readyAt > 0 && readyAt <= target + context.epsilon && context.state.cooldowns.has(definition.rootId)) {
       armMantra(context, definition, readyAt);
     }
+
     syncMantraFlip(context, definition, target);
   }
 }
@@ -177,6 +178,7 @@ export function firebrandMantraAvailability(
       reason: `${skill.name} is unavailable until ${definition.rootName} is prepared.`
     };
   }
+
   // The flip being absent means this specific charge variant (normal vs. final)
   // is not the one currently available; no retry time because the scheduler
   // already controls which flip is live.
@@ -199,11 +201,13 @@ export function completeFirebrandMantra(context: GuardianCastContext, skill: Gua
     armMantra(context, root, context.effectiveEnd);
     return;
   }
+
   const normal = MANTRA_BY_NORMAL_ID.get(Number(skill.id));
   if (normal) {
     syncMantraFlip(context, normal, context.effectiveEnd);
     return;
   }
+
   const final = MANTRA_BY_FINAL_ID.get(Number(skill.id));
   if (final) startFullRecharge(context, final, context.effectiveEnd);
 }

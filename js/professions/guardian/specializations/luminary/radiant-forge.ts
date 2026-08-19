@@ -79,12 +79,15 @@ export function validateRadiantForgeCast(context: GuardianPrecastContext, skill:
   if (skill.type === 'Weapon' && luminaryState.from(context).radiantForge) {
     return false;
   }
+
   if (skill.radiantForgeSkill) {
     return Boolean(luminaryState.from(context).radiantForge);
   }
+
   if (skill.name === 'Enter Radiant Forge') {
     return selectedGuardianSpecialization(context) === 'Luminary' && !luminaryState.from(context).radiantForge;
   }
+
   if (skill.name === 'Exit Radiant Forge') {
     return selectedGuardianSpecialization(context) === 'Luminary' && luminaryState.from(context).radiantForge;
   }
@@ -106,6 +109,7 @@ function radiantForge(context: GuardianCastContext, skill: GuardianSkill): boole
     // separately via advanceRadiantForgeState, so it must not be called twice.
     finalizeRadiantForgeCooldown(context, context.effectiveEnd);
   }
+
   state.radiantForge = entering;
   state.radiantForgeEndsAt = entering
     ? context.effectiveEnd +
@@ -119,6 +123,7 @@ function radiantForge(context: GuardianCastContext, skill: GuardianSkill): boole
   if (entering) {
     state.radiantWeaponsUsed = {};
   }
+
   if (!entering) professionCoreState(context).availableFlips = {};
   emitGuardianEvent(context, skill, entering ? 'guardian.radiant-forge-entered' : 'guardian.radiant-forge-exited', {
     radiantForge: state.radiantForge,
@@ -148,6 +153,7 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
     handleRadiantWeaponEquipped(context, skill);
     emitForgeWeaponSwap(context, skill);
   }
+
   if (skill.id === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER && luminaryState.from(context).radiantJusticeArmed) {
     const profile = guardianBalanceProfile(context, PROFILE.radiantJusticeImpact);
     const strike = guardianBalanceProfileEffect(profile, 'strike');
@@ -177,6 +183,7 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
       duration: Number(vulnerability?.duration || 8)
     });
   }
+
   if (skill.id === GUARDIAN_SKILL_IDS.GLEAMING_BLADE && luminaryState.from(context).radiantCourageSwordArmed) {
     luminaryState.from(context).radiantCourageSwordArmed = false;
     context.emit({
@@ -196,9 +203,11 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): bool
       duration: 0.001
     });
   }
+
   if (skill.id === GUARDIAN_SKILL_IDS.RADIANT_BULWARK && luminaryState.from(context).radiantCourageShieldArmed) {
     luminaryState.from(context).radiantCourageShieldArmed = false;
   }
+
   return false;
 }
 
@@ -346,6 +355,7 @@ export function advanceRadiantForgeState(context: GuardianSchedulerContext, targ
         automatic: true
       });
     }
+
     state.radiantForge = false;
     state.radiantForgeEndsAt = 0;
     state.radiantForgeEnteredAt = 0;

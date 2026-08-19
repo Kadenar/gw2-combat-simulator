@@ -13,6 +13,7 @@ export function thiefWeaponSkillMatchesSet(
   if (skill.stealthAttack && Boolean(skill.malicious) !== Boolean(professionState.usesMaliciousStealthAttacks)) {
     return false;
   }
+
   if (
     skill.weapon === 'Rifle' &&
     !skill.stealthAttack &&
@@ -34,6 +35,7 @@ export function thiefWeaponSkillMatchesSet(
         (skill.requiredOffHand === false ? !offHand : skill.requiredOffHand === offHand))
     );
   }
+
   const primary = pair[0] || '';
   const wielding = context.weaponData?.[primary]?.wielding || context.catalog?.weaponHands?.get(primary);
   if (wielding === '2h') return skill.weapon === pair[0];

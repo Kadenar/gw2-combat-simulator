@@ -107,6 +107,7 @@ test('Warrior catalog pins the API snapshot and all elite specializations', () =
     ...Object.values(module.data.skillMechanics || {}),
     ...(module.data.extraSkills || [])
   ]);
+
   assert.equal(
     authoredSkills.every((skill) => !Object.hasOwn(skill, 'recharge')),
     true
@@ -136,6 +137,7 @@ test('Warrior catalog pins the API snapshot and all elite specializations', () =
     ID.FEATHERFOOT_GRACE,
     ID.ELECTRIC_FENCE
   ];
+
   assert.equal(
     excludedSkillIds.every((skillId) => warriorCatalog.skillsById.get(skillId).simulatorExcluded),
     true
@@ -144,6 +146,7 @@ test('Warrior catalog pins the API snapshot and all elite specializations', () =
 
 test('Warrior modules expose isolated balance-profile authoring', () => {
   const modules = new Map(warriorProfession.patchAuthoring.modules.map((module) => [module.id, module]));
+
   assert.deepEqual([...modules.keys()], ['Core', 'Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']);
   assert.equal(
     [...modules.values()].every((module) => module.balanceProfiles.length > 0),
@@ -152,6 +155,7 @@ test('Warrior modules expose isolated balance-profile authoring', () => {
 
   const profile = (moduleId, profileId) =>
     modules.get(moduleId).balanceProfiles.find((entry) => entry.id === profileId);
+
   assert.equal(profile('Core', WARRIOR_CORE_BALANCE_PROFILE_IDS.burstTiers).patchableFields.threshold, 20);
   assert.equal(profile('Berserker', BERSERKER_BALANCE_PROFILE_IDS.resources).profile.effects[0].duration, 20);
   assert.equal(profile('Spellbreaker', SPELLBREAKER_BALANCE_PROFILE_IDS.magebaneTether).profile.effects[0].duration, 8);
@@ -165,6 +169,7 @@ test('Warrior modules expose isolated balance-profile authoring', () => {
         Object.keys(rule.parameters).length === 0
     )
   );
+
   assert.deepEqual(opaqueModifierRules, []);
   assert.deepEqual(
     modules.get('Core').modifierRules.find((rule) => rule.id === 'warrior.berserkers-power').parameters,
@@ -203,12 +208,14 @@ test('Warrior modules expose isolated balance-profile authoring', () => {
 
 test('Warrior builds migrate and validate against the canonical catalog', () => {
   const defaults = createWarriorBuildDefaults();
+
   assert.deepEqual(validateWarriorBuild(defaults), { valid: true, errors: [] });
 
   const migrated = migrateWarriorBuild({
     ...defaults,
     initialResource: 500
   });
+
   assert.equal(migrated.initialResource, 100);
   assert.deepEqual(validateWarriorBuild(migrated), {
     valid: true,
@@ -217,6 +224,7 @@ test('Warrior builds migrate and validate against the canonical catalog', () => 
   const chargedRelease = migrateWarriorBuild({
     rotation: [{ name: 'Dragon Slash—Force', releaseAtCharges: 3 }]
   });
+
   assert.equal(chargedRelease.rotation[0].releaseAtCharges, 3);
   assert.equal(validateWarriorBuild(chargedRelease).valid, true);
   assert.match(
@@ -265,6 +273,7 @@ test('Warrior core and elite profession resources remain isolated', () => {
     specialization: 'Bladesworn',
     initialResource: 100
   });
+
   assert.equal(bladeswornCore.adrenaline, 0);
   assert.equal(bladeswornCore.maximumAdrenaline, 0);
 });
@@ -282,6 +291,7 @@ test('Warrior F keys follow the selected primary weapons', () => {
     };
     const paletteGroups = warriorProfession.ui.paletteGroups(context);
     const skillBarGroups = warriorProfession.ui.skillBarGroups(context);
+
     return {
       palette: paletteGroups[0].skillIds,
       paletteGroups,
@@ -291,18 +301,22 @@ test('Warrior F keys follow the selected primary weapons', () => {
   };
 
   const core = groups('Core', ['Axe', 'Axe'], ['Greatsword', '']);
+
   assert.deepEqual(core.palette, [ID.EVISCERATE, ID.ARCING_SLICE]);
   assert.deepEqual(core.skillBar, core.palette);
 
   const berserker = groups('Berserker', ['Axe', 'Axe'], ['Staff', '']);
+
   assert.deepEqual(berserker.palette, [ID.DECAPITATE, ID.RAMPART_SPLITTER, ID.BERSERK]);
   assert.deepEqual(berserker.skillBar, berserker.palette);
 
   const spellbreaker = groups('Spellbreaker', ['Dagger', 'Axe'], ['Hammer', '']);
+
   assert.deepEqual(spellbreaker.palette, [ID.BREACHING_STRIKE, ID.EARTHSHAKER, ID.FULL_COUNTER]);
   assert.deepEqual(spellbreaker.skillBar, spellbreaker.palette);
 
   const paragon = groups('Paragon', ['Staff', ''], ['Spear', '']);
+
   assert.deepEqual(paragon.palette, [
     ID.PATH_TO_VICTORY,
     ID.HARRIERS_TOSS,
@@ -313,9 +327,11 @@ test('Warrior F keys follow the selected primary weapons', () => {
   assert.deepEqual(paragon.skillBar, paragon.palette);
 
   const bladesworn = groups('Bladesworn', ['Axe', 'Axe'], ['Greatsword', '']);
+
   assert.deepEqual(bladesworn.palette, [ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
   assert.deepEqual(bladesworn.skillBar, bladesworn.palette);
   const dragonSlashSkills = [ID.DRAGON_SLASH_FORCE, ID.DRAGON_SLASH_BOOST, ID.DRAGON_SLASH_REACH];
+
   assert.deepEqual(bladesworn.paletteGroups.find((group) => group.id === 'dragon-slash').skillIds, dragonSlashSkills);
   assert.deepEqual(
     bladesworn.skillBarGroups.find((group) => group.id === 'warrior-dragon-slash').skillIds,
@@ -329,6 +345,7 @@ test('Warrior F keys follow the selected primary weapons', () => {
   assert.equal(bladesworn.paletteGroups.find((group) => group.id === 'gunsaber').placement, 'weapon-set-1');
 
   const duplicate = groups('Core', ['Sword', 'Sword'], ['Sword', '']);
+
   assert.deepEqual(duplicate.palette, [ID.BLOODTHIRSTER]);
 });
 
@@ -409,6 +426,7 @@ test('Bladesworn palette availability follows gunsaber and Dragon Trigger state'
   const charging = simulate('Bladesworn', ['Dragon Trigger'], {
     initialResource: 100
   });
+
   assert.equal(charging.endState.profession.dragonTriggerActive, true);
   assert.equal(charging.endState.profession.dragonCharges, 0);
   assert.deepEqual(availability(charging.endState.profession, ID.DRAGON_SLASH_FORCE), { available: true, message: '' });
@@ -419,11 +437,13 @@ test('Dragon Trigger charge time is excluded from timeline dead time', () => {
     initialResource: 100
   });
   const dragonSlashStep = result.steps.find((step) => step.skill === 'Dragon Slash—Force' && !step.invalid);
+
   assert.ok(dragonSlashStep, 'expected a Dragon Slash cast');
 
   const spends = shatterResourceSpends(result);
   const chargingSeconds = spends.get(dragonSlashStep.ri)?.chargingSeconds || 0;
   const chargingMs = Math.round(chargingSeconds * 1000);
+
   assert.ok(chargingMs > 0, 'expected Dragon Slash to spend time charging');
 
   const deadTime = (steps) => timelineDeadTimeMarkers(steps).reduce((total, marker) => total + marker.durationMs, 0);
@@ -431,15 +451,18 @@ test('Dragon Trigger charge time is excluded from timeline dead time', () => {
   // The charge window reads as dead time from the raw steps because the cast
   // bar only starts once the release fires.
   const rawDeadTime = deadTime(result.steps);
+
   assert.ok(rawDeadTime >= chargingMs, 'charge window should read as dead time before the fix');
 
   // Marking the charge window as a partial fill removes exactly that span.
   const chargeAwareDeadTime = deadTime(timelineStepsWithChargeFills(result.steps, spends));
+
   assert.equal(rawDeadTime - chargeAwareDeadTime, chargingMs);
 });
 
 test('Bladesworn gunsaber autos follow the standard autoattack chain display', () => {
   const chain = [ID.SWIFT_CUT, ID.STEEL_DIVIDE, ID.EXPLOSIVE_THRUST];
+
   assert.deepEqual(
     warriorCatalog.autoattackChains.find((candidate) => candidate[0] === ID.SWIFT_CUT),
     chain
@@ -450,6 +473,7 @@ test('Bladesworn gunsaber autos follow the standard autoattack chain display', (
       build: createWarriorBuildDefaults()
     })
     .find((group) => group.id === 'warrior-gunsaber');
+
   assert.deepEqual(
     skillBarInspectionStacks(gunsaberGroup.skillIds.map((skillId) => warriorCatalog.skillsById.get(skillId))).map(
       ({ root, children }) => [root.id, children.map((skill) => skill.id)]
@@ -467,6 +491,7 @@ test('Bladesworn gunsaber autos follow the standard autoattack chain display', (
     const result = simulate('Bladesworn', ['Unsheathe Gunsaber', ...rotation], {
       initialResource: 100
     });
+
     return chain.map((skillId) =>
       autoattackChainSkillAvailable(warriorCatalog.skillsById.get(skillId), result.endState.profession.autoattackChains)
     );
@@ -479,16 +504,19 @@ test('Bladesworn gunsaber autos follow the standard autoattack chain display', (
   assert.deepEqual(displayedSteps(['Swift Cut', 'Blooming Fire']), [true, false, false]);
 
   const skippedFirstStep = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Steel Divide'], { initialResource: 100 });
+
   assert.match(skippedFirstStep.warnings[0], /Cast Swift Cut first/);
 
   const skippedSecondStep = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Swift Cut', 'Explosive Thrust'], {
     initialResource: 100
   });
+
   assert.match(skippedSecondStep.warnings[0], /Cast Steel Divide first/);
 
   const resetChain = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Swift Cut', 'Blooming Fire', 'Steel Divide'], {
     initialResource: 100
   });
+
   assert.match(resetChain.warnings[0], /Cast Swift Cut first/);
 });
 
@@ -499,6 +527,7 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
     professionState: result.endState.profession
   });
   const resource = coreResources.find((view) => view.id === 'adrenaline');
+
   assert.deepEqual(
     coreResources.map((view) => view.id),
     ['adrenaline']
@@ -520,6 +549,7 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
         professionState: { maximumAdrenaline: maximum }
       })
       .find((view) => view.id === 'adrenaline');
+
     assert.equal(specializationResource.barSegments, barSegments);
   }
 
@@ -529,6 +559,7 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
     build: { initialResource: 25 },
     results: result
   });
+
   assert.equal([...resourceHtml.matchAll(/class="active-resource-bar warrior-adrenaline"/g)].length, 3);
   assert.doesNotMatch(resourceHtml, /active-resource-pip/);
   assert.match(resourceHtml, /width:50%/);
@@ -544,6 +575,7 @@ test('Paragon motivation renders as a compact emblem counter', () => {
       professionState: result.endState.profession
     })
     .find((view) => view.id === 'motivation');
+
   assert.equal(motivation.displayMode, 'counter');
   assert.equal(motivation.pipStyle, 'warrior-motivation');
 
@@ -553,15 +585,18 @@ test('Paragon motivation renders as a compact emblem counter', () => {
     build: { initialResource: 10 },
     results: result
   });
+
   assert.match(resourceHtml, /class="active-resource-counter warrior-motivation"[^>]*>[\s\S]*?<span>4<\/span>/);
   assert.doesNotMatch(resourceHtml, /<strong>4\/10<\/strong>/);
 });
 
 test('Core bursts require and consume adrenaline', () => {
   const blocked = simulate('Core', ['Eviscerate'], { initialResource: 0 });
+
   assert.match(blocked.warnings[0], /requires 10 adrenaline/);
 
   const result = simulate('Core', ['Eviscerate'], { initialResource: 30 });
+
   assert.deepEqual(result.warnings, []);
   assert.equal(result.totalDamage > 0, true);
   assert.equal(result.endState.profession.adrenaline < 30, true);
@@ -569,6 +604,7 @@ test('Core bursts require and consume adrenaline', () => {
 
 test('Core Warrior weapon swap toggles the active set', () => {
   const precombat = simulate('Core', ['Swap Weapons', 'Swap Weapons']);
+
   assert.deepEqual(precombat.warnings, []);
   assert.deepEqual(
     precombat.steps.map((step) => step.start),
@@ -578,6 +614,7 @@ test('Core Warrior weapon swap toggles the active set', () => {
   assert.equal(precombat.endState.cooldowns['Swap Weapons'], undefined);
 
   const result = simulate('Core', ['__combat_start', 'Swap Weapons']);
+
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.activeWeaponSet, 2);
   assert.equal(result.endState.cooldowns['Swap Weapons'].readyAt, 5000);
@@ -591,11 +628,13 @@ test('Berserker gates primal bursts behind berserk mode', () => {
   const blocked = simulate('Berserker', ['Arc Divider'], {
     initialResource: 30
   });
+
   assert.match(blocked.warnings[0], /requires? berserk mode/);
 
   const result = simulate('Berserker', ['Berserk', 'Arc Divider'], {
     initialResource: 30
   });
+
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.berserkActive, true);
   assert.equal(result.totalDamage > 0, true);
@@ -608,6 +647,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     stats: { precision: 0 },
     boons: { fury: false }
   });
+
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.maximumAdrenaline, 10);
   assert.equal(result.endState.profession.berserkUntil, 25);
@@ -626,6 +666,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     true
   );
   const arc = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.ARC_DIVIDER);
+
   assert.equal(arc.criticalChance, 0.4);
 
   const attributes = berserkerAttributeRules.modifyAttributes(
@@ -642,6 +683,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     },
     { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 }
   );
+
   assert.deepEqual(attributes, {
     power: 1300,
     precision: 1000,
@@ -663,6 +705,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     },
     { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 }
   );
+
   assert.deepEqual(bloodReactionOutsideBerserk, {
     power: 1000,
     precision: 1000,
@@ -690,6 +733,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
       vitality: 1000
     }
   );
+
   assert.deepEqual(greatFortitude, {
     power: 1300,
     precision: 0,
@@ -705,6 +749,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
       stats: { precision: 0 },
       boons: { fury: false }
     }).strikeDamage;
+
   assert.ok(
     Math.abs(strikeDamage([TRAIT.SMASH_BRAWLER, TRAIT.BLOODY_ROAR]) / strikeDamage([TRAIT.SMASH_BRAWLER]) - 1.1) < 1e-9
   );
@@ -715,6 +760,7 @@ test('Berserker rage and primal-burst traits use the supplied behavior', () => {
     initialResource: 30,
     selectedTraitIds: [TRAIT.SMASH_BRAWLER]
   });
+
   assert.deepEqual(reset.warnings, []);
   assert.equal(reset.events.filter((event) => event.type === 'damage' && event.skillId === ID.ARC_DIVIDER).length, 2);
 
@@ -722,6 +768,7 @@ test('Berserker rage and primal-burst traits use the supplied behavior', () => {
     initialResource: 30,
     selectedTraitIds: [TRAIT.LAST_BLAZE]
   });
+
   assert.deepEqual(nearbyOutrage.warnings, []);
   assert.equal(nearbyOutrage.endState.profession.berserkUntil, 23);
 
@@ -735,6 +782,7 @@ test('Berserker rage and primal-burst traits use the supplied behavior', () => {
   const berserkersPower = berserkersPowerTiming.events.find(
     (event) => event.kind === 'berserkers-power' && event.skillId === ID.WILD_THROW
   );
+
   assert.ok(Math.abs(berserkersPower.at - firstWildThrowHit.at - 0.0001) < 1e-9);
 
   const traits = simulate('Berserker', ['Berserk', 'Wild Throw'], {
@@ -742,6 +790,7 @@ test('Berserker rage and primal-burst traits use the supplied behavior', () => {
     selectedTraitIds: [TRAIT.LAST_BLAZE, TRAIT.HEAT_THE_SOUL, TRAIT.KING_OF_FIRES],
     stats: { precision: 10000 }
   });
+
   assert.equal(
     traits.events.some(
       (event) =>
@@ -793,13 +842,17 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
     [ID.RUSH, 1000],
     [ID.GREATSWORD_SWING, 400]
   ];
+
   for (const [skillId, quicknessCastTimeMs] of configuredCastTimes) {
     const skill = warriorCatalog.skillsById.get(skillId);
+
     assert.equal(skill.quicknessCastTimeMs, quicknessCastTimeMs);
     assert.equal(skill.castTimeMs, quicknessCastTimeMs * 1.5);
     assert.equal(skill.quicknessCastTimeMs % 40, 0);
   }
+
   const bullsCharge = warriorCatalog.skillsById.get(ID.BULLS_CHARGE);
+
   assert.equal(bullsCharge.castTimeMs, 640);
   assert.equal(bullsCharge.unaffectedByQuickness, true);
 
@@ -857,6 +910,7 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
       primaryWeapon: 'Spear'
     });
     const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
+
     return result.events
       .filter(
         (event) =>
@@ -864,6 +918,7 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
       )
       .map((event) => Math.round((event.at - action.at) * 1000));
   };
+
   assert.deepEqual(packetOffsets('Wild Throw', ['Berserk', 'Wild Throw']), [233, 433, 600, 800, 967, 1167, 1280]);
   assert.deepEqual(packetOffsets('Maiming Spear'), [1000, 1517]);
   assert.deepEqual(packetOffsets('Mighty Throw'), [480]);
@@ -871,10 +926,12 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
   assert.deepEqual(packetOffsets("Spearmarshal's Support"), [967, 1167, 1367, 1567, 1767, 1967, 2167]);
 
   const singleTarget = simulate('Berserker', ['Mighty Throw']);
+
   assert.equal(singleTarget.events.find((event) => event.name === 'Mighty Throw — Shard Damage').coefficient, 0);
   const multipleTargets = simulate('Berserker', ['Mighty Throw'], {
     target: { count: 2 }
   });
+
   assert.equal(multipleTargets.events.find((event) => event.name === 'Mighty Throw — Shard Damage').coefficient, 0.9);
 });
 
@@ -882,6 +939,7 @@ test('Spellbreaker uses its reduced adrenaline cap for Full Counter', () => {
   const result = simulate('Spellbreaker', ['Full Counter'], {
     initialResource: 30
   });
+
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.maximumAdrenaline, 20);
   assert.equal(result.endState.profession.adrenaline < 20, true);
@@ -901,10 +959,12 @@ test('Spellbreaker weapon bursts require their matching active main hand', () =>
     weaponSet2Secondary: 'Axe'
   };
   const daggerSet = simulate('Spellbreaker', ['Breaching Strike', 'Bloodthirster'], config);
+
   assert.equal(Boolean(daggerSet.steps[0].invalid), false);
   assert.equal(daggerSet.steps[1].invalid, true);
 
   const swordSet = simulate('Spellbreaker', ['Bloodthirster', 'Breaching Strike'], { ...config, startingWeaponSet: 2 });
+
   assert.equal(Boolean(swordSet.steps[0].invalid), false);
   assert.equal(swordSet.steps[1].invalid, true);
 });
@@ -930,6 +990,7 @@ test('Spellbreaker Winds and Kick use the supplied PvE mechanics', () => {
   const pulses = result.events.filter(
     (event) => event.type === 'damage' && event.skillId === ID.WINDS_OF_DISENCHANTMENT
   );
+
   assert.deepEqual(
     pulses.map(({ coefficient }) => coefficient),
     [0.45, 0.45, 0.45, 0.45, 0.45]
@@ -993,6 +1054,7 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
     secondaryWeapon: 'Dagger',
     target: { defiant: true }
   });
+
   assert.ok(Math.abs(damage(defiantWastrel, "Wastrel's Ruin") / damage(normalWastrel, "Wastrel's Ruin") - 2) < 1e-9);
 
   const breachingDamage = (boonless) =>
@@ -1002,6 +1064,7 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
       secondaryWeapon: 'Mace',
       target: { boonless }
     }).strikeDamage;
+
   assert.ok(Math.abs(breachingDamage(true) / breachingDamage(false) - 1.5) < 1e-9);
 
   const fixedBreaching = simulate('Spellbreaker', ['Breaching Strike'], {
@@ -1011,16 +1074,19 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
     boons: { quickness: true },
     selectedTraitIds: [TRAIT.DUAL_WIELDING]
   });
+
   assert.equal(fixedBreaching.steps[0].end - fixedBreaching.steps[0].start, 842);
   const resolvedBreaching = fixedBreaching.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillId === ID.BREACHING_STRIKE
   );
+
   assert.equal(resolvedBreaching.weaponStrengthProfileId, 'weapon.dagger');
   assert.equal(resolvedBreaching.resolvedWeaponStrength, 1000);
 
   for (const id of [ID.BLOODTHIRSTER, ID.BLOODTHIRSTER_ID_80252, ID.BLOODTHIRSTER_ID_80263]) {
     assert.equal(warriorCatalog.skillsById.get(id).skillWeapon, 'Sword');
   }
+
   const fixedBloodthirster = simulate('Spellbreaker', ['Bloodthirster'], {
     initialResource: 10,
     primaryWeapon: 'Sword',
@@ -1029,6 +1095,7 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
   const resolvedBloodthirster = fixedBloodthirster.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillId === ID.BLOODTHIRSTER
   );
+
   assert.equal(resolvedBloodthirster.weaponStrengthProfileId, 'weapon.sword');
   assert.equal(resolvedBloodthirster.resolvedWeaponStrength, 1000);
 
@@ -1044,6 +1111,7 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
   const normalSlicing = slicingDamage(false);
   const boonlessSlicing = slicingDamage(true);
   const slicingStep = boonlessSlicing.steps.find((step) => step.skill === 'Slicing Maelstrom');
+
   assert.equal(slicingStep.end - slicingStep.start, 400);
   assert.ok(
     Math.abs(damage(boonlessSlicing, 'Slicing Maelstrom') / damage(normalSlicing, 'Slicing Maelstrom') - 1.5) < 1e-9
@@ -1087,6 +1155,7 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
     },
     { power: 1000, precision: 1000, ferocity: 0 }
   );
+
   assert.deepEqual(attributes, {
     power: 1250,
     precision: 1250,
@@ -1097,6 +1166,7 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
     selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT],
     target: { defiant: true }
   });
+
   assert.equal(kick.profession.attackerInsightExpiries.length, 2);
   assert.equal(kick.endState.profession.attackerInsightExpiries.length, 2);
 });
@@ -1117,6 +1187,7 @@ test('Warrior packets use their configured Quickness offsets', () => {
       ...config
     });
     const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
+
     return result.events
       .filter((event) => event.type === 'damage' && event.activationId === action.activationId)
       .map((event) => Math.round((event.at - action.at) * 1000));
@@ -1132,6 +1203,7 @@ test('Warrior packets use their configured Quickness offsets', () => {
     secondaryWeapon: 'Axe',
     initialResource: 10
   };
+
   assert.deepEqual(packetOffsets('Crushing Blow', daggerMace), [314]);
   assert.deepEqual(packetOffsets('Tremor', daggerMace), [314, 343]);
   assert.deepEqual(packetOffsets('Disrupting Stab', daggerMace), [116]);
@@ -1164,8 +1236,10 @@ test('Dagger autos land at 200 ms and use a 15% critical-damage factor', () => {
       stats: { precision, ferocity: 1000 },
       boons: { fury: false }
     });
+
     return result.breakdown.find((entry) => entry.name === skillName)?.strikeDamage || 0;
   };
+
   const normalized = (skillName, coefficient, precision) => damage(skillName, precision) / coefficient;
 
   assert.ok(Math.abs(normalized('Precise Cut', 0.6, 0) / normalized('Keen Strike', 1.05, 0) - 1) < 1e-9);
@@ -1179,6 +1253,7 @@ test('Dagger autos land at 200 ms and use a 15% critical-damage factor', () => {
       boons: { quickness: true },
       selectedTraitIds: [TRAIT.DUAL_WIELDING]
     });
+
   assert.equal(
     interrupted(159).events.filter((event) => event.type === 'damage' && event.skillId === ID.PRECISE_CUT).length,
     0
@@ -1198,6 +1273,7 @@ test('Peak Performance buffs Kick and Leg Specialist requires impairment', () =>
     }).strikeDamage;
   const baseKick = strikeDamage([]);
   const peakKick = strikeDamage([TRAIT.PEAK_PERFORMANCE]);
+
   assert.ok(Math.abs(peakKick / baseKick - 1.15) < 1e-9);
 
   const bullsChargeDamage = (selectedTraitIds) =>
@@ -1205,9 +1281,11 @@ test('Peak Performance buffs Kick and Leg Specialist requires impairment', () =>
       selectedTraitIds,
       stats: { precision: 0 }
     }).strikeDamage;
+
   assert.ok(Math.abs(bullsChargeDamage([TRAIT.PEAK_PERFORMANCE]) / bullsChargeDamage([]) - 1.15) < 1e-9);
 
   const mending = warriorCatalog.skillsById.get(ID.MENDING);
+
   assert.equal(mending.cooldown, 12);
   assert.equal(mending.quicknessCastTimeMs, 920);
   assert.equal(mending.categories.includes('Physical'), true);
@@ -1215,6 +1293,7 @@ test('Peak Performance buffs Kick and Leg Specialist requires impairment', () =>
     selectedTraitIds: [TRAIT.PEAK_PERFORMANCE],
     boons: { quickness: true }
   });
+
   assert.equal(
     mendingProc.events.some(
       (event) => event.type === 'buff' && event.kind === 'peak-performance' && event.skillId === ID.MENDING
@@ -1229,6 +1308,7 @@ test('Peak Performance buffs Kick and Leg Specialist requires impairment', () =>
       selectedTraitIds: [TRAIT.LEG_SPECIALIST],
       target: { conditions }
     }).breakdown.find((entry) => entry.name === 'Keen Strike')?.strikeDamage || 0;
+
   assert.ok(Math.abs(legDamage({ Chilled: true }) / legDamage({}) - 1.05) < 1e-9);
 });
 
@@ -1247,6 +1327,7 @@ test('Warrior core damage traits use their correct modifier buckets', () => {
 
   const baseline = configuredKickDamage([]);
   const empoweredSprintPeak = configuredKickDamage([TRAIT.EMPOWERED, TRAIT.WARRIORS_SPRINT, TRAIT.PEAK_PERFORMANCE]);
+
   assert.ok(Math.abs(empoweredSprintPeak / baseline - 1.25 * 1.03) < 1e-9);
 
   const boonedTargetBaseline = configuredKickDamage([], {
@@ -1255,6 +1336,7 @@ test('Warrior core damage traits use their correct modifier buckets', () => {
   const destructionPeak = configuredKickDamage([TRAIT.DESTRUCTION_OF_THE_EMPOWERED, TRAIT.PEAK_PERFORMANCE], {
     target: { boonless: false, boonCount: 4 }
   });
+
   assert.ok(Math.abs(destructionPeak / boonedTargetBaseline - 1.15 * 1.12) < 1e-9);
 });
 
@@ -1266,6 +1348,7 @@ test('Defense traits apply Merciless Hammer and Stalwart Strength', () => {
       stats: { precision: 0 },
       target: { defiant: true }
     }).strikeDamage;
+
   assert.ok(Math.abs(maceDamage([TRAIT.MERCILESS_HAMMER]) / maceDamage([]) - 1.25) < 1e-9);
 
   const baselineControl = simulate('Core', ['Kick'], { initialResource: 0 });
@@ -1273,10 +1356,12 @@ test('Defense traits apply Merciless Hammer and Stalwart Strength', () => {
     initialResource: 0,
     selectedTraitIds: [TRAIT.MERCILESS_HAMMER, TRAIT.STALWART_STRENGTH]
   });
+
   assert.equal(traitControl.endState.profession.adrenaline - baselineControl.endState.profession.adrenaline, 7);
   const stability = traitControl.events.find(
     (event) => event.type === 'buff' && event.sourceId === TRAIT.STALWART_STRENGTH
   );
+
   assert.equal(stability?.kind, 'stability');
   assert.equal(stability?.duration, 5);
 
@@ -1286,6 +1371,7 @@ test('Defense traits apply Merciless Hammer and Stalwart Strength', () => {
       selectedTraitIds,
       stats: { precision: 0 }
     }).breakdown.find((entry) => entry.name === 'Mace Smash')?.strikeDamage || 0;
+
   assert.ok(Math.abs(controlledStrikeDamage([TRAIT.STALWART_STRENGTH]) / controlledStrikeDamage([]) - 1.1) < 1e-9);
 });
 
@@ -1345,6 +1431,7 @@ test('Bloodlust handles deterministic progress and stochastic proc rolls', () =>
     ...config,
     randomness: { mode: 'stochastic', seed }
   });
+
   assert.equal(bleedingStacks(stochastic), expectedStochasticStacks);
   assert.deepEqual(
     stochastic.events
@@ -1374,6 +1461,7 @@ test('precombat Kick samples stochastic crits without advancing deterministic si
       { names: [], strike: 1, condition: 1 }
     ]
   });
+
   assert.equal(
     deterministic.events.some((event) => event.source === 'Sigil' && event.skillName === 'Sigil of Air'),
     false
@@ -1398,6 +1486,7 @@ test('Spellbreaker offensive traits use multiplicative damage modifiers', () => 
   const daggerStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], true, 'Dagger');
   const swordStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], true, 'Sword');
   const offhandDaggerStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], true, 'Sword', 'Dagger');
+
   assert.ok(Math.abs(boonlessPure / boonlessBase - 1.1) < 1e-9);
   assert.ok(Math.abs(boonedPure / boonedBase - 1.05) < 1e-9);
   assert.ok(Math.abs(daggerStyle / boonlessBase - 1.1) < 1e-9);
@@ -1415,6 +1504,7 @@ test('Spellbreaker offensive traits use multiplicative damage modifiers', () => 
     secondaryWeapon: 'Mace',
     selectedTraitIds: [TRAIT.MAGEBANE_TETHER]
   });
+
   assert.ok(Math.abs(damage(tethered, 'Breaching Strike') / damage(base, 'Breaching Strike') - 1) < 1e-9);
   assert.ok(Math.abs(damage(tethered, 'Kick') / damage(base, 'Kick') - 1.15) < 1e-9);
   assert.equal(tethered.procSteps.filter((step) => step.skill === 'Magebane Tether').length, 1);
@@ -1429,6 +1519,7 @@ test('Spellbreaker offensive traits use multiplicative damage modifiers', () => 
       selectedTraitIds: [TRAIT.MAGEBANE_TETHER]
     }
   );
+
   assert.equal(internalCooldown.procSteps.filter((step) => step.skill === 'Magebane Tether').length, 1);
   assert.ok(internalCooldown.profession.magebaneTetherUntil < internalCooldown.duration);
 });
@@ -1437,6 +1528,7 @@ test('Bladesworn gates gunsaber and Dragon Slash state', () => {
   const blocked = simulate('Bladesworn', ['Swift Cut'], {
     initialResource: 100
   });
+
   assert.match(blocked.warnings[0], /Unsheathe the gunsaber/);
   assert.equal(blocked.endState.profession.gunsaberActive, false);
 
@@ -1445,11 +1537,13 @@ test('Bladesworn gates gunsaber and Dragon Slash state', () => {
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Axe'
   });
+
   assert.match(standardWeaponBlocked.warnings[0], /Sheathe the gunsaber/);
 
   const result = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Swift Cut', 'Dragon Trigger', 'Dragon Slash—Force'], {
     initialResource: 100
   });
+
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.gunsaberActive, true);
   assert.equal(result.endState.profession.dragonTriggerActive, false);
@@ -1462,19 +1556,23 @@ test('Dragon Trigger requires 15 Flow and expires after 30 seconds', () => {
   const blocked = simulate('Bladesworn', ['Dragon Trigger'], {
     initialResource: DRAGON_TRIGGER_FLOW_COST - 1
   });
+
   assert.match(blocked.warnings[0], /requires at least 15 flow/);
 
   const active = simulate('Bladesworn', ['Dragon Trigger'], {
     initialResource: DRAGON_TRIGGER_FLOW_COST
   });
+
   assert.deepEqual(active.warnings, []);
   const entry = active.events.find((event) => event.type === 'resource' && event.reason === 'dragon trigger entry');
+
   assert.equal(entry.maximumFlow, 100);
   assert.equal(entry.deadline - entry.at, DRAGON_TRIGGER_DURATION_SECONDS);
 
   const expired = simulate('Bladesworn', ['Dragon Trigger', { type: 'wait', durationMs: 30001 }], {
     initialResource: 100
   });
+
   assert.equal(expired.endState.profession.dragonTriggerActive, false);
   assert.equal(expired.endState.profession.dragonCharges, 0);
 });
@@ -1494,6 +1592,7 @@ test('projectDragonCharges covers exact-fit, stalled, and accelerated windows', 
     });
 
   const exactFit = project();
+
   assert.equal(exactFit.length, 10);
   assert.deepEqual(exactFit.at(-1), {
     at: 2.5,
@@ -1507,6 +1606,7 @@ test('projectDragonCharges covers exact-fit, stalled, and accelerated windows', 
     maximumCharges: 1,
     flowRateSegments: [{ start: 0, end: 2.5, flowPerSecond: 4 }]
   });
+
   assert.deepEqual(stalled.slice(0, 2), [
     { at: 0.25, charges: 0, flowAfter: 4, granted: false },
     { at: 0.5, charges: 1, flowAfter: 0, granted: true }
@@ -1516,6 +1616,7 @@ test('projectDragonCharges covers exact-fit, stalled, and accelerated windows', 
     maximumCharges: 5,
     flowPerInterval: 10
   });
+
   assert.equal(daringDragon.length, 5);
   assert.equal(daringDragon.at(-1).at, 1.25);
   assert.equal(daringDragon.at(-1).charges, 5);
@@ -1524,11 +1625,13 @@ test('projectDragonCharges covers exact-fit, stalled, and accelerated windows', 
     flow: 25,
     chargesPerInterval: 2
   });
+
   assert.equal(tacticalReload.length, 5);
   assert.equal(tacticalReload.at(-1).at, 1.25);
   assert.equal(tacticalReload.at(-1).charges, 10);
 
   const empty = project({ flow: 0, flowRateSegments: [] });
+
   assert.equal(
     empty.every((tick) => tick.flowAfter === 0),
     true
@@ -1557,11 +1660,13 @@ test('Dragon Slash charge tiers drive adrenaline-spend traits', () => {
         selectedTraitIds: [TRAIT.BERSERKERS_POWER, TRAIT.BURST_PRECISION]
       }
     );
+
     assert.deepEqual(result.warnings, []);
     const spend = result.events.find(
       (event) =>
         event.type === 'resource' && event.resource === 'dragon charges' && event.reason === 'profession mechanic'
     );
+
     assert.equal(spend.adrenalineBarsSpent, bars);
     assert.equal(
       result.events.find((event) => event.type === 'buff' && event.name === "Berserker's Power").stacks,
@@ -1581,6 +1686,7 @@ test('Burst Mastery restores twenty percent of Dragon Slash Flow spent', () => {
     initialResource: 100,
     selectedTraitIds: [TRAIT.BURST_MASTERY]
   });
+
   assert.equal(mastered.endState.profession.flow - baseline.endState.profession.flow, 4);
   assert.equal(
     mastered.events.some(
@@ -1622,6 +1728,7 @@ test('Brave Stride grants five Flow for every supported movement skill', () => {
     initialResource: 20,
     selectedTraitIds: [TRAIT.BRAVE_STRIDE]
   });
+
   assert.deepEqual(baseline.warnings, []);
   assert.deepEqual(braveStride.warnings, []);
   assert.equal(braveStride.endState.profession.flow - baseline.endState.profession.flow, 5);
@@ -1629,6 +1736,7 @@ test('Brave Stride grants five Flow for every supported movement skill', () => {
 
 test('Bladesworn automatically releases Dragon Slash at the requested charge count', () => {
   const full = simulate('Bladesworn', ['Dragon Trigger', 'Dragon Slash—Force'], { initialResource: 100 });
+
   assert.deepEqual(full.warnings, []);
   assert.equal(full.steps.find((step) => step.skill === 'Dragon Slash—Force').start, 2500);
   assert.equal(
@@ -1639,6 +1747,7 @@ test('Bladesworn automatically releases Dragon Slash at the requested charge cou
   const partial = simulate('Bladesworn', ['Dragon Trigger', { name: 'Dragon Slash—Force', releaseAtCharges: 3 }], {
     initialResource: 100
   });
+
   assert.deepEqual(partial.warnings, []);
   assert.equal(partial.steps.find((step) => step.skill === 'Dragon Slash—Force').start, 750);
   assert.ok(
@@ -1654,6 +1763,7 @@ test('Daring Dragon automatically releases at its five-charge maximum', () => {
     initialResource: 100,
     selectedTraitIds: [TRAIT.DARING_DRAGON]
   });
+
   assert.deepEqual(result.warnings, []);
   assert.equal(result.steps.find((step) => step.skill === 'Dragon Slash—Force').start, 1250);
   assert.equal(
@@ -1666,10 +1776,12 @@ test('Dragon Trigger stalls below its Flow cost and resumes after rebuilding', (
   const result = simulate('Bladesworn', ['Dragon Trigger', { name: 'Dragon Slash—Force', releaseAtCharges: 4 }], {
     initialResource: 15
   });
+
   assert.deepEqual(result.warnings, []);
   const ticks = result.events.filter(
     (event) => event.type === 'resource' && event.reason === DRAGON_TRIGGER_TICK_RESOURCE_REASON
   );
+
   assert.equal(
     ticks.some((tick) => tick.granted === false),
     true
@@ -1684,6 +1796,7 @@ test('Dragon Trigger stalls below its Flow cost and resumes after rebuilding', (
     (event) =>
       event.type === 'resource' && event.reason === 'profession mechanic' && event.sourceSkill === 'Dragon Slash—Force'
   );
+
   assert.equal(spend.amount, -4);
   assert.equal(spend.rotationIndex, 1);
   assert.equal(spend.flowSpent, 20);
@@ -1697,6 +1810,7 @@ test('Dragon Slash reports unreachable Flow-gated requests', () => {
     { initialResource: 15 }
   );
   const slash = result.steps.find((step) => step.skill === 'Dragon Slash—Force');
+
   assert.equal(slash.invalid, true);
   assert.match(slash.invalidReason, /could not reach 4 charges/);
   assert.match(slash.invalidReason, /it reached 3/);
@@ -1712,6 +1826,7 @@ test('Dragon Trigger resource ticks match the shared projection', () => {
     ['Dragon Trigger', 'Flow Stabilizer', { name: 'Dragon Slash—Force', releaseAtCharges: 4 }],
     { initialResource: 15 }
   );
+
   assert.deepEqual(result.warnings, []);
   const entry = result.events.find((event) => event.type === 'resource' && event.reason === 'dragon trigger entry');
   const actual = result.events
@@ -1733,6 +1848,7 @@ test('Dragon Trigger resource ticks match the shared projection', () => {
     flowRateSegments: entry.flowRateSegments,
     deadline: entry.deadline
   }).slice(0, actual.length);
+
   assert.deepEqual(actual, projected);
   assert.equal(
     entry.flowRateSegments.some((segment) => segment.flowPerSecond === 6),
@@ -1742,6 +1858,7 @@ test('Dragon Trigger resource ticks match the shared projection', () => {
 
 test('Bladesworn preserves partial charge time across fragmented advancement', () => {
   const state = createBladeswornState({ initialResource: 100 });
+
   state.dragonTriggerActive = true;
   state.dragonTriggerStartedAt = 0;
   state.dragonTriggerChargeDeadline = 2.5;
@@ -1752,6 +1869,7 @@ test('Bladesworn preserves partial charge time across fragmented advancement', (
     events: [],
     emit(event) {
       this.events.push(event);
+
       return event;
     },
     hasExplicitCombatStart: false,
@@ -1765,12 +1883,14 @@ test('Bladesworn preserves partial charge time across fragmented advancement', (
   for (const target of [0.05, 0.1, 0.15, 0.2, 0.24]) {
     advanceBladesworn(context, target);
   }
+
   assert.equal(state.dragonCharges, 0);
   advanceBladesworn(context, 0.25);
   assert.equal(state.dragonCharges, 1);
   for (let target = 0.5; target <= 2.5; target += 0.25) {
     advanceBladesworn(context, Number(target.toFixed(2)));
   }
+
   assert.equal(state.dragonCharges, 10);
   assert.equal(state.flow, 54.5);
   assert.deepEqual(
@@ -1813,6 +1933,7 @@ test('Bladesworn gunsaber skills expose icons and current PvE ammo', () => {
     ID.FLICKER_STEP,
     ID.TRIGGERGUARD
   ];
+
   assert.equal(
     gunsaberSkillIds.every((skillId) => /^https:\/\/.+\.png$/i.test(warriorCatalog.skillsById.get(skillId).icon)),
     true
@@ -1827,6 +1948,7 @@ test('Bladesworn gunsaber skills expose icons and current PvE ammo', () => {
     [ID.TRIGGERGUARD, 2, 30]
   ]) {
     const skill = warriorCatalog.skillsById.get(skillId);
+
     assert.equal(skill.ammo, ammo);
     assert.equal(skill.ammoRecharge, ammoRecharge);
     assert.equal(skill.cooldown, ammoRecharge);
@@ -1835,6 +1957,7 @@ test('Bladesworn gunsaber skills expose icons and current PvE ammo', () => {
   const ammoResult = simulate('Bladesworn', ['Unsheathe Gunsaber', 'Blooming Fire', 'Blooming Fire', 'Blooming Fire'], {
     initialResource: 100
   });
+
   assert.deepEqual(ammoResult.warnings, []);
   assert.deepEqual(
     ammoResult.steps.filter((step) => step.skill === 'Blooming Fire').map((step) => step.start),
@@ -1856,8 +1979,10 @@ test('Bladesworn gunsaber packets use the requested coefficients and explosion t
     ],
     { initialResource: 100 }
   );
+
   assert.deepEqual(result.warnings, []);
   const damage = result.events.filter((event) => event.type === 'damage');
+
   assert.deepEqual(
     damage.map((event) => Number(event.coefficient.toFixed(6))),
     [0.9, 0.255, 1.1, 0.255, 1.35, 0.408, 0.8, 0.4, 0.4, 0.4, 2.5, 0.5]
@@ -1889,6 +2014,7 @@ test('Bladesworn ammo lockouts, all-count attacks, and reloads are modeled', () 
     [ID.UNSHEATHE_GUNSABER, ID.ARTILLERY_SLASH, ID.TACTICAL_RELOAD, ID.ARTILLERY_SLASH],
     { initialResource: 100 }
   );
+
   assert.deepEqual(artillery.warnings, []);
   assert.deepEqual(
     artillery.steps.filter((step) => step.skill === 'Artillery Slash').map((step) => step.start),
@@ -1916,12 +2042,14 @@ test('Bladesworn ammo lockouts, all-count attacks, and reloads are modeled', () 
     [ID.DRAGONS_ROAR, ID.GUNSTINGER, ID.DRAGONS_ROAR, { name: '__wait', waitMs: 500 }],
     { primaryWeapon: 'Pistol', secondaryWeapon: 'Pistol' }
   );
+
   assert.deepEqual(pistol.warnings, []);
   assert.deepEqual(
     pistol.steps.slice(0, 3).map((step) => step.start),
     [0, 840, 1840]
   );
   const roarPackets = pistol.events.filter((event) => event.type === 'damage' && event.skillId === ID.DRAGONS_ROAR);
+
   assert.equal(roarPackets.length, 9);
   assert.deepEqual(
     roarPackets.slice(0, 6).map((event) => Math.round(event.at * 1000)),
@@ -1952,12 +2080,14 @@ test('Bladesworn ammo lockouts, all-count attacks, and reloads are modeled', () 
 
 test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', () => {
   const baseline = simulate('Bladesworn', [{ type: 'wait', durationMs: 9000 }], { initialResource: 0 });
+
   assert.equal(baseline.endState.profession.flow, 18);
 
   const stabilized = simulate('Bladesworn', [ID.FLOW_STABILIZER, { type: 'wait', durationMs: 8500 }], {
     initialResource: 0
   });
   const unstabilized = simulate('Bladesworn', [{ type: 'wait', durationMs: 8500 }], { initialResource: 0 });
+
   assert.equal(warriorCatalog.skillsById.get(ID.FLOW_STABILIZER).castTimeMs, 0);
   assert.equal(stabilized.endState.profession.flow, 49);
   assert.equal(unstabilized.endState.profession.flow, 17);
@@ -1983,6 +2113,7 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
     ],
     { initialResource: 0 }
   );
+
   assert.deepEqual(retainedRecharge.warnings, []);
   assert.deepEqual(
     retainedRecharge.steps.filter((step) => step.skill === 'Flow Stabilizer').map((step) => step.start),
@@ -2000,6 +2131,7 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
     ],
     { initialResource: 0 }
   );
+
   assert.equal(overlapping.endState.profession.flow, 71);
   assert.deepEqual(
     overlapping.events
@@ -2018,6 +2150,7 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
       result: overlapping
     })
     .find((item) => item.id === 'positive-flow');
+
   assert.deepEqual(positiveFlowState, {
     id: 'positive-flow',
     label: 'Positive Flow',
@@ -2032,17 +2165,20 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
     initialResource: 0,
     boons: { fury: true }
   });
+
   assert.equal(firstCast.endState.profession.flow, 0);
   assert.equal(castWithFury.endState.profession.flow, 15);
 
   const converted = simulate('Bladesworn', [ID.SIGNET_OF_FURY], {
     initialResource: 0
   });
+
   assert.equal(converted.endState.profession.flow, 31.05);
 
   const accelerated = simulate('Bladesworn', [ID.TACTICAL_RELOAD, ID.DRAGON_TRIGGER, ID.DRAGON_SLASH_FORCE], {
     initialResource: 100
   });
+
   assert.deepEqual(accelerated.warnings, []);
   assert.equal(accelerated.steps.find((step) => step.skill.startsWith('Dragon Slash')).start, 2078);
 });
@@ -2059,6 +2195,7 @@ test('Dragon Slash scales from each minimum to maximum coefficient', () => {
     const full = simulate('Bladesworn', [ID.DRAGON_TRIGGER, skillId], {
       initialResource: 100
     });
+
     assert.equal(
       partial.events.find((event) => event.type === 'damage' && event.skillId === skillId).coefficient,
       minimum
@@ -2079,6 +2216,7 @@ test('Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown res
     [ID.OVERCHARGED_CARTRIDGES, { skillId: ID.DRAGON_TRIGGER, offset: 100 }],
     { initialResource: 100 }
   );
+
   assert.deepEqual(concurrentTrigger.warnings, ['Dragon Trigger cannot be cast concurrently.']);
   assert.equal(concurrentTrigger.steps.find((step) => step.skill === 'Dragon Trigger').invalid, true);
   assert.equal(warriorCatalog.skillsById.get(ID.TRIGGERGUARD).castTimeMs, 0);
@@ -2086,6 +2224,7 @@ test('Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown res
   const utility = simulate('Bladesworn', [ID.DRAGON_TRIGGER, ID.TRIGGERGUARD, ID.FLICKER_STEP], {
     initialResource: 100
   });
+
   assert.deepEqual(utility.warnings, []);
   assert.equal(
     utility.events.some((event) => event.type === 'buff' && event.kind === 'aegis' && event.duration === 2),
@@ -2104,6 +2243,7 @@ test('Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown res
     ],
     { initialResource: 100 }
   );
+
   assert.deepEqual(reset.warnings, []);
   assert.deepEqual(
     reset.steps.filter((step) => step.skill === 'Dragon Trigger').map((step) => step.start),
@@ -2141,6 +2281,7 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
       target: { conditions: {} }
     }
   );
+
   assert.ok(Math.abs(strikeDamage(overcharged) / strikeDamage(base) - 1.15) < 1e-9);
   assert.ok(Math.abs(strikeDamage(supercharged) / strikeDamage(base) - 1.2) < 1e-9);
   assert.deepEqual(
@@ -2170,6 +2311,7 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
     result.resolvedEvents
       .filter((event) => event.type === 'damage' && event.skillId === ID.DRAGONS_ROAR)
       .reduce((sum, event) => sum + event.damage, 0);
+
   assert.equal(
     roarSupercharged.resolvedEvents
       .filter((event) => event.type === 'damage' && event.skillId === ID.DRAGONS_ROAR)
@@ -2181,6 +2323,7 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
   const timed = simulate('Bladesworn', [ID.OVERCHARGED_CARTRIDGES, ID.OVERCHARGED_CARTRIDGES], {
     boons: { quickness: true }
   });
+
   assert.deepEqual(
     timed.events
       .filter((event) => ['overcharged-cartridges', 'supercharged-cartridges'].includes(event.kind))
@@ -2198,6 +2341,7 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
       result: timed
     })
     .find((item) => item.id === 'supercharged-cartridges');
+
   assert.equal(cartridgeState.label, 'Supercharged Cartridges');
   assert.equal(cartridgeState.title, 'Supercharged Cartridges active (+20% damage)');
 
@@ -2209,6 +2353,7 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
   const lockedBuffs = locked.events.filter((event) =>
     ['overcharged-cartridges', 'supercharged-cartridges'].includes(event.kind)
   );
+
   assert.deepEqual(
     lockedBuffs.map((event) => event.kind),
     ['overcharged-cartridges', 'supercharged-cartridges']
@@ -2225,6 +2370,7 @@ test('Paragon chants consume adrenaline and start a refrain', () => {
   const result = simulate('Paragon', ['Chant of Action'], {
     initialResource: 10
   });
+
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.maximumAdrenaline, 10);
   assert.equal(result.endState.profession.adrenaline, 0);
@@ -2238,12 +2384,14 @@ test('Rally the Valiant grants motivation when a burst starts', () => {
     initialResource: 10,
     selectedTraitIds
   });
+
   assert.equal(result.endState.profession.motivation, 8);
 
   const withoutRally = simulate('Paragon', ['__combat_start', 'Breaching Strike'], {
     initialResource: 10,
     selectedTraitIds: [TRAIT.CALL_TO_ACTION]
   });
+
   assert.equal(withoutRally.endState.profession.motivation, 4);
 });
 
@@ -2251,6 +2399,7 @@ test('Warrior signets use the supplied active effects and passive downtime', () 
   const fury = warriorCatalog.skillsById.get(ID.SIGNET_OF_FURY);
   const might = warriorCatalog.skillsById.get(ID.SIGNET_OF_MIGHT);
   const rage = warriorCatalog.skillsById.get(ID.SIGNET_OF_RAGE);
+
   assert.equal(fury.cooldown, 16);
   assert.equal(fury.adrenalineGain, 30);
   assert.deepEqual(fury.effects, [
@@ -2278,12 +2427,14 @@ test('Warrior signets use the supplied active effects and passive downtime', () 
   const fixedFuryDuration = simulate('Core', ['Signet of Fury'], {
     stats: { concentration: 1500 }
   }).events.find((event) => event.kind === 'signet-of-fury-active');
+
   assert.equal(fixedFuryDuration.at, 0.04);
   assert.equal(fixedFuryDuration.duration, 4);
 
   const noAutomaticPrecast = simulate('Core', ['__combat_start'], {
     selectedTraitIds: [TRAIT.SIGNET_MASTERY]
   });
+
   assert.equal(
     noAutomaticPrecast.events.some((event) => event.kind === 'signet-mastery'),
     false
@@ -2294,6 +2445,7 @@ test('Warrior signets use the supplied active effects and passive downtime', () 
     ['__combat_start', { type: 'wait', durationMs: 3000 }, 'Signet of Rage', { type: 'wait', durationMs: 42000 }],
     { initialResource: 0, selectedSkills: ['Signet of Rage'] }
   );
+
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.adrenaline, 4);
   assert.deepEqual(
@@ -2328,6 +2480,7 @@ test('Burst Precision duration follows the adrenaline stage', () => {
       initialResource,
       selectedTraitIds: [TRAIT.BURST_PRECISION]
     });
+
     assert.deepEqual(result.warnings, []);
     assert.equal(result.events.find((event) => event.kind === 'burst-precision').duration, duration);
   }
@@ -2339,6 +2492,7 @@ test('Burst Precision duration follows the adrenaline stage', () => {
   });
   const eviscerate = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.EVISCERATE);
   const followUp = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.THROW_BOLAS);
+
   assert.equal(eviscerate.criticalChance, 1);
   assert.ok(Math.abs(followUp.criticalDamage - eviscerate.criticalDamage - 250 / 1500) < 1e-9);
 });
@@ -2348,6 +2502,7 @@ test('Bladesworn swap and Dragon Trigger traits use supplied behavior', () => {
     initialResource: 0,
     selectedTraitIds: [TRAIT.UNSEEN_SWORD]
   });
+
   assert.equal(swap.events.find((event) => event.name === 'Unseen Sword').coefficient, 1.2);
   assert.equal(swap.resolvedEvents.find((event) => event.name === 'Unseen Sword').skillId, 62847);
   assert.equal(skillBreakdownRows(swap).find((entry) => entry.name === 'Unseen Sword').hits, 1);
@@ -2362,6 +2517,7 @@ test('Bladesworn swap and Dragon Trigger traits use supplied behavior', () => {
       selectedTraitIds: [TRAIT.UNSEEN_SWORD]
     }
   );
+
   assert.deepEqual(
     combatOnly.resolvedEvents.filter((event) => event.name === 'Unseen Sword').map((event) => event.at),
     [0]
@@ -2371,6 +2527,7 @@ test('Bladesworn swap and Dragon Trigger traits use supplied behavior', () => {
     initialResource: 100,
     selectedTraitIds: [TRAIT.DRAGONSCALE_DEFENSE, TRAIT.UNYIELDING_DRAGON, TRAIT.DARING_DRAGON]
   });
+
   assert.deepEqual(trigger.warnings, []);
   assert.equal(
     trigger.events.some((event) => event.kind === 'stability' && event.duration === 3),
@@ -2391,6 +2548,7 @@ test('Bladesworn ammunition and explosion traits retain stack chronology', () =>
     initialResource: 100,
     selectedTraitIds: [TRAIT.FIERCE_AS_FIRE, TRAIT.LUSH_FOREST, TRAIT.GUNS_AND_GLORY]
   });
+
   assert.deepEqual(result.warnings, []);
   assert.equal(
     result.events.some((event) => event.kind === 'fierce-as-fire' && event.stacks === 1 && event.duration === 15),
@@ -2417,6 +2575,7 @@ test('Strength and Tactics traits react to dodge, burst, cripple, and control', 
       TRAIT.AGGRESSIVE_ONSLAUGHT
     ]
   });
+
   assert.deepEqual(result.warnings, []);
   assert.equal(result.events.find((event) => event.name === 'Reckless Dodge').coefficient, 1.5);
   assert.equal(
@@ -2424,6 +2583,7 @@ test('Strength and Tactics traits react to dodge, burst, cripple, and control', 
     3
   );
   const berserkersPower = result.events.find((event) => event.kind === 'berserkers-power');
+
   assert.deepEqual({ stacks: berserkersPower.stacks, duration: berserkersPower.duration }, { stacks: 4, duration: 15 });
   assert.equal(
     result.events.some((event) => event.name === "Soldier's Focus — Might" && event.stacks === 3),
@@ -2504,6 +2664,7 @@ test('Axe packets and burst coefficients use the supplied PvE values', () => {
     ]
   );
   const throwAxe = warriorCatalog.skillsById.get(ID.THROW_AXE);
+
   assert.deepEqual([throwAxe.ammo, throwAxe.ammoCastLockout, throwAxe.ammoRecharge], [2, 1, 10]);
   assert.equal(warriorCatalog.skillsById.get(ID.CYCLONE_AXE).cooldown, 6);
   assert.equal(warriorCatalog.skillsById.get(ID.DUAL_STRIKE).cooldown, 12);
@@ -2524,6 +2685,7 @@ test('Axe packets and burst coefficients use the supplied PvE values', () => {
     const result = simulate('Core', ['Eviscerate'], {
       initialResource: resource
     });
+
     assert.equal(result.events.find((event) => event.type === 'damage').coefficient, coefficient);
   }
 });
@@ -2538,6 +2700,7 @@ test('Warrior is exposed through the shared application registry', async () => {
   assert.equal(typeof (await loadProfessionAppAdapter('warrior')).recalculate, 'function');
 
   const html = await readFile(new URL('../../../warrior.html', import.meta.url), 'utf8');
+
   assert.match(html, /data-profession="warrior"/);
   assert.match(html, /js\/app\/app\.js/);
 });

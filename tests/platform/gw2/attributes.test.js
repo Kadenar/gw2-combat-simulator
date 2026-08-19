@@ -54,6 +54,7 @@ test('shared contribution comparisons accept a profession simulator', () => {
 
 test('modifier comparisons partition across a capped worker pool', () => {
   const comparisons = Array.from({ length: 8 }, (_, index) => ({ index }));
+
   assert.equal(modifierContributionWorkerCount(comparisons.length, 8), 3);
   assert.equal(modifierContributionWorkerCount(comparisons.length, 2), 1);
   assert.equal(modifierContributionWorkerCount(0, 8), 0);
@@ -113,12 +114,15 @@ test('core attribute calculation does not apply Mesmer build rules', () => {
 test('attributes are derived from selected gear instead of user-entered stats', () => {
   const berserker = createDefaultBuild();
   const berserkerStats = calcAttributes(berserker, []).attributes;
+
   assert.equal(berserkerStats.Power.final, 2880);
   assert.equal(berserkerStats.Precision.final, 1961);
 
   const viper = structuredClone(berserker);
+
   for (const slot of Object.keys(viper.gear)) viper.gear[slot] = "Viper's";
   const viperStats = calcAttributes(viper, []).attributes;
+
   assert.ok(viperStats.Power.final < berserkerStats.Power.final);
   assert.ok(viperStats['Condition Damage'].final > berserkerStats['Condition Damage'].final);
   assert.ok(viperStats.Expertise.final > berserkerStats.Expertise.final);
@@ -127,15 +131,18 @@ test('attributes are derived from selected gear instead of user-entered stats', 
 test('two-handed weapons use one 2H item stat budget', () => {
   const oneHanded = createDefaultBuild();
   const twoHanded = structuredClone(oneHanded);
+
   twoHanded.weapons = ['Greatsword', ''];
   const one = calcAttributes(oneHanded, []).attributes;
   const two = calcAttributes(twoHanded, []).attributes;
+
   assert.equal(two.Power.final, one.Power.final + 1);
   assert.equal(two.Precision.final, one.Precision.final - 1);
 });
 
 test('alternate two-handed weapons use the 2H stat budget for set two', () => {
   const build = createDefaultBuild();
+
   build.alternateWeapons = ['Spear', ''];
   const first = calcAttributes(build, [], 1).attributes;
   const second = calcAttributes(build, [], 2).attributes;
@@ -146,6 +153,7 @@ test('alternate two-handed weapons use the 2H stat budget for set two', () => {
 
 test('the default build persists a complete alternate weapon set', () => {
   const build = createDefaultBuild();
+
   assert.deepEqual(build.weapons, ['Dagger', 'Sword']);
   assert.deepEqual(build.alternateWeapons, ['Spear', '']);
   assert.deepEqual(build.weaponSigils, [
@@ -163,6 +171,7 @@ test('the default build persists a complete alternate weapon set', () => {
 
 test('legacy global sigils migrate onto both weapon sets', () => {
   const build = replaceBuild({ sigils: ['Bursting', 'Malice'] });
+
   assert.deepEqual(build.weaponSigils, [
     ['Bursting', 'Malice'],
     ['Bursting', 'Malice']
@@ -177,6 +186,7 @@ test('duplicate saved sigils are normalized independently in each weapon set', (
       ['Bursting', 'Bursting']
     ]
   });
+
   assert.equal(new Set(build.weaponSigils[0]).size, 2);
   assert.equal(new Set(build.weaponSigils[1]).size, 2);
   assert.equal(build.weaponSigils[0][0], 'Force');
@@ -185,12 +195,14 @@ test('duplicate saved sigils are normalized independently in each weapon set', (
 
 test('choosing an equipped sigil swaps slots instead of creating a duplicate', () => {
   const build = createDefaultBuild();
+
   setWeaponSigil(build, 0, 1, 'Force');
   assert.deepEqual(build.weaponSigils[0], ['Accuracy', 'Force']);
 });
 
 test('attribute calculation shows sigil bonuses from the chosen weapon set', () => {
   const build = createDefaultBuild();
+
   build.alternateWeapons = ['Dagger', 'Sword'];
   build.weaponSigils = [
     ['Force', 'Malice'],
@@ -205,8 +217,10 @@ test('attribute calculation shows sigil bonuses from the chosen weapon set', () 
 
 test('a duplicate sigil contributes its stat bonus only once', () => {
   const duplicate = createDefaultBuild();
+
   duplicate.weaponSigils[0] = ['Accuracy', 'Accuracy'];
   const valid = createDefaultBuild();
+
   valid.weaponSigils[0] = ['Accuracy', 'Force'];
 
   assert.equal(
@@ -217,6 +231,7 @@ test('a duplicate sigil contributes its stat bonus only once', () => {
 
 test('simulation config aggregates each weapon set sigils independently', () => {
   const build = createDefaultBuild();
+
   build.weaponSigils = [
     ['Force', 'Accuracy'],
     ['Bursting', 'Malice']
@@ -287,6 +302,7 @@ test('additive damage sigils sum into one modifier bucket', () => {
 
 test('Mesmer browser simulations retain weaponmaster training', () => {
   const build = createDefaultBuild();
+
   build.specializations[2] = { name: 'Mirage', traits: '1-1-1' };
   build.weapons = ['Dagger', 'Sword'];
   build.alternateWeapons = ['Axe', 'Sword'];
@@ -307,6 +323,7 @@ test('Mesmer browser simulations retain weaponmaster training', () => {
 
 test('simulation config preserves non-sigil condition duration bonuses', () => {
   const build = createDefaultBuild();
+
   build.rune = 'Trapper';
   build.weaponSigils = [
     ['Bursting', 'Demons'],
@@ -324,6 +341,7 @@ test('simulation config preserves non-sigil condition duration bonuses', () => {
 
 test('Mesmer runtime excludes Malicious Sorcery from static duration bonuses', () => {
   const build = createDefaultBuild();
+
   build.specializations.find((spec) => spec.name === 'Illusions').traits = '1-2-3';
   const attributeData = calcAttributes(build, []);
   const config = simulationConfig({ build, attributeData });
@@ -334,6 +352,7 @@ test('Mesmer runtime excludes Malicious Sorcery from static duration bonuses', (
 
 test('simulation config exposes the selected target skill activation rate', () => {
   const build = createDefaultBuild();
+
   build.assumptions.targetSkillActivationsPerSecond = 1.25;
   const config = simulationConfig({
     build,
@@ -346,6 +365,7 @@ test('simulation config exposes the selected target skill activation rate', () =
 
 test('simulation config does not multiply duplicate sigil effects', () => {
   const build = createDefaultBuild();
+
   build.weaponSigils[0] = ['Force', 'Force'];
   const config = simulationConfig({
     build,
@@ -357,6 +377,7 @@ test('simulation config does not multiply duplicate sigil effects', () => {
 
 test('modifier contributions compare the active build against each modifier removed', () => {
   const build = createDefaultBuild();
+
   build.rotation = ['Bladecall'];
   build.relic = '';
   build.selectedSkills = {};
@@ -377,6 +398,7 @@ test('modifier contributions compare the active build against each modifier remo
 
 test('interactive simulation leaves contribution passes to the background worker', () => {
   const build = createDefaultBuild();
+
   build.rotation = ['Bladecall'];
   build.relic = '';
   build.selectedSkills = {};
@@ -388,9 +410,11 @@ test('interactive simulation leaves contribution passes to the background worker
   };
 
   const result = runSimulation(app);
+
   assert.equal(result.contributions, undefined);
 
   const request = structuredClone(modifierContributionRequest(app));
+
   assert.deepEqual(calculateModifierContributions(request), computeModifierContributions(app));
 });
 

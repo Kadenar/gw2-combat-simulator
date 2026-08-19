@@ -23,6 +23,7 @@ export function defaultWeaponSkillMatchesSet(
       (requiredOff == null || (requiredOff === false ? !offHand : String(requiredOff) === String(offHand)))
     );
   }
+
   if (skill.type !== 'Weapon' || !skill.weapon) return true;
   if (skill.requiresEmptyOffhand && offHand) return false;
   const wielding = context.weaponData?.[mainHand]?.wielding || context.catalog?.weaponHands?.get?.(mainHand);

@@ -32,6 +32,7 @@ export function createGw2SimulationConfig({
   if (disabled?.type === 'Target' && disabled.name === 'Vulnerability') {
     delete targetConditions.Vulnerability;
   }
+
   const sigilSets = [1, 2]
     .map((setNumber) => weaponSigilsForSet(app.build, setNumber))
     .map((names) => (disabled?.type === 'Sigil' ? names.filter((name) => name !== disabled.name) : names))
@@ -86,6 +87,7 @@ export function createGw2SimulationConfig({
       conditionDurationBonuses
     };
   };
+
   const fallbackStats = statsFromAttributes(attributeData);
   const weaponSetStats =
     attributeDataByWeaponSet?.length === 2

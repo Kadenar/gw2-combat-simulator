@@ -71,6 +71,7 @@ export function strikePacketOffsets(
   if (Array.isArray(effect.ticks) && effect.ticks.length) {
     return effect.ticks.map((tick) => origin + Number(tick.atMs) * castScale);
   }
+
   const hits = Math.max(1, Math.trunc(Number(effect.hits || 1)));
   const first = origin + (effect.atMs == null ? runtimeDurationMs - origin : Number(effect.atMs) * castScale);
   const intervalScale = effect.intervalTimingScale === 'fixed' ? 1 : castScale;
@@ -88,6 +89,7 @@ export function firstStrikePacketOffsetMs(
     if (options.explicitOnly === true && effect.atMs == null && !(Array.isArray(effect.ticks) && effect.ticks.length)) {
       return [];
     }
+
     return strikePacketOffsets(skill!, effect, runtimeDurationMs);
   });
   return offsets.length ? Math.min(...offsets) : null;
@@ -123,6 +125,7 @@ export function createStrikePacketMatcher(
           if (effect.type !== 'strike' || effect.actorType === 'summon') {
             return [];
           }
+
           const effectName = normalized(effect.name || skill.name);
           const skillName = normalized(skill.name);
           const rawName = normalized(action.rawName);
@@ -171,6 +174,7 @@ export function createStrikePacketMatcher(
         missingOffsets.push(packet.offsetMs);
         continue;
       }
+
       used.add(match.eventIndex);
       observedOffsets.push(match.event.time - action.start);
       observedExpectedOffsets.push(packet.offsetMs);
@@ -179,6 +183,7 @@ export function createStrikePacketMatcher(
         observedCancelableExpectedOffsets.push(packet.offsetMs);
       }
     }
+
     const validation = {
       expectedCount: packets.length,
       observedCount: observedOffsets.length,
@@ -223,6 +228,7 @@ export function committedActionsFromStrikePackets(
     ) {
       continue;
     }
+
     const candidate = actions
       .filter(
         (action) =>
@@ -233,6 +239,7 @@ export function committedActionsFromStrikePackets(
       .sort((left, right) => right.start - left.start || right.eventIndex - left.eventIndex)[0];
     if (candidate) committed.add(candidate);
   }
+
   return committed;
 }
 
@@ -247,9 +254,11 @@ export function reconcileCastEffectPackets(
     if (action.forceCompleteReplay) {
       return { ...action, status: 'completed' as const };
     }
+
     if (action.status !== 'completed' && action.status !== 'interrupted') {
       return action;
     }
+
     const packets = validatePackets(action);
     const actualDuration = Math.max(0, action.end - action.start);
     const skill = skillForAction(context, action);
@@ -286,6 +295,7 @@ export function reconcileCastEffectPackets(
               Math.abs(event.time - (action.start + runtimeDuration)) <= EFFECT_PACKET_TOLERANCE_MS
           ));
     }
+
     if (!packets.anyObserved && !phantasmCommitted) return action;
     if (action.status === 'interrupted' && phantasmCommitted && runtimeDuration > 0) {
       return {
@@ -294,6 +304,7 @@ export function reconcileCastEffectPackets(
         replayCastEnd: action.start + runtimeDuration
       };
     }
+
     let replayDuration = Math.min(runtimeDuration || actualDuration, actualDuration);
     let preserveEffectsAfterInterrupt = false;
     let replayCastEnd = action.replayCastEnd;
@@ -321,6 +332,7 @@ export function reconcileCastEffectPackets(
         }
       }
     }
+
     if (action.status === 'interrupted') {
       if (packets.allObserved && runtimeDuration > 0 && replayDuration + 10 >= runtimeDuration) {
         return {
@@ -329,6 +341,7 @@ export function reconcileCastEffectPackets(
           replayCastEnd: Math.max(action.end, action.start + replayDuration)
         };
       }
+
       return {
         ...action,
         status: 'reduced' as const,
@@ -338,6 +351,7 @@ export function reconcileCastEffectPackets(
         ...(suppressFollowingWait == null ? {} : { suppressFollowingWait })
       };
     }
+
     if (actualDuration === 0) return action;
     if (
       action.expectedDuration != null &&
@@ -346,6 +360,7 @@ export function reconcileCastEffectPackets(
     ) {
       return action;
     }
+
     return runtimeDuration > 0 && replayDuration + 75 < runtimeDuration
       ? {
           ...action,

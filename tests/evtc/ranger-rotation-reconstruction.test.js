@@ -224,6 +224,7 @@ test('reconstructs core Ranger Sic Em and composite Overbearing Smash', () => {
   assert.equal(result.parserId, 'ranger:core');
   assert.equal(result.actions.filter((action) => action.name === '"Sic \'Em!"').length, 1);
   const smash = result.actions.filter((action) => action.name === 'Overbearing Smash');
+
   assert.equal(smash.length, 1);
   assert.equal(smash[0].durationMs, 960);
 });
@@ -478,6 +479,7 @@ test('reconstructs Untamed state changes, unleashed pet commands, and composite 
   );
   assert.equal(names.filter((name) => name === 'Exploding Spores').length, 1);
   const smash = result.actions.filter((action) => action.name === 'Unleashed Overbearing Smash');
+
   assert.equal(smash.length, 1);
   assert.equal(smash[0].status, 'interrupted');
   assert.equal(smash[0].durationMs, 280);
@@ -734,6 +736,7 @@ test('reconstructs Soulbeast precasts, commands, composite Smash, and shared Pat
   assert.equal(names.filter((name) => name === 'Path of Scars (Max Range)').length, 1);
   assert.equal(names.filter((name) => name === 'Path of Scars').length, 1);
   const smash = result.actions.filter((action) => action.name === 'Overbearing Smash');
+
   assert.equal(smash.length, 2);
   assert.equal(smash[0].status, 'interrupted');
   assert.equal(smash[0].durationMs, 318);

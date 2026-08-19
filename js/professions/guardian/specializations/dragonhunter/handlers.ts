@@ -47,6 +47,7 @@ function activateSpearOfJustice(context: GuardianCastContext, skill: GuardianSki
       totalApplications: tetherDuration
     });
   }
+
   return true;
 }
 

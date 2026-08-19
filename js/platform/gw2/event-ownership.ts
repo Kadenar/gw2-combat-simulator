@@ -27,9 +27,11 @@ export function gw2ActorTypeForSource(source: unknown): Gw2EventActorType {
   if (typeof source === 'string' && SUMMON_SOURCES.has(source)) {
     return GW2_EVENT_ACTOR_TYPES.SUMMON;
   }
+
   if (typeof source === 'string' && EFFECT_SOURCES.has(source)) {
     return GW2_EVENT_ACTOR_TYPES.EFFECT;
   }
+
   return GW2_EVENT_ACTOR_TYPES.UNKNOWN;
 }
 
@@ -44,6 +46,7 @@ export function gw2EventActorType(event: Partial<SimulationEventInput> | null | 
   if (Object.values(GW2_EVENT_ACTOR_TYPES).includes(explicit as Gw2EventActorType)) {
     return explicit as Gw2EventActorType;
   }
+
   return gw2ActorTypeForSource(event?.source);
 }
 
@@ -64,6 +67,7 @@ export function gw2EventOwnerActorType(event: Partial<SimulationEventInput> | nu
   if (Object.values(GW2_EVENT_ACTOR_TYPES).includes(explicit as Gw2EventActorType)) {
     return explicit as Gw2EventActorType;
   }
+
   if (explicit === 'phantasm') return GW2_EVENT_ACTOR_TYPES.SUMMON;
   return gw2EventActorType(event);
 }

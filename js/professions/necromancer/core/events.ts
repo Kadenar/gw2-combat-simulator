@@ -29,10 +29,12 @@ function mergeExpiryStacks(left: readonly number[] = [], right: readonly number[
     for (const expiresAt of values) {
       local.set(expiresAt, (local.get(expiresAt) || 0) + 1);
     }
+
     for (const [expiresAt, count] of local) {
       counts.set(expiresAt, Math.max(counts.get(expiresAt) || 0, count));
     }
   }
+
   return [...counts.entries()]
     .flatMap(([expiresAt, count]) => Array(count).fill(expiresAt))
     .sort((a, b) => a - b)
@@ -78,10 +80,12 @@ export function handleNecromancerStateEvent(
       specializationState[key] = structuredClone(value);
     }
   }
+
   core.carapaceExpiries = mergeExpiryStacks(core.carapaceExpiries, resolverCarapace);
   for (const [key, value] of Object.entries(resolverOnly)) {
     if (value !== undefined) mutableCore[key] = value;
   }
+
   if (ritualistOnly) {
     Object.assign(active.state, ritualistOnly);
   }
@@ -111,6 +115,7 @@ export function handleNecromancerChillEvent(
     });
     context.recordProc?.('trait', 'Bitter Chill', event.at, event.skillName);
   }
+
   if (hasTrait(context, TRAIT.DEATHLY_CHILL)) {
     enqueueOrdered(context.queue, {
       type: 'condition',
@@ -213,6 +218,7 @@ export function handleNecromancerSummonAttack(
       duration: Number(duration || 0)
     });
   }
+
   if (event.controlKind) {
     enqueueOrdered(context.queue, {
       type: 'control',

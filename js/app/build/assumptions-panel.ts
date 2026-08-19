@@ -156,6 +156,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
     if (control.type === "boolean") {
       return `<label class="boon-control"><input data-assumption-key="${esc(control.key)}" data-assumption-type="boolean" type="checkbox"${value ? " checked" : ""}> ${esc(control.label)}</label>`;
     }
+
     if (control.type === "select") {
       const hasIcons = control.options.some(assumptionOptionIcon);
       if (hasIcons) {
@@ -188,6 +189,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
                         </details>
                     </div>`;
       }
+
       return `<label class="boon-control">${esc(control.label)}
                     <select class="gear-select" data-assumption-key="${esc(control.key)}" data-assumption-type="select">
                         ${control.options
@@ -199,11 +201,13 @@ export function renderAssumptions(app: ProfessionAppState): void {
                     </select>
                 </label>`;
     }
+
     return `<label class="boon-control">${esc(control.label)}
                 <input data-assumption-key="${esc(control.key)}" data-assumption-type="number" type="number"
                     min="${control.minimum}" max="${control.maximum}" step="${control.step}" value="${Number(value)}">
             </label>`;
   };
+
   const professionAssumptionItems = assumptionControls
     .filter((control) => !control.section || control.section === "target")
     .map(professionAssumptionItem)
@@ -310,6 +314,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
             stackInput.value = "1";
           }
         }
+
         const value = stackInput
           ? check.checked
             ? Math.max(1, Number(stackInput.value) || 1)
@@ -322,6 +327,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
         } else {
           delete conditions[effectKey];
         }
+
         app.changed();
       });
     });
@@ -341,6 +347,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
         } else {
           delete conditions[effectKey];
         }
+
         app.changed();
       });
     });
@@ -384,6 +391,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
     ) {
       return;
     }
+
     control.addEventListener("change", () => {
       const definition = assumptionControls.find(
         (candidate) => candidate.key === control.dataset.assumptionKey,
@@ -400,6 +408,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
       } else {
         a[definition.key] = control.value;
       }
+
       app.changed();
     });
   });
@@ -438,6 +447,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
       targetArmor.focus();
       return;
     }
+
     app.build.targetArmor = normalizeTargetArmor(targetArmorPresetSelect.value);
     targetArmor.value = String(app.build.targetArmor);
     app.changed();

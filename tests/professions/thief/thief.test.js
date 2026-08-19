@@ -140,6 +140,7 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
   ]) {
     assert.equal(thiefCatalog.skillsByName.has(excludedName), false, excludedName);
   }
+
   assert.ok(
     THIEF_SUPPLEMENTAL_SKILLS.every(
       (skill) =>
@@ -156,6 +157,7 @@ test('Thief catalog pins API identity and explicit terrestrial mechanics', () =>
 
 test('Thief modules expose isolated balance-profile authoring', () => {
   const modules = new Map(thiefProfession.patchAuthoring.modules.map((module) => [module.id, module]));
+
   assert.deepEqual([...modules.keys()], ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']);
   assert.equal(
     [...modules.values()].every((module) => module.balanceProfiles.length > 0),
@@ -164,6 +166,7 @@ test('Thief modules expose isolated balance-profile authoring', () => {
 
   const profile = (moduleId, profileId) =>
     modules.get(moduleId).balanceProfiles.find((entry) => entry.id === profileId);
+
   assert.equal(profile('Core', THIEF_CORE_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 12);
   assert.equal(
     profile('Daredevil', DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining).profile.effects[0].coefficient,
@@ -180,6 +183,7 @@ test('Thief modules expose isolated balance-profile authoring', () => {
         Object.keys(rule.parameters).length === 0
     )
   );
+
   assert.deepEqual(opaqueModifierRules, []);
 
   const preview = applyThiefPatch({
@@ -223,6 +227,7 @@ test('Thief modules expose isolated balance-profile authoring', () => {
 
 test('Thief defaults migrate deterministic assumptions and validate bars', () => {
   const defaults = createThiefBuildDefaults();
+
   assert.deepEqual(validateThiefBuild(defaults), {
     valid: true,
     errors: []
@@ -239,6 +244,7 @@ test('Thief defaults migrate deterministic assumptions and validate bars', () =>
       forgedSurferBombsHit: '2'
     }
   });
+
   assert.equal(Object.hasOwn(migrated.assumptions, 'artifactDrawSequence'), false);
   assert.equal(Object.hasOwn(migrated.assumptions, 'doubleEdgeOutcomeSequence'), false);
   assert.equal(migrated.assumptions.forgedSurferBombsHit, '2');
@@ -255,18 +261,21 @@ test('Thief defaults migrate deterministic assumptions and validate bars', () =>
         (control) => control.key
       )
     );
+
   assert.equal(keysFor('Core').has('stolenSkillChoice'), true);
   assert.equal(keysFor('Daredevil').has('stolenSkillChoice'), true);
   assert.equal(keysFor('Deadeye').has('deadeyeStolenSkillChoice'), true);
   assert.equal(keysFor('Deadeye').has('stolenSkillChoice'), false);
   for (const controlKey of ['stolenSkillChoice', 'deadeyeStolenSkillChoice']) {
     const control = thiefProfession.ui.assumptionControls.find((candidate) => candidate.key === controlKey);
+
     assert.ok(
       control.options.every(
         (option) => Number.isFinite(option.skillId) && Boolean(thiefCatalog.skillsById.get(option.skillId)?.icon)
       )
     );
   }
+
   assert.equal(keysFor('Antiquary').has('forgedSurferBombsHit'), true);
   assert.deepEqual(
     thiefProfession.ui.assumptionControls
@@ -277,10 +286,12 @@ test('Thief defaults migrate deterministic assumptions and validate bars', () =>
   for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter']) {
     assert.equal(keysFor(specialization).has('forgedSurferBombsHit'), false);
   }
+
   for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']) {
     assert.equal(keysFor(specialization).has('playerHealthPercent'), false);
     assert.equal(keysFor(specialization).has('targetDistance'), false);
   }
+
   assert.equal(
     validateThiefBuild({
       ...defaults,
@@ -303,6 +314,7 @@ test('Thief resources use profession-specific initiative and malice pips', () =>
     });
 
   const coreInitiative = resourceViews('Core')[0];
+
   assert.equal(coreInitiative.displayMode, 'pips');
   assert.equal(coreInitiative.pipStyle, 'thief-initiative');
   assert.equal(coreInitiative.pipRows, 2);
@@ -311,18 +323,22 @@ test('Thief resources use profession-specific initiative and malice pips', () =>
   const preparedInitiative = resourceViews('Core', {
     traitIds: [TRAIT.PREPAREDNESS]
   })[0];
+
   assert.equal(preparedInitiative.maximum, 15);
   assert.equal(preparedInitiative.pipRows, 2);
 
   const antiquaryInitiative = resourceViews('Antiquary')[0];
+
   assert.equal(antiquaryInitiative.pipStyle, 'thief-initiative');
   assert.equal(antiquaryInitiative.pipRows, 3);
 
   const deadeyeMalice = resourceViews('Deadeye').find((view) => view.id === 'malice');
+
   assert.equal(deadeyeMalice.displayMode, 'pips');
   assert.equal(deadeyeMalice.pipStyle, 'thief-malice');
 
   const coreEndurance = resourceViews('Core').find((view) => view.id === 'endurance');
+
   assert.equal(coreEndurance.maximum, 100);
   assert.equal(coreEndurance.value, 100);
   assert.equal(coreEndurance.displayMode, 'bar');
@@ -330,6 +346,7 @@ test('Thief resources use profession-specific initiative and malice pips', () =>
   assert.equal(coreEndurance.canStart, false);
 
   const daredevilEndurance = resourceViews('Daredevil').find((view) => view.id === 'endurance');
+
   assert.equal(daredevilEndurance.maximum, 150);
 
   const displayedInitiative = resourceDisplayViews(thiefProfession, {
@@ -339,6 +356,7 @@ test('Thief resources use profession-specific initiative and malice pips', () =>
       maximumInitiative: 12
     }
   })[0];
+
   assert.equal(displayedInitiative.value, 4);
 });
 
@@ -380,6 +398,7 @@ test('every legal one-hand combination resolves one exact opening slot 3', () =>
     ['Axe/Pistol', 'Orchestrated Assault'],
     ['Axe/', 'Recall Axes']
   ]);
+
   for (const [key, name] of expected) {
     const pair = key.split('/');
     const roots = thiefCatalog.skills.filter(
@@ -391,12 +410,14 @@ test('every legal one-hand combination resolves one exact opening slot 3', () =>
           catalog: thiefCatalog
         })
     );
+
     assert.deepEqual(
       roots.map((skill) => skill.name),
       [name],
       key
     );
   }
+
   assert.equal(
     thiefCatalog.skills.some(
       (skill) =>
@@ -415,11 +436,13 @@ test('dual-wield follow-ups require and consume their opening skill', () => {
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Dagger'
   });
+
   assert.match(denied.warnings[0], /opening dual-wield skill/);
   const result = simulate('Core', ['Flanking Strike', 'Larcenous Strike'], {
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Dagger'
   });
+
   assert.equal(result.warnings.length, 0);
   assert.ok(result.totalDamage > 0);
   assert.equal(result.endState.profession.availableFlips[13007], undefined);
@@ -437,6 +460,7 @@ test('every terrestrial main hand exposes its normal stealth attack', () => {
     ['Axe', 'Cunning Salvo'],
     ['Spear', 'Ashen Assault']
   ]);
+
   for (const [weapon, name] of expected) {
     assert.ok(
       thiefCatalog.skills.some(
@@ -451,6 +475,7 @@ test('initiative regenerates at exact boundaries and ignores Alacrity', () => {
   const boundary = simulate('Core', ['Death Blossom'], {
     initialInitiative: 3
   });
+
   assert.equal(boundary.warnings.length, 0);
   assert.equal(boundary.steps[0].start, 1000);
   assert.equal(boundary.endState.profession.initiative, 1.56);
@@ -460,6 +485,7 @@ test('initiative regenerates at exact boundaries and ignores Alacrity', () => {
       initialInitiative: 0,
       boons: { alacrity }
     });
+
     assert.equal(result.endState.profession.initiative, 5);
   }
 
@@ -468,6 +494,7 @@ test('initiative regenerates at exact boundaries and ignores Alacrity', () => {
     primaryWeapon: 'Rifle',
     secondaryWeapon: ''
   });
+
   assert.equal(kneeling.warnings.length, 0);
   assert.ok(Math.abs(kneeling.endState.profession.initiative - 14 / 3) < 1e-9);
 });
@@ -479,6 +506,7 @@ test('Unload grants 2 initiative when every bullet lands', () => {
     secondaryWeapon: 'Pistol'
   });
   const refund = completed.events.find((event) => event.type === 'thief.state' && event.reason === 'unload-refund');
+
   assert.equal(completed.steps[0].end - completed.steps[0].start, 1980);
   assert.equal(completed.steps[0].interrupted, false);
   assert.equal(refund.at, 1.98);
@@ -493,6 +521,7 @@ test('Unload grants 2 initiative when every bullet lands', () => {
   const quickenedRefund = quickened.events.find(
     (event) => event.type === 'thief.state' && event.reason === 'unload-refund'
   );
+
   assert.equal(quickened.steps[0].end - quickened.steps[0].start, 1320);
   assert.equal(quickened.steps[0].interrupted, false);
   assert.deepEqual(
@@ -515,6 +544,7 @@ test('Unload grants 2 initiative when every bullet lands', () => {
   const safeBullets = safelyInterrupted.events.filter(
     (event) => event.type === 'damage' && event.skillName === 'Unload'
   );
+
   assert.deepEqual(
     safeBullets.map((event) => Math.round(event.at * 1000)),
     [145, 290, 435, 580, 725, 870, 1015, 1160]
@@ -529,6 +559,7 @@ test('Unload grants 2 initiative when every bullet lands', () => {
     primaryWeapon: 'Pistol',
     secondaryWeapon: 'Pistol'
   });
+
   assert.equal(
     interruptedBeforeFinalBullet.events.filter((event) => event.type === 'damage' && event.skillName === 'Unload')
       .length,
@@ -544,6 +575,7 @@ test('Unload grants 2 initiative when every bullet lands', () => {
 
 test('weapon swap preserves shared initiative', () => {
   const result = simulate('Core', ['Death Blossom', 'Swap Weapons', 'Unload']);
+
   assert.equal(result.warnings.length, 0);
   assert.equal(result.endState.activeWeaponSet, 2);
   assert.ok(Math.abs(result.endState.profession.initiative - 10.54) < 1e-9);
@@ -553,12 +585,14 @@ test('weapon swap preserves shared initiative', () => {
     weaponSet2Primary: 'Dagger',
     weaponSet2Secondary: 'Dagger'
   });
+
   assert.deepEqual(resetChain.warnings, []);
   assert.equal(resetChain.steps.filter((step) => step.skill === 'Double Strike').length, 2);
 });
 
 test('stealth attacks remove stealth, apply Revealed, and block replacement', () => {
   const result = simulate('Core', ['Cloak and Dagger', 'Backstab', 'Cloak and Dagger', 'Backstab']);
+
   assert.match(result.warnings.at(-1), /requires stealth/);
   assert.ok(result.endState.profession.revealedUntil > 0);
   assert.equal(result.endState.profession.stealthUntil <= result.duration, true);
@@ -579,6 +613,7 @@ test('stealth replaces weapon skill 1 without a separate palette group', () => {
     }
   };
   const groups = thiefProfession.ui.paletteGroups(context);
+
   assert.equal(
     groups.some((group) => group.id === 'thief-stealth-attacks'),
     false
@@ -612,20 +647,24 @@ test('stealth replaces weapon skill 1 without a separate palette group', () => {
       weaponSet2Primary: '',
       weaponSet2Secondary: ''
     });
+
     return weaponPaletteRows(app, 1)[0].skills.map((skill) => skill.name);
   };
 
   const ordinary = paletteNamesAfter([]);
+
   assert.ok(ordinary.includes('Double Strike'));
   assert.equal(ordinary.includes('Backstab'), false);
 
   const stealthed = paletteNamesAfter(['Cloak and Dagger']);
+
   assert.ok(stealthed.includes('Backstab'));
   assert.equal(stealthed.includes('Double Strike'), false);
 });
 
 test('Deadeye palette uses malicious stealth attacks and one stateful rifle bar', () => {
   const deadeyesMark = thiefCatalog.skillsByName.get("Deadeye's Mark");
+
   assert.equal(deadeyesMark.flipParentId, null);
 
   const matchingNames = (pair, kneeling) =>
@@ -642,10 +681,12 @@ test('Deadeye palette uses malicious stealth attacks and one stateful rifle bar'
       .map((skill) => skill.name);
 
   const dagger = matchingNames(['Dagger', 'Dagger'], false);
+
   assert.ok(dagger.includes('Malicious Backstab'));
   assert.equal(dagger.includes('Backstab'), false);
 
   const standing = matchingNames(['Rifle', ''], false);
+
   assert.ok(standing.includes('Brutal Aim'));
   assert.ok(standing.includes('Double Tap'));
   assert.ok(standing.includes("Skirmisher's Shot"));
@@ -658,6 +699,7 @@ test('Deadeye palette uses malicious stealth attacks and one stateful rifle bar'
   assert.equal(standing.includes("Death's Judgment"), false);
 
   const kneeling = matchingNames(['Rifle', ''], true);
+
   assert.ok(kneeling.includes('Deadly Aim'));
   assert.ok(kneeling.includes('Three Round Burst'));
   assert.ok(kneeling.includes("Spotter's Shot"));
@@ -673,6 +715,7 @@ test('Deadeye palette uses malicious stealth attacks and one stateful rifle bar'
     activeWeaponSet: 1,
     professionState: { kneeling: false }
   });
+
   assert.equal(
     paletteGroups.some((group) => group.id === 'thief-rifle-stance'),
     false
@@ -688,6 +731,7 @@ test('Deadeye palette uses malicious stealth attacks and one stateful rifle bar'
       }
     })
     .find((group) => group.id === 'thief-profession');
+
   assert.deepEqual(professionGroup.skillIds, [ID.DEADEYES_MARK, ID.STEAL_TIME]);
   assert.equal(
     thiefProfession.ui.isPaletteSkillAvailable(
@@ -732,6 +776,7 @@ test('Thief weapon chains and follow-ups occupy one live palette tile', () => {
         weaponSet2Secondary: ''
       })
     };
+
     return weaponPaletteRows(app, 1)[0].skills.map((skill) => skill.name);
   };
 
@@ -740,30 +785,37 @@ test('Thief weapon chains and follow-ups occupy one live palette tile', () => {
   assert.ok(paletteAfter('Specter', ['Scepter', 'Pistol'], ['Shadow Bolt', 'Double Bolt']).includes('Triple Bolt'));
 
   const sword = paletteAfter('Core', ['Sword', 'Pistol'], ["Infiltrator's Strike"]);
+
   assert.ok(sword.includes("Infiltrator's Return"));
   assert.equal(sword.includes("Infiltrator's Strike"), false);
 
   const shortbow = paletteAfter('Core', ['Shortbow', ''], ['Cluster Bomb']);
+
   assert.ok(shortbow.includes('Detonate Cluster'));
   assert.equal(shortbow.includes('Cluster Bomb'), false);
 
   const staff = paletteAfter('Daredevil', ['Staff', ''], ['Debilitating Arc']);
+
   assert.ok(staff.includes('Helmet Breaker'));
   assert.equal(staff.includes('Debilitating Arc'), false);
 
   const standingRifle = paletteAfter('Deadeye', ['Rifle', ''], []);
+
   assert.ok(standingRifle.includes("Death's Retreat"));
   assert.equal(standingRifle.includes("Sniper's Cover"), false);
 
   const kneelingRifle = paletteAfter('Deadeye', ['Rifle', ''], ['Kneel', "Sniper's Cover"]);
+
   assert.ok(kneelingRifle.includes("Death's Advance"));
   assert.equal(kneelingRifle.includes("Sniper's Cover"), false);
 });
 
 test('Steal stores and consumes the deterministic raid-golem stolen skill', () => {
   const stored = simulate('Core', ['Steal']);
+
   assert.equal(thiefCatalog.skillsById.get(stored.endState.profession.storedStolenSkillId).name, 'Throw Gunk');
   const used = simulate('Core', ['Steal', 'Throw Gunk']);
+
   assert.equal(used.warnings.length, 0);
   assert.equal(used.endState.profession.storedStolenSkillId, null);
 });
@@ -774,19 +826,23 @@ test('Daredevil capacity and every dodge replacement resolve explicitly', () => 
     ['Bounding Dodger', 'damage'],
     ['Unhindered Combatant', 'boon']
   ]);
+
   for (const [selectedDodge, eventType] of expectations) {
     const traitId = TRAIT[selectedDodge.toUpperCase().replace(/[^A-Z0-9]+/g, '_')];
     const result = simulate('Daredevil', ['Dodge'], {
       selectedDodge,
       selectedTraitIds: [traitId]
     });
+
     assert.equal(result.endState.profession.maximumEndurance, 150);
     assert.ok(result.events.some((event) => event.type === eventType));
+
     if (selectedDodge === 'Bounding Dodger') {
       const stateIndex = result.events.findIndex(
         (event) => event.type === 'thief.state' && event.reason === 'daredevil-dodge'
       );
       const boundIndex = result.events.findIndex((event) => event.type === 'damage' && event.name === 'Bound');
+
       assert.ok(stateIndex >= 0 && stateIndex < boundIndex);
     }
   }
@@ -795,6 +851,7 @@ test('Daredevil capacity and every dodge replacement resolve explicitly', () => 
     selectedDodge: 'Lotus Training',
     selectedTraitIds: [TRAIT.LOTUS_TRAINING]
   });
+
   assert.deepEqual(
     impalingLotus.events
       .filter((event) => event.type === 'damage' && event.skillName === 'Impaling Lotus')
@@ -858,11 +915,13 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
     selectedTraitIds: [TRAIT.UNRELENTING_STRIKES, TRAIT.NO_QUARTER]
   });
   const firstFlawless = flawlessHits(withNoQuarter);
+
   assert.equal(firstFlawless[0].criticalDamage, 1.5);
   assert.equal(firstFlawless[1].criticalDamage, 1.5 + 250 / 1500);
   const extendedFurySlice = withNoQuarter.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillName === 'Slice'
   );
+
   assert.equal(extendedFurySlice.criticalDamage, 1.5 + 250 / 1500);
   assert.equal(withNoQuarter.profession.traitProcReadyAt[TRAIT.UNRELENTING_STRIKES], firstFlawless[0].at + 8);
   assert.equal(withNoQuarter.profession.traitProcReadyAt[TRAIT.NO_QUARTER], extendedFurySlice.at + 2);
@@ -871,6 +930,7 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
     ...criticalConfig,
     selectedTraitIds: [TRAIT.UNRELENTING_STRIKES, TRAIT.ASSASSINS_FURY]
   });
+
   assert.ok(
     Math.abs(flawlessHits(withAssassinsFury)[1].damage / flawlessHits(unrelenting)[1].damage - 2090 / 2000) < 1e-9
   );
@@ -891,6 +951,7 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
       secondaryWeapon: 'Pistol',
       selectedTraitIds
     }).resolvedEvents.find((event) => event.type === 'damage');
+
   assert.equal(strike([TRAIT.KEEN_OBSERVER]).criticalChance, 0.2);
   assert.ok(Math.abs(strike([TRAIT.TWIN_FANGS]).criticalChance - 0.12) < 1e-12);
   assert.ok(
@@ -912,10 +973,13 @@ test('Daredevil skills and endurance traits use configured values', () => {
     [ID.PALM_STRIKE, 480],
     [ID.CHANNELED_VIGOR, 480]
   ]);
+
   for (const [skillId, duration] of expectedQuicknessTimes) {
     assert.equal(thiefCatalog.skillsById.get(skillId).quicknessCastTimeMs, duration);
   }
+
   const backstabStrike = thiefCatalog.skillsById.get(ID.BACKSTAB).effects.find((effect) => effect.type === 'strike');
+
   assert.deepEqual(
     [backstabStrike.atMs, backstabStrike.timingAnchor, backstabStrike.timingScale],
     [200, 'castStart', 'fixed']
@@ -923,6 +987,7 @@ test('Daredevil skills and endurance traits use configured values', () => {
   const interruptedBackstab = simulate('Daredevil', ['Cloak and Dagger', { name: 'Backstab', interruptMs: 280 }], {
     stats: { precision: 5000 }
   });
+
   assert.equal(interruptedBackstab.steps[1].interrupted, true);
   assert.equal(interruptedBackstab.steps[1].end - interruptedBackstab.steps[1].start, 280);
   assert.equal(interruptedBackstab.breakdown.find((entry) => entry.sourceSkill === 'Backstab').hits, 1);
@@ -933,8 +998,10 @@ test('Daredevil skills and endurance traits use configured values', () => {
 
   const totalCoefficient = (name) => {
     const strike = thiefCatalog.skillsByName.get(name).effects.find((effect) => effect.type === 'strike');
+
     return strike.ticks ? strike.ticks.reduce((sum, tick) => sum + tick.coefficient, 0) : strike.coefficient;
   };
+
   assert.equal(totalCoefficient('Fist Flurry'), 3.75);
   assert.equal(totalCoefficient('Impairing Daggers'), 2.5);
   assert.deepEqual(
@@ -946,6 +1013,7 @@ test('Daredevil skills and endurance traits use configured values', () => {
   );
 
   const directPalm = simulate('Daredevil', ['Palm Strike']);
+
   assert.match(directPalm.warnings[0], /Fist Flurry must connect/i);
 
   const traits = [TRAIT.BRAWLERS_TENACITY, TRAIT.WEAKENING_STRIKES, TRAIT.BOUNDING_DODGER];
@@ -958,6 +1026,7 @@ test('Daredevil skills and endurance traits use configured values', () => {
     selectedDodge: 'Bounding Dodger',
     selectedTraitIds: traits
   });
+
   assert.deepEqual(brawler.warnings, []);
   assert.ok(Math.abs(brawler.endState.profession.endurance - base.endState.profession.endurance - 15) < 1e-9);
   assert.ok(
@@ -970,6 +1039,7 @@ test('Daredevil skills and endurance traits use configured values', () => {
   const pulmonary = brawler.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.name === 'Pulmonary Impact'
   );
+
   assert.equal(pulmonary.length, 2);
   assert.ok(pulmonary.every((event) => event.canCrit === false && Math.abs(event.at - palm.at - 2) < 1e-9));
 
@@ -977,10 +1047,12 @@ test('Daredevil skills and endurance traits use configured values', () => {
   const withSteal = simulate('Daredevil', ['Dodge', 'Dodge', 'Steal'], {
     selectedTraitIds: [TRAIT.ENDURANCE_THIEF]
   });
+
   assert.ok(Math.abs(withSteal.endState.profession.endurance - withoutSteal.endState.profession.endurance - 50) < 1e-9);
 
   const havoc = daredevilModifierRules.find((rule) => rule.id === 'thief.havoc-specialist');
   const weakening = daredevilModifierRules.find((rule) => rule.id === 'thief.weakening-strikes');
+
   assert.equal(havoc.operation, 'multiply');
   assert.equal(havoc.factor, 1.15);
   assert.equal(weakening.operation, 'multiply');
@@ -999,9 +1071,11 @@ test('Daredevil Staff skills use supplied coefficients and effects', () => {
     ['Dust Strike', 1.8, 3, 4],
     ['Vault', 2.25, 1, 5]
   ];
+
   for (const [name, coefficient, hits, initiativeCost] of expected) {
     const skill = thiefCatalog.skillsByName.get(name);
     const strike = skill.effects.find((effect) => effect.type === 'strike');
+
     assert.equal(skill.weapon, 'Staff', name);
     assert.equal(strike.coefficient, coefficient, name);
     assert.equal(strike.hits, hits, name);
@@ -1016,45 +1090,55 @@ test('Daredevil Staff skills use supplied coefficients and effects', () => {
     ['Debilitating Arc', 200],
     ['Hook Strike', 640]
   ];
+
   for (const [name, quicknessCastTimeMs] of expectedQuicknessTimes) {
     const skill = thiefCatalog.skillsByName.get(name);
+
     assert.equal(skill.quicknessCastTimeMs, quicknessCastTimeMs, name);
     assert.equal(skill.castTimeMs, quicknessCastTimeMs * 1.5, name);
   }
 
   for (const name of ['Punishing Strikes', 'Weakening Whirl']) {
     const skill = thiefCatalog.skillsByName.get(name);
+
     assert.equal(skill.comboFinishers[0].ownerId, 'thief', name);
     assert.equal(skill.comboFinishers[0].finisherType, 'Whirl', name);
   }
 
   const impalingLotus = thiefCatalog.skillsByName.get('Impaling Lotus');
+
   assert.equal(impalingLotus.comboFinishers[0].ownerId, 'thief');
   assert.equal(impalingLotus.comboFinishers[0].finisherType, 'Whirl');
 
   const punishing = thiefCatalog.skillsByName.get('Punishing Strikes');
   const vulnerability = punishing.effects.find((effect) => effect.type === 'condition');
+
   assert.deepEqual([vulnerability.condition, vulnerability.stacks, vulnerability.duration], ['Vulnerability', 4, 8]);
 
   const weakening = thiefCatalog.skillsByName.get('Weakening Whirl');
   const weakness = weakening.effects.find((effect) => effect.type === 'condition');
+
   assert.deepEqual([weakness.condition, weakness.stacks, weakness.duration], ['Weakness', 1, 2]);
 
   const arc = thiefCatalog.skillsByName.get('Debilitating Arc');
   const cripple = arc.effects.find((effect) => effect.type === 'condition');
+
   assert.deepEqual([cripple.condition, cripple.stacks, cripple.duration], ['Crippled', 1, 6]);
 
   const hook = thiefCatalog.skillsByName.get('Hook Strike');
   const hookControl = hook.effects.find((effect) => effect.type === 'control');
+
   assert.equal(hook.stealthAttack, true);
   assert.equal(hookControl.metadata.controlKind, 'knockdown');
 
   const helmet = thiefCatalog.skillsByName.get('Helmet Breaker');
   const helmetControl = helmet.effects.find((effect) => effect.type === 'control');
+
   assert.equal(helmetControl.metadata.controlKind, 'daze');
 
   const dust = thiefCatalog.skillsByName.get('Dust Strike');
   const blind = dust.effects.find((effect) => effect.type === 'blind');
+
   assert.equal(blind.metadata.duration, 1);
 });
 
@@ -1064,6 +1148,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
     selectedTraitIds: deadeyeTraits,
     stats: { precision: 5000 }
   });
+
   assert.equal(result.warnings.length, 0);
   assert.equal(result.endState.profession.markedTargetId, 'primary-target');
   assert.equal(result.endState.profession.storedStolenSkillId, ID.STEAL_TIME);
@@ -1077,6 +1162,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
     selectedTraitIds: [TRAIT.MALICIOUS_INTENT],
     stats: { precision: 5000 }
   });
+
   assert.equal(consumed.warnings.length, 0);
   assert.equal(consumed.endState.profession.malice, 0);
 
@@ -1085,6 +1171,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
       deadeyeStolenSkillChoice: 'steal-defenses'
     }
   });
+
   assert.equal(noMaliceStealth.warnings.length, 0);
   assert.equal(noMaliceStealth.endState.profession.storedStolenSkillId, null);
   assert.equal(noMaliceStealth.endState.profession.stealthUntil, 0);
@@ -1093,6 +1180,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
     selectedTraitIds: deadeyeTraits,
     stats: { precision: 5000 }
   });
+
   assert.equal(stolen.warnings.length, 0);
   assert.ok(stolen.endState.profession.stealthUntil > stolen.duration);
   assert.ok(stolen.events.some((event) => event.name?.includes('Fire for Effect') && event.boon === 'Might'));
@@ -1100,6 +1188,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
   const improvised = simulate('Deadeye', ["Deadeye's Mark", 'Steal Time', 'Steal Time'], {
     selectedTraitIds: [TRAIT.IMPROVISATION]
   });
+
   assert.equal(improvised.warnings.length, 0);
   assert.equal(improvised.endState.profession.storedStolenSkillId, null);
   assert.equal(improvised.endState.profession.storedStolenSkillCount, 0);
@@ -1109,6 +1198,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
     selectedSkills: ['Mercy'],
     stats: { precision: 5000 }
   });
+
   assert.equal(mercy.warnings.length, 0);
   assert.equal(mercy.endState.profession.markGeneration, 2);
   assert.equal(mercy.endState.profession.malice, 2);
@@ -1117,11 +1207,13 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
     selectedTraitIds: [TRAIT.ONE_IN_THE_CHAMBER],
     selectedSkills: ['Shadow Flare']
   });
+
   assert.equal(chamber.endState.profession.storedStolenSkillId, ID.STEAL_TIME);
 
   const expired = simulate('Deadeye', ["Deadeye's Mark", { type: 'wait', durationMs: 30_001 }], {
     selectedTraitIds: [TRAIT.MALICIOUS_INTENT]
   });
+
   assert.equal(expired.endState.profession.markedTargetId, null);
   assert.equal(expired.endState.profession.malice, 0);
 });
@@ -1136,6 +1228,7 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
   const burstHits = criticalBurst.resolvedEvents.filter(
     (event) => event.skillName === 'Death Blossom' && event.type === 'damage'
   );
+
   assert.equal(burstHits.length, 3);
   assert.ok(burstHits.every((event) => event.didCrit === true));
   assert.equal(criticalBurst.endState.profession.malice, 4);
@@ -1144,6 +1237,7 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
     stats: { precision: 0 },
     randomness: { mode: 'stochastic', seed: 1 }
   });
+
   assert.equal(noncriticalBurst.endState.profession.malice, 1);
 
   const earlyMercy = simulate(
@@ -1160,6 +1254,7 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
   const earlyMercyState = earlyMercy.events.find(
     (event) => event.type === 'thief.state' && event.reason === 'mercy'
   ).state;
+
   assert.ok(Math.abs(earlyMercyState.initiative - 5.133333333333333) < 1e-9);
   assert.equal(earlyMercy.endState.profession.malice, 2);
 
@@ -1178,6 +1273,7 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
   const mercyEvent = maliciousEvent(mercyShot);
   const mercyStep = mercyShot.steps.find((step) => step.skill === 'Mercy');
   const maliceSpent = mercyShot.events.find((event) => event.type === 'thief.state' && event.reason === 'malice-spent');
+
   assert.equal(mercyEvent.deadeyeMaliceSnapshot, 5);
   assert.equal(mercyEvent.damage, ordinaryEvent.damage);
   assert.equal(maliceSpent.at, mercyEvent.at);
@@ -1187,6 +1283,7 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
     stats: { precision: 5000 },
     randomness: { mode: 'stochastic', seed: 1 }
   });
+
   assert.equal(remarked.endState.profession.malice, 2);
 });
 
@@ -1205,6 +1302,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     ...fullCrit,
     selectedSkills: ['Shadow Flare']
   });
+
   assert.ok(Math.abs(ratio(markedFlare, plainFlare, 'Shadow Flare') - 1.5) < 1e-9);
   assert.ok(markedFlare.endState.profession.availableFlips[ID.SHADOW_SWAP] > markedFlare.duration);
 
@@ -1215,6 +1313,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
   const plainStealTimeEvent = plainStolen.resolvedEvents.find(
     (event) => event.skillName === 'Steal Time' && event.type === 'damage'
   );
+
   assert.equal(stealTimeStrike.coefficient, 1);
   assert.equal(plainStealTimeEvent.weaponStrengthProfileId, 'nonweapon.profession-mechanic');
   assert.equal(plainStealTimeEvent.resolvedWeaponStrength, 1100);
@@ -1222,6 +1321,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     ...fullCrit,
     selectedTraitIds: [TRAIT.ONE_IN_THE_CHAMBER]
   });
+
   assert.ok(Math.abs(ratio(chamberStolen, plainStolen, 'Steal Time') - 1.25) < 1e-9);
 
   const markedSword = simulate('Deadeye', ["Deadeye's Mark", 'Slice'], {
@@ -1235,6 +1335,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     secondaryWeapon: 'Pistol',
     selectedTraitIds: [TRAIT.IRON_SIGHT]
   });
+
   assert.ok(Math.abs(ratio(ironSight, markedSword, 'Slice') - 1.1) < 1e-9);
 
   const plainCantrip = simulate('Deadeye', ['Mercy', 'Slice'], {
@@ -1250,6 +1351,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     selectedSkills: ['Mercy'],
     relic: 'Deadeye'
   });
+
   assert.ok(Math.abs(ratio(relicCantrip, plainCantrip, 'Slice') - 1.1) < 1e-9);
 
   const boonConfig = {
@@ -1264,6 +1366,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     selectedTraitIds: [TRAIT.PREMEDITATION]
   });
   const premeditationRatio = ratio(premeditated, plainBoonStrike, 'Slice');
+
   assert.ok(Math.abs(premeditationRatio - 1.03) < 1e-9, premeditationRatio);
 
   const quickKiller = simulate('Deadeye', ['Slice'], {
@@ -1271,16 +1374,19 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     selectedTraitIds: [TRAIT.BE_QUICK_OR_BE_KILLED]
   });
   const quickKillerRatio = ratio(quickKiller, plainBoonStrike, 'Slice');
+
   assert.ok(Math.abs(quickKillerRatio - 2380 / 2180) < 1e-9, quickKillerRatio);
   const markedKiller = simulate('Deadeye', ["Deadeye's Mark"], {
     selectedTraitIds: [TRAIT.BE_QUICK_OR_BE_KILLED]
   });
+
   assert.ok(markedKiller.events.some((event) => event.boon === 'Quickness' && event.duration === 4));
 
   const seven = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom', 'Death Blossom', 'Death Blossom'], {
     ...fullCrit,
     selectedTraitIds: [TRAIT.MALICIOUS_INTENT, TRAIT.MALEFICENT_SEVEN]
   });
+
   assert.equal(seven.warnings.length, 0);
   assert.equal(seven.endState.profession.maximumMalice, 7);
   assert.equal(seven.endState.profession.malice, 7);
@@ -1291,12 +1397,14 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     ["Deadeye's Mark", 'Death Blossom', 'Death Blossom', 'Dodge', 'Malicious Backstab'],
     { ...fullCrit, selectedTraitIds: [TRAIT.SILENT_SCOPE] }
   );
+
   assert.equal(silent.warnings.length, 0);
   assert.equal(silent.endState.profession.stealthAttackCharges, 0);
 
   const sneak = thiefCatalog.skillsByName.get('Malicious Sneak Attack');
   const sneakStrike = sneak.effects.find((effect) => effect.type === 'strike');
   const sneakTorment = sneak.effects.find((effect) => effect.type === 'condition' && effect.condition === 'Torment');
+
   assert.deepEqual([sneakStrike.coefficient, sneakStrike.hits], [1.8, 5]);
   assert.deepEqual([sneakTorment.stacks, sneakTorment.duration], [1, 1]);
 
@@ -1311,11 +1419,13 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
   ]) {
     assert.equal(thiefCatalog.skillsByName.get(name).quicknessCastTimeMs, quicknessCastTimeMs, name);
   }
+
   assert.equal(thiefCatalog.skillsByName.get('Shadow Flare').castTimeMs, 720);
   assert.equal(thiefCatalog.skillsByName.get('Steal Time').castTimeMs, 420);
   assert.equal(thiefCatalog.skillsByName.get('Shadow Meld').castTimeMs, 660);
 
   const threeRoundBurst = thiefCatalog.skillsByName.get('Three Round Burst');
+
   assert.deepEqual(
     threeRoundBurst.effects
       .filter((effect) => effect.type === 'strike')
@@ -1329,6 +1439,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     secondaryWeapon: 'Pistol',
     selectedTraitIds: [TRAIT.MALICIOUS_INTENT]
   });
+
   assert.equal(maliciousSneak.warnings.length, 0);
   assert.equal(
     maliciousSneak.events.find((event) => event.skillName === 'Malicious Sneak Attack' && event.condition === 'Torment')
@@ -1348,6 +1459,7 @@ test('Kneel replaces the rifle bar until Free Action or weapon swap', () => {
     primaryWeapon: 'Rifle',
     secondaryWeapon: ''
   });
+
   assert.equal(result.warnings.length, 0);
   assert.equal(result.endState.profession.kneeling, false);
   assert.ok(result.totalDamage > 0);
@@ -1358,12 +1470,16 @@ test('Deadeye rifle stance rejects every inactive replacement', () => {
     primaryWeapon: 'Rifle',
     secondaryWeapon: ''
   };
+
   for (const skill of ['Deadly Aim', 'Three Round Burst', "Spotter's Shot", 'Free Action']) {
     const result = simulate('Deadeye', [skill], rifle);
+
     assert.match(result.warnings[0], /kneel/i, skill);
   }
+
   for (const skill of ['Brutal Aim', 'Double Tap', "Skirmisher's Shot", 'Kneel']) {
     const result = simulate('Deadeye', ['Kneel', skill], rifle);
+
     assert.match(result.warnings[0], /kneel|rifle skill/i, skill);
   }
 });
@@ -1376,6 +1492,7 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
       shadowShroudActive: false
     }
   });
+
   assert.equal(
     inactiveGroups.find((group) => group.id === 'thief-profession').className,
     'compact-resource-palette specter-f-skills'
@@ -1407,6 +1524,7 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
     primaryWeapon: 'Scepter',
     secondaryWeapon: 'Pistol'
   });
+
   assert.equal(result.warnings.length, 0);
   assert.equal(result.endState.profession.shadowShroudActive, false);
   assert.equal(result.endState.profession.storedStolenSkillId, null);
@@ -1419,6 +1537,7 @@ test('Specter automatically leaves Shadow Shroud when shadow force depletes', ()
   const result = simulate('Specter', ['Enter Shadow Shroud', { type: 'wait', durationMs: 1000 }], {
     initialShadowForce: 1
   });
+
   assert.equal(result.endState.profession.shadowShroudActive, false);
   assert.equal(result.endState.profession.shadowForce, 0);
   assert.equal(result.events.filter((event) => event.type === 'weapon_set' && event.shroudSwap).length, 2);
@@ -1453,8 +1572,10 @@ test('Dagger uses the supplied Quickness timings and total multi-hit coefficient
     [ID.CLOAK_AND_DAGGER, 600],
     [ID.MALICIOUS_BACKSTAB, 440]
   ]);
+
   for (const [skillId, quicknessTime] of expectedQuicknessTimes) {
     const skill = thiefCatalog.skillsById.get(skillId);
+
     assert.equal(skill.quicknessCastTimeMs, quicknessTime, skill.name);
     assert.equal(skill.castTimeMs, quicknessTime * 1.5, skill.name);
   }
@@ -1464,8 +1585,10 @@ test('Dagger uses the supplied Quickness timings and total multi-hit coefficient
     ['Twisting Fangs', 2, 0.63],
     ['Death Blossom', 3, 0.63]
   ];
+
   for (const [name, hits, totalCoefficient] of expectedPackets) {
     const strike = thiefCatalog.skillsByName.get(name).effects.find((effect) => effect.type === 'strike');
+
     assert.equal(strike.ticks?.length || strike.hits, hits, name);
     assert.equal(
       strike.ticks ? strike.ticks.reduce((sum, tick) => sum + tick.coefficient, 0) : strike.coefficient,
@@ -1476,6 +1599,7 @@ test('Dagger uses the supplied Quickness timings and total multi-hit coefficient
 
   const heartseeker = thiefCatalog.skillsByName.get('Heartseeker');
   const heartseekerStrike = heartseeker.effects.find((effect) => effect.type === 'strike');
+
   assert.equal(heartseekerStrike.coefficient, 1);
   assert.deepEqual(heartseekerStrike.coefficientModifiers, [
     { kind: 'target-health-below', threshold: 0.25, multiplier: 2.22 },
@@ -1483,10 +1607,12 @@ test('Dagger uses the supplied Quickness timings and total multi-hit coefficient
   ]);
 
   const deathBlossom = thiefCatalog.skillsByName.get('Death Blossom');
+
   assert.equal(deathBlossom.comboFinishers[0].ownerId, 'thief');
   assert.equal(deathBlossom.comboFinishers[0].finisherType, 'Whirl');
   const backstab = thiefCatalog.skillsByName.get('Backstab');
   const malicious = thiefCatalog.skillsByName.get('Malicious Backstab');
+
   assert.equal(backstab.effects[0].coefficient, 1.5);
   assert.equal(malicious.effects[0].coefficient, 1.5);
   assert.equal(backstab.cooldown, 1);
@@ -1497,6 +1623,7 @@ test('Dagger runtime applies endurance, shadowstep, and per-packet mechanics', (
   const chain = simulate('Core', ['Dodge', 'Double Strike', 'Wild Strike', 'Lotus Strike'], {
     boons: { quickness: true }
   });
+
   assert.deepEqual(
     chain.steps.slice(1).map((step) => step.fullCastMs),
     [360, 400, 440]
@@ -1507,10 +1634,12 @@ test('Dagger runtime applies endurance, shadowstep, and per-packet mechanics', (
     .slice(0, wildStrikeStateIndex)
     .filter((event) => event.at <= chain.steps[2].start / 1000 + 1e-9)
     .at(-1);
+
   assert.equal(thiefStates[wildStrikeStateIndex].state.endurance - beforeWildStrike.state.endurance, 10);
   const doubleStrikeHits = chain.events.filter(
     (event) => event.type === 'damage' && event.skillName === 'Double Strike'
   );
+
   assert.deepEqual(
     doubleStrikeHits.map((event) => event.coefficient),
     [0.4, 0.4]
@@ -1521,6 +1650,7 @@ test('Dagger runtime applies endurance, shadowstep, and per-packet mechanics', (
     secondaryWeapon: 'Pistol',
     relic: 'Peitha'
   });
+
   assert.ok(shadowShot.events.some((event) => event.type === 'peitha' && event.skillName === 'Shadow Shot'));
   assert.equal(
     shadowShot.events.find((event) => event.type === 'blind' && event.skillName === 'Shadow Shot').duration,
@@ -1536,6 +1666,7 @@ test('Malicious stealth attacks use their supplied coefficients and malice scali
     target: { defiant: true }
   });
   const skillDamage = (result, name) => result.breakdown.find((entry) => entry.sourceSkill === name)?.damage || 0;
+
   assert.ok(Math.abs(skillDamage(behind, 'Backstab') / skillDamage(front, 'Backstab') - 2) < 1e-9);
 
   const unmarked = simulate('Deadeye', ['Cloak and Dagger', 'Malicious Backstab'], { stats: { precision: 5000 } });
@@ -1544,10 +1675,12 @@ test('Malicious stealth attacks use their supplied coefficients and malice scali
     stats: { precision: 5000 }
   });
   const maliciousRatio = skillDamage(marked, 'Malicious Backstab') / skillDamage(unmarked, 'Malicious Backstab');
+
   assert.ok(Math.abs(maliciousRatio - 1.5) < 1e-9, maliciousRatio);
   assert.equal(marked.endState.profession.malice, 0);
 
   const deathsJudgment = thiefCatalog.skillsByName.get("Malicious Death's Judgment");
+
   assert.deepEqual(
     deathsJudgment.effects
       .filter((effect) => effect.type === 'strike')
@@ -1575,6 +1708,7 @@ test('Malicious stealth attacks use their supplied coefficients and malice scali
   );
   const deathsJudgmentRatio =
     skillDamage(markedRifle, "Malicious Death's Judgment") / skillDamage(unmarkedRifle, "Malicious Death's Judgment");
+
   assert.ok(Math.abs(deathsJudgmentRatio - 1.5) < 1e-9, deathsJudgmentRatio);
   assert.equal(markedRifle.endState.profession.malice, 0);
 });
@@ -1616,8 +1750,10 @@ test('Specter uses the supplied measured Quickness cast times', () => {
     [ID.WELL_OF_SORROW, 600],
     [ID.WELL_OF_TEARS, 600]
   ]);
+
   for (const [skillId, duration] of expected) {
     const skill = thiefCatalog.skillsById.get(skillId);
+
     assert.equal(skill.quicknessCastTimeMs, duration, skill.name);
     assert.equal(skill.castTimeMs, duration * 1.5, skill.name);
   }
@@ -1625,6 +1761,7 @@ test('Specter uses the supplied measured Quickness cast times', () => {
   const quickSiphon = simulate('Specter', ['Siphon'], {
     boons: { quickness: true }
   });
+
   assert.equal(quickSiphon.steps[0].fullCastMs, 520);
 });
 
@@ -1636,12 +1773,14 @@ test('Specter scepter and shroud packets apply their conditions per hit', () => 
     ['Shadowsquall', 8, 0.2, 'Poisoned'],
     ['Endless Night', 7, 0.33, 'Torment']
   ];
+
   for (const [name, count, coefficient, condition] of expectedPackets) {
     const skill = thiefCatalog.skillsByName.get(name);
     const strikes = skill.effects.filter((effect) => effect.type === 'strike');
     const applications = skill.effects.find((effect) => effect.type === 'condition' && Array.isArray(effect.ticks));
     const hits = strikes.reduce((sum, strike) => sum + strike.hits, 0);
     const totalCoefficient = strikes.reduce((sum, strike) => sum + strike.coefficient, 0);
+
     assert.equal(hits, count, name);
     assert.ok(Math.abs(totalCoefficient / count - coefficient) < 1e-12, name);
     assert.equal(applications.ticks.length, count, name);
@@ -1661,6 +1800,7 @@ test('Specter scepter and shroud packets apply their conditions per hit', () => 
     },
     observationTail(1000)
   );
+
   assert.equal(twilight.steps[0].fullCastMs, 760);
   assert.deepEqual(
     twilight.events
@@ -1692,6 +1832,7 @@ test('Specter scepter and shroud packets apply their conditions per hit', () => 
     (event) =>
       event.type === 'condition' && event.sourceId === TRAIT.DEADLY_AMBITION && event.skillName === 'Twilight Combo'
   );
+
   assert.ok(thiefCatalog.skillsByName.get('Twilight Combo').categories.includes('DualWield'));
   assert.equal(deadlyAmbitionPoisons.length, 1);
   assert.equal(deadlyAmbitionPoisons[0].condition, 'Poisoned');
@@ -1702,6 +1843,7 @@ test('Specter scepter and shroud packets apply their conditions per hit', () => 
     boons: { quickness: true }
   });
   const eternalHits = eternal.events.filter((event) => event.type === 'damage' && event.skillName === 'Eternal Night');
+
   assert.deepEqual(
     eternalHits.map((event) => Number(event.at.toFixed(2))),
     [0.36, 0.68]
@@ -1710,6 +1852,7 @@ test('Specter scepter and shroud packets apply their conditions per hit', () => 
   const eternalConditions = eternal.events.filter(
     (event) => event.type === 'condition' && event.skillName === 'Eternal Night'
   );
+
   assert.deepEqual(
     eternalConditions.map((event) => [event.at, event.condition, event.stacks]),
     [
@@ -1729,10 +1872,12 @@ test('Specter scepter and shroud packets apply their conditions per hit', () => 
     },
     observationTail(4000)
   );
+
   assert.equal(mindShock.steps[1].fullCastMs, 360);
   assert.equal(mindShock.events.find((event) => event.type === 'buff' && event.kind === 'stability').at, 0.36);
   assert.equal(mindShock.events.find((event) => event.type === 'damage' && event.skillName === 'Mind Shock').at, 3.36);
   const stun = mindShock.events.find((event) => event.type === 'control' && event.skillName === 'Mind Shock');
+
   assert.equal(stun.at, 3.36);
   assert.equal(stun.controlKind, 'stun');
 });
@@ -1740,6 +1885,7 @@ test('Specter scepter and shroud packets apply their conditions per hit', () => 
 test('Specter packet offsets align scepter and shroud impacts', () => {
   const packetOffsets = (result, skillName) => {
     const step = result.steps.find((entry) => entry.skill === skillName);
+
     return result.events
       .filter((event) => event.type === 'damage' && event.skillName === skillName)
       .map((event) => Number((event.at - step.start / 1000).toFixed(3)));
@@ -1750,6 +1896,7 @@ test('Specter packet offsets align scepter and shroud impacts', () => {
     secondaryWeapon: 'Dagger',
     boons: { quickness: true }
   });
+
   assert.deepEqual(packetOffsets(bolts, 'Shadow Bolt'), [0.52]);
   assert.deepEqual(packetOffsets(bolts, 'Double Bolt'), [0.32, 0.6]);
   assert.deepEqual(packetOffsets(bolts, 'Triple Bolt'), [0.32, 0.64, 1.04]);
@@ -1758,6 +1905,7 @@ test('Specter packet offsets align scepter and shroud impacts', () => {
     initialShadowForce: 100,
     boons: { quickness: true }
   });
+
   assert.deepEqual(packetOffsets(shroud, 'Grasping Shadows'), [1.24]);
   assert.deepEqual(packetOffsets(shroud, 'Eternal Night'), [0.36, 0.68]);
   assert.deepEqual(packetOffsets(shroud, 'Haunt Shot'), [0.567]);
@@ -1775,6 +1923,7 @@ test('Specter packet offsets align scepter and shroud impacts', () => {
       boons: { quickness: true }
     }
   );
+
   assert.deepEqual(packetOffsets(needles, 'Thousand Needles'), [0, 1, 2, 3, 4]);
 });
 
@@ -1783,6 +1932,7 @@ test('Specter wells preserve one-second pulse intervals and ordered effects', ()
     selectedSkills: ['Well of Sorrow'],
     boons: { quickness: true }
   });
+
   assert.equal(sorrow.steps[0].fullCastMs, 600);
   assert.deepEqual(
     sorrow.events
@@ -1813,6 +1963,7 @@ test('Specter wells preserve one-second pulse intervals and ordered effects', ()
     selectedSkills: ['Well of Tears'],
     boons: { quickness: true }
   });
+
   assert.deepEqual(
     tears.events
       .filter((event) => event.type === 'damage' && event.skillName === 'Well of Tears')
@@ -1830,6 +1981,7 @@ test('Specter wells preserve one-second pulse intervals and ordered effects', ()
     selectedSkills: ['Well of Bounty'],
     boons: { quickness: true }
   });
+
   assert.deepEqual(
     bounty.events
       .filter((event) => event.type === 'buff' && event.skillName === 'Well of Bounty')
@@ -1849,6 +2001,7 @@ test('Specter shadow-force and recharge traits use supplied values', () => {
   const amplified = simulate('Specter', ['Siphon'], {
     selectedTraitIds: [TRAIT.AMPLIFIED_SIPHONING]
   });
+
   assert.equal(baseline.endState.profession.shadowForce, 25);
   assert.equal(amplified.endState.profession.shadowForce, 27.5);
 
@@ -1856,11 +2009,13 @@ test('Specter shadow-force and recharge traits use supplied values', () => {
     primaryWeapon: 'Scepter',
     secondaryWeapon: 'Dagger'
   });
+
   assert.equal(initiative.endState.profession.shadowForce, 4);
 
   const reduced = simulate('Specter', ['Siphon'], {
     selectedTraitIds: [TRAIT.LEAD_ATTACKS, TRAIT.SLEIGHT_OF_HAND]
   });
+
   assert.equal(reduced.endState.cooldowns.Siphon.remaining, 11700);
 
   const larcenous = simulate(
@@ -1875,6 +2030,7 @@ test('Specter shadow-force and recharge traits use supplied values', () => {
     },
     observationTail(1000)
   );
+
   assert.equal(larcenous.profession.shadowForce, 5.5);
   assert.equal(
     larcenous.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Larcenous Torment')
@@ -1901,6 +2057,7 @@ test('Specter attribute, ally, and shadowstep traits resolve explicitly', () => 
     config: attributeConfig
   });
   const stats = query.statsAt(0);
+
   assert.equal(stats.conditionDamage, 1180);
   assert.equal(stats.healingPower, 170);
   assert.equal(stats.expertise, 130);
@@ -1914,15 +2071,18 @@ test('Specter attribute, ally, and shadowstep traits resolve explicitly', () => 
   const protection = allies.events.find(
     (event) => event.type === 'buff' && event.skillName === "Dawn's Repose" && event.kind === 'protection'
   );
+
   assert.equal(protection.duration, 5);
   assert.equal(protection.recipientCount, 4);
   const barrier = allies.events.find(
     (event) => event.type === 'buff' && event.skillName === 'Enter Shadow Shroud' && event.kind === 'barrier'
   );
+
   assert.equal(barrier.recipientCount, 1);
   const dawnBarrier = allies.events.find(
     (event) => event.type === 'buff' && event.skillName === "Dawn's Repose" && event.kind === 'barrier'
   );
+
   assert.equal(dawnBarrier.recipientCount, 2);
   assert.deepEqual(
     allies.events
@@ -1945,6 +2105,7 @@ test('Specter attribute, ally, and shadowstep traits resolve explicitly', () => 
     relic: 'Peitha',
     boons: { quickness: true }
   });
+
   assert.ok(peitha.events.some((event) => event.type === 'peitha' && event.skillName === 'Well of Tears'));
 });
 
@@ -2037,10 +2198,12 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
     secondaryWeapon: ''
   };
   const afterAutoattack = simulate('Core', ['Barbed Spear'], spearConfig);
+
   assert.equal(afterAutoattack.endState.profession.spearChainStage, 0);
   assert.equal(afterAutoattack.endState.profession.spearPreviousSkillId, null);
 
   const afterLeadAndAutoattack = simulate('Core', ['Mantis Sting', 'Barbed Spear'], spearConfig);
+
   assert.equal(afterLeadAndAutoattack.endState.profession.spearChainStage, 1);
   assert.equal(afterLeadAndAutoattack.endState.profession.spearPreviousSkillId, ID.MANTIS_STING);
 });
@@ -2056,6 +2219,7 @@ test('Spider Venom grants six independent charges to the player and allies', () 
     observationTail(6000)
   );
   const partyBuff = result.events.find((event) => event.type === 'buff' && event.kind === 'spider-venom');
+
   assert.equal(partyBuff.stacks, 6);
   assert.equal(partyBuff.duration, 24);
   assert.equal(partyBuff.recipientCount, 5);
@@ -2063,6 +2227,7 @@ test('Spider Venom grants six independent charges to the player and allies', () 
   const allyPoisons = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillId === ID.SPIDER_VENOM && event.triggeredByAlly
   );
+
   assert.equal(allyPoisons.length, 24);
   assert.deepEqual([...new Set(allyPoisons.map((event) => event.triggeredByAlly))], [1, 2, 3, 4]);
   assert.ok(allyPoisons.every((event) => event.stacks === 1 && Math.abs(event.naturalExpiresAt - event.at - 3) < 1e-9));
@@ -2070,6 +2235,7 @@ test('Spider Venom grants six independent charges to the player and allies', () 
   const personalPoisons = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillId === ID.SPIDER_VENOM && !event.triggeredByAlly
   );
+
   assert.equal(personalPoisons.length, 1);
 });
 
@@ -2083,6 +2249,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Dagger'
   });
+
   assert.equal(artifact.warnings.length, 0);
   assert.equal(artifact.endState.profession.artifactUsesRemaining, 0);
   assert.ok(artifact.totalDamage > 0);
@@ -2091,6 +2258,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Dagger'
   });
+
   assert.deepEqual(
     reshuffled.endState.profession.artifactSlots.map((slot) => slot.skillId),
     [...THIEF_ARTIFACT_IDS.OFFENSIVE, ...THIEF_ARTIFACT_IDS.DEFENSIVE]
@@ -2110,6 +2278,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
       secondaryWeapon: 'Dagger'
     }
   );
+
   assert.equal(doubleEdge.warnings.length, 0);
   assert.ok(doubleEdge.endState.profession.backfireState[76725]);
 
@@ -2127,6 +2296,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
       secondaryWeapon: 'Dagger'
     }
   );
+
   assert.equal(doubleEdgeSuccess.warnings.length, 0);
   assert.equal(doubleEdgeSuccess.endState.profession.backfireState[76725], undefined);
 
@@ -2134,6 +2304,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Dagger'
   });
+
   assert.ok(
     guild.resolvedEvents.some(
       (event) => event.actorType === 'summon' && event.skillName === 'Thieves Guild — Sword/Dagger Skritt'
@@ -2151,8 +2322,10 @@ test('Thieves Guild summons three specialization-specific thieves for 24 seconds
     ['Specter', 'Scepter Specter'],
     ['Antiquary', 'Sword/Dagger Skritt']
   ]);
+
   for (const [specialization, thirdSummon] of expectedThirdSummon) {
     const result = simulate(specialization, ['Thieves Guild', { type: 'wait', durationMs: 1800 }]);
+
     assert.deepEqual(
       [
         ...new Set(
@@ -2177,6 +2350,7 @@ test('Thieves Guild summons three specialization-specific thieves for 24 seconds
   const summonPackets = lifetime.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.actorType === 'summon' && event.sourceId === 'thief.thieves-guild'
   );
+
   assert.equal(summonPackets.length, 52);
   assert.equal(lifetime.endState.profession.activeThievesGuild, null);
   assert.deepEqual(
@@ -2184,11 +2358,13 @@ test('Thieves Guild summons three specialization-specific thieves for 24 seconds
     ['Pistol', 'Dagger', 'Scepter'].sort()
   );
   const entityRows = skillBreakdownRows(lifetime).filter((row) => row.parentSkill === 'Thieves Guild');
+
   assert.ok(entityRows.length > 0);
   assert.ok(entityRows.every((row) => !row.name.startsWith('Thieves Guild \u2014 ')));
   assert.ok(entityRows.some((row) => row.name === 'Thief \u2014 Unload'));
   assert.ok(entityRows.some((row) => row.name === 'Specter \u2014 Basic Attack'));
   const scorpionWire = entityRows.find((row) => row.name === 'Thief \u2014 Scorpion Wire');
+
   assert.ok(scorpionWire.strike > 0);
   assert.ok(scorpionWire.condition > 0);
   assert.ok(entityRows.every((row) => !row.name.endsWith(' \u2014 Poisoned')));
@@ -2204,9 +2380,11 @@ test('Thieves Guild uses independent summon weapons and attack profiles', () => 
   const entityRowNames = skillBreakdownRows(result)
     .filter((row) => row.parentSkill === 'Thieves Guild')
     .map((row) => row.name);
+
   assert.ok(entityRowNames.includes('Thief \u2014 Unload'));
   assert.ok(entityRowNames.includes('Daredevil \u2014 Vault'));
   const impairingDaggers = skillBreakdownRows(result).find((row) => row.name === 'Daredevil \u2014 Impairing Daggers');
+
   assert.ok(impairingDaggers.strike > 0);
   assert.ok(impairingDaggers.condition > 0);
   assert.ok(
@@ -2216,6 +2394,7 @@ test('Thieves Guild uses independent summon weapons and attack profiles', () => 
   );
   const summarize = (name) => {
     const events = profile(name);
+
     return {
       coefficient: Number(events.reduce((total, event) => total + Number(event.coefficient || 0), 0).toFixed(3)),
       hits: events.reduce((total, event) => total + Number(event.hits || 0), 0),
@@ -2264,9 +2443,11 @@ test('Thieves Guild uses independent summon weapons and attack profiles', () => 
   const highPower = simulate('Daredevil', rotation, {
     stats: { power: 4000, precision: 3000, ferocity: 1500 }
   });
+
   assert.equal(summonStrikeDamage(lowPower), summonStrikeDamage(highPower));
   const withRelic = simulate('Daredevil', rotation, { relic: 'Thief' });
   const withoutRelic = simulate('Daredevil', rotation);
+
   assert.equal(summonStrikeDamage(withRelic), summonStrikeDamage(withoutRelic));
   assert.equal(summonConditionDamage(withRelic), summonConditionDamage(withoutRelic));
 });
@@ -2279,6 +2460,7 @@ test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
   };
 
   const swipe = simulate('Antiquary', ['Skritt Swipe'], config);
+
   assert.deepEqual(
     swipe.endState.profession.artifactSlots.map((slot) => slot.skillId),
     expectedArtifactIds
@@ -2288,6 +2470,7 @@ test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
     professionState: swipe.endState.profession,
     build: { assumptions: {} }
   });
+
   assert.deepEqual(
     paletteGroups.find((group) => group.id === 'thief-artifacts-offensive').skillIds,
     THIEF_ARTIFACT_IDS.OFFENSIVE
@@ -2303,6 +2486,7 @@ test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
   assert.equal(paletteGroups.find((group) => group.id === 'thief-profession').skillIds.includes(ID.RESHUFFLE), false);
 
   const picked = simulate('Antiquary', ['Skritt Swipe', 'Mistburn Mortar'], config);
+
   assert.equal(picked.warnings.length, 0);
   assert.equal(picked.endState.profession.artifactUsesRemaining, 0);
   // Spent artifacts stay listed (never concealed); paletteSkillAvailability is
@@ -2312,6 +2496,7 @@ test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
     professionState: picked.endState.profession,
     build: { assumptions: {} }
   };
+
   assert.equal(
     thiefProfession.ui
       .paletteGroups(spentContext)
@@ -2329,6 +2514,7 @@ test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
   );
 
   const scuffle = simulate('Antiquary', ['Skritt Scuffle', { type: 'wait', durationMs: 5200 }], config);
+
   assert.deepEqual(
     scuffle.endState.profession.artifactSlots.map((slot) => slot.skillId),
     expectedArtifactIds
@@ -2351,6 +2537,7 @@ test('Meticulous Custodian upgrades artifact packets and effect durations', () =
   const ratio = (name, rowName = name) => {
     const base = artifact(name);
     const meticulous = artifact(name, true);
+
     return damage(meticulous, rowName) / damage(base, rowName);
   };
 
@@ -2372,6 +2559,7 @@ test('Meticulous Custodian upgrades artifact packets and effect durations', () =
   const turret = artifact('Summon Kryptis Turret', true);
   const sunCrystal = artifact('Zephyrite Sun Crystal', true);
   const chakShield = artifact('Chak Shield', true);
+
   assert.equal(chakShield.breakdown.find((entry) => entry.name === 'Chak Shield').hits, 6);
   assert.equal(mortar.endState.profession.mistburnExpiresAt, 12.95);
   assert.equal(turret.endState.profession.kryptisDamageUntil, 10.66);
@@ -2382,6 +2570,7 @@ test('Antiquary skill bar previews wiki-categorized artifacts', () => {
   const groups = thiefProfession.ui.skillBarGroups({
     specialization: 'Antiquary'
   });
+
   assert.deepEqual(
     groups.map((group) => ({
       label: group.label,
@@ -2401,6 +2590,7 @@ test('Antiquary skill bar previews wiki-categorized artifacts', () => {
   const specter = thiefProfession.ui.skillBarGroups({
     specialization: 'Specter'
   });
+
   assert.deepEqual(
     specter.map((group) => group.label),
     ['F Keys', 'Shadow Shroud']
@@ -2442,10 +2632,12 @@ test('Thief is a loadable native application', async () => {
   assert.equal(professionRoute('thief'), 'thief.html');
   assert.equal((await loadProfession('thief')).id, 'thief');
   const adapter = await loadProfessionAppAdapter('thief');
+
   assert.equal(adapter.profession.id, 'thief');
   assert.equal(adapter.weaponSkillMatchesSet, thiefWeaponSkillMatchesSet);
   assert.ok(adapter.assumptionControls.length >= 5);
   const html = await readFile(new URL('../../../thief.html', import.meta.url), 'utf8');
+
   assert.match(html, /data-profession="thief"/);
   assert.match(html, /Thief<\/span> Rotation Simulator/);
 });

@@ -33,12 +33,14 @@ export function modifyConduitCastDuration(context: RevenantPrecastContext, durat
   if (!followUpProfile || !mainExtensionProfile) {
     throw new Error('Missing Beguiling Haze cast-duration profiles.');
   }
+
   // Follow-up charges use a near-instant fixed cast time (0.25 s / 0.24 s with quickness).
   // The main cast appends an extra 0.4 s wind-up on top of the base skill duration.
   if (Number(conduitState.from(context).beguilingHazeCharges || 0) > 0) {
     const followUpDuration = Number(followUpProfile.castTimeMs || 0) / 1000;
     return followUpDuration * (quickness ? Number(followUpProfile.quicknessCastMultiplier || 1) : 1);
   }
+
   const mainExtension = Number(mainExtensionProfile.castTimeMs || 0) / 1000;
   return duration + mainExtension * (quickness ? Number(mainExtensionProfile.quicknessCastMultiplier || 1) : 1);
 }
@@ -60,6 +62,7 @@ export function modifyConduitRechargeDuration(context: RevenantRechargeContext, 
       Math.max(0, Number(profile?.rechargeMultiplier ?? 1))
     );
   }
+
   if (
     ([ID.BANISH_ENCHANTMENT, ID.BANISH_ENCHANTMENT_ID_78587] as readonly number[]).includes(Number(skill?.id)) &&
     revenantConduitFormIsActive(
@@ -75,6 +78,7 @@ export function modifyConduitRechargeDuration(context: RevenantRechargeContext, 
     const rate = context.hasBuff?.('alacrity', context.at) ? Number(context.config.alacrityRechargeRate || 1.25) : 1;
     return base / rate;
   }
+
   // Kinetic Insight reduces Release Potential recharge by 20%, applied after all other recharge modifiers.
   return skill?.handlerId === 'revenant.release-potential' && hasRevenantTrait(context.config, TRAIT.KINETIC_INSIGHT)
     ? duration * 0.8
@@ -108,6 +112,7 @@ export function observeConduitTraits(context: RevenantSchedulerContext, event: R
       payload: { amount: cost >= 25 ? 2 : 1 }
     });
   }
+
   if (context.config.relic === 'Peitha' && event.type === 'damage' && event.skillName === 'Beguiling Haze') {
     // 0.32 s matches the observed Relic of Peitha proc delay after Beguiling Haze lands.
     context.emitDerived(event, {
@@ -121,6 +126,7 @@ export function observeConduitTraits(context: RevenantSchedulerContext, event: R
       name: 'Relic of Peitha'
     });
   }
+
   if (
     event.type !== 'control' ||
     // Twin Moon Sweep emits control events as part of its own chain; Mistfire must not double-proc off them.
@@ -129,6 +135,7 @@ export function observeConduitTraits(context: RevenantSchedulerContext, event: R
   ) {
     return;
   }
+
   const state = professionCoreState(context);
   const profile = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.mistfire);
   const burning = profile?.effects?.find((effect) => effect.type === 'condition');

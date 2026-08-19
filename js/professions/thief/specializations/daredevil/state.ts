@@ -10,6 +10,7 @@ function selectedDodge(config: ThiefConfig, traits: ReadonlySet<string | number>
   if (hasThiefTrait(traits, TRAIT.UNHINDERED_COMBATANT)) {
     return 'Unhindered Combatant';
   }
+
   // Fall back to explicit config selection or plain dodge for Core Thief / non-minor builds
   return config.selectedDodge || 'Dodge';
 }

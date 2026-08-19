@@ -35,6 +35,7 @@ function reactToMechanistDamage(
     });
     recordTrait(context, 'Mech Arms: Single-Edge Cutters', event);
   }
+
   if (hasTrait(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS) && Number(state.highImpactDrivers || 0) <= event.at) {
     // Same 1-second ICD pattern as Single-Edge Cutters above.
     state.highImpactDrivers = event.at + 1;
@@ -48,6 +49,7 @@ function reactToMechanistDamage(
     });
     recordTrait(context, 'Mech Arms: High-Impact Drivers', event);
   }
+
   if (event.mechBasicAttack === true && hasTrait(context, TRAIT.MECH_ARMS_JADE_CANNONS)) {
     applyCondition(details, context, event, {
       name: 'Mech Arms: Jade Cannons',

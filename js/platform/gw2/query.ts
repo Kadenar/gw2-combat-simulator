@@ -83,6 +83,7 @@ export function selectedGw2TraitValues(config: Gw2Config = {}, catalog: TraitCat
     byId.set(Number(trait.id), trait);
     byName.set(trait.name, trait);
   }
+
   for (const value of [...values]) {
     const trait = (typeof value === 'string' ? byName.get(value) : undefined) || byId.get(Number(value));
     if (trait) {
@@ -90,6 +91,7 @@ export function selectedGw2TraitValues(config: Gw2Config = {}, catalog: TraitCat
       values.add(trait.name);
     }
   }
+
   return values;
 }
 
@@ -118,6 +120,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
   if (!profession?.id) {
     throw new TypeError('GW2 combat query requires a profession.');
   }
+
   const activeProfession = profession;
   const configuredTargetConditionStacks = createPermanentTargetConditionStacks(config);
   const timeline = createGw2TimelineIndex({ config, events });
@@ -151,6 +154,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       }
     };
   };
+
   const startingWeaponSet = Number(config.startingWeaponSet) === 2 ? 2 : 1;
   const staticConfig = configWithBaselineStats(startingWeaponSet);
   let query: Readonly<Gw2CombatQuery> | null = null;
@@ -181,6 +185,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       });
       return remaining > 0 ? Math.min(1, Math.max(0, maximum)) : 0;
     }
+
     return sumActiveStacks(
       // Scheduler and resolver runtimes append applications in
       // chronological event-queue order. The stop predicate depends on that
@@ -221,6 +226,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     if (event.summonOwner) return String(event.summonOwner);
     return null;
   };
+
   /**
    * @param {string} kind
    * @param {number} time
@@ -242,9 +248,11 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     if (isolatedSummon) {
       return dynamicBoonStacksAt(kind, time, maximum, runtime, 'summon', 0, summonCompanionId(event));
     }
+
     const dynamic = dynamicBoonStacksAt(kind, time, maximum, runtime, 'all', 1);
     return clamp(configured + dynamic, 0, maximum);
   };
+
   /**
    * @param {number} time
    * @param {Gw2QueryRuntime | null | undefined} runtime
@@ -276,11 +284,14 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     if ((!isolatedSummon || inheritsOwnerCriticalState) && !illusionEvent && config.boons?.fury) {
       return true;
     }
+
     if (illusionEvent || (isolatedSummon && !inheritsOwnerCriticalState)) {
       return dynamicBoonStacksAt('fury', time, 1, runtime, 'summon', 0, summonCompanionId(event)) > 0;
     }
+
     return dynamicBoonStacksAt('fury', time, 1, runtime) > 0;
   };
+
   /**
    * Independent summons consume only explicitly summon-targeted applications.
    */
@@ -292,6 +303,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     if (event?.summonIgnoresBoons === true) return 0;
     return dynamicBoonStacksAt('might', time, 25, runtime, 'summon', 0, summonCompanionId(event));
   };
+
   /**
    * @param {number} time
    * @param {Gw2QueryRuntime | null | undefined} runtime
@@ -314,8 +326,10 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     if (name === 'Vulnerability') {
       return vulnerabilityStacksAt(time, runtime);
     }
+
     return configuredTargetConditionStacks(name) + runtimeTargetConditionStacks(runtime, name, time);
   };
+
   /**
    * @param {number} time
    * @param {Gw2QueryRuntime | null | undefined} runtime
@@ -324,6 +338,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     const runtimeSet = Number(runtime?.activeWeaponSet);
     return runtimeSet === 1 || runtimeSet === 2 ? runtimeSet : timeline.activeWeaponSetAt(time);
   };
+
   /**
    * @param {number} time
    * @param {Gw2QueryRuntime | null | undefined} runtime
@@ -344,6 +359,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       }
     };
   };
+
   const hookContext = (
     time: number,
     {
@@ -418,6 +434,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
         expertise: Number(event.summonBaseExpertise ?? stats.expertise)
       };
     }
+
     return stats;
   };
 
@@ -443,12 +460,14 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
           damage: Math.max(1, Number(event.summonCriticalDamage ?? 1.5))
         };
       }
+
       const stats = statsAt(time, event, runtime);
       let contributors: Gw2CriticalChanceContributor[] = [];
       const addContributor = (id: string, label: string, amount: number) => {
         if (Math.abs(amount) <= Number.EPSILON) return;
         contributors.push({ id, label, amount });
       };
+
       let chance = criticalChance(stats.precision);
       addContributor('precision', 'Precision', chance);
       // Illusions inherit only the summoner's base (precision-derived) crit
@@ -463,10 +482,12 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
         chance += sigilBonus;
         addContributor('active-sigils', 'Active weapon sigils', sigilBonus);
       }
+
       if (furyActiveAt(time, runtime, event)) {
         chance += 0.25;
         addContributor('fury', 'Fury', 0.25);
       }
+
       const professionContributors: Gw2CriticalChanceContributor[] = [];
       const beforeProfession = chance;
       chance = activeProfession.modifyCriticalChance(
@@ -511,6 +532,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
           }
         ];
       }
+
       return {
         chance: clamp(chance, 0, 1),
         chanceBeforeCap,
@@ -533,6 +555,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
           ? activeProfession.modifyStrikeDamage(hookContext(time, { event, runtime }), base)
           : base;
       }
+
       const sigils = activeSigilSetAt(time, runtime);
       const timeOfDayMultiplier = config.timeOfDay === 'night' ? Number(sigils.nightStrikeMultiplier || 1) : 1;
       const base =

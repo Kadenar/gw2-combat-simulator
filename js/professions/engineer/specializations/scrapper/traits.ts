@@ -62,6 +62,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       'Speed of Synergy — superspeed'
     );
   }
+
   // Speed of Synergy also applies when casting the heal skill itself (7s),
   // but Med Kit is excluded because equipping it doesn't constitute a cast.
   if (hasEngineerTrait(context.config, TRAIT.SPEED_OF_SYNERGY) && isHealingSkill(skill) && skill.name !== 'Med Kit') {
@@ -74,6 +75,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       'Speed of Synergy — superspeed'
     );
   }
+
   // Gyroscopic Acceleration (adept trait): Well skills and Function Gyro grant 5s superspeed.
   if (
     hasEngineerTrait(context.config, TRAIT.GYROSCOPIC_ACCELERATION) &&
@@ -88,6 +90,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       'Gyroscopic Acceleration — superspeed'
     );
   }
+
   // Remaining traits only proc on Function Gyro.
   if (!isFunctionGyro(skill)) return;
   // Kinetic Accelerators (GM trait): Function Gyro becomes a blast finisher.
@@ -114,6 +117,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       ]
     });
   }
+
   // System Shocker (master trait): Function Gyro dazes for 1s on cast.
   if (hasEngineerTrait(context.config, TRAIT.SYSTEM_SHOCKER)) {
     context.emit({
@@ -129,6 +133,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       duration: engineerBalanceEffectValue(context, PROFILE.systemShocker, 'control', 'duration', 1)
     });
   }
+
   // Mass Momentum (GM trait): Function Gyro grants 3 stacks of stability (seeds the pulse loop).
   if (hasEngineerTrait(context.config, TRAIT.MASS_MOMENTUM)) {
     emitBuff(

@@ -57,6 +57,7 @@ function criticalChanceEventAt(
       before = event;
     }
   }
+
   return after ?? before;
 }
 
@@ -79,11 +80,13 @@ export function criticalChanceTooltip(event: Gw2ResolverEvent, heading: string):
   for (const [index, contributor] of (event.criticalChanceContributors || []).entries()) {
     lines.push(`${contributor.label}: ${percent(contributor.amount, index > 0)}`);
   }
+
   const finalChance = Number(event.criticalChance || 0);
   const beforeCap = Number(event.criticalChanceBeforeCap ?? finalChance);
   if (Math.abs(beforeCap - finalChance) > 1e-12) {
     lines.push(`Before cap: ${percent(beforeCap)}`);
   }
+
   lines.push(`Final: ${percent(finalChance)}`);
   return lines.join('\n');
 }
@@ -114,6 +117,7 @@ export function timedBuffAt(
     if (Number(event.at || 0) > at) break;
     if (event.type === 'buff' && event.kind === kind) latest = event;
   }
+
   if (!latest) return null;
   const remaining = Number(latest.at || 0) + Number(latest.duration || 0) - at;
   return remaining > 0 ? { remaining, event: latest } : null;
@@ -142,6 +146,7 @@ export function timedBuffStacksAt(
     const expiresAt = Number(event.at || 0) + Number(event.duration || 0);
     if (expiresAt > at) stacks += Math.max(1, Number(event.stacks || 1));
   }
+
   return stacks;
 }
 
@@ -170,6 +175,7 @@ function snapshotItems(app: ProfessionAppState): {
       title: criticalChanceTooltip(criticalEvent, heading)
     });
   }
+
   items.push(
     ...app.profession.ui.rotationStateSnapshot({
       specialization: activeSpecialization(app),
@@ -195,6 +201,7 @@ export function renderRotationStateSnapshot(app: ProfessionAppState): void {
     element.hidden = true;
     return;
   }
+
   const { items, atInsertion, timeMs } = snapshotItems(app);
   const visible = items.filter((item) => item.active !== false);
   if (!visible.length) {
@@ -202,6 +209,7 @@ export function renderRotationStateSnapshot(app: ProfessionAppState): void {
     element.hidden = true;
     return;
   }
+
   element.hidden = false;
   // The snapshot always reflects a point in time: the insertion cursor when one
   // is set, otherwise the current end of the rotation. Label it by that time so

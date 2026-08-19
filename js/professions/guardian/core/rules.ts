@@ -49,6 +49,7 @@ function targetHasCondition(context: Gw2ModifierContext, condition: string): boo
   if (context.query?.targetHasCondition) {
     return Boolean(context.query.targetHasCondition(condition, context.time, context.runtime));
   }
+
   return targetHasConfiguredCondition(context.config || {}, condition, context.time, context.runtime);
 }
 
@@ -97,6 +98,7 @@ export function latestGuardianTimedBuff(context: Gw2ModifierContext, kind: strin
     if (event.at > context.time) break;
     if (event.type === 'buff' && event.kind === kind) latest = event;
   }
+
   return latest;
 }
 
@@ -344,12 +346,15 @@ function modifyGuardianRechargeDuration(context: GuardianRechargeModifierContext
   if (skill?.weapon === 'Greatsword' && hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE)) {
     result *= Number(guardianBalanceProfile(context, PROFILE.zealousBlade)?.rechargeMultiplier || 0.8);
   }
+
   if (skill?.weapon === 'Torch' && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)) {
     result *= Number(guardianBalanceProfile(context, PROFILE.radiantFire)?.rechargeMultiplier || 0.8);
   }
+
   if (skill?.weapon === 'Focus' && hasTrait(context, GUARDIAN_TRAIT_IDS.FOCUS_MASTERY)) {
     result *= Number(guardianBalanceProfile(context, PROFILE.focusMastery)?.rechargeMultiplier || 0.8);
   }
+
   if (
     skill?.categories?.includes('Virtue') &&
     /^Profession_[1-3]$/.test(String(skill.slot || '')) &&
@@ -357,6 +362,7 @@ function modifyGuardianRechargeDuration(context: GuardianRechargeModifierContext
   ) {
     result *= Number(guardianBalanceProfile(context, PROFILE.powerOfTheVirtuous)?.rechargeMultiplier || 0.85);
   }
+
   return result;
 }
 
@@ -369,9 +375,11 @@ function modifyGuardianMaximumAmmo(context: GuardianAmmoModifierContext, maximum
   if (context.skill?.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)) {
     result = Math.max(result, Number(guardianBalanceProfile(context, PROFILE.radiantFire)?.maximumStacks || 2));
   }
+
   if (context.skill?.categories?.includes('SpiritWeapon') && hasTrait(context, GUARDIAN_TRAIT_IDS.ETERNAL_ARMORY)) {
     result += Number(guardianBalanceProfile(context, PROFILE.eternalArmory)?.resourceGain || 1);
   }
+
   return result;
 }
 
@@ -385,12 +393,14 @@ function modifyGuardianConditionBaseDuration(context: Gw2ModifierContext, durati
   ) {
     result *= Number(guardianBalanceProfile(context, PROFILE.radiantFire)?.durationMultiplier || 1.5);
   }
+
   if (
     (context.sourceId === 'guardian.justice-passive' || context.event?.sourceId === 'guardian.justice-passive') &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH)
   ) {
     result *= Number(guardianBalanceProfile(context, PROFILE.amplifiedWrath)?.durationMultiplier || 1.2);
   }
+
   return result;
 }
 
@@ -402,6 +412,7 @@ function modifyGuardianCastDuration(context: GuardianCastContext, duration: numb
   if (context.skill?.id !== GUARDIAN_SKILL_IDS.DAYBREAKING_SLASH || !context.hasBuff?.('quickness', context.start)) {
     return duration;
   }
+
   return Number(professionCoreState(context).daybreakingSlashChainStep || 0) === 0 ? 0.52 : 0.44;
 }
 

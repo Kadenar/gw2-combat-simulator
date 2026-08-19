@@ -155,6 +155,7 @@ export function engineerWeaponSkillMatchesSet(
   ) {
     return false;
   }
+
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }
 
@@ -231,6 +232,7 @@ export function engineerFSkillBarGroups(
       }
     ];
   }
+
   const configurableIndexes = new Set(configurable.map(({ index }) => index));
   const fixedSkillIds = populated.filter(({ index }) => !configurableIndexes.has(index)).map(({ skillId }) => skillId);
   return [
@@ -280,6 +282,7 @@ export function engineerCorePaletteSkillAvailability(
       message: state.electricArtilleryAvailable ? '' : 'Lightning Rod has not finished charging'
     };
   }
+
   if (
     skill.name === 'Lightning Rod' &&
     (state.electricArtilleryAvailable || Number(state.electricArtilleryReadyAt || 0) > 0)
@@ -289,21 +292,25 @@ export function engineerCorePaletteSkillAvailability(
       message: 'Electric Artillery currently replaces this skill'
     };
   }
+
   if (skill.id === -3) {
     return {
       available: Boolean(state.activeKit),
       message: state.activeKit ? '' : 'Engineers can use weapon swap only to leave an active kit'
     };
   }
+
   if (skill.kit && state.activeKit !== skill.kit) {
     return { available: false, message: `Equip ${skill.kit} first` };
   }
+
   if (skill.handlerId === 'engineer.kit-equip' && state.activeKit === (skill.kitName || skill.name)) {
     return {
       available: false,
       message: `Use Stow ${skill.kitName || skill.name} to leave this kit`
     };
   }
+
   if (skill.type === 'Weapon' && skill.weapon && (state.activeKit || state.photonForgeActive)) {
     return {
       available: false,
@@ -312,9 +319,11 @@ export function engineerCorePaletteSkillAvailability(
         : 'Photon Forge replaces equipped weapon skills'
     };
   }
+
   if (skill.forgeSkill && !state.photonForgeActive) {
     return { available: false, message: 'Enter Photon Forge first' };
   }
+
   return { available: true, message: '' };
 }
 
@@ -336,6 +345,7 @@ export function engineerEventLogRow(
     // damage, and condition rows already present their user-visible effects.
     return null;
   }
+
   if (
     event?.type === 'engineer.state' &&
     (engineerUiSpecialization(context) === 'Core' || CORE_STATE_REASONS.has(String(event.reason)))
@@ -368,6 +378,7 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
         placement: 'weapon-set-1'
       });
     }
+
     if (engineerUiSpecialization(context) === 'Core') {
       groups.push({
         id: 'engineer-profession',
@@ -379,6 +390,7 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
         includeActionSkills: true
       });
     }
+
     return groups;
   },
   timelineWeaponLineTransition: (context: EngineerUiContext) => {
@@ -386,9 +398,11 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
     if (skill?.handlerId === 'engineer.kit-equip') {
       return skill.kitName || skill.name;
     }
+
     if (skill?.handlerId === 'engineer.photon-forge-enter') {
       return 'Photon Forge';
     }
+
     if (
       skill?.handlerId === 'engineer.kit-stow' ||
       skill?.handlerId === 'engineer.photon-forge-exit' ||
@@ -396,6 +410,7 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
     ) {
       return null;
     }
+
     return undefined;
   },
   resourceViews: (context: EngineerUiContext) => {

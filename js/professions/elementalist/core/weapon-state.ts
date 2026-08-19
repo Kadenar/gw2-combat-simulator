@@ -37,6 +37,7 @@ export function shareAttunementVariantRecharge(context: ElementalistLifecycleCon
   if (!['Heal', 'Utility', 'Elite'].includes(String(skill.type)) || !skill.attunement) {
     return;
   }
+
   const baseName = attunementVariantBaseName(skill.name);
   if (baseName === skill.name) return;
   const readyAt = context.state.cooldowns.get(skill.id);
@@ -80,6 +81,7 @@ export function autoattackChainAvailability(
       `cast ${expectedSkill?.name || 'the earlier chain skill'} first.`
     );
   }
+
   const carryover = state.autoattackCarryover;
   return carryover?.root === position.root && carryover.attunement === skill.attunement ? ready() : null;
 }
@@ -97,6 +99,7 @@ export function progressedAutoattackCarryover(
       return { root, attunement };
     }
   }
+
   return null;
 }
 
@@ -111,6 +114,7 @@ export function inFlightAutoattackCarryover(
       return { root: position.root, attunement };
     }
   }
+
   return null;
 }
 
@@ -135,10 +139,12 @@ export function updateAutoattackChainState(
       delete state.autoattackChains[carryoverRoot];
       state.autoattackCarryover = null;
     }
+
     for (const rawRoot of Object.keys(state.autoattackChains)) {
       const root = Number(rawRoot);
       if (root !== position.root) delete state.autoattackChains[root];
     }
+
     if (position.next == null) {
       delete state.autoattackChains[position.root];
       if (state.autoattackCarryover?.root === position.root) {
@@ -147,8 +153,10 @@ export function updateAutoattackChainState(
     } else {
       state.autoattackChains[position.root] = position.next;
     }
+
     return;
   }
+
   if (Number(skill.castTimeMs || 0) > 0 && !AUTOATTACK_CHAIN_PRESERVING_SKILL_IDS.has(Number(skill.id))) {
     state.autoattackChains = {};
     state.autoattackCarryover = null;

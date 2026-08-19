@@ -140,6 +140,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
     inputRow.classList.toggle('is-disabled', !interrupted);
     error.textContent = '';
   };
+
   normalRadio.addEventListener('change', updateMode);
   interruptRadio.addEventListener('change', () => {
     updateMode();
@@ -159,6 +160,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
       handle.close();
       return;
     }
+
     const anchorRect = options.anchor.getBoundingClientRect();
     const editorRect = editor.getBoundingClientRect();
     const gap = 12;
@@ -169,6 +171,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
       opensLeft = true;
       left = anchorRect.left - editorRect.width - gap;
     }
+
     left = Math.max(viewportPadding, Math.min(left, window.innerWidth - editorRect.width - viewportPadding));
     const anchorCenter = anchorRect.top + anchorRect.height / 2;
     const top = Math.max(
@@ -183,18 +186,21 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
       `${Math.round(Math.max(18, Math.min(anchorCenter - top, editorRect.height - 18)))}px`
     );
   };
+
   const onOutsidePointerDown = (event: PointerEvent): void => {
     const target = event.target;
     if (target instanceof Node && !editor.contains(target) && !options.anchor.contains(target)) {
       handle.close();
     }
   };
+
   const onKeyDown = (event: KeyboardEvent): void => {
     if (event.key === 'Escape') {
       event.preventDefault();
       handle.close();
     }
   };
+
   const onViewportChange = (): void => position();
   const handle: ActivationEditorHandle = {
     element: editor,
@@ -216,6 +222,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
       options.onApply(null);
       return;
     }
+
     const validation = validateActivationInterruptMs(input.value, fullCastMs);
     if (!validation.valid) {
       error.textContent = validation.error;
@@ -223,6 +230,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
       input.select();
       return;
     }
+
     handle.close();
     options.onApply(validation.value);
   };
@@ -255,5 +263,6 @@ export function openActivationEditor(options: ActivationEditorOptions): Activati
   } else {
     normalRadio.focus();
   }
+
   return handle;
 }

@@ -13,6 +13,7 @@ import { createGw2ResolverRuntimeState } from '../../../js/platform/gw2/resolver
 
 test('generic resolver modules contain no concrete equipment policy', () => {
   const resolver = new URL('../../../js/platform/gw2/resolver/', import.meta.url);
+
   for (const [filename, forbidden] of [
     ['event-handlers.ts', /relic-rules|gear-data|FOOD_DATA|sigil-severance|criticalProgress/],
     ['condition-resolution.ts', /relic-rules|handleConditionRelics|onConditionApplied/],
@@ -22,6 +23,7 @@ test('generic resolver modules contain no concrete equipment policy', () => {
   ]) {
     assert.doesNotMatch(readFileSync(new URL(filename, resolver), 'utf8'), forbidden, filename);
   }
+
   assert.match(readFileSync(new URL('event-handlers.ts', resolver), 'utf8'), /weakness-vulnerability\.resolved/);
 });
 
@@ -30,6 +32,7 @@ test('GW2 resolver registry orders hooks stably and returns the last result', ()
   const professionReactions = defineGw2ResolverReactions({
     'damage.resolved': () => {
       calls.push('profession');
+
       return { owner: 'profession' };
     }
   });
@@ -52,6 +55,7 @@ test('GW2 resolver registry orders hooks stably and returns the last result', ()
           order: 100,
           handler: () => {
             calls.push('tie-b');
+
             return { owner: 'last' };
           }
         }

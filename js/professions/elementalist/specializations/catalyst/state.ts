@@ -57,6 +57,7 @@ export function grantCatalystElementalEmpowerment(
     if (active.length >= maximumStacks) {
       active.shift();
     }
+
     if (expiresAt > at + epsilon) active.push(expiresAt);
     active.sort((left, right) => left - right);
   }

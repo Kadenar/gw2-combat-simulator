@@ -95,6 +95,7 @@ export function createProfessionRuntime({
         .map((id) => catalog.skillsById.get(Number(id)))
         .filter((skill): skill is Skill => skill != null);
     }
+
     const skillByName = app.skillByName || catalog.skillsByName;
     return Object.values(app.build.selectedSkills)
       .map((name) => skillByName.get(name))
@@ -122,6 +123,7 @@ export function createProfessionRuntime({
     if (!app.attributeData) {
       throw new Error('Profession attributes must be calculated before simulation.');
     }
+
     const displayedWeaponSet = Number(app.attributeWeaponSet) === 2 ? 2 : 1;
     const targetWeaponSet = weaponSet ?? displayedWeaponSet;
     if (
@@ -130,6 +132,7 @@ export function createProfessionRuntime({
     ) {
       return app.attributeData;
     }
+
     let build: ProfessionApplicationBuild = app.build;
     if (disabled?.type === 'Boon') {
       const key = disabled.name.toLowerCase();
@@ -141,6 +144,7 @@ export function createProfessionRuntime({
         }
       };
     }
+
     return calculateAttributes(
       build,
       selectedSkills(app),
@@ -195,6 +199,7 @@ export function createProfessionRuntime({
         label: 'Might'
       });
     }
+
     if (assumptions.fury) {
       candidates.push({
         id: 'Boon:Fury',
@@ -203,6 +208,7 @@ export function createProfessionRuntime({
         label: 'Fury'
       });
     }
+
     if (assumptions.resolution) {
       candidates.push({
         id: 'Boon:Resolution',
@@ -211,6 +217,7 @@ export function createProfessionRuntime({
         label: 'Resolution'
       });
     }
+
     if (Number(assumptions.targetConditions?.Vulnerability) > 0) {
       candidates.push({
         id: 'Target:Vulnerability',
@@ -219,6 +226,7 @@ export function createProfessionRuntime({
         label: 'Vulnerability'
       });
     }
+
     for (const name of new Set((app.build.weaponSigils || []).flat())) {
       if (!name) continue;
       candidates.push({
@@ -228,6 +236,7 @@ export function createProfessionRuntime({
         label: `Sigil of ${name}`
       });
     }
+
     if (app.build.relic) {
       candidates.push({
         id: `Relic:${app.build.relic}`,
@@ -236,6 +245,7 @@ export function createProfessionRuntime({
         label: `Relic of ${app.build.relic}`
       });
     }
+
     if (FOOD_DATA[app.build.food]?.proc) {
       candidates.push({
         id: `Food:${app.build.food}`,
@@ -244,6 +254,7 @@ export function createProfessionRuntime({
         label: `Food: ${FOOD_DATA[app.build.food].proc.name}`
       });
     }
+
     for (const trait of app.attributeData?.activeTraits || []) {
       if (!isContributionTrait(trait, app)) continue;
       candidates.push({
@@ -253,6 +264,7 @@ export function createProfessionRuntime({
         label: trait.name
       });
     }
+
     return candidates;
   }
 
@@ -278,6 +290,7 @@ export function createProfessionRuntime({
         target: { ...baseConfig.target, health: 0 }
       };
     }
+
     const comparisons = modifierCandidates(app).map((modifier) => {
       let config = deterministicConfig(simulationConfig(app, modifier));
       if (app.build.relic !== 'Eagle') {
@@ -286,6 +299,7 @@ export function createProfessionRuntime({
           target: { ...config.target, health: 0 }
         };
       }
+
       return { modifier, config };
     });
     return {
@@ -379,6 +393,7 @@ export function createProfessionRuntime({
     if (index === rotation.length && app.results?.endState) {
       return app.results.endState;
     }
+
     return simulateBuild(rotation.slice(0, index), baselineSimulationConfig(app)).endState;
   }
 
@@ -390,6 +405,7 @@ export function createProfessionRuntime({
       app.results = simulateBuild(app.build.rotation, baselineConfig);
       return app.results;
     }
+
     const configForPatch = (patchId: string): Gw2Config => ({
       ...baselineConfig,
       patchId,

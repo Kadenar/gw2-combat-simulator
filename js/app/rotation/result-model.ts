@@ -93,6 +93,7 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
   if (referenceSeconds <= 0) {
     return transformResultSummaryMetrics(result);
   }
+
   return transformResultSummaryMetrics({
     ...result,
     duration: Math.max(0, Number(result.duration || 0) - referenceSeconds),
@@ -132,6 +133,7 @@ export function effectName(kind: unknown, event: Readonly<Record<string, unknown
     const weapon = RADIANT_ARMAMENT_NAMES[String(event.radiantWeapon || '')];
     return weapon ? `${name} (${weapon})` : name;
   }
+
   if (name) return name;
   return key
     .split('-')

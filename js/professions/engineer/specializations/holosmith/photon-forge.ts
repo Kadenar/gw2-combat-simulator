@@ -71,6 +71,7 @@ function appendHeatSegment(
   if (rate < 0 && startHeat + (end - start) * rate < 0) {
     segmentEnd = start + startHeat / -rate;
   }
+
   segments.push({
     start,
     end: segmentEnd,
@@ -121,6 +122,7 @@ function highHeatInterval(context: EngineerSchedulerContext, segment: HeatSegmen
       endsAbove: true
     };
   }
+
   if (segment.rate < 0) {
     if (segment.startHeat <= heatThreshold) return null;
     return {
@@ -129,6 +131,7 @@ function highHeatInterval(context: EngineerSchedulerContext, segment: HeatSegmen
       endsAbove: endHeat > heatThreshold
     };
   }
+
   if (segment.startHeat <= heatThreshold) return null;
   return {
     start: segment.start,
@@ -164,15 +167,19 @@ function materializeEnhancedCapacityMight(context: EngineerSchedulerContext, seg
       readyAt = null;
       continue;
     }
+
     if (readyAt == null || Number(readyAt) < interval.start - context.epsilon) {
       readyAt = interval.start;
     }
+
     while (Number(readyAt) <= interval.end + context.epsilon) {
       emitEnhancedCapacityMight(context, Number(readyAt));
       readyAt = Number(readyAt) + engineerBalanceValue(context, PROFILE.enhancedCapacity, 'pulseInterval', 1);
     }
+
     if (!interval.endsAbove) readyAt = null;
   }
+
   state.enhancedCapacityMightReadyAt = readyAt;
 }
 
@@ -413,15 +420,19 @@ function applyHeat(context: EngineerCastContext, skill: EngineerSkill): void {
     for (const offsetMs of offsets) {
       scheduleHeatPulse(context, skill, context.start + offsetMs / 1000, 2, true);
     }
+
     return;
   }
+
   if (skill.name === 'Photon Blitz') {
     for (const offsetMs of PHOTON_BLITZ_PULSE_OFFSETS_MS) {
       if (offsetMs > elapsedMs + context.epsilon * 1000) break;
       scheduleHeatPulse(context, skill, context.start + offsetMs / 1000, 2);
     }
+
     return;
   }
+
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   scheduleHeatPulse(context, skill, context.effectiveEnd, Number(skill.heatGain));
 }
@@ -544,8 +555,10 @@ export function observeHolosmithScheduledEvent(
             : 0
       });
     }
+
     return;
   }
+
   if (
     context.config.specialization !== 'Holosmith' ||
     event.type !== 'damage' ||

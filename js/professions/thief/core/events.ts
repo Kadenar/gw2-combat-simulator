@@ -23,11 +23,14 @@ export function handleThiefState(context: ThiefResolverContext, event: ThiefReso
       if (Object.hasOwn(owner, chargesField)) {
         preserved[chargesField] = owner[chargesField] || 0;
       }
+
       if (Object.hasOwn(owner, expiresAtField)) {
         preserved[expiresAtField] = owner[expiresAtField] || 0;
       }
+
       continue;
     }
+
     if (
       incomingGeneration === currentGeneration &&
       Number(incoming[expiresAtField] || 0) > event.at &&
@@ -36,9 +39,11 @@ export function handleThiefState(context: ThiefResolverContext, event: ThiefReso
       preserved[chargesField] = owner[chargesField] || 0;
     }
   }
+
   for (const [key, value] of Object.entries(incoming)) {
     ownerFor(key)[key] = value;
   }
+
   for (const [key, value] of Object.entries(preserved)) {
     ownerFor(key)[key] = value;
   }
