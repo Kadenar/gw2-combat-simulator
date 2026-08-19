@@ -4495,6 +4495,25 @@ test('Tortured Mastermind follows its four-hit condition timeline', () => {
   assert.equal(result.endState.profession.resource, 1);
 });
 
+test('Chaotic Interruption recharges a phantasm cast before Tortured Mastermind delayed control lands', () => {
+  const result = simulateMesmer(
+    ['Flustering Flute', 'Tale of the Tortured Mastermind', 'Phantasmal Warlock', { name: '__wait', waitMs: 4000 }],
+    defaultSimulationConfig({
+      specialization: 'Troubadour',
+      primaryWeapon: 'Staff',
+      selectedSkills: ['Flustering Flute', 'Tale of the Tortured Mastermind'],
+      selectedTraits: ['Chaotic Interruption'],
+      target: { activatingSkills: true }
+    })
+  );
+
+  const proc = result.events.find((event) => event.type === 'proc' && event.name === 'Chaotic Interruption');
+
+  assert.equal(proc?.at, 3.91);
+  assert.equal(proc?.sourceSkill, 'Tale of the Tortured Mastermind');
+  assert.equal(result.endState.cooldowns['Phantasmal Warlock'].readyAt, 6400);
+});
+
 test('Troubadour tales grant their boons and instrument-specific notes', () => {
   const cases = [
     [

@@ -68,6 +68,7 @@ const TASK = Object.freeze({
   cloneAttack: 'mesmer.clone-attack',
   resourceGain: 'mesmer.resource-gain',
   expectedProc: 'mesmer.expected-proc',
+  chaoticInterruption: 'mesmer.chaotic-interruption',
   bladeSpend: 'mesmer.blade-spend',
   continuumExpire: 'mesmer.continuum-expire',
   infiniteForge: 'mesmer.infinite-forge',
@@ -973,6 +974,18 @@ function triggerChaoticInterruption(context: MesmerSchedulerContext, event: Simu
   );
 }
 
+/** Evaluates Chaotic Interruption when a delayed control packet actually lands. */
+function handleChaoticInterruptionTask(
+  context: MesmerSchedulerContext,
+  task: MesmerSchedulerTask<'chaoticInterruption'>
+): void {
+  triggerChaoticInterruption(
+    context,
+    { type: 'control', at: task.at, source: 'Skill', sourceId: task.payload.skillId },
+    task.payload.skillName
+  );
+}
+
 /**
  * Observes combat-start, bleeding, and critical-hit candidates and schedules
  * chronological critical-proc processing where required.
@@ -1013,7 +1026,17 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
       });
     }
 
-    triggerChaoticInterruption(context, event, skillName);
+    // Cooldowns can change between scheduling and impact, so delayed control
+    // packets must evaluate the recharge against state at their actual hit time.
+    if (event.at > context.state.time + EPSILON) {
+      context.tasks.schedule({
+        type: TASK.chaoticInterruption,
+        at: event.at,
+        payload: { skillId, skillName }
+      });
+    } else {
+      triggerChaoticInterruption(context, event, skillName);
+    }
   }
   if (event.type === 'proc' && event.sourceId === 'sigil.energy' && context.config.specialization === 'Mirage') {
     const dodge = runtime.skillsById.get(ID.DODGE_MIRAGE_CLOAK);
@@ -1293,6 +1316,7 @@ export const mesmerCoreSchedulerHooks = Object.freeze({
     [TASK.cloneAttack]: handleCloneAttackTask,
     [TASK.resourceGain]: handleResourceGainTask,
     [TASK.expectedProc]: handleExpectedProcTask,
+    [TASK.chaoticInterruption]: handleChaoticInterruptionTask,
     [TASK.signetEtherRelock]: handleSignetEtherRelockTask,
     [TASK.signetIllusionsPassive]: handleSignetIllusionsPassiveTask
   })

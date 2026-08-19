@@ -643,6 +643,7 @@ export interface MesmerSchedulerTaskPayloads {
   readonly cloneAttack: { readonly cloneId: number };
   readonly resourceGain: MesmerPendingResource;
   readonly expectedProc: MesmerExpectedProcCandidate;
+  readonly chaoticInterruption: { readonly skillId: SkillId; readonly skillName: string };
   readonly bladeSpend: {
     readonly reservationId: string;
     readonly sourceSkill: string;
