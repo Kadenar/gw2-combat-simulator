@@ -118,11 +118,12 @@ export function saveRotationHotkeyBindings(
 }
 
 export function loadRotationHotkeysEnabled(storage: HotkeyStorage | null = browserStorage()): boolean {
-  if (!storage) return false;
+  // Hotkeys are on by default; an explicit stored 'false' is the only opt-out.
+  if (!storage) return true;
   try {
-    return storage.getItem(ROTATION_HOTKEY_ENABLED_STORAGE_KEY) === 'true';
+    return storage.getItem(ROTATION_HOTKEY_ENABLED_STORAGE_KEY) !== 'false';
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -372,7 +373,7 @@ function ensureDialog(controller: RotationHotkeyController): void {
   dialog.setAttribute('aria-labelledby', 'rotation-hotkey-title');
   dialog.innerHTML = `<form class="rotation-hotkey-form" method="dialog">
     <h3 id="rotation-hotkey-title">Rotation hotkeys</h3>
-    <p class="rotation-hotkey-intro">Hotkeys are disabled by default. When enabled, click the rotation panel to activate them. Bindings apply to every profession.</p>
+    <p class="rotation-hotkey-intro">Hotkeys are enabled by default. Click the rotation panel to activate them. Bindings apply to every profession.</p>
     <label class="rotation-hotkey-enable">
       <input type="checkbox" data-hotkey-enabled />
       <span>Enable rotation hotkeys</span>
@@ -517,7 +518,7 @@ export function mountRotationHotkeys(root: HTMLElement | null): void {
     document.addEventListener('pointerdown', (event) => {
       const current = controller as RotationHotkeyController;
       const target = event.target;
-      setRotationHotkeysActive(current, target instanceof Node && current.scope.contains(target));
+      setRotationHotkeysActive(current, target instanceof Node && current.root.contains(target));
     });
     document.addEventListener('keydown', (event) => {
       const current = controller as RotationHotkeyController;

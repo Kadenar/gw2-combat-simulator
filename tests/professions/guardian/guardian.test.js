@@ -4,6 +4,7 @@ import test from 'node:test';
 
 import { loadProfession } from '../../../js/app/profession/registry.js';
 import { skillBarInspectionStacks } from '../../../js/app/build/skills-panel.js';
+import { displayedFlipSkills } from '../../../js/app/rotation/palette-model.js';
 import { automaticTomeStowTimelineMarkers, timelineWeaponRows } from '../../../js/app/rotation/timeline-model.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/skill-patch.js';
@@ -2749,6 +2750,86 @@ test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
   assert.equal(glaring.radiantWeapon, 'hammer');
   assert.equal(Object.hasOwn(result.endState.cooldowns, 'Enter Radiant Forge'), false);
   assert.ok(result.totalDamage > 0);
+});
+
+test('Guardian weapon and Radiant Forge flips occupy one live palette tile', () => {
+  const app = {
+    skills: guardianCatalog.skills,
+    skillById: guardianCatalog.skillsById,
+    profession: guardianProfession,
+    results: null
+  };
+  const displayedIdsAfter = (rotation, skillIds, extraConfig = {}) => {
+    app.results = simulateGw2({
+      profession: guardianProfession,
+      rotation,
+      config: { ...config, ...extraConfig }
+    });
+    return displayedFlipSkills(
+      app,
+      skillIds.map((skillId) => guardianCatalog.skillsById.get(skillId))
+    ).map((skill) => skill.id);
+  };
+
+  const hammerTwo = [GUARDIAN_SKILL_IDS.MIGHTY_BLOW, GUARDIAN_SKILL_IDS.GLACIAL_BLOW].map((skillId) =>
+    guardianCatalog.skillsById.get(skillId)
+  );
+  assert.deepEqual(
+    guardianProfession.ui.paletteWeaponSkills({ traits: new Set() }, hammerTwo).map((skill) => skill.id),
+    [GUARDIAN_SKILL_IDS.MIGHTY_BLOW]
+  );
+  assert.deepEqual(
+    guardianProfession.ui
+      .paletteWeaponSkills({ traits: new Set([GUARDIAN_TRAIT_IDS.GLACIAL_HEART]) }, hammerTwo)
+      .map((skill) => skill.id),
+    [GUARDIAN_SKILL_IDS.GLACIAL_BLOW]
+  );
+
+  const shieldParent = GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION;
+  const shieldChild = GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION_ID_9224;
+  const shieldConfig = { primaryWeapon: 'Mace', secondaryWeapon: 'Shield' };
+  assert.deepEqual(displayedIdsAfter([], [shieldParent], shieldConfig), [shieldParent]);
+  assert.deepEqual(displayedIdsAfter([{ type: 'cast', skillId: shieldParent }], [shieldParent], shieldConfig), [
+    shieldChild
+  ]);
+  assert.deepEqual(
+    displayedIdsAfter(
+      [
+        { type: 'cast', skillId: shieldParent },
+        { type: 'cast', skillId: shieldChild }
+      ],
+      [shieldParent],
+      shieldConfig
+    ),
+    [shieldParent]
+  );
+
+  assert.deepEqual(
+    displayedIdsAfter(["Zealot's Flame"], [GUARDIAN_SKILL_IDS.ZEALOTS_FLAME], {
+      primaryWeapon: 'Sword',
+      secondaryWeapon: 'Torch'
+    }),
+    [GUARDIAN_SKILL_IDS.ZEALOTS_FIRE]
+  );
+
+  assert.deepEqual(
+    displayedIdsAfter(
+      ['Enter Radiant Forge', 'Dazzling Hammer'],
+      [
+        GUARDIAN_SKILL_IDS.DAZZLING_HAMMER,
+        GUARDIAN_SKILL_IDS.LUMINOUS_STAFF,
+        GUARDIAN_SKILL_IDS.GLEAMING_BLADE,
+        GUARDIAN_SKILL_IDS.RADIANT_BULWARK
+      ],
+      { specialization: 'Luminary' }
+    ),
+    [
+      GUARDIAN_SKILL_IDS.SHINING_SPIN,
+      GUARDIAN_SKILL_IDS.LUMINOUS_STAFF,
+      GUARDIAN_SKILL_IDS.GLEAMING_BLADE,
+      GUARDIAN_SKILL_IDS.RADIANT_BULWARK
+    ]
+  );
 });
 
 test('Shining Spin strikes 400 ms into its quickened cast', () => {

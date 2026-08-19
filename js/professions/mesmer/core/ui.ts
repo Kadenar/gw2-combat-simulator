@@ -34,14 +34,18 @@ export function mesmerUiSpecialization(context: MesmerUiContext = {}): string {
 
 export function mesmerMechanicPaletteGroups(
   context: MesmerUiContext,
-  skillIds: readonly SkillId[]
+  skillIds: readonly SkillId[],
+  resourceId?: MesmerUiResourceDefinition['id']
 ): ProfessionPaletteGroup[] {
   return [
     {
       id: 'profession',
       label: 'Profession',
       skillIds: skillIds.filter((id) => context.catalog?.skillsById?.has(id)),
-      resourceAnchor: true
+      resourceAnchor: true,
+      // Keep the blades/clones/notes pips directly above the shatter/instrument
+      // skills rather than tucked underneath them.
+      ...(resourceId ? { resourceIds: [resourceId], resourcePlacement: 'above' as const } : {})
     }
   ];
 }
@@ -144,7 +148,9 @@ export const mesmerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
   assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
   eventLogRow: mesmerEventLogRow,
   paletteGroups: (context: MesmerUiContext) =>
-    mesmerUiSpecialization(context) === 'Core' ? mesmerMechanicPaletteGroups(context, CORE_MECHANIC_SKILLS) : [],
+    mesmerUiSpecialization(context) === 'Core'
+      ? mesmerMechanicPaletteGroups(context, CORE_MECHANIC_SKILLS, 'clones')
+      : [],
   skillBarGroups: (context: MesmerUiContext) =>
     mesmerUiSpecialization(context) === 'Core' ? mesmerMechanicSkillBarGroups('Shatters', CORE_MECHANIC_SKILLS) : [],
   resourceViews: (context: MesmerUiContext) =>

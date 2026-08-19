@@ -40,6 +40,37 @@ const DUAL_FOLLOWUP_BY_PARENT: Readonly<Record<number, SkillId>> = Object.freeze
   63267: 63128
 });
 const DUAL_FOLLOWUP_IDS = new Set<SkillId>(Object.values(DUAL_FOLLOWUP_BY_PARENT));
+const WEAPON_FLIP_BY_PARENT: Readonly<Record<number, SkillId>> = Object.freeze({
+  ...DUAL_FOLLOWUP_BY_PARENT,
+  [ID.INFILTRATORS_STRIKE]: ID.INFILTRATORS_RETURN,
+  [ID.CLUSTER_BOMB]: ID.DETONATE_CLUSTER,
+  [ID.DEBILITATING_ARC]: ID.HELMET_BREAKER,
+  [ID.SNIPERS_COVER]: ID.DEATHS_ADVANCE
+});
+const WEAPON_FLIP_DURATION_BY_PARENT: Readonly<Record<number, number>> = Object.freeze({
+  [ID.INFILTRATORS_STRIKE]: 15,
+  [ID.CLUSTER_BOMB]: 1,
+  [ID.DEBILITATING_ARC]: 3,
+  [ID.SNIPERS_COVER]: 5
+});
+
+// Specter scepter's API snapshot omits chain links, so supply the canonical
+// slot-1 progression used by runtime validation and the one-tile palette.
+function scepterAutoattackMetadata(skill: ThiefSkill): Partial<ThiefSkill> {
+  const chain = new Map<SkillId, { step: number; next: SkillId | null }>([
+    [ID.SHADOW_BOLT, { step: 1, next: ID.DOUBLE_BOLT }],
+    [ID.DOUBLE_BOLT, { step: 2, next: ID.TRIPLE_BOLT }],
+    [ID.TRIPLE_BOLT, { step: 3, next: null }]
+  ]).get(skill.id);
+  return chain
+    ? {
+        chainRoot: ID.SHADOW_BOLT,
+        chainStep: chain.step,
+        nextChainId: chain.next
+      }
+    : {};
+}
+
 function spearWeaponBarMetadata(skill: ThiefSkill): Partial<ThiefSkill> {
   const stage = spearChainStageForSkill(skill.id);
   if (stage == null) return {};
@@ -141,7 +172,7 @@ const generatedSource: readonly ThiefSkill[] = SKILLS.filter(
 ).map((skill) => ({
   ...skill,
   flipSkillId:
-    DUAL_FOLLOWUP_BY_PARENT[Number(skill.id)] ??
+    WEAPON_FLIP_BY_PARENT[Number(skill.id)] ??
     (['Weapon', 'Profession'].includes(skill.type || '') ? null : skill.flipSkillId)
 }));
 const supplementalSource: readonly ThiefSkill[] = THIEF_SUPPLEMENTAL_SKILLS.filter(
@@ -158,6 +189,7 @@ for (const skill of allDeclared) {
 }
 const normalize = (skill: ThiefSkill): ThiefSkill => ({
   ...skill,
+  ...scepterAutoattackMetadata(skill),
   ...spearWeaponBarMetadata(skill),
   ...(skill.recharge == null && skill.ammoRecharge == null
     ? {}
@@ -167,6 +199,7 @@ const normalize = (skill: ThiefSkill): ThiefSkill => ({
   flipParentId: flipParentById.get(skill.id) ?? null,
   dualWieldOpener: Object.hasOwn(DUAL_FOLLOWUP_BY_PARENT, skill.id),
   dualWieldFollowup: DUAL_FOLLOWUP_IDS.has(skill.id),
+  flipDuration: WEAPON_FLIP_DURATION_BY_PARENT[Number(skill.id)] ?? skill.flipDuration,
   ...(Number(skill.initiativeCost || 0) > 0 ? { resource: 'initiative' } : {})
 });
 const generated: readonly ThiefSkill[] = generatedSource.map((skill) => ({

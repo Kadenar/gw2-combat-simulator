@@ -5,6 +5,7 @@ import test from 'node:test';
 import { loadProfession, loadProfessionAppAdapter, professionRoute } from '../../../js/app/profession/registry.js';
 import {
   currentAutoattackSkill,
+  displayedFlipSkills,
   paletteActionSkills,
   paletteSkillIsInstant,
   rotationLoadoutPaletteGroups,
@@ -871,6 +872,42 @@ test('weapon swap changes the active Revenant weapon set', () => {
   assert.equal(result.steps[0].fullCastMs, 0);
   assert.equal(result.endState.activeWeaponSet, 2);
   assert.ok(result.events.some((event) => event.type === 'weapon_set' && event.weaponSet === 2));
+});
+
+test('Revenant scepter follow-ups replace and restore weapon slots 2 and 3', () => {
+  const app = {
+    skills: revenantCatalog.skills,
+    skillById: revenantCatalog.skillsById,
+    profession: revenantProfession,
+    results: null
+  };
+  const paletteAfter = (rotation, names) => {
+    app.results = simulate('Core', rotation, {
+      primaryWeapon: 'Scepter',
+      secondaryWeapon: 'Sword'
+    });
+    return displayedFlipSkills(
+      app,
+      names.map((name) => revenantCatalog.skillsByName.get(name))
+    ).map((skill) => skill.name);
+  };
+
+  assert.match(
+    simulate('Core', ['Detonate Blossoming Aura'], {
+      primaryWeapon: 'Scepter',
+      secondaryWeapon: 'Sword'
+    }).warnings.join(' '),
+    /use Blossoming Aura first/
+  );
+  assert.deepEqual(paletteAfter([], ['Blossoming Aura']), ['Blossoming Aura']);
+  assert.deepEqual(paletteAfter(['Blossoming Aura'], ['Blossoming Aura']), ['Detonate Blossoming Aura']);
+  assert.deepEqual(paletteAfter(['Blossoming Aura', 'Detonate Blossoming Aura'], ['Blossoming Aura']), [
+    'Blossoming Aura'
+  ]);
+  assert.deepEqual(paletteAfter(['Otherworldly Bond'], ['Otherworldly Bond']), ['Deactivate Otherworldly Bond']);
+  assert.deepEqual(paletteAfter(['Otherworldly Bond', 'Deactivate Otherworldly Bond'], ['Otherworldly Bond']), [
+    'Otherworldly Bond'
+  ]);
 });
 
 test('Temporal Rift preserves the Mace autoattack chain', () => {

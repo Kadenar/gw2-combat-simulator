@@ -39,7 +39,8 @@ function troubadourEventLogRow(
 
 export const troubadourUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   eventLogRow: troubadourEventLogRow,
-  paletteGroups: (context: MesmerUiContext) => mesmerMechanicPaletteGroups(context, TROUBADOUR_MECHANIC_SKILLS),
+  paletteGroups: (context: MesmerUiContext) =>
+    mesmerMechanicPaletteGroups(context, TROUBADOUR_MECHANIC_SKILLS, 'notes'),
   skillBarGroups: () => mesmerMechanicSkillBarGroups('Instruments', TROUBADOUR_MECHANIC_SKILLS),
   resourceViews: (context: MesmerUiContext) => {
     const activeInstruments = (context.professionState as TroubadourUiState | undefined)?.activeInstruments || [];

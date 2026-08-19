@@ -2,7 +2,12 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { currentAutoattackSkill, paletteActionSkills, weaponSkills } from '../../../js/app/rotation/palette-model.js';
+import {
+  currentAutoattackSkill,
+  paletteActionSkills,
+  weaponPaletteRows,
+  weaponSkills
+} from '../../../js/app/rotation/palette-model.js';
 import { skillBarInspectionStacks } from '../../../js/app/build/skills-panel.js';
 import { timelineWeaponRows } from '../../../js/app/rotation/timeline-model.js';
 import { activeResourceGroup, paletteSkillResourceView } from '../../../js/app/rotation/resource-view.js';
@@ -105,9 +110,15 @@ test('Ranger catalog pins API identity and explicit module-owned mechanics', () 
   assert.equal(DATA_SNAPSHOT, '2026-08-08');
   assert.equal(rangerCatalog.specializations.length, 9);
   assert.equal(rangerCatalog.traits.length, 108);
-  assert.equal(rangerCatalog.skills.length, 310);
+  assert.equal(rangerCatalog.skills.length, 313);
   assert.equal(Object.keys(RANGER_SKILL_MECHANICS).length, 302);
   assert.equal(rangerCatalog.skillsById.has(ID.OVERBEARING_SMASH_SECOND_STRIKE), false);
+  assert.equal(
+    [ID.WOLFS_ONSLAUGHT, ID.OWLS_FLIGHT, ID.PREDATORS_AMBUSH, ID.SPIDERS_WEB].every((skillId) =>
+      rangerCatalog.skillsById.has(skillId)
+    ),
+    true
+  );
   assert.equal(rangerCatalog.skillsById.get(ID.PATH_OF_SCARS_MAX_RANGE).variantBadge, 'MAX');
   assert.equal(rangerCatalog.skillsById.get(ID.PATH_OF_SCARS).variantBadge, undefined);
   assert.equal(RANGER_PETS.length, 66);
@@ -1193,6 +1204,137 @@ test('Untamed ambush skills require the specialization and an active unleash pro
     }).warnings,
     []
   );
+
+  const build = {
+    ...createRangerBuildDefaults(),
+    weapons: ['Hammer', ''],
+    alternateWeapons: ['', ''],
+    specializations: [
+      { name: 'Skirmishing', traits: '1-2-3' },
+      { name: 'Beastmastery', traits: '3-3-3' },
+      { name: 'Untamed', traits: '1-1-1' }
+    ],
+    initialUntamedState: 'Pet'
+  };
+  const app = {
+    build,
+    adapter: rangerAppAdapter,
+    profession: rangerProfession,
+    skills: rangerCatalog.skills,
+    skillById: rangerCatalog.skillsById,
+    skillByName: rangerCatalog.skillsByName,
+    weaponData: rangerAppAdapter.weaponData,
+    results: null
+  };
+  const paletteNamesAfter = (rotation) => {
+    app.results = simulate('Untamed', rotation, {
+      initialUntamedState: 'Pet',
+      primaryWeapon: 'Hammer',
+      weaponSet2Primary: '',
+      weaponSet2Secondary: ''
+    });
+    return weaponPaletteRows(app, 1)[0].skills.map((skill) => skill.name);
+  };
+
+  const ordinary = paletteNamesAfter([]);
+  assert.ok(ordinary.includes('Hammer Strike'));
+  assert.equal(ordinary.includes('Relentless Whirl'), false);
+
+  const unleashed = paletteNamesAfter(['Unleash Ranger']);
+  assert.ok(unleashed.includes('Relentless Whirl'));
+  assert.equal(unleashed.includes('Hammer Strike'), false);
+});
+
+test('Greatsword Counterattack flips to Counterattack Kick and restores its tile', () => {
+  const build = {
+    ...createRangerBuildDefaults(),
+    weapons: ['Greatsword', ''],
+    alternateWeapons: ['', ''],
+    specializations: [
+      { name: 'Skirmishing', traits: '1-1-1' },
+      { name: 'Beastmastery', traits: '1-1-1' },
+      { name: 'Wilderness Survival', traits: '1-1-1' }
+    ]
+  };
+  const app = {
+    build,
+    adapter: rangerAppAdapter,
+    profession: rangerProfession,
+    skills: rangerCatalog.skills,
+    skillById: rangerCatalog.skillsById,
+    skillByName: rangerCatalog.skillsByName,
+    weaponData: rangerAppAdapter.weaponData,
+    results: null
+  };
+  const paletteAfter = (rotation) => {
+    app.results = simulate('Core', rotation, {
+      primaryWeapon: 'Greatsword',
+      secondaryWeapon: '',
+      weaponSet2Primary: '',
+      weaponSet2Secondary: ''
+    });
+    return weaponPaletteRows(app, 1)[0].skills.map((skill) => skill.name);
+  };
+
+  assert.match(
+    simulate('Core', ['Counterattack Kick'], {
+      primaryWeapon: 'Greatsword',
+      secondaryWeapon: ''
+    }).warnings.join(' '),
+    /use Counterattack first/
+  );
+  assert.ok(paletteAfter([]).includes('Counterattack'));
+  assert.ok(paletteAfter(['Counterattack']).includes('Counterattack Kick'));
+  assert.ok(paletteAfter(['Counterattack', 'Counterattack Kick']).includes('Counterattack'));
+});
+
+test("Panther's Prowl replaces all four Ranger spear stealth-attack slots", () => {
+  const build = {
+    ...createRangerBuildDefaults(),
+    weapons: ['Spear', ''],
+    alternateWeapons: ['', ''],
+    specializations: [
+      { name: 'Skirmishing', traits: '1-1-1' },
+      { name: 'Beastmastery', traits: '1-1-1' },
+      { name: 'Wilderness Survival', traits: '1-1-1' }
+    ]
+  };
+  const app = {
+    build,
+    adapter: rangerAppAdapter,
+    profession: rangerProfession,
+    skills: rangerCatalog.skills,
+    skillById: rangerCatalog.skillsById,
+    skillByName: rangerCatalog.skillsByName,
+    weaponData: rangerAppAdapter.weaponData,
+    results: null
+  };
+  const paletteAfter = (rotation) => {
+    app.results = simulate('Core', rotation, {
+      primaryWeapon: 'Spear',
+      secondaryWeapon: '',
+      weaponSet2Primary: '',
+      weaponSet2Secondary: ''
+    });
+    return weaponPaletteRows(app, 1)[0].skills.map((skill) => skill.name);
+  };
+  const ordinary = ["Mongoose's Frenzy", "Falcon's Stoop", "Warclaw's Engage", "Panther's Prowl"];
+  const stealth = ["Wolf's Onslaught", "Owl's Flight", "Predator's Ambush", "Spider's Web"];
+
+  assert.match(
+    simulate('Core', ["Wolf's Onslaught"], {
+      primaryWeapon: 'Spear',
+      secondaryWeapon: ''
+    }).warnings.join(' '),
+    /use Mongoose's Frenzy first/
+  );
+  assert.ok(ordinary.every((name) => paletteAfter([]).includes(name)));
+  assert.ok(stealth.every((name) => paletteAfter(["Panther's Prowl"]).includes(name)));
+  assert.ok(ordinary.every((name) => !paletteAfter(["Panther's Prowl"]).includes(name)));
+
+  const consumed = paletteAfter(["Panther's Prowl", "Wolf's Onslaught"]);
+  assert.ok(ordinary.every((name) => consumed.includes(name)));
+  assert.ok(stealth.every((name) => !consumed.includes(name)));
 });
 
 test('Ranger skill-bar selections drive pet and Hammer selection', () => {

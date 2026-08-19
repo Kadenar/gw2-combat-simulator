@@ -35,6 +35,8 @@ import { ACTION_ICONS, COMBAT_START_ICON, COOLDOWN_RESET_ICON, PLACEHOLDER_ICON,
 import {
   autoattackChainSkillAvailable,
   currentAutoattackSkill,
+  displayedFlipSkills,
+  displayedWeaponSkills,
   paletteActionSkills,
   paletteSkillIsInstant,
   rotationLoadoutPaletteGroups,
@@ -294,27 +296,30 @@ export function renderPalette(app: ProfessionAppState): void {
       const reservedSkillIds = group.reservedSkillIds || [];
       // Reserved IDs keep a group's declared positions stable while inactive
       // alternatives remain concealed rather than disappearing from the model.
+      const skills = [
+        ...(reservedSkillIds.length ? reservedSkillIds : skillIds).flatMap((id) => {
+          const skill = app.skillById.get(id);
+          return skill && (group.includeActionSkills || skill.type !== 'Action')
+            ? [
+                {
+                  ...skill,
+                  concealed: reservedSkillIds.length > 0 && !skillIds.includes(skill.id)
+                }
+              ]
+            : [];
+        }),
+        ...(group.skillEntries || []).flatMap((entry) => {
+          const skill = app.skillById.get(Number(entry.skillId));
+          return skill && (group.includeActionSkills || skill.type !== 'Action')
+            ? [{ ...skill, ...entry, name: skill.name } as Skill]
+            : [];
+        })
+      ];
       return {
         ...group,
-        skills: [
-          ...(reservedSkillIds.length ? reservedSkillIds : skillIds).flatMap((id) => {
-            const skill = app.skillById.get(id);
-            return skill && (group.includeActionSkills || skill.type !== 'Action')
-              ? [
-                  {
-                    ...skill,
-                    concealed: reservedSkillIds.length > 0 && !skillIds.includes(skill.id)
-                  }
-                ]
-              : [];
-          }),
-          ...(group.skillEntries || []).flatMap((entry) => {
-            const skill = app.skillById.get(Number(entry.skillId));
-            return skill && (group.includeActionSkills || skill.type !== 'Action')
-              ? [{ ...skill, ...entry, name: skill.name } as Skill]
-              : [];
-          })
-        ]
+        // Reserved groups intentionally retain stable placeholders; ordinary
+        // profession groups project sequence families to the live bar tile.
+        skills: reservedSkillIds.length ? skills : displayedFlipSkills(app, skills)
       };
     });
   const renderedProfessionGroups = renderGroups(professionGroups);
@@ -387,7 +392,10 @@ export function renderPalette(app: ProfessionAppState): void {
     loadoutUnavailableMessage(skill) || professionPaletteAvailability(skill).message;
   const professionPaletteRetryAt = (skill: Skill): number | null =>
     professionPaletteAvailability(skill).retryAt ?? null;
-  const flipAvailable = (skill: Skill): boolean => Boolean(availableFlips[skill.id] ?? availableFlips[skill.name]);
+  const flipAvailable = (skill: Skill): boolean => {
+    const value = availableFlips[skill.id] ?? availableFlips[skill.name];
+    return typeof value === 'number' ? value > Number(endState?.time || 0) / 1000 : Boolean(value);
+  };
   const flipParentName = (skill: Skill): string =>
     String(skill.flipParent || app.skillById.get(Number(skill.flipParentId))?.name || 'its parent skill');
   const usesStatefulFlip = (skill: Skill): boolean =>
@@ -609,7 +617,7 @@ export function renderPalette(app: ProfessionAppState): void {
   };
   const customWeaponPalette = app.profession.ui.renderWeaponPalette({
     ...paletteContext,
-    skills: paletteWeaponSkills(weaponSkills(app, 1), { weaponSet: 1 }),
+    skills: paletteWeaponSkills(displayedWeaponSkills(app, weaponSkills(app, 1), 1), { weaponSet: 1 }),
     autoattackChains,
     isSkillAvailable: (skill) => weaponSkillAvailable(skill, 1),
     unavailableMessage: (skill) => weaponSkillUnavailableMessage(skill, 1),

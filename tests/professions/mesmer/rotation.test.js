@@ -21,6 +21,7 @@ import {
   skillBreakdownRows
 } from '../../../js/app/rotation/result-model.js';
 import { activeResourceGroup } from '../../../js/app/rotation/resource-view.js';
+import { displayedWeaponSkills } from '../../../js/app/rotation/palette-model.js';
 import { paletteSkillView } from '../../../js/app/rotation/palette-view.js';
 import {
   continuumEndTimelineMarkers,
@@ -3210,6 +3211,20 @@ test('Mirage Cloak enables an explicit ambush instead of auto-casting it', () =>
   );
   assert.equal(cloakOnly.endState.profession.availableAmbush.name, 'Imaginary Axes');
   assert.equal(cloakOnly.endState.profession.availableAmbush.source, 'Dodge / Mirage Cloak');
+  const axeSkillOne = mesmerCatalog.skills.filter(
+    (skill) => skill.type === 'Weapon' && skill.weapon === 'Axe' && skill.slot === 'Weapon_1'
+  );
+  const paletteApp = {
+    build: { rotation: [], weapons: ['Axe', 'Pistol'], alternateWeapons: ['', ''], startingWeaponSet: 1 },
+    skills: mesmerCatalog.skills,
+    skillById: mesmerCatalog.skillsById,
+    profession: mesmerProfession,
+    results: cloakOnly
+  };
+  assert.deepEqual(
+    displayedWeaponSkills(paletteApp, axeSkillOne).map((skill) => skill.name),
+    ['Imaginary Axes']
+  );
 
   const used = simulateMesmer(['Dodge / Mirage Cloak', 'Imaginary Axes'], config);
   assert.deepEqual(
@@ -3222,6 +3237,11 @@ test('Mirage Cloak enables an explicit ambush instead of auto-casting it', () =>
     )
   );
   assert.equal(used.endState.profession.availableAmbush, null);
+  paletteApp.results = used;
+  assert.deepEqual(
+    displayedWeaponSkills(paletteApp, axeSkillOne).map((skill) => skill.name),
+    ['Lacerating Chop']
+  );
 });
 
 test('ambush skills cannot be cast without an active ambush window', () => {

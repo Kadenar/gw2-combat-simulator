@@ -196,15 +196,18 @@ export const RANGER_SKILL_IDS = Object.freeze({
   GERMINATE: 72088, // Germinate
   TORMENTING_VISIONS: 72636, // Tormenting Visions
   STARING_VOID: 72851, // Staring Void
+  OWLS_FLIGHT: 72913, // Owl's Flight
   BEES_STING: 72920, // Bee's Sting
   DRAKES_SWIPE: 72922, // Drake's Swipe
   FALCONS_STOOP: 72928, // Falcon's Stoop
+  SPIDERS_WEB: 72993, // Spider's Web
   PANTHERS_PROWL: 73008, // Panther's Prowl
   WARCLAWS_ENGAGE: 73020, // Warclaw's Engage
-  PREDATORS_AMBUSH: 73150, // Predator's Ambush
+  WOLFS_ONSLAUGHT: 73030, // Wolf's Onslaught
   CHEETAHS_STRIKE: 73087, // Cheetah's Strike
   MONGOOSES_FRENZY: 73110, // Mongoose's Frenzy
   WYVERNS_LASH: 73112, // Wyvern's Lash
+  PREDATORS_AMBUSH: 73150, // Predator's Ambush
   BATTLE_MAUL: 73733, // Battle Maul
   BOP: 73938, // Bop
   BUMBLE: 75771, // Bumble

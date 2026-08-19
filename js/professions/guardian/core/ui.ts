@@ -1,5 +1,7 @@
 import { flattenProfessionState } from '../../../platform/engine/profession.js';
+import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
 import type {
   CanonicalCatalog,
   ProfessionEventLogDescriptor,
@@ -73,11 +75,23 @@ export function guardianEventLogRow(
   return undefined;
 }
 
+function guardianPaletteWeaponSkills(context: GuardianUiContext, skills: readonly GuardianSkill[]): GuardianSkill[] {
+  const glacialHeart = hasTrait(context, GUARDIAN_TRAIT_IDS.GLACIAL_HEART);
+  // Glacial Heart replaces Hammer 2 for the entire build, so only its selected
+  // identity should reach the shared weapon palette.
+  return skills.filter((skill) => {
+    if (skill.id === GUARDIAN_SKILL_IDS.MIGHTY_BLOW) return !glacialHeart;
+    if (skill.id === GUARDIAN_SKILL_IDS.GLACIAL_BLOW) return glacialHeart;
+    return true;
+  });
+}
+
 const CORE_VIRTUE_NAMES = Object.freeze(['Virtue of Justice', 'Virtue of Resolve', 'Virtue of Courage']);
 
 export const guardianCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
   eventLogRow: guardianEventLogRow,
+  paletteWeaponSkills: guardianPaletteWeaponSkills,
   skillBarGroups: (context: GuardianUiContext) =>
     guardianUiSpecialization(context) === 'Core'
       ? [

@@ -1,7 +1,7 @@
 import { defaultWeaponSkillMatchesSet } from '../../../platform/gw2/weapon-skill-matcher.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '../assumptions.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
-import { HAMMER_DUAL_ORB_SKILLS, HAMMER_ORB_SKILLS } from './constants.js';
+import { ETCHING_CHAINS, HAMMER_DUAL_ORB_SKILLS, HAMMER_ORB_SKILLS } from './constants.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement, type ElementalistCoreState } from './state.js';
 import type { ElementalistState } from '../types.js';
 import type {
@@ -134,15 +134,26 @@ function pistolBulletPaletteGroup(context: SchedulerRecord): ProfessionPaletteGr
 }
 
 function paletteWeaponSkills(context: SchedulerRecord, skills: readonly Skill[]): Skill[] {
-  if (!elementalistPistolEquipped(context)) return [...skills];
+  const state = uiState(context);
+  // Each spear etching occupies slot 5 throughout its lesser/full progression;
+  // expose only the stage represented by the live etching state.
+  const projectedSkills = skills.filter((skill) => {
+    const chain = ETCHING_CHAINS.find((candidate) =>
+      [candidate.etching, candidate.lesser, candidate.full].some((name) => name === skill.name)
+    );
+    if (!chain) return true;
+    const progress = state.etchings?.[chain.etching];
+    const displayedName = !progress ? chain.etching : progress.stage === 'full' ? chain.full : chain.lesser;
+    return skill.name === displayedName;
+  });
+  if (!elementalistPistolEquipped(context)) return projectedSkills;
   const explosion =
-    skills.find((skill) => skill.name === 'Elemental Explosion') ||
+    projectedSkills.find((skill) => skill.name === 'Elemental Explosion') ||
     elementalistCatalog.skillsByName.get('Elemental Explosion');
-  const ordinarySkills = skills.filter((skill) => skill.name !== 'Elemental Explosion');
+  const ordinarySkills = projectedSkills.filter((skill) => skill.name !== 'Elemental Explosion');
   if (!explosion || !ELEMENTALIST_ATTUNEMENTS.every((element) => displayedPistolBullets(context)[element])) {
     return ordinarySkills;
   }
-  const state = uiState(context);
   const primaryAttunement = String(
     state.primaryAttunement || (context.build as SchedulerRecord | undefined)?.startAttunement || 'Fire'
   );

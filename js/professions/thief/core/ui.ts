@@ -30,16 +30,29 @@ function corePaletteSkillAvailability(
     Number(state.stealthAttackCharges || 0) > 0 &&
     Number(state.stealthAttackExpiresAt || 0) > Number(context.time || 0);
   const spearChainStage = spearChainStageForSkill(skill.id);
+  const flipValue = state.availableFlips?.[String(skill.id)];
+  const flipAvailable = flipValue === Number.POSITIVE_INFINITY || Number(flipValue || 0) > Number(context.time || 0);
   if (spearChainStage != null && Number(state.spearChainStage || 0) !== spearChainStage) {
     return {
       available: false,
       message: `Advance the spear chain to stage ${spearChainStage + 1}`
     };
   }
-  if (skill.dualWieldFollowup && !state.availableFlips?.[String(skill.id)]) {
+  if (skill.type === 'Weapon' && skill.flipParentId != null && !flipAvailable) {
     return {
       available: false,
-      message: 'Use its opening dual-wield skill first'
+      message: 'Use its opening weapon skill first'
+    };
+  }
+  if (
+    skill.type === 'Weapon' &&
+    skill.flipSkillId != null &&
+    skill.flipSkillId !== skill.nextChainId &&
+    Number(state.availableFlips?.[String(skill.flipSkillId)] || 0) > Number(context.time || 0)
+  ) {
+    return {
+      available: false,
+      message: 'Use or wait out the active follow-up skill'
     };
   }
   if (skill.stealthAttack) {

@@ -63,7 +63,7 @@ export function reduceRotationWorkspaceState(
 }
 
 export function isSimulationConfigVisible(state: RotationWorkspaceState): boolean {
-  return !state.focus || state.configOpen;
+  return state.configOpen;
 }
 
 function applyWorkspaceState(controller: RotationWorkspaceController, state: RotationWorkspaceState): void {
@@ -91,8 +91,8 @@ function applyWorkspaceState(controller: RotationWorkspaceController, state: Rot
   const configVisible = isSimulationConfigVisible(state);
   controller.configPanel.setAttribute('aria-hidden', String(!configVisible));
   controller.configPanel.inert = !configVisible;
-  controller.configPanel.setAttribute('role', state.focus ? 'dialog' : 'region');
-  controller.configPanel.toggleAttribute('aria-modal', state.focus);
+  controller.configPanel.setAttribute('role', 'dialog');
+  controller.configPanel.toggleAttribute('aria-modal', state.configOpen);
 
   controller.focusButton.setAttribute('aria-pressed', String(state.focus));
   controller.focusButton.textContent = state.focus ? 'Exit focus' : 'Focus';

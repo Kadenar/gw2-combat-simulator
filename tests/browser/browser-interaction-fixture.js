@@ -439,13 +439,8 @@ frame.addEventListener('load', async () => {
     app.build.initialResource = 0;
     app.build.rotation = [];
     app.changed();
-    assert(icon(document, 'Counterspell'), 'Counterspell flip skill missing from Scepter palette');
-    assert(
-      icon(document, 'Counterspell').classList.contains('pal-context-disabled'),
-      'Counterspell is enabled before Illusionary Counter'
-    );
-    icon(document, 'Counterspell').click();
-    assert(app.build.rotation.length === 0, 'disabled Counterspell was queued');
+    assert(!icon(document, 'Counterspell'), 'Counterspell appears before Illusionary Counter');
+    assert(icon(document, 'Illusionary Counter'), 'Illusionary Counter is missing from Scepter palette');
     icon(document, 'Illusionary Counter').click();
     assert(
       app.results.endState.profession.resource === 0,
@@ -454,8 +449,8 @@ frame.addEventListener('load', async () => {
       }, rotation=${JSON.stringify(app.build.rotation)})`
     );
     assert(
-      !icon(document, 'Counterspell').classList.contains('pal-context-disabled'),
-      'Counterspell did not enable after Illusionary Counter'
+      !icon(document, 'Illusionary Counter') && icon(document, 'Counterspell'),
+      'Counterspell did not replace Illusionary Counter'
     );
     icon(document, 'Counterspell').click();
     app.build.rotation.push({ name: '__wait', waitMs: 1000 });
@@ -472,8 +467,8 @@ frame.addEventListener('load', async () => {
       'active clone visualization did not update'
     );
     assert(
-      icon(document, 'Counterspell').classList.contains('pal-context-disabled'),
-      'Counterspell remained enabled after use'
+      !icon(document, 'Counterspell') && icon(document, 'Illusionary Counter'),
+      'Illusionary Counter did not return after Counterspell'
     );
 
     app.build.specializations[2] = { name: 'Chronomancer', traits: '1-1-1' };

@@ -18,8 +18,8 @@ export function normalizeRotationInsertionIndex(value: unknown, rotationLength: 
 export function rotationInsertionGapHtml(index: number, activeIndex: unknown): string {
   const active = index === activeIndex;
   return `<button type="button" class="rot-insertion-gap${active ? ' active' : ''}" data-insertion-index="${index}"
-    title="${active ? 'Clear insertion point' : `Insert at position ${index + 1}`}"
-    aria-label="${active ? `Insertion point at position ${index + 1}; click to clear` : `Set insertion point at position ${index + 1}`}">
+    title="${active ? `Insertion point at position ${index + 1}` : `Insert at position ${index + 1}`}"
+    aria-label="${active ? `Insertion point at position ${index + 1}` : `Set insertion point at position ${index + 1}`}">
       <span class="rot-insertion-arrow" aria-hidden="true">→</span>
       <span class="rot-insertion-marker" aria-hidden="true"></span>
   </button>`;
@@ -32,6 +32,12 @@ export function rotationTimelineEntryHtml(index: number, activeIndex: unknown, s
   </div>`;
 }
 
+function shouldIgnoreArrowKey(event: KeyboardEvent): boolean {
+  const target = event.target;
+  if (!(target instanceof Element)) return false;
+  return Boolean(target.closest("input, textarea, select, [contenteditable='true'], [role='dialog'], dialog"));
+}
+
 export function mountRotationInsertionCursor({
   root,
   insertionIndex,
@@ -41,24 +47,14 @@ export function mountRotationInsertionCursor({
 }: RotationInsertionCursorOptions): number | null {
   cursorCleanupByRoot.get(root)?.();
 
-  const activeIndex = normalizeRotationInsertionIndex(insertionIndex, rotationLength);
-  const document = root.ownerDocument;
-  let status = root.previousElementSibling as HTMLElement | null;
-  if (!status?.classList.contains('rotation-insertion-status')) {
-    status = document.createElement('div');
-    status.className = 'rotation-insertion-status';
-    root.before(status);
+  const existingStatus = root.previousElementSibling;
+  if (existingStatus?.classList.contains('rotation-insertion-status')) {
+    existingStatus.remove();
   }
 
-  if (activeIndex === null) {
-    status.hidden = true;
-    status.innerHTML = '';
-  } else {
-    status.hidden = false;
-    status.innerHTML = `<span><strong>Insertion point:</strong> position ${activeIndex + 1}. Palette clicks insert here.</span>
-      <button type="button" data-clear-insertion>Clear <span aria-hidden="true">×</span></button>`;
-    status.querySelector<HTMLButtonElement>('[data-clear-insertion]')?.addEventListener('click', onClear);
-  }
+  const activeIndex = normalizeRotationInsertionIndex(insertionIndex, rotationLength);
+  const document = root.ownerDocument;
+  const scope = root.closest('.rotation-panel') || root;
 
   root.querySelectorAll<HTMLButtonElement>('.rot-insertion-gap').forEach((gap) => {
     gap.addEventListener('mousedown', (event) => event.stopPropagation());
@@ -67,7 +63,9 @@ export function mountRotationInsertionCursor({
       event.stopPropagation();
       const index = Number(gap.dataset.insertionIndex);
       if (!Number.isInteger(index)) return;
-      if (index === activeIndex) onClear();
+      const displayActive = activeIndex ?? rotationLength;
+      if (index === displayActive) return;
+      if (index === rotationLength) onClear();
       else onSelect(index);
     });
   });
@@ -76,7 +74,34 @@ export function mountRotationInsertionCursor({
     if (event.key !== 'Escape' || activeIndex === null) return;
     onClear();
   };
+
+  const handleArrow = (event: KeyboardEvent): void => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    if (shouldIgnoreArrowKey(event)) return;
+    if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
+    const focused = document.activeElement;
+    if (focused && focused !== document.body && !scope.contains(focused)) return;
+    const displayIndex = activeIndex ?? rotationLength;
+    if (event.key === 'ArrowLeft') {
+      if (displayIndex <= 0) return;
+      event.preventDefault();
+      const newIndex = displayIndex - 1;
+      if (newIndex >= rotationLength) onClear();
+      else onSelect(newIndex);
+    } else {
+      if (displayIndex >= rotationLength) return;
+      event.preventDefault();
+      const newIndex = displayIndex + 1;
+      if (newIndex >= rotationLength) onClear();
+      else onSelect(newIndex);
+    }
+  };
+
   document.addEventListener('keydown', handleEscape);
-  cursorCleanupByRoot.set(root, () => document.removeEventListener('keydown', handleEscape));
+  document.addEventListener('keydown', handleArrow);
+  cursorCleanupByRoot.set(root, () => {
+    document.removeEventListener('keydown', handleEscape);
+    document.removeEventListener('keydown', handleArrow);
+  });
   return activeIndex;
 }

@@ -20,6 +20,11 @@ function activeWeapons(context: ThiefPrecastContext): readonly [string, string] 
     : [context.config.primaryWeapon || '', context.config.secondaryWeapon || ''];
 }
 
+function weaponFlipActive(state: ThiefCoreState, skillId: number, at: number): boolean {
+  const value = state.availableFlips[skillId];
+  return Number(value || 0) > at;
+}
+
 export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: ThiefSkill): AvailabilityResult {
   const state = professionCoreState(context);
   const specialization = context.state.profession.specialization;
@@ -32,8 +37,17 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
       ? { ready: true }
       : deny(skill, 'thief.endurance', 'requires 50 endurance.', thiefEnduranceReadyAt(context, 50));
   }
-  if (skill.dualWieldFollowup && Number(state.availableFlips[skill.id] || 0) <= context.start) {
-    return deny(skill, 'thief.follow-up', 'use its opening dual-wield skill first.');
+  if (
+    skill.type === 'Weapon' &&
+    skill.flipParentId != null &&
+    !weaponFlipActive(state, Number(skill.id), context.start)
+  ) {
+    const parent = context.catalog.skillsById.get(Number(skill.flipParentId));
+    return deny(
+      skill,
+      'thief.follow-up',
+      parent?.dualWieldOpener ? 'use its opening dual-wield skill first.' : 'use its opening weapon skill first.'
+    );
   }
   const spearStage = spearChainStageForSkill(skill.id);
   if (spearStage != null && Number(state.spearChainStage || 0) !== spearStage) {
@@ -53,9 +67,10 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
     }
   }
   if (
-    skill.dualWieldOpener &&
+    skill.type === 'Weapon' &&
     skill.flipSkillId != null &&
-    Number(state.availableFlips[skill.flipSkillId] || 0) > context.start
+    skill.flipSkillId !== skill.nextChainId &&
+    weaponFlipActive(state, Number(skill.flipSkillId), context.start)
   ) {
     return deny(skill, 'thief.follow-up-active', 'use or wait out the active follow-up skill.');
   }

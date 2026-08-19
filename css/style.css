@@ -55,10 +55,61 @@ body[data-profession] header {
   top: 0;
   z-index: 200;
   background: var(--bg-dark);
+  /* Title + snapshot pin to the top-left; the tab nav stays centered. */
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  column-gap: 12px;
+  text-align: left;
 }
 
-body[data-profession] header .update-info {
-  margin: 8px auto 0;
+body[data-profession] header .simulator-view-tabs {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+}
+
+body[data-profession] .header-brand {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+
+body[data-profession] .header-brand h1 {
+  text-align: left;
+  line-height: 1.15;
+}
+
+body[data-profession] .header-brand .update-info {
+  margin: 0;
+  padding: 2px 8px;
+  font-size: 10px;
+}
+
+@media (max-width: 820px) {
+  body[data-profession] header {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  body[data-profession] header .simulator-view-tabs,
+  body[data-profession] .header-brand {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  body[data-profession] .header-brand {
+    align-items: center;
+  }
+
+  body[data-profession] .header-brand h1 {
+    text-align: center;
+  }
 }
 
 header h1 {
@@ -1205,14 +1256,14 @@ header .community-actions {
 
   .profession-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 310px;
-    align-items: stretch;
+    grid-template-columns: 310px minmax(0, 1fr);
+    align-items: start;
     gap: 12px;
   }
 
   .profession-main {
     min-width: 0;
-    grid-column: 1;
+    grid-column: 2;
     grid-row: 1;
   }
 
@@ -1223,23 +1274,17 @@ header .community-actions {
   .build-templates {
     position: sticky;
     top: calc(var(--profession-header-height, 112px) + 12px);
-    z-index: 10;
     width: 100%;
     max-width: none;
-    max-height: min(46vh, calc(100vh - var(--profession-header-height, 112px) - 24px));
     margin: 0;
-    grid-column: 2;
-    grid-row: 1;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: start;
   }
 
   .profession-layout > .simulation-workspace {
-    grid-column: 1 / -1;
+    grid-column: 2;
     grid-row: 2;
-  }
-
-  .build-templates-panel {
-    max-height: inherit;
-    overflow-y: auto;
   }
 
   .build-templates-header {
@@ -2823,7 +2868,7 @@ body[data-profession] .rotation-section {
 }
 
 .simulation-config-open-button {
-  display: none;
+  display: inline-flex;
   width: 40px;
   height: 40px;
   padding: 0;
@@ -2854,9 +2899,6 @@ body[data-profession] .rotation-section {
   filter: drop-shadow(0 0 4px currentcolor);
 }
 
-body[data-rotation-focus] .simulation-config-open-button {
-  display: inline-flex;
-}
 
 .rotation-focus-toggle::before {
   margin-right: 4px;
@@ -3885,10 +3927,9 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   body[data-profession]:not(.elementalist-theme) .rotation-palette,
   .elementalist-theme .rotation-palette:not(:has(.weaver-weapon-palette)) {
     display: grid;
-    grid-template-areas:
-      'profession weapons utility'
-      'tools tools tools';
-    grid-template-columns: max-content max-content minmax(0, 1fr);
+    /* Wide layout has room, so the combat/wait tools ride up to the top-right. */
+    grid-template-areas: 'profession weapons utility tools';
+    grid-template-columns: max-content max-content minmax(0, 1fr) max-content;
     align-items: start;
   }
 
@@ -5934,7 +5975,7 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
 }
 
 .simulation-config-close-button {
-  display: none;
+  display: inline-flex;
   width: 24px;
   height: 24px;
   padding: 0;
@@ -5965,7 +6006,7 @@ body:not([data-rotation-focus]) .rotation-section > .rotation-results {
   background: var(--bg-dark);
 }
 
-body[data-rotation-focus] .perma-section {
+.perma-section {
   position: fixed;
   inset: 12px 12px 12px auto;
   z-index: 1200;
@@ -5979,16 +6020,12 @@ body[data-rotation-focus] .perma-section {
     visibility 160ms;
 }
 
-body[data-rotation-focus] .perma-panel {
+.perma-panel {
   height: 100%;
   box-shadow: -12px 0 40px rgba(0, 0, 0, 0.48);
 }
 
-body[data-rotation-focus] .simulation-config-close-button {
-  display: inline-flex;
-}
-
-body[data-simulation-config-open][data-rotation-focus] .perma-section {
+body[data-simulation-config-open] .perma-section {
   visibility: visible;
   pointer-events: auto;
   transform: translateX(0);
@@ -6003,60 +6040,10 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   min-height: 0;
   flex-direction: column;
   gap: 0;
-}
-
-body[data-rotation-focus] #perma-boons {
   overflow-y: auto;
   scrollbar-gutter: stable;
 }
 
-@media (min-width: 1200px) {
-  .simulation-workspace {
-    display: grid;
-    grid-template-areas: 'rotation config';
-    grid-template-columns: minmax(0, 1fr) 310px;
-    align-items: start;
-    gap: 12px;
-  }
-
-  body:not([data-rotation-focus]) .simulation-workspace > .perma-section {
-    position: sticky;
-    top: calc(var(--profession-header-height, 112px) + 12px);
-    max-height: calc(100vh - var(--profession-header-height, 112px) - 24px);
-    grid-area: config;
-    margin: 0;
-  }
-
-  body:not([data-rotation-focus]) .simulation-workspace > .perma-section > .perma-panel {
-    max-height: inherit;
-  }
-
-  body:not([data-rotation-focus]) .simulation-workspace > .perma-section #perma-boons {
-    overflow-y: auto;
-    scrollbar-gutter: stable;
-  }
-
-  body:not([data-rotation-focus]) #app.has-template-sidebar .simulation-workspace > .perma-section {
-    position: fixed;
-    top: calc(var(--profession-header-height, 112px) + var(--build-templates-sticky-height, 0px) + 12px);
-    right: auto;
-    bottom: 12px;
-    left: var(--build-templates-sticky-left, auto);
-    width: var(--build-templates-sticky-width, 310px);
-    max-height: none;
-    z-index: 10;
-  }
-
-  body:not([data-rotation-focus]) #app.has-template-sidebar .simulation-workspace > .perma-section > .perma-panel {
-    height: 100%;
-    border-top: 0;
-    border-radius: 0 0 var(--radius) var(--radius);
-  }
-
-  body:not([data-rotation-focus]) #app.has-template-sidebar .build-templates-panel {
-    border-radius: var(--radius) var(--radius) 0 0;
-  }
-}
 
 #perma-boons[hidden] {
   display: none;
@@ -9503,7 +9490,7 @@ body[data-rotation-focus] #perma-boons {
     height: auto;
   }
 
-  body[data-rotation-focus] .perma-section {
+  .perma-section {
     inset: 6px 6px 6px auto;
   }
 

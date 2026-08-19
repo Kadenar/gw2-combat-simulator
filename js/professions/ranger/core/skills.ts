@@ -3747,6 +3747,72 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
 
 export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   {
+    id: ID.WOLFS_ONSLAUGHT,
+    name: "Wolf's Onslaught",
+    description: 'Stealth Attack. Slash enemies in front of you, then follow up with a powerful blow.',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_2',
+    quicknessCastTimeMs: 667,
+    recharge: 5,
+    cooldown: 5,
+    flipParentId: ID.MONGOOSES_FRENZY,
+    stealthAttack: true,
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          { atMs: 333, coefficient: 1.25 },
+          { atMs: 667, coefficient: 1.25 },
+          { atMs: 1000, coefficient: 2.5 }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'condition',
+        condition: 'Vulnerability',
+        stacks: 3,
+        duration: 8
+      }
+    ]
+  },
+  {
+    id: ID.OWLS_FLIGHT,
+    name: "Owl's Flight",
+    description: 'Stealth Attack. Reveal yourself and throw an unblockable, piercing spear.',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_3',
+    quicknessCastTimeMs: 500,
+    recharge: 7,
+    cooldown: 7,
+    flipParentId: ID.FALCONS_STOOP,
+    stealthAttack: true,
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 3.25,
+        hits: 1,
+        comboFinishers: [
+          {
+            ownerId: 'ranger',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
+      },
+      {
+        type: 'condition',
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 4
+      }
+    ]
+  },
+  {
     id: ID.PREDATORS_AMBUSH,
     name: "Predator's Ambush",
     description:
@@ -3758,6 +3824,7 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     recharge: 12,
     cooldown: 12,
     flipParentId: ID.WARCLAWS_ENGAGE,
+    stealthAttack: true,
     evades: true,
     implemented: true,
     effects: [
@@ -3776,6 +3843,39 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
       {
         type: 'control',
         metadata: { controlKind: 'daze' }
+      }
+    ]
+  },
+  {
+    id: ID.SPIDERS_WEB,
+    name: "Spider's Web",
+    description: 'Stealth Attack. Throw a net that damages, immobilizes, and cripples enemies.',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_5',
+    quicknessCastTimeMs: 333,
+    recharge: 20,
+    cooldown: 20,
+    flipParentId: ID.PANTHERS_PROWL,
+    stealthAttack: true,
+    implemented: true,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 2,
+        hits: 1
+      },
+      {
+        type: 'condition',
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 2
+      },
+      {
+        type: 'condition',
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 4
       }
     ]
   },

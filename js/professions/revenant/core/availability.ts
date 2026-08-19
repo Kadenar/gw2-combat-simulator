@@ -43,6 +43,24 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
   if (skill.id === ID.IMPERIAL_GUARD && state.availableFlips[ID.TRUE_STRIKE]) {
     return denyRevenantSkill(skill, 'revenant.true-strike-ready', 'use or let True Strike expire first.');
   }
+  const flipParent = skill.flipParentId == null ? null : context.catalog.skillsById.get(Number(skill.flipParentId));
+  if (
+    skill.type === 'Weapon' &&
+    skill.id !== ID.TRUE_STRIKE &&
+    flipParent?.flipSkillId === skill.id &&
+    Number(state.availableFlips[Number(skill.id)] || 0) <= context.start
+  ) {
+    return denyRevenantSkill(skill, 'revenant.weapon-flip-inactive', `use ${flipParent.name} first.`);
+  }
+  if (
+    skill.type === 'Weapon' &&
+    skill.id !== ID.IMPERIAL_GUARD &&
+    skill.flipSkillId != null &&
+    skill.flipSkillId !== skill.nextChainId &&
+    Number(state.availableFlips[Number(skill.flipSkillId)] || 0) > context.start
+  ) {
+    return denyRevenantSkill(skill, 'revenant.weapon-flip-active', 'use or wait out the active follow-up skill.');
+  }
   if (skill.id === -4) {
     if (
       state.selectedLegendIds.length !== 2 ||

@@ -1,39 +1,3 @@
-.rotation-insertion-status {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 6px 0;
-  padding: 7px 10px;
-  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--accent) 9%, var(--bg-panel));
-  color: var(--text);
-  font-size: 12px;
-}
-
-.rotation-insertion-status[hidden] {
-  display: none;
-}
-
-.rotation-insertion-status strong {
-  color: var(--text-bright);
-}
-
-.rotation-insertion-status button {
-  flex-shrink: 0;
-  border: 0;
-  background: transparent;
-  color: var(--accent);
-  font: inherit;
-  cursor: pointer;
-}
-
-.rotation-insertion-status button:hover {
-  color: var(--text-bright);
-  text-decoration: underline;
-}
-
 .rot-insertion-gap {
   position: relative;
   align-self: stretch;
@@ -121,10 +85,4 @@
 .rot-entry > .rot-insertion-gap.active {
   flex-basis: 12px;
   min-width: 12px;
-}
-
-@media (max-width: 640px) {
-  .rotation-insertion-status {
-    align-items: flex-start;
-  }
 }

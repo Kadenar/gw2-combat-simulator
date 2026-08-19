@@ -77,12 +77,18 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
     });
   }
   updateSpearChainState(context, skill, at);
-  if (skill.dualWieldOpener && skill.flipSkillId != null) {
-    state.availableFlips[skill.flipSkillId] = at + 4;
-    emitThiefState(context, at, 'dual-wield-follow-up');
+  // Weapon sequence skills share one state contract: completing the opener
+  // arms its replacement for the declared window, and using the child restores
+  // the opener. This covers dual attacks plus sword, shortbow, staff, and rifle.
+  if (completed && skill.type === 'Weapon' && skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
+    const flip = context.catalog.skillsById.get(Number(skill.flipSkillId));
+    if (flip?.flipParentId === skill.id) {
+      state.availableFlips[flip.id] = at + Number(skill.flipDuration || (skill.dualWieldOpener ? 4 : 5));
+      emitThiefState(context, at, 'weapon-flip');
+    }
   }
-  if (skill.dualWieldFollowup) {
+  if (completed && skill.type === 'Weapon' && skill.flipParentId != null) {
     delete state.availableFlips[skill.id];
-    emitThiefState(context, at, 'dual-wield-follow-up-used');
+    emitThiefState(context, at, 'weapon-flip-used');
   }
 }

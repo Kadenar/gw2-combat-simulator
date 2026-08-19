@@ -91,6 +91,172 @@ export interface WeaponPaletteRow {
   readonly skills: Skill[];
 }
 
+function paletteFlipAvailable(skill: Skill, availableFlips: SchedulerRecord, at: number): boolean {
+  const value = availableFlips[skill.id] ?? availableFlips[skill.name];
+  return typeof value === 'number' ? value > at : Boolean(value);
+}
+
+function isReplacementAttack(skill: Skill): boolean {
+  return (
+    Boolean(skill.ambush) ||
+    (Boolean(skill.stealthAttack) && skill.slot === 'Weapon_1') ||
+    Boolean(skill.unleashedAmbushSkill)
+  );
+}
+
+function isAutoattackFlipLink(parent: Skill, child: Skill): boolean {
+  return (
+    parent.nextChainId === child.id ||
+    (parent.chainRoot != null && child.chainRoot != null && Number(parent.chainRoot) === Number(child.chainRoot))
+  );
+}
+
+/**
+ * Projects any declared flip family to one live identity. Explicit child
+ * back-references are preferred, while parent-only API links are inferred for
+ * sequence skills that are neither autoattack steps nor replacement attacks.
+ */
+export function displayedFlipSkills(app: ProfessionAppState, skills: readonly Skill[]): Skill[] {
+  const endState = paletteEndState(app);
+  const professionState = paletteProfessionState(app);
+  const availableFlips =
+    professionState.availableFlips && typeof professionState.availableFlips === 'object'
+      ? (professionState.availableFlips as SchedulerRecord)
+      : {};
+  const at = Number(endState?.time || 0) / 1000;
+  const skillById = app.skillById || app.activeCatalog?.skillsById || app.profession.catalog.skillsById;
+  const catalogSkills = app.skills || app.activeCatalog?.skills || app.profession.catalog.skills || skills;
+  const candidateById = new Map(skills.map((skill) => [Number(skill.id), skill]));
+  const flipByParentId = new Map<number, Skill>();
+  const parentByFlipId = new Map<number, Skill>();
+
+  for (const child of catalogSkills) {
+    if (child.paletteFlip === false || child.flipParentId == null || isReplacementAttack(child)) continue;
+    const parent = skillById.get(Number(child.flipParentId));
+    if (!parent || isAutoattackFlipLink(parent, child)) continue;
+    flipByParentId.set(Number(parent.id), child);
+    parentByFlipId.set(Number(child.id), parent);
+  }
+  for (const parent of catalogSkills) {
+    if (parent.paletteFlip === false || parent.flipSkillId == null || parent.flipSkillId === parent.nextChainId)
+      continue;
+    const child = skillById.get(Number(parent.flipSkillId));
+    if (
+      !child ||
+      child.paletteFlip === false ||
+      isReplacementAttack(child) ||
+      isAutoattackFlipLink(parent, child) ||
+      flipByParentId.has(Number(parent.id))
+    ) {
+      continue;
+    }
+    flipByParentId.set(Number(parent.id), child);
+    parentByFlipId.set(Number(child.id), parent);
+  }
+
+  const displayedIds = new Set<number>();
+  return skills.flatMap((skill) => {
+    const parent = parentByFlipId.get(Number(skill.id));
+    if (parent && candidateById.has(Number(parent.id))) return [];
+
+    let displayed = skill;
+    let current = skill;
+    const visited = new Set<number>();
+    while (!visited.has(Number(current.id))) {
+      visited.add(Number(current.id));
+      const flip = flipByParentId.get(Number(current.id));
+      if (!flip) break;
+      if (paletteFlipAvailable(flip, availableFlips, at)) {
+        displayed = candidateById.get(Number(flip.id)) || flip;
+      }
+      current = flip;
+    }
+    if (displayedIds.has(Number(displayed.id))) return [];
+    displayedIds.add(Number(displayed.id));
+    return [displayed];
+  });
+}
+
+/**
+ * Collapses linked chains, autoattacks, flips, and ambush replacements to the
+ * skill currently occupying each combat-bar tile as the live state changes.
+ */
+export function displayedWeaponSkills(
+  app: ProfessionAppState,
+  skills: readonly Skill[],
+  weaponSet = Number(paletteEndState(app)?.activeWeaponSet || app.build.startingWeaponSet || 1)
+): Skill[] {
+  const endState = paletteEndState(app);
+  const professionState = paletteProfessionState(app);
+  const autoattackChains =
+    professionState.autoattackChains && typeof professionState.autoattackChains === 'object'
+      ? (professionState.autoattackChains as SchedulerRecord)
+      : {};
+  const catalog = app.activeCatalog || app.profession.catalog;
+  const specialization = app.adapter?.eliteSpecialization?.(app.build) || '';
+  const equippedWeapons = weaponSet === 2 ? app.build.alternateWeapons : app.build.weapons;
+  const matcher = app.adapter?.weaponSkillMatchesSet || defaultWeaponSkillMatchesSet;
+  const paletteContext = {
+    build: app.build,
+    specialization,
+    professionState,
+    catalog,
+    cooldowns: endState?.cooldowns || {},
+    activeWeaponSet: endState?.activeWeaponSet || app.build.startingWeaponSet || 1,
+    time: Number(endState?.time || 0) / 1000
+  };
+  // Linked non-autoattack chains (currently Thief spear slots 2 and 3) use
+  // their profession matcher to choose the stage occupying each combat-bar tile.
+  const stagedSkills = skills.filter(
+    (skill) =>
+      skill.weaponBarChainRootId == null ||
+      matcher(skill, equippedWeapons, {
+        ...paletteContext,
+        weaponData: app.weaponData,
+        weaponSet,
+        weaponBarPreview: false
+      })
+  );
+  const displayedIds = new Set<number>();
+  const projected = displayedFlipSkills(app, stagedSkills).flatMap((displayed) => {
+    if (!autoattackChainSkillAvailable(displayed, autoattackChains) || displayedIds.has(Number(displayed.id))) {
+      return [];
+    }
+    displayedIds.add(Number(displayed.id));
+    return [displayed];
+  });
+
+  const isWeaponOneReplacement = (skill: Skill): boolean => skill.slot === 'Weapon_1' && isReplacementAttack(skill);
+  const activeWeaponSet = Number(endState?.activeWeaponSet || app.build.startingWeaponSet || 1);
+  const availableAmbushName = String((professionState.availableAmbush as SchedulerRecord | undefined)?.name || '');
+  const activeReplacement =
+    weaponSet === activeWeaponSet
+      ? projected.find((skill) => {
+          if (!isWeaponOneReplacement(skill)) return false;
+          if (skill.ambush) return skill.name === availableAmbushName;
+          return app.profession.ui?.paletteSkillAvailability?.(paletteContext, skill).available === true;
+        })
+      : undefined;
+
+  if (!activeReplacement) return projected.filter((skill) => !isWeaponOneReplacement(skill));
+
+  // Ambush and stealth attacks occupy the standard autoattack's tile instead
+  // of appearing beside it; inactive replacement variants stay out of the row.
+  let insertedReplacement = false;
+  const replaced = projected.flatMap((skill) => {
+    if (isWeaponOneReplacement(skill)) return [];
+    const sharesTile =
+      skill.slot === activeReplacement.slot &&
+      skill.weapon === activeReplacement.weapon &&
+      (!skill.attunement || !activeReplacement.attunement || skill.attunement === activeReplacement.attunement);
+    if (!sharesTile) return [skill];
+    if (insertedReplacement) return [];
+    insertedReplacement = true;
+    return [activeReplacement];
+  });
+  return insertedReplacement ? replaced : [activeReplacement, ...replaced];
+}
+
 export function weaponPaletteRows(app: ProfessionAppState, activeWeaponSet = 1): WeaponPaletteRow[] {
   const rows = [1, 2]
     .map((weaponSet) => ({
@@ -98,7 +264,7 @@ export function weaponPaletteRows(app: ProfessionAppState, activeWeaponSet = 1):
       label: `W${weaponSet}`,
       weaponSet,
       active: weaponSet === activeWeaponSet,
-      skills: weaponSkills(app, weaponSet)
+      skills: displayedWeaponSkills(app, weaponSkills(app, weaponSet), weaponSet)
     }))
     .filter((row) => row.skills.length);
   return rows.flatMap((row) => {

@@ -20,6 +20,8 @@ import { loadProfessionAppAdapter, professionOptions, professionRegistry } from 
 import { professionRoute } from '../../js/app/profession/selector.js';
 import {
   autoattackChainSkillAvailable,
+  displayedFlipSkills,
+  displayedWeaponSkills,
   paletteActionSkills,
   rotationUtilityFlipByParent,
   weaponSkills,
@@ -1055,6 +1057,96 @@ test('Mesmer palette advances through autoattack chain skills', () => {
   assert.deepEqual(availabilityAfter(['Mind Slash', 'Mind Gash']), [false, false, true]);
 });
 
+test('weapon palette families display one live autoattack or flip skill', () => {
+  const autoRoot = { id: 1, name: 'First Strike', chainRoot: 1 };
+  const autoSecond = { id: 2, name: 'Second Strike', chainRoot: 1 };
+  const flipRoot = { id: 3, name: 'Counter Stance', flipSkillId: 4 };
+  const flip = { id: 4, name: 'Counter Attack', flipParentId: 3 };
+  const skills = [autoRoot, autoSecond, flipRoot, flip];
+  const skillById = new Map(skills.map((skill) => [skill.id, skill]));
+  const app = {
+    build: { rotation: [] },
+    skills,
+    skillById,
+    profession: { catalog: { skillsById: skillById } },
+    results: {
+      endState: {
+        profession: {
+          autoattackChains: { 1: 2 },
+          availableFlips: { 4: true }
+        }
+      }
+    }
+  };
+
+  assert.deepEqual(
+    displayedWeaponSkills(app, skills).map((skill) => skill.name),
+    ['Second Strike', 'Counter Attack']
+  );
+
+  app.results.endState.profession = { autoattackChains: {}, availableFlips: {} };
+  assert.deepEqual(
+    displayedWeaponSkills(app, skills).map((skill) => skill.name),
+    ['First Strike', 'Counter Stance']
+  );
+});
+
+test('palette flip projection infers catalog children and honors timed expiry', () => {
+  const parent = { id: 10, name: 'Opening Skill', flipSkillId: 11 };
+  const child = { id: 11, name: 'Follow-up Skill' };
+  const skills = [parent, child];
+  const skillsById = new Map(skills.map((skill) => [skill.id, skill]));
+  const app = {
+    skills,
+    skillById: skillsById,
+    profession: { catalog: { skills, skillsById } },
+    results: {
+      endState: {
+        time: 1500,
+        profession: { availableFlips: { 11: 2 } }
+      }
+    }
+  };
+
+  assert.deepEqual(
+    displayedFlipSkills(app, [parent]).map((skill) => skill.name),
+    ['Follow-up Skill']
+  );
+
+  app.results.endState.time = 2000;
+  assert.deepEqual(
+    displayedFlipSkills(app, [parent]).map((skill) => skill.name),
+    ['Opening Skill']
+  );
+});
+
+test('Mesmer weapon flips replace and restore their parent palette tile', () => {
+  const config = {
+    ...createDefaultConfig(),
+    specialization: 'Core',
+    primaryWeapon: 'Scepter',
+    secondaryWeapon: 'Sword',
+    initialResource: 0
+  };
+  const parent = mesmerProfession.catalog.skillsByName.get('Illusionary Counter');
+  const flip = mesmerProfession.catalog.skillsByName.get('Counterspell');
+  const app = {
+    build: { rotation: [] },
+    skills: mesmerProfession.catalog.skills,
+    skillById: mesmerProfession.catalog.skillsById,
+    profession: mesmerProfession,
+    results: null
+  };
+  const displayedAfter = (rotation) => {
+    app.results = simulateMesmer(rotation, config);
+    return displayedWeaponSkills(app, [parent, flip]).map((skill) => skill.name);
+  };
+
+  assert.deepEqual(displayedAfter([]), ['Illusionary Counter']);
+  assert.deepEqual(displayedAfter(['Illusionary Counter']), ['Counterspell']);
+  assert.deepEqual(displayedAfter(['Illusionary Counter', 'Counterspell']), ['Illusionary Counter']);
+});
+
 test('damage result rows reuse the icons shown for generated procs', () => {
   const earthIcon = 'earth.png';
   const nourishmentIcon = 'nourishment.png';
@@ -1129,7 +1221,7 @@ test('clone attack damage rows use their weapon skill icons', () => {
   assert.equal(resultSkillIcon(app, { name: 'Clone: Ether Bolt' }), etherBoltIcon);
 });
 
-test('Mesmer weapon palette orders autoattack chains by chain step', () => {
+test('Mesmer weapon palette displays only the current autoattack chain step', () => {
   const build = createMesmerBuildDefaults();
   build.specializations[2] = { name: 'Mirage', traits: '1-1-1' };
   build.weapons = ['Axe', 'Sword'];
@@ -1150,7 +1242,7 @@ test('Mesmer weapon palette orders autoattack chains by chain step', () => {
     weaponPaletteRows(app, 1)[0]
       .skills.filter((skill) => skill.chainRoot === 44791)
       .map((skill) => skill.name),
-    ['Lacerating Chop', 'Ethereal Chop', 'Mirror Strikes']
+    ['Lacerating Chop']
   );
 });
 

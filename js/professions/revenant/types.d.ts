@@ -123,7 +123,7 @@ export interface RevenantCoreState {
   selectedLegendIds: string[];
   legendSwapReadyAt: number;
   activeUpkeeps: RevenantUpkeepState[];
-  availableFlips: Record<string, boolean>;
+  availableFlips: Record<string, number | boolean>;
   autoattackChains: Record<string, SkillId>;
   abyssalStrikeSecondCast: boolean;
   endurance: number;

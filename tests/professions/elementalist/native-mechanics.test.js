@@ -554,14 +554,14 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
   const currentEnd = palette.innerHTML.indexOf('utility-palette-group', currentStart);
   const bankStart = palette.innerHTML.indexOf('data-role="weaver-cooldown-bank"');
   const currentHtml = palette.innerHTML.slice(currentStart, currentEnd);
-  assert.equal((currentHtml.match(/class="pal-skill/g) || []).length, 7);
+  assert.equal((currentHtml.match(/class="pal-skill/g) || []).length, 5);
   assert.doesNotMatch(currentHtml, /data-palette-static="true"/);
   assert.match(currentHtml, /data-skill="Fire Strike"/);
-  assert.match(currentHtml, /data-skill="Fire Swipe"/);
-  assert.match(currentHtml, /data-skill="Searing Slash"/);
+  assert.doesNotMatch(currentHtml, /data-skill="Fire Swipe"/);
+  assert.doesNotMatch(currentHtml, /data-skill="Searing Slash"/);
   assert.deepEqual(
     [...currentHtml.matchAll(/data-attunement="([^"]+)"/g)].map((match) => match[1]),
-    ['Fire', 'Fire', 'Fire', 'Fire', 'Fire+Water', 'Water', 'Water']
+    ['Fire', 'Fire', 'Fire+Water', 'Water', 'Water']
   );
 
   const bankHtml = [...palette.innerHTML.matchAll(/<section class="weaver-cooldown-lane[^>]*>[\s\S]*?<\/section>/g)]
@@ -1659,6 +1659,28 @@ test('Spear etchings upgrade after three other casts', () => {
     true
   );
   assert.equal(result.endState.profession.etchings['Etching: Volcano'], null);
+});
+
+test('Spear etching stages replace one another in the weapon palette', () => {
+  const family = ['Etching: Volcano', 'Lesser Volcano', 'Volcano'].map((name) =>
+    elementalistCatalog.skillsByName.get(name)
+  );
+  const displayed = (progress) =>
+    elementalistProfession.ui
+      .paletteWeaponSkills(
+        {
+          build: { weapons: ['Spear', ''] },
+          professionState: {
+            etchings: progress ? { 'Etching: Volcano': progress } : {}
+          }
+        },
+        family
+      )
+      .map((skill) => skill.name);
+
+  assert.deepEqual(displayed(null), ['Etching: Volcano']);
+  assert.deepEqual(displayed({ stage: 'lesser', otherCasts: 0 }), ['Lesser Volcano']);
+  assert.deepEqual(displayed({ stage: 'full', otherCasts: 3 }), ['Volcano']);
 });
 
 test('Alacrity shortens overload dwell and Lucid Singularity follows hit timing', () => {

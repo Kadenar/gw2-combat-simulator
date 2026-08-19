@@ -692,7 +692,7 @@ export function renderTimeline(app: ProfessionAppState): void {
         rowItems.push(
           rotationTimelineEntryHtml(
             index,
-            app.rotationInsertionIndex,
+            app.rotationInsertionIndex ?? app.build.rotation.length,
             `<div class="rot-skill${item.offset != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}" draggable="true"
                     data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
@@ -746,7 +746,7 @@ export function renderTimeline(app: ProfessionAppState): void {
         for (const marker of overlayProcMarkersByIndex.get(app.build.rotation.length) || []) {
           rowItems.push(renderOverlayProcMarker(marker));
         }
-        rowItems.push(rotationInsertionGapHtml(app.build.rotation.length, app.rotationInsertionIndex));
+        rowItems.push(rotationInsertionGapHtml(app.build.rotation.length, app.rotationInsertionIndex ?? app.build.rotation.length));
         for (const marker of healthMarkersByIndex.get(app.build.rotation.length) || []) {
           rowItems.push(renderHealthMarker(marker));
         }

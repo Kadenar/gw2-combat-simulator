@@ -33,7 +33,7 @@ function chronomancerEventLogRow(
 export const chronomancerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   eventLogRow: chronomancerEventLogRow,
   paletteGroups: (context: MesmerUiContext) =>
-    mesmerMechanicPaletteGroups(context, CHRONOMANCER_PALETTE_SKILLS).map((group) => ({
+    mesmerMechanicPaletteGroups(context, CHRONOMANCER_PALETTE_SKILLS, 'clones').map((group) => ({
       ...group,
       includeActionSkills: true
     })),

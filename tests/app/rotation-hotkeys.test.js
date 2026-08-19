@@ -66,7 +66,7 @@ test('rotation hotkey overrides are normalized and persisted globally', () => {
   assert.deepEqual(loadRotationHotkeyBindings(storage), bindings);
 });
 
-test('rotation hotkeys require a persisted global opt-in', () => {
+test('rotation hotkeys default on and persist an explicit opt-out', () => {
   const values = new Map();
   const storage = {
     getItem(key) {
@@ -77,12 +77,13 @@ test('rotation hotkeys require a persisted global opt-in', () => {
     }
   };
 
-  assert.equal(loadRotationHotkeysEnabled(storage), false);
-  saveRotationHotkeysEnabled(true, storage);
-  assert.equal(values.get(ROTATION_HOTKEY_ENABLED_STORAGE_KEY), 'true');
+  // On by default when no preference has been stored.
   assert.equal(loadRotationHotkeysEnabled(storage), true);
   saveRotationHotkeysEnabled(false, storage);
+  assert.equal(values.get(ROTATION_HOTKEY_ENABLED_STORAGE_KEY), 'false');
   assert.equal(loadRotationHotkeysEnabled(storage), false);
+  saveRotationHotkeysEnabled(true, storage);
+  assert.equal(loadRotationHotkeysEnabled(storage), true);
 });
 
 test('skill slots resolve to weapon, utility, and profession actions', () => {

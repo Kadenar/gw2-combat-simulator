@@ -85,7 +85,9 @@ function mountStickyProfessionHeader(root: Document): void {
     (adjacentSnapshot instanceof HTMLElement && adjacentSnapshot.classList.contains('update-info')
       ? adjacentSnapshot
       : null);
-  if (snapshot && snapshot.parentElement !== header) header.append(snapshot);
+  // The snapshot may already live nested inside the header (e.g. in the
+  // top-left brand block); only pull it in when it sits outside the header.
+  if (snapshot && !header.contains(snapshot)) header.append(snapshot);
 
   const updateHeaderHeight = () => {
     appRoot.style.setProperty('--profession-header-height', `${Math.ceil(header.getBoundingClientRect().height)}px`);

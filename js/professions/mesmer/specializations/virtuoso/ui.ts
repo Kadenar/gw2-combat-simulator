@@ -12,7 +12,7 @@ const VIRTUOSO_MECHANIC_SKILLS = Object.freeze([
 ]);
 
 export const virtuosoUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  paletteGroups: (context: MesmerUiContext) => mesmerMechanicPaletteGroups(context, VIRTUOSO_MECHANIC_SKILLS),
+  paletteGroups: (context: MesmerUiContext) => mesmerMechanicPaletteGroups(context, VIRTUOSO_MECHANIC_SKILLS, 'blades'),
   skillBarGroups: () => mesmerMechanicSkillBarGroups('Bladesongs', VIRTUOSO_MECHANIC_SKILLS),
   resourceViews: (context: MesmerUiContext) =>
     mesmerResourceViews(context, {

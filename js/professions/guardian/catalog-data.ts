@@ -59,6 +59,9 @@ for (const skill of allSkills) {
     flipParentById.set(skill.flipSkillId, skill.id);
   }
 }
+// The API exposes Shield of Absorption's detonation under the same display
+// name, so it needs an explicit back-reference to remain one stateful tile.
+flipParentById.set(ID.SHIELD_OF_ABSORPTION_ID_9224, ID.SHIELD_OF_ABSORPTION);
 for (const [normalId, finalId] of firebrandFinalFlipByNormalId) {
   flipParentById.set(finalId, normalId);
 }
@@ -85,6 +88,9 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
     cooldown: Number(skill.ammo || 0) > 0 ? skill.ammoRecharge || skill.recharge : skill.recharge,
     flipParentId: flipParentId ?? null,
     flipParent: flipParent?.name || '',
+    // Glacial Blow is a permanent trait replacement, not a cast-time flip;
+    // preserve both candidates until the Guardian palette applies the build.
+    ...(skill.id === ID.MIGHTY_BLOW || skill.id === ID.GLACIAL_BLOW ? { paletteFlip: false } : {}),
     simulatorExcluded: GUARDIAN_NON_DPS_SKILL_NAMES.has(skill.name),
     ...(patchAuthoringExcludedSkillIds.has(skill.id) ? { patchAuthoringExcluded: true } : {}),
     implemented: false,

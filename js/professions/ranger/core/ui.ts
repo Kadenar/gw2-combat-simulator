@@ -17,6 +17,7 @@ import type {
 } from '../../../platform/engine/types.js';
 import type { RangerSkill, RangerUiContext, RangerUiSelection } from '../types.js';
 import { isRangerHammerVariant, normalizeRangerHammerSkillIds, RANGER_HAMMER_VARIANT_PAIRS } from './hammer.js';
+import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from './weapon-state.js';
 
 let rangerCatalog: Readonly<CanonicalCatalog>;
 
@@ -166,8 +167,31 @@ function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSk
   if (isRangerHammerVariant(skill.id) && !selectedHammerSkillIds(context).includes(Number(skill.id))) {
     return { available: false, message: 'Select this Hammer variant first' };
   }
-  if (!skill.petSkill) return { available: true, message: '' };
   const state = rangerUiState(context);
+  const availableFlips = (state.availableFlips || {}) as SchedulerRecord;
+  const flipParent = skill.flipParentId == null ? null : rangerCatalog.skillsById.get(Number(skill.flipParentId));
+  const spearStealthFlipId = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];
+  const isSpearStealthAttack = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
+  if (
+    skill.type === 'Weapon' &&
+    !isRangerHammerVariant(skill.id) &&
+    (flipParent?.flipSkillId === skill.id || isSpearStealthAttack) &&
+    Number(availableFlips[String(skill.id)] || 0) <= Number(context.time || 0)
+  ) {
+    return { available: false, message: `Use ${flipParent?.name || 'its opening weapon skill'} first` };
+  }
+  if (
+    skill.type === 'Weapon' &&
+    !isRangerHammerVariant(skill.id) &&
+    ((skill.flipSkillId != null &&
+      skill.flipSkillId !== skill.nextChainId &&
+      Number(availableFlips[String(skill.flipSkillId)] || 0) > Number(context.time || 0)) ||
+      (spearStealthFlipId != null &&
+        Number(availableFlips[String(spearStealthFlipId)] || 0) > Number(context.time || 0)))
+  ) {
+    return { available: false, message: 'Use or wait out the active follow-up skill' };
+  }
+  if (!skill.petSkill) return { available: true, message: '' };
   if (state.beastmodeActive) {
     return { available: false, message: 'Leave Beastmode first' };
   }

@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { loadProfession, loadProfessionAppAdapter, professionRoute } from '../../../js/app/profession/registry.js';
 import { assumptionControlsForSpecialization } from '../../../js/app/profession/assumptions.js';
-import { weaponSkills } from '../../../js/app/rotation/palette-model.js';
+import { weaponPaletteRows, weaponSkills } from '../../../js/app/rotation/palette-model.js';
 import { simulateGw2 } from '../../../js/platform/gw2/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '../../../js/platform/gw2/skill-patch.js';
 import { createGw2CombatQuery } from '../../../js/platform/gw2/query.js';
@@ -588,6 +588,40 @@ test('stealth replaces weapon skill 1 without a separate palette group', () => {
     thiefProfession.ui.isPaletteSkillAvailable(context, thiefCatalog.skillsByName.get('Double Strike')),
     false
   );
+
+  const build = {
+    ...createThiefBuildDefaults(),
+    weapons: ['Dagger', 'Dagger'],
+    alternateWeapons: ['', ''],
+    specializations: []
+  };
+  const app = {
+    build,
+    adapter: thiefAppAdapter,
+    profession: thiefProfession,
+    skills: thiefCatalog.skills,
+    skillById: thiefCatalog.skillsById,
+    skillByName: thiefCatalog.skillsByName,
+    weaponData: thiefAppAdapter.weaponData,
+    results: null
+  };
+  const paletteNamesAfter = (rotation) => {
+    app.results = simulate('Core', rotation, {
+      primaryWeapon: 'Dagger',
+      secondaryWeapon: 'Dagger',
+      weaponSet2Primary: '',
+      weaponSet2Secondary: ''
+    });
+    return weaponPaletteRows(app, 1)[0].skills.map((skill) => skill.name);
+  };
+
+  const ordinary = paletteNamesAfter([]);
+  assert.ok(ordinary.includes('Double Strike'));
+  assert.equal(ordinary.includes('Backstab'), false);
+
+  const stealthed = paletteNamesAfter(['Cloak and Dagger']);
+  assert.ok(stealthed.includes('Backstab'));
+  assert.equal(stealthed.includes('Double Strike'), false);
 });
 
 test('Deadeye palette uses malicious stealth attacks and one stateful rifle bar', () => {
@@ -668,6 +702,62 @@ test('Deadeye palette uses malicious stealth attacks and one stateful rifle bar'
     ),
     true
   );
+});
+
+test('Thief weapon chains and follow-ups occupy one live palette tile', () => {
+  const paletteAfter = (specialization, weapons, rotation) => {
+    const defaults = createThiefBuildDefaults();
+    const specializations = [
+      { name: 'Deadly Arts', traits: '1-1-1' },
+      { name: 'Critical Strikes', traits: '1-1-1' },
+      { name: specialization === 'Core' ? 'Shadow Arts' : specialization, traits: '1-1-1' }
+    ];
+    const app = {
+      build: {
+        ...defaults,
+        weapons,
+        alternateWeapons: ['', ''],
+        specializations
+      },
+      adapter: thiefAppAdapter,
+      profession: thiefProfession,
+      skills: thiefCatalog.skills,
+      skillById: thiefCatalog.skillsById,
+      skillByName: thiefCatalog.skillsByName,
+      weaponData: thiefAppAdapter.weaponData,
+      results: simulate(specialization, rotation, {
+        primaryWeapon: weapons[0],
+        secondaryWeapon: weapons[1],
+        weaponSet2Primary: '',
+        weaponSet2Secondary: ''
+      })
+    };
+    return weaponPaletteRows(app, 1)[0].skills.map((skill) => skill.name);
+  };
+
+  assert.ok(paletteAfter('Specter', ['Scepter', 'Pistol'], []).includes('Shadow Bolt'));
+  assert.ok(paletteAfter('Specter', ['Scepter', 'Pistol'], ['Shadow Bolt']).includes('Double Bolt'));
+  assert.ok(paletteAfter('Specter', ['Scepter', 'Pistol'], ['Shadow Bolt', 'Double Bolt']).includes('Triple Bolt'));
+
+  const sword = paletteAfter('Core', ['Sword', 'Pistol'], ["Infiltrator's Strike"]);
+  assert.ok(sword.includes("Infiltrator's Return"));
+  assert.equal(sword.includes("Infiltrator's Strike"), false);
+
+  const shortbow = paletteAfter('Core', ['Shortbow', ''], ['Cluster Bomb']);
+  assert.ok(shortbow.includes('Detonate Cluster'));
+  assert.equal(shortbow.includes('Cluster Bomb'), false);
+
+  const staff = paletteAfter('Daredevil', ['Staff', ''], ['Debilitating Arc']);
+  assert.ok(staff.includes('Helmet Breaker'));
+  assert.equal(staff.includes('Debilitating Arc'), false);
+
+  const standingRifle = paletteAfter('Deadeye', ['Rifle', ''], []);
+  assert.ok(standingRifle.includes("Death's Retreat"));
+  assert.equal(standingRifle.includes("Sniper's Cover"), false);
+
+  const kneelingRifle = paletteAfter('Deadeye', ['Rifle', ''], ['Kneel', "Sniper's Cover"]);
+  assert.ok(kneelingRifle.includes("Death's Advance"));
+  assert.equal(kneelingRifle.includes("Sniper's Cover"), false);
 });
 
 test('Steal stores and consumes the deterministic raid-golem stolen skill', () => {
@@ -1877,24 +1967,29 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
       )
       .map((skill) => skill.name);
   const paletteAtStage = (stage) =>
-    weaponSkills({
-      build: {
-        ...createThiefBuildDefaults(),
-        weapons: ['Spear', ''],
-        alternateWeapons: ['Spear', '']
-      },
-      adapter: thiefAppAdapter,
-      profession: thiefProfession,
-      skills: thiefCatalog.skills,
-      weaponData: thiefAppAdapter.weaponData,
-      results: {
-        endState: {
-          activeWeaponSet: 1,
-          profession: { spearChainStage: stage }
+    weaponPaletteRows(
+      {
+        build: {
+          ...createThiefBuildDefaults(),
+          weapons: ['Spear', ''],
+          alternateWeapons: ['Spear', '']
+        },
+        adapter: thiefAppAdapter,
+        profession: thiefProfession,
+        skills: thiefCatalog.skills,
+        skillById: thiefCatalog.skillsById,
+        skillByName: thiefCatalog.skillsByName,
+        weaponData: thiefAppAdapter.weaponData,
+        results: {
+          endState: {
+            activeWeaponSet: 1,
+            profession: { spearChainStage: stage }
+          }
         }
-      }
-    })
-      .filter((skill) => [2, 3].includes(Number(String(skill.slot).split('_').at(-1))))
+      },
+      1
+    )[0]
+      .skills.filter((skill) => [2, 3].includes(Number(String(skill.slot).split('_').at(-1))))
       .map((skill) => skill.name);
 
   assert.deepEqual(visibleAtStage(0), ['Mantis Sting', 'Unsuspecting Strike']);
@@ -1919,17 +2014,9 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
       ['Shattering Assault', 3]
     ]
   );
-  const displayedChain = [
-    'Mantis Sting',
-    'Entangling Asp',
-    'Falling Spider',
-    'Unsuspecting Strike',
-    'Vampiric Slash',
-    'Shattering Assault'
-  ];
-  assert.deepEqual(paletteAtStage(0), displayedChain);
-  assert.deepEqual(paletteAtStage(1), displayedChain);
-  assert.deepEqual(paletteAtStage(2), displayedChain);
+  assert.deepEqual(paletteAtStage(0), ['Mantis Sting', 'Unsuspecting Strike']);
+  assert.deepEqual(paletteAtStage(1), ['Entangling Asp', 'Vampiric Slash']);
+  assert.deepEqual(paletteAtStage(2), ['Falling Spider', 'Shattering Assault']);
   assert.equal(
     thiefProfession.ui.paletteSkillAvailability(
       { professionState: { spearChainStage: 0 } },

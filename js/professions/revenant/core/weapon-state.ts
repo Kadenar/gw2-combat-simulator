@@ -59,6 +59,10 @@ export function resetCoalescenceOfRuin(context: RevenantSchedulerContext, _task:
 }
 
 const IMPERIAL_GUARD_OWNER = 'revenant.imperial-guard';
+const WEAPON_FLIP_DURATION_BY_PARENT: Readonly<Record<number, number>> = Object.freeze({
+  [ID.BLOSSOMING_AURA]: 4,
+  [ID.OTHERWORLDLY_BOND]: 7
+});
 
 /** Arms True Strike and emits Imperial Guard's blocking window at cast start. */
 export function beginRevenantWeaponCast(context: RevenantCastContext, skill: RevenantSkill): void {
@@ -83,6 +87,23 @@ export function beginRevenantWeaponCast(context: RevenantCastContext, skill: Rev
 /** Commits or consumes the Imperial Guard/True Strike temporary flip. */
 export function completeRevenantWeaponCast(context: RevenantCastContext, skill: RevenantSkill): void {
   const state = professionCoreState(context);
+  // Scepter follow-ups share the normal availableFlips state so the scheduler
+  // and palette agree on which identity currently occupies each weapon slot.
+  if (
+    skill.type === 'Weapon' &&
+    skill.id !== ID.IMPERIAL_GUARD &&
+    skill.flipSkillId != null &&
+    skill.flipSkillId !== skill.nextChainId
+  ) {
+    const flip = context.catalog.skillsById.get(Number(skill.flipSkillId));
+    if (flip?.flipParentId === skill.id) {
+      state.availableFlips[flip.id] =
+        context.effectiveEnd + (WEAPON_FLIP_DURATION_BY_PARENT[Number(skill.id)] || Number(skill.flipDuration || 5));
+    }
+  }
+  if (skill.type === 'Weapon' && skill.id !== ID.TRUE_STRIKE && skill.flipParentId != null) {
+    delete state.availableFlips[skill.id];
+  }
   if (skill.id === ID.IMPERIAL_GUARD) {
     context.tasks.cancelOwner(IMPERIAL_GUARD_OWNER);
     context.tasks.schedule({

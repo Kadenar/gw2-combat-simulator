@@ -62,7 +62,9 @@ export function updateWeaponCastState(context: GuardianCastContext, skill: Guard
           ? hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)
             ? 4.5
             : 3
-          : Math.max(1, Number(skill.cooldown || skill.recharge || 5));
+          : skill.id === GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION
+            ? 4
+            : Math.max(1, Number(skill.cooldown || skill.recharge || 5));
       professionCoreState(context).availableFlips[flip.id] = context.effectiveEnd + duration;
     }
   }

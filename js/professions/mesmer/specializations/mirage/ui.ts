@@ -6,7 +6,7 @@ import type { MesmerUiContext } from '../../types.js';
 const MIRAGE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]);
 
 export const mirageUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  paletteGroups: (context: MesmerUiContext) => mesmerMechanicPaletteGroups(context, MIRAGE_MECHANIC_SKILLS),
+  paletteGroups: (context: MesmerUiContext) => mesmerMechanicPaletteGroups(context, MIRAGE_MECHANIC_SKILLS, 'clones'),
   skillBarGroups: () => mesmerMechanicSkillBarGroups('Shatters', MIRAGE_MECHANIC_SKILLS),
   resourceViews: (context: MesmerUiContext) =>
     mesmerResourceViews(context, {
