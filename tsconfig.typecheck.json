@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["js/**/*.ts", "tests/typecheck/**/*.ts"]
+}
