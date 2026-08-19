@@ -3,6 +3,7 @@ import { cp, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 
+// Defines the entry points for the application's pages.
 const pageEntries = [
   'index.html',
   'patch-preview.html',
@@ -17,13 +18,16 @@ const pageEntries = [
   'warrior.html'
 ];
 
+// Copies runtime data directories (Builds/ and Rotations/) to the built site output directory.
 const runtimeDirectories = ['Builds', 'Rotations'];
 
+// Defines the content types for runtime data files.
 const runtimeContentTypes = {
   '.csv': 'text/csv; charset=utf-8',
   '.json': 'application/json; charset=utf-8'
 };
 
+// Copies runtime data directories (Builds/ and Rotations/) to the built site output directory.
 function copyRuntimeData() {
   return {
     name: 'copy-runtime-data',
@@ -62,10 +66,7 @@ function serveRuntimeData() {
 
         try {
           if ((await stat(target)).isDirectory()) return next();
-          response.setHeader(
-            'Content-Type',
-            runtimeContentTypes[path.extname(target)] || 'application/octet-stream'
-          );
+          response.setHeader('Content-Type', runtimeContentTypes[path.extname(target)] || 'application/octet-stream');
           response.setHeader('Cache-Control', 'no-cache');
           createReadStream(target).pipe(response);
         } catch {
@@ -76,6 +77,7 @@ function serveRuntimeData() {
   };
 }
 
+// Vite configuration for building the site, including copying runtime data and serving it during development.
 export default defineConfig(({ command, mode }) => ({
   base: command === 'serve' ? '/' : './',
   publicDir: false,

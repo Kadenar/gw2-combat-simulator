@@ -27,6 +27,7 @@ function isWithin(directory, target) {
   return target === directory || target.startsWith(`${directory}${path.sep}`);
 }
 
+// Resolves a file path relative to the site root, build root, or source root, returning the first existing file found.
 async function resolveFile(relative) {
   for (const directory of [siteRoot, buildRoot, root]) {
     const target = path.resolve(directory, relative);
@@ -44,6 +45,7 @@ async function resolveFile(relative) {
   throw new Error('Not found');
 }
 
+// Determines the best encoding to use for the response body based on the Accept-Encoding header.
 function acceptedEncoding(header = '') {
   const accepted = new Map(
     header.split(',').map((entry) => {
@@ -61,6 +63,7 @@ function acceptedEncoding(header = '') {
   return null;
 }
 
+// Determines the appropriate Cache-Control header for a given file based on its extension and location within the site structure.
 function cacheControl(file, extension) {
   if (extension === '.html') return 'no-cache';
   const relative = path.relative(siteRoot, file);
@@ -72,6 +75,7 @@ function cacheControl(file, extension) {
   return 'no-cache';
 }
 
+// Encodes the response body using the specified encoding (gzip or brotli) if applicable, caching the result for future requests.
 async function encodeBody(file, metadata, body, encoding) {
   if (!encoding || body.length < 1024) return body;
   const key = `${file}:${metadata.mtimeMs}:${encoding}`;
@@ -93,6 +97,8 @@ async function encodeBody(file, metadata, body, encoding) {
   return encoded;
 }
 
+// Creates an HTTP server that serves files from the site root, build root, or source root, applying appropriate content types, caching,
+// and compression based on the request headers and file characteristics.
 createServer(async (request, response) => {
   try {
     const pathname = decodeURIComponent(new URL(request.url, 'http://local').pathname);
