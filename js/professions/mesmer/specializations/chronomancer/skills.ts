@@ -68,7 +68,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     weapon: '',
     specialization: 'Chronomancer',
     environment: 'Terrestrial',
-    quicknessCastTimeMs: 166.666666667,
+    quicknessCastTimeMs: 400,
     cooldown: 30,
     phantasm: false,
     resource: null,
