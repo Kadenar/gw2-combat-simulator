@@ -148,6 +148,15 @@ test('Elemental Explosion replaces the active pistol autoattack at full stock', 
   assert.ok(bullets < earthAutoattack);
 });
 
+test('Aerial Agility collapses its chain into one pistol palette tile', () => {
+  const { app } = createPistolApp();
+  const html = renderPaletteMarkup(app);
+
+  assert.match(html, /data-skill="Aerial Agility"/);
+  assert.doesNotMatch(html, /data-skill="Aerial Agility \(chain\)"/);
+  assert.doesNotMatch(html, /data-skill="Aerial Agility \(dash\)"/);
+});
+
 test('Elementalist bullet controls stay hidden without a pistol', () => {
   const { app } = createPistolApp();
   app.build.weapons = ['Sword', 'Warhorn'];

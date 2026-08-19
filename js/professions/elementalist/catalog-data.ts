@@ -336,7 +336,16 @@ function circularElementalistAutoattackChains(): readonly (readonly number[])[] 
   return Object.freeze(chains.map((chain) => Object.freeze(chain)));
 }
 
-const AUTOATTACK_CHAINS = circularElementalistAutoattackChains();
+// Aerial Agility is a genuine three-step pistol chain rather than a slot-1
+// autoattack, so circularElementalistAutoattackChains (Weapon_1 only, to skip
+// the two-skill aura/transmute flips) never derives it. Declaring it explicitly
+// gives its stages a chainRoot/chainStep, which collapses them to one palette
+// tile and shares the in-order gating and reset-on-other-skill behavior the
+// dps-report reconstruction already models for the chain.
+const AERIAL_AGILITY_CHAIN = Object.freeze(
+  [ID.AERIAL_AGILITY, ID.AERIAL_AGILITY_CHAIN, ID.AERIAL_AGILITY_DASH].map(Number)
+);
+const AUTOATTACK_CHAINS = Object.freeze([...circularElementalistAutoattackChains(), AERIAL_AGILITY_CHAIN]);
 
 const WEAPONS = Object.freeze(['Dagger', 'Focus', 'Hammer', 'Pistol', 'Scepter', 'Spear', 'Staff', 'Sword', 'Warhorn']);
 const WEAPON_HANDS = Object.freeze({
