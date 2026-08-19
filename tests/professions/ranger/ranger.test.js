@@ -119,6 +119,17 @@ test('Ranger catalog pins API identity and explicit module-owned mechanics', () 
     ),
     true
   );
+  assert.deepEqual(
+    [ID.WOLFS_ONSLAUGHT, ID.OWLS_FLIGHT, ID.PREDATORS_AMBUSH, ID.SPIDERS_WEB].map(
+      (skillId) => rangerCatalog.skillsById.get(skillId).icon
+    ),
+    [
+      'https://render.guildwars2.com/file/E1550C4BB87B62B14AC39E3F2DB2AC4E07F55F91/3379175.png',
+      'https://render.guildwars2.com/file/FBA45321DB6E98FB510AF8215EF0A19EB4FB4FC6/3379177.png',
+      'https://render.guildwars2.com/file/2D36D9D30E372A750D700F3334A8CE697B4C3010/3379179.png',
+      'https://render.guildwars2.com/file/1C6D1E0860B3B6C24136F1489F5AACD87D329EC7/3379181.png'
+    ]
+  );
   assert.equal(rangerCatalog.skillsById.get(ID.PATH_OF_SCARS_MAX_RANGE).variantBadge, 'MAX');
   assert.equal(rangerCatalog.skillsById.get(ID.PATH_OF_SCARS).variantBadge, undefined);
   assert.equal(RANGER_PETS.length, 66);

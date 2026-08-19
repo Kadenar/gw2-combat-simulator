@@ -3746,10 +3746,13 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
 });
 
 export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+  // Ranger spear stealth attacks are supplemental catalog identities, so pin
+  // their official render icons instead of falling back to the placeholder.
   {
     id: ID.WOLFS_ONSLAUGHT,
     name: "Wolf's Onslaught",
     description: 'Stealth Attack. Slash enemies in front of you, then follow up with a powerful blow.',
+    icon: 'https://render.guildwars2.com/file/E1550C4BB87B62B14AC39E3F2DB2AC4E07F55F91/3379175.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_2',
@@ -3782,6 +3785,7 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     id: ID.OWLS_FLIGHT,
     name: "Owl's Flight",
     description: 'Stealth Attack. Reveal yourself and throw an unblockable, piercing spear.',
+    icon: 'https://render.guildwars2.com/file/FBA45321DB6E98FB510AF8215EF0A19EB4FB4FC6/3379177.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_3',
@@ -3817,6 +3821,7 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     name: "Predator's Ambush",
     description:
       'Stealth Attack. Leap to a target location, dazing enemies. Deal increased damage to foes below the health threshold.',
+    icon: 'https://render.guildwars2.com/file/2D36D9D30E372A750D700F3334A8CE697B4C3010/3379179.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_4',
@@ -3850,6 +3855,7 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     id: ID.SPIDERS_WEB,
     name: "Spider's Web",
     description: 'Stealth Attack. Throw a net that damages, immobilizes, and cripples enemies.',
+    icon: 'https://render.guildwars2.com/file/1C6D1E0860B3B6C24136F1489F5AACD87D329EC7/3379181.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_5',
