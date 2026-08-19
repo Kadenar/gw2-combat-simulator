@@ -10,6 +10,7 @@ import { gw2EventActorType } from './event-ownership.js';
 import { clamp } from './numeric.js';
 import {
   createRelicTimelineRuntime,
+  relicConditionDamageBonus,
   relicConditionDurationBonus,
   relicCriticalChanceBonus,
   relicOutgoingDamageBonus
@@ -381,10 +382,20 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     runtime: Gw2QueryRuntime | null = null
   ): Gw2ResolvedStats => {
     const activeConfig = activeConfigAt(time, runtime);
-    const stats = activeProfession.modifyAttributes(
+    const modifiedStats = activeProfession.modifyAttributes(
       hookContext(time, { event, runtime }),
       gw2StaticAttributes(activeConfig, mightStacksAt(time, runtime, event), activeWeaponSetAt(time, runtime))
     ) as unknown as Gw2ResolvedStats;
+    // Time-varying relic Condition Damage (e.g. Relic of Thorns +30/stack) folds
+    // into the sampled attribute so every downstream condition tick scales with it.
+    const relicConditionDamage = relicConditionDamageBonus(
+      runtime?.relic ? runtime : historicalRelicContext,
+      time
+    );
+    const stats =
+      relicConditionDamage > 0
+        ? { ...modifiedStats, conditionDamage: Number(modifiedStats.conditionDamage ?? 0) + relicConditionDamage }
+        : modifiedStats;
     // Independent summons use their own base stats instead of the player's.
     // summonInheritsCriticalAttributes=true lets them share precision/ferocity
     // (e.g., for illusions that scale with the player's crit chance).

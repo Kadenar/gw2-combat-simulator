@@ -1148,6 +1148,27 @@ test('Relic of Fireworks accepts weapon-strength profession mechanics', () => {
   );
 });
 
+test('Relic of Thorns adds +30 Condition Damage per stack to condition ticks', () => {
+  const rotation = ['Grenade Kit', 'Poison Grenade', 'Shrapnel Grenade', { type: 'wait', durationMs: 60000 }];
+  const withThorns = simulate('Amalgam', rotation, { relic: 'Thorns' });
+  const withoutRelic = simulate('Amalgam', rotation, { relic: '' });
+
+  // Thorns is a condition-damage attribute buff: strike output must be identical
+  // while condition ticks scale up with the ramping stacks.
+  assert.equal(withThorns.strikeDamage, withoutRelic.strikeDamage);
+  assert.ok(
+    withThorns.conditionDamage > withoutRelic.conditionDamage,
+    `expected Thorns to raise condition damage (${withThorns.conditionDamage} vs ${withoutRelic.conditionDamage})`
+  );
+
+  // Stacks ramp on the display timeline: first at 3s, one more every 5s, capped at 10.
+  const stackDetails = withThorns.procSteps
+    .filter((step) => step.skill === 'Relic of Thorns')
+    .map((step) => step.detail);
+  assert.equal(stackDetails[0], '1/10 stacks');
+  assert.equal(stackDetails.at(-1), '10/10 stacks');
+});
+
 test('Relic of Fireworks ignores Grenade Kit bundle skills', () => {
   const result = simulate(
     'Holosmith',

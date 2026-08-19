@@ -48,6 +48,24 @@ const NOURYS_BUFF_DURATION = 5;
 const NOURYS_DAMAGE_BONUS = 0.25;
 const NOURYS_CYCLE_DURATION = NOURYS_STACK_INTERVAL * NOURYS_STACKS_NEEDED + NOURYS_BUFF_DURATION;
 
+const THORNS_CONDITION_DAMAGE_PER_STACK = 30;
+const THORNS_MAX_STACKS = 10;
+const THORNS_FIRST_STACK_AT = 3;
+const THORNS_STACK_INTERVAL = 5;
+
+/**
+ * Thorns grants a stack of Condition Damage on the first incoming hit and one
+ * more every 5s thereafter, capped at 10. Golem-benchmark rotations are struck
+ * continuously, so stacks ramp monotonically and hold at cap — the same model
+ * the display timeline uses, keeping the reported stack count and the applied
+ * condition damage in lockstep.
+ */
+function thornsStacksAt(at: number): number {
+  if (at < THORNS_FIRST_STACK_AT - EPSILON) return 0;
+  const stacks = 1 + Math.floor((at - THORNS_FIRST_STACK_AT + EPSILON) / THORNS_STACK_INTERVAL);
+  return Math.min(THORNS_MAX_STACKS, Math.max(0, stacks));
+}
+
 interface AristocracyActivation {
   readonly at: number;
   readonly expiresAt: number;
@@ -692,9 +710,18 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
 
   Thorns: defineRelic({
     timeline(ctx, _state, _events, rotationEndTime) {
-      for (let at = 3, stacks = 1; at <= rotationEndTime + EPSILON && stacks <= 10; at += 5, stacks += 1) {
-        ctx.recordProc('relic', 'Relic of Thorns', at, 'Incoming enemy hit', `${stacks}/10 stacks`);
+      for (
+        let at = THORNS_FIRST_STACK_AT, stacks = 1;
+        at <= rotationEndTime + EPSILON && stacks <= THORNS_MAX_STACKS;
+        at += THORNS_STACK_INTERVAL, stacks += 1
+      ) {
+        ctx.recordProc('relic', 'Relic of Thorns', at, 'Incoming enemy hit', `${stacks}/${THORNS_MAX_STACKS} stacks`);
       }
+    },
+    // Flat +30 Condition Damage per stack, sampled at tick time so ramping
+    // stacks scale live with each condition tick.
+    conditionDamageBonus(_ctx, _state, at) {
+      return thornsStacksAt(at) * THORNS_CONDITION_DAMAGE_PER_STACK;
     }
   })
 });
@@ -848,6 +875,14 @@ export function handleConditionRelics(
  */
 export function relicConditionDurationBonus(ctx: Gw2RelicRuntimeContext | null | undefined, at: number): number {
   return Number(invokeRelicHook(ctx, 'conditionDurationBonus', at) ?? 0);
+}
+
+/**
+ * Returns the selected relic's flat Condition Damage attribute bonus at `at`.
+ * Folded into the sampled stats so condition ticks scale with it directly.
+ */
+export function relicConditionDamageBonus(ctx: Gw2RelicRuntimeContext | null | undefined, at: number): number {
+  return Number(invokeRelicHook(ctx, 'conditionDamageBonus', at) ?? 0);
 }
 
 /** Applies the selected relic's weakness/vulnerability trigger, if any. */

@@ -319,6 +319,7 @@ export interface Gw2RelicRule {
     skill: Skill | null | undefined
   ) => unknown;
   readonly conditionDurationBonus?: (context: Gw2RelicContext, state: Gw2RelicState, at: number) => number;
+  readonly conditionDamageBonus?: (context: Gw2RelicContext, state: Gw2RelicState, at: number) => number;
   readonly condition?: (
     context: Gw2RelicContext,
     state: Gw2RelicState,
