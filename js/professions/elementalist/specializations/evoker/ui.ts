@@ -1,10 +1,13 @@
 import type {
+  PaletteSkillAvailability,
   ProfessionResourceView,
   ProfessionUiContract,
-  SchedulerRecord
+  SchedulerRecord,
+  Skill
 } from '../../../../platform/engine/types.js';
 import { ELEMENTALIST_FAMILIAR_SKILL_IDS } from '../../data/ids.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '../../core/state.js';
+import { BASIC_FAMILIARS, FAMILIAR_ELEMENTS } from './constants.js';
 import type { EvokerState } from './state.js';
 
 function uiState(context: SchedulerRecord): Partial<EvokerState> {
@@ -51,6 +54,38 @@ function updateFamiliarSelection(context: SchedulerRecord, selection: SchedulerR
   return true;
 }
 
+// Keeps the F5 palette state aligned with scheduler validation so a familiar
+// only looks clickable when the charges shown at the insertion point can cast it.
+function familiarPaletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
+  const element = FAMILIAR_ELEMENTS[skill.name];
+  if (!element) return { available: true, message: '' };
+  if (selectedElement(context) !== element) {
+    return {
+      available: false,
+      message: `${skill.name} is unavailable - the ${element} familiar is not selected.`
+    };
+  }
+  const state = uiState(context);
+  const build = context.build as SchedulerRecord | undefined;
+  const maximum = Number(state.maximumCharges ?? 6);
+  const charges = Number(state.charges ?? build?.initialEvokerCharges ?? maximum);
+  const empowered = Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0);
+  if (BASIC_FAMILIARS.has(skill.name)) {
+    return empowered < 3 && charges >= maximum
+      ? { available: true, message: '' }
+      : {
+          available: false,
+          message: `${skill.name} requires ${maximum} familiar charges.`
+        };
+  }
+  return empowered >= 3
+    ? { available: true, message: '' }
+    : {
+        available: false,
+        message: `${skill.name} requires three empowered familiar charges.`
+      };
+}
+
 export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   skillBarGroups: (context: SchedulerRecord) => {
     const element = selectedElement(context);
@@ -90,6 +125,7 @@ export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.
     ];
   },
   updateSkillBarSelection: updateFamiliarSelection,
+  paletteSkillAvailability: familiarPaletteAvailability,
   paletteGroups: (context: SchedulerRecord) => [
     {
       id: 'elementalist-evoker-familiars',

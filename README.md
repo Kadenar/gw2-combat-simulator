@@ -1,148 +1,346 @@
 # Guild Wars 2 Combat Simulator
 
-A standalone deterministic PvE build and rotation simulator with browser
-applications for every profession registered in
-`js/app/profession/registry.js`.
+A browser-based PvE build and rotation simulator for **Guild Wars 2**.
 
-Choose a profession from the landing page or the shared simulator header:
+Configure a build, create a rotation, and simulate combat to understand where your damage comes from, how profession mechanics interact, and how RNG can affect the final result.
 
-- **Mesmer**: Core, Chronomancer, Mirage, Virtuoso, and Troubadour.
-- **Elementalist**: Core, Tempest, Weaver, Catalyst, and Evoker.
-- **Guardian**: Core, Dragonhunter, Firebrand, Willbender, and Luminary.
-- **Necromancer**: Core, Reaper, Scourge, Harbinger, and Ritualist.
-- **Engineer**: Core, Scrapper, Holosmith, Mechanist, and Amalgam.
-- **Revenant**: Core, Herald, Renegade, Vindicator, and Conduit.
-- **Ranger**: Core, Druid, Soulbeast, Untamed, and Galeshot.
-- **Warrior**: Core, Berserker, Spellbreaker, Bladesworn, and Paragon.
-- **Thief**: Core, Daredevil, Deadeye, Specter, and Antiquary.
+**[Launch the simulator](https://kadenar.github.io/gw2-combat-simulator/)**
 
-Elementalist now uses the same native family, scheduler, resolver, build codec,
-and module-owned data boundaries as the other professions. Its retained
-reference simulator is used only for parity audits. All profession applications
-use the same visual system and keep independent browser-local builds.
+---
 
-## Run
+## What is this?
 
-Node.js 20.19 or newer is required.
+GW2 Combat Simulator is a client-side combat modeling tool designed for controlled build and rotation analysis.
 
-```powershell
+Instead of relying on a recorded benchmark attempt, the simulator executes a rotation against a modeled target and produces an event-by-event result using Guild Wars 2 combat formulas, profession mechanics, traits, boons, conditions, cooldowns, resources, and modifiers.
+
+It is useful for:
+
+* Comparing builds under identical conditions
+* Testing rotation changes without repeatedly benchmarking in game
+* Understanding where damage is gained or lost
+* Inspecting strike and condition damage contributions
+* Evaluating traits, modifiers, weapons, and profession mechanics
+* Measuring the effect of weapon and proc RNG
+* Reconstructing rotations from supported EVTC combat logs
+
+The simulator is intended as an **analysis tool**, not a replacement for in-game testing or benchmark logs.
+
+---
+
+## Features
+
+### Build configuration
+
+Configure the major pieces of a PvE build directly in the browser:
+
+* Equipment and attributes
+* Weapons
+* Runes, sigils, relics, and consumables
+* Traits and specializations
+* Heal, utility, and elite skills
+* Profession-specific mechanics
+* Boons, conditions, and target assumptions
+
+Builds are stored locally in your browser and can also be imported or exported as JSON.
+
+### Rotation builder
+
+Build rotations interactively using the skills available to the selected build.
+
+The simulator models execution state including:
+
+* Cast times and aftercasts
+* Cooldowns
+* Ammo and charges
+* Weapon swaps
+* Profession resources
+* Boons and conditions
+* Skill chains
+* Profession mechanics
+* Deferred and triggered effects
+
+Keyboard hotkeys can also be used to add weapon, utility, and profession skills while constructing a rotation.
+
+### Deterministic simulation
+
+The default simulation mode produces a reproducible expected result for the same build and rotation.
+
+Use it to inspect:
+
+* Total DPS
+* Skill damage
+* Condition damage
+* Damage modifiers
+* Cast and damage events
+* Buff and condition state
+* Resource usage
+* Execution timelines
+
+This makes it useful for controlled A/B comparisons when testing changes.
+
+### RNG distribution
+
+Some GW2 damage comes from effects that cannot be represented perfectly by a single expected value.
+
+RNG simulation runs reproducibly seeded trials to estimate the distribution of possible outcomes, including:
+
+* Mean DPS
+* Median DPS
+* Likely DPS range
+* Unlucky outcomes
+* Lucky outcomes
+
+Supported RNG sources include weapon-strength rolls and modeled random/on-critical effects.
+
+### EVTC rotation import
+
+Supported `.evtc` / compressed combat logs can be used to reconstruct a recorded player's rotation.
+
+The importer matches the active profession and specialization, extracts supported combat actions, and converts them into simulator rotation entries.
+
+This makes it possible to take a rotation performed in game and analyze it using the simulator's deterministic combat model.
+
+See [EVTC Rotation Reconstruction](docs/EVTC-ROTATION-RECONSTRUCTION.md) for implementation details and limitations.
+
+---
+
+## Supported professions
+
+| Profession       | Specializations                                     |
+| ---------------- | --------------------------------------------------- |
+| **Elementalist** | Core, Tempest, Weaver, Catalyst, Evoker             |
+| **Engineer**     | Core, Scrapper, Holosmith, Mechanist, Amalgam       |
+| **Guardian**     | Core, Dragonhunter, Firebrand, Willbender, Luminary |
+| **Mesmer**       | Core, Chronomancer, Mirage, Virtuoso, Troubadour    |
+| **Necromancer**  | Core, Reaper, Scourge, Harbinger, Ritualist         |
+| **Ranger**       | Core, Druid, Soulbeast, Untamed, Galeshot           |
+| **Revenant**     | Core, Herald, Renegade, Vindicator, Conduit         |
+| **Thief**        | Core, Daredevil, Deadeye, Specter, Antiquary        |
+| **Warrior**      | Core, Berserker, Spellbreaker, Bladesworn, Paragon  |
+
+Profession implementations share the same simulation engine while retaining profession-specific skills, mechanics, resources, traits, and rules.
+
+---
+
+## How simulation works
+
+At a high level, a simulation has two stages.
+
+### 1. Schedule the rotation
+
+The scheduler processes the requested rotation and determines when actions can occur.
+
+It tracks things such as:
+
+* Skill availability
+* Cast duration
+* Cooldowns
+* Ammo
+* Weapon swaps
+* Profession actions
+* Resource changes
+* Triggered effects
+
+The result is a millisecond-level combat timeline.
+
+### 2. Resolve combat
+
+The resolver processes the scheduled events in order and applies the relevant combat rules.
+
+This includes:
+
+* Strike damage
+* Condition damage
+* Critical hits
+* Damage modifiers
+* Boons
+* Target state
+* Sigils and relics
+* Profession mechanics
+* Resource interactions
+
+Keeping scheduling and combat resolution separate allows the same rotation to be analyzed consistently across builds and simulation modes.
+
+---
+
+## Running locally
+
+### Requirements
+
+* Node.js **20.19+**
+* npm
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/Kadenar/gw2-combat-simulator.git
 cd gw2-combat-simulator
+npm install
+```
+
+Start the local simulator:
+
+```bash
 npm start
 ```
 
-Open `http://127.0.0.1:4173`.
+Then open:
 
-### Author a patch preview
-
-Start the dedicated authoring server and open `http://127.0.0.1:4174`. The
-standalone authoring page loads every profession's live skill, trait, and
-declarative modifier metadata. It groups entries by Core or elite
-specialization, supports search, and writes a validated preview to
-`js/patches/active-preview.ts`.
-
-```powershell
-npm run author:patch-preview
+```text
+http://127.0.0.1:4173
 ```
 
-Existing effects can be numerically edited or removed, and complete new effect
-objects can be added. Add the official ArenaNet patch-notes URL as preview
-metadata; the UI generates a read-only change overview from the authored skill
-and modifier diffs. A successful save updates source on disk; rebuild or
-restart the simulator before using the preview in simulations. The authoring
-server binds only to loopback on port `4174`; the normal simulator server on
-port `4173` remains read-only and does not expose the authoring API.
+The startup process automatically compiles the TypeScript modules and creates a development build.
 
-`npm start`, `npm test`, and `npm run check` compile the migrated TypeScript
-modules automatically. Local startup creates an unminified, source-mapped
-multi-page bundle in `dist/site/`; `npm run build` creates the minified
-deployment bundle. TypeScript is also emitted into the ignored `dist/js/` tree
-for tests and command-line analysis. The development server prefers the
-bundled site, serves hashed assets with immutable caching and compression, and
-falls back to compiled or source modules for test fixtures. Do not commit
-compiled output or add `.js` siblings beside `.ts` sources.
+---
 
-## Test
+## Development
 
-```powershell
+Create a production build:
+
+```bash
+npm run build
+```
+
+Run the test suite:
+
+```bash
 npm test
+```
+
+Run the full project validation:
+
+```bash
 npm run check
 ```
 
-Refresh any native profession API snapshot with:
+The production site is emitted to:
 
-```powershell
+```text
+dist/site/
+```
+
+Compiled TypeScript used by tests and command-line tooling is emitted separately under the ignored `dist/js/` tree.
+
+Do not commit generated `dist/` output.
+
+---
+
+## Patch preview authoring
+
+The repository includes a local authoring tool for previewing balance changes against the simulator's profession data.
+
+Start it with:
+
+```bash
+npm run author:patch-preview
+```
+
+Then open:
+
+```text
+http://127.0.0.1:4174
+```
+
+The authoring interface can modify existing effects, remove effects, add new effects, and generate a preview of the resulting skill and modifier changes.
+
+The authoring API binds only to loopback and is not exposed by the normal simulator server.
+
+---
+
+## Updating profession data
+
+Refresh Guild Wars 2 API data for a profession with:
+
+```bash
 npm run update:profession-data -- --profession Guardian
 ```
 
-The generic command accepts any Guild Wars 2 profession name. Elementalist,
-Warrior, and Ranger have additional generation steps and keep dedicated scripts:
+Some professions have additional generation steps:
 
-```powershell
+```bash
 npm run update:elementalist-data
 npm run update:warrior-data
 npm run update:ranger-data
 ```
 
-## Layout
+---
+
+## Project structure
 
 ```text
 gw2-combat-simulator/
-  js/
-    platform/                  profession-neutral engine, GW2, and UI contracts
-    professions/
-      mesmer/                  Mesmer implementation
-      elementalist/            Native Elementalist implementation
-      guardian/                Guardian data, rules, mechanics, and build codec
-      necromancer/             Necromancer data, shrouds, summons, and rules
-      engineer/                Engineer kits, heat, mech, and Amalgam rules
-      revenant/                Revenant legends, energy, and Conduit rules
-      warrior/                 Warrior adrenaline, bursts, and elite rules
-      thief/                   Thief initiative, stealth, and artifact rules
-      ranger/                  Ranger pets, Beastmode, Unleash, and Galeshot
-    app/                       shared browser shell and composition
-  Builds/                      build presets and manifests
-    <profession>/              canonical builds and profession manifest
-  Rotations/
-    <profession>/              profession rotation examples
-  index.html                   Generic profession landing page
-  patch-preview.html           Local patch preview authoring interface
-  mesmer.html                  Mesmer application
-  elementalist.html            Elementalist application
-  guardian.html                Guardian application
-  necromancer.html             Necromancer application
-  engineer.html                Engineer application
-  revenant.html                Revenant application
-  warrior.html                 Warrior application
-  thief.html                   Thief application
-  ranger.html                  Ranger application
+├── js/
+│   ├── platform/          Shared simulation engine and GW2 rules
+│   ├── professions/       Profession-specific implementations
+│   ├── app/               Browser application and shared UI
+│   └── evtc-analyzer/     EVTC parsing and rotation reconstruction
+│
+├── Builds/                Canonical build presets
+├── Rotations/             Rotation presets
+├── docs/                  Architecture and implementation documentation
+├── scripts/               Build, data, analysis, and maintenance tooling
+│
+├── index.html             Simulator landing page
+├── patch-preview.html     Local patch authoring interface
+└── package.json
 ```
 
-Architecture and usage docs live in [docs/architecture/](docs/architecture/):
-[ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) for the profession contract
-and import boundaries, [MODULES.md](docs/architecture/MODULES.md) for module
-responsibilities and public contracts, and
-[PROGRAMMATIC-SIMULATION.md](docs/architecture/PROGRAMMATIC-SIMULATION.md) for
-headless use of the same simulation API called by the test suite.
+---
 
-Per-profession documentation lives in [docs/professions/](docs/professions/):
+## Documentation
 
-- Mesmer architecture and modeling assumptions: [MESMER.md](docs/professions/MESMER.md)
-- Elementalist implementation details: [ELEMENTALIST.md](docs/professions/ELEMENTALIST.md)
-- Guardian status: [GUARDIAN.md](docs/professions/GUARDIAN.md)
-- Necromancer status: [NECROMANCER.md](docs/professions/NECROMANCER.md)
-- Engineer status: [ENGINEER.md](docs/professions/ENGINEER.md)
-- Revenant status: [REVENANT.md](docs/professions/REVENANT.md)
-- Ranger status: [RANGER.md](docs/professions/RANGER.md)
-- Thief status: [THIEF.md](docs/professions/THIEF.md)
-- Warrior status: [WARRIOR.md](docs/professions/WARRIOR.md)
+Additional technical documentation is available under [`docs/`](docs/).
 
-The GitHub Issue Form and maintainer review process for community build
-submissions are documented in [docs/BUILD-SUBMISSIONS.md](docs/BUILD-SUBMISSIONS.md).
+Useful starting points:
+
+* [Architecture](docs/architecture/ARCHITECTURE.md)
+* [Module responsibilities](docs/architecture/MODULES.md)
+* [Programmatic simulation](docs/architecture/PROGRAMMATIC-SIMULATION.md)
+* [EVTC rotation reconstruction](docs/EVTC-ROTATION-RECONSTRUCTION.md)
+* [Community build submissions](docs/BUILD-SUBMISSIONS.md)
+
+Profession-specific implementation notes are available under [`docs/professions/`](docs/professions/).
+
+---
+
+## Community builds
+
+Community build and rotation presets can be submitted through the repository's GitHub Issue Form.
+
+A submission should include:
+
+* Exported `build.json`
+* Matching `rotation.json`
+* Profession and specialization
+* Expected simulator DPS
+* Optional benchmark source
+* Any relevant reviewer notes
+
+Submissions are reviewed before being added to the repository.
+
+See [Community Build Submissions](docs/BUILD-SUBMISSIONS.md) for the full process.
+
+---
+
+## Accuracy and scope
+
+GW2 Combat Simulator is a combat model.
+
+Results are intended to provide controlled, reproducible estimates for comparing builds and rotations. They should not be interpreted as guaranteed in-game DPS.
+
+Real gameplay may differ because of factors such as encounter mechanics, movement, latency, player execution, undocumented behavior, incomplete modeling, or game updates.
+
+Where possible, simulator behavior should be validated against in-game testing and combat logs.
+
+---
 
 ## Legal
 
-Guild Wars Games © ArenaNet LLC. All rights reserved. NCSOFT, ArenaNet, Guild
-Wars, Guild Wars 2, GW2, Heart of Thorns, Path of Fire, End of Dragons, Secrets
-of the Obscure, Janthir Wilds, Visions of Eternity, and all associated logos,
-designs, and composite marks are trademarks or registered trademarks of NCSOFT
+This is an unofficial Guild Wars 2 fan project and is not affiliated with or endorsed by ArenaNet or NCSOFT.
+
+Guild Wars Games © ArenaNet LLC. All rights reserved. NCSOFT, ArenaNet, Guild Wars, Guild Wars 2, GW2,
+Heart of Thorns, Path of Fire, End of Dragons, Secrets of the Obscure, Janthir Wilds, Visions of Eternity,
+and all associated logos, designs, and composite marks are trademarks or registered trademarks of NCSOFT
 Corporation. All other trademarks are the property of their respective owners.

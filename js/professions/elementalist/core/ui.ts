@@ -299,6 +299,13 @@ function attunementStartControl(
 function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
   const state = uiState(context);
   const now = Number(context.time || 0);
+  // Evoker familiars are Profession-mechanic skills keyed to the selected
+  // familiar element rather than the active attunement, so the shared attunement
+  // gate below must not veto them. Defer to the Evoker UI slice, which governs
+  // their charge/empowered availability.
+  if (skill.skillFamily === 'Familiar') {
+    return { available: true, message: '' };
+  }
   const hasActiveHammerOrb = Object.values(state.hammerOrbs || {}).some(
     (expiresAt) => expiresAt != null && Number(expiresAt) >= now
   );

@@ -759,6 +759,78 @@ test('Evoker selects its familiar in the skill bar and derives F5', () => {
   );
 });
 
+test('Evoker familiar palette availability follows current charges', () => {
+  const build = elementalistAppAdapter.toApplicationBuild({
+    ...elementalistProfession.createBuildDefaults(),
+    evokerElement: 'Fire',
+    initialEvokerCharges: 3,
+    specializations: [
+      { name: 'Fire', traits: '1-1-1' },
+      { name: 'Air', traits: '1-1-1' },
+      { name: 'Evoker', traits: '1-1-1' }
+    ]
+  });
+  const ignite = elementalistCatalog.skillsByName.get('Ignite');
+  const context = {
+    build,
+    specialization: 'Evoker',
+    professionState: {
+      element: 'Fire',
+      charges: 5,
+      maximumCharges: 6,
+      empowered: 0
+    },
+    catalog: elementalistCatalog
+  };
+
+  const unavailable = elementalistProfession.ui.paletteSkillAvailability(context, ignite);
+  assert.equal(unavailable.available, false);
+  assert.match(unavailable.message, /requires 6 familiar charges/);
+  assert.equal(
+    elementalistProfession.ui.paletteSkillAvailability(
+      {
+        ...context,
+        professionState: { ...context.professionState, charges: 6 }
+      },
+      ignite
+    ).available,
+    true
+  );
+});
+
+test('Evoker familiar stays available when its element differs from the active attunement', () => {
+  const build = elementalistAppAdapter.toApplicationBuild({
+    ...elementalistProfession.createBuildDefaults(),
+    evokerElement: 'Air',
+    specializations: [
+      { name: 'Fire', traits: '1-1-1' },
+      { name: 'Air', traits: '1-1-1' },
+      { name: 'Evoker', traits: '1-1-1' }
+    ]
+  });
+  const zap = elementalistCatalog.skillsByName.get('Zap');
+  // Active attunement is Fire while the selected familiar is the Air familiar.
+  // The shared core attunement gate must not veto the familiar; the Evoker slice
+  // governs it by charges instead.
+  const context = {
+    build,
+    specialization: 'Evoker',
+    catalog: elementalistCatalog,
+    professionState: { element: 'Air', charges: 6, maximumCharges: 6, empowered: 0, primaryAttunement: 'Fire' }
+  };
+  assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability(context, zap), {
+    available: true,
+    message: ''
+  });
+  assert.equal(
+    elementalistProfession.ui.paletteSkillAvailability(
+      { ...context, professionState: { ...context.professionState, charges: 5 } },
+      zap
+    ).available,
+    false
+  );
+});
+
 test('core attunements enforce and report their individual recharge', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
@@ -1325,6 +1397,25 @@ test('Evoker weapon skills build familiar charges', () => {
   assert.ok(charge);
   assert.equal(charge.change, 2);
   assert.equal(result.endState.profession.charges, 2);
+});
+
+test('Evoker can cast a basic familiar after configured start charges fill', () => {
+  const result = runNative({
+    lines: [['Fire'], ['Air'], ['Evoker']],
+    rotation: ['Flame Uprising', 'Ignite'],
+    startAttunement: 'Fire',
+    weapons: ['Sword', 'Dagger'],
+    evokerElement: 'Fire',
+    initialEvokerCharges: 4
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.events.some((event) => event.type === 'action' && event.skillName === 'Ignite'),
+    true
+  );
+  assert.equal(result.endState.profession.charges, 0);
+  assert.equal(result.endState.profession.empowered, 1);
 });
 
 test('Evoker preserves off-attunement recharge while waiting for a swap', () => {
