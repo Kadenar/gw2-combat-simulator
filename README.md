@@ -74,13 +74,11 @@ Refresh any native profession API snapshot with:
 npm run update:profession-data -- --profession Guardian
 ```
 
-The generic command accepts new Guild Wars 2 profession names without a
-central allowlist. Existing compatibility wrappers remain available:
+The generic command accepts any Guild Wars 2 profession name. Elementalist,
+Warrior, and Ranger have additional generation steps and keep dedicated scripts:
 
 ```powershell
-npm run update:mesmer-data
-npm run update:guardian-data
-npm run update:necromancer-data
+npm run update:elementalist-data
 npm run update:warrior-data
 npm run update:ranger-data
 ```
@@ -140,3 +138,11 @@ Per-profession documentation lives in [docs/professions/](docs/professions/):
 
 The GitHub Issue Form and maintainer review process for community build
 submissions are documented in [docs/BUILD-SUBMISSIONS.md](docs/BUILD-SUBMISSIONS.md).
+
+## Legal
+
+Guild Wars Games © ArenaNet LLC. All rights reserved. NCSOFT, ArenaNet, Guild
+Wars, Guild Wars 2, GW2, Heart of Thorns, Path of Fire, End of Dragons, Secrets
+of the Obscure, Janthir Wilds, Visions of Eternity, and all associated logos,
+designs, and composite marks are trademarks or registered trademarks of NCSOFT
+Corporation. All other trademarks are the property of their respective owners.

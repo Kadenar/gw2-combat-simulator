@@ -155,7 +155,7 @@ function describeNumEdit(field: string, edit: NumEdit): string {
     return `${label} ${formatNumber(edit.from)} → ${formatNumber(edit.to)}`;
   }
   if ('multiply' in edit) {
-    return `${label} ×${formatNumber(edit.multiply)}`;
+    return `${label} x${formatNumber(edit.multiply)}`;
   }
   const sign = edit.add >= 0 ? '+' : '';
   return `${label} ${sign}${formatNumber(edit.add)}`;

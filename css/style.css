@@ -36,6 +36,7 @@ body {
   font-family: 'Segoe UI', system-ui, sans-serif;
   font-size: 13px;
   line-height: 1.4;
+  padding-bottom: 52px;
 }
 
 #app {
@@ -9432,12 +9433,18 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 }
 
 .landing-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
   display: flex;
   justify-content: space-between;
   gap: 24px;
-  padding: 23px 0 8px;
+  padding: 10px 16px;
   color: #686879;
   font-size: 11px;
+  background: var(--bg-dark);
   border-top: 1px solid var(--border);
 }
 
