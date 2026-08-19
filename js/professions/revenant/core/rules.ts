@@ -6,6 +6,7 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
 
 import { revenantCastAvailability } from './availability.js';
 import { advanceRevenantEnergy, spendRevenantEnergy } from './energy.js';
+import { prepareRevenantHitboxEvent } from './events.js';
 import { handleRevenantUpkeepPulse } from './upkeep.js';
 import { completeRevenantFollowup } from './actions.js';
 import {
@@ -105,6 +106,11 @@ export const revenantCastRules = Object.freeze({
 export const revenantSchedulerHooks = Object.freeze({
   initialize: initializeRevenantTraits,
   advance,
+  prepareEvent: {
+    id: 'revenant.hitbox',
+    order: 10,
+    handler: prepareRevenantHitboxEvent
+  },
   onCastStart,
   onCastComplete,
   afterCast,

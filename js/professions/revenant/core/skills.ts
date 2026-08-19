@@ -815,6 +815,19 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
         metadata: {}
+      },
+      {
+        // Large targets intersect a second cascade region about 0.96 seconds after the first impact.
+        type: 'strike',
+        coefficient: 3.5,
+        hits: 1,
+        name: 'Coalescence of Ruin',
+        actorType: 'player',
+        atMs: 1521,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true,
+        metadata: { largeHitboxOnly: true }
       }
     ]
   },
@@ -2765,7 +2778,14 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
           { atMs: 646, coefficient: 0.6 },
           { atMs: 722, coefficient: 0.5 },
           { atMs: 838, coefficient: 0.4 },
-          { atMs: 922, coefficient: 0.3 }
+          { atMs: 922, coefficient: 0.3 },
+          // Large targets overlap all nine random and five guaranteed impact areas.
+          { atMs: 1002, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
+          { atMs: 1082, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
+          { atMs: 1162, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
+          { atMs: 1242, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
+          { atMs: 1322, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
+          { atMs: 1402, coefficient: 0.3, metadata: { largeHitboxOnly: true } }
         ],
         metadata: {}
       }

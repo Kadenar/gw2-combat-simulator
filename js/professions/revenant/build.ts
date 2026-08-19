@@ -7,6 +7,8 @@ import {
   normalizeSimulationRandomnessAssumptions,
   validateSimulationRandomnessAssumptions
 } from '../../app/simulation/randomness.js';
+import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '../../app/profession/assumptions.js';
+import { REVENANT_ASSUMPTION_CONTROLS } from './assumptions.js';
 import { revenantCatalog } from './catalog.js';
 import { REVENANT_LEGEND_IDS as LEGEND } from './data/ids.js';
 import { revenantLegendLoadout } from './legend-loadout.js';
@@ -58,6 +60,7 @@ export function createRevenantBuildDefaults(): RevenantCanonicalBuild {
     allianceSide: 'luxon',
     assumptions: {
       ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
+      hitboxSize: 'small',
       might: 25,
       fury: true,
       quickness: true,
@@ -90,7 +93,10 @@ const revenantBuildCodec = createGw2BuildCodec<RevenantCanonicalBuild>({
     const selectedDodge = String(saved.selectedDodge || '');
     return {
       ...build,
-      assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
+      assumptions: normalizeProfessionAssumptions(
+        normalizeSimulationRandomnessAssumptions(build.assumptions),
+        REVENANT_ASSUMPTION_CONTROLS
+      ),
       initialEnergy: Math.max(0, Math.min(100, Number(saved.initialEnergy ?? 50) || 0)),
       selectedDodge: ['Death Drop', 'Saint of zu Heltzer', 'Imperial Impact'].includes(selectedDodge)
         ? (selectedDodge as RevenantDodge)
@@ -100,6 +106,7 @@ const revenantBuildCodec = createGw2BuildCodec<RevenantCanonicalBuild>({
   },
   validateExtra(build) {
     const errors = validateSimulationRandomnessAssumptions(build.assumptions);
+    errors.push(...validateProfessionAssumptions(build.assumptions, REVENANT_ASSUMPTION_CONTROLS));
     if (!(Number(build.initialEnergy) >= 0 && Number(build.initialEnergy) <= 100)) {
       errors.push('initialEnergy must be between 0 and 100.');
     }

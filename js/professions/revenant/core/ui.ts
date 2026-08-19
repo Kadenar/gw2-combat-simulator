@@ -1,5 +1,6 @@
 import { flattenProfessionState } from '../../../platform/engine/profession.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
+import { REVENANT_ASSUMPTION_CONTROLS } from '../assumptions.js';
 import { REVENANT_SKILL_IDS as SKILL } from '../data/ids.js';
 import { getActiveTraits } from '../data/traits-data.js';
 import { revenantLegend, revenantLegendLoadout } from '../legend-loadout.js';
@@ -105,7 +106,7 @@ export function revenantCorePaletteSkillAvailability(
 }
 
 export const revenantCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+  assumptionControls: Object.freeze([...REVENANT_ASSUMPTION_CONTROLS, ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS]),
   targetHealthThresholds: (context: RevenantUiContext = {}) => {
     const traits = getActiveTraits(context.build?.specializations || []);
     return traits.some((trait) => trait.name === 'Swift Termination') ? [0.5] : [];

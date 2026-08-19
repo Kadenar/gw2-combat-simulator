@@ -1509,6 +1509,8 @@ test('Crushing Abyss scales Raze and triggers at three stacks on weapon swap', (
 
 test('legend loadout validation requires two legal distinct legends', () => {
   const defaults = createRevenantBuildDefaults();
+  assert.equal(defaults.assumptions.hitboxSize, 'small');
+  assert.ok(revenantProfession.ui.assumptionControls.some((control) => control.key === 'hitboxSize'));
   assert.deepEqual(validateRevenantBuild(defaults), {
     valid: true,
     errors: []
@@ -1534,6 +1536,14 @@ test('legend loadout validation requires two legal distinct legends', () => {
     startingLegend: 'missing'
   });
   assert.equal(migrated.startingLegend, LEGEND.ASSASSIN);
+  assert.equal(migrateRevenantBuild({ ...defaults, assumptions: {} }).assumptions.hitboxSize, 'small');
+  assert.equal(
+    validateRevenantBuild({
+      ...defaults,
+      assumptions: { ...defaults.assumptions, hitboxSize: 'huge' }
+    }).valid,
+    false
+  );
 });
 
 test('legend loadout exposes core legends plus only the active elite legend', () => {
@@ -4212,6 +4222,73 @@ test('Power Conduit skill profiles retain their impact timing, coefficients, and
   ]);
 });
 
+test('large Revenant hitboxes add the second Coalescence cascade and all Requiem impacts', () => {
+  const hammerConfig = {
+    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.RENEGADE,
+    initialEnergy: 100,
+    primaryWeapon: 'Hammer',
+    secondaryWeapon: ''
+  };
+  const greatswordConfig = {
+    selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.ENTITY,
+    initialEnergy: 100,
+    primaryWeapon: 'Greatsword',
+    secondaryWeapon: ''
+  };
+  const hitCounts = (specialization, skill, config, tailMs) =>
+    Object.fromEntries(
+      ['small', 'large'].map((hitboxSize) => {
+        const result = simulate(
+          specialization,
+          [skill],
+          { ...config, professionAssumptions: { hitboxSize } },
+          observationTail(tailMs)
+        );
+        return [
+          hitboxSize,
+          result.events.filter((event) => event.type === 'damage' && event.skillName === skill).length
+        ];
+      })
+    );
+
+  assert.deepEqual(hitCounts('Renegade', 'Coalescence of Ruin', hammerConfig, 2000), {
+    small: 1,
+    large: 2
+  });
+  assert.deepEqual(hitCounts('Vindicator', "Eternity's Requiem", greatswordConfig, 2500), {
+    small: 8,
+    large: 14
+  });
+
+  const largeHammer = simulate(
+    'Renegade',
+    ['Coalescence of Ruin'],
+    { ...hammerConfig, professionAssumptions: { hitboxSize: 'large' } },
+    observationTail(2000)
+  );
+  assert.deepEqual(
+    largeHammer.events
+      .filter((event) => event.type === 'damage' && event.skillName === 'Coalescence of Ruin')
+      .map((event) => Math.round(event.at * 1000)),
+    [561, 1521]
+  );
+
+  const largeRequiem = simulate(
+    'Vindicator',
+    ["Eternity's Requiem"],
+    { ...greatswordConfig, professionAssumptions: { hitboxSize: 'large' } },
+    observationTail(2500)
+  );
+  assert.deepEqual(
+    largeRequiem.events
+      .filter((event) => event.type === 'damage' && event.skillName === "Eternity's Requiem")
+      .map((event) => event.coefficient),
+    [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, ...Array(7).fill(0.3)]
+  );
+});
+
 test('Drop the Hammer resets Coalescence of Ruin when its delayed hit lands', () => {
   const result = simulate(
     'Renegade',
@@ -4221,7 +4298,8 @@ test('Drop the Hammer resets Coalescence of Ruin when its delayed hit lands', ()
       startingLegend: LEGEND.RENEGADE,
       initialEnergy: 100,
       primaryWeapon: 'Hammer',
-      secondaryWeapon: ''
+      secondaryWeapon: '',
+      professionAssumptions: { hitboxSize: 'small' }
     }
   );
 

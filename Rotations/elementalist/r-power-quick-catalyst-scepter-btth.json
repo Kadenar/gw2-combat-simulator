@@ -8,13 +8,16 @@
       "name": "__wait",
       "waitMs": 5000
     },
-    "__combat_start",
     "Dragon's Tooth",
+    {
+      "name": "__combat_start",
+      "offset": 600
+    },
+    "Glyph of Storms (Fire)",
     {
       "name": "Flame Barrage",
       "offset": 0
     },
-    "Glyph of Storms (Fire)",
     "Relentless Fire",
     {
       "name": "Deploy Jade Sphere (Fire)",
@@ -79,11 +82,11 @@
       "offset": 241
     },
     "Dragon's Tooth",
+    "Flamestrike",
     {
       "name": "Flame Barrage",
       "offset": 598
     },
-    "Flamestrike",
     "Flamestrike",
     {
       "name": "Flamestrike",
@@ -104,11 +107,11 @@
       "name": "Earth Attunement",
       "offset": 114
     },
+    "Earthquake",
     {
       "name": "Deploy Jade Sphere (Earth)",
-      "offset": 630
+      "offset": 100
     },
-    "Earthquake",
     "Rock Barrier",
     "Relentless Fire",
     {
@@ -117,13 +120,13 @@
     },
     {
       "name": "Air Attunement",
-      "offset": 128
-    },
-    {
-      "name": "Lightning Strike",
-      "offset": 206
+      "offset": 100
     },
     "Ride the Lightning",
+    {
+      "name": "Lightning Strike",
+      "skillId": 5561
+    },
     {
       "name": "Arc Lightning",
       "interruptMs": 1226
@@ -145,16 +148,16 @@
     "Ice Shards",
     "Ice Shards",
     "Water Trident",
-    {
-      "name": "Flame Barrage",
-      "offset": 50
-    },
     "Shatterstone",
     {
-      "name": "Ice Shards",
-      "interruptMs": 204
+      "name": "Flame Barrage",
+      "offset": 100
     },
-    "Fire Attunement",
+    {
+      "name": "Fire Attunement",
+      "skillId": 5492,
+      "offset": 100
+    },
     "Dragon's Tooth",
     "Ring of Fire",
     "Glyph of Storms (Fire)",
@@ -166,10 +169,6 @@
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",
-    {
-      "name": "Flamestrike",
-      "interruptMs": 39
-    },
     "Phoenix",
     "Fire Grab",
     "Dragon's Tooth",
@@ -177,11 +176,11 @@
       "name": "Earth Attunement",
       "offset": 121
     },
+    "Earthquake",
     {
       "name": "Deploy Jade Sphere (Earth)",
-      "offset": 681
+      "offset": 100
     },
-    "Earthquake",
     "Rock Barrier",
     "Dust Devil",
     {
@@ -214,12 +213,12 @@
       "offset": 82
     },
     "Shatterstone",
+    "Ice Shards",
+    "Ice Shards",
     {
       "name": "Flame Barrage",
-      "offset": 87
+      "offset": 100
     },
-    "Ice Shards",
-    "Ice Shards",
     "Ice Shards",
     "Ice Shards",
     "Ice Shards",
@@ -247,11 +246,11 @@
       "name": "Earth Attunement",
       "offset": 123
     },
+    "Earthquake",
     {
       "name": "Deploy Jade Sphere (Earth)",
-      "offset": 643
+      "offset": 100
     },
-    "Earthquake",
     "Rock Barrier",
     {
       "name": "Stone Shards",
@@ -267,30 +266,22 @@
     "Ride the Lightning",
     {
       "name": "Deploy Jade Sphere (Air)",
-      "offset": 79
-    },
-    {
-      "name": "Arc Lightning",
-      "interruptMs": 38
+      "skillId": 62940
     },
     "Glyph of Storms (Air)",
-    {
-      "name": "Flame Barrage",
-      "offset": 243
-    },
     {
       "name": "Water Attunement",
       "offset": 719
     },
     {
       "name": "Deploy Jade Sphere (Water)",
-      "offset": 1087
-    },
-    {
-      "name": "Ice Shards",
-      "interruptMs": 41
+      "offset": 100
     },
     "Water Trident",
+    {
+      "name": "Flame Barrage",
+      "offset": 243
+    },
     {
       "name": "Frost Aura",
       "offset": 122
@@ -329,20 +320,16 @@
       "name": "Earth Attunement",
       "offset": 158
     },
-    {
-      "name": "Flame Barrage",
-      "offset": 114
-    },
     "Deploy Jade Sphere (Earth)",
     "Earthquake",
     "Rock Barrier",
-    {
-      "name": "Stone Shards",
-      "interruptMs": 87
-    },
     "Hurl",
     "Dust Devil",
     "Churning Earth",
+    {
+      "name": "Flame Barrage",
+      "offset": 100
+    },
     {
       "name": "Air Attunement",
       "offset": 119
@@ -372,19 +359,11 @@
     "Ice Shards",
     "Ice Shards",
     "Ice Shards",
-    {
-      "name": "Ice Shards",
-      "interruptMs": 39
-    },
     "Water Trident",
     "Shatterstone",
     {
       "name": "Fire Attunement",
       "offset": 323
-    },
-    {
-      "name": "Flamestrike",
-      "interruptMs": 45
     },
     "Dragon's Tooth",
     "Ring of Fire",
@@ -397,24 +376,20 @@
     },
     "Flamestrike",
     "Flamestrike",
-    {
-      "name": "Flame Barrage",
-      "offset": 66
-    },
     "Phoenix",
     "Fire Grab",
     "Dragon's Tooth",
     {
       "name": "Earth Attunement",
-      "offset": 125
+      "offset": 100
     },
     "Relentless Fire",
-    {
-      "name": "Stone Shards",
-      "interruptMs": 36
-    },
     "Deploy Jade Sphere (Earth)",
     "Earthquake",
+    {
+      "name": "Flame Barrage",
+      "offset": 66
+    },
     "Rock Barrier",
     "Dust Devil",
     {
@@ -423,11 +398,11 @@
     },
     {
       "name": "Air Attunement",
-      "offset": 166
+      "offset": 100
     },
     {
       "name": "Lightning Strike",
-      "offset": 285
+      "skillId": 5561
     },
     "Ride the Lightning",
     {
@@ -464,15 +439,15 @@
     },
     "Flamestrike",
     "Flamestrike",
-    {
-      "name": "Flame Barrage",
-      "offset": 11
-    },
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",
     "Phoenix",
     "Fire Grab",
+    {
+      "name": "Flame Barrage",
+      "offset": 100
+    },
     "Dragon's Tooth",
     {
       "name": "Earth Attunement",
@@ -480,7 +455,7 @@
     },
     {
       "name": "Deploy Jade Sphere (Earth)",
-      "offset": 683
+      "offset": 100
     },
     {
       "name": "Stone Shards",
@@ -526,10 +501,6 @@
     "Ice Shards",
     "Shatterstone",
     {
-      "name": "Flame Barrage",
-      "offset": 79
-    },
-    {
       "name": "Fire Attunement",
       "offset": 36
     },
@@ -543,6 +514,10 @@
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",
+    {
+      "name": "Flame Barrage",
+      "offset": 79
+    },
     "Flamestrike",
     "Phoenix",
     "Fire Grab",
@@ -551,12 +526,8 @@
       "name": "Earth Attunement",
       "offset": 120
     },
-    {
-      "name": "Stone Shards",
-      "interruptMs": 40
-    },
-    "Deploy Jade Sphere (Earth)",
     "Earthquake",
+    "Deploy Jade Sphere (Earth)",
     "Rock Barrier",
     "Dust Devil",
     {
@@ -565,29 +536,21 @@
     },
     {
       "name": "Air Attunement",
-      "offset": 169
-    },
-    {
-      "name": "Lightning Strike",
-      "offset": 241
+      "offset": 100
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 33
+      "name": "Lightning Strike",
+      "skillId": 5561
     },
     "Glyph of Storms (Air)",
     {
       "name": "Deploy Jade Sphere (Air)",
-      "offset": 83
+      "offset": 100
     },
     {
       "name": "Water Attunement",
       "offset": 961
-    },
-    {
-      "name": "Ice Shards",
-      "interruptMs": 117
     },
     "Deploy Jade Sphere (Water)",
     "Water Trident",
@@ -599,17 +562,13 @@
     "Ice Shards",
     "Ice Shards",
     "Ice Shards",
-    {
-      "name": "Flame Barrage",
-      "offset": 441
-    },
     "Ice Shards",
     "Ice Shards",
     "Ice Shards",
     "Shatterstone",
     {
       "name": "Fire Attunement",
-      "offset": 81
+      "offset": 100
     },
     "Dragon's Tooth",
     "Ring of Fire",
@@ -618,25 +577,28 @@
       "offset": 241
     },
     "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
     {
-      "name": "Flamestrike",
-      "interruptMs": 39
+      "name": "Flame Barrage",
+      "offset": 100
     },
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
     "Relentless Fire",
     "Phoenix",
     "Fire Grab",
     {
       "name": "Earth Attunement",
-      "offset": 286
+      "skillId": 5495,
+      "offset": 100
     },
-    "Stone Shards",
     {
-      "name": "Deploy Jade Sphere (Earth)",
-      "offset": 76
+      "name": "Churning Earth",
+      "skillId": 5522
     },
-    "Earthquake"
+    {
+      "name": "Earthquake",
+      "skillId": 5690
+    }
   ]
 }
