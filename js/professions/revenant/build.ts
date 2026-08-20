@@ -3,7 +3,6 @@ import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2
 import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import {
-  DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
   normalizeSimulationRandomnessAssumptions,
   validateSimulationRandomnessAssumptions
 } from '../../app/simulation/randomness.js';
@@ -14,6 +13,7 @@ import { REVENANT_LEGEND_IDS as LEGEND } from './data/ids.js';
 import { revenantLegendLoadout } from './legend-loadout.js';
 import type { RevenantCanonicalBuild, RevenantDodge } from './types.js';
 import type { Gw2SlotLoadout } from '../../platform/gw2/types.js';
+import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 
 /**
  * Revenant persisted-build definition.
@@ -58,28 +58,12 @@ export function createRevenantBuildDefaults(): RevenantCanonicalBuild {
     startingLegend: LEGEND.ASSASSIN,
     selectedDodge: 'Death Drop',
     allianceSide: 'luxon',
-    assumptions: {
-      ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
-      hitboxSize: 'small',
-      might: 25,
-      fury: true,
-      quickness: true,
-      alacrity: true,
-      protection: true,
-      resolution: true,
-      regeneration: true,
-      swiftness: true,
-      vigor: true,
-      aegis: false,
-      targetMoving: false,
-      targetBoonless: true,
-      targetConditions: createDefaultTargetConditions()
-    },
-    initialEnergy: 50,
-    startingWeaponSet: 1,
-    targetHealth: 3_970_000,
-    targetArmor: 2597,
-    rotation: []
+    ...createCommonBuildDefaults({
+      assumptions: {
+        hitboxSize: 'small'
+      }
+    }),
+    initialEnergy: 50
   };
 }
 

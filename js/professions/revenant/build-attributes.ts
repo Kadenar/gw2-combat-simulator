@@ -1,6 +1,6 @@
-import { finalizeBuildAttributes, resolveAttributeEffects } from '../../platform/gw2/attributes.js';
 import { bolsteredBondsBonuses } from './bolstered-bonds.js';
 import { getActiveTraits } from './data/traits-data.js';
+import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../lib/build-attributes.js';
 import type {
   Gw2BuildAttributeRuleContext,
   Gw2AttributeEffect,
@@ -27,19 +27,23 @@ export function applyRevenantBuildAttributeRules(
   { build, disabledTrait = null }: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
   const revenantBuild = build as RevenantBuild;
-  const { conversionPool } = common.commonContext;
-  const activeTraits = getActiveTraits(revenantBuild.specializations || []).filter(
-    (trait) => trait.name !== disabledTrait
-  );
-  const hasTrait = (name: string): boolean => activeTraits.some((trait) => trait.name === name);
+
+  const { activeTraits, hasTrait } = createBuildAttributeContext({
+    specializations: revenantBuild.specializations || [],
+    disabledTrait,
+    getActiveTraits
+  });
+
   const traitDurations: Gw2NumericAttributes = {};
   const traitCriticalChance = hasTrait('Brutal Momentum') ? 10 : 0;
+
   if (hasTrait('Pact of Pain')) {
     traitDurations['Condition Duration'] = 15;
   }
 
   if (hasTrait('Yearning Empowerment')) {
     const duration = hasTrait('Numinous Gift') ? 15 : 10;
+
     for (const condition of ['Bleeding', 'Burning', 'Confusion', 'Poison', 'Torment']) {
       traitDurations[`${condition} Duration`] = duration;
     }
@@ -82,6 +86,7 @@ export function applyRevenantBuildAttributeRules(
       enabled: hasTrait('Empire Divided')
     }
   ];
+
   if (hasTrait('Bolstered Bonds')) {
     for (const [attribute, amount] of Object.entries(bolsteredBondsBonuses(revenantBuild.selectedLegends))) {
       attributeEffects.push({
@@ -126,10 +131,10 @@ export function applyRevenantBuildAttributeRules(
       enabled: hasTrait('Elevated Compassion')
     }
   );
-  const traitStats = resolveAttributeEffects(conversionPool, attributeEffects);
-  return finalizeBuildAttributes(common, {
+
+  return finalizeProfessionBuildAttributes(common, {
     activeTraits,
-    traitStats,
+    attributeEffects,
     traitDurations,
     traitCriticalChance
   });

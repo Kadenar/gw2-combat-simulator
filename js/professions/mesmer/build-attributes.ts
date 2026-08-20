@@ -1,5 +1,6 @@
 import { getActiveTraits } from './data/traits-data.js';
-import { addAttribute, finalizeBuildAttributes, resolveAttributeEffects } from '../../platform/gw2/attributes.js';
+import { addAttribute } from '../../platform/gw2/attributes.js';
+import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../lib/build-attributes.js';
 import type {
   Gw2AttributeEffect,
   Gw2CommonAttributeResult,
@@ -15,12 +16,16 @@ export function applyMesmerBuildAttributeRules(
 ): Gw2FinalizedAttributeResult {
   const mesmerBuild = build as MesmerBuild;
   const traitDurations: Gw2NumericAttributes = {};
-  const activeTraits = getActiveTraits(mesmerBuild.specializations || []).filter(
-    (trait) => trait.name !== disabledTrait
-  );
-  const hasTrait = (name: string): boolean => activeTraits.some((trait) => trait.name === name);
+
+  const { activeTraits, hasTrait, hasSelectedSkill, hasSelectedSkillId } = createBuildAttributeContext({
+    specializations: mesmerBuild.specializations || [],
+    selectedSkills,
+    disabledTrait,
+    getActiveTraits
+  });
+
   const assumptions = mesmerBuild.assumptions || {};
-  const conversionPool = common.commonContext.conversionPool;
+
   const attributeEffects: Gw2AttributeEffect[] = [
     {
       kind: 'conversion',
@@ -62,7 +67,7 @@ export function applyMesmerBuildAttributeRules(
       to: 'Condition Damage',
       amount: 180,
       feedsConversions: false,
-      enabled: selectedSkills.some((skill) => skill.id === 10232 || skill.name === 'Signet of Domination')
+      enabled: hasSelectedSkillId(10232) || hasSelectedSkill('Signet of Domination')
     },
     {
       kind: 'flat',
@@ -70,11 +75,12 @@ export function applyMesmerBuildAttributeRules(
       to: 'Expertise',
       amount: 180,
       feedsConversions: false,
-      enabled: selectedSkills.some((skill) => skill.id === 10234 || skill.name === 'Signet of Midnight')
+      enabled: hasSelectedSkillId(10234) || hasSelectedSkill('Signet of Midnight')
     }
   ];
 
   let traitCriticalChance = 0;
+
   for (const trait of activeTraits) {
     if (trait.conditionDamage) {
       attributeEffects.push({
@@ -123,7 +129,6 @@ export function applyMesmerBuildAttributeRules(
     traitCriticalChance += Number(trait.criticalChance || 0);
   }
 
-  const traitStats = resolveAttributeEffects(conversionPool, attributeEffects);
   if (hasTrait('Quiet Intensity') && assumptions.fury !== false) {
     traitCriticalChance += 15;
   }
@@ -132,9 +137,9 @@ export function applyMesmerBuildAttributeRules(
     traitCriticalChance += 15;
   }
 
-  return finalizeBuildAttributes(common, {
+  return finalizeProfessionBuildAttributes(common, {
     activeTraits,
-    traitStats,
+    attributeEffects,
     traitDurations,
     traitCriticalChance
   });

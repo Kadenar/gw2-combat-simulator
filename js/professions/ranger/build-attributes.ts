@@ -1,5 +1,5 @@
-import { finalizeBuildAttributes, resolveAttributeEffects } from '../../platform/gw2/attributes.js';
 import { getActiveTraits } from './data/traits-data.js';
+import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../lib/build-attributes.js';
 import type {
   Gw2BuildAttributeRuleContext,
   Gw2AttributeEffect,
@@ -11,11 +11,25 @@ import { selectedRangerPet } from './core/state.js';
 const PACK_ALPHA_ATTRIBUTES = Object.freeze(['Power', 'Condition Damage', 'Precision', 'Toughness', 'Vitality']);
 
 const SOULBEAST_ARCHETYPE_ATTRIBUTES: Readonly<Record<string, Readonly<Record<string, number>>>> = Object.freeze({
-  Stout: Object.freeze({ Toughness: 200, Vitality: 100 }),
-  Deadly: Object.freeze({ 'Condition Damage': 150, Precision: 100 }),
-  Versatile: Object.freeze({ Vitality: 200, Concentration: 225 }),
-  Ferocious: Object.freeze({ Power: 150, Ferocity: 100 }),
-  Supportive: Object.freeze({ Vitality: 100 })
+  Stout: Object.freeze({
+    Toughness: 200,
+    Vitality: 100
+  }),
+  Deadly: Object.freeze({
+    'Condition Damage': 150,
+    Precision: 100
+  }),
+  Versatile: Object.freeze({
+    Vitality: 200,
+    Concentration: 225
+  }),
+  Ferocious: Object.freeze({
+    Power: 150,
+    Ferocity: 100
+  }),
+  Supportive: Object.freeze({
+    Vitality: 100
+  })
 });
 
 export function applyRangerBuildAttributeRules(
@@ -23,14 +37,19 @@ export function applyRangerBuildAttributeRules(
   { build, selectedSkills = [], weaponSet = 1, disabledTrait = null }: Gw2BuildAttributeRuleContext
 ) {
   const rangerBuild = build as RangerBuild;
-  const { conversionPool } = common.commonContext;
-  const activeTraits = getActiveTraits(rangerBuild.specializations || []).filter(
-    (trait) => trait.name !== disabledTrait
-  );
-  const hasTrait = (name: string): boolean => activeTraits.some((trait) => trait.name === name);
+
+  const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
+    specializations: rangerBuild.specializations || [],
+    selectedSkills,
+    disabledTrait,
+    getActiveTraits
+  });
+
   const traitDurations: Record<string, number> = {};
   const weapons = weaponSet === 2 ? rangerBuild.alternateWeapons : rangerBuild.weapons;
+
   const soulbeast = rangerBuild.specializations?.some((specialization) => specialization.name === 'Soulbeast');
+
   const attributeEffects: Gw2AttributeEffect[] = [
     {
       kind: 'flat',
@@ -49,6 +68,7 @@ export function applyRangerBuildAttributeRules(
       enabled: hasTrait('Honed Axes')
     }
   ];
+
   if (soulbeast && hasTrait('Pack Alpha')) {
     for (const attribute of PACK_ALPHA_ATTRIBUTES) {
       attributeEffects.push({
@@ -62,6 +82,7 @@ export function applyRangerBuildAttributeRules(
   }
 
   const favoredWeapon = weapons?.some((weapon) => ['Dagger', 'Mace', 'Torch'].includes(weapon));
+
   attributeEffects.push(
     {
       kind: 'flat',
@@ -127,11 +148,13 @@ export function applyRangerBuildAttributeRules(
       to: 'Ferocity',
       amount: 180,
       feedsConversions: false,
-      enabled: selectedSkills.some((skill) => skill.name === 'Signet of the Wild')
+      enabled: hasSelectedSkill('Signet of the Wild')
     }
   );
+
   if (soulbeast) {
     const archetype = selectedRangerPet(rangerBuild)?.archetype || '';
+
     for (const [attribute, amount] of Object.entries(SOULBEAST_ARCHETYPE_ATTRIBUTES[archetype] || {})) {
       attributeEffects.push({
         kind: 'flat',
@@ -143,11 +166,9 @@ export function applyRangerBuildAttributeRules(
     }
   }
 
-  const traitStats = resolveAttributeEffects(conversionPool, attributeEffects);
-
-  return finalizeBuildAttributes(common, {
+  return finalizeProfessionBuildAttributes(common, {
     activeTraits,
-    traitStats,
+    attributeEffects,
     traitDurations
   });
 }

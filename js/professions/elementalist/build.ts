@@ -3,10 +3,10 @@ import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2
 import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import {
-  DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
   normalizeSimulationRandomnessAssumptions,
   validateSimulationRandomnessAssumptions
 } from '../../app/simulation/randomness.js';
+import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '../../app/profession/assumptions.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from './assumptions.js';
 import { elementalistCatalog } from './catalog.js';
@@ -72,34 +72,23 @@ export function createElementalistBuildDefaults(): ElementalistCanonicalBuild {
       Utility3: 'Arcane Wave',
       Elite: 'Glyph of Elementals'
     },
-    assumptions: {
-      ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
-      hitboxSize: 'small',
-      might: 25,
-      fury: true,
-      quickness: true,
-      alacrity: true,
-      protection: true,
-      resolution: true,
-      regeneration: true,
-      swiftness: true,
-      vigor: true,
-      aegis: false,
-      targetMoving: false,
-      targetBoonless: true,
-      targetConditions: createDefaultTargetConditions()
-    },
-    startingWeaponSet: 1,
-    targetHealth: 3_970_000,
-    targetArmor: 2597,
-    rotation: [],
+    ...createCommonBuildDefaults({
+      assumptions: {
+        hitboxSize: 'small'
+      }
+    }),
     startAttunement: 'Fire',
     secondaryAttunement: 'Air',
     initialCatalystEnergy: 30,
     evokerElement: 'Fire',
     initialEvokerCharges: 6,
     initialEvokerEmpowered: 0,
-    pistolBullets: { Fire: false, Water: false, Air: false, Earth: false }
+    pistolBullets: {
+      Fire: false,
+      Water: false,
+      Air: false,
+      Earth: false
+    }
   };
 }
 

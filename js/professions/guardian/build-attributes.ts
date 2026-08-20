@@ -1,6 +1,5 @@
-import { finalizeBuildAttributes, resolveAttributeEffects } from '../../platform/gw2/attributes.js';
 import { getActiveTraits } from './data/traits-data.js';
-import type { Skill } from '../../platform/engine/types.js';
+import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../lib/build-attributes.js';
 import type {
   Gw2CommonAttributeResult,
   Gw2BuildAttributeRuleContext,
@@ -10,28 +9,30 @@ import type {
 } from '../../platform/gw2/types.js';
 import type { GuardianBuild } from './types.js';
 
-function selectedSkill(skills: readonly Skill[], name: string): boolean {
-  return (skills || []).some((skill) => skill?.name === name);
-}
-
 export function applyGuardianBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   { build, selectedSkills = [], weaponSet = 1, disabledTrait = null }: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
   const guardianBuild = build as GuardianBuild;
-  const { conversionPool: commonConversionPool } = common.commonContext;
-  const activeTraits = getActiveTraits(guardianBuild.specializations || []).filter(
-    (trait) => trait.name !== disabledTrait
-  );
-  const hasTrait = (name: string): boolean => activeTraits.some((trait) => trait.name === name);
+
+  const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
+    specializations: guardianBuild.specializations || [],
+    selectedSkills,
+    disabledTrait,
+    getActiveTraits
+  });
+
   const traitDurations: Gw2NumericAttributes = {};
   const weapons = weaponSet === 2 ? guardianBuild.alternateWeapons : guardianBuild.weapons;
   const mainHand = weapons?.[0] || '';
   const offHand = weapons?.[1] || '';
+
   const oneHandedMainHand =
     mainHand !== '' && !['Greatsword', 'Hammer', 'Longbow', 'Spear', 'Staff'].includes(mainHand);
+
   const signetMultiplier = hasTrait('Perfect Inscriptions') ? 1.2 : 1;
   const quickness = guardianBuild.assumptions?.quickness !== false;
+
   const attributeEffects: readonly Gw2AttributeEffect[] = [
     {
       kind: 'flat',
@@ -169,7 +170,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Power',
       amount: 180 * signetMultiplier,
       feedsConversions: false,
-      enabled: selectedSkill(selectedSkills, 'Bane Signet')
+      enabled: hasSelectedSkill('Bane Signet')
     },
     {
       kind: 'flat',
@@ -177,7 +178,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Condition Damage',
       amount: 180 * signetMultiplier,
       feedsConversions: false,
-      enabled: selectedSkill(selectedSkills, 'Signet of Wrath')
+      enabled: hasSelectedSkill('Signet of Wrath')
     },
     {
       kind: 'conversion',
@@ -190,14 +191,14 @@ export function applyGuardianBuildAttributeRules(
       enabled: hasTrait('Power of the Virtuous')
     }
   ];
-  const traitStats = resolveAttributeEffects(commonConversionPool, attributeEffects);
+
   if (hasTrait('Radiant Fire')) {
     traitDurations['Burning Duration'] = 20;
   }
 
-  return finalizeBuildAttributes(common, {
+  return finalizeProfessionBuildAttributes(common, {
     activeTraits,
-    traitStats,
+    attributeEffects,
     traitDurations
   });
 }

@@ -1,5 +1,5 @@
-import { finalizeBuildAttributes, resolveAttributeEffects } from '../../platform/gw2/attributes.js';
 import { getActiveTraits } from './data/traits-data.js';
+import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../lib/build-attributes.js';
 import type {
   Gw2BuildAttributeRuleContext,
   Gw2AttributeEffect,
@@ -15,11 +15,15 @@ export function applyEngineerBuildAttributeRules(
 ): Gw2FinalizedAttributeResult {
   const engineerBuild = build as EngineerBuild;
   const { conversionPool: commonConversionPool } = common.commonContext;
-  const activeTraits = getActiveTraits(engineerBuild.specializations || []).filter(
-    (trait) => trait.name !== disabledTrait
-  );
-  const hasTrait = (name: string): boolean => activeTraits.some((trait) => trait.name === name);
+
+  const { activeTraits, hasTrait } = createBuildAttributeContext({
+    specializations: engineerBuild.specializations || [],
+    disabledTrait,
+    getActiveTraits
+  });
+
   const traitDurations: Gw2NumericAttributes = {};
+
   const attributeEffects: readonly Gw2AttributeEffect[] = [
     {
       kind: 'flat',
@@ -50,7 +54,6 @@ export function applyEngineerBuildAttributeRules(
       source: 'Hybrid Vigor',
       to: 'Vitality',
       amount: 240,
-      // Keep this outside conversions until its in-game behavior is confirmed.
       feedsConversions: false,
       enabled: hasTrait('Hybrid Vigor')
     },
@@ -99,17 +102,17 @@ export function applyEngineerBuildAttributeRules(
       enabled: hasTrait('Kinetic Accelerators')
     }
   ];
-  const traitStats = resolveAttributeEffects(commonConversionPool, attributeEffects);
 
-  const finalized = finalizeBuildAttributes(common, {
+  const finalized = finalizeProfessionBuildAttributes(common, {
     activeTraits,
-    traitStats,
+    attributeEffects,
     traitDurations
   });
-  // Preserve the common conversion pool for runtime percentage-stat effects;
-  // it already excludes temporary trait bonuses and other ineligible sources.
+
   return {
     ...finalized,
-    amalgamEvolveAttributePool: { ...commonConversionPool }
+    amalgamEvolveAttributePool: {
+      ...commonConversionPool
+    }
   };
 }

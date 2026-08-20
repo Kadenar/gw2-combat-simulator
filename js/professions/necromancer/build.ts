@@ -3,12 +3,12 @@ import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2
 import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import {
-  DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
   normalizeSimulationRandomnessAssumptions,
   validateSimulationRandomnessAssumptions
 } from '../../app/simulation/randomness.js';
 import { necromancerCatalog } from './catalog.js';
 import type { NecromancerCanonicalBuild } from './types.js';
+import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 
 /**
  * Necromancer persisted-build definition.
@@ -55,31 +55,15 @@ export function createNecromancerBuildDefaults(): NecromancerCanonicalBuild {
       Utility3: 'Elixir of Risk',
       Elite: 'Elixir of Ambition'
     },
-    assumptions: {
-      ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
-      might: 25,
-      fury: true,
-      quickness: true,
-      alacrity: true,
-      protection: true,
-      resolution: true,
-      regeneration: true,
-      swiftness: true,
-      vigor: true,
-      aegis: false,
-      targetMoving: false,
-      targetBoonless: true,
-      permanentIceField: false,
-      targetConditions: createDefaultTargetConditions(),
-      targetSkillActivationsPerSecond: 0
-    },
+    ...createCommonBuildDefaults({
+      assumptions: {
+        permanentIceField: false,
+        targetSkillActivationsPerSecond: 0
+      }
+    }),
     initialResource: 100,
     initialBlight: 0,
-    initialCascadingCorruptionStacks: 0,
-    startingWeaponSet: 1,
-    targetHealth: 3_970_000,
-    targetArmor: 2597,
-    rotation: []
+    initialCascadingCorruptionStacks: 0
   };
 }
 
@@ -110,9 +94,9 @@ const necromancerBuildCodec = createGw2BuildCodec<NecromancerCanonicalBuild>({
       errors.push('initialBlight must be between 0 and 25.');
     }
 
-    if (!(
-      Number(build.initialCascadingCorruptionStacks) >= 0 && Number(build.initialCascadingCorruptionStacks) <= 19
-    )) {
+    if (
+      !(Number(build.initialCascadingCorruptionStacks) >= 0 && Number(build.initialCascadingCorruptionStacks) <= 19)
+    ) {
       errors.push('initialCascadingCorruptionStacks must be between 0 and 19.');
     }
 

@@ -1,6 +1,5 @@
-import { finalizeBuildAttributes, resolveAttributeEffects } from '../../platform/gw2/attributes.js';
 import { getActiveTraits } from './data/traits-data.js';
-import type { Skill } from '../../platform/engine/types.js';
+import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../lib/build-attributes.js';
 import type {
   Gw2BuildAttributeRuleContext,
   Gw2AttributeEffect,
@@ -10,20 +9,19 @@ import type {
 } from '../../platform/gw2/types.js';
 import type { NecromancerSpecializationSelection } from './data/traits-data.js';
 
-function selectedSkill(skills: readonly Skill[], name: string): boolean {
-  return (skills || []).some((skill) => skill?.name === name);
-}
-
 export function applyNecromancerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   { build, selectedSkills = [], disabledTrait = null }: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const { conversionPool: commonConversionPool } = common.commonContext;
-  const activeTraits = getActiveTraits((build.specializations || []) as NecromancerSpecializationSelection[]).filter(
-    (trait) => trait.name !== disabledTrait
-  );
-  const hasTrait = (name: string) => activeTraits.some((trait) => trait.name === name);
+  const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
+    specializations: (build.specializations || []) as NecromancerSpecializationSelection[],
+    selectedSkills,
+    disabledTrait,
+    getActiveTraits
+  });
+
   const traitDurations: Gw2NumericAttributes = {};
+
   const attributeEffects: readonly Gw2AttributeEffect[] = [
     {
       kind: 'conversion',
@@ -131,20 +129,18 @@ export function applyNecromancerBuildAttributeRules(
       to: 'Power',
       amount: 180,
       feedsConversions: false,
-      enabled: selectedSkill(selectedSkills, 'Signet of Spite')
+      enabled: hasSelectedSkill('Signet of Spite')
     }
   ];
-  const traitStats = resolveAttributeEffects(commonConversionPool, attributeEffects);
+
   if (hasTrait('Barbed Precision')) {
     traitDurations['Bleeding Duration'] = 20;
   }
 
-  const traitCriticalChance = hasTrait('Death Perception') ? 15 : 0;
-
-  return finalizeBuildAttributes(common, {
+  return finalizeProfessionBuildAttributes(common, {
     activeTraits,
-    traitStats,
+    attributeEffects,
     traitDurations,
-    traitCriticalChance
+    traitCriticalChance: hasTrait('Death Perception') ? 15 : 0
   });
 }

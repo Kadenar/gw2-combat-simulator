@@ -4,7 +4,6 @@ import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '../../app/profession/assumptions.js';
 import {
-  DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
   normalizeSimulationRandomnessAssumptions
 } from '../../app/simulation/randomness.js';
 import { RANGER_ASSUMPTION_CONTROLS } from './assumptions.js';
@@ -13,6 +12,7 @@ import { RANGER_PETS } from './data/ranger-pet-data.js';
 import { RANGER_SKILL_IDS as ID } from './data/ids.js';
 import { normalizeRangerHammerSkillIds, RANGER_HAMMER_VARIANT_PAIRS } from './core/hammer.js';
 import type { RangerCanonicalBuild } from './types.js';
+import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 
 export const RANGER_BUILD_SCHEMA_VERSION = 4;
 export const RANGER_PROFESSION_ID = 'ranger';
@@ -75,29 +75,11 @@ export function createRangerBuildDefaults(): RangerCanonicalBuild {
       ID.UNLEASHED_THUMP
     ],
     initialUntamedState: 'Pet',
-    assumptions: {
-      ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
-      might: 25,
-      fury: true,
-      quickness: true,
-      alacrity: true,
-      protection: true,
-      resolution: true,
-      regeneration: true,
-      swiftness: true,
-      vigor: true,
-      aegis: false,
-      targetMoving: false,
-      targetBoonless: true,
-      targetConditions: createDefaultTargetConditions(),
-      ...normalizeProfessionAssumptions({}, RANGER_ASSUMPTION_CONTROLS)
-    },
+    ...createCommonBuildDefaults({
+      assumptions: normalizeProfessionAssumptions({}, RANGER_ASSUMPTION_CONTROLS)
+    }),
     initialAstralForce: 100,
-    initialArrows: 8,
-    startingWeaponSet: 1,
-    targetHealth: 3_970_000,
-    targetArmor: 2597,
-    rotation: []
+    initialArrows: 8
   };
 }
 

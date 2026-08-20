@@ -3,12 +3,12 @@ import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2
 import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import {
-  DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
   normalizeSimulationRandomnessAssumptions,
   validateSimulationRandomnessAssumptions
 } from '../../app/simulation/randomness.js';
 import { warriorCatalog } from './catalog.js';
 import type { WarriorCanonicalBuild } from './types.js';
+import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 
 export const WARRIOR_BUILD_SCHEMA_VERSION = 3;
 export const WARRIOR_PROFESSION_ID = 'warrior';
@@ -45,27 +45,8 @@ export function createWarriorBuildDefaults(): WarriorCanonicalBuild {
       Utility3: 'Wild Blow',
       Elite: 'Head Butt'
     },
-    assumptions: {
-      ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
-      might: 25,
-      fury: true,
-      quickness: true,
-      alacrity: true,
-      protection: true,
-      resolution: true,
-      regeneration: true,
-      swiftness: true,
-      vigor: true,
-      aegis: false,
-      targetMoving: false,
-      targetBoonless: true,
-      targetConditions: createDefaultTargetConditions()
-    },
-    initialResource: 0,
-    startingWeaponSet: 1,
-    targetHealth: 3_970_000,
-    targetArmor: 2597,
-    rotation: []
+    ...createCommonBuildDefaults(),
+    initialResource: 0
   };
 }
 

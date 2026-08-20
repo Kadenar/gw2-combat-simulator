@@ -3,7 +3,6 @@ import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '../../platform/gw2
 import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import {
-  DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
   normalizeSimulationRandomnessAssumptions,
   validateSimulationRandomnessAssumptions
 } from '../../app/simulation/randomness.js';
@@ -11,6 +10,7 @@ import { mesmerCatalog } from './catalog.js';
 import { resolveMesmerLegacySkillId } from './data/legacy-skill-resolver.js';
 import type { SchedulerRecord } from '../../platform/engine/types.js';
 import type { MesmerCanonicalBuild } from './types.js';
+import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 
 /**
  * Mesmer persisted-build definition.
@@ -57,28 +57,12 @@ export function createMesmerBuildDefaults(): MesmerCanonicalBuild {
       Utility3: 'Rain of Swords',
       Elite: 'Thousand Cuts'
     },
-    assumptions: {
-      ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
-      might: 25,
-      fury: true,
-      quickness: true,
-      alacrity: true,
-      protection: true,
-      resolution: true,
-      regeneration: true,
-      swiftness: true,
-      vigor: true,
-      aegis: false,
-      targetMoving: false,
-      targetBoonless: true,
-      targetConditions: createDefaultTargetConditions(),
-      targetSkillActivationsPerSecond: 0
-    },
-    initialResource: 5,
-    startingWeaponSet: 1,
-    targetHealth: 3_970_000,
-    targetArmor: 2597,
-    rotation: []
+    ...createCommonBuildDefaults({
+      assumptions: {
+        targetSkillActivationsPerSecond: 0
+      }
+    }),
+    initialResource: 5
   };
 }
 

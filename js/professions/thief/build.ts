@@ -4,13 +4,13 @@ import { createGw2BuildCodec } from '../../platform/gw2/build-codec.js';
 import { createDefaultTargetConditions } from '../../platform/gw2/default-target-conditions.js';
 import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '../../app/profession/assumptions.js';
 import {
-  DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
   SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
   normalizeSimulationRandomnessAssumptions
 } from '../../app/simulation/randomness.js';
 import { THIEF_ASSUMPTION_CONTROLS } from './assumptions.js';
 import { thiefCatalog, thiefWeaponSkillMatchesSet } from './catalog.js';
 import type { ThiefCanonicalBuild, ThiefDodge } from './types.js';
+import { createCommonBuildDefaults } from '../lib/build-defaults.js';
 
 /**
  * Thief persisted-build definition.
@@ -62,29 +62,11 @@ export function createThiefBuildDefaults(): ThiefCanonicalBuild {
       Elite: 'Thieves Guild'
     },
     selectedDodge: 'Dodge',
-    assumptions: {
-      ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
-      might: 25,
-      fury: true,
-      quickness: true,
-      alacrity: true,
-      protection: true,
-      resolution: true,
-      regeneration: true,
-      swiftness: true,
-      vigor: true,
-      aegis: false,
-      targetMoving: false,
-      targetBoonless: true,
-      targetConditions: createDefaultTargetConditions(),
-      ...normalizeProfessionAssumptions({}, THIEF_BUILD_ASSUMPTION_CONTROLS)
-    },
+    ...createCommonBuildDefaults({
+      assumptions: normalizeProfessionAssumptions({}, THIEF_BUILD_ASSUMPTION_CONTROLS)
+    }),
     initialInitiative: 12,
-    initialShadowForce: 0,
-    startingWeaponSet: 1,
-    targetHealth: 3_970_000,
-    targetArmor: 2597,
-    rotation: []
+    initialShadowForce: 0
   };
 }
 

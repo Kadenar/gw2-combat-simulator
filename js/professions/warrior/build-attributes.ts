@@ -1,5 +1,5 @@
-import { finalizeBuildAttributes, resolveAttributeEffects } from '../../platform/gw2/attributes.js';
 import { getActiveTraits } from './data/traits-data.js';
+import { createBuildAttributeContext, finalizeProfessionBuildAttributes } from '../lib/build-attributes.js';
 import type {
   Gw2BuildAttributeRuleContext,
   Gw2AttributeEffect,
@@ -13,13 +13,17 @@ export function applyWarriorBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   { build, selectedSkills = [], disabledTrait = null }: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const { conversionPool: commonConversionPool } = common.commonContext;
-  const activeTraits = getActiveTraits((build.specializations || []) as WarriorSpecializationSelection[]).filter(
-    (trait) => trait.name !== disabledTrait
-  );
-  const hasTrait = (name: string) => activeTraits.some((trait) => trait.name === name);
+  const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
+    specializations: (build.specializations || []) as WarriorSpecializationSelection[],
+    selectedSkills,
+    disabledTrait,
+    getActiveTraits
+  });
+
   const weapons = [...(build.weapons || []), ...(build.alternateWeapons || [])];
+
   const traitDurations: Gw2NumericAttributes = {};
+
   const attributeEffects: readonly Gw2AttributeEffect[] = [
     {
       kind: 'flat',
@@ -27,7 +31,7 @@ export function applyWarriorBuildAttributeRules(
       to: 'Power',
       amount: 180,
       feedsConversions: false,
-      enabled: selectedSkills.some((skill) => skill.name === 'Signet of Might')
+      enabled: hasSelectedSkill('Signet of Might')
     },
     {
       kind: 'flat',
@@ -35,7 +39,7 @@ export function applyWarriorBuildAttributeRules(
       to: 'Precision',
       amount: 180,
       feedsConversions: false,
-      enabled: selectedSkills.some((skill) => skill.name === 'Signet of Fury')
+      enabled: hasSelectedSkill('Signet of Fury')
     },
     {
       kind: 'flat',
@@ -134,13 +138,18 @@ export function applyWarriorBuildAttributeRules(
       enabled: hasTrait('Inspiring Implements')
     }
   ];
-  const traitStats = resolveAttributeEffects(commonConversionPool, attributeEffects);
-  if (hasTrait('Bloodlust')) traitDurations['Bleeding Duration'] = 33;
-  if (hasTrait('King of Fires')) traitDurations['Burning Duration'] = 33;
 
-  return finalizeBuildAttributes(common, {
+  if (hasTrait('Bloodlust')) {
+    traitDurations['Bleeding Duration'] = 33;
+  }
+
+  if (hasTrait('King of Fires')) {
+    traitDurations['Burning Duration'] = 33;
+  }
+
+  return finalizeProfessionBuildAttributes(common, {
     activeTraits,
-    traitStats,
+    attributeEffects,
     traitDurations
   });
 }
