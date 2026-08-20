@@ -1,5 +1,4 @@
 import { hasTrait as hasGw2Trait } from '../../../platform/gw2/trait-state.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type { SchedulerRecord, Skill } from '../../../platform/engine/types.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
@@ -11,11 +10,7 @@ import {
   setElementalistAttunementReadyAt,
   type ElementalistAttunement
 } from './state.js';
-import {
-  ATTUNEMENT_RECHARGE_SECONDS,
-  DUAL_ATTUNEMENT_RECHARGE_SECONDS,
-  OFF_ATTUNEMENT_RECHARGE_SECONDS
-} from './constants.js';
+import { ATTUNEMENT_RECHARGE_SECONDS, OFF_ATTUNEMENT_RECHARGE_SECONDS } from './constants.js';
 import { combatStarted, emitBuff, emitProfiledBuff, profiledEffect } from './mechanics.js';
 import {
   grantElementalAttunementBoon,
@@ -61,10 +56,6 @@ export function elementalistAlacrityAdjustedDuration(context: ElementalistLifecy
 
 export function elementalistAttunementRechargeDuration(context: ElementalistLifecycleContext, seconds: number): number {
   let adjusted = seconds;
-  if (hasTrait(context, 'Flow State')) {
-    adjusted = Math.max(0, adjusted - elementalistBalanceValue(context, TRAIT.FLOW_STATE, 'rechargeReduction', 1));
-  }
-
   if (hasTrait(context, 'Elemental Enchantment')) {
     adjusted *= elementalistBalanceValue(context, PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85);
   }
@@ -75,7 +66,11 @@ export function elementalistAttunementRechargeDuration(context: ElementalistLife
 export function onAttunementComplete(
   context: ElementalistLifecycleContext,
   skill: Skill,
-  target: ElementalistAttunement
+  target: ElementalistAttunement,
+  transition: {
+    readonly secondaryAttunement?: ElementalistAttunement | null;
+    readonly rechargeDuration?: number;
+  } = {}
 ): void {
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = context.effectiveEnd;
@@ -83,20 +78,16 @@ export function onAttunementComplete(
   const attunementReadyAtBefore = { ...state.attunementReadyAt };
   state.autoattackCarryover = progressedAutoattackCarryover(context, state, previous);
   state.pendingAutoattackCarryover = state.autoattackCarryover ? null : inFlightAutoattackCarryover(context, previous);
-  const dualAttunement = state.secondaryAttunement !== null;
+  // Specializations may supply their own transition and recharge policy while Core keeps shared entry effects here.
+  const dualAttunement = transition.rechargeDuration != null;
   if (dualAttunement) {
-    state.secondaryAttunement = state.primaryAttunement;
     state.primaryAttunement = target;
-    const recharge = elementalistAttunementRechargeDuration(
-      context,
-      elementalistBalanceValue(context, PROFILE.resources, 'durationMultiplier', DUAL_ATTUNEMENT_RECHARGE_SECONDS)
-    );
+    const recharge = Number(transition.rechargeDuration);
     for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
       setElementalistAttunementReadyAt(context, attunement, at + recharge);
     }
   } else {
     state.primaryAttunement = target;
-    state.secondaryAttunement = null;
     setElementalistAttunementReadyAt(
       context,
       previous,
@@ -143,7 +134,7 @@ export function onAttunementComplete(
     commandIndex: context.commandIndex,
     from: previous,
     to: target,
-    secondaryAttunement: state.secondaryAttunement,
+    secondaryAttunement: transition.secondaryAttunement ?? null,
     attunementReadyAtBefore
   });
   context.emit({
@@ -184,15 +175,6 @@ export function onAttunementComplete(
 
     if (hasTrait(context, 'Inscription')) {
       emitProfiledBuff(context, at, PROFILE.inscription, 'Air Entry', 'Resistance', 1, 3, skill.name, skill.id);
-    }
-  }
-
-  if (target === 'Water' && hasTrait(context, 'Latent Stamina')) {
-    const readyAt = Number(state.procReadyAt.latentStamina || 0);
-    if (readyAt <= at + context.epsilon) {
-      state.procReadyAt.latentStamina =
-        at + elementalistBalanceValue(context, TRAIT.LATENT_STAMINA, 'internalCooldown', 10);
-      emitProfiledBuff(context, at, TRAIT.LATENT_STAMINA, 'Vigor', 'Vigor', 1, 3, 'Latent Stamina', skill.id);
     }
   }
 

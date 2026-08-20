@@ -5,6 +5,7 @@ export const CATALYST_MAXIMUM_ENERGY = 30;
 export const CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS = 10;
 
 export interface CatalystState {
+  catalystBaseEmpowermentActive: boolean;
   energy: number;
   elementalEmpowermentExpiries: number[];
   elementalEmpowermentRefreshStarted: boolean;
@@ -21,6 +22,7 @@ export interface CatalystState {
 export const catalystState = defineProfessionSpecializationState(
   'Catalyst',
   (config: ElementalistConfig = {}): CatalystState => ({
+    catalystBaseEmpowermentActive: false,
     energy: Math.max(
       0,
       Math.min(CATALYST_MAXIMUM_ENERGY, Number(config.initialCatalystEnergy ?? CATALYST_MAXIMUM_ENERGY))
@@ -39,6 +41,23 @@ export const catalystState = defineProfessionSpecializationState(
 );
 
 export const createCatalystState = catalystState.create;
+
+// Catalyst exposes its profession resource and sphere timing at the family boundary.
+export const CATALYST_PUBLIC_END_STATE_KEYS = Object.freeze([
+  'catalystBaseEmpowermentActive',
+  'energy',
+  'maximumEnergy',
+  'sphereActiveUntil',
+  'sphereExpiry'
+] as const satisfies readonly (keyof CatalystState)[]);
+
+export const CATALYST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<CatalystState>> = Object.freeze({
+  catalystBaseEmpowermentActive: false,
+  energy: 0,
+  maximumEnergy: CATALYST_MAXIMUM_ENERGY,
+  sphereActiveUntil: 0,
+  sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 }
+});
 
 export function grantCatalystElementalEmpowerment(
   state: CatalystState,

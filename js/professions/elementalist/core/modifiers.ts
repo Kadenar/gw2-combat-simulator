@@ -16,11 +16,7 @@ function coreState(context: Gw2ModifierContext): Partial<ElementalistCoreState> 
 
 export function elementalistAttunements(context: Gw2ModifierContext): Set<string> {
   const state = coreState(context);
-  return new Set(
-    [state.primaryAttunement, state.secondaryAttunement].filter(
-      (value): value is ElementalistAttunement => value != null
-    )
-  );
+  return new Set([state.primaryAttunement].filter((value): value is ElementalistAttunement => value != null));
 }
 
 function primaryAttunement(context: Gw2ModifierContext): ElementalistAttunement | string {
@@ -100,31 +96,6 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     amount: (context, _target, parameters) =>
       elementalistTimedBuffStacks(context, 'persisting flames', parameters.maximumStacks) * parameters.damagePerStack,
     when: (context) => hasTrait(context, 'Persisting Flames')
-  },
-  {
-    id: 'elementalist.empowering-auras-strike',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    parameters: { maximumStacks: 5, damagePerStack: 0.01 } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) =>
-      elementalistTimedBuffStacks(context, 'empowering auras', parameters.maximumStacks) * parameters.damagePerStack,
-    when: (context) => hasTrait(context, 'Empowering Auras')
-  },
-  {
-    id: 'elementalist.empowering-auras-condition',
-    target: MODIFIER_TARGET.CONDITION_DAMAGE,
-    operation: 'damage-additive',
-    parameters: { maximumStacks: 5, damagePerStack: 0.01 } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) =>
-      elementalistTimedBuffStacks(context, 'empowering auras', parameters.maximumStacks) * parameters.damagePerStack,
-    when: (context) => hasTrait(context, 'Empowering Auras')
-  },
-  {
-    id: 'elementalist.fiery-might',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.05,
-    when: (context) => hasTrait(context, 'Fiery Might') && targetHas(context, 'Burning')
   },
   {
     id: 'elementalist.pyromancers-training',

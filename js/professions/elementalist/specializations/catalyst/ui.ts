@@ -22,6 +22,12 @@ function catalystPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
 
   const state = uiState(context);
   const build = context.build as SchedulerRecord | undefined;
+  const primaryAttunement = String(
+    (context.professionState as SchedulerRecord | undefined)?.primaryAttunement || build?.startAttunement || 'Fire'
+  );
+  if (skill.attunement !== primaryAttunement) {
+    return { available: false, message: `Requires ${String(skill.attunement)} attunement.` };
+  }
   const energy = Number(state.energy ?? build?.initialCatalystEnergy ?? CATALYST_MAXIMUM_ENERGY);
   const available = energy >= CATALYST_SPHERE_COST;
   return {

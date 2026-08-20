@@ -1,13 +1,6 @@
-import { flattenProfessionState } from '../../../platform/engine/profession.js';
 import { professionCoreState } from '../../../platform/engine/profession.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
-import type { SchedulerRecord } from '../../../platform/engine/types.js';
-import type {
-  ElementalistConfig,
-  ElementalistEndStateProjectionOptions,
-  ElementalistRuntimeState,
-  ElementalistSchedulerContext
-} from '../types.js';
+import type { ElementalistConfig, ElementalistRuntimeState, ElementalistSchedulerContext } from '../types.js';
 
 export const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', 'Earth'] as const);
 
@@ -39,7 +32,6 @@ export interface ElementalistSummonedElementalState {
 
 export interface ElementalistCoreState {
   primaryAttunement: ElementalistAttunement;
-  secondaryAttunement: ElementalistAttunement | null;
   attunementEnteredAt: number;
   attunementReadyAt: Record<ElementalistAttunement, number>;
   autoattackChains: Record<number, number>;
@@ -87,7 +79,6 @@ export interface ElementalistCoreState {
   availableFlips: Record<string, number>;
   summonedElemental: ElementalistSummonedElementalState;
   procReadyAt: Record<string, number>;
-  attunementTraitProcCooldownSeconds: number;
   arcaneEchoUntil: number;
 }
 
@@ -103,7 +94,6 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
       : {};
   return {
     primaryAttunement: primary,
-    secondaryAttunement: null,
     attunementEnteredAt: PRE_DWELLED_ATTUNEMENT_ENTERED_AT,
     attunementReadyAt: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
     autoattackChains: {},
@@ -161,7 +151,6 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
       started: false
     },
     procReadyAt: {},
-    attunementTraitProcCooldownSeconds: 0,
     arcaneEchoUntil: 0
   };
 }
@@ -203,9 +192,9 @@ export function resetElementalistAttunementCooldowns(context: ElementalistSchedu
   }
 }
 
-export const ELEMENTALIST_PUBLIC_END_STATE_KEYS = Object.freeze([
+// Core declares only the public fields present in every Elementalist runtime.
+export const ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'primaryAttunement',
-  'secondaryAttunement',
   'attunementEnteredAt',
   'attunementReadyAt',
   'autoattackChains',
@@ -229,93 +218,6 @@ export const ELEMENTALIST_PUBLIC_END_STATE_KEYS = Object.freeze([
   'conjureEquipped',
   'conjurePickups',
   'signetOfFireDisabledUntil',
-  'catalystBaseEmpowermentActive',
   'availableFlips',
-  'summonedElemental',
-  'unravelUntil',
-  'weaveSelfUntil',
-  'weaveSelfVisited',
-  'perfectWeaveUntil',
-  'ferventStanceUntil',
-  'energy',
-  'maximumEnergy',
-  'sphereActiveUntil',
-  'sphereExpiry',
-  'element',
-  'charges',
-  'maximumCharges',
-  'empowered',
-  'electricEnchantmentStacks',
-  'elementalBalanceProgress',
-  'elementalBalanceUntil'
-] as const);
-
-const ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<SchedulerRecord> = Object.freeze({
-  primaryAttunement: 'Fire',
-  secondaryAttunement: null,
-  attunementEnteredAt: PRE_DWELLED_ATTUNEMENT_ENTERED_AT,
-  attunementReadyAt: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
-  autoattackChains: {},
-  autoattackCarryover: null,
-  endurance: 100,
-  activeAuras: [],
-  pistolBullets: { Fire: false, Water: false, Air: false, Earth: false },
-  dazingDischargeUntil: 0,
-  shatteringStoneHitsRemaining: 0,
-  shatteringStoneUntil: 0,
-  hammerOrbs: { Fire: null, Water: null, Air: null, Earth: null },
-  hammerOrbGrantedBy: { Fire: null, Water: null, Air: null, Earth: null },
-  hammerOrbBuffUntil: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
-  hammerOrbLastCastAt: null,
-  etchings: {},
-  rockBarrierExpiresAt: 0,
-  spearNextDamageBonus: false,
-  spearNextRechargeReduction: false,
-  spearNextGuaranteedCritical: false,
-  spearNextControlHit: false,
-  conjureEquipped: null,
-  conjurePickups: {},
-  signetOfFireDisabledUntil: 0,
-  catalystBaseEmpowermentActive: false,
-  availableFlips: {},
-  summonedElemental: {
-    element: null,
-    summonGeneration: 0,
-    actionGeneration: 0,
-    activeUntil: 0,
-    busyUntil: 0,
-    nextActionAt: 0,
-    secondaryAttackReadyAt: 0,
-    currentActivationId: null,
-    pendingLightningJolt: null,
-    started: false
-  },
-  unravelUntil: 0,
-  weaveSelfUntil: 0,
-  weaveSelfVisited: [],
-  perfectWeaveUntil: 0,
-  ferventStanceUntil: 0,
-  energy: 0,
-  maximumEnergy: 30,
-  sphereActiveUntil: 0,
-  sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
-  element: 'Fire',
-  charges: 0,
-  maximumCharges: 6,
-  empowered: 0,
-  electricEnchantmentStacks: 0,
-  elementalBalanceProgress: 0,
-  elementalBalanceUntil: 0
-});
-
-export function projectElementalistEndState({
-  schedulerState
-}: ElementalistEndStateProjectionOptions): SchedulerRecord {
-  const state = flattenProfessionState(schedulerState.profession) as SchedulerRecord & ElementalistRuntimeState['core'];
-  return Object.fromEntries(
-    ELEMENTALIST_PUBLIC_END_STATE_KEYS.map((key) => [
-      key,
-      structuredClone(state[key] ?? ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS[key])
-    ])
-  );
-}
+  'summonedElemental'
+] as const satisfies readonly (keyof ElementalistCoreState)[]);

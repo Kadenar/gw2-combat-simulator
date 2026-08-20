@@ -9,6 +9,15 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 // Familiar's Prowess buffs strike for Air element, condition for Fire — damage type bonus is element-gated
 export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
+    id: 'elementalist.fiery-might',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.05,
+    when: (context) =>
+      hasTrait(context, 'Fiery Might') &&
+      Boolean(context.query?.targetHasCondition('Burning', context.time, context.runtime))
+  },
+  {
     id: 'elementalist.familiars-prowess-strike',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',

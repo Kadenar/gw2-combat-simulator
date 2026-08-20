@@ -348,6 +348,18 @@ export const catalystSkillMechanicHandlers = Object.freeze({
 function onEventScheduled(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   const state = catalystState.from(context);
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  if (event.type === 'elementalist.aura' && hasTrait(context, 'Empowering Auras')) {
+    const duration = elementalistBalanceValue(context, PROFILE.empoweringAuras, 'durationMultiplier', 10);
+    emitElementalistBuff(
+      context as never,
+      event.at,
+      'Empowering Auras',
+      1,
+      duration,
+      String(event.skillName || event.source || 'Aura'),
+      event.skillId ?? event.sourceId
+    );
+  }
   const implicitCombatEvent =
     !context.hasExplicitCombatStart &&
     ['player', 'summon'].includes(String(event.actorType || '')) &&
@@ -610,7 +622,11 @@ export const catalystCastRules = Object.freeze({
     id: 'elementalist.catalyst-availability',
     order: 30,
     handler: availability
-  }
+  },
+  modifyRechargeDuration: (context: ElementalistPrecastContext, duration: number): number =>
+    context.skill.skillFamily === 'Jade Sphere' && hasTrait(context, 'Elemental Enchantment')
+      ? duration * elementalistBalanceValue(context, CORE_PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85)
+      : duration
 });
 
 export const catalystAttributeRules = Object.freeze({

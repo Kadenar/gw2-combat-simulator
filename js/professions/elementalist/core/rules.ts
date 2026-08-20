@@ -1,11 +1,6 @@
 import { elementalistCoreAvailability } from './availability.js';
 import { elementalistAttunementRechargeDuration, onAttunementComplete, targetAttunement } from './attunements.js';
-import {
-  AURA_TRANSMUTE_SKILLS,
-  DODGE_ENDURANCE_COST,
-  ETCHING_CHAINS,
-  FULL_ETCHING_CHARGE_SKILLS
-} from './constants.js';
+import { AURA_TRANSMUTE_SKILLS, DODGE_ENDURANCE_COST, ETCHING_CHAINS } from './constants.js';
 import { applyConjureState } from './conjures.js';
 import { prepareElementalistHitboxEvent } from './events.js';
 import { applyHammerState, scheduleGrandFinaleProfile } from './hammer.js';
@@ -48,11 +43,7 @@ export {
 import { criticalChance } from '../../../platform/gw2/damage.js';
 import { produceGw2OwnedComboEvents } from '../../../platform/gw2/scheduler/combo-materializer.js';
 import { hasTrait as hasGw2Trait } from '../../../platform/gw2/trait-state.js';
-import {
-  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
-  ELEMENTALIST_OVERLOAD_SKILL_IDS,
-  ELEMENTALIST_TRAIT_IDS as TRAIT
-} from '../data/ids.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
 export { elementalistCoreAttributeRules } from './modifiers.js';
 import type {
   AvailabilityResult,
@@ -234,11 +225,7 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
       const progress = state.etchings[candidate.etching];
       if (!progress || progress.stage !== 'lesser') continue;
       if (skill.name === candidate.etching) continue;
-      const otherCasts =
-        progress.otherCasts +
-        (FULL_ETCHING_CHARGE_SKILLS.has(Number(skill.id))
-          ? elementalistBalanceValue(context, PROFILE.spearEmpowerments, 'playerStacks', 3)
-          : 1);
+      const otherCasts = progress.otherCasts + 1;
       state.etchings[candidate.etching] = {
         stage:
           otherCasts >= elementalistBalanceValue(context, PROFILE.spearEmpowerments, 'maximumStacks', 3)
@@ -247,16 +234,6 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
         otherCasts
       };
     }
-  }
-
-  if (
-    state.secondaryAttunement != null &&
-    skillWeapon(skill) === 'Spear' &&
-    String(skill.slot || '') === 'Weapon_3' &&
-    String(skill.attunement || '').includes('+') &&
-    state.primaryAttunement !== state.secondaryAttunement
-  ) {
-    setElementalistAttunementReadyAt(context, state.primaryAttunement, at);
   }
 
   if (Number(skill.resourceGain || 0) > 0) {
@@ -366,7 +343,11 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
   completeElementalistElementalCommand(context, skill);
   const target = targetAttunement(skill);
   if (target) {
-    onAttunementComplete(context, skill, target);
+    const lifecycle = context as unknown as SchedulerRecord;
+    if (lifecycle.elementalistAttunementHandled !== true) {
+      onAttunementComplete(context, skill, target);
+    }
+    delete lifecycle.elementalistAttunementHandled;
     // Elementalist spear etchings count attunement swaps among the three
     // completed casts required to upgrade their release skill.
     applySpecialSkillProgression(context, skill);
@@ -525,9 +506,7 @@ export function modifyElementalistRechargeDuration(
   }
 
   if (skill.type !== 'Weapon') {
-    return (skill.overload || skill.skillFamily === 'Jade Sphere') && hasTrait(context, 'Elemental Enchantment')
-      ? duration * elementalistBalanceValue(context, PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85)
-      : duration;
+    return duration;
   }
 
   let adjustedDuration = duration;
@@ -548,10 +527,6 @@ export function modifyElementalistRechargeDuration(
   }
 
   adjustedDuration *= Math.max(0, weaponRechargeMultiplier);
-  if (skill.name === 'Purblinding Plasma' && state.pistolBullets.Air) {
-    adjustedDuration *= elementalistBalanceValue(context, PROFILE.purblindingPlasma, 'rechargeMultiplier', 2 / 3);
-  }
-
   if (skill.name === 'Ride the Lightning') {
     adjustedDuration *= elementalistBalanceValue(context, PROFILE.rideTheLightning, 'rechargeMultiplier', 0.5);
   }
@@ -561,8 +536,7 @@ export function modifyElementalistRechargeDuration(
     (attunement === 'Fire' && hasTrait(context, "Pyromancer's Training")) ||
     (attunement === 'Air' && hasTrait(context, "Aeromancer's Training")) ||
     (attunement === 'Earth' && hasTrait(context, "Geomancer's Training")) ||
-    (attunement === 'Water' && hasTrait(context, "Aquamancer's Training")) ||
-    (String(skill.slot) === 'Weapon_3' && attunement.includes('+') && hasTrait(context, 'Flow State'))
+    (attunement === 'Water' && hasTrait(context, "Aquamancer's Training"))
   ) {
     const profileId =
       attunement === 'Fire'
@@ -571,9 +545,7 @@ export function modifyElementalistRechargeDuration(
           ? PROFILE.aeromancersTraining
           : attunement === 'Earth'
             ? PROFILE.geomancersTraining
-            : attunement === 'Water'
-              ? PROFILE.aquamancersTraining
-              : TRAIT.FLOW_STATE;
+            : PROFILE.aquamancersTraining;
     adjustedDuration *= elementalistBalanceValue(context, profileId, 'rechargeMultiplier', 0.8);
   }
 

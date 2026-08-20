@@ -1,8 +1,27 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { elementalistTimedBuffStacks } from '../../core/modifiers.js';
 
 export const catalystModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'elementalist.empowering-auras-strike',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'damage-additive',
+    parameters: { maximumStacks: 5, damagePerStack: 0.01 } as Readonly<Record<string, number>>,
+    amount: (context, _target, parameters) =>
+      elementalistTimedBuffStacks(context, 'empowering auras', parameters.maximumStacks) * parameters.damagePerStack,
+    when: (context) => hasTrait(context, 'Empowering Auras')
+  },
+  {
+    id: 'elementalist.empowering-auras-condition',
+    target: MODIFIER_TARGET.CONDITION_DAMAGE,
+    operation: 'damage-additive',
+    parameters: { maximumStacks: 5, damagePerStack: 0.01 } as Readonly<Record<string, number>>,
+    amount: (context, _target, parameters) =>
+      elementalistTimedBuffStacks(context, 'empowering auras', parameters.maximumStacks) * parameters.damagePerStack,
+    when: (context) => hasTrait(context, 'Empowering Auras')
+  },
   {
     id: 'elementalist.relentless-fire',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,

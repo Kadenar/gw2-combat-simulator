@@ -1,7 +1,6 @@
-import { defaultWeaponSkillMatchesSet } from '../../../platform/gw2/weapon-skill-matcher.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '../assumptions.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '../data/ids.js';
-import { AURA_TRANSMUTE_SKILLS, ETCHING_CHAINS, HAMMER_DUAL_ORB_SKILLS, HAMMER_ORB_SKILLS } from './constants.js';
+import { AURA_TRANSMUTE_SKILLS, ETCHING_CHAINS, HAMMER_ORB_SKILLS } from './constants.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement, type ElementalistCoreState } from './state.js';
 import type { ElementalistState } from '../types.js';
 import type {
@@ -9,13 +8,13 @@ import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
-  ProfessionStartControl,
   ProfessionUiContract,
   RotationStateSnapshotItem,
   SchedulerRecord,
   SimulationEvent,
   Skill
 } from '../../../platform/engine/types.js';
+import { bindElementalistFamilyUiCatalog, elementalistAttunementResourceAnchor } from '../ui.js';
 
 const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> = Object.freeze({
   Fire: '#d94c35',
@@ -23,7 +22,6 @@ const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> = Obje
   Air: '#9b65c7',
   Earth: '#a7783f'
 });
-const ATTUNEMENT_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS));
 
 const PISTOL_BULLET_CONTROL_PREFIX = 'elementalist-pistol-bullet:';
 const PISTOL_BULLETS = Object.freeze([
@@ -57,26 +55,6 @@ function uiState(context: SchedulerRecord): Partial<ElementalistState> {
   return professionState || endState?.profession || {};
 }
 
-function selectedSpecialization(context: SchedulerRecord): string {
-  return String(context.specialization || (context.config as SchedulerRecord | undefined)?.specialization || 'Core');
-}
-
-function usesDualAttunements(context: SchedulerRecord): boolean {
-  if (uiState(context).secondaryAttunement != null) return true;
-  const specialization = selectedSpecialization(context);
-  const catalog = (context.catalog as Readonly<CanonicalCatalog> | undefined) || elementalistCatalog;
-  return catalog.skills.some(
-    (skill) => skill.specialization === specialization && String(skill.attunement || '').includes('+')
-  );
-}
-
-function usesCoreResourceAnchor(context: SchedulerRecord): boolean {
-  if (usesDualAttunements(context)) return true;
-  const specialization = selectedSpecialization(context);
-  const catalog = (context.catalog as Readonly<CanonicalCatalog> | undefined) || elementalistCatalog;
-  return !catalog.specializations.some((candidate) => candidate.name === specialization && candidate.elite);
-}
-
 function pistolBulletRecord(value: unknown): SchedulerRecord | null {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as SchedulerRecord) : null;
 }
@@ -101,7 +79,7 @@ function pistolBulletPaletteGroup(context: SchedulerRecord): ProfessionPaletteGr
   const configured = configuredPistolBullets(context);
   const live = pistolBulletRecord(state.pistolBullets);
   const displayed = live || configured;
-  const activeAttunements = new Set([state.primaryAttunement, state.secondaryAttunement].filter(Boolean).map(String));
+  const activeAttunements = new Set([state.primaryAttunement].filter(Boolean).map(String));
   return {
     id: 'elementalist-pistol-bullets',
     label: 'Bullet',
@@ -184,19 +162,6 @@ function updatePaletteControl(context: SchedulerRecord, controlId: string): bool
   return true;
 }
 
-function elementalistWeaponSkillMatchesSet(
-  skill: Skill,
-  weapons: readonly (string | undefined)[],
-  context: SchedulerRecord
-): boolean {
-  if (uiState(context).conjureEquipped) return false;
-  if (String(skill.attunement || '').includes('+') && !usesDualAttunements(context)) {
-    return false;
-  }
-
-  return defaultWeaponSkillMatchesSet(skill, weapons, context);
-}
-
 function elementalistPaletteGroups(context: SchedulerRecord): ProfessionPaletteGroup[] {
   const state = uiState(context);
   const groups: ProfessionPaletteGroup[] = [
@@ -211,7 +176,7 @@ function elementalistPaletteGroups(context: SchedulerRecord): ProfessionPaletteG
       color: '#c85142',
       className: 'elementalist-attunement-palette',
       includeActionSkills: true,
-      resourceAnchor: usesCoreResourceAnchor(context)
+      resourceAnchor: elementalistAttunementResourceAnchor(context)
     }
   ];
   const conjureEquipped = String(state.conjureEquipped || '');
@@ -251,51 +216,12 @@ function elementalistPaletteGroups(context: SchedulerRecord): ProfessionPaletteG
   return groups;
 }
 
-function currentAttunement(
-  context: SchedulerRecord,
-  key: 'startAttunement' | 'secondaryAttunement'
-): ElementalistAttunement {
+function currentAttunement(context: SchedulerRecord): ElementalistAttunement {
   const build = context.build as SchedulerRecord | undefined;
-  const value = String(
-    key === 'startAttunement'
-      ? uiState(context).primaryAttunement || build?.[key] || 'Fire'
-      : uiState(context).secondaryAttunement || build?.[key] || 'Fire'
-  );
+  const value = String(uiState(context).primaryAttunement || build?.startAttunement || 'Fire');
   return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement)
     ? (value as ElementalistAttunement)
     : 'Fire';
-}
-
-function configuredAttunement(
-  context: SchedulerRecord,
-  key: 'startAttunement' | 'secondaryAttunement'
-): ElementalistAttunement {
-  const build = context.build as SchedulerRecord | undefined;
-  const value = String(build?.[key] || (key === 'secondaryAttunement' ? build?.startAttunement : '') || 'Fire');
-  return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement)
-    ? (value as ElementalistAttunement)
-    : 'Fire';
-}
-
-function attunementStartControl(
-  context: SchedulerRecord,
-  key: 'startAttunement' | 'secondaryAttunement',
-  label: string
-): ProfessionStartControl {
-  const value = configuredAttunement(context, key);
-  return {
-    id: `elementalist-${key}`,
-    label,
-    buildKey: key,
-    value,
-    options: ELEMENTALIST_ATTUNEMENTS.map((attunement) => ({
-      value: attunement,
-      label: attunement,
-      icon: elementalistCatalog.skillsById.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement])?.icon,
-      description: `${attunement} attunement`
-    })),
-    color: ATTUNEMENT_COLORS[value]
-  };
 }
 
 function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
@@ -317,19 +243,6 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
     }
   }
 
-  if (skill.name === 'Weave Self' || skill.name === 'Tailored Victory') {
-    // Perfect Weave flips the selected elite slot without requiring a second
-    // utility-specific projection path in the shared palette shell.
-    const tailoredVictoryActive = Number(state.perfectWeaveUntil || 0) > now;
-    const available = skill.name === (tailoredVictoryActive ? 'Tailored Victory' : 'Weave Self');
-    if (!available) {
-      return {
-        available: false,
-        message: tailoredVictoryActive ? 'Tailored Victory currently replaces Weave Self.' : 'Requires Perfect Weave.'
-      };
-    }
-  }
-
   // The shared tile projector chooses the one Rock Barrier variant that is
   // usable at the inspection point, including the exact barrier expiry.
   if (skill.name === 'Rock Barrier' || skill.name === 'Hurl') {
@@ -343,20 +256,10 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
     }
   }
 
-  // Evoker familiars are Profession-mechanic skills keyed to the selected
-  // familiar element rather than the active attunement, so the shared attunement
-  // gate below must not veto them. Defer to the Evoker UI slice, which governs
-  // their charge/empowered availability.
-  if (skill.skillFamily === 'Familiar') {
-    return { available: true, message: '' };
-  }
-
   const hasActiveHammerOrb = Object.values(state.hammerOrbs || {}).some(
     (expiresAt) => expiresAt != null && Number(expiresAt) >= now
   );
-  const hammerElements = HAMMER_ORB_SKILLS[Number(skill.id)]
-    ? [HAMMER_ORB_SKILLS[Number(skill.id)]]
-    : HAMMER_DUAL_ORB_SKILLS[Number(skill.id)];
+  const hammerElements = HAMMER_ORB_SKILLS[Number(skill.id)] ? [HAMMER_ORB_SKILLS[Number(skill.id)]] : null;
   // Active orb elements share one refreshed 15-second lifetime, while element
   // membership determines which visible generator is locked during that window.
   if (
@@ -391,12 +294,6 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
     }
   }
 
-  const primary = String(
-    state.primaryAttunement || (context.build as SchedulerRecord | undefined)?.startAttunement || 'Fire'
-  );
-  const secondary = String(
-    state.secondaryAttunement || (context.build as SchedulerRecord | undefined)?.secondaryAttunement || primary
-  );
   const position = (context.catalog as Readonly<CanonicalCatalog> | undefined)?.autoattackChainPositions.get(
     Number(skill.id)
   );
@@ -418,59 +315,7 @@ function paletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSki
     }
   }
 
-  const attunement = String(skill.attunement || '');
-  // Only the four attunement-swap actions use this branch; Tempest overloads
-  // share the Attunement family tag but have their own availability rules.
-  if (ATTUNEMENT_SKILL_IDS.has(Number(skill.id))) {
-    const target = skill.name.replace(/ Attunement$/, '');
-    if (!ELEMENTALIST_ATTUNEMENTS.includes(target as ElementalistAttunement)) {
-      return { available: false, message: 'Unknown attunement.' };
-    }
-
-    const alreadyAttuned = target === primary && (!usesDualAttunements(context) || target === secondary);
-    if (alreadyAttuned) {
-      return {
-        available: false,
-        message: `Already attuned to ${target}.`
-      };
-    }
-
-    // Recharge is represented by the scheduler's normal cooldown projection.
-    // Keep the action contextually available so palette clicks can queue it;
-    // the scheduler will delay the swap until its retry time.
-    return { available: true, message: '' };
-  }
-
-  if (!attunement) {
-    return { available: true, message: '' };
-  }
-
-  const required = attunement.split('+');
-  if (skill.type !== 'Weapon') {
-    const available = required.length === 1 && required[0] === primary;
-    return {
-      available,
-      message: available ? '' : `Requires ${attunement} attunement.`
-    };
-  }
-
-  const slot = Number(String(skill.slot || '').match(/(\d+)$/)?.[1] || 0);
-  const dualAttunement = usesDualAttunements(context);
-  const unravelActive = Number(state.unravelUntil || 0) > Number(context.time || 0);
-  const available =
-    !dualAttunement || unravelActive
-      ? required.length === 1 && required[0] === primary
-      : required.length > 1
-        ? slot === 3 && required.every((element) => [primary, secondary].includes(element))
-        : slot <= 2
-          ? required[0] === primary
-          : slot >= 4
-            ? required[0] === secondary
-            : primary === secondary && required[0] === primary;
-  return {
-    available,
-    message: available ? '' : `Requires ${attunement} in the active attunement slot.`
-  };
+  return { available: true, message: '' };
 }
 
 function eventLogRow(
@@ -478,13 +323,10 @@ function eventLogRow(
   event: SimulationEvent
 ): ProfessionEventLogDescriptor | null | undefined {
   if (event.type === 'elementalist.attunement') {
-    const from =
-      event.skillName === 'Unravel' && event.fromSecondaryAttunement
-        ? `${String(event.from)}/${String(event.fromSecondaryAttunement)}`
-        : String(event.from);
+    if (event.fromSecondaryAttunement) return undefined;
     return {
       type: event.type,
-      description: `${from} → ${String(event.to)}`,
+      description: `${String(event.from)} → ${String(event.to)}`,
       className: 'resource',
       order: 20,
       flags: []
@@ -517,10 +359,7 @@ function eventLogRow(
 
 function timelineWeaponLineTransition(context: SchedulerRecord): string | undefined {
   if (context.initial === true) {
-    const primary = currentAttunement(context, 'startAttunement');
-    if (!usesDualAttunements(context)) return primary;
-    const secondary = currentAttunement(context, 'secondaryAttunement');
-    return `${primary[0]}/${secondary[0]}`;
+    return currentAttunement(context);
   }
 
   const skill = context.skill as Skill | undefined;
@@ -529,14 +368,7 @@ function timelineWeaponLineTransition(context: SchedulerRecord): string | undefi
     return undefined;
   }
 
-  if (!usesDualAttunements(context)) return target;
-
-  const build = context.build as SchedulerRecord | undefined;
-  const currentPrimary = String(context.weaponLine || '').split('/')[0];
-  const primary =
-    ELEMENTALIST_ATTUNEMENTS.find((attunement) => attunement[0] === currentPrimary) ||
-    currentAttunement({ build }, 'startAttunement');
-  return `${target[0]}/${primary[0]}`;
+  return target;
 }
 
 function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotItem[] {
@@ -550,13 +382,6 @@ function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotI
     .map(([element]) => element)
     .join('/');
   return [
-    {
-      id: 'elementalist-attunement',
-      label: 'Attunement',
-      value: state.secondaryAttunement
-        ? `${state.primaryAttunement}/${state.secondaryAttunement}`
-        : String(state.primaryAttunement || 'Fire')
-    },
     {
       id: 'elementalist-pistol-bullets',
       label: 'Bullets',
@@ -574,7 +399,6 @@ function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotI
 
 export const elementalistCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   assumptionControls: ELEMENTALIST_ASSUMPTION_CONTROLS,
-  weaponSkillMatchesSet: elementalistWeaponSkillMatchesSet,
   skillBarGroups: () => [
     {
       id: 'elementalist-attunements',
@@ -587,13 +411,6 @@ export const elementalistCoreUi: Partial<ProfessionUiContract> & SchedulerRecord
   paletteGroups: elementalistPaletteGroups,
   paletteWeaponSkills,
   updatePaletteControl,
-  startControls: (context: SchedulerRecord) => {
-    const dualAttunement = usesDualAttunements(context);
-    return [
-      attunementStartControl(context, 'startAttunement', dualAttunement ? 'Primary attunement' : 'Start attunement'),
-      ...(dualAttunement ? [attunementStartControl(context, 'secondaryAttunement', 'Secondary attunement')] : [])
-    ];
-  },
   paletteSkillAvailability: paletteAvailability,
   rotationStateSnapshot,
   timelineWeaponLineTransition,
@@ -603,6 +420,7 @@ export const elementalistCoreUi: Partial<ProfessionUiContract> & SchedulerRecord
 
 export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog>): typeof elementalistCoreUi {
   elementalistCatalog = catalog;
+  bindElementalistFamilyUiCatalog(catalog);
   void elementalistCatalog;
   return elementalistCoreUi;
 }

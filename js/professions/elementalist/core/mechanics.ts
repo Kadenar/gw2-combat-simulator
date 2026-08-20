@@ -1,5 +1,4 @@
 import { hasTrait as hasGw2Trait } from '../../../platform/gw2/trait-state.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type { SchedulerRecord, SimulationEvent, Skill } from '../../../platform/engine/types.js';
 import type { ElementalistSchedulerContext } from '../types.js';
 import { elementalistCoreState, type ElementalistAuraState, type ElementalistCoreState } from './state.js';
@@ -254,24 +253,5 @@ export function applyElementalistAura(
 
   if (hasTrait(context, 'Elemental Shielding')) {
     emitProfiledBuff(context, at, PROFILE.elementalShielding, 'Protection', 'Protection', 1, 3, skillName, sourceId);
-  }
-
-  if (hasTrait(context, 'Invigorating Torrents')) {
-    emitProfiledBuff(context, at, TRAIT.INVIGORATING_TORRENTS, 'Vigor', 'Vigor', 1, 5, skillName, sourceId);
-    emitProfiledBuff(
-      context,
-      at,
-      TRAIT.INVIGORATING_TORRENTS,
-      'Regeneration',
-      'Regeneration',
-      1,
-      5,
-      skillName,
-      sourceId
-    );
-  }
-
-  if (hasTrait(context, 'Elemental Bastion')) {
-    emitProfiledBuff(context, at, TRAIT.ELEMENTAL_BASTION, 'Alacrity', 'Alacrity', 1, 4, skillName, sourceId);
   }
 }

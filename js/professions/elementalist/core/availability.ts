@@ -6,7 +6,6 @@ import {
   CONJURED_WEAPONS,
   DODGE_ENDURANCE_COST,
   ENDURANCE_PER_SECOND,
-  HAMMER_DUAL_ORB_SKILLS,
   HAMMER_ORB_SKILLS
 } from './constants.js';
 import { elementalistElementalAvailability } from './elementals.js';
@@ -14,7 +13,12 @@ import { projectedFreshAirReadyAt, targetAttunement } from './attunements.js';
 import { activeHammerOrbElements, hammerOrbMatchesAttunement } from './hammer.js';
 import { activeAura, etchingChain, skillWeapon } from './mechanics.js';
 import { updateEndurance } from './resources.js';
-import { autoattackChainAvailability, isSelectedSlotSkill, weaponAttunementAvailable } from './weapon-state.js';
+import {
+  activeSecondaryAttunement,
+  autoattackChainAvailability,
+  isSelectedSlotSkill,
+  weaponAttunementAvailable
+} from './weapon-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceValue } from './profiles.js';
 
 function ready(): AvailabilityResult {
@@ -53,10 +57,8 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
 
   const target = targetAttunement(skill);
   if (target) {
-    if (
-      target === state.primaryAttunement &&
-      (state.secondaryAttunement === null || target === state.secondaryAttunement)
-    ) {
+    const secondaryAttunement = activeSecondaryAttunement(context);
+    if (target === state.primaryAttunement && (!secondaryAttunement || target === secondaryAttunement)) {
       return unavailable(skill, 'elementalist.same-attunement', `already attuned to ${target}.`);
     }
 
@@ -110,9 +112,10 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
 
   if (['Heal', 'Utility', 'Elite'].includes(String(skill.type))) {
     const selected = selectedSkillNames(context);
-    const selectedChainSkill =
-      (skill.name === 'Tailored Victory' && selected.has('Weave Self')) ||
-      (skill.name === 'Flame Barrage' && selected.has('Glyph of Elementals'));
+    // Flipped skills remain selectable through the equipped root without naming specialization-owned chains here.
+    const selectedChainSkill = [...selected].some(
+      (selectedName) => context.catalog.skillsByName.get(selectedName)?.nextChainId === skill.id
+    );
     if (!isSelectedSlotSkill(skill, selected) && !selectedChainSkill) {
       return unavailable(skill, 'elementalist.not-equipped', 'the skill is not equipped.');
     }
@@ -152,7 +155,7 @@ export function elementalistCoreAvailability(context: ElementalistCastContext, s
   }
 
   const skillId = Number(skill.id);
-  const hammerElements = HAMMER_ORB_SKILLS[skillId] ? [HAMMER_ORB_SKILLS[skillId]] : HAMMER_DUAL_ORB_SKILLS[skillId];
+  const hammerElements = HAMMER_ORB_SKILLS[skillId] ? [HAMMER_ORB_SKILLS[skillId]] : null;
   if (hammerElements) {
     const retryAt =
       state.hammerOrbLastCastAt + elementalistBalanceValue(context, PROFILE.hammerOrbs, 'initialDelay', 0.48);

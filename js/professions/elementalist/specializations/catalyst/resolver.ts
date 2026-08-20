@@ -5,10 +5,12 @@ import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '../../../../platform/
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import type { ElementalistResolverContext } from '../../types.js';
 import {
+  activeElementalistBuffs,
   elementalistSourceSkill,
   queueElementalistAura,
   queueElementalistBuff,
-  recordElementalistTraitProc
+  recordElementalistTraitProc,
+  refreshElementalistBuffs
 } from '../../core/resolver.js';
 import { catalystState, grantCatalystElementalEmpowerment } from './state.js';
 import {
@@ -19,6 +21,19 @@ import {
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
 export function applyCatalystResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
+  if (hasTrait(context, 'Empowering Auras')) {
+    const maximumStacks = elementalistBalanceValue(context, PROFILE.empoweringAuras, 'maximumStacks', 5);
+    const duration = elementalistBalanceValue(context, PROFILE.empoweringAuras, 'durationMultiplier', 10);
+    const current = activeElementalistBuffs(context, 'Empowering Auras', event.at);
+    refreshElementalistBuffs(context, 'Empowering Auras', event.at, () => event.at + duration);
+    const activeStacks = current.reduce((total, application) => total + Number(application.stacks || 1), 0);
+    if (activeStacks < maximumStacks) {
+      queueElementalistBuff(context, event, 'Empowering Auras', 1, duration, elementalistSourceSkill(event));
+    }
+
+    recordElementalistTraitProc(context, event, 'Empowering Auras');
+  }
+
   if (
     !hasTrait(context, 'Elemental Epitome') ||
     (context.combatStartTime != null && event.at < context.combatStartTime)

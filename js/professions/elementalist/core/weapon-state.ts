@@ -3,6 +3,7 @@ import type {
   ElementalistCastContext as ElementalistLifecycleContext,
   ElementalistPrecastContext as ElementalistCastContext
 } from '../types.js';
+import type { ElementalistRuntimeState } from '../types.js';
 import { AUTOATTACK_CHAIN_PRESERVING_SKILL_IDS } from './constants.js';
 import type { ElementalistAttunement, ElementalistCoreState } from './state.js';
 
@@ -58,11 +59,22 @@ export function weaponAttunementAvailable(
 ): AvailabilityResult {
   const attunement = String(skill.attunement || '');
   if (!attunement) return ready();
-  if (state.secondaryAttunement !== null) return ready();
+  const specialization = context.state.profession.specialization.state as Record<string, unknown>;
+  // A specialization that owns a secondary attunement supplies its own weapon-hand availability policy.
+  if (Object.hasOwn(specialization, 'secondaryAttunement')) return ready();
   const required = attunement.split('+');
   return required.length === 1 && required[0] === state.primaryAttunement
     ? ready()
     : unavailable(skill, 'elementalist.attunement', `requires ${attunement} attunement.`);
+}
+
+export function activeSecondaryAttunement(context: ElementalistCastContext): ElementalistAttunement | null {
+  const specialization = (context.state.profession as ElementalistRuntimeState).specialization.state as Record<
+    string,
+    unknown
+  >;
+  const value = specialization.secondaryAttunement;
+  return typeof value === 'string' ? (value as ElementalistAttunement) : null;
 }
 
 export function autoattackChainAvailability(
@@ -157,7 +169,10 @@ export function updateAutoattackChainState(
     return;
   }
 
-  if (Number(skill.castTimeMs || 0) > 0 && !AUTOATTACK_CHAIN_PRESERVING_SKILL_IDS.has(Number(skill.id))) {
+  // Specialization skills declare chain-neutral behavior in their owning catalog fragments.
+  const preservesChain =
+    skill.preservesAutoattackChain === true || AUTOATTACK_CHAIN_PRESERVING_SKILL_IDS.has(Number(skill.id));
+  if (Number(skill.castTimeMs || 0) > 0 && !preservesChain) {
     state.autoattackChains = {};
     state.autoattackCarryover = null;
     state.pendingAutoattackCarryover = null;

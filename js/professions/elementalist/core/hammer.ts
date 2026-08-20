@@ -9,7 +9,7 @@ import {
   type ElementalistAttunement,
   type ElementalistCoreState
 } from './state.js';
-import { HAMMER_DUAL_ORB_SKILLS, HAMMER_ORB_SKILLS } from './constants.js';
+import { HAMMER_ORB_SKILLS } from './constants.js';
 import { activeBuffEvents, emitBuff, emitProfiledCondition, profiledEffect, skillWeapon } from './mechanics.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE, elementalistBalanceValue } from './profiles.js';
 
@@ -65,19 +65,11 @@ export function activeHammerOrbElements(state: ElementalistCoreState, at: number
 }
 
 export function hammerOrbMatchesAttunement(
-  context: ElementalistCastContext,
+  _context: ElementalistCastContext,
   state: ElementalistCoreState,
   element: ElementalistAttunement
 ): boolean {
-  if (state.secondaryAttunement == null) {
-    return element === state.primaryAttunement;
-  }
-
-  const grantedBy = state.hammerOrbGrantedBy[element];
-  const grantingSkill = grantedBy ? context.catalog.skillsByName.get(grantedBy) : null;
-  const required = String(grantingSkill?.attunement || element).split('+');
-  const secondary = state.secondaryAttunement || state.primaryAttunement;
-  return required.includes(state.primaryAttunement) && required.includes(secondary);
+  return element === state.primaryAttunement;
 }
 
 export function applyHammerState(context: ElementalistLifecycleContext, skill: Skill): void {
@@ -85,8 +77,7 @@ export function applyHammerState(context: ElementalistLifecycleContext, skill: S
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = context.effectiveEnd;
   const single = HAMMER_ORB_SKILLS[Number(skill.id)];
-  const dual = HAMMER_DUAL_ORB_SKILLS[Number(skill.id)];
-  if (single || dual) {
+  if (single) {
     const orbDuration = elementalistBalanceValue(context, PROFILE.hammerOrbs, 'durationMultiplier', 15);
     const previouslyActive = new Set(activeHammerOrbElements(state, at));
     for (const [element, expiresAt] of Object.entries(state.hammerOrbs)) {
@@ -100,7 +91,7 @@ export function applyHammerState(context: ElementalistLifecycleContext, skill: S
       }
     }
 
-    for (const element of single ? [single] : dual) {
+    for (const element of [single]) {
       state.hammerOrbs[element] = at + orbDuration;
       state.hammerOrbGrantedBy[element] = skill.name;
       state.hammerOrbActivationIds[element] = context.reservationId;

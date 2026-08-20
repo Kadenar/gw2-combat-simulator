@@ -101,6 +101,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     quicknessCastTimeMs: 240,
     cooldown: 20,
     skillFamily: 'Augment',
+    preservesAutoattackChain: true,
     implemented: true,
     // Relentless Fire opens its damage window when the augment completes.
     mechanicTriggers: [

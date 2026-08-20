@@ -1,6 +1,17 @@
 /** Weaver Elementalist skill mechanics. */
 import { ELEMENTALIST_SKILL_IDS as ID } from '../../data/ids.js';
-import type { SkillFragment } from '../../../../platform/engine/types.js';
+import type { Skill, SkillFragment } from '../../../../platform/engine/types.js';
+import { isElementalistAttunement, type ElementalistAttunement } from '../../core/state.js';
+
+/** Parses the canonical skill metadata for a valid pair of distinct Weaver attunements. */
+export function weaverDualAttunements(skill: Skill): readonly [ElementalistAttunement, ElementalistAttunement] | null {
+  const parts = String(skill.attunement || '').split('+');
+  if (parts.length !== 2) return null;
+
+  const [first, second] = parts;
+  if (!isElementalistAttunement(first) || !isElementalistAttunement(second) || first === second) return null;
+  return [first, second];
+}
 
 export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.STEAM_SURGE]: {
@@ -3062,6 +3073,7 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     cooldown: 90,
     nextChainId: ID.TAILORED_VICTORY,
     skillFamily: 'Stance',
+    preservesAutoattackChain: true,
     implemented: true,
     effects: []
   },

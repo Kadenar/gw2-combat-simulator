@@ -12,11 +12,6 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   rideTheLightning: 'elementalist.core.ride-the-lightning-hit',
   arcaneEcho: 'elementalist.core.arcane-echo-window',
   grandFinale: 'elementalist.core.grand-finale',
-  frostfireFlurry: 'elementalist.core.frostfire-flurry-bullets',
-  purblindingPlasma: 'elementalist.core.purblinding-plasma-bullet',
-  moltenMeteor: 'elementalist.core.molten-meteor-bullet',
-  flowingFinesse: 'elementalist.core.flowing-finesse-bullets',
-  enervatingEarth: 'elementalist.core.enervating-earth-bullet',
   ragingRicochet: 'elementalist.core.raging-ricochet-bullet',
   searingSalvo: 'elementalist.core.searing-salvo-bullet',
   frozenFusillade: 'elementalist.core.frozen-fusillade-bullet',
@@ -204,40 +199,6 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
       namedCondition('Earth', 'Bleeding', 4, 5)
     ]
   }),
-  variant(
-    ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.frostfireFlurry,
-    ID.FROSTFIRE_FLURRY,
-    'Frostfire Flurry - Consumed Bullets',
-    {
-      effects: [aura('Fire', 'Fire Aura', 3), namedCondition('Water', 'Vulnerability', 4, 8)]
-    }
-  ),
-  variant(
-    ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.purblindingPlasma,
-    ID.PURBLINDING_PLASMA,
-    'Purblinding Plasma - Fire Bullet',
-    {
-      rechargeMultiplier: 2 / 3,
-      effects: [namedCondition('Fire', 'Burning', 3, 4)]
-    }
-  ),
-  variant(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.moltenMeteor, ID.MOLTEN_METEOR, 'Molten Meteor - Earth Bullet', {
-    effects: [namedCondition('Earth', 'Bleeding', 3, 8)]
-  }),
-  variant(
-    ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.flowingFinesse,
-    ID.FLOWING_FINESSE,
-    'Flowing Finesse - Consumed Bullets',
-    {
-      effects: [aura('Water', 'Frost Aura', 3), namedBoon('Air', 'Superspeed', 1, 4)]
-    }
-  ),
-  variant(
-    ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.enervatingEarth,
-    ID.ENERVATING_EARTH,
-    'Enervating Earth - Earth Bullet',
-    { effects: [namedCondition('Earth', 'Bleeding', 4, 8)] }
-  ),
   variant(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.ragingRicochet, ID.RAGING_RICOCHET, 'Raging Ricochet - Fire Bullet', {
     effects: [namedBoon('Fire', 'Might', 1, 10)]
   }),

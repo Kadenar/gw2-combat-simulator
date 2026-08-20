@@ -6,6 +6,11 @@ export const WEAVER_BALANCE_PROFILE_IDS = Object.freeze({
   primordialStance: 'elementalist.weaver.primordial-stance',
   unravel: 'elementalist.weaver.unravel',
   ferventStance: 'elementalist.weaver.fervent-stance',
+  frostfireFlurry: 'elementalist.weaver.frostfire-flurry-bullets',
+  purblindingPlasma: 'elementalist.weaver.purblinding-plasma-bullet',
+  moltenMeteor: 'elementalist.weaver.molten-meteor-bullet',
+  flowingFinesse: 'elementalist.weaver.flowing-finesse-bullets',
+  enervatingEarth: 'elementalist.weaver.enervating-earth-bullet',
   elementalRefreshment: TRAIT.ELEMENTAL_REFRESHMENT,
   elementalPolyphony: TRAIT.ELEMENTAL_POLYPHONY,
   superiorElements: TRAIT.SUPERIOR_ELEMENTS,
@@ -35,6 +40,36 @@ const boon = (name: string, boonName: string, stacks: number, duration: number):
   duration
 });
 
+const variant = (
+  id: string,
+  parentId: SkillId,
+  name: string,
+  fields: Readonly<Record<string, unknown>> = {}
+): BalanceProfile => ({
+  id,
+  parentId,
+  name,
+  profileKind: 'skill-variant',
+  effects: [],
+  ...fields
+});
+
+const condition = (name: string, conditionName: string, stacks: number, duration: number): SkillEffect => ({
+  type: 'condition',
+  name,
+  condition: conditionName,
+  stacks,
+  duration
+});
+
+const aura = (name: string, auraName: string, duration: number): SkillEffect => ({
+  type: 'buff',
+  name,
+  kind: auraName,
+  stacks: 1,
+  duration
+});
+
 export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
     id: WEAVER_BALANCE_PROFILE_IDS.resources,
@@ -47,6 +82,22 @@ export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     firstPacketRatio: 0.65,
     effects: []
   },
+  variant(WEAVER_BALANCE_PROFILE_IDS.frostfireFlurry, ID.FROSTFIRE_FLURRY, 'Frostfire Flurry - Consumed Bullets', {
+    effects: [aura('Fire', 'Fire Aura', 3), condition('Water', 'Vulnerability', 4, 8)]
+  }),
+  variant(WEAVER_BALANCE_PROFILE_IDS.purblindingPlasma, ID.PURBLINDING_PLASMA, 'Purblinding Plasma - Fire Bullet', {
+    rechargeMultiplier: 2 / 3,
+    effects: [condition('Fire', 'Burning', 3, 4)]
+  }),
+  variant(WEAVER_BALANCE_PROFILE_IDS.moltenMeteor, ID.MOLTEN_METEOR, 'Molten Meteor - Earth Bullet', {
+    effects: [condition('Earth', 'Bleeding', 3, 8)]
+  }),
+  variant(WEAVER_BALANCE_PROFILE_IDS.flowingFinesse, ID.FLOWING_FINESSE, 'Flowing Finesse - Consumed Bullets', {
+    effects: [aura('Water', 'Frost Aura', 3), boon('Air', 'Superspeed', 1, 4)]
+  }),
+  variant(WEAVER_BALANCE_PROFILE_IDS.enervatingEarth, ID.ENERVATING_EARTH, 'Enervating Earth - Earth Bullet', {
+    effects: [condition('Earth', 'Bleeding', 4, 8)]
+  }),
   {
     id: WEAVER_BALANCE_PROFILE_IDS.primordialStance,
     parentId: ID.PRIMORDIAL_STANCE_FIRE,

@@ -14,7 +14,7 @@ import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
 import { TRAIT_COVERAGE_STATUSES } from '../../js/platform/gw2/trait-coverage.js';
 import { ENGINEER_TRAIT_COVERAGE } from '../../js/professions/engineer/data/trait-coverage.js';
 import { ENGINEER_PUBLIC_END_STATE_KEYS } from '../../js/professions/engineer/state.js';
-import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from '../../js/professions/elementalist/core/state.js';
+import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from '../../js/professions/elementalist/state.js';
 import { ELEMENTALIST_TRAIT_COVERAGE } from '../../js/professions/elementalist/data/trait-coverage.js';
 import { GUARDIAN_TRAIT_COVERAGE } from '../../js/professions/guardian/data/trait-coverage.js';
 import { GUARDIAN_PUBLIC_END_STATE_KEYS } from '../../js/professions/guardian/state.js';
@@ -22,11 +22,11 @@ import { MESMER_TRAIT_COVERAGE } from '../../js/professions/mesmer/data/trait-co
 import { NECROMANCER_TRAIT_COVERAGE } from '../../js/professions/necromancer/data/trait-coverage.js';
 import { NECROMANCER_PUBLIC_END_STATE_KEYS } from '../../js/professions/necromancer/state.js';
 import { RANGER_TRAIT_COVERAGE } from '../../js/professions/ranger/data/trait-coverage.js';
-import { RANGER_PUBLIC_END_STATE_KEYS } from '../../js/professions/ranger/core/state.js';
+import { RANGER_PUBLIC_END_STATE_KEYS } from '../../js/professions/ranger/state.js';
 import { REVENANT_TRAIT_COVERAGE } from '../../js/professions/revenant/data/trait-coverage.js';
 import { REVENANT_PUBLIC_END_STATE_KEYS } from '../../js/professions/revenant/state.js';
 import { THIEF_TRAIT_COVERAGE } from '../../js/professions/thief/data/trait-coverage.js';
-import { THIEF_PUBLIC_END_STATE_KEYS } from '../../js/professions/thief/core/state.js';
+import { THIEF_PUBLIC_END_STATE_KEYS } from '../../js/professions/thief/state.js';
 import { WARRIOR_TRAIT_COVERAGE } from '../../js/professions/warrior/data/trait-coverage.js';
 import { WARRIOR_PUBLIC_END_STATE_KEYS } from '../../js/professions/warrior/state.js';
 import {

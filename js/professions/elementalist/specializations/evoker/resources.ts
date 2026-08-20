@@ -14,8 +14,6 @@ function hasTrait(context: unknown, trait: string): boolean {
 export function initialize(context: ElementalistSchedulerContext): void {
   const state = evokerState.from(context);
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
-  // evoker-specific ICD for the evocation passive; set here because this value differs from core elementalist defaults
-  core.attunementTraitProcCooldownSeconds = elementalistBalanceValue(context, PROFILE.evocation, 'internalCooldown', 5);
   state.maximumCharges = elementalistBalanceValue(
     context,
     hasTrait(context, 'Specialized Elements') ? PROFILE.specializedElements : PROFILE.resources,

@@ -1,44 +1,130 @@
 import type {
   PaletteSkillAvailability,
+  ProfessionEventLogDescriptor,
   ProfessionPaletteSkillRenderer,
   ProfessionUiContract,
   ProfessionWeaponPaletteRenderContext,
   ProfessionWeaponPaletteView,
+  RotationStateSnapshotItem,
   SchedulerRecord,
+  SimulationEvent,
   Skill
 } from '../../../../platform/engine/types.js';
 import { escapeHtml as esc } from '../../../../platform/ui/html.js';
-import { ELEMENTALIST_WEAVER_SKILL_IDS } from '../../data/ids.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS, ELEMENTALIST_WEAVER_SKILL_IDS } from '../../data/ids.js';
 import { getActiveTraits } from '../../data/traits-data.js';
 import type { ElementalistBuildSpecialization } from '../../types.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '../../core/state.js';
+import { weaverDualAttunements } from './skills.js';
+
+const ATTUNEMENT_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS));
+
+function uiState(context: SchedulerRecord): SchedulerRecord {
+  const live = context.professionState as SchedulerRecord | undefined;
+  const end = context.state as { profession?: SchedulerRecord } | undefined;
+  return live || end?.profession || {};
+}
 
 function hasElementsOfRage(context: SchedulerRecord): boolean {
   const build = context.build as { specializations?: readonly ElementalistBuildSpecialization[] } | undefined;
   return getActiveTraits(build?.specializations || []).some((trait) => trait.name === 'Elements of Rage');
 }
 
-function unravelPaletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
-  if (skill.id !== ELEMENTALIST_WEAVER_SKILL_IDS.Unravel) {
-    return { available: true, message: '' };
+function weaverPaletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
+  const state = uiState(context);
+  const build = context.build as SchedulerRecord | undefined;
+  const now = Number(context.time || 0);
+  const primary = String(state.primaryAttunement || build?.startAttunement || 'Fire');
+  const secondary = String(state.secondaryAttunement || build?.secondaryAttunement || primary);
+  if (skill.id === ELEMENTALIST_WEAVER_SKILL_IDS.Unravel) {
+    const available = hasElementsOfRage(context);
+    return { available, message: available ? '' : 'Requires Elements of Rage.' };
   }
 
-  const available = hasElementsOfRage(context);
+  if (skill.name === 'Weave Self' || skill.name === 'Tailored Victory') {
+    const tailoredVictoryActive = Number(state.perfectWeaveUntil || 0) > now;
+    const available = skill.name === (tailoredVictoryActive ? 'Tailored Victory' : 'Weave Self');
+    return {
+      available,
+      message: available
+        ? ''
+        : tailoredVictoryActive
+          ? 'Tailored Victory currently replaces Weave Self.'
+          : 'Requires Perfect Weave.'
+    };
+  }
+
+  if (ATTUNEMENT_SKILL_IDS.has(Number(skill.id))) {
+    const target = skill.name.replace(/ Attunement$/, '');
+    const available = target !== primary || target !== secondary;
+    return { available, message: available ? '' : `Already attuned to ${target}.` };
+  }
+
+  const hammerElements = skill.weapon === 'Hammer' ? weaverDualAttunements(skill) : null;
+  const hammerOrbs = (state.hammerOrbs || {}) as SchedulerRecord;
+  if (hammerElements?.some((element) => hammerOrbs[element] != null && Number(hammerOrbs[element]) >= now)) {
+    return {
+      available: false,
+      message: 'Grand Finale must consume the active orb before it can be created again.'
+    };
+  }
+
+  if (skill.type !== 'Weapon' || !skill.attunement) return { available: true, message: '' };
+  const dualAttunements = weaverDualAttunements(skill);
+  const required = dualAttunements || [String(skill.attunement)];
+  const slot = Number(String(skill.slot || '').match(/(\d+)$/)?.[1] || 0);
+  const unravelActive = Number(state.unravelUntil || 0) > now;
+  const available = unravelActive
+    ? required.length === 1 && required[0] === primary
+    : dualAttunements
+      ? slot === 3 && required.every((element) => [primary, secondary].includes(element))
+      : slot <= 2
+        ? required[0] === primary
+        : slot >= 4
+          ? required[0] === secondary
+          : primary === secondary && required[0] === primary;
   return {
     available,
-    message: available ? '' : 'Requires Elements of Rage.'
+    message: available ? '' : `Requires ${String(skill.attunement)} in the matching Weaver hand.`
   };
 }
 
 function unravelTimelineWeaponLineTransition(context: SchedulerRecord): string | undefined {
   const skill = context.skill as Skill | undefined;
-  if (skill?.id !== ELEMENTALIST_WEAVER_SKILL_IDS.Unravel) return undefined;
   const build = context.build as SchedulerRecord | undefined;
+  if (context.initial === true) {
+    const primary = String(build?.startAttunement || 'Fire');
+    const secondary = String(build?.secondaryAttunement || primary);
+    return `${primary[0]}/${secondary[0]}`;
+  }
+
   const currentPrimary = String(context.weaponLine || '').split('/')[0];
   const primary =
     ELEMENTALIST_ATTUNEMENTS.find((attunement) => attunement[0] === currentPrimary) ||
     String(build?.startAttunement || 'Fire');
-  return `${primary[0]}/${primary[0]}`;
+  if (skill?.id === ELEMENTALIST_WEAVER_SKILL_IDS.Unravel) return `${primary[0]}/${primary[0]}`;
+  const target = skill?.name.replace(/ Attunement$/, '') || '';
+  return skill?.skillFamily === 'Attunement' && ELEMENTALIST_ATTUNEMENTS.includes(target as never)
+    ? `${target[0]}/${primary[0]}`
+    : undefined;
+}
+
+function eventLogRow(_context: SchedulerRecord, event: SimulationEvent): ProfessionEventLogDescriptor | undefined {
+  if (event.type !== 'elementalist.attunement' || !event.fromSecondaryAttunement) return undefined;
+  return {
+    type: event.type,
+    description: `${String(event.from)}/${String(event.fromSecondaryAttunement)} → ${String(event.to)}`,
+    className: 'resource',
+    order: 20,
+    flags: []
+  };
+}
+
+function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotItem[] {
+  const state = uiState(context);
+  const primary = String(state.primaryAttunement || 'Fire');
+  const secondary = String(state.secondaryAttunement || primary);
+  return [{ id: 'elementalist-attunement', label: 'Attunement', value: `${primary}/${secondary}` }];
 }
 
 interface WeaverWeaponPaletteRow {
@@ -66,7 +152,7 @@ export function weaverWeaponPaletteLayout(skills: readonly Skill[]): WeaverWeapo
     skills: row.skills.filter((skill) => slot(skill) <= 2)
   }));
   const sameAttunementSkills = elementalRows.flatMap((row) => row.skills.filter((skill) => slot(skill) === 3));
-  const dualSkills = skills.filter((skill) => slot(skill) === 3 && String(skill.attunement || '').includes('+'));
+  const dualSkills = skills.filter((skill) => slot(skill) === 3 && weaverDualAttunements(skill));
   const secondaryRows = elementalRows.map((row) => ({
     ...row,
     skills: row.skills.filter((skill) => slot(skill) >= 4)
@@ -294,7 +380,9 @@ export const weaverUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.
           }
         ]
       : [],
-  paletteSkillAvailability: unravelPaletteAvailability,
+  paletteSkillAvailability: weaverPaletteAvailability,
+  rotationStateSnapshot,
   timelineWeaponLineTransition: unravelTimelineWeaponLineTransition,
+  eventLogRow,
   renderWeaponPalette: renderWeaverWeaponPalette
 });

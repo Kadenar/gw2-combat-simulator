@@ -1,5 +1,11 @@
-import type { AvailabilityResult, SchedulerRecord, SimulationEvent, Skill } from '../../../../platform/engine/types.js';
-import type { ElementalistCastContext, ElementalistPrecastContext } from '../../types.js';
+import type {
+  AvailabilityResult,
+  SchedulerRecord,
+  SimulationEvent,
+  SimulationEventInput,
+  Skill
+} from '../../../../platform/engine/types.js';
+import type { ElementalistCastContext, ElementalistPrecastContext, ElementalistSchedulerContext } from '../../types.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import {
   applyElementalistAura,
@@ -12,10 +18,18 @@ import {
 } from '../../core/rules.js';
 import { elementalistCoreState, setElementalistAttunementReadyAt } from '../../core/state.js';
 import { armElementalistElementalLightningJolt } from '../../core/elementals.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '../../data/ids.js';
+import { ELEMENTALIST_OVERLOAD_SKILL_IDS, ELEMENTALIST_SKILL_IDS as ID } from '../../data/ids.js';
 import { tempestModifierRules } from './modifiers.js';
-import { elementalistBalanceEffect, elementalistBalanceValue, elementalistEffectValue } from '../../core/profiles.js';
+import {
+  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
+  elementalistBalanceEffect,
+  elementalistBalanceValue,
+  elementalistEffectValue
+} from '../../core/profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { tempestState } from './state.js';
+
+const FULL_ETCHING_CHARGE_SKILLS = new Set<number>([ID.OVERLOAD_FIRE, ID.OVERLOAD_AIR, ID.OVERLOAD_EARTH]);
 
 export function applyTempestShoutTraits(context: ElementalistCastContext, skill: Skill): void {
   if (!hasTrait(context, 'Tempestuous Aria')) return;
@@ -153,6 +167,19 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
 }
 
 function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
+  if (skill.type === 'Heal' && hasTrait(context, 'Gale Song')) {
+    const protection = elementalistBalanceEffect(context, PROFILE.galeSong, 'boon', 'Protection');
+    emitElementalistBuff(
+      context as never,
+      context.effectiveEnd,
+      String(protection?.boon || 'Protection'),
+      Number(protection?.stacks ?? 1),
+      Number(protection?.duration ?? 3),
+      'Gale Song',
+      skill.id
+    );
+  }
+
   if (!skill.overload) return;
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const attunement = String(skill.attunement);
@@ -229,6 +256,84 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
       sourceSkill: skill.name
     });
   }
+
+  // Fire, Air, and Earth overloads supply all three casts needed to complete an active spear etching.
+  if (FULL_ETCHING_CHARGE_SKILLS.has(Number(skill.id))) {
+    for (const [name, progress] of Object.entries(state.etchings)) {
+      if (!progress || progress.stage !== 'lesser') continue;
+      const otherCasts = progress.otherCasts + 2;
+      state.etchings[name] = { stage: otherCasts >= 3 ? 'full' : 'lesser', otherCasts };
+    }
+  }
+}
+
+function modifyRechargeDuration(context: ElementalistPrecastContext, duration: number): number {
+  return context.skill.overload && hasTrait(context, 'Elemental Enchantment')
+    ? duration * elementalistBalanceValue(context, CORE_PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85)
+    : duration;
+}
+
+function prepareEvent(_context: ElementalistSchedulerContext, event: SimulationEventInput): SimulationEventInput {
+  return Object.values(ELEMENTALIST_OVERLOAD_SKILL_IDS).includes(Number(event.skillId ?? event.sourceId))
+    ? { ...event, skillWeapon: 'Profession mechanic' }
+    : event;
+}
+
+function onEventScheduled(context: ElementalistCastContext, event: SimulationEvent): void {
+  if (event.type === 'elementalist.fresh-air') {
+    context.state.cooldowns.delete(ELEMENTALIST_OVERLOAD_SKILL_IDS.Air);
+    return;
+  }
+
+  if (event.type === 'elementalist.attunement' && event.to === 'Water' && hasTrait(context, 'Latent Stamina')) {
+    const state = tempestState.from(context);
+    if (state.latentStaminaReadyAt <= event.at + context.epsilon) {
+      state.latentStaminaReadyAt =
+        event.at + elementalistBalanceValue(context, PROFILE.latentStamina, 'internalCooldown', 10);
+      const vigor = elementalistBalanceEffect(context, PROFILE.latentStamina, 'boon', 'Vigor');
+      emitElementalistBuff(
+        context as never,
+        event.at,
+        String(vigor?.boon || 'Vigor'),
+        Number(vigor?.stacks ?? 1),
+        Number(vigor?.duration ?? 3),
+        'Latent Stamina',
+        event.skillId ?? event.sourceId
+      );
+    }
+    return;
+  }
+
+  if (event.type !== 'elementalist.aura') return;
+  const source = String(event.skillName || event.source || 'Aura');
+  const sourceId = event.skillId ?? event.sourceId;
+  if (hasTrait(context, 'Invigorating Torrents')) {
+    for (const name of ['Vigor', 'Regeneration'] as const) {
+      const boon = elementalistBalanceEffect(context, PROFILE.invigoratingTorrents, 'boon', name);
+      emitElementalistBuff(
+        context as never,
+        event.at,
+        String(boon?.boon || name),
+        Number(boon?.stacks ?? 1),
+        Number(boon?.duration ?? 5),
+        source,
+        sourceId
+      );
+    }
+  }
+
+  if (hasTrait(context, 'Elemental Bastion')) {
+    const alacrity = elementalistBalanceEffect(context, PROFILE.elementalBastion, 'boon', 'Alacrity');
+    emitElementalistBuff(
+      context as never,
+      event.at,
+      String(alacrity?.boon || 'Alacrity'),
+      Number(alacrity?.stacks ?? 1),
+      Number(alacrity?.duration ?? 4),
+      source,
+      sourceId
+    );
+  }
 }
 
 export const tempestCastRules = Object.freeze({
@@ -236,7 +341,8 @@ export const tempestCastRules = Object.freeze({
     id: 'elementalist.tempest-overload',
     order: 30,
     handler: availability
-  }
+  },
+  modifyRechargeDuration
 });
 
 export const tempestAttributeRules = Object.freeze({
@@ -244,6 +350,11 @@ export const tempestAttributeRules = Object.freeze({
 });
 
 export const tempestSchedulerHooks = Object.freeze({
+  prepareEvent: {
+    id: 'elementalist.tempest-overload-events',
+    order: 30,
+    handler: prepareEvent
+  },
   onCastStart: {
     id: 'elementalist.tempest-start',
     order: 30,
@@ -258,5 +369,10 @@ export const tempestSchedulerHooks = Object.freeze({
     id: 'elementalist.tempest-complete',
     order: 30,
     handler: onCastComplete
+  },
+  onEventScheduled: {
+    id: 'elementalist.tempest-traits',
+    order: 30,
+    handler: onEventScheduled
   }
 });

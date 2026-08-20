@@ -22,9 +22,8 @@ import {
   elementalistBalanceValue
 } from '../../core/profiles.js';
 import { OFF_ATTUNEMENT_RECHARGE_SECONDS } from './constants.js';
-import { type EvokerState } from './state.js';
+import { evokerState, type EvokerState } from './state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
-import { TEMPEST_BALANCE_PROFILE_IDS as TEMPEST_PROFILE } from '../tempest/profiles.js';
 
 function hasTrait(context: unknown, trait: string): boolean {
   return hasGw2Trait(context as never, trait);
@@ -96,7 +95,13 @@ export function triggerSpecializedElementEntry(
   element: ElementalistAttunement
 ): void {
   const at = context.effectiveEnd;
-  const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = evokerState.from(context);
+  const procReady = (key: string): boolean => {
+    if (Number(state.attunementTraitProcReadyAt[key] || 0) > at + context.epsilon) return false;
+    state.attunementTraitProcReadyAt[key] =
+      at + elementalistBalanceValue(context, PROFILE.evocation, 'internalCooldown', 5);
+    return true;
+  };
   context.emit({
     type: 'elementalist.attunement-enter',
     at,
@@ -107,7 +112,9 @@ export function triggerSpecializedElementEntry(
     to: element
   });
   if (element === 'Fire') {
-    triggerElementalistSunspot(context as never, at, skill.id);
+    if (hasTrait(context, 'Sunspot') && procReady(String(CORE_PROFILE.sunspot))) {
+      triggerElementalistSunspot(context as never, at, skill.id);
+    }
   } else if (element === 'Air') {
     triggerElementalistElectricDischarge(context as never, at, skill.id);
     if (hasTrait(context, 'One with Air')) {
@@ -148,23 +155,12 @@ export function triggerSpecializedElementEntry(
         skill.id
       );
     }
-  } else if (element === 'Water' && hasTrait(context, 'Latent Stamina')) {
-    if (Number(core.procReadyAt.latentStamina || 0) <= at + context.epsilon) {
-      core.procReadyAt.latentStamina =
-        at + elementalistBalanceValue(context, TEMPEST_PROFILE.latentStamina, 'internalCooldown', 10);
-      const vigor = elementalistBalanceEffect(context, TEMPEST_PROFILE.latentStamina, 'boon', 'Vigor');
-      emitElementalistBuff(
-        context as never,
-        at,
-        String(vigor?.boon || 'Vigor'),
-        Number(vigor?.stacks ?? 1),
-        Number(vigor?.duration ?? 3),
-        'Latent Stamina',
-        skill.id
-      );
-    }
   } else if (element === 'Earth') {
-    triggerElementalistEarthenBlast(context as never, at, skill.id);
-    grantElementalistRockSolid(context as never, at, skill.id);
+    if (hasTrait(context, 'Earthen Blast') && procReady(String(CORE_PROFILE.earthenBlast))) {
+      triggerElementalistEarthenBlast(context as never, at, skill.id);
+    }
+    if (hasTrait(context, 'Rock Solid') && procReady(String(CORE_PROFILE.rockSolid))) {
+      grantElementalistRockSolid(context as never, at, skill.id);
+    }
   }
 }

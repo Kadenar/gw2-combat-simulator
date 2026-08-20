@@ -1,10 +1,6 @@
 import { criticalChance } from '../../../platform/gw2/damage.js';
 import { hasTrait as hasGw2Trait } from '../../../platform/gw2/trait-state.js';
-import {
-  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
-  ELEMENTALIST_OVERLOAD_SKILL_IDS,
-  ELEMENTALIST_TRAIT_IDS as TRAIT
-} from '../data/ids.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS, ELEMENTALIST_TRAIT_IDS as TRAIT } from '../data/ids.js';
 import type { SchedulerRecord, SimulationEvent, Skill } from '../../../platform/engine/types.js';
 import type {
   ElementalistCastContext as ElementalistLifecycleContext,
@@ -37,30 +33,12 @@ function hasTrait(context: unknown, trait: string): boolean {
   return hasGw2Trait(context as never, trait);
 }
 
-function attunementTraitProcReady(
-  context: ElementalistSchedulerContext,
-  state: ElementalistCoreState,
-  key: string,
-  at: number
-): boolean {
-  const cooldown = state.attunementTraitProcCooldownSeconds;
-  if (cooldown <= 0) return true;
-  if (Number(state.procReadyAt[key] || 0) > at + context.epsilon) return false;
-  state.procReadyAt[key] = at + cooldown;
-  return true;
-}
-
 export function triggerElementalistSunspot(
   context: ElementalistSchedulerContext,
   at: number,
   sourceId: Skill['id']
 ): void {
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
-  if (
-    !combatStarted(context, at) ||
-    !hasTrait(context, 'Sunspot') ||
-    !attunementTraitProcReady(context, state, 'sunspot', at)
-  ) {
+  if (!combatStarted(context, at) || !hasTrait(context, 'Sunspot')) {
     return;
   }
 
@@ -102,12 +80,7 @@ export function triggerElementalistFlameExpulsion(
   at: number,
   sourceId: Skill['id']
 ): void {
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
-  if (
-    !combatStarted(context, at) ||
-    !hasTrait(context, "Pyromancer's Puissance") ||
-    !attunementTraitProcReady(context, state, 'flameExpulsion', at)
-  ) {
+  if (!combatStarted(context, at) || !hasTrait(context, "Pyromancer's Puissance")) {
     return;
   }
 
@@ -224,12 +197,7 @@ export function triggerElementalistEarthenBlast(
   at: number,
   sourceId: Skill['id']
 ): void {
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
-  if (
-    !combatStarted(context, at) ||
-    !hasTrait(context, 'Earthen Blast') ||
-    !attunementTraitProcReady(context, state, 'earthenBlast', at)
-  ) {
+  if (!combatStarted(context, at) || !hasTrait(context, 'Earthen Blast')) {
     return;
   }
 
@@ -258,12 +226,7 @@ export function grantElementalistRockSolid(
   at: number,
   sourceId: Skill['id']
 ): void {
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
-  if (
-    !combatStarted(context, at) ||
-    !hasTrait(context, 'Rock Solid') ||
-    !attunementTraitProcReady(context, state, 'rockSolid', at)
-  ) {
+  if (!combatStarted(context, at) || !hasTrait(context, 'Rock Solid')) {
     return;
   }
 
@@ -419,10 +382,6 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
   }
 
   if (skill.type === 'Heal') {
-    if (hasTrait(context, 'Gale Song')) {
-      emitProfiledBuff(context, at, TRAIT.GALE_SONG, 'Protection', 'Protection', 1, 3, 'Gale Song', skill.id);
-    }
-
     if (hasTrait(context, "Earth's Embrace") && Number(state.procReadyAt.earthsEmbrace || 0) <= at + context.epsilon) {
       state.procReadyAt.earthsEmbrace =
         at + elementalistBalanceValue(context, PROFILE.earthsEmbrace, 'internalCooldown', 15);
@@ -496,25 +455,6 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
     emitProfiledBuff(context, at, PROFILE.inscription, boon[0], boon[1], boon[2], boon[3], skill.name, skill.id);
   }
 
-  if (hasTrait(context, 'Bolstered Elements') && skill.skillFamily === 'Stance') {
-    emitProfiledBuff(context, at, TRAIT.BOLSTERED_ELEMENTS, 'Protection', 'Protection', 1, 3, skill.name, skill.id);
-  }
-
-  if (hasTrait(context, 'Swift Revenge') && String(skill.attunement || '').includes('+')) {
-    for (const element of new Set(String(skill.attunement).split('+'))) {
-      if (element === 'Fire') {
-        emitProfiledBuff(context, at, TRAIT.SWIFT_REVENGE, 'Fire', 'Might', 3, 5, skill.name, skill.id);
-      } else if (element === 'Air') {
-        emitProfiledBuff(context, at, TRAIT.SWIFT_REVENGE, 'Air', 'Swiftness', 1, 5, skill.name, skill.id);
-      } else if (element === 'Earth') {
-        state.endurance = Math.min(
-          elementalistBalanceValue(context, PROFILE.resources, 'maximumStacks', 100),
-          state.endurance + elementalistBalanceValue(context, TRAIT.SWIFT_REVENGE, 'resourceGain', 25)
-        );
-      }
-    }
-  }
-
   if (hasTrait(context, 'Arcane Lightning') && skill.skillFamily === 'Arcane') {
     const arcaneWindow = profiledEffect(context, PROFILE.arcaneLightning, 'buff', 'Arcane Lightning');
     emitBuff(
@@ -563,16 +503,6 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
     } else if (skill.name === 'Arcane Echo') {
       emitProfiledBuff(context, at, PROFILE.arcaneLightning, 'Arcane Echo', 'Quickness', 1, 4, skill.name, skill.id);
     }
-  }
-
-  if (
-    hasTrait(context, 'Superior Elements') &&
-    String(skill.attunement || '').includes('+') &&
-    Number(state.procReadyAt.superiorElements || 0) <= at + context.epsilon
-  ) {
-    state.procReadyAt.superiorElements =
-      at + elementalistBalanceValue(context, TRAIT.SUPERIOR_ELEMENTS, 'internalCooldown', 4);
-    emitProfiledCondition(context, at, TRAIT.SUPERIOR_ELEMENTS, 'Weakness', 'Weakness', 1, 5, skill.name, skill.id);
   }
 }
 
@@ -681,7 +611,6 @@ export function processFreshAirCandidates(context: ElementalistSchedulerContext,
     if (state.attunementReadyAt.Air > candidate.at + context.epsilon) {
       setElementalistAttunementReadyAt(context, 'Air', candidate.at);
       context.state.cooldowns.delete(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air);
-      context.state.cooldowns.delete(ELEMENTALIST_OVERLOAD_SKILL_IDS.Air);
     }
 
     context.emit({
@@ -876,20 +805,6 @@ function observeLightningRod(context: ElementalistSchedulerContext, event: Simul
       sourceId,
       sourceSkill: String(event.skillName || event.source || '')
     });
-  }
-
-  if (hasTrait(context, 'Elemental Pursuit')) {
-    emitProfiledBuff(
-      context,
-      event.at,
-      TRAIT.ELEMENTAL_PURSUIT,
-      'Swiftness',
-      'Swiftness',
-      1,
-      3,
-      'Elemental Pursuit',
-      sourceId
-    );
   }
 
   const state = elementalistCoreState(context as unknown as SchedulerRecord);

@@ -58,10 +58,12 @@ function modifyWeaverAttributes(context: Gw2ModifierContext, attributes: Schedul
   if (!hasTrait(context, 'Elemental Polyphony')) return attributes;
   const modified = { ...attributes };
   const active = elementalistAttunements(context);
-  const runtimeCore = (context.runtime?.profession as ElementalistRuntimeState | undefined)?.core;
-  if (runtimeCore?.secondaryAttunement == null && typeof context.config?.secondaryAttunement === 'string') {
-    active.add(context.config.secondaryAttunement);
-  }
+  const runtime = context.runtime?.profession as ElementalistRuntimeState | undefined;
+  const secondary =
+    runtime?.specialization.kind === 'Weaver'
+      ? runtime.specialization.state.secondaryAttunement
+      : context.config?.secondaryAttunement;
+  if (typeof secondary === 'string') active.add(secondary);
 
   const attributeBonus = elementalistBalanceValue(context, PROFILE.elementalPolyphony, 'attributeBonus', 200);
   if (active.has('Fire')) {

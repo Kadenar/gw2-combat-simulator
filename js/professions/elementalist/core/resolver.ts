@@ -10,8 +10,7 @@ import type {
   Gw2ResolverEvent,
   Gw2ResolverRuntime
 } from '../../../platform/gw2/types.js';
-import { isElementalistAttunement, type ElementalistAuraState, type ElementalistCoreState } from './state.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '../data/ids.js';
+import type { ElementalistAuraState, ElementalistCoreState } from './state.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE,
   elementalistBalanceEffect,
@@ -218,19 +217,6 @@ export function applyElementalistResolverAura(context: Gw2ResolverRuntime, event
     context.resolved.push(event);
   }
 
-  if (hasTrait(context, 'Empowering Auras')) {
-    const maximumStacks = elementalistBalanceValue(context, TRAIT.EMPOWERING_AURAS, 'maximumStacks', 5);
-    const duration = elementalistBalanceValue(context, TRAIT.EMPOWERING_AURAS, 'durationMultiplier', 10);
-    const current = activeElementalistBuffs(context, 'Empowering Auras', event.at);
-    refreshElementalistBuffs(context, 'Empowering Auras', event.at, () => event.at + duration);
-    const activeStacks = current.reduce((total, application) => total + Number(application.stacks || 1), 0);
-    if (activeStacks < maximumStacks) {
-      queueElementalistBuff(context, event, 'Empowering Auras', 1, duration, skillName);
-    }
-
-    recordElementalistTraitProc(context, event, 'Empowering Auras');
-  }
-
   if (context.combatStartTime != null && event.at < context.combatStartTime) {
     return;
   }
@@ -265,35 +251,6 @@ export function applyElementalistResolverAura(context: Gw2ResolverRuntime, event
         String(protection?.boon || 'Protection'),
         Number(protection?.stacks ?? 1),
         Number(protection?.duration ?? 3),
-        skillName
-      );
-    }
-
-    if (hasTrait(context, 'Invigorating Torrents')) {
-      for (const [name, kind] of [
-        ['Vigor', 'Vigor'],
-        ['Regeneration', 'Regeneration']
-      ] as const) {
-        const effect = elementalistBalanceEffect(context, TRAIT.INVIGORATING_TORRENTS, 'boon', name);
-        queueElementalistBuff(
-          context,
-          event,
-          String(effect?.boon || kind),
-          Number(effect?.stacks ?? 1),
-          Number(effect?.duration ?? 5),
-          skillName
-        );
-      }
-    }
-
-    if (hasTrait(context, 'Elemental Bastion')) {
-      const alacrity = elementalistBalanceEffect(context, TRAIT.ELEMENTAL_BASTION, 'boon', 'Alacrity');
-      queueElementalistBuff(
-        context,
-        event,
-        String(alacrity?.boon || 'Alacrity'),
-        Number(alacrity?.stacks ?? 1),
-        Number(alacrity?.duration ?? 4),
         skillName
       );
     }
@@ -398,16 +355,6 @@ export function applyElementalistResolvedCondition(
   }
 
   if (event.condition === 'Burning') grantPersistingFlames(context, event);
-}
-
-export function applyElementalistResolverAttunement(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  const core = coreState(context);
-  if (isElementalistAttunement(event.to)) {
-    core.primaryAttunement = event.to;
-  }
-
-  core.secondaryAttunement = isElementalistAttunement(event.secondaryAttunement) ? event.secondaryAttunement : null;
-  core.attunementEnteredAt = event.at;
 }
 
 export function applyElementalistResolverSignetFire(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {

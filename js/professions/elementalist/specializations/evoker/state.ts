@@ -10,6 +10,7 @@ export interface EvokerState {
   electricEnchantmentStacks: number;
   elementalBalanceProgress: number;
   elementalBalanceUntil: number;
+  attunementTraitProcReadyAt: Record<string, number>;
   igniteTier: number;
   igniteLastUsedAt: number;
   ignitePassiveReadyAt: number;
@@ -58,6 +59,7 @@ export const evokerState = defineProfessionSpecializationState(
       electricEnchantmentStacks: 0,
       elementalBalanceProgress: 0,
       elementalBalanceUntil: 0,
+      attunementTraitProcReadyAt: {},
       igniteTier: 0,
       igniteLastUsedAt: Number.NEGATIVE_INFINITY, // guarantees first use always starts at tier 0 without a special-case check
       ignitePassiveReadyAt: 0,
@@ -72,3 +74,24 @@ export const evokerState = defineProfessionSpecializationState(
 );
 
 export const createEvokerState = evokerState.create;
+
+// Evoker owns familiar resources and its public element/enchantment state.
+export const EVOKER_PUBLIC_END_STATE_KEYS = Object.freeze([
+  'element',
+  'charges',
+  'maximumCharges',
+  'empowered',
+  'electricEnchantmentStacks',
+  'elementalBalanceProgress',
+  'elementalBalanceUntil'
+] as const satisfies readonly (keyof EvokerState)[]);
+
+export const EVOKER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<EvokerState>> = Object.freeze({
+  element: 'Fire',
+  charges: 0,
+  maximumCharges: 6,
+  empowered: 0,
+  electricEnchantmentStacks: 0,
+  elementalBalanceProgress: 0,
+  elementalBalanceUntil: 0
+});

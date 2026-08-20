@@ -21,17 +21,33 @@ import {
   type ElementalistAttunement
 } from '../../core/state.js';
 import { weaverState } from './state.js';
-import { elementalistBalanceEffect, elementalistBalanceValue, elementalistEffectValue } from '../../core/profiles.js';
+import {
+  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
+  elementalistBalanceEffect,
+  elementalistBalanceValue,
+  elementalistEffectValue
+} from '../../core/profiles.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
+import { applyWeaverPistolState } from './pistol.js';
+import { emitProfiledBuff, emitProfiledCondition, skillWeapon } from '../../core/mechanics.js';
+import {
+  elementalistAttunementRechargeDuration,
+  onAttunementComplete,
+  targetAttunement
+} from '../../core/attunements.js';
+import { applyWeaverHammerState, weaverHammerAvailability } from './hammer.js';
+import { weaverDualAttunements } from './skills.js';
 
 const WEAVE_SELF_ACTIVATION_TASK = 'elementalist.weave-self-activation';
+const WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
 
 function initialize(context: ElementalistSchedulerContext): void {
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
-  core.secondaryAttunement = isElementalistAttunement(context.config.secondaryAttunement)
+  const state = weaverState.from(context);
+  state.secondaryAttunement = isElementalistAttunement(context.config.secondaryAttunement)
     ? context.config.secondaryAttunement
     : core.primaryAttunement;
-  if (core.primaryAttunement === core.secondaryAttunement && hasTrait(context as never, 'Elements of Rage')) {
+  if (core.primaryAttunement === state.secondaryAttunement && hasTrait(context as never, 'Elements of Rage')) {
     emitElementalistBuff(
       context as never,
       context.state.time,
@@ -54,19 +70,23 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
     };
   }
 
+  const hammerAvailability = weaverHammerAvailability(context, skill);
+  if (hammerAvailability) return hammerAvailability as AvailabilityResult;
+
   const chainPosition = context.catalog.autoattackChainPositions.get(Number(skill.id));
   if (skill.type === 'Weapon' && skill.attunement && !chainPosition) {
     const core = elementalistCoreState(context as unknown as SchedulerRecord);
+    const state = weaverState.from(context);
     const attunement = String(skill.attunement);
-    const required = attunement.split('+');
-    const secondary = core.secondaryAttunement || core.primaryAttunement;
+    const dualAttunements = weaverDualAttunements(skill);
+    const required = dualAttunements || [attunement];
+    const secondary = state.secondaryAttunement || core.primaryAttunement;
     const slot = Number(String(skill.slot || '').match(/(\d+)$/)?.[1] || 0);
     const unravelActive = weaverState.from(context).unravelUntil > context.start;
     const available = unravelActive
       ? required.length === 1 && required[0] === core.primaryAttunement
-      : required.length > 1
+      : dualAttunements
         ? slot === 3 &&
-          required.length === 2 &&
           required.every((element) => [core.primaryAttunement, secondary].includes(element as ElementalistAttunement))
         : slot <= 2
           ? required[0] === core.primaryAttunement
@@ -98,6 +118,20 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
 }
 
 function onEventScheduled(context: ElementalistSchedulerContext, event: SimulationEvent): void {
+  if (event.type === 'control' && event.actorType === 'player' && hasTrait(context, 'Elemental Pursuit')) {
+    emitProfiledBuff(
+      context as never,
+      event.at,
+      PROFILE.elementalPursuit,
+      'Swiftness',
+      'Swiftness',
+      1,
+      3,
+      'Elemental Pursuit',
+      event.skillId ?? event.sourceId
+    );
+  }
+
   if (
     event.type !== 'elementalist.attunement' ||
     event.skillName === 'Unravel' ||
@@ -118,7 +152,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
   const weaveSelfActive = state.weaveSelfUntil > at;
 
   if (unravelActive) {
-    core.secondaryAttunement = target;
+    state.secondaryAttunement = target;
     context.replaceEvent(event, { secondaryAttunement: target });
   }
 
@@ -218,10 +252,69 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   const state = weaverState.from(context);
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = context.effectiveEnd;
+  const dualAttunements = weaverDualAttunements(skill);
+  const target = targetAttunement(skill);
+  if (target) {
+    const previous = core.primaryAttunement;
+    state.secondaryAttunement = state.unravelUntil > at ? target : previous;
+    const baseRecharge = Math.max(
+      0,
+      WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS -
+        (hasTrait(context, 'Flow State')
+          ? elementalistBalanceValue(context, PROFILE.flowState, 'rechargeReduction', 1)
+          : 0)
+    );
+    onAttunementComplete(context, skill, target, {
+      secondaryAttunement: state.secondaryAttunement,
+      rechargeDuration: elementalistAttunementRechargeDuration(context, baseRecharge)
+    });
+    (context as unknown as SchedulerRecord).elementalistAttunementHandled = true;
+  }
+
+  applyWeaverPistolState(context, skill);
+  applyWeaverHammerState(context, skill);
+
+  if (hasTrait(context, 'Bolstered Elements') && skill.skillFamily === 'Stance') {
+    emitProfiledBuff(context, at, PROFILE.bolsteredElements, 'Protection', 'Protection', 1, 3, skill.name, skill.id);
+  }
+
+  if (hasTrait(context, 'Swift Revenge') && dualAttunements) {
+    for (const element of dualAttunements) {
+      if (element === 'Fire') {
+        emitProfiledBuff(context, at, PROFILE.swiftRevenge, 'Fire', 'Might', 3, 5, skill.name, skill.id);
+      } else if (element === 'Air') {
+        emitProfiledBuff(context, at, PROFILE.swiftRevenge, 'Air', 'Swiftness', 1, 5, skill.name, skill.id);
+      } else if (element === 'Earth') {
+        core.endurance = Math.min(
+          elementalistBalanceValue(context, CORE_PROFILE.resources, 'maximumStacks', 100),
+          core.endurance + elementalistBalanceValue(context, PROFILE.swiftRevenge, 'resourceGain', 25)
+        );
+      }
+    }
+  }
+
+  if (
+    hasTrait(context, 'Superior Elements') &&
+    dualAttunements &&
+    state.superiorElementsReadyAt <= at + context.epsilon
+  ) {
+    state.superiorElementsReadyAt =
+      at + elementalistBalanceValue(context, PROFILE.superiorElements, 'internalCooldown', 4);
+    emitProfiledCondition(context, at, PROFILE.superiorElements, 'Weakness', 'Weakness', 1, 5, skill.name, skill.id);
+  }
+
+  if (
+    skillWeapon(skill) === 'Spear' &&
+    String(skill.slot || '') === 'Weapon_3' &&
+    dualAttunements &&
+    core.primaryAttunement !== state.secondaryAttunement
+  ) {
+    setElementalistAttunementReadyAt(context, core.primaryAttunement, at);
+  }
   if (skill.name === 'Unravel') {
     const previousPrimary = core.primaryAttunement;
-    const previousSecondary = core.secondaryAttunement;
-    core.secondaryAttunement = core.primaryAttunement;
+    const previousSecondary = state.secondaryAttunement;
+    state.secondaryAttunement = core.primaryAttunement;
     state.unravelUntil = at + elementalistBalanceValue(context, PROFILE.unravel, 'durationMultiplier', 5);
     core.attunementEnteredAt = at;
     context.emit({
@@ -236,7 +329,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
       from: previousPrimary,
       fromSecondaryAttunement: previousSecondary,
       to: core.primaryAttunement,
-      secondaryAttunement: core.secondaryAttunement
+      secondaryAttunement: state.secondaryAttunement
     });
     for (const attunement of Object.keys(core.attunementReadyAt)) {
       setElementalistAttunementReadyAt(context, attunement as keyof typeof core.attunementReadyAt, at);
@@ -269,7 +362,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
     }
   }
 
-  if (String(skill.attunement || '').includes('+') && state.ferventStanceUntil >= at) {
+  if (dualAttunements && state.ferventStanceUntil >= at) {
     const might = elementalistBalanceEffect(context, PROFILE.ferventStance, 'boon', 'Might');
     emitElementalistBuff(
       context as never,
@@ -368,9 +461,10 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
 
 function handlePrimordialStanceTick(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  const state = weaverState.from(context);
   const sourceId = (task.payload?.sourceId || 'primordial-stance') as Skill['id'];
-  const attunements = core.secondaryAttunement
-    ? [core.primaryAttunement, core.secondaryAttunement]
+  const attunements = state.secondaryAttunement
+    ? [core.primaryAttunement, state.secondaryAttunement]
     : [core.primaryAttunement];
   const effects: Readonly<Record<string, readonly [string, number, number]>> = {
     Fire: ['Burning', 1, 2],
@@ -407,13 +501,28 @@ function handlePrimordialStanceTick(context: ElementalistSchedulerContext, task:
   }
 }
 
+function modifyRechargeDuration(context: ElementalistPrecastContext, duration: number): number {
+  const skill = context.skill;
+  let adjusted = duration;
+  if (skill.name === 'Purblinding Plasma' && elementalistCoreState(context).pistolBullets.Air) {
+    adjusted *= elementalistBalanceValue(context, PROFILE.purblindingPlasma, 'rechargeMultiplier', 2 / 3);
+  }
+
+  if (String(skill.slot) === 'Weapon_3' && weaverDualAttunements(skill) && hasTrait(context, 'Flow State')) {
+    adjusted *= elementalistBalanceValue(context, PROFILE.flowState, 'rechargeMultiplier', 0.8);
+  }
+
+  return adjusted;
+}
+
 export const weaverCastRules = Object.freeze({
   availability: {
     id: 'elementalist.weaver-availability',
     order: 30,
     handler: availability
   },
-  modifyRechargeStart
+  modifyRechargeStart,
+  modifyRechargeDuration
 });
 
 export const weaverAttributeRules = Object.freeze({
@@ -439,7 +548,7 @@ export const weaverSchedulerHooks = Object.freeze({
   },
   onCastComplete: {
     id: 'elementalist.weaver-complete',
-    order: 30,
+    order: 5,
     handler: onCastComplete
   },
   onEventScheduled: {

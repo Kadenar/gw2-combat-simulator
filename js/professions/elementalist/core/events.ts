@@ -5,13 +5,7 @@ export function prepareElementalistHitboxEvent(
   context: ElementalistSchedulerContext,
   event: SimulationEventInput
 ): SimulationEventInput {
-  const skill =
-    context.catalog.skillsById.get(event.skillId ?? event.sourceId) ||
-    context.catalog.skillsByName.get(String(event.skillName || event.name));
-  const preparedEvent =
-    skill?.overload && String(event.skillName || event.name || '') === skill.name
-      ? { ...event, skillWeapon: 'Profession mechanic' }
-      : event;
+  const preparedEvent = event;
   const professionAssumptions = (context.config.professionAssumptions || {}) as SchedulerRecord;
   const hitboxSize = String(professionAssumptions.hitboxSize || context.config.hitboxSize || 'small');
   if (hitboxSize !== 'small') return preparedEvent;
