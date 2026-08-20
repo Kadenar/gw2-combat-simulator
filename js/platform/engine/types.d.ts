@@ -942,6 +942,7 @@ export interface ProfessionSchedulerHookDefinition {
   readonly onCastComplete?: unknown;
   readonly onCooldownReset?: unknown;
   readonly onEventScheduled?: unknown;
+  readonly onWeaponSwap?: unknown;
   readonly modifyCastDuration?: unknown;
   readonly modifyRechargeDuration?: unknown;
   readonly modifyRechargeStart?: unknown;
@@ -1060,6 +1061,7 @@ export interface NormalizedProfessionContract<TProfessionState extends object = 
   readonly onCastComplete: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;
   readonly onCooldownReset: (context: SchedulerContext<TProfessionState>) => unknown;
   readonly onEventScheduled: (context: SchedulerContext<TProfessionState>, event: SimulationEvent) => unknown;
+  readonly onWeaponSwap: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;
   readonly modifyCastDuration: (context: CastContext<TProfessionState>, duration: number) => number;
   readonly modifyRechargeDuration: (
     context: SchedulerContext<TProfessionState> & SchedulerRecord,

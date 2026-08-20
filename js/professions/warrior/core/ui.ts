@@ -20,9 +20,7 @@ import type { WarriorSimulationEvent, WarriorSkill, WarriorState, WarriorUiConte
 /** Signet Mastery caps at 5 stacks, each granting +100 ferocity. */
 const SIGNET_MASTERY_MAX_STACKS = 5;
 
-let warriorCatalog: Readonly<CanonicalCatalog>;
-
-const REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze({
+export const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze({
   Axe: ID.EVISCERATE,
   Dagger: ID.BREACHING_STRIKE,
   Greatsword: ID.ARCING_SLICE,
@@ -33,19 +31,6 @@ const REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze
   Spear: ID.HARRIERS_TOSS,
   Staff: ID.PATH_TO_VICTORY,
   Sword: ID.BLOODTHIRSTER
-});
-
-const PRIMAL_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze({
-  Axe: ID.DECAPITATE,
-  Dagger: ID.SLICING_MAELSTROM,
-  Greatsword: ID.ARC_DIVIDER,
-  Hammer: ID.RUPTURING_SMASH,
-  Longbow: ID.SCORCHED_EARTH,
-  Mace: ID.SKULL_GRINDER,
-  Rifle: ID.GUN_FLAME,
-  Spear: ID.WILD_THROW,
-  Staff: ID.RAMPART_SPLITTER,
-  Sword: ID.FLAMING_FLURRY
 });
 
 export function warriorUiState(context: WarriorUiContext = {}): Partial<WarriorState> {
@@ -66,19 +51,6 @@ export function formatSecondsRemaining(seconds: number): string {
   return `${Math.max(0, seconds).toFixed(1)}s`;
 }
 
-export function warriorBurstSkillIds(): number[] {
-  return warriorCatalog.skills
-    .filter(
-      (skill) =>
-        skill.burst && !skill.primalBurst && !skill.dragonSlash && skill.implemented && !skill.simulatorExcluded
-    )
-    .map((skill) => Number(skill.id));
-}
-
-function burstMapForSpecialization(specialization: string): Readonly<Record<string, number>> {
-  return specialization === 'Berserker' ? PRIMAL_BURSTS_BY_WEAPON : REGULAR_BURSTS_BY_WEAPON;
-}
-
 function selectedPrimaryWeapon(context: WarriorUiContext, weaponSet: 1 | 2): string {
   if (context.build) {
     return String(weaponSet === 1 ? context.build.weapons?.[0] || '' : context.build.alternateWeapons?.[0] || '');
@@ -87,28 +59,31 @@ function selectedPrimaryWeapon(context: WarriorUiContext, weaponSet: 1 | 2): str
   return String(weaponSet === 1 ? context.config?.primaryWeapon || '' : context.config?.weaponSet2Primary || '');
 }
 
-function weaponSetBurstSkillId(context: WarriorUiContext, weaponSet: 1 | 2): number | undefined {
-  const specialization = warriorUiSpecialization(context);
-  if (specialization === 'Bladesworn') return undefined;
-  return burstMapForSpecialization(specialization)[selectedPrimaryWeapon(context, weaponSet)];
+function weaponSetBurstSkillId(
+  context: WarriorUiContext,
+  weaponSet: 1 | 2,
+  burstsByWeapon: Readonly<Record<string, number>>
+): number | undefined {
+  return burstsByWeapon[selectedPrimaryWeapon(context, weaponSet)];
 }
 
-function warriorProfessionSkillIds(context: WarriorUiContext, professionSkillIds: readonly number[]): number[] {
-  const specialization = warriorUiSpecialization(context);
-  const weaponBursts =
-    specialization === 'Bladesworn'
-      ? []
-      : ([1, 2] as const)
-          .map((weaponSet) => weaponSetBurstSkillId(context, weaponSet))
-          .filter((skillId): skillId is number => Number.isFinite(skillId));
+function warriorProfessionSkillIds(
+  context: WarriorUiContext,
+  professionSkillIds: readonly number[],
+  burstsByWeapon: Readonly<Record<string, number>>
+): number[] {
+  const weaponBursts = ([1, 2] as const)
+    .map((weaponSet) => weaponSetBurstSkillId(context, weaponSet, burstsByWeapon))
+    .filter((skillId): skillId is number => Number.isFinite(skillId));
   return [...new Set([...weaponBursts, ...professionSkillIds])];
 }
 
 export function warriorPaletteGroups(
   context: WarriorUiContext,
-  professionSkillIds: readonly number[] = []
+  professionSkillIds: readonly number[] = [],
+  burstsByWeapon: Readonly<Record<string, number>> = WARRIOR_REGULAR_BURSTS_BY_WEAPON
 ): ProfessionPaletteGroup[] {
-  const skillIds = warriorProfessionSkillIds(context, professionSkillIds);
+  const skillIds = warriorProfessionSkillIds(context, professionSkillIds, burstsByWeapon);
   return [
     {
       id: 'profession',
@@ -128,13 +103,14 @@ export function warriorPaletteGroups(
 
 export function warriorSkillBarGroups(
   context: WarriorUiContext,
-  professionSkillIds: readonly number[] = []
+  professionSkillIds: readonly number[] = [],
+  burstsByWeapon: Readonly<Record<string, number>> = WARRIOR_REGULAR_BURSTS_BY_WEAPON
 ): ProfessionSkillBarGroup[] {
   return [
     {
       id: 'warrior-f-keys',
       label: 'F Keys',
-      skillIds: warriorProfessionSkillIds(context, professionSkillIds),
+      skillIds: warriorProfessionSkillIds(context, professionSkillIds, burstsByWeapon),
       color: '#d79b55',
       className: 'warrior-burst-f-keys',
       layout: 'warrior-burst'
@@ -142,9 +118,9 @@ export function warriorSkillBarGroups(
   ];
 }
 
-function resourceViews(context: WarriorUiContext): ProfessionResourceView[] {
+/** Presents the shared adrenaline state with the cap selected by the active slice. */
+export function warriorAdrenalineResourceViews(context: WarriorUiContext): ProfessionResourceView[] {
   const state = warriorUiState(context);
-  if (warriorUiSpecialization(context) === 'Bladesworn') return [];
   return [
     {
       id: 'adrenaline',
@@ -166,55 +142,23 @@ function resourceViews(context: WarriorUiContext): ProfessionResourceView[] {
   ];
 }
 
-function availability(context: WarriorUiContext, skill: WarriorSkill): PaletteSkillAvailability {
-  const specialization = warriorUiSpecialization(context);
-  const state = warriorUiState(context);
+/** Restricts a weapon burst to the weapon set that supplied it. */
+export function warriorBurstPaletteAvailability(
+  context: WarriorUiContext,
+  skill: WarriorSkill,
+  burstsByWeapon: Readonly<Record<string, number>> = WARRIOR_REGULAR_BURSTS_BY_WEAPON
+): PaletteSkillAvailability {
   const activeWeaponSet = Number(context.activeWeaponSet) === 2 ? 2 : 1;
-  const activeBurstSkillId = weaponSetBurstSkillId(context, activeWeaponSet);
-  const weaponSetBurstIds = ([1, 2] as const).map((weaponSet) => weaponSetBurstSkillId(context, weaponSet));
+  const activeBurstSkillId = weaponSetBurstSkillId(context, activeWeaponSet, burstsByWeapon);
+  const weaponSetBurstIds = ([1, 2] as const).map((weaponSet) =>
+    weaponSetBurstSkillId(context, weaponSet, burstsByWeapon)
+  );
   if (weaponSetBurstIds.includes(Number(skill.id)) && activeBurstSkillId !== Number(skill.id)) {
     const requiredWeaponSet = weaponSetBurstIds.indexOf(Number(skill.id)) + 1;
     return {
       available: false,
       message: `Switch to weapon set ${requiredWeaponSet}`
     };
-  }
-
-  if (skill.primalBurst && !state.berserkActive) return { available: false, message: 'Enter berserk mode first' };
-  if (skill.handlerId === 'warrior.berserk' && state.berserkActive)
-    return { available: false, message: 'Already in berserk mode' };
-  // Keep the stow action usable while authoring or inserting rotation steps.
-  // The scheduler still rejects an attempted stow when Gunsaber is inactive.
-  if (skill.id === ID.SHEATHE_GUNSABER) {
-    return specialization === 'Bladesworn'
-      ? { available: true, message: '' }
-      : { available: false, message: 'Requires Bladesworn' };
-  }
-
-  if (skill.gunsaberSkill) {
-    if (specialization !== 'Bladesworn') return { available: false, message: 'Requires Bladesworn' };
-    if ((skill.dragonSlash || skill.dragonTriggerSkill) && !state.dragonTriggerActive) {
-      return { available: false, message: 'Enter Dragon Trigger first' };
-    }
-
-    if (!skill.dragonSlash && !skill.dragonTriggerSkill && !state.gunsaberActive)
-      return { available: false, message: 'Unsheathe the gunsaber first' };
-    if (state.dragonTriggerActive && !skill.dragonSlash && !skill.dragonTriggerSkill) {
-      return { available: false, message: 'Finish Dragon Trigger first' };
-    }
-  }
-
-  if (
-    specialization === 'Bladesworn' &&
-    (state.gunsaberActive || state.dragonTriggerActive) &&
-    skill.type === 'Weapon' &&
-    Boolean(skill.weapon)
-  ) {
-    return { available: false, message: 'Sheathe the gunsaber first' };
-  }
-
-  if (skill.id === ID.UNSHEATHE_GUNSABER && state.gunsaberActive) {
-    return { available: false, message: 'Gunsaber is already active' };
   }
 
   return { available: true, message: '' };
@@ -288,12 +232,15 @@ export const warriorCoreUi: Partial<ProfessionUiContract> = Object.freeze({
   rotationStateSnapshot: warriorCoreStateSnapshot,
   paletteGroups: (context) => (warriorUiSpecialization(context) === 'Core' ? warriorPaletteGroups(context) : []),
   skillBarGroups: (context) => (warriorUiSpecialization(context) === 'Core' ? warriorSkillBarGroups(context) : []),
-  resourceViews,
-  paletteSkillAvailability: availability,
+  resourceViews: (context) =>
+    warriorUiSpecialization(context) === 'Core' ? warriorAdrenalineResourceViews(context) : [],
+  paletteSkillAvailability: (context, skill) =>
+    warriorUiSpecialization(context) === 'Core'
+      ? warriorBurstPaletteAvailability(context, skill as WarriorSkill)
+      : { available: true, message: '' },
   targetHealthThresholds: () => [0.8, 0.5, 0.25]
 });
 
-export function bindWarriorCoreUi(catalog: Readonly<CanonicalCatalog>): typeof warriorCoreUi {
-  warriorCatalog = catalog;
+export function bindWarriorCoreUi(_catalog: Readonly<CanonicalCatalog>): typeof warriorCoreUi {
   return warriorCoreUi;
 }

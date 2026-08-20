@@ -13,6 +13,7 @@ import {
 } from './dragon-trigger.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '../../types.js';
 import { warriorBalanceProfile } from '../../core/profiles.js';
+import { syncWarriorAdrenaline } from '../../core/resources.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import {
   advanceBladesworn,
@@ -34,6 +35,7 @@ export const bladeswornSchedulerHooks = Object.freeze({
     state.maximumFlow = Number(warriorBalanceProfile(context, PROFILE.resources)?.maximumStacks ?? 100);
     state.flow = Math.min(state.maximumFlow, state.flow);
     professionCoreState(context).maximumAdrenaline = 0;
+    syncWarriorAdrenaline(context);
   },
   advance: { id: 'warrior.flow', order: 20, handler: advanceBladesworn },
   afterCast: {
@@ -113,6 +115,15 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 
 function availability(context: WarriorCastContext, skill: WarriorSkill): AvailabilityResult {
   const state = bladeswornState.from(context);
+  if (skill.burst && !skill.dragonSlash) {
+    return {
+      ready: false,
+      retryAt: null,
+      code: 'warrior.flow',
+      reason: 'Bladesworn replaces weapon bursts with Dragon Slash.'
+    };
+  }
+
   if (skill.id === ID.SWAP_WEAPONS) {
     return {
       ready: false,

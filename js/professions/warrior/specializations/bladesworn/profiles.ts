@@ -3,6 +3,7 @@ import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/
 
 export const BLADESWORN_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'warrior.bladesworn.flow',
+  burstMastery: 'warrior.bladesworn.burst-mastery',
   dragonTrigger: 'warrior.bladesworn.dragon-trigger',
   artillerySlash: 'warrior.bladesworn.artillery-slash',
   overchargedCartridges: 'warrior.bladesworn.overcharged-cartridges',
@@ -46,6 +47,13 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     resourceCost: 5,
     pulseInterval: 0.25,
     cooldown: 30,
+    effects: []
+  },
+  {
+    id: BLADESWORN_BALANCE_PROFILE_IDS.burstMastery,
+    name: 'Bladesworn Burst Mastery Conversion',
+    profileKind: 'mechanic',
+    resourceGain: 0.2,
     effects: []
   },
   {

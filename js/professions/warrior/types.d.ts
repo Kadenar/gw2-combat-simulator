@@ -107,7 +107,7 @@ export interface BladeswornState {
   gunsAndGloryUntil: number;
   ammoRoundsSpentByActivation: Record<string, number>;
   ammoStartedFullByActivation: Record<string, boolean>;
-  dragonChargesSpentByActivation: Record<string, number>;
+  dragonAdrenalineSpentByActivation: Record<string, number>;
 }
 
 export interface ParagonState {
@@ -157,6 +157,7 @@ export interface WarriorSkill extends Skill {
   readonly gunsaberSkill?: boolean;
   readonly dragonTriggerSkill?: boolean;
   readonly shadowstepSkill?: boolean;
+  readonly movementSkill?: boolean;
   readonly dragonSlash?: boolean;
   readonly dragonSlashMinimumCoefficient?: number;
   readonly dragonSlashMaximumCoefficient?: number;

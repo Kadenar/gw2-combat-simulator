@@ -1,4 +1,5 @@
 import { augmentSkillHandler, replaceSkillHandler } from '../../../platform/engine/skill-handlers.js';
+import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/weapon-swap.js';
 import { completeThiefDodge, performThiefDodge } from './dodge.js';
 import {
   activateSpiderVenom,
@@ -10,7 +11,7 @@ import {
   prepareSpearStealthAttack,
   prepareThousandNeedles
 } from './conditions.js';
-import { activateAssassinsSignet, kneel, stand, summonThievesGuild, swapThiefWeapons } from './actions.js';
+import { activateAssassinsSignet, kneel, stand, summonThievesGuild } from './actions.js';
 import { completeSteal, consumeStoredStolenSkill } from './steal.js';
 import { beginStealthAttack, completeStealthAttack } from './stealth.js';
 import type { SkillHandlerPhase } from '../../../platform/engine/types.js';
@@ -46,7 +47,7 @@ export const thiefCoreSkillHandlers = Object.freeze({
   'thief.thousand-needles': augmentAfter(activateThousandNeedles),
   'thief.assassins-signet': augmentAfter(activateAssassinsSignet),
   'thief.thieves-guild': augmentAfter(summonThievesGuild),
-  'thief.weapon-swap': replaceSkillHandler(swapThiefWeapons),
+  'thief.weapon-swap': gw2WeaponSwapSkillHandler,
   'thief.kneel': augmentAfter(kneel),
   'thief.free-action': augmentAfter(stand)
 });

@@ -4,6 +4,7 @@ import { necromancerMinionSkillHandlers } from './minions.js';
 import { necromancerShroudSkillHandlers } from './shroud.js';
 import { necromancerWeaponSkillHandlers } from './weapons.js';
 import { augmentSkill, replaceSkill } from '../../../platform/gw2/native-profession.js';
+import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/weapon-swap.js';
 
 const handlers = Object.freeze({
   'necromancer.shroud': replaceSkill({
@@ -12,9 +13,7 @@ const handlers = Object.freeze({
   'necromancer.lich': replaceSkill({
     beforeEffects: necromancerShroudSkillHandlers['necromancer.lich']
   }),
-  'necromancer.weapon-swap': replaceSkill({
-    beforeEffects: rawCoreHandlers['necromancer.weapon-swap']
-  }),
+  'necromancer.weapon-swap': gw2WeaponSwapSkillHandler,
   'necromancer.flip': augmentSkill({
     beforeEffects: rawCoreHandlers['necromancer.flip']
   }),

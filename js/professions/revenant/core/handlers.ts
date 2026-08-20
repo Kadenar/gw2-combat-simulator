@@ -1,5 +1,6 @@
 import { augmentSkill, replaceSkill } from '../../../platform/gw2/native-profession.js';
 import { SKILL_HANDLER_MODES } from '../../../platform/engine/skill-handlers.js';
+import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/weapon-swap.js';
 import type { SkillHandlerPhase } from '../../../platform/engine/types.js';
 import type { RevenantCastContext, RevenantSimulationEvent, RevenantSkill } from '../types.js';
 import { gainAncientEchoEnergy, revenantCoreSkillHandlers as rawCoreHandlers } from './actions.js';
@@ -8,9 +9,7 @@ import { revenantSpearSkillHandlers } from './spear.js';
 import { revenantUpkeepSkillHandlers } from './upkeep.js';
 
 const handlers = Object.freeze({
-  'revenant.weapon-swap': replaceSkill<RevenantCastContext>({
-    afterEffects: rawCoreHandlers['revenant.weapon-swap'] as SkillHandlerPhase<RevenantCastContext>
-  }),
+  'revenant.weapon-swap': gw2WeaponSwapSkillHandler,
   'revenant.legend-swap': replaceSkill<RevenantCastContext>({
     afterEffects: rawCoreHandlers['revenant.legend-swap'] as SkillHandlerPhase<RevenantCastContext>
   }),

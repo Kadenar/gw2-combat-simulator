@@ -26,7 +26,7 @@ export function createBladeswornState(config: WarriorConfig = {}): BladeswornSta
     gunsAndGloryUntil: 0,
     ammoRoundsSpentByActivation: {},
     ammoStartedFullByActivation: {},
-    dragonChargesSpentByActivation: {}
+    dragonAdrenalineSpentByActivation: {}
   };
 }
 

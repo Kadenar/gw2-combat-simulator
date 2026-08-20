@@ -7,11 +7,12 @@ import {
   warriorUiState
 } from '../../core/ui.js';
 import type {
+  PaletteSkillAvailability,
   ProfessionResourceView,
   ProfessionUiContract,
   RotationStateSnapshotItem
 } from '../../../../platform/engine/types.js';
-import type { WarriorUiContext } from '../../types.js';
+import type { WarriorSkill, WarriorUiContext } from '../../types.js';
 import { dragonChargeReleaseProjection } from './charge-release.js';
 
 const PROFESSION_SKILLS = Object.freeze([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
@@ -27,6 +28,7 @@ const GUNSABER_SKILLS = Object.freeze([
   ID.BREAK_STEP
 ]);
 const PALETTE_STACK_ID = 'bladesworn-profession';
+const NO_WEAPON_BURSTS: Readonly<Record<string, number>> = Object.freeze({});
 
 function resources(context: WarriorUiContext): ProfessionResourceView[] {
   const state = warriorUiState(context);
@@ -49,10 +51,40 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
   ];
 }
 
+/** Presents gunsaber and Dragon Trigger gates owned by the Bladesworn slice. */
+function availability(context: WarriorUiContext, skill: WarriorSkill): PaletteSkillAvailability {
+  const state = warriorUiState(context);
+  // Keep the stow action usable while authoring; the scheduler validates live state.
+  if (skill.id === ID.SHEATHE_GUNSABER) return { available: true, message: '' };
+  if (skill.gunsaberSkill) {
+    if ((skill.dragonSlash || skill.dragonTriggerSkill) && !state.dragonTriggerActive) {
+      return { available: false, message: 'Enter Dragon Trigger first' };
+    }
+
+    if (!skill.dragonSlash && !skill.dragonTriggerSkill && !state.gunsaberActive) {
+      return { available: false, message: 'Unsheathe the gunsaber first' };
+    }
+
+    if (state.dragonTriggerActive && !skill.dragonSlash && !skill.dragonTriggerSkill) {
+      return { available: false, message: 'Finish Dragon Trigger first' };
+    }
+  }
+
+  if ((state.gunsaberActive || state.dragonTriggerActive) && skill.type === 'Weapon' && Boolean(skill.weapon)) {
+    return { available: false, message: 'Sheathe the gunsaber first' };
+  }
+
+  if (skill.id === ID.UNSHEATHE_GUNSABER && state.gunsaberActive) {
+    return { available: false, message: 'Gunsaber is already active' };
+  }
+
+  return { available: true, message: '' };
+}
+
 export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
   chargeReleaseProjection: dragonChargeReleaseProjection,
   paletteGroups: (context: WarriorUiContext) => [
-    ...warriorPaletteGroups(context, PROFESSION_SKILLS).map((group) =>
+    ...warriorPaletteGroups(context, PROFESSION_SKILLS, NO_WEAPON_BURSTS).map((group) =>
       group.id === 'profession'
         ? {
             ...group,
@@ -87,7 +119,7 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
     }
   ],
   skillBarGroups: (context: WarriorUiContext) => [
-    ...warriorSkillBarGroups(context, PROFESSION_SKILLS),
+    ...warriorSkillBarGroups(context, PROFESSION_SKILLS, NO_WEAPON_BURSTS),
     {
       id: 'warrior-dragon-slash',
       label: 'Dragon Slash',
@@ -121,6 +153,7 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
     return undefined;
   },
   resourceViews: resources,
+  paletteSkillAvailability: availability,
   rotationStateSnapshot: (context: WarriorUiContext) => {
     const state = warriorUiState(context);
     const at = warriorSnapshotAt(context);

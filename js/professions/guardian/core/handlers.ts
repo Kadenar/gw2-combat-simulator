@@ -1,6 +1,6 @@
 import { augmentSkill, replaceSkill } from '../../../platform/gw2/native-profession.js';
+import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/weapon-swap.js';
 import { guardianVirtueSkillHandlers } from './virtues.js';
-import { guardianWeaponSkillHandlers } from './weapon-state.js';
 
 export const guardianCoreSkillHandlers = Object.freeze({
   'guardian.virtue': augmentSkill({
@@ -9,7 +9,5 @@ export const guardianCoreSkillHandlers = Object.freeze({
   'guardian.renewed-focus': replaceSkill({
     beforeEffects: guardianVirtueSkillHandlers['guardian.renewed-focus']
   }),
-  'guardian.weapon-swap': replaceSkill({
-    beforeEffects: guardianWeaponSkillHandlers['guardian.weapon-swap']
-  })
+  'guardian.weapon-swap': gw2WeaponSwapSkillHandler
 });

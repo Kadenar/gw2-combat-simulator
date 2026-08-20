@@ -7,7 +7,7 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../data/ids.j
 import { rangerCoreCastAvailability } from './availability.js';
 import { rangerPetByName, snapshotRangerState } from './state.js';
 import { advanceRangerResources } from './resources.js';
-import { completeRangerTraits } from './traits.js';
+import { applyRangerWeaponSwapTraits, completeRangerTraits } from './traits.js';
 import { updateRangerWeaponState } from './weapon-state.js';
 import { beginRangerPetCommand, observeRangerPetEvent, rangerPetTaskHandlers } from './pets.js';
 import type { SimulationEvent } from '../../../platform/engine/types.js';
@@ -45,7 +45,9 @@ export const rangerCoreSchedulerHooks = Object.freeze({
   },
   onCastComplete(context: RangerCastContext, skill: RangerSkill): void {
     completeRangerTraits(context, skill);
-  }
+  },
+  // Weapon-swap traits extend the shared transition without reimplementing it.
+  onWeaponSwap: applyRangerWeaponSwapTraits
 });
 
 /** Runs Core Ranger mechanics owned by one completed skill activation. */

@@ -11,7 +11,8 @@ import { enqueueOrdered } from '../../../platform/engine/event-queue.js';
 import type { ScheduledTask } from '../../../platform/engine/types.js';
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { gainWarriorAdrenaline, gainWarriorEndurance } from './resources.js';
+import { gainWarriorEndurance } from './resources.js';
+import { gainWarriorAdrenaline, warriorGainsAdrenalineOnHit } from '../resources.js';
 import {
   warriorBalanceProfile,
   warriorBalanceProfileEffect,
@@ -90,18 +91,12 @@ export const BRAVE_STRIDE_MOVEMENT_SKILL_IDS = Object.freeze([
   ID.AURA_SLICER,
   ID.GUNSTINGER,
   ID.DRAGONS_ROAR,
-  ID.BREAK_STEP,
-  ID.DRAGON_SLASH_BOOST,
   ID.BULLS_CHARGE,
   ID.KICK,
   ID.STOMP,
-  ID.SUNDERING_LEAP,
-  ID.DRAGONSPIKE_MINE,
-  ID.HEAD_BUTT,
   ID.EVISCERATE,
   ID.BREACHING_STRIKE,
-  ID.EARTHSHAKER,
-  ID.RUPTURING_SMASH
+  ID.EARTHSHAKER
 ]);
 const MOVEMENT_SKILL_IDS = new Set<number>(BRAVE_STRIDE_MOVEMENT_SKILL_IDS);
 
@@ -121,21 +116,21 @@ export function applyWarriorBurstSpendTraits(
   context: WarriorCastContext,
   skill: WarriorSkill,
   adrenalineSpent: number,
-  resourceSpent = adrenalineSpent
+  options: {
+    readonly resourceSpent?: number;
+    readonly resourceRefundRate?: number;
+  } = {}
 ): void {
   armBurstPrecision(context, skill, adrenalineSpent);
   if (!skill.burst || adrenalineSpent <= 0 || !hasTrait(context, TRAIT.BURST_MASTERY)) {
     return;
   }
 
-  const bladesworn = context.state.profession.specialization.kind === 'Bladesworn';
   const profile = warriorBalanceProfile(context, PROFILE.burstMastery);
   const swiftness = warriorBalanceProfileEffect(profile, 'boon');
-  gainWarriorAdrenaline(
-    context,
-    Math.max(0, resourceSpent) *
-      (bladesworn ? Number(profile?.bladeswornResourceGain || 0.2) : Number(profile?.resourceGain || 0.33))
-  );
+  const resourceSpent = Number(options.resourceSpent ?? adrenalineSpent);
+  const resourceRefundRate = Number(options.resourceRefundRate ?? profile?.resourceGain ?? 0.33);
+  gainWarriorAdrenaline(context, Math.max(0, resourceSpent) * resourceRefundRate);
   context.emit({
     type: 'buff',
     at: context.effectiveEnd + context.epsilon,
@@ -160,13 +155,7 @@ function berserkersPowerStacks(context: WarriorCastContext, skill: WarriorSkill,
   const tiers = warriorBalanceProfile(context, PROFILE.burstTiers);
   const tierTwo = Number(tiers?.threshold || 20);
   const tierThree = Number(tiers?.maximumStacks || 30);
-  return skill.primalBurst || context.config.specialization === 'Spellbreaker'
-    ? 2
-    : spent >= tierThree
-      ? 4
-      : spent >= tierTwo
-        ? 3
-        : 2;
+  return spent >= tierThree ? 4 : spent >= tierTwo ? 3 : 2;
 }
 
 export function grantBerserkersPowerOnFirstHit(
@@ -317,7 +306,7 @@ export function completeWarriorSkill(context: WarriorCastContext, skill: Warrior
     });
   }
 
-  if (MOVEMENT_SKILL_IDS.has(Number(skill.id)) && hasTrait(context, TRAIT.BRAVE_STRIDE)) {
+  if ((skill.movementSkill || MOVEMENT_SKILL_IDS.has(Number(skill.id))) && hasTrait(context, TRAIT.BRAVE_STRIDE)) {
     const profile = warriorBalanceProfile(context, PROFILE.braveStride);
     const stability = warriorBalanceProfileEffect(profile, 'boon');
     gainWarriorAdrenaline(context, Number(profile?.resourceGain || 5));
@@ -335,14 +324,6 @@ export function completeWarriorSkill(context: WarriorCastContext, skill: Warrior
       stacks: Number(stability?.stacks || 1),
       duration: Number(stability?.duration || 5)
     });
-  }
-
-  if (skill.dragonSlash && context.state.profession.specialization.kind === 'Bladesworn') {
-    const state = context.state.profession.specialization.state;
-    const charges = Math.max(0, Number(state.dragonChargesSpentByActivation[context.reservationId] || 0));
-    const stacks = charges >= 10 ? 4 : charges >= 5 ? 3 : 2;
-    grantBerserkersPower(context, stacks, at + context.epsilon, skill);
-    delete state.dragonChargesSpentByActivation[context.reservationId];
   }
 }
 
@@ -573,8 +554,7 @@ export function initializeWarriorTraits(context: WarriorSchedulerContext): void 
     weapons.includes('Dagger') ||
     hasTrait(context, TRAIT.BLOODLUST) ||
     hasTrait(context, TRAIT.FURIOUS) ||
-    hasTrait(context, TRAIT.SUNDERING_BURST) ||
-    hasTrait(context, TRAIT.KING_OF_FIRES)
+    hasTrait(context, TRAIT.SUNDERING_BURST)
   ) {
     (
       context.schedulerPolicy as unknown as {
@@ -884,7 +864,7 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
   }
 
   if (
-    context.config.specialization === 'Bladesworn' ||
+    !warriorGainsAdrenalineOnHit(context) ||
     event.type !== 'damage' ||
     (event.actorType !== 'player' && event.source !== 'Sigil') ||
     !(Number(event.coefficient) > 0)
@@ -933,15 +913,15 @@ export function advanceWarriorTraits(context: WarriorSchedulerContext, target: n
   }
 }
 
-export function updateWarriorCastState(context: WarriorCastContext, skill: WarriorSkill): void {
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+/** Applies every Core Warrior trait that extends the shared weapon swap. */
+export function applyWarriorWeaponSwapTraits(context: WarriorCastContext, skill: WarriorSkill): void {
   const state = professionCoreState(context);
-  if (skill.id === -3 && hasTrait(context, TRAIT.VERSATILE_RAGE)) {
+  applyMartialCadenceWeaponSwap(context, context.effectiveEnd);
+  if (hasTrait(context, TRAIT.VERSATILE_RAGE)) {
     gainWarriorAdrenaline(context, 5);
   }
 
   if (
-    skill.id === -3 &&
     hasTrait(context, TRAIT.FURIOUS_BURST) &&
     context.effectiveEnd + context.epsilon >= Number(state.traitProcReadyAt.furiousBurst || 0)
   ) {
@@ -963,12 +943,16 @@ export function updateWarriorCastState(context: WarriorCastContext, skill: Warri
       duration: Number(fury?.duration || 2.5)
     });
   }
+}
 
+export function updateWarriorCastState(context: WarriorCastContext, skill: WarriorSkill): void {
+  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  const state = professionCoreState(context);
   const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
   if (chain) {
     if (chain.next == null) delete state.autoattackChains[chain.root];
     else state.autoattackChains[chain.root] = chain.next;
-  } else if (skill.type === 'Weapon' || skill.gunsaberSkill) {
+  } else if (skill.type === 'Weapon') {
     state.autoattackChains = {};
   }
 }

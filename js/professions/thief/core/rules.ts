@@ -15,6 +15,7 @@ import { hasThiefTrait, snapshotThiefState } from './state.js';
 import { updateThiefTraitCastState } from './traits.js';
 import { updateThiefWeaponState } from './weapon-state.js';
 import { thiefCoreTaskHandlers } from './tasks.js';
+import { applyThiefWeaponSwapEffects } from './actions.js';
 import type { Skill } from '../../../platform/engine/types.js';
 import type {
   Gw2ModifierContext,
@@ -331,6 +332,8 @@ export const thiefCoreCastRules = Object.freeze({
 export const thiefCoreSchedulerHooks = Object.freeze({
   advance: advanceThiefCoreResources,
   onCastStart: spendThiefCoreResources,
+  // Thief stance and trait effects run only after the shared swap is committed.
+  onWeaponSwap: applyThiefWeaponSwapEffects,
   onCastComplete: {
     id: 'thief.core-resources',
     order: 10,

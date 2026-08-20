@@ -135,7 +135,6 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.burstMastery, 'Burst Mastery', {
     resourceGain: 0.33,
-    bladeswornResourceGain: 0.2,
     effects: [{ type: 'boon', boon: 'swiftness', stacks: 1, duration: 3 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.berserkersPower, "Berserker's Power", {

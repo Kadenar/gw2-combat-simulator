@@ -1,25 +1,22 @@
 import { professionCoreState } from '../../../platform/engine/profession.js';
 /**
  * @fileoverview Tracks Guardian weapon autoattack chains, temporary flip
- * availability, normal weapon-bar gating, and weapon-set swaps.
+ * availability, and normal weapon-bar gating.
  */
 
 import { hasTrait } from '../../../platform/gw2/trait-state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '../data/ids.js';
-import { emitGuardianEvent } from './events.js';
 import type { GuardianCastContext, GuardianSkill } from '../types.js';
 
 /**
- * Guardian weapon-slot bookkeeping: autoattack-chain progression, weapon swap,
- * and flip-skill (over/under) availability windows.
+ * Guardian weapon-slot bookkeeping: autoattack-chain progression and
+ * flip-skill (over/under) availability windows.
  *
  * The three pieces of per-weapon state all live on `professionCoreState(context)`:
  * - `autoattackChains` — map of chain-root skill id → the id of the next step
  *   the slot-1 autoattack should fire. Absent means "start from the root".
  * - `availableFlips` — map of flip-skill id → the sim time the flip stays
  *   castable until (armed by casting its parent, e.g. Zealot's Flame → Fire).
- * - `activeWeaponSet` — 1 or 2, toggled by weapon swap.
- *
  * Chain positions are indexed once by the canonical catalog so lookups during
  * validation/afterCast are O(1).
  */
@@ -73,26 +70,3 @@ export function updateWeaponCastState(context: GuardianCastContext, skill: Guard
     delete professionCoreState(context).availableFlips[skill.id];
   }
 }
-
-/**
- * "guardian.weapon-swap" skill handler: toggles the active weapon set (1↔2),
- * drops any pending autoattack chains, and emits a `weapon_set` event.
- *
- * @param {GuardianCastContext} context Skill-handler context.
- * @param {GuardianSkill} skill Synthetic weapon-swap skill.
- * @returns {boolean} Always true because this replacing handler owns the cast.
- */
-function swapWeapons(context: GuardianCastContext, skill: GuardianSkill): boolean {
-  const weaponSet = context.state.activeWeaponSet === 1 ? 2 : 1;
-  context.state.activeWeaponSet = weaponSet;
-  professionCoreState(context).autoattackChains = {};
-  emitGuardianEvent(context, skill, 'weapon_set', { weaponSet });
-  return true;
-}
-
-/**
- * Raw weapon-state callbacks consumed by the central handler registry.
- */
-export const guardianWeaponSkillHandlers = Object.freeze({
-  'guardian.weapon-swap': swapWeapons
-});

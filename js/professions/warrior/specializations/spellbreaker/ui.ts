@@ -1,18 +1,23 @@
 import { WARRIOR_SKILL_IDS as ID } from '../../data/ids.js';
 import {
   formatSecondsRemaining,
+  warriorAdrenalineResourceViews,
+  warriorBurstPaletteAvailability,
   warriorPaletteGroups,
   warriorSkillBarGroups,
   warriorSnapshotAt,
   warriorUiState
 } from '../../core/ui.js';
 import type { ProfessionUiContract, RotationStateSnapshotItem } from '../../../../platform/engine/types.js';
-import type { WarriorUiContext } from '../../types.js';
+import type { WarriorSkill, WarriorUiContext } from '../../types.js';
 
 const SKILLS = Object.freeze([ID.FULL_COUNTER]);
 export const spellbreakerUi: Partial<ProfessionUiContract> = Object.freeze({
   paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, SKILLS),
   skillBarGroups: (context: WarriorUiContext) => warriorSkillBarGroups(context, SKILLS),
+  resourceViews: warriorAdrenalineResourceViews,
+  paletteSkillAvailability: (context: WarriorUiContext, skill: WarriorSkill) =>
+    warriorBurstPaletteAvailability(context, skill),
   rotationStateSnapshot: (context: WarriorUiContext) => {
     const state = warriorUiState(context);
     const at = warriorSnapshotAt(context);

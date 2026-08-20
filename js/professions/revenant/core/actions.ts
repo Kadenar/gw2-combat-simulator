@@ -8,7 +8,6 @@ import { professionCoreState } from '../../../platform/engine/profession.js';
  */
 import { REVENANT_SKILL_IDS as ID } from '../data/ids.js';
 import { swapRevenantLegend } from './legend.js';
-import { swapRevenantWeapons } from './shared.js';
 import { emitRevenantState } from './shared.js';
 import type { RevenantCastContext, RevenantSkill } from '../types.js';
 
@@ -33,7 +32,6 @@ export function completeRevenantFollowup(context: RevenantCastContext, skill: Re
 
 /** Raw profession-wide callbacks consumed by the central handler registry. */
 export const revenantCoreSkillHandlers = Object.freeze({
-  'revenant.weapon-swap': swapRevenantWeapons,
   'revenant.legend-swap': swapRevenantLegend,
   'revenant.dodge': performRevenantDodge
 });

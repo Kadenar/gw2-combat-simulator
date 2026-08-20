@@ -445,11 +445,6 @@ function updateAutoattackChains(runtime: MesmerRuntime, skill: MesmerSkill): voi
     return;
   }
 
-  if (skill.id === -3) {
-    professionCoreState(state).autoattackChains = {};
-    return;
-  }
-
   if (Number(skill.castTimeMs || 0) > 0 && skill.rechargeAnchor !== 'castStart') {
     for (const root of Object.keys(chains).map(Number)) {
       const preserve = preservesAutoattackChain(root, skill);
@@ -498,16 +493,7 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
     }
 
     updateAutoattackChains(runtime, skill);
-    if (skill.id === -3) {
-      state.activeWeaponSet = state.activeWeaponSet === 1 ? 2 : 1;
-      runtime.addEvent({
-        type: 'weapon_set',
-        at: context.effectiveEnd,
-        weaponSet: state.activeWeaponSet
-      });
-      return;
-    }
-
+    if (skill.id === ID.SWAP_WEAPONS) return;
     let clarityConsumed = false;
     let specializationHandled = false;
     for (const handler of runtime.skillCompletionHandlers) {

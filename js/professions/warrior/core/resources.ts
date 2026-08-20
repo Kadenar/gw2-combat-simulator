@@ -1,5 +1,4 @@
 import { professionCoreState } from '../../../platform/engine/profession.js';
-import type { ScheduledTask } from '../../../platform/engine/types.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '../types.js';
 import { warriorBalanceProfile, WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 
@@ -41,51 +40,30 @@ export function syncWarriorAdrenaline(context: WarriorSchedulerContext): void {
   state.resource = state.adrenaline;
 }
 
-export function gainWarriorAdrenaline(context: WarriorSchedulerContext, amount: number): void {
-  if (context.config.specialization === 'Bladesworn' && context.state.profession.specialization.kind === 'Bladesworn') {
-    const state = context.state.profession.specialization.state;
-    state.flow = Math.min(state.maximumFlow, state.flow + Math.max(0, Number(amount || 0)));
-    return;
-  }
-
+/** Applies the base Warrior adrenaline gain contract without specialization conversion. */
+export function gainCoreWarriorAdrenaline(context: WarriorSchedulerContext, amount: number): void {
   const state = professionCoreState(context);
   state.adrenaline += Math.max(0, Number(amount || 0));
   syncWarriorAdrenaline(context);
 }
 
-export function spendWarriorAdrenaline(context: WarriorCastContext, skill: WarriorSkill): number {
+/** Spends all available adrenaline for a normal Core burst. */
+export function spendCoreWarriorAdrenaline(context: WarriorCastContext, skill: WarriorSkill): number {
   const state = professionCoreState(context);
-  if (!skill.burst && !['warrior.berserk', 'warrior.full-counter', 'warrior.chant'].includes(String(skill.handlerId))) {
-    return 0;
-  }
+  if (!skill.burst) return 0;
 
   const available = Number(state.adrenaline || 0);
-  const requested = Number(skill.adrenalineCost || 0);
-  const spend =
-    skill.primalBurst ||
-    context.config.specialization === 'Spellbreaker' ||
-    context.config.specialization === 'Paragon' ||
-    skill.handlerId === 'warrior.full-counter' ||
-    skill.handlerId === 'warrior.chant'
-      ? Math.min(available, requested)
-      : skill.handlerId === 'warrior.berserk'
-        ? Math.min(available, 30)
-        : available;
-  state.adrenaline = Math.max(0, available - spend);
+  state.adrenaline = 0;
   syncWarriorAdrenaline(context);
-  return spend;
+  return available;
 }
 
-export function applyWarriorSkillResource(context: WarriorCastContext, skill: WarriorSkill): number {
-  const spent = spendWarriorAdrenaline(context, skill);
+/** Applies only Core Warrior resource semantics for callers that already selected the Core policy. */
+export function applyCoreWarriorSkillResource(context: WarriorCastContext, skill: WarriorSkill): number {
+  const spent = spendCoreWarriorAdrenaline(context, skill);
   if (Number(skill.adrenalineGain || 0) > 0) {
-    gainWarriorAdrenaline(context, Number(skill.adrenalineGain));
+    gainCoreWarriorAdrenaline(context, Number(skill.adrenalineGain));
   }
 
   return spent;
-}
-
-export function handleWarriorAdrenalineTask(context: WarriorSchedulerContext, task: ScheduledTask): void {
-  const payload = task.payload as { readonly amount?: number } | null;
-  gainWarriorAdrenaline(context, Number(payload?.amount || 1));
 }

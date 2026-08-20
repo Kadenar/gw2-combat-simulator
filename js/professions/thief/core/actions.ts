@@ -133,22 +133,11 @@ export function expireThievesGuild(
   }
 }
 
-export function swapThiefWeapons(context: ThiefCastContext, skill: ThiefSkill): void {
+/** Applies Thief-only stance cleanup and Quick Pockets after the shared swap. */
+export function applyThiefWeaponSwapEffects(context: ThiefCastContext): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  context.state.activeWeaponSet = context.state.activeWeaponSet === 1 ? 2 : 1;
-  context.emit({
-    type: 'weapon_set',
-    at,
-    source: 'thief',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    weaponSet: context.state.activeWeaponSet
-  });
   state.kneeling = false;
-  state.autoattackChains = {};
   emitThiefState(context, at, 'stand');
   const inCombat =
     !context.hasExplicitCombatStart ||

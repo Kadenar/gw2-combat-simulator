@@ -2,9 +2,9 @@ import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { berserkerState } from './state.js';
-import type { SchedulerRecord } from '../../../../platform/engine/types.js';
+import type { AvailabilityResult, SchedulerRecord } from '../../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
-import type { WarriorCastContext } from '../../types.js';
+import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '../../types.js';
 import { warriorBalanceProfile, WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '../../core/profiles.js';
 import { advanceBerserker } from './mechanics.js';
 import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -16,6 +16,16 @@ import {
 } from './traits.js';
 
 export const berserkerSchedulerHooks = Object.freeze({
+  initialize: (context: WarriorSchedulerContext) => {
+    // King of Fires needs resolved critical facts before the Berserker event observer runs.
+    if (hasTrait(context, TRAIT.KING_OF_FIRES)) {
+      (
+        context.schedulerPolicy as unknown as {
+          requireCriticalFacts?: () => void;
+        }
+      ).requireCriticalFacts?.();
+    }
+  },
   advance: {
     id: 'warrior.berserker-advance',
     order: 20,
@@ -122,8 +132,32 @@ function modifyCastDuration(context: WarriorCastContext, duration: number): numb
     : duration;
 }
 
+/** Enforces Berserker's primal-burst replacement and active-mode lifecycle. */
+function availability(context: WarriorCastContext, skill: WarriorSkill): AvailabilityResult {
+  const state = berserkerState.from(context);
+  if (skill.primalBurst && !state.berserkActive) {
+    return {
+      ready: false,
+      retryAt: null,
+      code: 'warrior.berserk',
+      reason: 'Primal bursts require berserk mode.'
+    };
+  }
+
+  if (skill.handlerId === 'warrior.berserk' && state.berserkActive) {
+    return {
+      ready: false,
+      retryAt: state.berserkUntil,
+      code: 'warrior.berserk-active',
+      reason: 'Already in berserk mode.'
+    };
+  }
+
+  return { ready: true };
+}
+
 export const berserkerAttributeRules = Object.freeze({
   modifyAttributes,
   modifierRules
 });
-export const berserkerCastRules = Object.freeze({ modifyCastDuration });
+export const berserkerCastRules = Object.freeze({ modifyCastDuration, availability });

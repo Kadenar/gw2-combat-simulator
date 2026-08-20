@@ -1,5 +1,5 @@
 import { augmentSkillHandler } from '../../../../platform/engine/skill-handlers.js';
-import { applyWarriorSkillResource } from '../../core/resources.js';
+import { applyWarriorSkillResource } from '../../resources.js';
 import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../core/profiles.js';
 import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { spellbreakerState } from './state.js';

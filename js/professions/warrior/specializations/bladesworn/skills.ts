@@ -49,6 +49,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   },
   [ID.DRAGONSPIKE_MINE]: {
     implemented: true,
+    movementSkill: true,
     // Dragonspike Mine refreshes Dragon Trigger when its cast completes.
     mechanicTriggers: [
       {
@@ -287,6 +288,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   },
   [ID.BREAK_STEP]: {
     implemented: true,
+    movementSkill: true,
     ammo: 2,
     ammoRecharge: 20,
     cooldown: 20,
@@ -325,6 +327,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   },
   [ID.DRAGON_SLASH_BOOST]: {
     implemented: true,
+    movementSkill: true,
     effects: [],
     quicknessCastTimeMs: 333,
     burst: true,

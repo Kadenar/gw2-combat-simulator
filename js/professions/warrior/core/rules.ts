@@ -12,6 +12,7 @@ import { warriorCastAvailability } from './availability.js';
 import { warriorBalanceProfile, WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import {
   advanceWarriorTraits,
+  applyWarriorWeaponSwapTraits,
   beginWarriorSkill,
   completeWarriorSkill,
   handleWarriorArmsCriticalTask,
@@ -19,13 +20,14 @@ import {
   observeWarriorEvent,
   updateWarriorCastState
 } from './traits.js';
-import { advanceWarriorResources, handleWarriorAdrenalineTask } from './resources.js';
+import { advanceWarriorResources } from './resources.js';
+import { handleWarriorAdrenalineTask } from '../resources.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/types.js';
 import type { WarriorCastContext, WarriorRuntimeState, WarriorSchedulerContext, WarriorSkill } from '../types.js';
 import type { WarriorCoreState } from '../types.js';
 
-export { snapshotWarriorState } from './state.js';
+export { snapshotWarriorState } from '../state.js';
 
 function runtimeState(context: Gw2ModifierContext): Partial<WarriorRuntimeState> {
   return ((context.runtime as { profession?: WarriorRuntimeState } | undefined)?.profession ||
@@ -503,6 +505,8 @@ export const warriorCoreCastRules = Object.freeze({
 export const warriorCoreSchedulerHooks = Object.freeze({
   initialize: initializeWarriorTraits,
   onCastStart: beginWarriorSkill,
+  // Core weapon-swap traits extend the shared transition through one hook.
+  onWeaponSwap: applyWarriorWeaponSwapTraits,
   advance: {
     id: 'warrior.core-resources-and-traits',
     order: 10,

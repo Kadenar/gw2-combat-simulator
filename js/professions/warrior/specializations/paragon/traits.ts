@@ -1,7 +1,7 @@
 import type { ScheduledTask, SkillId } from '../../../../platform/engine/types.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../data/ids.js';
-import { applyWarriorSkillResource, gainWarriorAdrenaline } from '../../core/resources.js';
+import { applyWarriorSkillResource, gainWarriorAdrenaline } from '../../resources.js';
 import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../core/profiles.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSimulationEvent, WarriorSkill } from '../../types.js';
 import { paragonState } from './state.js';
@@ -287,10 +287,12 @@ export function updateParagonCast(context: WarriorCastContext, skill: WarriorSki
       executePendingEcho(context, echo.id, context.effectiveEnd);
     }
   }
+}
 
-  // skill.id === -3 is the weapon-swap pseudo-skill.
+/** Applies Inspiring Implements after the shared weapon swap is committed. */
+export function applyParagonWeaponSwapTraits(context: WarriorCastContext): void {
+  const state = paragonState.from(context);
   if (
-    skill.id === -3 &&
     hasTrait(context, TRAIT.INSPIRING_IMPLEMENTS) &&
     context.effectiveEnd + context.epsilon >= state.inspiringImplementsReadyAt
   ) {

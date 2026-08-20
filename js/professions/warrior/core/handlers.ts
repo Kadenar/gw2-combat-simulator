@@ -1,13 +1,10 @@
 import { professionCoreState } from '../../../platform/engine/profession.js';
 import { augmentSkillHandler, replaceSkillHandler } from '../../../platform/engine/skill-handlers.js';
+import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/weapon-swap.js';
 import { WARRIOR_SKILL_IDS as ID } from '../data/ids.js';
-import { applyWarriorSkillResource } from './resources.js';
-import {
-  applyWarriorBurstSpendTraits,
-  applyMartialCadenceWeaponSwap,
-  applyRecklessDodge,
-  grantBerserkersPowerOnFirstHit
-} from './traits.js';
+import { recordWarriorAmmoSpend } from '../ammunition.js';
+import { applyWarriorSkillResource } from '../resources.js';
+import { applyWarriorBurstSpendTraits, applyRecklessDodge, grantBerserkersPowerOnFirstHit } from './traits.js';
 import type { WarriorCastContext, WarriorSimulationEvent, WarriorSkill } from '../types.js';
 import {
   warriorBalanceProfile,
@@ -164,24 +161,6 @@ function adjustFierceBlowDamage(
   });
 }
 
-function swapWarriorWeapons(context: WarriorCastContext, skill: WarriorSkill): boolean {
-  const weaponSet = context.state.activeWeaponSet === 1 ? 2 : 1;
-  context.state.activeWeaponSet = weaponSet;
-  professionCoreState(context).autoattackChains = {};
-  applyMartialCadenceWeaponSwap(context, context.effectiveEnd);
-  context.emit({
-    type: 'weapon_set',
-    at: context.effectiveEnd,
-    source: 'warrior',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    weaponSet
-  });
-  return true;
-}
-
 function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill): void {
   const bullets = Math.max(1, Number(context.ammo?.charges || 1));
   const profile = warriorBalanceProfile(context, PROFILE.dragonsRoar);
@@ -189,12 +168,7 @@ function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill)
   const castDuration = Math.max(0, context.effectiveEnd - context.start);
   const firstBulletAt = context.start + castDuration * Number(profile?.firstPacketRatio || 6 / 7);
   const bulletInterval = castDuration * Number(profile?.packetIntervalRatio || 2 / 7);
-  if (context.state.profession.specialization.kind === 'Bladesworn') {
-    const state = context.state.profession.specialization.state;
-    state.ammoRoundsSpentByActivation[context.reservationId] = bullets;
-    state.ammoStartedFullByActivation[context.reservationId] =
-      bullets >= Number(context.ammo?.maximum || skill.ammo || 0);
-  }
+  recordWarriorAmmoSpend(context, bullets, bullets >= Number(context.ammo?.maximum || skill.ammo || 0));
 
   if (context.ammo && context.ammo.charges > 1) context.ammo.charges = 1;
   context.replaceEvent(context.action, {
@@ -240,7 +214,7 @@ export const warriorCoreSkillHandlers = Object.freeze({
   'warrior.fierce-blow': augmentSkillHandler(null, {
     afterEffect: adjustFierceBlowDamage
   }),
-  'warrior.weapon-swap': replaceSkillHandler(swapWarriorWeapons),
+  'warrior.weapon-swap': gw2WeaponSwapSkillHandler,
   'warrior.dragons-roar': replaceSkillHandler(consumeDragonRoarAmmo),
   'warrior.dodge': replaceSkillHandler(performWarriorDodge)
 });

@@ -4,6 +4,7 @@ import type { SkillFragment } from '../../../../platform/engine/types.js';
 export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SUNDERING_LEAP]: {
     implemented: true,
+    movementSkill: true,
     comboFinishers: [
       {
         ownerId: 'warrior',
@@ -290,6 +291,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.HEAD_BUTT]: {
     implemented: true,
+    movementSkill: true,
     effects: [
       {
         type: 'strike',
@@ -421,6 +423,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.RUPTURING_SMASH]: {
     implemented: true,
+    movementSkill: true,
     skillWeapon: 'Hammer',
     cooldown: 5,
     effects: [

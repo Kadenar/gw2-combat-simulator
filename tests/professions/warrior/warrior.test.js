@@ -24,7 +24,6 @@ import { warriorNativeModules } from '../../../js/professions/warrior/modules.js
 import { warriorCoreModule } from '../../../js/professions/warrior/core/module.js';
 import { recalculate, runSimulation, warriorAppAdapter } from '../../../js/professions/warrior/app/app-definition.js';
 import { createWarriorCoreState } from '../../../js/professions/warrior/core/state.js';
-import { BRAVE_STRIDE_MOVEMENT_SKILL_IDS } from '../../../js/professions/warrior/core/traits.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '../../../js/professions/warrior/core/profiles.js';
 import { DATA_SNAPSHOT } from '../../../js/professions/warrior/data/warrior-api-metadata.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '../../../js/professions/warrior/data/ids.js';
@@ -254,28 +253,30 @@ test('Warrior core and elite profession resources remain isolated', () => {
     }
   });
 
-  assert.equal(createWarriorCoreState({ initialResource: 30 }).adrenaline, 30);
-  assert.equal(
-    createWarriorCoreState({
-      specialization: 'Spellbreaker',
-      initialResource: 30
-    }).adrenaline,
-    20
-  );
-  assert.equal(
-    createWarriorCoreState({
-      specialization: 'Paragon',
-      initialResource: 30
-    }).adrenaline,
-    10
-  );
-  const bladeswornCore = createWarriorCoreState({
-    specialization: 'Bladesworn',
-    initialResource: 100
-  });
+  assert.equal(createWarriorCoreState({ specialization: 'Bladesworn', initialResource: 100 }).adrenaline, 30);
+  for (const [specialization, maximumAdrenaline] of [
+    ['Core', 30],
+    ['Berserker', 30],
+    ['Spellbreaker', 20],
+    ['Paragon', 10],
+    ['Bladesworn', 0]
+  ]) {
+    const state = simulate(specialization, [], { initialResource: 100 }).endState.profession;
+    assert.equal(state.maximumAdrenaline, maximumAdrenaline, specialization);
+    assert.equal(state.adrenaline, maximumAdrenaline, specialization);
+  }
+});
 
-  assert.equal(bladeswornCore.adrenaline, 0);
-  assert.equal(bladeswornCore.maximumAdrenaline, 0);
+test('Warrior Core does not own elite resource, cast, UI, or trait branches', async () => {
+  const sources = await Promise.all(
+    ['availability.ts', 'handlers.ts', 'resources.ts', 'state.ts', 'traits.ts', 'ui.ts'].map((name) =>
+      readFile(new URL(`../../../js/professions/warrior/core/${name}`, import.meta.url), 'utf8')
+    )
+  );
+  const coreSource = sources.join('\n');
+
+  assert.doesNotMatch(coreSource, /Bladesworn|Spellbreaker|Paragon|KING_OF_FIRES/);
+  assert.doesNotMatch(coreSource, /warrior\.(?:berserk|full-counter|chant)/);
 });
 
 test('Warrior F keys follow the selected primary weapons', () => {
@@ -1696,32 +1697,7 @@ test('Burst Mastery restores twenty percent of Dragon Slash Flow spent', () => {
   );
 });
 
-test('Brave Stride grants five Flow for every supported movement skill', () => {
-  assert.deepEqual(BRAVE_STRIDE_MOVEMENT_SKILL_IDS, [
-    ID.SAVAGE_LEAP,
-    ID.WHIRLWIND_ATTACK,
-    ID.RUSH,
-    ID.BRUTAL_SHOT,
-    ID.VALIANT_LEAP,
-    ID.LINE_BREAKER,
-    ID.SPEAR_SWIPE,
-    ID.AURA_SLICER,
-    ID.GUNSTINGER,
-    ID.DRAGONS_ROAR,
-    ID.BREAK_STEP,
-    ID.DRAGON_SLASH_BOOST,
-    ID.BULLS_CHARGE,
-    ID.KICK,
-    ID.STOMP,
-    ID.SUNDERING_LEAP,
-    ID.DRAGONSPIKE_MINE,
-    ID.HEAD_BUTT,
-    ID.EVISCERATE,
-    ID.BREACHING_STRIKE,
-    ID.EARTHSHAKER,
-    ID.RUPTURING_SMASH
-  ]);
-
+test('Brave Stride reads movement classification from elite skill slices', () => {
   const rotation = [ID.UNSHEATHE_GUNSABER, ID.BREAK_STEP];
   const baseline = simulate('Bladesworn', rotation, { initialResource: 20 });
   const braveStride = simulate('Bladesworn', rotation, {
@@ -1732,6 +1708,15 @@ test('Brave Stride grants five Flow for every supported movement skill', () => {
   assert.deepEqual(baseline.warnings, []);
   assert.deepEqual(braveStride.warnings, []);
   assert.equal(braveStride.endState.profession.flow - baseline.endState.profession.flow, 5);
+
+  const berserkerBaseline = simulate('Berserker', [ID.SUNDERING_LEAP]);
+  const berserkerBraveStride = simulate('Berserker', [ID.SUNDERING_LEAP], {
+    selectedTraitIds: [TRAIT.BRAVE_STRIDE]
+  });
+  assert.equal(
+    berserkerBraveStride.endState.profession.adrenaline - berserkerBaseline.endState.profession.adrenaline,
+    5
+  );
 });
 
 test('Bladesworn automatically releases Dragon Slash at the requested charge count', () => {

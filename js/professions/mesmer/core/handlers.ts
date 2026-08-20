@@ -1,4 +1,5 @@
 import { augmentSkill, replaceSkill } from '../../../platform/gw2/native-profession.js';
+import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/weapon-swap.js';
 import { MESMER_CORE_WEAPON_STRENGTH } from './mechanics.js';
 import type { SimulationEvent, Skill, SkillEffect, SkillHandlerStrategy } from '../../../platform/engine/types.js';
 import type { MesmerHandlerContext } from '../types.js';
@@ -69,7 +70,7 @@ export const mesmerCoreSkillHandlers: Readonly<Record<string, Readonly<SkillHand
       beforeEffects: () => null,
       afterEffect: observeDeclarativeEffect
     }),
-    'mesmer.weapon-swap': mesmerReplaceProfile,
+    'mesmer.weapon-swap': gw2WeaponSwapSkillHandler,
     'mesmer.shatter': mesmerReplaceProfile,
     'mesmer.phantasm': mesmerReplaceProfile,
     'mesmer.resource-skill': mesmerReplaceProfile,

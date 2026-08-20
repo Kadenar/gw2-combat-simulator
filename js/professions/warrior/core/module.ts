@@ -3,13 +3,9 @@ import { createWarriorModuleData } from '../catalog-data.js';
 import { WARRIOR_CORE_SKILL_MECHANICS, WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS } from './skills.js';
 import { warriorCoreSkillHandlers } from './handlers.js';
 import { warriorCoreSkillMechanicHandlers } from './traits.js';
-import {
-  warriorCoreAttributeRules,
-  warriorCoreCastRules,
-  warriorCoreSchedulerHooks,
-  snapshotWarriorState
-} from './rules.js';
-import { createWarriorCoreState, projectWarriorEndState } from './state.js';
+import { warriorCoreAttributeRules, warriorCoreCastRules, warriorCoreSchedulerHooks } from './rules.js';
+import { createWarriorCoreState } from './state.js';
+import { projectWarriorEndState, snapshotWarriorState } from '../state.js';
 import { bindWarriorCoreUi } from './ui.js';
 import type { WarriorSchedulerContext } from '../types.js';
 import { warriorCoreEventHandlers, warriorCoreEventReactions } from './resolver.js';

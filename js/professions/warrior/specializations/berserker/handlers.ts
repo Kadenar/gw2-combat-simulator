@@ -1,6 +1,7 @@
 import { augmentSkillHandler } from '../../../../platform/engine/skill-handlers.js';
 import { professionCoreState } from '../../../../platform/engine/profession.js';
-import { applyWarriorSkillResource, syncWarriorAdrenaline } from '../../core/resources.js';
+import { syncWarriorAdrenaline } from '../../core/resources.js';
+import { applyWarriorSkillResource } from '../../resources.js';
 import { warriorBalanceProfile } from '../../core/profiles.js';
 import type { WarriorCastContext, WarriorSkill } from '../../types.js';
 import { emitBerserkMarker } from './mechanics.js';

@@ -161,9 +161,9 @@ export const untamedSkillMechanicHandlers = Object.freeze({
 });
 
 export const untamedSchedulerHooks = Object.freeze({
-  onCastComplete(context: RangerCastContext, skill: RangerSkill): void {
+  // Let Loose extends the shared swap only while combat is active.
+  onWeaponSwap(context: RangerCastContext): void {
     if (
-      skill.id !== ID.SWAP_WEAPONS ||
       !hasTrait(context, TRAIT.LET_LOOSE) ||
       // Pre-combat weapon swaps don't trigger Let Loose; only in-combat swaps count.
       context.combatStartTime == null ||

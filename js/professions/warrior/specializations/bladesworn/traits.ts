@@ -15,7 +15,7 @@ import {
   type DragonFlowRateSegment
 } from './dragon-trigger.js';
 import { professionCoreState } from '../../../../platform/engine/profession.js';
-import { applyWarriorBurstSpendTraits } from '../../core/traits.js';
+import { applyWarriorBurstSpendTraits, grantBerserkersPower } from '../../core/traits.js';
 import { warriorBalanceProfile, warriorBalanceProfileEffect } from '../../core/profiles.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import { bladeswornState } from './state.js';
@@ -212,8 +212,11 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
       ? context.start + (context.effectiveEnd - context.start) / 2
       : context.effectiveEnd;
   const adrenalineSpent = dragonChargesToAdrenalineSpent(charges);
-  applyWarriorBurstSpendTraits(context, skill, adrenalineSpent, state.dragonTriggerFlowSpent);
-  state.dragonChargesSpentByActivation[context.reservationId] = charges;
+  applyWarriorBurstSpendTraits(context, skill, adrenalineSpent, {
+    resourceSpent: state.dragonTriggerFlowSpent,
+    resourceRefundRate: Number(warriorBalanceProfile(context, PROFILE.burstMastery)?.resourceGain ?? 0.2)
+  });
+  state.dragonAdrenalineSpentByActivation[context.reservationId] = adrenalineSpent;
   context.emit({
     type: 'resource',
     at: context.start,
@@ -714,8 +717,21 @@ export function completeBladeswornSkill(context: WarriorCastContext, skill: Warr
     activateLushForest(context, skill, at);
   }
 
+  const dragonAdrenalineSpent = Math.max(
+    0,
+    Number(state.dragonAdrenalineSpentByActivation[context.reservationId] || 0)
+  );
+  if (dragonAdrenalineSpent > 0) {
+    const stacks = dragonAdrenalineSpent >= 30 ? 4 : dragonAdrenalineSpent >= 20 ? 3 : 2;
+    grantBerserkersPower(context, stacks, at + context.epsilon, skill);
+  }
+
   delete state.ammoRoundsSpentByActivation[context.reservationId];
   delete state.ammoStartedFullByActivation[context.reservationId];
+  delete state.dragonAdrenalineSpentByActivation[context.reservationId];
+  if (skill.gunsaberSkill && !context.catalog.autoattackChainPositions.has(Number(skill.id))) {
+    professionCoreState(context).autoattackChains = {};
+  }
 }
 
 /** Runs Bladesworn mechanics owned by one completed skill activation. */

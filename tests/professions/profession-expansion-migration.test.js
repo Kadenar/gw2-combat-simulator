@@ -28,7 +28,7 @@ import { REVENANT_PUBLIC_END_STATE_KEYS } from '../../js/professions/revenant/st
 import { THIEF_TRAIT_COVERAGE } from '../../js/professions/thief/data/trait-coverage.js';
 import { THIEF_PUBLIC_END_STATE_KEYS } from '../../js/professions/thief/core/state.js';
 import { WARRIOR_TRAIT_COVERAGE } from '../../js/professions/warrior/data/trait-coverage.js';
-import { WARRIOR_PUBLIC_END_STATE_KEYS } from '../../js/professions/warrior/core/state.js';
+import { WARRIOR_PUBLIC_END_STATE_KEYS } from '../../js/professions/warrior/state.js';
 import {
   professionRegistry,
   PROFESSION_ROUTES,

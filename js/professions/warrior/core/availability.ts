@@ -6,7 +6,6 @@ import type { WarriorCastContext, WarriorSkill } from '../types.js';
 
 export function warriorCastAvailability(context: WarriorCastContext, skill: WarriorSkill): AvailabilityResult {
   const state = professionCoreState(context);
-  const specialization = String(context.config.specialization || 'Core');
   if (skill.id === ID.DODGE) {
     return state.endurance + context.epsilon >= 50
       ? { ready: true }
@@ -16,50 +15,6 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
           code: 'warrior.endurance',
           reason: 'Dodge requires 50 endurance.'
         };
-  }
-
-  if (skill.primalBurst) {
-    const active =
-      context.state.profession.specialization.kind === 'Berserker' &&
-      context.state.profession.specialization.state.berserkActive;
-    if (!active) {
-      return {
-        ready: false,
-        retryAt: null,
-        code: 'warrior.berserk',
-        reason: 'Primal bursts require berserk mode.'
-      };
-    }
-  }
-
-  if (skill.handlerId === 'warrior.berserk') {
-    if (specialization !== 'Berserker') {
-      return {
-        ready: false,
-        retryAt: null,
-        code: 'warrior.specialization',
-        reason: 'Berserk requires the Berserker specialization.'
-      };
-    }
-
-    const spec = context.state.profession.specialization;
-    if (spec.kind === 'Berserker' && spec.state.berserkActive) {
-      return {
-        ready: false,
-        retryAt: spec.state.berserkUntil,
-        code: 'warrior.berserk-active',
-        reason: 'Already in berserk mode.'
-      };
-    }
-  }
-
-  if (skill.burst && specialization === 'Bladesworn' && !skill.dragonSlash) {
-    return {
-      ready: false,
-      retryAt: null,
-      code: 'warrior.flow',
-      reason: 'Bladesworn replaces weapon bursts with Dragon Slash.'
-    };
   }
 
   const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));

@@ -1,8 +1,9 @@
 import { flattenProfessionState, professionCoreState } from '../../../platform/engine/profession.js';
 import { replaceSkill } from '../../../platform/gw2/native-profession.js';
+import { gw2WeaponSwapSkillHandler } from '../../../platform/gw2/weapon-swap.js';
 import { RANGER_SKILL_IDS as ID } from '../data/ids.js';
 import type { RangerCastContext, RangerSkill } from '../types.js';
-import { applyRangerDodgeTraits, applyRangerPetSwapTraits, applyRangerWeaponSwapTraits } from './traits.js';
+import { applyRangerDodgeTraits, applyRangerPetSwapTraits } from './traits.js';
 import { rangerPetByName } from './state.js';
 import {
   rangerBalanceProfile,
@@ -10,24 +11,6 @@ import {
   rangerBalanceValue,
   RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE
 } from './profiles.js';
-
-function swapRangerWeapons(context: RangerCastContext, skill: RangerSkill): boolean {
-  const weaponSet = context.state.activeWeaponSet === 1 ? 2 : 1;
-  context.state.activeWeaponSet = weaponSet;
-  professionCoreState(context).autoattackChains = {};
-  context.emit({
-    type: 'weapon_set',
-    at: context.effectiveEnd,
-    source: 'ranger',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    weaponSet
-  });
-  applyRangerWeaponSwapTraits(context, skill);
-  return true;
-}
 
 function performRangerDodge(context: RangerCastContext): boolean {
   const state = professionCoreState(context);
@@ -71,9 +54,7 @@ export const rangerCoreSkillHandlers = Object.freeze({
   'ranger.pet-swap': replaceSkill({
     beforeEffects: swapRangerPets
   }),
-  'ranger.weapon-swap': replaceSkill({
-    beforeEffects: swapRangerWeapons
-  }),
+  'ranger.weapon-swap': gw2WeaponSwapSkillHandler,
   'ranger.winters-bite': {
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
