@@ -403,6 +403,78 @@ test('places delayed Mirage Chaos Armor evidence before the weapon swap', () => 
   assert.ok(chaosArmor.timestampMs < weaponSwap.timestampMs);
 });
 
+test('keeps Mirage Chaos Armor initial state and later Staff-side casts distinct', () => {
+  const skills = [
+    skill(10169, 'Chaos Storm', {
+      type: 'Weapon',
+      slot: 'Weapon_5',
+      castTimeMs: 720,
+      quicknessCastTimeMs: 480
+    }),
+    skill(10331, 'Chaos Armor', {
+      type: 'Weapon',
+      slot: 'Weapon_4'
+    })
+  ];
+  const fixture = mesmerLog(59, skills, [
+    event({ stateChange: EVTC_STATE_CHANGE.ENTER_COMBAT }),
+    event({
+      target: PLAYER,
+      value: 5_000,
+      buffDamage: 5_000,
+      skillId: 10332,
+      buff: 18,
+      stateChange: EVTC_STATE_CHANGE.BUFF_INITIAL
+    }),
+    event({
+      time: 10_100,
+      skillId: 10169,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_START
+    }),
+    event({
+      time: 10_580,
+      value: 480,
+      skillId: 10169,
+      activation: EVTC_ACTIVATION.CANCEL_FIRE,
+      stateChange: EVTC_STATE_CHANGE.ANIMATION_STOP
+    }),
+    event({
+      time: 10_660,
+      target: 4n,
+      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP
+    }),
+    event({
+      time: 11_100,
+      target: PLAYER,
+      value: 5_000,
+      skillId: 10332,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_APPLY
+    }),
+    event({
+      time: 24_000,
+      target: 5n,
+      stateChange: EVTC_STATE_CHANGE.WEAPON_SWAP
+    }),
+    event({
+      time: 24_320,
+      target: PLAYER,
+      value: 5_000,
+      skillId: 10332,
+      buff: 1,
+      stateChange: EVTC_STATE_CHANGE.BUFF_APPLY
+    })
+  ]);
+
+  const result = reconstructEvtcRotation(fixture, { skills });
+  const chaosArmors = names(result, 'Chaos Armor');
+
+  assert.equal(chaosArmors.length, 2);
+  assert.equal(chaosArmors[0].evidence, 'initial-state');
+  assert.equal(chaosArmors[0].timestampMs, 0);
+  assert.equal(chaosArmors[1].timestampMs, 14_320);
+});
+
 test('keeps a zero-duration phantasm cast when damage and a spawn commit it', () => {
   const phantasm = 0x3200n;
   const skills = [

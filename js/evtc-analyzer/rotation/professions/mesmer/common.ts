@@ -1,3 +1,4 @@
+import { EVTC_STATE_CHANGE } from '../../../types.js';
 import type { EvtcProfessionReconstructionContext, EvtcRecordedRotationAction } from '../types.js';
 import {
   MESMER_EFFECT_GUIDS,
@@ -34,6 +35,8 @@ const CHAOS_AURA_BUFF = 10332;
 const DISTORTION_BUFF = 10243;
 const TIME_ANCHORED_BUFF = 30136;
 const STAFF_CLONE_SPECIES = 8111;
+const MIRAGE_INITIAL_CHAOS_AURA_DUPLICATE_WINDOW_MS = 1500;
+const MIRAGE_PRE_SWAP_STAFF_ACTION_WINDOW_MS = 1500;
 
 function firstOwnedAgentSignals(context: EvtcProfessionReconstructionContext, speciesId: number): MesmerSignal[] {
   const ownerInstance = playerInstance(context);
@@ -108,11 +111,23 @@ function chaosArmorActions(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[]
 ): EvtcRecordedRotationAction[] {
+  const isMirage = context.profile.specializationId === 'mirage';
   const phaseTimes = phaseRetreatSignals(context).map((signal) => signal.event.time);
   const chaosStormTimes = effectSignals(context, MESMER_EFFECT_GUIDS.chaosStorm).map((signal) => signal.event.time);
-  return buffGainSignals(context, CHAOS_AURA_BUFF)
+  // Mirage logs expose a precast Chaos Armor as initial aura state, then may repeat that aura packet;
+  // preserve the opener while suppressing only its immediate duplicate.
+  const auraSignals = buffGainSignals(context, CHAOS_AURA_BUFF, isMirage);
+  const initialAuraTimes = auraSignals
+    .filter((signal) => signal.event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL)
+    .map((signal) => signal.event.time);
+  return auraSignals
     .filter(
       (signal) =>
+        (signal.event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL ||
+          !initialAuraTimes.some(
+            (time) =>
+              signal.event.time > time && signal.event.time - time <= MIRAGE_INITIAL_CHAOS_AURA_DUPLICATE_WINDOW_MS
+          )) &&
         !phaseTimes.some((time) => Math.abs(time - signal.event.time) <= 30) &&
         !chaosStormTimes.some((time) => {
           const delay = signal.event.time - time;
@@ -120,18 +135,17 @@ function chaosArmorActions(
         })
     )
     .flatMap((signal) => {
-      const recentSwap =
-        context.profile.specializationId === 'mirage'
-          ? actions
-              .filter(
-                (action) =>
-                  (action.canonicalSkillId === -3 ||
-                    normalized(action.canonicalName || action.rawName) === 'swap weapons') &&
-                  action.start < signal.event.time &&
-                  signal.event.time - action.start <= 1500
-              )
-              .sort((left, right) => right.start - left.start)[0]
-          : null;
+      const recentSwap = isMirage
+        ? actions
+            .filter(
+              (action) =>
+                (action.canonicalSkillId === -3 ||
+                  normalized(action.canonicalName || action.rawName) === 'swap weapons') &&
+                action.start < signal.event.time &&
+                signal.event.time - action.start <= 1500
+            )
+            .sort((left, right) => right.start - left.start)[0]
+        : null;
       const priorStaffAction = recentSwap
         ? actions
             .filter(
@@ -144,12 +158,30 @@ function chaosArmorActions(
             )
             .sort((left, right) => right.start - left.start)[0]
         : null;
-      const actionTime = priorStaffAction
+      const priorStaffActionEnd = priorStaffAction
+        ? Math.max(priorStaffAction.end, priorStaffAction.start)
+        : Number.NEGATIVE_INFINITY;
+      // Mirage aura packets can arrive just after swapping away from Staff; only move the cast before
+      // that swap when a Staff action immediately preceded it, otherwise preserve a new Staff-side cast.
+      const delayedPreSwapAura =
+        recentSwap &&
+        priorStaffAction &&
+        recentSwap.start - priorStaffActionEnd <= MIRAGE_PRE_SWAP_STAFF_ACTION_WINDOW_MS;
+      const actionTime = delayedPreSwapAura
         ? Math.min(recentSwap!.start, Math.max(priorStaffAction.end, priorStaffAction.start))
         : signal.event.time;
       return hasNearbyAction(actions, CHAOS_ARMOR, actionTime, 100)
         ? []
-        : [canonicalAction(signal.eventIndex, actionTime, CHAOS_ARMOR, signal.event.skillId, 'buff-transition')];
+        : [
+            canonicalAction(
+              signal.eventIndex,
+              actionTime,
+              CHAOS_ARMOR,
+              signal.event.skillId,
+              signal.event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL ? 'initial-state' : 'buff-transition',
+              signal.event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL ? { initialState: true, precast: true } : {}
+            )
+          ];
     });
 }
 
