@@ -33,7 +33,7 @@ test('utility exports retain a complete flat lookup and grouped display list', (
 
   assert.deepEqual(
     UTILITY_GROUPS.map((group) => group.label),
-    ['Power', 'Condition', 'Boon']
+    ['Power', 'Condition', 'Boon', 'All Attributes']
   );
   assert.deepEqual(UTILITY_NAMES, sortNames(Object.keys(utilityData)));
   assert.equal(groupedNames.length, UTILITY_NAMES.length);

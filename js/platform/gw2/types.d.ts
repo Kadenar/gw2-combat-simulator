@@ -1168,7 +1168,9 @@ export interface Gw2AttributeData {
     >
   >;
   UTILITY_CONVERSION_RATES?: Readonly<Gw2NumericAttributes>;
-  UTILITY_DATA?: Readonly<Record<string, readonly { readonly from: string; readonly to: string }[]>>;
+  UTILITY_DATA?: Readonly<
+    Record<string, readonly { readonly from: string; readonly to: string; readonly percent?: number }[]>
+  >;
   UTILITY_STAT_DATA?: Readonly<Record<string, Readonly<Gw2NumericAttributes>>>;
   WEAPON_DATA?: Readonly<Record<string, Gw2WeaponDataEntry>>;
 }

@@ -1131,6 +1131,17 @@ export const UTILITY_CONVERSION_RATES = {
 
 // UTILITY_DATA[name] → array of { to, from } conversion pairs
 export const UTILITY_DATA = {
+  'Leviathan Tempering Oil': [
+    { to: 'Power', from: 'Power', percent: 3 },
+    { to: 'Precision', from: 'Precision', percent: 3 },
+    { to: 'Toughness', from: 'Toughness', percent: 3 },
+    { to: 'Vitality', from: 'Vitality', percent: 3 },
+    { to: 'Ferocity', from: 'Ferocity', percent: 3 },
+    { to: 'Condition Damage', from: 'Condition Damage', percent: 3 },
+    { to: 'Expertise', from: 'Expertise', percent: 3 },
+    { to: 'Concentration', from: 'Concentration', percent: 3 },
+    { to: 'Healing Power', from: 'Healing Power', percent: 3 }
+  ],
   'Toxic Tuning Crystal': [
     { to: 'Condition Damage', from: 'Power' },
     { to: 'Condition Damage', from: 'Precision' }
@@ -1199,6 +1210,10 @@ export const UTILITY_GROUPS = [
   {
     label: 'Boon',
     items: ['Potent Lucent Oil', 'Toxic Maintenance Oil']
+  },
+  {
+    label: 'All Attributes',
+    items: ['Leviathan Tempering Oil']
   }
 ];
 

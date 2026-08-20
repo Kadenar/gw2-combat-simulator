@@ -111,6 +111,40 @@ test('core attribute calculation does not apply Mesmer build rules', () => {
   assert.equal(mesmer.attributes['Condition Damage'].final - common.attributes['Condition Damage'].final, 180);
 });
 
+test('Leviathan Tempering Oil grants three percent of every primary attribute', () => {
+  const sourceStats = {
+    Power: 1001,
+    Precision: 1017,
+    Toughness: 1025,
+    Vitality: 1050,
+    Ferocity: 650,
+    'Condition Damage': 750,
+    Expertise: 850,
+    Concentration: 950,
+    'Healing Power': 550
+  };
+  const build = createDefaultBuild();
+
+  build.rune = '';
+  build.food = '';
+  build.utility = 'Leviathan Tempering Oil';
+  build.jadeBotCore = false;
+  build.infusions = [];
+  const { attributes } = calculateCommonAttributes(build, {
+    data: {
+      BASE_STATS: sourceStats,
+      GEAR_SLOTS: []
+    }
+  });
+
+  for (const [name, source] of Object.entries(sourceStats)) {
+    const expectedBonus = Math.round(source * 0.03);
+
+    assert.equal(attributes[name].utility, expectedBonus, name);
+    assert.equal(attributes[name].final, source + expectedBonus, name);
+  }
+});
+
 test('attributes are derived from selected gear instead of user-entered stats', () => {
   const berserker = createDefaultBuild();
   const berserkerStats = calcAttributes(berserker, []).attributes;

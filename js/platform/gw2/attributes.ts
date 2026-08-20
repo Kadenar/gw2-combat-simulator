@@ -315,7 +315,9 @@ export function calculateCommonAttributes(
   }
 
   for (const conversion of utilityData[build.utility || ''] || []) {
-    const rate = (utilityRates[conversion.from] || 0) / 100;
+    // Explicit rates support uniform all-attribute boosts; ordinary utility
+    // conversions continue to derive their rate from the source attribute.
+    const rate = (conversion.percent ?? utilityRates[conversion.from] ?? 0) / 100;
     // GW2 stat conversions round each declared conversion independently.
     addAttribute(utility, conversion.to, Math.round((conversionPool[conversion.from] || 0) * rate));
   }
