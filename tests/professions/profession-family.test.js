@@ -1402,7 +1402,7 @@ test('Revenant modules are vertical slices with disjoint ownership', () => {
   assert.doesNotMatch(coreSources, /specializations\//);
   assert.doesNotMatch(
     coreSources,
-    /CITADEL_BOMBARDMENT|beguiling-haze|\bfacet\b|upkeepPulse|freeWithTraitId|freeWhenStatePositive|energyCostOverrides|LEGEND\.ENTITY/
+    /CITADEL_BOMBARDMENT|beguiling-haze|\bfacet\b|upkeepPulse|energyCostOverrides|LEGEND\.ENTITY/
   );
 });
 

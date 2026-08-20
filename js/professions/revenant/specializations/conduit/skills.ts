@@ -170,7 +170,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ammo: 1,
     ammoRecharge: 10,
     energyCost: 20,
-    freeWhenStatePositive: 'beguilingHazeCharges',
     effects: BEGUILING_HAZE_EFFECTS,
     legendId: 'LegendaryEntity'
   },
@@ -198,7 +197,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ammo: 1,
     ammoRecharge: 10,
     energyCost: 20,
-    freeWhenStatePositive: 'beguilingHazeCharges',
     effects: BEGUILING_HAZE_EFFECTS,
     legendId: 'LegendaryEntity'
   },
@@ -272,7 +270,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ammo: 1,
     ammoRecharge: 10,
     energyCost: 20,
-    freeWhenStatePositive: 'beguilingHazeCharges',
     effects: BEGUILING_HAZE_EFFECTS,
     legendId: 'LegendaryEntity'
   },
@@ -285,7 +282,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ammo: 1,
     ammoRecharge: 10,
     energyCost: 20,
-    freeWhenStatePositive: 'beguilingHazeCharges',
     effects: BEGUILING_HAZE_EFFECTS,
     legendId: 'LegendaryEntity'
   },

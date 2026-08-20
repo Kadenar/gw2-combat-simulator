@@ -26,8 +26,6 @@ export interface RevenantSkill extends Skill {
   readonly displayName?: string;
   readonly energyCost?: number;
   readonly facet?: boolean;
-  readonly freeWithTraitId?: number;
-  readonly freeWhenStatePositive?: string;
   readonly legendId?: string;
   readonly manualReleaseCooldown?: number;
   readonly paletteLegendId?: string;

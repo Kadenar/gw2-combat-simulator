@@ -2,8 +2,8 @@ import { professionCoreState } from '../../platform/engine/profession.js';
 import { REVENANT_SKILL_IDS as ID } from './data/ids.js';
 import { baseRevenantEnergyCost } from './core/energy.js';
 import { emitRevenantState } from './core/shared.js';
-import { effectiveConduitEnergyCost } from './specializations/conduit/energy.js';
-import { effectiveVindicatorEnergyCost } from './specializations/vindicator/energy.js';
+import { applyConduitEnergyCostRules } from './specializations/conduit/energy.js';
+import { applyVindicatorEnergyCostRules } from './specializations/vindicator/energy.js';
 import type { RevenantEnergyContext, RevenantPrecastContext, RevenantRuntimeState, RevenantSkill } from './types.js';
 
 function revenantEnergySpecialization(context: RevenantEnergyContext): string {
@@ -21,9 +21,9 @@ export function effectiveRevenantEnergyCost(context: RevenantEnergyContext, skil
   const baseCost = baseRevenantEnergyCost(context, skill);
   switch (revenantEnergySpecialization(context)) {
     case 'Conduit':
-      return effectiveConduitEnergyCost(context, skill, baseCost);
+      return applyConduitEnergyCostRules(context, skill, baseCost);
     case 'Vindicator':
-      return effectiveVindicatorEnergyCost(context, skill, baseCost);
+      return applyVindicatorEnergyCostRules(context, skill, baseCost);
     default:
       return baseCost;
   }

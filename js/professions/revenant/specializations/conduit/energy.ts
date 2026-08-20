@@ -10,17 +10,20 @@ function conduitEnergyState(context: RevenantEnergyContext): Partial<ConduitStat
   return candidate as Partial<ConduitState>;
 }
 
+/** Identifies Beguiling Haze follow-ups so only their temporary charges waive the skill's Energy cost. */
+function isBeguilingHazeFollowUp(state: Partial<ConduitState>, skill: RevenantSkill): boolean {
+  return skill.handlerId === 'revenant.beguiling-haze' && Number(state.beguilingHazeCharges || 0) > 0;
+}
+
 /** Applies Conduit form overrides and Beguiling Haze follow-up charges to the shared base cost. */
-export function effectiveConduitEnergyCost(
+export function applyConduitEnergyCostRules(
   context: RevenantEnergyContext,
   skill: RevenantSkill,
   baseCost: number
 ): number {
   if (baseCost <= 0) return 0;
   const state = conduitEnergyState(context);
-  if (skill.freeWhenStatePositive && Number(state[skill.freeWhenStatePositive as keyof ConduitState] || 0) > 0) {
-    return 0;
-  }
+  if (isBeguilingHazeFollowUp(state, skill)) return 0;
 
   const override = state.energyCostOverrides?.[String(skill.id)];
   return override == null ? baseCost : Math.max(0, Number(override));

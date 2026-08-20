@@ -177,7 +177,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     cooldown: 20,
     energyCost: 10,
     resourceGain: 25,
-    freeWithTraitId: TRAIT.ANGSIYANS_TRUST,
     effects: []
   },
   [ID.AWAKENING]: {
@@ -386,7 +385,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     cooldown: 20,
     energyCost: 10,
     resourceGain: 25,
-    freeWithTraitId: TRAIT.ANGSIYANS_TRUST,
     effects: []
   },
   [ID.CALL_OF_THE_ALLIANCE]: {
