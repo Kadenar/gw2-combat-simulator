@@ -3,9 +3,14 @@ import test from 'node:test';
 
 import { elementalistProfession } from '../../../js/professions/elementalist/definition.js';
 import { elementalistCoreModule } from '../../../js/professions/elementalist/core/module.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '../../../js/professions/elementalist/data/ids.js';
 import { catalystModule } from '../../../js/professions/elementalist/specializations/catalyst/module.js';
 import { evokerModule } from '../../../js/professions/elementalist/specializations/evoker/module.js';
 import { weaverModule } from '../../../js/professions/elementalist/specializations/weaver/module.js';
+import {
+  WEAVER_SKILL_MECHANICS,
+  weaverDualAttunements
+} from '../../../js/professions/elementalist/specializations/weaver/skills.js';
 
 const SPECIALIZATION_STATE_KEYS = Object.freeze({
   Tempest: ['latentStaminaReadyAt'],
@@ -53,4 +58,12 @@ test('elite modifier and dual-pistol profiles are declared by their owners', () 
     assert.equal(coreProfiles.has(id), false, id);
     assert.equal(weaverProfiles.has(id), true, id);
   }
+});
+
+test('Weaver dual-attunement mechanics parse their elements from skill metadata', () => {
+  assert.deepEqual(weaverDualAttunements(WEAVER_SKILL_MECHANICS[ID.FIERY_FROST]), ['Fire', 'Water']);
+  assert.deepEqual(weaverDualAttunements(WEAVER_SKILL_MECHANICS[ID.TWIN_STRIKE]), ['Fire', 'Water']);
+  assert.equal(weaverDualAttunements({ attunement: 'Fire' }), null);
+  assert.equal(weaverDualAttunements({ attunement: 'Fire+Fire' }), null);
+  assert.equal(weaverDualAttunements({ attunement: 'Fire+Void' }), null);
 });
