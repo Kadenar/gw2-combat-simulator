@@ -1,32 +1,15 @@
 import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from './thief-api-metadata.js';
 import type { ThiefApiTrait } from './thief-api-metadata.js';
 import type { ThiefSpecializationSelection } from '../types.js';
+import { createProfessionTraitData } from '../../lib/traits.js';
 
-export const SPECIALIZATIONS = CATALOG_SPECIALIZATIONS.map((specialization) => specialization.name);
-export const ELITE_SPECS = new Set(
-  CATALOG_SPECIALIZATIONS.filter((specialization) => specialization.elite).map((specialization) => specialization.name)
-);
-export const CORE_SPECS = CATALOG_SPECIALIZATIONS.filter((specialization) => !specialization.elite).map(
-  (specialization) => specialization.name
-);
-export const TRAITS = CATALOG_SPECIALIZATIONS.flatMap((specialization) => [
-  ...specialization.minorTraits,
-  ...specialization.majorTraits.flat()
-]);
+const traitData = createProfessionTraitData<ThiefApiTrait>(CATALOG_SPECIALIZATIONS);
+
+export const SPECIALIZATIONS = [...traitData.specializations];
+export const ELITE_SPECS = new Set(traitData.eliteSpecs);
+export const CORE_SPECS = [...traitData.coreSpecs];
+export const TRAITS = [...traitData.traits];
+
 export function getActiveTraits(specializations: readonly ThiefSpecializationSelection[] = []): ThiefApiTrait[] {
-  const active: ThiefApiTrait[] = [];
-  for (const selection of specializations) {
-    const specialization = CATALOG_SPECIALIZATIONS.find((candidate) => candidate.name === selection?.name);
-    if (!specialization) continue;
-    active.push(...specialization.minorTraits);
-    const picks = String(selection.traits || '')
-      .split('-')
-      .map(Number);
-    for (let tier = 0; tier < 3; tier += 1) {
-      const trait = specialization.majorTraits[tier]?.[picks[tier] - 1];
-      if (trait) active.push(trait);
-    }
-  }
-
-  return active;
+  return traitData.getActiveTraits(specializations);
 }
