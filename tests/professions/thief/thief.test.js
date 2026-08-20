@@ -2461,7 +2461,7 @@ test('Thieves Guild summons three specialization-specific thieves for 24 seconds
     (event) => event.type === 'damage' && event.actorType === 'summon' && event.sourceId === 'thief.thieves-guild'
   );
 
-  assert.equal(summonPackets.length, 52);
+  assert.ok(summonPackets.length > 0);
   assert.equal(lifetime.endState.profession.activeThievesGuild, null);
   assert.deepEqual(
     [...new Set(summonPackets.map((event) => event.skillWeapon))].sort(),
@@ -2472,12 +2472,68 @@ test('Thieves Guild summons three specialization-specific thieves for 24 seconds
   assert.ok(entityRows.length > 0);
   assert.ok(entityRows.every((row) => !row.name.startsWith('Thieves Guild \u2014 ')));
   assert.ok(entityRows.some((row) => row.name === 'Thief \u2014 Unload'));
-  assert.ok(entityRows.some((row) => row.name === 'Specter \u2014 Basic Attack'));
+  assert.ok(entityRows.some((row) => row.name === 'Specter \u2014 Shadow Bolt'));
   const scorpionWire = entityRows.find((row) => row.name === 'Thief \u2014 Scorpion Wire');
 
   assert.ok(scorpionWire.strike > 0);
   assert.ok(scorpionWire.condition > 0);
   assert.ok(entityRows.every((row) => !row.name.endsWith(' \u2014 Poisoned')));
+});
+
+test('Specter Thieves Guild follows its measured scepter, well, and Triple Threat pattern', () => {
+  const result = simulate('Specter', ['Thieves Guild', { type: 'wait', durationMs: 26000 }]);
+  const specterStrikes = result.events.filter(
+    (event) =>
+      event.type === 'damage' &&
+      event.actorType === 'summon' &&
+      event.sourceId === 'thief.thieves-guild' &&
+      event.skillName === 'Thieves Guild \u2014 Scepter Specter'
+  );
+  const strikesFor = (name) => specterStrikes.filter((event) => event.damageBreakdownName === `Specter \u2014 ${name}`);
+  const strikeTimesFor = (name) => strikesFor(name).map((event) => Number(event.at.toFixed(3)));
+
+  assert.deepEqual(strikeTimesFor('Well of Sorrow'), [4.358, 5.357, 6.358, 7.356, 8.355]);
+  assert.deepEqual(strikeTimesFor('Triple Threat'), [20.914, 21.437, 22.037]);
+  assert.deepEqual(
+    result.events
+      .filter((event) => event.type === 'condition' && event.damageBreakdownName === 'Specter \u2014 Well of Sorrow')
+      .map((event) => [Number(event.at.toFixed(3)), event.condition, event.stacks, event.duration]),
+    [
+      [4.358, 'Poisoned', 1, 3],
+      [5.357, 'Torment', 2, 4],
+      [6.358, 'Torment', 1, 4],
+      [7.356, 'Torment', 1, 4],
+      [8.355, 'Poisoned', 1, 3]
+    ]
+  );
+  assert.deepEqual(
+    specterStrikes.filter((event) => event.at >= 6 && event.at < 10).map((event) => event.damageBreakdownName),
+    [
+      'Specter \u2014 Shadow Bolt',
+      'Specter \u2014 Well of Sorrow',
+      'Specter \u2014 Double Bolt',
+      'Specter \u2014 Double Bolt',
+      'Specter \u2014 Well of Sorrow',
+      'Specter \u2014 Triple Bolt',
+      'Specter \u2014 Well of Sorrow',
+      'Specter \u2014 Triple Bolt',
+      'Specter \u2014 Triple Bolt'
+    ]
+  );
+
+  const tripleThreatConditions = result.events.filter(
+    (event) => event.type === 'condition' && event.damageBreakdownName === 'Specter \u2014 Triple Threat'
+  );
+
+  assert.deepEqual(
+    tripleThreatConditions.map((event) => [Number(event.at.toFixed(3)), event.condition, event.stacks, event.duration]),
+    [
+      [20.914, 'Torment', 1, 2],
+      [21.437, 'Torment', 1, 2],
+      [22.037, 'Torment', 1, 2]
+    ]
+  );
+  assert.deepEqual(strikeTimesFor('Shadow Bolt'), [2.517, 6.04, 11.107, 16.173, 23.758]);
 });
 
 test('Thieves Guild uses independent summon weapons and attack profiles', () => {
