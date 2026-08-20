@@ -2,11 +2,11 @@
  * @fileoverview Generates a report of the active patch preview.
  * @module patch-preview-report
  * @example
- *   node scripts/patch-preview/patch-preview-report.mjs 
+ *   node scripts/patch-preview/patch-preview-report.mjs
  */
 
-import { activePatchPreview } from '../dist/js/patches/active-preview.js';
-import { loadProfession } from '../dist/js/app/profession/registry.js';
+import { activePatchPreview } from '../../dist/js/patches/active-preview.js';
+import { loadProfession } from '../../dist/js/app/profession/registry.js';
 
 if (!activePatchPreview) {
   console.log('No active patch preview is authored.');

@@ -3,13 +3,13 @@
  * @module patch-preview-authoring-api
  * @example
  *   import { createPatchPreviewAuthoringApi } from './patch-preview-authoring-api.mjs';
- *   const handlePatchPreviewAuthoring = createPatchPreviewAuthoringApi({ root, buildRoot }); 
+ *   const handlePatchPreviewAuthoring = createPatchPreviewAuthoringApi({ root, buildRoot });
  */
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { generatePatchOverview } from '../js/app/patch-preview/model.js';
+import { generatePatchOverview } from '../../js/app/patch-preview/model.js';
 
 const API_PATH = '/api/patch-preview';
 const MAX_REQUEST_BYTES = 5 * 1024 * 1024;

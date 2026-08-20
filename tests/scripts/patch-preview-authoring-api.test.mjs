@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { serializeActivePatchPreview, validateAuthoringPreview } from '../../scripts/patch-preview-authoring-api.mjs';
+import {
+  serializeActivePatchPreview,
+  validateAuthoringPreview
+} from '../../scripts/patch-preview/patch-preview-authoring-api.mjs';
 import { validatePatchPreview } from '../../js/platform/gw2/skill-patch.js';
 
 test('patch authoring serializer emits the typed active preview module', () => {

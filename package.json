@@ -13,7 +13,7 @@
     "prestart": "npm run build:dev",
     "start": "node server.mjs",
     "preauthor:patch-preview": "npm run build:dev",
-    "author:patch-preview": "node --import ./scripts/testing/register-dist-loader.mjs scripts/patch-preview-authoring-server.mjs",
+    "author:patch-preview": "node --import ./scripts/testing/register-dist-loader.mjs scripts/patch-preview/patch-preview-authoring-server.mjs",
     "pretest": "npm run build",
     "test": "node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none",
     "typecheck": "tsc -p tsconfig.typecheck.json",
@@ -24,7 +24,7 @@
     "update:warrior-data": "node scripts/data/update-warrior-api-data.mjs && node scripts/data/generate-warrior-data.mjs",
     "update:ranger-data": "node scripts/data/update-profession-api-data.mjs --profession Ranger && node scripts/data/generate-ranger-ids.mjs && node scripts/data/generate-ranger-pet-data.mjs && node scripts/data/generate-ranger-skill-mechanics.mjs",
     "generate:revenant-ids": "node scripts/data/generate-revenant-ids.mjs",
-    "patch-preview:report": "npm run build:modules && node --import ./scripts/testing/register-dist-loader.mjs scripts/patch-preview-report.mjs",
+    "patch-preview:report": "npm run build:modules && node --import ./scripts/testing/register-dist-loader.mjs scripts/patch-preview/patch-preview-report.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },

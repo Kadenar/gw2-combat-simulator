@@ -25,6 +25,12 @@ const SLOT_FILES = [
   ['presentation', 'ui.js']
 ];
 
+// Scheduler snapshots serialize profession state rather than implement scheduling rules.
+// Family migrations may import them from state.ts directly; legacy slices may still re-export them through rules.ts.
+const SLOT_PROPERTY_FILES = new Map([
+  ['mechanics.schedulerHooks', new Map([['snapshot', new Set(['rules.js', 'state.js'])]])]
+]);
+
 async function isFile(filePath) {
   try {
     return (await stat(filePath)).isFile();
@@ -170,7 +176,7 @@ function collectImports(sourceFile) {
   return imports;
 }
 
-function collectReferencedIdentifiers(expression) {
+function collectReferencedIdentifiers(expression, ignoredProperties = new Set()) {
   const identifiers = new Set();
 
   function visit(node) {
@@ -189,6 +195,10 @@ function collectReferencedIdentifiers(expression) {
     }
 
     if (ts.isPropertyAssignment(node)) {
+      const name = propertyName(node.name);
+
+      if (name && ignoredProperties.has(name)) return;
+
       visit(node.initializer);
 
       return;
@@ -208,10 +218,10 @@ function collectReferencedIdentifiers(expression) {
   return identifiers;
 }
 
-function professionImports(expression, imports, sliceRoot) {
+function professionImports(expression, imports, sliceRoot, ignoredProperties = new Set()) {
   const origins = new Set();
 
-  for (const identifier of collectReferencedIdentifiers(expression)) {
+  for (const identifier of collectReferencedIdentifiers(expression, ignoredProperties)) {
     const moduleSpecifier = imports.get(identifier);
 
     if (!moduleSpecifier?.startsWith('.')) continue;
@@ -255,7 +265,8 @@ async function auditSlice(slice) {
 
     if (!expression) continue;
 
-    const origins = professionImports(expression, imports, sliceRoot);
+    const propertyFiles = SLOT_PROPERTY_FILES.get(slot);
+    const origins = professionImports(expression, imports, sliceRoot, new Set(propertyFiles?.keys()));
 
     if (origins.size === 0) {
       violations.push(`${slice.name}: ${slot} is inline, expected ${expectedFile}`);
@@ -265,6 +276,27 @@ async function auditSlice(slice) {
     for (const origin of origins) {
       if (origin !== expectedFile) {
         violations.push(`${slice.name}: ${slot} imported from ${origin}, expected ${expectedFile}`);
+      }
+    }
+
+    for (const [property, allowedFiles] of propertyFiles || []) {
+      const propertyExpression = findProperty(expression, property);
+
+      if (!propertyExpression) continue;
+
+      const propertyOrigins = professionImports(propertyExpression, imports, sliceRoot);
+
+      if (propertyOrigins.size === 0) {
+        violations.push(`${slice.name}: ${slot}.${property} is inline, expected ${[...allowedFiles].join(' or ')}`);
+        continue;
+      }
+
+      for (const origin of propertyOrigins) {
+        if (!allowedFiles.has(origin)) {
+          violations.push(
+            `${slice.name}: ${slot}.${property} imported from ${origin}, expected ${[...allowedFiles].join(' or ')}`
+          );
+        }
       }
     }
   }

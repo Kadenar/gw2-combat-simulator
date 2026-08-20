@@ -11,7 +11,8 @@ import { fileURLToPath } from 'node:url';
 
 import { createPatchPreviewAuthoringApi } from './patch-preview-authoring-api.mjs';
 
-const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+// Resolve the repository root from scripts/patch-preview so build and source paths remain workspace-relative.
+const root = path.dirname(path.dirname(path.dirname(fileURLToPath(import.meta.url))));
 const buildRoot = path.join(root, 'dist');
 const siteRoot = path.join(buildRoot, 'site');
 const port = Number(process.env.PATCH_PREVIEW_PORT || 4174);
@@ -40,7 +41,7 @@ async function resolveAuthoringFile(pathname) {
   if (relative !== 'patch-preview.html' && !relative.startsWith('assets/')) {
     throw new Error('Not found');
   }
-  
+
   const target = path.resolve(siteRoot, relative);
 
   if (!isWithin(siteRoot, target)) throw new Error('Forbidden');
