@@ -3,7 +3,7 @@ import { EPSILON } from '../../../../platform/engine/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
-import { timedStacks } from '../../core/rules.js';
+import { illusionSource, timedStacks } from '../../core/rules.js';
 import { mesmerBalanceValue } from '../../core/profiles.js';
 import { initializeMirageRuntime, mirageControllerFor } from './runtime.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
@@ -159,8 +159,11 @@ export const mirageModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       strikeBonus: 0.1,
       conditionBonus: 0.05
     } as Readonly<Record<string, number>>,
-    amount: (_context, target, parameters) =>
-      target === MODIFIER_TARGET.STRIKE_DAMAGE ? parameters.strikeBonus : parameters.conditionBonus,
+    amount: (context, target, parameters) => {
+      // Illusion strikes do not inherit personal strike bonuses, while their conditions remain owner-resolved.
+      if (target === MODIFIER_TARGET.STRIKE_DAMAGE && illusionSource(context)) return 0;
+      return target === MODIFIER_TARGET.STRIKE_DAMAGE ? parameters.strikeBonus : parameters.conditionBonus;
+    },
     when: (context) =>
       hasTrait(context, TRAIT.NOMADS_ENDURANCE) && Boolean(context.timeline?.vigorActiveAt(context.time))
   },
@@ -174,9 +177,14 @@ export const mirageModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       strikePerStack: 0.0625,
       conditionPerStack: 0.05
     } as Readonly<Record<string, number>>,
-    amount: (context, target, parameters) =>
-      timedStacks(context, 'phantom-pain', parameters.duration, parameters.maximumStacks) *
-      (target === MODIFIER_TARGET.CONDITION_DAMAGE ? parameters.conditionPerStack : parameters.strikePerStack)
+    amount: (context, target, parameters) => {
+      // Phantasm conditions use their owner's condition modifiers, but phantasm strikes use summon ownership.
+      if (target === MODIFIER_TARGET.STRIKE_DAMAGE && illusionSource(context)) return 0;
+      return (
+        timedStacks(context, 'phantom-pain', parameters.duration, parameters.maximumStacks) *
+        (target === MODIFIER_TARGET.CONDITION_DAMAGE ? parameters.conditionPerStack : parameters.strikePerStack)
+      );
+    }
   }
 ]);
 

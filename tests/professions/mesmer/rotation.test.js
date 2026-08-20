@@ -845,8 +845,12 @@ test('Phantasmal Mage separates player, Pledge, and phantasm conditions', () => 
   const phantasmConditions = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Phantasmal Mage' && event.source === 'Phantasm'
   );
+  const phantasmStrike = result.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.skillName === 'Phantasmal Mage' && event.source === 'Phantasm'
+  );
 
   assert.equal(result.steps[0].end, 760);
+  assert.equal(phantasmStrike.weaponStrength, 2615.5);
   assert.deepEqual(
     playerBurning.map((event) => [event.stacks, event.duration, event.at]),
     [
@@ -1123,7 +1127,7 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
 
   assert.deepEqual(
     axeSkills.steps.map((step) => step.end - step.start),
-    [430, 530, 720, 930, 1020]
+    [430, 530, 720, 920, 1020]
   );
 
   const greatswordSkills = simulateMesmer(
@@ -2660,6 +2664,29 @@ test('Relic of Peitha triggers from Mesmer shadowsteps', () => {
   );
 });
 
+test('Relic of Peitha does not grant its player damage bonus to phantasms', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Core',
+    selectedTraits: [],
+    initialResource: 0,
+    primaryWeapon: 'Sword',
+    secondaryWeapon: 'Sword',
+    relic: '',
+    modifiers: { strike: 1, condition: 1 }
+  });
+  const rotation = ['Blink', 'Phantasmal Swordsman', { name: '__wait', waitMs: 4000 }];
+  const base = simulateMesmer(rotation, config);
+  const equipped = simulateMesmer(rotation, { ...config, relic: 'Peitha' });
+  const phantasmDamage = (result) =>
+    result.resolvedEvents
+      .filter(
+        (event) => event.type === 'damage' && event.skillName === 'Phantasmal Swordsman' && event.source === 'Phantasm'
+      )
+      .reduce((sum, event) => sum + event.damage, 0);
+
+  assert.equal(phantasmDamage(equipped), phantasmDamage(base));
+});
+
 test('Relic of Thorns uses the deterministic incoming-hit assumption', () => {
   const config = defaultSimulationConfig({
     specialization: 'Core',
@@ -3651,6 +3678,40 @@ test('Mirage support and cloak traits emit their current effects', () => {
   assert.equal(alacrity.recipientCount, 5);
   assert.equal(alacrity.affectsSummons, false);
   assert.ok(result.procSteps.some((proc) => proc.skill === 'Elusive Mind'));
+});
+
+test("Nomad's Endurance and Phantom Pain exclude phantasm strikes but retain owner-resolved conditions", () => {
+  const run = (selectedTraits) =>
+    simulateMesmer(
+      ['Mind Wrack', 'Phantasmal Mage', { name: '__wait', waitMs: 4000 }],
+      defaultSimulationConfig({
+        specialization: 'Mirage',
+        selectedTraits,
+        initialResource: 3,
+        primaryWeapon: 'Axe',
+        secondaryWeapon: 'Torch',
+        relic: '',
+        modifiers: { strike: 1, condition: 1 },
+        boons: { vigor: true }
+      })
+    );
+  const baseline = run([]);
+  const modified = run(["Nomad's Endurance", 'Phantom Pain']);
+  const damage = (result, source) =>
+    result.resolvedEvents
+      .filter((event) => event.type === 'damage' && event.skillName === 'Phantasmal Mage' && event.source === source)
+      .reduce((sum, event) => sum + event.damage, 0);
+
+  assert.ok(Math.abs(damage(modified, 'Player') / damage(baseline, 'Player') - 1.35) < 1e-12);
+  assert.equal(damage(modified, 'Phantasm'), damage(baseline, 'Phantasm'));
+
+  const conditionDamage = (result) =>
+    result.breakdown
+      .filter(
+        (entry) => entry.sourceSkill === 'Phantasmal Mage' && entry.source === 'Phantasm' && entry.conditionDamage > 0
+      )
+      .reduce((sum, entry) => sum + entry.conditionDamage, 0);
+  assert.ok(Math.abs(conditionDamage(modified) / conditionDamage(baseline) - 1.25) < 1e-12);
 });
 
 test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', () => {

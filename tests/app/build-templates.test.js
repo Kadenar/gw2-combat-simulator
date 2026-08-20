@@ -10,6 +10,8 @@ import {
   templateMatchesFilter,
   undoTemplateLoad
 } from '../../js/app/build/presets.js';
+import { mesmerAppAdapter } from '../../js/professions/mesmer/app/app-definition.js';
+import { MESMER_SKILL_IDS as MESMER_ID } from '../../js/professions/mesmer/data/ids.js';
 
 function createApp() {
   return {
@@ -189,6 +191,53 @@ test('template actions load paired or partial state and support undo', async (t)
   assert.equal(rotationOnlyApp.build.marker, 'current');
   assert.deepEqual(rotationOnlyApp.build.rotation, ['Template rotation']);
   assert.deepEqual(rotationOnlyApp.changedCalls, [[false]]);
+});
+
+test('template loading resolves duplicate Mesmer skill names before the first simulation', async (t) => {
+  const buildData = JSON.parse(
+    readFileSync(new URL('../../Builds/mesmer/b-condi-mirage-dune-cloak.json', import.meta.url), 'utf8')
+  );
+  const payloads = new Map([
+    ['Builds/mesmer/ambiguous-mirage.json', buildData],
+    ['Rotations/mesmer/ambiguous-mirage.json', { rotation: [{ name: 'Swap Weapons' }, { name: 'Lingering Thoughts' }] }]
+  ]);
+
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    const payload = payloads.get(String(url).split('?')[0]);
+    return {
+      ok: payload !== undefined,
+      json: async () => structuredClone(payload)
+    };
+  });
+  const app = {
+    ...createApp(),
+    adapter: mesmerAppAdapter,
+    profession: mesmerAppAdapter.profession,
+    activeCatalog: mesmerAppAdapter.profession.catalog,
+    build: mesmerAppAdapter.toApplicationBuild(buildData),
+    skillByName: mesmerAppAdapter.profession.catalog.skillsByName,
+    skillById: mesmerAppAdapter.profession.catalog.skillsById,
+    attributeWeaponSet: 1,
+    results: null,
+    patchId: 'current'
+  };
+
+  await loadTemplateAction(
+    app,
+    {
+      section: 'Mirage',
+      label: 'Condition - Dune Cloak',
+      build: 'Builds/mesmer/ambiguous-mirage.json',
+      rotation: 'Rotations/mesmer/ambiguous-mirage.json'
+    },
+    'template',
+    createButton()
+  );
+  mesmerAppAdapter.recalculate(app);
+  const result = mesmerAppAdapter.simulateBuild(app.build.rotation, mesmerAppAdapter.simulationConfig(app));
+
+  assert.equal(app.build.rotation[1].skillId, MESMER_ID.LINGERING_THOUGHTS);
+  assert.equal(result.steps[1].end - result.steps[1].start, 920);
 });
 
 test('a complete template without a rotation clears stale rotation state', async (t) => {

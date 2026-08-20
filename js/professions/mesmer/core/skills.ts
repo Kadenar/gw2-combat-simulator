@@ -318,7 +318,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         hits: 1,
         name: 'Phantasm attack',
         actorType: 'phantasm',
-        weapon: 'torch'
+        // Backfire uses the phantasm's summon profile rather than the mesmer's equipped Torch strength.
+        weapon: 'Phantasm medium'
       },
       {
         type: 'condition',
@@ -1553,7 +1554,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
         stacks: 3
       }
     ],
-    quicknessCastTimeMs: 930
+    // The Troubadour variant keeps the same measured Axe cast timing as Mirage.
+    quicknessCastTimeMs: 920
   },
   [ID.TROUBADOUR_AXES_OF_SYMMETRY]: {
     implemented: true,

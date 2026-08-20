@@ -1,6 +1,9 @@
 import { escapeHtml as esc } from "../../platform/ui/html.js";
 import { fetchJsonAsset, getRotationItems, loadPresetBundle } from "./files.js";
-import { replaceBuildConfiguration } from "./persistence.js";
+import {
+  replaceBuildConfiguration,
+  replaceBuildRotation,
+} from "./persistence.js";
 
 import type { LegacyRotationItem } from "../../platform/engine/types.js";
 import type {
@@ -431,7 +434,7 @@ export async function loadTemplateAction(
         throw new Error("Rotation array missing.");
       }
 
-      app.build.rotation = rotationItems as LegacyRotationItem[];
+      app.build = replaceBuildRotation(rotationItems, app.build, app.adapter);
       app.currentTemplate = null;
       app.changed(false);
     } else if (action === "build") {
@@ -448,7 +451,11 @@ export async function loadTemplateAction(
       }
 
       app.build = replaceBuildConfiguration(buildData, app.build, app.adapter);
-      app.build.rotation = Array.isArray(rotationItems) ? rotationItems : [];
+      app.build = replaceBuildRotation(
+        Array.isArray(rotationItems) ? rotationItems : [],
+        app.build,
+        app.adapter,
+      );
       app.changed();
       app.currentTemplate = {
         build: preset.build,

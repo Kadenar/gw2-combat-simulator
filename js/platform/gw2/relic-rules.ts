@@ -625,7 +625,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         source: 'Relic'
       });
     },
-    strikeMultiplier: timedStrikeBuff(1.1)
+    // Peitha's temporary outgoing-damage bonus belongs to the player who triggered it.
+    strikeMultiplier: timedStrikeBuff(1.1, isGw2PlayerModifierOwnedEvent)
   }),
 
   Shackles: defineRelic({

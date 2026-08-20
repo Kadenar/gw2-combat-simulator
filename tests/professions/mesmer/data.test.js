@@ -565,7 +565,7 @@ test('supplied player and clone coefficient table is preserved', () => {
     ['Lacerating Chop', 0.55, 0.43],
     ['Ethereal Chop', 0.55, 0.53],
     ['Mirror Strikes', 1.1, 0.72],
-    ['Lingering Thoughts', 1.2, 0.93],
+    ['Lingering Thoughts', 1.2, 0.92],
     ['Axes of Symmetry', 1.75, 1.02],
     ['Mind Stab', 1.8, 0.32],
     ['Phantasmal Berserker', 2.4, 0.56],

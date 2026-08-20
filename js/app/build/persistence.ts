@@ -123,3 +123,29 @@ export function replaceBuildConfiguration(
     : [];
   return build;
 }
+
+/**
+ * Replaces a build's rotation through the profession codec.
+ *
+ * Preset rotations can contain legacy display names that are ambiguous across
+ * specializations. Normalizing the combined build lets the profession resolve
+ * those names with the selected specialization before the first simulation.
+ *
+ * @param {readonly unknown[]} rotation Rotation entries to install.
+ * @param {ProfessionApplicationBuild} currentBuild Build supplying specialization context.
+ * @param {Gw2AppAdapter} adapter Profession application adapter.
+ * @returns {ProfessionApplicationBuild} Normalized build and rotation.
+ */
+export function replaceBuildRotation(
+  rotation: readonly unknown[],
+  currentBuild: ProfessionApplicationBuild,
+  adapter: Gw2AppAdapter,
+): ProfessionApplicationBuild {
+  return replaceBuild(
+    {
+      ...currentBuild,
+      rotation: Array.isArray(rotation) ? rotation : [],
+    },
+    adapter,
+  );
+}
