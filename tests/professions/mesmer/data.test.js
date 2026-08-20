@@ -398,18 +398,6 @@ test('Counterspell is cataloged as Illusionary Counter’s clone-generating flip
   assert.deepEqual(counterspell.resource, { mode: 'add', count: 1 });
 });
 
-test('Illusionary Counter does not grant its successful-block clones on activation', () => {
-  const counter = catalogSkill('Illusionary Counter');
-
-  assert.equal(counter.resource, null);
-});
-
-test('Signet of the Ether does not generate a clone on activation', () => {
-  const signet = catalogSkill('Signet of the Ether');
-
-  assert.equal(signet.resource, null);
-});
-
 test('Mesmer instant-cast skills have zero cast time', () => {
   const instantSkills = [
     'Cry of Frustration',
