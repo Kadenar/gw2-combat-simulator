@@ -311,6 +311,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   ) {
     setElementalistAttunementReadyAt(context, core.primaryAttunement, at);
   }
+
   if (skill.name === 'Unravel') {
     const previousPrimary = core.primaryAttunement;
     const previousSecondary = state.secondaryAttunement;

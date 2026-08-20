@@ -55,6 +55,7 @@ export function handleVirtuosoExpectedProcTask(
         { traitId: TRAIT.BLOODSONG, traitName: 'Bloodsong' }
       );
     }
+
     return;
   }
 

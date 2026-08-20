@@ -347,6 +347,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
     if (lifecycle.elementalistAttunementHandled !== true) {
       onAttunementComplete(context, skill, target);
     }
+
     delete lifecycle.elementalistAttunementHandled;
     // Elementalist spear etchings count attunement swaps among the three
     // completed casts required to upgrade their release skill.

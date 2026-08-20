@@ -301,6 +301,7 @@ function onEventScheduled(context: ElementalistCastContext, event: SimulationEve
         event.skillId ?? event.sourceId
       );
     }
+
     return;
   }
 

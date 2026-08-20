@@ -73,6 +73,7 @@ export function applyMesmerRuntimeManifest(runtime: MesmerRuntime, manifest: Mes
   if (manifest.shatterResolvedHandlers) {
     runtime.shatterResolvedHandlers.push(...manifest.shatterResolvedHandlers);
   }
+
   if (manifest.instruments) {
     Object.assign(runtime.instruments, manifest.instruments);
   }

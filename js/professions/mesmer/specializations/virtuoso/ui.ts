@@ -21,6 +21,7 @@ function virtuosoPaletteSkillAvailability(context: MesmerUiContext, skill: Skill
   if (!VIRTUOSO_MECHANIC_SKILLS.some((skillId) => skillId === Number(skill.id))) {
     return { available: true, message: '' };
   }
+
   const state = (context.professionState || context.state?.profession || {}) as SchedulerRecord;
   const available = Number(state.resource ?? Infinity) >= 1;
   return {

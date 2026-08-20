@@ -49,6 +49,7 @@ export function createExpectedProcTracker({
         `Missing sampled critical outcome for Mesmer event ${String(event.skillName || event.name || event.sourceId)}.`
       );
     }
+
     return event.didCrit;
   };
 
@@ -120,6 +121,7 @@ export function createExpectedProcTracker({
       professionCoreState(state).sharperImagesProgress += chance;
       procCount = Math.floor(professionCoreState(state).sharperImagesProgress + PROC_PROGRESS_TOLERANCE);
     }
+
     if (procCount <= 0) return;
     if (!stochastic) professionCoreState(state).sharperImagesProgress -= procCount;
 

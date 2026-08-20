@@ -180,6 +180,7 @@ export function createProfessionActionController({
           `${skill.name} — Maim the Disillusioned`
         );
       }
+
       addTraitProc('Maim the Disillusioned', at, skill.name);
     }
 

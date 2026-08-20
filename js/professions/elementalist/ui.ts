@@ -88,6 +88,7 @@ function paletteSkillAvailability(context: SchedulerRecord, skill: Skill) {
   if (position && carryover?.root === position.root && carryover.attunement === skill.attunement) {
     return { available: true, message: '' };
   }
+
   const available = skill.attunement === primary;
   return { available, message: available ? '' : `Requires ${String(skill.attunement)} attunement.` };
 }

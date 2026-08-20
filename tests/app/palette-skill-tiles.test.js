@@ -84,7 +84,9 @@ function catalogFlipFamilies(catalog) {
   for (const skill of catalog.skills) {
     if (skill.nextChainId == null) continue;
     const linked = catalog.skillsById.get(Number(skill.nextChainId));
+
     if (!linked || linked.nextChainId !== skill.id) continue;
+
     if ((order.get(Number(skill.id)) || 0) > (order.get(Number(linked.id)) || 0)) continue;
     register(skill, linked);
   }
@@ -93,11 +95,13 @@ function catalogFlipFamilies(catalog) {
   const families = [];
   for (const skill of catalog.skills) {
     const startId = Number(skill.id);
+
     if (visited.has(startId) || !neighborsBySkillId.has(startId)) continue;
     const pending = [startId];
     const memberIds = [];
     while (pending.length) {
       const id = pending.pop();
+
       if (visited.has(id)) continue;
       visited.add(id);
       memberIds.push(id);
@@ -105,6 +109,7 @@ function catalogFlipFamilies(catalog) {
         if (!visited.has(neighbor)) pending.push(neighbor);
       }
     }
+
     memberIds.sort((left, right) => order.get(left) - order.get(right));
     families.push(memberIds.map((id) => catalog.skillsById.get(id)));
   }
@@ -166,6 +171,7 @@ test('every profession catalog autoattack and flip family uses the shared tile p
           `${option.id}: ${skills[0].name} -> ${skill.name}`
         );
       }
+
       autoattackFamilyCount += 1;
     }
 
@@ -187,6 +193,7 @@ test('every profession catalog autoattack and flip family uses the shared tile p
           `${option.id}: ${root.name} -> ${descendant.name}`
         );
       }
+
       flipFamilyCount += 1;
     }
   }
@@ -205,6 +212,7 @@ test('UI-only tile declarations collapse through the same profession-neutral hoo
       const tileId = String(skill.paletteTileId);
       families.set(tileId, [...(families.get(tileId) || []), skill]);
     }
+
     for (const [tileId, family] of families) {
       assert.ok(family.length > 1, `${option.id}: ${tileId}`);
       assert.equal(

@@ -102,6 +102,7 @@ export function triggerSpecializedElementEntry(
       at + elementalistBalanceValue(context, PROFILE.evocation, 'internalCooldown', 5);
     return true;
   };
+
   context.emit({
     type: 'elementalist.attunement-enter',
     at,
@@ -159,6 +160,7 @@ export function triggerSpecializedElementEntry(
     if (hasTrait(context, 'Earthen Blast') && procReady(String(CORE_PROFILE.earthenBlast))) {
       triggerElementalistEarthenBlast(context as never, at, skill.id);
     }
+
     if (hasTrait(context, 'Rock Solid') && procReady(String(CORE_PROFILE.rockSolid))) {
       grantElementalistRockSolid(context as never, at, skill.id);
     }

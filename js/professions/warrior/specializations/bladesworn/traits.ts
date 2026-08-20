@@ -751,6 +751,7 @@ export const bladeswornSkillMechanicHandlers = Object.freeze({
     if (furyActiveBeforeCurrentCast(context, activationId, castStart)) {
       state.flow = Math.min(state.maximumFlow, state.flow + 15);
     }
+
     state.flowStabilizerWindows.push({ startedAt: at, expiresAt: at + 8 });
     refreshDragonTriggerEntryProjection(context);
   },

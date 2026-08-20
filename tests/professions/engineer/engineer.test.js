@@ -1072,6 +1072,7 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
   for (const name of swordChain) {
     assert.ok(Math.abs(swordDamage(tiered, name) / swordDamage(tierBase, name) - 1.2) < 1e-12, name);
   }
+
   assert.ok(Math.abs(swordDamage(cappedSword, 'Sun Edge') / swordDamage(tiered, 'Sun Edge') - 1) < 1e-12);
   assert.ok(swordDamage(enhancedSword, 'Sun Edge') > swordDamage(tiered, 'Sun Edge'));
 

@@ -475,6 +475,7 @@ export function defineProfession<TProfessionState extends object>(
       throw new TypeError(`${definition.id} registers ${type} as both a task and skill mechanic handler.`);
     }
   }
+
   assertSkillMechanicTriggers(definition.catalog, skillMechanicHandlers, definition.id);
   const catalogSkillHandlers =
     definition.catalog?.skillHandlers instanceof Map ? definition.catalog.skillHandlers : new Map();

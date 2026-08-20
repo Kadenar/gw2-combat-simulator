@@ -360,6 +360,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       event.skillId ?? event.sourceId
     );
   }
+
   const implicitCombatEvent =
     !context.hasExplicitCombatStart &&
     ['player', 'summon'].includes(String(event.actorType || '')) &&

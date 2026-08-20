@@ -18,6 +18,7 @@ function virtuosoAvailability(context: MesmerPrecastContext, skill: MesmerSkill)
   if (skill.handlerId !== 'mesmer.bladesong' || mesmerRuntimeFor(context).actions.currentResource() >= 1) {
     return { ready: true };
   }
+
   return {
     ready: false,
     retryAt: null,

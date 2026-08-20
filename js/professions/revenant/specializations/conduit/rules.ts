@@ -244,6 +244,7 @@ function advanceConduitUpkeep(context: RevenantSchedulerContext, target: number)
   for (const skillId of Object.keys(state.upkeepAffinityNextAt)) {
     if (!activeIds.has(skillId)) delete state.upkeepAffinityNextAt[skillId];
   }
+
   if (!activeIds.has(String(ID.IMPOSSIBLE_ODDS))) state.impossibleOddsLesserDaggersNextAt = null;
 
   for (const active of activeUpkeeps) {

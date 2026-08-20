@@ -53,6 +53,7 @@ export function createResourceController({
     if (typeof active.numericResource !== 'number') {
       throw new TypeError(`${state.profession.specialization.kind} does not own a numeric Mesmer resource.`);
     }
+
     return active as { numericResource: number };
   };
 

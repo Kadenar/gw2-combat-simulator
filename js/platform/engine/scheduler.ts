@@ -570,6 +570,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         }
       });
     }
+
     reservations.delete(reservation.id);
   };
 
