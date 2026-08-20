@@ -45,6 +45,7 @@ import { addRotation, createRotationItem, insertRotationItems } from '../../js/a
 import { parseWaitDurationMs } from '../../js/app/rotation/palette-view.js';
 import { syncProcVisibility } from '../../js/app/rotation/timeline-view.js';
 import { ACTION_ICONS, resolveProcIcon, resultSkillIcon } from '../../js/app/rotation/icons.js';
+import { renderResults } from '../../js/app/rotation/result-view.js';
 import {
   PREFIXES,
   PREFIX_GROUPS,
@@ -495,7 +496,10 @@ test('mobile rotation workspace keeps controls, timeline, and focus metrics usab
   assert.match(css, /body\[data-rotation-focus\] \.rotation-panel-shell > \.rotation-panel\s*\{\s*height: auto;/);
   assert.match(css, /\.rotation-timeline\s*\{\s*flex: 0 0 clamp\(320px, 50vh, 520px\);\s*min-height: 320px;/);
   assert.match(css, /body\[data-rotation-focus\] \.rotation-palette\s*\{\s*max-height: none;\s*overflow-y: visible;/);
-  assert.match(css, /body\[data-rotation-focus\] \.rotation-timeline\s*\{\s*flex: 0 0 auto;\s*overflow-y: visible;/);
+  assert.match(
+    css,
+    /body\[data-rotation-focus\] \.rotation-timeline\s*\{\s*flex: 0 0 auto;\s*height: auto;\s*overflow-y: visible;/
+  );
   assert.match(
     css,
     /body\[data-rotation-focus\] \.rotation-results\s*\{\s*grid-template-columns: 1fr;\s*max-height: none;\s*margin-top: 8px;\s*overflow-x: hidden;/
@@ -507,6 +511,52 @@ test('mobile rotation workspace keeps controls, timeline, and focus metrics usab
   assert.match(
     css,
     /body\[data-rotation-focus\] \.rotation-results \.res-breakpoint-grid\s*\{\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/
+  );
+});
+
+test('empty rotations keep placeholder DPS metrics grouped with the builder', () => {
+  const results = {
+    innerHTML: '',
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    insertAdjacentHTML(position, markup) {
+      assert.equal(position, 'beforeend');
+      this.innerHTML += markup;
+    }
+  };
+  const summaryMirror = { innerHTML: 'stale summary' };
+  const previousDocument = globalThis.document;
+
+  globalThis.document = {
+    getElementById: (id) => (id === 'rotation-results' ? results : id === 'analysis-dps-summary' ? summaryMirror : null)
+  };
+  try {
+    renderResults({ build: { rotation: [] }, results: null });
+  } finally {
+    globalThis.document = previousDocument;
+  }
+
+  assert.match(results.innerHTML, /res-summary-placeholder/);
+  assert.deepEqual(
+    [...results.innerHTML.matchAll(/<span class="res-label">([^<]+)<\/span>/g)].map((match) => match[1]),
+    ['Duration', 'Total Damage', 'DPS', 'Strike', 'Condition']
+  );
+  assert.equal([...results.innerHTML.matchAll(/<span class="res-val[^>]*">—<\/span>/g)].length, 5);
+  assert.match(results.innerHTML, /No analysis yet/);
+  assert.equal(summaryMirror.innerHTML, '');
+});
+
+test('empty and authored rotations keep the same timeline height', async () => {
+  const css = await readFile(new URL('../../css/style.css', import.meta.url), 'utf8');
+
+  assert.match(
+    css,
+    /\.rotation-timeline\s*\{\s*flex: 1 1 auto;\s*height: clamp\(280px, 52vh, 600px\);\s*min-height: 280px;/
+  );
+  assert.match(css, /\.rotation-timeline\.is-empty\s*\{\s*display: grid;\s*place-items: center;\s*background:/);
+  assert.match(
+    css,
+    /body\[data-rotation-focus\] \.rotation-timeline\s*\{\s*flex: 0 0 auto;\s*height: auto;\s*overflow-y: visible;/
   );
 });
 

@@ -31,15 +31,31 @@ const EFFECT_COLORS: Readonly<Record<string, string>> = {
   Aegis: '#d9b85f'
 };
 
+/** Keeps the builder's metric footprint stable before a rotation can be simulated. */
+const EMPTY_RESULT_METRICS = Object.freeze([
+  { label: 'Duration', value: '—', className: '' },
+  { label: 'Total Damage', value: '—', className: '' },
+  { label: 'DPS', value: '—', className: 'dps' },
+  { label: 'Strike', value: '—', className: '' },
+  { label: 'Condition', value: '—', className: 'condi' }
+]);
+
 export function renderResults(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-results');
   if (!element) return;
   const result = app.results;
   if (!app.build.rotation.length || !result) {
-    element.innerHTML = `<div class="analysis-empty-state">
+    mountRotationResults(element, {
+      metrics: EMPTY_RESULT_METRICS,
+      summaryPlaceholder: true
+    });
+    element.insertAdjacentHTML(
+      'beforeend',
+      `<div class="analysis-empty-state">
       <strong>No analysis yet</strong>
       <span>Add skills to the rotation in the <a href="#workspace">Workspace</a> to generate results.</span>
-    </div>`;
+    </div>`
+    );
     const mirror = document.getElementById('analysis-dps-summary');
     if (mirror) mirror.innerHTML = '';
     return;

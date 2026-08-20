@@ -2900,7 +2900,6 @@ body[data-profession] .rotation-section {
   filter: drop-shadow(0 0 4px currentcolor);
 }
 
-
 .rotation-focus-toggle::before {
   margin-right: 4px;
   content: '\26F6';
@@ -4134,9 +4133,12 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
   font-weight: 600;
 }
 
+/* Empty and authored rotations share a viewport-sized canvas so adding the
+   first skill does not collapse the builder around the user. */
 .rotation-timeline {
-  flex: 0 1 auto;
-  min-height: 52px;
+  flex: 1 1 auto;
+  height: clamp(280px, 52vh, 600px);
+  min-height: 280px;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable;
@@ -4163,8 +4165,6 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
 .rotation-timeline.is-empty {
   display: grid;
   place-items: center;
-  flex: 1 1 auto;
-  height: clamp(280px, 52vh, 600px);
   background: radial-gradient(circle at center, rgba(157, 123, 208, 0.1), transparent 55%), var(--bg-dark);
   border: 1px dashed var(--border-light);
 }
@@ -4857,6 +4857,10 @@ body[data-rotation-focus] .rotation-results .res-breakpoint-value strong {
 
 .res-val.kill-time {
   color: #ff9955;
+}
+
+.res-summary-placeholder .res-val {
+  color: var(--text-dim);
 }
 
 .rng-distribution {
@@ -6044,7 +6048,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   overflow-y: auto;
   scrollbar-gutter: stable;
 }
-
 
 #perma-boons[hidden] {
   display: none;
@@ -9597,6 +9600,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 
   body[data-rotation-focus] .rotation-timeline {
     flex: 0 0 auto;
+    height: auto;
     overflow-y: visible;
   }
 
