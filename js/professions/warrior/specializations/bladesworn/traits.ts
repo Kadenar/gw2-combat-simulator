@@ -401,7 +401,11 @@ function emitDragonTriggerEntry(context: WarriorCastContext, skill: WarriorSkill
   });
 }
 
-function furyActiveBeforeCurrentCast(context: WarriorCastContext): boolean {
+function furyActiveBeforeCurrentCast(
+  context: WarriorSchedulerContext,
+  activationId: string,
+  castStart: number
+): boolean {
   const configured = context.config.boons?.fury;
   if (configured === true || Number(configured || 0) > 0) return true;
   return context.events.some(
@@ -409,9 +413,9 @@ function furyActiveBeforeCurrentCast(context: WarriorCastContext): boolean {
       event.type === 'buff' &&
       event.kind === 'fury' &&
       event.affectsSelf !== false &&
-      event.activationId !== context.reservationId &&
-      event.at <= context.start + context.epsilon &&
-      event.at + Number(event.duration || 0) > context.start + context.epsilon
+      event.activationId !== activationId &&
+      event.at <= castStart + context.epsilon &&
+      event.at + Number(event.duration || 0) > castStart + context.epsilon
   );
 }
 
@@ -495,7 +499,7 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
   }
 }
 
-function restoreAmmo(context: WarriorCastContext, skill: WarriorSkill, count: number, at: number): number {
+function restoreAmmo(context: WarriorSchedulerContext, skill: WarriorSkill, count: number, at: number): number {
   const ammo = context.cooldownController.refreshAmmo(skill, at);
   if (!ammo) return 0;
   const restored = Math.min(Math.max(0, count), Math.max(0, ammo.maximum - ammo.charges));
@@ -528,7 +532,7 @@ function restoreAmmo(context: WarriorCastContext, skill: WarriorSkill, count: nu
   return restored;
 }
 
-function reloadBladeswornAmmo(context: WarriorCastContext, at: number): void {
+function reloadBladeswornAmmo(context: WarriorSchedulerContext, at: number): void {
   for (const skillId of context.state.ammo.keys()) {
     const skill = context.catalog.skillsById.get(skillId);
     if (skill?.specialization === 'Bladesworn') {
@@ -684,38 +688,6 @@ export function completeBladeswornSkill(context: WarriorCastContext, skill: Warr
     state.flow = Math.min(state.maximumFlow, state.flow + Number(skill.flowGain));
   }
 
-  if (skill.id === ID.FLOW_STABILIZER) {
-    if (furyActiveBeforeCurrentCast(context)) {
-      state.flow = Math.min(state.maximumFlow, state.flow + 15);
-    }
-
-    state.flowStabilizerWindows.push({ startedAt: at, expiresAt: at + 8 });
-    refreshDragonTriggerEntryProjection(context);
-  }
-
-  if (skill.id === ID.TACTICAL_RELOAD) {
-    reloadBladeswornAmmo(context, at);
-    state.tacticalReloadUntil = at + 10;
-    context.emit({
-      type: 'buff',
-      at,
-      source: 'Warrior',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      name: 'Tactical Reload',
-      kind: 'tactical-reload',
-      stacks: 1,
-      duration: 10
-    });
-  }
-
-  // Dragonspike Mine resets Dragon Trigger's cooldown on use (no ICD in game).
-  if (skill.id === ID.DRAGONSPIKE_MINE) {
-    context.state.cooldowns.delete(ID.DRAGON_TRIGGER);
-  }
-
   if (roundsSpent > 0 && hasTrait(context, TRAIT.FIERCE_AS_FIRE)) {
     const profile = warriorBalanceProfile(context, PROFILE.fierceAsFire);
     const effect = warriorBalanceProfileEffect(profile, 'buff');
@@ -745,6 +717,57 @@ export function completeBladeswornSkill(context: WarriorCastContext, skill: Warr
   delete state.ammoRoundsSpentByActivation[context.reservationId];
   delete state.ammoStartedFullByActivation[context.reservationId];
 }
+
+/** Runs Bladesworn mechanics owned by one completed skill activation. */
+export const bladeswornSkillMechanicHandlers = Object.freeze({
+  'warrior.bladesworn.flow-stabilizer': ({
+    context,
+    at,
+    castStart,
+    activationId
+  }: {
+    context: WarriorSchedulerContext;
+    at: number;
+    castStart: number;
+    activationId: string;
+  }): void => {
+    const state = bladeswornState.from(context);
+    if (furyActiveBeforeCurrentCast(context, activationId, castStart)) {
+      state.flow = Math.min(state.maximumFlow, state.flow + 15);
+    }
+    state.flowStabilizerWindows.push({ startedAt: at, expiresAt: at + 8 });
+    refreshDragonTriggerEntryProjection(context);
+  },
+  'warrior.bladesworn.tactical-reload': ({
+    context,
+    skill,
+    at
+  }: {
+    context: WarriorSchedulerContext;
+    skill: WarriorSkill;
+    at: number;
+  }): void => {
+    reloadBladeswornAmmo(context, at);
+    bladeswornState.from(context).tacticalReloadUntil = at + 10;
+    context.emit({
+      type: 'buff',
+      at,
+      source: 'Warrior',
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: 'Tactical Reload',
+      kind: 'tactical-reload',
+      stacks: 1,
+      duration: 10
+    });
+  },
+  'warrior.bladesworn.reset-dragon-trigger': ({ context }: { context: WarriorSchedulerContext }): void => {
+    // Dragonspike Mine has no internal cooldown on its Dragon Trigger reset.
+    context.state.cooldowns.delete(ID.DRAGON_TRIGGER);
+  }
+});
 
 function activeCartridgeWindow(state: ReturnType<typeof bladeswornState.from>, at: number) {
   for (let index = state.overchargedCartridgeWindows.length - 1; index >= 0; index -= 1) {

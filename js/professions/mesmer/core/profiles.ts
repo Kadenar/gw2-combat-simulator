@@ -16,7 +16,6 @@ export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   diversion: 'mesmer.core.diversion',
   distortion: 'mesmer.core.distortion',
   signetOfIllusions: 'mesmer.core.signet-of-illusions',
-  signetOfTheEther: 'mesmer.core.signet-of-the-ether',
   signetOfDomination: 'mesmer.core.signet-of-domination-passive',
   signetOfMidnight: 'mesmer.core.signet-of-midnight-passive',
   mimic: 'mesmer.core.mimic',
@@ -250,12 +249,6 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     pulseInterval: 10,
     resourceGain: 1
   }),
-  variant(
-    MESMER_CORE_BALANCE_PROFILE_IDS.signetOfTheEther,
-    ID.SIGNET_OF_THE_ETHER,
-    'Signet of the Ether - Recharge Relock',
-    { initialDelay: 0.3 }
-  ),
   variant(
     MESMER_CORE_BALANCE_PROFILE_IDS.signetOfDomination,
     ID.SIGNET_OF_DOMINATION,

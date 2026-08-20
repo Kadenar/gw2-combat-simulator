@@ -1771,6 +1771,13 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.GRAVEDIGGER]: {
     implemented: true,
     quicknessCastTimeMs: 1080,
+    // Completing Gravedigger resets its recharge once the target is below half health.
+    mechanicTriggers: [
+      {
+        type: 'necromancer.core.reset-gravedigger-below-half',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'strike',

@@ -7,6 +7,7 @@ import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { timedActive } from '../../core/rules.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
 import { initializeChronomancerRuntime } from './runtime.js';
+import { completeChronomancerTimeBomb } from './time-bomb.js';
 import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
 import type { MesmerPrecastContext, MesmerSchedulerContext, MesmerSchedulerTask, MesmerSkill } from '../../types.js';
@@ -73,9 +74,21 @@ export function handleContinuumExpiryTask(
 }
 
 export const chronomancerSchedulerHooks = Object.freeze({
+  onCastComplete: {
+    id: 'mesmer.chronomancer.time-bomb',
+    order: 20,
+    handler: completeChronomancerTimeBomb
+  },
   taskHandlers: Object.freeze({
     'mesmer.continuum-expire': handleContinuumExpiryTask
   })
+});
+
+/** Restores a manually ended Continuum Split through skill-owned trigger metadata. */
+export const chronomancerSkillMechanicHandlers = Object.freeze({
+  'mesmer.chronomancer.restore-continuum': ({ context, at }: { context: MesmerSchedulerContext; at: number }): void => {
+    mesmerRuntimeFor(context).continuum.restoreContinuum(at, 'manual shift');
+  }
 });
 
 export const chronomancerAttributeRules = Object.freeze({

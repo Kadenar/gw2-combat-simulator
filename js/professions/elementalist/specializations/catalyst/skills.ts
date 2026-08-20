@@ -102,6 +102,13 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     cooldown: 20,
     skillFamily: 'Augment',
     implemented: true,
+    // Relentless Fire opens its damage window when the augment completes.
+    mechanicTriggers: [
+      {
+        type: 'elementalist.catalyst.relentless-fire',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: []
   },
   [ID.SHATTERING_ICE]: {
@@ -114,6 +121,13 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     cooldown: 20,
     skillFamily: 'Augment',
     implemented: true,
+    // Shattering Ice opens its proc window when the augment completes.
+    mechanicTriggers: [
+      {
+        type: 'elementalist.catalyst.shattering-ice',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -152,6 +166,13 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     cooldown: 90,
     skillFamily: 'Augment',
     implemented: true,
+    // Elemental Celerity refreshes the active attunement and grants sphere boons on completion.
+    mechanicTriggers: [
+      {
+        type: 'elementalist.catalyst.elemental-celerity',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: []
   }
 });

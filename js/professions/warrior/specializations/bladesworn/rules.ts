@@ -16,10 +16,13 @@ import { warriorBalanceProfile } from '../../core/profiles.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
 import {
   advanceBladesworn,
+  bladeswornSkillMechanicHandlers,
   completeBladeswornSkill,
   observeBladeswornEvent,
   trackBladeswornAmmoCast
 } from './traits.js';
+
+export { bladeswornSkillMechanicHandlers };
 
 // Shared reason string so both the availability check and the charge-release
 // projection surface the same message in the UI.

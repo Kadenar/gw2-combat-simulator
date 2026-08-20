@@ -4,7 +4,13 @@ import { professionCoreState } from '../../../../platform/engine/profession.js';
  * Chronomancer-owned Continuum Split checkpoints and restoration.
  */
 import type { SchedulerState, SkillId } from '../../../../platform/engine/types.js';
-import type { MesmerAddEvent, MesmerRuntimeState, MesmerRefreshAmmo, MesmerSkill } from '../../types.js';
+import type {
+  MesmerAddEvent,
+  MesmerRuntimeState,
+  MesmerRefreshAmmo,
+  MesmerShatterResolution,
+  MesmerSkill
+} from '../../types.js';
 
 interface ContinuumControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
@@ -20,7 +26,7 @@ interface ContinuumControllerOptions {
 }
 
 export interface ContinuumController {
-  beginContinuumSplit(skill: MesmerSkill, at: number): void;
+  beginContinuumSplit(skill: MesmerSkill, at: number): MesmerShatterResolution;
   restoreContinuum(at: number, reason: string): void;
 }
 
@@ -81,7 +87,7 @@ export function createContinuumController({
     chronomancer.continuum = null;
   };
 
-  const beginContinuumSplit = (skill: MesmerSkill, at: number) => {
+  const beginContinuumSplit = (skill: MesmerSkill, at: number): MesmerShatterResolution => {
     const spent = consumeResources(at);
     const remainingCooldowns = new Map(
       [...state.cooldowns]
@@ -117,6 +123,7 @@ export function createContinuumController({
       name: 'Continuum Split',
       detail: `${(durationPerSource * (spent + 1)).toFixed(1)}s window`
     });
+    return { skill, at, spent, bladeSong: false };
   };
 
   return {

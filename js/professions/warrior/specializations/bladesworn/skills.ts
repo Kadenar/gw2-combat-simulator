@@ -38,10 +38,24 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   [ID.TACTICAL_RELOAD]: {
     implemented: true,
     effects: [],
-    quicknessCastTimeMs: 552
+    quicknessCastTimeMs: 552,
+    // Tactical Reload restores Bladesworn ammo and opens its reload window on completion.
+    mechanicTriggers: [
+      {
+        type: 'warrior.bladesworn.tactical-reload',
+        timingAnchor: 'castEnd'
+      }
+    ]
   },
   [ID.DRAGONSPIKE_MINE]: {
     implemented: true,
+    // Dragonspike Mine refreshes Dragon Trigger when its cast completes.
+    mechanicTriggers: [
+      {
+        type: 'warrior.bladesworn.reset-dragon-trigger',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -69,6 +83,13 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   [ID.FLOW_STABILIZER]: {
     implemented: true,
     castTimeMs: 0,
+    // Flow Stabilizer opens its passive-flow window and grants its conditional flow on completion.
+    mechanicTriggers: [
+      {
+        type: 'warrior.bladesworn.flow-stabilizer',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'boon',

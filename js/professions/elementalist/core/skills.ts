@@ -1567,6 +1567,13 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     nextChainId: ID.HURL,
     skillFamily: 'Weapon skill',
     implemented: true,
+    // Rock Barrier opens Hurl's stored-barrier window after completion.
+    mechanicTriggers: [
+      {
+        type: 'elementalist.core.open-rock-barrier',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'boon',
@@ -1594,6 +1601,13 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     nextChainId: ID.ROCK_BARRIER,
     skillFamily: 'Weapon skill',
     implemented: true,
+    // Hurl consumes the stored barrier and starts Rock Barrier's real recharge.
+    mechanicTriggers: [
+      {
+        type: 'elementalist.core.release-rock-barrier',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -5238,6 +5252,13 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 12,
     skillFamily: 'Signet',
     implemented: true,
+    // Activating the signet disables its passive until recharge unless Written in Stone preserves it.
+    mechanicTriggers: [
+      {
+        type: 'elementalist.core.disable-signet-of-fire-passive',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -5633,6 +5654,13 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 15,
     skillFamily: 'Weapon skill',
     implemented: true,
+    // Seethe empowers the next qualifying spear hit after completion.
+    mechanicTriggers: [
+      {
+        type: 'elementalist.core.arm-spear-damage',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'boon',
@@ -5958,6 +5986,13 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 15,
     skillFamily: 'Weapon skill',
     implemented: true,
+    // Ripple empowers the next qualifying spear recharge after completion.
+    mechanicTriggers: [
+      {
+        type: 'elementalist.core.arm-spear-recharge',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [],
     elementalistStateMachine: 'spear-followup'
   },
@@ -6260,6 +6295,13 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 15,
     skillFamily: 'Weapon skill',
     implemented: true,
+    // Energize guarantees the next qualifying spear critical hit after completion.
+    mechanicTriggers: [
+      {
+        type: 'elementalist.core.arm-spear-critical',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'boon',
@@ -6538,6 +6580,13 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 15,
     skillFamily: 'Weapon skill',
     implemented: true,
+    // Harden adds control to the next qualifying spear hit after completion.
+    mechanicTriggers: [
+      {
+        type: 'elementalist.core.arm-spear-control',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [],
     elementalistStateMachine: 'spear-followup'
   },
@@ -8603,6 +8652,13 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 0,
     skillFamily: 'Weapon skill',
     implemented: true,
+    // Elemental Explosion consumes every stored bullet and grants the current attunement's aura.
+    mechanicTriggers: [
+      {
+        type: 'elementalist.core.consume-elemental-explosion',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'strike',

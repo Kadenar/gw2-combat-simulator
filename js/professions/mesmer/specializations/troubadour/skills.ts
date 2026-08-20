@@ -6,6 +6,14 @@ import { MESMER_SKILL_IDS as ID } from '../../data/ids.js';
 import type { Skill, SkillFragment, SkillId } from '../../../../platform/engine/types.js';
 import type { MesmerSkill } from '../../types.js';
 
+// Tales share one lifecycle trigger; their specialization resolver owns each Tale's distinct outcome.
+const TROUBADOUR_TALE_TRIGGERS = Object.freeze([
+  {
+    type: 'mesmer.troubadour.resolve-tale',
+    timingAnchor: 'castEnd' as const
+  }
+]);
+
 export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.TROUBADOUR_BLADECALL]: {
     implemented: true,
@@ -90,9 +98,13 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 4,
+    ammo: 2,
+    ammoRecharge: 25,
+    ammoCastLockout: 4,
     phantasm: false,
     resource: null,
     blade: false,
+    mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
   [ID.TALE_OF_THE_SECOND_SCION]: {
@@ -106,6 +118,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     phantasm: false,
     resource: null,
     blade: false,
+    mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
   [ID.FLUSTERING_FLUTE]: {
@@ -133,6 +146,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     phantasm: false,
     resource: null,
     blade: false,
+    mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
   [ID.CRESCENDO]: {
@@ -175,6 +189,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     phantasm: false,
     resource: null,
     blade: false,
+    mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
   [ID.TALE_OF_THE_TORTURED_MASTERMIND]: {
@@ -188,6 +203,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     phantasm: false,
     resource: null,
     blade: false,
+    mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: [
       {
         type: 'strike',
@@ -280,6 +296,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     phantasm: false,
     resource: null,
     blade: false,
+    mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
   [ID.LIVELY_LUTE_ALTERNATE]: {
@@ -316,6 +333,13 @@ export const MESMER_TROUBADOUR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 10,
     ammo: 2,
     implemented: true,
+    // Mayhem reacts to the completed dodge rather than a Core Mesmer skill-id branch.
+    mechanicTriggers: [
+      {
+        type: 'mesmer.troubadour.dodge',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: []
   }
 ] satisfies readonly MesmerSkill[]);

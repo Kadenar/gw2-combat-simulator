@@ -724,6 +724,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     cooldown: 24,
     effects: [],
     quicknessCastTimeMs: 680,
+    // The heal restores two dodge bars when its cast completes.
+    mechanicTriggers: [
+      {
+        type: 'warrior.core.restore-endurance',
+        timingAnchor: 'castEnd',
+        count: 100
+      }
+    ],
     adrenalineGain: 30,
     handlerId: 'warrior.resource'
   },
@@ -922,6 +930,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.TREMOR]: {
     implemented: true,
+    // Tremor refreshes Crushing Blow when its cast completes.
+    mechanicTriggers: [
+      {
+        type: 'warrior.core.reset-crushing-blow',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -1504,6 +1519,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   [ID.BACKBREAKER]: {
     implemented: true,
     cooldown: 25,
+    // Backbreaker refreshes Fierce Blow when its cast completes.
+    mechanicTriggers: [
+      {
+        type: 'warrior.core.reset-fierce-blow',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -2148,6 +2170,14 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ammo: 0,
     ammoRecharge: 0,
     cooldown: 15,
+    // Gunstinger restores three Dragon's Roar charges after completion.
+    mechanicTriggers: [
+      {
+        type: 'warrior.core.restore-dragons-roar-ammo',
+        timingAnchor: 'castEnd',
+        count: 3
+      }
+    ],
     effects: [
       {
         type: 'strike',

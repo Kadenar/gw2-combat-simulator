@@ -21,6 +21,13 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     quicknessCastTimeMs: 560,
     cooldown: 20,
     handlerId: 'guardian.dragonhunter-justice',
+    // The completed tether activation exposes Hunter's Verdict for the tether window.
+    mechanicTriggers: [
+      {
+        type: 'guardian.dragonhunter.arm-hunters-verdict',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'strike',

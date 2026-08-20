@@ -196,19 +196,23 @@ function onEventScheduled(context: NecromancerSchedulerContext, event: Necromanc
   state.plagueSendingEntrySkillId = null;
 }
 
-/**
- * Resets Gravedigger when its completed strike lands after the target crossed
- * the below-half-health threshold. This remains Core because Weaponmaster
- * Training makes greatsword available to every specialization.
- */
-function onCastComplete(context: NecromancerCastContext, skill: NecromancerSkill): void {
-  if (skill.id !== ID.GRAVEDIGGER) return;
-  const schedulerFeedback = context.config._schedulerFeedback as { readonly targetBelowHalfAt?: number } | undefined;
-  const targetBelowHalfAt = Number(schedulerFeedback?.targetBelowHalfAt);
-  if (Number.isFinite(targetBelowHalfAt) && context.effectiveEnd > targetBelowHalfAt + context.epsilon) {
-    context.state.cooldowns.delete(ID.GRAVEDIGGER);
+/** Runs Core Necromancer mechanics owned by one completed skill activation. */
+export const necromancerCoreSkillMechanicHandlers = Object.freeze({
+  'necromancer.core.reset-gravedigger-below-half': ({
+    context,
+    at
+  }: {
+    context: NecromancerSchedulerContext;
+    at: number;
+  }): void => {
+    // Weaponmaster Training exposes this Core greatsword contract to every specialization.
+    const schedulerFeedback = context.config._schedulerFeedback as { readonly targetBelowHalfAt?: number } | undefined;
+    const targetBelowHalfAt = Number(schedulerFeedback?.targetBelowHalfAt);
+    if (Number.isFinite(targetBelowHalfAt) && at > targetBelowHalfAt + context.epsilon) {
+      context.state.cooldowns.delete(ID.GRAVEDIGGER);
+    }
   }
-}
+});
 
 /**
  * Necromancer resource/form availability and build-validation rules.
@@ -232,7 +236,6 @@ export const necromancerCastRules = Object.freeze({
 export const necromancerSchedulerHooks = Object.freeze({
   advance: advanceNecromancerState,
   afterCast,
-  onCastComplete,
   /**
    * Clears simulated self-conditions after a global cooldown reset.
    *

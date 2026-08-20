@@ -5,6 +5,7 @@ import type {
   MesmerPhantasmAttackTiming,
   MesmerRuntime,
   MesmerShatter,
+  MesmerShatterResolvedHandler,
   MesmerTraitDamage
 } from '../types.js';
 
@@ -45,6 +46,7 @@ export function mesmerRuntimeFor(
  */
 export interface MesmerRuntimeManifest {
   readonly shatters?: Readonly<Record<number, MesmerShatter>>;
+  readonly shatterResolvedHandlers?: readonly MesmerShatterResolvedHandler[];
   readonly instruments?: Readonly<Record<number, MesmerInstrument>>;
   readonly traitDamage?: Readonly<Record<string, MesmerTraitDamage>>;
   readonly ambushAttacks?: Readonly<Record<string, MesmerAmbushAttack>>;
@@ -62,6 +64,9 @@ export function applyMesmerRuntimeManifest(runtime: MesmerRuntime, manifest: Mes
   }
 
   if (manifest.shatters) Object.assign(runtime.shatters, manifest.shatters);
+  if (manifest.shatterResolvedHandlers) {
+    runtime.shatterResolvedHandlers.push(...manifest.shatterResolvedHandlers);
+  }
   if (manifest.instruments) {
     Object.assign(runtime.instruments, manifest.instruments);
   }

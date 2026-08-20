@@ -155,6 +155,13 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     implemented: true,
     quicknessCastTimeMs: 680,
     cooldown: 20,
+    // Flash Combo exposes Repose for six seconds after the cast completes.
+    mechanicTriggers: [
+      {
+        type: 'guardian.willbender.arm-repose',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'strike',

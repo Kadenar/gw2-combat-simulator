@@ -221,40 +221,9 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = context.effectiveEnd;
 
-  if (skill.name === 'Rock Barrier') {
-    state.rockBarrierExpiresAt = at + elementalistBalanceValue(context, PROFILE.rockBarrier, 'durationMultiplier', 30);
-  } else if (skill.name === 'Hurl') {
-    state.rockBarrierExpiresAt = 0;
-    const root = context.catalog.skillsByName.get('Rock Barrier');
-    if (root) {
-      context.state.cooldowns.set(root.id, at + context.rechargeDurationFor(root, at, { rockBarrierRelease: true }));
-    }
-  }
-
   const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
   if (aura) {
     state.activeAuras = state.activeAuras.filter((candidate) => candidate.type !== aura || candidate.expiresAt <= at);
-  }
-
-  if (skill.name === 'Elemental Explosion') {
-    const auraByAttunement: Readonly<Record<ElementalistAttunement, readonly [string, number]>> = {
-      Fire: ['Fire Aura', 4],
-      Water: ['Frost Aura', 4],
-      Air: ['Shocking Aura', 3],
-      Earth: ['Magnetic Aura', 3]
-    };
-    const [fallbackAura, fallbackDuration] = auraByAttunement[state.primaryAttunement];
-    const auraEffect = profiledEffect(context, PROFILE.elementalExplosion, 'buff', state.primaryAttunement);
-    applyElementalistAura(context, {
-      at,
-      aura: String(auraEffect?.kind || fallbackAura),
-      duration: Number(auraEffect?.duration ?? fallbackDuration),
-      skillName: skill.name,
-      sourceId: skill.id
-    });
-    for (const element of ELEMENTALIST_ATTUNEMENTS) {
-      state.pistolBullets[element] = false;
-    }
   }
 
   const chain = etchingChain(skill.name);
@@ -280,11 +249,6 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
     }
   }
 
-  if (skill.name === 'Seethe') state.spearNextDamageBonus = true;
-  if (skill.name === 'Ripple') state.spearNextRechargeReduction = true;
-  if (skill.name === 'Energize') state.spearNextGuaranteedCritical = true;
-  if (skill.name === 'Harden') state.spearNextControlHit = true;
-
   if (
     state.secondaryAttunement != null &&
     skillWeapon(skill) === 'Spear' &&
@@ -307,9 +271,84 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
       state.endurance + Number(skill.resourceGain)
     );
   }
+}
 
-  if (skill.name === 'Signet of Fire' && !hasTrait(context, 'Written in Stone')) {
-    state.signetOfFireDisabledUntil = Number(context.rechargeReadyAt || at);
+/** Runs Core Elementalist mechanics owned by one completed skill activation. */
+export const elementalistCoreSkillMechanicHandlers = Object.freeze({
+  'elementalist.core.open-rock-barrier': ({
+    context,
+    at
+  }: {
+    context: ElementalistSchedulerContext;
+    at: number;
+  }): void => {
+    elementalistCoreState(context as unknown as SchedulerRecord).rockBarrierExpiresAt =
+      at + elementalistBalanceValue(context, PROFILE.rockBarrier, 'durationMultiplier', 30);
+  },
+  'elementalist.core.release-rock-barrier': ({
+    context,
+    at
+  }: {
+    context: ElementalistSchedulerContext;
+    at: number;
+  }): void => {
+    elementalistCoreState(context as unknown as SchedulerRecord).rockBarrierExpiresAt = 0;
+    const root = context.catalog.skillsByName.get('Rock Barrier');
+    if (root) {
+      context.state.cooldowns.set(root.id, at + context.rechargeDurationFor(root, at, { rockBarrierRelease: true }));
+    }
+  },
+  'elementalist.core.consume-elemental-explosion': ({
+    context,
+    skill,
+    at
+  }: {
+    context: ElementalistSchedulerContext;
+    skill: Skill;
+    at: number;
+  }): void => {
+    const state = elementalistCoreState(context as unknown as SchedulerRecord);
+    const auraByAttunement: Readonly<Record<ElementalistAttunement, readonly [string, number]>> = {
+      Fire: ['Fire Aura', 4],
+      Water: ['Frost Aura', 4],
+      Air: ['Shocking Aura', 3],
+      Earth: ['Magnetic Aura', 3]
+    };
+    const [fallbackAura, fallbackDuration] = auraByAttunement[state.primaryAttunement];
+    const auraEffect = profiledEffect(context, PROFILE.elementalExplosion, 'buff', state.primaryAttunement);
+    applyElementalistAura(context, {
+      at,
+      aura: String(auraEffect?.kind || fallbackAura),
+      duration: Number(auraEffect?.duration ?? fallbackDuration),
+      skillName: skill.name,
+      sourceId: skill.id
+    });
+    for (const element of ELEMENTALIST_ATTUNEMENTS) state.pistolBullets[element] = false;
+  },
+  'elementalist.core.arm-spear-damage': ({ context }: { context: ElementalistSchedulerContext }): void => {
+    elementalistCoreState(context as unknown as SchedulerRecord).spearNextDamageBonus = true;
+  },
+  'elementalist.core.arm-spear-recharge': ({ context }: { context: ElementalistSchedulerContext }): void => {
+    elementalistCoreState(context as unknown as SchedulerRecord).spearNextRechargeReduction = true;
+  },
+  'elementalist.core.arm-spear-critical': ({ context }: { context: ElementalistSchedulerContext }): void => {
+    elementalistCoreState(context as unknown as SchedulerRecord).spearNextGuaranteedCritical = true;
+  },
+  'elementalist.core.arm-spear-control': ({ context }: { context: ElementalistSchedulerContext }): void => {
+    elementalistCoreState(context as unknown as SchedulerRecord).spearNextControlHit = true;
+  },
+  'elementalist.core.disable-signet-of-fire-passive': ({
+    context,
+    skill,
+    at
+  }: {
+    context: ElementalistSchedulerContext;
+    skill: Skill;
+    at: number;
+  }): void => {
+    if (hasTrait(context, 'Written in Stone')) return;
+    const state = elementalistCoreState(context as unknown as SchedulerRecord);
+    state.signetOfFireDisabledUntil = Number(context.state.cooldowns.get(skill.id) || at);
     context.emit({
       type: 'elementalist.signet-fire',
       at,
@@ -320,7 +359,7 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
       disabledUntil: state.signetOfFireDisabledUntil
     });
   }
-}
+});
 
 export function elementalistOnCastComplete(context: ElementalistLifecycleContext, skill: Skill): void {
   completeElementalistGlyphCast(context, skill);

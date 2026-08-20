@@ -538,6 +538,30 @@ test('family composition rejects duplicate registries and catalog ids', () => {
     () =>
       testFamily(
         testModule('Core', {
+          schedulerHooks: { skillMechanicHandlers: { 'test.mechanic': handler } }
+        }),
+        testModule('Elite', {
+          schedulerHooks: { skillMechanicHandlers: { 'test.mechanic': handler } }
+        })
+      ).resolveRuntime({ specialization: 'Elite' }),
+    /Duplicate skill mechanic handler test\.mechanic/
+  );
+  assert.throws(
+    () =>
+      testFamily(
+        testModule('Core', {
+          schedulerHooks: {
+            taskHandlers: { 'test.collision': handler },
+            skillMechanicHandlers: { 'test.collision': handler }
+          }
+        })
+      ).resolveRuntime({ specialization: 'Core' }),
+    /both a task and skill mechanic handler/
+  );
+  assert.throws(
+    () =>
+      testFamily(
+        testModule('Core', {
           schedulerHooks: { taskHandlers: { 'test.task': handler } }
         }),
         testModule('Elite', {
@@ -585,6 +609,24 @@ test('family composition rejects duplicate registries and catalog ids', () => {
         })
       ).resolveRuntime({ specialization: 'Elite' }),
     /Duplicate skill id 1/
+  );
+});
+
+test('family composition rejects skill mechanic triggers without an active handler', () => {
+  const triggeredCoreSkill = {
+    ...coreSkill,
+    mechanicTriggers: [{ type: 'test.missing-mechanic', timingAnchor: 'castEnd' }]
+  };
+  const core = testModule('Core', {
+    catalog: {
+      skills: [triggeredCoreSkill],
+      specializations: [{ id: 1, name: 'Core Line', elite: false }]
+    }
+  });
+
+  assert.throws(
+    () => testFamily(core).resolveRuntime({ specialization: 'Elite' }),
+    /Core Skill references unknown mechanic trigger test\.missing-mechanic/
   );
 });
 

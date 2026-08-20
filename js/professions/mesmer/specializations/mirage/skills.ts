@@ -265,6 +265,13 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 10,
     ammo: 2,
     implemented: true,
+    // Mirage dodge grants cloak and resolves dodge-triggered Mirage traits at completion.
+    mechanicTriggers: [
+      {
+        type: 'mesmer.mirage.dodge',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: []
   },
   {
@@ -278,6 +285,13 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     cooldown: 0,
     implemented: true,
+    // Picking up the action consumes the available ground mirror at cast completion.
+    mechanicTriggers: [
+      {
+        type: 'mesmer.mirage.pick-up-mirror',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: []
   }
 ] satisfies readonly MesmerSkill[]);

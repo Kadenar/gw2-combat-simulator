@@ -5,7 +5,12 @@ import {
   onResolvedDamage
 } from '../../../platform/gw2/native-profession.js';
 import { createElementalistModuleData } from '../catalog-data.js';
-import { elementalistCoreAttributeRules, elementalistCoreCastRules, elementalistCoreSchedulerHooks } from './rules.js';
+import {
+  elementalistCoreAttributeRules,
+  elementalistCoreCastRules,
+  elementalistCoreSchedulerHooks,
+  elementalistCoreSkillMechanicHandlers
+} from './rules.js';
 import { createElementalistCoreState, projectElementalistEndState } from './state.js';
 import { bindElementalistCoreUi } from './ui.js';
 import { ELEMENTALIST_CORE_EXTRA_SKILLS, ELEMENTALIST_CORE_SKILL_MECHANICS } from './skills.js';
@@ -33,6 +38,7 @@ export const elementalistCoreModule = defineNativeModule({
   mechanics: {
     modifiers: elementalistCoreAttributeRules,
     castRules: elementalistCoreCastRules,
+    skillMechanicHandlers: elementalistCoreSkillMechanicHandlers,
     schedulerHooks: elementalistCoreSchedulerHooks,
     reactions: [
       onResolvedDamage({

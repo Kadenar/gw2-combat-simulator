@@ -1,6 +1,6 @@
 import { defineNativeModule } from '../../../../platform/gw2/native-profession.js';
 import { createMesmerModuleData } from '../../catalog-data.js';
-import { troubadourAttributeRules, troubadourSchedulerHooks } from './rules.js';
+import { troubadourAttributeRules, troubadourSchedulerHooks, troubadourSkillMechanicHandlers } from './rules.js';
 import { createTroubadourResolverState, troubadourState } from './state.js';
 import { troubadourUi } from './ui.js';
 import {
@@ -27,6 +27,7 @@ export const troubadourModule = defineNativeModule({
   },
   mechanics: {
     modifiers: troubadourAttributeRules,
+    skillMechanicHandlers: troubadourSkillMechanicHandlers,
     schedulerHooks: troubadourSchedulerHooks,
     resolverHooks: { eventHandlers: troubadourEventHandlers }
   },

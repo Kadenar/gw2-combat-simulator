@@ -16,7 +16,12 @@ import {
   applySteamshrieker,
   applyViciousEmpowerment
 } from './resolver.js';
-import { catalystAttributeRules, catalystCastRules, catalystSchedulerHooks } from './rules.js';
+import {
+  catalystAttributeRules,
+  catalystCastRules,
+  catalystSchedulerHooks,
+  catalystSkillMechanicHandlers
+} from './rules.js';
 import { createCatalystState } from './state.js';
 import { catalystUi } from './ui.js';
 import { CATALYST_SKILL_MECHANICS } from './skills.js';
@@ -32,6 +37,7 @@ export const catalystModule = defineNativeModule({
   mechanics: {
     modifiers: catalystAttributeRules,
     castRules: catalystCastRules,
+    skillMechanicHandlers: catalystSkillMechanicHandlers,
     schedulerHooks: catalystSchedulerHooks,
     reactions: [
       onAuraApplied({

@@ -2,7 +2,7 @@ import { defineNativeModule, onResolvedControl, onResolvedDamage } from '../../.
 import { createGuardianModuleData } from '../../catalog-data.js';
 import { dragonhunterSkillHandlers } from './handlers.js';
 import { dragonhunterEventHandlers, dragonhunterEventReactions } from './resolver.js';
-import { dragonhunterAttributeRules, dragonhunterSchedulerHooks } from './rules.js';
+import { dragonhunterAttributeRules, dragonhunterSchedulerHooks, dragonhunterSkillMechanicHandlers } from './rules.js';
 import { DRAGONHUNTER_SKILL_MECHANICS } from './skills.js';
 import { dragonhunterState } from './state.js';
 import { dragonhunterUi } from './ui.js';
@@ -23,6 +23,7 @@ export const dragonhunterModule = defineNativeModule({
   },
   mechanics: {
     modifiers: dragonhunterAttributeRules,
+    skillMechanicHandlers: dragonhunterSkillMechanicHandlers,
     schedulerHooks: dragonhunterSchedulerHooks,
     reactions: [
       // onResolvedDamage/onResolvedControl wrap the handlers so they fire on

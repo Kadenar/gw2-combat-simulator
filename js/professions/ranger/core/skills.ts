@@ -1194,6 +1194,13 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   [ID.PATH_OF_SCARS]: {
     interruptCommitMs: 0,
     implemented: true,
+    // Both range variants share the same weapon-slot recharge after completion.
+    mechanicTriggers: [
+      {
+        type: 'ranger.core.sync-path-of-scars-cooldown',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -3900,6 +3907,13 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 15,
     implemented: true,
     missileHits: 2,
+    // Both range variants share the same weapon-slot recharge after completion.
+    mechanicTriggers: [
+      {
+        type: 'ranger.core.sync-path-of-scars-cooldown',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'strike',

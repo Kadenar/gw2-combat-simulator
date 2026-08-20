@@ -45,11 +45,21 @@ export const rangerCoreSchedulerHooks = Object.freeze({
   },
   onCastComplete(context: RangerCastContext, skill: RangerSkill): void {
     completeRangerTraits(context, skill);
-    if (skill.id !== ID.PATH_OF_SCARS && skill.id !== ID.PATH_OF_SCARS_MAX_RANGE) {
-      return;
-    }
+  }
+});
 
-    const readyAt = Number(context.state.cooldowns.get(skill.id) || context.effectiveEnd);
+/** Runs Core Ranger mechanics owned by one completed skill activation. */
+export const rangerCoreSkillMechanicHandlers = Object.freeze({
+  'ranger.core.sync-path-of-scars-cooldown': ({
+    context,
+    skill,
+    at
+  }: {
+    context: RangerSchedulerContext;
+    skill: RangerSkill;
+    at: number;
+  }): void => {
+    const readyAt = Number(context.state.cooldowns.get(skill.id) || at);
     context.state.cooldowns.set(ID.PATH_OF_SCARS, readyAt);
     context.state.cooldowns.set(ID.PATH_OF_SCARS_MAX_RANGE, readyAt);
   }

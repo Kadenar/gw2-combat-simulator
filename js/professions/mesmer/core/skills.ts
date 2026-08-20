@@ -778,6 +778,13 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     phantasm: false,
     resource: null,
     blade: false,
+    // Restart the passive clone interval only after the active cast completes.
+    mechanicTriggers: [
+      {
+        type: 'mesmer.core.restart-signet-illusions-passive',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: []
   },
   [ID.PHANTASMAL_DISENCHANTER]: {
@@ -1254,6 +1261,15 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment
     cooldown: 30,
     phantasm: false,
     blade: false,
+    // The live skill re-locks itself 300ms after completion despite resetting phantasms immediately.
+    mechanicTriggers: [
+      {
+        type: 'mesmer.core.relock-signet-ether',
+        atMs: 300,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ],
     effects: [],
     resource: null,
     quicknessCastTimeMs: 919

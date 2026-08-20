@@ -108,13 +108,6 @@ export function updateDragonhunterCastState(context: GuardianCastContext, skill:
     });
   }
 
-  if (skill.id === ID.SPEAR_OF_JUSTICE) {
-    const state = dragonhunterState.from(context);
-    // Arm Hunter's Verdict as a flip that expires when the tether does,
-    // so the availability check naturally gates it to the tether window.
-    professionCoreState(context).availableFlips[ID.HUNTERS_VERDICT] = state.tetherUntil;
-  }
-
   if (skill.categories?.includes('Trap') && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.HUNTERS_PREMONITION)) {
     // Hunter's Premonition fires on any trap cast, not just DH traps;
     // the "Trap" category tag on the skill definition is the only gate.
@@ -122,6 +115,14 @@ export function updateDragonhunterCastState(context: GuardianCastContext, skill:
     emitGuardianBuff(context, skill, context.effectiveEnd, 'aegis', Number(aegis?.duration || 3));
   }
 }
+
+/** Runs Dragonhunter mechanics owned by one completed skill activation. */
+export const dragonhunterSkillMechanicHandlers = Object.freeze({
+  'guardian.dragonhunter.arm-hunters-verdict': ({ context }: { context: GuardianSchedulerContext }): void => {
+    // Hunter's Verdict remains available only while Spear of Justice's tether is active.
+    professionCoreState(context).availableFlips[ID.HUNTERS_VERDICT] = dragonhunterState.from(context).tetherUntil;
+  }
+});
 
 export const dragonhunterSchedulerHooks = Object.freeze({
   advance: Object.freeze([

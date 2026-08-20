@@ -276,20 +276,6 @@ function finalizeRadiantForgeCooldown(context: GuardianSchedulerContext, at: num
 }
 
 /**
- * Clears the cooldown created at forge entry so it can begin when the forge
- * actually ends.
- *
- * @param {GuardianCastContext} context Cast-completion hook context.
- * @param {GuardianSkill} skill Completed skill.
- * @returns {void}
- */
-export function clearRadiantForgeEntryCooldown(context: GuardianCastContext, skill: GuardianSkill): void {
-  if (skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE) {
-    context.state.cooldowns.delete(skill.id);
-  }
-}
-
-/**
  * Raw Radiant Forge callbacks consumed by the central handler registry.
  */
 export const guardianRadiantForgeSkillHandlers = Object.freeze({

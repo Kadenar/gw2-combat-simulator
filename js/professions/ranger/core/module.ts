@@ -7,7 +7,12 @@ import {
 } from '../../../platform/gw2/native-profession.js';
 import { createRangerModuleData } from '../catalog-data.js';
 import { rangerCoreSkillHandlers } from './handlers.js';
-import { rangerCoreAttributeRules, rangerCoreCastRules, rangerCoreSchedulerHooks } from './rules.js';
+import {
+  rangerCoreAttributeRules,
+  rangerCoreCastRules,
+  rangerCoreSchedulerHooks,
+  rangerCoreSkillMechanicHandlers
+} from './rules.js';
 import { RANGER_CORE_BASE_SKILL_MECHANICS, RANGER_CORE_EXTRA_SKILLS } from './skills.js';
 import { createRangerCoreState, projectRangerEndState } from './state.js';
 import { bindRangerCoreUi } from './ui.js';
@@ -30,6 +35,7 @@ export const rangerCoreModule = defineNativeModule({
   mechanics: {
     modifiers: rangerCoreAttributeRules,
     castRules: rangerCoreCastRules,
+    skillMechanicHandlers: rangerCoreSkillMechanicHandlers,
     schedulerHooks: rangerCoreSchedulerHooks,
     resolverHooks: { eventHandlers: rangerCoreEventHandlers },
     reactions: [

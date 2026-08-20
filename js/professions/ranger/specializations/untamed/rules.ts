@@ -4,7 +4,7 @@ import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../../platform/gw2/types.js';
-import type { RangerCastContext, RangerPrecastContext, RangerSkill } from '../../types.js';
+import type { RangerCastContext, RangerPrecastContext, RangerSchedulerContext, RangerSkill } from '../../types.js';
 import { untamedState } from './state.js';
 import { rangerBalanceValue } from '../../core/profiles.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from './profiles.js';
@@ -138,17 +138,30 @@ export const untamedCastRules = Object.freeze({
   }
 });
 
+/** Runs Untamed mechanics owned by one completed skill activation. */
+export const untamedSkillMechanicHandlers = Object.freeze({
+  'ranger.untamed.sync-unleash-cooldown': ({
+    context,
+    castStart,
+    activationId
+  }: {
+    context: RangerSchedulerContext;
+    castStart: number;
+    activationId: string;
+  }): void => {
+    // This shared F5 recharge is fixed and therefore intentionally ignores Alacrity.
+    const readyAt = castStart + rangerBalanceValue(context, PROFILE.resources, 'recharge', 1);
+    context.state.cooldowns.set(ID.UNLEASH_RANGER, readyAt);
+    context.state.cooldowns.set(ID.UNLEASH_PET, readyAt);
+    const action = context.events.find(
+      (event) => event.type === 'action' && String(event.activationId || '') === activationId
+    );
+    if (action) context.replaceEvent(action, { rechargeReadyAt: readyAt });
+  }
+});
+
 export const untamedSchedulerHooks = Object.freeze({
   onCastComplete(context: RangerCastContext, skill: RangerSkill): void {
-    if (skill.id === ID.UNLEASH_RANGER || skill.id === ID.UNLEASH_PET) {
-      // The F5 flip is a fixed one-second shared recharge, independent of
-      // Alacrity.
-      const readyAt = context.start + rangerBalanceValue(context, PROFILE.resources, 'recharge', 1);
-      context.state.cooldowns.set(ID.UNLEASH_RANGER, readyAt);
-      context.state.cooldowns.set(ID.UNLEASH_PET, readyAt);
-      context.replaceEvent(context.action, { rechargeReadyAt: readyAt });
-    }
-
     if (
       skill.id !== ID.SWAP_WEAPONS ||
       !hasTrait(context, TRAIT.LET_LOOSE) ||

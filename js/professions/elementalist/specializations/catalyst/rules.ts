@@ -239,77 +239,111 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
   }
 }
 
-function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
+function activateRelentlessFire(context: ElementalistSchedulerContext, skill: Skill, at: number): void {
+  const state = catalystState.from(context);
+  context.emit({
+    type: 'buff',
+    at,
+    source: skill.name,
+    sourceId: skill.id,
+    actorType: 'player',
+    skillName: skill.name,
+    kind: 'relentless fire',
+    stacks: 1,
+    duration:
+      state.sphereExpiry.Fire > at
+        ? elementalistBalanceValue(context, PROFILE.relentlessFire, 'durationPerTier', 8)
+        : elementalistBalanceValue(context, PROFILE.relentlessFire, 'durationMultiplier', 5)
+  });
+}
+
+function activateShatteringIce(context: ElementalistSchedulerContext, skill: Skill, at: number): void {
+  const state = catalystState.from(context);
+  const duration =
+    state.sphereExpiry.Water > at
+      ? elementalistBalanceValue(context, PROFILE.shatteringIce, 'durationPerTier', 8)
+      : elementalistBalanceValue(context, PROFILE.shatteringIce, 'durationMultiplier', 5);
+  state.shatteringIceUntil = at + duration;
+  state.shatteringIceReadyAt = at;
+  context.emit({
+    type: 'buff',
+    at,
+    source: skill.name,
+    sourceId: skill.id,
+    actorType: 'player',
+    skillName: skill.name,
+    kind: 'shattering ice',
+    stacks: 1,
+    duration
+  });
+}
+
+function activateElementalCelerity(context: ElementalistSchedulerContext, skill: Skill, at: number): void {
   const state = catalystState.from(context);
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
-  const at = context.effectiveEnd;
-  if (skill.name === 'Relentless Fire') {
-    context.emit({
-      type: 'buff',
-      at,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: 'player',
-      skillName: skill.name,
-      kind: 'relentless fire',
-      stacks: 1,
-      duration:
-        state.sphereExpiry.Fire > at
-          ? elementalistBalanceValue(context, PROFILE.relentlessFire, 'durationPerTier', 8)
-          : elementalistBalanceValue(context, PROFILE.relentlessFire, 'durationMultiplier', 5)
-    });
-  } else if (skill.name === 'Shattering Ice') {
-    const duration =
-      state.sphereExpiry.Water > at
-        ? elementalistBalanceValue(context, PROFILE.shatteringIce, 'durationPerTier', 8)
-        : elementalistBalanceValue(context, PROFILE.shatteringIce, 'durationMultiplier', 5);
-    state.shatteringIceUntil = at + duration;
-    state.shatteringIceReadyAt = at;
-    context.emit({
-      type: 'buff',
-      at,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: 'player',
-      skillName: skill.name,
-      kind: 'shattering ice',
-      stacks: 1,
-      duration
-    });
-  } else if (skill.name === 'Elemental Celerity') {
-    for (const candidate of context.catalog.skills) {
-      if (
-        candidate.type === 'Weapon' &&
-        Number(candidate.cooldown || 0) > 0 &&
-        String(candidate.attunement || '')
-          .split('+')
-          .includes(core.primaryAttunement)
-      ) {
-        context.state.cooldowns.set(candidate.id, at);
-      }
-    }
-
-    const boons: readonly (readonly [ElementalistAttunement, string, number, number])[] = [
-      ['Fire', 'might', 5, 6],
-      ['Water', 'vigor', 1, 6],
-      ['Air', 'fury', 1, 6],
-      ['Earth', 'protection', 1, 4]
-    ];
-    for (const [element, kind, stacks, duration] of boons) {
-      if (state.sphereExpiry[element] <= at) continue;
-      const effect = elementalistBalanceEffect(context, PROFILE.elementalCelerity, 'boon', element);
-      emitElementalistBuff(
-        context as never,
-        at,
-        String(effect?.boon || kind),
-        Number(effect?.stacks ?? stacks),
-        Number(effect?.duration ?? duration),
-        skill.name,
-        skill.id
-      );
+  for (const candidate of context.catalog.skills) {
+    if (
+      candidate.type === 'Weapon' &&
+      Number(candidate.cooldown || 0) > 0 &&
+      String(candidate.attunement || '')
+        .split('+')
+        .includes(core.primaryAttunement)
+    ) {
+      context.state.cooldowns.set(candidate.id, at);
     }
   }
+
+  const boons: readonly (readonly [ElementalistAttunement, string, number, number])[] = [
+    ['Fire', 'might', 5, 6],
+    ['Water', 'vigor', 1, 6],
+    ['Air', 'fury', 1, 6],
+    ['Earth', 'protection', 1, 4]
+  ];
+  for (const [element, kind, stacks, duration] of boons) {
+    if (state.sphereExpiry[element] <= at) continue;
+    const effect = elementalistBalanceEffect(context, PROFILE.elementalCelerity, 'boon', element);
+    emitElementalistBuff(
+      context as never,
+      at,
+      String(effect?.boon || kind),
+      Number(effect?.stacks ?? stacks),
+      Number(effect?.duration ?? duration),
+      skill.name,
+      skill.id
+    );
+  }
 }
+
+/** Runs Catalyst mechanics owned by one completed skill activation. */
+export const catalystSkillMechanicHandlers = Object.freeze({
+  'elementalist.catalyst.relentless-fire': ({
+    context,
+    skill,
+    at
+  }: {
+    context: ElementalistSchedulerContext;
+    skill: Skill;
+    at: number;
+  }): void => activateRelentlessFire(context, skill, at),
+  'elementalist.catalyst.shattering-ice': ({
+    context,
+    skill,
+    at
+  }: {
+    context: ElementalistSchedulerContext;
+    skill: Skill;
+    at: number;
+  }): void => activateShatteringIce(context, skill, at),
+  'elementalist.catalyst.elemental-celerity': ({
+    context,
+    skill,
+    at
+  }: {
+    context: ElementalistSchedulerContext;
+    skill: Skill;
+    at: number;
+  }): void => activateElementalCelerity(context, skill, at)
+});
 
 function onEventScheduled(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   const state = catalystState.from(context);
@@ -610,10 +644,5 @@ export const catalystSchedulerHooks = Object.freeze({
     [CATALYST_EMPOWERMENT_TASK]: handleCatalystEmpowerment,
     [CATALYST_BASE_EMPOWERMENT_TASK]: handleBaseEmpowerment,
     [CATALYST_VICIOUS_EMPOWERMENT_TASK]: handleViciousEmpowerment
-  }),
-  onCastComplete: {
-    id: 'elementalist.catalyst-complete',
-    order: 30,
-    handler: onCastComplete
-  }
+  })
 });

@@ -322,6 +322,71 @@ test('interrupted casts complete at their effective end', () => {
   ]);
 });
 
+test('skill mechanic triggers execute through the scheduler at their resolved timestamp', () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 980012,
+        name: 'Delayed Mechanic',
+        castTimeMs: 1000,
+        mechanicTriggers: [
+          {
+            type: 'test.delayed-mechanic',
+            atMs: 250,
+            timingAnchor: 'castEnd',
+            timingScale: 'fixed'
+          }
+        ],
+        effects: []
+      }
+    ]
+  });
+  const profession = defineProfession({
+    id: 'temporal-skill-mechanic',
+    name: 'Temporal Skill Mechanic',
+    catalog,
+    resources: {
+      createProfessionState: () => ({ invocations: [] })
+    },
+    schedulerHooks: {
+      skillMechanicHandlers: {
+        'test.delayed-mechanic': ({ context, skill, trigger, at, castStart, castEnd, activationId }) => {
+          context.state.profession.invocations.push({
+            skill: skill.name,
+            type: trigger.type,
+            at,
+            clock: context.state.time,
+            castStart,
+            castEnd,
+            activationId
+          });
+        }
+      }
+    }
+  });
+
+  const scheduled = createScheduler({
+    profession,
+    observationPolicy: { kind: 'tail', durationMs: 500 }
+  }).run(['Delayed Mechanic']);
+
+  const action = scheduled.events.find((event) => event.type === 'action');
+  const [invocation] = scheduled.state.profession.invocations;
+  assert.deepEqual(
+    { ...invocation, activationId: undefined },
+    {
+      skill: 'Delayed Mechanic',
+      type: 'test.delayed-mechanic',
+      at: 1.25,
+      clock: 1.25,
+      castStart: 0,
+      castEnd: 1,
+      activationId: undefined
+    }
+  );
+  assert.equal(invocation.activationId, action.activationId);
+});
+
 test('interrupted casts can retain their original cast-lane lockout', () => {
   const catalog = createCanonicalCatalog({
     generated: [
@@ -501,4 +566,22 @@ test('owner cancellation removes queued work without banning future owners', () 
   });
   queue.drainThrough(2, {});
   assert.deepEqual(seen, ['new']);
+});
+
+test('task queues expose the next timestamp for one mechanic type', () => {
+  const queue = createTaskQueue({
+    handlers: {
+      mirror: () => {},
+      unrelated: () => {}
+    }
+  });
+
+  queue.schedule({ id: 'unrelated', type: 'unrelated', at: 1, payload: null });
+  queue.schedule({ id: 'first-mirror', type: 'mirror', at: 3, payload: null });
+  queue.schedule({ id: 'second-mirror', type: 'mirror', at: 4, payload: null });
+  queue.cancel('first-mirror');
+
+  assert.equal(queue.nextAt(), 1);
+  assert.equal(queue.nextAt('mirror'), 4);
+  assert.equal(queue.nextAt('missing'), Infinity);
 });

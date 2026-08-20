@@ -274,6 +274,13 @@ export const MESMER_CHRONOMANCER_EXTRA_SKILLS: readonly Skill[] = Object.freeze(
     cooldown: 0,
     specialization: 'Chronomancer',
     implemented: true,
+    // Manual Continuum Shift restores the captured state when the action completes.
+    mechanicTriggers: [
+      {
+        type: 'mesmer.chronomancer.restore-continuum',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: []
   }
 ] satisfies readonly MesmerSkill[]);

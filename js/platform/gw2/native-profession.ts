@@ -349,7 +349,8 @@ function compileNativeModule(
     ...((mechanics.castRules || {}) as SchedulerRecord)
   };
   const schedulerHooks = {
-    ...((mechanics.schedulerHooks || {}) as SchedulerRecord)
+    ...((mechanics.schedulerHooks || {}) as SchedulerRecord),
+    ...(mechanics.skillMechanicHandlers == null ? {} : { skillMechanicHandlers: mechanics.skillMechanicHandlers })
   };
   // availability mechanics go into castRules (gate whether a skill can be cast);
   // castLifecycle mechanics go into schedulerHooks (run during and after cast).

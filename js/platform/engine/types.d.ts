@@ -366,6 +366,21 @@ export interface SkillMechanicTrigger {
   readonly count?: number;
 }
 
+/** Runtime input supplied when a declarative skill mechanic reaches its scheduled timestamp. */
+export interface SkillMechanicInvocation<TProfessionState extends object = SchedulerRecord> {
+  readonly context: SchedulerContext<TProfessionState>;
+  readonly skill: Skill;
+  readonly trigger: SkillMechanicTrigger;
+  readonly at: number;
+  readonly castStart: number;
+  readonly castEnd: number;
+  readonly activationId: string;
+}
+
+export type SkillMechanicTriggerHandler<TProfessionState extends object = SchedulerRecord> = (
+  invocation: SkillMechanicInvocation<TProfessionState>
+) => unknown;
+
 export interface AutoattackChainPosition {
   readonly root: number;
   readonly index: number;
@@ -483,7 +498,7 @@ export interface TaskQueue<TContext = unknown, TPayload = unknown> {
   schedule(task: ScheduledTaskInput<TPayload>): string;
   cancel(id: string | number): void;
   cancelOwner(ownerId: string | number): void;
-  nextAt(): number;
+  nextAt(type?: string): number;
   drainThrough(target: number, context: TContext): void;
   has(id: string | number): boolean;
 }
@@ -512,7 +527,7 @@ export interface SchedulerTaskAccess {
   schedule(task: ScheduledTaskInput<SchedulerRecord>): string;
   cancel(id: string | number): void;
   cancelOwner(ownerId: string | number): void;
-  nextAt(): number;
+  nextAt(type?: string): number;
 }
 
 export interface SchedulerPolicy<TProfessionState extends object = SchedulerRecord> {
@@ -932,6 +947,7 @@ export interface ProfessionSchedulerHookDefinition {
   readonly modifyRechargeStart?: unknown;
   readonly modifyMaximumAmmo?: unknown;
   readonly taskHandlers?: Readonly<Record<string, (...args: never[]) => unknown>>;
+  readonly skillMechanicHandlers?: Readonly<Record<string, (...args: never[]) => unknown>>;
 }
 
 export interface ProfessionResolverHookDefinition {
@@ -1025,6 +1041,7 @@ export interface NormalizedProfessionContract<TProfessionState extends object = 
   readonly taskHandlers: Readonly<
     Record<string, ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>>
   >;
+  readonly skillMechanicHandlers: Readonly<Record<string, SkillMechanicTriggerHandler<TProfessionState>>>;
   readonly eventHandlers: Readonly<Record<string, (...args: never[]) => unknown>>;
   readonly eventReactions: Readonly<Record<string, (...args: never[]) => unknown>>;
   readonly prepareEvent: (

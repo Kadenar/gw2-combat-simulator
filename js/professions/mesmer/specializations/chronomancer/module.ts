@@ -1,6 +1,11 @@
 import { defineNativeModule } from '../../../../platform/gw2/native-profession.js';
 import { createMesmerModuleData } from '../../catalog-data.js';
-import { chronomancerAttributeRules, chronomancerCastRules, chronomancerRuntimeHooks } from './rules.js';
+import {
+  chronomancerAttributeRules,
+  chronomancerCastRules,
+  chronomancerRuntimeHooks,
+  chronomancerSkillMechanicHandlers
+} from './rules.js';
 import { createChronomancerResolverState, chronomancerState } from './state.js';
 import { chronomancerUi } from './ui.js';
 import {
@@ -28,6 +33,7 @@ export const chronomancerModule = defineNativeModule({
   mechanics: {
     modifiers: chronomancerAttributeRules,
     castRules: chronomancerCastRules,
+    skillMechanicHandlers: chronomancerSkillMechanicHandlers,
     schedulerHooks: chronomancerRuntimeHooks,
     resolverHooks: { eventHandlers: chronomancerEventHandlers }
   },

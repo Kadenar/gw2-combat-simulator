@@ -9,59 +9,43 @@ import { initializeMirageRuntime } from './runtime.js';
 import { mesmerRuntimeFor } from '../../core/runtime.js';
 import type { AvailabilityResult, SkillMechanicTrigger } from '../../../../platform/engine/types.js';
 import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
-import type { MesmerCastContext, MesmerPrecastContext, MesmerSkill } from '../../types.js';
+import type { MesmerCastContext, MesmerPrecastContext, MesmerSchedulerContext, MesmerSkill } from '../../types.js';
 
-interface SkillMechanicTriggerTiming {
+type MirageSkillMechanicHandler = (invocation: {
+  readonly context: MesmerSchedulerContext;
+  readonly skill: MesmerSkill;
+  readonly trigger: SkillMechanicTrigger;
+  readonly at: number;
   readonly castStart: number;
   readonly castEnd: number;
-}
+  readonly activationId: string;
+}) => void;
 
-type MirageSkillMechanicHandler = (
-  context: MesmerCastContext,
-  trigger: SkillMechanicTrigger,
-  at: number,
-  skill: MesmerSkill
-) => void;
-
-const MIRAGE_SKILL_MECHANIC_HANDLERS: Readonly<Record<string, MirageSkillMechanicHandler>> = Object.freeze({
-  'mesmer.mirage.create-mirror': (context, trigger, at, skill) => {
+export const mirageSkillMechanicHandlers: Readonly<Record<string, MirageSkillMechanicHandler>> = Object.freeze({
+  'mesmer.mirage.create-mirror': ({ context, trigger, at, skill }) => {
     mesmerRuntimeFor(context).mirage.createMirrors(at, trigger.count ?? 1, skill.name);
   },
-  'mesmer.mirage.grant-cloak': (context, _trigger, at, skill) => {
+  'mesmer.mirage.grant-cloak': ({ context, at, skill }) => {
     mesmerRuntimeFor(context).mirage.grantMirageCloak(at, skill.name);
+  },
+  'mesmer.mirage.pick-up-mirror': ({ context, at, skill }) => {
+    mesmerRuntimeFor(context).mirage.pickUpMirror(at, skill.name);
+  },
+  'mesmer.mirage.dodge': ({ context, at, skill }) => {
+    const runtime = mesmerRuntimeFor(context);
+    runtime.mirage.grantMirageCloak(at, skill.name);
+    if (runtime.traits.has(TRAIT.DECEPTIVE_EVASION)) {
+      runtime.resources.queueResources(at + EPSILON, 1, runtime.activePrimaryWeapon(), 'Deceptive Evasion', {
+        traitId: TRAIT.DECEPTIVE_EVASION,
+        traitName: 'Deceptive Evasion'
+      });
+    }
   }
 });
 
-/** Resolves trigger offsets against the actual cast and invokes Mirage-owned mechanic handlers. */
-export function dispatchSkillMechanicTriggers(
-  context: MesmerCastContext,
-  skill: MesmerSkill,
-  timing: SkillMechanicTriggerTiming
-): void {
-  for (const trigger of skill.mechanicTriggers || []) {
-    const handler = MIRAGE_SKILL_MECHANIC_HANDLERS[trigger.type];
-    if (!handler) continue;
-
-    const baseCastMs = Math.max(0, Number(skill.castTimeMs || 0));
-    const actualCastMs = Math.max(0, timing.castEnd - timing.castStart) * 1000;
-    const authoredOffsetMs = Number(trigger.atMs || 0);
-    const offsetMs =
-      trigger.timingScale === 'cast' && baseCastMs > 0
-        ? authoredOffsetMs * (actualCastMs / baseCastMs)
-        : authoredOffsetMs;
-    const anchor = trigger.timingAnchor === 'castStart' ? timing.castStart : timing.castEnd;
-    handler(context, trigger, anchor + offsetMs / 1000, skill);
-  }
-}
-
-/** Dispatches declarative skill mechanics and applies Self-Deception to categorized Deception skills. */
+/** Applies Self-Deception to categorized Deception skills after their casts complete. */
 function completeMirageSkill(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
-  dispatchSkillMechanicTriggers(context, skill, {
-    castStart: context.start,
-    castEnd: context.fullEnd
-  });
-
   if (
     runtime.traits.has(TRAIT.SELF_DECEPTION) &&
     skill.categories?.includes('Deception') &&
@@ -92,7 +76,10 @@ function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): 
       return { ready: true };
     }
 
+    // A queued mirror-creation trigger is a valid retry boundary even though
+    // the mirror does not enter specialization state until that task executes.
     const retryAt = Math.min(
+      context.tasks.nextAt('mesmer.mirage.create-mirror'),
       ...mirrors.filter((mirror) => mirror.expiresAt > context.start + EPSILON).map((mirror) => mirror.availableAt)
     );
     return {

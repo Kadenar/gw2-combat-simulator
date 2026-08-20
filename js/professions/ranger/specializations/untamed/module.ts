@@ -1,7 +1,12 @@
 import { defineNativeModule, onResolvedControl, onResolvedDamage } from '../../../../platform/gw2/native-profession.js';
 import { createRangerModuleData } from '../../catalog-data.js';
 import { untamedSkillHandlers } from './handlers.js';
-import { untamedAttributeRules, untamedCastRules, untamedSchedulerHooks } from './rules.js';
+import {
+  untamedAttributeRules,
+  untamedCastRules,
+  untamedSchedulerHooks,
+  untamedSkillMechanicHandlers
+} from './rules.js';
 import { reactToUntamedControl, reactToUntamedDamage, untamedEventHandlers } from './resolver.js';
 import { UNTAMED_BASE_SKILL_MECHANICS } from './skills.js';
 import { untamedState } from './state.js';
@@ -20,6 +25,7 @@ export const untamedModule = defineNativeModule({
   mechanics: {
     modifiers: untamedAttributeRules,
     castRules: untamedCastRules,
+    skillMechanicHandlers: untamedSkillMechanicHandlers,
     schedulerHooks: untamedSchedulerHooks,
     resolverHooks: { eventHandlers: untamedEventHandlers },
     reactions: [

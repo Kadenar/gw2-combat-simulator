@@ -56,6 +56,13 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     implemented: true,
     castTimeMs: 0,
     cooldown: 1,
+    // Both Unleash sides receive the same fixed, Alacrity-independent recharge.
+    mechanicTriggers: [
+      {
+        type: 'ranger.untamed.sync-unleash-cooldown',
+        timingAnchor: 'castEnd'
+      }
+    ],
     paletteTileId: UNLEASH_PALETTE_TILE,
     paletteTileOrder: 1,
     effects: [],
@@ -202,6 +209,13 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     implemented: true,
     castTimeMs: 0,
     cooldown: 1,
+    // Both Unleash sides receive the same fixed, Alacrity-independent recharge.
+    mechanicTriggers: [
+      {
+        type: 'ranger.untamed.sync-unleash-cooldown',
+        timingAnchor: 'castEnd'
+      }
+    ],
     paletteTileId: UNLEASH_PALETTE_TILE,
     paletteTileOrder: 2,
     effects: [],

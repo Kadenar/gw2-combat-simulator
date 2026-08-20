@@ -116,6 +116,8 @@ export interface NativeMechanicsDefinition<
   readonly castRules?: TCastRulesEscape;
   /** Advanced scheduler lifecycle/task escape hatch. */
   readonly schedulerHooks?: TSchedulerHooksEscape;
+  /** Profession-owned implementations for declarative skill mechanic triggers. */
+  readonly skillMechanicHandlers?: Readonly<Record<string, (...args: never[]) => unknown>>;
   /** Advanced resolver event-handler/reaction escape hatch. */
   readonly resolverHooks?: TResolverHooksEscape;
 }

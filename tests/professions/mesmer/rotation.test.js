@@ -3854,14 +3854,49 @@ test('Illusionary Reversion refunds one clone only after shattering three', () =
     ...config,
     initialResource: 2
   });
+  const continuumSplit = simulateMesmer(['Continuum Split'], {
+    ...config,
+    initialResource: 3
+  });
 
   assert.equal(fullShatter.endState.profession.resource, 1);
   assert.equal(partialShatter.endState.profession.resource, 0);
+  assert.equal(continuumSplit.endState.profession.resource, 1);
   assert.ok(
     simulationEventLogRows(fullShatter).some((event) =>
       event.description.includes('CLONE SPAWNED x1 -> 1/3 [Illusionary Reversion] (Clone #4 [Dagger])')
     )
   );
+});
+
+test('Infinite Forge refunds two blades only after a completed five-blade Bladesong', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Virtuoso',
+    selectedTraits: ['Infinite Forge']
+  });
+  const observeRefund = (shatter) => [shatter, { name: '__wait', waitMs: 1000 }];
+  const fullShatter = simulateMesmer(observeRefund('Bladesong Harmony'), {
+    ...config,
+    initialResource: 5
+  });
+  const partialShatter = simulateMesmer(observeRefund('Bladesong Harmony'), {
+    ...config,
+    initialResource: 4
+  });
+  const interruptedShatter = simulateMesmer(observeRefund({ name: 'Bladesong Harmony', interruptMs: 100 }), {
+    ...config,
+    initialResource: 5
+  });
+  const action = fullShatter.events.find((event) => event.type === 'action' && event.name === 'Bladesong Harmony');
+  const refund = fullShatter.events.find(
+    (event) => event.type === 'resource' && event.reason === 'Infinite Forge refund'
+  );
+
+  assert.equal(fullShatter.endState.profession.resource, 2);
+  assert.equal(partialShatter.endState.profession.resource, 0);
+  assert.equal(interruptedShatter.endState.profession.resource, 5);
+  assert.equal(refund.amount, 2);
+  assert.ok(Math.abs(refund.at - action.fullEndsAt - 0.0002) < 1e-12);
 });
 
 test('Signet of the Ether resets every phantasm skill cooldown', () => {
@@ -4587,7 +4622,11 @@ test('Harmonious Harp has a two-second Quickness channel that commits when inter
   assert.equal(interrupted.steps[0].end - interrupted.steps[0].start, 480);
   assert.equal(interrupted.steps[0].interrupted, true);
   assert.equal(interrupted.endState.profession.resource, 0);
-  assert.ok(interrupted.events.some((event) => event.type === 'mesmer.instrument' && event.instrument === 'Harp'));
+  const instrument = interrupted.events.find(
+    (event) => event.type === 'mesmer.instrument' && event.instrument === 'Harp'
+  );
+  assert.ok(Math.abs(instrument.at - 0.4801) < 1e-12);
+  assert.equal(instrument.expiresAt, 20.48);
 });
 
 test('Shatter Storm gives Lively Lute a second charge without a full cooldown', () => {
@@ -4761,6 +4800,30 @@ test('Troubadour tales grant their boons and instrument-specific notes', () => {
       );
     }
   }
+});
+
+test('Tale of the Honorable Rogue owns its Aegis, note gate, and two-charge timing', () => {
+  const defaults = defaultSimulationConfig();
+  const result = simulateMesmer(
+    ['Tale of the Honorable Rogue', 'Tale of the Honorable Rogue', 'Tale of the Honorable Rogue'],
+    defaultSimulationConfig({
+      specialization: 'Troubadour',
+      initialResource: 0,
+      boons: { ...defaults.boons, quickness: false, alacrity: false }
+    })
+  );
+  const casts = result.steps.filter((step) => step.skill === 'Tale of the Honorable Rogue');
+  const aegis = result.events.filter(
+    (event) => event.type === 'buff' && event.skillName === 'Tale of the Honorable Rogue' && event.kind === 'aegis'
+  );
+
+  assert.deepEqual(
+    casts.map((step) => step.start),
+    [0, 4000, 25000]
+  );
+  assert.equal(result.endState.profession.resource, 0);
+  assert.equal(aegis.length, 3);
+  assert.ok(aegis.every((event) => event.duration === 4));
 });
 
 test('Troubadour instrument note spends retain rotation timeline metadata', () => {

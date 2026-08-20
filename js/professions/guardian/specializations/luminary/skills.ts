@@ -97,6 +97,13 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     implemented: true,
     castTimeMs: 0,
     handlerId: 'guardian.radiant-forge',
+    // Entry stays reusable while the forge is active; its final recharge starts on exit.
+    mechanicTriggers: [
+      {
+        type: 'guardian.luminary.clear-forge-entry-cooldown',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: []
   },
   [ID.PIERCING_STANCE]: {

@@ -9,6 +9,7 @@ import { createNecromancerModuleData } from '../catalog-data.js';
 import {
   necromancerCoreAttributeRules,
   necromancerCoreCastRules,
+  necromancerCoreSkillMechanicHandlers,
   necromancerSchedulerHooks,
   snapshotNecromancerState
 } from './rules.js';
@@ -40,6 +41,7 @@ export const necromancerCoreModule = defineNativeModule({
   mechanics: {
     modifiers: necromancerCoreAttributeRules,
     castRules: necromancerCoreCastRules,
+    skillMechanicHandlers: necromancerCoreSkillMechanicHandlers,
     schedulerHooks: {
       ...necromancerSchedulerHooks,
       snapshot: (context: NecromancerSchedulerContext) => snapshotNecromancerState(context.state.profession)

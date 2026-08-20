@@ -388,6 +388,7 @@ export interface MesmerRuntime {
   phantasmAttackTimings: Record<number, MesmerPhantasmAttackTiming>;
   traitDamage: Record<string, MesmerTraitDamage>;
   shatters: Record<number, MesmerShatter>;
+  shatterResolvedHandlers: MesmerShatterResolvedHandler[];
   instruments: Record<number, MesmerInstrument>;
   balanceProfile: (id: SkillId) => BalanceProfile | undefined;
   controlSkills: Set<number>;
@@ -422,7 +423,7 @@ export interface MesmerCastDetails {
 }
 
 export interface MesmerContinuumController {
-  beginContinuumSplit(skill: MesmerSkill, at: number): void;
+  beginContinuumSplit(skill: MesmerSkill, at: number): MesmerShatterResolution;
   restoreContinuum(at: number, reason: string): void;
 }
 
@@ -467,6 +468,16 @@ export type MesmerCastContext = MesmerPrecastContext & {
   readonly rechargeReadyAt: number | null;
   readonly reservationId: string;
 };
+
+/** Runtime result passed to specialization mechanics after a shatter successfully resolves. */
+export interface MesmerShatterResolution {
+  readonly skill: MesmerSkill;
+  readonly at: number;
+  readonly spent: number;
+  readonly bladeSong: boolean;
+}
+
+export type MesmerShatterResolvedHandler = (context: MesmerCastContext, resolution: MesmerShatterResolution) => void;
 
 /**
  * Shared event callbacks passed from the scheduler integration layer into the
@@ -585,10 +596,12 @@ export interface MesmerProfessionActionController {
   commitReservedResources(at: number, reserved: number, details?: MesmerResourceSpendDetails): number;
   consumeResources(at: number, details?: MesmerResourceSpendDetails): number;
   currentResource(): number;
-  handleCrescendo(skill: MesmerSkill, at: number, castStart?: number): void;
-  handleInstrument(skill: MesmerSkill, at: number, castStart?: number, spendDetails?: MesmerResourceSpendDetails): void;
-  handleTale(skill: MesmerSkill, at: number, castStart?: number): void;
-  handleShatter(skill: MesmerSkill, at: number, resourcesSpent?: number | null, castStart?: number): boolean;
+  handleShatter(
+    skill: MesmerSkill,
+    at: number,
+    resourcesSpent?: number | null,
+    castStart?: number
+  ): MesmerShatterResolution | null;
   reserveResources(): number;
   restoreReservedResources(spent: number): void;
   triggerShatterTraits(
@@ -650,7 +663,6 @@ export interface MesmerSchedulerTaskPayloads {
   };
   readonly continuumExpire: { readonly expiresAt: number };
   readonly infiniteForge: SchedulerRecord;
-  readonly signetEtherRelock: { readonly skillId: SkillId };
   readonly signetIllusionsPassive: SchedulerRecord;
 }
 

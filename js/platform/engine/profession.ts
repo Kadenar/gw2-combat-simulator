@@ -327,6 +327,41 @@ function assertHandlerMap(value: unknown, scope: string): void {
   }
 }
 
+/** Validates trigger timing metadata and guarantees every active skill has one owning handler. */
+function assertSkillMechanicTriggers(
+  catalog: CanonicalCatalog | undefined,
+  handlers: Readonly<Record<string, unknown>>,
+  professionId: string
+): void {
+  for (const skill of catalog?.skills || []) {
+    for (const trigger of skill.mechanicTriggers || []) {
+      if (!trigger || typeof trigger !== 'object' || !String(trigger.type || '').trim()) {
+        throw new TypeError(`${professionId} skill ${skill.name} has a mechanic trigger without a type.`);
+      }
+
+      if (!Object.hasOwn(handlers, trigger.type)) {
+        throw new TypeError(`${professionId} skill ${skill.name} references unknown mechanic trigger ${trigger.type}.`);
+      }
+
+      if (trigger.atMs != null && (!Number.isFinite(Number(trigger.atMs)) || Number(trigger.atMs) < 0)) {
+        throw new TypeError(`${professionId} skill ${skill.name} mechanic trigger atMs must be non-negative.`);
+      }
+
+      if (trigger.timingAnchor != null && trigger.timingAnchor !== 'castStart' && trigger.timingAnchor !== 'castEnd') {
+        throw new TypeError(`${professionId} skill ${skill.name} has an invalid mechanic trigger timingAnchor.`);
+      }
+
+      if (trigger.timingScale != null && trigger.timingScale !== 'cast' && trigger.timingScale !== 'fixed') {
+        throw new TypeError(`${professionId} skill ${skill.name} has an invalid mechanic trigger timingScale.`);
+      }
+
+      if (trigger.count != null && (!Number.isFinite(Number(trigger.count)) || Number(trigger.count) < 0)) {
+        throw new TypeError(`${professionId} skill ${skill.name} mechanic trigger count must be non-negative.`);
+      }
+    }
+  }
+}
+
 /**
  * @param {unknown} value
  * @param {string} professionId
@@ -431,7 +466,15 @@ export function defineProfession<TProfessionState extends object>(
   assertOptionalCallback(definition as unknown as SchedulerRecord, 'createResolverState', 'definition');
   assertUiDefinition(ui);
   assertHandlerMap(schedulerHooks.taskHandlers, 'schedulerHooks.taskHandlers');
+  assertHandlerMap(schedulerHooks.skillMechanicHandlers, 'schedulerHooks.skillMechanicHandlers');
   assertHandlerMap(resolverHooks.eventHandlers || definition.eventHandlers, 'resolverHooks.eventHandlers');
+  const skillMechanicHandlers = Object.freeze({ ...(schedulerHooks.skillMechanicHandlers || {}) });
+  for (const type of Object.keys(skillMechanicHandlers)) {
+    if (Object.hasOwn(schedulerHooks.taskHandlers || {}, type)) {
+      throw new TypeError(`${definition.id} registers ${type} as both a task and skill mechanic handler.`);
+    }
+  }
+  assertSkillMechanicTriggers(definition.catalog, skillMechanicHandlers, definition.id);
   const catalogSkillHandlers =
     definition.catalog?.skillHandlers instanceof Map ? definition.catalog.skillHandlers : new Map();
   const legacyResourceView = ui.resourceView || (() => null);
@@ -539,6 +582,7 @@ export function defineProfession<TProfessionState extends object>(
     taskHandlers: Object.freeze({
       ...(schedulerHooks.taskHandlers || {})
     }),
+    skillMechanicHandlers,
     ...hooks,
     eventHandlers: Object.freeze({
       ...(resolverHooks.eventHandlers || definition.eventHandlers || {})
@@ -1472,6 +1516,11 @@ function composeRuntimeDefinition<TProfessionState extends object>(
     (module) => module.schedulerHooks?.taskHandlers,
     'task handler'
   );
+  schedulerHooks.skillMechanicHandlers = mergeHandlerRegistries(
+    genericModules,
+    (module) => module.schedulerHooks?.skillMechanicHandlers,
+    'skill mechanic handler'
+  );
   const eventHandlers = mergeHandlerRegistries(
     genericModules,
     (module) => module.resolverHooks?.eventHandlers,
@@ -1542,14 +1591,25 @@ export function defineProfessionFamily<TProfessionState extends object = Schedul
     specializations: Object.fromEntries([...specializationModules].map(([name, module]) => [name, module.ui || {}])),
     family: definition.ui
   });
+  const applicationModules: NamedModule[] = [
+    { name: 'Core', module: core },
+    ...[...specializationModules].map(([name, module]) => ({ name, module }))
+  ];
   // Reuse the ordinary application normalizers without constructing a
-  // profession-wide executable registry. Only the application properties
-  // below are exposed on the family.
+  // profession-wide executable runtime. The trigger registry is included only
+  // so the full application catalog can validate every module-owned trigger.
   const applicationSurface = defineProfession({
     id: definition.id,
     name: definition.name,
     catalog: definition.catalog,
     build: definition.build,
+    schedulerHooks: {
+      skillMechanicHandlers: mergeHandlerRegistries(
+        applicationModules,
+        (module) => module.schedulerHooks?.skillMechanicHandlers,
+        'skill mechanic handler'
+      )
+    },
     ui: applicationUi,
     simulation: definition.simulation
   });

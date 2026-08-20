@@ -33,6 +33,7 @@ import type {
   SchedulerStep,
   SchedulerTaskAccess,
   SkillEffect,
+  SkillMechanicTrigger,
   SimulationEvent,
   SimulationEventInput,
   Skill,
@@ -508,45 +509,99 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
 
     // Cooldown/ammo commitment precedes the profession completion hook so the
     // hook observes the state players would have immediately after the cast.
-    activeProfession.onCastComplete(
-      {
-        ...castContext,
-        action: action as SimulationEvent,
-        fullEnd,
-        effectiveEnd,
-        rechargeDuration,
-        ammoLockoutDuration,
-        rechargeStart,
-        rechargeReadyAt,
-        reservationId: reservation.id,
-        emit(event) {
-          return context.emit({
-            activationId: reservation.id,
-            ...event
-          });
-        },
-        tasks: {
-          ...context.tasks,
-          schedule(task) {
-            return context.tasks.schedule({
-              ...task,
-              payload: {
-                activationId: reservation.id,
-                ...(task.payload || {})
-              }
-            });
-          }
-        }
+    const completionContext: CastLifecycleContext<TProfessionState> = {
+      ...castContext,
+      action: action as SimulationEvent,
+      fullEnd,
+      effectiveEnd,
+      rechargeDuration,
+      ammoLockoutDuration,
+      rechargeStart,
+      rechargeReadyAt,
+      reservationId: reservation.id,
+      emit(event) {
+        return context.emit({
+          activationId: reservation.id,
+          ...event
+        });
       },
-      skill
-    );
+      tasks: {
+        ...context.tasks,
+        schedule(task) {
+          return context.tasks.schedule({
+            ...task,
+            payload: {
+              activationId: reservation.id,
+              ...(task.payload || {})
+            }
+          });
+        }
+      }
+    };
+    activeProfession.onCastComplete(completionContext, skill);
+
+    // Skill metadata owns trigger timing; the task executes profession state
+    // changes only when that timestamp is actually reached.
+    for (const trigger of skill.mechanicTriggers || []) {
+      const authoredCastMs = Math.max(0, Number(skill.castTimeMs || 0));
+      const actualCastMs = Math.max(0, fullEnd - castContext.start) * 1000;
+      const authoredOffsetMs = Number(trigger.atMs || 0);
+      const offsetMs =
+        trigger.timingScale === 'cast' && authoredCastMs > 0
+          ? authoredOffsetMs * (actualCastMs / authoredCastMs)
+          : authoredOffsetMs;
+      const anchor = trigger.timingAnchor === 'castStart' ? castContext.start : fullEnd;
+      const triggerAt = anchor + offsetMs / 1000;
+      if (triggerAt < effectiveEnd - epsilon) {
+        throw new RangeError(
+          `${skill.name} mechanic trigger ${trigger.type} resolves before the cast-completion dispatch phase.`
+        );
+      }
+
+      completionContext.tasks.schedule({
+        type: trigger.type,
+        at: triggerAt,
+        ownerId: reservation.id,
+        payload: {
+          skillId: skill.id,
+          trigger,
+          castStart: castContext.start,
+          castEnd: fullEnd
+        }
+      });
+    }
     reservations.delete(reservation.id);
+  };
+
+  /** Dispatches one due trigger through the active profession's composed handler registry. */
+  const handleSkillMechanicTrigger: ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord> = (
+    taskContext,
+    task
+  ) => {
+    const trigger = task.payload?.trigger as SkillMechanicTrigger | undefined;
+    const skillId = task.payload?.skillId as SkillId | undefined;
+    if (!trigger || skillId == null) return;
+    const skill = taskContext.catalog.skillsById.get(skillId);
+    const handler = activeProfession.skillMechanicHandlers[trigger.type];
+    if (!skill || !handler) return;
+    handler({
+      context: taskContext,
+      skill,
+      trigger,
+      at: task.at,
+      castStart: Number(task.payload?.castStart || 0),
+      castEnd: Number(task.payload?.castEnd || 0),
+      activationId: String(task.payload?.activationId || task.ownerId || '')
+    });
   };
 
   const taskHandlers: Record<string, ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>> = {
     [CORE_CAST_COMPLETE]: completeReservation,
     ...(schedulerPolicy.taskHandlers || {}),
-    ...activeProfession.taskHandlers
+    ...activeProfession.taskHandlers,
+    ...Object.fromEntries(
+      Object.keys(activeProfession.skillMechanicHandlers).map((type) => [type, handleSkillMechanicTrigger])
+    )
   };
   const activationAwareTaskHandlers: Record<
     string,

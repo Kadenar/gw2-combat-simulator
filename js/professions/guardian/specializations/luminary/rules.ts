@@ -1,9 +1,10 @@
 import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { GUARDIAN_SKILL_IDS } from '../../data/ids.js';
 import { guardianTargetDisabled, guardianTimedBuffActive, latestGuardianTimedBuff } from '../../core/rules.js';
-import { advanceRadiantForgeState, clearRadiantForgeEntryCooldown, validateRadiantForgeCast } from './radiant-forge.js';
+import { advanceRadiantForgeState, validateRadiantForgeCast } from './radiant-forge.js';
 import { observeLuminaryScheduledEvent, updateLuminaryTraitCastState } from './traits.js';
 import type { Gw2ModifierRule } from '../../../../platform/gw2/types.js';
+import type { GuardianSchedulerContext, GuardianSkill } from '../../types.js';
 
 export const luminaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -87,6 +88,19 @@ export const luminaryCastRules = Object.freeze({
   ])
 });
 
+/** Runs Luminary mechanics owned by one completed skill activation. */
+export const luminarySkillMechanicHandlers = Object.freeze({
+  'guardian.luminary.clear-forge-entry-cooldown': ({
+    context,
+    skill
+  }: {
+    context: GuardianSchedulerContext;
+    skill: GuardianSkill;
+  }): void => {
+    context.state.cooldowns.delete(skill.id);
+  }
+});
+
 export const luminarySchedulerHooks = Object.freeze({
   advance: Object.freeze([
     {
@@ -100,16 +114,6 @@ export const luminarySchedulerHooks = Object.freeze({
       id: 'guardian.luminary.traits',
       order: 30,
       handler: updateLuminaryTraitCastState
-    }
-  ]),
-  onCastComplete: Object.freeze([
-    {
-      // The cooldown is deliberately deleted here rather than in the Enter
-      // handler so it only starts counting once the forge is truly active
-      // (afterCast fires at effectiveEnd, not at the start of the cast).
-      id: 'guardian.radiant-forge',
-      order: 10,
-      handler: clearRadiantForgeEntryCooldown
     }
   ]),
   onEventScheduled: Object.freeze([

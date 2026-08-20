@@ -1,6 +1,12 @@
 import { defineNativeModule, onResolvedBlind, onResolvedControl } from '../../../platform/gw2/native-profession.js';
 import { createMesmerModuleData } from '../catalog-data.js';
-import { mesmerCoreAttributeRules, mesmerCastRules, mesmerCoreSchedulerHooks, snapshotMesmerState } from './rules.js';
+import {
+  mesmerCoreAttributeRules,
+  mesmerCastRules,
+  mesmerCoreSchedulerHooks,
+  mesmerCoreSkillMechanicHandlers,
+  snapshotMesmerState
+} from './rules.js';
 import { mesmerCoreEventHandlers, mesmerCoreEventReactions } from './resolver.js';
 import { createMesmerCoreResolverState, createMesmerCoreState, projectMesmerEndState } from './state.js';
 import { mesmerCoreUi } from './ui.js';
@@ -30,6 +36,7 @@ export const mesmerCoreModule = defineNativeModule({
   mechanics: {
     modifiers: mesmerCoreAttributeRules,
     castRules: mesmerCastRules,
+    skillMechanicHandlers: mesmerCoreSkillMechanicHandlers,
     schedulerHooks: {
       ...mesmerCoreSchedulerHooks,
       snapshot: (context: MesmerSchedulerContext) => snapshotMesmerState(context.state.profession)

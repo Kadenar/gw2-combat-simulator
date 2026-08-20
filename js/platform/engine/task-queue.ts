@@ -85,9 +85,11 @@ export function createTaskQueue<TContext, TPayload>({
     while (queue.length && isCancelled(queue[0])) queue.shift();
   };
 
-  const nextAt = (): number => {
+  // Availability rules can target one queued mechanic without being delayed by unrelated work.
+  const nextAt = (type?: string): number => {
     discardCancelledHead();
-    return queue[0]?.at ?? Infinity;
+    if (type == null) return queue[0]?.at ?? Infinity;
+    return queue.find((task) => task.type === type && !isCancelled(task))?.at ?? Infinity;
   };
 
   const drainThrough = (target: number, context: TContext): void => {

@@ -1,6 +1,6 @@
 import { defineNativeModule } from '../../../../platform/gw2/native-profession.js';
 import { createMesmerModuleData } from '../../catalog-data.js';
-import { mirageAttributeRules, mirageCastRules, mirageSchedulerHooks } from './rules.js';
+import { mirageAttributeRules, mirageCastRules, mirageSchedulerHooks, mirageSkillMechanicHandlers } from './rules.js';
 import { createMirageResolverState, mirageState } from './state.js';
 import { mirageUi } from './ui.js';
 import {
@@ -27,6 +27,7 @@ export const mirageModule = defineNativeModule({
   mechanics: {
     modifiers: mirageAttributeRules,
     castRules: mirageCastRules,
+    skillMechanicHandlers: mirageSkillMechanicHandlers,
     schedulerHooks: mirageSchedulerHooks
   },
   presentation: mirageUi

@@ -1,4 +1,6 @@
+import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '../../core/runtime.js';
+import { resolveInfiniteForgeRefund } from './shatter-traits.js';
 import {
   MESMER_VIRTUOSO_ARISTOCRACY_SKILLS,
   MESMER_VIRTUOSO_BLIND_SKILLS,
@@ -11,11 +13,13 @@ import {
 } from './mechanics.js';
 import type { MesmerSchedulerContext } from '../../types.js';
 import { VIRTUOSO_BALANCE_PROFILE_IDS as PROFILE, VIRTUOSO_SHATTER_PROFILE_IDS } from './profiles.js';
-import { mesmerProfiledShatters, mesmerProfiledTraitDamage } from '../../core/profiles.js';
+import { mesmerBalanceValue, mesmerProfiledShatters, mesmerProfiledTraitDamage } from '../../core/profiles.js';
 
 export function initializeVirtuosoRuntime(context: MesmerSchedulerContext): void {
-  applyMesmerRuntimeManifest(mesmerRuntimeFor(context), {
+  const runtime = mesmerRuntimeFor(context);
+  applyMesmerRuntimeManifest(runtime, {
     shatters: mesmerProfiledShatters(context, MESMER_VIRTUOSO_SHATTERS, VIRTUOSO_SHATTER_PROFILE_IDS),
+    shatterResolvedHandlers: [resolveInfiniteForgeRefund],
     instruments: MESMER_VIRTUOSO_INSTRUMENTS,
     traitDamage: {
       ...MESMER_VIRTUOSO_TRAIT_DAMAGE,
@@ -31,4 +35,15 @@ export function initializeVirtuosoRuntime(context: MesmerSchedulerContext): void
     aristocracySkills: MESMER_VIRTUOSO_ARISTOCRACY_SKILLS,
     peithaSkills: MESMER_VIRTUOSO_PEITHA_SKILLS
   });
+
+  // Infinite Forge's recurring blade generation starts only for the active Virtuoso specialization.
+  if (runtime.traits.has(TRAIT.INFINITE_FORGE)) {
+    context.tasks.schedule({
+      type: 'mesmer.infinite-forge',
+      at: mesmerBalanceValue(context, TRAIT.INFINITE_FORGE, 'pulseInterval', 3),
+      priority: -20,
+      ownerId: 'mesmer.infinite-forge',
+      payload: {}
+    });
+  }
 }

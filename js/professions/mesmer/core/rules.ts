@@ -58,6 +58,7 @@ import type {
   MesmerSchedulerContext,
   MesmerSchedulerTask,
   MesmerSelectedSkill,
+  MesmerShatterResolution,
   MesmerSkill
 } from '../types.js';
 
@@ -71,8 +72,6 @@ const TASK = Object.freeze({
   chaoticInterruption: 'mesmer.chaotic-interruption',
   bladeSpend: 'mesmer.blade-spend',
   continuumExpire: 'mesmer.continuum-expire',
-  infiniteForge: 'mesmer.infinite-forge',
-  signetEtherRelock: 'mesmer.signet-ether-relock',
   signetIllusionsPassive: 'mesmer.signet-illusions-passive'
 });
 
@@ -86,17 +85,8 @@ const PEITHA_PROJECTILE_DELAYS: Readonly<Record<number, number>> = Object.freeze
   [ID.PHASE_RETREAT]: 0.856
 });
 const PRESERVED_WEAPON_CHAIN_ROOT_IDS = new Set<number>([ID.ETHER_BOLT]);
-// Delay before Signet of the Ether's in-game bug re-applies its own cooldown
-// after the cast finishes.
+// Stable task owner for Signet of Illusions' passive resource cycle.
 const SIGNET_ILLUSIONS_OWNER = 'mesmer.signet-illusions-passive';
-const TROUBADOUR_TALE_IDS = new Set<number>([
-  ID.TALE_OF_THE_HONORABLE_ROGUE,
-  ID.TALE_OF_THE_SECOND_SCION,
-  ID.TALE_OF_THE_SOULKEEPER,
-  ID.TALE_OF_THE_AUGUST_QUEEN,
-  ID.TALE_OF_THE_TORTURED_MASTERMIND,
-  ID.TALE_OF_THE_VALIANT_MARSHAL
-]);
 /**
  * Builds a mixed trait set containing both numeric IDs and names so
  * ID-oriented scheduler code and name-oriented data tables share one lookup.
@@ -254,6 +244,7 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
       )
     },
     shatters: mesmerProfiledShatters(context, MESMER_CORE_SHATTERS, MESMER_CORE_SHATTER_PROFILE_IDS),
+    shatterResolvedHandlers: [],
     instruments: { ...MESMER_CORE_INSTRUMENTS },
     balanceProfile: (id: SkillId) => mesmerBalanceProfile(context, id),
     controlSkills: new Set(MESMER_CORE_CONTROL_SKILLS),
@@ -361,7 +352,6 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
     destroyClone,
     epsilon: EPSILON,
     shatters: runtime.shatters,
-    instruments: runtime.instruments,
     warnings: context.warnings,
     addEvent,
     addTraitProc,
@@ -369,15 +359,18 @@ function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
     addDamage,
     activePrimaryWeapon,
     queueResources: resources.queueResources,
-    byId: (id) => skillsById.get(id),
-    traitDamage: runtime.traitDamage,
     balanceProfile: runtime.balanceProfile,
     boonDuration: (sourceId, sourceName, effect, duration) =>
       context.schedulerPolicy.effectDuration?.(context, { id: sourceId, name: sourceName }, effect, duration) ??
       duration
   });
   const continuum = {
-    beginContinuumSplit: () => undefined,
+    beginContinuumSplit: (skill: MesmerSkill, at: number): MesmerShatterResolution => ({
+      skill,
+      at,
+      spent: 0,
+      bladeSong: false
+    }),
     restoreContinuum: () => undefined
   };
   const mirage = {
@@ -494,6 +487,13 @@ function updateAutoattackChains(runtime: MesmerRuntime, skill: MesmerSkill): voi
  * @param {object} skill Completed or interrupted skill.
  * @returns {void}
  */
+/** Notifies the active specialization after Core has committed a shatter's exact resource spend. */
+function dispatchShatterResolved(context: MesmerCastContext, resolution: MesmerShatterResolution): void {
+  for (const handler of mesmerRuntimeFor(context).shatterResolvedHandlers) {
+    handler(context, resolution);
+  }
+}
+
 function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
   const details = runtime.castDetails.get(context.reservationId) || {};
@@ -526,71 +526,15 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
       return;
     }
 
-    if (skill.id === -4) {
-      runtime.continuum.restoreContinuum(context.effectiveEnd, 'manual shift');
-      return;
-    }
-
-    if (skill.id === -1) {
-      runtime.mirage.grantMirageCloak(context.effectiveEnd, skill.name);
-      if (runtime.traits.has(TRAIT.DECEPTIVE_EVASION)) {
-        runtime.resources.queueResources(
-          context.effectiveEnd + EPSILON,
-          1,
-          runtime.activePrimaryWeapon(),
-          'Deceptive Evasion',
-          {
-            traitId: TRAIT.DECEPTIVE_EVASION,
-            traitName: 'Deceptive Evasion'
-          }
-        );
-      }
-
-      return;
-    }
-
-    if (skill.id === ID.DODGE_TROUBADOUR) {
-      if (runtime.traits.has(TRAIT.MAYHEM)) {
-        const flute = runtime.skillsById.get(ID.FLUSTERING_FLUTE);
-        const readyAt = flute ? state.cooldowns.get(flute.id) : null;
-        if (flute && readyAt != null) {
-          state.cooldowns.set(
-            flute.id,
-            Math.max(
-              context.effectiveEnd,
-              readyAt - mesmerBalanceValue(context, TRAIT.MAYHEM, 'rechargeReduction', 1.5)
-            )
-          );
-          runtime.addTraitProc('Mayhem', context.effectiveEnd, skill.name);
-        }
-      }
-
-      return;
-    }
-
-    if (skill.id === ID.PICK_UP_MIRAGE_MIRROR) {
-      runtime.mirage.pickUpMirror(context.effectiveEnd, skill.name);
-      return;
-    }
-
     let clarityConsumed = false;
     if (skill.ambush) {
       runtime.mirage.executePlayerAmbush(skill, at, context.start);
     } else if (skill.id === ID.CONTINUUM_SPLIT) {
-      runtime.continuum.beginContinuumSplit(skill, at);
+      dispatchShatterResolved(context, runtime.continuum.beginContinuumSplit(skill, at));
     } else if (runtime.shatters[skill.id]) {
-      runtime.actions.handleShatter(skill, at, details.shatterSpent ?? null, context.start);
+      const resolution = runtime.actions.handleShatter(skill, at, details.shatterSpent ?? null, context.start);
+      if (resolution) dispatchShatterResolved(context, resolution);
       runtime.mirage.handleMirageShatter(skill, at, Number(details.shatterSpent || 0));
-    } else if (runtime.instruments[skill.id]) {
-      // Harp commits at the chosen interrupt point so cancelling its long channel still plays it.
-      const instrumentCommitAt =
-        interrupted && runtime.instruments[skill.id]?.instrument === 'Harp' ? context.effectiveEnd : at;
-      runtime.actions.handleInstrument(skill, instrumentCommitAt, context.start, {
-        sourceSkill: skill.name,
-        rotationIndex: context.commandIndex
-      });
-    } else if (skill.id === ID.CRESCENDO) {
-      runtime.actions.handleCrescendo(skill, at, context.start);
     } else {
       if (skill.mesmerEffects) {
         clarityConsumed = runtime.skillEffects.schedule(
@@ -658,19 +602,6 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
       }
     }
 
-    if (context.config.specialization === 'Troubadour' && TROUBADOUR_TALE_IDS.has(skill.id)) {
-      runtime.actions.handleTale(skill, at, context.start);
-      if (skill.id === ID.TALE_OF_THE_HONORABLE_ROGUE) {
-        const dodge = runtime.skillsById.get(ID.DODGE_TROUBADOUR);
-        const ammo = dodge ? context.cooldownController.refreshAmmo(dodge, at) : null;
-        if (dodge && ammo && ammo.charges < ammo.maximum) {
-          ammo.charges += 1;
-          if (ammo.charges >= ammo.maximum) ammo.nextRechargeAt = null;
-          state.cooldowns.delete(dodge.id);
-        }
-      }
-    }
-
     if (
       context.config.specialization === 'Troubadour' &&
       skill.resource?.mode === 'phantasm' &&
@@ -709,20 +640,6 @@ function completeMesmerSkill(context: MesmerCastContext, skill: MesmerSkill): vo
         targetSkillName: skill.name,
         reduction: context.rechargeDuration
       });
-    }
-
-    if (skill.id === ID.SIGNET_OF_THE_ETHER) {
-      // In-game bug: the signet re-applies its own cooldown 300ms after the
-      // cast completes.
-      context.tasks.schedule({
-        type: TASK.signetEtherRelock,
-        at: context.fullEnd + mesmerBalanceValue(context, PROFILE.signetOfTheEther, 'initialDelay', 0.3),
-        payload: { skillId: skill.id }
-      });
-    }
-
-    if (skill.id === ID.SIGNET_OF_ILLUSIONS) {
-      restartSignetIllusionsPassive(context, context.fullEnd);
     }
 
     const disabled = runtime.controlSkills.has(skill.id) || (skill.id === ID.MENTAL_COLLAPSE && clarityConsumed);
@@ -816,16 +733,6 @@ export function initializeMesmerScheduler(context: MesmerSchedulerContext): void
       };
       context.cooldownController.ensureAmmo(skill, 0);
     }
-  }
-
-  if (runtime.traits.has(TRAIT.INFINITE_FORGE)) {
-    context.tasks.schedule({
-      type: TASK.infiniteForge,
-      at: mesmerBalanceValue(context, TRAIT.INFINITE_FORGE, 'pulseInterval', 3),
-      priority: -20,
-      ownerId: 'mesmer.infinite-forge',
-      payload: {}
-    });
   }
 
   restartSignetIllusionsPassive(context, 0);
@@ -1216,26 +1123,6 @@ export function handleExpectedProcTask(
 }
 
 /**
- * Reapplies Signet of the Ether's full cooldown at the delayed in-game bug
- * timestamp without shortening an existing longer cooldown.
- *
- * @param {object} context Scheduler task context.
- * @param {object} task Signet cooldown re-lock task.
- * @returns {void}
- */
-export function handleSignetEtherRelockTask(
-  context: MesmerSchedulerContext,
-  task: MesmerSchedulerTask<'signetEtherRelock'>
-): void {
-  const skill = context.catalog.skillsById.get(task.payload.skillId);
-  if (!skill) return;
-  // Restart the full recharge from the re-lock moment, mirroring the in-game
-  // bug. Guard against ever shortening a longer cooldown already in place.
-  const readyAt = task.at + context.rechargeDurationFor(skill, task.at);
-  context.state.cooldowns.set(skill.id, Math.max(Number(context.state.cooldowns.get(skill.id) || 0), readyAt));
-}
-
-/**
  * Grants Signet of Illusions' passive resource when available or defers the
  * pulse until its cooldown and combat-start requirements are satisfied.
  *
@@ -1354,6 +1241,31 @@ export const mesmerCastRules = Object.freeze({
   modifyMaximumAmmo: modifyMesmerMaximumAmmo
 });
 
+/** Runs skill-authored Core mechanics at their resolved scheduler timestamps. */
+export const mesmerCoreSkillMechanicHandlers = Object.freeze({
+  'mesmer.core.relock-signet-ether': ({
+    context,
+    skill,
+    at
+  }: {
+    context: MesmerSchedulerContext;
+    skill: MesmerSkill;
+    at: number;
+  }): void => {
+    const readyAt = at + context.rechargeDurationFor(skill, at);
+    context.state.cooldowns.set(skill.id, Math.max(Number(context.state.cooldowns.get(skill.id) || 0), readyAt));
+  },
+  'mesmer.core.restart-signet-illusions-passive': ({
+    context,
+    at
+  }: {
+    context: MesmerSchedulerContext;
+    at: number;
+  }): void => {
+    restartSignetIllusionsPassive(context, at);
+  }
+});
+
 export const mesmerCoreSchedulerHooks = Object.freeze({
   initialize: initializeMesmerScheduler,
   advance: advanceMesmerScheduler,
@@ -1365,7 +1277,6 @@ export const mesmerCoreSchedulerHooks = Object.freeze({
     [TASK.resourceGain]: handleResourceGainTask,
     [TASK.expectedProc]: handleExpectedProcTask,
     [TASK.chaoticInterruption]: handleChaoticInterruptionTask,
-    [TASK.signetEtherRelock]: handleSignetEtherRelockTask,
     [TASK.signetIllusionsPassive]: handleSignetIllusionsPassiveTask
   })
 });

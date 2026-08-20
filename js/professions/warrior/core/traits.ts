@@ -253,7 +253,7 @@ export function grantBerserkersPower(
   });
 }
 
-function restoreAmmo(context: WarriorCastContext, skill: WarriorSkill, count: number, at: number): number {
+function restoreAmmo(context: WarriorSchedulerContext, skill: WarriorSkill, count: number, at: number): number {
   const ammo = context.cooldownController.refreshAmmo(skill, at);
   if (!ammo) return 0;
   const missing = Math.max(0, ammo.maximum - ammo.charges);
@@ -304,23 +304,6 @@ export function completeWarriorSkill(context: WarriorCastContext, skill: Warrior
     });
   }
 
-  if (skill.id === ID.TREMOR) {
-    context.state.cooldowns.delete(ID.CRUSHING_BLOW);
-  }
-
-  if (skill.id === ID.BACKBREAKER) {
-    context.state.cooldowns.delete(ID.FIERCE_BLOW);
-  }
-
-  if (skill.id === ID.TO_THE_LIMIT) {
-    gainWarriorEndurance(context, 100, at);
-  }
-
-  if (skill.id === ID.GUNSTINGER) {
-    const dragonsRoar = context.catalog.skillsById.get(ID.DRAGONS_ROAR);
-    if (dragonsRoar) restoreAmmo(context, dragonsRoar, 3, at);
-  }
-
   if (skill.shadowstepSkill && context.config.relic === 'Peitha') {
     context.emit({
       type: 'peitha',
@@ -362,6 +345,39 @@ export function completeWarriorSkill(context: WarriorCastContext, skill: Warrior
     delete state.dragonChargesSpentByActivation[context.reservationId];
   }
 }
+
+/** Runs Core Warrior mechanics owned by one completed skill activation. */
+export const warriorCoreSkillMechanicHandlers = Object.freeze({
+  'warrior.core.reset-crushing-blow': ({ context }: { context: WarriorSchedulerContext }): void => {
+    context.state.cooldowns.delete(ID.CRUSHING_BLOW);
+  },
+  'warrior.core.reset-fierce-blow': ({ context }: { context: WarriorSchedulerContext }): void => {
+    context.state.cooldowns.delete(ID.FIERCE_BLOW);
+  },
+  'warrior.core.restore-endurance': ({
+    context,
+    trigger,
+    at
+  }: {
+    context: WarriorSchedulerContext;
+    trigger: { readonly count?: number };
+    at: number;
+  }): void => {
+    gainWarriorEndurance(context, trigger.count ?? 100, at);
+  },
+  'warrior.core.restore-dragons-roar-ammo': ({
+    context,
+    trigger,
+    at
+  }: {
+    context: WarriorSchedulerContext;
+    trigger: { readonly count?: number };
+    at: number;
+  }): void => {
+    const skill = context.catalog.skillsById.get(ID.DRAGONS_ROAR) as WarriorSkill | undefined;
+    if (skill) restoreAmmo(context, skill, trigger.count ?? 3, at);
+  }
+});
 
 export function beginWarriorSkill(context: WarriorCastContext, skill: WarriorSkill): void {
   if (skill.type === 'Heal' && hasTrait(context, TRAIT.THICK_SKIN)) {

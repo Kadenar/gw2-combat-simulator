@@ -2,6 +2,7 @@ import { defineNativeModule, onBuffApplied, onResolvedDamage } from '../../../pl
 import { createWarriorModuleData } from '../catalog-data.js';
 import { WARRIOR_CORE_SKILL_MECHANICS, WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS } from './skills.js';
 import { warriorCoreSkillHandlers } from './handlers.js';
+import { warriorCoreSkillMechanicHandlers } from './traits.js';
 import {
   warriorCoreAttributeRules,
   warriorCoreCastRules,
@@ -30,6 +31,7 @@ export const warriorCoreModule = defineNativeModule({
   mechanics: {
     modifiers: warriorCoreAttributeRules,
     castRules: warriorCoreCastRules,
+    skillMechanicHandlers: warriorCoreSkillMechanicHandlers,
     schedulerHooks: {
       ...warriorCoreSchedulerHooks,
       snapshot: (context: WarriorSchedulerContext) => snapshotWarriorState(context.state.profession)

@@ -218,9 +218,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   const state = weaverState.from(context);
   const core = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = context.effectiveEnd;
-  if (skill.name === 'Tailored Victory') {
-    state.perfectWeaveUntil = 0;
-  } else if (skill.name === 'Unravel') {
+  if (skill.name === 'Unravel') {
     const previousPrimary = core.primaryAttunement;
     const previousSecondary = core.secondaryAttunement;
     core.secondaryAttunement = core.primaryAttunement;
@@ -269,8 +267,6 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
         elementalistBalanceValue(context, PROFILE.elementsOfRage, 'durationMultiplier', 8)
       );
     }
-  } else if (skill.name === 'Fervent Stance') {
-    state.ferventStanceUntil = at + elementalistBalanceValue(context, PROFILE.ferventStance, 'durationMultiplier', 8);
   }
 
   if (String(skill.attunement || '').includes('+') && state.ferventStanceUntil >= at) {
@@ -286,6 +282,23 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
     );
   }
 }
+
+/** Runs Weaver mechanics owned by one completed skill activation. */
+export const weaverSkillMechanicHandlers = Object.freeze({
+  'elementalist.weaver.consume-perfect-weave': ({ context }: { context: ElementalistSchedulerContext }): void => {
+    weaverState.from(context).perfectWeaveUntil = 0;
+  },
+  'elementalist.weaver.arm-fervent-stance': ({
+    context,
+    at
+  }: {
+    context: ElementalistSchedulerContext;
+    at: number;
+  }): void => {
+    weaverState.from(context).ferventStanceUntil =
+      at + elementalistBalanceValue(context, PROFILE.ferventStance, 'durationMultiplier', 8);
+  }
+});
 
 function handleWeaveSelfActivation(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
   const state = weaverState.from(context);

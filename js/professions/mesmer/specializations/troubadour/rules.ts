@@ -1,9 +1,13 @@
-import { MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { MODIFIER_TARGET } from '../../../../platform/gw2/modifier-rules.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { illusionSource, timedActive } from '../../core/rules.js';
 import { initializeTroubadourRuntime } from './runtime.js';
+import { completeTroubadourPerformance } from './instruments.js';
+import { resolveTroubadourTale } from './tales.js';
 import { mesmerBalanceValue } from '../../core/profiles.js';
+import { mesmerRuntimeFor } from '../../core/runtime.js';
+import type { MesmerSchedulerContext, MesmerSkill } from '../../types.js';
 import type { SimulationEvent } from '../../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule, Gw2ResolvedStats } from '../../../../platform/gw2/types.js';
 
@@ -98,5 +102,36 @@ export const troubadourAttributeRules = Object.freeze({
 });
 
 export const troubadourSchedulerHooks = Object.freeze({
-  initialize: initializeTroubadourRuntime
+  initialize: initializeTroubadourRuntime,
+  // Instruments and Crescendo resolve here because their cast-start packets and Harp interruption belong to Troubadour.
+  onCastComplete: {
+    id: 'mesmer.troubadour.performance',
+    order: 20,
+    handler: completeTroubadourPerformance
+  }
+});
+
+/** Routes every Tale through the specialization-owned resolver at cast completion. */
+export const troubadourSkillMechanicHandlers = Object.freeze({
+  'mesmer.troubadour.resolve-tale': resolveTroubadourTale,
+  'mesmer.troubadour.dodge': ({
+    context,
+    skill,
+    at
+  }: {
+    context: MesmerSchedulerContext;
+    skill: MesmerSkill;
+    at: number;
+  }): void => {
+    const runtime = mesmerRuntimeFor(context);
+    if (!runtime.traits.has(TRAIT.MAYHEM)) return;
+    const flute = runtime.skillsById.get(ID.FLUSTERING_FLUTE);
+    const readyAt = flute ? context.state.cooldowns.get(flute.id) : null;
+    if (!flute || readyAt == null) return;
+    context.state.cooldowns.set(
+      flute.id,
+      Math.max(at, readyAt - mesmerBalanceValue(context, TRAIT.MAYHEM, 'rechargeReduction', 1.5))
+    );
+    runtime.addTraitProc('Mayhem', at, skill.name);
+  }
 });

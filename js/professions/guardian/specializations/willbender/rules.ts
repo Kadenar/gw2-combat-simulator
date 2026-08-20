@@ -467,22 +467,14 @@ function observeWillbenderEvent(context: GuardianSchedulerContext, event: Schedu
   });
 }
 
-function finishWillbenderCast(context: GuardianCastContext, skill: GuardianSkill): void {
-  if (skill.id === ID.FLASH_COMBO) {
-    // Flash Combo unlocks Repose as a follow-up flip skill; the 6-second window
-    // is written directly here rather than via a scheduler task to avoid ordering issues.
-    context.state.profession.core.availableFlips[ID.REPOSE] = context.effectiveEnd + 6;
+/** Runs Willbender mechanics owned by one completed skill activation. */
+export const willbenderSkillMechanicHandlers = Object.freeze({
+  'guardian.willbender.arm-repose': ({ context, at }: { context: GuardianSchedulerContext; at: number }): void => {
+    context.state.profession.core.availableFlips[ID.REPOSE] = at + 6;
   }
-}
+});
 
 export const willbenderSchedulerHooks = Object.freeze({
-  afterCast: Object.freeze([
-    {
-      id: 'guardian.willbender-flash-combo',
-      order: 40,
-      handler: finishWillbenderCast
-    }
-  ]),
   onCastComplete: Object.freeze([
     {
       id: 'guardian.willbender-restorative-virtues',

@@ -2,7 +2,12 @@ import { defineNativeModule } from '../../../../platform/gw2/native-profession.j
 import { createWarriorModuleData } from '../../catalog-data.js';
 import { BLADESWORN_SKILL_MECHANICS } from './skills.js';
 import { bladeswornSkillHandlers } from './handlers.js';
-import { bladeswornAttributeRules, bladeswornCastRules, bladeswornSchedulerHooks } from './rules.js';
+import {
+  bladeswornAttributeRules,
+  bladeswornCastRules,
+  bladeswornSchedulerHooks,
+  bladeswornSkillMechanicHandlers
+} from './rules.js';
 import { bladeswornState } from './state.js';
 import { bladeswornUi } from './ui.js';
 import { WARRIOR_SKILL_IDS as ID } from '../../data/ids.js';
@@ -25,6 +30,7 @@ export const bladeswornModule = defineNativeModule({
   mechanics: {
     modifiers: bladeswornAttributeRules,
     castRules: bladeswornCastRules,
+    skillMechanicHandlers: bladeswornSkillMechanicHandlers,
     schedulerHooks: bladeswornSchedulerHooks
   },
   presentation: bladeswornUi

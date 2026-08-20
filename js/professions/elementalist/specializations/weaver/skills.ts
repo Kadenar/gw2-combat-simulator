@@ -3076,6 +3076,13 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     nextChainId: ID.WEAVE_SELF,
     skillFamily: 'Stance',
     implemented: true,
+    // Tailored Victory consumes the Perfect Weave flip window when it completes.
+    mechanicTriggers: [
+      {
+        type: 'elementalist.weaver.consume-perfect-weave',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -4112,6 +4119,13 @@ export const WEAVER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = O
     cooldown: 20,
     skillFamily: 'Stance',
     implemented: true,
+    // Fervent Stance arms its dual-attack might window after completion.
+    mechanicTriggers: [
+      {
+        type: 'elementalist.weaver.arm-fervent-stance',
+        timingAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'boon',

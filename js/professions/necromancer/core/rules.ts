@@ -9,7 +9,7 @@ import {
   targetHealthFraction
 } from '../../../platform/gw2/runtime-query.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '../data/ids.js';
-import { necromancerCastRules, necromancerSchedulerHooks } from './contract.js';
+import { necromancerCastRules, necromancerCoreSkillMechanicHandlers, necromancerSchedulerHooks } from './contract.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE, necromancerBalanceProfile } from './profiles.js';
 import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/types.js';
@@ -350,5 +350,5 @@ export const necromancerCoreCastRules = Object.freeze({
   modifyRechargeStart: modifyNecromancerRechargeStart
 });
 
-export { necromancerSchedulerHooks };
+export { necromancerCoreSkillMechanicHandlers, necromancerSchedulerHooks };
 export { snapshotNecromancerState } from './state.js';
