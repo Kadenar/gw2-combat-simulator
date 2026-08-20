@@ -68,7 +68,8 @@ function heatTierStrikeFactor(context: Gw2ModifierContext, parameters: Readonly<
   const event = engineerEvent(context);
   const skillName = String(eventSkill(context)?.name || event?.skillName || '');
   if (['Sun Edge', 'Sun Ripper', 'Gleam Saber'].includes(skillName)) {
-    if (heat >= parameters.enhancedHeatThreshold && hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)) {
+    // Sword heat tiers are exclusive: +20% above 50 heat, or +30% above 100 heat with ECSU.
+    if (heat > parameters.enhancedHeatThreshold && hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)) {
       return parameters.swordEnhancedFactor;
     }
 

@@ -3668,35 +3668,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
       }
     ]
   },
-  [ID.RADIANT_ARC]: {
-    implemented: true,
-    quicknessCastTimeMs: 840,
-    cooldown: 12,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        name: 'Radiant Arc',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player'
-      },
-      {
-        type: 'custom',
-        eventType: 'engineer.radiant-arc-quickness',
-        event: {
-          name: 'Radiant Arc — quickness'
-        },
-        actorType: 'player'
-      }
-    ]
-  },
   [ID.THROW_JUNK_DOPPELGANGER]: {
     implemented: true,
     castTimeMs: 0,
@@ -3746,132 +3717,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
       }
     ]
   },
-  [ID.SUN_EDGE]: {
-    implemented: true,
-    quicknessCastTimeMs: 440,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.88,
-        hits: 1,
-        name: 'Sun Edge',
-        atMs: 350,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 10,
-        atMs: 350,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player'
-      }
-    ]
-  },
-  [ID.REFRACTION_CUTTER]: {
-    implemented: true,
-    quicknessCastTimeMs: 520,
-    cooldown: 6,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.4,
-        hits: 1,
-        atMs: 320,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Refraction Cutter — Packet 1',
-        actorType: 'player'
-      },
-      {
-        type: 'strike',
-        coefficient: 0.4,
-        hits: 1,
-        atMs: 360,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Refraction Cutter Blade',
-        actorType: 'player',
-        metadata: {
-          projectile: true
-        }
-      },
-      {
-        type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 4,
-        atMs: 360,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player'
-      },
-      {
-        type: 'custom',
-        eventType: 'engineer.refraction-cutter-extra-blades',
-        atMs: 0,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        event: {
-          name: 'Refraction Cutter extra blades'
-        },
-        actorType: 'player'
-      }
-    ]
-  },
-  [ID.REFRACTION_CUTTER_BLADE]: {
-    implemented: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.275,
-        hits: 1,
-        name: 'Refraction Cutter Blade',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player'
-      }
-    ]
-  },
-  [ID.SUN_RIPPER]: {
-    implemented: true,
-    quicknessCastTimeMs: 480,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.93,
-        hits: 1,
-        name: 'Sun Ripper',
-        atMs: 450,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 10,
-        atMs: 450,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player'
-      }
-    ]
-  },
   [ID.CONTROLLED_ANALYSIS]: {
     implemented: true,
     castTimeMs: 0,
@@ -3889,24 +3734,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         boon: 'fury',
         duration: 5,
         stacks: 1
-      }
-    ]
-  },
-  [ID.GLEAM_SABER]: {
-    implemented: true,
-    handlerId: 'engineer.gleam-saber',
-    quicknessCastTimeMs: 720,
-    cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        name: 'Gleam Saber',
-        atMs: 600,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player'
       }
     ]
   },
@@ -3979,15 +3806,15 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         type: 'strike',
         coefficient: 1.2,
         hits: 1,
-        name: 'Mace Smash (mechanist)',
-        actorType: 'summon'
+        name: 'Mace Smash',
+        actorType: 'player'
       },
       {
         type: 'condition',
         condition: 'Confusion',
         stacks: 2,
         duration: 5,
-        actorType: 'summon'
+        actorType: 'player'
       }
     ]
   },
@@ -4035,13 +3862,24 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
     implemented: true,
     castTimeMs: 750,
     cooldown: 0,
+    // Mace Blast is both an Explosion for Engineer traits and a leap combo finisher.
+    comboFinishers: [
+      {
+        ownerId: 'engineer',
+        finisherType: 'Leap',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: [
       {
         type: 'strike',
         coefficient: 1.4,
         hits: 1,
         name: 'Mace Blast',
-        actorType: 'player'
+        actorType: 'player',
+        metadata: {
+          damageKind: 'explosion'
+        }
       },
       {
         type: 'condition',
@@ -4083,7 +3921,20 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragmen
         coefficient: 1.2,
         hits: 1,
         name: 'Rocket Fist Prototype',
-        actorType: 'player'
+        actorType: 'player',
+        // The fist explodes on impact while the traveling fist is a physical projectile finisher.
+        comboFinishers: [
+          {
+            ownerId: 'engineer',
+            finisherType: 'Projectile',
+            preferredFieldTypes: ['Fire'],
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {
+          damageKind: 'explosion',
+          projectile: true
+        }
       },
       {
         type: 'condition',

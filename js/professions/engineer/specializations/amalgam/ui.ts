@@ -1,13 +1,8 @@
 import { createProfessionAssumptionControls } from '../../../../app/profession/assumptions.js';
-import {
-  engineerFSkillBarGroups,
-  engineerToolbeltSkillIds,
-  engineerUiState,
-  namedSkillId,
-  uniqueIdsBySkillName
-} from '../../core/ui.js';
+import { engineerToolbeltSkillIds, engineerUiState, namedSkillId, uniqueIdsBySkillName } from '../../core/ui.js';
 import type {
   CanonicalCatalog,
+  ProfessionSkillBarGroup,
   ProfessionUiContract,
   SchedulerRecord,
   SkillId
@@ -61,29 +56,53 @@ function amalgamProfessionSkills(context: EngineerUiContext): (SkillId | null)[]
   return [engineerToolbeltSkillIds(context)[0], ...selectedMorphIds(context).slice(0, 3), namedSkillId('Evolve')];
 }
 
-function amalgamSkillBarGroups(context: EngineerUiContext) {
+// Amalgam owns its configurable F2-F4 protocol contract and leaves F1/F5 fixed.
+function amalgamSkillBarGroups(context: EngineerUiContext): ProfessionSkillBarGroup[] {
   const skillIds = amalgamProfessionSkills(context);
-  const optionsBySlot = Object.fromEntries(
-    [2, 3, 4].map((slot) => {
-      const options = amalgamProtocolOptions(slot);
-      const selected = Number(selectedMorphIds(context)[slot - 2]);
-      if (options.some((skill) => skill.id === selected)) {
-        skillIds[slot - 1] = selected;
+  const selections = [2, 3, 4].flatMap((slot) => {
+    const options = amalgamProtocolOptions(slot);
+    const selected = Number(selectedMorphIds(context)[slot - 2]);
+    if (options.some((skill) => skill.id === selected)) skillIds[slot - 1] = selected;
+    const skillId = skillIds[slot - 1];
+    if (skillId == null || !options.length) return [];
+    return [
+      {
+        skillId,
+        optionSkillIds: options.map((skill) => skill.id),
+        selectionKey: 'selectedMorphSkillIds',
+        selectionIndex: slot - 2,
+        keyLabel: `F${slot}`,
+        typeLabel: 'Protocol'
       }
-
-      return [
-        slot,
-        {
-          label: `F${slot} Protocol`,
-          optionSkillIds: options.map((skill) => skill.id),
-          selectionKey: 'selectedMorphSkillIds',
-          selectionIndex: slot - 2,
-          color: '#67aa87'
-        }
-      ];
-    })
+    ];
+  });
+  const fixedSkillIds = skillIds.filter(
+    (skillId, index): skillId is SkillId => skillId != null && ![1, 2, 3].includes(index)
   );
-  return engineerFSkillBarGroups(skillIds, optionsBySlot);
+  return [
+    ...(fixedSkillIds.length
+      ? [
+          {
+            id: 'engineer-skill-bar-f-skills',
+            label: 'F Skills',
+            skillIds: fixedSkillIds,
+            color: '#b88a35'
+          }
+        ]
+      : []),
+    ...(selections.length
+      ? [
+          {
+            id: 'engineer-skill-bar-protocols',
+            label: 'Protocols',
+            skillIds: [],
+            color: '#67aa87',
+            className: 'engineer-amalgam-protocols',
+            selections
+          }
+        ]
+      : [])
+  ];
 }
 
 function updateAmalgamSkillBarSelection(context: EngineerUiContext, selection: EngineerUiSelection): boolean {

@@ -3,6 +3,7 @@ import { activePatchPreview } from '../../patches/active-preview.js';
 import { createEngineerBuildDefaults, migrateEngineerBuild, validateEngineerBuild } from './build.js';
 import './data/trait-coverage.js';
 import { engineerNativeModules } from './modules.js';
+import { engineerFamilyUi } from './ui.js';
 
 export const engineerProfession = defineNativeProfession({
   id: 'engineer',
@@ -13,6 +14,7 @@ export const engineerProfession = defineNativeProfession({
     validateBuild: validateEngineerBuild
   },
   modules: engineerNativeModules,
+  presentation: engineerFamilyUi,
   patchPreview: activePatchPreview
 });
 

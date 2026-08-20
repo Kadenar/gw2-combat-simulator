@@ -171,6 +171,8 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
   },
   [ID.FUNCTION_GYRO]: {
     implemented: true,
+    // Function Gyro occupies Scrapper's F5 but still triggers toolbelt traits.
+    countsAsToolbeltSkill: true,
     quicknessCastTimeMs: 280,
     cooldown: 25,
     effects: [
@@ -186,6 +188,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
   },
   [ID.FUNCTION_GYRO_TOOL_BELT_SKILL]: {
     implemented: true,
+    countsAsToolbeltSkill: true,
     quicknessCastTimeMs: 280,
     cooldown: 25,
     effects: [

@@ -1,13 +1,26 @@
 import { holosmithState } from './state.js';
 import { professionCoreState } from '../../../../platform/engine/profession.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { hasEngineerTrait } from '../../core/state.js';
 import { denyEngineerCast, expectedEngineerChainSkill } from '../../core/availability.js';
 import type { AvailabilityResult } from '../../../../platform/engine/types.js';
 import type { EngineerPrecastContext, EngineerSkill } from '../../types.js';
 
+const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set([
+  ID.RADIANT_ARC_ID_69565,
+  ID.SUN_RIPPER_ID_69906,
+  ID.SUN_EDGE_ID_70514,
+  ID.GLEAM_SABER_ID_70771,
+  ID.REFRACTION_CUTTER_ID_71121
+]);
+
 export function holosmithCastAvailability(context: EngineerPrecastContext, skill: EngineerSkill): AvailabilityResult {
   if (context.config.specialization !== 'Holosmith') return { ready: true };
+  // Holosmith replaces the shared Weaponmaster sword IDs with heat-aware variants.
+  if (NON_HOLOSMITH_SWORD_SKILL_IDS.has(Number(skill.id))) {
+    return denyEngineerCast(skill, 'engineer.holosmith-sword-replaced', 'Holosmith replaces this sword skill.');
+  }
+
   const state = holosmithState.from(context);
   if (skill.forgeSkill && skill.slot === 'Weapon_1') {
     const stormSelected = hasEngineerTrait(context.config, TRAIT.CRYSTAL_CONFIGURATION_STORM);

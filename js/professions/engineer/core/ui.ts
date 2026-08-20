@@ -1,7 +1,5 @@
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '../../../app/simulation/randomness.js';
-import { defaultWeaponSkillMatchesSet } from '../../../platform/gw2/weapon-skill-matcher.js';
 import { flattenProfessionState } from '../../../platform/engine/profession.js';
-import { ENGINEER_SKILL_IDS as ID } from '../data/ids.js';
 import { getActiveTraits } from '../data/traits-data.js';
 import type {
   PaletteSkillAvailability,
@@ -44,22 +42,6 @@ const UNSELECTABLE_SLOT_SKILLS = new Set<string>([
   'Elixir R',
   'Utility Goggles',
   'Rocket Boots'
-]);
-
-// the game uses different skill IDs for the same sword skills depending on whether the spec is Holosmith
-const HOLOSMITH_SWORD_SKILL_IDS = new Set<SkillId>([
-  ID.RADIANT_ARC,
-  ID.SUN_RIPPER,
-  ID.SUN_EDGE,
-  ID.GLEAM_SABER,
-  ID.REFRACTION_CUTTER
-]);
-const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set<SkillId>([
-  ID.RADIANT_ARC_ID_69565,
-  ID.SUN_RIPPER_ID_69906,
-  ID.SUN_EDGE_ID_70514,
-  ID.GLEAM_SABER_ID_70771,
-  ID.REFRACTION_CUTTER_ID_71121
 ]);
 
 // controls which engineer.state events Core spec suppresses from the event log;
@@ -142,23 +124,6 @@ export function hasActiveTrait(context: EngineerUiContext, name: string): boolea
   return getActiveTraits(context.build?.specializations || []).some((trait) => trait.name === name);
 }
 
-export function engineerWeaponSkillMatchesSet(
-  skill: EngineerSkill,
-  weapons: string[],
-  context: EngineerUiContext = {}
-): boolean {
-  const holosmith = engineerUiSpecialization(context) === 'Holosmith';
-  // filter out the wrong-spec sword skill IDs — each spec gets its own set of sword skill IDs
-  if (
-    (holosmith && NON_HOLOSMITH_SWORD_SKILL_IDS.has(skill?.id)) ||
-    (!holosmith && HOLOSMITH_SWORD_SKILL_IDS.has(skill?.id))
-  ) {
-    return false;
-  }
-
-  return defaultWeaponSkillMatchesSet(skill, weapons, context);
-}
-
 function usesToolsTraitline(context: EngineerUiContext): boolean {
   if ((context.build?.specializations || []).some((selection) => selection?.name === 'Tools')) return true;
   const selected = new Set(
@@ -197,68 +162,16 @@ export function professionSkillSlots(context: EngineerUiContext): (SkillId | nul
   return engineerToolbeltSkillIds(context);
 }
 
-interface EngineerFSkillBarOptions {
-  readonly label?: string;
-  readonly optionSkillIds?: readonly SkillId[];
-  readonly selectionKey?: string;
-  readonly selectionIndex?: number;
-  readonly color?: string;
-}
-
-// returns one group (fixed F-skills) when no Amalgam protocols are present;
-// returns two groups (fixed + configurable protocol slots) when Amalgam protocols exist
-export function engineerFSkillBarGroups(
-  skillIds: readonly (SkillId | null)[],
-  optionsBySlot: Readonly<Record<number, EngineerFSkillBarOptions>> = {}
-): ProfessionSkillBarGroup[] {
-  const populated = skillIds.flatMap((skillId, index) =>
-    skillId == null ? [] : [{ skillId, index, slot: index + 1 }]
-  );
+// Shared Engineer bars contain only fixed F-skills; configurable protocols are Amalgam-owned.
+export function engineerFSkillBarGroups(skillIds: readonly (SkillId | null)[]): ProfessionSkillBarGroup[] {
+  const populated = skillIds.filter((skillId): skillId is SkillId => skillId != null);
   if (!populated.length) return [];
-  const configurable = populated.filter(({ slot }) => {
-    const options = optionsBySlot[slot];
-    return Boolean(
-      options?.optionSkillIds?.length && options.selectionKey && Number.isInteger(Number(options.selectionIndex))
-    );
-  });
-  const color = configurable.map(({ slot }) => optionsBySlot[slot]?.color).find(Boolean) || '#b88a35';
-  if (!configurable.length) {
-    return [
-      {
-        id: 'engineer-skill-bar-f-skills',
-        label: 'F Skills',
-        skillIds: populated.map(({ skillId }) => skillId),
-        color
-      }
-    ];
-  }
-
-  const configurableIndexes = new Set(configurable.map(({ index }) => index));
-  const fixedSkillIds = populated.filter(({ index }) => !configurableIndexes.has(index)).map(({ skillId }) => skillId);
   return [
     {
       id: 'engineer-skill-bar-f-skills',
       label: 'F Skills',
-      skillIds: fixedSkillIds,
+      skillIds: populated,
       color: '#b88a35'
-    },
-    {
-      id: 'engineer-skill-bar-protocols',
-      label: 'Protocols',
-      skillIds: [],
-      color,
-      className: 'engineer-amalgam-protocols',
-      selections: configurable.map(({ skillId, slot }) => {
-        const options = optionsBySlot[slot] || {};
-        return {
-          skillId,
-          optionSkillIds: [...(options.optionSkillIds || [])],
-          selectionKey: String(options.selectionKey),
-          selectionIndex: Number(options.selectionIndex),
-          keyLabel: `F${slot}`,
-          typeLabel: String(options.label || 'Protocol').replace(/^F\d+\s*/, '')
-        };
-      })
     }
   ];
 }
@@ -311,17 +224,11 @@ export function engineerCorePaletteSkillAvailability(
     };
   }
 
-  if (skill.type === 'Weapon' && skill.weapon && (state.activeKit || state.photonForgeActive)) {
+  if (skill.type === 'Weapon' && skill.weapon && state.activeKit) {
     return {
       available: false,
-      message: state.activeKit
-        ? `${state.activeKit} replaces equipped weapon skills`
-        : 'Photon Forge replaces equipped weapon skills'
+      message: `${state.activeKit} replaces equipped weapon skills`
     };
-  }
-
-  if (skill.forgeSkill && !state.photonForgeActive) {
-    return { available: false, message: 'Enter Photon Forge first' };
   }
 
   return { available: true, message: '' };
@@ -336,9 +243,7 @@ export function engineerEventLogRow(
       'engineer.dodge',
       'engineer.lightning-rod-pulse',
       'engineer.conduit-surge',
-      'engineer.electric-artillery',
-      'engineer.radiant-arc-quickness',
-      'engineer.refraction-cutter-extra-blades'
+      'engineer.electric-artillery'
     ].includes(event?.type)
   ) {
     // These resolver events materialize skill packets. The ordinary action,
@@ -357,7 +262,6 @@ export function engineerEventLogRow(
 
 export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-  weaponSkillMatchesSet: engineerWeaponSkillMatchesSet,
   skillBarGroups: (context: EngineerUiContext) =>
     engineerUiSpecialization(context) === 'Core' ? engineerSkillBarGroups(context) : [],
   paletteGroups: (context: EngineerUiContext) => {
@@ -399,15 +303,7 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
       return skill.kitName || skill.name;
     }
 
-    if (skill?.handlerId === 'engineer.photon-forge-enter') {
-      return 'Photon Forge';
-    }
-
-    if (
-      skill?.handlerId === 'engineer.kit-stow' ||
-      skill?.handlerId === 'engineer.photon-forge-exit' ||
-      (context.weaponLine && context.entry?.name === 'Swap Weapons')
-    ) {
+    if (skill?.handlerId === 'engineer.kit-stow' || (context.weaponLine && context.entry?.name === 'Swap Weapons')) {
       return null;
     }
 

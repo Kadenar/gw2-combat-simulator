@@ -13,7 +13,7 @@ import { SKILL_HANDLER_MODES } from '../../js/platform/engine/skill-handlers.js'
 import { simulateGw2 } from '../../js/platform/gw2/simulate.js';
 import { TRAIT_COVERAGE_STATUSES } from '../../js/platform/gw2/trait-coverage.js';
 import { ENGINEER_TRAIT_COVERAGE } from '../../js/professions/engineer/data/trait-coverage.js';
-import { ENGINEER_PUBLIC_END_STATE_KEYS } from '../../js/professions/engineer/core/state.js';
+import { ENGINEER_PUBLIC_END_STATE_KEYS } from '../../js/professions/engineer/state.js';
 import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from '../../js/professions/elementalist/core/state.js';
 import { ELEMENTALIST_TRAIT_COVERAGE } from '../../js/professions/elementalist/data/trait-coverage.js';
 import { GUARDIAN_TRAIT_COVERAGE } from '../../js/professions/guardian/data/trait-coverage.js';

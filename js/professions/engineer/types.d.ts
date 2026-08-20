@@ -146,6 +146,7 @@ export interface EngineerRuntimeState {
 }
 
 export interface EngineerSkill extends Skill {
+  readonly countsAsToolbeltSkill?: boolean;
   readonly duration?: number;
   readonly forgeSkill?: boolean;
   readonly heatGain?: number;

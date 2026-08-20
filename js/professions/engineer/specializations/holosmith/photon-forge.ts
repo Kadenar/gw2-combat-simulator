@@ -515,10 +515,6 @@ export function triggerThermalReleaseValve(context: EngineerCastContext, skill: 
 /**
  * Holosmith decoration for the Core kit transition. Core equips the kit; the
  * active Holosmith slice owns leaving Photon Forge and its trait payoff.
- */
-/**
- * Holosmith decoration for the Core kit transition. Core equips the kit; the
- * active Holosmith slice owns leaving Photon Forge and its trait payoff.
  * This path skips the Deactivate Photon Forge skill (no heatGain=15) because
  * the player swapped a kit, not pressed the deactivate button.
  */
@@ -530,29 +526,26 @@ export function handleHolosmithKitEquip(context: EngineerCastContext, skill: Eng
   grantSolarFocusingLens(context, at, engineerBalanceValue(context, PROFILE.solarFocusingLens, 'minimumStacks', 2));
 }
 
-// Called for every scheduled event. Radiant Arc and Refraction Cutter routing
-// runs regardless of specialization so that Amalgam (which delegates here) also
-// benefits. Solar Focusing Lens stack consumption is Holosmith-only.
+// Called for every Holosmith-scheduled event. Heat decorates the Holosmith sword
+// packets before resolver dispatch and drives Solar Focusing Lens consumption.
 export function observeHolosmithScheduledEvent(
   context: EngineerSchedulerContext,
   event: EngineerSimulationEvent
 ): void {
   if (event.type === 'engineer.radiant-arc-quickness' || event.type === 'engineer.refraction-cutter-extra-blades') {
     const heat = Number(holosmithState.from(context).heat || 0);
-    const enhancedCapacityTier =
-      heat >= enhancedCapacityHeatThreshold(context) &&
+    const aboveHalfHeat = heat > engineerBalanceValue(context, PROFILE.heat, 'threshold', 50);
+    const aboveFullHeat =
+      heat > enhancedCapacityHeatThreshold(context) &&
       hasEngineerTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT);
     if (event.type === 'engineer.radiant-arc-quickness') {
       context.replaceEvent(event, {
-        duration: enhancedCapacityTier ? 6 : heat > engineerBalanceValue(context, PROFILE.heat, 'threshold', 50) ? 4 : 2
+        // Heat tiers select one duration; they do not add the lower-tier durations together.
+        duration: aboveFullHeat ? 6 : aboveHalfHeat ? 4 : 2
       });
     } else {
       context.replaceEvent(event, {
-        extraBlades: enhancedCapacityTier
-          ? 4
-          : heat > engineerBalanceValue(context, PROFILE.heat, 'threshold', 50)
-            ? 2
-            : 0
+        extraBlades: aboveFullHeat ? 4 : aboveHalfHeat ? 2 : 0
       });
     }
 

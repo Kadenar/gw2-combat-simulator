@@ -97,14 +97,10 @@ function emitTraitDamage(
   });
 }
 
-function isFunctionGyro(skill: EngineerSkill | undefined): boolean {
-  return skill?.name === 'Function Gyro';
-}
-
-// Function Gyro (scrapper) acts as a toolbelt skill for trait interactions despite no toolbeltParentName;
-// "Engage Photon Forge" occupies the toolbelt slot but is a profession mechanic, not a toolbelt skill
+// Specialization mechanics declare toolbelt behavior explicitly; ordinary
+// toolbelt skills continue to infer it from their equipped utility parent.
 export function isEngineerToolbeltSkill(skill: EngineerSkill | undefined): boolean {
-  return Boolean(skill?.toolbeltParentName || isFunctionGyro(skill)) && skill?.name !== 'Engage Photon Forge';
+  return skill?.countsAsToolbeltSkill ?? Boolean(skill?.toolbeltParentName);
 }
 
 function isHealingSkill(skill: EngineerSkill | undefined): boolean {
@@ -451,16 +447,10 @@ export function reactToEngineerDamage(
     }
   }
 
-  if (
-    event.actorType != null &&
-    ['player', 'summon'].includes(event.actorType) &&
-    hasTrait(context, TRAIT.INCENDIARY_POWDER) &&
-    criticalChance > 0
-  ) {
-    // player and mech have independent proc progress and cooldowns under the same trait
-    const owner = event.actorType === 'summon' ? 'mech' : 'player';
-    const readyKey = `incendiaryPowder.${owner}`;
-    const progressKey = `incendiaryProgress.${owner}`;
+  if (event.actorType === 'player' && hasTrait(context, TRAIT.INCENDIARY_POWDER) && criticalChance > 0) {
+    // Core owns the player's proc window; Mechanist separately owns the mech's window.
+    const readyKey = 'incendiaryPowder.player';
+    const progressKey = 'incendiaryProgress.player';
     let triggered = false;
     if (usesRandomTraitProcs(context)) {
       triggered = rolledCritical(details) && Number(state[readyKey] || 0) <= event.at;
@@ -481,8 +471,7 @@ export function reactToEngineerDamage(
         stacks: engineerBalanceEffectValue(context, PROFILE.incendiaryPowder, 'condition', 'stacks', 1),
         duration: engineerBalanceEffectValue(context, PROFILE.incendiaryPowder, 'condition', 'duration', 8),
         sourceId: TRAIT.INCENDIARY_POWDER,
-        actorType: event.actorType === 'summon' ? 'summon' : 'effect',
-        metadata: event.actorType === 'summon' ? { engineerMech: true } : {}
+        actorType: 'effect'
       });
       recordTrait(context, 'Incendiary Powder', event);
     }

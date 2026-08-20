@@ -1,6 +1,11 @@
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
 import { applyCondition, procState, queueBuff, recordTrait, resolverSkill } from '../../core/shared.js';
+import {
+  ENGINEER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE,
+  engineerBalanceEffectValue,
+  engineerBalanceValue
+} from '../../core/profiles.js';
 import type { EngineerResolverContext, EngineerResolverEvent, EngineerResolverReactionDetails } from '../../types.js';
 
 function isEngineerMechEvent(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
@@ -19,6 +24,36 @@ function reactToMechanistDamage(
   if (!(Number(event.coefficient) > 0)) return;
   const state = procState(context);
   if (!isEngineerMechEvent(context, event)) return;
+
+  const criticalChance = Number(details.hitContext?.critical?.chance ?? details.criticalChance ?? 0);
+  if (hasTrait(context, TRAIT.INCENDIARY_POWDER) && criticalChance > 0) {
+    // The Core proc-state container is snapshot-safe; Mechanist owns how the mech advances these keys.
+    const readyKey = 'incendiaryPowder.mech';
+    const progressKey = 'incendiaryProgress.mech';
+    const stochastic = context.random?.stochastic === true;
+    let triggered = false;
+    if (stochastic) {
+      triggered = details.hitContext?.critical?.didCrit === true && Number(state[readyKey] || 0) <= event.at;
+    } else {
+      state[progressKey] = Number(state[progressKey] || 0) + criticalChance;
+      triggered = Number(state[progressKey]) >= 1 && Number(state[readyKey] || 0) <= event.at;
+    }
+
+    if (triggered) {
+      if (!stochastic) state[progressKey] = Number(state[progressKey]) - 1;
+      state[readyKey] = event.at + engineerBalanceValue(context, CORE_PROFILE.incendiaryPowder, 'internalCooldown', 10);
+      applyCondition(details, context, event, {
+        name: 'Incendiary Powder',
+        condition: 'Burning',
+        stacks: engineerBalanceEffectValue(context, CORE_PROFILE.incendiaryPowder, 'condition', 'stacks', 1),
+        duration: engineerBalanceEffectValue(context, CORE_PROFILE.incendiaryPowder, 'condition', 'duration', 8),
+        sourceId: TRAIT.INCENDIARY_POWDER,
+        actorType: 'summon',
+        metadata: { engineerMech: true }
+      });
+      recordTrait(context, 'Incendiary Powder', event);
+    }
+  }
 
   if (hasTrait(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS) && Number(state.singleEdgeCutters || 0) <= event.at) {
     // 1-second ICD: store next-eligible timestamp so rapid mech hits don't

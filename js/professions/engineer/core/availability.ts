@@ -151,9 +151,7 @@ export function engineerCoreCastAvailability(
 
   if (
     skill.toolbeltParentName &&
-    // Photon Forge toolbelt skills have no conventional utility parent — they are spec-mechanic skills
-    skill.name !== 'Engage Photon Forge' &&
-    !skill.name.startsWith('Deactivate Photon Forge') &&
+    skill.countsAsToolbeltSkill !== false &&
     !selectedEngineerSkillNames(context.config).has(skill.toolbeltParentName)
   ) {
     return denyEngineerCast(skill, 'engineer.toolbelt-parent', `${skill.toolbeltParentName} is not equipped.`);

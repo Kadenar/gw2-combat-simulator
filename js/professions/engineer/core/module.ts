@@ -10,7 +10,8 @@ import {
 } from './rules.js';
 import { engineerCoreResolverEventHandlers, engineerCoreResolverEventReactions } from './resolver.js';
 import { ENGINEER_CORE_EXTRA_SKILLS, ENGINEER_CORE_SKILL_MECHANICS, ENGINEER_TURRET_ATTACK_SKILLS } from './skills.js';
-import { createEngineerCoreState, projectEngineerEndState } from './state.js';
+import { createEngineerCoreState } from './state.js';
+import { projectEngineerEndState } from '../state.js';
 import { ENGINEER_CORE_BALANCE_PROFILES } from './profiles.js';
 import { bindEngineerCoreUi } from './ui.js';
 import type { EngineerSchedulerContext } from '../types.js';

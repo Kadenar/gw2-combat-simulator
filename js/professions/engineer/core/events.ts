@@ -1,9 +1,7 @@
 import { enqueueOrdered } from '../../../platform/engine/event-queue.js';
 import { professionCoreState } from '../../../platform/engine/profession.js';
-import { enqueueGw2OwnedComboFinisher } from '../../../platform/gw2/resolver/combo-resolution.js';
-import { applyCondition, queueBuff, queueDamage } from './shared.js';
-import { snapshotEngineerState } from './state.js';
-import type { SchedulerRecord } from '../../../platform/engine/types.js';
+import { applyCondition, queueDamage } from './shared.js';
+import { snapshotEngineerState } from '../state.js';
 import type {
   EngineerResolverContext,
   EngineerResolverEvent,
@@ -38,24 +36,7 @@ export function emitEngineerBarSwap(context: EngineerSchedulerContext, skill: En
   });
 }
 
-export function handleEngineerState(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  const core = professionCoreState(context);
-  const specialization = context.profession.specialization.state;
-  // traitProcReadyAt advances independently in the resolver; restoring it from the snapshot would
-  // roll back already-consumed trait proc windows and allow double-triggering
-  const preserved = {
-    traitProcReadyAt: core.traitProcReadyAt || {}
-  };
-  for (const [key, value] of Object.entries(event.state || {})) {
-    // some keys live in specialization state (e.g. holosmith heat), others in core — route without a lookup table
-    const owner = Object.hasOwn(specialization, key) ? specialization : core;
-    (owner as SchedulerRecord)[key] = structuredClone(value);
-  }
-
-  Object.assign(core, preserved);
-}
-
-// "Focused" is an amalgam buff state; when active it boosts certain skill coefficients
+// Focused is the shared spear target window established by Conduit Surge.
 function focused(context: EngineerResolverContext, at: number): boolean {
   return Number(professionCoreState(context).focusedUntil || 0) > at;
 }
@@ -122,78 +103,4 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
     sourceId: event.skillId ?? event.sourceId,
     actorType: 'player'
   });
-}
-
-export function handleRadiantArcQuickness(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  // duration is computed by the scheduler (trait-modified); ?? 2 is the unmodified base fallback
-  queueBuff(context, event, {
-    name: 'Radiant Arc — quickness',
-    kind: 'quickness',
-    stacks: 1,
-    duration: Math.max(0, Number(event.duration ?? 2))
-  });
-}
-
-export function handleRefractionCutterExtraBlades(
-  context: EngineerResolverContext,
-  event: EngineerResolverEvent
-): void {
-  const extraBlades = Math.max(0, Math.trunc(Number(event.extraBlades || 0)));
-  for (let blade = 0; blade < extraBlades; blade += 1) {
-    // 0.36s offset matches in-game animation timing between sequential blade projectiles
-    const at = event.at + 0.36;
-    // hitIndex starts at 2 because the base hit (index 1) is handled by the parent skill event
-    const damage = enqueueOrdered(context.queue, {
-      type: 'damage',
-      at,
-      name: 'Refraction Cutter Blade',
-      skillName: event.skillName,
-      coefficient: 0.4,
-      hits: 1,
-      hitIndex: blade + 2,
-      totalHits: extraBlades + 1,
-      source: 'engineer',
-      sourceId: event.skillId ?? event.sourceId,
-      actorType: 'player',
-      skillId: event.skillId,
-      skillWeapon: 'Sword',
-      projectile: true,
-      comboFinishers: [
-        {
-          ownerId: 'engineer',
-          finisherType: 'Projectile',
-          chance: 0.2,
-          preferredFieldTypes: ['Fire'],
-          ambiguousFieldSelection: 'oldest'
-        }
-      ]
-    });
-    // enqueueGw2OwnedComboFinisher triggers actual combo field resolution; the comboFinishers array
-    // above is only a declaration for display/analysis — both are required
-    enqueueGw2OwnedComboFinisher(context, damage, {
-      ownerId: 'engineer',
-      attemptId: `${event.activationId || event.sourceId}:refraction-cutter:projectile:${blade + 2}`,
-      finisherType: 'Projectile',
-      at,
-      effectAt: at,
-      chance: 0.2,
-      preferredFieldTypes: ['Fire'],
-      ambiguousFieldSelection: 'oldest'
-    });
-    enqueueOrdered(context.queue, {
-      type: 'condition',
-      at,
-      name: `${event.skillName} - Bleeding`,
-      skillName: event.skillName,
-      condition: 'Bleeding',
-      stacks: 1,
-      duration: 4,
-      applicationIndex: blade + 2,
-      totalApplications: extraBlades + 1,
-      source: 'engineer',
-      sourceId: event.skillId ?? event.sourceId,
-      actorType: 'player',
-      skillId: event.skillId
-    });
-  }
 }

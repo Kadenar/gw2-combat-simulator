@@ -28,7 +28,7 @@ import type { SchedulerRecord } from '../../../platform/engine/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '../../../platform/gw2/types.js';
 import type { EngineerRechargeContext } from '../types.js';
 
-export { snapshotEngineerState } from './state.js';
+export { snapshotEngineerState } from '../state.js';
 
 // condition duration modifier for Chemical Rounds (pistol skills only)
 function modifyEngineerConditionBaseDuration(context: Gw2ModifierContext, multiplier: number): number {

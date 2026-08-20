@@ -1,6 +1,33 @@
 import type { AmalgamState, EngineerConfig } from '../../types.js';
 import { defineProfessionSpecializationState } from '../../../../platform/engine/profession.js';
 
+// Amalgam owns its public protocol state and the inactive compatibility values.
+export const AMALGAM_PUBLIC_END_STATE_KEYS = Object.freeze([
+  'selectedMorphSkillIds',
+  'evolvedUntil',
+  'willingHostUntil',
+  'plasmaticStateUntil',
+  'thornsUntil',
+  'rapaciousUntil',
+  'predatorUntil',
+  'titanicUntil',
+  'berserkerUntil',
+  'activeStances'
+] as const satisfies readonly (keyof AmalgamState)[]);
+
+export const AMALGAM_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<AmalgamState>> = Object.freeze({
+  selectedMorphSkillIds: [],
+  evolvedUntil: 0,
+  willingHostUntil: 0,
+  plasmaticStateUntil: 0,
+  thornsUntil: 0,
+  rapaciousUntil: 0,
+  predatorUntil: 0,
+  titanicUntil: 0,
+  berserkerUntil: 0,
+  activeStances: {}
+});
+
 export function createAmalgamState(config: EngineerConfig = {}): AmalgamState {
   return {
     // IDs for the three selected Morph (F2/F3/F4) protocol skills.

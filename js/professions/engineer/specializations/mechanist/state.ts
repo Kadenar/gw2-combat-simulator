@@ -4,6 +4,22 @@ import { hasEngineerTrait, selectedEngineerTraits } from '../../core/state.js';
 import type { BalanceProfile, SkillId } from '../../../../platform/engine/types.js';
 import type { EngineerConfig, EngineerMechAttributes, EngineerPlayerStats, MechanistState } from '../../types.js';
 
+// Mechanist owns its public mech projection and the disabled inactive representation.
+export const MECHANIST_PUBLIC_END_STATE_KEYS = Object.freeze([
+  'mech'
+] as const satisfies readonly (keyof MechanistState)[]);
+
+export const MECHANIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<MechanistState>> = Object.freeze({
+  mech: {
+    enabled: false,
+    active: false,
+    commandSkillIds: [],
+    nextAttackAt: null,
+    busyUntil: 0,
+    attributes: null
+  }
+});
+
 export function selectedMechCommands(traits: EngineerConfig | ReadonlySet<SkillId>): SkillId[] {
   const pick = (groups: readonly (readonly [SkillId, SkillId])[]): SkillId => {
     for (const [traitId, skillId] of groups) {

@@ -1,12 +1,207 @@
-/**
- * Holosmith Engineer skill mechanics.
- *
- * Weapon skills remain Core-owned because Weaponmaster Training makes the
- * physical weapon families profession-wide.
- */
+/** Holosmith-only Engineer mechanics, including the heat-aware sword variants. */
 import { ENGINEER_SKILL_IDS as ID } from '../../data/ids.js';
 import type { SkillFragment } from '../../../../platform/engine/types.js';
 export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
+  // Holosmith owns the original sword IDs; Core owns the non-heat Weaponmaster variants.
+  [ID.RADIANT_ARC]: {
+    implemented: true,
+    quicknessCastTimeMs: 840,
+    cooldown: 12,
+    comboFinishers: [
+      {
+        ownerId: 'engineer',
+        finisherType: 'Leap',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 2.5,
+        hits: 1,
+        name: 'Radiant Arc',
+        actorType: 'player'
+      },
+      {
+        type: 'condition',
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 4,
+        actorType: 'player'
+      },
+      {
+        type: 'custom',
+        eventType: 'engineer.radiant-arc-quickness',
+        event: {
+          name: 'Radiant Arc - quickness'
+        },
+        actorType: 'player'
+      }
+    ]
+  },
+  [ID.SUN_EDGE]: {
+    implemented: true,
+    quicknessCastTimeMs: 440,
+    cooldown: 0,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.88,
+        hits: 1,
+        name: 'Sun Edge',
+        atMs: 350,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player'
+      },
+      {
+        type: 'condition',
+        condition: 'Vulnerability',
+        stacks: 1,
+        duration: 10,
+        atMs: 350,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player'
+      }
+    ]
+  },
+  [ID.REFRACTION_CUTTER]: {
+    implemented: true,
+    quicknessCastTimeMs: 520,
+    cooldown: 6,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.4,
+        hits: 1,
+        atMs: 320,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Refraction Cutter - Packet 1',
+        actorType: 'player'
+      },
+      {
+        type: 'strike',
+        coefficient: 0.4,
+        hits: 1,
+        atMs: 360,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Refraction Cutter Blade',
+        actorType: 'player',
+        comboFinishers: [
+          {
+            ownerId: 'engineer',
+            finisherType: 'Projectile',
+            preferredFieldTypes: ['Fire'],
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {
+          projectile: true
+        }
+      },
+      {
+        type: 'condition',
+        condition: 'Bleeding',
+        stacks: 1,
+        duration: 4,
+        atMs: 360,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player'
+      },
+      {
+        type: 'custom',
+        eventType: 'engineer.refraction-cutter-extra-blades',
+        atMs: 0,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        event: {
+          name: 'Refraction Cutter extra blades'
+        },
+        actorType: 'player'
+      }
+    ]
+  },
+  [ID.REFRACTION_CUTTER_BLADE]: {
+    implemented: true,
+    castTimeMs: 0,
+    cooldown: 0,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.4,
+        hits: 1,
+        name: 'Refraction Cutter Blade',
+        actorType: 'player',
+        comboFinishers: [
+          {
+            ownerId: 'engineer',
+            finisherType: 'Projectile',
+            preferredFieldTypes: ['Fire'],
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {
+          projectile: true
+        }
+      },
+      {
+        type: 'condition',
+        condition: 'Bleeding',
+        stacks: 1,
+        duration: 4,
+        actorType: 'player'
+      }
+    ]
+  },
+  [ID.SUN_RIPPER]: {
+    implemented: true,
+    quicknessCastTimeMs: 480,
+    cooldown: 0,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.93,
+        hits: 1,
+        name: 'Sun Ripper',
+        atMs: 450,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player'
+      },
+      {
+        type: 'condition',
+        condition: 'Vulnerability',
+        stacks: 1,
+        duration: 10,
+        atMs: 450,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player'
+      }
+    ]
+  },
+  [ID.GLEAM_SABER]: {
+    implemented: true,
+    handlerId: 'engineer.gleam-saber',
+    quicknessCastTimeMs: 720,
+    cooldown: 0,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.5,
+        hits: 1,
+        name: 'Gleam Saber',
+        atMs: 600,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        actorType: 'player'
+      }
+    ]
+  },
   [ID.COOLANT_BLAST]: {
     implemented: true,
     castTimeMs: 750,
@@ -49,6 +244,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     heatGain: 15,
     effects: [],
     toolbeltParentName: 'Photon Projector',
+    countsAsToolbeltSkill: false,
     mechanicSlot: 5
   },
   [ID.SPECTRUM_SHIELD]: {
@@ -215,6 +411,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     heatGain: 2,
     effects: [],
     toolbeltParentName: 'Photon Projector',
+    countsAsToolbeltSkill: false,
     mechanicSlot: 5
   },
   [ID.HOLO_LEAP]: {
@@ -474,6 +671,7 @@ export const HOLOSMITH_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> 
     heatGain: 15,
     effects: [],
     toolbeltParentName: 'Photon Projector',
+    countsAsToolbeltSkill: false,
     mechanicSlot: 5
   },
   [ID.BRIGHT_SLASH]: {

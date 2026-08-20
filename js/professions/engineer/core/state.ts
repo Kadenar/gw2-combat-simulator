@@ -1,6 +1,20 @@
-import type { SchedulerRecord, SkillId } from '../../../platform/engine/types.js';
-import type { EngineerConfig, EngineerCoreState, EngineerEndStateProjectionOptions, EngineerState } from '../types.js';
-import { flattenProfessionState } from '../../../platform/engine/profession.js';
+import type { SkillId } from '../../../platform/engine/types.js';
+import type { EngineerConfig, EngineerCoreState } from '../types.js';
+
+// Core owns the stable public fields that exist for every Engineer runtime.
+export const ENGINEER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
+  'endurance',
+  'maximumEndurance',
+  'activeKit',
+  'availableFlips',
+  'autoattackChains',
+  'focusedUntil',
+  'lightningRodChargeExpiries',
+  'electricArtilleryAvailable',
+  'electricArtilleryReadyAt',
+  'electricArtilleryExpiresAt',
+  'kineticCharges'
+] as const satisfies readonly (keyof EngineerCoreState)[]);
 
 // merges three config paths for backward compatibility — callers use whichever field their API returns
 export function selectedEngineerTraits(config: EngineerConfig = {}): Set<SkillId> {
@@ -38,82 +52,4 @@ export function createEngineerCoreState(_config: EngineerConfig = {}): EngineerC
     kineticCharges: 0,
     traitProcReadyAt: {}
   };
-}
-
-export function snapshotEngineerState(state: unknown): EngineerState {
-  return structuredClone(flattenProfessionState(state)) as unknown as EngineerState;
-}
-
-// contract between scheduler end-state and the presentation layer — new persistent fields must be added here
-export const ENGINEER_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'endurance',
-  'maximumEndurance',
-  'heat',
-  'maximumHeat',
-  'photonForgeActive',
-  'forgeExitedAt',
-  'overheated',
-  'solarFocusingLensStacks',
-  'solarFocusingLensReadyAt',
-  'solarFocusingLensUntil',
-  'activeKit',
-  'availableFlips',
-  'autoattackChains',
-  'mech',
-  'selectedMorphSkillIds',
-  'evolvedUntil',
-  'focusedUntil',
-  'lightningRodChargeExpiries',
-  'electricArtilleryAvailable',
-  'electricArtilleryReadyAt',
-  'electricArtilleryExpiresAt',
-  'willingHostUntil',
-  'plasmaticStateUntil',
-  'thornsUntil',
-  'rapaciousUntil',
-  'predatorUntil',
-  'titanicUntil',
-  'berserkerUntil',
-  'activeStances',
-  'kineticCharges'
-] as const satisfies readonly (keyof EngineerState)[]);
-
-// safe defaults for spec-specific fields absent when running a different spec (e.g. holosmith fields on Core)
-const ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<EngineerState>> = Object.freeze({
-  heat: 0,
-  maximumHeat: 100,
-  photonForgeActive: false,
-  forgeExitedAt: null,
-  overheated: false,
-  solarFocusingLensStacks: 0,
-  solarFocusingLensReadyAt: 0,
-  solarFocusingLensUntil: 0,
-  mech: {
-    enabled: false,
-    active: false,
-    commandSkillIds: [],
-    nextAttackAt: null,
-    busyUntil: 0,
-    attributes: null
-  },
-  selectedMorphSkillIds: [],
-  evolvedUntil: 0,
-  willingHostUntil: 0,
-  plasmaticStateUntil: 0,
-  thornsUntil: 0,
-  rapaciousUntil: 0,
-  predatorUntil: 0,
-  titanicUntil: 0,
-  berserkerUntil: 0,
-  activeStances: {}
-});
-
-export function projectEngineerEndState({ schedulerState }: EngineerEndStateProjectionOptions): SchedulerRecord {
-  const state = snapshotEngineerState(schedulerState.profession);
-  return Object.fromEntries(
-    ENGINEER_PUBLIC_END_STATE_KEYS.map((key) => [
-      key,
-      structuredClone(state[key] ?? ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS[key])
-    ])
-  );
 }

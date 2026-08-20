@@ -194,7 +194,14 @@ const supplemental: readonly Skill[] = ENGINEER_SUPPLEMENTAL_SKILLS.map((skill) 
 const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> = Object.freeze({
   Holosmith: [
     ID.DEACTIVATE_PHOTON_FORGE,
+    ID.DEACTIVATE_PHOTON_FORGE_HOT,
     ID.ENGAGE_PHOTON_FORGE,
+    ID.RADIANT_ARC,
+    ID.SUN_RIPPER,
+    ID.SUN_EDGE,
+    ID.GLEAM_SABER,
+    ID.REFRACTION_CUTTER,
+    ID.REFRACTION_CUTTER_BLADE,
     ID.FLASH_CUTTER_STORM,
     ID.BRIGHT_SLASH_STORM,
     ID.HOLOGRAPHIC_SHOCKWAVE,
@@ -206,7 +213,7 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
     ID.PHOTON_BLITZ,
     ID.FLASH_CUTTER
   ],
-  Scrapper: [ID.FUNCTION_GYRO, ID.FUNCTION_GYRO_ID_72103, ID.FUNCTION_GYRO_ID_72114],
+  Scrapper: [ID.FUNCTION_GYRO, ID.FUNCTION_GYRO_TOOL_BELT_SKILL, ID.FUNCTION_GYRO_ID_72103, ID.FUNCTION_GYRO_ID_72114],
   Mechanist: [ID.CRASH_DOWN, ID.RECALL_MECH, ID.MECH_SUPPORT_DEPTH_CHARGES],
   Amalgam: [ID.EVOLVE, ID.EVOLVE_ID_76651, ID.LOCKED, ID.LOCKED_ID_77107, ID.LOCKED_ID_77388]
 });
@@ -226,6 +233,7 @@ const WEAPON_DATA = defineProfessionWeapons({
 
 interface EngineerModuleDataOptions<TContext extends object> extends ProfessionModuleDataOptions<TContext> {
   readonly autoattackChains?: NativeAutoattackChains;
+  readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
 }
 
 function normalizeMechanics(
@@ -282,7 +290,8 @@ export function createEngineerModuleData<TContext extends object>(
     balanceProfiles = [],
     extraSkills = [],
     handlers,
-    autoattackChains
+    autoattackChains,
+    skillNameOverrides
   }: EngineerModuleDataOptions<TContext>
 ) {
   return createNativeModuleData({
@@ -298,6 +307,7 @@ export function createEngineerModuleData<TContext extends object>(
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
     specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
     ...(id === 'Core' ? WEAPON_DATA : {}),
-    ...(autoattackChains ? { autoattackChains } : {})
+    ...(autoattackChains ? { autoattackChains } : {}),
+    ...(skillNameOverrides ? { skillNameOverrides } : {})
   });
 }

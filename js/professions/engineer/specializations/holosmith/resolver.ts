@@ -1,7 +1,9 @@
 import { holosmithState } from './state.js';
 import { enqueueOrdered } from '../../../../platform/engine/event-queue.js';
+import { enqueueGw2OwnedComboFinisher } from '../../../../platform/gw2/resolver/combo-resolution.js';
 import { hasTrait } from '../../../../platform/gw2/trait-state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '../../data/ids.js';
+import { queueBuff } from '../../core/shared.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '../../types.js';
 
 // Prime Light Beam field: 10 pulses at 1-second intervals, active only above 50 heat.
@@ -131,8 +133,78 @@ function handleLaunchWall(context: EngineerResolverContext, event: EngineerResol
   }
 }
 
+// Resolves the heat-scaled boon emitted only by Holosmith's Radiant Arc variant.
+function handleRadiantArcQuickness(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+  queueBuff(context, event, {
+    name: 'Radiant Arc - quickness',
+    kind: 'quickness',
+    stacks: 1,
+    duration: Math.max(0, Number(event.duration ?? 2))
+  });
+}
+
+// Materializes every heat-granted blade as its own strike, bleed, and projectile finisher.
+function handleRefractionCutterExtraBlades(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+  const extraBlades = Math.max(0, Math.trunc(Number(event.extraBlades || 0)));
+  for (let blade = 0; blade < extraBlades; blade += 1) {
+    const at = event.at + 0.36;
+    const damage = enqueueOrdered(context.queue, {
+      type: 'damage',
+      at,
+      name: 'Refraction Cutter Blade',
+      skillName: event.skillName,
+      coefficient: 0.4,
+      hits: 1,
+      hitIndex: blade + 2,
+      totalHits: extraBlades + 1,
+      source: 'engineer',
+      sourceId: event.skillId ?? event.sourceId,
+      actorType: 'player',
+      skillId: event.skillId,
+      skillWeapon: 'Sword',
+      projectile: true,
+      comboFinishers: [
+        {
+          ownerId: 'engineer',
+          finisherType: 'Projectile',
+          chance: 1,
+          preferredFieldTypes: ['Fire'],
+          ambiguousFieldSelection: 'oldest'
+        }
+      ]
+    });
+    enqueueGw2OwnedComboFinisher(context, damage, {
+      ownerId: 'engineer',
+      attemptId: `${event.activationId || event.sourceId}:refraction-cutter:projectile:${blade + 2}`,
+      finisherType: 'Projectile',
+      at,
+      effectAt: at,
+      chance: 1,
+      preferredFieldTypes: ['Fire'],
+      ambiguousFieldSelection: 'oldest'
+    });
+    enqueueOrdered(context.queue, {
+      type: 'condition',
+      at,
+      name: `${event.skillName} - Bleeding`,
+      skillName: event.skillName,
+      condition: 'Bleeding',
+      stacks: 1,
+      duration: 4,
+      applicationIndex: blade + 2,
+      totalApplications: extraBlades + 1,
+      source: 'engineer',
+      sourceId: event.skillId ?? event.sourceId,
+      actorType: 'player',
+      skillId: event.skillId
+    });
+  }
+}
+
 export const holosmithResolverEventHandlers = Object.freeze({
   'engineer.prime-light-beam-field': handlePrimeLightBeamField,
   'engineer.laser-disk': handleLaserDisk,
-  'engineer.launch-wall': handleLaunchWall
+  'engineer.launch-wall': handleLaunchWall,
+  'engineer.radiant-arc-quickness': handleRadiantArcQuickness,
+  'engineer.refraction-cutter-extra-blades': handleRefractionCutterExtraBlades
 });

@@ -27,6 +27,14 @@ export const holosmithModule = defineNativeModule({
     skillMechanics: HOLOSMITH_SKILL_MECHANICS,
     balanceProfiles: HOLOSMITH_BALANCE_PROFILES,
     handlers: holosmithSkillHandlers,
+    // Runtime name lookup must select the heat-aware identities over Core's non-Holosmith variants.
+    skillNameOverrides: {
+      'Radiant Arc': ID.RADIANT_ARC,
+      'Sun Edge': ID.SUN_EDGE,
+      'Sun Ripper': ID.SUN_RIPPER,
+      'Gleam Saber': ID.GLEAM_SABER,
+      'Refraction Cutter': ID.REFRACTION_CUTTER
+    },
     autoattackChains: { additional: HOLOSMITH_AUTOATTACK_CHAINS }
   }),
   // Scheduler and resolver share the same state factory so heat values are consistent

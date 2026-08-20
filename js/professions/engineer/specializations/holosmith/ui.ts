@@ -31,7 +31,9 @@ const HEAT_STATE_REASONS = new Set<string>([
 const HOLOSMITH_PACKET_EVENTS = new Set<string>([
   'engineer.prime-light-beam-field',
   'engineer.laser-disk',
-  'engineer.launch-wall'
+  'engineer.launch-wall',
+  'engineer.radiant-arc-quickness',
+  'engineer.refraction-cutter-extra-blades'
 ]);
 
 // Populated by bindHolosmithUi at module init time; safe to read thereafter.
@@ -108,6 +110,12 @@ function holosmithEventLogRow(
 
 export const holosmithUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   eventLogRow: holosmithEventLogRow,
+  // Photon Forge changes weapon presentation only while the Holosmith slice is active.
+  timelineWeaponLineTransition: (context: EngineerUiContext) => {
+    if (context.skill?.handlerId === 'engineer.photon-forge-enter') return 'Photon Forge';
+    if (context.skill?.handlerId === 'engineer.photon-forge-exit') return null;
+    return undefined;
+  },
   skillBarGroups: (context: EngineerUiContext) => [
     ...engineerFSkillBarGroups(holosmithProfessionSkills(context)),
     {

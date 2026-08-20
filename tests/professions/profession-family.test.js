@@ -18,6 +18,7 @@ import { ENGINEER_ELITE_SPECIALIZATIONS, engineerCatalog } from '../../js/profes
 import { engineerProfession } from '../../js/professions/engineer/definition.js';
 import { engineerCoreModule } from '../../js/professions/engineer/core/module.js';
 import { ENGINEER_CORE_SKILL_MECHANICS } from '../../js/professions/engineer/core/skills.js';
+import { ENGINEER_SKILL_IDS as ENGINEER_ID } from '../../js/professions/engineer/data/ids.js';
 import { ENGINEER_SKILL_MECHANICS } from '../../js/professions/engineer/mechanics/skill-mechanics.js';
 import { amalgamModule } from '../../js/professions/engineer/specializations/amalgam/module.js';
 import { AMALGAM_SKILL_MECHANICS } from '../../js/professions/engineer/specializations/amalgam/skills.js';
@@ -1529,6 +1530,28 @@ test('Engineer modules are vertical slices with disjoint ownership', () => {
     .join('\n');
 
   assert.doesNotMatch(coreSources, /specializations\//);
+
+  const coreSkillSource = readFileSync(
+    new URL('../../js/professions/engineer/core/skills.ts', import.meta.url),
+    'utf8'
+  );
+  const coreTraitSource = readFileSync(
+    new URL('../../js/professions/engineer/core/traits.ts', import.meta.url),
+    'utf8'
+  );
+  const coreAvailabilitySource = readFileSync(
+    new URL('../../js/professions/engineer/core/availability.ts', import.meta.url),
+    'utf8'
+  );
+
+  assert.doesNotMatch(coreSkillSource, /\[ID\.(?:RADIANT_ARC|SUN_EDGE|SUN_RIPPER|GLEAM_SABER|REFRACTION_CUTTER)\]:/);
+  assert.doesNotMatch(coreTraitSource, /Function Gyro|engineerMech/);
+  assert.doesNotMatch(coreAvailabilitySource, /Photon Forge/);
+  const familyStateSource = readFileSync(new URL('../../js/professions/engineer/state.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(familyStateSource, /['"](?:photonForgeActive|mech|selectedMorphSkillIds)['"]/);
+  assert.match(familyStateSource, /HOLOSMITH_PUBLIC_END_STATE_KEYS/);
+  assert.match(familyStateSource, /MECHANIST_PUBLIC_END_STATE_KEYS/);
+  assert.match(familyStateSource, /AMALGAM_PUBLIC_END_STATE_KEYS/);
 });
 
 test('Engineer raw skill mechanics retain a disjoint no-loss union', () => {
@@ -1560,6 +1583,24 @@ test('Engineer raw skill mechanics retain a disjoint no-loss union', () => {
 
 test('Engineer runtimes exclude inactive elite catalogs, hooks, and state', () => {
   const skillOwner = nativeSkillOwnerMap(engineerSlices, engineerCatalog);
+  const holosmithSwordIds = [
+    ENGINEER_ID.RADIANT_ARC,
+    ENGINEER_ID.SUN_EDGE,
+    ENGINEER_ID.SUN_RIPPER,
+    ENGINEER_ID.GLEAM_SABER,
+    ENGINEER_ID.REFRACTION_CUTTER,
+    ENGINEER_ID.REFRACTION_CUTTER_BLADE
+  ];
+  const sharedSwordIds = [
+    ENGINEER_ID.RADIANT_ARC_ID_69565,
+    ENGINEER_ID.SUN_EDGE_ID_70514,
+    ENGINEER_ID.SUN_RIPPER_ID_69906,
+    ENGINEER_ID.GLEAM_SABER_ID_70771,
+    ENGINEER_ID.REFRACTION_CUTTER_ID_71121
+  ];
+
+  assert.ok(holosmithSwordIds.every((skillId) => skillOwner.get(skillId) === 'Holosmith'));
+  assert.ok(sharedSwordIds.every((skillId) => skillOwner.get(skillId) === 'Core'));
 
   assert.equal(engineerProfession.catalog, engineerCatalog);
   for (const active of ['Core', ...ENGINEER_ELITE_SPECIALIZATIONS]) {
@@ -1617,6 +1658,16 @@ test('Engineer runtimes exclude inactive elite catalogs, hooks, and state', () =
       Object.hasOwn(runtime.eventHandlers, 'engineer.prime-light-beam-field'),
       active === 'Holosmith',
       `${active}:holosmith-handler`
+    );
+    assert.equal(
+      Object.hasOwn(runtime.eventHandlers, 'engineer.radiant-arc-quickness'),
+      active === 'Holosmith',
+      `${active}:radiant-arc-handler`
+    );
+    assert.equal(
+      Object.hasOwn(runtime.eventHandlers, 'engineer.refraction-cutter-extra-blades'),
+      active === 'Holosmith',
+      `${active}:refraction-cutter-handler`
     );
   }
 

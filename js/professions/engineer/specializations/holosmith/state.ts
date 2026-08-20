@@ -3,6 +3,29 @@ import { defineProfessionSpecializationState } from '../../../../platform/engine
 import { hasEngineerTrait, selectedEngineerTraits } from '../../core/state.js';
 import type { EngineerConfig, HolosmithState } from '../../types.js';
 
+// Holosmith owns both its public projection keys and the inactive compatibility values.
+export const HOLOSMITH_PUBLIC_END_STATE_KEYS = Object.freeze([
+  'heat',
+  'maximumHeat',
+  'photonForgeActive',
+  'forgeExitedAt',
+  'overheated',
+  'solarFocusingLensStacks',
+  'solarFocusingLensReadyAt',
+  'solarFocusingLensUntil'
+] as const satisfies readonly (keyof HolosmithState)[]);
+
+export const HOLOSMITH_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<HolosmithState>> = Object.freeze({
+  heat: 0,
+  maximumHeat: 100,
+  photonForgeActive: false,
+  forgeExitedAt: null,
+  overheated: false,
+  solarFocusingLensStacks: 0,
+  solarFocusingLensReadyAt: 0,
+  solarFocusingLensUntil: 0
+});
+
 export function createHolosmithState(config: EngineerConfig = {}): HolosmithState {
   const traits = selectedEngineerTraits(config);
   const maximumHeat = hasEngineerTrait(traits, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) ? 150 : 100;

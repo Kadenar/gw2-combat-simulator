@@ -1,11 +1,5 @@
-import {
-  handleConduitSurge,
-  handleElectricArtillery,
-  handleEngineerState,
-  handleLightningRodPulse,
-  handleRadiantArcQuickness,
-  handleRefractionCutterExtraBlades
-} from './events.js';
+import { handleConduitSurge, handleElectricArtillery, handleLightningRodPulse } from './events.js';
+import { handleEngineerState } from '../state.js';
 import { handleEngineerDodge, reactToEngineerCondition, reactToEngineerDamage } from './traits.js';
 
 export {
@@ -24,9 +18,7 @@ export const engineerCoreResolverEventHandlers = Object.freeze({
   'engineer.dodge': handleEngineerDodge,
   'engineer.lightning-rod-pulse': handleLightningRodPulse,
   'engineer.conduit-surge': handleConduitSurge,
-  'engineer.electric-artillery': handleElectricArtillery,
-  'engineer.radiant-arc-quickness': handleRadiantArcQuickness,
-  'engineer.refraction-cutter-extra-blades': handleRefractionCutterExtraBlades
+  'engineer.electric-artillery': handleElectricArtillery
 });
 
 // reactions fire after every resolved damage or applied condition, regardless of event type

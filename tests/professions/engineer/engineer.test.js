@@ -30,6 +30,7 @@ import { AMALGAM_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/sp
 import { amalgamAttributeRules } from '../../../js/professions/engineer/specializations/amalgam/rules.js';
 import { holosmithModule } from '../../../js/professions/engineer/specializations/holosmith/module.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/specializations/holosmith/profiles.js';
+import { holosmithModifierRules } from '../../../js/professions/engineer/specializations/holosmith/rules.js';
 import { mechanistModule } from '../../../js/professions/engineer/specializations/mechanist/module.js';
 import { MECHANIST_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/specializations/mechanist/profiles.js';
 import { engineerMechAttributes } from '../../../js/professions/engineer/specializations/mechanist/state.js';
@@ -37,7 +38,6 @@ import { scrapperModule } from '../../../js/professions/engineer/specializations
 import { SCRAPPER_BALANCE_PROFILE_IDS } from '../../../js/professions/engineer/specializations/scrapper/profiles.js';
 import { scrapperSchedulerHooks } from '../../../js/professions/engineer/specializations/scrapper/rules.js';
 import { createScrapperState } from '../../../js/professions/engineer/specializations/scrapper/state.js';
-import { engineerWeaponSkillMatchesSet } from '../../../js/professions/engineer/core/ui.js';
 import { recalculate, runSimulation, simulationConfig } from '../../../js/professions/engineer/app/app-definition.js';
 import { assertProfessionFamilyConformance } from '../../helpers/profession-family-conformance.js';
 
@@ -533,6 +533,7 @@ test('Photon Forge entry and exit start dedicated timeline rows', () => {
 
   assert.equal(
     transition({
+      specialization: 'Holosmith',
       skill: engineerCatalog.skillsByName.get('Engage Photon Forge'),
       weaponLine: null
     }),
@@ -540,6 +541,7 @@ test('Photon Forge entry and exit start dedicated timeline rows', () => {
   );
   assert.equal(
     transition({
+      specialization: 'Holosmith',
       skill: engineerCatalog.skillsByName.get('Deactivate Photon Forge'),
       weaponLine: 'Photon Forge'
     }),
@@ -1048,19 +1050,58 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
 
   const swordChain = ['Sun Edge', 'Sun Ripper', 'Gleam Saber'];
   const tierBase = simulate('Holosmith', swordChain, {
-    initialHeat: 99,
-    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
+    initialHeat: 50,
     stats: { precision: 1000, ferocity: 0 }
   });
   const tiered = simulate('Holosmith', swordChain, {
-    initialHeat: 100,
+    initialHeat: 51,
+    stats: { precision: 1000, ferocity: 0 }
+  });
+  const cappedSword = simulate('Holosmith', swordChain, {
+    initialHeat: 101,
+    stats: { precision: 1000, ferocity: 0 }
+  });
+  const enhancedSword = simulate('Holosmith', swordChain, {
+    initialHeat: 101,
     selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
     stats: { precision: 1000, ferocity: 0 }
   });
-  const baseSunEdge = tierBase.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Sun Edge');
-  const tieredSunEdge = tiered.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Sun Edge');
+  const swordDamage = (result, name) =>
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.name === name).damage;
 
-  assert.ok(Math.abs(tieredSunEdge.damage / baseSunEdge.damage - 1.3 / 1.2) < 1e-12);
+  for (const name of swordChain) {
+    assert.ok(Math.abs(swordDamage(tiered, name) / swordDamage(tierBase, name) - 1.2) < 1e-12, name);
+  }
+  assert.ok(Math.abs(swordDamage(cappedSword, 'Sun Edge') / swordDamage(tiered, 'Sun Edge') - 1) < 1e-12);
+  assert.ok(swordDamage(enhancedSword, 'Sun Edge') > swordDamage(tiered, 'Sun Edge'));
+
+  const swordTierRule = holosmithModifierRules.find((rule) => rule.id === 'engineer.enhanced-capacity-damage-tier');
+  const swordTierFactor = (heat, selectedTraitIds = []) =>
+    swordTierRule.factor(
+      {
+        config: { selectedTraitIds },
+        event: { type: 'damage', actorType: 'player', skillName: 'Sun Edge' },
+        runtime: {
+          profession: {
+            core: {},
+            specialization: { kind: 'Holosmith', state: { heat } }
+          }
+        }
+      },
+      'strikeDamage',
+      swordTierRule.parameters
+    );
+
+  assert.deepEqual(
+    [
+      swordTierFactor(50),
+      swordTierFactor(51),
+      swordTierFactor(101),
+      swordTierFactor(100, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]),
+      swordTierFactor(101, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT])
+    ],
+    [1, 1.2, 1.2, 1.2, 1.3]
+  );
 
   const blasting = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 6600 }], {
     initialHeat: 90,
@@ -1168,18 +1209,35 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
     )
   );
 
-  const blades = (initialHeat) =>
-    run(['Refraction Cutter', { type: 'wait', durationMs: 1000 }], initialHeat, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]);
+  const blades = (initialHeat, selectedTraitIds = []) =>
+    run(['Refraction Cutter', { type: 'wait', durationMs: 1000 }], initialHeat, selectedTraitIds);
 
-  assert.deepEqual(
-    [0, 60, 100].map(
-      (heat) =>
-        skillEvents(blades(heat), 'damage', 'Refraction Cutter').filter(
-          (event) => event.name === 'Refraction Cutter Blade'
-        ).length
-    ),
-    [1, 3, 5]
-  );
+  for (const [label, heat, selectedTraitIds, expectedBlades] of [
+    ['cold', 0, [], 1],
+    ['hot', 60, [], 3],
+    ['capped-without-ecsu', 101, [], 3],
+    ['at-100-with-ecsu', 100, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], 3],
+    ['above-100-with-ecsu', 101, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], 5]
+  ]) {
+    const result = blades(heat, selectedTraitIds);
+    const bladeDamage = skillEvents(result, 'damage', 'Refraction Cutter').filter(
+      (event) => event.name === 'Refraction Cutter Blade'
+    );
+    const bladeBleeding = skillEvents(result, 'condition', 'Refraction Cutter').filter(
+      (event) => event.condition === 'Bleeding'
+    );
+
+    assert.equal(bladeDamage.length, expectedBlades, `${label}:blades`);
+    assert.equal(bladeBleeding.length, expectedBlades, `${label}:bleeding`);
+    assert.ok(
+      bladeDamage.every((event) => event.coefficient === 0.4 && event.comboFinishers?.[0]?.chance === 1),
+      `${label}:blade-facts`
+    );
+    assert.ok(
+      bladeBleeding.every((event) => event.stacks === 1 && event.duration === 4),
+      `${label}:bleeding-facts`
+    );
+  }
 
   const beam = run(['Prime Light Beam', { type: 'wait', durationMs: 11000 }], 100, [
     TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT
@@ -1543,15 +1601,50 @@ test('Engineer packets use total coefficients and configured cadence', () => {
   assert.equal(spark.actorType, 'summon');
 });
 
-test('Mechanist sword uses the non-heat skill set and complete packets', () => {
+test('Engineer sword variants have specialization-owned facts and runtime gating', () => {
   const skill = (id) => engineerCatalog.skillsById.get(id);
-  const swordContext = {
-    specialization: 'Mechanist',
-    catalog: engineerCatalog
-  };
+  const mechanistRuntime = engineerProfession.resolveRuntime({ specialization: 'Mechanist' });
+  const holosmithRuntime = engineerProfession.resolveRuntime({ specialization: 'Holosmith' });
 
-  assert.equal(engineerWeaponSkillMatchesSet(skill(ID.GLEAM_SABER), ['Sword', 'Pistol'], swordContext), false);
-  assert.equal(engineerWeaponSkillMatchesSet(skill(ID.GLEAM_SABER_ID_70771), ['Sword', 'Pistol'], swordContext), true);
+  assert.equal(mechanistRuntime.catalog.skillsById.has(ID.GLEAM_SABER), false);
+  assert.equal(mechanistRuntime.catalog.skillsById.has(ID.GLEAM_SABER_ID_70771), true);
+  assert.equal(
+    holosmithRuntime.ui.weaponSkillMatchesSet(
+      holosmithRuntime.catalog.skillsById.get(ID.GLEAM_SABER_ID_70771),
+      ['Sword'],
+      { specialization: 'Holosmith' }
+    ),
+    false
+  );
+  assert.equal(
+    holosmithRuntime.ui.weaponSkillMatchesSet(holosmithRuntime.catalog.skillsById.get(ID.GLEAM_SABER), ['Sword'], {
+      specialization: 'Holosmith'
+    }),
+    true
+  );
+
+  assert.equal(skill(ID.SUN_EDGE).effects[0].coefficient, 0.88);
+  assert.deepEqual(
+    skill(ID.SUN_EDGE)
+      .effects.slice(1)
+      .map((effect) => [effect.condition, effect.stacks, effect.duration]),
+    [['Vulnerability', 1, 10]]
+  );
+  assert.equal(skill(ID.SUN_RIPPER).effects[0].coefficient, 0.93);
+  assert.equal(skill(ID.GLEAM_SABER).effects[0].coefficient, 1.5);
+  assert.equal(skill(ID.RADIANT_ARC).effects[0].coefficient, 2.5);
+  assert.equal(skill(ID.RADIANT_ARC).cooldown, 12);
+  assert.equal(skill(ID.RADIANT_ARC).comboFinishers[0].finisherType, 'Leap');
+  assert.deepEqual(
+    skill(ID.RADIANT_ARC)
+      .effects.filter((effect) => effect.type === 'condition')
+      .map((effect) => [effect.condition, effect.stacks, effect.duration]),
+    [['Crippled', 1, 4]]
+  );
+  assert.equal(skill(ID.REFRACTION_CUTTER).effects[0].coefficient, 1.4);
+  assert.equal(skill(ID.REFRACTION_CUTTER).effects[1].coefficient, 0.4);
+  assert.equal(skill(ID.REFRACTION_CUTTER).effects[1].comboFinishers[0].chance, 1);
+  assert.equal(skill(ID.REFRACTION_CUTTER_BLADE).effects[0].coefficient, 0.4);
 
   assert.equal(skill(ID.SUN_EDGE_ID_70514).effects[0].coefficient, 0.96);
   assert.equal(skill(ID.SUN_RIPPER_ID_69906).effects[0].coefficient, 1.02);
@@ -1559,6 +1652,15 @@ test('Mechanist sword uses the non-heat skill set and complete packets', () => {
   assert.equal(skill(ID.RADIANT_ARC_ID_69565).effects[0].coefficient, 2.5);
   assert.equal(skill(ID.RADIANT_ARC_ID_69565).cooldown, 14);
   assert.equal(skill(ID.RADIANT_ARC_ID_69565).comboFinishers[0].finisherType, 'Leap');
+  assert.deepEqual(
+    skill(ID.RADIANT_ARC_ID_69565)
+      .effects.slice(1)
+      .map((effect) => [effect.condition || effect.boon, effect.stacks, effect.duration]),
+    [
+      ['Crippled', 1, 4],
+      ['quickness', 1, 3]
+    ]
+  );
 
   const refraction = skill(ID.REFRACTION_CUTTER_ID_71121);
 
@@ -1566,7 +1668,33 @@ test('Mechanist sword uses the non-heat skill set and complete packets', () => {
   assert.equal(refraction.effects[0].coefficient, 1.4);
   assert.equal(refraction.effects[1].coefficient, 0.8);
   assert.equal(refraction.effects[1].hits, 2);
+  assert.equal(refraction.effects[1].comboFinishers[0].chance, 1);
   assert.equal(refraction.effects[2].applications, 2);
+
+  const replaced = simulate('Holosmith', [{ type: 'cast', skillId: ID.SUN_EDGE_ID_70514 }]);
+
+  assert.match(replaced.warnings[0], /Holosmith replaces this sword skill/);
+
+  const quicknessDurations = [
+    simulate('Holosmith', ['Radiant Arc'], { initialHeat: 0 }),
+    simulate('Holosmith', ['Radiant Arc'], { initialHeat: 60 }),
+    simulate('Holosmith', ['Radiant Arc'], { initialHeat: 101 }),
+    simulate('Holosmith', ['Radiant Arc'], {
+      initialHeat: 100,
+      selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+    }),
+    simulate('Holosmith', ['Radiant Arc'], {
+      initialHeat: 101,
+      selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+    })
+  ].map(
+    (simulation) =>
+      simulation.events.find(
+        (event) => event.type === 'engineer.radiant-arc-quickness' && event.name === 'Radiant Arc - quickness'
+      ).duration
+  );
+
+  assert.deepEqual(quicknessDurations, [2, 4, 4, 4, 6]);
 
   const result = simulate('Mechanist', [
     { type: 'cast', skillId: ID.REFRACTION_CUTTER_ID_71121 },
@@ -1586,10 +1714,33 @@ test('Mechanist sword uses the non-heat skill set and complete packets', () => {
     blades.map((event) => event.coefficient),
     [0.4, 0.4]
   );
+  assert.ok(blades.every((event) => event.comboFinishers[0].chance === 1));
   assert.equal(bleeds.length, 2);
+  assert.ok(bleeds.every((event) => event.stacks === 1 && event.duration === 4));
   assert.ok(
     result.procSteps.some((step) => step.skill === 'Gleam Saber — Sword Recharge' && step.cooldownReduction === 1)
   );
+});
+
+test('Engineer mace packets retain player, explosion, and finisher classifications', () => {
+  const result = simulate('Mechanist', ['Mace Strike', 'Mace Smash', 'Mace Blast', 'Rocket Fist Prototype']);
+
+  assert.equal(result.warnings.length, 0);
+  const damage = (name) => result.events.find((event) => event.type === 'damage' && event.name === name);
+  const smash = damage('Mace Smash');
+  const blast = damage('Mace Blast');
+  const fist = damage('Rocket Fist Prototype');
+
+  assert.equal(smash.actorType, 'player');
+  assert.equal(
+    result.events.find((event) => event.type === 'condition' && event.skillName === 'Mace Smash').actorType,
+    'player'
+  );
+  assert.equal(blast.damageKind, 'explosion');
+  assert.equal(engineerCatalog.skillsById.get(ID.MACE_BLAST).comboFinishers[0].finisherType, 'Leap');
+  assert.equal(fist.damageKind, 'explosion');
+  assert.equal(fist.projectile, true);
+  assert.equal(fist.comboFinishers[0].finisherType, 'Projectile');
 });
 
 test('Mechanist rifle uses live close-range packets and measured cadence', () => {
@@ -3186,6 +3337,17 @@ test('Incendiary Powder tracks player and mech cooldowns independently', () => {
     ['effect', 'summon']
   );
   assert.ok(burning.every((event) => Math.abs(event.naturalExpiresAt - event.at - 10.64) < 1e-12));
+
+  const turret = simulate('Core', ['Rifle Turret', { type: 'wait', durationMs: 3000 }], {
+    selectedTraitIds: [TRAIT.INCENDIARY_POWDER],
+    stats: { precision: 4000, expertise: 0 },
+    target: { conditions: {} }
+  });
+
+  assert.equal(
+    turret.resolvedEvents.some((event) => event.type === 'condition' && event.skillName === 'Incendiary Powder'),
+    false
+  );
 });
 
 test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () => {
@@ -3244,6 +3406,24 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
   assert.equal(mine.explosion, true);
   assert.ok(
     streamlined.events.some((event) => event.type === 'buff' && event.kind === 'swiftness' && event.duration === 20)
+  );
+
+  const scrapperToolbelt = simulate('Scrapper', ['Function Gyro'], {
+    selectedTraitIds: [TRAIT.OPTIMIZED_ACTIVATION]
+  });
+  const forgeMechanic = simulate('Holosmith', ['Engage Photon Forge'], {
+    selectedTraitIds: [TRAIT.OPTIMIZED_ACTIVATION]
+  });
+
+  assert.equal(engineerCatalog.skillsById.get(ID.FUNCTION_GYRO).countsAsToolbeltSkill, true);
+  assert.equal(engineerCatalog.skillsById.get(ID.ENGAGE_PHOTON_FORGE).countsAsToolbeltSkill, false);
+  assert.equal(
+    scrapperToolbelt.events.some((event) => event.type === 'buff' && event.kind === 'vigor'),
+    true
+  );
+  assert.equal(
+    forgeMechanic.events.some((event) => event.type === 'buff' && event.kind === 'vigor'),
+    false
   );
 });
 

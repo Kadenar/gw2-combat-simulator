@@ -33,6 +33,7 @@ interface NativeModuleDataSelection<TContext extends object> {
   readonly weapons?: readonly string[];
   readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
   readonly autoattackChains?: NativeAutoattackChains;
+  readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
   readonly specializationOnlySkillIds?: readonly SkillId[];
   readonly specializationOnlySkillOwners?: Readonly<Record<string, string>>;
 }
@@ -63,6 +64,7 @@ export function createNativeModuleData<TContext extends object>({
   weapons = [],
   weaponHands = {},
   autoattackChains,
+  skillNameOverrides,
   specializationOnlySkillIds = [],
   specializationOnlySkillOwners = {}
 }: NativeModuleDataSelection<TContext>): NativeModuleCatalogData<TContext> {
@@ -100,6 +102,7 @@ export function createNativeModuleData<TContext extends object>({
     ...(weapons.length ? { weapons: Object.freeze([...weapons]) } : {}),
     ...(weaponHands instanceof Map || Object.keys(weaponHands).length ? { weaponHands } : {}),
     ...(autoattackChains == null ? {} : { autoattackChains }),
+    ...(skillNameOverrides == null ? {} : { skillNameOverrides: Object.freeze({ ...skillNameOverrides }) }),
     ...(specializationOnlySkillIds.length
       ? {
           specializationOnlySkillIds: Object.freeze([...specializationOnlySkillIds])
@@ -409,6 +412,11 @@ function composeNativeCatalog(
     const moduleHandlers = new Map([...handlers].filter(([handlerId]) => handlerOwners.get(handlerId) === module.id));
     const hands = new Map([...weaponHands].filter(([weapon]) => weaponHandOwners.get(weapon) === module.id));
     const chains = chainContributions.get(module.id)!;
+    // Module-local selections resolve active specialization collisions; global overrides remain Core-owned.
+    const skillNameOverrides = {
+      ...(module.data.skillNameOverrides || {}),
+      ...(module.id === 'Core' ? options?.skillNameOverrides || {} : {})
+    };
     fragments.set(
       module.id,
       Object.freeze({
@@ -426,10 +434,10 @@ function composeNativeCatalog(
         weapons: Object.freeze([...weapons].filter((weapon) => module.data.weapons?.includes(weapon))),
         weaponHands: hands,
         autoattackChains: Object.freeze(chains),
+        ...(Object.keys(skillNameOverrides).length ? { skillNameOverrides: Object.freeze(skillNameOverrides) } : {}),
         ...(module.id === 'Core'
           ? {
-              skillNameCollision: options?.skillNameCollision,
-              skillNameOverrides: options?.skillNameOverrides
+              skillNameCollision: options?.skillNameCollision
             }
           : {})
       } as ProfessionModuleCatalogFragment)

@@ -40,6 +40,8 @@ export interface NativeModuleCatalogData<THandlerContext extends object = object
   readonly weapons?: readonly string[];
   readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
   readonly autoattackChains?: NativeAutoattackChains;
+  /** Runtime-local name selections for identities that collide with Core skills. */
+  readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
   /**
    * Skills that look like ordinary weapon or Core skills in API metadata but
    * must only exist when this specialization is active.
