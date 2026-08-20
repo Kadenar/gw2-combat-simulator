@@ -1,17 +1,11 @@
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
-import { createFlipParentMap, createSpecializationSkillOwners } from '../lib/catalog-data.js';
+import { createFlipParentMap, createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
+import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/engineer-api-metadata.js';
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from './data/engineer-supplemental-skills.js';
 import { ENGINEER_SKILL_IDS as ID } from './data/ids.js';
 import { TRAITS } from './data/traits-data.js';
-import type {
-  BalanceProfile,
-  CatalogEntity,
-  Skill,
-  SkillFragment,
-  SkillId,
-  SkillHandlerStrategy
-} from '../../platform/engine/types.js';
+import type { CatalogEntity, Skill, SkillFragment, SkillId } from '../../platform/engine/types.js';
 import type { NativeAutoattackChains } from '../../platform/gw2/native-profession.js';
 
 const ENGINEER_SKILL_ICON_OVERRIDES = new Map<string, string>([
@@ -172,8 +166,16 @@ const generated: readonly Skill[] = generatedSource.map((skill) => ({
   flipParentId: flipParentById.get(skill.id) ?? null,
   implemented: false,
   effects: [],
-  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id) ? { patchAuthoringExcluded: true } : {}),
-  ...(UNSELECTABLE_SLOT_SKILLS.has(skill.name) ? { slotSelectable: false } : {})
+  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
+    ? {
+        patchAuthoringExcluded: true
+      }
+    : {}),
+  ...(UNSELECTABLE_SLOT_SKILLS.has(skill.name)
+    ? {
+        slotSelectable: false
+      }
+    : {})
 }));
 
 const supplemental: readonly Skill[] = ENGINEER_SUPPLEMENTAL_SKILLS.map((skill) => ({
@@ -181,7 +183,11 @@ const supplemental: readonly Skill[] = ENGINEER_SUPPLEMENTAL_SKILLS.map((skill) 
   icon: ENGINEER_SKILL_ICON_OVERRIDES.get(skill.name) || skill.icon,
   flipParentId: flipParentById.get(skill.id) ?? null,
   slotSelectable: false,
-  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id) ? { patchAuthoringExcluded: true } : {})
+  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
+    ? {
+        patchAuthoringExcluded: true
+      }
+    : {})
 }));
 
 const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> = Object.freeze({
@@ -206,9 +212,7 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
 
 const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 
-const WEAPONS = Object.freeze(['Hammer', 'Mace', 'Pistol', 'Rifle', 'Shield', 'Shortbow', 'Spear', 'Sword']);
-
-const WEAPON_HANDS = Object.freeze({
+const WEAPON_DATA = defineProfessionWeapons({
   Hammer: '2h',
   Mace: 'mh',
   Pistol: 'mh+oh',
@@ -219,17 +223,7 @@ const WEAPON_HANDS = Object.freeze({
   Sword: 'mh'
 });
 
-interface EngineerModuleDataOptions<TContext extends object> {
-  readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
-
-  readonly balanceProfiles?: readonly BalanceProfile[];
-
-  readonly extraSkills?: readonly Skill[];
-
-  readonly handlers?:
-    | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
-    | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
-
+interface EngineerModuleDataOptions<TContext extends object> extends ProfessionModuleDataOptions<TContext> {
   readonly autoattackChains?: NativeAutoattackChains;
 }
 
@@ -302,12 +296,7 @@ export function createEngineerModuleData<TContext extends object>(
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
     specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
-    ...(id === 'Core'
-      ? {
-          weapons: WEAPONS,
-          weaponHands: WEAPON_HANDS
-        }
-      : {}),
+    ...(id === 'Core' ? WEAPON_DATA : {}),
     ...(autoattackChains ? { autoattackChains } : {})
   });
 }

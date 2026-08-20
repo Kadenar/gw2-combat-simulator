@@ -1,4 +1,44 @@
-import type { SkillId } from '../../platform/engine/types.js';
+import type {
+  BalanceProfile,
+  Skill,
+  SkillFragment,
+  SkillHandlerStrategy,
+  SkillId
+} from '../../platform/engine/types.js';
+
+export interface ProfessionModuleDataOptions<TContext extends object, TSkill extends Skill = Skill> {
+  readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
+  readonly extraSkills?: readonly TSkill[];
+  readonly balanceProfiles?: readonly BalanceProfile[];
+  readonly handlers?:
+    | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
+    | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
+}
+
+export type ProfessionWeaponHand = 'mh' | 'oh' | 'mh+oh' | '2h';
+
+export interface ProfessionWeaponData {
+  readonly weapons: readonly string[];
+  readonly weaponHands: Readonly<Record<string, ProfessionWeaponHand>>;
+}
+
+/**
+ * Defines the weapon catalog for a profession from a single source of truth.
+ *
+ * Object key insertion order determines the resulting `weapons` ordering.
+ */
+export function defineProfessionWeapons<const TWeaponHands extends Readonly<Record<string, ProfessionWeaponHand>>>(
+  weaponHands: TWeaponHands
+): ProfessionWeaponData {
+  const frozenWeaponHands = Object.freeze({
+    ...weaponHands
+  });
+
+  return Object.freeze({
+    weapons: Object.freeze(Object.keys(frozenWeaponHands)),
+    weaponHands: frozenWeaponHands
+  });
+}
 
 export interface FlipSkillLike {
   readonly id: SkillId;
@@ -70,21 +110,6 @@ export function createFlipParentMap<TSkill extends FlipSkillLike>(
 
 /**
  * Converts specialization mechanic maps into specialization-only skill lists.
- *
- * Example:
- *
- * {
- *   Berserker: {
- *     123: {...},
- *     456: {...}
- *   }
- * }
- *
- * becomes:
- *
- * {
- *   Berserker: [123, 456]
- * }
  */
 export function createSpecializationSkillIds<TMechanic>(
   mechanicsBySpecialization: Readonly<Record<string, Readonly<Record<string, TMechanic>>>>

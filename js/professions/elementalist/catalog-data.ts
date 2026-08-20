@@ -1,4 +1,6 @@
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
+import { defineProfessionWeapons } from '../lib/catalog-data.js';
+import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import {
   SKILLS as ELEMENTALIST_API_SKILLS,
   SPECIALIZATIONS as ELEMENTALIST_API_SPECIALIZATIONS
@@ -6,15 +8,7 @@ import {
 import { ELEMENTALIST_SKILL_IDS as ID } from './data/ids.js';
 import { ELEMENTALIST_API_SKILL_ID_OVERRIDES, ELEMENTALIST_LOADOUT_SKILL_IDS } from './data/skill-identities.js';
 import { TRAITS } from './data/traits-data.js';
-import type {
-  BalanceProfile,
-  CatalogEntity,
-  SchedulerRecord,
-  Skill,
-  SkillEffect,
-  SkillFragment,
-  SkillHandlerStrategy
-} from '../../platform/engine/types.js';
+import type { CatalogEntity, SchedulerRecord, Skill, SkillEffect, SkillFragment } from '../../platform/engine/types.js';
 import type { ElementalistCastContext } from './types.js';
 import { ELEMENTALIST_SKILL_MECHANICS } from './mechanics/skill-mechanics.js';
 
@@ -47,6 +41,7 @@ const SKILL_ICON_OVERRIDES = new Map<string, string>([
   ['Haboob', 'https://render.guildwars2.com/file/562F2D0ED67AD8453F9CA60F27DB154F2E7543FC/3379098.png'],
   ['Dodge', 'https://wiki.guildwars2.com/images/b/b2/Dodge.png']
 ]);
+
 const SKILL_NAME_ALIASES = new Map<string, string>([['Frozen Grounds', 'Frozen Ground']]);
 const API_SKILLS_BY_NAME = new Map(ELEMENTALIST_API_SKILLS.map((skill) => [skill.name, skill]));
 const API_SKILLS_BY_ID = new Map(ELEMENTALIST_API_SKILLS.map((skill) => [Number(skill.id), skill]));
@@ -66,10 +61,6 @@ export const ELEMENTALIST_SMALL_HITBOX_CAPS: ReadonlyMap<string, number> = new M
   ['Fiery Whirl', 4]
 ]);
 
-/**
- * Numbers correlated strike and condition packets so a target-size rule can
- * exclude every packet above the skill's small-hitbox cap.
- */
 function hitboxMetadata(hitIndex: number, smallHitboxCap: number) {
   return {
     hitboxIndex: hitIndex,
@@ -80,12 +71,15 @@ function hitboxMetadata(hitIndex: number, smallHitboxCap: number) {
 function withSmallHitboxCap(skill: Skill, smallHitboxCap: number): readonly SkillEffect[] {
   let hitIndex = 0;
   let lastStrikeIndices: number[] = [];
+
   return (skill.effects || []).map((effect) => {
     if (effect.type === 'strike') {
       const hitCount = Array.isArray(effect.ticks)
         ? effect.ticks.length
         : Math.max(1, Math.trunc(Number(effect.hits || 1)));
+
       lastStrikeIndices = Array.from({ length: hitCount }, () => (hitIndex += 1));
+
       if (Array.isArray(effect.ticks)) {
         return {
           ...effect,
@@ -112,7 +106,10 @@ function withSmallHitboxCap(skill: Skill, smallHitboxCap: number): readonly Skil
       };
     }
 
-    if (!lastStrikeIndices.length) return effect;
+    if (!lastStrikeIndices.length) {
+      return effect;
+    }
+
     if (Array.isArray(effect.ticks) && effect.ticks.length === lastStrikeIndices.length) {
       return {
         ...effect,
@@ -165,7 +162,9 @@ function withLargeWildfireDuration(skill: Skill): readonly SkillEffect[] {
             condition: 'Burning',
             stacks: 1,
             duration: 3,
-            metadata: { largeHitboxOnly: true }
+            metadata: {
+              largeHitboxOnly: true
+            }
           }))
         ]
       };
@@ -176,7 +175,10 @@ function withLargeWildfireDuration(skill: Skill): readonly SkillEffect[] {
 }
 
 function withHammerOrbPackets(skill: Skill): Skill {
-  if (!HAMMER_ORB_PACKET_SKILLS.has(skill.name)) return skill;
+  if (!HAMMER_ORB_PACKET_SKILLS.has(skill.name)) {
+    return skill;
+  }
+
   return {
     ...skill,
     effects: (skill.effects || []).map((effect) => {
@@ -185,20 +187,30 @@ function withHammerOrbPackets(skill: Skill): Skill {
       }
 
       const [packet] = effect.ticks;
+
       return {
         ...effect,
-        ticks: Array.from({ length: HAMMER_ORB_PACKET_COUNT }, (_, index) => ({
-          ...packet,
-          atMs: (index + 1) * 1000
-        }))
+        ticks: Array.from(
+          {
+            length: HAMMER_ORB_PACKET_COUNT
+          },
+          (_, index) => ({
+            ...packet,
+            atMs: (index + 1) * 1000
+          })
+        )
       } as SkillEffect;
     })
   };
 }
 
 function withElementalRuntimeProfiles(skill: Skill): Skill {
-  if (!skill.name.startsWith('Glyph of Elementals')) return skill;
+  if (!skill.name.startsWith('Glyph of Elementals')) {
+    return skill;
+  }
+
   const { quicknessCastTimeMs: _generatedCast, ...withoutGeneratedCast } = skill;
+
   return {
     ...withoutGeneratedCast,
     castTimeMs: 1250,
@@ -209,6 +221,7 @@ function withElementalRuntimeProfiles(skill: Skill): Skill {
 
 function withElementalistHitboxBehavior(skill: Skill): Skill {
   const withHammerPackets = withHammerOrbPackets(skill);
+
   const withLargeDuration =
     withHammerPackets.name === 'Wildfire'
       ? {
@@ -216,7 +229,9 @@ function withElementalistHitboxBehavior(skill: Skill): Skill {
           effects: withLargeWildfireDuration(withHammerPackets)
         }
       : withHammerPackets;
+
   const smallHitboxCap = ELEMENTALIST_SMALL_HITBOX_CAPS.get(withHammerPackets.name);
+
   return smallHitboxCap == null
     ? withLargeDuration
     : {
@@ -227,8 +242,11 @@ function withElementalistHitboxBehavior(skill: Skill): Skill {
 
 function apiSkill(name: string): Skill | undefined {
   const alias = SKILL_NAME_ALIASES.get(name);
+
   const base = name.replace(/\s*\(.*\)$/, '');
+
   const candidates = [alias, name, base, `“${name}”`, `"${name}"`, `${name}!`, `“${base}”`, `"${base}"`];
+
   return candidates
     .filter((candidate): candidate is string => Boolean(candidate))
     .map((candidate) => API_SKILLS_BY_NAME.get(candidate))
@@ -238,7 +256,15 @@ function apiSkill(name: string): Skill | undefined {
 const ELEMENTALIST_DECLARED_SKILLS: readonly Skill[] = Object.freeze(
   Object.values(ID).flatMap((id) => {
     const declaration = ELEMENTALIST_SKILL_MECHANICS[id];
-    return declaration ? [{ ...declaration, id } as Skill] : [];
+
+    return declaration
+      ? [
+          {
+            ...declaration,
+            id
+          } as Skill
+        ]
+      : [];
   })
 );
 
@@ -246,33 +272,51 @@ const generated: readonly Skill[] = Object.freeze(
   ELEMENTALIST_DECLARED_SKILLS.map(withElementalistHitboxBehavior)
     .map(withElementalRuntimeProfiles)
     .map((skill) => {
-      // Stable IDs are the authoritative metadata join. Explicit roots retain
-      // metadata for simulator-only or attunement-specific projections.
       const skillId = Number(skill.id);
+
       const apiSkillId = ELEMENTALIST_API_SKILL_ID_OVERRIDES.get(skillId) ?? skillId;
+
       const loadoutSkillId = ELEMENTALIST_LOADOUT_SKILL_IDS.get(skillId);
+
       const metadata =
         API_SKILLS_BY_ID.get(apiSkillId) ||
         (loadoutSkillId == null ? undefined : API_SKILLS_BY_ID.get(loadoutSkillId)) ||
         apiSkill(skill.name);
+
       const selectionName = skill.name.replace(ATTUNEMENT_VARIANT_PATTERN, '');
+
       const isAttunementSlotVariant =
         SLOT_SKILL_TYPES.has(String(skill.type)) && Boolean(skill.attunement) && selectionName !== skill.name;
+
       return {
         ...skill,
         ...(apiSkillId === skillId ? {} : { apiSkillId }),
         ...(loadoutSkillId == null ? {} : { loadoutSkillId }),
         ...(skill.type === 'Weapon' && String(skill.attunement || '').includes('+')
-          ? { specialization: 'Weaver' }
+          ? {
+              specialization: 'Weaver'
+            }
           : {}),
         ...(isAttunementSlotVariant
           ? {
               displayName: selectionName
             }
           : {}),
-        ...(skill.name === 'Tailored Victory' ? { slotSelectable: false } : {}),
-        ...(skill.name === 'Dodge' ? { paletteAction: true } : {}),
-        ...(metadata?.description ? { description: metadata.description } : {}),
+        ...(skill.name === 'Tailored Victory'
+          ? {
+              slotSelectable: false
+            }
+          : {}),
+        ...(skill.name === 'Dodge'
+          ? {
+              paletteAction: true
+            }
+          : {}),
+        ...(metadata?.description
+          ? {
+              description: metadata.description
+            }
+          : {}),
         ...(skill.name === 'Glyph of Elementals'
           ? {
               displayName: 'Glyph of Elementals (Fire)',
@@ -292,6 +336,7 @@ const generated: readonly Skill[] = Object.freeze(
 const FINALIZED_SKILL_MECHANICS_BY_ID = new Map(
   generated.map((skill) => {
     const { id, ...mechanics } = skill;
+
     return [Number(id), mechanics] as const;
   })
 );
@@ -303,6 +348,7 @@ function finalizedSkillMechanics(
     Object.fromEntries(
       Object.keys(declarations).map((id) => {
         const mechanics = FINALIZED_SKILL_MECHANICS_BY_ID.get(Number(id));
+
         if (!mechanics) {
           throw new TypeError(`Unknown Elementalist skill declaration ${id}.`);
         }
@@ -315,10 +361,13 @@ function finalizedSkillMechanics(
 
 function circularElementalistAutoattackChains(): readonly (readonly number[])[] {
   const skillsById = new Map(generated.map((skill) => [Number(skill.id), skill]));
+
   const visited = new Set<number>();
   const chains: number[][] = [];
+
   for (const root of generated) {
     const rootId = Number(root.id);
+
     if (
       visited.has(rootId) ||
       root.type !== 'Weapon' ||
@@ -331,16 +380,25 @@ function circularElementalistAutoattackChains(): readonly (readonly number[])[] 
 
     const chain: number[] = [];
     const path = new Set<number>();
+
     let current: Skill | undefined = root;
+
     while (current && !path.has(Number(current.id))) {
       const id = Number(current.id);
+
       path.add(id);
       chain.push(id);
+
       current = current.nextChainId == null ? undefined : skillsById.get(Number(current.nextChainId));
     }
 
-    for (const id of path) visited.add(id);
-    if (current?.id === root.id && chain.length > 1) chains.push(chain);
+    for (const id of path) {
+      visited.add(id);
+    }
+
+    if (current?.id === root.id && chain.length > 1) {
+      chains.push(chain);
+    }
   }
 
   return Object.freeze(chains.map((chain) => Object.freeze(chain)));
@@ -355,10 +413,10 @@ function circularElementalistAutoattackChains(): readonly (readonly number[])[] 
 const AERIAL_AGILITY_CHAIN = Object.freeze(
   [ID.AERIAL_AGILITY, ID.AERIAL_AGILITY_CHAIN, ID.AERIAL_AGILITY_DASH].map(Number)
 );
+
 const AUTOATTACK_CHAINS = Object.freeze([...circularElementalistAutoattackChains(), AERIAL_AGILITY_CHAIN]);
 
-const WEAPONS = Object.freeze(['Dagger', 'Focus', 'Hammer', 'Pistol', 'Scepter', 'Spear', 'Staff', 'Sword', 'Warhorn']);
-const WEAPON_HANDS = Object.freeze({
+const WEAPON_DATA = defineProfessionWeapons({
   Dagger: 'mh+oh',
   Focus: 'oh',
   Hammer: '2h',
@@ -370,17 +428,9 @@ const WEAPON_HANDS = Object.freeze({
   Warhorn: 'oh'
 });
 
-interface ElementalistModuleDataOptions<TContext extends object> {
-  readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
-  readonly extraSkills?: readonly Skill[];
-  readonly balanceProfiles?: readonly BalanceProfile[];
-  readonly handlers?:
-    ReadonlyMap<string, SkillHandlerStrategy<TContext>> | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
-}
-
 export function createElementalistModuleData<TContext extends object = ElementalistCastContext>(
   id: string,
-  { skillMechanics, extraSkills = [], balanceProfiles = [], handlers }: ElementalistModuleDataOptions<TContext>
+  { skillMechanics, extraSkills = [], balanceProfiles = [], handlers }: ProfessionModuleDataOptions<TContext>
 ) {
   return createNativeModuleData({
     id,
@@ -393,8 +443,7 @@ export function createElementalistModuleData<TContext extends object = Elemental
     specializations: ELEMENTALIST_API_SPECIALIZATIONS,
     ...(id === 'Core'
       ? {
-          weapons: WEAPONS,
-          weaponHands: WEAPON_HANDS,
+          ...WEAPON_DATA,
           autoattackChains: {
             additional: AUTOATTACK_CHAINS
           }

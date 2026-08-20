@@ -2,8 +2,10 @@ import { createNativeModuleData } from '../../platform/gw2/native-profession.js'
 import {
   createFlipParentMap,
   createSpecializationSkillIds,
-  createSpecializationSkillOwners
+  createSpecializationSkillOwners,
+  defineProfessionWeapons
 } from '../lib/catalog-data.js';
+import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/warrior-api-metadata.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from './data/warrior-supplemental-skills.js';
 import { TRAITS } from './data/traits-data.js';
@@ -12,14 +14,7 @@ import { BERSERKER_SKILL_MECHANICS } from './specializations/berserker/skills.js
 import { SPELLBREAKER_SKILL_MECHANICS } from './specializations/spellbreaker/skills.js';
 import { BLADESWORN_SKILL_MECHANICS } from './specializations/bladesworn/skills.js';
 import { PARAGON_SKILL_MECHANICS } from './specializations/paragon/skills.js';
-import type {
-  CatalogEntity,
-  BalanceProfile,
-  Skill,
-  SkillFragment,
-  SkillHandlerStrategy,
-  SkillId
-} from '../../platform/engine/types.js';
+import type { CatalogEntity, Skill, SkillId } from '../../platform/engine/types.js';
 import type { NativeAutoattackChains } from '../../platform/gw2/native-profession.js';
 
 export const WARRIOR_NON_DPS_SKILL_NAMES = Object.freeze(new Set<string>());
@@ -80,6 +75,7 @@ const generated: readonly Skill[] = Object.freeze(
     const canonicalId = canonicalIdByName.get(skill.name)!;
     const maximumAmmo = Number(skill.ammo || 0);
     const ammoRecharge = Number(skill.ammoRecharge || 0);
+
     const cooldown =
       maximumAmmo > 0
         ? Number(ammoRecharge || skill.cooldown || legacyRecharge || 0)
@@ -97,7 +93,9 @@ const generated: readonly Skill[] = Object.freeze(
       ...((canonicalId !== skill.id && !WARRIOR_AUTHORABLE_RUNTIME_ALIAS_IDS.has(skill.id)) ||
       WARRIOR_SIMULATOR_EXCLUDED_SKILL_IDS.has(Number(skill.id)) ||
       WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS.has(skill.id)
-        ? { patchAuthoringExcluded: true }
+        ? {
+            patchAuthoringExcluded: true
+          }
         : {}),
       implemented: false,
       effects: []
@@ -113,25 +111,10 @@ const SPECIALIZATION_MECHANICS = Object.freeze({
 });
 
 const SPECIALIZATION_ONLY_SKILLS = createSpecializationSkillIds(SPECIALIZATION_MECHANICS);
-const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
-const WEAPONS = Object.freeze([
-  'Axe',
-  'Dagger',
-  'Greatsword',
-  'Hammer',
-  'Longbow',
-  'Mace',
-  'Pistol',
-  'Rifle',
-  'Shield',
-  'Spear',
-  'Staff',
-  'Sword',
-  'Torch',
-  'Warhorn'
-]);
 
-const WEAPON_HANDS = Object.freeze({
+const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
+
+const WEAPON_DATA = defineProfessionWeapons({
   Axe: 'mh+oh',
   Dagger: 'mh+oh',
   Greatsword: '2h',
@@ -148,13 +131,7 @@ const WEAPON_HANDS = Object.freeze({
   Warhorn: 'oh'
 });
 
-interface WarriorModuleDataOptions<TContext extends object> {
-  readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
-  readonly balanceProfiles?: readonly BalanceProfile[];
-  readonly extraSkills?: readonly Skill[];
-  readonly handlers?:
-    | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
-    | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
+interface WarriorModuleDataOptions<TContext extends object> extends ProfessionModuleDataOptions<TContext> {
   readonly autoattackChains?: NativeAutoattackChains;
 }
 
@@ -193,12 +170,7 @@ export function createWarriorModuleData<TContext extends object>(
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
     specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
-    ...(id === 'Core'
-      ? {
-          weapons: WEAPONS,
-          weaponHands: WEAPON_HANDS
-        }
-      : {}),
+    ...(id === 'Core' ? WEAPON_DATA : {}),
     ...(autoattackChains ? { autoattackChains } : {})
   });
 }

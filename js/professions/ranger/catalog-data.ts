@@ -1,24 +1,20 @@
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
-import { createFlipParentMap, createSpecializationSkillOwners } from '../lib/catalog-data.js';
+import { createFlipParentMap, createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
+import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/ranger-api-metadata.js';
 import { RANGER_PET_SKILLS } from './data/ranger-pet-data.js';
 import { RANGER_SKILL_IDS as ID } from './data/ids.js';
 import { RANGER_SUPPLEMENTAL_SKILLS } from './data/ranger-supplemental-skills.js';
 import { TRAITS } from './data/traits-data.js';
 import { isRangerHammerVariant } from './core/hammer.js';
-import type {
-  BalanceProfile,
-  CatalogEntity,
-  SkillFragment,
-  SkillHandlerStrategy,
-  SkillId
-} from '../../platform/engine/types.js';
+import type { CatalogEntity, SkillId } from '../../platform/engine/types.js';
 import type { RangerSkill } from './types.js';
 
 const petSkillIds = new Set<SkillId>(RANGER_PET_SKILLS.map((skill) => skill.id));
 const apiSkills = SKILLS as readonly RangerSkill[];
 const petSkills = RANGER_PET_SKILLS as readonly RangerSkill[];
 const allSkills = [...apiSkills, ...petSkills, ...RANGER_SUPPLEMENTAL_SKILLS];
+
 const simulatorExcludedSkillIds = new Set<SkillId>([ID.BEES_STING, ID.EXPLODING_SPORE, ID.WUTHERING_WIND]);
 
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
@@ -106,27 +102,16 @@ function normalize(skill: RangerSkill): RangerSkill {
 const generated = allSkills.map((skill) => ({
   ...normalize(skill),
   simulatorExcluded: simulatorExcludedSkillIds.has(skill.id),
-  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id) ? { patchAuthoringExcluded: true } : {}),
+  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
+    ? {
+        patchAuthoringExcluded: true
+      }
+    : {}),
   implemented: false,
   effects: []
 }));
 
-const WEAPONS = Object.freeze([
-  'Axe',
-  'Dagger',
-  'Greatsword',
-  'Hammer',
-  'Longbow',
-  'Mace',
-  'Shortbow',
-  'Spear',
-  'Staff',
-  'Sword',
-  'Torch',
-  'Warhorn'
-]);
-
-const WEAPON_HANDS = Object.freeze({
+const WEAPON_DATA = defineProfessionWeapons({
   Axe: 'mh+oh',
   Dagger: 'mh+oh',
   Greatsword: '2h',
@@ -141,21 +126,14 @@ const WEAPON_HANDS = Object.freeze({
   Warhorn: 'oh'
 });
 
-interface RangerModuleDataOptions<TContext extends object> {
-  readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
-
-  readonly extraSkills?: readonly RangerSkill[];
-
-  readonly balanceProfiles?: readonly BalanceProfile[];
-
-  readonly handlers?:
-    | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
-    | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
-}
-
 export function createRangerModuleData<TContext extends object>(
   id: string,
-  { skillMechanics, extraSkills = [], balanceProfiles = [], handlers }: RangerModuleDataOptions<TContext>
+  {
+    skillMechanics,
+    extraSkills = [],
+    balanceProfiles = [],
+    handlers
+  }: ProfessionModuleDataOptions<TContext, RangerSkill>
 ) {
   return createNativeModuleData({
     id,
@@ -168,11 +146,6 @@ export function createRangerModuleData<TContext extends object>(
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
     specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
-    ...(id === 'Core'
-      ? {
-          weapons: WEAPONS,
-          weaponHands: WEAPON_HANDS
-        }
-      : {})
+    ...(id === 'Core' ? WEAPON_DATA : {})
   });
 }

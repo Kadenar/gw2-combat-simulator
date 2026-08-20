@@ -1,17 +1,11 @@
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
-import { createFlipParentMap, createSpecializationSkillOwners } from '../lib/catalog-data.js';
+import { createFlipParentMap, createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
+import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/necromancer-api-metadata.js';
 import { NECROMANCER_SKILL_IDS as ID } from './data/ids.js';
 import { NECROMANCER_SUPPLEMENTAL_SKILLS } from './data/necromancer-supplemental-skills.js';
 import { TRAITS } from './data/traits-data.js';
-import type {
-  BalanceProfile,
-  CatalogEntity,
-  Skill,
-  SkillFragment,
-  SkillHandlerStrategy,
-  SkillId
-} from '../../platform/engine/types.js';
+import type { CatalogEntity, Skill, SkillFragment, SkillId } from '../../platform/engine/types.js';
 import type { NativeAutoattackChains } from '../../platform/gw2/native-profession.js';
 
 export const NECROMANCER_NON_DPS_SKILL_NAMES = Object.freeze(
@@ -79,7 +73,11 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
     simulatorAliasOfId: canonicalAliasId && canonicalAliasId !== skill.id ? canonicalAliasId : null,
     simulatorExcluded:
       NECROMANCER_NON_DPS_SKILL_NAMES.has(skill.name) || Boolean(canonicalAliasId && canonicalAliasId !== skill.id),
-    ...(NECROMANCER_NON_DPS_SKILL_NAMES.has(skill.name) ? { patchAuthoringExcluded: true } : {}),
+    ...(NECROMANCER_NON_DPS_SKILL_NAMES.has(skill.name)
+      ? {
+          patchAuthoringExcluded: true
+        }
+      : {}),
     implemented: false,
     effects: []
   };
@@ -91,21 +89,7 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
 
 const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 
-const WEAPONS = Object.freeze([
-  'Axe',
-  'Dagger',
-  'Focus',
-  'Greatsword',
-  'Pistol',
-  'Scepter',
-  'Spear',
-  'Staff',
-  'Sword',
-  'Torch',
-  'Warhorn'
-]);
-
-const WEAPON_HANDS = Object.freeze({
+const WEAPON_DATA = defineProfessionWeapons({
   Axe: 'mh',
   Dagger: 'mh+oh',
   Focus: 'oh',
@@ -119,17 +103,7 @@ const WEAPON_HANDS = Object.freeze({
   Warhorn: 'oh'
 });
 
-interface NecromancerModuleDataOptions {
-  readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
-
-  readonly extraSkills?: readonly Skill[];
-
-  readonly balanceProfiles?: readonly BalanceProfile[];
-
-  readonly handlers?:
-    | ReadonlyMap<string, SkillHandlerStrategy<never>>
-    | Readonly<Record<string, SkillHandlerStrategy<never>>>;
-
+interface NecromancerModuleDataOptions extends ProfessionModuleDataOptions<never> {
   readonly autoattackChains?: NativeAutoattackChains;
 }
 
@@ -174,12 +148,7 @@ export function createNecromancerModuleData(
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
     specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
-    ...(id === 'Core'
-      ? {
-          weapons: WEAPONS,
-          weaponHands: WEAPON_HANDS
-        }
-      : {}),
+    ...(id === 'Core' ? WEAPON_DATA : {}),
     ...(autoattackChains ? { autoattackChains } : {})
   });
 }

@@ -1,19 +1,14 @@
 import { flattenProfessionState } from '../../platform/engine/profession.js';
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
-import { createFlipParentMap, createSpecializationSkillOwners } from '../lib/catalog-data.js';
+import { createFlipParentMap, createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
+import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/thief-api-metadata.js';
 import { THIEF_SKILL_IDS as ID } from './data/ids.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from './data/thief-supplemental-skills.js';
 import { TRAITS } from './data/traits-data.js';
 import { spearChainStageForSkill } from './core/conditions.js';
 import { thiefWeaponSkillMatchesSet as thiefCoreWeaponSkillMatchesSet } from './core/weapons.js';
-import type {
-  BalanceProfile,
-  CatalogEntity,
-  SkillFragment,
-  SkillHandlerStrategy,
-  SkillId
-} from '../../platform/engine/types.js';
+import type { CatalogEntity, SkillId } from '../../platform/engine/types.js';
 import type { ThiefSkill, ThiefState, ThiefWeaponMatcherContext } from './types.js';
 
 export function thiefWeaponSkillMatchesSet(
@@ -102,7 +97,9 @@ function scepterAutoattackMetadata(skill: ThiefSkill): Partial<ThiefSkill> {
 function spearWeaponBarMetadata(skill: ThiefSkill): Partial<ThiefSkill> {
   const stage = spearChainStageForSkill(skill.id);
 
-  if (stage == null) return {};
+  if (stage == null) {
+    return {};
+  }
 
   return {
     weaponBarChainRootId: skill.slot === 'Weapon_2' ? ID.MANTIS_STING : ID.UNSUSPECTING_STRIKE,
@@ -213,11 +210,8 @@ const supplementalSource: readonly ThiefSkill[] = THIEF_SUPPLEMENTAL_SKILLS.filt
 );
 
 const allDeclared = [...generatedSource, ...supplementalSource];
-
 const declaredIds = new Set(allDeclared.map((skill) => skill.id));
-
 const flipParentById = createFlipParentMap(allDeclared);
-
 const normalize = (skill: ThiefSkill): ThiefSkill => ({
   ...skill,
   ...scepterAutoattackMetadata(skill),
@@ -231,19 +225,31 @@ const normalize = (skill: ThiefSkill): ThiefSkill => ({
   dualWieldOpener: Object.hasOwn(DUAL_FOLLOWUP_BY_PARENT, skill.id),
   dualWieldFollowup: DUAL_FOLLOWUP_IDS.has(skill.id),
   flipDuration: WEAPON_FLIP_DURATION_BY_PARENT[Number(skill.id)] ?? skill.flipDuration,
-  ...(Number(skill.initiativeCost || 0) > 0 ? { resource: 'initiative' } : {})
+  ...(Number(skill.initiativeCost || 0) > 0
+    ? {
+        resource: 'initiative'
+      }
+    : {})
 });
 
 const generated: readonly ThiefSkill[] = generatedSource.map((skill) => ({
   ...normalize(skill),
   implemented: false,
   effects: [],
-  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id) ? { patchAuthoringExcluded: true } : {})
+  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
+    ? {
+        patchAuthoringExcluded: true
+      }
+    : {})
 }));
 
 const supplemental: readonly ThiefSkill[] = supplementalSource.map((skill) => ({
   ...normalize(skill),
-  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id) ? { patchAuthoringExcluded: true } : {})
+  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
+    ? {
+        patchAuthoringExcluded: true
+      }
+    : {})
 }));
 
 const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> = Object.freeze({
@@ -277,9 +283,7 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
 
 const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 
-const WEAPONS = Object.freeze(['Axe', 'Dagger', 'Pistol', 'Rifle', 'Scepter', 'Shortbow', 'Spear', 'Staff', 'Sword']);
-
-const WEAPON_HANDS = Object.freeze({
+const WEAPON_DATA = defineProfessionWeapons({
   Axe: 'mh',
   Dagger: 'mh+oh',
   Pistol: 'mh+oh',
@@ -291,21 +295,14 @@ const WEAPON_HANDS = Object.freeze({
   Sword: 'mh'
 });
 
-interface ThiefModuleDataOptions<TContext extends object> {
-  readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
-
-  readonly extraSkills?: readonly ThiefSkill[];
-
-  readonly balanceProfiles?: readonly BalanceProfile[];
-
-  readonly handlers?:
-    | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
-    | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
-}
-
 export function createThiefModuleData<TContext extends object>(
   id: string,
-  { skillMechanics, extraSkills = [], balanceProfiles = [], handlers }: ThiefModuleDataOptions<TContext>
+  {
+    skillMechanics,
+    extraSkills = [],
+    balanceProfiles = [],
+    handlers
+  }: ProfessionModuleDataOptions<TContext, ThiefSkill>
 ) {
   const terrestrialMechanics = Object.fromEntries(
     Object.entries(skillMechanics)
@@ -340,11 +337,6 @@ export function createThiefModuleData<TContext extends object>(
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
     specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
-    ...(id === 'Core'
-      ? {
-          weapons: WEAPONS,
-          weaponHands: WEAPON_HANDS
-        }
-      : {})
+    ...(id === 'Core' ? WEAPON_DATA : {})
   });
 }

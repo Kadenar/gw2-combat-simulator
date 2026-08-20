@@ -1,19 +1,13 @@
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
-import { createSpecializationSkillOwners } from '../lib/catalog-data.js';
+import { createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
+import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/mesmer-api-metadata.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from './data/mesmer-supplemental-skills.js';
 import { MESMER_SKILL_IDS as ID } from './data/ids.js';
 import { defaultMesmerLegacySkillId, MESMER_DUPLICATE_SKILL_NAMES } from './data/legacy-skill-resolver.js';
 import { TRAITS } from './data/traits-data.js';
 import { MESMER_FLIP_PARENT_BY_CHILD_ID, prepareMesmerSkillForCatalog } from './mechanics/handler-mechanics.js';
-import type {
-  BalanceProfile,
-  CatalogEntity,
-  Skill,
-  SkillFragment,
-  SkillHandlerStrategy,
-  SkillId
-} from '../../platform/engine/types.js';
+import type { CatalogEntity, Skill, SkillFragment, SkillId } from '../../platform/engine/types.js';
 import type { NativeCatalogOptions } from '../../platform/gw2/native-profession.js';
 
 const generated: readonly Skill[] = [...SKILLS, ...MESMER_SUPPLEMENTAL_SKILLS].map((skill) => ({
@@ -40,22 +34,7 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
 
 const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 
-const WEAPONS = Object.freeze([
-  'Axe',
-  'Dagger',
-  'Focus',
-  'Greatsword',
-  'Pistol',
-  'Rifle',
-  'Scepter',
-  'Shield',
-  'Spear',
-  'Staff',
-  'Sword',
-  'Torch'
-]);
-
-const WEAPON_HANDS = Object.freeze({
+const WEAPON_DATA = defineProfessionWeapons({
   Axe: 'mh',
   Dagger: 'mh',
   Focus: 'oh',
@@ -83,18 +62,8 @@ export const MESMER_NATIVE_CATALOG_OPTIONS: NativeCatalogOptions = Object.freeze
   )
 });
 
-interface MesmerModuleDataOptions<TContext extends object> {
-  readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
-
+interface MesmerModuleDataOptions<TContext extends object> extends ProfessionModuleDataOptions<TContext> {
   readonly supplementalSkillMechanics?: Readonly<Record<string, SkillFragment>>;
-
-  readonly extraSkills?: readonly Skill[];
-
-  readonly balanceProfiles?: readonly BalanceProfile[];
-
-  readonly handlers?:
-    | ReadonlyMap<string, SkillHandlerStrategy<TContext>>
-    | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
 }
 
 function prepareMechanics(mechanics: Readonly<Record<string, SkillFragment>>): Readonly<Record<string, SkillFragment>> {
@@ -165,11 +134,6 @@ export function createMesmerModuleData<TContext extends object>(
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
     specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
-    ...(id === 'Core'
-      ? {
-          weapons: WEAPONS,
-          weaponHands: WEAPON_HANDS
-        }
-      : {})
+    ...(id === 'Core' ? WEAPON_DATA : {})
   });
 }

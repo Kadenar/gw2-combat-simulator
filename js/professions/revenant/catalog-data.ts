@@ -1,17 +1,11 @@
 import { createNativeModuleData } from '../../platform/gw2/native-profession.js';
-import { createFlipParentMap, createSpecializationSkillOwners } from '../lib/catalog-data.js';
+import { createFlipParentMap, createSpecializationSkillOwners, defineProfessionWeapons } from '../lib/catalog-data.js';
+import type { ProfessionModuleDataOptions } from '../lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from './data/revenant-api-metadata.js';
 import { REVENANT_SKILL_IDS as ID } from './data/ids.js';
 import { REVENANT_SUPPLEMENTAL_SKILLS } from './data/revenant-supplemental-skills.js';
 import { TRAITS } from './data/traits-data.js';
-import type {
-  BalanceProfile,
-  CatalogEntity,
-  Skill,
-  SkillFragment,
-  SkillHandlerStrategy,
-  SkillId
-} from '../../platform/engine/types.js';
+import type { CatalogEntity, Skill, SkillId } from '../../platform/engine/types.js';
 
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.DOME_OF_THE_MISTS,
@@ -49,7 +43,11 @@ const flipParentById = createFlipParentMap(allDeclared);
 const normalize = (skill: Skill): Skill => ({
   ...skill,
   simulatorExcluded: false,
-  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id) ? { patchAuthoringExcluded: true } : {}),
+  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
+    ? {
+        patchAuthoringExcluded: true
+      }
+    : {}),
   ...(skill.recharge == null && skill.ammoRecharge == null
     ? {}
     : {
@@ -91,20 +89,7 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
 
 const SPECIALIZATION_ONLY_SKILL_OWNERS = createSpecializationSkillOwners(SPECIALIZATION_ONLY_SKILLS);
 
-const WEAPONS = Object.freeze([
-  'Axe',
-  'Greatsword',
-  'Hammer',
-  'Mace',
-  'Scepter',
-  'Shield',
-  'Shortbow',
-  'Spear',
-  'Staff',
-  'Sword'
-]);
-
-const WEAPON_HANDS = Object.freeze({
+const WEAPON_DATA = defineProfessionWeapons({
   Axe: 'oh',
   Greatsword: '2h',
   Hammer: '2h',
@@ -117,21 +102,9 @@ const WEAPON_HANDS = Object.freeze({
   Sword: 'mh+oh'
 });
 
-interface RevenantModuleDataOptions {
-  readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
-
-  readonly extraSkills?: readonly Skill[];
-
-  readonly balanceProfiles?: readonly BalanceProfile[];
-
-  readonly handlers?:
-    | ReadonlyMap<string, SkillHandlerStrategy<never>>
-    | Readonly<Record<string, SkillHandlerStrategy<never>>>;
-}
-
 export function createRevenantModuleData(
   id: string,
-  { skillMechanics, extraSkills = [], balanceProfiles = [], handlers }: RevenantModuleDataOptions
+  { skillMechanics, extraSkills = [], balanceProfiles = [], handlers }: ProfessionModuleDataOptions<never>
 ) {
   return createNativeModuleData<never>({
     id,
@@ -145,11 +118,6 @@ export function createRevenantModuleData(
     specializations: SPECIALIZATIONS,
     specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
     specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
-    ...(id === 'Core'
-      ? {
-          weapons: WEAPONS,
-          weaponHands: WEAPON_HANDS
-        }
-      : {})
+    ...(id === 'Core' ? WEAPON_DATA : {})
   });
 }
